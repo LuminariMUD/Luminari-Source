@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOB Flags Reference - LuminariMUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        /* Header Navigation */
+        .header-nav {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: #7f8c8d;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+        }
+
+        /* Page Title */
+        .page-title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .page-subtitle {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+
+        /* Typography */
+        h2 {
+            color: #2c3e50;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        h4 {
+            color: #555;
+            margin-top: 18px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        /* Code Styling */
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', 'Consolas', monospace;
+            color: #e74c3c;
+            font-size: 0.9em;
+            border: 1px solid #e1e4e8;
+        }
+
+        pre {
+            background: #f6f8fa;
+            color: #24292e;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid #e1e4e8;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            color: #24292e;
+            padding: 0;
+            border: none;
+            font-size: 0.95em;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 6px;
+            margin-bottom: 35px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+            font-size: 1.4em;
+            border: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+            border: 1px solid #e1e4e8;
+        }
+
+        thead {
+            background: #f6f8fa;
+        }
+
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #24292e;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e1e4e8;
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: #f6f8fa;
+        }
+
+        /* Flag Sections */
+        .flag-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .flag-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.15em;
+        }
+
+        .flag-index {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .effect {
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .code-ref {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+
+        /* Alert Boxes */
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .note strong {
+            color: #856404;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #721c24;
+        }
+
+        .important {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .important strong {
+            color: #0c5460;
+        }
+
+        /* Category Badges */
+        .category-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-behavior { background: #e3f2fd; color: #1565c0; }
+        .badge-combat { background: #ffebee; color: #c62828; }
+        .badge-immunity { background: #f3e5f5; color: #7b1fa2; }
+        .badge-movement { background: #e8f5e9; color: #2e7d32; }
+        .badge-companion { background: #fff3e0; color: #ef6c00; }
+        .badge-ability { background: #fce4ec; color: #c2185b; }
+        .badge-system { background: #e0f2f1; color: #00695c; }
+        .badge-blocking { background: #f1f8e9; color: #558b2f; }
+        .badge-classification { background: #ede7f6; color: #5e35b1; }
+        .badge-environment { background: #ffe0b2; color: #e65100; }
+
+        /* Horizontal Rule */
+        hr {
+            border: none;
+            border-top: 1px solid #e1e4e8;
+            margin: 40px 0;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #3498db;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 50%;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: none;
+            font-size: 20px;
+            line-height: 1;
+            transition: background 0.3s;
+        }
+
+        .back-to-top:hover {
+            background: #2980b9;
+        }
+
+        /* Archetype Boxes */
+        .archetype-box {
+            background: #fff;
+            border: 2px solid #3498db;
+            padding: 18px;
+            margin: 18px 0;
+            border-radius: 6px;
+        }
+
+        .archetype-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e1e4e8;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .page-title {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            h3 {
+                font-size: 1.2em;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-nav">
+        <div class="nav-container">
+            <div class="breadcrumb">
+                <a href="https://luminarimud.github.io/Luminari-Source/web/index.html">🏠 Home</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="https://luminarimud.github.io/Luminari-Source/web/index.html#builder-guides">Builder Guides</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>MOB Flags Reference</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">MOB Flags Reference</h1>
+        <p class="page-subtitle">Complete reference for mobile behavior flags</p>
+        
+        <p>This document provides comprehensive information about all mobile flags (MOB_*) used in LuminariMUD. Mobile flags control NPC behaviors, abilities, restrictions, and special mechanics throughout the game world.</p>
+
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#basic-behavior">Basic Behavior Flags</a></li>
+                <li><a href="#aggression">Aggression & Alignment Flags</a></li>
+                <li><a href="#immunity">Immunity & Restriction Flags</a></li>
+                <li><a href="#movement">Movement & Blocking Flags</a></li>
+                <li><a href="#combat-helper">Combat Helper Flags</a></li>
+                <li><a href="#companion">Companion & Summoned Creature Flags</a></li>
+                <li><a href="#abilities">Special Ability Flags</a></li>
+                <li><a href="#system">System & Internal Flags</a></li>
+                <li><a href="#reference">Complete Flag Reference</a></li>
+                <li><a href="#guidelines">Usage Guidelines</a></li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="overview">Overview</h2>
+        <p>Mobile flags are bitflags defined in <code>src/structs.h</code> (lines 1131-1232) and are checked throughout the codebase using the <code>MOB_FLAGGED()</code> macro. There are currently <strong>101 mobile flags</strong> (indices 0-100) that control everything from basic AI behavior to special monster abilities.</p>
+
+        <p><strong>Usage Pattern:</strong></p>
+        <pre><code>if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
+    // Flag is set, apply behavior/restriction
+}</code></pre>
+
+        <hr>
+
+        <h2 id="basic-behavior">Basic Behavior Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_SPEC</span> <span class="flag-index">(Index: 0)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Indicates the mobile has a special procedure (spec-proc) attached.</p>
+            <ul>
+                <li>Special procedures provide custom scripted behaviors</li>
+                <li>Executed during mobile activity updates</li>
+                <li>Used for quest NPCs, shopkeepers, trainers, etc.</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> spec_procs.c, spec_assign.c</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_SENTINEL</span> <span class="flag-index">(Index: 1)</span> <span class="category-badge badge-behavior">Behavior</span></h3>
+            <p><span class="effect">Effect:</span> Mobile will not move from its current location.</p>
+            <ul>
+                <li>Prevents wandering and random movement</li>
+                <li>Mobile stays in its spawn location</li>
+                <li>Can still be dragged/summoned by magic</li>
+                <li>Used for stationary guards, shopkeepers, and landmark NPCs</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:397, 419, 431 | utils.c:7171</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_SCAVENGER</span> <span class="flag-index">(Index: 2)</span> <span class="category-badge badge-behavior">Behavior</span></h3>
+            <p><span class="effect">Effect:</span> Mobile picks up items from the ground.</p>
+            <ul>
+                <li>Randomly collects objects in the same room</li>
+                <li>1 in 10 chance per update cycle</li>
+                <li>Used for goblin looters, pack rats, etc.</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:162</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_AWARE</span> <span class="flag-index">(Index: 4)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be backstabbed or surprise attacked.</p>
+            <ul>
+                <li>Prevents backstab attacks from rogues</li>
+                <li>Blocks sneak attacks and similar abilities</li>
+                <li>Used for alert guards, paranoid NPCs, creatures with special senses</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> act.offensive.c:4076, 8940</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_WIMPY</span> <span class="flag-index">(Index: 7)</span> <span class="category-badge badge-behavior">Behavior</span></h3>
+            <p><span class="effect">Effect:</span> Mobile flees when severely injured.</p>
+            <ul>
+                <li>Automatically flees when HP drops below threshold</li>
+                <li>Used for cowardly creatures and civilians</li>
+                <li>Behavior similar to player wimpy setting</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> fight.c:5779 | mob_act.c:196</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_SENTIENT</span> <span class="flag-index">(Index: 19)</span> <span class="category-badge badge-classification">Classification</span></h3>
+            <p><span class="effect">Effect:</span> Marks mobile as sentient/intelligent.</p>
+            <ul>
+                <li>Used for intelligent creatures and humanoids</li>
+                <li>May affect certain spell interactions</li>
+                <li>Thematic flag for creature classification</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_LISTEN</span> <span class="flag-index">(Index: 34)</span> <span class="category-badge badge-behavior">Behavior</span></h3>
+            <p><span class="effect">Effect:</span> Mobile enters room if it hears fighting nearby.</p>
+            <ul>
+                <li>Responds to combat sounds in adjacent rooms</li>
+                <li>Used for reinforcement mechanics</li>
+                <li>Guards and aggressive creatures use this</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_LIT</span> <span class="flag-index">(Index: 35)</span> <span class="category-badge badge-environment">Environment</span></h3>
+            <p><span class="effect">Effect:</span> Mobile emits light.</p>
+            <ul>
+                <li>Acts as a light source in dark rooms</li>
+                <li>Creatures made of fire, glowing undead, etc.</li>
+                <li>Affects visibility calculations</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="aggression">Aggression & Alignment Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_AGGRESSIVE</span> <span class="flag-index">(Index: 5)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile automatically attacks all nearby characters.</p>
+            <ul>
+                <li>Attacks everyone who enters the room</li>
+                <li>Conflicts with MOB_HELPER flag</li>
+                <li>Used for hostile monsters and aggressive creatures</li>
+            </ul>
+            <div class="warning"><strong>Note:</strong> When set, MOB_HELPER is automatically removed to prevent conflicts.</div>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:221 | limits.c:2245 | db.c:3173-3177</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_AGGR_EVIL</span> <span class="flag-index">(Index: 8)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile attacks evil-aligned characters on sight.</p>
+            <ul>
+                <li>Only attacks players/NPCs with evil alignment</li>
+                <li>Requires MOB_AGGRESSIVE to also be set</li>
+                <li>Used for paladins, good-aligned guards</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_AGGR_GOOD</span> <span class="flag-index">(Index: 9)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile attacks good-aligned characters on sight.</p>
+            <ul>
+                <li>Only attacks players/NPCs with good alignment</li>
+                <li>Requires MOB_AGGRESSIVE to also be set</li>
+                <li>Used for demons, evil priests, undead</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_AGGR_NEUTRAL</span> <span class="flag-index">(Index: 10)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile attacks neutral-aligned characters on sight.</p>
+            <ul>
+                <li>Only attacks players/NPCs with neutral alignment</li>
+                <li>Requires MOB_AGGRESSIVE to also be set</li>
+                <li>Used for extremist NPCs</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="immunity">Immunity & Restriction Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOCHARM</span> <span class="flag-index">(Index: 13)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be charmed or mind-controlled.</p>
+            <ul>
+                <li>Blocks charm person, dominate, and similar spells</li>
+                <li>Used for strong-willed creatures, undead, constructs</li>
+                <li>Essential for boss monsters</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> spells.c:388 | spec_abilities.c:611, 622, 640, 1359</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOSUMMON</span> <span class="flag-index">(Index: 14)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be summoned or teleported.</p>
+            <ul>
+                <li>Prevents summon monster spells from bringing this mob</li>
+                <li>Blocks gate and similar effects</li>
+                <li>Used for bosses and unique creatures</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOSLEEP</span> <span class="flag-index">(Index: 15)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be put to sleep.</p>
+            <ul>
+                <li>Blocks sleep spells and effects</li>
+                <li>Used for elves, undead, constructs</li>
+                <li>Essential for creatures that don't sleep</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOBASH</span> <span class="flag-index">(Index: 16)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be bashed or knocked down.</p>
+            <ul>
+                <li>Prevents shield bash and similar attacks</li>
+                <li>Used for trees, huge creatures, incorporeal beings</li>
+                <li>Affects tactical combat options</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOBLIND</span> <span class="flag-index">(Index: 17)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be blinded.</p>
+            <ul>
+                <li>Blocks blindness spells and effects</li>
+                <li>Used for creatures with special vision (tremorsense, blindsight)</li>
+                <li>Oozes, creatures without eyes</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOKILL</span> <span class="flag-index">(Index: 18)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be attacked by players.</p>
+            <ul>
+                <li>Complete immunity to player attacks</li>
+                <li>Used for quest NPCs, essential storyline characters</li>
+                <li>Can still be damaged by environmental effects</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NODEAF</span> <span class="flag-index">(Index: 22)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be deafened.</p>
+            <ul>
+                <li>Blocks deafness effects</li>
+                <li>Used for creatures without hearing or magical entities</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOGRAPPLE</span> <span class="flag-index">(Index: 25)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be grappled or grabbed.</p>
+            <ul>
+                <li>Prevents grapple combat maneuvers</li>
+                <li>Used for incorporeal creatures, very large/small creatures</li>
+                <li>Affects melee combat tactics</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOCONFUSE</span> <span class="flag-index">(Index: 62)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be confused.</p>
+            <ul>
+                <li>Blocks confusion spells and effects</li>
+                <li>Used for mindless creatures, high-intelligence beings</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOPARALYZE</span> <span class="flag-index">(Index: 97)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be paralyzed.</p>
+            <ul>
+                <li>Blocks hold person, paralysis, and similar effects</li>
+                <li>Used for creatures immune to paralysis</li>
+                <li>Essential for certain creature types</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOSTEAL</span> <span class="flag-index">(Index: 37)</span> <span class="category-badge badge-immunity">Immunity</span></h3>
+            <p><span class="effect">Effect:</span> Mobile cannot be stolen from.</p>
+            <ul>
+                <li>Prevents pickpocket attempts</li>
+                <li>Used for important NPCs, alert guards</li>
+                <li>Protects quest items</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="movement">Movement & Blocking Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_STAY_ZONE</span> <span class="flag-index">(Index: 6)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Mobile will not wander outside its home zone.</p>
+            <ul>
+                <li>Restricts random movement to current zone</li>
+                <li>Prevents mobs from wandering into neighboring zones</li>
+                <li>Used for zone-specific creatures</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">Directional Blocking Flags</span> <span class="flag-index">(Index: 45-54)</span> <span class="category-badge badge-blocking">Blocking</span></h3>
+            <p><span class="effect">Effect:</span> Mobile physically blocks movement in specific directions.</p>
+            <ul>
+                <li><strong>MOB_BLOCK_N</strong> (45) - Blocks north</li>
+                <li><strong>MOB_BLOCK_E</strong> (46) - Blocks east</li>
+                <li><strong>MOB_BLOCK_S</strong> (47) - Blocks south</li>
+                <li><strong>MOB_BLOCK_W</strong> (48) - Blocks west</li>
+                <li><strong>MOB_BLOCK_NE</strong> (49) - Blocks northeast</li>
+                <li><strong>MOB_BLOCK_SE</strong> (50) - Blocks southeast</li>
+                <li><strong>MOB_BLOCK_SW</strong> (51) - Blocks southwest</li>
+                <li><strong>MOB_BLOCK_NW</strong> (52) - Blocks northwest</li>
+                <li><strong>MOB_BLOCK_U</strong> (53) - Blocks up</li>
+                <li><strong>MOB_BLOCK_D</strong> (54) - Blocks down</li>
+            </ul>
+            <p>Characters cannot pass through in the blocked direction unless they meet bypass conditions.</p>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:622-640</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">Blocking Exemption Flags</span> <span class="flag-index">(Index: 55-59, 90-92)</span> <span class="category-badge badge-blocking">Blocking</span></h3>
+            <p><span class="effect">Effect:</span> Define exemptions to directional blocking.</p>
+            <ul>
+                <li><strong>MOB_BLOCK_CLASS</strong> (55) - Allows same class to pass</li>
+                <li><strong>MOB_BLOCK_RACE</strong> (56) - Allows same race to pass</li>
+                <li><strong>MOB_BLOCK_LEVEL</strong> (57) - Allows lower levels to pass</li>
+                <li><strong>MOB_BLOCK_ALIGN</strong> (58) - Allows same alignment to pass</li>
+                <li><strong>MOB_BLOCK_ETHOS</strong> (59) - Allows same ethos to pass</li>
+                <li><strong>MOB_BLOCK_EVIL</strong> (90) - Specifically blocks evil</li>
+                <li><strong>MOB_BLOCK_NEUTRAL</strong> (91) - Specifically blocks neutral</li>
+                <li><strong>MOB_BLOCK_GOOD</strong> (92) - Specifically blocks good</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:643-661</p>
+        </div>
+
+        <hr>
+
+        <h2 id="combat-helper">Combat Helper Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_MEMORY</span> <span class="flag-index">(Index: 11)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile remembers characters who attack it.</p>
+            <ul>
+                <li>Tracks attackers even after combat ends</li>
+                <li>Will attack remembered enemies on sight</li>
+                <li>Memory persists until mob dies or memory is cleared</li>
+                <li>Used for intelligent creatures and guards</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_memory.c:31 | fight.c:5154, 5475, 12301 | graph.c:411</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_HELPER</span> <span class="flag-index">(Index: 12)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile assists other NPCs fighting against players.</p>
+            <ul>
+                <li>Jumps into combat to help fellow NPCs</li>
+                <li>Conflicts with MOB_AGGRESSIVE flag</li>
+                <li>Used for pack tactics and coordinated defense</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:190, 285, 291 | limits.c:2246</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_GUARD</span> <span class="flag-index">(Index: 31)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile protects citizens and assists them in combat.</p>
+            <ul>
+                <li>Specifically protects NPCs with MOB_CITIZEN flag</li>
+                <li>More selective than MOB_HELPER</li>
+                <li>Used for city guards and protectors</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:285, 290, 311, 313 | missions.c:511, 633, 732</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_CITIZEN</span> <span class="flag-index">(Index: 32)</span> <span class="category-badge badge-classification">Classification</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is protected by guards.</p>
+            <ul>
+                <li>Guards will defend this NPC</li>
+                <li>Used for shopkeepers, quest NPCs, civilians</li>
+                <li>Creates natural guard/citizen relationships</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:311, 313 | missions.c:518, 640, 739</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_HUNTER</span> <span class="flag-index">(Index: 33)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile actively tracks down and hunts enemies.</p>
+            <ul>
+                <li>Aggressively pursues targets across multiple rooms</li>
+                <li>Combines with MOB_MEMORY for persistent pursuit</li>
+                <li>Used for predators and assassins</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:371 | fight.c:5486</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_MOB_ASSIST</span> <span class="flag-index">(Index: 61)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile will assist other mobs in its group/following.</p>
+            <ul>
+                <li>Enables mob-to-mob cooperation</li>
+                <li>Used for coordinated monster groups</li>
+                <li>Affects tactical combat</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:303</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_HUNTS_TARGET</span> <span class="flag-index">(Index: 63)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Mobile hunts specific target(s).</p>
+            <ul>
+                <li>More focused than general hunter behavior</li>
+                <li>Used for assassination missions and bounty hunters</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="companion">Companion & Summoned Creature Flags</h2>
+
+        <p>These flags identify creatures summoned or obtained through various class abilities and spells. They affect how the creatures scale, their abilities, and special rules that apply to them.</p>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_C_ANIMAL</span> <span class="flag-index">(Index: 26)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a ranger's animal companion.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_C_FAMILIAR</span> <span class="flag-index">(Index: 27)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a wizard's/sorcerer's familiar.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_C_MOUNT</span> <span class="flag-index">(Index: 28)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a summoned/companion mount.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_MOUNTABLE</span> <span class="flag-index">(Index: 21)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile can be mounted and ridden.</p>
+            <p class="code-ref"><strong>Code References:</strong> act.other.c:2457, 2561 | movement_cost.c:38 | evolutions.c:715</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_ELEMENTAL</span> <span class="flag-index">(Index: 29)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is an elemental creature.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_ANIMATED_DEAD</span> <span class="flag-index">(Index: 30)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is animated undead.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_MERCENARY</span> <span class="flag-index">(Index: 41)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a hired mercenary (only one per person).</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_SHADOW</span> <span class="flag-index">(Index: 43)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a shadowdancer's shadow companion.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_EIDOLON</span> <span class="flag-index">(Index: 89)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a summoner's eidolon (powerful customizable companion).</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_RETAINER</span> <span class="flag-index">(Index: 95)</span> <span class="category-badge badge-companion">Companion</span></h3>
+            <p><span class="effect">Effect:</span> Mobile is a leadership retainer/cohort.</p>
+        </div>
+
+        <p class="note"><strong>Other Companion Flags:</strong> MOB_PLANAR_ALLY (36), MOB_C_O_T_N (85), MOB_VAMP_SPWN (86), MOB_DRAGON_KNIGHT (87), MOB_MUMMY_DUST (88), MOB_GENIEKIND (93), MOB_C_DRAGON (94)</p>
+
+        <hr>
+
+        <h2 id="abilities">Special Ability Flags</h2>
+
+        <p>These flags grant NPCs special combat abilities, breath weapons, and magical powers. Many correspond to classic D&D monster abilities.</p>
+
+        <div class="flag-section">
+            <h3>Combat Abilities</h3>
+            <ul>
+                <li><strong>MOB_ABIL_GRAPPLE</strong> (64) - Can perform grapple attacks</li>
+                <li><strong>MOB_ABIL_PETRIFY</strong> (65) - Can turn enemies to stone</li>
+                <li><strong>MOB_ABIL_TAIL_SPIKES</strong> (66) - Can fire tail spikes</li>
+                <li><strong>MOB_ABIL_LEVEL_DRAIN</strong> (67) - Can drain character levels</li>
+                <li><strong>MOB_ABIL_CHARM</strong> (68) - Can charm enemies</li>
+                <li><strong>MOB_ABIL_ENGULF</strong> (70) - Can engulf/surround enemies</li>
+                <li><strong>MOB_ABIL_SWALLOW</strong> (73) - Can swallow enemies whole</li>
+                <li><strong>MOB_ABIL_PARALYZE</strong> (77) - Can paralyze enemies</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3>Breath Weapons</h3>
+            <ul>
+                <li><strong>MOB_ABIL_FIRE_BREATH</strong> (78) - Fire breath weapon</li>
+                <li><strong>MOB_ABIL_LIGHTNING_BREATH</strong> (79) - Lightning breath weapon</li>
+                <li><strong>MOB_ABIL_POISON_BREATH</strong> (80) - Poison breath weapon</li>
+                <li><strong>MOB_ABIL_ACID_BREATH</strong> (81) - Acid breath weapon</li>
+                <li><strong>MOB_ABIL_FROST_BREATH</strong> (82) - Frost/cold breath weapon</li>
+            </ul>
+        </div>
+
+        <div class="flag-section">
+            <h3>Special Powers</h3>
+            <ul>
+                <li><strong>MOB_ABIL_BLINK</strong> (69) - Can blink/teleport in combat</li>
+                <li><strong>MOB_ABIL_CAUSE_FEAR</strong> (71) - Fear aura/attack</li>
+                <li><strong>MOB_ABIL_CORRUPTION</strong> (72) - Corruption/disease touch</li>
+                <li><strong>MOB_ABIL_FLIGHT</strong> (74) - Can fly</li>
+                <li><strong>MOB_ABIL_POISON</strong> (75) - Poisonous attacks</li>
+                <li><strong>MOB_ABIL_REGENERATION</strong> (76) - Regenerates HP quickly</li>
+                <li><strong>MOB_ABIL_MAGIC_IMMUNITY</strong> (83) - Immune to magic</li>
+                <li><strong>MOB_ABIL_INVISIBILITY</strong> (84) - Naturally invisible</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="system">System & Internal Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_ISNPC</span> <span class="flag-index">(Index: 3)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Read-only flag automatically set on all NPCs.</p>
+            <div class="warning"><strong>CRITICAL:</strong> System flag - never manually toggle!</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_NOTDEADYET</span> <span class="flag-index">(Index: 20)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Read-only flag indicating mobile is being extracted.</p>
+            <div class="warning"><strong>CRITICAL:</strong> System flag - never manually toggle!</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_INFO_KILL</span> <span class="flag-index">(Index: 38)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Broadcasts message to entire game when killed (world bosses).</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_INFO_KILL_PLR</span> <span class="flag-index">(Index: 60)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Broadcasts message when this mob kills a player.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_AI_ENABLED</span> <span class="flag-index">(Index: 98)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Mobile uses advanced AI for responses.</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_UNLIMITED_SPELL_SLOTS</span> <span class="flag-index">(Index: 100)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Mobile has unlimited spell slots (used for powerful casters, bosses).</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">MOB_BUFF_OUTSIDE_COMBAT</span> <span class="flag-index">(Index: 96)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> UNUSED - Kept for backward compatibility.</p>
+            <div class="warning"><strong>Note:</strong> Do not use - no longer functional.</div>
+        </div>
+
+        <hr>
+
+        <h2 id="reference">Complete Flag Reference</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Index</th>
+                    <th style="width: 30%;">Flag Name</th>
+                    <th style="width: 20%;">Category</th>
+                    <th style="width: 40%;">Primary Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>0</td><td>MOB_SPEC</td><td>System</td><td>Has special procedure</td></tr>
+                <tr><td>1</td><td>MOB_SENTINEL</td><td>Behavior</td><td>Won't move</td></tr>
+                <tr><td>2</td><td>MOB_SCAVENGER</td><td>Behavior</td><td>Picks up items</td></tr>
+                <tr><td>3</td><td>MOB_ISNPC</td><td>System</td><td>Is NPC (read-only)</td></tr>
+                <tr><td>4</td><td>MOB_AWARE</td><td>Combat</td><td>Can't be backstabbed</td></tr>
+                <tr><td>5</td><td>MOB_AGGRESSIVE</td><td>Combat</td><td>Attacks everyone</td></tr>
+                <tr><td>6</td><td>MOB_STAY_ZONE</td><td>Movement</td><td>Stays in zone</td></tr>
+                <tr><td>7</td><td>MOB_WIMPY</td><td>Behavior</td><td>Flees when hurt</td></tr>
+                <tr><td>8</td><td>MOB_AGGR_EVIL</td><td>Combat</td><td>Attacks evil</td></tr>
+                <tr><td>9</td><td>MOB_AGGR_GOOD</td><td>Combat</td><td>Attacks good</td></tr>
+                <tr><td>10</td><td>MOB_AGGR_NEUTRAL</td><td>Combat</td><td>Attacks neutral</td></tr>
+                <tr><td>11</td><td>MOB_MEMORY</td><td>Combat</td><td>Remembers attackers</td></tr>
+                <tr><td>12</td><td>MOB_HELPER</td><td>Combat</td><td>Assists other NPCs</td></tr>
+                <tr><td>13</td><td>MOB_NOCHARM</td><td>Immunity</td><td>Can't be charmed</td></tr>
+                <tr><td>14</td><td>MOB_NOSUMMON</td><td>Immunity</td><td>Can't be summoned</td></tr>
+                <tr><td>15</td><td>MOB_NOSLEEP</td><td>Immunity</td><td>Can't be slept</td></tr>
+                <tr><td>16</td><td>MOB_NOBASH</td><td>Immunity</td><td>Can't be bashed</td></tr>
+                <tr><td>17</td><td>MOB_NOBLIND</td><td>Immunity</td><td>Can't be blinded</td></tr>
+                <tr><td>18</td><td>MOB_NOKILL</td><td>Immunity</td><td>Can't be attacked</td></tr>
+                <tr><td>19</td><td>MOB_SENTIENT</td><td>Classification</td><td>Intelligent being</td></tr>
+                <tr><td>20</td><td>MOB_NOTDEADYET</td><td>System</td><td>Being extracted</td></tr>
+                <tr><td>21</td><td>MOB_MOUNTABLE</td><td>Companion</td><td>Can be ridden</td></tr>
+                <tr><td>22</td><td>MOB_NODEAF</td><td>Immunity</td><td>Can't be deafened</td></tr>
+                <tr><td>23</td><td>MOB_NOFIGHT</td><td>Behavior</td><td>Won't fight</td></tr>
+                <tr><td>24</td><td>MOB_NOCLASS</td><td>Classification</td><td>No class</td></tr>
+                <tr><td>25</td><td>MOB_NOGRAPPLE</td><td>Immunity</td><td>Can't be grappled</td></tr>
+                <tr><td>26-30</td><td>MOB_C_* / MOB_ELEMENTAL</td><td>Companion</td><td>Various companions</td></tr>
+                <tr><td>31</td><td>MOB_GUARD</td><td>Combat</td><td>Protects citizens</td></tr>
+                <tr><td>32</td><td>MOB_CITIZEN</td><td>Classification</td><td>Protected by guards</td></tr>
+                <tr><td>33</td><td>MOB_HUNTER</td><td>Combat</td><td>Tracks foes</td></tr>
+                <tr><td>34</td><td>MOB_LISTEN</td><td>Behavior</td><td>Hears fighting</td></tr>
+                <tr><td>35</td><td>MOB_LIT</td><td>Environment</td><td>Emits light</td></tr>
+                <tr><td>37</td><td>MOB_NOSTEAL</td><td>Immunity</td><td>Can't be stolen from</td></tr>
+                <tr><td>38</td><td>MOB_INFO_KILL</td><td>System</td><td>Broadcasts death</td></tr>
+                <tr><td>45-54</td><td>MOB_BLOCK_*</td><td>Blocking</td><td>Directional blocking</td></tr>
+                <tr><td>55-59</td><td>MOB_BLOCK_*</td><td>Blocking</td><td>Block exemptions</td></tr>
+                <tr><td>60</td><td>MOB_INFO_KILL_PLR</td><td>System</td><td>Broadcasts PC death</td></tr>
+                <tr><td>61</td><td>MOB_MOB_ASSIST</td><td>Combat</td><td>Assists other mobs</td></tr>
+                <tr><td>62</td><td>MOB_NOCONFUSE</td><td>Immunity</td><td>Can't be confused</td></tr>
+                <tr><td>63</td><td>MOB_HUNTS_TARGET</td><td>Combat</td><td>Hunts specific target</td></tr>
+                <tr><td>64-84</td><td>MOB_ABIL_*</td><td>Ability</td><td>Special abilities</td></tr>
+                <tr><td>90-92</td><td>MOB_BLOCK_*</td><td>Blocking</td><td>Alignment blocking</td></tr>
+                <tr><td>98</td><td>MOB_AI_ENABLED</td><td>System</td><td>Advanced AI</td></tr>
+                <tr><td>99</td><td>MOB_QUARTERMASTER</td><td>System</td><td>Supply orders</td></tr>
+                <tr><td>100</td><td>MOB_UNLIMITED_SPELL_SLOTS</td><td>System</td><td>No spell limits</td></tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2 id="guidelines">Usage Guidelines</h2>
+
+        <h3>Common Mob Archetypes</h3>
+
+        <div class="archetype-box">
+            <div class="archetype-title">1. City Guard</div>
+            <p><code>MOB_SENTINEL + MOB_GUARD + MOB_MEMORY</code></p>
+            <p>Protects citizens, doesn't wander, remembers criminals</p>
+        </div>
+
+        <div class="archetype-box">
+            <div class="archetype-title">2. Aggressive Monster</div>
+            <p><code>MOB_AGGRESSIVE + MOB_MEMORY + MOB_HUNTER</code></p>
+            <p>Attacks on sight, pursues, remembers enemies</p>
+        </div>
+
+        <div class="archetype-box">
+            <div class="archetype-title">3. Alignment Guardian</div>
+            <p><code>MOB_SENTINEL + MOB_AGGRESSIVE + MOB_AGGR_EVIL (or GOOD/NEUTRAL)</code></p>
+            <p>Stationary guardian that attacks specific alignments</p>
+        </div>
+
+        <div class="archetype-box">
+            <div class="archetype-title">4. Pack Hunter</div>
+            <p><code>MOB_HELPER + MOB_MEMORY + MOB_MOB_ASSIST</code></p>
+            <p>Works with other mobs, remembers threats</p>
+        </div>
+
+        <div class="archetype-box">
+            <div class="archetype-title">5. Boss Monster</div>
+            <p><code>MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant MOB_ABIL_*</code></p>
+            <p>Immune to cheap tactics, dangerous abilities</p>
+        </div>
+
+        <div class="archetype-box">
+            <div class="archetype-title">6. Ambient NPC</div>
+            <p><code>MOB_SENTINEL + MOB_NOKILL + MOB_NOFIGHT</code></p>
+            <p>Decorative NPC that can't fight and can't be attacked</p>
+        </div>
+
+        <h3>Flag Conflicts & Requirements</h3>
+        <div class="warning">
+            <ul>
+                <li><strong>MOB_AGGRESSIVE</strong> conflicts with <strong>MOB_HELPER</strong> (automatically removed)</li>
+                <li><strong>MOB_AGGRESSIVE</strong> requires alignment aggro flags (AGGR_EVIL/GOOD/NEUTRAL) to target specific alignments</li>
+                <li>Multiple <strong>MOB_BLOCK_*</strong> direction flags work together</li>
+            </ul>
+        </div>
+
+        <h3>For Developers</h3>
+
+        <h4>Checking Flags:</h4>
+        <pre><code>if (MOB_FLAGGED(mob, MOB_AGGRESSIVE)) {
+    // Mob is aggressive
+}
+
+// Multiple flag check
+if (MOB_FLAGGED(mob, MOB_GUARD) && MOB_FLAGGED(mob, MOB_MEMORY)) {
+    // Guard with memory
+}</code></pre>
+
+        <h4>Setting/Removing Flags:</h4>
+        <pre><code>// Set flag
+SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+
+// Remove flag
+REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);</code></pre>
+
+        <div class="important">
+            <h4>System Flags to Never Modify:</h4>
+            <ul>
+                <li><code>MOB_ISNPC</code> (automatically set)</li>
+                <li><code>MOB_NOTDEADYET</code> (extraction system)</li>
+                <li><code>MOB_BUFF_OUTSIDE_COMBAT</code> (deprecated)</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2>Code References</h2>
+        <p><strong>Primary Files:</strong></p>
+        <ul>
+            <li><code>src/structs.h</code> (lines 1131-1232) - Flag definitions</li>
+            <li><code>src/mob_act.c</code> - Mobile AI and behavior</li>
+            <li><code>src/fight.c</code> - Combat interactions</li>
+            <li><code>src/movement.c</code> - Movement and blocking</li>
+            <li><code>src/spec_abilities.c</code> - Special abilities</li>
+            <li><code>src/spells.c</code> - Spell interactions</li>
+        </ul>
+
+        <hr>
+
+        <h2>Notes</h2>
+        <ul>
+            <li>Mobile flags use array-based bitflags for storage</li>
+            <li>Multiple flags can and often should be combined</li>
+            <li>Some flags require other flags to function (e.g., MOB_AGGR_EVIL requires MOB_AGGRESSIVE)</li>
+            <li>System flags should not be manually set by builders</li>
+            <li>Companion flags are automatically set when creatures are summoned</li>
+            <li>Special ability flags should match creature capabilities</li>
+        </ul>
+
+        <hr>
+
+        <div class="footer">
+            <strong>Last Updated:</strong> November 6, 2024<br>
+            <strong>Version:</strong> 1.0<br>
+            <strong>Maintainer:</strong> LuminariMUD Development Team
+        </div>
+    </div>
+
+    <a href="#" class="back-to-top" id="backToTop">↑</a>
+
+    <script>
+        // Back to top button
+        window.onscroll = function() {
+            var backToTop = document.getElementById('backToTop');
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        };
+
+        document.getElementById('backToTop').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

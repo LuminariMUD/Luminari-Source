@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Flags Reference - LuminariMUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        /* Header Navigation */
+        .header-nav {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: #7f8c8d;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+        }
+
+        /* Page Title */
+        .page-title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .page-subtitle {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+
+        /* Typography */
+        h2 {
+            color: #2c3e50;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        h4 {
+            color: #555;
+            margin-top: 18px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        /* Code Styling */
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', 'Consolas', monospace;
+            color: #e74c3c;
+            font-size: 0.9em;
+            border: 1px solid #e1e4e8;
+        }
+
+        pre {
+            background: #f6f8fa;
+            color: #24292e;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid #e1e4e8;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            color: #24292e;
+            padding: 0;
+            border: none;
+            font-size: 0.95em;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 6px;
+            margin-bottom: 35px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+            font-size: 1.4em;
+            border: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+            border: 1px solid #e1e4e8;
+        }
+
+        thead {
+            background: #f6f8fa;
+        }
+
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #24292e;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e1e4e8;
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: #f6f8fa;
+        }
+
+        /* Flag Sections */
+        .flag-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .flag-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.15em;
+        }
+
+        .flag-index {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .effect {
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .code-ref {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+
+        /* Alert Boxes */
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .note strong {
+            color: #856404;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #721c24;
+        }
+
+        /* Category Badges */
+        .category-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-movement { background: #e3f2fd; color: #1565c0; }
+        .badge-magic { background: #f3e5f5; color: #7b1fa2; }
+        .badge-combat { background: #ffebee; color: #c62828; }
+        .badge-vision { background: #e8f5e9; color: #2e7d32; }
+        .badge-environment { background: #fff3e0; color: #ef6c00; }
+        .badge-special { background: #fce4ec; color: #c2185b; }
+        .badge-system { background: #e0f2f1; color: #00695c; }
+        .badge-size { background: #f1f8e9; color: #558b2f; }
+        .badge-zone { background: #ede7f6; color: #5e35b1; }
+
+        /* Horizontal Rule */
+        hr {
+            border: none;
+            border-top: 1px solid #e1e4e8;
+            margin: 40px 0;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #3498db;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 50%;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: none;
+            font-size: 20px;
+            line-height: 1;
+            transition: background 0.3s;
+        }
+
+        .back-to-top:hover {
+            background: #2980b9;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e1e4e8;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .page-title {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            h3 {
+                font-size: 1.2em;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-nav">
+        <div class="nav-container">
+            <div class="breadcrumb">
+                <a href="https://luminarimud.github.io/Luminari-Source/web/index.html">🏠 Home</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="https://luminarimud.github.io/Luminari-Source/web/index.html#builder-guides">Builder Guides</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>Room Flags Reference</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">Room Flags Reference</h1>
+        <p class="page-subtitle">Complete reference for room behavior flags</p>
+        
+        <p>This document provides comprehensive information about all room flags (ROOM_*) used in LuminariMUD. Room flags control various mechanics, restrictions, and behaviors of rooms throughout the game world.</p>
+
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#movement">Movement & Access Restrictions</a></li>
+                <li><a href="#magic">Magic Restrictions</a></li>
+                <li><a href="#combat">Combat & PvP Restrictions</a></li>
+                <li><a href="#environmental">Environmental Effects</a></li>
+                <li><a href="#vision">Vision & Perception</a></li>
+                <li><a href="#special">Special Room Types</a></li>
+                <li><a href="#system">System & Administrative Flags</a></li>
+                <li><a href="#size">Size Restrictions</a></li>
+                <li><a href="#zone">Zone Features</a></li>
+                <li><a href="#reference">Complete Flag Reference</a></li>
+                <li><a href="#guidelines">Usage Guidelines</a></li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2 id="overview">Overview</h2>
+        <p>Room flags are bitflags defined in <code>src/structs.h</code> (lines 225-271) and are checked throughout the codebase using the <code>ROOM_FLAGGED()</code> macro. There are currently <strong>42 room flags</strong> (indices 0-41) that control everything from movement restrictions to magical effects.</p>
+
+        <p><strong>Usage Pattern:</strong></p>
+        <pre><code>if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
+    // Flag is set, apply restrictions/effects
+}</code></pre>
+
+        <hr>
+
+        <h2 id="movement">Movement & Access Restrictions</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_TUNNEL</span> <span class="flag-index">(Index: 8)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Limits the number of characters that can be in the room simultaneously.</p>
+            <ul>
+                <li>Maximum occupants determined by <code>CONFIG_TUNNEL_SIZE</code></li>
+                <li>Prevents mounted characters from entering</li>
+                <li>Blocks formations and grouped movement when full</li>
+                <li>Used for narrow passages, tunnels, and chokepoints</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:545, 551 | desc_engine.c:683</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_SINGLEFILE</span> <span class="flag-index">(Index: 20)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Forces characters to move through the room one at a time in combat situations.</p>
+            <ul>
+                <li>Prevents backstab and other flanking abilities</li>
+                <li>Limits positioning-based combat mechanics</li>
+                <li>Used for narrow corridors and single-file passages</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:306, 914 | fight.c:216, 7895, 12269, 13997 | 20+ additional checks</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_FLY_NEEDED</span> <span class="flag-index">(Index: 18)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Characters must be flying to remain in the room; non-flying characters fall.</p>
+            <ul>
+                <li>Triggers falling mechanics for grounded characters</li>
+                <li>Objects without support also fall</li>
+                <li>Used for aerial rooms, cliff edges, and suspended platforms</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement_falling.c:47, 72 | craft.c:664, 700</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_CLIMB_NEEDED</span> <span class="flag-index">(Index: 32)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Requires a skill check to enter the room.</p>
+            <ul>
+                <li>Difficulty based on zone minimum level</li>
+                <li>Used for cliffs, mountains, and vertical obstacles</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:570 | craft.c:666, 702</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOFLY</span> <span class="flag-index">(Index: 26)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Prevents flying creatures from entering the room.</p>
+            <ul>
+                <li>Forces grounded movement</li>
+                <li>Used in low-ceiling areas and confined spaces</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:501</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_PRIVATE</span> <span class="flag-index">(Index: 9)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Limits room to 2 occupants maximum.</p>
+            <ul>
+                <li>Additional occupants cannot enter or teleport in</li>
+                <li>Staff can override this restriction</li>
+                <li>Used for private meeting rooms and intimate spaces</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:1249 | act.wizard.c:268, 347 | spells.c:299</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_STAFFROOM</span> <span class="flag-index">(Index: 10)</span> <span class="category-badge badge-movement">Movement</span></h3>
+            <p><span class="effect">Effect:</span> Only staff (LVL_STAFF+) can enter this room.</p>
+            <ul>
+                <li>Hard block on entry for non-staff</li>
+                <li>Used for immortal areas and staff lounges</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement.c:563</p>
+        </div>
+
+        <hr>
+
+        <h2 id="magic">Magic Restrictions</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOMAGIC</span> <span class="flag-index">(Index: 7)</span> <span class="category-badge badge-magic">Magic</span></h3>
+            <p><span class="effect">Effect:</span> Completely prevents all magic from functioning in the room.</p>
+            <ul>
+                <li>Blocks spell casting by caster or victim in the room</li>
+                <li>Exception: Weapon poison (CAST_WEAPON_POISON) still works</li>
+                <li>Affects both offensive and beneficial magic</li>
+                <li>Strongest magic restriction available</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> spell_parser.c:540, 547, 3046 | fight.c:8518, 8522, 8639 | magic.c:12643</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOTELEPORT</span> <span class="flag-index">(Index: 21)</span> <span class="category-badge badge-magic">Magic</span></h3>
+            <p><span class="effect">Effect:</span> Prevents teleportation into or out of the room.</p>
+            <ul>
+                <li>Blocks dimension door, teleport, and similar spells</li>
+                <li>Blocks both incoming and outgoing teleportation</li>
+                <li>Used for secured areas and restricted zones</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> spells.c:314, 2199-2398 | act.other.c:808, 896, 11637</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOSUMMON</span> <span class="flag-index">(Index: 24)</span> <span class="category-badge badge-magic">Magic</span></h3>
+            <p><span class="effect">Effect:</span> Prevents summoning spells from targeting this room.</p>
+            <ul>
+                <li>Blocks summoning creatures to or from the room</li>
+                <li>Used for protected sanctuaries and anti-summoning zones</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> spells.c:2912-2913</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NORECALL</span> <span class="flag-index">(Index: 19)</span> <span class="category-badge badge-magic">Magic</span></h3>
+            <p><span class="effect">Effect:</span> Prevents recall/return spells from working.</p>
+            <ul>
+                <li>Blocks escape via recall magic</li>
+                <li>Used in dungeons and combat zones where escape should be prevented</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> spells.c:2200-2399 (8 matches)</p>
+        </div>
+
+        <hr>
+
+        <h2 id="combat">Combat & PvP Restrictions</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_PEACEFUL</span> <span class="flag-index">(Index: 4)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Prevents all forms of combat and aggressive actions.</p>
+            <ul>
+                <li>Blocks physical attacks (hit, backstab, etc.)</li>
+                <li>Blocks offensive spells and abilities</li>
+                <li>Prevents grappling and combat maneuvers</li>
+                <li>Blocks domain powers and offensive class abilities</li>
+                <li>Used in safe zones, towns, and newbie areas</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> fight.c:1509, 5370, 12251, 12259 | spells.c:698, 756, 881, 916, 1319, 1810, 2569, 2598 | grapple.c:218 | domain_powers.c:76, 818, 903, 988, 1073, 1156</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_DEATH</span> <span class="flag-index">(Index: 1)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Kills characters or deals severe damage when entering/remaining in room.</p>
+            <ul>
+                <li>Used for death traps and hazardous zones</li>
+                <li>NPCs avoid entering death rooms</li>
+                <li>Teleportation into death rooms is blocked</li>
+                <li>Staff can bypass with appropriate level</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> act.informative.c:1263, 1475 | movement.c:1256 | mob_act.c:400 | spells.c:302</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_SOUNDPROOF</span> <span class="flag-index">(Index: 5)</span> <span class="category-badge badge-combat">Combat</span></h3>
+            <p><span class="effect">Effect:</span> Blocks sound-based abilities and prevents communication.</p>
+            <ul>
+                <li>Blocks tells, shouts, and speech-based communication</li>
+                <li>Prevents bardic performances from functioning</li>
+                <li>Blocks sound-based spells (exception for psionics)</li>
+                <li>Staff can override (LVL_STAFF+)</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> act.comm.c:465, 473, 810, 984 | bardic_performance.c:264 | spell_parser.c:1770 | act.social.c:275</p>
+        </div>
+
+        <hr>
+
+        <h2 id="environmental">Environmental Effects</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_INDOORS</span> <span class="flag-index">(Index: 3)</span> <span class="category-badge badge-environment">Environment</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as indoors for various game mechanics.</p>
+            <ul>
+                <li>Affects weather exposure</li>
+                <li>Influences light calculations (indoor rooms don't go dark at night)</li>
+                <li>Affects outdoor-only abilities and effects</li>
+                <li>Used for buildings, caves, and sheltered areas</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> utils.c:823, 911 | movement.c:1372 | vessels_rooms.c:40-96, 190-191, 606</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_REGEN</span> <span class="flag-index">(Index: 17)</span> <span class="category-badge badge-environment">Environment</span></h3>
+            <p><span class="effect">Effect:</span> Doubles natural regeneration rates for HP, mana, and movement.</p>
+            <ul>
+                <li>Minimum regen of 2 before doubling (2 becomes 4, etc.)</li>
+                <li>Stacks with other regen bonuses</li>
+                <li>Used for healing sanctuaries and rest areas</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> limits.c:595 | spell_prep.c:3778</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOHEAL</span> <span class="flag-index">(Index: 25)</span> <span class="category-badge badge-environment">Environment</span></h3>
+            <p><span class="effect">Effect:</span> Prevents natural healing and regeneration.</p>
+            <ul>
+                <li>Blocks HP regeneration tick</li>
+                <li>Similar to Blackmantle spell effect</li>
+                <li>Used for cursed areas and unholy ground</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> limits.c:622</p>
+        </div>
+
+        <hr>
+
+        <h2 id="vision">Vision & Perception</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_DARK</span> <span class="flag-index">(Index: 0)</span> <span class="category-badge badge-vision">Vision</span></h3>
+            <p><span class="effect">Effect:</span> Forces the room to be dark regardless of other conditions.</p>
+            <ul>
+                <li>Overrides normal light calculations</li>
+                <li>Can be temporarily removed/added by darkness/light spells</li>
+                <li>Requires light source or darkvision to see</li>
+                <li>Stacks with ROOM_MAGICDARK for absolute darkness</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> utils.c:3594, 3656, 3697 | act.informative.c:1282-1383 | magic.c:12654, 12658 | mud_event.c:169</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_MAGICDARK</span> <span class="flag-index">(Index: 22)</span> <span class="category-badge badge-vision">Vision</span></h3>
+            <p><span class="effect">Effect:</span> Creates magical darkness that penetrates normal light sources.</p>
+            <ul>
+                <li>Overrides mundane light sources</li>
+                <li>Only defeated by magical light or certain abilities</li>
+                <li>When combined with ROOM_DARK, creates absolute darkness</li>
+                <li>Used for shadow magic zones and deep darkness effects</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> utils.c:3596, 3643, 3697 | act.informative.c:1205, 1211, 1296, 8463</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_MAGICLIGHT</span> <span class="flag-index">(Index: 23)</span> <span class="category-badge badge-vision">Vision</span></h3>
+            <p><span class="effect">Effect:</span> Creates magical light that prevents the room from being dark.</p>
+            <ul>
+                <li>Overrides normal darkness conditions</li>
+                <li>Cannot be defeated by normal darkness</li>
+                <li>Used for magically illuminated areas</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> utils.c:3626</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_FOG</span> <span class="flag-index">(Index: 27)</span> <span class="category-badge badge-vision">Vision</span></h3>
+            <p><span class="effect">Effect:</span> Creates fog that obscures vision and limits visibility.</p>
+            <ul>
+                <li>Hides room descriptions and contents from mortal characters</li>
+                <li>Limits automap functionality</li>
+                <li>Reduces scan range and visibility</li>
+                <li>Staff (LVL_IMMORT+) can see through fog</li>
+                <li>Can be removed by gust of wind spell</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> act.informative.c:1199, 1259, 1447, 1550, 1572, 8458, 8617, 8977 | spells.c:515, 519 | utils.c:917, 3699</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOTRACK</span> <span class="flag-index">(Index: 6)</span> <span class="category-badge badge-vision">Vision</span></h3>
+            <p><span class="effect">Effect:</span> Prevents tracking abilities from working through this room.</p>
+            <ul>
+                <li>Blocks track skill usage</li>
+                <li>Breaks pathfinding algorithms</li>
+                <li>NPCs won't track players through these rooms</li>
+                <li>Used for anti-tracking zones and rivers</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> movement_tracks.c:256 | graph.c:59 | mob_act.c:383</p>
+        </div>
+
+        <hr>
+
+        <h2 id="special">Special Room Types</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_HOUSE</span> <span class="flag-index">(Index: 11)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as part of a player house.</p>
+            <ul>
+                <li>Integrates with house ownership system</li>
+                <li>Restricts entry to house owners and guests</li>
+                <li>Enables house crash-save functionality</li>
+                <li>Used with ROOM_HOUSE_CRASH for persistence</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> house.c:296, 444, 626, 663, 665, 714, 849, 904 | handler.c:2212-2213, 2247-2248</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_ATRIUM</span> <span class="flag-index">(Index: 13)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as a house atrium (entry point).</p>
+            <ul>
+                <li>Entry point for player houses</li>
+                <li>Special restrictions on entering houses apply</li>
+                <li>Managed by house system automatically</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> house.c:446, 628, 657, 678, 682 | movement.c:520 | hsedit.c:168, 206, 224, 230</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_WORLDMAP</span> <span class="flag-index">(Index: 16)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as part of the overworld/wilderness map system.</p>
+            <ul>
+                <li>Enables special worldmap automap display</li>
+                <li>Used for wilderness travel system</li>
+                <li>Affects routing and navigation commands</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> act.informative.c:8554 | asciimap.c:729 | routing.c:290 | act.wizard.c:10211</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_VEHICLE</span> <span class="flag-index">(Index: 40)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as part of a vehicle or vessel.</p>
+            <ul>
+                <li>Allows vehicle movement through this room</li>
+                <li>Used for ship interiors, wagons, etc.</li>
+                <li>Required for directional vehicle navigation</li>
+                <li>Integrates with vessel system</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> vessels_rooms.c:40-103, 188-189 | vessels_src.c:282, 301, 368, 384, 505-506</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_HARVEST_NODE</span> <span class="flag-index">(Index: 38)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as a resource harvesting location.</p>
+            <ul>
+                <li>Enables gathering/harvesting of materials</li>
+                <li>Integrates with crafting system</li>
+                <li>Used for mining nodes, herb gardens, etc.</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> crafting_new.c:531</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_PLAYER_SHOP</span> <span class="flag-index">(Index: 35)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as a player-run shop.</p>
+            <ul>
+                <li>Enables player merchant functionality</li>
+                <li>Integrates with player economy system</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> Limited code references suggest this may be partially implemented or planned feature.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_ROAD</span> <span class="flag-index">(Index: 39)</span> <span class="category-badge badge-special">Special</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as a road or path.</p>
+            <ul>
+                <li>May affect travel speed or mount usage</li>
+                <li>Used for road networks and travel routes</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> No direct code references found; likely used by zone builders for thematic purposes or planned features.</div>
+        </div>
+
+        <hr>
+
+        <h2 id="system">System & Administrative Flags</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_HOUSE_CRASH</span> <span class="flag-index">(Index: 12)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Marks that items in this house room should be saved.</p>
+            <ul>
+                <li>Auto-set when items are modified in house rooms</li>
+                <li>Triggers house save-to-disk operations</li>
+                <li>Cleared after successful save</li>
+                <li>Used for house persistence system</li>
+            </ul>
+            <div class="warning"><strong>Warning:</strong> System flag - do not manually set!</div>
+            <p class="code-ref"><strong>Code References:</strong> house.c:296, 714 | handler.c:2213, 2248 | hsedit.c:211</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_OLC</span> <span class="flag-index">(Index: 14)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as being edited in the Online Level Creator (OLC).</p>
+            <ul>
+                <li>Used by building/editing system</li>
+                <li>Prevents certain cleanup operations</li>
+                <li>Temporary flag during world editing</li>
+            </ul>
+            <div class="warning"><strong>Warning:</strong> System flag - managed by OLC system!</div>
+            <p class="code-ref"><strong>Code References:</strong> act.wizard.c:5581, 5587</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_BFS_MARK</span> <span class="flag-index">(Index: 15)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Temporary flag used by pathfinding algorithms.</p>
+            <ul>
+                <li>Marks rooms as visited during Breadth-First Search</li>
+                <li>Automatically cleared after pathfinding completes</li>
+                <li>Should never be permanently set on rooms</li>
+                <li>Internal system flag</li>
+            </ul>
+            <div class="warning"><strong>Warning:</strong> Never manually set this flag!</div>
+            <p class="code-ref"><strong>Code References:</strong> graph.c:59 | act.wizard.c:5581</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_GENDESC</span> <span class="flag-index">(Index: 34)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Indicates room description should be generated dynamically.</p>
+            <ul>
+                <li>Used with procedural generation systems</li>
+                <li>Allows for dynamic room descriptions</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> Limited code references suggest this is a specialized builder flag.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_NOMOB</span> <span class="flag-index">(Index: 2)</span> <span class="category-badge badge-system">System</span></h3>
+            <p><span class="effect">Effect:</span> Prevents NPCs from entering this room.</p>
+            <ul>
+                <li>NPCs won't pathfind through or enter these rooms</li>
+                <li>Used to keep certain areas mob-free</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> mob_act.c:399</p>
+        </div>
+
+        <hr>
+
+        <h2 id="size">Size Restrictions</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_SIZE_TINY</span> <span class="flag-index">(Index: 30)</span> <span class="category-badge badge-size">Size</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as extremely small.</p>
+            <ul>
+                <li>May restrict large creatures from entering</li>
+                <li>Used for mouse holes, small tunnels, etc.</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> Limited code references suggest this is primarily a builder/thematic flag.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_SIZE_DIMINUTIVE</span> <span class="flag-index">(Index: 31)</span> <span class="category-badge badge-size">Size</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as very small.</p>
+            <ul>
+                <li>May restrict entry based on creature size</li>
+                <li>Used for pixie homes, tiny passages, etc.</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> Limited code references suggest this is primarily a builder/thematic flag.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_AIRY</span> <span class="flag-index">(Index: 28)</span> <span class="category-badge badge-size">Size</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as having an airy, open quality.</p>
+            <ul>
+                <li>May affect wind-based spells or effects</li>
+                <li>Thematic flag for open, breezy areas</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> No direct code references found; likely thematic or planned feature.</div>
+        </div>
+
+        <hr>
+
+        <h2 id="zone">Zone Features</h2>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_RANDOM_TRAP</span> <span class="flag-index">(Index: 36)</span> <span class="category-badge badge-zone">Zone Feature</span></h3>
+            <p><span class="effect">Effect:</span> Forces a random trap to always generate in this room.</p>
+            <ul>
+                <li>Overrides normal trap generation probability</li>
+                <li>Guarantees trap presence on zone reset</li>
+                <li>Used for specific trap encounters</li>
+            </ul>
+            <p class="code-ref"><strong>Code References:</strong> traps_new.c:547, 575-576 | db.c:5431</p>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_RANDOM_CHEST</span> <span class="flag-index">(Index: 37)</span> <span class="category-badge badge-zone">Zone Feature</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as eligible for random treasure chest spawning.</p>
+            <ul>
+                <li>Integrates with random treasure system</li>
+                <li>Used for treasure hunt mechanics</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> Limited code references suggest this may be a planned or partially implemented feature.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_HASTRAP</span> <span class="flag-index">(Index: 33)</span> <span class="category-badge badge-zone">Zone Feature</span></h3>
+            <p><span class="effect">Effect:</span> Indicates the room contains a trap.</p>
+            <ul>
+                <li>May be set by trap generation system</li>
+                <li>Used for trap detection and disarmament</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> Limited code references suggest integration with trap system.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_OCCUPIED</span> <span class="flag-index">(Index: 29)</span> <span class="category-badge badge-zone">Zone Feature</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as occupied or reserved.</p>
+            <ul>
+                <li>Purpose unclear from code analysis</li>
+                <li>May relate to instance or phasing systems</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> No direct code references found; may be planned feature.</div>
+        </div>
+
+        <div class="flag-section">
+            <h3><span class="flag-name">ROOM_DOCKABLE</span> <span class="flag-index">(Index: 41)</span> <span class="category-badge badge-zone">Zone Feature</span></h3>
+            <p><span class="effect">Effect:</span> Marks room as a valid docking location for vessels.</p>
+            <ul>
+                <li>Intended for ship docking mechanics</li>
+                <li>Part of vessel system</li>
+            </ul>
+            <div class="note"><strong>Note:</strong> No code references found; likely planned feature for vessel system expansion.</div>
+        </div>
+
+        <hr>
+
+        <h2 id="reference">Complete Flag Reference</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Flag Name</th>
+                    <th>Primary Purpose</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>0</td><td>ROOM_DARK</td><td>Forces darkness</td><td>Vision</td></tr>
+                <tr><td>1</td><td>ROOM_DEATH</td><td>Death trap</td><td>Hazard</td></tr>
+                <tr><td>2</td><td>ROOM_NOMOB</td><td>NPC restriction</td><td>Movement</td></tr>
+                <tr><td>3</td><td>ROOM_INDOORS</td><td>Indoor room</td><td>Environment</td></tr>
+                <tr><td>4</td><td>ROOM_PEACEFUL</td><td>No combat</td><td>Combat</td></tr>
+                <tr><td>5</td><td>ROOM_SOUNDPROOF</td><td>Blocks sound</td><td>Perception</td></tr>
+                <tr><td>6</td><td>ROOM_NOTRACK</td><td>Blocks tracking</td><td>Perception</td></tr>
+                <tr><td>7</td><td>ROOM_NOMAGIC</td><td>No magic</td><td>Magic</td></tr>
+                <tr><td>8</td><td>ROOM_TUNNEL</td><td>Occupancy limit</td><td>Movement</td></tr>
+                <tr><td>9</td><td>ROOM_PRIVATE</td><td>2 person limit</td><td>Movement</td></tr>
+                <tr><td>10</td><td>ROOM_STAFFROOM</td><td>Staff only</td><td>Access</td></tr>
+                <tr><td>11</td><td>ROOM_HOUSE</td><td>Player house</td><td>Special</td></tr>
+                <tr><td>12</td><td>ROOM_HOUSE_CRASH</td><td>House save flag</td><td>System</td></tr>
+                <tr><td>13</td><td>ROOM_ATRIUM</td><td>House entrance</td><td>Special</td></tr>
+                <tr><td>14</td><td>ROOM_OLC</td><td>Being edited</td><td>System</td></tr>
+                <tr><td>15</td><td>ROOM_BFS_MARK</td><td>Pathfinding temp</td><td>System</td></tr>
+                <tr><td>16</td><td>ROOM_WORLDMAP</td><td>Wilderness map</td><td>Special</td></tr>
+                <tr><td>17</td><td>ROOM_REGEN</td><td>Double regen</td><td>Environment</td></tr>
+                <tr><td>18</td><td>ROOM_FLY_NEEDED</td><td>Must fly</td><td>Movement</td></tr>
+                <tr><td>19</td><td>ROOM_NORECALL</td><td>No recall</td><td>Magic</td></tr>
+                <tr><td>20</td><td>ROOM_SINGLEFILE</td><td>One at a time</td><td>Movement</td></tr>
+                <tr><td>21</td><td>ROOM_NOTELEPORT</td><td>No teleport</td><td>Magic</td></tr>
+                <tr><td>22</td><td>ROOM_MAGICDARK</td><td>Magical darkness</td><td>Vision</td></tr>
+                <tr><td>23</td><td>ROOM_MAGICLIGHT</td><td>Magical light</td><td>Vision</td></tr>
+                <tr><td>24</td><td>ROOM_NOSUMMON</td><td>No summoning</td><td>Magic</td></tr>
+                <tr><td>25</td><td>ROOM_NOHEAL</td><td>No healing</td><td>Environment</td></tr>
+                <tr><td>26</td><td>ROOM_NOFLY</td><td>Flying blocked</td><td>Movement</td></tr>
+                <tr><td>27</td><td>ROOM_FOG</td><td>Fog obscurement</td><td>Vision</td></tr>
+                <tr><td>28</td><td>ROOM_AIRY</td><td>Airy atmosphere</td><td>Environment</td></tr>
+                <tr><td>29</td><td>ROOM_OCCUPIED</td><td>Occupied status</td><td>Special</td></tr>
+                <tr><td>30</td><td>ROOM_SIZE_TINY</td><td>Tiny size</td><td>Size</td></tr>
+                <tr><td>31</td><td>ROOM_SIZE_DIMINUTIVE</td><td>Diminutive size</td><td>Size</td></tr>
+                <tr><td>32</td><td>ROOM_CLIMB_NEEDED</td><td>Requires climbing</td><td>Movement</td></tr>
+                <tr><td>33</td><td>ROOM_HASTRAP</td><td>Contains trap</td><td>Zone Feature</td></tr>
+                <tr><td>34</td><td>ROOM_GENDESC</td><td>Generated desc</td><td>System</td></tr>
+                <tr><td>35</td><td>ROOM_PLAYER_SHOP</td><td>Player shop</td><td>Special</td></tr>
+                <tr><td>36</td><td>ROOM_RANDOM_TRAP</td><td>Random trap spawn</td><td>Zone Feature</td></tr>
+                <tr><td>37</td><td>ROOM_RANDOM_CHEST</td><td>Random chest spawn</td><td>Zone Feature</td></tr>
+                <tr><td>38</td><td>ROOM_HARVEST_NODE</td><td>Harvest location</td><td>Special</td></tr>
+                <tr><td>39</td><td>ROOM_ROAD</td><td>Road/path</td><td>Environment</td></tr>
+                <tr><td>40</td><td>ROOM_VEHICLE</td><td>Vehicle room</td><td>Special</td></tr>
+                <tr><td>41</td><td>ROOM_DOCKABLE</td><td>Docking location</td><td>Special</td></tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2 id="guidelines">Usage Guidelines</h2>
+
+        <h3>For Builders</h3>
+
+        <h4>Stacking Flags</h4>
+        <p>Many flags can be combined for compound effects:</p>
+        <ul>
+            <li><code>ROOM_DARK + ROOM_MAGICDARK</code> = absolute darkness</li>
+            <li><code>ROOM_PEACEFUL + ROOM_NOMAGIC</code> = complete safe zone</li>
+            <li><code>ROOM_INDOORS + ROOM_REGEN</code> = safe indoor rest area</li>
+        </ul>
+
+        <h4>Common Combinations</h4>
+        <ul>
+            <li><strong>Safe Town:</strong> <code>ROOM_PEACEFUL + ROOM_INDOORS</code></li>
+            <li><strong>Death Trap:</strong> <code>ROOM_DEATH + ROOM_NOTELEPORT + ROOM_NORECALL</code></li>
+            <li><strong>Private Meeting:</strong> <code>ROOM_PRIVATE + ROOM_SOUNDPROOF</code></li>
+            <li><strong>Challenging Dungeon:</strong> <code>ROOM_DARK + ROOM_NORECALL + ROOM_NOTELEPORT</code></li>
+        </ul>
+
+        <h4>Flags to Avoid Setting Manually</h4>
+        <div class="warning">
+            <ul>
+                <li><code>ROOM_BFS_MARK</code> (system temporary flag)</li>
+                <li><code>ROOM_HOUSE_CRASH</code> (auto-set by house system)</li>
+                <li><code>ROOM_OLC</code> (OLC system flag)</li>
+            </ul>
+        </div>
+
+        <h3>For Developers</h3>
+
+        <h4>Checking Flags</h4>
+        <pre><code>// Standard check
+if (ROOM_FLAGGED(room_rnum, ROOM_PEACEFUL)) {
+    // Peaceful room logic
+}
+
+// Multiple flags
+if (ROOM_FLAGGED(room, ROOM_DARK) && ROOM_FLAGGED(room, ROOM_MAGICDARK)) {
+    // Absolute darkness
+}</code></pre>
+
+        <h4>Modifying Flags</h4>
+        <pre><code>// Set flag
+SET_BIT_AR(ROOM_FLAGS(room), ROOM_DARK);
+
+// Remove flag
+REMOVE_BIT_AR(ROOM_FLAGS(room), ROOM_DARK);
+
+// Check if set
+if (IS_SET_AR(ROOM_FLAGS(room), ROOM_DARK)) {
+    // Flag is set
+}</code></pre>
+
+        <h3>Common Patterns</h3>
+
+        <p><strong>Safe Zones:</strong> Typically use <code>ROOM_PEACEFUL</code> to prevent combat. Consider adding <code>ROOM_NORECALL</code> for dungeons where escape should be limited.</p>
+
+        <p><strong>Darkness:</strong> Use <code>ROOM_DARK</code> for natural darkness, <code>ROOM_MAGICDARK</code> for magical darkness that resists light sources.</p>
+
+        <p><strong>Movement Restrictions:</strong></p>
+        <ul>
+            <li><code>ROOM_TUNNEL</code> limits total occupants</li>
+            <li><code>ROOM_SINGLEFILE</code> limits combat positioning</li>
+            <li><code>ROOM_PRIVATE</code> limits to 2 people</li>
+        </ul>
+
+        <p><strong>Magic Control:</strong></p>
+        <ul>
+            <li><code>ROOM_NOMAGIC</code> = complete magic shutdown</li>
+            <li><code>ROOM_NOTELEPORT</code> = prevents teleportation only</li>
+            <li><code>ROOM_NOSUMMON</code> = prevents summoning only</li>
+            <li><code>ROOM_NORECALL</code> = prevents recall only</li>
+        </ul>
+
+        <hr>
+
+        <h2>Code References</h2>
+
+        <p><strong>Primary Files:</strong></p>
+        <ul>
+            <li><code>src/structs.h</code> (lines 225-271) - Flag definitions</li>
+            <li><code>src/movement.c</code> - Movement restriction checks</li>
+            <li><code>src/spell_parser.c</code> - Magic restriction checks</li>
+            <li><code>src/fight.c</code> - Combat restriction checks</li>
+            <li><code>src/utils.c</code> - Light and vision calculations</li>
+            <li><code>src/act.informative.c</code> - Room description handling</li>
+            <li><code>src/house.c</code> - House system integration</li>
+            <li><code>src/vessels_rooms.c</code> - Vehicle system integration</li>
+        </ul>
+
+        <hr>
+
+        <h2>Notes</h2>
+        <ul>
+            <li>Flags are stored as bitflags in room data structures</li>
+            <li>Multiple flags can be active simultaneously</li>
+            <li>Some flags interact with each other (e.g., <code>ROOM_DARK + ROOM_MAGICDARK</code>)</li>
+            <li>Several flags appear to be planned features with limited implementation (<code>ROOM_DOCKABLE</code>, <code>ROOM_OCCUPIED</code>, <code>ROOM_AIRY</code>, etc.)</li>
+            <li>System flags (<code>BFS_MARK</code>, <code>OLC</code>, <code>HOUSE_CRASH</code>) should generally not be manually set by builders</li>
+        </ul>
+
+        <hr>
+
+        <div class="footer">
+            <strong>Last Updated:</strong> November 6, 2024<br>
+            <strong>Version:</strong> 1.0<br>
+            <strong>Maintainer:</strong> LuminariMUD Development Team
+        </div>
+    </div>
+
+    <a href="#" class="back-to-top" id="backToTop">↑</a>
+
+    <script>
+        // Back to top button
+        window.onscroll = function() {
+            var backToTop = document.getElementById('backToTop');
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        };
+
+        document.getElementById('backToTop').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
