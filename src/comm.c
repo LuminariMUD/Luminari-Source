@@ -206,7 +206,7 @@ void process_walkto_actions(void);
 void self_buffing(void);
 void moving_rooms_update(void);
 void recharge_activated_items(void);
-
+void check_thirty_seconds(void);
 void craft_update(void);
 
 /* externally defined functions, used locally */
@@ -1483,7 +1483,7 @@ void heartbeat(int heart_pulse)
   /* auction check every 30 seconds */
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
   {
-    check_auction();
+    check_thirty_seconds();
   }
 
   /* save characters once per minute */

@@ -10940,7 +10940,8 @@ ACMDU(do_invent)
         }
         return; /* Device didn't break, just failed to activate */
       }
-      if (total < dc + 5) {
+      if (total < dc)
+      {
         /* Increase DC penalty by 2 even on successful attempts when out of charges */
         inv->dc_penalty += 2;
         send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");

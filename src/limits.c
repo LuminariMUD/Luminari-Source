@@ -2251,6 +2251,52 @@ void proc_d20_round(void)
   }
 }
 
+void check_devices(void)
+{
+
+  struct char_data *i = NULL, *next_char = NULL;
+  int artificer_level, max_uses;
+
+  for (i = character_list; i; i = next_char)
+  {
+    next_char = i->next;
+
+    /* Artificer device recharge: Every 30 seconds recharge 1 use */
+    if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) &&
+        i->player_specials->saved.num_inventions > 0)
+    {
+      artificer_level = CLASS_LEVEL(i, CLASS_ARTIFICER);
+      max_uses = 1 + (artificer_level / 2);
+      if (HAS_FEAT(i, FEAT_GNOMISH_TINKERING))
+        max_uses += 1;
+      
+      /* Find the first device that can be recharged (working from top of list) */
+      int dev_idx;
+      for (dev_idx = 0; dev_idx < i->player_specials->saved.num_inventions; dev_idx++)
+      {
+        struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
+        
+        /* Only recharge if device has been used at all */
+        if (inv->uses > 0)
+        {
+          inv->uses--;
+          inv->dc_penalty = MAX(0, inv->dc_penalty - 2); /* Also reduce DC penalty */
+          
+          send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
+                      inv->short_description, max_uses - inv->uses, max_uses);
+          break; /* Only recharge one device per 30 seconds */
+        }
+      }
+    }
+  }
+}
+
+void check_thirty_seconds(void)
+{
+  check_auction();
+  check_devices();  
+}
+
 /* Update PCs, NPCs, and objects */
 void point_update(void)
 {
@@ -2296,6 +2342,7 @@ void point_update(void)
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
         check_idling(i);
+      
       // eldritch knight spell crit expires after combat ends if not used.
       if (!FIGHTING(i) && HAS_ELDRITCH_SPELL_CRIT(i))
         HAS_ELDRITCH_SPELL_CRIT(i) = false;

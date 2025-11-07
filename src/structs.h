@@ -6250,6 +6250,7 @@ struct player_special_data_saved
     time_t last_device_destruction;    /**< Timestamp of last device destruction */
     int devices_destroyed_today;       /**< Number of devices destroyed in past 24 hours */
     time_t device_creation_cooldown;   /**< Timestamp until when device creation is blocked */
+    time_t last_device_recharge;       /**< Timestamp of last out-of-combat device recharge */
 
     /* PvP timer - tracks when PvP flag was enabled */
     time_t pvp_timer;                  /**< Timestamp when PvP was enabled, prevents turning off for 15 minutes */

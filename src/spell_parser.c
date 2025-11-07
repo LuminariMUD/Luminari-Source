@@ -3205,7 +3205,8 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
     if (spell_info[spl].wear_off_msg && 
         spell_info[spl].wear_off_msg != unused_wearoff)
       free((char *)spell_info[spl].wear_off_msg);
-    spell_info[spl].wear_off_msg = wearoff;
+    /* Always strdup to ensure we own the memory and can safely free it later */
+    spell_info[spl].wear_off_msg = strdup(wearoff);
   }
   spell_info[spl].time = time;
   spell_info[spl].memtime = memtime;

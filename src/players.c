@@ -493,6 +493,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_BONUS_SLOTS_USED(ch) = 0;
     GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
+    ch->player_specials->saved.last_device_recharge = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -1302,6 +1303,8 @@ int load_char(const char *name, struct char_data *ch)
           ch->player.personality = fread_string(fl, buf2);
         else if (!strcmp(tag, "PvPT"))
           GET_PVP_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "DvRc"))
+          ch->player_specials->saved.last_device_recharge = atol(line);
         else if (!strcmp(tag, "Perk"))
           load_perks(fl, ch);
         else if (!strcmp(tag, "PPts"))
@@ -2359,6 +2362,9 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_PVP_TIMER(ch) != 0)
     BUFFER_WRITE( "PvPT: %ld\n", GET_PVP_TIMER(ch));
+
+  if (ch->player_specials->saved.last_device_recharge != 0)
+    BUFFER_WRITE( "DvRc: %ld\n", ch->player_specials->saved.last_device_recharge);
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
     BUFFER_WRITE( "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
