@@ -1139,9 +1139,11 @@
 #define SKILL_EARTHSHAKER 2224 // Berserker Primal Warrior - Tier 4
 #define SKILL_FAITHFUL_STRIKE 2225 // Paladin Knight of the Chalice - Tier 1
 #define SKILL_HOLY_BLADE 2226 // Paladin Knight of the Chalice - Tier 2
+#define SKILL_DIVINE_MIGHT 2227 // Paladin Knight of the Chalice - Tier 3
+#define SKILL_SACRED_VENGEANCE 2228 // Paladin Knight of the Chalice - Tier 4
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2227
+#define NUM_SKILLS 2229
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

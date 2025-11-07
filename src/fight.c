@@ -2531,6 +2531,31 @@ void die(struct char_data *ch, struct char_data *killer)
 
   perform_draconian_death_throes(ch);
 
+  /* Zealous Smite: Restore a smite use when killing with smite evil */
+  if (killer && !IS_NPC(killer) && has_paladin_zealous_smite(killer) &&
+      affected_by_spell(killer, SKILL_SMITE_EVIL) && IS_EVIL(ch))
+  {
+    struct mud_event_data *pMudEvent = char_has_mud_event(killer, eSMITE_EVIL);
+    
+    if (pMudEvent && pMudEvent->sVariables)
+    {
+      int uses = 0;
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
+      {
+        /* Reduce uses by 1 to restore a smite use */
+        uses--;
+        if (pMudEvent->sVariables)
+          free(pMudEvent->sVariables);
+        
+        char buf[128];
+        snprintf(buf, sizeof(buf), "uses:%d", uses);
+        pMudEvent->sVariables = strdup(buf);
+        
+        send_to_char(killer, "\tWYour righteous fury is restored by slaying %s!\tn\r\n", GET_NAME(ch));
+      }
+    }
+  }
+
   raw_kill(ch, killer);
 }
 
@@ -5626,6 +5651,48 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   dam = MAX(MIN(dam, 1499), 0); // damage cap
 #endif
   GET_HIT(victim) -= dam;
+  
+  /* Sacred Vengeance: Trigger when ally drops below 25% HP or dies */
+  if (victim && !IS_NPC(victim) && GROUP(victim))
+  {
+    struct group_data *group = GROUP(victim);
+    struct char_data *k = NULL;
+    struct iterator_data it;
+    int victim_hp_pct = (GET_HIT(victim) * 100) / MAX(1, GET_MAX_HIT(victim));
+    bool trigger_vengeance = (GET_HIT(victim) <= 0 || victim_hp_pct < 25);
+    
+    if (trigger_vengeance)
+    {
+      for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it))
+      {
+        if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
+            has_paladin_sacred_vengeance(k) && !affected_by_spell(k, SKILL_SACRED_VENGEANCE))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SKILL_SACRED_VENGEANCE;
+          af.duration = 3; /* 3 rounds */
+          af.location = APPLY_HITROLL;
+          af.modifier = 4;
+          af.bonus_type = BONUS_TYPE_SACRED;
+          affect_to_char(k, &af);
+          
+          new_affect(&af);
+          af.spell = SKILL_SACRED_VENGEANCE;
+          af.duration = 3;
+          af.location = APPLY_DAMROLL;
+          af.modifier = 8;
+          af.bonus_type = BONUS_TYPE_SACRED;
+          affect_to_char(k, &af);
+          
+          send_to_char(k, "\tRYour fury ignites as %s falls! You gain +4 to hit and +8 to damage!\tn\r\n", 
+                      GET_NAME(victim));
+          act("\tR$n's eyes blaze with righteous fury!\tn", FALSE, k, 0, 0, TO_ROOM);
+        }
+      }
+    }
+  }
+  
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
   {
     CNDNSD(ch)->damage_inflicted += dam;
@@ -6575,6 +6642,15 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Holy Weapon (vs Evil): \tW%d\tn\r\n", holy_weapon_bonus);
     }
+    
+    /* Holy Sword +2d6 damage vs evil (requires Holy Blade active and Holy Sword perk) */
+    if (affected_by_spell(ch, SKILL_HOLY_BLADE) && has_paladin_holy_sword(ch) && IS_EVIL(vict))
+    {
+      int holy_sword_dice = dice(2, 6);
+      dambonus += holy_sword_dice;
+      if (display_mode)
+        send_to_char(ch, "Holy Sword (vs Evil): \tW%d\tn\r\n", holy_sword_dice);
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_BG_GLADIATOR) && GET_CLAN(ch) > 0 && are_clans_allied(GET_CLAN(ch), zone_table[world[IN_ROOM(ch)].zone].faction))
@@ -6646,6 +6722,16 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         dambonus += bonus_dam;
         if (display_mode)
           send_to_char(ch, "Improved Smite: \tR%dd6 (%d)\tn\r\n", improved_smite_dice, bonus_dam);
+      }
+      
+      /* Exorcism of the Slain - extra damage vs outsiders/demons/devils */
+      /* TODO: Add proper subrace checks when demon/devil/outsider subraces are defined */
+      if (has_paladin_exorcism_of_the_slain(ch) && IS_EVIL(vict))
+      {
+        int exorcism_dam = dice(4, 6);
+        dambonus += exorcism_dam;
+        if (display_mode)
+          send_to_char(ch, "Exorcism of the Slain: \tR4d6 (%d)\tn\r\n", exorcism_dam);
       }
     }
   }
@@ -11910,6 +11996,44 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* So do damage! (We aren't trelux, so do it normally) */
       if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
+
+      /* Blinding Smite: Blind target on smite evil hits */
+      if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_paladin_blinding_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_EVIL) && IS_EVIL(victim) && can_blind(victim))
+      {
+        int pal_level = CLASS_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+        
+        if (!savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, pal_level, NOSCHOOL))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SPELL_BLINDNESS;
+          af.duration = 2; /* 2 rounds */
+          SET_BIT_AR(af.bitvector, AFF_BLIND);
+          affect_to_char(victim, &af);
+          
+          act("\tWYour righteous strike blinds $N with holy radiance!\tn", FALSE, ch, 0, victim, TO_CHAR);
+          act("\tW$n's smite blinds you with holy radiance!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+          act("\tW$n's smite blinds $N with holy radiance!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+      }
+
+      /* Overwhelming Smite: Knock prone on critical smite evil hits */
+      if (!victim_is_dead && dam > 0 && is_critical && !IS_NPC(ch) && has_paladin_overwhelming_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_EVIL) && IS_EVIL(victim))
+      {
+        int pal_level = CLASS_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+        
+        if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, pal_level, NOSCHOOL))
+        {
+          if (perform_knockdown(ch, victim, SKILL_SMITE_EVIL, false, true))
+          {
+            act("\tWYour devastating smite knocks $N to the ground!\tn", FALSE, ch, 0, victim, TO_CHAR);
+            act("\tW$n's devastating smite knocks you to the ground!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+            act("\tW$n's devastating smite knocks $N to the ground!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+          }
+        }
+      }
 
       if (AFF_FLAGGED(ch, AFF_CHARGING))
       { /* only a single strike */

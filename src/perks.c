@@ -12061,6 +12061,122 @@ void define_paladin_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Knight of the Chalice - Tier 2: Enchant your weapon with divine power (requires Holy Weapon I - 2 ranks)");
+  
+  /* ========== TIER 3 PERKS (3 points each) ========== */
+  
+  /* Divine Might */
+  perk = &perk_list[PERK_PALADIN_DIVINE_MIGHT];
+  perk->id = PERK_PALADIN_DIVINE_MIGHT;
+  perk->name = strdup("Divine Might");
+  perk->description = strdup("Swift action: add CHA modifier to melee damage for 1 minute, 5 minute cooldown");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_IMPROVED_SMITE;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 3: Channel divinity into devastating strikes (requires Improved Smite - 2 ranks)");
+  
+  /* Exorcism of the Slain */
+  perk = &perk_list[PERK_PALADIN_EXORCISM_OF_THE_SLAIN];
+  perk->id = PERK_PALADIN_EXORCISM_OF_THE_SLAIN;
+  perk->name = strdup("Exorcism of the Slain");
+  perk->description = strdup("Smite Evil deals +4d6 extra damage to evil outsiders, demons, and devils");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_IMPROVED_SMITE;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 3: Devastating against fiends (requires Improved Smite - max rank)");
+  
+  /* Holy Sword */
+  perk = &perk_list[PERK_PALADIN_HOLY_SWORD];
+  perk->id = PERK_PALADIN_HOLY_SWORD;
+  perk->name = strdup("Holy Sword");
+  perk->description = strdup("Holy Blade now grants additional +2 enhancement bonus and deals +2d6 holy damage vs evil");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_HOLY_BLADE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 3: Ultimate weapon enchantment (requires Holy Blade)");
+  
+  /* Zealous Smite */
+  perk = &perk_list[PERK_PALADIN_ZEALOUS_SMITE];
+  perk->id = PERK_PALADIN_ZEALOUS_SMITE;
+  perk->name = strdup("Zealous Smite");
+  perk->description = strdup("Killing with Smite Evil restores 1 use (once per 5 minutes)");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_SMITE_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 3: Smites restore your vigor (requires Extra Smite II - 2 ranks)");
+  
+  /* ========== TIER 4 PERKS (4 points each) ========== */
+  
+  /* Blinding Smite */
+  perk = &perk_list[PERK_PALADIN_BLINDING_SMITE];
+  perk->id = PERK_PALADIN_BLINDING_SMITE;
+  perk->name = strdup("Blinding Smite");
+  perk->description = strdup("Smite Evil blinds target for 2 rounds (Will save negates, DC 10 + Paladin level + CHA mod)");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_DIVINE_MIGHT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 4: Your smites blind evil foes (requires Divine Might)");
+  
+  /* Overwhelming Smite */
+  perk = &perk_list[PERK_PALADIN_OVERWHELMING_SMITE];
+  perk->id = PERK_PALADIN_OVERWHELMING_SMITE;
+  perk->name = strdup("Overwhelming Smite");
+  perk->description = strdup("Critical hits with Smite Evil active knock target prone (Fortitude save negates)");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_EXORCISM_OF_THE_SLAIN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 4: Devastating critical smites (requires Exorcism of the Slain)");
+  
+  /* Sacred Vengeance */
+  perk = &perk_list[PERK_PALADIN_SACRED_VENGEANCE];
+  perk->id = PERK_PALADIN_SACRED_VENGEANCE;
+  perk->name = strdup("Sacred Vengeance");
+  perk->description = strdup("When ally drops below 25% HP or dies, gain +4 hit/+8 damage for 3 rounds (5 min cooldown)");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_ZEALOUS_SMITE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 4: Righteous fury when allies fall (requires Zealous Smite)");
 }
 
 /* Nature's Warrior Druid Perk Helper Functions */
@@ -13000,5 +13116,68 @@ bool has_paladin_holy_blade(struct char_data *ch)
     return FALSE;
     
   return has_perk(ch, PERK_PALADIN_HOLY_BLADE);
+}
+
+/* Check if paladin has Divine Might */
+bool has_paladin_divine_might(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_DIVINE_MIGHT);
+}
+
+/* Check if paladin has Exorcism of the Slain */
+bool has_paladin_exorcism_of_the_slain(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_EXORCISM_OF_THE_SLAIN);
+}
+
+/* Check if paladin has Holy Sword */
+bool has_paladin_holy_sword(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_HOLY_SWORD);
+}
+
+/* Check if paladin has Zealous Smite */
+bool has_paladin_zealous_smite(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_ZEALOUS_SMITE);
+}
+
+/* Check if paladin has Blinding Smite */
+bool has_paladin_blinding_smite(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_BLINDING_SMITE);
+}
+
+/* Check if paladin has Overwhelming Smite */
+bool has_paladin_overwhelming_smite(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_OVERWHELMING_SMITE);
+}
+
+/* Check if paladin has Sacred Vengeance */
+bool has_paladin_sacred_vengeance(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_SACRED_VENGEANCE);
 }
 

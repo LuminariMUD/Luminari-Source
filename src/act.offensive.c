@@ -8956,27 +8956,79 @@ ACMD(do_holy_blade)
   act("$n's $p glows with brilliant holy light!", 
       FALSE, ch, wielded, 0, TO_ROOM);
 
-  /* +2 enhancement bonus to hit */
+  /* Enhancement bonus (base +2, or +4 with Holy Sword perk) */
+  int enhancement_bonus = 2;
+  if (has_paladin_holy_sword(ch))
+    enhancement_bonus = 4;
+
+  /* Enhancement bonus to hit */
   new_affect(&af);
   af.spell = SKILL_HOLY_BLADE;
   af.duration = duration;
   af.location = APPLY_HITROLL;
-  af.modifier = 2;
+  af.modifier = enhancement_bonus;
   af.bonus_type = BONUS_TYPE_ENHANCEMENT;
   affect_to_char(ch, &af);
 
-  /* +2 enhancement bonus to damage */
+  /* Enhancement bonus to damage */
   new_affect(&af);
   af.spell = SKILL_HOLY_BLADE;
   af.duration = duration;
   af.location = APPLY_DAMROLL;
-  af.modifier = 2;
+  af.modifier = enhancement_bonus;
   af.bonus_type = BONUS_TYPE_ENHANCEMENT;
   affect_to_char(ch, &af);
 
   /* Start cooldown */
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, SKILL_HOLY_BLADE);
+}
+
+/* Paladin Divine Might - Knight of the Chalice Tier 3 */
+ACMD(do_divine_might)
+{
+  struct affected_type af;
+  int duration = 10; // 1 minute = 10 rounds
+  int cha_bonus = GET_CHA_BONUS(ch);
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+
+  /* Check if already using divine might */
+  if (affected_by_spell(ch, SKILL_DIVINE_MIGHT))
+  {
+    send_to_char(ch, "You are already channeling divine might!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_paladin_divine_might(ch))
+  {
+    send_to_char(ch, "You don't know how to channel divine might!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  PREREQ_HAS_USES(SKILL_DIVINE_MIGHT, "You must recover before you can use divine might again.\r\n");
+
+  send_to_char(ch, "You channel divine power into your strikes, infusing them with righteous fury!\r\n");
+  act("$n radiates with divine power as holy energy flows through $s weapon!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Add CHA bonus to damage */
+  new_affect(&af);
+  af.spell = SKILL_DIVINE_MIGHT;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = cha_bonus;
+  af.bonus_type = BONUS_TYPE_SACRED;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_DIVINE_MIGHT);
+
+  USE_SWIFT_ACTION(ch);
 }
 
 /* drow faerie fire engine */

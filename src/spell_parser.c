@@ -5145,6 +5145,14 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "The holy enchantment fades from your weapon.", 1, 1, NOSCHOOL, FALSE);
 
+  spello(SKILL_DIVINE_MIGHT, "divine might", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your divine might fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_SACRED_VENGEANCE, "sacred vengeance", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your righteous fury subsides.", 1, 1, NOSCHOOL, FALSE);
+
   spello(SKILL_RECKLESS_ABANDON, "reckless abandon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your reckless fury subsides.", 1, 1, NOSCHOOL, FALSE);

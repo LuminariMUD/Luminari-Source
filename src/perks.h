@@ -388,6 +388,13 @@ int get_paladin_sacred_defender_ac_bonus(struct char_data *ch);
 int get_paladin_improved_smite_dice(struct char_data *ch);
 bool has_paladin_faithful_strike(struct char_data *ch);
 bool has_paladin_holy_blade(struct char_data *ch);
+bool has_paladin_divine_might(struct char_data *ch);
+bool has_paladin_exorcism_of_the_slain(struct char_data *ch);
+bool has_paladin_holy_sword(struct char_data *ch);
+bool has_paladin_zealous_smite(struct char_data *ch);
+bool has_paladin_blinding_smite(struct char_data *ch);
+bool has_paladin_overwhelming_smite(struct char_data *ch);
+bool has_paladin_sacred_vengeance(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

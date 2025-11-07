@@ -3701,6 +3701,17 @@
 #define PERK_PALADIN_IMPROVED_SMITE 906
 #define PERK_PALADIN_HOLY_BLADE 907
 
+/* KNIGHT OF THE CHALICE TREE - Tier 3 Perks (908-911) */
+#define PERK_PALADIN_DIVINE_MIGHT 908
+#define PERK_PALADIN_EXORCISM_OF_THE_SLAIN 909
+#define PERK_PALADIN_HOLY_SWORD 910
+#define PERK_PALADIN_ZEALOUS_SMITE 911
+
+/* KNIGHT OF THE CHALICE TREE - Tier 4 Perks (912-914) */
+#define PERK_PALADIN_BLINDING_SMITE 912
+#define PERK_PALADIN_OVERWHELMING_SMITE 913
+#define PERK_PALADIN_SACRED_VENGEANCE 914
+
 /* ============================================================================
  * RANGER PERKS (1000-1099)
  * ============================================================================ */
