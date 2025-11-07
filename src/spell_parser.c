@@ -5137,6 +5137,46 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);  
 
+  spello(SKILL_FAITHFUL_STRIKE, "faithful strike", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your divine power fades from your weapon.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_HOLY_BLADE, "holy blade", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "The holy enchantment fades from your weapon.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_RECKLESS_ABANDON, "reckless abandon", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your reckless fury subsides.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_WAR_CRY_ALLY, "war cry", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "The inspiration from the war cry fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_WAR_CRY_ENEMY, "war cry intimidation", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You recover from the intimidating war cry.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_DEFENSIVE_STANCE, "defensive stance", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your defensive stance ends.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_SPRINT, "sprint", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your sprint ends and you slow to normal speed.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_TIGER_CLAW, "tiger claw bleed", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "You stop bleeding from the tiger claw strikes.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_CRUSHING_BLOW, "crushing blow", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your Ki focus for crushing blow dissipates.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_SHATTERING_STRIKE, "shattering strike", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your Ki focus for shattering strike dissipates.", 1, 1, NOSCHOOL, FALSE);
+
   spello(ABILITY_DAZZLING_DISPLAY, "dazzling display", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You are no longer dazzled.", 1, 1, NOSCHOOL, 0);
