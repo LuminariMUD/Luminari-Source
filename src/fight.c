@@ -1096,6 +1096,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     /* Berserker Primal Warrior perk: Uncanny Dodge Mastery - +3 dodge AC */
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_berserker_uncanny_dodge_ac_bonus(ch);
+      
+    /* Paladin Knight of the Chalice perk: Sacred Defender - +1 AC per rank when using weapon and shield */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_SHIELD] += get_paladin_sacred_defender_ac_bonus(ch);
 
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
@@ -6560,6 +6564,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "Crimson Rage bonus: \tR%d\tn\r\n", crimson_bonus);
     }
   }
+  
+  /* Paladin holy weapon damage bonus against evil */
+  if (vict != NULL)
+  {
+    int holy_weapon_bonus = get_paladin_holy_weapon_damage_bonus(ch, vict);
+    if (holy_weapon_bonus > 0)
+    {
+      dambonus += holy_weapon_bonus;
+      if (display_mode)
+        send_to_char(ch, "Holy Weapon (vs Evil): \tW%d\tn\r\n", holy_weapon_bonus);
+    }
+  }
 
   if (HAS_FEAT(ch, FEAT_BG_GLADIATOR) && GET_CLAN(ch) > 0 && are_clans_allied(GET_CLAN(ch), zone_table[world[IN_ROOM(ch)].zone].faction))
   {
@@ -6619,6 +6635,19 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Smite Evil bonus: \tR%d\tn\r\n", get_smite_evil_level(ch) * smite_evil_target_type(vict));
     dambonus += get_smite_evil_level(ch) * smite_evil_target_type(vict);
+    
+    /* Improved Smite perk - add bonus dice damage */
+    if (!IS_NPC(ch))
+    {
+      int improved_smite_dice = get_paladin_improved_smite_dice(ch);
+      if (improved_smite_dice > 0 && smite_evil_target_type(vict))
+      {
+        int bonus_dam = dice(improved_smite_dice, 6);
+        dambonus += bonus_dam;
+        if (display_mode)
+          send_to_char(ch, "Improved Smite: \tR%dd6 (%d)\tn\r\n", improved_smite_dice, bonus_dam);
+      }
+    }
   }
   /* smite good (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict)

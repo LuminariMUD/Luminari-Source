@@ -125,7 +125,7 @@ The Paladin perk system is divided into three thematic trees, each with four tie
 - **Description**: Increase healing power reserves
 - **Max Ranks**: 3
 - **Prerequisites**: None
-- **Effect**: +2 uses of Lay on Hands per day per rank (+6 total at max)
+- **Effect**: +1 uses of Lay on Hands per day per rank (+3 total at max)
 
 #### Shield of Faith I
 - **Description**: Divine protection shields you
@@ -137,13 +137,13 @@ The Paladin perk system is divided into three thematic trees, each with four tie
 - **Description**: Improved defensive stance with shield
 - **Max Ranks**: 3
 - **Prerequisites**: None
-- **Effect**: +2 bonus to saves per rank when wielding a shield (+6 at max)
+- **Effect**: +1 bonus to saves per rank when wielding a shield (+3 at max)
 
 #### Defensive Strike
-- **Description**: Fighting defensively is more effective
+- **Description**: Make an attack, which, if it hits, raises your AC
 - **Max Ranks**: 1
 - **Prerequisites**: None
-- **Effect**: When fighting defensively, reduce attack penalty by 2 and increase AC bonus by 2
+- **Effect**: Use the defensivestrike command to make an attack, which if it hits, raises AC by 2 for 5 rounds. 2 minute cooldown.
 
 ---
 
@@ -153,7 +153,7 @@ The Paladin perk system is divided into three thematic trees, each with four tie
 - **Description**: Further increase healing reserves
 - **Max Ranks**: 2
 - **Prerequisites**: Extra Lay on Hands I (3 ranks)
-- **Effect**: +3 uses of Lay on Hands per day per rank (+6 total at max)
+- **Effect**: +1 uses of Lay on Hands per day per rank (+3 total at max)
 
 #### Shield of Faith II
 - **Description**: Enhanced divine protection
@@ -165,13 +165,13 @@ The Paladin perk system is divided into three thematic trees, each with four tie
 - **Description**: More potent healing
 - **Max Ranks**: 3
 - **Prerequisites**: Extra Lay on Hands I (2 ranks)
-- **Effect**: Lay on Hands heals +20% more per rank (+60% at max)
+- **Effect**: Lay on Hands heals +10% more per rank (+30% at max)
 
 #### Shield Guardian
 - **Description**: Protect adjacent allies with your shield
 - **Max Ranks**: 1
 - **Prerequisites**: Bulwark of Defense (2 ranks)
-- **Effect**: Adjacent allies gain +2 AC bonus from your shield proficiency
+- **Effect**: Grouped allies in your room gain +2 AC bonus from your shield proficiency
 
 ---
 
@@ -181,19 +181,19 @@ The Paladin perk system is divided into three thematic trees, each with four tie
 - **Description**: Strengthen your protective aura
 - **Max Ranks**: 1
 - **Prerequisites**: Shield of Faith II (2 ranks)
-- **Effect**: Your Aura of Courage radius increases to 20 feet and grants +2 to all saves
+- **Effect**: Your Aura of Courage radius grants +2 to all saves
 
 #### Sanctuary
 - **Description**: Become a beacon of divine safety
 - **Max Ranks**: 1
 - **Prerequisites**: Shield Guardian
-- **Effect**: Gain "Sanctuary" ability - Standard action: gain 50% concealment for 1 minute, enemies attacking you take 1d6 divine damage, 10 minute cooldown
+- **Effect**: Gain a damage shield that reduces all incoming damage by 10%
 
 #### Merciful Touch
 - **Description**: Lay on Hands can cure conditions
 - **Max Ranks**: 1
 - **Prerequisites**: Healing Hands (3 ranks)
-- **Effect**: Lay on Hands also removes one status effect: poison, disease, curse, blindness, or deafness
+- **Effect**: Lay on Hands also gives +20 to current and max hit points for 5 rounds. Doesn't stack.
 
 #### Bastion of Defense
 - **Description**: Become an immovable defender
@@ -215,13 +215,13 @@ The Paladin perk system is divided into three thematic trees, each with four tie
 - **Description**: Touch banishes evil magic
 - **Max Ranks**: 1
 - **Prerequisites**: Merciful Touch
-- **Effect**: Lay on Hands can remove magical effects and curses, and can be used as a swift action (but heals half)
+- **Effect**: Lay on Hands can remove one negative affect and can be used as a swift action
 
 #### Divine Sacrifice
 - **Description**: Take damage meant for allies
 - **Max Ranks**: 1
 - **Prerequisites**: Bastion of Defense
-- **Effect**: Gain "Divine Sacrifice" ability - When an ally within 30 feet would be reduced below 0 HP, you may take the damage instead (once per 10 minutes)
+- **Effect**: When an ally within 30 feet would be reduced below 0 HP, you may take the damage instead (once per 10 minutes)
 
 ---
 

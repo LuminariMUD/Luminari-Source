@@ -70,6 +70,9 @@ const char *perk_category_names[] = {
   "Berserker",              /* 24 - PERK_CATEGORY_BERSERKER */
   "Totem Warrior",          /* 25 - PERK_CATEGORY_TOTEM_WARRIOR */
   "Primal Champion",        /* 26 - PERK_CATEGORY_PRIMAL_CHAMPION */
+  "Knight of the Chalice",  /* 27 - PERK_CATEGORY_KNIGHT_OF_THE_CHALICE */
+  "Sacred Defender",        /* 28 - PERK_CATEGORY_SACRED_DEFENDER */
+  "Divine Champion",        /* 29 - PERK_CATEGORY_DIVINE_CHAMPION */
   "\n"                      /* Terminator */
 };
 
@@ -126,6 +129,9 @@ void init_perks(void)
   
   /* Define Druid Perks */
   define_druid_perks();
+  
+  /* Define Paladin Perks */
+  define_paladin_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
@@ -11917,6 +11923,146 @@ void define_druid_perks(void)
   perk->special_description = strdup("Requires Animal Bond III (max). Your animal companion becomes a dire version with doubled base stats (HP, damage, AC).");
 }
 
+/* ============================================================================
+ * PALADIN PERK DEFINITIONS - Knight of the Chalice (Tier 1-2)
+ * ============================================================================ */
+void define_paladin_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* ========== TIER 1 PERKS (1 point each) ========== */
+  
+  /* Extra Smite I */
+  perk = &perk_list[PERK_PALADIN_EXTRA_SMITE_1];
+  perk->id = PERK_PALADIN_EXTRA_SMITE_1;
+  perk->name = strdup("Extra Smite I");
+  perk->description = strdup("+1 use of Smite Evil per day per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 1: Gain additional uses of Smite Evil per day");
+  
+  /* Holy Weapon I */
+  perk = &perk_list[PERK_PALADIN_HOLY_WEAPON_1];
+  perk->id = PERK_PALADIN_HOLY_WEAPON_1;
+  perk->name = strdup("Holy Weapon I");
+  perk->description = strdup("+2 divine damage per rank on melee attacks against evil creatures");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 1: Your melee attacks deal additional holy damage to evil foes");
+  
+  /* Sacred Defender */
+  perk = &perk_list[PERK_PALADIN_SACRED_DEFENDER];
+  perk->id = PERK_PALADIN_SACRED_DEFENDER;
+  perk->name = strdup("Sacred Defender");
+  perk->description = strdup("+1 AC per rank when wielding a weapon and shield");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 1: Divine energy protects you in combat");
+  
+  /* Faithful Strike */
+  perk = &perk_list[PERK_PALADIN_FAITHFUL_STRIKE];
+  perk->id = PERK_PALADIN_FAITHFUL_STRIKE;
+  perk->name = strdup("Faithful Strike");
+  perk->description = strdup("Gain 'Faithful Strike' ability - swift action to add WIS modifier to next attack roll, 1 minute cooldown");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 1: Channel divine power to strike true");
+  
+  /* ========== TIER 2 PERKS (2 points each) ========== */
+  
+  /* Extra Smite II */
+  perk = &perk_list[PERK_PALADIN_EXTRA_SMITE_2];
+  perk->id = PERK_PALADIN_EXTRA_SMITE_2;
+  perk->name = strdup("Extra Smite II");
+  perk->description = strdup("+1 use of Smite Evil per day per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_SMITE_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 2: Further increase smite uses (requires Extra Smite I - max rank)");
+  
+  /* Holy Weapon II */
+  perk = &perk_list[PERK_PALADIN_HOLY_WEAPON_2];
+  perk->id = PERK_PALADIN_HOLY_WEAPON_2;
+  perk->name = strdup("Holy Weapon II");
+  perk->description = strdup("+2 divine damage per rank on melee attacks against evil creatures");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_HOLY_WEAPON_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 2: Your weapons burn with righteous fire (requires Holy Weapon I - max rank)");
+  
+  /* Improved Smite */
+  perk = &perk_list[PERK_PALADIN_IMPROVED_SMITE];
+  perk->id = PERK_PALADIN_IMPROVED_SMITE;
+  perk->name = strdup("Improved Smite");
+  perk->description = strdup("Smite Evil deals +1d6 bonus damage per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_SMITE_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 2: Your smites are more devastating (requires Extra Smite I - 2 ranks)");
+  
+  /* Holy Blade */
+  perk = &perk_list[PERK_PALADIN_HOLY_BLADE];
+  perk->id = PERK_PALADIN_HOLY_BLADE;
+  perk->name = strdup("Holy Blade");
+  perk->description = strdup("Enchant your weapon: +2 enhancement bonus and good alignment for 5 minutes, 10 minute cooldown");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_KNIGHT_OF_THE_CHALICE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_HOLY_WEAPON_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Knight of the Chalice - Tier 2: Enchant your weapon with divine power (requires Holy Weapon I - 2 ranks)");
+}
+
 /* Nature's Warrior Druid Perk Helper Functions */
 
 /* Get attack bonus from Wild Shape Enhancement perks when wild shaped */
@@ -12777,5 +12923,82 @@ bool has_berserker_earthshaker(struct char_data *ch)
     return FALSE;
     
   return has_perk(ch, PERK_BERSERKER_EARTHSHAKER);
+}
+
+/* ============================================================================
+ * PALADIN PERK HELPER FUNCTIONS - Knight of the Chalice
+ * ============================================================================ */
+
+/* Get holy weapon damage bonus against evil creatures */
+int get_paladin_holy_weapon_damage_bonus(struct char_data *ch, struct char_data *victim)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return 0;
+    
+  if (!victim || !IS_EVIL(victim))
+    return 0;
+    
+  /* Holy Weapon I: +2 per rank (max 3 ranks = +6) */
+  bonus += get_perk_rank(ch, PERK_PALADIN_HOLY_WEAPON_1, CLASS_PALADIN) * 2;
+  
+  /* Holy Weapon II: +2 per rank (max 2 ranks = +4) */
+  bonus += get_perk_rank(ch, PERK_PALADIN_HOLY_WEAPON_2, CLASS_PALADIN) * 2;
+  
+  return bonus;
+}
+
+/* Get sacred defender AC bonus when wielding weapon and shield */
+int get_paladin_sacred_defender_ac_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return 0;
+    
+  /* Must be wielding a weapon and a shield */
+  if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H))
+    return 0;
+    
+  if (!GET_EQ(ch, WEAR_SHIELD))
+    return 0;
+    
+  /* Sacred Defender: +1 AC per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_PALADIN_SACRED_DEFENDER, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/* Get improved smite bonus damage dice */
+int get_paladin_improved_smite_dice(struct char_data *ch)
+{
+  int dice = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return 0;
+    
+  /* Improved Smite: +1d6 per rank (max 3 ranks = +3d6) */
+  dice += get_perk_rank(ch, PERK_PALADIN_IMPROVED_SMITE, CLASS_PALADIN);
+  
+  return dice;
+}
+
+/* Check if paladin has Faithful Strike */
+bool has_paladin_faithful_strike(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_FAITHFUL_STRIKE);
+}
+
+/* Check if paladin has Holy Blade */
+bool has_paladin_holy_blade(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_PALADIN) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_PALADIN_HOLY_BLADE);
 }
 

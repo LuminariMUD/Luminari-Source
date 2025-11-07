@@ -382,6 +382,13 @@ bool has_berserker_savage_charge(struct char_data *ch);
 bool has_berserker_war_cry(struct char_data *ch);
 bool has_berserker_earthshaker(struct char_data *ch);
 
+/* Paladin perk helper functions - Knight of the Chalice */
+int get_paladin_holy_weapon_damage_bonus(struct char_data *ch, struct char_data *victim);
+int get_paladin_sacred_defender_ac_bonus(struct char_data *ch);
+int get_paladin_improved_smite_dice(struct char_data *ch);
+bool has_paladin_faithful_strike(struct char_data *ch);
+bool has_paladin_holy_blade(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

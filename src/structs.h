@@ -3078,6 +3078,11 @@
 #define PERK_CATEGORY_TOTEM_WARRIOR 25
 #define PERK_CATEGORY_PRIMAL_CHAMPION 26
 
+/* Paladin Perk Categories */
+#define PERK_CATEGORY_KNIGHT_OF_THE_CHALICE 27
+#define PERK_CATEGORY_SACRED_DEFENDER 28
+#define PERK_CATEGORY_DIVINE_CHAMPION 29
+
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
 #define PERK_UNDEFINED 0
@@ -3683,7 +3688,18 @@
 /* ============================================================================
  * PALADIN PERKS (900-999)
  * ============================================================================ */
-/* Not yet implemented */
+
+/* KNIGHT OF THE CHALICE TREE - Tier 1 Perks (900-903) */
+#define PERK_PALADIN_EXTRA_SMITE_1 900
+#define PERK_PALADIN_HOLY_WEAPON_1 901
+#define PERK_PALADIN_SACRED_DEFENDER 902
+#define PERK_PALADIN_FAITHFUL_STRIKE 903
+
+/* KNIGHT OF THE CHALICE TREE - Tier 2 Perks (904-907) */
+#define PERK_PALADIN_EXTRA_SMITE_2 904
+#define PERK_PALADIN_HOLY_WEAPON_2 905
+#define PERK_PALADIN_IMPROVED_SMITE 906
+#define PERK_PALADIN_HOLY_BLADE 907
 
 /* ============================================================================
  * RANGER PERKS (1000-1099)

@@ -8869,6 +8869,116 @@ ACMD(do_smiteevil)
   perform_smite(ch, SMITE_TYPE_EVIL);
 }
 
+/* Paladin Faithful Strike - Knight of the Chalice Tier 1 */
+ACMD(do_faithful_strike)
+{
+  struct affected_type af;
+  int duration = 1; // 1 round
+  int wis_bonus = GET_WIS_BONUS(ch);
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+
+  /* Check if already using faithful strike */
+  if (affected_by_spell(ch, SKILL_FAITHFUL_STRIKE))
+  {
+    send_to_char(ch, "You have already channeled divine power!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_paladin_faithful_strike(ch))
+  {
+    send_to_char(ch, "You don't know how to use faithful strike!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 1 minute cooldown */
+  PREREQ_HAS_USES(SKILL_FAITHFUL_STRIKE, "You must recover before you can use faithful strike again.\r\n");
+
+  send_to_char(ch, "You channel divine power into your next attack!\r\n");
+  act("$n's weapon glows briefly with divine light!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Add WIS bonus to next attack roll */
+  new_affect(&af);
+  af.spell = SKILL_FAITHFUL_STRIKE;
+  af.duration = duration;
+  af.location = APPLY_HITROLL;
+  af.modifier = wis_bonus;
+  af.bonus_type = BONUS_TYPE_SACRED;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_FAITHFUL_STRIKE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+/* Paladin Holy Blade - Knight of the Chalice Tier 2 */
+ACMD(do_holy_blade)
+{
+  struct affected_type af;
+  int duration = 50; // 5 minutes = 50 rounds
+  struct obj_data *wielded = NULL;
+
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_holy_blade(ch))
+  {
+    send_to_char(ch, "You don't know how to enchant your weapon with holy power!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 10 minute cooldown */
+  PREREQ_HAS_USES(SKILL_HOLY_BLADE, "You must recover before you can use holy blade again.\r\n");
+
+  /* Must be wielding a weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  if (!wielded)
+  {
+    send_to_char(ch, "You must be wielding a weapon to enchant it!\r\n");
+    return;
+  }
+
+  /* Check if weapon is already affected */
+  if (affected_by_spell(ch, SKILL_HOLY_BLADE))
+  {
+    send_to_char(ch, "Your weapon is already enchanted with holy power!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You call upon divine power to enchant your weapon with holy might!\r\n");
+  act("$n's $p glows with brilliant holy light!", 
+      FALSE, ch, wielded, 0, TO_ROOM);
+
+  /* +2 enhancement bonus to hit */
+  new_affect(&af);
+  af.spell = SKILL_HOLY_BLADE;
+  af.duration = duration;
+  af.location = APPLY_HITROLL;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  affect_to_char(ch, &af);
+
+  /* +2 enhancement bonus to damage */
+  new_affect(&af);
+  af.spell = SKILL_HOLY_BLADE;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_HOLY_BLADE);
+}
+
 /* drow faerie fire engine */
 void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
 {

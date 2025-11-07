@@ -4951,6 +4951,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
       daily_uses += HAS_FEAT(ch, featnum);
       daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_1);
       daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_2);
+      /* Knight of the Chalice perks */
+      daily_uses += get_perk_rank(ch, PERK_PALADIN_EXTRA_SMITE_1, CLASS_PALADIN);
+      daily_uses += get_perk_rank(ch, PERK_PALADIN_EXTRA_SMITE_2, CLASS_PALADIN);
       break;
     case FEAT_RAGE:/*fallthrough*/
     case FEAT_SACRED_FLAMES:/*fallthrough*/

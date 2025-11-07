@@ -3871,11 +3871,8 @@ int level_exp(struct char_data *ch, int level)
   {
     return EXP_MAX - ((LVL_IMPL - level) * 1000);
   }
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  factor = 2000 + (level - 2) * 900;
-#else
-  factor = 2000 + (level - 2) * 750;
-#endif
+
+  factor = 2000 + (level - 2) * 800;
 
   /* Exp required for normal mortals is below */
   switch (chclass)

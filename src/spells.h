@@ -1137,9 +1137,11 @@
 #define SKILL_WAR_CRY_ALLY 2222 // War Cry buff for allies
 #define SKILL_WAR_CRY_ENEMY 2223 // War Cry debuff for enemies
 #define SKILL_EARTHSHAKER 2224 // Berserker Primal Warrior - Tier 4
+#define SKILL_FAITHFUL_STRIKE 2225 // Paladin Knight of the Chalice - Tier 1
+#define SKILL_HOLY_BLADE 2226 // Paladin Knight of the Chalice - Tier 2
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2225
+#define NUM_SKILLS 2227
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 
