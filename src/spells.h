@@ -1141,9 +1141,10 @@
 #define SKILL_HOLY_BLADE 2226 // Paladin Knight of the Chalice - Tier 2
 #define SKILL_DIVINE_MIGHT 2227 // Paladin Knight of the Chalice - Tier 3
 #define SKILL_SACRED_VENGEANCE 2228 // Paladin Knight of the Chalice - Tier 4
+#define SKILL_DEFENSIVE_STRIKE 2229 // Paladin Sacred Defender - Tier 1
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2229
+#define NUM_SKILLS 2230 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

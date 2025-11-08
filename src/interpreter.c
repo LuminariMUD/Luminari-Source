@@ -920,7 +920,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"faithfulstrike", "faithfulstrike", POS_FIGHTING, do_faithful_strike, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"holyblade", "holyblade", POS_RESTING, do_holy_blade, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"divinemight", "divinemight", POS_FIGHTING, do_divine_might, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
-    {"holyblade", "holyblade", POS_RESTING, do_holy_blade, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"defensivestrike", "defensivestrike", POS_FIGHTING, do_defensive_strike, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},

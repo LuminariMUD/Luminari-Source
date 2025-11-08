@@ -669,6 +669,7 @@ ACMDCHECK(can_smitegood);
 ACMD_DECL(do_faithful_strike);
 ACMD_DECL(do_holy_blade);
 ACMD_DECL(do_divine_might);
+ACMD_DECL(do_defensive_strike);
 ACMD_DECL(do_kill);
 ACMD_DECL(do_layonhands);
 ACMDCHECK(can_layonhands);

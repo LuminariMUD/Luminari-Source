@@ -24,6 +24,7 @@ void define_ranger_perks(void);
 void define_barbarian_perks(void);
 void define_monk_perks(void);
 void define_druid_perks(void);
+void define_paladin_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -395,6 +396,14 @@ bool has_paladin_zealous_smite(struct char_data *ch);
 bool has_paladin_blinding_smite(struct char_data *ch);
 bool has_paladin_overwhelming_smite(struct char_data *ch);
 bool has_paladin_sacred_vengeance(struct char_data *ch);
+
+/* Paladin perk helper functions - Sacred Defender */
+int get_paladin_extra_lay_on_hands(struct char_data *ch);
+int get_paladin_shield_of_faith_ac_bonus(struct char_data *ch);
+int get_paladin_bulwark_saves_bonus(struct char_data *ch);
+int get_paladin_healing_hands_bonus(struct char_data *ch);
+bool has_paladin_defensive_strike(struct char_data *ch);
+bool has_paladin_shield_guardian(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

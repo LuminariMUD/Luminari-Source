@@ -3712,6 +3712,18 @@
 #define PERK_PALADIN_OVERWHELMING_SMITE 913
 #define PERK_PALADIN_SACRED_VENGEANCE 914
 
+/* SACRED DEFENDER TREE - Tier 1 Perks (915-918) */
+#define PERK_PALADIN_EXTRA_LAY_ON_HANDS_1 915
+#define PERK_PALADIN_SHIELD_OF_FAITH_1 916
+#define PERK_PALADIN_BULWARK_OF_DEFENSE 917
+#define PERK_PALADIN_DEFENSIVE_STRIKE 918
+
+/* SACRED DEFENDER TREE - Tier 2 Perks (919-922) */
+#define PERK_PALADIN_EXTRA_LAY_ON_HANDS_2 919
+#define PERK_PALADIN_SHIELD_OF_FAITH_2 920
+#define PERK_PALADIN_HEALING_HANDS 921
+#define PERK_PALADIN_SHIELD_GUARDIAN 922
+
 /* ============================================================================
  * RANGER PERKS (1000-1099)
  * ============================================================================ */

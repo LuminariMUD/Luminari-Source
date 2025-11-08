@@ -4856,6 +4856,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
       break;
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
+      /* Paladin Sacred Defender perk: Extra Lay on Hands */
+      if (!IS_NPC(ch))
+        daily_uses += get_paladin_extra_lay_on_hands(ch);
       break;
     case FEAT_JUDGEMENT:
       daily_uses += ((CLASS_LEVEL(ch, CLASS_INQUISITOR) - 1) / 3) + 1;

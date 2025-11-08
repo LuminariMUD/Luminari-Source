@@ -1101,6 +1101,33 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_SHIELD] += get_paladin_sacred_defender_ac_bonus(ch);
 
+    /* Paladin Sacred Defender perk: Shield of Faith - +1 deflection AC per rank */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DEFLECTION] += get_paladin_shield_of_faith_ac_bonus(ch);
+
+    /* Paladin Sacred Defender perk: Shield Guardian - +2 AC from grouped paladin with shield */
+    if (!IS_NPC(ch) && GROUP(ch))
+    {
+      struct group_data *group = GROUP(ch);
+      struct char_data *k = NULL;
+      struct iterator_data it;
+      
+      /* Check if any group member in the same room has Shield Guardian and is wielding a shield */
+      for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it))
+      {
+        if (k != ch && IN_ROOM(k) == IN_ROOM(ch) && !IS_NPC(k) && has_paladin_shield_guardian(k))
+        {
+          /* Check if they're wielding a shield */
+          struct obj_data *shield = GET_EQ(k, WEAR_SHIELD);
+          if (shield && GET_OBJ_TYPE(shield) == ITEM_ARMOR)
+          {
+            bonuses[BONUS_TYPE_SHIELD] += 2;
+            break; /* Only one shield guardian bonus */
+          }
+        }
+      }
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {

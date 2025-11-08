@@ -438,6 +438,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
 
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 
+  /* Paladin Sacred Defender perk: Bulwark of Defense - +1 to all saves per rank when wielding shield */
+  if (!IS_NPC(vict))
+    savethrow += get_paladin_bulwark_saves_bonus(vict);
+
   if (ch && type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
   {
     savethrow += 1;

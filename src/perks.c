@@ -120,6 +120,9 @@ void init_perks(void)
   /* Define Monk Perks */
   define_monk_perks();
   
+  /* Define Paladin Perks */
+  define_paladin_perks();
+  
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
 
@@ -4626,6 +4629,146 @@ void define_monk_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 4 Capstone");
+}
+
+/* ============================================================================
+ * PALADIN PERKS (900-999)
+ * ============================================================================ */
+void define_paladin_perks(void)
+{
+  struct perk_data *perk;
+  
+  /*** SACRED DEFENDER TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Extra Lay on Hands I (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_EXTRA_LAY_ON_HANDS_1];
+  perk->id = PERK_PALADIN_EXTRA_LAY_ON_HANDS_1;
+  perk->name = strdup("Extra Lay on Hands I");
+  perk->description = strdup("+1 use of Lay on Hands per day per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 use per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increase your daily uses of Lay on Hands by +1 per rank. Maximum 3 ranks for +3 uses total.");
+  
+  /* Shield of Faith I (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_SHIELD_OF_FAITH_1];
+  perk->id = PERK_PALADIN_SHIELD_OF_FAITH_1;
+  perk->name = strdup("Shield of Faith I");
+  perk->description = strdup("+1 Deflection AC per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1; /* +1 AC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Divine protection grants +1 Deflection bonus to AC per rank. Maximum 3 ranks for +3 AC total.");
+  
+  /* Bulwark of Defense (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_BULWARK_OF_DEFENSE];
+  perk->id = PERK_PALADIN_BULWARK_OF_DEFENSE;
+  perk->name = strdup("Bulwark of Defense");
+  perk->description = strdup("+1 to all saves per rank when wielding shield");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 to saves per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("While wielding a shield, gain +1 bonus to all saving throws per rank. Maximum 3 ranks for +3 to saves total.");
+  
+  /* Defensive Strike */
+  perk = &perk_list[PERK_PALADIN_DEFENSIVE_STRIKE];
+  perk->id = PERK_PALADIN_DEFENSIVE_STRIKE;
+  perk->name = strdup("Defensive Strike");
+  perk->description = strdup("Attack that grants +2 AC on hit for 5 rounds");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC */
+  perk->effect_modifier = 5; /* 5 rounds duration */
+  perk->special_description = strdup("Gain 'Defensive Strike' ability - Make an attack that, if it hits, grants you +2 AC for 5 rounds. 2 minute cooldown.");
+  
+  /*** SACRED DEFENDER TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Extra Lay on Hands II (Ranks 1-2) */
+  perk = &perk_list[PERK_PALADIN_EXTRA_LAY_ON_HANDS_2];
+  perk->id = PERK_PALADIN_EXTRA_LAY_ON_HANDS_2;
+  perk->name = strdup("Extra Lay on Hands II");
+  perk->description = strdup("Additional +1 use of Lay on Hands per day per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_LAY_ON_HANDS_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Extra Lay on Hands I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 use per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Extra Lay on Hands I (max). Further increase daily Lay on Hands uses by +1 per rank. Maximum 2 ranks for +2 uses (combined +5 with Tier 1).");
+  
+  /* Shield of Faith II (Ranks 1-2) */
+  perk = &perk_list[PERK_PALADIN_SHIELD_OF_FAITH_2];
+  perk->id = PERK_PALADIN_SHIELD_OF_FAITH_2;
+  perk->name = strdup("Shield of Faith II");
+  perk->description = strdup("Additional +1 Deflection AC per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_SHIELD_OF_FAITH_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Shield of Faith I */
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1; /* +1 AC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Shield of Faith I (max). Further enhance divine protection with +1 Deflection AC per rank. Maximum 2 ranks for +2 AC (combined +5 with Tier 1).");
+  
+  /* Healing Hands (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_HEALING_HANDS];
+  perk->id = PERK_PALADIN_HEALING_HANDS;
+  perk->name = strdup("Healing Hands");
+  perk->description = strdup("Lay on Hands heals +10% more per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_LAY_ON_HANDS_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Extra Lay on Hands I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Extra Lay on Hands I (at least 2 ranks). Your Lay on Hands ability heals +10% more per rank. Maximum 3 ranks for +30% healing total.");
+  
+  /* Shield Guardian */
+  perk = &perk_list[PERK_PALADIN_SHIELD_GUARDIAN];
+  perk->id = PERK_PALADIN_SHIELD_GUARDIAN;
+  perk->name = strdup("Shield Guardian");
+  perk->description = strdup("Grouped allies gain +2 AC from your shield");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_BULWARK_OF_DEFENSE;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Bulwark of Defense */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC to allies */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Bulwark of Defense (at least 2 ranks). While wielding a shield, grouped allies in your room gain +2 AC bonus from your protective presence.");
 }
 
 /* Lookup functions */
@@ -10605,4 +10748,115 @@ bool has_paladin_sacred_vengeance(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_PALADIN_SACRED_VENGEANCE);
+}
+
+/* =============================================================== */
+/* PALADIN PERK HELPER FUNCTIONS - SACRED DEFENDER                */
+/* =============================================================== */
+
+/**
+ * Get total extra Lay on Hands uses from perks.
+ * 
+ * @param ch The character
+ * @return Total bonus uses
+ */
+int get_paladin_extra_lay_on_hands(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  int bonus = 0;
+  
+  /* Extra Lay on Hands I: +1 per rank, max 3 ranks = +3 */
+  if (has_perk(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_1))
+    bonus += get_perk_rank(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_1, CLASS_PALADIN);
+  
+  /* Extra Lay on Hands II: +1 per rank, max 2 ranks = +2 */
+  if (has_perk(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_2))
+    bonus += get_perk_rank(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_2, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/**
+ * Get AC bonus from Shield of Faith perks.
+ * 
+ * @param ch The character
+ * @return AC bonus
+ */
+int get_paladin_shield_of_faith_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  int bonus = 0;
+  
+  /* Shield of Faith I: +1 per rank, max 3 ranks = +3 */
+  if (has_perk(ch, PERK_PALADIN_SHIELD_OF_FAITH_1))
+    bonus += get_perk_rank(ch, PERK_PALADIN_SHIELD_OF_FAITH_1, CLASS_PALADIN);
+  
+  /* Shield of Faith II: +1 per rank, max 2 ranks = +2 */
+  if (has_perk(ch, PERK_PALADIN_SHIELD_OF_FAITH_2))
+    bonus += get_perk_rank(ch, PERK_PALADIN_SHIELD_OF_FAITH_2, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/**
+ * Get saves bonus from Bulwark of Defense when wielding a shield.
+ * 
+ * @param ch The character
+ * @return Saves bonus
+ */
+int get_paladin_bulwark_saves_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_PALADIN_BULWARK_OF_DEFENSE))
+    return 0;
+  
+  /* Check if wielding shield */
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+  if (!shield || GET_OBJ_TYPE(shield) != ITEM_ARMOR)
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_BULWARK_OF_DEFENSE, CLASS_PALADIN);
+}
+
+/**
+ * Get healing percentage bonus from Healing Hands perk.
+ * 
+ * @param ch The character
+ * @return Healing percentage bonus (10 per rank)
+ */
+int get_paladin_healing_hands_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_PALADIN_HEALING_HANDS))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_HEALING_HANDS, CLASS_PALADIN) * 10;
+}
+
+/**
+ * Check if character has Defensive Strike perk.
+ */
+bool has_paladin_defensive_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_DEFENSIVE_STRIKE);
+}
+
+/**
+ * Check if character has Shield Guardian perk.
+ */
+bool has_paladin_shield_guardian(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_SHIELD_GUARDIAN);
 }

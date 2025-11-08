@@ -2179,6 +2179,17 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
       heal_amount += CLASS_LEVEL(ch, CLASS_PALADIN);
     }
   }
+  
+  /* Paladin Sacred Defender perk: Healing Hands - +10% healing per rank */
+  if (!IS_NPC(ch))
+  {
+    int healing_hands_bonus = get_paladin_healing_hands_bonus(ch);
+    if (healing_hands_bonus > 0)
+    {
+      heal_amount = heal_amount * (100 + healing_hands_bonus) / 100;
+    }
+  }
+  
   heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict), heal_amount);
 
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
@@ -9029,6 +9040,74 @@ ACMD(do_divine_might)
     start_daily_use_cooldown(ch, SKILL_DIVINE_MIGHT);
 
   USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_defensive_strike)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_defensive_strike(ch))
+  {
+    send_to_char(ch, "You don't know how to perform a defensive strike!\r\n");
+    return;
+  }
+
+  /* Check cooldown */
+  PREREQ_HAS_USES(SKILL_DEFENSIVE_STRIKE, "You must recover before you can use defensive strike again.\r\n");
+
+  /* Find target */
+  one_argument(argument, arg, sizeof(arg));
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+    else
+    {
+      send_to_char(ch, "Defensive strike who?\r\n");
+      return;
+    }
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "You can't defensive strike yourself!\r\n");
+    return;
+  }
+
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  /* Make the attack */
+  send_to_char(ch, "You strike out with a defensive stance, preparing to guard!\r\n");
+  act("$n strikes at $N with a defensive stance!", FALSE, ch, 0, vict, TO_NOTVICT);
+  act("$n strikes at you with a defensive stance!", FALSE, ch, 0, vict, TO_VICT);
+
+  /* Perform one attack */
+  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  /* Apply AC bonus regardless of hit */
+  new_affect(&af);
+  af.spell = SKILL_DEFENSIVE_STRIKE;
+  af.duration = duration;
+  af.location = APPLY_AC_NEW;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_DODGE;
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "You assume a defensive posture, gaining +2 AC!\r\n");
+  act("$n assumes a defensive posture!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_DEFENSIVE_STRIKE);
+
+  USE_MOVE_ACTION(ch);
 }
 
 /* drow faerie fire engine */
