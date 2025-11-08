@@ -1483,6 +1483,101 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                    "You have %d turn%s remaining to complete the quest.\r\n",
                    GET_QUEST_TIME(ch, index),
                    GET_QUEST_TIME(ch, index) == 1 ? "" : "s");
+    
+    /* Display quest target information */
+    switch (QST_TYPE(rnum))
+    {
+      case AQ_OBJ_FIND: /* Acquire Object */
+      {
+        obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
+        if (obj_rnum != NOTHING)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+        break;
+      }
+      case AQ_ROOM_FIND: /* Find Room */
+      {
+        room_rnum room_rnum = real_room(QST_TARGET(rnum));
+        if (room_rnum != NOWHERE)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+        break;
+      }
+      case AQ_MOB_FIND: /* Find Mob */
+      case AQ_MOB_KILL: /* Kill Mob */
+      case AQ_MOB_SAVE: /* Save Mob */
+      case AQ_DIALOGUE: /* Dialogue Quest */
+      {
+        mob_rnum mob_rnum = real_mobile(QST_TARGET(rnum));
+        if (mob_rnum != NOBODY)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", mob_proto[mob_rnum].player.short_descr);
+        break;
+      }
+      case AQ_OBJ_RETURN: /* Return Object */
+      {
+        obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
+        if (obj_rnum != NOTHING)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+        break;
+      }
+      case AQ_ROOM_CLEAR: /* Clear Room */
+      {
+        room_rnum room_rnum = real_room(QST_TARGET(rnum));
+        if (room_rnum != NOWHERE)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+        break;
+      }
+      case AQ_MOB_MULTI_KILL: /* Kill Multiple Mobs */
+      {
+        if (QST_KLIST(rnum) && *QST_KLIST(rnum))
+        {
+          char kill_list_copy[MAX_STRING_LENGTH];
+          char *mob_vnum_str;
+          bool first = TRUE;
+          
+          strncpy(kill_list_copy, QST_KLIST(rnum), sizeof(kill_list_copy) - 1);
+          kill_list_copy[sizeof(kill_list_copy) - 1] = '\0';
+          
+          send_to_char(ch, "\tcQuest Targets:\tn ");
+          
+          mob_vnum_str = strtok(kill_list_copy, ",");
+          while (mob_vnum_str != NULL)
+          {
+            mob_vnum mvnum = atoi(mob_vnum_str);
+            mob_rnum mob_rnum = real_mobile(mvnum);
+            
+            if (mob_rnum != NOBODY)
+            {
+              if (!first)
+                send_to_char(ch, ", ");
+              send_to_char(ch, "%s", mob_proto[mob_rnum].player.short_descr);
+              first = FALSE;
+            }
+            
+            mob_vnum_str = strtok(NULL, ",");
+          }
+          send_to_char(ch, "\r\n");
+        }
+        break;
+      }
+      /* Skip these quest types as requested */
+      case AQ_AUTOCRAFT:
+      case AQ_CRAFT:
+      case AQ_CRAFT_RESIZE:
+      case AQ_CRAFT_DIVIDE:
+      case AQ_CRAFT_MINE:
+      case AQ_CRAFT_HUNT:
+      case AQ_CRAFT_KNIT:
+      case AQ_CRAFT_FOREST:
+      case AQ_CRAFT_DISENCHANT:
+      case AQ_CRAFT_AUGMENT:
+      case AQ_CRAFT_CONVERT:
+      case AQ_CRAFT_RESTRING:
+      case AQ_COMPLETE_MISSION:
+      case AQ_HOUSE_FIND:
+      case AQ_WILD_FIND:
+      case AQ_GIVE_GOLD:
+      default:
+        break;
+    }
   }
 }
 

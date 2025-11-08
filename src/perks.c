@@ -10364,3 +10364,245 @@ bool check_monk_extra_flurry_attack(struct char_data *ch)
   
   return (rand_number(1, 100) <= chance);
 }
+
+/* =============================================================== */
+/* DRUID PERK HELPER FUNCTIONS - STUBS (NOT YET IMPLEMENTED)      */
+/* =============================================================== */
+
+int get_druid_wild_shape_attack_bonus(struct char_data *ch) { return 0; }
+int get_druid_wild_shape_damage_bonus(struct char_data *ch) { return 0; }
+int get_druid_natural_armor_bonus(struct char_data *ch) { return 0; }
+int get_druid_wild_shape_hp_bonus(struct char_data *ch) { return 0; }
+int get_druid_natural_weapons_damage_dice(struct char_data *ch) { return 0; }
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch) { return FALSE; }
+int get_druid_elemental_attack_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_damage_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_armor_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_hp_bonus(struct char_data *ch) { return 0; }
+bool has_druid_primal_avatar(struct char_data *ch) { return FALSE; }
+bool has_druid_natural_fury(struct char_data *ch) { return FALSE; }
+int get_druid_spell_power_bonus(struct char_data *ch) { return 0; }
+int get_druid_spell_dc_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_damage_dice(struct char_data *ch) { return 0; }
+bool check_druid_spell_critical(struct char_data *ch) { return FALSE; }
+float get_druid_spell_critical_multiplier(struct char_data *ch) { return 1.0; }
+int get_druid_bonus_spell_slots(struct char_data *ch) { return 0; }
+bool has_druid_force_of_nature(struct char_data *ch) { return FALSE; }
+bool has_druid_storm_caller(struct char_data *ch) { return FALSE; }
+bool has_druid_elemental_mastery(struct char_data *ch) { return FALSE; }
+
+/* =============================================================== */
+/* BERSERKER PERK HELPER FUNCTIONS - STUBS (NOT YET IMPLEMENTED)  */
+/* =============================================================== */
+
+int get_berserker_power_attack_bonus(struct char_data *ch) { return 0; }
+int get_berserker_rage_damage_bonus(struct char_data *ch) { return 0; }
+int get_berserker_critical_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_cleaving_strikes(struct char_data *ch) { return FALSE; }
+int get_berserker_cleave_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_blood_frenzy(struct char_data *ch) { return FALSE; }
+int get_berserker_devastating_critical_dice(struct char_data *ch) { return 0; }
+int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_overwhelming_force(struct char_data *ch) { return FALSE; }
+int get_berserker_crimson_rage_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_carnage(struct char_data *ch) { return FALSE; }
+bool has_berserker_frenzied_berserker(struct char_data *ch) { return FALSE; }
+bool has_berserker_relentless_assault(struct char_data *ch) { return FALSE; }
+bool has_berserker_death_from_above(struct char_data *ch) { return FALSE; }
+int get_berserker_thick_skin_bonus(struct char_data *ch) { return 0; }
+int get_berserker_damage_reduction(struct char_data *ch) { return 0; }
+int get_berserker_elemental_resistance(struct char_data *ch) { return 0; }
+bool has_berserker_hardy(struct char_data *ch) { return FALSE; }
+int get_berserker_savage_defiance_dr(struct char_data *ch) { return 0; }
+int get_berserker_damage_reduction_3(struct char_data *ch) { return 0; }
+int get_berserker_spell_resistance(struct char_data *ch) { return 0; }
+bool has_berserker_pain_tolerance(struct char_data *ch) { return FALSE; }
+bool has_berserker_deathless_frenzy(struct char_data *ch) { return FALSE; }
+int get_berserker_unstoppable_dr(struct char_data *ch) { return 0; }
+bool has_berserker_indomitable_will(struct char_data *ch) { return FALSE; }
+bool has_berserker_raging_defender(struct char_data *ch) { return FALSE; }
+int get_berserker_fleet_of_foot_bonus(struct char_data *ch) { return 0; }
+int get_berserker_intimidating_presence_bonus(struct char_data *ch) { return 0; }
+int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch) { return 0; }
+bool has_berserker_mighty_leap(struct char_data *ch) { return FALSE; }
+int get_berserker_mighty_leap_bonus(struct char_data *ch) { return 0; }
+int get_berserker_thick_headed_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_sprint(struct char_data *ch) { return FALSE; }
+bool has_berserker_intimidating_presence_2(struct char_data *ch) { return FALSE; }
+int get_berserker_crippling_blow_chance(struct char_data *ch) { return 0; }
+bool has_berserker_reckless_abandon(struct char_data *ch) { return FALSE; }
+bool has_berserker_blinding_rage(struct char_data *ch) { return FALSE; }
+bool has_berserker_stunning_blow(struct char_data *ch) { return FALSE; }
+bool has_berserker_uncanny_dodge_mastery(struct char_data *ch) { return FALSE; }
+int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch) { return 0; }
+int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_savage_charge(struct char_data *ch) { return FALSE; }
+bool has_berserker_war_cry(struct char_data *ch) { return FALSE; }
+bool has_berserker_earthshaker(struct char_data *ch) { return FALSE; }
+
+/* =============================================================== */
+/* PALADIN PERK HELPER FUNCTIONS - KNIGHT OF THE CHALICE         */
+/* =============================================================== */
+
+/**
+ * Get damage bonus from Holy Weapon perks against evil creatures.
+ * 
+ * @param ch The character
+ * @param victim The target (to check if evil)
+ * @return Damage bonus
+ */
+int get_paladin_holy_weapon_damage_bonus(struct char_data *ch, struct char_data *victim)
+{
+  if (!ch || IS_NPC(ch) || !victim)
+    return 0;
+  
+  if (!IS_EVIL(victim))
+    return 0;
+  
+  int bonus = 0;
+  
+  /* Holy Weapon I: +2 per rank, max 3 ranks = +6 */
+  if (has_perk(ch, PERK_PALADIN_HOLY_WEAPON_1))
+    bonus += get_perk_rank(ch, PERK_PALADIN_HOLY_WEAPON_1, CLASS_PALADIN) * 2;
+  
+  /* Holy Weapon II: +2 per rank, max 2 ranks = +4 */
+  if (has_perk(ch, PERK_PALADIN_HOLY_WEAPON_2))
+    bonus += get_perk_rank(ch, PERK_PALADIN_HOLY_WEAPON_2, CLASS_PALADIN) * 2;
+  
+  return bonus;
+}
+
+/**
+ * Get AC bonus from Sacred Defender perks.
+ * 
+ * @param ch The character
+ * @return AC bonus
+ */
+int get_paladin_sacred_defender_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Sacred Defender: +1 AC per rank when wielding weapon and shield */
+  if (!has_perk(ch, PERK_PALADIN_SACRED_DEFENDER))
+    return 0;
+  
+  /* Check if wielding shield */
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+  if (!shield || GET_OBJ_TYPE(shield) != ITEM_ARMOR)
+    return 0;
+  
+  /* Check if wielding weapon */
+  struct obj_data *weapon = GET_EQ(ch, WEAR_WIELD_1);
+  if (!weapon || GET_OBJ_TYPE(weapon) != ITEM_WEAPON)
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_SACRED_DEFENDER, CLASS_PALADIN);
+}
+
+/**
+ * Get bonus smite damage dice from Improved Smite perk.
+ * 
+ * @param ch The character
+ * @return Number of bonus d6 dice
+ */
+int get_paladin_improved_smite_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_PALADIN_IMPROVED_SMITE))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_IMPROVED_SMITE, CLASS_PALADIN);
+}
+
+/**
+ * Check if character has Faithful Strike perk.
+ */
+bool has_paladin_faithful_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_FAITHFUL_STRIKE);
+}
+
+/**
+ * Check if character has Holy Blade perk.
+ */
+bool has_paladin_holy_blade(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_HOLY_BLADE);
+}
+
+/**
+ * Check if character has Divine Might perk.
+ */
+bool has_paladin_divine_might(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_DIVINE_MIGHT);
+}
+
+/**
+ * Check if character has Exorcism of the Slain perk.
+ */
+bool has_paladin_exorcism_of_the_slain(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_EXORCISM_OF_THE_SLAIN);
+}
+
+/**
+ * Check if character has Holy Sword perk.
+ */
+bool has_paladin_holy_sword(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_HOLY_SWORD);
+}
+
+/**
+ * Check if character has Zealous Smite perk.
+ */
+bool has_paladin_zealous_smite(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_ZEALOUS_SMITE);
+}
+
+/**
+ * Check if character has Blinding Smite perk.
+ */
+bool has_paladin_blinding_smite(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_BLINDING_SMITE);
+}
+
+/**
+ * Check if character has Overwhelming Smite perk.
+ */
+bool has_paladin_overwhelming_smite(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_OVERWHELMING_SMITE);
+}
+
+/**
+ * Check if character has Sacred Vengeance perk.
+ */
+bool has_paladin_sacred_vengeance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_SACRED_VENGEANCE);
+}
