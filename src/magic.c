@@ -442,6 +442,23 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (!IS_NPC(vict))
     savethrow += get_paladin_bulwark_saves_bonus(vict);
 
+  /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
+  if (!IS_NPC(vict) && GROUP(vict) != NULL)
+  {
+    struct char_data *tch = NULL;
+    simple_list(NULL); /* Reset iterator */
+    while ((tch = (struct char_data *)simple_list(GROUP(vict)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(vict))
+        continue;
+      if (has_paladin_aura_of_protection(tch))
+      {
+        savethrow += 2;
+        break; /* Only one aura bonus */
+      }
+    }
+  }
+
   if (ch && type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
   {
     savethrow += 1;

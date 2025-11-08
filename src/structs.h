@@ -3724,6 +3724,17 @@
 #define PERK_PALADIN_HEALING_HANDS 921
 #define PERK_PALADIN_SHIELD_GUARDIAN 922
 
+/* SACRED DEFENDER TREE - Tier 3 Perks (923-926) */
+#define PERK_PALADIN_AURA_OF_PROTECTION 923
+#define PERK_PALADIN_SANCTUARY 924
+#define PERK_PALADIN_MERCIFUL_TOUCH 925
+#define PERK_PALADIN_BASTION_OF_DEFENSE 926
+
+/* SACRED DEFENDER TREE - Tier 4 Perks (927-929) */
+#define PERK_PALADIN_AURA_OF_LIFE 927
+#define PERK_PALADIN_CLEANSING_TOUCH 928
+#define PERK_PALADIN_DIVINE_SACRIFICE 929
+
 /* ============================================================================
  * RANGER PERKS (1000-1099)
  * ============================================================================ */

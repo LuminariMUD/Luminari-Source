@@ -229,6 +229,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"baneweapon", "banew", POS_RECLINING, do_bane, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
+    {"bastion", "bastion", POS_FIGHTING, do_bastion, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"breathofwinter", "breathofwinter", POS_FIGHTING, do_breathofwinter, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathofwinter},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_bash},
@@ -388,6 +389,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deatharrow", "deatharrow", POS_FIGHTING, do_deatharrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_deatharrow},
     {"defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_defensive_stance},
+    {"defensivestrike", "defensivestrike", POS_FIGHTING, do_defensive_strike, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"divinemight", "divinemight", POS_FIGHTING, do_divine_might, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"downgrade", "downgrade", POS_RECLINING, do_downgrade, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"darkness", "darkness", POS_FIGHTING, do_darkness, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"dracbreath", "dracbreath", POS_FIGHTING, do_sorcerer_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_sorcerer_breath_weapon},
@@ -397,7 +400,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"dragonmagic", "dragonmagic", POS_FIGHTING, do_dragonmagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dragonmagic},
     {"draw", "draw", POS_SITTING, do_unsheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
-    {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},    
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -438,8 +441,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"exempt", "exempt", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_EXEMPT, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+    {"faithfulstrike", "faithfulstrike", POS_FIGHTING, do_faithful_strike, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"forage", "forage", POS_STANDING, do_forage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"fiendishboon", "fiendishb", POS_DEAD, do_fiendishboon, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -459,6 +464,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"fistoffourthunders", "fistoffourthunders", POS_FIGHTING, do_fistoffourthunders, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_fistoffourthunders},
     {"flamesofphoenix", "flamesofphoenix", POS_FIGHTING, do_flamesofphoenix, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_flamesofphoenix},
+    {"flowingriver", "flowingriver", POS_STANDING, do_flowingriver, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_flowingriver},
     {"flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"feint", "feint", POS_FIGHTING, do_process_attack, 1, AA_FEINT, FALSE, ACTION_SWIFT, {0, 0}, can_feint},
     {"freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -469,7 +475,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"forget", "forget", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"fistair", "fistair", POS_STANDING, do_fistair, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_fistair}, 
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -485,6 +491,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"gather", "gather", POS_STANDING, do_wilderness_gather, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 #endif
     {"goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"gongsummit", "gongsummit", POS_STANDING, do_gongsummit, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_gongsummit},
     {"goals", "goals", POS_SLEEPING, do_goals, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
@@ -528,6 +535,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"holler", "holler", POS_RECLINING, do_gen_comm, 1, SCMD_HOLLER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holyweapon", "holyw", POS_DEAD, do_holyweapon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"holyblade", "holyblade", POS_RESTING, do_holy_blade, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"house", "house", POS_RECLINING, do_house, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"harvest", "harvest", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_HARVEST, TRUE, ACTION_STANDARD, {0, 0}, NULL},
@@ -645,6 +653,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #elif defined(USE_BASIC_MATERIALS)
     {"materials", "materials", POS_DEAD, do_list_craft_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
+  // {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -917,10 +926,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"smashdefense", "smashdefense", POS_RESTING, do_gen_tog, 1, SCMD_SMASH_DEFENSE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"smiteevil", "smiteevil", POS_FIGHTING, do_smiteevil, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_smiteevil},
     {"smitegood", "smitegood", POS_FIGHTING, do_smitegood, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_smitegood},
-    {"faithfulstrike", "faithfulstrike", POS_FIGHTING, do_faithful_strike, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
-    {"holyblade", "holyblade", POS_RESTING, do_holy_blade, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"divinemight", "divinemight", POS_FIGHTING, do_divine_might, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
-    {"defensivestrike", "defensivestrike", POS_FIGHTING, do_defensive_strike, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -978,7 +983,6 @@ cpp_extern const struct command_info cmd_info[] = {
 #else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
-    {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1073,9 +1077,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"walkto", "walkto", POS_STANDING, do_walkto, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"warcry", "warcry", POS_FIGHTING, do_warcry, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"waterwhip", "waterwhip", POS_STANDING, do_waterwhip, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_waterwhip},
-    {"gongsummit", "gongsummit", POS_STANDING, do_gongsummit, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_gongsummit},
-    {"fistair", "fistair", POS_STANDING, do_fistair, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_fistair},
-    {"flowingriver", "flowingriver", POS_STANDING, do_flowingriver, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_flowingriver},
     {"wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wearapplies", "wearapplies", POS_RESTING, do_wearapplies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wearlocations", "wearlocations", POS_RESTING, do_wearlocations, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

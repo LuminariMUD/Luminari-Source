@@ -5677,6 +5677,49 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 #else
   dam = MAX(MIN(dam, 1499), 0); // damage cap
 #endif
+
+  /* Paladin Sacred Defender perk: Sanctuary - 10% damage reduction */
+  if (!IS_NPC(victim))
+  {
+    int reduction = get_paladin_sanctuary_reduction(victim);
+    if (reduction > 0)
+    {
+      dam = dam * (100 - reduction) / 100;
+    }
+  }
+
+  /* Paladin Sacred Defender perk: Divine Sacrifice - take damage for ally */
+  if (!IS_NPC(victim) && GROUP(victim) && (GET_HIT(victim) - dam) <= 0)
+  {
+    struct group_data *group = GROUP(victim);
+    struct char_data *k = NULL;
+    struct iterator_data it;
+    
+    /* Check if any grouped paladin can sacrifice for this victim */
+    for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it))
+    {
+      if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
+          has_paladin_divine_sacrifice(k) && !char_has_mud_event(k, eDIVINE_SACRIFICE))
+      {
+        /* Paladin takes the damage instead */
+        send_to_char(k, "\tWYou invoke Divine Sacrifice, taking the damage meant for %s!\tn\r\n", GET_NAME(victim));
+        send_to_char(victim, "\tW%s invokes Divine Sacrifice, taking the damage meant for you!\tn\r\n", GET_NAME(k));
+        act("\tW$n glows with divine light, taking the damage meant for $N!\tn", FALSE, k, 0, victim, TO_NOTVICT);
+        
+        /* Transfer damage to paladin */
+        GET_HIT(k) -= dam;
+        update_pos(k);
+        
+        /* Start 10 minute cooldown */
+        attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
+        
+        /* Victim takes no damage */
+        dam = 0;
+        break;
+      }
+    }
+  }
+
   GET_HIT(victim) -= dam;
   
   /* Sacred Vengeance: Trigger when ally drops below 25% HP or dies */

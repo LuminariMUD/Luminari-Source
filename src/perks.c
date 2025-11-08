@@ -4769,6 +4769,122 @@ void define_paladin_perks(void)
   perk->effect_value = 2; /* +2 AC to allies */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Bulwark of Defense (at least 2 ranks). While wielding a shield, grouped allies in your room gain +2 AC bonus from your protective presence.");
+
+  /* ===== TIER 3 PERKS ===== */
+  
+  /* Aura of Protection */
+  perk = &perk_list[PERK_PALADIN_AURA_OF_PROTECTION];
+  perk->id = PERK_PALADIN_AURA_OF_PROTECTION;
+  perk->name = strdup("Aura of Protection");
+  perk->description = strdup("Your Aura of Courage grants +2 to all saves");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SHIELD_OF_FAITH_2;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Shield of Faith II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to all saves for allies */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Shield of Faith II (at least 2 ranks). Allies within your Aura of Courage radius gain +2 to all saving throws.");
+
+  /* Sanctuary */
+  perk = &perk_list[PERK_PALADIN_SANCTUARY];
+  perk->id = PERK_PALADIN_SANCTUARY;
+  perk->name = strdup("Sanctuary");
+  perk->description = strdup("Reduce all incoming damage by 10%");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SHIELD_GUARDIAN;
+  perk->prerequisite_rank = 1; /* Must have Shield Guardian */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% damage reduction */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Shield Guardian. You become a beacon of divine safety, reducing all incoming damage by 10%.");
+
+  /* Merciful Touch */
+  perk = &perk_list[PERK_PALADIN_MERCIFUL_TOUCH];
+  perk->id = PERK_PALADIN_MERCIFUL_TOUCH;
+  perk->name = strdup("Merciful Touch");
+  perk->description = strdup("Lay on Hands grants +20 HP for 5 rounds");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_HEALING_HANDS;
+  perk->prerequisite_rank = 3; /* Must have all 3 ranks of Healing Hands */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20 current and max HP */
+  perk->effect_modifier = 5; /* 5 rounds duration */
+  perk->special_description = strdup("Requires Healing Hands (at least 3 ranks). Your Lay on Hands also grants +20 to current and maximum hit points for 5 rounds. Does not stack.");
+
+  /* Bastion of Defense */
+  perk = &perk_list[PERK_PALADIN_BASTION_OF_DEFENSE];
+  perk->id = PERK_PALADIN_BASTION_OF_DEFENSE;
+  perk->name = strdup("Bastion of Defense");
+  perk->description = strdup("Gain 'Bastion' ability (swift action defensive buff)");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_BULWARK_OF_DEFENSE;
+  perk->prerequisite_rank = 3; /* Must have all 3 ranks of Bulwark of Defense */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20 temp HP */
+  perk->effect_modifier = 4; /* +4 AC */
+  perk->special_description = strdup("Requires Bulwark of Defense (3 ranks) and Shield Guardian. Gain 'Bastion' ability - Swift action: gain 20 temporary HP, +4 AC, and immunity to knockdown for 5 rounds. 5 minute cooldown.");
+
+  /* ===== TIER 4 PERKS ===== */
+  
+  /* Aura of Life */
+  perk = &perk_list[PERK_PALADIN_AURA_OF_LIFE];
+  perk->id = PERK_PALADIN_AURA_OF_LIFE;
+  perk->name = strdup("Aura of Life");
+  perk->description = strdup("Allies in your aura regenerate HP");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_AURA_OF_PROTECTION;
+  perk->prerequisite_rank = 1; /* Must have Aura of Protection */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2 HP per round in combat */
+  perk->effect_modifier = 5; /* 5 HP per round out of combat */
+  perk->special_description = strdup("Requires Aura of Protection. Your divine presence sustains allies within your aura, regenerating 2 HP per round in combat, 5 HP per round out of combat.");
+
+  /* Cleansing Touch */
+  perk = &perk_list[PERK_PALADIN_CLEANSING_TOUCH];
+  perk->id = PERK_PALADIN_CLEANSING_TOUCH;
+  perk->name = strdup("Cleansing Touch");
+  perk->description = strdup("Lay on Hands removes affects and is a swift action");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_MERCIFUL_TOUCH;
+  perk->prerequisite_rank = 1; /* Must have Merciful Touch */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Can remove 1 negative affect */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Merciful Touch. Your Lay on Hands can remove one negative magical affect and can be used as a swift action.");
+
+  /* Divine Sacrifice */
+  perk = &perk_list[PERK_PALADIN_DIVINE_SACRIFICE];
+  perk->id = PERK_PALADIN_DIVINE_SACRIFICE;
+  perk->name = strdup("Divine Sacrifice");
+  perk->description = strdup("Take damage meant for allies");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_BASTION_OF_DEFENSE;
+  perk->prerequisite_rank = 1; /* Must have Bastion of Defense */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 10; /* 10 minute cooldown */
+  perk->special_description = strdup("Requires Bastion of Defense. When an ally within 30 feet would be reduced below 0 HP, you may take the damage instead. Once per 10 minutes.");
 }
 
 /* Lookup functions */
@@ -5183,6 +5299,9 @@ bool has_perk(struct char_data *ch, int perk_id)
   
   if (!ch || IS_NPC(ch))
     return FALSE;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    return TRUE;
   
   for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
   {
@@ -10860,3 +10979,77 @@ bool has_paladin_shield_guardian(struct char_data *ch)
     return FALSE;
   return has_perk(ch, PERK_PALADIN_SHIELD_GUARDIAN);
 }
+
+/**
+ * Check if character has Aura of Protection perk.
+ */
+bool has_paladin_aura_of_protection(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_AURA_OF_PROTECTION);
+}
+
+/**
+ * Get Sanctuary damage reduction percentage.
+ * Returns 10 if character has the perk, 0 otherwise.
+ */
+int get_paladin_sanctuary_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  if (has_perk(ch, PERK_PALADIN_SANCTUARY))
+    return 10; /* 10% damage reduction */
+  return 0;
+}
+
+/**
+ * Check if character has Merciful Touch perk.
+ */
+bool has_paladin_merciful_touch(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_MERCIFUL_TOUCH);
+}
+
+/**
+ * Check if character has Bastion of Defense perk.
+ */
+bool has_paladin_bastion_of_defense(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_BASTION_OF_DEFENSE);
+}
+
+/**
+ * Check if character has Aura of Life perk.
+ */
+bool has_paladin_aura_of_life(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_AURA_OF_LIFE);
+}
+
+/**
+ * Check if character has Cleansing Touch perk.
+ */
+bool has_paladin_cleansing_touch(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_CLEANSING_TOUCH);
+}
+
+/**
+ * Check if character has Divine Sacrifice perk.
+ */
+bool has_paladin_divine_sacrifice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_DIVINE_SACRIFICE);
+}
+

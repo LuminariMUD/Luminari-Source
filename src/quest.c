@@ -1310,9 +1310,9 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     if (aquest_table[rnum].diplomacy_dc > 0)
       send_to_char(ch, "Persuasion Skill  - 'convince' command.\r\n");
     if (aquest_table[rnum].intimidate_dc > 0)
-      send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
+      send_to_char(ch, "Intimidate Skill  - 'threaten' command.\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Deception Skill      - 'beguile' command.\r\n");
+      send_to_char(ch, "Deception Skill   - 'beguile' command.\r\n");
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn");
   }
@@ -1472,9 +1472,9 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     if (aquest_table[rnum].diplomacy_dc > 0)
       send_to_char(ch, "Persuasion Skill  - 'convince' command.\r\n");
     if (aquest_table[rnum].intimidate_dc > 0)
-      send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
+      send_to_char(ch, "Intimidate Skill  - 'threaten' command.\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Deception Skill      - 'beguile' command.\r\n");
+      send_to_char(ch, "Deception Skill   - 'beguile' command.\r\n");
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn");
   }

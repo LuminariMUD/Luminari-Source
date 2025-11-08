@@ -810,6 +810,25 @@ void regen_update(struct char_data *ch)
   /* we moved the math of hp regen into a separate function to make it easier to find/ manipulate */
   hp = regen_hps(ch);
 
+  /* Paladin Sacred Defender perk: Aura of Life - allies in aura regenerate HP */
+  if (!IS_NPC(ch) && GROUP(ch) != NULL)
+  {
+    struct char_data *tch = NULL;
+    simple_list(NULL); /* Reset iterator */
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (has_paladin_aura_of_life(tch))
+      {
+        /* 2 HP per round in combat, 5 HP per round out of combat */
+        int aura_regen = FIGHTING(ch) ? 2 : 5;
+        hp += aura_regen;
+        break; /* Only one aura bonus */
+      }
+    }
+  }
+
   /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
   {

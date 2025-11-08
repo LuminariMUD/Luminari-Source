@@ -2210,13 +2210,84 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
 
   GET_HIT(vict) += heal_amount;
   apply_paladin_mercies(ch, vict);
+  
+  /* Paladin Sacred Defender perk: Cleansing Touch - remove one negative affect */
+  if (!IS_NPC(ch) && has_paladin_cleansing_touch(ch))
+  {
+    struct affected_type *af = NULL, *af_next = NULL;
+    bool removed = FALSE;
+    
+    /* Try to find and remove a negative affect */
+    for (af = vict->affected; af && !removed; af = af_next)
+    {
+      af_next = af->next;
+      
+      /* Check for harmful affects (negative modifiers or harmful flags) */
+      if (af->modifier < 0 || 
+          IS_SET_AR(af->bitvector, AFF_BLIND) ||
+          IS_SET_AR(af->bitvector, AFF_CURSE) ||
+          IS_SET_AR(af->bitvector, AFF_POISON) ||
+          IS_SET_AR(af->bitvector, AFF_DISEASE) ||
+          IS_SET_AR(af->bitvector, AFF_PARALYZED) ||
+          IS_SET_AR(af->bitvector, AFF_STUN) ||
+          IS_SET_AR(af->bitvector, AFF_FEAR) ||
+          IS_SET_AR(af->bitvector, AFF_CONFUSED) ||
+          IS_SET_AR(af->bitvector, AFF_NAUSEATED) ||
+          IS_SET_AR(af->bitvector, AFF_FATIGUED) ||
+          IS_SET_AR(af->bitvector, AFF_DAZED))
+      {
+        send_to_char(vict, "\tWYour affliction '%s' has been cleansed!\tn\r\n", spell_info[af->spell].name);
+        if (ch != vict)
+          send_to_char(ch, "\tWYou cleanse %s's affliction '%s'!\tn\r\n", GET_NAME(vict), spell_info[af->spell].name);
+        affect_from_char(vict, af->spell);
+        removed = TRUE;
+        break;
+      }
+    }
+  }
+  
+  /* Paladin Sacred Defender perk: Merciful Touch - +20 current and max HP for 5 rounds */
+  if (!IS_NPC(ch) && has_paladin_merciful_touch(ch) && !affected_by_spell(vict, SKILL_MERCIFUL_TOUCH))
+  {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SKILL_MERCIFUL_TOUCH;
+    af.duration = 5; /* 5 rounds */
+    SET_BIT_AR(af.bitvector, AFF_REGEN); /* Regenerating health */
+    af.location = APPLY_HIT;
+    af.modifier = 20; /* +20 current HP */
+    affect_to_char(vict, &af);
+    
+    /* Also increase max HP temporarily */
+    af.location = APPLY_CON;
+    af.modifier = 2; /* +2 CON = roughly +20 HP */
+    affect_to_char(vict, &af);
+    
+    if (ch != vict)
+      send_to_char(vict, "\tYYou feel divinely empowered!\tn\r\n");
+    else
+      send_to_char(ch, "\tYYou feel divinely empowered!\tn\r\n");
+  }
+  
   update_pos(vict);
 
-  if (ch != vict)
+  /* Paladin Sacred Defender perk: Cleansing Touch - can be used as swift action */
+  if (!IS_NPC(ch) && has_paladin_cleansing_touch(ch))
   {
-    USE_STANDARD_ACTION(ch);
+    if (ch != vict)
+    {
+      USE_SWIFT_ACTION(ch);
+    }
+    /* free action to use it on yourself */
   }
-  /* free action to use it on yourself */
+  else
+  {
+    if (ch != vict)
+    {
+      USE_STANDARD_ACTION(ch);
+    }
+    /* free action to use it on yourself */
+  }
 }
 
 /* engine for sap skill */
@@ -9108,6 +9179,57 @@ ACMD(do_defensive_strike)
     start_daily_use_cooldown(ch, SKILL_DEFENSIVE_STRIKE);
 
   USE_MOVE_ACTION(ch);
+}
+
+ACMD(do_bastion)
+{
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_bastion_of_defense(ch))
+  {
+    send_to_char(ch, "You don't know how to invoke bastion of defense!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  PREREQ_HAS_USES(SKILL_BASTION, "You must recover before you can invoke bastion again.\r\n");
+
+  /* Check if already active */
+  if (affected_by_spell(ch, SKILL_BASTION))
+  {
+    send_to_char(ch, "You are already protected by bastion of defense!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tWYou invoke the bastion of defense, becoming an immovable defender!\tn\r\n");
+  act("\tW$n glows with divine power, becoming an immovable bastion!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Grant 20 temporary HP */
+  new_affect(&af);
+  af.spell = SKILL_BASTION;
+  af.duration = duration;
+  af.location = APPLY_HIT;
+  af.modifier = 20; /* +20 temporary HP */
+  affect_to_char(ch, &af);
+
+  /* Grant +4 AC */
+  new_affect(&af);
+  af.spell = SKILL_BASTION;
+  af.duration = duration;
+  af.location = APPLY_AC_NEW;
+  af.modifier = 4;
+  af.bonus_type = BONUS_TYPE_SACRED;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_BASTION);
+
+  USE_SWIFT_ACTION(ch);
 }
 
 /* drow faerie fire engine */

@@ -5158,6 +5158,14 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your defensive posture fades.", 1, 1, NOSCHOOL, FALSE);
 
+  spello(SKILL_MERCIFUL_TOUCH, "merciful touch", 0, 0, 0, POS_STANDING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "The divine blessing fades from your body.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_BASTION, "bastion", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your bastion of defense fades.", 1, 1, NOSCHOOL, FALSE);
+
   spello(SKILL_RECKLESS_ABANDON, "reckless abandon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your reckless fury subsides.", 1, 1, NOSCHOOL, FALSE);
