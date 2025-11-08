@@ -4885,6 +4885,138 @@ void define_paladin_perks(void)
   perk->effect_value = 0;
   perk->effect_modifier = 10; /* 10 minute cooldown */
   perk->special_description = strdup("Requires Bastion of Defense. When an ally within 30 feet would be reduced below 0 HP, you may take the damage instead. Once per 10 minutes.");
+
+  /* DIVINE CHAMPION TREE - Tier 1 Perks */
+
+  /* Spell Focus I */
+  perk = &perk_list[PERK_PALADIN_SPELL_FOCUS_1];
+  perk->id = PERK_PALADIN_SPELL_FOCUS_1;
+  perk->name = strdup("Spell Focus I");
+  perk->description = strdup("More potent divine spells");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 to spell save DCs per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to spell save DCs per rank (+3 at max).");
+
+  /* Turn Undead Mastery I */
+  perk = &perk_list[PERK_PALADIN_TURN_UNDEAD_MASTERY_1];
+  perk->id = PERK_PALADIN_TURN_UNDEAD_MASTERY_1;
+  perk->name = strdup("Turn Undead Mastery I");
+  perk->description = strdup("Enhanced turning");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 HD worth of undead per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Turn Undead affects +2 HD worth of undead per rank (+6 at max).");
+
+  /* Divine Grace */
+  perk = &perk_list[PERK_PALADIN_DIVINE_GRACE];
+  perk->id = PERK_PALADIN_DIVINE_GRACE;
+  perk->name = strdup("Divine Grace");
+  perk->description = strdup("Divine favor protects you");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 1; /* +1 to all saving throws per rank */
+  perk->effect_modifier = -1; /* Applies to all save types */
+  perk->special_description = strdup("+1 to all saving throws per rank (+3 at max).");
+
+  /* Radiant Aura */
+  perk = &perk_list[PERK_PALADIN_RADIANT_AURA];
+  perk->id = PERK_PALADIN_RADIANT_AURA;
+  perk->name = strdup("Radiant Aura");
+  perk->description = strdup("Emit holy light");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1d4 divine damage */
+  perk->effect_modifier = 4; /* d4 die */
+  perk->special_description = strdup("Gain 'Radiant Aura' ability - Toggle: emit light, undead within 10 feet take 1d4 divine damage per round, costs 1 move per round active.");
+
+  /* DIVINE CHAMPION TREE - Tier 2 Perks */
+
+  /* Spell Focus II */
+  perk = &perk_list[PERK_PALADIN_SPELL_FOCUS_2];
+  perk->id = PERK_PALADIN_SPELL_FOCUS_2;
+  perk->name = strdup("Spell Focus II");
+  perk->description = strdup("Master of divine magic");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_FOCUS_1;
+  perk->prerequisite_rank = 3; /* Must have Spell Focus I (3 ranks) */
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 to spell save DCs per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Focus I (3 ranks). Additional +1 to spell save DCs per rank (+2 at max).");
+
+  /* Turn Undead Mastery II */
+  perk = &perk_list[PERK_PALADIN_TURN_UNDEAD_MASTERY_2];
+  perk->id = PERK_PALADIN_TURN_UNDEAD_MASTERY_2;
+  perk->name = strdup("Turn Undead Mastery II");
+  perk->description = strdup("Devastating turning");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_TURN_UNDEAD_MASTERY_1;
+  perk->prerequisite_rank = 3; /* Must have Turn Undead Mastery I (3 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 HD worth per rank */
+  perk->effect_modifier = 2; /* +2d6 damage per rank */
+  perk->special_description = strdup("Requires Turn Undead Mastery I (3 ranks). Turn Undead affects additional +3 HD worth per rank and deals +2d6 damage per rank.");
+
+  /* Quickened Blessing */
+  perk = &perk_list[PERK_PALADIN_QUICKENED_BLESSING];
+  perk->id = PERK_PALADIN_QUICKENED_BLESSING;
+  perk->name = strdup("Quickened Blessing");
+  perk->description = strdup("Swift divine blessings");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_FOCUS_1;
+  perk->prerequisite_rank = 2; /* Must have Spell Focus I (at least 2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Focus I (at least 2 ranks). Once per day, you may cast Bless, Shield of Faith, or Protection from Evil as a swift action.");
+
+  /* Channel Energy I */
+  perk = &perk_list[PERK_PALADIN_CHANNEL_ENERGY_1];
+  perk->id = PERK_PALADIN_CHANNEL_ENERGY_1;
+  perk->name = strdup("Channel Energy I");
+  perk->description = strdup("Channel positive energy");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1d6 per rank */
+  perk->effect_modifier = 6; /* d6 die */
+  perk->special_description = strdup("Gain 'Channel Energy' ability - Standard action: heal allies or damage undead in 30 foot radius for 1d6 per rank, 2 uses per day.");
 }
 
 /* Lookup functions */
@@ -11053,3 +11185,128 @@ bool has_paladin_divine_sacrifice(struct char_data *ch)
   return has_perk(ch, PERK_PALADIN_DIVINE_SACRIFICE);
 }
 
+/**
+ * Get total Spell Focus bonus from Divine Champion perks.
+ * Returns +1 per rank of Spell Focus I and II.
+ */
+int get_paladin_spell_focus_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  bonus += get_perk_rank(ch, PERK_PALADIN_SPELL_FOCUS_1, CLASS_PALADIN);
+  bonus += get_perk_rank(ch, PERK_PALADIN_SPELL_FOCUS_2, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/**
+ * Get Turn Undead HD bonus from Divine Champion perks.
+ * Turn Undead Mastery I: +2 HD per rank
+ * Turn Undead Mastery II: +3 HD per rank
+ */
+int get_paladin_turn_undead_hd_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  bonus += get_perk_rank(ch, PERK_PALADIN_TURN_UNDEAD_MASTERY_1, CLASS_PALADIN) * 2;
+  bonus += get_perk_rank(ch, PERK_PALADIN_TURN_UNDEAD_MASTERY_2, CLASS_PALADIN) * 3;
+  
+  return bonus;
+}
+
+/**
+ * Get Turn Undead damage bonus from Divine Champion perks.
+ * Turn Undead Mastery II: +2d6 damage per rank
+ */
+int get_paladin_turn_undead_damage_bonus(struct char_data *ch)
+{
+  int bonus_dice = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  bonus_dice = get_perk_rank(ch, PERK_PALADIN_TURN_UNDEAD_MASTERY_2, CLASS_PALADIN) * 2;
+  
+  return bonus_dice;
+}
+
+/**
+ * Get Divine Grace save bonus from Divine Champion perks.
+ * Returns +1 per rank to all saves.
+ */
+int get_paladin_divine_grace_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_DIVINE_GRACE, CLASS_PALADIN);
+}
+
+/**
+ * Check if character has Radiant Aura perk.
+ */
+bool has_paladin_radiant_aura(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_RADIANT_AURA);
+}
+
+/**
+ * Check if character has Quickened Blessing perk.
+ */
+bool has_paladin_quickened_blessing(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_QUICKENED_BLESSING);
+}
+
+/**
+ * Get Channel Energy dice count.
+ * Returns 1d6 per rank of Channel Energy I.
+ */
+int get_paladin_channel_energy_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_CHANNEL_ENERGY_1, CLASS_PALADIN);
+}
+
+/**
+ * Get Channel Energy daily uses.
+ * Base: 2 uses per day
+ */
+int get_paladin_channel_energy_uses(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  if (!has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1))
+    return 0;
+    
+  return 2; /* Base 2 uses per day */
+}
+
+bool is_quickened_blessing_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+    case SPELL_BLESS:
+    case SPELL_CURE_LIGHT:
+    case SPELL_CURE_MODERATE:
+    case SPELL_CURE_SERIOUS:
+    case SPELL_CURE_CRITIC:
+    case SPELL_PROT_FROM_EVIL:
+      return TRUE;
+    default:
+      return FALSE;
+  }
+}

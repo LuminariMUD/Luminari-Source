@@ -412,6 +412,17 @@ bool has_paladin_aura_of_life(struct char_data *ch);
 bool has_paladin_cleansing_touch(struct char_data *ch);
 bool has_paladin_divine_sacrifice(struct char_data *ch);
 
+/* Divine Champion Tree Helper Functions */
+int get_paladin_spell_focus_bonus(struct char_data *ch);
+int get_paladin_turn_undead_hd_bonus(struct char_data *ch);
+int get_paladin_turn_undead_damage_bonus(struct char_data *ch);
+int get_paladin_divine_grace_bonus(struct char_data *ch);
+bool has_paladin_radiant_aura(struct char_data *ch);
+bool has_paladin_quickened_blessing(struct char_data *ch);
+int get_paladin_channel_energy_dice(struct char_data *ch);
+int get_paladin_channel_energy_uses(struct char_data *ch);
+bool is_quickened_blessing_spell(int spellnum);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

@@ -3735,6 +3735,18 @@
 #define PERK_PALADIN_CLEANSING_TOUCH 928
 #define PERK_PALADIN_DIVINE_SACRIFICE 929
 
+/* DIVINE CHAMPION TREE - Tier 1 Perks (930-933) */
+#define PERK_PALADIN_SPELL_FOCUS_1 930
+#define PERK_PALADIN_TURN_UNDEAD_MASTERY_1 931
+#define PERK_PALADIN_DIVINE_GRACE 932
+#define PERK_PALADIN_RADIANT_AURA 933
+
+/* DIVINE CHAMPION TREE - Tier 2 Perks (934-937) */
+#define PERK_PALADIN_SPELL_FOCUS_2 934
+#define PERK_PALADIN_TURN_UNDEAD_MASTERY_2 935
+#define PERK_PALADIN_QUICKENED_BLESSING 936
+#define PERK_PALADIN_CHANNEL_ENERGY_1 937
+
 /* ============================================================================
  * RANGER PERKS (1000-1099)
  * ============================================================================ */

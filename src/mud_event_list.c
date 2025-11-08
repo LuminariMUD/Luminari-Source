@@ -43,6 +43,8 @@ extern EVENTFUNC(event_concussive_onslaught);
 extern EVENTFUNC(event_power_leech);
 extern EVENTFUNC(event_devise_creation);
 extern EVENTFUNC(event_devise_progress);
+extern EVENTFUNC(event_radiant_aura);
+extern EVENTFUNC(event_fist_of_four_thunders);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -508,4 +510,6 @@ struct mud_event_list mud_event_index[] = {
     {"Devise Progress", event_devise_progress, EVENT_CHAR,
      NULL, NULL, FEAT_UNDEFINED, 0},
     {"Brew Potion", event_brewing, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Radiant Aura", event_radiant_aura, EVENT_CHAR,
+     NULL, NULL, FEAT_UNDEFINED, 0},
 };

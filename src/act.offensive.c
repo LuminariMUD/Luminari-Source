@@ -2985,6 +2985,14 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
   /* Greater Turning: Affect undead +2 HD levels higher */
   int greater_turning_bonus = get_cleric_greater_turning_bonus(ch);
   
+  /* Paladin Turn Undead Mastery: +HD bonus */
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+  {
+    int paladin_turn_hd_bonus = get_paladin_turn_undead_hd_bonus(ch);
+    if (paladin_turn_hd_bonus > 0)
+      greater_turning_bonus += paladin_turn_hd_bonus;
+  }
+  
   /* Destroy Undead: Get HD threshold for instant destruction */
   destroy_threshold = get_destroy_undead_threshold(ch);
 
@@ -3119,7 +3127,19 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     act("The mighty force of your faith blasts $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("The mighty force of $N's faith blasts you!", FALSE, vict, 0, ch, TO_CHAR);
     act("The mighty force of $N's faith blasts $n!", FALSE, vict, 0, ch, TO_NOTVICT);
-    damage(ch, vict, dice(GET_LEVEL(ch) / 2, 6), SPELL_GREATER_RUIN, DAM_HOLY, FALSE);
+    
+    /* Base damage */
+    int turn_damage = dice(GET_LEVEL(ch) / 2, 6);
+    
+    /* Paladin Turn Undead Mastery II: +damage bonus */
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+    {
+      int paladin_turn_damage_bonus = get_paladin_turn_undead_damage_bonus(ch);
+      if (paladin_turn_damage_bonus > 0)
+        turn_damage += dice(paladin_turn_damage_bonus, 6);
+    }
+    
+    damage(ch, vict, turn_damage, SPELL_GREATER_RUIN, DAM_HOLY, FALSE);
     break;
   }
 
@@ -9230,6 +9250,118 @@ ACMD(do_bastion)
     start_daily_use_cooldown(ch, SKILL_BASTION);
 
   USE_SWIFT_ACTION(ch);
+}
+
+/**
+ * Radiant Aura - Paladin Divine Champion Tier 1 perk
+ * Toggle ability that causes holy damage to undead in the room
+ */
+ACMD(do_radiantaura)
+{
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_radiant_aura(ch))
+  {
+    send_to_char(ch, "You don't know how to invoke a radiant aura!\r\n");
+    return;
+  }
+
+  /* Toggle the aura on/off */
+  if (affected_by_spell(ch, SKILL_RADIANT_AURA))
+  {
+    /* Turn off the aura */
+    affect_from_char(ch, SKILL_RADIANT_AURA);
+    send_to_char(ch, "\tYYour radiant aura fades as you release the divine light.\tn\r\n");
+    act("\tY$n's radiant aura fades.\tn", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else
+  {
+    /* Turn on the aura */
+    struct affected_type af;
+    
+    new_affect(&af);
+    af.spell = SKILL_RADIANT_AURA;
+    af.duration = -1; /* Permanent until toggled off */
+    affect_to_char(ch, &af);
+    
+    send_to_char(ch, "\tYYou invoke your radiant aura, emanating holy light that burns the undead!\tn\r\n");
+    act("\tY$n begins to emanate a radiant holy aura!\tn", FALSE, ch, 0, 0, TO_ROOM);
+    
+    /* Start the periodic damage event - triggers every 6 seconds (1 round) */
+    if (!char_has_mud_event(ch, eRADIANT_AURA))
+    {
+      attach_mud_event(new_mud_event(eRADIANT_AURA, ch, NULL), 6 * PASSES_PER_SEC);
+    }
+  }
+}
+
+/**
+ * Event handler for Radiant Aura periodic damage
+ * Damages undead in the room every 6 seconds
+ */
+EVENTFUNC(event_radiant_aura)
+{
+  struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  int dam;
+  bool pvp_enabled;
+
+  if (event_obj == NULL)
+    return 0;
+
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  /* Check if character is still valid and playing */
+  if (!ch || !IS_PLAYING(ch->desc))
+    return 0;
+
+  /* Check if aura is still active */
+  if (!affected_by_spell(ch, SKILL_RADIANT_AURA))
+    return 0;
+
+  /* Check if paladin has PvP enabled */
+  pvp_enabled = PRF_FLAGGED(ch, PRF_PVP);
+
+  /* Damage all undead in the room */
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (vict == ch || !CAN_SEE(ch, vict))
+      continue;
+
+    /* Must be undead */
+    if (!IS_UNDEAD(vict))
+      continue;
+
+    /* Skip player undead and their charmies unless both have PVP enabled */
+    if (!IS_NPC(vict))
+    {
+      /* Skip if paladin doesn't have PVP or victim doesn't have PVP */
+      if (!pvp_enabled || !PRF_FLAGGED(vict, PRF_PVP))
+        continue;
+    }
+    else if (vict->master && !IS_NPC(vict->master) && AFF_FLAGGED(vict, AFF_CHARM))
+    {
+      /* This is a charmed NPC - check if both paladin and master have PVP */
+      if (!pvp_enabled || !PRF_FLAGGED(vict->master, PRF_PVP))
+        continue;
+    }
+
+    /* Deal 3d6 holy damage */
+    dam = dice(3, 6);
+    
+    act("\tY$n's radiant aura burns $N with holy fire!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+    act("\tYYour radiant aura burns $N with holy fire!\tn", FALSE, ch, 0, vict, TO_CHAR);
+    act("\tY$n's radiant aura burns you with holy fire!\tn", FALSE, ch, 0, vict, TO_VICT);
+    
+    damage(ch, vict, dam, SKILL_RADIANT_AURA, DAM_HOLY, FALSE);
+  }
+
+  /* Continue the event every 6 seconds */
+  return 6 * PASSES_PER_SEC;
 }
 
 /* drow faerie fire engine */

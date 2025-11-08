@@ -797,6 +797,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"radiantaura", "radiantaura", POS_STANDING, do_radiantaura, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rallyingcry", "rallyingcry", POS_FIGHTING, do_rallying_cry, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

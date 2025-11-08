@@ -348,6 +348,14 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   if (has_one_thought(vict))
     saves += 1;
 
+  /* Paladin Divine Grace perk bonus */
+  if (!IS_NPC(vict) && CLASS_LEVEL(vict, CLASS_PALADIN) > 0)
+  {
+    int divine_grace_bonus = get_paladin_divine_grace_bonus(vict);
+    if (divine_grace_bonus > 0)
+      saves += divine_grace_bonus;
+  }
+
   /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))
     saves += (GET_LEVEL(vict) / 3) + 1;

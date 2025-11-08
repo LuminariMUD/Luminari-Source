@@ -1983,6 +1983,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 #endif
   }
 
+  if (has_paladin_quickened_blessing(ch) && is_quickened_blessing_spell(spellnum))
+    quickened = TRUE;
+
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
 
   if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
@@ -5165,6 +5168,10 @@ void mag_assign_spells(void)
   spello(SKILL_BASTION, "bastion", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your bastion of defense fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_RADIANT_AURA, "radiant aura", 0, 0, 0, POS_STANDING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your radiant aura fades.", 1, 1, NOSCHOOL, FALSE);
 
   spello(SKILL_RECKLESS_ABANDON, "reckless abandon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,

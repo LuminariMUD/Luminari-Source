@@ -10650,6 +10650,14 @@ int get_spell_dc_bonus(struct char_data *ch)
     dc_bonus += max_value[i];
   }
 
+  /* Paladin Spell Focus perk bonus */
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+  {
+    int spell_focus_bonus = get_paladin_spell_focus_bonus(ch);
+    if (spell_focus_bonus > 0)
+      dc_bonus += spell_focus_bonus;
+  }
+
   return dc_bonus;
 }
 

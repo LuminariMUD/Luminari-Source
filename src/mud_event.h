@@ -204,6 +204,7 @@ typedef enum
   eFIST_OF_FOUR_THUNDERS,           /* Fist of Four Thunders lightning strike */
   eSAVAGE_CHARGE_USED,              /* Savage Charge used this rage */
   eDIVINE_SACRIFICE,                /* Divine Sacrifice damage transfer cooldown */
+  eRADIANT_AURA,                    /* Radiant Aura periodic undead damage */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
