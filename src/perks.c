@@ -4504,7 +4504,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_WAVE_OF_ROLLING_EARTH];
   perk->id = PERK_MONK_WAVE_OF_ROLLING_EARTH;
   perk->name = strdup("Wave of Rolling Earth");
-  perk->description = strdup("Spend 3 ki points to create an earthquake (30-ft radius, difficult terrain, knocks prone, 4d6 damage)");
+  perk->description = strdup("Use a ki point with the rollingearth command to create an earthquake (30-ft radius, difficult terrain, knocks prone, 4d6 damage)");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 3;

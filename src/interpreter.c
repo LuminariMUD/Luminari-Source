@@ -1090,7 +1090,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"whisper", "whisper", POS_RECLINING, do_spec_comm, 0, SCMD_WHISPER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"wield", "wie", POS_RESTING, do_wield, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"withdraw", "withdraw", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"waveofrollingearth", "waveofrollingearth", POS_FIGHTING, do_waveofrollingearth, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_waveofrollingearth},
+    {"rollingearth", "rollingearth", POS_FIGHTING, do_waveofrollingearth, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_waveofrollingearth},
     {"wisdomofthemeasure", "wisdomofthemeasure", POS_STANDING, do_wisdom_of_the_measure, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wiznet", "wiz", POS_DEAD, do_wiznet, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {";", ";", POS_DEAD, do_wiznet, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
