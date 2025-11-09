@@ -1984,7 +1984,12 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   }
 
   if (has_paladin_quickened_blessing(ch) && is_quickened_blessing_spell(spellnum))
+  {
+    casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     quickened = TRUE;
+#endif
+  }
 
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
 
