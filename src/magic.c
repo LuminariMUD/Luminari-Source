@@ -250,6 +250,10 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
   challenge += get_spell_penetration_bonus(ch);
+  
+  /* Paladin Spell Penetration perk */
+  if (!IS_NPC(ch) && has_paladin_spell_penetration(ch) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+    challenge += 4;
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 && WEAPON_SPELL_PROC(ch) == TRUE)
   {

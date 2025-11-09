@@ -5173,6 +5173,22 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your radiant aura fades.", 1, 1, NOSCHOOL, FALSE);
 
+  spello(SKILL_PALADIN_CHANNEL_ENERGY, "paladin channel energy", 0, 0, 0, POS_STANDING,
+         TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_MASS_CURE_WOUNDS, "mass cure wounds", 0, 0, 0, POS_STANDING,
+         TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_HOLY_AVENGER, "holy avenger", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your holy avenger bonus fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SKILL_BEACON_OF_HOPE, "beacon of hope", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your beacon of hope fades.", 1, 1, NOSCHOOL, FALSE);
+
   spello(SKILL_RECKLESS_ABANDON, "reckless abandon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your reckless fury subsides.", 1, 1, NOSCHOOL, FALSE);

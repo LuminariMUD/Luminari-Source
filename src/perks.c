@@ -5017,6 +5017,122 @@ void define_paladin_perks(void)
   perk->effect_value = 1; /* 1d6 per rank */
   perk->effect_modifier = 6; /* d6 die */
   perk->special_description = strdup("Gain 'Channel Energy' ability - Standard action: heal allies or damage undead in 30 foot radius for 1d6 per rank, 2 uses per day.");
+
+  /* ===== TIER 3 PERKS ===== */
+
+  /* Spell Penetration */
+  perk = &perk_list[PERK_PALADIN_SPELL_PENETRATION];
+  perk->id = PERK_PALADIN_SPELL_PENETRATION;
+  perk->name = strdup("Spell Penetration");
+  perk->description = strdup("Pierce spell resistance");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_FOCUS_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 to overcome SR */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Focus II (at least 2 ranks). +4 bonus to overcome spell resistance with paladin spells.");
+
+  /* Destroy Undead */
+  perk = &perk_list[PERK_PALADIN_DESTROY_UNDEAD];
+  perk->id = PERK_PALADIN_DESTROY_UNDEAD;
+  perk->name = strdup("Destroy Undead");
+  perk->description = strdup("Turn Undead can destroy");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_TURN_UNDEAD_MASTERY_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Turn Undead Mastery II (at least 2 ranks). When Turn Undead affects undead with less than half your paladin level in HD, they are destroyed instead of turned.");
+
+  /* Channel Energy II */
+  perk = &perk_list[PERK_PALADIN_CHANNEL_ENERGY_2];
+  perk->id = PERK_PALADIN_CHANNEL_ENERGY_2;
+  perk->name = strdup("Channel Energy II");
+  perk->description = strdup("Powerful channeling");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_CHANNEL_ENERGY_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 per rank */
+  perk->effect_modifier = 2; /* +2 uses per day per rank */
+  perk->special_description = strdup("Requires Channel Energy I (3 ranks). Channel Energy heals/damages +2d6 per rank and gains +2 uses per day per rank.");
+
+  /* Aura of Courage Mastery */
+  perk = &perk_list[PERK_PALADIN_AURA_OF_COURAGE_MASTERY];
+  perk->id = PERK_PALADIN_AURA_OF_COURAGE_MASTERY;
+  perk->name = strdup("Aura of Courage Mastery");
+  perk->description = strdup("Enhanced fear immunity");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_DIVINE_GRACE;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 bonus vs mind-affecting */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Grace (3 ranks). Your Aura of Courage grants immunity to fear and charm effects, and grants +4 bonus vs mind-affecting.");
+
+  /* ===== TIER 4 PERKS ===== */
+
+  /* Mass Cure Wounds */
+  perk = &perk_list[PERK_PALADIN_MASS_CURE_WOUNDS];
+  perk->id = PERK_PALADIN_MASS_CURE_WOUNDS;
+  perk->name = strdup("Mass Cure Wounds");
+  perk->description = strdup("Healing burst");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_CHANNEL_ENERGY_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3d8 */
+  perk->effect_modifier = 8; /* d8 die */
+  perk->special_description = strdup("Requires Channel Energy II (at least 2 ranks). Gain 'Mass Cure Wounds' ability - Standard action: heal all allies within 30 feet for 3d8 + CHA modifier, twice per day.");
+
+  /* Holy Avenger */
+  perk = &perk_list[PERK_PALADIN_HOLY_AVENGER];
+  perk->id = PERK_PALADIN_HOLY_AVENGER;
+  perk->name = strdup("Holy Avenger");
+  perk->description = strdup("Ultimate spell and turning synergy");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_PENETRATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 caster level */
+  perk->effect_modifier = 2; /* +2 DC */
+  perk->special_description = strdup("Requires Spell Penetration and Destroy Undead. When you destroy undead with Turn Undead, your next spell cast within 1 round is cast at +4 caster level and has +2 DC.");
+
+  /* Beacon of Hope */
+  perk = &perk_list[PERK_PALADIN_BEACON_OF_HOPE];
+  perk->id = PERK_PALADIN_BEACON_OF_HOPE;
+  perk->name = strdup("Beacon of Hope");
+  perk->description = strdup("Inspire allies with divine presence");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_AURA_OF_COURAGE_MASTERY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5 rounds duration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Aura of Courage Mastery. Gain 'Beacon of Hope' ability - Standard action: all allies within 30 feet gain advantage on saves, immunity to fear, and maximize healing received for 5 rounds, once per day.");
 }
 
 /* Lookup functions */
@@ -7763,7 +7879,13 @@ int get_channel_energy_dice(struct char_data *ch)
   
   /* Channel Energy: Heal: 2d6 minimum */
   if (has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_HEAL))
-    return MAX(2, dice);
+    dice = MAX(2, dice);
+  
+  /* Paladin Channel Energy I: Add 1d6 per rank */
+  dice += get_paladin_channel_energy_dice(ch);
+  
+  /* Paladin Channel Energy II: Add 2d6 per rank */
+  dice += get_paladin_channel_energy_2_dice(ch);
   
   return dice;
 }
@@ -8395,6 +8517,13 @@ int get_destroy_undead_threshold(struct char_data *ch)
   /* Master of the Undead: 10 HD or less below cleric level */
   if (has_perk(ch, PERK_CLERIC_MASTER_OF_UNDEAD))
     return 10;
+  
+  /* Paladin Destroy Undead: less than half paladin level in HD */
+  if (has_paladin_destroy_undead(ch))
+  {
+    int paladin_level = CLASS_LEVEL(ch, CLASS_PALADIN);
+    return (paladin_level / 2);
+  }
   
   return 0;
 }
@@ -11283,16 +11412,24 @@ int get_paladin_channel_energy_dice(struct char_data *ch)
 /**
  * Get Channel Energy daily uses.
  * Base: 2 uses per day
+ * Channel Energy II adds +2 uses per rank
  */
 int get_paladin_channel_energy_uses(struct char_data *ch)
 {
+  int uses = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
     
   if (!has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1))
     return 0;
     
-  return 2; /* Base 2 uses per day */
+  uses = 2; /* Base 2 uses per day */
+  
+  /* Add Channel Energy II bonus uses */
+  uses += get_paladin_channel_energy_2_uses(ch);
+  
+  return uses;
 }
 
 bool is_quickened_blessing_spell(int spellnum)
@@ -11310,3 +11447,92 @@ bool is_quickened_blessing_spell(int spellnum)
       return FALSE;
   }
 }
+
+/* ===== TIER 3 HELPER FUNCTIONS ===== */
+
+/**
+ * Check if character has Spell Penetration perk.
+ */
+bool has_paladin_spell_penetration(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_SPELL_PENETRATION);
+}
+
+/**
+ * Check if character has Destroy Undead perk.
+ */
+bool has_paladin_destroy_undead(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_DESTROY_UNDEAD);
+}
+
+/**
+ * Get Channel Energy II bonus dice.
+ * Returns +2d6 per rank.
+ */
+int get_paladin_channel_energy_2_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_CHANNEL_ENERGY_2, CLASS_PALADIN) * 2;
+}
+
+/**
+ * Get Channel Energy II bonus uses per day.
+ * Returns +2 uses per rank.
+ */
+int get_paladin_channel_energy_2_uses(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_CHANNEL_ENERGY_2, CLASS_PALADIN) * 2;
+}
+
+/**
+ * Check if character has Aura of Courage Mastery perk.
+ */
+bool has_paladin_aura_of_courage_mastery(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_AURA_OF_COURAGE_MASTERY);
+}
+
+/* ===== TIER 4 HELPER FUNCTIONS ===== */
+
+/**
+ * Check if character has Mass Cure Wounds perk.
+ */
+bool has_paladin_mass_cure_wounds(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_MASS_CURE_WOUNDS);
+}
+
+/**
+ * Check if character has Holy Avenger perk.
+ */
+bool has_paladin_holy_avenger(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_HOLY_AVENGER);
+}
+
+/**
+ * Check if character has Beacon of Hope perk.
+ */
+bool has_paladin_beacon_of_hope(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_BEACON_OF_HOPE);
+}
+

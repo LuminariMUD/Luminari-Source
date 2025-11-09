@@ -3121,6 +3121,21 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     act("The mighty force of your faith blasts $N out of existence!", FALSE, ch, 0, vict, TO_CHAR);
     act("The mighty force of $N's faith blasts you out of existence!", FALSE, vict, 0, ch, TO_CHAR);
     act("The mighty force of $N's faith blasts $n out of existence!", FALSE, vict, 0, ch, TO_NOTVICT);
+    
+    /* Holy Avenger: Apply spell boost after destroying undead */
+    if (has_paladin_holy_avenger(ch))
+    {
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = SKILL_HOLY_AVENGER;
+      af.duration = 1; /* 1 round */
+      af.modifier = 4; /* +4 caster level stored in modifier */
+      af.location = APPLY_SPECIAL;
+      affect_to_char(ch, &af);
+      
+      send_to_char(ch, "\tWHoly power surges through you, enhancing your next spell!\tn\r\n");
+    }
+    
     dam_killed_vict(ch, vict);
     break;
   case 3:
@@ -3203,7 +3218,11 @@ ACMD(do_turnundead)
 
 ACMDCHECK(can_channel_energy)
 {
-  ACMDCHECK_PREREQ_HASFEAT(FEAT_CHANNEL_ENERGY, "You do not possess divine favor!\r\n");
+  /* Check if they have either the feat OR the paladin perk */
+  if (!HAS_FEAT(ch, FEAT_CHANNEL_ENERGY) && !has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1))
+  {
+    ACMDCHECK_TEMPFAIL_IF(true, "You do not possess divine favor!\r\n");
+  }
   return CAN_CMD;
 }
 
@@ -3214,8 +3233,12 @@ ACMDU(do_channelenergy)
 
   skip_spaces(&argument);
   int level = 0;
+  bool has_feat = HAS_FEAT(ch, FEAT_CHANNEL_ENERGY);
+  bool has_paladin_perk = has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1);
+  bool has_both = has_feat && has_paladin_perk;
 
-  if (IS_NEUTRAL(ch) && ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NONE)
+  /* Only clerics (neutral alignment) need to choose energy type */
+  if (has_feat && IS_NEUTRAL(ch) && ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NONE)
   {
     if (!*argument)
     {
@@ -3243,11 +3266,67 @@ ACMDU(do_channelenergy)
     }
   }
 
-  PREREQ_HAS_USES(FEAT_CHANNEL_ENERGY, "You must recover the divine energy required to channel energy.\r\n");
+  /* Check uses - when both feat and perk exist, check both cooldown pools */
+  if (has_both)
+  {
+    /* Player has both - try feat first, then perk if feat is exhausted */
+    int feat_uses = daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY);
+    struct mud_event_data *pMudEvent = NULL;
+    int perk_uses = 0;
+    int max_perk_uses = get_paladin_channel_energy_uses(ch); /* Returns 2 */
+    
+    if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+    {
+      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &perk_uses) == 1)
+      {
+        /* perk_uses is how many used, calculate remaining */
+        perk_uses = max_perk_uses - perk_uses;
+      }
+      else
+      {
+        perk_uses = max_perk_uses;
+      }
+    }
+    else
+    {
+      perk_uses = max_perk_uses;
+    }
+    
+    /* Check if both pools are exhausted */
+    if (feat_uses <= 0 && perk_uses <= 0)
+    {
+      send_to_char(ch, "You must recover the divine energy required to channel energy.\r\n");
+      return;
+    }
+  }
+  else if (has_feat)
+  {
+    PREREQ_HAS_USES(FEAT_CHANNEL_ENERGY, "You must recover the divine energy required to channel energy.\r\n");
+  }
+  else if (has_paladin_perk)
+  {
+    /* Paladin perk only: Check manual use tracking - 2 uses per day */
+    struct mud_event_data *pMudEvent = NULL;
+    int uses = 0;
+    int max_uses = get_paladin_channel_energy_uses(ch); /* Returns 2 */
+    
+    if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+    {
+      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+      {
+        if (uses >= max_uses)
+        {
+          send_to_char(ch, "You must recover the divine energy required to channel energy.\r\n");
+          return;
+        }
+      }
+    }
+  }
 
   level = compute_channel_energy_level(ch);
 
-  if (IS_GOOD(ch) || ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_POSITIVE)
+  /* Paladins always channel positive energy (good aligned) */
+  if (has_paladin_perk || IS_GOOD(ch) || ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_POSITIVE)
   {
     act("You channel positive energy.", FALSE, ch, 0, 0, TO_CHAR);
     act("$n channels positive energy.", FALSE, ch, 0, 0, TO_ROOM);
@@ -3267,7 +3346,71 @@ ACMDU(do_channelenergy)
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
-  start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+  
+  /* Track uses appropriately - use feat pool first if available, then perk pool */
+  if (has_both)
+  {
+    /* Try to use feat pool first */
+    int feat_uses = daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY);
+    
+    if (feat_uses > 0)
+    {
+      /* Use from feat pool */
+      start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+    }
+    else
+    {
+      /* Feat pool exhausted, use perk pool */
+      struct mud_event_data *pMudEvent = NULL;
+      int uses = 0;
+      char buf[128];
+      
+      if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+      {
+        /* Increment existing event */
+        if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+        {
+          uses++;
+          free(pMudEvent->sVariables);
+          snprintf(buf, sizeof(buf), "uses:%d", uses);
+          pMudEvent->sVariables = strdup(buf);
+        }
+      }
+      else
+      {
+        /* Create new event - resets every MUD day */
+        attach_mud_event(new_mud_event(ePALADIN_CHANNEL_ENERGY, ch, "uses:1"), SECS_PER_MUD_DAY RL_SEC);
+      }
+    }
+  }
+  else if (has_feat)
+  {
+    start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+  }
+  else if (has_paladin_perk)
+  {
+    /* Manual cooldown tracking for paladin perk */
+    struct mud_event_data *pMudEvent = NULL;
+    int uses = 0;
+    char buf[128];
+    
+    if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+    {
+      /* Increment existing event */
+      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+      {
+        uses++;
+        free(pMudEvent->sVariables);
+        snprintf(buf, sizeof(buf), "uses:%d", uses);
+        pMudEvent->sVariables = strdup(buf);
+      }
+    }
+    else
+    {
+      /* Create new event - resets every MUD day */
+      attach_mud_event(new_mud_event(ePALADIN_CHANNEL_ENERGY, ch, "uses:1"), SECS_PER_MUD_DAY RL_SEC);
+    }
+  }
 }
 
 /* Beacon of Hope - Divine Healer Tier 4 Capstone */
@@ -14221,15 +14364,6 @@ ACMD(do_clenchofnorthwind)
     return;
   }
 
-  /* Consume ki point and perform the technique */
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
-
-  perform_clenchofnorthwind(ch, vict);
+  perform_striking_fist(ch, vict);
 }
 
-/* cleanup! */
-#undef RAGE_AFFECTS
-#undef D_STANCE_AFFECTS
-
-/*EOF*/

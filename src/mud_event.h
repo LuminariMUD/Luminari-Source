@@ -205,6 +205,8 @@ typedef enum
   eSAVAGE_CHARGE_USED,              /* Savage Charge used this rage */
   eDIVINE_SACRIFICE,                /* Divine Sacrifice damage transfer cooldown */
   eRADIANT_AURA,                    /* Radiant Aura periodic undead damage */
+  ePALADIN_CHANNEL_ENERGY,          /* Paladin Channel Energy perk daily uses */
+  eMASS_CURE_WOUNDS,                /* Mass Cure Wounds daily uses */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

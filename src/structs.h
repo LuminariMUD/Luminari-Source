@@ -3747,6 +3747,17 @@
 #define PERK_PALADIN_QUICKENED_BLESSING 936
 #define PERK_PALADIN_CHANNEL_ENERGY_1 937
 
+/* DIVINE CHAMPION TREE - Tier 3 Perks (938-941) */
+#define PERK_PALADIN_SPELL_PENETRATION 938
+#define PERK_PALADIN_DESTROY_UNDEAD 939
+#define PERK_PALADIN_CHANNEL_ENERGY_2 940
+#define PERK_PALADIN_AURA_OF_COURAGE_MASTERY 941
+
+/* DIVINE CHAMPION TREE - Tier 4 Perks (942-944) */
+#define PERK_PALADIN_MASS_CURE_WOUNDS 942
+#define PERK_PALADIN_HOLY_AVENGER 943
+#define PERK_PALADIN_BEACON_OF_HOPE 944
+
 /* ============================================================================
  * RANGER PERKS (1000-1099)
  * ============================================================================ */

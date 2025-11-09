@@ -1145,9 +1145,13 @@
 #define SKILL_MERCIFUL_TOUCH 2230 // Paladin Sacred Defender - Tier 3 (HP buff)
 #define SKILL_BASTION 2231 // Paladin Sacred Defender - Tier 3 (defensive buff)
 #define SKILL_RADIANT_AURA 2232 // Paladin Divine Champion - Tier 1 (undead damage aura)
+#define SKILL_PALADIN_CHANNEL_ENERGY 2233 // Paladin Divine Champion - Tier 2 (channel energy cooldown)
+#define SKILL_MASS_CURE_WOUNDS 2234 // Paladin Divine Champion - Tier 4 (healing burst)
+#define SKILL_HOLY_AVENGER 2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
+#define SKILL_BEACON_OF_HOPE 2236 // Paladin Divine Champion - Tier 4 (party buff)
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2233 // Total number of skills (increment when adding new skills)
+#define NUM_SKILLS 2237 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

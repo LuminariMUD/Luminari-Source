@@ -423,6 +423,18 @@ int get_paladin_channel_energy_dice(struct char_data *ch);
 int get_paladin_channel_energy_uses(struct char_data *ch);
 bool is_quickened_blessing_spell(int spellnum);
 
+/* Divine Champion Tier 3 helper functions */
+bool has_paladin_spell_penetration(struct char_data *ch);
+bool has_paladin_destroy_undead(struct char_data *ch);
+int get_paladin_channel_energy_2_dice(struct char_data *ch);
+int get_paladin_channel_energy_2_uses(struct char_data *ch);
+bool has_paladin_aura_of_courage_mastery(struct char_data *ch);
+
+/* Divine Champion Tier 4 helper functions */
+bool has_paladin_mass_cure_wounds(struct char_data *ch);
+bool has_paladin_holy_avenger(struct char_data *ch);
+bool has_paladin_beacon_of_hope(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

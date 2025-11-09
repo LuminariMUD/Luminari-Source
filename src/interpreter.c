@@ -655,6 +655,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #endif
   // {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    {"masscurewounds", "masscurewounds", POS_STANDING, do_masscurewounds, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -802,6 +803,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     // {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
+
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif

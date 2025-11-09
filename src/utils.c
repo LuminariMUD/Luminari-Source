@@ -10657,6 +10657,10 @@ int get_spell_dc_bonus(struct char_data *ch)
     if (spell_focus_bonus > 0)
       dc_bonus += spell_focus_bonus;
   }
+  
+  /* Holy Avenger: +2 DC to next spell after destroying undead */
+  if (affected_by_spell(ch, SKILL_HOLY_AVENGER))
+    dc_bonus += 2;
 
   return dc_bonus;
 }

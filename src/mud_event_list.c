@@ -512,4 +512,8 @@ struct mud_event_list mud_event_index[] = {
     {"Brew Potion", event_brewing, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Radiant Aura", event_radiant_aura, EVENT_CHAR,
      NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Paladin Channel Energy", event_countdown, EVENT_CHAR,
+     NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Mass Cure Wounds", event_countdown, EVENT_CHAR,
+     NULL, NULL, FEAT_UNDEFINED, 0},
 };
