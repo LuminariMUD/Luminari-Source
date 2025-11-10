@@ -4827,6 +4827,9 @@ struct obj_data *find_lootbox_in_room_vis(struct char_data *ch)
 // Used with treasure chests that allow each individual character to loot it once every 4 hours
 ACMD(do_loot)
 {
+
+  
+
   struct obj_data *obj = find_lootbox_in_room_vis(ch);
 
   if (!obj)

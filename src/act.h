@@ -777,6 +777,7 @@ ACMD_DECL(do_inspire_courage);
 ACMD_DECL(do_wisdom_of_the_measure);
 ACMD_DECL(do_final_stand);
 ACMD_DECL(do_knighthoods_flower);
+ACMD_DECL(do_masscurewounds);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
