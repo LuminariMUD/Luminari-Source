@@ -14322,48 +14322,102 @@ ACMDCHECK(can_clenchofnorthwind)
 
 ACMD(do_clenchofnorthwind)
 {
-  struct char_data *vict = NULL;
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_clenchofnorthwind);
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
-  /* Get the target */
-  one_argument(argument, arg, sizeof(arg));
-
-  if (!*arg)
+  /* Set the timer - next melee attack will trigger the clench effect */
+  GET_CLENCH_NORTH_WIND_TIMER(ch) = 1; /* Lasts 1 round - affects next attack */
+  
+  /* Set cooldown */
+  if (!IS_NPC(ch))
   {
-    /* No target specified, use current fighting target */
-    if (!(vict = FIGHTING(ch)))
+    ch->player_specials->saved.clench_of_north_wind_cooldown = time(0) + 60;
+  }
+  
+  /* Use a ki point */
+  start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  
+  act("You focus your ki, preparing to unleash the \tCClench of the North Wind\tn on your next strike!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n's hands glow with \tCicy energy\tn!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Use a swift action */
+  USE_SWIFT_ACTION(ch);
+}
+
+
+
+/* Mass Cure Wounds - Paladin Divine Champion Tier 4 ability
+ * Heals all allies in room for 3d8 + CHA modifier
+ * 2 uses per day */
+ACMD(do_masscurewounds)
+{
+  struct char_data *tch;
+  int healing = 0;
+  int cha_mod = GET_CHA_BONUS(ch);
+  char buf[128];
+  
+  PREREQ_CAN_FIGHT();
+  
+  if (!has_paladin_mass_cure_wounds(ch))
+  {
+    send_to_char(ch, "You do not have that ability.\r\n");
+    return;
+  }
+  
+  /* Check daily uses - 2 per day using mud event */
+  struct mud_event_data *pMudEvent = NULL;
+  int uses_today = 0;
+  
+  if ((pMudEvent = char_has_mud_event(ch, eMASS_CURE_WOUNDS)))
+  {
+    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "%d", &uses_today) == 1)
     {
-      send_to_char(ch, "Who do you want to strike with the Clench of the North Wind?\r\n");
-      return;
+      if (uses_today >= 2)
+      {
+        send_to_char(ch, "You must recover the divine energy required for mass cure wounds.\r\n");
+        return;
+      }
     }
+  }
+  
+  act("You call upon divine energy to heal your allies!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n calls upon divine energy to heal $s allies!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Heal all allies in the room */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch || is_player_grouped(ch, tch))
+    {
+      healing = dice(3, 8) + cha_mod;
+      
+      if (healing > 0)
+      {
+        GET_HIT(tch) = MIN(GET_MAX_HIT(tch), GET_HIT(tch) + healing);
+        
+        if (tch == ch)
+          send_to_char(tch, "You are healed for %d hit points.\r\n", healing);
+        else
+          send_to_char(tch, "%s heals you for %d hit points.\r\n", GET_NAME(ch), healing);
+      }
+    }
+  }
+  
+  /* Use action */
+  USE_STANDARD_ACTION(ch);
+  
+  /* Track uses - increment count */
+  if (pMudEvent)
+  {
+    uses_today++;
+    if (pMudEvent->sVariables)
+      free(pMudEvent->sVariables);
+    snprintf(buf, sizeof(buf), "%d", uses_today);
+    pMudEvent->sVariables = strdup(buf);
   }
   else
   {
-    /* Target specified */
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
-    {
-      send_to_char(ch, "%s", CONFIG_NOPERSON);
-      return;
-    }
+    /* Create new event that lasts 1 MUD day */
+    attach_mud_event(new_mud_event(eMASS_CURE_WOUNDS, ch, "1"), SECS_PER_MUD_DAY * PASSES_PER_SEC);
   }
-
-  /* Check if valid target */
-  if (vict == ch)
-  {
-    send_to_char(ch, "You can't use this technique on yourself!\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
-  {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  perform_striking_fist(ch, vict);
 }
-

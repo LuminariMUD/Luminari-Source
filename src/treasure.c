@@ -6107,10 +6107,17 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
 {
   int snum;
   int apply = choose_random_apply(obj);
+  int tries = 0;
 
-  while (obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0)
+  while ((obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0) && tries < 10)
   {
     apply = choose_random_apply(obj);
+    tries++;
+  }
+
+  if (tries >= 10)
+  {
+    return;
   }
 
   obj->affected[i].location = apply;

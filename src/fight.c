@@ -11142,6 +11142,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     void_strike_bonus = dice(8, 6);
     GET_VOID_STRIKE_TIMER(ch) = 0; /* Consumed on use */
   }
+  
+  /* Clench of the North Wind - triggers on next melee attack */
+  if (!IS_NPC(ch) && GET_CLENCH_NORTH_WIND_TIMER(ch) > 0)
+  {
+    if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+      send_to_char(ch, "[\tCCLENCH_OF_NORTH_WIND\tn] ");
+    }
+    GET_CLENCH_NORTH_WIND_TIMER(ch) = 0; /* Consumed on use */
+    /* Apply the ice prison effect immediately after this attack */
+    perform_clenchofnorthwind(ch, victim);
+  }
+  
   int shattering_strike_bonus = 0;
   if (affected_by_spell(ch, SKILL_SHATTERING_STRIKE))
   {

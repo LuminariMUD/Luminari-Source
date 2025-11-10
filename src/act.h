@@ -478,6 +478,7 @@ void perform_shadowwalk(struct char_data *ch);
 void perform_blinding_speed(struct char_data *ch);
 void perform_voidstrike(struct char_data *ch);
 void perform_quiveringpalm(struct char_data *ch);
+void perform_clenchofnorthwind(struct char_data *ch, struct char_data *vict);
 void perform_deatharrow(struct char_data *ch);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
 void perform_smite(struct char_data *ch, int smite_type);

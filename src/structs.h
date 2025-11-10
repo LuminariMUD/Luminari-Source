@@ -6338,6 +6338,7 @@ struct player_special_data_saved
     int void_strike_timer;                      /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
     time_t void_strike_cooldown;                /**< Timestamp until when void strike can be used again (1 min cooldown) */
     int firesnake_timer;                        /**< Rounds remaining for fangs of fire snake effect (+1d6 fire per attack) */
+    int clench_of_north_wind_timer;             /**< Rounds remaining for clench of north wind effect (ice prison on next attack) */
     time_t clench_of_north_wind_cooldown;       /**< Timestamp until when clench of the north wind can be used again (1 min cooldown) */
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
     int elemental_embodiment_timer;             /**< Rounds remaining for elemental embodiment transformation */

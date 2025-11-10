@@ -2769,6 +2769,7 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_VOID_STRIKE_TIMER(ch)  ((ch)->player_specials->saved.void_strike_timer)
 #define GET_VOID_STRIKE_COOLDOWN(ch)  ((ch)->player_specials->saved.void_strike_cooldown)
 #define GET_FIRESNAKE_TIMER(ch)  ((ch)->player_specials->saved.firesnake_timer)
+#define GET_CLENCH_NORTH_WIND_TIMER(ch)  ((ch)->player_specials->saved.clench_of_north_wind_timer)
 #define GET_ELEMENTAL_EMBODIMENT_TIMER(ch)  ((ch)->player_specials->saved.elemental_embodiment_timer)
 #define GET_ELEMENTAL_EMBODIMENT_TYPE(ch)  ((ch)->player_specials->saved.elemental_embodiment_type)
 #define GET_ELEMENTAL_MASTERY_ACTIVE(ch)  ((ch)->player_specials->saved.elemental_mastery_active)
