@@ -73,6 +73,13 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num);
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 
+/* Ranger-specific perk bonus functions */
+int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
+int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);
+int get_ranger_dr_penetration(struct char_data *ch);
+int get_ranger_attack_speed_bonus(struct char_data *ch);
+int get_ranger_quick_draw_proc_chance(struct char_data *ch);
+
 /* Rogue-specific perk bonus functions */
 int get_perk_sneak_attack_dice(struct char_data *ch);
 int get_perk_critical_confirmation_bonus(struct char_data *ch);

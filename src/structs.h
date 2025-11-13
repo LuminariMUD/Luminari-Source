@@ -3770,6 +3770,18 @@
 #define PERK_RANGER_BOW_MASTERY_2 1005
 #define PERK_RANGER_BOW_MASTERY_3 1006
 
+/* Hunter Tree - Tier 1 */
+#define PERK_RANGER_ARCHERS_FOCUS_I 1007
+#define PERK_RANGER_STEADY_AIM_I 1008
+#define PERK_RANGER_QUICK_DRAW 1009
+#define PERK_RANGER_IMPROVED_CRITICAL_RANGED_I 1010
+
+/* Hunter Tree - Tier 2 */
+#define PERK_RANGER_ARCHERS_FOCUS_II 1011
+#define PERK_RANGER_DEADLY_AIM 1012
+#define PERK_RANGER_MANYSHOT 1013
+#define PERK_RANGER_HUNTERS_MARK 1014
+
 /* ============================================================================
  * BARD PERKS (1100-1199)
  * ============================================================================ */

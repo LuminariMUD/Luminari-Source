@@ -5169,6 +5169,79 @@ ACMDCHECK(can_arrowswarm)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_manyshot)
+{
+  /* Allow if player has the ranger perk or the Manyshot feat */
+  if (!has_perk(ch, PERK_RANGER_MANYSHOT) && !HAS_FEAT(ch, FEAT_MANYSHOT))
+  {
+    ACMD_ERRORMSG("You don't know how to do this!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  /* cooldown check */
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eMANYSHOT), "You must wait longer before you can use manyshot again.\r\n");
+
+  /* ranged attack requirement */
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE),
+                        "You have to be using a ranged weapon with ammo ready to "
+                        "fire in your ammo pouch to do this!\r\n");
+
+  return CAN_CMD;
+}
+
+ACMD(do_manyshot)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_manyshot);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Use manyshot on who?\r\n");
+    return;
+  }
+
+  /* Point Blank restriction: too close without Point Blank Shot feat */
+  if (is_tanking(ch) && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
+  {
+    send_to_char(ch, "You are too close to your foe to effectively use Manyshot without Point Blank Shot!\r\n");
+    return;
+  }
+
+  /* TODO: Extended range validation
+   * For future: allow specifying distant targets (e.g., in adjacent wilderness rooms) and
+   * validate maximum weapon range bands; currently restricted to same-room target.
+   */
+
+  act("$n unleashes a rapid volley of arrows!", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You unleash a rapid volley of arrows!\r\n");
+
+  /* Fire three rapid shots */
+  int shots = 0;
+  for (shots = 0; shots < 3; shots++)
+  {
+    if (!can_fire_ammo(ch, TRUE))
+      break;
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+  }
+
+  /* Start 2-minute cooldown */
+  attach_mud_event(new_mud_event(eMANYSHOT, ch, NULL), 120 * PASSES_PER_SEC);
+
+  /* Consume a standard action */
+  USE_STANDARD_ACTION(ch);
+}
+
 /* Callback for arrow swarm AoE */
 static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void *data)
 {

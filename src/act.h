@@ -663,6 +663,8 @@ ACMD_DECL(do_seekerarrow);
 ACMDCHECK(can_seekerarrow);
 ACMD_DECL(do_arrowswarm);
 ACMDCHECK(can_arrowswarm);
+ACMD_DECL(do_manyshot);
+ACMDCHECK(can_manyshot);
 ACMD_DECL(do_smiteevil);
 ACMDCHECK(can_smiteevil);
 ACMD_DECL(do_smitegood);

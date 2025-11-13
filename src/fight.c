@@ -5086,6 +5086,16 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       dr_reduction += MAX(0, HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION) * 3);
 
+      /* Ranger Deadly Aim - DR penetration for ranged attacks */
+      if (!IS_NPC(ch) && weapon != NULL)
+      {
+        int ranger_dr_pen = get_ranger_dr_penetration(ch);
+        if (ranger_dr_pen > 0)
+        {
+          dr_reduction += ranger_dr_pen;
+        }
+      }
+
       damage_reduction -= dr_reduction;
 
       damage_reduction = MAX(0, damage_reduction);
@@ -6944,6 +6954,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Add ranger ranged perk bonuses - only for ranged attacks */
+  if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    int ranger_ranged_bonus = get_ranger_ranged_damage_bonus(ch, wielded);
+    if (ranger_ranged_bonus != 0)
+    {
+      dambonus += ranger_ranged_bonus;
+      if (display_mode)
+        send_to_char(ch, "Ranger Ranged Damage bonus: \tR%d\tn\r\n", ranger_ranged_bonus);
+    }
+  }
+
   /****************************************/
   /**** display, keep mods above this *****/
   /****************************************/
@@ -7247,6 +7269,17 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && !wielded && has_druid_natural_weapons_improved_crit(ch))
   {
     threat_range = MIN(threat_range, 19);
+  }
+
+  /* Ranger: Improved Critical: Ranged I - applies only to ranged weapons */
+  if (!IS_NPC(ch) && wielded)
+  {
+    int weapon_type = GET_OBJ_VAL(wielded, 0);
+    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) &&
+        has_perk(ch, PERK_RANGER_IMPROVED_CRITICAL_RANGED_I))
+    {
+      threat_range--;
+    }
   }
 
   /* end mods */
@@ -9960,6 +9993,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += perk_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", perk_bonus, "Perk Weapon To-Hit Bonus");
+    }
+  }
+
+  /* Add ranger ranged perk bonuses - only for ranged attacks */
+  if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    int ranger_ranged_bonus = get_ranger_ranged_tohit_bonus(ch, wielded);
+    if (ranger_ranged_bonus != 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += ranger_ranged_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", ranger_ranged_bonus, "Ranger Ranged To-Hit");
     }
   }
 
@@ -13555,6 +13600,19 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
           /* FIRE! PEW-PEW!! */
           wpn_reload_status = hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
                                   ATTACK_TYPE_RANGED);
+
+          /* Quick Draw: chance to immediately make an extra ranged attack */
+          if (wpn_reload_status != HIT_NEED_RELOAD)
+          {
+            int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+            if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+            {
+              send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+              act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+              /* Extra shot uses the same current penalty to avoid inflating attack bonus */
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_RANGED);
+            }
+          }
 
           if (attacks_at_max_bab > 0)
             attacks_at_max_bab--;

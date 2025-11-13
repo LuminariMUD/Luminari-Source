@@ -3546,6 +3546,7 @@ void define_ranger_perks(void)
   perk->name = strdup("Favored Enemy Enhancement I");
   perk->description = strdup("+1 damage vs. favored enemy");
   perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3561,6 +3562,7 @@ void define_ranger_perks(void)
   perk->name = strdup("Toughness");
   perk->description = strdup("+5 HP per rank");
   perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -3576,6 +3578,7 @@ void define_ranger_perks(void)
   perk->name = strdup("Bow Mastery I");
   perk->description = strdup("+1 to hit with bows");
   perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3584,6 +3587,138 @@ void define_ranger_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Bonus to hit with bow weapons");
+  
+  /*** HUNTER TREE - TIER I ***/
+  
+  /* Archer's Focus I */
+  perk = &perk_list[PERK_RANGER_ARCHERS_FOCUS_I];
+  perk->id = PERK_RANGER_ARCHERS_FOCUS_I;
+  perk->name = strdup("Archer's Focus I");
+  perk->description = strdup("+1 to hit with ranged weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit with ranged weapons per rank");
+  
+  /* Steady Aim I */
+  perk = &perk_list[PERK_RANGER_STEADY_AIM_I];
+  perk->id = PERK_RANGER_STEADY_AIM_I;
+  perk->name = strdup("Steady Aim I");
+  perk->description = strdup("+1 damage with ranged weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage with ranged weapons per rank");
+  
+  /* Quick Draw */
+  perk = &perk_list[PERK_RANGER_QUICK_DRAW];
+  perk->id = PERK_RANGER_QUICK_DRAW;
+  perk->name = strdup("Quick Draw");
+  perk->description = strdup("Reduces time to nock arrows and reload ranged weapons by 10% per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Reduces attack time with ranged weapons by 10% per rank");
+  
+  /* Improved Critical: Ranged I */
+  perk = &perk_list[PERK_RANGER_IMPROVED_CRITICAL_RANGED_I];
+  perk->id = PERK_RANGER_IMPROVED_CRITICAL_RANGED_I;
+  perk->name = strdup("Improved Critical: Ranged I");
+  perk->description = strdup("+1 critical threat range with ranged weapons (19-20 becomes 18-20)");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_CRITICAL_CHANCE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Expands critical threat range with ranged weapons by 1");
+  
+  /*** HUNTER TREE - TIER II ***/
+  
+  /* Archer's Focus II */
+  perk = &perk_list[PERK_RANGER_ARCHERS_FOCUS_II];
+  perk->id = PERK_RANGER_ARCHERS_FOCUS_II;
+  perk->name = strdup("Archer's Focus II");
+  perk->description = strdup("Additional +2 to hit with ranged weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_ARCHERS_FOCUS_I;
+  perk->prerequisite_rank = 3; /* Requires Archer's Focus I at max rank */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+2 to hit with ranged weapons per rank (stacks with Archer's Focus I)");
+  
+  /* Deadly Aim */
+  perk = &perk_list[PERK_RANGER_DEADLY_AIM];
+  perk->id = PERK_RANGER_DEADLY_AIM;
+  perk->name = strdup("Deadly Aim");
+  perk->description = strdup("Arrows/bolts ignore 5 points of DR per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_STEADY_AIM_I;
+  perk->prerequisite_rank = 1; /* Requires Steady Aim I (1 rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ranged attacks ignore 5 points of damage reduction per rank");
+  
+  /* Manyshot */
+  perk = &perk_list[PERK_RANGER_MANYSHOT];
+  perk->id = PERK_RANGER_MANYSHOT;
+  perk->name = strdup("Manyshot");
+  perk->description = strdup("Once per combat, fire an additional arrow at your target (does not consume ammunition)");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_QUICK_DRAW;
+  perk->prerequisite_rank = 2; /* Requires Quick Draw (2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Special ranged attack ability usable once per combat");
+  
+  /* Hunter's Mark */
+  perk = &perk_list[PERK_RANGER_HUNTERS_MARK];
+  perk->id = PERK_RANGER_HUNTERS_MARK;
+  perk->name = strdup("Hunter's Mark");
+  perk->description = strdup("Mark a target for 5 rounds; +2 to hit and +1d6 damage against marked target");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ARCHERS_FOCUS_I;
+  perk->prerequisite_rank = 1; /* Requires Archer's Focus I (1 rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Marks target for 5 rounds granting +2 to hit and +1d6 damage");
 }
 
 /* Define Barbarian Perks */
@@ -6311,6 +6446,135 @@ int get_perk_ranged_sneak_attack_bonus(struct char_data *ch)
   bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_DEADLY_AIM_2);
   
   return bonus;
+}
+
+/**
+ * Get ranged weapon to-hit bonus from ranger perks.
+ * Includes bonuses from Hunter tree perks like Archer's Focus I and II.
+ * Only applies to ranged weapon attacks.
+ * 
+ * @param ch The character
+ * @param wielded The wielded weapon (must be ranged)
+ * @return Total ranged weapon to-hit bonus
+ */
+int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* If no weapon wielded or weapon is not ranged, return 0 */
+  if (!wielded)
+    return 0;
+    
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
+    return 0;
+    
+  int weapon_type = GET_OBJ_VAL(wielded, 0);
+  if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    return 0; /* Not a ranged weapon */
+  
+  /* Archer's Focus I: +1 to-hit per rank (max 3 ranks) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_ARCHERS_FOCUS_I);
+  
+  /* Archer's Focus II: +1 to-hit per rank (max 2 ranks) */
+  bonus += 1 * get_total_perk_ranks(ch, PERK_RANGER_ARCHERS_FOCUS_II);
+  
+  return bonus;
+}
+
+/**
+ * Get ranged weapon damage bonus from ranger perks.
+ * Includes bonuses from Hunter tree perks like Steady Aim I.
+ * Only applies to ranged weapon attacks.
+ * 
+ * @param ch The character
+ * @param wielded The wielded weapon (must be ranged)
+ * @return Total ranged weapon damage bonus
+ */
+int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* If no weapon wielded or weapon is not ranged, return 0 */
+  if (!wielded)
+    return 0;
+    
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
+    return 0;
+    
+  int weapon_type = GET_OBJ_VAL(wielded, 0);
+  if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    return 0; /* Not a ranged weapon */
+  
+  /* Steady Aim I: +1 damage per rank (max 3 ranks) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_STEADY_AIM_I);
+  
+  return bonus;
+}
+
+/**
+ * Get DR penetration value from ranger perks.
+ * Deadly Aim allows arrows/bolts to ignore damage reduction.
+ * 
+ * @param ch The character
+ * @return Total DR to ignore
+ */
+int get_ranger_dr_penetration(struct char_data *ch)
+{
+  int penetration = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Deadly Aim: Ignore 3 points of DR per rank (max 2 ranks = 6 DR ignored) */
+  penetration += 3 * get_total_perk_ranks(ch, PERK_RANGER_DEADLY_AIM);
+  
+  return penetration;
+}
+
+/**
+ * Get attack speed bonus from ranger perks.
+ * Quick Draw reduces the time between ranged attacks.
+ * 
+ * @param ch The character
+ * @return Attack speed bonus percentage (10 = 10% faster)
+ */
+int get_ranger_attack_speed_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Quick Draw: 10% attack speed per rank (max 3 ranks = 30% faster) */
+  bonus += 10 * get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
+  
+  return bonus;
+}
+
+/**
+ * Get Quick Draw proc chance for an extra ranged attack.
+ * 5% per rank of Quick Draw.
+ * 
+ * @param ch The character
+ * @return Proc chance percentage (e.g., 10 for 10%)
+ */
+int get_ranger_quick_draw_proc_chance(struct char_data *ch)
+{
+  int chance = 0;
+
+  if (!ch || IS_NPC(ch))
+    return 0;
+
+  /* Quick Draw: 5% chance per rank to grant an extra ranged attack */
+  chance += 5 * get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
+
+  return chance;
 }
 
 /**

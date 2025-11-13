@@ -514,6 +514,9 @@ struct mud_event_list mud_event_index[] = {
      NULL, NULL, FEAT_UNDEFINED, 0},
     {"Paladin Channel Energy", event_countdown, EVENT_CHAR,
      NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Mass Cure Wounds", event_countdown, EVENT_CHAR,
-     NULL, NULL, FEAT_UNDEFINED, 0},
+  {"Mass Cure Wounds", event_countdown, EVENT_CHAR,
+   NULL, NULL, FEAT_UNDEFINED, 0},
+  /*148*/
+  {"Manyshot", event_countdown, EVENT_CHAR,
+   "You are now able to use Manyshot again.", NULL, FEAT_UNDEFINED, 0},
 };
