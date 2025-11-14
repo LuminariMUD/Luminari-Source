@@ -18,6 +18,7 @@
 #include "dg_olc.h"
 #include "spells.h"
 #include "actionqueues.h"
+#include "spec_procs.h"
 
 /* local functions */
 static void extract_mobile_all(mob_vnum vnum);
@@ -537,6 +538,17 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   {
     if (MOB_KNOWS_SPELL(mob, i))
       fprintf(fd, "KnownSpell: %d\n", i);
+  }
+
+  /* SpecProc persistence */
+  {
+    mob_rnum rnum = real_mobile(mvnum);
+    if (rnum != NOBODY && mob_index[rnum].func)
+    {
+      const char *spname = get_spec_func_name(mob_index[rnum].func);
+      if (spname && *spname)
+        fprintf(fd, "SpecProc: %s\n", spname);
+    }
   }
 
   /* finalize */

@@ -59,6 +59,12 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
 /* Special functions */
 /** !!MAKE SURE TO ADD TO: spec_func_list!!!  **/
 
+/* Accessor functions for spec proc selection (OLC integration) */
+int spec_proc_count(void);
+const char *get_spec_proc_name(int idx);
+SPECIAL_DECL(*get_spec_proc_by_index(int idx));
+SPECIAL_DECL(*find_spec_proc_by_name(const char *name));
+
 /* a-c */
 SPECIAL_DECL(abyss_randomizer);
 SPECIAL_DECL(abyssal_vortex);

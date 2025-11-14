@@ -1181,199 +1181,33 @@ struct spec_func_data
 /** !!MAKE SURE TO ADD TO: spec_procs.h!!!  **/
 static const struct spec_func_data spec_func_list[] = {
 
-    /* a-c */
-    {"Abyss Randomizer", abyss_randomizer, ""},
-    {"Abyssal Vortex", abyssal_vortex, ""},
-    {"Acid Staff", acidstaff, ""},
-    {"Acid Sword", acidsword, ""},
-    {"Agrachdyrr", agrachdyrr, ""},
-    {"Air Sphere", air_sphere, ""},
-    {"Alandor Ferry", alandor_ferry, ""},
-    {"Angel Leggings", angel_leggings, ""},
-    {"Bandit Guard", bandit_guard, ""},
     {"Bank", bank, ""},
-    {"Banshee", banshee, ""},
-    {"Battlemaze Guard", battlemaze_guard, ""},
-    {"Beltush", beltush, ""},
-    {"BloodAxe", bloodaxe, ""},
-    {"Pet Object", bought_pet, ""},
-    {"BoltHammer", bolthammer, ""},
-    {"Bone Dancer", bonedancer, ""},
-    {"Boots of Stability", stability_boots, ""},
-    {"Alathar", cf_alathar, ""},
-    {"The Celestial Leviathan", celestial_leviathan, ""},
-    {"Chan", chan, ""},
-    {"Ches", ches, ""},
-    {"Chionthar Ferry", chionthar_ferry, ""},
-    {"Circlet of the Stars", star_circlet, ""},
-    {"Cityguard", cityguard, ""},
-    {"Clang Bracer", clang_bracer, ""},
-    {"Courage", courage, ""},
+    {"Bazaar", bazaar, ""},
+    {"Bounty Missions", faction_mission, ""},
+    {"Bulk Identify", eqstats, ""},
+    {"Buy Armor", buyarmor, ""},
+    {"Buy Weapons", buyweapons, ""},
     {"Crafting Kit", crafting_kit, ""},
     {"Crafting Quest", crafting_quest, ""},
     {"Cryogenicist", cryogenicist, ""},
-    {"Cube Slider", cube_slider, ""},
-
-    /* d-f */
-    {"Disruption Mace", disruption_mace, ""},
-    {"Dog", dog, ""},
-    {"Dorf Axe", dorfaxe, ""},
-    {"Prisoner Dracolich", prisoner_dracolich, ""},
-    {"Dracolich", dracolich_mob, ""},
-    {"Dragon Robes", dragon_robes, ""},
-    {"Dragonbone Hammer", dragonbone_hammer, ""},
-    //{"Drow Scimitar", drow_scimitar, ""},
-    {"Duergar Guard", duergar_guard, ""},
     {"Dump", dump, ""},
-    {"Ethereal Pet", ethereal_pet, ""},
-    {"Etherealness", etherealness, ""},
-    {"FeyBranche", feybranche, ""},
-    {"Fake Twilight", fake_twilight, ""},
-    {"Fido", fido, ""},
-    {"Fire Giant Invasion", fg_invasion_loader, ""},
-    {"FlameKissed Instrument", flamekissed_instrument, ""},
-    {"Flaming Scimitar", flaming_scimitar, ""},
-    {"Flaming Whip", flamingwhip, ""},
-    {"Floating Teleport", floating_teleport, ""},
-    {"Fog Dagger", fog_dagger, ""},
-    //{"Forest Idol", forest_idol, ""},
-    {"Invoker", fp_invoker, ""},
-    {"Frostbite", frostbite, ""},
-    {"Frosty Scimitar", frosty_scimitar, ""},
-    {"Fzoul", fzoul, ""},
-
-    /* g-i */
-    {"Gatehouse Guard", gatehouse_guard, ""},
-    {"Gauntlets of Speed", speed_gaunts, ""},
-    {"Bulletin Board", gen_board, ""},
-    {"Giantslayer", giantslayer, ""},
-    {"Greatsword", greatsword, ""},
-    {"Gromph", gromph, ""},
-    {"Guild", guild, ""},
-    //{"Guild Golem", guild_golem, ""},
     {"Guild Guard", guild_guard, ""},
+    {"Guild", guild, ""},
     {"Guildmaster", guild, ""},
-    {"Halberd", halberd, ""},
-    {"Harpell", harpell, ""},
-    {"Haste Bracers", haste_bracers, ""},
-    {"Hellfire", hellfire, ""},
-    {"HelmBlade", helmblade, ""},
-    {"Hive Death", hive_death, ""},
-    {"Faithful Hound", hound, ""},
-    {"Illithid Guard", illithid_gguard, ""},
-    {"Imix", imix, ""},
+    {"Hunts Master", huntsmaster, ""},
     {"Identify Mob", identify_mob, ""},
-
-    /* j-l */
     {"Janitor", janitor, ""},
-    {"Jot Invasion", jot_invasion_loader, ""},
-    {"Kenjin", kt_kenjin, ""},
-    //{"ShadowMaker", kt_shadowmaker, ""},
-    {"Twister", kt_twister, ""},
-    {"Lich", lich_mob, ""},
-
-    /* m-o */
-    {"Magma", magma, ""},
-    {"Malevolence", malevolence, ""},
-    {"Mayor", mayor, ""},
-    //{"MD Carpet", md_carpet, ""},
-    {"Menzo Choker", menzo_chokers, ""},
-    {"Mercenary", mercenary, ""},
-    {"Mere Shaman", mereshaman, ""},
-    {"Mistweave", mistweave, ""},
-    //{"Mithril Rapier", mithril_rapier, ""},
-    {"Monk Shock Gloves", monk_glove, ""},
-    {"Monk Frost Gloves", monk_glove_cold, ""},
-    {"Ancient Moonblade", ancient_moonblade, ""},
-    {"Naga", naga, ""},
-    {"Naga Golem", naga_golem, ""},
-    {"NW Button Control", neverwinter_button_control, ""},
-    {"NW Valve Control", neverwinter_valve_control, ""},
-    {"Nutty Bracer", nutty_bracer, ""},
-    {"Ogremoch", ogremoch, ""},
-    {"Olhydra", olhydra, ""},
-
-    /* p-r */
+    {"New Supply Orders", new_supply_orders, ""},
+    {"Pet Object", bought_pet, ""},
     {"Pet Shop", pet_shops, ""},
-    {"Planetar", planetar, ""},
-    {"Planetar Sword", planetar_sword, ""},
-    {"PlaneWalker", planewalker, ""},
     {"Player Shop", player_owned_shops, ""},
     {"Postmaster", postmaster, ""},
     {"Practice Dummy", practice_dummy, ""},
-    {"PrismOrb", prismorb, ""},
-    {"Puff", puff, ""},
-    {"Purity", purity, ""},
     {"Questmaster", questmaster, ""},
-    {"Quicksand", quicksand, ""},
     {"Receptionist", receptionist, ""},
-    {"Rughnark", rughnark, ""},
-
-    /* s-u */
-    {"Sarn", sarn, ""},
-    {"Shades", shades, ""},
-    {"ShadowDragon", shadowdragon, ""},
-    {"Shar Heart", shar_heart, ""},
-    {"Shar Statue", shar_statue, ""},
-    {"Runed Scimitar", rune_scimitar, ""},
-    {"Shobalar", shobalar, ""},
-    {"Shopkeeper", shop_keeper, ""},
-    {"Secomber Guard", secomber_guard, ""},
-    {"Skeleton Zombie", skeleton_zombie, ""},
-    {"SkullSmasher", skullsmasher, ""},
-    {"Snake", snake, ""},
-    {"Snake Whip", snakewhip, ""},
-    {"Solid Elemental", solid_elemental, ""},
-    {"SparkSword", sparksword, ""},
-    {"SpiderDagger", spiderdagger, ""},
-    {"SpikeShield", spikeshield, ""},
-    {"Celestial Sword", celestial_sword, ""},
-    //{"Staff of the Magi", magi_staff, ""},
-    //{"Storage Chest", storage_chest, ""},
-    {"Thief", thief, ""},
-    {"Thrym", thrym, ""},
-    {"Crystal Rapier", tia_rapier, ""},
-    {"The Prisoner", the_prisoner, ""},
-    {"TormBlade", tormblade, ""},
-    {"Totem Animal", totemanimal, ""},
-    //{"Trade Bandit", trade_bandit, ""},
-    //{"Trade Master", trade_master, ""},
-    //{"Trade Object", trade_object, ""},
-    {"Trainingmaster", cf_trainingmaster, ""},
-    //{"Treant Shield", treantshield, ""},
-    {"TTF Abomination", ttf_abomination, ""},
-    {"TTF Monstrosity", ttf_monstrosity, ""},
-    {"TTF Patrol", ttf_patrol, ""},
-    {"TTF RotBringer", ttf_rotbringer, ""},
-    {"Twilight", twilight, ""},
-    {"Tyrant's Eye", tyrantseye, ""},
-
-    /* v-z */
-    {"Valkyrie Sword", valkyrie_sword, ""},
-    {"Vampire", vampire, ""},
-    {"Vampire Mob", vampire_mob, ""},
-    {"Vaprak Claws", vaprak_claws, ""},
-    {"Vengeance", vengeance, ""},
-    {"ViperDagger", viperdagger, ""},
-    {"Magical Wall", wall, ""},
-    {"Wallach", wallach, ""},
-    {"Warbow", warbow, ""},
-    {"WhisperWind", whisperwind, ""},
-    {"Will O' Wisp", willowisp, ""},
-    {"Wither Dirk", witherdirk, ""},
-    {"Wizard", wizard, ""},
+    {"Temple Healer", temple, ""},
+    {"Vampire Cloak", vampire_cloak, ""},
     {"Wizard Library", wizard_library, ""},
-    {"Wraith", wraith, ""},
-    {"Wraith Elemental", wraith_elemental, ""},
-    {"Xvim Artifact", xvim_artifact, ""},
-    {"Xvim", xvim_normal, ""},
-    {"Yan", yan, ""},
-    {"Ymir", ymir, ""},
-    {"Ymir Cloak", ymir_cloak, ""},
-    
-    /* Vessel/Ship Special Procedures */
-    {"Greyhawk Ship Object", greyhawk_ship_object, ""},
-    {"Greyhawk Ship Commands", greyhawk_ship_commands, ""},
 
     /* this has to be last */
     {
@@ -1391,6 +1225,39 @@ const char *get_spec_func_name(SPECIAL_DECL(*func))
       return (spec_func_list[i].name);
   }
 
+  return NULL;
+}
+
+int spec_proc_count(void)
+{
+  int i;
+  for (i = 0; *(spec_func_list[i].name) != '\n'; i++)
+    ;
+  return i;
+}
+
+const char *get_spec_proc_name(int idx)
+{
+  if (idx < 0 || idx >= spec_proc_count())
+    return NULL;
+  return spec_func_list[idx].name;
+}
+
+SPECIAL_DECL(*get_spec_proc_by_index(int idx))
+{
+  if (idx < 0 || idx >= spec_proc_count())
+    return NULL;
+  return spec_func_list[idx].func;
+}
+
+SPECIAL_DECL(*find_spec_proc_by_name(const char *name))
+{
+  int i;
+  if (!name || !*name)
+    return NULL;
+  for (i = 0; i < spec_proc_count(); i++)
+    if (!str_cmp(name, spec_func_list[i].name))
+      return spec_func_list[i].func;
   return NULL;
 }
 

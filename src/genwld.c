@@ -20,6 +20,7 @@
 #include "mud_event.h"
 #include "wilderness.h"
 #include "oasis.h"
+#include "spec_procs.h"
 
 /* This function will copy the strings so be sure you free your own copies of
  * the description, title, and such. */
@@ -506,6 +507,16 @@ int save_rooms(zone_rnum rzone)
           }
 
           fprintf(sf, "~\n");
+      }
+
+      /* P: SpecProc */
+      {
+        if (world[rnum].func)
+        {
+          const char *spname = get_spec_func_name(world[rnum].func);
+          if (spname && *spname)
+            fprintf(sf, "P\n%s~\n", spname);
+        }
       }
 
       fprintf(sf, "S\n"); /* Always the last. */

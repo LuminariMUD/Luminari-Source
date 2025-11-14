@@ -2031,6 +2031,25 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       new_descr->next = world[room_nr].ex_description;
       world[room_nr].ex_description = new_descr;
       break;
+    case 'P': /* SpecProc */
+    {
+      char *spec_name = fread_string(fl, buf2);
+      if (spec_name && *spec_name)
+      {
+        SPECIAL_DECL(*fp) = find_spec_proc_by_name(spec_name);
+        if (fp)
+        {
+          world[room_nr].func = fp;
+        }
+        else
+        {
+          log("SYSERR: Unknown SpecProc '%s' in room #%d", spec_name, virtual_nr);
+        }
+      }
+      if (spec_name)
+        free(spec_name);
+    }
+    break;
     case 'S': /* end of room */
       /* DG triggers -- script is defined after the end of the room */
       letter = fread_letter(fl);
@@ -3013,6 +3032,22 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     ++;
   }
 
+  CASE("SpecProc")
+  {
+    if (value && *value)
+    {
+      SPECIAL_DECL(*fp) = find_spec_proc_by_name(value);
+      if (fp)
+      {
+        mob_index[i].func = fp;
+      }
+      else
+      {
+        log("SYSERR: Unknown SpecProc '%s' in mob #%d", value, nr);
+      }
+    }
+  }
+
   CASE("Path")
   {
     const char *temp = value;
@@ -3761,6 +3796,25 @@ const char *parse_object(FILE *obj_f, int nr)
       obj_proto[i].wpn_spells[wsplnum].inCombat = t[3];
       wsplnum++;
       break;
+    case 'P': /* SpecProc */
+    {
+      char *spec_name = fread_string(obj_f, buf2);
+      if (spec_name && *spec_name)
+      {
+        SPECIAL_DECL(*fp) = find_spec_proc_by_name(spec_name);
+        if (fp)
+        {
+          obj_index[i].func = fp;
+        }
+        else
+        {
+          log("SYSERR: Unknown SpecProc '%s' in obj #%d", spec_name, nr);
+        }
+      }
+      if (spec_name)
+        free(spec_name);
+    }
+    break;
     case 'T': /* DG triggers */
       dg_obj_trigger(line, &obj_proto[i], nr);
       break;
