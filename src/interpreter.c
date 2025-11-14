@@ -533,6 +533,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"history", "history", POS_DEAD, do_history, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hit", "hit", POS_FIGHTING, do_hit, 0, SCMD_HIT, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"hold", "hold", POS_RECLINING, do_grab, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"huntersmark", "huntersmark", POS_FIGHTING, do_huntersmark, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"holler", "holler", POS_RECLINING, do_gen_comm, 1, SCMD_HOLLER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holyweapon", "holyw", POS_DEAD, do_holyweapon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

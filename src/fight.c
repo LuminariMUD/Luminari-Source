@@ -2300,6 +2300,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   CLOUDKILL(ch) = 0;
   GET_MARK(killer) = NULL;
   GET_MARK_ROUNDS(killer) = 0;
+  GET_HUNTERS_MARK(killer) = NULL;
+  GET_HUNTERS_MARK_ROUNDS(killer) = 0;
 
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
@@ -6966,6 +6968,15 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Hunter's Mark damage bonus - 1d6 against marked target after 5 rounds */
+  if (!IS_NPC(ch) && vict && GET_HUNTERS_MARK(ch) == vict && GET_HUNTERS_MARK_ROUNDS(ch) >= 5)
+  {
+    int hunters_mark_bonus = dice(1, 6);
+    dambonus += hunters_mark_bonus;
+    if (display_mode)
+      send_to_char(ch, "Hunter's Mark Damage bonus: \tR%d\tn\r\n", hunters_mark_bonus);
+  }
+
   /****************************************/
   /**** display, keep mods above this *****/
   /****************************************/
@@ -10006,6 +10017,14 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", ranger_ranged_bonus, "Ranger Ranged To-Hit");
     }
+  }
+
+  /* Hunter's Mark bonus - against marked target after 5 rounds */
+  if (!IS_NPC(ch) && victim && GET_HUNTERS_MARK(ch) == victim && GET_HUNTERS_MARK_ROUNDS(ch) >= 5)
+  {
+    bonuses[BONUS_TYPE_UNDEFINED] += 2;
+    if (display)
+      send_to_char(ch, "%2d: %-50s\r\n", 2, "Hunter's Mark");
   }
 
   /* Monk weapon attack bonus - One With Wood and Stone perk */

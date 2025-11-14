@@ -3676,7 +3676,7 @@ void define_ranger_perks(void)
   perk = &perk_list[PERK_RANGER_DEADLY_AIM];
   perk->id = PERK_RANGER_DEADLY_AIM;
   perk->name = strdup("Deadly Aim");
-  perk->description = strdup("Arrows/bolts ignore 5 points of DR per rank");
+  perk->description = strdup("Arrows/bolts ignore 3 points of DR per rank");
   perk->associated_class = CLASS_RANGER;
   perk->perk_category = PERK_CATEGORY_HUNTER;
   perk->cost = 2;
@@ -3686,7 +3686,7 @@ void define_ranger_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 5;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Ranged attacks ignore 5 points of damage reduction per rank");
+  perk->special_description = strdup("Ranged attacks ignore 3 points of damage reduction per rank");
   
   /* Manyshot */
   perk = &perk_list[PERK_RANGER_MANYSHOT];

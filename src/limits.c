@@ -2023,6 +2023,17 @@ void update_player_misc(void)
       else
         send_to_char(ch, "You continue to mark your target.\r\n");
     }
+
+    if (GET_HUNTERS_MARK(ch) && GET_HUNTERS_MARK_ROUNDS(ch) < 5)
+    {
+      GET_HUNTERS_MARK_ROUNDS(ch) += 1;
+      if (GET_HUNTERS_MARK_ROUNDS(ch) == 5)
+      {
+        send_to_char(ch, "You have finished studying your prey and are ready to strike!\r\n");
+      }
+      else
+        send_to_char(ch, "You continue to observe your prey...\r\n");
+    }
   }
 }
 
