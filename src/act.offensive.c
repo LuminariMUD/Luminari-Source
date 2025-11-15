@@ -5169,6 +5169,46 @@ ACMDCHECK(can_arrowswarm)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_arrowstorm)
+{
+  /* Ranger capstone perk required */
+  if (!has_perk(ch, PERK_RANGER_ARROW_STORM))
+  {
+    ACMD_ERRORMSG("You don't know how to do this!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  /* daily cooldown */
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eARROW_STORM), "You must recover before you can use arrow storm again.\r\n");
+
+  /* ranged attack requirement */
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE),
+                        "You have to be using a ranged weapon with ammo ready to "
+                        "fire in your ammo pouch to do this!\r\n");
+
+  return CAN_CMD;
+}
+
+static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data);
+ACMD(do_arrowstorm)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_arrowstorm);
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_NOT_SINGLEFILE_ROOM();
+
+  send_to_char(ch, "You become a storm of arrows, striking all foes!\r\n");
+  act("$n becomes a storm of arrows, striking all foes!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Apply 6d6 ranged damage to all valid foes in room */
+  aoe_effect(ch, -1, arrowstorm_callback, NULL);
+
+  /* 24-hour cooldown */
+  attach_mud_event(new_mud_event(eARROW_STORM, ch, NULL), 24 * 60 * 60 * PASSES_PER_SEC);
+
+  USE_STANDARD_ACTION(ch);
+}
+
 ACMDCHECK(can_manyshot)
 {
   /* Allow if player has the ranger perk or the Manyshot feat */
@@ -5226,17 +5266,26 @@ ACMD(do_manyshot)
   act("$n unleashes a rapid volley of arrows!", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You unleash a rapid volley of arrows!\r\n");
 
-  /* Fire three rapid shots */
-  int shots = 0;
-  for (shots = 0; shots < 3; shots++)
+  /* Base three rapid shots; Improved Manyshot adds +2 */
+  int max_shots = 3;
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_IMPROVED_MANYSHOT))
+    max_shots += 2;
+
   {
-    if (!can_fire_ammo(ch, TRUE))
-      break;
-    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+    int shots;
+    for (shots = 0; shots < max_shots; shots++)
+    {
+      if (!can_fire_ammo(ch, TRUE))
+        break;
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+    }
   }
 
-  /* Start 2-minute cooldown */
-  attach_mud_event(new_mud_event(eMANYSHOT, ch, NULL), 120 * PASSES_PER_SEC);
+  /* Cooldown: 2 minutes base; 1 minute with Improved Manyshot */
+  int cooldown_secs = 120;
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_IMPROVED_MANYSHOT))
+    cooldown_secs = 60;
+  attach_mud_event(new_mud_event(eMANYSHOT, ch, NULL), cooldown_secs * PASSES_PER_SEC);
 
   /* Consume a standard action */
   USE_STANDARD_ACTION(ch);
@@ -5250,6 +5299,18 @@ static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void
   {
     /* FIRE! */
     hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+    return 1;
+  }
+  return 0;
+}
+
+/* Callback for Arrow Storm AoE - applies flat 6d6 damage per target if ammo is available */
+static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  if (can_fire_ammo(ch, TRUE))
+  {
+    int dam = dice(6, 6);
+    damage(ch, tch, dam, TYPE_UNDEFINED, DAM_PUNCTURE, FALSE);
     return 1;
   }
   return 0;

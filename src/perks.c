@@ -3719,6 +3719,106 @@ void define_ranger_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Marks target for 5 rounds granting +2 to hit and +1d6 damage");
+
+  /*** HUNTER TREE - TIER III ***/
+
+  /* Improved Manyshot */
+  perk = &perk_list[PERK_RANGER_IMPROVED_MANYSHOT];
+  perk->id = PERK_RANGER_IMPROVED_MANYSHOT;
+  perk->name = strdup("Improved Manyshot");
+  perk->description = strdup("Manyshot fires 2 additional arrows and has reduced cooldown");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_MANYSHOT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 additional arrows */
+  perk->effect_modifier = 0; /* cooldown handled in code */
+  perk->special_description = strdup("Upgrades Manyshot: +2 arrows, shorter cooldown (approx. twice per combat)");
+
+  /* Sniper */
+  perk = &perk_list[PERK_RANGER_SNIPER];
+  perk->id = PERK_RANGER_SNIPER;
+  perk->name = strdup("Sniper");
+  perk->description = strdup("Critical hits with ranged weapons deal +2d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_IMPROVED_CRITICAL_RANGED_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 on crits */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ranged weapon critical hits deal +2d6 damage");
+
+  /* Longshot */
+  perk = &perk_list[PERK_RANGER_LONGSHOT];
+  perk->id = PERK_RANGER_LONGSHOT;
+  perk->name = strdup("Longshot");
+  perk->description = strdup("Increase effective range by 50%; ignore long range penalties");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ARCHERS_FOCUS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* +50% range - future hook */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Future hook: extends ranged bands and removes long-range penalties");
+
+  /* Pinpoint Accuracy */
+  perk = &perk_list[PERK_RANGER_PINPOINT_ACCURACY];
+  perk->id = PERK_RANGER_PINPOINT_ACCURACY;
+  perk->name = strdup("Pinpoint Accuracy");
+  perk->description = strdup("Ignore cover and concealment with ranged attacks");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_DEADLY_AIM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ranged attacks ignore concealment and cover where applicable");
+
+  /*** HUNTER TREE - TIER IV (CAPSTONES) ***/
+
+  /* Master Archer */
+  perk = &perk_list[PERK_RANGER_MASTER_ARCHER];
+  perk->id = PERK_RANGER_MASTER_ARCHER;
+  perk->name = strdup("Master Archer");
+  perk->description = strdup("Ranged crit range becomes 19-20; critical multiplier becomes x4");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_SNIPER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Capstone: 19-20 crits and x4 crit multiplier for ranged attacks");
+
+  /* Arrow Storm */
+  perk = &perk_list[PERK_RANGER_ARROW_STORM];
+  perk->id = PERK_RANGER_ARROW_STORM;
+  perk->name = strdup("Arrow Storm");
+  perk->description = strdup("Once per day: hit all enemies in the room for 6d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_IMPROVED_MANYSHOT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6; /* 6d6 damage */
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Capstone active: 'arrowstorm' command to deal 6d6 to all foes in room, 24h cooldown");
 }
 
 /* Define Barbarian Perks */

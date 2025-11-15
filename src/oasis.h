@@ -279,7 +279,6 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OEDIT_RANDOM_APPLY 61
 #define OEDIT_RANDOM_APPLY_SLOT 62
 #define OEDIT_ERASE_SLOT 63
-#define OEDIT_SPEC_PROC 64
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1
@@ -302,7 +301,6 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define REDIT_COPY 18
 #define REDIT_X_COORD 19
 #define REDIT_Y_COORD 20
-#define REDIT_SPEC_PROC 21
 
 /* Submodes of ZEDIT connectedness. */
 #define ZEDIT_MAIN_MENU 0

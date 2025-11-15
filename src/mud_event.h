@@ -179,6 +179,7 @@ typedef enum
   eMOONBEAM,                        // moon beam spell lingering effect
   eDRAGBREATH,                      // Dragonborn breath weapon
   /*148*/ eMANYSHOT,                      // Manyshot command cooldown (Ranger Hunter Perk)
+  eARROW_STORM,                     // Arrow Storm (Ranger Hunter Capstone) cooldown
   eCATSCLAWS,                       // tabaxi Cats Claws ability
   eSTONESENDURANCE,                 // goliath stones endurance ability
   eAQUEOUSORB,                      // aqueous orb spell

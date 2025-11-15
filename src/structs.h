@@ -3782,6 +3782,16 @@
 #define PERK_RANGER_MANYSHOT 1013
 #define PERK_RANGER_HUNTERS_MARK 1014
 
+/* Hunter Tree - Tier 3 */
+#define PERK_RANGER_IMPROVED_MANYSHOT 1015
+#define PERK_RANGER_SNIPER 1016
+#define PERK_RANGER_LONGSHOT 1017
+#define PERK_RANGER_PINPOINT_ACCURACY 1018
+
+/* Hunter Tree - Tier 4 */
+#define PERK_RANGER_MASTER_ARCHER 1019
+#define PERK_RANGER_ARROW_STORM 1020
+
 /* ============================================================================
  * BARD PERKS (1100-1199)
  * ============================================================================ */

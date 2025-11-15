@@ -4704,6 +4704,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* seeking weapons (ranged weapons only) bypass concealment always */
     if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
       concealment = 0;
+    /* Pinpoint Accuracy (Ranger) - ignore concealment with ranged attacks */
+    if (weapon && has_perk(ch, PERK_RANGER_PINPOINT_ACCURACY))
+      concealment = 0;
     if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
       concealment = 0;
     if (dice(1, 100) <= concealment && !is_spell)
@@ -7286,10 +7289,15 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   if (!IS_NPC(ch) && wielded)
   {
     int weapon_type = GET_OBJ_VAL(wielded, 0);
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) &&
-        has_perk(ch, PERK_RANGER_IMPROVED_CRITICAL_RANGED_I))
+    bool is_ranged_weapon = IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED);
+    if (is_ranged_weapon && has_perk(ch, PERK_RANGER_IMPROVED_CRITICAL_RANGED_I))
     {
       threat_range--;
+    }
+    /* Ranger: Master Archer - crit range becomes 19-20 for ranged */
+    if (is_ranged_weapon && has_perk(ch, PERK_RANGER_MASTER_ARCHER))
+    {
+      threat_range = MIN(threat_range, 19);
     }
   }
 
@@ -7346,6 +7354,16 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
   if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && has_druid_natural_fury(ch))
   {
     crit_multi = MAX(crit_multi, 3);
+  }
+
+  /* Ranger: Master Archer - ranged crit multiplier becomes x4 */
+  if (!IS_NPC(ch) && wielded)
+  {
+    int weapon_type = GET_OBJ_VAL(wielded, 0);
+    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) && has_perk(ch, PERK_RANGER_MASTER_ARCHER))
+    {
+      crit_multi = MAX(crit_multi, 4);
+    }
   }
 
   /* high level mobs are getting a crit bonus here */
@@ -7961,6 +7979,16 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
+
+      /* Ranger: Sniper - add +2d6 damage on ranged critical hits (not multiplied) */
+      if (!IS_NPC(ch) && wielded)
+      {
+        int weapon_type = GET_OBJ_VAL(wielded, 0);
+        if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) && has_perk(ch, PERK_RANGER_SNIPER))
+        {
+          dam += dice(2, 6);
+        }
+      }
       
       /* Devastating Critical perk - bonus dice damage on crits */
       if (!IS_NPC(ch))
