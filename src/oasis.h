@@ -134,6 +134,11 @@ struct oasis_olc_data
    int item_type;
    struct trig_proto_list *script; /* for assigning triggers in [r|o|m]edit*/
    struct help_entry_list *help;   /* Hedit uses this */
+
+   /* Spec proc selections (OLC-time only, not persisted here) */
+   SPECIAL_DECL(*specmob);
+   SPECIAL_DECL(*specobj);
+   SPECIAL_DECL(*specroom);
 };
 
 /* Exported globals. */
@@ -279,6 +284,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OEDIT_RANDOM_APPLY 61
 #define OEDIT_RANDOM_APPLY_SLOT 62
 #define OEDIT_ERASE_SLOT 63
+#define OEDIT_SPEC_PROC 64
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1
@@ -301,6 +307,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define REDIT_COPY 18
 #define REDIT_X_COORD 19
 #define REDIT_Y_COORD 20
+#define REDIT_SPEC_PROC 21
 
 /* Submodes of ZEDIT connectedness. */
 #define ZEDIT_MAIN_MENU 0
@@ -417,6 +424,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define MEDIT_ADD_FEATS 79
 #define MEDIT_SET_FEAT_RANKS 80
 #define MEDIT_ADD_SPELLS 81
+#define MEDIT_SPEC_PROC 82
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU 0

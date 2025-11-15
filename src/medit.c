@@ -29,6 +29,7 @@
 #include "class.h"
 #include "feats.h"
 #include "modify.h" /* for smash_tilde */
+#include "spec_procs.h"
 
 /* local functions */
 static void init_mobile(struct char_data *mob);
@@ -361,6 +362,9 @@ void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode)
    */
   SCRIPT(mob) = NULL;
   OLC_MOB(d)->proto_script = NULL;
+  /* Initialize current spec proc selection from prototype index */
+  if (rmob_num != NOBODY)
+    OLC(d)->specmob = mob_index[rmob_num].func;
 }
 
 /* Ideally, this function should be in db.c, but I'll put it here for portability. */
@@ -402,6 +406,9 @@ void medit_save_internally(struct descriptor_data *d)
     log("medit_save_internally: add_mobile failed.");
     return;
   }
+
+  /* Apply selected spec proc to prototype index */
+  mob_index[new_rnum].func = OLC(d)->specmob;
 
   /* Update triggers and free old proto list */
   if (mob_proto[new_rnum].proto_script &&
@@ -702,6 +709,7 @@ static void medit_disp_menu(struct descriptor_data *d)
        flag2[MAX_STRING_LENGTH] = {'\0'},
        path[MAX_STRING_LENGTH] = {'\0'},
        buf[MAX_STRING_LENGTH] = {'\0'};
+  const char *specname = NULL;
 
   mob = OLC_MOB(d);
   get_char_colors(d->character);
@@ -720,6 +728,12 @@ static void medit_disp_menu(struct descriptor_data *d)
       strlcat(path, buf, sizeof(path));
     }
   }
+
+  /* Current spec proc name (from OLC selection if any, else from index) */
+  if (GET_MOB_RNUM(mob) != NOBODY)
+    specname = get_spec_func_name(OLC(d)->specmob ? OLC(d)->specmob : mob_index[GET_MOB_RNUM(mob)].func);
+  else
+    specname = get_spec_func_name(OLC(d)->specmob);
 
   write_to_output(d,
                   "-- Mob Number:  [%s%d%s]\r\n"
@@ -762,6 +776,7 @@ static void medit_disp_menu(struct descriptor_data *d)
                   "%sB%s) AFF Flags : %s%s\r\n"
                   "%sS%s) Script    : %s%s\r\n"
                   "%sV%s) Path Edit : %s%s%s\r\n"
+                  "%sZ%s) SpecProc  : %s%s\r\n"
                   "%sW%s) Copy mob\r\n"
                   "%sX%s) Delete mob\r\n"
                   "%sQ%s) Quit\r\n"
@@ -791,6 +806,7 @@ static void medit_disp_menu(struct descriptor_data *d)
                   grn, nrm, cyn, flag2,
                   grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
                   grn, nrm, cyn, path, nrm,
+                  grn, nrm, cyn, specname ? specname : "None",
                   grn, nrm,
                   grn, nrm,
                   grn, nrm);
@@ -975,6 +991,33 @@ void medit_parse(struct descriptor_data *d, char *arg)
   }
   switch (OLC_MODE(d))
   {
+  case MEDIT_SPEC_PROC: {
+    /* Expecting a number: 0 clears, otherwise select by 1-based index */
+    int choice = atoi(arg);
+    if (!*arg) {
+      write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
+      return;
+    }
+    if (*arg == 'q' || *arg == 'Q') {
+      medit_disp_menu(d);
+      return;
+    }
+    if (choice == 0) {
+      OLC(d)->specmob = NULL;
+      OLC_VAL(d) = 1;
+      medit_disp_menu(d);
+      return;
+    }
+    choice--; /* convert to 0-based */
+    if (choice < 0 || choice >= get_spec_func_count()) {
+      write_to_output(d, "Invalid selection. Try again: ");
+      return;
+    }
+    OLC(d)->specmob = get_spec_func_by_index(choice);
+    OLC_VAL(d) = 1;
+    medit_disp_menu(d);
+    return;
+  }
   case MEDIT_CONFIRM_SAVESTRING:
     /* Ensure mob has MOB_ISNPC set. */
     SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_ISNPC);
@@ -1013,6 +1056,21 @@ void medit_parse(struct descriptor_data *d, char *arg)
     i = 0;
     switch (*arg)
     {
+        case 'z':
+        case 'Z': {
+          /* List all available spec procs */
+          int count = get_spec_func_count();
+          int n;
+          clear_screen(d);
+          write_to_output(d, "Spec Procedures (0 = None)\r\n");
+          for (n = 0; n < count; n++) {
+            write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
+                           ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
+          }
+          write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
+          OLC_MODE(d) = MEDIT_SPEC_PROC;
+          return;
+        }
     case 'q':
     case 'Q':
       if (OLC_VAL(d))

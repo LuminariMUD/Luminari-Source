@@ -2012,6 +2012,14 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       setup_moving_room(fl, room_nr, virtual_nr, (line + 1));
       world[room_nr].func = &moving_rooms;
       break;
+    case 'Z': /* SpecProc name for room */
+      if (!get_line(fl, line))
+      {
+        log("SYSERR: Format error in 'Z' field for room #%d: missing spec name", virtual_nr);
+        exit(1);
+      }
+      world[room_nr].func = find_spec_func_by_name(line);
+      break;
     case 'E':
       CREATE(new_descr, struct extra_descr_data, 1);
       new_descr->keyword = fread_string(fl, buf2);
@@ -2799,6 +2807,13 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   {
     RANGE(1, NUM_SPELLS);
     MOB_KNOWS_SPELL((mob_proto + i), num_arg) = TRUE;
+  }
+
+  /* Persisted SpecProc name -> assign function pointer */
+  CASE("SpecProc")
+  {
+    if (value && *value)
+      mob_index[i].func = find_spec_func_by_name(value);
   }
 
   /* end saving throws */
@@ -3763,6 +3778,16 @@ const char *parse_object(FILE *obj_f, int nr)
       break;
     case 'T': /* DG triggers */
       dg_obj_trigger(line, &obj_proto[i], nr);
+      break;
+    case 'Z': /* SpecProc name for object */
+      if (!get_line(obj_f, line))
+      {
+        log("SYSERR: Format error in 'Z' field, %s\n"
+            "...expecting specproc name but file ended!",
+            buf2);
+        exit(1);
+      }
+      obj_index[i].func = find_spec_func_by_name(line);
       break;
     case '$':
     case '#':

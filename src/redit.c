@@ -23,6 +23,7 @@
 #include "modify.h"
 #include "wilderness.h"
 #include "movement_tracks.h"  /* includes trail data structures */
+#include "spec_procs.h"
 
 /* local functions */
 static void redit_setup_new(struct descriptor_data *d);
@@ -263,6 +264,9 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode)
   dg_olc_script_copy(d);
   room->proto_script = NULL;
   SCRIPT(room) = NULL;
+
+  /* Initialize current spec proc selection from existing room */
+  OLC(d)->specroom = world[real_num].func;
 }
 
 void redit_save_internally(struct descriptor_data *d)
@@ -283,6 +287,9 @@ void redit_save_internally(struct descriptor_data *d)
     log("SYSERR: redit_save_internally: Something failed! (%d)", room_num);
     return;
   }
+
+  /* Apply selected spec proc to room */
+  world[room_num].func = OLC(d)->specroom;
 
   /* Debug: Log trail_tracks pointer before script operations */
   if (world[room_num].trail_tracks) {
@@ -515,6 +522,7 @@ static void redit_disp_menu(struct descriptor_data *d)
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct room_data *room;
+  const char *specname = NULL;
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -522,6 +530,8 @@ static void redit_disp_menu(struct descriptor_data *d)
 
   sprintbitarray(room->room_flags, room_bits, RF_ARRAY_MAX, buf1);
   sprinttype(room->sector_type, sector_types, buf2, sizeof(buf2));
+  /* Current spec proc (from OLC selection if any, else from room) */
+  specname = get_spec_func_name(OLC(d)->specroom ? OLC(d)->specroom : room->func);
   write_to_output(d,
                   "-- Room number : [%s%d%s] Room zone: [%s%d%s]\r\n"
                   "%s1%s) Name        : %s%s\r\n"
@@ -581,6 +591,7 @@ static void redit_disp_menu(struct descriptor_data *d)
                   "%sF%s) Extra descriptions menu\r\n"
                   "%sS%s) Script      : %s%s\r\n"
                   "%sG%s) Coordinates : (%s%d%s, %s%d%s)\r\n"
+                  "%sZ%s) SpecProc    : %s%s\r\n"
                   "%sW%s) Copy Room\r\n"
                   "%sX%s) Delete Room\r\n"
                   "%sQ%s) Quit\r\n"
@@ -592,6 +603,7 @@ static void redit_disp_menu(struct descriptor_data *d)
                   grn, nrm,
                   grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
                   grn, nrm, cyn, room->coords[0], nrm, cyn, room->coords[1], nrm,
+                  grn, nrm, cyn, specname ? specname : "None",
                   grn, nrm,
                   grn, nrm,
                   grn, nrm);
@@ -607,6 +619,32 @@ void redit_parse(struct descriptor_data *d, char *arg)
 
   switch (OLC_MODE(d))
   {
+  case REDIT_SPEC_PROC: {
+    int choice = atoi(arg);
+    if (!*arg) {
+      write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
+      return;
+    }
+    if (*arg == 'q' || *arg == 'Q') {
+      redit_disp_menu(d);
+      return;
+    }
+    if (choice == 0) {
+      OLC(d)->specroom = NULL;
+      OLC_VAL(d) = 1;
+      redit_disp_menu(d);
+      return;
+    }
+    choice--;
+    if (choice < 0 || choice >= get_spec_func_count()) {
+      write_to_output(d, "Invalid selection. Try again: ");
+      return;
+    }
+    OLC(d)->specroom = get_spec_func_by_index(choice);
+    OLC_VAL(d) = 1;
+    redit_disp_menu(d);
+    return;
+  }
   case REDIT_CONFIRM_SAVESTRING:
     switch (*arg)
     {
@@ -641,6 +679,20 @@ void redit_parse(struct descriptor_data *d, char *arg)
   case REDIT_MAIN_MENU:
     switch (*arg)
     {
+        case 'z':
+        case 'Z': {
+          int count = get_spec_func_count();
+          int n;
+          clear_screen(d);
+          write_to_output(d, "Spec Procedures (0 = None)\r\n");
+          for (n = 0; n < count; n++) {
+            write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
+                           ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
+          }
+          write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
+          OLC_MODE(d) = REDIT_SPEC_PROC;
+          return;
+        }
     case 'q':
     case 'Q':
       if (OLC_VAL(d))
