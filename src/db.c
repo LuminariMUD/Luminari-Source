@@ -3013,22 +3013,6 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     ++;
   }
 
-  CASE("SpecProc")
-  {
-    if (value && *value)
-    {
-      SPECIAL_DECL(*fp) = find_spec_proc_by_name(value);
-      if (fp)
-      {
-        mob_index[i].func = fp;
-      }
-      else
-      {
-        log("SYSERR: Unknown SpecProc '%s' in mob #%d", value, nr);
-      }
-    }
-  }
-
   CASE("Path")
   {
     const char *temp = value;

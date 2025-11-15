@@ -29,7 +29,6 @@
 #include "class.h"
 #include "feats.h"
 #include "modify.h" /* for smash_tilde */
-#include "spec_procs.h"
 
 /* local functions */
 static void init_mobile(struct char_data *mob);
@@ -755,7 +754,6 @@ static void medit_disp_menu(struct descriptor_data *d)
                   "%sI%s) Size      : %s%s\r\n"
                   "%sJ%s) Walk-In   : %s%s\r\n"
                   "%sK%s) Walk-Out  : %s%s\r\n"
-                  "%sP%s) SpecProc  : %s%s\r\n"
                   "%sL%s) Echo Menu...\r\n"
                   "%sM%s) Set Plot Mob Flags & Settings (Shopkeepers, Questmasters, Etc.)\r\n"
                   "%sO%s) Set Random Descriptions (Shopkeepers, Questmasters, Etc.)\r\n"
@@ -784,7 +782,6 @@ static void medit_disp_menu(struct descriptor_data *d)
                   grn, nrm, yel, size_names[GET_SIZE(mob)],
                   grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
                   grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
-                  grn, nrm, yel, (mob_index[GET_MOB_RNUM(mob)].func ? get_spec_func_name(mob_index[GET_MOB_RNUM(mob)].func) : "None"),
                   grn, nrm,
                   grn, nrm,
                   grn, nrm,
@@ -798,35 +795,6 @@ static void medit_disp_menu(struct descriptor_data *d)
                   grn, nrm,
                   grn, nrm);
   OLC_MODE(d) = MEDIT_MAIN_MENU;
-}
-
-static void medit_disp_specproc_menu(struct descriptor_data *d)
-{
-  int count = spec_proc_count();
-  int cols = 3;
-  int rows = (count + cols - 1) / cols;
-  int r, c;
-
-  get_char_colors(d->character);
-  clear_screen(d);
-  write_to_output(d, "SpecProc Selection (Three Columns):\r\n");
-  write_to_output(d, "  0) None\r\n\r\n");
-
-  for (r = 0; r < rows; r++) {
-    for (c = 0; c < cols; c++) {
-      int idx = r + c * rows;
-      if (idx < count) {
-        /* number right-aligned in 3 spaces, name left-aligned in 22 width */
-        write_to_output(d, "%3d) %-22.22s", idx + 1, get_spec_proc_name(idx));
-      } else {
-        write_to_output(d, "%3s  %-22.22s", "", "");
-      }
-    }
-    write_to_output(d, "\r\n");
-  }
-
-  write_to_output(d, "\r\nEnter choice (number), or Q to abort: ");
-  OLC_MODE(d) = MEDIT_SPEC_PROC;
 }
 
 /* mobile echoes, dispaly */
@@ -1163,10 +1131,6 @@ void medit_parse(struct descriptor_data *d, char *arg)
                          "<leave blank for default>\r\n: ");
       OLC_MODE(d) = MEDIT_WALKOUT;
       i--;
-      return;
-    case 'p':
-    case 'P':
-      medit_disp_specproc_menu(d);
       return;
     case 'l':
     case 'L':
@@ -1795,47 +1759,6 @@ void medit_parse(struct descriptor_data *d, char *arg)
     }
     else
       GET_WALKOUT(OLC_MOB(d)) = NULL;
-    break;
-
-  case MEDIT_SPEC_PROC:
-    if (*arg == 'q' || *arg == 'Q')
-    {
-      medit_disp_menu(d);
-      return;
-    }
-    if (isdigit(*arg))
-    {
-      int choice = atoi(arg);
-      if (choice == 0)
-      {
-        mob_index[OLC_MOB(d)->nr].func = NULL;
-        OLC_VAL(d) = TRUE;
-        write_to_output(d, "SpecProc cleared.\r\n");
-      }
-      else
-      {
-        choice -= 1;
-        if (choice >= 0 && choice < spec_proc_count())
-        {
-          mob_index[OLC_MOB(d)->nr].func = get_spec_proc_by_index(choice);
-          OLC_VAL(d) = TRUE;
-          write_to_output(d, "SpecProc set to %s.\r\n", get_spec_proc_name(choice));
-        }
-        else
-        {
-          write_to_output(d, "Invalid selection.\r\n");
-          medit_disp_specproc_menu(d);
-          return;
-        }
-      }
-      medit_disp_menu(d);
-      return;
-    }
-    else
-    {
-      write_to_output(d, "Invalid input. Enter a number or Q to abort: ");
-      return;
-    }
     break;
 
   case MEDIT_NPC_FLAGS:

@@ -34,7 +34,6 @@
 #include "act.h"      /* get_eq_score() */
 #include "feats.h"
 #include "handler.h"
-#include "spec_procs.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -1649,35 +1648,6 @@ struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int pos
   return specab;
 }
 
-static void oedit_disp_specproc_menu(struct descriptor_data *d)
-{
-  int count = spec_proc_count();
-  int cols = 3;
-  int rows = (count + cols - 1) / cols;
-  int r, c;
-
-  get_char_colors(d->character);
-  clear_screen(d);
-  write_to_output(d, "SpecProc Selection (Three Columns):\r\n");
-  write_to_output(d, "  0) None\r\n\r\n");
-
-  for (r = 0; r < rows; r++) {
-    for (c = 0; c < cols; c++) {
-      int idx = r + c * rows;
-      if (idx < count) {
-        /* number right-aligned in 3 spaces, name left-aligned in 22 width */
-        write_to_output(d, "%3d) %-22.22s", idx + 1, get_spec_proc_name(idx));
-      } else {
-        write_to_output(d, "%3s  %-22.22s", "", "");
-      }
-    }
-    write_to_output(d, "\r\n");
-  }
-
-  write_to_output(d, "\r\nEnter choice (number), or Q to abort: ");
-  OLC_MODE(d) = OEDIT_SPEC_PROC;
-}
-
 /* Display main menu. */
 static void oedit_disp_menu(struct descriptor_data *d)
 {
@@ -1819,7 +1789,6 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%sM%s) Min Level              : %s%d\r\n"
                   "%sP%s) Perm Affects           : %s%s\r\n"
                   "%sR%s) Mob Recipient          : %s%d\r\n"
-                  "%sU%s) SpecProc               : %s%s\r\n"
                   "%sS%s) Script                 : %s%s\r\n"
                   "%sT%s) Spellbook menu\r\n"
                   "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
@@ -1854,7 +1823,6 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   grn, nrm, cyn, GET_OBJ_LEVEL(obj),
                   grn, nrm, cyn, buf2,
                   grn, nrm, cyn, (obj)->mob_recepient,
-                  grn, nrm, cyn, (GET_OBJ_RNUM(obj) != NOTHING && obj_index[GET_OBJ_RNUM(obj)].func ? get_spec_func_name(obj_index[GET_OBJ_RNUM(obj)].func) : "None"),
                   grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
                   grn, nrm,                                                                          /* spellbook */
                   nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? -999 : get_eq_score(GET_OBJ_RNUM(obj)), /* eq rating */
@@ -2104,10 +2072,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_perm_menu(d);
       OLC_MODE(d) = OEDIT_PERM;
       break;
-    case 'u':
-    case 'U':
-      oedit_disp_specproc_menu(d);
-      return;
     case 's':
     case 'S':
       if (STATE(d) != CON_IEDIT)
@@ -2956,49 +2920,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
     else
       write_to_output(d, "That object does not exist.\r\n");
-    break;
-
-  case OEDIT_SPEC_PROC:
-    if (*arg == 'q' || *arg == 'Q')
-    {
-      oedit_disp_menu(d);
-      return;
-    }
-    if (isdigit(*arg))
-    {
-      int choice = atoi(arg);
-      if (choice == 0)
-      {
-        if (GET_OBJ_RNUM(OLC_OBJ(d)) != NOTHING)
-          obj_index[GET_OBJ_RNUM(OLC_OBJ(d))].func = NULL;
-        OLC_VAL(d) = TRUE;
-        write_to_output(d, "SpecProc cleared.\r\n");
-      }
-      else
-      {
-        choice -= 1;
-        if (choice >= 0 && choice < spec_proc_count())
-        {
-          if (GET_OBJ_RNUM(OLC_OBJ(d)) != NOTHING)
-            obj_index[GET_OBJ_RNUM(OLC_OBJ(d))].func = get_spec_proc_by_index(choice);
-          OLC_VAL(d) = TRUE;
-          write_to_output(d, "SpecProc set to %s.\r\n", get_spec_proc_name(choice));
-        }
-        else
-        {
-          write_to_output(d, "Invalid selection.\r\n");
-          oedit_disp_specproc_menu(d);
-          return;
-        }
-      }
-      oedit_disp_menu(d);
-      return;
-    }
-    else
-    {
-      write_to_output(d, "Invalid input. Enter a number or Q to abort: ");
-      return;
-    }
     break;
 
   case OEDIT_DELETE:

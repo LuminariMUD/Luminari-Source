@@ -21,7 +21,6 @@
 #include "boards.h" /* for board_info */
 #include "craft.h"
 #include "spells.h"
-#include "spec_procs.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);
@@ -390,17 +389,6 @@ int save_objects(zone_rnum zone_num)
                   obj->wpn_spells[counter2].level,
                   obj->wpn_spells[counter2].percent,
                   obj->wpn_spells[counter2].inCombat);
-
-      /* P: SpecProc */
-      {
-        obj_rnum rnum = GET_OBJ_RNUM(obj);
-        if (rnum != NOTHING && obj_index[rnum].func)
-        {
-          const char *spname = get_spec_func_name(obj_index[rnum].func);
-          if (spname && *spname)
-            fprintf(fp, "P\n%s~\n", spname);
-        }
-      }
 
       /* T:  Do we have script(s) attached? */
       script_save_to_disk(fp, obj, OBJ_TRIGGER);

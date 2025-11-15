@@ -417,7 +417,6 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define MEDIT_ADD_FEATS 79
 #define MEDIT_SET_FEAT_RANKS 80
 #define MEDIT_ADD_SPELLS 81
-#define MEDIT_SPEC_PROC 82
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU 0

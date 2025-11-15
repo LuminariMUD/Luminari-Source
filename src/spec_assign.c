@@ -1394,37 +1394,4 @@ const char *get_spec_func_name(SPECIAL_DECL(*func))
   return NULL;
 }
 
-int spec_proc_count(void)
-{
-  int i;
-  for (i = 0; *(spec_func_list[i].name) != '\n'; i++)
-    ;
-  return i;
-}
-
-const char *get_spec_proc_name(int idx)
-{
-  if (idx < 0 || idx >= spec_proc_count())
-    return NULL;
-  return spec_func_list[idx].name;
-}
-
-SPECIAL_DECL(*get_spec_proc_by_index(int idx))
-{
-  if (idx < 0 || idx >= spec_proc_count())
-    return NULL;
-  return spec_func_list[idx].func;
-}
-
-SPECIAL_DECL(*find_spec_proc_by_name(const char *name))
-{
-  int i;
-  if (!name || !*name)
-    return NULL;
-  for (i = 0; i < spec_proc_count(); i++)
-    if (!str_cmp(name, spec_func_list[i].name))
-      return spec_func_list[i].func;
-  return NULL;
-}
-
 /*eof*/
