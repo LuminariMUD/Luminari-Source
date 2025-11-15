@@ -6440,10 +6440,6 @@ struct player_special_data
     struct char_data *mark_target; // person the character is marking for assassination
     int death_attack_hit_bonus;
     int death_attack_dam_bonus;
-    
-    short hunters_mark_rounds;     // number of rounds a ranger has marked their prey
-    struct char_data *hunters_mark_target; // person the ranger has marked with hunter's mark
-    
     room_vnum walkto_location;
 
     struct char_data *judgement_target; // target of an inquisitor's judgement

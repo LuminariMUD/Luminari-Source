@@ -667,7 +667,6 @@ ACMD_DECL(do_arrowstorm);
 ACMDCHECK(can_arrowstorm);
 ACMD_DECL(do_manyshot);
 ACMDCHECK(can_manyshot);
-ACMD_DECL(do_huntersmark);
 ACMD_DECL(do_smiteevil);
 ACMDCHECK(can_smiteevil);
 ACMD_DECL(do_smitegood);

@@ -12463,47 +12463,6 @@ ACMD(do_mark)
   GET_MARK_ROUNDS(ch) = 0;
 }
 
-ACMD(do_huntersmark)
-{
-  struct char_data *vict = NULL;
-  char arg[100];
-
-  one_argument(argument, arg, sizeof(arg));
-
-  if (!has_perk(ch, PERK_RANGER_HUNTERS_MARK))
-  {
-    send_to_char(ch, "You don't have the Hunter's Mark perk!\r\n");
-    return;
-  }
-
-  if (!*arg)
-  {
-    send_to_char(ch, "Who would you like to mark as your prey?\r\n");
-    return;
-  }
-
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
-  {
-    send_to_char(ch, "That person isn't here right now.\r\n");
-    return;
-  }
-
-  if (vict == ch)
-  {
-    send_to_char(ch, "You cannot mark yourself!\r\n");
-    return;
-  }
-
-  act("You mark $N as your prey, studying $S movements carefully.", false, ch, 0, vict, TO_CHAR);
-  act("$n studies you intently, marking you as $s prey.", false, ch, 0, vict, TO_VICT);
-  act("$n marks $N as $s prey.", false, ch, 0, vict, TO_NOTVICT);
-  
-  GET_HUNTERS_MARK(ch) = vict;
-  GET_HUNTERS_MARK_ROUNDS(ch) = 0;
-  
-  USE_SWIFT_ACTION(ch);
-}
-
 int max_judgements_active(struct char_data *ch)
 {
   int num = 0;

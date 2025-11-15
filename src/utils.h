@@ -2717,10 +2717,6 @@ int ACTUAL_BAB(struct char_data *ch);
     bool is_marked_target(struct char_data *ch, struct char_data *vict);
 void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
 
-// Ranger Hunter's Mark
-#define GET_HUNTERS_MARK_ROUNDS(ch) (ch->player_specials->hunters_mark_rounds)
-#define GET_HUNTERS_MARK(ch) (ch->player_specials->hunters_mark_target)
-
 // Inquisitor Stuff
 #define GET_JUDGEMENT_TARGET(ch) (ch->player_specials->judgement_target)
 #define IS_JUDGEMENT_ACTIVE(ch, i) (ch->player_specials->saved.judgement_enabled[i])

@@ -8498,11 +8498,6 @@ void clear_group_marks(struct char_data *ch, struct char_data *victim)
     {
       GET_MARK(tch) = NULL;
       GET_MARK_ROUNDS(tch) = 0;
-    if (GET_HUNTERS_MARK(tch) == victim)
-    {
-      GET_HUNTERS_MARK(tch) = NULL;
-      GET_HUNTERS_MARK_ROUNDS(tch) = 0;
-    }
     }
   }
 }
