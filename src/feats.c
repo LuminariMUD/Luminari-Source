@@ -7001,12 +7001,12 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
           {
             if (mode == 1)
             {
-              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, j >= NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
               snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             }
             else
             {
-              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, j >= NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
               count++;
               if (count % 2 == 0)
                 snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
@@ -7124,45 +7124,58 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         none_shown = FALSE;
       }
       else if (i == FEAT_HIGH_ELF_CANTRIP)
-      {
-        if (mode == 1)
         {
-          sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[HIGH_ELF_CANTRIP(ch)].name);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          const char *cantrip_name = "unknown";
+          int cantrip_idx = HIGH_ELF_CANTRIP(ch);
+          if (cantrip_idx > 0 && cantrip_idx < NUM_SPELLS) {
+            const char *nm = spell_info[cantrip_idx].name;
+            if (nm && nm != unused_spellname && *nm)
+              cantrip_name = nm;
+          }
+          if (mode == 1)
+          {
+            snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, cantrip_name);
+            snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          }
+          else
+          {
+            snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, cantrip_name);
+            snprintf(buf, sizeof(buf), "%-40s ", buf3);
+          }
+          strlcat(buf2, buf, sizeof(buf2));
+          none_shown = FALSE;
         }
-        else
-        {
-          sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[HIGH_ELF_CANTRIP(ch)].name);
-          sprintf(buf, "%-40s ", buf3);
-        }
-        strcat(buf2, buf);
-        none_shown = FALSE;
-      }
       else if (i == FEAT_DRAGONBORN_ANCESTRY)
       {
+        int db = GET_DRAGONBORN_ANCESTRY(ch);
+        const char *dname = (db >= 0 && db < NUM_DRACONIC_HERITAGE_TYPES) ? draconic_heritage_names[db] : "unknown";
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_DRAGONBORN_ANCESTRY(ch)));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, dname);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_DRAGONBORN_ANCESTRY(ch)));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, dname);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SORCERER_BLOODLINE_ARCANE)
       {
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          int subtype = GET_BLOODLINE_SUBTYPE(ch);
+          const char *school_lwr = (subtype >= 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype] : "unknown";
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, school_lwr);
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          int subtype = GET_BLOODLINE_SUBTYPE(ch);
+          const char *school_lwr = (subtype >= 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype] : "unknown";
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, school_lwr);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7172,12 +7185,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       {
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          int subtype = GET_BLOODLINE_SUBTYPE(ch);
+          const char *school_lwr = (subtype >= 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype] : "unknown";
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, school_lwr);
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          int subtype = GET_BLOODLINE_SUBTYPE(ch);
+          const char *school_lwr = (subtype >= 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype] : "unknown";
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, school_lwr);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7187,12 +7204,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       {
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
+          int dr = GET_BLOODLINE_SUBTYPE(ch);
+          const char *dname = (dr >= 0 && dr < NUM_DRACONIC_HERITAGE_TYPES) ? draconic_heritage_names[dr] : "unknown";
+          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, dname);
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
+          int dr = GET_BLOODLINE_SUBTYPE(ch);
+          const char *dname = (dr >= 0 && dr < NUM_DRACONIC_HERITAGE_TYPES) ? draconic_heritage_names[dr] : "unknown";
+          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, dname);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7200,14 +7221,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRACONIC_HERITAGE_BREATHWEAPON)
       {
+        int subtype = GET_BLOODLINE_SUBTYPE(ch);
+        const char *etype = (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(subtype) : "Unknown";
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, etype, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, etype, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7215,14 +7238,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRAGONBORN_RESISTANCE)
       {
+        int db = GET_DRAGONBORN_ANCESTRY(ch);
+        const char *etype = (db >= 0 && db < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(db) : "Unknown";
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, etype);
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, etype);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7230,14 +7255,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRAGONBORN_BREATH)
       {
+        int db = GET_DRAGONBORN_ANCESTRY(ch);
+        const char *etype = (db >= 0 && db < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(db) : "Unknown";
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)), get_daily_uses(ch, i));
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, etype, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)), get_daily_uses(ch, i));
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, etype, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7290,14 +7317,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRACONIC_HERITAGE_CLAWS)
       {
+        int subtype = GET_BLOODLINE_SUBTYPE(ch);
+        const char *etype = (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(subtype) : "Unknown";
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, etype, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, etype, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7320,14 +7349,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRACONIC_BLOODLINE_ARCANA)
       {
+        int subtype = GET_BLOODLINE_SUBTYPE(ch);
+        const char *etype = (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(subtype) : "Unknown";
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, etype);
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, etype);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
@@ -7335,14 +7366,16 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES || i == FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)
       {
+        int subtype = GET_BLOODLINE_SUBTYPE(ch);
+        const char *etype = (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(subtype) : "Unknown";
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, etype);
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, etype);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
