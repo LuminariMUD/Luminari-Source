@@ -10742,11 +10742,9 @@ ACMD(do_fire)
   }
   else
   {
-
-    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT))
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT) && !has_perk(ch, PERK_RANGER_LONGSHOT))
     {
-      send_to_char(ch, "You need the 'far shot' feat to shoot outside of your"
-                       " immediate area!\r\n");
+      send_to_char(ch, "You need the 'far shot' feat or 'long shot' perk to shoot outside of your immediate area!\r\n");
       return;
     }
 
@@ -10850,6 +10848,12 @@ ACMD(do_fire)
 
     if (ch && vict && IN_ROOM(ch) != IN_ROOM(vict))
     {
+      /* Combined bonus: if player has Far Shot feat AND Longshot perk, +3 to attack when firing outside their room */
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
+      {
+        GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
+      }
+
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
       /* don't forget to remove the fight event! */
       if (char_has_mud_event(ch, eCOMBAT_ROUND))

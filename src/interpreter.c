@@ -4692,7 +4692,30 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
 
       STATE(d) = CON_QREGION;
 #else
-     write_to_output(d, "That is not an option at this time.\r\n");
+     if (GET_REGION(d->character))
+      {
+        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
+        return;
+      }
+
+      write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
+      int i = 1;
+      while (i < NUM_REGIONS)
+      {
+        if (!is_selectable_region(i)) {i++; continue; }
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+        i++;
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+
+      STATE(d) = CON_QREGION;
 #endif
 }
 

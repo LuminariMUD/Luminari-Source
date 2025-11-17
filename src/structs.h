@@ -989,44 +989,20 @@
 #else
 
 #define REGION_NONE                 0
-#define REGION_AGLAROND             1
-#define REGION_AMN                  2
-#define REGION_ANAUROCH_DESERT      3
-#define REGION_CALIMSHAN            4
-#define REGION_CHESSENTA            5
-#define REGION_CHULT                6
-#define REGION_CORMYR               7
-#define REGION_DAMBRATH             8
-#define REGION_ELFHARROW            9
-#define REGION_EVERMEET             10
-#define REGION_HALRUAA              11
-#define REGION_ICEWIND_DALE         12
-#define REGION_IMPILTUR             13
-#define REGION_KARA_TUR             14
-#define REGION_LUIREN               15
-#define REGION_LURUAR               16
-#define REGION_MULHORAND            17
-#define REGION_RASHEMEN             18
-#define REGION_SEMBIA               19
-#define REGION_TETHYR               20
-#define REGION_THAY                 21
-#define REGION_THESK                22
-#define REGION_THE_COLD_LANDS       23
-#define REGION_THE_DALELANDS        24
-#define REGION_THE_HORDELANDS       25
-#define REGION_THE_LAKE_OF_STEAM    26
-#define REGION_THE_MOONSEA          27
-#define REGION_THE_SAVAGE_FRONTIER  28
-#define REGION_THE_SWORD_COAST      29
-#define REGION_THE_UNDERDARK        30
-#define REGION_TURMISH              31
-#define REGION_TYMANTHER            32
-#define REGION_UNTHER               33
-#define REGION_WESTGATE             34
-#define REGION_ZAKHARA              35
-#define REGION_OUTER_PLANES         36
-
-#define NUM_REGIONS                 37
+#define REGION_ASHENPORT            1
+#define REGION_SANCTUS              2
+#define REGION_ONDUIS               3
+#define REGION_SELERISH             4
+#define REGION_CARSTAN              5
+#define REGION_AXTROS               6
+#define REGION_HIR                  7
+#define REGION_QUECHIAN             8
+#define REGION_VAILAND              9
+#define REGION_OORPII               10
+#define REGION_KELLUST              11
+#define REGION_EAST_UBDINA          12
+#define REGION_WEST_UBDINA          13
+#define NUM_REGIONS                 14
 
 #endif
 
