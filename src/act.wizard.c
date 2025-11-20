@@ -4691,7 +4691,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
 #if defined(CAMPAIGN_DL)
   send_to_char(ch, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
 #else      
+#if defined(CAMPAIGN_FR)
       send_to_char(ch, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      send_to_char(ch, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
+#endif
 #endif
     }
     else

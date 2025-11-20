@@ -99,7 +99,7 @@ install_dependencies() {
             sudo apt-get install -y \
                 build-essential cmake autoconf automake libtool pkg-config \
                 libcrypt-dev libgd-dev libmariadb-dev libcurl4-openssl-dev \
-                libssl-dev mariadb-server git make
+                libssl-dev libjson-c-dev mariadb-server git make
             
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo apt-get install -y gdb valgrind
@@ -111,7 +111,7 @@ install_dependencies() {
             sudo yum install -y \
                 gcc gcc-c++ make cmake autoconf automake libtool \
                 mariadb mariadb-devel mariadb-server \
-                gd-devel openssl-devel libcurl-devel git
+                gd-devel openssl-devel libcurl-devel json-c-devel git
             
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo yum install -y gdb valgrind
@@ -122,7 +122,7 @@ install_dependencies() {
             print_msg "$GREEN" "Installing packages for Arch Linux..."
             sudo pacman -Sy --noconfirm \
                 base-devel cmake mariadb libmariadbclient \
-                gd openssl curl git
+                gd openssl curl json-c git
             
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo pacman -Sy --noconfirm gdb valgrind

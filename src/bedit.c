@@ -16,7 +16,7 @@
 #include "genolc.h"
 #include "interpreter.h"
 #include "helpers.h"
-#include "mysql/mysql.h"
+#include "mariadb/mysql.h"
 #include "mysql_boards.h"
 
 /*-------------------------------------------------------------------*/

@@ -9970,8 +9970,10 @@ bool is_selectable_region(int region)
 {
   switch (region)
   {
+#if defined(CAMPAIGN_DL)
     case REGION_OUTER_PLANES:
       return false;
+#endif
   }
   return true;
 }

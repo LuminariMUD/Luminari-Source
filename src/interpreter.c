@@ -3534,8 +3534,10 @@ switch (load_result)
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
 #ifdef CAMPAIGN_DL
       write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
-#else
+#elif defined(CAMPAIGN_FR)
       write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
 #endif
       STATE(d) = CON_QREGION;
       return;
@@ -4688,7 +4690,13 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
       write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+#if defined(CAMPAIGN_DL)
       write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+#elif defined(CAMPAIGN_FR)
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
+#endif
 
       STATE(d) = CON_QREGION;
 #else
@@ -4713,7 +4721,13 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
       write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+#if defined(CAMPAIGN_DL)
       write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+#elif defined(CAMPAIGN_FR)
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
+#endif
 
       STATE(d) = CON_QREGION;
 #endif
