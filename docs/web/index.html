@@ -148,6 +148,49 @@
             opacity: 0.6;
             font-style: italic;
         }
+
+        .main-site-banner {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
+            margin: -20px auto 30px auto;
+            max-width: 600px;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            text-align: center;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .main-site-banner a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .main-site-banner a:hover {
+            color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .main-site-banner .arrow {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+
+        .main-site-banner a:hover .arrow {
+            transform: translateX(5px);
+        }
+
+        .main-site-banner p {
+            margin: 8px 0 0 0;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -160,6 +203,15 @@
     </div>
 
     <div class="container">
+        <!-- Main Website Banner -->
+        <div class="main-site-banner">
+            <a href="https://luminarimud.com/" target="_blank">
+                <span>Visit LuminariMUD's Main Website</span>
+                <span class="arrow">→</span>
+            </a>
+            <p>Play the game, create an account, and join our community</p>
+        </div>
+
         <!-- Game Resources Section -->
         <div class="section">
             <h2>📚 Game Resources</h2>
@@ -320,6 +372,7 @@
 
     <div class="footer">
         <p>
+            <a href="https://luminarimud.com/" target="_blank">Main Website</a> |
             <a href="https://github.com/LuminariMUD/Luminari-Source" target="_blank">GitHub Repository</a> |
             <a href="https://discord.gg/Me3Tuu4" target="_blank">Discord Community</a> |
             <a href="../CONTRIBUTING.md">Contributing</a> |
