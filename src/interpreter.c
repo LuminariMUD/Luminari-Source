@@ -219,6 +219,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
     {"arrowstorm", "arrowstorm", POS_FIGHTING, do_arrowstorm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowstorm},
     {"manyshot", "manyshot", POS_FIGHTING, do_manyshot, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_manyshot},
+    {"huntersmark", "huntersmark", POS_FIGHTING, do_huntersmark, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostand", "autostand", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_STAND, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aqref", "aqref", POS_DEAD, do_aqref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

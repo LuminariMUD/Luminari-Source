@@ -7978,6 +7978,16 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           dam += dice(2, 6);
         }
       }
+
+      /* Ranger: Hunter's Mark - add +1d6 damage vs marked target after 5 rounds (ranged only) */
+      if (!IS_NPC(ch) && wielded && victim && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+      {
+        int weapon_type = GET_OBJ_VAL(wielded, 0);
+        if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) && GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
+        {
+          dam += dice(1, 6);
+        }
+      }
       
       /* Devastating Critical perk - bonus dice damage on crits */
       if (!IS_NPC(ch))
@@ -9343,6 +9353,17 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
       if (display)
         send_to_char(ch, " 2: %-50s\r\n", "Outflank");
+    }
+  }
+
+  /* Ranger Hunter's Mark: after 5 rounds, gain +2 to hit against marked target (ranged attacks) */
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    if (GET_MARK(ch) && victim && GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
+      if (display)
+        send_to_char(ch, " 2: %-50s\r\n", "Hunter's Mark");
     }
   }
 

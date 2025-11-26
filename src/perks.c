@@ -3626,7 +3626,7 @@ void define_ranger_perks(void)
   perk = &perk_list[PERK_RANGER_QUICK_DRAW];
   perk->id = PERK_RANGER_QUICK_DRAW;
   perk->name = strdup("Quick Draw");
-  perk->description = strdup("Reduces time to nock arrows and reload ranged weapons by 10% per rank");
+  perk->description = strdup("Grants a 5% chance per rank to immediately fire an extra arrow/missile on ranged attacks");
   perk->associated_class = CLASS_RANGER;
   perk->perk_category = PERK_CATEGORY_HUNTER;
   perk->cost = 1;
@@ -3636,7 +3636,7 @@ void define_ranger_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 10;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Reduces attack time with ranged weapons by 10% per rank");
+  perk->special_description = strdup("On ranged attacks, 5% chance per rank to make one extra immediate shot");
   
   /* Improved Critical: Ranged I */
   perk = &perk_list[PERK_RANGER_IMPROVED_CRITICAL_RANGED_I];
@@ -6666,15 +6666,12 @@ int get_ranger_attack_speed_bonus(struct char_data *ch)
  */
 int get_ranger_quick_draw_proc_chance(struct char_data *ch)
 {
-  int chance = 0;
-
   if (!ch || IS_NPC(ch))
     return 0;
 
   /* Quick Draw: 5% chance per rank to grant an extra ranged attack */
-  chance += 5 * get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
-
-  return chance;
+  int ranks = get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
+  return 5 * ranks;
 }
 
 /**

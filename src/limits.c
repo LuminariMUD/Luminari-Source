@@ -2013,15 +2013,23 @@ void update_player_misc(void)
       }
     }
 
-    if (GET_MARK(ch) && GET_MARK_ROUNDS(ch) < 3)
+    if (GET_MARK(ch))
     {
-      GET_MARK_ROUNDS(ch) += 1;
-      if (GET_MARK_ROUNDS(ch) == 3 || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+      /* Assassin death attack uses 3 rounds; Ranger Hunter's Mark uses 5 rounds */
+      int max_rounds = 3;
+      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+        max_rounds = 5;
+
+      if (GET_MARK_ROUNDS(ch) < max_rounds)
       {
-        send_to_char(ch, "You have finished marking your target.\r\n");
+        GET_MARK_ROUNDS(ch) += 1;
+        if (GET_MARK_ROUNDS(ch) >= max_rounds || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+        {
+          send_to_char(ch, "You have finished marking your target.\r\n");
+        }
+        else
+          send_to_char(ch, "You continue to mark your target.\r\n");
       }
-      else
-        send_to_char(ch, "You continue to mark your target.\r\n");
     }
   }
 }

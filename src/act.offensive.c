@@ -10855,6 +10855,17 @@ ACMD(do_fire)
       }
 
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+      /* Quick Draw: flat 5% chance to immediately fire an extra shot */
+      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
+      {
+        int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+        if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+        {
+          send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+          act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
+        }
+      }
       /* don't forget to remove the fight event! */
       if (char_has_mud_event(ch, eCOMBAT_ROUND))
       {
@@ -10869,6 +10880,17 @@ ACMD(do_fire)
       if (FIGHTING(ch))
         USE_MOVE_ACTION(ch);
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+      /* Quick Draw: flat 5% chance to immediately fire an extra shot */
+      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
+      {
+        int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+        if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+        {
+          send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+          act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
+        }
+      }
       FIRING(ch) = TRUE;
     }
   }
@@ -11029,6 +11051,17 @@ ACMD(do_autofire)
   if (can_fire_ammo(ch, FALSE))
   {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+    /* Quick Draw: flat 5% chance to immediately fire an extra shot */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
+    {
+      int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+      if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+      {
+        send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+        act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
+      }
+    }
     FIRING(ch) = TRUE;
     USE_MOVE_ACTION(ch);
   }
@@ -12463,6 +12496,46 @@ ACMD(do_mark)
   }
 
   act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
+  GET_MARK(ch) = vict;
+  GET_MARK_ROUNDS(ch) = 0;
+}
+
+/* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
+ACMD(do_huntersmark)
+{
+  struct char_data *vict = NULL;
+  char arg[100];
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (IS_NPC(ch) || !has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+  {
+    send_to_char(ch, "You don't know how to do that.\r\n");
+    return;
+  }
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Who would you like to mark?\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "That person isn't here right now.\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Mark yourself? Not very helpful.\r\n");
+    return;
+  }
+
+  /* Apply mark and reset rounds */
+  act("You focus your aim and mark $N as your quarry.", false, ch, 0, vict, TO_CHAR);
+  act("$n focuses and marks you as $s quarry.", false, ch, 0, vict, TO_VICT);
+  act("$n focuses $s aim and marks $N as $s quarry.", false, ch, 0, vict, TO_NOTVICT);
   GET_MARK(ch) = vict;
   GET_MARK_ROUNDS(ch) = 0;
 }

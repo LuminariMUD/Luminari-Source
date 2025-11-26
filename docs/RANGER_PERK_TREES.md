@@ -30,8 +30,8 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 #### Quick Draw
 - **Max Ranks:** 3
-- **Description:** Reduces time to nock arrows and reload ranged weapons by 10% per rank
-- **Effect Type:** Attack speed improvement with ranged weapons
+- **Description:** 5% chance per rank to immediately fire an extra arrow/missile on ranged attacks
+- **Effect Type:** Proc-based extra ranged attack
 - **Prerequisites:** None
 
 #### Improved Critical: Ranged I
