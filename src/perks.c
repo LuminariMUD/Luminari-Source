@@ -3819,6 +3819,238 @@ void define_ranger_perks(void)
   perk->effect_value = 6; /* 6d6 damage */
   perk->effect_modifier = 6;
   perk->special_description = strdup("Capstone active: 'arrowstorm' command to deal 6d6 to all foes in room, 24h cooldown");
+
+  /*** BEAST MASTER TREE - TIER I ***/
+
+  /* Enhanced Companion I */
+  perk = &perk_list[PERK_RANGER_ENHANCED_COMPANION_I];
+  perk->id = PERK_RANGER_ENHANCED_COMPANION_I;
+  perk->name = strdup("Enhanced Companion I");
+  perk->description = strdup("Animal companion gains +5 HP and +1 AC per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 HP per rank */
+  perk->effect_modifier = 1; /* +1 AC per rank */
+  perk->special_description = strdup("Animal companion gains +5 HP and +1 AC per rank");
+
+  /* Pack Tactics I */
+  perk = &perk_list[PERK_RANGER_PACK_TACTICS_I];
+  perk->id = PERK_RANGER_PACK_TACTICS_I;
+  perk->name = strdup("Pack Tactics I");
+  perk->description = strdup("You and your animal companion gain +1 to hit when flanking the same enemy per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit when you and your companion attack the same target per rank");
+
+  /* Natural Empathy I */
+  perk = &perk_list[PERK_RANGER_NATURAL_EMPATHY_I];
+  perk->id = PERK_RANGER_NATURAL_EMPATHY_I;
+  perk->name = strdup("Natural Empathy I");
+  perk->description = strdup("+2 bonus to all Animal Handling and Animal Empathy checks per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 2; /* +2 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Enhances animal-related skill checks");
+
+  /* Spell Focus: Conjuration I */
+  perk = &perk_list[PERK_RANGER_SPELL_FOCUS_CONJURATION_I];
+  perk->id = PERK_RANGER_SPELL_FOCUS_CONJURATION_I;
+  perk->name = strdup("Spell Focus: Conjuration I");
+  perk->description = strdup("+1 DC to conjuration spells (includes summon spells) per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases DC of conjuration spells including summons");
+
+  /*** BEAST MASTER TREE - TIER II ***/
+
+  /* Enhanced Companion II */
+  perk = &perk_list[PERK_RANGER_ENHANCED_COMPANION_II];
+  perk->id = PERK_RANGER_ENHANCED_COMPANION_II;
+  perk->name = strdup("Enhanced Companion II");
+  perk->description = strdup("Animal companion gains +10 HP, +2 AC, and +2 to hit per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_ENHANCED_COMPANION_I;
+  perk->prerequisite_rank = 3; /* Requires Enhanced Companion I at max rank */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10 HP per rank */
+  perk->effect_modifier = 2; /* +2 AC and +2 to-hit per rank */
+  perk->special_description = strdup("Companion gains +10 HP, +2 AC, and +2 to hit per rank (stacks with Enhanced Companion I)");
+
+  /* Feral Charge */
+  perk = &perk_list[PERK_RANGER_FERAL_CHARGE];
+  perk->id = PERK_RANGER_FERAL_CHARGE;
+  perk->name = strdup("Feral Charge");
+  perk->description = strdup("Animal companion's first attack each combat deals +2d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_PACK_TACTICS_I;
+  perk->prerequisite_rank = 2; /* Requires Pack Tactics I (2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 */
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Companion's opening attack in each combat deals +2d6 damage");
+
+  /* Nature's Remedy */
+  perk = &perk_list[PERK_RANGER_NATURES_REMEDY];
+  perk->id = PERK_RANGER_NATURES_REMEDY;
+  perk->name = strdup("Nature's Remedy");
+  perk->description = strdup("Healing spells cast by you are 25% more effective per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_SPELL_FOCUS_CONJURATION_I;
+  perk->prerequisite_rank = 1; /* Requires Spell Focus: Conjuration I (1 rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25; /* +25% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Healing spells you cast are 25% more effective per rank");
+
+  /* Shared Spells */
+  perk = &perk_list[PERK_RANGER_SHARED_SPELLS];
+  perk->id = PERK_RANGER_SHARED_SPELLS;
+  perk->name = strdup("Shared Spells");
+  perk->description = strdup("Beneficial spells cast on yourself also affect your animal companion");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ENHANCED_COMPANION_I;
+  perk->prerequisite_rank = 2; /* Requires Enhanced Companion I (2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Personal buffs automatically extend to your companion");
+
+  /*** BEAST MASTER TREE - TIER III ***/
+
+  /* Alpha Bond */
+  perk = &perk_list[PERK_RANGER_ALPHA_BOND];
+  perk->id = PERK_RANGER_ALPHA_BOND;
+  perk->name = strdup("Alpha Bond");
+  perk->description = strdup("Your animal companion gains +3 to all saves and immunity to fear");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ENHANCED_COMPANION_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 to saves */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Companion gains +3 to all saves and immunity to fear");
+
+  /* Coordinated Attack */
+  perk = &perk_list[PERK_RANGER_COORDINATED_ATTACK];
+  perk->id = PERK_RANGER_COORDINATED_ATTACK;
+  perk->name = strdup("Coordinated Attack");
+  perk->description = strdup("When you and your companion attack the same target, both gain +2d4 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_PACK_TACTICS_I;
+  perk->prerequisite_rank = 3; /* Requires Pack Tactics I (max rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d4 */
+  perk->effect_modifier = 4;
+  perk->special_description = strdup("You and companion both gain +2d4 damage when attacking same target");
+
+  /* Primal Vigor */
+  perk = &perk_list[PERK_RANGER_PRIMAL_VIGOR];
+  perk->id = PERK_RANGER_PRIMAL_VIGOR;
+  perk->name = strdup("Primal Vigor");
+  perk->description = strdup("You and your animal companion regenerate 1 HP per round in combat");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_NATURES_REMEDY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1 HP per round */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("You and your companion regenerate 1 HP per round during combat");
+
+  /* Greater Summons */
+  perk = &perk_list[PERK_RANGER_GREATER_SUMMONS];
+  perk->id = PERK_RANGER_GREATER_SUMMONS;
+  perk->name = strdup("Greater Summons");
+  perk->description = strdup("All summoned creatures have +25% HP and deal +1d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_SPELL_FOCUS_CONJURATION_I;
+  perk->prerequisite_rank = 2; /* Requires Spell Focus: Conjuration I (max rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25; /* +25% HP */
+  perk->effect_modifier = 1; /* +1d6 damage */
+  perk->special_description = strdup("All summoned creatures gain +25% HP and +1d6 damage");
+
+  /*** BEAST MASTER TREE - TIER IV (CAPSTONES) ***/
+
+  /* Primal Avatar */
+  perk = &perk_list[PERK_RANGER_PRIMAL_AVATAR];
+  perk->id = PERK_RANGER_PRIMAL_AVATAR;
+  perk->name = strdup("Primal Avatar");
+  perk->description = strdup("Your animal companion becomes a Primal Beast: +50 HP, +5 AC, +5 to hit, attacks deal +3d6 damage, immune to mind-affecting");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ALPHA_BOND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* +50 HP */
+  perk->effect_modifier = 5; /* +5 AC/to-hit, +3d6 damage handled separately */
+  perk->special_description = strdup("Capstone: Companion becomes Primal Beast with massive bonuses and mind-affecting immunity");
+
+  /* Nature's Wrath */
+  perk = &perk_list[PERK_RANGER_NATURES_WRATH];
+  perk->id = PERK_RANGER_NATURES_WRATH;
+  perk->name = strdup("Nature's Wrath");
+  perk->description = strdup("Once per day: you and your companion gain +4 to all stats, +2d8 damage on all attacks, and fast healing 5 for 10 rounds");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_COORDINATED_ATTACK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 to stats */
+  perk->effect_modifier = 10; /* 10 rounds duration */
+  perk->special_description = strdup("Capstone active: 'natureswrath' command grants powerful temporary bonuses to you and companion, 24h cooldown");
 }
 
 /* Define Barbarian Perks */
@@ -6672,6 +6904,271 @@ int get_ranger_quick_draw_proc_chance(struct char_data *ch)
   /* Quick Draw: 5% chance per rank to grant an extra ranged attack */
   int ranks = get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
   return 5 * ranks;
+}
+
+/**
+ * Get HP bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total HP bonus for companion
+ */
+int get_ranger_companion_hp_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enhanced Companion I: +5 HP per rank */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_I);
+  
+  /* Enhanced Companion II: +10 HP per rank */
+  bonus += 10 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_II);
+  
+  /* Primal Avatar: +50 HP */
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    bonus += 50;
+  
+  return bonus;
+}
+
+/**
+ * Get AC bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total AC bonus for companion
+ */
+int get_ranger_companion_ac_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enhanced Companion I: +1 AC per rank */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_I);
+  
+  /* Enhanced Companion II: +2 AC per rank */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_II);
+  
+  /* Primal Avatar: +5 AC */
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    bonus += 5;
+  
+  return bonus;
+}
+
+/**
+ * Get to-hit bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total to-hit bonus for companion
+ */
+int get_ranger_companion_tohit_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enhanced Companion II: +2 to-hit per rank */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_II);
+  
+  /* Primal Avatar: +5 to-hit */
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    bonus += 5;
+  
+  return bonus;
+}
+
+/**
+ * Get save bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total save bonus for companion
+ */
+int get_ranger_companion_save_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Alpha Bond: +3 to all saves */
+  if (has_perk(ch, PERK_RANGER_ALPHA_BOND))
+    bonus += 3;
+  
+  return bonus;
+}
+
+/**
+ * Check if ranger's companion is immune to fear (Alpha Bond).
+ * 
+ * @param ch The ranger (master)
+ * @return TRUE if companion immune to fear
+ */
+bool ranger_companion_immune_fear(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_ALPHA_BOND);
+}
+
+/**
+ * Check if ranger's companion is immune to mind-affecting (Primal Avatar).
+ * 
+ * @param ch The ranger (master)
+ * @return TRUE if companion immune to mind-affecting
+ */
+bool ranger_companion_immune_mind(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_PRIMAL_AVATAR);
+}
+
+/**
+ * Get Pack Tactics to-hit bonus when ranger and companion attack same target.
+ * 
+ * @param ch The ranger or companion
+ * @param master The ranger (if ch is companion)
+ * @param victim The target being attacked
+ * @return To-hit bonus
+ */
+int get_pack_tactics_bonus(struct char_data *ch, struct char_data *master, struct char_data *victim)
+{
+  int bonus = 0;
+  struct char_data *ranger = NULL;
+  
+  if (!ch || !victim)
+    return 0;
+  
+  /* Determine who the ranger is */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)
+    ranger = ch;
+  else if (master && !IS_NPC(master) && CLASS_LEVEL(master, CLASS_RANGER) > 0)
+    ranger = master;
+  else
+    return 0;
+  
+  /* Pack Tactics I: +1 per rank when both attacking same target */
+  bonus += get_total_perk_ranks(ranger, PERK_RANGER_PACK_TACTICS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Coordinated Attack damage bonus (2d4) when both attack same target.
+ * 
+ * @param ch The ranger (master)
+ * @return Damage in d4s (returns 2 for 2d4)
+ */
+int get_coordinated_attack_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_COORDINATED_ATTACK))
+    return 2; /* 2d4 */
+  
+  return 0;
+}
+
+/**
+ * Get Primal Avatar damage bonus for companion attacks.
+ * 
+ * @param ch The ranger (master)
+ * @return Damage in d6s (returns 3 for 3d6)
+ */
+int get_primal_avatar_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    return 3; /* 3d6 */
+  
+  return 0;
+}
+
+/**
+ * Get healing effectiveness bonus from Nature's Remedy.
+ * 
+ * @param ch The caster
+ * @return Percentage bonus (25 = 25% more effective)
+ */
+int get_natures_remedy_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Nature's Remedy: 25% per rank */
+  return 25 * get_total_perk_ranks(ch, PERK_RANGER_NATURES_REMEDY);
+}
+
+/**
+ * Check if ranger has Primal Vigor (HP regen in combat).
+ * 
+ * @param ch The ranger
+ * @return TRUE if has perk
+ */
+bool has_primal_vigor(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_PRIMAL_VIGOR);
+}
+
+/**
+ * Get conjuration spell DC bonus from Spell Focus: Conjuration.
+ * 
+ * @param ch The caster
+ * @return DC bonus
+ */
+int get_ranger_conjuration_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Spell Focus: Conjuration I: +1 per rank */
+  return get_total_perk_ranks(ch, PERK_RANGER_SPELL_FOCUS_CONJURATION_I);
+}
+
+/**
+ * Get Greater Summons HP bonus for summoned creatures.
+ * 
+ * @param ch The summoner
+ * @return Percentage HP bonus (25 = 25% more HP)
+ */
+int get_greater_summons_hp_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
+    return 25;
+  
+  return 0;
+}
+
+/**
+ * Get Greater Summons damage bonus for summoned creatures.
+ * 
+ * @param ch The summoner
+ * @return Damage in d6s (returns 1 for 1d6)
+ */
+int get_greater_summons_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
+    return 1; /* 1d6 */
+  
+  return 0;
 }
 
 /**

@@ -1,3 +1,14 @@
+/* Returns total fast healing from affects (Nature's Wrath, etc.) */
+int get_fast_healing_amount(struct char_data *ch) {
+  int amount = 0;
+  struct affected_type *af;
+  for (af = ch->affected; af; af = af->next) {
+    if (af->location == APPLY_FAST_HEALING) {
+      amount += af->modifier;
+    }
+  }
+  return amount;
+}
 /**************************************************************************
  *  File: limits.c                                     Part of LuminariMUD *
  *  Usage: Limits & gain funcs for HMV, exp, hunger/thirst, idle time.     *
@@ -627,6 +638,10 @@ int regen_hps(struct char_data *ch)
 
 /* this function handles poison, entry point for hps rege, and movement regen */
 void regen_update(struct char_data *ch)
+  /* Decrement Nature's Wrath cooldown if active */
+  if (!IS_NPC(ch) && ch->natures_wrath_cooldown > 0) {
+    ch->natures_wrath_cooldown--;
+  }
 {
   struct char_data *tch = NULL;
   int hp = 0, found = 0;
@@ -809,6 +824,19 @@ void regen_update(struct char_data *ch)
 
   /* we moved the math of hp regen into a separate function to make it easier to find/ manipulate */
   hp = regen_hps(ch);
+
+  /* Beast Master: Primal Vigor perk - 1 HP/round regen in combat for ranger and companion */
+  if (!IS_NPC(ch) && has_primal_vigor(ch) && FIGHTING(ch))
+  {
+    hp += 1;
+    send_to_char(ch, "\tG[Primal Vigor +1 HP]\tn ");
+  }
+  /* If this is a companion, check if master has Primal Vigor */
+  if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && has_primal_vigor(ch->master) && FIGHTING(ch))
+  {
+    hp += 1;
+    send_to_char(ch->master, "\tG[Primal Vigor: Companion +1 HP]\tn ");
+  }
 
   /* Paladin Sacred Defender perk: Aura of Life - allies in aura regenerate HP */
   if (!IS_NPC(ch) && GROUP(ch) != NULL)

@@ -1,3 +1,12 @@
+  /* Nature's Wrath: +2d8 damage if affected */
+  struct affected_type *af;
+  for (af = ch->affected; af; af = af->next) {
+    if (af->location == APPLY_NATURES_WRATH_DAMAGE) {
+      dam += dice(2, 8);
+      send_to_char(ch, "\tG[Nature's Wrath +%ddmg]\tn ", dam);
+      break;
+    }
+  }
 /**************************************************************************
  *  File: fight.c                                      Part of LuminariMUD *
  *  Usage: Combat system.                                                  *
@@ -1742,6 +1751,10 @@ void stop_fighting(struct char_data *ch)
   if (char_has_mud_event(ch, eSTUNNED))
   {
     event_cancel_specific(ch, eSTUNNED);
+  }
+  if (char_has_mud_event(ch, eFERAL_CHARGE_USED))
+  {
+    event_cancel_specific(ch, eFERAL_CHARGE_USED);
   }
 
   /* Reset the combat data */
@@ -10057,6 +10070,42 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     }
   }
 
+  /* Pack Tactics - ranger and companion attacking same target */
+  if (victim && ch->master && !IS_NPC(ch->master))
+  {
+    /* Companion attacking - check if master is also fighting same target */
+    if (FIGHTING(ch->master) == victim)
+    {
+      int pack_bonus = get_pack_tactics_bonus(ch, ch->master, victim);
+      if (pack_bonus > 0)
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += pack_bonus;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", pack_bonus, "Pack Tactics");
+      }
+    }
+  }
+  else if (!IS_NPC(ch) && victim)
+  {
+    /* Ranger attacking - check if any follower/companion is fighting same target */
+    struct follow_type *f;
+    for (f = ch->followers; f; f = f->next)
+    {
+      if (IS_NPC(f->follower) && AFF_FLAGGED(f->follower, AFF_CHARM) && 
+          MOB_FLAGGED(f->follower, MOB_C_ANIMAL) && FIGHTING(f->follower) == victim)
+      {
+        int pack_bonus = get_pack_tactics_bonus(ch, ch, victim);
+        if (pack_bonus > 0)
+        {
+          bonuses[BONUS_TYPE_UNDEFINED] += pack_bonus;
+          if (display)
+            send_to_char(ch, "%2d: %-50s\r\n", pack_bonus, "Pack Tactics");
+          break; /* Only apply once */
+        }
+      }
+    }
+  }
+
   /* Monk weapon attack bonus - One With Wood and Stone perk */
   if (wielded && !IS_NPC(ch))
   {
@@ -12064,6 +12113,70 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   dam += crushing_blow_bonus; /* monk crushing blow +4d6 damage */
   dam += void_strike_bonus; /* monk void strike +8d6 force damage */
   dam += shattering_strike_bonus; /* monk shattering strike +8d8 damage */
+
+  /* Beast Master perk damage bonuses */
+  if (!IS_NPC(ch) && IS_NPC(victim))
+  {
+    struct char_data *companion = NULL;
+    struct follow_type *fol;
+
+    /* Check if this is a companion attacking on behalf of its ranger master */
+    if (ch->master && !IS_NPC(ch->master))
+    {
+      /* Primal Avatar: +3d6 damage for the companion */
+      if (HAS_FEAT(ch->master, PERK_RANGER_PRIMAL_AVATAR))
+      {
+        int primal_damage = dice(get_primal_avatar_damage(ch->master), 6);
+        dam += primal_damage;
+        if (!PRF_FLAGGED(ch->master, PRF_CONDENSED))
+          send_to_char(ch->master, "\tW[PRIMAL-AVATAR +%dd6]\tn ", get_primal_avatar_damage(ch->master));
+      }
+
+      /* Coordinated Attack: +2d4 when both companion and ranger attack same target */
+      if (HAS_FEAT(ch->master, PERK_RANGER_COORDINATED_ATTACK) && FIGHTING(ch->master) == victim)
+      {
+        int coordinated_damage = dice(get_coordinated_attack_damage(ch->master), 4);
+        dam += coordinated_damage;
+        if (!PRF_FLAGGED(ch->master, PRF_CONDENSED))
+          send_to_char(ch->master, "\tW[COORDINATED-ATTACK +%dd4]\tn ", get_coordinated_attack_damage(ch->master));
+      }
+
+      /* Feral Charge: +2d6 on companion's first attack each combat */
+      if (HAS_FEAT(ch->master, PERK_RANGER_FERAL_CHARGE) && !char_has_mud_event(ch, eFERAL_CHARGE_USED))
+      {
+        int feral_damage = dice(2, 6);
+        dam += feral_damage;
+        if (!PRF_FLAGGED(ch->master, PRF_CONDENSED))
+          send_to_char(ch->master, "\tW[FERAL-CHARGE +2d6]\tn ");
+        /* Mark that Feral Charge has been used this combat */
+        attach_mud_event(new_mud_event(eFERAL_CHARGE_USED, ch, NULL), 1);
+      }
+    }
+    /* Check if this is a ranger with a companion, and the companion is attacking the same target */
+    else if (!IS_NPC(ch))
+    {
+      for (fol = ch->followers; fol; fol = fol->next)
+      {
+        if (IS_NPC(fol->follower) && 
+            MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && 
+            AFF_FLAGGED(fol->follower, AFF_CHARM) &&
+            FIGHTING(fol->follower) == victim)
+        {
+          companion = fol->follower;
+          break;
+        }
+      }
+
+      /* Coordinated Attack: +2d4 when both ranger and companion attack same target */
+      if (companion && HAS_FEAT(ch, PERK_RANGER_COORDINATED_ATTACK))
+      {
+        int coordinated_damage = dice(get_coordinated_attack_damage(ch), 4);
+        dam += coordinated_damage;
+        if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+          send_to_char(ch, "\tW[COORDINATED-ATTACK +%dd4]\tn ", get_coordinated_attack_damage(ch));
+      }
+    }
+  }
 
   /* This comes after computing the other damage since sneak attack damage
    * is not affected by crit multipliers. */

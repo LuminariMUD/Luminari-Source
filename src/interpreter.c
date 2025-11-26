@@ -1,3 +1,5 @@
+ACMD(do_natureswrath);
+  { "natureswrath", POS_FIGHTING, do_natureswrath, 0, 0 },
 /**************************************************************************
  *  File: interpreter.c                                Part of LuminariMUD *
  *  Usage: Parse user commands, search for specials, call ACMD functions.  *

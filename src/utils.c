@@ -1,3 +1,8 @@
+/* Helper for Beast Master: Natural Empathy skill bonus */
+int get_natural_empathy_bonus(struct char_data *ch) {
+  int ranks = get_perk_rank(ch, PERK_NATURAL_EMPATHY);
+  return ranks * 2;
+}
 /**
  * @file utils.c                LuminariMUD
  * Various utility functions used within the core mud code.
@@ -1579,6 +1584,16 @@ int skill_roll(struct char_data *ch, int skillnum)
 
   roll += compute_ability(ch, skillnum);
 
+  /* Beast Master: Natural Empathy perk - +2 per rank to Animal Handling and Animal Empathy */
+  if (!IS_NPC(ch)) {
+    if (skillnum == ABILITY_ANIMAL_HANDLING || skillnum == ABILITY_ANIMAL_EMPATHY) {
+      int empathy_bonus = get_natural_empathy_bonus(ch); /* returns 2 * ranks */
+      if (empathy_bonus > 0) {
+        roll += empathy_bonus;
+        send_to_char(ch, "\tG[Natural Empathy +%d]\tn ", empathy_bonus);
+      }
+    }
+  }
   return roll;
 }
 
@@ -9712,6 +9727,14 @@ int get_fast_healing_amount(struct char_data *ch)
 
   if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
     hp += 2;
+
+  /* Nature's Wrath: check for APPLY_FAST_HEALING affects */
+  struct affected_type *af;
+  for (af = ch->affected; af; af = af->next) {
+    if (af->location == APPLY_FAST_HEALING) {
+      hp += af->modifier;
+    }
+  }
 
   if (affected_by_spell(ch, EIDOLON_MERGE_FORMS_EFFECT))
     hp += get_char_affect_modifier(ch, EIDOLON_MERGE_FORMS_EFFECT, APPLY_FAST_HEALING);

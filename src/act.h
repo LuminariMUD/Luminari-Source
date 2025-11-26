@@ -1,3 +1,4 @@
+ACMD(do_natureswrath);
 /***
  **
  * @file act.h                        Part of LuminariMUD

@@ -1,3 +1,5 @@
+#define APPLY_NATURES_WRATH_DAMAGE 1001 /* Custom: +2d8 damage for Nature's Wrath */
+#define APPLY_FAST_HEALING 1002         /* Custom: Fast healing value for Nature's Wrath */
 /**
  * @file structs.h                                 Part of LuminariMUD
  * Core structures used within the core mud code.
@@ -3768,6 +3770,28 @@
 #define PERK_RANGER_MASTER_ARCHER 1019
 #define PERK_RANGER_ARROW_STORM 1020
 
+/* Beast Master Tree - Tier 1 */
+#define PERK_RANGER_ENHANCED_COMPANION_I 1021
+#define PERK_RANGER_PACK_TACTICS_I 1022
+#define PERK_RANGER_NATURAL_EMPATHY_I 1023
+#define PERK_RANGER_SPELL_FOCUS_CONJURATION_I 1024
+
+/* Beast Master Tree - Tier 2 */
+#define PERK_RANGER_ENHANCED_COMPANION_II 1025
+#define PERK_RANGER_FERAL_CHARGE 1026
+#define PERK_RANGER_NATURES_REMEDY 1027
+#define PERK_RANGER_SHARED_SPELLS 1028
+
+/* Beast Master Tree - Tier 3 */
+#define PERK_RANGER_ALPHA_BOND 1029
+#define PERK_RANGER_COORDINATED_ATTACK 1030
+#define PERK_RANGER_PRIMAL_VIGOR 1031
+#define PERK_RANGER_GREATER_SUMMONS 1032
+
+/* Beast Master Tree - Tier 4 */
+#define PERK_RANGER_PRIMAL_AVATAR 1033
+#define PERK_RANGER_NATURES_WRATH 1034
+
 /* ============================================================================
  * BARD PERKS (1100-1199)
  * ============================================================================ */
@@ -6773,6 +6797,7 @@ struct char_data
     bool preserve_organs_procced;
     bool mute_equip_messages;
 
+    int natures_wrath_cooldown; /* Beast Master capstone cooldown (seconds) */
 };
 
 /** descriptor-related structures */

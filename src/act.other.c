@@ -1927,6 +1927,41 @@ void perform_call(struct char_data *ch, int call_type, int level)
       level += 5;
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
+    
+    /* Beast Master perk bonuses */
+    if (!IS_NPC(ch))
+    {
+      /* Enhanced Companion I & II and Primal Avatar: HP bonuses */
+      int hp_bonus = get_ranger_companion_hp_bonus(ch);
+      if (hp_bonus > 0)
+      {
+        GET_REAL_MAX_HIT(mob) += hp_bonus;
+      }
+
+      /* Enhanced Companion I & II and Primal Avatar: AC bonuses */
+      int ac_bonus = get_ranger_companion_ac_bonus(ch);
+      if (ac_bonus > 0)
+      {
+        GET_REAL_AC(mob) += (ac_bonus * 10); /* AC is in tenths */
+      }
+
+      /* Enhanced Companion II and Primal Avatar: to-hit bonuses */
+      int tohit_bonus = get_ranger_companion_tohit_bonus(ch);
+      if (tohit_bonus > 0)
+      {
+        GET_REAL_HITROLL(mob) += tohit_bonus;
+      }
+
+      /* Alpha Bond: +3 to all saves and immunity to fear */
+      if (HAS_FEAT(ch, PERK_RANGER_ALPHA_BOND))
+      {
+        GET_SAVE(mob, SAVING_FORT) += 3;
+        GET_SAVE(mob, SAVING_REFL) += 3;
+        GET_SAVE(mob, SAVING_WILL) += 3;
+        SET_BIT_AR(AFF_FLAGS(mob), AFF_IMMUNE_FEAR);
+      }
+    }
+
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     break;
   case MOB_C_DRAGON:

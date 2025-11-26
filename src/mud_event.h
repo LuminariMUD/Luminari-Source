@@ -209,6 +209,7 @@ typedef enum
   eRADIANT_AURA,                    /* Radiant Aura periodic undead damage */
   ePALADIN_CHANNEL_ENERGY,          /* Paladin Channel Energy perk daily uses */
   eMASS_CURE_WOUNDS,                /* Mass Cure Wounds daily uses */
+  eFERAL_CHARGE_USED,               /* Beast Master Feral Charge used this combat */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

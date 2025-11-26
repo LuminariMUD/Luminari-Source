@@ -80,6 +80,22 @@ int get_ranger_dr_penetration(struct char_data *ch);
 int get_ranger_attack_speed_bonus(struct char_data *ch);
 int get_ranger_quick_draw_proc_chance(struct char_data *ch);
 
+/* Ranger Beast Master perk functions */
+int get_ranger_companion_hp_bonus(struct char_data *ch);
+int get_ranger_companion_ac_bonus(struct char_data *ch);
+int get_ranger_companion_tohit_bonus(struct char_data *ch);
+int get_ranger_companion_save_bonus(struct char_data *ch);
+bool ranger_companion_immune_fear(struct char_data *ch);
+bool ranger_companion_immune_mind(struct char_data *ch);
+int get_pack_tactics_bonus(struct char_data *ch, struct char_data *master, struct char_data *victim);
+int get_coordinated_attack_damage(struct char_data *ch);
+int get_primal_avatar_damage(struct char_data *ch);
+int get_natures_remedy_bonus(struct char_data *ch);
+bool has_primal_vigor(struct char_data *ch);
+int get_ranger_conjuration_dc_bonus(struct char_data *ch);
+int get_greater_summons_hp_bonus(struct char_data *ch);
+int get_greater_summons_damage(struct char_data *ch);
+
 /* Rogue-specific perk bonus functions */
 int get_perk_sneak_attack_dice(struct char_data *ch);
 int get_perk_critical_confirmation_bonus(struct char_data *ch);

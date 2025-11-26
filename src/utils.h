@@ -1,3 +1,5 @@
+/* Already present: int get_fast_healing_amount(struct char_data *ch); */
+int get_natural_empathy_bonus(struct char_data *ch);
 /**
  * @file utils.h                              Part of LuminariMUD
  * Utility macros and prototypes of utility functions.

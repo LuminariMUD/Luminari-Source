@@ -3290,6 +3290,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
+                  /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion */
+                  if (!IS_NPC(ch) && has_shared_spells(ch) && ch == victim)
+                  {
+                    struct follow_type *fol;
+                    for (fol = ch->followers; fol; fol = fol->next)
+                    {
+                      if (IS_NPC(fol->follower) && MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && AFF_FLAGGED(fol->follower, AFF_CHARM))
+                      {
+                        mag_affects_full(level, ch, fol->follower, wpn, spellnum, savetype, casttype, metamagic, true);
+                        send_to_char(ch, "\tG[Shared Spells: Companion buffed]\tn ");
+                      }
+                    }
+                  }
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call)
 {
 
@@ -11052,6 +11065,22 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   /* bring the mob into existence! */
   for (i = 0; i < num; i++)
+      /* Beast Master: Greater Summons perk bonuses */
+      if (!IS_NPC(ch) && get_greater_summons_hp_bonus(ch) > 0)
+      {
+        int hp_bonus = GET_REAL_MAX_HIT(mob) * get_greater_summons_hp_bonus(ch) / 100;
+        GET_REAL_MAX_HIT(mob) += hp_bonus;
+        GET_MAX_HIT(mob) += hp_bonus;
+        GET_HIT(mob) += hp_bonus;
+        send_to_char(ch, "\tG[Greater Summons +%d%% HP]\tn ", get_greater_summons_hp_bonus(ch));
+      }
+      if (!IS_NPC(ch) && get_greater_summons_damage(ch) > 0)
+      {
+        mob->mob_specials.damnodice += get_greater_summons_damage(ch);
+        mob->mob_specials.damsizedice += 6; /* +1d6 damage */
+        GET_DAMROLL(mob) += get_greater_summons_damage(ch);
+        send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");
+      }
   {
     if (!(mob = read_mobile(mob_num, VIRTUAL)))
     {
@@ -11088,11 +11117,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     
     case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_7: // conjuration
-      /* (Zusuk) Temporary variable for capping elementals, etc */
-      // temp_level = MIN(CASTER_LEVEL(ch), mob_level);
-      // GET_LEVEL(mob) = MIN(LVL_IMMORT - 1, temp_level);
-      // autoroll_mob(mob, TRUE, TRUE);
-      // GET_LEVEL(mob) = temp_level;
       GET_LEVEL(mob) = 16;
       autoroll_mob(mob, TRUE, TRUE);
       break;
@@ -11125,12 +11149,28 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
     case PSIONIC_ECTOPLASMIC_SHAMBLER:
       GET_LEVEL(mob) = mob_level;
-
       autoroll_mob(mob, TRUE, TRUE);
-
       GET_HITROLL(mob) += 10; /* help them hit a bit */
-
       break;
+    }
+
+    /* Beast Master: Spell Focus Conjuration I perk bonuses for summon nature's ally */
+    int conj_ranks = get_ranger_conjuration_dc_bonus(ch); /* returns ranks of Spell Focus: Conjuration I */
+    if (conj_ranks > 0 &&
+        (spellnum == SPELL_SUMMON_NATURES_ALLY_1 || spellnum == SPELL_SUMMON_NATURES_ALLY_2 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_3 || spellnum == SPELL_SUMMON_NATURES_ALLY_4 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_5 || spellnum == SPELL_SUMMON_NATURES_ALLY_6 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_7 || spellnum == SPELL_SUMMON_NATURES_ALLY_8 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_9))
+    {
+      int hp_bonus = GET_REAL_MAX_HIT(mob) * (10 * conj_ranks) / 100;
+      GET_REAL_MAX_HIT(mob) += hp_bonus;
+      GET_MAX_HIT(mob) += hp_bonus;
+      GET_HIT(mob) += hp_bonus;
+      GET_REAL_AC(mob) += conj_ranks;
+      GET_HITROLL(mob) += conj_ranks;
+      GET_DAMROLL(mob) += conj_ranks;
+      send_to_char(ch, "\tG[Spell Focus: Conjuration +%d ranks]\tn ", conj_ranks);
     }
 
     // cedit configuration changes
@@ -11703,6 +11743,16 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   /* Apply Divine Healer perk bonuses */
   if (healing > 0 && !IS_NPC(ch))
   {
+    /* Beast Master: Nature's Remedy healing bonus */
+    int remedy_bonus = get_natures_remedy_bonus(ch);
+    if (remedy_bonus > 0)
+    {
+      healing = healing * (100 + remedy_bonus) / 100;
+      send_to_char(ch, "\tG[Nature's Remedy +%d%%]\tn ", remedy_bonus);
+      if (ch != victim)
+        send_to_char(victim, "\tG[Nature's Remedy +%d%%]\tn ", remedy_bonus);
+    }
+
     /* Healing Power I + II: flat bonus to all healing */
     healing += get_cleric_healing_power_bonus(ch);
     
