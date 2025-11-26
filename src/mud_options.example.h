@@ -169,4 +169,27 @@
 /* Uncomment this line if you want to allow restrngs. Note that currently this is incomaptible with the new cratfing system */
 /* #define ALLOW_OBJECT_RETSRINGS_BY_PLAYERS */
 
+/* ************************************************************************
+ * Casting Visuals Configuration
+ *
+ * These options control the visual effects during spellcasting.
+ * ************************************************************************ */
+
+/**
+ * CASTING_ENV_EFFECTS_ENABLED - Environmental reactions during casting
+ *
+ * When defined, powerful spells will cause ambient environmental effects
+ * to be displayed to observers in the room (torches flickering, ground
+ * trembling, etc.). Effects scale with spell circle:
+ * - Circles 1-3: Subtle effects (15% chance per tick)
+ * - Circles 4-6: Moderate effects (25% chance per tick)
+ * - Circles 7-9: Dramatic effects (40% chance per tick)
+ *
+ * Comment out this line to disable environmental effects if they feel
+ * too spammy or affect server performance.
+ *
+ * Status: ENABLED by default
+ */
+#define CASTING_ENV_EFFECTS_ENABLED
+
 #endif /* _MUD_OPTIONS_H_ */

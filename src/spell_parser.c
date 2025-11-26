@@ -25,6 +25,7 @@
 #include "actions.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
+#include "casting_visuals.h"
 #include "grapple.h"
 #include "spell_prep.h"
 #include "alchemy.h"
@@ -233,11 +234,29 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
 {
   char lbuf[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'},
        buf1[MEDIUM_STRING] = {'\0'}, buf2[MEDIUM_STRING] = {'\0'}; /* FIXME */
+  char format_buf[MAX_STRING_LENGTH] = {'\0'}; /* Phase 4: For metamagic prefix */
   const char *format;
+  const char *school_format = NULL;
+  const char *meta_prefix = NULL;
   struct char_data *i;
   int j, ofs = 0, dc_of_id = 0, attempt = 0;
+  int school = NOSCHOOL;
+  int target_type = CAST_TARGET_NONE;
+  int metamagic = METAMAGIC_NONE;
 
-  dc_of_id = 20; // DC of identifying the spell
+  dc_of_id = 20; /* DC of identifying the spell */
+
+  /* Get spell school for themed visuals */
+  school = get_spell_school_index(spellnum);
+
+  /* Determine target type for message selection */
+  target_type = determine_cast_target_type(ch, tch, tobj);
+
+  /* Phase 4: Get metamagic flags for visual modifiers */
+  if (ch != NULL)
+  {
+    metamagic = CASTING_METAMAGIC(ch);
+  }
 
   *buf = '\0';
   strlcpy(lbuf, spell_name(spellnum), sizeof(lbuf));
@@ -261,7 +280,38 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
     }
   }
 
-  if (tch != NULL && IN_ROOM(tch) == IN_ROOM(ch))
+  /* Try to get themed casting message based on phase (start vs complete) */
+  if (start)
+  {
+    /*
+     * Phase 3: For start messages, try class+school combined message first.
+     * This provides class-specific flavor layered with school effects.
+     * For PCs with a valid casting class, use build_class_start_msg().
+     * For NPCs or classes without defined styles, falls back to school-only.
+     */
+    if (!IS_NPC(ch) && has_class_casting_style(CASTING_CLASS(ch)))
+    {
+      school_format = build_class_start_msg(ch, spellnum, target_type, CASTING_CLASS(ch));
+    }
+    else
+    {
+      /* NPCs or undefined class styles use school-only messages */
+      school_format = get_school_start_msg(school, target_type);
+    }
+  }
+  else
+  {
+    /* Completion messages use school-based visuals only */
+    school_format = get_school_complete_msg(school, target_type);
+  }
+
+  /* If we have a themed format, use it */
+  if (school_format != NULL)
+  {
+    format = school_format;
+  }
+  /* Fall back to generic messages if no school-specific message */
+  else if (tch != NULL && IN_ROOM(tch) == IN_ROOM(ch))
   {
     if (tch == ch)
     {
@@ -294,6 +344,21 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
       format = "\tn$n \tcutters the words, '\tC%s\tc'.\tn";
     else
       format = "\tn$n \tcbegins chanting the words, '\tC%s\tc'.\tn";
+  }
+
+  /*
+   * Phase 4: Prepend metamagic visual prefix to format string.
+   * This adds dramatic descriptions for metamagic modifiers that are
+   * visible to observers in the room.
+   */
+  if (start && has_visual_metamagic(metamagic))
+  {
+    meta_prefix = build_metamagic_prefix(metamagic);
+    if (meta_prefix != NULL && meta_prefix[0] != '\0')
+    {
+      snprintf(format_buf, sizeof(format_buf), "%s%s", meta_prefix, format);
+      format = format_buf;
+    }
   }
 
   snprintf(buf1, sizeof(buf1), format, spell_name(spellnum));
@@ -1436,6 +1501,7 @@ void resetCastingData(struct char_data *ch)
 {
   IS_CASTING(ch) = FALSE;
   CASTING_TIME(ch) = 0;
+  CASTING_TIME_MAX(ch) = 0;
   CASTING_SPELLNUM(ch) = 0;
   CASTING_TCH(ch) = NULL;
   CASTING_TOBJ(ch) = NULL;
@@ -1660,19 +1726,69 @@ EVENTFUNC(event_casting)
       if (!concentration_check(ch, spellnum))
         return 0;
 
-      // display time left to finish spell
-      snprintf(buf, sizeof(buf), "%s: %s%s%s%s%s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
-               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
-               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_EMPOWER) ? "empowered " : ""),
-               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_SILENT) ? "silent " : ""),
-               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_STILL) ? "still " : ""),
-               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_EXTEND) ? "extended " : ""),
-               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-               SINFO.name);
-      for (x = CASTING_TIME(ch); x > 0; x--)
-        strlcat(buf, "*", sizeof(buf));
-      strlcat(buf, "\r\n", sizeof(buf));
-      send_to_char(ch, "%s", buf);
+      /* Display time left to finish spell with narrative progress (Phase 5) */
+      {
+        const char *action_word = NULL;
+        const char *meta_desc = NULL;
+        const char *progress_msg = NULL;
+        const char *observer_msg = NULL;
+        int school = NOSCHOOL;
+        int progress_stage = 0;
+
+        /* Determine appropriate action word based on casting class */
+        if (CASTING_CLASS(ch) == CLASS_ALCHEMIST)
+          action_word = "Preparing";
+        else if (CASTING_CLASS(ch) == CLASS_PSIONICIST)
+          action_word = "Manifesting";
+        else
+          action_word = "Casting";
+
+        /* Get metamagic visual description */
+        meta_desc = build_metamagic_progress_desc(ch, spellnum, CASTING_METAMAGIC(ch));
+
+        /* Build the header line with action word, metamagic, and spell name */
+        if (meta_desc != NULL && meta_desc[0] != '\0')
+        {
+          snprintf(buf, sizeof(buf), "%s: %s%s", action_word, meta_desc, SINFO.name);
+        }
+        else
+        {
+          snprintf(buf, sizeof(buf), "%s: %s", action_word, SINFO.name);
+        }
+
+        /* Add remaining time indicator (simple dots instead of asterisks) */
+        strlcat(buf, " ", sizeof(buf));
+        for (x = CASTING_TIME(ch); x > 0; x--)
+          strlcat(buf, "\tW.\tn", sizeof(buf));
+        strlcat(buf, "\r\n", sizeof(buf));
+        send_to_char(ch, "%s", buf);
+
+        /* Get school and calculate progress stage for narrative message */
+        school = get_spell_school_index(spellnum);
+        progress_stage = calculate_casting_progress_stage(CASTING_TIME_MAX(ch), CASTING_TIME(ch));
+
+        /* Send school-specific narrative progress message to caster */
+        progress_msg = get_school_progress_msg(school, progress_stage);
+        if (progress_msg != NULL)
+        {
+          send_to_char(ch, "%s\r\n", progress_msg);
+        }
+
+        /* Send observer message to room (third-person narrative) */
+        observer_msg = get_school_progress_observer_msg(school, progress_stage);
+        if (observer_msg != NULL)
+        {
+          act(observer_msg, FALSE, ch, 0, 0, TO_ROOM);
+        }
+
+#ifdef CASTING_ENV_EFFECTS_ENABLED
+        /* Phase 6: Environmental reactions for powerful spells */
+        {
+          int spell_circle = compute_spells_circle(ch, CASTING_CLASS(ch), spellnum, 0, 0);
+          send_env_reaction(ch, spell_circle, school);
+        }
+#endif
+      }
 
       if (spellnum > 0 && spellnum < NUM_SPELLS)
       {
@@ -2165,6 +2281,7 @@ will be using for casting this spell */
 
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     CASTING_TIME(ch) = casting_time;
+    CASTING_TIME_MAX(ch) = casting_time;
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
@@ -2205,6 +2322,7 @@ will be using for casting this spell */
     }
     IS_CASTING(ch) = TRUE;
     CASTING_TIME(ch) = casting_time;
+    CASTING_TIME_MAX(ch) = casting_time;
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
