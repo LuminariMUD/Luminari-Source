@@ -23,6 +23,9 @@ docs/web/
 │   └── README.md          # Object database documentation
 ├── guides/
 │   └── oedit.html         # OEDIT Guide (converted from markdown)
+├── dg-scripts/
+│   ├── index.html         # DG Scripts landing page and documentation hub
+│   └── staff-commands.html # Staff commands for DG script variable management
 ├── data/
 │   └── objects.json       # Object database data (generated from MySQL)
 └── assets/
@@ -371,6 +374,7 @@ See `docs/web/objects/README.md` for detailed documentation on:
 | Builder guides | `guides/` | `oedit.html`, `builder-manual.html` |
 | Spell references | `spells/` | `by_class.html`, `reference.html` |
 | Object database | `objects/` | `index.html` |
+| DG Scripts docs | `dg-scripts/` | `staff-commands.html`, `trigger-types.html` |
 | Game mechanics | `mechanics/` (create) | `combat.html`, `crafting.html` |
 | Data files (JSON) | `data/` | `objects.json`, `spells.json` |
 | CSS stylesheets | `assets/css/` | `style.css`, `custom.css` |
@@ -472,6 +476,12 @@ https://luminarimud.github.io/Luminari-Source/web/data/objects.json
 ```
 https://luminarimud.github.io/Luminari-Source/web/guides/oedit.html
 https://luminarimud.github.io/Luminari-Source/web/guides/builder-manual.html
+```
+
+### DG Scripts
+```
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/staff-commands.html
 ```
 
 ### Assets
