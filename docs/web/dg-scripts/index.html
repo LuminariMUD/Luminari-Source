@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DG Scripts - LuminariMUD</title>
+    <meta name="description" content="DG Scripts documentation for LuminariMUD - triggers, variables, and scripting reference.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .tagline {
+            font-size: 1.2em;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .breadcrumb {
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .breadcrumb a {
+            color: white;
+            opacity: 0.8;
+        }
+
+        .breadcrumb a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: white;
+            opacity: 0.6;
+            margin: 0 10px;
+        }
+
+        .section {
+            background: white;
+            margin: 30px 0;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .section p {
+            line-height: 1.8;
+            font-size: 1.05em;
+            color: #555;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
+        .card:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(10px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.4em;
+            transition: color 0.3s;
+        }
+
+        .card:hover h3 {
+            color: white;
+        }
+
+        .card .description {
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 5px 5px 0 0;
+        }
+
+        .card-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-left-color: #adb5bd;
+        }
+
+        .card-disabled:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: inherit;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .card-disabled h3 {
+            color: #6c757d;
+        }
+
+        .card-disabled:hover h3 {
+            color: #6c757d;
+        }
+
+        .intro-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border: 1px solid #667eea40;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .intro-box h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .footer a {
+            color: white;
+            margin: 0 15px;
+        }
+
+        .footer a:hover {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <strong style="color: white;">DG Scripts</strong>
+    </div>
+
+    <div class="header">
+        <h1>DG Scripts</h1>
+        <p class="tagline">Trigger System Documentation for LuminariMUD</p>
+    </div>
+
+    <div class="container">
+        <!-- Introduction -->
+        <div class="section">
+            <h2>What are DG Scripts?</h2>
+            <div class="intro-box">
+                <h3>Overview</h3>
+                <p>
+                    <strong>DG Scripts</strong> (Death's Gate Scripts) is a powerful scripting system used in
+                    LuminariMUD to create dynamic, interactive content. Triggers can be attached to mobiles (NPCs),
+                    objects, and rooms to respond to player actions, time-based events, and game conditions.
+                </p>
+                <p style="margin-bottom: 0;">
+                    This scripting system enables builders to create quests, special NPC behaviors, puzzle mechanics,
+                    environmental effects, and much more without modifying the game's C source code.
+                </p>
+            </div>
+
+            <p>
+                DG Scripts consist of <strong>triggers</strong> that fire based on specific events, and can
+                manipulate <strong>variables</strong> to track state, perform calculations, and coordinate
+                complex behaviors across multiple game entities.
+            </p>
+        </div>
+
+        <!-- Staff Commands Section -->
+        <div class="section">
+            <h2>Staff Commands</h2>
+            <p>Commands for staff members to view, modify, and debug DG scripts and variables.</p>
+
+            <div class="card-grid">
+                <a href="staff-commands.html" class="card">
+                    <h3>Variable Management</h3>
+                    <p class="description">Staff commands for viewing, setting, and deleting DG script variables on players, mobiles, objects, and rooms.</p>
+                    <span class="badge">Reference</span>
+                    <span class="badge">Staff Only</span>
+                </a>
+
+                <div class="card card-disabled">
+                    <h3>Trigger Attachment</h3>
+                    <p class="description">Commands for attaching and detaching triggers from game entities at runtime.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+
+                <div class="card card-disabled">
+                    <h3>Debugging Tools</h3>
+                    <p class="description">Tools for debugging trigger execution, tracing script flow, and identifying issues.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripting Reference Section -->
+        <div class="section">
+            <h2>Scripting Reference</h2>
+            <p>Documentation for writing DG Scripts triggers.</p>
+
+            <div class="card-grid">
+                <div class="card card-disabled">
+                    <h3>Trigger Types</h3>
+                    <p class="description">Complete reference of all trigger types: greet, speech, command, random, time, and more.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+
+                <div class="card card-disabled">
+                    <h3>Script Commands</h3>
+                    <p class="description">All script commands: if/else, while, switch, wait, and action commands.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+
+                <div class="card card-disabled">
+                    <h3>Variables & Fields</h3>
+                    <p class="description">How to use variables, access object/mob/room fields, and work with data.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+
+                <div class="card card-disabled">
+                    <h3>Examples & Patterns</h3>
+                    <p class="description">Common scripting patterns and example triggers for various use cases.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Builder Guide Section -->
+        <div class="section">
+            <h2>Builder Guides</h2>
+            <p>Tutorials and guides for builders working with DG Scripts.</p>
+
+            <div class="card-grid">
+                <div class="card card-disabled">
+                    <h3>Getting Started</h3>
+                    <p class="description">Introduction to DG Scripts for new builders - creating your first trigger.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+
+                <div class="card card-disabled">
+                    <h3>Quest Scripting</h3>
+                    <p class="description">How to build quests using triggers, variables, and quest completion tracking.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+
+                <div class="card card-disabled">
+                    <h3>TRIGEDIT Reference</h3>
+                    <p class="description">Complete guide to the trigger editor OLC for creating and modifying triggers.</p>
+                    <span class="badge">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            <a href="../index.html">Documentation Portal</a> |
+            <a href="https://github.com/LuminariMUD/Luminari-Source" target="_blank">GitHub</a> |
+            <a href="https://discord.gg/Me3Tuu4" target="_blank">Discord</a>
+        </p>
+        <p style="margin-top: 15px; opacity: 0.8;">
+            LuminariMUD Documentation
+        </p>
+    </div>
+</body>
+</html>

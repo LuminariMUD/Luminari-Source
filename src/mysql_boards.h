@@ -11,7 +11,7 @@
 #ifndef __MYSQL_BOARDS_H__
 #define __MYSQL_BOARDS_H__
 
-#include "mysql/mysql.h"
+#include "mariadb/mysql.h"
 
 /* Board System Constants */
 #define MAX_BOARD_TITLE_LENGTH    256

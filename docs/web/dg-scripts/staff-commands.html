@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DG Script Variable Commands - LuminariMUD</title>
+    <meta name="description" content="Staff commands for managing DG Script variables on players, mobiles, objects, and rooms in LuminariMUD.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .tagline {
+            font-size: 1.1em;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .breadcrumb {
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .breadcrumb a {
+            color: white;
+            opacity: 0.8;
+        }
+
+        .breadcrumb a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: white;
+            opacity: 0.6;
+            margin: 0 10px;
+        }
+
+        .section {
+            background: white;
+            margin: 25px 0;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.7em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section h3 {
+            color: #495057;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section p {
+            line-height: 1.7;
+            color: #555;
+        }
+
+        .command-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .command-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .command-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+
+        .command-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .command-table code {
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #667eea;
+            white-space: nowrap;
+        }
+
+        .syntax-box {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .syntax-box .command {
+            color: #68d391;
+            font-weight: bold;
+        }
+
+        .syntax-box .param {
+            color: #63b3ed;
+        }
+
+        .syntax-box .optional {
+            color: #a0aec0;
+        }
+
+        .syntax-box .comment {
+            color: #718096;
+            font-style: italic;
+        }
+
+        .example-box {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            border: 1px solid #68d39180;
+            border-left: 4px solid #38a169;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .example-box h4 {
+            margin-top: 0;
+            color: #276749;
+            font-size: 1em;
+        }
+
+        .example-box code {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fffaf0 0%, #fef5e7 100%);
+            border: 1px solid #ed8936;
+            border-left: 4px solid #dd6b20;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .warning-box h4 {
+            margin-top: 0;
+            color: #c05621;
+            font-size: 1em;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #ebf8ff 0%, #e6f7ff 100%);
+            border: 1px solid #4299e1;
+            border-left: 4px solid #3182ce;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .info-box h4 {
+            margin-top: 0;
+            color: #2b6cb0;
+            font-size: 1em;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .badge-level {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-file {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .footer a {
+            color: white;
+            margin: 0 15px;
+        }
+
+        .footer a:hover {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .command-table {
+                font-size: 0.85em;
+            }
+
+            .command-table th,
+            .command-table td {
+                padding: 8px 6px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="index.html">DG Scripts</a>
+        <span>/</span>
+        <strong style="color: white;">Variable Commands</strong>
+    </div>
+
+    <div class="header">
+        <h1>DG Script Variable Commands</h1>
+        <p class="tagline">Staff Commands for Managing Script Variables</p>
+    </div>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <div class="section">
+            <h2>Overview</h2>
+            <p>
+                DG Script variables are used to store persistent data on game entities (players, mobiles, objects, and rooms).
+                These variables can be set by triggers and persist across sessions for players. Staff members have access
+                to commands for viewing, modifying, and deleting these variables for debugging and administrative purposes.
+            </p>
+
+            <div class="info-box">
+                <h4>Understanding UIDs</h4>
+                <p style="margin-bottom: 0;">
+                    Many commands require a <strong>UID</strong> (Unique Identifier). You can find an entity's UID by using
+                    the <code>stat</code> command on it. The UID is displayed in the output and is used to reference that
+                    specific instance of a mob, object, or room.
+                </p>
+            </div>
+        </div>
+
+        <!-- Viewing Variables Section -->
+        <div class="section">
+            <h2>Viewing Variables &amp; Scripts</h2>
+            <p>Commands for inspecting DG Script triggers and variables on game entities.</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Usage</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>stat scriptvar</code></td>
+                        <td><code>stat scriptvar &lt;target&gt;</code></td>
+                        <td>
+                            Shows attached triggers, script memory, and all global variables on a mob or player.
+                            <br><span class="badge badge-level">LVL_IMMORT</span>
+                            <span class="badge badge-file">act.wizard.c:1398</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>stat</code></td>
+                        <td><code>stat &lt;mob|obj|room&gt;</code></td>
+                        <td>
+                            Normal stat output includes script/trigger information at the end. Calls the appropriate
+                            <code>do_sstat_*</code> function for the entity type.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>tstat</code></td>
+                        <td><code>tstat &lt;vnum&gt;</code></td>
+                        <td>
+                            Stats a trigger prototype by its VNUM, showing trigger type, commands, and configuration.
+                            <br><span class="badge badge-level">LVL_BUILDER</span>
+                            <span class="badge badge-file">dg_scripts.c:3357</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>vstat</code></td>
+                        <td><code>vstat { o | m | r | t | s | z } &lt;vnum&gt;</code></td>
+                        <td>
+                            Stats a prototype by VNUM without loading it into the game. Options: <strong>o</strong>bject,
+                            <strong>m</strong>obile, <strong>r</strong>oom, <strong>t</strong>rigger, <strong>s</strong>hop,
+                            <strong>z</strong>one.
+                            <br><span class="badge badge-level">LVL_IMMORT</span>
+                            <span class="badge badge-file">act.wizard.c:1874</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Syntax Examples</h3>
+
+            <div class="example-box">
+                <h4>View variables on a player</h4>
+                <div class="syntax-box">
+<span class="command">stat scriptvar</span> <span class="param">Zephyr</span>
+<span class="comment">-- Shows triggers, script memory, and PC global variables on player Zephyr</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>View a trigger prototype</h4>
+                <div class="syntax-box">
+<span class="command">tstat</span> <span class="param">5001</span>
+<span class="comment">-- Shows the definition of trigger VNUM 5001</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>View a mobile prototype by VNUM</h4>
+                <div class="syntax-box">
+<span class="command">vstat</span> <span class="param">m 3001</span>
+<span class="comment">-- Stats mobile VNUM 3001 without loading it</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setting Variables Section -->
+        <div class="section">
+            <h2>Setting Variables</h2>
+            <p>Commands for creating or modifying DG Script variables.</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Usage</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>set variable</code></td>
+                        <td><code>set &lt;player&gt; variable &lt;varname&gt; &lt;value&gt;</code></td>
+                        <td>
+                            Sets a DG global variable on a player or mobile. Creates the variable if it doesn't exist,
+                            or updates it if it does.
+                            <br><span class="badge badge-level">LVL_GRSTAFF</span>
+                            <span class="badge badge-file">dg_scripts.c:2563</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Syntax Examples</h3>
+
+            <div class="example-box">
+                <h4>Set a quest stage variable</h4>
+                <div class="syntax-box">
+<span class="command">set</span> <span class="param">Zephyr</span> <span class="command">variable</span> <span class="param">quest_stage 3</span>
+<span class="comment">-- Sets the variable "quest_stage" to "3" on player Zephyr</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>Set a tracking variable</h4>
+                <div class="syntax-box">
+<span class="command">set</span> <span class="param">goblin</span> <span class="command">variable</span> <span class="param">kills_count 15</span>
+<span class="comment">-- Sets "kills_count" to "15" on the mobile named goblin</span>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>Important Notes</h4>
+                <ul style="margin-bottom: 0;">
+                    <li>Variable names are case-sensitive</li>
+                    <li>Values are stored as strings (scripts convert as needed)</li>
+                    <li>Player variables persist across sessions and reboots</li>
+                    <li>Mobile/object variables are lost when the entity is purged or extracted</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Deleting Variables Section -->
+        <div class="section">
+            <h2>Deleting Variables</h2>
+            <p>Commands for removing DG Script variables from game entities.</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Usage</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>vdelete</code></td>
+                        <td><code>vdelete &lt;varname&gt; &lt;uid&gt;</code></td>
+                        <td>
+                            Deletes a specific variable by name from the entity with the given UID.
+                            <br><span class="badge badge-level">LVL_BUILDER</span>
+                            <span class="badge badge-file">dg_scripts.c:2460</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>vdelete all</code></td>
+                        <td><code>vdelete { * | all } &lt;uid&gt;</code></td>
+                        <td>
+                            Deletes ALL variables from the entity with the given UID. Use with caution!
+                            <br><span class="badge badge-level">LVL_BUILDER</span>
+                            <span class="badge badge-file">dg_scripts.c:2460</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Syntax Examples</h3>
+
+            <div class="example-box">
+                <h4>Delete a specific variable</h4>
+                <div class="syntax-box">
+<span class="command">vdelete</span> <span class="param">quest_stage 200001</span>
+<span class="comment">-- Deletes variable "quest_stage" from entity with UID 200001</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>Delete all variables from an entity</h4>
+                <div class="syntax-box">
+<span class="command">vdelete</span> <span class="param">all 200001</span>
+<span class="comment">-- Removes ALL variables from entity UID 200001</span>
+
+<span class="command">vdelete</span> <span class="param">* 200001</span>
+<span class="comment">-- Same as above, using * shorthand</span>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>Warning: Destructive Operation</h4>
+                <p style="margin-bottom: 0;">
+                    Using <code>vdelete all</code> or <code>vdelete *</code> will permanently remove all variables
+                    from the target. For players, this can break quest progress and other scripted content.
+                    Always confirm the UID and backup if possible before mass deletion.
+                </p>
+            </div>
+        </div>
+
+        <!-- Trigger Attachment Section -->
+        <div class="section">
+            <h2>Attaching &amp; Detaching Triggers</h2>
+            <p>Commands for dynamically adding or removing triggers from game entities at runtime.</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Usage</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>attach</code></td>
+                        <td><code>attach { mob | obj | room } &lt;trig_vnum&gt; &lt;target&gt; [location]</code></td>
+                        <td>
+                            Attaches a trigger to an entity. Shortcuts: <code>mtr</code>, <code>otr</code>, <code>wtr</code>.
+                            The optional location specifies position in trigger list (-1 = end, 0 = beginning).
+                            <br><span class="badge badge-level">LVL_BUILDER</span>
+                            <span class="badge badge-file">dg_scripts.c:1061</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>detach</code></td>
+                        <td><code>detach { mob | obj | room } &lt;target&gt; { trig_vnum | all }</code></td>
+                        <td>
+                            Removes a trigger (or all triggers) from an entity.
+                            <br><span class="badge badge-level">LVL_BUILDER</span>
+                            <span class="badge badge-file">dg_scripts.c:1282</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Syntax Examples</h3>
+
+            <div class="example-box">
+                <h4>Attach a trigger to a mobile</h4>
+                <div class="syntax-box">
+<span class="command">attach</span> <span class="param">mob 5001 goblin</span>
+<span class="comment">-- Attaches trigger 5001 to the mobile named "goblin"</span>
+
+<span class="command">attach</span> <span class="param">mob 5001 3005</span>
+<span class="comment">-- Attaches trigger 5001 to mob VNUM 3005 in the room</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>Attach a trigger to an object</h4>
+                <div class="syntax-box">
+<span class="command">attach</span> <span class="param">obj 6000 sword</span>
+<span class="comment">-- Attaches trigger 6000 to object named "sword"</span>
+
+<span class="command">attach</span> <span class="param">otr 6000 1234</span>
+<span class="comment">-- Same using shorthand, targeting object VNUM 1234</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>Attach a trigger to the current room</h4>
+                <div class="syntax-box">
+<span class="command">attach</span> <span class="param">room 7000 here</span>
+<span class="comment">-- Attaches trigger 7000 to the room you're standing in</span>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <h4>Detach triggers</h4>
+                <div class="syntax-box">
+<span class="command">detach</span> <span class="param">mob goblin 5001</span>
+<span class="comment">-- Removes trigger 5001 from the goblin</span>
+
+<span class="command">detach</span> <span class="param">room here all</span>
+<span class="comment">-- Removes ALL triggers from the current room</span>
+
+<span class="command">detach</span> <span class="param">obj sword all</span>
+<span class="comment">-- Removes all triggers from the sword</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4>Zone Restrictions</h4>
+                <p style="margin-bottom: 0;">
+                    You can only attach/detach triggers in zones you have edit permission for.
+                    This prevents accidental modification of content in other builders' zones.
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Reference Section -->
+        <div class="section">
+            <h2>Quick Reference</h2>
+            <p>Summary table of all DG Script staff commands.</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Purpose</th>
+                        <th>Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>stat scriptvar &lt;target&gt;</code></td>
+                        <td>View triggers and variables on a mob/player</td>
+                        <td>LVL_IMMORT</td>
+                    </tr>
+                    <tr>
+                        <td><code>tstat &lt;vnum&gt;</code></td>
+                        <td>View trigger prototype definition</td>
+                        <td>LVL_BUILDER</td>
+                    </tr>
+                    <tr>
+                        <td><code>vstat &lt;type&gt; &lt;vnum&gt;</code></td>
+                        <td>View entity prototype by VNUM</td>
+                        <td>LVL_IMMORT</td>
+                    </tr>
+                    <tr>
+                        <td><code>set &lt;char&gt; variable &lt;name&gt; &lt;val&gt;</code></td>
+                        <td>Set a variable on a character</td>
+                        <td>LVL_GRSTAFF</td>
+                    </tr>
+                    <tr>
+                        <td><code>vdelete &lt;name&gt; &lt;uid&gt;</code></td>
+                        <td>Delete a specific variable</td>
+                        <td>LVL_BUILDER</td>
+                    </tr>
+                    <tr>
+                        <td><code>vdelete all &lt;uid&gt;</code></td>
+                        <td>Delete ALL variables from an entity</td>
+                        <td>LVL_BUILDER</td>
+                    </tr>
+                    <tr>
+                        <td><code>attach &lt;type&gt; &lt;trig&gt; &lt;target&gt;</code></td>
+                        <td>Attach a trigger to an entity</td>
+                        <td>LVL_BUILDER</td>
+                    </tr>
+                    <tr>
+                        <td><code>detach &lt;type&gt; &lt;target&gt; &lt;trig|all&gt;</code></td>
+                        <td>Remove trigger(s) from an entity</td>
+                        <td>LVL_BUILDER</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Source Files Section -->
+        <div class="section">
+            <h2>Source Code References</h2>
+            <p>For developers, here are the source file locations for these commands:</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>File</th>
+                        <th>Line</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>do_vstat</code></td>
+                        <td>src/act.wizard.c</td>
+                        <td>1874</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_stat_scriptvar</code></td>
+                        <td>src/act.wizard.c</td>
+                        <td>873</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_sstat_character</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>1020</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_sstat_object</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>1008</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_sstat_room</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>996</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_tstat</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>3357</td>
+                    </tr>
+                    <tr>
+                        <td><code>perform_set_dg_var</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>2563</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_vdelete</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>2460</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_attach</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>1061</td>
+                    </tr>
+                    <tr>
+                        <td><code>do_detach</code></td>
+                        <td>src/dg_scripts.c</td>
+                        <td>1282</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            <a href="index.html">DG Scripts</a> |
+            <a href="../index.html">Documentation Portal</a> |
+            <a href="https://github.com/LuminariMUD/Luminari-Source" target="_blank">GitHub</a>
+        </p>
+        <p style="margin-top: 15px; opacity: 0.8;">
+            LuminariMUD Documentation
+        </p>
+    </div>
+</body>
+</html>

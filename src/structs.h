@@ -5827,7 +5827,8 @@ struct char_special_data
 
     /** casting (time) **/
     bool isCasting;               // casting or not
-    int castingTime;              // casting time
+    int castingTime;              // casting time (remaining)
+    int castingTimeMax;           // original casting time (for progress calc)
     int castingSpellnum;          // spell casting
     int castingMetamagic;         // spell metamagic
     int castingClass;             // spell casting class

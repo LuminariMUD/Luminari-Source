@@ -1174,6 +1174,7 @@ void char_from_furniture(struct char_data *ch);
 /* Casting time */
 #define IS_CASTING(ch) ((ch)->char_specials.isCasting)
 #define CASTING_TIME(ch) ((ch)->char_specials.castingTime)
+#define CASTING_TIME_MAX(ch) ((ch)->char_specials.castingTimeMax)
 #define CASTING_TCH(ch) ((ch)->char_specials.castingTCH)
 #define CASTING_TOBJ(ch) ((ch)->char_specials.castingTOBJ)
 #define CASTING_SPELLNUM(ch) ((ch)->char_specials.castingSpellnum)

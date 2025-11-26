@@ -11426,6 +11426,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     {
       int keen_strike_bonus = HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4;
       int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch) + keen_strike_bonus;
+      (void)quivering_palm_dc; /* DC computed for future use or debugging */
 
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
@@ -11473,6 +11474,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (affected_by_spell(ch, ABILITY_AFFECT_TRUE_JUDGEMENT))
   {
     int true_judgement_dc = 10 + (CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2) + GET_WIS_BONUS(ch);
+    (void)true_judgement_dc; /* DC computed for future use or debugging */
     if (victim == GET_JUDGEMENT_TARGET(ch))
     {
 
@@ -11517,6 +11519,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     int deatharrow_dc = 10 + CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) +
                         MAX(GET_CHA_BONUS(ch), GET_INT_BONUS(ch));
+    (void)deatharrow_dc; /* DC computed for future use or debugging */
     if (can_fire_ammo(ch, TRUE))
     {
 
@@ -11570,6 +11573,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
     {
       int water_whip_dc = 10 + GET_WIS_BONUS(ch) + (CLASS_LEVEL(ch, CLASS_MONK) / 2);
+      (void)water_whip_dc; /* DC computed for future use or debugging */
       int water_dam = dice(4, 6);
       int actual_water_dam;
 
@@ -11632,6 +11636,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
     {
       int gong_dc = 10 + GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+      (void)gong_dc; /* DC computed for future use or debugging */
       int sound_dam = dice(4, 6);
       int actual_sound_dam;
 
@@ -11926,6 +11931,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_BLEEDING_ATTACK) && !AFF_FLAGGED(victim, AFF_BLEED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
+        (void)dc; /* DC computed for future use or debugging */
         int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
@@ -11951,6 +11957,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_CRIPPLING_STRIKE) && !AFF_FLAGGED(victim, AFF_CRIPPLED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
+        (void)dc; /* DC computed for future use or debugging */
         int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
@@ -11979,6 +11986,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         if (rand_number(1, 100) <= 5)
         {
           int dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+          (void)dc; /* DC computed for future use or debugging */
           int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL);
           
           if (save_result == FALSE)
@@ -14014,6 +14022,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
             can_bleed(FIGHTING(ch)) && dice(1, 100) <= 10)
         {
           int bleed_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+          (void)bleed_dc; /* DC computed for future use or debugging */
           if (!savingthrow(ch, FIGHTING(ch), SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
           {
             struct affected_type af;
