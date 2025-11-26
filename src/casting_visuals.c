@@ -506,6 +506,7 @@ int determine_cast_target_type(struct char_data *ch, struct char_data *tch,
 int calculate_casting_progress_stage(int time_max, int time_remaining)
 {
   int elapsed;
+  int percentage;
   int stage;
 
   /* Safety check - avoid division issues */
@@ -523,8 +524,15 @@ int calculate_casting_progress_stage(int time_max, int time_remaining)
     elapsed = 0;
   }
 
-  /* Cap stage at maximum */
-  stage = elapsed;
+  /* Scale stage proportionally to casting time.
+   * This ensures each stage takes roughly the same proportion of total
+   * casting time, regardless of how long the spell takes.
+   * Stage 0: 0-19%, Stage 1: 20-39%, Stage 2: 40-59%,
+   * Stage 3: 60-79%, Stage 4: 80-100% */
+  percentage = (elapsed * 100) / time_max;
+  stage = percentage / 20;
+
+  /* Cap stage at maximum (should rarely trigger with percentage math) */
   if (stage >= CAST_PROGRESS_STAGES)
   {
     stage = CAST_PROGRESS_STAGES - 1;

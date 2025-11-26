@@ -838,7 +838,8 @@ void trigger_trap(struct char_data *ch, struct trap_data *trap, room_rnum room)
  */
 void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
 {
-    int dam = 0, save_roll = 0, save_dc = 0;
+    int dam = 0, save_dc = 0;
+    /* int save_roll = 0; */ /* COMMENTED OUT: unused, saving throw handled by savingthrow() */
     bool saved = FALSE;
     
     if (!ch || !trap)
@@ -948,7 +949,8 @@ void apply_trap_to_area(struct trap_data *trap, room_rnum room, struct char_data
 void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
 {
     struct affected_type af;
-    int save_roll, save_dc, save_type_idx;
+    /* int save_roll; */ /* COMMENTED OUT: unused, saving throw handled by savingthrow() */
+    int save_dc, save_type_idx;
     bool saved = FALSE;
     
     if (!ch || !trap || trap->special_effect == TRAP_SPECIAL_NONE)
@@ -1240,7 +1242,7 @@ bool can_recover_trap_components(struct char_data *ch)
  */
 void recover_trap_components(struct char_data *ch, struct trap_data *trap)
 {
-    struct obj_data *components;
+    /* struct obj_data *components; */ /* COMMENTED OUT: unused, placeholder for future component object creation */
     int value;
     
     if (!ch || !trap || !can_recover_trap_components(ch))
@@ -1268,7 +1270,8 @@ void recover_trap_components(struct char_data *ch, struct trap_data *trap)
 int search_for_traps(struct char_data *ch)
 {
     struct trap_data *trap;
-    int exp, found = FALSE;
+    int exp;
+    /* int found = FALSE; */ /* COMMENTED OUT: unused, return value indicates success */
     
     if (!ch)
         return FALSE;

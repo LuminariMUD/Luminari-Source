@@ -2382,6 +2382,7 @@ static void newbie_give_obj(struct char_data *ch, obj_vnum vnum, bool adjust_siz
     obj_to_char(obj, ch);
 }
 
+/* COMMENTED OUT: Function currently unused, may be needed for future newbie equipment system
 static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, bool adjust_size)
 {
   struct obj_data *obj = newbie_create_obj(ch, vnum, adjust_size);
@@ -2389,6 +2390,7 @@ static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, 
   if (obj)
     equip_char(ch, obj, wear_pos);
 }
+*/
 
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
