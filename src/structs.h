@@ -1,5 +1,3 @@
-#define APPLY_NATURES_WRATH_DAMAGE 1001 /* Custom: +2d8 damage for Nature's Wrath */
-#define APPLY_FAST_HEALING 1002         /* Custom: Fast healing value for Nature's Wrath */
 /**
  * @file structs.h                                 Part of LuminariMUD
  * Core structures used within the core mud code.
