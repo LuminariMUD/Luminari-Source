@@ -4051,6 +4051,40 @@ void define_ranger_perks(void)
   perk->effect_value = 4; /* +4 to stats */
   perk->effect_modifier = 10; /* 10 rounds duration */
   perk->special_description = strdup("Capstone active: 'natureswrath' command grants powerful temporary bonuses to you and companion, 24h cooldown");
+
+  /*** WILDERNESS WARRIOR TREE (partial) ***/
+
+  /* Favored Enemy Slayer */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_SLAYER];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->name = strdup("Favored Enemy Slayer");
+  perk->description = strdup("+2 to hit against favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL; /* handled in combat code */
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +2 to-hit vs favored enemies");
+
+  /* Apex Predator (capstone) */
+  perk = &perk_list[PERK_RANGER_APEX_PREDATOR];
+  perk->id = PERK_RANGER_APEX_PREDATOR;
+  perk->name = strdup("Apex Predator");
+  perk->description = strdup("+5 to hit against favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_SLAYER; /* reasonable prerequisite */
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL; /* handled in combat code */
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Capstone: +5 to-hit vs favored enemies");
 }
 
 /* Define Barbarian Perks */

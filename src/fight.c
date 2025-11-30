@@ -9947,6 +9947,24 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
           send_to_char(ch, " 6: %-50s\r\n", "Epic Favored Enemy");
       }
     }
+
+    /* Wilderness Warrior: Favored Enemy Slayer and Apex Predator to-hit bonuses */
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+    {
+      if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += 2;
+        if (display)
+          send_to_char(ch, " 2: %-50s\r\n", "Favored Enemy Slayer");
+      }
+      if (has_perk(ch, PERK_RANGER_APEX_PREDATOR))
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += 5;
+        if (display)
+          send_to_char(ch, " 5: %-50s\r\n", "Apex Predator");
+      }
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_DEVOTION) && is_grouped_with_dragon(ch))

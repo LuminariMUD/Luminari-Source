@@ -3791,6 +3791,9 @@
 /* Beast Master Tree - Tier 4 */
 #define PERK_RANGER_PRIMAL_AVATAR 1033
 #define PERK_RANGER_NATURES_WRATH 1034
+/* Wilderness Warrior Tree - new perks */
+#define PERK_RANGER_FAVORED_ENEMY_SLAYER 1035
+#define PERK_RANGER_APEX_PREDATOR 1036
 
 /* ============================================================================
  * BARD PERKS (1100-1199)

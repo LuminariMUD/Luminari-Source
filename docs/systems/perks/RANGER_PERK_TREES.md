@@ -224,7 +224,7 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 #### Two-Weapon Focus I
 - **Max Ranks:** 3
-- **Description:** Reduce penalty for two-weapon fighting by 1 per rank
+- **Description:** +1 to attacks when dual wielding, per rank
 - **Effect Type:** Attack penalty reduction
 - **Prerequisites:** None
 
@@ -252,25 +252,25 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 #### Two-Weapon Focus II
 - **Max Ranks:** 2
-- **Description:** Additional reduction of 2 to two-weapon fighting penalty per rank
+- **Description:** +1 damage when dual wielding per rank
 - **Effect Type:** Further penalty reduction (stacks with Two-Weapon Focus I)
 - **Prerequisites:** Two-Weapon Focus I (max rank)
 
-#### Improved Two-Weapon Fighting
+#### Wilderness Warrior Two-Weapon Fighting
 - **Max Ranks:** 1
-- **Description:** Gain an additional off-hand attack per round
+- **Description:** 10% chance to Gain an additional off-hand attack per round
 - **Effect Type:** Extra attack
 - **Prerequisites:** Two-Weapon Focus I (2 ranks)
 
 #### Tempest
 - **Max Ranks:** 2
-- **Description:** +2 AC dodge bonus when fighting with two weapons per rank
+- **Description:** +1 AC dodge bonus when fighting with two weapons per rank
 - **Effect Type:** AC bonus while dual wielding
 - **Prerequisites:** Two-Weapon Focus I (1 rank)
 
 #### Favored Enemy Slayer
 - **Max Ranks:** 1
-- **Description:** +2 to hit against favored enemies, critical threat range +1 vs favored enemies
+- **Description:** +1 to hit against favored enemies, critical threat range +1 vs favored enemies
 - **Effect Type:** Favored enemy accuracy and crit
 - **Prerequisites:** Favored Enemy Mastery I (2 ranks)
 
@@ -278,15 +278,15 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 ### TIER III - Cost: 3 points each
 
-#### Greater Two-Weapon Fighting
+#### Greater Wilderness Warrior Two-Weapon Fighting
 - **Max Ranks:** 1
-- **Description:** Gain a second additional off-hand attack per round
+- **Description:** 10% chance to Gain a second additional off-hand attack per round
 - **Effect Type:** Another extra attack
 - **Prerequisites:** Improved Two-Weapon Fighting
 
 #### Whirling Steel
 - **Max Ranks:** 1
-- **Description:** When fighting with two weapons, 20% chance per hit to make an additional free attack
+- **Description:** When fighting with two weapons, 5% chance per hit to make an additional free attack
 - **Effect Type:** Proc-based extra attacks
 - **Prerequisites:** Two-Weapon Focus II (1 rank)
 
@@ -298,7 +298,7 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 #### Crippling Strike
 - **Max Ranks:** 1
-- **Description:** Successful melee attacks have a 15% chance to slow enemy movement by 50% for 3 rounds
+- **Description:** Successful melee attacks have a 5% chance to apply slow for 3 rounds
 - **Effect Type:** Debuff proc
 - **Prerequisites:** Dual Strike I (max rank)
 
@@ -306,15 +306,15 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 ### TIER IV - Cost: 5 points each (CAPSTONE)
 
-#### Perfect Two-Weapon Fighting
+#### Perfect Wilderness Warrior Two-Weapon Fighting
 - **Max Ranks:** 1
-- **Description:** All off-hand attacks are made with no penalty and deal full strength damage bonus
+- **Description:** All weapon attacks gain +2 to hit +4 to damage when dual wielding
 - **Effect Type:** Perfect dual wielding
 - **Prerequisites:** Greater Two-Weapon Fighting
 
 #### Apex Predator
 - **Max Ranks:** 1
-- **Description:** Against favored enemies: automatically critical on natural 18-20, critical multiplier +1, and gain +5 to all combat stats
+- **Description:** Against favored enemies: +1 to crit threat range, critical multiplier +1
 - **Effect Type:** Ultimate favored enemy mastery
 - **Prerequisites:** Deadly Hunter
 
