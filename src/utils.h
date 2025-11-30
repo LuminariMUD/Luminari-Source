@@ -1,5 +1,3 @@
-/* Already present: int get_fast_healing_amount(struct char_data *ch); */
-int get_natural_empathy_bonus(struct char_data *ch);
 /**
  * @file utils.h                              Part of LuminariMUD
  * Utility macros and prototypes of utility functions.
@@ -409,6 +407,7 @@ bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
 int get_psp_regen_amount(struct char_data *ch);
 int get_mv_regen_amount(struct char_data *ch);
+int get_natural_empathy_bonus(struct char_data *ch);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
