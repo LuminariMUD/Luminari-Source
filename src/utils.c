@@ -5484,6 +5484,17 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display)
 {
+  /* Beast Master: Alpha Bond companion immunity */
+  if (IS_NPC(victim) && victim->master && !IS_NPC(victim->master) && 
+      MOB_FLAGGED(victim, MOB_C_ANIMAL) && ranger_companion_immune_fear(victim->master))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your Alpha Bond protects you from fear!\r\n");
+    }
+    return TRUE;
+  }
 
   if (HAS_FEAT(victim, FEAT_KENDER_FEARLESSNESS))
     return true;
@@ -5575,6 +5586,17 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
 
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display)
 {
+  /* Beast Master: Primal Avatar companion immunity */
+  if (IS_NPC(victim) && victim->master && !IS_NPC(victim->master) && 
+      MOB_FLAGGED(victim, MOB_C_ANIMAL) && ranger_companion_immune_mind(victim->master))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s is a Primal Beast and immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are a Primal Beast and thus are immune to %s's mind-affecting spells and abilities!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
 
   if ((IS_UNDEAD(victim) || HAS_FEAT(victim, FEAT_ONE_OF_US)) && !HAS_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
   {
@@ -11236,6 +11258,34 @@ const char *get_crafting_tool_desc(struct obj_data *obj)
   }
   
   return "Invalid crafting tool";
+}
+
+/* Returns true if the character has their animal companion present as a follower. */
+bool has_active_companion(struct char_data *ch)
+{
+  mob_vnum companion_vnum = GET_ANIMAL_COMPANION(ch);
+  struct follow_type *k;
+  if (companion_vnum <= 0)
+    return FALSE;
+  for (k = ch->followers; k; k = k->next) {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) == companion_vnum)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+/* Returns a pointer to the animal companion mob if present, else NULL. */
+struct char_data *get_animal_companion_mob(struct char_data *ch)
+{
+  mob_vnum companion_vnum = GET_ANIMAL_COMPANION(ch);
+  struct follow_type *k;
+  if (companion_vnum <= 0)
+    return NULL;
+  for (k = ch->followers; k; k = k->next) {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) == companion_vnum)
+      return k->follower;
+  }
+  return NULL;
 }
 
 /* EoF */

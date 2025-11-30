@@ -95,6 +95,7 @@ bool has_primal_vigor(struct char_data *ch);
 int get_ranger_conjuration_dc_bonus(struct char_data *ch);
 int get_greater_summons_hp_bonus(struct char_data *ch);
 int get_greater_summons_damage(struct char_data *ch);
+int get_greater_summons_attack_bonus(struct char_data *ch);
 
 /* Rogue-specific perk bonus functions */
 int get_perk_sneak_attack_dice(struct char_data *ch);

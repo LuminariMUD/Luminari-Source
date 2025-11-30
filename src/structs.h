@@ -6526,7 +6526,7 @@ struct affected_type
     sh_int spell;                /**< The spell that caused this */
     sh_int duration;             /**< For how long its effects will last      */
     sh_int modifier;             /**< Added/subtracted to/from apropriate ability     */
-    byte location;               /**< Tells which ability to change(APPLY_XXX). */
+    int location;                /**< Tells which ability to change(APPLY_XXX). */
     int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
     int bonus_type; /**< What type of bonus (if this is a bonus) is this. */

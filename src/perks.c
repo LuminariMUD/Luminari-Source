@@ -3980,11 +3980,11 @@ void define_ranger_perks(void)
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_RANGER_PACK_TACTICS_I;
-  perk->prerequisite_rank = 3; /* Requires Pack Tactics I (max rank) */
+  perk->prerequisite_rank = 3; /* Requires Pack Tactics I (max rank) AND Feral Charge (checked separately) */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* +2d4 */
   perk->effect_modifier = 4;
-  perk->special_description = strdup("You and companion both gain +2d4 damage when attacking same target");
+  perk->special_description = strdup("Requires: Pack Tactics I (max rank) and Feral Charge. You and companion both gain +2d4 damage when attacking same target");
 
   /* Primal Vigor */
   perk = &perk_list[PERK_RANGER_PRIMAL_VIGOR];
@@ -4006,7 +4006,7 @@ void define_ranger_perks(void)
   perk = &perk_list[PERK_RANGER_GREATER_SUMMONS];
   perk->id = PERK_RANGER_GREATER_SUMMONS;
   perk->name = strdup("Greater Summons");
-  perk->description = strdup("All summoned creatures have +25% HP and deal +1d6 damage");
+  perk->description = strdup("All summoned creatures have +25% HP, +4 to attack rolls and deal +1d6 damage");
   perk->associated_class = CLASS_RANGER;
   perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
   perk->cost = 3;
@@ -4015,8 +4015,8 @@ void define_ranger_perks(void)
   perk->prerequisite_rank = 2; /* Requires Spell Focus: Conjuration I (max rank) */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 25; /* +25% HP */
-  perk->effect_modifier = 1; /* +1d6 damage */
-  perk->special_description = strdup("All summoned creatures gain +25% HP and +1d6 damage");
+  perk->effect_modifier = 4; /* +4 to attack rolls */
+  perk->special_description = strdup("All summoned creatures gain +25% HP, +4 to attack rolls, and +1d6 damage");
 
   /*** BEAST MASTER TREE - TIER IV (CAPSTONES) ***/
 
@@ -6349,6 +6349,18 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
     }
   }
   
+  /* Special prerequisite check for Coordinated Attack - requires Pack Tactics I at max AND Feral Charge */
+  if (perk_id == PERK_RANGER_COORDINATED_ATTACK)
+  {
+    int feral_charge_rank = get_perk_rank(ch, PERK_RANGER_FERAL_CHARGE, class_id);
+    if (feral_charge_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Feral Charge to purchase Coordinated Attack.");
+      return FALSE;
+    }
+  }
+  
   /* All checks passed */
   return TRUE;
 }
@@ -7201,6 +7213,23 @@ int get_greater_summons_damage(struct char_data *ch)
   
   if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
     return 1; /* 1d6 */
+  
+  return 0;
+}
+
+/**
+ * Get Greater Summons attack bonus for summoned creatures.
+ * 
+ * @param ch The summoner
+ * @return Attack bonus (+4 to attack rolls)
+ */
+int get_greater_summons_attack_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
+    return 4;
   
   return 0;
 }

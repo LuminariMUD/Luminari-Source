@@ -1,5 +1,3 @@
-ACMD(do_natureswrath);
-  { "natureswrath", POS_FIGHTING, do_natureswrath, 0, 0 },
 /**************************************************************************
  *  File: interpreter.c                                Part of LuminariMUD *
  *  Usage: Parse user commands, search for specials, call ACMD functions.  *
@@ -684,6 +682,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+    {"natureswrath", "natureswrath", POS_FIGHTING, do_natureswrath, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"note", "note", POS_RESTING, do_note, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"newcraft", "newcraft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},

@@ -3290,19 +3290,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
-                  /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion */
-                  if (!IS_NPC(ch) && has_shared_spells(ch) && ch == victim)
-                  {
-                    struct follow_type *fol;
-                    for (fol = ch->followers; fol; fol = fol->next)
-                    {
-                      if (IS_NPC(fol->follower) && MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && AFF_FLAGGED(fol->follower, AFF_CHARM))
-                      {
-                        mag_affects_full(level, ch, fol->follower, wpn, spellnum, savetype, casttype, metamagic, true);
-                        send_to_char(ch, "\tG[Shared Spells: Companion buffed]\tn ");
-                      }
-                    }
-                  }
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call)
 {
 
@@ -3318,6 +3305,20 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return;
+  
+  /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion */
+  if (!recursive_call && !IS_NPC(ch) && has_shared_spells(ch) && ch == victim)
+  {
+    struct follow_type *fol;
+    for (fol = ch->followers; fol; fol = fol->next)
+    {
+      if (IS_NPC(fol->follower) && MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && AFF_FLAGGED(fol->follower, AFF_CHARM))
+      {
+        mag_affects_full(level, ch, fol->follower, wpn, spellnum, savetype, casttype, metamagic, true);
+        send_to_char(ch, "\tG[Shared Spells: Companion buffed]\tn ");
+      }
+    }
+  }
 
   if (spell_info[spellnum].violent)
     if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
@@ -11065,22 +11066,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   /* bring the mob into existence! */
   for (i = 0; i < num; i++)
-      /* Beast Master: Greater Summons perk bonuses */
-      if (!IS_NPC(ch) && get_greater_summons_hp_bonus(ch) > 0)
-      {
-        int hp_bonus = GET_REAL_MAX_HIT(mob) * get_greater_summons_hp_bonus(ch) / 100;
-        GET_REAL_MAX_HIT(mob) += hp_bonus;
-        GET_MAX_HIT(mob) += hp_bonus;
-        GET_HIT(mob) += hp_bonus;
-        send_to_char(ch, "\tG[Greater Summons +%d%% HP]\tn ", get_greater_summons_hp_bonus(ch));
-      }
-      if (!IS_NPC(ch) && get_greater_summons_damage(ch) > 0)
-      {
-        mob->mob_specials.damnodice += get_greater_summons_damage(ch);
-        mob->mob_specials.damsizedice += 6; /* +1d6 damage */
-        GET_DAMROLL(mob) += get_greater_summons_damage(ch);
-        send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");
-      }
   {
     if (!(mob = read_mobile(mob_num, VIRTUAL)))
     {
@@ -11332,6 +11317,29 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_AC(mob) = (mob)->points.armor += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
       GET_HIT(mob) = GET_MAX_HIT(mob);
+    }
+
+    /* Beast Master: Greater Summons perk bonuses */
+    if (!IS_NPC(ch) && get_greater_summons_hp_bonus(ch) > 0)
+    {
+      int hp_bonus = GET_REAL_MAX_HIT(mob) * get_greater_summons_hp_bonus(ch) / 100;
+      GET_REAL_MAX_HIT(mob) += hp_bonus;
+      GET_MAX_HIT(mob) += hp_bonus;
+      GET_HIT(mob) += hp_bonus;
+      send_to_char(ch, "\tG[Greater Summons +%d%% HP]\tn ", get_greater_summons_hp_bonus(ch));
+    }
+    if (!IS_NPC(ch) && get_greater_summons_attack_bonus(ch) > 0)
+    {
+      GET_REAL_HITROLL(mob) += get_greater_summons_attack_bonus(ch);
+      GET_HITROLL(mob) += get_greater_summons_attack_bonus(ch);
+      send_to_char(ch, "\tG[Greater Summons +%d attack]\tn ", get_greater_summons_attack_bonus(ch));
+    }
+    if (!IS_NPC(ch) && get_greater_summons_damage(ch) > 0)
+    {
+      mob->mob_specials.damnodice += get_greater_summons_damage(ch);
+      mob->mob_specials.damsizedice += 6; /* +1d6 damage */
+      GET_DAMROLL(mob) += get_greater_summons_damage(ch);
+      send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");
     }
 
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);

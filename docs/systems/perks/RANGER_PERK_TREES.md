@@ -139,8 +139,8 @@ The Ranger class features three distinct perk trees, each with four tiers of pro
 
 #### Spell Focus: Conjuration I
 - **Max Ranks:** 2
-- **Description:** creatures summoned through summon natures ally spells have +10% HP and +1 to AC, hit and damage per rank.
-- **Effect Type:** Spell DC bonus
+- **Description:** Creatures summoned through summon nature's ally spells have +10% HP and +1 to AC, hit and damage per rank
+- **Effect Type:** Summoned creature enhancement
 - **Prerequisites:** None
 
 ---

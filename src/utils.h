@@ -408,6 +408,8 @@ struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
 int get_psp_regen_amount(struct char_data *ch);
 int get_mv_regen_amount(struct char_data *ch);
 int get_natural_empathy_bonus(struct char_data *ch);
+bool has_active_companion(struct char_data *ch);
+struct char_data *get_animal_companion_mob(struct char_data *ch);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

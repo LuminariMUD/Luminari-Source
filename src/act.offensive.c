@@ -14636,7 +14636,7 @@ ACMD(do_masscurewounds)
 /* Helper functions for Nature's Wrath */
 bool has_beast_master_capstone(struct char_data *ch) {
   /* Check if character has Beast Master capstone perk */
-  return has_perk(ch, PERK_BEAST_MASTER_CAPSTONE);
+  return has_perk(ch, PERK_RANGER_NATURES_WRATH);
 }
 
 int GET_NATURES_WRATH_COOLDOWN(struct char_data *ch) {
@@ -14652,7 +14652,7 @@ void apply_natures_wrath_buff(struct char_data *ch) {
   /* Nature's Wrath: +4 to all stats, +2d8 damage, fast healing 5 for 10 rounds */
   struct affected_type af;
   memset(&af, 0, sizeof(af));
-  af.type = PERK_BEAST_MASTER_NATURES_WRATH;
+  af.spell = PERK_RANGER_NATURES_WRATH;
   af.duration = 10; /* 10 rounds */
   af.modifier = 4;
   af.location = APPLY_STR; affect_to_char(ch, &af);
@@ -14663,32 +14663,29 @@ void apply_natures_wrath_buff(struct char_data *ch) {
   af.location = APPLY_CHA; affect_to_char(ch, &af);
 
   /* Damage bonus: +2d8 on all attacks (custom damage affect, handled in combat logic) */
-  af.location = APPLY_NATURES_WRATH_DAMAGE;
+  af.location = SKILL_APPLY_NATURES_WRATH_DAMAGE;
   af.modifier = 2; /* 2d8 flag, actual roll handled elsewhere */
   affect_to_char(ch, &af);
 
   /* Fast healing 5: handled in regen logic, set a flag/affect */
-  af.location = APPLY_FAST_HEALING;
+  af.location = SKILL_APPLY_FAST_HEALING;
   af.modifier = 5;
   affect_to_char(ch, &af);
 
   /* Apply to companion if present */
   if (has_active_companion(ch)) {
-    struct char_data *pet = ch->companion;
+    struct char_data *pet = get_animal_companion_mob(ch);
     af.location = APPLY_STR; affect_to_char(pet, &af);
     af.location = APPLY_DEX; affect_to_char(pet, &af);
     af.location = APPLY_CON; affect_to_char(pet, &af);
     af.location = APPLY_INT; affect_to_char(pet, &af);
     af.location = APPLY_WIS; affect_to_char(pet, &af);
     af.location = APPLY_CHA; affect_to_char(pet, &af);
-    af.location = APPLY_NATURES_WRATH_DAMAGE; affect_to_char(pet, &af);
-    af.location = APPLY_FAST_HEALING; affect_to_char(pet, &af);
+    af.location = SKILL_APPLY_NATURES_WRATH_DAMAGE; affect_to_char(pet, &af);
+    af.location = SKILL_APPLY_FAST_HEALING; affect_to_char(pet, &af);
   }
 }
 
-bool has_active_companion(struct char_data *ch) {
-  return ch->companion != NULL;
-}
 /* Beast Master Capstone: Nature's Wrath */
 ACMD(do_natureswrath)
 {
@@ -14703,8 +14700,8 @@ ACMD(do_natureswrath)
   /* Apply powerful buff to ranger and companion */
   apply_natures_wrath_buff(ch);
   send_to_char(ch, "\tGYou unleash the fury of nature upon your foes!\tn\r\n");
-  if (has_active_companion(ch)) {
-    send_to_char(ch->companion, "\tGYou are empowered by your master's wrath!\tn\r\n");
+  if (get_animal_companion_mob(ch)) {
+    send_to_char(get_animal_companion_mob(ch), "\tGYou are empowered by your master's wrath!\tn\r\n");
   }
   /* Set cooldown (e.g., 24 hours) */
   SET_NATURES_WRATH_COOLDOWN(ch, 5 * 60);

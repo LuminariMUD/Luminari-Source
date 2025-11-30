@@ -1958,7 +1958,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
         GET_SAVE(mob, SAVING_FORT) += 3;
         GET_SAVE(mob, SAVING_REFL) += 3;
         GET_SAVE(mob, SAVING_WILL) += 3;
-        SET_BIT_AR(AFF_FLAGS(mob), AFF_IMMUNE_FEAR);
+        /* Fear immunity is checked via ranger_companion_immune_fear() in is_immune_fear() */
       }
     }
 

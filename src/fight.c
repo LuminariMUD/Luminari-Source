@@ -1,12 +1,3 @@
-  /* Nature's Wrath: +2d8 damage if affected */
-  struct affected_type *af;
-  for (af = ch->affected; af; af = af->next) {
-    if (af->location == APPLY_NATURES_WRATH_DAMAGE) {
-      dam += dice(2, 8);
-      send_to_char(ch, "\tG[Nature's Wrath +%ddmg]\tn ", dam);
-      break;
-    }
-  }
 /**************************************************************************
  *  File: fight.c                                      Part of LuminariMUD *
  *  Usage: Combat system.                                                  *
@@ -8386,6 +8377,14 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           send_combat_roll_info(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         }
+      }
+
+        /* Nature's Wrath: +2d8 damage if affected */
+      if (affected_by_spell(ch, SKILL_APPLY_NATURES_WRATH_DAMAGE))
+      {
+        dam += dice(2, 8);
+        send_combat_roll_info(ch, "\tG[Nature's Wrath +%ddmg]\tn ", dam);
+        send_combat_roll_info(victim, "\tG[Nature's Wrath +%ddmg]\tn ", dam);
       }
 
     } /* end wielded */
