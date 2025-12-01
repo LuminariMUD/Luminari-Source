@@ -3854,10 +3854,10 @@ void init_spell_levels(void)
 // level_exp ran with level+1 will give xp to next level
 // level_exp+1 - level_exp = exp to next level
 
-int level_exp(struct char_data *ch, int level)
+long int level_exp(struct char_data *ch, int level)
 {
   int chclass = GET_CLASS(ch);
-  int exp = 0, factor = 0;
+  long int exp = 0, factor = 0;
 
   if (level > (LVL_IMPL + 1) || level < 0)
   {

@@ -5723,7 +5723,7 @@ struct char_point_data
 
     int gold;      /**< Current gold carried on character */
     int bank_gold; /**< Gold the char has in a bank account	*/
-    int exp;       /**< The experience points, or value, of the character. */
+    long int exp;       /**< The experience points, or value, of the character. */
     int artisan_exp; /**< Artisan experience points from supply orders */
 
     sbyte hitroll; /**< Any bonus or penalty to the hit roll */

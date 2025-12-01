@@ -1,14 +1,3 @@
-/* Returns total fast healing from affects (Nature's Wrath, etc.) */
-int get_fast_healing_amount(struct char_data *ch) {
-  int amount = 0;
-  struct affected_type *af;
-  for (af = ch->affected; af; af = af->next) {
-    if (af->location == APPLY_FAST_HEALING) {
-      amount += af->modifier;
-    }
-  }
-  return amount;
-}
 /**************************************************************************
  *  File: limits.c                                     Part of LuminariMUD *
  *  Usage: Limits & gain funcs for HMV, exp, hunger/thirst, idle time.     *
@@ -638,10 +627,6 @@ int regen_hps(struct char_data *ch)
 
 /* this function handles poison, entry point for hps rege, and movement regen */
 void regen_update(struct char_data *ch)
-  /* Decrement Nature's Wrath cooldown if active */
-  if (!IS_NPC(ch) && ch->natures_wrath_cooldown > 0) {
-    ch->natures_wrath_cooldown--;
-  }
 {
   struct char_data *tch = NULL;
   int hp = 0, found = 0;
@@ -1199,10 +1184,10 @@ void run_autowiz(void)
 #define MIN_NUM_MOBS_TO_KILL_25 185
 int gain_exp(struct char_data *ch, int gain, int mode)
 {
-  int xp_to_lvl = 0;
-  int xp_to_lvl_cap = 0;
-  int gain_cap = 0;
-
+  long int xp_to_lvl = 0;
+  long int xp_to_lvl_cap = 0;
+  long int gain_cap = 0;
+  
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
     return 0;
 
@@ -1225,6 +1210,8 @@ int gain_exp(struct char_data *ch, int gain, int mode)
 
     if (GET_EXP(ch) > xp_to_lvl_cap && gain > 0 && GET_LEVEL(ch) < 30)
     {
+      send_to_char(ch, "exp: %d, cap: %d gain: %d level: %d\r\n", 
+        GET_EXP(ch), xp_to_lvl_cap, gain, GET_LEVEL(ch));
       send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
       return 0;
     }
@@ -1800,6 +1787,12 @@ void update_player_misc(void)
       {
         send_to_char(ch, "You can now forage for food again.\r\n");
       }
+    }
+
+    /* Decrement Nature's Wrath cooldown if active */
+    if (!IS_NPC(ch) && ch->natures_wrath_cooldown > 0)
+    {
+      ch->natures_wrath_cooldown--;
     }
 
     if (GET_SCROUNGE_COOLDOWN(ch) > 0)

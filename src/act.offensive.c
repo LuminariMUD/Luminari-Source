@@ -4912,7 +4912,8 @@ ACMD(do_flee)
   }
   else
   { // there is an argument, check if its valid
-    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR))
+    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !HAS_FEAT(ch, FEAT_NIMBLE_ESCAPE) && 
+        !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR))
     {
       send_to_char(ch, "You don't have the option to choose which way to flee!\r\n");
       return;
@@ -14662,14 +14663,15 @@ void apply_natures_wrath_buff(struct char_data *ch) {
   af.location = APPLY_WIS; affect_to_char(ch, &af);
   af.location = APPLY_CHA; affect_to_char(ch, &af);
 
-  /* Damage bonus: +2d8 on all attacks (custom damage affect, handled in combat logic) */
-  af.location = SKILL_APPLY_NATURES_WRATH_DAMAGE;
-  af.modifier = 2; /* 2d8 flag, actual roll handled elsewhere */
+  /* Fast healing 5: handled in regen logic, set a flag/affect */
+  af.location = APPLY_FAST_HEALING;
+  af.modifier = 5;
   affect_to_char(ch, &af);
 
-  /* Fast healing 5: handled in regen logic, set a flag/affect */
-  af.location = SKILL_APPLY_FAST_HEALING;
-  af.modifier = 5;
+    /* Damage bonus: +2d8 on all attacks (custom damage affect, handled in combat logic) */
+  af.spell = SKILL_APPLY_NATURES_WRATH_DAMAGE;
+  af.location = APPLY_SPECIAL;
+  af.modifier = 2; /* 2d8 flag, actual roll handled elsewhere */
   affect_to_char(ch, &af);
 
   /* Apply to companion if present */
@@ -14681,8 +14683,8 @@ void apply_natures_wrath_buff(struct char_data *ch) {
     af.location = APPLY_INT; affect_to_char(pet, &af);
     af.location = APPLY_WIS; affect_to_char(pet, &af);
     af.location = APPLY_CHA; affect_to_char(pet, &af);
-    af.location = SKILL_APPLY_NATURES_WRATH_DAMAGE; affect_to_char(pet, &af);
-    af.location = SKILL_APPLY_FAST_HEALING; affect_to_char(pet, &af);
+    af.location = APPLY_SPECIAL; affect_to_char(pet, &af);
+    af.location = APPLY_FAST_HEALING; affect_to_char(pet, &af);
   }
 }
 

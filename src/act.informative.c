@@ -3801,7 +3801,7 @@ ACMD(do_defenses)
   send_to_char(ch, "\tn\r\nNote that AC caps at %d, but having over %d is beneficial due to position changes and debuffs.\r\n", CONFIG_PLAYER_AC_CAP, CONFIG_PLAYER_AC_CAP);
   text_line(ch, "\tYFast Healing\tC", line_length, '-', '-');
   send_to_char(ch, "Fast Healing Amount: %d\r\n", get_fast_healing_amount(ch));
-send_to_char(ch, "\tC");
+  send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
 }
@@ -4020,9 +4020,9 @@ ACMD(do_score)
                MAGIC_LEVEL(ch));     /* Arcane spellcaster level */
   
   /* Display experience points and experience to next level */
-  send_to_char(ch, "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n",
+  send_to_char(ch, "\tcExp   : \tn%-24ld \tcExpTNL  : \tn%ld\r\n",
                GET_EXP(ch),          /* Current experience points */
-               (GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
+               (long)(GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
                 level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
   
   /* Display perk points for each class (only if perk system is enabled) */
@@ -7131,7 +7131,7 @@ ACMD(do_levels)
 
   for (i = min_lev; i < max_lev; i++)
   {
-    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8d-%-8d : ", (int)i,
+    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld-%-8ld : ", (int)i,
                     level_exp(ch, i), level_exp(ch, i + 1) - 1);
     if (len + nlen >= sizeof(buf))
       break;
@@ -7158,7 +7158,7 @@ ACMD(do_levels)
   }
 
   if (len < sizeof(buf) && max_lev == LVL_IMMORT)
-    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8d          : Immortality\r\n",
+    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld          : Immortality\r\n",
              LVL_IMMORT, level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
@@ -8533,8 +8533,8 @@ ACMD(do_hp)
 /* informational command requested by screenreader users */
 ACMD(do_tnl)
 {
-  send_to_char(ch, "You need %d experience points to reach your next level.\r\n",
-               level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  send_to_char(ch, "You need %ld experience points to reach your next level.\r\n",
+               (long)(level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
 }
 
 /* informational command requested by screenreader users */

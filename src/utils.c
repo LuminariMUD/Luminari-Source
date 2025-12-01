@@ -1,8 +1,3 @@
-/* Helper for Beast Master: Natural Empathy skill bonus */
-int get_natural_empathy_bonus(struct char_data *ch) {
-  int ranks = get_perk_rank(ch, PERK_NATURAL_EMPATHY);
-  return ranks * 2;
-}
 /**
  * @file utils.c                LuminariMUD
  * Various utility functions used within the core mud code.
@@ -1586,7 +1581,7 @@ int skill_roll(struct char_data *ch, int skillnum)
 
   /* Beast Master: Natural Empathy perk - +2 per rank to Animal Handling and Animal Empathy */
   if (!IS_NPC(ch)) {
-    if (skillnum == ABILITY_ANIMAL_HANDLING || skillnum == ABILITY_ANIMAL_EMPATHY) {
+    if (skillnum == ABILITY_ANIMAL_HANDLING) {
       int empathy_bonus = get_natural_empathy_bonus(ch); /* returns 2 * ranks */
       if (empathy_bonus > 0) {
         roll += empathy_bonus;
@@ -11286,6 +11281,12 @@ struct char_data *get_animal_companion_mob(struct char_data *ch)
       return k->follower;
   }
   return NULL;
+}
+
+/* Helper for Beast Master: Natural Empathy skill bonus */
+int get_natural_empathy_bonus(struct char_data *ch) {
+  int ranks = get_perk_rank(ch, PERK_RANGER_NATURAL_EMPATHY_I, CLASS_RANGER);
+  return ranks * 2;
 }
 
 /* EoF */

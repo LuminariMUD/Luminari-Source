@@ -928,7 +928,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
                   "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
 
                   "(%sA%s) Armor Class: %s[%s%4d (%2d) %s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
-                  "(%sB%s) Exp Points:  %s[%s%10d%s]%s   (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
+                  "(%sB%s) Exp Points:  %s[%s%10ld%s]%s   (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
                   "(%sC%s) Gold:        %s[%s%10d%s]%s   (%sR%s) Damage Reduction: %s[%s%d%s]%s\r\n\r\n",
                   cyn, yel, OLC_NUM(d), cyn, nrm,
                   cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm,

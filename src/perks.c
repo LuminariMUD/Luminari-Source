@@ -28,8 +28,6 @@
 
 #include "spells.h"
 
-/* External function from class.c */
-extern int level_exp(struct char_data *ch, int level);
 #include "interpreter.h"
 #include "constants.h"
 #include "perks.h"
@@ -5714,9 +5712,6 @@ const char *get_perk_category_name(int perk_category)
  * is divided into 4 stages, each requiring 25% of the total level XP.
  *****************************************************************************/
 
-/* External function from class.c */
-extern int level_exp(struct char_data *ch, int level);
-
 /**
  * Initialize stage data for a new character or character without stage data.
  * Sets them to stage 0 with 0 stage XP so they can advance through stages 1-3
@@ -7166,6 +7161,21 @@ bool has_primal_vigor(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_RANGER_PRIMAL_VIGOR);
+}
+
+/**
+ * Check if ranger has Shared Spells perk (Beast Master tree).
+ * Allows beneficial spells cast on the ranger to also affect their animal companion.
+ * 
+ * @param ch The ranger
+ * @return TRUE if has perk
+ */
+bool has_shared_spells(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_SHARED_SPELLS);
 }
 
 /**

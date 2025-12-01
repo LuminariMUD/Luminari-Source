@@ -92,6 +92,7 @@ int get_coordinated_attack_damage(struct char_data *ch);
 int get_primal_avatar_damage(struct char_data *ch);
 int get_natures_remedy_bonus(struct char_data *ch);
 bool has_primal_vigor(struct char_data *ch);
+bool has_shared_spells(struct char_data *ch);
 int get_ranger_conjuration_dc_bonus(struct char_data *ch);
 int get_greater_summons_hp_bonus(struct char_data *ch);
 int get_greater_summons_damage(struct char_data *ch);

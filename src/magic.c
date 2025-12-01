@@ -3306,12 +3306,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL || ch == NULL)
     return;
   
-  /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion */
-  if (!recursive_call && !IS_NPC(ch) && has_shared_spells(ch) && ch == victim)
+  /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion 
+   * Only shares non-violent (beneficial) spells cast on self to animal companions.
+   * Uses recursive_call flag to prevent infinite loops when applying to companion.
+   */
+  if (!recursive_call && !IS_NPC(ch) && has_shared_spells(ch) && ch == victim && !spell_info[spellnum].violent)
   {
     struct follow_type *fol;
     for (fol = ch->followers; fol; fol = fol->next)
     {
+      /* Check for animal companion: must be NPC, have MOB_C_ANIMAL flag, and be charmed */
       if (IS_NPC(fol->follower) && MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && AFF_FLAGGED(fol->follower, AFF_CHARM))
       {
         mag_affects_full(level, ch, fol->follower, wpn, spellnum, savetype, casttype, metamagic, true);

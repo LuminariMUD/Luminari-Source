@@ -604,9 +604,9 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   if (pos == POS_FIGHTING)
     pos = POS_STANDING;
 
-  fprintf(fd, "%d %d\n"
+    fprintf(fd, "%d %ld\n"
               "%d %d %d\n",
-          GET_GOLD(mob), GET_EXP(mob),
+      GET_GOLD(mob), GET_EXP(mob),
           GET_POS(mob), pos, GET_SEX(mob));
 
   if (write_mobile_espec(mvnum, mob, fd) < 0)

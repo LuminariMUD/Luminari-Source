@@ -2387,7 +2387,7 @@ void save_char(struct char_data *ch, int mode)
   if (GET_BANK_GOLD(ch) != PFDEF_BANK)
     BUFFER_WRITE( "Bank: %d\n", GET_BANK_GOLD(ch));
   if (GET_EXP(ch) != PFDEF_EXP)
-    BUFFER_WRITE( "Exp : %d\n", GET_EXP(ch));
+    BUFFER_WRITE( "Exp : %ld\n", GET_EXP(ch));
   if (GET_ARTISAN_EXP(ch) != 0)
     BUFFER_WRITE( "AExp: %d\n", GET_ARTISAN_EXP(ch));
   if (GET_HITROLL(ch) != PFDEF_HITROLL)

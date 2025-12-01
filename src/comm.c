@@ -1779,10 +1779,10 @@ static char *make_prompt(struct descriptor_data *d)
       /* display exp to next level */
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%d ",
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%ld ",
                          CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-                         level_exp(d->character, GET_LEVEL(d->character) + 1) -
-                             GET_EXP(d->character));
+                         (long)(level_exp(d->character, GET_LEVEL(d->character) + 1) -
+                             GET_EXP(d->character)));
         if (count >= 0)
           len += count;
       }

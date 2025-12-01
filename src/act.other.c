@@ -6397,14 +6397,14 @@ static void print_group(struct char_data *ch)
     else
       psp_clr = CBFRED(ch, C_NRM);
 
-    send_to_char(ch, "%s%-*s: %s [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d TNL]%s\r\n",
+    send_to_char(ch, "%s%-*s: %s [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%ld TNL]%s\r\n",
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
                  count_color_chars(GET_NAME(k)) + 30, GET_NAME(k),
                  IN_ROOM(ch) == IN_ROOM(k) ? "\tYInRoom\tn" : "\tRAbsent\tn",
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
                  psp_clr, (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_PSP(k), (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_MAX_PSP(k),
                  mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
-                 MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
+                 (long)MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
                  CCNRM(ch, C_NRM));
   }
 }
@@ -6868,11 +6868,11 @@ ACMD(do_report)
 
   /* generalized output due to send_to_room */
   // send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
-  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV, %d/%dP, %d XP TNL\r\n",
+  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV, %d/%dP, %ld XP TNL\r\n",
                GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
                GET_MOVE(ch), GET_MAX_MOVE(ch),
                GET_PSP(ch), GET_MAX_PSP(ch),
-               MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
+               (long)MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
 }
 
 ACMD(do_split)

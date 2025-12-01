@@ -1150,10 +1150,9 @@
 #define SKILL_HOLY_AVENGER 2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
 #define SKILL_BEACON_OF_HOPE 2236 // Paladin Divine Champion - Tier 4 (party buff)
 #define SKILL_APPLY_NATURES_WRATH_DAMAGE 2237 /* Custom: +2d8 damage for Nature's Wrath */
-#define SKILL_APPLY_FAST_HEALING 2238       /* Custom: Fast healing value for Nature's Wrath */
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2239 // Total number of skills (increment when adding new skills)
+#define NUM_SKILLS 2238 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 
@@ -1400,6 +1399,7 @@
 #define ABILITY_DISGUISE 24         /* diguise, matches pfsrd */
 #define ABILITY_UNUSED_2 25         /* unused, used to be escape artist */
 #define ABILITY_HANDLE_ANIMAL 26    /* handle animal, matches pfsrd */
+#define ABILITY_ANIMAL_HANDLING ABILITY_HANDLE_ANIMAL
 #define ABILITY_UNUSED_7 27         /* UNUSED - use to be jump */
 #define ABILITY_SENSE_MOTIVE 28     /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
