@@ -354,6 +354,9 @@ circle
 /*.gz
 /*.tar.gz
 
+# Ignore MySQL backup files in root
+/mysql*.sql
+
 ####################
 # Aider AI Assistant
 ####################
