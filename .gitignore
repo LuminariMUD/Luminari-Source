@@ -202,7 +202,9 @@ syslog.CRASH
 gdb.txt
 log/gdb.txt
 .gdbcommands
+.gdbcommands.*
 .gdbinit_mud
+.gdbinit_mud.*
 core
 core.*
 vgcore.*
