@@ -167,19 +167,52 @@ void init_ai_service(void) {
   }
   AI_DEBUG("AI configuration allocated at %p", (void*)ai_state.config);
   
-  /* Set default configuration */
+  /* Set default configuration - all values can be overridden from .env */
   AI_DEBUG("Setting default configuration values");
-  strcpy(ai_state.config->model, "gpt-4o-mini");   /* Latest fast model */
-  AI_DEBUG("  Model: %s", ai_state.config->model);
-  ai_state.config->max_tokens = AI_MAX_TOKENS;
-  AI_DEBUG("  Max tokens: %d", ai_state.config->max_tokens);
-  ai_state.config->temperature = 0.3;  /* Lower temperature for faster responses */
-  AI_DEBUG("  Temperature: %.2f", ai_state.config->temperature);
-  ai_state.config->timeout_ms = AI_TIMEOUT_MS;
-  AI_DEBUG("  Timeout: %d ms", ai_state.config->timeout_ms);
+
+  /* OpenAI defaults */
+  strlcpy(ai_state.config->openai_endpoint, DEFAULT_OPENAI_API_ENDPOINT,
+          sizeof(ai_state.config->openai_endpoint));
+  AI_DEBUG("  OpenAI endpoint: %s", ai_state.config->openai_endpoint);
+  strlcpy(ai_state.config->model, "gpt-4o-mini", sizeof(ai_state.config->model));
+  AI_DEBUG("  OpenAI model: %s", ai_state.config->model);
+  ai_state.config->max_tokens = DEFAULT_AI_MAX_TOKENS;
+  AI_DEBUG("  OpenAI max tokens: %d", ai_state.config->max_tokens);
+  ai_state.config->temperature = 0.3f;  /* Default for consistent NPC responses */
+  AI_DEBUG("  OpenAI temperature: %.2f", ai_state.config->temperature);
+  ai_state.config->timeout_ms = DEFAULT_AI_TIMEOUT_MS;
+  AI_DEBUG("  OpenAI timeout: %d ms", ai_state.config->timeout_ms);
+
+  /* Ollama defaults */
+  strlcpy(ai_state.config->ollama_endpoint, DEFAULT_OLLAMA_API_ENDPOINT,
+          sizeof(ai_state.config->ollama_endpoint));
+  AI_DEBUG("  Ollama endpoint: %s", ai_state.config->ollama_endpoint);
+  strlcpy(ai_state.config->ollama_model, DEFAULT_OLLAMA_MODEL,
+          sizeof(ai_state.config->ollama_model));
+  AI_DEBUG("  Ollama model: %s", ai_state.config->ollama_model);
+  ai_state.config->ollama_timeout_ms = DEFAULT_OLLAMA_TIMEOUT_MS;
+  AI_DEBUG("  Ollama timeout: %d ms", ai_state.config->ollama_timeout_ms);
+  ai_state.config->ollama_max_tokens = DEFAULT_OLLAMA_MAX_TOKENS;
+  AI_DEBUG("  Ollama max tokens: %d", ai_state.config->ollama_max_tokens);
+  ai_state.config->ollama_temperature = (float)DEFAULT_OLLAMA_TEMPERATURE / 10.0f;
+  AI_DEBUG("  Ollama temperature: %.2f", ai_state.config->ollama_temperature);
+  ai_state.config->ollama_top_k = DEFAULT_OLLAMA_TOP_K;
+  AI_DEBUG("  Ollama top_k: %d", ai_state.config->ollama_top_k);
+  ai_state.config->ollama_top_p = (float)DEFAULT_OLLAMA_TOP_P / 100.0f;
+  AI_DEBUG("  Ollama top_p: %.2f", ai_state.config->ollama_top_p);
+
+  /* General settings */
+  ai_state.config->max_retries = DEFAULT_AI_MAX_RETRIES;
+  AI_DEBUG("  Max retries: %d", ai_state.config->max_retries);
+  ai_state.config->cache_expire_seconds = DEFAULT_AI_CACHE_EXPIRE_TIME;
+  AI_DEBUG("  Cache expire: %d seconds", ai_state.config->cache_expire_seconds);
+  ai_state.config->max_cache_size = DEFAULT_AI_MAX_CACHE_SIZE;
+  AI_DEBUG("  Max cache size: %d", ai_state.config->max_cache_size);
+  ai_state.config->debug_mode = DEFAULT_AI_DEBUG_MODE;
+  AI_DEBUG("  Debug mode: %s", ai_state.config->debug_mode ? "ON" : "OFF");
   ai_state.config->content_filter_enabled = TRUE;
   AI_DEBUG("  Content filter: %s", ai_state.config->content_filter_enabled ? "ENABLED" : "DISABLED");
-  ai_state.config->enabled = FALSE;  /* Disabled by default */
+  ai_state.config->enabled = FALSE;  /* Disabled by default, use 'ai enable' in-game */
   AI_DEBUG("  Service enabled: %s", ai_state.config->enabled ? "YES" : "NO");
   
   /* Allocate rate limiter */
@@ -337,85 +370,140 @@ bool is_ai_enabled(void) {
  * - ai_security.c: encrypt_api_key() for secure storage
  */
 void load_ai_config(void) {
-  char *api_key;
-  char *model;
-  
+  char *str_val;
+
   AI_DEBUG("Loading AI configuration from environment");
-  
+
   if (!ai_state.config) {
     log("SYSERR: AI config not allocated");
     AI_DEBUG("ERROR: ai_state.config is NULL");
     return;
   }
-  
-  /* Load API key from .env */
-  AI_DEBUG("Looking for OPENAI_API_KEY in environment");
-  api_key = get_env_value("OPENAI_API_KEY");
-  if (api_key && *api_key) {
-    AI_DEBUG("  Found API key (length=%zu)", strlen(api_key));
-    AI_DEBUG("  First 10 chars: %.10s...", api_key);
-    /* Encrypt and store the API key */
-    encrypt_api_key(api_key, ai_state.config->encrypted_api_key);
-    AI_DEBUG("  API key encrypted and stored");
-    log("AI Service: API key loaded from .env file");
+
+  /*=========================================================================
+   * General AI Settings
+   *=========================================================================*/
+  AI_DEBUG("Loading general AI settings");
+
+  ai_state.config->debug_mode = get_env_int("AI_DEBUG_MODE", DEFAULT_AI_DEBUG_MODE);
+  AI_DEBUG("  Debug mode: %s", ai_state.config->debug_mode ? "ON" : "OFF");
+
+  ai_state.config->max_retries = get_env_int("AI_MAX_RETRIES", DEFAULT_AI_MAX_RETRIES);
+  AI_DEBUG("  Max retries: %d", ai_state.config->max_retries);
+
+  ai_state.config->max_cache_size = get_env_int("AI_MAX_CACHE_SIZE", DEFAULT_AI_MAX_CACHE_SIZE);
+  AI_DEBUG("  Max cache size: %d", ai_state.config->max_cache_size);
+
+  ai_state.config->cache_expire_seconds = get_env_int("AI_CACHE_EXPIRE_SECONDS", DEFAULT_AI_CACHE_EXPIRE_TIME);
+  AI_DEBUG("  Cache expire: %d seconds", ai_state.config->cache_expire_seconds);
+
+  ai_state.config->content_filter_enabled = get_env_bool("AI_CONTENT_FILTER_ENABLED", TRUE);
+  AI_DEBUG("  Content filter: %s", ai_state.config->content_filter_enabled ? "ENABLED" : "DISABLED");
+
+  /*=========================================================================
+   * OpenAI Configuration
+   *=========================================================================*/
+  AI_DEBUG("Loading OpenAI configuration");
+
+  /* API Key */
+  str_val = get_env_value("OPENAI_API_KEY");
+  if (str_val && *str_val) {
+    AI_DEBUG("  Found API key (length=%zu)", strlen(str_val));
+    encrypt_api_key(str_val, ai_state.config->encrypted_api_key);
+    log("AI Service: OpenAI API key loaded from .env");
   } else {
-    AI_DEBUG("  No API key found in environment");
-    log("AI Service: No API key found in .env file (OPENAI_API_KEY)");
+    AI_DEBUG("  No OpenAI API key found (Ollama-only mode)");
+    log("AI Service: No OpenAI API key found - using Ollama-only mode");
   }
-  
-  /* Load model configuration */
-  AI_DEBUG("Looking for AI_MODEL in environment");
-  model = get_env_value("AI_MODEL");
-  if (model && *model) {
-    AI_DEBUG("  Found model: %s", model);
-    strlcpy(ai_state.config->model, model, sizeof(ai_state.config->model));
-  } else {
-    AI_DEBUG("  Using default model: %s", ai_state.config->model);
+
+  /* OpenAI Endpoint */
+  str_val = get_env_value("OPENAI_API_ENDPOINT");
+  if (str_val && *str_val) {
+    strlcpy(ai_state.config->openai_endpoint, str_val, sizeof(ai_state.config->openai_endpoint));
+    AI_DEBUG("  OpenAI endpoint: %s", ai_state.config->openai_endpoint);
   }
-  
-  /* Load numeric configurations */
-  AI_DEBUG("Loading numeric configurations");
-  ai_state.config->max_tokens = get_env_int("AI_MAX_TOKENS", AI_MAX_TOKENS);
-  AI_DEBUG("  Max tokens: %d (env: %s)", ai_state.config->max_tokens, 
-           get_env_value("AI_MAX_TOKENS") ? "set" : "default");
-           
-  ai_state.config->temperature = (float)get_env_int("AI_TEMPERATURE", 7) / 10.0;
-  AI_DEBUG("  Temperature: %.2f (env: %s)", ai_state.config->temperature,
-           get_env_value("AI_TEMPERATURE") ? "set" : "default");
-  
-  /* Load timeout with validation */
-  ai_state.config->timeout_ms = get_env_int("AI_TIMEOUT_MS", AI_TIMEOUT_MS);
-  AI_DEBUG("  Raw timeout value: %d ms", ai_state.config->timeout_ms);
+
+  /* OpenAI Model */
+  str_val = get_env_value("AI_MODEL");
+  if (str_val && *str_val) {
+    strlcpy(ai_state.config->model, str_val, sizeof(ai_state.config->model));
+  }
+  AI_DEBUG("  OpenAI model: %s", ai_state.config->model);
+
+  /* OpenAI Max Tokens */
+  ai_state.config->max_tokens = get_env_int("AI_MAX_TOKENS", DEFAULT_AI_MAX_TOKENS);
+  AI_DEBUG("  OpenAI max tokens: %d", ai_state.config->max_tokens);
+
+  /* OpenAI Temperature (integer 0-10, divided by 10) */
+  ai_state.config->temperature = (float)get_env_int("AI_TEMPERATURE", 3) / 10.0f;
+  AI_DEBUG("  OpenAI temperature: %.2f", ai_state.config->temperature);
+
+  /* OpenAI Timeout with validation */
+  ai_state.config->timeout_ms = get_env_int("AI_TIMEOUT_MS", DEFAULT_AI_TIMEOUT_MS);
   if (ai_state.config->timeout_ms < 1) {
     log("AI Service: Invalid timeout_ms %d, using minimum 1ms", ai_state.config->timeout_ms);
-    AI_DEBUG("  Timeout too low, adjusting to 1ms");
     ai_state.config->timeout_ms = 1;
   } else if (ai_state.config->timeout_ms > 300000) {
-    log("AI Service: Timeout_ms %d exceeds maximum, clamping to 300000ms (5 minutes)", 
-        ai_state.config->timeout_ms);
-    AI_DEBUG("  Timeout too high, clamping to 300000ms");
+    log("AI Service: Timeout_ms %d exceeds maximum, clamping to 300000ms", ai_state.config->timeout_ms);
     ai_state.config->timeout_ms = 300000;
   }
-  AI_DEBUG("  Final timeout: %d ms", ai_state.config->timeout_ms);
-  
-  ai_state.config->content_filter_enabled = get_env_bool("AI_CONTENT_FILTER_ENABLED", TRUE);
-  AI_DEBUG("  Content filter: %s (env: %s)", 
-           ai_state.config->content_filter_enabled ? "ENABLED" : "DISABLED",
-           get_env_value("AI_CONTENT_FILTER_ENABLED") ? "set" : "default");
-  
-  /* Load rate limits */
+  AI_DEBUG("  OpenAI timeout: %d ms", ai_state.config->timeout_ms);
+
+  /*=========================================================================
+   * Ollama Configuration
+   *=========================================================================*/
+  AI_DEBUG("Loading Ollama configuration");
+
+  /* Ollama Endpoint */
+  str_val = get_env_value("OLLAMA_API_ENDPOINT");
+  if (str_val && *str_val) {
+    strlcpy(ai_state.config->ollama_endpoint, str_val, sizeof(ai_state.config->ollama_endpoint));
+  }
+  AI_DEBUG("  Ollama endpoint: %s", ai_state.config->ollama_endpoint);
+
+  /* Ollama Model */
+  str_val = get_env_value("OLLAMA_MODEL");
+  if (str_val && *str_val) {
+    strlcpy(ai_state.config->ollama_model, str_val, sizeof(ai_state.config->ollama_model));
+  }
+  AI_DEBUG("  Ollama model: %s", ai_state.config->ollama_model);
+
+  /* Ollama Timeout */
+  ai_state.config->ollama_timeout_ms = get_env_int("OLLAMA_TIMEOUT_MS", DEFAULT_OLLAMA_TIMEOUT_MS);
+  if (ai_state.config->ollama_timeout_ms < 1000) {
+    ai_state.config->ollama_timeout_ms = 1000;  /* Minimum 1 second for model loading */
+  } else if (ai_state.config->ollama_timeout_ms > 120000) {
+    ai_state.config->ollama_timeout_ms = 120000;  /* Max 2 minutes */
+  }
+  AI_DEBUG("  Ollama timeout: %d ms", ai_state.config->ollama_timeout_ms);
+
+  /* Ollama Max Tokens (num_predict) */
+  ai_state.config->ollama_max_tokens = get_env_int("OLLAMA_MAX_TOKENS", DEFAULT_OLLAMA_MAX_TOKENS);
+  AI_DEBUG("  Ollama max tokens: %d", ai_state.config->ollama_max_tokens);
+
+  /* Ollama Temperature (integer 0-10, divided by 10) */
+  ai_state.config->ollama_temperature = (float)get_env_int("OLLAMA_TEMPERATURE", DEFAULT_OLLAMA_TEMPERATURE) / 10.0f;
+  AI_DEBUG("  Ollama temperature: %.2f", ai_state.config->ollama_temperature);
+
+  /* Ollama Top-K */
+  ai_state.config->ollama_top_k = get_env_int("OLLAMA_TOP_K", DEFAULT_OLLAMA_TOP_K);
+  AI_DEBUG("  Ollama top_k: %d", ai_state.config->ollama_top_k);
+
+  /* Ollama Top-P (integer 0-100, divided by 100) */
+  ai_state.config->ollama_top_p = (float)get_env_int("OLLAMA_TOP_P", DEFAULT_OLLAMA_TOP_P) / 100.0f;
+  AI_DEBUG("  Ollama top_p: %.2f", ai_state.config->ollama_top_p);
+
+  /*=========================================================================
+   * Rate Limiting
+   *=========================================================================*/
   if (ai_state.limiter) {
     AI_DEBUG("Loading rate limit configuration");
     ai_state.limiter->requests_per_minute = get_env_int("AI_REQUESTS_PER_MINUTE", 60);
-    AI_DEBUG("  Requests per minute: %d (env: %s)", ai_state.limiter->requests_per_minute,
-             get_env_value("AI_REQUESTS_PER_MINUTE") ? "set" : "default");
+    AI_DEBUG("  Requests per minute: %d", ai_state.limiter->requests_per_minute);
     ai_state.limiter->requests_per_hour = get_env_int("AI_REQUESTS_PER_HOUR", 1000);
-    AI_DEBUG("  Requests per hour: %d (env: %s)", ai_state.limiter->requests_per_hour,
-             get_env_value("AI_REQUESTS_PER_HOUR") ? "set" : "default");
-  } else {
-    AI_DEBUG("WARNING: Rate limiter not allocated, skipping rate limit config");
+    AI_DEBUG("  Requests per hour: %d", ai_state.limiter->requests_per_hour);
   }
-  
+
   AI_DEBUG("AI configuration loading complete");
   log("AI configuration loaded from .env");
 }
@@ -534,8 +622,8 @@ static char *make_api_request_single(const char *prompt) {
   
   /* Configure CURL */
   AI_DEBUG("Configuring CURL options");
-  curl_easy_setopt(curl, CURLOPT_URL, OPENAI_API_ENDPOINT);
-  AI_DEBUG("  URL: %s", OPENAI_API_ENDPOINT);
+  curl_easy_setopt(curl, CURLOPT_URL, ai_state.config->openai_endpoint);
+  AI_DEBUG("  URL: %s", ai_state.config->openai_endpoint);
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   AI_DEBUG("  Headers set");
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request);
@@ -640,27 +728,28 @@ static char *make_api_request_single(const char *prompt) {
 static char *make_api_request(const char *prompt) {
   char *result = NULL;
   int retry_count = 0;
-  
-  AI_DEBUG("make_api_request() called with max retries: %d", AI_MAX_RETRIES);
-  
-  while (retry_count < AI_MAX_RETRIES) {
-    AI_DEBUG("Attempt %d/%d", retry_count + 1, AI_MAX_RETRIES);
+  int max_retries = ai_state.config ? ai_state.config->max_retries : DEFAULT_AI_MAX_RETRIES;
+
+  AI_DEBUG("make_api_request() called with max retries: %d", max_retries);
+
+  while (retry_count < max_retries) {
+    AI_DEBUG("Attempt %d/%d", retry_count + 1, max_retries);
     result = make_api_request_single(prompt);
     if (result) {
       AI_DEBUG("Request succeeded on attempt %d", retry_count + 1);
       return result;
     }
-    
+
     retry_count++;
-    if (retry_count < AI_MAX_RETRIES) {
+    if (retry_count < max_retries) {
       /* Simple exponential backoff using sleep */
       int sleep_time = 1 << retry_count;
       AI_DEBUG("Request failed, sleeping for %d seconds before retry", sleep_time);
       sleep(sleep_time);
     }
   }
-  
-  AI_DEBUG("All %d OpenAI attempts failed, trying Ollama fallback", AI_MAX_RETRIES);
+
+  AI_DEBUG("All %d OpenAI attempts failed, trying Ollama fallback", max_retries);
   
   /* Try Ollama as a fallback when OpenAI fails */
   result = make_ollama_request(prompt);
@@ -1212,21 +1301,42 @@ static void warmup_ollama_model(void) {
   CURL *curl;
   CURLcode res;
   long http_code = 0;
-  
-  log("AI Service: Warming up Ollama model (%s) at %s...", OLLAMA_MODEL, OLLAMA_API_ENDPOINT);
+  const char *endpoint;
+  const char *model;
+  char tags_url[512];
+
+  /* Get settings from config or use defaults */
+  if (ai_state.config) {
+    endpoint = ai_state.config->ollama_endpoint;
+    model = ai_state.config->ollama_model;
+  } else {
+    endpoint = DEFAULT_OLLAMA_API_ENDPOINT;
+    model = DEFAULT_OLLAMA_MODEL;
+  }
+
+  log("AI Service: Warming up Ollama model (%s) at %s...", model, endpoint);
   AI_DEBUG("Starting Ollama warmup with test prompt");
-  
+
+  /* Build the tags URL from the endpoint (replace /api/generate with /api/tags) */
+  strlcpy(tags_url, endpoint, sizeof(tags_url));
+  {
+    char *p = strstr(tags_url, "/api/generate");
+    if (p) {
+      strlcpy(p, "/api/tags", sizeof(tags_url) - (p - tags_url));
+    }
+  }
+
   /* First check if Ollama service is even reachable */
   curl = curl_easy_init();
   if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:11434/api/tags");
+    curl_easy_setopt(curl, CURLOPT_URL, tags_url);
     curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);  /* HEAD request */
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000L);  /* Quick 1 second timeout */
     res = curl_easy_perform(curl);
-    
+
     if (res != CURLE_OK) {
       if (res == CURLE_COULDNT_CONNECT) {
-        log("AI Service: ERROR - Cannot connect to Ollama at localhost:11434 (is Ollama running?)");
+        log("AI Service: ERROR - Cannot connect to Ollama (is Ollama running?)");
         log("AI Service: Run 'systemctl status ollama' or 'ollama serve' to start Ollama");
       } else if (res == CURLE_OPERATION_TIMEDOUT) {
         log("AI Service: ERROR - Ollama connection timed out (service may be overloaded)");
@@ -1236,30 +1346,30 @@ static void warmup_ollama_model(void) {
       curl_easy_cleanup(curl);
       return;
     }
-    
+
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     curl_easy_cleanup(curl);
-    
+
     if (http_code != 200 && http_code != 0) {
       log("AI Service: WARNING - Ollama service returned unexpected status: %ld", http_code);
     }
   }
-  
+
   /* Make a simple test request to load the model into memory */
   test_response = make_ollama_request("Hello");
-  
+
   if (test_response) {
-    log("AI Service: Ollama model %s warmed up successfully (response length: %zu)", 
-        OLLAMA_MODEL, strlen(test_response));
-    AI_DEBUG("Ollama warmup successful, response: %.100s%s", 
+    log("AI Service: Ollama model %s warmed up successfully (response length: %zu)",
+        model, strlen(test_response));
+    AI_DEBUG("Ollama warmup successful, response: %.100s%s",
              test_response, strlen(test_response) > 100 ? "..." : "");
     free(test_response);
   } else {
-    log("AI Service: ERROR - Ollama model %s warmup failed", OLLAMA_MODEL);
+    log("AI Service: ERROR - Ollama model %s warmup failed", model);
     log("AI Service: Possible issues:");
-    log("  - Model not installed: run 'ollama pull %s'", OLLAMA_MODEL);
+    log("  - Model not installed: run 'ollama pull %s'", model);
     log("  - Service not running: run 'systemctl start ollama' or 'ollama serve'");
-    log("  - Model loading timeout: try a smaller model or increase timeout");
+    log("  - Model loading timeout: try a smaller model or increase OLLAMA_TIMEOUT_MS");
     AI_DEBUG("Ollama warmup failed - model may not be loaded");
   }
 }
@@ -1370,34 +1480,60 @@ static char *build_ollama_json_request(const char *prompt) {
   char system_suffix[] = " Respond in character briefly:";
   int written;
   int escape_result;
-  
+  const char *model;
+  int num_predict;
+  float temperature, top_p;
+  int top_k;
+
   AI_DEBUG("Building Ollama JSON request for prompt: '%.50s%s'",
            prompt, strlen(prompt) > 50 ? "..." : "");
-  
+
+  /* Get settings from config or use defaults */
+  if (ai_state.config) {
+    model = ai_state.config->ollama_model;
+    num_predict = ai_state.config->ollama_max_tokens;
+    temperature = ai_state.config->ollama_temperature;
+    top_k = ai_state.config->ollama_top_k;
+    top_p = ai_state.config->ollama_top_p;
+  } else {
+    model = DEFAULT_OLLAMA_MODEL;
+    num_predict = DEFAULT_OLLAMA_MAX_TOKENS;
+    temperature = (float)DEFAULT_OLLAMA_TEMPERATURE / 10.0f;
+    top_k = DEFAULT_OLLAMA_TOP_K;
+    top_p = (float)DEFAULT_OLLAMA_TOP_P / 100.0f;
+  }
+
+  AI_DEBUG("  Using model: %s, num_predict: %d, temp: %.2f, top_k: %d, top_p: %.2f",
+           model, num_predict, temperature, top_k, top_p);
+
   /* Escape the prompt for JSON */
   escape_result = json_escape_string(escaped_prompt, sizeof(escaped_prompt), prompt);
   if (escape_result < 0) {
     log("SYSERR: Failed to escape prompt for Ollama JSON - string too long");
     return NULL;
   }
-  
-  /* Build the JSON request manually with proper escaping already done */
+
+  /* Build the JSON request with configured values */
   written = snprintf(json_buffer, sizeof(json_buffer),
     "{"
       "\"model\":\"%s\","
       "\"prompt\":\"%s%s%s\","
       "\"stream\":false,"
       "\"options\":{"
-        "\"num_predict\":100,"
-        "\"temperature\":0.7,"
-        "\"top_k\":40,"
-        "\"top_p\":0.9"
+        "\"num_predict\":%d,"
+        "\"temperature\":%.2f,"
+        "\"top_k\":%d,"
+        "\"top_p\":%.2f"
       "}"
     "}",
-    OLLAMA_MODEL,
+    model,
     system_prefix,
     escaped_prompt,
-    system_suffix
+    system_suffix,
+    num_predict,
+    temperature,
+    top_k,
+    top_p
   );
   
   if (written < 0 || written >= (int)sizeof(json_buffer)) {
@@ -1506,17 +1642,28 @@ static char *make_ollama_request(const char *prompt) {
   char *json_request;
   char *result = NULL;
   long http_code;
-  
+  const char *endpoint;
+  long timeout_ms;
+
   AI_DEBUG("make_ollama_request() called with prompt: '%.50s%s'",
            prompt, strlen(prompt) > 50 ? "..." : "");
-  
+
+  /* Get settings from config or use defaults */
+  if (ai_state.config) {
+    endpoint = ai_state.config->ollama_endpoint;
+    timeout_ms = ai_state.config->ollama_timeout_ms;
+  } else {
+    endpoint = DEFAULT_OLLAMA_API_ENDPOINT;
+    timeout_ms = DEFAULT_OLLAMA_TIMEOUT_MS;
+  }
+
   /* Build JSON request */
   json_request = build_ollama_json_request(prompt);
   if (!json_request) {
     AI_DEBUG("ERROR: Failed to build Ollama JSON request");
     return NULL;
   }
-  
+
   /* Initialize CURL */
   curl = curl_easy_init();
   if (!curl) {
@@ -1524,19 +1671,19 @@ static char *make_ollama_request(const char *prompt) {
     free(json_request);
     return NULL;
   }
-  
+
   /* Set headers (no auth needed for local Ollama) */
   headers = curl_slist_append(headers, "Content-Type: application/json");
-  
+
   /* Configure CURL for Ollama */
-  curl_easy_setopt(curl, CURLOPT_URL, OLLAMA_API_ENDPOINT);
+  curl_easy_setopt(curl, CURLOPT_URL, endpoint);
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-  curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L); /* 10 second timeout for local (model may need to load) */
-  
-  AI_DEBUG("Executing Ollama request to %s", OLLAMA_API_ENDPOINT);
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_ms);
+
+  AI_DEBUG("Executing Ollama request to %s (timeout: %ld ms)", endpoint, timeout_ms);
   res = curl_easy_perform(curl);
   
   if (res == CURLE_OK) {
@@ -1555,8 +1702,8 @@ static char *make_ollama_request(const char *prompt) {
         }
       }
     } else if (http_code == 404) {
-      log("AI Service: ERROR - Ollama model %s not found (run: ollama pull %s)", 
-          OLLAMA_MODEL, OLLAMA_MODEL);
+      const char *m = ai_state.config ? ai_state.config->ollama_model : DEFAULT_OLLAMA_MODEL;
+      log("AI Service: ERROR - Ollama model %s not found (run: ollama pull %s)", m, m);
     } else if (http_code == 500) {
       log("AI Service: ERROR - Ollama internal server error (check ollama logs)");
     } else if (http_code == 0) {
@@ -1717,13 +1864,16 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
   if (response) {
     ai_cache_response(sanitized_prompt, response);
     log("AI Service: Request type %d completed successfully", request_type);
-  } else if (retry_count < AI_MAX_RETRIES) {
-    /* Log that we need to retry */
-    log("AI Service: Request type %d failed, retry %d/%d pending", 
-        request_type, retry_count + 1, AI_MAX_RETRIES);
   } else {
-    /* Final failure */
-    log("AI Service: Request type %d failed after %d retries", request_type, AI_MAX_RETRIES);
+    int max_retries = ai_state.config ? ai_state.config->max_retries : DEFAULT_AI_MAX_RETRIES;
+    if (retry_count < max_retries) {
+      /* Log that we need to retry */
+      log("AI Service: Request type %d failed, retry %d/%d pending",
+          request_type, retry_count + 1, max_retries);
+    } else {
+      /* Final failure */
+      log("AI Service: Request type %d failed after %d retries", request_type, max_retries);
+    }
   }
   
   return response;
@@ -1749,22 +1899,23 @@ static void *ai_thread_worker(void *arg) {
   struct ai_thread_request *req = (struct ai_thread_request *)arg;
   char *response = NULL;
   char *ollama_response = NULL;
-  
+  int max_retries = ai_state.config ? ai_state.config->max_retries : DEFAULT_AI_MAX_RETRIES;
+
   AI_DEBUG("Thread worker started for request type %d", req->request_type);
-  
+
   /* Make the blocking API call in this thread */
   /* Track which backend ultimately provides the response */
   if (is_ai_enabled()) {
     /* Try OpenAI first (with retries) */
     int retry_count = 0;
-    while (retry_count < AI_MAX_RETRIES) {
+    while (retry_count < max_retries) {
       response = make_api_request_single(req->prompt);
       if (response) {
         strcpy(req->backend, "OpenAI");
         break;
       }
       retry_count++;
-      if (retry_count < AI_MAX_RETRIES) {
+      if (retry_count < max_retries) {
         int sleep_time = 1 << retry_count;
         sleep(sleep_time);
       }

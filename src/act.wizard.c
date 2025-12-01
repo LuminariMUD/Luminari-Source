@@ -6787,10 +6787,10 @@ ACMD(do_ai)
       if (is_ai_enabled()) {
         /* OpenAI is enabled - show OpenAI details */
         send_to_char(ch, "  Primary Model: %s (OpenAI)\r\n", ai_state.config->model);
-        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", ai_state.config->ollama_model);
       } else {
         /* OpenAI is disabled - show Ollama as primary */
-        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", ai_state.config->ollama_model);
         send_to_char(ch, "  Fallback: Generic responses\r\n");
       }
       send_to_char(ch, "  Cache Size: %d entries\r\n", get_cache_size());
