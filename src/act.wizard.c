@@ -996,7 +996,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tCCrntClass:\tn %s  ", CLSLIST_NAME(GET_CLASS(k)));
-  send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%d\tC]  "
+  send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%ld\tC]  "
                    "Algn: [\tn%s(%d)\tC]\tn\r\n",
                GET_LEVEL(k), GET_EXP(k),
                get_align_by_num(GET_ALIGNMENT(k)), GET_ALIGNMENT(k));
@@ -3470,7 +3470,7 @@ ACMD(do_show)
     }
     send_to_char(ch, "Player: %-12s (%s) [%2d %s %s]\r\n", GET_NAME(vict),
                  genders[(int)GET_SEX(vict)], GET_LEVEL(vict), CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int)GET_RACE(vict)].abbrev_color);
-    send_to_char(ch, "Au: %-8d  Bal: %-8d  Exp: %-8d  Align: %-5d  Lessons: %-3d\r\n",
+    send_to_char(ch, "Au: %-8d  Bal: %-8d  Exp: %-8ld  Align: %-5d  Lessons: %-3d\r\n",
                  GET_GOLD(vict), GET_BANK_GOLD(vict), GET_EXP(vict),
                  GET_ALIGNMENT(vict), GET_PRACTICES(vict));
 
@@ -5367,7 +5367,7 @@ ACMD(do_zcheck)
 
       if (GET_EXP(mob) > MAX_EXP_ALLOWED && (found = 1))
         len += snprintf(buf + len, sizeof(buf) - len,
-                        "- Has %d experience (limit: %d)\r\n",
+                        "- Has %ld experience (limit: %d)\r\n",
                         GET_EXP(mob), MAX_EXP_ALLOWED);
       if ((AFF_FLAGGED(mob, AFF_CHARM) || AFF_FLAGGED(mob, AFF_POISON)) && (found = 1))
         len += snprintf(buf + len, sizeof(buf) - len,
@@ -6787,10 +6787,10 @@ ACMD(do_ai)
       if (is_ai_enabled()) {
         /* OpenAI is enabled - show OpenAI details */
         send_to_char(ch, "  Primary Model: %s (OpenAI)\r\n", ai_state.config->model);
-        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", ai_state.config->ollama_model);
       } else {
         /* OpenAI is disabled - show Ollama as primary */
-        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", ai_state.config->ollama_model);
         send_to_char(ch, "  Fallback: Generic responses\r\n");
       }
       send_to_char(ch, "  Cache Size: %d entries\r\n", get_cache_size());

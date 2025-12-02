@@ -52,18 +52,42 @@ typedef char bool;
 struct curl_slist;
 typedef void CURL;
 
-/* Configuration constants */
-#define OPENAI_API_ENDPOINT "https://api.openai.com/v1/chat/completions"
-#define OLLAMA_API_ENDPOINT "http://localhost:11434/api/generate"
-#define AI_CACHE_EXPIRE_TIME 3600  /* 1 hour default */
-#define AI_MAX_RETRIES 3
-#define AI_TIMEOUT_MS 5000
-#define AI_MAX_TOKENS 500
-#define AI_MAX_CACHE_SIZE 5000  /* Increased for better performance */
-#define OLLAMA_MODEL "llama3.2:1b"  /* Fast, lightweight model for NPCs */
+/* Configuration defaults - these can be overridden in lib/.env
+ * See lib/.env_example for full documentation of each setting
+ */
 
-/* Debug mode - set to 1 to enable verbose debug logging - set to 0 to disable */
-#define AI_DEBUG_MODE 0
+/* API Endpoints (can override via OPENAI_API_ENDPOINT, OLLAMA_API_ENDPOINT in .env) */
+#define DEFAULT_OPENAI_API_ENDPOINT "https://api.openai.com/v1/chat/completions"
+#define DEFAULT_OLLAMA_API_ENDPOINT "http://localhost:11434/api/generate"
+
+/* General settings (override via AI_* variables in .env) */
+#define DEFAULT_AI_CACHE_EXPIRE_TIME 3600   /* 1 hour, override: AI_CACHE_EXPIRE_SECONDS */
+#define DEFAULT_AI_MAX_RETRIES 3            /* override: AI_MAX_RETRIES */
+#define DEFAULT_AI_TIMEOUT_MS 30000         /* 30 seconds, override: AI_TIMEOUT_MS */
+#define DEFAULT_AI_MAX_TOKENS 500           /* override: AI_MAX_TOKENS */
+#define DEFAULT_AI_MAX_CACHE_SIZE 5000      /* override: AI_MAX_CACHE_SIZE */
+#define DEFAULT_AI_DEBUG_MODE 0             /* override: AI_DEBUG_MODE */
+
+/* Ollama defaults (override via OLLAMA_* variables in .env) */
+#define DEFAULT_OLLAMA_MODEL "llama3.2:1b"  /* override: OLLAMA_MODEL */
+#define DEFAULT_OLLAMA_TIMEOUT_MS 10000     /* 10 seconds, override: OLLAMA_TIMEOUT_MS */
+#define DEFAULT_OLLAMA_MAX_TOKENS 100       /* override: OLLAMA_MAX_TOKENS */
+#define DEFAULT_OLLAMA_TEMPERATURE 7        /* 0.7, override: OLLAMA_TEMPERATURE */
+#define DEFAULT_OLLAMA_TOP_K 40             /* override: OLLAMA_TOP_K */
+#define DEFAULT_OLLAMA_TOP_P 90             /* 0.9, override: OLLAMA_TOP_P */
+
+/* Legacy compatibility defines - use these in code, they reference defaults */
+#define OPENAI_API_ENDPOINT DEFAULT_OPENAI_API_ENDPOINT
+#define AI_CACHE_EXPIRE_TIME DEFAULT_AI_CACHE_EXPIRE_TIME
+#define AI_MAX_RETRIES DEFAULT_AI_MAX_RETRIES
+#define AI_TIMEOUT_MS DEFAULT_AI_TIMEOUT_MS
+#define AI_MAX_TOKENS DEFAULT_AI_MAX_TOKENS
+#define AI_MAX_CACHE_SIZE DEFAULT_AI_MAX_CACHE_SIZE
+
+/* Debug mode - runtime configurable via AI_DEBUG_MODE in .env
+ * Note: Compile-time debug uses DEFAULT_AI_DEBUG_MODE
+ * For runtime debug, check ai_state.config->debug_mode */
+#define AI_DEBUG_MODE DEFAULT_AI_DEBUG_MODE
 
 /* Debug logging macro */
 #if AI_DEBUG_MODE
@@ -99,15 +123,32 @@ struct ai_service_state {
   struct rate_limiter *limiter;  /* API rate limiting */
 };
 
-/* AI Configuration */
+/* AI Configuration - loaded from lib/.env at startup */
 struct ai_config {
+  /* OpenAI settings */
   char encrypted_api_key[256];
-  char model[32];              /* gpt-4, gpt-3.5-turbo */
-  int max_tokens;
-  float temperature;
-  int timeout_ms;
-  bool content_filter_enabled;
-  bool enabled;
+  char openai_endpoint[256];   /* OPENAI_API_ENDPOINT */
+  char model[64];              /* AI_MODEL: gpt-4o-mini, etc */
+  int max_tokens;              /* AI_MAX_TOKENS */
+  float temperature;           /* AI_TEMPERATURE / 10 */
+  int timeout_ms;              /* AI_TIMEOUT_MS */
+
+  /* Ollama settings */
+  char ollama_endpoint[256];   /* OLLAMA_API_ENDPOINT */
+  char ollama_model[64];       /* OLLAMA_MODEL */
+  int ollama_timeout_ms;       /* OLLAMA_TIMEOUT_MS */
+  int ollama_max_tokens;       /* OLLAMA_MAX_TOKENS (num_predict) */
+  float ollama_temperature;    /* OLLAMA_TEMPERATURE / 10 */
+  int ollama_top_k;            /* OLLAMA_TOP_K */
+  float ollama_top_p;          /* OLLAMA_TOP_P / 100 */
+
+  /* General settings */
+  int max_retries;             /* AI_MAX_RETRIES */
+  int cache_expire_seconds;    /* AI_CACHE_EXPIRE_SECONDS */
+  int max_cache_size;          /* AI_MAX_CACHE_SIZE */
+  bool debug_mode;             /* AI_DEBUG_MODE */
+  bool content_filter_enabled; /* AI_CONTENT_FILTER_ENABLED */
+  bool enabled;                /* Runtime toggle via 'ai enable/disable' */
 };
 
 /* Cache Entry */

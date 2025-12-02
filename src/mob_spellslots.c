@@ -266,12 +266,13 @@ void consume_spell_slot(struct char_data *ch, int spellnum)
   {
     ch->mob_specials.spell_slots[circle]--;
     
-    /* Optional: Log slot consumption for debugging */
+    /* Optional: Log slot consumption for debugging - DISABLED (too spammy)
     if (ch->mob_specials.spell_slots[circle] == 0)
     {
-      log("MOB_SPELLSLOT: %s depleted circle %d slots", 
+      log("MOB_SPELLSLOT: %s depleted circle %d slots",
           GET_NAME(ch), circle);
     }
+    */
   }
 }
 
@@ -376,11 +377,12 @@ void regenerate_mob_spell_slot(struct char_data *ch)
   /* Update regeneration timestamp */
   ch->mob_specials.last_slot_regen = current_time;
   
-  /* Optional: Log regeneration for debugging */
-  log("MOB_SPELLSLOT: %s regenerated circle %d slot (%d/%d)", 
+  /* Optional: Log regeneration for debugging - DISABLED (too spammy)
+  log("MOB_SPELLSLOT: %s regenerated circle %d slot (%d/%d)",
       GET_NAME(ch), chosen_circle,
       ch->mob_specials.spell_slots[chosen_circle],
       ch->mob_specials.max_spell_slots[chosen_circle]);
+  */
 }
 
 /**

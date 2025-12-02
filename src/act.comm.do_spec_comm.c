@@ -1,8 +1,9 @@
-#include "act.h"     /* for SCMD_WHISPER */
-#include "comm.h"    /* for send_to_char */
-#include "handler.h" /* for get_char_vis */
-#include "hlquest.h" /* for quest_ask */
-#include "utils.h"   /* for ACMD */
+#include "act.h"        /* for SCMD_WHISPER */
+#include "comm.h"       /* for send_to_char */
+#include "handler.h"    /* for get_char_vis */
+#include "hlquest.h"    /* for quest_ask */
+#include "utils.h"      /* for ACMD */
+#include "ai_service.h" /* for ai_npc_dialogue_async */
 
 ACMD(do_spec_comm)
 {
@@ -84,7 +85,11 @@ ACMD(do_spec_comm)
 
     if (subcmd == SCMD_ASK)
       quest_ask(ch, vict, buf3);
-      
+
+    /* AI Enhancement: NPCs with AI flag respond intelligently to questions */
+    if (subcmd == SCMD_ASK && IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AI_ENABLED))
+      ai_npc_dialogue_async(vict, ch, buf3);
+
     /* Free the duplicated string */
     if (buf3)
       free(buf3);
