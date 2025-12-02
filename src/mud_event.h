@@ -178,7 +178,7 @@ typedef enum
   eTINKER, // use the rock gnome tinker ability
   eMOONBEAM,                        // moon beam spell lingering effect
   eDRAGBREATH,                      // Dragonborn breath weapon
-  /*148*/ eMANYSHOT,                      // Manyshot command cooldown (Ranger Hunter Perk)
+  eMANYSHOT,                      // Manyshot command cooldown (Ranger Hunter Perk)
   eARROW_STORM,                     // Arrow Storm (Ranger Hunter Capstone) cooldown
   eCATSCLAWS,                       // tabaxi Cats Claws ability
   eSTONESENDURANCE,                 // goliath stones endurance ability
@@ -202,7 +202,7 @@ typedef enum
   eDEVISE_CREATION,                 // artificer invention creation
   eDEVISE_PROGRESS,                 // artificer invention creation progress updates
   eBREWING,                         /* Potion brewing event */
-  /*210*/ eBEACON_OF_HOPE,          /* Beacon of Hope daily cooldown */
+  eBEACON_OF_HOPE,                  /* Beacon of Hope daily cooldown */
   eFIST_OF_FOUR_THUNDERS,           /* Fist of Four Thunders lightning strike */
   eSAVAGE_CHARGE_USED,              /* Savage Charge used this rage */
   eDIVINE_SACRIFICE,                /* Divine Sacrifice damage transfer cooldown */
@@ -241,6 +241,7 @@ struct mud_event_data
 /* Externals */
 extern struct list_data *world_events;
 extern struct mud_event_list mud_event_index[];
+extern const size_t mud_event_index_count;
 
 /* Local Functions */
 void init_events(void);
@@ -291,4 +292,6 @@ EVENTFUNC(event_dancing_weapon);
 EVENTFUNC(event_holy_javelin);
 EVENTFUNC(event_moonbeam);
 EVENTFUNC(event_aqueous_orb);
+EVENTFUNC(event_devise_progress);
+EVENTFUNC(event_devise_creation);
 #endif /* _MUD_EVENT_H_ */
