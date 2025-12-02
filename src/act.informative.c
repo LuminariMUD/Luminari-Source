@@ -2977,8 +2977,43 @@ ACMD(do_masterlist)
   }
   else if (is_abbrev(argument, "spells"))
   {
-    perform_master_spell_list(ch);
-    return;
+    /* Support subcommands: next|prev|page N|quit for pager navigation */
+    char *sub = argument + strlen("spells");
+    while (*sub == ' ') sub++;
+    if (!*sub) {
+      perform_master_spell_list(ch);
+      return;
+    }
+    if (!ch->desc) {
+      send_to_char(ch, "No descriptor attached for paging.\r\n");
+      return;
+    }
+    if (!ch->desc->showstr_vector || ch->desc->showstr_count == 0) {
+      perform_master_spell_list(ch);
+    }
+    if (is_abbrev(sub, "next")) {
+      show_string(ch->desc, "");
+      return;
+    } else if (is_abbrev(sub, "prev")) {
+      show_string(ch->desc, "r");
+      return;
+    } else if (is_abbrev(sub, "quit")) {
+      show_string(ch->desc, "q");
+      return;
+    } else if (is_abbrev(sub, "page")) {
+      char *p = sub + strlen("page");
+      while (*p == ' ') p++;
+      if (isdigit(*p)) {
+        show_string(ch->desc, p);
+        return;
+      } else {
+        send_to_char(ch, "Usage: masterlist spells page <number>\r\n");
+        return;
+      }
+    } else {
+      send_to_char(ch, "Valid: masterlist spells [next|prev|page N|quit]\r\n");
+      return;
+    }
   }
   else
   {
@@ -10364,55 +10399,75 @@ void perform_master_spell_list(struct char_data *ch)
   int spellnum, sn, class_idx, circle;
   bool has_class;
   struct class_spell_assign *spell_assign;
+  size_t cap = 8192;
+  size_t len = 0;
+  char *out = (char *)malloc(cap);
+  if (!out) {
+    send_to_char(ch, "SYSERR: Out of memory building master spell list.\r\n");
+    return;
+  }
+  out[0] = '\0';
 
-  send_to_char(ch, "\tCMaster Spell List\tn\r\n");
-  send_to_char(ch, "Format: [Spell#] Spell Name - Classes (Circle)\r\n\r\n");
+  #define APPEND_FMT(...) \
+    do { \
+      int __n = snprintf(NULL, 0, __VA_ARGS__); \
+      if (len + (size_t)__n + 1 > cap) { \
+        size_t newcap = cap; \
+        while (len + (size_t)__n + 1 > newcap) newcap *= 2; \
+        char *tmp = (char *)realloc(out, newcap); \
+        if (!tmp) { \
+          free(out); \
+          send_to_char(ch, "SYSERR: Out of memory expanding buffer.\r\n"); \
+          return; \
+        } \
+        out = tmp; \
+        cap = newcap; \
+      } \
+      snprintf(out + len, cap - len, __VA_ARGS__); \
+      len += (size_t)__n; \
+    } while (0)
+
+  APPEND_FMT("\tCMaster Spell List\tn\r\n");
+  APPEND_FMT("Format: [Spell#] Spell Name - Classes (Circle)\r\n\r\n");
 
   for (spellnum = 0; spellnum < TOP_SKILL_DEFINE; spellnum++)
   {
-    /* Build class list with circles */
     class_list_buf[0] = '\0';
     has_class = FALSE;
     sn = spell_sort_info[spellnum];
 
-    /* Guard: ensure sorted index maps to a real spell */
     if (sn <= 0 || sn >= NUM_SPELLS)
       continue;
-    /* Skip placeholders/non-spells */
     if (spell_info[sn].min_position == POS_DEAD)
       continue;
-
     if (!strcmp(spell_info[sn].name, "!UNUSED!"))
       continue;
 
     for (class_idx = 0; class_idx < NUM_CLASSES; class_idx++)
     {
-      /* Check if this class gets the spell by traversing the spell assignment list */
       for (spell_assign = class_list[class_idx].spellassign_list; 
            spell_assign != NULL; 
            spell_assign = spell_assign->next)
       {
         if (spell_assign->spell_num == sn)
         {
-          /* Found the spell in this class's assignment list */
           circle = get_spell_circle(sn, class_idx);
-          
           if (has_class)
             strlcat(class_list_buf, ", ", sizeof(class_list_buf));
-          
-          /* Append class abbreviation and circle */
           snprintf(line_buf, sizeof(line_buf), "%s(%d)", CLSLIST_ABBRV(class_idx), circle);
           strlcat(class_list_buf, line_buf, sizeof(class_list_buf));
           has_class = TRUE;
-          break; /* Found the spell, no need to continue searching this class's list */
+          break;
         }
       }
     }
 
-    /* Format and send the spell line */
     if (has_class)
-      send_to_char(ch, "[%3d] %-30s - %s\r\n", sn, spell_info[sn].name, class_list_buf);
+      APPEND_FMT("[%3d] %-30s - %s\r\n", sn, spell_info[sn].name, class_list_buf);
   }
+
+  page_string(ch->desc, out, TRUE);
+  free(out);
 }
 
 /*EOF*/
