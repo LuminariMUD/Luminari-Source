@@ -10348,6 +10348,16 @@ ACMDU(do_device)
       return;
     }
     
+    /* Check if device creation is on cooldown from destroying a device */
+    if (ch->player_specials->saved.device_creation_cooldown > time(0)) {
+      int minutes_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) / 60;
+      int seconds_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) % 60;
+      send_to_char(ch, "You must wait %d minute%s and %d second%s before creating another device.\r\n",
+                   minutes_left, (minutes_left == 1) ? "" : "s",
+                   seconds_left, (seconds_left == 1) ? "" : "s");
+      return;
+    }
+    
     /* Check if we have available device slots (not under cooldown) */
     int available_slots = 0;
     int max_devices = 0;
@@ -10816,6 +10826,7 @@ ACMDU(do_device)
       send_to_char(ch, "WARNING: You are about to permanently destroy invention %d: %s\r\n", 
                    inv_idx + 1, inv->short_description);
       send_to_char(ch, "This action CANNOT be undone! The invention will be lost forever.\r\n");
+      send_to_char(ch, "NOTE: You will be unable to create new devices for 30 minutes after destroying a device.\r\n");
       send_to_char(ch, "To confirm destruction, type: device destroy %d %s\r\n", 
                    inv_idx + 1, confirm_code);
       send_to_char(ch, "The confirmation code will expire when you log out or use another command.\r\n");
@@ -10849,6 +10860,10 @@ ACMDU(do_device)
     send_to_char(ch, "You carefully dismantle %s, salvaging what components you can.\r\n", 
                  inv->short_description);
     act("$n carefully dismantles a weird science invention.", TRUE, ch, 0, 0, TO_ROOM);
+    
+    /* Set 30-minute cooldown on device creation */
+    ch->player_specials->saved.device_creation_cooldown = time(0) + (30 * 60);
+    send_to_char(ch, "You must wait 30 minutes before creating another device.\r\n");
     
     /* Shift all inventions after this one down by one */
     {
@@ -11142,8 +11157,8 @@ ACMDU(do_device)
     if (ch->player_specials->saved.num_inventions > 0) {
       /* Column headers */
       send_to_char(ch, "\r\n");
-      send_to_char(ch, "Num  Device Name                         Spells                                             Uses     DC Penalty  Status\r\n");
-      send_to_char(ch, "---  ----------------------------------  --------------------------------------------------  -------  ----------  ------\r\n");
+      send_to_char(ch, "Num  Device Name                         Spells                                             Uses     DC Penalty  Status Spell Slots\r\n");
+      send_to_char(ch, "---  ----------------------------------  --------------------------------------------------  -------  ----------  ------ -------------\r\n");
       
       for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
         struct player_invention *inv = &ch->player_specials->saved.inventions[i];
@@ -11511,17 +11526,28 @@ ACMDU(do_device)
   if (is_abbrev(arg1, "cooldown"))
   {
     send_to_char(ch, "Device Cooldown Status:\r\n");
+    // Show global device creation cooldown first
+    if (ch->player_specials->saved.device_creation_cooldown > time(0)) {
+      int seconds_left = ch->player_specials->saved.device_creation_cooldown - time(0);
+      int minutes_left = (seconds_left % 3600) / 60;
+      int hours_left = seconds_left / 3600;
+      seconds_left = seconds_left % 60;
+      send_to_char(ch, "  Device Creation Cooldown: You can create a new device in %d hour%s, %d minute%s, %d second%s.\r\n",
+        hours_left, (hours_left == 1) ? "" : "s",
+        minutes_left, (minutes_left == 1) ? "" : "s",
+        seconds_left, (seconds_left == 1) ? "" : "s");
+    } else {
+      send_to_char(ch, "  Device Creation Cooldown: You can create a new device now.\r\n");
+    }
+
     int found_any_cooldowns = 0;
-    
     for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
       struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-      
       if (inv->cooldown_expires > time(0)) {
         found_any_cooldowns = 1;
         int hours_left = (inv->cooldown_expires - time(0)) / 3600;
         int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
         int seconds_left = (inv->cooldown_expires - time(0)) % 60;
-        
         if (hours_left > 0) {
           send_to_char(ch, "  [%d] %s - COOLDOWN: %d hour%s, %d minute%s, %d second%s\r\n",
                        i + 1, inv->short_description,
@@ -11542,13 +11568,11 @@ ACMDU(do_device)
         send_to_char(ch, "  [%d] %s - READY\r\n", i + 1, inv->short_description);
       }
     }
-    
     if (ch->player_specials->saved.num_inventions == 0) {
       send_to_char(ch, "  You have no devices.\r\n");
     } else if (!found_any_cooldowns) {
       send_to_char(ch, "  All your devices are ready for use.\r\n");
     }
-    
     return;
   }
 

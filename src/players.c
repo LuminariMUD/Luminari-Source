@@ -948,6 +948,8 @@ int load_char(const char *name, struct char_data *ch)
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "DvCD"))
+          ch->player_specials->saved.device_creation_cooldown = (time_t)atol(line);
         else if (!strcmp(tag, "Dvis"))
           load_devices(fl, ch);
         else if (!strcmp(tag, "DrgB"))
@@ -2580,6 +2582,10 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
     BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
+
+  // save device creation cooldown
+  if (ch->player_specials->saved.device_creation_cooldown > 0)
+    BUFFER_WRITE( "DvCD: %ld\n", (long)ch->player_specials->saved.device_creation_cooldown);
 
   // save devices from do_device here
   if (ch->player_specials->saved.num_inventions > 0)

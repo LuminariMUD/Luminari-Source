@@ -2032,9 +2032,22 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 {
   struct mud_event_data *pMudEvent = NULL;
 
+
   send_to_char(ch, "\tC");
   text_line(ch, "\tYCooldowns\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
+
+  // Device creation cooldown (global for artificer)
+  if (k->player_specials->saved.device_creation_cooldown > time(0)) {
+    int seconds_left = k->player_specials->saved.device_creation_cooldown - time(0);
+    int minutes_left = (seconds_left % 3600) / 60;
+    int hours_left = seconds_left / 3600;
+    seconds_left = seconds_left % 60;
+    send_to_char(ch, "Device Creation Cooldown: You can create a new device in %d hour%s, %d minute%s, %d second%s.\r\n",
+      hours_left, (hours_left == 1) ? "" : "s",
+      minutes_left, (minutes_left == 1) ? "" : "s",
+      seconds_left, (seconds_left == 1) ? "" : "s");
+  }
 
   if ((pMudEvent = char_has_mud_event(k, eINTIMIDATE_COOLDOWN)))
     send_to_char(ch, "Intimidate Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
