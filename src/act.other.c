@@ -10614,20 +10614,22 @@ ACMDU(do_invent)
     
     /* Start the creation event */
     attach_mud_event(new_mud_event(eDEVISE_CREATION, ch, event_data), creation_time * PASSES_PER_SEC);
+    log("DEVICE: %s started creation (duration=%d sec) data='%s'", GET_NAME(ch), creation_time, event_data);
     
     /* Start progress updates every 10 seconds */
     attach_mud_event(new_mud_event(eDEVISE_PROGRESS, ch, event_data), 10 * PASSES_PER_SEC);
+    log("DEVICE: %s scheduled progress tick in 10s", GET_NAME(ch));
     
     /* Build spell list for user feedback */
     char spell_list[MAX_STRING_LENGTH * 4];
     strcpy(spell_list, spell_info[spell_nums[0]].name);
-    for (i = 1; i < num_spells; i++) {
+    for (i = 1; i < num_spells; i++)
+    {
       strcat(spell_list, "/");
       strcat(spell_list, spell_info[spell_nums[i]].name);
     }
     
-    send_to_char(ch, "You begin crafting a %s device. This will take %d seconds to complete.\r\n", 
-                 spell_list, creation_time);
+    send_to_char(ch, "You begin crafting a %s device. This will take %d seconds to complete.\r\n", spell_list, creation_time);
     act("$n begins working on a complex invention, gathering components and tools.", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
@@ -11382,6 +11384,76 @@ ACMDU(do_invent)
 }
 
 /* Event handler for invention creation timing */
+/* Helper: finalize invention creation from stored event variable string */
+static void finalize_invention_creation(struct char_data *ch, const char *variables) {
+  if (!ch || !variables)
+    return;
+
+  char invention_data[MAX_STRING_LENGTH];
+  strncpy(invention_data, variables, sizeof(invention_data) - 1);
+  invention_data[sizeof(invention_data) - 1] = '\0';
+
+  char *spells_part = strtok(invention_data, "|");
+  char *num_spells_str = strtok(NULL, "|");
+  char *duration_str = strtok(NULL, "|");
+  char *reliability_str = strtok(NULL, "|");
+  if (!spells_part || !num_spells_str || !duration_str || !reliability_str)
+    return; /* malformed */
+
+  int num_spells = atoi(num_spells_str);
+  int duration = atoi(duration_str);
+  int reliability = atoi(reliability_str);
+  if (num_spells <= 0 || num_spells > MAX_INVENTION_SPELLS)
+    return;
+
+  if (ch->player_specials->saved.num_inventions >= MAX_PLAYER_INVENTIONS)
+    return; /* no space */
+
+  int spell_nums[MAX_INVENTION_SPELLS];
+  char *spell_token = strtok(spells_part, ",");
+  int i = 0;
+  while (spell_token && i < num_spells) {
+    spell_nums[i++] = atoi(spell_token);
+    spell_token = strtok(NULL, ",");
+  }
+  if (i != num_spells)
+    return;
+
+  struct player_invention *inv = &ch->player_specials->saved.inventions[ch->player_specials->saved.num_inventions];
+
+  char spell_list[MAX_STRING_LENGTH];
+  strncpy(spell_list, spell_info[spell_nums[0]].name, sizeof(spell_list) - 1);
+  spell_list[sizeof(spell_list) - 1] = '\0';
+  for (i = 1; i < num_spells; i++) {
+    strncat(spell_list, "/", sizeof(spell_list) - strlen(spell_list) - 1);
+    strncat(spell_list, spell_info[spell_nums[i]].name, sizeof(spell_list) - strlen(spell_list) - 1);
+  }
+
+  snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "a %s device", spell_list);
+  char keyword_spell[50];
+  strncpy(keyword_spell, spell_info[spell_nums[0]].name, sizeof(keyword_spell) - 1);
+  keyword_spell[sizeof(keyword_spell) - 1] = '\0';
+  snprintf(inv->keywords, MAX_INVENTION_KEYWORDS, "%s device", keyword_spell);
+
+  char temp_desc[MAX_INVENTION_SHORTDESC];
+  strncpy(temp_desc, inv->short_description, sizeof(temp_desc) - 1);
+  temp_desc[sizeof(temp_desc) - 1] = '\0';
+  snprintf(inv->long_description, MAX_INVENTION_LONGDESC, "A %s is here, humming with weird science energy.", temp_desc);
+
+  for (i = 0; i < num_spells; i++)
+    inv->spell_effects[i] = spell_nums[i];
+  inv->num_spells = num_spells;
+  inv->duration = duration;
+  inv->reliability = reliability;
+  inv->uses = 0;
+  inv->cooldown_expires = 0;
+  inv->dc_penalty = 0;
+
+  ch->player_specials->saved.num_inventions++;
+  send_to_char(ch, "\tW*DING*\tn Your invention is complete! You have crafted: %s\tn\r\n", inv->short_description);
+  act("$n finishes working on an invention, which sparks to life with weird energy!", TRUE, ch, 0, 0, TO_ROOM);
+  save_char(ch, 0);
+}
 EVENTFUNC(event_devise_progress)
 {
   struct mud_event_data *pMudEvent = NULL;
@@ -11411,6 +11483,13 @@ EVENTFUNC(event_devise_progress)
   /* Get time remaining on creation event */
   long time_remaining_passes = event_time(creation_event->pEvent);
   int time_remaining_seconds = time_remaining_passes / PASSES_PER_SEC;
+  log("DEVICE: progress tick for %s, remaining=%d sec", GET_NAME(ch), time_remaining_seconds);
+
+  /* Safety: if time remaining is <= 0, finalize immediately (fallback) */
+  if (time_remaining_seconds <= 0) {
+    finalize_invention_creation(ch, pMudEvent->sVariables);
+    return 0;
+  }
   
   /* Format time remaining in a readable way */
   char time_str[100];
@@ -11587,9 +11666,12 @@ EVENTFUNC(event_devise_creation)
                inv->short_description);
   act("$n finishes working on an invention, which sparks to life with weird energy!", 
       TRUE, ch, 0, 0, TO_ROOM);
+  log("DEVICE: %s creation complete for '%s' (spells=%d)", GET_NAME(ch), inv->short_description, num_spells);
   
   /* Save the character data */
   save_char(ch, 0);
+  /* No need to manually cancel progress; it will self-terminate when creation event is gone.
+     Any progress tick that fires after this will see missing creation event and stop. */
   
   return 0;
 }
