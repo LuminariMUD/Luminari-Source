@@ -11289,5 +11289,17 @@ int get_natural_empathy_bonus(struct char_data *ch) {
   return ranks * 2;
 }
 
+bool valid_luminari_race(int race)
+{
+  if(race >= 0 && race < NUM_EXTENDED_RACES)
+  {
+    if (race >= DL_RACE_START && race <= DL_RACE_END)
+      return false;
+    else
+      return true;
+  }
+  return false;
+}
+
 /* EoF */
 

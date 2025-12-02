@@ -3933,7 +3933,7 @@ ACMD(do_score)
 #else
   /* Display race with bounds checking */
   send_to_char(ch, "\tcRace : \tn%-20s ", 
-               (GET_RACE(ch) >= 0 && GET_RACE(ch) < NUM_RACES) ? 
+               (valid_luminari_race(GET_RACE(ch)) ? 
                  race_list[GET_RACE(ch)].type : "Unknown");
 #endif
 

@@ -337,6 +337,7 @@ void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int can_carry_weight_limit(struct char_data *ch);
+bool valid_luminari_race(int race);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
