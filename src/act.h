@@ -173,6 +173,7 @@ void perform_affects(struct char_data *ch, struct char_data *k);
 void perform_abilities(struct char_data *ch, struct char_data *k);
 void perform_cooldowns(struct char_data *ch, struct char_data *k);
 void perform_resistances(struct char_data *ch, struct char_data *k);
+void perform_master_spell_list(struct char_data *ch);
 
 void list_item_activate_abilities(struct char_data *ch);
 void list_item_activate_ability_cooldowns(struct char_data *ch);

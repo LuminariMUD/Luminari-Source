@@ -50,22 +50,41 @@ int get_spell_circle(int spellnum, int char_class)
     case CLASS_WIZARD:
     case CLASS_CLERIC:
     case CLASS_DRUID:
-    case CLASS_INQUISITOR:
+    case CLASS_SORCERER:
       /* Full casters: (level + 1) / 2 */
       spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
       break;
       
-    case CLASS_SORCERER:
+    
+    case CLASS_INQUISITOR:
     case CLASS_BARD:
-      /* Spontaneous casters: level / 2 */
-      spell_circle = spell_info[spellnum].min_level[char_class] / 2;
+    case CLASS_ALCHEMIST:
+    case CLASS_SUMMONER:
+      if (spell_info[spellnum].min_level[char_class] <= 1)
+        spell_circle = 1;
+      if (spell_info[spellnum].min_level[char_class] <= 4)
+        spell_circle = 2;
+      if (spell_info[spellnum].min_level[char_class] <= 7)
+        spell_circle = 3;
+      if (spell_info[spellnum].min_level[char_class] <= 10)
+        spell_circle = 4;
+      if (spell_info[spellnum].min_level[char_class] <= 13)
+        spell_circle = 5;
+      else
+        spell_circle = 6;
       break;
       
     case CLASS_PALADIN:
     case CLASS_RANGER:
     case CLASS_BLACKGUARD:
-      /* Half casters: (level + 1) / 2 */
-      spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
+      if (spell_info[spellnum].min_level[char_class] <= 6)
+        spell_circle = 1;
+      if (spell_info[spellnum].min_level[char_class] <= 10)
+        spell_circle = 2;
+      if (spell_info[spellnum].min_level[char_class] <= 12)
+        spell_circle = 3;
+      else
+        spell_circle = 4;
       break;
       
     default:

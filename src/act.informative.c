@@ -27,6 +27,7 @@
 #include "act.h"
 #include "class.h"
 #include "race.h"
+#include "mob_spellslots.h"
 #include "fight.h"
 #include "modify.h"
 #include "asciimap.h"
@@ -2956,10 +2957,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 
 ACMD(do_masterlist)
 {
-  size_t len = 0, nlen = 0;
   int bottom = 1, top = TOP_SKILL_DEFINE, counter = 0, i = 0;
-  char buf2[MAX_STRING_LENGTH] = {'\0'};
-  const char *overflow = "\r\n**OVERFLOW**\r\n";
   bool is_spells = FALSE;
 
   if (IS_NPC(ch))
@@ -2979,7 +2977,8 @@ ACMD(do_masterlist)
   }
   else if (is_abbrev(argument, "spells"))
   {
-    is_spells = TRUE;
+    perform_master_spell_list(ch);
+    return;
   }
   else
   {
@@ -2987,28 +2986,25 @@ ACMD(do_masterlist)
     return;
   }
 
-  len = snprintf(buf2, sizeof(buf2), "\tCMaster List\tn\r\n");
+  send_to_char(ch, "\tCMaster List\tn\r\n");
 
   for (; bottom < top; bottom++)
   {
     i = spell_sort_info[bottom]; /* make sure spell_sort_info[] define is big enough! */
-
-    if (spell_info[i].min_position == POS_DEAD)
+    /* Guard against out-of-range indices before accessing spell_info */
+    if (i < 0)
       continue;
-    if (is_spells && i > NUM_SPELLS)
-      continue;
-    if (!is_spells && i < START_SKILLS)
-      continue;
-    if (!is_spells && i > TOP_SKILL_DEFINE)
-      continue;
+    if (is_spells) {
+      if (i >= NUM_SPELLS)
+        continue;
+      if (spell_info[i].min_position == POS_DEAD)
+        continue;
+    } else {
+      if (i < START_SKILLS || i > TOP_SKILL_DEFINE)
+        continue;
+    }
 
-    nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                    "%3d) %s\r\n", i, spell_info[i].name);
-
-    if (len + nlen >= sizeof(buf2) || nlen < 0)
-      break;
-
-    len += nlen;
+    send_to_char(ch, "%3d) %s\r\n", i, spell_info[i].name);
     counter++;
 
     /* debugging this issue */
@@ -3020,14 +3016,7 @@ ACMD(do_masterlist)
     }
     */
   }
-  nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                  "\r\n\tCTotal:\tn  %d\r\n", counter);
-
-  /* strcpy: OK */
-  if (len >= sizeof(buf2))
-    strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, sizeof(buf2 + sizeof(buf2) - strlen(overflow) - 1));
-
-  page_string(ch->desc, buf2, TRUE);
+  send_to_char(ch, "\r\n\tCTotal:\tn  %d\r\n", counter);
 }
 
 ACMD(do_look)
@@ -10366,6 +10355,64 @@ ACMD(do_conservation) {
         send_to_char(ch, "  survey conservation    - Check area resource health\r\n");
         send_to_char(ch, "  survey regeneration    - Analyze regeneration rates\r\n");
     }
+}
+
+void perform_master_spell_list(struct char_data *ch)
+{
+  char line_buf[512];
+  char class_list_buf[256];
+  int spellnum, sn, class_idx, circle;
+  bool has_class;
+  struct class_spell_assign *spell_assign;
+
+  send_to_char(ch, "\tCMaster Spell List\tn\r\n");
+  send_to_char(ch, "Format: [Spell#] Spell Name - Classes (Circle)\r\n\r\n");
+
+  for (spellnum = 0; spellnum < TOP_SKILL_DEFINE; spellnum++)
+  {
+    /* Build class list with circles */
+    class_list_buf[0] = '\0';
+    has_class = FALSE;
+    sn = spell_sort_info[spellnum];
+
+    /* Guard: ensure sorted index maps to a real spell */
+    if (sn <= 0 || sn >= NUM_SPELLS)
+      continue;
+    /* Skip placeholders/non-spells */
+    if (spell_info[sn].min_position == POS_DEAD)
+      continue;
+
+    if (!strcmp(spell_info[sn].name, "!UNUSED!"))
+      continue;
+
+    for (class_idx = 0; class_idx < NUM_CLASSES; class_idx++)
+    {
+      /* Check if this class gets the spell by traversing the spell assignment list */
+      for (spell_assign = class_list[class_idx].spellassign_list; 
+           spell_assign != NULL; 
+           spell_assign = spell_assign->next)
+      {
+        if (spell_assign->spell_num == sn)
+        {
+          /* Found the spell in this class's assignment list */
+          circle = get_spell_circle(sn, class_idx);
+          
+          if (has_class)
+            strlcat(class_list_buf, ", ", sizeof(class_list_buf));
+          
+          /* Append class abbreviation and circle */
+          snprintf(line_buf, sizeof(line_buf), "%s(%d)", CLSLIST_ABBRV(class_idx), circle);
+          strlcat(class_list_buf, line_buf, sizeof(class_list_buf));
+          has_class = TRUE;
+          break; /* Found the spell, no need to continue searching this class's list */
+        }
+      }
+    }
+
+    /* Format and send the spell line */
+    if (has_class)
+      send_to_char(ch, "[%3d] %-30s - %s\r\n", sn, spell_info[sn].name, class_list_buf);
+  }
 }
 
 /*EOF*/

@@ -148,8 +148,6 @@ struct mud_event_list mud_event_index[] = {
     {"Imbue Arrow", event_daily_use_cooldown, EVENT_CHAR, NULL, "You regain a usage of your imbue arrow.", FEAT_IMBUE_ARROW, 0},
     {"Arrow of Death", event_daily_use_cooldown, EVENT_CHAR, "You are now able to imbue an arrow with death.", "You are now able to imbue an arrow with death again.", FEAT_ARROW_OF_DEATH, 0},
     {"Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR, "You are now able to use your swarm of arrows again.", "One of your swarm of arrows uses has recovered.", FEAT_SWARM_OF_ARROWS, 0},
-    {"Manyshot", event_countdown, EVENT_CHAR, "You are now able to use Manyshot again.", NULL, FEAT_UNDEFINED, 0},
-    {"Arrow Storm", event_countdown, EVENT_CHAR, "You are now able to use Arrow Storm again.", NULL, FEAT_UNDEFINED, 0},
     {"Renewed Defense", event_countdown, EVENT_CHAR, "You are now able to use Renewed Defense again.", NULL, FEAT_UNDEFINED, 0},
     {"Last Word", event_countdown, EVENT_CHAR, "You are now able to get the 'last word' in again.", NULL, FEAT_UNDEFINED, 0},
     /*90*/
@@ -223,6 +221,8 @@ struct mud_event_list mud_event_index[] = {
     {"Tinker ability delay", event_daily_use_cooldown, EVENT_CHAR, "You are now able to use your tinker ability again.", "One of your tinker ability uses has recovered.", FEAT_TINKER, 0},
     {"Moonbeam", event_moonbeam, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Dragonborn Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR, NULL, "One of your dragonborn ancestry breath weapon uses has recovered.", FEAT_DRAGONBORN_BREATH, 0},
+    {"Manyshot", event_countdown, EVENT_CHAR, "You are now able to use Manyshot again.", NULL, FEAT_UNDEFINED, 0},
+    {"Arrow Storm", event_countdown, EVENT_CHAR, "You are now able to use Arrow Storm again.", NULL, FEAT_UNDEFINED, 0},
     {"Tabaxi Cats Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR, NULL, "One of your tabaxi cat's claws uses has recovered.", FEAT_TABAXI_CATS_CLAWS, 0},
     /*150*/
     {"Goliath Stone's Endurance Cooldown", event_daily_use_cooldown, EVENT_CHAR, "You are now able to ujse stones endurance again.", "One of your stonesendurance ability uses has recovered.", FEAT_STONES_ENDURANCE, 0},
