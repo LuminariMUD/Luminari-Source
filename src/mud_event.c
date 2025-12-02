@@ -68,6 +68,7 @@ void init_events(void)
 {
   /* Allocate Event List */
   world_events = create_list();
+  size_t i;
 
   /* Validate registry size vs enum last value to catch drift */
   {
@@ -77,7 +78,7 @@ void init_events(void)
       log("SYSERR: mud_event_index size (%zu) does not match enum count (%zu). Events may be misaligned.", registry_size, expected_size);
     }
     /* Per-entry validation */
-    for (size_t i = 0; i < registry_size; ++i) {
+    for (i = 0; i < registry_size; ++i) {
       struct mud_event_list *entry = &mud_event_index[i];
       /* Skip NULL sentinel (index 0) */
       if (i == eNULL)
