@@ -10564,6 +10564,15 @@ ACMDU(do_device)
                              (circle_level == 3) ? "rd" : "th";
         send_to_char(ch, "You can't create this invention: it would exceed your allowed number of %d%s circle spells (%d max, you have %d).\r\n",
           circle_level, ordinal, max_circles[i], used_circles[i]);
+        /* Build spell list for user feedback */
+        char spell_list_o[MAX_STRING_LENGTH * 4];
+        strcpy(spell_list_o, spell_info[spell_nums[0]].name);
+        for (i = 1; i < num_spells; i++)
+        {
+          strcat(spell_list_o, "/");
+          strcat(spell_list_o, spell_info[spell_nums[i]].name);
+        }
+        send_to_char(ch, "Spells attempted to add: %s\r\n", spell_list_o);        
         return;
       }
     }
