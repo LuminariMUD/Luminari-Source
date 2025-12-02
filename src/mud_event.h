@@ -199,8 +199,8 @@ typedef enum
   eDRAGOONPOINTS,                   // dragoon points
   eC_DRAGONMOUNT,                   // call dragon mount
   eREGENERATION,                    // resource regeneration event
-  eDEVISE_CREATION,                 // artificer invention creation
-  eDEVISE_PROGRESS,                 // artificer invention creation progress updates
+  eDEVICE_CREATION,                 // artificer device creation
+  eDEVICE_PROGRESS,                 // artificer device creation progress updates
   eBREWING,                         /* Potion brewing event */
   eBEACON_OF_HOPE,                  /* Beacon of Hope daily cooldown */
   eFIST_OF_FOUR_THUNDERS,           /* Fist of Four Thunders lightning strike */
@@ -292,6 +292,6 @@ EVENTFUNC(event_dancing_weapon);
 EVENTFUNC(event_holy_javelin);
 EVENTFUNC(event_moonbeam);
 EVENTFUNC(event_aqueous_orb);
-EVENTFUNC(event_devise_progress);
-EVENTFUNC(event_devise_creation);
+EVENTFUNC(event_device_progress);
+EVENTFUNC(event_device_creation);
 #endif /* _MUD_EVENT_H_ */

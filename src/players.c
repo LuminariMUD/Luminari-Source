@@ -2581,7 +2581,7 @@ void save_char(struct char_data *ch, int mode)
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
     BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
-  // save devices from do_invent here
+  // save devices from do_device here
   if (ch->player_specials->saved.num_inventions > 0)
   {
     int j;

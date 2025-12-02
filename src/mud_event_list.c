@@ -41,8 +41,8 @@ extern EVENTFUNC(event_moonbeam);
 extern EVENTFUNC(event_aqueous_orb);
 extern EVENTFUNC(event_concussive_onslaught);
 extern EVENTFUNC(event_power_leech);
-extern EVENTFUNC(event_devise_creation);
-extern EVENTFUNC(event_devise_progress);
+extern EVENTFUNC(event_device_creation);
+extern EVENTFUNC(event_device_progress);
 extern EVENTFUNC(event_radiant_aura);
 extern EVENTFUNC(event_fist_of_four_thunders);
 
@@ -246,8 +246,8 @@ struct mud_event_list mud_event_index[] = {
     {"Dragoon Points", event_daily_use_cooldown, EVENT_CHAR, "You have regained a dragoon point.", "One of your dragoon points has recovered.", FEAT_DRAGOON_POINTS, 0},
     {"Call Dragon Mount", event_countdown, EVENT_CHAR, "You are now able to 'call dragon' again.", NULL, FEAT_UNDEFINED, 0},
     {"Regeneration", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Device Creation", event_devise_creation, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Device Progress", event_devise_progress, EVENT_CHAR, "test1", "test2", FEAT_UNDEFINED, 0},
+    {"Device Creation", event_device_creation, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Device Progress", event_device_progress, EVENT_CHAR, "test1", "test2", FEAT_UNDEFINED, 0},
     // 170
     {"Brew Potion", event_brewing, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Beacon of Hope", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},

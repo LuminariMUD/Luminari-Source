@@ -10218,7 +10218,7 @@ ACMD(do_pick_lock)
   USE_MOVE_ACTION(ch);
 }
 
-ACMDU(do_invent)
+ACMDU(do_device)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
@@ -10335,14 +10335,14 @@ ACMDU(do_invent)
   {
     /* Handle the cancel subcommand for device creation */
     if (is_abbrev(arg2, "cancel")) {
-      if (!char_has_mud_event(ch, eDEVISE_CREATION)) {
+      if (!char_has_mud_event(ch, eDEVICE_CREATION)) {
         send_to_char(ch, "You are not currently creating any device.\r\n");
         return;
       }
       
       /* Cancel the creation event */
-      event_cancel_specific(ch, eDEVISE_CREATION);
-      event_cancel_specific(ch, eDEVISE_PROGRESS);
+      event_cancel_specific(ch, eDEVICE_CREATION);
+      event_cancel_specific(ch, eDEVICE_PROGRESS);
       send_to_char(ch, "You stop working on your device and abandon the project.\r\n");
       act("$n stops working on $s invention and abandons the project.", TRUE, ch, 0, 0, TO_ROOM);
       return;
@@ -10588,7 +10588,7 @@ ACMDU(do_invent)
     int creation_time = total_spell_levels * 30; /* 30 seconds per spell level */
     
     /* Check if player is already creating an invention */
-    if (char_has_mud_event(ch, eDEVISE_CREATION)) {
+    if (char_has_mud_event(ch, eDEVICE_CREATION)) {
       send_to_char(ch, "You are already working on an invention! Wait for it to complete or use 'device create cancel' to abort.\r\n");
       return;
     }
@@ -10613,9 +10613,9 @@ ACMDU(do_invent)
              spell_data, num_spells, duration, reliability);
     
     /* Start the creation event */
-    attach_mud_event(new_mud_event(eDEVISE_CREATION, ch, event_data), creation_time * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eDEVICE_CREATION, ch, event_data), creation_time * PASSES_PER_SEC);
     {
-      struct mud_event_data *ce = char_has_mud_event(ch, eDEVISE_CREATION);
+      struct mud_event_data *ce = char_has_mud_event(ch, eDEVICE_CREATION);
       if (ce && ce->pEvent) {
         /* device creation event attached */
       } else {
@@ -10624,9 +10624,9 @@ ACMDU(do_invent)
     }
     
     /* Start progress updates every 10 seconds */
-    attach_mud_event(new_mud_event(eDEVISE_PROGRESS, ch, NULL), 10 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, NULL), 10 * PASSES_PER_SEC);
     {
-      struct mud_event_data *pe = char_has_mud_event(ch, eDEVISE_PROGRESS);
+      struct mud_event_data *pe = char_has_mud_event(ch, eDEVICE_PROGRESS);
       if (pe && pe->pEvent) {
         /* device progress event attached */
       } else {
@@ -11570,31 +11570,31 @@ ACMD(do_shadowstep)
 }
 
 
-EVENTFUNC(event_devise_progress)
+EVENTFUNC(event_device_progress)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
 
-  send_to_world("DEBUG: event_devise_progress called.\r\n");
+  send_to_world("DEBUG: event_device_progress called.\r\n");
   
   pMudEvent = (struct mud_event_data *)event_obj;
   
   if (!pMudEvent || !pMudEvent->pStruct) {
-    mudlog(CMP, LVL_STAFF, FALSE, "SYSERR: event_devise_progress() called with NULL event data");
+    mudlog(CMP, LVL_STAFF, FALSE, "SYSERR: event_device_progress() called with NULL event data");
     return 0;
   }
   
   ch = (struct char_data *)pMudEvent->pStruct;
   
   if (!ch) {
-    mudlog(CMP, LVL_STAFF, FALSE, "SYSERR: event_devise_progress() called with NULL character");
+    mudlog(CMP, LVL_STAFF, FALSE, "SYSERR: event_device_progress() called with NULL character");
     return 0;
   }
 
-  send_to_char(ch, "DEBUG: event_devise_progress triggered.\r\n");
+  send_to_char(ch, "DEBUG: event_device_progress triggered.\r\n");
 
   /* Check if the main creation event still exists */
-  struct mud_event_data *creation_event = char_has_mud_event(ch, eDEVISE_CREATION);
+  struct mud_event_data *creation_event = char_has_mud_event(ch, eDEVICE_CREATION);
   if (!creation_event) {
     /* Creation was cancelled or completed, stop progress updates */
     return 0;
@@ -11670,12 +11670,12 @@ EVENTFUNC(event_devise_progress)
   act("$n continues working intently on $s invention.", TRUE, ch, 0, 0, TO_ROOM);
 
   /* Schedule next progress update in 10 seconds */
-  attach_mud_event(new_mud_event(eDEVISE_PROGRESS, ch, pMudEvent->sVariables), 10 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, pMudEvent->sVariables), 10 * PASSES_PER_SEC);
   
   return 0;
 }
 
-EVENTFUNC(event_devise_creation)
+EVENTFUNC(event_device_creation)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
@@ -11683,14 +11683,14 @@ EVENTFUNC(event_devise_creation)
   pMudEvent = (struct mud_event_data *)event_obj;
   
   if (!pMudEvent || !pMudEvent->pStruct) {
-    log("SYSERR: event_devise_creation() called with NULL event data");
+    log("SYSERR: event_device_creation() called with NULL event data");
     return 0;
   }
   
   ch = (struct char_data *)pMudEvent->pStruct;
   
   if (!ch) {
-    log("SYSERR: event_devise_creation() called with NULL character");
+    log("SYSERR: event_device_creation() called with NULL character");
     return 0;
   }
   

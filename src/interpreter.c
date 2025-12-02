@@ -355,7 +355,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"device", "device", POS_STANDING, do_invent, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"device", "device", POS_STANDING, do_device, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1546,7 +1546,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVISE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1571,7 +1571,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     {
       if (char_has_mud_event(ch, eCRAFTING))
         send_to_char(ch, "You are too busy crafting to do that! ");
-      else if (char_has_mud_event(ch, eDEVISE_CREATION))
+      else if (char_has_mud_event(ch, eDEVICE_CREATION))
         send_to_char(ch, "You are too busy devising your creation to do that! ");
       else if (char_has_mud_event(ch, eBREWING))
         send_to_char(ch, "You are too busy brewing to do that! ");
