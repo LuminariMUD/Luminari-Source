@@ -10437,7 +10437,10 @@ ACMDU(do_device)
       return;
     }
 
-    /* Validate all spells */
+    /* Validate all spells and track available circles for each */
+    int spell_wizard_levels[4] = {0, 0, 0, 0};
+    int spell_cleric_levels[4] = {0, 0, 0, 0};
+    
     for (i = 0; i < num_spells; i++) {
       spell_nums[i] = find_skill_num(spells[i]);
       if (spell_nums[i] < 1) {
@@ -10449,7 +10452,11 @@ ACMDU(do_device)
       int wizard_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
       int cleric_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
       
-      /* Use the lower of wizard or cleric level (if both are available) */
+      /* Store both wizard and cleric levels for this spell */
+      spell_wizard_levels[i] = (wizard_level < LVL_IMMORT) ? wizard_level : 0;
+      spell_cleric_levels[i] = (cleric_level < LVL_IMMORT) ? cleric_level : 0;
+      
+      /* For initial validation, use the lower of wizard or cleric level */
       if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
         spell_assignment_level = MIN(wizard_level, cleric_level);
       } else if (wizard_level < LVL_IMMORT) {
@@ -10510,19 +10517,24 @@ ACMDU(do_device)
       struct player_invention *inv = &ch->player_specials->saved.inventions[i];
       for (j = 0; j < inv->num_spells; j++) {
         int spellnum = inv->spell_effects[j];
-        int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
-        int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
-        int spell_level;
-        
-        /* Use the lower of wizard or cleric level (if both are available) */
-        if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
-          spell_level = MIN(wizard_level, cleric_level);
-        } else if (wizard_level < LVL_IMMORT) {
-          spell_level = wizard_level;
-        } else if (cleric_level < LVL_IMMORT) {
-          spell_level = cleric_level;
+        int spell_level = 0;
+
+        /* Prefer persisted assigned level if available */
+        if (inv->spell_levels[j] > 0) {
+          spell_level = inv->spell_levels[j];
         } else {
-          continue; /* Skip spells not available to artificers */
+          int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+          int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
+          /* Use the lower of wizard or cleric level (if both are available) */
+          if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+            spell_level = MIN(wizard_level, cleric_level);
+          } else if (wizard_level < LVL_IMMORT) {
+            spell_level = wizard_level;
+          } else if (cleric_level < LVL_IMMORT) {
+            spell_level = cleric_level;
+          } else {
+            continue; /* Skip spells not available to artificers */
+          }
         }
         
         if (spell_level >= 1 && spell_level <= 7) {
@@ -10532,31 +10544,100 @@ ACMDU(do_device)
         }
       }
     }
-    /* Count new invention's spell circles */
+    /* Count new invention's spell circles - try lower circle first, use higher if needed */
     int new_circles[4] = {0, 0, 0, 0};
+    int spell_chosen_levels[4] = {0, 0, 0, 0}; /* Track which level was chosen for each spell */
+    
     for (i = 0; i < num_spells; i++) {
-      int wizard_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
-      int cleric_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
-      int spell_level;
+      int wizard_level = spell_wizard_levels[i];
+      int cleric_level = spell_cleric_levels[i];
       
-      /* Use the lower of wizard or cleric level (if both are available) */
-      if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
-        spell_level = MIN(wizard_level, cleric_level);
-      } else if (wizard_level < LVL_IMMORT) {
-        spell_level = wizard_level;
-      } else if (cleric_level < LVL_IMMORT) {
-        spell_level = cleric_level;
-      } else {
+      if (wizard_level == 0 && cleric_level == 0) {
         continue; /* Skip spells not available to artificers */
       }
       
-      if (spell_level >= 1 && spell_level <= 7) {
-        int circle = (spell_level + 1) / 2 - 1;
-        if (circle >= 0 && circle < 4)
-          new_circles[circle]++;
+      /* Determine which circles this spell could use */
+      int lower_circle = -1, higher_circle = -1;
+      int lower_level = 0, higher_level = 0;
+      
+      if (wizard_level > 0 && cleric_level > 0) {
+        /* Spell available on both lists - determine lower and higher */
+        if (wizard_level < cleric_level) {
+          lower_level = wizard_level;
+          higher_level = cleric_level;
+        } else if (cleric_level < wizard_level) {
+          lower_level = cleric_level;
+          higher_level = wizard_level;
+        } else {
+          /* Same level on both lists - just use one */
+          lower_level = wizard_level;
+          higher_level = 0;
+        }
+      } else if (wizard_level > 0) {
+        lower_level = wizard_level;
+        higher_level = 0;
+      } else {
+        lower_level = cleric_level;
+        higher_level = 0;
+      }
+      
+      /* Convert levels to circles */
+      if (lower_level >= 1 && lower_level <= 7) {
+        lower_circle = (lower_level + 1) / 2 - 1;
+      }
+      if (higher_level >= 1 && higher_level <= 7) {
+        higher_circle = (higher_level + 1) / 2 - 1;
+      }
+      
+      /* Try to use the lower circle first, then higher if lower is full */
+      int chosen_circle = -1;
+      int chosen_level = 0;
+      
+      if (lower_circle >= 0 && lower_circle < 4) {
+        /* Check if lower circle has room */
+        if (used_circles[lower_circle] + new_circles[lower_circle] < max_circles[lower_circle]) {
+          chosen_circle = lower_circle;
+          chosen_level = lower_level;
+        } else if (higher_circle >= 0 && higher_circle < 4) {
+          /* Lower circle full, try higher circle */
+          if (used_circles[higher_circle] + new_circles[higher_circle] < max_circles[higher_circle]) {
+            chosen_circle = higher_circle;
+            chosen_level = higher_level;
+          }
+        }
+      }
+      
+      if (chosen_circle >= 0) {
+        new_circles[chosen_circle]++;
+        spell_chosen_levels[i] = chosen_level;
+      } else {
+        /* No available circle for this spell */
+        const char *spell_name = spell_info[spell_nums[i]].name;
+        send_to_char(ch, "Cannot create device: No available circle slots for spell '%s'.\r\n", spell_name);
+        
+        if (lower_circle >= 0 && lower_circle < 4) {
+          int circle_level = lower_circle + 1;
+          const char *ordinal = (circle_level == 1) ? "st" : (circle_level == 2) ? "nd" : 
+                               (circle_level == 3) ? "rd" : "th";
+          send_to_char(ch, "  - %d%s circle (level %d): %d/%d used\r\n", 
+                       circle_level, ordinal, lower_level,
+                       used_circles[lower_circle] + new_circles[lower_circle], 
+                       max_circles[lower_circle]);
+        }
+        if (higher_circle >= 0 && higher_circle < 4 && higher_circle != lower_circle) {
+          int circle_level = higher_circle + 1;
+          const char *ordinal = (circle_level == 1) ? "st" : (circle_level == 2) ? "nd" : 
+                               (circle_level == 3) ? "rd" : "th";
+          send_to_char(ch, "  - %d%s circle (level %d): %d/%d used\r\n", 
+                       circle_level, ordinal, higher_level,
+                       used_circles[higher_circle] + new_circles[higher_circle], 
+                       max_circles[higher_circle]);
+        }
+        return;
       }
     }
-    /* Check if adding this invention would exceed any circle limit */
+    
+    /* Final check: verify total circles don't exceed limits */
     for (i = 0; i < 4; i++) {
       if (used_circles[i] + new_circles[i] > max_circles[i]) {
         int circle_level = i + 1;
@@ -10567,10 +10648,10 @@ ACMDU(do_device)
         /* Build spell list for user feedback */
         char spell_list_o[MAX_STRING_LENGTH * 4];
         strcpy(spell_list_o, spell_info[spell_nums[0]].name);
-        for (i = 1; i < num_spells; i++)
+        for (j = 1; j < num_spells; j++)
         {
           strcat(spell_list_o, "/");
-          strcat(spell_list_o, spell_info[spell_nums[i]].name);
+          strcat(spell_list_o, spell_info[spell_nums[j]].name);
         }
         send_to_char(ch, "Spells attempted to add: %s\r\n", spell_list_o);        
         return;
@@ -10607,12 +10688,12 @@ ACMDU(do_device)
       
     int reliability = 0;
     
-    /* Build the spell data string for the event */
+    /* Build the spell data string for the event - include chosen levels */
     char spell_data[MAX_STRING_LENGTH];
-    snprintf(spell_data, sizeof(spell_data), "%d", spell_nums[0]);
+    snprintf(spell_data, sizeof(spell_data), "%d:%d", spell_nums[0], spell_chosen_levels[0]);
     for (i = 1; i < num_spells; i++) {
-      char temp[32];
-      snprintf(temp, sizeof(temp), ",%d", spell_nums[i]);
+      char temp[64];
+      snprintf(temp, sizeof(temp), ",%d:%d", spell_nums[i], spell_chosen_levels[i]);
       strncat(spell_data, temp, sizeof(spell_data) - strlen(spell_data) - 1);
     }
     
@@ -11098,6 +11179,43 @@ ACMDU(do_device)
           spell_list[50] = '\0';
         }
         
+        /* Build compact circle indicator, e.g., [1,2,1] */
+        char circle_ind[32] = {'\0'};
+        int ind_len = 0;
+        if (inv->num_spells > 0) {
+          strcat(circle_ind, "["); ind_len++;
+          for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++) {
+            int lvl = inv->spell_levels[j];
+            int circle = 0;
+            if (lvl > 0) {
+              circle = (lvl + 1) / 2;
+            } else {
+              int wiz = spell_info[inv->spell_effects[j]].min_level[CLASS_WIZARD];
+              int clr = spell_info[inv->spell_effects[j]].min_level[CLASS_CLERIC];
+              int eff = 0;
+              if (wiz < LVL_IMMORT && clr < LVL_IMMORT) eff = MIN(wiz, clr);
+              else if (wiz < LVL_IMMORT) eff = wiz;
+              else if (clr < LVL_IMMORT) eff = clr;
+              if (eff > 0) circle = (eff + 1) / 2;
+            }
+            /* Append single-digit circle (1-4). Clamp to 0-9 to avoid snprintf warnings */
+            int d = circle;
+            if (d < 0) {
+              d = 0;
+            }
+            if (d > 9) {
+              d = 9;
+            }
+            size_t clen = strlen(circle_ind);
+            if (clen + 1 < sizeof(circle_ind)) {
+              circle_ind[clen] = (char)('0' + d);
+              circle_ind[clen + 1] = '\0';
+            }
+            if (j < inv->num_spells - 1) strncat(circle_ind, ",", sizeof(circle_ind) - strlen(circle_ind) - 1);
+          }
+          strncat(circle_ind, "]", sizeof(circle_ind) - strlen(circle_ind) - 1);
+        }
+
         /* Calculate uses remaining */
         int uses_remaining = max_uses - inv->uses;
         if (uses_remaining < 0) uses_remaining = 0;
@@ -11111,14 +11229,15 @@ ACMDU(do_device)
         }
         
         /* Format the row */
-        send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  +%-9d  %s\r\n", 
-                     i+1, 
-                     inv->short_description,
-                     spell_list,
-                     uses_remaining,
-                     max_uses,
-                     inv->dc_penalty,
-                     status);
+        send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  +%-9d  %s  %s\r\n", 
+               i+1, 
+               inv->short_description,
+               spell_list,
+               uses_remaining,
+               max_uses,
+               inv->dc_penalty,
+               status,
+               circle_ind);
       }
       send_to_char(ch, "\r\n");
     }
@@ -11151,7 +11270,33 @@ ACMDU(do_device)
     send_to_char(ch, "  Name: %s\r\n", inv->short_description);
     send_to_char(ch, "  Spell Effects:\r\n");
     for (i = 0; i < inv->num_spells; i++) {
-      send_to_char(ch, "    %s\r\n", spell_info[inv->spell_effects[i]].name);
+      int spellnum = inv->spell_effects[i];
+      int assigned_level = inv->spell_levels[i];
+      int display_circle = 0;
+      const char *ordinal;
+
+      if (assigned_level > 0) {
+        display_circle = (assigned_level + 1) / 2;
+      } else {
+        /* Fallback: compute minimum available class level */
+        int wiz = spell_info[spellnum].min_level[CLASS_WIZARD];
+        int clr = spell_info[spellnum].min_level[CLASS_CLERIC];
+        int lvl = 0;
+        if (wiz < LVL_IMMORT && clr < LVL_IMMORT) lvl = MIN(wiz, clr);
+        else if (wiz < LVL_IMMORT) lvl = wiz;
+        else if (clr < LVL_IMMORT) lvl = clr;
+        if (lvl > 0) display_circle = (lvl + 1) / 2;
+      }
+
+      ordinal = (display_circle == 1) ? "st" : (display_circle == 2) ? "nd" :
+                (display_circle == 3) ? "rd" : "th";
+
+      if (display_circle > 0) {
+        send_to_char(ch, "    %s (assigned %d%s circle)\r\n",
+                     spell_info[spellnum].name, display_circle, ordinal);
+      } else {
+        send_to_char(ch, "    %s\r\n", spell_info[spellnum].name);
+      }
     }
     send_to_char(ch, "  Uses: %d remaining out of %d total\r\n", uses_remaining, max_uses);
     
@@ -11304,19 +11449,23 @@ ACMDU(do_device)
       struct player_invention *inv = &ch->player_specials->saved.inventions[i];
       for (j = 0; j < inv->num_spells; j++) {
         int spellnum = inv->spell_effects[j];
-        int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
-        int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
-        int spell_level;
-        
-        /* Use the lower of wizard or cleric level (if both are available) */
-        if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
-          spell_level = MIN(wizard_level, cleric_level);
-        } else if (wizard_level < LVL_IMMORT) {
-          spell_level = wizard_level;
-        } else if (cleric_level < LVL_IMMORT) {
-          spell_level = cleric_level;
+        int spell_level = 0;
+
+        if (inv->spell_levels[j] > 0) {
+          spell_level = inv->spell_levels[j];
         } else {
-          continue; /* Skip spells not available to artificers */
+          int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+          int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
+          /* Use the lower of wizard or cleric level (if both are available) */
+          if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+            spell_level = MIN(wizard_level, cleric_level);
+          } else if (wizard_level < LVL_IMMORT) {
+            spell_level = wizard_level;
+          } else if (cleric_level < LVL_IMMORT) {
+            spell_level = cleric_level;
+          } else {
+            continue; /* Skip spells not available to artificers */
+          }
         }
         
         if (spell_level >= 1 && spell_level <= 7) {
@@ -11433,10 +11582,21 @@ static void finalize_invention_creation(struct char_data *ch, const char *variab
     return; /* no space */
 
   int spell_nums[MAX_INVENTION_SPELLS];
+  int spell_levels[MAX_INVENTION_SPELLS];
   char *spell_token = strtok(spells_part, ",");
   int i = 0;
   while (spell_token && i < num_spells) {
-    spell_nums[i++] = atoi(spell_token);
+    /* Support both legacy "spellnum" and new "spellnum:level" */
+    char *colon = strchr(spell_token, ':');
+    if (colon) {
+      *colon = '\0';
+      spell_nums[i] = atoi(spell_token);
+      spell_levels[i] = atoi(colon + 1);
+    } else {
+      spell_nums[i] = atoi(spell_token);
+      spell_levels[i] = 0;
+    }
+    i++;
     spell_token = strtok(NULL, ",");
   }
   if (i != num_spells)
@@ -11463,8 +11623,10 @@ static void finalize_invention_creation(struct char_data *ch, const char *variab
   temp_desc[sizeof(temp_desc) - 1] = '\0';
   snprintf(inv->long_description, MAX_INVENTION_LONGDESC, "A %s is here, humming with weird science energy.", temp_desc);
 
-  for (i = 0; i < num_spells; i++)
+  for (i = 0; i < num_spells; i++) {
     inv->spell_effects[i] = spell_nums[i];
+    inv->spell_levels[i] = spell_levels[i];
+  }
   inv->num_spells = num_spells;
   inv->duration = duration;
   inv->reliability = reliability;
@@ -11583,8 +11745,6 @@ EVENTFUNC(event_device_progress)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
-
-  send_to_world("DEBUG: event_device_progress called.\r\n");
   
   pMudEvent = (struct mud_event_data *)event_obj;
   
@@ -11599,8 +11759,6 @@ EVENTFUNC(event_device_progress)
     mudlog(CMP, LVL_STAFF, FALSE, "SYSERR: event_device_progress() called with NULL character");
     return 0;
   }
-
-  send_to_char(ch, "DEBUG: event_device_progress triggered.\r\n");
 
   /* Check if the main creation event still exists */
   struct mud_event_data *creation_event = char_has_mud_event(ch, eDEVICE_CREATION);
@@ -11728,13 +11886,24 @@ EVENTFUNC(event_device_creation)
   int duration = atoi(duration_str);
   int reliability = atoi(reliability_str);
   
-  /* Parse the spell numbers */
+  /* Parse the spell numbers and chosen levels */
   int spell_nums[MAX_INVENTION_SPELLS];
+  int spell_levels[MAX_INVENTION_SPELLS]; /* Chosen levels parsed but not stored (recalculated on load) */
   char *spell_token = strtok(spells_part, ",");
   int i = 0;
   
   while (spell_token && i < num_spells) {
-    spell_nums[i] = atoi(spell_token);
+    /* Parse "spellnum:level" format */
+    char *colon = strchr(spell_token, ':');
+    if (colon) {
+      *colon = '\0';
+      spell_nums[i] = atoi(spell_token);
+      spell_levels[i] = atoi(colon + 1);
+    } else {
+      /* Legacy format without level - just use spell number */
+      spell_nums[i] = atoi(spell_token);
+      spell_levels[i] = 0; /* Will recalculate if needed */
+    }
     spell_token = strtok(NULL, ",");
     i++;
   }
@@ -11743,6 +11912,8 @@ EVENTFUNC(event_device_creation)
     send_to_char(ch, "Your invention creation process was interrupted due to spell data corruption.\r\n");
     return 0;
   }
+  
+  /* Note: store chosen levels for accurate circle accounting */
   
   /* Final validation - check if player still has space for the invention */
   if (ch->player_specials->saved.num_inventions >= MAX_PLAYER_INVENTIONS) {
@@ -11780,6 +11951,7 @@ EVENTFUNC(event_device_creation)
   /* Set spell effects */
   for (i = 0; i < num_spells; i++) {
     inv->spell_effects[i] = spell_nums[i];
+    inv->spell_levels[i] = spell_levels[i];
   }
   inv->num_spells = num_spells;
   inv->duration = duration;

@@ -6060,6 +6060,7 @@ struct player_invention {
     char short_description[MAX_INVENTION_SHORTDESC];
     char long_description[MAX_INVENTION_LONGDESC];
     int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
+    int spell_levels[MAX_INVENTION_SPELLS];  /* chosen class spell level for each effect (1-7), 0 = unspecified */
     int num_spells;
     int duration;
     int reliability;
