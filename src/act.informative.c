@@ -6277,7 +6277,6 @@ bool show_wear_slot_in_eq(int wear_slot)
     case WEAR_CRAFT_JEWEL_PLIERS:
     case WEAR_CRAFT_NEEDLE:
     case WEAR_CRAFT_WEAPON_HAMMER:
-    case WEAR_ON_BACK:
       return FALSE;
     default:
       return TRUE;
