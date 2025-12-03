@@ -2130,7 +2130,6 @@ const char *wear_where[] = {
     "\tC{Sewing Needle}\tn      ",   // WEAR_CRAFT_NEEDLE
     "\tC{Weaponsmith Hammer}\tn ",   // WEAR_CRAFT_WEAPON_HAMMER
     "\tY{Worn On Back}\tn       ",
-
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 

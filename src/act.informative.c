@@ -115,6 +115,7 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_NECK_2,        //<worn around neck>
     WEAR_SHOULDERS,     //<worn on shoulders>
     WEAR_BODY,          //<worn on body>
+    WEAR_ON_BACK,       //<worn on back>
     WEAR_ABOUT,         //<worn about body>
     WEAR_AMMO_POUCH,    //<worn as ammo pouch>
     WEAR_WAIST,         //<worn about waist>
@@ -146,7 +147,6 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_CRAFT_JEWEL_PLIERS,  //<worn as craft tool - jewel pliers>
     WEAR_CRAFT_NEEDLE,  //<worn as craft tool - needle>
     WEAR_CRAFT_WEAPON_HAMMER, //<worn as craft tool - weapon hammer>
-    WEAR_ON_BACK,       //<worn on back>
 };
 
 /*******  UTILITY FUNCTIONS ***********/
@@ -6264,6 +6264,27 @@ ACMD(do_bags)
 
 }
 
+bool show_wear_slot_in_eq(int wear_slot)
+{
+  switch (wear_slot)
+  {
+    case WEAR_CRAFT_SICKLE:
+    case WEAR_CRAFT_AXE:
+    case WEAR_CRAFT_KNIFE:
+    case WEAR_CRAFT_PICKAXE:
+    case WEAR_CRAFT_ALCHEMY:
+    case WEAR_CRAFT_ARMOR_HAMMER:
+    case WEAR_CRAFT_JEWEL_PLIERS:
+    case WEAR_CRAFT_NEEDLE:
+    case WEAR_CRAFT_WEAPON_HAMMER:
+    case WEAR_ON_BACK:
+      return FALSE;
+    default:
+      return TRUE;
+  }
+  return TRUE;
+}
+
 ACMD(do_equipment)
 {
   int i, found = 0;
@@ -6281,8 +6302,9 @@ ACMD(do_equipment)
     snprintf(dex_max, sizeof(dex_max), "%d", j);
 
   send_to_char(ch, "You are using:\r\n");
-  for (i = 0; i < 33 ; i++)  // Only show traditional equipment slots (33), not craft tools (34-42)
+  for (i = 0; i < NUM_WEARS ; i++)
   {
+    if (!show_wear_slot_in_eq(eq_ordering_1[i])) continue;
     if (GET_EQ(ch, eq_ordering_1[i]))
     {
       found = TRUE;

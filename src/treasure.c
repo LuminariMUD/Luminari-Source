@@ -526,6 +526,7 @@ int determine_stat_apply(int wear)
     }
     break;
   case WEAR_ABOUT:
+  case WEAR_ON_BACK:
     switch (rand_number(1, 3))
     {
     case 1:
@@ -1582,6 +1583,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   else if (CAN_WEAR(obj, ITEM_WEAR_ABOUT))
   {
     bonus_location = determine_stat_apply(WEAR_ABOUT);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ON_BACK))
+  {
+    bonus_location = determine_stat_apply(WEAR_ON_BACK);
   }
   else if (CAN_WEAR(obj, ITEM_WEAR_WAIST))
   {
