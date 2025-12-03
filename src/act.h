@@ -1079,6 +1079,7 @@ ACMD_DECL(do_savemobs);
 ACMD_DECL(do_send);
 ACMD_DECL(do_set);
 ACMD_DECL(do_show);
+ACMD_DECL(do_shopstat);
 ACMD_DECL(do_shoplist);
 ACMD_DECL(do_snoop);
 ACMD_DECL(do_stat);
