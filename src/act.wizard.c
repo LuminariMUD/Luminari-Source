@@ -3770,7 +3770,6 @@ ACMD(do_shoplist)
   int shop_nr, room_idx;
   room_rnum room_rnum_val;
   zone_rnum zone_idx = NOWHERE;
-  struct char_data *keeper;
   char keeper_name[MAX_STRING_LENGTH];
   char room_name[MAX_STRING_LENGTH];
   char zone_name[MAX_STRING_LENGTH];
@@ -3811,11 +3810,11 @@ ACMD(do_shoplist)
     }
     else
     {
-      keeper = read_mobile(SHOP_KEEPER(shop_nr), REAL);
-      if (keeper)
+      /* Use the mob prototype name directly instead of loading a mob */
+      if (SHOP_KEEPER(shop_nr) >= 0 && SHOP_KEEPER(shop_nr) <= top_of_mobt)
       {
-        snprintf(keeper_name, sizeof(keeper_name), "%.20s", GET_NAME(keeper));
-        extract_char(keeper);
+        snprintf(keeper_name, sizeof(keeper_name), "%.20s", 
+                 mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr);
       }
       else
       {
