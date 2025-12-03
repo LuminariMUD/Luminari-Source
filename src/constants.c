@@ -6929,6 +6929,13 @@ const char * wilderness_system_options [] = {
     "\n"
 };
 
+const char * exp_option [] = {
+    "Full",
+    "Reduced",
+    "None",
+    "\n"
+};
+
 /* Artificer Weird Science progression table */
 const struct weird_science_level weird_science_table[] = {
     {1,  {1, 0, 0, 0}},   /* 1st level */

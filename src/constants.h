@@ -225,5 +225,6 @@ extern const char * landmark_system_options [];
 extern const char * new_player_gear_options [];
 extern const char * allow_cexchange_options [];
 extern const char * wilderness_system_options [];
+extern const char * exp_option [];
 
 #endif /* _CONSTANTS_H_ */

@@ -585,6 +585,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_MOB_STATS_ROGUES_ST 122
 #define CEDIT_MOB_STATS_ROGUES_AS 123
 #define CEDIT_MOB_STATS_ROGUES_GOLD 124
+#define CEDIT_SET_MELEE_EXP 125
+#define CEDIT_SET_SPELL_CAST_EXP 126
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
@@ -742,6 +744,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define NUM_NEW_PLAYER_GEAR_OPTIONS 2
 #define NUM_ALLOW_CEXCHANGE_OPTIONS 2
 #define NUM_WILDERNESS_SYSTEM_OPTIONS 3
+#define NUM_EXP_OPTIONS 3
 
 int save_config(IDXTYPE nowhere);
 

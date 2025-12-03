@@ -197,6 +197,8 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.new_player_gear = CONFIG_NEW_PLAYER_GEAR;
   OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
   OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
+  OLC_CONFIG(d)->extra.melee_exp_option = CONFIG_MELEE_EXP_OPTION;
+  OLC_CONFIG(d)->extra.spell_cast_exp_option = CONFIG_SPELL_CAST_EXP_OPTION;
 
   /* Mob Stats */
   OLC_CONFIG(d)->mob_stats.warriors.hit_points = CONFIG_MOB_WARRIORS_HP;
@@ -374,6 +376,8 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_NEW_PLAYER_GEAR  = OLC_CONFIG(d)->extra.new_player_gear;
   CONFIG_ALLOW_CEXCHANGE  = OLC_CONFIG(d)->extra.allow_cexchange;
   CONFIG_WILDERNESS_SYSTEM  = OLC_CONFIG(d)->extra.wilderness_system;
+  CONFIG_MELEE_EXP_OPTION = OLC_CONFIG(d)->extra.melee_exp_option;
+  CONFIG_SPELL_CAST_EXP_OPTION = OLC_CONFIG(d)->extra.spell_cast_exp_option;
 
   /* Mob Stats */
   CONFIG_MOB_WARRIORS_HP = OLC_CONFIG(d)->mob_stats.warriors.hit_points;
@@ -887,6 +891,12 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* What kind of wilderness system do you use?\n"
               "wilderness_system = %d\n\n",
           CONFIG_WILDERNESS_SYSTEM);
+  fprintf(fl, "* How much experience should be granted for melee hits?\n"
+              "melee_exp_option = %d\n\n",
+          CONFIG_MELEE_EXP_OPTION);
+  fprintf(fl, "* How much experience should be granted for casting spells?\n"
+              "spell_cast_exp_option = %d\n\n",
+          CONFIG_SPELL_CAST_EXP_OPTION);
 
   /* MOB STATS */
   fprintf(fl, "\n\n\n* [ Mob Stats Configuration ]\n");
@@ -1267,6 +1277,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                      "%sE%s) Choose New Player Gear         : %s%s\r\n"
                      "%sF%s) Allow CExchange Command?       : %s%s\r\n"
                      "%sG%s) Wilderness System              : %s%s\r\n"
+                     "%sH%s) Allow Exp on Melee Hits        : %s%s\r\n"
+                     "%sI%s) Allow Exp on Spells Cast       : %s%s\r\n"
                      "\r\n"
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
@@ -1278,6 +1290,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, new_player_gear_options[OLC_CONFIG(d)->extra.new_player_gear],
                   grn, nrm, cyn, allow_cexchange_options[OLC_CONFIG(d)->extra.allow_cexchange],
                   grn, nrm, cyn, wilderness_system_options[OLC_CONFIG(d)->extra.wilderness_system],
+                  grn, nrm, cyn, exp_option[OLC_CONFIG(d)->extra.melee_exp_option],
+                  grn, nrm, cyn, exp_option[OLC_CONFIG(d)->extra.spell_cast_exp_option],
 
                   grn, nrm);
 
@@ -2021,6 +2035,32 @@ void cedit_parse(struct descriptor_data *d, char *arg)
           write_to_output(d, "%d) %s\n", i+1, wilderness_system_options[i]);
         }
         OLC_MODE(d) = CEDIT_SET_WILDERNESS_SYSTEM;
+        return;
+
+      case 'h':
+      case 'H':
+        write_to_output(d, "How much experience should be granted for melee hits?\r\n");
+        write_to_output(d, "Full: Normal experience gain from melee attacks.\r\n");
+        write_to_output(d, "Reduced: Diminished experience gain from melee attacks.\r\n");
+        write_to_output(d, "None: No experience gain from melee attacks.\r\n");
+        for (i = 0; i < NUM_EXP_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, exp_option[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_MELEE_EXP;
+        return;
+
+      case 'i':
+      case 'I':
+        write_to_output(d, "How much experience should be granted for casting spells?\r\n");
+        write_to_output(d, "Full: Normal experience gain from spell casting.\r\n");
+        write_to_output(d, "Reduced: Diminished experience gain from spell casting.\r\n");
+        write_to_output(d, "None: No experience gain from spell casting.\r\n");
+        for (i = 0; i < NUM_EXP_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, exp_option[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_SPELL_CAST_EXP;
         return;
 
       case 'q':
@@ -3216,6 +3256,22 @@ void cedit_parse(struct descriptor_data *d, char *arg)
      if (*arg)
      {
       OLC_CONFIG(d)->extra.wilderness_system = (MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_MELEE_EXP:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.melee_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_SPELL_CAST_EXP:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.spell_cast_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
      }
     cedit_disp_extra_game_play_options(d);
     break;

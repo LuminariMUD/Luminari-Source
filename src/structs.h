@@ -7243,6 +7243,8 @@ struct extra_game_data
     ubyte landmarks_system;
     ubyte allow_cexchange;
     ubyte wilderness_system;
+    ubyte melee_exp_option;
+    ubyte spell_cast_exp_option;
 };
 
 /**
