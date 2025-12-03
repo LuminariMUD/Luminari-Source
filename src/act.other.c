@@ -10328,6 +10328,7 @@ ACMDU(do_device)
     if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
       send_to_char(ch, "Brilliance and Blunder: Can add 4th spell but devices EXPLODE when broken!\r\n");
     send_to_char(ch, "\r\nUse 'device info #' to get detailed information about a specific device.\r\n");
+    send_to_char(ch, "When using spell names in 'device create' use double quotes \" around spell names with multiple words in it.\r\n");
     return;
   }
 

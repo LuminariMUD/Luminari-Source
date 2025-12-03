@@ -2978,7 +2978,7 @@ ACMD(do_masterlist)
   else if (is_abbrev(argument, "spells"))
   {
     /* Support subcommands: next|prev|page N|quit for pager navigation */
-    char *sub = argument + strlen("spells");
+    char *sub = (char *) argument + strlen("spells");
     while (*sub == ' ') sub++;
     if (!*sub) {
       perform_master_spell_list(ch);

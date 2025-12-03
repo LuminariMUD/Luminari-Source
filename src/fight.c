@@ -48,6 +48,8 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 #include "perks.h"
+#include "routing.h"
+#include "movement_cost.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1591,6 +1593,18 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   {
     return FALSE;
     ;
+  }
+
+  if (GET_WALKTO_LOC(ch) != 0)
+  {
+    send_to_char(ch, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    GET_WALKTO_LOC(ch) = 0;
+  }
+
+  if (GET_WALKTO_LOC(vict) != 0)
+  {
+    send_to_char(vict, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(vict))));
+    GET_WALKTO_LOC(vict) = 0;
   }
 
   GET_INITIATIVE(ch) = roll_initiative(ch);

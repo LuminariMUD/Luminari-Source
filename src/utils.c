@@ -9841,6 +9841,8 @@ bool is_road_room(room_rnum room, int type)
     return true;
   else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_RANDOM_ENCOUNTERS) && type == 3)
     return true;
+  else if (!ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_OPEN))
+    return false;
   else if (world[room].sector_type == SECT_ROAD_EW)
     return true;
   else if (world[room].sector_type == SECT_ROAD_INT)

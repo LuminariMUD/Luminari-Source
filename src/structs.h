@@ -305,6 +305,7 @@
 #define ZONE_NOIMMORT 1     /**< Immortals (below LVL_GRSTAFF) cannot enter this zone */
 #define ZONE_QUEST 2        /**< This zone is a quest zone (not implemented) */
 #define ZONE_GRID 3         /**< Zone is 'on the grid', connected, show on 'areas' */
+#define ZONE_OPEN ZONE_GRID
 #define ZONE_NOBUILD 4      /**< Building is not allowed in the zone */
 #define ZONE_NOASTRAL 5     /**< No teleportation magic will work to or from this zone */
 #define ZONE_NOTELEPORT ZONE_NOASTRAL

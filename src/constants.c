@@ -1231,7 +1231,7 @@ const char *zone_bits[] = {
     "Closed",
     "No-Immortal",
     "Quest",
-    "Grid",
+    "Open for Players",
     "No-Build",
     "No-Teleport",
     "Worldmap",
