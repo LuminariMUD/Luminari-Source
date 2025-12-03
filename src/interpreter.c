@@ -921,6 +921,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shoplist", "shoplist", POS_DEAD, do_shoplist, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1437,6 +1438,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "get") &&  /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gsay") &&
@@ -1514,6 +1516,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
            !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
            !is_abbrev(complete_cmd_info[cmd].command, "who") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "score") &&
            !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
            !is_abbrev(complete_cmd_info[cmd].command, "nocraftprogress") &&
@@ -1556,6 +1559,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
            !is_abbrev(complete_cmd_info[cmd].command, "'") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "help") &&
            !is_abbrev(complete_cmd_info[cmd].command, "class") &&
            !is_abbrev(complete_cmd_info[cmd].command, "race") &&

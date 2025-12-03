@@ -3764,6 +3764,80 @@ ACMD(do_show)
   }
 }
 
+/* The shoplist command - lists all shops with zone, room, and keeper info */
+ACMD(do_shoplist)
+{
+  int shop_nr, room_idx;
+  room_rnum room_rnum_val;
+  zone_rnum zone_idx = NOWHERE;
+  struct char_data *keeper;
+  char keeper_name[MAX_STRING_LENGTH];
+  char room_name[MAX_STRING_LENGTH];
+  char zone_name[MAX_STRING_LENGTH];
+  int shop_count = 0;
+
+  send_to_char(ch, "\tcShop Listing\tn\r\n");
+  send_to_char(ch, "%-6s %-6s %-24s %-6s %-24s %-6s %-20s\r\n", "Shop#", "Zone#", "Zone", "Room#", "Room", "Mob#", "Shopkeeper");
+  send_to_char(ch, "------------------------------------------------------------------------------------------------------------\r\n");
+
+  for (shop_nr = 0; shop_nr <= top_shop; shop_nr++)
+  {
+    /* Get the first room for this shop */
+    room_idx = 0;
+    room_rnum_val = real_room(SHOP_ROOM(shop_nr, room_idx));
+    
+    if (room_rnum_val == NOWHERE)
+    {
+      strlcpy(zone_name, "Unknown", sizeof(zone_name));
+      strlcpy(room_name, "Unknown Room", sizeof(room_name));
+    }
+    else
+    {
+      /* Get zone information */
+      zone_idx = world[room_rnum_val].zone;
+      if (zone_idx >= 0 && zone_idx <= top_of_zone_table)
+        snprintf(zone_name, sizeof(zone_name), "%.24s", zone_table[zone_idx].name);
+      else
+        strlcpy(zone_name, "Unknown Zone", sizeof(zone_name));
+      
+      /* Get room name */
+      snprintf(room_name, sizeof(room_name), "%.24s", world[room_rnum_val].name);
+    }
+
+    /* Get shopkeeper name */
+    if (SHOP_KEEPER(shop_nr) == NOBODY)
+    {
+      strlcpy(keeper_name, "<None>", sizeof(keeper_name));
+    }
+    else
+    {
+      keeper = read_mobile(SHOP_KEEPER(shop_nr), REAL);
+      if (keeper)
+      {
+        snprintf(keeper_name, sizeof(keeper_name), "%.20s", GET_NAME(keeper));
+        extract_char(keeper);
+      }
+      else
+      {
+        strlcpy(keeper_name, "<Invalid>", sizeof(keeper_name));
+      }
+    }
+
+    send_to_char(ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", 
+                 SHOP_NUM(shop_nr),
+                 (zone_idx >= 0 && zone_idx <= top_of_zone_table) ? zone_table[zone_idx].number : -1,
+                 zone_name, 
+                 SHOP_ROOM(shop_nr, room_idx),
+                 room_name,
+                 SHOP_KEEPER(shop_nr) == NOBODY ? -1 : mob_index[SHOP_KEEPER(shop_nr)].vnum,
+                 keeper_name);
+    shop_count++;
+  }
+
+  send_to_char(ch, "------------------------------------------------------------------------------------------------------------\r\n");
+  send_to_char(ch, "Total shops: %d\r\n", shop_count);
+}
+
 /* The do_set function */
 
 #define PC 1
