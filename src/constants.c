@@ -2596,6 +2596,7 @@ const char *extra_bits[] = {
     "Crafting-Tannery",
     "Crafting-Carpentry-Table",
     "Trapped",
+    "Costs-Account-Experience",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

@@ -11303,5 +11303,23 @@ bool valid_luminari_race(int race)
   return false;
 }
 
+int get_account_experience(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return 0;
+
+  return ch->desc->account->experience;
+}
+
+void change_account_experience(struct char_data *ch, int amount)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return;
+
+  ch->desc->account->experience += amount;
+  if (ch->desc->account->experience < 0)
+    ch->desc->account->experience = 0;
+}
+
 /* EoF */
 
