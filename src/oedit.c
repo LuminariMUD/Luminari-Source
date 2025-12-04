@@ -2387,7 +2387,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       GET_OBJ_TYPE(OLC_OBJ(d)) = number;
     /* what's the boundschecking worth if we don't do this ? -- Welcor */
     GET_OBJ_VAL(OLC_OBJ(d), 0) = GET_OBJ_VAL(OLC_OBJ(d), 1) =
-        GET_OBJ_VAL(OLC_OBJ(d), 2) = GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
+    GET_OBJ_VAL(OLC_OBJ(d), 2) = GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
+    if (number == ITEM_TREASURE_CHEST)
+      REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE); /* chests can't be taken */
     break;
 
   case OEDIT_PROF:
