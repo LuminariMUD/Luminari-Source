@@ -7201,12 +7201,34 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
   GET_OBJ_LEVEL(obj) = MAX(0, MIN(30, (GET_OBJ_VAL(obj, 4) * 5) - 5));
   // GET_OBJ_MATERIAL(obj) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_MATERIAL);
 
-  // we are only adding apply bonuses to weapons, shields or body armor
-  if (!CAN_WEAR(obj, ITEM_WEAR_HEAD) && !CAN_WEAR(obj, ITEM_WEAR_ARMS) && !CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  // Apply bonuses based on worn position
+  if (CAN_WEAR(obj, ITEM_WEAR_BODY) || CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD))
   {
+    // Body armor, weapons, and shields use the main apply values
     obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_LOC);
     obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_MOD);
     obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_HEAD))
+  {
+    // Head armor uses head-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ARMS))
+  {
+    // Arm armor uses arms-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  {
+    // Leg armor uses legs-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_BONUS);
   }
 
   GET_OBJ_COST(obj) = (1 + GET_OBJ_LEVEL(obj)) * (100 + (GET_OBJ_VAL(obj, 4) * 5));

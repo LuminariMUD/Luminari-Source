@@ -278,6 +278,15 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OEDIT_APPLY_SPECIFIC 55
 #define OEDIT_MOB_RECIPIENT 56
 #define OEDIT_VALUE_6 57
+#define OEDIT_VALUE_7 65
+#define OEDIT_VALUE_8 66
+#define OEDIT_VALUE_9 67
+#define OEDIT_VALUE_10 68
+#define OEDIT_VALUE_11 69
+#define OEDIT_VALUE_12 70
+#define OEDIT_VALUE_13 71
+#define OEDIT_VALUE_14 72
+#define OEDIT_VALUE_15 73
 #define OEDIT_ACTIVATED_SPELLS_LEVEL 58
 #define OEDIT_ACTIVATED_SPELLS_SPELLNUM 59
 #define OEDIT_ACTIVATED_SPELLS_MAX_USES 60

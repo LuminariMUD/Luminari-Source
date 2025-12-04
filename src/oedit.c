@@ -55,6 +55,15 @@ static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
 static void oedit_disp_val5_menu(struct descriptor_data *d);
 static void oedit_disp_val6_menu(struct descriptor_data *d);
+static void oedit_disp_val7_menu(struct descriptor_data *d);
+static void oedit_disp_val8_menu(struct descriptor_data *d);
+static void oedit_disp_val9_menu(struct descriptor_data *d);
+static void oedit_disp_val10_menu(struct descriptor_data *d);
+static void oedit_disp_val11_menu(struct descriptor_data *d);
+static void oedit_disp_val12_menu(struct descriptor_data *d);
+static void oedit_disp_val13_menu(struct descriptor_data *d);
+static void oedit_disp_val14_menu(struct descriptor_data *d);
+static void oedit_disp_val15_menu(struct descriptor_data *d);
 // static void oedit_disp_prof_menu(struct descriptor_data *d);
 static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
@@ -1314,7 +1323,7 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
     get_char_colors(d->character);
     clear_screen(d);
     column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
-    write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n");
+    write_to_output(d, "\r\nEnter BODY apply type (0 is no apply)\r\n");
     write_to_output(d, "Please select an apply type to add to the item, or select none for nothing.\r\n");
     write_to_output(d, "Enter your choice: ");
     break;
@@ -1410,6 +1419,168 @@ static void oedit_disp_val6_menu(struct descriptor_data *d)
         write_to_output(d, "\r\n");
     }
     write_to_output(d, "\r\nEnter the bonus type for this affect : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #7 (HEAD bonuses start here) */
+static void oedit_disp_val7_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_7;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter HEAD apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the helm, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #8 */
+static void oedit_disp_val8_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_8;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "HEAD apply modifier amount: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #9 */
+static void oedit_disp_val9_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_9;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for HEAD affect : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #10 (ARMS bonuses start here) */
+static void oedit_disp_val10_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_10;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter ARMS apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the sleeves, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #11 */
+static void oedit_disp_val11_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_11;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "ARMS apply modifier amount: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #12 */
+static void oedit_disp_val12_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_12;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for ARMS affect : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #13 (LEGS bonuses start here) */
+static void oedit_disp_val13_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_13;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter LEGS apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the leggings, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #14 */
+static void oedit_disp_val14_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_14;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "LEGS apply modifier amount: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #15 */
+static void oedit_disp_val15_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_15;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for LEGS affect : ");
     break;
   default:
     oedit_disp_menu(d);
@@ -2603,6 +2774,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       max_val = 80;
       break;
     case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
       if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
             || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
             || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
@@ -2610,9 +2785,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         return;
       }
-      min_val = 0;
-      max_val = NUM_APPLIES;
-      number--;
       break;
     case ITEM_SCROLL:
     case ITEM_POTION:
@@ -2719,13 +2891,199 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case ITEM_GEAR_OUTFIT:
       min_val = 0;
       max_val = NUM_BONUS_TYPES - 1;
-      break;
+      GET_OBJ_VAL(OLC_OBJ(d), 5) = LIMIT(number, min_val, max_val);
+      oedit_disp_val7_menu(d);
+      return;
     default:
       min_val = -65000;
       max_val = 65000;
       break;
     }
     GET_OBJ_VAL(OLC_OBJ(d), 5) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_7:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        oedit_disp_val7_menu(d);
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_HEAD_APPLY_LOC) = number;
+      oedit_disp_val8_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 6) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_8:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_HEAD_APPLY_MOD) = number;
+      oedit_disp_val9_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 7) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_9:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      GET_OBJ_VAL(OLC_OBJ(d), 8) = LIMIT(number, min_val, max_val);
+      oedit_disp_val10_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 8) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_10:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        oedit_disp_val10_menu(d);
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_ARMS_APPLY_LOC) = number;
+      oedit_disp_val11_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 9) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_11:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_ARMS_APPLY_MOD) = number;
+      oedit_disp_val12_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 10) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_12:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      GET_OBJ_VAL(OLC_OBJ(d), 11) = LIMIT(number, min_val, max_val);
+      oedit_disp_val13_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 11) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_13:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        oedit_disp_val13_menu(d);
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_LEGS_APPLY_LOC) = number;
+      oedit_disp_val14_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 12) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_14:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_LEGS_APPLY_MOD) = number;
+      oedit_disp_val15_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 13) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_15:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      break;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 14) = LIMIT(number, min_val, max_val);
     break;
 
     //    }
