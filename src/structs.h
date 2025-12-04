@@ -6530,6 +6530,10 @@ struct mob_special_data
     int spell_slots[10];        /* Current spell slots per circle (0-9) */
     int max_spell_slots[10];    /* Maximum spell slots per circle (0-9) */
     time_t last_slot_regen;     /* Timestamp of last spell slot regeneration */
+    
+    /* Known spell slot system for mobs (max 2 slots per known spell, regenerate 1 per minute) */
+    byte known_spell_slots[MAX_SPELLS];      /* Current slots per known spell (max 2) */
+    time_t last_known_slot_regen;            /* Timestamp of last known spell slot regeneration */
 };
 
 /** An affect structure. */

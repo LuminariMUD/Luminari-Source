@@ -84,6 +84,7 @@
 #include "crafting_new.h"
 #include "crafting_recipes.h"
 #include "mob_spellslots.h"
+#include "mob_known_spells.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -4370,6 +4371,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   /* Initialize spell slots for mobs using spell slot system */
   init_mob_spell_slots(mob);
+  
+  /* Initialize known spell slots for mobs */
+  init_known_spell_slots(mob);
 
   return (mob);
 }

@@ -32,6 +32,7 @@
 #include "psionics.h"
 #include "mob_act.h"
 #include "mob_spellslots.h"
+#include "mob_known_spells.h"
 #include "mob_spells.h"
 
 /* External function prototypes */
@@ -107,6 +108,9 @@ void mobile_activity(void)
 
     /* Regenerate spell slots for mobs using spell slot system */
     regenerate_mob_spell_slot(ch);
+    
+    /* Regenerate known spell slots for mobs */
+    regenerate_known_spell_slot(ch);
 
     /* If the mob has no specproc, do the default actions */
 
