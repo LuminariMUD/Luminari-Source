@@ -46,6 +46,9 @@ void npc_assigned_spells(struct char_data *ch);
 /* check if mob knows its assigned spells */
 bool mob_knows_assigned_spells(struct char_data *ch);
 
+/* Cast a known spell as an innate ability (bypasses class restrictions) */
+int cast_known_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum);
+
 /* Wizard AI functions */
 bool wizard_is_long_duration_buff(int spellnum);
 int wizard_get_spell_category(int spellnum);
