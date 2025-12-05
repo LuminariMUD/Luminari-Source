@@ -1629,7 +1629,10 @@ void resize_obj_to_char(struct obj_data *object, struct char_data *ch)
   switch (GET_OBJ_TYPE(object))
   {
     case ITEM_ARMOR:
-      GET_OBJ_SIZE(object) = GET_SIZE(ch);
+      if (IS_NPC(ch)) // For NPCs we won't change the size
+        break;
+      else
+        GET_OBJ_SIZE(object) = race_list[GET_REAL_RACE(ch)].size; // in case they are shapechanged/wildshaped/enlarged/etc.
       break;
     default:
       break;
