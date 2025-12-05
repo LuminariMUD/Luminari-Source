@@ -264,6 +264,7 @@ int find_eq_pos_script(char *arg)
       {"lwrist", WEAR_WRIST_L},
       {"rankle", WEAR_ANKLE_R},
       {"lankle", WEAR_ANKLE_L},
+      {"onback", WEAR_ON_BACK},
       {"none", -1}};
 
   if (is_number(arg) && (i = atoi(arg)) >= 0 && i < NUM_WEARS)
@@ -327,6 +328,8 @@ int can_wear_on_pos(struct obj_data *obj, int pos)
   case WEAR_WRIST_R:
   case WEAR_WRIST_L:
     return CAN_WEAR(obj, ITEM_WEAR_WRIST);
+  case WEAR_ON_BACK:
+    return CAN_WEAR(obj, ITEM_WEAR_ON_BACK);
   default:
     return FALSE;
   }

@@ -134,6 +134,7 @@ circle_SOURCES = \
 	src/mob_class.c \
 	src/mob_spells.c \
 	src/mob_spellslots.c \
+	src/mob_known_spells.c \
 	src/modify.c \
 	src/msgedit.c \
 	src/mud_event.c \

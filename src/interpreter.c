@@ -355,7 +355,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"device", "device", POS_STANDING, do_invent, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"device", "device", POS_STANDING, do_device, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -921,6 +921,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shopstat", "shopstat", POS_DEAD, do_shopstat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shoplist", "shoplist", POS_DEAD, do_shoplist, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1437,6 +1439,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "get") &&  /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gsay") &&
@@ -1514,6 +1517,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
            !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
            !is_abbrev(complete_cmd_info[cmd].command, "who") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "score") &&
            !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
            !is_abbrev(complete_cmd_info[cmd].command, "nocraftprogress") &&
@@ -1546,7 +1550,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVISE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1556,6 +1560,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
            !is_abbrev(complete_cmd_info[cmd].command, "'") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "help") &&
            !is_abbrev(complete_cmd_info[cmd].command, "class") &&
            !is_abbrev(complete_cmd_info[cmd].command, "race") &&
@@ -1571,7 +1576,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     {
       if (char_has_mud_event(ch, eCRAFTING))
         send_to_char(ch, "You are too busy crafting to do that! ");
-      else if (char_has_mud_event(ch, eDEVISE_CREATION))
+      else if (char_has_mud_event(ch, eDEVICE_CREATION))
         send_to_char(ch, "You are too busy devising your creation to do that! ");
       else if (char_has_mud_event(ch, eBREWING))
         send_to_char(ch, "You are too busy brewing to do that! ");

@@ -337,6 +337,7 @@ void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int can_carry_weight_limit(struct char_data *ch);
+bool valid_luminari_race(int race);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
@@ -386,6 +387,8 @@ int get_power_resist_mod(struct char_data *ch);
 bool is_spellnum_psionic(int spellnum);
 void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam);
 int countlines(char *filename);
+int get_account_experience(struct char_data *ch);
+void change_account_experience(struct char_data *ch, int amount);
 bool can_blind(struct char_data *ch);
 bool can_deafen(struct char_data *ch);
 bool can_disease(struct char_data *ch);
@@ -2605,6 +2608,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_NEW_PLAYER_GEAR config_info.extra.new_player_gear
 #define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
 #define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
+#define CONFIG_MELEE_EXP_OPTION config_info.extra.melee_exp_option
+#define CONFIG_SPELL_CAST_EXP_OPTION config_info.extra.spell_cast_exp_option
 
 /* Mob Stats Config */
 #define CONFIG_MOB_WARRIORS_HP config_info.mob_stats.warriors.hit_points

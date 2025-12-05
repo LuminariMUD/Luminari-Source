@@ -68,6 +68,31 @@ void init_events(void)
 {
   /* Allocate Event List */
   world_events = create_list();
+  size_t i;
+
+  /* Validate registry size vs enum last value to catch drift */
+  {
+    size_t registry_size = mud_event_index_count;
+    size_t expected_size = (size_t)eFERAL_CHARGE_USED + 1; /* last enum + 1 */
+    if (registry_size != expected_size) {
+      log("SYSERR: mud_event_index size (%zu) does not match enum count (%zu). Events may be misaligned.", registry_size, expected_size);
+    }
+    /* Per-entry validation */
+    for (i = 0; i < registry_size; ++i) {
+      struct mud_event_list *entry = &mud_event_index[i];
+      /* Skip NULL sentinel (index 0) */
+      if (i == eNULL)
+        continue;
+      /* Validate type */
+      if (entry->iEvent_Type < EVENT_WORLD || entry->iEvent_Type > EVENT_OBJECT) {
+        log("SYSERR: Event index %zu ('%s') has invalid type %d", i, entry->event_name ? entry->event_name : "(null)", entry->iEvent_Type);
+      }
+      /* Validate handler */
+      if (!entry->func) {
+        log("SYSERR: Event index %zu ('%s') has NULL handler", i, entry->event_name ? entry->event_name : "(null)");
+      }
+    }
+  }
 }
 
 /* The bottom switch() is for any post-event actions, like telling the character they can
@@ -768,6 +793,8 @@ struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
   struct iterator_data it;
+
+  /* (debug removed) */
 
   if (ch->events == NULL)
     return NULL;

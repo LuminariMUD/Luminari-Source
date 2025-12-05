@@ -305,6 +305,7 @@
 #define ZONE_NOIMMORT 1     /**< Immortals (below LVL_GRSTAFF) cannot enter this zone */
 #define ZONE_QUEST 2        /**< This zone is a quest zone (not implemented) */
 #define ZONE_GRID 3         /**< Zone is 'on the grid', connected, show on 'areas' */
+#define ZONE_OPEN ZONE_GRID
 #define ZONE_NOBUILD 4      /**< Building is not allowed in the zone */
 #define ZONE_NOASTRAL 5     /**< No teleportation magic will work to or from this zone */
 #define ZONE_NOTELEPORT ZONE_NOASTRAL
@@ -4061,6 +4062,15 @@
 #define OUTFIT_VAL_APPLY_LOC 3
 #define OUTFIT_VAL_APPLY_MOD 4
 #define OUTFIT_VAL_APPLY_BONUS 5
+#define OUTFIT_VAL_HEAD_APPLY_LOC 6
+#define OUTFIT_VAL_HEAD_APPLY_MOD 7
+#define OUTFIT_VAL_HEAD_APPLY_BONUS 8
+#define OUTFIT_VAL_ARMS_APPLY_LOC 9
+#define OUTFIT_VAL_ARMS_APPLY_MOD 10
+#define OUTFIT_VAL_ARMS_APPLY_BONUS 11
+#define OUTFIT_VAL_LEGS_APPLY_LOC 12
+#define OUTFIT_VAL_LEGS_APPLY_MOD 13
+#define OUTFIT_VAL_LEGS_APPLY_BONUS 14
 
 /* Item profs: used by obj_data.obj_flags.prof_flag
  * constants.c = item_profs */
@@ -4325,8 +4335,9 @@
 #define ITEM_CRAFTING_TANNERY 111
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
 #define ITEM_TRAPPED 113 // This object has a trap attached
+#define ITEM_ACCOUNT_EXP 114 // item is bought for account exp
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 114
+#define NUM_ITEM_FLAGS 115
 
 /* homeland-port */
 /*
@@ -6060,6 +6071,7 @@ struct player_invention {
     char short_description[MAX_INVENTION_SHORTDESC];
     char long_description[MAX_INVENTION_LONGDESC];
     int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
+    int spell_levels[MAX_INVENTION_SPELLS];  /* chosen class spell level for each effect (1-7), 0 = unspecified */
     int num_spells;
     int duration;
     int reliability;
@@ -6518,6 +6530,10 @@ struct mob_special_data
     int spell_slots[10];        /* Current spell slots per circle (0-9) */
     int max_spell_slots[10];    /* Maximum spell slots per circle (0-9) */
     time_t last_slot_regen;     /* Timestamp of last spell slot regeneration */
+    
+    /* Known spell slot system for mobs (max 2 slots per known spell, regenerate 1 per minute) */
+    byte known_spell_slots[MAX_SPELLS];      /* Current slots per known spell (max 2) */
+    time_t last_known_slot_regen;            /* Timestamp of last known spell slot regeneration */
 };
 
 /** An affect structure. */
@@ -7241,6 +7257,8 @@ struct extra_game_data
     ubyte landmarks_system;
     ubyte allow_cexchange;
     ubyte wilderness_system;
+    ubyte melee_exp_option;
+    ubyte spell_cast_exp_option;
 };
 
 /**

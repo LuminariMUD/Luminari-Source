@@ -23,6 +23,7 @@
 #include "oasis.h"
 #include "dg_scripts.h"
 #include "shop.h"
+#include "shop.h"
 #include "act.h"
 #include "mysql.h"
 #include "copyover_diagnostic.h"
@@ -67,6 +68,7 @@
 #include "backgrounds.h"
 #include "terrain_bridge.h"
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
+#include "genshp.h"
 
 /* External variables and functions */
 extern MYSQL *conn;
@@ -3761,6 +3763,228 @@ ACMD(do_show)
   default:
     send_to_char(ch, "Sorry, I don't understand that.\r\n");
     break;
+  }
+}
+
+/* The shoplist command - lists all shops with zone, room, and keeper info */
+ACMD(do_shoplist)
+{
+  int shop_nr, room_idx;
+  room_rnum room_rnum_val;
+  zone_rnum zone_idx = NOWHERE;
+  char keeper_name[MAX_STRING_LENGTH];
+  char room_name[MAX_STRING_LENGTH];
+  char zone_name[MAX_STRING_LENGTH];
+  int shop_count = 0;
+
+  send_to_char(ch, "\tcShop Listing\tn\r\n");
+  send_to_char(ch, "%-6s %-6s %-24s %-6s %-24s %-6s %-20s\r\n", "Shop#", "Zone#", "Zone", "Room#", "Room", "Mob#", "Shopkeeper");
+  send_to_char(ch, "------------------------------------------------------------------------------------------------------------\r\n");
+
+  for (shop_nr = 0; shop_nr <= top_shop; shop_nr++)
+  {
+    /* Get the first room for this shop */
+    room_idx = 0;
+    room_rnum_val = real_room(SHOP_ROOM(shop_nr, room_idx));
+    
+    if (room_rnum_val == NOWHERE)
+    {
+      strlcpy(zone_name, "Unknown", sizeof(zone_name));
+      strlcpy(room_name, "Unknown Room", sizeof(room_name));
+    }
+    else
+    {
+      /* Get zone information */
+      zone_idx = world[room_rnum_val].zone;
+      if (zone_idx >= 0 && zone_idx <= top_of_zone_table)
+        snprintf(zone_name, sizeof(zone_name), "%.24s", zone_table[zone_idx].name);
+      else
+        strlcpy(zone_name, "Unknown Zone", sizeof(zone_name));
+      
+      /* Get room name */
+      snprintf(room_name, sizeof(room_name), "%.24s", world[room_rnum_val].name);
+    }
+
+    /* Get shopkeeper name */
+    if (SHOP_KEEPER(shop_nr) == NOBODY)
+    {
+      strlcpy(keeper_name, "<None>", sizeof(keeper_name));
+    }
+    else
+    {
+      /* Use the mob prototype name directly instead of loading a mob */
+      if (SHOP_KEEPER(shop_nr) >= 0 && SHOP_KEEPER(shop_nr) <= top_of_mobt)
+      {
+        snprintf(keeper_name, sizeof(keeper_name), "%.20s", 
+                 mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr);
+      }
+      else
+      {
+        strlcpy(keeper_name, "<Invalid>", sizeof(keeper_name));
+      }
+    }
+
+    send_to_char(ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", 
+                 SHOP_NUM(shop_nr),
+                 (zone_idx >= 0 && zone_idx <= top_of_zone_table) ? zone_table[zone_idx].number : -1,
+                 zone_name, 
+                 SHOP_ROOM(shop_nr, room_idx),
+                 room_name,
+                 SHOP_KEEPER(shop_nr) == NOBODY ? -1 : mob_index[SHOP_KEEPER(shop_nr)].vnum,
+                 keeper_name);
+    shop_count++;
+  }
+
+  send_to_char(ch, "------------------------------------------------------------------------------------------------------------\r\n");
+  send_to_char(ch, "Total shops: %d\r\n", shop_count);
+}
+
+/* The shopstat command - detailed info for a specific shop vnum */
+ACMD(do_shopstat)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int vnum;
+  int shop_nr;
+  int i;
+  char line[MAX_STRING_LENGTH] = {'\0'};
+  
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg || !is_number(arg)) {
+    send_to_char(ch, "Usage: shopstat <shop_vnum>\r\n");
+    return;
+  }
+  vnum = atoi(arg);
+  shop_nr = real_shop(vnum);
+  if (shop_nr < 0 || shop_nr > top_shop) {
+    send_to_char(ch, "Shop vnum %d not found.\r\n", vnum);
+    return;
+  }
+
+  /* Header */
+  send_to_char(ch, "\tcShop Stats for VNUM %d\tn\r\n", vnum);
+
+  /* Shopkeeper */
+  if (SHOP_KEEPER(shop_nr) != NOBODY) {
+    int mob_vnum = mob_index[SHOP_KEEPER(shop_nr)].vnum;
+    const char *mob_name = mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr;
+    send_to_char(ch, "Keeper: %d - %s\r\n", mob_vnum, mob_name);
+  } else {
+    send_to_char(ch, "Keeper: <None>\r\n");
+  }
+
+  /* Times */
+  send_to_char(ch, "Hours: open1=%d close1=%d open2=%d close2=%d\r\n",
+               SHOP_OPEN1(shop_nr), SHOP_CLOSE1(shop_nr), SHOP_OPEN2(shop_nr), SHOP_CLOSE2(shop_nr));
+
+  /* Rates */
+  send_to_char(ch, "Rates: sell=%.0f%% buy=%.0f%%\r\n",
+               SHOP_SELLPROFIT(shop_nr) * 100.0, SHOP_BUYPROFIT(shop_nr) * 100.0);
+
+  /* No-trade flags and shop flags */
+  {
+    /* Build notrade string locally to avoid calling static shop.c function */
+    char ntbuf[MAX_STRING_LENGTH] = {'\0'};
+    size_t nlen = 0;
+    int flags = SHOP_TRADE_WITH(shop_nr);
+    const char *sep = "";
+    if (IS_SET(flags, TRADE_NOGOOD)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoGood", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOEVIL)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoEvil", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NONEUTRAL)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoNeutral", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOWIZARD)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoWizard", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOCLERIC)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoCleric", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOROGUE)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoRogue", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOWARRIOR)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoWarrior", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (!*ntbuf) strlcpy(ntbuf, "None", sizeof(ntbuf));
+    send_to_char(ch, "NoTrade: %s\r\n", ntbuf);
+  }
+  sprintbit(SHOP_BITVECTOR(shop_nr), shop_bits, line, sizeof(line));
+  send_to_char(ch, "Flags: %s\r\n", line);
+
+  /* Rooms */
+  send_to_char(ch, "Rooms:\r\n");
+  for (i = 0; SHOP_ROOM(shop_nr, i) != NOWHERE; i++) {
+    room_vnum rvn = SHOP_ROOM(shop_nr, i);
+    room_rnum rrn = real_room(rvn);
+    const char *rname = (rrn != NOWHERE) ? world[rrn].name : "<Unknown Room>";
+    int znum = (rrn != NOWHERE) ? zone_table[world[rrn].zone].number : -1;
+    const char *zname = (rrn != NOWHERE) ? zone_table[world[rrn].zone].name : "<Unknown Zone>";
+    send_to_char(ch, "  %d: %d - %s | Zone %d - %s\r\n", i + 1, rvn, rname, znum, zname);
+  }
+
+  /* Products */
+  send_to_char(ch, "Products:\r\n");
+  send_to_char(ch, "  %-3s %-6s %-40s %-20s %-30s %-3s %-40s\r\n", "#", "Vnum", "Name", "Type", "Wear", "Lvl", "Bonuses");
+  send_to_char(ch, "  %s\r\n", "-------------------------------------------------------------------------------------------------------------------------------");
+  for (i = 0; SHOP_PRODUCT(shop_nr, i) != NOTHING; i++) {
+    obj_rnum orn = SHOP_PRODUCT(shop_nr, i);
+    if (orn < 0 || orn > top_of_objt) {
+      send_to_char(ch, "  %-3d <Invalid rnum %d>\r\n", i + 1, orn);
+      continue;
+    }
+    obj_vnum ovn = obj_index[orn].vnum;
+    struct obj_data *obj = &obj_proto[orn];
+    /* Wear flags */
+    char wearstr[32];
+    sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, line);
+    snprintf(wearstr, sizeof(wearstr), "%.30s", line);
+    /* Object name */
+    char objname[42];
+    char objname_tmp[MAX_STRING_LENGTH];
+    strlcpy(objname_tmp, obj->short_description ? obj->short_description : "<unnamed>", sizeof(objname_tmp));
+    strip_colors(objname_tmp);
+    snprintf(objname, sizeof(objname), "%.40s", objname_tmp);
+    /* Weapon/Armor type */
+    char typestr[22] = "";
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) {
+      int widx = GET_OBJ_VAL(obj, 0);
+      if (widx >= 0 && widx < NUM_WEAPON_TYPES) {
+        snprintf(typestr, sizeof(typestr), "%.20s", weapon_list[widx].name);
+      }
+    } else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+      /* Only show armor type for head, body, arms, legs, shield */
+      if (CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) || 
+          CAN_WEAR(obj, ITEM_WEAR_ARMS) || CAN_WEAR(obj, ITEM_WEAR_LEGS) || 
+          CAN_WEAR(obj, ITEM_WEAR_SHIELD)) {
+        int aidx = GET_OBJ_VAL(obj, 1);
+        if (aidx >= 0 && aidx < NUM_SPEC_ARMOR_TYPES) {
+          snprintf(typestr, sizeof(typestr), "%.20s", armor_list[aidx].name);
+        }
+      }
+    }
+    /* Level */
+    /* Level */
+    int objlevel = GET_OBJ_LEVEL(obj);
+    /* Bonuses */
+    char bonusbuf[MAX_STRING_LENGTH] = {'\0'};
+    size_t blen = 0;
+    int j;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++) {
+      if (obj->affected[j].location) {
+        char tmp[64];
+        snprintf(tmp, sizeof(tmp), "%s %+d ", apply_types[obj->affected[j].location], obj->affected[j].modifier);
+        size_t tlen = strlen(tmp);
+        if (blen + tlen < sizeof(bonusbuf)) {
+          strcpy(bonusbuf + blen, tmp);
+          blen += tlen;
+        }
+      }
+    }
+    if (blen == 0)
+      strlcpy(bonusbuf, "None", sizeof(bonusbuf));
+    /* Truncate bonuses if too long */
+    char bonusstr[52];
+    snprintf(bonusstr, sizeof(bonusstr), "%.50s", bonusbuf);
+
+    send_to_char(ch, "  %-3d %-6d %-40s %-20s %-30s %-3d %-40s\r\n",
+                 i + 1, ovn, objname, typestr, wearstr, objlevel, bonusstr);
+  }
+
+  /* Accepted types */
+  send_to_char(ch, "Accepted Types:\r\n");
+  for (i = 0; BUY_TYPE(shop_index[shop_nr].type[i]) != NOTHING; i++) {
+    int atype = BUY_TYPE(shop_index[shop_nr].type[i]);
+    const char *akey = BUY_WORD(shop_index[shop_nr].type[i]) ? BUY_WORD(shop_index[shop_nr].type[i]) : "";
+    send_to_char(ch, "  - %s%s%s\r\n", item_types[atype], *akey ? " (" : "", *akey ? akey : "");
   }
 }
 

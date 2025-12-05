@@ -84,6 +84,7 @@
 #include "crafting_new.h"
 #include "crafting_recipes.h"
 #include "mob_spellslots.h"
+#include "mob_known_spells.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -4370,6 +4371,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   /* Initialize spell slots for mobs using spell slot system */
   init_mob_spell_slots(mob);
+  
+  /* Initialize known spell slots for mobs */
+  init_known_spell_slots(mob);
 
   return (mob);
 }
@@ -7224,6 +7228,17 @@ static void load_default_config(void)
   CONFIG_MOB_ROGUES_ST = 100;
   CONFIG_MOB_ROGUES_AS = 100;
   CONFIG_MOB_ROGUES_GOLD = 100;
+
+  /* Extra game options - defaults to 0 (Full for exp options) */
+  CONFIG_CAMPAIGN = 0;
+  CONFIG_BAG_SYSTEM = 0;
+  CONFIG_CRAFTING_SYSTEM = 0;
+  CONFIG_LANDMARK_SYSTEM = 0;
+  CONFIG_NEW_PLAYER_GEAR = 0;
+  CONFIG_ALLOW_CEXCHANGE = 0;
+  CONFIG_WILDERNESS_SYSTEM = 0;
+  CONFIG_MELEE_EXP_OPTION = 0;  /* 0 = Full */
+  CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
 }
 
 void load_config(void)
@@ -7500,6 +7515,8 @@ void load_config(void)
         CONFIG_MOB_ROGUES_AS = num;
       else if (!str_cmp(tag, "mob_rogues_gold"))
         CONFIG_MOB_ROGUES_GOLD = num;
+      else if (!str_cmp(tag, "melee_exp_option"))
+        CONFIG_MELEE_EXP_OPTION = num;
       break;
 
     case 'n':
@@ -7591,6 +7608,8 @@ void load_config(void)
         CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = num;
       else if (!str_cmp(tag, "summon_21_30_ac"))
         CONFIG_SUMMON_LEVEL_21_30_AC = num;
+      else if (!str_cmp(tag, "spell_cast_exp_option"))
+        CONFIG_SPELL_CAST_EXP_OPTION = num;
       break;
 
     case 't':

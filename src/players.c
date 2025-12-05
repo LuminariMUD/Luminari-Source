@@ -948,6 +948,8 @@ int load_char(const char *name, struct char_data *ch)
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "DvCD"))
+          ch->player_specials->saved.device_creation_cooldown = (time_t)atol(line);
         else if (!strcmp(tag, "Dvis"))
           load_devices(fl, ch);
         else if (!strcmp(tag, "DrgB"))
@@ -2581,7 +2583,11 @@ void save_char(struct char_data *ch, int mode)
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
     BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
-  // save devices from do_invent here
+  // save device creation cooldown
+  if (ch->player_specials->saved.device_creation_cooldown > 0)
+    BUFFER_WRITE( "DvCD: %ld\n", (long)ch->player_specials->saved.device_creation_cooldown);
+
+  // save devices from do_device here
   if (ch->player_specials->saved.num_inventions > 0)
   {
     int j;
@@ -2601,6 +2607,13 @@ void save_char(struct char_data *ch, int mode)
       /* Fill remaining spell slots with -1 */
       for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
         BUFFER_WRITE( "-1\n");
+
+      /* Save chosen spell levels (marker + values for backward compatibility) */
+      BUFFER_WRITE( "Lvls:\n");
+      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "%d\n", inv->spell_levels[j]);
+      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "0\n");
     }
     BUFFER_WRITE( "-1\n"); /* terminator */
   }
@@ -4422,6 +4435,8 @@ static void load_devices(FILE *fl, struct char_data *ch)
   int inv_idx = 0;
   int j = 0;
   char line[MAX_INPUT_LENGTH + 1];
+  char pre_line[MAX_INPUT_LENGTH + 1];
+  int has_pre_line = 0;
 
   /* Read number of inventions */
   get_line(fl, line);
@@ -4436,7 +4451,13 @@ static void load_devices(FILE *fl, struct char_data *ch)
     int spell_idx = 0;
     
     /* Read invention index */
-    get_line(fl, line);
+    if (has_pre_line) {
+      strncpy(line, pre_line, sizeof(line)-1);
+      line[sizeof(line)-1] = '\0';
+      has_pre_line = 0;
+    } else {
+      get_line(fl, line);
+    }
     sscanf(line, "%d", &inv_idx);
     
     /* Read keywords */
@@ -4472,10 +4493,33 @@ static void load_devices(FILE *fl, struct char_data *ch)
       if (inv->spell_effects[spell_idx] == -1)
         inv->spell_effects[spell_idx] = 0; /* Reset invalid spells to 0 */
     }
+
+    /* Attempt to read optional chosen levels block marked by 'Lvls:' */
+    get_line(fl, line);
+    if (strncmp(line, "Lvls:", 5) == 0) {
+      for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++) {
+        get_line(fl, line);
+        sscanf(line, "%d", &inv->spell_levels[spell_idx]);
+        if (inv->spell_levels[spell_idx] < 0)
+          inv->spell_levels[spell_idx] = 0;
+      }
+    } else {
+      /* No levels section in save; use default 0s and stash pre-read line for next loop/terminator */
+      for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+        inv->spell_levels[spell_idx] = 0;
+      strncpy(pre_line, line, sizeof(pre_line)-1);
+      pre_line[sizeof(pre_line)-1] = '\0';
+      has_pre_line = 1;
+    }
   }
   
-  /* Read terminator */
-  get_line(fl, line);
+  /* Read terminator if not already pre-read */
+  if (!has_pre_line) {
+    get_line(fl, line);
+  } else {
+    /* consume pre-read terminator by clearing flag */
+    has_pre_line = 0;
+  }
 }
 
 static void load_skills(FILE *fl, struct char_data *ch)

@@ -1644,10 +1644,18 @@ void finishCasting(struct char_data *ch)
   }
   
   send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
-  if (FIGHTING(ch) && !IS_NPC(ch))
+  
+  // exp gained for casting spells
+  int spell_circle = spell_info[CASTING_SPELLNUM(ch)].min_level[CASTING_CLASS(ch)];
+  int exp_to_give = GET_LEVEL(ch) * spell_circle * 50;
+  if (CONFIG_SPELL_CAST_EXP_OPTION == 2) // reduced exp
+    exp_to_give /= 2;
+  else if (CONFIG_SPELL_CAST_EXP_OPTION == 3) // no exp
+    exp_to_give = 0;  
+  
+  if (FIGHTING(ch) && !IS_NPC(ch) && exp_to_give > 0)
   {
-    int spell_circle = spell_info[CASTING_SPELLNUM(ch)].min_level[CASTING_CLASS(ch)];
-    gain_exp(ch, GET_LEVEL(ch) * spell_circle * 50, GAIN_EXP_MODE_DAMAGE);
+    gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
   }
 
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))

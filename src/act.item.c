@@ -3870,6 +3870,9 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
 
        {"$n slots $p in as $s weaponsmith's hammer",
         "You slot $p in as your weaponsmith's hammer."},
+      
+      {"$n wears $p on $s back.",
+        "You wear $p on your back."},
         
   };
 
@@ -4012,7 +4015,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_INSTRUMENT, ITEM_WEAR_CRAFT_SICKLE, ITEM_WEAR_CRAFT_AXE, 
       ITEM_WEAR_CRAFT_KNIFE, ITEM_WEAR_CRAFT_PICKAXE, ITEM_WEAR_CRAFT_ALCHEMY, 
       ITEM_WEAR_CRAFT_ARMOR_HAMMER, ITEM_WEAR_CRAFT_JEWEL_PLIERS, 
-      ITEM_WEAR_CRAFT_NEEDLE, ITEM_WEAR_CRAFT_WEAPON_HAMMER };
+      ITEM_WEAR_CRAFT_NEEDLE, ITEM_WEAR_CRAFT_WEAPON_HAMMER, ITEM_WEAR_ON_BACK };
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -4056,7 +4059,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You already have an armorsmith's hammer equipped.\r\n",
       "You already have jeweler's pliers equipped.\r\n",
       "You already have a sewing needle equipped.\r\n",
-      "You already have a weaponsmith's hammer equipped.\r\n"
+      "You already have a weaponsmith's hammer equipped.\r\n",
+      "You already have something equipped on your back.\r\n"
   };
 
   /* we are looking for some quick exits */
@@ -4339,6 +4343,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_CRAFT_NEEDLE;
     if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_WEAPON_HAMMER))
       where = WEAR_CRAFT_WEAPON_HAMMER;
+    if (CAN_WEAR(obj, ITEM_WEAR_ON_BACK))
+      where = WEAR_ON_BACK;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }
@@ -7195,12 +7201,34 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
   GET_OBJ_LEVEL(obj) = MAX(0, MIN(30, (GET_OBJ_VAL(obj, 4) * 5) - 5));
   // GET_OBJ_MATERIAL(obj) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_MATERIAL);
 
-  // we are only adding apply bonuses to weapons, shields or body armor
-  if (!CAN_WEAR(obj, ITEM_WEAR_HEAD) && !CAN_WEAR(obj, ITEM_WEAR_ARMS) && !CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  // Apply bonuses based on worn position
+  if (CAN_WEAR(obj, ITEM_WEAR_BODY) || CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD))
   {
+    // Body armor, weapons, and shields use the main apply values
     obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_LOC);
     obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_MOD);
     obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_HEAD))
+  {
+    // Head armor uses head-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ARMS))
+  {
+    // Arm armor uses arms-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  {
+    // Leg armor uses legs-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_BONUS);
   }
 
   GET_OBJ_COST(obj) = (1 + GET_OBJ_LEVEL(obj)) * (100 + (GET_OBJ_VAL(obj, 4) * 5));

@@ -1231,7 +1231,7 @@ const char *zone_bits[] = {
     "Closed",
     "No-Immortal",
     "Quest",
-    "Grid",
+    "Open for Players",
     "No-Build",
     "No-Teleport",
     "Worldmap",
@@ -2130,7 +2130,6 @@ const char *wear_where[] = {
     "\tC{Sewing Needle}\tn      ",   // WEAR_CRAFT_NEEDLE
     "\tC{Weaponsmith Hammer}\tn ",   // WEAR_CRAFT_WEAPON_HAMMER
     "\tY{Worn On Back}\tn       ",
-
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2597,6 +2596,7 @@ const char *extra_bits[] = {
     "Crafting-Tannery",
     "Crafting-Carpentry-Table",
     "Trapped",
+    "Costs-Account-Experience",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -6927,6 +6927,13 @@ const char * wilderness_system_options [] = {
     "No Wilderness (ROads only)",
     "Manually Created",
     "Algorithm-Created (WildEdit Tool)",
+    "\n"
+};
+
+const char * exp_option [] = {
+    "Full",
+    "Reduced",
+    "None",
     "\n"
 };
 

@@ -48,6 +48,8 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 #include "perks.h"
+#include "routing.h"
+#include "movement_cost.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1591,6 +1593,18 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   {
     return FALSE;
     ;
+  }
+
+  if (GET_WALKTO_LOC(ch) != 0)
+  {
+    send_to_char(ch, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    GET_WALKTO_LOC(ch) = 0;
+  }
+
+  if (GET_WALKTO_LOC(vict) != 0)
+  {
+    send_to_char(vict, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(vict))));
+    GET_WALKTO_LOC(vict) = 0;
   }
 
   GET_INITIATIVE(ch) = roll_initiative(ch);
@@ -5826,12 +5840,23 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   /* xp gain for damage, limiting it more -zusuk */
-  if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3)
+  int exp_to_give = GET_LEVEL(victim) * dam;
+  if (CONFIG_MELEE_EXP_OPTION == 2) // reduced exp
+    exp_to_give /= 2;
+  else if (CONFIG_MELEE_EXP_OPTION == 3) // no exp
+    exp_to_give = 0;  
+
+  if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3 && exp_to_give > 0)
   {
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_EIDOLON) && ch->master)
-      gain_exp(ch->master, GET_LEVEL(victim) * dam / 2, GAIN_EXP_MODE_DAMAGE);
+    {
+      exp_to_give /= 2;
+      gain_exp(ch->master, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+    }
     else
-      gain_exp(ch, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
+    {
+      gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+    }
   }
 
   if (!dam)

@@ -9841,6 +9841,8 @@ bool is_road_room(room_rnum room, int type)
     return true;
   else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_RANDOM_ENCOUNTERS) && type == 3)
     return true;
+  else if (!ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_OPEN))
+    return false;
   else if (world[room].sector_type == SECT_ROAD_EW)
     return true;
   else if (world[room].sector_type == SECT_ROAD_INT)
@@ -11287,6 +11289,36 @@ struct char_data *get_animal_companion_mob(struct char_data *ch)
 int get_natural_empathy_bonus(struct char_data *ch) {
   int ranks = get_perk_rank(ch, PERK_RANGER_NATURAL_EMPATHY_I, CLASS_RANGER);
   return ranks * 2;
+}
+
+bool valid_luminari_race(int race)
+{
+  if(race >= 0 && race < NUM_EXTENDED_RACES)
+  {
+    if (race >= DL_RACE_START && race <= DL_RACE_END)
+      return false;
+    else
+      return true;
+  }
+  return false;
+}
+
+int get_account_experience(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return 0;
+
+  return ch->desc->account->experience;
+}
+
+void change_account_experience(struct char_data *ch, int amount)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return;
+
+  ch->desc->account->experience += amount;
+  if (ch->desc->account->experience < 0)
+    ch->desc->account->experience = 0;
 }
 
 /* EoF */

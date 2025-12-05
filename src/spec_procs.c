@@ -75,7 +75,7 @@ static int compare_spells(const void *x, const void *y)
   int a = *(const int *)x,
       b = *(const int *)y;
 
-  if (a <= 1 || b <= 1)
+  if (a < 1 || b < 1)
     return 0;
 
   if (a >= TOP_SPELLS_POWERS_SKILLS_BOMBS || b >= TOP_SPELLS_POWERS_SKILLS_BOMBS)
@@ -103,12 +103,12 @@ void sort_spells(void)
   /* full list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= TOP_SPELLS_POWERS_SKILLS_BOMBS; a++)
+  for (a = 0; a <= TOP_SPELLS_POWERS_SKILLS_BOMBS; a++)
   {
     spell_sort_info[a] = a;
   }
 
-  qsort(&spell_sort_info[1], TOP_SPELLS_POWERS_SKILLS_BOMBS, sizeof(int), compare_spells);
+  qsort(&spell_sort_info[0], TOP_SPELLS_POWERS_SKILLS_BOMBS, sizeof(int), compare_spells);
 }
 
 SPECIAL(warbow)

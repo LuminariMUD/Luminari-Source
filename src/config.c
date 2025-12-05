@@ -359,6 +359,9 @@ int extra_level_mv = 0; // This amount of mv will be added every time a player g
 // No player armor class can go above this value
 int ac_cap = 60;
 
+int melee_exp_option = 1; // multiplier for melee experience gain
+int spell_cast_exp_option = 1; // multiplier for spell casting experience gain
+
 // This is the maximum difference in level between the
 // level of the player and the mob, to gain exp.
 // If 3, and the player level is 20, the player will
