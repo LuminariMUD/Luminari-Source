@@ -1624,6 +1624,20 @@ void char_to_room(struct char_data *ch, room_rnum room)
   }
 }
 
+void resize_obj_to_char(struct obj_data *object, struct char_data *ch)
+{
+  switch (GET_OBJ_TYPE(object))
+  {
+    case ITEM_ARMOR:
+      GET_OBJ_SIZE(object) = GET_SIZE(ch);
+      break;
+    default:
+      break;
+  }
+
+  obj_to_char(object, ch);
+}
+
 /* Give an object to a char. */
 void obj_to_char(struct obj_data *object, struct char_data *ch)
 {

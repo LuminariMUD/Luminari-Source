@@ -7486,7 +7486,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTSH2\r\n");
           return;
         }
-        obj_to_char(itemA, ch);
+        resize_obj_to_char(itemA, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
         extract_obj(GET_OUTFIT_OBJ(ch));
         clear_outfit_info(ch);
@@ -7507,7 +7507,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA2\r\n");
           return;
         }
-        obj_to_char(itemA, ch);
+        resize_obj_to_char(itemA, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // head piece
@@ -7523,7 +7523,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMB2\r\n");
           return;
         }
-        obj_to_char(itemB, ch);
+        resize_obj_to_char(itemB, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemB->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // arms piece
@@ -7539,7 +7539,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMC2\r\n");
           return;
         }
-        obj_to_char(itemC, ch);
+        resize_obj_to_char(itemC, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemC->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // legs piece
@@ -7555,7 +7555,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMD2\r\n");
           return;
         }
-        obj_to_char(itemD, ch);
+        resize_obj_to_char(itemD, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemD->short_description, GET_OUTFIT_OBJ(ch)->short_description);
         extract_obj(GET_OUTFIT_OBJ(ch));
         clear_outfit_info(ch);
