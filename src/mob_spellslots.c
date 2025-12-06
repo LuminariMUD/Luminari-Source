@@ -44,6 +44,10 @@ int get_spell_circle(int spellnum, int char_class)
   /* Check if this class can cast this spell at all */
   if (spell_info[spellnum].min_level[char_class] >= LVL_IMMORT)
     return -1;
+
+  /* Cantrips are always circle 0 */
+  if (spell_is_cantrip(spellnum))
+    return 0;
   
   /* Calculate circle based on class type */
   switch (char_class) {

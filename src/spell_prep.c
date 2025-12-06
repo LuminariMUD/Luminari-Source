@@ -2194,6 +2194,10 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   if (campaign_override > 0)
     return campaign_override;
 
+  /* Cantrips are always circle 0 and ignore metamagic adjustments */
+  if (spell_is_cantrip(spellnum))
+    return 0;
+
   /* Calculate metamagic modifiers (with divine metamagic reduction if applicable) */
   metamagic_mod = calculate_metamagic_modifier(ch, char_class, metamagic);
 
@@ -3109,6 +3113,34 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
     return true;
 
   int class = CLASS_UNDEFINED;
+
+  /* Cantrips are always available if the character's class list grants them */
+  if (spell_is_cantrip(spellnum))
+  {
+    for (class = 0; class < NUM_CLASSES; class++)
+    {
+      int required_level = LVL_IMMORT + 1;
+
+      if (!CLASS_LEVEL(ch, class))
+        continue;
+
+      if (class == CLASS_CLERIC || class == CLASS_INQUISITOR)
+      {
+        required_level = MIN_SPELL_LVL(spellnum, class, GET_1ST_DOMAIN(ch));
+        required_level = MIN(required_level, MIN_SPELL_LVL(spellnum, class, GET_2ND_DOMAIN(ch)));
+      }
+      else
+      {
+        required_level = spell_info[spellnum].min_level[class];
+      }
+
+      if (required_level <= CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class))
+        return class;
+    }
+
+    /* No eligible class found */
+    return CLASS_UNDEFINED;
+  }
 
   /* FIRST: Check all prepared spell collections */
   for (class = 0; class < NUM_CLASSES; class ++)

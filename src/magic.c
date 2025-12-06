@@ -1808,6 +1808,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_ACID;
     break;
 
+  case SPELL_FIRE_BOLT:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    num_dice = 1;
+    size_dice = 10;
+    bonus = 0;
+    break;
+
   case SPELL_BALL_OF_LIGHTNING: // evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -13070,6 +13079,7 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_CHARISMA :
     case SPELL_ACID_SPLASH:
     case SPELL_RAY_OF_FROST:
+    case SPELL_FIRE_BOLT:
     case SPELL_RAINBOW_PATTERN :
     case SPELL_ENLARGE_PERSON :
     case SPELL_SHRINK_PERSON :

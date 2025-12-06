@@ -589,9 +589,10 @@
 #define SPELL_HOLY_AURA 508
 #define SPELL_FLAME_ARROW 509
 #define SPELL_MASS_IDENTIFY 510
+#define SPELL_FIRE_BOLT 511
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 511
+#define NUM_SPELLS 512
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1597,6 +1598,8 @@ struct spell_info_type
         bool cant_cast;  // is this spell castable?
         bool touch_spell; // Is the spell a touch spell?
 
+        bool is_cantrip;   // Cast-at-will cantrip (circle 0, no slots/prep)
+
         bool actual_ability; // is this a learnable or obtainable ability or is it just a spell effect?
 };
 
@@ -1825,6 +1828,8 @@ void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
+sbyte canCastAtWill(struct char_data *ch, int spellnum);
+bool spell_is_cantrip(int spellnum);
 bool is_spell_mind_affecting(int snum);
 bool can_spell_be_extended(int spellnum);
 
@@ -1832,7 +1837,6 @@ bool can_spell_be_extended(int spellnum);
 bool isSummonMob(int vnum);
 
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum);
-sbyte canCastAtWill(struct char_data *ch, int spellnum);
 sbyte isLunarMagic(struct char_data *ch, int spellnum);
 sbyte isWarlockMagic(struct char_data *ch, int spellnum);
 sbyte isDrowMagic(struct char_data *ch, int spellnum);
@@ -1850,6 +1854,7 @@ bool isThornMagic(struct char_data *ch, int spellnum);
 bool isSkullMagic(struct char_data *ch, int spellnum);
 bool isDragonRiderMagic(struct char_data *ch, int spellnum);
 bool isBozakMagic(struct char_data *ch, int spellnum);
+int find_cantrip_class(struct char_data *ch, int spellnum);
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call);

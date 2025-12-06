@@ -228,6 +228,14 @@ int lowest_spell_level(int spellnum)
   return lvl;
 }
 
+bool spell_is_cantrip(int spellnum)
+{
+  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
+    return FALSE;
+
+  return spell_info[spellnum].is_cantrip;
+}
+
 /* displays substitute text for spells to represent 'magical phrases' */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start)
@@ -2947,7 +2955,19 @@ return;
     if (subcmd != SCMD_CAST_SHADOW)
     {
       if (canCastAtWill(ch, spellnum))
-        GET_CASTING_CLASS(ch) = class_num = CLASS_WIZARD;
+      {
+        int atwill_class = CLASS_UNDEFINED;
+
+        if (isWarlockMagic(ch, spellnum))
+          atwill_class = CLASS_WARLOCK;
+        else
+          atwill_class = find_cantrip_class(ch, spellnum);
+
+        if (atwill_class == CLASS_UNDEFINED)
+          atwill_class = CLASS_WIZARD;
+
+        GET_CASTING_CLASS(ch) = class_num = atwill_class;
+      }
       else
         GET_CASTING_CLASS(ch) = class_num;
     }
@@ -3283,7 +3303,7 @@ void spell_level(int spell, int chclass, int level)
     bad = 1;
   }
 
-  if (level < 1 || level > LVL_IMPL)
+  if (level < 0 || level > LVL_IMPL)
   {
     log("SYSERR: assigning '%s' to illegal level %d/%d.", spell_name(spell),
         level, LVL_IMPL);
@@ -3414,6 +3434,7 @@ void unused_spell(int spl)
   spell_info[spl].schoolOfMagic = NOSCHOOL; // noschool
   spell_info[spl].quest = FALSE;
   spell_info[spl].ritual_spell = FALSE;
+  spell_info[spl].is_cantrip = FALSE;
   spell_info[spl].actual_ability = FALSE;
 }
 
@@ -3670,10 +3691,19 @@ void mag_assign_spells(void)
   spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_FIRE_BOLT, "fire bolt", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+      NULL, 0, 1, EVOCATION, FALSE);
   spello(SPELL_BALL_OF_LIGHT, "globe of light", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 0, 1, EVOCATION, FALSE);
   spello(SPELL_TOUCH_OF_FATIGUE, "touch of fatigue", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You fatigue passes.", 0, 1, NECROMANCY, FALSE);
+
+    spell_info[SPELL_ACID_SPLASH].is_cantrip = TRUE;
+    spell_info[SPELL_RAY_OF_FROST].is_cantrip = TRUE;
+    spell_info[SPELL_FIRE_BOLT].is_cantrip = TRUE;
+    spell_info[SPELL_BALL_OF_LIGHT].is_cantrip = TRUE;
+    spell_info[SPELL_TOUCH_OF_FATIGUE].is_cantrip = TRUE;
 
   spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -5833,9 +5863,43 @@ void display_shadowcast_spells(struct char_data *ch)
     }
   }
 }
+
+/* Return the first character class that grants this cantrip. */
+int find_cantrip_class(struct char_data *ch, int spellnum)
+{
+  int class = CLASS_UNDEFINED;
+
+  if (!spell_is_cantrip(spellnum))
+    return CLASS_UNDEFINED;
+
+  for (class = 0; class < NUM_CLASSES; class++)
+  {
+    int required_level = LVL_IMMORT + 1;
+
+    if (!CLASS_LEVEL(ch, class))
+      continue;
+
+    if (class == CLASS_CLERIC || class == CLASS_INQUISITOR)
+    {
+      required_level = MIN_SPELL_LVL(spellnum, class, GET_1ST_DOMAIN(ch));
+      required_level = MIN(required_level, MIN_SPELL_LVL(spellnum, class, GET_2ND_DOMAIN(ch)));
+    }
+    else
+    {
+      required_level = spell_info[spellnum].min_level[class];
+    }
+
+    if (required_level <= CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class))
+      return class;
+  }
+
+  return CLASS_UNDEFINED;
+}
 sbyte canCastAtWill(struct char_data *ch, int spellnum)
 {
   if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return true;
+  if (find_cantrip_class(ch, spellnum) != CLASS_UNDEFINED)
     return true;
   if (isWarlockMagic(ch, spellnum) && is_a_known_spell(ch, CLASS_WARLOCK, spellnum))
     return true;
