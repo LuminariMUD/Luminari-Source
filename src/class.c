@@ -4141,7 +4141,12 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_ACID_SPLASH, 0);
   spell_assignment(CLASS_WIZARD, SPELL_RAY_OF_FROST, 0);
   spell_assignment(CLASS_WIZARD, SPELL_FIRE_BOLT, 0);
-  spell_assignment(CLASS_WIZARD, SPELL_BALL_OF_LIGHT, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_JOLT, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_ARCANE_MARK, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_FLARE, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_CONTINUAL_LIGHT, 0);
   spell_assignment(CLASS_WIZARD, SPELL_TOUCH_OF_FATIGUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -4484,6 +4489,14 @@ void load_class_list(void)
     feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
     feat_assignment(CLASS_CLERIC, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_CLERIC, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_FLARE, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_GUIDANCE, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_STABILIZE, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_VIRTUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_CLERIC, SPELL_SHIELD_OF_FAITH, 1);
@@ -5132,6 +5145,15 @@ void load_class_list(void)
   feat_assignment(CLASS_DRUID, FEAT_COLOSSAL_WILD_SHAPE, Y, NOASSIGN_FEAT, N);
   /* no class feats */
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_DRUID, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_DRUID, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_DRUID, SPELL_FLARE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_GRASP, 0);
+  spell_assignment(CLASS_DRUID, SPELL_GUIDANCE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_ROOT, 0);
+  spell_assignment(CLASS_DRUID, SPELL_STABILIZE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_VIRTUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL, 1);
@@ -5488,7 +5510,12 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_ACID_SPLASH, 0);
   spell_assignment(CLASS_SORCERER, SPELL_RAY_OF_FROST, 0);
   spell_assignment(CLASS_SORCERER, SPELL_FIRE_BOLT, 0);
-  spell_assignment(CLASS_SORCERER, SPELL_BALL_OF_LIGHT, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_JOLT, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_ARCANE_MARK, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_FLARE, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_CONTINUAL_LIGHT, 0);
   spell_assignment(CLASS_SORCERER, SPELL_TOUCH_OF_FATIGUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -6386,6 +6413,12 @@ void load_class_list(void)
   /* class feat assignments */
 
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_BARD, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_BARD, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_BARD, SPELL_FLARE, 0);
+  spell_assignment(CLASS_BARD, SPELL_LULLABY, 0);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_INSTRUMENT, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM, 1);
@@ -8540,6 +8573,17 @@ void load_class_list(void)
 
   /* no spell assignment */
 
+  /* cantrips */
+  spell_assignment(CLASS_INQUISITOR, SPELL_ACID_SPLASH, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_BRAND, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_FLARE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_GUIDANCE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_STABILIZE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_VIRTUE, 0);
+
   /* spell circle 1 */
   spell_assignment(CLASS_INQUISITOR, SPELL_BLESS, 1);
   spell_assignment(CLASS_INQUISITOR, SPELL_CURE_LIGHT, 1);
@@ -8768,6 +8812,10 @@ void load_class_list(void)
   );
 
   /* no spell assignment */
+
+  /* cantrips */
+  spell_assignment(CLASS_SUMMONER, SPELL_ACID_SPLASH, 0);
+  spell_assignment(CLASS_SUMMONER, SPELL_ARCANE_MARK, 0);
 
   /* spell circle 1 */
   spell_assignment(CLASS_SUMMONER, SPELL_ANT_HAUL, 1);

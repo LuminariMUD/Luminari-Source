@@ -1803,17 +1803,81 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_ACID_SPLASH:
     save = SAVING_REFL;
-    num_dice = 2;
-    size_dice = 3;
     element = DAM_ACID;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_RAY_OF_FROST:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_COLD;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_JOLT:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_DISRUPT_UNDEAD:
+    save = -1;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    num_dice = 1;
+    size_dice = 10;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
     break;
 
   case SPELL_FIRE_BOLT:
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FIRE;
-    num_dice = 1;
-    size_dice = 10;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
     bonus = 0;
     break;
 
@@ -2231,14 +2295,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 6;
     bonus = MIN(level, 5);
     break;
-
-  case SPELL_RAY_OF_FROST:
-    save = SAVING_REFL;
-    num_dice = 2;
-    size_dice = 3;
-    element = DAM_COLD;
-    break;
-
+    
   case SPELL_SCORCHING_RAY: // evocation
     save = -1;
     mag_resist = TRUE;
@@ -12305,7 +12362,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
   switch (spellnum)
   {
-  case SPELL_BALL_OF_LIGHT:
+  case SPELL_CONTINUAL_LIGHT:
     to_char = "You summon forth $p.";
     to_room = "$n summons forth $p.";
     object_vnum = 20839;
@@ -13080,6 +13137,8 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_ACID_SPLASH:
     case SPELL_RAY_OF_FROST:
     case SPELL_FIRE_BOLT:
+    case SPELL_JOLT:
+    case SPELL_DISRUPT_UNDEAD:
     case SPELL_RAINBOW_PATTERN :
     case SPELL_ENLARGE_PERSON :
     case SPELL_SHRINK_PERSON :

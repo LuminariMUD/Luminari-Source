@@ -3688,13 +3688,52 @@ void mag_assign_spells(void)
   spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_ARCANE_MARK, "arcane mark", 0, 0, 0, POS_STANDING,
+      TAR_IGNORE, FALSE, MAG_MANUAL,
+      NULL, 0, 1, TRANSMUTATION, FALSE);
+    spello(SPELL_BRAND, "brand", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, FALSE, MAG_MANUAL,
+      NULL, 0, 1, TRANSMUTATION, FALSE);
   spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
     spello(SPELL_FIRE_BOLT, "fire bolt", 0, 0, 0, POS_FIGHTING,
       TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
       NULL, 0, 1, EVOCATION, FALSE);
-  spello(SPELL_BALL_OF_LIGHT, "globe of light", 0, 0, 0, POS_FIGHTING,
+    spello(SPELL_JOLT, "jolt", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+      NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_DISRUPT_UNDEAD, "disrupt undead", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+      NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_ENHANCED_DIPLOMACY, "enhanced diplomacy", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "Your diplomatic focus fades.", 0, 1, ENCHANTMENT, FALSE);
+    spello(SPELL_FLARE, "flare", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+      "The dazzling light fades.", 0, 1, EVOCATION, FALSE);
+    spello(SPELL_GRASP, "grasp", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "Your enhanced grip relaxes.", 0, 1, TRANSMUTATION, FALSE);
+    spello(SPELL_GUIDANCE, "guidance", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "You feel less guided.", 0, 1, DIVINATION, FALSE);
+    spello(SPELL_LULLABY, "lullaby", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+      "The soothing melody leaves your mind.", 0, 1, ENCHANTMENT, FALSE);
+    spello(SPELL_ROOT, "root", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "You feel less rooted in place.", 0, 1, ABJURATION, FALSE);
+    spello(SPELL_STABILIZE, "stabilize", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+      NULL, 0, 1, CONJURATION, FALSE);
+    spello(SPELL_SUMMON_INSTRUMENT, "summon instrument", 0, 0, 0, POS_STANDING,
+      TAR_IGNORE, FALSE, MAG_CREATIONS,
+      NULL, 0, 1, CONJURATION, FALSE);
+    spello(SPELL_VIRTUE, "virtue", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "Your momentary vigor fades.", 0, 1, ABJURATION, FALSE);
+  spello(SPELL_CONTINUAL_LIGHT, "continual light", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 0, 1, EVOCATION, FALSE);
   spello(SPELL_TOUCH_OF_FATIGUE, "touch of fatigue", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You fatigue passes.", 0, 1, NECROMANCY, FALSE);
@@ -3702,7 +3741,20 @@ void mag_assign_spells(void)
     spell_info[SPELL_ACID_SPLASH].is_cantrip = TRUE;
     spell_info[SPELL_RAY_OF_FROST].is_cantrip = TRUE;
     spell_info[SPELL_FIRE_BOLT].is_cantrip = TRUE;
-    spell_info[SPELL_BALL_OF_LIGHT].is_cantrip = TRUE;
+      spell_info[SPELL_JOLT].is_cantrip = TRUE;
+      spell_info[SPELL_DISRUPT_UNDEAD].is_cantrip = TRUE;
+    spell_info[SPELL_ARCANE_MARK].is_cantrip = TRUE;
+    spell_info[SPELL_BRAND].is_cantrip = TRUE;
+    spell_info[SPELL_ENHANCED_DIPLOMACY].is_cantrip = TRUE;
+    spell_info[SPELL_FLARE].is_cantrip = TRUE;
+    spell_info[SPELL_GRASP].is_cantrip = TRUE;
+    spell_info[SPELL_GUIDANCE].is_cantrip = TRUE;
+    spell_info[SPELL_LULLABY].is_cantrip = TRUE;
+    spell_info[SPELL_ROOT].is_cantrip = TRUE;
+    spell_info[SPELL_STABILIZE].is_cantrip = TRUE;
+    spell_info[SPELL_SUMMON_INSTRUMENT].is_cantrip = TRUE;
+    spell_info[SPELL_VIRTUE].is_cantrip = TRUE;
+    spell_info[SPELL_CONTINUAL_LIGHT].is_cantrip = TRUE;
     spell_info[SPELL_TOUCH_OF_FATIGUE].is_cantrip = TRUE;
 
   spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
@@ -6079,7 +6131,7 @@ sbyte isEidolonMagic(struct char_data *ch, int spellnum)
     case SPELL_DETECT_MAGIC:
     case SPELL_ACID_SPLASH:
     case SPELL_RAY_OF_FROST:
-    case SPELL_BALL_OF_LIGHT:
+    case SPELL_CONTINUAL_LIGHT:
     case SPELL_TOUCH_OF_FATIGUE:
       if (HAS_EVOLUTION(ch, EVOLUTION_BASIC_MAGIC))
         return true;
@@ -6602,7 +6654,7 @@ bool npc_can_cast(struct char_data *ch, int spellnum)
       {
         case SPELL_DAZE_MONSTER:
         case SPELL_DETECT_MAGIC:
-        case SPELL_BALL_OF_LIGHT:
+        case SPELL_CONTINUAL_LIGHT:
         case SPELL_ACID_SPLASH:
         case SPELL_RAY_OF_FROST:
         case SPELL_TOUCH_OF_FATIGUE:
