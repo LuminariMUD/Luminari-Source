@@ -1485,6 +1485,12 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     }
     defense_check = d20(vict) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
+    /* Root cantrip: +3 resistance vs trip/knockdown/grapple */
+    if (affected_by_spell(vict, SPELL_ROOT))
+      defense_check += 3;
+      send_to_char(vict, "Your rooted stance grants you +3 resistance to being knocked down!\r\n");
+    }
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP) && skill != SPELL_BANISHING_BLADE)
     {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed.

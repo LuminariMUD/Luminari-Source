@@ -2295,7 +2295,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 6;
     bonus = MIN(level, 5);
     break;
-    
+
   case SPELL_SCORCHING_RAY: // evocation
     save = -1;
     mag_resist = TRUE;
@@ -5533,6 +5533,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "Despair grips you and you feel weakened.";
     break;
 
+  case SPELL_ROOT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    af[0].duration = 12; // 2 minutes (12 rounds)
+    af[0].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[0].specific = 0; // can be used to specify type if needed
+    to_vict = "You feel deeply rooted, resistant to trip, knockdown, and grapple attempts.";
+    to_room = "$n looks deeply rooted and harder to knock down.";
+    break;
+
   case WARLOCK_DREAD_SEIZURE:
     if (mag_resistance(ch, victim, 0))
       return;
@@ -5792,6 +5802,17 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].bonus_type = BONUS_TYPE_DEFLECTION;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by a shield of faith!";
+    break;
+
+  case SPELL_VIRTUE:
+    /* Virtue: grants temporary HP equal to 1d4 + (level / 5) */
+    af[0].location = APPLY_HIT;
+    af[0].modifier = dice(1, 4) + (level / 5);
+    af[0].duration = 600; /* 10 minutes */
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    GET_HIT(victim) += af[0].modifier;
+    to_vict = "You feel momentary vigor course through your body.";
+    to_room = "$n appears invigorated momentarily.";
     break;
 
   case SPELL_RIGHTEOUS_VIGOR:
@@ -11701,6 +11722,25 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     to_notvict = "$N's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
     send_to_char(victim, "A \tWwarm feeling\tn floods your body as \tRvampiric "
                          "\tDmagic\tn takes over.\r\n");
+    break;
+
+  case SPELL_STABILIZE:
+    /* Stabilize: heals 10 HP if target is below 10% max HP */
+    if (GET_HIT(victim) < (GET_MAX_HIT(victim) / 10))
+    {
+      healing = 10;
+      to_notvict = "$N is stabilized.";
+      if (ch == victim)
+        to_char = "You stabilize yourself.";
+      else
+        to_char = "You stabilize $N.";
+      to_vict = "$n stabilizes you.";
+    }
+    else
+    {
+      send_to_char(ch, "The target is not in critical condition.\r\n");
+      return;
+    }
     break;
 
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
