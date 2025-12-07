@@ -43,8 +43,9 @@
 #define CRAFT_MAT_BRASS                 33
 #define CRAFT_MAT_FLAX                  34
 #define CRAFT_MAT_BONE                  35
+#define CRAFT_MAT_STONE                 36
 
-#define NUM_CRAFT_MATS                  36
+#define NUM_CRAFT_MATS                  37
 // also set in structs.h
 
 #define CRAFT_GROUP_NONE            0
@@ -55,8 +56,9 @@
 #define CRAFT_GROUP_CLOTH           5
 #define CRAFT_GROUP_REFINING        6
 #define CRAFT_GROUP_RESIZING        7
+#define CRAFT_GROUP_STONE           8
 
-#define NUM_CRAFT_GROUPS            8
+#define NUM_CRAFT_GROUPS            9
 // also set in structs.h
 
 #define CRAFT_SKILL_NONE            0

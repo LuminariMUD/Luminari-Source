@@ -2973,11 +2973,14 @@
 
 #define FEAT_GNOMISH_TINKERING                  1254
 #define FEAT_BRILLIANCE_AND_BLUNDER 1255
+#define FEAT_CONSTRUCT_WOOD_GOLEM 1256
+#define FEAT_CONSTRUCT_STONE_GOLEM 1257
+#define FEAT_CONSTRUCT_IRON_GOLEM 1258
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1256
+#define FEAT_LAST_FEAT 1259
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1257
+#define NUM_FEATS 1260
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4164,7 +4167,7 @@
 /** Total number of item mats.*/
 #define NUM_MATERIALS 59
 
-#define NUM_CRAFT_MATS 36
+#define NUM_CRAFT_MATS 37
 #define NUM_CRAFT_MOTES 9
 
 #define NUM_CRAFT_GROUPS 8

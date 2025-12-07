@@ -217,14 +217,16 @@ int determine_material_type_by_group_and_grade(int group, int grade)
     switch (group)
     {
         case CRAFT_GROUP_HARD_METALS:
+            if (dice(1, 4) == 1) return CRAFT_MAT_STONE;
             switch (grade)
             {
-                case 1: case 2: return dice(1, 2) == 1 ? CRAFT_MAT_ZINC : CRAFT_MAT_TIN;
+                case 1: case 2: return dice(1, 3) == 1 ? CRAFT_MAT_ZINC : CRAFT_MAT_TIN;
                 case 3: case 4: return dice(1, 3) == 1 ? CRAFT_MAT_COAL : CRAFT_MAT_IRON;
                 case 5: return dice(1, 2) == 1 ? CRAFT_MAT_MITHRIL : CRAFT_MAT_ADAMANTINE;
             }
             break;
         case CRAFT_GROUP_SOFT_METALS:
+            if (dice(1, 4) == 1) return CRAFT_MAT_STONE;
             switch (grade)
             {
                 case 1: case 2: return CRAFT_MAT_COPPER;
@@ -277,6 +279,7 @@ int craft_material_level_adjustment(int material)
         case CRAFT_MAT_LOW_GRADE_HIDE:
         case CRAFT_MAT_ASH_WOOD:
         case CRAFT_MAT_HEMP:
+        case CRAFT_MAT_STONE:
             return 0;
 
         case CRAFT_MAT_IRON:
@@ -338,6 +341,7 @@ int harvesting_skill_by_material(int material)
         case CRAFT_MAT_PLATINUM:
         case CRAFT_MAT_COAL:
         case CRAFT_MAT_ZINC:
+        case CRAFT_MAT_STONE:
             return ABILITY_HARVEST_MINING;
 
         case CRAFT_MAT_LOW_GRADE_HIDE:
@@ -601,6 +605,7 @@ int material_grade(int material)
         case CRAFT_MAT_ASH_WOOD:
         case CRAFT_MAT_HEMP:
         case CRAFT_MAT_ZINC:
+        case CRAFT_MAT_STONE:
             return 1;
 
         case CRAFT_MAT_BRONZE:
@@ -688,6 +693,9 @@ int craft_group_by_material(int material)
         case CRAFT_MAT_SATIN:
         case CRAFT_MAT_SILK:
             return CRAFT_GROUP_CLOTH;
+
+        case CRAFT_MAT_STONE:
+            return CRAFT_GROUP_STONE;
 
         case CRAFT_MAT_COAL:
             return CRAFT_GROUP_REFINING;
@@ -3019,6 +3027,7 @@ int obj_material_to_craft_material(int material)
         case MATERIAL_BRASS: return CRAFT_MAT_BRASS;
         case MATERIAL_FLAX: return CRAFT_MAT_FLAX;
         case MATERIAL_BONE: return CRAFT_MAT_BONE;
+        case MATERIAL_STONE: return CRAFT_MAT_STONE;
     }
     return CRAFT_MAT_NONE;
 }
@@ -3060,6 +3069,8 @@ int craft_material_to_obj_material(int craftmat)
         case CRAFT_MAT_COTTON: return MATERIAL_COTTON;
         case CRAFT_MAT_BRASS: return MATERIAL_BRASS;
         case CRAFT_MAT_FLAX: return MATERIAL_FLAX;
+        case CRAFT_MAT_BONE: return MATERIAL_BONE;
+        case CRAFT_MAT_STONE: return MATERIAL_STONE;
     }
     return MATERIAL_UNDEFINED;
 }
@@ -5339,6 +5350,25 @@ ACMD(do_list_craft_materials)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_CLOTH) continue;
+        send_to_char(ch, "%5d %-20s ", GET_CRAFT_MAT(ch, mat), crafting_materials[mat]);
+        if ((count % 3) == 2)
+            send_to_char(ch, "\r\n");
+        count++;
+    }
+    
+    if ((count % 3) == 0)
+        send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+
+     count = 0;
+    send_to_char(ch, "\tc");
+    text_line(ch, "STONE", 80, '-', '-');
+    send_to_char(ch, "\tn");
+    
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
+    {
+        mat = materials_sort_info[i];
+        if (craft_group_by_material(mat) != CRAFT_GROUP_STONE) continue;
         send_to_char(ch, "%5d %-20s ", GET_CRAFT_MAT(ch, mat), crafting_materials[mat]);
         if ((count % 3) == 2)
             send_to_char(ch, "\r\n");

@@ -6669,6 +6669,7 @@ const char *crafting_materials[] = {
     "brass",
     "flax",
     "bone",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
@@ -6710,6 +6711,7 @@ const char *crafting_material_descriptions[] = {
     "brass",
     "flax",
     "bone",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_descriptions, NUM_CRAFT_MATS + 1);
@@ -6751,6 +6753,7 @@ const char *crafting_material_nodes[] = {
     "brass",
     "a patch of flax plants",
     "bone",
+    "a stone quarry",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_nodes, NUM_CRAFT_MATS + 1);
@@ -6792,6 +6795,7 @@ const char *harvesting_messages[] = {
     "brass",
     "gathering a patch of flax plants",
     "bone",
+    "quarrying stone",
     "\n"
 };
 CHECK_TABLE_SIZE(harvesting_messages, NUM_CRAFT_MATS + 1);
@@ -6845,6 +6849,7 @@ const char *crafting_material_groups[] = {
     "cloth",
     "refining",
     "resizing",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_groups, NUM_CRAFT_GROUPS + 1);

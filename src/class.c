@@ -9348,6 +9348,9 @@ void load_class_list(void)
   feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_METAMAGIC_SCIENCE, Y, 11, N);
   feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_JACK_OF_ALL_TRADES, Y, 13, N);
   feat_assignment(CLASS_ARTIFICER, FEAT_EXEMPLAR, Y, 20, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 10, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 20, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_IRON_GOLEM, Y, 30, N);
   /* bonus feats at levels 3, 8, 12, 16, 19 */
   /* class feats */
   feat_assignment(CLASS_ARTIFICER, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);

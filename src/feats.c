@@ -5477,6 +5477,21 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "The artificer's jack of all trades ability reaches its zenith: The artificer may now add half their artificer class level "
         "to all skill checks, representing the pinnacle of versatile expertise.");
 
+    feato(FEAT_CONSTRUCT_WOOD_GOLEM, "construct wood golem", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "Craft and command a wooden golem using harvested materials.",
+      "At 10th level, the artificer can design and assemble a wooden golem as a personal construct. "
+      "Creating the golem consumes harvested wood and metal components and ties it to the artificer for control.");
+
+    feato(FEAT_CONSTRUCT_STONE_GOLEM, "construct stone golem", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "Craft and command a stone golem built from quarried stone and metals.",
+      "At 20th level, the artificer can build a stone golem. Constructing it consumes significant quantities of stone "
+      "and metal reagents and binds the construct to the artificer's commands.");
+
+    feato(FEAT_CONSTRUCT_IRON_GOLEM, "construct iron golem", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "Craft and command a powerful iron golem guardian.",
+      "At 30th level, the artificer can forge an iron golem. This process requires large amounts of iron and refined materials "
+      "and produces a durable construct that answers only to its creator.");
+
   feato(FEAT_GNOMISH_TINKERING, "gnomish tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "Gnomish expertise in mechanical devices and weird science.",
     "You gain +1 use per device and -2 DC to Use Magic Device checks when your artificer devices are exhausted.");

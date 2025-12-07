@@ -148,7 +148,7 @@ int get_crafting_group_for_wilderness_material(int category, int subtype, int qu
       return CRAFT_GROUP_WOOD;
       
     case RESOURCE_GAME:
-      return CRAFT_GROUP_ANIMAL_HIDES;
+      return CRAFT_GROUP_HIDES;
       
     case RESOURCE_STONE:
       return CRAFT_GROUP_HARD_METALS;  // Stone works like hard metals for construction
