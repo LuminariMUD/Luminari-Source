@@ -2507,64 +2507,17 @@ ACMD(do_golemrepair)
   if (roll + skill < dc)
   {
     send_to_char(ch, "You fail to properly repair the golem. The materials are wasted.\r\n");
+    send_to_char(ch, "\tRConsumed: %d units of %s\tn\r\n", material_needed, crafting_materials[material_type]);
     act("$n attempts to repair $N but fails!", FALSE, ch, 0, golem, TO_ROOM);
     
-    /* Consume materials even on failure */
-    if (golem_type == GOLEM_TYPE_WOOD)
-    {
-      /* For wood golems, consume lowest grade wood first */
-      extern int craft_group_by_material(int material);
-      int remaining = material_needed;
-      int mat;
-      
-      for (mat = 1; mat < NUM_CRAFT_MATS && remaining > 0; mat++)
-      {
-        if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
-        {
-          int to_consume = MIN(GET_CRAFT_MAT(ch, mat), remaining);
-          if (to_consume > 0)
-          {
-            GET_CRAFT_MAT(ch, mat) -= to_consume;
-            remaining -= to_consume;
-          }
-        }
-      }
-    }
-    else
-    {
-      GET_CRAFT_MAT(ch, material_type) -= material_needed;
-    }
+    /* Consume materials even on failure - use the selected material type */
+    GET_CRAFT_MAT(ch, material_type) -= material_needed;
     save_char_pets(ch);
     return;
   }
 
-  /* Success! Consume materials */
-  if (golem_type == GOLEM_TYPE_WOOD)
-  {
-    /* For wood golems, consume lowest grade wood first */
-    extern int craft_group_by_material(int material);
-    int remaining = material_needed;
-    int mat;
-    
-    /* Consume in order (lowest to highest grade): Ash, Maple, Mahogany, Valenwood, Ironwood */
-    for (mat = 1; mat < NUM_CRAFT_MATS && remaining > 0; mat++)
-    {
-      if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
-      {
-        int to_consume = MIN(GET_CRAFT_MAT(ch, mat), remaining);
-        if (to_consume > 0)
-        {
-          GET_CRAFT_MAT(ch, mat) -= to_consume;
-          remaining -= to_consume;
-        }
-      }
-    }
-  }
-  else
-  {
-    /* For non-wood golems, consume specific material type */
-    GET_CRAFT_MAT(ch, material_type) -= material_needed;
-  }
+  /* Success! Consume materials - use the selected material type */
+  GET_CRAFT_MAT(ch, material_type) -= material_needed;
   
   /* Calculate healing amount - heal all damage in phases over 2 seconds per 10% missing HP */
   missing_hp = GET_MAX_HIT(golem) - GET_HIT(golem);
@@ -2572,6 +2525,7 @@ ACMD(do_golemrepair)
   
   send_to_char(ch, "\tGSuccess!\tn You begin repairing %s, restoring \tc%d\tn hit points.\r\n",
       GET_NAME(golem), heal_amount);
+  send_to_char(ch, "\tGMaterials used: %d units of %s\tn\r\n", material_needed, crafting_materials[material_type]);
   act("$n begins carefully repairing $N's structure.", FALSE, ch, 0, golem, TO_ROOM);
   
   /* Heal the golem */

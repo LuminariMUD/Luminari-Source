@@ -7,7 +7,10 @@ The golem system allows wizards and sorcerers to craft magical constructs that s
 ## Golem Types
 
 ### Wood Golems
-- **Material Requirements:** 50-200 units of Ash Wood + 10-40 units of Metal
+- **Material Requirements:** 50-200 units of **any single wood type** + 10-40 units of Metal
+- **Wood Types Accepted:** Ash Wood, Maple Wood, Mahogany Wood, Valenwood, Ironwood
+- **Important:** Must use a **single wood type** for all units (cannot mix types)
+- **Auto-Selection:** System automatically uses lowest grade wood type when multiple types have sufficient units
 - **Difficulty:** Base DC 15 (easiest to construct)
 - **Characteristics:** Fast, agile, lower durability
 - **Sizes:** Small (16500), Medium (16501), Large (16502), Huge (16503)
@@ -63,6 +66,11 @@ Base 60 seconds + (20 seconds × size tier)
 - Large: ~120 seconds
 - Huge: ~140 seconds
 
+**Progress Updates:**
+- Players receive periodic progress updates every 5 seconds
+- Shows: "Constructing a [size] [type] golem. ****" with asterisks showing remaining time
+- Can be disabled with `set nocraft` or by enabling PRF_NO_CRAFT_PROGRESS preference
+
 ### Skill Check
 - **Skill Used:** Arcana
 - **DC:** Base DC varies by type + (5 × size tier)
@@ -73,10 +81,12 @@ Base 60 seconds + (20 seconds × size tier)
 ### Material Costs
 
 #### Wood Golems (per size tier multiplier)
-- Small: 50 Ash Wood + 10 Metal
-- Medium: 100 Ash Wood + 20 Metal
-- Large: 150 Ash Wood + 30 Metal
-- Huge: 200 Ash Wood + 40 Metal
+- **Note:** Must use a single wood type (cannot mix). System auto-selects lowest grade available.
+- **Wood Type Priority:** Ash Wood → Maple Wood → Mahogany Wood → Valenwood → Ironwood
+- Small: 50 units of one wood type + 10 Metal
+- Medium: 100 units of one wood type + 20 Metal
+- Large: 150 units of one wood type + 30 Metal
+- Huge: 200 units of one wood type + 40 Metal
 
 #### Stone Golems (per size tier multiplier)
 - Small: 50 Stone + 10 Metal
@@ -134,15 +144,27 @@ golemrepair <golem name>
    - All missing HP is restored
    - Materials cost = (missing_hp_percent / 10) × material_cost_per_10%
    - Materials are consumed from player's storage
+   - **Player is notified:** "Materials used: [X] units of [material type]"
 3. On failure:
    - Materials are **still consumed** (no refund)
    - Golem is **not healed**
+   - **Player is notified:** "Consumed: [X] units of [material type]"
+
+### Wood Golem Repair
+- Must use a **single wood type** (cannot mix types)
+- System automatically selects the **lowest grade wood** type with sufficient units
+- Priority: Ash Wood → Maple Wood → Mahogany Wood → Valenwood → Ironwood
 
 ### Material Costs for Repair
 Cost scales with missing HP percentage. For example:
-- 50% missing HP on Medium Wood Golem: 5 Ash Wood (half of 10 per 10%)
-- 100% missing HP on Medium Wood Golem: 10 Ash Wood (full cost)
+- 50% missing HP on Medium Wood Golem: 5 units of one wood type (half of 10 per 10%)
+- 100% missing HP on Medium Wood Golem: 10 units of one wood type (full cost)
 - 25% missing HP on Large Stone Golem: 7.5 Stone (rounded)
+
+**Wood Golem Specifics:**
+- Player must have sufficient units in a **single wood type**
+- Cannot mix Ash Wood, Maple Wood, etc. for repairs
+- System automatically uses lowest grade wood available
 
 ## Golem Immunities
 
@@ -197,14 +219,15 @@ Cost scales with missing HP percentage. For example:
 
 #### Golem Creation
 - `craft_golem_complete()` - Instantiates golem mob
-- `begin_golem_craft()` - Validates and starts crafting process
+- `begin_golem_craft()` - Validates and starts crafting process, selects wood type for wood golems
 - `get_golem_vnum()` - Returns VNUM for type/size
 - `has_golem_follower()` - Checks if player already has golem
+- `show_current_golem_craft()` - Displays crafting requirements and material availability
 
 #### Golem Management
 - `do_destroygolem()` - Destroys golem, recovers materials
-- `do_golemrepair()` - Repairs golem with Arcana check
-- `can_repair_golem()` - Validates repair eligibility
+- `do_golemrepair()` - Repairs golem with Arcana check, shows material consumption
+- `can_repair_golem()` - Validates repair eligibility, selects wood type for wood golems
 - `recover_golem_materials()` - Returns materials to player
 
 #### Immunities
@@ -257,18 +280,45 @@ Cost scales with missing HP percentage. For example:
 
 ## Testing Checklist
 
-- [ ] Golem crafting with correct materials
-- [ ] Skill check accuracy (Arcana-based)
-- [ ] Material consumption on success/failure
-- [ ] Golem mob spawning with correct VNUM
-- [ ] Follower limit enforcement (1 golem max)
-- [ ] Destroy command material recovery (50%)
-- [ ] Death material drops (25%)
-- [ ] Repair command material validation
-- [ ] Repair skill check mechanics
-- [ ] Healing spell immunity messages
-- [ ] Natural regeneration immunity
-- [ ] Mind-affecting spell immunity
-- [ ] Fatigue immunity
-- [ ] Movement cost immunity
-- [ ] Race type setting to RACE_TYPE_CONSTRUCT
+- [x] Golem crafting with correct materials
+- [x] Wood golem single-type wood requirement enforcement
+- [x] Wood golem automatic lowest-grade selection
+- [x] Skill check accuracy (Arcana-based)
+- [x] Material consumption on success/failure
+- [x] Golem mob spawning with correct VNUM
+- [x] Follower limit enforcement (1 golem max)
+- [x] Destroy command material recovery (50%)
+- [x] Death material drops (25%)
+- [x] Repair command material validation
+- [x] Repair single wood type requirement for wood golems
+- [x] Repair material consumption feedback messages
+- [x] Repair skill check mechanics
+- [x] Periodic crafting progress updates (every 5 seconds)
+- [x] Progress update respect for PRF_NO_CRAFT_PROGRESS
+- [x] Healing spell immunity messages
+- [x] Natural regeneration immunity
+- [x] Mind-affecting spell immunity
+- [x] Fatigue immunity
+- [x] Movement cost immunity
+- [x] Race type setting to RACE_TYPE_CONSTRUCT
+
+## Recent Updates (December 8, 2025)
+
+### Wood Golem Material System Overhaul
+- **Single Wood Type Requirement:** Wood golems now require all units to be of a single wood type
+  - Cannot mix Ash, Maple, Mahogany, Valenwood, or Ironwood
+  - Applies to both creation and repair
+- **Automatic Grade Selection:** System automatically uses lowest grade wood when multiple types are sufficient
+  - Priority order: Ash → Maple → Mahogany → Valenwood → Ironwood
+  - Encourages using common materials first, preserving rare woods
+
+### Crafting Progress Updates
+- Added periodic progress messages during golem construction
+- Updates appear every 5 seconds showing: "Constructing a [size] [type] golem. ****"
+- Respects player preference PRF_NO_CRAFT_PROGRESS (can disable with `set nocraft`)
+
+### Repair Feedback Enhancement
+- Repair command now displays material consumption details
+- On success: "Materials used: [X] units of [material type]"
+- On failure: "Consumed: [X] units of [material type]"
+- Provides clear visibility into resource usage

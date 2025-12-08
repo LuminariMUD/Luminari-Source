@@ -2982,9 +2982,9 @@
 #define FEAT_STONE_GOLEM_IMMUNITY 1261
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1261
+#define FEAT_LAST_FEAT 1262
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1262
+#define NUM_FEATS 1263
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

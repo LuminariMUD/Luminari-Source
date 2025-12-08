@@ -833,7 +833,6 @@ void regen_update(struct char_data *ch)
   if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && has_primal_vigor(ch->master) && FIGHTING(ch))
   {
     hp += 1;
-    send_to_char(ch->master, "\tG[Primal Vigor: Companion +1 HP]\tn ");
   }
 
   /* Paladin Sacred Defender perk: Aura of Life - allies in aura regenerate HP */
