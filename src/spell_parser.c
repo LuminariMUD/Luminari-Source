@@ -4013,6 +4013,9 @@ void mag_assign_spells(void)
   spello(SPELL_FIREBALL, "fireball", 44, 29, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AREAS,
          NULL, 3, 11, EVOCATION, FALSE);
+  spello(SPELL_SPLINTER_STORM, "splinter storm", 44, 29, 1, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_FLAME_ARROW, "flame arrow", 44, 29, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 3, 11, EVOCATION, FALSE);
@@ -4114,6 +4117,9 @@ void mag_assign_spells(void)
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 5, 13, EVOCATION, FALSE);
+  spello(SPELL_SHOCKWAVE, "shockwave", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 5, 13, TRANSMUTATION, FALSE);
   spello(SPELL_FIRE_SHIELD, "fire shield", 37, 22, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "You watch your fire shield fade away.", 5, 13, EVOCATION, FALSE);
@@ -5042,6 +5048,9 @@ void mag_assign_spells(void)
   spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_POISON_BREATH, "poison breath", 58, 43, 1, POS_FIGHTING,
+        TAR_IGNORE, TRUE, MAG_AREAS,
+        "You're no longer poisoned.", 5, 13, EVOCATION, FALSE);
   spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);

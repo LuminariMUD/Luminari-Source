@@ -218,7 +218,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
 {
 
-  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY))
+  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY)
+  || HAS_FEAT(vict, FEAT_STONE_GOLEM_IMMUNITY)
+  || HAS_FEAT(vict, FEAT_WOOD_GOLEM_IMMUNITY))
     return TRUE;
 
   int challenge = d20(ch),
@@ -2659,6 +2661,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
+  case SPELL_POISON_BREATH: // evocation
+    // AoE - 4d6 + 2d6 per size above small
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_POISON;
+    {
+      int size_bonus = MAX(0, GET_SIZE(ch) - SIZE_SMALL);
+      num_dice = 4 + (size_bonus * 2);
+      size_dice = 6;
+      bonus = 0;
+    }
+    break;
+
   case SPELL_FLAMING_SPHERE: // evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -2695,6 +2710,30 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     num_dice = MIN(15, CASTER_LEVEL(ch));
     size_dice = 8;
+    bonus = 0;
+    break;
+
+  case SPELL_SPLINTER_STORM: // evocation
+    // AoE - 6d6 slashing damage, 6d8 in forest/taiga
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_SLICE;
+    num_dice = 6;
+    // Increase damage die to d8 if in forest or taiga
+    if (SECT(IN_ROOM(ch)) == SECT_FOREST || SECT(IN_ROOM(ch)) == SECT_TAIGA)
+      size_dice = 8;
+    else
+      size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_SHOCKWAVE: // transmutation
+    // AoE - 10d6 bludgeoning damage with knockdown
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    num_dice = 10;
+    size_dice = 6;
     bonus = 0;
     break;
 
@@ -3046,10 +3085,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (process_iron_golem_immunity(ch, victim, element, dam))
     return 1;
 
+  if (process_wood_golem_immunity(ch, victim, element, dam))
+    return 1;
+
   // resistances to magic, message in mag_resistance
   if (dam && mag_resist && casttype != CAST_DEVICE)
   {
     if (process_iron_golem_immunity(ch, victim, element, dam))
+      ;
+    else if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_FIRE)
       ;
     else
     {
@@ -8147,6 +8191,20 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n gets violently ill!";
     break;
 
+  case SPELL_POISON_BREATH: // evocation
+    // poison check made above in passed_poison_checks
+    // Apply CON debuff: 1d4 + 1 per size category above small
+    {
+      int size_bonus = MAX(0, GET_SIZE(ch) - SIZE_SMALL);
+      af[0].location = APPLY_CON;
+      af[0].duration = level * 10;
+      af[0].modifier = -(dice(1, 4) + size_bonus);
+      SET_BIT_AR(af[0].bitvector, AFF_POISON);
+      to_vict = "You inhale the toxic fumes and feel your vitality draining away!";
+      to_room = "$n chokes on toxic fumes, looking weakened!";
+    }
+    break;
+
   case SPELL_WIND_WALL:
     af[0].duration = level;
     SET_BIT_AR(af[0].bitvector, AFF_WIND_WALL);
@@ -10145,6 +10203,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You conjure a storm of ice that blankets the area!";
     to_room = "$n conjures a storm of ice, blanketing the area!";
     break;
+  case SPELL_SPLINTER_STORM:
+    to_char = "You summon a whirling storm of razor-sharp wooden splinters!";
+    to_room = "$n summons a whirling storm of razor-sharp wooden splinters!";
+    break;
+  case SPELL_SHOCKWAVE:
+    to_char = "You slam the ground, sending a devastating shockwave through the area!";
+    to_room = "$n slams the ground, sending a devastating shockwave through the area!";
+    break;
   case SPELL_FIREBALL:
     to_char = "You hurl a bead of flame which explodes into a conflagration!";
     to_room = "$n hurls a bead of flame which explodes into a conflagration!";
@@ -10346,6 +10412,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n exhales breathing acid!";
     break;
   case SPELL_POISON_BREATHE:
+    is_eff_and_dam = TRUE;
     to_char = "You exhale breathing out poison!";
     to_room = "$n exhales breathing poison!";
     break;
@@ -10452,6 +10519,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
           spatial_audio_test_sound_effect(X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
             "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash devastating fury upon the mortal realm", 
             AUDIO_FREQ_LOW, 20);
+        }
+        
+        /* Add shockwave knockdown effect after damage is dealt */
+        if (spellnum == SPELL_SHOCKWAVE && tch != ch) {
+          perform_knockdown(ch, tch, SPELL_SHOCKWAVE, false, true);
         }
       }
 
@@ -13154,6 +13226,8 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_FLAME_STRIKE :
     case SPELL_DESTRUCTION :
     case SPELL_ICE_STORM :
+    case SPELL_SPLINTER_STORM :
+    case SPELL_SHOCKWAVE :
     case SPELL_BALL_OF_LIGHTNING :
     case SPELL_MISSILE_STORM :
     case SPELL_CHAIN_LIGHTNING :

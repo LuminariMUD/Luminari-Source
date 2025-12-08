@@ -2978,10 +2978,13 @@
 #define FEAT_CONSTRUCT_STONE_GOLEM 1257
 #define FEAT_CONSTRUCT_IRON_GOLEM 1258
 
+#define FEAT_WOOD_GOLEM_IMMUNITY 1260
+#define FEAT_STONE_GOLEM_IMMUNITY 1261
+
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1259
+#define FEAT_LAST_FEAT 1261
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1260
+#define NUM_FEATS 1262
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

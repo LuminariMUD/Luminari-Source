@@ -603,9 +603,12 @@
 #define SPELL_STABILIZE 522
 #define SPELL_SUMMON_INSTRUMENT 523
 #define SPELL_VIRTUE 524
+#define SPELL_SPLINTER_STORM 525
+#define SPELL_SHOCKWAVE 526
+#define SPELL_POISON_BREATH 527
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 525
+#define NUM_SPELLS 528
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

@@ -5218,6 +5218,8 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_FLAME_STRIKE, 7);
   spell_assignment(CLASS_DRUID, SPELL_FREE_MOVEMENT, 7);
   spell_assignment(CLASS_DRUID, SPELL_ICE_STORM, 7);
+  spell_assignment(CLASS_DRUID, SPELL_SPLINTER_STORM, 5);
+  spell_assignment(CLASS_DRUID, SPELL_SHOCKWAVE, 9);
   spell_assignment(CLASS_DRUID, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_DRUID, SPELL_SPIKE_STONES, 7);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_4, 7);
@@ -6325,6 +6327,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_FREE_MOVEMENT, 15);
   spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC, 15);
   spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS, 15);
+  spell_assignment(CLASS_RANGER, SPELL_SPLINTER_STORM, 15);
   spell_assignment(CLASS_RANGER, SPELL_GROUP_VIGORIZE, 15);
 
   // epic class feats

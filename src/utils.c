@@ -7598,7 +7598,6 @@ bool can_spell_be_revoked(int spellnum)
 // returns false if damage should proceed normally
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam)
 {
-
   if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
   {
     GET_HIT(victim) += dam;
@@ -7620,6 +7619,23 @@ bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim,
     act("The spell deals no damage, but slows $N instead!", TRUE, ch, 0, victim, TO_ROOM);
     return true;
   }
+  return false;
+}
+
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam)
+{
+
+  if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_COLD)
+  {
+    dam /= 3;
+    GET_HIT(victim) += dam;
+    if (GET_HIT(victim) > GET_MAX_HIT(victim))
+      GET_HIT(victim) = GET_MAX_HIT(victim);
+    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
+    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return true;
+  }
+
   return false;
 }
 
