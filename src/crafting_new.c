@@ -5135,7 +5135,7 @@ void craft_update(void)
                                 const char *golem_size_names[] = {"small", "medium", "large", "huge"};
                                 if (GET_CRAFT(ch).craft_duration % 5 == 0)
                                 {
-                                    send_to_char(ch, "Constructing a %s %s golem. ",
+                                    send_to_char(ch, "Constructing a %s %s golem. (Turn on 'no craft progress' in prefedit to hide this)",
                                         golem_size_names[GET_CRAFT(ch).golem_size],
                                         golem_type_names[GET_CRAFT(ch).golem_type]);
                                     for (i = 0; i < GET_CRAFT(ch).craft_duration ; i++)

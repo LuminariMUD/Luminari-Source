@@ -1242,7 +1242,9 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     {
       qst_rnum prev_quest = real_quest(QST_PREV(rnum));
       qst_vnum alt_quest = aquest_table[prev_quest].dialogue_alternative_quest;
-      if (!is_complete(ch, alt_quest))
+      
+      // Only block if there IS an alternative quest and it's NOT complete
+      if (alt_quest != NOTHING && alt_quest > 0 && !is_complete(ch, alt_quest))
       {
         send_to_char(ch, "The previous quest was a dialogue quest which failed. You will need to complete its alternative quest in order to take this quest.\r\n");
         return;
