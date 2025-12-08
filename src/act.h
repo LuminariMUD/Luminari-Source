@@ -916,6 +916,8 @@ ACMD_DECL(do_buck);
 ACMD_DECL(do_dismount);
 ACMD_DECL(do_mount);
 ACMD_DECL(do_dismiss);
+ACMD_DECL(do_destroygolem);
+ACMD_DECL(do_golemrepair);
 ACMD_DECL(do_tame);
 ACMD_DECL(do_boosts);
 ACMD_DECL(do_respec);

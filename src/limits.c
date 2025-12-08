@@ -531,6 +531,10 @@ int regen_hps(struct char_data *ch)
 {
   int hp = 0;
 
+  /* Constructed golems never regenerate naturally; they must be repaired */
+  if (IS_GOLEM(ch))
+    return 0;
+
   /* base regen rate */
   if (rand_number(0, 1))
     hp++;
@@ -799,6 +803,15 @@ void regen_update(struct char_data *ch)
     }
   }
   /* End of bleeding check! */
+
+  /* Golems: immune to fatigue/move drain and rely solely on repairs for HP */
+  if (IS_GOLEM(ch))
+  {
+    if (AFF_FLAGGED(ch, AFF_FATIGUED))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FATIGUED);
+
+    GET_MOVE(ch) = GET_MAX_MOVE(ch);
+  }
 
   // we don't have hunger and thirst here.
   /*

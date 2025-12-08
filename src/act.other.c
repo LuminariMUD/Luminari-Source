@@ -60,6 +60,7 @@
 #include "evolutions.h"
 #include "traps.h"  /* For trap system functions */
 #include "constants.h"
+#include "crafting_new.h"  /* For golem repair functions */
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -2390,6 +2391,147 @@ ACMD(do_dismiss)
 
     save_char_pets(ch);
   }
+}
+
+ACMD(do_destroygolem)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *golem = NULL;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Which golem do you want to destroy?\r\n");
+    return;
+  }
+
+  if (!(golem = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see that here.\r\n");
+    return;
+  }
+
+  /* Check if this is actually a golem */
+  if (!MOB_FLAGGED(golem, MOB_GOLEM))
+  {
+    send_to_char(ch, "That's not a golem!\r\n");
+    return;
+  }
+
+  /* Check if this golem belongs to the player */
+  if (golem->master != ch)
+  {
+    send_to_char(ch, "That golem doesn't belong to you!\r\n");
+    return;
+  }
+
+  /* Check if this golem is charmed (should be if it's theirs) */
+  if (!AFF_FLAGGED(golem, AFF_CHARM))
+  {
+    send_to_char(ch, "That golem is not under your control!\r\n");
+    return;
+  }
+
+  act("You carefully dismantle $N, recovering some of the materials used in its construction.",
+      FALSE, ch, 0, golem, TO_CHAR);
+  act("$n carefully dismantles $N, breaking it down into component materials.",
+      TRUE, ch, 0, golem, TO_ROOM);
+
+  /* Recover materials (50% of original cost) before extracting the golem */
+  recover_golem_materials(ch, golem, 50);
+
+  /* Remove the golem */
+  extract_char(golem);
+
+  save_char_pets(ch);
+}
+
+ACMD(do_golemrepair)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *golem = NULL;
+  int material_needed = 0, material_type = 0;
+  int golem_vnum, golem_type, golem_size;
+  int roll, dc, skill;
+  int missing_hp, heal_amount;
+  
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Repair which golem?\r\n");
+    return;
+  }
+
+  if (!(golem = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see that here.\r\n");
+    return;
+  }
+
+  /* Check if this is actually a golem */
+  if (!MOB_FLAGGED(golem, MOB_GOLEM))
+  {
+    send_to_char(ch, "That's not a golem!\r\n");
+    return;
+  }
+
+  /* Check if we can repair the golem (validates materials, combat status, etc) */
+  extern bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *material_needed, int *material_type);
+  if (!can_repair_golem(ch, golem, &material_needed, &material_type))
+    return;
+
+  /* Get golem type and size */
+  golem_vnum = GET_MOB_VNUM(golem);
+  golem_type = get_golem_type_from_vnum(golem_vnum);
+  golem_size = get_golem_size_from_vnum(golem_vnum);
+  
+  if (golem_type < 0 || golem_size < 0)
+  {
+    send_to_char(ch, "That golem is invalid!\r\n");
+    return;
+  }
+
+  /* Make the Arcana skill check */
+  extern int get_golem_repair_dc(int golem_type, int golem_size);
+  dc = get_golem_repair_dc(golem_type, golem_size);
+  roll = d20(ch);
+  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  
+  send_to_char(ch, "You begin carefully repairing %s. You rolled %d + %d Arcana = %d vs. DC %d.\r\n",
+      GET_NAME(golem), roll, skill, roll + skill, dc);
+
+  if (roll + skill < dc)
+  {
+    send_to_char(ch, "You fail to properly repair the golem. The materials are wasted.\r\n");
+    act("$n attempts to repair $N but fails!", FALSE, ch, 0, golem, TO_ROOM);
+    
+    /* Consume materials even on failure */
+    GET_CRAFT_MAT(ch, material_type) -= material_needed;
+    save_char_pets(ch);
+    return;
+  }
+
+  /* Success! Consume materials */
+  GET_CRAFT_MAT(ch, material_type) -= material_needed;
+  
+  /* Calculate healing amount - heal all damage in phases over 2 seconds per 10% missing HP */
+  missing_hp = GET_MAX_HIT(golem) - GET_HIT(golem);
+  heal_amount = missing_hp;  /* Full repair on successful check */
+  
+  send_to_char(ch, "\tGSuccess!\tn You begin repairing %s, restoring \tc%d\tn hit points.\r\n",
+      GET_NAME(golem), heal_amount);
+  act("$n begins carefully repairing $N's structure.", FALSE, ch, 0, golem, TO_ROOM);
+  
+  /* Heal the golem */
+  GET_HIT(golem) += heal_amount;
+  if (GET_HIT(golem) > GET_MAX_HIT(golem))
+    GET_HIT(golem) = GET_MAX_HIT(golem);
+  
+  act("\tc$N's form solidifies as the repairs complete!\tn", FALSE, ch, 0, golem, TO_ROOM);
+  
+  save_char_pets(ch);
 }
 
 /* recharge allows the refilling of charges for wands and staves

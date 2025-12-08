@@ -376,6 +376,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"eternalmountaindefense", "eternalmountaindefense", POS_FIGHTING, do_eternalmountaindefense, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_eternalmountaindefense},
     {"dismount", "dismount", POS_FIGHTING, do_dismount, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"dismiss", "dismiss", POS_FIGHTING, do_dismiss, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"destroygolem", "destroygolem", POS_STANDING, do_destroygolem, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"golemrepair", "golemrepair", POS_STANDING, do_golemrepair, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"disenchant", "disenchant", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dirtkick", "dirtkick", POS_FIGHTING, do_dirtkick, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dirtkick},
     {"disembark", "disembark", POS_STANDING, do_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

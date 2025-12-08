@@ -1,0 +1,214 @@
+#16500
+wood golem small~
+a small wooden golem~
+A small wooden golem stands here, assembled from ash wood and metal plates.
+~
+This construct is crafted from finely joined ash wood reinforced with metal
+brackets and plates. Its wooden form is solid and durable, with articulated
+joints that allow for fluid movement. Intricate arcane markings run across
+its surface, glowing faintly with magical energy.
+~
+103 0 0 0 0 0 0 0 0 E
+1 15 8 5d8+20 1d6+0
+50 50 1
+10 10 1
+BareHandAttack: 0
+E
+$
+#16501
+wood golem medium~
+a medium wooden golem~
+A medium-sized wooden golem stands here, assembled from ash wood and metal.
+~
+This construct is crafted from finely joined ash wood reinforced with metal
+brackets and plates. Standing roughly human-sized, its wooden form is solid
+and durable. Articulated joints allow for fluid movement, and intricate
+arcane markings run across its surface, glowing with magical energy.
+~
+103 0 0 0 0 0 0 0 0 E
+1 20 10 8d10+50 1d8+0
+80 80 1
+15 15 1
+BareHandAttack: 0
+E
+$
+#16502
+wood golem large~
+a large wooden golem~
+A large wooden golem stands here, towering above you.
+~
+This imposing construct is crafted from finely joined ash wood reinforced
+with metal brackets and plates. Standing nearly twice human height, its
+wooden form is remarkably solid despite its size. Articulated joints allow
+fluid movement, and intricate arcane markings run across its surface,
+glowing with magical energy that sustains its form.
+~
+103 0 0 0 0 0 0 0 0 E
+1 25 12 12d10+100 1d10+2
+120 120 1
+20 20 1
+BareHandAttack: 0
+E
+$
+#16503
+wood golem huge~
+a huge wooden golem~
+A massive wooden golem towers above you here.
+~
+This enormous construct is crafted from finely joined ash wood reinforced
+with heavy metal brackets and plates. Standing twice or more human height,
+its wooden form is remarkably solid despite its massive size. Articulated
+joints allow surprisingly fluid movement, and intricate arcane markings
+cover its surface, glowing brilliantly with magical energy.
+~
+103 0 0 0 0 0 0 0 0 E
+1 30 14 16d10+150 2d8+2
+160 160 1
+25 25 1
+BareHandAttack: 0
+E
+$
+#16504
+stone golem small~
+a small stone golem~
+A small stone golem stands here, carved from solid granite.
+~
+This construct appears to be carved from a single block of solid granite.
+Its form is blocky but well-proportioned, with smooth surfaces and sharp
+edges defining its shape. Arcane runes are carved deep into its surface,
+glowing with mystical power that animates the stone construct.
+~
+103 0 0 0 0 0 0 0 0 E
+1 25 6 6d8+30 1d4+0
+60 60 1
+8 8 1
+BareHandAttack: 0
+E
+$
+#16505
+stone golem medium~
+a medium stone golem~
+A medium-sized stone golem stands here, carved from solid granite.
+~
+This construct appears to be carved from a single block of solid granite.
+Standing roughly human-sized, its form is blocky but well-proportioned, with
+smooth surfaces and sharp edges defining its shape. Deep arcane runes are
+carved into its surface, glowing with mystical power that animates the
+construct. It emanates an aura of solidity and permanence.
+~
+103 0 0 0 0 0 0 0 0 E
+1 30 8 10d10+70 1d8+0
+100 100 1
+12 12 1
+BareHandAttack: 0
+E
+$
+#16506
+stone golem large~
+a large stone golem~
+A large stone golem stands here, an imposing figure carved from granite.
+~
+This imposing construct appears to be carved from a single massive block of
+solid granite. Standing nearly twice human height, its form is blocky and
+immovable, with smooth surfaces and sharp edges defining its shape. Deep
+arcane runes are carved extensively across its surface, glowing brilliantly
+with the magical power that sustains its form.
+~
+103 0 0 0 0 0 0 0 0 E
+1 35 10 14d10+130 1d10+2
+150 150 1
+18 18 1
+BareHandAttack: 0
+E
+$
+#16507
+stone golem huge~
+a huge stone golem~
+A massive stone golem towers above you here.
+~
+This enormous construct appears to be carved from massive blocks of solid
+granite, perfectly joined together. Standing twice or more human height, its
+form is blocky and seemingly immovable, with smooth surfaces and sharp edges
+throughout. Extensive arcane runes are carved deeply across every surface,
+glowing brilliantly with the powerful magic that animates this construct.
+~
+103 0 0 0 0 0 0 0 0 E
+1 40 12 18d10+200 2d8+2
+200 200 1
+25 25 1
+BareHandAttack: 0
+E
+$
+#16508
+iron golem small~
+a small iron golem~
+A small iron golem stands here, forged from solid metal.
+~
+This construct appears to be forged from solid iron in a roughly humanoid
+shape. Despite its relatively small size, it radiates an impression of great
+strength and durability. Its surfaces are smooth where buffed but scarred and
+pitted from use. Arcane runes glow on its surface, powering the magical
+animation that drives its movement.
+~
+103 0 0 0 0 0 0 0 0 E
+1 35 5 7d8+40 1d6+0
+70 70 1
+8 8 1
+BareHandAttack: 0
+E
+$
+#16509
+iron golem medium~
+a medium iron golem~
+A medium-sized iron golem stands here, forged from solid metal.
+~
+This construct appears to be forged from solid iron in a humanoid shape.
+Standing roughly human-sized, it radiates an impression of great strength and
+durability. Its surfaces are smooth where buffed but scarred and pitted from
+use. Extensive arcane runes glow across its surface, powering the magical
+animation that drives its precise movements.
+~
+103 0 0 0 0 0 0 0 0 E
+1 40 7 12d10+90 1d8+0
+120 120 1
+12 12 1
+BareHandAttack: 0
+E
+$
+#16510
+iron golem large~
+a large iron golem~
+A large iron golem stands here, an impressive display of metallic might.
+~
+This imposing construct appears to be forged from massive pieces of solid
+iron, expertly joined together. Standing nearly twice human height, it
+radiates a powerful impression of overwhelming strength and durability. Its
+surfaces are smooth where buffed but scarred and pitted from intense use.
+Extensive arcane runes glow brilliantly across its surface.
+~
+103 0 0 0 0 0 0 0 0 E
+1 45 9 16d10+160 1d10+2
+180 180 1
+18 18 1
+BareHandAttack: 0
+E
+$
+#16511
+iron golem huge~
+a huge iron golem~
+A massive iron golem towers above you here.
+~
+This colossal construct appears to be forged from enormous pieces of solid
+iron, expertly joined together into a towering humanoid form. Standing twice
+or more human height and weighing many tons, it radiates an overwhelming
+impression of absolute strength and durability. Its scarred and pitted
+surfaces speak of countless battles. Brilliant arcane runes cover every
+surface, glowing with tremendous power.
+~
+103 0 0 0 0 0 0 0 0 E
+1 50 11 20d10+250 2d8+4
+250 250 1
+25 25 1
+BareHandAttack: 0
+E
+$

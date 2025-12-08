@@ -583,4 +583,23 @@
 // #define NOOB_HARVESTING_FORESTRY        160042
 // #define NOOB_HARVESTING_GATHERING       160041
 
+/* Golem VNUMs */
+/* Wood Golems - Small to Huge */
+#define GOLEM_WOOD_SMALL                16500
+#define GOLEM_WOOD_MEDIUM               16501
+#define GOLEM_WOOD_LARGE                16502
+#define GOLEM_WOOD_HUGE                 16503
+
+/* Stone Golems - Small to Huge */
+#define GOLEM_STONE_SMALL               16504
+#define GOLEM_STONE_MEDIUM              16505
+#define GOLEM_STONE_LARGE               16506
+#define GOLEM_STONE_HUGE                16507
+
+/* Iron Golems - Small to Huge */
+#define GOLEM_IRON_SMALL                16508
+#define GOLEM_IRON_MEDIUM               16509
+#define GOLEM_IRON_LARGE                16510
+#define GOLEM_IRON_HUGE                 16511
+
 #endif /* _VNUMS_H_ */

@@ -1209,8 +1209,9 @@
 #define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
 #define MOB_CUSTOM_MOB_STATS 101 /**< Mob uses custom stat modifiers instead of category defaults */
 #define MOB_NO_BLOCK_BYPASS 102 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
+#define MOB_GOLEM 103 /**< Mob is a constructed golem (for follower tracking) */
 /**********************/
-#define NUM_MOB_FLAGS 103
+#define NUM_MOB_FLAGS 104
 /**********************/
 /**********************/
 
@@ -4170,7 +4171,7 @@
 #define NUM_CRAFT_MATS 37
 #define NUM_CRAFT_MOTES 9
 
-#define NUM_CRAFT_GROUPS 8
+#define NUM_CRAFT_GROUPS 9
 
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
@@ -5408,6 +5409,12 @@ struct crafting_data_info
     
     // efficient talent saved materials [material_type][amount]
     int efficient_saved_materials[NUM_CRAFT_GROUPS][2];
+    
+    // golem crafting info
+    int golem_type;                 // GOLEM_TYPE_WOOD, STONE, IRON
+    int golem_size;                 // GOLEM_SIZE_SMALL, MEDIUM, LARGE, HUGE
+    int golem_materials[NUM_CRAFT_GROUPS][2];  // 0 = mat type, 1 = mat amount for golem
+    int golem_motes_required[NUM_CRAFT_MOTES]; // motes needed for golem
     
 };
 

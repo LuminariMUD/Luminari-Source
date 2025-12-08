@@ -1147,7 +1147,8 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
   int summons_allowed = 1,
       pets_allowed = 1,
       mercs_allowed = 1,
-      genie_allowed = 1;
+      genie_allowed = 1,
+      golems_allowed = 1;
 
   if (IS_SUMMONER(ch))
     summons_allowed++;
@@ -1171,6 +1172,10 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
       else if (MOB_FLAGGED(pet, MOB_MERCENARY))
       {
         mercs_allowed--;
+      }
+      else if (MOB_FLAGGED(pet, MOB_GOLEM))
+      {
+        golems_allowed--;
       }
       else
       {
@@ -1209,6 +1214,13 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
   {
     extract_char(mob);
     if (mercs_allowed > 0)
+      return true;
+    return false;
+  }
+  else if (MOB_FLAGGED(mob, MOB_GOLEM))
+  {
+    extract_char(mob);
+    if (golems_allowed > 0)
       return true;
     return false;
   }
@@ -5613,6 +5625,17 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     return TRUE;
   }
 
+  /* Explicit immunity for crafted golems even if race data is missing */
+  if (IS_GOLEM(victim))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s is a golem construct and immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your golem nature shrugs off %s's mind-affecting magic.\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
   if (IS_OOZE(victim))
   {
     if (display)
@@ -9737,6 +9760,10 @@ int get_fast_healing_amount(struct char_data *ch)
 {
   int hp = 0;
 
+  /* Constructed golems do not benefit from fast healing or food/drink regen */
+  if (IS_GOLEM(ch))
+    return 0;
+
   if (affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
     hp += 4;
   else if (affected_by_spell(ch, SPELL_PLANAR_HEALING))
@@ -9770,6 +9797,9 @@ int get_hp_regen_amount(struct char_data *ch)
 {
   int hp = 0;
 
+  if (IS_GOLEM(ch))
+    return 0;
+
   hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_HP_REGEN);
   hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_HP_REGEN);
   hp += get_apply_type_gear_mod(ch, APPLY_HP_REGEN);
@@ -9782,6 +9812,9 @@ int get_psp_regen_amount(struct char_data *ch)
 {
   int psp = 0;
 
+  if (IS_GOLEM(ch))
+    return 0;
+
   psp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_PSP_REGEN);
   psp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_PSP_REGEN);
   psp += get_apply_type_gear_mod(ch, APPLY_PSP_REGEN);
@@ -9793,6 +9826,9 @@ int get_psp_regen_amount(struct char_data *ch)
 int get_mv_regen_amount(struct char_data *ch)
 {
   int mv = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
 
   mv += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_MV_REGEN);
   mv += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_MV_REGEN);

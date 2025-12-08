@@ -4136,6 +4136,9 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  /* golem crafting feats */
+  feat_assignment(CLASS_WIZARD, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_WIZARD, FEAT_CONSTRUCT_STONE_GOLEM, Y, 25, N);
   /**** spell assign ****/
   /* cantrips */
   spell_assignment(CLASS_WIZARD, SPELL_ACID_SPLASH, 0);
@@ -5505,6 +5508,9 @@ void load_class_list(void)
   feat_assignment(CLASS_SORCERER, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  /* golem crafting feats */
+  feat_assignment(CLASS_SORCERER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_SORCERER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 25, N);
   /**** spell assign ****/
   /* cantrips */
   spell_assignment(CLASS_SORCERER, SPELL_ACID_SPLASH, 0);

@@ -1648,28 +1648,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
           }
         }
       }
-    }
-
-    /* FAILED attack roll */
-  }
-  else
-  {
-    /* Messages for a missed unarmed touch attack. */
-    if (skill == SKILL_SHIELD_CHARGE)
-    {
-      /* just moved this to damage-messages */
-    }
-    if (skill == SPELL_BANISHING_BLADE)
-    {
-      // No miss message
-    }
-    else
-    {
-      act("\tyYou are unable to grab $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-      act("\ty$n tries to grab you, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
-      act("\ty$n tries to grab $N, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
-    }
-  }
+    } /* end successful/failed attack roll processing */
 
   /* further processing: set position, special feats, etc */
   if (!success)

@@ -11556,6 +11556,15 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL)
     return;
 
+  /* Golems are immune to magical/psionic healing; they require repair */
+  if (IS_GOLEM(victim))
+  {
+    if (ch && ch != victim)
+      send_to_char(ch, "%s is a construct and cannot be healed by magic—use golem repair instead.\r\n", GET_NAME(victim));
+    send_to_char(victim, "Your construct form rejects magical healing.\r\n");
+    return;
+  }
+
   if (casttype == CAST_WEAPON_POISON || casttype == CAST_WEAPON_SPELL)
     ;
   else

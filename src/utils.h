@@ -2217,6 +2217,7 @@ int ACTUAL_BAB(struct char_data *ch);
                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
 #define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
+#define IS_GOLEM(ch) (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM))
 #define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) ||    \
                           (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
                           (IS_IRON_GOLEM(ch)))

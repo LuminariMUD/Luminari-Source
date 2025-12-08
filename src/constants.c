@@ -1560,6 +1560,7 @@ const char *action_bits[] = {
     "Unlimited-Spell-Slots",
     "Custom-Mob-Stats",
     "No-Block-Bypass",
+    "Golem",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -6806,6 +6807,7 @@ const char *crafting_types[] = {
     "armor",
     "misc",
     "instrument",
+    "golem",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_types, NUM_CRAFT_TYPES + 1);

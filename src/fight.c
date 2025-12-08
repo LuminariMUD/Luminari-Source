@@ -1946,6 +1946,15 @@ static void make_corpse(struct char_data *ch)
     }
   } /* if we continue on, we need to actually make a corpse.... */
 #endif
+
+  /* Check if this is a golem that died - drop materials before creating corpse */
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM) && ch->master)
+  {
+    /* Recover materials (25% of original cost) from golem death */
+    extern void recover_golem_materials(struct char_data *ch, struct char_data *golem, int recovery_percent);
+    recover_golem_materials(ch->master, ch, 25);
+  }
+
   /* create the corpse object, blank prototype */
   corpse = create_obj();
 
