@@ -254,7 +254,6 @@ Cost scales with missing HP percentage. For example:
 6. **Combat AI:** Golem-specific combat tactics and strategies
 7. **Golem Equipment:** Allow golems to wear certain magical items
 8. **Golem Familiars:** Tiny golem variants as alternatives to regular familiars
-9. **Summoners** Summoners can make golems too
 
 ## Testing Checklist
 
