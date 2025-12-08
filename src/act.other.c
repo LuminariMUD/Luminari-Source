@@ -2508,13 +2508,61 @@ ACMD(do_golemrepair)
     act("$n attempts to repair $N but fails!", FALSE, ch, 0, golem, TO_ROOM);
     
     /* Consume materials even on failure */
-    GET_CRAFT_MAT(ch, material_type) -= material_needed;
+    if (golem_type == GOLEM_TYPE_WOOD)
+    {
+      /* For wood golems, consume lowest grade wood first */
+      extern int craft_group_by_material(int material);
+      int remaining = material_needed;
+      int mat;
+      
+      for (mat = 1; mat < NUM_CRAFT_MATS && remaining > 0; mat++)
+      {
+        if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
+        {
+          int to_consume = MIN(GET_CRAFT_MAT(ch, mat), remaining);
+          if (to_consume > 0)
+          {
+            GET_CRAFT_MAT(ch, mat) -= to_consume;
+            remaining -= to_consume;
+          }
+        }
+      }
+    }
+    else
+    {
+      GET_CRAFT_MAT(ch, material_type) -= material_needed;
+    }
     save_char_pets(ch);
     return;
   }
 
   /* Success! Consume materials */
-  GET_CRAFT_MAT(ch, material_type) -= material_needed;
+  if (golem_type == GOLEM_TYPE_WOOD)
+  {
+    /* For wood golems, consume lowest grade wood first */
+    extern int craft_group_by_material(int material);
+    int remaining = material_needed;
+    int mat;
+    
+    /* Consume in order (lowest to highest grade): Ash, Maple, Mahogany, Valenwood, Ironwood */
+    for (mat = 1; mat < NUM_CRAFT_MATS && remaining > 0; mat++)
+    {
+      if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
+      {
+        int to_consume = MIN(GET_CRAFT_MAT(ch, mat), remaining);
+        if (to_consume > 0)
+        {
+          GET_CRAFT_MAT(ch, mat) -= to_consume;
+          remaining -= to_consume;
+        }
+      }
+    }
+  }
+  else
+  {
+    /* For non-wood golems, consume specific material type */
+    GET_CRAFT_MAT(ch, material_type) -= material_needed;
+  }
   
   /* Calculate healing amount - heal all damage in phases over 2 seconds per 10% missing HP */
   missing_hp = GET_MAX_HIT(golem) - GET_HIT(golem);

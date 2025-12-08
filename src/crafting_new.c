@@ -8651,12 +8651,37 @@ void show_current_golem_craft(struct char_data *ch)
         {
             if (material_types[i] > 0)
             {
-                int owned = GET_CRAFT_MAT(ch, material_types[i]);
-                send_to_char(ch, "  %s: %d units (owned: %d) %s\r\n", 
-                    crafting_materials[material_types[i]], 
-                    material_amounts[i],
-                    owned,
-                    owned >= material_amounts[i] ? "\tG✓\tn" : "\tR✗\tn");
+                int owned;
+                
+                // For wood golems (primary material), show total of all wood types
+                if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD && i == 0)
+                {
+                    int mat;
+                    owned = 0;
+                    
+                    // Sum up all wood materials
+                    for (mat = 1; mat < NUM_CRAFT_MATS; mat++)
+                    {
+                        if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
+                        {
+                            owned += GET_CRAFT_MAT(ch, mat);
+                        }
+                    }
+                    
+                    send_to_char(ch, "  Wood (any type): %d units (owned: %d) %s\r\n", 
+                        material_amounts[i],
+                        owned,
+                        owned >= material_amounts[i] ? "\tG✓\tn" : "\tR✗\tn");
+                }
+                else
+                {
+                    owned = GET_CRAFT_MAT(ch, material_types[i]);
+                    send_to_char(ch, "  %s: %d units (owned: %d) %s\r\n", 
+                        crafting_materials[material_types[i]], 
+                        material_amounts[i],
+                        owned,
+                        owned >= material_amounts[i] ? "\tG✓\tn" : "\tR✗\tn");
+                }
             }
         }
         
@@ -8731,13 +8756,42 @@ bool begin_golem_craft(struct char_data *ch)
     // Check materials
     for (i = 0; i < num_mats; i++)
     {
-        if (material_types[i] > 0 && GET_CRAFT_MAT(ch, material_types[i]) < material_amounts[i])
+        if (material_types[i] > 0)
         {
-            send_to_char(ch, "You do not have enough %s. Need %d, have %d.\r\n",
-                crafting_materials[material_types[i]], 
-                material_amounts[i],
-                GET_CRAFT_MAT(ch, material_types[i]));
-            return false;
+            int mat_available = 0;
+            
+            // For wood golems (primary material), allow any wood type
+            if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD && i == 0)
+            {
+                // Sum up all wood materials
+                int mat;
+                for (mat = 1; mat < NUM_CRAFT_MATS; mat++)
+                {
+                    if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
+                    {
+                        mat_available += GET_CRAFT_MAT(ch, mat);
+                    }
+                }
+                
+                if (mat_available < material_amounts[i])
+                {
+                    send_to_char(ch, "You do not have enough wood materials. Need %d, have %d.\r\n",
+                        material_amounts[i], mat_available);
+                    return false;
+                }
+            }
+            else
+            {
+                // For non-wood materials or secondary materials, check specific type
+                if (GET_CRAFT_MAT(ch, material_types[i]) < material_amounts[i])
+                {
+                    send_to_char(ch, "You do not have enough %s. Need %d, have %d.\r\n",
+                        crafting_materials[material_types[i]], 
+                        material_amounts[i],
+                        GET_CRAFT_MAT(ch, material_types[i]));
+                    return false;
+                }
+            }
         }
     }
     
@@ -8975,7 +9029,33 @@ void craft_golem_complete(struct char_data *ch)
         for (i = 0; i < num_mats; i++)
         {
             if (material_types[i] > 0)
-                GET_CRAFT_MAT(ch, material_types[i]) -= material_amounts[i];
+            {
+                // For wood golems (primary material), consume any wood types
+                if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD && i == 0)
+                {
+                    int remaining = material_amounts[i];
+                    int mat;
+                    
+                    // Consume wood materials in order until we have enough
+                    for (mat = 1; mat < NUM_CRAFT_MATS && remaining > 0; mat++)
+                    {
+                        if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
+                        {
+                            int to_consume = MIN(GET_CRAFT_MAT(ch, mat), remaining);
+                            if (to_consume > 0)
+                            {
+                                GET_CRAFT_MAT(ch, mat) -= to_consume;
+                                remaining -= to_consume;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // For non-wood materials or secondary materials, consume specific type
+                    GET_CRAFT_MAT(ch, material_types[i]) -= material_amounts[i];
+                }
+            }
         }
         
         for (i = 0; i < num_motes; i++)
@@ -9121,13 +9201,14 @@ int get_golem_repair_dc(int golem_type, int golem_size)
 
 /**
  * Get the primary material type needed for golem repair
+ * For wood golems, returns ASH_WOOD as a placeholder (any wood type will be accepted)
  */
 int get_golem_repair_material_type(int golem_type)
 {
     switch (golem_type)
     {
         case GOLEM_TYPE_WOOD:
-            return CRAFT_MAT_ASH_WOOD;
+            return CRAFT_MAT_ASH_WOOD;  /* Placeholder - any wood type accepted */
         case GOLEM_TYPE_STONE:
             return CRAFT_MAT_STONE;
         case GOLEM_TYPE_IRON:
@@ -9194,13 +9275,38 @@ bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *materi
     *material_type = get_golem_repair_material_type(golem_type);
     
     /* Check if player has enough materials */
-    if (GET_CRAFT_MAT(ch, *material_type) < *material_needed)
+    if (golem_type == GOLEM_TYPE_WOOD)
     {
-        send_to_char(ch, "You don't have enough materials to repair your golem. Need: %d %s, Have: %d\r\n",
-            *material_needed,
-            crafting_materials[*material_type],
-            GET_CRAFT_MAT(ch, *material_type));
-        return false;
+        /* For wood golems, check total wood materials */
+        int total_wood = 0;
+        int mat;
+        
+        for (mat = 1; mat < NUM_CRAFT_MATS; mat++)
+        {
+            if (craft_group_by_material(mat) == CRAFT_GROUP_WOOD)
+            {
+                total_wood += GET_CRAFT_MAT(ch, mat);
+            }
+        }
+        
+        if (total_wood < *material_needed)
+        {
+            send_to_char(ch, "You don't have enough wood materials to repair your golem. Need: %d wood (any type), Have: %d\r\n",
+                *material_needed, total_wood);
+            return false;
+        }
+    }
+    else
+    {
+        /* For non-wood golems, check specific material type */
+        if (GET_CRAFT_MAT(ch, *material_type) < *material_needed)
+        {
+            send_to_char(ch, "You don't have enough materials to repair your golem. Need: %d %s, Have: %d\r\n",
+                *material_needed,
+                crafting_materials[*material_type],
+                GET_CRAFT_MAT(ch, *material_type));
+            return false;
+        }
     }
     
     return true;

@@ -1487,6 +1487,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
 
     /* Root cantrip: +3 resistance vs trip/knockdown/grapple */
     if (affected_by_spell(vict, SPELL_ROOT))
+    {
       defense_check += 3;
       send_to_char(vict, "Your rooted stance grants you +3 resistance to being knocked down!\r\n");
     }
@@ -1648,7 +1649,27 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
           }
         }
       }
-    } /* end successful/failed attack roll processing */
+    }
+    /* FAILED attack roll */
+  }
+  else
+  {
+    /* Messages for a missed unarmed touch attack. */
+    if (skill == SKILL_SHIELD_CHARGE)
+    {
+      /* just moved this to damage-messages */
+    }
+    if (skill == SPELL_BANISHING_BLADE)
+    {
+      // No miss message
+    }
+    else
+    {
+      act("\tyYou are unable to grab $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+      act("\ty$n tries to grab you, but you dodge easily away!\tn", FALSE, ch, NULL, vict, TO_VICT);
+      act("\ty$n tries to grab $N, but $N dodges easily away!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    }
+  }
 
   /* further processing: set position, special feats, etc */
   if (!success)
