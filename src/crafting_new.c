@@ -30,6 +30,7 @@
 #include "class.h"
 #include "improved-edit.h"
 #include "talents.h" /* crafting talent system */
+#include "dg_scripts.h"
 
 #ifndef TRUE
 #define TRUE 1

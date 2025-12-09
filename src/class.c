@@ -8973,6 +8973,9 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_GRAND_EIDOLON, Y, 20, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_ASPECT, Y, 25, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_EIDOLON, Y, 30, N);
+  /* golem crafting feats */
+  feat_assignment(CLASS_SUMMONER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 25, N);
 
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
@@ -8984,6 +8987,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_5TH_CIRCLE, Y, 13, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_6TH_CIRCLE, Y, 16, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_EPIC_SPELL, Y, 21, N);
+  
 
   /* class feats */
     /* epic class */
