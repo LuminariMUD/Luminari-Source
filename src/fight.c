@@ -9281,6 +9281,13 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     calc_bab += HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2;
     if (display)
         send_to_char(ch, "%2d: %-50s\r\n", HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2, "Eldritch Master");
+    // we'll add weapon focus ranged
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_SUPERIOR_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
     /* fall through is intentional here */
   case ATTACK_TYPE_RANGED:
     calc_bab += GET_DEX_BONUS(ch);
