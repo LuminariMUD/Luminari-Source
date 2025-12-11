@@ -98,6 +98,16 @@ int get_greater_summons_hp_bonus(struct char_data *ch);
 int get_greater_summons_damage(struct char_data *ch);
 int get_greater_summons_attack_bonus(struct char_data *ch);
 
+/* Ranger Wilderness Warrior perk functions */
+int get_ranger_two_weapon_focus_tohit(struct char_data *ch);
+int get_ranger_two_weapon_focus_damage(struct char_data *ch);
+int get_ranger_dual_strike_offhand(struct char_data *ch);
+int get_ranger_favored_enemy_mastery_damage(struct char_data *ch);
+int get_ranger_toughness_hp(struct char_data *ch);
+int get_ranger_tempest_ac(struct char_data *ch);
+int get_ranger_favored_enemy_slayer_tohit(struct char_data *ch);
+int get_ranger_favored_enemy_slayer_crit(struct char_data *ch);
+
 /* Rogue-specific perk bonus functions */
 int get_perk_sneak_attack_dice(struct char_data *ch);
 int get_perk_critical_confirmation_bonus(struct char_data *ch);

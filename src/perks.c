@@ -4083,6 +4083,222 @@ void define_ranger_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Capstone: +5 to-hit vs favored enemies");
+
+  /*** WILDERNESS WARRIOR TREE - TIER I ***/
+
+  /* Two-Weapon Focus I */
+  perk = &perk_list[PERK_RANGER_TWO_WEAPON_FOCUS_I];
+  perk->id = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->name = strdup("Two-Weapon Focus I");
+  perk->description = strdup("+1 to attacks when dual wielding, per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit when dual wielding per rank");
+
+  /* Dual Strike I */
+  perk = &perk_list[PERK_RANGER_DUAL_STRIKE_I];
+  perk->id = PERK_RANGER_DUAL_STRIKE_I;
+  perk->name = strdup("Dual Strike I");
+  perk->description = strdup("+1 damage with off-hand weapon per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage with off-hand weapon per rank");
+
+  /* Favored Enemy Mastery I */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_MASTERY_I];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_MASTERY_I;
+  perk->name = strdup("Favored Enemy Mastery I");
+  perk->description = strdup("+1 damage vs favored enemies per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage vs favored enemies per rank");
+
+  /* Ranger Toughness I */
+  perk = &perk_list[PERK_RANGER_RANGER_TOUGHNESS_I];
+  perk->id = PERK_RANGER_RANGER_TOUGHNESS_I;
+  perk->name = strdup("Ranger Toughness I");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+5 HP per rank");
+
+  /*** WILDERNESS WARRIOR TREE - TIER II ***/
+
+  /* Two-Weapon Focus II */
+  perk = &perk_list[PERK_RANGER_TWO_WEAPON_FOCUS_II];
+  perk->id = PERK_RANGER_TWO_WEAPON_FOCUS_II;
+  perk->name = strdup("Two-Weapon Focus II");
+  perk->description = strdup("+1 damage when dual wielding per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage when dual wielding per rank (stacks with TWF I)");
+
+  /* Wilderness Warrior Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Wilderness Warrior Two-Weapon Fighting");
+  perk->description = strdup("10% chance to gain an additional off-hand attack per round");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% chance per round for an extra off-hand attack when dual wielding");
+
+  /* Tempest */
+  perk = &perk_list[PERK_RANGER_TEMPEST];
+  perk->id = PERK_RANGER_TEMPEST;
+  perk->name = strdup("Tempest");
+  perk->description = strdup("+1 AC dodge bonus when fighting with two weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 AC dodge bonus per rank when dual wielding");
+
+  /* Favored Enemy Slayer */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_SLAYER];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->name = strdup("Favored Enemy Slayer");
+  perk->description = strdup("+2 to hit against favored enemies, critical threat range +1 vs favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_MASTERY_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("+2 to hit vs favored enemies and +1 critical threat range");
+
+  /*** WILDERNESS WARRIOR TREE - TIER III ***/
+
+  /* Greater Wilderness Warrior Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Greater WW Two-Weapon Fighting");
+  perk->description = strdup("10% chance to gain a second additional off-hand attack per round");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_WW_TWO_WEAPON_FIGHTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% chance per round for a second extra off-hand attack");
+
+  /* Whirling Steel */
+  perk = &perk_list[PERK_RANGER_WHIRLING_STEEL];
+  perk->id = PERK_RANGER_WHIRLING_STEEL;
+  perk->name = strdup("Whirling Steel");
+  perk->description = strdup("5% chance per hit to make an additional free attack when dual wielding");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("5% chance per hit for a free attack when dual wielding");
+
+  /* Deadly Hunter */
+  perk = &perk_list[PERK_RANGER_DEADLY_HUNTER];
+  perk->id = PERK_RANGER_DEADLY_HUNTER;
+  perk->name = strdup("Deadly Hunter");
+  perk->description = strdup("Against favored enemies: +2d6 damage and attacks ignore 10 points of DR");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("+2d6 damage and ignore 10 DR vs favored enemies");
+
+  /* Crippling Strike */
+  perk = &perk_list[PERK_RANGER_CRIPPLING_STRIKE];
+  perk->id = PERK_RANGER_CRIPPLING_STRIKE;
+  perk->name = strdup("Crippling Strike");
+  perk->description = strdup("Successful melee attacks have a 5% chance to apply slow for 3 rounds");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_DUAL_STRIKE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("5% chance to slow target for 3 rounds on melee hit");
+
+  /*** WILDERNESS WARRIOR TREE - TIER IV (CAPSTONES) ***/
+
+  /* Perfect WW Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Perfect WW Two-Weapon Fighting");
+  perk->description = strdup("All weapon attacks gain +2 to hit +4 to damage when dual wielding");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 4;
+  perk->special_description = strdup("+2 to hit, +4 to damage when dual wielding (capstone)");
 }
 
 /* Define Barbarian Perks */
@@ -7240,6 +7456,158 @@ int get_greater_summons_attack_bonus(struct char_data *ch)
   
   if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
     return 4;
+  
+  return 0;
+}
+
+/* === WILDERNESS WARRIOR PERK HELPERS === */
+
+/**
+ * Get Two-Weapon Focus to-hit bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return To-hit bonus
+ */
+int get_ranger_two_weapon_focus_tohit(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Two-Weapon Focus I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TWO_WEAPON_FOCUS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Two-Weapon Focus damage bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return Damage bonus
+ */
+int get_ranger_two_weapon_focus_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Two-Weapon Focus II: +1 per rank (max 2) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TWO_WEAPON_FOCUS_II);
+  
+  return bonus;
+}
+
+/**
+ * Get Dual Strike off-hand damage bonus.
+ * 
+ * @param ch The character
+ * @return Off-hand damage bonus
+ */
+int get_ranger_dual_strike_offhand(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Dual Strike I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_DUAL_STRIKE_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Favored Enemy Mastery damage bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return Damage bonus vs favored enemies
+ */
+int get_ranger_favored_enemy_mastery_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Mastery I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_FAVORED_ENEMY_MASTERY_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Ranger Toughness HP bonus.
+ * 
+ * @param ch The character
+ * @return HP bonus
+ */
+int get_ranger_toughness_hp(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Ranger Toughness I: +5 HP per rank (max 3) */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_RANGER_RANGER_TOUGHNESS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Tempest AC bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return AC dodge bonus
+ */
+int get_ranger_tempest_ac(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Tempest: +1 AC per rank (max 2) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TEMPEST);
+  
+  return bonus;
+}
+
+/**
+ * Get Favored Enemy Slayer to-hit bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return To-hit bonus
+ */
+int get_ranger_favored_enemy_slayer_tohit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Slayer: +2 to-hit */
+  if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Favored Enemy Slayer critical threat range bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return Critical threat range increase
+ */
+int get_ranger_favored_enemy_slayer_crit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Slayer: +1 crit threat range */
+  if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+    return 1;
   
   return 0;
 }

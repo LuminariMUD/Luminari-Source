@@ -3797,9 +3797,28 @@
 /* Beast Master Tree - Tier 4 */
 #define PERK_RANGER_PRIMAL_AVATAR 1033
 #define PERK_RANGER_NATURES_WRATH 1034
-/* Wilderness Warrior Tree - new perks */
-#define PERK_RANGER_FAVORED_ENEMY_SLAYER 1035
-#define PERK_RANGER_APEX_PREDATOR 1036
+
+/* Wilderness Warrior Tree - Tier 1 */
+#define PERK_RANGER_TWO_WEAPON_FOCUS_I 1035
+#define PERK_RANGER_DUAL_STRIKE_I 1036
+#define PERK_RANGER_FAVORED_ENEMY_MASTERY_I 1037
+#define PERK_RANGER_RANGER_TOUGHNESS_I 1038
+
+/* Wilderness Warrior Tree - Tier 2 */
+#define PERK_RANGER_TWO_WEAPON_FOCUS_II 1039
+#define PERK_RANGER_WW_TWO_WEAPON_FIGHTING 1040
+#define PERK_RANGER_TEMPEST 1041
+#define PERK_RANGER_FAVORED_ENEMY_SLAYER 1042
+
+/* Wilderness Warrior Tree - Tier 3 */
+#define PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING 1043
+#define PERK_RANGER_WHIRLING_STEEL 1044
+#define PERK_RANGER_DEADLY_HUNTER 1045
+#define PERK_RANGER_CRIPPLING_STRIKE 1046
+
+/* Wilderness Warrior Tree - Tier 4 */
+#define PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING 1047
+#define PERK_RANGER_APEX_PREDATOR 1048
 
 /* ============================================================================
  * BARD PERKS (1100-1199)
