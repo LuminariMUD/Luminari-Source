@@ -3996,6 +3996,11 @@ void newcraft_create(struct char_data *ch, const char *argument)
     }
     else if (is_abbrev(arg1, "golem"))
     {
+        if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+        {
+            send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
+            return;
+        }
         newcraft_golem(ch, arg2);
         return;
     }

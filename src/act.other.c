@@ -2397,6 +2397,12 @@ ACMD(do_dismiss)
 
 ACMD(do_destroygolem)
 {
+  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+  {
+      send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
+      return;
+  }
+  
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *golem = NULL;
 
@@ -2451,6 +2457,13 @@ ACMD(do_destroygolem)
 
 ACMD(do_golemrepair)
 {
+
+  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+  {
+      send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
+      return;
+  }
+
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *golem = NULL;
   int material_needed = 0, material_type = 0;
