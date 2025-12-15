@@ -1422,6 +1422,99 @@ static void reset_time(void)
     weather_info.sky = SKY_CLOUDY;
   else
     weather_info.sky = SKY_CLOUDLESS;
+
+  /* Reset Moon Phases */
+  switch (number(1, 8))
+  {
+  case 1:
+    weather_info.moons.solinari_phase = 8;
+    break;
+  case 2:
+    weather_info.moons.solinari_phase = 6;
+    break;
+  case 3:
+    weather_info.moons.solinari_phase = 4;
+    break;
+  case 4:
+    weather_info.moons.solinari_phase = 2;
+    break;
+  case 5:
+    weather_info.moons.solinari_phase = 34;
+    break;
+  case 6:
+    weather_info.moons.solinari_phase = 32;
+    break;
+  case 7:
+    weather_info.moons.solinari_phase = 30;
+    break;
+  case 8:
+    weather_info.moons.solinari_phase = 28;
+    break;
+  default:
+    weather_info.moons.solinari_phase = 1;
+    break;
+  }
+  switch (number(1, 8))
+  {
+  case 1:
+    weather_info.moons.lunitari_phase = 2;
+    break;
+  case 2:
+    weather_info.moons.lunitari_phase = 1;
+    break;
+  case 3:
+    weather_info.moons.lunitari_phase = 8;
+    break;
+  case 4:
+    weather_info.moons.lunitari_phase = 7;
+    break;
+  case 5:
+    weather_info.moons.lunitari_phase = 6;
+    break;
+  case 6:
+    weather_info.moons.lunitari_phase = 5;
+    break;
+  case 7:
+    weather_info.moons.lunitari_phase = 4;
+    break;
+  case 8:
+    weather_info.moons.lunitari_phase = 3;
+    break;
+  default:
+    weather_info.moons.lunitari_phase = 1;
+    break;
+  }
+  switch (number(1, 8))
+  {
+  case 1:
+    weather_info.moons.nuitari_phase = 18;
+    break;
+  case 2:
+    weather_info.moons.nuitari_phase = 15;
+    break;
+  case 3:
+    weather_info.moons.nuitari_phase = 11;
+    break;
+  case 4:
+    weather_info.moons.nuitari_phase = 8;
+    break;
+  case 5:
+    weather_info.moons.nuitari_phase = 4;
+    break;
+  case 6:
+    weather_info.moons.nuitari_phase = 1;
+    break;
+  case 7:
+    weather_info.moons.nuitari_phase = 25;
+    break;
+  case 8:
+    weather_info.moons.nuitari_phase = 22;
+    break;
+  default:
+    weather_info.moons.nuitari_phase = 1;
+    break;
+  }
+  calc_moon_bonus();
 }
 
 /* Write the time in 'when' to the MUD-time file. */

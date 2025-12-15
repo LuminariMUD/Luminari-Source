@@ -473,6 +473,16 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      savethrow += weather_info.moons.solinari_st;
+    else if (IS_NEUTRAL(ch))
+      savethrow += weather_info.moons.lunitari_st;
+    else
+      savethrow += weather_info.moons.nuitari_st;
+  }
+
   if (ch && type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
   {
     savethrow += 1;
@@ -1267,6 +1277,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return (0);
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   spell_school = spell_info[spellnum].schoolOfMagic;
 
@@ -3415,6 +3435,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
   
   /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion 
    * Only shares non-violent (beneficial) spells cast on self to animal companions.
@@ -10727,6 +10757,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   if (ch == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
 
@@ -11628,6 +11668,16 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   /* Golems are immune to magical/psionic healing; they require repair */
   if (IS_GOLEM(victim))
   {
@@ -12062,6 +12112,16 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
   case SPELL_HEAL:
@@ -12383,6 +12443,16 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
   if (obj == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
   case SPELL_BLESS:
@@ -12480,6 +12550,16 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
   if (ch == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   switch (spellnum)
   {

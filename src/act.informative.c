@@ -10491,4 +10491,50 @@ void perform_master_spell_list(struct char_data *ch)
   free(out);
 }
 
+
+void look_at_moons(struct char_data *ch)
+{
+  if (!OUTSIDE(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char("Perhaps you could get a better view of the moons outside?\r\n", ch);
+    return;
+  }
+
+  if (!(weather_info.sunlight == SUN_DARK))
+  {
+    send_to_char("Waiting until night would make this task much easier.\r\n", ch);
+    return;
+  }
+
+  if (weather_info.moons.solinari_phase > 27)
+    send_to_char("A silvery glow can be seen in the sky as Solinari begins to appear.\r\n", ch);
+  else if (weather_info.moons.solinari_phase > 18)
+    send_to_char("Solinari illuminates the sky with silvery light.\r\n", ch);
+  else if (weather_info.moons.solinari_phase > 9)
+    send_to_char("The sky grows dimmer as Solinari slowly fades away.\r\n", ch);
+  else
+    send_to_char("No trace of the silvery light from Solinari is visible.\r\n", ch);
+
+  if (weather_info.moons.lunitari_phase > 6)
+    send_to_char("A crimson glow can be seen in the sky as Lunitari begins to appear.\r\n", ch);
+  else if (weather_info.moons.lunitari_phase > 4)
+    send_to_char("Lunitari casts a crimson glow throughout the sky.\r\n", ch);
+  else if (weather_info.moons.lunitari_phase > 2)
+    send_to_char("The crimson glow weakens as Lunitari slowly fades away.\r\n", ch);
+  else
+    send_to_char("No trace of the crimson light from Lunitari is visible.\r\n", ch);
+
+  if (IS_EVIL(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    if (weather_info.moons.nuitari_phase > 21)
+      send_to_char("The night sky seems to grow darker as Nuitari slowly appears.\r\n", ch);
+    else if (weather_info.moons.nuitari_phase > 4)
+      send_to_char("Total blackness envelopes the area of the sky where Nuitari resides.\r\n", ch);
+    else if (weather_info.moons.nuitari_phase > 2)
+      send_to_char("The darkness seems to lessen as Nuitari begins to vanish.\r\n", ch);
+    else
+      send_to_char("No trace of the infinite darkness from Nuitari is visible.\r\n", ch);
+  }
+}
+
 /*EOF*/

@@ -244,6 +244,7 @@ int compute_arcane_level(struct char_data *ch)
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_WARLOCK);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
   arcane_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
   if (NECROMANCER_CAST_TYPE(ch) == 1)

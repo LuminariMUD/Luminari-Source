@@ -7039,6 +7039,21 @@ struct cha_app_type
 {
     sh_int cha_bonus; /* charisma bonus */
 };
+/** Stores the current phase and associated bonuses of the three moons. */
+struct moon_data {
+   int  solinari_phase;  /* Good Moon                  */
+   int  lunitari_phase;  /* Neutral Moon               */
+   int  nuitari_phase;   /* Evil Moon                  */
+   int  solinari_st;     /* Good Saving Throw Mod      */
+   int  lunitari_st;     /* Neutral Saving Throw Mod   */
+   int  nuitari_st;      /* Evil Saving Throw Mod      */
+   int  solinari_sp;     /* Good Spell Bonus           */
+   int  lunitari_sp;     /* Neutral Spell Bonus        */
+   int  nuitari_sp;      /* Evil Spell Bonus           */
+   int  solinari_lv;     /* Good Spell Level           */
+   int  lunitari_lv;     /* Neutral Spell Level        */
+   int  nuitari_lv;      /* Evil Spell Level           */
+};
 
 /** Stores, and used to deliver, the current weather information
  * in the mud world. */
@@ -7048,6 +7063,7 @@ struct weather_data
     int change;   /**< How fast and what way does it change? */
     int sky;      /**< How is the sky? */
     int sunlight; /**< And how much sun? */
+    struct moon_data moons;
 };
 
 /** Element in monster and object index-tables.
