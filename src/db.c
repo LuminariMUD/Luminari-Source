@@ -85,6 +85,7 @@
 #include "crafting_recipes.h"
 #include "mob_spellslots.h"
 #include "mob_known_spells.h"
+#include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -1424,7 +1425,7 @@ static void reset_time(void)
     weather_info.sky = SKY_CLOUDLESS;
 
   /* Reset Moon Phases */
-  switch (number(1, 8))
+  switch (rand_number(1, 8))
   {
   case 1:
     weather_info.moons.solinari_phase = 8;
@@ -1454,7 +1455,7 @@ static void reset_time(void)
     weather_info.moons.solinari_phase = 1;
     break;
   }
-  switch (number(1, 8))
+  switch (rand_number(1, 8))
   {
   case 1:
     weather_info.moons.lunitari_phase = 2;
@@ -1484,7 +1485,7 @@ static void reset_time(void)
     weather_info.moons.lunitari_phase = 1;
     break;
   }
-  switch (number(1, 8))
+  switch (rand_number(1, 8))
   {
   case 1:
     weather_info.moons.nuitari_phase = 18;
@@ -6863,6 +6864,9 @@ void init_char(struct char_data *ch)
   {
     ch->player_specials->saved.perk_points[i] = 0;
   }
+
+  /* Initialize moon bonus spells for arcane casters */
+  init_moon_bonus_spells(ch);
 }
 
 /* returns the real number of the room with given virtual number */

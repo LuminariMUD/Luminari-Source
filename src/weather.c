@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
+#include "moon_bonus_spells.h"  /* For moon bonus spell system */
 
 #define NUM_WEATHER_CHANGES 6
 
@@ -39,6 +40,8 @@ void weather_and_time(int mode)
 
 void calc_moon_bonus(void)
 {
+  struct char_data *ch = NULL, *next_ch = NULL;
+
   if (weather_info.moons.solinari_phase > 27)
   {
     weather_info.moons.solinari_st = 0;
@@ -112,6 +115,21 @@ void calc_moon_bonus(void)
     weather_info.moons.nuitari_st = -1;
     weather_info.moons.nuitari_sp = 0;
     weather_info.moons.nuitari_lv = -1;
+  }
+
+  /* Update moon bonus spells for all online players when moon phase changes */
+  for (ch = character_list; ch; ch = next_ch)
+  {
+    next_ch = ch->next;
+
+    if (!ch || IS_NPC(ch))
+      continue;
+
+    if (IN_ROOM(ch) == NOWHERE)
+      continue;
+
+    /* Update the character's moon bonus spells based on new moon phases */
+    update_moon_bonus_spells(ch);
   }
 }
 

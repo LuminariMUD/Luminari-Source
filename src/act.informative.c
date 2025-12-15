@@ -3101,6 +3101,8 @@ ACMD(do_look)
     }
     if (!*arg) /* "look" alone, without an argument at all */
       look_at_room(ch, 1);
+    else if (is_abbrev(arg, "moons"))
+      look_at_moons(ch);
     else if (is_abbrev(arg, "in"))
       look_in_obj(ch, arg2);
     /* did the char type 'look <direction>?' */

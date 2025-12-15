@@ -65,7 +65,9 @@
 #include "spell_prep.h"
 #include "domains_schools.h"
 #include "perks.h"          /* For divine metamagic reduction */
+#include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
 #include <limits.h> /* For INT_MAX overflow checks */
+#include "moon_bonus_spells.h"
 /** END header files **/
 
 /** START Globals **/
@@ -2981,7 +2983,7 @@ void assign_feat_spell_slots(int ch_class)
 int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 {
   int ch_class = CLASS_UNDEFINED, prep_time = INVALID_PREP_TIME,
-      circle = TOP_CIRCLE + 1, is_domain = FALSE;
+      circle = TOP_CIRCLE + 1, is_domain = FALSE, i;
 
   if (DEBUGMODE)
   {
@@ -2993,6 +2995,56 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   {
     log("METAMAGIC_DEBUG: %s extracting spell %d (%s) with metamagic %d",
         GET_NAME(ch), spellnum, spell_name(spellnum), metamagic);
+  }
+
+  /* MOON BONUS SPELL CHECK: Check if we have available moon bonus spells FIRST */
+  /* This allows arcane casters to cast for free using moon bonus spells */
+  if (!IS_NPC(ch) && has_moon_bonus_spells(ch))
+  {
+    /* Check if this is an arcane spell they can cast */
+    bool is_arcane_spell = FALSE;
+    for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
+    {
+      /* Check prepared spells */
+      if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
+      {
+        is_arcane_spell = (ch_class == CLASS_WIZARD || ch_class == CLASS_SORCERER || 
+                          ch_class == CLASS_BARD || ch_class == CLASS_SUMMONER ||
+                          ch_class == CLASS_ARCANE_SHADOW || ch_class == CLASS_KNIGHT_OF_THE_THORN ||
+                          ch_class == CLASS_ELDRITCH_KNIGHT || ch_class == CLASS_ARCANE_ARCHER ||
+                          ch_class == CLASS_SPELLSWORD || ch_class == CLASS_WARLOCK);
+        if (is_arcane_spell)
+          break;
+      }
+      /* Check spontaneous spells */
+      if (is_a_known_spell(ch, ch_class, spellnum))
+      {
+        is_arcane_spell = (ch_class == CLASS_WIZARD || ch_class == CLASS_SORCERER || 
+                          ch_class == CLASS_BARD || ch_class == CLASS_SUMMONER ||
+                          ch_class == CLASS_ARCANE_SHADOW || ch_class == CLASS_KNIGHT_OF_THE_THORN ||
+                          ch_class == CLASS_ELDRITCH_KNIGHT || ch_class == CLASS_ARCANE_ARCHER ||
+                          ch_class == CLASS_SPELLSWORD || ch_class == CLASS_WARLOCK);
+        if (is_arcane_spell)
+          break;
+      }
+    }
+
+    if (is_arcane_spell)
+    {
+      /* Use a moon bonus spell instead of a regular slot */
+      if (use_moon_bonus_spell(ch))
+      {
+        send_to_char(ch, "\tC[Moon Bonus Spell]:\tn You cast this spell using a bonus spell slot granted by the moon phases!\r\n");
+        /* Return the class that could cast this spell - we don't remove the actual spell */
+        /* Just use the moon bonus and let them keep the spell ready */
+        for (i = 0; i < NUM_CLASSES; i++)
+        {
+          if (is_spell_in_collection(ch, i, spellnum, metamagic) ||
+              is_a_known_spell(ch, i, spellnum))
+            return i;
+        }
+      }
+    }
   }
 
   /* FIRST: Check all prepared spell collections */

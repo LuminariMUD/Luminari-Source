@@ -1221,6 +1221,13 @@ int load_char(const char *name, struct char_data *ch)
           GET_CURRENT_MISSION_ROOM(ch) = atoi(line);
         else if (!strcmp(tag, "MVRg"))
           GET_MV_REGEN(ch) = atoi(line);
+        /* Moon bonus spells */
+        else if (!strcmp(tag, "MBSp"))
+          ch->player_specials->saved.moon_bonus_spells = atoi(line);
+        else if (!strcmp(tag, "MBSU"))
+          ch->player_specials->saved.moon_bonus_spells_used = atoi(line);
+        else if (!strcmp(tag, "MBSR"))
+          ch->player_specials->saved.moon_bonus_regen_timer = atoi(line);
         break;
 
       case 'N':
@@ -2358,6 +2365,14 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "MVRg : %d\n", GET_MV_REGEN(ch));
   if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
     BUFFER_WRITE( "PSRg : %d\n", GET_PSP_REGEN(ch));
+
+  /* Moon bonus spells */
+  if (ch->player_specials->saved.moon_bonus_spells != 0)
+    BUFFER_WRITE( "MBSp: %d\n", ch->player_specials->saved.moon_bonus_spells);
+  if (ch->player_specials->saved.moon_bonus_spells_used != 0)
+    BUFFER_WRITE( "MBSU: %d\n", ch->player_specials->saved.moon_bonus_spells_used);
+  if (ch->player_specials->saved.moon_bonus_regen_timer != 0)
+    BUFFER_WRITE( "MBSR: %d\n", ch->player_specials->saved.moon_bonus_regen_timer);
 
   if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
     BUFFER_WRITE( "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));

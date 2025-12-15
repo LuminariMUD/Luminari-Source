@@ -6415,6 +6415,11 @@ struct player_special_data_saved
     /* Druid Elemental Mastery */
     bool elemental_mastery_active;              /**< Whether elemental mastery is active for next elemental spell */
     time_t elemental_mastery_cooldown;          /**< Timestamp until when elemental mastery can be used again (5 min cooldown) */
+    
+    /* Moon-based Bonus Spell Slots System */
+    int moon_bonus_spells;                      /**< Maximum moon bonus spells available (based on moon phase) */
+    int moon_bonus_spells_used;                 /**< Number of moon bonus spells used (current in use) */
+    int moon_bonus_regen_timer;                 /**< Timer for next moon bonus spell regeneration (in ticks, regen at 1 per 5 mins) */
 };
 
 struct weird_science_level {

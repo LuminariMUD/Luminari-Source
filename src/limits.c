@@ -37,6 +37,7 @@
 #include "evolutions.h"
 #include "spell_prep.h"
 #include "perks.h"
+#include "moon_bonus_spells.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -2957,6 +2958,9 @@ void update_damage_and_effects_over_time(void)
         }
       }
     } // end immolation bombs
+
+    /* Moon-based bonus spell slot regeneration */
+    regenerate_moon_bonus_spell(ch);
 
   } // end character_list loop
 }
