@@ -32,6 +32,15 @@ void init_moon_bonus_spells(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return;
 
+  /* Check if arcane moon phases are enabled in config */
+  if (!CONFIG_ARCANE_MOON_PHASES)
+  {
+    ch->player_specials->saved.moon_bonus_spells = 0;
+    ch->player_specials->saved.moon_bonus_spells_used = 0;
+    ch->player_specials->saved.moon_bonus_regen_timer = 0;
+    return;
+  }
+
   if (!ch->player_specials || !ch->player_specials)
     return;
 
@@ -64,6 +73,14 @@ void update_moon_bonus_spells(struct char_data *ch)
 
   if (!ch || IS_NPC(ch))
     return;
+
+  /* Check if arcane moon phases are enabled in config */
+  if (!CONFIG_ARCANE_MOON_PHASES)
+  {
+    ch->player_specials->saved.moon_bonus_spells = 0;
+    ch->player_specials->saved.moon_bonus_spells_used = 0;
+    return;
+  }
 
   if (!ch->player_specials || !ch->player_specials)
     return;
@@ -155,6 +172,9 @@ int get_used_moon_bonus_spells(struct char_data *ch)
  */
 bool has_moon_bonus_spells(struct char_data *ch)
 {
+  if (!CONFIG_ARCANE_MOON_PHASES)
+    return FALSE;
+  
   return get_available_moon_bonus_spells(ch) > 0;
 }
 

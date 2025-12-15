@@ -58,6 +58,7 @@
 #include "perfmon.h"
 #include "routing.h"
 #include "perks.h"
+#include "moon_bonus_spells.h"
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM

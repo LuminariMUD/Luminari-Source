@@ -7312,6 +7312,7 @@ struct extra_game_data
     ubyte wilderness_system;
     ubyte melee_exp_option;
     ubyte spell_cast_exp_option;
+    ubyte arcane_moon_phases;  /**< Enable arcane moon phase bonus spells */
 };
 
 /**

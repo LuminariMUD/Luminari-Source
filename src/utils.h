@@ -2612,6 +2612,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
 #define CONFIG_MELEE_EXP_OPTION config_info.extra.melee_exp_option
 #define CONFIG_SPELL_CAST_EXP_OPTION config_info.extra.spell_cast_exp_option
+#define CONFIG_ARCANE_MOON_PHASES config_info.extra.arcane_moon_phases
 
 /* Mob Stats Config */
 #define CONFIG_MOB_WARRIORS_HP config_info.mob_stats.warriors.hit_points

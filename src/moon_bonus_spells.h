@@ -83,4 +83,18 @@ int get_used_moon_bonus_spells(struct char_data *ch);
  */
 bool is_arcane_caster(struct char_data *ch);
 
+/**
+ * @brief Displays information about the moons to a character.
+ * 
+ * This function provides the character with details about the current state
+ * of the moons, potentially used for determining moon-based bonus spells or
+ * other lunar-related game mechanics.
+ * 
+ * @param ch Pointer to the character data structure who is looking at the moons.
+ *           Must not be NULL.
+ * 
+ * @return void This function does not return a value.
+ */
+void look_at_moons(struct char_data *ch);
+
 #endif /* MOON_BONUS_SPELLS_H */

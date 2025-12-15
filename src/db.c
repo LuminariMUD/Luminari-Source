@@ -7336,6 +7336,7 @@ static void load_default_config(void)
   CONFIG_WILDERNESS_SYSTEM = 0;
   CONFIG_MELEE_EXP_OPTION = 0;  /* 0 = Full */
   CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
+  CONFIG_ARCANE_MOON_PHASES = 0;  /* 0 = OFF, 1 = ON */
 }
 
 void load_config(void)
@@ -7707,6 +7708,8 @@ void load_config(void)
         CONFIG_SUMMON_LEVEL_21_30_AC = num;
       else if (!str_cmp(tag, "spell_cast_exp_option"))
         CONFIG_SPELL_CAST_EXP_OPTION = num;
+      else if (!str_cmp(tag, "arcane_moon_phases"))
+        CONFIG_ARCANE_MOON_PHASES = num;
       break;
 
     case 't':

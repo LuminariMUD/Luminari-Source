@@ -596,6 +596,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_MOB_STATS_ROGUES_GOLD 124
 #define CEDIT_SET_MELEE_EXP 125
 #define CEDIT_SET_SPELL_CAST_EXP 126
+#define CEDIT_SET_ARCANE_MOON_PHASES 127
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
