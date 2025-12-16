@@ -1053,6 +1053,7 @@ ACMD_DECL(do_setroomflag);
 ACMD_DECL(do_settime);
 ACMD_DECL(do_setweather);
 ACMD_DECL(do_settestchar);
+ACMD_DECL(do_settestkit);
 ACMD_DECL(do_hlqlist);
 ACMD_DECL(do_advance);
 ACMD_DECL(do_objlist);

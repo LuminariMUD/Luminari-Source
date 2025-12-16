@@ -910,6 +910,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setmaterials", "setm", POS_DEAD, do_setmaterial, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"settestchar", "settc", POS_DEAD, do_settestchar, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"settestkit", "settk", POS_DEAD, do_settestkit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomname", "setrn", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomflags", "setroomf", POS_DEAD, do_setroomflag, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

@@ -12249,4 +12249,379 @@ ACMD(do_settestchar)
     save_char(vict, 0);
 }
 
+/**
+ * @brief Staff command to create basic test gear for a character
+ * @details Generates weapons, armor, shields, and accessories based on
+ *          character proficiencies, level, and size.
+ */
+
+static void set_testkit_obj_strings(struct obj_data *obj, const char *keywords,
+                                    const char *shortdesc, const char *longdesc)
+{
+  if (!obj || !keywords || !shortdesc || !longdesc)
+    return;
+
+  obj->name = strdup(keywords);
+  obj->short_description = strdup(shortdesc);
+  obj->description = strdup(longdesc);
+}
+
+static void set_testkit_obj_strings_fmt(struct obj_data *obj, int bonus,
+                                        const char *keywords,
+                                        const char *short_fmt,
+                                        const char *long_fmt)
+{
+  char shortbuf[MEDIUM_STRING] = {'\0'};
+  char longbuf[MEDIUM_STRING] = {'\0'};
+
+  if (!obj || !keywords || !short_fmt || !long_fmt)
+    return;
+
+  snprintf(shortbuf, sizeof(shortbuf), short_fmt, bonus);
+  snprintf(longbuf, sizeof(longbuf), long_fmt, bonus);
+
+  set_testkit_obj_strings(obj, keywords, shortbuf, longbuf);
+}
+
+
+#ifndef OUTFIT_WEAPON_PROTO
+#if defined(CAMPAIGN_DL)
+#define OUTFIT_WEAPON_PROTO 16856
+#define OUTFIT_ARMOR_PROTO 16855
+#else
+#define OUTFIT_WEAPON_PROTO 211
+#define OUTFIT_ARMOR_PROTO 212
+#endif
+#endif
+
+ACMD(do_settestkit)
+{
+  struct char_data *vict = NULL;
+  struct obj_data *obj = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int level = 0, enh_bonus = 0, enh_bonus_ring = 0;
+  int char_size = SIZE_MEDIUM;
+
+  if (GET_LEVEL(ch) < LVL_GRSTAFF)
+  {
+    send_to_char(ch, "You must be Greater Staff or higher to use this command.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: settestkit <character>\r\n");
+    send_to_char(ch, "Creates basic test gear based on proficiencies and level.\r\n");
+    return;
+  }
+
+  /* Find the target character */
+  if (!(vict = get_player_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "There is no such player.\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
+  {
+    send_to_char(ch, "You cannot give test gear to someone your level or higher.\r\n");
+    return;
+  }
+
+  level = GET_LEVEL(vict);
+  enh_bonus = level / 5;
+  enh_bonus_ring = level / 6;
+  char_size = GET_SIZE(vict);
+
+  send_to_char(ch, "Creating test kit for %s (Level %d, Size %d)...\r\n", 
+              GET_NAME(vict), level, char_size);
+
+  /* === WEAPONS === */
+  if (HAS_FEAT(vict, FEAT_EXOTIC_WEAPON_PROFICIENCY))
+  {
+    /* Bastard Sword */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_BASTARD_SWORD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test bastard sword",
+                                  "a test bastard sword +%d",
+                                  "A test bastard sword +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Bastard Sword +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_MARTIAL_WEAPON_PROFICIENCY))
+  {
+    /* Long Sword */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_LONG_SWORD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test longsword",
+                                  "a test longsword +%d",
+                                  "A test longsword +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Long Sword +%d\r\n", enh_bonus);
+    }
+
+    /* Light Hammer */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_LIGHT_HAMMER;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test light hammer",
+                                  "a test light hammer +%d",
+                                  "A test light hammer +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Light Hammer +%d\r\n", enh_bonus);
+    }
+
+    /* Greatsword */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_GREAT_SWORD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test greatsword",
+                                  "a test greatsword +%d",
+                                  "A test greatsword +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Greatsword +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_SIMPLE_WEAPON_PROFICIENCY))
+  {
+    /* Dagger */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_DAGGER;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test dagger",
+                                  "a test dagger +%d",
+                                  "A test dagger +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Dagger +%d\r\n", enh_bonus);
+    }
+
+    /* Greatclub */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_GREAT_CLUB;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test greatclub",
+                                  "a test greatclub +%d",
+                                  "A test greatclub +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Greatclub +%d\r\n", enh_bonus);
+    }
+
+    /* Heavy Mace */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_HEAVY_MACE;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test heavy mace",
+                                  "a test heavy mace +%d",
+                                  "A test heavy mace +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Heavy Mace +%d\r\n", enh_bonus);
+    }
+  }
+
+  /* === ARMOR === */
+  if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_HEAVY))
+  {
+    /* Full Plate */
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_FULL_PLATE;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test full plate",
+                                  "a suit of test full plate +%d",
+                                  "A suit of test full plate +%d has been left here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Full Plate +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+  {
+    /* Chainmail */
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_CHAINMAIL;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test chainmail",
+                                  "a suit of test chainmail +%d",
+                                  "A suit of test chainmail +%d has been left here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Chainmail +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_LIGHT))
+  {
+    /* Leather Armor */
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_LEATHER;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test leather armor",
+                                  "a set of test leather armor +%d",
+                                  "A set of test leather armor +%d has been left here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Leather Armor +%d\r\n", enh_bonus);
+    }
+  }
+  else
+  {
+    /* Clothing */
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_CLOTHING;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test clothing",
+                                  "a set of test clothing +%d",
+                                  "A set of test clothing +%d has been left here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Clothing +%d\r\n", enh_bonus);
+    }
+  }
+
+  /* === SHIELD === */
+  if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
+  {
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_TOWER_SHIELD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test tower shield",
+                                  "a test tower shield +%d",
+                                  "A test tower shield +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Tower Shield +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_SHIELD))
+  {
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_LARGE_SHIELD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test large shield",
+                                  "a test large shield +%d",
+                                  "A test large shield +%d rests here.\r\n");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Large Shield +%d\r\n", enh_bonus);
+    }
+  }
+
+  /* === AMULET (All stats +level/5) === */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    GET_OBJ_TYPE(obj) = ITEM_WORN;
+    SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_NECK);
+    set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                "test amulet",
+                                "a test amulet +%d (all stats)",
+                                "A test amulet +%d (all stats) gleams here.\r\n");
+    obj->affected[0].location = APPLY_STR;
+    obj->affected[0].modifier = enh_bonus;
+    obj->affected[1].location = APPLY_DEX;
+    obj->affected[1].modifier = enh_bonus;
+    obj->affected[2].location = APPLY_CON;
+    obj->affected[2].modifier = enh_bonus;
+    obj->affected[3].location = APPLY_INT;
+    obj->affected[3].modifier = enh_bonus;
+    obj->affected[4].location = APPLY_WIS;
+    obj->affected[4].modifier = enh_bonus;
+    obj->affected[5].location = APPLY_CHA;
+    obj->affected[5].modifier = enh_bonus;
+    resize_obj_to_char(obj, vict);
+    obj_to_char(obj, vict);
+    send_to_char(ch, "  - Amulet +%d all stats\r\n", enh_bonus);
+  }
+
+  /* === RING (hitroll, damroll, dodge AC +level/6) === */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    GET_OBJ_TYPE(obj) = ITEM_WORN;
+    SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FINGER);
+    set_testkit_obj_strings_fmt(obj, enh_bonus_ring,
+                                "test ring",
+                                "a test ring +%d (hit/dam/AC)",
+                                "A test ring +%d (hit/dam/AC) glitters here.\r\n");
+    obj->affected[0].location = APPLY_HITROLL;
+    obj->affected[0].modifier = enh_bonus_ring;
+    obj->affected[1].location = APPLY_DAMROLL;
+    obj->affected[1].modifier = enh_bonus_ring;
+    obj->affected[2].location = APPLY_AC_NEW;
+    obj->affected[2].modifier = enh_bonus_ring;
+    resize_obj_to_char(obj, vict);
+    obj_to_char(obj, vict);
+    send_to_char(ch, "  - Ring +%d hit/dam/AC\r\n", enh_bonus_ring);
+  }
+
+  send_to_char(ch, "Test kit complete!\r\n");
+  send_to_char(vict, "\r\n\tcStaff has given you a test kit of gear!\tn\r\n");
+
+  /* Save the character */
+  if (!IS_NPC(vict))
+    save_char(vict, 0);
+}
+
 /* EOF */
