@@ -38,6 +38,7 @@
 #include "house.h"
 #include "modify.h"
 #include "quest.h"
+#include "spell_prep.h"
 #include "ban.h"
 #include "screen.h"
 #include "mud_event.h"
@@ -11818,6 +11819,434 @@ ACMD(do_terrainapi)
   else {
     send_to_char(ch, "Usage: terrainapi <start|stop|status|stats>\r\n");
   }
+}
+
+/**
+ * @brief Staff command to set another character's race and classes with accompanying feats
+ * 
+ * Syntax: setrace <character> race <race_name> classes <class1>:<level1> [class2>:<level2>...]
+ * Example: setrace player1 race human classes wizard:20 cleric:15
+ *          setrace player2 race dwarf classes warrior:25
+ * 
+ * This command allows staff to:
+ * - Set a character's race with appropriate racial feats
+ * - Set one or more classes with individual levels
+ * - Advance overall character level if needed
+ * - Automatically assign class feats for each level
+ * - Set class skills to appropriate levels
+ * - Automatically recalculate HP, MV, and PSP
+ * 
+ * @param ch The staff member executing the command
+ * @param argument The command arguments
+ * @param cmd The command number
+ * @param subcmd The subcommand number
+ */
+ACMD(do_settestchar)
+{
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char class_str[MAX_INPUT_LENGTH] = {'\0'};
+  char *colon_pos = NULL;
+  int race_num = RACE_UNDEFINED;
+  int class_list_tmp[3]; /* Max 3 classes */
+  int class_levels_tmp[3];
+  int num_classes = 0;
+  int i = 0, j = 0;
+  int overall_level = 0;
+  int skill_index = 0;
+  struct race_feat_assign *race_feat = NULL;
+  struct class_feat_assign *class_feat = NULL;
+
+  if (GET_LEVEL(ch) < LVL_GRSTAFF)
+  {
+    send_to_char(ch, "You must be Greater Staff or higher to use this command.\r\n");
+    return;
+  }
+
+  /* Parse: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>] */
+  half_chop_c((char *)argument, arg, sizeof(arg), buf, sizeof(buf));
+  
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    send_to_char(ch, "Example: settestchar player1 race human classes wizard:20 cleric:15\r\n");
+    send_to_char(ch, "Note: Max 3 classes. Overall level = sum of class levels (capped at 30).\r\n");
+    return;
+  }
+
+  /* Find the target character */
+  if (!(vict = get_player_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "There is no such player.\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
+  {
+    send_to_char(ch, "You cannot set the race/classes of someone your level or higher.\r\n");
+    return;
+  }
+
+  /* Next should be 'race' keyword */
+  half_chop(buf, arg, buf);
+  if (!is_abbrev(arg, "race"))
+  {
+    send_to_char(ch, "You must specify 'race' as the next parameter.\r\n");
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    return;
+  }
+
+  /* Get race name */
+  half_chop(buf, arg, buf);
+  if (!*arg)
+  {
+    send_to_char(ch, "You must specify a race name.\r\n");
+    return;
+  }
+
+  /* Parse the race */
+  race_num = parse_race_long(arg);
+  if (race_num < 0 || race_num >= NUM_EXTENDED_RACES)
+  {
+    send_to_char(ch, "Unknown race '%s'.\r\n", arg);
+    return;
+  }
+
+  /* Next should be 'classes' keyword */
+  half_chop(buf, arg, buf);
+  if (!is_abbrev(arg, "classes"))
+  {
+    send_to_char(ch, "You must specify 'classes' as the next parameter.\r\n");
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    return;
+  }
+
+  /* Parse up to 3 classes with optional levels */
+  while (*buf && num_classes < 3)
+  {
+    half_chop(buf, arg, buf);
+    if (!*arg)
+      break;
+
+    strncpy(class_str, arg, sizeof(class_str) - 1);
+    class_str[sizeof(class_str) - 1] = '\0';
+    
+    int class_num = parse_class_long(class_str);
+    if (class_num < 0 || class_num >= NUM_CLASSES)
+    {
+      /* Check for class:level format */
+      colon_pos = strchr(class_str, ':');
+      if (colon_pos)
+      {
+        *colon_pos = '\0';
+        class_num = parse_class_long(class_str);
+      }
+      
+      if (class_num < 0 || class_num >= NUM_CLASSES)
+      {
+        send_to_char(ch, "Unknown class '%s'.\r\n", class_str);
+        return;
+      }
+    }
+    else
+    {
+      /* Check if there's a colon for level specification */
+      colon_pos = strchr(class_str, ':');
+    }
+
+    /* Parse level if specified */
+    int class_level = GET_LEVEL(vict); /* default to character's current level */
+    if (colon_pos)
+    {
+      class_level = atoi(colon_pos + 1);
+    }
+
+    /* Apply per-class level cap */
+    int max_level_for_class = CLSLIST_MAXLVL(class_num);
+    if (class_level > max_level_for_class)
+    {
+      send_to_char(ch, "Level %d exceeds max level %d for class %s.\r\n", 
+                  class_level, max_level_for_class, class_list[class_num].name);
+      return;
+    }
+
+    if (class_level < 1)
+    {
+      send_to_char(ch, "Class level must be at least 1.\r\n");
+      return;
+    }
+
+    class_list_tmp[num_classes] = class_num;
+    class_levels_tmp[num_classes] = class_level;
+    overall_level += class_level;
+    num_classes++;
+  }
+
+  if (num_classes == 0)
+  {
+    send_to_char(ch, "You must specify at least one class.\r\n");
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    return;
+  }
+
+  /* Cap overall level at 30 */
+  if (overall_level > 30)
+  {
+    send_to_char(ch, "Overall level would be %d, capped at 30.\r\n", overall_level);
+    overall_level = 30;
+  }
+
+  /* ===== BEGIN CHANGES ===== */
+
+  /* Step 1: Clear all existing feats first */
+  for (i = 0; i < FEAT_LAST_FEAT; i++)
+  {
+    SET_FEAT(vict, i, 0);
+  }
+
+  /* Step 2: Set the race */
+  GET_REAL_RACE(vict) = race_num;
+
+  /* Apply racial ability modifiers */
+  for (i = 0; i < NUM_ABILITY_MODS; i++)
+  {
+    switch (i)
+    {
+    case R_STR_MOD:
+      GET_REAL_STR(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_CON_MOD:
+      GET_REAL_CON(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_INTEL_MOD:
+      GET_REAL_INT(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_WIS_MOD:
+      GET_REAL_WIS(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_DEX_MOD:
+      GET_REAL_DEX(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_CHA_MOD:
+      GET_REAL_CHA(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    }
+  }
+
+  /* Step 3: Apply racial feats */
+  if (race_list[race_num].featassign_list != NULL)
+  {
+    for (race_feat = race_list[race_num].featassign_list; race_feat != NULL;
+         race_feat = race_feat->next)
+    {
+      SET_FEAT(vict, race_feat->feat_num, 1);
+    }
+  }
+
+  /* Step 4: Clear and set classes with individual levels */
+  /* Clear all class data first */
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    CLASS_LEVEL(vict, i) = 0;
+  }
+
+  /* Set new classes with their specified levels */
+  for (i = 0; i < num_classes; i++)
+  {
+    int class_num = class_list_tmp[i];
+    int class_level = class_levels_tmp[i];
+    
+    CLASS_LEVEL(vict, class_num) = class_level;
+    
+    /* Initialize class data */
+    init_class(vict, class_num, class_level);
+  }
+
+  /* Step 5: Advance overall level to match sum of classes (already capped at 30) */
+  GET_LEVEL(vict) = overall_level;
+
+  /* Step 5b: Reset spell prep/known and grant baseline access */
+  for (i = 0; i < num_classes; i++)
+  {
+    int class_num = class_list_tmp[i];
+    int class_level = class_levels_tmp[i];
+
+    /* Clear existing spell state so slots/known are fully available */
+    clear_prep_queue_by_class(vict, class_num);
+    clear_collection_by_class(vict, class_num);
+    clear_innate_magic_by_class(vict, class_num);
+    clear_known_spells_by_class(vict, class_num);
+
+    /* For spontaneous casters, grant all spells they can learn up to their class level */
+    switch (class_num)
+    {
+    case CLASS_SORCERER:
+    case CLASS_WARLOCK:
+    case CLASS_BARD:
+    case CLASS_SUMMONER:
+    case CLASS_INQUISITOR:
+      for (j = 0; j <= TOP_SPELL_DEFINE; j++)
+      {
+        if (spell_info[j].min_level[class_num] > 0 &&
+            spell_info[j].min_level[class_num] < LVL_IMMORT &&
+            spell_info[j].min_level[class_num] <= class_level)
+        {
+          known_spells_add(vict, class_num, j, TRUE); /* TRUE skips validation limits */
+        }
+      }
+      break;
+    default:
+      /* Prep casters: auto-prepare spells to fill available slots by circle */
+      {
+        int circle = 0;
+        for (circle = 0; circle <= TOP_CIRCLE; circle++)
+        {
+          int slots = compute_slots_by_circle(vict, class_num, circle);
+          if (slots <= 0)
+            continue;
+
+          while (count_circle_collection(vict, class_num, circle) < slots)
+          {
+            int picked = 0;
+            struct class_spell_assign *spell_assign = class_list[class_num].spellassign_list;
+
+            /* Prefer class spell assignment list for curated defaults */
+            for (; spell_assign; spell_assign = spell_assign->next)
+            {
+              int s = spell_assign->spell_num;
+              if (spell_assign->level <= class_level &&
+                  spell_info[s].min_level[class_num] > 0 &&
+                  spell_info[s].min_level[class_num] < LVL_IMMORT &&
+                  compute_spells_circle(vict, class_num, s, METAMAGIC_NONE, 0) == circle)
+              {
+                collection_add(vict, class_num, s, METAMAGIC_NONE, 0, 0);
+                picked = 1;
+                break;
+              }
+            }
+
+            /* Fallback: scan spell list if no curated entry fits */
+            if (!picked)
+            {
+              for (j = 0; j <= TOP_SPELL_DEFINE; j++)
+              {
+                if (spell_info[j].min_level[class_num] > 0 &&
+                    spell_info[j].min_level[class_num] < LVL_IMMORT &&
+                    spell_info[j].min_level[class_num] <= class_level &&
+                    compute_spells_circle(vict, class_num, j, METAMAGIC_NONE, 0) == circle)
+                {
+                  collection_add(vict, class_num, j, METAMAGIC_NONE, 0, 0);
+                  picked = 1;
+                  break;
+                }
+              }
+            }
+
+            /* no eligible spell found for this circle */
+            if (!picked)
+              break;
+          }
+        }
+      }
+      break;
+    }
+  }
+
+  /* Step 6: Apply class feats for each class at each level */
+  for (i = 0; i < num_classes; i++)
+  {
+    int class_num = class_list_tmp[i];
+    int char_level = CLASS_LEVEL(vict, class_num);
+
+    if (class_list[class_num].featassign_list != NULL)
+    {
+      for (j = 1; j <= char_level; j++)
+      {
+        for (class_feat = class_list[class_num].featassign_list; class_feat != NULL;
+             class_feat = class_feat->next)
+        {
+          if (class_feat->level_received == j && class_feat->is_classfeat)
+          {
+            SET_FEAT(vict, class_feat->feat_num, 
+                    HAS_FEAT(vict, class_feat->feat_num) + 1);
+          }
+        }
+      }
+    }
+  }
+
+  /* Step 7: Set class skills to appropriate levels */
+  for (skill_index = 0; skill_index < MAX_SKILLS; skill_index++)
+  {
+    /* Check if this is a class skill */
+    if (is_class_skill(vict, skill_index))
+    {
+      /* Set skill to character's overall level */
+      SET_SKILL(vict, skill_index, overall_level);
+    }
+  }
+
+  /* Step 8: Recalculate HP */
+  if (!IS_NPC(vict))
+  {
+    calculate_max_hp(vict, FALSE);
+  }
+  else
+  {
+    GET_MAX_HIT(vict) = overall_level * 10;
+  }
+
+  /* Heal to full */
+  GET_HIT(vict) = GET_MAX_HIT(vict);
+
+  /* Step 9: Set MV and PSP */
+  GET_REAL_MAX_MOVE(vict) = 100 + (overall_level * 5);
+  GET_MOVE(vict) = GET_MAX_MOVE(vict);
+
+  GET_REAL_MAX_PSP(vict) = 10 + (overall_level * 5);
+  GET_PSP(vict) = GET_MAX_PSP(vict);
+
+  /* Step 10: Apply caps */
+  compute_char_cap(vict, 0);
+
+  /* Step 11: Send feedback */
+  snprintf(buf, sizeof(buf), "Race set to %s with classes: ", race_list[race_num].type);
+  for (i = 0; i < num_classes; i++)
+  {
+    if (i > 0)
+      strcat(buf, ", ");
+    char level_str[32];
+    snprintf(level_str, sizeof(level_str), "%s (L%d)", 
+            class_list[class_list_tmp[i]].name,
+            class_levels_tmp[i]);
+    strcat(buf, level_str);
+  }
+
+  send_to_char(ch, "\r\n%s\r\n", buf);
+  send_to_char(ch, "Character overall level: %d\r\n", overall_level);
+  send_to_char(ch, "Racial feats applied: %d\r\n", 
+              race_list[race_num].featassign_list ? 1 : 0);
+  send_to_char(ch, "Class feats applied for all levels.\r\n");
+  send_to_char(ch, "Class skills set to level %d.\r\n", overall_level);
+  send_to_char(ch, "HP: %d, MV: %d, PSP: %d\r\n", 
+              GET_MAX_HIT(vict), GET_MAX_MOVE(vict), GET_MAX_PSP(vict));
+
+  send_to_char(vict, "\r\n\tcStaff has set your race to %s and classes to:\r\n", 
+              race_list[race_num].type);
+  for (i = 0; i < num_classes; i++)
+  {
+    send_to_char(vict, "\tc  - %s (Level %d)\r\n", 
+                class_list[class_list_tmp[i]].name,
+                CLASS_LEVEL(vict, class_list_tmp[i]));
+  }
+  send_to_char(vict, "\tcYour overall level is now %d.\r\n", overall_level);
+  send_to_char(vict, "\tcYour class skills have been set to %d.\r\n", overall_level);
+  send_to_char(vict, "\tcYour stats have been updated.\tn\r\n");
+
+  /* Save the character */
+  if (!IS_NPC(vict))
+    save_char(vict, 0);
 }
 
 /* EOF */
