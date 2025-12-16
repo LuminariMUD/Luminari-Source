@@ -5674,6 +5674,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 0;
     SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    send_to_char(ch, "Caster level: %d\r\n", level);
     to_vict = "You are encircled and entangled by huge frigid black tentacles that writhe from the ground.";
     to_room = "$n is encircled and entangled by huge frigid black tentacles that writhe from the ground.";
     break;

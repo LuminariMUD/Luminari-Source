@@ -70,12 +70,14 @@
 #include "terrain_bridge.h"
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
 #include "genshp.h"
+#include "treasure.h"
 
 /* External variables and functions */
 extern MYSQL *conn;
 extern struct descriptor_data *descriptor_list;
 extern struct terrain_api_server *terrain_api;
 void load_account_unlocks(struct account_data *account);
+int outfit_type_to_armor_type(int type, int wear);
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -12283,15 +12285,33 @@ static void set_testkit_obj_strings_fmt(struct obj_data *obj, int bonus,
   set_testkit_obj_strings(obj, keywords, shortbuf, longbuf);
 }
 
+static void set_testkit_obj_strings_fmt_armor(struct obj_data *obj, int bonus,
+                                              const char *keywords,
+                                              const char *armor_type,
+                                              const char *short_fmt,
+                                              const char *long_fmt)
+{
+  char shortbuf[MEDIUM_STRING] = {'\0'};
+  char longbuf[MEDIUM_STRING] = {'\0'};
+
+  if (!obj || !keywords || !short_fmt || !long_fmt)
+    return;
+
+  snprintf(shortbuf, sizeof(shortbuf), short_fmt, armor_type, bonus);
+  snprintf(longbuf, sizeof(longbuf), long_fmt, armor_type, bonus);
+
+  set_testkit_obj_strings(obj, keywords, shortbuf, longbuf);
+}
+
 
 #ifndef OUTFIT_WEAPON_PROTO
-#if defined(CAMPAIGN_DL)
-#define OUTFIT_WEAPON_PROTO 16856
-#define OUTFIT_ARMOR_PROTO 16855
-#else
-#define OUTFIT_WEAPON_PROTO 211
-#define OUTFIT_ARMOR_PROTO 212
-#endif
+  #if defined(CAMPAIGN_DL)
+    #define OUTFIT_WEAPON_PROTO 16856
+    #define OUTFIT_ARMOR_PROTO 16855
+  #else
+    #define OUTFIT_WEAPON_PROTO 211
+    #define OUTFIT_ARMOR_PROTO 212
+  #endif
 #endif
 
 ACMD(do_settestkit)
@@ -12335,8 +12355,8 @@ ACMD(do_settestkit)
   enh_bonus_ring = level / 6;
   char_size = GET_SIZE(vict);
 
-  send_to_char(ch, "Creating test kit for %s (Level %d, Size %d)...\r\n", 
-              GET_NAME(vict), level, char_size);
+  send_to_char(ch, "Creating test kit for %s (Level %d, Size %s)...\r\n", 
+              GET_NAME(vict), level, size_names[char_size]);
 
   /* === WEAPONS === */
   if (HAS_FEAT(vict, FEAT_EXOTIC_WEAPON_PROFICIENCY))
@@ -12345,14 +12365,12 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_BASTARD_SWORD;
+      set_weapon_object(obj, WEAPON_TYPE_BASTARD_SWORD);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test bastard sword",
                                   "a test bastard sword +%d",
-                                  "A test bastard sword +%d rests here.\r\n");
+                                  "A test bastard sword +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Bastard Sword +%d\r\n", enh_bonus);
     }
@@ -12363,14 +12381,12 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_LONG_SWORD;
+      set_weapon_object(obj, WEAPON_TYPE_LONG_SWORD);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test longsword",
                                   "a test longsword +%d",
-                                  "A test longsword +%d rests here.\r\n");
+                                  "A test longsword +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Long Sword +%d\r\n", enh_bonus);
     }
@@ -12379,14 +12395,12 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_LIGHT_HAMMER;
+      set_weapon_object(obj, WEAPON_TYPE_LIGHT_HAMMER);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test light hammer",
                                   "a test light hammer +%d",
-                                  "A test light hammer +%d rests here.\r\n");
+                                  "A test light hammer +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Light Hammer +%d\r\n", enh_bonus);
     }
@@ -12395,14 +12409,12 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_GREAT_SWORD;
+      set_weapon_object(obj, WEAPON_TYPE_GREAT_SWORD);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test greatsword",
                                   "a test greatsword +%d",
-                                  "A test greatsword +%d rests here.\r\n");
+                                  "A test greatsword +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Greatsword +%d\r\n", enh_bonus);
     }
@@ -12413,14 +12425,12 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_DAGGER;
+      set_weapon_object(obj, WEAPON_TYPE_DAGGER);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test dagger",
                                   "a test dagger +%d",
-                                  "A test dagger +%d rests here.\r\n");
+                                  "A test dagger +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Dagger +%d\r\n", enh_bonus);
     }
@@ -12429,14 +12439,12 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_GREAT_CLUB;
+      set_weapon_object(obj, WEAPON_TYPE_GREAT_CLUB);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test greatclub",
                                   "a test greatclub +%d",
-                                  "A test greatclub +%d rests here.\r\n");
+                                  "A test greatclub +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Greatclub +%d\r\n", enh_bonus);
     }
@@ -12445,91 +12453,103 @@ ACMD(do_settestkit)
     obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
     if (obj)
     {
-      GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-      GET_OBJ_VAL(obj, 0) = WEAPON_TYPE_HEAVY_MACE;
+      set_weapon_object(obj, WEAPON_TYPE_HEAVY_MACE);
       GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test heavy mace",
                                   "a test heavy mace +%d",
-                                  "A test heavy mace +%d rests here.\r\n");
+                                  "A test heavy mace +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Heavy Mace +%d\r\n", enh_bonus);
     }
   }
 
   /* === ARMOR === */
+  int armor_type = SPEC_ARMOR_TYPE_CLOTHING;
+  const char *armor_name = "clothing";
+  
   if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_HEAVY))
   {
-    /* Full Plate */
-    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
-    if (obj)
-    {
-      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
-      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_FULL_PLATE;
-      GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
-      set_testkit_obj_strings_fmt(obj, enh_bonus,
-                                  "test full plate",
-                                  "a suit of test full plate +%d",
-                                  "A suit of test full plate +%d has been left here.\r\n");
-      resize_obj_to_char(obj, vict);
-      send_to_char(ch, "  - Full Plate +%d\r\n", enh_bonus);
-    }
+    armor_type = SPEC_ARMOR_TYPE_FULL_PLATE;
+    armor_name = "full plate";
   }
   else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_MEDIUM))
   {
-    /* Chainmail */
-    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
-    if (obj)
-    {
-      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
-      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_CHAINMAIL;
-      GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
-      set_testkit_obj_strings_fmt(obj, enh_bonus,
-                                  "test chainmail",
-                                  "a suit of test chainmail +%d",
-                                  "A suit of test chainmail +%d has been left here.\r\n");
-      resize_obj_to_char(obj, vict);
-      send_to_char(ch, "  - Chainmail +%d\r\n", enh_bonus);
-    }
+    armor_type = SPEC_ARMOR_TYPE_CHAINMAIL;
+    armor_name = "chainmail";
   }
   else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_LIGHT))
   {
-    /* Leather Armor */
-    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
-    if (obj)
-    {
-      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
-      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_LEATHER;
-      GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
-      set_testkit_obj_strings_fmt(obj, enh_bonus,
-                                  "test leather armor",
-                                  "a set of test leather armor +%d",
-                                  "A set of test leather armor +%d has been left here.\r\n");
-      resize_obj_to_char(obj, vict);
-      send_to_char(ch, "  - Leather Armor +%d\r\n", enh_bonus);
-    }
+    armor_type = SPEC_ARMOR_TYPE_LEATHER;
+    armor_name = "leather armor";
   }
-  else
+
+  /* Body Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
   {
-    /* Clothing */
-    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
-    if (obj)
-    {
-      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
-      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_CLOTHING;
-      GET_OBJ_VAL(obj, 4) = enh_bonus;
-      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY);
-      set_testkit_obj_strings_fmt(obj, enh_bonus,
-                                  "test clothing",
-                                  "a set of test clothing +%d",
-                                  "A set of test clothing +%d has been left here.\r\n");
-      resize_obj_to_char(obj, vict);
-      send_to_char(ch, "  - Clothing +%d\r\n", enh_bonus);
-    }
+    char body_keywords[64] = {'\0'};
+    snprintf(body_keywords, sizeof(body_keywords), "test %s", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_BODY));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      body_keywords,
+                                      armor_name,
+                                      "test %s +%d",
+                                      "A suit of test %s +%d has been left here.");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (body) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* Arm Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char arm_keywords[64] = {'\0'};
+    snprintf(arm_keywords, sizeof(arm_keywords), "test %s armguards", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_ARMS));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      arm_keywords,
+                                      armor_name,
+                                      "test %s armguards +%d",
+                                      "Test %s armguards +%d have been left here.\r\n");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (arms) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* Leg Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char leg_keywords[64] = {'\0'};
+    snprintf(leg_keywords, sizeof(leg_keywords), "test %s leggings", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_LEGS));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      leg_keywords,
+                                      armor_name,
+                                      "test %s leggings +%d",
+                                      "Test %s leggings +%d have been left here.\r\n");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (legs) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* Head Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char head_keywords[64] = {'\0'};
+    snprintf(head_keywords, sizeof(head_keywords), "test %s helm", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_HEAD));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      head_keywords,
+                                      armor_name,
+                                      "test %s helm +%d",
+                                      "A test %s helm +%d rests here.\r\n");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (head) +%d\r\n", armor_name, enh_bonus);
   }
 
   /* === SHIELD === */
@@ -12545,7 +12565,7 @@ ACMD(do_settestkit)
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test tower shield",
                                   "a test tower shield +%d",
-                                  "A test tower shield +%d rests here.\r\n");
+                                  "A test tower shield +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Tower Shield +%d\r\n", enh_bonus);
     }
@@ -12562,7 +12582,7 @@ ACMD(do_settestkit)
       set_testkit_obj_strings_fmt(obj, enh_bonus,
                                   "test large shield",
                                   "a test large shield +%d",
-                                  "A test large shield +%d rests here.\r\n");
+                                  "A test large shield +%d rests here.");
       resize_obj_to_char(obj, vict);
       send_to_char(ch, "  - Large Shield +%d\r\n", enh_bonus);
     }
@@ -12577,7 +12597,7 @@ ACMD(do_settestkit)
     set_testkit_obj_strings_fmt(obj, enh_bonus,
                                 "test amulet",
                                 "a test amulet +%d (all stats)",
-                                "A test amulet +%d (all stats) gleams here.\r\n");
+                                "A test amulet +%d (all stats) gleams here.");
     obj->affected[0].location = APPLY_STR;
     obj->affected[0].modifier = enh_bonus;
     obj->affected[1].location = APPLY_DEX;
@@ -12603,7 +12623,7 @@ ACMD(do_settestkit)
     set_testkit_obj_strings_fmt(obj, enh_bonus_ring,
                                 "test ring",
                                 "a test ring +%d (hit/dam/AC)",
-                                "A test ring +%d (hit/dam/AC) glitters here.\r\n");
+                                "A test ring +%d (hit/dam/AC) glitters here.");
     obj->affected[0].location = APPLY_HITROLL;
     obj->affected[0].modifier = enh_bonus_ring;
     obj->affected[1].location = APPLY_DAMROLL;
