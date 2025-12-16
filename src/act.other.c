@@ -11295,13 +11295,6 @@ ACMDU(do_device)
     /* Consume a standard action for using the device */
     USE_STANDARD_ACTION(ch);
     
-    /* Set individual device cooldown when device is first used */
-    if (inv->uses == 0) {
-      /* 30 minute cooldown for this specific device */
-      inv->cooldown_expires = time(0) + (30 * 60);
-      send_to_char(ch, "Device %d is now on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
-    }
-    
     inv->uses++;
     return;
   }
