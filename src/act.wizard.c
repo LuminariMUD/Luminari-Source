@@ -12591,7 +12591,6 @@ ACMD(do_settestkit)
     obj->affected[5].location = APPLY_CHA;
     obj->affected[5].modifier = enh_bonus;
     resize_obj_to_char(obj, vict);
-    obj_to_char(obj, vict);
     send_to_char(ch, "  - Amulet +%d all stats\r\n", enh_bonus);
   }
 
@@ -12612,7 +12611,6 @@ ACMD(do_settestkit)
     obj->affected[2].location = APPLY_AC_NEW;
     obj->affected[2].modifier = enh_bonus_ring;
     resize_obj_to_char(obj, vict);
-    obj_to_char(obj, vict);
     send_to_char(ch, "  - Ring +%d hit/dam/AC\r\n", enh_bonus_ring);
   }
 
