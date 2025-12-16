@@ -4380,6 +4380,38 @@ ACMD(do_score)
     draw_line(ch, line_length, '-', '-');
   }
 
+  if (is_arcane_caster(ch))
+  {
+    if (IS_GOOD(ch))
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[0],  
+        weather_info.moons.solinari_st >= 0 ? "+" : "", weather_info.moons.solinari_st,
+        weather_info.moons.solinari_lv >= 0 ? "+" : "", weather_info.moons.solinari_lv,
+        MAX(0, weather_info.moons.solinari_sp)
+      );
+    }
+    else if (IS_NEUTRAL(ch))
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[0],  
+        weather_info.moons.lunitari_st >= 0 ? "+" : "", weather_info.moons.lunitari_st,
+        weather_info.moons.lunitari_lv >= 0 ? "+" : "", weather_info.moons.lunitari_lv,
+        MAX(0, weather_info.moons.lunitari_sp)
+      );
+    }
+    else
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[1],  
+        weather_info.moons.nuitari_st >= 0 ? "+" : "", weather_info.moons.nuitari_st,
+        weather_info.moons.nuitari_lv >= 0 ? "+" : "", weather_info.moons.nuitari_lv,
+        MAX(0, weather_info.moons.nuitari_sp)
+      );
+    }
+    draw_line(ch, line_length, '-', '-');
+  }
+
   /* ========================================================================= */
   /* SECTION 11: STATUS CONDITIONS (PLAYERS ONLY)                              */
   /* ========================================================================= */
@@ -10497,46 +10529,53 @@ void perform_master_spell_list(struct char_data *ch)
 
 void look_at_moons(struct char_data *ch)
 {
+
+    if (!CONFIG_ARCANE_MOON_PHASES)
+    {
+      send_to_char(ch, "The moon phases system is not enabled on this server.\r\n");
+      return;
+    }
+
   if (!OUTSIDE(ch) && GET_LEVEL(ch) < LVL_IMMORT)
   {
-    send_to_char("Perhaps you could get a better view of the moons outside?\r\n", ch);
+    send_to_char(ch, "Perhaps you could get a better view of the moons outside?\r\n");
     return;
   }
 
   if (!(weather_info.sunlight == SUN_DARK))
   {
-    send_to_char("Waiting until night would make this task much easier.\r\n", ch);
+    send_to_char(ch, "Waiting until night would make this task much easier.\r\n");
     return;
   }
 
   if (weather_info.moons.solinari_phase > 27)
-    send_to_char("A silvery glow can be seen in the sky as Solinari begins to appear.\r\n", ch);
+    send_to_char(ch, "A silvery glow can be seen in the sky as %s begins to appear.\r\n", moon_names[0]);
   else if (weather_info.moons.solinari_phase > 18)
-    send_to_char("Solinari illuminates the sky with silvery light.\r\n", ch);
+    send_to_char(ch, "%s illuminates the sky with silvery light.\r\n", moon_names[0]);
   else if (weather_info.moons.solinari_phase > 9)
-    send_to_char("The sky grows dimmer as Solinari slowly fades away.\r\n", ch);
+    send_to_char(ch, "The sky grows dimmer as %s slowly fades away.\r\n", moon_names[0]);
   else
-    send_to_char("No trace of the silvery light from Solinari is visible.\r\n", ch);
+    send_to_char(ch, "No trace of the silvery light from %s is visible.\r\n", moon_names[0]);
 
   if (weather_info.moons.lunitari_phase > 6)
-    send_to_char("A crimson glow can be seen in the sky as Lunitari begins to appear.\r\n", ch);
+    send_to_char(ch, "A crimson glow can be seen in the sky as %s begins to appear.\r\n", moon_names[1]);
   else if (weather_info.moons.lunitari_phase > 4)
-    send_to_char("Lunitari casts a crimson glow throughout the sky.\r\n", ch);
+    send_to_char(ch, "%s casts a crimson glow throughout the sky.\r\n", moon_names[1]);
   else if (weather_info.moons.lunitari_phase > 2)
-    send_to_char("The crimson glow weakens as Lunitari slowly fades away.\r\n", ch);
+    send_to_char(ch, "The crimson glow weakens as %s slowly fades away.\r\n", moon_names[1]);
   else
-    send_to_char("No trace of the crimson light from Lunitari is visible.\r\n", ch);
+    send_to_char(ch, "No trace of the crimson light from %s is visible.\r\n", moon_names[1]);
 
   if (IS_EVIL(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
   {
     if (weather_info.moons.nuitari_phase > 21)
-      send_to_char("The night sky seems to grow darker as Nuitari slowly appears.\r\n", ch);
+      send_to_char(ch, "The night sky seems to grow darker as %s slowly appears.\r\n", moon_names[2]);
     else if (weather_info.moons.nuitari_phase > 4)
-      send_to_char("Total blackness envelopes the area of the sky where Nuitari resides.\r\n", ch);
+      send_to_char(ch, "Total blackness envelopes the area of the sky where %s resides.\r\n", moon_names[2]);
     else if (weather_info.moons.nuitari_phase > 2)
-      send_to_char("The darkness seems to lessen as Nuitari begins to vanish.\r\n", ch);
+      send_to_char(ch, "The darkness seems to lessen as %s begins to vanish.\r\n", moon_names[2]);
     else
-      send_to_char("No trace of the infinite darkness from Nuitari is visible.\r\n", ch);
+      send_to_char(ch, "No trace of the infinite darkness from %s is visible.\r\n", moon_names[2]);
   }
 }
 

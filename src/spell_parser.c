@@ -670,7 +670,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case CLASS_WARLOCK:
     case CLASS_BARD:
     case CLASS_SUMMONER:
-      if (!canCastAtWill(caster, spellnum))
+      if (!canCastAtWill(caster, spellnum) && casttype != CAST_DEVICE)
       {
         /* bards, summoners & warlocks can wear light armor and cast unpenalized (bard spells) */
         if (compute_gear_armor_type(caster) > (HAS_FEAT(caster, FEAT_BATTLE_CASTER) ? ARMOR_TYPE_MEDIUM : ARMOR_TYPE_LIGHT) ||
@@ -685,7 +685,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       break;
     case CLASS_SORCERER:
     case CLASS_WIZARD:
-      if (!canCastAtWill(caster, spellnum))
+      if (!canCastAtWill(caster, spellnum) && casttype != CAST_DEVICE)
       {
         if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
         {

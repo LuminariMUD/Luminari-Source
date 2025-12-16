@@ -5850,9 +5850,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   /* xp gain for damage, limiting it more -zusuk */
   int exp_to_give = GET_LEVEL(victim) * dam;
-  if (CONFIG_MELEE_EXP_OPTION == 2) // reduced exp
+  if (CONFIG_MELEE_EXP_OPTION == 1) // reduced exp
     exp_to_give /= 2;
-  else if (CONFIG_MELEE_EXP_OPTION == 3) // no exp
+  else if (CONFIG_MELEE_EXP_OPTION == 2) // no exp
     exp_to_give = 0;  
 
   if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3 && exp_to_give > 0)

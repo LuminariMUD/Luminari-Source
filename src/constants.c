@@ -41,6 +41,14 @@ cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
+/* Moon names for Dragonlance setting */
+const char *moon_names[] = {
+    "Solinari",   /* white moon */
+    "Lunitari",   /* red moon */
+    "Nuitari",    /* black moon */
+    "\n"
+};
+
 // armor suit types
 const char *armor_suit_types[] = {
     "none",

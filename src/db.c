@@ -7384,6 +7384,8 @@ void load_config(void)
         CONFIG_ALCHEMY_PREP_TIME = num;
       else if (!str_cmp(tag, "allow_cexchange"))
         CONFIG_ALLOW_CEXCHANGE = num;
+      else if (!str_cmp(tag, "arcane_moon_phases"))
+        CONFIG_ARCANE_MOON_PHASES = num;
       break;
 
     case 'b':
@@ -7708,8 +7710,6 @@ void load_config(void)
         CONFIG_SUMMON_LEVEL_21_30_AC = num;
       else if (!str_cmp(tag, "spell_cast_exp_option"))
         CONFIG_SPELL_CAST_EXP_OPTION = num;
-      else if (!str_cmp(tag, "arcane_moon_phases"))
-        CONFIG_ARCANE_MOON_PHASES = num;
       break;
 
     case 't':

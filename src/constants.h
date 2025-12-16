@@ -24,6 +24,7 @@ extern const char *npc_race_short[];
 extern const char *race_family_abbrevs[];
  */
 extern const struct weird_science_level weird_science_table[];
+extern const char *moon_names[];
 extern const char *shape_types[MAX_PC_SUBRACES + 1];
 extern const char *morph_to_char[NUM_RACE_TYPES + 1];
 extern const char *morph_to_room[NUM_RACE_TYPES + 1];

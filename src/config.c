@@ -362,6 +362,8 @@ int ac_cap = 60;
 int melee_exp_option = 1; // multiplier for melee experience gain
 int spell_cast_exp_option = 1; // multiplier for spell casting experience gain
 
+int arcane_moon_phases = 0; // 0 = OFF, 1 = ON
+
 // This is the maximum difference in level between the
 // level of the player and the mob, to gain exp.
 // If 3, and the player level is 20, the player will

@@ -2073,8 +2073,9 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       case 'j':
       case 'J':
         write_to_output(d, "Do you wish to enable arcane moon phase bonus spells?\r\n");
-        write_to_output(d, "When enabled, arcane casters gain bonus spell slots when the moon phase reaches peak fullness.\r\n");
-        write_to_output(d, "1) On\n2) Off\n");
+        write_to_output(d, "When enabled, arcane casters gain bonuses depending on the phase of the moons.\r\n");
+        write_to_output(d , "They will gain bonus to saving throws, increased caster level and bonus spell slots.\r\n");
+        write_to_output(d, "1) Off\n2) On\n");
         OLC_MODE(d) = CEDIT_SET_ARCANE_MOON_PHASES;
         return;
 
