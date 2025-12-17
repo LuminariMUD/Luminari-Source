@@ -6411,7 +6411,7 @@ const char *regions[] = {
     "Evermeet",
     "Halruaa",
     "Icewind Dale",
-    "Impilitur",
+    "Impiltur",
     "Kara-Tur",
     "Luiren",
     "Luruar",
