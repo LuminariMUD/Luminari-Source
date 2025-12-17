@@ -1554,7 +1554,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eDEVICE_REPAIR) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1582,6 +1582,8 @@ void command_interpreter(struct char_data *ch, char *argument)
         send_to_char(ch, "You are too busy crafting to do that! ");
       else if (char_has_mud_event(ch, eDEVICE_CREATION))
         send_to_char(ch, "You are too busy devising your creation to do that! ");
+      else if (char_has_mud_event(ch, eDEVICE_REPAIR))
+        send_to_char(ch, "You are too busy repairing your device to do that! ");
       else if (char_has_mud_event(ch, eBREWING))
         send_to_char(ch, "You are too busy brewing to do that! ");
       send_to_char(ch, "[Available commands: gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");

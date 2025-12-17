@@ -210,6 +210,7 @@ typedef enum
   ePALADIN_CHANNEL_ENERGY,          /* Paladin Channel Energy perk daily uses */
   eMASS_CURE_WOUNDS,                /* Mass Cure Wounds daily uses */
   eFERAL_CHARGE_USED,               /* Beast Master Feral Charge used this combat */
+  eDEVICE_REPAIR,                   // artificer device repair
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -294,4 +295,5 @@ EVENTFUNC(event_moonbeam);
 EVENTFUNC(event_aqueous_orb);
 EVENTFUNC(event_device_progress);
 EVENTFUNC(event_device_creation);
+EVENTFUNC(event_device_repair);
 #endif /* _MUD_EVENT_H_ */

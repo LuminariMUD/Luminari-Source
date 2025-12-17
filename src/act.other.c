@@ -10471,6 +10471,7 @@ ACMDU(do_device)
     send_to_char(ch, "  device list                             - List your current devices\r\n");
     send_to_char(ch, "  device info <device>                    - Get information about a device\r\n");
     send_to_char(ch, "  device rename <device> <new name>       - Change the name of a device\r\n");
+    send_to_char(ch, "  device repair <device>                  - Repair a broken device (removes instability)\r\n");
     send_to_char(ch, "  device destroy <device>                 - Permanently destroy a device (requires confirmation)\r\n");
     send_to_char(ch, "  device spells <arcane|divine>           - Show available spells by level\r\n");
     send_to_char(ch, "  device usage                            - Show spell slot usage and limits\r\n");
@@ -11021,9 +11022,9 @@ ACMDU(do_device)
                  inv->short_description);
     act("$n carefully dismantles a weird science invention.", TRUE, ch, 0, 0, TO_ROOM);
     
-    /* Set 30-minute cooldown on device creation */
-    ch->player_specials->saved.device_creation_cooldown = time(0) + (30 * 60);
-    send_to_char(ch, "You must wait 30 minutes before creating another device.\r\n");
+    /* Set 20-minute cooldown on device creation */
+    ch->player_specials->saved.device_creation_cooldown = time(0) + (20 * 60);
+    send_to_char(ch, "You must wait 20 minutes before creating another device.\r\n");
     
     /* Shift all inventions after this one down by one */
     {
@@ -11040,6 +11041,73 @@ ACMDU(do_device)
     
     send_to_char(ch, "Invention destroyed. You now have %d inventions remaining.\r\n", 
                  ch->player_specials->saved.num_inventions);
+    return;
+  }
+
+  if (is_abbrev(arg1, "repair"))
+  {
+    /* Handle the cancel subcommand for device repair */
+    if (is_abbrev(arg2, "cancel")) {
+      if (!char_has_mud_event(ch, eDEVICE_REPAIR)) {
+        send_to_char(ch, "You are not currently repairing any device.\r\n");
+        return;
+      }
+      
+      /* Cancel the repair event */
+      event_cancel_specific(ch, eDEVICE_REPAIR);
+      send_to_char(ch, "You stop working on the device repair and set your tools aside.\r\n");
+      act("$n stops working on $s device repair.", TRUE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: device repair <number>\r\n");
+      send_to_char(ch, "       device repair cancel\r\n");
+      send_to_char(ch, "Repairs a broken or unstable device, removing DC penalties.\r\n");
+      send_to_char(ch, "Repair time: 30 seconds + 10 seconds per point of DC penalty.\r\n");
+      return;
+    }
+    
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    
+    /* Check if device needs repair */
+    if (inv->dc_penalty <= 0) {
+      send_to_char(ch, "Device %d is not damaged and doesn't need repairs.\r\n", inv_idx + 1);
+      return;
+    }
+    
+    /* Check if player is already repairing a device */
+    if (char_has_mud_event(ch, eDEVICE_REPAIR)) {
+      send_to_char(ch, "You are already repairing a device!\r\n");
+      return;
+    }
+    
+    /* Check if player is creating a device */
+    if (char_has_mud_event(ch, eDEVICE_CREATION)) {
+      send_to_char(ch, "You cannot repair a device while creating one!\r\n");
+      return;
+    }
+    
+    /* Calculate repair time: 30 seconds base + 10 seconds per DC penalty point */
+    int repair_time = 30 + (inv->dc_penalty * 10);
+    
+    /* Store the device index in the event data */
+    char event_data[64];
+    snprintf(event_data, sizeof(event_data), "%d", inv_idx);
+    
+    /* Start the repair event */
+    attach_mud_event(new_mud_event(eDEVICE_REPAIR, ch, event_data), repair_time * PASSES_PER_SEC);
+    
+    send_to_char(ch, "You begin repairing %s. This will take %d seconds to complete.\r\n", 
+                 inv->short_description, repair_time);
+    send_to_char(ch, "Current DC penalty: +%d\r\n", inv->dc_penalty);
+    act("$n begins carefully repairing a malfunctioning invention.", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
 
@@ -11190,8 +11258,8 @@ ACMDU(do_device)
       
       if (total < dc) {
         /* UMD check failed - device doesn't work and has a chance to break */
-        /* Increase DC penalty by 2 for each failed attempt */
-        inv->dc_penalty += 2;
+        /* Increase DC penalty by 4 for each failed attempt */
+        inv->dc_penalty += 4;
         send_to_char(ch, "The invention fails to activate and you struggle to make it work.\r\n");
         send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n", inv->dc_penalty);
         act("$n's invention sparks and sputters but doesn't activate.", TRUE, ch, 0, 0, TO_ROOM);
@@ -11247,10 +11315,7 @@ ACMDU(do_device)
             }
           }
           
-          /* Set device cooldown when it breaks */
-          inv->cooldown_expires = time(0) + (30 * 60);
-          send_to_char(ch, "Device %d is now broken and on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
-          
+          /* Device breaks - no cooldown applied */
           inv->uses = 0; /* Reset uses on destruction */
           return;
         }
@@ -11258,36 +11323,33 @@ ACMDU(do_device)
       }
       if (total < dc)
       {
-        /* Increase DC penalty by 2 even on successful attempts when out of charges */
-        inv->dc_penalty += 2;
+        /* Increase DC penalty by 4 even on successful attempts when out of charges */
+        inv->dc_penalty += 4;
         send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");
         send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n", inv->dc_penalty);
         act("$n's invention emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
         return;
       }
       /* Success! But still increase DC penalty since device is out of charges */
-      inv->dc_penalty += 2;
-      if (inv->dc_penalty > 2) {
+      inv->dc_penalty += 4;
+      if (inv->dc_penalty > 4) {
         send_to_char(ch, "You manage to coax the depleted device to work, but it's getting harder... (DC penalty: +%d)\r\n", inv->dc_penalty);
       }
     }
     
     /* Device passed all checks - execute the spell effects */
-    send_to_char(ch, "You activate your invention: %s\r\n", inv->short_description);
-  char invbuf[200];
-  snprintf(invbuf, sizeof(invbuf), "$n activates an invention: %s", inv->short_description);
-  act(invbuf, TRUE, ch, 0, 0, TO_ROOM);
+    if (target == ch) {
+      send_to_char(ch, "You activate %s on yourself.\r\n", inv->short_description);
+      act("$n activates $s invention on $mself.", TRUE, ch, 0, 0, TO_ROOM);
+    } else {
+      send_to_char(ch, "You activate %s at %s.\r\n", inv->short_description, GET_NAME(target));
+      act("$n activates $s invention at $N.", TRUE, ch, 0, target, TO_NOTVICT);
+      act("$n activates $s invention at you.", TRUE, ch, 0, target, TO_VICT);
+    }
+    
     for (i = 0; i < inv->num_spells; i++) {
       int spell_num = inv->spell_effects[i];
       if (spell_num > 0 && spell_num < NUM_SPELLS) {
-        if (target == ch) {
-          send_to_char(ch, "The invention triggers %s on you!\r\n", spell_info[spell_num].name);
-        } else {
-          send_to_char(ch, "The invention triggers %s at %s!\r\n", 
-                       spell_info[spell_num].name, GET_NAME(target));
-          send_to_char(target, "%s's invention triggers %s at you!\r\n", 
-                       GET_NAME(ch), spell_info[spell_num].name);
-        }
         call_magic(ch, target, NULL, spell_num, 0, artificer_level, CAST_DEVICE);
       }
     }
@@ -11296,6 +11358,15 @@ ACMDU(do_device)
     USE_STANDARD_ACTION(ch);
     
     inv->uses++;
+    
+    /* Show remaining charges */
+    int base_uses = 3;
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+      base_uses += 1;
+    }
+    int remaining_charges = (inv->uses <= base_uses) ? (base_uses - inv->uses) : 0;
+    send_to_char(ch, "Charges remaining: %d/%d\r\n", remaining_charges, base_uses);
+    
     return;
   }
 
@@ -12148,6 +12219,61 @@ EVENTFUNC(event_device_creation)
   save_char(ch, 0);
   /* No need to manually cancel progress; it will self-terminate when creation event is gone.
      Any progress tick that fires after this will see missing creation event and stop. */
+  
+  return 0;
+}
+
+/* Event handler for device repair */
+EVENTFUNC(event_device_repair)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  
+  pMudEvent = (struct mud_event_data *)event_obj;
+  
+  if (!pMudEvent || !pMudEvent->pStruct) {
+    log("SYSERR: event_device_repair() called with NULL event data");
+    return 0;
+  }
+  
+  ch = (struct char_data *)pMudEvent->pStruct;
+  
+  if (!ch) {
+    log("SYSERR: event_device_repair() called with NULL character");
+    return 0;
+  }
+  
+  /* Parse the device index from the event variables */
+  if (!pMudEvent->sVariables) {
+    send_to_char(ch, "Your device repair was interrupted due to missing data.\r\n");
+    return 0;
+  }
+  
+  int inv_idx = atoi(pMudEvent->sVariables);
+  
+  /* Validate device index */
+  if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+    send_to_char(ch, "Your device repair failed - the device no longer exists.\r\n");
+    return 0;
+  }
+  
+  struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+  
+  /* Store old DC penalty for message */
+  int old_penalty = inv->dc_penalty;
+  
+  /* Reset DC penalty and restore uses to zero */
+  inv->dc_penalty = 0;
+  inv->uses = 0;
+  
+  send_to_char(ch, "\tGYour repair is complete!\tn %s has been fully restored.\r\n", 
+               inv->short_description);
+  send_to_char(ch, "DC penalty removed: +%d -> 0\r\n", old_penalty);
+  act("$n finishes repairing an invention, which hums smoothly once more.", 
+      TRUE, ch, 0, 0, TO_ROOM);
+  
+  /* Save the character data */
+  save_char(ch, 0);
   
   return 0;
 }

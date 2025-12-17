@@ -2339,7 +2339,7 @@ void check_devices(void)
         if (inv->uses > 0)
         {
           inv->uses--;
-          inv->dc_penalty = MAX(0, inv->dc_penalty - 2); /* Also reduce DC penalty */
+          inv->dc_penalty = MAX(0, inv->dc_penalty - 4); /* Also reduce DC penalty */
           
           send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
                       inv->short_description, max_uses - inv->uses, max_uses);

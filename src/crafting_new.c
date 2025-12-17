@@ -4484,7 +4484,7 @@ void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
     int total_exp = exp;
     
     // Validate ability/skill type to prevent array out-of-bounds crashes
-    if (abil < 0 || abil >= NUM_ABILITIES) {
+    if (abil < 0 || abil > NUM_ABILITIES) {
         if (verbose) {
             send_to_char(ch, "Invalid skill type %d - experience gain cancelled.\r\n", abil);
         }
