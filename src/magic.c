@@ -531,6 +531,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       challenge += stat_bonus;
     }
     break;
+  case CAST_DEVICE:
+    challenge += level;
+    challenge += GET_INT_BONUS(ch);
+    break;
   case CAST_SPELL:
   default:
     if (ch)
@@ -4261,6 +4265,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
     {
       return;
@@ -5615,7 +5621,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_ROOT:
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 3;
-    af[0].duration = 12; // 2 minutes (12 rounds)
+    af[0].duration = 12;
     af[0].bonus_type = BONUS_TYPE_RESISTANCE;
     af[0].specific = 0; // can be used to specify type if needed
     to_vict = "You feel deeply rooted, resistant to trip, knockdown, and grapple attempts.";
@@ -5871,6 +5877,77 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n is now divinely aided!";
     to_vict = "You feel divinely aided.";
+    break;
+
+  case SPELL_LULLABY:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
+      return;
+    if (is_immune_mind_affecting(ch, victim, TRUE))
+      return;
+
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_PERCEPTION;
+    af[0].modifier = -5;
+    af[0].duration = 12;
+    to_vict = "You feel drowsy...";
+    to_room = "$n looks drowsy.";
+    break;
+
+  case SPELL_GUIDANCE:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+    to_vict = "You feel guided in your actions.";
+    to_room = "$n looks more guided.";
+    break;
+
+  case SPELL_GRASP:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_COMPETENCE;
+    to_vict = "Your feel your ability to climb improve.";
+    to_room = "$n looks more sure-footed.";
+    break;    
+
+  case SPELL_FLARE:
+    if (!can_blind(victim))
+      return;
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      return;
+    if (AFF_FLAGGED(victim, AFF_BLIND))
+      return;
+    if (AFF_FLAGGED(victim, AFF_DAZZLED))
+      return;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = 12;
+    SET_BIT_AR(af[0].bitvector, AFF_DAZZLED);
+    to_vict = "A bright light flashes before your eyes!";
+    to_room = "$n is momentarily blinded by a flash of light!";
+    break;
+
+  case SPELL_ENHANCED_DIPLOMACY:
+  
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_PERSUASION;
+    af[0].modifier = 2;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_SKILL;
+    af[1].specific = ABILITY_INTIMIDATE;
+    af[1].modifier = 2;
+    af[1].duration = 12;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+    
+    to_vict = "You feel more persuasive.";
+    to_room = "$n looks more persuasive.";
     break;
 
   case SPELL_SHIELD_OF_FAITH:
@@ -6893,6 +6970,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -8681,6 +8760,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;

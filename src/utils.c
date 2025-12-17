@@ -1578,6 +1578,15 @@ bool can_see_hidden(struct char_data *ch, struct char_data *hider)
 int skill_roll(struct char_data *ch, int skillnum)
 {
   int roll = d20(ch);
+  int guidance = 0;
+
+  if (affected_by_spell(ch, SPELL_GUIDANCE))
+  {
+    guidance = dice(1, 4);
+    send_to_char(ch, "\tG[Guidance +%d]\tn ", guidance);
+    affect_from_char(ch, SPELL_GUIDANCE);
+    roll += guidance;
+  }
 
   if (skillnum == ABILITY_DIPLOMACY && affected_by_spell(ch, SPELL_HONEYED_TONGUE))
   {

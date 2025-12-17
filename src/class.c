@@ -8586,7 +8586,6 @@ void load_class_list(void)
 
   /* cantrips */
   spell_assignment(CLASS_INQUISITOR, SPELL_ACID_SPLASH, 0);
-  spell_assignment(CLASS_INQUISITOR, SPELL_BRAND, 0);
   spell_assignment(CLASS_INQUISITOR, SPELL_CONTINUAL_LIGHT, 0);
   spell_assignment(CLASS_INQUISITOR, SPELL_DISRUPT_UNDEAD, 0);
   spell_assignment(CLASS_INQUISITOR, SPELL_ENHANCED_DIPLOMACY, 0);

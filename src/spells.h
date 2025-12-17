@@ -593,7 +593,7 @@
 #define SPELL_JOLT 512
 #define SPELL_DISRUPT_UNDEAD 513
 #define SPELL_ARCANE_MARK 514
-#define SPELL_BRAND 515
+#define SPELL_UNUSED_515 515
 #define SPELL_ENHANCED_DIPLOMACY 516
 #define SPELL_FLARE 517
 #define SPELL_GRASP 518
@@ -1699,6 +1699,7 @@ ASPELL(spell_salvation);
 ASPELL(spell_spellstaff);
 ASPELL(spell_storm_of_vengeance);
 ASPELL(spell_summon);
+ASPELL(spell_summon_instrument);
 ASPELL(spell_teleport);
 ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);

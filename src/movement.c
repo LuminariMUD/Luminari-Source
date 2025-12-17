@@ -571,6 +571,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   {
     /* do a climb check */
     int climb_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
+    if (affected_by_spell(ch, SPELL_GRASP))
+      climb_dc -= 2;
     send_to_char(ch, "Climb DC: %d - ", climb_dc);
     if (!skill_check(ch, ABILITY_CLIMB, climb_dc) && !AFF_FLAGGED(ch, AFF_FLYING))
     {

@@ -1343,8 +1343,10 @@ void affect_join(struct char_data *ch, struct affected_type *af,
   {
     next = hjp->next;
 
-    /* matching spell-number AND affection location matches? */
-    if ((hjp->spell == af->spell) && (hjp->location == af->location))
+    /* Matching spell-number and location; include specific for skill-based mods
+     * so different skills from the same spell don't overwrite each other. */
+    if ((hjp->spell == af->spell) && (hjp->location == af->location) &&
+      (af->location != APPLY_SKILL || hjp->specific == af->specific))
     {
       if (add_dur)
         af->duration += hjp->duration;

@@ -2716,6 +2716,104 @@ ASPELL(spell_spellstaff)
   }
 }
 
+ASPELL(spell_summon_instrument)
+{
+  struct obj_data *instrument = NULL;
+  int instrument_type = -1;
+  int i = 0;
+  int j = 0;
+  char instrument_name[MAX_STRING_LENGTH] = {'\0'};
+  char instrument_lower[MAX_STRING_LENGTH] = {'\0'};
+
+  /* Parse the instrument name from cast_arg2 */
+  one_argument(cast_arg2, instrument_name, sizeof(instrument_name));
+
+  if (!*instrument_name)
+  {
+    send_to_char(ch, "You must specify which instrument to summon.\r\n");
+    send_to_char(ch, "Available instruments: ");
+    for (i = 0; i < MAX_INSTRUMENTS; i++)
+    {
+      char available_lower[MAX_STRING_LENGTH] = {'\0'};
+      snprintf(available_lower, sizeof(available_lower), "%s", instrument_names[i]);
+      for (j = 0; available_lower[j]; j++)
+        available_lower[j] = LOWER(available_lower[j]);
+      send_to_char(ch, "%s%s", available_lower, (i < MAX_INSTRUMENTS - 1) ? ", " : ".\r\n");
+    }
+    return;
+  }
+
+  /* Find matching instrument */
+  for (i = 0; i < MAX_INSTRUMENTS; i++)
+  {
+    if (is_abbrev(instrument_name, instrument_names[i]))
+    {
+      instrument_type = i;
+      break;
+    }
+  }
+
+  if (instrument_type == -1)
+  {
+    send_to_char(ch, "Unknown instrument. Available instruments: ");
+    for (i = 0; i < MAX_INSTRUMENTS; i++)
+    {
+      char available_lower[MAX_STRING_LENGTH] = {'\0'};
+      snprintf(available_lower, sizeof(available_lower), "%s", instrument_names[i]);
+      for (j = 0; available_lower[j]; j++)
+        available_lower[j] = LOWER(available_lower[j]);
+      send_to_char(ch, "%s%s", available_lower, (i < MAX_INSTRUMENTS - 1) ? ", " : ".\r\n");
+    }
+    return;
+  }
+
+  /* Lowercase representation for the summoned instrument */
+  snprintf(instrument_lower, sizeof(instrument_lower), "%s", instrument_names[instrument_type]);
+  for (i = 0; instrument_lower[i]; i++)
+    instrument_lower[i] = LOWER(instrument_lower[i]);
+
+  /* Create the instrument object */
+  CREATE(instrument, struct obj_data, 1);
+  clear_object(instrument);
+
+  /* Set basic object type and values */
+  GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
+  GET_OBJ_VAL(instrument, 0) = instrument_type;
+  GET_OBJ_VAL(instrument, 1) = 0; /* Quality */
+  GET_OBJ_VAL(instrument, 2) = 0; /* Effectiveness */
+  GET_OBJ_VAL(instrument, 3) = 10; /* 10% breakability */
+
+  /* Set object properties */
+  GET_OBJ_COST(instrument) = 0;
+  GET_OBJ_WEIGHT(instrument) = 1;
+  GET_OBJ_RENT(instrument) = 0;
+
+  /* Set keywords, short, and long descriptions */
+  instrument->name = strdup(instrument_lower);
+
+  char short_buf[MAX_STRING_LENGTH] = {'\0'};
+  snprintf(short_buf, sizeof(short_buf), "a summoned %s", instrument_lower);
+  instrument->short_description = strdup(short_buf);
+
+  char long_buf[MAX_STRING_LENGTH] = {'\0'};
+  snprintf(long_buf, sizeof(long_buf), "A summoned %s lies here, waiting to make music.", instrument_lower);
+  instrument->description = strdup(long_buf);
+
+  /* Set object flags: NORENT and NOSELL */
+  SET_BIT_AR(GET_OBJ_WEAR(instrument), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_WEAR(instrument), ITEM_WEAR_INSTRUMENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(instrument), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(instrument), ITEM_NOSELL);
+  GET_OBJ_BOUND_ID(instrument) = NOBODY;
+
+  /* Give object to caster */
+  obj_to_char(instrument, ch);
+
+  /* Send messages */
+  send_to_char(ch, "A summoned %s appears in your hands!\r\n", instrument_lower);
+  act("$n summons a $o!", FALSE, ch, instrument, 0, TO_ROOM);
+}
+
 ASPELL(spell_storm_of_vengeance)
 {
   struct mud_event_data *pMudEvent = NULL;
