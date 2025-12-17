@@ -3961,7 +3961,7 @@ ACMD(do_score)
   /* Display race with bounds checking */
   send_to_char(ch, "\tcRace : \tn%-20s ", 
                (valid_luminari_race(GET_RACE(ch)) ? 
-                 race_list[GET_RACE(ch)].type : "Unknown");
+                 race_list[GET_RACE(ch)].type : "Unknown"));
 #endif
 
   /* Build class string - shows all classes for multiclass characters */
