@@ -6212,9 +6212,9 @@ ACMD(do_spells)
     if (*arg1)
     {
       circle = atoi(arg1);
-      if (circle < 1 || circle > 9)
+      if (circle < 0 || circle > 9)
       {
-        send_to_char(ch, "That is an invalid %s circle!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
+        send_to_char(ch, "That is an invalid %s circle (use 0 for cantrips).\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
         return;
       }
     }
@@ -6262,9 +6262,9 @@ ACMD(do_spelllist)
     if (*arg)
     {
       circle = atoi(arg);
-      if (circle < 1 || circle > 9)
+      if (circle < 0 || circle > 9)
       {
-        send_to_char(ch, "That is an invalid extract circle!\r\n");
+        send_to_char(ch, "That is an invalid extract circle (use 0 for cantrips).\r\n");
         return;
       }
     }
@@ -6275,9 +6275,9 @@ ACMD(do_spelllist)
     if (*arg)
     {
       circle = atoi(arg);
-      if (circle < 1 || circle > 9)
+      if (circle < 0 || circle > 9)
       {
-        send_to_char(ch, "That is an invalid power circle!\r\n");
+        send_to_char(ch, "That is an invalid power circle (use 0 for cantrips).\r\n");
         return;
       }
     }
@@ -6299,9 +6299,9 @@ ACMD(do_spelllist)
       if (*arg1)
       {
         circle = atoi(arg1);
-        if (circle < 1 || circle > 9)
+        if (circle < 0 || circle > 9)
         {
-          send_to_char(ch, "That is an invalid spell circle!\r\n");
+          send_to_char(ch, "That is an invalid spell circle (use 0 for cantrips).\r\n");
           return;
         }
       }
