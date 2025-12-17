@@ -4985,7 +4985,7 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 6, FALSE);
   spellabilo(WARLOCK_CHILLING_TENTACLES, "chilling tentacles", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AREAS,
+        TAR_IGNORE, TRUE, MAG_AREAS,
         NULL, 1, 1, NOSCHOOL, 5, FALSE);
   spellabilo(WARLOCK_DEVOUR_MAGIC, "devour magic", 0, 0, 0, POS_FIGHTING,
         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
