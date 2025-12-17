@@ -5520,6 +5520,9 @@ struct obj_data
     bool drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
     char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
 
+    /* Arcane mark imprint */
+    char *arcane_mark;
+
     int tinker_bonus;
     int temp_bag_num;
 
@@ -6343,6 +6346,9 @@ struct player_special_data_saved
 
     int craft_mats_owned[NUM_CRAFT_MATS];
     int craft_motes_owned[NUM_CRAFT_MOTES]; 
+
+    /* Arcane mark personalization */
+    char *arcane_mark;                           /**< Stored arcane mark string */
     
     /* Phase 4.5: Material subtype storage system */
     /* Stores wilderness materials with (category, subtype, quality) structure */

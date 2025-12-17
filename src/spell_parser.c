@@ -978,6 +978,9 @@ SAVING_WILL here...  */
     case SPELL_ACID_ARROW:
       MANUAL_SPELL(spell_acid_arrow);
       break;
+    case SPELL_ARCANE_MARK:
+      MANUAL_SPELL(spell_arcane_mark);
+      break;
     case SPELL_AQUEOUS_ORB:
       MANUAL_SPELL(spell_aqueous_orb);
       break;
@@ -3689,7 +3692,7 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
     spello(SPELL_ARCANE_MARK, "arcane mark", 0, 0, 0, POS_STANDING,
-      TAR_IGNORE, FALSE, MAG_MANUAL,
+      TAR_OBJ_INV, FALSE, MAG_MANUAL,
       NULL, 0, 1, TRANSMUTATION, FALSE);
     spello(SPELL_BRAND, "brand", 0, 0, 0, POS_FIGHTING,
       TAR_CHAR_ROOM | TAR_FIGHT_VICT, FALSE, MAG_MANUAL,

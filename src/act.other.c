@@ -6465,6 +6465,57 @@ ACMDU(do_title)
   }
 }
 
+ACMDU(do_arcanemark)
+{
+  char mark[MAX_INPUT_LENGTH];
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Mobs do not maintain arcane marks.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  /* Show or set default mark when no argument is provided */
+  if (!*argument)
+  {
+    if (GET_ARCANE_MARK(ch))
+    {
+      send_to_char(ch, "Your arcane mark is set to: %s\r\n", GET_ARCANE_MARK(ch));
+      return;
+    }
+
+    GET_ARCANE_MARK(ch) = strdup(GET_NAME(ch));
+    send_to_char(ch, "Your arcane mark now defaults to your name: %s\r\n", GET_ARCANE_MARK(ch));
+    return;
+  }
+
+  if (GET_ARCANE_MARK(ch) && GET_LEVEL(ch) < LVL_STAFF)
+  {
+    send_to_char(ch, "You have already set your arcane mark. Staff can reset it for you.\r\n");
+    send_to_char(ch, "Current arcane mark: %s\r\n", GET_ARCANE_MARK(ch));
+    return;
+  }
+
+  delete_doubledollar(argument);
+  strlcpy(mark, argument, sizeof(mark));
+
+  if (strlen(mark) > 250)
+  {
+    mark[250] = '\0';
+    send_to_char(ch, "Arcane marks are limited to 250 characters; your entry was truncated.\r\n");
+  }
+
+  parse_at(mark);
+
+  if (GET_ARCANE_MARK(ch))
+    free(GET_ARCANE_MARK(ch));
+
+  GET_ARCANE_MARK(ch) = strdup(mark);
+  send_to_char(ch, "Arcane mark set to: %s\r\n", GET_ARCANE_MARK(ch));
+}
+
 ACMDU(do_immtitle)
 {
   skip_spaces(&argument);

@@ -487,6 +487,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     {
       act("\r\n$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
     }
+      if (GET_OBJ_ARCANE_MARK(obj))
+        send_to_char(ch, "\r\nIt bears an arcane mark reading \"%s\".", GET_OBJ_ARCANE_MARK(obj));
 
     break;
 

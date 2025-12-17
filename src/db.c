@@ -6163,6 +6163,10 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->saved.completed_quests);
     if (ch->player_specials->saved.autocquest_desc)
       free(ch->player_specials->saved.autocquest_desc);
+    if (GET_ARCANE_MARK(ch)) {
+      free(GET_ARCANE_MARK(ch));
+      GET_ARCANE_MARK(ch) = NULL;
+    }
     if (ch->player.background)
       free(ch->player.background);
     if (ch->player.goals)

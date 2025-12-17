@@ -1571,6 +1571,41 @@ ASPELL(spell_detect_poison)
   }
 }
 
+ASPELL(spell_arcane_mark)
+{
+  const char *mark = NULL;
+  char truncated[251];
+
+  if (!obj)
+  {
+    send_to_char(ch, "You need to focus this spell on an object to mark it.\r\n");
+    return;
+  }
+
+  /* Check if object already has an arcane mark */
+  if (GET_OBJ_ARCANE_MARK(obj))
+  {
+    send_to_char(ch, "That object already has an arcane mark upon it.\r\n");
+    return;
+  }
+
+  mark = GET_ARCANE_MARK(ch);
+  if (!mark || !*mark)
+    mark = GET_NAME(ch);
+
+  /* Enforce hard cap on stored marks */
+  if (strlen(mark) > 250)
+  {
+    strlcpy(truncated, mark, sizeof(truncated));
+    mark = truncated;
+  }
+
+  GET_OBJ_ARCANE_MARK(obj) = strdup(mark);
+
+  act("You inscribe your arcane mark upon $p.", FALSE, ch, obj, 0, TO_CHAR);
+  act("$n inscribes a faint sigil onto $p.", TRUE, ch, obj, 0, TO_ROOM);
+}
+
 // This spell will allow you to travel to any carriage or sea port destination for LuminariMUD
 // Or to any zone entrance if on Faerun.
 ASPELL(spell_overland_flight)

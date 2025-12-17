@@ -483,6 +483,8 @@ void free_object_strings_proto(struct obj_data *obj)
   /* Free corpse-specific fields - corpses should never have prototypes */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->arcane_mark)
+    free(obj->arcane_mark);
 }
 
 static void copy_object_strings(struct obj_data *to, struct obj_data *from)
@@ -491,6 +493,7 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
 
   if (from->ex_description)
     copy_ex_descriptions(&to->ex_description, from->ex_description);

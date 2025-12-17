@@ -4128,6 +4128,7 @@ const struct set_struct
     {"shortdesc", LVL_STAFF, PC, MISC},         /* 104 */
     {"necromancer", LVL_IMPL, PC, NUMBER},      /* 105 */
     {"background", LVL_STAFF, PC, MISC},        /* 106 */
+    {"arcanemark", LVL_STAFF, PC, MISC},        /* 107 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -4988,6 +4989,27 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_BACKGROUND(vict) = i;
     send_to_char(ch, "You've changed %s's background archytype to %s.\r\n", GET_NAME(vict), background_list[i].name);
     send_to_char(vict, "%s has changed your background archytype to %s.\r\n", CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone", background_list[i].name);
+    break;
+
+  case 107: /* arcanemark */
+    if (!*val_arg)
+    {
+      send_to_char(ch, "Please specify 'reset' to reset a player's arcane mark.\r\n");
+      return (0);
+    }
+    if (is_abbrev(val_arg, "reset"))
+    {
+      if (GET_ARCANE_MARK(vict))
+        free(GET_ARCANE_MARK(vict));
+      GET_ARCANE_MARK(vict) = NULL;
+      send_to_char(ch, "You have reset %s's arcane mark.\r\n", GET_NAME(vict));
+      send_to_char(vict, "%s has reset your arcane mark.\r\n", CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone");
+    }
+    else
+    {
+      send_to_char(ch, "Please specify 'reset' to reset a player's arcane mark.\r\n");
+      return (0);
+    }
     break;
 
 

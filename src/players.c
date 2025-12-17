@@ -666,6 +666,8 @@ int load_char(const char *name, struct char_data *ch)
       GET_BAG_NAME(ch, i) = NULL;
     }
 
+    GET_ARCANE_MARK(ch) = NULL;
+
     for (i = 0; i < 100; i++)
     {
       ch->player_specials->saved.failed_dialogue_quests[i] = 0;
@@ -759,6 +761,12 @@ int load_char(const char *name, struct char_data *ch)
           (ch)->player_specials->saved.character_age_saved = atoi(line);
         else if (!strcmp(tag, "Alis"))
           read_aliases_ascii(fl, ch, atoi(line));
+        else if (!strcmp(tag, "AMrk"))
+        {
+          if (GET_ARCANE_MARK(ch))
+            free(GET_ARCANE_MARK(ch));
+          GET_ARCANE_MARK(ch) = strdup(line);
+        }
         break;
 
       case 'B':
@@ -2171,6 +2179,8 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_HOST(ch))
     BUFFER_WRITE( "Host: %s\n", GET_HOST(ch));
+  // save arcane mark no matter what
+  BUFFER_WRITE( "AMrk: %s\n", GET_ARCANE_MARK(ch));
   if (GET_HEIGHT(ch) != PFDEF_HEIGHT)
     BUFFER_WRITE( "Hite: %d\n", GET_HEIGHT(ch));
   if (HIGH_ELF_CANTRIP(ch))

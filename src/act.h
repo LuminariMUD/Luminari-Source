@@ -448,6 +448,7 @@ ACMD_DECL(do_rest);
 ACMD_DECL(do_sit);
 ACMD_DECL(do_recline);
 ACMD_DECL(do_sleep);
+ACMD_DECL(do_arcanemark);
 ACMD_DECL(do_stand);
 ACMD_DECL(do_wake);
 ACMD_DECL(do_pullswitch);

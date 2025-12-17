@@ -1828,6 +1828,8 @@ int ACTUAL_BAB(struct char_data *ch);
 /* i_sort determines how it is sorted in inventory */
 #define GET_OBJ_SORT(obj) ((obj)->obj_flags.i_sort)
 #define GET_BAG_NAME(ch, bagnum)  (ch->player_specials->saved.bag_names[bagnum])
+#define GET_ARCANE_MARK(ch)       ((ch)->player_specials->saved.arcane_mark)
+#define GET_OBJ_ARCANE_MARK(obj)  ((obj)->arcane_mark)
 
 /** Defines if an obj is a corpse. */
 #define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \

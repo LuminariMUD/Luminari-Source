@@ -1871,6 +1871,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_DISRUPT_UNDEAD:
+    if (!IS_UNDEAD(victim))
+    {
+      send_to_char(ch, "Your disrupt undead spell has no effect on living creatures.\r\n");
+      return (0);
+    }
     save = -1;
     mag_resist = TRUE;
     element = DAM_HOLY;

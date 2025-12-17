@@ -1674,6 +1674,7 @@ ASPELL(spell_control_weather);
 ASPELL(spell_create_water);
 ASPELL(spell_creeping_doom);
 ASPELL(spell_detect_poison);
+ASPELL(spell_arcane_mark);
 ASPELL(spell_dismissal);
 ASPELL(spell_dispel_magic);
 ASPELL(spell_dominate_person);
