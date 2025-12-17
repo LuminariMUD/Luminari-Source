@@ -34,6 +34,7 @@
 #include "act.h"      /* get_eq_score() */
 #include "feats.h"
 #include "handler.h"
+#include "spec_procs.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -54,6 +55,15 @@ static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
 static void oedit_disp_val5_menu(struct descriptor_data *d);
 static void oedit_disp_val6_menu(struct descriptor_data *d);
+static void oedit_disp_val7_menu(struct descriptor_data *d);
+static void oedit_disp_val8_menu(struct descriptor_data *d);
+static void oedit_disp_val9_menu(struct descriptor_data *d);
+static void oedit_disp_val10_menu(struct descriptor_data *d);
+static void oedit_disp_val11_menu(struct descriptor_data *d);
+static void oedit_disp_val12_menu(struct descriptor_data *d);
+static void oedit_disp_val13_menu(struct descriptor_data *d);
+static void oedit_disp_val14_menu(struct descriptor_data *d);
+static void oedit_disp_val15_menu(struct descriptor_data *d);
 // static void oedit_disp_prof_menu(struct descriptor_data *d);
 static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
@@ -249,6 +259,9 @@ void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode)
    * obj later, after editing. */
   SCRIPT(obj) = NULL;
   OLC_OBJ(d)->proto_script = NULL;
+  /* Initialize current spec proc selection from prototype index */
+  if (real_num != NOTHING)
+    OLC(d)->specobj = obj_index[real_num].func;
 }
 
 void oedit_save_internally(struct descriptor_data *d)
@@ -265,6 +278,9 @@ void oedit_save_internally(struct descriptor_data *d)
     log("oedit_save_internally: add_object failed.");
     return;
   }
+
+  /* Apply selected spec proc to prototype index */
+  obj_index[robj_num].func = OLC(d)->specobj;
 
   /* Update triggers and free old proto list  */
   if (obj_proto[robj_num].proto_script &&
@@ -1307,7 +1323,7 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
     get_char_colors(d->character);
     clear_screen(d);
     column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
-    write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n");
+    write_to_output(d, "\r\nEnter BODY apply type (0 is no apply)\r\n");
     write_to_output(d, "Please select an apply type to add to the item, or select none for nothing.\r\n");
     write_to_output(d, "Enter your choice: ");
     break;
@@ -1403,6 +1419,168 @@ static void oedit_disp_val6_menu(struct descriptor_data *d)
         write_to_output(d, "\r\n");
     }
     write_to_output(d, "\r\nEnter the bonus type for this affect : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #7 (HEAD bonuses start here) */
+static void oedit_disp_val7_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_7;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter HEAD apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the helm, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #8 */
+static void oedit_disp_val8_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_8;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "HEAD apply modifier amount: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #9 */
+static void oedit_disp_val9_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_9;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for HEAD affect : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #10 (ARMS bonuses start here) */
+static void oedit_disp_val10_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_10;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter ARMS apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the sleeves, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #11 */
+static void oedit_disp_val11_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_11;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "ARMS apply modifier amount: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #12 */
+static void oedit_disp_val12_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_12;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for ARMS affect : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #13 (LEGS bonuses start here) */
+static void oedit_disp_val13_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_13;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter LEGS apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the leggings, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #14 */
+static void oedit_disp_val14_menu(struct descriptor_data *d)
+{
+  OLC_MODE(d) = OEDIT_VALUE_14;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "LEGS apply modifier amount: ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #15 */
+static void oedit_disp_val15_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_15;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for LEGS affect : ");
     break;
   default:
     oedit_disp_menu(d);
@@ -1657,6 +1835,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
   struct obj_data *obj = OLC_OBJ(d);
   // int i = 0;
   size_t len = 0;
+  const char *specname = NULL;
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -1668,6 +1847,12 @@ static void oedit_disp_menu(struct descriptor_data *d)
   sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf2);
 
   /* Build first half of menu. */
+  /* Current spec proc name (from OLC selection if any, else from index) */
+  if (GET_OBJ_RNUM(obj) != NOTHING)
+    specname = get_spec_func_name(OLC(d)->specobj ? OLC(d)->specobj : obj_index[GET_OBJ_RNUM(obj)].func);
+  else
+    specname = get_spec_func_name(OLC(d)->specobj);
+
   write_to_output(d,
                   "-- Item number : [%s%d%s]\r\n"
                   "%s1%s) Keywords : %s%s\r\n"
@@ -1793,6 +1978,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%sT%s) Spellbook menu\r\n"
                   "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
                   "%sSuggested affections (save/exit first): %s%s\r\n"
+                  "%sZ%s) SpecProc               : %s%s\r\n"
                   "%sW%s) Copy object\r\n"
                   "%sX%s) Delete object\r\n"
                   "%sQ%s) Quit\r\n"
@@ -1827,6 +2013,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   grn, nrm,                                                                          /* spellbook */
                   nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? -999 : get_eq_score(GET_OBJ_RNUM(obj)), /* eq rating */
                   nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? "save/exit first" : buf3,               /* suggestions */
+                  grn, nrm, cyn, specname ? specname : "None",
                   grn, nrm,                                                                          /* copy object */
                   grn, nrm,                                                                          /* delete object */
                   grn, nrm                                                                           /* quite */
@@ -1846,6 +2033,32 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   switch (OLC_MODE(d))
   {
+  case OEDIT_SPEC_PROC: {
+    int choice = atoi(arg);
+    if (!*arg) {
+      write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
+      return;
+    }
+    if (*arg == 'q' || *arg == 'Q') {
+      oedit_disp_menu(d);
+      return;
+    }
+    if (choice == 0) {
+      OLC(d)->specobj = NULL;
+      OLC_VAL(d) = 1;
+      oedit_disp_menu(d);
+      return;
+    }
+    choice--;
+    if (choice < 0 || choice >= get_spec_func_count()) {
+      write_to_output(d, "Invalid selection. Try again: ");
+      return;
+    }
+    OLC(d)->specobj = get_spec_func_by_index(choice);
+    OLC_VAL(d) = 1;
+    oedit_disp_menu(d);
+    return;
+  }
 
   case OEDIT_CONFIRM_SAVESTRING:
     switch (*arg)
@@ -1885,6 +2098,20 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     /* Throw us out to whichever edit mode based on user input. */
     switch (*arg)
     {
+        case 'z':
+        case 'Z': {
+          int count = get_spec_func_count();
+          int n;
+          clear_screen(d);
+          write_to_output(d, "Spec Procedures (0 = None)\r\n");
+          for (n = 0; n < count; n++) {
+            write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
+                           ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
+          }
+          write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
+          OLC_MODE(d) = OEDIT_SPEC_PROC;
+          return;
+        }
     case 'q':
     case 'Q':
       if (STATE(d) != CON_IEDIT)
@@ -2160,7 +2387,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       GET_OBJ_TYPE(OLC_OBJ(d)) = number;
     /* what's the boundschecking worth if we don't do this ? -- Welcor */
     GET_OBJ_VAL(OLC_OBJ(d), 0) = GET_OBJ_VAL(OLC_OBJ(d), 1) =
-        GET_OBJ_VAL(OLC_OBJ(d), 2) = GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
+    GET_OBJ_VAL(OLC_OBJ(d), 2) = GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
+    if (number == ITEM_TREASURE_CHEST)
+      REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE); /* chests can't be taken */
     break;
 
   case OEDIT_PROF:
@@ -2547,6 +2776,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       max_val = 80;
       break;
     case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
       if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
             || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
             || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
@@ -2554,9 +2787,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         return;
       }
-      min_val = 0;
-      max_val = NUM_APPLIES;
-      number--;
       break;
     case ITEM_SCROLL:
     case ITEM_POTION:
@@ -2663,13 +2893,199 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case ITEM_GEAR_OUTFIT:
       min_val = 0;
       max_val = NUM_BONUS_TYPES - 1;
-      break;
+      GET_OBJ_VAL(OLC_OBJ(d), 5) = LIMIT(number, min_val, max_val);
+      oedit_disp_val7_menu(d);
+      return;
     default:
       min_val = -65000;
       max_val = 65000;
       break;
     }
     GET_OBJ_VAL(OLC_OBJ(d), 5) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_7:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        oedit_disp_val7_menu(d);
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_HEAD_APPLY_LOC) = number;
+      oedit_disp_val8_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 6) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_8:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_HEAD_APPLY_MOD) = number;
+      oedit_disp_val9_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 7) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_9:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      GET_OBJ_VAL(OLC_OBJ(d), 8) = LIMIT(number, min_val, max_val);
+      oedit_disp_val10_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 8) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_10:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        oedit_disp_val10_menu(d);
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_ARMS_APPLY_LOC) = number;
+      oedit_disp_val11_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 9) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_11:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_ARMS_APPLY_MOD) = number;
+      oedit_disp_val12_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 10) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_12:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      GET_OBJ_VAL(OLC_OBJ(d), 11) = LIMIT(number, min_val, max_val);
+      oedit_disp_val13_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 11) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_13:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      number--;
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number = LIMIT(number, min_val, max_val);
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        oedit_disp_val13_menu(d);
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_LEGS_APPLY_LOC) = number;
+      oedit_disp_val14_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 12) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_14:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_LEGS_APPLY_MOD) = number;
+      oedit_disp_val15_menu(d);
+      return;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 13) = LIMIT(number, min_val, max_val);
+    break;
+
+  case OEDIT_VALUE_15:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      break;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 14) = LIMIT(number, min_val, max_val);
     break;
 
     //    }

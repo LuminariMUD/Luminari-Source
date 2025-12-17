@@ -178,6 +178,8 @@ typedef enum
   eTINKER, // use the rock gnome tinker ability
   eMOONBEAM,                        // moon beam spell lingering effect
   eDRAGBREATH,                      // Dragonborn breath weapon
+  eMANYSHOT,                      // Manyshot command cooldown (Ranger Hunter Perk)
+  eARROW_STORM,                     // Arrow Storm (Ranger Hunter Capstone) cooldown
   eCATSCLAWS,                       // tabaxi Cats Claws ability
   eSTONESENDURANCE,                 // goliath stones endurance ability
   eAQUEOUSORB,                      // aqueous orb spell
@@ -197,11 +199,18 @@ typedef enum
   eDRAGOONPOINTS,                   // dragoon points
   eC_DRAGONMOUNT,                   // call dragon mount
   eREGENERATION,                    // resource regeneration event
-  eDEVISE_CREATION,                 // artificer invention creation
-  eDEVISE_PROGRESS,                 // artificer invention creation progress updates
+  eDEVICE_CREATION,                 // artificer device creation
+  eDEVICE_PROGRESS,                 // artificer device creation progress updates
   eBREWING,                         /* Potion brewing event */
-  /*210*/ eBEACON_OF_HOPE,          /* Beacon of Hope daily cooldown */
+  eBEACON_OF_HOPE,                  /* Beacon of Hope daily cooldown */
   eFIST_OF_FOUR_THUNDERS,           /* Fist of Four Thunders lightning strike */
+  eSAVAGE_CHARGE_USED,              /* Savage Charge used this rage */
+  eDIVINE_SACRIFICE,                /* Divine Sacrifice damage transfer cooldown */
+  eRADIANT_AURA,                    /* Radiant Aura periodic undead damage */
+  ePALADIN_CHANNEL_ENERGY,          /* Paladin Channel Energy perk daily uses */
+  eMASS_CURE_WOUNDS,                /* Mass Cure Wounds daily uses */
+  eFERAL_CHARGE_USED,               /* Beast Master Feral Charge used this combat */
+  eDEVICE_REPAIR,                   // artificer device repair
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -233,6 +242,7 @@ struct mud_event_data
 /* Externals */
 extern struct list_data *world_events;
 extern struct mud_event_list mud_event_index[];
+extern const size_t mud_event_index_count;
 
 /* Local Functions */
 void init_events(void);
@@ -283,4 +293,7 @@ EVENTFUNC(event_dancing_weapon);
 EVENTFUNC(event_holy_javelin);
 EVENTFUNC(event_moonbeam);
 EVENTFUNC(event_aqueous_orb);
+EVENTFUNC(event_device_progress);
+EVENTFUNC(event_device_creation);
+EVENTFUNC(event_device_repair);
 #endif /* _MUD_EVENT_H_ */

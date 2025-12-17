@@ -568,7 +568,7 @@
 #define SPELL_MASS_CHARM_MONSTER 487
 #define SPELL_GENIEKIND 488
 #define SPELL_GRAND_DESTINY 489
-#define SPELL_BALL_OF_LIGHT 490
+#define SPELL_UNUSED_SPELL_490 490
 #define SPELL_TOUCH_OF_FATIGUE 491
 #define SPELL_LESSER_REJUVENATE_EIDOLON 492
 #define SPELL_REJUVENATE_EIDOLON 493
@@ -589,9 +589,26 @@
 #define SPELL_HOLY_AURA 508
 #define SPELL_FLAME_ARROW 509
 #define SPELL_MASS_IDENTIFY 510
+#define SPELL_FIRE_BOLT 511
+#define SPELL_JOLT 512
+#define SPELL_DISRUPT_UNDEAD 513
+#define SPELL_ARCANE_MARK 514
+#define SPELL_UNUSED_515 515
+#define SPELL_ENHANCED_DIPLOMACY 516
+#define SPELL_FLARE 517
+#define SPELL_GRASP 518
+#define SPELL_GUIDANCE 519
+#define SPELL_LULLABY 520
+#define SPELL_ROOT 521
+#define SPELL_STABILIZE 522
+#define SPELL_SUMMON_INSTRUMENT 523
+#define SPELL_VIRTUE 524
+#define SPELL_SPLINTER_STORM 525
+#define SPELL_SHOCKWAVE 526
+#define SPELL_POISON_BREATH 527
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 511
+#define NUM_SPELLS 528
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1130,9 +1147,30 @@
 #define SKILL_RIVER_OF_HUNGRY_FLAME 2215 // Way of Four Elements - river of hungry flame (wall of fire)
 #define SKILL_BREATH_OF_WINTER 2216 // Way of Four Elements - breath of winter (AoE cold, slow)
 #define SKILL_ELEMENTAL_EMBODIMENT 2217 // Way of Four Elements - elemental embodiment (transform)
+#define SKILL_HARDY 2218 // Berserker Occult Slayer perk
+#define SKILL_SPRINT 2219 // Berserker Primal Warrior sprint ability
+#define SKILL_RECKLESS_ABANDON 2220 // Berserker Primal Warrior - Tier 3
+#define SKILL_WAR_CRY 2221 // Berserker Primal Warrior - Tier 4
+#define SKILL_WAR_CRY_ALLY 2222 // War Cry buff for allies
+#define SKILL_WAR_CRY_ENEMY 2223 // War Cry debuff for enemies
+#define SKILL_EARTHSHAKER 2224 // Berserker Primal Warrior - Tier 4
+#define SKILL_FAITHFUL_STRIKE 2225 // Paladin Knight of the Chalice - Tier 1
+#define SKILL_HOLY_BLADE 2226 // Paladin Knight of the Chalice - Tier 2
+#define SKILL_DIVINE_MIGHT 2227 // Paladin Knight of the Chalice - Tier 3
+#define SKILL_SACRED_VENGEANCE 2228 // Paladin Knight of the Chalice - Tier 4
+#define SKILL_DEFENSIVE_STRIKE 2229 // Paladin Sacred Defender - Tier 1
+#define SKILL_MERCIFUL_TOUCH 2230 // Paladin Sacred Defender - Tier 3 (HP buff)
+#define SKILL_BASTION 2231 // Paladin Sacred Defender - Tier 3 (defensive buff)
+#define SKILL_RADIANT_AURA 2232 // Paladin Divine Champion - Tier 1 (undead damage aura)
+#define SKILL_PALADIN_CHANNEL_ENERGY 2233 // Paladin Divine Champion - Tier 2 (channel energy cooldown)
+#define SKILL_MASS_CURE_WOUNDS 2234 // Paladin Divine Champion - Tier 4 (healing burst)
+#define SKILL_HOLY_AVENGER 2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
+#define SKILL_BEACON_OF_HOPE 2236 // Paladin Divine Champion - Tier 4 (party buff)
+#define SKILL_APPLY_NATURES_WRATH_DAMAGE 2237 /* Custom: +2d8 damage for Nature's Wrath */
+#define WARLOCK_CHILLING_TENTACLES_COLD 2238 /* Custom: Cold damage for Chilling Tentacles */
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2218
+#define NUM_SKILLS 2239 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 
@@ -1379,6 +1417,7 @@
 #define ABILITY_DISGUISE 24         /* diguise, matches pfsrd */
 #define ABILITY_UNUSED_2 25         /* unused, used to be escape artist */
 #define ABILITY_HANDLE_ANIMAL 26    /* handle animal, matches pfsrd */
+#define ABILITY_ANIMAL_HANDLING ABILITY_HANDLE_ANIMAL
 #define ABILITY_UNUSED_7 27         /* UNUSED - use to be jump */
 #define ABILITY_SENSE_MOTIVE 28     /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
@@ -1576,6 +1615,8 @@ struct spell_info_type
         bool cant_cast;  // is this spell castable?
         bool touch_spell; // Is the spell a touch spell?
 
+        bool is_cantrip;   // Cast-at-will cantrip (circle 0, no slots/prep)
+
         bool actual_ability; // is this a learnable or obtainable ability or is it just a spell effect?
 };
 
@@ -1633,6 +1674,7 @@ ASPELL(spell_control_weather);
 ASPELL(spell_create_water);
 ASPELL(spell_creeping_doom);
 ASPELL(spell_detect_poison);
+ASPELL(spell_arcane_mark);
 ASPELL(spell_dismissal);
 ASPELL(spell_dispel_magic);
 ASPELL(spell_dominate_person);
@@ -1657,6 +1699,7 @@ ASPELL(spell_salvation);
 ASPELL(spell_spellstaff);
 ASPELL(spell_storm_of_vengeance);
 ASPELL(spell_summon);
+ASPELL(spell_summon_instrument);
 ASPELL(spell_teleport);
 ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);
@@ -1804,6 +1847,8 @@ void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
+sbyte canCastAtWill(struct char_data *ch, int spellnum);
+bool spell_is_cantrip(int spellnum);
 bool is_spell_mind_affecting(int snum);
 bool can_spell_be_extended(int spellnum);
 
@@ -1811,7 +1856,6 @@ bool can_spell_be_extended(int spellnum);
 bool isSummonMob(int vnum);
 
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum);
-sbyte canCastAtWill(struct char_data *ch, int spellnum);
 sbyte isLunarMagic(struct char_data *ch, int spellnum);
 sbyte isWarlockMagic(struct char_data *ch, int spellnum);
 sbyte isDrowMagic(struct char_data *ch, int spellnum);
@@ -1829,6 +1873,7 @@ bool isThornMagic(struct char_data *ch, int spellnum);
 bool isSkullMagic(struct char_data *ch, int spellnum);
 bool isDragonRiderMagic(struct char_data *ch, int spellnum);
 bool isBozakMagic(struct char_data *ch, int spellnum);
+int find_cantrip_class(struct char_data *ch, int spellnum);
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call);

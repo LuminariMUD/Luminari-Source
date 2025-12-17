@@ -28,8 +28,6 @@
 
 #include "spells.h"
 
-/* External function from class.c */
-extern int level_exp(struct char_data *ch, int level);
 #include "interpreter.h"
 #include "constants.h"
 #include "perks.h"
@@ -60,16 +58,12 @@ const char *perk_category_names[] = {
   "Perfect Self",           /* 14 - PERK_CATEGORY_PERFECT_SELF */
   "Way of the Open Hand",   /* 15 - PERK_CATEGORY_WAY_OF_THE_OPEN_HAND */
   "Way of the Shadow",      /* 16 - PERK_CATEGORY_WAY_OF_THE_SHADOW */
-  "Way of the Four Elements", /* 17 - PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS */
-  "Hunter",                 /* 18 - PERK_CATEGORY_HUNTER */
-  "Beast Master",           /* 19 - PERK_CATEGORY_BEAST_MASTER */
-  "Wilderness Warrior",     /* 20 - PERK_CATEGORY_WILDERNESS_WARRIOR */
-  "Nature's Warrior",       /* 21 - PERK_CATEGORY_NATURES_WARRIOR */
-  "Season's Herald",        /* 22 - PERK_CATEGORY_SEASONS_HERALD */
-  "Nature's Protector",     /* 23 - PERK_CATEGORY_NATURES_PROTECTOR */
-  "Berserker",              /* 24 - PERK_CATEGORY_BERSERKER */
-  "Totem Warrior",          /* 25 - PERK_CATEGORY_TOTEM_WARRIOR */
-  "Primal Champion",        /* 26 - PERK_CATEGORY_PRIMAL_CHAMPION */
+  "Hunter",                 /* 17 - PERK_CATEGORY_HUNTER */
+  "Beast Master",           /* 18 - PERK_CATEGORY_BEAST_MASTER */
+  "Wilderness Warrior",     /* 19 - PERK_CATEGORY_WILDERNESS_WARRIOR */
+  "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
+  "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
+  "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
   "\n"                      /* Terminator */
 };
 
@@ -124,8 +118,8 @@ void init_perks(void)
   /* Define Monk Perks */
   define_monk_perks();
   
-  /* Define Druid Perks */
-  define_druid_perks();
+  /* Define Paladin Perks */
+  define_paladin_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
@@ -552,7 +546,7 @@ void define_fighter_perks(void)
   perk = &perk_list[PERK_FIGHTER_IMMOVABLE_OBJECT];
   perk->id = PERK_FIGHTER_IMMOVABLE_OBJECT;
   perk->name = strdup("Immovable Object");
-  perk->description = strdup("DR 6/-, immunity to knockdown and bull rush");
+  perk->description = strdup("DR 6/-, immunity to knockdown");
   perk->associated_class = CLASS_WARRIOR;
   perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 5;
@@ -562,14 +556,14 @@ void define_fighter_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 6;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Increases DR to 6/- (replaces Defensive Stance DR) and grants immunity to knockdown and bull rush");
+  perk->special_description = strdup("Increases DR to 6/- (replaces Defensive Stance DR) and grants immunity to knockdown");
   perk->toggleable = true; /* Can be toggled on/off like Defensive Stance */
   
   /* Last Stand */
   perk = &perk_list[PERK_FIGHTER_LAST_STAND];
   perk->id = PERK_FIGHTER_LAST_STAND;
   perk->name = strdup("Last Stand");
-  perk->description = strdup("Once per day, when reduced to 0 HP, stay at 1 HP for 5 rounds");
+  perk->description = strdup("33% chance when reduced to 0 HP to survive at 1 HP");
   perk->associated_class = CLASS_WARRIOR;
   perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 5;
@@ -579,7 +573,7 @@ void define_fighter_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Once per day, when HP drops to 0 or below, remain at 1 HP for 5 rounds. Requires max Toughness I and max Resilience.");
+  perk->special_description = strdup("When HP drops to 0 or below, you have a 33% chance to remain at 1 HP instead of dying. Requires max Toughness I and max Resilience.");
   
   /*** TREE 3: TACTICAL FIGHTER - TIER I ***/
   
@@ -1065,7 +1059,7 @@ void define_wizard_perks(void)
   perk = &perk_list[PERK_WIZARD_SPELL_CRITICAL_1];
   perk->id = PERK_WIZARD_SPELL_CRITICAL_1;
   perk->name = strdup("Spell Critical I");
-  perk->description = strdup("Damage spells have 5% chance to deal double damage");
+  perk->description = strdup("Damage spells have 5% chance to deal 1.5x damage");
   perk->associated_class = CLASS_WIZARD;
   perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
@@ -1075,7 +1069,7 @@ void define_wizard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 5; /* 5% chance */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Spell Power I (at least 3 ranks). Damaging spells have a 5% chance to critically strike for double damage.");
+  perk->special_description = strdup("Requires Spell Power I (at least 3 ranks). Damaging spells have a 5% chance to critically strike for 1.5x damage.");
   
   /* Maximize Spell */
   perk = &perk_list[PERK_WIZARD_MAXIMIZE_SPELL];
@@ -3550,6 +3544,7 @@ void define_ranger_perks(void)
   perk->name = strdup("Favored Enemy Enhancement I");
   perk->description = strdup("+1 damage vs. favored enemy");
   perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3565,6 +3560,7 @@ void define_ranger_perks(void)
   perk->name = strdup("Toughness");
   perk->description = strdup("+5 HP per rank");
   perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -3580,6 +3576,7 @@ void define_ranger_perks(void)
   perk->name = strdup("Bow Mastery I");
   perk->description = strdup("+1 to hit with bows");
   perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3588,6 +3585,720 @@ void define_ranger_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Bonus to hit with bow weapons");
+  
+  /*** HUNTER TREE - TIER I ***/
+  
+  /* Archer's Focus I */
+  perk = &perk_list[PERK_RANGER_ARCHERS_FOCUS_I];
+  perk->id = PERK_RANGER_ARCHERS_FOCUS_I;
+  perk->name = strdup("Archer's Focus I");
+  perk->description = strdup("+1 to hit with ranged weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit with ranged weapons per rank");
+  
+  /* Steady Aim I */
+  perk = &perk_list[PERK_RANGER_STEADY_AIM_I];
+  perk->id = PERK_RANGER_STEADY_AIM_I;
+  perk->name = strdup("Steady Aim I");
+  perk->description = strdup("+1 damage with ranged weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage with ranged weapons per rank");
+  
+  /* Quick Draw */
+  perk = &perk_list[PERK_RANGER_QUICK_DRAW];
+  perk->id = PERK_RANGER_QUICK_DRAW;
+  perk->name = strdup("Quick Draw");
+  perk->description = strdup("Grants a 5% chance per rank to immediately fire an extra arrow/missile on ranged attacks");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("On ranged attacks, 5% chance per rank to make one extra immediate shot");
+  
+  /* Improved Critical: Ranged I */
+  perk = &perk_list[PERK_RANGER_IMPROVED_CRITICAL_RANGED_I];
+  perk->id = PERK_RANGER_IMPROVED_CRITICAL_RANGED_I;
+  perk->name = strdup("Improved Critical: Ranged I");
+  perk->description = strdup("+1 critical threat range with ranged weapons (19-20 becomes 18-20)");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_CRITICAL_CHANCE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Expands critical threat range with ranged weapons by 1");
+  
+  /*** HUNTER TREE - TIER II ***/
+  
+  /* Archer's Focus II */
+  perk = &perk_list[PERK_RANGER_ARCHERS_FOCUS_II];
+  perk->id = PERK_RANGER_ARCHERS_FOCUS_II;
+  perk->name = strdup("Archer's Focus II");
+  perk->description = strdup("Additional +2 to hit with ranged weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_ARCHERS_FOCUS_I;
+  perk->prerequisite_rank = 3; /* Requires Archer's Focus I at max rank */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+2 to hit with ranged weapons per rank (stacks with Archer's Focus I)");
+  
+  /* Deadly Aim */
+  perk = &perk_list[PERK_RANGER_DEADLY_AIM];
+  perk->id = PERK_RANGER_DEADLY_AIM;
+  perk->name = strdup("Deadly Aim");
+  perk->description = strdup("Arrows/bolts ignore 5 points of DR per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_STEADY_AIM_I;
+  perk->prerequisite_rank = 1; /* Requires Steady Aim I (1 rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ranged attacks ignore 5 points of damage reduction per rank");
+  
+  /* Manyshot */
+  perk = &perk_list[PERK_RANGER_MANYSHOT];
+  perk->id = PERK_RANGER_MANYSHOT;
+  perk->name = strdup("Manyshot");
+  perk->description = strdup("Once per combat, fire an additional arrow at your target (does not consume ammunition)");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_QUICK_DRAW;
+  perk->prerequisite_rank = 2; /* Requires Quick Draw (2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Special ranged attack ability usable once per combat");
+  
+  /* Hunter's Mark */
+  perk = &perk_list[PERK_RANGER_HUNTERS_MARK];
+  perk->id = PERK_RANGER_HUNTERS_MARK;
+  perk->name = strdup("Hunter's Mark");
+  perk->description = strdup("Mark a target for 5 rounds; +2 to hit and +1d6 damage against marked target");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ARCHERS_FOCUS_I;
+  perk->prerequisite_rank = 1; /* Requires Archer's Focus I (1 rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Marks target for 5 rounds granting +2 to hit and +1d6 damage");
+
+  /*** HUNTER TREE - TIER III ***/
+
+  /* Improved Manyshot */
+  perk = &perk_list[PERK_RANGER_IMPROVED_MANYSHOT];
+  perk->id = PERK_RANGER_IMPROVED_MANYSHOT;
+  perk->name = strdup("Improved Manyshot");
+  perk->description = strdup("Manyshot fires 2 additional arrows and has reduced cooldown");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_MANYSHOT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 additional arrows */
+  perk->effect_modifier = 0; /* cooldown handled in code */
+  perk->special_description = strdup("Upgrades Manyshot: +2 arrows, shorter cooldown (approx. twice per combat)");
+
+  /* Sniper */
+  perk = &perk_list[PERK_RANGER_SNIPER];
+  perk->id = PERK_RANGER_SNIPER;
+  perk->name = strdup("Sniper");
+  perk->description = strdup("Critical hits with ranged weapons deal +2d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_IMPROVED_CRITICAL_RANGED_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 on crits */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ranged weapon critical hits deal +2d6 damage");
+
+  /* Longshot */
+  perk = &perk_list[PERK_RANGER_LONGSHOT];
+  perk->id = PERK_RANGER_LONGSHOT;
+  perk->name = strdup("Longshot");
+  perk->description = strdup("Increase effective range by 50%; ignore long range penalties");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ARCHERS_FOCUS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* +50% range - future hook */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Future hook: extends ranged bands and removes long-range penalties");
+
+  /* Pinpoint Accuracy */
+  perk = &perk_list[PERK_RANGER_PINPOINT_ACCURACY];
+  perk->id = PERK_RANGER_PINPOINT_ACCURACY;
+  perk->name = strdup("Pinpoint Accuracy");
+  perk->description = strdup("Ignore cover and concealment with ranged attacks");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_DEADLY_AIM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ranged attacks ignore concealment and cover where applicable");
+
+  /*** HUNTER TREE - TIER IV (CAPSTONES) ***/
+
+  /* Master Archer */
+  perk = &perk_list[PERK_RANGER_MASTER_ARCHER];
+  perk->id = PERK_RANGER_MASTER_ARCHER;
+  perk->name = strdup("Master Archer");
+  perk->description = strdup("Ranged crit range becomes 19-20; critical multiplier becomes x4");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_SNIPER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Capstone: 19-20 crits and x4 crit multiplier for ranged attacks");
+
+  /* Arrow Storm */
+  perk = &perk_list[PERK_RANGER_ARROW_STORM];
+  perk->id = PERK_RANGER_ARROW_STORM;
+  perk->name = strdup("Arrow Storm");
+  perk->description = strdup("Once per day: hit all enemies in the room for 6d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_HUNTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_IMPROVED_MANYSHOT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6; /* 6d6 damage */
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Capstone active: 'arrowstorm' command to deal 6d6 to all foes in room, 24h cooldown");
+
+  /*** BEAST MASTER TREE - TIER I ***/
+
+  /* Enhanced Companion I */
+  perk = &perk_list[PERK_RANGER_ENHANCED_COMPANION_I];
+  perk->id = PERK_RANGER_ENHANCED_COMPANION_I;
+  perk->name = strdup("Enhanced Companion I");
+  perk->description = strdup("Animal companion gains +5 HP and +1 AC per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 HP per rank */
+  perk->effect_modifier = 1; /* +1 AC per rank */
+  perk->special_description = strdup("Animal companion gains +5 HP and +1 AC per rank");
+
+  /* Pack Tactics I */
+  perk = &perk_list[PERK_RANGER_PACK_TACTICS_I];
+  perk->id = PERK_RANGER_PACK_TACTICS_I;
+  perk->name = strdup("Pack Tactics I");
+  perk->description = strdup("You and your animal companion gain +1 to hit when flanking the same enemy per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit when you and your companion attack the same target per rank");
+
+  /* Natural Empathy I */
+  perk = &perk_list[PERK_RANGER_NATURAL_EMPATHY_I];
+  perk->id = PERK_RANGER_NATURAL_EMPATHY_I;
+  perk->name = strdup("Natural Empathy I");
+  perk->description = strdup("+2 bonus to all Animal Handling and Animal Empathy checks per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 2; /* +2 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Enhances animal-related skill checks");
+
+  /* Spell Focus: Conjuration I */
+  perk = &perk_list[PERK_RANGER_SPELL_FOCUS_CONJURATION_I];
+  perk->id = PERK_RANGER_SPELL_FOCUS_CONJURATION_I;
+  perk->name = strdup("Spell Focus: Conjuration I");
+  perk->description = strdup("+1 DC to conjuration spells (includes summon spells) per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases DC of conjuration spells including summons");
+
+  /*** BEAST MASTER TREE - TIER II ***/
+
+  /* Enhanced Companion II */
+  perk = &perk_list[PERK_RANGER_ENHANCED_COMPANION_II];
+  perk->id = PERK_RANGER_ENHANCED_COMPANION_II;
+  perk->name = strdup("Enhanced Companion II");
+  perk->description = strdup("Animal companion gains +10 HP, +2 AC, and +2 to hit per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_ENHANCED_COMPANION_I;
+  perk->prerequisite_rank = 3; /* Requires Enhanced Companion I at max rank */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10 HP per rank */
+  perk->effect_modifier = 2; /* +2 AC and +2 to-hit per rank */
+  perk->special_description = strdup("Companion gains +10 HP, +2 AC, and +2 to hit per rank (stacks with Enhanced Companion I)");
+
+  /* Feral Charge */
+  perk = &perk_list[PERK_RANGER_FERAL_CHARGE];
+  perk->id = PERK_RANGER_FERAL_CHARGE;
+  perk->name = strdup("Feral Charge");
+  perk->description = strdup("Animal companion's first attack each combat deals +2d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_PACK_TACTICS_I;
+  perk->prerequisite_rank = 2; /* Requires Pack Tactics I (2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 */
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Companion's opening attack in each combat deals +2d6 damage");
+
+  /* Nature's Remedy */
+  perk = &perk_list[PERK_RANGER_NATURES_REMEDY];
+  perk->id = PERK_RANGER_NATURES_REMEDY;
+  perk->name = strdup("Nature's Remedy");
+  perk->description = strdup("Healing spells cast by you are 25% more effective per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_SPELL_FOCUS_CONJURATION_I;
+  perk->prerequisite_rank = 1; /* Requires Spell Focus: Conjuration I (1 rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25; /* +25% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Healing spells you cast are 25% more effective per rank");
+
+  /* Shared Spells */
+  perk = &perk_list[PERK_RANGER_SHARED_SPELLS];
+  perk->id = PERK_RANGER_SHARED_SPELLS;
+  perk->name = strdup("Shared Spells");
+  perk->description = strdup("Beneficial spells cast on yourself also affect your animal companion");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ENHANCED_COMPANION_I;
+  perk->prerequisite_rank = 2; /* Requires Enhanced Companion I (2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Personal buffs automatically extend to your companion");
+
+  /*** BEAST MASTER TREE - TIER III ***/
+
+  /* Alpha Bond */
+  perk = &perk_list[PERK_RANGER_ALPHA_BOND];
+  perk->id = PERK_RANGER_ALPHA_BOND;
+  perk->name = strdup("Alpha Bond");
+  perk->description = strdup("Your animal companion gains +3 to all saves and immunity to fear");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ENHANCED_COMPANION_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 to saves */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Companion gains +3 to all saves and immunity to fear");
+
+  /* Coordinated Attack */
+  perk = &perk_list[PERK_RANGER_COORDINATED_ATTACK];
+  perk->id = PERK_RANGER_COORDINATED_ATTACK;
+  perk->name = strdup("Coordinated Attack");
+  perk->description = strdup("When you and your companion attack the same target, both gain +2d4 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_PACK_TACTICS_I;
+  perk->prerequisite_rank = 3; /* Requires Pack Tactics I (max rank) AND Feral Charge (checked separately) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d4 */
+  perk->effect_modifier = 4;
+  perk->special_description = strdup("Requires: Pack Tactics I (max rank) and Feral Charge. You and companion both gain +2d4 damage when attacking same target");
+
+  /* Primal Vigor */
+  perk = &perk_list[PERK_RANGER_PRIMAL_VIGOR];
+  perk->id = PERK_RANGER_PRIMAL_VIGOR;
+  perk->name = strdup("Primal Vigor");
+  perk->description = strdup("You and your animal companion regenerate 1 HP per round in combat");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_NATURES_REMEDY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1 HP per round */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("You and your companion regenerate 1 HP per round during combat");
+
+  /* Greater Summons */
+  perk = &perk_list[PERK_RANGER_GREATER_SUMMONS];
+  perk->id = PERK_RANGER_GREATER_SUMMONS;
+  perk->name = strdup("Greater Summons");
+  perk->description = strdup("All summoned creatures have +25% HP, +4 to attack rolls and deal +1d6 damage");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_SPELL_FOCUS_CONJURATION_I;
+  perk->prerequisite_rank = 2; /* Requires Spell Focus: Conjuration I (max rank) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25; /* +25% HP */
+  perk->effect_modifier = 4; /* +4 to attack rolls */
+  perk->special_description = strdup("All summoned creatures gain +25% HP, +4 to attack rolls, and +1d6 damage");
+
+  /*** BEAST MASTER TREE - TIER IV (CAPSTONES) ***/
+
+  /* Primal Avatar */
+  perk = &perk_list[PERK_RANGER_PRIMAL_AVATAR];
+  perk->id = PERK_RANGER_PRIMAL_AVATAR;
+  perk->name = strdup("Primal Avatar");
+  perk->description = strdup("Your animal companion becomes a Primal Beast: +50 HP, +5 AC, +5 to hit, attacks deal +3d6 damage, immune to mind-affecting");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_ALPHA_BOND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* +50 HP */
+  perk->effect_modifier = 5; /* +5 AC/to-hit, +3d6 damage handled separately */
+  perk->special_description = strdup("Capstone: Companion becomes Primal Beast with massive bonuses and mind-affecting immunity");
+
+  /* Nature's Wrath */
+  perk = &perk_list[PERK_RANGER_NATURES_WRATH];
+  perk->id = PERK_RANGER_NATURES_WRATH;
+  perk->name = strdup("Nature's Wrath");
+  perk->description = strdup("Once per day: you and your companion gain +4 to all stats, +2d8 damage on all attacks, and fast healing 5 for 10 rounds");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_BEAST_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_COORDINATED_ATTACK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 to stats */
+  perk->effect_modifier = 10; /* 10 rounds duration */
+  perk->special_description = strdup("Capstone active: 'natureswrath' command grants powerful temporary bonuses to you and companion, 24h cooldown");
+
+  /*** WILDERNESS WARRIOR TREE (partial) ***/
+
+  /* Favored Enemy Slayer */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_SLAYER];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->name = strdup("Favored Enemy Slayer");
+  perk->description = strdup("+2 to hit against favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL; /* handled in combat code */
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +2 to-hit vs favored enemies");
+
+  /* Apex Predator (capstone) */
+  perk = &perk_list[PERK_RANGER_APEX_PREDATOR];
+  perk->id = PERK_RANGER_APEX_PREDATOR;
+  perk->name = strdup("Apex Predator");
+  perk->description = strdup("+5 to hit against favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_SLAYER; /* reasonable prerequisite */
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL; /* handled in combat code */
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Capstone: +5 to-hit vs favored enemies");
+
+  /*** WILDERNESS WARRIOR TREE - TIER I ***/
+
+  /* Two-Weapon Focus I */
+  perk = &perk_list[PERK_RANGER_TWO_WEAPON_FOCUS_I];
+  perk->id = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->name = strdup("Two-Weapon Focus I");
+  perk->description = strdup("+1 to attacks when dual wielding, per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit when dual wielding per rank");
+
+  /* Dual Strike I */
+  perk = &perk_list[PERK_RANGER_DUAL_STRIKE_I];
+  perk->id = PERK_RANGER_DUAL_STRIKE_I;
+  perk->name = strdup("Dual Strike I");
+  perk->description = strdup("+1 damage with off-hand weapon per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage with off-hand weapon per rank");
+
+  /* Favored Enemy Mastery I */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_MASTERY_I];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_MASTERY_I;
+  perk->name = strdup("Favored Enemy Mastery I");
+  perk->description = strdup("+1 damage vs favored enemies per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage vs favored enemies per rank");
+
+  /* Ranger Toughness I */
+  perk = &perk_list[PERK_RANGER_RANGER_TOUGHNESS_I];
+  perk->id = PERK_RANGER_RANGER_TOUGHNESS_I;
+  perk->name = strdup("Ranger Toughness I");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+5 HP per rank");
+
+  /*** WILDERNESS WARRIOR TREE - TIER II ***/
+
+  /* Two-Weapon Focus II */
+  perk = &perk_list[PERK_RANGER_TWO_WEAPON_FOCUS_II];
+  perk->id = PERK_RANGER_TWO_WEAPON_FOCUS_II;
+  perk->name = strdup("Two-Weapon Focus II");
+  perk->description = strdup("+1 damage when dual wielding per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage when dual wielding per rank (stacks with TWF I)");
+
+  /* Wilderness Warrior Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Wilderness Warrior Two-Weapon Fighting");
+  perk->description = strdup("10% chance to gain an additional off-hand attack per round");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% chance per round for an extra off-hand attack when dual wielding");
+
+  /* Tempest */
+  perk = &perk_list[PERK_RANGER_TEMPEST];
+  perk->id = PERK_RANGER_TEMPEST;
+  perk->name = strdup("Tempest");
+  perk->description = strdup("+1 AC dodge bonus when fighting with two weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 AC dodge bonus per rank when dual wielding");
+
+  /* Favored Enemy Slayer */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_SLAYER];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->name = strdup("Favored Enemy Slayer");
+  perk->description = strdup("+2 to hit against favored enemies, critical threat range +1 vs favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_MASTERY_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("+2 to hit vs favored enemies and +1 critical threat range");
+
+  /*** WILDERNESS WARRIOR TREE - TIER III ***/
+
+  /* Greater Wilderness Warrior Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Greater WW Two-Weapon Fighting");
+  perk->description = strdup("10% chance to gain a second additional off-hand attack per round");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_WW_TWO_WEAPON_FIGHTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% chance per round for a second extra off-hand attack");
+
+  /* Whirling Steel */
+  perk = &perk_list[PERK_RANGER_WHIRLING_STEEL];
+  perk->id = PERK_RANGER_WHIRLING_STEEL;
+  perk->name = strdup("Whirling Steel");
+  perk->description = strdup("5% chance per hit to make an additional free attack when dual wielding");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("5% chance per hit for a free attack when dual wielding");
+
+  /* Deadly Hunter */
+  perk = &perk_list[PERK_RANGER_DEADLY_HUNTER];
+  perk->id = PERK_RANGER_DEADLY_HUNTER;
+  perk->name = strdup("Deadly Hunter");
+  perk->description = strdup("Against favored enemies: +2d6 damage and attacks ignore 10 points of DR");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("+2d6 damage and ignore 10 DR vs favored enemies");
+
+  /* Crippling Strike */
+  perk = &perk_list[PERK_RANGER_CRIPPLING_STRIKE];
+  perk->id = PERK_RANGER_CRIPPLING_STRIKE;
+  perk->name = strdup("Crippling Strike");
+  perk->description = strdup("Successful melee attacks have a 5% chance to apply slow for 3 rounds");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_DUAL_STRIKE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("5% chance to slow target for 3 rounds on melee hit");
+
+  /*** WILDERNESS WARRIOR TREE - TIER IV (CAPSTONES) ***/
+
+  /* Perfect WW Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Perfect WW Two-Weapon Fighting");
+  perk->description = strdup("All weapon attacks gain +2 to hit +4 to damage when dual wielding");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 4;
+  perk->special_description = strdup("+2 to hit, +4 to damage when dual wielding (capstone)");
 }
 
 /* Define Barbarian Perks */
@@ -4508,7 +5219,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_WAVE_OF_ROLLING_EARTH];
   perk->id = PERK_MONK_WAVE_OF_ROLLING_EARTH;
   perk->name = strdup("Wave of Rolling Earth");
-  perk->description = strdup("Spend 3 ki points to create an earthquake (30-ft radius, difficult terrain, knocks prone, 4d6 damage)");
+  perk->description = strdup("Use a ki point with the rollingearth command to create an earthquake (30-ft radius, difficult terrain, knocks prone, 4d6 damage)");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 3;
@@ -4635,6 +5346,510 @@ void define_monk_perks(void)
   perk->special_description = strdup("Way of the Four Elements - Tier 4 Capstone");
 }
 
+/* ============================================================================
+ * PALADIN PERKS (900-999)
+ * ============================================================================ */
+void define_paladin_perks(void)
+{
+  struct perk_data *perk;
+  
+  /*** SACRED DEFENDER TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Extra Lay on Hands I (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_EXTRA_LAY_ON_HANDS_1];
+  perk->id = PERK_PALADIN_EXTRA_LAY_ON_HANDS_1;
+  perk->name = strdup("Extra Lay on Hands I");
+  perk->description = strdup("+1 use of Lay on Hands per day per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 use per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increase your daily uses of Lay on Hands by +1 per rank. Maximum 3 ranks for +3 uses total.");
+  
+  /* Shield of Faith I (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_SHIELD_OF_FAITH_1];
+  perk->id = PERK_PALADIN_SHIELD_OF_FAITH_1;
+  perk->name = strdup("Shield of Faith I");
+  perk->description = strdup("+1 Deflection AC per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1; /* +1 AC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Divine protection grants +1 Deflection bonus to AC per rank. Maximum 3 ranks for +3 AC total.");
+  
+  /* Bulwark of Defense (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_BULWARK_OF_DEFENSE];
+  perk->id = PERK_PALADIN_BULWARK_OF_DEFENSE;
+  perk->name = strdup("Bulwark of Defense");
+  perk->description = strdup("+1 to all saves per rank when wielding shield");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 to saves per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("While wielding a shield, gain +1 bonus to all saving throws per rank. Maximum 3 ranks for +3 to saves total.");
+  
+  /* Defensive Strike */
+  perk = &perk_list[PERK_PALADIN_DEFENSIVE_STRIKE];
+  perk->id = PERK_PALADIN_DEFENSIVE_STRIKE;
+  perk->name = strdup("Defensive Strike");
+  perk->description = strdup("Attack that grants +2 AC on hit for 5 rounds");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC */
+  perk->effect_modifier = 5; /* 5 rounds duration */
+  perk->special_description = strdup("Gain 'Defensive Strike' ability - Make an attack that, if it hits, grants you +2 AC for 5 rounds. 2 minute cooldown.");
+  
+  /*** SACRED DEFENDER TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Extra Lay on Hands II (Ranks 1-2) */
+  perk = &perk_list[PERK_PALADIN_EXTRA_LAY_ON_HANDS_2];
+  perk->id = PERK_PALADIN_EXTRA_LAY_ON_HANDS_2;
+  perk->name = strdup("Extra Lay on Hands II");
+  perk->description = strdup("Additional +1 use of Lay on Hands per day per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_LAY_ON_HANDS_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Extra Lay on Hands I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 use per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Extra Lay on Hands I (max). Further increase daily Lay on Hands uses by +1 per rank. Maximum 2 ranks for +2 uses (combined +5 with Tier 1).");
+  
+  /* Shield of Faith II (Ranks 1-2) */
+  perk = &perk_list[PERK_PALADIN_SHIELD_OF_FAITH_2];
+  perk->id = PERK_PALADIN_SHIELD_OF_FAITH_2;
+  perk->name = strdup("Shield of Faith II");
+  perk->description = strdup("Additional +1 Deflection AC per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_SHIELD_OF_FAITH_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Shield of Faith I */
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1; /* +1 AC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Shield of Faith I (max). Further enhance divine protection with +1 Deflection AC per rank. Maximum 2 ranks for +2 AC (combined +5 with Tier 1).");
+  
+  /* Healing Hands (Ranks 1-3) */
+  perk = &perk_list[PERK_PALADIN_HEALING_HANDS];
+  perk->id = PERK_PALADIN_HEALING_HANDS;
+  perk->name = strdup("Healing Hands");
+  perk->description = strdup("Lay on Hands heals +10% more per rank");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_PALADIN_EXTRA_LAY_ON_HANDS_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Extra Lay on Hands I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Extra Lay on Hands I (at least 2 ranks). Your Lay on Hands ability heals +10% more per rank. Maximum 3 ranks for +30% healing total.");
+  
+  /* Shield Guardian */
+  perk = &perk_list[PERK_PALADIN_SHIELD_GUARDIAN];
+  perk->id = PERK_PALADIN_SHIELD_GUARDIAN;
+  perk->name = strdup("Shield Guardian");
+  perk->description = strdup("Grouped allies gain +2 AC from your shield");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_BULWARK_OF_DEFENSE;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Bulwark of Defense */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC to allies */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Bulwark of Defense (at least 2 ranks). While wielding a shield, grouped allies in your room gain +2 AC bonus from your protective presence.");
+
+  /* ===== TIER 3 PERKS ===== */
+  
+  /* Aura of Protection */
+  perk = &perk_list[PERK_PALADIN_AURA_OF_PROTECTION];
+  perk->id = PERK_PALADIN_AURA_OF_PROTECTION;
+  perk->name = strdup("Aura of Protection");
+  perk->description = strdup("Your Aura of Courage grants +2 to all saves");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SHIELD_OF_FAITH_2;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Shield of Faith II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to all saves for allies */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Shield of Faith II (at least 2 ranks). Allies within your Aura of Courage radius gain +2 to all saving throws.");
+
+  /* Sanctuary */
+  perk = &perk_list[PERK_PALADIN_SANCTUARY];
+  perk->id = PERK_PALADIN_SANCTUARY;
+  perk->name = strdup("Sanctuary");
+  perk->description = strdup("Reduce all incoming damage by 10%");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SHIELD_GUARDIAN;
+  perk->prerequisite_rank = 1; /* Must have Shield Guardian */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% damage reduction */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Shield Guardian. You become a beacon of divine safety, reducing all incoming damage by 10%.");
+
+  /* Merciful Touch */
+  perk = &perk_list[PERK_PALADIN_MERCIFUL_TOUCH];
+  perk->id = PERK_PALADIN_MERCIFUL_TOUCH;
+  perk->name = strdup("Merciful Touch");
+  perk->description = strdup("Lay on Hands grants +20 HP for 5 rounds");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_HEALING_HANDS;
+  perk->prerequisite_rank = 3; /* Must have all 3 ranks of Healing Hands */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20 current and max HP */
+  perk->effect_modifier = 5; /* 5 rounds duration */
+  perk->special_description = strdup("Requires Healing Hands (at least 3 ranks). Your Lay on Hands also grants +20 to current and maximum hit points for 5 rounds. Does not stack.");
+
+  /* Bastion of Defense */
+  perk = &perk_list[PERK_PALADIN_BASTION_OF_DEFENSE];
+  perk->id = PERK_PALADIN_BASTION_OF_DEFENSE;
+  perk->name = strdup("Bastion of Defense");
+  perk->description = strdup("Gain 'Bastion' ability (swift action defensive buff)");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_BULWARK_OF_DEFENSE;
+  perk->prerequisite_rank = 3; /* Must have all 3 ranks of Bulwark of Defense */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20 temp HP */
+  perk->effect_modifier = 4; /* +4 AC */
+  perk->special_description = strdup("Requires Bulwark of Defense (3 ranks) and Shield Guardian. Gain 'Bastion' ability - Swift action: gain 20 temporary HP, +4 AC, and immunity to knockdown for 5 rounds. 5 minute cooldown.");
+
+  /* ===== TIER 4 PERKS ===== */
+  
+  /* Aura of Life */
+  perk = &perk_list[PERK_PALADIN_AURA_OF_LIFE];
+  perk->id = PERK_PALADIN_AURA_OF_LIFE;
+  perk->name = strdup("Aura of Life");
+  perk->description = strdup("Allies in your aura regenerate HP");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_AURA_OF_PROTECTION;
+  perk->prerequisite_rank = 1; /* Must have Aura of Protection */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2 HP per round in combat */
+  perk->effect_modifier = 5; /* 5 HP per round out of combat */
+  perk->special_description = strdup("Requires Aura of Protection. Your divine presence sustains allies within your aura, regenerating 2 HP per round in combat, 5 HP per round out of combat.");
+
+  /* Cleansing Touch */
+  perk = &perk_list[PERK_PALADIN_CLEANSING_TOUCH];
+  perk->id = PERK_PALADIN_CLEANSING_TOUCH;
+  perk->name = strdup("Cleansing Touch");
+  perk->description = strdup("Lay on Hands removes affects and is a swift action");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_MERCIFUL_TOUCH;
+  perk->prerequisite_rank = 1; /* Must have Merciful Touch */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Can remove 1 negative affect */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Merciful Touch. Your Lay on Hands can remove one negative magical affect and can be used as a swift action.");
+
+  /* Divine Sacrifice */
+  perk = &perk_list[PERK_PALADIN_DIVINE_SACRIFICE];
+  perk->id = PERK_PALADIN_DIVINE_SACRIFICE;
+  perk->name = strdup("Divine Sacrifice");
+  perk->description = strdup("Take damage meant for allies");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_SACRED_DEFENDER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_BASTION_OF_DEFENSE;
+  perk->prerequisite_rank = 1; /* Must have Bastion of Defense */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 10; /* 10 minute cooldown */
+  perk->special_description = strdup("Requires Bastion of Defense. When an ally within 30 feet would be reduced below 0 HP, you may take the damage instead. Once per 10 minutes.");
+
+  /* DIVINE CHAMPION TREE - Tier 1 Perks */
+
+  /* Spell Focus I */
+  perk = &perk_list[PERK_PALADIN_SPELL_FOCUS_1];
+  perk->id = PERK_PALADIN_SPELL_FOCUS_1;
+  perk->name = strdup("Spell Focus I");
+  perk->description = strdup("More potent divine spells");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 to spell save DCs per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to spell save DCs per rank (+3 at max).");
+
+  /* Turn Undead Mastery I */
+  perk = &perk_list[PERK_PALADIN_TURN_UNDEAD_MASTERY_1];
+  perk->id = PERK_PALADIN_TURN_UNDEAD_MASTERY_1;
+  perk->name = strdup("Turn Undead Mastery I");
+  perk->description = strdup("Enhanced turning");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 HD worth of undead per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Turn Undead affects +2 HD worth of undead per rank (+6 at max).");
+
+  /* Divine Grace */
+  perk = &perk_list[PERK_PALADIN_DIVINE_GRACE];
+  perk->id = PERK_PALADIN_DIVINE_GRACE;
+  perk->name = strdup("Divine Grace");
+  perk->description = strdup("Divine favor protects you");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 1; /* +1 to all saving throws per rank */
+  perk->effect_modifier = -1; /* Applies to all save types */
+  perk->special_description = strdup("+1 to all saving throws per rank (+3 at max).");
+
+  /* Radiant Aura */
+  perk = &perk_list[PERK_PALADIN_RADIANT_AURA];
+  perk->id = PERK_PALADIN_RADIANT_AURA;
+  perk->name = strdup("Radiant Aura");
+  perk->description = strdup("Emit holy light");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1d4 divine damage */
+  perk->effect_modifier = 4; /* d4 die */
+  perk->special_description = strdup("Gain 'Radiant Aura' ability - Toggle: emit light, undead within 10 feet take 1d4 divine damage per round, costs 1 move per round active.");
+
+  /* DIVINE CHAMPION TREE - Tier 2 Perks */
+
+  /* Spell Focus II */
+  perk = &perk_list[PERK_PALADIN_SPELL_FOCUS_2];
+  perk->id = PERK_PALADIN_SPELL_FOCUS_2;
+  perk->name = strdup("Spell Focus II");
+  perk->description = strdup("Master of divine magic");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_FOCUS_1;
+  perk->prerequisite_rank = 3; /* Must have Spell Focus I (3 ranks) */
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 to spell save DCs per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Focus I (3 ranks). Additional +1 to spell save DCs per rank (+2 at max).");
+
+  /* Turn Undead Mastery II */
+  perk = &perk_list[PERK_PALADIN_TURN_UNDEAD_MASTERY_2];
+  perk->id = PERK_PALADIN_TURN_UNDEAD_MASTERY_2;
+  perk->name = strdup("Turn Undead Mastery II");
+  perk->description = strdup("Devastating turning");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_TURN_UNDEAD_MASTERY_1;
+  perk->prerequisite_rank = 3; /* Must have Turn Undead Mastery I (3 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 HD worth per rank */
+  perk->effect_modifier = 2; /* +2d6 damage per rank */
+  perk->special_description = strdup("Requires Turn Undead Mastery I (3 ranks). Turn Undead affects additional +3 HD worth per rank and deals +2d6 damage per rank.");
+
+  /* Quickened Blessing */
+  perk = &perk_list[PERK_PALADIN_QUICKENED_BLESSING];
+  perk->id = PERK_PALADIN_QUICKENED_BLESSING;
+  perk->name = strdup("Quickened Blessing");
+  perk->description = strdup("Swift divine blessings");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_FOCUS_1;
+  perk->prerequisite_rank = 2; /* Must have Spell Focus I (at least 2 ranks) */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Focus I (at least 2 ranks). Once per day, you may cast Bless, Shield of Faith, or Protection from Evil as a swift action.");
+
+  /* Channel Energy I */
+  perk = &perk_list[PERK_PALADIN_CHANNEL_ENERGY_1];
+  perk->id = PERK_PALADIN_CHANNEL_ENERGY_1;
+  perk->name = strdup("Channel Energy I");
+  perk->description = strdup("Channel positive energy");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1d6 per rank */
+  perk->effect_modifier = 6; /* d6 die */
+  perk->special_description = strdup("Gain 'Channel Energy' ability - Standard action: heal allies or damage undead in 30 foot radius for 1d6 per rank, 2 uses per day.");
+
+  /* ===== TIER 3 PERKS ===== */
+
+  /* Spell Penetration */
+  perk = &perk_list[PERK_PALADIN_SPELL_PENETRATION];
+  perk->id = PERK_PALADIN_SPELL_PENETRATION;
+  perk->name = strdup("Spell Penetration");
+  perk->description = strdup("Pierce spell resistance");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_FOCUS_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 to overcome SR */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Focus II (at least 2 ranks). +4 bonus to overcome spell resistance with paladin spells.");
+
+  /* Destroy Undead */
+  perk = &perk_list[PERK_PALADIN_DESTROY_UNDEAD];
+  perk->id = PERK_PALADIN_DESTROY_UNDEAD;
+  perk->name = strdup("Destroy Undead");
+  perk->description = strdup("Turn Undead can destroy");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_TURN_UNDEAD_MASTERY_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Turn Undead Mastery II (at least 2 ranks). When Turn Undead affects undead with less than half your paladin level in HD, they are destroyed instead of turned.");
+
+  /* Channel Energy II */
+  perk = &perk_list[PERK_PALADIN_CHANNEL_ENERGY_2];
+  perk->id = PERK_PALADIN_CHANNEL_ENERGY_2;
+  perk->name = strdup("Channel Energy II");
+  perk->description = strdup("Powerful channeling");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_PALADIN_CHANNEL_ENERGY_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 per rank */
+  perk->effect_modifier = 2; /* +2 uses per day per rank */
+  perk->special_description = strdup("Requires Channel Energy I (3 ranks). Channel Energy heals/damages +2d6 per rank and gains +2 uses per day per rank.");
+
+  /* Aura of Courage Mastery */
+  perk = &perk_list[PERK_PALADIN_AURA_OF_COURAGE_MASTERY];
+  perk->id = PERK_PALADIN_AURA_OF_COURAGE_MASTERY;
+  perk->name = strdup("Aura of Courage Mastery");
+  perk->description = strdup("Enhanced fear immunity");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_DIVINE_GRACE;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 bonus vs mind-affecting */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Grace (3 ranks). Your Aura of Courage grants immunity to fear and charm effects, and grants +4 bonus vs mind-affecting.");
+
+  /* ===== TIER 4 PERKS ===== */
+
+  /* Mass Cure Wounds */
+  perk = &perk_list[PERK_PALADIN_MASS_CURE_WOUNDS];
+  perk->id = PERK_PALADIN_MASS_CURE_WOUNDS;
+  perk->name = strdup("Mass Cure Wounds");
+  perk->description = strdup("Healing burst");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_CHANNEL_ENERGY_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3d8 */
+  perk->effect_modifier = 8; /* d8 die */
+  perk->special_description = strdup("Requires Channel Energy II (at least 2 ranks). Gain 'Mass Cure Wounds' ability - Standard action: heal all allies within 30 feet for 3d8 + CHA modifier, twice per day.");
+
+  /* Holy Avenger */
+  perk = &perk_list[PERK_PALADIN_HOLY_AVENGER];
+  perk->id = PERK_PALADIN_HOLY_AVENGER;
+  perk->name = strdup("Holy Avenger");
+  perk->description = strdup("Ultimate spell and turning synergy");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_SPELL_PENETRATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 caster level */
+  perk->effect_modifier = 2; /* +2 DC */
+  perk->special_description = strdup("Requires Spell Penetration and Destroy Undead. When you destroy undead with Turn Undead, your next spell cast within 1 round is cast at +4 caster level and has +2 DC.");
+
+  /* Beacon of Hope */
+  perk = &perk_list[PERK_PALADIN_BEACON_OF_HOPE];
+  perk->id = PERK_PALADIN_BEACON_OF_HOPE;
+  perk->name = strdup("Beacon of Hope");
+  perk->description = strdup("Inspire allies with divine presence");
+  perk->associated_class = CLASS_PALADIN;
+  perk->perk_category = PERK_CATEGORY_DIVINE_CHAMPION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PALADIN_AURA_OF_COURAGE_MASTERY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5 rounds duration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Aura of Courage Mastery. Gain 'Beacon of Hope' ability - Standard action: all allies within 30 feet gain advantage on saves, immunity to fear, and maximize healing received for 5 rounds, once per day.");
+}
+
 /* Lookup functions */
 
 /* Get perk by ID */
@@ -4712,9 +5927,6 @@ const char *get_perk_category_name(int perk_category)
  * These functions handle the stage-based leveling system where each level
  * is divided into 4 stages, each requiring 25% of the total level XP.
  *****************************************************************************/
-
-/* External function from class.c */
-extern int level_exp(struct char_data *ch, int level);
 
 /**
  * Initialize stage data for a new character or character without stage data.
@@ -5047,6 +6259,9 @@ bool has_perk(struct char_data *ch, int perk_id)
   
   if (!ch || IS_NPC(ch))
     return FALSE;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    return TRUE;
   
   for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
   {
@@ -5341,6 +6556,18 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
     {
       if (error_msg)
         snprintf(error_msg, error_len, "You must have Armor Training III to purchase Immovable Object.");
+      return FALSE;
+    }
+  }
+  
+  /* Special prerequisite check for Coordinated Attack - requires Pack Tactics I at max AND Feral Charge */
+  if (perk_id == PERK_RANGER_COORDINATED_ATTACK)
+  {
+    int feral_charge_rank = get_perk_rank(ch, PERK_RANGER_FERAL_CHARGE, class_id);
+    if (feral_charge_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Feral Charge to purchase Coordinated Attack.");
       return FALSE;
     }
   }
@@ -5808,6 +7035,581 @@ int get_perk_ranged_sneak_attack_bonus(struct char_data *ch)
   bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_DEADLY_AIM_2);
   
   return bonus;
+}
+
+/**
+ * Get ranged weapon to-hit bonus from ranger perks.
+ * Includes bonuses from Hunter tree perks like Archer's Focus I and II.
+ * Only applies to ranged weapon attacks.
+ * 
+ * @param ch The character
+ * @param wielded The wielded weapon (must be ranged)
+ * @return Total ranged weapon to-hit bonus
+ */
+int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* If no weapon wielded or weapon is not ranged, return 0 */
+  if (!wielded)
+    return 0;
+    
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
+    return 0;
+    
+  int weapon_type = GET_OBJ_VAL(wielded, 0);
+  if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    return 0; /* Not a ranged weapon */
+  
+  /* Archer's Focus I: +1 to-hit per rank (max 3 ranks) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_ARCHERS_FOCUS_I);
+  
+  /* Archer's Focus II: +1 to-hit per rank (max 2 ranks) */
+  bonus += 1 * get_total_perk_ranks(ch, PERK_RANGER_ARCHERS_FOCUS_II);
+  
+  return bonus;
+}
+
+/**
+ * Get ranged weapon damage bonus from ranger perks.
+ * Includes bonuses from Hunter tree perks like Steady Aim I.
+ * Only applies to ranged weapon attacks.
+ * 
+ * @param ch The character
+ * @param wielded The wielded weapon (must be ranged)
+ * @return Total ranged weapon damage bonus
+ */
+int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* If no weapon wielded or weapon is not ranged, return 0 */
+  if (!wielded)
+    return 0;
+    
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
+    return 0;
+    
+  int weapon_type = GET_OBJ_VAL(wielded, 0);
+  if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    return 0; /* Not a ranged weapon */
+  
+  /* Steady Aim I: +1 damage per rank (max 3 ranks) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_STEADY_AIM_I);
+  
+  return bonus;
+}
+
+/**
+ * Get DR penetration value from ranger perks.
+ * Deadly Aim allows arrows/bolts to ignore damage reduction.
+ * 
+ * @param ch The character
+ * @return Total DR to ignore
+ */
+int get_ranger_dr_penetration(struct char_data *ch)
+{
+  int penetration = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Deadly Aim: Ignore 3 points of DR per rank (max 2 ranks = 6 DR ignored) */
+  penetration += 3 * get_total_perk_ranks(ch, PERK_RANGER_DEADLY_AIM);
+  
+  return penetration;
+}
+
+/**
+ * Get attack speed bonus from ranger perks.
+ * Quick Draw reduces the time between ranged attacks.
+ * 
+ * @param ch The character
+ * @return Attack speed bonus percentage (10 = 10% faster)
+ */
+int get_ranger_attack_speed_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Quick Draw: 10% attack speed per rank (max 3 ranks = 30% faster) */
+  bonus += 10 * get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
+  
+  return bonus;
+}
+
+/**
+ * Get Quick Draw proc chance for an extra ranged attack.
+ * 5% per rank of Quick Draw.
+ * 
+ * @param ch The character
+ * @return Proc chance percentage (e.g., 10 for 10%)
+ */
+int get_ranger_quick_draw_proc_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+
+  /* Quick Draw: 5% chance per rank to grant an extra ranged attack */
+  int ranks = get_total_perk_ranks(ch, PERK_RANGER_QUICK_DRAW);
+  return 5 * ranks;
+}
+
+/**
+ * Get HP bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total HP bonus for companion
+ */
+int get_ranger_companion_hp_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enhanced Companion I: +5 HP per rank */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_I);
+  
+  /* Enhanced Companion II: +10 HP per rank */
+  bonus += 10 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_II);
+  
+  /* Primal Avatar: +50 HP */
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    bonus += 50;
+  
+  return bonus;
+}
+
+/**
+ * Get AC bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total AC bonus for companion
+ */
+int get_ranger_companion_ac_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enhanced Companion I: +1 AC per rank */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_I);
+  
+  /* Enhanced Companion II: +2 AC per rank */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_II);
+  
+  /* Primal Avatar: +5 AC */
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    bonus += 5;
+  
+  return bonus;
+}
+
+/**
+ * Get to-hit bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total to-hit bonus for companion
+ */
+int get_ranger_companion_tohit_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enhanced Companion II: +2 to-hit per rank */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_RANGER_ENHANCED_COMPANION_II);
+  
+  /* Primal Avatar: +5 to-hit */
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    bonus += 5;
+  
+  return bonus;
+}
+
+/**
+ * Get save bonus for ranger's animal companion from Beast Master perks.
+ * 
+ * @param ch The ranger (master)
+ * @return Total save bonus for companion
+ */
+int get_ranger_companion_save_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Alpha Bond: +3 to all saves */
+  if (has_perk(ch, PERK_RANGER_ALPHA_BOND))
+    bonus += 3;
+  
+  return bonus;
+}
+
+/**
+ * Check if ranger's companion is immune to fear (Alpha Bond).
+ * 
+ * @param ch The ranger (master)
+ * @return TRUE if companion immune to fear
+ */
+bool ranger_companion_immune_fear(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_ALPHA_BOND);
+}
+
+/**
+ * Check if ranger's companion is immune to mind-affecting (Primal Avatar).
+ * 
+ * @param ch The ranger (master)
+ * @return TRUE if companion immune to mind-affecting
+ */
+bool ranger_companion_immune_mind(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_PRIMAL_AVATAR);
+}
+
+/**
+ * Get Pack Tactics to-hit bonus when ranger and companion attack same target.
+ * 
+ * @param ch The ranger or companion
+ * @param master The ranger (if ch is companion)
+ * @param victim The target being attacked
+ * @return To-hit bonus
+ */
+int get_pack_tactics_bonus(struct char_data *ch, struct char_data *master, struct char_data *victim)
+{
+  int bonus = 0;
+  struct char_data *ranger = NULL;
+  
+  if (!ch || !victim)
+    return 0;
+  
+  /* Determine who the ranger is */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)
+    ranger = ch;
+  else if (master && !IS_NPC(master) && CLASS_LEVEL(master, CLASS_RANGER) > 0)
+    ranger = master;
+  else
+    return 0;
+  
+  /* Pack Tactics I: +1 per rank when both attacking same target */
+  bonus += get_total_perk_ranks(ranger, PERK_RANGER_PACK_TACTICS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Coordinated Attack damage bonus (2d4) when both attack same target.
+ * 
+ * @param ch The ranger (master)
+ * @return Damage in d4s (returns 2 for 2d4)
+ */
+int get_coordinated_attack_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_COORDINATED_ATTACK))
+    return 2; /* 2d4 */
+  
+  return 0;
+}
+
+/**
+ * Get Primal Avatar damage bonus for companion attacks.
+ * 
+ * @param ch The ranger (master)
+ * @return Damage in d6s (returns 3 for 3d6)
+ */
+int get_primal_avatar_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_PRIMAL_AVATAR))
+    return 3; /* 3d6 */
+  
+  return 0;
+}
+
+/**
+ * Get healing effectiveness bonus from Nature's Remedy.
+ * 
+ * @param ch The caster
+ * @return Percentage bonus (25 = 25% more effective)
+ */
+int get_natures_remedy_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Nature's Remedy: 25% per rank */
+  return 25 * get_total_perk_ranks(ch, PERK_RANGER_NATURES_REMEDY);
+}
+
+/**
+ * Check if ranger has Primal Vigor (HP regen in combat).
+ * 
+ * @param ch The ranger
+ * @return TRUE if has perk
+ */
+bool has_primal_vigor(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_PRIMAL_VIGOR);
+}
+
+/**
+ * Check if ranger has Shared Spells perk (Beast Master tree).
+ * Allows beneficial spells cast on the ranger to also affect their animal companion.
+ * 
+ * @param ch The ranger
+ * @return TRUE if has perk
+ */
+bool has_shared_spells(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_RANGER_SHARED_SPELLS);
+}
+
+/**
+ * Get conjuration spell DC bonus from Spell Focus: Conjuration.
+ * 
+ * @param ch The caster
+ * @return DC bonus
+ */
+int get_ranger_conjuration_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Spell Focus: Conjuration I: +1 per rank */
+  return get_total_perk_ranks(ch, PERK_RANGER_SPELL_FOCUS_CONJURATION_I);
+}
+
+/**
+ * Get Greater Summons HP bonus for summoned creatures.
+ * 
+ * @param ch The summoner
+ * @return Percentage HP bonus (25 = 25% more HP)
+ */
+int get_greater_summons_hp_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
+    return 25;
+  
+  return 0;
+}
+
+/**
+ * Get Greater Summons damage bonus for summoned creatures.
+ * 
+ * @param ch The summoner
+ * @return Damage in d6s (returns 1 for 1d6)
+ */
+int get_greater_summons_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
+    return 1; /* 1d6 */
+  
+  return 0;
+}
+
+/**
+ * Get Greater Summons attack bonus for summoned creatures.
+ * 
+ * @param ch The summoner
+ * @return Attack bonus (+4 to attack rolls)
+ */
+int get_greater_summons_attack_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
+    return 4;
+  
+  return 0;
+}
+
+/* === WILDERNESS WARRIOR PERK HELPERS === */
+
+/**
+ * Get Two-Weapon Focus to-hit bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return To-hit bonus
+ */
+int get_ranger_two_weapon_focus_tohit(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Two-Weapon Focus I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TWO_WEAPON_FOCUS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Two-Weapon Focus damage bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return Damage bonus
+ */
+int get_ranger_two_weapon_focus_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Two-Weapon Focus II: +1 per rank (max 2) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TWO_WEAPON_FOCUS_II);
+  
+  return bonus;
+}
+
+/**
+ * Get Dual Strike off-hand damage bonus.
+ * 
+ * @param ch The character
+ * @return Off-hand damage bonus
+ */
+int get_ranger_dual_strike_offhand(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Dual Strike I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_DUAL_STRIKE_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Favored Enemy Mastery damage bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return Damage bonus vs favored enemies
+ */
+int get_ranger_favored_enemy_mastery_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Mastery I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_FAVORED_ENEMY_MASTERY_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Ranger Toughness HP bonus.
+ * 
+ * @param ch The character
+ * @return HP bonus
+ */
+int get_ranger_toughness_hp(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Ranger Toughness I: +5 HP per rank (max 3) */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_RANGER_RANGER_TOUGHNESS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Tempest AC bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return AC dodge bonus
+ */
+int get_ranger_tempest_ac(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Tempest: +1 AC per rank (max 2) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TEMPEST);
+  
+  return bonus;
+}
+
+/**
+ * Get Favored Enemy Slayer to-hit bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return To-hit bonus
+ */
+int get_ranger_favored_enemy_slayer_tohit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Slayer: +2 to-hit */
+  if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Favored Enemy Slayer critical threat range bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return Critical threat range increase
+ */
+int get_ranger_favored_enemy_slayer_crit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Slayer: +1 crit threat range */
+  if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+    return 1;
+  
+  return 0;
 }
 
 /**
@@ -7376,7 +9178,13 @@ int get_channel_energy_dice(struct char_data *ch)
   
   /* Channel Energy: Heal: 2d6 minimum */
   if (has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_HEAL))
-    return MAX(2, dice);
+    dice = MAX(2, dice);
+  
+  /* Paladin Channel Energy I: Add 1d6 per rank */
+  dice += get_paladin_channel_energy_dice(ch);
+  
+  /* Paladin Channel Energy II: Add 2d6 per rank */
+  dice += get_paladin_channel_energy_2_dice(ch);
   
   return dice;
 }
@@ -8008,6 +9816,13 @@ int get_destroy_undead_threshold(struct char_data *ch)
   /* Master of the Undead: 10 HD or less below cleric level */
   if (has_perk(ch, PERK_CLERIC_MASTER_OF_UNDEAD))
     return 10;
+  
+  /* Paladin Destroy Undead: less than half paladin level in HD */
+  if (has_paladin_destroy_undead(ch))
+  {
+    int paladin_level = CLASS_LEVEL(ch, CLASS_PALADIN);
+    return (paladin_level / 2);
+  }
   
   return 0;
 }
@@ -10372,926 +12187,651 @@ bool check_monk_extra_flurry_attack(struct char_data *ch)
   return (rand_number(1, 100) <= chance);
 }
 
-void define_druid_perks(void)
+/* =============================================================== */
+/* DRUID PERK HELPER FUNCTIONS - STUBS (NOT YET IMPLEMENTED)      */
+/* =============================================================== */
+
+int get_druid_wild_shape_attack_bonus(struct char_data *ch) { return 0; }
+int get_druid_wild_shape_damage_bonus(struct char_data *ch) { return 0; }
+int get_druid_natural_armor_bonus(struct char_data *ch) { return 0; }
+int get_druid_wild_shape_hp_bonus(struct char_data *ch) { return 0; }
+int get_druid_natural_weapons_damage_dice(struct char_data *ch) { return 0; }
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch) { return FALSE; }
+int get_druid_elemental_attack_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_damage_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_armor_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_hp_bonus(struct char_data *ch) { return 0; }
+bool has_druid_primal_avatar(struct char_data *ch) { return FALSE; }
+bool has_druid_natural_fury(struct char_data *ch) { return FALSE; }
+int get_druid_spell_power_bonus(struct char_data *ch) { return 0; }
+int get_druid_spell_dc_bonus(struct char_data *ch) { return 0; }
+int get_druid_elemental_damage_dice(struct char_data *ch) { return 0; }
+bool check_druid_spell_critical(struct char_data *ch) { return FALSE; }
+float get_druid_spell_critical_multiplier(struct char_data *ch) { return 1.0; }
+int get_druid_bonus_spell_slots(struct char_data *ch) { return 0; }
+bool has_druid_force_of_nature(struct char_data *ch) { return FALSE; }
+bool has_druid_storm_caller(struct char_data *ch) { return FALSE; }
+bool has_druid_elemental_mastery(struct char_data *ch) { return FALSE; }
+
+/* =============================================================== */
+/* BERSERKER PERK HELPER FUNCTIONS - STUBS (NOT YET IMPLEMENTED)  */
+/* =============================================================== */
+
+int get_berserker_power_attack_bonus(struct char_data *ch) { return 0; }
+int get_berserker_rage_damage_bonus(struct char_data *ch) { return 0; }
+int get_berserker_critical_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_cleaving_strikes(struct char_data *ch) { return FALSE; }
+int get_berserker_cleave_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_blood_frenzy(struct char_data *ch) { return FALSE; }
+int get_berserker_devastating_critical_dice(struct char_data *ch) { return 0; }
+int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_overwhelming_force(struct char_data *ch) { return FALSE; }
+int get_berserker_crimson_rage_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_carnage(struct char_data *ch) { return FALSE; }
+bool has_berserker_frenzied_berserker(struct char_data *ch) { return FALSE; }
+bool has_berserker_relentless_assault(struct char_data *ch) { return FALSE; }
+bool has_berserker_death_from_above(struct char_data *ch) { return FALSE; }
+int get_berserker_thick_skin_bonus(struct char_data *ch) { return 0; }
+int get_berserker_damage_reduction(struct char_data *ch) { return 0; }
+int get_berserker_elemental_resistance(struct char_data *ch) { return 0; }
+bool has_berserker_hardy(struct char_data *ch) { return FALSE; }
+int get_berserker_savage_defiance_dr(struct char_data *ch) { return 0; }
+int get_berserker_damage_reduction_3(struct char_data *ch) { return 0; }
+int get_berserker_spell_resistance(struct char_data *ch) { return 0; }
+bool has_berserker_pain_tolerance(struct char_data *ch) { return FALSE; }
+bool has_berserker_deathless_frenzy(struct char_data *ch) { return FALSE; }
+int get_berserker_unstoppable_dr(struct char_data *ch) { return 0; }
+bool has_berserker_indomitable_will(struct char_data *ch) { return FALSE; }
+bool has_berserker_raging_defender(struct char_data *ch) { return FALSE; }
+int get_berserker_fleet_of_foot_bonus(struct char_data *ch) { return 0; }
+int get_berserker_intimidating_presence_bonus(struct char_data *ch) { return 0; }
+int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch) { return 0; }
+bool has_berserker_mighty_leap(struct char_data *ch) { return FALSE; }
+int get_berserker_mighty_leap_bonus(struct char_data *ch) { return 0; }
+int get_berserker_thick_headed_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_sprint(struct char_data *ch) { return FALSE; }
+bool has_berserker_intimidating_presence_2(struct char_data *ch) { return FALSE; }
+int get_berserker_crippling_blow_chance(struct char_data *ch) { return 0; }
+bool has_berserker_reckless_abandon(struct char_data *ch) { return FALSE; }
+bool has_berserker_blinding_rage(struct char_data *ch) { return FALSE; }
+bool has_berserker_stunning_blow(struct char_data *ch) { return FALSE; }
+bool has_berserker_uncanny_dodge_mastery(struct char_data *ch) { return FALSE; }
+int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch) { return 0; }
+int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch) { return 0; }
+bool has_berserker_savage_charge(struct char_data *ch) { return FALSE; }
+bool has_berserker_war_cry(struct char_data *ch) { return FALSE; }
+bool has_berserker_earthshaker(struct char_data *ch) { return FALSE; }
+
+/* =============================================================== */
+/* PALADIN PERK HELPER FUNCTIONS - KNIGHT OF THE CHALICE         */
+/* =============================================================== */
+
+/**
+ * Get damage bonus from Holy Weapon perks against evil creatures.
+ * 
+ * @param ch The character
+ * @param victim The target (to check if evil)
+ * @return Damage bonus
+ */
+int get_paladin_holy_weapon_damage_bonus(struct char_data *ch, struct char_data *victim)
 {
-  struct perk_data *perk;
+  if (!ch || IS_NPC(ch) || !victim)
+    return 0;
   
-  /*** NATURE'S WARRIOR TREE - TIER 1 PERKS (1 point each) ***/
+  if (!IS_EVIL(victim))
+    return 0;
   
-  /* Wild Shape Enhancement I */
-  perk = &perk_list[PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1];
-  perk->id = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1;
-  perk->name = strdup("Wild Shape Enhancement I");
-  perk->description = strdup("+2 to attack and damage while wild shaped per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 1;
-  perk->max_rank = 5;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Increases attack bonus and damage by +2 per rank while in wild shape form. Can be taken 5 times for +10 total.");
-  
-  /* Natural Armor I */
-  perk = &perk_list[PERK_DRUID_NATURAL_ARMOR_1];
-  perk->id = PERK_DRUID_NATURAL_ARMOR_1;
-  perk->name = strdup("Natural Armor I");
-  perk->description = strdup("+1 natural armor bonus per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Grants +1 natural armor bonus to AC per rank. Can be taken 3 times for +3 total.");
-  
-  /* Natural Weapons I */
-  perk = &perk_list[PERK_DRUID_NATURAL_WEAPONS_1];
-  perk->id = PERK_DRUID_NATURAL_WEAPONS_1;
-  perk->name = strdup("Natural Weapons I");
-  perk->description = strdup("Wild shape natural weapons deal +1d4 damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 4;
-  perk->special_description = strdup("Your natural weapons in wild shape deal +1d4 damage per rank. Can be taken 3 times for +3d4 total.");
-  
-  /* Primal Instinct I */
-  perk = &perk_list[PERK_DRUID_PRIMAL_INSTINCT_1];
-  perk->id = PERK_DRUID_PRIMAL_INSTINCT_1;
-  perk->name = strdup("Primal Instinct I");
-  perk->description = strdup("+10 HP while wild shaped per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 10;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Gain +10 HP per rank while in wild shape. Can be taken 3 times for +30 HP total.");
-
-  /*** NATURE'S WARRIOR TREE - TIER 2 PERKS (2 points each) ***/
-  
-  /* Wild Shape Enhancement II */
-  perk = &perk_list[PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2];
-  perk->id = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2;
-  perk->name = strdup("Wild Shape Enhancement II");
-  perk->description = strdup("Additional +3 to attack and damage while wild shaped per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 2;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1;
-  perk->prerequisite_rank = 5;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Wild Shape Enhancement I (max). Additional +3 attack and damage per rank while wild shaped. Can be taken 3 times for +9 total.");
-  
-  /* Natural Armor II */
-  perk = &perk_list[PERK_DRUID_NATURAL_ARMOR_2];
-  perk->id = PERK_DRUID_NATURAL_ARMOR_2;
-  perk->name = strdup("Natural Armor II");
-  perk->description = strdup("Additional +2 natural armor per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 2;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_NATURAL_ARMOR_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Natural Armor I (max). Additional +2 natural armor per rank. Can be taken 2 times for +4 total.");
-  
-  /* Natural Weapons II */
-  perk = &perk_list[PERK_DRUID_NATURAL_WEAPONS_2];
-  perk->id = PERK_DRUID_NATURAL_WEAPONS_2;
-  perk->name = strdup("Natural Weapons II");
-  perk->description = strdup("Wild shape natural weapons critical on 19-20");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 2;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_NATURAL_WEAPONS_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 19;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Natural Weapons I (max). Your natural weapons threaten a critical hit on 19-20 instead of just 20.");
-  
-  /* Improved Wild Shape */
-  perk = &perk_list[PERK_DRUID_IMPROVED_WILD_SHAPE];
-  perk->id = PERK_DRUID_IMPROVED_WILD_SHAPE;
-  perk->name = strdup("Improved Wild Shape");
-  perk->description = strdup("Can wild shape as a swift action");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 2;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Wild Shape Enhancement I (3 ranks). You can enter or exit wild shape as a swift action instead of a standard action.");
-
-  /*** NATURE'S WARRIOR TREE - TIER 3 PERKS (3 points each) ***/
-  
-  /* Wild Shape Enhancement III */
-  perk = &perk_list[PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3];
-  perk->id = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3;
-  perk->name = strdup("Wild Shape Enhancement III");
-  perk->description = strdup("Additional +4 to attack and damage while wild shaped per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 4;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Wild Shape Enhancement II (max). Additional +4 attack and damage per rank while wild shaped. Can be taken 2 times for +8 total.");
-  
-  /* Natural Armor III */
-  perk = &perk_list[PERK_DRUID_NATURAL_ARMOR_3];
-  perk->id = PERK_DRUID_NATURAL_ARMOR_3;
-  perk->name = strdup("Natural Armor III");
-  perk->description = strdup("Additional +3 natural armor per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_NATURAL_ARMOR_2;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Natural Armor II (max). Additional +3 natural armor per rank. Can be taken 2 times for +6 total.");
-  
-  /* Primal Instinct II */
-  perk = &perk_list[PERK_DRUID_PRIMAL_INSTINCT_2];
-  perk->id = PERK_DRUID_PRIMAL_INSTINCT_2;
-  perk->name = strdup("Primal Instinct II");
-  perk->description = strdup("Additional +15 HP while wild shaped per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_PRIMAL_INSTINCT_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 15;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Primal Instinct I (max). Additional +15 HP per rank while wild shaped. Can be taken 2 times for +30 HP total.");
-  
-  /* Mighty Wild Shape */
-  perk = &perk_list[PERK_DRUID_MIGHTY_WILD_SHAPE];
-  perk->id = PERK_DRUID_MIGHTY_WILD_SHAPE;
-  perk->name = strdup("Mighty Wild Shape");
-  perk->description = strdup("Wild shape forms get +4 STR and CON");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 3;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 4;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Wild Shape Enhancement II (2 ranks). Your wild shape forms gain +4 to Strength and Constitution.");
-
-  /*** NATURE'S WARRIOR TREE - TIER 4 PERKS (4 points each) ***/
-  
-  /* Elemental Wild Shape */
-  perk = &perk_list[PERK_DRUID_ELEMENTAL_WILD_SHAPE];
-  perk->id = PERK_DRUID_ELEMENTAL_WILD_SHAPE;
-  perk->name = strdup("Elemental Wild Shape");
-  perk->description = strdup("Can wild shape into elemental forms");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Wild Shape Enhancement III (max). You can transform into elemental forms (air, earth, fire, water elementals).");
-  
-  /* Primal Avatar */
-  perk = &perk_list[PERK_DRUID_PRIMAL_AVATAR];
-  perk->id = PERK_DRUID_PRIMAL_AVATAR;
-  perk->name = strdup("Primal Avatar");
-  perk->description = strdup("Wild shape duration increased by 50%, +2 attacks per round");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_MIGHTY_WILD_SHAPE;
-  perk->prerequisite_rank = 1;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 50;
-  perk->effect_modifier = 2;
-  perk->special_description = strdup("Requires Mighty Wild Shape. Wild shape duration increased by 50% and you gain +2 attacks per round while wild shaped.");
-  
-  /* Natural Fury */
-  perk = &perk_list[PERK_DRUID_NATURAL_FURY];
-  perk->id = PERK_DRUID_NATURAL_FURY;
-  perk->name = strdup("Natural Fury");
-  perk->description = strdup("Critical hits while wild shaped deal triple damage");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_NATURAL_WEAPONS_2;
-  perk->prerequisite_rank = 1;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Natural Weapons II. Your critical hits with natural weapons deal triple damage instead of double.");
-
-  /*** SEASON'S HERALD TREE - TIER 1 PERKS (1 point each) ***/
-  
-  /* Spell Power I */
-  perk = &perk_list[PERK_DRUID_SPELL_POWER_1];
-  perk->id = PERK_DRUID_SPELL_POWER_1;
-  perk->name = strdup("Spell Power I");
-  perk->description = strdup("Druid spells deal +1 damage per die per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 1;
-  perk->max_rank = 5;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Your druid spells deal +1 damage per die per rank. Can be taken 5 times for +5 per die.");
-  
-  /* Nature's Focus I */
-  perk = &perk_list[PERK_DRUID_NATURES_FOCUS_1];
-  perk->id = PERK_DRUID_NATURES_FOCUS_1;
-  perk->name = strdup("Nature's Focus I");
-  perk->description = strdup("Druid spell save DC increased by +1 per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Increases the save DC of all druid spells by +1 per rank. Can be taken 3 times for +3 total.");
-  
-  /* Elemental Manipulation I */
-  perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_1];
-  perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_1;
-  perk->name = strdup("Elemental Manipulation I");
-  perk->description = strdup("Fire, cold, and lightning spells deal +2d6 damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 6;
-  perk->special_description = strdup("Fire, cold, and lightning spells deal +2d6 damage per rank. Can be taken 3 times for +6d6 total.");
-  
-  /* Efficient Caster */
-  perk = &perk_list[PERK_DRUID_EFFICIENT_CASTER];
-  perk->id = PERK_DRUID_EFFICIENT_CASTER;
-  perk->name = strdup("Efficient Caster");
-  perk->description = strdup("Cast 1 additional spell per rest period");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 1;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("You can prepare and cast one additional spell per rest period.");
-
-  /*** SEASON'S HERALD TREE - TIER 2 PERKS (2 points each) ***/
-  
-  /* Spell Power II */
-  perk = &perk_list[PERK_DRUID_SPELL_POWER_2];
-  perk->id = PERK_DRUID_SPELL_POWER_2;
-  perk->name = strdup("Spell Power II");
-  perk->description = strdup("Additional +2 damage per die per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 2;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_1;
-  perk->prerequisite_rank = 5;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Spell Power I (max). Additional +2 damage per die per rank. Can be taken 3 times for +6 per die.");
-  
-  /* Nature's Focus II */
-  perk = &perk_list[PERK_DRUID_NATURES_FOCUS_2];
-  perk->id = PERK_DRUID_NATURES_FOCUS_2;
-  perk->name = strdup("Nature's Focus II");
-  perk->description = strdup("Additional +1 spell save DC per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 2;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_NATURES_FOCUS_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Nature's Focus I (max). Additional +1 spell save DC per rank. Can be taken 2 times for +2 total.");
-  
-  /* Elemental Manipulation II */
-  perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_2];
-  perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
-  perk->name = strdup("Elemental Manipulation II");
-  perk->description = strdup("Additional +3d6 elemental damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 2;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 6;
-  perk->special_description = strdup("Requires Elemental Manipulation I (max). Additional +3d6 elemental damage per rank. Can be taken 2 times for +6d6 total.");
-  
-  /* Spell Critical */
-  perk = &perk_list[PERK_DRUID_SPELL_CRITICAL];
-  perk->id = PERK_DRUID_SPELL_CRITICAL;
-  perk->name = strdup("Spell Critical");
-  perk->description = strdup("Druid spells have a 5% chance to critical for double damage");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 2;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 5;
-  perk->effect_modifier = 2;
-  perk->special_description = strdup("Requires Spell Power I (3 ranks). Your druid spells have a 5% chance to critical hit for double damage.");
-
-  /*** SEASON'S HERALD TREE - TIER 3 PERKS (3 points each) ***/
-  
-  /* Spell Power III */
-  perk = &perk_list[PERK_DRUID_SPELL_POWER_3];
-  perk->id = PERK_DRUID_SPELL_POWER_3;
-  perk->name = strdup("Spell Power III");
-  perk->description = strdup("Additional +3 damage per die per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_2;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Spell Power II (max). Additional +3 damage per die per rank. Can be taken 2 times for +6 per die.");
-  
-  /* Storm Caller */
-  perk = &perk_list[PERK_DRUID_STORM_CALLER];
-  perk->id = PERK_DRUID_STORM_CALLER;
-  perk->name = strdup("Storm Caller");
-  perk->description = strdup("Lightning spells chain to 2 additional targets");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 3;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Elemental Manipulation II (2 ranks). Your lightning spells can chain to 2 additional nearby targets for 50% damage each.");
-  
-  /* Elemental Manipulation III */
-  perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_3];
-  perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_3;
-  perk->name = strdup("Elemental Manipulation III");
-  perk->description = strdup("Additional +4d6 elemental damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 4;
-  perk->effect_modifier = 6;
-  perk->special_description = strdup("Requires Elemental Manipulation II (max). Additional +4d6 elemental damage per rank. Can be taken 2 times for +8d6 total.");
-  
-  /* Nature's Wrath */
-  perk = &perk_list[PERK_DRUID_NATURES_WRATH];
-  perk->id = PERK_DRUID_NATURES_WRATH;
-  perk->name = strdup("Nature's Wrath");
-  perk->description = strdup("Spell critical chance increased to 10%");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 3;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_SPELL_CRITICAL;
-  perk->prerequisite_rank = 1;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 10;
-  perk->effect_modifier = 2;
-  perk->special_description = strdup("Requires Spell Critical. Your spell critical chance increases from 5% to 10%.");
-
-  /*** SEASON'S HERALD TREE - TIER 4 PERKS (4 points each) ***/
-  
-  /* Force of Nature */
-  perk = &perk_list[PERK_DRUID_FORCE_OF_NATURE];
-  perk->id = PERK_DRUID_FORCE_OF_NATURE;
-  perk->name = strdup("Force of Nature");
-  perk->description = strdup("Druid spells can't be resisted, penetrate all resistances");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_3;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Spell Power III (max). Your druid spells automatically penetrate all spell resistance and energy resistances.");
-  
-  /* Elemental Mastery */
-  perk = &perk_list[PERK_DRUID_ELEMENTAL_MASTERY];
-  perk->id = PERK_DRUID_ELEMENTAL_MASTERY;
-  perk->name = strdup("Elemental Mastery");
-  perk->description = strdup("Elemental spells deal maximum damage");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_3;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Elemental Manipulation III (max). Once per rest, you can maximize one elemental spell to deal maximum damage.");
-  
-  /* Nature's Vengeance */
-  perk = &perk_list[PERK_DRUID_NATURES_VENGEANCE];
-  perk->id = PERK_DRUID_NATURES_VENGEANCE;
-  perk->name = strdup("Nature's Vengeance");
-  perk->description = strdup("Spell criticals deal triple damage instead of double");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_NATURES_WRATH;
-  perk->prerequisite_rank = 1;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Nature's Wrath. Your spell critical hits deal triple damage instead of double.");
-
-  /*** NATURE'S PROTECTOR TREE - TIER 1 PERKS (1 point each) ***/
-  
-  /* Healing Spring I */
-  perk = &perk_list[PERK_DRUID_HEALING_SPRING_1];
-  perk->id = PERK_DRUID_HEALING_SPRING_1;
-  perk->name = strdup("Healing Spring I");
-  perk->description = strdup("Healing spells restore +3 HP per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 1;
-  perk->max_rank = 5;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Increases healing done by druid healing spells by +3 HP per rank. Can be taken 5 times for +15 HP total.");
-  
-  /* Animal Bond I */
-  perk = &perk_list[PERK_DRUID_ANIMAL_BOND_1];
-  perk->id = PERK_DRUID_ANIMAL_BOND_1;
-  perk->name = strdup("Animal Bond I");
-  perk->description = strdup("Animal companion gains +10 HP and +1 attack/damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 10;
-  perk->effect_modifier = 1;
-  perk->special_description = strdup("Your animal companion gains +10 HP and +1 to attack and damage per rank. Can be taken 3 times.");
-  
-  /* Natural Remedy I */
-  perk = &perk_list[PERK_DRUID_NATURAL_REMEDY_1];
-  perk->id = PERK_DRUID_NATURAL_REMEDY_1;
-  perk->name = strdup("Natural Remedy I");
-  perk->description = strdup("Heal over time effects increased by +1 HP per tick per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 1;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Heal over time spells restore +1 HP per tick per rank. Can be taken 3 times for +3 HP per tick.");
-  
-  /* Nature's Blessing */
-  perk = &perk_list[PERK_DRUID_NATURES_BLESSING];
-  perk->id = PERK_DRUID_NATURES_BLESSING;
-  perk->name = strdup("Nature's Blessing");
-  perk->description = strdup("Buff spells last 25% longer");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 1;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 25;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("All beneficial druid buff spells last 25% longer.");
-
-  /*** NATURE'S PROTECTOR TREE - TIER 2 PERKS (2 points each) ***/
-  
-  /* Healing Spring II */
-  perk = &perk_list[PERK_DRUID_HEALING_SPRING_2];
-  perk->id = PERK_DRUID_HEALING_SPRING_2;
-  perk->name = strdup("Healing Spring II");
-  perk->description = strdup("Additional +4 HP healing per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 2;
-  perk->max_rank = 3;
-  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_1;
-  perk->prerequisite_rank = 5;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 4;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Healing Spring I (max). Additional +4 HP healing per rank. Can be taken 3 times for +12 HP total.");
-  
-  /* Animal Bond II */
-  perk = &perk_list[PERK_DRUID_ANIMAL_BOND_2];
-  perk->id = PERK_DRUID_ANIMAL_BOND_2;
-  perk->name = strdup("Animal Bond II");
-  perk->description = strdup("Companion gains +15 HP and +2 attack/damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 2;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 15;
-  perk->effect_modifier = 2;
-  perk->special_description = strdup("Requires Animal Bond I (max). Additional +15 HP and +2 attack/damage per rank. Can be taken 2 times.");
-  
-  /* Natural Remedy II */
-  perk = &perk_list[PERK_DRUID_NATURAL_REMEDY_2];
-  perk->id = PERK_DRUID_NATURAL_REMEDY_2;
-  perk->name = strdup("Natural Remedy II");
-  perk->description = strdup("Additional +2 HP per tick per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 2;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_NATURAL_REMEDY_1;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Natural Remedy I (max). Additional +2 HP per tick per rank. Can be taken 2 times for +4 HP per tick.");
-  
-  /* Companion Enhancement */
-  perk = &perk_list[PERK_DRUID_COMPANION_ENHANCEMENT];
-  perk->id = PERK_DRUID_COMPANION_ENHANCEMENT;
-  perk->name = strdup("Companion Enhancement");
-  perk->description = strdup("Animal companion gains +2 AC and +10% movement speed");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 2;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_1;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 10;
-  perk->special_description = strdup("Requires Animal Bond I (2 ranks). Your animal companion gains +2 AC and moves 10% faster.");
-
-  /*** NATURE'S PROTECTOR TREE - TIER 3 PERKS (3 points each) ***/
-  
-  /* Healing Spring III */
-  perk = &perk_list[PERK_DRUID_HEALING_SPRING_3];
-  perk->id = PERK_DRUID_HEALING_SPRING_3;
-  perk->name = strdup("Healing Spring III");
-  perk->description = strdup("Additional +5 HP healing per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_2;
-  perk->prerequisite_rank = 3;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 5;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Healing Spring II (max). Additional +5 HP healing per rank. Can be taken 2 times for +10 HP total.");
-  
-  /* Animal Bond III */
-  perk = &perk_list[PERK_DRUID_ANIMAL_BOND_3];
-  perk->id = PERK_DRUID_ANIMAL_BOND_3;
-  perk->name = strdup("Animal Bond III");
-  perk->description = strdup("Companion gains +20 HP and +3 attack/damage per rank");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 3;
-  perk->max_rank = 2;
-  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_2;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 20;
-  perk->effect_modifier = 3;
-  perk->special_description = strdup("Requires Animal Bond II (max). Additional +20 HP and +3 attack/damage per rank. Can be taken 2 times.");
-  
-  /* Rejuvenation */
-  perk = &perk_list[PERK_DRUID_REJUVENATION];
-  perk->id = PERK_DRUID_REJUVENATION;
-  perk->name = strdup("Rejuvenation");
-  perk->description = strdup("Healing spells have a 15% chance to also cure negative effects");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 3;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_2;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 15;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Healing Spring II (2 ranks). Your healing spells have a 15% chance to also cure poison, disease, or blindness.");
-  
-  /* Pack Leader */
-  perk = &perk_list[PERK_DRUID_PACK_LEADER];
-  perk->id = PERK_DRUID_PACK_LEADER;
-  perk->name = strdup("Pack Leader");
-  perk->description = strdup("Animal companion gains +4 to all saves");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 3;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_COMPANION_ENHANCEMENT;
-  perk->prerequisite_rank = 1;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 4;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Companion Enhancement. Your animal companion gains +4 to all saving throws.");
-
-  /*** NATURE'S PROTECTOR TREE - TIER 4 PERKS (4 points each) ***/
-  
-  /* Nature's Guardian */
-  perk = &perk_list[PERK_DRUID_NATURES_GUARDIAN];
-  perk->id = PERK_DRUID_NATURES_GUARDIAN;
-  perk->name = strdup("Nature's Guardian");
-  perk->description = strdup("Once per rest, automatically cast healing spell when reduced below 25% HP");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_3;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 25;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Healing Spring III (max). Once per rest, when reduced below 25% HP, automatically cast your most powerful healing spell.");
-  
-  /* Vital Surge */
-  perk = &perk_list[PERK_DRUID_VITAL_SURGE];
-  perk->id = PERK_DRUID_VITAL_SURGE;
-  perk->name = strdup("Vital Surge");
-  perk->description = strdup("Healing spells grant temporary HP equal to 25% healing done");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_REJUVENATION;
-  perk->prerequisite_rank = 1;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 25;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Rejuvenation. Your healing spells grant the target temporary HP equal to 25% of the healing done, lasting 1 minute.");
-  
-  /* Alpha Companion */
-  perk = &perk_list[PERK_DRUID_ALPHA_COMPANION];
-  perk->id = PERK_DRUID_ALPHA_COMPANION;
-  perk->name = strdup("Alpha Companion");
-  perk->description = strdup("Animal companion becomes dire version with doubled stats");
-  perk->associated_class = CLASS_DRUID;
-  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
-  perk->cost = 4;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_3;
-  perk->prerequisite_rank = 2;
-  perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Animal Bond III (max). Your animal companion becomes a dire version with doubled base stats (HP, damage, AC).");
-}
-
-/* Nature's Warrior Druid Perk Helper Functions */
-
-/* Get attack bonus from Wild Shape Enhancement perks when wild shaped */
-int get_druid_wild_shape_attack_bonus(struct char_data *ch)
-{
   int bonus = 0;
   
-  if (!IS_WILDSHAPED(ch))
-    return 0;
-    
-  /* Wild Shape Enhancement I: +1 attack per rank (max 5) */
-  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1, CLASS_DRUID);
+  /* Holy Weapon I: +2 per rank, max 3 ranks = +6 */
+  if (has_perk(ch, PERK_PALADIN_HOLY_WEAPON_1))
+    bonus += get_perk_rank(ch, PERK_PALADIN_HOLY_WEAPON_1, CLASS_PALADIN) * 2;
   
-  /* Wild Shape Enhancement II: additional +1 attack per rank (max 3) */
-  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
-  
-  /* Wild Shape Enhancement III: additional +1 attack per rank (max 2) */
-  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3, CLASS_DRUID);
+  /* Holy Weapon II: +2 per rank, max 2 ranks = +4 */
+  if (has_perk(ch, PERK_PALADIN_HOLY_WEAPON_2))
+    bonus += get_perk_rank(ch, PERK_PALADIN_HOLY_WEAPON_2, CLASS_PALADIN) * 2;
   
   return bonus;
 }
 
-/* Get damage bonus from Wild Shape Enhancement perks when wild shaped */
-int get_druid_wild_shape_damage_bonus(struct char_data *ch)
+/**
+ * Get AC bonus from Sacred Defender perks.
+ * 
+ * @param ch The character
+ * @return AC bonus
+ */
+int get_paladin_sacred_defender_ac_bonus(struct char_data *ch)
 {
-  int bonus = 0;
-  
-  if (!IS_WILDSHAPED(ch))
+  if (!ch || IS_NPC(ch))
     return 0;
-    
-  /* Wild Shape Enhancement I: +1 damage per rank (max 5) */
-  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1, CLASS_DRUID);
   
-  /* Wild Shape Enhancement II: additional +1 damage per rank (max 3) */
-  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
-  
-  /* Wild Shape Enhancement III: additional +1 damage per rank (max 2) */
-  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3, CLASS_DRUID);
-  
-  return bonus;
-}
-
-/* Get natural armor bonus from Nature's Warrior perks */
-int get_druid_natural_armor_bonus(struct char_data *ch)
-{
-  int bonus = 0;
-  
-  /* Natural Armor I: +1 AC per rank (max 3) */
-  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_1, CLASS_DRUID);
-  
-  /* Natural Armor II: additional +1 AC per rank (max 2) */
-  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_2, CLASS_DRUID);
-  
-  /* Natural Armor III: additional +1 AC per rank (max 2) */
-  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_3, CLASS_DRUID);
-  
-  return bonus;
-}
-
-/* Get HP bonus from Primal Instinct perks when wild shaped */
-int get_druid_wild_shape_hp_bonus(struct char_data *ch)
-{
-  int bonus = 0;
-  
-  if (!IS_WILDSHAPED(ch))
+  /* Sacred Defender: +1 AC per rank when wielding weapon and shield */
+  if (!has_perk(ch, PERK_PALADIN_SACRED_DEFENDER))
     return 0;
-    
-  /* Primal Instinct I: +10 HP per rank (max 3) */
-  bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_1, CLASS_DRUID) * 10;
   
-  /* Primal Instinct II: +15 HP per rank (max 2) */
-  bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_2, CLASS_DRUID) * 15;
-  
-  return bonus;
-}
-
-/* Get weapon damage dice bonus from Natural Weapons perks when wild shaped */
-int get_druid_natural_weapons_damage_dice(struct char_data *ch)
-{
-  int dice = 0;
-  
-  if (!IS_WILDSHAPED(ch))
+  /* Check if wielding shield */
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+  if (!shield || GET_OBJ_TYPE(shield) != ITEM_ARMOR)
     return 0;
-    
-  /* Natural Weapons I: +1d4 per rank (max 3) */
-  dice += get_perk_rank(ch, PERK_DRUID_NATURAL_WEAPONS_1, CLASS_DRUID);
   
-  return dice;
+  /* Check if wielding weapon */
+  struct obj_data *weapon = GET_EQ(ch, WEAR_WIELD_1);
+  if (!weapon || GET_OBJ_TYPE(weapon) != ITEM_WEAPON)
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_SACRED_DEFENDER, CLASS_PALADIN);
 }
 
-/* Check if druid has improved critical range for natural weapons (19-20) */
-bool has_druid_natural_weapons_improved_crit(struct char_data *ch)
+/**
+ * Get bonus smite damage dice from Improved Smite perk.
+ * 
+ * @param ch The character
+ * @return Number of bonus d6 dice
+ */
+int get_paladin_improved_smite_dice(struct char_data *ch)
 {
-  if (!IS_WILDSHAPED(ch))
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_PALADIN_IMPROVED_SMITE))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_IMPROVED_SMITE, CLASS_PALADIN);
+}
+
+/**
+ * Check if character has Faithful Strike perk.
+ */
+bool has_paladin_faithful_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
     return FALSE;
-    
-  /* Natural Weapons II: critical on 19-20 */
-  return has_perk(ch, PERK_DRUID_NATURAL_WEAPONS_2);
+  return has_perk(ch, PERK_PALADIN_FAITHFUL_STRIKE);
 }
 
-/* Check if druid is in elemental form and has Elemental Wild Shape perk */
-bool is_druid_in_elemental_form(struct char_data *ch)
+/**
+ * Check if character has Holy Blade perk.
+ */
+bool has_paladin_holy_blade(struct char_data *ch)
 {
-  if (!IS_WILDSHAPED(ch))
+  if (!ch || IS_NPC(ch))
     return FALSE;
-    
-  if (!has_perk(ch, PERK_DRUID_ELEMENTAL_WILD_SHAPE))
+  return has_perk(ch, PERK_PALADIN_HOLY_BLADE);
+}
+
+/**
+ * Check if character has Divine Might perk.
+ */
+bool has_paladin_divine_might(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
     return FALSE;
+  return has_perk(ch, PERK_PALADIN_DIVINE_MIGHT);
+}
+
+/**
+ * Check if character has Exorcism of the Slain perk.
+ */
+bool has_paladin_exorcism_of_the_slain(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_EXORCISM_OF_THE_SLAIN);
+}
+
+/**
+ * Check if character has Holy Sword perk.
+ */
+bool has_paladin_holy_sword(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_HOLY_SWORD);
+}
+
+/**
+ * Check if character has Zealous Smite perk.
+ */
+bool has_paladin_zealous_smite(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_ZEALOUS_SMITE);
+}
+
+/**
+ * Check if character has Blinding Smite perk.
+ */
+bool has_paladin_blinding_smite(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_BLINDING_SMITE);
+}
+
+/**
+ * Check if character has Overwhelming Smite perk.
+ */
+bool has_paladin_overwhelming_smite(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_OVERWHELMING_SMITE);
+}
+
+/**
+ * Check if character has Sacred Vengeance perk.
+ */
+bool has_paladin_sacred_vengeance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_SACRED_VENGEANCE);
+}
+
+/* =============================================================== */
+/* PALADIN PERK HELPER FUNCTIONS - SACRED DEFENDER                */
+/* =============================================================== */
+
+/**
+ * Get total extra Lay on Hands uses from perks.
+ * 
+ * @param ch The character
+ * @return Total bonus uses
+ */
+int get_paladin_extra_lay_on_hands(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  int bonus = 0;
+  
+  /* Extra Lay on Hands I: +1 per rank, max 3 ranks = +3 */
+  if (has_perk(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_1))
+    bonus += get_perk_rank(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_1, CLASS_PALADIN);
+  
+  /* Extra Lay on Hands II: +1 per rank, max 2 ranks = +2 */
+  if (has_perk(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_2))
+    bonus += get_perk_rank(ch, PERK_PALADIN_EXTRA_LAY_ON_HANDS_2, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/**
+ * Get AC bonus from Shield of Faith perks.
+ * 
+ * @param ch The character
+ * @return AC bonus
+ */
+int get_paladin_shield_of_faith_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  int bonus = 0;
+  
+  /* Shield of Faith I: +1 per rank, max 3 ranks = +3 */
+  if (has_perk(ch, PERK_PALADIN_SHIELD_OF_FAITH_1))
+    bonus += get_perk_rank(ch, PERK_PALADIN_SHIELD_OF_FAITH_1, CLASS_PALADIN);
+  
+  /* Shield of Faith II: +1 per rank, max 2 ranks = +2 */
+  if (has_perk(ch, PERK_PALADIN_SHIELD_OF_FAITH_2))
+    bonus += get_perk_rank(ch, PERK_PALADIN_SHIELD_OF_FAITH_2, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/**
+ * Get saves bonus from Bulwark of Defense when wielding a shield.
+ * 
+ * @param ch The character
+ * @return Saves bonus
+ */
+int get_paladin_bulwark_saves_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_PALADIN_BULWARK_OF_DEFENSE))
+    return 0;
+  
+  /* Check if wielding shield */
+  struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+  if (!shield || GET_OBJ_TYPE(shield) != ITEM_ARMOR)
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_BULWARK_OF_DEFENSE, CLASS_PALADIN);
+}
+
+/**
+ * Get healing percentage bonus from Healing Hands perk.
+ * 
+ * @param ch The character
+ * @return Healing percentage bonus (10 per rank)
+ */
+int get_paladin_healing_hands_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_PALADIN_HEALING_HANDS))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_PALADIN_HEALING_HANDS, CLASS_PALADIN) * 10;
+}
+
+/**
+ * Check if character has Defensive Strike perk.
+ */
+bool has_paladin_defensive_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_DEFENSIVE_STRIKE);
+}
+
+/**
+ * Check if character has Shield Guardian perk.
+ */
+bool has_paladin_shield_guardian(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_SHIELD_GUARDIAN);
+}
+
+/**
+ * Check if character has Aura of Protection perk.
+ */
+bool has_paladin_aura_of_protection(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_AURA_OF_PROTECTION);
+}
+
+/**
+ * Get Sanctuary damage reduction percentage.
+ * Returns 10 if character has the perk, 0 otherwise.
+ */
+int get_paladin_sanctuary_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  if (has_perk(ch, PERK_PALADIN_SANCTUARY))
+    return 10; /* 10% damage reduction */
+  return 0;
+}
+
+/**
+ * Check if character has Merciful Touch perk.
+ */
+bool has_paladin_merciful_touch(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_MERCIFUL_TOUCH);
+}
+
+/**
+ * Check if character has Bastion of Defense perk.
+ */
+bool has_paladin_bastion_of_defense(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_BASTION_OF_DEFENSE);
+}
+
+/**
+ * Check if character has Aura of Life perk.
+ */
+bool has_paladin_aura_of_life(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_AURA_OF_LIFE);
+}
+
+/**
+ * Check if character has Cleansing Touch perk.
+ */
+bool has_paladin_cleansing_touch(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_CLEANSING_TOUCH);
+}
+
+/**
+ * Check if character has Divine Sacrifice perk.
+ */
+bool has_paladin_divine_sacrifice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_DIVINE_SACRIFICE);
+}
+
+/**
+ * Get total Spell Focus bonus from Divine Champion perks.
+ * Returns +1 per rank of Spell Focus I and II.
+ */
+int get_paladin_spell_focus_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
     
-  if (GET_DISGUISE_RACE(ch) != RACE_UNDEFINED)
+  bonus += get_perk_rank(ch, PERK_PALADIN_SPELL_FOCUS_1, CLASS_PALADIN);
+  bonus += get_perk_rank(ch, PERK_PALADIN_SPELL_FOCUS_2, CLASS_PALADIN);
+  
+  return bonus;
+}
+
+/**
+ * Get Turn Undead HD bonus from Divine Champion perks.
+ * Turn Undead Mastery I: +2 HD per rank
+ * Turn Undead Mastery II: +3 HD per rank
+ */
+int get_paladin_turn_undead_hd_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  bonus += get_perk_rank(ch, PERK_PALADIN_TURN_UNDEAD_MASTERY_1, CLASS_PALADIN) * 2;
+  bonus += get_perk_rank(ch, PERK_PALADIN_TURN_UNDEAD_MASTERY_2, CLASS_PALADIN) * 3;
+  
+  return bonus;
+}
+
+/**
+ * Get Turn Undead damage bonus from Divine Champion perks.
+ * Turn Undead Mastery II: +2d6 damage per rank
+ */
+int get_paladin_turn_undead_damage_bonus(struct char_data *ch)
+{
+  int bonus_dice = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  bonus_dice = get_perk_rank(ch, PERK_PALADIN_TURN_UNDEAD_MASTERY_2, CLASS_PALADIN) * 2;
+  
+  return bonus_dice;
+}
+
+/**
+ * Get Divine Grace save bonus from Divine Champion perks.
+ * Returns +1 per rank to all saves.
+ */
+int get_paladin_divine_grace_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_DIVINE_GRACE, CLASS_PALADIN);
+}
+
+/**
+ * Check if character has Radiant Aura perk.
+ */
+bool has_paladin_radiant_aura(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_RADIANT_AURA);
+}
+
+/**
+ * Check if character has Quickened Blessing perk.
+ */
+bool has_paladin_quickened_blessing(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_QUICKENED_BLESSING);
+}
+
+/**
+ * Get Channel Energy dice count.
+ * Returns 1d6 per rank of Channel Energy I.
+ */
+int get_paladin_channel_energy_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_CHANNEL_ENERGY_1, CLASS_PALADIN);
+}
+
+/**
+ * Get Channel Energy daily uses.
+ * Base: 2 uses per day
+ * Channel Energy II adds +2 uses per rank
+ */
+int get_paladin_channel_energy_uses(struct char_data *ch)
+{
+  int uses = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  if (!has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1))
+    return 0;
+    
+  uses = 2; /* Base 2 uses per day */
+  
+  /* Add Channel Energy II bonus uses */
+  uses += get_paladin_channel_energy_2_uses(ch);
+  
+  return uses;
+}
+
+bool is_quickened_blessing_spell(int spellnum)
+{
+  switch (spellnum)
   {
-    if (GET_DISGUISE_RACE(ch) < NUM_EXTENDED_RACES)
-    {
-      if (race_list[GET_DISGUISE_RACE(ch)].family == RACE_TYPE_ELEMENTAL)
-        return TRUE;
-    }
+    case SPELL_BLESS:
+    case SPELL_CURE_LIGHT:
+    case SPELL_CURE_MODERATE:
+    case SPELL_CURE_SERIOUS:
+    case SPELL_CURE_CRITIC:
+    case SPELL_PROT_FROM_EVIL:
+      return TRUE;
+    default:
+      return FALSE;
   }
-    
-  return FALSE;
 }
 
-/* Get attack bonus from Elemental Wild Shape when in elemental form */
-int get_druid_elemental_attack_bonus(struct char_data *ch)
-{
-  if (!is_druid_in_elemental_form(ch))
-    return 0;
-    
-  return 3;
-}
+/* ===== TIER 3 HELPER FUNCTIONS ===== */
 
-/* Get damage bonus from Elemental Wild Shape when in elemental form */
-int get_druid_elemental_damage_bonus(struct char_data *ch)
+/**
+ * Check if character has Spell Penetration perk.
+ */
+bool has_paladin_spell_penetration(struct char_data *ch)
 {
-  if (!is_druid_in_elemental_form(ch))
-    return 0;
-    
-  return 6;
-}
-
-/* Get natural armor bonus from Elemental Wild Shape when in elemental form */
-int get_druid_elemental_armor_bonus(struct char_data *ch)
-{
-  if (!is_druid_in_elemental_form(ch))
-    return 0;
-    
-  return 3;
-}
-
-/* Get HP bonus from Elemental Wild Shape when in elemental form */
-int get_druid_elemental_hp_bonus(struct char_data *ch)
-{
-  if (!is_druid_in_elemental_form(ch))
-    return 0;
-    
-  return 50;
-}
-
-/* Check if druid has Primal Avatar (extra attack) */
-bool has_druid_primal_avatar(struct char_data *ch)
-{
-  if (!IS_WILDSHAPED(ch))
+  if (!ch || IS_NPC(ch))
     return FALSE;
-    
-  return has_perk(ch, PERK_DRUID_PRIMAL_AVATAR);
+  return has_perk(ch, PERK_PALADIN_SPELL_PENETRATION);
 }
 
-/* Check if druid has Natural Fury (triple damage crits) */
-bool has_druid_natural_fury(struct char_data *ch)
+/**
+ * Check if character has Destroy Undead perk.
+ */
+bool has_paladin_destroy_undead(struct char_data *ch)
 {
-  if (!IS_WILDSHAPED(ch))
+  if (!ch || IS_NPC(ch))
     return FALSE;
-    
-  return has_perk(ch, PERK_DRUID_NATURAL_FURY);
+  return has_perk(ch, PERK_PALADIN_DESTROY_UNDEAD);
 }
+
+/**
+ * Get Channel Energy II bonus dice.
+ * Returns +2d6 per rank.
+ */
+int get_paladin_channel_energy_2_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_CHANNEL_ENERGY_2, CLASS_PALADIN) * 2;
+}
+
+/**
+ * Get Channel Energy II bonus uses per day.
+ * Returns +2 uses per rank.
+ */
+int get_paladin_channel_energy_2_uses(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  return get_perk_rank(ch, PERK_PALADIN_CHANNEL_ENERGY_2, CLASS_PALADIN) * 2;
+}
+
+/**
+ * Check if character has Aura of Courage Mastery perk.
+ */
+bool has_paladin_aura_of_courage_mastery(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_AURA_OF_COURAGE_MASTERY);
+}
+
+/* ===== TIER 4 HELPER FUNCTIONS ===== */
+
+/**
+ * Check if character has Mass Cure Wounds perk.
+ */
+bool has_paladin_mass_cure_wounds(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_MASS_CURE_WOUNDS);
+}
+
+/**
+ * Check if character has Holy Avenger perk.
+ */
+bool has_paladin_holy_avenger(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_HOLY_AVENGER);
+}
+
+/**
+ * Check if character has Beacon of Hope perk.
+ */
+bool has_paladin_beacon_of_hope(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PALADIN_BEACON_OF_HOPE);
+}
+

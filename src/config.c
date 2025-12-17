@@ -72,6 +72,7 @@ int tunnel_size = 2;
 /* Exp change limits. */
 int max_exp_gain = 100000; /* max gainable per kill */
 int max_exp_loss = 200000; /* max losable per death */
+int experience_multiplier = 100; /* percentage multiplier for exp gain (100 = normal) */
 
 /* Number of tics (usually 75 seconds) before PC/NPC corpses decompose. */
 int max_npc_corpse_time = 5;
@@ -357,6 +358,12 @@ int extra_level_mv = 0; // This amount of mv will be added every time a player g
 
 // No player armor class can go above this value
 int ac_cap = 60;
+
+int melee_exp_option = 1; // multiplier for melee experience gain
+int spell_cast_exp_option = 1; // multiplier for spell casting experience gain
+int spellcasting_time_mode = 0; // 0 = standard action, 1 = per-spell seconds
+
+int arcane_moon_phases = 0; // 0 = OFF, 1 = ON
 
 // This is the maximum difference in level between the
 // level of the player and the mob, to gain exp.

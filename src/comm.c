@@ -206,7 +206,7 @@ void process_walkto_actions(void);
 void self_buffing(void);
 void moving_rooms_update(void);
 void recharge_activated_items(void);
-
+void check_thirty_seconds(void);
 void craft_update(void);
 
 /* externally defined functions, used locally */
@@ -1483,7 +1483,7 @@ void heartbeat(int heart_pulse)
   /* auction check every 30 seconds */
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
   {
-    check_auction();
+    check_thirty_seconds();
   }
 
   /* save characters once per minute */
@@ -1779,10 +1779,10 @@ static char *make_prompt(struct descriptor_data *d)
       /* display exp to next level */
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%d ",
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%ld ",
                          CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-                         level_exp(d->character, GET_LEVEL(d->character) + 1) -
-                             GET_EXP(d->character));
+                         (long)(level_exp(d->character, GET_LEVEL(d->character) + 1) -
+                             GET_EXP(d->character)));
         if (count >= 0)
           len += count;
       }

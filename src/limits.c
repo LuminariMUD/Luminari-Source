@@ -37,6 +37,7 @@
 #include "evolutions.h"
 #include "spell_prep.h"
 #include "perks.h"
+#include "moon_bonus_spells.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -220,7 +221,7 @@ void affliction_tick(struct char_data *ch)
   if (affected_by_spell(ch, WARLOCK_CHILLING_TENTACLES))
   {
     damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, WARLOCK_CHILLING_TENTACLES, DAM_FORCE, FALSE);
-    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES, DAM_COLD, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES_COLD, DAM_COLD, FALSE);
   }
   else if (affected_by_spell(ch, SPELL_GREATER_BLACK_TENTACLES))
   {
@@ -531,6 +532,10 @@ int regen_hps(struct char_data *ch)
 {
   int hp = 0;
 
+  /* Constructed golems never regenerate naturally; they must be repaired */
+  if (IS_GOLEM(ch))
+    return 0;
+
   /* base regen rate */
   if (rand_number(0, 1))
     hp++;
@@ -800,6 +805,15 @@ void regen_update(struct char_data *ch)
   }
   /* End of bleeding check! */
 
+  /* Golems: immune to fatigue/move drain and rely solely on repairs for HP */
+  if (IS_GOLEM(ch))
+  {
+    if (AFF_FLAGGED(ch, AFF_FATIGUED))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FATIGUED);
+
+    GET_MOVE(ch) = GET_MAX_MOVE(ch);
+  }
+
   // we don't have hunger and thirst here.
   /*
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
@@ -809,6 +823,37 @@ void regen_update(struct char_data *ch)
 
   /* we moved the math of hp regen into a separate function to make it easier to find/ manipulate */
   hp = regen_hps(ch);
+
+  /* Beast Master: Primal Vigor perk - 1 HP/round regen in combat for ranger and companion */
+  if (!IS_NPC(ch) && has_primal_vigor(ch) && FIGHTING(ch))
+  {
+    hp += 1;
+    send_to_char(ch, "\tG[Primal Vigor +1 HP]\tn ");
+  }
+  /* If this is a companion, check if master has Primal Vigor */
+  if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && has_primal_vigor(ch->master) && FIGHTING(ch))
+  {
+    hp += 1;
+  }
+
+  /* Paladin Sacred Defender perk: Aura of Life - allies in aura regenerate HP */
+  if (!IS_NPC(ch) && GROUP(ch) != NULL)
+  {
+    struct char_data *tch = NULL;
+    simple_list(NULL); /* Reset iterator */
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (has_paladin_aura_of_life(tch))
+      {
+        /* 2 HP per round in combat, 5 HP per round out of combat */
+        int aura_regen = FIGHTING(ch) ? 2 : 5;
+        hp += aura_regen;
+        break; /* Only one aura bonus */
+      }
+    }
+  }
 
   /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
@@ -1152,10 +1197,10 @@ void run_autowiz(void)
 #define MIN_NUM_MOBS_TO_KILL_25 185
 int gain_exp(struct char_data *ch, int gain, int mode)
 {
-  int xp_to_lvl = 0;
-  int xp_to_lvl_cap = 0;
-  int gain_cap = 0;
-
+  long int xp_to_lvl = 0;
+  long int xp_to_lvl_cap = 0;
+  long int gain_cap = 0;
+  
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
     return 0;
 
@@ -1755,6 +1800,12 @@ void update_player_misc(void)
       }
     }
 
+    /* Decrement Nature's Wrath cooldown if active */
+    if (!IS_NPC(ch) && ch->natures_wrath_cooldown > 0)
+    {
+      ch->natures_wrath_cooldown--;
+    }
+
     if (GET_SCROUNGE_COOLDOWN(ch) > 0)
     {
       GET_SCROUNGE_COOLDOWN(ch)--;
@@ -1994,15 +2045,23 @@ void update_player_misc(void)
       }
     }
 
-    if (GET_MARK(ch) && GET_MARK_ROUNDS(ch) < 3)
+    if (GET_MARK(ch))
     {
-      GET_MARK_ROUNDS(ch) += 1;
-      if (GET_MARK_ROUNDS(ch) == 3 || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+      /* Assassin death attack uses 3 rounds; Ranger Hunter's Mark uses 5 rounds */
+      int max_rounds = 3;
+      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+        max_rounds = 5;
+
+      if (GET_MARK_ROUNDS(ch) < max_rounds)
       {
-        send_to_char(ch, "You have finished marking your target.\r\n");
+        GET_MARK_ROUNDS(ch) += 1;
+        if (GET_MARK_ROUNDS(ch) >= max_rounds || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+        {
+          send_to_char(ch, "You have finished marking your target.\r\n");
+        }
+        else
+          send_to_char(ch, "You continue to mark your target.\r\n");
       }
-      else
-        send_to_char(ch, "You continue to mark your target.\r\n");
     }
   }
 }
@@ -2251,6 +2310,52 @@ void proc_d20_round(void)
   }
 }
 
+void check_devices(void)
+{
+
+  struct char_data *i = NULL, *next_char = NULL;
+  int artificer_level, max_uses;
+
+  for (i = character_list; i; i = next_char)
+  {
+    next_char = i->next;
+
+    /* Artificer device recharge: Every 30 seconds recharge 1 use */
+    if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) &&
+        i->player_specials->saved.num_inventions > 0)
+    {
+      artificer_level = CLASS_LEVEL(i, CLASS_ARTIFICER);
+      max_uses = 1 + (artificer_level / 2);
+      if (HAS_FEAT(i, FEAT_GNOMISH_TINKERING))
+        max_uses += 1;
+      
+      /* Find the first device that can be recharged (working from top of list) */
+      int dev_idx;
+      for (dev_idx = 0; dev_idx < i->player_specials->saved.num_inventions; dev_idx++)
+      {
+        struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
+        
+        /* Only recharge if device has been used at all */
+        if (inv->uses > 0)
+        {
+          inv->uses--;
+          inv->dc_penalty = MAX(0, inv->dc_penalty - 4); /* Also reduce DC penalty */
+          
+          send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
+                      inv->short_description, max_uses - inv->uses, max_uses);
+          break; /* Only recharge one device per 30 seconds */
+        }
+      }
+    }
+  }
+}
+
+void check_thirty_seconds(void)
+{
+  check_auction();
+  check_devices();  
+}
+
 /* Update PCs, NPCs, and objects */
 void point_update(void)
 {
@@ -2296,6 +2401,7 @@ void point_update(void)
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
         check_idling(i);
+      
       // eldritch knight spell crit expires after combat ends if not used.
       if (!FIGHTING(i) && HAS_ELDRITCH_SPELL_CRIT(i))
         HAS_ELDRITCH_SPELL_CRIT(i) = false;
@@ -2852,6 +2958,9 @@ void update_damage_and_effects_over_time(void)
         }
       }
     } // end immolation bombs
+
+    /* Moon-based bonus spell slot regeneration */
+    regenerate_moon_bonus_spell(ch);
 
   } // end character_list loop
 }

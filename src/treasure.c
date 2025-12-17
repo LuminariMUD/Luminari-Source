@@ -526,6 +526,7 @@ int determine_stat_apply(int wear)
     }
     break;
   case WEAR_ABOUT:
+  case WEAR_ON_BACK:
     switch (rand_number(1, 3))
     {
     case 1:
@@ -1583,6 +1584,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   {
     bonus_location = determine_stat_apply(WEAR_ABOUT);
   }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ON_BACK))
+  {
+    bonus_location = determine_stat_apply(WEAR_ON_BACK);
+  }
   else if (CAN_WEAR(obj, ITEM_WEAR_WAIST))
   {
     bonus_location = determine_stat_apply(WEAR_WAIST);
@@ -1698,7 +1703,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   if (bonus_value >= 1)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC); // add magic tag
 
-  obj_to_char(obj, ch); // deliver object
+  resize_obj_to_char(obj, ch); // deliver object
 
   /* inform ch and surrounding that they received this item */
   if (!silent_mode)
@@ -6107,10 +6112,17 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
 {
   int snum;
   int apply = choose_random_apply(obj);
+  int tries = 0;
 
-  while (obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0)
+  while ((obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0) && tries < 10)
   {
     apply = choose_random_apply(obj);
+    tries++;
+  }
+
+  if (tries >= 10)
+  {
+    return;
   }
 
   obj->affected[i].location = apply;

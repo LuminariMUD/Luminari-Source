@@ -31,6 +31,7 @@
 #include "mob_psionic.h" /* for psionic functions */
 #include "mob_spells.h"
 #include "mob_spellslots.h" /* for has_sufficient_slots_for_buff */
+#include "mob_known_spells.h" /* for known spell slot system */
 #include "assign_wpn_armor.h" /* for weapon_list */
 
 /* local defines */
@@ -393,6 +394,116 @@ static bool has_slashing_weapon(struct char_data *ch)
   return false;
 }
 
+/**
+ * Cast a known spell as an innate ability.
+ * This bypasses class restrictions, allowing non-casters to use MOB_KNOWS_SPELL spells.
+ * 
+ * @param ch The caster
+ * @param tch The target character (can be NULL)
+ * @param tobj The target object (can be NULL)
+ * @param spellnum The spell to cast
+ * @return The result from call_magic()
+ */
+int cast_known_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum)
+{
+  int level;
+  
+  if (!ch || !IS_NPC(ch))
+    return 0;
+    
+  if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
+    return 0;
+  
+  /* Use mob's level for casting */
+  level = GET_LEVEL(ch);
+  
+  /* Call magic directly with CAST_INNATE to bypass class restrictions */
+  return call_magic(ch, tch, tobj, spellnum, 0, level, CAST_INNATE);
+}
+
+/* Helper: Find a known buff spell that the target doesn't already have active */
+static int find_known_buff_spell(struct char_data *ch, struct char_data *target)
+{
+  int i = 0, attempts = 0;
+  
+  if (!ch || !IS_NPC(ch))
+    return -1;
+  
+  if (!target)
+    target = ch;
+  
+  /* Try to find a known buff spell with available slots */
+  for (attempts = 0; attempts < 20; attempts++)
+  {
+    for (i = 0; i < NUM_SPELLS; i++)
+    {
+      if (MOB_KNOWS_SPELL(ch, i) && has_known_spell_slot(ch, i))
+      {
+        int category = categorize_known_spell(i);
+        
+        /* Only return buff or utility spells (not offensive/heal/summon) */
+        if ((category == KNOWN_SPELL_CATEGORY_BUFF || category == KNOWN_SPELL_CATEGORY_UTILITY) &&
+            !affected_by_spell(target, i) && /* Don't recast if target already has it */
+            spell_info[i].violent == FALSE) /* Non-violent only for buffing */
+        {
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
+
+/* Helper: Find a known healing spell */
+static int find_known_heal_spell(struct char_data *ch)
+{
+  int i = 0;
+  
+  if (!ch || !IS_NPC(ch))
+    return -1;
+  
+  /* Try to find a known healing spell with available slots */
+  for (i = 0; i < NUM_SPELLS; i++)
+  {
+    if (MOB_KNOWS_SPELL(ch, i) && has_known_spell_slot(ch, i))
+    {
+      int category = categorize_known_spell(i);
+      
+      if (category == KNOWN_SPELL_CATEGORY_HEAL &&
+          spell_info[i].violent == FALSE)
+      {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/* Helper: Find a known offensive spell */
+static int find_known_offensive_spell(struct char_data *ch)
+{
+  int i = 0;
+  
+  if (!ch || !IS_NPC(ch))
+    return -1;
+  
+  /* Try to find a known offensive spell with available slots */
+  for (i = 0; i < NUM_SPELLS; i++)
+  {
+    if (MOB_KNOWS_SPELL(ch, i) && has_known_spell_slot(ch, i))
+    {
+      int category = categorize_known_spell(i);
+      
+      if (category == KNOWN_SPELL_CATEGORY_OFFENSIVE &&
+          spell_info[i].violent == TRUE)
+      {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch)
 {
@@ -548,6 +659,16 @@ void npc_spellup(struct char_data *ch)
   /* try healing */
   if (GET_HIT(victim) && (GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2)
   {
+    /* First, try known healing spells */
+    int known_heal = find_known_heal_spell(ch);
+    if (known_heal >= 0)
+    {
+      cast_known_spell(ch, victim, NULL, known_heal);
+      consume_known_spell_slot(ch, known_heal);
+      return;
+    }
+    
+    /* Fall back to class healing spells */
     if (GROUP(ch) && level >= spell_info[SPELL_GROUP_HEAL].min_level[GET_CLASS(ch)])
     {
       cast_spell(ch, victim, NULL, SPELL_GROUP_HEAL, 0);
@@ -567,6 +688,15 @@ void npc_spellup(struct char_data *ch)
 
   /* try to fix condition issues (blindness, etc) */
   /* TODO */
+
+  /* First, try any known buff spells */
+  int known_buff = find_known_buff_spell(ch, victim);
+  if (known_buff >= 0)
+  {
+    cast_known_spell(ch, victim, NULL, known_buff);
+    consume_known_spell_slot(ch, known_buff);
+    return;
+  }
 
   /* Priority buffs - try important combat buffs first */
   int priority_buffs[] = {
@@ -776,6 +906,15 @@ void npc_offensive_spells(struct char_data *ch)
   /* random offensive spell */
   if (use_aoe >= 2)
   {
+    /* First, try a known offensive spell */
+    int known_offensive = find_known_offensive_spell(ch);
+    if (known_offensive >= 0)
+    {
+      cast_known_spell(ch, tch, NULL, known_offensive);
+      consume_known_spell_slot(ch, known_offensive);
+      return;
+    }
+    
     do
     {
       spellnum = valid_aoe_spell[rand_number(0, OFFENSIVE_AOE_SPELLS - 1)];
@@ -802,6 +941,15 @@ void npc_offensive_spells(struct char_data *ch)
   /* we intentionally fall through here,
    some (a lot?) of mobiles will not have aoe spells */
   loop_counter = 0;
+
+  /* First, try a known offensive spell for single-target */
+  int known_offensive = find_known_offensive_spell(ch);
+  if (known_offensive >= 0)
+  {
+    cast_known_spell(ch, tch, NULL, known_offensive);
+    consume_known_spell_slot(ch, known_offensive);
+    return;
+  }
 
   do
   {

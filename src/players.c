@@ -493,6 +493,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_BONUS_SLOTS_USED(ch) = 0;
     GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
+    ch->player_specials->saved.last_device_recharge = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -665,6 +666,8 @@ int load_char(const char *name, struct char_data *ch)
       GET_BAG_NAME(ch, i) = NULL;
     }
 
+    GET_ARCANE_MARK(ch) = NULL;
+
     for (i = 0; i < 100; i++)
     {
       ch->player_specials->saved.failed_dialogue_quests[i] = 0;
@@ -758,6 +761,12 @@ int load_char(const char *name, struct char_data *ch)
           (ch)->player_specials->saved.character_age_saved = atoi(line);
         else if (!strcmp(tag, "Alis"))
           read_aliases_ascii(fl, ch, atoi(line));
+        else if (!strcmp(tag, "AMrk"))
+        {
+          if (GET_ARCANE_MARK(ch))
+            free(GET_ARCANE_MARK(ch));
+          GET_ARCANE_MARK(ch) = strdup(line);
+        }
         break;
 
       case 'B':
@@ -947,6 +956,8 @@ int load_char(const char *name, struct char_data *ch)
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "DvCD"))
+          ch->player_specials->saved.device_creation_cooldown = (time_t)atol(line);
         else if (!strcmp(tag, "Dvis"))
           load_devices(fl, ch);
         else if (!strcmp(tag, "DrgB"))
@@ -1218,6 +1229,13 @@ int load_char(const char *name, struct char_data *ch)
           GET_CURRENT_MISSION_ROOM(ch) = atoi(line);
         else if (!strcmp(tag, "MVRg"))
           GET_MV_REGEN(ch) = atoi(line);
+        /* Moon bonus spells */
+        else if (!strcmp(tag, "MBSp"))
+          ch->player_specials->saved.moon_bonus_spells = atoi(line);
+        else if (!strcmp(tag, "MBSU"))
+          ch->player_specials->saved.moon_bonus_spells_used = atoi(line);
+        else if (!strcmp(tag, "MBSR"))
+          ch->player_specials->saved.moon_bonus_regen_timer = atoi(line);
         break;
 
       case 'N':
@@ -1302,6 +1320,8 @@ int load_char(const char *name, struct char_data *ch)
           ch->player.personality = fread_string(fl, buf2);
         else if (!strcmp(tag, "PvPT"))
           GET_PVP_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "DvRc"))
+          ch->player_specials->saved.last_device_recharge = atol(line);
         else if (!strcmp(tag, "Perk"))
           load_perks(fl, ch);
         else if (!strcmp(tag, "PPts"))
@@ -1463,6 +1483,17 @@ int load_char(const char *name, struct char_data *ch)
           {
             ch->player_specials->saved.metamagic_reduction_uses = 2;
             ch->player_specials->saved.metamagic_reduction_cooldown = 0;
+          }
+        }
+        else if (!strcmp(tag, "PEMa"))
+        {
+          long timestamp;
+          int active;
+          /* Load elemental mastery cooldown and active state */
+          if (sscanf(line, "%ld %d", &timestamp, &active) == 2)
+          {
+            ch->player_specials->saved.elemental_mastery_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.elemental_mastery_active = (active != 0);
           }
         }
         break;
@@ -2148,6 +2179,8 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_HOST(ch))
     BUFFER_WRITE( "Host: %s\n", GET_HOST(ch));
+  // save arcane mark no matter what
+  BUFFER_WRITE( "AMrk: %s\n", GET_ARCANE_MARK(ch));
   if (GET_HEIGHT(ch) != PFDEF_HEIGHT)
     BUFFER_WRITE( "Hite: %d\n", GET_HEIGHT(ch));
   if (HIGH_ELF_CANTRIP(ch))
@@ -2343,11 +2376,22 @@ void save_char(struct char_data *ch, int mode)
   if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
     BUFFER_WRITE( "PSRg : %d\n", GET_PSP_REGEN(ch));
 
+  /* Moon bonus spells */
+  if (ch->player_specials->saved.moon_bonus_spells != 0)
+    BUFFER_WRITE( "MBSp: %d\n", ch->player_specials->saved.moon_bonus_spells);
+  if (ch->player_specials->saved.moon_bonus_spells_used != 0)
+    BUFFER_WRITE( "MBSU: %d\n", ch->player_specials->saved.moon_bonus_spells_used);
+  if (ch->player_specials->saved.moon_bonus_regen_timer != 0)
+    BUFFER_WRITE( "MBSR: %d\n", ch->player_specials->saved.moon_bonus_regen_timer);
+
   if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
     BUFFER_WRITE( "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
 
   if (GET_PVP_TIMER(ch) != 0)
     BUFFER_WRITE( "PvPT: %ld\n", GET_PVP_TIMER(ch));
+
+  if (ch->player_specials->saved.last_device_recharge != 0)
+    BUFFER_WRITE( "DvRc: %ld\n", ch->player_specials->saved.last_device_recharge);
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
     BUFFER_WRITE( "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
@@ -2370,7 +2414,7 @@ void save_char(struct char_data *ch, int mode)
   if (GET_BANK_GOLD(ch) != PFDEF_BANK)
     BUFFER_WRITE( "Bank: %d\n", GET_BANK_GOLD(ch));
   if (GET_EXP(ch) != PFDEF_EXP)
-    BUFFER_WRITE( "Exp : %d\n", GET_EXP(ch));
+    BUFFER_WRITE( "Exp : %ld\n", GET_EXP(ch));
   if (GET_ARTISAN_EXP(ch) != 0)
     BUFFER_WRITE( "AExp: %d\n", GET_ARTISAN_EXP(ch));
   if (GET_HITROLL(ch) != PFDEF_HITROLL)
@@ -2564,7 +2608,11 @@ void save_char(struct char_data *ch, int mode)
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
     BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
-  // save devices from do_invent here
+  // save device creation cooldown
+  if (ch->player_specials->saved.device_creation_cooldown > 0)
+    BUFFER_WRITE( "DvCD: %ld\n", (long)ch->player_specials->saved.device_creation_cooldown);
+
+  // save devices from do_device here
   if (ch->player_specials->saved.num_inventions > 0)
   {
     int j;
@@ -2584,6 +2632,13 @@ void save_char(struct char_data *ch, int mode)
       /* Fill remaining spell slots with -1 */
       for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
         BUFFER_WRITE( "-1\n");
+
+      /* Save chosen spell levels (marker + values for backward compatibility) */
+      BUFFER_WRITE( "Lvls:\n");
+      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "%d\n", inv->spell_levels[j]);
+      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "0\n");
     }
     BUFFER_WRITE( "-1\n"); /* terminator */
   }
@@ -2992,6 +3047,11 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "PMRd: %ld %d\n",
     (long)ch->player_specials->saved.metamagic_reduction_cooldown,
     ch->player_specials->saved.metamagic_reduction_uses);
+  
+  /* Save Elemental Mastery cooldown and active state */
+  BUFFER_WRITE( "PEMa: %ld %d\n",
+    (long)ch->player_specials->saved.elemental_mastery_cooldown,
+    ch->player_specials->saved.elemental_mastery_active ? 1 : 0);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");
@@ -4400,6 +4460,8 @@ static void load_devices(FILE *fl, struct char_data *ch)
   int inv_idx = 0;
   int j = 0;
   char line[MAX_INPUT_LENGTH + 1];
+  char pre_line[MAX_INPUT_LENGTH + 1];
+  int has_pre_line = 0;
 
   /* Read number of inventions */
   get_line(fl, line);
@@ -4414,7 +4476,13 @@ static void load_devices(FILE *fl, struct char_data *ch)
     int spell_idx = 0;
     
     /* Read invention index */
-    get_line(fl, line);
+    if (has_pre_line) {
+      strncpy(line, pre_line, sizeof(line)-1);
+      line[sizeof(line)-1] = '\0';
+      has_pre_line = 0;
+    } else {
+      get_line(fl, line);
+    }
     sscanf(line, "%d", &inv_idx);
     
     /* Read keywords */
@@ -4450,10 +4518,33 @@ static void load_devices(FILE *fl, struct char_data *ch)
       if (inv->spell_effects[spell_idx] == -1)
         inv->spell_effects[spell_idx] = 0; /* Reset invalid spells to 0 */
     }
+
+    /* Attempt to read optional chosen levels block marked by 'Lvls:' */
+    get_line(fl, line);
+    if (strncmp(line, "Lvls:", 5) == 0) {
+      for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++) {
+        get_line(fl, line);
+        sscanf(line, "%d", &inv->spell_levels[spell_idx]);
+        if (inv->spell_levels[spell_idx] < 0)
+          inv->spell_levels[spell_idx] = 0;
+      }
+    } else {
+      /* No levels section in save; use default 0s and stash pre-read line for next loop/terminator */
+      for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+        inv->spell_levels[spell_idx] = 0;
+      strncpy(pre_line, line, sizeof(pre_line)-1);
+      pre_line[sizeof(pre_line)-1] = '\0';
+      has_pre_line = 1;
+    }
   }
   
-  /* Read terminator */
-  get_line(fl, line);
+  /* Read terminator if not already pre-read */
+  if (!has_pre_line) {
+    get_line(fl, line);
+  } else {
+    /* consume pre-read terminator by clearing flag */
+    has_pre_line = 0;
+  }
 }
 
 static void load_skills(FILE *fl, struct char_data *ch)

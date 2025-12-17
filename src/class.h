@@ -108,7 +108,7 @@ void do_start(struct char_data *ch);
 void newbieEquipment(struct char_data *ch);
 bitvector_t find_class_bitvector(const char *arg);
 int invalid_class(struct char_data *ch, struct obj_data *obj);
-int level_exp(struct char_data *ch, int level);
+long int level_exp(struct char_data *ch, int level);
 int parse_class(char arg);
 bool display_weapon_info(struct char_data *ch, const char *weapon);
 bool display_armor_info(struct char_data *ch, const char *armor);

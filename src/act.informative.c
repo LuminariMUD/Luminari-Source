@@ -27,6 +27,7 @@
 #include "act.h"
 #include "class.h"
 #include "race.h"
+#include "mob_spellslots.h"
 #include "fight.h"
 #include "modify.h"
 #include "asciimap.h"
@@ -57,6 +58,7 @@
 #include "perfmon.h"
 #include "routing.h"
 #include "perks.h"
+#include "moon_bonus_spells.h"
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
@@ -114,6 +116,7 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_NECK_2,        //<worn around neck>
     WEAR_SHOULDERS,     //<worn on shoulders>
     WEAR_BODY,          //<worn on body>
+    WEAR_ON_BACK,       //<worn on back>
     WEAR_ABOUT,         //<worn about body>
     WEAR_AMMO_POUCH,    //<worn as ammo pouch>
     WEAR_WAIST,         //<worn about waist>
@@ -145,7 +148,6 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_CRAFT_JEWEL_PLIERS,  //<worn as craft tool - jewel pliers>
     WEAR_CRAFT_NEEDLE,  //<worn as craft tool - needle>
     WEAR_CRAFT_WEAPON_HAMMER, //<worn as craft tool - weapon hammer>
-    WEAR_ON_BACK,       //<worn on back>
 };
 
 /*******  UTILITY FUNCTIONS ***********/
@@ -217,7 +219,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(tch, i + 1), compute_energy_absorb(tch, i + 1));
+                   compute_damtype_reduction(tch, i + 1, NULL), compute_energy_absorb(tch, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -485,6 +487,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     {
       act("\r\n$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
     }
+      if (GET_OBJ_ARCANE_MARK(obj))
+        send_to_char(ch, "\r\nIt bears an arcane mark reading \"%s\".", GET_OBJ_ARCANE_MARK(obj));
 
     break;
 
@@ -2032,9 +2036,22 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 {
   struct mud_event_data *pMudEvent = NULL;
 
+
   send_to_char(ch, "\tC");
   text_line(ch, "\tYCooldowns\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
+
+  // Device creation cooldown (global for artificer)
+  if (k->player_specials->saved.device_creation_cooldown > time(0)) {
+    int seconds_left = k->player_specials->saved.device_creation_cooldown - time(0);
+    int minutes_left = (seconds_left % 3600) / 60;
+    int hours_left = seconds_left / 3600;
+    seconds_left = seconds_left % 60;
+    send_to_char(ch, "Device Creation Cooldown: You can create a new device in %d hour%s, %d minute%s, %d second%s.\r\n",
+      hours_left, (hours_left == 1) ? "" : "s",
+      minutes_left, (minutes_left == 1) ? "" : "s",
+      seconds_left, (seconds_left == 1) ? "" : "s");
+  }
 
   if ((pMudEvent = char_has_mud_event(k, eINTIMIDATE_COOLDOWN)))
     send_to_char(ch, "Intimidate Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
@@ -2139,6 +2156,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Imbue Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eARROW_SWARM)))
     send_to_char(ch, "Arrow Swarm Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eMANYSHOT)))
+    send_to_char(ch, "Manyshot Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSEEKER_ARROW)))
     send_to_char(ch, "Seeker Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_EVIL)))
@@ -2246,6 +2265,37 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     else
     {
       send_to_char(ch, "\r\n");
+    }
+  }
+  
+  /* Druid Elemental Mastery cooldown */
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_druid_elemental_mastery(k))
+  {
+    if (k->player_specials->saved.elemental_mastery_active)
+    {
+      send_to_char(ch, "Elemental Mastery: \tG[READY - ACTIVE]\tn - Next elemental spell will maximize!\r\n");
+    }
+    else if (k->player_specials->saved.elemental_mastery_cooldown > time(0))
+    {
+      int remaining = (int)(k->player_specials->saved.elemental_mastery_cooldown - time(0));
+      int minutes = remaining / 60;
+      int seconds = remaining % 60;
+      
+      if (minutes > 0)
+      {
+        send_to_char(ch, "Elemental Mastery Cooldown: %d minute%s, %d second%s\r\n",
+                     minutes, minutes == 1 ? "" : "s",
+                     seconds, seconds == 1 ? "" : "s");
+      }
+      else
+      {
+        send_to_char(ch, "Elemental Mastery Cooldown: %d second%s\r\n",
+                     seconds, seconds == 1 ? "" : "s");
+      }
+    }
+    else
+    {
+      send_to_char(ch, "Elemental Mastery: \tG[READY]\tn - Use 'elementalmastery' to activate\r\n");
     }
   }
   
@@ -2467,7 +2517,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
+                   compute_damtype_reduction(k, i + 1, NULL), compute_energy_absorb(k, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -2910,10 +2960,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 
 ACMD(do_masterlist)
 {
-  size_t len = 0, nlen = 0;
   int bottom = 1, top = TOP_SKILL_DEFINE, counter = 0, i = 0;
-  char buf2[MAX_STRING_LENGTH] = {'\0'};
-  const char *overflow = "\r\n**OVERFLOW**\r\n";
   bool is_spells = FALSE;
 
   if (IS_NPC(ch))
@@ -2933,7 +2980,43 @@ ACMD(do_masterlist)
   }
   else if (is_abbrev(argument, "spells"))
   {
-    is_spells = TRUE;
+    /* Support subcommands: next|prev|page N|quit for pager navigation */
+    char *sub = (char *) argument + strlen("spells");
+    while (*sub == ' ') sub++;
+    if (!*sub) {
+      perform_master_spell_list(ch);
+      return;
+    }
+    if (!ch->desc) {
+      send_to_char(ch, "No descriptor attached for paging.\r\n");
+      return;
+    }
+    if (!ch->desc->showstr_vector || ch->desc->showstr_count == 0) {
+      perform_master_spell_list(ch);
+    }
+    if (is_abbrev(sub, "next")) {
+      show_string(ch->desc, "");
+      return;
+    } else if (is_abbrev(sub, "prev")) {
+      show_string(ch->desc, "r");
+      return;
+    } else if (is_abbrev(sub, "quit")) {
+      show_string(ch->desc, "q");
+      return;
+    } else if (is_abbrev(sub, "page")) {
+      char *p = sub + strlen("page");
+      while (*p == ' ') p++;
+      if (isdigit(*p)) {
+        show_string(ch->desc, p);
+        return;
+      } else {
+        send_to_char(ch, "Usage: masterlist spells page <number>\r\n");
+        return;
+      }
+    } else {
+      send_to_char(ch, "Valid: masterlist spells [next|prev|page N|quit]\r\n");
+      return;
+    }
   }
   else
   {
@@ -2941,28 +3024,25 @@ ACMD(do_masterlist)
     return;
   }
 
-  len = snprintf(buf2, sizeof(buf2), "\tCMaster List\tn\r\n");
+  send_to_char(ch, "\tCMaster List\tn\r\n");
 
   for (; bottom < top; bottom++)
   {
     i = spell_sort_info[bottom]; /* make sure spell_sort_info[] define is big enough! */
-
-    if (spell_info[i].min_position == POS_DEAD)
+    /* Guard against out-of-range indices before accessing spell_info */
+    if (i < 0)
       continue;
-    if (is_spells && i > NUM_SPELLS)
-      continue;
-    if (!is_spells && i < START_SKILLS)
-      continue;
-    if (!is_spells && i > TOP_SKILL_DEFINE)
-      continue;
+    if (is_spells) {
+      if (i >= NUM_SPELLS)
+        continue;
+      if (spell_info[i].min_position == POS_DEAD)
+        continue;
+    } else {
+      if (i < START_SKILLS || i > TOP_SKILL_DEFINE)
+        continue;
+    }
 
-    nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                    "%3d) %s\r\n", i, spell_info[i].name);
-
-    if (len + nlen >= sizeof(buf2) || nlen < 0)
-      break;
-
-    len += nlen;
+    send_to_char(ch, "%3d) %s\r\n", i, spell_info[i].name);
     counter++;
 
     /* debugging this issue */
@@ -2974,14 +3054,7 @@ ACMD(do_masterlist)
     }
     */
   }
-  nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                  "\r\n\tCTotal:\tn  %d\r\n", counter);
-
-  /* strcpy: OK */
-  if (len >= sizeof(buf2))
-    strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, sizeof(buf2 + sizeof(buf2) - strlen(overflow) - 1));
-
-  page_string(ch->desc, buf2, TRUE);
+  send_to_char(ch, "\r\n\tCTotal:\tn  %d\r\n", counter);
 }
 
 ACMD(do_look)
@@ -3031,6 +3104,8 @@ ACMD(do_look)
     }
     if (!*arg) /* "look" alone, without an argument at all */
       look_at_room(ch, 1);
+    else if (is_abbrev(arg, "moons"))
+      look_at_moons(ch);
     else if (is_abbrev(arg, "in"))
       look_in_obj(ch, arg2);
     /* did the char type 'look <direction>?' */
@@ -3768,7 +3843,7 @@ ACMD(do_defenses)
   send_to_char(ch, "\tn\r\nNote that AC caps at %d, but having over %d is beneficial due to position changes and debuffs.\r\n", CONFIG_PLAYER_AC_CAP, CONFIG_PLAYER_AC_CAP);
   text_line(ch, "\tYFast Healing\tC", line_length, '-', '-');
   send_to_char(ch, "Fast Healing Amount: %d\r\n", get_fast_healing_amount(ch));
-send_to_char(ch, "\tC");
+  send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
 }
@@ -3887,8 +3962,8 @@ ACMD(do_score)
 #else
   /* Display race with bounds checking */
   send_to_char(ch, "\tcRace : \tn%-20s ", 
-               (GET_RACE(ch) >= 0 && GET_RACE(ch) < NUM_RACES) ? 
-                 race_list[GET_RACE(ch)].type : "Unknown");
+               (valid_luminari_race(GET_RACE(ch)) ? 
+                 race_list[GET_RACE(ch)].type : "Unknown"));
 #endif
 
   /* Build class string - shows all classes for multiclass characters */
@@ -3987,9 +4062,9 @@ ACMD(do_score)
                MAGIC_LEVEL(ch));     /* Arcane spellcaster level */
   
   /* Display experience points and experience to next level */
-  send_to_char(ch, "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n",
+  send_to_char(ch, "\tcExp   : \tn%-24ld \tcExpTNL  : \tn%ld\r\n",
                GET_EXP(ch),          /* Current experience points */
-               (GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
+               (long)(GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
                 level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
   
   /* Display perk points for each class (only if perk system is enabled) */
@@ -4304,6 +4379,38 @@ ACMD(do_score)
                   restricted_school_reference[school] >= 0 && 
                   restricted_school_reference[school] < NUM_SCHOOLS) ? 
                    school_names[restricted_school_reference[school]] : "None"); /* Opposing school */
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  if (is_arcane_caster(ch))
+  {
+    if (IS_GOOD(ch))
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[0],  
+        weather_info.moons.solinari_st >= 0 ? "+" : "", weather_info.moons.solinari_st,
+        weather_info.moons.solinari_lv >= 0 ? "+" : "", weather_info.moons.solinari_lv,
+        MAX(0, weather_info.moons.solinari_sp)
+      );
+    }
+    else if (IS_NEUTRAL(ch))
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[0],  
+        weather_info.moons.lunitari_st >= 0 ? "+" : "", weather_info.moons.lunitari_st,
+        weather_info.moons.lunitari_lv >= 0 ? "+" : "", weather_info.moons.lunitari_lv,
+        MAX(0, weather_info.moons.lunitari_sp)
+      );
+    }
+    else
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[1],  
+        weather_info.moons.nuitari_st >= 0 ? "+" : "", weather_info.moons.nuitari_st,
+        weather_info.moons.nuitari_lv >= 0 ? "+" : "", weather_info.moons.nuitari_lv,
+        MAX(0, weather_info.moons.nuitari_sp)
+      );
+    }
     draw_line(ch, line_length, '-', '-');
   }
 
@@ -6194,6 +6301,26 @@ ACMD(do_bags)
 
 }
 
+bool show_wear_slot_in_eq(int wear_slot)
+{
+  switch (wear_slot)
+  {
+    case WEAR_CRAFT_SICKLE:
+    case WEAR_CRAFT_AXE:
+    case WEAR_CRAFT_KNIFE:
+    case WEAR_CRAFT_PICKAXE:
+    case WEAR_CRAFT_ALCHEMY:
+    case WEAR_CRAFT_ARMOR_HAMMER:
+    case WEAR_CRAFT_JEWEL_PLIERS:
+    case WEAR_CRAFT_NEEDLE:
+    case WEAR_CRAFT_WEAPON_HAMMER:
+      return FALSE;
+    default:
+      return TRUE;
+  }
+  return TRUE;
+}
+
 ACMD(do_equipment)
 {
   int i, found = 0;
@@ -6211,8 +6338,9 @@ ACMD(do_equipment)
     snprintf(dex_max, sizeof(dex_max), "%d", j);
 
   send_to_char(ch, "You are using:\r\n");
-  for (i = 0; i < 33 ; i++)  // Only show traditional equipment slots (33), not craft tools (34-42)
+  for (i = 0; i < NUM_WEARS ; i++)
   {
+    if (!show_wear_slot_in_eq(eq_ordering_1[i])) continue;
     if (GET_EQ(ch, eq_ordering_1[i]))
     {
       found = TRUE;
@@ -7098,7 +7226,7 @@ ACMD(do_levels)
 
   for (i = min_lev; i < max_lev; i++)
   {
-    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8d-%-8d : ", (int)i,
+    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld-%-8ld : ", (int)i,
                     level_exp(ch, i), level_exp(ch, i + 1) - 1);
     if (len + nlen >= sizeof(buf))
       break;
@@ -7125,7 +7253,7 @@ ACMD(do_levels)
   }
 
   if (len < sizeof(buf) && max_lev == LVL_IMMORT)
-    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8d          : Immortality\r\n",
+    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld          : Immortality\r\n",
              LVL_IMMORT, level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
@@ -8500,8 +8628,8 @@ ACMD(do_hp)
 /* informational command requested by screenreader users */
 ACMD(do_tnl)
 {
-  send_to_char(ch, "You need %d experience points to reach your next level.\r\n",
-               level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  send_to_char(ch, "You need %ld experience points to reach your next level.\r\n",
+               (long)(level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
 }
 
 /* informational command requested by screenreader users */
@@ -10320,6 +10448,137 @@ ACMD(do_conservation) {
         send_to_char(ch, "  survey conservation    - Check area resource health\r\n");
         send_to_char(ch, "  survey regeneration    - Analyze regeneration rates\r\n");
     }
+}
+
+void perform_master_spell_list(struct char_data *ch)
+{
+  char line_buf[512];
+  char class_list_buf[256];
+  int spellnum, sn, class_idx, circle;
+  bool has_class;
+  struct class_spell_assign *spell_assign;
+  size_t cap = 8192;
+  size_t len = 0;
+  char *out = (char *)malloc(cap);
+  if (!out) {
+    send_to_char(ch, "SYSERR: Out of memory building master spell list.\r\n");
+    return;
+  }
+  out[0] = '\0';
+
+  #define APPEND_FMT(...) \
+    do { \
+      int __n = snprintf(NULL, 0, __VA_ARGS__); \
+      if (len + (size_t)__n + 1 > cap) { \
+        size_t newcap = cap; \
+        while (len + (size_t)__n + 1 > newcap) newcap *= 2; \
+        char *tmp = (char *)realloc(out, newcap); \
+        if (!tmp) { \
+          free(out); \
+          send_to_char(ch, "SYSERR: Out of memory expanding buffer.\r\n"); \
+          return; \
+        } \
+        out = tmp; \
+        cap = newcap; \
+      } \
+      snprintf(out + len, cap - len, __VA_ARGS__); \
+      len += (size_t)__n; \
+    } while (0)
+
+  APPEND_FMT("\tCMaster Spell List\tn\r\n");
+  APPEND_FMT("Format: [Spell#] Spell Name - Classes (Circle)\r\n\r\n");
+
+  for (spellnum = 0; spellnum < TOP_SKILL_DEFINE; spellnum++)
+  {
+    class_list_buf[0] = '\0';
+    has_class = FALSE;
+    sn = spell_sort_info[spellnum];
+
+    if (sn <= 0 || sn >= NUM_SPELLS)
+      continue;
+    if (spell_info[sn].min_position == POS_DEAD)
+      continue;
+    if (!strcmp(spell_info[sn].name, "!UNUSED!"))
+      continue;
+
+    for (class_idx = 0; class_idx < NUM_CLASSES; class_idx++)
+    {
+      for (spell_assign = class_list[class_idx].spellassign_list; 
+           spell_assign != NULL; 
+           spell_assign = spell_assign->next)
+      {
+        if (spell_assign->spell_num == sn)
+        {
+          circle = get_spell_circle(sn, class_idx);
+          if (has_class)
+            strlcat(class_list_buf, ", ", sizeof(class_list_buf));
+          snprintf(line_buf, sizeof(line_buf), "%s(%d)", CLSLIST_ABBRV(class_idx), circle);
+          strlcat(class_list_buf, line_buf, sizeof(class_list_buf));
+          has_class = TRUE;
+          break;
+        }
+      }
+    }
+
+    if (has_class)
+      APPEND_FMT("[%3d] %-30s - %s\r\n", sn, spell_info[sn].name, class_list_buf);
+  }
+
+  page_string(ch->desc, out, TRUE);
+  free(out);
+}
+
+
+void look_at_moons(struct char_data *ch)
+{
+
+    if (!CONFIG_ARCANE_MOON_PHASES)
+    {
+      send_to_char(ch, "The moon phases system is not enabled on this server.\r\n");
+      return;
+    }
+
+  if (!OUTSIDE(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "Perhaps you could get a better view of the moons outside?\r\n");
+    return;
+  }
+
+  if (!(weather_info.sunlight == SUN_DARK))
+  {
+    send_to_char(ch, "Waiting until night would make this task much easier.\r\n");
+    return;
+  }
+
+  if (weather_info.moons.solinari_phase > 27)
+    send_to_char(ch, "A silvery glow can be seen in the sky as %s begins to appear.\r\n", moon_names[0]);
+  else if (weather_info.moons.solinari_phase > 18)
+    send_to_char(ch, "%s illuminates the sky with silvery light.\r\n", moon_names[0]);
+  else if (weather_info.moons.solinari_phase > 9)
+    send_to_char(ch, "The sky grows dimmer as %s slowly fades away.\r\n", moon_names[0]);
+  else
+    send_to_char(ch, "No trace of the silvery light from %s is visible.\r\n", moon_names[0]);
+
+  if (weather_info.moons.lunitari_phase > 6)
+    send_to_char(ch, "A crimson glow can be seen in the sky as %s begins to appear.\r\n", moon_names[1]);
+  else if (weather_info.moons.lunitari_phase > 4)
+    send_to_char(ch, "%s casts a crimson glow throughout the sky.\r\n", moon_names[1]);
+  else if (weather_info.moons.lunitari_phase > 2)
+    send_to_char(ch, "The crimson glow weakens as %s slowly fades away.\r\n", moon_names[1]);
+  else
+    send_to_char(ch, "No trace of the crimson light from %s is visible.\r\n", moon_names[1]);
+
+  if (IS_EVIL(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    if (weather_info.moons.nuitari_phase > 21)
+      send_to_char(ch, "The night sky seems to grow darker as %s slowly appears.\r\n", moon_names[2]);
+    else if (weather_info.moons.nuitari_phase > 4)
+      send_to_char(ch, "Total blackness envelopes the area of the sky where %s resides.\r\n", moon_names[2]);
+    else if (weather_info.moons.nuitari_phase > 2)
+      send_to_char(ch, "The darkness seems to lessen as %s begins to vanish.\r\n", moon_names[2]);
+    else
+      send_to_char(ch, "No trace of the infinite darkness from %s is visible.\r\n", moon_names[2]);
+  }
 }
 
 /*EOF*/

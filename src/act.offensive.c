@@ -1485,6 +1485,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     }
     defense_check = d20(vict) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
+    /* Root cantrip: +3 resistance vs trip/knockdown/grapple */
+    if (affected_by_spell(vict, SPELL_ROOT))
+    {
+      defense_check += 3;
+      send_to_char(vict, "Your rooted stance grants you +3 resistance to being knocked down!\r\n");
+    }
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP) && skill != SPELL_BANISHING_BLADE)
     {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed.
@@ -1643,7 +1650,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
         }
       }
     }
-
     /* FAILED attack roll */
   }
   else
@@ -2179,6 +2185,17 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
       heal_amount += CLASS_LEVEL(ch, CLASS_PALADIN);
     }
   }
+  
+  /* Paladin Sacred Defender perk: Healing Hands - +10% healing per rank */
+  if (!IS_NPC(ch))
+  {
+    int healing_hands_bonus = get_paladin_healing_hands_bonus(ch);
+    if (healing_hands_bonus > 0)
+    {
+      heal_amount = heal_amount * (100 + healing_hands_bonus) / 100;
+    }
+  }
+  
   heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict), heal_amount);
 
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
@@ -2199,13 +2216,84 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
 
   GET_HIT(vict) += heal_amount;
   apply_paladin_mercies(ch, vict);
+  
+  /* Paladin Sacred Defender perk: Cleansing Touch - remove one negative affect */
+  if (!IS_NPC(ch) && has_paladin_cleansing_touch(ch))
+  {
+    struct affected_type *af = NULL, *af_next = NULL;
+    bool removed = FALSE;
+    
+    /* Try to find and remove a negative affect */
+    for (af = vict->affected; af && !removed; af = af_next)
+    {
+      af_next = af->next;
+      
+      /* Check for harmful affects (negative modifiers or harmful flags) */
+      if (af->modifier < 0 || 
+          IS_SET_AR(af->bitvector, AFF_BLIND) ||
+          IS_SET_AR(af->bitvector, AFF_CURSE) ||
+          IS_SET_AR(af->bitvector, AFF_POISON) ||
+          IS_SET_AR(af->bitvector, AFF_DISEASE) ||
+          IS_SET_AR(af->bitvector, AFF_PARALYZED) ||
+          IS_SET_AR(af->bitvector, AFF_STUN) ||
+          IS_SET_AR(af->bitvector, AFF_FEAR) ||
+          IS_SET_AR(af->bitvector, AFF_CONFUSED) ||
+          IS_SET_AR(af->bitvector, AFF_NAUSEATED) ||
+          IS_SET_AR(af->bitvector, AFF_FATIGUED) ||
+          IS_SET_AR(af->bitvector, AFF_DAZED))
+      {
+        send_to_char(vict, "\tWYour affliction '%s' has been cleansed!\tn\r\n", spell_info[af->spell].name);
+        if (ch != vict)
+          send_to_char(ch, "\tWYou cleanse %s's affliction '%s'!\tn\r\n", GET_NAME(vict), spell_info[af->spell].name);
+        affect_from_char(vict, af->spell);
+        removed = TRUE;
+        break;
+      }
+    }
+  }
+  
+  /* Paladin Sacred Defender perk: Merciful Touch - +20 current and max HP for 5 rounds */
+  if (!IS_NPC(ch) && has_paladin_merciful_touch(ch) && !affected_by_spell(vict, SKILL_MERCIFUL_TOUCH))
+  {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SKILL_MERCIFUL_TOUCH;
+    af.duration = 5; /* 5 rounds */
+    SET_BIT_AR(af.bitvector, AFF_REGEN); /* Regenerating health */
+    af.location = APPLY_HIT;
+    af.modifier = 20; /* +20 current HP */
+    affect_to_char(vict, &af);
+    
+    /* Also increase max HP temporarily */
+    af.location = APPLY_CON;
+    af.modifier = 2; /* +2 CON = roughly +20 HP */
+    affect_to_char(vict, &af);
+    
+    if (ch != vict)
+      send_to_char(vict, "\tYYou feel divinely empowered!\tn\r\n");
+    else
+      send_to_char(ch, "\tYYou feel divinely empowered!\tn\r\n");
+  }
+  
   update_pos(vict);
 
-  if (ch != vict)
+  /* Paladin Sacred Defender perk: Cleansing Touch - can be used as swift action */
+  if (!IS_NPC(ch) && has_paladin_cleansing_touch(ch))
   {
-    USE_STANDARD_ACTION(ch);
+    if (ch != vict)
+    {
+      USE_SWIFT_ACTION(ch);
+    }
+    /* free action to use it on yourself */
   }
-  /* free action to use it on yourself */
+  else
+  {
+    if (ch != vict)
+    {
+      USE_STANDARD_ACTION(ch);
+    }
+    /* free action to use it on yourself */
+  }
 }
 
 /* engine for sap skill */
@@ -2903,6 +2991,14 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
   /* Greater Turning: Affect undead +2 HD levels higher */
   int greater_turning_bonus = get_cleric_greater_turning_bonus(ch);
   
+  /* Paladin Turn Undead Mastery: +HD bonus */
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+  {
+    int paladin_turn_hd_bonus = get_paladin_turn_undead_hd_bonus(ch);
+    if (paladin_turn_hd_bonus > 0)
+      greater_turning_bonus += paladin_turn_hd_bonus;
+  }
+  
   /* Destroy Undead: Get HD threshold for instant destruction */
   destroy_threshold = get_destroy_undead_threshold(ch);
 
@@ -3031,13 +3127,40 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     act("The mighty force of your faith blasts $N out of existence!", FALSE, ch, 0, vict, TO_CHAR);
     act("The mighty force of $N's faith blasts you out of existence!", FALSE, vict, 0, ch, TO_CHAR);
     act("The mighty force of $N's faith blasts $n out of existence!", FALSE, vict, 0, ch, TO_NOTVICT);
+    
+    /* Holy Avenger: Apply spell boost after destroying undead */
+    if (has_paladin_holy_avenger(ch))
+    {
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = SKILL_HOLY_AVENGER;
+      af.duration = 1; /* 1 round */
+      af.modifier = 4; /* +4 caster level stored in modifier */
+      af.location = APPLY_SPECIAL;
+      affect_to_char(ch, &af);
+      
+      send_to_char(ch, "\tWHoly power surges through you, enhancing your next spell!\tn\r\n");
+    }
+    
     dam_killed_vict(ch, vict);
     break;
   case 3:
     act("The mighty force of your faith blasts $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("The mighty force of $N's faith blasts you!", FALSE, vict, 0, ch, TO_CHAR);
     act("The mighty force of $N's faith blasts $n!", FALSE, vict, 0, ch, TO_NOTVICT);
-    damage(ch, vict, dice(GET_LEVEL(ch) / 2, 6), SPELL_GREATER_RUIN, DAM_HOLY, FALSE);
+    
+    /* Base damage */
+    int turn_damage = dice(GET_LEVEL(ch) / 2, 6);
+    
+    /* Paladin Turn Undead Mastery II: +damage bonus */
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+    {
+      int paladin_turn_damage_bonus = get_paladin_turn_undead_damage_bonus(ch);
+      if (paladin_turn_damage_bonus > 0)
+        turn_damage += dice(paladin_turn_damage_bonus, 6);
+    }
+    
+    damage(ch, vict, turn_damage, SPELL_GREATER_RUIN, DAM_HOLY, FALSE);
     break;
   }
 
@@ -3101,7 +3224,11 @@ ACMD(do_turnundead)
 
 ACMDCHECK(can_channel_energy)
 {
-  ACMDCHECK_PREREQ_HASFEAT(FEAT_CHANNEL_ENERGY, "You do not possess divine favor!\r\n");
+  /* Check if they have either the feat OR the paladin perk */
+  if (!HAS_FEAT(ch, FEAT_CHANNEL_ENERGY) && !has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1))
+  {
+    ACMDCHECK_TEMPFAIL_IF(true, "You do not possess divine favor!\r\n");
+  }
   return CAN_CMD;
 }
 
@@ -3112,8 +3239,12 @@ ACMDU(do_channelenergy)
 
   skip_spaces(&argument);
   int level = 0;
+  bool has_feat = HAS_FEAT(ch, FEAT_CHANNEL_ENERGY);
+  bool has_paladin_perk = has_perk(ch, PERK_PALADIN_CHANNEL_ENERGY_1);
+  bool has_both = has_feat && has_paladin_perk;
 
-  if (IS_NEUTRAL(ch) && ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NONE)
+  /* Only clerics (neutral alignment) need to choose energy type */
+  if (has_feat && IS_NEUTRAL(ch) && ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NONE)
   {
     if (!*argument)
     {
@@ -3141,11 +3272,67 @@ ACMDU(do_channelenergy)
     }
   }
 
-  PREREQ_HAS_USES(FEAT_CHANNEL_ENERGY, "You must recover the divine energy required to channel energy.\r\n");
+  /* Check uses - when both feat and perk exist, check both cooldown pools */
+  if (has_both)
+  {
+    /* Player has both - try feat first, then perk if feat is exhausted */
+    int feat_uses = daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY);
+    struct mud_event_data *pMudEvent = NULL;
+    int perk_uses = 0;
+    int max_perk_uses = get_paladin_channel_energy_uses(ch); /* Returns 2 */
+    
+    if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+    {
+      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &perk_uses) == 1)
+      {
+        /* perk_uses is how many used, calculate remaining */
+        perk_uses = max_perk_uses - perk_uses;
+      }
+      else
+      {
+        perk_uses = max_perk_uses;
+      }
+    }
+    else
+    {
+      perk_uses = max_perk_uses;
+    }
+    
+    /* Check if both pools are exhausted */
+    if (feat_uses <= 0 && perk_uses <= 0)
+    {
+      send_to_char(ch, "You must recover the divine energy required to channel energy.\r\n");
+      return;
+    }
+  }
+  else if (has_feat)
+  {
+    PREREQ_HAS_USES(FEAT_CHANNEL_ENERGY, "You must recover the divine energy required to channel energy.\r\n");
+  }
+  else if (has_paladin_perk)
+  {
+    /* Paladin perk only: Check manual use tracking - 2 uses per day */
+    struct mud_event_data *pMudEvent = NULL;
+    int uses = 0;
+    int max_uses = get_paladin_channel_energy_uses(ch); /* Returns 2 */
+    
+    if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+    {
+      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+      {
+        if (uses >= max_uses)
+        {
+          send_to_char(ch, "You must recover the divine energy required to channel energy.\r\n");
+          return;
+        }
+      }
+    }
+  }
 
   level = compute_channel_energy_level(ch);
 
-  if (IS_GOOD(ch) || ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_POSITIVE)
+  /* Paladins always channel positive energy (good aligned) */
+  if (has_paladin_perk || IS_GOOD(ch) || ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_POSITIVE)
   {
     act("You channel positive energy.", FALSE, ch, 0, 0, TO_CHAR);
     act("$n channels positive energy.", FALSE, ch, 0, 0, TO_ROOM);
@@ -3165,7 +3352,71 @@ ACMDU(do_channelenergy)
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
-  start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+  
+  /* Track uses appropriately - use feat pool first if available, then perk pool */
+  if (has_both)
+  {
+    /* Try to use feat pool first */
+    int feat_uses = daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY);
+    
+    if (feat_uses > 0)
+    {
+      /* Use from feat pool */
+      start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+    }
+    else
+    {
+      /* Feat pool exhausted, use perk pool */
+      struct mud_event_data *pMudEvent = NULL;
+      int uses = 0;
+      char buf[128];
+      
+      if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+      {
+        /* Increment existing event */
+        if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+        {
+          uses++;
+          free(pMudEvent->sVariables);
+          snprintf(buf, sizeof(buf), "uses:%d", uses);
+          pMudEvent->sVariables = strdup(buf);
+        }
+      }
+      else
+      {
+        /* Create new event - resets every MUD day */
+        attach_mud_event(new_mud_event(ePALADIN_CHANNEL_ENERGY, ch, "uses:1"), SECS_PER_MUD_DAY RL_SEC);
+      }
+    }
+  }
+  else if (has_feat)
+  {
+    start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+  }
+  else if (has_paladin_perk)
+  {
+    /* Manual cooldown tracking for paladin perk */
+    struct mud_event_data *pMudEvent = NULL;
+    int uses = 0;
+    char buf[128];
+    
+    if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
+    {
+      /* Increment existing event */
+      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+      {
+        uses++;
+        free(pMudEvent->sVariables);
+        snprintf(buf, sizeof(buf), "uses:%d", uses);
+        pMudEvent->sVariables = strdup(buf);
+      }
+    }
+    else
+    {
+      /* Create new event - resets every MUD day */
+      attach_mud_event(new_mud_event(ePALADIN_CHANNEL_ENERGY, ch, "uses:1"), SECS_PER_MUD_DAY RL_SEC);
+    }
+  }
 }
 
 /* Beacon of Hope - Divine Healer Tier 4 Capstone */
@@ -3297,6 +3548,12 @@ void clear_rage(struct char_data *ch)
   if (char_has_mud_event(ch, eCOME_AND_GET_ME))
   {
     change_event_duration(ch, eCOME_AND_GET_ME, 0);
+  }
+  
+  /* Clear Indomitable Will auto-success flag when rage ends */
+  if (affected_by_spell(ch, PERK_BERSERKER_INDOMITABLE_WILL))
+  {
+    affect_from_char(ch, PERK_BERSERKER_INDOMITABLE_WILL);
   }
 
   /* Remove whatever HP we granted.  This may kill the character. */
@@ -3541,6 +3798,455 @@ ACMD(do_rage)
   /* bonus hp from the rage */
   // GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
   save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
+
+  /* Blinding Rage perk - blind enemies when entering rage */
+  if (has_berserker_blinding_rage(ch))
+  {
+    struct char_data *tch = NULL, *next_tch = NULL;
+    
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+    {
+      next_tch = tch->next_in_room;
+      
+      /* Only affect enemies currently fighting the berserker */
+      if (tch == ch || !IS_NPC(tch) || FIGHTING(tch) != ch)
+        continue;
+      
+      /* Check if already blind */
+      if (AFF_FLAGGED(tch, AFF_BLIND))
+        continue;
+      
+      /* Make a Will save */
+      int dc = 10 + GET_LEVEL(ch) + GET_CHA_BONUS(ch);
+      if (!savingthrow(ch, tch, SAVING_WILL, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      {
+        struct affected_type af;
+        int blind_duration = dice(1, 4); // 1d4 rounds
+        
+        new_affect(&af);
+        af.spell = SKILL_RAGE;
+        af.duration = blind_duration;
+        SET_BIT_AR(af.bitvector, AFF_BLIND);
+        affect_to_char(tch, &af);
+        
+        act("Your rage blinds $N with overwhelming fury!", FALSE, ch, 0, tch, TO_CHAR);
+        act("$n's rage blinds you with overwhelming fury!", FALSE, ch, 0, tch, TO_VICT);
+        act("$n's rage blinds $N with overwhelming fury!", FALSE, ch, 0, tch, TO_NOTVICT);
+      }
+    }
+  }
+  
+  /* Stunning Blow perk - set flag for next attack to stun */
+  if (has_berserker_stunning_blow(ch))
+  {
+    /* Set a flag that will be checked in hit() function */
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_NEXTATTACK_STUN);
+    send_to_char(ch, "Your next attack will carry \tYoverwhelming force\tn!\r\n");
+  }
+
+  return;
+}
+
+/* Sprint - Berserker Primal Warrior ability */
+ACMD(do_sprint)
+{
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  /* Check if already sprinting */
+  if (affected_by_spell(ch, SKILL_SPRINT))
+  {
+    send_to_char(ch, "You are already sprinting!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_berserker_sprint(ch))
+  {
+    send_to_char(ch, "You don't know how to sprint!\r\n");
+    return;
+  }
+
+  /* Check cooldown using the feat system - treat it like a daily use feat */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_SPRINT, "You must recover before you can sprint again.\r\n");
+  }
+
+  send_to_char(ch, "You break into a powerful \tYsprint\tn, your legs a blur of motion!\r\n");
+  act("$n suddenly breaks into a powerful \tYsprint\tn, moving with incredible speed!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Create the sprint affect */
+  new_affect(&af);
+  af.spell = SKILL_SPRINT;
+  af.duration = duration;
+  af.location = APPLY_NONE; // Movement speed is handled by movement_cost.c checking for sprint affect
+  af.modifier = 0;
+  af.bonus_type = BONUS_TYPE_INHERENT;
+
+  affect_to_char(ch, &af);
+
+  /* Start cooldown - 2 minutes in game */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_SPRINT);
+  }
+
+  USE_MOVE_ACTION(ch);
+
+  return;
+}
+
+ACMD(do_reckless_abandon)
+{
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  /* Check if already using reckless abandon */
+  if (affected_by_spell(ch, SKILL_RECKLESS_ABANDON))
+  {
+    send_to_char(ch, "You are already fighting with reckless abandon!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_berserker_reckless_abandon(ch))
+  {
+    send_to_char(ch, "You don't know how to fight with reckless abandon!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_RECKLESS_ABANDON, "You must recover before you can use reckless abandon again.\r\n");
+  }
+
+  /* Must be raging to use */
+  if (!affected_by_spell(ch, SKILL_RAGE))
+  {
+    send_to_char(ch, "You must be raging to use reckless abandon!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You throw aside all defensive concerns and attack with \tRreckless abandon\tn!\r\n");
+  act("$n's eyes blaze with fury as $e attacks with \tRreckless abandon\tn!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* +4 to hit bonus */
+  new_affect(&af);
+  af.spell = SKILL_RECKLESS_ABANDON;
+  af.duration = duration;
+  af.location = APPLY_HITROLL;
+  af.modifier = 4;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_to_char(ch, &af);
+
+  /* +8 damage bonus */
+  new_affect(&af);
+  af.spell = SKILL_RECKLESS_ABANDON;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = 8;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_to_char(ch, &af);
+
+  /* -4 AC penalty */
+  new_affect(&af);
+  af.spell = SKILL_RECKLESS_ABANDON;
+  af.duration = duration;
+  af.location = APPLY_AC_NEW;
+  af.modifier = -4;
+  af.bonus_type = BONUS_TYPE_UNDEFINED; /* Penalties don't have a specific bonus type */
+  affect_to_char(ch, &af);
+
+  /* Start cooldown - 5 minutes */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_RECKLESS_ABANDON);
+  }
+
+  USE_SWIFT_ACTION(ch);
+
+  return;
+}
+
+ACMD(do_warcry)
+{
+  struct affected_type af;
+  struct char_data *tch = NULL;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  /* Check if they have the perk */
+  if (!has_berserker_war_cry(ch))
+  {
+    send_to_char(ch, "You don't know how to use a war cry!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_WAR_CRY, "You must recover before you can use war cry again.\r\n");
+  }
+
+  send_to_char(ch, "You unleash a mighty \tRWAR CRY\tn that echoes across the battlefield!\r\n");
+  act("$n unleashes a mighty \tRWAR CRY\tn that echoes across the battlefield!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Apply buff to all group members in the same room */
+  if (GROUP(ch))
+  {
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) == IN_ROOM(ch))
+      {
+        /* +2 attack bonus */
+        new_affect(&af);
+        af.spell = SKILL_WAR_CRY_ALLY;
+        af.duration = duration;
+        af.location = APPLY_HITROLL;
+        af.modifier = 2;
+        af.bonus_type = BONUS_TYPE_MORALE;
+        affect_to_char(tch, &af);
+
+        /* +2 damage bonus */
+        new_affect(&af);
+        af.spell = SKILL_WAR_CRY_ALLY;
+        af.duration = duration;
+        af.location = APPLY_DAMROLL;
+        af.modifier = 2;
+        af.bonus_type = BONUS_TYPE_MORALE;
+        affect_to_char(tch, &af);
+
+        if (tch != ch)
+        {
+          send_to_char(tch, "You feel empowered by %s's \tGwar cry\tn!\r\n", GET_NAME(ch));
+        }
+      }
+    }
+  }
+  else
+  {
+    /* Solo - buff self */
+    new_affect(&af);
+    af.spell = SKILL_WAR_CRY_ALLY;
+    af.duration = duration;
+    af.location = APPLY_HITROLL;
+    af.modifier = 2;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_to_char(ch, &af);
+
+    new_affect(&af);
+    af.spell = SKILL_WAR_CRY_ALLY;
+    af.duration = duration;
+    af.location = APPLY_DAMROLL;
+    af.modifier = 2;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_to_char(ch, &af);
+  }
+
+  /* Apply debuff to all enemies currently fighting you or your group */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch || !IS_NPC(tch))
+      continue;
+
+    /* Check if this enemy is fighting the berserker or any group member */
+    bool is_fighting_group = FALSE;
+    if (FIGHTING(tch) == ch)
+    {
+      is_fighting_group = TRUE;
+    }
+    else if (GROUP(ch))
+    {
+      struct char_data *gch = NULL;
+      while ((gch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+      {
+        if (FIGHTING(tch) == gch && IN_ROOM(gch) == IN_ROOM(ch))
+        {
+          is_fighting_group = TRUE;
+          break;
+        }
+      }
+    }
+
+    if (is_fighting_group)
+    {
+      /* -2 attack penalty */
+      new_affect(&af);
+      af.spell = SKILL_WAR_CRY_ENEMY;
+      af.duration = duration;
+      af.location = APPLY_HITROLL;
+      af.modifier = -2;
+      af.bonus_type = BONUS_TYPE_UNDEFINED; /* Penalties don't have a specific bonus type */
+      affect_to_char(tch, &af);
+
+      /* -2 damage penalty */
+      new_affect(&af);
+      af.spell = SKILL_WAR_CRY_ENEMY;
+      af.duration = duration;
+      af.location = APPLY_DAMROLL;
+      af.modifier = -2;
+      af.bonus_type = BONUS_TYPE_UNDEFINED; /* Penalties don't have a specific bonus type */
+      affect_to_char(tch, &af);
+
+      act("$N recoils from your \tRwar cry\tn!", FALSE, ch, 0, tch, TO_CHAR);
+      act("You recoil from $n's \tRwar cry\tn!", FALSE, ch, 0, tch, TO_VICT);
+    }
+  }
+
+  /* Start cooldown - 5 minutes */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_WAR_CRY);
+  }
+
+  USE_STANDARD_ACTION(ch);
+
+  return;
+}
+
+ACMD(do_earthshaker)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+  int dam_amount = 0;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  /* Check if they have the perk */
+  if (!has_berserker_earthshaker(ch))
+  {
+    send_to_char(ch, "You don't know how to use earthshaker!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 30 second cooldown */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_EARTHSHAKER, "You must recover before you can use earthshaker again.\r\n");
+  }
+
+  /* Calculate damage based on STR modifier */
+  dam_amount = GET_STR_BONUS(ch);
+  if (dam_amount < 1)
+    dam_amount = 1;
+
+  send_to_char(ch, "You slam the ground with tremendous force, causing the earth to \tYSHAKE\tn!\r\n");
+  act("$n slams the ground with tremendous force, causing the earth to \tYSHAKE\tn!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Knock down all enemies currently fighting you or your group members */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+
+    if (tch == ch || !IS_NPC(tch))
+      continue;
+
+    /* Check if this enemy is fighting the berserker or any group member */
+    bool is_fighting_group = FALSE;
+    if (FIGHTING(tch) == ch)
+    {
+      is_fighting_group = TRUE;
+    }
+    else if (GROUP(ch))
+    {
+      struct char_data *gch = NULL;
+      while ((gch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+      {
+        if (FIGHTING(tch) == gch && IN_ROOM(gch) == IN_ROOM(ch))
+        {
+          is_fighting_group = TRUE;
+          break;
+        }
+      }
+    }
+
+    if (is_fighting_group)
+    {
+      /* Deal damage */
+      if (dam_amount > 0)
+      {
+        damage(ch, tch, dam_amount, SKILL_EARTHSHAKER, DAM_FORCE, FALSE);
+      }
+
+      /* Knock prone (no save) - but check NOBASH */
+      if (!IS_NPC(tch) || !MOB_FLAGGED(tch, MOB_NOBASH))
+      {
+        change_position(tch, POS_SITTING);
+        act("You are knocked to the ground!", FALSE, ch, 0, tch, TO_VICT);
+        act("$N is knocked to the ground!", FALSE, ch, 0, tch, TO_CHAR);
+        act("$N is knocked to the ground!", FALSE, ch, 0, tch, TO_NOTVICT);
+      }
+      else
+      {
+        act("$N resists being knocked down!", FALSE, ch, 0, tch, TO_CHAR);
+      }
+    }
+  }
+
+  /* Start cooldown - 30 seconds */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_EARTHSHAKER);
+  }
+
+  USE_SWIFT_ACTION(ch);
+
+  return;
+}
+
+/* hardy - berserker perk */
+ACMD(do_hardy)
+{
+  struct affected_type af[2];
+  int duration = 10; // 10 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  if (!has_berserker_hardy(ch))
+  {
+    send_to_char(ch, "You do not have the Hardy perk.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_HARDY))
+  {
+    send_to_char(ch, "You are already hardy!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You steel yourself, becoming \tRhardy\tn and resilient!\r\n");
+  act("$n steels $mself, becoming more \tRhardy\tn and resilient!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* init affect array */
+  new_affect(&(af[0]));
+  af[0].spell = SKILL_HARDY;
+  af[0].duration = duration;
+  af[0].bonus_type = BONUS_TYPE_MORALE;
+  af[0].location = APPLY_CON;
+  af[0].modifier = 2;
+
+  new_affect(&(af[1]));
+  af[1].spell = SKILL_HARDY;
+  af[1].duration = duration;
+  af[1].bonus_type = BONUS_TYPE_MORALE;
+  af[1].location = APPLY_SAVING_FORT;
+  af[1].modifier = 1;
+
+  affect_join(ch, &af[0], FALSE, FALSE, FALSE, FALSE);
+  affect_join(ch, &af[1], FALSE, FALSE, FALSE, FALSE);
+
+  USE_STANDARD_ACTION(ch);
 
   return;
 }
@@ -4212,7 +4918,8 @@ ACMD(do_flee)
   }
   else
   { // there is an argument, check if its valid
-    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR))
+    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !HAS_FEAT(ch, FEAT_NIMBLE_ESCAPE) && 
+        !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR))
     {
       send_to_char(ch, "You don't have the option to choose which way to flee!\r\n");
       return;
@@ -4469,6 +5176,128 @@ ACMDCHECK(can_arrowswarm)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_arrowstorm)
+{
+  /* Ranger capstone perk required */
+  if (!has_perk(ch, PERK_RANGER_ARROW_STORM))
+  {
+    ACMD_ERRORMSG("You don't know how to do this!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  /* daily cooldown */
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eARROW_STORM), "You must recover before you can use arrow storm again.\r\n");
+
+  /* ranged attack requirement */
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE),
+                        "You have to be using a ranged weapon with ammo ready to "
+                        "fire in your ammo pouch to do this!\r\n");
+
+  return CAN_CMD;
+}
+
+static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data);
+ACMD(do_arrowstorm)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_arrowstorm);
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_NOT_SINGLEFILE_ROOM();
+
+  send_to_char(ch, "You become a storm of arrows, striking all foes!\r\n");
+  act("$n becomes a storm of arrows, striking all foes!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Apply 6d6 ranged damage to all valid foes in room */
+  aoe_effect(ch, -1, arrowstorm_callback, NULL);
+
+  /* 24-hour cooldown */
+  attach_mud_event(new_mud_event(eARROW_STORM, ch, NULL), 24 * 60 * 60 * PASSES_PER_SEC);
+
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_manyshot)
+{
+  /* Allow if player has the ranger perk or the Manyshot feat */
+  if (!has_perk(ch, PERK_RANGER_MANYSHOT) && !HAS_FEAT(ch, FEAT_MANYSHOT))
+  {
+    ACMD_ERRORMSG("You don't know how to do this!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  /* cooldown check */
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eMANYSHOT), "You must wait longer before you can use manyshot again.\r\n");
+
+  /* ranged attack requirement */
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE),
+                        "You have to be using a ranged weapon with ammo ready to "
+                        "fire in your ammo pouch to do this!\r\n");
+
+  return CAN_CMD;
+}
+
+ACMD(do_manyshot)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_manyshot);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Use manyshot on who?\r\n");
+    return;
+  }
+
+  /* Point Blank restriction: too close without Point Blank Shot feat */
+  if (is_tanking(ch) && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
+  {
+    send_to_char(ch, "You are too close to your foe to effectively use Manyshot without Point Blank Shot!\r\n");
+    return;
+  }
+
+  /* TODO: Extended range validation
+   * For future: allow specifying distant targets (e.g., in adjacent wilderness rooms) and
+   * validate maximum weapon range bands; currently restricted to same-room target.
+   */
+
+  act("$n unleashes a rapid volley of arrows!", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You unleash a rapid volley of arrows!\r\n");
+
+  /* Base three rapid shots; Improved Manyshot adds +2 */
+  int max_shots = 3;
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_IMPROVED_MANYSHOT))
+    max_shots += 2;
+
+  {
+    int shots;
+    for (shots = 0; shots < max_shots; shots++)
+    {
+      if (!can_fire_ammo(ch, TRUE))
+        break;
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+    }
+  }
+
+  /* Cooldown: 2 minutes base; 1 minute with Improved Manyshot */
+  int cooldown_secs = 120;
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_IMPROVED_MANYSHOT))
+    cooldown_secs = 60;
+  attach_mud_event(new_mud_event(eMANYSHOT, ch, NULL), cooldown_secs * PASSES_PER_SEC);
+
+  /* Consume a standard action */
+  USE_STANDARD_ACTION(ch);
+}
+
 /* Callback for arrow swarm AoE */
 static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void *data)
 {
@@ -4477,6 +5306,18 @@ static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void
   {
     /* FIRE! */
     hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+    return 1;
+  }
+  return 0;
+}
+
+/* Callback for Arrow Storm AoE - applies flat 6d6 damage per target if ammo is available */
+static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  if (can_fire_ammo(ch, TRUE))
+  {
+    int dam = dice(6, 6);
+    damage(ch, tch, dam, TYPE_UNDEFINED, DAM_PUNCTURE, FALSE);
     return 1;
   }
   return 0;
@@ -8115,6 +8956,57 @@ ACMD(do_voidstrike)
   perform_voidstrike(ch);
 }
 
+ACMD(do_elementalmastery)
+{
+  time_t current_time = time(0);
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Monsters cannot use elemental mastery.\r\n");
+    return;
+  }
+
+  if (!has_druid_elemental_mastery(ch))
+  {
+    send_to_char(ch, "You need the Elemental Mastery perk to use this ability.\r\n");
+    return;
+  }
+
+  /* Check cooldown (5 minutes = 300 seconds) */
+  if (GET_ELEMENTAL_MASTERY_COOLDOWN(ch) > current_time)
+  {
+    int seconds = (int)(GET_ELEMENTAL_MASTERY_COOLDOWN(ch) - current_time);
+    int minutes = seconds / 60;
+    int remaining_seconds = seconds % 60;
+    
+    if (minutes > 0)
+    {
+      send_to_char(ch, "You must wait %d minute%s and %d second%s before using elemental mastery again.\r\n",
+                   minutes, minutes == 1 ? "" : "s",
+                   remaining_seconds, remaining_seconds == 1 ? "" : "s");
+    }
+    else
+    {
+      send_to_char(ch, "You must wait %d second%s before using elemental mastery again.\r\n",
+                   seconds, seconds == 1 ? "" : "s");
+    }
+    return;
+  }
+
+  /* Check if already active */
+  if (GET_ELEMENTAL_MASTERY_ACTIVE(ch))
+  {
+    send_to_char(ch, "Elemental mastery is already active and will trigger on your next elemental spell.\r\n");
+    return;
+  }
+
+  /* Activate elemental mastery */
+  GET_ELEMENTAL_MASTERY_ACTIVE(ch) = TRUE;
+  send_to_char(ch, "\tCYou channel the raw power of the elements!\tn\r\n");
+  send_to_char(ch, "\tCYour next elemental spell will deal maximum damage!\tn\r\n");
+  act("$n channels the raw power of the elements!", TRUE, ch, 0, 0, TO_ROOM);
+}
+
 ACMD(do_firesnake)
 {
   PREREQ_NOT_NPC();
@@ -8361,6 +9253,399 @@ ACMD(do_smiteevil)
   PREREQ_HAS_USES(FEAT_SMITE_EVIL, "You must recover the divine energy required to smite evil.\r\n");
 
   perform_smite(ch, SMITE_TYPE_EVIL);
+}
+
+/* Paladin Faithful Strike - Knight of the Chalice Tier 1 */
+ACMD(do_faithful_strike)
+{
+  struct affected_type af;
+  int duration = 1; // 1 round
+  int wis_bonus = GET_WIS_BONUS(ch);
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+
+  /* Check if already using faithful strike */
+  if (affected_by_spell(ch, SKILL_FAITHFUL_STRIKE))
+  {
+    send_to_char(ch, "You have already channeled divine power!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_paladin_faithful_strike(ch))
+  {
+    send_to_char(ch, "You don't know how to use faithful strike!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 1 minute cooldown */
+  PREREQ_HAS_USES(SKILL_FAITHFUL_STRIKE, "You must recover before you can use faithful strike again.\r\n");
+
+  send_to_char(ch, "You channel divine power into your next attack!\r\n");
+  act("$n's weapon glows briefly with divine light!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Add WIS bonus to next attack roll */
+  new_affect(&af);
+  af.spell = SKILL_FAITHFUL_STRIKE;
+  af.duration = duration;
+  af.location = APPLY_HITROLL;
+  af.modifier = wis_bonus;
+  af.bonus_type = BONUS_TYPE_SACRED;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_FAITHFUL_STRIKE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+/* Paladin Holy Blade - Knight of the Chalice Tier 2 */
+ACMD(do_holy_blade)
+{
+  struct affected_type af;
+  int duration = 50; // 5 minutes = 50 rounds
+  struct obj_data *wielded = NULL;
+
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_holy_blade(ch))
+  {
+    send_to_char(ch, "You don't know how to enchant your weapon with holy power!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 10 minute cooldown */
+  PREREQ_HAS_USES(SKILL_HOLY_BLADE, "You must recover before you can use holy blade again.\r\n");
+
+  /* Must be wielding a weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  if (!wielded)
+  {
+    send_to_char(ch, "You must be wielding a weapon to enchant it!\r\n");
+    return;
+  }
+
+  /* Check if weapon is already affected */
+  if (affected_by_spell(ch, SKILL_HOLY_BLADE))
+  {
+    send_to_char(ch, "Your weapon is already enchanted with holy power!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You call upon divine power to enchant your weapon with holy might!\r\n");
+  act("$n's $p glows with brilliant holy light!", 
+      FALSE, ch, wielded, 0, TO_ROOM);
+
+  /* Enhancement bonus (base +2, or +4 with Holy Sword perk) */
+  int enhancement_bonus = 2;
+  if (has_paladin_holy_sword(ch))
+    enhancement_bonus = 4;
+
+  /* Enhancement bonus to hit */
+  new_affect(&af);
+  af.spell = SKILL_HOLY_BLADE;
+  af.duration = duration;
+  af.location = APPLY_HITROLL;
+  af.modifier = enhancement_bonus;
+  af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  affect_to_char(ch, &af);
+
+  /* Enhancement bonus to damage */
+  new_affect(&af);
+  af.spell = SKILL_HOLY_BLADE;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = enhancement_bonus;
+  af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_HOLY_BLADE);
+}
+
+/* Paladin Divine Might - Knight of the Chalice Tier 3 */
+ACMD(do_divine_might)
+{
+  struct affected_type af;
+  int duration = 10; // 1 minute = 10 rounds
+  int cha_bonus = GET_CHA_BONUS(ch);
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+
+  /* Check if already using divine might */
+  if (affected_by_spell(ch, SKILL_DIVINE_MIGHT))
+  {
+    send_to_char(ch, "You are already channeling divine might!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_paladin_divine_might(ch))
+  {
+    send_to_char(ch, "You don't know how to channel divine might!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  PREREQ_HAS_USES(SKILL_DIVINE_MIGHT, "You must recover before you can use divine might again.\r\n");
+
+  send_to_char(ch, "You channel divine power into your strikes, infusing them with righteous fury!\r\n");
+  act("$n radiates with divine power as holy energy flows through $s weapon!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Add CHA bonus to damage */
+  new_affect(&af);
+  af.spell = SKILL_DIVINE_MIGHT;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = cha_bonus;
+  af.bonus_type = BONUS_TYPE_SACRED;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_DIVINE_MIGHT);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_defensive_strike)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_defensive_strike(ch))
+  {
+    send_to_char(ch, "You don't know how to perform a defensive strike!\r\n");
+    return;
+  }
+
+  /* Check cooldown */
+  PREREQ_HAS_USES(SKILL_DEFENSIVE_STRIKE, "You must recover before you can use defensive strike again.\r\n");
+
+  /* Find target */
+  one_argument(argument, arg, sizeof(arg));
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+    else
+    {
+      send_to_char(ch, "Defensive strike who?\r\n");
+      return;
+    }
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "You can't defensive strike yourself!\r\n");
+    return;
+  }
+
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  /* Make the attack */
+  send_to_char(ch, "You strike out with a defensive stance, preparing to guard!\r\n");
+  act("$n strikes at $N with a defensive stance!", FALSE, ch, 0, vict, TO_NOTVICT);
+  act("$n strikes at you with a defensive stance!", FALSE, ch, 0, vict, TO_VICT);
+
+  /* Perform one attack */
+  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  /* Apply AC bonus regardless of hit */
+  new_affect(&af);
+  af.spell = SKILL_DEFENSIVE_STRIKE;
+  af.duration = duration;
+  af.location = APPLY_AC_NEW;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_DODGE;
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "You assume a defensive posture, gaining +2 AC!\r\n");
+  act("$n assumes a defensive posture!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_DEFENSIVE_STRIKE);
+
+  USE_MOVE_ACTION(ch);
+}
+
+ACMD(do_bastion)
+{
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_bastion_of_defense(ch))
+  {
+    send_to_char(ch, "You don't know how to invoke bastion of defense!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  PREREQ_HAS_USES(SKILL_BASTION, "You must recover before you can invoke bastion again.\r\n");
+
+  /* Check if already active */
+  if (affected_by_spell(ch, SKILL_BASTION))
+  {
+    send_to_char(ch, "You are already protected by bastion of defense!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tWYou invoke the bastion of defense, becoming an immovable defender!\tn\r\n");
+  act("\tW$n glows with divine power, becoming an immovable bastion!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Grant 20 temporary HP */
+  new_affect(&af);
+  af.spell = SKILL_BASTION;
+  af.duration = duration;
+  af.location = APPLY_HIT;
+  af.modifier = 20; /* +20 temporary HP */
+  affect_to_char(ch, &af);
+
+  /* Grant +4 AC */
+  new_affect(&af);
+  af.spell = SKILL_BASTION;
+  af.duration = duration;
+  af.location = APPLY_AC_NEW;
+  af.modifier = 4;
+  af.bonus_type = BONUS_TYPE_SACRED;
+  affect_to_char(ch, &af);
+
+  /* Start cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, SKILL_BASTION);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+/**
+ * Radiant Aura - Paladin Divine Champion Tier 1 perk
+ * Toggle ability that causes holy damage to undead in the room
+ */
+ACMD(do_radiantaura)
+{
+  PREREQ_NOT_NPC();
+
+  /* Check if they have the perk */
+  if (!has_paladin_radiant_aura(ch))
+  {
+    send_to_char(ch, "You don't know how to invoke a radiant aura!\r\n");
+    return;
+  }
+
+  /* Toggle the aura on/off */
+  if (affected_by_spell(ch, SKILL_RADIANT_AURA))
+  {
+    /* Turn off the aura */
+    affect_from_char(ch, SKILL_RADIANT_AURA);
+    send_to_char(ch, "\tYYour radiant aura fades as you release the divine light.\tn\r\n");
+    act("\tY$n's radiant aura fades.\tn", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else
+  {
+    /* Turn on the aura */
+    struct affected_type af;
+    
+    new_affect(&af);
+    af.spell = SKILL_RADIANT_AURA;
+    af.duration = -1; /* Permanent until toggled off */
+    affect_to_char(ch, &af);
+    
+    send_to_char(ch, "\tYYou invoke your radiant aura, emanating holy light that burns the undead!\tn\r\n");
+    act("\tY$n begins to emanate a radiant holy aura!\tn", FALSE, ch, 0, 0, TO_ROOM);
+    
+    /* Start the periodic damage event - triggers every 6 seconds (1 round) */
+    if (!char_has_mud_event(ch, eRADIANT_AURA))
+    {
+      attach_mud_event(new_mud_event(eRADIANT_AURA, ch, NULL), 6 * PASSES_PER_SEC);
+    }
+  }
+}
+
+/**
+ * Event handler for Radiant Aura periodic damage
+ * Damages undead in the room every 6 seconds
+ */
+EVENTFUNC(event_radiant_aura)
+{
+  struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  int dam;
+  bool pvp_enabled;
+
+  if (event_obj == NULL)
+    return 0;
+
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  /* Check if character is still valid and playing */
+  if (!ch || !IS_PLAYING(ch->desc))
+    return 0;
+
+  /* Check if aura is still active */
+  if (!affected_by_spell(ch, SKILL_RADIANT_AURA))
+    return 0;
+
+  /* Check if paladin has PvP enabled */
+  pvp_enabled = PRF_FLAGGED(ch, PRF_PVP);
+
+  /* Damage all undead in the room */
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (vict == ch || !CAN_SEE(ch, vict))
+      continue;
+
+    /* Must be undead */
+    if (!IS_UNDEAD(vict))
+      continue;
+
+    /* Skip player undead and their charmies unless both have PVP enabled */
+    if (!IS_NPC(vict))
+    {
+      /* Skip if paladin doesn't have PVP or victim doesn't have PVP */
+      if (!pvp_enabled || !PRF_FLAGGED(vict, PRF_PVP))
+        continue;
+    }
+    else if (vict->master && !IS_NPC(vict->master) && AFF_FLAGGED(vict, AFF_CHARM))
+    {
+      /* This is a charmed NPC - check if both paladin and master have PVP */
+      if (!pvp_enabled || !PRF_FLAGGED(vict->master, PRF_PVP))
+        continue;
+    }
+
+    /* Deal 3d6 holy damage */
+    dam = dice(3, 6);
+    
+    act("\tY$n's radiant aura burns $N with holy fire!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+    act("\tYYour radiant aura burns $N with holy fire!\tn", FALSE, ch, 0, vict, TO_CHAR);
+    act("\tY$n's radiant aura burns you with holy fire!\tn", FALSE, ch, 0, vict, TO_VICT);
+    
+    damage(ch, vict, dam, SKILL_RADIANT_AURA, DAM_HOLY, FALSE);
+  }
+
+  /* Continue the event every 6 seconds */
+  return 6 * PASSES_PER_SEC;
 }
 
 /* drow faerie fire engine */
@@ -9464,11 +10749,9 @@ ACMD(do_fire)
   }
   else
   {
-
-    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT))
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT) && !has_perk(ch, PERK_RANGER_LONGSHOT))
     {
-      send_to_char(ch, "You need the 'far shot' feat to shoot outside of your"
-                       " immediate area!\r\n");
+      send_to_char(ch, "You need the 'far shot' feat or 'long shot' perk to shoot outside of your immediate area!\r\n");
       return;
     }
 
@@ -9572,7 +10855,24 @@ ACMD(do_fire)
 
     if (ch && vict && IN_ROOM(ch) != IN_ROOM(vict))
     {
+      /* Combined bonus: if player has Far Shot feat AND Longshot perk, +3 to attack when firing outside their room */
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
+      {
+        GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
+      }
+
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+      /* Quick Draw: flat 5% chance to immediately fire an extra shot */
+      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
+      {
+        int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+        if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+        {
+          send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+          act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
+        }
+      }
       /* don't forget to remove the fight event! */
       if (char_has_mud_event(ch, eCOMBAT_ROUND))
       {
@@ -9587,6 +10887,17 @@ ACMD(do_fire)
       if (FIGHTING(ch))
         USE_MOVE_ACTION(ch);
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+      /* Quick Draw: flat 5% chance to immediately fire an extra shot */
+      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
+      {
+        int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+        if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+        {
+          send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+          act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
+        }
+      }
       FIRING(ch) = TRUE;
     }
   }
@@ -9747,6 +11058,17 @@ ACMD(do_autofire)
   if (can_fire_ammo(ch, FALSE))
   {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+    /* Quick Draw: flat 5% chance to immediately fire an extra shot */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
+    {
+      int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+      if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+      {
+        send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+        act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
+      }
+    }
     FIRING(ch) = TRUE;
     USE_MOVE_ACTION(ch);
   }
@@ -11181,6 +12503,46 @@ ACMD(do_mark)
   }
 
   act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
+  GET_MARK(ch) = vict;
+  GET_MARK_ROUNDS(ch) = 0;
+}
+
+/* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
+ACMD(do_huntersmark)
+{
+  struct char_data *vict = NULL;
+  char arg[100];
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (IS_NPC(ch) || !has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+  {
+    send_to_char(ch, "You don't know how to do that.\r\n");
+    return;
+  }
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Who would you like to mark?\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "That person isn't here right now.\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Mark yourself? Not very helpful.\r\n");
+    return;
+  }
+
+  /* Apply mark and reset rounds */
+  act("You focus your aim and mark $N as your quarry.", false, ch, 0, vict, TO_CHAR);
+  act("$n focuses and marks you as $s quarry.", false, ch, 0, vict, TO_VICT);
+  act("$n focuses $s aim and marks $N as $s quarry.", false, ch, 0, vict, TO_NOTVICT);
   GET_MARK(ch) = vict;
   GET_MARK_ROUNDS(ch) = 0;
 }
@@ -13178,57 +14540,177 @@ ACMDCHECK(can_clenchofnorthwind)
 
 ACMD(do_clenchofnorthwind)
 {
-  struct char_data *vict = NULL;
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_clenchofnorthwind);
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
-  /* Get the target */
-  one_argument(argument, arg, sizeof(arg));
-
-  if (!*arg)
+  /* Set the timer - next melee attack will trigger the clench effect */
+  GET_CLENCH_NORTH_WIND_TIMER(ch) = 1; /* Lasts 1 round - affects next attack */
+  
+  /* Set cooldown */
+  if (!IS_NPC(ch))
   {
-    /* No target specified, use current fighting target */
-    if (!(vict = FIGHTING(ch)))
+    ch->player_specials->saved.clench_of_north_wind_cooldown = time(0) + 60;
+  }
+  
+  /* Use a ki point */
+  start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  
+  act("You focus your ki, preparing to unleash the \tCClench of the North Wind\tn on your next strike!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n's hands glow with \tCicy energy\tn!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Use a swift action */
+  USE_SWIFT_ACTION(ch);
+}
+
+
+
+/* Mass Cure Wounds - Paladin Divine Champion Tier 4 ability
+ * Heals all allies in room for 3d8 + CHA modifier
+ * 2 uses per day */
+ACMD(do_masscurewounds)
+{
+  struct char_data *tch;
+  int healing = 0;
+  int cha_mod = GET_CHA_BONUS(ch);
+  char buf[128];
+  
+  PREREQ_CAN_FIGHT();
+  
+  if (!has_paladin_mass_cure_wounds(ch))
+  {
+    send_to_char(ch, "You do not have that ability.\r\n");
+    return;
+  }
+  
+  /* Check daily uses - 2 per day using mud event */
+  struct mud_event_data *pMudEvent = NULL;
+  int uses_today = 0;
+  
+  if ((pMudEvent = char_has_mud_event(ch, eMASS_CURE_WOUNDS)))
+  {
+    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "%d", &uses_today) == 1)
     {
-      send_to_char(ch, "Who do you want to strike with the Clench of the North Wind?\r\n");
-      return;
+      if (uses_today >= 2)
+      {
+        send_to_char(ch, "You must recover the divine energy required for mass cure wounds.\r\n");
+        return;
+      }
     }
+  }
+  
+  act("You call upon divine energy to heal your allies!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n calls upon divine energy to heal $s allies!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Heal all allies in the room */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch || is_player_grouped(ch, tch))
+    {
+      healing = dice(3, 8) + cha_mod;
+      
+      if (healing > 0)
+      {
+        GET_HIT(tch) = MIN(GET_MAX_HIT(tch), GET_HIT(tch) + healing);
+        
+        if (tch == ch)
+          send_to_char(tch, "You are healed for %d hit points.\r\n", healing);
+        else
+          send_to_char(tch, "%s heals you for %d hit points.\r\n", GET_NAME(ch), healing);
+      }
+    }
+  }
+  
+  /* Use action */
+  USE_STANDARD_ACTION(ch);
+  
+  /* Track uses - increment count */
+  if (pMudEvent)
+  {
+    uses_today++;
+    if (pMudEvent->sVariables)
+      free(pMudEvent->sVariables);
+    snprintf(buf, sizeof(buf), "%d", uses_today);
+    pMudEvent->sVariables = strdup(buf);
   }
   else
   {
-    /* Target specified */
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
-    {
-      send_to_char(ch, "%s", CONFIG_NOPERSON);
-      return;
-    }
+    /* Create new event that lasts 1 MUD day */
+    attach_mud_event(new_mud_event(eMASS_CURE_WOUNDS, ch, "1"), SECS_PER_MUD_DAY * PASSES_PER_SEC);
   }
-
-  /* Check if valid target */
-  if (vict == ch)
-  {
-    send_to_char(ch, "You can't use this technique on yourself!\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
-  {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  /* Consume ki point and perform the technique */
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
-
-  perform_clenchofnorthwind(ch, vict);
 }
 
-/* cleanup! */
-#undef RAGE_AFFECTS
-#undef D_STANCE_AFFECTS
+/* Helper functions for Nature's Wrath */
+bool has_beast_master_capstone(struct char_data *ch) {
+  /* Check if character has Beast Master capstone perk */
+  return has_perk(ch, PERK_RANGER_NATURES_WRATH);
+}
 
-/*EOF*/
+int GET_NATURES_WRATH_COOLDOWN(struct char_data *ch) {
+  /* Retrieve cooldown value (seconds) from player struct */
+  return ch->natures_wrath_cooldown;
+}
+
+void SET_NATURES_WRATH_COOLDOWN(struct char_data *ch, int seconds) {
+  ch->natures_wrath_cooldown = seconds;
+}
+
+void apply_natures_wrath_buff(struct char_data *ch) {
+  /* Nature's Wrath: +4 to all stats, +2d8 damage, fast healing 5 for 10 rounds */
+  struct affected_type af;
+  memset(&af, 0, sizeof(af));
+  af.spell = PERK_RANGER_NATURES_WRATH;
+  af.duration = 10; /* 10 rounds */
+  af.modifier = 4;
+  af.location = APPLY_STR; affect_to_char(ch, &af);
+  af.location = APPLY_DEX; affect_to_char(ch, &af);
+  af.location = APPLY_CON; affect_to_char(ch, &af);
+  af.location = APPLY_INT; affect_to_char(ch, &af);
+  af.location = APPLY_WIS; affect_to_char(ch, &af);
+  af.location = APPLY_CHA; affect_to_char(ch, &af);
+
+  /* Fast healing 5: handled in regen logic, set a flag/affect */
+  af.location = APPLY_FAST_HEALING;
+  af.modifier = 5;
+  affect_to_char(ch, &af);
+
+    /* Damage bonus: +2d8 on all attacks (custom damage affect, handled in combat logic) */
+  af.spell = SKILL_APPLY_NATURES_WRATH_DAMAGE;
+  af.location = APPLY_SPECIAL;
+  af.modifier = 2; /* 2d8 flag, actual roll handled elsewhere */
+  affect_to_char(ch, &af);
+
+  /* Apply to companion if present */
+  if (has_active_companion(ch)) {
+    struct char_data *pet = get_animal_companion_mob(ch);
+    af.location = APPLY_STR; affect_to_char(pet, &af);
+    af.location = APPLY_DEX; affect_to_char(pet, &af);
+    af.location = APPLY_CON; affect_to_char(pet, &af);
+    af.location = APPLY_INT; affect_to_char(pet, &af);
+    af.location = APPLY_WIS; affect_to_char(pet, &af);
+    af.location = APPLY_CHA; affect_to_char(pet, &af);
+    af.location = APPLY_SPECIAL; affect_to_char(pet, &af);
+    af.location = APPLY_FAST_HEALING; affect_to_char(pet, &af);
+  }
+}
+
+/* Beast Master Capstone: Nature's Wrath */
+ACMD(do_natureswrath)
+{
+  if (IS_NPC(ch) || !has_beast_master_capstone(ch)) {
+    send_to_char(ch, "You do not possess the power of Nature's Wrath.\r\n");
+    return;
+  }
+  if (GET_NATURES_WRATH_COOLDOWN(ch) > 0) {
+    send_to_char(ch, "You must wait before invoking Nature's Wrath again.\r\n");
+    return;
+  }
+  /* Apply powerful buff to ranger and companion */
+  apply_natures_wrath_buff(ch);
+  send_to_char(ch, "\tGYou unleash the fury of nature upon your foes!\tn\r\n");
+  if (get_animal_companion_mob(ch)) {
+    send_to_char(get_animal_companion_mob(ch), "\tGYou are empowered by your master's wrath!\tn\r\n");
+  }
+  /* Set cooldown (e.g., 24 hours) */
+  SET_NATURES_WRATH_COOLDOWN(ch, 5 * 60);
+}

@@ -337,6 +337,7 @@ void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int can_carry_weight_limit(struct char_data *ch);
+bool valid_luminari_race(int race);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
@@ -348,6 +349,7 @@ bool is_fav_enemy_of(struct char_data *ch, int race);
 bool can_bleed(struct char_data *ch);
 int compute_arcana_golem_level(struct char_data *ch);
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
 int count_follower_by_type(struct char_data *ch, int mob_flag);
 int specific_follower_count(struct char_data *ch, mob_vnum mvnum);
 int color_count(char *bufptr);
@@ -386,6 +388,8 @@ int get_power_resist_mod(struct char_data *ch);
 bool is_spellnum_psionic(int spellnum);
 void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam);
 int countlines(char *filename);
+int get_account_experience(struct char_data *ch);
+void change_account_experience(struct char_data *ch, int amount);
 bool can_blind(struct char_data *ch);
 bool can_deafen(struct char_data *ch);
 bool can_disease(struct char_data *ch);
@@ -407,6 +411,9 @@ bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
 int get_psp_regen_amount(struct char_data *ch);
 int get_mv_regen_amount(struct char_data *ch);
+int get_natural_empathy_bonus(struct char_data *ch);
+bool has_active_companion(struct char_data *ch);
+struct char_data *get_animal_companion_mob(struct char_data *ch);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -1174,6 +1181,7 @@ void char_from_furniture(struct char_data *ch);
 /* Casting time */
 #define IS_CASTING(ch) ((ch)->char_specials.isCasting)
 #define CASTING_TIME(ch) ((ch)->char_specials.castingTime)
+#define CASTING_TIME_MAX(ch) ((ch)->char_specials.castingTimeMax)
 #define CASTING_TCH(ch) ((ch)->char_specials.castingTCH)
 #define CASTING_TOBJ(ch) ((ch)->char_specials.castingTOBJ)
 #define CASTING_SPELLNUM(ch) ((ch)->char_specials.castingSpellnum)
@@ -1820,6 +1828,8 @@ int ACTUAL_BAB(struct char_data *ch);
 /* i_sort determines how it is sorted in inventory */
 #define GET_OBJ_SORT(obj) ((obj)->obj_flags.i_sort)
 #define GET_BAG_NAME(ch, bagnum)  (ch->player_specials->saved.bag_names[bagnum])
+#define GET_ARCANE_MARK(ch)       ((ch)->player_specials->saved.arcane_mark)
+#define GET_OBJ_ARCANE_MARK(obj)  ((obj)->arcane_mark)
 
 /** Defines if an obj is a corpse. */
 #define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \
@@ -2210,6 +2220,7 @@ int ACTUAL_BAB(struct char_data *ch);
                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
 #define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
+#define IS_GOLEM(ch) (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM))
 #define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) ||    \
                           (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
                           (IS_IRON_GOLEM(ch)))
@@ -2412,6 +2423,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_MAX_EXP_GAIN config_info.play.max_exp_gain
 /** What is the max experience that can be lost at once? */
 #define CONFIG_MAX_EXP_LOSS config_info.play.max_exp_loss
+/** What is the percentage multiplier for experience gain? (100 = normal) */
+#define CONFIG_EXPERIENCE_MULTIPLIER config_info.play.experience_multiplier
 /** How long will npc corpses last before decomposing? */
 #define CONFIG_MAX_NPC_CORPSE_TIME config_info.play.max_npc_corpse_time
 /** How long will pc corpses last before decomposing? */
@@ -2599,6 +2612,10 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_NEW_PLAYER_GEAR config_info.extra.new_player_gear
 #define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
 #define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
+#define CONFIG_MELEE_EXP_OPTION config_info.extra.melee_exp_option
+#define CONFIG_SPELL_CAST_EXP_OPTION config_info.extra.spell_cast_exp_option
+#define CONFIG_SPELLCASTING_TIME_MODE config_info.extra.spellcasting_time_mode
+#define CONFIG_ARCANE_MOON_PHASES config_info.extra.arcane_moon_phases
 
 /* Mob Stats Config */
 #define CONFIG_MOB_WARRIORS_HP config_info.mob_stats.warriors.hit_points
@@ -2767,8 +2784,16 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_VOID_STRIKE_TIMER(ch)  ((ch)->player_specials->saved.void_strike_timer)
 #define GET_VOID_STRIKE_COOLDOWN(ch)  ((ch)->player_specials->saved.void_strike_cooldown)
 #define GET_FIRESNAKE_TIMER(ch)  ((ch)->player_specials->saved.firesnake_timer)
+#define GET_CLENCH_NORTH_WIND_TIMER(ch)  ((ch)->player_specials->saved.clench_of_north_wind_timer)
 #define GET_ELEMENTAL_EMBODIMENT_TIMER(ch)  ((ch)->player_specials->saved.elemental_embodiment_timer)
 #define GET_ELEMENTAL_EMBODIMENT_TYPE(ch)  ((ch)->player_specials->saved.elemental_embodiment_type)
+#define GET_ELEMENTAL_MASTERY_ACTIVE(ch)  ((ch)->player_specials->saved.elemental_mastery_active)
+#define GET_ELEMENTAL_MASTERY_COOLDOWN(ch)  ((ch)->player_specials->saved.elemental_mastery_cooldown)
+
+/* Raging Defender temporary flags */
+#define HIT_BY_CRITICAL(ch)  ((ch)->char_specials.hit_by_critical)
+#define HIT_BY_SNEAK_ATTACK(ch)  ((ch)->char_specials.hit_by_sneak_attack)
+
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)
@@ -2810,6 +2835,7 @@ bool has_reach(struct char_data *ch);
 #define GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) (ch->player_specials->saved.irresistible_magic_cooldown)
 #define GET_QUICK_CAST_COOLDOWN(ch) (ch->player_specials->saved.quick_cast_cooldown)
 #define GET_SPELL_RECALL_COOLDOWN(ch) (ch->player_specials->saved.spell_recall_cooldown)
+#define GET_DEATHLESS_FRENZY_TIMER(ch) (ch->player_specials->saved.deathless_frenzy_timer)
 
 /* Bonus spell slot tracking for Domain Master perks */
 #define GET_BONUS_DOMAIN_SLOTS_USED(ch) (ch->player_specials->saved.bonus_domain_slots_used)

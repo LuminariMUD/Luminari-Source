@@ -244,6 +244,7 @@ int compute_arcane_level(struct char_data *ch)
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_WARLOCK);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
   arcane_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
   if (NECROMANCER_CAST_TYPE(ch) == 1)
@@ -1147,7 +1148,8 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
   int summons_allowed = 1,
       pets_allowed = 1,
       mercs_allowed = 1,
-      genie_allowed = 1;
+      genie_allowed = 1,
+      golems_allowed = 1;
 
   if (IS_SUMMONER(ch))
     summons_allowed++;
@@ -1171,6 +1173,10 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
       else if (MOB_FLAGGED(pet, MOB_MERCENARY))
       {
         mercs_allowed--;
+      }
+      else if (MOB_FLAGGED(pet, MOB_GOLEM))
+      {
+        golems_allowed--;
       }
       else
       {
@@ -1209,6 +1215,13 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
   {
     extract_char(mob);
     if (mercs_allowed > 0)
+      return true;
+    return false;
+  }
+  else if (MOB_FLAGGED(mob, MOB_GOLEM))
+  {
+    extract_char(mob);
+    if (golems_allowed > 0)
       return true;
     return false;
   }
@@ -1565,6 +1578,15 @@ bool can_see_hidden(struct char_data *ch, struct char_data *hider)
 int skill_roll(struct char_data *ch, int skillnum)
 {
   int roll = d20(ch);
+  int guidance = 0;
+
+  if (affected_by_spell(ch, SPELL_GUIDANCE))
+  {
+    guidance = dice(1, 4);
+    send_to_char(ch, "\tG[Guidance +%d]\tn ", guidance);
+    affect_from_char(ch, SPELL_GUIDANCE);
+    roll += guidance;
+  }
 
   if (skillnum == ABILITY_DIPLOMACY && affected_by_spell(ch, SPELL_HONEYED_TONGUE))
   {
@@ -1579,6 +1601,16 @@ int skill_roll(struct char_data *ch, int skillnum)
 
   roll += compute_ability(ch, skillnum);
 
+  /* Beast Master: Natural Empathy perk - +2 per rank to Animal Handling and Animal Empathy */
+  if (!IS_NPC(ch)) {
+    if (skillnum == ABILITY_ANIMAL_HANDLING) {
+      int empathy_bonus = get_natural_empathy_bonus(ch); /* returns 2 * ranks */
+      if (empathy_bonus > 0) {
+        roll += empathy_bonus;
+        send_to_char(ch, "\tG[Natural Empathy +%d]\tn ", empathy_bonus);
+      }
+    }
+  }
   return roll;
 }
 
@@ -4856,6 +4888,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
       break;
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
+      /* Paladin Sacred Defender perk: Extra Lay on Hands */
+      if (!IS_NPC(ch))
+        daily_uses += get_paladin_extra_lay_on_hands(ch);
       break;
     case FEAT_JUDGEMENT:
       daily_uses += ((CLASS_LEVEL(ch, CLASS_INQUISITOR) - 1) / 3) + 1;
@@ -4951,6 +4986,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
       daily_uses += HAS_FEAT(ch, featnum);
       daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_1);
       daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_2);
+      /* Knight of the Chalice perks */
+      daily_uses += get_perk_rank(ch, PERK_PALADIN_EXTRA_SMITE_1, CLASS_PALADIN);
+      daily_uses += get_perk_rank(ch, PERK_PALADIN_EXTRA_SMITE_2, CLASS_PALADIN);
       break;
     case FEAT_RAGE:/*fallthrough*/
     case FEAT_SACRED_FLAMES:/*fallthrough*/
@@ -5463,6 +5501,17 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display)
 {
+  /* Beast Master: Alpha Bond companion immunity */
+  if (IS_NPC(victim) && victim->master && !IS_NPC(victim->master) && 
+      MOB_FLAGGED(victim, MOB_C_ANIMAL) && ranger_companion_immune_fear(victim->master))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your Alpha Bond protects you from fear!\r\n");
+    }
+    return TRUE;
+  }
 
   if (HAS_FEAT(victim, FEAT_KENDER_FEARLESSNESS))
     return true;
@@ -5554,6 +5603,17 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
 
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display)
 {
+  /* Beast Master: Primal Avatar companion immunity */
+  if (IS_NPC(victim) && victim->master && !IS_NPC(victim->master) && 
+      MOB_FLAGGED(victim, MOB_C_ANIMAL) && ranger_companion_immune_mind(victim->master))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s is a Primal Beast and immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are a Primal Beast and thus are immune to %s's mind-affecting spells and abilities!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
 
   if ((IS_UNDEAD(victim) || HAS_FEAT(victim, FEAT_ONE_OF_US)) && !HAS_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
   {
@@ -5571,6 +5631,17 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     {
       send_to_char(ch, "%s is a construct and thus immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
       send_to_char(victim, "You are a construct and thus are immune to %s's mind-affecting spells and abilities!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  /* Explicit immunity for crafted golems even if race data is missing */
+  if (IS_GOLEM(victim))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s is a golem construct and immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your golem nature shrugs off %s's mind-affecting magic.\r\n", GET_NAME(ch));
     }
     return TRUE;
   }
@@ -7537,7 +7608,6 @@ bool can_spell_be_revoked(int spellnum)
 // returns false if damage should proceed normally
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam)
 {
-
   if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
   {
     GET_HIT(victim) += dam;
@@ -7559,6 +7629,23 @@ bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim,
     act("The spell deals no damage, but slows $N instead!", TRUE, ch, 0, victim, TO_ROOM);
     return true;
   }
+  return false;
+}
+
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam)
+{
+
+  if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_COLD)
+  {
+    dam /= 3;
+    GET_HIT(victim) += dam;
+    if (GET_HIT(victim) > GET_MAX_HIT(victim))
+      GET_HIT(victim) = GET_MAX_HIT(victim);
+    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
+    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return true;
+  }
+
   return false;
 }
 
@@ -9699,6 +9786,10 @@ int get_fast_healing_amount(struct char_data *ch)
 {
   int hp = 0;
 
+  /* Constructed golems do not benefit from fast healing or food/drink regen */
+  if (IS_GOLEM(ch))
+    return 0;
+
   if (affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
     hp += 4;
   else if (affected_by_spell(ch, SPELL_PLANAR_HEALING))
@@ -9706,6 +9797,14 @@ int get_fast_healing_amount(struct char_data *ch)
 
   if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
     hp += 2;
+
+  /* Nature's Wrath: check for APPLY_FAST_HEALING affects */
+  struct affected_type *af;
+  for (af = ch->affected; af; af = af->next) {
+    if (af->location == APPLY_FAST_HEALING) {
+      hp += af->modifier;
+    }
+  }
 
   if (affected_by_spell(ch, EIDOLON_MERGE_FORMS_EFFECT))
     hp += get_char_affect_modifier(ch, EIDOLON_MERGE_FORMS_EFFECT, APPLY_FAST_HEALING);
@@ -9724,6 +9823,9 @@ int get_hp_regen_amount(struct char_data *ch)
 {
   int hp = 0;
 
+  if (IS_GOLEM(ch))
+    return 0;
+
   hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_HP_REGEN);
   hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_HP_REGEN);
   hp += get_apply_type_gear_mod(ch, APPLY_HP_REGEN);
@@ -9736,6 +9838,9 @@ int get_psp_regen_amount(struct char_data *ch)
 {
   int psp = 0;
 
+  if (IS_GOLEM(ch))
+    return 0;
+
   psp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_PSP_REGEN);
   psp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_PSP_REGEN);
   psp += get_apply_type_gear_mod(ch, APPLY_PSP_REGEN);
@@ -9747,6 +9852,9 @@ int get_psp_regen_amount(struct char_data *ch)
 int get_mv_regen_amount(struct char_data *ch)
 {
   int mv = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
 
   mv += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_MV_REGEN);
   mv += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_MV_REGEN);
@@ -9795,6 +9903,8 @@ bool is_road_room(room_rnum room, int type)
     return true;
   else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_RANDOM_ENCOUNTERS) && type == 3)
     return true;
+  else if (!ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_OPEN))
+    return false;
   else if (world[room].sector_type == SECT_ROAD_EW)
     return true;
   else if (world[room].sector_type == SECT_ROAD_INT)
@@ -9964,8 +10074,10 @@ bool is_selectable_region(int region)
 {
   switch (region)
   {
+#if defined(CAMPAIGN_DL)
     case REGION_OUTER_PLANES:
       return false;
+#endif
   }
   return true;
 }
@@ -10644,6 +10756,18 @@ int get_spell_dc_bonus(struct char_data *ch)
     dc_bonus += max_value[i];
   }
 
+  /* Paladin Spell Focus perk bonus */
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+  {
+    int spell_focus_bonus = get_paladin_spell_focus_bonus(ch);
+    if (spell_focus_bonus > 0)
+      dc_bonus += spell_focus_bonus;
+  }
+  
+  /* Holy Avenger: +2 DC to next spell after destroying undead */
+  if (affected_by_spell(ch, SKILL_HOLY_AVENGER))
+    dc_bonus += 2;
+
   return dc_bonus;
 }
 
@@ -11193,6 +11317,70 @@ const char *get_crafting_tool_desc(struct obj_data *obj)
   }
   
   return "Invalid crafting tool";
+}
+
+/* Returns true if the character has their animal companion present as a follower. */
+bool has_active_companion(struct char_data *ch)
+{
+  mob_vnum companion_vnum = GET_ANIMAL_COMPANION(ch);
+  struct follow_type *k;
+  if (companion_vnum <= 0)
+    return FALSE;
+  for (k = ch->followers; k; k = k->next) {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) == companion_vnum)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+/* Returns a pointer to the animal companion mob if present, else NULL. */
+struct char_data *get_animal_companion_mob(struct char_data *ch)
+{
+  mob_vnum companion_vnum = GET_ANIMAL_COMPANION(ch);
+  struct follow_type *k;
+  if (companion_vnum <= 0)
+    return NULL;
+  for (k = ch->followers; k; k = k->next) {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) == companion_vnum)
+      return k->follower;
+  }
+  return NULL;
+}
+
+/* Helper for Beast Master: Natural Empathy skill bonus */
+int get_natural_empathy_bonus(struct char_data *ch) {
+  int ranks = get_perk_rank(ch, PERK_RANGER_NATURAL_EMPATHY_I, CLASS_RANGER);
+  return ranks * 2;
+}
+
+bool valid_luminari_race(int race)
+{
+  if(race >= 0 && race < NUM_EXTENDED_RACES)
+  {
+    if (race >= DL_RACE_START && race <= DL_RACE_END)
+      return false;
+    else
+      return true;
+  }
+  return false;
+}
+
+int get_account_experience(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return 0;
+
+  return ch->desc->account->experience;
+}
+
+void change_account_experience(struct char_data *ch, int amount)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return;
+
+  ch->desc->account->experience += amount;
+  if (ch->desc->account->experience < 0)
+    ch->desc->account->experience = 0;
 }
 
 /* EoF */

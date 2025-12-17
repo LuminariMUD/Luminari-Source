@@ -23,6 +23,7 @@ extern int holler_move_cost;
 extern int tunnel_size;
 extern int max_exp_gain;
 extern int max_exp_loss;
+extern int experience_multiplier;
 extern int max_npc_corpse_time;
 extern int max_pc_corpse_time;
 extern int idle_void;
@@ -104,6 +105,7 @@ extern int extra_level_hp;
 extern int extra_level_mv;
 extern int ac__cap;
 extern int exp_level_difference;
+extern int spellcasting_time_mode; // 0 = standard action, 1 = per-spell seconds
 extern int summon_1_10_hp;
 extern int summon_1_10_hit_and_dam;
 extern int summon_1_10_ac;

@@ -1231,28 +1231,9 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
-  // for a dialogue quest, if there are future quests that depend on the dialogue quest being done we
-  // need to check for either:
-  // A: The dialogue quest was finished and was not failed
-  // B: The dialogue quest was finished, but it failed, and the alternative dialogue quest was complete
-  // do this here... >>>
-  if ((QST_PREV(rnum) != NOTHING) && is_complete(ch, QST_PREV(rnum)))
-  {
-    if (is_dialogue_quest_failed(ch, QST_PREV(rnum)))
-    {
-      qst_rnum prev_quest = real_quest(QST_PREV(rnum));
-      qst_vnum alt_quest = aquest_table[prev_quest].dialogue_alternative_quest;
-      if (!is_complete(ch, alt_quest))
-      {
-        send_to_char(ch, "The previous quest was a dialogue quest which failed. You will need to complete its alternative quest in order to take this quest.\r\n");
-        return;
-      }
-    }
-  }
-
-
-  // if this is a dialogue quest's alternative quest we need to check if the dialogue quest was finished
-  // and failed. If not, we cannot take this quest
+  // if this is a dialogue quest's alternative quest, we can join it only if:
+  // 1. The parent dialogue quest is complete
+  // 2. The parent dialogue quest failed
   if (is_dialogue_alternative_quest(QST_NUM(rnum)))
   {
     if (!is_complete(ch, QST_PREV(rnum)) || !is_dialogue_quest_failed(ch, QST_PREV(rnum)))
@@ -1263,6 +1244,25 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
       else 
         send_to_char(ch, "Error getting dialogue alternative quest rnum. Please report to staff.\r\n");
       return;
+    }
+  }
+
+  // for non-alternative quests with a dialogue quest parent, verify one of:
+  // A: The dialogue quest was finished and was not failed
+  // B: The dialogue quest was finished, it failed, and the alternative quest is complete
+  if ((QST_PREV(rnum) != NOTHING) && is_complete(ch, QST_PREV(rnum)) && !is_dialogue_alternative_quest(QST_NUM(rnum)))
+  {
+    if (is_dialogue_quest_failed(ch, QST_PREV(rnum)))
+    {
+      qst_rnum prev_quest = real_quest(QST_PREV(rnum));
+      qst_vnum alt_quest = aquest_table[prev_quest].dialogue_alternative_quest;
+      
+      // Only block if there IS an alternative quest and it's NOT complete
+      if (alt_quest != NOTHING && alt_quest > 0 && !is_complete(ch, alt_quest))
+      {
+        send_to_char(ch, "The previous quest was a dialogue quest which failed. You will need to complete its alternative quest in order to take this quest.\r\n");
+        return;
+      }
     }
   }
 
@@ -1310,9 +1310,9 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     if (aquest_table[rnum].diplomacy_dc > 0)
       send_to_char(ch, "Persuasion Skill  - 'convince' command.\r\n");
     if (aquest_table[rnum].intimidate_dc > 0)
-      send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
+      send_to_char(ch, "Intimidate Skill  - 'threaten' command.\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Deception Skill      - 'beguile' command.\r\n");
+      send_to_char(ch, "Deception Skill   - 'beguile' command.\r\n");
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn");
   }
@@ -1472,9 +1472,9 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     if (aquest_table[rnum].diplomacy_dc > 0)
       send_to_char(ch, "Persuasion Skill  - 'convince' command.\r\n");
     if (aquest_table[rnum].intimidate_dc > 0)
-      send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
+      send_to_char(ch, "Intimidate Skill  - 'threaten' command.\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Deception Skill      - 'beguile' command.\r\n");
+      send_to_char(ch, "Deception Skill   - 'beguile' command.\r\n");
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn");
   }
@@ -1483,6 +1483,101 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                    "You have %d turn%s remaining to complete the quest.\r\n",
                    GET_QUEST_TIME(ch, index),
                    GET_QUEST_TIME(ch, index) == 1 ? "" : "s");
+    
+    /* Display quest target information */
+    switch (QST_TYPE(rnum))
+    {
+      case AQ_OBJ_FIND: /* Acquire Object */
+      {
+        obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
+        if (obj_rnum != NOTHING)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+        break;
+      }
+      case AQ_ROOM_FIND: /* Find Room */
+      {
+        room_rnum room_rnum = real_room(QST_TARGET(rnum));
+        if (room_rnum != NOWHERE)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+        break;
+      }
+      case AQ_MOB_FIND: /* Find Mob */
+      case AQ_MOB_KILL: /* Kill Mob */
+      case AQ_MOB_SAVE: /* Save Mob */
+      case AQ_DIALOGUE: /* Dialogue Quest */
+      {
+        mob_rnum mob_rnum = real_mobile(QST_TARGET(rnum));
+        if (mob_rnum != NOBODY)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", mob_proto[mob_rnum].player.short_descr);
+        break;
+      }
+      case AQ_OBJ_RETURN: /* Return Object */
+      {
+        obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
+        if (obj_rnum != NOTHING)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+        break;
+      }
+      case AQ_ROOM_CLEAR: /* Clear Room */
+      {
+        room_rnum room_rnum = real_room(QST_TARGET(rnum));
+        if (room_rnum != NOWHERE)
+          send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+        break;
+      }
+      case AQ_MOB_MULTI_KILL: /* Kill Multiple Mobs */
+      {
+        if (QST_KLIST(rnum) && *QST_KLIST(rnum))
+        {
+          char kill_list_copy[MAX_STRING_LENGTH];
+          char *mob_vnum_str;
+          bool first = TRUE;
+          
+          strncpy(kill_list_copy, QST_KLIST(rnum), sizeof(kill_list_copy) - 1);
+          kill_list_copy[sizeof(kill_list_copy) - 1] = '\0';
+          
+          send_to_char(ch, "\tcQuest Targets:\tn ");
+          
+          mob_vnum_str = strtok(kill_list_copy, ",");
+          while (mob_vnum_str != NULL)
+          {
+            mob_vnum mvnum = atoi(mob_vnum_str);
+            mob_rnum mob_rnum = real_mobile(mvnum);
+            
+            if (mob_rnum != NOBODY)
+            {
+              if (!first)
+                send_to_char(ch, ", ");
+              send_to_char(ch, "%s", mob_proto[mob_rnum].player.short_descr);
+              first = FALSE;
+            }
+            
+            mob_vnum_str = strtok(NULL, ",");
+          }
+          send_to_char(ch, "\r\n");
+        }
+        break;
+      }
+      /* Skip these quest types as requested */
+      case AQ_AUTOCRAFT:
+      case AQ_CRAFT:
+      case AQ_CRAFT_RESIZE:
+      case AQ_CRAFT_DIVIDE:
+      case AQ_CRAFT_MINE:
+      case AQ_CRAFT_HUNT:
+      case AQ_CRAFT_KNIT:
+      case AQ_CRAFT_FOREST:
+      case AQ_CRAFT_DISENCHANT:
+      case AQ_CRAFT_AUGMENT:
+      case AQ_CRAFT_CONVERT:
+      case AQ_CRAFT_RESTRING:
+      case AQ_COMPLETE_MISSION:
+      case AQ_HOUSE_FIND:
+      case AQ_WILD_FIND:
+      case AQ_GIVE_GOLD:
+      default:
+        break;
+    }
   }
 }
 
@@ -1934,6 +2029,15 @@ bool is_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum)
   {
 
      return false;
+  }
+
+  /* If the alternative quest is already completed, treat the dialogue quest
+   * as resolved and clear any lingering failure flag. */
+  qst_vnum alt_vnum = aquest_table[q_rnum].dialogue_alternative_quest;
+  if (alt_vnum > 0 && is_complete(ch, alt_vnum))
+  {
+    set_dialogue_quest_succeeded(ch, q_vnum);
+    return false;
   }
 
   for (i = 0; i < 100; i++)

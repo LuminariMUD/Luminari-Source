@@ -21,6 +21,7 @@
 #include "boards.h" /* for board_info */
 #include "craft.h"
 #include "spells.h"
+#include "spec_procs.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);
@@ -390,6 +391,18 @@ int save_objects(zone_rnum zone_num)
                   obj->wpn_spells[counter2].percent,
                   obj->wpn_spells[counter2].inCombat);
 
+      /* Z: SpecProc name (persist object spec proc) */
+      {
+        const char *spname = NULL;
+        if (obj_index[realcounter].func)
+          spname = get_spec_func_name(obj_index[realcounter].func);
+        if (spname && *spname)
+        {
+          fprintf(fp, "Z\n");
+          fprintf(fp, "%s\n", spname);
+        }
+      }
+
       /* T:  Do we have script(s) attached? */
       script_save_to_disk(fp, obj, OBJ_TRIGGER);
     }
@@ -470,6 +483,8 @@ void free_object_strings_proto(struct obj_data *obj)
   /* Free corpse-specific fields - corpses should never have prototypes */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->arcane_mark)
+    free(obj->arcane_mark);
 }
 
 static void copy_object_strings(struct obj_data *to, struct obj_data *from)
@@ -478,6 +493,7 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
 
   if (from->ex_description)
     copy_ex_descriptions(&to->ex_description, from->ex_description);

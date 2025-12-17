@@ -134,7 +134,9 @@ circle_SOURCES = \
 	src/mob_class.c \
 	src/mob_spells.c \
 	src/mob_spellslots.c \
+	src/mob_known_spells.c \
 	src/modify.c \
+	src/moon_bonus_spells.c \
 	src/msgedit.c \
 	src/mud_event.c \
 	src/mud_event_list.c \
@@ -188,6 +190,7 @@ circle_SOURCES = \
 	src/spec_assign.c \
 	src/spec_procs.c \
 	src/specs.artifacts.c \
+	src/casting_visuals.c \
 	src/spell_parser.c \
 	src/spell_prep.c \
 	src/spellbook_scroll.c \

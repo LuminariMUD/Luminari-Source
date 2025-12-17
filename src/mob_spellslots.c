@@ -44,28 +44,51 @@ int get_spell_circle(int spellnum, int char_class)
   /* Check if this class can cast this spell at all */
   if (spell_info[spellnum].min_level[char_class] >= LVL_IMMORT)
     return -1;
+
+  /* Cantrips are always circle 0 */
+  if (spell_is_cantrip(spellnum))
+    return 0;
   
   /* Calculate circle based on class type */
   switch (char_class) {
     case CLASS_WIZARD:
     case CLASS_CLERIC:
     case CLASS_DRUID:
-    case CLASS_INQUISITOR:
+    case CLASS_SORCERER:
       /* Full casters: (level + 1) / 2 */
       spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
       break;
       
-    case CLASS_SORCERER:
+    
+    case CLASS_INQUISITOR:
     case CLASS_BARD:
-      /* Spontaneous casters: level / 2 */
-      spell_circle = spell_info[spellnum].min_level[char_class] / 2;
+    case CLASS_ALCHEMIST:
+    case CLASS_SUMMONER:
+      if (spell_info[spellnum].min_level[char_class] <= 1)
+        spell_circle = 1;
+      if (spell_info[spellnum].min_level[char_class] <= 4)
+        spell_circle = 2;
+      if (spell_info[spellnum].min_level[char_class] <= 7)
+        spell_circle = 3;
+      if (spell_info[spellnum].min_level[char_class] <= 10)
+        spell_circle = 4;
+      if (spell_info[spellnum].min_level[char_class] <= 13)
+        spell_circle = 5;
+      else
+        spell_circle = 6;
       break;
       
     case CLASS_PALADIN:
     case CLASS_RANGER:
     case CLASS_BLACKGUARD:
-      /* Half casters: (level + 1) / 2 */
-      spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
+      if (spell_info[spellnum].min_level[char_class] <= 6)
+        spell_circle = 1;
+      if (spell_info[spellnum].min_level[char_class] <= 10)
+        spell_circle = 2;
+      if (spell_info[spellnum].min_level[char_class] <= 12)
+        spell_circle = 3;
+      else
+        spell_circle = 4;
       break;
       
     default:
@@ -266,12 +289,13 @@ void consume_spell_slot(struct char_data *ch, int spellnum)
   {
     ch->mob_specials.spell_slots[circle]--;
     
-    /* Optional: Log slot consumption for debugging */
+    /* Optional: Log slot consumption for debugging - DISABLED (too spammy)
     if (ch->mob_specials.spell_slots[circle] == 0)
     {
-      log("MOB_SPELLSLOT: %s depleted circle %d slots", 
+      log("MOB_SPELLSLOT: %s depleted circle %d slots",
           GET_NAME(ch), circle);
     }
+    */
   }
 }
 
@@ -318,6 +342,10 @@ bool has_sufficient_slots_for_buff(struct char_data *ch, int spellnum)
   if (circle == 0)
     return TRUE;
   
+  /* If max slots is 1, allow buffing if we have at least 1 slot */
+  if (max_slots == 1)
+    return (current_slots >= 1);
+  
   /* Check if we have more than 50% of max slots remaining */
   /* Use integer arithmetic: current * 2 > max means current > max/2 */
   return (current_slots * 2 > max_slots);
@@ -348,9 +376,9 @@ void regenerate_mob_spell_slot(struct char_data *ch)
   if (FIGHTING(ch))
     return;
   
-  /* Check if enough time has elapsed (120 seconds = 2 minutes) */
+  /* Check if enough time has elapsed (300 seconds = 5 minutes) */
   current_time = time(0);
-  if (current_time - ch->mob_specials.last_slot_regen < 120)
+  if (current_time - ch->mob_specials.last_slot_regen < 300)
     return;
   
   /* Build list of circles with less than maximum slots */
@@ -376,11 +404,12 @@ void regenerate_mob_spell_slot(struct char_data *ch)
   /* Update regeneration timestamp */
   ch->mob_specials.last_slot_regen = current_time;
   
-  /* Optional: Log regeneration for debugging */
-  log("MOB_SPELLSLOT: %s regenerated circle %d slot (%d/%d)", 
+  /* Optional: Log regeneration for debugging - DISABLED (too spammy)
+  log("MOB_SPELLSLOT: %s regenerated circle %d slot (%d/%d)",
       GET_NAME(ch), chosen_circle,
       ch->mob_specials.spell_slots[chosen_circle],
       ch->mob_specials.max_spell_slots[chosen_circle]);
+  */
 }
 
 /**

@@ -152,6 +152,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"account", "account", POS_DEAD, do_account, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"arcanemark", "arcanem", POS_DEAD, do_arcanemark, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"activate", "activate", POS_FIGHTING, do_activate, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -217,6 +218,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"armorlist", "armorlist", POS_DEAD, do_armorlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"armorlistfull", "armorlistfull", POS_DEAD, do_armorlist_old, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
+    {"arrowstorm", "arrowstorm", POS_FIGHTING, do_arrowstorm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowstorm},
+    {"manyshot", "manyshot", POS_FIGHTING, do_manyshot, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_manyshot},
+    {"huntersmark", "huntersmark", POS_FIGHTING, do_huntersmark, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostand", "autostand", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_STAND, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aqref", "aqref", POS_DEAD, do_aqref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -229,6 +233,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"baneweapon", "banew", POS_RECLINING, do_bane, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
+    {"bastion", "bastion", POS_FIGHTING, do_bastion, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"breathofwinter", "breathofwinter", POS_FIGHTING, do_breathofwinter, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathofwinter},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_bash},
@@ -351,7 +356,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"device", "device", POS_STANDING, do_invent, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"device", "device", POS_STANDING, do_device, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -372,6 +377,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"eternalmountaindefense", "eternalmountaindefense", POS_FIGHTING, do_eternalmountaindefense, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_eternalmountaindefense},
     {"dismount", "dismount", POS_FIGHTING, do_dismount, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"dismiss", "dismiss", POS_FIGHTING, do_dismiss, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"destroygolem", "destroygolem", POS_STANDING, do_destroygolem, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"golemrepair", "golemrepair", POS_STANDING, do_golemrepair, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"disenchant", "disenchant", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dirtkick", "dirtkick", POS_FIGHTING, do_dirtkick, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dirtkick},
     {"disembark", "disembark", POS_STANDING, do_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -388,6 +395,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deatharrow", "deatharrow", POS_FIGHTING, do_deatharrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_deatharrow},
     {"defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_defensive_stance},
+    {"defensivestrike", "defensivestrike", POS_FIGHTING, do_defensive_strike, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"divinemight", "divinemight", POS_FIGHTING, do_divine_might, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"downgrade", "downgrade", POS_RECLINING, do_downgrade, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"darkness", "darkness", POS_FIGHTING, do_darkness, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"dracbreath", "dracbreath", POS_FIGHTING, do_sorcerer_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_sorcerer_breath_weapon},
@@ -397,16 +406,18 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"dragonmagic", "dragonmagic", POS_FIGHTING, do_dragonmagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dragonmagic},
     {"draw", "draw", POS_SITTING, do_unsheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
-    {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},    
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"earthshaker", "earthshaker", POS_FIGHTING, do_earthshaker, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"efreetimagic", "efreetimagic", POS_FIGHTING, do_efreetimagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_efreetimagic},
     {"eidolon", "eidolon", POS_RECLINING, do_eidolon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"blast", "blast", POS_FIGHTING, do_blast, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_eldritch_blast},
     {"eldritch", "eldritch", POS_FIGHTING, do_eldritch, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"elementalmastery", "elementalmastery", POS_STANDING, do_elementalmastery, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {":", ":", POS_RECLINING, do_echo, 1, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"enter", "ent", POS_STANDING, do_enter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -436,8 +447,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"exempt", "exempt", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_EXEMPT, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+    {"faithfulstrike", "faithfulstrike", POS_FIGHTING, do_faithful_strike, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"forage", "forage", POS_STANDING, do_forage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"fiendishboon", "fiendishb", POS_DEAD, do_fiendishboon, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -457,6 +470,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"fistoffourthunders", "fistoffourthunders", POS_FIGHTING, do_fistoffourthunders, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_fistoffourthunders},
     {"flamesofphoenix", "flamesofphoenix", POS_FIGHTING, do_flamesofphoenix, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_flamesofphoenix},
+    {"flowingriver", "flowingriver", POS_STANDING, do_flowingriver, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_flowingriver},
     {"flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"feint", "feint", POS_FIGHTING, do_process_attack, 1, AA_FEINT, FALSE, ACTION_SWIFT, {0, 0}, can_feint},
     {"freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -467,7 +481,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"forget", "forget", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"fistair", "fistair", POS_STANDING, do_fistair, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_fistair}, 
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -483,6 +497,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"gather", "gather", POS_STANDING, do_wilderness_gather, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 #endif
     {"goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"gongsummit", "gongsummit", POS_STANDING, do_gongsummit, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_gongsummit},
     {"goals", "goals", POS_SLEEPING, do_goals, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
@@ -518,6 +533,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"hindex", "hind", POS_DEAD, do_hindex, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"handbook", "handb", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_HANDBOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"hardy", "hardy", POS_FIGHTING, do_hardy, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"hcontrol", "hcontrol", POS_DEAD, do_hcontrol, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"history", "history", POS_DEAD, do_history, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hit", "hit", POS_FIGHTING, do_hit, 0, SCMD_HIT, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -525,6 +541,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"holler", "holler", POS_RECLINING, do_gen_comm, 1, SCMD_HOLLER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holyweapon", "holyw", POS_DEAD, do_holyweapon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"holyblade", "holyblade", POS_RESTING, do_holy_blade, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"house", "house", POS_RECLINING, do_house, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"harvest", "harvest", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_HARVEST, TRUE, ACTION_STANDARD, {0, 0}, NULL},
@@ -642,7 +659,9 @@ cpp_extern const struct command_info cmd_info[] = {
 #elif defined(USE_BASIC_MATERIALS)
     {"materials", "materials", POS_DEAD, do_list_craft_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
+  // {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    {"masscurewounds", "masscurewounds", POS_STANDING, do_masscurewounds, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -666,6 +685,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+    {"natureswrath", "natureswrath", POS_FIGHTING, do_natureswrath, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"note", "note", POS_RESTING, do_note, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"newcraft", "newcraft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -785,10 +805,12 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"radiantaura", "radiantaura", POS_STANDING, do_radiantaura, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rallyingcry", "rallyingcry", POS_FIGHTING, do_rallying_cry, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     // {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
+
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
@@ -835,6 +857,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_rage},
+    {"recklessabandon", "reckless", POS_FIGHTING, do_reckless_abandon, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"recline", "recline", POS_SLEEPING, do_recline, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"renewedvigor", "renewedvigor", POS_RECLINING, do_renewedvigor, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_renewedvigor},
     {"research", "research", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
@@ -887,7 +910,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setcloak", "setcloak", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setmaterials", "setm", POS_DEAD, do_setmaterial, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"settestchar", "settc", POS_DEAD, do_settestchar, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"settestkit", "settk", POS_DEAD, do_settestkit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomname", "setrn", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomflags", "setroomf", POS_DEAD, do_setroomflag, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -901,6 +926,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shopstat", "shopstat", POS_DEAD, do_shopstat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shoplist", "shoplist", POS_DEAD, do_shoplist, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -927,6 +954,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"spiritualweapon", "spiritualweapon", POS_FIGHTING, do_spiritualweapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_spiritualweapon},
     {"split", "split", POS_SITTING, do_split, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"splitenchantment", "splitenchantment", POS_RESTING, do_splitenchantment, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"sprint", "sprint", POS_STANDING, do_sprint, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"spot", "spot", POS_STANDING, do_spot, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"stand", "st", POS_RECLINING, do_stand, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"stat", "stat", POS_DEAD, do_stat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -969,7 +997,6 @@ cpp_extern const struct command_info cmd_info[] = {
 #else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
-    {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1062,10 +1089,8 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"walkto", "walkto", POS_STANDING, do_walkto, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"warcry", "warcry", POS_FIGHTING, do_warcry, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"waterwhip", "waterwhip", POS_STANDING, do_waterwhip, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_waterwhip},
-    {"gongsummit", "gongsummit", POS_STANDING, do_gongsummit, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_gongsummit},
-    {"fistair", "fistair", POS_STANDING, do_fistair, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_fistair},
-    {"flowingriver", "flowingriver", POS_STANDING, do_flowingriver, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_flowingriver},
     {"wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wearapplies", "wearapplies", POS_RESTING, do_wearapplies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wearlocations", "wearlocations", POS_RESTING, do_wearlocations, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1079,7 +1104,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"whisper", "whisper", POS_RECLINING, do_spec_comm, 0, SCMD_WHISPER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"wield", "wie", POS_RESTING, do_wield, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"withdraw", "withdraw", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"waveofrollingearth", "waveofrollingearth", POS_FIGHTING, do_waveofrollingearth, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_waveofrollingearth},
+    {"rollingearth", "rollingearth", POS_FIGHTING, do_waveofrollingearth, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_waveofrollingearth},
     {"wisdomofthemeasure", "wisdomofthemeasure", POS_STANDING, do_wisdom_of_the_measure, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wiznet", "wiz", POS_DEAD, do_wiznet, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {";", ";", POS_DEAD, do_wiznet, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1419,6 +1444,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "get") &&  /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gsay") &&
@@ -1496,6 +1522,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
            !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
            !is_abbrev(complete_cmd_info[cmd].command, "who") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "score") &&
            !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
            !is_abbrev(complete_cmd_info[cmd].command, "nocraftprogress") &&
@@ -1528,7 +1555,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVISE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eDEVICE_REPAIR) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1538,6 +1565,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
            !is_abbrev(complete_cmd_info[cmd].command, "'") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
            !is_abbrev(complete_cmd_info[cmd].command, "help") &&
            !is_abbrev(complete_cmd_info[cmd].command, "class") &&
            !is_abbrev(complete_cmd_info[cmd].command, "race") &&
@@ -1553,8 +1581,10 @@ void command_interpreter(struct char_data *ch, char *argument)
     {
       if (char_has_mud_event(ch, eCRAFTING))
         send_to_char(ch, "You are too busy crafting to do that! ");
-      else if (char_has_mud_event(ch, eDEVISE_CREATION))
+      else if (char_has_mud_event(ch, eDEVICE_CREATION))
         send_to_char(ch, "You are too busy devising your creation to do that! ");
+      else if (char_has_mud_event(ch, eDEVICE_REPAIR))
+        send_to_char(ch, "You are too busy repairing your device to do that! ");
       else if (char_has_mud_event(ch, eBREWING))
         send_to_char(ch, "You are too busy brewing to do that! ");
       send_to_char(ch, "[Available commands: gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
@@ -3518,8 +3548,10 @@ switch (load_result)
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
 #ifdef CAMPAIGN_DL
       write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
-#else
+#elif defined(CAMPAIGN_FR)
       write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
 #endif
       STATE(d) = CON_QREGION;
       return;
@@ -4054,6 +4086,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPTIME);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CAREFUL_PET);
       GET_WIMP_LEV(d->character) = 10;
+      d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
     }
     else if (!strcasecmp(arg, "no") || !strcasecmp(arg, "n"))
     {
@@ -4671,11 +4704,46 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
       write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+#if defined(CAMPAIGN_DL)
       write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+#elif defined(CAMPAIGN_FR)
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
+#endif
 
       STATE(d) = CON_QREGION;
 #else
-     write_to_output(d, "That is not an option at this time.\r\n");
+     if (GET_REGION(d->character))
+      {
+        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
+        return;
+      }
+
+      write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
+      int i = 1;
+      while (i < NUM_REGIONS)
+      {
+        if (!is_selectable_region(i)) {i++; continue; }
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+        i++;
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+#if defined(CAMPAIGN_DL)
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+#elif defined(CAMPAIGN_FR)
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
+#endif
+
+      STATE(d) = CON_QREGION;
 #endif
 }
 

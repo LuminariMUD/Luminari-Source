@@ -469,7 +469,7 @@ ranktype rank_sp(struct char_data *ch)
 
 ranktype rank_xp(struct char_data *ch)
 {
-  snprintf(kbuf, sizeof(kbuf), "%27d", GET_EXP(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27ld", GET_EXP(ch));
   return (kbuf);
 } /* end rank_xp */
 
@@ -496,7 +496,7 @@ ranktype rank_fatness(struct char_data *ch)
 
 ranktype rank_coolness(struct char_data *ch)
 {
-  snprintf(kbuf, sizeof(kbuf), "%20d", (GET_LEVEL(ch) == LVL_IMPL) ? 100 : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
+  snprintf(kbuf, sizeof(kbuf), "%20ld", (GET_LEVEL(ch) == LVL_IMPL) ? 100L : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
   return (kbuf);
 } /* end rank_coolness */
 

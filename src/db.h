@@ -292,6 +292,7 @@ void fread_to_eol(FILE *fp);
 long get_id_by_name(const char *name);
 char *get_name_by_id(long id);
 void save_mud_time(struct time_info_data *when);
+void calc_moon_bonus(void);
 void free_text_files(void);
 void free_help_table(void);
 void free_player_index(void);

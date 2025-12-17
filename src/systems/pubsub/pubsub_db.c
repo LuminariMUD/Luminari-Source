@@ -48,8 +48,8 @@ int pubsub_db_load_topics(void) {
     
     /* Query all active topics */
     snprintf(query, sizeof(query),
-        "SELECT topic_id, topic_name, description, created_by, "
-        "UNIX_TIMESTAMP(created_at), subscriber_count, message_count, is_active "
+        "SELECT topic_id, name, description, creator_name, "
+        "UNIX_TIMESTAMP(created_at), subscriber_count, total_messages, is_active "
         "FROM pubsub_topics WHERE is_active = 1 ORDER BY topic_id");
     
     if (mysql_query(conn, query)) {
@@ -497,38 +497,73 @@ int pubsub_db_cleanup_expired_messages(void) {
  * V3 Database Schema Creation and Initialization (Phase 3.1.4)
  */
 
+/* Helper function to ensure a table uses InnoDB engine (required for FK constraints) */
+static void ensure_table_innodb(const char *table_name)
+{
+    char query[512];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+
+    if (!conn || !table_name) return;
+
+    /* Check if table exists and get its engine */
+    snprintf(query, sizeof(query),
+        "SELECT ENGINE FROM INFORMATION_SCHEMA.TABLES "
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '%s'", table_name);
+
+    if (mysql_query(conn, query)) return;
+
+    result = mysql_store_result(conn);
+    if (!result) return;
+
+    row = mysql_fetch_row(result);
+    if (row && row[0] && strcasecmp(row[0], "InnoDB") != 0) {
+        /* Table exists but is not InnoDB - convert it */
+        pubsub_info("Converting table %s to InnoDB engine", table_name);
+        snprintf(query, sizeof(query), "ALTER TABLE %s ENGINE=InnoDB", table_name);
+        if (mysql_query(conn, query)) {
+            pubsub_error("Failed to convert %s to InnoDB: %s", table_name, mysql_error(conn));
+        }
+    }
+
+    mysql_free_result(result);
+}
+
 /* Create database tables for PubSub system */
 int pubsub_db_create_tables(void)
 {
     char query[MAX_STRING_LENGTH];
-    
+
     if (!conn) {
         pubsub_error("Database connection not available");
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
     pubsub_info("Creating PubSub database tables...");
-    
-    /* Create legacy pubsub_topics table */
+
+    /* Create legacy pubsub_topics table - use InnoDB for FK support */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_topics ("
         "topic_id INT PRIMARY KEY AUTO_INCREMENT, "
-        "topic_name VARCHAR(128) NOT NULL UNIQUE, "
+        "name VARCHAR(128) NOT NULL UNIQUE, "
         "description TEXT, "
-        "created_by VARCHAR(80), "
+        "creator_name VARCHAR(80), "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         "is_active BOOLEAN DEFAULT TRUE, "
         "subscriber_count INT DEFAULT 0, "
-        "message_count INT DEFAULT 0, "
+        "total_messages INT DEFAULT 0, "
         "INDEX idx_active (is_active), "
         "INDEX idx_created_at (created_at)"
-        ")");
-    
+        ") ENGINE=InnoDB");
+
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_topics table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
+    /* Ensure pubsub_topics is InnoDB (in case it already existed) */
+    ensure_table_innodb("pubsub_topics");
+
     /* Create legacy pubsub_subscriptions table */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_subscriptions ("
@@ -541,14 +576,14 @@ int pubsub_db_create_tables(void)
         "FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE, "
         "INDEX idx_player (player_name), "
         "INDEX idx_active (is_active)"
-        ")");
-    
+        ") ENGINE=InnoDB");
+
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_subscriptions table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
     }
-    
-    /* Create enhanced pubsub_messages table */
+
+    /* Create enhanced pubsub_messages table - InnoDB required for FK */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_messages ("
         "message_id INT PRIMARY KEY AUTO_INCREMENT, "
@@ -584,16 +619,21 @@ int pubsub_db_create_tables(void)
         "INDEX idx_parent (parent_message_id), "
         "INDEX idx_processed (is_processed), "
         "INDEX idx_expires (expires_at)"
-        ")");
+        ") ENGINE=InnoDB");
 
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_messages table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
-    }    /* Create enhanced message metadata table */
+    }
+
+    /* Ensure pubsub_messages is InnoDB before creating dependent tables */
+    ensure_table_innodb("pubsub_messages");
+
+    /* Create enhanced message metadata table */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_message_metadata ("
         "metadata_id INT AUTO_INCREMENT PRIMARY KEY, "
-        "message_id INT NOT NULL, "
+        "message_id BIGINT NOT NULL, "
         "sender_real_name VARCHAR(100), "
         "sender_title VARCHAR(255), "
         "sender_level INT, "
@@ -626,7 +666,7 @@ int pubsub_db_create_tables(void)
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_message_fields ("
         "field_id INT AUTO_INCREMENT PRIMARY KEY, "
-        "message_id INT NOT NULL, "
+        "message_id BIGINT NOT NULL, "
         "field_name VARCHAR(128) NOT NULL, "
         "field_value TEXT, "
         "field_type VARCHAR(32) DEFAULT 'string', "
@@ -649,15 +689,18 @@ int pubsub_db_create_tables(void)
 int pubsub_db_create_v3_tables(void)
 {
     char query[MAX_STRING_LENGTH];
-    
+
     if (!conn) {
         pubsub_error("Database connection not available for V3 tables");
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
     pubsub_info("Creating PubSub V3 enhanced database tables...");
-    
-    /* Create V3 enhanced messages table */
+
+    /* Ensure pubsub_topics is InnoDB since V3 messages reference it */
+    ensure_table_innodb("pubsub_topics");
+
+    /* Create V3 enhanced messages table - InnoDB for FK support */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_messages_v3 ("
         "message_id INT PRIMARY KEY AUTO_INCREMENT, "
@@ -693,13 +736,16 @@ int pubsub_db_create_v3_tables(void)
         "INDEX idx_parent (parent_message_id), "
         "INDEX idx_processed (is_processed), "
         "INDEX idx_expires (expires_at)"
-        ")");
-    
+        ") ENGINE=InnoDB");
+
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_messages_v3 table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
+    /* Ensure pubsub_messages_v3 is InnoDB before creating dependent tables */
+    ensure_table_innodb("pubsub_messages_v3");
+
     /* Create V3 message metadata table */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_message_metadata_v3 ("
@@ -730,13 +776,13 @@ int pubsub_db_create_v3_tables(void)
         "INDEX idx_sender (sender_real_name), "
         "INDEX idx_origin (origin_room, origin_zone), "
         "INDEX idx_context (context_type)"
-        ")");
-    
+        ") ENGINE=InnoDB");
+
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_message_metadata_v3 table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
     /* Create V3 custom fields table */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_message_fields_v3 ("
@@ -759,13 +805,13 @@ int pubsub_db_create_v3_tables(void)
         "INDEX idx_field_type (field_type), "
         "INDEX idx_string_value (string_value(255)), "
         "INDEX idx_integer_value (integer_value)"
-        ")");
-    
+        ") ENGINE=InnoDB");
+
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_message_fields_v3 table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
     /* Create V3 tags table */
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_message_tags_v3 ("
@@ -779,13 +825,13 @@ int pubsub_db_create_v3_tables(void)
         "INDEX idx_message_tag (message_id, tag_name), "
         "INDEX idx_category_tag (tag_category, tag_name), "
         "INDEX idx_tag_value (tag_value)"
-        ")");
-    
+        ") ENGINE=InnoDB");
+
     if (mysql_query(conn, query)) {
         pubsub_error("Failed to create pubsub_message_tags_v3 table: %s", mysql_error(conn));
         return PUBSUB_ERROR_DATABASE;
     }
-    
+
     pubsub_info("PubSub V3 database tables created successfully");
     
     /* Populate base data */
@@ -817,7 +863,7 @@ int pubsub_db_populate_data(void)
     for (i = 0; default_topics[i][0] != NULL; i++) {
         snprintf(query, sizeof(query),
             "INSERT IGNORE INTO pubsub_topics "
-            "(topic_name, description, created_by, is_active) "
+            "(name, description, creator_name, is_active) "
             "VALUES ('%s', '%s', '%s', TRUE)",
             default_topics[i][0], default_topics[i][1], default_topics[i][2]);
         

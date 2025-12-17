@@ -74,6 +74,10 @@ int get_speed(struct char_data *ch, sbyte to_display)
   else if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
     speed += 30;
 
+  // Sprint doubles movement speed
+  if (affected_by_spell(ch, SKILL_SPRINT))
+    speed *= 2;
+
   // likewise, monk speed and fast movement don't stack for balance reasons
   if (monk_gear_ok(ch))
   {
@@ -121,6 +125,17 @@ int get_speed(struct char_data *ch, sbyte to_display)
   // Fleet of Foot perk bonus (Shadow Scout tree)
   if (!IS_NPC(ch))
     speed += get_perk_fleet_of_foot_bonus(ch);
+
+  // Fleet of Foot perk bonus (Primal Warrior tree)
+  if (!IS_NPC(ch))
+  {
+    int berserker_bonus = get_berserker_fleet_of_foot_bonus(ch);
+    if (berserker_bonus > 0)
+    {
+      // Apply percentage bonus to base speed
+      speed += (speed * berserker_bonus) / 100;
+    }
+  }
 
   return speed;
 }

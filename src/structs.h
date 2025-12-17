@@ -305,6 +305,7 @@
 #define ZONE_NOIMMORT 1     /**< Immortals (below LVL_GRSTAFF) cannot enter this zone */
 #define ZONE_QUEST 2        /**< This zone is a quest zone (not implemented) */
 #define ZONE_GRID 3         /**< Zone is 'on the grid', connected, show on 'areas' */
+#define ZONE_OPEN ZONE_GRID
 #define ZONE_NOBUILD 4      /**< Building is not allowed in the zone */
 #define ZONE_NOASTRAL 5     /**< No teleportation magic will work to or from this zone */
 #define ZONE_NOTELEPORT ZONE_NOASTRAL
@@ -989,44 +990,20 @@
 #else
 
 #define REGION_NONE                 0
-#define REGION_AGLAROND             1
-#define REGION_AMN                  2
-#define REGION_ANAUROCH_DESERT      3
-#define REGION_CALIMSHAN            4
-#define REGION_CHESSENTA            5
-#define REGION_CHULT                6
-#define REGION_CORMYR               7
-#define REGION_DAMBRATH             8
-#define REGION_ELFHARROW            9
-#define REGION_EVERMEET             10
-#define REGION_HALRUAA              11
-#define REGION_ICEWIND_DALE         12
-#define REGION_IMPILTUR             13
-#define REGION_KARA_TUR             14
-#define REGION_LUIREN               15
-#define REGION_LURUAR               16
-#define REGION_MULHORAND            17
-#define REGION_RASHEMEN             18
-#define REGION_SEMBIA               19
-#define REGION_TETHYR               20
-#define REGION_THAY                 21
-#define REGION_THESK                22
-#define REGION_THE_COLD_LANDS       23
-#define REGION_THE_DALELANDS        24
-#define REGION_THE_HORDELANDS       25
-#define REGION_THE_LAKE_OF_STEAM    26
-#define REGION_THE_MOONSEA          27
-#define REGION_THE_SAVAGE_FRONTIER  28
-#define REGION_THE_SWORD_COAST      29
-#define REGION_THE_UNDERDARK        30
-#define REGION_TURMISH              31
-#define REGION_TYMANTHER            32
-#define REGION_UNTHER               33
-#define REGION_WESTGATE             34
-#define REGION_ZAKHARA              35
-#define REGION_OUTER_PLANES         36
-
-#define NUM_REGIONS                 37
+#define REGION_ASHENPORT            1
+#define REGION_SANCTUS              2
+#define REGION_ONDUIS               3
+#define REGION_SELERISH             4
+#define REGION_CARSTAN              5
+#define REGION_AXTROS               6
+#define REGION_HIR                  7
+#define REGION_QUECHIAN             8
+#define REGION_VAILAND              9
+#define REGION_OORPII               10
+#define REGION_KELLUST              11
+#define REGION_EAST_UBDINA          12
+#define REGION_WEST_UBDINA          13
+#define NUM_REGIONS                 14
 
 #endif
 
@@ -1232,8 +1209,9 @@
 #define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
 #define MOB_CUSTOM_MOB_STATS 101 /**< Mob uses custom stat modifiers instead of category defaults */
 #define MOB_NO_BLOCK_BYPASS 102 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
+#define MOB_GOLEM 103 /**< Mob is a constructed golem (for follower tracking) */
 /**********************/
-#define NUM_MOB_FLAGS 103
+#define NUM_MOB_FLAGS 104
 /**********************/
 /**********************/
 
@@ -1591,9 +1569,10 @@
 #define AFF_RAPID_BUFF 121          // increases buff speed
 #define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
 #define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
+#define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
 
 /*---*/
-#define NUM_AFF_FLAGS 124
+#define NUM_AFF_FLAGS 125
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2995,11 +2974,17 @@
 
 #define FEAT_GNOMISH_TINKERING                  1254
 #define FEAT_BRILLIANCE_AND_BLUNDER 1255
+#define FEAT_CONSTRUCT_WOOD_GOLEM 1256
+#define FEAT_CONSTRUCT_STONE_GOLEM 1257
+#define FEAT_CONSTRUCT_IRON_GOLEM 1258
+
+#define FEAT_WOOD_GOLEM_IMMUNITY 1260
+#define FEAT_STONE_GOLEM_IMMUNITY 1261
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1256
+#define FEAT_LAST_FEAT 1262
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1257
+#define NUM_FEATS 1263
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3076,6 +3061,11 @@
 #define PERK_CATEGORY_BERSERKER 24
 #define PERK_CATEGORY_TOTEM_WARRIOR 25
 #define PERK_CATEGORY_PRIMAL_CHAMPION 26
+
+/* Paladin Perk Categories */
+#define PERK_CATEGORY_KNIGHT_OF_THE_CHALICE 27
+#define PERK_CATEGORY_SACRED_DEFENDER 28
+#define PERK_CATEGORY_DIVINE_CHAMPION 29
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3598,11 +3588,81 @@
  * BERSERKER PERKS (700-799) - Barbarian Class
  * ============================================================================ */
 
-#define PERK_BARBARIAN_RAGE_ENHANCEMENT 700
-#define PERK_BARBARIAN_EXTENDED_RAGE_1 701
-#define PERK_BARBARIAN_EXTENDED_RAGE_2 702
-#define PERK_BARBARIAN_EXTENDED_RAGE_3 703
-#define PERK_BARBARIAN_TOUGHNESS 704
+/* RAVAGER TREE (Offensive Fury) - Tier 1 Perks (700-703) */
+#define PERK_BERSERKER_POWER_ATTACK_MASTERY_1 700
+#define PERK_BERSERKER_RAGE_DAMAGE_1 701
+#define PERK_BERSERKER_IMPROVED_CRITICAL_1 702
+#define PERK_BERSERKER_CLEAVING_STRIKES 703
+
+/* RAVAGER TREE - Tier 2 Perks (704-707) */
+#define PERK_BERSERKER_POWER_ATTACK_MASTERY_2 704
+#define PERK_BERSERKER_RAGE_DAMAGE_2 705
+#define PERK_BERSERKER_BLOOD_FRENZY 706
+#define PERK_BERSERKER_DEVASTATING_CRITICAL 707
+
+/* RAVAGER TREE - Tier 3 Perks (708-711) */
+#define PERK_BERSERKER_POWER_ATTACK_MASTERY_3 708
+#define PERK_BERSERKER_OVERWHELMING_FORCE 709
+#define PERK_BERSERKER_CRIMSON_RAGE 710
+#define PERK_BERSERKER_CARNAGE 711
+
+/* RAVAGER TREE - Tier 4 Perks (712-714) */
+#define PERK_BERSERKER_FRENZIED_BERSERKER 712
+#define PERK_BERSERKER_RELENTLESS_ASSAULT 713
+#define PERK_BERSERKER_DEATH_FROM_ABOVE 714
+
+/* OCCULT SLAYER TREE (Supernatural Resilience) - Tier 1 Perks (715-718) */
+#define PERK_BERSERKER_THICK_SKIN_1 715
+#define PERK_BERSERKER_DAMAGE_REDUCTION_1 716
+#define PERK_BERSERKER_ELEMENTAL_RESISTANCE_1 717
+#define PERK_BERSERKER_HARDY 718
+
+/* OCCULT SLAYER TREE - Tier 2 Perks (719-722) */
+#define PERK_BERSERKER_THICK_SKIN_2 719
+#define PERK_BERSERKER_DAMAGE_REDUCTION_2 720
+#define PERK_BERSERKER_ELEMENTAL_RESISTANCE_2 721
+#define PERK_BERSERKER_SAVAGE_DEFIANCE 722
+
+/* OCCULT SLAYER TREE - Tier 3 Perks (723-726) */
+#define PERK_BERSERKER_DAMAGE_REDUCTION_3 723
+#define PERK_BERSERKER_DEATHLESS_FRENZY 724
+#define PERK_BERSERKER_SPELL_RESISTANCE 725
+#define PERK_BERSERKER_PAIN_TOLERANCE 726
+
+/* OCCULT SLAYER TREE - Tier 4 Perks (727-729) */
+#define PERK_BERSERKER_UNSTOPPABLE 727
+#define PERK_BERSERKER_INDOMITABLE_WILL 728
+#define PERK_BERSERKER_RAGING_DEFENDER 729
+
+/* PRIMAL WARRIOR TREE (Mobility & Tactics) - Tier 1 Perks (730-733) */
+#define PERK_BERSERKER_FLEET_OF_FOOT_1 730
+#define PERK_BERSERKER_INTIMIDATING_PRESENCE_1 731
+#define PERK_BERSERKER_MIGHTY_LEAP 732
+#define PERK_BERSERKER_THICK_HEADED 733
+
+/* PRIMAL WARRIOR TREE - Tier 2 Perks (734-737) */
+#define PERK_BERSERKER_FLEET_OF_FOOT_2 734
+#define PERK_BERSERKER_INTIMIDATING_PRESENCE_2 735
+#define PERK_BERSERKER_SPRINT 736
+#define PERK_BERSERKER_CRIPPLING_BLOW 737
+
+/* Tier 3 - Primal Warrior (738-741) */
+#define PERK_BERSERKER_RECKLESS_ABANDON 738
+#define PERK_BERSERKER_BLINDING_RAGE 739
+#define PERK_BERSERKER_STUNNING_BLOW 740
+#define PERK_BERSERKER_UNCANNY_DODGE_MASTERY 741
+
+/* Tier 4 - Primal Warrior (742-744) */
+#define PERK_BERSERKER_SAVAGE_CHARGE 742
+#define PERK_BERSERKER_WAR_CRY 743
+#define PERK_BERSERKER_EARTHSHAKER 744
+
+/* OLD BARBARIAN PERKS - Legacy (750-754) */
+#define PERK_BARBARIAN_RAGE_ENHANCEMENT 750
+#define PERK_BARBARIAN_EXTENDED_RAGE_1 751
+#define PERK_BARBARIAN_EXTENDED_RAGE_2 752
+#define PERK_BARBARIAN_EXTENDED_RAGE_3 753
+#define PERK_BARBARIAN_TOUGHNESS 754
 
 /* ============================================================================
  * SORCERER PERKS (800-899)
@@ -3612,7 +3672,75 @@
 /* ============================================================================
  * PALADIN PERKS (900-999)
  * ============================================================================ */
-/* Not yet implemented */
+
+/* KNIGHT OF THE CHALICE TREE - Tier 1 Perks (900-903) */
+#define PERK_PALADIN_EXTRA_SMITE_1 900
+#define PERK_PALADIN_HOLY_WEAPON_1 901
+#define PERK_PALADIN_SACRED_DEFENDER 902
+#define PERK_PALADIN_FAITHFUL_STRIKE 903
+
+/* KNIGHT OF THE CHALICE TREE - Tier 2 Perks (904-907) */
+#define PERK_PALADIN_EXTRA_SMITE_2 904
+#define PERK_PALADIN_HOLY_WEAPON_2 905
+#define PERK_PALADIN_IMPROVED_SMITE 906
+#define PERK_PALADIN_HOLY_BLADE 907
+
+/* KNIGHT OF THE CHALICE TREE - Tier 3 Perks (908-911) */
+#define PERK_PALADIN_DIVINE_MIGHT 908
+#define PERK_PALADIN_EXORCISM_OF_THE_SLAIN 909
+#define PERK_PALADIN_HOLY_SWORD 910
+#define PERK_PALADIN_ZEALOUS_SMITE 911
+
+/* KNIGHT OF THE CHALICE TREE - Tier 4 Perks (912-914) */
+#define PERK_PALADIN_BLINDING_SMITE 912
+#define PERK_PALADIN_OVERWHELMING_SMITE 913
+#define PERK_PALADIN_SACRED_VENGEANCE 914
+
+/* SACRED DEFENDER TREE - Tier 1 Perks (915-918) */
+#define PERK_PALADIN_EXTRA_LAY_ON_HANDS_1 915
+#define PERK_PALADIN_SHIELD_OF_FAITH_1 916
+#define PERK_PALADIN_BULWARK_OF_DEFENSE 917
+#define PERK_PALADIN_DEFENSIVE_STRIKE 918
+
+/* SACRED DEFENDER TREE - Tier 2 Perks (919-922) */
+#define PERK_PALADIN_EXTRA_LAY_ON_HANDS_2 919
+#define PERK_PALADIN_SHIELD_OF_FAITH_2 920
+#define PERK_PALADIN_HEALING_HANDS 921
+#define PERK_PALADIN_SHIELD_GUARDIAN 922
+
+/* SACRED DEFENDER TREE - Tier 3 Perks (923-926) */
+#define PERK_PALADIN_AURA_OF_PROTECTION 923
+#define PERK_PALADIN_SANCTUARY 924
+#define PERK_PALADIN_MERCIFUL_TOUCH 925
+#define PERK_PALADIN_BASTION_OF_DEFENSE 926
+
+/* SACRED DEFENDER TREE - Tier 4 Perks (927-929) */
+#define PERK_PALADIN_AURA_OF_LIFE 927
+#define PERK_PALADIN_CLEANSING_TOUCH 928
+#define PERK_PALADIN_DIVINE_SACRIFICE 929
+
+/* DIVINE CHAMPION TREE - Tier 1 Perks (930-933) */
+#define PERK_PALADIN_SPELL_FOCUS_1 930
+#define PERK_PALADIN_TURN_UNDEAD_MASTERY_1 931
+#define PERK_PALADIN_DIVINE_GRACE 932
+#define PERK_PALADIN_RADIANT_AURA 933
+
+/* DIVINE CHAMPION TREE - Tier 2 Perks (934-937) */
+#define PERK_PALADIN_SPELL_FOCUS_2 934
+#define PERK_PALADIN_TURN_UNDEAD_MASTERY_2 935
+#define PERK_PALADIN_QUICKENED_BLESSING 936
+#define PERK_PALADIN_CHANNEL_ENERGY_1 937
+
+/* DIVINE CHAMPION TREE - Tier 3 Perks (938-941) */
+#define PERK_PALADIN_SPELL_PENETRATION 938
+#define PERK_PALADIN_DESTROY_UNDEAD 939
+#define PERK_PALADIN_CHANNEL_ENERGY_2 940
+#define PERK_PALADIN_AURA_OF_COURAGE_MASTERY 941
+
+/* DIVINE CHAMPION TREE - Tier 4 Perks (942-944) */
+#define PERK_PALADIN_MASS_CURE_WOUNDS 942
+#define PERK_PALADIN_HOLY_AVENGER 943
+#define PERK_PALADIN_BEACON_OF_HOPE 944
 
 /* ============================================================================
  * RANGER PERKS (1000-1099)
@@ -3625,6 +3753,72 @@
 #define PERK_RANGER_BOW_MASTERY_1 1004
 #define PERK_RANGER_BOW_MASTERY_2 1005
 #define PERK_RANGER_BOW_MASTERY_3 1006
+
+/* Hunter Tree - Tier 1 */
+#define PERK_RANGER_ARCHERS_FOCUS_I 1007
+#define PERK_RANGER_STEADY_AIM_I 1008
+#define PERK_RANGER_QUICK_DRAW 1009
+#define PERK_RANGER_IMPROVED_CRITICAL_RANGED_I 1010
+
+/* Hunter Tree - Tier 2 */
+#define PERK_RANGER_ARCHERS_FOCUS_II 1011
+#define PERK_RANGER_DEADLY_AIM 1012
+#define PERK_RANGER_MANYSHOT 1013
+#define PERK_RANGER_HUNTERS_MARK 1014
+
+/* Hunter Tree - Tier 3 */
+#define PERK_RANGER_IMPROVED_MANYSHOT 1015
+#define PERK_RANGER_SNIPER 1016
+#define PERK_RANGER_LONGSHOT 1017
+#define PERK_RANGER_PINPOINT_ACCURACY 1018
+
+/* Hunter Tree - Tier 4 */
+#define PERK_RANGER_MASTER_ARCHER 1019
+#define PERK_RANGER_ARROW_STORM 1020
+
+/* Beast Master Tree - Tier 1 */
+#define PERK_RANGER_ENHANCED_COMPANION_I 1021
+#define PERK_RANGER_PACK_TACTICS_I 1022
+#define PERK_RANGER_NATURAL_EMPATHY_I 1023
+#define PERK_RANGER_SPELL_FOCUS_CONJURATION_I 1024
+
+/* Beast Master Tree - Tier 2 */
+#define PERK_RANGER_ENHANCED_COMPANION_II 1025
+#define PERK_RANGER_FERAL_CHARGE 1026
+#define PERK_RANGER_NATURES_REMEDY 1027
+#define PERK_RANGER_SHARED_SPELLS 1028
+
+/* Beast Master Tree - Tier 3 */
+#define PERK_RANGER_ALPHA_BOND 1029
+#define PERK_RANGER_COORDINATED_ATTACK 1030
+#define PERK_RANGER_PRIMAL_VIGOR 1031
+#define PERK_RANGER_GREATER_SUMMONS 1032
+
+/* Beast Master Tree - Tier 4 */
+#define PERK_RANGER_PRIMAL_AVATAR 1033
+#define PERK_RANGER_NATURES_WRATH 1034
+
+/* Wilderness Warrior Tree - Tier 1 */
+#define PERK_RANGER_TWO_WEAPON_FOCUS_I 1035
+#define PERK_RANGER_DUAL_STRIKE_I 1036
+#define PERK_RANGER_FAVORED_ENEMY_MASTERY_I 1037
+#define PERK_RANGER_RANGER_TOUGHNESS_I 1038
+
+/* Wilderness Warrior Tree - Tier 2 */
+#define PERK_RANGER_TWO_WEAPON_FOCUS_II 1039
+#define PERK_RANGER_WW_TWO_WEAPON_FIGHTING 1040
+#define PERK_RANGER_TEMPEST 1041
+#define PERK_RANGER_FAVORED_ENEMY_SLAYER 1042
+
+/* Wilderness Warrior Tree - Tier 3 */
+#define PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING 1043
+#define PERK_RANGER_WHIRLING_STEEL 1044
+#define PERK_RANGER_DEADLY_HUNTER 1045
+#define PERK_RANGER_CRIPPLING_STRIKE 1046
+
+/* Wilderness Warrior Tree - Tier 4 */
+#define PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING 1047
+#define PERK_RANGER_APEX_PREDATOR 1048
 
 /* ============================================================================
  * BARD PERKS (1100-1199)
@@ -3894,6 +4088,15 @@
 #define OUTFIT_VAL_APPLY_LOC 3
 #define OUTFIT_VAL_APPLY_MOD 4
 #define OUTFIT_VAL_APPLY_BONUS 5
+#define OUTFIT_VAL_HEAD_APPLY_LOC 6
+#define OUTFIT_VAL_HEAD_APPLY_MOD 7
+#define OUTFIT_VAL_HEAD_APPLY_BONUS 8
+#define OUTFIT_VAL_ARMS_APPLY_LOC 9
+#define OUTFIT_VAL_ARMS_APPLY_MOD 10
+#define OUTFIT_VAL_ARMS_APPLY_BONUS 11
+#define OUTFIT_VAL_LEGS_APPLY_LOC 12
+#define OUTFIT_VAL_LEGS_APPLY_MOD 13
+#define OUTFIT_VAL_LEGS_APPLY_BONUS 14
 
 /* Item profs: used by obj_data.obj_flags.prof_flag
  * constants.c = item_profs */
@@ -3987,10 +4190,10 @@
 /** Total number of item mats.*/
 #define NUM_MATERIALS 59
 
-#define NUM_CRAFT_MATS 36
+#define NUM_CRAFT_MATS 37
 #define NUM_CRAFT_MOTES 9
 
-#define NUM_CRAFT_GROUPS 8
+#define NUM_CRAFT_GROUPS 9
 
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
@@ -4158,8 +4361,9 @@
 #define ITEM_CRAFTING_TANNERY 111
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
 #define ITEM_TRAPPED 113 // This object has a trap attached
+#define ITEM_ACCOUNT_EXP 114 // item is bought for account exp
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 114
+#define NUM_ITEM_FLAGS 115
 
 /* homeland-port */
 /*
@@ -4248,10 +4452,11 @@
 #define APPLY_SPELL_DC 71
 #define APPLY_SPELL_DURATION 72
 #define APPLY_SPELL_PENETRATION 73
+#define APPLY_MOVE_SPEED 74 // applies to movement speed percentage
 
 
 /** Total number of applies */
-#define NUM_APPLIES 74
+#define NUM_APPLIES 75
 
 #define APPLY_TYPE_NONE             0
 #define APPLY_TYPE_ABILITY          1
@@ -5227,6 +5432,12 @@ struct crafting_data_info
     // efficient talent saved materials [material_type][amount]
     int efficient_saved_materials[NUM_CRAFT_GROUPS][2];
     
+    // golem crafting info
+    int golem_type;                 // GOLEM_TYPE_WOOD, STONE, IRON
+    int golem_size;                 // GOLEM_SIZE_SMALL, MEDIUM, LARGE, HUGE
+    int golem_materials[NUM_CRAFT_GROUPS][2];  // 0 = mat type, 1 = mat amount for golem
+    int golem_motes_required[NUM_CRAFT_MOTES]; // motes needed for golem
+    
 };
 
 /* ============================================================================ */
@@ -5308,6 +5519,9 @@ struct obj_data
 
     bool drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
     char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
+
+    /* Arcane mark imprint */
+    char *arcane_mark;
 
     int tinker_bonus;
     int temp_bag_num;
@@ -5555,7 +5769,7 @@ struct char_point_data
 
     int gold;      /**< Current gold carried on character */
     int bank_gold; /**< Gold the char has in a bank account	*/
-    int exp;       /**< The experience points, or value, of the character. */
+    long int exp;       /**< The experience points, or value, of the character. */
     int artisan_exp; /**< Artisan experience points from supply orders */
 
     sbyte hitroll; /**< Any bonus or penalty to the hit roll */
@@ -5684,7 +5898,8 @@ struct char_special_data
 
     /** casting (time) **/
     bool isCasting;               // casting or not
-    int castingTime;              // casting time
+    int castingTime;              // casting time (remaining)
+    int castingTimeMax;           // original casting time (for progress calc)
     int castingSpellnum;          // spell casting
     int castingMetamagic;         // spell metamagic
     int castingClass;             // spell casting class
@@ -5760,6 +5975,10 @@ struct char_special_data
     bool has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
     
     bool perfect_kill_active;       // temporary flag set when Perfect Kill is triggered for this attack
+    
+    /* Raging Defender flags - set when hit by crit/sneak, checked in DR calculation */
+    bool hit_by_critical;           // temporary flag set when struck by a critical hit
+    bool hit_by_sneak_attack;       // temporary flag set when struck by a sneak attack
 
     int terror_cooldown;
 
@@ -5887,6 +6106,7 @@ struct player_invention {
     char short_description[MAX_INVENTION_SHORTDESC];
     char long_description[MAX_INVENTION_LONGDESC];
     int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
+    int spell_levels[MAX_INVENTION_SPELLS];  /* chosen class spell level for each effect (1-7), 0 = unspecified */
     int num_spells;
     int duration;
     int reliability;
@@ -6107,6 +6327,7 @@ struct player_special_data_saved
     int irresistible_magic_cooldown;  // Wizard Controller perk: 5 minute cooldown for auto-success spell
     int quick_cast_cooldown;          // Versatile Caster perk: 5 minute cooldown for free quicken metamagic
     int spell_recall_cooldown;        // Versatile Caster perk: daily cooldown for restoring a spell slot
+    int deathless_frenzy_timer;       // Berserker Occult Slayer perk: 5 minute cooldown for Deathless Frenzy
     
     /* Domain Master perk bonus spell slot tracking */
     int bonus_domain_slots_used;    // Tracks used bonus domain spell slots
@@ -6125,6 +6346,9 @@ struct player_special_data_saved
 
     int craft_mats_owned[NUM_CRAFT_MATS];
     int craft_motes_owned[NUM_CRAFT_MOTES]; 
+
+    /* Arcane mark personalization */
+    char *arcane_mark;                           /**< Stored arcane mark string */
     
     /* Phase 4.5: Material subtype storage system */
     /* Stores wilderness materials with (category, subtype, quality) structure */
@@ -6146,6 +6370,7 @@ struct player_special_data_saved
     time_t last_device_destruction;    /**< Timestamp of last device destruction */
     int devices_destroyed_today;       /**< Number of devices destroyed in past 24 hours */
     time_t device_creation_cooldown;   /**< Timestamp until when device creation is blocked */
+    time_t last_device_recharge;       /**< Timestamp of last out-of-combat device recharge */
 
     /* PvP timer - tracks when PvP flag was enabled */
     time_t pvp_timer;                  /**< Timestamp when PvP was enabled, prevents turning off for 15 minutes */
@@ -6187,10 +6412,20 @@ struct player_special_data_saved
     int void_strike_timer;                      /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
     time_t void_strike_cooldown;                /**< Timestamp until when void strike can be used again (1 min cooldown) */
     int firesnake_timer;                        /**< Rounds remaining for fangs of fire snake effect (+1d6 fire per attack) */
+    int clench_of_north_wind_timer;             /**< Rounds remaining for clench of north wind effect (ice prison on next attack) */
     time_t clench_of_north_wind_cooldown;       /**< Timestamp until when clench of the north wind can be used again (1 min cooldown) */
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
     int elemental_embodiment_timer;             /**< Rounds remaining for elemental embodiment transformation */
     int elemental_embodiment_type;              /**< Type of element embodied: 1=fire, 2=water, 3=air, 4=earth, 0=none */
+    
+    /* Druid Elemental Mastery */
+    bool elemental_mastery_active;              /**< Whether elemental mastery is active for next elemental spell */
+    time_t elemental_mastery_cooldown;          /**< Timestamp until when elemental mastery can be used again (5 min cooldown) */
+    
+    /* Moon-based Bonus Spell Slots System */
+    int moon_bonus_spells;                      /**< Maximum moon bonus spells available (based on moon phase) */
+    int moon_bonus_spells_used;                 /**< Number of moon bonus spells used (current in use) */
+    int moon_bonus_regen_timer;                 /**< Timer for next moon bonus spell regeneration (in ticks, regen at 1 per 5 mins) */
 };
 
 struct weird_science_level {
@@ -6338,6 +6573,10 @@ struct mob_special_data
     int spell_slots[10];        /* Current spell slots per circle (0-9) */
     int max_spell_slots[10];    /* Maximum spell slots per circle (0-9) */
     time_t last_slot_regen;     /* Timestamp of last spell slot regeneration */
+    
+    /* Known spell slot system for mobs (max 2 slots per known spell, regenerate 1 per minute) */
+    byte known_spell_slots[MAX_SPELLS];      /* Current slots per known spell (max 2) */
+    time_t last_known_slot_regen;            /* Timestamp of last known spell slot regeneration */
 };
 
 /** An affect structure. */
@@ -6346,7 +6585,7 @@ struct affected_type
     sh_int spell;                /**< The spell that caused this */
     sh_int duration;             /**< For how long its effects will last      */
     sh_int modifier;             /**< Added/subtracted to/from apropriate ability     */
-    byte location;               /**< Tells which ability to change(APPLY_XXX). */
+    int location;                /**< Tells which ability to change(APPLY_XXX). */
     int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
     int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
@@ -6618,6 +6857,7 @@ struct char_data
     bool preserve_organs_procced;
     bool mute_equip_messages;
 
+    int natures_wrath_cooldown; /* Beast Master capstone cooldown (seconds) */
 };
 
 /** descriptor-related structures */
@@ -6810,6 +7050,21 @@ struct cha_app_type
 {
     sh_int cha_bonus; /* charisma bonus */
 };
+/** Stores the current phase and associated bonuses of the three moons. */
+struct moon_data {
+   int  solinari_phase;  /* Good Moon                  */
+   int  lunitari_phase;  /* Neutral Moon               */
+   int  nuitari_phase;   /* Evil Moon                  */
+   int  solinari_st;     /* Good Saving Throw Mod      */
+   int  lunitari_st;     /* Neutral Saving Throw Mod   */
+   int  nuitari_st;      /* Evil Saving Throw Mod      */
+   int  solinari_sp;     /* Good Spell Bonus           */
+   int  lunitari_sp;     /* Neutral Spell Bonus        */
+   int  nuitari_sp;      /* Evil Spell Bonus           */
+   int  solinari_lv;     /* Good Spell Level           */
+   int  lunitari_lv;     /* Neutral Spell Level        */
+   int  nuitari_lv;      /* Evil Spell Level           */
+};
 
 /** Stores, and used to deliver, the current weather information
  * in the mud world. */
@@ -6819,6 +7074,7 @@ struct weather_data
     int change;   /**< How fast and what way does it change? */
     int sky;      /**< How is the sky? */
     int sunlight; /**< And how much sun? */
+    struct moon_data moons;
 };
 
 /** Element in monster and object index-tables.
@@ -6893,6 +7149,7 @@ struct game_data
     int tunnel_size;         /**< Number of people allowed in a tunnel.*/
     int max_exp_gain;        /**< Maximum experience gainable per kill.*/
     int max_exp_loss;        /**< Maximum experience losable per death.*/
+    int experience_multiplier; /**< Percentage multiplier for experience gain (100 = normal).*/
     int max_npc_corpse_time; /**< Num tics before NPC corpses decompose*/
     int max_pc_corpse_time;  /**< Num tics before PC corpse decomposes.*/
     int idle_void;           /**< Num tics before PC sent to void(idle)*/
@@ -7059,6 +7316,10 @@ struct extra_game_data
     ubyte landmarks_system;
     ubyte allow_cexchange;
     ubyte wilderness_system;
+    ubyte melee_exp_option;
+    ubyte spell_cast_exp_option;
+    ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */
+    ubyte arcane_moon_phases;  /**< Enable arcane moon phase bonus spells */
 };
 
 /**

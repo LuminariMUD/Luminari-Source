@@ -24,6 +24,7 @@ void define_ranger_perks(void);
 void define_barbarian_perks(void);
 void define_monk_perks(void);
 void define_druid_perks(void);
+void define_paladin_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -71,6 +72,41 @@ int get_perk_save_bonus(struct char_data *ch, int save_type);
 int get_perk_skill_bonus(struct char_data *ch, int skill_num);
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
+
+/* Ranger-specific perk bonus functions */
+int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
+int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);
+int get_ranger_dr_penetration(struct char_data *ch);
+int get_ranger_attack_speed_bonus(struct char_data *ch);
+int get_ranger_quick_draw_proc_chance(struct char_data *ch);
+
+/* Ranger Beast Master perk functions */
+int get_ranger_companion_hp_bonus(struct char_data *ch);
+int get_ranger_companion_ac_bonus(struct char_data *ch);
+int get_ranger_companion_tohit_bonus(struct char_data *ch);
+int get_ranger_companion_save_bonus(struct char_data *ch);
+bool ranger_companion_immune_fear(struct char_data *ch);
+bool ranger_companion_immune_mind(struct char_data *ch);
+int get_pack_tactics_bonus(struct char_data *ch, struct char_data *master, struct char_data *victim);
+int get_coordinated_attack_damage(struct char_data *ch);
+int get_primal_avatar_damage(struct char_data *ch);
+int get_natures_remedy_bonus(struct char_data *ch);
+bool has_primal_vigor(struct char_data *ch);
+bool has_shared_spells(struct char_data *ch);
+int get_ranger_conjuration_dc_bonus(struct char_data *ch);
+int get_greater_summons_hp_bonus(struct char_data *ch);
+int get_greater_summons_damage(struct char_data *ch);
+int get_greater_summons_attack_bonus(struct char_data *ch);
+
+/* Ranger Wilderness Warrior perk functions */
+int get_ranger_two_weapon_focus_tohit(struct char_data *ch);
+int get_ranger_two_weapon_focus_damage(struct char_data *ch);
+int get_ranger_dual_strike_offhand(struct char_data *ch);
+int get_ranger_favored_enemy_mastery_damage(struct char_data *ch);
+int get_ranger_toughness_hp(struct char_data *ch);
+int get_ranger_tempest_ac(struct char_data *ch);
+int get_ranger_favored_enemy_slayer_tohit(struct char_data *ch);
+int get_ranger_favored_enemy_slayer_crit(struct char_data *ch);
 
 /* Rogue-specific perk bonus functions */
 int get_perk_sneak_attack_dice(struct char_data *ch);
@@ -314,6 +350,125 @@ int get_druid_elemental_armor_bonus(struct char_data *ch);
 int get_druid_elemental_hp_bonus(struct char_data *ch);
 bool has_druid_primal_avatar(struct char_data *ch);
 bool has_druid_natural_fury(struct char_data *ch);
+
+/* Season's Herald druid perk helpers */
+int get_druid_spell_power_bonus(struct char_data *ch);
+int get_druid_spell_dc_bonus(struct char_data *ch);
+int get_druid_elemental_damage_dice(struct char_data *ch);
+bool check_druid_spell_critical(struct char_data *ch);
+float get_druid_spell_critical_multiplier(struct char_data *ch);
+int get_druid_bonus_spell_slots(struct char_data *ch);
+bool has_druid_force_of_nature(struct char_data *ch);
+bool has_druid_storm_caller(struct char_data *ch);
+bool has_druid_elemental_mastery(struct char_data *ch);
+
+/* Berserker/Barbarian perk helper functions - Tier 1 & 2 */
+int get_berserker_power_attack_bonus(struct char_data *ch);
+int get_berserker_rage_damage_bonus(struct char_data *ch);
+int get_berserker_critical_bonus(struct char_data *ch);
+bool has_berserker_cleaving_strikes(struct char_data *ch);
+int get_berserker_cleave_bonus(struct char_data *ch);
+bool has_berserker_blood_frenzy(struct char_data *ch);
+int get_berserker_devastating_critical_dice(struct char_data *ch);
+
+/* Berserker/Barbarian perk helper functions - Tier 3 */
+int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch);
+bool has_berserker_overwhelming_force(struct char_data *ch);
+int get_berserker_crimson_rage_bonus(struct char_data *ch);
+bool has_berserker_carnage(struct char_data *ch);
+
+/* Berserker/Barbarian perk helper functions - Tier 4 */
+bool has_berserker_frenzied_berserker(struct char_data *ch);
+bool has_berserker_relentless_assault(struct char_data *ch);
+bool has_berserker_death_from_above(struct char_data *ch);
+
+/* Berserker/Barbarian Occult Slayer tree helper functions */
+int get_berserker_thick_skin_bonus(struct char_data *ch);
+int get_berserker_damage_reduction(struct char_data *ch);
+int get_berserker_elemental_resistance(struct char_data *ch);
+bool has_berserker_hardy(struct char_data *ch);
+int get_berserker_savage_defiance_dr(struct char_data *ch);
+int get_berserker_damage_reduction_3(struct char_data *ch);
+int get_berserker_spell_resistance(struct char_data *ch);
+bool has_berserker_pain_tolerance(struct char_data *ch);
+bool has_berserker_deathless_frenzy(struct char_data *ch);
+int get_berserker_unstoppable_dr(struct char_data *ch);
+bool has_berserker_indomitable_will(struct char_data *ch);
+bool has_berserker_raging_defender(struct char_data *ch);
+
+/* Berserker/Barbarian Primal Warrior tree helper functions - Tier 1 & 2 */
+int get_berserker_fleet_of_foot_bonus(struct char_data *ch);
+int get_berserker_intimidating_presence_bonus(struct char_data *ch);
+int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch);
+bool has_berserker_mighty_leap(struct char_data *ch);
+int get_berserker_mighty_leap_bonus(struct char_data *ch);
+int get_berserker_thick_headed_bonus(struct char_data *ch);
+bool has_berserker_sprint(struct char_data *ch);
+bool has_berserker_intimidating_presence_2(struct char_data *ch);
+int get_berserker_crippling_blow_chance(struct char_data *ch);
+
+/* Berserker/Barbarian Primal Warrior tree helper functions - Tier 3 & 4 */
+bool has_berserker_reckless_abandon(struct char_data *ch);
+bool has_berserker_blinding_rage(struct char_data *ch);
+bool has_berserker_stunning_blow(struct char_data *ch);
+bool has_berserker_uncanny_dodge_mastery(struct char_data *ch);
+int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch);
+int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch);
+bool has_berserker_savage_charge(struct char_data *ch);
+bool has_berserker_war_cry(struct char_data *ch);
+bool has_berserker_earthshaker(struct char_data *ch);
+
+/* Paladin perk helper functions - Knight of the Chalice */
+int get_paladin_holy_weapon_damage_bonus(struct char_data *ch, struct char_data *victim);
+int get_paladin_sacred_defender_ac_bonus(struct char_data *ch);
+int get_paladin_improved_smite_dice(struct char_data *ch);
+bool has_paladin_faithful_strike(struct char_data *ch);
+bool has_paladin_holy_blade(struct char_data *ch);
+bool has_paladin_divine_might(struct char_data *ch);
+bool has_paladin_exorcism_of_the_slain(struct char_data *ch);
+bool has_paladin_holy_sword(struct char_data *ch);
+bool has_paladin_zealous_smite(struct char_data *ch);
+bool has_paladin_blinding_smite(struct char_data *ch);
+bool has_paladin_overwhelming_smite(struct char_data *ch);
+bool has_paladin_sacred_vengeance(struct char_data *ch);
+
+/* Paladin perk helper functions - Sacred Defender */
+int get_paladin_extra_lay_on_hands(struct char_data *ch);
+int get_paladin_shield_of_faith_ac_bonus(struct char_data *ch);
+int get_paladin_bulwark_saves_bonus(struct char_data *ch);
+int get_paladin_healing_hands_bonus(struct char_data *ch);
+bool has_paladin_defensive_strike(struct char_data *ch);
+bool has_paladin_shield_guardian(struct char_data *ch);
+bool has_paladin_aura_of_protection(struct char_data *ch);
+int get_paladin_sanctuary_reduction(struct char_data *ch);
+bool has_paladin_merciful_touch(struct char_data *ch);
+bool has_paladin_bastion_of_defense(struct char_data *ch);
+bool has_paladin_aura_of_life(struct char_data *ch);
+bool has_paladin_cleansing_touch(struct char_data *ch);
+bool has_paladin_divine_sacrifice(struct char_data *ch);
+
+/* Divine Champion Tree Helper Functions */
+int get_paladin_spell_focus_bonus(struct char_data *ch);
+int get_paladin_turn_undead_hd_bonus(struct char_data *ch);
+int get_paladin_turn_undead_damage_bonus(struct char_data *ch);
+int get_paladin_divine_grace_bonus(struct char_data *ch);
+bool has_paladin_radiant_aura(struct char_data *ch);
+bool has_paladin_quickened_blessing(struct char_data *ch);
+int get_paladin_channel_energy_dice(struct char_data *ch);
+int get_paladin_channel_energy_uses(struct char_data *ch);
+bool is_quickened_blessing_spell(int spellnum);
+
+/* Divine Champion Tier 3 helper functions */
+bool has_paladin_spell_penetration(struct char_data *ch);
+bool has_paladin_destroy_undead(struct char_data *ch);
+int get_paladin_channel_energy_2_dice(struct char_data *ch);
+int get_paladin_channel_energy_2_uses(struct char_data *ch);
+bool has_paladin_aura_of_courage_mastery(struct char_data *ch);
+
+/* Divine Champion Tier 4 helper functions */
+bool has_paladin_mass_cure_wounds(struct char_data *ch);
+bool has_paladin_holy_avenger(struct char_data *ch);
+bool has_paladin_beacon_of_hope(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

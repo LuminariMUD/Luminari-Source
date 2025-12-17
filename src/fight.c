@@ -48,6 +48,8 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 #include "perks.h"
+#include "routing.h"
+#include "movement_cost.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -843,6 +845,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_NATURALARMOR] += druid_elemental_armor;
     }
   }
+  
+  /* Berserker Thick Skin natural armor bonus */
+  if (!IS_NPC(ch))
+  {
+    int thick_skin_bonus = get_berserker_thick_skin_bonus(ch);
+    if (thick_skin_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += thick_skin_bonus;
+    }
+  }
   /**/
 
   /* bonus type armor */
@@ -1082,6 +1094,41 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     /* Wizard Controller perk: Defensive Casting - +4 dodge AC for 1 round after casting */
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_defensive_casting_ac_bonus(ch);
+
+    /* Berserker Primal Warrior perk: Uncanny Dodge Mastery - +3 dodge AC */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_berserker_uncanny_dodge_ac_bonus(ch);
+      
+    /* Paladin Knight of the Chalice perk: Sacred Defender - +1 AC per rank when using weapon and shield */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_SHIELD] += get_paladin_sacred_defender_ac_bonus(ch);
+
+    /* Paladin Sacred Defender perk: Shield of Faith - +1 deflection AC per rank */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DEFLECTION] += get_paladin_shield_of_faith_ac_bonus(ch);
+
+    /* Paladin Sacred Defender perk: Shield Guardian - +2 AC from grouped paladin with shield */
+    if (!IS_NPC(ch) && GROUP(ch))
+    {
+      struct group_data *group = GROUP(ch);
+      struct char_data *k = NULL;
+      struct iterator_data it;
+      
+      /* Check if any group member in the same room has Shield Guardian and is wielding a shield */
+      for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it))
+      {
+        if (k != ch && IN_ROOM(k) == IN_ROOM(ch) && !IS_NPC(k) && has_paladin_shield_guardian(k))
+        {
+          /* Check if they're wielding a shield */
+          struct obj_data *shield = GET_EQ(k, WEAR_SHIELD);
+          if (shield && GET_OBJ_TYPE(shield) == ITEM_ARMOR)
+          {
+            bonuses[BONUS_TYPE_SHIELD] += 2;
+            break; /* Only one shield guardian bonus */
+          }
+        }
+      }
+    }
 
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
@@ -1372,6 +1419,24 @@ void update_pos_dam(struct char_data *victim)
       return;
   }
 
+  /* Berserker Deathless Frenzy perk - 50% chance to revive to 25% HP when dying while raging */
+  if (!IS_NPC(victim) && has_berserker_deathless_frenzy(victim) && affected_by_spell(victim, SKILL_RAGE) && 
+      GET_HIT(victim) <= 0 && dice(1, 2) == 1)
+  {
+    /* Check cooldown (5 minutes = 300 seconds) */
+    if (GET_DEATHLESS_FRENZY_TIMER(victim) == 0)
+    {
+      int heal_amount = GET_MAX_HIT(victim) / 4;
+      GET_HIT(victim) = heal_amount;
+      GET_DEATHLESS_FRENZY_TIMER(victim) = 300;
+      
+      act("\tRYour rage refuses to let you die! You surge back to life!\tn", FALSE, victim, 0, 0, TO_CHAR);
+      act("\tR$n's rage refuses to let $m die! $e surges back to life!\tn", FALSE, victim, 0, 0, TO_ROOM);
+      
+      return;
+    }
+  }
+
   if (GET_HIT(victim) <= -11)
   {
     if (HAS_REAL_FEAT(victim, FEAT_RELENTLESS_ENDURANCE) && dice(1, 4) == 1)
@@ -1530,6 +1595,18 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     ;
   }
 
+  if (GET_WALKTO_LOC(ch) != 0)
+  {
+    send_to_char(ch, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    GET_WALKTO_LOC(ch) = 0;
+  }
+
+  if (GET_WALKTO_LOC(vict) != 0)
+  {
+    send_to_char(vict, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(vict))));
+    GET_WALKTO_LOC(vict) = 0;
+  }
+
   GET_INITIATIVE(ch) = roll_initiative(ch);
 
   if (combat_list == NULL)
@@ -1612,6 +1689,35 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     }
   }
 
+  /* Intimidating Presence II - Berserker Primal Warrior perk */
+  if (has_berserker_intimidating_presence_2(vict))
+  {
+    /* Check if enemy is immune to fear/mind-affecting */
+    if (!is_immune_fear(vict, ch, false) && !is_immune_mind_affecting(vict, ch, false))
+    {
+      /* Make a discipline check vs DC 10 + berserker level + CHA modifier */
+      int dc = 10 + GET_LEVEL(vict) + GET_CHA_BONUS(vict);
+      int discipline_roll = skill_check(ch, ABILITY_DISCIPLINE, dc);
+      
+      if (!discipline_roll)
+      {
+        /* Failed discipline check - become shaken for 3 rounds */
+        struct affected_type af = {0};
+        new_affect(&af);
+        af.spell = ABILITY_INTIMIDATE; /* Use intimidate as the spell source */
+        af.duration = 3;
+        SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+        affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+        act("\tR[\tDINTIMIDATING PRESENCE\tR]\tn $n's fierce presence fills you with dread!", 
+            FALSE, vict, 0, ch, TO_VICT);
+        act("\tR[\tDINTIMIDATING PRESENCE\tR]\tn Your imposing presence unnerves $N!", 
+            FALSE, vict, 0, ch, TO_CHAR);
+        act("\tR[\tDINTIMIDATING PRESENCE\tR]\tn $N appears shaken by $n's fierce presence!", 
+            FALSE, vict, 0, ch, TO_NOTVICT);
+      }
+    }
+  }
+
   /* start the combat loop, making sure we begin with phase "1" */
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, "1"), delay);
 
@@ -1650,6 +1756,10 @@ void stop_fighting(struct char_data *ch)
   if (char_has_mud_event(ch, eSTUNNED))
   {
     event_cancel_specific(ch, eSTUNNED);
+  }
+  if (char_has_mud_event(ch, eFERAL_CHARGE_USED))
+  {
+    event_cancel_specific(ch, eFERAL_CHARGE_USED);
   }
 
   /* Reset the combat data */
@@ -1836,6 +1946,15 @@ static void make_corpse(struct char_data *ch)
     }
   } /* if we continue on, we need to actually make a corpse.... */
 #endif
+
+  /* Check if this is a golem that died - drop materials before creating corpse */
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM) && ch->master)
+  {
+    /* Recover materials (25% of original cost) from golem death */
+    extern void recover_golem_materials(struct char_data *ch, struct char_data *golem, int recovery_percent);
+    recover_golem_materials(ch->master, ch, 25);
+  }
+
   /* create the corpse object, blank prototype */
   corpse = create_obj();
 
@@ -2465,6 +2584,31 @@ void die(struct char_data *ch, struct char_data *killer)
   }
 
   perform_draconian_death_throes(ch);
+
+  /* Zealous Smite: Restore a smite use when killing with smite evil */
+  if (killer && !IS_NPC(killer) && has_paladin_zealous_smite(killer) &&
+      affected_by_spell(killer, SKILL_SMITE_EVIL) && IS_EVIL(ch))
+  {
+    struct mud_event_data *pMudEvent = char_has_mud_event(killer, eSMITE_EVIL);
+    
+    if (pMudEvent && pMudEvent->sVariables)
+    {
+      int uses = 0;
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
+      {
+        /* Reduce uses by 1 to restore a smite use */
+        uses--;
+        if (pMudEvent->sVariables)
+          free(pMudEvent->sVariables);
+        
+        char buf[128];
+        snprintf(buf, sizeof(buf), "uses:%d", uses);
+        pMudEvent->sVariables = strdup(buf);
+        
+        send_to_char(killer, "\tWYour righteous fury is restored by slaying %s!\tn\r\n", GET_NAME(ch));
+      }
+    }
+  }
 
   raw_kill(ch, killer);
 }
@@ -3313,6 +3457,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     /* Elemental Embodiment (Fire) - immunity to fire */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 1)
       dam_reduction += 999; /* Effective immunity */
@@ -3342,6 +3489,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     /* Elemental Embodiment (Water) - immunity to cold and water */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 2)
       dam_reduction += 999; /* Effective immunity */
@@ -3386,6 +3536,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     break;
   case DAM_HOLY:
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
@@ -3415,6 +3568,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     /* Elemental Embodiment (Air) - immunity to electric and air */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
       dam_reduction += 999; /* Effective immunity */
@@ -3481,9 +3637,17 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
-int compute_damtype_reduction(struct char_data *ch, int dam_type)
+int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker)
 {
   int damtype_reduction = 0;
+
+  /* Force of Nature: druid spells bypass damage resistance for elemental damage */
+  if (attacker && !IS_NPC(attacker) && GET_CASTING_CLASS(attacker) == CLASS_DRUID && 
+      has_druid_force_of_nature(attacker) &&
+      (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_ELECTRIC || dam_type == DAM_ACID))
+  {
+    return 0; /* bypass all damage resistance */
+  }
 
   /* base resistance */
   damtype_reduction += GET_RESISTANCES(ch, dam_type);
@@ -4102,6 +4266,43 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Raging: Mighty Rage", 3);
   }
+  
+  /* Berserker Damage Reduction perks */
+  if (!IS_NPC(ch))
+  {
+    int berserker_dr = get_berserker_damage_reduction(ch);
+    int berserker_dr_3 = get_berserker_damage_reduction_3(ch);
+    int savage_defiance_dr = get_berserker_savage_defiance_dr(ch);
+    int unstoppable_dr = get_berserker_unstoppable_dr(ch);
+    
+    if (berserker_dr > 0)
+    {
+      damage_reduction += berserker_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction I & II", berserker_dr);
+    }
+    
+    if (berserker_dr_3 > 0)
+    {
+      damage_reduction += berserker_dr_3;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction III", berserker_dr_3);
+    }
+    
+    if (savage_defiance_dr > 0)
+    {
+      damage_reduction += savage_defiance_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Savage Defiance (Raging)", savage_defiance_dr);
+    }
+    
+    if (unstoppable_dr > 0)
+    {
+      damage_reduction += unstoppable_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Unstoppable (Raging)", unstoppable_dr);
+    }
+  }
 
   if (HAS_FEAT(ch, FEAT_IMMOBILE_DEFENSE) && affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
   {
@@ -4376,6 +4577,15 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
       send_to_char(ch, "%-30s: %d\r\n", "Misc (Gear, Spells, Etc.)", GET_DR_MOD(ch));
   }
 
+  /* Raging Defender - double DR when hit by crit or sneak attack */
+  if (!IS_NPC(ch) && has_berserker_raging_defender(ch) && (HIT_BY_CRITICAL(ch) || HIT_BY_SNEAK_ATTACK(ch)))
+  {
+    int raging_defender_bonus = damage_reduction; /* Double the current DR */
+    damage_reduction += raging_defender_bonus;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Raging Defender (Doubled)", raging_defender_bonus);
+  }
+
   // damage reduction cap is 20 for players
   if (!IS_NPC(ch))
   {
@@ -4391,6 +4601,10 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
   {
     send_to_char(ch, "\tC%-30s: %d\tn\r\n", "Final Damage Reduction:", damage_reduction);
   }
+
+  /* Clear Raging Defender flags after DR calculation */
+  HIT_BY_CRITICAL(ch) = FALSE;
+  HIT_BY_SNEAK_ATTACK(ch) = FALSE;
 
   return damage_reduction;
 }
@@ -4514,6 +4728,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     int concealment = compute_concealment(victim, ch);
     /* seeking weapons (ranged weapons only) bypass concealment always */
     if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
+      concealment = 0;
+    /* Pinpoint Accuracy (Ranger) - ignore concealment with ranged attacks */
+    if (weapon && has_perk(ch, PERK_RANGER_PINPOINT_ACCURACY))
       concealment = 0;
     if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
       concealment = 0;
@@ -4781,7 +4998,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
     if (can_dam_be_resisted(dam_type))
     {
-      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
+      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch);
       damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
       dam -= (int)damtype_reduction;
     }
@@ -4898,6 +5115,16 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
 
       dr_reduction += MAX(0, HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION) * 3);
+
+      /* Ranger Deadly Aim - DR penetration for ranged attacks */
+      if (!IS_NPC(ch) && weapon != NULL)
+      {
+        int ranger_dr_pen = get_ranger_dr_penetration(ch);
+        if (ranger_dr_pen > 0)
+        {
+          dr_reduction += ranger_dr_pen;
+        }
+      }
 
       damage_reduction -= dr_reduction;
 
@@ -5490,7 +5717,92 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 #else
   dam = MAX(MIN(dam, 1499), 0); // damage cap
 #endif
+
+  /* Paladin Sacred Defender perk: Sanctuary - 10% damage reduction */
+  if (!IS_NPC(victim))
+  {
+    int reduction = get_paladin_sanctuary_reduction(victim);
+    if (reduction > 0)
+    {
+      dam = dam * (100 - reduction) / 100;
+    }
+  }
+
+  /* Paladin Sacred Defender perk: Divine Sacrifice - take damage for ally */
+  if (!IS_NPC(victim) && GROUP(victim) && (GET_HIT(victim) - dam) <= 0)
+  {
+    struct group_data *group = GROUP(victim);
+    struct char_data *k = NULL;
+    struct iterator_data it;
+    
+    /* Check if any grouped paladin can sacrifice for this victim */
+    for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it))
+    {
+      if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
+          has_paladin_divine_sacrifice(k) && !char_has_mud_event(k, eDIVINE_SACRIFICE))
+      {
+        /* Paladin takes the damage instead */
+        send_to_char(k, "\tWYou invoke Divine Sacrifice, taking the damage meant for %s!\tn\r\n", GET_NAME(victim));
+        send_to_char(victim, "\tW%s invokes Divine Sacrifice, taking the damage meant for you!\tn\r\n", GET_NAME(k));
+        act("\tW$n glows with divine light, taking the damage meant for $N!\tn", FALSE, k, 0, victim, TO_NOTVICT);
+        
+        /* Transfer damage to paladin */
+        GET_HIT(k) -= dam;
+        update_pos(k);
+        
+        /* Start 10 minute cooldown */
+        attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
+        
+        /* Victim takes no damage */
+        dam = 0;
+        break;
+      }
+    }
+  }
+
   GET_HIT(victim) -= dam;
+  
+  /* Sacred Vengeance: Trigger when ally drops below 25% HP or dies */
+  if (victim && !IS_NPC(victim) && GROUP(victim))
+  {
+    struct group_data *group = GROUP(victim);
+    struct char_data *k = NULL;
+    struct iterator_data it;
+    int victim_hp_pct = (GET_HIT(victim) * 100) / MAX(1, GET_MAX_HIT(victim));
+    bool trigger_vengeance = (GET_HIT(victim) <= 0 || victim_hp_pct < 25);
+    
+    if (trigger_vengeance)
+    {
+      for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL; k = (struct char_data *)next_in_list(&it))
+      {
+        if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
+            has_paladin_sacred_vengeance(k) && !affected_by_spell(k, SKILL_SACRED_VENGEANCE))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SKILL_SACRED_VENGEANCE;
+          af.duration = 3; /* 3 rounds */
+          af.location = APPLY_HITROLL;
+          af.modifier = 4;
+          af.bonus_type = BONUS_TYPE_SACRED;
+          affect_to_char(k, &af);
+          
+          new_affect(&af);
+          af.spell = SKILL_SACRED_VENGEANCE;
+          af.duration = 3;
+          af.location = APPLY_DAMROLL;
+          af.modifier = 8;
+          af.bonus_type = BONUS_TYPE_SACRED;
+          affect_to_char(k, &af);
+          
+          send_to_char(k, "\tRYour fury ignites as %s falls! You gain +4 to hit and +8 to damage!\tn\r\n", 
+                      GET_NAME(victim));
+          act("\tR$n's eyes blaze with righteous fury!\tn", FALSE, k, 0, 0, TO_ROOM);
+        }
+      }
+    }
+  }
+  
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
   {
     CNDNSD(ch)->damage_inflicted += dam;
@@ -5537,12 +5849,23 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   /* xp gain for damage, limiting it more -zusuk */
-  if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3)
+  int exp_to_give = GET_LEVEL(victim) * dam;
+  if (CONFIG_MELEE_EXP_OPTION == 1) // reduced exp
+    exp_to_give /= 2;
+  else if (CONFIG_MELEE_EXP_OPTION == 2) // no exp
+    exp_to_give = 0;  
+
+  if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3 && exp_to_give > 0)
   {
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_EIDOLON) && ch->master)
-      gain_exp(ch->master, GET_LEVEL(victim) * dam / 2, GAIN_EXP_MODE_DAMAGE);
+    {
+      exp_to_give /= 2;
+      gain_exp(ch->master, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+    }
     else
-      gain_exp(ch, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
+    {
+      gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+    }
   }
 
   if (!dam)
@@ -6389,6 +6712,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       pa_bonus += 2;
     }
     
+    /* Berserker Power Attack Mastery perks (Tier 1-3) */
+    pa_bonus += get_berserker_power_attack_bonus(ch);
+    pa_bonus += get_berserker_power_attack_mastery_3_bonus(ch);
+    
     if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
     {
       dambonus += pa_bonus * 2; /* 2h weapons gets 2x bonus */
@@ -6402,6 +6729,48 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Power attack bonus: \tR%d\tn\r\n",
                      pa_bonus);
+    }
+  }
+  
+  /* Berserker rage damage bonus */
+  if (affected_by_spell(ch, SKILL_RAGE))
+  {
+    int rage_bonus = get_berserker_rage_damage_bonus(ch);
+    int crimson_bonus = get_berserker_crimson_rage_bonus(ch);
+    
+    if (rage_bonus > 0)
+    {
+      dambonus += rage_bonus;
+      if (display_mode)
+        send_to_char(ch, "Rage damage bonus: \tR%d\tn\r\n", rage_bonus);
+    }
+    
+    if (crimson_bonus > 0)
+    {
+      dambonus += crimson_bonus;
+      if (display_mode)
+        send_to_char(ch, "Crimson Rage bonus: \tR%d\tn\r\n", crimson_bonus);
+    }
+  }
+  
+  /* Paladin holy weapon damage bonus against evil */
+  if (vict != NULL)
+  {
+    int holy_weapon_bonus = get_paladin_holy_weapon_damage_bonus(ch, vict);
+    if (holy_weapon_bonus > 0)
+    {
+      dambonus += holy_weapon_bonus;
+      if (display_mode)
+        send_to_char(ch, "Holy Weapon (vs Evil): \tW%d\tn\r\n", holy_weapon_bonus);
+    }
+    
+    /* Holy Sword +2d6 damage vs evil (requires Holy Blade active and Holy Sword perk) */
+    if (affected_by_spell(ch, SKILL_HOLY_BLADE) && has_paladin_holy_sword(ch) && IS_EVIL(vict))
+    {
+      int holy_sword_dice = dice(2, 6);
+      dambonus += holy_sword_dice;
+      if (display_mode)
+        send_to_char(ch, "Holy Sword (vs Evil): \tW%d\tn\r\n", holy_sword_dice);
     }
   }
 
@@ -6463,6 +6832,29 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Smite Evil bonus: \tR%d\tn\r\n", get_smite_evil_level(ch) * smite_evil_target_type(vict));
     dambonus += get_smite_evil_level(ch) * smite_evil_target_type(vict);
+    
+    /* Improved Smite perk - add bonus dice damage */
+    if (!IS_NPC(ch))
+    {
+      int improved_smite_dice = get_paladin_improved_smite_dice(ch);
+      if (improved_smite_dice > 0 && smite_evil_target_type(vict))
+      {
+        int bonus_dam = dice(improved_smite_dice, 6);
+        dambonus += bonus_dam;
+        if (display_mode)
+          send_to_char(ch, "Improved Smite: \tR%dd6 (%d)\tn\r\n", improved_smite_dice, bonus_dam);
+      }
+      
+      /* Exorcism of the Slain - extra damage vs outsiders/demons/devils */
+      /* TODO: Add proper subrace checks when demon/devil/outsider subraces are defined */
+      if (has_paladin_exorcism_of_the_slain(ch) && IS_EVIL(vict))
+      {
+        int exorcism_dam = dice(4, 6);
+        dambonus += exorcism_dam;
+        if (display_mode)
+          send_to_char(ch, "Exorcism of the Slain: \tR4d6 (%d)\tn\r\n", exorcism_dam);
+      }
+    }
   }
   /* smite good (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict)
@@ -6600,6 +6992,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += perk_bonus;
       if (display_mode)
         send_to_char(ch, "Perk Weapon Damage bonus: \tR%d\tn\r\n", perk_bonus);
+    }
+  }
+
+  /* Add ranger ranged perk bonuses - only for ranged attacks */
+  if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    int ranger_ranged_bonus = get_ranger_ranged_damage_bonus(ch, wielded);
+    if (ranger_ranged_bonus != 0)
+    {
+      dambonus += ranger_ranged_bonus;
+      if (display_mode)
+        send_to_char(ch, "Ranger Ranged Damage bonus: \tR%d\tn\r\n", ranger_ranged_bonus);
     }
   }
 
@@ -6878,6 +7282,14 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   if (has_perk(ch, PERK_FIGHTER_IMPROVED_CRITICAL_THREAT))
     threat_range--;
   
+  /* Berserker Improved Critical I */
+  if (!IS_NPC(ch))
+  {
+    int berserker_crit_bonus = get_berserker_critical_bonus(ch);
+    if (berserker_crit_bonus > 0)
+      threat_range -= berserker_crit_bonus;
+  }
+  
   /* Master Assassin crit range bonus */
   if (!IS_NPC(ch))
   {
@@ -6898,6 +7310,22 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && !wielded && has_druid_natural_weapons_improved_crit(ch))
   {
     threat_range = MIN(threat_range, 19);
+  }
+
+  /* Ranger: Improved Critical: Ranged I - applies only to ranged weapons */
+  if (!IS_NPC(ch) && wielded)
+  {
+    int weapon_type = GET_OBJ_VAL(wielded, 0);
+    bool is_ranged_weapon = IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED);
+    if (is_ranged_weapon && has_perk(ch, PERK_RANGER_IMPROVED_CRITICAL_RANGED_I))
+    {
+      threat_range--;
+    }
+    /* Ranger: Master Archer - crit range becomes 19-20 for ranged */
+    if (is_ranged_weapon && has_perk(ch, PERK_RANGER_MASTER_ARCHER))
+    {
+      threat_range = MIN(threat_range, 19);
+    }
   }
 
   /* end mods */
@@ -6953,6 +7381,16 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
   if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && has_druid_natural_fury(ch))
   {
     crit_multi = MAX(crit_multi, 3);
+  }
+
+  /* Ranger: Master Archer - ranged crit multiplier becomes x4 */
+  if (!IS_NPC(ch) && wielded)
+  {
+    int weapon_type = GET_OBJ_VAL(wielded, 0);
+    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) && has_perk(ch, PERK_RANGER_MASTER_ARCHER))
+    {
+      crit_multi = MAX(crit_multi, 4);
+    }
   }
 
   /* high level mobs are getting a crit bonus here */
@@ -7475,6 +7913,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     /* handle critical hit damage here */
     if (is_critical && !IS_IMMUNE_CRITS(ch, victim))
     {
+      /* Set flag for Raging Defender perk */
+      HIT_BY_CRITICAL(victim) = TRUE;
 
       /* critical message */
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
@@ -7566,6 +8006,54 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
+
+      /* Ranger: Sniper - add +2d6 damage on ranged critical hits (not multiplied) */
+      if (!IS_NPC(ch) && wielded)
+      {
+        int weapon_type = GET_OBJ_VAL(wielded, 0);
+        if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) && has_perk(ch, PERK_RANGER_SNIPER))
+        {
+          dam += dice(2, 6);
+        }
+      }
+
+      /* Ranger: Hunter's Mark - add +1d6 damage vs marked target after 5 rounds (ranged only) */
+      if (!IS_NPC(ch) && wielded && victim && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+      {
+        int weapon_type = GET_OBJ_VAL(wielded, 0);
+        if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) && GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
+        {
+          dam += dice(1, 6);
+        }
+      }
+      
+      /* Devastating Critical perk - bonus dice damage on crits */
+      if (!IS_NPC(ch))
+      {
+        int dev_crit_dice = get_berserker_devastating_critical_dice(ch);
+        if (dev_crit_dice > 0)
+        {
+          dam += dice(dev_crit_dice, 6);
+        }
+        
+        /* Carnage perk - splash damage on crits */
+        if (has_berserker_carnage(ch))
+        {
+          struct char_data *tch = NULL;
+          int splash_dam = dam / 4; /* 25% of weapon damage */
+          
+          for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+          {
+            if (is_player_grouped(tch, ch)) continue;
+            if (tch == ch) continue;
+            if (tch == victim) continue;
+            if (!FIGHTING(tch) || !is_player_grouped(FIGHTING(tch), ch)) continue;
+            
+            act("\tR$n's devastating critical causes carnage!\tn", TRUE, ch, 0, tch, TO_VICT);
+            damage(ch, tch, splash_dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+          }
+        }
+      }
 
       if (has_teamwork_feat(ch, FEAT_PRECISE_FLANKING) && is_flanked(ch, victim))
         dam += dice(1, 6);
@@ -7748,7 +8236,31 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
      * top or bottom of dam calculation can have a dramatic effect on this number */
     if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch))
     {
-      if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE))
+      /* Savage Charge perk - triple damage and knockdown (once per rage, automatic) */
+      if (has_berserker_savage_charge(ch) && affected_by_spell(ch, SKILL_RAGE) && 
+          !char_has_mud_event(ch, eSAVAGE_CHARGE_USED))
+      {
+        dam += damage_holder * 2; /* triple total damage (base + 2x) */
+        attach_mud_event(new_mud_event(eSAVAGE_CHARGE_USED, ch, NULL), 60 * PASSES_PER_SEC); /* Mark as used this rage */
+        
+        /* Knockdown with no save - but check NOBASH */
+        if (victim && (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOBASH)))
+        {
+          change_position(victim, POS_SITTING);
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn Your devastating charge \tRDESTROYS\tn $N, knocking $M to the ground!", 
+              FALSE, ch, 0, victim, TO_CHAR);
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn $n's devastating charge \tRDESTROYS\tn you, knocking you to the ground!", 
+              FALSE, ch, 0, victim, TO_VICT);
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn $n's devastating charge \tRDESTROYS\tn $N!", 
+              FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+        else if (victim && MOB_FLAGGED(victim, MOB_NOBASH))
+        {
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn Your devastating charge hits $N, but $E resists being knocked down!", 
+              FALSE, ch, 0, victim, TO_CHAR);
+        }
+      }
+      else if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE))
       { /* mounted, charging with spirited charge feat */
         if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE))
         { /* with lance too */
@@ -7899,6 +8411,14 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           send_combat_roll_info(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         }
+      }
+
+        /* Nature's Wrath: +2d8 damage if affected */
+      if (affected_by_spell(ch, SKILL_APPLY_NATURES_WRATH_DAMAGE))
+      {
+        dam += dice(2, 8);
+        send_combat_roll_info(ch, "\tG[Nature's Wrath +%ddmg]\tn ", dam);
+        send_combat_roll_info(victim, "\tG[Nature's Wrath +%ddmg]\tn ", dam);
       }
 
     } /* end wielded */
@@ -8761,6 +9281,13 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     calc_bab += HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2;
     if (display)
         send_to_char(ch, "%2d: %-50s\r\n", HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2, "Eldritch Master");
+    // we'll add weapon focus ranged
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_SUPERIOR_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
     /* fall through is intentional here */
   case ATTACK_TYPE_RANGED:
     calc_bab += GET_DEX_BONUS(ch);
@@ -8879,6 +9406,17 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
       if (display)
         send_to_char(ch, " 2: %-50s\r\n", "Outflank");
+    }
+  }
+
+  /* Ranger Hunter's Mark: after 5 rounds, gain +2 to hit against marked target (ranged attacks) */
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    if (GET_MARK(ch) && victim && GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
+      if (display)
+        send_to_char(ch, " 2: %-50s\r\n", "Hunter's Mark");
     }
   }
 
@@ -9449,6 +9987,24 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
           send_to_char(ch, " 6: %-50s\r\n", "Epic Favored Enemy");
       }
     }
+
+    /* Wilderness Warrior: Favored Enemy Slayer and Apex Predator to-hit bonuses */
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+    {
+      if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += 2;
+        if (display)
+          send_to_char(ch, " 2: %-50s\r\n", "Favored Enemy Slayer");
+      }
+      if (has_perk(ch, PERK_RANGER_APEX_PREDATOR))
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += 5;
+        if (display)
+          send_to_char(ch, " 5: %-50s\r\n", "Apex Predator");
+      }
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_DEVOTION) && is_grouped_with_dragon(ch))
@@ -9557,6 +10113,54 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += perk_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", perk_bonus, "Perk Weapon To-Hit Bonus");
+    }
+  }
+
+  /* Add ranger ranged perk bonuses - only for ranged attacks */
+  if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    int ranger_ranged_bonus = get_ranger_ranged_tohit_bonus(ch, wielded);
+    if (ranger_ranged_bonus != 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += ranger_ranged_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", ranger_ranged_bonus, "Ranger Ranged To-Hit");
+    }
+  }
+
+  /* Pack Tactics - ranger and companion attacking same target */
+  if (victim && ch->master && !IS_NPC(ch->master))
+  {
+    /* Companion attacking - check if master is also fighting same target */
+    if (FIGHTING(ch->master) == victim)
+    {
+      int pack_bonus = get_pack_tactics_bonus(ch, ch->master, victim);
+      if (pack_bonus > 0)
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += pack_bonus;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", pack_bonus, "Pack Tactics");
+      }
+    }
+  }
+  else if (!IS_NPC(ch) && victim)
+  {
+    /* Ranger attacking - check if any follower/companion is fighting same target */
+    struct follow_type *f;
+    for (f = ch->followers; f; f = f->next)
+    {
+      if (IS_NPC(f->follower) && AFF_FLAGGED(f->follower, AFF_CHARM) && 
+          MOB_FLAGGED(f->follower, MOB_C_ANIMAL) && FIGHTING(f->follower) == victim)
+      {
+        int pack_bonus = get_pack_tactics_bonus(ch, ch, victim);
+        if (pack_bonus > 0)
+        {
+          bonuses[BONUS_TYPE_UNDEFINED] += pack_bonus;
+          if (display)
+            send_to_char(ch, "%2d: %-50s\r\n", pack_bonus, "Pack Tactics");
+          break; /* Only apply once */
+        }
+      }
     }
   }
 
@@ -10739,6 +11343,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     void_strike_bonus = dice(8, 6);
     GET_VOID_STRIKE_TIMER(ch) = 0; /* Consumed on use */
   }
+  
+  /* Clench of the North Wind - triggers on next melee attack */
+  if (!IS_NPC(ch) && GET_CLENCH_NORTH_WIND_TIMER(ch) > 0)
+  {
+    if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+      send_to_char(ch, "[\tCCLENCH_OF_NORTH_WIND\tn] ");
+    }
+    GET_CLENCH_NORTH_WIND_TIMER(ch) = 0; /* Consumed on use */
+    /* Apply the ice prison effect immediately after this attack */
+    perform_clenchofnorthwind(ch, victim);
+  }
+  
   int shattering_strike_bonus = 0;
   if (affected_by_spell(ch, SKILL_SHATTERING_STRIKE))
   {
@@ -10916,6 +11533,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     {
       int keen_strike_bonus = HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4;
       int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch) + keen_strike_bonus;
+      (void)quivering_palm_dc; /* DC computed for future use or debugging */
 
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
@@ -10963,6 +11581,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (affected_by_spell(ch, ABILITY_AFFECT_TRUE_JUDGEMENT))
   {
     int true_judgement_dc = 10 + (CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2) + GET_WIS_BONUS(ch);
+    (void)true_judgement_dc; /* DC computed for future use or debugging */
     if (victim == GET_JUDGEMENT_TARGET(ch))
     {
 
@@ -11007,6 +11626,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     int deatharrow_dc = 10 + CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) +
                         MAX(GET_CHA_BONUS(ch), GET_INT_BONUS(ch));
+    (void)deatharrow_dc; /* DC computed for future use or debugging */
     if (can_fire_ammo(ch, TRUE))
     {
 
@@ -11060,6 +11680,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
     {
       int water_whip_dc = 10 + GET_WIS_BONUS(ch) + (CLASS_LEVEL(ch, CLASS_MONK) / 2);
+      (void)water_whip_dc; /* DC computed for future use or debugging */
       int water_dam = dice(4, 6);
       int actual_water_dam;
 
@@ -11122,6 +11743,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
     {
       int gong_dc = 10 + GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+      (void)gong_dc; /* DC computed for future use or debugging */
       int sound_dam = dice(4, 6);
       int actual_sound_dam;
 
@@ -11393,6 +12015,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     if (sneakdam)
     {
+      /* Set flag for Raging Defender perk */
+      HIT_BY_SNEAK_ATTACK(victim) = TRUE;
+      
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
@@ -11413,6 +12038,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_BLEEDING_ATTACK) && !AFF_FLAGGED(victim, AFF_BLEED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
+        (void)dc; /* DC computed for future use or debugging */
         int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
@@ -11438,6 +12064,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_CRIPPLING_STRIKE) && !AFF_FLAGGED(victim, AFF_CRIPPLED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
+        (void)dc; /* DC computed for future use or debugging */
         int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
@@ -11466,6 +12093,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         if (rand_number(1, 100) <= 5)
         {
           int dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+          (void)dc; /* DC computed for future use or debugging */
           int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL);
           
           if (save_result == FALSE)
@@ -11543,6 +12171,70 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   dam += crushing_blow_bonus; /* monk crushing blow +4d6 damage */
   dam += void_strike_bonus; /* monk void strike +8d6 force damage */
   dam += shattering_strike_bonus; /* monk shattering strike +8d8 damage */
+
+  /* Beast Master perk damage bonuses */
+  if (!IS_NPC(ch) && IS_NPC(victim))
+  {
+    struct char_data *companion = NULL;
+    struct follow_type *fol;
+
+    /* Check if this is a companion attacking on behalf of its ranger master */
+    if (ch->master && !IS_NPC(ch->master))
+    {
+      /* Primal Avatar: +3d6 damage for the companion */
+      if (HAS_FEAT(ch->master, PERK_RANGER_PRIMAL_AVATAR))
+      {
+        int primal_damage = dice(get_primal_avatar_damage(ch->master), 6);
+        dam += primal_damage;
+        if (!PRF_FLAGGED(ch->master, PRF_CONDENSED))
+          send_to_char(ch->master, "\tW[PRIMAL-AVATAR +%dd6]\tn ", get_primal_avatar_damage(ch->master));
+      }
+
+      /* Coordinated Attack: +2d4 when both companion and ranger attack same target */
+      if (HAS_FEAT(ch->master, PERK_RANGER_COORDINATED_ATTACK) && FIGHTING(ch->master) == victim)
+      {
+        int coordinated_damage = dice(get_coordinated_attack_damage(ch->master), 4);
+        dam += coordinated_damage;
+        if (!PRF_FLAGGED(ch->master, PRF_CONDENSED))
+          send_to_char(ch->master, "\tW[COORDINATED-ATTACK +%dd4]\tn ", get_coordinated_attack_damage(ch->master));
+      }
+
+      /* Feral Charge: +2d6 on companion's first attack each combat */
+      if (HAS_FEAT(ch->master, PERK_RANGER_FERAL_CHARGE) && !char_has_mud_event(ch, eFERAL_CHARGE_USED))
+      {
+        int feral_damage = dice(2, 6);
+        dam += feral_damage;
+        if (!PRF_FLAGGED(ch->master, PRF_CONDENSED))
+          send_to_char(ch->master, "\tW[FERAL-CHARGE +2d6]\tn ");
+        /* Mark that Feral Charge has been used this combat */
+        attach_mud_event(new_mud_event(eFERAL_CHARGE_USED, ch, NULL), 1);
+      }
+    }
+    /* Check if this is a ranger with a companion, and the companion is attacking the same target */
+    else if (!IS_NPC(ch))
+    {
+      for (fol = ch->followers; fol; fol = fol->next)
+      {
+        if (IS_NPC(fol->follower) && 
+            MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && 
+            AFF_FLAGGED(fol->follower, AFF_CHARM) &&
+            FIGHTING(fol->follower) == victim)
+        {
+          companion = fol->follower;
+          break;
+        }
+      }
+
+      /* Coordinated Attack: +2d4 when both ranger and companion attack same target */
+      if (companion && HAS_FEAT(ch, PERK_RANGER_COORDINATED_ATTACK))
+      {
+        int coordinated_damage = dice(get_coordinated_attack_damage(ch), 4);
+        dam += coordinated_damage;
+        if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+          send_to_char(ch, "\tW[COORDINATED-ATTACK +%dd4]\tn ", get_coordinated_attack_damage(ch));
+      }
+    }
+  }
 
   /* This comes after computing the other damage since sneak attack damage
    * is not affected by crit multipliers. */
@@ -11660,6 +12352,44 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* So do damage! (We aren't trelux, so do it normally) */
       if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
+
+      /* Blinding Smite: Blind target on smite evil hits */
+      if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_paladin_blinding_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_EVIL) && IS_EVIL(victim) && can_blind(victim))
+      {
+        int pal_level = CLASS_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+        
+        if (!savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, pal_level, NOSCHOOL))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SPELL_BLINDNESS;
+          af.duration = 2; /* 2 rounds */
+          SET_BIT_AR(af.bitvector, AFF_BLIND);
+          affect_to_char(victim, &af);
+          
+          act("\tWYour righteous strike blinds $N with holy radiance!\tn", FALSE, ch, 0, victim, TO_CHAR);
+          act("\tW$n's smite blinds you with holy radiance!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+          act("\tW$n's smite blinds $N with holy radiance!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+      }
+
+      /* Overwhelming Smite: Knock prone on critical smite evil hits */
+      if (!victim_is_dead && dam > 0 && is_critical && !IS_NPC(ch) && has_paladin_overwhelming_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_EVIL) && IS_EVIL(victim))
+      {
+        int pal_level = CLASS_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+        
+        if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, pal_level, NOSCHOOL))
+        {
+          if (perform_knockdown(ch, victim, SKILL_SMITE_EVIL, false, true))
+          {
+            act("\tWYour devastating smite knocks $N to the ground!\tn", FALSE, ch, 0, victim, TO_CHAR);
+            act("\tW$n's devastating smite knocks you to the ground!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+            act("\tW$n's devastating smite knocks $N to the ground!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+          }
+        }
+      }
 
       if (AFF_FLAGGED(ch, AFF_CHARGING))
       { /* only a single strike */
@@ -12499,11 +13229,64 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     if (HAS_FEAT(ch, FEAT_CENSORING_CRITICAL))
       mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, ABILITY_CENSORING_CRITICAL, SAVING_WILL, CAST_INNATE, 0);
 
+    /* Crippling Blow - Berserker Primal Warrior perk */
+    int crippling_chance = get_berserker_crippling_blow_chance(ch);
+    if (crippling_chance > 0 && !IS_IMMUNE_CRITS(ch, victim))
+    {
+      /* Roll for chance to apply slow */
+      if (rand_number(1, 100) <= crippling_chance)
+      {
+        /* Apply slow effect for 3 rounds - no save */
+        struct affected_type af = {0};
+        new_affect(&af);
+        af.spell = PERK_BERSERKER_CRIPPLING_BLOW;
+        af.duration = 3;
+        SET_BIT_AR(af.bitvector, AFF_SLOW);
+        affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+        act("\tR[\tDCRIPPLING BLOW\tR]\tn $n's devastating strike cripples your movement!", 
+            FALSE, ch, 0, victim, TO_VICT);
+        act("\tR[\tDCRIPPLING BLOW\tR]\tn Your critical strike cripples $N's movement!", 
+            FALSE, ch, 0, victim, TO_CHAR);
+        act("\tR[\tDCRIPPLING BLOW\tR]\tn $n's critical strike cripples $N!", 
+            FALSE, ch, 0, victim, TO_NOTVICT);
+      }
+    }
+
     /* perform teamwork feats */
     if (is_flanked(ch, victim))
       teamwork_attacks_of_opportunity(victim, 0, FEAT_OUTFLANK);
     if (teamwork_using_shield(ch, FEAT_SEIZE_THE_MOMENT))
       teamwork_attacks_of_opportunity(victim, 0, FEAT_SEIZE_THE_MOMENT);
+  }
+
+  /* Stunning Blow - Berserker Primal Warrior perk (triggers on any successful hit after rage) */
+  if (AFF_FLAGGED(ch, AFF_NEXTATTACK_STUN) && can_hit > 0)
+  {
+    /* Remove the flag */
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_NEXTATTACK_STUN);
+    
+    /* Target makes Fortitude save or is stunned for 2 rounds */
+    int dc = 10 + GET_LEVEL(ch) + GET_STR_BONUS(ch);
+    if (!savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BERSERKER_STUNNING_BLOW;
+      af.duration = 2;
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      
+      act("\tY[\tRSTUNNING BLOW\tY]\tn $n's overwhelming attack \tYSTUNS\tn you!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      act("\tY[\tRSTUNNING BLOW\tY]\tn Your overwhelming attack \tYSTUNS\tn $N!", 
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("\tY[\tRSTUNNING BLOW\tY]\tn $n's overwhelming attack \tYSTUNS\tn $N!", 
+          FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+    else
+    {
+      act("$N resists your stunning blow!", FALSE, ch, 0, victim, TO_CHAR);
+    }
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger
@@ -12560,6 +13343,27 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
           }
         }
       }
+    }
+  }
+  
+  /* Overwhelming Force - power attack stagger chance */
+  if (!IS_NPC(ch) && has_berserker_overwhelming_force(ch) && 
+      AFF_FLAGGED(ch, AFF_POWER_ATTACK) && dam > 0 && victim && !DEAD(victim))
+  {
+    if (dice(1, 100) <= 15) /* 15% chance */
+    {
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = STATUS_AFFECT_STAGGERED;
+      af.location = APPLY_SPECIAL;
+      af.duration = 2;
+      af.modifier = 1;
+      SET_BIT_AR(af.bitvector, AFF_STAGGERED);
+      affect_to_char(victim, &af);
+      
+      act("\tRYour overwhelming power attack staggers $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
+      act("\tR$n's overwhelming power attack staggers YOU!\tn", FALSE, ch, 0, victim, TO_VICT);
+      act("\tR$n's overwhelming power attack staggers $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
     }
   }
 
@@ -13025,6 +13829,19 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
           wpn_reload_status = hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
                                   ATTACK_TYPE_RANGED);
 
+          /* Quick Draw: chance to immediately make an extra ranged attack */
+          if (wpn_reload_status != HIT_NEED_RELOAD)
+          {
+            int qd_chance = get_ranger_quick_draw_proc_chance(ch);
+            if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+            {
+              send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+              act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+              /* Extra shot uses the same current penalty to avoid inflating attack bonus */
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_RANGED);
+            }
+          }
+
           if (attacks_at_max_bab > 0)
             attacks_at_max_bab--;
           else
@@ -13376,6 +14193,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
             can_bleed(FIGHTING(ch)) && dice(1, 100) <= 10)
         {
           int bleed_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+          (void)bleed_dc; /* DC computed for future use or debugging */
           if (!savingthrow(ch, FIGHTING(ch), SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
           {
             struct affected_type af;
@@ -13781,10 +14599,16 @@ void handle_cleave(struct char_data *ch)
   send_to_char(ch, "You cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
   act("$n cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
 
-  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+  /* Cleaving Strikes perk reduces penalty by +2 */
+  int cleave_penalty = -4;
+  if (has_berserker_cleaving_strikes(ch))
+    cleave_penalty += get_berserker_cleave_bonus(ch);
+    
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, cleave_penalty, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
   /* Great Cleave - feat or perk */
-  if ((HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || has_perk(ch, PERK_FIGHTER_GREAT_CLEAVE)) && 
+  if ((HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || has_perk(ch, PERK_FIGHTER_GREAT_CLEAVE) ||
+       has_berserker_cleaving_strikes(ch)) && 
       !is_using_ranged_weapon(ch, TRUE))
   {
     send_to_char(ch, "You great cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
@@ -14265,9 +15089,10 @@ void perform_violence(struct char_data *ch, int phase)
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE
 
-    /* handle cleave - now includes Cleaving Strike perk */
+    /* handle cleave - now includes Cleaving Strike perks */
     if (phase == 1 && (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || 
-                       has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE)) && !is_using_ranged_weapon(ch, TRUE))
+                       has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE) || 
+                       has_berserker_cleaving_strikes(ch)) && !is_using_ranged_weapon(ch, TRUE))
       handle_cleave(ch);
   }
   /**/

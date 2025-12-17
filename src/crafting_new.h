@@ -43,8 +43,9 @@
 #define CRAFT_MAT_BRASS                 33
 #define CRAFT_MAT_FLAX                  34
 #define CRAFT_MAT_BONE                  35
+#define CRAFT_MAT_STONE                 36
 
-#define NUM_CRAFT_MATS                  36
+#define NUM_CRAFT_MATS                  37
 // also set in structs.h
 
 #define CRAFT_GROUP_NONE            0
@@ -55,8 +56,9 @@
 #define CRAFT_GROUP_CLOTH           5
 #define CRAFT_GROUP_REFINING        6
 #define CRAFT_GROUP_RESIZING        7
+#define CRAFT_GROUP_STONE           8
 
-#define NUM_CRAFT_GROUPS            8
+#define NUM_CRAFT_GROUPS            9
 // also set in structs.h
 
 #define CRAFT_SKILL_NONE            0
@@ -91,8 +93,25 @@
 #define CRAFT_TYPE_ARMOR            2
 #define CRAFT_TYPE_MISC             3
 #define CRAFT_TYPE_INSTRUMENT       4
+#define CRAFT_TYPE_GOLEM            5
 
-#define NUM_CRAFT_TYPES             5
+#define NUM_CRAFT_TYPES             6
+
+/* Golem Types */
+#define GOLEM_TYPE_NONE             0
+#define GOLEM_TYPE_WOOD             1
+#define GOLEM_TYPE_STONE            2
+#define GOLEM_TYPE_IRON             3
+
+#define NUM_GOLEM_TYPES             4
+
+/* Golem Sizes */
+#define GOLEM_SIZE_SMALL            0
+#define GOLEM_SIZE_MEDIUM           1
+#define GOLEM_SIZE_LARGE            2
+#define GOLEM_SIZE_HUGE             3
+
+#define NUM_GOLEM_SIZES             4
 
 #define CRAFT_JEWELRY_NONE          0
 #define CRAFT_JEWELRY_RING          1
@@ -127,8 +146,9 @@
 #define SCMD_NEWCRAFT_RESIZE        5
 #define SCMD_NEWCRAFT_SUPPLYORDER   6
 #define SCMD_NEWCRAFT_EQUIPMENT     7
+#define SCMD_NEWCRAFT_GOLEM         8
 
-#define NUM_CRAFTING_METHODS        8
+#define NUM_CRAFTING_METHODS        9
 
 // Supply order contract types
 #define SUPPLY_CONTRACT_BASIC       1
@@ -327,6 +347,16 @@ void show_harvesting_tool_needed(struct char_data *ch);
 void newcraft_supplyorder(struct char_data *ch, const char *argument);
 void newcraft_equipment(struct char_data *ch, const char *argument);
 void newcraft_show_tools(struct char_data *ch, const char *argument);
+void newcraft_golem(struct char_data *ch, const char *argument);
+void craft_golem_complete(struct char_data *ch);
+void set_golem_type(struct char_data *ch, const char *arg);
+void set_golem_size(struct char_data *ch, const char *arg);
+void show_current_golem_craft(struct char_data *ch);
+void reset_current_golem_craft(struct char_data *ch);
+int get_golem_base_dc(int golem_type, int golem_size);
+int get_golem_material_requirements(int golem_type, int golem_size, int *material_types, int *material_amounts);
+int get_golem_mote_requirements(int golem_type, int golem_size, int *mote_types, int *mote_amounts);
+bool begin_golem_craft(struct char_data *ch);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);
@@ -350,5 +380,16 @@ bool has_quartermaster_in_room(struct char_data *ch);
 int get_required_crafting_station(int skill);
 const char *get_crafting_station_name(int skill);
 bool has_crafting_station_in_room(struct char_data *ch, int skill);
+
+// Golem-related functions
+void recover_golem_materials(struct char_data *ch, struct char_data *golem, int recovery_percent);
+int get_golem_type_from_vnum(int vnum);
+int get_golem_size_from_vnum(int vnum);
+int get_golem_repair_material_cost(int golem_type, int golem_size);
+int get_golem_repair_dc(int golem_type, int golem_size);
+int get_golem_repair_material_type(int golem_type);
+bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *material_needed, int *material_type);
+int get_golem_type_from_vnum(int vnum);
+int get_golem_size_from_vnum(int vnum);
 
 #endif // NEWCRAFT_H

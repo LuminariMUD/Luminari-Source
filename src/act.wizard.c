@@ -23,6 +23,7 @@
 #include "oasis.h"
 #include "dg_scripts.h"
 #include "shop.h"
+#include "shop.h"
 #include "act.h"
 #include "mysql.h"
 #include "copyover_diagnostic.h"
@@ -37,6 +38,7 @@
 #include "house.h"
 #include "modify.h"
 #include "quest.h"
+#include "spell_prep.h"
 #include "ban.h"
 #include "screen.h"
 #include "mud_event.h"
@@ -67,12 +69,15 @@
 #include "backgrounds.h"
 #include "terrain_bridge.h"
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
+#include "genshp.h"
+#include "treasure.h"
 
 /* External variables and functions */
 extern MYSQL *conn;
 extern struct descriptor_data *descriptor_list;
 extern struct terrain_api_server *terrain_api;
 void load_account_unlocks(struct account_data *account);
+int outfit_type_to_armor_type(int type, int wear);
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -996,7 +1001,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tCCrntClass:\tn %s  ", CLSLIST_NAME(GET_CLASS(k)));
-  send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%d\tC]  "
+  send_to_char(ch, "\tCLvl: [\tn%d\tC]  XP: [\tn%ld\tC]  "
                    "Algn: [\tn%s(%d)\tC]\tn\r\n",
                GET_LEVEL(k), GET_EXP(k),
                get_align_by_num(GET_ALIGNMENT(k)), GET_ALIGNMENT(k));
@@ -3470,7 +3475,7 @@ ACMD(do_show)
     }
     send_to_char(ch, "Player: %-12s (%s) [%2d %s %s]\r\n", GET_NAME(vict),
                  genders[(int)GET_SEX(vict)], GET_LEVEL(vict), CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int)GET_RACE(vict)].abbrev_color);
-    send_to_char(ch, "Au: %-8d  Bal: %-8d  Exp: %-8d  Align: %-5d  Lessons: %-3d\r\n",
+    send_to_char(ch, "Au: %-8d  Bal: %-8d  Exp: %-8ld  Align: %-5d  Lessons: %-3d\r\n",
                  GET_GOLD(vict), GET_BANK_GOLD(vict), GET_EXP(vict),
                  GET_ALIGNMENT(vict), GET_PRACTICES(vict));
 
@@ -3764,6 +3769,228 @@ ACMD(do_show)
   }
 }
 
+/* The shoplist command - lists all shops with zone, room, and keeper info */
+ACMD(do_shoplist)
+{
+  int shop_nr, room_idx;
+  room_rnum room_rnum_val;
+  zone_rnum zone_idx = NOWHERE;
+  char keeper_name[MAX_STRING_LENGTH];
+  char room_name[MAX_STRING_LENGTH];
+  char zone_name[MAX_STRING_LENGTH];
+  int shop_count = 0;
+
+  send_to_char(ch, "\tcShop Listing\tn\r\n");
+  send_to_char(ch, "%-6s %-6s %-24s %-6s %-24s %-6s %-20s\r\n", "Shop#", "Zone#", "Zone", "Room#", "Room", "Mob#", "Shopkeeper");
+  send_to_char(ch, "------------------------------------------------------------------------------------------------------------\r\n");
+
+  for (shop_nr = 0; shop_nr <= top_shop; shop_nr++)
+  {
+    /* Get the first room for this shop */
+    room_idx = 0;
+    room_rnum_val = real_room(SHOP_ROOM(shop_nr, room_idx));
+    
+    if (room_rnum_val == NOWHERE)
+    {
+      strlcpy(zone_name, "Unknown", sizeof(zone_name));
+      strlcpy(room_name, "Unknown Room", sizeof(room_name));
+    }
+    else
+    {
+      /* Get zone information */
+      zone_idx = world[room_rnum_val].zone;
+      if (zone_idx >= 0 && zone_idx <= top_of_zone_table)
+        snprintf(zone_name, sizeof(zone_name), "%.24s", zone_table[zone_idx].name);
+      else
+        strlcpy(zone_name, "Unknown Zone", sizeof(zone_name));
+      
+      /* Get room name */
+      snprintf(room_name, sizeof(room_name), "%.24s", world[room_rnum_val].name);
+    }
+
+    /* Get shopkeeper name */
+    if (SHOP_KEEPER(shop_nr) == NOBODY)
+    {
+      strlcpy(keeper_name, "<None>", sizeof(keeper_name));
+    }
+    else
+    {
+      /* Use the mob prototype name directly instead of loading a mob */
+      if (SHOP_KEEPER(shop_nr) >= 0 && SHOP_KEEPER(shop_nr) <= top_of_mobt)
+      {
+        snprintf(keeper_name, sizeof(keeper_name), "%.20s", 
+                 mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr);
+      }
+      else
+      {
+        strlcpy(keeper_name, "<Invalid>", sizeof(keeper_name));
+      }
+    }
+
+    send_to_char(ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", 
+                 SHOP_NUM(shop_nr),
+                 (zone_idx >= 0 && zone_idx <= top_of_zone_table) ? zone_table[zone_idx].number : -1,
+                 zone_name, 
+                 SHOP_ROOM(shop_nr, room_idx),
+                 room_name,
+                 SHOP_KEEPER(shop_nr) == NOBODY ? -1 : mob_index[SHOP_KEEPER(shop_nr)].vnum,
+                 keeper_name);
+    shop_count++;
+  }
+
+  send_to_char(ch, "------------------------------------------------------------------------------------------------------------\r\n");
+  send_to_char(ch, "Total shops: %d\r\n", shop_count);
+}
+
+/* The shopstat command - detailed info for a specific shop vnum */
+ACMD(do_shopstat)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int vnum;
+  int shop_nr;
+  int i;
+  char line[MAX_STRING_LENGTH] = {'\0'};
+  
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg || !is_number(arg)) {
+    send_to_char(ch, "Usage: shopstat <shop_vnum>\r\n");
+    return;
+  }
+  vnum = atoi(arg);
+  shop_nr = real_shop(vnum);
+  if (shop_nr < 0 || shop_nr > top_shop) {
+    send_to_char(ch, "Shop vnum %d not found.\r\n", vnum);
+    return;
+  }
+
+  /* Header */
+  send_to_char(ch, "\tcShop Stats for VNUM %d\tn\r\n", vnum);
+
+  /* Shopkeeper */
+  if (SHOP_KEEPER(shop_nr) != NOBODY) {
+    int mob_vnum = mob_index[SHOP_KEEPER(shop_nr)].vnum;
+    const char *mob_name = mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr;
+    send_to_char(ch, "Keeper: %d - %s\r\n", mob_vnum, mob_name);
+  } else {
+    send_to_char(ch, "Keeper: <None>\r\n");
+  }
+
+  /* Times */
+  send_to_char(ch, "Hours: open1=%d close1=%d open2=%d close2=%d\r\n",
+               SHOP_OPEN1(shop_nr), SHOP_CLOSE1(shop_nr), SHOP_OPEN2(shop_nr), SHOP_CLOSE2(shop_nr));
+
+  /* Rates */
+  send_to_char(ch, "Rates: sell=%.0f%% buy=%.0f%%\r\n",
+               SHOP_SELLPROFIT(shop_nr) * 100.0, SHOP_BUYPROFIT(shop_nr) * 100.0);
+
+  /* No-trade flags and shop flags */
+  {
+    /* Build notrade string locally to avoid calling static shop.c function */
+    char ntbuf[MAX_STRING_LENGTH] = {'\0'};
+    size_t nlen = 0;
+    int flags = SHOP_TRADE_WITH(shop_nr);
+    const char *sep = "";
+    if (IS_SET(flags, TRADE_NOGOOD)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoGood", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOEVIL)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoEvil", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NONEUTRAL)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoNeutral", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOWIZARD)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoWizard", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOCLERIC)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoCleric", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOROGUE)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoRogue", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (IS_SET(flags, TRADE_NOWARRIOR)) { strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen); nlen = strlen(ntbuf); strlcpy(ntbuf + nlen, "NoWarrior", sizeof(ntbuf) - nlen); sep = ", "; nlen = strlen(ntbuf);} 
+    if (!*ntbuf) strlcpy(ntbuf, "None", sizeof(ntbuf));
+    send_to_char(ch, "NoTrade: %s\r\n", ntbuf);
+  }
+  sprintbit(SHOP_BITVECTOR(shop_nr), shop_bits, line, sizeof(line));
+  send_to_char(ch, "Flags: %s\r\n", line);
+
+  /* Rooms */
+  send_to_char(ch, "Rooms:\r\n");
+  for (i = 0; SHOP_ROOM(shop_nr, i) != NOWHERE; i++) {
+    room_vnum rvn = SHOP_ROOM(shop_nr, i);
+    room_rnum rrn = real_room(rvn);
+    const char *rname = (rrn != NOWHERE) ? world[rrn].name : "<Unknown Room>";
+    int znum = (rrn != NOWHERE) ? zone_table[world[rrn].zone].number : -1;
+    const char *zname = (rrn != NOWHERE) ? zone_table[world[rrn].zone].name : "<Unknown Zone>";
+    send_to_char(ch, "  %d: %d - %s | Zone %d - %s\r\n", i + 1, rvn, rname, znum, zname);
+  }
+
+  /* Products */
+  send_to_char(ch, "Products:\r\n");
+  send_to_char(ch, "  %-3s %-6s %-40s %-20s %-30s %-3s %-40s\r\n", "#", "Vnum", "Name", "Type", "Wear", "Lvl", "Bonuses");
+  send_to_char(ch, "  %s\r\n", "-------------------------------------------------------------------------------------------------------------------------------");
+  for (i = 0; SHOP_PRODUCT(shop_nr, i) != NOTHING; i++) {
+    obj_rnum orn = SHOP_PRODUCT(shop_nr, i);
+    if (orn < 0 || orn > top_of_objt) {
+      send_to_char(ch, "  %-3d <Invalid rnum %d>\r\n", i + 1, orn);
+      continue;
+    }
+    obj_vnum ovn = obj_index[orn].vnum;
+    struct obj_data *obj = &obj_proto[orn];
+    /* Wear flags */
+    char wearstr[32];
+    sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, line);
+    snprintf(wearstr, sizeof(wearstr), "%.30s", line);
+    /* Object name */
+    char objname[42];
+    char objname_tmp[MAX_STRING_LENGTH];
+    strlcpy(objname_tmp, obj->short_description ? obj->short_description : "<unnamed>", sizeof(objname_tmp));
+    strip_colors(objname_tmp);
+    snprintf(objname, sizeof(objname), "%.40s", objname_tmp);
+    /* Weapon/Armor type */
+    char typestr[22] = "";
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) {
+      int widx = GET_OBJ_VAL(obj, 0);
+      if (widx >= 0 && widx < NUM_WEAPON_TYPES) {
+        snprintf(typestr, sizeof(typestr), "%.20s", weapon_list[widx].name);
+      }
+    } else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+      /* Only show armor type for head, body, arms, legs, shield */
+      if (CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) || 
+          CAN_WEAR(obj, ITEM_WEAR_ARMS) || CAN_WEAR(obj, ITEM_WEAR_LEGS) || 
+          CAN_WEAR(obj, ITEM_WEAR_SHIELD)) {
+        int aidx = GET_OBJ_VAL(obj, 1);
+        if (aidx >= 0 && aidx < NUM_SPEC_ARMOR_TYPES) {
+          snprintf(typestr, sizeof(typestr), "%.20s", armor_list[aidx].name);
+        }
+      }
+    }
+    /* Level */
+    /* Level */
+    int objlevel = GET_OBJ_LEVEL(obj);
+    /* Bonuses */
+    char bonusbuf[MAX_STRING_LENGTH] = {'\0'};
+    size_t blen = 0;
+    int j;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++) {
+      if (obj->affected[j].location) {
+        char tmp[64];
+        snprintf(tmp, sizeof(tmp), "%s %+d ", apply_types[obj->affected[j].location], obj->affected[j].modifier);
+        size_t tlen = strlen(tmp);
+        if (blen + tlen < sizeof(bonusbuf)) {
+          strcpy(bonusbuf + blen, tmp);
+          blen += tlen;
+        }
+      }
+    }
+    if (blen == 0)
+      strlcpy(bonusbuf, "None", sizeof(bonusbuf));
+    /* Truncate bonuses if too long */
+    char bonusstr[52];
+    snprintf(bonusstr, sizeof(bonusstr), "%.50s", bonusbuf);
+
+    send_to_char(ch, "  %-3d %-6d %-40s %-20s %-30s %-3d %-40s\r\n",
+                 i + 1, ovn, objname, typestr, wearstr, objlevel, bonusstr);
+  }
+
+  /* Accepted types */
+  send_to_char(ch, "Accepted Types:\r\n");
+  for (i = 0; BUY_TYPE(shop_index[shop_nr].type[i]) != NOTHING; i++) {
+    int atype = BUY_TYPE(shop_index[shop_nr].type[i]);
+    const char *akey = BUY_WORD(shop_index[shop_nr].type[i]) ? BUY_WORD(shop_index[shop_nr].type[i]) : "";
+    send_to_char(ch, "  - %s%s%s\r\n", item_types[atype], *akey ? " (" : "", *akey ? akey : "");
+  }
+}
+
 /* The do_set function */
 
 #define PC 1
@@ -3901,6 +4128,7 @@ const struct set_struct
     {"shortdesc", LVL_STAFF, PC, MISC},         /* 104 */
     {"necromancer", LVL_IMPL, PC, NUMBER},      /* 105 */
     {"background", LVL_STAFF, PC, MISC},        /* 106 */
+    {"arcanemark", LVL_STAFF, PC, MISC},        /* 107 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -4691,7 +4919,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
 #if defined(CAMPAIGN_DL)
   send_to_char(ch, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
 #else      
+#if defined(CAMPAIGN_FR)
       send_to_char(ch, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#else
+      send_to_char(ch, "\r\nRegion Selection (select %d for default if you do not know what to pick): ", REGION_NONE);
+#endif
 #endif
     }
     else
@@ -4757,6 +4989,27 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_BACKGROUND(vict) = i;
     send_to_char(ch, "You've changed %s's background archytype to %s.\r\n", GET_NAME(vict), background_list[i].name);
     send_to_char(vict, "%s has changed your background archytype to %s.\r\n", CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone", background_list[i].name);
+    break;
+
+  case 107: /* arcanemark */
+    if (!*val_arg)
+    {
+      send_to_char(ch, "Please specify 'reset' to reset a player's arcane mark.\r\n");
+      return (0);
+    }
+    if (is_abbrev(val_arg, "reset"))
+    {
+      if (GET_ARCANE_MARK(vict))
+        free(GET_ARCANE_MARK(vict));
+      GET_ARCANE_MARK(vict) = NULL;
+      send_to_char(ch, "You have reset %s's arcane mark.\r\n", GET_NAME(vict));
+      send_to_char(vict, "%s has reset your arcane mark.\r\n", CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone");
+    }
+    else
+    {
+      send_to_char(ch, "Please specify 'reset' to reset a player's arcane mark.\r\n");
+      return (0);
+    }
     break;
 
 
@@ -5363,7 +5616,7 @@ ACMD(do_zcheck)
 
       if (GET_EXP(mob) > MAX_EXP_ALLOWED && (found = 1))
         len += snprintf(buf + len, sizeof(buf) - len,
-                        "- Has %d experience (limit: %d)\r\n",
+                        "- Has %ld experience (limit: %d)\r\n",
                         GET_EXP(mob), MAX_EXP_ALLOWED);
       if ((AFF_FLAGGED(mob, AFF_CHARM) || AFF_FLAGGED(mob, AFF_POISON)) && (found = 1))
         len += snprintf(buf + len, sizeof(buf) - len,
@@ -6783,10 +7036,10 @@ ACMD(do_ai)
       if (is_ai_enabled()) {
         /* OpenAI is enabled - show OpenAI details */
         send_to_char(ch, "  Primary Model: %s (OpenAI)\r\n", ai_state.config->model);
-        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", ai_state.config->ollama_model);
       } else {
         /* OpenAI is disabled - show Ollama as primary */
-        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", ai_state.config->ollama_model);
         send_to_char(ch, "  Fallback: Generic responses\r\n");
       }
       send_to_char(ch, "  Cache Size: %d entries\r\n", get_cache_size());
@@ -11590,6 +11843,831 @@ ACMD(do_terrainapi)
   else {
     send_to_char(ch, "Usage: terrainapi <start|stop|status|stats>\r\n");
   }
+}
+
+/**
+ * @brief Staff command to set another character's race and classes with accompanying feats
+ * 
+ * Syntax: setrace <character> race <race_name> classes <class1>:<level1> [class2>:<level2>...]
+ * Example: setrace player1 race human classes wizard:20 cleric:15
+ *          setrace player2 race dwarf classes warrior:25
+ * 
+ * This command allows staff to:
+ * - Set a character's race with appropriate racial feats
+ * - Set one or more classes with individual levels
+ * - Advance overall character level if needed
+ * - Automatically assign class feats for each level
+ * - Set class skills to appropriate levels
+ * - Automatically recalculate HP, MV, and PSP
+ * 
+ * @param ch The staff member executing the command
+ * @param argument The command arguments
+ * @param cmd The command number
+ * @param subcmd The subcommand number
+ */
+ACMD(do_settestchar)
+{
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char class_str[MAX_INPUT_LENGTH] = {'\0'};
+  char *colon_pos = NULL;
+  int race_num = RACE_UNDEFINED;
+  int class_list_tmp[3]; /* Max 3 classes */
+  int class_levels_tmp[3];
+  int num_classes = 0;
+  int i = 0, j = 0;
+  int overall_level = 0;
+  int skill_index = 0;
+  struct race_feat_assign *race_feat = NULL;
+  struct class_feat_assign *class_feat = NULL;
+
+  if (GET_LEVEL(ch) < LVL_GRSTAFF)
+  {
+    send_to_char(ch, "You must be Greater Staff or higher to use this command.\r\n");
+    return;
+  }
+
+  /* Parse: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>] */
+  half_chop_c((char *)argument, arg, sizeof(arg), buf, sizeof(buf));
+  
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    send_to_char(ch, "Example: settestchar player1 race human classes wizard:20 cleric:15\r\n");
+    send_to_char(ch, "Note: Max 3 classes. Overall level = sum of class levels (capped at 30).\r\n");
+    return;
+  }
+
+  /* Find the target character */
+  if (!(vict = get_player_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "There is no such player.\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
+  {
+    send_to_char(ch, "You cannot set the race/classes of someone your level or higher.\r\n");
+    return;
+  }
+
+  /* Next should be 'race' keyword */
+  half_chop(buf, arg, buf);
+  if (!is_abbrev(arg, "race"))
+  {
+    send_to_char(ch, "You must specify 'race' as the next parameter.\r\n");
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    return;
+  }
+
+  /* Get race name */
+  half_chop(buf, arg, buf);
+  if (!*arg)
+  {
+    send_to_char(ch, "You must specify a race name.\r\n");
+    return;
+  }
+
+  /* Parse the race */
+  race_num = parse_race_long(arg);
+  if (race_num < 0 || race_num >= NUM_EXTENDED_RACES)
+  {
+    send_to_char(ch, "Unknown race '%s'.\r\n", arg);
+    return;
+  }
+
+  /* Next should be 'classes' keyword */
+  half_chop(buf, arg, buf);
+  if (!is_abbrev(arg, "classes"))
+  {
+    send_to_char(ch, "You must specify 'classes' as the next parameter.\r\n");
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    return;
+  }
+
+  /* Parse up to 3 classes with optional levels */
+  while (*buf && num_classes < 3)
+  {
+    half_chop(buf, arg, buf);
+    if (!*arg)
+      break;
+
+    strncpy(class_str, arg, sizeof(class_str) - 1);
+    class_str[sizeof(class_str) - 1] = '\0';
+    
+    int class_num = parse_class_long(class_str);
+    if (class_num < 0 || class_num >= NUM_CLASSES)
+    {
+      /* Check for class:level format */
+      colon_pos = strchr(class_str, ':');
+      if (colon_pos)
+      {
+        *colon_pos = '\0';
+        class_num = parse_class_long(class_str);
+      }
+      
+      if (class_num < 0 || class_num >= NUM_CLASSES)
+      {
+        send_to_char(ch, "Unknown class '%s'.\r\n", class_str);
+        return;
+      }
+    }
+    else
+    {
+      /* Check if there's a colon for level specification */
+      colon_pos = strchr(class_str, ':');
+    }
+
+    /* Parse level if specified */
+    int class_level = GET_LEVEL(vict); /* default to character's current level */
+    if (colon_pos)
+    {
+      class_level = atoi(colon_pos + 1);
+    }
+
+    /* Apply per-class level cap */
+    int max_level_for_class = CLSLIST_MAXLVL(class_num);
+    if (class_level > max_level_for_class)
+    {
+      send_to_char(ch, "Level %d exceeds max level %d for class %s.\r\n", 
+                  class_level, max_level_for_class, class_list[class_num].name);
+      return;
+    }
+
+    if (class_level < 1)
+    {
+      send_to_char(ch, "Class level must be at least 1.\r\n");
+      return;
+    }
+
+    class_list_tmp[num_classes] = class_num;
+    class_levels_tmp[num_classes] = class_level;
+    overall_level += class_level;
+    num_classes++;
+  }
+
+  if (num_classes == 0)
+  {
+    send_to_char(ch, "You must specify at least one class.\r\n");
+    send_to_char(ch, "Usage: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>]\r\n");
+    return;
+  }
+
+  /* Cap overall level at 30 */
+  if (overall_level > 30)
+  {
+    send_to_char(ch, "Overall level would be %d, capped at 30.\r\n", overall_level);
+    overall_level = 30;
+  }
+
+  /* ===== BEGIN CHANGES ===== */
+
+  /* Step 1: Clear all existing feats first */
+  for (i = 0; i < FEAT_LAST_FEAT; i++)
+  {
+    SET_FEAT(vict, i, 0);
+  }
+
+  /* Step 2: Set the race */
+  GET_REAL_RACE(vict) = race_num;
+
+  /* Apply racial ability modifiers */
+  for (i = 0; i < NUM_ABILITY_MODS; i++)
+  {
+    switch (i)
+    {
+    case R_STR_MOD:
+      GET_REAL_STR(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_CON_MOD:
+      GET_REAL_CON(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_INTEL_MOD:
+      GET_REAL_INT(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_WIS_MOD:
+      GET_REAL_WIS(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_DEX_MOD:
+      GET_REAL_DEX(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    case R_CHA_MOD:
+      GET_REAL_CHA(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    }
+  }
+
+  /* Step 3: Apply racial feats */
+  if (race_list[race_num].featassign_list != NULL)
+  {
+    for (race_feat = race_list[race_num].featassign_list; race_feat != NULL;
+         race_feat = race_feat->next)
+    {
+      SET_FEAT(vict, race_feat->feat_num, 1);
+    }
+  }
+
+  /* Step 4: Clear and set classes with individual levels */
+  /* Clear all class data first */
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    CLASS_LEVEL(vict, i) = 0;
+  }
+
+  /* Set new classes with their specified levels */
+  for (i = 0; i < num_classes; i++)
+  {
+    int class_num = class_list_tmp[i];
+    int class_level = class_levels_tmp[i];
+    
+    CLASS_LEVEL(vict, class_num) = class_level;
+    
+    /* Initialize class data */
+    init_class(vict, class_num, class_level);
+  }
+
+  /* Step 5: Advance overall level to match sum of classes (already capped at 30) */
+  GET_LEVEL(vict) = overall_level;
+
+  /* Step 5b: Reset spell prep/known and grant baseline access */
+  for (i = 0; i < num_classes; i++)
+  {
+    int class_num = class_list_tmp[i];
+    int class_level = class_levels_tmp[i];
+
+    /* Clear existing spell state so slots/known are fully available */
+    clear_prep_queue_by_class(vict, class_num);
+    clear_collection_by_class(vict, class_num);
+    clear_innate_magic_by_class(vict, class_num);
+    clear_known_spells_by_class(vict, class_num);
+
+    /* For spontaneous casters, grant all spells they can learn up to their class level */
+    switch (class_num)
+    {
+    case CLASS_WARLOCK:
+      /* Warlocks use invocations in a specific range */
+      for (j = WARLOCK_POWER_START; j <= WARLOCK_POWER_END; j++)
+      {
+        known_spells_add(vict, class_num, j, TRUE); /* TRUE skips validation limits */
+      }
+      break;
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+    case CLASS_SUMMONER:
+    case CLASS_INQUISITOR:
+      for (j = 0; j <= TOP_SPELL_DEFINE; j++)
+      {
+        if (spell_info[j].min_level[class_num] > 0 &&
+            spell_info[j].min_level[class_num] < LVL_IMMORT &&
+            spell_info[j].min_level[class_num] <= class_level)
+        {
+          known_spells_add(vict, class_num, j, TRUE); /* TRUE skips validation limits */
+        }
+      }
+      break;
+    default:
+      /* Prep casters: auto-prepare spells to fill available slots by circle */
+      {
+        int circle = 0;
+        for (circle = 0; circle <= TOP_CIRCLE; circle++)
+        {
+          int slots = compute_slots_by_circle(vict, class_num, circle);
+          if (slots <= 0)
+            continue;
+
+          while (count_circle_collection(vict, class_num, circle) < slots)
+          {
+            int picked = 0;
+            struct class_spell_assign *spell_assign = class_list[class_num].spellassign_list;
+
+            /* Prefer class spell assignment list for curated defaults */
+            for (; spell_assign; spell_assign = spell_assign->next)
+            {
+              int s = spell_assign->spell_num;
+              if (spell_assign->level <= class_level &&
+                  spell_info[s].min_level[class_num] > 0 &&
+                  spell_info[s].min_level[class_num] < LVL_IMMORT &&
+                  compute_spells_circle(vict, class_num, s, METAMAGIC_NONE, 0) == circle)
+              {
+                collection_add(vict, class_num, s, METAMAGIC_NONE, 0, 0);
+                picked = 1;
+                break;
+              }
+            }
+
+            /* Fallback: scan spell list if no curated entry fits */
+            if (!picked)
+            {
+              for (j = 0; j <= TOP_SPELL_DEFINE; j++)
+              {
+                if (spell_info[j].min_level[class_num] > 0 &&
+                    spell_info[j].min_level[class_num] < LVL_IMMORT &&
+                    spell_info[j].min_level[class_num] <= class_level &&
+                    compute_spells_circle(vict, class_num, j, METAMAGIC_NONE, 0) == circle)
+                {
+                  collection_add(vict, class_num, j, METAMAGIC_NONE, 0, 0);
+                  picked = 1;
+                  break;
+                }
+              }
+            }
+
+            /* no eligible spell found for this circle */
+            if (!picked)
+              break;
+          }
+        }
+      }
+      break;
+    }
+  }
+
+  /* Step 6: Apply class feats for each class at each level */
+  for (i = 0; i < num_classes; i++)
+  {
+    int class_num = class_list_tmp[i];
+    int char_level = CLASS_LEVEL(vict, class_num);
+
+    if (class_list[class_num].featassign_list != NULL)
+    {
+      for (j = 1; j <= char_level; j++)
+      {
+        for (class_feat = class_list[class_num].featassign_list; class_feat != NULL;
+             class_feat = class_feat->next)
+        {
+          if (class_feat->level_received == j && class_feat->is_classfeat)
+          {
+            SET_FEAT(vict, class_feat->feat_num, 
+                    HAS_FEAT(vict, class_feat->feat_num) + 1);
+          }
+        }
+      }
+    }
+  }
+
+  /* Step 7: Set class skills to appropriate levels */
+  for (skill_index = 0; skill_index < MAX_SKILLS; skill_index++)
+  {
+    /* Check if this is a class skill */
+    if (is_class_skill(vict, skill_index))
+    {
+      /* Set skill to character's overall level */
+      SET_SKILL(vict, skill_index, overall_level);
+    }
+  }
+
+  /* Step 8: Recalculate HP */
+  if (!IS_NPC(vict))
+  {
+    calculate_max_hp(vict, FALSE);
+  }
+  else
+  {
+    GET_MAX_HIT(vict) = overall_level * 10;
+  }
+
+  /* Heal to full */
+  GET_HIT(vict) = GET_MAX_HIT(vict);
+
+  /* Step 9: Set MV and PSP */
+  GET_REAL_MAX_MOVE(vict) = 100 + (overall_level * 5);
+  GET_MOVE(vict) = GET_MAX_MOVE(vict);
+
+  GET_REAL_MAX_PSP(vict) = 10 + (overall_level * 5);
+  GET_PSP(vict) = GET_MAX_PSP(vict);
+
+  /* Step 10: Apply caps */
+  compute_char_cap(vict, 0);
+
+  /* Step 11: Send feedback */
+  snprintf(buf, sizeof(buf), "Race set to %s with classes: ", race_list[race_num].type);
+  for (i = 0; i < num_classes; i++)
+  {
+    if (i > 0)
+      strcat(buf, ", ");
+    char level_str[32];
+    snprintf(level_str, sizeof(level_str), "%s (L%d)", 
+            class_list[class_list_tmp[i]].name,
+            class_levels_tmp[i]);
+    strcat(buf, level_str);
+  }
+
+  send_to_char(ch, "\r\n%s\r\n", buf);
+  send_to_char(ch, "Character overall level: %d\r\n", overall_level);
+  send_to_char(ch, "Racial feats applied: %d\r\n", 
+              race_list[race_num].featassign_list ? 1 : 0);
+  send_to_char(ch, "Class feats applied for all levels.\r\n");
+  send_to_char(ch, "Class skills set to level %d.\r\n", overall_level);
+  send_to_char(ch, "HP: %d, MV: %d, PSP: %d\r\n", 
+              GET_MAX_HIT(vict), GET_MAX_MOVE(vict), GET_MAX_PSP(vict));
+
+  send_to_char(vict, "\r\n\tcStaff has set your race to %s and classes to:\r\n", 
+              race_list[race_num].type);
+  for (i = 0; i < num_classes; i++)
+  {
+    send_to_char(vict, "\tc  - %s (Level %d)\r\n", 
+                class_list[class_list_tmp[i]].name,
+                CLASS_LEVEL(vict, class_list_tmp[i]));
+  }
+  send_to_char(vict, "\tcYour overall level is now %d.\r\n", overall_level);
+  send_to_char(vict, "\tcYour class skills have been set to %d.\r\n", overall_level);
+  send_to_char(vict, "\tcYour stats have been updated.\tn\r\n");
+
+  /* Save the character */
+  if (!IS_NPC(vict))
+    save_char(vict, 0);
+}
+
+/**
+ * @brief Staff command to create basic test gear for a character
+ * @details Generates weapons, armor, shields, and accessories based on
+ *          character proficiencies, level, and size.
+ */
+
+static void set_testkit_obj_strings(struct obj_data *obj, const char *keywords,
+                                    const char *shortdesc, const char *longdesc)
+{
+  if (!obj || !keywords || !shortdesc || !longdesc)
+    return;
+
+  obj->name = strdup(keywords);
+  obj->short_description = strdup(shortdesc);
+  obj->description = strdup(longdesc);
+}
+
+static void set_testkit_obj_strings_fmt(struct obj_data *obj, int bonus,
+                                        const char *keywords,
+                                        const char *short_fmt,
+                                        const char *long_fmt)
+{
+  char shortbuf[MEDIUM_STRING] = {'\0'};
+  char longbuf[MEDIUM_STRING] = {'\0'};
+
+  if (!obj || !keywords || !short_fmt || !long_fmt)
+    return;
+
+  snprintf(shortbuf, sizeof(shortbuf), short_fmt, bonus);
+  snprintf(longbuf, sizeof(longbuf), long_fmt, bonus);
+
+  set_testkit_obj_strings(obj, keywords, shortbuf, longbuf);
+}
+
+static void set_testkit_obj_strings_fmt_armor(struct obj_data *obj, int bonus,
+                                              const char *keywords,
+                                              const char *armor_type,
+                                              const char *short_fmt,
+                                              const char *long_fmt)
+{
+  char shortbuf[MEDIUM_STRING] = {'\0'};
+  char longbuf[MEDIUM_STRING] = {'\0'};
+
+  if (!obj || !keywords || !short_fmt || !long_fmt)
+    return;
+
+  snprintf(shortbuf, sizeof(shortbuf), short_fmt, armor_type, bonus);
+  snprintf(longbuf, sizeof(longbuf), long_fmt, armor_type, bonus);
+
+  set_testkit_obj_strings(obj, keywords, shortbuf, longbuf);
+}
+
+
+#ifndef OUTFIT_WEAPON_PROTO
+  #if defined(CAMPAIGN_DL)
+    #define OUTFIT_WEAPON_PROTO 16856
+    #define OUTFIT_ARMOR_PROTO 16855
+  #else
+    #define OUTFIT_WEAPON_PROTO 211
+    #define OUTFIT_ARMOR_PROTO 212
+  #endif
+#endif
+
+ACMD(do_settestkit)
+{
+  struct char_data *vict = NULL;
+  struct obj_data *obj = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int level = 0, enh_bonus = 0, enh_bonus_ring = 0;
+  int char_size = SIZE_MEDIUM;
+
+  if (GET_LEVEL(ch) < LVL_GRSTAFF)
+  {
+    send_to_char(ch, "You must be Greater Staff or higher to use this command.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: settestkit <character>\r\n");
+    send_to_char(ch, "Creates basic test gear based on proficiencies and level.\r\n");
+    return;
+  }
+
+  /* Find the target character */
+  if (!(vict = get_player_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "There is no such player.\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
+  {
+    send_to_char(ch, "You cannot give test gear to someone your level or higher.\r\n");
+    return;
+  }
+
+  level = GET_LEVEL(vict);
+  enh_bonus = level / 5;
+  enh_bonus_ring = level / 6;
+  char_size = GET_SIZE(vict);
+
+  send_to_char(ch, "Creating test kit for %s (Level %d, Size %s)...\r\n", 
+              GET_NAME(vict), level, size_names[char_size]);
+
+  /* === WEAPONS === */
+  if (HAS_FEAT(vict, FEAT_EXOTIC_WEAPON_PROFICIENCY))
+  {
+    /* Bastard Sword */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_BASTARD_SWORD);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test bastard sword",
+                                  "a test bastard sword +%d",
+                                  "A test bastard sword +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Bastard Sword +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_MARTIAL_WEAPON_PROFICIENCY))
+  {
+    /* Long Sword */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_LONG_SWORD);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test longsword",
+                                  "a test longsword +%d",
+                                  "A test longsword +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Long Sword +%d\r\n", enh_bonus);
+    }
+
+    /* Light Hammer */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_LIGHT_HAMMER);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test light hammer",
+                                  "a test light hammer +%d",
+                                  "A test light hammer +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Light Hammer +%d\r\n", enh_bonus);
+    }
+
+    /* Greatsword */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_GREAT_SWORD);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test greatsword",
+                                  "a test greatsword +%d",
+                                  "A test greatsword +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Greatsword +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_SIMPLE_WEAPON_PROFICIENCY))
+  {
+    /* Dagger */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_DAGGER);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test dagger",
+                                  "a test dagger +%d",
+                                  "A test dagger +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Dagger +%d\r\n", enh_bonus);
+    }
+
+    /* Greatclub */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_GREAT_CLUB);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test greatclub",
+                                  "a test greatclub +%d",
+                                  "A test greatclub +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Greatclub +%d\r\n", enh_bonus);
+    }
+
+    /* Heavy Mace */
+    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    if (obj)
+    {
+      set_weapon_object(obj, WEAPON_TYPE_HEAVY_MACE);
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test heavy mace",
+                                  "a test heavy mace +%d",
+                                  "A test heavy mace +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Heavy Mace +%d\r\n", enh_bonus);
+    }
+  }
+
+  /* === ARMOR === */
+  int armor_type = SPEC_ARMOR_TYPE_CLOTHING;
+  const char *armor_name = "clothing";
+  
+  if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_HEAVY))
+  {
+    armor_type = SPEC_ARMOR_TYPE_FULL_PLATE;
+    armor_name = "full plate";
+  }
+  else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+  {
+    armor_type = SPEC_ARMOR_TYPE_CHAINMAIL;
+    armor_name = "chainmail";
+  }
+  else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_LIGHT))
+  {
+    armor_type = SPEC_ARMOR_TYPE_LEATHER;
+    armor_name = "leather armor";
+  }
+
+  /* Body Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char body_keywords[64] = {'\0'};
+    snprintf(body_keywords, sizeof(body_keywords), "test %s", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_BODY));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      body_keywords,
+                                      armor_name,
+                                      "test %s +%d",
+                                      "A suit of test %s +%d has been left here.");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (body) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* Arm Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char arm_keywords[64] = {'\0'};
+    snprintf(arm_keywords, sizeof(arm_keywords), "test %s armguards", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_ARMS));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      arm_keywords,
+                                      armor_name,
+                                      "test %s armguards +%d",
+                                      "Test %s armguards +%d have been left here.\r\n");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (arms) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* Leg Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char leg_keywords[64] = {'\0'};
+    snprintf(leg_keywords, sizeof(leg_keywords), "test %s leggings", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_LEGS));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      leg_keywords,
+                                      armor_name,
+                                      "test %s leggings +%d",
+                                      "Test %s leggings +%d have been left here.\r\n");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (legs) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* Head Armor */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    char head_keywords[64] = {'\0'};
+    snprintf(head_keywords, sizeof(head_keywords), "test %s helm", armor_name);
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_HEAD));
+    GET_OBJ_VAL(obj, 4) = enh_bonus;
+    set_testkit_obj_strings_fmt_armor(obj, enh_bonus,
+                                      head_keywords,
+                                      armor_name,
+                                      "test %s helm +%d",
+                                      "A test %s helm +%d rests here.\r\n");
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - %s (head) +%d\r\n", armor_name, enh_bonus);
+  }
+
+  /* === SHIELD === */
+  if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
+  {
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_TOWER_SHIELD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test tower shield",
+                                  "a test tower shield +%d",
+                                  "A test tower shield +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Tower Shield +%d\r\n", enh_bonus);
+    }
+  }
+  else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_SHIELD))
+  {
+    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    if (obj)
+    {
+      GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+      GET_OBJ_VAL(obj, 0) = SPEC_ARMOR_TYPE_LARGE_SHIELD;
+      GET_OBJ_VAL(obj, 4) = enh_bonus;
+      SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD);
+      set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                  "test large shield",
+                                  "a test large shield +%d",
+                                  "A test large shield +%d rests here.");
+      resize_obj_to_char(obj, vict);
+      send_to_char(ch, "  - Large Shield +%d\r\n", enh_bonus);
+    }
+  }
+
+  /* === AMULET (All stats +level/5) === */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    GET_OBJ_TYPE(obj) = ITEM_WORN;
+    SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_NECK);
+    set_testkit_obj_strings_fmt(obj, enh_bonus,
+                                "test amulet",
+                                "a test amulet +%d (all stats)",
+                                "A test amulet +%d (all stats) gleams here.");
+    obj->affected[0].location = APPLY_STR;
+    obj->affected[0].modifier = enh_bonus;
+    obj->affected[1].location = APPLY_DEX;
+    obj->affected[1].modifier = enh_bonus;
+    obj->affected[2].location = APPLY_CON;
+    obj->affected[2].modifier = enh_bonus;
+    obj->affected[3].location = APPLY_INT;
+    obj->affected[3].modifier = enh_bonus;
+    obj->affected[4].location = APPLY_WIS;
+    obj->affected[4].modifier = enh_bonus;
+    obj->affected[5].location = APPLY_CHA;
+    obj->affected[5].modifier = enh_bonus;
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - Amulet +%d all stats\r\n", enh_bonus);
+  }
+
+  /* === RING (hitroll, damroll, dodge AC +level/6) === */
+  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  if (obj)
+  {
+    GET_OBJ_TYPE(obj) = ITEM_WORN;
+    SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FINGER);
+    set_testkit_obj_strings_fmt(obj, enh_bonus_ring,
+                                "test ring",
+                                "a test ring +%d (hit/dam/AC)",
+                                "A test ring +%d (hit/dam/AC) glitters here.");
+    obj->affected[0].location = APPLY_HITROLL;
+    obj->affected[0].modifier = enh_bonus_ring;
+    obj->affected[1].location = APPLY_DAMROLL;
+    obj->affected[1].modifier = enh_bonus_ring;
+    obj->affected[2].location = APPLY_AC_NEW;
+    obj->affected[2].modifier = enh_bonus_ring;
+    resize_obj_to_char(obj, vict);
+    send_to_char(ch, "  - Ring +%d hit/dam/AC\r\n", enh_bonus_ring);
+  }
+
+  send_to_char(ch, "Test kit complete!\r\n");
+  send_to_char(vict, "\r\n\tcStaff has given you a test kit of gear!\tn\r\n");
+
+  /* Save the character */
+  if (!IS_NPC(vict))
+    save_char(vict, 0);
 }
 
 /* EOF */

@@ -71,12 +71,12 @@ const char *carriage_locales_dl[][CARRIAGE_LOCALES_FIELDS] = {
 /* continent name, ship dock room vnum, Cost in gold, faction name,
      contintent description, map coord x, map coord y */
 const char *sailing_locales_dl[][SAILING_LOCALES_FIELDS] = {
-    {"palanthas dock", "2459", "50", "Any", "Palanthas, Jewel of Solamnia, is the city of the Solamnic Knights & Forces of Whitestone", "1075", "2525"},
-    {"caergoth dock / northern new sea", "4430", "50", "Any", "Caergoth is a city in Western Solamnia and its greatest port besides Palanthas.", "2210", "2260"},
-    {"abanasinia / southern new sea", "4429", "50", "Any", "Abanasinia is a temperate-climed land of many different peoples, cultures and races.", "2430", "2660"},
-    {"sanction dock", "6500", "50", "Any", "Sanction is the economic center of the Dragonarmies of Takhisis, and the home to many evil races and sects.", "2020", "3765"},
-    {"bethel island", "9201", "50", "Any", "Bethel Island is a small island in the Bay of Branchala north of Palanthas", "975", "2530"},
-    {"eastern abanasinia", "2966", "50", "Any", "A travelers dock commonly used for trade in eastern Abanasinia.", "2830", "2570"},
+    {"palanthas dock", "2459", "50", "Any", "Home of the Solamnic Knights & Forces of Whitestone.", "1075", "2525"},
+    {"caergoth / northern new sea", "4430", "50", "Any", "Western Solamnia and a ferry across the New Sea.", "2210", "2260"},
+    {"abanasinia / southern new sea", "4429", "50", "Any", "In this area: Solace, Qualinesti, Darken Wood & Que-Shu.", "2430", "2660"},
+    {"sanction dock", "6500", "50", "Any", "Economic center of the Dragonarmies, and near Neraka.", "2020", "3765"},
+    {"bethel island", "9201", "50", "Any", "An island north of Palanthas in the Bay of Branchala.", "975", "2530"},
+    {"eastern abanasinia", "2966", "50", "Any", "Trader's dock in eastern Abanasinia.", "2830", "2570"},
     {"undomesticated island", "2501", "50", "Any", "A small island in the Eastern New Sea, near Sanction.", "1075", "2525"},
     {"northern ergoth", "34700", "50", "Any", "A neutral trade dock located in Northern Ergoth", "1765", "1210"},
 
@@ -487,11 +487,8 @@ ACMDU(do_sail)
     found = false;
     i = 0;
     send_to_char(ch, "Available Sailing Destinations:\r\n");
-    send_to_char(ch, "%-35s %4s %10s %10s (%s)\r\n", "Sailing Destination:", "Cost", "Distance", "Time (sec)", "Area Note");
-    int j = 0;
-    for (j = 0; j < 80; j++)
-      send_to_char(ch, "~");
-    send_to_char(ch, "\r\n");
+    send_to_char(ch, "%-30s %6s %8s %8s  %-45s\r\n", "Destination", "Cost", "Dist", "Time", "Note");
+    send_to_char(ch, "%-30s %6s %8s %8s  %-45s\r\n", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "~~~~", "~~~~", "~~~~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     while (get_sailing_locale_vnum(i) != 0)
     {
       if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_sailing_locale_vnum(i) && valid_sailing_travel(here, i))
@@ -500,8 +497,24 @@ ACMDU(do_sail)
         cost = get_sailing_locale_cost(i);
         if (HAS_FEAT(ch, FEAT_BG_SAILOR))
           cost = 0;
-        send_to_char(ch, "%-35s %4d %10d %10d (%s)\r\n", get_transport_sailing_name(i), cost, get_distance(ch, i, here, TRAVEL_SAILING), 
-          get_travel_time(ch, 10, i, here, TRAVEL_SAILING), get_sailing_locale_notes(i));
+        /* Trim the long area note for a cleaner table */
+        const char *full_note = get_sailing_locale_notes(i);
+        char note_buf[64];
+        snprintf(note_buf, sizeof(note_buf), "%.60s", full_note ? full_note : "");
+        if (full_note && strlen(full_note) > 60) {
+          size_t len = strlen(note_buf);
+          if (len > 3) {
+            note_buf[len - 3] = '.';
+            note_buf[len - 2] = '.';
+            note_buf[len - 1] = '.';
+          }
+        }
+
+        send_to_char(ch, "%-30s %6d %8d %8d  %-45s\r\n",
+                     get_transport_sailing_name(i), cost,
+                     get_distance(ch, i, here, TRAVEL_SAILING),
+                     get_travel_time(ch, 10, i, here, TRAVEL_SAILING),
+                     note_buf);
       }
       i++;
     }

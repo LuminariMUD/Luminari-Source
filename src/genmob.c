@@ -18,6 +18,7 @@
 #include "dg_olc.h"
 #include "spells.h"
 #include "actionqueues.h"
+#include "spec_procs.h"
 
 /* local functions */
 static void extract_mobile_all(mob_vnum vnum);
@@ -409,6 +410,17 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   int i = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
+  /* Persist SpecProc by name if present on this prototype */
+  {
+    mob_rnum rmob = real_mobile(mvnum);
+    if (rmob != NOBODY && mob_index[rmob].func)
+    {
+      const char *spname = get_spec_func_name(mob_index[rmob].func);
+      if (spname && *spname)
+        fprintf(fd, "SpecProc: %s\n", spname);
+    }
+  }
+
   if (GET_ATTACK(mob) != 0)
     fprintf(fd, "BareHandAttack: %d\n", GET_ATTACK(mob));
   if (GET_STR(mob) != 11)
@@ -592,7 +604,7 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   if (pos == POS_FIGHTING)
     pos = POS_STANDING;
 
-  fprintf(fd, "%d %d\n"
+  fprintf(fd, "%d %ld\n"
               "%d %d %d\n",
           GET_GOLD(mob), GET_EXP(mob),
           GET_POS(mob), pos, GET_SEX(mob));

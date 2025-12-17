@@ -107,6 +107,7 @@ util/wld2html
 ####################
 # AI development guide and configuration
 CLAUDE.md
+GEMINI.md
 AGENTS.md
 .claude/
 .cursorrules
@@ -202,7 +203,9 @@ syslog.CRASH
 gdb.txt
 log/gdb.txt
 .gdbcommands
+.gdbcommands.*
 .gdbinit_mud
+.gdbinit_mud.*
 core
 core.*
 vgcore.*
@@ -353,6 +356,9 @@ circle
 /*.tar
 /*.gz
 /*.tar.gz
+
+# Ignore MySQL backup files in root
+/mysql*.sql
 
 ####################
 # Aider AI Assistant

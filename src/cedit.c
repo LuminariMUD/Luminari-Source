@@ -102,6 +102,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->play.tunnel_size = CONFIG_TUNNEL_SIZE;
   OLC_CONFIG(d)->play.max_exp_gain = CONFIG_MAX_EXP_GAIN;
   OLC_CONFIG(d)->play.max_exp_loss = CONFIG_MAX_EXP_LOSS;
+  OLC_CONFIG(d)->play.experience_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
   OLC_CONFIG(d)->play.max_npc_corpse_time = CONFIG_MAX_NPC_CORPSE_TIME;
   OLC_CONFIG(d)->play.max_pc_corpse_time = CONFIG_MAX_PC_CORPSE_TIME;
   OLC_CONFIG(d)->play.idle_void = CONFIG_IDLE_VOID;
@@ -196,6 +197,10 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.new_player_gear = CONFIG_NEW_PLAYER_GEAR;
   OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
   OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
+  OLC_CONFIG(d)->extra.melee_exp_option = CONFIG_MELEE_EXP_OPTION;
+  OLC_CONFIG(d)->extra.spell_cast_exp_option = CONFIG_SPELL_CAST_EXP_OPTION;
+  OLC_CONFIG(d)->extra.spellcasting_time_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  OLC_CONFIG(d)->extra.arcane_moon_phases = CONFIG_ARCANE_MOON_PHASES;
 
   /* Mob Stats */
   OLC_CONFIG(d)->mob_stats.warriors.hit_points = CONFIG_MOB_WARRIORS_HP;
@@ -280,6 +285,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_TUNNEL_SIZE = OLC_CONFIG(d)->play.tunnel_size;
   CONFIG_MAX_EXP_GAIN = OLC_CONFIG(d)->play.max_exp_gain;
   CONFIG_MAX_EXP_LOSS = OLC_CONFIG(d)->play.max_exp_loss;
+  CONFIG_EXPERIENCE_MULTIPLIER = OLC_CONFIG(d)->play.experience_multiplier;
   CONFIG_MAX_NPC_CORPSE_TIME = OLC_CONFIG(d)->play.max_npc_corpse_time;
   CONFIG_MAX_PC_CORPSE_TIME = OLC_CONFIG(d)->play.max_pc_corpse_time;
   CONFIG_IDLE_VOID = OLC_CONFIG(d)->play.idle_void;
@@ -372,6 +378,10 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_NEW_PLAYER_GEAR  = OLC_CONFIG(d)->extra.new_player_gear;
   CONFIG_ALLOW_CEXCHANGE  = OLC_CONFIG(d)->extra.allow_cexchange;
   CONFIG_WILDERNESS_SYSTEM  = OLC_CONFIG(d)->extra.wilderness_system;
+  CONFIG_MELEE_EXP_OPTION = OLC_CONFIG(d)->extra.melee_exp_option;
+  CONFIG_SPELL_CAST_EXP_OPTION = OLC_CONFIG(d)->extra.spell_cast_exp_option;
+  CONFIG_SPELLCASTING_TIME_MODE = OLC_CONFIG(d)->extra.spellcasting_time_mode;
+  CONFIG_ARCANE_MOON_PHASES = OLC_CONFIG(d)->extra.arcane_moon_phases;
 
   /* Mob Stats */
   CONFIG_MOB_WARRIORS_HP = OLC_CONFIG(d)->mob_stats.warriors.hit_points;
@@ -519,6 +529,9 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Maximum experience loseable per death?\n"
               "max_exp_loss = %d\n\n",
           CONFIG_MAX_EXP_LOSS);
+  fprintf(fl, "* Percentage multiplier for experience gain (100 = normal)?\n"
+              "experience_multiplier = %d\n\n",
+          CONFIG_EXPERIENCE_MULTIPLIER);
   fprintf(fl, "* Number of tics before NPC corpses decompose.\n"
               "max_npc_corpse_time = %d\n\n",
           CONFIG_MAX_NPC_CORPSE_TIME);
@@ -882,6 +895,18 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* What kind of wilderness system do you use?\n"
               "wilderness_system = %d\n\n",
           CONFIG_WILDERNESS_SYSTEM);
+  fprintf(fl, "* How much experience should be granted for melee hits?\n"
+              "melee_exp_option = %d\n\n",
+          CONFIG_MELEE_EXP_OPTION);
+  fprintf(fl, "* How much experience should be granted for casting spells?\n"
+              "spell_cast_exp_option = %d\n\n",
+          CONFIG_SPELL_CAST_EXP_OPTION);
+  fprintf(fl, "* Spellcasting Time Mode\n"
+              "spellcasting_time_mode = %d\n\n",
+          CONFIG_SPELLCASTING_TIME_MODE);
+  fprintf(fl, "* Enable arcane moon phase bonus spells?\n"
+              "arcane_moon_phases = %d\n\n",
+          CONFIG_ARCANE_MOON_PHASES);
 
   /* MOB STATS */
   fprintf(fl, "\n\n\n* [ Mob Stats Configuration ]\n");
@@ -1200,6 +1225,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                      "%sS%s) Prevent Mortal -> Staff Lvel  : %s%s\r\n"
                      "%sT%s) Use Introduction System       : %s%s\r\n"
                      "%sU%s) Perk System Enabled           : %s%s\r\n"
+                     "%sV%s) Experience Multiplier (%%age)  : %s%d\r\n"
                      "%s1%s) OK Message Text               : %s%s"
                      "%s2%s) NOPERSON Message Text         : %s%s"
                      "%s3%s) NOEFFECT Message Text         : %s%s"
@@ -1232,6 +1258,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.no_mort_to_immort),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.use_introduction_system),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.perk_system),
+                  grn, nrm, cyn, OLC_CONFIG(d)->play.experience_multiplier,
 
                   grn, nrm, cyn, OLC_CONFIG(d)->play.OK,
                   grn, nrm, cyn, OLC_CONFIG(d)->play.NOPERSON,
@@ -1260,6 +1287,10 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                      "%sE%s) Choose New Player Gear         : %s%s\r\n"
                      "%sF%s) Allow CExchange Command?       : %s%s\r\n"
                      "%sG%s) Wilderness System              : %s%s\r\n"
+                     "%sH%s) Allow Exp on Melee Hits        : %s%s\r\n"
+                     "%sI%s) Allow Exp on Spells Cast       : %s%s\r\n"
+                     "%sJ%s) Use Arcane Moon Phases         : %s%s\r\n"
+                     "%sK%s) Spellcasting Time Mode         : %s%s\r\n"
                      "\r\n"
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
@@ -1271,6 +1302,10 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, new_player_gear_options[OLC_CONFIG(d)->extra.new_player_gear],
                   grn, nrm, cyn, allow_cexchange_options[OLC_CONFIG(d)->extra.allow_cexchange],
                   grn, nrm, cyn, wilderness_system_options[OLC_CONFIG(d)->extra.wilderness_system],
+                  grn, nrm, cyn, exp_option[OLC_CONFIG(d)->extra.melee_exp_option],
+                  grn, nrm, cyn, exp_option[OLC_CONFIG(d)->extra.spell_cast_exp_option],
+                  grn, nrm, cyn, YESNO(OLC_CONFIG(d)->extra.arcane_moon_phases),
+                  grn, nrm, cyn, spellcasting_time_options[OLC_CONFIG(d)->extra.spellcasting_time_mode],
 
                   grn, nrm);
 
@@ -1912,6 +1947,12 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       TOGGLE_VAR(OLC_CONFIG(d)->play.perk_system);
       break;
 
+    case 'v':
+    case 'V':
+      write_to_output(d, "Enter the percentage multiplier for experience gain (100 = normal) : ");
+      OLC_MODE(d) = CEDIT_EXPERIENCE_MULTIPLIER;
+      return;
+
     case 'q':
     case 'Q':
       cedit_disp_menu(d);
@@ -2008,6 +2049,51 @@ void cedit_parse(struct descriptor_data *d, char *arg)
           write_to_output(d, "%d) %s\n", i+1, wilderness_system_options[i]);
         }
         OLC_MODE(d) = CEDIT_SET_WILDERNESS_SYSTEM;
+        return;
+
+      case 'h':
+      case 'H':
+        write_to_output(d, "How much experience should be granted for melee hits?\r\n");
+        write_to_output(d, "Full: Normal experience gain from melee attacks.\r\n");
+        write_to_output(d, "Reduced: Diminished experience gain from melee attacks.\r\n");
+        write_to_output(d, "None: No experience gain from melee attacks.\r\n");
+        for (i = 0; i < NUM_EXP_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, exp_option[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_MELEE_EXP;
+        return;
+
+      case 'i':
+      case 'I':
+        write_to_output(d, "How much experience should be granted for casting spells?\r\n");
+        write_to_output(d, "Full: Normal experience gain from spell casting.\r\n");
+        write_to_output(d, "Reduced: Diminished experience gain from spell casting.\r\n");
+        write_to_output(d, "None: No experience gain from spell casting.\r\n");
+        for (i = 0; i < NUM_EXP_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, exp_option[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_SPELL_CAST_EXP;
+        return;
+
+      case 'j':
+      case 'J':
+        write_to_output(d, "Do you wish to enable arcane moon phase bonus spells?\r\n");
+        write_to_output(d, "When enabled, arcane casters gain bonuses depending on the phase of the moons.\r\n");
+        write_to_output(d , "They will gain bonus to saving throws, increased caster level and bonus spell slots.\r\n");
+        write_to_output(d, "1) Off\n2) On\n");
+        OLC_MODE(d) = CEDIT_SET_ARCANE_MOON_PHASES;
+        return;
+
+      case 'k':
+      case 'K':
+        write_to_output(d, "Choose spellcasting time mode:\r\n");
+        for (i = 0; i < NUM_SPELLCASTING_TIME_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, spellcasting_time_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_SPELLCASTING_TIME_MODE;
         return;
 
       case 'q':
@@ -2718,6 +2804,13 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     cedit_disp_game_play_options(d);
     break;
 
+  case CEDIT_EXPERIENCE_MULTIPLIER:
+    if (*arg)
+      OLC_CONFIG(d)->play.experience_multiplier = atoi(arg);
+
+    cedit_disp_game_play_options(d);
+    break;
+
   case CEDIT_MAX_NPC_CORPSE_TIME:
     if (!*arg)
     {
@@ -3196,6 +3289,38 @@ void cedit_parse(struct descriptor_data *d, char *arg)
      if (*arg)
      {
       OLC_CONFIG(d)->extra.wilderness_system = (MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_MELEE_EXP:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.melee_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_SPELL_CAST_EXP:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.spell_cast_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_SPELLCASTING_TIME_MODE:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.spellcasting_time_mode = (MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_ARCANE_MOON_PHASES:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.arcane_moon_phases = (MIN(2, MAX(1, atoi(arg))) - 1);
      }
     cedit_disp_extra_game_play_options(d);
     break;

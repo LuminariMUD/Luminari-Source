@@ -52,6 +52,9 @@
 /* do_get utility functions */
 static int can_take_obj(struct char_data *ch, struct obj_data *obj);
 static void get_check_money(struct char_data *ch, struct obj_data *obj);
+#ifdef USE_NEW_CRAFTING_SYSTEM
+static void get_check_craft_material(struct char_data *ch, struct obj_data *obj);
+#endif
 static void get_from_container(struct char_data *ch, struct obj_data *cont, char *arg, int mode, int amount);
 static void get_from_room(struct char_data *ch, char *arg, int amount);
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj, struct obj_data *cont, int mode);
@@ -2161,6 +2164,44 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
   }
 }
 
+#ifdef USE_NEW_CRAFTING_SYSTEM
+/* Function to automatically add craft materials to player's storage when picked up.
+ * Works similarly to get_check_money() for gold coins.
+ * ITEM_MATERIAL objects have:
+ *   GET_OBJ_VAL(obj, 0) = quantity/bundle size
+ *   GET_OBJ_MATERIAL(obj) = material type
+ * Only active when USE_NEW_CRAFTING_SYSTEM is defined.
+ */
+static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
+{
+  int quantity = 0;
+  int material_type = 0;
+  
+  if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL)
+    return;
+    
+  quantity = MAX(1, GET_OBJ_VAL(obj, 0));
+  material_type = GET_OBJ_MATERIAL(obj);
+  
+  if (material_type < 0 || material_type >= NUM_MATERIALS)
+    return;
+    
+  extract_obj(obj);
+  
+  GET_CRAFT_MAT(ch, material_type) += quantity;
+  
+  if (!ch->char_specials.post_combat_messages)
+  {
+    extern const char *material_name[];
+    
+    if (quantity == 1)
+      send_to_char(ch, "You collect 1 %s material.\r\n", material_name[material_type]);
+    else
+      send_to_char(ch, "You collect %d %s materials.\r\n", quantity, material_name[material_type]);
+  }
+}
+#endif /* USE_NEW_CRAFTING_SYSTEM */
+
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj,
                                        struct obj_data *cont, int mode)
 {
@@ -2232,10 +2273,22 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       }
       /* Check if it's money before calling get_check_money */
       bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
+#ifdef USE_NEW_CRAFTING_SYSTEM
+      bool was_material = (GET_OBJ_TYPE(obj) == ITEM_MATERIAL);
+#else
+      bool was_material = false;
+#endif
+      
       get_check_money(ch, obj);
       
-      /* If it was money, obj has been extracted, so don't use it anymore */
+#ifdef USE_NEW_CRAFTING_SYSTEM
+      /* If money was extracted, obj is invalid - check material only if obj still valid */
       if (!was_money)
+        get_check_craft_material(ch, obj);
+#endif
+      
+      /* If it was money or material, obj has been extracted, so don't use it anymore */
+      if (!was_money && !was_material)
       {
         if (cont->carried_by != ch)
         {
@@ -2333,8 +2386,13 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     
     /* Check if it's money before calling get_check_money */
     bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
+#ifdef USE_NEW_CRAFTING_SYSTEM
+    bool was_material = (GET_OBJ_TYPE(obj) == ITEM_MATERIAL);
+#else
+    bool was_material = false;
+#endif
     
-    if (!was_money)
+    if (!was_money && !was_material)
     {
       if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
         auto_store_obj(ch, obj);
@@ -2343,6 +2401,12 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     }
     
     get_check_money(ch, obj);
+    
+#ifdef USE_NEW_CRAFTING_SYSTEM
+    /* If money was extracted, obj is invalid - check material only if obj still valid */
+    if (!was_money)
+      get_check_craft_material(ch, obj);
+#endif
 
     /* this is necessary because of disarm */
     if (FIGHTING(ch))
@@ -3870,6 +3934,9 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
 
        {"$n slots $p in as $s weaponsmith's hammer",
         "You slot $p in as your weaponsmith's hammer."},
+      
+      {"$n wears $p on $s back.",
+        "You wear $p on your back."},
         
   };
 
@@ -4012,7 +4079,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_INSTRUMENT, ITEM_WEAR_CRAFT_SICKLE, ITEM_WEAR_CRAFT_AXE, 
       ITEM_WEAR_CRAFT_KNIFE, ITEM_WEAR_CRAFT_PICKAXE, ITEM_WEAR_CRAFT_ALCHEMY, 
       ITEM_WEAR_CRAFT_ARMOR_HAMMER, ITEM_WEAR_CRAFT_JEWEL_PLIERS, 
-      ITEM_WEAR_CRAFT_NEEDLE, ITEM_WEAR_CRAFT_WEAPON_HAMMER };
+      ITEM_WEAR_CRAFT_NEEDLE, ITEM_WEAR_CRAFT_WEAPON_HAMMER, ITEM_WEAR_ON_BACK };
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -4056,7 +4123,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You already have an armorsmith's hammer equipped.\r\n",
       "You already have jeweler's pliers equipped.\r\n",
       "You already have a sewing needle equipped.\r\n",
-      "You already have a weaponsmith's hammer equipped.\r\n"
+      "You already have a weaponsmith's hammer equipped.\r\n",
+      "You already have something equipped on your back.\r\n"
   };
 
   /* we are looking for some quick exits */
@@ -4339,6 +4407,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_CRAFT_NEEDLE;
     if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_WEAPON_HAMMER))
       where = WEAR_CRAFT_WEAPON_HAMMER;
+    if (CAN_WEAR(obj, ITEM_WEAR_ON_BACK))
+      where = WEAR_ON_BACK;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }
@@ -4827,6 +4897,9 @@ struct obj_data *find_lootbox_in_room_vis(struct char_data *ch)
 // Used with treasure chests that allow each individual character to loot it once every 4 hours
 ACMD(do_loot)
 {
+
+  
+
   struct obj_data *obj = find_lootbox_in_room_vis(ch);
 
   if (!obj)
@@ -7176,11 +7249,10 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
     CAP(GET_OUTFIT_DESC(ch));
     snprintf(descC, sizeof(descC), "%s lies here.\r\n", GET_OUTFIT_DESC(ch));
   }
-  if (obj->name) free(obj->name);
+  /* Don't free these strings - they point to the prototype object strings 
+   * which are shared and should not be freed */
   obj->name = strdup(descA);
-  if (obj->short_description) free(obj->short_description);
   obj->short_description = strdup(descB);
-  if (obj->description) free(obj->description);
   obj->description = strdup(descC);
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
@@ -7193,12 +7265,34 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
   GET_OBJ_LEVEL(obj) = MAX(0, MIN(30, (GET_OBJ_VAL(obj, 4) * 5) - 5));
   // GET_OBJ_MATERIAL(obj) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_MATERIAL);
 
-  // we are only adding apply bonuses to weapons, shields or body armor
-  if (!CAN_WEAR(obj, ITEM_WEAR_HEAD) && !CAN_WEAR(obj, ITEM_WEAR_ARMS) && !CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  // Apply bonuses based on worn position
+  if (CAN_WEAR(obj, ITEM_WEAR_BODY) || CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD))
   {
+    // Body armor, weapons, and shields use the main apply values
     obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_LOC);
     obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_MOD);
     obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_HEAD))
+  {
+    // Head armor uses head-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_HEAD_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ARMS))
+  {
+    // Arm armor uses arms-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_ARMS_APPLY_BONUS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  {
+    // Leg armor uses legs-specific apply values
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_LEGS_APPLY_BONUS);
   }
 
   GET_OBJ_COST(obj) = (1 + GET_OBJ_LEVEL(obj)) * (100 + (GET_OBJ_VAL(obj, 4) * 5));
@@ -7456,7 +7550,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTSH2\r\n");
           return;
         }
-        obj_to_char(itemA, ch);
+        resize_obj_to_char(itemA, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
         extract_obj(GET_OUTFIT_OBJ(ch));
         clear_outfit_info(ch);
@@ -7477,7 +7571,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA2\r\n");
           return;
         }
-        obj_to_char(itemA, ch);
+        resize_obj_to_char(itemA, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // head piece
@@ -7493,7 +7587,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMB2\r\n");
           return;
         }
-        obj_to_char(itemB, ch);
+        resize_obj_to_char(itemB, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemB->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // arms piece
@@ -7509,7 +7603,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMC2\r\n");
           return;
         }
-        obj_to_char(itemC, ch);
+        resize_obj_to_char(itemC, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemC->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // legs piece
@@ -7525,7 +7619,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMD2\r\n");
           return;
         }
-        obj_to_char(itemD, ch);
+        resize_obj_to_char(itemD, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemD->short_description, GET_OUTFIT_OBJ(ch)->short_description);
         extract_obj(GET_OUTFIT_OBJ(ch));
         clear_outfit_info(ch);

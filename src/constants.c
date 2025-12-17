@@ -41,6 +41,14 @@ cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
+/* Moon names for Dragonlance setting */
+const char *moon_names[] = {
+    "Solinari",   /* white moon */
+    "Lunitari",   /* red moon */
+    "Nuitari",    /* black moon */
+    "\n"
+};
+
 // armor suit types
 const char *armor_suit_types[] = {
     "none",
@@ -1231,7 +1239,7 @@ const char *zone_bits[] = {
     "Closed",
     "No-Immortal",
     "Quest",
-    "Grid",
+    "Open for Players",
     "No-Build",
     "No-Teleport",
     "Worldmap",
@@ -1560,6 +1568,7 @@ const char *action_bits[] = {
     "Unlimited-Spell-Slots",
     "Custom-Mob-Stats",
     "No-Block-Bypass",
+    "Golem",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1849,6 +1858,7 @@ const char *affected_bits[] = {
     "Rapid-Buff",
     "Crippled",
     "Encased-in-Ice",
+    "Nextattack-Stun",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1984,6 +1994,7 @@ const char *affected_bit_descs[] = {
     "You are able to buff yourself with spells faster than usual.",
     "Your legs are crippled! (50% movement speed, 50% movement fail chance)",
     "You are encased in ice and paralyzed! (Immune to cold, DR 5/-)",
+    "Your next attack will carry overwhelming force!",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
@@ -2128,7 +2139,6 @@ const char *wear_where[] = {
     "\tC{Sewing Needle}\tn      ",   // WEAR_CRAFT_NEEDLE
     "\tC{Weaponsmith Hammer}\tn ",   // WEAR_CRAFT_WEAPON_HAMMER
     "\tY{Worn On Back}\tn       ",
-
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2595,6 +2605,7 @@ const char *extra_bits[] = {
     "Crafting-Tannery",
     "Crafting-Carpentry-Table",
     "Trapped",
+    "Costs-Account-Experience",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -2676,7 +2687,8 @@ const char *apply_types[] = {
     "Spell-DC",
     "Spell-Duration",
     "Spell-Penetration",
-    "\n" /*73*/
+    "Move-Speed",
+    "\n" /*74*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
@@ -2757,6 +2769,7 @@ const char *apply_type_food_names[] =
     "", //  spell dc
     "", //  spell duration
     "", // spell penetration
+    "", // move speed
     "\n"
 };
 CHECK_TABLE_SIZE(apply_type_food_names, NUM_APPLIES + 1);
@@ -2839,6 +2852,7 @@ const int apply_type_food_or_drink[] =
     TRUE, // spell dc
     TRUE, // spell duration
     TRUE, // spell penetration
+    TRUE, // move speed
     TRUE
 };
 CHECK_TABLE_SIZE(apply_type_food_or_drink, NUM_APPLIES + 1);
@@ -6443,42 +6457,19 @@ CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
 // region names
 const char *regions[] = {
     "none",
-    "Aglarond",
-    "Amn",
-    "Anauroch Desert",
-    "Calimshan",
-    "Chessenta",
-    "Chult",
-    "Cormyr",
-    "Dambrath",
-    "Elfharrow",
-    "Evermeet",
-    "Halruaa",
-    "Icewind Dale",
-    "Impilitur",
-    "Kara-Tur",
-    "Luiren",
-    "Luruar",
-    "Mulhorand",
-    "Rashemen",
-    "Sembia",
-    "Tethyr",
-    "Thay",
-    "Thesk",
-    "The Cold Lands",
-    "The Dalelands",
-    "The Hordelands",
-    "The Lake of Steam",
-    "The Moonsea",
-    "The Savage Frontier",
-    "The Sword Coast",
-    "The Underdark",
-    "Turmish",
-    "Tymanther",
-    "Unther",
-    "Westgate",
-    "Zakhara",
-    "Outer Planes",
+    "Ashenport",
+    "Sanctus",
+    "Onduis",
+    "Selerish",
+    "Carstan",
+    "Axtros",
+    "Hir",
+    "Quechian",
+    "Vailand",
+    "Oorpii",
+    "Kellust",
+    "East Ubdina",
+    "West Ubdina",
     "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
 
@@ -6687,6 +6678,7 @@ const char *crafting_materials[] = {
     "brass",
     "flax",
     "bone",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
@@ -6728,6 +6720,7 @@ const char *crafting_material_descriptions[] = {
     "brass",
     "flax",
     "bone",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_descriptions, NUM_CRAFT_MATS + 1);
@@ -6769,6 +6762,7 @@ const char *crafting_material_nodes[] = {
     "brass",
     "a patch of flax plants",
     "bone",
+    "a stone quarry",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_nodes, NUM_CRAFT_MATS + 1);
@@ -6810,6 +6804,7 @@ const char *harvesting_messages[] = {
     "brass",
     "gathering a patch of flax plants",
     "bone",
+    "quarrying stone",
     "\n"
 };
 CHECK_TABLE_SIZE(harvesting_messages, NUM_CRAFT_MATS + 1);
@@ -6820,6 +6815,7 @@ const char *crafting_types[] = {
     "armor",
     "misc",
     "instrument",
+    "golem",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_types, NUM_CRAFT_TYPES + 1);
@@ -6863,6 +6859,7 @@ const char *crafting_material_groups[] = {
     "cloth",
     "refining",
     "resizing",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_groups, NUM_CRAFT_GROUPS + 1);
@@ -6945,6 +6942,19 @@ const char * wilderness_system_options [] = {
     "No Wilderness (ROads only)",
     "Manually Created",
     "Algorithm-Created (WildEdit Tool)",
+    "\n"
+};
+
+const char * exp_option [] = {
+    "Full",
+    "Reduced",
+    "None",
+    "\n"
+};
+
+const char * spellcasting_time_options [] = {
+    "1 standard action",
+    "Individual spell times in seconds",
     "\n"
 };
 

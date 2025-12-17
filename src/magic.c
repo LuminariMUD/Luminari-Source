@@ -218,7 +218,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
 {
 
-  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY))
+  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY)
+  || HAS_FEAT(vict, FEAT_STONE_GOLEM_IMMUNITY)
+  || HAS_FEAT(vict, FEAT_WOOD_GOLEM_IMMUNITY))
     return TRUE;
 
   int challenge = d20(ch),
@@ -250,6 +252,10 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
   challenge += get_spell_penetration_bonus(ch);
+  
+  /* Paladin Spell Penetration perk */
+  if (!IS_NPC(ch) && has_paladin_spell_penetration(ch) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+    challenge += 4;
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 && WEAPON_SPELL_PROC(ch) == TRUE)
   {
@@ -348,6 +354,14 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   if (has_one_thought(vict))
     saves += 1;
 
+  /* Paladin Divine Grace perk bonus */
+  if (!IS_NPC(vict) && CLASS_LEVEL(vict, CLASS_PALADIN) > 0)
+  {
+    int divine_grace_bonus = get_paladin_divine_grace_bonus(vict);
+    if (divine_grace_bonus > 0)
+      saves += divine_grace_bonus;
+  }
+
   /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))
     saves += (GET_LEVEL(vict) / 3) + 1;
@@ -403,10 +417,71 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     return FALSE; /* Victim automatically fails the save */
   }
 
+  /* Berserker Indomitable Will - auto-success on first mind-affecting save per rage */
+  if (!IS_NPC(vict) && has_berserker_indomitable_will(vict) && 
+      (type == SAVING_WILL || school == ENCHANTMENT) && 
+      affected_by_spell(vict, SKILL_RAGE))
+  {
+    /* Check if they haven't used their auto-success this rage */
+    if (!affected_by_spell(vict, PERK_BERSERKER_INDOMITABLE_WILL))
+    {
+      struct affected_type iw_af;
+      
+      /* Mark that they've used their auto-success */
+      new_affect(&iw_af);
+      iw_af.spell = PERK_BERSERKER_INDOMITABLE_WILL;
+      iw_af.duration = 9999; /* Will be removed when rage ends */
+      affect_to_char(vict, &iw_af);
+      
+      send_to_char(vict, "\tYYour indomitable will allows you to completely resist the mental assault!\tn\r\n");
+      if (ch)
+        send_to_char(ch, "\tR%s's indomitable will allows %s to completely resist your magic!\tn\r\n", 
+                     GET_NAME(vict), HMHR(vict));
+      
+      return TRUE; /* Automatically succeed */
+    }
+    else
+    {
+      /* Already used auto-success, give +4 bonus instead */
+      savethrow += 4;
+    }
+  }
+
   if (has_teamwork_feat(vict, FEAT_DUCK_AND_COVER) && type == SAVING_REFL)
     diceroll = MAX(diceroll, d20(vict));
 
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+
+  /* Paladin Sacred Defender perk: Bulwark of Defense - +1 to all saves per rank when wielding shield */
+  if (!IS_NPC(vict))
+    savethrow += get_paladin_bulwark_saves_bonus(vict);
+
+  /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
+  if (!IS_NPC(vict) && GROUP(vict) != NULL)
+  {
+    struct char_data *tch = NULL;
+    simple_list(NULL); /* Reset iterator */
+    while ((tch = (struct char_data *)simple_list(GROUP(vict)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(vict))
+        continue;
+      if (has_paladin_aura_of_protection(tch))
+      {
+        savethrow += 2;
+        break; /* Only one aura bonus */
+      }
+    }
+  }
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      savethrow += weather_info.moons.solinari_st;
+    else if (IS_NEUTRAL(ch))
+      savethrow += weather_info.moons.lunitari_st;
+    else
+      savethrow += weather_info.moons.nuitari_st;
+  }
 
   if (ch && type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
   {
@@ -455,6 +530,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       stat_bonus = GET_CHA_BONUS(ch);
       challenge += stat_bonus;
     }
+    break;
+  case CAST_DEVICE:
+    challenge += level;
+    challenge += GET_INT_BONUS(ch);
     break;
   case CAST_SPELL:
   default:
@@ -667,6 +746,22 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     if (affected_by_aura_of_depravity(vict))
       savethrow -= 4;
     if (affected_by_aura_of_righteousness(vict))
+      savethrow += 4;
+  }
+
+  /* Berserker Pain Tolerance - bonus vs poison, disease, and mind-affecting (enchantment) */
+  if (!IS_NPC(vict) && has_berserker_pain_tolerance(vict))
+  {
+    /* Poison saves */
+    if (type == SAVING_POISON || casttype == CAST_WEAPON_POISON || is_poison_spell(spellnum))
+      savethrow += 4;
+    
+    /* Disease (contagion spell) */
+    if (spellnum == SPELL_CONTAGION)
+      savethrow += 4;
+    
+    /* Mind-affecting effects (enchantment school) */
+    if (school == ENCHANTMENT)
       savethrow += 4;
   }
 
@@ -1186,6 +1281,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return (0);
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   spell_school = spell_info[spellnum].schoolOfMagic;
 
@@ -1724,9 +1829,87 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_ACID_SPLASH:
     save = SAVING_REFL;
-    num_dice = 2;
-    size_dice = 3;
     element = DAM_ACID;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_RAY_OF_FROST:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_COLD;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_JOLT:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_DISRUPT_UNDEAD:
+    if (!IS_UNDEAD(victim))
+    {
+      send_to_char(ch, "Your disrupt undead spell has no effect on living creatures.\r\n");
+      return (0);
+    }
+    save = -1;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    num_dice = 1;
+    size_dice = 10;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_FIRE_BOLT:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    bonus = 0;
     break;
 
   case SPELL_BALL_OF_LIGHTNING: // evocation
@@ -2144,13 +2327,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = MIN(level, 5);
     break;
 
-  case SPELL_RAY_OF_FROST:
-    save = SAVING_REFL;
-    num_dice = 2;
-    size_dice = 3;
-    element = DAM_COLD;
-    break;
-
   case SPELL_SCORCHING_RAY: // evocation
     save = -1;
     mag_resist = TRUE;
@@ -2514,6 +2690,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
+  case SPELL_POISON_BREATH: // evocation
+    // AoE - 4d6 + 2d6 per size above small
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_POISON;
+    {
+      int size_bonus = MAX(0, GET_SIZE(ch) - SIZE_SMALL);
+      num_dice = 4 + (size_bonus * 2);
+      size_dice = 6;
+      bonus = 0;
+    }
+    break;
+
   case SPELL_FLAMING_SPHERE: // evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -2550,6 +2739,30 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     num_dice = MIN(15, CASTER_LEVEL(ch));
     size_dice = 8;
+    bonus = 0;
+    break;
+
+  case SPELL_SPLINTER_STORM: // evocation
+    // AoE - 6d6 slashing damage, 6d8 in forest/taiga
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_SLICE;
+    num_dice = 6;
+    // Increase damage die to d8 if in forest or taiga
+    if (SECT(IN_ROOM(ch)) == SECT_FOREST || SECT(IN_ROOM(ch)) == SECT_TAIGA)
+      size_dice = 8;
+    else
+      size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_SHOCKWAVE: // transmutation
+    // AoE - 10d6 bludgeoning damage with knockdown
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    num_dice = 10;
+    size_dice = 6;
     bonus = 0;
     break;
 
@@ -2752,6 +2965,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     element = get_master_of_elements_override(ch, element);
   }
+  
+  /* Check for Druid Elemental Mastery */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
+      GET_ELEMENTAL_MASTERY_ACTIVE(ch) &&
+      (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC || element == DAM_ACID))
+  {
+    /* Apply maximize metamagic for this spell */
+    SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+    /* Deactivate elemental mastery and set cooldown */
+    GET_ELEMENTAL_MASTERY_ACTIVE(ch) = FALSE;
+    GET_ELEMENTAL_MASTERY_COOLDOWN(ch) = time(0) + 300; /* 5 minutes */
+    send_to_char(ch, "\tC[Elemental Mastery] Your spell deals maximum damage!\tn\r\n");
+  }
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -2840,6 +3066,37 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
   }
 
+  /* Add druid spell power bonus from Season's Herald perks */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID)
+  {
+    int spell_power_bonus = get_druid_spell_power_bonus(ch);
+    if (spell_power_bonus > 0 && num_dice > 0)
+    {
+      dam += num_dice * spell_power_bonus;
+    }
+    
+    /* Add elemental manipulation bonus dice for fire/cold/lightning/acid spells */
+    if (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC || element == DAM_ACID)
+    {
+      int elemental_dice = get_druid_elemental_damage_dice(ch);
+      if (elemental_dice > 0)
+      {
+        dam += dice(elemental_dice, 6);
+      }
+    }
+    
+    /* Check for spell critical */
+    if (check_druid_spell_critical(ch))
+    {
+      float crit_multiplier = get_druid_spell_critical_multiplier(ch);
+      dam = (int)(dam * crit_multiplier);
+      if (crit_multiplier >= 2.0)
+        send_to_char(ch, "\tY[Spell Critical - Double Damage!]\tn\r\n");
+      else
+        send_to_char(ch, "\tY[Spell Critical!]\tn\r\n");
+    }
+  }
+
   if (spellnum == SPELL_CIRCLE_OF_DEATH && !IS_LIVING(victim))
   {
     act("You ignore the spell affect, as it only affects the living.", TRUE, ch, 0, victim, TO_VICT);
@@ -2857,10 +3114,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (process_iron_golem_immunity(ch, victim, element, dam))
     return 1;
 
+  if (process_wood_golem_immunity(ch, victim, element, dam))
+    return 1;
+
   // resistances to magic, message in mag_resistance
   if (dam && mag_resist && casttype != CAST_DEVICE)
   {
     if (process_iron_golem_immunity(ch, victim, element, dam))
+      ;
+    else if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_FIRE)
       ;
     else
     {
@@ -2938,6 +3200,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     int elemental_attunement_rank = get_monk_elemental_attunement_i_rank(victim);
     race_bonus += elemental_attunement_rank;
+  }
+
+  /* Druid Nature's Focus - bonus to spell save DC */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID)
+  {
+    int druid_dc_bonus = get_druid_spell_dc_bonus(ch);
+    if (druid_dc_bonus > 0)
+    {
+      dc_mod += druid_dc_bonus;
+    }
   }
 
   if (is_spell_mind_affecting(spellnum))
@@ -3108,7 +3380,23 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else
   {
-    return (damage(ch, victim, dam, spellnum, element, FALSE));
+    int result = damage(ch, victim, dam, spellnum, element, FALSE);
+    
+    /* Storm Caller: Lightning spells have 25% chance to hit again at half damage */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
+        has_druid_storm_caller(ch) && element == DAM_ELECTRIC && 
+        dam > 0 && rand_number(1, 100) <= 25)
+    {
+      int storm_dam = dam / 2;
+      if (storm_dam > 0)
+      {
+        send_to_char(ch, "\tC[Storm Caller] Lightning arcs again!\tn\r\n");
+        send_to_char(victim, "\tC[Storm Caller] Lightning arcs to strike you again!\tn\r\n");
+        damage(ch, victim, storm_dam, spellnum, element, FALSE);
+      }
+    }
+    
+    return result;
   }
 }
 /* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
@@ -3156,6 +3444,34 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+  
+  /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion 
+   * Only shares non-violent (beneficial) spells cast on self to animal companions.
+   * Uses recursive_call flag to prevent infinite loops when applying to companion.
+   */
+  if (!recursive_call && !IS_NPC(ch) && has_shared_spells(ch) && ch == victim && !spell_info[spellnum].violent)
+  {
+    struct follow_type *fol;
+    for (fol = ch->followers; fol; fol = fol->next)
+    {
+      /* Check for animal companion: must be NPC, have MOB_C_ANIMAL flag, and be charmed */
+      if (IS_NPC(fol->follower) && MOB_FLAGGED(fol->follower, MOB_C_ANIMAL) && AFF_FLAGGED(fol->follower, AFF_CHARM))
+      {
+        mag_affects_full(level, ch, fol->follower, wpn, spellnum, savetype, casttype, metamagic, true);
+        send_to_char(ch, "\tG[Shared Spells: Companion buffed]\tn ");
+      }
+    }
+  }
 
   if (spell_info[spellnum].violent)
     if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
@@ -3949,6 +4265,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
     {
       return;
@@ -5300,6 +5618,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "Despair grips you and you feel weakened.";
     break;
 
+  case SPELL_ROOT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[0].specific = 0; // can be used to specify type if needed
+    to_vict = "You feel deeply rooted, resistant to trip, knockdown, and grapple attempts.";
+    to_room = "$n looks deeply rooted and harder to knock down.";
+    break;
+
   case WARLOCK_DREAD_SEIZURE:
     if (mag_resistance(ch, victim, 0))
       return;
@@ -5551,6 +5879,77 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel divinely aided.";
     break;
 
+  case SPELL_LULLABY:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
+      return;
+    if (is_immune_mind_affecting(ch, victim, TRUE))
+      return;
+
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_PERCEPTION;
+    af[0].modifier = -5;
+    af[0].duration = 12;
+    to_vict = "You feel drowsy...";
+    to_room = "$n looks drowsy.";
+    break;
+
+  case SPELL_GUIDANCE:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+    to_vict = "You feel guided in your actions.";
+    to_room = "$n looks more guided.";
+    break;
+
+  case SPELL_GRASP:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_COMPETENCE;
+    to_vict = "Your feel your ability to climb improve.";
+    to_room = "$n looks more sure-footed.";
+    break;    
+
+  case SPELL_FLARE:
+    if (!can_blind(victim))
+      return;
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      return;
+    if (AFF_FLAGGED(victim, AFF_BLIND))
+      return;
+    if (AFF_FLAGGED(victim, AFF_DAZZLED))
+      return;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = 12;
+    SET_BIT_AR(af[0].bitvector, AFF_DAZZLED);
+    to_vict = "A bright light flashes before your eyes!";
+    to_room = "$n is momentarily blinded by a flash of light!";
+    break;
+
+  case SPELL_ENHANCED_DIPLOMACY:
+  
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_PERSUASION;
+    af[0].modifier = 2;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_SKILL;
+    af[1].specific = ABILITY_INTIMIDATE;
+    af[1].modifier = 2;
+    af[1].duration = 12;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+    
+    to_vict = "You feel more persuasive.";
+    to_room = "$n looks more persuasive.";
+    break;
+
   case SPELL_SHIELD_OF_FAITH:
 
     af[0].location = APPLY_AC_NEW;
@@ -5559,6 +5958,17 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].bonus_type = BONUS_TYPE_DEFLECTION;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by a shield of faith!";
+    break;
+
+  case SPELL_VIRTUE:
+    /* Virtue: grants temporary HP equal to 1d4 + (level / 5) */
+    af[0].location = APPLY_HIT;
+    af[0].modifier = dice(1, 4) + (level / 5);
+    af[0].duration = 600; /* 10 minutes */
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    GET_HIT(victim) += af[0].modifier;
+    to_vict = "You feel momentary vigor course through your body.";
+    to_room = "$n appears invigorated momentarily.";
     break;
 
   case SPELL_RIGHTEOUS_VIGOR:
@@ -6560,6 +6970,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -7893,6 +8305,20 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n gets violently ill!";
     break;
 
+  case SPELL_POISON_BREATH: // evocation
+    // poison check made above in passed_poison_checks
+    // Apply CON debuff: 1d4 + 1 per size category above small
+    {
+      int size_bonus = MAX(0, GET_SIZE(ch) - SIZE_SMALL);
+      af[0].location = APPLY_CON;
+      af[0].duration = level * 10;
+      af[0].modifier = -(dice(1, 4) + size_bonus);
+      SET_BIT_AR(af[0].bitvector, AFF_POISON);
+      to_vict = "You inhale the toxic fumes and feel your vitality draining away!";
+      to_room = "$n chokes on toxic fumes, looking weakened!";
+    }
+    break;
+
   case SPELL_WIND_WALL:
     af[0].duration = level;
     SET_BIT_AR(af[0].bitvector, AFF_WIND_WALL);
@@ -8334,6 +8760,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -9831,6 +10259,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n calls forth many large, black tentacles from the ground!";
     isEffect = TRUE;
     break;
+  case WARLOCK_CHILLING_TENTACLES:
+    to_char = "You call forth many writhing, frost-covered tentacles from the ground!";
+    to_room = "$n calls forth many writhing, frost-covered tentacles from the ground!";
+    isEffect = TRUE;
+    break;
   case AFFECT_PRESCIENCE:
     spellnum = AFFECT_PRESCIENCE_DEBUFF;
     isEffect = TRUE;
@@ -9890,6 +10323,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ICE_STORM:
     to_char = "You conjure a storm of ice that blankets the area!";
     to_room = "$n conjures a storm of ice, blanketing the area!";
+    break;
+  case SPELL_SPLINTER_STORM:
+    to_char = "You summon a whirling storm of razor-sharp wooden splinters!";
+    to_room = "$n summons a whirling storm of razor-sharp wooden splinters!";
+    break;
+  case SPELL_SHOCKWAVE:
+    to_char = "You slam the ground, sending a devastating shockwave through the area!";
+    to_room = "$n slams the ground, sending a devastating shockwave through the area!";
     break;
   case SPELL_FIREBALL:
     to_char = "You hurl a bead of flame which explodes into a conflagration!";
@@ -10092,6 +10533,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n exhales breathing acid!";
     break;
   case SPELL_POISON_BREATHE:
+    is_eff_and_dam = TRUE;
     to_char = "You exhale breathing out poison!";
     to_room = "$n exhales breathing poison!";
     break;
@@ -10198,6 +10640,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
           spatial_audio_test_sound_effect(X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
             "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash devastating fury upon the mortal realm", 
             AUDIO_FREQ_LOW, 20);
+        }
+        
+        /* Add shockwave knockdown effect after damage is dealt */
+        if (spellnum == SPELL_SHOCKWAVE && tch != ch) {
+          perform_knockdown(ch, tch, SPELL_SHOCKWAVE, false, true);
         }
       }
 
@@ -10400,6 +10847,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   if (ch == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   switch (spellnum)
   {
@@ -10939,11 +11396,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     
     case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_7: // conjuration
-      /* (Zusuk) Temporary variable for capping elementals, etc */
-      // temp_level = MIN(CASTER_LEVEL(ch), mob_level);
-      // GET_LEVEL(mob) = MIN(LVL_IMMORT - 1, temp_level);
-      // autoroll_mob(mob, TRUE, TRUE);
-      // GET_LEVEL(mob) = temp_level;
       GET_LEVEL(mob) = 16;
       autoroll_mob(mob, TRUE, TRUE);
       break;
@@ -10976,12 +11428,28 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
     case PSIONIC_ECTOPLASMIC_SHAMBLER:
       GET_LEVEL(mob) = mob_level;
-
       autoroll_mob(mob, TRUE, TRUE);
-
       GET_HITROLL(mob) += 10; /* help them hit a bit */
-
       break;
+    }
+
+    /* Beast Master: Spell Focus Conjuration I perk bonuses for summon nature's ally */
+    int conj_ranks = get_ranger_conjuration_dc_bonus(ch); /* returns ranks of Spell Focus: Conjuration I */
+    if (conj_ranks > 0 &&
+        (spellnum == SPELL_SUMMON_NATURES_ALLY_1 || spellnum == SPELL_SUMMON_NATURES_ALLY_2 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_3 || spellnum == SPELL_SUMMON_NATURES_ALLY_4 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_5 || spellnum == SPELL_SUMMON_NATURES_ALLY_6 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_7 || spellnum == SPELL_SUMMON_NATURES_ALLY_8 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_9))
+    {
+      int hp_bonus = GET_REAL_MAX_HIT(mob) * (10 * conj_ranks) / 100;
+      GET_REAL_MAX_HIT(mob) += hp_bonus;
+      GET_MAX_HIT(mob) += hp_bonus;
+      GET_HIT(mob) += hp_bonus;
+      GET_REAL_AC(mob) += conj_ranks;
+      GET_HITROLL(mob) += conj_ranks;
+      GET_DAMROLL(mob) += conj_ranks;
+      send_to_char(ch, "\tG[Spell Focus: Conjuration +%d ranks]\tn ", conj_ranks);
     }
 
     // cedit configuration changes
@@ -11145,6 +11613,29 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_HIT(mob) = GET_MAX_HIT(mob);
     }
 
+    /* Beast Master: Greater Summons perk bonuses */
+    if (!IS_NPC(ch) && get_greater_summons_hp_bonus(ch) > 0)
+    {
+      int hp_bonus = GET_REAL_MAX_HIT(mob) * get_greater_summons_hp_bonus(ch) / 100;
+      GET_REAL_MAX_HIT(mob) += hp_bonus;
+      GET_MAX_HIT(mob) += hp_bonus;
+      GET_HIT(mob) += hp_bonus;
+      send_to_char(ch, "\tG[Greater Summons +%d%% HP]\tn ", get_greater_summons_hp_bonus(ch));
+    }
+    if (!IS_NPC(ch) && get_greater_summons_attack_bonus(ch) > 0)
+    {
+      GET_REAL_HITROLL(mob) += get_greater_summons_attack_bonus(ch);
+      GET_HITROLL(mob) += get_greater_summons_attack_bonus(ch);
+      send_to_char(ch, "\tG[Greater Summons +%d attack]\tn ", get_greater_summons_attack_bonus(ch));
+    }
+    if (!IS_NPC(ch) && get_greater_summons_damage(ch) > 0)
+    {
+      mob->mob_specials.damnodice += get_greater_summons_damage(ch);
+      mob->mob_specials.damsizedice += 6; /* +1d6 damage */
+      GET_DAMROLL(mob) += get_greater_summons_damage(ch);
+      send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");
+    }
+
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
     act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
     load_mtrigger(mob);
@@ -11267,6 +11758,25 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
+  /* Golems are immune to magical/psionic healing; they require repair */
+  if (IS_GOLEM(victim))
+  {
+    if (ch && ch != victim)
+      send_to_char(ch, "%s is a construct and cannot be healed by magic-use golemrepair command instead.\r\n", GET_NAME(victim));
+    send_to_char(victim, "Your construct form rejects magical healing.\r\n");
+    return;
+  }
 
   if (casttype == CAST_WEAPON_POISON || casttype == CAST_WEAPON_SPELL)
     ;
@@ -11436,6 +11946,25 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
                          "\tDmagic\tn takes over.\r\n");
     break;
 
+  case SPELL_STABILIZE:
+    /* Stabilize: heals 10 HP if target is below 10% max HP */
+    if (GET_HIT(victim) < (GET_MAX_HIT(victim) / 10))
+    {
+      healing = 10;
+      to_notvict = "$N is stabilized.";
+      if (ch == victim)
+        to_char = "You stabilize yourself.";
+      else
+        to_char = "You stabilize $N.";
+      to_vict = "$n stabilizes you.";
+    }
+    else
+    {
+      send_to_char(ch, "The target is not in critical condition.\r\n");
+      return;
+    }
+    break;
+
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
     /* Use perk-based channel energy dice (handles Divine Healer perks) */
     healing = dice(get_channel_energy_dice(ch), 6);
@@ -11554,6 +12083,16 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   /* Apply Divine Healer perk bonuses */
   if (healing > 0 && !IS_NPC(ch))
   {
+    /* Beast Master: Nature's Remedy healing bonus */
+    int remedy_bonus = get_natures_remedy_bonus(ch);
+    if (remedy_bonus > 0)
+    {
+      healing = healing * (100 + remedy_bonus) / 100;
+      send_to_char(ch, "\tG[Nature's Remedy +%d%%]\tn ", remedy_bonus);
+      if (ch != victim)
+        send_to_char(victim, "\tG[Nature's Remedy +%d%%]\tn ", remedy_bonus);
+    }
+
     /* Healing Power I + II: flat bonus to all healing */
     healing += get_cleric_healing_power_bonus(ch);
     
@@ -11663,6 +12202,16 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   switch (spellnum)
   {
@@ -11985,6 +12534,16 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
   if (obj == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
   case SPELL_BLESS:
@@ -12083,9 +12642,19 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   if (ch == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
-  case SPELL_BALL_OF_LIGHT:
+  case SPELL_CONTINUAL_LIGHT:
     to_char = "You summon forth $p.";
     to_room = "$n summons forth $p.";
     object_vnum = 20839;
@@ -12828,6 +13397,8 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_FLAME_STRIKE :
     case SPELL_DESTRUCTION :
     case SPELL_ICE_STORM :
+    case SPELL_SPLINTER_STORM :
+    case SPELL_SHOCKWAVE :
     case SPELL_BALL_OF_LIGHTNING :
     case SPELL_MISSILE_STORM :
     case SPELL_CHAIN_LIGHTNING :
@@ -12859,6 +13430,9 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_CHARISMA :
     case SPELL_ACID_SPLASH:
     case SPELL_RAY_OF_FROST:
+    case SPELL_FIRE_BOLT:
+    case SPELL_JOLT:
+    case SPELL_DISRUPT_UNDEAD:
     case SPELL_RAINBOW_PATTERN :
     case SPELL_ENLARGE_PERSON :
     case SPELL_SHRINK_PERSON :

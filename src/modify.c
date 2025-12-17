@@ -935,7 +935,11 @@ void show_string(struct descriptor_data *d, char *input)
    * bleeding. - Welcor */
   if (d->showstr_page + 1 >= d->showstr_count)
   {
-    send_to_char(d->character, "%s\tn", d->showstr_vector[d->showstr_page]);
+    /* If there's only one page, don't display page numbers at all. */
+    if (d->showstr_count == 1)
+      send_to_char(d->character, "%s\r\n\tn\r\n", d->showstr_vector[d->showstr_page]);
+    else
+      send_to_char(d->character, "%s\r\n[Page %d/%d]\tn\r\n", d->showstr_vector[d->showstr_page], d->showstr_page + 1, d->showstr_count);
     free(d->showstr_vector);
     d->showstr_vector = NULL;
     d->showstr_count = 0;
@@ -963,7 +967,8 @@ void show_string(struct descriptor_data *d, char *input)
     else
       /* Tack \r\n onto the end to fix bug with prompt overwriting last line. */
       strcpy(buffer + diff, "\r\n"); /* strcpy: OK (size checked) */
-    send_to_char(d->character, "%s", buffer);
+    /* Append footer with page indicator */
+    send_to_char(d->character, "%s[Page %d/%d]\r\n", buffer, d->showstr_page + 1, d->showstr_count);
     d->showstr_page++;
   }
 }

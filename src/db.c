@@ -84,6 +84,8 @@
 #include "crafting_new.h"
 #include "crafting_recipes.h"
 #include "mob_spellslots.h"
+#include "mob_known_spells.h"
+#include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -1421,6 +1423,99 @@ static void reset_time(void)
     weather_info.sky = SKY_CLOUDY;
   else
     weather_info.sky = SKY_CLOUDLESS;
+
+  /* Reset Moon Phases */
+  switch (rand_number(1, 8))
+  {
+  case 1:
+    weather_info.moons.solinari_phase = 8;
+    break;
+  case 2:
+    weather_info.moons.solinari_phase = 6;
+    break;
+  case 3:
+    weather_info.moons.solinari_phase = 4;
+    break;
+  case 4:
+    weather_info.moons.solinari_phase = 2;
+    break;
+  case 5:
+    weather_info.moons.solinari_phase = 34;
+    break;
+  case 6:
+    weather_info.moons.solinari_phase = 32;
+    break;
+  case 7:
+    weather_info.moons.solinari_phase = 30;
+    break;
+  case 8:
+    weather_info.moons.solinari_phase = 28;
+    break;
+  default:
+    weather_info.moons.solinari_phase = 1;
+    break;
+  }
+  switch (rand_number(1, 8))
+  {
+  case 1:
+    weather_info.moons.lunitari_phase = 2;
+    break;
+  case 2:
+    weather_info.moons.lunitari_phase = 1;
+    break;
+  case 3:
+    weather_info.moons.lunitari_phase = 8;
+    break;
+  case 4:
+    weather_info.moons.lunitari_phase = 7;
+    break;
+  case 5:
+    weather_info.moons.lunitari_phase = 6;
+    break;
+  case 6:
+    weather_info.moons.lunitari_phase = 5;
+    break;
+  case 7:
+    weather_info.moons.lunitari_phase = 4;
+    break;
+  case 8:
+    weather_info.moons.lunitari_phase = 3;
+    break;
+  default:
+    weather_info.moons.lunitari_phase = 1;
+    break;
+  }
+  switch (rand_number(1, 8))
+  {
+  case 1:
+    weather_info.moons.nuitari_phase = 18;
+    break;
+  case 2:
+    weather_info.moons.nuitari_phase = 15;
+    break;
+  case 3:
+    weather_info.moons.nuitari_phase = 11;
+    break;
+  case 4:
+    weather_info.moons.nuitari_phase = 8;
+    break;
+  case 5:
+    weather_info.moons.nuitari_phase = 4;
+    break;
+  case 6:
+    weather_info.moons.nuitari_phase = 1;
+    break;
+  case 7:
+    weather_info.moons.nuitari_phase = 25;
+    break;
+  case 8:
+    weather_info.moons.nuitari_phase = 22;
+    break;
+  default:
+    weather_info.moons.nuitari_phase = 1;
+    break;
+  }
+  calc_moon_bonus();
 }
 
 /* Write the time in 'when' to the MUD-time file. */
@@ -2011,6 +2106,14 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     case 'M':
       setup_moving_room(fl, room_nr, virtual_nr, (line + 1));
       world[room_nr].func = &moving_rooms;
+      break;
+    case 'Z': /* SpecProc name for room */
+      if (!get_line(fl, line))
+      {
+        log("SYSERR: Format error in 'Z' field for room #%d: missing spec name", virtual_nr);
+        exit(1);
+      }
+      world[room_nr].func = find_spec_func_by_name(line);
       break;
     case 'E':
       CREATE(new_descr, struct extra_descr_data, 1);
@@ -2799,6 +2902,13 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   {
     RANGE(1, NUM_SPELLS);
     MOB_KNOWS_SPELL((mob_proto + i), num_arg) = TRUE;
+  }
+
+  /* Persisted SpecProc name -> assign function pointer */
+  CASE("SpecProc")
+  {
+    if (value && *value)
+      mob_index[i].func = find_spec_func_by_name(value);
   }
 
   /* end saving throws */
@@ -3764,6 +3874,16 @@ const char *parse_object(FILE *obj_f, int nr)
     case 'T': /* DG triggers */
       dg_obj_trigger(line, &obj_proto[i], nr);
       break;
+    case 'Z': /* SpecProc name for object */
+      if (!get_line(obj_f, line))
+      {
+        log("SYSERR: Format error in 'Z' field, %s\n"
+            "...expecting specproc name but file ended!",
+            buf2);
+        exit(1);
+      }
+      obj_index[i].func = find_spec_func_by_name(line);
+      break;
     case '$':
     case '#':
       top_of_objt = i;
@@ -4345,6 +4465,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   /* Initialize spell slots for mobs using spell slot system */
   init_mob_spell_slots(mob);
+  
+  /* Initialize known spell slots for mobs */
+  init_known_spell_slots(mob);
 
   return (mob);
 }
@@ -6040,6 +6163,10 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->saved.completed_quests);
     if (ch->player_specials->saved.autocquest_desc)
       free(ch->player_specials->saved.autocquest_desc);
+    if (GET_ARCANE_MARK(ch)) {
+      free(GET_ARCANE_MARK(ch));
+      GET_ARCANE_MARK(ch) = NULL;
+    }
     if (ch->player.background)
       free(ch->player.background);
     if (ch->player.goals)
@@ -6741,6 +6868,9 @@ void init_char(struct char_data *ch)
   {
     ch->player_specials->saved.perk_points[i] = 0;
   }
+
+  /* Initialize moon bonus spells for arcane casters */
+  init_moon_bonus_spells(ch);
 }
 
 /* returns the real number of the room with given virtual number */
@@ -7086,6 +7216,7 @@ static void load_default_config(void)
   CONFIG_TUNNEL_SIZE = tunnel_size;
   CONFIG_MAX_EXP_GAIN = max_exp_gain;
   CONFIG_MAX_EXP_LOSS = max_exp_loss;
+  CONFIG_EXPERIENCE_MULTIPLIER = experience_multiplier;
   CONFIG_MAX_NPC_CORPSE_TIME = max_npc_corpse_time;
   CONFIG_MAX_PC_CORPSE_TIME = max_pc_corpse_time;
   CONFIG_IDLE_VOID = idle_void;
@@ -7198,6 +7329,19 @@ static void load_default_config(void)
   CONFIG_MOB_ROGUES_ST = 100;
   CONFIG_MOB_ROGUES_AS = 100;
   CONFIG_MOB_ROGUES_GOLD = 100;
+
+  /* Extra game options - defaults to 0 (Full for exp options) */
+  CONFIG_CAMPAIGN = 0;
+  CONFIG_BAG_SYSTEM = 0;
+  CONFIG_CRAFTING_SYSTEM = 0;
+  CONFIG_LANDMARK_SYSTEM = 0;
+  CONFIG_NEW_PLAYER_GEAR = 0;
+  CONFIG_ALLOW_CEXCHANGE = 0;
+  CONFIG_WILDERNESS_SYSTEM = 0;
+  CONFIG_MELEE_EXP_OPTION = 0;  /* 0 = Full */
+  CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
+  CONFIG_SPELLCASTING_TIME_MODE = 0; /* 0 = Standard action */
+  CONFIG_ARCANE_MOON_PHASES = 0;  /* 0 = OFF, 1 = ON */
 }
 
 void load_config(void)
@@ -7245,6 +7389,8 @@ void load_config(void)
         CONFIG_ALCHEMY_PREP_TIME = num;
       else if (!str_cmp(tag, "allow_cexchange"))
         CONFIG_ALLOW_CEXCHANGE = num;
+      else if (!str_cmp(tag, "arcane_moon_phases"))
+        CONFIG_ARCANE_MOON_PHASES = num;
       break;
 
     case 'b':
@@ -7324,6 +7470,8 @@ void load_config(void)
         CONFIG_EXTRA_PLAYER_MV_PER_LEVEL = num;
       else if (!str_cmp(tag, "exp_level_difference"))
         CONFIG_EXP_LEVEL_DIFFERENCE = num;
+      else if (!str_cmp(tag, "experience_multiplier"))
+        CONFIG_EXPERIENCE_MULTIPLIER = num;
       break;
 
     case 'f':
@@ -7472,6 +7620,8 @@ void load_config(void)
         CONFIG_MOB_ROGUES_AS = num;
       else if (!str_cmp(tag, "mob_rogues_gold"))
         CONFIG_MOB_ROGUES_GOLD = num;
+      else if (!str_cmp(tag, "melee_exp_option"))
+        CONFIG_MELEE_EXP_OPTION = num;
       break;
 
     case 'n':
@@ -7563,6 +7713,10 @@ void load_config(void)
         CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = num;
       else if (!str_cmp(tag, "summon_21_30_ac"))
         CONFIG_SUMMON_LEVEL_21_30_AC = num;
+      else if (!str_cmp(tag, "spell_cast_exp_option"))
+        CONFIG_SPELL_CAST_EXP_OPTION = num;
+      else if (!str_cmp(tag, "spellcasting_time_mode"))
+        CONFIG_SPELLCASTING_TIME_MODE = num;
       break;
 
     case 't':

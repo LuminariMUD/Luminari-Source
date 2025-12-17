@@ -5,8 +5,9 @@ This directory contains the public-facing web documentation portal for LuminariM
 ## 📍 Live Site
 
 Once deployed, the portal is accessible at:
-- **Main URL**: https://luminarimud.github.io/Luminari-Source/
-- **Portal**: https://luminarimud.github.io/Luminari-Source/web/
+- **Main Website**: https://luminarimud.com/ (Play the game!)
+- **Documentation Portal**: https://luminarimud.github.io/Luminari-Source/web/
+- **GitHub Pages Root**: https://luminarimud.github.io/Luminari-Source/
 
 ---
 
@@ -15,22 +16,28 @@ Once deployed, the portal is accessible at:
 ```
 docs/web/
 ├── index.html              # Main landing page with sections for resources/guides
+├── README_WEB.md           # This documentation file
 ├── spells/
-│   ├── by_class.html      # Interactive spell reference organized by class
-│   └── reference.html     # Alphabetical spell reference
+│   ├── by_class.html       # Interactive spell reference organized by class
+│   └── reference.html      # Alphabetical spell reference
 ├── objects/
-│   ├── index.html         # Object database search interface
-│   └── README.md          # Object database documentation
+│   ├── index.html          # Object database search interface
+│   └── README_OBJ.md       # Object database documentation
 ├── guides/
-│   └── oedit.html         # OEDIT Guide (converted from markdown)
+│   ├── oedit.html          # OEDIT Guide - object editor reference
+│   ├── mob_flags.html      # MOB Flags Reference - mobile behavior flags
+│   └── room_flags.html     # Room Flags Reference - room property flags
+├── dg-scripts/
+│   ├── index.html          # DG Scripts landing page and documentation hub
+│   └── staff-commands.html # Staff commands for DG script variable management
 ├── data/
-│   └── objects.json       # Object database data (generated from MySQL)
+│   └── objects.json        # Object database data (generated from MySQL)
 └── assets/
     ├── css/
-    │   └── style.css          # Shared stylesheet for all pages
-    ├── js/                    # JavaScript files (future)
-    ├── img/                   # Images and graphics (future)
-    └── pandoc-template.html   # Template for markdown→HTML conversion
+    │   └── style.css           # Shared stylesheet for all pages
+    ├── js/                     # JavaScript files (future)
+    ├── img/                    # Images and graphics (future)
+    └── pandoc-template.html    # Template for markdown→HTML conversion
 ```
 
 ---
@@ -347,7 +354,7 @@ Items with the "Mold" flag are also excluded.
 
 ### Documentation
 
-See `docs/web/objects/README.md` for detailed documentation on:
+See `docs/web/objects/README_OBJ.md` for detailed documentation on:
 - Search features
 - Database schema
 - Weapon groups
@@ -368,9 +375,10 @@ See `docs/web/objects/README.md` for detailed documentation on:
 
 | Content Type | Directory | Example |
 |--------------|-----------|---------|
-| Builder guides | `guides/` | `oedit.html`, `builder-manual.html` |
+| Builder guides | `guides/` | `oedit.html`, `mob_flags.html`, `room_flags.html` |
 | Spell references | `spells/` | `by_class.html`, `reference.html` |
-| Object database | `objects/` | `index.html` |
+| Object database | `objects/` | `index.html`, `README_OBJ.md` |
+| DG Scripts docs | `dg-scripts/` | `staff-commands.html`, `trigger-types.html` |
 | Game mechanics | `mechanics/` (create) | `combat.html`, `crafting.html` |
 | Data files (JSON) | `data/` | `objects.json`, `spells.json` |
 | CSS stylesheets | `assets/css/` | `style.css`, `custom.css` |
@@ -471,7 +479,14 @@ https://luminarimud.github.io/Luminari-Source/web/data/objects.json
 ### Guides
 ```
 https://luminarimud.github.io/Luminari-Source/web/guides/oedit.html
-https://luminarimud.github.io/Luminari-Source/web/guides/builder-manual.html
+https://luminarimud.github.io/Luminari-Source/web/guides/mob_flags.html
+https://luminarimud.github.io/Luminari-Source/web/guides/room_flags.html
+```
+
+### DG Scripts
+```
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/staff-commands.html
 ```
 
 ### Assets
@@ -543,6 +558,11 @@ Ideas for expanding the web portal:
 ---
 
 ## 📚 Additional Resources
+
+### LuminariMUD Links
+- **Main Website**: https://luminarimud.com/ (Play the game!)
+- **Discord Community**: https://discord.gg/Me3Tuu4
+- **GitHub Repository**: https://github.com/LuminariMUD/Luminari-Source
 
 ### External Documentation
 - **GitHub Pages**: https://docs.github.com/en/pages

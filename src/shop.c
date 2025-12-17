@@ -623,6 +623,17 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       return;
     }
   }
+  if (OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP) && !IS_NPC(ch))
+  {
+    if (GET_OBJ_COST(obj) > get_account_experience(ch) && !IS_STAFF(ch))
+    {
+      char actbuf[MAX_INPUT_LENGTH] = {'\0'};
+      snprintf(actbuf, sizeof(actbuf),
+               "%s You haven't earned enough account experience to buy such an item.", GET_NAME(ch));
+      do_tell(keeper, actbuf, cmd_tell, 0);
+      return;
+    }
+  }
   else
   { /*has the player got enough gold? */
     if (buy_price(obj, shop_nr, keeper, ch) > GET_GOLD(ch) && !IS_STAFF(ch))
@@ -712,6 +723,45 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
         break;
     }
   }
+  /* handle quest point transaction */
+  else if (OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP))
+  {
+    while (obj &&
+           (get_account_experience(ch) >= GET_OBJ_COST(obj) || IS_STAFF(ch)) && 
+           IS_CARRYING_N(ch) < CAN_CARRY_N(ch) && bought < buynum && 
+           IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch))
+    {
+      bought++;
+      /* Test if producing shop ! */
+      if (shop_producing(obj, shop_nr))
+      {
+        obj = read_object(GET_OBJ_RNUM(obj), REAL);
+      }
+      else
+      {
+        obj_from_char(obj);
+        SHOP_SORT(shop_nr)--;
+      }
+      obj_to_char(obj, ch);
+
+      goldamt += GET_OBJ_COST(obj);
+      if (!IS_STAFF(ch))
+        change_account_experience(ch, -GET_OBJ_COST(obj));
+
+      /* this is the homeland pet code, it basically converts
+         an object to a living mobile upon purchase */
+      if (GET_OBJ_TYPE(obj) == ITEM_PET)
+      {
+        bought_pet(ch, obj, 0, "");
+        return;
+      }
+
+      last_obj = obj;
+      obj = get_purchase_obj(ch, arg, keeper, shop_nr, FALSE);
+      if (!same_obj(obj, last_obj))
+        break;
+    }
+  }
 
   /* regulard gold coins transaction */
   else
@@ -764,12 +814,16 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
     if (!obj || !same_obj(last_obj, obj))
       snprintf(buf, sizeof(buf), "%s I only have %d to sell you.", GET_NAME(ch), bought);
-    else if (!OBJ_FLAGGED(obj, ITEM_QUEST) &&
+    else if (!OBJ_FLAGGED(obj, ITEM_QUEST) && !OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP) &&
              GET_GOLD(ch) < buy_price(obj, shop_nr, keeper, ch))
       snprintf(buf, sizeof(buf), "%s You can only afford %d.", GET_NAME(ch), bought);
     else if (OBJ_FLAGGED(obj, ITEM_QUEST) &&
              GET_QUESTPOINTS(ch) < GET_OBJ_COST(obj))
       snprintf(buf, sizeof(buf), "%s You only had sufficient quest points for %d.",
+               GET_NAME(ch), bought);
+    else if (OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP) &&
+             get_account_experience(ch) < GET_OBJ_COST(obj))
+      snprintf(buf, sizeof(buf), "%s You only had sufficient account experience for %d.",
                GET_NAME(ch), bought);
     else if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
       snprintf(buf, sizeof(buf), "%s You can only hold %d.", GET_NAME(ch), bought);
@@ -781,7 +835,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   }
 
   /* shopkeeper acquires the gold */
-  if (!IS_STAFF(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST))
+  if (!IS_STAFF(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST) && !OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP))
   {
     increase_gold(keeper, goldamt);
     if (SHOP_USES_BANK(shop_nr))
@@ -798,6 +852,8 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
   if (obj && OBJ_FLAGGED(obj, ITEM_QUEST))
     snprintf(tempbuf, sizeof(tempbuf), "%s That has cost you %d quest points.", GET_NAME(ch), goldamt);
+  else if (obj && OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP))
+    snprintf(tempbuf, sizeof(tempbuf), "%s That has cost you %d account experience.", GET_NAME(ch), goldamt);
   else if (shop_index[shop_nr].message_buy != NULL)
     snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_buy, GET_NAME(ch), goldamt);
   else
@@ -1086,7 +1142,8 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
 
   snprintf(result, sizeof(result), " %2d)  %9s   %-*s %6d%s\r\n",
            aindex, quantity, count_color_chars(itemname) + 48, itemname,
-           buy_price(obj, shop_nr, keeper, ch), OBJ_FLAGGED(obj, ITEM_QUEST) ? " qp" : "");
+           buy_price(obj, shop_nr, keeper, ch), 
+           OBJ_FLAGGED(obj, ITEM_QUEST) ? " qp" : (OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP) ? " accexp" : ""));
 
   return (result);
 }
@@ -1095,7 +1152,7 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
 {
   char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj, *last_obj = NULL;
-  int cnt = 0, lindex = 0, found = FALSE, has_quest = FALSE;
+  int cnt = 0, lindex = 0, found = FALSE, has_quest = FALSE, has_accexp = FALSE;
   size_t len;
   /* cnt is the number of that particular object available */
   /* has_quest indicates if the shopkeeper sells quest items */
@@ -1134,6 +1191,8 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
             found = TRUE;
             if (OBJ_FLAGGED(last_obj, ITEM_QUEST))
               has_quest = TRUE;
+            if (OBJ_FLAGGED(last_obj, ITEM_ACCOUNT_EXP))
+              has_accexp = TRUE;
           }
           cnt = 1;
           last_obj = obj;
@@ -1152,6 +1211,8 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
     page_string(ch->desc, buf, TRUE);
     if (has_quest)
       send_to_char(ch, "Items flagged \"qp\" require quest points to purchase.\r\n");
+    if (has_accexp)
+      send_to_char(ch, "Items flagged \"accexp\" require account experience to purchase.\r\n");
   }
   send_to_char(ch, "\r\n\tDYou can type 'identify <item name>' to view the stats"
                    " of an item in inventory.\tn\r\n");

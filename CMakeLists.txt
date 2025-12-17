@@ -613,6 +613,7 @@ set(SRC_C_FILES
     src/spec_assign.c
     src/spec_procs.c
     src/specs.artifacts.c
+    src/casting_visuals.c
     src/spell_parser.c
     src/spell_prep.c
     src/spellbook_scroll.c

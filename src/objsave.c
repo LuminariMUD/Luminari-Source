@@ -225,6 +225,14 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
+  if (obj->arcane_mark)
+  {
+    fprintf(fp, "AMrk: %s\n", obj->arcane_mark);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "AMrk: %s\n", obj->arcane_mark);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
   if (TEST_OBJS(obj, temp, short_description))
   {
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
@@ -634,6 +642,10 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       break;
     case WEAR_INSTRUMENT:
       if (!CAN_WEAR(obj, ITEM_WEAR_INSTRUMENT))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_ON_BACK:
+      if (!CAN_WEAR(obj, ITEM_WEAR_ON_BACK))
         location = LOC_INVENTORY;
       break;
     case WEAR_SHOULDERS:
@@ -1955,6 +1967,12 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
         temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
       }
+      else if (!strcmp(tag, "AMrk"))
+      {
+        if (temp->arcane_mark)
+          free(temp->arcane_mark);
+        temp->arcane_mark = strdup(line);
+      }
       break;
     case 'C':
       if (!strcmp(tag, "Cost"))
@@ -2409,6 +2427,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           temp->activate_spell[ACT_SPELL_CURRENT_USES]  = t[2];
           temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
           temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
+        }
+        else if (!strcmp(tag, "AMrk"))
+        {
+          if (temp->arcane_mark)
+            free(temp->arcane_mark);
+          temp->arcane_mark = strdup(*line);
         }
         break;
       case 'C':

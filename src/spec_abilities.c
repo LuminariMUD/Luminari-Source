@@ -1770,7 +1770,7 @@ int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *
 {
   int dam = dice(1, 6);
   int damtype = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
-  dam -= compute_damtype_reduction(ch, damtype);
+  dam -= compute_damtype_reduction(victim, damtype, ch);
   return MAX(0, dam);
 }
 

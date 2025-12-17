@@ -5202,7 +5202,7 @@ const char *get_region_info(int region)
   }
   return "Undefined";
 }
-#else
+#elif defined(CAMPAIGN_FR)
 const char *get_region_info(int region)
 {
   switch (region)
@@ -5311,6 +5311,12 @@ const char *get_region_info(int region)
   }
   return "Undefined";
 }
+#else
+/* Default LuminariMUD campaign - region info not yet implemented */
+const char *get_region_info(int region)
+{
+  return "This region's detailed information is not yet available.";
+}
 #endif
 #if defined(CAMPAIGN_DL)
 
@@ -5347,7 +5353,7 @@ int get_region_language(int region)
   }
   return LANG_COMMON;
 }
-#else
+#elif defined(CAMPAIGN_FR)
 
 int get_region_language(int region)
 {
@@ -5432,6 +5438,12 @@ int get_region_language(int region)
     return SKILL_LANG_COMMON;
   }
   return SKILL_LANG_COMMON;
+}
+#else
+/* Default LuminariMUD campaign - region language not yet implemented */
+int get_region_language(int region)
+{
+  return LANG_COMMON;
 }
 #endif
 

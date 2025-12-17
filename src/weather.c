@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
+#include "moon_bonus_spells.h"  /* For moon bonus spell system */
 
 #define NUM_WEATHER_CHANGES 6
 
@@ -35,6 +36,101 @@ void weather_and_time(int mode)
   another_hour(mode);
   if (mode)
     weather_change();
+}
+
+void calc_moon_bonus(void)
+{
+  struct char_data *ch = NULL, *next_ch = NULL;
+
+  if (weather_info.moons.solinari_phase > 27)
+  {
+    weather_info.moons.solinari_st = 0;
+    weather_info.moons.solinari_sp = 1;
+    weather_info.moons.solinari_lv = 0;
+  }
+  else if (weather_info.moons.solinari_phase > 18)
+  {
+    weather_info.moons.solinari_st = 1;
+    weather_info.moons.solinari_sp = 2;
+    weather_info.moons.solinari_lv = 1;
+  }
+  else if (weather_info.moons.solinari_phase > 9)
+  {
+    weather_info.moons.solinari_st = 0;
+    weather_info.moons.solinari_sp = 0;
+    weather_info.moons.solinari_lv = 0;
+  }
+  else
+  {
+    weather_info.moons.solinari_st = -1;
+    weather_info.moons.solinari_sp = 0;
+    weather_info.moons.solinari_lv = -1;
+  }
+
+  if (weather_info.moons.lunitari_phase > 6)
+  {
+    weather_info.moons.lunitari_st = 0;
+    weather_info.moons.lunitari_sp = 1;
+    weather_info.moons.lunitari_lv = 0;
+  }
+  else if (weather_info.moons.lunitari_phase > 4)
+  {
+    weather_info.moons.lunitari_st = 1;
+    weather_info.moons.lunitari_sp = 2;
+    weather_info.moons.lunitari_lv = 1;
+  }
+  else if (weather_info.moons.lunitari_phase > 2)
+  {
+    weather_info.moons.lunitari_st = 0;
+    weather_info.moons.lunitari_sp = 0;
+    weather_info.moons.lunitari_lv = 0;
+  }
+  else
+  {
+    weather_info.moons.lunitari_st = -1;
+    weather_info.moons.lunitari_sp = 0;
+    weather_info.moons.lunitari_lv = -1;
+  }
+
+  if (weather_info.moons.nuitari_phase > 21)
+  {
+    weather_info.moons.nuitari_st = 0;
+    weather_info.moons.nuitari_sp = 1;
+    weather_info.moons.nuitari_lv = 0;
+  }
+  else if (weather_info.moons.nuitari_phase > 4)
+  {
+    weather_info.moons.nuitari_st = 1;
+    weather_info.moons.nuitari_sp = 2;
+    weather_info.moons.nuitari_lv = 1;
+  }
+  else if (weather_info.moons.nuitari_phase > 2)
+  {
+    weather_info.moons.nuitari_st = 0;
+    weather_info.moons.nuitari_sp = 0;
+    weather_info.moons.nuitari_lv = 0;
+  }
+  else
+  {
+    weather_info.moons.nuitari_st = -1;
+    weather_info.moons.nuitari_sp = 0;
+    weather_info.moons.nuitari_lv = -1;
+  }
+
+  /* Update moon bonus spells for all online players when moon phase changes */
+  for (ch = character_list; ch; ch = next_ch)
+  {
+    next_ch = ch->next;
+
+    if (!ch || IS_NPC(ch))
+      continue;
+
+    if (IN_ROOM(ch) == NOWHERE)
+      continue;
+
+    /* Update the character's moon bonus spells based on new moon phases */
+    update_moon_bonus_spells(ch);
+  }
 }
 
 /* a nice little cheesy function used to reset dailies, currently
@@ -139,6 +235,13 @@ static void another_hour(int mode)
         time_info.year++;
       }
     }
+    if (++weather_info.moons.solinari_phase > 36)
+      weather_info.moons.solinari_phase = 1;
+    if (++weather_info.moons.lunitari_phase > 28)
+      weather_info.moons.lunitari_phase = 1;
+    if (++weather_info.moons.nuitari_phase > 8)
+      weather_info.moons.nuitari_phase = 1;
+    calc_moon_bonus();
   }
 }
 
