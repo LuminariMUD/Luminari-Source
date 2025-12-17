@@ -361,6 +361,7 @@ int ac_cap = 60;
 
 int melee_exp_option = 1; // multiplier for melee experience gain
 int spell_cast_exp_option = 1; // multiplier for spell casting experience gain
+int spellcasting_time_mode = 0; // 0 = standard action, 1 = per-spell seconds
 
 int arcane_moon_phases = 0; // 0 = OFF, 1 = ON
 

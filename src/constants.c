@@ -6952,6 +6952,12 @@ const char * exp_option [] = {
     "\n"
 };
 
+const char * spellcasting_time_options [] = {
+    "1 standard action",
+    "Individual spell times in seconds",
+    "\n"
+};
+
 /* Artificer Weird Science progression table */
 const struct weird_science_level weird_science_table[] = {
     {1,  {1, 0, 0, 0}},   /* 1st level */

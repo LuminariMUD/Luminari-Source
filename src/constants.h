@@ -227,5 +227,6 @@ extern const char * new_player_gear_options [];
 extern const char * allow_cexchange_options [];
 extern const char * wilderness_system_options [];
 extern const char * exp_option [];
+extern const char * spellcasting_time_options [];
 
 #endif /* _CONSTANTS_H_ */

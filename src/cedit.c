@@ -199,6 +199,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
   OLC_CONFIG(d)->extra.melee_exp_option = CONFIG_MELEE_EXP_OPTION;
   OLC_CONFIG(d)->extra.spell_cast_exp_option = CONFIG_SPELL_CAST_EXP_OPTION;
+  OLC_CONFIG(d)->extra.spellcasting_time_mode = CONFIG_SPELLCASTING_TIME_MODE;
   OLC_CONFIG(d)->extra.arcane_moon_phases = CONFIG_ARCANE_MOON_PHASES;
 
   /* Mob Stats */
@@ -379,6 +380,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_WILDERNESS_SYSTEM  = OLC_CONFIG(d)->extra.wilderness_system;
   CONFIG_MELEE_EXP_OPTION = OLC_CONFIG(d)->extra.melee_exp_option;
   CONFIG_SPELL_CAST_EXP_OPTION = OLC_CONFIG(d)->extra.spell_cast_exp_option;
+  CONFIG_SPELLCASTING_TIME_MODE = OLC_CONFIG(d)->extra.spellcasting_time_mode;
   CONFIG_ARCANE_MOON_PHASES = OLC_CONFIG(d)->extra.arcane_moon_phases;
 
   /* Mob Stats */
@@ -899,6 +901,9 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* How much experience should be granted for casting spells?\n"
               "spell_cast_exp_option = %d\n\n",
           CONFIG_SPELL_CAST_EXP_OPTION);
+  fprintf(fl, "* Spellcasting Time Mode\n"
+              "spellcasting_time_mode = %d\n\n",
+          CONFIG_SPELLCASTING_TIME_MODE);
   fprintf(fl, "* Enable arcane moon phase bonus spells?\n"
               "arcane_moon_phases = %d\n\n",
           CONFIG_ARCANE_MOON_PHASES);
@@ -1285,6 +1290,7 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                      "%sH%s) Allow Exp on Melee Hits        : %s%s\r\n"
                      "%sI%s) Allow Exp on Spells Cast       : %s%s\r\n"
                      "%sJ%s) Use Arcane Moon Phases         : %s%s\r\n"
+                     "%sK%s) Spellcasting Time Mode         : %s%s\r\n"
                      "\r\n"
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
@@ -1299,6 +1305,7 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, exp_option[OLC_CONFIG(d)->extra.melee_exp_option],
                   grn, nrm, cyn, exp_option[OLC_CONFIG(d)->extra.spell_cast_exp_option],
                   grn, nrm, cyn, YESNO(OLC_CONFIG(d)->extra.arcane_moon_phases),
+                  grn, nrm, cyn, spellcasting_time_options[OLC_CONFIG(d)->extra.spellcasting_time_mode],
 
                   grn, nrm);
 
@@ -2077,6 +2084,16 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d , "They will gain bonus to saving throws, increased caster level and bonus spell slots.\r\n");
         write_to_output(d, "1) Off\n2) On\n");
         OLC_MODE(d) = CEDIT_SET_ARCANE_MOON_PHASES;
+        return;
+
+      case 'k':
+      case 'K':
+        write_to_output(d, "Choose spellcasting time mode:\r\n");
+        for (i = 0; i < NUM_SPELLCASTING_TIME_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, spellcasting_time_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_SPELLCASTING_TIME_MODE;
         return;
 
       case 'q':
@@ -3288,6 +3305,14 @@ void cedit_parse(struct descriptor_data *d, char *arg)
      if (*arg)
      {
       OLC_CONFIG(d)->extra.spell_cast_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_SPELLCASTING_TIME_MODE:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.spellcasting_time_mode = (MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, atoi(arg))) - 1);
      }
     cedit_disp_extra_game_play_options(d);
     break;

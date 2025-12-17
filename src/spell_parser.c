@@ -929,8 +929,6 @@ SAVING_WILL here...  */
       start_daily_use_cooldown(caster, FEAT_DRAGOON_POINTS);
   }
 
-  send_to_char(caster, "Caster class %d caster level %d.\r\n", CASTING_CLASS(caster), spell_level);
-
   /* the rest of the routine handling follows: */
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
@@ -1883,9 +1881,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   int position = GET_POS(ch);
   int ch_class = CLASS_WIZARD;
   int casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   bool quickened = FALSE;
-#endif
   int clevel = 0;
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
@@ -2047,16 +2043,19 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     break;
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-  // We don't use casting times unless it's a ritual spell
-  if (SINFO.ritual_spell)
-    casting_time = SINFO.time;
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
+    // We don't use casting times unless it's a ritual spell
+    if (SINFO.ritual_spell)
+      casting_time = SINFO.time;
+    else
+      casting_time = 1;
+  }
   else
-    casting_time = 1;
-#else
-  /* establish base casting time for spell */
-  casting_time = SINFO.time;
-#endif
+  {
+    /* establish base casting time for spell */
+    casting_time = SINFO.time;
+  }
 
   /* meta magic! */
   if (!IS_NPC(ch))
@@ -2064,18 +2063,16 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (IS_SET(metamagic, METAMAGIC_QUICKEN))
     {
       casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-      quickened = TRUE;
-#endif
+      if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+        quickened = TRUE;
     }
     else if (HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
     {
       if (compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
       {
         casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-        quickened = true;
-#endif
+        if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          quickened = true;
       }
     }
     if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
@@ -2095,75 +2092,72 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (GET_WEAPON_TOUCH_SPELL(ch) != 0)
   {
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
   if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
   {
     HAS_ELDRITCH_SPELL_CRIT(ch) = false;
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
   if (spellnum == PSIONIC_MIND_TRAP)
   {
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
   if (has_paladin_quickened_blessing(ch) && is_quickened_blessing_spell(spellnum))
   {
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
+    if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
+    {
+      casting_time = 0;
+      quickened = true;
+      ch->char_specials.quick_chant = false;
+      send_to_char(ch, "Your casting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+    }
+    else if (!quickened && ch->char_specials.quick_mind && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      casting_time = 0;
+      quickened = true;
+      ch->char_specials.quick_mind = false;
+      send_to_char(ch, "Your manifesting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+    }
+  }
 
-  if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 1)
   {
-    casting_time = 0;
-    quickened = true;
-    ch->char_specials.quick_chant = false;
-    send_to_char(ch, "Your casting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      casting_time += get_augment_casting_time_adjustment(ch);
+      if (IS_BUFFING(ch))
+        GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
+    }
   }
-  else if (!quickened && ch->char_specials.quick_mind && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
-  {
-    casting_time = 0;
-    quickened = true;
-    ch->char_specials.quick_mind = false;
-    send_to_char(ch, "Your manifesting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
-  }
-#endif
-
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
-  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
-  {
-    casting_time += get_augment_casting_time_adjustment(ch);
-    if (IS_BUFFING(ch))
-      GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
-  }
-#endif
 
   if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
   {
     if (GET_AUGMENT_PSP(ch) >= 4)
     {
       casting_time = 1;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-      quickened = TRUE;
-#endif
+      if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+        quickened = TRUE;
     }
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
     if (quickened)
     {
       if (!is_action_available(ch, atSWIFT, FALSE))
@@ -2203,7 +2197,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       USE_STANDARD_ACTION(ch);
       USE_MOVE_ACTION(ch);
     }
-#endif
+  }
 
   /* Going to adjust spell queue and establish what class the character
 will be using for casting this spell */
@@ -2297,17 +2291,20 @@ will be using for casting this spell */
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
     CASTING_TIME(ch) = casting_time;
     CASTING_TIME_MAX(ch) = casting_time;
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
     CASTING_METAMAGIC(ch) = metamagic;
-#else
-    /* mandatory wait-state for any spell */
-    USE_MOVE_ACTION(ch);
-#endif
+  }
+  else
+  {
+    /* mandatory action cost for any spell */
+    USE_MOVE_ACTION(ch); 
+  }
 
     return (call_magic(ch, tch, tobj, spellnum, metamagic, clevel, CAST_SPELL));
   }
@@ -2355,10 +2352,11 @@ will be using for casting this spell */
       NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
     }
 
-#if !defined(CAMPAIGN_FR) || !defined(CAMPAIGN_DL)
-    /* mandatory wait-state for any spell */
+  if (CONFIG_SPELLCASTING_TIME_MODE == 1)
+  { 
+    /* mandatory wait-state for any spell (seconds-based mode only) */
     USE_MOVE_ACTION(ch);
-#endif
+  }
 
   }
   // this return value has to be checked -zusuk
