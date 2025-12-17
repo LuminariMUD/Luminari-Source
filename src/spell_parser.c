@@ -929,6 +929,8 @@ SAVING_WILL here...  */
       start_daily_use_cooldown(caster, FEAT_DRAGOON_POINTS);
   }
 
+  send_to_char(caster, "Caster class %d caster level %d.\r\n", CASTING_CLASS(caster), spell_level);
+
   /* the rest of the routine handling follows: */
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
@@ -1656,9 +1658,9 @@ void finishCasting(struct char_data *ch)
   // exp gained for casting spells
   int spell_circle = spell_info[CASTING_SPELLNUM(ch)].min_level[CASTING_CLASS(ch)];
   int exp_to_give = GET_LEVEL(ch) * spell_circle * 50;
-  if (CONFIG_SPELL_CAST_EXP_OPTION == 2) // reduced exp
+  if (CONFIG_SPELL_CAST_EXP_OPTION == 1) // reduced exp
     exp_to_give /= 2;
-  else if (CONFIG_SPELL_CAST_EXP_OPTION == 3) // no exp
+  else if (CONFIG_SPELL_CAST_EXP_OPTION == 2) // no exp
     exp_to_give = 0;  
   
   if (FIGHTING(ch) && !IS_NPC(ch) && exp_to_give > 0)

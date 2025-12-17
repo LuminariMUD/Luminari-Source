@@ -1167,9 +1167,10 @@
 #define SKILL_HOLY_AVENGER 2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
 #define SKILL_BEACON_OF_HOPE 2236 // Paladin Divine Champion - Tier 4 (party buff)
 #define SKILL_APPLY_NATURES_WRATH_DAMAGE 2237 /* Custom: +2d8 damage for Nature's Wrath */
+#define WARLOCK_CHILLING_TENTACLES_COLD 2238 /* Custom: Cold damage for Chilling Tentacles */
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2238 // Total number of skills (increment when adding new skills)
+#define NUM_SKILLS 2239 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

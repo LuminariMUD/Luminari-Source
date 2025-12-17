@@ -5674,7 +5674,6 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 0;
     SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
-    send_to_char(ch, "Caster level: %d\r\n", level);
     to_vict = "You are encircled and entangled by huge frigid black tentacles that writhe from the ground.";
     to_room = "$n is encircled and entangled by huge frigid black tentacles that writhe from the ground.";
     break;
@@ -10172,6 +10171,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_BLACK_TENTACLES:
     to_char = "You call forth many large, black tentacles from the ground!";
     to_room = "$n calls forth many large, black tentacles from the ground!";
+    isEffect = TRUE;
+    break;
+  case WARLOCK_CHILLING_TENTACLES:
+    to_char = "You call forth many writhing, frost-covered tentacles from the ground!";
+    to_room = "$n calls forth many writhing, frost-covered tentacles from the ground!";
     isEffect = TRUE;
     break;
   case AFFECT_PRESCIENCE:

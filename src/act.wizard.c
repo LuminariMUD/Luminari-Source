@@ -12083,8 +12083,14 @@ ACMD(do_settestchar)
     /* For spontaneous casters, grant all spells they can learn up to their class level */
     switch (class_num)
     {
-    case CLASS_SORCERER:
     case CLASS_WARLOCK:
+      /* Warlocks use invocations in a specific range */
+      for (j = WARLOCK_POWER_START; j <= WARLOCK_POWER_END; j++)
+      {
+        known_spells_add(vict, class_num, j, TRUE); /* TRUE skips validation limits */
+      }
+      break;
+    case CLASS_SORCERER:
     case CLASS_BARD:
     case CLASS_SUMMONER:
     case CLASS_INQUISITOR:

@@ -221,7 +221,7 @@ void affliction_tick(struct char_data *ch)
   if (affected_by_spell(ch, WARLOCK_CHILLING_TENTACLES))
   {
     damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, WARLOCK_CHILLING_TENTACLES, DAM_FORCE, FALSE);
-    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES, DAM_COLD, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES_COLD, DAM_COLD, FALSE);
   }
   else if (affected_by_spell(ch, SPELL_GREATER_BLACK_TENTACLES))
   {

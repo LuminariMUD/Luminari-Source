@@ -3054,15 +3054,31 @@ $N manages to avoid any harm from smashing into the ground.
 * chilling tentacles 1678
 M
 1678
-	BYour icy tentacles 	bcrushed the life	B out of $N!	n
-	BYou are	b crushed to death	B by $n's	b chilling tentacles	B!	n
-	B$n's	b icy tentacles 	bcrushed $N	B to death!	n
-Your chilling tentacles writhe through the air but miss $N!
-$n's chilling tentacles writhe past you, missing by inches!
-$n's chilling tentacles lash out at $N but miss!
-	BYour	b icy tentacles 	Bwrap around $N and	b squeeze	B!	n
-	B$n's	b chilling tentacles 	Bwrap around you and	b squeeze	B painfully!	n
-	B$n's	b icy tentacles 	Bwrap around $N and	b squeeze	B!	n
-Your tentacles dissipate before reaching $N!
-$n's feeble tentacles dissipate before reaching you.
-$n's feeble tentacles dissipate before reaching $N.
+	BIcy tentacles 	bcrushed the life	B out of $N!	n
+	BYou are	b crushed to death	B by	b chilling tentacles	B!	n
+	BIcy tentacles 	bcrushed $N	B to death!	n
+Chilling tentacles writhe through the air but miss $N!
+Chilling tentacles writhe past you, missing by inches!
+Chilling tentacles lash out at $N but miss!
+	BIcy tentacles 	Bwrap around $N and	b squeeze	B!	n
+	BChilling tentacles 	Bwrap around you and	b squeeze	B painfully!	n
+	BIcy tentacles 	Bwrap around $N and	b squeeze	B!	n
+Icy tentacles dissipate before reaching $N!
+Feeble tentacles dissipate before reaching you.
+Feeble tentacles dissipate before reaching $N.
+
+* chilling tentacles (cold only) 2238
+M
+2238
+	BThe chill from the icy tentacles 	Bfreezes $N solid!	n
+	BThe chill from the icy tentacles 	Bfreezes you solid!	n
+	BThe chill from the icy tentacles 	Bfreezes $N solid!	n
+Icy tentacles whip past $N, their frost failing to bite.
+Icy tentacles whip past you, their frost failing to bite.
+Icy tentacles whip past $N, their frost failing to bite.
+The chill from icy tentacles washes over $N in biting frost!
+The chill from icy tentacles washes over you in biting frost!
+The chill from icy tentacles washes over $N in biting frost!
+Icy tentacles dissipate into harmless mist before reaching $N.
+Icy tentacles dissipate into harmless mist before reaching you.
+Icy tentacles dissipate into harmless mist before reaching $N.
