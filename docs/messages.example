@@ -3035,6 +3035,22 @@ $N evades the shards of bone flying everywhere.
 You evade the shards of bone flying everywhere.
 $N evades the shards of bone flying everywhere.
 
+* bozak lightning discharge
+M
+1244
+A spear of lightning lances from you, arcing down through $N!
+A spear of lightning lances from $n, arcing down through you!
+A spear of lightning lances from $n, arcing down through $N!
+Your lightning discharge gutters out before it reaches $N.
+$n's lightning discharge gutters out before it reaches you.
+$n's lightning discharge gutters out before it reaches $N.
+A crackling bolt extends down your arm, coursing into $N!
+A crackling bolt extends down $n's arm, coursing into you!
+A crackling bolt extends down $n's arm, coursing into $N!
+Your downward bolt fizzles in midair, sparing $N.
+$n's downward bolt fizzles in midair, sparing you.
+$n's downward bolt fizzles in midair, sparing $N.
+
 * falling damage
 M
 1284
