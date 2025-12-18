@@ -256,9 +256,25 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 #else
   if (need_check && IS_PERFORMING(ch))
   {
-    if (!silent)
-      send_to_char(ch, "You are already in the middle of a performance!\r\n");
-    return 0;
+    /* Tier 3 Spellsinger: Master of Motifs - allow dual performances */
+    if (!IS_NPC(ch) && has_bard_master_of_motifs(ch))
+    {
+      /* Check if they already have 2 performances active */
+      if (GET_PERFORMANCE_VAR(ch, 2) >= 0)
+      {
+        if (!silent)
+          send_to_char(ch, "You are already maintaining two performances!\r\n");
+        return 0;
+      }
+      /* They have 1 performance, can start a second */
+    }
+    else
+    {
+      /* Normal bards can only have 1 performance */
+      if (!silent)
+        send_to_char(ch, "You are already in the middle of a performance!\r\n");
+      return 0;
+    }
   }
 #endif
 
@@ -361,9 +377,25 @@ ACMD(do_perform)
 #else
   if (IS_PERFORMING(ch))
   {
-    IS_PERFORMING(ch) = FALSE;
-    act("You stop your current performance.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
+    /* Tier 3 Spellsinger: Master of Motifs - stop performances intelligently */
+    if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && GET_PERFORMANCE_VAR(ch, 2) >= 0)
+    {
+      /* They have 2 performances, stop both */
+      IS_PERFORMING(ch) = FALSE;
+      GET_PERFORMING(ch) = -1;
+      GET_PERFORMANCE_VAR(ch, 2) = -1;
+      act("You stop both of your performances.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
+    }
+    else
+    {
+      /* Only 1 performance, stop it normally */
+      IS_PERFORMING(ch) = FALSE;
+      GET_PERFORMING(ch) = -1;
+      GET_PERFORMANCE_VAR(ch, 2) = -1;
+      act("You stop your current performance.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
+    }
   }
 #endif
 
@@ -390,8 +422,21 @@ ACMD(do_perform)
         }
 
         /* SUCCESS! */
-        act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
-        act("$n starts performing.", TRUE, ch, 0, 0, TO_ROOM);
+          /* Tier 3 Spellsinger: Master of Motifs - handle dual performances */
+          if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && IS_PERFORMING(ch) && 
+              GET_PERFORMANCE_VAR(ch, 2) < 0)
+          {
+            /* Starting a second performance */
+            GET_PERFORMANCE_VAR(ch, 2) = performance_num;
+            act("You begin a second performance, maintaining both songs!", FALSE, ch, 0, 0, TO_CHAR);
+            act("$n begins performing a second song simultaneously!", TRUE, ch, 0, 0, TO_ROOM);
+          }
+          else
+          {
+            /* Starting first performance normally */
+            act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
+            act("$n starts performing.", TRUE, ch, 0, 0, TO_ROOM);
+          }
 
 #ifdef EVENT_RAN
         char buf[128];
@@ -401,6 +446,12 @@ ACMD(do_perform)
 #else
         IS_PERFORMING(ch) = TRUE;
         GET_PERFORMING(ch) = performance_num;
+        
+          /* Tier 3 Spellsinger: Master of Motifs - initialize second performance slot */
+          if (!IS_NPC(ch) && GET_PERFORMANCE_VAR(ch, 2) != performance_num)
+          {
+            GET_PERFORMANCE_VAR(ch, 2) = -1; /* -1 means no second performance */
+          }
 #endif
 
         /* Bard Spellsinger: Reset Crescendo flag when starting a new performance */
@@ -1162,8 +1213,47 @@ void pulse_bardic_performance()
     if (IS_PLAYING(pt) && pt->character &&
         IS_PERFORMING(pt->character) && (GET_PERFORMING(pt->character) >= 0)) /* GET_PERFORMING: -1 is no perform/fail */
     {
-      /* this is the main engine */
-      (bardic_performance_engine(pt->character, GET_PERFORMING(pt->character)));
+      struct char_data *ch = pt->character;
+      
+      /* Process primary performance */
+      (bardic_performance_engine(ch, GET_PERFORMING(ch)));
+      
+      /* Tier 3 Spellsinger: Master of Motifs - process second performance if active */
+      if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && 
+          GET_PERFORMANCE_VAR(ch, 2) >= 0 && IS_PERFORMING(ch))
+      {
+        (bardic_performance_engine(ch, GET_PERFORMANCE_VAR(ch, 2)));
+      }
+      
+      /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
+      if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))
+      {
+        struct char_data *tch = NULL, *next_tch = NULL;
+        int dirge_damage = get_bard_dirge_sonic_damage(ch);
+        
+        if (dirge_damage > 0)
+        {
+          send_to_char(ch, "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
+          
+          /* Damage all enemies in the room */
+          for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+          {
+            next_tch = tch->next_in_room;
+            
+            /* Skip self, allies, and those not valid AOE targets */
+            if (tch == ch || !aoeOK(ch, tch, -1))
+              continue;
+            
+            /* Apply sonic damage */
+            int dam = dice(dirge_damage, 6);
+            if (dam > 0)
+            {
+              send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n", dam);
+              damage(ch, tch, dam, -1, DAM_SOUND, FALSE);
+            }
+          }
+        }
+      }
     }
   }
 

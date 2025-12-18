@@ -1134,6 +1134,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       }
     }
 
+    /* Bard Spellsinger: Protective Chorus - +2 dodge AC for allies in song */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_protective_chorus_ac_bonus(ch);
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {

@@ -1684,6 +1684,21 @@ void finishCasting(struct char_data *ch)
     }
   }
   
+  /* Bard Spellsinger: Heightened Harmony - apply perform bonus after metamagic cast */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && CASTING_METAMAGIC(ch) != 0 && has_bard_heightened_harmony(ch))
+  {
+    struct affected_type hh_af;
+    new_affect(&hh_af);
+    hh_af.spell = PERK_BARD_HEIGHTENED_HARMONY;
+    hh_af.duration = 3; /* lasts a few rounds */
+    hh_af.location = APPLY_SKILL;
+    hh_af.specific = ABILITY_PERFORM;
+    hh_af.modifier = get_bard_heightened_harmony_perform_bonus(ch); /* +5 */
+    hh_af.bonus_type = BONUS_TYPE_COMPETENCE;
+    affect_to_char(ch, &hh_af);
+    send_to_char(ch, "\tCYour metamagic resonates, heightening your performance! (+%d)\tn\r\n", hh_af.modifier);
+  }
+
   /* Consume metamagic reduction use if applicable */
   if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0) {
     use_metamagic_reduction(ch);

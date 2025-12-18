@@ -3881,6 +3881,12 @@
 #define PERK_BARD_CRESCENDO 1106
 #define PERK_BARD_SUSTAINING_MELODY 1107
 
+/* Bard Spellsinger Tree Tier III */
+#define PERK_BARD_MASTER_OF_MOTIFS 1108
+#define PERK_BARD_DIRGE_OF_DISSONANCE 1109
+#define PERK_BARD_HEIGHTENED_HARMONY 1110
+#define PERK_BARD_PROTECTIVE_CHORUS 1111
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

@@ -491,4 +491,15 @@ bool has_bard_crescendo(struct char_data *ch);
 int get_bard_crescendo_sonic_damage(struct char_data *ch);
 int get_bard_crescendo_dc_bonus(struct char_data *ch);
 bool has_bard_sustaining_melody(struct char_data *ch);
+
+/* Bard Spellsinger Tree Tier 3 Functions */
+bool has_bard_master_of_motifs(struct char_data *ch);
+bool has_bard_dirge_of_dissonance(struct char_data *ch);
+int get_bard_dirge_sonic_damage(struct char_data *ch);
+int get_bard_dirge_concentration_penalty(struct char_data *ch);
+bool has_bard_heightened_harmony(struct char_data *ch);
+int get_bard_heightened_harmony_perform_bonus(struct char_data *ch);
+bool has_bard_protective_chorus(struct char_data *ch);
+int get_bard_protective_chorus_save_bonus(struct char_data *ch);
+int get_bard_protective_chorus_ac_bonus(struct char_data *ch);
 #endif /* _PERKS_H_ */

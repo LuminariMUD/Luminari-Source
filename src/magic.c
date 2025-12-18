@@ -456,6 +456,12 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (!IS_NPC(vict))
     savethrow += get_paladin_bulwark_saves_bonus(vict);
 
+  /* Bard Spellsinger: Protective Chorus - +2 to all saves for allies */
+  if (!IS_NPC(vict))
+  {
+    savethrow += get_bard_protective_chorus_save_bonus(vict);
+  }
+
   /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
   if (!IS_NPC(vict) && GROUP(vict) != NULL)
   {

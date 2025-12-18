@@ -4441,6 +4441,74 @@ void define_bard_perks(void)
   perk->effect_value = 20;
   perk->effect_modifier = 1;
   perk->special_description = strdup("20% chance per round to recover 1 spell slot while performing in combat");
+
+  /* ========================================================================
+   * TIER III - SPELLSINGER TREE
+   * ======================================================================== */
+
+  /* Master of Motifs */
+  perk = &perk_list[PERK_BARD_MASTER_OF_MOTIFS];
+  perk->id = PERK_BARD_MASTER_OF_MOTIFS;
+  perk->name = strdup("Master of Motifs");
+  perk->description = strdup("Maintain up to two distinct bard songs simultaneously (shared performance pool)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SUSTAINING_MELODY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allows maintaining 2 distinct bard songs simultaneously");
+
+  /* Dirge of Dissonance */
+  perk = &perk_list[PERK_BARD_DIRGE_OF_DISSONANCE];
+  perk->id = PERK_BARD_DIRGE_OF_DISSONANCE;
+  perk->name = strdup("Dirge of Dissonance");
+  perk->description = strdup("Enemies in the room take 1d6 sonic damage per round and -2 penalty to concentration checks while your song persists");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_CRESCENDO;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6; /* 1d6 damage */
+  perk->effect_modifier = -2; /* concentration penalty */
+  perk->special_description = strdup("Room-wide attrition: 1d6 sonic damage and -2 concentration per round");
+
+  /* Heightened Harmony */
+  perk = &perk_list[PERK_BARD_HEIGHTENED_HARMONY];
+  perk->id = PERK_BARD_HEIGHTENED_HARMONY;
+  perk->name = strdup("Heightened Harmony");
+  perk->description = strdup("When you spend metamagic on a bard spell, you gain +5 to your perform skill for one minute");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_ENCHANTERS_GUILE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* perform bonus */
+  perk->effect_modifier = 60; /* duration in seconds */
+  perk->special_description = strdup("Metamagic grants +5 perform for 1 minute");
+
+  /* Protective Chorus */
+  perk = &perk_list[PERK_BARD_PROTECTIVE_CHORUS];
+  perk->id = PERK_BARD_PROTECTIVE_CHORUS;
+  perk->name = strdup("Protective Chorus");
+  perk->description = strdup("Allies under your song gain +2 to saves vs. spells and +2 to AC vs. attacks of opportunity");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RESONANT_VOICE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* save bonus */
+  perk->effect_modifier = 2; /* AC bonus */
+  perk->special_description = strdup("Allies gain +2 saves vs. spells and +2 AC vs. AoO");
 }
 
 /* Define Barbarian Perks */
@@ -13167,4 +13235,153 @@ bool has_bard_sustaining_melody(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_BARD_SUSTAINING_MELODY);
+}
+
+/* ============================================================================
+ * TIER III SPELLSINGER PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Master of Motifs perk.
+ * Allows maintaining two distinct bard songs simultaneously.
+ * 
+ * @param ch The character
+ * @return TRUE if has Master of Motifs, FALSE otherwise
+ */
+bool has_bard_master_of_motifs(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_MASTER_OF_MOTIFS);
+}
+
+/**
+ * Check if character has Dirge of Dissonance perk.
+ * Causes enemies in the room to take sonic damage and concentration penalties.
+ * 
+ * @param ch The character
+ * @return TRUE if has Dirge of Dissonance, FALSE otherwise
+ */
+bool has_bard_dirge_of_dissonance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_DIRGE_OF_DISSONANCE);
+}
+
+/**
+ * Get sonic damage dice value for Dirge of Dissonance.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice to roll for sonic damage per round (1 if has perk, 0 otherwise)
+ */
+int get_bard_dirge_sonic_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_dirge_of_dissonance(ch))
+    return 1; /* 1d6 sonic damage per round */
+  
+  return 0;
+}
+
+/**
+ * Get concentration penalty for Dirge of Dissonance.
+ * 
+ * @param ch The character
+ * @return Concentration check penalty (-2 if has perk, 0 otherwise)
+ */
+int get_bard_dirge_concentration_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_dirge_of_dissonance(ch))
+    return -2; /* -2 to concentration checks */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Heightened Harmony perk.
+ * Grants perform skill bonus when using metamagic on bard spells.
+ * 
+ * @param ch The character
+ * @return TRUE if has Heightened Harmony, FALSE otherwise
+ */
+bool has_bard_heightened_harmony(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_HEIGHTENED_HARMONY);
+}
+
+/**
+ * Get perform skill bonus from Heightened Harmony.
+ * 
+ * @param ch The character
+ * @return Perform skill bonus (+5 if has perk and buff is active, 0 otherwise)
+ */
+int get_bard_heightened_harmony_perform_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_heightened_harmony(ch) && affected_by_spell(ch, PERK_BARD_HEIGHTENED_HARMONY))
+    return 5; /* +5 to perform skill */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Protective Chorus perk.
+ * Grants defensive bonuses to allies under bard songs.
+ * 
+ * @param ch The character
+ * @return TRUE if has Protective Chorus, FALSE otherwise
+ */
+bool has_bard_protective_chorus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PROTECTIVE_CHORUS);
+}
+
+/**
+ * Get save bonus from Protective Chorus.
+ * 
+ * @param ch The character
+ * @return Save bonus vs. spells (+2 if has perk, 0 otherwise)
+ */
+int get_bard_protective_chorus_save_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_protective_chorus(ch))
+    return 2; /* +2 to saves vs. spells */
+  
+  return 0;
+}
+
+/**
+ * Get AC bonus from Protective Chorus.
+ * 
+ * @param ch The character
+ * @return AC bonus vs. attacks of opportunity (+2 if has perk, 0 otherwise)
+ */
+int get_bard_protective_chorus_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_protective_chorus(ch))
+    return 2; /* +2 AC vs. attacks of opportunity */
+  
+  return 0;
 }

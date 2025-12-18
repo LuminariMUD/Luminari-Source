@@ -1492,6 +1492,25 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) * 3;
     }
 
+    /* Bard Spellsinger: Dirge of Dissonance - foes suffer concentration penalty */
+    if (!IS_NPC(ch))
+    {
+      struct char_data *i = NULL;
+      for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
+      {
+        if (i == ch)
+          continue;
+        if (!IS_NPC(i) && IS_PERFORMING(i) && has_bard_dirge_of_dissonance(i))
+        {
+          /* If not grouped with the performing bard, apply penalty */
+          if (!GROUP(ch) || GROUP(ch) != GROUP(i))
+          {
+            value += get_bard_dirge_concentration_penalty(i); /* returns negative value */
+            break; /* Only apply once per room */
+          }
+        }
+      }
+    }
     return value;
 
   case ABILITY_SPELLCRAFT:
@@ -1729,6 +1748,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_PERFORM:
     value += GET_CHA_BONUS(ch);
+      /* Tier 3 Spellsinger: Heightened Harmony - metamagic → perform bonus */
+      if (!IS_NPC(ch))
+      {
+        value += get_bard_heightened_harmony_perform_bonus(ch);
+      }
     return value;
 
   case ABILITY_LINGUISTICS:
