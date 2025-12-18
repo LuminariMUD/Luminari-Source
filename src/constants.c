@@ -4106,7 +4106,7 @@ const char *feat_types[] = {
     "\n"};
 
 const char *ability_names[] = {
-    "RESERVED",
+    "No-Skill",
     "Acrobatics",
     "Stealth",
     "Religion",

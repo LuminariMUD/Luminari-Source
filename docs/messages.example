@@ -3003,6 +3003,22 @@ You miss your gore against $N.
 $n misses $s gore against You.
 $n misses $s gore against $N.
 
+* flame arrow 509
+M
+509
+Your flaming arrows riddle $N, burning $M to a crisp!
+$n's flaming arrows riddle you, burning you to a crisp!
+$n's flaming arrows riddle $N, burning $M to a crisp!
+Your flaming arrows streak past $N and fizzle out.
+Flaming arrows streak past you and fizzle out.
+$n's flaming arrows streak past $N and fizzle out.
+Your flaming arrow sears $N, leaving a trail of embers.
+Flaming arrows sear into you, leaving a trail of embers.
+$n's flaming arrow sears $N, leaving a trail of embers.
+Your flaming arrows gutter out against $N's defenses.
+Flaming arrows gutter out against your defenses.
+$n's flaming arrows gutter out against $N's defenses.
+
 * deathless touch 1264
 M
 1264
@@ -3098,3 +3114,4 @@ The chill from icy tentacles washes over $N in biting frost!
 Icy tentacles dissipate into harmless mist before reaching $N.
 Icy tentacles dissipate into harmless mist before reaching you.
 Icy tentacles dissipate into harmless mist before reaching $N.
+

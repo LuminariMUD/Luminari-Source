@@ -360,22 +360,32 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+  {
+    bool diff = obj->affected[counter2].modifier != temp->affected[counter2].modifier ||
+                obj->affected[counter2].location != temp->affected[counter2].location ||
+                obj->affected[counter2].bonus_type != temp->affected[counter2].bonus_type ||
+                obj->affected[counter2].specific != temp->affected[counter2].specific ||
+                obj->affected[counter2].specific != 0; /* force-save specific if set */
+
+    if (diff)
     {
-      fprintf(fp, "Aff : %d %d %d %d\n",
+      fprintf(fp, "Aff : %d %d %d %d %d\n",
               counter2,
               obj->affected[counter2].location,
               obj->affected[counter2].modifier,
-              obj->affected[counter2].bonus_type);
+              obj->affected[counter2].bonus_type,
+              obj->affected[counter2].specific);
 #ifdef OBJSAVE_DB
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d %d\n",
                counter2,
                obj->affected[counter2].location,
                obj->affected[counter2].modifier,
-               obj->affected[counter2].bonus_type);
+               obj->affected[counter2].bonus_type,
+               obj->affected[counter2].specific);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
+  }
 
   /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description)
@@ -1950,12 +1960,15 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "Aff "))
       {
-        sscanf(line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+        t[4] = 0;
+        sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
         if (t[0] < MAX_OBJ_AFFECT)
         {
           temp->affected[t[0]].location = t[1];
           temp->affected[t[0]].modifier = t[2];
           temp->affected[t[0]].bonus_type = t[3];
+          temp->affected[t[0]].specific = t[4];
+
         }
       }
       else if (!strcmp(tag, "Actv"))
@@ -2411,12 +2424,14 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          t[4] = 0;
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
+            temp->affected[t[0]].specific = t[4];
           }
         }
         else if (!strcmp(tag, "Actv"))
@@ -3099,15 +3114,24 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+  {
+    bool diff = obj->affected[counter2].modifier != temp->affected[counter2].modifier ||
+                obj->affected[counter2].location != temp->affected[counter2].location ||
+                obj->affected[counter2].bonus_type != temp->affected[counter2].bonus_type ||
+                obj->affected[counter2].specific != temp->affected[counter2].specific ||
+                obj->affected[counter2].specific != 0; /* force-save specific if set */
+
+    if (diff)
     {
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+            snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d %d\n",
                counter2,
                obj->affected[counter2].location,
                obj->affected[counter2].modifier,
-               obj->affected[counter2].bonus_type);
+              obj->affected[counter2].bonus_type,
+              obj->affected[counter2].specific);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
     }
+  }
 
 /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description)
@@ -3412,12 +3436,14 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          t[4] = 0;
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
+            temp->affected[t[0]].specific = t[4];
           }
         }
         else if (!strcmp(tag, "Actv"))
@@ -3777,15 +3803,24 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+  {
+    bool diff = obj->affected[counter2].modifier != temp->affected[counter2].modifier ||
+                obj->affected[counter2].location != temp->affected[counter2].location ||
+                obj->affected[counter2].bonus_type != temp->affected[counter2].bonus_type ||
+                obj->affected[counter2].specific != temp->affected[counter2].specific ||
+                obj->affected[counter2].specific != 0; /* force-save specific if set */
+
+    if (diff)
     {
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+            snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d %d\n",
                counter2,
                obj->affected[counter2].location,
                obj->affected[counter2].modifier,
-               obj->affected[counter2].bonus_type);
+              obj->affected[counter2].bonus_type,
+              obj->affected[counter2].specific);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
     }
+  }
 
 /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description)
@@ -4088,12 +4123,14 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          t[4] = 0;
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
+            temp->affected[t[0]].specific = t[4];
           }
         }
         else if (!strcmp(tag, "Actv"))
