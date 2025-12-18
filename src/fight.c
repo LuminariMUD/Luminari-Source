@@ -1098,6 +1098,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     /* Berserker Primal Warrior perk: Uncanny Dodge Mastery - +3 dodge AC */
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_berserker_uncanny_dodge_ac_bonus(ch);
+
+    /* Ranger Wilderness Warrior: Tempest - dodge AC bonus when dual wielding */
+    if (!IS_NPC(ch) && is_dual_wielding(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_ranger_tempest_ac(ch);
       
     /* Paladin Knight of the Chalice perk: Sacred Defender - +1 AC per rank when using weapon and shield */
     if (!IS_NPC(ch))
@@ -14376,6 +14380,37 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
         send_to_char(ch, "Offhand (Great 2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + GREAT_TWO_PNLY);
         /* display damage bonus */
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
+      }
+    }
+
+    /* Wilderness Warrior Two-Weapon Fighting: 10% chance for extra off-hand attack */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10)
+    {
+      numAttacks++;
+      if (mode == NORMAL_ATTACK_ROUTINE)
+      {
+        if (valid_fight_cond(ch, FALSE))
+          if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) ||
+                                      (numAttacks == 5) ||
+                                      (numAttacks == 8) ||
+                                      (numAttacks == 11) ||
+                                      (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) ||
+                                      (numAttacks == 6) ||
+                                      (numAttacks == 9) ||
+                                      (numAttacks == 12) ||
+                                      (numAttacks == 15))))
+          {
+            send_to_char(ch, "\tG[Wilderness Warrior TWF!]\tn\r\n");
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, ATTACK_TYPE_OFFHAND);
+          }
+      }
+      else if (mode == DISPLAY_ROUTINE_POTENTIAL)
+      {
+        send_to_char(ch, "Offhand (WW Two-Weapon Fighting - 10%% proc), Attack Bonus:  %d; ",
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
       }
     }
