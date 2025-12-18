@@ -1655,6 +1655,18 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
   
+  /* Bard Spellsinger: Harmonic Casting - chance to not interrupt performance when casting during a song */
+  bool harmony_procced = FALSE;
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_harmonic_casting(ch))
+  {
+    /* 50% chance to not consume performance round */
+    if (!rand_number(0, 1))
+    {
+      harmony_procced = TRUE;
+      send_to_char(ch, "\tCThe harmonious melody flows through your casting, sustaining your song!\tn\r\n");
+    }
+  }
+  
   /* Consume metamagic reduction use if applicable */
   if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0) {
     use_metamagic_reduction(ch);

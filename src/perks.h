@@ -480,4 +480,9 @@ void remove_class_perks(struct char_data *ch, int class_id);              /* Rem
 void remove_all_perks(struct char_data *ch);                               /* Remove all perks (for respec) */
 void reset_all_perk_points(struct char_data *ch);                          /* Reset all perk points to 0 */
 
+/* Bard Spellsinger Tree Perk Functions */
+int get_bard_enchanters_guile_dc_bonus(struct char_data *ch);
+int get_bard_songweaver_level_bonus(struct char_data *ch);
+int get_bard_resonant_voice_save_bonus(struct char_data *ch);
+bool has_bard_harmonic_casting(struct char_data *ch);
 #endif /* _PERKS_H_ */

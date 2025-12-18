@@ -621,6 +621,11 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     challenge += get_master_illusionist_dc_bonus(ch);
   }
   
+  /* Bard Spellsinger Tree - Enchanter's Guile applies to Enchantment and Illusion */
+  if (ch && (school == ENCHANTMENT || school == ILLUSION))
+  {
+    challenge += get_bard_enchanters_guile_dc_bonus(ch);
+  }
   /* Archmage of Control adds +5 DC to control spells (charm, confuse, daze, sleep) */
   /* These are typically enchantment school spells */
   if (ch && school == ENCHANTMENT)

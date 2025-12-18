@@ -3107,6 +3107,11 @@
 #define PERK_CATEGORY_KNIGHT_OF_THE_CHALICE 27
 #define PERK_CATEGORY_SACRED_DEFENDER 28
 #define PERK_CATEGORY_DIVINE_CHAMPION 29
+/* Bard Perk Categories */
+#define PERK_CATEGORY_SPELLSINGER 30
+#define PERK_CATEGORY_WARCHANTER 31
+#define PERK_CATEGORY_SWASHBUCKLER 32
+
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3864,7 +3869,11 @@
 /* ============================================================================
  * BARD PERKS (1100-1199)
  * ============================================================================ */
-/* Not yet implemented */
+/* Spellsinger Tree - Tier 1 */
+#define PERK_BARD_SONGWEAVER_I 1100
+#define PERK_BARD_ENCHANTERS_GUILE_I 1101
+#define PERK_BARD_RESONANT_VOICE_I 1102
+#define PERK_BARD_HARMONIC_CASTING 1103
 
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)

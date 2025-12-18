@@ -20,6 +20,7 @@
 #include "spec_procs.h"
 #include "actions.h"
 #include "feats.h"
+#include "perks.h"
 
 /* defines */
 #define DEBUG_MODE FALSE
@@ -445,6 +446,18 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[i].bonus_type = BONUS_TYPE_INHERENT;
     af[i].modifier = 1;
     af[i].location = APPLY_NONE;
+  /* Bard Spellsinger: Songweaver I - add duration bonus */
+  if (!IS_NPC(ch))
+  {
+    int songweaver_bonus = get_bard_songweaver_level_bonus(ch);
+    if (songweaver_bonus > 0)
+    {
+      for (i = 0; i < BARD_AFFECTS; i++)
+      {
+        af[i].duration += songweaver_bonus;
+      }
+    }
+  }
   }
 
   if (affected_by_spell(tch, spellnum))
@@ -704,6 +717,22 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     break;
 
   } /* end switch */
+
+  /*** Bard Spellsinger: Resonant Voice I - add save bonuses for allies to resistances against mind-affecting effects ***/
+  if (!IS_NPC(ch))
+  {
+    int resonant_bonus = get_bard_resonant_voice_save_bonus(ch);
+    if (resonant_bonus > 0 && aoe == PERFORM_AOE_GROUP)
+    {
+      /* Find an available affect slot and add Will save bonus (for mind-affecting) */
+      if (af[6].location == APPLY_NONE)
+      {
+        af[6].location = APPLY_SAVING_WILL;
+        af[6].modifier = resonant_bonus;
+        af[6].bonus_type = BONUS_TYPE_COMPETENCE;
+      }
+    }
+  }
 
   /*** now we apply the affection(s) */
   for (i = 0; i < BARD_AFFECTS; i++)

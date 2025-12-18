@@ -66,6 +66,8 @@ const char *perk_category_names[] = {
   "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
   "\n"                      /* Terminator */
 };
+/* Forward declarations for perk definition functions */
+void define_bard_perks(void);
 
 /* Initialize the perk system - called at boot */
 void init_perks(void)
@@ -113,6 +115,8 @@ void init_perks(void)
   define_ranger_perks();
   
   /* Define Barbarian Perks */
+  /* Define Bard Perks */
+  define_bard_perks();
   define_barbarian_perks();
   
   /* Define Monk Perks */
@@ -4299,6 +4303,78 @@ void define_ranger_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 4;
   perk->special_description = strdup("+2 to hit, +4 to damage when dual wielding (capstone)");
+}
+
+/* Define Bard Perks */
+void define_bard_perks(void)
+{
+  struct perk_data *perk;
+
+  /*** SPELLSINGER TREE - TIER I ***/
+
+  /* Songweaver I */
+  perk = &perk_list[PERK_BARD_SONGWEAVER_I];
+  perk->id = PERK_BARD_SONGWEAVER_I;
+  perk->name = strdup("Songweaver I");
+  perk->description = strdup("Bard songs gain +1 effective level per rank for duration and potency");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bard songs gain +1 effective level per rank");
+
+  /* Enchanter's Guile I */
+  perk = &perk_list[PERK_BARD_ENCHANTERS_GUILE_I];
+  perk->id = PERK_BARD_ENCHANTERS_GUILE_I;
+  perk->name = strdup("Enchanter's Guile I");
+  perk->description = strdup("+1 DC to Enchantment and Illusion spells per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 DC to Enchantment and Illusion spells per rank");
+
+  /* Resonant Voice I */
+  perk = &perk_list[PERK_BARD_RESONANT_VOICE_I];
+  perk->id = PERK_BARD_RESONANT_VOICE_I;
+  perk->name = strdup("Resonant Voice I");
+  perk->description = strdup("Allies under your songs gain +1 competence to saves vs. mind-affecting per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allies gain +1 save vs. mind-affecting per rank");
+
+  /* Harmonic Casting */
+  perk = &perk_list[PERK_BARD_HARMONIC_CASTING];
+  perk->id = PERK_BARD_HARMONIC_CASTING;
+  perk->name = strdup("Harmonic Casting");
+  perk->description = strdup("Casting a bard spell while maintaining a song has a 50% chance to not consume a performance round");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("50% chance to save performance round when casting spell during song");
 }
 
 /* Define Barbarian Perks */
@@ -12846,3 +12922,78 @@ bool has_paladin_beacon_of_hope(struct char_data *ch)
   return has_perk(ch, PERK_PALADIN_BEACON_OF_HOPE);
 }
 
+
+/******************************************************************************
+ * Bard Spellsinger Tree Perk Functions
+ ******************************************************************************/
+
+/**
+ * Get Enchanter's Guile DC bonus for Enchantment and Illusion spells.
+ * 
+ * @param ch The character
+ * @return Total DC bonus for Enchantment/Illusion spells
+ */
+int get_bard_enchanters_guile_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enchanter's Guile I: +1 DC per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get Songweaver song level bonus for bardic performance scaling.
+ * 
+ * @param ch The character
+ * @return Total effective song level bonus
+ */
+int get_bard_songweaver_level_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Songweaver I: +1 effective song level per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get Resonant Voice save bonus for allies under bard songs.
+ * 
+ * @param ch The character
+ * @return Total save bonus vs. mind-affecting for allies
+ */
+int get_bard_resonant_voice_save_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Resonant Voice I: +1 competence to saves per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_RESONANT_VOICE_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Harmonic Casting perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Harmonic Casting, FALSE otherwise
+ */
+bool has_bard_harmonic_casting(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_HARMONIC_CASTING);
+}
