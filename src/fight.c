@@ -6626,6 +6626,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Two-Weapon Focus II: \tR%d\tn\r\n", twf_damage_bonus);
     }
+    
+    /* Wilderness Warrior: Perfect WW Two-Weapon Fighting - additional damage when dual wielding */
+    if (has_perk(ch, PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING))
+    {
+      dambonus += 4;
+      if (display_mode)
+        send_to_char(ch, "Perfect WW Two-Weapon Fighting: \tR4\tn\r\n");
+    }
   }
 
   /* monk glove enhancement bonus */
@@ -7274,7 +7282,7 @@ int crit_range_extension(struct char_data *ch, struct obj_data *weap) {
 }
  */
 
-int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
+int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struct char_data *victim)
 {
   int threat_range = 19;
 
@@ -7382,6 +7390,16 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
     }
   }
 
+  /* Wilderness Warrior: Apex Predator - improved crit range vs favored enemies */
+  if (!IS_NPC(ch) && victim && has_perk(ch, PERK_RANGER_APEX_PREDATOR))
+  {
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+    {
+      threat_range--;
+    }
+  }
+
   /* end mods */
 
   if (threat_range <= 2) /* just in case */
@@ -7392,7 +7410,7 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
 #define CRIT_MULTI_MIN 2
 #define CRIT_MULTI_MAX 7
 
-int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded)
+int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded, struct char_data *victim)
 {
   int crit_multi = 2;
 
@@ -7451,6 +7469,16 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
   if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
   {
     crit_multi += (GET_LEVEL(ch) - 30);
+  }
+
+  /* Wilderness Warrior: Apex Predator - improved crit multiplier vs favored enemies */
+  if (!IS_NPC(ch) && victim && has_perk(ch, PERK_RANGER_APEX_PREDATOR))
+  {
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+    {
+      crit_multi++;
+    }
   }
 
   /* establish some caps */
@@ -7687,8 +7715,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED)
   {
-    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded));
-    send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded));
+    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded, NULL));
+    send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded, NULL));
     send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
   }
 
@@ -7730,7 +7758,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
 /* simple test for testing (confirming) critical hit */
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
-                    int calc_bab, int victim_ac)
+                    int calc_bab, int victim_ac, struct char_data *victim)
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
@@ -7798,7 +7826,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* we get here, the powerful being beat it */
   }
 
-  threat_range = determine_threat_range(ch, wielded);
+  threat_range = determine_threat_range(ch, wielded, victim);
 
   if (diceroll >= threat_range)
   { /* critical potential? */
@@ -8008,7 +8036,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "\tW[DEVASTATING!]\tn");
         if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[DEVASTATING!]\tn");
-        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
+        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim) - 1); loop++)
         {
           // overwhelming critical damage
           dam += dice(1, 6);
@@ -8022,7 +8050,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "\tW[OVERWHELMING!]\tn");
         if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[OVERWHELMING!]\tn");
-        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
+        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim) - 1); loop++)
         {
           dam += dice(1, 6);
         }
@@ -8059,7 +8087,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
 
       /* critical bonus */
-      dam *= determine_critical_multiplier(ch, wielded);
+      dam *= determine_critical_multiplier(ch, wielded, victim);
 
       /* Ranger: Sniper - add +2d6 damage on ranged critical hits (not multiplied) */
       if (!IS_NPC(ch) && wielded)
@@ -9299,6 +9327,16 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       if (display)
       {
         send_to_char(ch, "%2d: %-50s\r\n", twf_bonus, "Two-Weapon Focus I");
+      }
+    }
+    
+    /* Wilderness Warrior: Perfect WW Two-Weapon Fighting - bonus to-hit when dual wielding */
+    if (has_perk(ch, PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING))
+    {
+      calc_bab += 2;
+      if (display)
+      {
+        send_to_char(ch, " 2: %-50s\r\n", "Perfect WW Two-Weapon Fighting");
       }
     }
   }
@@ -10660,7 +10698,7 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
   int diceroll = d20(ch);
-  if (diceroll >= critical_threshold && is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac) && !IS_IMMUNE_CRITS(ch, victim))
+  if (diceroll >= critical_threshold && is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac, victim) && !IS_IMMUNE_CRITS(ch, victim))
     return 999;
   int result = ((attack_bonus + diceroll) - victim_ac);
 
@@ -13090,7 +13128,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     diceroll = d20(ch) + HAS_FEAT(ch, FEAT_WEAPON_TRAINING);
   else
     diceroll = d20(ch);
-  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(ch, victim))
+  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac, victim) && !IS_IMMUNE_CRITS(ch, victim))
   {
     can_hit = TRUE;
     is_critical = TRUE;
