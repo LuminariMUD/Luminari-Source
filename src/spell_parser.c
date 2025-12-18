@@ -1666,6 +1666,23 @@ void finishCasting(struct char_data *ch)
       send_to_char(ch, "\tCThe harmonious melody flows through your casting, sustaining your song!\tn\r\n");
     }
   }
+
+  /* Bard Spellsinger: Crescendo - bonus to first spell after starting song */
+  bool crescendo_active = FALSE;
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_crescendo(ch))
+  {
+    /* Check if this is the first spell cast after starting a song (check performance_vars) */
+    if (ch->char_specials.performance_vars[0] == 0)
+    {
+      /* Mark that we've used the crescendo bonus this performance */
+      ch->char_specials.performance_vars[0] = 1;
+      crescendo_active = TRUE;
+      /* Store sonic damage dice value for this spell */
+      ch->char_specials.performance_vars[1] = get_bard_crescendo_sonic_damage(ch); /* 1d6 sonic */
+      GET_DC_BONUS(ch) += get_bard_crescendo_dc_bonus(ch); /* +2 DC */
+      send_to_char(ch, "\tYYour spell reaches a crescendo of power!\tn\r\n");
+    }
+  }
   
   /* Consume metamagic reduction use if applicable */
   if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0) {

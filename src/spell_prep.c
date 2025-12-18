@@ -1620,6 +1620,54 @@ int count_total_slots(struct char_data *ch, int class, int circle)
 }
 
 /**
+ * sustain_melody_recover_one_slot - Instantly recover one spontaneous slot
+ * @ch: Character to recover a slot for (PC only)
+ * @ch_class: Spontaneous caster class (e.g., CLASS_BARD)
+ *
+ * For spontaneous casters (Sorcerer, Bard, etc.), available slots are computed
+ * as compute_slots_by_circle() minus slots in use across prepared collection and
+ * the innate (recovering) queue. To "recover" a slot immediately, we remove one
+ * entry from the innate magic queue. This increases available slots by one.
+ *
+ * This helper scans for the lowest-circle recovering slot and removes it. If no
+ * recovering slots exist, returns FALSE.
+ */
+bool sustain_melody_recover_one_slot(struct char_data *ch, int ch_class)
+{
+  struct innate_magic_data *iter, *best = NULL;
+
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+
+  /* Only applies to classes that use innate magic */
+  switch (ch_class) {
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+    case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
+      break;
+    default:
+      return FALSE;
+  }
+
+  if (!INNATE_MAGIC(ch, ch_class))
+    return FALSE;
+
+  /* Find the lowest-circle entry in the innate (recovering) queue */
+  for (iter = INNATE_MAGIC(ch, ch_class); iter; iter = iter->next) {
+    if (!best || iter->circle < best->circle)
+      best = iter;
+  }
+
+  if (!best)
+    return FALSE;
+
+  /* Remove it to make one slot of that circle available immediately */
+  innate_magic_remove(ch, best, ch_class);
+  return TRUE;
+}
+
+/**
  * is_spell_in_prep_queue - Check if spell is being prepared
  * @ch: Character to check
  * @class: Class to check preparation for

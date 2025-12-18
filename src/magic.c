@@ -3385,7 +3385,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else
   {
+    /* Bard Spellsinger: Crescendo - add sonic damage to first spell after song */
+    int crescendo_sonic_dam = 0;
+    if (!IS_NPC(ch) && ch->char_specials.performance_vars[1] > 0)
+    {
+      crescendo_sonic_dam = dice(ch->char_specials.performance_vars[1], 6); /* 1d6 sonic damage */
+      ch->char_specials.performance_vars[1] = 0; /* Reset after use */
+    }
+    
     int result = damage(ch, victim, dam, spellnum, element, FALSE);
+    
+    /* Apply Crescendo sonic damage as additional damage */
+    if (crescendo_sonic_dam > 0)
+    {
+      damage(ch, victim, crescendo_sonic_dam, spellnum, DAM_SOUND, FALSE);
+    }
     
     /* Storm Caller: Lightning spells have 25% chance to hit again at half damage */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 

@@ -389,6 +389,20 @@ void pulse_luminari()
     /* an assortment of affliction types */
     affliction_tick(i);
 
+    /* Bard Spellsinger: Sustaining Melody - recover PC spell slots (spontaneous) */
+    if (!IS_NPC(i) && GET_CASTING_CLASS(i) == CLASS_BARD &&
+        FIGHTING(i) && IS_PERFORMING(i) && has_bard_sustaining_melody(i))
+    {
+      /* 20% chance per combat round to recover 1 spell slot */
+      if (rand_number(1, 100) <= 20)
+      {
+        if (sustain_melody_recover_one_slot(i, CLASS_BARD))
+        {
+          send_to_char(i, "\tYYour sustaining melody recovers a spell slot!\tn\r\n");
+        }
+      }
+    }
+
     /* grapple cleanup */
     grapple_cleanup(i);
 

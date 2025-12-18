@@ -403,6 +403,9 @@ ACMD(do_perform)
         GET_PERFORMING(ch) = performance_num;
 #endif
 
+        /* Bard Spellsinger: Reset Crescendo flag when starting a new performance */
+        ch->char_specials.performance_vars[0] = 0;
+
         if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
           USE_MOVE_ACTION(ch);
         else

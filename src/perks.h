@@ -485,4 +485,10 @@ int get_bard_enchanters_guile_dc_bonus(struct char_data *ch);
 int get_bard_songweaver_level_bonus(struct char_data *ch);
 int get_bard_resonant_voice_save_bonus(struct char_data *ch);
 bool has_bard_harmonic_casting(struct char_data *ch);
+int get_bard_songweaver_ii_level_bonus(struct char_data *ch);
+int get_bard_enchanters_guile_ii_dc_bonus(struct char_data *ch);
+bool has_bard_crescendo(struct char_data *ch);
+int get_bard_crescendo_sonic_damage(struct char_data *ch);
+int get_bard_crescendo_dc_bonus(struct char_data *ch);
+bool has_bard_sustaining_melody(struct char_data *ch);
 #endif /* _PERKS_H_ */

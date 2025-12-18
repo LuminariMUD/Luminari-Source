@@ -4375,6 +4375,72 @@ void define_bard_perks(void)
   perk->effect_value = 50;
   perk->effect_modifier = 0;
   perk->special_description = strdup("50% chance to save performance round when casting spell during song");
+
+  /*** SPELLSINGER TREE - TIER II ***/
+
+  /* Songweaver II */
+  perk = &perk_list[PERK_BARD_SONGWEAVER_II];
+  perk->id = PERK_BARD_SONGWEAVER_II;
+  perk->name = strdup("Songweaver II");
+  perk->description = strdup("Additional +1 effective song level per rank (stacks with Songweaver I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_SONGWEAVER_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Additional +1 effective song level per rank");
+
+  /* Enchanter's Guile II */
+  perk = &perk_list[PERK_BARD_ENCHANTERS_GUILE_II];
+  perk->id = PERK_BARD_ENCHANTERS_GUILE_II;
+  perk->name = strdup("Enchanter's Guile II");
+  perk->description = strdup("Additional +1 DC to Enchantment and Illusion spells per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_ENCHANTERS_GUILE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Additional +1 DC to Enchantment and Illusion spells per rank");
+
+  /* Crescendo */
+  perk = &perk_list[PERK_BARD_CRESCENDO];
+  perk->id = PERK_BARD_CRESCENDO;
+  perk->name = strdup("Crescendo");
+  perk->description = strdup("The first spell you cast after starting a song deals +1d6 sonic damage and has +2 to its save DC");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_HARMONIC_CASTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("First spell after song: +1d6 sonic damage, +2 save DC");
+
+  /* Sustaining Melody */
+  perk = &perk_list[PERK_BARD_SUSTAINING_MELODY];
+  perk->id = PERK_BARD_SUSTAINING_MELODY;
+  perk->name = strdup("Sustaining Melody");
+  perk->description = strdup("While a song is active, you have a 20% chance per combat round to recover 1 spell slot only while in combat");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SONGWEAVER_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("20% chance per round to recover 1 spell slot while performing in combat");
 }
 
 /* Define Barbarian Perks */
@@ -12943,6 +13009,9 @@ int get_bard_enchanters_guile_dc_bonus(struct char_data *ch)
   /* Enchanter's Guile I: +1 DC per rank */
   bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_I, CLASS_BARD);
   
+  /* Enchanter's Guile II: +1 additional DC per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_II, CLASS_BARD);
+  
   return bonus;
 }
 
@@ -12961,6 +13030,9 @@ int get_bard_songweaver_level_bonus(struct char_data *ch)
   
   /* Songweaver I: +1 effective song level per rank */
   bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_I, CLASS_BARD);
+  
+  /* Songweaver II: +1 additional effective song level per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_II, CLASS_BARD);
   
   return bonus;
 }
@@ -12996,4 +13068,103 @@ bool has_bard_harmonic_casting(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_BARD_HARMONIC_CASTING);
+}
+/**
+ * Get Songweaver II song level bonus (Tier 2).
+ * 
+ * @param ch The character
+ * @return Additional effective song level bonus from Tier 2
+ */
+int get_bard_songweaver_ii_level_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Songweaver II: +1 additional effective song level per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get Enchanter's Guile II DC bonus (Tier 2).
+ * 
+ * @param ch The character
+ * @return Additional DC bonus for Enchantment/Illusion spells from Tier 2
+ */
+int get_bard_enchanters_guile_ii_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enchanter's Guile II: +1 additional DC per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Crescendo perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Crescendo, FALSE otherwise
+ */
+bool has_bard_crescendo(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_CRESCENDO);
+}
+
+/**
+ * Get sonic damage dice value for Crescendo.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice to roll for sonic damage (1 if has perk, 0 otherwise)
+ */
+int get_bard_crescendo_sonic_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_crescendo(ch))
+    return 1; /* +1d6 sonic damage */
+  
+  return 0;
+}
+
+/**
+ * Get save DC bonus for Crescendo.
+ * 
+ * @param ch The character
+ * @return DC bonus (+2 if has perk, 0 otherwise)
+ */
+int get_bard_crescendo_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_crescendo(ch))
+    return 2; /* +2 to save DC */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Sustaining Melody perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Sustaining Melody, FALSE otherwise
+ */
+bool has_bard_sustaining_melody(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SUSTAINING_MELODY);
 }

@@ -421,6 +421,17 @@ extern "C"
      */
     void innate_magic_add(struct char_data *ch, int ch_class, int circle, int metamagic,
                           int prep_time, int domain);
+
+    /**
+     * sustain_melody_recover_one_slot - Instantly recover one spontaneous slot
+     * @ch: Character to recover a slot for (PC only)
+     * @ch_class: Spontaneous caster class (e.g., CLASS_BARD)
+     *
+     * Finds the lowest-circle recovering slot in the innate magic queue and
+     * removes it, making one slot immediately available to cast. Returns TRUE
+     * if a slot was recovered, FALSE if no recovering slots were found.
+     */
+    bool sustain_melody_recover_one_slot(struct char_data *ch, int ch_class);
     
     /**
      * collection_add - Add prepared spell to collection

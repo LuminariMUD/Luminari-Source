@@ -3875,6 +3875,12 @@
 #define PERK_BARD_RESONANT_VOICE_I 1102
 #define PERK_BARD_HARMONIC_CASTING 1103
 
+/* Bard Spellsinger Tree Tier II */
+#define PERK_BARD_SONGWEAVER_II 1104
+#define PERK_BARD_ENCHANTERS_GUILE_II 1105
+#define PERK_BARD_CRESCENDO 1106
+#define PERK_BARD_SUSTAINING_MELODY 1107
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */
