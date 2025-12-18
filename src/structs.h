@@ -3887,6 +3887,12 @@
 #define PERK_BARD_HEIGHTENED_HARMONY 1110
 #define PERK_BARD_PROTECTIVE_CHORUS 1111
 
+/* Bard Spellsinger Tree Tier IV - Capstones */
+#define PERK_BARD_SPELLSONG_MAESTRA 1112
+#define PERK_BARD_ARIA_OF_STASIS 1113
+#define PERK_BARD_SYMPHONIC_RESONANCE 1114
+#define PERK_BARD_ENDLESS_REFRAIN 1115
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

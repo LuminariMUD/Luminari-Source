@@ -502,4 +502,25 @@ int get_bard_heightened_harmony_perform_bonus(struct char_data *ch);
 bool has_bard_protective_chorus(struct char_data *ch);
 int get_bard_protective_chorus_save_bonus(struct char_data *ch);
 int get_bard_protective_chorus_ac_bonus(struct char_data *ch);
+
+/* Bard Spellsinger Tree Tier 4 Functions - Capstones */
+bool has_bard_spellsong_maestra(struct char_data *ch);
+int get_bard_spellsong_maestra_caster_bonus(struct char_data *ch);
+int get_bard_spellsong_maestra_dc_bonus(struct char_data *ch);
+bool has_bard_spellsong_maestra_metamagic_free(struct char_data *ch);
+
+bool has_bard_aria_of_stasis(struct char_data *ch);
+int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch);
+int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch);
+int get_bard_aria_stasis_movement_penalty(struct char_data *ch);
+
+bool has_bard_symphonic_resonance(struct char_data *ch);
+int get_bard_symphonic_resonance_temp_hp(struct char_data *ch);
+int get_bard_symphonic_resonance_daze_duration(struct char_data *ch);
+int get_bard_symphonic_resonance_daze_range(struct char_data *ch);
+
+bool has_bard_endless_refrain(struct char_data *ch);
+int get_bard_endless_refrain_slot_regen(struct char_data *ch);
+bool should_endless_refrain_consume_performance(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

@@ -10008,6 +10008,25 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       if (display)
         send_to_char(ch, "-4: %-50s\r\n", "Smite Good Target");
     }
+
+    /* Bard Spellsinger: Aria of Stasis - -2 to hit enemies attacking protected allies */
+    if (!IS_NPC(victim) && GROUP(victim) != NULL)
+    {
+      struct char_data *tch = NULL;
+      simple_list(NULL); /* Reset iterator */
+      while ((tch = (struct char_data *)simple_list(GROUP(victim)->members)) != NULL)
+      {
+        if (tch != victim && IN_ROOM(tch) == IN_ROOM(victim) && 
+            !IS_NPC(tch) && CLASS_LEVEL(tch, CLASS_BARD) > 0 &&
+            has_bard_aria_of_stasis(tch))
+        {
+          bonuses[BONUS_TYPE_UNDEFINED] -= 2;
+          if (display)
+            send_to_char(ch, "-2: %-50s\r\n", "Aria of Stasis (enemy penalty)");
+          break; /* Only one Aria penalty */
+        }
+      }
+    }
   }
 
   // Assassin stuff

@@ -462,6 +462,12 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += get_bard_protective_chorus_save_bonus(vict);
   }
 
+  /* Bard Spellsinger: Aria of Stasis - +4 to all saves for allies while performing */
+  if (!IS_NPC(vict) && ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0)
+  {
+    savethrow += get_bard_aria_stasis_ally_saves_bonus(ch);
+  }
+
   /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
   if (!IS_NPC(vict) && GROUP(vict) != NULL)
   {
@@ -632,6 +638,13 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
   {
     challenge += get_bard_enchanters_guile_dc_bonus(ch);
   }
+  
+  /* Bard Spellsinger Tree - Spellsong Maestra adds +2 DC to bard spells while performing */
+  if (ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0 && casttype == CAST_SPELL)
+  {
+    challenge += get_bard_spellsong_maestra_dc_bonus(ch);
+  }
+  
   /* Archmage of Control adds +5 DC to control spells (charm, confuse, daze, sleep) */
   /* These are typically enchantment school spells */
   if (ch && school == ENCHANTMENT)

@@ -1699,6 +1699,42 @@ void finishCasting(struct char_data *ch)
     send_to_char(ch, "\tCYour metamagic resonates, heightening your performance! (+%d)\tn\r\n", hh_af.modifier);
   }
 
+  /* Tier 4 Spellsinger: Symphonic Resonance - daze enemies on Enchantment/Illusion spells */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_symphonic_resonance(ch))
+  {
+    int spellnum = CASTING_SPELLNUM(ch);
+    if (spellnum > 0 && spellnum < NUM_SPELLS)
+    {
+      int school = spell_info[spellnum].schoolOfMagic;
+      if (school == ENCHANTMENT || school == ILLUSION)
+      {
+        int duration = get_bard_symphonic_resonance_daze_duration(ch); /* 1 round */
+        struct char_data *tch = NULL, *next_tch = NULL;
+        
+        /* Daze all enemies in range within the same room */
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+        {
+          next_tch = tch->next_in_room;
+          
+          /* Skip self, allies, and NPCs */
+          if (tch == ch || !aoeOK(ch, tch, -1) || IS_NPC(tch))
+            continue;
+          
+          /* Apply daze affect */
+          struct affected_type daze_af;
+          new_affect(&daze_af);
+          daze_af.spell = PERK_BARD_SYMPHONIC_RESONANCE;
+          daze_af.duration = duration;
+          SET_BIT_AR(daze_af.bitvector, AFF_DAZED);
+          affect_to_char(tch, &daze_af);
+          
+          send_to_char(tch, "\tMThe symphonic resonance dazes you!\tn\r\n");
+          send_to_char(ch, "\tCYour spell resonates, dazing nearby enemies!\tn\r\n");
+        }
+      }
+    }
+  }
+
   /* Consume metamagic reduction use if applicable */
   if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0) {
     use_metamagic_reduction(ch);

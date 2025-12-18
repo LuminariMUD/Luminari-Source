@@ -4509,6 +4509,72 @@ void define_bard_perks(void)
   perk->effect_value = 2; /* save bonus */
   perk->effect_modifier = 2; /* AC bonus */
   perk->special_description = strdup("Allies gain +2 saves vs. spells and +2 AC vs. AoO");
+
+  /* Tier IV Spellsinger Perks - Capstones */
+
+  /* Spellsong Maestra */
+  perk = &perk_list[PERK_BARD_SPELLSONG_MAESTRA];
+  perk->id = PERK_BARD_SPELLSONG_MAESTRA;
+  perk->name = strdup("Spellsong Maestra");
+  perk->description = strdup("While performing, bard spells gain +2 caster level, +2 spell DC, and metamagic on bard spells is free");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_MASTER_OF_MOTIFS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* caster level bonus */
+  perk->effect_modifier = 2; /* DC bonus */
+  perk->special_description = strdup("Capstone: +2 caster, +2 DC on bard spells while performing; free metamagic on bard spells");
+
+  /* Aria of Stasis */
+  perk = &perk_list[PERK_BARD_ARIA_OF_STASIS];
+  perk->id = PERK_BARD_ARIA_OF_STASIS;
+  perk->name = strdup("Aria of Stasis");
+  perk->description = strdup("Allies gain +4 to all saves and immunity to slow. Enemies suffer -2 to hit and 10% movement penalty");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_PROTECTIVE_CHORUS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* ally save bonus */
+  perk->effect_modifier = 2; /* enemy tohit penalty */
+  perk->special_description = strdup("Capstone: Allies +4 saves/immune to slow; Enemies -2 hit/10% slow");
+
+  /* Symphonic Resonance */
+  perk = &perk_list[PERK_BARD_SYMPHONIC_RESONANCE];
+  perk->id = PERK_BARD_SYMPHONIC_RESONANCE;
+  perk->name = strdup("Symphonic Resonance");
+  perk->description = strdup("Each round while performing, gain 1d6 temp HP (max 30 rounds). Enchantment/Illusion spells in songs daze enemies 1 round in 20 ft");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_CRESCENDO;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6; /* temp HP d6 */
+  perk->effect_modifier = 1; /* daze duration */
+  perk->special_description = strdup("Capstone: 1d6 temp HP/round (max 180 total); Enchantment/Illusion spells daze in 20 ft radius");
+
+  /* Endless Refrain */
+  perk = &perk_list[PERK_BARD_ENDLESS_REFRAIN];
+  perk->id = PERK_BARD_ENDLESS_REFRAIN;
+  perk->name = strdup("Endless Refrain");
+  perk->description = strdup("Performance costs nothing and regenerates 1 spell slot per round. Songs last indefinitely until stopped");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SUSTAINING_MELODY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* spell slot regen */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Capstone: Performance is free; regenerate 1 spell slot per round; songs last indefinitely");
 }
 
 /* Define Barbarian Perks */
@@ -13384,4 +13450,265 @@ int get_bard_protective_chorus_ac_bonus(struct char_data *ch)
     return 2; /* +2 AC vs. attacks of opportunity */
   
   return 0;
+}
+
+/* ============================================================================
+ * TIER IV SPELLSINGER PERK FUNCTIONS - CAPSTONES
+ * ============================================================================ */
+
+/**
+ * Check if character has Spellsong Maestra perk.
+ * Grants +2 caster level and DC to bard spells while performing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Spellsong Maestra, FALSE otherwise
+ */
+bool has_bard_spellsong_maestra(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SPELLSONG_MAESTRA);
+}
+
+/**
+ * Get caster level bonus from Spellsong Maestra.
+ * Only applies while performing.
+ * 
+ * @param ch The character
+ * @return Caster level bonus (+2 if performing with perk, 0 otherwise)
+ */
+int get_bard_spellsong_maestra_caster_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+    return 2; /* +2 caster level */
+  
+  return 0;
+}
+
+/**
+ * Get spell DC bonus from Spellsong Maestra.
+ * Only applies to bard spells while performing.
+ * 
+ * @param ch The character
+ * @return Spell DC bonus (+2 if performing with perk, 0 otherwise)
+ */
+int get_bard_spellsong_maestra_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+    return 2; /* +2 spell DC */
+  
+  return 0;
+}
+
+/**
+ * Check if Spellsong Maestra allows free metamagic on bard spells.
+ * When active during performance, metamagic on bard spells costs nothing.
+ * 
+ * @param ch The character
+ * @return TRUE if metamagic is free on bard spells, FALSE otherwise
+ */
+bool has_bard_spellsong_maestra_metamagic_free(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+    return TRUE; /* Metamagic on bard spells is free while performing */
+  
+  return FALSE;
+}
+
+/**
+ * Check if character has Aria of Stasis perk.
+ * Grants save bonuses and movement penalties to foes.
+ * 
+ * @param ch The character
+ * @return TRUE if has Aria of Stasis, FALSE otherwise
+ */
+bool has_bard_aria_of_stasis(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ARIA_OF_STASIS);
+}
+
+/**
+ * Get save bonus from Aria of Stasis for allies.
+ * Applies +4 to all saves.
+ * 
+ * @param ch The character
+ * @return Save bonus (+4 if has perk, 0 otherwise)
+ */
+int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_aria_of_stasis(ch))
+    return 4; /* +4 to all saves */
+  
+  return 0;
+}
+
+/**
+ * Get to-hit penalty from Aria of Stasis for enemies.
+ * Applies -2 to hit penalty.
+ * 
+ * @param ch The character
+ * @return To-hit penalty (-2 if has perk, 0 otherwise)
+ */
+int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_aria_of_stasis(ch))
+    return -2; /* -2 to hit */
+  
+  return 0;
+}
+
+/**
+ * Get movement speed penalty from Aria of Stasis for enemies.
+ * Returns percentage reduction (10).
+ * 
+ * @param ch The character
+ * @return Movement penalty percentage (10 if has perk, 0 otherwise)
+ */
+int get_bard_aria_stasis_movement_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_aria_of_stasis(ch))
+    return 10; /* 10% movement speed reduction */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Symphonic Resonance perk.
+ * Grants temp HP and daze effect on certain spells.
+ * 
+ * @param ch The character
+ * @return TRUE if has Symphonic Resonance, FALSE otherwise
+ */
+bool has_bard_symphonic_resonance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SYMPHONIC_RESONANCE);
+}
+
+/**
+ * Get temporary HP from Symphonic Resonance per round.
+ * Returns 1d6.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice for temp HP (1 if has perk, 0 otherwise)
+ */
+int get_bard_symphonic_resonance_temp_hp(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_symphonic_resonance(ch))
+    return 1; /* 1d6 temp HP per round */
+  
+  return 0;
+}
+
+/**
+ * Get daze duration from Symphonic Resonance.
+ * Returns number of rounds for daze effect.
+ * 
+ * @param ch The character
+ * @return Daze duration in rounds (1 if has perk, 0 otherwise)
+ */
+int get_bard_symphonic_resonance_daze_duration(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_symphonic_resonance(ch))
+    return 1; /* 1 round daze */
+  
+  return 0;
+}
+
+/**
+ * Get daze range from Symphonic Resonance in feet.
+ * 
+ * @param ch The character
+ * @return Daze range in feet (20 if has perk, 0 otherwise)
+ */
+int get_bard_symphonic_resonance_daze_range(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_symphonic_resonance(ch))
+    return 20; /* 20 feet range */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Endless Refrain perk.
+ * Makes performance free and regenerates spell slots.
+ * 
+ * @param ch The character
+ * @return TRUE if has Endless Refrain, FALSE otherwise
+ */
+bool has_bard_endless_refrain(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ENDLESS_REFRAIN);
+}
+
+/**
+ * Get spell slot regeneration from Endless Refrain.
+ * Returns number of spell slots regenerated per round.
+ * 
+ * @param ch The character
+ * @return Spell slots regenerated per round (1 if has perk, 0 otherwise)
+ */
+int get_bard_endless_refrain_slot_regen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_endless_refrain(ch))
+    return 1; /* Regenerate 1 spell slot per round */
+  
+  return 0;
+}
+
+/**
+ * Check if Endless Refrain allows performance to continue without consuming resources.
+ * When active, performance costs nothing and doesn't consume rounds.
+ * 
+ * @param ch The character
+ * @return FALSE if Endless Refrain is active (don't consume), TRUE otherwise
+ */
+bool should_endless_refrain_consume_performance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return TRUE;
+  
+  if (has_bard_endless_refrain(ch) && IS_PERFORMING(ch))
+    return FALSE; /* Don't consume performance */
+  
+  return TRUE; /* Normal bards consume performance */
 }
