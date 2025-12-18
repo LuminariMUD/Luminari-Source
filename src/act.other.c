@@ -11411,12 +11411,15 @@ ACMDU(do_device)
     inv->uses++;
     
     /* Show remaining charges */
-    int base_uses = 3;
+    max_uses = 1 + (artificer_level / 2);
     if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
-      base_uses += 1;
+      max_uses += 1;
     }
-    int remaining_charges = (inv->uses <= base_uses) ? (base_uses - inv->uses) : 0;
-    send_to_char(ch, "Charges remaining: %d/%d\r\n", remaining_charges, base_uses);
+    int remaining_charges = max_uses - inv->uses;
+    if (remaining_charges < 0) {
+      remaining_charges = 0;
+    }
+    send_to_char(ch, "Charges remaining: %d/%d\r\n", remaining_charges, max_uses);
     
     return;
   }

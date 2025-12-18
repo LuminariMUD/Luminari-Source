@@ -503,7 +503,8 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 
 int copy_object(struct obj_data *to, struct obj_data *from)
 {
-  free_object_strings(to);
+  /* Free strings safely for object instances that may share prototype strings. */
+  free_object_strings_proto(to);
   return copy_object_main(to, from, TRUE);
 }
 
