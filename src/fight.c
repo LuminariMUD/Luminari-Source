@@ -6441,6 +6441,15 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         if (display_mode)
           send_to_char(ch, "Favored Enemy Mastery I: \tR%d\tn\r\n", fe_mastery_bonus);
       }
+
+      /* Wilderness Warrior: Deadly Hunter - +2d6 damage vs favored enemies */
+      if (has_perk(ch, PERK_RANGER_DEADLY_HUNTER))
+      {
+        int deadly_hunter_bonus = dice(2, 6);
+        dambonus += deadly_hunter_bonus;
+        if (display_mode)
+          send_to_char(ch, "Deadly Hunter: \tR%dd6\tn\r\n", 2);
+      }
     }
   }
 
@@ -12355,8 +12364,21 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* Apply Damage Reduction - void strike ignores DR */
   if (void_strike_bonus == 0)
   {
-    if ((dam = apply_damage_reduction(ch, victim, wielded, dam, FALSE)) == -1)
+    /* Wilderness Warrior: Deadly Hunter - ignore 10 DR vs favored enemies */
+    int dr_bypass = 0;
+    if (!IS_NPC(ch) && victim && has_perk(ch, PERK_RANGER_DEADLY_HUNTER) && CLASS_LEVEL(ch, CLASS_RANGER))
+    {
+      if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+          (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+      {
+        dr_bypass = 10;
+      }
+    }
+
+    if ((dam = apply_damage_reduction(ch, victim, wielded, dam - dr_bypass, FALSE)) == -1)
       return (HIT_MISS); /* This should be changed to something more reasonable */
+    
+    dam += dr_bypass; /* Add back the bypassed DR */
   }
 
   /* ok we are about to do damage() so here we are adding a special counter-attack
@@ -12564,6 +12586,30 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
   if (IS_EFREETI(ch))
     damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+
+  /* Wilderness Warrior: Whirling Steel - 5% chance per hit for extra attack when dual wielding */
+  if (!IS_NPC(ch) && !victim_is_dead && has_perk(ch, PERK_RANGER_WHIRLING_STEEL) && 
+      is_dual_wielding(ch) && dice(1, 100) <= 5)
+  {
+    send_to_char(ch, "\tW[WHIRLING STEEL!]\tn\r\n");
+    hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  }
+
+  /* Wilderness Warrior: Crippling Strike - 5% chance to apply slow on melee hit */
+  if (!IS_NPC(ch) && !victim_is_dead && has_perk(ch, PERK_RANGER_CRIPPLING_STRIKE) &&
+      attack_type != ATTACK_TYPE_RANGED && !affected_by_spell(victim, SPELL_SLOW) &&
+      dice(1, 100) <= 5)
+  {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SPELL_SLOW;
+    af.duration = 3;
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+    affect_to_char(victim, &af);
+    send_to_char(victim, "\tRYou feel your movements slow down!\tn\r\n");
+    send_to_char(ch, "\tW[CRIPPLING STRIKE!]\tn Your strike slows your opponent!\r\n");
+    act("$n's strike slows $N's movements!", FALSE, ch, 0, victim, TO_NOTVICT);
+  }
 
   if (is_evolution_attack(attack_type))
   {
@@ -14410,6 +14456,37 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       else if (mode == DISPLAY_ROUTINE_POTENTIAL)
       {
         send_to_char(ch, "Offhand (WW Two-Weapon Fighting - 10%% proc), Attack Bonus:  %d; ",
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
+      }
+    }
+
+    /* Greater Wilderness Warrior Two-Weapon Fighting: another 10% chance for extra off-hand attack */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10)
+    {
+      numAttacks++;
+      if (mode == NORMAL_ATTACK_ROUTINE)
+      {
+        if (valid_fight_cond(ch, FALSE))
+          if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) ||
+                                      (numAttacks == 5) ||
+                                      (numAttacks == 8) ||
+                                      (numAttacks == 11) ||
+                                      (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) ||
+                                      (numAttacks == 6) ||
+                                      (numAttacks == 9) ||
+                                      (numAttacks == 12) ||
+                                      (numAttacks == 15))))
+          {
+            send_to_char(ch, "\tG[Greater WW TWF!]\tn\r\n");
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, ATTACK_TYPE_OFFHAND);
+          }
+      }
+      else if (mode == DISPLAY_ROUTINE_POTENTIAL)
+      {
+        send_to_char(ch, "Offhand (Greater WW Two-Weapon Fighting - 10%% proc), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
       }
