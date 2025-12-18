@@ -6784,7 +6784,18 @@ int get_perk_bonus(struct char_data *ch, int effect_type, int effect_modifier)
  */
 int get_perk_hp_bonus(struct char_data *ch)
 {
-  return get_perk_bonus(ch, PERK_EFFECT_HP, -1);
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Get all HP bonuses from perks */
+  bonus += get_perk_bonus(ch, PERK_EFFECT_HP, -1);
+  
+  /* Wilderness Warrior: Ranger Toughness I */
+  bonus += get_ranger_toughness_hp(ch);
+  
+  return bonus;
 }
 
 /**

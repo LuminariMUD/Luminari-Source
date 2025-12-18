@@ -1258,6 +1258,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     {
       bonuses[BONUS_TYPE_MORALE] += (CLASS_LEVEL(ch, CLASS_RANGER) / 5) + 2;
     }
+    /* Note: Favored Enemy Mastery damage bonus is applied in compute_damage_bonus() */
   }
 
   // dragon rider united we stand: dragon portion
@@ -6423,6 +6424,22 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     send_to_char(ch, "Size modifier: \tR%s%d\tn\r\n", size_modifiers[GET_SIZE(ch)] >= 0 ? "+" : "", size_modifiers[GET_SIZE(ch)] * 2);
   dambonus += size_modifiers[GET_SIZE(ch)] * 2;
 
+  /* Wilderness Warrior: Favored Enemy Mastery I - bonus damage vs favored enemies */
+  if (vict && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER) && attack_type != ATTACK_TYPE_RANGED)
+  {
+    if ((!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict))))
+    {
+      int fe_mastery_bonus = get_ranger_favored_enemy_mastery_damage(ch);
+      if (fe_mastery_bonus > 0)
+      {
+        dambonus += fe_mastery_bonus;
+        if (display_mode)
+          send_to_char(ch, "Favored Enemy Mastery I: \tR%d\tn\r\n", fe_mastery_bonus);
+      }
+    }
+  }
+
   // Sorcerer Draconic Bloodline Claw Attacks
   if (ch && vict && affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 11)
   {
@@ -6572,6 +6589,30 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Unarmed enhancement bonus: \tR%d\tn\r\n", get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
     dambonus += get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL);
+  }
+
+  /* Wilderness Warrior: Dual Strike I - off-hand weapon damage bonus */
+  if ((attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK) && is_dual_wielding(ch))
+  {
+    int dual_strike_bonus = get_ranger_dual_strike_offhand(ch);
+    if (dual_strike_bonus > 0)
+    {
+      dambonus += dual_strike_bonus;
+      if (display_mode)
+        send_to_char(ch, "Dual Strike I: \tR%d\tn\r\n", dual_strike_bonus);
+    }
+  }
+
+  /* Wilderness Warrior: Two-Weapon Focus II - damage bonus when dual wielding (both hands) */
+  if (is_dual_wielding(ch))
+  {
+    int twf_damage_bonus = get_ranger_two_weapon_focus_damage(ch);
+    if (twf_damage_bonus > 0)
+    {
+      dambonus += twf_damage_bonus;
+      if (display_mode)
+        send_to_char(ch, "Two-Weapon Focus II: \tR%d\tn\r\n", twf_damage_bonus);
+    }
   }
 
   /* monk glove enhancement bonus */
@@ -9235,6 +9276,17 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     if (display)
     {
       send_to_char(ch, "%2d: %-50s\r\n", dual_wielding_penalty(ch, (attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK)), "Two Weapon Fighting");
+    }
+
+    /* Wilderness Warrior: Two-Weapon Focus I - reduces TWF penalty */
+    int twf_bonus = get_ranger_two_weapon_focus_tohit(ch);
+    if (twf_bonus > 0)
+    {
+      calc_bab += twf_bonus;
+      if (display)
+      {
+        send_to_char(ch, "%2d: %-50s\r\n", twf_bonus, "Two-Weapon Focus I");
+      }
     }
   }
 
