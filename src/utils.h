@@ -951,12 +951,13 @@ void char_from_furniture(struct char_data *ch);
 #define MAGIC_LEVEL(ch) ARCANE_LEVEL(ch)
 #define ALCHEMIST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : (GET_LEVEL(ch) > 30) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + \
-                          MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - \
+                          MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) + GET_ARTIFICER_LEVEL(ch) - \
                           (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_WARLOCK_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
+#define GET_ARTIFICER_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_ARTIFICER))
 #define GET_SUMMONER_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
 #define GET_CALL_EIDOLON_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
 #define GET_PSIONIC_LEVEL(ch) (((IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST) || GET_LEVEL(ch) >= LVL_IMMORT) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))

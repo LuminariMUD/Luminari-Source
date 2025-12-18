@@ -5460,7 +5460,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "The player can dismantle items to recover valuable materials. Salvaging gives 15% of the item's gold value "
         "immediately, plus a chance to recover crafting materials and elemental motes. Material chance is "
         "((player level / 3) + 10)% to get 1 to (item level / 6) materials. Mote chance is half that, yielding "
-        "1 to (bonus level adjustment / 6) motes per magical bonus on the item.");
+        "1 to (bonus level adjustment / 6) motes per magical bonus on the item. Note that having the Scavenger "
+        "talent and the Salvage feat does not provide any additional benefit.");
 
   feato(FEAT_METAMAGIC_SCIENCE, "metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Apply metamagic feats to spell trigger items like wands.",

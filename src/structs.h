@@ -4430,8 +4430,9 @@
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
 #define ITEM_TRAPPED 113 // This object has a trap attached
 #define ITEM_ACCOUNT_EXP 114 // item is bought for account exp
+#define ITEM_REFORGEABLE 115 // item can be reforged
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 115
+#define NUM_ITEM_FLAGS 116
 
 /* homeland-port */
 /*

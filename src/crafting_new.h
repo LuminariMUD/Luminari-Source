@@ -324,6 +324,8 @@ void generate_prestige_contract(struct supply_contract *contract, struct char_da
 void generate_event_contract(struct supply_contract *contract, struct char_data *ch);
 void show_supply_order_cooldowns(struct char_data *ch);
 SPECIAL_DECL(new_supply_orders);
+int material_type_to_crafting_skill(int material);
+ACMD_DECL(do_reforge);
 
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum);

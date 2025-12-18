@@ -110,8 +110,9 @@ void init_talents(void) {
   memset(talent_list, 0, sizeof(talent_list));
   talento(TALENT_NONE, "(none)", 0, 0, 1, "", "", FALSE, TALENT_CAT_GENERAL);
   talento(TALENT_SCAVENGER, "scavenger", 10, 25000, 1,
-          "This talent grants access to the scavenger command.",
-          "This talent grants access to the scavenger command.", TRUE, TALENT_CAT_GENERAL);
+          "This talent grants access to the salvage command. Note that having both the Scavenger talent and the Salvage feat does not provide any additional benefit.",
+          "This talent grants access to the salvage command. Note that having both the Scavenger talent and the Salvage feat does not provide any additional benefit.", 
+          TRUE, TALENT_CAT_GENERAL);
   
   /* Mote Synergy Talents */
   talento(TALENT_AIR_MOTE_SYNERGY, "air mote synergy", 2, 5000, 5,

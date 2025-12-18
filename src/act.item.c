@@ -47,6 +47,7 @@
 #include "genobj.h"
 #include "backgrounds.h"
 #include "crafting_new.h"
+#include "talents.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -8602,7 +8603,7 @@ ACMD(do_salvage)
   one_argument(argument, arg, sizeof(arg));
 
   /* Check if player has the FEAT_SALVAGE */
-  if (!HAS_FEAT(ch, FEAT_SALVAGE))
+  if (!HAS_FEAT(ch, FEAT_SALVAGE) && !has_talent(ch, TALENT_SCAVENGER))
   {
     send_to_char(ch, "You don't know how to salvage items.\r\n");
     return;

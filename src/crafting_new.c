@@ -9346,3 +9346,293 @@ bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *materi
     
     return true;
 }
+
+int material_type_to_crafting_skill(int material)
+{
+    switch (material)
+    {
+        case MATERIAL_COTTON:
+        case MATERIAL_PAPER:
+        case MATERIAL_SATIN:
+        case MATERIAL_SILK:
+        case MATERIAL_BURLAP:
+        case MATERIAL_VELVET:
+        case MATERIAL_WOOL:
+        case MATERIAL_HEMP:
+        case MATERIAL_LINEN:
+        case MATERIAL_ZINC:
+        case MATERIAL_FLAX:
+            return ABILITY_CRAFT_TAILORING;
+            
+        case MATERIAL_LEATHER:
+        case MATERIAL_DRAGONHIDE:
+            return ABILITY_CRAFT_LEATHERWORKING;
+            
+        case MATERIAL_GLASS:
+        case MATERIAL_CRYSTAL:
+        case MATERIAL_CERAMIC:
+        case MATERIAL_OBSIDIAN:
+        case MATERIAL_ONYX:
+        case MATERIAL_IVORY:
+        case MATERIAL_RUBY:
+        case MATERIAL_SAPPHIRE:
+        case MATERIAL_EMERALD:
+        case MATERIAL_GEMSTONE:
+        case MATERIAL_GRANITE:
+        case MATERIAL_STONE:
+        case MATERIAL_DIAMOND:
+        case MATERIAL_SEA_IVORY:
+            return ABILITY_CRAFT_JEWELCRAFTING;
+            
+        case MATERIAL_GOLD:
+        case MATERIAL_COPPER:
+        case MATERIAL_PLATINUM:
+        case MATERIAL_BRASS:
+        case MATERIAL_PEWTER:
+        case MATERIAL_SILVER:
+            return ABILITY_CRAFT_METALWORKING;
+            
+        case MATERIAL_ORGANIC:
+        case MATERIAL_BONE:
+        case MATERIAL_ETHER:
+        case MATERIAL_ENERGY:
+        case MATERIAL_EARTH:
+            return ABILITY_CRAFT_ALCHEMY;
+            
+        case MATERIAL_STEEL:
+        case MATERIAL_ADAMANTINE:
+        case MATERIAL_MITHRIL:
+        case MATERIAL_IRON:
+        case MATERIAL_BRONZE:
+        case MATERIAL_ALCHEMAL_SILVER:
+        case MATERIAL_COLD_IRON:
+        case MATERIAL_DRAGONSCALE:
+        case MATERIAL_DRAGONBONE:
+        case MATERIAL_TIN:
+        case MATERIAL_COAL:
+        case MATERIAL_DRAGONMETAL:
+            return ABILITY_CRAFT_ARMORSMITHING;
+
+        case MATERIAL_WOOD:
+        case MATERIAL_DARKWOOD:
+        case MATERIAL_ASH:
+        case MATERIAL_MAPLE:
+        case MATERIAL_MAHAGONY:
+        case MATERIAL_VALENWOOD:
+        case MATERIAL_IRONWOOD:
+            return ABILITY_CRAFT_WOODWORKING;
+    }
+    return 0;
+}
+
+ACMD(do_reforge)
+{
+    struct obj_data *obj = NULL;
+    struct obj_data *i = NULL;
+    char item_arg[MAX_INPUT_LENGTH];
+    char target_arg[MAX_INPUT_LENGTH];
+    int material, skill_required;
+    int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+    int cost, orig_cost, enhancement;
+    char buf[MAX_STRING_LENGTH];
+    char bonus[30];
+    int weapon_index = 0;
+    int armor_index = 0;
+    
+    if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+    {
+        do_not_here(ch, NULL, 0, 0);
+        return;
+    }
+    
+    half_chop(argument, item_arg, target_arg);
+    
+    if (!*item_arg || !*target_arg)
+    {
+        send_to_char(ch, "Usage: reforge <item name> <reforge into>\r\n");
+        return;
+    }
+    
+    /* Search inventory for matching reforgeable item */
+    for (i = ch->carrying; i; i = i->next_content)
+    {
+        if (isname(item_arg, i->name) && OBJ_FLAGGED(i, ITEM_REFORGEABLE))
+        {
+            obj = i;
+            break;
+        }
+    }
+    
+    if (!obj)
+    {
+        send_to_char(ch, "You don't have that reforgeable item.\r\n");
+        return;
+    }
+    
+    /* Check item type - can only reforge weapons and armor */
+    if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+    {
+        send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+        return;
+    }
+    
+    /* Determine material and get required crafting skill */
+    material = GET_OBJ_MATERIAL(obj);
+    skill_required = material_type_to_crafting_skill(material);
+    
+    /* Check if required crafting station is present */
+    if (!has_crafting_station_in_room(ch, skill_required))
+    {
+        send_to_char(ch, "You need %s to reforge items.\r\n", 
+                     get_crafting_station_name(skill_required));
+        return;
+    }
+    
+    /* Store original values */
+    orig_cost = GET_OBJ_COST(obj);
+    enhancement = GET_OBJ_VAL(obj, 4);
+    
+    /* Determine what to reforge it into */
+    switch (GET_OBJ_TYPE(obj))
+    {
+        case ITEM_WEAPON:
+            /* Search for matching weapon type */
+            for (weapon_index = 0; weapon_index < NUM_WEAPON_TYPES; weapon_index++)
+            {
+                if (is_abbrev(weapon_list[weapon_index].name, target_arg))
+                    break;
+            }
+            if (weapon_index >= NUM_WEAPON_TYPES)
+            {
+                send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
+                return;
+            }
+            if (weapon_index == GET_OBJ_VAL(obj, 0))
+            {
+                send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[weapon_index].name), weapon_list[weapon_index].name);
+                return;
+            }
+            break;
+            
+        case ITEM_ARMOR:
+            if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
+            {
+                /* Reforging a shield */
+                for (armor_index = 0; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
+                {
+                    if (!IS_SHIELD(armor_index)) continue;
+                    if (is_abbrev(armor_list[armor_index].name, target_arg))
+                        break;
+                }
+                if (armor_index >= NUM_SPEC_ARMOR_TYPES)
+                {
+                    send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
+                    return;
+                }
+                if (armor_index == GET_OBJ_VAL(obj, 1))
+                {
+                    send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[armor_index].name), armor_list[armor_index].name);
+                    return;
+                }
+            }
+            else
+            {
+                /* Reforging non-shield armor - must match wear slot */
+                for (armor_index = 0; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
+                {
+                    if (IS_SHIELD(armor_index)) continue;
+                    
+                    /* Check if wear slot matches */
+                    if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[armor_index].wear != ITEM_WEAR_HEAD)
+                        continue;
+                    else if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[armor_index].wear != ITEM_WEAR_BODY)
+                        continue;
+                    else if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[armor_index].wear != ITEM_WEAR_ARMS)
+                        continue;
+                    else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[armor_index].wear != ITEM_WEAR_LEGS)
+                        continue;
+                    
+                    if (is_abbrev(armor_list[armor_index].name, target_arg))
+                        break;
+                }
+                if (armor_index >= NUM_SPEC_ARMOR_TYPES)
+                {
+                    send_to_char(ch, "That is not a valid armor type for this slot. Type armorlistfull for options.\r\n");
+                    return;
+                }
+                if (armor_index == GET_OBJ_VAL(obj, 1))
+                {
+                    send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[armor_index].name), armor_list[armor_index].name);
+                    return;
+                }
+            }
+            break;
+            
+        default:
+            send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+            return;
+    }
+    
+    /* Calculate cost (half the object's value) */
+    cost = orig_cost / 2;
+    
+    if (GET_GOLD(ch) < cost)
+    {
+        send_to_char(ch, "You need %d coins on hand for supplies to reforge this item.\r\n", cost);
+        return;
+    }
+    
+    /* Update item properties */
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+    {
+        set_weapon_object(obj, weapon_index);
+    }
+    else
+    {
+        GET_OBJ_VAL(obj, 1) = armor_index;
+        set_armor_object(obj, armor_index);
+    }
+    
+    /* Restore original cost and enhancement */
+    GET_OBJ_COST(obj) = orig_cost;
+    GET_OBJ_VAL(obj, 4) = enhancement;
+    
+    /* Restore material if compatible */
+    if (IS_HARD_METAL(GET_OBJ_MATERIAL(obj)) && IS_HARD_METAL(material))
+        GET_OBJ_MATERIAL(obj) = material;
+    else if (IS_LEATHER(GET_OBJ_MATERIAL(obj)) && IS_LEATHER(material))
+        GET_OBJ_MATERIAL(obj) = material;
+    else if (IS_CLOTH(GET_OBJ_MATERIAL(obj)) && IS_CLOTH(material))
+        GET_OBJ_MATERIAL(obj) = material;
+    else if (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material))
+        GET_OBJ_MATERIAL(obj) = material;
+    
+    /* Deduct the cost */
+    if (cost > 0)
+    {
+        send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
+        GET_GOLD(ch) -= cost;
+    }
+    
+    /* Prepare messages */
+    send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description,
+                (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name) : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
+                (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name : armor_list[GET_OBJ_VAL(obj, 1)].name);
+    snprintf(buf, sizeof(buf), "$n begins to reforge %s into %s %s.", obj->short_description,
+                (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name) : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
+                (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name : armor_list[GET_OBJ_VAL(obj, 1)].name);
+    act(buf, FALSE, ch, obj, 0, TO_ROOM);
+    
+    /* Set up crafting state */
+    GET_CRAFTING_OBJ(ch) = obj;
+    GET_CRAFTING_TYPE(ch) = SCMD_REFORGE;
+    if (cost == 0)
+        GET_CRAFTING_TICKS(ch) = 1;
+    else
+        GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
+    
+    /* Start crafting event */
+    save_char(ch, 0);
+    Crash_crashsave(ch);
+    NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+}
