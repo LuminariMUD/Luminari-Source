@@ -563,4 +563,17 @@ int get_bard_warchanters_dominance_damage_bonus(struct char_data *ch);
 bool has_bard_winters_war_march(struct char_data *ch);
 int get_bard_winters_war_march_damage(struct char_data *ch);
 
+/* Bard Swashbuckler Tree Tier 1 Functions */
+bool has_bard_fencers_footwork_i(struct char_data *ch);
+int get_bard_fencers_footwork_ac_bonus(struct char_data *ch);
+int get_bard_fencers_footwork_reflex_bonus(struct char_data *ch);
+bool has_bard_precise_strike_i(struct char_data *ch);
+int get_bard_precise_strike_i_bonus(struct char_data *ch);
+bool has_bard_riposte_training_i(struct char_data *ch);
+int get_bard_riposte_training_i_chance(struct char_data *ch);
+bool has_bard_flourish_perk(struct char_data *ch);
+bool is_affected_by_flourish(struct char_data *ch);
+int get_bard_flourish_tohit_bonus(struct char_data *ch);
+int get_bard_flourish_ac_bonus(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

@@ -313,6 +313,13 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
       if (monk_bonus > 0)
         saves += monk_bonus;
     }
+    /* bard swashbuckler reflex save bonus from perks */
+    if (!IS_NPC(vict) && CLASS_LEVEL(vict, CLASS_BARD))
+    {
+      int bard_reflex_bonus = get_bard_fencers_footwork_reflex_bonus(vict);
+      if (bard_reflex_bonus > 0)
+        saves += bard_reflex_bonus;
+    }
     break;
 
   case SAVING_WILL:
@@ -6528,6 +6535,22 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n looks more confident!";
     to_vict = "Your courage surges and with it your fighting prowess!";
+    break;
+
+  case AFFECT_BARD_FLOURISH:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = 2;
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = -2;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n performs a dazzling flourish!";
+    to_vict = "You perform a dazzling flourish, your movements become fluid and precise!";
     break;
 
   case SPELL_SILENCE: // illusion

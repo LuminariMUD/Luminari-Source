@@ -1152,6 +1152,18 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_warchanters_dominance_ac_bonus(ch);
     }
 
+    /* Bard Swashbuckler: Fencer's Footwork I - +1 Dodge AC per rank while wielding finesse/single weapon */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_fencers_footwork_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Flourish - +2 AC while active */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_flourish_ac_bonus(ch);
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {

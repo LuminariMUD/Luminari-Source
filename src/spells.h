@@ -708,6 +708,7 @@
 #define MOB_ABILITY_CORRUPTION 1282
 #define ABILITY_BOZAK_DRACONIAN_DEATH_THROES 1283
 #define AFFECT_FALLING_DAMAGE 1284
+#define AFFECT_BARD_FLOURISH 1285
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 

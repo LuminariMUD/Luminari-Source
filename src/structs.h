@@ -3915,6 +3915,12 @@
 #define PERK_BARD_WARCHANTERS_DOMINANCE 1128
 #define PERK_BARD_WINTERS_WAR_MARCH 1129
 
+/* Bard Swashbuckler Tree - Tier 1 */
+#define PERK_BARD_FENCERS_FOOTWORK_I 1130
+#define PERK_BARD_PRECISE_STRIKE_I 1131
+#define PERK_BARD_RIPOSTE_TRAINING_I 1132
+#define PERK_BARD_FLOURISH 1133
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

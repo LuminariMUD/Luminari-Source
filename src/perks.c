@@ -4805,6 +4805,72 @@ void define_bard_perks(void)
   perk->effect_value = 4;
   perk->effect_modifier = 3;
   perk->special_description = strdup("Room-wide martial anthem: 4d6 cold damage, enemies slow for 3 rounds (save halves/reduces to 1 round)");
+
+  /*** SWASHBUCKLER TREE - TIER I ***/
+
+  /* Fencer's Footwork I */
+  perk = &perk_list[PERK_BARD_FENCERS_FOOTWORK_I];
+  perk->id = PERK_BARD_FENCERS_FOOTWORK_I;
+  perk->name = strdup("Fencer's Footwork I");
+  perk->description = strdup("+1 Dodge AC and +1 Reflex save per rank while wielding a finesse weapon or single one-handed weapon");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("While wielding finesse or single one-handed weapon: +1 Dodge AC and +1 Reflex per rank");
+
+  /* Precise Strike I */
+  perk = &perk_list[PERK_BARD_PRECISE_STRIKE_I];
+  perk->id = PERK_BARD_PRECISE_STRIKE_I;
+  perk->name = strdup("Precise Strike I");
+  perk->description = strdup("+1 precision damage per rank with finesse or one-handed piercing/slashing weapons (not multiplied on crits)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("With finesse or one-handed piercing/slashing: +1 precision damage per rank (not on crit multiplier)");
+
+  /* Riposte Training I */
+  perk = &perk_list[PERK_BARD_RIPOSTE_TRAINING_I];
+  perk->id = PERK_BARD_RIPOSTE_TRAINING_I;
+  perk->name = strdup("Riposte Training I");
+  perk->description = strdup("3% chance per rank to make an immediate counterattack after you successfully dodge or parry");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("After dodging/parrying: 3% chance per rank to make immediate counterattack");
+
+  /* Flourish */
+  perk = &perk_list[PERK_BARD_FLOURISH];
+  perk->id = PERK_BARD_FLOURISH;
+  perk->name = strdup("Flourish");
+  perk->description = strdup("Activate for +2 to hit and +2 AC for 2 rounds; ends if you are knocked prone or grappled. Requires and uses a move action");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Activate: +2 to hit and +2 AC for 2 rounds (ends if knocked prone/grappled)");
 }
 
 /* Define Barbarian Perks */
@@ -7464,6 +7530,10 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
   
   /* Warchanter's Dominance: +1 damage while performing */
   bonus += get_bard_warchanters_dominance_damage_bonus(ch);
+
+  /* Add Bard Swashbuckler perks */
+  /* Precise Strike I: +1 precision damage per rank with appropriate weapons */
+  bonus += get_bard_precise_strike_i_bonus(ch);
   
   return bonus;
 }
@@ -7508,6 +7578,10 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
   
   /* Add Warchanter's Dominance bonus */
   bonus += get_bard_warchanters_dominance_tohit_bonus(ch);
+
+  /* Add Bard Swashbuckler bonuses */
+  /* Flourish: +2 to hit while active */
+  bonus += get_bard_flourish_tohit_bonus(ch);
   
   return bonus;
 }
@@ -14569,4 +14643,317 @@ int get_bard_winters_war_march_damage(struct char_data *ch)
   
   /* Winter's War March: 4d6 cold damage */
   return 4;
+}
+
+/* ============================================================================
+ * SWASHBUCKLER TREE PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Fencer's Footwork I perk.
+ * Grants +1 dodge AC and +1 reflex save per rank with finesse/single weapon.
+ * 
+ * @param ch The character
+ * @return TRUE if has Fencer's Footwork I, FALSE otherwise
+ */
+bool has_bard_fencers_footwork_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FENCERS_FOOTWORK_I);
+}
+
+/**
+ * Get AC dodge bonus from Fencer's Footwork I.
+ * Returns +1 dodge AC per rank while wielding finesse or single one-handed weapon.
+ * 
+ * @param ch The character
+ * @return Dodge AC bonus per rank (cumulative)
+ */
+int get_bard_fencers_footwork_ac_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_i(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Get Reflex save bonus from Fencer's Footwork I.
+ * Returns +1 reflex save per rank while wielding finesse/single weapon.
+ * 
+ * @param ch The character
+ * @return Reflex save bonus per rank (cumulative)
+ */
+int get_bard_fencers_footwork_reflex_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_i(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Precise Strike I perk.
+ * Grants +1 precision damage per rank with finesse/one-handed piercing/slashing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Precise Strike I, FALSE otherwise
+ */
+bool has_bard_precise_strike_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PRECISE_STRIKE_I);
+}
+
+/**
+ * Get precision damage bonus from Precise Strike I.
+ * Returns +1 precision damage per rank with finesse or one-handed piercing/slashing.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus per rank (not multiplied on crits)
+ */
+int get_bard_precise_strike_i_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  int damage_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_precise_strike_i(ch))
+    return 0;
+  
+  /* Check if wielding appropriate weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  damage_type = GET_OBJ_VAL(wielded, 3);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Check if finesse weapon with correct damage type */
+  if (is_finesse)
+  {
+    /* Check if piercing or slashing */
+    if (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  /* Check if single one-handed weapon with correct damage type */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if ((size <= SIZE_SMALL || size == SIZE_MEDIUM) &&
+        (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING))
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Riposte Training I perk.
+ * Grants 3% chance per rank to counterattack after dodging/parrying.
+ * 
+ * @param ch The character
+ * @return TRUE if has Riposte Training I, FALSE otherwise
+ */
+bool has_bard_riposte_training_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_RIPOSTE_TRAINING_I);
+}
+
+/**
+ * Get riposte chance from Riposte Training I.
+ * Returns 3% per rank chance to counterattack.
+ * 
+ * @param ch The character
+ * @return Riposte chance percentage per rank (3% per rank)
+ */
+int get_bard_riposte_training_i_chance(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_riposte_training_i(ch))
+    return 0;
+  
+  /* Riposte Training I: 3% per rank */
+  bonus = 3 * get_perk_rank(ch, PERK_BARD_RIPOSTE_TRAINING_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Flourish perk.
+ * Allows +2 to hit and +2 AC for 2 rounds.
+ * 
+ * @param ch The character
+ * @return TRUE if has Flourish, FALSE otherwise
+ */
+bool has_bard_flourish_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FLOURISH);
+}
+
+/**
+ * Check if character is currently under Flourish effect.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Flourish, FALSE otherwise
+ */
+bool is_affected_by_flourish(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+  
+  /* Check for AFFECT_BARD_FLOURISH affect */
+  return affected_by_spell(ch, AFFECT_BARD_FLOURISH);
+}
+
+/**
+ * Get Flourish bonus to hit.
+ * Returns +2 to hit while Flourish is active.
+ * 
+ * @param ch The character
+ * @return +2 to hit bonus, 0 if not active
+ */
+int get_bard_flourish_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_flourish(ch))
+    return 0;
+  
+  return 2;
+}
+
+/**
+ * Get Flourish bonus to AC.
+ * Returns +2 to AC while Flourish is active.
+ * 
+ * @param ch The character
+ * @return -2 (for AC system), 0 if not active
+ */
+int get_bard_flourish_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_flourish(ch))
+    return 0;
+  
+  return 2;
 }

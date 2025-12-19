@@ -13859,6 +13859,36 @@ ACMD(do_inspire_courage)
 }
 
 
+ACMD(do_flourish)
+{
+  
+  if (!has_bard_flourish_perk(ch))
+  {
+    send_to_char(ch, "You do not have the Flourish ability.\r\n");
+    return;
+  }
+
+  if (is_affected_by_flourish(ch))
+  {
+    send_to_char(ch, "You are already in a flourish stance.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atMOVE, TRUE))
+  {
+    send_to_char(ch, "Flourish requires a move action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You perform a dazzling flourish, gaining enhanced combat prowess!\r\n");
+  act("$n performs a dazzling flourish, moving with enhanced grace!", false, ch, 0, 0, TO_ROOM);
+
+  call_magic(ch, ch, 0, AFFECT_BARD_FLOURISH, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  USE_MOVE_ACTION(ch);
+}
+
+
 ACMD(do_wisdom_of_the_measure)
 {
 
