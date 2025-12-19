@@ -5114,6 +5114,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Adds +2 natural armor only while under mutagen.");
+
+  /*** MUTAGENIST TREE - TIER II ***/
+
+  /* Mutagen II */
+  perk = &perk_list[PERK_ALCHEMIST_MUTAGEN_II];
+  perk->id = PERK_ALCHEMIST_MUTAGEN_II;
+  perk->name = strdup("Mutagen II");
+  perk->description = strdup("Additional +1 to STR/DEX/CON per rank while a mutagen is active.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MUTAGEN_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +1 per rank to STR/DEX/CON while under mutagen; stacks with Mutagen I.");
+
+  /* Persistence Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_PERSISTENCE_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_PERSISTENCE_MUTAGEN;
+  perk->name = strdup("Persistence Mutagen");
+  perk->description = strdup("Your mutagens last twice as long.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MUTAGEN_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Doubles duration of mutagen and elemental mutagen.");
+
+  /* Infused with Vigor */
+  perk = &perk_list[PERK_ALCHEMIST_INFUSED_WITH_VIGOR];
+  perk->id = PERK_ALCHEMIST_INFUSED_WITH_VIGOR;
+  perk->name = strdup("Infused with Vigor");
+  perk->description = strdup("On drinking your mutagen, heal 1d6 + level; also gain fast healing 1 for 10 rounds.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_HARDY_CONSTITUTION_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Heal on drink: 1d6 + level; Fast Healing 1 for 10 rounds.");
+
+  /* Cellular Adaptation */
+  perk = &perk_list[PERK_ALCHEMIST_CELLULAR_ADAPTATION];
+  perk->id = PERK_ALCHEMIST_CELLULAR_ADAPTATION;
+  perk->name = strdup("Cellular Adaptation");
+  perk->description = strdup("While a mutagen is active, gain DR 5/-.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_NATURAL_ARMOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants 5/- damage reduction while mutagen lasts.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5148,6 +5214,34 @@ bool has_alchemist_natural_armor(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_NATURAL_ARMOR) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+int get_alchemist_mutagen_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_MUTAGEN_II, CLASS_ALCHEMIST);
+}
+
+bool has_alchemist_persistence_mutagen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_PERSISTENCE_MUTAGEN);
+}
+
+bool has_alchemist_infused_with_vigor(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_INFUSED_WITH_VIGOR);
+}
+
+bool has_alchemist_cellular_adaptation(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CELLULAR_ADAPTATION) && affected_by_spell(ch, SKILL_MUTAGEN);
 }
 
 /* Define Barbarian Perks */

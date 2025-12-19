@@ -79,6 +79,10 @@ int get_alchemist_mutagen_i_rank(struct char_data *ch);
 int get_alchemist_hardy_constitution_hp_bonus(struct char_data *ch);
 bool has_alchemist_alchemical_reflexes(struct char_data *ch);
 bool has_alchemist_natural_armor(struct char_data *ch);
+int get_alchemist_mutagen_ii_rank(struct char_data *ch);
+bool has_alchemist_persistence_mutagen(struct char_data *ch);
+bool has_alchemist_infused_with_vigor(struct char_data *ch);
+bool has_alchemist_cellular_adaptation(struct char_data *ch);
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

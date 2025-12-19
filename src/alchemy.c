@@ -2128,6 +2128,9 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+  /* Tier II: Persistence Mutagen doubles duration */
+  if (has_alchemist_persistence_mutagen(ch))
+    duration *= 2;
 
   if (is_abbrev(arg2, "strength"))
   {
@@ -2331,6 +2334,74 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   }
 
   /* Natural Armor: +2 natural armor while mutagen is active */
+    /* Tier 2 Mutagenist Perk Effects */
+    /* Mutagen II: +1 STR/DEX/CON per rank while mutagen active */
+    {
+      int extra2 = get_alchemist_mutagen_ii_rank(ch);
+      if (extra2 > 0)
+      {
+        struct affected_type paf;
+        new_affect(&paf);
+        paf.spell = SKILL_MUTAGEN;
+        paf.duration = duration;
+        paf.bonus_type = BONUS_TYPE_UNIVERSAL;
+        paf.location = APPLY_STR;
+        paf.modifier = extra2;
+        affect_to_char(ch, &paf);
+
+        paf.location = APPLY_DEX;
+        affect_to_char(ch, &paf);
+
+        paf.location = APPLY_CON;
+        affect_to_char(ch, &paf);
+      }
+    }
+
+    /* Infused with Vigor: immediate heal and Fast Healing 1 for 10 rounds */
+    if (has_alchemist_infused_with_vigor(ch))
+    {
+      int heal = dice(1, 6) + GET_LEVEL(ch);
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+
+      struct affected_type vaf;
+      new_affect(&vaf);
+      vaf.spell = SKILL_MUTAGEN;
+      vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
+      vaf.location = APPLY_FAST_HEALING;
+      vaf.modifier = 1;
+      vaf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &vaf);
+    }
+
+    /* Cellular Adaptation: DR 5/- while mutagen is active */
+    if (has_alchemist_cellular_adaptation(ch))
+    {
+      struct affected_type daf;
+      new_affect(&daf);
+      daf.spell = SKILL_MUTAGEN;
+      daf.duration = duration;
+      daf.location = APPLY_DR;
+      daf.modifier = 5;
+      daf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &daf);
+
+      /* Attach DR structure to character */
+      struct damage_reduction_type *new_dr;
+      CREATE(new_dr, struct damage_reduction_type, 1);
+      new_dr->duration = duration; /* tie to mutagen duration */
+      new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+      new_dr->bypass_val[0] = 0;
+      new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+      new_dr->bypass_val[1] = 0;
+      new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+      new_dr->bypass_val[2] = 0;
+      new_dr->amount = 5;
+      new_dr->max_damage = -1; /* unlimited */
+      new_dr->spell = SKILL_MUTAGEN;
+      new_dr->feat = FEAT_UNDEFINED;
+      new_dr->next = GET_DR(ch);
+      GET_DR(ch) = new_dr;
+    }
   if (has_alchemist_natural_armor(ch))
   {
     struct affected_type naf;
@@ -2375,6 +2446,9 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+  /* Tier II: Persistence Mutagen doubles duration */
+  if (has_alchemist_persistence_mutagen(ch))
+    duration *= 2;
 
   if (is_abbrev(arg2, "air"))
   {
@@ -2485,6 +2559,70 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
     naf.modifier = 2;
     naf.bonus_type = BONUS_TYPE_NATURALARMOR;
     affect_to_char(ch, &naf);
+  }
+  /* Tier 2 Mutagenist perks also apply to elemental mutagen */
+  {
+    int extra2 = get_alchemist_mutagen_ii_rank(ch);
+    if (extra2 > 0)
+    {
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      paf.location = APPLY_STR;
+      paf.modifier = extra2;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
+    }
+  }
+
+  if (has_alchemist_infused_with_vigor(ch))
+  {
+    int heal = dice(1, 6) + GET_LEVEL(ch);
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+
+    struct affected_type vaf;
+    new_affect(&vaf);
+    vaf.spell = SKILL_MUTAGEN;
+    vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
+    vaf.location = APPLY_FAST_HEALING;
+    vaf.modifier = 1;
+    vaf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &vaf);
+  }
+
+  if (has_alchemist_cellular_adaptation(ch))
+  {
+    struct affected_type daf;
+    new_affect(&daf);
+    daf.spell = SKILL_MUTAGEN;
+    daf.duration = duration;
+    daf.location = APPLY_DR;
+    daf.modifier = 5;
+    daf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &daf);
+
+    struct damage_reduction_type *new_dr;
+    CREATE(new_dr, struct damage_reduction_type, 1);
+    new_dr->duration = duration;
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+    new_dr->bypass_val[0] = 0;
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0;
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0;
+    new_dr->amount = 5;
+    new_dr->max_damage = -1;
+    new_dr->spell = SKILL_MUTAGEN;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(ch);
+    GET_DR(ch) = new_dr;
   }
   }
   if (af2.modifier != 0)
