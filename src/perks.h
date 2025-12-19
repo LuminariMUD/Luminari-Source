@@ -542,4 +542,17 @@ int get_bard_frostbite_refrain_ii_cold_damage(struct char_data *ch);
 int get_bard_frostbite_refrain_ii_natural_20_debuff_attack(struct char_data *ch);
 int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch);
 
+/* Bard Warchanter Tree Tier 3 Functions */
+bool has_bard_anthem_of_fortitude(struct char_data *ch);
+int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch);
+int get_bard_anthem_fortitude_save_bonus(struct char_data *ch);
+bool has_bard_commanding_cadence(struct char_data *ch);
+int get_bard_commanding_cadence_daze_chance(struct char_data *ch);
+bool has_bard_steel_serenade(struct char_data *ch);
+int get_bard_steel_serenade_ac_bonus(struct char_data *ch);
+int get_bard_steel_serenade_damage_resistance(struct char_data *ch);
+bool has_bard_banner_verse(struct char_data *ch);
+int get_bard_banner_verse_tohit_bonus(struct char_data *ch);
+int get_bard_banner_verse_save_bonus(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

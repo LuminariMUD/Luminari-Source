@@ -4707,6 +4707,72 @@ void define_bard_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = -2;
   perk->special_description = strdup("Melee hits +1 cold damage per rank; nat 20 applies -2 attack and -1 AC debuff for 1 round");
+
+  /*** WARCHANTER TREE - TIER III ***/
+
+  /* Anthem of Fortitude */
+  perk = &perk_list[PERK_BARD_ANTHEM_OF_FORTITUDE];
+  perk->id = PERK_BARD_ANTHEM_OF_FORTITUDE;
+  perk->name = strdup("Anthem of Fortitude");
+  perk->description = strdup("Allies under your songs gain +10% max HP and +2 to Fortitude saves");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_BATTLE_HYMN_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("While performing: allies gain +10% max HP and +2 to Fortitude saves");
+
+  /* Commanding Cadence */
+  perk = &perk_list[PERK_BARD_COMMANDING_CADENCE];
+  perk->id = PERK_BARD_COMMANDING_CADENCE;
+  perk->name = strdup("Commanding Cadence");
+  perk->description = strdup("Enemies you hit in melee must save or be dazed for 1 round (once per target per 5 rounds)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_WARBEAT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 5;
+  perk->special_description = strdup("On melee hit: enemy must save vs Will or be dazed 1 round (once per target per 5 rounds)");
+
+  /* Steel Serenade */
+  perk = &perk_list[PERK_BARD_STEEL_SERENADE];
+  perk->id = PERK_BARD_STEEL_SERENADE;
+  perk->name = strdup("Steel Serenade");
+  perk->description = strdup("While singing, you gain +2 natural AC and 10% physical damage resistance");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_DRUMMERS_RHYTHM_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("While performing: +2 natural AC and 10% physical damage resistance");
+
+  /* Banner Verse */
+  perk = &perk_list[PERK_BARD_BANNER_VERSE];
+  perk->id = PERK_BARD_BANNER_VERSE;
+  perk->name = strdup("Banner Verse");
+  perk->description = strdup("Plant a musical standard object in the room for 5 rounds; allies in the room gain +2 to hit and +2 to all saves");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RALLYING_CRY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 5;
+  perk->special_description = strdup("Plant musical banner: allies in room gain +2 to hit and +2 to all saves for 5 rounds");
 }
 
 /* Define Barbarian Perks */
@@ -14179,4 +14245,186 @@ int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch)
   
   /* Frostbite Refrain II: natural 20 also applies -1 to AC debuff (new effect) */
   return -1;
+}
+
+/* ============================================================================
+ * WARCHANTER TREE TIER 3 PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Anthem of Fortitude perk.
+ * Grants allies +10% max HP and +2 to Fortitude saves while performing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Anthem of Fortitude, FALSE otherwise
+ */
+bool has_bard_anthem_of_fortitude(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ANTHEM_OF_FORTITUDE);
+}
+
+/**
+ * Get max HP bonus from Anthem of Fortitude for allies.
+ * Returns the percentage of max HP bonus.
+ * 
+ * @param ch The character
+ * @return 10 (for 10% max HP bonus)
+ */
+int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch)
+{
+  if (!has_bard_anthem_of_fortitude(ch))
+    return 0;
+  
+  /* Anthem of Fortitude: +10% max HP */
+  return 10;
+}
+
+/**
+ * Get Fortitude save bonus from Anthem of Fortitude for allies.
+ * Returns the morale bonus to Fortitude saves.
+ * 
+ * @param ch The character
+ * @return +2 to Fortitude saves
+ */
+int get_bard_anthem_fortitude_save_bonus(struct char_data *ch)
+{
+  if (!has_bard_anthem_of_fortitude(ch))
+    return 0;
+  
+  /* Anthem of Fortitude: +2 to Fortitude saves */
+  return 2;
+}
+
+/**
+ * Check if character has Commanding Cadence perk.
+ * Enemies hit in melee must save or be dazed.
+ * 
+ * @param ch The character
+ * @return TRUE if has Commanding Cadence, FALSE otherwise
+ */
+bool has_bard_commanding_cadence(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_COMMANDING_CADENCE);
+}
+
+/**
+ * Get daze chance (save DC) from Commanding Cadence.
+ * Returns the Will save DC that enemies must beat to avoid daze.
+ * 
+ * @param ch The character
+ * @return 1 (flag that daze should be applied if save fails)
+ */
+int get_bard_commanding_cadence_daze_chance(struct char_data *ch)
+{
+  if (!has_bard_commanding_cadence(ch))
+    return 0;
+  
+  /* Commanding Cadence: 1 indicates daze should be applied */
+  return 1;
+}
+
+/**
+ * Check if character has Steel Serenade perk.
+ * Grants +2 natural AC and 10% physical damage resistance while performing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Steel Serenade, FALSE otherwise
+ */
+bool has_bard_steel_serenade(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_STEEL_SERENADE);
+}
+
+/**
+ * Get natural AC bonus from Steel Serenade.
+ * Returns the AC improvement while performing.
+ * 
+ * @param ch The character
+ * @return +2 AC (note: lower is better in this system)
+ */
+int get_bard_steel_serenade_ac_bonus(struct char_data *ch)
+{
+  if (!has_bard_steel_serenade(ch))
+    return 0;
+  
+  /* Steel Serenade: +2 natural AC (2 point improvement) */
+  return 2;
+}
+
+/**
+ * Get physical damage resistance from Steel Serenade.
+ * Returns the percentage resistance to physical damage types.
+ * 
+ * @param ch The character
+ * @return 10 (for 10% physical damage resistance)
+ */
+int get_bard_steel_serenade_damage_resistance(struct char_data *ch)
+{
+  if (!has_bard_steel_serenade(ch))
+    return 0;
+  
+  /* Steel Serenade: 10% physical damage resistance */
+  return 10;
+}
+
+/**
+ * Check if character has Banner Verse perk.
+ * Plants a musical standard that grants allies bonuses.
+ * 
+ * @param ch The character
+ * @return TRUE if has Banner Verse, FALSE otherwise
+ */
+bool has_bard_banner_verse(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_BANNER_VERSE);
+}
+
+/**
+ * Get to-hit bonus from Banner Verse for allies in the room.
+ * Returns the competence bonus to hit.
+ * 
+ * @param ch The character
+ * @return +2 to hit
+ */
+int get_bard_banner_verse_tohit_bonus(struct char_data *ch)
+{
+  if (!has_bard_banner_verse(ch))
+    return 0;
+  
+  /* Banner Verse: +2 to hit in the room */
+  return 2;
+}
+
+/**
+ * Get save bonus from Banner Verse for allies in the room.
+ * Returns the morale bonus to all saves.
+ * 
+ * @param ch The character
+ * @return +2 to all saves
+ */
+int get_bard_banner_verse_save_bonus(struct char_data *ch)
+{
+  if (!has_bard_banner_verse(ch))
+    return 0;
+  
+  /* Banner Verse: +2 to all saves in the room */
+  return 2;
 }

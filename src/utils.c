@@ -7906,6 +7906,16 @@ void calculate_max_hp(struct char_data *ch, bool display)
   if (display && CONFIG_EXTRA_PLAYER_HP_PER_LEVEL > 0)
     send_to_char(ch, "%-40s = +%d\r\n", "Game Setting 'Extra HP Gains'", GET_LEVEL(ch) * CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);
 
+  // bard anthem of fortitude hp bonus (percentage)
+  int anthem_fortitude_hp_bonus_pct = get_bard_anthem_fortitude_hp_bonus(ch);
+  if (anthem_fortitude_hp_bonus_pct > 0)
+  {
+    int anthem_hp_increase = (max_hp * anthem_fortitude_hp_bonus_pct) / 100;
+    max_hp += anthem_hp_increase;
+    if (display)
+      send_to_char(ch, "%-40s = +%d (%d%%)\r\n", "Anthem of Fortitude", anthem_hp_increase, anthem_fortitude_hp_bonus_pct);
+  }
+
   // Clamp to minimum 1 HP
   if (max_hp < 1)
   {

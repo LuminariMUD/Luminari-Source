@@ -1140,6 +1140,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += get_bard_protective_chorus_ac_bonus(ch);
     }
 
+    /* Bard Warchanter: Steel Serenade - +2 natural AC while performing */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_steel_serenade_ac_bonus(ch);
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {
@@ -13524,6 +13530,41 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
         FALSE, ch, 0, victim, TO_VICT);
     act("\tC[\tBFROSTBITE\tC]\tn $n's enhanced frostbite refrain DEEPLY freezes $N!", 
         FALSE, ch, 0, victim, TO_NOTVICT);
+  }
+
+  /* Bard Warchanter: Commanding Cadence - Daze on melee hit (once per target per 5 rounds) */
+  if (!IS_NPC(ch) && has_bard_commanding_cadence(ch) && can_hit > 0 && 
+      !affected_by_spell(victim, PERK_BARD_COMMANDING_CADENCE))
+  {
+    int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
+    
+    if (!savingthrow(victim, ch, SAVING_WILL, save_dc, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_COMMANDING_CADENCE;
+      af.location = APPLY_NONE;
+      af.duration = 1; /* 1 round daze */
+      SET_BIT_AR(af.bitvector, AFF_DAZED);
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      
+      act("\tM[\tYCOMMANDING CADENCE\tM]\tn Your rhythm dazzles $N, leaving them dazed!", 
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("\tM[\tYCOMMANDING CADENCE\tM]\tn The bard's commanding rhythm dazzles you, leaving you dazed!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      act("\tM[\tYCOMMANDING CADENCE\tM]\tn $n's commanding rhythm dazzles $N!", 
+          FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+    
+    /* Apply 5-round cooldown on this target */
+    struct affected_type af = {0};
+    new_affect(&af);
+    af.spell = PERK_BARD_COMMANDING_CADENCE;
+    af.location = APPLY_NONE;
+    af.duration = 5; /* 5 round cooldown */
+    af.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger

@@ -3905,6 +3905,12 @@
 #define PERK_BARD_WARBEAT 1122
 #define PERK_BARD_FROSTBITE_REFRAIN_II 1123
 
+/* Bard Warchanter Tree - Tier 3 */
+#define PERK_BARD_ANTHEM_OF_FORTITUDE 1124
+#define PERK_BARD_COMMANDING_CADENCE 1125
+#define PERK_BARD_STEEL_SERENADE 1126
+#define PERK_BARD_BANNER_VERSE 1127
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */
