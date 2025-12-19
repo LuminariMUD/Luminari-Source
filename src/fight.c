@@ -13488,6 +13488,44 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     }
   }
 
+  /* Frostbite Refrain II: Apply enhanced -2 to attack AND -1 to AC debuff on natural 20 while performing */
+  if (!IS_NPC(ch) && diceroll == 20 && has_bard_frostbite_refrain_ii(ch) && can_hit > 0)
+  {
+    int attack_debuff = get_bard_frostbite_refrain_ii_natural_20_debuff_attack(ch);
+    int ac_debuff = get_bard_frostbite_refrain_ii_natural_20_debuff_ac(ch);
+    
+    if (attack_debuff < 0)
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_FROSTBITE_REFRAIN_II;
+      af.location = APPLY_HITROLL;
+      af.duration = 1; /* 1 round */
+      af.modifier = attack_debuff; /* -2 to attack */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+    }
+    
+    if (ac_debuff < 0)
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_FROSTBITE_REFRAIN_II;
+      af.location = APPLY_AC;
+      af.duration = 1; /* 1 round */
+      af.modifier = ac_debuff; /* -1 to AC */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+    }
+    
+    act("\tC[\tBFROSTBITE\tC]\tn Your enhanced frostbite refrain DEEPLY freezes $N, sapping their combat effectiveness!", 
+        FALSE, ch, 0, victim, TO_CHAR);
+    act("\tC[\tBFROSTBITE\tC]\tn The bitter cold from $n's refrain DEEPLY freezes you, numbing your defenses!", 
+        FALSE, ch, 0, victim, TO_VICT);
+    act("\tC[\tBFROSTBITE\tC]\tn $n's enhanced frostbite refrain DEEPLY freezes $N!", 
+        FALSE, ch, 0, victim, TO_NOTVICT);
+  }
+
   hitprcnt_mtrigger(victim); // hitprcnt trigger
 
   // This goes last because we're extracting ch in certain conditions within

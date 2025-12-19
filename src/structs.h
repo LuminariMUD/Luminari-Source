@@ -3899,6 +3899,12 @@
 #define PERK_BARD_RALLYING_CRY 1118
 #define PERK_BARD_FROSTBITE_REFRAIN_I 1119
 
+/* Bard Warchanter Tree - Tier 2 */
+#define PERK_BARD_BATTLE_HYMN_II 1120
+#define PERK_BARD_DRUMMERS_RHYTHM_II 1121
+#define PERK_BARD_WARBEAT 1122
+#define PERK_BARD_FROSTBITE_REFRAIN_II 1123
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

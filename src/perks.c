@@ -4641,6 +4641,72 @@ void define_bard_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = -1;
   perk->special_description = strdup("While performing: melee hits +1 cold damage per rank; nat 20 applies -1 attack debuff for 1 round");
+
+  /*** WARCHANTER TREE - TIER II ***/
+
+  /* Battle Hymn II */
+  perk = &perk_list[PERK_BARD_BATTLE_HYMN_II];
+  perk->id = PERK_BARD_BATTLE_HYMN_II;
+  perk->name = strdup("Battle Hymn II");
+  perk->description = strdup("Additional +1 damage granted by Inspire Courage per rank (stacks with Battle Hymn I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_BATTLE_HYMN_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Inspire Courage grants additional +1 competence to damage per rank");
+
+  /* Drummer's Rhythm II */
+  perk = &perk_list[PERK_BARD_DRUMMERS_RHYTHM_II];
+  perk->id = PERK_BARD_DRUMMERS_RHYTHM_II;
+  perk->name = strdup("Drummer's Rhythm II");
+  perk->description = strdup("Additional +1 melee to-hit per rank while a martial song is active (stacks with Drummer's Rhythm I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_DRUMMERS_RHYTHM_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("While performing, gain additional +1 melee to-hit per rank");
+
+  /* Warbeat */
+  perk = &perk_list[PERK_BARD_WARBEAT];
+  perk->id = PERK_BARD_WARBEAT;
+  perk->name = strdup("Warbeat");
+  perk->description = strdup("On your first turn in combat, make an extra melee attack at your highest bonus; on hit, grant allies +1d4 damage for 2 rounds");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RALLYING_CRY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("First turn in combat: extra melee attack; on hit grants allies +1d4 damage for 2 rounds");
+
+  /* Frostbite Refrain II */
+  perk = &perk_list[PERK_BARD_FROSTBITE_REFRAIN_II];
+  perk->id = PERK_BARD_FROSTBITE_REFRAIN_II;
+  perk->name = strdup("Frostbite Refrain II");
+  perk->description = strdup("Melee hits deal an additional +1 cold damage per rank; your natural 20 debuff becomes -2 to attack and -1 to AC for 1 round");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_FROSTBITE_REFRAIN_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = -2;
+  perk->special_description = strdup("Melee hits +1 cold damage per rank; nat 20 applies -2 attack and -1 AC debuff for 1 round");
 }
 
 /* Define Barbarian Perks */
@@ -7267,23 +7333,38 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
  */
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
 {
+  int bonus = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
     
   /* If wielded is NULL, character is unarmed - apply bonus */
   if (!wielded)
-    return get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
-  
-  /* Check if the weapon is ranged - if so, don't apply bonus */
-  if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
+  else
   {
-    int weapon_type = GET_OBJ_VAL(wielded, 0);
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
-      return 0; /* No bonus for ranged weapons */
+    /* Check if the weapon is ranged - if so, don't apply bonus */
+    if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+    {
+      int weapon_type = GET_OBJ_VAL(wielded, 0);
+      if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+        return 0; /* No bonus for ranged weapons */
+    }
+    
+    /* Weapon is melee, apply bonus */
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
   }
   
-  /* Weapon is melee, apply bonus */
-  return get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
+  /* Add Bard Warchanter perks */
+  /* Battle Hymn I & II: +1 damage per rank for Inspire Courage recipients */
+  bonus += get_bard_battle_hymn_damage_bonus(ch);
+  bonus += get_bard_battle_hymn_ii_damage_bonus(ch);
+  
+  /* Frostbite Refrain I & II: +1 cold damage per rank while performing */
+  bonus += get_bard_frostbite_cold_damage(ch);
+  bonus += get_bard_frostbite_refrain_ii_cold_damage(ch);
+  
+  return bonus;
 }
 
 /**
@@ -7320,8 +7401,9 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
     bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
   }
   
-  /* Add Drummer's Rhythm I bonus while performing */
+  /* Add Drummer's Rhythm I & II bonus while performing */
   bonus += get_bard_drummers_rhythm_tohit_bonus(ch);
+  bonus += get_bard_drummers_rhythm_ii_tohit_bonus(ch);
   
   return bonus;
 }
@@ -13930,5 +14012,171 @@ int get_bard_frostbite_natural_20_debuff(struct char_data *ch)
     return 0;
   
   /* Frostbite Refrain I: natural 20 applies -1 to attack debuff */
+  return -1;
+}
+
+/* ============================================================================
+ * WARCHANTER TREE TIER 2 PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Get additional damage bonus from Battle Hymn II.
+ * Provides additional +1 competence damage per rank to Inspire Courage recipients (stacks with Tier 1).
+ * 
+ * @param ch The character
+ * @return Additional damage bonus per rank (cumulative)
+ */
+int get_bard_battle_hymn_ii_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Battle Hymn II: Additional +1 competence to damage per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_BATTLE_HYMN_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get additional to-hit bonus from Drummer's Rhythm II.
+ * Provides additional +1 to-hit per rank while performing (stacks with Tier 1).
+ * 
+ * @param ch The character
+ * @return Additional to-hit bonus per rank (cumulative)
+ */
+int get_bard_drummers_rhythm_ii_tohit_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  /* Drummer's Rhythm II: Additional +1 melee to-hit per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_DRUMMERS_RHYTHM_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Warbeat perk.
+ * Grants first-turn-in-combat extra melee attack and ally damage buff on hit.
+ * 
+ * @param ch The character
+ * @return TRUE if has Warbeat, FALSE otherwise
+ */
+bool has_bard_warbeat(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_WARBEAT);
+}
+
+/**
+ * Get ally damage bonus from Warbeat perk.
+ * Returns the number of d4 dice for the damage bonus to allies.
+ * 
+ * @param ch The character
+ * @return 1 (for 1d4 damage bonus), 0 if not applicable
+ */
+int get_bard_warbeat_ally_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_warbeat(ch))
+    return 0;
+  
+  /* Warbeat: On hit, grant allies +1d4 damage for 2 rounds */
+  return 1; /* 1d4 */
+}
+
+/**
+ * Check if character has Frostbite Refrain II perk.
+ * Adds enhanced cold damage to melee hits with upgraded natural 20 debuff.
+ * 
+ * @param ch The character
+ * @return TRUE if has Frostbite Refrain II, FALSE otherwise
+ */
+bool has_bard_frostbite_refrain_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FROSTBITE_REFRAIN_II);
+}
+
+/**
+ * Get cold damage bonus from Frostbite Refrain II.
+ * Returns additional +1 cold damage per rank while performing (stacks with Tier 1).
+ * 
+ * @param ch The character
+ * @return Cold damage bonus per rank (cumulative)
+ */
+int get_bard_frostbite_refrain_ii_cold_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain_ii(ch))
+    return 0;
+  
+  /* Frostbite Refrain II: Additional +1 cold damage per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_FROSTBITE_REFRAIN_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get natural 20 to-hit debuff from Frostbite Refrain II.
+ * Returns the enhanced to-attack penalty applied on natural 20 hit.
+ * 
+ * @param ch The character
+ * @return -2 to attack (upgraded from Tier 1's -1)
+ */
+int get_bard_frostbite_refrain_ii_natural_20_debuff_attack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain_ii(ch))
+    return 0;
+  
+  /* Frostbite Refrain II: natural 20 applies -2 to attack debuff (upgraded from Tier 1) */
+  return -2;
+}
+
+/**
+ * Get natural 20 AC debuff from Frostbite Refrain II.
+ * Returns the AC penalty applied on natural 20 hit (new in Tier 2).
+ * 
+ * @param ch The character
+ * @return -1 to AC for 1 round
+ */
+int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain_ii(ch))
+    return 0;
+  
+  /* Frostbite Refrain II: natural 20 also applies -1 to AC debuff (new effect) */
   return -1;
 }

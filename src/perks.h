@@ -532,4 +532,14 @@ bool has_bard_frostbite_refrain(struct char_data *ch);
 int get_bard_frostbite_cold_damage(struct char_data *ch);
 int get_bard_frostbite_natural_20_debuff(struct char_data *ch);
 
+/* Bard Warchanter Tree Tier 2 Functions */
+int get_bard_battle_hymn_ii_damage_bonus(struct char_data *ch);
+int get_bard_drummers_rhythm_ii_tohit_bonus(struct char_data *ch);
+bool has_bard_warbeat(struct char_data *ch);
+int get_bard_warbeat_ally_damage_bonus(struct char_data *ch);
+bool has_bard_frostbite_refrain_ii(struct char_data *ch);
+int get_bard_frostbite_refrain_ii_cold_damage(struct char_data *ch);
+int get_bard_frostbite_refrain_ii_natural_20_debuff_attack(struct char_data *ch);
+int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch);
+
 #endif /* _PERKS_H_ */
