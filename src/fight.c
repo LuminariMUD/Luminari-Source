@@ -5815,6 +5815,17 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   GET_HIT(victim) -= dam;
   
+  /* Perfect Tempo perk: Track that this character was hit this round */
+  if (dam > 0 && !IS_NPC(victim) && has_bard_perfect_tempo(victim))
+  {
+    if (!char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
+    {
+      /* Attach event to track that they were hit this round (lasts 1 round) */
+      attach_mud_event(new_mud_event(ePERFECT_TEMPO_HIT_THIS_ROUND, victim, NULL), 
+                       10 * PASSES_PER_SEC); /* ~1 round */
+    }
+  }
+  
   /* Sacred Vengeance: Trigger when ally drops below 25% HP or dies */
   if (victim && !IS_NPC(victim) && GROUP(victim))
   {
@@ -13453,6 +13464,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, ABILITY_SICKENING_CRITICAL, SAVING_FORT, CAST_INNATE, 0);
     if (HAS_FEAT(ch, FEAT_CENSORING_CRITICAL))
       mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, ABILITY_CENSORING_CRITICAL, SAVING_WILL, CAST_INNATE, 0);
+
+    /* Showstopper perk: apply -2 AC and -2 to-hit debuff on critical hit confirmation */
+    if (has_bard_showstopper(ch))
+    {
+      mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, AFFECT_BARD_SHOWSTOPPER, SAVING_FORT, CAST_INNATE, 0);
+    }
 
     /* Crippling Blow - Berserker Primal Warrior perk */
     int crippling_chance = get_berserker_crippling_blow_chance(ch);

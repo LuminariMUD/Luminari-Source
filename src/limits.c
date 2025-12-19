@@ -2091,6 +2091,29 @@ void proc_d20_round(void)
 
   for (i = character_list; i; i = i->next)
   {
+    /* Perfect Tempo perk: Apply buff if character avoided all hits this round */
+    if (FIGHTING(i) && has_bard_perfect_tempo(i) && !is_affected_by_perfect_tempo(i))
+    {
+      /* Check if they were hit this round (ePERFECT_TEMPO_HIT_THIS_ROUND event) */
+      if (!char_has_mud_event(i, ePERFECT_TEMPO_HIT_THIS_ROUND))
+      {
+        /* They avoided all hits - apply the buff */
+        new_affect(&af);
+        af.spell = AFFECT_BARD_PERFECT_TEMPO;
+        af.duration = 2; /* 2 rounds */
+        af.location = APPLY_HITROLL;
+        af.modifier = 4; /* +4 to-hit */
+        affect_to_char(i, &af);
+        
+        send_to_char(i, "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
+        act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, i, 0, 0, TO_ROOM);
+      }
+      else
+      {
+        /* They were hit this round, remove the tracking event for next round */
+        event_cancel_specific(i, ePERFECT_TEMPO_HIT_THIS_ROUND);
+      }
+    }
 
     if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) > 0)
     {

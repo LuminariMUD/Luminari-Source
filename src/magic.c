@@ -6567,6 +6567,44 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You gracefully recover from the failed escape, gaining a defensive boost!";
     break;
 
+  case AFFECT_BARD_PERFECT_TEMPO:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 4;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n moves with perfect timing!";
+    to_vict = "You move with perfect timing, your next strike will be devastating!";
+    break;
+
+  case AFFECT_BARD_SHOWSTOPPER:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = -2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = 2;
+    af[1].location = APPLY_HITROLL;
+    af[1].modifier = -2;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$N has been dazzled by $n's showstopping move!";
+    to_vict = "$n's showstopper move has left you stunned and vulnerable!";
+    break;
+
+  case AFFECT_BARD_FEINT_AND_FINISH:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n prepares a finishing move after feinting!";
+    to_vict = "You've set up a finishing move with your feint!";
+    break;
+
   case SPELL_SILENCE: // illusion
     if (!can_silence(victim))
     {

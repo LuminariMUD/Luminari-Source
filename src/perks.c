@@ -4937,6 +4937,72 @@ void define_bard_perks(void)
   perk->effect_value = 4;
   perk->effect_modifier = 3;
   perk->special_description = strdup("Failed flee: +4 AC for 3 rounds (ends if you move rooms)");
+
+  /*** SWASHBUCKLER TREE - TIER III ***/
+
+  /* Perfect Tempo */
+  perk = &perk_list[PERK_BARD_PERFECT_TEMPO];
+  perk->id = PERK_BARD_PERFECT_TEMPO;
+  perk->name = strdup("Perfect Tempo");
+  perk->description = strdup("If you avoid all melee hits for a full round, your next attack gains +4 to hit and +2d6 precision damage");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_DUELISTS_POISE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 12;
+  perk->special_description = strdup("Avoided all hits this round: +4 to hit and +2d6 precision damage on next attack");
+
+  /* Showstopper */
+  perk = &perk_list[PERK_BARD_SHOWSTOPPER];
+  perk->id = PERK_BARD_SHOWSTOPPER;
+  perk->name = strdup("Showstopper");
+  perk->description = strdup("On a confirmed crit, impose -2 to enemy AC and -2 to attack rolls for 2 rounds (once per target per 5 rounds)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_PRECISE_STRIKE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Critical hit: enemy takes -2 AC and -2 to hit for 2 rounds (once per target/5 min)");
+
+  /* Acrobatic Charge */
+  perk = &perk_list[PERK_BARD_ACROBATIC_CHARGE];
+  perk->id = PERK_BARD_ACROBATIC_CHARGE;
+  perk->name = strdup("Acrobatic Charge");
+  perk->description = strdup("You can charge through difficult terrain and around allies; you gain +2 to hit on charges");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_AGILE_DISENGAGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Charge through terrain and allies: +2 to hit on charges");
+
+  /* Feint and Finish */
+  perk = &perk_list[PERK_BARD_FEINT_AND_FINISH];
+  perk->id = PERK_BARD_FEINT_AND_FINISH;
+  perk->name = strdup("Feint and Finish");
+  perk->description = strdup("After successfully feinting, your next attack deals +2d6 precision damage and gains +2 to confirm criticals");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RIPOSTE_TRAINING_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 12;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("After successful feint: +2d6 precision damage and +2 crit confirm on next attack");
 }
 
 /* Define Barbarian Perks */
@@ -7604,6 +7670,12 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
   /* Precise Strike II: Additional +1 precision damage per rank with appropriate weapons */
   bonus += get_bard_precise_strike_ii_bonus(ch);
   
+  /* Perfect Tempo: +2d6 precision damage on next attack after avoiding all hits */
+  bonus += get_bard_perfect_tempo_damage_bonus(ch);
+  
+  /* Feint and Finish: +2d6 precision damage on next attack after feint */
+  bonus += get_bard_feint_and_finish_damage_bonus(ch);
+  
   return bonus;
 }
 
@@ -7651,6 +7723,13 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
   /* Add Bard Swashbuckler bonuses */
   /* Flourish: +2 to hit while active */
   bonus += get_bard_flourish_tohit_bonus(ch);
+  
+  /* Perfect Tempo: +4 to hit on next attack after avoiding all hits */
+  bonus += get_bard_perfect_tempo_tohit_bonus(ch);
+  
+  /* Feint and Finish: +2 to hit bonus (note: actual bonus is crit confirm, but also +2 to-hit from affect) */
+  if (is_affected_by_feint_and_finish(ch))
+    bonus += 2;
   
   return bonus;
 }
@@ -7707,6 +7786,9 @@ int get_perk_critical_confirmation_bonus(struct char_data *ch)
   
   /* Bard Swashbuckler: Duelist's Poise - +2 with finesse weapon */
   bonus += get_bard_duelists_poise_crit_confirm_bonus(ch);
+  
+  /* Bard Swashbuckler: Feint and Finish - +2 to crit confirmation after feint */
+  bonus += get_bard_feint_and_finish_crit_confirm_bonus(ch);
   
   return bonus;
 }
@@ -15305,6 +15387,190 @@ int get_bard_agile_disengage_ac_bonus(struct char_data *ch)
     return 0;
   
   return 4;
+}
+
+/**
+ * SWASHBUCKLER TREE TIER 3 PERK FUNCTIONS
+ */
+
+/**
+ * Check if character has Perfect Tempo perk.
+ * Grants +4 to hit and +2d6 damage on next attack if you avoid all melee hits for a round.
+ * 
+ * @param ch The character
+ * @return TRUE if has Perfect Tempo, FALSE otherwise
+ */
+bool has_bard_perfect_tempo(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PERFECT_TEMPO);
+}
+
+/**
+ * Check if character is affected by Perfect Tempo buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Perfect Tempo, FALSE otherwise
+ */
+bool is_affected_by_perfect_tempo(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_PERFECT_TEMPO);
+}
+
+/**
+ * Get Perfect Tempo to-hit bonus.
+ * Returns +4 to hit when Perfect Tempo is active.
+ * 
+ * @param ch The character
+ * @return To-hit bonus (0 or 4)
+ */
+int get_bard_perfect_tempo_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_perfect_tempo(ch))
+    return 0;
+  
+  return 4;
+}
+
+/**
+ * Get Perfect Tempo precision damage bonus.
+ * Returns 2d6 precision damage when Perfect Tempo is active.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0 or 2d6)
+ */
+int get_bard_perfect_tempo_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_perfect_tempo(ch))
+    return 0;
+  
+  /* 2d6 damage */
+  return dice(2, 6);
+}
+
+/**
+ * Check if character has Showstopper perk.
+ * Imposes AC and attack penalties on critical hit.
+ * 
+ * @param ch The character
+ * @return TRUE if has Showstopper, FALSE otherwise
+ */
+bool has_bard_showstopper(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SHOWSTOPPER);
+}
+
+/**
+ * Check if character has Acrobatic Charge perk.
+ * Allows charging through terrain and allies with +2 to hit.
+ * 
+ * @param ch The character
+ * @return TRUE if has Acrobatic Charge, FALSE otherwise
+ */
+bool has_bard_acrobatic_charge(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ACROBATIC_CHARGE);
+}
+
+/**
+ * Get Acrobatic Charge to-hit bonus on charges.
+ * Returns +2 to hit when using Acrobatic Charge ability.
+ * 
+ * @param ch The character
+ * @return To-hit bonus (0 or 2)
+ */
+int get_bard_acrobatic_charge_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_acrobatic_charge(ch))
+    return 0;
+  
+  return 2;
+}
+
+/**
+ * Check if character has Feint and Finish perk.
+ * Grants +2d6 damage and +2 crit confirm on next attack after feint.
+ * 
+ * @param ch The character
+ * @return TRUE if has Feint and Finish, FALSE otherwise
+ */
+bool has_bard_feint_and_finish(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FEINT_AND_FINISH);
+}
+
+/**
+ * Check if character is affected by Feint and Finish buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Feint and Finish, FALSE otherwise
+ */
+bool is_affected_by_feint_and_finish(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_FEINT_AND_FINISH);
+}
+
+/**
+ * Get Feint and Finish precision damage bonus.
+ * Returns +2d6 precision damage after successful feint.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0 or 2d6)
+ */
+int get_bard_feint_and_finish_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_feint_and_finish(ch))
+    return 0;
+  
+  /* 2d6 damage */
+  return dice(2, 6);
+}
+
+/**
+ * Get Feint and Finish critical confirmation bonus.
+ * Returns +2 to critical confirmation after successful feint.
+ * 
+ * @param ch The character
+ * @return Crit confirmation bonus (0 or 2)
+ */
+int get_bard_feint_and_finish_crit_confirm_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_feint_and_finish(ch))
+    return 0;
+  
+  return 2;
 }
 
 /**

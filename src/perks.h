@@ -589,4 +589,17 @@ bool has_bard_agile_disengage(struct char_data *ch);
 bool is_affected_by_agile_disengage(struct char_data *ch);
 int get_bard_agile_disengage_ac_bonus(struct char_data *ch);
 
+/* Bard Swashbuckler Tree Tier 3 Functions */
+bool has_bard_perfect_tempo(struct char_data *ch);
+bool is_affected_by_perfect_tempo(struct char_data *ch);
+int get_bard_perfect_tempo_tohit_bonus(struct char_data *ch);
+int get_bard_perfect_tempo_damage_bonus(struct char_data *ch);
+bool has_bard_showstopper(struct char_data *ch);
+bool has_bard_acrobatic_charge(struct char_data *ch);
+int get_bard_acrobatic_charge_tohit_bonus(struct char_data *ch);
+bool has_bard_feint_and_finish(struct char_data *ch);
+bool is_affected_by_feint_and_finish(struct char_data *ch);
+int get_bard_feint_and_finish_damage_bonus(struct char_data *ch);
+int get_bard_feint_and_finish_crit_confirm_bonus(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

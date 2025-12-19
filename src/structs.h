@@ -3927,6 +3927,12 @@
 #define PERK_BARD_DUELISTS_POISE 1136
 #define PERK_BARD_AGILE_DISENGAGE 1137
 
+/* Bard Swashbuckler Tree - Tier 3 */
+#define PERK_BARD_PERFECT_TEMPO 1138
+#define PERK_BARD_SHOWSTOPPER 1139
+#define PERK_BARD_ACROBATIC_CHARGE 1140
+#define PERK_BARD_FEINT_AND_FINISH 1141
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

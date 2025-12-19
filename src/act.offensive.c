@@ -1225,6 +1225,9 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
 
   af[1].location = APPLY_HITROLL; /* bonus */
   af[1].modifier = 2;
+  /* Acrobatic Charge perk: additional +2 to-hit on charges */
+  if (has_bard_acrobatic_charge(ch))
+    af[1].modifier += 2;
 
   af[2].location = APPLY_AC_NEW; /* penalty */
   af[2].modifier = -2;
@@ -11253,6 +11256,17 @@ int perform_feint(struct char_data *ch, struct char_data *vict)
     af.duration = 10;
     SET_BIT_AR(af.bitvector, AFF_FEINTED);
     affect_to_char(vict, &af);
+    
+    /* Feint and Finish perk: apply damage/crit bonus affect after successful feint */
+    if (has_bard_feint_and_finish(ch))
+    {
+      new_affect(&af);
+      af.spell = AFFECT_BARD_FEINT_AND_FINISH;
+      af.duration = 2; /* 2 rounds */
+      af.location = APPLY_HITROLL;
+      af.modifier = 2; /* +2 to-hit bonus */
+      affect_to_char(ch, &af);
+    }
   }
   else
   { /* failure */
