@@ -18,13 +18,13 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Mutagen I
 - **Max Ranks:** 3
-- **Description:** You can create mutagens that grant +2 to a single physical ability score (STR, DEX, or CON) per rank for 10 minutes. You can have one mutagen active at a time. Creating a mutagen takes 10 minutes.
+- **Description:** Your mutagens give +1 to str, con and dex per rank.
 - **Effect Type:** Personal enhancement buff
 - **Prerequisites:** None
 
 #### Hardy Constitution I
 - **Max Ranks:** 3
-- **Description:** When you drink a mutagen you created, gain +1 temporary HP per character level per rank, lasting for the mutagen's duration.
+- **Description:** When you drink a mutagen you created, gain +1 max p HP per character level per rank, lasting for the mutagen's duration.
 - **Effect Type:** Survivability boost
 - **Prerequisites:** None
 
@@ -46,13 +46,13 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Mutagen II
 - **Max Ranks:** 2
-- **Description:** Additional +2 to ability score per rank when you drink a mutagen. The duration increases to 20 minutes per rank. You may now create mutagens that grant bonuses to mental ability scores (INT, WIS, CHA) in addition to physical ones.
+- **Description:** Additional +1 to ability score per rank when you drink a mutagen.
 - **Effect Type:** Enhancement scaling
 - **Prerequisites:** Mutagen I (2 ranks)
 
 #### Persistence Mutagen
 - **Max Ranks:** 1
-- **Description:** Mutagens you create now last for 1 hour instead of 10/20 minutes. You can maintain up to 2 different mutagens simultaneously (but only benefit from one at a time; switching takes a standard action).
+- **Description:** Mutagens durations doubled.
 - **Effect Type:** Duration extension and management
 - **Prerequisites:** Mutagen I (1 rank)
 
@@ -64,7 +64,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Cellular Adaptation
 - **Max Ranks:** 1
-- **Description:** While a mutagen is active, gain 5 + (character level / 2) damage reduction against one damage type of your choice (physical, fire, cold, acid, electric, or sonic). The damage type can be changed when you create a new mutagen.
+- **Description:** While a mutagen is active, gain 5/- damage reduction.
 - **Effect Type:** Specialized resistances
 - **Prerequisites:** Natural Armor
 
@@ -74,25 +74,25 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Improved Mutagen
 - **Max Ranks:** 1
-- **Description:** Mutagens now grant +4 to the chosen ability score instead of +2. When you benefit from a mental ability score mutagen, also gain +1 to spell DC and +1 to caster level checks.
+- **Description:** Mutagens now grant an additional +4 to the chosen ability score.
 - **Effect Type:** Enhancement amplification
 - **Prerequisites:** Mutagen II (1 rank), Persistence Mutagen
 
 #### Unstable Mutagen
 - **Max Ranks:** 1
-- **Description:** Your mutagens become unstable and grant +50% more powerful effects, but now have a 10% chance per round while active to "backlash" and reduce the ability bonus by 2 for 1 round. If drunk by allies, they take 1d6 damage and must make a Fortitude save (DC 10 + character level) or gain the backlash effect.
+- **Description:** When enabled, your mutagens become unstable and grant +50% more powerful effects, but now have a 10% chance per round in combat, while active to "backlash" and deal your level in damage to yourself. Uses the unstablemutagen command to toggle on and off.
 - **Effect Type:** High-risk/high-reward buff
 - **Prerequisites:** Mutagen II (1 rank), Cellular Adaptation
 
 #### Universal Mutagen
 - **Max Ranks:** 1
-- **Description:** You can now create "universal mutagens" that grant +2 to ALL ability scores for 10 minutes, but you cannot create a standard mutagen that same day. You can create one universal mutagen per 2 days. While a universal mutagen is active, allies within 15 feet gain half of your bonus as an aura.
+- **Description:** Uses the universal mutagen command. When used, the next mutagen used applies the highest bonus to all abiity scores, but only lasts a maximum of 5 minutes. However upon using this, you can't use mutagens at all for 30 minutes.
 - **Effect Type:** Party buff capability
 - **Prerequisites:** Improved Mutagen, Persistence Mutagen
 
 #### Mutagenic Mastery
 - **Max Ranks:** 1
-- **Description:** Mutagens are now treated as "infusions" and can be imbibed even during combat as a swift action (once per round). Mutagen duration no longer expires while you are the active drinker; it only expires if you switch mutagens or 8 hours pass. Create mutagens in 1 minute instead of 10 minutes.
+- **Description:** Mutagens now offer an addiitional +2 to all ability scores.
 - **Effect Type:** Utility and action economy
 - **Prerequisites:** Mutagen II (any), Infused with Vigor
 
@@ -102,13 +102,13 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Perfect Mutagen (Capstone)
 - **Max Ranks:** 1
-- **Description:** Your mutagens are perfected and now grant +6 to the chosen ability score. Mutagens grant their benefits for 2 hours instead of 1 hour. You gain immunity to the backlash effect of Unstable Mutagen. Once per day, create a mutagen that grants +2 to ALL ability scores for 20 minutes without restricting other mutagen creation.
+- **Description:** Your mutagens are perfected and now grant +4 to the chosen ability score and +2 to the other ability scores. You gain immunity to the backlash effect of Unstable Mutagen.
 - **Effect Type:** Personal transformation capstone
 - **Prerequisites:** Mutagenic Mastery, Improved Mutagen
 
 #### Chimeric Transmutation (Capstone)
 - **Max Ranks:** 1
-- **Description:** You can now combine up to 3 different mutagens and drink them as one "chimera" (takes 1 hour to prepare). The chimera grants benefits of all three mutagens simultaneously and lasts for 3 hours. Allies who drink a mutagen you created gain +2 to ability scores (in addition to your normal bonus). Create multiple mutagens per day without restriction; you only expend resources for the mutagen's materials.
+- **Description:** While under the effect of mutagens, you can now use a breath weapon that deals 3d6 fire damage 3d6 poison damage and 3d6 cold damage, once per combat, as a swift action.
 - **Effect Type:** Advanced transmutation capstone
 - **Prerequisites:** Universal Mutagen, Unstable Mutagen
 
@@ -121,25 +121,24 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Alchemical Bomb I
 - **Max Ranks:** 3
-- **Description:** You can create alchemical bombs that explode with a 5-foot radius burst. A bomb is a ranged touch attack dealing 1d6 + (1d6 per rank) damage to the target and 1d6 damage to all creatures in the radius. You can create 1 + (character level / 5) bombs per day per rank.
+- **Description:** Your bombs deal +3 damage per rank.
 - **Effect Type:** Ranged explosive attack
 - **Prerequisites:** None
 
 #### Precise Bombs
 - **Max Ranks:** 1
-- **Description:** Bombs gain a +2 bonus to the ranged touch attack roll. The splash damage increases by +50%. You gain proficiency with bombs (treat them as martial ranged weapons).
-- **Effect Type:** Attack accuracy and damage bonus
+- **Description:** Bombs gain a +3 bonus to the ranged touch attack roll.
 - **Prerequisites:** None
 
 #### Splash Damage
 - **Max Ranks:** 1
-- **Description:** Creatures hit by your bomb splash damage now take additional 1d4 damage per hit. If a creature fails a Reflex save (DC 10 + character level), it takes double splash damage.
+- **Description:** Bombs with splash effects now deal +3 extra splash damage with save dcs being +2 higher.
 - **Effect Type:** Area effect enhancement
 - **Prerequisites:** None
 
 #### Quick Bomb
 - **Max Ranks:** 1
-- **Description:** Drawing and throwing a bomb now takes only a swift action instead of a standard action. You can throw up to 2 bombs per round but only as swift actions (standard actions still apply).
+- **Description:** 10% chance to throw a bomb as a swift action.
 - **Effect Type:** Action economy
 - **Prerequisites:** None
 
@@ -149,25 +148,25 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Alchemical Bomb II
 - **Max Ranks:** 2
-- **Description:** Additional +1d6 base damage per rank. Bomb creation rate increased: you can now create (character level / 3) additional bombs per day per rank. You gain 1 additional bomb discovery choice per rank.
+- **Description:** Additional +3 damage per rank.
 - **Effect Type:** Damage scaling
 - **Prerequisites:** Alchemical Bomb I (2 ranks)
 
 #### Elemental Bomb
 - **Max Ranks:** 1
-- **Description:** Choose one elemental type (fire, cold, electric, or acid). Your bombs now deal that elemental damage type instead of standard damage. Affected creatures gain vulnerability (save DC 10 + character level) to take +2d6 damage of the chosen type.
+- **Description:** Your bombs that deal elemental damage (fire, cold, acid, electric) byass 10 points of damage type reduction and also deal an extra 1d6 damage.
 - **Effect Type:** Elemental specialization
 - **Prerequisites:** Alchemical Bomb I (1 rank)
 
 #### Concussive Bomb
 - **Max Ranks:** 1
-- **Description:** Your bombs knock back targets hit by the direct blast 5 + (character level / 2) feet. Targets must make a Strength or Dexterity save (DC 10 + character level) or be knocked prone. Creatures in the splash radius are knocked back 5 feet instead.
+- **Description:** Your bombs have a 10% chance to attempt a knockdown against the target. This knockdown cannot be countered/reversed against the bomb thrower.
 - **Effect Type:** Crowd control
 - **Prerequisites:** Splash Damage
 
 #### Poison Bomb
 - **Max Ranks:** 1
-- **Description:** Your bombs now apply a poison effect on hit. Targets hit must make a Fortitude save (DC 10 + character level) or be poisoned (damage 1d4 per round for 1d4 rounds, save each round to resist). Alchemical training allows you to craft poison components at half cost.
+- **Description:** Your bombs have a 10% chance to make the target poisoned (AFF_POISON)
 - **Effect Type:** DoT and debuff
 - **Prerequisites:** Alchemical Bomb I (1 rank)
 
@@ -177,25 +176,25 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Inferno Bomb
 - **Max Ranks:** 1
-- **Description:** Your bombs deal an additional +4d6 fire damage and ignite affected creatures. Targets must make a Reflex save (DC 11 + character level) or catch fire, taking 1d6 damage per round until extinguished (costs an action or 1 round if splashed with water).
+- **Description:** Your bombs have a 10% chance to deal +2d6 fire damage.
 - **Effect Type:** Advanced fire specialization
 - **Prerequisites:** Elemental Bomb (fire), Alchemical Bomb II (1 rank)
 
 #### Cluster Bomb
 - **Max Ranks:** 1
-- **Description:** When you throw a bomb, it splits into 3 smaller bombs mid-air. Each bomb deals 75% of the original damage and can be directed at separate targets within 30 feet of the original target. Requires (5 + character level) bombs per day instead of 1.
+- **Description:** Your bombs that deal damage have a 10% chance to become cluster bombs, which will have the bomb hit 3 times, but at 75% damage each.
 - **Effect Type:** Multi-target enhancement
 - **Prerequisites:** Alchemical Bomb II (1 rank), Precise Bombs
 
 #### Calculated Throw
 - **Max Ranks:** 1
-- **Description:** You can now throw bombs without the risk of harming allies (creatures you designate as friendlies take no splash damage). Gain +2 to ranged touch attack rolls and +1 to bomb damage per hit. Spend a move action before a bomb throw to gain advantage on the attack roll.
+- **Description:** Your bombs are extra precise, making DCs to resist their effects to be +3 higher.
 - **Effect Type:** Precision and safety
 - **Prerequisites:** Precise Bombs, Quick Bomb
 
 #### Bomb Mastery
 - **Max Ranks:** 1
-- **Description:** Bombs now deal +2d6 base damage. Creatures hit by bombs must make a Will save (DC 11 + character level) or be disoriented and suffer -2 to attack rolls for 1 round. Create bombs as a full-round action; create 1 additional bomb per 2 character levels daily (cumulative with other bonuses).
+- **Description:** Bombs now deal +2d6 extra damage.
 - **Effect Type:** Damage and crowd control combination
 - **Prerequisites:** Alchemical Bomb II (any), Concussive Bomb or Poison Bomb
 
@@ -205,13 +204,13 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Bombardier Savant (Capstone)
 - **Max Ranks:** 1
-- **Description:** You are now an expert bomb thrower. Bombs gain +3 to ranged touch attacks and +6d6 damage. You can throw 2 bombs per standard action (total of 4 per round if you use multiple actions). Bombs ignore 50% of energy resistance. Create unlimited bombs but only throw (1 + character level / 2) per encounter. Once per day, create and immediately throw a "mega bomb" dealing 10d6 damage in 15-foot radius.
+- **Description:** You are now an expert bomb thrower. Bombs gain +3 to ranged touch attacks and +6d6 damage. You can throw 2 bombs when starting combat with a bomb throw.
 - **Effect Type:** Explosives mastery capstone
 - **Prerequisites:** Bomb Mastery, Calculated Throw
 
 #### Volatile Catalyst (Capstone)
 - **Max Ranks:** 1
-- **Description:** Your bombs now become "volatile" and chain-react when detonating near each other. Each bomb within 30 feet of another bomb explosion deals an additional +3d6 damage. Create bomb combinations that cause special effects: 2 fire bombs = explosion grants fire immunity 10 feet around impact; 2 cold bombs = freezing aura; 2 electric bombs = electrical chain to nearby creatures.
+- **Description:** Your bombs now have a chance to trigger additional bombs you have prepared. Whenever you throw a bomb, there is a 1% per bomb you have prepared that, that bomb will be thrown as well. Ensure this is not recursive so that it won't infinite loop by making the extra bomb throws volatile as well. Create a volatilecatalyst comand that must be toggled on for this effect to take place.
 - **Effect Type:** Chain reaction capstone
 - **Prerequisites:** Inferno Bomb, Cluster Bomb
 
@@ -226,25 +225,25 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Alchemical Extract I
 - **Max Ranks:** 3
-- **Description:** You can create "extracts" - bottled magical infusions that function like potions. Create (1 + rank) extracts per day that contain spell effects (levels 0-1 only). Each extract lasts (10 × character level) minutes before expiring. Extracts can be consumed by you or allies.
+- **Description:** Your extracts now have a 3% chance per rank to not expend a use.
 - **Effect Type:** Spell bottling
 - **Prerequisites:** None
 
 #### Infusion I
 - **Max Ranks:** 3
-- **Description:** Choose one spell type (offensive, defensive, healing, or utility). Your extracts of that type are 25% more effective per rank. Extracts of chosen type gain +1 to save DCs.
+- **Description:** Your extract saving throw DCs and +1 higher per rank.
 - **Effect Type:** Focused specialization
 - **Prerequisites:** None
 
 #### Swift Extraction
 - **Max Ranks:** 1
-- **Description:** Creating extracts now takes only 5 minutes instead of 10 minutes. You can create 1 extract as a swift action once per day.
+- **Description:** Extracts take 20% less time to prepare.
 - **Effect Type:** Crafting speed
 - **Prerequisites:** None
 
 #### Resonant Extract
 - **Max Ranks:** 1
-- **Description:** Extracts you create gain the "resonant" property. When someone consumes one of your extracts, nearby allies within 15 feet gain half of its benefit as an aura for 5 minutes.
+- **Description:** Extracts you create gain the "resonant" property. They have a 5% chance to affect all members in your party.
 - **Effect Type:** Party synergy
 - **Prerequisites:** None
 
@@ -254,25 +253,25 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Alchemical Extract II
 - **Max Ranks:** 2
-- **Description:** Additional +(2 × rank) extracts per day per rank. Extracts can now contain spell levels 0-2 instead of 0-1. Extract duration increases to (15 × character level) minutes. Extracts gain +1 effective caster level per rank.
+- **Description:** Additional 3% chance per rank for extract not use up a slot.
 - **Effect Type:** Crafting scaling
 - **Prerequisites:** Alchemical Extract I (2 ranks)
 
 #### Infusion II
 - **Max Ranks:** 2
-- **Description:** Choose another spell type different from Infusion I or enhance the same type. Extracts gain +1 to caster level checks per rank. Infusion effects are now 50% more powerful.
+- **Description:** Extract dcs another +1 higher per rank.
 - **Effect Type:** Advanced specialization
 - **Prerequisites:** Infusion I (2 ranks)
 
 #### Concentrated Essence
 - **Max Ranks:** 1
-- **Description:** When you create an extract, you can make it "concentrated" - it takes twice as long to craft but grants +4 to save DCs and +2 to caster level. Once per day, create 1 concentrated extract instantly.
+- **Description:** All extracts have a 20% chance to have the empowered metamagic effect applied.
 - **Effect Type:** Power concentration
 - **Prerequisites:** Swift Extraction
 
 #### Persistent Extraction
 - **Max Ranks:** 1
-- **Description:** Extracts you create now last for (1 hour × your character level) instead of minutes. You can maintain up to 2 "prepared" extracts at once - you don't need to drink them to gain slow benefits.
+- **Description:** All extracts have a 20% chance to have the extended metamagic effect applied.
 - **Effect Type:** Duration extension
 - **Prerequisites:** Resonant Extract
 
@@ -280,27 +279,27 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ### TIER III – Cost: 3 points each
 
-#### Greater Extraction
+#### Healing Extraction
 - **Max Ranks:** 1
-- **Description:** Extracts can now contain spell levels 0-3. You can create (character level / 2) additional extracts per day. Extracts automatically upgrade to "greater" quality, gaining +2 to all DCs and effects. Prepare up to 3 different "stored" extracts without consuming them.
+- **Description:** All extracts will heal the user (level/2) (min 1) hp when used.
 - **Effect Type:** Advanced spell bottling
 - **Prerequisites:** Alchemical Extract II (1 rank), Infusion II (1 rank)
 
 #### Alchemical Compatibility
 - **Max Ranks:** 1
-- **Description:** Extracts of different types can now be combined and drunk together. When consuming 2+ extracts of different infusion types simultaneously, the drinker gains stacking bonuses: +1 ability check, +1 to saves, +1 to AC (max +3, refreshes every 5 minutes).
+- **Description:** All extracts when used will automatically be applied to any other party member with alchemnist levels in the same room.
 - **Effect Type:** Combination effects
 - **Prerequisites:** Concentrated Essence, Persistent Extraction
 
 #### Discovery Extraction
 - **Max Ranks:** 1
-- **Description:** Unlock special "discovery" extracts with unique effects: Extract of Speed (haste effect), Extract of Stone Skin (protection), Extract of Eagle Eyes (truesight for 5 minutes). You can prepare 1 discovery extract per day without using your daily extract allotment.
+- **Description:** Extracts have a 10% chance to give a +1 INT bonus to the user. This effect is cumulative and lasts 2 minutes. Each time it applies, the int bonus goes up by one and the duration resets to 2 minutes. This will repeat to a maximum of 10 times.
 - **Effect Type:** Unique effect unlocking
 - **Prerequisites:** Greater Extraction, Infusion II (any)
 
 #### Master Alchemist
 - **Max Ranks:** 1
-- **Description:** Your extracts are now masterworks. All extracts you create automatically reach maximum potency (as if you rolled high on all dice). Infusion bonuses double (from +50% to +100% effectiveness). Create extracts without using materials from your inventory (they're provided by your mastery).
+- **Description:** Your extracts and bombs have a 10% chance to have the maximize metamagic efect applied to them.
 - **Effect Type:** Crafting excellence
 - **Prerequisites:** Alchemical Compatibility, Discovery Extraction
 
@@ -310,13 +309,13 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 #### Eternal Extract (Capstone)
 - **Max Ranks:** 1
-- **Description:** Extracts you create now last indefinitely until consumed or you create a new one. You can maintain up to 5 prepared extracts simultaneously. All extracts gain +3 caster levels and +4 to save DCs. Once per day, create an "eternal" extract that never expires and can be used infinitely (regenerates 1 use per hour).
+- **Description:** Extracts have a 5% chance to last 1 hour (unless the duration would be higher than 1 hour anyway)
 - **Effect Type:** Unlimited extraction capstone
 - **Prerequisites:** Master Alchemist, Greater Extraction
 
 #### Quintessential Extraction (Capstone)
 - **Max Ranks:** 1
-- **Description:** Extracts can now contain spell levels 0-4 (highest level). When you drink an extract you created, gain its benefits plus +2 to all saving throws and +1 to spell DCs for 10 minutes. All infusion types now grant their benefits simultaneously - you can prepare extracts of all specializations at once. Allies who consume your extracts become "quintessential" for 1 hour, gaining +1 to all their rolls (max bonus). Create 1 signature extract per 2 days that grants a major power (GM-approved custom effect).
+- **Description:** Anytime an extract is used the user heals 10 damage and increases max hp by 10. This lasts for 5 minutes, and stacks up to +100 max hp.
 - **Effect Type:** Ultimate alchemy mastery capstone
 - **Prerequisites:** Discovery Extraction, Alchemical Compatibility
 
