@@ -9465,7 +9465,8 @@ ACMD(do_reforge)
     
     if (!obj)
     {
-        send_to_char(ch, "You don't have that reforgeable item.\r\n");
+        send_to_char(ch, "You don't have an item by that description that can be reforged.\r\n"
+                         "An object must be flagged as reforgeable to use this command on it.\r\n");
         return;
     }
     
@@ -9483,7 +9484,7 @@ ACMD(do_reforge)
     /* Check if required crafting station is present */
     if (!has_crafting_station_in_room(ch, skill_required))
     {
-        send_to_char(ch, "You need %s to reforge items.\r\n", 
+        send_to_char(ch, "You need %s to reforge this item.\r\n", 
                      get_crafting_station_name(skill_required));
         return;
     }

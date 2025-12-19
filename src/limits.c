@@ -2334,7 +2334,7 @@ void check_devices(void)
   {
     next_char = i->next;
 
-    /* Artificer device recharge: Every 30 seconds recharge 1 use */
+    /* Artificer device recharge: Every 30 seconds recharge 1 use or reduce DC penalty */
     if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) &&
         i->player_specials->saved.num_inventions > 0)
     {
@@ -2349,15 +2349,28 @@ void check_devices(void)
       {
         struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
         
-        /* Only recharge if device has been used at all */
-        if (inv->uses > 0)
+        /* Skip broken devices - they cannot be recharged until repaired */
+        if (inv->broken)
+          continue;
+        
+        /* Process device if it has been used or has DC penalty */
+        if (inv->uses > 0 || inv->dc_penalty > 0)
         {
-          inv->uses--;
-          inv->dc_penalty = MAX(0, inv->dc_penalty - 4); /* Also reduce DC penalty */
-          
-          send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
-                      inv->short_description, max_uses - inv->uses, max_uses);
-          break; /* Only recharge one device per 30 seconds */
+          /* If device has DC penalty, reduce it instead of recharging uses */
+          if (inv->dc_penalty > 0)
+          {
+            inv->dc_penalty = MAX(0, inv->dc_penalty - 4);
+            send_to_char(i, "\tgYour device '%s' stabilizes. (DC penalty: +%d)\tn\r\n",
+                        inv->short_description, inv->dc_penalty);
+          }
+          /* Only recharge uses if DC penalty is now 0 and device has been used */
+          else if (inv->uses > 0)
+          {
+            inv->uses--;
+            send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
+                        inv->short_description, max_uses - inv->uses, max_uses);
+          }
+          break; /* Only process one device per 30 seconds */
         }
       }
     }

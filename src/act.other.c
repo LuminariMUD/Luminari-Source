@@ -11127,8 +11127,8 @@ ACMDU(do_device)
     
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
     
-    /* Check if device needs repair */
-    if (inv->dc_penalty <= 0) {
+    /* Check if device needs repair (broken or has DC penalty) */
+    if (!inv->broken && inv->dc_penalty <= 0) {
       send_to_char(ch, "Device %d is not damaged and doesn't need repairs.\r\n", inv_idx + 1);
       return;
     }
@@ -11147,6 +11147,10 @@ ACMDU(do_device)
     
     /* Calculate repair time: 30 seconds base + 10 seconds per DC penalty point */
     int repair_time = 30 + (inv->dc_penalty * 10);
+    /* Add extra time if device is broken */
+    if (inv->broken) {
+      repair_time += 20; /* Additional 20 seconds to repair broken device */
+    }
     
     /* Store the device index in the event data */
     char event_data[64];
@@ -11157,7 +11161,11 @@ ACMDU(do_device)
     
     send_to_char(ch, "You begin repairing %s. This will take %d seconds to complete.\r\n", 
                  inv->short_description, repair_time);
-    send_to_char(ch, "Current DC penalty: +%d\r\n", inv->dc_penalty);
+    if (inv->broken) {
+      send_to_char(ch, "The device is broken and will require extensive repairs.\r\n");
+    } else {
+      send_to_char(ch, "Current DC penalty: +%d\r\n", inv->dc_penalty);
+    }
     act("$n begins carefully repairing a malfunctioning invention.", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
@@ -11255,6 +11263,13 @@ ACMDU(do_device)
     
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
     
+    /* Check if device is broken */
+    if (inv->broken) {
+      send_to_char(ch, "The device is broken and completely unusable until it is repaired.\r\n");
+      act("$n tries to activate a broken invention, but nothing happens.", TRUE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    
     /* Determine if device contains violent or non-violent spells */
     int device_is_violent = 0;
     if (inv->num_spells > 0) {
@@ -11317,13 +11332,15 @@ ACMDU(do_device)
         
         /* Chance for device to break on failed UMD check */
         int break_chance = 25;
-        if (rand_number(1, 100) <= break_chance) {
+        if (rand_number(1, 100) <= break_chance)
+        {
           /* Device breaks! */
           send_to_char(ch, "The invention sparks, sputters, and breaks down completely!\r\n");
           act("$n's invention sparks and breaks down!", TRUE, ch, 0, 0, TO_ROOM);
           
           /* Brilliance and Blunder explosion logic */
-          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
+          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+          {
             /* Calculate total spell circles for explosion damage */
             int total_circles = 0;
             int j;
@@ -11366,7 +11383,8 @@ ACMDU(do_device)
             }
           }
           
-          /* Device breaks - no cooldown applied */
+          /* Device breaks - mark it as broken and unusable */
+          inv->broken = TRUE;
           inv->uses = 0; /* Reset uses on destruction */
           return;
         }
@@ -11515,8 +11533,10 @@ ACMDU(do_device)
         
         /* Determine status */
         const char *status;
-        if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+        if (inv->broken) {
           status = "BROKEN";
+        } else if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+          status = "COOLDOWN";
         } else {
           status = "OK";
         }
@@ -12316,9 +12336,10 @@ EVENTFUNC(event_device_repair)
   /* Store old DC penalty for message */
   int old_penalty = inv->dc_penalty;
   
-  /* Reset DC penalty and restore uses to zero */
+  /* Reset DC penalty, restore uses to zero, and clear broken flag */
   inv->dc_penalty = 0;
   inv->uses = 0;
+  inv->broken = FALSE;
   
   send_to_char(ch, "\tGYour repair is complete!\tn %s has been fully restored.\r\n", 
                inv->short_description);
