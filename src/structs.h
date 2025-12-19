@@ -3112,6 +3112,11 @@
 #define PERK_CATEGORY_WARCHANTER 31
 #define PERK_CATEGORY_SWASHBUCKLER 32
 
+/* Alchemist Perk Categories */
+#define PERK_CATEGORY_MUTAGENIST 33
+#define PERK_CATEGORY_BOMB_CRAFTSMAN 34
+#define PERK_CATEGORY_EXTRACT_MASTER 35
+
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3940,7 +3945,11 @@
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */
-/* Not yet implemented */
+/* Mutagenist - Tier 1 */
+#define PERK_ALCHEMIST_MUTAGEN_I 1200
+#define PERK_ALCHEMIST_HARDY_CONSTITUTION_I 1201
+#define PERK_ALCHEMIST_ALCHEMICAL_REFLEXES 1202
+#define PERK_ALCHEMIST_NATURAL_ARMOR 1203
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)

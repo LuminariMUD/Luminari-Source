@@ -25,6 +25,7 @@ void define_barbarian_perks(void);
 void define_monk_perks(void);
 void define_druid_perks(void);
 void define_paladin_perks(void);
+void define_alchemist_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -72,6 +73,12 @@ int get_perk_save_bonus(struct char_data *ch, int save_type);
 int get_perk_skill_bonus(struct char_data *ch, int skill_num);
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
+
+/* Alchemist Mutagenist helper functions */
+int get_alchemist_mutagen_i_rank(struct char_data *ch);
+int get_alchemist_hardy_constitution_hp_bonus(struct char_data *ch);
+bool has_alchemist_alchemical_reflexes(struct char_data *ch);
+bool has_alchemist_natural_armor(struct char_data *ch);
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

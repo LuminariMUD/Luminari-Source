@@ -64,6 +64,9 @@ const char *perk_category_names[] = {
   "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
   "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
   "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
+    "Mutagenist",             /* 33 - PERK_CATEGORY_MUTAGENIST */
+    "Bomb Craftsman",         /* 34 - PERK_CATEGORY_BOMB_CRAFTSMAN */
+    "Extract Master",         /* 35 - PERK_CATEGORY_EXTRACT_MASTER */
   "\n"                      /* Terminator */
 };
 /* Forward declarations for perk definition functions */
@@ -124,6 +127,10 @@ void init_perks(void)
   
   /* Define Paladin Perks */
   define_paladin_perks();
+
+  /* Define Alchemist Perks */
+  define_alchemist_perks();
+  void define_alchemist_perks(void);
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
@@ -5037,6 +5044,112 @@ void define_bard_perks(void)
   perk->special_description = strdup("Tier 4 Capstone: Free multi-target attack 1/5min, +2d6 precision damage, targets save vs disoriented");
 }
 
+/* Define Alchemist Perks */
+void define_alchemist_perks(void)
+{
+  struct perk_data *perk;
+
+  /*** MUTAGENIST TREE - TIER I ***/
+
+  /* Mutagen I */
+  perk = &perk_list[PERK_ALCHEMIST_MUTAGEN_I];
+  perk->id = PERK_ALCHEMIST_MUTAGEN_I;
+  perk->name = strdup("Mutagen I");
+  perk->description = strdup("Your mutagens give +1 to STR, DEX, and CON per rank while active.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Applies +1 per rank to STR/DEX/CON only while under your mutagen.");
+
+  /* Hardy Constitution I */
+  perk = &perk_list[PERK_ALCHEMIST_HARDY_CONSTITUTION_I];
+  perk->id = PERK_ALCHEMIST_HARDY_CONSTITUTION_I;
+  perk->name = strdup("Hardy Constitution I");
+  perk->description = strdup("When you drink your own mutagen, gain +1 max HP per level per rank while it lasts.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus max HP scales with level and persists only during mutagen.");
+
+  /* Alchemical Reflexes */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_REFLEXES];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_REFLEXES;
+  perk->name = strdup("Alchemical Reflexes");
+  perk->description = strdup("While a mutagen is active: +1 dodge AC and +1 Reflex saves.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Applies +1 dodge AC and +1 Reflex while under mutagen.");
+
+  /* Natural Armor */
+  perk = &perk_list[PERK_ALCHEMIST_NATURAL_ARMOR];
+  perk->id = PERK_ALCHEMIST_NATURAL_ARMOR;
+  perk->name = strdup("Natural Armor");
+  perk->description = strdup("While a mutagen is active, gain +2 natural armor.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +2 natural armor only while under mutagen.");
+}
+
+/* Alchemist Mutagenist helper implementations */
+int get_alchemist_mutagen_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_MUTAGEN_I, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_hardy_constitution_hp_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  if (!affected_by_spell(ch, SKILL_MUTAGEN))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_HARDY_CONSTITUTION_I, CLASS_ALCHEMIST);
+  if (ranks <= 0)
+    return 0;
+  return GET_LEVEL(ch) * ranks;
+}
+
+bool has_alchemist_alchemical_reflexes(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ALCHEMICAL_REFLEXES) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+bool has_alchemist_natural_armor(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_NATURAL_ARMOR) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
 /* Define Barbarian Perks */
 void define_barbarian_perks(void)
 {
@@ -7530,6 +7643,9 @@ int get_perk_hp_bonus(struct char_data *ch)
   
   /* Wilderness Warrior: Ranger Toughness I */
   bonus += get_ranger_toughness_hp(ch);
+
+  /* Alchemist Mutagenist: Hardy Constitution I (only while mutagen is active) */
+  bonus += get_alchemist_hardy_constitution_hp_bonus(ch);
   
   return bonus;
 }

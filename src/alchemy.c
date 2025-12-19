@@ -24,6 +24,7 @@
 #include "act.h"
 #include "fight.h"
 #include "evolutions.h"
+#include "perks.h"
 
 // external functions
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
@@ -2288,6 +2289,60 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
     affect_to_char(ch, &af7);
   }
 
+  /* Tier 1 Mutagenist Perk Effects */
+  /* Mutagen I: +1 STR/DEX/CON per rank while mutagen active */
+  {
+    int extra = get_alchemist_mutagen_i_rank(ch);
+    if (extra > 0)
+    {
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL; /* ensure stacking with mutagen and other bonuses */
+      paf.location = APPLY_STR;
+      paf.modifier = extra;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
+    }
+  }
+
+  /* Alchemical Reflexes: +1 dodge AC and +1 Reflex */
+  if (has_alchemist_alchemical_reflexes(ch))
+  {
+    struct affected_type raf;
+    new_affect(&raf);
+    raf.spell = SKILL_MUTAGEN;
+    raf.duration = duration;
+    raf.location = APPLY_AC_NEW;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_DODGE;
+    affect_to_char(ch, &raf);
+
+    raf.location = APPLY_SAVING_REFL;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &raf);
+  }
+
+  /* Natural Armor: +2 natural armor while mutagen is active */
+  if (has_alchemist_natural_armor(ch))
+  {
+    struct affected_type naf;
+    new_affect(&naf);
+    naf.spell = SKILL_MUTAGEN;
+    naf.duration = duration;
+    naf.location = APPLY_AC_NEW;
+    naf.modifier = 2;
+    naf.bonus_type = BONUS_TYPE_NATURALARMOR;
+    affect_to_char(ch, &naf);
+  }
+
   act("$n swallows a vial of murky looking substance and grows more physically powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
   act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
 
@@ -2380,6 +2435,57 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
     af.duration = duration;
     af.modifier = af.modifier;
     affect_to_char(ch, &af);
+
+  /* Tier 1 Mutagenist perks also apply to elemental mutagen */
+  {
+    int extra = get_alchemist_mutagen_i_rank(ch);
+    if (extra > 0)
+    {
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL; /* ensure stacking with mutagen and other bonuses */
+      paf.location = APPLY_STR;
+      paf.modifier = extra;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
+    }
+  }
+
+  if (has_alchemist_alchemical_reflexes(ch))
+  {
+    struct affected_type raf;
+    new_affect(&raf);
+    raf.spell = SKILL_MUTAGEN;
+    raf.duration = duration;
+    raf.location = APPLY_AC_NEW;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_DODGE;
+    affect_to_char(ch, &raf);
+
+    raf.location = APPLY_SAVING_REFL;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &raf);
+  }
+
+  if (has_alchemist_natural_armor(ch))
+  {
+    struct affected_type naf;
+    new_affect(&naf);
+    naf.spell = SKILL_MUTAGEN;
+    naf.duration = duration;
+    naf.location = APPLY_AC_NEW;
+    naf.modifier = 2;
+    naf.bonus_type = BONUS_TYPE_NATURALARMOR;
+    affect_to_char(ch, &naf);
+  }
   }
   if (af2.modifier != 0)
   {

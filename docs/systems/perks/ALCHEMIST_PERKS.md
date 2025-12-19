@@ -19,24 +19,28 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 #### Mutagen I
 - **Max Ranks:** 3
 - **Description:** Your mutagens give +1 to str, con and dex per rank.
+- **Mechanics:** When you drink a mutagen you crafted, apply an alchemical bonus of +1 per rank to STR, DEX, and CON (all three attributes). The bonus updates all derived stats (attack, AC from DEX, HP from CON) immediately and ends with the mutagen. Alchemical ability bonuses from other sources do not stack; use the highest.
 - **Effect Type:** Personal enhancement buff
 - **Prerequisites:** None
 
 #### Hardy Constitution I
 - **Max Ranks:** 3
 - **Description:** When you drink a mutagen you created, gain +1 max p HP per character level per rank, lasting for the mutagen's duration.
+- **Mechanics:** On consuming your own mutagen, increase maximum HP by (character level × ranks) and immediately raise current HP by the same amount (this is bonus max HP, not temporary HP). The bonus persists only while the mutagen is active; when it ends, reduce max HP by the same amount and lower current HP if needed (never below 1). Re-applying a mutagen refreshes and recalculates the bonus instead of stacking.
 - **Effect Type:** Survivability boost
 - **Prerequisites:** None
 
 #### Alchemical Reflexes
 - **Max Ranks:** 1
 - **Description:** While a mutagen is active, gain +1 dodge bonus to AC and +1 bonus to Reflex saves.
+- **Mechanics:** While under your mutagen, gain a +1 dodge bonus to AC (applies to touch, stacks with other dodge bonuses) and +1 untyped bonus to Reflex saves. The dodge bonus is lost while flat-footed, helpless, or otherwise unable to react; the save bonus is not.
 - **Effect Type:** Defensive synergy
 - **Prerequisites:** None
 
 #### Natural Armor
 - **Max Ranks:** 1
 - **Description:** While a mutagen is active, your skin hardens and you gain +2 natural armor bonus to AC.
+- **Mechanics:** While under your mutagen, gain a +2 natural armor bonus to AC. This does not stack with other natural armor bonuses (use the highest), but enhancement bonuses to natural armor still apply. Does not apply to touch AC.
 - **Effect Type:** Defensive transformation
 - **Prerequisites:** None
 
