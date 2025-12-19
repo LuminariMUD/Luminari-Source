@@ -523,4 +523,13 @@ bool has_bard_endless_refrain(struct char_data *ch);
 int get_bard_endless_refrain_slot_regen(struct char_data *ch);
 bool should_endless_refrain_consume_performance(struct char_data *ch);
 
+/* Bard Warchanter Tree Tier 1 Functions */
+int get_bard_battle_hymn_damage_bonus(struct char_data *ch);
+int get_bard_drummers_rhythm_tohit_bonus(struct char_data *ch);
+bool has_bard_rallying_cry_perk(struct char_data *ch);
+int get_bard_rallying_cry_fear_save_bonus(struct char_data *ch);
+bool has_bard_frostbite_refrain(struct char_data *ch);
+int get_bard_frostbite_cold_damage(struct char_data *ch);
+int get_bard_frostbite_natural_20_debuff(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

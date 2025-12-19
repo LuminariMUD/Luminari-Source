@@ -3893,6 +3893,12 @@
 #define PERK_BARD_SYMPHONIC_RESONANCE 1114
 #define PERK_BARD_ENDLESS_REFRAIN 1115
 
+/* Bard Warchanter Tree - Tier 1 */
+#define PERK_BARD_BATTLE_HYMN_I 1116
+#define PERK_BARD_DRUMMERS_RHYTHM_I 1117
+#define PERK_BARD_RALLYING_CRY 1118
+#define PERK_BARD_FROSTBITE_REFRAIN_I 1119
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

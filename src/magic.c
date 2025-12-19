@@ -6416,9 +6416,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   case AFFECT_RALLYING_CRY:
 
-    af[0].duration = level + 10;
-    af[0].location = APPLY_SPECIAL;
-    af[0].modifier = 1;
+    af[0].duration = 5; /* 5 rounds */
+    af[0].location = APPLY_SAVING_WILL;
+    af[0].modifier = 2; /* +2 morale to saves vs. fear/mind-affecting */
     af[0].bonus_type = BONUS_TYPE_MORALE;
     to_room = "$n looks more eager to fight!";
     to_vict = "You feel more confident and able in your abilities!";
@@ -6496,7 +6496,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     
     af[1].duration = level + 10;
     af[1].location = APPLY_DAMROLL;
-    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + get_bard_battle_hymn_damage_bonus(ch);
     af[1].bonus_type = BONUS_TYPE_MORALE;
 
     af[2].duration = level + 10;

@@ -4575,6 +4575,72 @@ void define_bard_perks(void)
   perk->effect_value = 1; /* spell slot regen */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Capstone: Performance is free; regenerate 1 spell slot per round; songs last indefinitely");
+
+  /*** WARCHANTER TREE - TIER I ***/
+
+  /* Battle Hymn I */
+  perk = &perk_list[PERK_BARD_BATTLE_HYMN_I];
+  perk->id = PERK_BARD_BATTLE_HYMN_I;
+  perk->name = strdup("Battle Hymn I");
+  perk->description = strdup("Inspire Courage also grants +1 competence to damage per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Inspire Courage grants +1 competence to damage per rank");
+
+  /* Drummer's Rhythm I */
+  perk = &perk_list[PERK_BARD_DRUMMERS_RHYTHM_I];
+  perk->id = PERK_BARD_DRUMMERS_RHYTHM_I;
+  perk->name = strdup("Drummer's Rhythm I");
+  perk->description = strdup("While a song is active, you gain +1 to hit in melee per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("While performing, gain +1 melee to-hit per rank");
+
+  /* Rallying Cry */
+  perk = &perk_list[PERK_BARD_RALLYING_CRY];
+  perk->id = PERK_BARD_RALLYING_CRY;
+  perk->name = strdup("Rallying Cry");
+  perk->description = strdup("Activate to remove the shaken condition from allies and grant +2 morale to saves vs. fear for 5 rounds");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 5;
+  perk->special_description = strdup("Remove shaken condition; grant +2 morale to fear saves for 5 rounds");
+
+  /* Frostbite Refrain I */
+  perk = &perk_list[PERK_BARD_FROSTBITE_REFRAIN_I];
+  perk->id = PERK_BARD_FROSTBITE_REFRAIN_I;
+  perk->name = strdup("Frostbite Refrain I");
+  perk->description = strdup("Your melee hits deal +1 cold damage per rank while a song is active; enemies you hit suffer -1 to attack for 1 round on a natural 20");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = -1;
+  perk->special_description = strdup("While performing: melee hits +1 cold damage per rank; nat 20 applies -1 attack debuff for 1 round");
 }
 
 /* Define Barbarian Perks */
@@ -7230,23 +7296,34 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
  */
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
 {
+  int bonus = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
     
   /* If wielded is NULL, character is unarmed - apply bonus */
   if (!wielded)
-    return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
-  
-  /* Check if the weapon is ranged - if so, don't apply bonus */
-  if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
   {
-    int weapon_type = GET_OBJ_VAL(wielded, 0);
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
-      return 0; /* No bonus for ranged weapons */
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+  }
+  else
+  {
+    /* Check if the weapon is ranged - if so, don't apply bonus */
+    if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+    {
+      int weapon_type = GET_OBJ_VAL(wielded, 0);
+      if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+        return 0; /* No bonus for ranged weapons */
+    }
+    
+    /* Weapon is melee, apply bonus */
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
   }
   
-  /* Weapon is melee, apply bonus */
-  return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+  /* Add Drummer's Rhythm I bonus while performing */
+  bonus += get_bard_drummers_rhythm_tohit_bonus(ch);
+  
+  return bonus;
 }
 
 /**
@@ -13711,4 +13788,147 @@ bool should_endless_refrain_consume_performance(struct char_data *ch)
     return FALSE; /* Don't consume performance */
   
   return TRUE; /* Normal bards consume performance */
+}
+/* ============================================================================
+ * WARCHANTER TREE PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Get damage bonus from Battle Hymn I.
+ * Provides +1 competence damage per rank to Inspire Courage recipients.
+ * 
+ * @param ch The character
+ * @return Damage bonus per rank (cumulative)
+ */
+int get_bard_battle_hymn_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Battle Hymn I: +1 competence to damage per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_BATTLE_HYMN_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get to-hit bonus from Drummer's Rhythm I.
+ * Provides +1 to-hit per rank while performing.
+ * 
+ * @param ch The character
+ * @return To-hit bonus per rank (cumulative)
+ */
+int get_bard_drummers_rhythm_tohit_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  /* Drummer's Rhythm I: +1 melee to-hit per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_DRUMMERS_RHYTHM_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Rallying Cry perk.
+ * Allows removing shaken condition and granting fear save bonuses to allies.
+ * 
+ * @param ch The character
+ * @return TRUE if has Rallying Cry, FALSE otherwise
+ */
+bool has_bard_rallying_cry_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_RALLYING_CRY);
+}
+
+/**
+ * Get fear save bonus from Rallying Cry effect.
+ * Returns morale bonus to saves vs. fear.
+ * 
+ * @param ch The character
+ * @return +2 if affected by Rallying Cry, 0 otherwise
+ */
+int get_bard_rallying_cry_fear_save_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Check if character is affected by AFFECT_RALLYING_CRY */
+  if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
+    return 2; /* +2 morale to fear saves */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Frostbite Refrain I perk.
+ * Adds cold damage to melee hits and applies debuff on natural 20.
+ * 
+ * @param ch The character
+ * @return TRUE if has Frostbite Refrain I, FALSE otherwise
+ */
+bool has_bard_frostbite_refrain(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FROSTBITE_REFRAIN_I);
+}
+
+/**
+ * Get cold damage bonus from Frostbite Refrain I.
+ * Returns +1 cold damage per rank while performing.
+ * 
+ * @param ch The character
+ * @return Cold damage bonus per rank (cumulative)
+ */
+int get_bard_frostbite_cold_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain(ch))
+    return 0;
+  
+  /* Frostbite Refrain I: +1 cold damage per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_FROSTBITE_REFRAIN_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get natural 20 debuff modifier from Frostbite Refrain I.
+ * Returns the to-hit penalty applied on natural 20 hit.
+ * 
+ * @param ch The character
+ * @return -1 to attack (as specified in effect_modifier)
+ */
+int get_bard_frostbite_natural_20_debuff(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain(ch))
+    return 0;
+  
+  /* Frostbite Refrain I: natural 20 applies -1 to attack debuff */
+  return -1;
 }

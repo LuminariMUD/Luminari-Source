@@ -12781,6 +12781,16 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
 
+    /* Frostbite Refrain I: cold damage rider on melee hits while performing */
+    if (dam && !IS_NPC(ch) && has_bard_frostbite_refrain(ch))
+    {
+      int cold_dam = get_bard_frostbite_cold_damage(ch);
+      if (cold_dam > 0)
+      {
+        return_val = damage(victim, ch, cold_dam, PERK_BARD_FROSTBITE_REFRAIN_I, DAM_COLD, attack_type);
+      }
+    }
+
     if (dam && victim && GET_HIT(victim) >= -1 && (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) && affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
     { // caustic blood
       return_val = call_magic(victim, ch, NULL, AFFECT_CAUSTIC_BLOOD_DAMAGE, 0, CASTER_LEVEL(victim), CAST_SPELL);
@@ -13451,6 +13461,30 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     else
     {
       act("$N resists your stunning blow!", FALSE, ch, 0, victim, TO_CHAR);
+    }
+  }
+
+  /* Frostbite Refrain I: Apply -1 to attack debuff on natural 20 while performing */
+  if (!IS_NPC(ch) && diceroll == 20 && has_bard_frostbite_refrain(ch) && can_hit > 0)
+  {
+    int debuff_modifier = get_bard_frostbite_natural_20_debuff(ch);
+    if (debuff_modifier < 0)
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_FROSTBITE_REFRAIN_I;
+      af.location = APPLY_HITROLL;
+      af.duration = 1; /* 1 round */
+      af.modifier = debuff_modifier; /* -1 to attack */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      
+      act("\tC[\tBFROSTBITE\tC]\tn Your frostbite refrain freezes $N's movements, making them sluggish!", 
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("\tC[\tBFROSTBITE\tC]\tn The bitter cold from $n's refrain freezes your movements, making them sluggish!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      act("\tC[\tBFROSTBITE\tC]\tn $n's frostbite refrain freezes $N!", 
+          FALSE, ch, 0, victim, TO_NOTVICT);
     }
   }
 
