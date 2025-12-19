@@ -588,6 +588,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"insectbeing", "insectbeing", POS_FIGHTING, do_insectbeing, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_insectbeing},
     {"inspirecourage", "inspirecourage", POS_FIGHTING, do_inspire_courage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"flourish", "flourish", POS_FIGHTING, do_flourish, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"curtaincall", "curtaincall", POS_FIGHTING, do_curtain_call, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* Intermud3 commands */
     {"i3admin", "i3admin", POS_DEAD, do_i3admin, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

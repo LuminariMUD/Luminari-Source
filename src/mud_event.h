@@ -211,6 +211,7 @@ typedef enum
   eMASS_CURE_WOUNDS,                /* Mass Cure Wounds daily uses */
   eFERAL_CHARGE_USED,               /* Beast Master Feral Charge used this combat */
   eDEVICE_REPAIR,                   // artificer device repair
+  eCURTAIN_CALL_COOLDOWN,           /* Curtain Call 5-minute cooldown */
   ePERFECT_TEMPO_HIT_THIS_ROUND,    /* Bard Perfect Tempo - tracked hit this round */
 } event_id;
 

@@ -784,6 +784,7 @@ ACMD_DECL(do_soul_of_knighthood);
 ACMD_DECL(do_rallying_cry);
 ACMD_DECL(do_inspire_courage);
 ACMD_DECL(do_flourish);
+ACMD_DECL(do_curtain_call);
 ACMD_DECL(do_wisdom_of_the_measure);
 ACMD_DECL(do_final_stand);
 ACMD_DECL(do_knighthoods_flower);

@@ -602,4 +602,15 @@ bool is_affected_by_feint_and_finish(struct char_data *ch);
 int get_bard_feint_and_finish_damage_bonus(struct char_data *ch);
 int get_bard_feint_and_finish_crit_confirm_bonus(struct char_data *ch);
 
+/* Tier 4 Swashbuckler Capstone Perks */
+bool has_bard_supreme_style(struct char_data *ch);
+bool is_affected_by_supreme_style(struct char_data *ch);
+int get_bard_supreme_style_tohit_bonus(struct char_data *ch);
+int get_bard_supreme_style_ac_bonus(struct char_data *ch);
+int get_bard_supreme_style_crit_confirm_bonus(struct char_data *ch);
+bool has_bard_curtain_call(struct char_data *ch);
+bool is_affected_by_curtain_call(struct char_data *ch);
+bool is_affected_by_curtain_call_disoriented(struct char_data *ch);
+int get_bard_curtain_call_damage_bonus(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

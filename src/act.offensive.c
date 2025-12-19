@@ -13903,6 +13903,88 @@ ACMD(do_flourish)
 }
 
 
+ACMD(do_curtain_call)
+{
+  struct char_data *victim, *next_victim;
+  int num_targets = 0;
+  int max_targets = 3;
+  int damage;
+
+  if (!has_bard_curtain_call(ch))
+  {
+    send_to_char(ch, "You do not have the Curtain Call ability.\r\n");
+    return;
+  }
+
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You must be in combat to use Curtain Call.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eCURTAIN_CALL_COOLDOWN))
+  {
+    send_to_char(ch, "You need to recover from your last curtain call. (5 minute cooldown)\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    send_to_char(ch, "Curtain Call requires a standard action to use.\r\n");
+    return;
+  }
+
+  /* Start the curtain call effect */
+  send_to_char(ch, "\tY[CURTAIN CALL]\tn You step forward and unleash a devastating multi-target attack!\r\n");
+  act("\tY[CURTAIN CALL]\tn $n steps forward and unleashes a devastating performance-based attack on all nearby foes!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Attack all nearby enemies (up to 3 adjacent) */
+  for (victim = world[ch->in_room].people; victim && num_targets < max_targets; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    
+    /* Skip non-hostile targets */
+    if (victim == ch || !FIGHTING(ch) || FIGHTING(ch) != victim)
+      continue;
+
+    num_targets++;
+
+    /* Simple hit/miss and damage */
+    damage = get_bard_curtain_call_damage_bonus(ch) + dice(1, 4) + 2;
+    
+    GET_HIT(victim) -= damage;
+
+    send_to_char(ch, "\tYYour curtain call strikes $N for \tR%d\tn\tY damage!\tn\r\n", damage);
+    send_to_char(victim, "\tY$n's curtain call strikes you for \tR%d\tn\tY damage!\tn\r\n", damage);
+    act("\tY$n's curtain call strikes $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+
+    /* Apply disoriented condition (must save vs disoriented for 2 rounds) */
+    int dc = 10 + GET_LEVEL(ch) + GET_CHA_BONUS(ch);
+    if (!savingthrow(ch, victim, SAVING_WILL, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    {
+      mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, AFFECT_BARD_CURTAIN_CALL_DISORIENTED, SAVING_WILL, CAST_INNATE, 0);
+      send_to_char(victim, "\tRYou are \tYdisoriented\tR by the stunning performance!\tn\r\n");
+    }
+    else
+    {
+      send_to_char(victim, "You resist the disorienting effect of the performance.\r\n");
+    }
+  }
+
+  if (num_targets == 0)
+  {
+    send_to_char(ch, "There are no nearby enemies to target!\r\n");
+    return;
+  }
+
+  /* Set cooldown: 5 minutes = 300 seconds */
+  attach_mud_event(new_mud_event(eCURTAIN_CALL_COOLDOWN, ch, NULL), 300 * PASSES_PER_SEC);
+
+  USE_STANDARD_ACTION(ch);
+}
+
+
 ACMD(do_wisdom_of_the_measure)
 {
 

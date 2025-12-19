@@ -259,8 +259,9 @@ struct mud_event_list mud_event_index[] = {
     {"Paladin Channel Energy", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Mass Cure Wounds", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Feral Charge Used", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Device Repair", event_device_repair, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0}
+    {"Device Repair", event_device_repair, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     // 180
+    {"Curtain Call Cooldown", event_countdown, EVENT_CHAR, "Your curtain call is ready again.", NULL, FEAT_UNDEFINED, 0}
 };
 
 /* Expose registry count for validation */

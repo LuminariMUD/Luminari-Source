@@ -3933,6 +3933,10 @@
 #define PERK_BARD_ACROBATIC_CHARGE 1140
 #define PERK_BARD_FEINT_AND_FINISH 1141
 
+/* Bard Swashbuckler Tree - Tier 4 (Capstone) */
+#define PERK_BARD_SUPREME_STYLE 1142
+#define PERK_BARD_CURTAIN_CALL 1143
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

@@ -5003,6 +5003,38 @@ void define_bard_perks(void)
   perk->effect_value = 12;
   perk->effect_modifier = 2;
   perk->special_description = strdup("After successful feint: +2d6 precision damage and +2 crit confirm on next attack");
+
+  /* Swashbuckler's Supreme Style - TIER 4 CAPSTONE */
+  perk = &perk_list[PERK_BARD_SUPREME_STYLE];
+  perk->id = PERK_BARD_SUPREME_STYLE;
+  perk->name = strdup("Swashbuckler's Supreme Style");
+  perk->description = strdup("While wielding a finesse or single one-handed weapon, gain +2 to hit, +2 dodge AC, +2 to crit confirmation, and one additional attack per 3 rounds");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_PERFECT_TEMPO;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Tier 4 Capstone: +2 to hit, +2 AC, +2 crit confirm, +1 attack per 3 rounds (finesse/1H weapon only)");
+
+  /* Curtain Call - TIER 4 CAPSTONE */
+  perk = &perk_list[PERK_BARD_CURTAIN_CALL];
+  perk->id = PERK_BARD_CURTAIN_CALL;
+  perk->name = strdup("Curtain Call");
+  perk->description = strdup("Once per 5 minutes, make a free attack against up to 3 adjacent enemies, each dealing +2d6 precision damage; creatures struck must save or be disoriented for 2 rounds (disadvantage on attacks)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SHOWSTOPPER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 12;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Tier 4 Capstone: Free multi-target attack 1/5min, +2d6 precision damage, targets save vs disoriented");
 }
 
 /* Define Barbarian Perks */
@@ -15637,4 +15669,166 @@ int get_bard_flourish_ac_bonus(struct char_data *ch)
     return 0;
   
   return 2;
+}
+
+/* ============================================================================
+ * TIER 4 SWASHBUCKLER PERK FUNCTIONS (Capstone Perks)
+ * ============================================================================ */
+
+/**
+ * Check if character has Swashbuckler's Supreme Style perk.
+ * Grants +2 to hit, +2 dodge AC, +2 crit confirm, +1 attack per 3 rounds with finesse/1H weapons.
+ * 
+ * @param ch The character
+ * @return TRUE if has Supreme Style, FALSE otherwise
+ */
+bool has_bard_supreme_style(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SUPREME_STYLE);
+}
+
+/**
+ * Check if character is affected by Supreme Style buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Supreme Style, FALSE otherwise
+ */
+bool is_affected_by_supreme_style(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_SUPREME_STYLE);
+}
+
+/**
+ * Get Supreme Style to-hit bonus.
+ * Returns +2 while wielding finesse or single one-handed weapon.
+ * 
+ * @param ch The character
+ * @return To-hit bonus (0 or 2)
+ */
+int get_bard_supreme_style_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_supreme_style(ch))
+    return 0;
+  
+  /* TODO: Verify wielding appropriate weapon type (finesse or single 1H) */
+  if (is_affected_by_supreme_style(ch))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Supreme Style AC bonus (dodge).
+ * Returns +2 dodge AC while wielding finesse or single one-handed weapon.
+ * 
+ * @param ch The character
+ * @return AC bonus (0 or 2 for dodge AC)
+ */
+int get_bard_supreme_style_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_supreme_style(ch))
+    return 0;
+  
+  /* TODO: Verify wielding appropriate weapon type (finesse or single 1H) */
+  if (is_affected_by_supreme_style(ch))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Supreme Style critical confirmation bonus.
+ * Returns +2 to critical confirmation.
+ * 
+ * @param ch The character
+ * @return Crit confirmation bonus (0 or 2)
+ */
+int get_bard_supreme_style_crit_confirm_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_supreme_style(ch))
+    return 0;
+  
+  /* TODO: Verify wielding appropriate weapon type (finesse or single 1H) */
+  if (is_affected_by_supreme_style(ch))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Curtain Call perk.
+ * Multi-target free attack, 1/5 min, +2d6 precision damage, targets save vs disoriented.
+ * 
+ * @param ch The character
+ * @return TRUE if has Curtain Call, FALSE otherwise
+ */
+bool has_bard_curtain_call(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_CURTAIN_CALL);
+}
+
+/**
+ * Check if character is affected by Curtain Call buff (during active use).
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Curtain Call, FALSE otherwise
+ */
+bool is_affected_by_curtain_call(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_CURTAIN_CALL);
+}
+
+/**
+ * Check if character is disoriented by Curtain Call.
+ * Disoriented creatures have disadvantage on attacks for 2 rounds.
+ * 
+ * @param ch The character
+ * @return TRUE if disoriented, FALSE otherwise
+ */
+bool is_affected_by_curtain_call_disoriented(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_CURTAIN_CALL_DISORIENTED);
+}
+
+/**
+ * Get Curtain Call precision damage bonus.
+ * Returns +2d6 precision damage per affected target.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0 or 2d6)
+ */
+int get_bard_curtain_call_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_curtain_call(ch))
+    return 0;
+  
+  /* 2d6 precision damage */
+  return dice(2, 6);
 }

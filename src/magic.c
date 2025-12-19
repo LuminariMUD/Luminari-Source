@@ -6605,6 +6605,44 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You've set up a finishing move with your feint!";
     break;
 
+  case AFFECT_BARD_SUPREME_STYLE:
+    /* Continuous passive buff while wielding finesse/single weapon */
+    af[0].duration = -1;  /* Permanent until removed */
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = -1;
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = 2;  /* +2 AC (dodge) */
+    af[1].bonus_type = BONUS_TYPE_DODGE;
+
+    to_room = "$n flows with supreme duelist grace!";
+    to_vict = "You flow with supreme duelist grace, your every movement perfect!";
+    break;
+
+  case AFFECT_BARD_CURTAIN_CALL:
+    /* Active buff during Curtain Call execution */
+    af[0].duration = 1;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 0;  /* Placeholder for multi-target effect */
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n takes center stage for a final curtain call!";
+    to_vict = "You take center stage for your final curtain call!";
+    break;
+
+  case AFFECT_BARD_CURTAIN_CALL_DISORIENTED:
+    /* Disoriented condition - disadvantage on attacks (penalty to to-hit) */
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -2;  /* Disadvantage represented as -2 to hit */
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$N is disoriented by the stunning performance!";
+    to_vict = "You're disoriented by the stunning performance, struggling to act!";
+    break;
+
   case SPELL_SILENCE: // illusion
     if (!can_silence(victim))
     {

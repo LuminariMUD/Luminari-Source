@@ -1182,6 +1182,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += get_bard_agile_disengage_ac_bonus(ch);
     }
 
+    /* Bard Swashbuckler: Supreme Style - +2 dodge AC (Tier 4 Capstone) */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_supreme_style_ac_bonus(ch);
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {
@@ -7848,6 +7854,14 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += crit_bonus;
   }
 
+  /* Bard Swashbuckler: Supreme Style crit confirmation bonus (Tier 4 Capstone) */
+  if (!IS_NPC(ch))
+  {
+    int supreme_style_crit_bonus = get_bard_supreme_style_crit_confirm_bonus(ch);
+    if (supreme_style_crit_bonus > 0)
+      confirm_roll += supreme_style_crit_bonus;
+  }
+
   /* new code to help really powerful beings overcome checks here */
   if (IS_POWERFUL_BEING(ch))
   {
@@ -10396,6 +10410,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += power_strike_penalty;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", power_strike_penalty, "Power Strike Penalty");
+    }
+  }
+
+  /* Bard Swashbuckler: Supreme Style - +2 to-hit (Tier 4 Capstone) */
+  if (wielded && !IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
+  {
+    int supreme_style_bonus = get_bard_supreme_style_tohit_bonus(ch);
+    if (supreme_style_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += supreme_style_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", supreme_style_bonus, "Supreme Style To-Hit");
     }
   }
 
