@@ -1146,6 +1146,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_steel_serenade_ac_bonus(ch);
     }
 
+    /* Bard Warchanter: Warchanter's Dominance - +1 AC while performing (capstone) */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_warchanters_dominance_ac_bonus(ch);
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {
@@ -13565,6 +13571,69 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     af.duration = 5; /* 5 round cooldown */
     af.bonus_type = BONUS_TYPE_UNDEFINED;
     affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  /* Bard Warchanter: Winter's War March - Room-wide damage and slow (capstone) */
+  if (!IS_NPC(ch) && has_bard_winters_war_march(ch) && can_hit > 0 && 
+      !affected_by_spell(victim, PERK_BARD_WINTERS_WAR_MARCH))
+  {
+    int cold_damage = 0, i = 0;
+    int num_dice = get_bard_winters_war_march_damage(ch);
+    int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
+    
+    /* Roll 4d6 cold damage */
+    for (i = 0; i < num_dice; i++)
+      cold_damage += rand_number(1, 6);
+    
+    /* Check if victim saves */
+    if (savingthrow(victim, ch, SAVING_WILL, save_dc, CAST_INNATE, GET_LEVEL(ch), EVOCATION))
+    {
+      cold_damage /= 2; /* Half damage on save */
+      
+      /* Apply 1 round slow on successful save */
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_WINTERS_WAR_MARCH;
+      af.location = APPLY_STR;
+      af.modifier = -4;
+      af.duration = 1; /* 1 round */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      
+      act("\tC[\tBWINTER'S WAR MARCH\tC]\tn You partially resist the frigid martial anthem, taking \tW%d\tn cold damage and moving slowly!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      GET_HIT(victim) -= cold_damage;
+    }
+    else
+    {
+      /* Full damage + 3 round slow on failed save */
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_WINTERS_WAR_MARCH;
+      af.location = APPLY_STR;
+      af.modifier = -4;
+      af.duration = 3; /* 3 rounds */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      
+      act("\tC[\tBWINTER'S WAR MARCH\tC]\tn The devastating martial anthem freezes you, dealing \tW%d\tn cold damage and severely slowing your movement!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      GET_HIT(victim) -= cold_damage;
+    }
+    
+    act("\tC[\tBWINTER'S WAR MARCH\tC]\tn Your martial anthem engulfs $N in frigid power!", 
+        FALSE, ch, 0, victim, TO_CHAR);
+    act("\tC[\tBWINTER'S WAR MARCH\tC]\tn $n's martial anthem engulfs $N in frigid power!", 
+        FALSE, ch, 0, victim, TO_NOTVICT);
+    
+    /* Apply cooldown so this doesn't proc constantly */
+    struct affected_type af_cd = {0};
+    new_affect(&af_cd);
+    af_cd.spell = PERK_BARD_WINTERS_WAR_MARCH;
+    af_cd.location = APPLY_NONE;
+    af_cd.duration = 2; /* 2 round cooldown between procs */
+    af_cd.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_join(victim, &af_cd, FALSE, FALSE, FALSE, FALSE);
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger

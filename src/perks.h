@@ -555,4 +555,12 @@ bool has_bard_banner_verse(struct char_data *ch);
 int get_bard_banner_verse_tohit_bonus(struct char_data *ch);
 int get_bard_banner_verse_save_bonus(struct char_data *ch);
 
+/* Bard Warchanter Tree Tier 4 Functions */
+bool has_bard_warchanters_dominance(struct char_data *ch);
+int get_bard_warchanters_dominance_tohit_bonus(struct char_data *ch);
+int get_bard_warchanters_dominance_ac_bonus(struct char_data *ch);
+int get_bard_warchanters_dominance_damage_bonus(struct char_data *ch);
+bool has_bard_winters_war_march(struct char_data *ch);
+int get_bard_winters_war_march_damage(struct char_data *ch);
+
 #endif /* _PERKS_H_ */

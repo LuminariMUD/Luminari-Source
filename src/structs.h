@@ -3911,6 +3911,10 @@
 #define PERK_BARD_STEEL_SERENADE 1126
 #define PERK_BARD_BANNER_VERSE 1127
 
+/* Bard Warchanter Tree - Tier 4 */
+#define PERK_BARD_WARCHANTERS_DOMINANCE 1128
+#define PERK_BARD_WINTERS_WAR_MARCH 1129
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

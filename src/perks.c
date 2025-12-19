@@ -4773,6 +4773,38 @@ void define_bard_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 5;
   perk->special_description = strdup("Plant musical banner: allies in room gain +2 to hit and +2 to all saves for 5 rounds");
+
+  /* Warchanter's Dominance - Tier 4 Capstone */
+  perk = &perk_list[PERK_BARD_WARCHANTERS_DOMINANCE];
+  perk->id = PERK_BARD_WARCHANTERS_DOMINANCE;
+  perk->name = strdup("Warchanter's Dominance");
+  perk->description = strdup("Inspire Courage now also grants +1 attack and +1 AC; your Warbeat now gives allies an additional +1d4 to damage and +1 to AC");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_ANTHEM_OF_FORTITUDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("Capstone: Inspire Courage grants +1 attack/+1 AC; Warbeat grants +1d4 damage/+1 AC to allies");
+
+  /* Winter's War March - Tier 4 Capstone */
+  perk = &perk_list[PERK_BARD_WINTERS_WAR_MARCH];
+  perk->id = PERK_BARD_WINTERS_WAR_MARCH;
+  perk->name = strdup("Winter's War March");
+  perk->description = strdup("Perform a devastating martial anthem: deal 4d6 cold damage to all enemies and slow them for 3 rounds (save halves damage and reduces slow to 1 round). Useable at-will.");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_COMMANDING_CADENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Room-wide martial anthem: 4d6 cold damage, enemies slow for 3 rounds (save halves/reduces to 1 round)");
 }
 
 /* Define Barbarian Perks */
@@ -7430,6 +7462,9 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
   bonus += get_bard_frostbite_cold_damage(ch);
   bonus += get_bard_frostbite_refrain_ii_cold_damage(ch);
   
+  /* Warchanter's Dominance: +1 damage while performing */
+  bonus += get_bard_warchanters_dominance_damage_bonus(ch);
+  
   return bonus;
 }
 
@@ -7470,6 +7505,9 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
   /* Add Drummer's Rhythm I & II bonus while performing */
   bonus += get_bard_drummers_rhythm_tohit_bonus(ch);
   bonus += get_bard_drummers_rhythm_ii_tohit_bonus(ch);
+  
+  /* Add Warchanter's Dominance bonus */
+  bonus += get_bard_warchanters_dominance_tohit_bonus(ch);
   
   return bonus;
 }
@@ -14427,4 +14465,108 @@ int get_bard_banner_verse_save_bonus(struct char_data *ch)
   
   /* Banner Verse: +2 to all saves in the room */
   return 2;
+}
+
+/* ============================================================================
+ * BARD WARCHANTER TIER 4 HELPER FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Warchanter's Dominance perk.
+ * Capstone that enhances Inspire Courage and Warbeat effects.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_bard_warchanters_dominance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_WARCHANTERS_DOMINANCE);
+}
+
+/**
+ * Get to-hit bonus from Warchanter's Dominance.
+ * Inspire Courage grants +1 additional attack bonus.
+ * 
+ * @param ch The character
+ * @return +1 to hit while performing
+ */
+int get_bard_warchanters_dominance_tohit_bonus(struct char_data *ch)
+{
+  if (!has_bard_warchanters_dominance(ch))
+    return 0;
+  
+  /* Warchanter's Dominance: +1 to hit from Inspire Courage enhancement */
+  return 1;
+}
+
+/**
+ * Get AC bonus from Warchanter's Dominance.
+ * Inspire Courage grants +1 additional AC.
+ * 
+ * @param ch The character
+ * @return +1 AC while performing (negative value for AC system)
+ */
+int get_bard_warchanters_dominance_ac_bonus(struct char_data *ch)
+{
+  if (!has_bard_warchanters_dominance(ch))
+    return 0;
+  
+  /* Warchanter's Dominance: +1 AC from Inspire Courage enhancement */
+  return 1;
+}
+
+/**
+ * Get damage bonus from Warchanter's Dominance.
+ * Enhance damage output on first attack (Warbeat enhancement).
+ * 
+ * @param ch The character
+ * @return +1 to damage
+ */
+int get_bard_warchanters_dominance_damage_bonus(struct char_data *ch)
+{
+  if (!has_bard_warchanters_dominance(ch))
+    return 0;
+  
+  /* Warchanter's Dominance: +1 to damage via Warbeat enhancement */
+  return 1;
+}
+
+/**
+ * Check if character has Winter's War March perk.
+ * Room-wide martial anthem that damages and slows enemies.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_bard_winters_war_march(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_WINTERS_WAR_MARCH);
+}
+
+/**
+ * Get damage from Winter's War March ability.
+ * Returns number of dice for 4d6 damage.
+ * 
+ * @param ch The character
+ * @return 4 (for 4d6 cold damage)
+ */
+int get_bard_winters_war_march_damage(struct char_data *ch)
+{
+  if (!has_bard_winters_war_march(ch))
+    return 0;
+  
+  /* Winter's War March: 4d6 cold damage */
+  return 4;
 }

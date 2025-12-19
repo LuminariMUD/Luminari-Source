@@ -6504,6 +6504,28 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[2].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
     af[2].bonus_type = BONUS_TYPE_MORALE;
 
+    /* Warchanter's Dominance: Additional +1 attack and +1 AC to allies */
+    if (has_bard_warchanters_dominance(ch))
+    {
+      /* Additional +1 to hit from Warchanter's Dominance */
+      af[3].duration = level + 10;
+      af[3].location = APPLY_HITROLL;
+      af[3].modifier = 1;
+      af[3].bonus_type = BONUS_TYPE_MORALE;
+      
+      /* Additional +1 AC from Warchanter's Dominance (negative for AC system) */
+      af[4].duration = level + 10;
+      af[4].location = APPLY_AC_NEW;
+      af[4].modifier = -1;
+      af[4].bonus_type = BONUS_TYPE_MORALE;
+      
+      /* Warbeat Enhancement: Additional +1 damage to allies */
+      af[5].duration = level + 10;
+      af[5].location = APPLY_DAMROLL;
+      af[5].modifier = 1;
+      af[5].bonus_type = BONUS_TYPE_MORALE;
+    }
+
     to_room = "$n looks more confident!";
     to_vict = "Your courage surges and with it your fighting prowess!";
     break;
