@@ -389,6 +389,12 @@ void perform_flee(struct char_data *ch)
       GUI_CMBT_NOTVICT_OPEN(ch, NULL);
       act("$n failed to flee the battle!", TRUE, ch, 0, 0, TO_ROOM);
       GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
+      /* Bard Swashbuckler: Agile Disengage - +4 AC for 3 rounds on failed flee */
+      if (has_bard_agile_disengage(ch) && !is_affected_by_agile_disengage(ch))
+      {
+        call_magic(ch, ch, 0, AFFECT_BARD_AGILE_DISENGAGE, 0, CASTER_LEVEL(ch), CAST_INNATE);
+      }
     }
   }
 }
@@ -1158,10 +1164,22 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += get_bard_fencers_footwork_ac_bonus(ch);
     }
 
+    /* Bard Swashbuckler: Fencer's Footwork II - Additional +1 Dodge AC per rank while wielding finesse/single weapon */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_fencers_footwork_ii_ac_bonus(ch);
+    }
+
     /* Bard Swashbuckler: Flourish - +2 AC while active */
     if (!IS_NPC(ch))
     {
       bonuses[BONUS_TYPE_DODGE] += get_bard_flourish_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Agile Disengage - +4 AC for 3 rounds after failed flee */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_agile_disengage_ac_bonus(ch);
     }
 
     /* Monk weapon AC bonus - One With Wood and Stone perk */
@@ -7418,6 +7436,14 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
     {
       threat_range = MIN(threat_range, 19);
     }
+  }
+
+  /* Bard Swashbuckler: Duelist's Poise - +1 threat range with finesse weapon */
+  if (!IS_NPC(ch))
+  {
+    int poise_bonus = get_bard_duelists_poise_threat_range_bonus(ch);
+    if (poise_bonus > 0)
+      threat_range -= poise_bonus;
   }
 
   /* Wilderness Warrior: Apex Predator - improved crit range vs favored enemies */

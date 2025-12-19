@@ -3921,6 +3921,12 @@
 #define PERK_BARD_RIPOSTE_TRAINING_I 1132
 #define PERK_BARD_FLOURISH 1133
 
+/* Bard Swashbuckler Tree - Tier 2 */
+#define PERK_BARD_FENCERS_FOOTWORK_II 1134
+#define PERK_BARD_PRECISE_STRIKE_II 1135
+#define PERK_BARD_DUELISTS_POISE 1136
+#define PERK_BARD_AGILE_DISENGAGE 1137
+
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */

@@ -4871,6 +4871,72 @@ void define_bard_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 2;
   perk->special_description = strdup("Activate: +2 to hit and +2 AC for 2 rounds (ends if knocked prone/grappled)");
+
+  /*** SWASHBUCKLER TREE - TIER II ***/
+
+  /* Fencer's Footwork II */
+  perk = &perk_list[PERK_BARD_FENCERS_FOOTWORK_II];
+  perk->id = PERK_BARD_FENCERS_FOOTWORK_II;
+  perk->name = strdup("Fencer's Footwork II");
+  perk->description = strdup("Additional +1 Dodge AC and +1 Reflex per rank while using a finesse/single weapon");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_FENCERS_FOOTWORK_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("While wielding finesse or single one-handed weapon: +1 Dodge AC and +1 Reflex per rank (stacks with Tier I)");
+
+  /* Precise Strike II */
+  perk = &perk_list[PERK_BARD_PRECISE_STRIKE_II];
+  perk->id = PERK_BARD_PRECISE_STRIKE_II;
+  perk->name = strdup("Precise Strike II");
+  perk->description = strdup("Additional +1 precision damage per rank (stacks with Precise Strike I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_PRECISE_STRIKE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("With finesse or one-handed piercing/slashing: +1 precision damage per rank (stacks with Tier I, not on crit multiplier)");
+
+  /* Duelist's Poise */
+  perk = &perk_list[PERK_BARD_DUELISTS_POISE];
+  perk->id = PERK_BARD_DUELISTS_POISE;
+  perk->name = strdup("Duelist's Poise");
+  perk->description = strdup("Gain +2 to critical confirmation and +1 critical threat range when using a finesse weapon");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_FLOURISH;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("With finesse weapon: +2 to critical confirmation rolls and +1 critical threat range");
+
+  /* Agile Disengage */
+  perk = &perk_list[PERK_BARD_AGILE_DISENGAGE];
+  perk->id = PERK_BARD_AGILE_DISENGAGE;
+  perk->name = strdup("Agile Disengage");
+  perk->description = strdup("On a failed flee attempt, you gain +4 AC for 3 rounds. This bonus ends if you move out of the room you're in");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_FENCERS_FOOTWORK_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Failed flee: +4 AC for 3 rounds (ends if you move rooms)");
 }
 
 /* Define Barbarian Perks */
@@ -7535,6 +7601,9 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
   /* Precise Strike I: +1 precision damage per rank with appropriate weapons */
   bonus += get_bard_precise_strike_i_bonus(ch);
   
+  /* Precise Strike II: Additional +1 precision damage per rank with appropriate weapons */
+  bonus += get_bard_precise_strike_ii_bonus(ch);
+  
   return bonus;
 }
 
@@ -7635,6 +7704,9 @@ int get_perk_critical_confirmation_bonus(struct char_data *ch)
   /* Improved Vital Strike: +2 more (+4 total) */
   if (has_perk(ch, PERK_ROGUE_IMPROVED_VITAL_STRIKE))
     bonus += 2;
+  
+  /* Bard Swashbuckler: Duelist's Poise - +2 with finesse weapon */
+  bonus += get_bard_duelists_poise_crit_confirm_bonus(ch);
   
   return bonus;
 }
@@ -14890,6 +14962,349 @@ int get_bard_riposte_training_i_chance(struct char_data *ch)
   bonus = 3 * get_perk_rank(ch, PERK_BARD_RIPOSTE_TRAINING_I, CLASS_BARD);
   
   return bonus;
+}
+
+/**
+ * SWASHBUCKLER TREE TIER 2 PERK FUNCTIONS
+ */
+
+/**
+ * Check if character has Fencer's Footwork II perk.
+ * Grants additional +1 Dodge AC and +1 Reflex per rank.
+ * 
+ * @param ch The character
+ * @return TRUE if has Fencer's Footwork II, FALSE otherwise
+ */
+bool has_bard_fencers_footwork_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FENCERS_FOOTWORK_II);
+}
+
+/**
+ * Get Fencer's Footwork II AC bonus.
+ * Returns +1 Dodge AC per rank when wielding finesse or single one-handed weapon.
+ * Stacks with Tier I bonus.
+ * 
+ * @param ch The character
+ * @return AC bonus (0-2)
+ */
+int get_bard_fencers_footwork_ii_ac_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_ii(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Get Fencer's Footwork II Reflex save bonus.
+ * Returns +1 Reflex per rank when wielding finesse or single one-handed weapon.
+ * Stacks with Tier I bonus.
+ * 
+ * @param ch The character
+ * @return Reflex save bonus (0-2)
+ */
+int get_bard_fencers_footwork_ii_reflex_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_ii(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Precise Strike II perk.
+ * Grants additional +1 precision damage per rank.
+ * 
+ * @param ch The character
+ * @return TRUE if has Precise Strike II, FALSE otherwise
+ */
+bool has_bard_precise_strike_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PRECISE_STRIKE_II);
+}
+
+/**
+ * Get Precise Strike II precision damage bonus.
+ * Returns +1 precision damage per rank with finesse or one-handed piercing/slashing weapons.
+ * Stacks with Tier I bonus, not multiplied on crits.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0-2)
+ */
+int get_bard_precise_strike_ii_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  int damage_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_precise_strike_ii(ch))
+    return 0;
+  
+  /* Check if wielding appropriate weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  damage_type = GET_OBJ_VAL(wielded, 3);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Check if finesse weapon with correct damage type */
+  if (is_finesse)
+  {
+    /* Check if piercing or slashing */
+    if (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  /* Check if single one-handed weapon with correct damage type */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if ((size <= SIZE_SMALL || size == SIZE_MEDIUM) &&
+        (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING))
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Duelist's Poise perk.
+ * Grants +2 to critical confirmation and +1 critical threat range with finesse weapon.
+ * 
+ * @param ch The character
+ * @return TRUE if has Duelist's Poise, FALSE otherwise
+ */
+bool has_bard_duelists_poise(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_DUELISTS_POISE);
+}
+
+/**
+ * Get Duelist's Poise critical confirmation bonus.
+ * Returns +2 to critical confirmation rolls when using a finesse weapon.
+ * 
+ * @param ch The character
+ * @return Critical confirmation bonus (0 or 2)
+ */
+int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int weapon_type;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_duelists_poise(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    return 2;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Duelist's Poise critical threat range bonus.
+ * Returns +1 to critical threat range when using a finesse weapon.
+ * 
+ * @param ch The character
+ * @return Critical threat range bonus (0 or 1)
+ */
+int get_bard_duelists_poise_threat_range_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int weapon_type;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_duelists_poise(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    return 1;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Agile Disengage perk.
+ * Grants +4 AC for 3 rounds on failed flee (ends if moving rooms).
+ * 
+ * @param ch The character
+ * @return TRUE if has Agile Disengage, FALSE otherwise
+ */
+bool has_bard_agile_disengage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_AGILE_DISENGAGE);
+}
+
+/**
+ * Check if character is affected by Agile Disengage buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Agile Disengage, FALSE otherwise
+ */
+bool is_affected_by_agile_disengage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  /* Check for AFFECT_BARD_AGILE_DISENGAGE affect */
+  return affected_by_spell(ch, AFFECT_BARD_AGILE_DISENGAGE);
+}
+
+/**
+ * Get Agile Disengage AC bonus.
+ * Returns +4 AC if affected by Agile Disengage buff.
+ * 
+ * @param ch The character
+ * @return AC bonus (0 or 4)
+ */
+int get_bard_agile_disengage_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_agile_disengage(ch))
+    return 0;
+  
+  return 4;
 }
 
 /**

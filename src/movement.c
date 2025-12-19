@@ -844,6 +844,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   Y_LOC(ch) = new_y;
 
   char_to_room(ch, going_to);
+  
+  /* Bard Swashbuckler: Agile Disengage - remove AC bonus if character moves to different room */
+  if (!IS_NPC(ch) && is_affected_by_agile_disengage(ch))
+  {
+    affect_from_char(ch, AFFECT_BARD_AGILE_DISENGAGE);
+  }
   /* end the actual technical moving of the char */
   
   /* Autosearch: Check for traps automatically if enabled */

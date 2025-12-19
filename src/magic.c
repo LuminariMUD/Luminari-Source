@@ -319,6 +319,9 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
       int bard_reflex_bonus = get_bard_fencers_footwork_reflex_bonus(vict);
       if (bard_reflex_bonus > 0)
         saves += bard_reflex_bonus;
+      bard_reflex_bonus = get_bard_fencers_footwork_ii_reflex_bonus(vict);
+      if (bard_reflex_bonus > 0)
+        saves += bard_reflex_bonus;
     }
     break;
 
@@ -6551,6 +6554,17 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n performs a dazzling flourish!";
     to_vict = "You perform a dazzling flourish, your movements become fluid and precise!";
+    break;
+
+  case AFFECT_BARD_AGILE_DISENGAGE:
+
+    af[0].duration = 3;
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = 4;
+    af[0].bonus_type = BONUS_TYPE_DODGE;
+
+    to_room = "$n assumes a defensive stance after the failed escape!";
+    to_vict = "You gracefully recover from the failed escape, gaining a defensive boost!";
     break;
 
   case SPELL_SILENCE: // illusion

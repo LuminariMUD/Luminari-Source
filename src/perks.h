@@ -576,4 +576,17 @@ bool is_affected_by_flourish(struct char_data *ch);
 int get_bard_flourish_tohit_bonus(struct char_data *ch);
 int get_bard_flourish_ac_bonus(struct char_data *ch);
 
+/* Bard Swashbuckler Tree Tier 2 Functions */
+bool has_bard_fencers_footwork_ii(struct char_data *ch);
+int get_bard_fencers_footwork_ii_ac_bonus(struct char_data *ch);
+int get_bard_fencers_footwork_ii_reflex_bonus(struct char_data *ch);
+bool has_bard_precise_strike_ii(struct char_data *ch);
+int get_bard_precise_strike_ii_bonus(struct char_data *ch);
+bool has_bard_duelists_poise(struct char_data *ch);
+int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch);
+int get_bard_duelists_poise_threat_range_bonus(struct char_data *ch);
+bool has_bard_agile_disengage(struct char_data *ch);
+bool is_affected_by_agile_disengage(struct char_data *ch);
+int get_bard_agile_disengage_ac_bonus(struct char_data *ch);
+
 #endif /* _PERKS_H_ */
