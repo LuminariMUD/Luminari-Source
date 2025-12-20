@@ -848,21 +848,42 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
   if (!ch || !victim)
     return;
 
-  switch (bomb_type)
+  /* Cluster Bomb perk: 10% chance to fragment into 3 hits at 75% damage each */
+  bool is_cluster = FALSE;
+  int cluster_iter = 0;
+  int cluster_hits = 1;
+  
+  if (has_alchemist_cluster_bomb(ch) && rand_number(1, 100) <= 10)
   {
-  case BOMB_NORMAL:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // fire damage
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // fire damage
-    break;
-  case BOMB_ACID:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // acid damage
+    is_cluster = TRUE;
+    cluster_hits = 3;
+    act("\tC$n's bomb fragments into multiple projectiles!\tn", FALSE, ch, 0, victim, TO_ROOM);
+    act("\tCThe bomb fragments into multiple projectiles!\tn", FALSE, ch, 0, victim, TO_CHAR);
+  }
+  
+  for (cluster_iter = 0; cluster_iter < cluster_hits; cluster_iter++)
+  {
+    /* For cluster bombs, reduce damage to 75% per hit - store in temporary field */
+    if (is_cluster)
+    {
+      ch->player_specials->saved.cluster_bomb_iterations = cluster_iter + 1;
+    }
+
+    switch (bomb_type)
+    {
+    case BOMB_NORMAL:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // fire damage
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // fire damage
+      break;
+    case BOMB_ACID:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // acid damage
     perform_bomb_direct_effect(ch, victim, bomb_type); // DoT acid effect
     if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
       perform_bomb_splash_damage(ch, victim, bomb_type); // acid damage
@@ -996,7 +1017,12 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
     if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
       perform_bomb_splash_effect(ch, victim, bomb_type); // entangled
     break;
+    }
   }
+  
+  /* Reset cluster bomb state */
+  ch->player_specials->saved.cluster_bomb_iterations = 0;
+  
   if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS))
   {
     add_sticky_bomb_effect(ch, victim, bomb_type);
@@ -1136,6 +1162,25 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 
   /* Elemental Bomb perk: add 1d6 to elemental bombs */
   dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
+
+  /* Bomb Mastery perk: add 2d6 to all bombs */
+  dam += get_alchemist_bomb_mastery_damage_bonus(ch);
+
+  /* Inferno Bomb perk: 10% chance for +2d6 fire damage */
+  if (has_alchemist_inferno_bomb(ch) && rand_number(1, 100) <= 10)
+  {
+    int inferno_bonus = dice(2, 6);
+    dam += inferno_bonus;
+    act("\tRYour bomb explodes in a massive inferno, dealing an extra $t damage!\tn", FALSE, ch, (void *)(intptr_t)inferno_bonus, victim, TO_CHAR | TO_SLEEP);
+    act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_VICT);
+    act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+  }
+
+  /* Cluster Bomb perk: apply 75% damage multiplier to secondary hits */
+  if (ch->player_specials && ch->player_specials->saved.cluster_bomb_iterations > 0)
+  {
+    dam = (dam * 75) / 100;
+  }
 
   if (bomb_type == BOMB_HOLY)
   {
@@ -1323,6 +1368,12 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
 
   /* Elemental Bomb perk: add 1d6 to elemental splash damage */
   dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
+
+  /* Cluster Bomb perk: apply 75% damage multiplier to secondary hits */
+  if (ch->player_specials && ch->player_specials->saved.cluster_bomb_iterations > 0)
+  {
+    dam = (dam * 75) / 100;
+  }
 
   if (bomb_type == BOMB_HOLY)
   {

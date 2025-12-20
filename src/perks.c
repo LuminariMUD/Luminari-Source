@@ -5415,6 +5415,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 10; /* proc chance */
   perk->effect_modifier = 0;
   perk->special_description = strdup("On hit: 10% chance to inflict poison.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER III ***/
+
+  /* Inferno Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_INFERNO_BOMB];
+  perk->id = PERK_ALCHEMIST_INFERNO_BOMB;
+  perk->name = strdup("Inferno Bomb");
+  perk->description = strdup("Your bombs have a 10% chance to deal +2d6 fire damage.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ELEMENTAL_BOMB;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 2; /* 2d6 bonus damage */
+  perk->special_description = strdup("10% chance for bombs to deal an additional 2d6 fire damage.");
+
+  /* Cluster Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_CLUSTER_BOMB];
+  perk->id = PERK_ALCHEMIST_CLUSTER_BOMB;
+  perk->name = strdup("Cluster Bomb");
+  perk->description = strdup("Your bombs have a 10% chance to become cluster bombs, hitting 3 times at 75% damage each.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 75; /* damage multiplier per hit */
+  perk->special_description = strdup("10% chance for bombs to fragment: 3 hits at 75% damage each.");
+
+  /* Calculated Throw */
+  perk = &perk_list[PERK_ALCHEMIST_CALCULATED_THROW];
+  perk->id = PERK_ALCHEMIST_CALCULATED_THROW;
+  perk->name = strdup("Calculated Throw");
+  perk->description = strdup("Your bombs are extra precise, making DCs to resist their effects +3 higher.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_PRECISE_BOMBS_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* DC bonus */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("All bomb save DCs increased by +3.");
+
+  /* Bomb Mastery */
+  perk = &perk_list[PERK_ALCHEMIST_BOMB_MASTERY];
+  perk->id = PERK_ALCHEMIST_BOMB_MASTERY;
+  perk->name = strdup("Bomb Mastery");
+  perk->description = strdup("Bombs now deal +2d6 extra damage.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 bonus damage */
+  perk->effect_modifier = 6; /* die size */
+  perk->special_description = strdup("All bombs deal an additional 2d6 damage.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5592,7 +5658,8 @@ int get_alchemist_bomb_dc_bonus(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
   int ranks = get_perk_rank(ch, PERK_ALCHEMIST_SPLASH_DAMAGE, CLASS_ALCHEMIST);
-  return ranks * 2;
+  int calculated_throw = get_alchemist_calculated_throw_dc_bonus(ch);
+  return (ranks * 2) + calculated_throw;
 }
 
 int get_alchemist_quick_bomb_chance(struct char_data *ch)
@@ -5658,6 +5725,42 @@ bool has_alchemist_poison_bomb(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_POISON_BOMB);
+}
+
+/* Bomb Craftsman Tier III helpers */
+bool has_alchemist_inferno_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_INFERNO_BOMB);
+}
+
+bool has_alchemist_cluster_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CLUSTER_BOMB);
+}
+
+int get_alchemist_calculated_throw_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_CALCULATED_THROW) ? 3 : 0;
+}
+
+bool has_alchemist_bomb_mastery(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_BOMB_MASTERY);
+}
+
+int get_alchemist_bomb_mastery_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_BOMB_MASTERY) ? dice(2, 6) : 0;
 }
 
 /* Define Barbarian Perks */
@@ -7927,6 +8030,43 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
     {
       if (error_msg)
         snprintf(error_msg, error_len, "You must have Feral Charge to purchase Coordinated Attack.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Cluster Bomb - requires Alchemical Bomb II (1 rank) AND Precise Bombs */
+  if (perk_id == PERK_ALCHEMIST_CLUSTER_BOMB)
+  {
+    int precise_bombs_rank = get_perk_rank(ch, PERK_ALCHEMIST_PRECISE_BOMBS_PERK, class_id);
+    if (precise_bombs_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Precise Bombs to purchase Cluster Bomb.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Calculated Throw - requires Precise Bombs AND Quick Bomb */
+  if (perk_id == PERK_ALCHEMIST_CALCULATED_THROW)
+  {
+    int quick_bomb_rank = get_perk_rank(ch, PERK_ALCHEMIST_QUICK_BOMB, class_id);
+    if (quick_bomb_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Quick Bomb to purchase Calculated Throw.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Bomb Mastery - requires Alchemical Bomb II (any) AND (Concussive Bomb OR Poison Bomb) */
+  if (perk_id == PERK_ALCHEMIST_BOMB_MASTERY)
+  {
+    int concussive_rank = get_perk_rank(ch, PERK_ALCHEMIST_CONCUSSIVE_BOMB, class_id);
+    int poison_rank = get_perk_rank(ch, PERK_ALCHEMIST_POISON_BOMB, class_id);
+    if (concussive_rank < 1 && poison_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have either Concussive Bomb or Poison Bomb to purchase Bomb Mastery.");
       return FALSE;
     }
   }

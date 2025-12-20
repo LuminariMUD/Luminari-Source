@@ -116,6 +116,13 @@ int get_alchemist_elemental_bomb_extra_damage(struct char_data *ch, int dam_type
 bool has_alchemist_concussive_bomb(struct char_data *ch);
 bool has_alchemist_poison_bomb(struct char_data *ch);
 
+/* Bomb Craftsman Tier III helpers */
+bool has_alchemist_inferno_bomb(struct char_data *ch);
+bool has_alchemist_cluster_bomb(struct char_data *ch);
+int get_alchemist_calculated_throw_dc_bonus(struct char_data *ch);
+bool has_alchemist_bomb_mastery(struct char_data *ch);
+int get_alchemist_bomb_mastery_damage_bonus(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

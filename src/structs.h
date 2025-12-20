@@ -3973,6 +3973,11 @@
 #define PERK_ALCHEMIST_ELEMENTAL_BOMB 1219
 #define PERK_ALCHEMIST_CONCUSSIVE_BOMB 1220
 #define PERK_ALCHEMIST_POISON_BOMB 1221
+/* Bomb Craftsman Tree - Tier III */
+#define PERK_ALCHEMIST_INFERNO_BOMB 1222
+#define PERK_ALCHEMIST_CLUSTER_BOMB 1223
+#define PERK_ALCHEMIST_CALCULATED_THROW 1224
+#define PERK_ALCHEMIST_BOMB_MASTERY 1225
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)
@@ -6363,6 +6368,7 @@ struct player_special_data_saved
     int discoveries[NUM_ALC_DISCOVERIES];
     int bombs[MAX_BOMBS_ALLOWED];
     int grand_discovery;
+    int cluster_bomb_iterations;  /* Temporary tracker for cluster bomb hits (not saved) */
 
     /* template system */
     ubyte template;
