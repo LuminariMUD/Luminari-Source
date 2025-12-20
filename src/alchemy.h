@@ -93,6 +93,7 @@ ACMD_DECL(do_grand_discoveries);
 ACMD_DECL(do_swallow);
 ACMD_DECL(do_unstablemutagen);
 ACMD_DECL(do_universalmutagen);
+ACMD_DECL(do_volatilecatalyst);
 ACMD_DECL(do_curingtouch);
 ACMD_DECL(do_poisontouch);
 ACMD_DECL(do_psychokinetic);

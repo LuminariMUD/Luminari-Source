@@ -974,6 +974,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"strengthofhonor", "strengthofhonor", POS_FIGHTING, do_strength_of_honor, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"unstablemutagen", "unstablemutagen", POS_RECLINING, do_unstablemutagen, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"volatilecatalyst", "volatilecatalyst", POS_RECLINING, do_volatilecatalyst, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"universalmutagen", "universalmutagen", POS_RECLINING, do_universalmutagen, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"chimericbreath", "chimericbreath", POS_FIGHTING, do_chimericbreath, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"sweepingcinder", "sweepingc", POS_STANDING, do_sweepingcinder, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_sweepingcinder},

@@ -679,7 +679,11 @@ ACMD(do_bombs)
     if (!target)
       target = FIGHTING(ch);
 
-    if (bomb_is_friendly(type) || attack_roll(ch, target, ATTACK_TYPE_RANGED, TRUE, 1) >= 0)
+    int bombardier_attack_bonus = get_bombardier_savant_attack_bonus(ch);
+    int bomb_hit_result = bomb_is_friendly(type) ? 1 : attack_roll(ch, target, ATTACK_TYPE_RANGED, TRUE, 1);
+    bomb_hit_result += bombardier_attack_bonus;
+
+    if (bomb_is_friendly(type) || bomb_hit_result >= 0)
     {
       // we hit!
 
@@ -1027,8 +1031,50 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
   {
     add_sticky_bomb_effect(ch, victim, bomb_type);
   }
-}
 
+  /* Volatile Catalyst capstone: 1% per bomb prepared chance to trigger additional bomb throw */
+  if (is_volatile_catalyst_on(ch))
+  {
+    int bombs_prepared = num_of_bombs_prepared(ch);
+    int volatile_chance = bombs_prepared; /* 1% per bomb prepared */
+    
+    if (bombs_prepared > 0 && rand_number(1, 100) <= volatile_chance)
+    {
+      /* Find a random prepared bomb */
+      int random_slot = rand_number(0, num_of_bombs_preparable(ch) - 1);
+      int attempts = 0;
+      
+      /* Find the next prepared bomb starting from random slot */
+      while (GET_BOMB(ch, random_slot) == BOMB_NONE && attempts < num_of_bombs_preparable(ch))
+      {
+        random_slot = (random_slot + 1) % num_of_bombs_preparable(ch);
+        attempts++;
+      }
+      
+      /* If we found a bomb, throw it without using an action (chain reaction) */
+      if (GET_BOMB(ch, random_slot) != BOMB_NONE)
+      {
+        int chain_bomb_type = GET_BOMB(ch, random_slot);
+        
+        act("\tC$n's volatile catalyst ignites, triggering an automatic chain bomb throw!\tn", TRUE, ch, 0, 0, TO_ROOM);
+        send_to_char(ch, "\tCYour volatile catalyst ignites, triggering an automatic chain bomb throw!\tn\r\n");
+        
+        /* Remove the bomb before throwing (prevents infinite loops) */
+        GET_BOMB(ch, random_slot) = BOMB_NONE;
+        
+        /* Throw the chain bomb without normal prerequisites or action requirements */
+        if (!bomb_is_friendly(chain_bomb_type) && !FIGHTING(ch))
+        {
+          /* If not in combat, start combat */
+          hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        }
+        
+        /* Execute the bomb effect (non-recursively - volatile catalyst only triggers once per throw) */
+        perform_bomb_effect(ch, victim, chain_bomb_type);
+      }
+    }
+  }
+}
 void send_bomb_direct_message(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
   /* dummy check */
@@ -1165,6 +1211,9 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 
   /* Bomb Mastery perk: add 2d6 to all bombs */
   dam += get_alchemist_bomb_mastery_damage_bonus(ch);
+
+  /* Bombardier Savant capstone: add 6d6 to all bombs */
+  dam += get_bombardier_savant_damage_bonus(ch);
 
   /* Inferno Bomb perk: 10% chance for +2d6 fire damage */
   if (has_alchemist_inferno_bomb(ch) && rand_number(1, 100) <= 10)
@@ -2754,6 +2803,31 @@ ACMD(do_universalmutagen)
 
   set_perk_toggle(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN, TRUE);
   send_to_char(ch, "\tGUniversal Mutagen armed\tn: your next mutagen applies the highest bonus to all abilities with a short duration.\r\n");
+  save_char(ch, 0);
+}
+
+/* Alchemist perk toggle: Volatile Catalyst (chain bomb throws) */
+ACMD(do_volatilecatalyst)
+{
+  if (!ch)
+    return;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!has_alchemist_volatile_catalyst(ch)) {
+    send_to_char(ch, "You have not purchased the Volatile Catalyst perk.\r\n");
+    return;
+  }
+
+  bool current = is_volatile_catalyst_on(ch);
+  set_perk_toggle(ch, PERK_ALCHEMIST_VOLATILE_CATALYST, !current);
+  send_to_char(ch, "Volatile Catalyst toggled %s%s%s. Bombs will trigger chain reactions when enabled.\r\n",
+               !current ? "\tG" : "\tr",
+               !current ? "ON" : "OFF",
+               "\tn");
   save_char(ch, 0);
 }
 

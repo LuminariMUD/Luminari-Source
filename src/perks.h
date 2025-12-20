@@ -123,6 +123,13 @@ int get_alchemist_calculated_throw_dc_bonus(struct char_data *ch);
 bool has_alchemist_bomb_mastery(struct char_data *ch);
 int get_alchemist_bomb_mastery_damage_bonus(struct char_data *ch);
 
+/* Bomb Craftsman Tier IV helpers */
+bool has_alchemist_bombardier_savant(struct char_data *ch);
+int get_bombardier_savant_attack_bonus(struct char_data *ch);
+int get_bombardier_savant_damage_bonus(struct char_data *ch);
+bool has_alchemist_volatile_catalyst(struct char_data *ch);
+bool is_volatile_catalyst_on(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

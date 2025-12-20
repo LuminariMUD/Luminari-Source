@@ -5481,6 +5481,41 @@ void define_alchemist_perks(void)
   perk->effect_value = 2; /* 2d6 bonus damage */
   perk->effect_modifier = 6; /* die size */
   perk->special_description = strdup("All bombs deal an additional 2d6 damage.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER IV (CAPSTONES) ***/
+
+  /* Bombardier Savant (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_BOMBARDIER_SAVANT];
+  perk->id = PERK_ALCHEMIST_BOMBARDIER_SAVANT;
+  perk->name = strdup("Bombardier Savant");
+  perk->description = strdup("Expert bomb thrower. Bombs gain +3 to hit and +6d6 damage. Throw 2 bombs when starting combat.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_BOMB_MASTERY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 to hit */
+  perk->effect_modifier = 6; /* +6d6 damage */
+  perk->special_description = strdup("Capstone: +3 ranged touch attack, +6d6 damage, dual bomb throw at combat start.");
+
+  /* Volatile Catalyst (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_VOLATILE_CATALYST];
+  perk->id = PERK_ALCHEMIST_VOLATILE_CATALYST;
+  perk->name = strdup("Volatile Catalyst");
+  perk->description = strdup("Bombs trigger chain reactions. 1% per bomb prepared to throw an additional bomb. Toggleable.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFERNO_BOMB;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1% per bomb */
+  perk->effect_modifier = 0;
+  perk->toggleable = TRUE;
+  perk->special_description = strdup("Capstone: Bombs have 1% chance per bomb prepared to trigger an auto-throw. Requires toggle.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5761,6 +5796,42 @@ int get_alchemist_bomb_mastery_damage_bonus(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
   return has_perk(ch, PERK_ALCHEMIST_BOMB_MASTERY) ? dice(2, 6) : 0;
+}
+
+/* Bomb Craftsman Tier IV helpers */
+bool has_alchemist_bombardier_savant(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_BOMBARDIER_SAVANT);
+}
+
+int get_bombardier_savant_attack_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_BOMBARDIER_SAVANT) ? 3 : 0;
+}
+
+int get_bombardier_savant_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_BOMBARDIER_SAVANT) ? dice(6, 6) : 0;
+}
+
+bool has_alchemist_volatile_catalyst(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_VOLATILE_CATALYST);
+}
+
+bool is_volatile_catalyst_on(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_VOLATILE_CATALYST) && is_perk_toggled_on(ch, PERK_ALCHEMIST_VOLATILE_CATALYST);
 }
 
 /* Define Barbarian Perks */
@@ -8067,6 +8138,30 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
     {
       if (error_msg)
         snprintf(error_msg, error_len, "You must have either Concussive Bomb or Poison Bomb to purchase Bomb Mastery.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Bombardier Savant - requires Bomb Mastery AND Calculated Throw */
+  if (perk_id == PERK_ALCHEMIST_BOMBARDIER_SAVANT)
+  {
+    int calculated_throw_rank = get_perk_rank(ch, PERK_ALCHEMIST_CALCULATED_THROW, class_id);
+    if (calculated_throw_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Calculated Throw to purchase Bombardier Savant.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Volatile Catalyst - requires Inferno Bomb AND Cluster Bomb */
+  if (perk_id == PERK_ALCHEMIST_VOLATILE_CATALYST)
+  {
+    int cluster_bomb_rank = get_perk_rank(ch, PERK_ALCHEMIST_CLUSTER_BOMB, class_id);
+    if (cluster_bomb_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Cluster Bomb to purchase Volatile Catalyst.");
       return FALSE;
     }
   }

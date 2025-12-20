@@ -3978,6 +3978,9 @@
 #define PERK_ALCHEMIST_CLUSTER_BOMB 1223
 #define PERK_ALCHEMIST_CALCULATED_THROW 1224
 #define PERK_ALCHEMIST_BOMB_MASTERY 1225
+/* Bomb Craftsman Tree - Tier IV (Capstones) */
+#define PERK_ALCHEMIST_BOMBARDIER_SAVANT 1226
+#define PERK_ALCHEMIST_VOLATILE_CATALYST 1227
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)
