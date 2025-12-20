@@ -5516,6 +5516,72 @@ void define_alchemist_perks(void)
   perk->effect_modifier = 0;
   perk->toggleable = TRUE;
   perk->special_description = strdup("Capstone: Bombs have 1% chance per bomb prepared to trigger an auto-throw. Requires toggle.");
+
+  /*** EXTRACT MASTER TREE - TIER I ***/
+
+  /* Alchemical Extract I */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I;
+  perk->name = strdup("Alchemical Extract I");
+  perk->description = strdup("Your extracts now have a 3% chance per rank to not expend a use.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Extract bottling: 3% per rank chance extracts don't consume.");
+
+  /* Infusion I */
+  perk = &perk_list[PERK_ALCHEMIST_INFUSION_I];
+  perk->id = PERK_ALCHEMIST_INFUSION_I;
+  perk->name = strdup("Infusion I");
+  perk->description = strdup("Your extract saving throw DCs are +1 higher per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Focused specialization: +1 per rank to extract save DCs.");
+
+  /* Swift Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_SWIFT_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_SWIFT_EXTRACTION;
+  perk->name = strdup("Swift Extraction");
+  perk->description = strdup("Extracts take 20% less time to prepare.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% speed boost */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Crafting speed: Extracts prepared 20% faster.");
+
+  /* Resonant Extract */
+  perk = &perk_list[PERK_ALCHEMIST_RESONANT_EXTRACT];
+  perk->id = PERK_ALCHEMIST_RESONANT_EXTRACT;
+  perk->name = strdup("Resonant Extract");
+  perk->description = strdup("Extracts you create gain the resonant property. They have a 5% chance to affect all members in your party.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Party synergy: Extracts have 5% chance to affect all party members.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5832,6 +5898,55 @@ bool is_volatile_catalyst_on(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_VOLATILE_CATALYST) && is_perk_toggled_on(ch, PERK_ALCHEMIST_VOLATILE_CATALYST);
+}
+
+/* Extract Master Tier I helpers */
+int get_alchemist_extract_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_extract_not_consumed_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int rank = get_alchemist_extract_i_rank(ch);
+  if (rank <= 0)
+    return 0;
+  return rank * 3; /* 3% per rank */
+}
+
+int get_alchemist_infusion_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_INFUSION_I, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_infusion_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int rank = get_alchemist_infusion_i_rank(ch);
+  if (rank <= 0)
+    return 0;
+  return rank; /* +1 per rank */
+}
+
+bool has_alchemist_swift_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_SWIFT_EXTRACTION);
+}
+
+bool has_alchemist_resonant_extract(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_RESONANT_EXTRACT);
 }
 
 /* Define Barbarian Perks */

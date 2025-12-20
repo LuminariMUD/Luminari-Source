@@ -3100,6 +3100,17 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   {
     if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
     {
+      /* Alchemist Extract I: chance to not consume the prepared extract */
+      if (ch_class == CLASS_ALCHEMIST)
+      {
+        int extract_preserve = get_alchemist_extract_not_consumed_chance(ch);
+        if (extract_preserve > 0 && rand_number(1, 100) <= extract_preserve)
+        {
+          send_to_char(ch, "\tG[Your practiced extraction preserves this vial intact!]\tn\r\n");
+          return ch_class; /* Keep the extract in the collection */
+        }
+      }
+
       /* Check if this is an arcane class and if spell slot is preserved */
       bool is_arcane_class = (ch_class == CLASS_WIZARD || 
                               ch_class == CLASS_SORCERER || 
@@ -3990,6 +4001,13 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   /* Ensure minimum 1 second prep time */
   if (prep_time <= 0)
     prep_time = 1;
+
+  /* Swift Extraction: 20% prep speed for alchemists */
+  if (class == CLASS_ALCHEMIST && !IS_NPC(ch) && has_alchemist_swift_extraction(ch))
+  {
+    int swift_bonus = prep_time / 5; /* 20% reduction */
+    prep_time -= swift_bonus;
+  }
 
   /* Final cap: preparation time cannot be less than the spell's circle
    * This ensures higher level spells always take meaningful time

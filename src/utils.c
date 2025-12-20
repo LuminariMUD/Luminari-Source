@@ -10774,6 +10774,14 @@ int get_spell_dc_bonus(struct char_data *ch)
       dc_bonus += spell_focus_bonus;
   }
   
+  /* Alchemist Infusion I perk bonus */
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) > 0)
+  {
+    int infusion_bonus = get_alchemist_infusion_dc_bonus(ch);
+    if (infusion_bonus > 0)
+      dc_bonus += infusion_bonus;
+  }
+  
   /* Holy Avenger: +2 DC to next spell after destroying undead */
   if (affected_by_spell(ch, SKILL_HOLY_AVENGER))
     dc_bonus += 2;

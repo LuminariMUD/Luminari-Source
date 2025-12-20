@@ -130,6 +130,14 @@ int get_bombardier_savant_damage_bonus(struct char_data *ch);
 bool has_alchemist_volatile_catalyst(struct char_data *ch);
 bool is_volatile_catalyst_on(struct char_data *ch);
 
+/* Extract Master Tier I helpers */
+int get_alchemist_extract_i_rank(struct char_data *ch);
+int get_alchemist_extract_not_consumed_chance(struct char_data *ch);
+int get_alchemist_infusion_i_rank(struct char_data *ch);
+int get_alchemist_infusion_dc_bonus(struct char_data *ch);
+bool has_alchemist_swift_extraction(struct char_data *ch);
+bool has_alchemist_resonant_extract(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

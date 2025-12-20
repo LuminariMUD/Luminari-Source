@@ -1761,8 +1761,33 @@ void finishCasting(struct char_data *ch)
   }
   else
   {
-    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+    const int spellnum = CASTING_SPELLNUM(ch);
+    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, CASTING_METAMAGIC(ch),
                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+
+    /* Resonant Extract: small chance to echo the extract onto grouped allies in the room */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_resonant_extract(ch))
+    {
+      struct char_data *ally = NULL, *ally_next = NULL;
+
+      if (CASTING_TCH(ch) && GROUP(ch) && !SINFO.violent && rand_number(1, 100) <= 5)
+      {
+        send_to_char(ch, "\tC[Your extract resonates through your party!]\tn\r\n");
+        for (ally = world[IN_ROOM(ch)].people; ally; ally = ally_next)
+        {
+          ally_next = ally->next_in_room;
+
+          /* Share only with grouped allies in the same room, skip the original target */
+          if (ally == CASTING_TCH(ch))
+            continue;
+          if (GROUP(ally) != GROUP(ch))
+            continue;
+
+          call_magic(ch, ally, CASTING_TOBJ(ch), spellnum, CASTING_METAMAGIC(ch),
+                     (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+        }
+      }
+    }
   }
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
