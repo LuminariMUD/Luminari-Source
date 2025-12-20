@@ -15057,6 +15057,18 @@ EVENTFUNC(event_combat_round)
   /* execute phase */
   perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables) ? atoi(pMudEvent->sVariables) : 0));
 
+  /* Alchemist: Unstable Mutagen backlash (10% chance per round while mutagen active) */
+  if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN))
+  {
+    if (rand_number(1, 100) <= 10)
+    {
+      int backlash = MAX(1, GET_LEVEL(ch));
+      send_to_char(ch, "Your unstable mutagen backlashes, harming you!\r\n");
+      act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
+      damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
+    }
+  }
+
   /* set the next phase */
   if (pMudEvent->sVariables != NULL)
     sprintf(pMudEvent->sVariables, "%d", (atoi(pMudEvent->sVariables) < 3 ? atoi(pMudEvent->sVariables) + 1 : 1));

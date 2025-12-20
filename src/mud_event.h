@@ -213,6 +213,7 @@ typedef enum
   eDEVICE_REPAIR,                   // artificer device repair
   eCURTAIN_CALL_COOLDOWN,           /* Curtain Call 5-minute cooldown */
   ePERFECT_TEMPO_HIT_THIS_ROUND,    /* Bard Perfect Tempo - tracked hit this round */
+  eUNIVERSAL_MUTAGEN_COOLDOWN,      /* Alchemist Universal Mutagen 30-minute lockout */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

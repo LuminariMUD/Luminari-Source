@@ -31,6 +31,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "perks.h"
+#include "mud_event.h"
 
 /* Forward declarations */
 static void define_wizard_controller_perks(void);
@@ -5180,6 +5181,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Grants 5/- damage reduction while mutagen lasts.");
+
+  /*** MUTAGENIST TREE - TIER III ***/
+
+  /* Improved Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_IMPROVED_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_IMPROVED_MUTAGEN;
+  perk->name = strdup("Improved Mutagen");
+  perk->description = strdup("Mutagens grant an additional +4 to the chosen ability.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MUTAGEN_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +4 to the primary ability of your mutagen.");
+
+  /* Unstable Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_UNSTABLE_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_UNSTABLE_MUTAGEN;
+  perk->name = strdup("Unstable Mutagen");
+  perk->description = strdup("Toggle: mutagen effects are +50% stronger but may backlash.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_CELLULAR_ADAPTATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Use a toggle to enable/disable; boosts mutagen effects by 50%.");
+
+  /* Universal Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_UNIVERSAL_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_UNIVERSAL_MUTAGEN;
+  perk->name = strdup("Universal Mutagen");
+  perk->description = strdup("Activate: next mutagen applies highest bonus to all abilities (short duration).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_IMPROVED_MUTAGEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Next mutagen: highest ability bonus applies to all; lasts up to ~5 minutes.");
+
+  /* Mutagenic Mastery */
+  perk = &perk_list[PERK_ALCHEMIST_MUTAGENIC_MASTERY];
+  perk->id = PERK_ALCHEMIST_MUTAGENIC_MASTERY;
+  perk->name = strdup("Mutagenic Mastery");
+  perk->description = strdup("While mutagen is active, gain +2 to all ability scores.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFUSED_WITH_VIGOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +2 to STR/DEX/CON/INT/WIS/CHA while mutagen lasts.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5214,6 +5281,41 @@ bool has_alchemist_natural_armor(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_NATURAL_ARMOR) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+bool has_alchemist_improved_mutagen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_IMPROVED_MUTAGEN);
+}
+
+bool is_alchemist_unstable_mutagen_on(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN) && is_perk_toggled_on(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN);
+}
+
+bool is_alchemist_universal_mutagen_ready(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  if (!has_perk(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN))
+    return FALSE;
+  /* must be toggled and not under cooldown */
+  if (!is_perk_toggled_on(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN))
+    return FALSE;
+  if (char_has_mud_event(ch, eUNIVERSAL_MUTAGEN_COOLDOWN))
+    return FALSE;
+  return TRUE;
+}
+
+int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_MUTAGENIC_MASTERY) ? 2 : 0;
 }
 
 int get_alchemist_mutagen_ii_rank(struct char_data *ch)
