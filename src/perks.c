@@ -5648,6 +5648,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 20; /* 20% chance */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Duration extension: 20% chance to apply Extend to extracts on use.");
+
+  /*** EXTRACT MASTER TREE - TIER III ***/
+
+  /* Healing Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_HEALING_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_HEALING_EXTRACTION;
+  perk->name = strdup("Healing Extraction");
+  perk->description = strdup("All extracts heal you for (level/2) HP when used (minimum 1).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Advanced spell bottling: Extract use heals level/2 HP.");
+
+  /* Alchemical Compatibility */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY;
+  perk->name = strdup("Alchemical Compatibility");
+  perk->description = strdup("Extracts automatically apply to other alchemists in your party when used.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_CONCENTRATED_ESSENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Combination effects: Extracts auto-apply to alchemist allies in party.");
+
+  /* Discovery Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_DISCOVERY_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+  perk->name = strdup("Discovery Extraction");
+  perk->description = strdup("10% chance for extracts to grant +1 INT (stacks to +10, 2 min duration, resets on proc).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFUSION_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 1; /* +1 INT per stack */
+  perk->special_description = strdup("Unique effect: 10% proc for stacking INT buff (+1 per proc, max +10, 2 min).");
+
+  /* Master Alchemist */
+  perk = &perk_list[PERK_ALCHEMIST_MASTER_ALCHEMIST];
+  perk->id = PERK_ALCHEMIST_MASTER_ALCHEMIST;
+  perk->name = strdup("Master Alchemist");
+  perk->description = strdup("Extracts and bombs have a 10% chance to be maximized.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Crafting excellence: 10% chance for Maximize on extracts and bombs.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -6043,6 +6109,42 @@ bool has_alchemist_persistent_extraction(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_PERSISTENT_EXTRACTION);
+}
+
+/* Extract Master Tier III helpers */
+bool has_alchemist_healing_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_HEALING_EXTRACTION);
+}
+
+int get_alchemist_healing_extraction_amount(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !has_alchemist_healing_extraction(ch))
+    return 0;
+  return MAX(1, GET_LEVEL(ch) / 2);
+}
+
+bool has_alchemist_alchemical_compatibility(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY);
+}
+
+bool has_alchemist_discovery_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_DISCOVERY_EXTRACTION);
+}
+
+bool has_alchemist_master_alchemist(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_MASTER_ALCHEMIST);
 }
 
 /* Define Barbarian Perks */

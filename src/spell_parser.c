@@ -1765,6 +1765,14 @@ void finishCasting(struct char_data *ch)
   {
     const int spellnum = CASTING_SPELLNUM(ch);
 
+    /* Master Alchemist: 10% chance to maximize extracts */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_master_alchemist(ch) &&
+        !IS_SET(final_metamagic, METAMAGIC_MAXIMIZE) && rand_number(1, 100) <= 10)
+    {
+      SET_BIT(final_metamagic, METAMAGIC_MAXIMIZE);
+      send_to_char(ch, "\tM[Your mastery produces a perfectly maximized extract!]\tn\r\n");
+    }
+
     /* Concentrated Essence: 20% chance to empower extracts */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_concentrated_essence(ch) &&
         !IS_SET(final_metamagic, METAMAGIC_EMPOWER) && can_spell_be_empowered(spellnum) && rand_number(1, 100) <= 20)
@@ -1783,6 +1791,82 @@ void finishCasting(struct char_data *ch)
 
     call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, final_metamagic,
                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+
+    /* Healing Extraction: heal user when extract is used */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_healing_extraction(ch))
+    {
+      int heal_amount = get_alchemist_healing_extraction_amount(ch);
+      if (heal_amount > 0)
+      {
+        GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal_amount);
+        send_to_char(ch, "\tG[Your extract's energy heals you for %d HP!]\tn\r\n", heal_amount);
+      }
+    }
+
+    /* Discovery Extraction: 10% chance for stacking INT buff */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_discovery_extraction(ch) &&
+        rand_number(1, 100) <= 10)
+    {
+      struct affected_type af;
+      struct affected_type *current_discovery = NULL;
+      struct affected_type *hjp = NULL;
+      int current_bonus = 0;
+      
+      /* Search for existing Discovery Extraction affect */
+      for (hjp = ch->affected; hjp; hjp = hjp->next)
+      {
+        if (hjp->spell == PERK_ALCHEMIST_DISCOVERY_EXTRACTION)
+        {
+          current_discovery = hjp;
+          current_bonus = hjp->modifier;
+          break;
+        }
+      }
+      
+      if (current_bonus < 10)
+      {
+        /* Remove old affect if exists */
+        if (current_discovery)
+          affect_from_char(ch, PERK_ALCHEMIST_DISCOVERY_EXTRACTION);
+        
+        /* Apply new stacking buff */
+        new_affect(&af);
+        af.spell = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+        af.duration = 120; /* 2 minutes */
+        af.location = APPLY_INT;
+        af.modifier = current_bonus + 1;
+        af.bonus_type = BONUS_TYPE_INSIGHT;
+        affect_to_char(ch, &af);
+        
+        send_to_char(ch, "\tC[Your extract sparks a discovery! INT +%d]\tn\r\n", af.modifier);
+      }
+    }
+
+    /* Alchemical Compatibility: auto-apply to alchemist party members */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_alchemical_compatibility(ch) &&
+        CASTING_TCH(ch) && GROUP(ch) && !SINFO.violent)
+    {
+      struct char_data *ally = NULL, *ally_next = NULL;
+      bool found_alchemist = FALSE;
+      
+      for (ally = world[IN_ROOM(ch)].people; ally; ally = ally_next)
+      {
+        ally_next = ally->next_in_room;
+        
+        /* Skip original target, non-party, and non-alchemists */
+        if (ally == CASTING_TCH(ch) || GROUP(ally) != GROUP(ch) || IS_NPC(ally))
+          continue;
+        if (CLASS_LEVEL(ally, CLASS_ALCHEMIST) <= 0)
+          continue;
+        
+        found_alchemist = TRUE;
+        call_magic(ch, ally, CASTING_TOBJ(ch), spellnum, final_metamagic,
+                   (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+      }
+      
+      if (found_alchemist)
+        send_to_char(ch, "\tC[Your extract's alchemical compatibility shares it with fellow alchemists!]\tn\r\n");
+    }
 
     /* Resonant Extract: small chance to echo the extract onto grouped allies in the room */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_resonant_extract(ch))

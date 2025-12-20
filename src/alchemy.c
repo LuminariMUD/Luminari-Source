@@ -1206,6 +1206,14 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 
   dam = dice(ndice, sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
 
+  /* Master Alchemist perk: 10% chance to maximize bomb damage */
+  if (has_alchemist_master_alchemist(ch) && rand_number(1, 100) <= 10)
+  {
+    /* Recalculate damage with maximized dice */
+    dam = (ndice * sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
+    act("\tM[Your mastery produces a perfectly maximized bomb!]\tn", FALSE, ch, 0, 0, TO_CHAR | TO_SLEEP);
+  }
+
   /* Elemental Bomb perk: add 1d6 to elemental bombs */
   dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
 
