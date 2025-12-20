@@ -5283,6 +5283,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 0;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Universal Mutagen and Unstable Mutagen. Grants a once-per-combat swift breath attack while mutagen is active.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER I ***/
+
+  /* Alchemical Bomb I */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_BOMB_I];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->name = strdup("Alchemical Bomb I");
+  perk->description = strdup("Your direct bomb damage increases by +3 per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +3 bomb damage per rank to the direct hit component.");
+
+  /* Precise Bombs (perk) */
+  perk = &perk_list[PERK_ALCHEMIST_PRECISE_BOMBS_PERK];
+  perk->id = PERK_ALCHEMIST_PRECISE_BOMBS_PERK;
+  perk->name = strdup("Precise Bombs");
+  perk->description = strdup("Gain +3 to hit on bomb ranged touch attacks.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +3 to ranged touch attack rolls with bombs.");
+
+  /* Splash Damage */
+  perk = &perk_list[PERK_ALCHEMIST_SPLASH_DAMAGE];
+  perk->id = PERK_ALCHEMIST_SPLASH_DAMAGE;
+  perk->name = strdup("Splash Damage");
+  perk->description = strdup("Splash damage from bombs increases by +3 and bomb save DCs increase by +2 per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Adds +3 splash damage and +2 save DC per rank to bomb effects.");
+
+  /* Quick Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_QUICK_BOMB];
+  perk->id = PERK_ALCHEMIST_QUICK_BOMB;
+  perk->name = strdup("Quick Bomb");
+  perk->description = strdup("10% chance to throw a bomb as a swift action instead of the usual action.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% proc: bomb throw uses a swift action if available.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5428,6 +5494,45 @@ void update_chimeric_transmutation_combat_end(struct char_data *ch)
   if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
     return;
   ch->player_specials->saved.chimeric_breath_last_combat = time(0);
+}
+
+/* Bomb Craftsman Tier I helpers */
+int get_alchemist_bomb_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_I, CLASS_ALCHEMIST);
+  return ranks * 3;
+}
+
+int get_alchemist_bomb_precision_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_PRECISE_BOMBS_PERK) ? 3 : 0;
+}
+
+int get_alchemist_bomb_splash_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_SPLASH_DAMAGE, CLASS_ALCHEMIST);
+  return ranks * 3;
+}
+
+int get_alchemist_bomb_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_SPLASH_DAMAGE, CLASS_ALCHEMIST);
+  return ranks * 2;
+}
+
+int get_alchemist_quick_bomb_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_QUICK_BOMB) ? 10 : 0;
 }
 
 /* Define Barbarian Perks */

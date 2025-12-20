@@ -543,6 +543,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       challenge += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
       stat_bonus = GET_INT_BONUS(ch);
       challenge += stat_bonus;
+      challenge += get_alchemist_bomb_dc_bonus(ch);
     }
     break;
   case CAST_CRUELTY:

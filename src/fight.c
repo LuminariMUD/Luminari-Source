@@ -9489,6 +9489,15 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       if (display)
         send_to_char(ch, " 2: %-50s\r\n", "Precise Bombs");
     }
+    {
+      int perk_precise = get_alchemist_bomb_precision_bonus(ch);
+      if (perk_precise != 0)
+      {
+        calc_bab += perk_precise;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", perk_precise, "Bomb Craftsman Precision");
+      }
+    }
     break;
   case ATTACK_TYPE_UNARMED:
     if (HAS_FEAT(ch, FEAT_UNARMED_STRIKE) &&

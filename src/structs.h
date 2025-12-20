@@ -3963,6 +3963,11 @@
 /* Mutagenist Tree - Tier IV (Capstones) */
 #define PERK_ALCHEMIST_PERFECT_MUTAGEN 1212
 #define PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION 1213
+/* Bomb Craftsman Tree - Tier I */
+#define PERK_ALCHEMIST_ALCHEMICAL_BOMB_I 1214
+#define PERK_ALCHEMIST_PRECISE_BOMBS_PERK 1215
+#define PERK_ALCHEMIST_SPLASH_DAMAGE 1216
+#define PERK_ALCHEMIST_QUICK_BOMB 1217
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)

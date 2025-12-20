@@ -659,7 +659,21 @@ ACMD(do_bombs)
       }
     }
 
-    if (!is_action_available(ch, KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD, TRUE))
+    int action_type = KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
+    bool quick_proc = FALSE;
+
+    int quick_chance = get_alchemist_quick_bomb_chance(ch);
+    if (quick_chance > 0 && rand_number(1, 100) <= quick_chance)
+    {
+      if (is_action_available(ch, ACTION_SWIFT, FALSE))
+      {
+        action_type = ACTION_SWIFT;
+        quick_proc = TRUE;
+        send_to_char(ch, "You react instantly and ready a bomb as a swift action!\r\n");
+      }
+    }
+
+    if (!is_action_available(ch, action_type, TRUE))
       return;
 
     if (!target)
@@ -686,7 +700,9 @@ ACMD(do_bombs)
     // let's remove the bomb they just tossed
     GET_BOMB(ch, bSlot) = BOMB_NONE;
     save_char(ch, 0);
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS))
+    if (quick_proc)
+      USE_SWIFT_ACTION(ch);
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS))
       USE_MOVE_ACTION(ch);
     else
       USE_STANDARD_ACTION(ch);
@@ -1116,7 +1132,7 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   if (!active)
     return;
 
-  dam = dice(ndice, sdice) + damMod;
+  dam = dice(ndice, sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
 
   if (bomb_type == BOMB_HOLY)
   {
@@ -1235,7 +1251,7 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
   if (!active)
     return;
 
-  dam = ndice + damMod;
+  dam = ndice + damMod + get_alchemist_bomb_splash_damage_bonus(ch);
 
   if (bomb_type == BOMB_HOLY)
   {
