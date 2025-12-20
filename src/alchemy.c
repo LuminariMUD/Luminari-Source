@@ -1134,6 +1134,9 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 
   dam = dice(ndice, sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
 
+  /* Elemental Bomb perk: add 1d6 to elemental bombs */
+  dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
+
   if (bomb_type == BOMB_HOLY)
   {
     if (IS_GOOD(victim))
@@ -1164,6 +1167,71 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   }
 
   dam = damage(ch, victim, dam, SKILL_BOMB_TOSS, damType, SKILL_BOMB_TOSS);
+
+  /* Concussive Bomb perk: 10% chance to knock prone on hit */
+  if (dam > 0 && has_alchemist_concussive_bomb(ch) && rand_number(1, 100) <= 10)
+  {
+    /* Check for knockdown immunity */
+    if (MOB_FLAGGED(victim, MOB_NOBASH))
+    {
+      act("$N resists being knocked down!", FALSE, ch, 0, victim, TO_CHAR);
+    }
+    else if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("$N's freedom of movement prevents the knockdown from the concussive blast of your bomb!", FALSE, ch, 0, victim, TO_CHAR);
+      act("Your freedom of movement prevents the knockdown from the concussive blast of $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+    }
+    else if (has_perk(victim, PERK_FIGHTER_IMMOVABLE_OBJECT))
+    {
+      act("$N stands firm against the blast!", FALSE, ch, 0, victim, TO_CHAR);
+    }
+    else if (GET_POS(victim) == POS_SITTING)
+    {
+      /* Already down, no effect */
+    }
+    else if (IS_INCORPOREAL(victim))
+    {
+      /* Can't knock down incorporeal */
+    }
+    else if (HAS_SUBRACE(victim, SUBRACE_SWARM))
+    {
+      /* Can't knock down swarms */
+    }
+    else
+    {
+      act("You are rocked by the blast and knocked off your feet!", FALSE, ch, 0, victim, TO_VICT);
+      act("$N is rocked by the blast and knocked prone!", FALSE, ch, 0, victim, TO_ROOM);
+      GET_POS(victim) = POS_SITTING;
+      WAIT_STATE(victim, PULSE_VIOLENCE * 2);
+    }
+  }
+
+  /* Poison Bomb perk: 10% chance to poison on hit */
+  if (dam > 0 && has_alchemist_poison_bomb(ch) && rand_number(1, 100) <= 10)
+  {
+    if (can_poison(victim))
+    {
+      if (check_poison_resist(ch, victim, CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST)))
+      {
+        act("Your bomb's toxins fail to take hold of $N.", FALSE, ch, 0, victim, TO_CHAR);
+        act("You resist the poison from $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+      }
+      else
+      {
+        struct affected_type af;
+        new_affect(&af);
+        af.spell = SPELL_POISON;
+        SET_BIT_AR(af.bitvector, AFF_POISON);
+        af.location = APPLY_CON;
+        af.modifier = -2;
+        af.duration = 10;
+        af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+        affect_join(victim, &af, TRUE, FALSE, TRUE, FALSE);
+        act("Your bomb leaves $N reeling from poison!", FALSE, ch, 0, victim, TO_CHAR);
+        act("You are overcome by the poison from $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+      }
+    }
+  }
 
   if (dam > 0 && FALSE)
   {
@@ -1252,6 +1320,9 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
     return;
 
   dam = ndice + damMod + get_alchemist_bomb_splash_damage_bonus(ch);
+
+  /* Elemental Bomb perk: add 1d6 to elemental splash damage */
+  dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
 
   if (bomb_type == BOMB_HOLY)
   {

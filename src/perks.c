@@ -5349,6 +5349,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 10;
   perk->effect_modifier = 0;
   perk->special_description = strdup("10% proc: bomb throw uses a swift action if available.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER II ***/
+
+  /* Alchemical Bomb II */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_BOMB_II];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_BOMB_II;
+  perk->name = strdup("Alchemical Bomb II");
+  perk->description = strdup("Your bombs deal an additional +3 damage per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +3 damage per rank on top of Alchemical Bomb I.");
+
+  /* Elemental Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_ELEMENTAL_BOMB];
+  perk->id = PERK_ALCHEMIST_ELEMENTAL_BOMB;
+  perk->name = strdup("Elemental Bomb");
+  perk->description = strdup("Elemental bombs bypass 10 resistance and deal an extra 1d6 damage.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* resistance bypass */
+  perk->effect_modifier = 6; /* extra damage die size marker */
+  perk->special_description = strdup("Fire/cold/acid/electric bombs ignore 10 resistance and add 1d6 damage.");
+
+  /* Concussive Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_CONCUSSIVE_BOMB];
+  perk->id = PERK_ALCHEMIST_CONCUSSIVE_BOMB;
+  perk->name = strdup("Concussive Bomb");
+  perk->description = strdup("10% chance on hit to knock targets prone; cannot be reversed on you.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_SPLASH_DAMAGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("On hit: 10% chance to knock targets prone without backlash.");
+
+  /* Poison Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_POISON_BOMB];
+  perk->id = PERK_ALCHEMIST_POISON_BOMB;
+  perk->name = strdup("Poison Bomb");
+  perk->description = strdup("10% chance on hit to poison targets.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("On hit: 10% chance to inflict poison.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5501,8 +5567,9 @@ int get_alchemist_bomb_damage_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 0;
-  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_I, CLASS_ALCHEMIST);
-  return ranks * 3;
+  int ranks_i = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_I, CLASS_ALCHEMIST);
+  int ranks_ii = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_II, CLASS_ALCHEMIST);
+  return (ranks_i * 3) + (ranks_ii * 3);
 }
 
 int get_alchemist_bomb_precision_bonus(struct char_data *ch)
@@ -5533,6 +5600,64 @@ int get_alchemist_quick_bomb_chance(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
   return has_perk(ch, PERK_ALCHEMIST_QUICK_BOMB) ? 10 : 0;
+}
+
+/* Bomb Craftsman Tier II helpers */
+int get_alchemist_bomb_damage_bonus_tier2(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks_ii = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_II, CLASS_ALCHEMIST);
+  return ranks_ii * 3;
+}
+
+bool has_alchemist_elemental_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ELEMENTAL_BOMB);
+}
+
+static bool is_elemental_damage_type(int dam_type)
+{
+  switch (dam_type)
+  {
+  case DAM_FIRE:
+  case DAM_COLD:
+  case DAM_ACID:
+  case DAM_ELECTRIC:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+int get_alchemist_elemental_bomb_bypass(struct char_data *ch, int dam_type)
+{
+  if (!has_alchemist_elemental_bomb(ch))
+    return 0;
+  return is_elemental_damage_type(dam_type) ? 10 : 0;
+}
+
+int get_alchemist_elemental_bomb_extra_damage(struct char_data *ch, int dam_type)
+{
+  if (!has_alchemist_elemental_bomb(ch))
+    return 0;
+  return is_elemental_damage_type(dam_type) ? dice(1, 6) : 0;
+}
+
+bool has_alchemist_concussive_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CONCUSSIVE_BOMB);
+}
+
+bool has_alchemist_poison_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_POISON_BOMB);
 }
 
 /* Define Barbarian Perks */

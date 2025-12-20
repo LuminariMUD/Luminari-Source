@@ -3697,16 +3697,23 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
-int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker)
+int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker, int w_type)
 {
   int damtype_reduction = 0;
 
   /* Force of Nature: druid spells bypass damage resistance for elemental damage */
-  if (attacker && !IS_NPC(attacker) && GET_CASTING_CLASS(attacker) == CLASS_DRUID && 
+  if (attacker && !IS_NPC(attacker) && GET_CASTING_CLASS(attacker) == CLASS_DRUID &&
       has_druid_force_of_nature(attacker) &&
       (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_ELECTRIC || dam_type == DAM_ACID))
   {
     return 0; /* bypass all damage resistance */
+  }
+
+  /* Bomb Craftsman: Elemental Bomb bypass */
+  if (attacker && w_type == SKILL_BOMB_TOSS && has_alchemist_elemental_bomb(attacker) &&
+      (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_ACID || dam_type == DAM_ELECTRIC))
+  {
+    damtype_reduction = MAX(0, damtype_reduction - get_alchemist_elemental_bomb_bypass(attacker, dam_type));
   }
 
   /* base resistance */
@@ -5058,7 +5065,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
     if (can_dam_be_resisted(dam_type))
     {
-      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch);
+      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch, attacktype);
       damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
       dam -= (int)damtype_reduction;
     }

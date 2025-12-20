@@ -219,7 +219,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(tch, i + 1, NULL), compute_energy_absorb(tch, i + 1));
+                   compute_damtype_reduction(tch, i + 1, NULL, TYPE_UNDEFINED), compute_energy_absorb(tch, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -2517,7 +2517,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(k, i + 1, NULL), compute_energy_absorb(k, i + 1));
+                   compute_damtype_reduction(k, i + 1, NULL, TYPE_UNDEFINED), compute_energy_absorb(k, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
