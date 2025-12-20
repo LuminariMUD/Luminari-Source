@@ -252,6 +252,13 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
   challenge += get_spell_penetration_bonus(ch);
+  /* Psionicist: Psionic Disruptor I applies +1 manifester level vs PR for Telepathy powers */
+  if (ch) {
+    int current_spellnum = CASTING_SPELLNUM(ch);
+    if (is_spellnum_psionic(current_spellnum) && psionic_powers[current_spellnum].power_type == TELEPATHY) {
+      challenge += get_psionic_telepathy_penetration_bonus(ch);
+    }
+  }
   
   /* Paladin Spell Penetration perk */
   if (!IS_NPC(ch) && has_paladin_spell_penetration(ch) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
@@ -596,6 +603,11 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     if (ch && HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
     {
       challenge += HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 2 : 1);
+    }
+    /* Psionicist: Mind Spike I applies +1 DC to Telepathy powers */
+    if (ch && psionic_powers[spellnum].power_type == TELEPATHY)
+    {
+      challenge += get_psionic_telepathy_dc_bonus(ch);
     }
   }
 

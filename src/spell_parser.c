@@ -1792,6 +1792,22 @@ void finishCasting(struct char_data *ch)
     call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, final_metamagic,
                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
 
+    /* Psionicist Telepathic Control Tier I mechanics */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_PSIONICIST && is_spellnum_psionic(spellnum))
+    {
+      /* Telepathy-only perks */
+      if (psionic_powers[spellnum].power_type == TELEPATHY)
+      {
+        /* Suggestion Primer: extend Telepathy MAG_AFFECTS duration on target by +1 round */
+        if (CASTING_TCH(ch))
+        {
+          apply_psionic_suggestion_primer(ch, CASTING_TCH(ch), spellnum, SINFO.routines);
+        }
+        /* Focus Channeling: regain 1 PSP once per round when Telepathy hits */
+        apply_psionic_focus_channeling(ch);
+      }
+    }
+
     /* Healing Extraction: heal user when extract is used */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_healing_extraction(ch))
     {

@@ -27,6 +27,7 @@
 #undef NUM_ABILITIES
 
 #include "spells.h"
+#include "psionics.h"
 
 #include "interpreter.h"
 #include "constants.h"
@@ -65,9 +66,12 @@ const char *perk_category_names[] = {
   "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
   "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
   "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
-    "Mutagenist",             /* 33 - PERK_CATEGORY_MUTAGENIST */
-    "Bomb Craftsman",         /* 34 - PERK_CATEGORY_BOMB_CRAFTSMAN */
-    "Extract Master",         /* 35 - PERK_CATEGORY_EXTRACT_MASTER */
+  "Mutagenist",             /* 33 - PERK_CATEGORY_MUTAGENIST */
+  "Bomb Craftsman",         /* 34 - PERK_CATEGORY_BOMB_CRAFTSMAN */
+  "Extract Master",         /* 35 - PERK_CATEGORY_EXTRACT_MASTER */
+  "Telepathic Control",     /* 36 - PERK_CATEGORY_TELEPATHIC_CONTROL */
+  "Psychokinetic Arsenal",  /* 37 - PERK_CATEGORY_PSYCHOKINETIC_ARSENAL */
+  "Metacreative Genius",    /* 38 - PERK_CATEGORY_METACREATIVE_GENIUS */
   "\n"                      /* Terminator */
 };
 /* Forward declarations for perk definition functions */
@@ -132,8 +136,82 @@ void init_perks(void)
   /* Define Alchemist Perks */
   define_alchemist_perks();
   void define_alchemist_perks(void);
+
+  /* Define Psionicist Perks */
+  define_psionicist_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
+}
+/* Define Psionicist Perks */
+void define_psionicist_perks(void)
+{
+  struct perk_data *perk;
+
+  /*** Telepathic Control - Tier I ***/
+
+  /* Mind Spike I */
+  perk = &perk_list[PERK_PSIONICIST_MIND_SPIKE_I];
+  perk->id = PERK_PSIONICIST_MIND_SPIKE_I;
+  perk->name = strdup("Mind Spike I");
+  perk->description = strdup("+1 DC to Telepathy powers.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers gain +1 DC.");
+
+  /* Suggestion Primer */
+  perk = &perk_list[PERK_PSIONICIST_SUGGESTION_PRIMER];
+  perk->id = PERK_PSIONICIST_SUGGESTION_PRIMER;
+  perk->name = strdup("Suggestion Primer");
+  perk->description = strdup("Telepathy debuffs gain +1 round duration on failed save (non-boss).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 round */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy MAG_AFFECTS powers extend by +1 round.");
+
+  /* Psionic Disruptor I */
+  perk = &perk_list[PERK_PSIONICIST_PSIONIC_DISRUPTOR_I];
+  perk->id = PERK_PSIONICIST_PSIONIC_DISRUPTOR_I;
+  perk->name = strdup("Psionic Disruptor I");
+  perk->description = strdup("+1 manifester level vs power resistance with Telepathy powers.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 penetration check */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers gain +1 to penetration checks.");
+
+  /* Focus Channeling */
+  perk = &perk_list[PERK_PSIONICIST_FOCUS_CHANNELING];
+  perk->id = PERK_PSIONICIST_FOCUS_CHANNELING;
+  perk->name = strdup("Focus Channeling");
+  perk->description = strdup("Regain 1 PSP when a Telepathy power affects or damages at least one target (once per round).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* PSP amount */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Regain 1 PSP once per round on Telepathy power hit.");
 }
 
 /* Count how many perks are actually defined */
@@ -6198,6 +6276,89 @@ bool has_alchemist_quintessential_extraction(struct char_data *ch)
 }
 
 /* Define Barbarian Perks */
+/* Psionicist Telepathic Control Tier I helpers */
+int get_psionic_telepathy_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_I) ? 1 : 0;
+}
+
+int get_psionic_telepathy_penetration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_PSIONICIST_PSIONIC_DISRUPTOR_I) ? 1 : 0;
+}
+
+bool has_psionic_suggestion_primer(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_SUGGESTION_PRIMER);
+}
+
+bool has_psionic_focus_channeling(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_FOCUS_CHANNELING);
+}
+
+/* Apply Suggestion Primer duration extension
+ * Extends target's affect for matching Telepathy power by +1 round (6 ticks)
+ */
+void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum, int routines_flags)
+{
+  if (!ch || !vict)
+    return;
+  if (!has_psionic_suggestion_primer(ch))
+    return;
+  if (!is_spellnum_psionic(spellnum))
+    return;
+  if (psionic_powers[spellnum].power_type != TELEPATHY)
+    return;
+  if (!IS_SET(routines_flags, MAG_AFFECTS))
+    return;
+
+  /* Optional: limit duration extension to non-boss targets.
+   * Heuristic similar to banishment safeguards: many bosses are uncharmable
+   * and have very high max HP. If victim matches that profile, skip. */
+  if (IS_NPC(vict) && (MOB_FLAGGED(vict, MOB_NOCHARM) || GET_MAX_HIT(vict) >= 1000))
+    return;
+
+  struct affected_type *hjp = NULL;
+  for (hjp = vict->affected; hjp; hjp = hjp->next)
+  {
+    if (hjp->spell == spellnum)
+    {
+      hjp->duration += 6;
+      break;
+    }
+  }
+}
+
+/* Apply Focus Channeling PSP regain with 1/round throttle */
+void apply_psionic_focus_channeling(struct char_data *ch)
+{
+  if (!ch)
+    return;
+  if (!has_psionic_focus_channeling(ch))
+    return;
+  if (affected_by_spell(ch, PERK_PSIONICIST_FOCUS_CHANNELING))
+    return;
+
+  int before = GET_PSP(ch);
+  int after = MIN(GET_MAX_PSP(ch), before + 1);
+  GET_PSP(ch) = after;
+  if (after > before)
+    send_to_char(ch, "\tGYou channel focus and regain 1 PSP.\tn\r\n");
+
+  struct affected_type af; new_affect(&af);
+  af.spell = PERK_PSIONICIST_FOCUS_CHANNELING;
+  af.duration = 6; /* ~1 round */
+  affect_to_char(ch, &af);
+}
 void define_barbarian_perks(void)
 {
   struct perk_data *perk;

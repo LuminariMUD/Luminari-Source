@@ -26,6 +26,7 @@ void define_monk_perks(void);
 void define_druid_perks(void);
 void define_paladin_perks(void);
 void define_alchemist_perks(void);
+void define_psionicist_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -154,6 +155,16 @@ bool has_alchemist_master_alchemist(struct char_data *ch);
 /* Extract Master Tier IV helpers */
 bool has_alchemist_eternal_extract(struct char_data *ch);
 bool has_alchemist_quintessential_extraction(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier I helpers */
+int get_psionic_telepathy_dc_bonus(struct char_data *ch);
+int get_psionic_telepathy_penetration_bonus(struct char_data *ch);
+bool has_psionic_suggestion_primer(struct char_data *ch);
+bool has_psionic_focus_channeling(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier I mechanics */
+void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum, int routines_flags);
+void apply_psionic_focus_channeling(struct char_data *ch);
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

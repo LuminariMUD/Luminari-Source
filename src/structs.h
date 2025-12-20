@@ -3118,6 +3118,11 @@
 #define PERK_CATEGORY_BOMB_CRAFTSMAN 34
 #define PERK_CATEGORY_EXTRACT_MASTER 35
 
+/* Psionicist Perk Categories */
+#define PERK_CATEGORY_TELEPATHIC_CONTROL 36
+#define PERK_CATEGORY_PSYCHOKINETIC_ARSENAL 37
+#define PERK_CATEGORY_METACREATIVE_GENIUS 38
+
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -4003,7 +4008,11 @@
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)
  * ============================================================================ */
-/* Not yet implemented */
+/* Telepathic Control - Tier I */
+#define PERK_PSIONICIST_MIND_SPIKE_I           1300
+#define PERK_PSIONICIST_SUGGESTION_PRIMER      1301
+#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_I    1302
+#define PERK_PSIONICIST_FOCUS_CHANNELING       1303
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
