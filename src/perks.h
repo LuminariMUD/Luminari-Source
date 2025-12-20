@@ -95,6 +95,12 @@ bool is_alchemist_unstable_mutagen_on(struct char_data *ch);
 bool is_alchemist_universal_mutagen_ready(struct char_data *ch);
 int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch);
 
+/* Mutagenist Tier IV helpers */
+bool has_alchemist_perfect_mutagen(struct char_data *ch);
+bool can_use_chimeric_transmutation(struct char_data *ch);
+void use_chimeric_transmutation(struct char_data *ch);
+void update_chimeric_transmutation_combat_end(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

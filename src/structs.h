@@ -3960,6 +3960,9 @@
 #define PERK_ALCHEMIST_UNSTABLE_MUTAGEN 1209
 #define PERK_ALCHEMIST_UNIVERSAL_MUTAGEN 1210
 #define PERK_ALCHEMIST_MUTAGENIC_MASTERY 1211
+/* Mutagenist Tree - Tier IV (Capstones) */
+#define PERK_ALCHEMIST_PERFECT_MUTAGEN 1212
+#define PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION 1213
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)
@@ -6520,6 +6523,10 @@ struct player_special_data_saved
     /* Perfect Kill tracking (Rogue Assassin perk) */
     time_t perfect_kill_last_combat;            /**< Timestamp of last combat end */
     bool perfect_kill_used;                     /**< Whether perfect kill was used this combat cycle */
+    
+    /* Alchemist Chimeric Transmutation tracking (Mutagenist Tier 4) */
+    time_t chimeric_breath_last_combat;         /**< Timestamp of last combat end for chimeric breath */
+    bool chimeric_breath_used;                  /**< Whether chimeric breath was used this combat cycle */
     
     /* Wizard Evoker perks */
     time_t maximize_spell_cooldown;             /**< Timestamp until when free maximize spell is available again */

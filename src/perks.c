@@ -5247,6 +5247,42 @@ void define_alchemist_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Adds +2 to STR/DEX/CON/INT/WIS/CHA while mutagen lasts.");
+
+  /*** MUTAGENIST TREE - TIER IV CAPSTONES ***/
+
+  /* Perfect Mutagen (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_PERFECT_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_PERFECT_MUTAGEN;
+  perk->name = strdup("Perfect Mutagen");
+  perk->description = strdup("Mutagens perfected: +4 to chosen ability and +2 to all others; immune to Unstable Mutagen backlash.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  /* System supports single prerequisite; enforce Improved Mutagen directly and document both */
+  perk->prerequisite_perk = PERK_ALCHEMIST_IMPROVED_MUTAGEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Mutagenic Mastery and Improved Mutagen. Grants immunity to Unstable Mutagen backlash; ensures +4 primary and +2 others while mutagen lasts.");
+
+  /* Chimeric Transmutation (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION];
+  perk->id = PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION;
+  perk->name = strdup("Chimeric Transmutation");
+  perk->description = strdup("While under mutagen, unleash a swift-action breath weapon once per combat: 3d6 fire, 3d6 poison, and 3d6 cold.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  /* Single prerequisite field; use Universal Mutagen and document both */
+  perk->prerequisite_perk = PERK_ALCHEMIST_UNIVERSAL_MUTAGEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Universal Mutagen and Unstable Mutagen. Grants a once-per-combat swift breath attack while mutagen is active.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5344,6 +5380,54 @@ bool has_alchemist_cellular_adaptation(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_CELLULAR_ADAPTATION) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+/* Mutagenist Tier IV helpers (file scope) */
+bool has_alchemist_perfect_mutagen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_PERFECT_MUTAGEN);
+}
+
+bool can_use_chimeric_transmutation(struct char_data *ch)
+{
+  time_t current_time;
+
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+
+  /* Must have perk and be under mutagen */
+  if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
+    return FALSE;
+  if (!affected_by_spell(ch, SKILL_MUTAGEN))
+    return FALSE;
+
+  /* Reset flag if 60s have passed since last combat end */
+  current_time = time(0);
+  if (ch->player_specials->saved.chimeric_breath_last_combat > 0 &&
+      (current_time - ch->player_specials->saved.chimeric_breath_last_combat) >= 60)
+  {
+    ch->player_specials->saved.chimeric_breath_used = FALSE;
+  }
+
+  return !ch->player_specials->saved.chimeric_breath_used;
+}
+
+void use_chimeric_transmutation(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  ch->player_specials->saved.chimeric_breath_used = TRUE;
+}
+
+void update_chimeric_transmutation_combat_end(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
+    return;
+  ch->player_specials->saved.chimeric_breath_last_combat = time(0);
 }
 
 /* Define Barbarian Perks */

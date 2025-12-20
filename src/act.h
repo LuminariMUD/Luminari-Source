@@ -1138,6 +1138,9 @@ ACMD_DECL(do_perfmon);
 ACMD_DECL(do_showwearoff);
 ACMD_DECL(do_poisonbreath);
 ACMDCHECK(can_poisonbreath);
+
+/* Alchemist Mutagenist Tier IV: Chimeric Transmutation */
+ACMD_DECL(do_chimericbreath);
 ACMD_DECL(do_tailspikes);
 ACMDCHECK(can_tailspikes);
 ACMD_DECL(do_pixiedust);

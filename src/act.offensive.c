@@ -13560,6 +13560,75 @@ ACMD(do_evobreath)
   USE_STANDARD_ACTION(ch);
 }
 
+/* Alchemist Mutagenist Tier IV capstone: Chimeric Transmutation
+ * While under mutagen, unleash a swift-action breath once per combat:
+ * deals 3d6 fire, 3d6 poison, and 3d6 cold damage to enemies in room. */
+ACMD(do_chimericbreath)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
+  {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_MUTAGEN))
+  {
+    send_to_char(ch, "You must be under the effects of a mutagen to do that.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  if (!can_use_chimeric_transmutation(ch))
+  {
+    send_to_char(ch, "You have already used your chimeric breath this combat.\r\n");
+    return;
+  }
+
+  act("You inhale and unleash a chimeric breath of flame, toxin, and frost!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n inhales and unleashes a chimeric breath of flame, toxin, and frost!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Data structure for chimeric breath callback */
+  struct chimeric_breath_data {
+    int fire_dam;
+    int poison_dam;
+    int cold_dam;
+  } cbd;
+
+  cbd.fire_dam = dice(3, 6);
+  cbd.poison_dam = dice(3, 6);
+  cbd.cold_dam = dice(3, 6);
+
+  int chimeric_breath_cb(struct char_data *ch, struct char_data *tch, void *data)
+  {
+    struct chimeric_breath_data *bd = (struct chimeric_breath_data *)data;
+
+    /* Handle immunities (e.g., iron golem immunity to poison) */
+    if (!process_iron_golem_immunity(ch, tch, DAM_FIRE, bd->fire_dam))
+      damage(ch, tch, bd->fire_dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+
+    if (!process_iron_golem_immunity(ch, tch, DAM_POISON, bd->poison_dam))
+      damage(ch, tch, bd->poison_dam, SPELL_POISON_BREATHE, DAM_POISON, FALSE);
+
+    if (!process_iron_golem_immunity(ch, tch, DAM_COLD, bd->cold_dam))
+      damage(ch, tch, bd->cold_dam, SPELL_FROST_BREATHE, DAM_COLD, FALSE);
+
+    return 1;
+  }
+
+  aoe_effect(ch, SPELL_FIRE_BREATHE, chimeric_breath_cb, &cbd);
+
+  USE_SWIFT_ACTION(ch);
+  use_chimeric_transmutation(ch);
+}
+
 ACMD(do_vital_strike)
 {
   if (!HAS_FEAT(ch, FEAT_VITAL_STRIKE))

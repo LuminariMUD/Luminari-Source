@@ -1342,6 +1342,16 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.perfect_kill_used = (used != 0);
           }
         }
+        else if (!strcmp(tag, "PCBr"))
+        {
+          long timestamp;
+          int used;
+          if (sscanf(line, "%ld %d", &timestamp, &used) == 2)
+          {
+            ch->player_specials->saved.chimeric_breath_last_combat = (time_t)timestamp;
+            ch->player_specials->saved.chimeric_breath_used = (used != 0);
+          }
+        }
         else if (!strcmp(tag, "PMxS"))
         {
           long timestamp;
@@ -2967,6 +2977,11 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "PKil: %ld %d\n", 
     (long)ch->player_specials->saved.perfect_kill_last_combat,
     ch->player_specials->saved.perfect_kill_used ? 1 : 0);
+
+  /* Save Chimeric Transmutation (Alchemist) data */
+  BUFFER_WRITE( "PCBr: %ld %d\n",
+    (long)ch->player_specials->saved.chimeric_breath_last_combat,
+    ch->player_specials->saved.chimeric_breath_used ? 1 : 0);
   
   /* Save Maximize Spell cooldown */
   BUFFER_WRITE( "PMxS: %ld\n",

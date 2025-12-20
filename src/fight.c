@@ -1825,10 +1825,11 @@ void stop_fighting(struct char_data *ch)
   GET_TOTAL_AOO(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
   
-  /* Update Perfect Kill combat end timestamp */
+  /* Update combat-end timestamps for once-per-combat perks */
   if (!IS_NPC(ch))
   {
     update_perfect_kill_combat_end(ch);
+    update_chimeric_transmutation_combat_end(ch);
   }
   
   if (affected_by_spell(ch, SKILL_SMITE_EVIL))
@@ -15057,8 +15058,9 @@ EVENTFUNC(event_combat_round)
   /* execute phase */
   perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables) ? atoi(pMudEvent->sVariables) : 0));
 
-  /* Alchemist: Unstable Mutagen backlash (10% chance per round while mutagen active) */
-  if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN))
+  /* Alchemist: Unstable Mutagen backlash (10% chance per round while mutagen active)
+   * Perfect Mutagen capstone grants immunity to this backlash. */
+  if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN) && !has_alchemist_perfect_mutagen(ch))
   {
     if (rand_number(1, 100) <= 10)
     {
