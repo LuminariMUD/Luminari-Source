@@ -5714,7 +5714,42 @@ void define_alchemist_perks(void)
   perk->effect_value = 10; /* 10% chance */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Crafting excellence: 10% chance for Maximize on extracts and bombs.");
+
+  /*** EXTRACT MASTER TREE - TIER IV (CAPSTONES) ***/
+
+  /* Eternal Extract (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_ETERNAL_EXTRACT];
+  perk->id = PERK_ALCHEMIST_ETERNAL_EXTRACT;
+  perk->name = strdup("Eternal Extract");
+  perk->description = strdup("Extracts have a 5% chance to last 1 hour (unless the duration would be higher anyway).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MASTER_ALCHEMIST;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance */
+  perk->effect_modifier = 3600; /* 1 hour in seconds */
+  perk->special_description = strdup("Ultimate alchemy: Extracts have 5% chance to last 1 hour.");
+
+  /* Quintessential Extraction (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+  perk->name = strdup("Quintessential Extraction");
+  perk->description = strdup("Using extracts heals 10 HP and increases max HP by 10 for 5 min (stacks to +100 max HP).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10 HP heal */
+  perk->effect_modifier = 10; /* +10 max HP per stack */
+  perk->special_description = strdup("Perfect mastery: Extracts heal 10 HP and grant +10 max HP (5 min, stacks to +100).");
 }
+
 
 /* Alchemist Mutagenist helper implementations */
 int get_alchemist_mutagen_i_rank(struct char_data *ch)
@@ -6145,6 +6180,21 @@ bool has_alchemist_master_alchemist(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_MASTER_ALCHEMIST);
+}
+
+/* Extract Master Tier IV helpers */
+bool has_alchemist_eternal_extract(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ETERNAL_EXTRACT);
+}
+
+bool has_alchemist_quintessential_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION);
 }
 
 /* Define Barbarian Perks */

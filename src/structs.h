@@ -1646,8 +1646,9 @@
 #define BONUS_TYPE_DRINK 21        // For drink items only.
 #define BONUS_TYPE_EIDOLON 22      // For eidolons only
 #define BONUS_TYPE_UNIVERSAL 23    // stacks with everything, including itself
+#define BONUS_TYPE_ALCHEMIST_QUINTESSENTIAL 24 /* Alchemist Quintessential Extraction stacking */
 /**/
-#define NUM_BONUS_TYPES 24
+#define NUM_BONUS_TYPES 25
 /****/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
@@ -3995,6 +3996,9 @@
 #define PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY 1237
 #define PERK_ALCHEMIST_DISCOVERY_EXTRACTION 1238
 #define PERK_ALCHEMIST_MASTER_ALCHEMIST 1239
+/* Extract Master Tree - Tier IV (Capstones) */
+#define PERK_ALCHEMIST_ETERNAL_EXTRACT 1240
+#define PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION 1241
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)

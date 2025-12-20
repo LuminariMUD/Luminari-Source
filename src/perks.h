@@ -151,6 +151,10 @@ bool has_alchemist_alchemical_compatibility(struct char_data *ch);
 bool has_alchemist_discovery_extraction(struct char_data *ch);
 bool has_alchemist_master_alchemist(struct char_data *ch);
 
+/* Extract Master Tier IV helpers */
+bool has_alchemist_eternal_extract(struct char_data *ch);
+bool has_alchemist_quintessential_extraction(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

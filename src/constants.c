@@ -1727,6 +1727,7 @@ const char *bonus_types[] = {
     "Drink",
     "Eidolon",
     "Universal",
+    "Alchemist Quintessential",
     "\n"};
 CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 

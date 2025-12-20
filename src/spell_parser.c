@@ -1891,6 +1891,76 @@ void finishCasting(struct char_data *ch)
         }
       }
     }
+
+    /* Eternal Extract: 5% chance to make extract last exactly 1 hour */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_eternal_extract(ch))
+    {
+      if (rand_number(1, 100) <= 5 && CASTING_TCH(ch))
+      {
+        struct affected_type *hjp = NULL;
+        
+        /* Search for the extract spell just cast on the target */
+        for (hjp = CASTING_TCH(ch)->affected; hjp; hjp = hjp->next)
+        {
+          /* Look for the spell that was just cast */
+          if (hjp->spell == spellnum)
+          {
+            hjp->duration = 600; /* 1 hour = 600 ticks (10 ticks per minute in the system) */
+            send_to_char(ch, "\tM[Your extract becomes eternal, lasting a full hour!]\tn\r\n");
+            break;
+          }
+        }
+      }
+    }
+
+    /* Quintessential Extraction: extract heals 10 HP and grants +10 max HP for 5 min (stacks to +100) */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_quintessential_extraction(ch))
+    {
+      struct affected_type af;
+      struct affected_type *current_quint = NULL;
+      struct affected_type *hjp = NULL;
+      int current_bonus = 0;
+
+      if (CASTING_TCH(ch))
+      {
+        /* Heal 10 HP to target */
+        GET_HIT(CASTING_TCH(ch)) = MIN(GET_MAX_HIT(CASTING_TCH(ch)), GET_HIT(CASTING_TCH(ch)) + 10);
+
+        /* Search for existing Quintessential Extraction affect */
+        for (hjp = CASTING_TCH(ch)->affected; hjp; hjp = hjp->next)
+        {
+          if (hjp->spell == PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION)
+          {
+            current_quint = hjp;
+            current_bonus = hjp->modifier;
+            break;
+          }
+        }
+
+        /* Cap at +100 max HP */
+        if (current_bonus < 100)
+        {
+          int new_bonus = current_bonus + 10;
+          if (new_bonus > 100)
+            new_bonus = 100;
+
+          /* Remove old affect if exists */
+          if (current_quint)
+            affect_from_char(CASTING_TCH(ch), PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION);
+
+          /* Apply new stacking buff */
+          new_affect(&af);
+          af.spell = PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+          af.duration = 5; /* 5 minutes */
+          af.location = APPLY_HIT;
+          af.modifier = new_bonus;
+          af.bonus_type = BONUS_TYPE_ALCHEMIST_QUINTESSENTIAL;
+          affect_to_char(CASTING_TCH(ch), &af);
+
+          send_to_char(CASTING_TCH(ch), "\tG[You feel an alchemical essence enhancing your vitality, your max HP increases by 10 (total: +%d)!]\tn\r\n", new_bonus);
+        }
+      }
+    }
   }
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
