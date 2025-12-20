@@ -1755,6 +1755,8 @@ void finishCasting(struct char_data *ch)
     gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
   }
 
+  int final_metamagic = CASTING_METAMAGIC(ch);
+
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
   {
     manifest_mastermind_power(ch);
@@ -1762,7 +1764,24 @@ void finishCasting(struct char_data *ch)
   else
   {
     const int spellnum = CASTING_SPELLNUM(ch);
-    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, CASTING_METAMAGIC(ch),
+
+    /* Concentrated Essence: 20% chance to empower extracts */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_concentrated_essence(ch) &&
+        !IS_SET(final_metamagic, METAMAGIC_EMPOWER) && can_spell_be_empowered(spellnum) && rand_number(1, 100) <= 20)
+    {
+      SET_BIT(final_metamagic, METAMAGIC_EMPOWER);
+      send_to_char(ch, "\tY[Your extract is concentrated and empowered!]\tn\r\n");
+    }
+
+    /* Persistent Extraction: 20% chance to extend extracts */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_persistent_extraction(ch) &&
+        !IS_SET(final_metamagic, METAMAGIC_EXTEND) && can_spell_be_extended(spellnum) && rand_number(1, 100) <= 20)
+    {
+      SET_BIT(final_metamagic, METAMAGIC_EXTEND);
+      send_to_char(ch, "\tY[Your extract persists longer than expected!]\tn\r\n");
+    }
+
+    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, final_metamagic,
                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
 
     /* Resonant Extract: small chance to echo the extract onto grouped allies in the room */
@@ -1783,7 +1802,7 @@ void finishCasting(struct char_data *ch)
           if (GROUP(ally) != GROUP(ch))
             continue;
 
-          call_magic(ch, ally, CASTING_TOBJ(ch), spellnum, CASTING_METAMAGIC(ch),
+          call_magic(ch, ally, CASTING_TOBJ(ch), spellnum, final_metamagic,
                      (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
         }
       }
@@ -1799,7 +1818,7 @@ void finishCasting(struct char_data *ch)
     }
     else
     {
-      call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+      call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), final_metamagic,
                  (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
     }
     affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);

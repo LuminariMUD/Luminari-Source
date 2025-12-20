@@ -5582,6 +5582,72 @@ void define_alchemist_perks(void)
   perk->effect_value = 5; /* 5% chance */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Party synergy: Extracts have 5% chance to affect all party members.");
+
+  /*** EXTRACT MASTER TREE - TIER II ***/
+
+  /* Alchemical Extract II */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II;
+  perk->name = strdup("Alchemical Extract II");
+  perk->description = strdup("Additional 3% chance per rank for extracts to not expend a use.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Further bottling refinement: +3% per rank non-consumption chance.");
+
+  /* Infusion II */
+  perk = &perk_list[PERK_ALCHEMIST_INFUSION_II];
+  perk->id = PERK_ALCHEMIST_INFUSION_II;
+  perk->name = strdup("Infusion II");
+  perk->description = strdup("Your extract saving throw DCs gain another +1 per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFUSION_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Advanced infusion: additional +1 DC per rank.");
+
+  /* Concentrated Essence */
+  perk = &perk_list[PERK_ALCHEMIST_CONCENTRATED_ESSENCE];
+  perk->id = PERK_ALCHEMIST_CONCENTRATED_ESSENCE;
+  perk->name = strdup("Concentrated Essence");
+  perk->description = strdup("All extracts have a 20% chance to be empowered when used.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_SWIFT_EXTRACTION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Power concentration: 20% chance to apply Empower to extracts on use.");
+
+  /* Persistent Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_PERSISTENT_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_PERSISTENT_EXTRACTION;
+  perk->name = strdup("Persistent Extraction");
+  perk->description = strdup("All extracts have a 20% chance to be extended when used.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_RESONANT_EXTRACT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Duration extension: 20% chance to apply Extend to extracts on use.");
 }
 
 /* Alchemist Mutagenist helper implementations */
@@ -5908,14 +5974,23 @@ int get_alchemist_extract_i_rank(struct char_data *ch)
   return get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I, CLASS_ALCHEMIST);
 }
 
+int get_alchemist_extract_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II, CLASS_ALCHEMIST);
+}
+
 int get_alchemist_extract_not_consumed_chance(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 0;
-  int rank = get_alchemist_extract_i_rank(ch);
-  if (rank <= 0)
+  int rank_i = get_alchemist_extract_i_rank(ch);
+  int rank_ii = get_alchemist_extract_ii_rank(ch);
+  int total_rank = rank_i + rank_ii;
+  if (total_rank <= 0)
     return 0;
-  return rank * 3; /* 3% per rank */
+  return total_rank * 3; /* 3% per rank across both tiers */
 }
 
 int get_alchemist_infusion_i_rank(struct char_data *ch)
@@ -5925,14 +6000,21 @@ int get_alchemist_infusion_i_rank(struct char_data *ch)
   return get_perk_rank(ch, PERK_ALCHEMIST_INFUSION_I, CLASS_ALCHEMIST);
 }
 
+int get_alchemist_infusion_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_INFUSION_II, CLASS_ALCHEMIST);
+}
+
 int get_alchemist_infusion_dc_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 0;
-  int rank = get_alchemist_infusion_i_rank(ch);
-  if (rank <= 0)
+  int total = get_alchemist_infusion_i_rank(ch) + get_alchemist_infusion_ii_rank(ch);
+  if (total <= 0)
     return 0;
-  return rank; /* +1 per rank */
+  return total; /* +1 per rank across both tiers */
 }
 
 bool has_alchemist_swift_extraction(struct char_data *ch)
@@ -5947,6 +6029,20 @@ bool has_alchemist_resonant_extract(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_ALCHEMIST_RESONANT_EXTRACT);
+}
+
+bool has_alchemist_concentrated_essence(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CONCENTRATED_ESSENCE);
+}
+
+bool has_alchemist_persistent_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_PERSISTENT_EXTRACTION);
 }
 
 /* Define Barbarian Perks */

@@ -138,6 +138,12 @@ int get_alchemist_infusion_dc_bonus(struct char_data *ch);
 bool has_alchemist_swift_extraction(struct char_data *ch);
 bool has_alchemist_resonant_extract(struct char_data *ch);
 
+/* Extract Master Tier II helpers */
+int get_alchemist_extract_ii_rank(struct char_data *ch);
+int get_alchemist_infusion_ii_rank(struct char_data *ch);
+bool has_alchemist_concentrated_essence(struct char_data *ch);
+bool has_alchemist_persistent_extraction(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);
