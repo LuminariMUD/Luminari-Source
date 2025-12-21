@@ -880,6 +880,34 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       send_to_char(vict, "\tWResisting the spell restores some of your vitality!\tn\r\n");
     }
 
+    /* Overwhelm perk - force a second save if victim passes first one */
+    if (ch && type == SAVING_WILL && psionic_powers[spellnum].power_type == TELEPATHY &&
+        has_overwhelm(ch) && !overwhelm_used_this_combat(ch))
+    {
+      static bool in_overwhelm_save = FALSE;
+      
+      /* Prevent infinite recursion */
+      if (!in_overwhelm_save)
+      {
+        in_overwhelm_save = TRUE;
+        
+        send_to_char(ch, "\tY[Overwhelm: Target must save again!]\tn\r\n");
+        send_to_char(vict, "\tR[Overwhelm: Your mind is hit with another psychic assault - save again!]\tn\r\n");
+        
+        /* Make the second save call - if they fail this one, spell affects them */
+        int second_save = savingthrow_full(ch, vict, type, modifier, casttype, level, school, spellnum);
+        
+        if (!second_save)
+        {
+          /* Mark Overwhelm as used this combat */
+          set_overwhelm_cooldown(ch);
+        }
+        
+        in_overwhelm_save = FALSE;
+        return second_save;
+      }
+    }
+
     return (TRUE);
   }
 
@@ -3079,6 +3107,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     // each rank of epic psionics increases psi power damage by 10%, or 20% if under psionic focus affect
     if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
       dam = dam * (100 + (HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 20 : 10))) / 100;
+
+    /* Mind Spike II Tier 2 perk - adds +1 damage die to Telepathy damage powers */
+    if (psionic_powers[spellnum].power_type == TELEPATHY && has_mind_spike_ii_bonus(ch, GET_AUGMENT_PSP(ch)))
+    {
+      dam += dice(1, size_dice);
+    }
   }
 
   // vampire bonuses / penalties for feeding
@@ -9819,6 +9853,22 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
     }
   }
+
+  /* Linked Menace perk - apply AC penalty after successful Telepathy debuff */
+  if (ch && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+      psionic_powers[spellnum].power_type == TELEPATHY && has_linked_menace(ch))
+  {
+    struct affected_type menace_af;
+    new_affect(&menace_af);
+    menace_af.spell = spellnum;
+    menace_af.location = APPLY_AC_NEW;
+    menace_af.modifier = -2;
+    menace_af.duration = level * 12;
+    menace_af.bonus_type = BONUS_TYPE_UNIVERSAL;
+    affect_join(victim, &menace_af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(victim, "\tRYour mind reels from the mental assault - your reflexes falter!\tn\r\n");
+  }
+
   if (HAS_FEAT(ch, FEAT_DRAGON_LINK) && is_riding_dragon_mount(ch) && !recursive_call)
   {
     mag_affects_full(level, (ch), RIDING(ch), wpn, spellnum, savetype, casttype, metamagic, true);

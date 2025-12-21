@@ -212,6 +212,72 @@ void define_psionicist_perks(void)
   perk->effect_value = 1; /* PSP amount */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Regain 1 PSP once per round on Telepathy power hit.");
+
+  /*** Telepathic Control - Tier II ***/
+
+  /* Mind Spike II */
+  perk = &perk_list[PERK_PSIONICIST_MIND_SPIKE_II];
+  perk->id = PERK_PSIONICIST_MIND_SPIKE_II;
+  perk->name = strdup("Mind Spike II");
+  perk->description = strdup("Total +2 Telepathy DCs; Telepathy damage powers add +1 die if augmented by ≥2 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_MIND_SPIKE_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Total +2 DC */
+  perk->effect_modifier = 1; /* +1 die on damage */
+  perk->special_description = strdup("Telepathy powers gain +2 DC total; damage powers gain +1 die if augmented ≥2 PSP.");
+
+  /* Overwhelm */
+  perk = &perk_list[PERK_PSIONICIST_OVERWHELM];
+  perk->id = PERK_PSIONICIST_OVERWHELM;
+  perk->name = strdup("Overwhelm");
+  perk->description = strdup("First Telepathy power each encounter forces targets to save twice, taking the worse (once per combat).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SUGGESTION_PRIMER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Save twice, take worse */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("First Telepathy power each encounter: targets save twice, use worse result.");
+
+  /* Psionic Disruptor II */
+  perk = &perk_list[PERK_PSIONICIST_PSIONIC_DISRUPTOR_II];
+  perk->id = PERK_PSIONICIST_PSIONIC_DISRUPTOR_II;
+  perk->name = strdup("Psionic Disruptor II");
+  perk->description = strdup("Total +2 manifester level vs power resistance for Telepathy powers.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PSIONIC_DISRUPTOR_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Total +2 manifester level */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers gain +2 manifester level vs PR.");
+
+  /* Linked Menace */
+  perk = &perk_list[PERK_PSIONICIST_LINKED_MENACE];
+  perk->id = PERK_PSIONICIST_LINKED_MENACE;
+  perk->name = strdup("Linked Menace");
+  perk->description = strdup("When landing a Telepathy debuff, target takes -2 penalty to AC for 2 rounds.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FOCUS_CHANNELING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = -2; /* -2 AC */
+  perk->effect_modifier = 2; /* 2 round duration */
+  perk->special_description = strdup("Telepathy debuffs apply -2 AC for 2 rounds.");
 }
 
 /* Count how many perks are actually defined */
@@ -6276,19 +6342,39 @@ bool has_alchemist_quintessential_extraction(struct char_data *ch)
 }
 
 /* Define Barbarian Perks */
-/* Psionicist Telepathic Control Tier I helpers */
+/* Psionicist Telepathic Control Tier I and II helpers */
 int get_psionic_telepathy_dc_bonus(struct char_data *ch)
 {
+  int bonus = 0;
   if (!ch || IS_NPC(ch))
     return 0;
-  return has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_I) ? 1 : 0;
+  
+  /* Tier I: +1 DC */
+  if (has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_I))
+    bonus += 1;
+  
+  /* Tier II: additional +1 DC (total +2) */
+  if (has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_II))
+    bonus += 1;
+  
+  return bonus;
 }
 
 int get_psionic_telepathy_penetration_bonus(struct char_data *ch)
 {
+  int bonus = 0;
   if (!ch || IS_NPC(ch))
     return 0;
-  return has_perk(ch, PERK_PSIONICIST_PSIONIC_DISRUPTOR_I) ? 1 : 0;
+  
+  /* Tier I: +1 manifester level */
+  if (has_perk(ch, PERK_PSIONICIST_PSIONIC_DISRUPTOR_I))
+    bonus += 1;
+  
+  /* Tier II: additional +1 manifester level (total +2) */
+  if (has_perk(ch, PERK_PSIONICIST_PSIONIC_DISRUPTOR_II))
+    bonus += 1;
+  
+  return bonus;
 }
 
 bool has_psionic_suggestion_primer(struct char_data *ch)
@@ -6359,6 +6445,71 @@ void apply_psionic_focus_channeling(struct char_data *ch)
   af.duration = 6; /* ~1 round */
   affect_to_char(ch, &af);
 }
+
+/* Tier II Telepathic Control Helpers */
+
+/* Check if character has Mind Spike II and meets augment threshold */
+bool has_mind_spike_ii_bonus(struct char_data *ch, int augment_spent)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  if (!has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_II))
+    return FALSE;
+  return augment_spent >= 2;
+}
+
+/* Check if character has Overwhelm perk */
+bool has_overwhelm(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_OVERWHELM);
+}
+
+/* Check if Overwhelm has been used this combat (track via affect) */
+bool overwhelm_used_this_combat(struct char_data *ch)
+{
+  if (!has_overwhelm(ch))
+    return FALSE;
+  return affected_by_spell(ch, PERK_PSIONICIST_OVERWHELM);
+}
+
+/* Set Overwhelm cooldown for this combat */
+void set_overwhelm_cooldown(struct char_data *ch)
+{
+  if (!has_overwhelm(ch))
+    return;
+  
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_PSIONICIST_OVERWHELM;
+  af.duration = 60; /* ~10 minutes for a combat encounter */
+  affect_to_char(ch, &af);
+}
+
+/* Check if character has Linked Menace perk */
+bool has_linked_menace(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_LINKED_MENACE);
+}
+
+/* Apply Linked Menace AC penalty to target */
+void apply_linked_menace_ac_penalty(struct char_data *vict)
+{
+  if (!vict)
+    return;
+  
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_PSIONICIST_LINKED_MENACE;
+  af.location = APPLY_AC;
+  af.modifier = 2; /* -2 AC (note: lower AC is worse, so +2 to the AC value) */
+  af.duration = 12; /* 2 rounds */
+  affect_to_char(vict, &af);
+}
+
 void define_barbarian_perks(void)
 {
   struct perk_data *perk;

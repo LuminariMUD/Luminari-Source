@@ -166,6 +166,16 @@ bool has_psionic_focus_channeling(struct char_data *ch);
 void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum, int routines_flags);
 void apply_psionic_focus_channeling(struct char_data *ch);
 
+/* Psionicist Telepathic Control Tier II helpers */
+bool has_mind_spike_ii_bonus(struct char_data *ch, int augment_spent);
+bool has_overwhelm(struct char_data *ch);
+bool overwhelm_used_this_combat(struct char_data *ch);
+void set_overwhelm_cooldown(struct char_data *ch);
+bool has_linked_menace(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier II mechanics */
+void apply_linked_menace_ac_penalty(struct char_data *vict);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

@@ -4014,6 +4014,12 @@
 #define PERK_PSIONICIST_PSIONIC_DISRUPTOR_I    1302
 #define PERK_PSIONICIST_FOCUS_CHANNELING       1303
 
+/* Telepathic Control - Tier II */
+#define PERK_PSIONICIST_MIND_SPIKE_II          1304
+#define PERK_PSIONICIST_OVERWHELM              1305
+#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_II   1306
+#define PERK_PSIONICIST_LINKED_MENACE          1307
+
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
  * ============================================================================ */

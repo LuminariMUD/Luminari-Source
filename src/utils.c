@@ -7075,6 +7075,10 @@ int get_power_penetrate_mod(struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_BREACH_POWER_RESISTANCE))
     bonus += MAX(0, GET_INT_BONUS(ch));
 
+  /* Psionic Disruptor perks - penetration bonus to overcome power resistance */
+  if (!IS_NPC(ch))
+    bonus += get_psionic_telepathy_penetration_bonus(ch);
+
   return bonus;
 }
 
