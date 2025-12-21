@@ -5553,6 +5553,19 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (offhand == 2)
     is_ranged = TRUE;
 
+  /* Deflective Screen: first hit each round reduced by 5 damage */
+  if (dam > 0 && has_deflective_screen(victim) &&
+      (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) || affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
+  {
+    if (!char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND))
+    {
+      int dr = get_deflective_screen_first_hit_dr(victim);
+      dam = MAX(0, dam - dr);
+      attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
+                       10 * PASSES_PER_SEC);
+    }
+  }
+
   if (GET_POS(victim) <= POS_DEAD)
   { // delayed extraction
     if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
@@ -5832,6 +5845,19 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   GET_HIT(victim) -= dam;
+  
+  /* Energy Retort (Perk): reflect level-based energy damage on melee hits while psychokinesis affect active */
+  if (dam > 0 && has_energy_retort_perk(victim) && !is_ranged)
+  {
+    if (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) ||
+        affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR) ||
+        affected_by_spell(victim, PSIONIC_ENERGY_RETORT))
+    {
+      int retort_dam = get_energy_retort_bonus_damage(victim);
+      int retort_type = IS_NPC(victim) ? DAM_FORCE : GET_PSIONIC_ENERGY_TYPE(victim);
+      damage(victim, ch, retort_dam, PSIONIC_ENERGY_RETORT, retort_type, FALSE);
+    }
+  }
   
   /* Perfect Tempo perk: Track that this character was hit this round */
   if (dam > 0 && !IS_NPC(victim) && has_bard_perfect_tempo(victim))
@@ -10777,6 +10803,16 @@ int attack_roll(struct char_data *ch,     /* Attacker */
 
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
+
+  /* Deflective Screen: +2 AC vs ranged while shield/armor active */
+  if (attack_type == ATTACK_TYPE_RANGED)
+  {
+    if (has_deflective_screen(victim) &&
+        (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) || affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
+    {
+      victim_ac += get_deflective_screen_ranged_ac_bonus(victim);
+    }
+  }
 
   if (GET_TOUCH_SPELL_QUEUED(ch) == SPELL_SHOCKING_GRASP && is_touch && is_wearing_metal(victim))
     attack_bonus += 3;

@@ -1549,6 +1549,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_PUNCTURE;
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
     size_dice = 6;
     bonus = 0;
 
@@ -1623,6 +1624,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1637,6 +1639,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_FORCE;
     num_dice = 1 + (GET_AUGMENT_PSP(ch) / 2);
     num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
     size_dice = 6;
     bonus = 0;
     break;
@@ -1647,6 +1650,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 2 + (GET_AUGMENT_PSP(ch) / 2);
     num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1742,6 +1746,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     mag_resist = TRUE;
     num_dice = 5 + GET_AUGMENT_PSP(ch);
+    /* Kinetic Edge II: splash +1 die */
+    num_dice += get_kinetic_edge_ii_bonus(ch);
     size_dice = 8;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -4262,6 +4268,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
     af[0].modifier += get_force_screen_ac_bonus(ch);
+    /* Deflective Screen: +2 Reflex while active */
+    if (has_deflective_screen(ch))
+    {
+      af[1].location = APPLY_SAVING_REFL;
+      af[1].bonus_type = BONUS_TYPE_RESISTANCE;
+      af[1].duration = af[0].duration;
+      af[1].modifier = get_deflective_screen_reflex_bonus(ch);
+    }
 
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible shield of force appear in front of you.";
@@ -4307,6 +4321,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
     af[0].modifier += get_force_screen_ac_bonus(ch);
+    /* Deflective Screen: +2 Reflex while active */
+    if (has_deflective_screen(ch))
+    {
+      af[1].location = APPLY_SAVING_REFL;
+      af[1].bonus_type = BONUS_TYPE_RESISTANCE;
+      af[1].duration = af[0].duration;
+      af[1].modifier = get_deflective_screen_reflex_bonus(ch);
+    }
 
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible armor of force surround you.";

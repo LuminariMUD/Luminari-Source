@@ -2188,6 +2188,72 @@ void define_cleric_perks(void)
   perk->effect_modifier = 0; /* chosen energy type stored elsewhere */
   perk->special_description = strdup("Tier 1: Choose energy type; Psychokinesis powers of that type gain +1 DC.");
   
+  /*** PSYCHOKINETIC ARSENAL - TIER 2 PERKS (2 points each) ***/
+
+  /* Kinetic Edge II */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_EDGE_II];
+  perk->id = PERK_PSIONICIST_KINETIC_EDGE_II;
+  perk->name = strdup("Kinetic Edge II");
+  perk->description = strdup("Total +2 dice on Psychokinesis blasts when augmented by >=3 PSP; energy burst/concussion blast splash +1 die.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_KINETIC_EDGE_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* total +2 dice at >=3 PSP (combined with Tier I) */
+  perk->effect_modifier = 3; /* requires augmentation >= 3 */
+  perk->special_description = strdup("Tier 2: Psychokinesis blasts reach +2 dice at >=3 PSP; burst/concussion splash +1 die.");
+
+  /* Deflective Screen */
+  perk = &perk_list[PERK_PSIONICIST_DEFLECTIVE_SCREEN];
+  perk->id = PERK_PSIONICIST_DEFLECTIVE_SCREEN;
+  perk->name = strdup("Deflective Screen");
+  perk->description = strdup("While force screen or inertial armor is active, gain +2 AC vs ranged and +2 Reflex; first hit each round is reduced by 5 damage.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FORCE_SCREEN_ADEPT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC vs ranged */
+  perk->effect_modifier = 2; /* +2 Reflex; 5 DR on first hit each round (handled in code) */
+  perk->special_description = strdup("Tier 2: +2 AC (ranged) and +2 Reflex while shield/armor active; first hit each round -5 damage.");
+
+  /* Accelerated Manifestation */
+  perk = &perk_list[PERK_PSIONICIST_ACCELERATED_MANIFEST];
+  perk->id = PERK_PSIONICIST_ACCELERATED_MANIFEST;
+  perk->name = strdup("Accelerated Manifestation");
+  perk->description = strdup("Once per combat, reduce PSP cost of a Psychokinesis power by 2 (min 1) and make it a faster action.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* -2 PSP cost */
+  perk->effect_modifier = 1; /* faster action */
+  perk->special_description = strdup("Tier 2: Once per combat -2 PSP (min 1) and quickened cast for one Psychokinesis power.");
+
+  /* Energy Retort (Perk) */
+  perk = &perk_list[PERK_PSIONICIST_ENERGY_RETORT_PERK];
+  perk->id = PERK_PSIONICIST_ENERGY_RETORT_PERK;
+  perk->name = strdup("Energy Retort");
+  perk->description = strdup("When struck in melee while you have an active Psychokinesis affect (force screen, energy retort, inertial armor), return level-based energy damage (scales with augment).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Reflect level-based energy damage when hit in melee while shield/armor/retort is active.");
+
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
   perk->id = PERK_CLERIC_HEALING_AURA_1;
@@ -6974,6 +7040,63 @@ int get_energy_specialization_dc_bonus(struct char_data *ch, int element)
     return 1;
   
   return 0;
+}
+
+/* ===== Tier 2 Psychokinetic Arsenal helper implementations ===== */
+
+bool has_kinetic_edge_ii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_EDGE_II);
+}
+
+/* Returns additional +1 die when augmented >= 3 PSP (total +2 with Tier I) */
+int get_kinetic_edge_ii_bonus(struct char_data *ch)
+{
+  if (!has_kinetic_edge_ii(ch))
+    return 0;
+  if (GET_AUGMENT_PSP(ch) >= 3)
+    return 1;
+  return 0;
+}
+
+bool has_deflective_screen(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_DEFLECTIVE_SCREEN);
+}
+
+int get_deflective_screen_ranged_ac_bonus(struct char_data *ch)
+{
+  return has_deflective_screen(ch) ? 2 : 0;
+}
+
+int get_deflective_screen_reflex_bonus(struct char_data *ch)
+{
+  return has_deflective_screen(ch) ? 2 : 0;
+}
+
+int get_deflective_screen_first_hit_dr(struct char_data *ch)
+{
+  return has_deflective_screen(ch) ? 5 : 0;
+}
+
+bool has_accelerated_manifestation(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ACCELERATED_MANIFEST);
+}
+
+bool has_energy_retort_perk(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ENERGY_RETORT_PERK);
+}
+
+/* Level-based energy retort bonus damage: simple scaling on psionic level and augment */
+int get_energy_retort_bonus_damage(struct char_data *victim)
+{
+  int lvl = GET_PSIONIC_LEVEL(victim);
+  int aug = GET_AUGMENT_PSP(victim);
+  int ndice = MAX(1, lvl / 5) + (aug >= 1 ? 1 : 0);
+  /* use d6s */
+  return dice(ndice, 6);
 }
 
 void define_barbarian_perks(void)

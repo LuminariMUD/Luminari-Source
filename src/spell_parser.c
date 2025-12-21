@@ -2437,6 +2437,21 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       ch->char_specials.quick_mind = false;
       send_to_char(ch, "Your manifesting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
     }
+    /* Accelerated Manifestation: make one Psychokinesis power faster per combat */
+    else if (!quickened && !IS_NPC(ch) && (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END))
+    {
+      if (has_accelerated_manifestation(ch) && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      {
+        /* Only for Psychokinesis powers */
+        if (psionic_powers[spellnum].power_type == PSYCHOKINESIS)
+        {
+          casting_time = 0;
+          quickened = true;
+          attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL), 10 * PASSES_PER_SEC);
+          send_to_char(ch, "Your manifesting of '%s' accelerates to a faster action.\r\n", spell_info[spellnum].name);
+        }
+      }
+    }
   }
 
   if (CONFIG_SPELLCASTING_TIME_MODE == 1)
@@ -3216,19 +3231,35 @@ return;
     if (!IS_NPC(ch))
     {
       // we mainly separate the next two checks for the different messages to characters
-      if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
+      /* Accelerated Manifestation: effective PSP cost reduction by 2 (min 1), once per combat */
+      int effective_psp_cost = psionic_powers[spellnum].psp_cost;
+      if (has_accelerated_manifestation(ch) && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      {
+        if (psionic_powers[spellnum].power_type == PSYCHOKINESIS)
+        {
+          effective_psp_cost = MAX(1, effective_psp_cost - 2);
+        }
+      }
+
+      if (GET_PSP(ch) < effective_psp_cost)
       {
         send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
         return;
       }
-      if (GET_PSP(ch) < (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch)))
+      if (GET_PSP(ch) < (effective_psp_cost + GET_AUGMENT_PSP(ch)))
       {
         send_to_char(ch, "You don't have enough psp to manifest that power at that augmented amount.\r\n");
         return;
       }
 
       // All is well, deduct the psp and augment psp
-      GET_PSP(ch) -= (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch));
+      GET_PSP(ch) -= (effective_psp_cost + GET_AUGMENT_PSP(ch));
+
+      /* Mark Accelerated Manifestation as used (per combat) */
+      if (effective_psp_cost < psionic_powers[spellnum].psp_cost && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      {
+        attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL), 10 * PASSES_PER_SEC);
+      }
 
       // many powers only benefit from certain intervals of augment psp such
       // as damage bonus = augment psp / 2.  So if their augment psp has a remainder

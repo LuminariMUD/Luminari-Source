@@ -204,6 +204,20 @@ int get_vector_shove_movement_bonus(struct char_data *ch);
 int get_vector_shove_damage_bonus(struct char_data *ch);
 int get_energy_specialization_dc_bonus(struct char_data *ch, int element);
 
+/* Tier 2 Psychokinetic Arsenal helpers */
+bool has_kinetic_edge_ii(struct char_data *ch);
+int get_kinetic_edge_ii_bonus(struct char_data *ch);
+
+bool has_deflective_screen(struct char_data *ch);
+int get_deflective_screen_ranged_ac_bonus(struct char_data *ch);
+int get_deflective_screen_reflex_bonus(struct char_data *ch);
+int get_deflective_screen_first_hit_dr(struct char_data *ch);
+
+bool has_accelerated_manifestation(struct char_data *ch);
+
+bool has_energy_retort_perk(struct char_data *ch);
+int get_energy_retort_bonus_damage(struct char_data *victim);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

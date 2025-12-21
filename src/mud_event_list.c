@@ -262,7 +262,10 @@ struct mud_event_list mud_event_index[] = {
     {"Device Repair", event_device_repair, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     // 180
     {"Curtain Call Cooldown", event_countdown, EVENT_CHAR, "Your curtain call is ready again.", NULL, FEAT_UNDEFINED, 0},
-    {"Universal Mutagen Cooldown", event_countdown, EVENT_CHAR, "You can arm Universal Mutagen again.", NULL, FEAT_UNDEFINED, 0}
+    {"Perfect Tempo Cooldown", event_countdown, EVENT_CHAR, "Your perfect tempo is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Universal Mutagen Cooldown", event_countdown, EVENT_CHAR, "You can arm Universal Mutagen again.", NULL, FEAT_UNDEFINED, 0},
+    {"Deflective Screen Cooldown", event_countdown, EVENT_CHAR, "Your deflective screen is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Accelerated Manifestation Cooldown", event_countdown, EVENT_CHAR, "You can use Accelerated Manifestation again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */
