@@ -2021,6 +2021,72 @@ void define_cleric_perks(void)
   perk->effect_value = 2; /* 2d6 */
   perk->effect_modifier = 6;
   perk->special_description = strdup("Requires Radiant Servant I (at least 2 ranks). Grants the ability to channel positive energy to heal all allies in the room for 2d6 HP. Can be used once per short rest.");
+
+  /*** Telepathic Control - Tier III ***/
+
+  /* Dominion */
+  perk = &perk_list[PERK_PSIONICIST_DOMINION];
+  perk->id = PERK_PSIONICIST_DOMINION;
+  perk->name = strdup("Dominion");
+  perk->description = strdup("Total +3 Telepathy DCs; charm/dominate effects gain +2 rounds on failed saves (non-boss).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_MIND_SPIKE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* Total +3 DC */
+  perk->effect_modifier = 2; /* +2 rounds on charm/dominate */
+  perk->special_description = strdup("Telepathy powers gain +3 DC total; charm/dominate extend +2 rounds (non-boss).");
+
+  /* Psychic Sundering */
+  perk = &perk_list[PERK_PSIONICIST_PSYCHIC_SUNDERING];
+  perk->id = PERK_PSIONICIST_PSYCHIC_SUNDERING;
+  perk->name = strdup("Psychic Sundering");
+  perk->description = strdup("Telepathy damage powers make targets vulnerable: +10% damage from all sources for 3 rounds.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_OVERWHELM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% damage taken */
+  perk->effect_modifier = 3; /* 3 round duration */
+  perk->special_description = strdup("Telepathy damage applies 3-round 10% vulnerability to all damage sources.");
+
+  /* Mental Backlash */
+  perk = &perk_list[PERK_PSIONICIST_MENTAL_BACKLASH];
+  perk->id = PERK_PSIONICIST_MENTAL_BACKLASH;
+  perk->name = strdup("Mental Backlash");
+  perk->description = strdup("When a target saves vs your Telepathy, it still takes (5 + 1/2 level) mental damage (no save).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_LINKED_MENACE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* base chip damage */
+  perk->effect_modifier = 2; /* scaling uses level/2 */
+  perk->special_description = strdup("Successful saves vs your Telepathy still take chip mental damage.");
+
+  /* Piercing Will */
+  perk = &perk_list[PERK_PSIONICIST_PIERCING_WILL];
+  perk->id = PERK_PSIONICIST_PIERCING_WILL;
+  perk->name = strdup("Piercing Will");
+  perk->description = strdup("Ignore 5 power resistance when manifesting Telepathy powers (stacks with Disruptor).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PSIONIC_DISRUPTOR_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* ignore 5 PR */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers ignore 5 PR; stacks with Disruptor perks.");
   
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
@@ -6356,6 +6422,10 @@ int get_psionic_telepathy_dc_bonus(struct char_data *ch)
   /* Tier II: additional +1 DC (total +2) */
   if (has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_II))
     bonus += 1;
+
+  /* Tier III: additional +1 DC (total +3) */
+  if (has_perk(ch, PERK_PSIONICIST_DOMINION))
+    bonus += 1;
   
   return bonus;
 }
@@ -6508,6 +6578,102 @@ void apply_linked_menace_ac_penalty(struct char_data *vict)
   af.modifier = 2; /* -2 AC (note: lower AC is worse, so +2 to the AC value) */
   af.duration = 12; /* 2 rounds */
   affect_to_char(vict, &af);
+}
+
+/* Tier III Telepathic Control Helpers */
+
+bool has_psionic_dominion(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_DOMINION);
+}
+
+bool has_psychic_sundering(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_PSYCHIC_SUNDERING);
+}
+
+bool has_psionic_mental_backlash(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_MENTAL_BACKLASH);
+}
+
+bool has_psionic_piercing_will(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_PIERCING_WILL);
+}
+
+/* Extend charm/dominate durations by +2 rounds (12 ticks) for Telepathy powers */
+void apply_psionic_dominion_extension(struct char_data *ch, struct char_data *vict, int spellnum,
+                                      struct affected_type *af_array, int count)
+{
+  int i = 0;
+
+  if (!ch || !vict || !af_array)
+    return;
+  if (!has_psionic_dominion(ch))
+    return;
+  if (!is_spellnum_psionic(spellnum) || psionic_powers[spellnum].power_type != TELEPATHY)
+    return;
+
+  /* Skip bosses / uncharmables */
+  if (IS_NPC(vict) && (MOB_FLAGGED(vict, MOB_NOCHARM) || GET_MAX_HIT(vict) >= 1000))
+    return;
+
+  for (i = 0; i < count; i++)
+  {
+    if (af_array[i].location == APPLY_NONE && !af_array[i].bitvector[0] &&
+        !af_array[i].bitvector[1] && !af_array[i].bitvector[2] && !af_array[i].bitvector[3])
+      continue;
+
+    if (IS_SET_AR(af_array[i].bitvector, AFF_CHARM))
+    {
+      af_array[i].duration += 12; /* +2 rounds */
+    }
+  }
+}
+
+/* Apply 3-round 10% vulnerability marker for Psychic Sundering */
+void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict)
+    return;
+  if (!has_psychic_sundering(ch))
+    return;
+
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_PSIONICIST_PSYCHIC_SUNDERING;
+  af.location = APPLY_NONE;
+  af.modifier = 0;
+  af.duration = 18; /* 3 rounds */
+  affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
+  send_to_char(vict, "\tRYour mind is torn open, leaving you vulnerable!\tn\r\n");
+}
+
+/* +5 PR bypass for Telepathy powers */
+int get_psionic_piercing_will_bonus(struct char_data *ch)
+{
+  if (!has_psionic_piercing_will(ch))
+    return 0;
+  return 5;
+}
+
+/* Chip damage amount for Mental Backlash */
+int get_psionic_mental_backlash_damage(struct char_data *ch, int level)
+{
+  if (!has_psionic_mental_backlash(ch))
+    return 0;
+
+  int dmg = 5 + (level / 2);
+  return MAX(1, dmg);
 }
 
 void define_barbarian_perks(void)

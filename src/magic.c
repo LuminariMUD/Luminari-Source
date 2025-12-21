@@ -908,6 +908,15 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       }
     }
 
+    /* Mental Backlash perk - chip damage even on successful save */
+    if (ch && vict && vict != ch && is_spellnum_psionic(spellnum) &&
+        psionic_powers[spellnum].power_type == TELEPATHY && has_psionic_mental_backlash(ch))
+    {
+      int backlash = get_psionic_mental_backlash_damage(ch, level);
+      if (backlash > 0)
+        damage(ch, vict, backlash, spellnum, DAM_MENTAL, FALSE);
+    }
+
     return (TRUE);
   }
 
@@ -3209,7 +3218,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       if (is_spellnum_psionic(spellnum))
       {
-        if (power_resistance(ch, victim, mag_resist_bonus))
+        int pr_bonus = mag_resist_bonus;
+
+        if (psionic_powers[spellnum].power_type == TELEPATHY)
+          pr_bonus += get_psionic_piercing_will_bonus(ch);
+
+        if (power_resistance(ch, victim, pr_bonus))
           return 0;
       }
       else
@@ -3475,6 +3489,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     if (crescendo_sonic_dam > 0)
     {
       damage(ch, victim, crescendo_sonic_dam, spellnum, DAM_SOUND, FALSE);
+    }
+
+    /* Psychic Sundering: telepathy damage inflicts vulnerability debuff */
+    if (is_spellnum_psionic(spellnum) && psionic_powers[spellnum].power_type == TELEPATHY &&
+        has_psychic_sundering(ch) && dam > 0 && result != -1)
+    {
+      apply_psychic_sundering_debuff(ch, victim);
     }
     
     /* Storm Caller: Lightning spells have 25% chance to hit again at half damage */
@@ -4186,7 +4207,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
@@ -4349,7 +4370,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is unfazed.\r\n");
       return;
     }
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
       return;
@@ -4569,7 +4590,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_INFLICT_PAIN:
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
@@ -4589,7 +4610,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_MENTAL_DISRUPTION:
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (!can_daze(victim))
         return;
@@ -4714,7 +4735,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
@@ -4739,7 +4760,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_DEATH_URGE:
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
@@ -4765,7 +4786,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_INCITE_PASSION:
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
       return;
@@ -4805,7 +4826,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (is_immune_fear(ch, victim, 0))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (GET_AUGMENT_PSP(ch) < 4 && savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
@@ -4887,7 +4908,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_BRUTALIZE_WOUNDS:
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     af[0].duration = level;
     af[0].modifier = savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
@@ -5179,7 +5200,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
       return;
     }
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
     {
@@ -9840,6 +9861,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       }
     }
   }
+
+  apply_psionic_dominion_extension(ch, victim, spellnum, af, MAX_SPELL_AFFECTS);
 
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {

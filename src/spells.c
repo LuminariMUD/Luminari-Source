@@ -18,6 +18,7 @@
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
+#include "perks.h"
 #include "interpreter.h"
 #include "dg_scripts.h"
 #include "act.h"
@@ -3922,7 +3923,7 @@ EVENTFUNC(event_power_leech)
   {
     if (is_immune_mind_affecting(ch, victim, 0))
       return 0;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return 0;
     if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return 0;

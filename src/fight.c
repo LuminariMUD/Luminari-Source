@@ -3701,6 +3701,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
 {
   int damtype_reduction = 0;
 
+  /* Psychic Sundering: take 10% more damage from all sources */
+  if (affected_by_spell(ch, PERK_PSIONICIST_PSYCHIC_SUNDERING))
+    damtype_reduction -= 10;
+
   /* Force of Nature: druid spells bypass damage resistance for elemental damage */
   if (attacker && !IS_NPC(attacker) && GET_CASTING_CLASS(attacker) == CLASS_DRUID &&
       has_druid_force_of_nature(attacker) &&

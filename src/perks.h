@@ -176,6 +176,16 @@ bool has_linked_menace(struct char_data *ch);
 /* Psionicist Telepathic Control Tier II mechanics */
 void apply_linked_menace_ac_penalty(struct char_data *vict);
 
+/* Psionicist Telepathic Control Tier III helpers */
+bool has_psionic_dominion(struct char_data *ch);
+bool has_psychic_sundering(struct char_data *ch);
+bool has_psionic_mental_backlash(struct char_data *ch);
+bool has_psionic_piercing_will(struct char_data *ch);
+void apply_psionic_dominion_extension(struct char_data *ch, struct char_data *vict, int spellnum, struct affected_type *af_array, int count);
+void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict);
+int get_psionic_piercing_will_bonus(struct char_data *ch);
+int get_psionic_mental_backlash_damage(struct char_data *ch, int level);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

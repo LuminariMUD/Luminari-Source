@@ -4019,6 +4019,11 @@
 #define PERK_PSIONICIST_OVERWHELM              1305
 #define PERK_PSIONICIST_PSIONIC_DISRUPTOR_II   1306
 #define PERK_PSIONICIST_LINKED_MENACE          1307
+/* Telepathic Control - Tier III */
+#define PERK_PSIONICIST_DOMINION               1308
+#define PERK_PSIONICIST_PSYCHIC_SUNDERING      1309
+#define PERK_PSIONICIST_MENTAL_BACKLASH        1310
+#define PERK_PSIONICIST_PIERCING_WILL          1311
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
