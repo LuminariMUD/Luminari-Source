@@ -371,6 +371,14 @@ int save_objects(zone_rnum zone_num)
                   "%d\n",
               obj->mob_recepient);
 
+      // R: restring identifier
+      if (obj->restring_identifier && *obj->restring_identifier)
+      {
+        fprintf(fp, "R\n"
+                    "%s\n",
+            obj->restring_identifier);
+      }
+
       // k: spells that can be activated
       if (obj->activate_spell[ACT_SPELL_LEVEL] > 0 && obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
       {
@@ -437,6 +445,8 @@ void free_object_strings(struct obj_data *obj)
   /* Free corpse-specific fields */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->restring_identifier)
+    free(obj->restring_identifier);
 }
 
 /* For object instances that are not the prototype. */
@@ -485,6 +495,8 @@ void free_object_strings_proto(struct obj_data *obj)
     free(obj->char_sdesc);
   if (obj->arcane_mark)
     free(obj->arcane_mark);
+  if (obj->restring_identifier && obj->restring_identifier != obj_proto[robj_num].restring_identifier)
+    free(obj->restring_identifier);
 }
 
 static void copy_object_strings(struct obj_data *to, struct obj_data *from)
@@ -494,6 +506,8 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
   to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
+  /* Ensure restring_identifier is deep-copied so prototypes don't share OLC buffers */
+  to->restring_identifier = from->restring_identifier ? strdup(from->restring_identifier) : NULL;
 
   if (from->ex_description)
     copy_ex_descriptions(&to->ex_description, from->ex_description);

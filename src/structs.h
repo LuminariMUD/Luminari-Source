@@ -5703,6 +5703,9 @@ struct obj_data
     /* Arcane mark imprint */
     char *arcane_mark;
 
+    /* Restring identifier for partial object restrings */
+    char *restring_identifier;
+
     int tinker_bonus;
     int temp_bag_num;
 

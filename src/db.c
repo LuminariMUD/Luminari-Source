@@ -3828,6 +3828,16 @@ const char *parse_object(FILE *obj_f, int nr)
       }
       (obj_proto + i)->mob_recepient = t[0];
       break;
+    case 'R': /* restring identifier */
+      if (!get_line(obj_f, line))
+      {
+        log("SYSERR: Format error in 'R' field, %s\n"
+            "...expecting restring identifier but file ended!",
+            buf2);
+        exit(1);
+      }
+      (obj_proto + i)->restring_identifier = strdup(line);
+      break;
     case 'K': // object activated spells
       if (!get_line(obj_f, line))
       {
@@ -4590,6 +4600,15 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
   add_to_lookup_table(GET_ID(obj), (void *)obj);
+
+  /* Handle string fields that shouldn't be shared with prototype */
+  /* For arcane_mark and restring_identifier, we need to create instance-specific copies
+   * if they exist in the prototype, so modifications to one instance don't affect others */
+  if (obj_proto[i].arcane_mark)
+    obj->arcane_mark = strdup(obj_proto[i].arcane_mark);
+  
+  if (obj_proto[i].restring_identifier)
+    obj->restring_identifier = strdup(obj_proto[i].restring_identifier);
 
   /* Copy the spellbook information - Uses pointer math to access and array...*/
   if (obj_proto[i].sbinfo)

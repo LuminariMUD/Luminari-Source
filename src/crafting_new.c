@@ -9425,7 +9425,62 @@ int material_type_to_crafting_skill(int material)
     return 0;
 }
 
-ACMD(do_reforge)
+/* Helper: case-insensitive substring replace (replace all occurrences).
+ * Returns newly allocated string; caller should free original before assigning. */
+static char *replace_substring_ci(const char *src, const char *find, const char *repl)
+{
+    size_t src_len, find_len, repl_len;
+    size_t count = 0, out_len, o = 0, i;
+
+    if (!src)
+        return NULL;
+    if (!find || !*find)
+        return strdup(src);
+
+    src_len = strlen(src);
+    find_len = strlen(find);
+    repl_len = (repl) ? strlen(repl) : 0;
+    if (find_len == 0)
+        return strdup(src);
+
+    /* Count matches to size the output */
+    for (i = 0; i + find_len <= src_len; ) {
+        if (strncasecmp(src + i, find, find_len) == 0) {
+            count++;
+            i += find_len;
+        } else {
+            i++;
+        }
+    }
+    if (count == 0)
+        return strdup(src);
+
+    out_len = src_len + count * (repl_len - find_len);
+    {
+        char *out = (char *)malloc(out_len + 1);
+        if (!out)
+            return strdup(src);
+
+        /* Build output */
+        for (i = 0; i < src_len; ) {
+            if (i + find_len <= src_len && strncasecmp(src + i, find, find_len) == 0) {
+                if (repl_len) {
+                    memcpy(out + o, repl, repl_len);
+                    o += repl_len;
+                }
+                i += find_len;
+            } else {
+                out[o++] = src[i++];
+            }
+        }
+        out[o] = '\0';
+        return out;
+    }
+}
+
+ACMD_DECL(do_not_here);
+
+ACMDU(do_reforge)
 {
     struct obj_data *obj = NULL;
     struct obj_data *i = NULL;
@@ -9435,7 +9490,6 @@ ACMD(do_reforge)
     int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
     int cost, orig_cost, enhancement;
     char buf[MAX_STRING_LENGTH];
-    char bonus[30];
     int weapon_index = 0;
     int armor_index = 0;
     
@@ -9593,6 +9647,61 @@ ACMD(do_reforge)
         GET_OBJ_VAL(obj, 1) = armor_index;
         set_armor_object(obj, armor_index);
     }
+
+    /* If the object has a restring identifier, update keywords, short/long desc using it */
+    if (obj->restring_identifier && *obj->restring_identifier)
+    {
+        const char *new_type_str = (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+            ? weapon_list[GET_OBJ_VAL(obj, 0)].name
+            : armor_list[GET_OBJ_VAL(obj, 1)].name;
+        char *new_restring_id = NULL;
+
+        /* Make a copy of the new type string first to avoid using freed memory */
+        new_restring_id = strdup(new_type_str);
+        if (!new_restring_id)
+        {
+            log("SYSERR: do_reforge: Failed to allocate memory for new restring_identifier");
+            return;
+        }
+
+        /* Replace in keywords */
+        if (obj->name)
+        {
+            char *updated = replace_substring_ci(obj->name, obj->restring_identifier, new_type_str);
+            if (updated)
+            {
+                free(obj->name);
+                obj->name = updated;
+            }
+        }
+
+        /* Replace in short description */
+        if (obj->short_description)
+        {
+            char *updated = replace_substring_ci(obj->short_description, obj->restring_identifier, new_type_str);
+            if (updated)
+            {
+                free(obj->short_description);
+                obj->short_description = updated;
+            }
+        }
+
+        /* Replace in long description */
+        if (obj->description)
+        {
+            char *updated2 = replace_substring_ci(obj->description, obj->restring_identifier, new_type_str);
+            if (updated2)
+            {
+                free(obj->description);
+                obj->description = updated2;
+            }
+        }
+
+        /* Update restring identifier to the current item subtype for future partial restrings */
+        if (obj->restring_identifier)
+            free(obj->restring_identifier);
+        obj->restring_identifier = new_restring_id;
+    }
     
     /* Restore original cost and enhancement */
     GET_OBJ_COST(obj) = orig_cost;
@@ -9632,7 +9741,7 @@ ACMD(do_reforge)
     else
         GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
     
-    /* Start crafting event */
+    /* Start crafting event - save after all modifications including restring_identifier */
     save_char(ch, 0);
     Crash_crashsave(ch);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);

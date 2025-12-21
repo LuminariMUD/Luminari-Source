@@ -1861,7 +1861,8 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%s4%s) A-Desc   :-\r\n%s%s"
                   "%s5%s) Type        : %s%s\r\n"
                   //"%sG%s) Proficiency : %s%s\r\n"
-                  "%s6%s) Extra flags : %s%s\r\n",
+                  "%s6%s) Extra flags : %s%s\r\n"
+                  "%sU%s) Restring ID  : %s%s\r\n",
 
                   cyn, OLC_NUM(d), nrm,
                   grn, nrm, yel, (obj->name && *obj->name) ? obj->name : "undefined",
@@ -1870,7 +1871,8 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   grn, nrm, yel, (obj->action_description && *obj->action_description) ? obj->action_description : "Not Set.\r\n",
                   grn, nrm, cyn, buf1,
                   // grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
-                  grn, nrm, cyn, buf2);
+                  grn, nrm, cyn, buf2,
+                  grn, nrm, yel, (obj->restring_identifier && *obj->restring_identifier) ? obj->restring_identifier : "Not Set.");
 
   /* Send first half then build second half of menu. */
 
@@ -2341,6 +2343,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Please enter the level the spell will be cast at (Enter 0 to erase this activated spell): ");
       OLC_MODE(d) = OEDIT_ACTIVATED_SPELLS_LEVEL;
       break;
+    case 'u':
+    case 'U':
+      write_to_output(d, "Enter restring identifier : ");
+      OLC_MODE(d) = OEDIT_RESTRING_ID;
+      break;
     default:
       oedit_disp_menu(d);
       break;
@@ -2374,6 +2381,14 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     if (OLC_OBJ(d)->description)
       free(OLC_OBJ(d)->description);
     OLC_OBJ(d)->description = str_udup(arg);
+    break;
+
+  case OEDIT_RESTRING_ID:
+    if (!genolc_checkstring(d, arg))
+      break;
+    if (OLC_OBJ(d)->restring_identifier)
+      free(OLC_OBJ(d)->restring_identifier);
+    OLC_OBJ(d)->restring_identifier = str_udup(arg);
     break;
 
   case OEDIT_TYPE:

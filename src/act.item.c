@@ -4223,7 +4223,14 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where != WEAR_FINGER_R && where != WEAR_FINGER_L &&
       where != WEAR_EAR_R && where != WEAR_EAR_L &&
       where != WEAR_ANKLE_R && where != WEAR_ANKLE_L &&
-      where != WEAR_EYES && where != WEAR_BADGE && where != WEAR_SHEATH)
+      where != WEAR_EYES && where != WEAR_BADGE && 
+      where != WEAR_SHEATH && where != WEAR_INSTRUMENT &&
+      where != WEAR_CRAFT_SICKLE && where != WEAR_CRAFT_AXE &&
+      where != WEAR_CRAFT_KNIFE && where != WEAR_CRAFT_PICKAXE &&
+      where != WEAR_CRAFT_ALCHEMY && where != WEAR_CRAFT_ARMOR_HAMMER &&
+      where != WEAR_CRAFT_JEWEL_PLIERS && where != WEAR_CRAFT_NEEDLE &&
+      where != WEAR_CRAFT_WEAPON_HAMMER && where != WEAR_ON_BACK
+    )
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
     {

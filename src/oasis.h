@@ -294,6 +294,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OEDIT_RANDOM_APPLY_SLOT 62
 #define OEDIT_ERASE_SLOT 63
 #define OEDIT_SPEC_PROC 64
+#define OEDIT_RESTRING_ID 74
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1

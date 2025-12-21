@@ -233,6 +233,14 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
+  if (obj->restring_identifier)
+  {
+    fprintf(fp, "RtID: %s\n", obj->restring_identifier);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "RtID: %s\n", obj->restring_identifier);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
   if (TEST_OBJS(obj, temp, short_description))
   {
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
@@ -1986,7 +1994,6 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           free(temp->arcane_mark);
         temp->arcane_mark = strdup(line);
       }
-      break;
     case 'C':
       if (!strcmp(tag, "Cost"))
         GET_OBJ_COST(temp) = num;
@@ -2061,6 +2068,12 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'R':
       if (!strcmp(tag, "Rent"))
         GET_OBJ_RENT(temp) = num;
+      else if (!strcmp(tag, "RtID"))
+      {
+        if (temp->restring_identifier)
+          free(temp->restring_identifier);
+        temp->restring_identifier = strdup(line);
+      }
       break;
     case 'S':
       if (!strcmp(tag, "Shrt"))
@@ -2527,6 +2540,8 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       case 'R':
         if (!strcmp(tag, "Rent"))
           GET_OBJ_RENT(temp) = num;
+        else if (!strcmp(tag, "RtID"))
+          temp->restring_identifier = strdup(*line);
         break;
       case 'S':
         if (!strcmp(tag, "Shrt"))

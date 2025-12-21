@@ -2881,6 +2881,10 @@ EVENTFUNC(event_crafting)
       snprintf(buf, sizeof(buf), "$n finishes reforging $p. It is recommended you use the restring command on this object.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
+      /* Save the character to persist restring_identifier and other object changes */
+      save_char(ch, 0);
+      Crash_crashsave(ch);
+
       /* resize system check point -Zusuk */
       autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
 
