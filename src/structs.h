@@ -1611,9 +1611,10 @@
 #define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
 #define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
 #define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
+#define AFF_HIVE_MARKED 125         // marked by Hive Commander - gives +3 DC to further telepathy powers
 
 /*---*/
-#define NUM_AFF_FLAGS 125
+#define NUM_AFF_FLAGS 126
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4024,6 +4025,9 @@
 #define PERK_PSIONICIST_PSYCHIC_SUNDERING      1309
 #define PERK_PSIONICIST_MENTAL_BACKLASH        1310
 #define PERK_PSIONICIST_PIERCING_WILL          1311
+/* Telepathic Control - Tier IV (Capstones) */
+#define PERK_PSIONICIST_ABSOLUTE_GEAS          1312
+#define PERK_PSIONICIST_HIVE_COMMANDER         1313
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)

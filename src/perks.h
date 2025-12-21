@@ -186,6 +186,12 @@ void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict
 int get_psionic_piercing_will_bonus(struct char_data *ch);
 int get_psionic_mental_backlash_damage(struct char_data *ch, int level);
 
+/* Psionicist Telepathic Control Tier IV helpers */
+bool has_psionic_absolute_geas(struct char_data *ch);
+bool has_psionic_hive_commander(struct char_data *ch);
+void apply_absolute_geas_debuffs(struct char_data *ch, struct char_data *vict, int level);
+void apply_hive_commander_mark(struct char_data *ch, struct char_data *vict);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

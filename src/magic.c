@@ -3497,6 +3497,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       apply_psychic_sundering_debuff(ch, victim);
     }
+
+    /* Absolute Geas: telepathy powers have 10% chance to apply debuffs */
+    if (is_spellnum_psionic(spellnum) && psionic_powers[spellnum].power_type == TELEPATHY &&
+        has_psionic_absolute_geas(ch) && dam > 0 && result != -1)
+    {
+      apply_absolute_geas_debuffs(ch, victim, GET_PSIONIC_LEVEL(ch));
+    }
     
     /* Storm Caller: Lightning spells have 25% chance to hit again at half damage */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
@@ -3601,6 +3608,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       dc_mod -= 2;
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
       dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_SOLAMNIA);
+  }
+
+  /* Hive Commander perk: victim marked grants +3 DC bonus to further Telepathy powers */
+  if (ch && victim && is_spellnum_psionic(spellnum) && 
+      psionic_powers[spellnum].power_type == TELEPATHY &&
+      affected_by_spell(victim, SPELL_HIVE_COMMANDER_MARK))
+  {
+    dc_mod += 3;
   }
 
   /* elven drow resistance to certain enchantments such as sleep */
@@ -9890,6 +9905,20 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     menace_af.bonus_type = BONUS_TYPE_UNIVERSAL;
     affect_join(victim, &menace_af, FALSE, FALSE, FALSE, FALSE);
     send_to_char(victim, "\tRYour mind reels from the mental assault - your reflexes falter!\tn\r\n");
+  }
+
+  /* Hive Commander perk - mark target for +3 DC and grant allies +2 to hit */
+  if (ch && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+      psionic_powers[spellnum].power_type == TELEPATHY && has_psionic_hive_commander(ch))
+  {
+    apply_hive_commander_mark(ch, victim);
+  }
+
+  /* Absolute Geas: violent telepathy powers have 10% chance to apply debuffs */
+  if (ch && spell_info[spellnum].violent && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+      psionic_powers[spellnum].power_type == TELEPATHY && has_psionic_absolute_geas(ch))
+  {
+    apply_absolute_geas_debuffs(ch, victim, GET_PSIONIC_LEVEL(ch));
   }
 
   if (HAS_FEAT(ch, FEAT_DRAGON_LINK) && is_riding_dragon_mount(ch) && !recursive_call)

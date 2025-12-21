@@ -859,9 +859,12 @@
 #define PSIONIC_PSYCHOKINETIC_THRASHING 1600
 #define PSIONIC_EPIC_PSIONIC_WARD 1601
 // end epic
+// Tier 4 Perk Affects
+#define SPELL_ABSOLUTE_GEAS 1602
+#define SPELL_HIVE_COMMANDER_MARK 1603
 
 /***************************************/
-#define PSIONIC_POWER_END 1602
+#define PSIONIC_POWER_END 1604
 /***************************************/
 
 /** we're going to start warlock powers at 1649.

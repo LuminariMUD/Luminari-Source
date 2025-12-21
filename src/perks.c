@@ -2087,6 +2087,40 @@ void define_cleric_perks(void)
   perk->effect_value = 5; /* ignore 5 PR */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Telepathy powers ignore 5 PR; stacks with Disruptor perks.");
+
+  /*** TELEPATHIC CONTROL - TIER 4 CAPSTONE PERKS (5 points each) ***/
+
+  /* Absolute Geas */
+  perk = &perk_list[PERK_PSIONICIST_ABSOLUTE_GEAS];
+  perk->id = PERK_PSIONICIST_ABSOLUTE_GEAS;
+  perk->name = strdup("Absolute Geas");
+  perk->description = strdup("When you manifest a hostile Telepathy power against a target, there is a 10% chance it applies shaken, fatigued, and deafened (3 rounds, Will save negates).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PIERCING_WILL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 3; /* 3 round duration */
+  perk->special_description = strdup("Tier 4 Capstone: 10% chance on Telepathy powers applies shaken/fatigued/deafened (Will save negates).");
+
+  /* Hive Commander */
+  perk = &perk_list[PERK_PSIONICIST_HIVE_COMMANDER];
+  perk->id = PERK_PSIONICIST_HIVE_COMMANDER;
+  perk->name = strdup("Hive Commander");
+  perk->description = strdup("On successful hostile Telepathy powers, grant yourself +3 DC to further powers vs that target and +2 to-hit for allies (3 rounds).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PIERCING_WILL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 DC bonus */
+  perk->effect_modifier = 3; /* 3 round duration */
+  perk->special_description = strdup("Tier 4 Capstone: Successful Telepathy powers mark target for +3 DC and grant +2 to-hit to allies.");
   
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
@@ -6674,6 +6708,120 @@ int get_psionic_mental_backlash_damage(struct char_data *ch, int level)
 
   int dmg = 5 + (level / 2);
   return MAX(1, dmg);
+}
+
+/* ===== TIER IV CAPSTONE HELPERS ===== */
+
+bool has_psionic_absolute_geas(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_ABSOLUTE_GEAS);
+}
+
+bool has_psionic_hive_commander(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_HIVE_COMMANDER);
+}
+
+/* Apply random debuffs (shaken, fatigued, silenced) from Absolute Geas */
+void apply_absolute_geas_debuffs(struct char_data *ch, struct char_data *vict, int level)
+{
+  struct affected_type af;
+  int debuff_flags[3] = {AFF_SHAKEN, AFF_FATIGUED, AFF_SILENCED};
+  int i;
+  const char *debuff_descs[3] = {
+    "You feel shaken by the mental assault!",
+    "You feel fatigued by the mental assault!",
+    "You are silenced by the mental assault!"
+  };
+
+  if (!ch || !vict || !has_psionic_absolute_geas(ch))
+    return;
+
+  /* 10% chance roll */
+  if (rand_number(1, 100) > 10)
+    return;
+
+  /* Will save to negate entire effect */
+  if (savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, level, NO_SUBSCHOOL))
+    return;
+
+  /* Apply all three debuffs for 3 rounds (180 ticks) */
+  for (i = 0; i < 3; i++)
+  {
+    new_affect(&af);
+    af.spell = SPELL_ABSOLUTE_GEAS;
+    af.duration = 3;
+    af.location = APPLY_NONE;
+    af.modifier = 0;
+    SET_BIT_AR(af.bitvector, debuff_flags[i]);
+    affect_to_char(vict, &af);
+  }
+
+  send_to_char(vict, "%s\r\n", debuff_descs[rand_number(0, 2)]);
+}
+
+/* Mark a target with Hive Commander bonus: +3 DC to future powers, +2 to hit for allies */
+void apply_hive_commander_mark(struct char_data *ch, struct char_data *vict)
+{
+  struct affected_type af;
+  struct follow_type *f;
+
+  if (!ch || !vict || !has_psionic_hive_commander(ch))
+    return;
+
+  /* Apply +3 DC marker affect to victim */
+  new_affect(&af);
+  af.spell = SPELL_HIVE_COMMANDER_MARK;
+  af.duration = 3;
+  af.location = APPLY_NONE;
+  af.modifier = 0;
+  SET_BIT_AR(af.bitvector, AFF_HIVE_MARKED);
+  affect_to_char(vict, &af);
+
+  send_to_char(vict, "You feel marked by the Hive Commander's psychic link!\r\n");
+  send_to_char(ch, "%s is now marked by your psychic link!\r\n", GET_NAME(vict));
+
+  /* Grant +2 to-hit to caster */
+  new_affect(&af);
+  af.spell = SPELL_HIVE_COMMANDER_MARK;
+  af.duration = 3;
+  af.location = APPLY_HITROLL;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_to_char(ch, &af);
+
+  /* Grant +2 to-hit to leader (if caster is not leader) */
+  if (ch->master)
+  {
+    new_affect(&af);
+    af.spell = SPELL_HIVE_COMMANDER_MARK;
+    af.duration = 3;
+    af.location = APPLY_HITROLL;
+    af.modifier = 2;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_to_char(ch->master, &af);
+  }
+
+  /* Grant to all followers in group */
+  for (f = ch->followers; f; f = f->next)
+  {
+    if (f->follower && f->follower->in_room == ch->in_room && !IS_NPC(f->follower))
+    {
+      new_affect(&af);
+      af.spell = SPELL_HIVE_COMMANDER_MARK;
+      af.duration = 3;
+      af.location = APPLY_HITROLL;
+      af.modifier = 2;
+      af.bonus_type = BONUS_TYPE_MORALE;
+      affect_to_char(f->follower, &af);
+    }
+  }
+
+  send_to_char(ch, "\tY[Hive Commander] Your allies are bolstered!\tn\r\n");
 }
 
 void define_barbarian_perks(void)
