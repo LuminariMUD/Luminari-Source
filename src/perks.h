@@ -192,6 +192,18 @@ bool has_psionic_hive_commander(struct char_data *ch);
 void apply_absolute_geas_debuffs(struct char_data *ch, struct char_data *vict, int level);
 void apply_hive_commander_mark(struct char_data *ch, struct char_data *vict);
 
+/* Psionicist Psychokinetic Arsenal Tier I helpers */
+bool has_kinetic_edge_i(struct char_data *ch);
+bool has_force_screen_adept(struct char_data *ch);
+bool has_vector_shove(struct char_data *ch);
+bool has_energy_specialization(struct char_data *ch);
+int get_kinetic_edge_bonus(struct char_data *ch);
+int get_force_screen_ac_bonus(struct char_data *ch);
+int get_force_screen_duration_bonus(struct char_data *ch);
+int get_vector_shove_movement_bonus(struct char_data *ch);
+int get_vector_shove_damage_bonus(struct char_data *ch);
+int get_energy_specialization_dc_bonus(struct char_data *ch, int element);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

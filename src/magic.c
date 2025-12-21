@@ -1548,6 +1548,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_PUNCTURE;
     num_dice = 1 + GET_AUGMENT_PSP(ch);
+    num_dice += get_kinetic_edge_bonus(ch);
     size_dice = 6;
     bonus = 0;
 
@@ -1621,6 +1622,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 1 + GET_AUGMENT_PSP(ch);
+    num_dice += get_kinetic_edge_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1634,6 +1636,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = DAM_FORCE;
     num_dice = 1 + (GET_AUGMENT_PSP(ch) / 2);
+    num_dice += get_kinetic_edge_bonus(ch);
     size_dice = 6;
     bonus = 0;
     break;
@@ -1643,6 +1646,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 2 + (GET_AUGMENT_PSP(ch) / 2);
+    num_dice += get_kinetic_edge_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1652,7 +1656,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      int extra_force_damage = 0;
       GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+      GET_DC_BONUS(ch) += get_vector_shove_movement_bonus(ch); /* Vector Shove +2 to movement check */
       mag_resist_bonus = (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? -2 : 0;
       if (!savingthrow(ch, victim, energy_type == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
           !power_resistance(ch, victim, mag_resist_bonus) && ((GET_SIZE(victim) - GET_SIZE(ch)) <= 1))
@@ -1664,7 +1670,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         {
           act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
           act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
-          damage(ch, victim, dice(num_dice, size_dice) + bonus, spellnum, DAM_FORCE, FALSE);
+          extra_force_damage = dice(get_vector_shove_damage_bonus(ch), 6); /* +1 die force on success */
+          damage(ch, victim, dice(num_dice, size_dice) + bonus + extra_force_damage, spellnum, DAM_FORCE, FALSE);
         }
       }
     }
@@ -3050,6 +3057,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = get_master_of_elements_override(ch, element);
   }
   
+  /* Apply Energy Specialization DC bonus for energy-type powers */
+  if (!IS_NPC(ch) && (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END))
+  {
+    GET_DC_BONUS(ch) += get_energy_specialization_dc_bonus(ch, element);
+  }
+  
   /* Check for Druid Elemental Mastery */
   if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
       GET_ELEMENTAL_MASTERY_ACTIVE(ch) &&
@@ -4246,7 +4259,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_SHIELD;
     af[0].duration = level * 12;
+    af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
+    af[0].modifier += get_force_screen_ac_bonus(ch);
 
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible shield of force appear in front of you.";
@@ -4289,7 +4304,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_ARMOR;
     af[0].duration = level * 600;
+    af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
+    af[0].modifier += get_force_screen_ac_bonus(ch);
 
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible armor of force surround you.";

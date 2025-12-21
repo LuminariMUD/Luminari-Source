@@ -2121,6 +2121,72 @@ void define_cleric_perks(void)
   perk->effect_value = 3; /* +3 DC bonus */
   perk->effect_modifier = 3; /* 3 round duration */
   perk->special_description = strdup("Tier 4 Capstone: Successful Telepathy powers mark target for +3 DC and grant +2 to-hit to allies.");
+
+  /*** PSYCHOKINETIC ARSENAL - TIER 1 PERKS (1-2 points each) ***/
+
+  /* Kinetic Edge I */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_EDGE_I];
+  perk->id = PERK_PSIONICIST_KINETIC_EDGE_I;
+  perk->name = strdup("Kinetic Edge I");
+  perk->description = strdup("+1 damage die on Psychokinesis blasts (energy ray, crystal shard, energy push, concussion blast) if augmented by >=1 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 damage die */
+  perk->effect_modifier = 1; /* requires augmentation >= 1 */
+  perk->special_description = strdup("Tier 1: +1 damage die on Psychokinesis blasts when augmented by >=1 PSP.");
+
+  /* Force Screen Adept */
+  perk = &perk_list[PERK_PSIONICIST_FORCE_SCREEN_ADEPT];
+  perk->id = PERK_PSIONICIST_FORCE_SCREEN_ADEPT;
+  perk->name = strdup("Force Screen Adept");
+  perk->description = strdup("Inertial armor and force screen grant +1 AC and +10% duration.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 AC */
+  perk->effect_modifier = 10; /* +10% duration */
+  perk->special_description = strdup("Tier 1: Inertial armor/force screen +1 AC and +10% duration.");
+
+  /* Vector Shove */
+  perk = &perk_list[PERK_PSIONICIST_VECTOR_SHOVE];
+  perk->id = PERK_PSIONICIST_VECTOR_SHOVE;
+  perk->name = strdup("Vector Shove");
+  perk->description = strdup("Energy push/telekinetic shoves get +2 to the movement check; on success deal +1 die force damage.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to movement check */
+  perk->effect_modifier = 1; /* +1 die force damage */
+  perk->special_description = strdup("Tier 1: Energy push/telekinetic shoves +2 to movement check; +1 die force on success.");
+
+  /* Energy Specialization */
+  perk = &perk_list[PERK_PSIONICIST_ENERGY_SPECIALIZATION];
+  perk->id = PERK_PSIONICIST_ENERGY_SPECIALIZATION;
+  perk->name = strdup("Energy Specialization");
+  perk->description = strdup("Choose an energy type (fire, cold, electric, acid, sonic, force). Your Psychokinesis powers of that type gain +1 DC.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC */
+  perk->effect_modifier = 0; /* chosen energy type stored elsewhere */
+  perk->special_description = strdup("Tier 1: Choose energy type; Psychokinesis powers of that type gain +1 DC.");
   
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
@@ -6822,6 +6888,92 @@ void apply_hive_commander_mark(struct char_data *ch, struct char_data *vict)
   }
 
   send_to_char(ch, "\tY[Hive Commander] Your allies are bolstered!\tn\r\n");
+}
+
+/* ===== PSYCHOKINETIC ARSENAL TIER I HELPERS ===== */
+
+bool has_kinetic_edge_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_EDGE_I);
+}
+
+bool has_force_screen_adept(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_FORCE_SCREEN_ADEPT);
+}
+
+bool has_vector_shove(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_VECTOR_SHOVE);
+}
+
+bool has_energy_specialization(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_ENERGY_SPECIALIZATION);
+}
+
+/* Returns bonus damage dice for Kinetic Edge I (+1 die when augmented >= 1 PSP) */
+int get_kinetic_edge_bonus(struct char_data *ch)
+{
+  if (!has_kinetic_edge_i(ch))
+    return 0;
+  /* Bonus applies when augmented by >= 1 PSP */
+  if (GET_AUGMENT_PSP(ch) >= 1)
+    return 1; /* +1 damage die */
+  return 0;
+}
+
+/* Returns AC bonus for Force Screen Adept (+1 AC) */
+int get_force_screen_ac_bonus(struct char_data *ch)
+{
+  if (!has_force_screen_adept(ch))
+    return 0;
+  return 1; /* +1 AC */
+}
+
+/* Returns duration bonus percentage for Force Screen Adept (+10% duration) */
+int get_force_screen_duration_bonus(struct char_data *ch)
+{
+  if (!has_force_screen_adept(ch))
+    return 0;
+  return 10; /* +10% duration */
+}
+
+/* Returns movement check bonus for Vector Shove (+2) */
+int get_vector_shove_movement_bonus(struct char_data *ch)
+{
+  if (!has_vector_shove(ch))
+    return 0;
+  return 2; /* +2 to movement check */
+}
+
+/* Returns damage bonus (dice) for Vector Shove (+1 die force damage) */
+int get_vector_shove_damage_bonus(struct char_data *ch)
+{
+  if (!has_vector_shove(ch))
+    return 0;
+  return 1; /* +1 die force damage */
+}
+
+/* Returns DC bonus for Energy Specialization based on chosen element */
+int get_energy_specialization_dc_bonus(struct char_data *ch, int element)
+{
+  if (!has_energy_specialization(ch))
+    return 0;
+  
+  /* Energy Specialization grants +1 DC to powers of the chosen element type */
+  if (element == GET_PSIONIC_ENERGY_TYPE(ch))
+    return 1;
+  
+  return 0;
 }
 
 void define_barbarian_perks(void)

@@ -4028,6 +4028,11 @@
 /* Telepathic Control - Tier IV (Capstones) */
 #define PERK_PSIONICIST_ABSOLUTE_GEAS          1312
 #define PERK_PSIONICIST_HIVE_COMMANDER         1313
+/* Psychokinetic Arsenal - Tier I */
+#define PERK_PSIONICIST_KINETIC_EDGE_I         1314
+#define PERK_PSIONICIST_FORCE_SCREEN_ADEPT    1315
+#define PERK_PSIONICIST_VECTOR_SHOVE           1316
+#define PERK_PSIONICIST_ENERGY_SPECIALIZATION 1317
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
