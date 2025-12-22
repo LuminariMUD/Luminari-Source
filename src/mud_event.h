@@ -216,6 +216,9 @@ typedef enum
   eUNIVERSAL_MUTAGEN_COOLDOWN,      /* Alchemist Universal Mutagen 30-minute lockout */
   eDEFLECTIVE_SCREEN_HIT_THIS_ROUND,/* Psionicist Deflective Screen - first hit DR per round */
   eACCELERATED_MANIFESTATION_USED,  /* Psionicist Accelerated Manifestation - used this combat */
+  eGRAVITY_WELL_USED,               /* Psionicist Gravity Well - used this combat */
+  eSINGULAR_IMPACT_USED,            /* Psionicist Singular Impact - used today */
+  ePERFECT_DEFLECTION_USED,         /* Psionicist Perfect Deflection - used today */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -1657,28 +1657,39 @@ void finishCasting(struct char_data *ch)
   
   /* Bard Spellsinger: Harmonic Casting - chance to not interrupt performance when casting during a song */
   bool harmony_procced = FALSE;
-  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_harmonic_casting(ch))
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch))
   {
-    /* 50% chance to not consume performance round */
-    if (!rand_number(0, 1))
+    if (has_bard_harmonic_casting(ch))
     {
-      harmony_procced = TRUE;
-      send_to_char(ch, "\tCThe harmonious melody flows through your casting, sustaining your song!\tn\r\n");
+      /* 50% chance to not interrupt performance */
+      if (!rand_number(0, 1))
+      {
+        harmony_procced = TRUE;
+        send_to_char(ch, "\tCThe harmonious melody flows through your casting, sustaining your song!\tn\r\n");
+      }
+    }
+    
+    /* If Harmonic Casting didn't proc, casting interrupts the performance */
+    if (!harmony_procced)
+    {
+      IS_PERFORMING(ch) = FALSE;
+      GET_PERFORMING(ch) = -1;
+      GET_PERFORMANCE_VAR(ch, 2) = -1;
+      send_to_char(ch, "\tRYour spellcasting interrupts your performance!\tn\r\n");
+      act("$n's performance falters as $e casts a spell.", TRUE, ch, 0, 0, TO_ROOM);
     }
   }
 
   /* Bard Spellsinger: Crescendo - bonus to first spell after starting song */
-  bool crescendo_active = FALSE;
   if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_crescendo(ch))
   {
-    /* Check if this is the first spell cast after starting a song (check performance_vars) */
-    if (ch->char_specials.performance_vars[0] == 0)
+    /* Check if this is the first spell cast after starting a song (check performance_vars[3]) */
+    if (ch->char_specials.performance_vars[3] == 0)
     {
       /* Mark that we've used the crescendo bonus this performance */
-      ch->char_specials.performance_vars[0] = 1;
-      crescendo_active = TRUE;
-      /* Store sonic damage dice value for this spell */
-      ch->char_specials.performance_vars[1] = get_bard_crescendo_sonic_damage(ch); /* 1d6 sonic */
+      ch->char_specials.performance_vars[3] = 1;
+      /* Store sonic damage dice value for this spell in performance_vars[4] */
+      ch->char_specials.performance_vars[4] = get_bard_crescendo_sonic_damage(ch); /* 1d6 sonic */
       GET_DC_BONUS(ch) += get_bard_crescendo_dc_bonus(ch); /* +2 DC */
       send_to_char(ch, "\tYYour spell reaches a crescendo of power!\tn\r\n");
     }

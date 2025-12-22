@@ -1179,6 +1179,12 @@ ACMD_DECL(do_psionic_focus);
 ACMDCHECK(can_psionic_focus);
 ACMD_DECL(do_double_manifest);
 ACMDCHECK(can_double_manifest);
+ACMD_DECL(do_gravity_well);
+ACMDCHECK(can_gravity_well);
+ACMD_DECL(do_singular_impact);
+ACMDCHECK(can_singular_impact);
+ACMD_DECL(do_perfect_deflection);
+ACMDCHECK(can_perfect_deflection);
 
 // dragon riders
 ACMD_DECL(do_deadly_power);

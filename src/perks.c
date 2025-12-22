@@ -28,6 +28,9 @@
 
 #include "spells.h"
 #include "psionics.h"
+#include "fight.h"
+#include "act.h"
+#include "fight.h"
 
 #include "interpreter.h"
 #include "constants.h"
@@ -2253,6 +2256,106 @@ void define_cleric_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Tier 2: Reflect level-based energy damage when hit in melee while shield/armor/retort is active.");
+
+  /*** PSYCHOKINETIC ARSENAL - TIER 3 PERKS (3 points each) ***/
+
+  /* Kinetic Edge III */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_EDGE_III];
+  perk->id = PERK_PSIONICIST_KINETIC_EDGE_III;
+  perk->name = strdup("Kinetic Edge III");
+  perk->description = strdup("Total +3 dice on Psychokinesis blasts; energy ray/energy push gain +2 DC.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_KINETIC_EDGE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* total +3 dice (combined with Tier I and II) */
+  perk->effect_modifier = 2; /* +2 DC to energy ray/push */
+  perk->special_description = strdup("Tier 3: Psychokinesis blasts reach +3 dice total; energy ray/push +2 DC.");
+
+  /* Gravity Well */
+  perk = &perk_list[PERK_PSIONICIST_GRAVITY_WELL];
+  perk->id = PERK_PSIONICIST_GRAVITY_WELL;
+  perk->name = strdup("Gravity Well");
+  perk->description = strdup("Once per combat, create an AoE effect that halves speed and prevents fleeing (Reflex negates each round); lasts 3 rounds.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3 round duration */
+  perk->effect_modifier = 50; /* 50% speed reduction */
+  perk->special_description = strdup("Tier 3: Once/combat AoE gravity field halves speed, prevents fleeing (Reflex negates/round, 3 rounds).");
+
+  /* Force Aegis */
+  perk = &perk_list[PERK_PSIONICIST_FORCE_AEGIS];
+  perk->id = PERK_PSIONICIST_FORCE_AEGIS;
+  perk->name = strdup("Force Aegis");
+  perk->description = strdup("+3 AC vs ranged/spells while force screen/inertial armor active; gain temp HP = manifester level on cast.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_DEFLECTIVE_SCREEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 AC vs ranged/spells */
+  perk->effect_modifier = 1; /* temp HP = manifester level */
+  perk->special_description = strdup("Tier 3: +3 AC (ranged/spells) while shield/armor active; gain temp HP = manifester level on cast.");
+
+  /* Kinetic Crush */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_CRUSH];
+  perk->id = PERK_PSIONICIST_KINETIC_CRUSH;
+  perk->name = strdup("Kinetic Crush");
+  perk->description = strdup("Forced-movement powers add prone on failed Reflex; if target collides, take extra force damage = manifester level.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_VECTOR_SHOVE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* prone on failed save */
+  perk->effect_modifier = 1; /* collision damage = manifester level */
+  perk->special_description = strdup("Tier 3: Forced-movement powers prone on failed Reflex; collision adds force damage = manifester level.");
+
+  /*** PSYCHOKINETIC ARSENAL - TIER 4 PERKS (Capstones - 5 points each) ***/
+
+  /* Singular Impact */
+  perk = &perk_list[PERK_PSIONICIST_SINGULAR_IMPACT];
+  perk->id = PERK_PSIONICIST_SINGULAR_IMPACT;
+  perk->name = strdup("Singular Impact");
+  perk->description = strdup("1/day Psychokinesis strike: heavy force damage, auto-bull rush, and stun 1 round (Fort partial: half damage, no stun).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_KINETIC_EDGE_III;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1 round stun */
+  perk->effect_modifier = 1; /* 1/day usage */
+  perk->special_description = strdup("Tier 4 Capstone: 1/day heavy force strike with auto-bull rush and stun (Fort partial).");
+
+  /* Perfect Deflection */
+  perk = &perk_list[PERK_PSIONICIST_PERFECT_DEFLECTION];
+  perk->id = PERK_PSIONICIST_PERFECT_DEFLECTION;
+  perk->name = strdup("Perfect Deflection");
+  perk->description = strdup("1/day reaction: negate one ranged/spell/psionic attack against you and reflect it using your casting stat vs the original attacker.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FORCE_AEGIS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1/day usage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 4 Capstone: 1/day reaction negate and reflect one ranged/spell/psionic attack.");
 
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
@@ -7097,6 +7200,198 @@ int get_energy_retort_bonus_damage(struct char_data *victim)
   int ndice = MAX(1, lvl / 5) + (aug >= 1 ? 1 : 0);
   /* use d6s */
   return dice(ndice, 6);
+}
+
+/* ===== Tier 3 Psychokinetic Arsenal helper implementations ===== */
+
+bool has_kinetic_edge_iii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_EDGE_III);
+}
+
+/* Returns additional +1 die when has tier III (total +3 with Tier I and II) */
+int get_kinetic_edge_iii_bonus(struct char_data *ch)
+{
+  if (!has_kinetic_edge_iii(ch))
+    return 0;
+  return 1;
+}
+
+/* Returns +2 DC bonus for energy ray and energy push powers */
+int get_kinetic_edge_iii_dc_bonus(struct char_data *ch, int spellnum)
+{
+  if (!has_kinetic_edge_iii(ch))
+    return 0;
+  
+  if (spellnum == PSIONIC_ENERGY_RAY || spellnum == PSIONIC_ENERGY_PUSH)
+    return 2;
+  
+  return 0;
+}
+
+bool has_gravity_well(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_GRAVITY_WELL);
+}
+
+bool can_use_gravity_well(struct char_data *ch)
+{
+  if (!has_gravity_well(ch))
+    return FALSE;
+  
+  /* Check if already used this combat */
+  if (char_has_mud_event(ch, eGRAVITY_WELL_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_gravity_well(struct char_data *ch)
+{
+  if (!can_use_gravity_well(ch))
+    return;
+  
+  /* Mark as used for this combat - will clear on combat end */
+  attach_mud_event(new_mud_event(eGRAVITY_WELL_USED, ch, NULL), 0);
+}
+
+bool has_force_aegis(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_FORCE_AEGIS);
+}
+
+int get_force_aegis_ranged_ac_bonus(struct char_data *ch)
+{
+  if (!has_force_aegis(ch))
+    return 0;
+  
+  /* Check if force screen or inertial armor is active */
+  if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN) || 
+      affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR))
+    return 3;
+  
+  return 0;
+}
+
+int get_force_aegis_temp_hp_bonus(struct char_data *ch)
+{
+  if (!has_force_aegis(ch))
+    return 0;
+  
+  return GET_PSIONIC_LEVEL(ch);
+}
+
+bool has_kinetic_crush(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_CRUSH);
+}
+
+bool should_apply_kinetic_crush_prone(struct char_data *ch)
+{
+  return has_kinetic_crush(ch);
+}
+
+int get_kinetic_crush_collision_damage(struct char_data *ch)
+{
+  if (!has_kinetic_crush(ch))
+    return 0;
+  
+  return GET_PSIONIC_LEVEL(ch);
+}
+
+/* ===== Tier 4 Psychokinetic Arsenal helper implementations ===== */
+
+bool has_singular_impact(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SINGULAR_IMPACT);
+}
+
+bool can_use_singular_impact(struct char_data *ch)
+{
+  if (!has_singular_impact(ch))
+    return FALSE;
+  
+  /* Check if already used today */
+  if (char_has_mud_event(ch, eSINGULAR_IMPACT_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_singular_impact(struct char_data *ch, struct char_data *victim)
+{
+  int dam;
+  struct affected_type af;
+  
+  if (!can_use_singular_impact(ch))
+    return;
+  
+  /* Calculate heavy force damage: scales with manifester level */
+  dam = dice(GET_PSIONIC_LEVEL(ch) / 2, 10) + GET_INT(ch);
+  
+  send_to_char(ch, "\tWYou channel your psychokinetic power into a singular devastating impact!\tn\r\n");
+  act("$n \tWunleashes a devastating psychokinetic blast at $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+  act("$n \tWunleashes a devastating psychokinetic blast at you!\tn", FALSE, ch, 0, victim, TO_VICT);
+  
+  /* Apply damage */
+  damage(ch, victim, dam, PSIONIC_ENERGY_RAY, DAM_FORCE, FALSE);
+  
+  /* Auto bull rush - push back */
+  if (victim && GET_POS(victim) > POS_DEAD && !MOB_FLAGGED(victim, MOB_NOBASH))
+  {
+    send_to_char(victim, "The force of the blast hurls you backwards!\r\n");
+    change_position(victim, POS_SITTING);
+  }
+  
+  /* Apply stun on failed Fort save (50% chance or save negates) */
+  if (victim && GET_POS(victim) > POS_DEAD)
+  {
+    if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_PSIONIC_LEVEL(ch), PSYCHOKINESIS))
+    {
+      new_affect(&af);
+      af.spell = PSIONIC_ENERGY_STUN; /* Use existing psionic stun spell */
+      af.duration = 10; /* 1 round */
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+      affect_to_char(victim, &af);
+      send_to_char(victim, "You are \tRstunned\tn by the impact!\r\n");
+    }
+    else
+    {
+      send_to_char(victim, "You manage to resist the stunning effect!\r\n");
+    }
+  }
+  
+  /* Mark as used for the day */
+  attach_mud_event(new_mud_event(eSINGULAR_IMPACT_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC); /* 24 hours */
+}
+
+bool has_perfect_deflection(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_PERFECT_DEFLECTION);
+}
+
+bool can_use_perfect_deflection(struct char_data *ch)
+{
+  if (!has_perfect_deflection(ch))
+    return FALSE;
+  
+  /* Check if already used today */
+  if (char_has_mud_event(ch, ePERFECT_DEFLECTION_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_perfect_deflection(struct char_data *ch)
+{
+  if (!can_use_perfect_deflection(ch))
+    return;
+  
+  /* The actual reflection logic will be handled in the attack code */
+  /* This just marks it as used */
+  attach_mud_event(new_mud_event(ePERFECT_DEFLECTION_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC); /* 24 hours */
+  
+  send_to_char(ch, "\tCYou prepare to deflect the next attack against you!\tn\r\n");
 }
 
 void define_barbarian_perks(void)

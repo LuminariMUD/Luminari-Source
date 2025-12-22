@@ -862,9 +862,11 @@
 // Tier 4 Perk Affects
 #define SPELL_ABSOLUTE_GEAS 1602
 #define SPELL_HIVE_COMMANDER_MARK 1603
+// Tier 3 Perk Powers
+#define PSIONIC_GRAVITY_WELL 1604
 
 /***************************************/
-#define PSIONIC_POWER_END 1604
+#define PSIONIC_POWER_END 1605
 /***************************************/
 
 /** we're going to start warlock powers at 1649.

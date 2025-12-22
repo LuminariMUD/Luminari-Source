@@ -218,6 +218,32 @@ bool has_accelerated_manifestation(struct char_data *ch);
 bool has_energy_retort_perk(struct char_data *ch);
 int get_energy_retort_bonus_damage(struct char_data *victim);
 
+/* Tier 3 Psychokinetic Arsenal helpers */
+bool has_kinetic_edge_iii(struct char_data *ch);
+int get_kinetic_edge_iii_bonus(struct char_data *ch);
+int get_kinetic_edge_iii_dc_bonus(struct char_data *ch, int spellnum);
+
+bool has_gravity_well(struct char_data *ch);
+bool can_use_gravity_well(struct char_data *ch);
+void use_gravity_well(struct char_data *ch);
+
+bool has_force_aegis(struct char_data *ch);
+int get_force_aegis_ranged_ac_bonus(struct char_data *ch);
+int get_force_aegis_temp_hp_bonus(struct char_data *ch);
+
+bool has_kinetic_crush(struct char_data *ch);
+bool should_apply_kinetic_crush_prone(struct char_data *ch);
+int get_kinetic_crush_collision_damage(struct char_data *ch);
+
+/* Tier 4 Psychokinetic Arsenal helpers */
+bool has_singular_impact(struct char_data *ch);
+bool can_use_singular_impact(struct char_data *ch);
+void use_singular_impact(struct char_data *ch, struct char_data *victim);
+
+bool has_perfect_deflection(struct char_data *ch);
+bool can_use_perfect_deflection(struct char_data *ch);
+void use_perfect_deflection(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

@@ -1612,9 +1612,10 @@
 #define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
 #define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
 #define AFF_HIVE_MARKED 125         // marked by Hive Commander - gives +3 DC to further telepathy powers
+#define AFF_PERFECT_DEFLECTION_ACTIVE 126    // ready to deflect next attack (Psionicist Perfect Deflection)
 
 /*---*/
-#define NUM_AFF_FLAGS 126
+#define NUM_AFF_FLAGS 127
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4038,6 +4039,14 @@
 #define PERK_PSIONICIST_DEFLECTIVE_SCREEN      1319
 #define PERK_PSIONICIST_ACCELERATED_MANIFEST   1320
 #define PERK_PSIONICIST_ENERGY_RETORT_PERK     1321
+/* Psychokinetic Arsenal - Tier III */
+#define PERK_PSIONICIST_KINETIC_EDGE_III       1322
+#define PERK_PSIONICIST_GRAVITY_WELL           1323
+#define PERK_PSIONICIST_FORCE_AEGIS            1324
+#define PERK_PSIONICIST_KINETIC_CRUSH          1325
+/* Psychokinetic Arsenal - Tier IV (Capstones) */
+#define PERK_PSIONICIST_SINGULAR_IMPACT        1326
+#define PERK_PSIONICIST_PERFECT_DEFLECTION     1327
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)

@@ -19,6 +19,7 @@
 #include "handler.h"
 #include "db.h"
 #include "spells.h"
+#include "psionics.h"
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"
@@ -42,6 +43,167 @@
 extern char cast_arg2[MAX_INPUT_LENGTH];
 
 int roll_initiative(struct char_data *ch);
+
+/* ============================================================================
+ * PSIONICIST PERK ABILITIES
+ * ============================================================================ */
+
+ACMDCHECK(can_gravity_well)
+{
+  if (!has_gravity_well(ch))
+  {
+    ACMD_ERRORMSG("You don't know how to create a gravity well!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  if (!can_use_gravity_well(ch))
+  {
+    ACMD_ERRORMSG("You can only use gravity well once per combat!\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  if (GET_PSP(ch) < 5)
+  {
+    ACMD_ERRORMSG("You need at least 5 psionic spell points to create a gravity well.\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  return CAN_CMD;
+}
+
+ACMD(do_gravity_well)
+{
+  struct char_data *tch = NULL;
+  int cost = 5;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_gravity_well);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  send_to_char(ch, "\tCYou create a powerful \tWgravity well\tC, distorting space around you!\tn\r\n");
+  act("$n creates a powerful gravity well, distorting space around everyone!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Apply gravity well effect to all enemies in room */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch || !aoeOK(ch, tch, -1))
+      continue;
+
+    if (savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, GET_PSIONIC_LEVEL(ch), PSYCHOKINESIS))
+    {
+      send_to_char(tch, "You feel a pull from gravity but manage to resist!\r\n");
+      continue;
+    }
+
+    /* Apply gravity well effect: halve speed, prevent fleeing */
+    send_to_char(tch, "\tCYou are caught in a \tWgravity well\tC!\tn\r\n");
+    GET_MOVE(tch) = MAX(0, GET_MOVE(tch) / 2);
+
+    /* Add a temporary affect to prevent fleeing for 3 rounds */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SKILL_TRIP; /* Using trip as placeholder for immobilization */
+    af.duration = 30;      /* 3 rounds */
+    af.modifier = 1;       /* Mark as gravity well effect */
+    affect_to_char(tch, &af);
+  }
+
+  /* Consume PSP and mark as used */
+  GET_PSP(ch) -= cost;
+  use_gravity_well(ch);
+
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_singular_impact)
+{
+  if (!has_singular_impact(ch))
+  {
+    ACMD_ERRORMSG("You don't know how to channel a singular impact!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  if (!can_use_singular_impact(ch))
+  {
+    ACMD_ERRORMSG("You can only use singular impact once per day!\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  if (GET_PSP(ch) < 10)
+  {
+    ACMD_ERRORMSG("You need at least 10 psionic spell points to perform a singular impact.\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  return CAN_CMD;
+}
+
+ACMD(do_singular_impact)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  int cost = 10;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_singular_impact);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Use singular impact on whom?\r\n");
+    return;
+  }
+
+  /* Perform the singular impact */
+  use_singular_impact(ch, vict);
+
+  /* Consume PSP */
+  GET_PSP(ch) -= cost;
+
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_perfect_deflection)
+{
+  if (!has_perfect_deflection(ch))
+  {
+    ACMD_ERRORMSG("You don't know how to perform perfect deflection!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  if (!can_use_perfect_deflection(ch))
+  {
+    ACMD_ERRORMSG("You can only use perfect deflection once per day!\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  return CAN_CMD;
+}
+
+ACMD(do_perfect_deflection)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_perfect_deflection);
+
+  send_to_char(ch, "\tCYou prepare to deflect the next incoming attack with perfect precision!\tn\r\n");
+  act("$n takes a defensive stance, prepared to deflect the next attack!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Mark as active and used */
+  use_perfect_deflection(ch);
+
+  /* Set a flag indicating perfect deflection is active (until next round or attack) */
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_PERFECT_DEFLECTION_ACTIVE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
 /* Returns true if the Avatar of the Elements granted a free ki use (25% chance)
  * Caller should still ensure the player had a ki point available before calling. */
 static bool avatar_consumes_ki_free(struct char_data *ch)

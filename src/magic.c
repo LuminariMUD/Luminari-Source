@@ -1550,6 +1550,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     num_dice += get_kinetic_edge_bonus(ch);
     num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     bonus = 0;
 
@@ -1625,11 +1626,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     num_dice += get_kinetic_edge_bonus(ch);
     num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
       bonus = (energy_type != DAM_ELECTRIC && energy_type != DAM_SOUND) ? num_dice : 0;
     }
+    
+    /* Kinetic Edge III: +2 DC for energy ray */
+    GET_DC_BONUS(ch) += get_kinetic_edge_iii_dc_bonus(ch, PSIONIC_ENERGY_RAY);
 
     break;
 
@@ -1640,6 +1645,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1 + (GET_AUGMENT_PSP(ch) / 2);
     num_dice += get_kinetic_edge_bonus(ch);
     num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     bonus = 0;
     break;
@@ -1651,6 +1657,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 2 + (GET_AUGMENT_PSP(ch) / 2);
     num_dice += get_kinetic_edge_bonus(ch);
     num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1658,6 +1665,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    /* Kinetic Edge III: +2 DC for energy push */
+    GET_DC_BONUS(ch) += get_kinetic_edge_iii_dc_bonus(ch, PSIONIC_ENERGY_PUSH);
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
       int extra_force_damage = 0;
@@ -1667,14 +1676,27 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       if (!savingthrow(ch, victim, energy_type == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
           !power_resistance(ch, victim, mag_resist_bonus) && ((GET_SIZE(victim) - GET_SIZE(ch)) <= 1))
       {
-        change_position(victim, POS_SITTING);
-        act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+        /* Kinetic Crush: enhanced prone effect on failed save */
+        if (has_kinetic_crush(ch) && !MOB_FLAGGED(victim, MOB_NOBASH))
+        {
+          change_position(victim, POS_RESTING); /* more severe knockdown */
+          act("The kinetic force \tRslams you prone\tn with devastating effect!", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n is \tRslammed prone\tn by the kinetic force!", TRUE, victim, 0, ch, TO_ROOM);
+        }
+        else
+        {
+          change_position(victim, POS_SITTING);
+          act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+        }
+        
         if (!OUTDOORS(victim))
         {
           act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
           act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
           extra_force_damage = dice(get_vector_shove_damage_bonus(ch), 6); /* +1 die force on success */
+          /* Kinetic Crush: add collision damage = manifester level */
+          extra_force_damage += get_kinetic_crush_collision_damage(ch);
           damage(ch, victim, dice(num_dice, size_dice) + bonus + extra_force_damage, spellnum, DAM_FORCE, FALSE);
         }
       }
@@ -1748,6 +1770,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 5 + GET_AUGMENT_PSP(ch);
     /* Kinetic Edge II: splash +1 die */
     num_dice += get_kinetic_edge_ii_bonus(ch);
+    /* Kinetic Edge III: splash +1 die (total +2 with Tier II) */
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 8;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -3496,10 +3520,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     /* Bard Spellsinger: Crescendo - add sonic damage to first spell after song */
     int crescendo_sonic_dam = 0;
-    if (!IS_NPC(ch) && ch->char_specials.performance_vars[1] > 0)
+    if (!IS_NPC(ch) && ch->char_specials.performance_vars[4] > 0)
     {
-      crescendo_sonic_dam = dice(ch->char_specials.performance_vars[1], 6); /* 1d6 sonic damage */
-      ch->char_specials.performance_vars[1] = 0; /* Reset after use */
+      crescendo_sonic_dam = dice(ch->char_specials.performance_vars[4], 6); /* 1d6 sonic damage */
+      ch->char_specials.performance_vars[4] = 0; /* Reset after use */
     }
     
     int result = damage(ch, victim, dam, spellnum, element, FALSE);
@@ -4268,6 +4292,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
     af[0].modifier += get_force_screen_ac_bonus(ch);
+    /* Force Aegis: +3 AC vs ranged/spells */
+    af[0].modifier += get_force_aegis_ranged_ac_bonus(ch);
+    
     /* Deflective Screen: +2 Reflex while active */
     if (has_deflective_screen(ch))
     {
@@ -4275,6 +4302,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       af[1].bonus_type = BONUS_TYPE_RESISTANCE;
       af[1].duration = af[0].duration;
       af[1].modifier = get_deflective_screen_reflex_bonus(ch);
+    }
+
+    /* Force Aegis: grant temp HP = manifester level */
+    if (has_force_aegis(ch))
+    {
+      int temp_hp = get_force_aegis_temp_hp_bonus(ch);
+      GET_HIT(ch) += temp_hp;
+      send_to_char(ch, "You gain %d temporary hit points!\r\n", temp_hp);
     }
 
     accum_duration = accum_affect = FALSE;
@@ -4321,6 +4356,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
     af[0].modifier += get_force_screen_ac_bonus(ch);
+    /* Force Aegis: +3 AC vs ranged/spells */
+    af[0].modifier += get_force_aegis_ranged_ac_bonus(ch);
+    
     /* Deflective Screen: +2 Reflex while active */
     if (has_deflective_screen(ch))
     {
@@ -4328,6 +4366,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       af[1].bonus_type = BONUS_TYPE_RESISTANCE;
       af[1].duration = af[0].duration;
       af[1].modifier = get_deflective_screen_reflex_bonus(ch);
+    }
+
+    /* Force Aegis: grant temp HP = manifester level */
+    if (has_force_aegis(ch))
+    {
+      int temp_hp = get_force_aegis_temp_hp_bonus(ch);
+      GET_HIT(ch) += temp_hp;
+      send_to_char(ch, "You gain %d temporary hit points!\r\n", temp_hp);
     }
 
     accum_duration = accum_affect = FALSE;

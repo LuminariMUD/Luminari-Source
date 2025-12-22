@@ -10804,6 +10804,24 @@ int attack_roll(struct char_data *ch,     /* Attacker */
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
+  /* Perfect Deflection: negate one incoming ranged/bomb attack and reflect force damage */
+  if (victim && AFF_FLAGGED(victim, AFF_PERFECT_DEFLECTION_ACTIVE) &&
+      (attack_type == ATTACK_TYPE_RANGED || attack_type == ATTACK_TYPE_BOMB_TOSS))
+  {
+    /* consume the stance */
+    REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_PERFECT_DEFLECTION_ACTIVE);
+
+    send_to_char(victim, "\tCYou perfectly deflect the incoming attack!\tn\r\n");
+    act("$n angles the attack aside and redirects it!", FALSE, victim, 0, ch, TO_ROOM);
+    act("Your attack is turned back on you!", FALSE, victim, 0, ch, TO_VICT);
+
+    /* reflect force damage back to the attacker */
+    damage(victim, ch, dice(MAX(1, GET_LEVEL(victim) / 2), 6) + MAX(0, GET_INT_BONUS(victim)),
+           PSIONIC_ENERGY_RAY, DAM_FORCE, FALSE);
+
+    return -1; /* treated as a miss/negated */
+  }
+
   /* Deflective Screen: +2 AC vs ranged while shield/armor active */
   if (attack_type == ATTACK_TYPE_RANGED)
   {

@@ -452,10 +452,11 @@ ACMD(do_perform)
           {
             GET_PERFORMANCE_VAR(ch, 2) = -1; /* -1 means no second performance */
           }
+        
+        /* Bard Spellsinger: Reset Crescendo flags when starting a new performance */
+        ch->char_specials.performance_vars[3] = 0; /* Crescendo used flag */
+        ch->char_specials.performance_vars[4] = 0; /* Crescendo damage dice */
 #endif
-
-        /* Bard Spellsinger: Reset Crescendo flag when starting a new performance */
-        ch->char_specials.performance_vars[0] = 0;
 
         if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
           USE_MOVE_ACTION(ch);

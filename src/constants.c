@@ -1861,6 +1861,7 @@ const char *affected_bits[] = {
     "Encased-in-Ice",
     "Nextattack-Stun",
     "Hive-Marked",
+    "Perfect-Deflection-Ready",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1998,6 +1999,7 @@ const char *affected_bit_descs[] = {
     "You are encased in ice and paralyzed! (Immune to cold, DR 5/-)",
     "Your next attack will carry overwhelming force!",
     "You have been marked by a Hive Commander's psychic link!",
+    "You are prepared to perfectly deflect the next ranged attack and reflect it!",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
