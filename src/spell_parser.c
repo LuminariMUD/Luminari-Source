@@ -70,6 +70,9 @@ struct syllable
   const char *org;
   const char *news;
 };
+
+/* Tracks a single-cast Perfect Fabricator activation across do_gen_cast -> cast_spell */
+static bool perfect_fabricator_flag = FALSE;
 static struct syllable syls[] = {
     {" ", " "},
     {"ar", "abra"},
@@ -2197,6 +2200,14 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   int casting_time = 0;
   bool quickened = FALSE;
   int clevel = 0;
+  bool perfect_fabricator_active = FALSE; /* Track Perfect Fabricator usage across this cast */
+
+  /* Pull through Perfect Fabricator state from do_gen_cast (if any) */
+  if (perfect_fabricator_flag)
+  {
+    perfect_fabricator_active = TRUE;
+    perfect_fabricator_flag = FALSE; /* consume the flag */
+  }
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
   {
@@ -2516,6 +2527,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       send_to_char(ch, "Your manifesting of '%s' speeds up a step.\r\n", spell_info[spellnum].name);
     }
 
+    /* Perfect Fabricator: manifests as swift action (already marked as used in PSP cost section) */
+    if (!quickened && perfect_fabricator_active)
+    {
+      quickened = TRUE;
+      send_to_char(ch, "\tM[Perfect Fabricator] Power manifests as a swift action!\tn\r\n");
+    }
+
     if (quickened)
     {
       if (!is_action_available(ch, atSWIFT, FALSE))
@@ -2787,6 +2805,7 @@ ACMDU(do_gen_cast)
   struct affected_type af;
   int class_num = CLASS_UNDEFINED;
   int circle = 99, school = 0;
+  bool perfect_fabricator_active = FALSE; /* Track Perfect Fabricator usage for psionic powers */
 
   if (IS_NPC(ch))
   {
@@ -3285,27 +3304,39 @@ return;
     // then adjust it to the specifications of the level and power used
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
 
+    /* Perfect Fabricator: Free (0 PSP) Metacreative power once per day */
+    if (!IS_NPC(ch) && can_use_perfect_fabricator(ch) && psionic_powers[spellnum].power_type == METACREATIVITY)
+    {
+      perfect_fabricator_active = TRUE;
+      perfect_fabricator_flag = TRUE; /* carry into cast_spell */
+      send_to_char(ch, "\tM[Perfect Fabricator] Power manifested for free (0 PSP)!\tn\r\n");
+    }
+
     if (!IS_NPC(ch))
     {
-      // we mainly separate the next two checks for the different messages to characters
-      /* Accelerated Manifestation: effective PSP cost reduction by 2 (min 1), once per combat */
       int effective_psp_cost = psionic_powers[spellnum].psp_cost;
-      if (has_accelerated_manifestation(ch) && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      
+      /* If Perfect Fabricator is active, set cost to 0 */
+      if (perfect_fabricator_active)
+      {
+        effective_psp_cost = 0;
+      }
+      /* Accelerated Manifestation: effective PSP cost reduction by 2 (min 1), once per combat */
+      else if (has_accelerated_manifestation(ch) && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
       {
         if (psionic_powers[spellnum].power_type == PSYCHOKINESIS)
         {
           effective_psp_cost = MAX(1, effective_psp_cost - 2);
-              /* Ectoplasmic Artisan I: Metacreativity PSP cost reduction -1 (min 1), once per encounter */
-              if (can_use_ectoplasmic_artisan_psp_reduction(ch))
-              {
-                if (psionic_powers[spellnum].power_type == METACREATIVITY)
-                {
-                  int reduction = get_ectoplasmic_artisan_psp_reduction(ch);
-                  effective_psp_cost = MAX(1, effective_psp_cost - reduction);
-                  send_to_char(ch, "\tM[Ectoplasmic Artisan: PSP cost reduced!]\tn\r\n");
-                }
-              }
-
+        }
+      }
+      /* Ectoplasmic Artisan I/II/III: Metacreativity PSP cost reduction (once per encounter) */
+      if (!perfect_fabricator_active && can_use_ectoplasmic_artisan_psp_reduction(ch))
+      {
+        if (psionic_powers[spellnum].power_type == METACREATIVITY)
+        {
+          int reduction = get_ectoplasmic_artisan_psp_reduction(ch);
+          effective_psp_cost = MAX(1, effective_psp_cost - reduction);
+          send_to_char(ch, "\tM[Ectoplasmic Artisan: PSP cost reduced!]\tn\r\n");
         }
       }
 
@@ -3323,18 +3354,22 @@ return;
       // All is well, deduct the psp and augment psp
       GET_PSP(ch) -= (effective_psp_cost + GET_AUGMENT_PSP(ch));
 
+      /* Mark Perfect Fabricator as used (daily) */
+      if (perfect_fabricator_active)
+      {
+        use_perfect_fabricator(ch);
+      }
       /* Mark Accelerated Manifestation as used (per combat) */
-      if (effective_psp_cost < psionic_powers[spellnum].psp_cost && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
-            /* Mark Ectoplasmic Artisan as used (per encounter) if it was used for this power */
-            if (psionic_powers[spellnum].power_type == METACREATIVITY && 
-                effective_psp_cost < psionic_powers[spellnum].psp_cost && 
-                can_use_ectoplasmic_artisan_psp_reduction(ch))
-            {
-              use_ectoplasmic_artisan_psp_reduction(ch);
-            }
-
+      else if (effective_psp_cost < psionic_powers[spellnum].psp_cost && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
       {
         attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL), 10 * PASSES_PER_SEC);
+      }
+      /* Mark Ectoplasmic Artisan as used (per encounter) if it was used for this power */
+      if (!perfect_fabricator_active && psionic_powers[spellnum].power_type == METACREATIVITY && 
+          effective_psp_cost < psionic_powers[spellnum].psp_cost && 
+          can_use_ectoplasmic_artisan_psp_reduction(ch))
+      {
+        use_ectoplasmic_artisan_psp_reduction(ch);
       }
 
       // many powers only benefit from certain intervals of augment psp such

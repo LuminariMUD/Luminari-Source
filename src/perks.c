@@ -281,6 +281,172 @@ void define_psionicist_perks(void)
   perk->effect_value = -2; /* -2 AC */
   perk->effect_modifier = 2; /* 2 round duration */
   perk->special_description = strdup("Telepathy debuffs apply -2 AC for 2 rounds.");
+
+  /*** METACREATIVE GENIUS - TIER II PERKS ***/
+
+  /* Ectoplasmic Artisan II */
+  perk = &perk_list[PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II];
+  perk->id = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II;
+  perk->name = strdup("Ectoplasmic Artisan II");
+  perk->description = strdup("Total –2 PSP (min 1) once per encounter; +20% duration on metacreative buffs.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Total PSP reduction */
+  perk->effect_modifier = 20; /* 20% duration bonus */
+  perk->special_description = strdup("Tier 2: Metacreativity PSP cost -2 (once/encounter); +20% buff duration.");
+
+  /* Shardstorm */
+  perk = &perk_list[PERK_PSIONICIST_SHARDSTORM];
+  perk->id = PERK_PSIONICIST_SHARDSTORM;
+  perk->name = strdup("Shardstorm");
+  perk->description = strdup("Crystal shard converts to AoE when augmented ≥4 PSP; applies bleed rider on hit.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SHARD_VOLLEY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* Requires ≥4 PSP */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Crystal shard becomes room-wide AoE when augmented ≥4 PSP; applies bleed on Fort fail.");
+
+  /* Hardened Constructs II */
+  perk = &perk_list[PERK_PSIONICIST_HARDENED_CONSTRUCTS_II];
+  perk->id = PERK_PSIONICIST_HARDENED_CONSTRUCTS_II;
+  perk->name = strdup("Hardened Constructs II");
+  perk->description = strdup("Summons/creations gain +2 AC, DR 2/—, and attacks count as magic for DR.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_HARDENED_CONSTRUCTS_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC, DR 2 */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Summons gain +2 AC, DR 2/—, and magic attacks.");
+
+  /* Rapid Manifester */
+  perk = &perk_list[PERK_PSIONICIST_RAPID_MANIFESTER];
+  perk->id = PERK_PSIONICIST_RAPID_MANIFESTER;
+  perk->name = strdup("Rapid Manifester");
+  perk->description = strdup("Once per encounter reduce action time of a metacreative power by one step.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FABRICATE_FOCUS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* One step faster */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Once per encounter manifest one Metacreative power one action step faster.");
+
+  /*** METACREATIVE GENIUS - TIER III PERKS ***/
+
+  /* Ectoplasmic Artisan III */
+  perk = &perk_list[PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III];
+  perk->id = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III;
+  perk->name = strdup("Ectoplasmic Artisan III");
+  perk->description = strdup("Total –3 PSP (min 1) once per encounter; +30% duration on metacreative buffs and walls.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* Total PSP reduction */
+  perk->effect_modifier = 30; /* 30% duration bonus */
+  perk->special_description = strdup("Tier 3: Metacreativity PSP cost -3 (once/encounter); +30% buff/wall duration.");
+
+  /* Empowered Creation */
+  perk = &perk_list[PERK_PSIONICIST_EMPOWERED_CREATION];
+  perk->id = PERK_PSIONICIST_EMPOWERED_CREATION;
+  perk->name = strdup("Empowered Creation");
+  perk->description = strdup("Metacreativity damage powers add +2 dice if augmented by ≥4 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SHARDSTORM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 dice */
+  perk->effect_modifier = 4; /* Requires ≥4 PSP */
+  perk->special_description = strdup("Tier 3: Metacreativity damage powers (shrapnel burst, razor storm) gain +2 dice when augmented ≥4 PSP.");
+
+  /* Construct Commander */
+  perk = &perk_list[PERK_PSIONICIST_CONSTRUCT_COMMANDER];
+  perk->id = PERK_PSIONICIST_CONSTRUCT_COMMANDER;
+  perk->name = strdup("Construct Commander");
+  perk->description = strdup("Summons gain +1 attack and +10% movement; shambler gains taunt pulse (1/round, small radius).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_HARDENED_CONSTRUCTS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 attack */
+  perk->effect_modifier = 10; /* +10% movement */
+  perk->special_description = strdup("Tier 3: Summons gain +1 to hit and +10% movement speed; shambler gains taunt pulse.");
+
+  /* Self-Forged */
+  perk = &perk_list[PERK_PSIONICIST_SELF_FORGED];
+  perk->id = PERK_PSIONICIST_SELF_FORGED;
+  perk->name = strdup("Self-Forged");
+  perk->description = strdup("When manifesting a metacreative power, gain temp HP = 1/2 manifester level (stacks up to manifester level).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_RAPID_MANIFESTER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1/2 manifester level */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 3: Gain temp HP = 1/2 manifester level when manifesting Metacreative powers (stacks to manifester level max).");
+
+  /*** METACREATIVE GENIUS - TIER IV (CAPSTONES) ***/
+
+  /* Astral Juggernaut */
+  perk = &perk_list[PERK_PSIONICIST_ASTRAL_JUGGERNAUT];
+  perk->id = PERK_PSIONICIST_ASTRAL_JUGGERNAUT;
+  perk->name = strdup("Astral Juggernaut");
+  perk->description = strdup("1/day summon a Large construct with reach, taunt, and force slam that scales on manifester level.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_CONSTRUCT_COMMANDER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 4 Capstone: Once per day summon a Large construct with reach, taunt, and force slam; scales with manifester level.");
+
+  /* Perfect Fabricator */
+  perk = &perk_list[PERK_PSIONICIST_PERFECT_FABRICATOR];
+  perk->id = PERK_PSIONICIST_PERFECT_FABRICATOR;
+  perk->name = strdup("Perfect Fabricator");
+  perk->description = strdup("1/day manifest a metacreative power for free (0 PSP) as a swift action; conjured gear/construct counts as masterwork/magical for 1 hour.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SELF_FORGED;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 4 Capstone: Once per day manifest a Metacreative power for free (0 PSP) as a swift action; counts as masterwork/magical for 1 hour.");
 }
 
 /* Count how many perks are actually defined */
@@ -7607,6 +7773,121 @@ void use_rapid_manifester(struct char_data *ch)
     return;
   /* Mark as used for this encounter */
   attach_mud_event(new_mud_event(eRAPID_MANIFESTER_USED, ch, NULL), 0);
+}
+
+/* ===== METACREATIVE GENIUS TIER III HELPERS ===== */
+
+bool has_ectoplasmic_artisan_iii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III);
+}
+
+int get_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch)
+{
+  if (!can_use_ectoplasmic_artisan_psp_reduction(ch))
+    return 0;
+  
+  if (has_ectoplasmic_artisan_iii(ch))
+    return 3; /* -3 PSP total */
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 2;
+  return 1;
+}
+
+int get_ectoplasmic_artisan_iii_duration_bonus(struct char_data *ch)
+{
+  if (has_ectoplasmic_artisan_iii(ch))
+    return 30; /* +30% duration */
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 20;
+  if (has_ectoplasmic_artisan_i(ch))
+    return 10;
+  return 0;
+}
+
+bool can_use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch)
+{
+  return can_use_ectoplasmic_artisan_psp_reduction(ch);
+}
+
+void use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch)
+{
+  use_ectoplasmic_artisan_psp_reduction(ch);
+}
+
+bool has_empowered_creation(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_EMPOWERED_CREATION);
+}
+
+bool has_construct_commander(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_CONSTRUCT_COMMANDER);
+}
+
+int get_construct_commander_summon_bonus(struct char_data *ch)
+{
+  if (!has_construct_commander(ch))
+    return 0;
+  return 1; /* +1 to hit */
+}
+
+bool has_self_forged(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SELF_FORGED);
+}
+
+int get_self_forged_temp_hp(struct char_data *ch)
+{
+  if (!has_self_forged(ch))
+    return 0;
+  return GET_PSIONIC_LEVEL(ch) / 2; /* Half manifester level */
+}
+
+/* ===== METACREATIVE GENIUS TIER IV (CAPSTONE) HELPERS ===== */
+
+bool has_astral_juggernaut(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ASTRAL_JUGGERNAUT);
+}
+
+bool can_use_astral_juggernaut(struct char_data *ch)
+{
+  if (!has_astral_juggernaut(ch))
+    return FALSE;
+  if (char_has_mud_event(ch, eASTRAL_JUGGERNAUT_USED))
+    return FALSE;
+  return TRUE;
+}
+
+void use_astral_juggernaut(struct char_data *ch)
+{
+  if (!can_use_astral_juggernaut(ch))
+    return;
+  /* Mark as used for 24 hours (daily cooldown) */
+  attach_mud_event(new_mud_event(eASTRAL_JUGGERNAUT_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC);
+}
+
+bool has_perfect_fabricator(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_PERFECT_FABRICATOR);
+}
+
+bool can_use_perfect_fabricator(struct char_data *ch)
+{
+  if (!has_perfect_fabricator(ch))
+    return FALSE;
+  if (char_has_mud_event(ch, ePERFECT_FABRICATOR_USED))
+    return FALSE;
+  return TRUE;
+}
+
+void use_perfect_fabricator(struct char_data *ch)
+{
+  if (!can_use_perfect_fabricator(ch))
+    return;
+  /* Mark as used for 24 hours (daily cooldown) */
+  attach_mud_event(new_mud_event(ePERFECT_FABRICATOR_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC);
 }
 
 void define_barbarian_perks(void)

@@ -221,6 +221,8 @@ typedef enum
   ePERFECT_DEFLECTION_USED,         /* Psionicist Perfect Deflection - used today */
   eECTOPLASMIC_ARTISAN_USED,        /* Psionicist Ectoplasmic Artisan - PSP reduction used this encounter */
   eRAPID_MANIFESTER_USED,           /* Psionicist Rapid Manifester - action reduction used this encounter */
+  eASTRAL_JUGGERNAUT_USED,          /* Psionicist Astral Juggernaut - used today */
+  ePERFECT_FABRICATOR_USED,         /* Psionicist Perfect Fabricator - used today */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

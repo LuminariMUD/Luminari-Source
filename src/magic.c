@@ -12184,6 +12184,26 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         affect_to_char(mob, &af);
         send_to_char(ch, "\tM[Hardened Constructs II] Summon's attacks count as magic!\tn\r\n");
       }
+
+      /* Astral Juggernaut: Enhance shambler to Large size with improved combat stats (1/day) */
+      if (can_use_astral_juggernaut(ch))
+      {
+        /* Make it Large size (one size larger) */
+        GET_REAL_SIZE(mob) = SIZE_LARGE;
+        
+        /* Increase combat stats based on manifester level */
+        int level_bonus = GET_PSIONIC_LEVEL(ch);
+        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (level_bonus * 2); /* +2 HP per level */
+        GET_HIT(mob) = GET_MAX_HIT(mob);
+        GET_REAL_DAMROLL(mob) += (level_bonus / 5); /* +1 damage per 5 levels */
+        GET_REAL_HITROLL(mob) += (level_bonus / 5); /* +1 to hit per 5 levels */
+        GET_REAL_AC(mob) += (level_bonus / 5); /* +1 AC per 5 levels */
+        
+        /* Mark as used for the day */
+        use_astral_juggernaut(ch);
+        send_to_char(ch, "\tM[Astral Juggernaut] Your shambler transforms into a massive construct!\tn\r\n");
+        act("$n's ectoplasmic shambler suddenly grows to an enormous size!", FALSE, ch, 0, 0, TO_ROOM);
+      }
     }
   }
 

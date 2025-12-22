@@ -260,6 +260,26 @@ bool has_rapid_manifester(struct char_data *ch);
 bool can_use_rapid_manifester(struct char_data *ch);
 void use_rapid_manifester(struct char_data *ch);
 
+/* Metacreative Genius - Tier III */
+bool has_ectoplasmic_artisan_iii(struct char_data *ch);
+int get_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch);
+int get_ectoplasmic_artisan_iii_duration_bonus(struct char_data *ch);
+bool can_use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch);
+void use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch);
+bool has_empowered_creation(struct char_data *ch);
+bool has_construct_commander(struct char_data *ch);
+int get_construct_commander_summon_bonus(struct char_data *ch);
+bool has_self_forged(struct char_data *ch);
+int get_self_forged_temp_hp(struct char_data *ch);
+
+/* Metacreative Genius - Tier IV (Capstones) */
+bool has_astral_juggernaut(struct char_data *ch);
+bool can_use_astral_juggernaut(struct char_data *ch);
+void use_astral_juggernaut(struct char_data *ch);
+bool has_perfect_fabricator(struct char_data *ch);
+bool can_use_perfect_fabricator(struct char_data *ch);
+void use_perfect_fabricator(struct char_data *ch);
+
 bool has_shard_volley(struct char_data *ch);
 bool should_add_extra_shard_projectile(struct char_data *ch, int augment_psp);
 

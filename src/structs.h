@@ -4060,6 +4060,16 @@
 #define PERK_PSIONICIST_HARDENED_CONSTRUCTS_II 1334
 #define PERK_PSIONICIST_RAPID_MANIFESTER       1335
 
+/* Metacreative Genius - Tier III */
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III 1336
+#define PERK_PSIONICIST_EMPOWERED_CREATION     1337
+#define PERK_PSIONICIST_CONSTRUCT_COMMANDER    1338
+#define PERK_PSIONICIST_SELF_FORGED            1339
+
+/* Metacreative Genius - Tier IV (Capstones) */
+#define PERK_PSIONICIST_ASTRAL_JUGGERNAUT     1340
+#define PERK_PSIONICIST_PERFECT_FABRICATOR    1341
+
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
  * ============================================================================ */
