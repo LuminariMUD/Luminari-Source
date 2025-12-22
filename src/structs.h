@@ -1613,9 +1613,10 @@
 #define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
 #define AFF_HIVE_MARKED 125         // marked by Hive Commander - gives +3 DC to further telepathy powers
 #define AFF_PERFECT_DEFLECTION_ACTIVE 126    // ready to deflect next attack (Psionicist Perfect Deflection)
+#define AFF_MAGIC_ATTACKS 127                 // summon/creature attacks count as magic for DR purposes
 
 /*---*/
-#define NUM_AFF_FLAGS 127
+#define NUM_AFF_FLAGS 128
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4047,6 +4048,17 @@
 /* Psychokinetic Arsenal - Tier IV (Capstones) */
 #define PERK_PSIONICIST_SINGULAR_IMPACT        1326
 #define PERK_PSIONICIST_PERFECT_DEFLECTION     1327
+/* Metacreative Genius - Tier I */
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I  1328
+#define PERK_PSIONICIST_SHARD_VOLLEY           1329
+#define PERK_PSIONICIST_HARDENED_CONSTRUCTS_I  1330
+#define PERK_PSIONICIST_FABRICATE_FOCUS        1331
+
+/* Metacreative Genius - Tier II */
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II 1332
+#define PERK_PSIONICIST_SHARDSTORM             1333
+#define PERK_PSIONICIST_HARDENED_CONSTRUCTS_II 1334
+#define PERK_PSIONICIST_RAPID_MANIFESTER       1335
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)

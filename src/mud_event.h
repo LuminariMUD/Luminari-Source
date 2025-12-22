@@ -219,6 +219,8 @@ typedef enum
   eGRAVITY_WELL_USED,               /* Psionicist Gravity Well - used this combat */
   eSINGULAR_IMPACT_USED,            /* Psionicist Singular Impact - used today */
   ePERFECT_DEFLECTION_USED,         /* Psionicist Perfect Deflection - used today */
+  eECTOPLASMIC_ARTISAN_USED,        /* Psionicist Ectoplasmic Artisan - PSP reduction used this encounter */
+  eRAPID_MANIFESTER_USED,           /* Psionicist Rapid Manifester - action reduction used this encounter */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

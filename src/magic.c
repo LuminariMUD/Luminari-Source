@@ -3534,6 +3534,103 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       damage(ch, victim, crescendo_sonic_dam, spellnum, DAM_SOUND, FALSE);
     }
 
+    /* Shard Volley: crystal shard gains +1 projectile when augmented by ≥2 PSP */
+    if (spellnum == PSIONIC_CRYSTAL_SHARD &&
+        should_add_extra_shard_projectile(ch, GET_AUGMENT_PSP(ch)))
+    {
+      if (attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
+      {
+        int extra_dam = min_dice(num_dice, size_dice, min_dice_roll) + bonus;
+        damage(ch, victim, extra_dam, spellnum, element, FALSE);
+        send_to_char(ch, "\tM[Shard Volley] An additional shard strikes true!\tn\r\n");
+      }
+    }
+
+    /* Shardstorm Option 2: Augmented AoE Mode for Crystal Shard */
+    if (spellnum == PSIONIC_CRYSTAL_SHARD && !IS_NPC(ch) && has_shardstorm(ch) &&
+        GET_AUGMENT_PSP(ch) >= 4)
+    {
+      /* Convert to AoE: hit all enemies in the room */
+      struct char_data *tch_aoe, *next_tch;
+      int aoe_count = 0;
+      send_to_char(ch, "\tM[Shardstorm] Crystal shards explode in all directions!\tn\r\n");
+      for (tch_aoe = world[IN_ROOM(ch)].people; tch_aoe; tch_aoe = next_tch)
+      {
+        next_tch = tch_aoe->next_in_room;
+        if (tch_aoe == ch)
+          continue;
+        /* Skip charmed, sleeping, or dead targets */
+        if (AFF_FLAGGED(tch_aoe, AFF_CHARM) || !AWAKE(tch_aoe) || GET_POS(tch_aoe) <= POS_DEAD)
+          continue;
+        if (attack_roll(ch, tch_aoe, ATTACK_TYPE_PSIONICS, TRUE, 0))
+        {
+          int aoe_dam = dice(num_dice, size_dice) + bonus;
+          damage(ch, tch_aoe, aoe_dam, spellnum, element, FALSE);
+          aoe_count++;
+          /* Apply bleed rider: Fortitude save negates */
+          if (!savingthrow(ch, tch_aoe, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+          {
+            struct affected_type af;
+            memset(&af, 0, sizeof(af));
+            af.spell = PSIONIC_CRYSTAL_SHARD;
+            af.duration = 10;
+            af.modifier = 1;
+            af.location = APPLY_NONE;
+            SET_BIT_AR(af.bitvector, AFF_BLEED);
+            affect_to_char(tch_aoe, &af);
+            send_to_char(tch_aoe, "\tRYou begin bleeding from the shards!\tn\r\n");
+          }
+        }
+      }
+      if (aoe_count > 0)
+        send_to_char(ch, "\tM[Shardstorm] %d targets struck!\tn\r\n", aoe_count);
+      return 0; /* Already handled damage and riders */
+    }
+    /* Single-target Shardstorm rider for non-augmented or Swarm */
+    if (!IS_NPC(ch) && has_shardstorm(ch) && dam > 0 && result != -1 &&
+        spellnum == PSIONIC_CRYSTAL_SHARD && GET_AUGMENT_PSP(ch) < 4)
+    {
+      /* Fortitude save negates bleed rider */
+      if (!savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+      {
+        struct affected_type af;
+        memset(&af, 0, sizeof(af));
+        af.spell = PSIONIC_CRYSTAL_SHARD;
+        af.duration = 10;
+        af.modifier = 1;
+        af.location = APPLY_NONE;
+        SET_BIT_AR(af.bitvector, AFF_BLEED);
+        affect_to_char(victim, &af);
+        send_to_char(ch, "\tM[Shardstorm] Bleeding rider takes hold!\tn\r\n");
+        send_to_char(victim, "\tRYou begin bleeding from the shards!\tn\r\n");
+      }
+      else
+      {
+        send_to_char(ch, "Your target resists the Shardstorm rider.\r\n");
+      }
+    }
+    else if (spellnum == PSIONIC_SWARM_OF_CRYSTALS && !IS_NPC(ch) && has_shardstorm(ch) && dam > 0 && result != -1)
+    {
+      /* Reflex save negates attack penalty rider */
+      if (!savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NOSCHOOL))
+      {
+        struct affected_type af;
+        memset(&af, 0, sizeof(af));
+        af.spell = PSIONIC_SWARM_OF_CRYSTALS;
+        af.duration = 10;
+        af.modifier = -2;
+        af.location = APPLY_HITROLL;
+        af.bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+        affect_to_char(victim, &af);
+        send_to_char(ch, "\tM[Shardstorm] Crystalline barrage hampers attacks!\tn\r\n");
+        send_to_char(victim, "\tYShards hamper your ability to strike!\tn\r\n");
+      }
+      else
+      {
+        send_to_char(ch, "Targets resist the Shardstorm rider.\r\n");
+      }
+    }
+
     /* Psychic Sundering: telepathy damage inflicts vulnerability debuff */
     if (is_spellnum_psionic(spellnum) && psionic_powers[spellnum].power_type == TELEPATHY &&
         has_psychic_sundering(ch) && dam > 0 && result != -1)
@@ -9942,6 +10039,26 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       if (af[i].modifier > 0)
         af[i].modifier = af[i].modifier * get_spell_potency_bonus(ch) / 100;
     }
+    /* Ectoplasmic Artisan I: +10% duration on metacreative buffs */
+    if (is_spellnum_psionic(spellnum) &&
+        psionic_powers[spellnum].power_type == METACREATIVITY &&
+        !spell_info[spellnum].violent)
+    {
+      int dur_bonus = get_ectoplasmic_artisan_duration_bonus(ch);
+      if (dur_bonus > 0)
+      {
+        for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+        {
+          if (af[i].duration > 0)
+          {
+            int old_duration = af[i].duration;
+            af[i].duration = af[i].duration * (100 + dur_bonus) / 100;
+            if (af[i].duration < old_duration + 1)
+              af[i].duration = old_duration + 1;
+          }
+        }
+      }
+    }
   }
 
   /* send messages */
@@ -12015,6 +12132,59 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     add_follower(mob, ch);
     if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
+
+    /* Hardened Constructs I: temp HP = manifester level and +1 AC for shambler */
+    if (!IS_NPC(ch) && spellnum == PSIONIC_ECTOPLASMIC_SHAMBLER)
+    {
+      int temp_hp = get_hardened_constructs_temp_hp(ch);
+      int ac_bonus = get_hardened_constructs_ac_bonus(ch);
+      if (temp_hp > 0)
+      {
+        GET_HIT(mob) += temp_hp;
+        send_to_char(ch, "\tM[Hardened Constructs] Summon reinforced with %d temporary HP!\tn \r\n", temp_hp);
+      }
+      if (ac_bonus > 0)
+      {
+        GET_REAL_AC(mob) += ac_bonus;
+      }
+
+      /* Hardened Constructs II: +2 AC, DR 2/—, and magic attacks on shambler */
+      if (has_hardened_constructs_ii(ch))
+      {
+        int ac2 = get_hardened_constructs_ii_ac_bonus(ch);
+        int dr_amt = get_hardened_constructs_dr_amount(ch);
+        if (ac2 > 0)
+          GET_REAL_AC(mob) += ac2;
+        if (dr_amt > 0)
+        {
+          struct damage_reduction_type *new_dr = NULL;
+          CREATE(new_dr, struct damage_reduction_type, 1);
+          new_dr->duration = 600; /* defensive default */
+          new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+          new_dr->bypass_val[0] = 0;
+          new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+          new_dr->bypass_val[1] = 0;
+          new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+          new_dr->bypass_val[2] = 0;
+          new_dr->amount = dr_amt;
+          new_dr->max_damage = -1;
+          new_dr->spell = PSIONIC_ECTOPLASMIC_SHAMBLER;
+          new_dr->feat = FEAT_UNDEFINED;
+          new_dr->next = GET_DR(mob);
+          GET_DR(mob) = new_dr;
+          send_to_char(ch, "\tM[Hardened Constructs II] Summon gains DR %d/—!\tn \r\n", dr_amt);
+        }
+        /* Apply AFF_MAGIC_ATTACKS so summon's attacks bypass non-magic DR */
+        struct affected_type af;
+        memset(&af, 0, sizeof(af));
+        af.spell = PSIONIC_ECTOPLASMIC_SHAMBLER;
+        af.duration = -1; /* Permanent until death */
+        af.location = APPLY_NONE;
+        SET_BIT_AR(af.bitvector, AFF_MAGIC_ATTACKS);
+        affect_to_char(mob, &af);
+        send_to_char(ch, "\tM[Hardened Constructs II] Summon's attacks count as magic!\tn\r\n");
+      }
+    }
   }
 
   /* raise dead type of spells */

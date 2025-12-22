@@ -2473,6 +2473,24 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       if (IS_BUFFING(ch))
         GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
     }
+
+    /* Fabricate Focus: metacreativity manual/creation powers manifest 10% faster */
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+        psionic_powers[spellnum].power_type == METACREATIVITY)
+    {
+      int routines = spell_info[spellnum].routines;
+      bool is_creation = IS_SET(routines, MAG_MANUAL) || IS_SET(routines, MAG_SUMMONS) || IS_SET(routines, MAG_CREATIONS);
+      if (is_creation)
+      {
+        int reduction = get_fabricate_focus_casting_time_reduction(ch);
+        if (reduction > 0)
+        {
+          casting_time = MAX(0, casting_time * (100 - reduction) / 100);
+          if (IS_BUFFING(ch))
+            GET_BUFF_TIMER(ch) = MAX(0, GET_BUFF_TIMER(ch) * (100 - reduction) / 100);
+        }
+      }
+    }
   }
 
   if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
@@ -2487,6 +2505,17 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
   if (CONFIG_SPELLCASTING_TIME_MODE == 0)
   {
+    bool rapid_manifest = false;
+    /* Rapid Manifester: once per encounter, reduce action time by one step for a metacreativity power */
+    if (!quickened && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+        psionic_powers[spellnum].power_type == METACREATIVITY &&
+        can_use_rapid_manifester(ch))
+    {
+      rapid_manifest = true;
+      use_rapid_manifester(ch);
+      send_to_char(ch, "Your manifesting of '%s' speeds up a step.\r\n", spell_info[spellnum].name);
+    }
+
     if (quickened)
     {
       if (!is_action_available(ch, atSWIFT, FALSE))
@@ -2523,8 +2552,25 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
     else
     {
-      USE_STANDARD_ACTION(ch);
-      USE_MOVE_ACTION(ch);
+      if (rapid_manifest)
+      {
+        /* Consume only a move action instead of standard+move */
+        if (!is_action_available(ch, atMOVE, FALSE))
+        {
+          /* Fallback to standard if move is unavailable */
+          if (is_action_available(ch, atSTANDARD, FALSE))
+            USE_STANDARD_ACTION(ch);
+        }
+        else
+        {
+          USE_MOVE_ACTION(ch);
+        }
+      }
+      else
+      {
+        USE_STANDARD_ACTION(ch);
+        USE_MOVE_ACTION(ch);
+      }
     }
   }
 
@@ -3249,6 +3295,17 @@ return;
         if (psionic_powers[spellnum].power_type == PSYCHOKINESIS)
         {
           effective_psp_cost = MAX(1, effective_psp_cost - 2);
+              /* Ectoplasmic Artisan I: Metacreativity PSP cost reduction -1 (min 1), once per encounter */
+              if (can_use_ectoplasmic_artisan_psp_reduction(ch))
+              {
+                if (psionic_powers[spellnum].power_type == METACREATIVITY)
+                {
+                  int reduction = get_ectoplasmic_artisan_psp_reduction(ch);
+                  effective_psp_cost = MAX(1, effective_psp_cost - reduction);
+                  send_to_char(ch, "\tM[Ectoplasmic Artisan: PSP cost reduced!]\tn\r\n");
+                }
+              }
+
         }
       }
 
@@ -3268,6 +3325,14 @@ return;
 
       /* Mark Accelerated Manifestation as used (per combat) */
       if (effective_psp_cost < psionic_powers[spellnum].psp_cost && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+            /* Mark Ectoplasmic Artisan as used (per encounter) if it was used for this power */
+            if (psionic_powers[spellnum].power_type == METACREATIVITY && 
+                effective_psp_cost < psionic_powers[spellnum].psp_cost && 
+                can_use_ectoplasmic_artisan_psp_reduction(ch))
+            {
+              use_ectoplasmic_artisan_psp_reduction(ch);
+            }
+
       {
         attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL), 10 * PASSES_PER_SEC);
       }

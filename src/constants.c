@@ -1862,6 +1862,7 @@ const char *affected_bits[] = {
     "Nextattack-Stun",
     "Hive-Marked",
     "Perfect-Deflection-Ready",
+    "Magic-Attacks",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -2000,6 +2001,7 @@ const char *affected_bit_descs[] = {
     "Your next attack will carry overwhelming force!",
     "You have been marked by a Hive Commander's psychic link!",
     "You are prepared to perfectly deflect the next ranged attack and reflect it!",
+    "Your attacks count as magical for the purpose of bypassing damage reduction.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

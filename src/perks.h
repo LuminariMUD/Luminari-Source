@@ -243,6 +243,33 @@ void use_singular_impact(struct char_data *ch, struct char_data *victim);
 bool has_perfect_deflection(struct char_data *ch);
 bool can_use_perfect_deflection(struct char_data *ch);
 void use_perfect_deflection(struct char_data *ch);
+/* Metacreative Genius Tier I helpers */
+bool has_ectoplasmic_artisan_i(struct char_data *ch);
+bool can_use_ectoplasmic_artisan_psp_reduction(struct char_data *ch);
+void use_ectoplasmic_artisan_psp_reduction(struct char_data *ch);
+int get_ectoplasmic_artisan_psp_reduction(struct char_data *ch);
+int get_ectoplasmic_artisan_duration_bonus(struct char_data *ch);
+
+/* Metacreative Genius Tier II helpers */
+bool has_ectoplasmic_artisan_ii(struct char_data *ch);
+bool has_shardstorm(struct char_data *ch);
+bool has_hardened_constructs_ii(struct char_data *ch);
+int get_hardened_constructs_ii_ac_bonus(struct char_data *ch);
+int get_hardened_constructs_dr_amount(struct char_data *ch);
+bool has_rapid_manifester(struct char_data *ch);
+bool can_use_rapid_manifester(struct char_data *ch);
+void use_rapid_manifester(struct char_data *ch);
+
+bool has_shard_volley(struct char_data *ch);
+bool should_add_extra_shard_projectile(struct char_data *ch, int augment_psp);
+
+bool has_hardened_constructs_i(struct char_data *ch);
+int get_hardened_constructs_temp_hp(struct char_data *ch);
+int get_hardened_constructs_ac_bonus(struct char_data *ch);
+
+bool has_fabricate_focus(struct char_data *ch);
+int get_fabricate_focus_casting_time_reduction(struct char_data *ch);
+
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

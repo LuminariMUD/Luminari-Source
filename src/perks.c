@@ -2357,6 +2357,72 @@ void define_cleric_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Tier 4 Capstone: 1/day reaction negate and reflect one ranged/spell/psionic attack.");
 
+  /*** METACREATIVE GENIUS - TIER 1 PERKS (1-2 points each) ***/
+
+  /* Ectoplasmic Artisan I */
+  perk = &perk_list[PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I];
+  perk->id = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I;
+  perk->name = strdup("Ectoplasmic Artisan I");
+  perk->description = strdup("Metacreativity powers cost 1 less PSP (min 1) once per encounter; +10% duration on metacreative buffs.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* PSP reduction */
+  perk->effect_modifier = 10; /* 10% duration bonus */
+  perk->special_description = strdup("Tier 1: Metacreativity PSP cost -1 (once/encounter); +10% buff duration.");
+
+  /* Shard Volley */
+  perk = &perk_list[PERK_PSIONICIST_SHARD_VOLLEY];
+  perk->id = PERK_PSIONICIST_SHARD_VOLLEY;
+  perk->name = strdup("Shard Volley");
+  perk->description = strdup("Crystal shard gains +1 projectile (additional attack roll) when augmented by ≥2 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 projectile */
+  perk->effect_modifier = 2; /* requires ≥2 PSP augment */
+  perk->special_description = strdup("Tier 1: Crystal shard gains extra projectile when augmented ≥2 PSP.");
+
+  /* Hardened Constructs I */
+  perk = &perk_list[PERK_PSIONICIST_HARDENED_CONSTRUCTS_I];
+  perk->id = PERK_PSIONICIST_HARDENED_CONSTRUCTS_I;
+  perk->name = strdup("Hardened Constructs I");
+  perk->description = strdup("Summons/creations gain temp HP = manifester level and +1 AC.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 AC */
+  perk->effect_modifier = 1; /* temp HP = manifester level */
+  perk->special_description = strdup("Tier 1: Summons gain temp HP = manifester level and +1 AC.");
+
+  /* Fabricate Focus */
+  perk = &perk_list[PERK_PSIONICIST_FABRICATE_FOCUS];
+  perk->id = PERK_PSIONICIST_FABRICATE_FOCUS;
+  perk->name = strdup("Fabricate Focus");
+  perk->description = strdup("Metacreative powers manifest 10% faster.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% faster manifesting */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 1: Metacreative powers manifest 10% faster.");
+
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
   perk->id = PERK_CLERIC_HEALING_AURA_1;
@@ -7392,6 +7458,155 @@ void use_perfect_deflection(struct char_data *ch)
   attach_mud_event(new_mud_event(ePERFECT_DEFLECTION_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC); /* 24 hours */
   
   send_to_char(ch, "\tCYou prepare to deflect the next attack against you!\tn\r\n");
+}
+/* ===== METACREATIVE GENIUS TIER I HELPERS ===== */
+
+bool has_ectoplasmic_artisan_i(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I);
+}
+
+bool has_ectoplasmic_artisan_ii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II);
+}
+
+bool can_use_ectoplasmic_artisan_psp_reduction(struct char_data *ch)
+{
+  if (!has_ectoplasmic_artisan_i(ch) && !has_ectoplasmic_artisan_ii(ch))
+    return FALSE;
+  
+  /* Check if already used this encounter */
+  if (char_has_mud_event(ch, eECTOPLASMIC_ARTISAN_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_ectoplasmic_artisan_psp_reduction(struct char_data *ch)
+{
+  if (!can_use_ectoplasmic_artisan_psp_reduction(ch))
+    return;
+  
+  /* Mark as used for this encounter - will clear on combat end */
+  attach_mud_event(new_mud_event(eECTOPLASMIC_ARTISAN_USED, ch, NULL), 0);
+}
+
+int get_ectoplasmic_artisan_psp_reduction(struct char_data *ch)
+{
+  if (!can_use_ectoplasmic_artisan_psp_reduction(ch))
+    return 0;
+  
+  /* Tier II increases the reduction to -2 PSP */
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 2;
+  return 1; /* -1 PSP cost */
+}
+
+int get_ectoplasmic_artisan_duration_bonus(struct char_data *ch)
+{
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 20; /* +20% duration for Tier II */
+  if (has_ectoplasmic_artisan_i(ch))
+    return 10; /* +10% duration for Tier I */
+  return 0;
+}
+
+bool has_shard_volley(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SHARD_VOLLEY);
+}
+
+bool should_add_extra_shard_projectile(struct char_data *ch, int augment_psp)
+{
+  if (!has_shard_volley(ch))
+    return FALSE;
+  
+  /* Requires ≥2 PSP augment */
+  if (augment_psp < 2)
+    return FALSE;
+  
+  return TRUE;
+}
+
+bool has_hardened_constructs_i(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_HARDENED_CONSTRUCTS_I);
+}
+
+int get_hardened_constructs_temp_hp(struct char_data *ch)
+{
+  if (!has_hardened_constructs_i(ch))
+    return 0;
+  
+  return GET_PSIONIC_LEVEL(ch);
+}
+
+int get_hardened_constructs_ac_bonus(struct char_data *ch)
+{
+  if (!has_hardened_constructs_i(ch))
+    return 0;
+  
+  return 1; /* +1 AC */
+}
+
+bool has_hardened_constructs_ii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_HARDENED_CONSTRUCTS_II);
+}
+
+int get_hardened_constructs_ii_ac_bonus(struct char_data *ch)
+{
+  if (!has_hardened_constructs_ii(ch))
+    return 0;
+  return 2; /* +2 AC */
+}
+
+int get_hardened_constructs_dr_amount(struct char_data *ch)
+{
+  if (!has_hardened_constructs_ii(ch))
+    return 0;
+  return 2; /* DR 2/— */
+}
+
+bool has_fabricate_focus(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_FABRICATE_FOCUS);
+}
+
+int get_fabricate_focus_casting_time_reduction(struct char_data *ch)
+{
+  if (!has_fabricate_focus(ch))
+    return 0;
+  
+  return 10; /* 10% faster */
+}
+
+bool has_shardstorm(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SHARDSTORM);
+}
+
+bool has_rapid_manifester(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_RAPID_MANIFESTER);
+}
+
+bool can_use_rapid_manifester(struct char_data *ch)
+{
+  if (!has_rapid_manifester(ch))
+    return FALSE;
+  if (char_has_mud_event(ch, eRAPID_MANIFESTER_USED))
+    return FALSE;
+  return TRUE;
+}
+
+void use_rapid_manifester(struct char_data *ch)
+{
+  if (!can_use_rapid_manifester(ch))
+    return;
+  /* Mark as used for this encounter */
+  attach_mud_event(new_mud_event(eRAPID_MANIFESTER_USED, ch, NULL), 0);
 }
 
 void define_barbarian_perks(void)

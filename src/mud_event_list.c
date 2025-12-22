@@ -266,6 +266,7 @@ struct mud_event_list mud_event_index[] = {
     {"Universal Mutagen Cooldown", event_countdown, EVENT_CHAR, "You can arm Universal Mutagen again.", NULL, FEAT_UNDEFINED, 0},
     {"Deflective Screen Cooldown", event_countdown, EVENT_CHAR, "Your deflective screen is ready again.", NULL, FEAT_UNDEFINED, 0},
     {"Accelerated Manifestation Cooldown", event_countdown, EVENT_CHAR, "You can use Accelerated Manifestation again.", NULL, FEAT_UNDEFINED, 0},
+    {"Rapid Manifester Cooldown", event_countdown, EVENT_CHAR, "You can use Rapid Manifester again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */
