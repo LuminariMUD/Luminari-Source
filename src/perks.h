@@ -27,6 +27,7 @@ void define_druid_perks(void);
 void define_paladin_perks(void);
 void define_alchemist_perks(void);
 void define_psionicist_perks(void);
+void define_blackguard_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -289,6 +290,17 @@ int get_hardened_constructs_ac_bonus(struct char_data *ch);
 
 bool has_fabricate_focus(struct char_data *ch);
 int get_fabricate_focus_casting_time_reduction(struct char_data *ch);
+
+/* Blackguard Tyranny & Fear Tier I–II helpers */
+int get_blackguard_dread_presence_intimidate_bonus(struct char_data *ch);
+int get_blackguard_extra_fear_aura_penalty(struct char_data *vict);
+bool has_blackguard_intimidating_smite(struct char_data *ch);
+int get_blackguard_cruel_edge_damage_bonus(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_command_the_weak(struct char_data *ch);
+bool can_use_command_the_weak_swift(struct char_data *ch);
+void use_command_the_weak_swift(struct char_data *ch);
+bool has_blackguard_terror_tactics(struct char_data *ch);
+bool has_blackguard_nightmarish_visage(struct char_data *ch);
 
 
 /* Ranger-specific perk bonus functions */

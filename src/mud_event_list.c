@@ -267,6 +267,7 @@ struct mud_event_list mud_event_index[] = {
     {"Deflective Screen Cooldown", event_countdown, EVENT_CHAR, "Your deflective screen is ready again.", NULL, FEAT_UNDEFINED, 0},
     {"Accelerated Manifestation Cooldown", event_countdown, EVENT_CHAR, "You can use Accelerated Manifestation again.", NULL, FEAT_UNDEFINED, 0},
     {"Rapid Manifester Cooldown", event_countdown, EVENT_CHAR, "You can use Rapid Manifester again.", NULL, FEAT_UNDEFINED, 0},
+    {"Command the Weak (Swift)", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

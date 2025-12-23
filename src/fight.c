@@ -38,6 +38,7 @@
 #include "actionqueues.h"
 #include "craft.h"
 #include "assign_wpn_armor.h"
+#include "perks.h"
 #include "grapple.h"
 #include "alchemy.h"
 #include "missions.h"
@@ -7160,6 +7161,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Blackguard: Cruel Edge bonus damage vs fearful foes */
+  if (!IS_NPC(ch) && vict && (AFF_FLAGGED(vict, AFF_FEAR) || AFF_FLAGGED(vict, AFF_SHAKEN)))
+  {
+    int cruel_bonus = get_blackguard_cruel_edge_damage_bonus(ch, vict);
+    if (cruel_bonus > 0)
+    {
+      dambonus += cruel_bonus;
+      if (display_mode)
+        send_to_char(ch, "Cruel Edge bonus: \tR%d\tn\r\n", cruel_bonus);
+    }
+  }
+
   /* Add ranger ranged perk bonuses - only for ranged attacks */
   if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
   {
@@ -12658,6 +12671,27 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* So do damage! (We aren't trelux, so do it normally) */
       if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
+
+      /* Blackguard: Intimidating Smite - Shaken on smite good hits (Will save negates) */
+      if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_blackguard_intimidating_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_GOOD) && IS_GOOD(victim) && !is_immune_fear(ch, victim, TRUE) &&
+          !is_immune_mind_affecting(ch, victim, TRUE))
+      {
+        int bg_level = CLASS_LEVEL(ch, CLASS_BLACKGUARD) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+        int save_mod = affected_by_aura_of_cowardice(victim) ? (-4 - get_blackguard_extra_fear_aura_penalty(victim)) : 0;
+        if (!savingthrow(ch, victim, SAVING_WILL, save_mod, CAST_INNATE, bg_level, ENCHANTMENT))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SKILL_SMITE_GOOD;
+          af.duration = MAX(2, (bg_level / 6));
+          SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+          affect_to_char(victim, &af);
+          act("\tDYour profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
+          act("\tD$n's profane smite terrifies you!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+          act("\tD$n's profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+      }
 
       /* Blinding Smite: Blind target on smite evil hits */
       if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_paladin_blinding_smite(ch) &&

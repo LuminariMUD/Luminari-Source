@@ -3125,6 +3125,10 @@
 #define PERK_CATEGORY_TELEPATHIC_CONTROL 36
 #define PERK_CATEGORY_PSYCHOKINETIC_ARSENAL 37
 #define PERK_CATEGORY_METACREATIVE_GENIUS 38
+/* Blackguard Perk Categories */
+#define PERK_CATEGORY_TYRANNY_AND_FEAR 39
+#define PERK_CATEGORY_PROFANE_MIGHT 40
+#define PERK_CATEGORY_UNHOLY_RESILIENCE 41
 
 
 /* Perk IDs - organized by class */
@@ -4073,7 +4077,17 @@
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
  * ============================================================================ */
-/* Not yet implemented */
+/* TREE A: Tyranny & Fear - Tier 1 */
+#define PERK_BLACKGUARD_DREAD_PRESENCE        1400
+#define PERK_BLACKGUARD_INTIMIDATING_SMITE    1401
+#define PERK_BLACKGUARD_CRUEL_EDGE            1402
+#define PERK_BLACKGUARD_COMMAND_THE_WEAK      1403
+
+/* TREE A: Tyranny & Fear - Tier 2 */
+#define PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK 1404 /* enhances existing aura feat */
+#define PERK_BLACKGUARD_TERROR_TACTICS         1405
+#define PERK_BLACKGUARD_BLACK_SERAPH_STEP      1406
+#define PERK_BLACKGUARD_NIGHTMARISH_VISAGE     1407
 
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)

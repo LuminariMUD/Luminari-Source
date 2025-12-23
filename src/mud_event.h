@@ -223,6 +223,7 @@ typedef enum
   eRAPID_MANIFESTER_USED,           /* Psionicist Rapid Manifester - action reduction used this encounter */
   eASTRAL_JUGGERNAUT_USED,          /* Psionicist Astral Juggernaut - used today */
   ePERFECT_FABRICATOR_USED,         /* Psionicist Perfect Fabricator - used today */
+  eINTIMIDATE_SWIFT,                     /* Blackguard Command the Weak swift intimidate gate */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

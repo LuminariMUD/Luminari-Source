@@ -75,6 +75,9 @@ const char *perk_category_names[] = {
   "Telepathic Control",     /* 36 - PERK_CATEGORY_TELEPATHIC_CONTROL */
   "Psychokinetic Arsenal",  /* 37 - PERK_CATEGORY_PSYCHOKINETIC_ARSENAL */
   "Metacreative Genius",    /* 38 - PERK_CATEGORY_METACREATIVE_GENIUS */
+  "Tyranny & Fear",         /* 39 - PERK_CATEGORY_TYRANNY_AND_FEAR */
+  "Profane Might",          /* 40 - PERK_CATEGORY_PROFANE_MIGHT */
+  "Unholy Resilience",      /* 41 - PERK_CATEGORY_UNHOLY_RESILIENCE */
   "\n"                      /* Terminator */
 };
 /* Forward declarations for perk definition functions */
@@ -142,8 +145,208 @@ void init_perks(void)
 
   /* Define Psionicist Perks */
   define_psionicist_perks();
+
+  /* Define Blackguard Perks */
+  define_blackguard_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
+}
+
+/* Define Blackguard Perks (Tier 1–2 for Tyranny & Fear tree) */
+void define_blackguard_perks(void)
+{
+  struct perk_data *perk;
+
+  /* Tier 1: Dread Presence */
+  perk = &perk_list[PERK_BLACKGUARD_DREAD_PRESENCE];
+  perk->id = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->name = strdup("Dread Presence");
+  perk->description = strdup("Aura imposes extra penalties to fear saves; +2 intimidate.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 intimidate */
+  perk->special_description = strdup("Intimidate +2; foes in your aura suffer extra fear save penalties.");
+
+  /* Tier 1: Intimidating Smite */
+  perk = &perk_list[PERK_BLACKGUARD_INTIMIDATING_SMITE];
+  perk->id = PERK_BLACKGUARD_INTIMIDATING_SMITE;
+  perk->name = strdup("Intimidating Smite");
+  perk->description = strdup("Smite Good applies shaken on hit; Will save negates.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("On smite good hits, target must save or be shaken.");
+
+  /* Tier 1: Cruel Edge */
+  perk = &perk_list[PERK_BLACKGUARD_CRUEL_EDGE];
+  perk->id = PERK_BLACKGUARD_CRUEL_EDGE;
+  perk->name = strdup("Cruel Edge");
+  perk->description = strdup("Bonus damage vs frightened/shaken foes; minor temp hp on kill.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* damage bonus scaling handled in code */
+  perk->special_description = strdup("Gain bonus damage vs fearful foes; small temp hp on kill.");
+
+  /* Tier 1: Command the Weak */
+  perk = &perk_list[PERK_BLACKGUARD_COMMAND_THE_WEAK];
+  perk->id = PERK_BLACKGUARD_COMMAND_THE_WEAK;
+  perk->name = strdup("Command the Weak");
+  perk->description = strdup("Demoralize faster: move action; 1/enc swift. Longer duration.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Demoralize as move; once per encounter as swift; extended duration.");
+
+  /* Tier 2: Aura of Cowardice (perk) */
+  perk = &perk_list[PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK];
+  perk->id = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->name = strdup("Aura of Cowardice");
+  perk->description = strdup("Enhance aura: extra penalties on fear saves; suppress more immunity.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* extra penalty scaling handled */
+  perk->special_description = strdup("Enemies in your aura take additional fear save penalties.");
+
+  /* Tier 2: Terror Tactics */
+  perk = &perk_list[PERK_BLACKGUARD_TERROR_TACTICS];
+  perk->id = PERK_BLACKGUARD_TERROR_TACTICS;
+  perk->name = strdup("Terror Tactics");
+  perk->description = strdup("Strong intimidate splashes to nearby foes on high roll.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_COMMAND_THE_WEAK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Intimidate can splash to adjacent enemies when exceeding DC.");
+
+  /* Tier 2: Black Seraph Step */
+  perk = &perk_list[PERK_BLACKGUARD_BLACK_SERAPH_STEP];
+  perk->id = PERK_BLACKGUARD_BLACK_SERAPH_STEP;
+  perk->name = strdup("Black Seraph Step");
+  perk->description = strdup("On forced move/knockdown/trip, auto-demoralize nearby foe.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Auto-demoralize trigger on positional disruption.");
+
+  /* Tier 2: Nightmarish Visage */
+  perk = &perk_list[PERK_BLACKGUARD_NIGHTMARISH_VISAGE];
+  perk->id = PERK_BLACKGUARD_NIGHTMARISH_VISAGE;
+  perk->name = strdup("Nightmarish Visage");
+  perk->description = strdup("Intimidate becomes more menacing; can affect multiple foes.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("AoE intimidate capabilities; improved visuals.");
+}
+
+/* Helpers for Blackguard Tyranny & Fear mechanics */
+int get_blackguard_dread_presence_intimidate_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  return has_perk(ch, PERK_BLACKGUARD_DREAD_PRESENCE) ? 2 : 0;
+}
+
+/* Additional fear save penalty for enemies in aura beyond base -4 */
+int get_blackguard_extra_fear_aura_penalty(struct char_data *vict)
+{
+  if (!vict) return 0;
+  int penalty = 0;
+  struct char_data *tch = NULL;
+  for (tch = world[IN_ROOM(vict)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == vict) continue;
+    if (GROUP(vict) == GROUP(tch)) continue;
+    if (!pvp_ok_single(vict, false)) continue;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_COWARDICE) && CLASS_LEVEL(tch, CLASS_BLACKGUARD) > 0)
+    {
+      if (has_perk(tch, PERK_BLACKGUARD_DREAD_PRESENCE)) penalty += 2;
+      if (has_perk(tch, PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK)) penalty += 2;
+    }
+  }
+  return penalty;
+}
+
+bool has_blackguard_intimidating_smite(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_INTIMIDATING_SMITE);
+}
+
+int get_blackguard_cruel_edge_damage_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_perk(ch, PERK_BLACKGUARD_CRUEL_EDGE)) return 0;
+  if (AFF_FLAGGED(vict, AFF_FEAR) || AFF_FLAGGED(vict, AFF_SHAKEN))
+    return MAX(1, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 5);
+  return 0;
+}
+
+bool has_blackguard_command_the_weak(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_COMMAND_THE_WEAK);
+}
+
+bool has_blackguard_terror_tactics(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_TERROR_TACTICS);
+}
+
+bool has_blackguard_nightmarish_visage(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_NIGHTMARISH_VISAGE);
+}
+
+/* Encounter-gated swift intimidate usage for Command the Weak */
+bool can_use_command_the_weak_swift(struct char_data *ch)
+{
+  if (!has_blackguard_command_the_weak(ch)) return false;
+  /* Gate by mud event eINTIMIDATE_SWIFT if present; if not present, allow */
+  return (char_has_mud_event(ch, eINTIMIDATE_SWIFT) == NULL);
+}
+
+void use_command_the_weak_swift(struct char_data *ch)
+{
+  if (!has_blackguard_command_the_weak(ch)) return;
+  /* Start a short encounter cooldown (e.g., 120 seconds) */
+  attach_mud_event(new_mud_event(eINTIMIDATE_SWIFT, ch, NULL), 120 * PASSES_PER_SEC);
 }
 /* Define Psionicist Perks */
 void define_psionicist_perks(void)

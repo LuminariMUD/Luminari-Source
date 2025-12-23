@@ -5285,6 +5285,8 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
     attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   else
     attempt += GET_LEVEL(vict);
+  /* Blackguard: Dread Presence adds a small intimidate bonus */
+  attempt += get_blackguard_dread_presence_intimidate_bonus(ch);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
   else
@@ -5302,8 +5304,33 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "You intimidate your opponent!\r\n");
     act("You are \tRintimidated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWintimidates\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eINTIMIDATED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
+    long base_duration = (attempt - resist + 6) * PASSES_PER_SEC;
+    /* Blackguard: Command the Weak modest duration bump */
+    if (has_blackguard_command_the_weak(ch))
+      base_duration += (2 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eINTIMIDATED, vict, NULL), base_duration);
     success = 1;
+    /* Blackguard Tier 2: Terror Tactics/Nightmarish Visage splash */
+    if (!IS_NPC(ch) && (has_blackguard_terror_tactics(ch) || has_blackguard_nightmarish_visage(ch)))
+    {
+      int margin = attempt - resist;
+      int splashes = 0;
+      struct char_data *tch = NULL;
+      for (tch = world[IN_ROOM(ch)].people; tch && splashes < 2; tch = tch->next_in_room)
+      {
+        if (tch == vict || tch == ch) continue;
+        if (GROUP(ch) == GROUP(tch)) continue;
+        if (!pvp_ok_single(tch, false)) continue;
+        if (char_has_mud_event(tch, eINTIMIDATED)) continue;
+        /* splash condition: higher margin for Terror Tactics; lower for Nightmarish Visage */
+        if ((has_blackguard_terror_tactics(ch) && margin >= 10) || (has_blackguard_nightmarish_visage(ch) && margin >= 6))
+        {
+          act("$n's terrifying presence unsettles $N!", FALSE, ch, 0, tch, TO_NOTVICT);
+          attach_mud_event(new_mud_event(eINTIMIDATED, tch, NULL), (6 * PASSES_PER_SEC));
+          splashes++;
+        }
+      }
+    }
   }
   else
   {
@@ -5314,11 +5341,17 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
+  /* Action economy: feats or Blackguard Command the Weak */
   if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) && HAS_FEAT(ch, FEAT_DEMORALIZE))
   {
     USE_SWIFT_ACTION(ch);
   }
-  if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) || HAS_FEAT(ch, FEAT_DEMORALIZE))
+  else if (has_blackguard_command_the_weak(ch) && can_use_command_the_weak_swift(ch))
+  {
+    USE_SWIFT_ACTION(ch);
+    use_command_the_weak_swift(ch);
+  }
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) || HAS_FEAT(ch, FEAT_DEMORALIZE) || has_blackguard_command_the_weak(ch))
   {
     USE_MOVE_ACTION(ch);
   }
@@ -6041,7 +6074,7 @@ static int dragonfear_callback(struct char_data *ch, struct char_data *tch, void
     return 0;
   if (mag_resistance(ch, tch, 0))
     return 0;
-  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? (-4 - get_blackguard_extra_fear_aura_penalty(tch)) : 0, 
                   CAST_INNATE, *cast_level, ENCHANTMENT))
     return 0;
 
@@ -6115,7 +6148,7 @@ static int fear_aura_callback(struct char_data *ch, struct char_data *tch, void 
     return 0;
   if (mag_resistance(ch, tch, 0))
     return 0;
-  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? (-4 - get_blackguard_extra_fear_aura_penalty(tch)) : 0, 
                   CAST_INNATE, *cast_level, ENCHANTMENT))
     return 0;
 
@@ -7322,7 +7355,7 @@ ACMD(do_grave_magic)
     }
     else
     {
-      if (savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
+      if (savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? (-4 - get_blackguard_extra_fear_aura_penalty(victim)) : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
       {
         act("You touch $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_CHAR);
         act("$n touches you, but you shake off the fear affect immediately.", false, ch, 0, victim, TO_VICT);
