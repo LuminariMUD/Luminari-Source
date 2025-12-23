@@ -2806,6 +2806,8 @@ bool has_reach(struct char_data *ch);
 
 #define GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) (ch->char_specials.saved.kapak_healing_cooldown)
 
+#define GET_BLACKGUARD_FAVORED_FOE(ch) (ch->char_specials.saved.blackguard_favored_foe)
+
 #define IS_OBJ_CONSUMABLE(obj)  (GET_OBJ_TYPE(obj) == ITEM_POTION || GET_OBJ_TYPE(obj) == ITEM_SCROLL || \
                                  GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)
 

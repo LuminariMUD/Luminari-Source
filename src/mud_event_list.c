@@ -271,6 +271,8 @@ struct mud_event_list mud_event_index[] = {
     {"Fear Escalation", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Midnight Edict", event_daily_use_cooldown, EVENT_CHAR, "You are ready to unleash Midnight Edict again.", NULL, FEAT_UNDEFINED, 1},
     {"Profane Dominion Damage", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Profane Weapon Bond", event_daily_use_cooldown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Relentless Assault", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

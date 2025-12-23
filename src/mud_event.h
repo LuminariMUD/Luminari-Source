@@ -227,6 +227,8 @@ typedef enum
   eFEAR_ESCALATION,                      /* Blackguard Sovereign of Terror fear escalation per round */
   eMIDNIGHT_EDICT,                       /* Blackguard Midnight Edict daily cooldown */
   ePROFANE_DOMINION_DAMAGE,              /* Blackguard Profane Dominion periodic damage */
+  ePROFANE_WEAPON_BOND,                  /* Blackguard Profane Weapon Bond encounter cooldown */
+  eRELENTLESS_ASSAULT,                   /* Blackguard Relentless Assault per-round gate */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -319,6 +319,25 @@ bool can_use_midnight_edict(struct char_data *ch);
 bool perform_midnight_edict(struct char_data *ch);
 bool is_cowering(struct char_data *ch);
 
+/* Blackguard Profane Might Tier I–II helpers */
+int get_blackguard_vile_strike_damage(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_cruel_momentum(struct char_data *ch);
+int get_blackguard_cruel_momentum_damage(struct char_data *ch);
+void apply_blackguard_cruel_momentum_stack(struct char_data *ch);
+bool has_blackguard_dark_channel(struct char_data *ch);
+int get_blackguard_dark_channel_damage(struct char_data *ch);
+bool has_blackguard_brutal_oath(struct char_data *ch);
+int get_blackguard_brutal_oath_bonus(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_ravaging_smite(struct char_data *ch);
+void apply_blackguard_ravaging_smite(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_profane_weapon_bond(struct char_data *ch);
+bool can_use_profane_weapon_bond(struct char_data *ch);
+bool activate_profane_weapon_bond(struct char_data *ch);
+bool has_blackguard_relentless_assault(struct char_data *ch);
+bool can_trigger_relentless_assault(struct char_data *ch);
+void trigger_relentless_assault(struct char_data *ch);
+bool has_blackguard_sanguine_barrier(struct char_data *ch);
+void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage);
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

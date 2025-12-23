@@ -242,6 +242,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"brief", "br", POS_DEAD, do_gen_tog, 0, SCMD_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"brutalfoe", "brutalfoe", POS_RECLINING, do_brutalfoe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breply", "breply", POS_STANDING, do_reply_board, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bedit", "bedit", POS_DEAD, do_bedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"blist", "blist", POS_DEAD, do_blist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -745,6 +746,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #endif
     {"pilfer", "pil", POS_STANDING, do_loot, 1, SCMD_PILFER, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"profanebond", "profanebond", POS_RECLINING, do_profanebond, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

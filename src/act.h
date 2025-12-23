@@ -272,6 +272,8 @@ ACMD_DECL(do_cruelties);
 ACMD_DECL(do_touch_of_corruption);
 ACMD_DECL(do_touch_of_undeath);
 ACMD_DECL(do_midnight_edict);
+ACMD_DECL(do_brutalfoe);
+ACMD_DECL(do_profanebond);
 ACMD_DECL(do_lichtouch);
 ACMD_DECL(do_lichfear);
 ACMD_DECL(do_maxhp);

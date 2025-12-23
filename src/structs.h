@@ -4110,6 +4110,18 @@
 #define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
 #define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
 
+/* TREE B: Profane Might - Tier 1 */
+#define PERK_BLACKGUARD_VILE_STRIKE            1414
+#define PERK_BLACKGUARD_CRUEL_MOMENTUM         1415
+#define PERK_BLACKGUARD_DARK_CHANNEL           1416
+#define PERK_BLACKGUARD_BRUTAL_OATH            1417
+
+/* TREE B: Profane Might - Tier 2 */
+#define PERK_BLACKGUARD_RAVAGING_SMITE         1418
+#define PERK_BLACKGUARD_PROFANE_WEAPON_BOND    1419
+#define PERK_BLACKGUARD_RELENTLESS_ASSAULT     1420
+#define PERK_BLACKGUARD_SANGUINE_BARRIER       1421
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -6106,6 +6118,9 @@ struct char_special_data_saved
     /* Perfect Kill tracking (Rogue Assassin perk) */
     time_t perfect_kill_last_combat; // timestamp of last combat end
     bool perfect_kill_used;          // whether perfect kill was used this combat cycle
+    
+    /* Blackguard Brutal Oath favored foe type */
+    int blackguard_favored_foe;      // race/creature type for Brutal Oath perk
 };
 
 /* not saved player data used for condensed combat */

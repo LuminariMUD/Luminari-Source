@@ -5846,6 +5846,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   GET_HIT(victim) -= dam;
+
+  /* Blackguard: Sanguine Barrier - gain temp HP from damage dealt */
+  if (dam > 0 && ch && !IS_NPC(ch))
+  {
+    apply_blackguard_sanguine_barrier(ch, dam);
+  }
   
   /* Energy Retort (Perk): reflect level-based energy damage on melee hits while psychokinesis affect active */
   if (dam > 0 && has_energy_retort_perk(victim) && !is_ranged)
@@ -6251,6 +6257,48 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += 2;
     if (display_mode)
       send_to_char(ch, "Dragonborn Fury: \tR2\tn\r\n");
+  }
+
+  /* Blackguard Profane Might: Vile Strike, Cruel Momentum, Brutal Oath, Profane Weapon Bond rider */
+  if (!IS_NPC(ch))
+  {
+    int vile = get_blackguard_vile_strike_damage(ch, vict);
+    if (vile > 0)
+    {
+      dambonus += vile;
+      if (display_mode)
+        send_to_char(ch, "Vile Strike: \tR+%d\tn\r\n", vile);
+    }
+
+    {
+      int cm = get_blackguard_cruel_momentum_damage(ch);
+      if (cm > 0)
+      {
+        dambonus += cm;
+        if (display_mode)
+          send_to_char(ch, "Cruel Momentum: \tR+%d\tn\r\n", cm);
+      }
+    }
+
+    if (vict)
+    {
+      int bo = get_blackguard_brutal_oath_bonus(ch, vict);
+      if (bo > 0)
+      {
+        dambonus += bo;
+        if (display_mode)
+          send_to_char(ch, "Brutal Oath (damage): \tR+%d\tn\r\n", bo);
+      }
+    }
+
+    /* Profane Weapon Bond: minor profane rider damage while active */
+    if (affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
+    {
+      int bond_bonus = dice(1, 4);
+      dambonus += bond_bonus;
+      if (display_mode)
+        send_to_char(ch, "Profane Weapon Bond: \tR1d4 (%d)\tn\r\n", bond_bonus);
+    }
   }
 
   if (ch && vict && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(vict) * 2) < GET_MAX_HIT(vict))
@@ -7029,6 +7077,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Smite Good bonus: \tR%d\tn\r\n", get_smite_good_level(ch) * smite_good_target_type(vict));
 
     dambonus += get_smite_good_level(ch) * smite_good_target_type(vict);
+
+    /* Blackguard: Dark Channel - extra 1d6 damage and bypass DR/good */
+    if (!IS_NPC(ch))
+    {
+      int dc_bonus = get_blackguard_dark_channel_damage(ch);
+      if (dc_bonus > 0 && smite_good_target_type(vict))
+      {
+        dambonus += dc_bonus;
+        if (display_mode)
+          send_to_char(ch, "Dark Channel: \tR1d6 (%d)\tn\r\n", dc_bonus);
+      }
+    }
   }
   /* destructive smite (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION) && vict)
@@ -8827,12 +8887,18 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
             passed = true;
           if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_GOOD(ch))
             passed = true;
+          /* Blackguard Dark Channel: Smite Good bypasses DR/good */
+          if (!IS_NPC(ch) && affected_by_spell(ch, SKILL_SMITE_GOOD) && has_blackguard_dark_channel(ch))
+            passed = true;
         }
         else if (dr->bypass_val[i] == DR_ALIGNTYPE_EVIL)
         {
           if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_EVIL || GET_SUBRACE(ch, 1) == SUBRACE_EVIL || GET_SUBRACE(ch, 2) == SUBRACE_EVIL))
             passed = true;
           if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_EVIL(ch))
+            passed = true;
+          /* Profane Weapon Bond: attacks count as evil-aligned for DR bypass */
+          if (!IS_NPC(ch) && affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
             passed = true;
         }
         else if (dr->bypass_val[i] == DR_ALIGNTYPE_LAW)
@@ -10212,6 +10278,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
       if (display)
         send_to_char(ch, " 1: %-50s\r\n", "Aligned Attack (Law)");
+    }
+
+    /* Blackguard: Brutal Oath - to-hit bonus vs favored foe */
+    if (!IS_NPC(ch))
+    {
+      int bo_hit = get_blackguard_brutal_oath_bonus(ch, victim);
+      if (bo_hit > 0)
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += bo_hit;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", bo_hit, "Brutal Oath (to-hit)");
+      }
     }
   }
 
@@ -12677,6 +12755,39 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* So do damage! (We aren't trelux, so do it normally) */
       if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
+
+      /* Blackguard: Ravaging Smite - apply bleed on smite good hit */
+      if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_blackguard_ravaging_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_GOOD) && IS_GOOD(victim))
+      {
+        apply_blackguard_ravaging_smite(ch, victim);
+      }
+
+      /* Blackguard: Cruel Momentum - gain stack on kill or critical */
+      if (!IS_NPC(ch) && (victim_is_dead || is_critical))
+      {
+        apply_blackguard_cruel_momentum_stack(ch);
+      }
+
+      /* Blackguard: Relentless Assault - extra attack on charge or on kill (1/round) */
+      if (!IS_NPC(ch) && has_blackguard_relentless_assault(ch) && can_trigger_relentless_assault(ch))
+      {
+        bool trigger = FALSE;
+        if (AFF_FLAGGED(ch, AFF_CHARGING))
+          trigger = TRUE;
+        else if (victim_is_dead)
+          trigger = FALSE; /* No current target; selection logic not implemented */
+
+        if (trigger)
+        {
+          trigger_relentless_assault(ch);
+          if (!victim_is_dead && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(ch) > POS_DEAD)
+          {
+            /* Immediate bonus attack */
+            hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+          }
+        }
+      }
 
       /* Blackguard: Intimidating Smite - Shaken on smite good hits (Will save negates) */
       if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_blackguard_intimidating_smite(ch) &&

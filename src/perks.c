@@ -369,6 +369,130 @@ void define_blackguard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->special_description = strdup("Once per day AoE mass fear with stagger on failure.");
+
+  /**************************************************************************
+   * TREE B: PROFANE MIGHT - Tier 1 & 2
+   **************************************************************************/
+  
+  /* Tier 1: Vile Strike */
+  perk = &perk_list[PERK_BLACKGUARD_VILE_STRIKE];
+  perk->id = PERK_BLACKGUARD_VILE_STRIKE;
+  perk->name = strdup("Vile Strike");
+  perk->description = strdup("Melee attacks deal bonus profane damage; extra vs good/holy foes.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 base profane damage per rank */
+  perk->special_description = strdup("+1 profane damage per rank; double vs good alignment.");
+
+  /* Tier 1: Cruel Momentum */
+  perk = &perk_list[PERK_BLACKGUARD_CRUEL_MOMENTUM];
+  perk->id = PERK_BLACKGUARD_CRUEL_MOMENTUM;
+  perk->name = strdup("Cruel Momentum");
+  perk->description = strdup("On kill or critical hit, gain stacking damage buff.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 damage per stack */
+  perk->special_description = strdup("Gain +2 damage stacking buff on kill/crit; lasts 10 seconds, max 3 stacks.");
+
+  /* Tier 1: Dark Channel */
+  perk = &perk_list[PERK_BLACKGUARD_DARK_CHANNEL];
+  perk->id = PERK_BLACKGUARD_DARK_CHANNEL;
+  perk->name = strdup("Dark Channel");
+  perk->description = strdup("Smite Good adds extra damage die and bypasses DR/good.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* adds 1d6 to smite */
+  perk->special_description = strdup("Smite Good deals +1d6 damage and bypasses DR/good.");
+
+  /* Tier 1: Brutal Oath */
+  perk = &perk_list[PERK_BLACKGUARD_BRUTAL_OATH];
+  perk->id = PERK_BLACKGUARD_BRUTAL_OATH;
+  perk->name = strdup("Brutal Oath");
+  perk->description = strdup("Choose favored foe creature type; gain bonus to-hit and damage vs that type.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 hit/damage vs favored type */
+  perk->special_description = strdup("Choose favored foe creature type (use 'brutalfoe' command); +2 hit/damage vs chosen type. Works like ranger favored enemies.");
+
+  /* Tier 2: Ravaging Smite */
+  perk = &perk_list[PERK_BLACKGUARD_RAVAGING_SMITE];
+  perk->id = PERK_BLACKGUARD_RAVAGING_SMITE;
+  perk->name = strdup("Ravaging Smite");
+  perk->description = strdup("Smite Good inflicts bleeding damage over time.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_CHANNEL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* bleeding damage handled by code */
+  perk->special_description = strdup("Smite Good causes ongoing bleeding damage (1d6 per round, 5 rounds).");
+
+  /* Tier 2: Profane Weapon Bond */
+  perk = &perk_list[PERK_BLACKGUARD_PROFANE_WEAPON_BOND];
+  perk->id = PERK_BLACKGUARD_PROFANE_WEAPON_BOND;
+  perk->name = strdup("Profane Weapon Bond");
+  perk->description = strdup("Activate buff: weapon gains magic, evil alignment, and on-hit rider.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_VILE_STRIKE;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Use 'profanebond' command; 1/enc, 1 minute duration, weapon is magic/evil, applies weakness on hit.");
+
+  /* Tier 2: Relentless Assault */
+  perk = &perk_list[PERK_BLACKGUARD_RELENTLESS_ASSAULT];
+  perk->id = PERK_BLACKGUARD_RELENTLESS_ASSAULT;
+  perk->name = strdup("Relentless Assault");
+  perk->description = strdup("Extra attack after charge or killing blow; once per round.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_CRUEL_MOMENTUM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Gain free attack after charge or killing blow; 1/round limit.");
+
+  /* Tier 2: Sanguine Barrier */
+  perk = &perk_list[PERK_BLACKGUARD_SANGUINE_BARRIER];
+  perk->id = PERK_BLACKGUARD_SANGUINE_BARRIER;
+  perk->name = strdup("Sanguine Barrier");
+  perk->description = strdup("Portion of damage dealt converts to temporary hit points.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_VILE_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% conversion rate */
+  perk->special_description = strdup("20% of damage dealt becomes temp hp; max 5*level per round.");
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */
@@ -730,6 +854,443 @@ bool perform_midnight_edict(struct char_data *ch)
 bool is_cowering(struct char_data *ch)
 {
   return ch && AFF_FLAGGED(ch, AFF_COWERING);
+}
+
+/* ========================================================================
+ * BLACKGUARD HELPERS - Profane Might (Tree B) Tier 1 & 2
+ * ======================================================================== */
+
+/**
+ * Get Vile Strike profane damage bonus.
+ * @param ch The blackguard
+ * @param vict The victim (NULL if just checking base bonus)
+ * @return Profane damage bonus (doubled vs good alignment)
+ */
+int get_blackguard_vile_strike_damage(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  
+  int ranks = get_perk_rank(ch, PERK_BLACKGUARD_VILE_STRIKE, CLASS_BLACKGUARD);
+  if (ranks <= 0) return 0;
+  
+  int base_damage = ranks; /* +1 per rank */
+  
+  /* Double vs good alignment */
+  if (vict && IS_GOOD(vict))
+    return base_damage * 2;
+  
+  return base_damage;
+}
+
+/**
+ * Check if character has Cruel Momentum perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_cruel_momentum(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_CRUEL_MOMENTUM);
+}
+
+/**
+ * Get current Cruel Momentum damage bonus from stacks.
+ * @param ch The blackguard
+ * @return Damage bonus (2 per stack)
+ */
+int get_blackguard_cruel_momentum_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  if (!has_blackguard_cruel_momentum(ch)) return 0;
+  
+  /* Check for affect tracking stacks */
+  struct affected_type *af = NULL;
+  for (af = ch->affected; af; af = af->next) {
+    if (af->spell == AFFECT_BLACKGUARD_CRUEL_MOMENTUM)
+      break;
+  }
+  if (!af) return 0;
+  
+  /* modifier field stores stack count (1-3) */
+  int stacks = MIN(3, MAX(0, af->modifier));
+  return stacks * 2; /* +2 damage per stack */
+}
+
+/**
+ * Apply Cruel Momentum stack on kill or crit.
+ * @param ch The blackguard
+ */
+void apply_blackguard_cruel_momentum_stack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!has_blackguard_cruel_momentum(ch)) return;
+  
+  struct affected_type *existing = NULL, *iter = NULL;
+  for (iter = ch->affected; iter; iter = iter->next) {
+    if (iter->spell == AFFECT_BLACKGUARD_CRUEL_MOMENTUM) {
+      existing = iter;
+      break;
+    }
+  }
+  
+  if (existing) {
+    /* Increment stack (max 3) */
+    existing->modifier = MIN(3, existing->modifier + 1);
+    existing->duration = 17; /* refresh to 10 seconds */
+    send_to_char(ch, "\tRYour Cruel Momentum intensifies! (%d/3 stacks)\tn\r\n", existing->modifier);
+  } else {
+    /* Apply first stack */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_CRUEL_MOMENTUM;
+    af.duration = 17; /* 10 seconds = ~17 rounds */
+    af.modifier = 1; /* stack count */
+    affect_to_char(ch, &af);
+    send_to_char(ch, "\tRYou gain Cruel Momentum! (1/3 stacks)\tn\r\n");
+  }
+}
+
+/**
+ * Check if character has Dark Channel perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_dark_channel(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DARK_CHANNEL);
+}
+
+/**
+ * Get Dark Channel extra smite damage (1d6).
+ * @param ch The blackguard
+ * @return Extra damage die result
+ */
+int get_blackguard_dark_channel_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  if (!has_blackguard_dark_channel(ch)) return 0;
+  
+  return dice(1, 6);
+}
+
+/**
+ * Check if character has Brutal Oath perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_brutal_oath(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BRUTAL_OATH);
+}
+
+/**
+ * Get Brutal Oath bonus vs favored foe type.
+ * Works like ranger favored enemies using RACE_TYPE_X creature types.
+ * For player victims, only triggers if RACE_TYPE_HUMANOID is selected.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Hit/damage bonus vs favored type
+ */
+int get_blackguard_brutal_oath_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_brutal_oath(ch)) return 0;
+  
+  /* Check if victim matches favored foe type */
+  int favored_foe = GET_BLACKGUARD_FAVORED_FOE(ch);
+  if (favored_foe <= 0) return 0; /* not set */
+  
+  /* For player victims, only RACE_TYPE_HUMANOID applies */
+  if (!IS_NPC(vict))
+  {
+    if (favored_foe == RACE_TYPE_HUMANOID)
+      return 2; /* +2 hit/damage vs humanoids (players) */
+    return 0;
+  }
+  
+  /* For NPC victims, check their creature type */
+  if (GET_NPC_RACE(vict) == favored_foe)
+    return 2; /* +2 hit/damage vs favored type */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Ravaging Smite perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_ravaging_smite(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_RAVAGING_SMITE);
+}
+
+/**
+ * Apply Ravaging Smite bleeding effect on smite hit.
+ * @param ch The blackguard
+ * @param vict The victim
+ */
+void apply_blackguard_ravaging_smite(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return;
+  if (!has_blackguard_ravaging_smite(ch)) return;
+  
+  /* Apply bleeding affect: 1d6 per round for 5 rounds */
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_BLEEDING;
+  af.duration = 5;
+  af.modifier = 6; /* 1d6 damage per round */
+  SET_BIT_AR(af.bitvector, AFF_BLEED);
+  affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+  
+  send_to_char(vict, "\tRYou begin bleeding from the profane smite!\tn\r\n");
+  act("\tR$N begins bleeding from your ravaging smite!\tn", FALSE, ch, 0, vict, TO_CHAR);
+}
+
+/**
+ * Check if character has Profane Weapon Bond perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_profane_weapon_bond(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PROFANE_WEAPON_BOND);
+}
+
+/**
+ * Check if Profane Weapon Bond can be activated.
+ * @param ch The blackguard
+ * @return TRUE if can activate
+ */
+bool can_use_profane_weapon_bond(struct char_data *ch)
+{
+  if (!has_blackguard_profane_weapon_bond(ch)) return FALSE;
+  
+  /* Check for cooldown event */
+  return (char_has_mud_event(ch, ePROFANE_WEAPON_BOND) == NULL);
+}
+
+/**
+ * Activate Profane Weapon Bond buff.
+ * @param ch The blackguard
+ * @return TRUE if activated successfully
+ */
+bool activate_profane_weapon_bond(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return FALSE;
+  if (!can_use_profane_weapon_bond(ch)) {
+    send_to_char(ch, "You cannot use Profane Weapon Bond again yet.\r\n");
+    return FALSE;
+  }
+  
+  /* Apply buff affect: 1 minute duration */
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND;
+  af.duration = 10; /* 1 minute = 10 rounds */
+  /* Ensure attacks count as magic for DR bypass during the bond */
+  SET_BIT_AR(af.bitvector, AFF_MAGIC_ATTACKS);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  
+  send_to_char(ch, "\tDYour weapon crackles with profane energy!\tn\r\n");
+  act("\tD$n's weapon crackles with profane energy!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Start encounter cooldown */
+  NEW_EVENT(ePROFANE_WEAPON_BOND, ch, NULL, 120 * PASSES_PER_SEC);
+  
+  return TRUE;
+}
+
+/**
+ * Command: brutalfoe
+ * 
+ * Allows blackguards with the Brutal Oath perk to select a favored foe type.
+ * Works like ranger favored enemies using RACE_TYPE_X creature types.
+ * Grants +2 to-hit and +2 damage vs the selected type.
+ * 
+ * Usage: brutalfoe <race type name or number>
+ *        brutalfoe list - Show available race types
+ */
+ACMD(do_brutalfoe)
+{
+  char arg[MAX_INPUT_LENGTH];
+  int race_type = RACE_TYPE_UNDEFINED;
+  int i;
+  
+  /* Check if character has the Brutal Oath perk */
+  if (!has_blackguard_brutal_oath(ch))
+  {
+    send_to_char(ch, "You do not have the Brutal Oath perk.\r\n");
+    return;
+  }
+  
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg)
+  {
+    /* Show current favored foe */
+    int current_foe = GET_BLACKGUARD_FAVORED_FOE(ch);
+    send_to_char(ch, "Your current favored foe type: %s\r\n", 
+                 (current_foe > 0 && current_foe < NUM_RACE_TYPES) ? race_family_types[current_foe] : "None");
+    send_to_char(ch, "Usage: brutalfoe <race type name or number>\r\n");
+    send_to_char(ch, "       brutalfoe list  (to see available race types)\r\n");
+    return;
+  }
+  
+  /* Handle \"list\" subcommand */
+  if (is_abbrev(arg, "list"))
+  {
+    send_to_char(ch, "Available creature types for Brutal Oath:\r\n");
+    send_to_char(ch, "-----------------------------------------\r\n");
+    for (i = 1; i < NUM_RACE_TYPES; i++)
+    {
+      send_to_char(ch, "[%2d] %s\r\n", i, race_family_types[i]);
+    }
+    send_to_char(ch, "\r\nUse 'brutalfoe <name or number>' to select your favored foe type.\r\n");
+    return;
+  }
+  
+  /* Try to parse as race type number */
+  if (isdigit(*arg))
+  {
+    race_type = atoi(arg);
+    if (race_type < 1 || race_type >= NUM_RACE_TYPES)
+    {
+      send_to_char(ch, "Invalid race type number. Use 'brutalfoe list' to see available types.\r\n");
+      return;
+    }
+  }
+  else
+  {
+    /* Try to find race type by name */
+    for (i = 1; i < NUM_RACE_TYPES; i++)
+    {
+      if (is_abbrev(arg, race_family_types[i]))
+      {
+        race_type = i;
+        break;
+      }
+    }
+    
+    if (race_type == RACE_TYPE_UNDEFINED)
+    {
+      send_to_char(ch, "Unknown race type '%s'. Use 'brutalfoe list' to see available types.\r\n", arg);
+      return;
+    }
+  }
+  
+  /* Set the favored foe */
+  GET_BLACKGUARD_FAVORED_FOE(ch) = race_type;
+  send_to_char(ch, "\tDYou swear a \tRBrutal Oath\tD against %s!\tn\r\n", race_family_types_plural[race_type]);
+  send_to_char(ch, "You now gain +2 to-hit and +2 damage vs %s.\r\n", race_family_types_plural[race_type]);
+}
+
+/**
+ * Command: profanebond
+ * 
+ * Activates the Profane Weapon Bond buff for blackguards with that perk.
+ * Grants weapon magic/evil properties and on-hit weakness rider for 1 minute.
+ * 1/encounter cooldown.
+ * 
+ * Usage: profanebond
+ */
+ACMD(do_profanebond)
+{
+  /* Check if character has the Profane Weapon Bond perk */
+  if (!has_blackguard_profane_weapon_bond(ch))
+  {
+    send_to_char(ch, "You do not have the Profane Weapon Bond perk.\r\n");
+    return;
+  }
+  
+  /* Check if on cooldown */
+  if (!can_use_profane_weapon_bond(ch))
+  {
+    send_to_char(ch, "You cannot use Profane Weapon Bond again yet.\r\n");
+    return;
+  }
+  
+  /* Activate the buff */
+  if (activate_profane_weapon_bond(ch))
+  {
+    act("\tD$n's weapon \tRcrackles with profane energy\tD!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  }
+}
+
+/**
+ * Check if character has Relentless Assault perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_relentless_assault(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_RELENTLESS_ASSAULT);
+}
+
+/**
+ * Check if Relentless Assault can trigger (1/round gate).
+ * @param ch The blackguard
+ * @return TRUE if can trigger
+ */
+bool can_trigger_relentless_assault(struct char_data *ch)
+{
+  if (!has_blackguard_relentless_assault(ch)) return FALSE;
+  
+  /* Check if already triggered this round */
+  return (char_has_mud_event(ch, eRELENTLESS_ASSAULT) == NULL);
+}
+
+/**
+ * Trigger Relentless Assault free attack.
+ * @param ch The blackguard
+ */
+void trigger_relentless_assault(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!can_trigger_relentless_assault(ch)) return;
+  
+  send_to_char(ch, "\tYYou press the assault with relentless fury!\tn\r\n");
+  act("\tY$n presses the assault with relentless fury!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Grant extra attack (implementation hook needed in combat code) */
+  /* TODO: Hook into combat system to grant extra attack */
+  
+  /* Set 1-round cooldown */
+  NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC); /* 1 round = 6 seconds */
+}
+
+/**
+ * Check if character has Sanguine Barrier perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_sanguine_barrier(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SANGUINE_BARRIER);
+}
+
+/**
+ * Apply Sanguine Barrier temp HP from damage dealt.
+ * @param ch The blackguard
+ * @param damage The damage dealt
+ */
+void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!has_blackguard_sanguine_barrier(ch)) return;
+  
+  /* 20% of damage becomes temp HP */
+  int temp_hp = (damage * 20) / 100;
+  
+  /* Cap at 5 * level per round */
+  int max_per_round = CLASS_LEVEL(ch, CLASS_BLACKGUARD) * 5;
+  temp_hp = MIN(temp_hp, max_per_round);
+  
+  if (temp_hp > 0) {
+    /* Award temp HP (capped at max HP + 50) */
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+    send_to_char(ch, "\tDYou absorb %d vitality from your strike!\tn\r\n", temp_hp);
+  }
 }
 
 /* Define Psionicist Perks */
