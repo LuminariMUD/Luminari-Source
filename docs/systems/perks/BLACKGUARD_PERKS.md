@@ -17,7 +17,7 @@ Design goal: three thematic trees, each with 4 tiers; Tiers 1–3 have 4 perks e
 - **Tier 3 (4 perks)**
   - Paralyzing Dread: Shaken -> frightened on fail; frightened -> cower on big fail.
   - Despair Harvest: Temp hp or dark focus when foes fail fear saves (per-round cap).
-  - Shackles of Awe: Fear effects also reduce speed and attack.
+  - Shackles of Awe: Fear effects also reduce speed and attack bonus.
   - Profane Dominion: Fearful foes take extra profane damage each round.
 - **Tier 4 (2 capstones)**
   - Sovereign of Terror: Fear immunity becomes resistance; aura escalates fear one step each round (cap at cower).

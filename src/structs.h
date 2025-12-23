@@ -1511,112 +1511,113 @@
 #define AFF_ELEMENT_PROT 28        // endure elements, etc
 #define AFF_DEAF 29                // deafened
 #define AFF_FEAR 30                // under affect of fear
-#define AFF_STUN 31                // stunned
-#define AFF_PARALYZED 32           // paralyzed
-#define AFF_ULTRAVISION 33         /**< Char can see in dark */
-#define AFF_GRAPPLED 34            // grappled (combat maneuver)
-#define AFF_TAMED 35               // tamed therefore mountable
-#define AFF_CLIMB 36               // affect that allows you to climb
-#define AFF_NAUSEATED 37           // nauseated - physical abilities reduced
-#define AFF_NON_DETECTION 38       /* can't be scryed */
-#define AFF_SLOW 39                /* supernaturally slowed - less attacks */
-#define AFF_FSHIELD 40             // fire shield - reflect damage
-#define AFF_CSHIELD 41             // cold shield - reflect damage
-#define AFF_MINOR_GLOBE 42         // invulnerable to lower level spells
-#define AFF_ASHIELD 43             // acid shield - reflect damage
-#define AFF_SIZECHANGED 44         /* size is unusual, bigger or smaller class */
-#define AFF_TRUE_SIGHT 45          /* highest level of enhanced magical vision */
-#define AFF_SPOT 46                /* spot mode - better chance at seeing 'hide' */
-#define AFF_FATIGUED 47            /* exhausted, less physically effective */
-#define AFF_REGEN 48               /* regenerating health at accelerated rate */
-#define AFF_DISEASE 49             /* affected by a disease */
-#define AFF_TFORM 50               // tenser's transformation - powerful physical transofmration
-#define AFF_GLOBE_OF_INVULN 51     /* invulernability to certain spells */
-#define AFF_LISTEN 52              /* in listen mode - better chance at hearing 'sneak' */
-#define AFF_DISPLACE 53            /* displacement - 50% concealment */
-#define AFF_SPELL_MANTLE 54        /* spell absorbtion defense */
-#define AFF_CONFUSED 55            /* confused, taking random actions */
-#define AFF_REFUGE 56              /* refuge from danger - effectively stealthed */
-#define AFF_SPELL_TURNING 57       /* able to deflect an opponents offensive spell! */
-#define AFF_MIND_BLANK 58          /* mind blanked from harsh enchantments */
-#define AFF_SHADOW_SHIELD 59       /* surrounded by powerful defensive shadow magic */
-#define AFF_TIME_STOPPED 60        /* all non-offensive spells are free actions! */
-#define AFF_BRAVERY 61             /* immune to fear */
-#define AFF_FREE_MOVEMENT 62       /* able to resist movement impending effects */
-#define AFF_FAERIE_FIRE 63         /* surrounded by purple flame */
-#define AFF_BATTLETIDE 64          /* powerful physical presence */
-#define AFF_SPELL_RESISTANT 65     /* bonus to resisting spells */
-#define AFF_DIM_LOCK 66            // locked to current plane (can't teleport)
-#define AFF_DEATH_WARD 67          /* warded from death effects */
-#define AFF_SPELLBATTLE 68         /* arcana golem spellbattle mode */
-#define AFF_VAMPIRIC_TOUCH 69      // will make next attack vampiric
-#define AFF_BLACKMANTLE 70         // stop normal regen, reduce healing
-#define AFF_DANGERSENSE 71         // sense aggro in surround rooms
-#define AFF_SAFEFALL 72            // reduce damage from falling
-#define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage (no effect yet)
-#define AFF_INERTIAL_BARRIER 74    // absorb damage based on psp
-#define AFF_NOTELEPORT 75          // make target not reachable via teleport
+#define AFF_COWERING 31            // cowering (worse than fear/shaken)
+#define AFF_STUN 32                // stunned
+#define AFF_PARALYZED 33           // paralyzed
+#define AFF_ULTRAVISION 34         /**< Char can see in dark */
+#define AFF_GRAPPLED 35            // grappled (combat maneuver)
+#define AFF_TAMED 36               // tamed therefore mountable
+#define AFF_CLIMB 37               // affect that allows you to climb
+#define AFF_NAUSEATED 38           // nauseated - physical abilities reduced
+#define AFF_NON_DETECTION 39       /* can't be scryed */
+#define AFF_SLOW 40                /* supernaturally slowed - less attacks */
+#define AFF_FSHIELD 41             // fire shield - reflect damage
+#define AFF_CSHIELD 42             // cold shield - reflect damage
+#define AFF_MINOR_GLOBE 43         // invulnerable to lower level spells
+#define AFF_ASHIELD 44             // acid shield - reflect damage
+#define AFF_SIZECHANGED 45         /* size is unusual, bigger or smaller class */
+#define AFF_TRUE_SIGHT 46          /* highest level of enhanced magical vision */
+#define AFF_SPOT 47                /* spot mode - better chance at seeing 'hide' */
+#define AFF_FATIGUED 48            /* exhausted, less physically effective */
+#define AFF_REGEN 49               /* regenerating health at accelerated rate */
+#define AFF_DISEASE 50             /* affected by a disease */
+#define AFF_TFORM 51               // tenser's transformation - powerful physical transofmration
+#define AFF_GLOBE_OF_INVULN 52     /* invulernability to certain spells */
+#define AFF_LISTEN 53              /* in listen mode - better chance at hearing 'sneak' */
+#define AFF_DISPLACE 54            /* displacement - 50% concealment */
+#define AFF_SPELL_MANTLE 55        /* spell absorbtion defense */
+#define AFF_CONFUSED 56            /* confused, taking random actions */
+#define AFF_REFUGE 57              /* refuge from danger - effectively stealthed */
+#define AFF_SPELL_TURNING 58       /* able to deflect an opponents offensive spell! */
+#define AFF_MIND_BLANK 59          /* mind blanked from harsh enchantments */
+#define AFF_SHADOW_SHIELD 60       /* surrounded by powerful defensive shadow magic */
+#define AFF_TIME_STOPPED 61        /* all non-offensive spells are free actions! */
+#define AFF_BRAVERY 62             /* immune to fear */
+#define AFF_FREE_MOVEMENT 63       /* able to resist movement impending effects */
+#define AFF_FAERIE_FIRE 64         /* surrounded by purple flame */
+#define AFF_BATTLETIDE 65          /* powerful physical presence */
+#define AFF_SPELL_RESISTANT 66     /* bonus to resisting spells */
+#define AFF_DIM_LOCK 67            // locked to current plane (can't teleport)
+#define AFF_DEATH_WARD 68          /* warded from death effects */
+#define AFF_SPELLBATTLE 69         /* arcana golem spellbattle mode */
+#define AFF_VAMPIRIC_TOUCH 70      // will make next attack vampiric
+#define AFF_BLACKMANTLE 71         // stop normal regen, reduce healing
+#define AFF_DANGERSENSE 72         // sense aggro in surround rooms
+#define AFF_SAFEFALL 73            // reduce damage from falling
+#define AFF_TOWER_OF_IRON_WILL 74  // reduce psionic damage (no effect yet)
+#define AFF_INERTIAL_BARRIER 75    // absorb damage based on psp
+#define AFF_NOTELEPORT 76          // make target not reachable via teleport
 /* works in progress */
-#define AFF_MAX_DAMAGE 76   // enhance next attack/spell/etc (no affect yet)
-#define AFF_IMMATERIAL 77   // no physical body (ghost-like)
-#define AFF_CAGE 78         // can't interact/be-interacted with
-#define AFF_MAGE_FLAME 79   // light up an individual
-#define AFF_DARKVISION 80   // perfect vision day/night
-#define AFF_BODYWEAPONRY 81 // martial arts
-#define AFF_FARSEE 82       // can see outside of room
-#define AFF_MENZOCHOKER 83  // special object affect
+#define AFF_MAX_DAMAGE 77   // enhance next attack/spell/etc (no affect yet)
+#define AFF_IMMATERIAL 78   // no physical body (ghost-like)
+#define AFF_CAGE 79         // can't interact/be-interacted with
+#define AFF_MAGE_FLAME 80   // light up an individual
+#define AFF_DARKVISION 81   // perfect vision day/night
+#define AFF_BODYWEAPONRY 82 // martial arts
+#define AFF_FARSEE 83       // can see outside of room
+#define AFF_MENZOCHOKER 84  // special object affect
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
-#define AFF_RAPID_SHOT 84  /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
-#define AFF_DAZED 85       /* Dazed*/
-#define AFF_FLAT_FOOTED 86 /* caught off guard! */
+#define AFF_RAPID_SHOT 85  /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
+#define AFF_DAZED 86       /* Dazed*/
+#define AFF_FLAT_FOOTED 87 /* caught off guard! */
 
-#define AFF_DUAL_WIELD 87        /* Dual wield mode */
-#define AFF_FLURRY_OF_BLOWS 88   /* Flurry of blows mode */
-#define AFF_COUNTERSPELL 89      /* Counterspell mode */
-#define AFF_DEFENSIVE_CASTING 90 /* Defensive casting mode */
-#define AFF_WHIRLWIND_ATTACK 91  /*  Whirlwind attack mode */
+#define AFF_DUAL_WIELD 88        /* Dual wield mode */
+#define AFF_FLURRY_OF_BLOWS 89   /* Flurry of blows mode */
+#define AFF_COUNTERSPELL 90      /* Counterspell mode */
+#define AFF_DEFENSIVE_CASTING 91 /* Defensive casting mode */
+#define AFF_WHIRLWIND_ATTACK 92  /*  Whirlwind attack mode */
 
-#define AFF_CHARGING 92            /* charging in combat */
-#define AFF_WILD_SHAPE 93          /* wildshape, shapechange */
-#define AFF_FEINTED 94             /* flat-footed */
-#define AFF_PINNED 95              /* pinned to the ground (grapple) */
-#define AFF_MIRROR_IMAGED 96       /* duplicate illusions of self! */
-#define AFF_WARDED 97              /* warded (damage protection) */
-#define AFF_ENTANGLED 98           /* entangled (can't move) */
-#define AFF_ACROBATIC 99           /* acrobatic!  currently used for druid jump \ \ \ \
+#define AFF_CHARGING 93            /* charging in combat */
+#define AFF_WILD_SHAPE 94          /* wildshape, shapechange */
+#define AFF_FEINTED 95             /* flat-footed */
+#define AFF_PINNED 96              /* pinned to the ground (grapple) */
+#define AFF_MIRROR_IMAGED 97       /* duplicate illusions of self! */
+#define AFF_WARDED 98              /* warded (damage protection) */
+#define AFF_ENTANGLED 99           /* entangled (can't move) */
+#define AFF_ACROBATIC 100           /* acrobatic!  currently used for druid jump \ \ \ \
                                       spell, possible expansion to follow */
-#define AFF_BLINKING 100           /* in a state of blinking between prime/eth */
-#define AFF_AWARE 101              /* aware - too aware to be backstabed */
-#define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
-#define AFF_LEVITATE 103           /**< Char can float above the ground */
-#define AFF_BLEED 104              /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
-#define AFF_STAGGERED 105          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
-#define AFF_DAZZLED 106            /* suffers -1 to attacks and perception checks */
-#define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
-#define AFF_ESHIELD 108            // electric shield - reflect damage
-#define AFF_SICKENED 109           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
-#define AFF_SILENCED 110           // silenced, can't speak or cast spells
-#define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
-#define AFF_WIND_WALL 112          // surrounded by a wall of wind
-#define AFF_FEAR_AURA 113
-#define AFF_SPIDER_CLIMB 114
-#define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
-#define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
-#define AFF_REPULSION 117          // A field of repulsion is around person
-#define AFF_ON_FIRE 118             // person is on fire
-#define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
-#define AFF_SICKENING_AURA 120
-#define AFF_RAPID_BUFF 121          // increases buff speed
-#define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
-#define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
-#define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
-#define AFF_HIVE_MARKED 125         // marked by Hive Commander - gives +3 DC to further telepathy powers
-#define AFF_PERFECT_DEFLECTION_ACTIVE 126    // ready to deflect next attack (Psionicist Perfect Deflection)
-#define AFF_MAGIC_ATTACKS 127                 // summon/creature attacks count as magic for DR purposes
+#define AFF_BLINKING 101           /* in a state of blinking between prime/eth */
+#define AFF_AWARE 102              /* aware - too aware to be backstabed */
+#define AFF_CRIPPLING_CRITICAL 103 /* duelist crippling critical affection */
+#define AFF_LEVITATE 104           /**< Char can float above the ground */
+#define AFF_BLEED 105              /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
+#define AFF_STAGGERED 106          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
+#define AFF_DAZZLED 107            /* suffers -1 to attacks and perception checks */
+#define AFF_SHAKEN 108             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
+#define AFF_ESHIELD 109            // electric shield - reflect damage
+#define AFF_SICKENED 110           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
+#define AFF_SILENCED 111           // silenced, can't speak or cast spells
+#define AFF_HIDE_ALIGNMENT 112     // alignment can't be detected
+#define AFF_WIND_WALL 113          // surrounded by a wall of wind
+#define AFF_FEAR_AURA 114
+#define AFF_SPIDER_CLIMB 115
+#define AFF_DEADLY_AIM 116         // used to determine if using deadly aim feat benefits.
+#define AFF_ACID_COAT 117              /**< (R) Char is covered in acid */
+#define AFF_REPULSION 118          // A field of repulsion is around person
+#define AFF_ON_FIRE 119             // person is on fire
+#define AFF_FLAME_BLADE 120        // melee hits deal 1d6 fire damage extra
+#define AFF_SICKENING_AURA 121
+#define AFF_RAPID_BUFF 122          // increases buff speed
+#define AFF_CRIPPLED 123            // crippled - movement speed halved, chance to fail movement
+#define AFF_ENCASED_IN_ICE 124      // encased in ice - paralyzed, immune to cold damage, DR 5/-
+#define AFF_NEXTATTACK_STUN 125     // next attack will attempt to stun the target (Berserker Stunning Blow)
+#define AFF_HIVE_MARKED 126         // marked by Hive Commander - gives +3 DC to further telepathy powers
+#define AFF_PERFECT_DEFLECTION_ACTIVE 127    // ready to deflect next attack (Psionicist Perfect Deflection)
+#define AFF_MAGIC_ATTACKS 128                 // summon/creature attacks count as magic for DR purposes
 
 /*---*/
-#define NUM_AFF_FLAGS 128
+#define NUM_AFF_FLAGS 129
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4088,6 +4089,26 @@
 #define PERK_BLACKGUARD_TERROR_TACTICS         1405
 #define PERK_BLACKGUARD_BLACK_SERAPH_STEP      1406
 #define PERK_BLACKGUARD_NIGHTMARISH_VISAGE     1407
+
+/* TREE A: Tyranny & Fear - Tier 3 */
+#define PERK_BLACKGUARD_PARALYZING_DREAD       1408
+#define PERK_BLACKGUARD_DESPAIR_HARVEST        1409
+#define PERK_BLACKGUARD_SHACKLES_OF_AWE        1410
+#define PERK_BLACKGUARD_PROFANE_DOMINION       1411
+
+/* TREE A: Tyranny & Fear - Tier 4 (Capstones) */
+#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
+#define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
+
+/* TREE A: Tyranny & Fear - Tier 3 */
+#define PERK_BLACKGUARD_PARALYZING_DREAD       1408
+#define PERK_BLACKGUARD_DESPAIR_HARVEST        1409
+#define PERK_BLACKGUARD_SHACKLES_OF_AWE        1410
+#define PERK_BLACKGUARD_PROFANE_DOMINION       1411
+
+/* TREE A: Tyranny & Fear - Tier 4 (Capstones) */
+#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
+#define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
 
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)

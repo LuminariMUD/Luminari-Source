@@ -28,6 +28,9 @@
 
 #include "spells.h"
 #include "psionics.h"
+#include "domains_schools.h"
+#include "mud_event.h"
+#include "fight.h"
 #include "fight.h"
 #include "act.h"
 #include "fight.h"
@@ -276,6 +279,96 @@ void define_blackguard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->special_description = strdup("AoE intimidate capabilities; improved visuals.");
+
+  /* Tier 3: Paralyzing Dread */
+  perk = &perk_list[PERK_BLACKGUARD_PARALYZING_DREAD];
+  perk->id = PERK_BLACKGUARD_PARALYZING_DREAD;
+  perk->name = strdup("Paralyzing Dread");
+  perk->description = strdup("Failed fear saves escalate: shaken -> frightened; big fail -> cower.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Shaken foes who fail saves become frightened; critical failures cower.");
+
+  /* Tier 3: Despair Harvest */
+  perk = &perk_list[PERK_BLACKGUARD_DESPAIR_HARVEST];
+  perk->id = PERK_BLACKGUARD_DESPAIR_HARVEST;
+  perk->name = strdup("Despair Harvest");
+  perk->description = strdup("Gain temp hp when foes fail fear saves; capped per round.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Harvest temporary hit points from enemy fear; limited per round.");
+
+  /* Tier 3: Shackles of Awe */
+  perk = &perk_list[PERK_BLACKGUARD_SHACKLES_OF_AWE];
+  perk->id = PERK_BLACKGUARD_SHACKLES_OF_AWE;
+  perk->name = strdup("Shackles of Awe");
+  perk->description = strdup("Fear effects reduce speed and attack bonus of afflicted enemies.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Fearful foes suffer speed and attack penalties.");
+
+  /* Tier 3: Profane Dominion */
+  perk = &perk_list[PERK_BLACKGUARD_PROFANE_DOMINION];
+  perk->id = PERK_BLACKGUARD_PROFANE_DOMINION;
+  perk->name = strdup("Profane Dominion");
+  perk->description = strdup("Feared foes take periodic profane damage each round.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_CRUEL_EDGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Enemies suffering fear effects take ongoing profane damage.");
+
+  /* Tier 4: Sovereign of Terror */
+  perk = &perk_list[PERK_BLACKGUARD_SOVEREIGN_OF_TERROR];
+  perk->id = PERK_BLACKGUARD_SOVEREIGN_OF_TERROR;
+  perk->name = strdup("Sovereign of Terror");
+  perk->description = strdup("Aura escalates fear each round (cap cower); immunity -> resistance.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PARALYZING_DREAD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Fear immunity becomes resistance; aura escalates fear per round.");
+
+  /* Tier 4: Midnight Edict */
+  perk = &perk_list[PERK_BLACKGUARD_MIDNIGHT_EDICT];
+  perk->id = PERK_BLACKGUARD_MIDNIGHT_EDICT;
+  perk->name = strdup("Midnight Edict");
+  perk->description = strdup("1/day: All in aura save vs mass fright/panic; fail = stagger too.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PARALYZING_DREAD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Once per day AoE mass fear with stagger on failure.");
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */
@@ -348,6 +441,297 @@ void use_command_the_weak_swift(struct char_data *ch)
   /* Start a short encounter cooldown (e.g., 120 seconds) */
   attach_mud_event(new_mud_event(eINTIMIDATE_SWIFT, ch, NULL), 120 * PASSES_PER_SEC);
 }
+
+/* ========================================================================
+ * TIER 3 BLACKGUARD HELPERS - Tyranny & Fear
+ * ======================================================================== */
+
+bool has_blackguard_paralyzing_dread(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PARALYZING_DREAD);
+}
+
+/**
+ * Try to apply Paralyzing Dread escalation on a victim who just failed a fear save.
+ * Should be called whenever a character fails a fear-related saving throw.
+ * @param vict The victim who failed the fear save
+ * @return TRUE if Paralyzing Dread applied (escalated), FALSE otherwise
+ */
+bool try_paralyzing_dread(struct char_data *vict)
+{
+  struct char_data *blackguard = NULL;
+  struct affected_type af;
+  
+  if (!vict || IS_NPC(vict))
+    return FALSE;
+  
+  /* Only applies if victim is already shaken */
+  if (!AFF_FLAGGED(vict, AFF_SHAKEN))
+    return FALSE;
+  
+  /* Look for a Blackguard with Paralyzing Dread in the room */
+  if (!affected_by_aura_of_cowardice(vict))
+    return FALSE;
+    
+  for (blackguard = world[IN_ROOM(vict)].people; blackguard; blackguard = blackguard->next_in_room) {
+    if (!IS_NPC(blackguard) && has_blackguard_paralyzing_dread(blackguard))
+      break;
+  }
+  
+  if (!blackguard)
+    return FALSE;
+  
+  /* 30% chance of critical failure -> cower, otherwise -> frightened */
+  if (rand_number(1, 100) <= 30) {
+    /* Critical failure: escalate to cowering */
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_COWER;
+    af.duration = dice(3, 6);
+    SET_BIT_AR(af.bitvector, AFF_COWERING);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYou are paralyzed with dread and cower in terror!\tn\r\n");
+    act("$N cowers in paralyzing dread!", FALSE, blackguard, 0, vict, TO_CHAR);
+    apply_despair_harvest(blackguard, vict);
+  } else {
+    /* Normal failure: escalate to frightened */
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_FEAR;
+    af.duration = dice(4, 6);
+    SET_BIT_AR(af.bitvector, AFF_FEAR);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYour shaken state deepens into frightful terror!\tn\r\n");
+    act("$N's shaken state escalates to terror!", FALSE, blackguard, 0, vict, TO_CHAR);
+    apply_despair_harvest(blackguard, vict);
+  }
+  
+  return TRUE;
+}
+
+bool has_blackguard_despair_harvest(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DESPAIR_HARVEST);
+}
+
+bool has_blackguard_shackles_of_awe(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SHACKLES_OF_AWE);
+}
+
+bool has_blackguard_profane_dominion(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PROFANE_DOMINION);
+}
+
+/**
+ * Apply Despair Harvest: Grant temp HP when enemy fails fear save.
+ * Capped per round (tracks via affect).
+ * @param ch The blackguard
+ * @param vict The victim who failed the fear save
+ */
+void apply_despair_harvest(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return;
+  if (!has_blackguard_despair_harvest(ch)) return;
+
+  /* Calculate temp hp: 1 + CHA mod + BG level / 5 */
+  int temp_hp = 1 + GET_CHA_BONUS(ch) + (CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 5);
+  
+  /* Award temp hp (game's temp hp system handles stacking/caps) */
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+  
+  send_to_char(ch, "\tDYou harvest the despair of %s, gaining vitality!\tn\r\n", GET_NAME(vict));
+}
+
+/**
+ * Get Shackles of Awe attack penalty for fearful victim.
+ * @param ch The blackguard (attacker)
+ * @param vict The victim
+ * @return Attack penalty (negative value)
+ */
+int get_shackles_of_awe_attack_penalty(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_shackles_of_awe(ch)) return 0;
+  
+  /* Check if victim is affected by fear/shaken/cowering */
+  if (AFF_FLAGGED(vict, AFF_FEAR))
+    return -3;
+  if (AFF_FLAGGED(vict, AFF_SHAKEN))
+    return -2;
+  if (AFF_FLAGGED(vict, AFF_COWERING))
+    return -4;
+  
+  return 0;
+}
+
+/**
+ * Get Shackles of Awe speed penalty for fearful victim.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Speed penalty (percentage, e.g., 20 = 20% slower)
+ */
+int get_shackles_of_awe_speed_penalty(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_shackles_of_awe(ch)) return 0;
+  
+  /* Check if victim is affected by fear/shaken/cowering */
+  if (AFF_FLAGGED(vict, AFF_FEAR))
+    return 30;
+  if (AFF_FLAGGED(vict, AFF_SHAKEN))
+    return 20;
+  if (AFF_FLAGGED(vict, AFF_COWERING))
+    return 40;
+  
+  return 0;
+}
+
+/**
+ * Get Profane Dominion damage for feared victim.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Profane damage per round
+ */
+int get_profane_dominion_damage(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_profane_dominion(ch)) return 0;
+  
+  /* Only affect enemies with fear-type effects */
+  if (!AFF_FLAGGED(vict, AFF_FEAR) && !AFF_FLAGGED(vict, AFF_SHAKEN) && !AFF_FLAGGED(vict, AFF_COWERING))
+    return 0;
+  
+  /* Base damage: 1d6 + CHA mod */
+  return dice(1, 6) + GET_CHA_BONUS(ch);
+}
+
+/* ========================================================================
+ * TIER 4 BLACKGUARD HELPERS - Tyranny & Fear (Capstones)
+ * ======================================================================== */
+
+bool has_blackguard_sovereign_of_terror(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SOVEREIGN_OF_TERROR);
+}
+
+bool has_blackguard_midnight_edict(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_MIDNIGHT_EDICT);
+}
+
+/**
+ * Apply Sovereign of Terror fear escalation to a victim.
+ * Escalates: shaken -> frightened (AFF_FEAR) -> cower.
+ * @param ch The blackguard
+ * @param vict The victim in aura
+ */
+void apply_sovereign_fear_escalation(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return;
+  if (!has_blackguard_sovereign_of_terror(ch)) return;
+  
+  /* Check if already at max (cowering) */
+  if (AFF_FLAGGED(vict, AFF_COWERING)) return;
+  
+  /* Escalate fear level */
+  if (AFF_FLAGGED(vict, AFF_FEAR)) {
+    /* Frightened -> Cowering */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_COWER;
+    af.duration = 10;
+    SET_BIT_AR(af.bitvector, AFF_COWERING);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYou are overwhelmed by terror and cower in fear!\tn\r\n");
+  } else if (AFF_FLAGGED(vict, AFF_SHAKEN)) {
+    /* Shaken -> Frightened */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_FEAR;
+    af.duration = 10;
+    SET_BIT_AR(af.bitvector, AFF_FEAR);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYour shaken state deepens into frightful terror!\tn\r\n");
+  }
+}
+
+/**
+ * Perform Midnight Edict: AoE mass fear with stagger on failure.
+ * @param ch The blackguard
+ * @return TRUE if successful, FALSE if on cooldown
+ */
+bool perform_midnight_edict(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return FALSE;
+  if (!has_blackguard_midnight_edict(ch)) return FALSE;
+  
+  /* Check cooldown */
+  if (char_has_mud_event(ch, eMIDNIGHT_EDICT)) {
+    send_to_char(ch, "You cannot use Midnight Edict again yet.\r\n");
+    return FALSE;
+  }
+  
+  /* Process all enemies in room */
+  struct char_data *vict, *next_vict;
+  int affected_count = 0;
+  
+  act("\tD$n pronounces a \tRMidnight Edict\tD, and waves of terror wash over the area!\tn", 
+      FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "\tDYou pronounce a \tRMidnight Edict\tD!\tn\r\n");
+  
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+    
+    if (vict == ch || !IS_NPC(vict))
+      continue;
+    
+    /* Apply extra aura penalty */
+    int penalty = get_blackguard_extra_fear_aura_penalty(ch);
+    
+    /* Will save */
+    if (savingthrow(ch, vict, SAVING_WILL, -penalty, CAST_INNATE, CLASS_LEVEL(ch, CLASS_BLACKGUARD), ENCHANTMENT)) {
+      /* Success: minor shaken */
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = AFFECT_BLACKGUARD_SHAKEN;
+      af.duration = 5;
+      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+      send_to_char(vict, "\tYYou resist the Midnight Edict but feel unnerved.\tn\r\n");
+    } else {
+      /* Failure: frightened + stagger */
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = AFFECT_BLACKGUARD_FEAR;
+      af.duration = 10;
+      SET_BIT_AR(af.bitvector, AFF_FEAR);
+      SET_BIT_AR(af.bitvector, AFF_STAGGERED);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+      send_to_char(vict, "\tRYou succumb to the Midnight Edict: fear and stagger grip you!\tn\r\n");
+      
+      /* Despair Harvest proc if available */
+      apply_despair_harvest(ch, vict);
+    }
+    affected_count++;
+  }
+  
+  /* Start daily cooldown: 24 hours */
+  NEW_EVENT(eMIDNIGHT_EDICT, ch, NULL, 24 * 60 * 60 * PASSES_PER_SEC);
+  
+  send_to_char(ch, "You have affected %d enemies with your Midnight Edict.\r\n", affected_count);
+  return TRUE;
+}
+
+/**
+ * Check if character is cowering.
+ * @param ch The character
+ * @return TRUE if cowering
+ */
+bool is_cowering(struct char_data *ch)
+{
+  return ch && AFF_FLAGGED(ch, AFF_COWERING);
+}
+
 /* Define Psionicist Perks */
 void define_psionicist_perks(void)
 {

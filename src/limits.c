@@ -2091,6 +2091,17 @@ void proc_d20_round(void)
 
   for (i = character_list; i; i = i->next)
   {
+    /* Cowering: 10% chance per round to be too afraid to act */
+    if (FIGHTING(i) && AFF_FLAGGED(i, AFF_COWERING) && rand_number(1, 100) <= 10)
+    {
+      send_to_char(i, "\tRYou are too afraid to act!\tn\r\n");
+      act("$n cowers in fear, unable to act!", FALSE, i, 0, 0, TO_ROOM);
+      /* Consume all actions - the character can't do anything this round */
+      USE_STANDARD_ACTION(i);
+      USE_MOVE_ACTION(i);
+      USE_SWIFT_ACTION(i);
+    }
+
     /* Perfect Tempo perk: Apply buff if character avoided all hits this round */
     if (FIGHTING(i) && has_bard_perfect_tempo(i) && !is_affected_by_perfect_tempo(i))
     {

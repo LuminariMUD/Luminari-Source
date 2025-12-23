@@ -1766,6 +1766,7 @@ const char *affected_bits[] = {
     "Protect-Elements",
     "Deaf",
     "Fear", // 30
+    "Cowering",
     "Stunned",
     "Paralyzed",
     "Ultra-Vision",
@@ -1905,6 +1906,7 @@ const char *affected_bit_descs[] = {
     "You are protected from the elements.",
     "You can't hear a thing.",
     "You are terrified.", // 30
+    "You are cowering in fear.",
     "You are stunned.",
     "You can't move!",
     "You can see in the ultra-violet spectrum.",

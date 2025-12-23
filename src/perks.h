@@ -302,6 +302,23 @@ void use_command_the_weak_swift(struct char_data *ch);
 bool has_blackguard_terror_tactics(struct char_data *ch);
 bool has_blackguard_nightmarish_visage(struct char_data *ch);
 
+/* Blackguard Tyranny & Fear Tier III–IV helpers */
+bool has_blackguard_paralyzing_dread(struct char_data *ch);
+bool try_paralyzing_dread(struct char_data *vict);
+bool has_blackguard_despair_harvest(struct char_data *ch);
+void apply_despair_harvest(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_shackles_of_awe(struct char_data *ch);
+int get_shackles_of_awe_attack_penalty(struct char_data *ch, struct char_data *vict);
+int get_shackles_of_awe_speed_penalty(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_profane_dominion(struct char_data *ch);
+int get_profane_dominion_damage(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_sovereign_of_terror(struct char_data *ch);
+void apply_sovereign_fear_escalation(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_midnight_edict(struct char_data *ch);
+bool can_use_midnight_edict(struct char_data *ch);
+bool perform_midnight_edict(struct char_data *ch);
+bool is_cowering(struct char_data *ch);
+
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

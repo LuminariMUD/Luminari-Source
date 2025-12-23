@@ -268,6 +268,9 @@ struct mud_event_list mud_event_index[] = {
     {"Accelerated Manifestation Cooldown", event_countdown, EVENT_CHAR, "You can use Accelerated Manifestation again.", NULL, FEAT_UNDEFINED, 0},
     {"Rapid Manifester Cooldown", event_countdown, EVENT_CHAR, "You can use Rapid Manifester again.", NULL, FEAT_UNDEFINED, 0},
     {"Command the Weak (Swift)", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Fear Escalation", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Midnight Edict", event_daily_use_cooldown, EVENT_CHAR, "You are ready to unleash Midnight Edict again.", NULL, FEAT_UNDEFINED, 1},
+    {"Profane Dominion Damage", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

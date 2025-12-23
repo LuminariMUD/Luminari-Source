@@ -9693,6 +9693,12 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     if (display)
         send_to_char(ch, "-2: %-50s\r\n", "Shaken"); 
   }
+  if (AFF_FLAGGED(ch, AFF_COWERING))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 4;
+    if (display)
+        send_to_char(ch, "-4: %-50s\r\n", "Cowering"); 
+  }
   if (AFF_FLAGGED(ch, AFF_DAZZLED))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;

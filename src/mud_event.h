@@ -224,6 +224,9 @@ typedef enum
   eASTRAL_JUGGERNAUT_USED,          /* Psionicist Astral Juggernaut - used today */
   ePERFECT_FABRICATOR_USED,         /* Psionicist Perfect Fabricator - used today */
   eINTIMIDATE_SWIFT,                     /* Blackguard Command the Weak swift intimidate gate */
+  eFEAR_ESCALATION,                      /* Blackguard Sovereign of Terror fear escalation per round */
+  eMIDNIGHT_EDICT,                       /* Blackguard Midnight Edict daily cooldown */
+  ePROFANE_DOMINION_DAMAGE,              /* Blackguard Profane Dominion periodic damage */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

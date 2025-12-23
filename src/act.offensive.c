@@ -15125,3 +15125,24 @@ ACMD(do_natureswrath)
   /* Set cooldown (e.g., 24 hours) */
   SET_NATURES_WRATH_COOLDOWN(ch, 5 * 60);
 }
+
+/* Blackguard Capstone: Midnight Edict */
+ACMD(do_midnight_edict)
+{
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot use Midnight Edict.\r\n");
+    return;
+  }
+  
+  if (!has_blackguard_midnight_edict(ch)) {
+    send_to_char(ch, "You do not possess the Midnight Edict perk.\r\n");
+    return;
+  }
+  
+  if (!perform_midnight_edict(ch)) {
+    /* perform_midnight_edict already sent the cooldown message */
+    return;
+  }
+  
+  USE_STANDARD_ACTION(ch);
+}
