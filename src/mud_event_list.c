@@ -279,6 +279,7 @@ struct mud_event_list mud_event_index[] = {
     {"Graveborn Vigor", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Sinister Recovery", event_daily_use_cooldown, EVENT_CHAR, "You feel ready to channel sinister recovery again.", NULL, FEAT_UNDEFINED, 0},
     {"Shade Step", event_countdown, EVENT_CHAR, "You slip back into the shadows.", NULL, FEAT_UNDEFINED, 0},
+    {"Undying Vigor", event_daily_use_cooldown, EVENT_CHAR, "Your undying vigor has recovered and can save you from death again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

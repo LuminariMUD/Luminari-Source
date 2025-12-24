@@ -1014,6 +1014,13 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
   
   if (HAS_FEAT(target, FEAT_ESSENCE_OF_UNDEATH))
     return true;
+  
+  /* Blackguard: Unholy Fortification - immune to crits from good attackers */
+  if (!IS_NPC(target) && has_blackguard_unholy_fortification(target))
+  {
+    if (attacker && IS_GOOD(attacker))
+      return TRUE;
+  }
 
   /* preserve organs as 25% of stopping crits */
   if (!IS_NPC(target) && (KNOWS_DISCOVERY(target, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
@@ -9829,6 +9836,10 @@ int get_fast_healing_amount(struct char_data *ch)
   hp += HAS_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
 
   hp += get_apply_type_gear_mod(ch, APPLY_FAST_HEALING);
+  
+  /* Blackguard: Necrotic Regeneration - fast healing 2 when below 50% HP */
+  if (!IS_NPC(ch))
+    hp += get_blackguard_necrotic_regeneration(ch);
 
   return hp;
 }

@@ -57,7 +57,7 @@ Design goal: three thematic trees, each with 4 tiers; Tiers 1–3 have 4 perks e
   - Defiant Hide: Bonus AC/DR vs smite/good-aligned weapons.
   - Shade Step: Short shadow step as move/swift (limited uses).
 - **Tier 3 (4 perks)**
-  - Soul Carapace: Convert portion of incoming damage to temp hp (per-round cap).
+  - Soul Carapace: Convert portion of incoming damage to temp hp (per-round and total cap).
   - Death Denied: 1/rest, prevent drop to 0; stay at 1 with brief DR.
   - Blackguard’s Reprisal: After you save vs a spell, next attack gains bonus damage/DC rider.
   - Warding Malice: Enemies in aura take penalty to caster level checks vs your saves/wards.

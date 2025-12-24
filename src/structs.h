@@ -4144,6 +4144,15 @@
 #define PERK_BLACKGUARD_DEFIANT_HIDE           1434
 #define PERK_BLACKGUARD_SHADE_STEP             1435
 
+/* TREE C: Unholy Resilience - Tier 3 */
+#define PERK_BLACKGUARD_NECROTIC_REGENERATION  1436
+#define PERK_BLACKGUARD_UNHOLY_FORTIFICATION   1437
+#define PERK_BLACKGUARD_BLASPHEMOUS_WARDING    1438
+#define PERK_BLACKGUARD_RESILIENT_CORRUPTION   1439
+
+/* TREE C: Unholy Resilience - Tier 4 (Capstone) */
+#define PERK_BLACKGUARD_UNDYING_VIGOR          1440
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4168,7 +4177,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1436
+#define NUM_PERKS 1441
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
@@ -6290,6 +6299,9 @@ struct char_special_data
     /* Raging Defender flags - set when hit by crit/sneak, checked in DR calculation */
     bool hit_by_critical;           // temporary flag set when struck by a critical hit
     bool hit_by_sneak_attack;       // temporary flag set when struck by a sneak attack
+    
+    /* Blackguard Resilient Corruption stacks */
+    int blackguard_corruption_stacks; // stacking DR bonus, max 5, resets out of combat
 
     int terror_cooldown;
 

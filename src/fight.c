@@ -1831,6 +1831,9 @@ void stop_fighting(struct char_data *ch)
   {
     update_perfect_kill_combat_end(ch);
     update_chimeric_transmutation_combat_end(ch);
+    
+    /* Blackguard: Reset Resilient Corruption stacks when leaving combat */
+    reset_blackguard_resilient_corruption(ch);
   }
   
   if (affected_by_spell(ch, SKILL_SMITE_EVIL))
@@ -4402,6 +4405,15 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
       if (display)
         send_to_char(ch, "%-30s: %d\r\n", "Dark Aegis", dark_aegis_dr);
     }
+    
+    /* Blackguard: Resilient Corruption stacking DR */
+    int corruption_dr = get_blackguard_resilient_corruption_dr(ch);
+    if (corruption_dr > 0)
+    {
+      damage_reduction += corruption_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Resilient Corruption", corruption_dr);
+    }
   }
 
   /* Defensive Stance perk */
@@ -5884,6 +5896,22 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   GET_HIT(victim) -= dam;
+
+  /* Blackguard: Resilient Corruption - increment stacks when taking damage */
+  if (dam > 0 && !IS_NPC(victim) && has_blackguard_resilient_corruption(victim))
+  {
+    increment_blackguard_resilient_corruption(victim);
+  }
+
+  /* Blackguard: Undying Vigor - survive killing blow once per day */
+  if (GET_HIT(victim) <= 0 && !IS_NPC(victim))
+  {
+    if (trigger_blackguard_undying_vigor(victim))
+    {
+      /* Undying Vigor triggered, victim survives with 1 HP */
+      /* Continue processing normally */
+    }
+  }
 
   /* Blackguard: Graveborn Vigor triggers when bloodied */
   if (!IS_NPC(victim) && dam > 0 && GET_HIT(victim) > 0)
@@ -10363,6 +10391,15 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
         if (display)
           send_to_char(ch, "%2d: %-50s\r\n", bo_hit, "Brutal Oath (to-hit)");
       }
+    }
+
+    /* Blackguard: Shackles of Awe - attack penalty to feared enemies in blackguard's aura */
+    int shackles_penalty = get_shackles_of_awe_attack_penalty(ch, victim);
+    if (shackles_penalty < 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += shackles_penalty;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", shackles_penalty, "Shackles of Awe (victim feared)");
     }
   }
 
@@ -15495,6 +15532,19 @@ void perform_violence(struct char_data *ch, int phase)
       MOUNTED_BLOCKS_LEFT(ch) = 1;
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
       MOUNTED_BLOCKS_LEFT(ch) += 1;
+
+    /* Blackguard: Profane Dominion - periodic damage to feared enemies */
+    if (!IS_NPC(ch) && FIGHTING(ch) && has_blackguard_profane_dominion(ch))
+    {
+      struct char_data *vict = FIGHTING(ch);
+      int profane_dom_dam = get_profane_dominion_damage(ch, vict);
+      if (profane_dom_dam > 0)
+      {
+        act("\tD$N suffers under your profane dominion!\tn", FALSE, ch, 0, vict, TO_CHAR);
+        act("\tDYou suffer under $n's profane dominion!\tn", FALSE, ch, 0, vict, TO_VICT);
+        damage(ch, vict, profane_dom_dam, TYPE_UNDEFINED, DAM_UNHOLY, FALSE);
+      }
+    }
 
     /* You must have at least one hand free to use this feat.
      * Once per round when you would normally be hit with an attack from a ranged

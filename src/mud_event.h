@@ -235,6 +235,7 @@ typedef enum
   eGRAVEBORN_VIGOR,                      /* Blackguard Graveborn Vigor threshold cooldown */
   eSINISTER_RECOVERY,                    /* Blackguard Sinister Recovery self-heal cooldown */
   eSHADE_STEP,                           /* Blackguard Shade Step usage cooldown */
+  eUNDYING_VIGOR,                        /* Blackguard Undying Vigor death-save daily cooldown */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

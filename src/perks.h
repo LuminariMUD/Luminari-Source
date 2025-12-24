@@ -349,7 +349,7 @@ bool can_use_unholy_blitz(struct char_data *ch);
 bool has_blackguard_avatar_of_profanity(struct char_data *ch);
 bool has_blackguard_cataclysmic_smite(struct char_data *ch);
 
-/* Blackguard Unholy Resilience helpers */
+/* Blackguard Unholy Resilience Tier 1-2 helpers */
 bool has_blackguard_profane_fortitude(struct char_data *ch);
 int get_blackguard_profane_fortitude_bonus(struct char_data *vict, struct char_data *caster);
 bool has_blackguard_dark_aegis(struct char_data *ch);
@@ -361,6 +361,19 @@ bool has_blackguard_aura_of_desecration(struct char_data *ch);
 bool has_blackguard_fell_ward(struct char_data *ch);
 bool has_blackguard_defiant_hide(struct char_data *ch);
 bool has_blackguard_shade_step(struct char_data *ch);
+
+/* Blackguard Unholy Resilience Tier 3-4 helpers */
+bool has_blackguard_necrotic_regeneration(struct char_data *ch);
+int get_blackguard_necrotic_regeneration(struct char_data *ch);
+bool has_blackguard_unholy_fortification(struct char_data *ch);
+bool has_blackguard_blasphemous_warding(struct char_data *ch);
+int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster, int spellnum);
+bool has_blackguard_resilient_corruption(struct char_data *ch);
+int get_blackguard_resilient_corruption_dr(struct char_data *ch);
+void increment_blackguard_resilient_corruption(struct char_data *ch);
+void reset_blackguard_resilient_corruption(struct char_data *ch);
+bool has_blackguard_undying_vigor(struct char_data *ch);
+bool trigger_blackguard_undying_vigor(struct char_data *ch);
 
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);

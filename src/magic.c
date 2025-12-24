@@ -206,6 +206,15 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   /* Apply any external modifier passed to the function
    * This allows spells or abilities to temporarily adjust SR */
   resist += modifier;
+  
+  /* Blackguard: Blasphemous Warding - bonus SR vs divine spells/good casters
+   * Note: This function doesn't currently receive spellnum, so we check caster alignment */
+  if (!IS_NPC(vict) && ch)
+  {
+    /* For now, apply bonus if caster is good-aligned or has divine casting classes */
+    int warding_bonus = get_blackguard_blasphemous_warding_sr(vict, ch, -1);
+    resist += warding_bonus;
+  }
 
   /* Cap the result between 0 and 99
    * SR can never be negative, and 99 is the system maximum
@@ -753,6 +762,17 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (ch && AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch))
     savethrow += 2;
+
+  /* Blackguard: Profane Fortitude - save bonus vs good casters */
+  if (!IS_NPC(vict))
+  {
+    int pf_bonus = get_blackguard_profane_fortitude_bonus(vict, ch);
+    if (pf_bonus > 0)
+    {
+      savethrow += pf_bonus;
+    }
+  }
+
   if (ch && casttype == CAST_WEAPON_POISON)
     savethrow += get_poison_save_mod(ch, vict);
   if (ch && is_poison_spell(spellnum))

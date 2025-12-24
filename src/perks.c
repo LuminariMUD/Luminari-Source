@@ -583,6 +583,86 @@ void define_blackguard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->special_description = strdup("Capstone active: smite can detonate in dark burst, 1/day. AoE damage + debuff riders.");
+
+  /**************************************************************************
+   * TREE C: UNHOLY RESILIENCE - Tier 1 & 2 defined elsewhere
+   * TREE C: UNHOLY RESILIENCE - Tier 3 & 4
+   **************************************************************************/
+  
+  /* Tier 3: Necrotic Regeneration */
+  perk = &perk_list[PERK_BLACKGUARD_NECROTIC_REGENERATION];
+  perk->id = PERK_BLACKGUARD_NECROTIC_REGENERATION;
+  perk->name = strdup("Necrotic Regeneration");
+  perk->description = strdup("Gain fast healing 2 while below 50% HP.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_GRAVEBORN_VIGOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Fast Healing 2 */
+  perk->special_description = strdup("While below 50% HP, gain fast healing 2 (heals 2 HP per round).");
+
+  /* Tier 3: Unholy Fortification */
+  perk = &perk_list[PERK_BLACKGUARD_UNHOLY_FORTIFICATION];
+  perk->id = PERK_BLACKGUARD_UNHOLY_FORTIFICATION;
+  perk->name = strdup("Unholy Fortification");
+  perk->description = strdup("Immune to critical hits and sneak attacks from good-aligned attackers.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_AEGIS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Good-aligned attackers cannot land critical hits or sneak attacks against you.");
+
+  /* Tier 3: Blasphemous Warding */
+  perk = &perk_list[PERK_BLACKGUARD_BLASPHEMOUS_WARDING];
+  perk->id = PERK_BLACKGUARD_BLASPHEMOUS_WARDING;
+  perk->name = strdup("Blasphemous Warding");
+  perk->description = strdup("Gain bonus spell resistance vs divine spells and good-aligned casters.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_FELL_WARD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 SR vs divine spells */
+  perk->special_description = strdup("Gain +5 spell resistance vs divine spells and spells from good-aligned casters.");
+
+  /* Tier 3: Resilient Corruption */
+  perk = &perk_list[PERK_BLACKGUARD_RESILIENT_CORRUPTION];
+  perk->id = PERK_BLACKGUARD_RESILIENT_CORRUPTION;
+  perk->name = strdup("Resilient Corruption");
+  perk->description = strdup("Gain stacking +1 DR each time damaged, max 5 stacks, resets out of combat.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DEFIANT_HIDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DR per stack */
+  perk->special_description = strdup("Each time you take damage, gain +1 DR (max 5 stacks). Resets when combat ends.");
+
+  /* Tier 4: Undying Vigor (Capstone) */
+  perk = &perk_list[PERK_BLACKGUARD_UNDYING_VIGOR];
+  perk->id = PERK_BLACKGUARD_UNDYING_VIGOR;
+  perk->name = strdup("Undying Vigor");
+  perk->description = strdup("Once per day, survive a killing blow with 1 HP (auto-triggers).");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_NECROTIC_REGENERATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Capstone: Once per day, if reduced to 0 or fewer HP, survive with 1 HP instead. Triggers automatically.");
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */
@@ -1674,6 +1754,173 @@ bool has_blackguard_defiant_hide(struct char_data *ch)
 bool has_blackguard_shade_step(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SHADE_STEP);
+}
+
+/* ------------------ Unholy Resilience Tier 3–4 helpers ------------------ */
+
+/**
+ * Check if character has Necrotic Regeneration perk.
+ */
+bool has_blackguard_necrotic_regeneration(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_NECROTIC_REGENERATION);
+}
+
+/**
+ * Get fast healing amount from Necrotic Regeneration (only when below 50% HP).
+ */
+int get_blackguard_necrotic_regeneration(struct char_data *ch)
+{
+  if (!has_blackguard_necrotic_regeneration(ch))
+    return 0;
+  
+  /* Only active when below 50% HP */
+  if (GET_HIT(ch) > GET_MAX_HIT(ch) / 2)
+    return 0;
+  
+  return 2; /* Fast Healing 2 */
+}
+
+/**
+ * Check if character has Unholy Fortification perk.
+ */
+bool has_blackguard_unholy_fortification(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_UNHOLY_FORTIFICATION);
+}
+
+/**
+ * Check if character has Blasphemous Warding perk.
+ */
+bool has_blackguard_blasphemous_warding(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BLASPHEMOUS_WARDING);
+}
+
+/**
+ * Get bonus spell resistance from Blasphemous Warding vs divine spells.
+ * @param ch The blackguard defender
+ * @param caster The spell caster (can be NULL)
+ * @param spellnum The spell being cast
+ * @return SR bonus (0 if not applicable, +5 vs divine/good casters)
+ */
+int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster, int spellnum)
+{
+  if (!has_blackguard_blasphemous_warding(ch))
+    return 0;
+  
+  /* Check if spell is divine (clerics, druids, paladins, rangers cast divine spells) */
+  bool is_divine = FALSE;
+  if (caster)
+  {
+    if (CLASS_LEVEL(caster, CLASS_CLERIC) > 0 ||
+        CLASS_LEVEL(caster, CLASS_DRUID) > 0 ||
+        CLASS_LEVEL(caster, CLASS_PALADIN) > 0 ||
+        CLASS_LEVEL(caster, CLASS_RANGER) > 0 ||
+        CLASS_LEVEL(caster, CLASS_INQUISITOR) > 0)
+    {
+      is_divine = TRUE;
+    }
+    
+    /* Also applies if caster is good-aligned */
+    if (IS_GOOD(caster))
+      is_divine = TRUE;
+  }
+  
+  return is_divine ? 5 : 0;
+}
+
+/**
+ * Check if character has Resilient Corruption perk.
+ */
+bool has_blackguard_resilient_corruption(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_RESILIENT_CORRUPTION);
+}
+
+/**
+ * Get current DR from Resilient Corruption stacks.
+ * Note: Stacks stored in a character field (needs to be added to char_data).
+ */
+int get_blackguard_resilient_corruption_dr(struct char_data *ch)
+{
+  if (!has_blackguard_resilient_corruption(ch))
+    return 0;
+  
+  /* Return stacks value - each stack = +1 DR, max 5 */
+  return MIN(5, ch->char_specials.blackguard_corruption_stacks);
+}
+
+/**
+ * Increment Resilient Corruption stacks when taking damage.
+ */
+void increment_blackguard_resilient_corruption(struct char_data *ch)
+{
+  if (!has_blackguard_resilient_corruption(ch))
+    return;
+  
+  if (ch->char_specials.blackguard_corruption_stacks < 5)
+  {
+    ch->char_specials.blackguard_corruption_stacks++;
+    if (ch->char_specials.blackguard_corruption_stacks == 5)
+    {
+      send_to_char(ch, "\tDYour resilient corruption reaches maximum hardness!\tn\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "\tDYour resilient corruption hardens! (+%d DR)\tn\r\n", 
+                   ch->char_specials.blackguard_corruption_stacks);
+    }
+  }
+}
+
+/**
+ * Reset Resilient Corruption stacks (called when combat ends).
+ */
+void reset_blackguard_resilient_corruption(struct char_data *ch)
+{
+  if (!has_blackguard_resilient_corruption(ch))
+    return;
+  
+  if (ch->char_specials.blackguard_corruption_stacks > 0)
+  {
+    ch->char_specials.blackguard_corruption_stacks = 0;
+    send_to_char(ch, "\tDYour resilient corruption fades...\tn\r\n");
+  }
+}
+
+/**
+ * Check if character has Undying Vigor perk.
+ */
+bool has_blackguard_undying_vigor(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_UNDYING_VIGOR);
+}
+
+/**
+ * Try to trigger Undying Vigor when reduced to 0 or below HP.
+ * @param ch The blackguard
+ * @return TRUE if triggered and saved from death, FALSE if already used today
+ */
+bool trigger_blackguard_undying_vigor(struct char_data *ch)
+{
+  if (!has_blackguard_undying_vigor(ch))
+    return FALSE;
+  
+  /* Check if already used today (using mud event with 24-hour cooldown) */
+  if (char_has_mud_event(ch, eUNDYING_VIGOR))
+    return FALSE;
+  
+  /* Trigger the save */
+  GET_HIT(ch) = 1;
+  send_to_char(ch, "\tW*** UNDYING VIGOR ACTIVATES! ***\tn\r\n");
+  send_to_char(ch, "\tWProfane vitality surges through you, refusing death itself!\tn\r\n");
+  act("\tW$n's eyes flash with unholy light as $e refuses to die!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Set daily cooldown (24 in-game hours) */
+  NEW_EVENT(eUNDYING_VIGOR, ch, NULL, 24 * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  
+  return TRUE;
 }
 
 /**
