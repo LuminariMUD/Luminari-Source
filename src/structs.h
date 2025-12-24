@@ -1623,6 +1623,8 @@
 #define AFF2_DONTUSE 0           /**< DON'T USE! */
 #define AFF2_MAGIC_ATTACKS 1     // summon/creature attacks count as magic for DR purposes
 
+#define NUM_AFF2_FLAGS 2
+
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -5610,6 +5612,7 @@ struct obj_flag_data
     int cost_per_day;                 /**< Rent cost per real day */
     int timer;                        /**< Timer for object             */
     int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
+    int bitvector2[AF_ARRAY_MAX];      /**< Affects 2 characters           */
     int i_sort;                       /**< What 'bag' is it sorted into in the inventory? */
 
     byte material; // what material is the item made of?
@@ -6117,6 +6120,7 @@ struct char_special_data_saved
     long idnum;                    /**< PC's idnum; -1 for mobiles. */
     int act[PM_ARRAY_MAX];         /**< act flags for NPC's; player flag for PC's */
     int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
+    int affected2_by[AF_ARRAY_MAX]; /**< Second bitvector for spells/skills affected by */
     int warding[MAX_WARDING];      // saved warding spells like stoneskin
     int spec_abil[MAX_CLASSES];  // spec abilities (ex. lay on hands)
 
@@ -6925,6 +6929,7 @@ struct affected_type
     sh_int modifier;             /**< Added/subtracted to/from apropriate ability     */
     int location;                /**< Tells which ability to change(APPLY_XXX). */
     int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
+    int bitvector2[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF2_XXX). */
 
     int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
 

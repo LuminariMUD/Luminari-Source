@@ -1863,7 +1863,6 @@ const char *affected_bits[] = {
     "Nextattack-Stun",
     "Hive-Marked",
     "Perfect-Deflection-Ready",
-    "Magic-Attacks",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -2003,9 +2002,30 @@ const char *affected_bit_descs[] = {
     "Your next attack will carry overwhelming force!",
     "You have been marked by a Hive Commander's psychic link!",
     "You are prepared to perfectly deflect the next ranged attack and reflect it!",
-    "Your attacks count as magical for the purpose of bypassing damage reduction.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
+
+/** Second affect bit names.
+ * @pre Must be in the same order as the defines.
+ * Must end array with a single newline. */
+const char *affected2_bits[] = {
+    "\0", /* DO NOT REMOVE!! */
+    "Magic-Attacks",
+    "\n"};
+
+CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
+
+/** Second affected bits descriptions.
+ * @pre Must be in the same order as the defines.
+ * Must end array with a single newline.
+ * MUST BE 57 CHARACTERS OR LESS.
+ * */
+const char *affected2_bit_descs[] = {
+    "\0", /* DO NOT REMOVE!! */
+    //|---------------------------------------------------------|
+    "Attacks you make can bypass magic resistant damage reduction",
+    "\n"};
+CHECK_TABLE_SIZE(affected2_bit_descs, NUM_AFF2_FLAGS + 1);
 
 /** Connection type descriptions.
  * @pre Must be in the same order as the defines.

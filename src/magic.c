@@ -9968,6 +9968,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
           return;
         }
       }
+      for (j = 0; j < NUM_AFF2_FLAGS; j++)
+      {
+        if (IS_SET_AR(af[i].bitvector2, j) && AFF2_FLAGGED(victim, j))
+        {
+          send_to_char(ch, "Target is already under the effect of %s", affected2_bits[j]);
+          return;
+        }
+      }
     }
   }
 
@@ -12227,7 +12235,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         af.spell = PSIONIC_ECTOPLASMIC_SHAMBLER;
         af.duration = -1; /* Permanent until death */
         af.location = APPLY_NONE;
-        SET_BIT_AR(af.bitvector, AFF_MAGIC_ATTACKS);
+        SET_BIT_AR(af.bitvector2, AFF2_MAGIC_ATTACKS);
         affect_to_char(mob, &af);
         send_to_char(ch, "\tM[Hardened Constructs II] Summon's attacks count as magic!\tn\r\n");
       }

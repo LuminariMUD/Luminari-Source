@@ -763,6 +763,9 @@ void char_from_furniture(struct char_data *ch);
 /** Affect flags on the NPC or PC. */
 #define AFF_FLAGS(ch) ((ch)->char_specials.saved.affected_by)
 
+/** Second affect flags on the NPC or PC. */
+#define AFF2_FLAGS(ch) ((ch)->char_specials.saved.affected2_by)
+
 /** Room flags.
  * @param loc The real room number. */
 #define ROOM_FLAGS(loc) (world[(loc)].room_flags)
@@ -819,6 +822,9 @@ void char_from_furniture(struct char_data *ch);
 /** 1 if flag is set in the affect bitarray, 0 if not. */
 #define AFF_FLAGGED(ch, flag) (IS_SET_AR(AFF_FLAGS(ch), (flag)))
 
+/** 1 if flag is set in the second affect bitarray, 0 if not. */
+#define AFF2_FLAGGED(ch, flag) (IS_SET_AR(AFF2_FLAGS(ch), (flag)))
+
 /** 1 if flag is set in the preferences bitarray, 0 if not. */
 #define PRF_FLAGGED(ch, flag) (IS_SET_AR(PRF_FLAGS(ch), (flag)))
 
@@ -833,6 +839,9 @@ void char_from_furniture(struct char_data *ch);
 
 /** 1 if flag is set in the affects bitarray of obj, 0 if not. */
 #define OBJAFF_FLAGGED(obj, flag) (IS_SET_AR(GET_OBJ_AFFECT(obj), (flag)))
+
+/** 1 if flag is set in the affects bitarray of obj, 0 if not. */
+#define OBJAFF2_FLAGGED(obj, flag) (IS_SET_AR(GET_OBJ_AFFECT2(obj), (flag)))
 
 /** 1 if flag is set in the element of obj value, 0 if not. */
 #define OBJVAL_FLAGGED(obj, flag) (IS_SET(GET_OBJ_VAL((obj), 1), (flag)))
@@ -1769,6 +1778,9 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Permanent affects on obj. */
 #define GET_OBJ_PERM(obj) ((obj)->obj_flags.bitvector)
+#define GET_OBJ_PERM2(obj) ((obj)->obj_flags.bitvector2)
+#define GET_OBJ2_PERM(obj) ((obj)->obj_flags.bitvector2)
+
 
 /** Object material of object **/
 #define GET_OBJ_MATERIAL(obj) ((obj)->obj_flags.material)
@@ -1787,6 +1799,8 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Affect flags on obj. */
 #define GET_OBJ_AFFECT(obj) ((obj)->obj_flags.bitvector)
+#define GET_OBJ_AFFECT2(obj) ((obj)->obj_flags.bitvector2)
+#define GET_OBJ2_AFFECT(obj) ((obj)->obj_flags.bitvector2)
 
 /** Extra flags bit array on obj. */
 #define GET_OBJ_EXTRA(obj) ((obj)->obj_flags.extra_flags)

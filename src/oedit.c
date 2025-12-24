@@ -71,6 +71,7 @@ static void oedit_disp_extra_menu(struct descriptor_data *d);
 static void oedit_disp_wear_menu(struct descriptor_data *d);
 static void oedit_disp_menu(struct descriptor_data *d);
 static void oedit_disp_perm_menu(struct descriptor_data *d);
+static void oedit_disp_perm2_menu(struct descriptor_data *d);
 static void oedit_save_to_disk(int zone_num);
 static void oedit_disp_spellbook_menu(struct descriptor_data *d);
 static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d);
@@ -1709,6 +1710,25 @@ static void oedit_disp_perm_menu(struct descriptor_data *d)
                   cyn, bits, nrm);
 }
 
+/* Object perm2 flags (AFF2). */
+static void oedit_disp_perm2_menu(struct descriptor_data *d)
+{
+  char bits[MAX_STRING_LENGTH] = {'\0'};
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 1; counter < NUM_AFF2_FLAGS; counter++)
+  {
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected2_bits[counter], !(++columns % 2) ? "\r\n" : "");
+  }
+  sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, bits);
+  write_to_output(d, "\r\nObject permanent AFF2 flags: %s%s%s\r\n"
+                     "Enter object perm2 flag (0 to quit) : ",
+                  cyn, bits, nrm);
+}
+
 /* Object size */
 void oedit_disp_size_menu(struct descriptor_data *d)
 {
@@ -1832,6 +1852,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char buf3[MAX_STRING_LENGTH] = {'\0'};
+  char buf4[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = OLC_OBJ(d);
   // int i = 0;
   size_t len = 0;
@@ -1880,6 +1901,8 @@ static void oedit_disp_menu(struct descriptor_data *d)
   sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, EF_ARRAY_MAX, buf1);
   /* permanent affections of gear */
   sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
+  /* permanent AFF2 affections of gear */
+  sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, buf4);
 
   /* build a buffer for displaying suggested worn eq stats -zusuk */
   /* we have to fix this so treasure + here are synced! */
@@ -1975,6 +1998,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%sK%s) Activated Spells       : %sLvl %d %s x%d\r\n"
                   "%sM%s) Min Level              : %s%d\r\n"
                   "%sP%s) Perm Affects           : %s%s\r\n"
+                  "%sV%s) Perm2 Affects (AFF2)   : %s%s\r\n"
                   "%sR%s) Mob Recipient          : %s%d\r\n"
                   "%sS%s) Script                 : %s%s\r\n"
                   "%sT%s) Spellbook menu\r\n"
@@ -2010,6 +2034,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   obj->activate_spell[ACT_SPELL_MAX_USES],
                   grn, nrm, cyn, GET_OBJ_LEVEL(obj),
                   grn, nrm, cyn, buf2,
+                  grn, nrm, cyn, buf4,
                   grn, nrm, cyn, (obj)->mob_recepient,
                   grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
                   grn, nrm,                                                                          /* spellbook */
@@ -2301,6 +2326,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_perm_menu(d);
       OLC_MODE(d) = OEDIT_PERM;
       break;
+    case 'v':
+    case 'V':
+      oedit_disp_perm2_menu(d);
+      OLC_MODE(d) = OEDIT_PERM2;
+      break;
     case 's':
     case 'S':
       if (STATE(d) != CON_IEDIT)
@@ -2511,6 +2541,16 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
     }
     oedit_disp_perm_menu(d);
+    return;
+
+  case OEDIT_PERM2:
+    if ((number = atoi(arg)) == 0)
+      break;
+    if (number > 0 && number <= NUM_AFF2_FLAGS)
+    {
+      TOGGLE_BIT_AR(GET_OBJ_PERM2(OLC_OBJ(d)), number);
+    }
+    oedit_disp_perm2_menu(d);
     return;
 
   case OEDIT_VALUE_1:

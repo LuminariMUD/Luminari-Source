@@ -8990,7 +8990,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
         if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS))
           passed = TRUE;
         /* Hardened Constructs II: summon attacks count as magic */
-        if (AFF_FLAGGED(ch, AFF_MAGIC_ATTACKS))
+        if (AFF2_FLAGGED(ch, AFF2_MAGIC_ATTACKS))
           passed = TRUE;
         break;
       case DR_BYPASS_CAT_MATERIAL:

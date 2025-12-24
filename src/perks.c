@@ -1432,7 +1432,7 @@ bool activate_profane_weapon_bond(struct char_data *ch)
   af.spell = AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND;
   af.duration = 10; /* 1 minute = 10 rounds */
   /* Ensure attacks count as magic for DR bypass during the bond */
-  SET_BIT_AR(af.bitvector, AFF_MAGIC_ATTACKS);
+  SET_BIT_AR(af.bitvector2, AFF2_MAGIC_ATTACKS);
   affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
   
   send_to_char(ch, "\tDYour weapon crackles with profane energy!\tn\r\n");

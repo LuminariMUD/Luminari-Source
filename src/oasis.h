@@ -295,6 +295,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OEDIT_ERASE_SLOT 63
 #define OEDIT_SPEC_PROC 64
 #define OEDIT_RESTRING_ID 74
+#define OEDIT_PERM2 75
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1
@@ -359,17 +360,18 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define MEDIT_D_DESC 4
 #define MEDIT_NPC_FLAGS 5
 #define MEDIT_AFF_FLAGS 6
-#define MEDIT_CONFIRM_SAVESTRING 7
-#define MEDIT_STATS_MENU 8
-#define MEDIT_WALKIN 9
-#define MEDIT_WALKOUT 10
-#define MEDIT_ECHO_MENU 11
-#define MEDIT_ADD_ECHO 12
-#define MEDIT_EDIT_ECHO 13
-#define MEDIT_EDIT_ECHO_TEXT 14
-#define MEDIT_RESISTANCES_MENU 15
-#define MEDIT_PATH_DELAY 16
-#define MEDIT_PATH_EDIT 17
+#define MEDIT_AFF2_FLAGS 7
+#define MEDIT_CONFIRM_SAVESTRING 8
+#define MEDIT_STATS_MENU 9
+#define MEDIT_WALKIN 10
+#define MEDIT_WALKOUT 11
+#define MEDIT_ECHO_MENU 12
+#define MEDIT_ADD_ECHO 13
+#define MEDIT_EDIT_ECHO 14
+#define MEDIT_EDIT_ECHO_TEXT 15
+#define MEDIT_RESISTANCES_MENU 16
+#define MEDIT_PATH_DELAY 17
+#define MEDIT_PATH_EDIT 18
 
 /* Numerical responses. */
 #define MEDIT_NUMERICAL_RESPONSE 20
