@@ -232,6 +232,9 @@ typedef enum
   eUNHOLY_BLITZ,                         /* Blackguard Unholy Blitz haste burst */
   eAVATAR_OF_PROFANITY,                  /* Blackguard Avatar of Profanity daily cooldown */
   eCATACLYSMIC_SMITE,                    /* Blackguard Cataclysmic Smite daily cooldown */
+  eGRAVEBORN_VIGOR,                      /* Blackguard Graveborn Vigor threshold cooldown */
+  eSINISTER_RECOVERY,                    /* Blackguard Sinister Recovery self-heal cooldown */
+  eSHADE_STEP,                           /* Blackguard Shade Step usage cooldown */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

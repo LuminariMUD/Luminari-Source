@@ -349,6 +349,19 @@ bool can_use_unholy_blitz(struct char_data *ch);
 bool has_blackguard_avatar_of_profanity(struct char_data *ch);
 bool has_blackguard_cataclysmic_smite(struct char_data *ch);
 
+/* Blackguard Unholy Resilience helpers */
+bool has_blackguard_profane_fortitude(struct char_data *ch);
+int get_blackguard_profane_fortitude_bonus(struct char_data *vict, struct char_data *caster);
+bool has_blackguard_dark_aegis(struct char_data *ch);
+int get_blackguard_dark_aegis_dr(struct char_data *ch);
+bool has_blackguard_graveborn_vigor(struct char_data *ch);
+void trigger_blackguard_graveborn_vigor(struct char_data *ch);
+bool has_blackguard_sinister_recovery(struct char_data *ch);
+bool has_blackguard_aura_of_desecration(struct char_data *ch);
+bool has_blackguard_fell_ward(struct char_data *ch);
+bool has_blackguard_defiant_hide(struct char_data *ch);
+bool has_blackguard_shade_step(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

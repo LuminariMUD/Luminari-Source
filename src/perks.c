@@ -1451,6 +1451,84 @@ ACMD(do_cataclysmsmite)
 }
 
 /**
+ * Command to channel Sinister Recovery.
+ * Heals the blackguard and damages nearby good foes for half the amount.
+ */
+ACMD(do_sinisterrecovery)
+{
+  struct char_data *tch, *next_tch;
+  int heal = 0;
+
+  if (!has_blackguard_sinister_recovery(ch))
+  {
+    send_to_char(ch, "You do not have the Sinister Recovery perk.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSINISTER_RECOVERY))
+  {
+    send_to_char(ch, "You cannot call upon Sinister Recovery again yet.\r\n");
+    return;
+  }
+
+  heal = MAX(10, CLASS_LEVEL(ch, CLASS_BLACKGUARD) + GET_CHA_BONUS(ch));
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+  send_to_char(ch, "\tDProfane energy knits your flesh for %d hit points!\tn\r\n", heal);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (tch == ch)
+      continue;
+    if (is_player_grouped(tch, ch))
+      continue;
+    if (FIGHTING(ch) != tch && !IS_NPC(tch)) continue; /* Don't hit uninvolved PCs */
+    if (IS_GOOD(tch))
+    {
+      int dmg = heal / 2;
+      send_to_char(tch, "\tRProfane backlash sears you for %d damage!\tn\r\n", dmg);
+      damage(ch, tch, dmg, TYPE_UNDEFINED, DAM_UNHOLY, FALSE);
+    }
+  }
+
+  NEW_EVENT(eSINISTER_RECOVERY, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command: Shade Step
+ * Swift action to gain brief blur/concealment and drop aggression slightly.
+ */
+ACMD(do_shadestep)
+{
+  struct affected_type af;
+
+  if (!has_blackguard_shade_step(ch))
+  {
+    send_to_char(ch, "You do not have the Shade Step perk.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSHADE_STEP))
+  {
+    send_to_char(ch, "You cannot shade step again just yet.\r\n");
+    return;
+  }
+
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_SHADE_STEP;
+  af.duration = 1; /* 1 round */
+  af.location = APPLY_AC_NEW;
+  af.modifier = -2; /* small dodge boost */
+  SET_BIT_AR(af.bitvector, AFF_BLUR);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tDYou slip through shadow, becoming harder to strike!\tn\r\n");
+  act("\tD$n blurs, stepping through the shadows with unsettling grace.\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  NEW_EVENT(eSHADE_STEP, ch, NULL, 60 * PASSES_PER_SEC);
+}
+
+/**
  * Check if character has Sanguine Barrier perk.
  * @param ch The blackguard
  * @return TRUE if has perk
@@ -1524,6 +1602,78 @@ void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage)
     GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
     send_to_char(ch, "\tDYou absorb %d vitality from your strike!\tn\r\n", temp_hp);
   }
+}
+
+/* ------------------ Unholy Resilience Tier 1–2 helpers ------------------ */
+
+bool has_blackguard_profane_fortitude(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PROFANE_FORTITUDE);
+}
+
+int get_blackguard_profane_fortitude_bonus(struct char_data *vict, struct char_data *caster)
+{
+  if (!has_blackguard_profane_fortitude(vict))
+    return 0;
+  if (caster && IS_GOOD(caster))
+    return 2;
+  return 0;
+}
+
+bool has_blackguard_dark_aegis(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DARK_AEGIS);
+}
+
+int get_blackguard_dark_aegis_dr(struct char_data *ch)
+{
+  if (!has_blackguard_dark_aegis(ch))
+    return 0;
+  int bonus = 1 + (CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 10);
+  return MAX(1, bonus);
+}
+
+bool has_blackguard_graveborn_vigor(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_GRAVEBORN_VIGOR);
+}
+
+void trigger_blackguard_graveborn_vigor(struct char_data *ch)
+{
+  if (!has_blackguard_graveborn_vigor(ch))
+    return;
+  if (char_has_mud_event(ch, eGRAVEBORN_VIGOR))
+    return;
+
+  int temp_hp = MAX(5, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2 + GET_CHA_BONUS(ch));
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+  send_to_char(ch, "\tWProfane vigor knits your wounds! (+%d hp)\tn\r\n", temp_hp);
+  NEW_EVENT(eGRAVEBORN_VIGOR, ch, NULL, 5 * 60 * PASSES_PER_SEC);
+}
+
+bool has_blackguard_sinister_recovery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SINISTER_RECOVERY);
+}
+
+bool has_blackguard_aura_of_desecration(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_AURA_OF_DESECRATION);
+}
+
+bool has_blackguard_fell_ward(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_FELL_WARD);
+}
+
+bool has_blackguard_defiant_hide(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DEFIANT_HIDE);
+}
+
+bool has_blackguard_shade_step(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SHADE_STEP);
 }
 
 /**
@@ -1982,6 +2132,130 @@ void define_fighter_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;
   perk->effect_modifier = 0;
+
+  /**************************************************************************
+   * TREE C: UNHOLY RESILIENCE - Tier 1 & 2
+   **************************************************************************/
+
+  /* Tier 1: Profane Fortitude */
+  perk = &perk_list[PERK_BLACKGUARD_PROFANE_FORTITUDE];
+  perk->id = PERK_BLACKGUARD_PROFANE_FORTITUDE;
+  perk->name = strdup("Profane Fortitude");
+  perk->description = strdup("Gain profane bonus to saves vs holy/good magic.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 profane bonus */
+  perk->special_description = strdup("+2 profane bonus on saves vs good-aligned casters or holy effects.");
+
+  /* Tier 1: Dark Aegis */
+  perk = &perk_list[PERK_BLACKGUARD_DARK_AEGIS];
+  perk->id = PERK_BLACKGUARD_DARK_AEGIS;
+  perk->name = strdup("Dark Aegis");
+  perk->description = strdup("Gain a small DR/— while not flat-footed; scales lightly with level.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("+1 DR/— plus small scaling while not flat-footed.");
+
+  /* Tier 1: Graveborn Vigor */
+  perk = &perk_list[PERK_BLACKGUARD_GRAVEBORN_VIGOR];
+  perk->id = PERK_BLACKGUARD_GRAVEBORN_VIGOR;
+  perk->name = strdup("Graveborn Vigor");
+  perk->description = strdup("When bloodied, gain a burst of profane vitality (temp hp) once per cooldown.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Trigger at 50% HP or lower: gain temp hp; 5-minute cooldown.");
+
+  /* Tier 1: Sinister Recovery */
+  perk = &perk_list[PERK_BLACKGUARD_SINISTER_RECOVERY];
+  perk->id = PERK_BLACKGUARD_SINISTER_RECOVERY;
+  perk->name = strdup("Sinister Recovery");
+  perk->description = strdup("Channel profane energy to heal yourself; nearby good foes take half.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Command 'sinisterrecovery'; heals you for level-based amount, deals half to nearby good foes. Daily cooldown.");
+
+  /* Tier 2: Aura of Desecration */
+  perk = &perk_list[PERK_BLACKGUARD_AURA_OF_DESECRATION];
+  perk->id = PERK_BLACKGUARD_AURA_OF_DESECRATION;
+  perk->name = strdup("Aura of Desecration");
+  perk->description = strdup("Enemy healing in your presence is blighted; allies’ negative energy effects bite harder.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PROFANE_FORTITUDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Enemy healing reduced near you; your negative energy heals/damage are slightly empowered.");
+
+  /* Tier 2: Fell Ward */
+  perk = &perk_list[PERK_BLACKGUARD_FELL_WARD];
+  perk->id = PERK_BLACKGUARD_FELL_WARD;
+  perk->name = strdup("Fell Ward");
+  perk->description = strdup("After being targeted by divine magic, your next save is bolstered.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PROFANE_FORTITUDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("+2 saves vs divine spellcasters.");
+
+  /* Tier 2: Defiant Hide */
+  perk = &perk_list[PERK_BLACKGUARD_DEFIANT_HIDE];
+  perk->id = PERK_BLACKGUARD_DEFIANT_HIDE;
+  perk->name = strdup("Defiant Hide");
+  perk->description = strdup("Gain DR versus good foes and smiting weapons.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_AEGIS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->special_description = strdup("Additional DR vs good-aligned enemies or smiting attacks.");
+
+  /* Tier 2: Shade Step */
+  perk = &perk_list[PERK_BLACKGUARD_SHADE_STEP];
+  perk->id = PERK_BLACKGUARD_SHADE_STEP;
+  perk->name = strdup("Shade Step");
+  perk->description = strdup("Slip through shadow, gaining brief evasion and repositioning.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_GRAVEBORN_VIGOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Command 'shadestep'; swift action, grants brief blur/concealment and positions you defensively. 1-minute cooldown.");
   perk->special_description = strdup("Improves power attack: +2 damage, reduces to-hit penalty to -1");
   
   /* Critical Awareness I */

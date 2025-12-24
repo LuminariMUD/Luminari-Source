@@ -517,6 +517,24 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 1;
   }
 
+  /* Blackguard: Profane Fortitude and Fell Ward */
+  if (!IS_NPC(vict))
+  {
+    savethrow += get_blackguard_profane_fortitude_bonus(vict, ch);
+
+    if (has_blackguard_fell_ward(vict) && ch)
+    {
+      int caster_class = CLASS_UNDEFINED;
+      if (!IS_NPC(ch))
+        caster_class = GET_CASTING_CLASS(ch);
+      else
+        caster_class = GET_CLASS(ch);
+
+      if (caster_class != CLASS_UNDEFINED && is_divine_spellcasting_class(caster_class))
+        savethrow += 2;
+    }
+  }
+
   if (GET_POS(vict) == POS_DEAD)
     return (FALSE); /* Guess you failed, since you are DEAD. */
 
@@ -12317,6 +12335,8 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
                 struct obj_data *obj, int spellnum, int savetype, int casttype)
 {
   int healing = 0, move = 0, psp = 0, max_psp = 0;
+  struct char_data *tch = NULL, *aura_holder = NULL;
+  bool aura_hostile = FALSE;
   const char *to_notvict = NULL, *to_char = NULL, *to_vict = NULL;
 
   if (victim == NULL)
@@ -12347,6 +12367,20 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     /* bards, alchemists and summoners also get some healing spells */
     level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_BARD) + ALCHEMIST_LEVEL(ch);
 
+  /* Locate any Aura of Desecration in the room */
+  if (IN_ROOM(victim) != NOWHERE)
+  {
+    for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room)
+    {
+      if (has_blackguard_aura_of_desecration(tch))
+      {
+        aura_holder = tch;
+        aura_hostile = (tch != victim && !is_player_grouped(victim, tch));
+        break;
+      }
+    }
+  }
+
   switch (spellnum)
   {
   case SPELL_VIGORIZE_LIGHT:
@@ -12359,7 +12393,6 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       to_char = "You \twvigorize light\tn on $N.";
     to_vict = "$n \twvigorizes you lightly.\tn";
     break;
-
   case SPELL_VIGORIZE_SERIOUS:
     move = dice(40, 4) + 150;
 

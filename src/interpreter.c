@@ -747,6 +747,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pilfer", "pil", POS_STANDING, do_loot, 1, SCMD_PILFER, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"profanebond", "profanebond", POS_RECLINING, do_profanebond, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"sinisterrecovery", "srecovery", POS_FIGHTING, do_sinisterrecovery, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"shadestep", "shstep", POS_FIGHTING, do_shadestep, 0, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"unholyblitz", "ublitz", POS_FIGHTING, do_unholyblitz, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"avatarprofanity", "avatar", POS_RECLINING, do_avatarprofanity, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"cataclysmsmite", "catsmite", POS_FIGHTING, do_cataclysmsmite, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},

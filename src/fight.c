@@ -4392,6 +4392,18 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
       send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance", 1);
   }
 
+  /* Blackguard: Dark Aegis grants DR while not flat-footed */
+  if (!IS_NPC(ch))
+  {
+    int dark_aegis_dr = get_blackguard_dark_aegis_dr(ch);
+    if (dark_aegis_dr > 0 && !AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
+    {
+      damage_reduction += dark_aegis_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Dark Aegis", dark_aegis_dr);
+    }
+  }
+
   /* Defensive Stance perk */
   if (has_perk_active(ch, PERK_FIGHTER_DEFENSIVE_STANCE))
   {
@@ -5187,6 +5199,17 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       damage_reduction = compute_damage_reduction(victim, dam_type);
 
+      /* Blackguard: Defiant Hide adds DR against holy damage or good foes */
+      if (!IS_NPC(victim) && has_blackguard_defiant_hide(victim))
+      {
+        int defiant_dr = 0;
+        if (ch && IS_GOOD(ch))
+          defiant_dr += 2;
+        if (dam_type == DAM_HOLY)
+          defiant_dr += 2;
+        damage_reduction += defiant_dr;
+      }
+
       if (affected_by_spell(victim, ABILITY_AFFECT_STONES_ENDURANCE))
       {
         damage_reduction += dice(1, 12) + GET_CON_BONUS(victim);
@@ -5799,6 +5822,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     return 0;
   }
 
+  /* Aura of Desecration: empower unholy damage dealt by the blackguard */
+  if (ch && dam > 0 && has_blackguard_aura_of_desecration(ch) && dam_type == DAM_UNHOLY)
+  {
+    dam = dam * 110 / 100; /* +10% */
+  }
+
 #if defined(CAMPAIGN_DL)
   if (IS_NPC(ch))
   {
@@ -5855,6 +5884,14 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   GET_HIT(victim) -= dam;
+
+  /* Blackguard: Graveborn Vigor triggers when bloodied */
+  if (!IS_NPC(victim) && dam > 0 && GET_HIT(victim) > 0)
+  {
+    int hp_pct = (GET_HIT(victim) * 100) / MAX(1, GET_MAX_HIT(victim));
+    if (hp_pct <= 50)
+      trigger_blackguard_graveborn_vigor(victim);
+  }
 
   /* Blackguard: Sanguine Barrier - gain temp HP from damage dealt */
   if (dam > 0 && ch && !IS_NPC(ch))

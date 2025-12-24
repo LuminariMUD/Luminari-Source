@@ -4132,6 +4132,18 @@
 #define PERK_BLACKGUARD_AVATAR_OF_PROFANITY    1426
 #define PERK_BLACKGUARD_CATACLYSMIC_SMITE      1427
 
+/* TREE C: Unholy Resilience - Tier 1 */
+#define PERK_BLACKGUARD_PROFANE_FORTITUDE      1428
+#define PERK_BLACKGUARD_DARK_AEGIS             1429
+#define PERK_BLACKGUARD_GRAVEBORN_VIGOR        1430
+#define PERK_BLACKGUARD_SINISTER_RECOVERY      1431
+
+/* TREE C: Unholy Resilience - Tier 2 */
+#define PERK_BLACKGUARD_AURA_OF_DESECRATION    1432
+#define PERK_BLACKGUARD_FELL_WARD             1433
+#define PERK_BLACKGUARD_DEFIANT_HIDE           1434
+#define PERK_BLACKGUARD_SHADE_STEP             1435
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4156,7 +4168,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1430
+#define NUM_PERKS 1436
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
