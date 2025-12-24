@@ -339,6 +339,16 @@ void trigger_relentless_assault(struct char_data *ch);
 bool has_blackguard_sanguine_barrier(struct char_data *ch);
 void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage);
 
+/* Blackguard Profane Might Tier III–IV helpers */
+bool has_blackguard_doom_cleave(struct char_data *ch);
+bool has_blackguard_soul_rend(struct char_data *ch);
+int get_blackguard_soul_rend_bonus(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_blackened_precision(struct char_data *ch);
+bool has_blackguard_unholy_blitz(struct char_data *ch);
+bool can_use_unholy_blitz(struct char_data *ch);
+bool has_blackguard_avatar_of_profanity(struct char_data *ch);
+bool has_blackguard_cataclysmic_smite(struct char_data *ch);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

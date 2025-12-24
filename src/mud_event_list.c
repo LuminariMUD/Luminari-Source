@@ -273,6 +273,9 @@ struct mud_event_list mud_event_index[] = {
     {"Profane Dominion Damage", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Profane Weapon Bond", event_daily_use_cooldown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Relentless Assault", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Unholy Blitz", event_countdown, EVENT_CHAR, "Your unholy blitz is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Avatar of Profanity", event_daily_use_cooldown, EVENT_CHAR, "You may invoke Avatar of Profanity again.", NULL, FEAT_UNDEFINED, 0},
+    {"Cataclysmic Smite", event_daily_use_cooldown, EVENT_CHAR, "You can unleash Cataclysmic Smite again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

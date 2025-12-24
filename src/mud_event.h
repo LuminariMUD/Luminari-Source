@@ -229,6 +229,9 @@ typedef enum
   ePROFANE_DOMINION_DAMAGE,              /* Blackguard Profane Dominion periodic damage */
   ePROFANE_WEAPON_BOND,                  /* Blackguard Profane Weapon Bond encounter cooldown */
   eRELENTLESS_ASSAULT,                   /* Blackguard Relentless Assault per-round gate */
+  eUNHOLY_BLITZ,                         /* Blackguard Unholy Blitz haste burst */
+  eAVATAR_OF_PROFANITY,                  /* Blackguard Avatar of Profanity daily cooldown */
+  eCATACLYSMIC_SMITE,                    /* Blackguard Cataclysmic Smite daily cooldown */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -493,6 +493,96 @@ void define_blackguard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 20; /* 20% conversion rate */
   perk->special_description = strdup("20% of damage dealt becomes temp hp; max 5*level per round.");
+
+  /* Tier 3: Doom Cleave */
+  perk = &perk_list[PERK_BLACKGUARD_DOOM_CLEAVE];
+  perk->id = PERK_BLACKGUARD_DOOM_CLEAVE;
+  perk->name = strdup("Doom Cleave");
+  perk->description = strdup("On kill, gain free attack on another foe in the room.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_SANGUINE_BARRIER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("On kill, make free attack on another foe fighting you or your party.");
+
+  /* Tier 3: Soul Rend */
+  perk = &perk_list[PERK_BLACKGUARD_SOUL_REND];
+  perk->id = PERK_BLACKGUARD_SOUL_REND;
+  perk->name = strdup("Soul Rend");
+  perk->description = strdup("Extra dice vs good outsiders/undead; may suppress resist.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_RELENTLESS_ASSAULT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 extra */
+  perk->special_description = strdup("Attacks vs good outsiders/undead deal +2d6 damage; may suppress their resist.");
+
+  /* Tier 3: Blackened Precision */
+  perk = &perk_list[PERK_BLACKGUARD_BLACKENED_PRECISION];
+  perk->id = PERK_BLACKGUARD_BLACKENED_PRECISION;
+  perk->name = strdup("Blackened Precision");
+  perk->description = strdup("Increased critical range or crit multiplier while bonded.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PROFANE_WEAPON_BOND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("While Profane Weapon Bond active: threat range +1 and crit mult +1.");
+
+  /* Tier 3: Unholy Blitz */
+  perk = &perk_list[PERK_BLACKGUARD_UNHOLY_BLITZ];
+  perk->id = PERK_BLACKGUARD_UNHOLY_BLITZ;
+  perk->name = strdup("Unholy Blitz");
+  perk->description = strdup("Brief haste-like burst after smite hit with limited uses.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_CHANNEL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("After smite hit: gain extra attack/movement for 1 round, 2/encounter.");
+
+  /* Tier 4: Avatar of Profanity (Capstone) */
+  perk = &perk_list[PERK_BLACKGUARD_AVATAR_OF_PROFANITY];
+  perk->id = PERK_BLACKGUARD_AVATAR_OF_PROFANITY;
+  perk->name = strdup("Avatar of Profanity");
+  perk->description = strdup("Long-cooldown self-buff: big profane damage, DR/—, resist, and auto-bypass alignment DR.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DOOM_CLEAVE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Capstone active: 'profaneavatar' command for +profane dmg/DR/resist/DR bypass, 1 hour cooldown.");
+
+  /* Tier 4: Cataclysmic Smite (Capstone) */
+  perk = &perk_list[PERK_BLACKGUARD_CATACLYSMIC_SMITE];
+  perk->id = PERK_BLACKGUARD_CATACLYSMIC_SMITE;
+  perk->name = strdup("Cataclysmic Smite");
+  perk->description = strdup("1/day smite detonates in dark burst: AoE damage + save vs sickened/staggered.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_SOUL_REND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Capstone active: smite can detonate in dark burst, 1/day. AoE damage + debuff riders.");
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */
@@ -1218,7 +1308,150 @@ ACMD(do_profanebond)
 }
 
 /**
- * Check if character has Relentless Assault perk.
+ * Command to activate Unholy Blitz.
+ * Grants temporary haste-like buff for next attack + extra attack uses.
+ */
+ACMD(do_unholyblitz)
+{
+  struct affected_type af;
+  int duration_rounds = 2; /* 12 seconds = 2 rounds */
+
+  if (!has_blackguard_unholy_blitz(ch))
+  {
+    send_to_char(ch, "You do not have the Unholy Blitz perk.\r\n");
+    return;
+  }
+
+  /* Check daily cooldown */
+  if (char_has_mud_event(ch, eUNHOLY_BLITZ))
+  {
+    send_to_char(ch, "Your unholy blitz is still recharging.\r\n");
+    return;
+  }
+
+  /* Check if must be in combat */
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You must be in combat to use Unholy Blitz!\r\n");
+    return;
+  }
+
+  /* Apply the buff affect */
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_UNHOLY_BLITZ;
+  af.duration = duration_rounds;
+  af.modifier = 0;
+  af.location = APPLY_NONE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tRYour body surges with profane power! You move with supernatural speed!\tn\r\n");
+  act("\tR$n's eyes glow with profane fury as $e surges forward with preternatural speed!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Set encounter cooldown for next use */
+  NEW_EVENT(eUNHOLY_BLITZ, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command to activate Avatar of Profanity.
+ * Daily ability granting major damage bonus, DR/—, resists, and DR bypass.
+ */
+ACMD(do_avatarprofanity)
+{
+  struct affected_type af;
+  int duration_rounds = 10; /* 60 seconds = 10 rounds */
+
+  if (!has_blackguard_avatar_of_profanity(ch))
+  {
+    send_to_char(ch, "You do not have the Avatar of Profanity perk.\r\n");
+    return;
+  }
+
+  /* Check daily cooldown */
+  if (char_has_mud_event(ch, eAVATAR_OF_PROFANITY))
+  {
+    send_to_char(ch, "You cannot invoke Avatar of Profanity again today.\r\n");
+    return;
+  }
+
+  /* Apply the buff affect */
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_AVATAR_OF_PROFANITY;
+  af.duration = duration_rounds;
+  af.modifier = 0;
+  af.location = APPLY_NONE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tRYou transform into an avatar of profane wrath! Your form writhes with unholy power!\tn\r\n");
+  act("\tR$n transforms into a terrifying avatar of profane power!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Set daily cooldown (approximately 24 hours) */
+  NEW_EVENT(eAVATAR_OF_PROFANITY, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command to trigger Cataclysmic Smite.
+ * AoE smite attack dealing profane damage and imposing sickened/staggered.
+ */
+ACMD(do_cataclysmsmite)
+{
+  struct affected_type af;
+  int duration_rounds = 3; /* 18 seconds */
+  struct char_data *vict, *next_vict;
+  int dam;
+
+  if (!has_blackguard_cataclysmic_smite(ch))
+  {
+    send_to_char(ch, "You do not have the Cataclysmic Smite perk.\r\n");
+    return;
+  }
+
+  /* Check daily cooldown */
+  if (char_has_mud_event(ch, eCATACLYSMIC_SMITE))
+  {
+    send_to_char(ch, "Your cataclysmic smite is not ready again yet.\r\n");
+    return;
+  }
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "You must be somewhere to use this ability!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tRYou unleash a cataclysmic smite, a burst of profane energy engulfing the area!\tn\r\n");
+  act("\tR$n unleashes a cataclysmic smite, a massive burst of profane energy exploding outward!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Hit all enemies in the room */
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (vict == ch) continue;
+    if (is_player_grouped(vict, ch)) continue;
+    if (FIGHTING(ch) != vict && !IS_NPC(vict)) continue; /* Don't hit uninvolved PCs */
+
+    /* Deal profane damage (3d10) */
+    dam = dice(3, 10);
+    GET_HIT(vict) -= dam;
+
+    send_to_char(vict, "\tRYou are engulfed in a burst of profane energy, taking %d damage!\tn\r\n", dam);
+    act("\tR$N is engulfed in profane energy!\tn", FALSE, ch, 0, vict, TO_ROOM);
+
+    /* Apply sickened debuff (Fort save for half effect, we skip save for now) */
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_CATACLYSMIC_SMITE;
+    af.duration = duration_rounds;
+    af.modifier = -2; /* -2 to all saves and rolls */
+    af.location = APPLY_NONE;
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  /* Set daily cooldown */
+  NEW_EVENT(eCATACLYSMIC_SMITE, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Check if character has Sanguine Barrier perk.
  * @param ch The blackguard
  * @return TRUE if has perk
  */
@@ -1291,6 +1524,107 @@ void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage)
     GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
     send_to_char(ch, "\tDYou absorb %d vitality from your strike!\tn\r\n", temp_hp);
   }
+}
+
+/**
+ * Check if character has Doom Cleave perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_doom_cleave(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DOOM_CLEAVE);
+}
+
+/**
+ * Check if character has Soul Rend perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_soul_rend(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SOUL_REND);
+}
+
+/**
+ * Get Soul Rend extra dice for attacks vs good outsiders/undead.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Number of extra d6 to roll
+ */
+int get_blackguard_soul_rend_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_soul_rend(ch)) return 0;
+  
+  /* Check if victim is good outsider or undead */
+  if (!IS_NPC(vict)) {
+    /* PC is good and check if outsider-like */
+    if (IS_GOOD(vict)) return 2; /* 2d6 extra vs good PCs */
+    return 0;
+  }
+  
+  /* For NPCs, check race type and alignment */
+  int vict_race = GET_NPC_RACE(vict);
+  if (IS_GOOD(vict)) {
+    if (vict_race == RACE_TYPE_OUTSIDER || vict_race == RACE_TYPE_UNDEAD)
+      return 2; /* 2d6 extra */
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Blackened Precision perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_blackened_precision(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BLACKENED_PRECISION);
+}
+
+/**
+ * Check if character has Unholy Blitz perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_unholy_blitz(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_UNHOLY_BLITZ);
+}
+
+/**
+ * Check if Unholy Blitz can be used (has uses remaining).
+ * @param ch The blackguard
+ * @return TRUE if can activate
+ */
+bool can_use_unholy_blitz(struct char_data *ch)
+{
+  if (!has_blackguard_unholy_blitz(ch)) return FALSE;
+  
+  /* Check for existing Unholy Blitz event */
+  return (char_has_mud_event(ch, eUNHOLY_BLITZ) == NULL);
+}
+
+/**
+ * Check if character has Avatar of Profanity perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_avatar_of_profanity(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_AVATAR_OF_PROFANITY);
+}
+
+/**
+ * Check if character has Cataclysmic Smite perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_cataclysmic_smite(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_CATACLYSMIC_SMITE);
 }
 
 /* Define Psionicist Perks */

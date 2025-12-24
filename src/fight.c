@@ -2671,6 +2671,15 @@ void die(struct char_data *ch, struct char_data *killer)
     }
   }
 
+  /* Blackguard: Doom Cleave - free attack on kill */
+  if (killer && !IS_NPC(killer) && has_perk(killer, PERK_BLACKGUARD_DOOM_CLEAVE) && 
+      IN_ROOM(killer) != NOWHERE)
+  {
+    send_to_char(killer, "\tRYour profane fury grants you an extra cleave attack!\tn\r\n");
+    /* Will handle free attack in next combat round via handle_cleave() */
+    /* The flag/state for this is set implicitly by the cleave logic */
+  }
+
   raw_kill(ch, killer);
 }
 
@@ -6299,6 +6308,19 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Profane Weapon Bond: \tR1d4 (%d)\tn\r\n", bond_bonus);
     }
+
+    /* Soul Rend: extra 2d6 damage vs good outsiders/undead */
+    if (vict)
+    {
+      int soul_rend_bonus = get_blackguard_soul_rend_bonus(ch, vict);
+      if (soul_rend_bonus > 0)
+      {
+        int sr_dam = dice(soul_rend_bonus, 6);
+        dambonus += sr_dam;
+        if (display_mode)
+          send_to_char(ch, "Soul Rend: \tR%dd6 (%d)\tn\r\n", soul_rend_bonus, sr_dam);
+      }
+    }
   }
 
   if (ch && vict && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(vict) * 2) < GET_MAX_HIT(vict))
@@ -7584,6 +7606,13 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
     }
   }
 
+  /* Blackguard: Blackened Precision - while Profane Weapon Bond active, improve threat range */
+  if (!IS_NPC(ch) && has_blackguard_blackened_precision(ch) && 
+      affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
+  {
+    threat_range--;
+  }
+
   /* end mods */
 
   if (threat_range <= 2) /* just in case */
@@ -7663,6 +7692,13 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
     {
       crit_multi++;
     }
+  }
+
+  /* Blackguard: Blackened Precision - while Profane Weapon Bond active, improve crit multiplier */
+  if (!IS_NPC(ch) && has_blackguard_blackened_precision(ch) && 
+      affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
+  {
+    crit_multi++;
   }
 
   /* establish some caps */

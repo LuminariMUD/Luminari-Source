@@ -36,7 +36,7 @@ Design goal: three thematic trees, each with 4 tiers; Tiers 1–3 have 4 perks e
   - Relentless Assault: Extra attack on charge or after dropping a foe (1/round gate).
   - Sanguine Barrier: Portion of damage dealt grants temp hp (per-round cap).
 - **Tier 3 (4 perks)**
-  - Doom Cleave: On kill, free cleave-like strike (1/round).
+  - Doom Cleave: On kill, free attack on any other mob or player in the room fighting with the blackguard or a party member
   - Soul Rend: Extra dice vs good outsiders/undead; may suppress resist.
   - Blackened Precision: Threat range or crit damage bump while bonded.
   - Unholy Blitz: Brief haste-like burst after smite hit (limited uses).

@@ -4122,6 +4122,16 @@
 #define PERK_BLACKGUARD_RELENTLESS_ASSAULT     1420
 #define PERK_BLACKGUARD_SANGUINE_BARRIER       1421
 
+/* TREE B: Profane Might - Tier 3 */
+#define PERK_BLACKGUARD_DOOM_CLEAVE            1422
+#define PERK_BLACKGUARD_SOUL_REND              1423
+#define PERK_BLACKGUARD_BLACKENED_PRECISION   1424
+#define PERK_BLACKGUARD_UNHOLY_BLITZ           1425
+
+/* TREE B: Profane Might - Tier 4 (Capstones) */
+#define PERK_BLACKGUARD_AVATAR_OF_PROFANITY    1426
+#define PERK_BLACKGUARD_CATACLYSMIC_SMITE      1427
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4146,7 +4156,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1900
+#define NUM_PERKS 1430
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
