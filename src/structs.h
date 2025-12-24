@@ -1614,10 +1614,15 @@
 #define AFF_NEXTATTACK_STUN 125     // next attack will attempt to stun the target (Berserker Stunning Blow)
 #define AFF_HIVE_MARKED 126         // marked by Hive Commander - gives +3 DC to further telepathy powers
 #define AFF_PERFECT_DEFLECTION_ACTIVE 127    // ready to deflect next attack (Psionicist Perfect Deflection)
-#define AFF_MAGIC_ATTACKS 128                 // summon/creature attacks count as magic for DR purposes
 
 /*---*/
-#define NUM_AFF_FLAGS 129
+#define NUM_AFF_FLAGS 128
+
+// we've run out of AFF_ flag slots, caps at 128, so time to make AFF2_ flags
+/* Affect2 bits: used in char_data.char_specials.saved.affected2_by */
+#define AFF2_DONTUSE 0           /**< DON'T USE! */
+#define AFF2_MAGIC_ATTACKS 1     // summon/creature attacks count as magic for DR purposes
+
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4152,6 +4157,10 @@
 
 /* TREE C: Unholy Resilience - Tier 4 (Capstone) */
 #define PERK_BLACKGUARD_UNDYING_VIGOR          1440
+/* New Blackguard Unholy Resilience Tier 3 additions */
+#define PERK_BLACKGUARD_SOUL_CARAPACE          1441
+#define PERK_BLACKGUARD_WARDING_MALICE         1442
+#define PERK_BLACKGUARD_BLACKGUARDS_REPRISAL   1443
 
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
@@ -4177,7 +4186,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1441
+#define NUM_PERKS 1444
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20

@@ -261,6 +261,11 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
   challenge += get_spell_penetration_bonus(ch);
+    /* Blackguard: Warding Malice - reduce caster's penetration vs blackguard */
+    if (!IS_NPC(vict) && has_blackguard_warding_malice(vict) && ch)
+    {
+      challenge -= get_blackguard_warding_malice_penalty(vict, ch);
+    }
   /* Psionicist: Psionic Disruptor I applies +1 manifester level vs PR for Telepathy powers */
   if (ch) {
     int current_spellnum = CASTING_SPELLNUM(ch);
@@ -888,6 +893,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
                        challenge, save_names[type], savethrow);
       }
     }
+
+    /* Blackguard's Reprisal: on successful save vs spell, mark next-attack bonus */
+    if (!IS_NPC(vict))
+      trigger_blackguard_reprisal_on_save(vict, casttype);
 
     /* Persistent Spell perk - target must succeed on TWO saves to resist */
     if (ch && is_persistent_spell_active(ch))

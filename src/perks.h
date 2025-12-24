@@ -375,6 +375,15 @@ void reset_blackguard_resilient_corruption(struct char_data *ch);
 bool has_blackguard_undying_vigor(struct char_data *ch);
 bool trigger_blackguard_undying_vigor(struct char_data *ch);
 
+/* New Blackguard Unholy Resilience Tier 3 helpers */
+bool has_blackguard_soul_carapace(struct char_data *ch);
+void apply_blackguard_soul_carapace(struct char_data *ch, int damage);
+bool has_blackguard_warding_malice(struct char_data *ch);
+int get_blackguard_warding_malice_penalty(struct char_data *vict, struct char_data *caster);
+bool has_blackguard_blackguards_reprisal(struct char_data *ch);
+void trigger_blackguard_reprisal_on_save(struct char_data *ch, int casttype);
+int get_blackguard_reprisal_damage_bonus(struct char_data *ch, struct char_data *vict);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);

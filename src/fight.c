@@ -5897,6 +5897,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   GET_HIT(victim) -= dam;
 
+  /* Blackguard: Soul Carapace - convert portion of incoming damage to temp HP */
+  if (dam > 0 && !IS_NPC(victim))
+  {
+    apply_blackguard_soul_carapace(victim, dam);
+  }
+
   /* Blackguard: Resilient Corruption - increment stacks when taking damage */
   if (dam > 0 && !IS_NPC(victim) && has_blackguard_resilient_corruption(victim))
   {
@@ -6323,6 +6329,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* damroll (should be mostly just gear, spell affections) */
   dambonus += GET_DAMROLL(ch);
+
+  /* Blackguard's Reprisal: consume and apply next-attack damage bonus */
+  if (!IS_NPC(ch) && affected_by_spell(ch, AFFECT_BLACKGUARD_REPRISAL))
+  {
+    int reprisal = get_blackguard_reprisal_damage_bonus(ch, vict);
+    if (reprisal > 0)
+    {
+      dambonus += reprisal;
+      affect_from_char(ch, AFFECT_BLACKGUARD_REPRISAL);
+      send_to_char(ch, "\tDYour reprisal strikes with amplified malice! (+%d)\tn\r\n", reprisal);
+    }
+  }
   if (display_mode)
     send_to_char(ch, "Damroll: \tR%d\tn\r\n", GET_DAMROLL(ch));
 
