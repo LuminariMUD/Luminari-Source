@@ -3410,7 +3410,7 @@ void save_char(struct char_data *ch, int mode)
       aff = &tmp_aff[i];
       if (aff->spell)
         BUFFER_WRITE(
-                "%d %d %d %d %d %d %d %d %d %d\n",
+                "%d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
                 aff->spell,
                 aff->duration,
                 aff->modifier,
@@ -3420,9 +3420,13 @@ void save_char(struct char_data *ch, int mode)
                 aff->bitvector[2],
                 aff->bitvector[3],
                 aff->bonus_type,
-                aff->specific);
+                aff->specific,
+                aff->bitvector2[0],
+                aff->bitvector2[1],
+                aff->bitvector2[2],
+                aff->bitvector2[3]);
     }
-    BUFFER_WRITE( "0 0 0 0 0 0 0 0 0 0\n");
+    BUFFER_WRITE( "0 0 0 0 0 0 0 0 0 0 0 0 0 0\n");
   }
 
   /* Save Damage Reduction */
@@ -3936,6 +3940,19 @@ static void load_affects(FILE *fl, struct char_data *ch)
       af.duration = num2;
       af.modifier = num3;
       af.location = num4;
+      if (n_vars == 14)
+      { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type = num9;
+        af.specific = num10;
+        af.bitvector2[0] = num11;
+        af.bitvector2[1] = num12;
+        af.bitvector2[2] = num13;
+        af.bitvector2[3] = num14;
+      }
       if (n_vars == 10)
       { /* Version with bonus type! */
         af.bitvector[0] = num5;

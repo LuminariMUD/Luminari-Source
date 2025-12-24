@@ -2770,7 +2770,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 static void interpret_espec(const char *keyword, const char *value, int i, int nr)
 {
   int num_arg = 0, matched = FALSE;
-  int num, num2;
+  int num, num2, num3, num4;
 
   /* If there isn't a colon, there is no value.  While Boolean options are
    * possible, we don't actually have any.  Feel free to make some. */
@@ -2890,6 +2890,15 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   {
     sscanf(value, "%d %d", &num, &num2);
     MOB_SET_FEAT(mob_proto + i, num, num2);
+  }
+
+  CASE("Aff2")
+  {
+    sscanf(value, "%d %d %d %d", &num, &num2, &num3, &num4);
+    AFF2_FLAGS(mob_proto + i)[0] = num;
+    AFF2_FLAGS(mob_proto + i)[1] = num2;
+    AFF2_FLAGS(mob_proto + i)[2] = num3;
+    AFF2_FLAGS(mob_proto + i)[3] = num4;
   }
 
   CASE("DR_MOD")
@@ -3394,6 +3403,7 @@ const char *parse_object(FILE *obj_f, int nr)
   char *tmpptr, buf2[128], f1[READ_SIZE], f2[READ_SIZE], f3[READ_SIZE], f4[READ_SIZE];
   char f5[READ_SIZE], f6[READ_SIZE], f7[READ_SIZE], f8[READ_SIZE];
   char f9[READ_SIZE], f10[READ_SIZE], f11[READ_SIZE], f12[READ_SIZE];
+  char f13[READ_SIZE], f14[READ_SIZE], f15[READ_SIZE], f16[READ_SIZE];
   struct extra_descr_data *new_descr;
   struct obj_special_ability *new_specab;
 
@@ -3430,8 +3440,8 @@ const char *parse_object(FILE *obj_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %s %s %s %s %s %s %s %s %s %s %s %s", t, f1, f2, f3,
-                        f4, f5, f6, f7, f8, f9, f10, f11, f12)) == 4) &&
+  if (((retval = sscanf(line, " %d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s", t, f1, f2, f3,
+                        f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16)) == 4) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3509,9 +3519,45 @@ const char *parse_object(FILE *obj_f, int nr)
     GET_OBJ_PERM(obj_proto + i)
     [3] = asciiflag_conv(f12);
   }
+  else if (retval == 17)
+  {
+
+    GET_OBJ_EXTRA(obj_proto + i)
+    [0] = asciiflag_conv(f1);
+    GET_OBJ_EXTRA(obj_proto + i)
+    [1] = asciiflag_conv(f2);
+    GET_OBJ_EXTRA(obj_proto + i)
+    [2] = asciiflag_conv(f3);
+    GET_OBJ_EXTRA(obj_proto + i)
+    [3] = asciiflag_conv(f4);
+    GET_OBJ_WEAR(obj_proto + i)
+    [0] = asciiflag_conv(f5);
+    GET_OBJ_WEAR(obj_proto + i)
+    [1] = asciiflag_conv(f6);
+    GET_OBJ_WEAR(obj_proto + i)
+    [2] = asciiflag_conv(f7);
+    GET_OBJ_WEAR(obj_proto + i)
+    [3] = asciiflag_conv(f8);
+    GET_OBJ_PERM(obj_proto + i)
+    [0] = asciiflag_conv(f9);
+    GET_OBJ_PERM(obj_proto + i)
+    [1] = asciiflag_conv(f10);
+    GET_OBJ_PERM(obj_proto + i)
+    [2] = asciiflag_conv(f11);
+    GET_OBJ_PERM(obj_proto + i)
+    [3] = asciiflag_conv(f12);
+    GET_OBJ2_PERM(obj_proto + i)
+    [0] = asciiflag_conv(f13);
+    GET_OBJ2_PERM(obj_proto + i)
+    [1] = asciiflag_conv(f14);
+    GET_OBJ2_PERM(obj_proto + i)
+    [2] = asciiflag_conv(f15);
+    GET_OBJ2_PERM(obj_proto + i)
+    [3] = asciiflag_conv(f16);
+  }
   else
   {
-    log("SYSERR: Format error in first numeric line (expecting 13 args, got %d), %s", retval, buf2);
+    log("SYSERR: Format error in first numeric line (expecting 13 or 17 args, got %d), %s", retval, buf2);
     exit(1);
   }
 
@@ -3855,6 +3901,9 @@ const char *parse_object(FILE *obj_f, int nr)
       obj_proto[i].activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
       obj_proto[i].activate_spell[ACT_SPELL_MAX_USES] = t[3];
       obj_proto[i].activate_spell[ACT_SPELL_COOLDOWN] = t[4];
+      break;
+    case 'P': // AFF2 flags
+      
       break;
     case 'S': // weapon spells
       /*

@@ -208,6 +208,8 @@ int save_objects(zone_rnum zone_num)
        wbuf3[MAX_STRING_LENGTH] = {'\0'}, wbuf4[MAX_STRING_LENGTH] = {'\0'};
   char pbuf1[MAX_STRING_LENGTH] = {'\0'}, pbuf2[MAX_STRING_LENGTH] = {'\0'},
        pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
+  char p2buf1[MAX_STRING_LENGTH] = {'\0'}, p2buf2[MAX_STRING_LENGTH] = {'\0'},
+       p2buf3[MAX_STRING_LENGTH] = {'\0'}, p2buf4[MAX_STRING_LENGTH] = {'\0'};
   int counter, counter2, realcounter;
   FILE *fp;
   struct obj_data *obj;
@@ -275,8 +277,12 @@ int save_objects(zone_rnum zone_num)
       sprintascii(pbuf2, GET_OBJ_PERM(obj)[1]);
       sprintascii(pbuf3, GET_OBJ_PERM(obj)[2]);
       sprintascii(pbuf4, GET_OBJ_PERM(obj)[3]);
+      sprintascii(p2buf1, GET_OBJ2_PERM(obj)[0]);
+      sprintascii(p2buf2, GET_OBJ2_PERM(obj)[1]);
+      sprintascii(p2buf3, GET_OBJ2_PERM(obj)[2]);
+      sprintascii(p2buf4, GET_OBJ2_PERM(obj)[3]);
 
-      fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s\n"
+      fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n"
                   "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n"
                   "%d %d %d %d %d\n",
 
@@ -284,6 +290,7 @@ int save_objects(zone_rnum zone_num)
               ebuf1, ebuf2, ebuf3, ebuf4,
               wbuf1, wbuf2, wbuf3, wbuf4,
               pbuf1, pbuf2, pbuf3, pbuf4,
+              p2buf1, p2buf2, p2buf3, p2buf4,
               GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
               GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
               GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),

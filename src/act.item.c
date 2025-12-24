@@ -1349,6 +1349,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   struct obj_data *j2;
   struct extra_descr_data *desc;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80;
 
   if (mode == ITEM_STAT_MODE_G_LORE)
@@ -1492,10 +1493,11 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
     else
       send_to_char(ch, "Can be worn on: %s\r\n", buf);
     sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
+    sprintbitarray(GET_OBJ2_AFFECT(j), affected2_bits, AF_ARRAY_MAX, buf2);
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Set char bits : %s\r\n", buf);
+      send_to_group(NULL, GROUP(ch), "Set char bits : %s %s\r\n", buf, buf2);
     else
-      send_to_char(ch, "Set char bits : %s\r\n", buf);
+      send_to_char(ch, "Set char bits : %s %s\r\n", buf, buf2);
 
     sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
     if (mode == ITEM_STAT_MODE_G_LORE)
@@ -8305,6 +8307,7 @@ void downgrade_item(struct char_data *ch, struct obj_data *obj, int level)
 
   // downgraded items lose all perm affects
   obj->obj_flags.bitvector[0] = obj->obj_flags.bitvector[1] = obj->obj_flags.bitvector[2] = obj->obj_flags.bitvector[3] = 0;
+  obj->obj_flags.bitvector2[0] = obj->obj_flags.bitvector2[1] = obj->obj_flags.bitvector2[2] = obj->obj_flags.bitvector2 [3] = 0;
 
   // downgraded items lose any spell activations
   obj->activate_spell[0] = obj->activate_spell[1] = obj->activate_spell[2] = obj->activate_spell[3] = obj->activate_spell[4] = 0;

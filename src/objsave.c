@@ -349,6 +349,14 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
+  if (TEST_OBJN(bitvector2))
+  {
+    fprintf(fp, "Prm2: %d %d %d %d\n", GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "Prm2: %d %d %d %d\n", GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
   if (TEST_OBJN(wear_flags))
   {
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
@@ -2061,6 +2069,18 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         GET_OBJ_PERM(temp)
         [3] = asciiflag_conv(f4);
       }
+      else if (!strcmp(tag, "Prm2"))
+      {
+        sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+        GET_OBJ2_PERM(temp)
+        [0] = asciiflag_conv(f1);
+        GET_OBJ2_PERM(temp)
+        [1] = asciiflag_conv(f2);
+        GET_OBJ2_PERM(temp)
+        [2] = asciiflag_conv(f3);
+        GET_OBJ2_PERM(temp)
+        [3] = asciiflag_conv(f4);
+      }
       break;
       if (!strcmp(tag, "Prof"))
         GET_OBJ_PROF(temp) = num;
@@ -2532,6 +2552,18 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           GET_OBJ_PERM(temp)
           [2] = asciiflag_conv(f3);
           GET_OBJ_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        else if (!strcmp(tag, "Prm2"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ2_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ2_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ2_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ2_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))
@@ -3116,6 +3148,12 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
     snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
+  if (TEST_OBJN(bitvector2))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Prm2: %d %d %d %d\n", 
+      GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
   if (TEST_OBJN(wear_flags))
   {
     snprintf(line_buf, sizeof(line_buf), "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
@@ -3542,6 +3580,18 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           GET_OBJ_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
+        if (!strcmp(tag, "Prm2"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ2_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ2_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ2_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ2_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
         break;
@@ -3803,6 +3853,12 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   if (TEST_OBJN(bitvector))
   {
     snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(bitvector2))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Prm2: %d %d %d %d\n", 
+        GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
   if (TEST_OBJN(wear_flags))
@@ -4227,6 +4283,18 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           GET_OBJ_PERM(temp)
           [2] = asciiflag_conv(f3);
           GET_OBJ_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        if (!strcmp(tag, "Prm2"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ2_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ2_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ2_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ2_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))

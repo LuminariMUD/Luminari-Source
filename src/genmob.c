@@ -533,6 +533,11 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     strlcat(buf, "\n", sizeof(buf));
     fprintf(fd, "%s", buf);
   }
+
+  // Additonal Aff2 flags
+  fprintf(fd, "Aff2: %d %d %d %d\n",
+          AFF2_FLAGS(mob)[0], AFF2_FLAGS(mob)[1],
+          AFF2_FLAGS(mob)[2], AFF2_FLAGS(mob)[3]);
   
   // Deprecated by MFeat
   // for (i = 0; i < NUM_FEATS; i++)
