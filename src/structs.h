@@ -3137,6 +3137,11 @@
 #define PERK_CATEGORY_TYRANNY_AND_FEAR 39
 #define PERK_CATEGORY_PROFANE_MIGHT 40
 #define PERK_CATEGORY_UNHOLY_RESILIENCE 41
+/* Inquisitor Perk Categories */
+#define PERK_CATEGORY_JUDGMENT_SPELLCASTING 42
+#define PERK_CATEGORY_HUNTERS_ARSENAL 43
+#define PERK_CATEGORY_INVESTIGATION_PERCEPTION 44
+#define PERK_CATEGORY_ADAPTABLE_TACTICS 45
 
 
 /* Perk IDs - organized by class */
@@ -4164,10 +4169,16 @@
 #define PERK_BLACKGUARD_WARDING_MALICE         1442
 #define PERK_BLACKGUARD_BLACKGUARDS_REPRISAL   1443
 
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 1) */
+#define PERK_INQUISITOR_EMPOWERED_JUDGMENT     1444
+#define PERK_INQUISITOR_SWIFT_SPELLCASTER      1445
+#define PERK_INQUISITOR_SPELL_FOCUS_DIVINATION 1446
+#define PERK_INQUISITOR_JUDGMENT_RECOVERY      1447
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
-/* Not yet implemented */
+/* Implemented: Judgment & Spellcasting Tree Tier 1 (1444-1447) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -4188,7 +4199,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1444
+#define NUM_PERKS 1448
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20

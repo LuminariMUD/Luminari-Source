@@ -12770,6 +12770,12 @@ int max_judgements_active(struct char_data *ch)
   if (HAS_REAL_FEAT(ch, FEAT_FIFTH_JUDGEMENT))
     num++;
 
+  /* Inquisitor Empowered Judgment perk rank 3: Can maintain +1 dual judgment for 1d4 rounds once per encounter */
+  if (can_inquisitor_dual_judgment(ch) && !char_has_mud_event(ch, eEMPOWERED_JUDGMENT_DUAL))
+  {
+    num++;
+  }
+
   return num;
 }
 

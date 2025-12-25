@@ -5377,6 +5377,36 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
       else
         solo_gain(ch, victim);
     }
+
+    /* Inquisitor Judgment Recovery: Restore one judgment use when reducing enemy to 0 HP */
+    if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 && has_inquisitor_judgment_recovery(ch))
+    {
+      if (!char_has_mud_event(ch, eJUDGMENT_RECOVERY_USED))
+      {
+        struct mud_event_data *pMudEvent = NULL;
+        int uses = 0;
+        char buf[MAX_STRING_LENGTH];
+
+        /* Try to restore one daily use of judgement */
+        pMudEvent = char_has_mud_event(ch, eJUDGEMENT);
+        if (pMudEvent && pMudEvent->sVariables)
+        {
+          if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
+          {
+            uses--;
+            free(pMudEvent->sVariables);
+            snprintf(buf, sizeof(buf), "uses:%d", uses);
+            pMudEvent->sVariables = strdup(buf);
+
+            send_to_char(ch, "Your divine connection surges! You recover a judgment use.\r\n");
+            act("$n's eyes flash with renewed divine authority.", FALSE, ch, 0, 0, TO_ROOM);
+          }
+        }
+        
+        /* Mark as used this encounter */
+        attach_mud_event(new_mud_event(eJUDGMENT_RECOVERY_USED, ch, NULL), 0);
+      }
+    }
   }
 
   resetCastingData(victim); // stop casting

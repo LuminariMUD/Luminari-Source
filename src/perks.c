@@ -81,6 +81,10 @@ const char *perk_category_names[] = {
   "Tyranny & Fear",         /* 39 - PERK_CATEGORY_TYRANNY_AND_FEAR */
   "Profane Might",          /* 40 - PERK_CATEGORY_PROFANE_MIGHT */
   "Unholy Resilience",      /* 41 - PERK_CATEGORY_UNHOLY_RESILIENCE */
+  "Judgment & Spellcasting", /* 42 - PERK_CATEGORY_JUDGMENT_SPELLCASTING */
+  "Hunter's Arsenal",       /* 43 - PERK_CATEGORY_HUNTERS_ARSENAL */
+  "Investigation & Perception", /* 44 - PERK_CATEGORY_INVESTIGATION_PERCEPTION */
+  "Adaptable Tactics",      /* 45 - PERK_CATEGORY_ADAPTABLE_TACTICS */
   "\n"                      /* Terminator */
 };
 /* Forward declarations for perk definition functions */
@@ -151,6 +155,9 @@ void init_perks(void)
 
   /* Define Blackguard Perks */
   define_blackguard_perks();
+
+  /* Define Inquisitor Perks */
+  define_inquisitor_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
@@ -836,6 +843,144 @@ void define_blackguard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->special_description = strdup("Capstone: Once per day, if reduced to 0 or fewer HP, survive with 1 HP instead. Triggers automatically.");
+}
+
+/* Define Inquisitor Perks - Judgment & Spellcasting (Tier 1) */
+void define_inquisitor_perks(void)
+{
+  struct perk_data *perk;
+
+  /**************************************************************************
+   * TREE 1: JUDGMENT & SPELLCASTING - Tier 1
+   **************************************************************************/
+
+  /* Tier 1: Empowered Judgment (3 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_EMPOWERED_JUDGMENT];
+  perk->id = PERK_INQUISITOR_EMPOWERED_JUDGMENT;
+  perk->name = strdup("Empowered Judgment");
+  perk->description = strdup("Your judgment abilities become more potent. Increase judgment bonuses by +1 per rank.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 bonus per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Rank 1-3: +1 to judgment bonuses per rank. At rank 3, can maintain two judgments for 1d4 rounds once per encounter.");
+  perk->toggleable = false;
+
+  /* Tier 1: Swift Spellcaster (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_SWIFT_SPELLCASTER];
+  perk->id = PERK_INQUISITOR_SWIFT_SPELLCASTER;
+  perk->name = strdup("Swift Spellcaster");
+  perk->description = strdup("Channel divine magic with practiced efficiency.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to concentration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Reduce casting time of inquisitor spells by one step once per encounter. +2 to concentration checks.");
+  perk->toggleable = false;
+
+  /* Tier 1: Spell Focus: Divination (2 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_SPELL_FOCUS_DIVINATION];
+  perk->id = PERK_INQUISITOR_SPELL_FOCUS_DIVINATION;
+  perk->name = strdup("Spell Focus: Divination");
+  perk->description = strdup("Your divination spells pierce through deception.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 DC per rank */
+  perk->effect_modifier = ABJURATION; /* Will use for divination school */
+  perk->special_description = strdup("Rank 1-2: Increase DC of divination spells by +1 per rank. At rank 2, gain one additional divination spell slot per spell level.");
+  perk->toggleable = false;
+
+  /* Tier 1: Judgment Recovery (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_JUDGMENT_RECOVERY];
+  perk->id = PERK_INQUISITOR_JUDGMENT_RECOVERY;
+  perk->name = strdup("Judgment Recovery");
+  perk->description = strdup("Your judgment powers refresh more quickly.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Regain one use of judgment ability when you reduce an enemy to 0 hit points or below. Once per encounter.");
+  perk->toggleable = false;
+}
+
+/* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
+
+/**
+ * Get the bonus to judgment from Empowered Judgment perk.
+ * Returns +1 per rank (max 3).
+ */
+int get_inquisitor_empowered_judgment_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_EMPOWERED_JUDGMENT, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor can use dual judgment (requires rank 3 of Empowered Judgment).
+ */
+bool can_inquisitor_dual_judgment(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_EMPOWERED_JUDGMENT, CLASS_INQUISITOR) >= 3;
+}
+
+/**
+ * Check if inquisitor has Swift Spellcaster perk.
+ */
+bool has_inquisitor_swift_spellcaster(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SWIFT_SPELLCASTER);
+}
+
+/**
+ * Get the DC bonus for divination spells from Spell Focus: Divination.
+ * Returns +1 per rank (max 2).
+ */
+int get_inquisitor_divination_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_FOCUS_DIVINATION, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor has bonus divination spell slots (requires rank 2).
+ */
+bool has_inquisitor_divination_bonus_slot(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_FOCUS_DIVINATION, CLASS_INQUISITOR) >= 2;
+}
+
+/**
+ * Check if inquisitor has Judgment Recovery perk.
+ */
+bool has_inquisitor_judgment_recovery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_JUDGMENT_RECOVERY);
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */

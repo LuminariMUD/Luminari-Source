@@ -676,6 +676,12 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     challenge += get_master_enchanter_dc_bonus(ch);
   }
   
+  /* Inquisitor Spell Focus: Divination adds +1 per rank to divination spell DC */
+  if (ch && school == DIVINATION)
+  {
+    challenge += get_inquisitor_divination_dc_bonus(ch);
+  }
+  
   /* Master Transmuter adds +3 DC to transmutation spells */
   if (ch && school == TRANSMUTATION)
   {

@@ -280,6 +280,9 @@ struct mud_event_list mud_event_index[] = {
     {"Sinister Recovery", event_daily_use_cooldown, EVENT_CHAR, "You feel ready to channel sinister recovery again.", NULL, FEAT_UNDEFINED, 0},
     {"Shade Step", event_countdown, EVENT_CHAR, "You slip back into the shadows.", NULL, FEAT_UNDEFINED, 0},
     {"Undying Vigor", event_daily_use_cooldown, EVENT_CHAR, "Your undying vigor has recovered and can save you from death again.", NULL, FEAT_UNDEFINED, 0},
+    {"Empowered Judgement Dual", event_daily_use_cooldown, EVENT_CHAR, "You can use Empowered Judgment dual judgment again.", NULL, FEAT_UNDEFINED, 0},
+    {"Swift Spellcaster Used", event_daily_use_cooldown, EVENT_CHAR, "You can benefit from Swift Spellcaster again.", NULL, FEAT_UNDEFINED, 0},
+    {"Judgment Recovery Used", event_daily_use_cooldown, EVENT_CHAR, "You can use Judgment Recovery again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

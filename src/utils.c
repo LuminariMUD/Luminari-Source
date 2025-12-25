@@ -8156,6 +8156,9 @@ int get_judgement_bonus(struct char_data *ch, int type)
 
   bonus += HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT);
 
+  /* Inquisitor Empowered Judgment perk: +1 per rank to all judgment bonuses */
+  bonus += get_inquisitor_empowered_judgment_bonus(ch);
+
   if (type == INQ_JUDGEMENT_RESISTANCE)
     bonus *= 4;
 

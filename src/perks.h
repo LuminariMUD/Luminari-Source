@@ -28,6 +28,15 @@ void define_paladin_perks(void);
 void define_alchemist_perks(void);
 void define_psionicist_perks(void);
 void define_blackguard_perks(void);
+void define_inquisitor_perks(void);
+
+/* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 1 */
+int get_inquisitor_empowered_judgment_bonus(struct char_data *ch);
+bool can_inquisitor_dual_judgment(struct char_data *ch);
+bool has_inquisitor_swift_spellcaster(struct char_data *ch);
+int get_inquisitor_divination_dc_bonus(struct char_data *ch);
+bool has_inquisitor_divination_bonus_slot(struct char_data *ch);
+bool has_inquisitor_judgment_recovery(struct char_data *ch);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);

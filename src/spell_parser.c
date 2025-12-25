@@ -179,7 +179,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
     concentration_dc -= 4;
   if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END && HAS_FEAT(ch, FEAT_COMBAT_MANIFESTATION))
     concentration_dc -= 4;
-  if (!is_tanking(ch))
+  if (FIGHTING(ch) && !is_tanking(ch))
     concentration_dc -= 10;
   if (char_has_mud_event(ch, eTAUNTED))
     concentration_dc += 6;
@@ -194,6 +194,10 @@ bool concentration_check(struct char_data *ch, int spellnum)
       concentration_dc +=
           compute_cmb(GRAPPLE_TARGET(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
   }
+
+  /* Inquisitor Swift Spellcaster perk: +2 to concentration checks */
+  if (has_inquisitor_swift_spellcaster(ch))
+    concentration_dc -= 2;
 
   if (CASTING_CLASS(ch) != CLASS_ALCHEMIST)
   {
@@ -2441,6 +2445,20 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     casting_time = 0;
     if (CONFIG_SPELLCASTING_TIME_MODE == 0)
       quickened = TRUE;
+  }
+
+  /* Inquisitor Swift Spellcaster perk: reduce casting time by one step once per encounter */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 && 
+      has_inquisitor_swift_spellcaster(ch) && 
+      !char_has_mud_event(ch, eSWIFT_SPELLCASTER_USED) &&
+      spellnum > 0 && spellnum < NUM_SPELLS)
+  {
+    if (casting_time > 0)
+    {
+      casting_time -= 1;
+      attach_mud_event(new_mud_event(eSWIFT_SPELLCASTER_USED, ch, NULL), 0);
+      send_to_char(ch, "Your spell casts faster due to practiced efficiency.\r\n");
+    }
   }
 
   if (CONFIG_SPELLCASTING_TIME_MODE == 0)
