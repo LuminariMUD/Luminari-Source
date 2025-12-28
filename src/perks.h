@@ -41,6 +41,10 @@ bool has_inquisitor_judgment_recovery(struct char_data *ch);
 /* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 2 */
 int get_inquisitor_enhanced_bane_damage(struct char_data *ch);
 int get_inquisitor_enhanced_bane_attack(struct char_data *ch);
+bool has_inquisitor_judgment_mastery(struct char_data *ch);
+bool has_inquisitor_divine_spellstrike(struct char_data *ch);
+bool has_inquisitor_inexorable_judgment(struct char_data *ch);
+bool has_inquisitor_supreme_spellcasting(struct char_data *ch);
 bool has_inquisitor_enhanced_bane_aoe(struct char_data *ch);
 bool has_inquisitor_divine_resilience(struct char_data *ch);
 int get_inquisitor_spell_penetration(struct char_data *ch);

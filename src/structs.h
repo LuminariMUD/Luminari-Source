@@ -4186,6 +4186,11 @@
 #define PERK_INQUISITOR_SPELL_METAMASTERY      1453
 #define PERK_INQUISITOR_RIGHTEOUS_STRIKE       1454
 #define PERK_INQUISITOR_VERSATILE_JUDGMENT     1455
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 4) */
+#define PERK_INQUISITOR_JUDGMENT_MASTERY       1456
+#define PERK_INQUISITOR_DIVINE_SPELLSTRIKE     1457
+#define PERK_INQUISITOR_INEXORABLE_JUDGMENT    1458
+#define PERK_INQUISITOR_SUPREME_SPELLCASTING   1459
 
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)

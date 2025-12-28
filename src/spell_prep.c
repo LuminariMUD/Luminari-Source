@@ -66,6 +66,7 @@
 #include "domains_schools.h"
 #include "perks.h"          /* For divine metamagic reduction */
 #include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
+#include "mud_event.h"
 #include <limits.h> /* For INT_MAX overflow checks */
 #include "moon_bonus_spells.h"
 /** END header files **/
@@ -3110,6 +3111,13 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   {
     if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
     {
+      if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
+          !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
+      {
+        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL), SECS_PER_MUD_DAY);
+        send_to_char(ch, "\tY[Supreme Spellcasting]:\tn You cast this spell without expending the prepared slot!\r\n");
+        return ch_class; /* keep spell prepared */
+      }
       /* Alchemist Extract I: chance to not consume the prepared extract */
       if (ch_class == CLASS_ALCHEMIST)
       {
@@ -3170,6 +3178,13 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
              count_total_slots(ch, ch_class, circle) >
          0))
     {
+      if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
+          !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
+      {
+        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL), SECS_PER_MUD_DAY);
+        send_to_char(ch, "\tY[Supreme Spellcasting]:\tn You cast this spell without expending a spell slot!\r\n");
+        return ch_class; /* slot preserved */
+      }
       /* Check if this is an arcane class and if spell slot is preserved */
       bool is_arcane_class = (ch_class == CLASS_WIZARD || 
                               ch_class == CLASS_SORCERER || 

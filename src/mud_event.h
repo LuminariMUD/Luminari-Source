@@ -240,6 +240,9 @@ typedef enum
   eSWIFT_SPELLCASTER_USED,               /* Inquisitor Swift Spellcaster casting time reduction used */
   eJUDGMENT_RECOVERY_USED,               /* Inquisitor Judgment Recovery kill-triggered use used */
   eSPELL_METAMASTERY_USED,               /* Inquisitor Spell Metamastery 5-minute cooldown */
+  eDIVINE_SPELLSTRIKE_USED,              /* Inquisitor Divine Spellstrike daily use */
+  eINEXORABLE_JUDGMENT_USED,             /* Inexorable Judgment daily use */
+  eSUPREME_SPELLCASTING_USED,            /* Supreme Spellcasting daily free cast */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

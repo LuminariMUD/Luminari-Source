@@ -2734,6 +2734,19 @@ will be using for casting this spell */
         ch->player_specials->inq_righteous_strike_rounds = 1;
       }
       
+      /* Divine Spellstrike: once/day swift-cast inquisitor spell and follow with full attack */
+      if (result && !IS_NPC(ch) && has_inquisitor_divine_spellstrike(ch) &&
+          GET_CASTING_CLASS(ch) == CLASS_INQUISITOR && FIGHTING(ch) &&
+          !char_has_mud_event(ch, eDIVINE_SPELLSTRIKE_USED))
+      {
+        attach_mud_event(new_mud_event(eDIVINE_SPELLSTRIKE_USED, ch, NULL), SECS_PER_MUD_DAY);
+        USE_SWIFT_ACTION(ch);
+        send_to_char(ch, "\tYYou channel Divine Spellstrike, unleashing a flurry of blows!\tn\r\n");
+#define NORMAL_ATTACK_ROUTINE 0 /* perform full attack routine */
+        perform_attacks(ch, NORMAL_ATTACK_ROUTINE, 0);
+#undef NORMAL_ATTACK_ROUTINE
+      }
+
       return result;
     }
   }

@@ -610,6 +610,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #endif
     {"judgement", "judge", POS_RECLINING, do_judgement, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"greaterjudgment", "gj", POS_RECLINING, do_greater_judgment, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"inexorablejudgment", "ij", POS_RECLINING, do_inexorable_judgment, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

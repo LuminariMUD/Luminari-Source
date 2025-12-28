@@ -12776,6 +12776,13 @@ int max_judgements_active(struct char_data *ch)
     num++;
   }
 
+  /* Judgment Mastery perk adds one judgement and auarantees at least three concurrent judgments */
+
+  if (has_inquisitor_judgment_mastery(ch))
+  {
+    num = MAX(++num, 3);
+  }
+
   return num;
 }
 
@@ -12965,6 +12972,63 @@ ACMDU(do_judgement)
                      "\r\n");
     return;
   }
+}
+
+/* Inexorable Judgment: once/day will-save burst */
+ACMDU(do_inexorable_judgment)
+{
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dam = 0;
+
+  if (!has_inquisitor_inexorable_judgment(ch))
+  {
+    send_to_char(ch, "You have not mastered Inexorable Judgment.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: inexorablejudgment <target>\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You do not see that target here.\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Turning your judgment on yourself would serve no purpose.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eINEXORABLE_JUDGMENT_USED))
+  {
+    send_to_char(ch, "You have already pronounced Inexorable Judgment today.\r\n");
+    return;
+  }
+
+  dam = dice(CLASS_LEVEL(ch, CLASS_INQUISITOR), 6);
+
+  act("You invoke an inexorable judgment upon $N!", TRUE, ch, 0, vict, TO_CHAR);
+  act("$n invokes an inexorable judgment upon you!", TRUE, ch, 0, vict, TO_VICT);
+  act("$n invokes an inexorable judgment upon $N!", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  if (savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, GET_LEVEL(ch), ENCHANTMENT))
+  {
+    send_to_char(ch, "Your target steels their will and shrugs off the judgment.\r\n");
+  }
+  else
+  {
+    damage(ch, vict, dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+  }
+
+  USE_STANDARD_ACTION(ch);
+  attach_mud_event(new_mud_event(eINEXORABLE_JUDGMENT_USED, ch, NULL), SECS_PER_MUD_DAY);
 }
 
 /* Greater Judgment Perk Command - Select which judgment type gets doubled bonuses */

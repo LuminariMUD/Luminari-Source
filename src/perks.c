@@ -1065,6 +1065,74 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Change active judgment as swift action. Gain +1 daily judgment use.");
   perk->toggleable = false;
+
+  /* Tier 4: Judgment Mastery (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_JUDGMENT_MASTERY];
+  perk->id = PERK_INQUISITOR_JUDGMENT_MASTERY;
+  perk->name = strdup("Judgment Mastery");
+  perk->description = strdup("Maintain three judgments and extend their linger.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* target minimum concurrent judgments */
+  perk->effect_modifier = 2; /* linger rounds */
+  perk->special_description = strdup("Maintain up to three simultaneous judgments; judgments linger 2 rounds after you stop focusing.");
+  perk->toggleable = false;
+
+  /* Tier 4: Divine Spellstrike (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_DIVINE_SPELLSTRIKE];
+  perk->id = PERK_INQUISITOR_DIVINE_SPELLSTRIKE;
+  perk->name = strdup("Divine Spellstrike");
+  perk->description = strdup("Once per day, cast an inquisitor spell as a swift action and follow with an immediate full attack.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per day, cast an inquisitor spell as a swift action and immediately make a full attack; spell resolves on hit as touch.");
+  perk->toggleable = false;
+
+  /* Tier 4: Inexorable Judgment (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_INEXORABLE_JUDGMENT];
+  perk->id = PERK_INQUISITOR_INEXORABLE_JUDGMENT;
+  perk->name = strdup("Inexorable Judgment");
+  perk->description = strdup("Once per day, smite with irresistible judgment.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per day, force a Will save (DC 10 + 1/2 level + Wis) or deal 1d6/level untyped damage; judgment bonuses ignore immunities.");
+  perk->toggleable = false;
+
+  /* Tier 4: Supreme Spellcasting (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_SUPREME_SPELLCASTING];
+  perk->id = PERK_INQUISITOR_SUPREME_SPELLCASTING;
+  perk->name = strdup("Supreme Spellcasting");
+  perk->description = strdup("Once per day, cast an inquisitor spell without expending a slot.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain an extra slot per spell level and once per day cast any inquisitor spell you know for free.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -1096,6 +1164,26 @@ bool can_inquisitor_dual_judgment(struct char_data *ch)
 bool has_inquisitor_swift_spellcaster(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SWIFT_SPELLCASTER);
+}
+
+bool has_inquisitor_judgment_mastery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_JUDGMENT_MASTERY);
+}
+
+bool has_inquisitor_divine_spellstrike(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DIVINE_SPELLSTRIKE);
+}
+
+bool has_inquisitor_inexorable_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_INEXORABLE_JUDGMENT);
+}
+
+bool has_inquisitor_supreme_spellcasting(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SUPREME_SPELLCASTING);
 }
 
 /**
