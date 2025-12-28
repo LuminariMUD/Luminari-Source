@@ -49,7 +49,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 4. **Persistent Judgment**
    - *1 rank, 2 points*
-   - Your judgments linger after you cease concentration. When you end a judgment, its effects persist at half strength for 1 additional round. This does not stack with activating a new judgment.
+   When a judgement is toggled off the affect of the judgement is added to the player for 5 rounds, with a 20 round cooldown.
 
 ### Tier 3 (4 Perks)
 

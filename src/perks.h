@@ -38,6 +38,15 @@ int get_inquisitor_divination_dc_bonus(struct char_data *ch);
 bool has_inquisitor_divination_bonus_slot(struct char_data *ch);
 bool has_inquisitor_judgment_recovery(struct char_data *ch);
 
+/* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 2 */
+int get_inquisitor_enhanced_bane_damage(struct char_data *ch);
+int get_inquisitor_enhanced_bane_attack(struct char_data *ch);
+bool has_inquisitor_enhanced_bane_aoe(struct char_data *ch);
+bool has_inquisitor_divine_resilience(struct char_data *ch);
+int get_inquisitor_spell_penetration(struct char_data *ch);
+bool has_inquisitor_spell_penetration_ignore(struct char_data *ch);
+bool has_inquisitor_persistent_judgment(struct char_data *ch);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);

@@ -12894,6 +12894,31 @@ ACMDU(do_judgement)
     if (IS_JUDGEMENT_ACTIVE(ch, judgement))
     {
       send_to_char(ch, "You turn \tRoff\tn the '%s' judgement effect.\r\n", inquisitor_judgements[judgement]);
+      if (has_inquisitor_persistent_judgment(ch))
+      {
+        if (!affected_by_spell(ch, AFFECT_PERSISTENT_JUDGMENT))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = AFFECT_PERSISTENT_JUDGMENT;
+          af.duration = 5;
+          af.bonus_type = BONUS_TYPE_MORALE;
+          af.modifier = get_judgement_bonus(ch, judgement);
+          switch (judgement)
+          {
+            case INQ_JUDGEMENT_DESTRUCTION: af.location = APPLY_DAMROLL; break;
+            case INQ_JUDGEMENT_HEALING: af.location = APPLY_FAST_HEALING; break;
+            case INQ_JUDGEMENT_JUSTICE: af.location = APPLY_SAVING_WILL; break;
+            case INQ_JUDGEMENT_PIERCING: af.location = APPLY_HITROLL; break;
+            case INQ_JUDGEMENT_PROTECTION: af.location = APPLY_AC_NEW; break;
+            case INQ_JUDGEMENT_PURITY: af.location = APPLY_HIT; af.modifier *= 10; break;
+            case INQ_JUDGEMENT_RESILIENCY: af.location = APPLY_SAVING_FORT; break;
+            case INQ_JUDGEMENT_RESISTANCE: af.location = APPLY_SAVING_REFL; break;
+          }
+          affect_to_char(ch, &af);
+          send_to_char(ch, "Your persistent judgment effect gives you a related bonus for 5 more rounds.\r\n");
+        }
+      }
       IS_JUDGEMENT_ACTIVE(ch, judgement) = 0;
       if (GET_SLAYER_JUDGEMENT(ch) == judgement)
       {
@@ -12910,6 +12935,24 @@ ACMDU(do_judgement)
       }
       send_to_char(ch, "You turn \tGon\tn the '%s' judgement effect.\r\n", inquisitor_judgements[judgement]);
       IS_JUDGEMENT_ACTIVE(ch, judgement) = 1;
+      
+      /* Inquisitor Divine Resilience perk: Grant temporary hit points when activating judgment */
+      if (!IS_NPC(ch) && has_inquisitor_divine_resilience(ch))
+      {
+        int temp_hp = CLASS_LEVEL(ch, CLASS_INQUISITOR) + GET_WIS_BONUS(ch);
+        if (temp_hp > 0)
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = AFFECT_DIVINE_RESILIENCE;
+          af.duration = 1; /* Lasts as long as judgment is active, but gets reapplied on toggle */
+          af.location = APPLY_HIT;
+          af.modifier = temp_hp;
+          af.bonus_type = BONUS_TYPE_SACRED;
+          affect_to_char(ch, &af);
+          send_to_char(ch, "The divine energy bolsters you with \tC%d temporary hit points\tn.\r\n", temp_hp);
+        }
+      }
     }
   }
   else

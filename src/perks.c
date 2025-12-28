@@ -921,6 +921,78 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Regain one use of judgment ability when you reduce an enemy to 0 hit points or below. Once per encounter.");
   perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 1: JUDGMENT & SPELLCASTING - Tier 2
+   **************************************************************************/
+
+  /* Tier 2: Enhanced Bane (4 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_ENHANCED_BANE];
+  perk->id = PERK_INQUISITOR_ENHANCED_BANE;
+  perk->name = strdup("Enhanced Bane");
+  perk->description = strdup("Your weapon gains the bane property against your judged target.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 4;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 damage per rank, +1 attack per 2 ranks */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Add +1 damage per rank and +1 to attack rolls per 2 ranks against judged target. At rank 4, bane extends to all creatures of same type.");
+  perk->toggleable = false;
+
+  /* Tier 2: Divine Resilience (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_DIVINE_RESILIENCE];
+  perk->id = PERK_INQUISITOR_DIVINE_RESILIENCE;
+  perk->name = strdup("Divine Resilience");
+  perk->description = strdup("Channel divine energy to bolster yourself when activating judgment.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("When you activate judgment, gain temporary hit points equal to inquisitor level + Wisdom modifier.");
+  perk->toggleable = false;
+
+  /* Tier 2: Spell Penetration (3 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_SPELL_PENETRATION];
+  perk->id = PERK_INQUISITOR_SPELL_PENETRATION;
+  perk->name = strdup("Spell Penetration");
+  perk->description = strdup("Your spells overcome magical defenses more easily.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank to spell penetration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain +1 per rank to checks to overcome spell resistance. At rank 3, ignore the first 5 points of spell resistance.");
+  perk->toggleable = false;
+
+  /* Tier 2: Persistent Judgment (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_PERSISTENT_JUDGMENT];
+  perk->id = PERK_INQUISITOR_PERSISTENT_JUDGMENT;
+  perk->name = strdup("Persistent Judgment");
+  perk->description = strdup("When a judgment is toggled off, its effect persists for 5 rounds.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5 rounds duration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("When toggling off a judgment, the judgment bonus persists as a morale bonus for 5 rounds. 20 round cooldown per judgment type.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -981,6 +1053,77 @@ bool has_inquisitor_divination_bonus_slot(struct char_data *ch)
 bool has_inquisitor_judgment_recovery(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_JUDGMENT_RECOVERY);
+}
+
+/* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 2 */
+
+/**
+ * Get the damage bonus from Enhanced Bane perk.
+ * Returns +1 per rank (max +4).
+ */
+int get_inquisitor_enhanced_bane_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_ENHANCED_BANE, CLASS_INQUISITOR);
+}
+
+/**
+ * Get the attack bonus from Enhanced Bane perk.
+ * Returns +1 per 2 ranks (max +2 at rank 4).
+ */
+int get_inquisitor_enhanced_bane_attack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_ENHANCED_BANE, CLASS_INQUISITOR) / 2;
+}
+
+/**
+ * Check if Enhanced Bane applies to all creatures of the same type (rank 4).
+ */
+bool has_inquisitor_enhanced_bane_aoe(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_ENHANCED_BANE, CLASS_INQUISITOR) >= 4;
+}
+
+/**
+ * Check if inquisitor has Divine Resilience perk.
+ */
+bool has_inquisitor_divine_resilience(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DIVINE_RESILIENCE);
+}
+
+/**
+ * Get spell penetration bonus from Spell Penetration perk.
+ * Returns +1 per rank (max +3).
+ */
+int get_inquisitor_spell_penetration(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_PENETRATION, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor ignores first 5 SR (rank 3 of Spell Penetration).
+ */
+bool has_inquisitor_spell_penetration_ignore(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_PENETRATION, CLASS_INQUISITOR) >= 3;
+}
+
+/**
+ * Check if inquisitor has Persistent Judgment perk.
+ */
+bool has_inquisitor_persistent_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERSISTENT_JUDGMENT);
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */
@@ -12948,6 +13091,14 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
   /* Feint and Finish: +2 to hit bonus (note: actual bonus is crit confirm, but also +2 to-hit from affect) */
   if (is_affected_by_feint_and_finish(ch))
     bonus += 2;
+  
+  /* Inquisitor Enhanced Bane: +1 to attack per 2 ranks (max +2 at rank 4) */
+  if (has_perk(ch, PERK_INQUISITOR_ENHANCED_BANE))
+  {
+    int enhanced_bane_attack = get_inquisitor_enhanced_bane_attack(ch);
+    if (enhanced_bane_attack > 0)
+      bonus += enhanced_bane_attack;
+  }
   
   return bonus;
 }

@@ -6497,6 +6497,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Judgement of Destruction: \tR%d\tn\r\n", get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION));
   }
 
+  /* Inquisitor Enhanced Bane perk: +1 damage per rank against judged targets */
+  if (vict && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_ENHANCED_BANE))
+  {
+    int enhanced_bane_damage = get_inquisitor_enhanced_bane_damage(ch);
+    if (enhanced_bane_damage > 0)
+    {
+      dambonus += enhanced_bane_damage;
+      if (display_mode)
+        send_to_char(ch, "Enhanced Bane (damage): \tR%d\tn\r\n", enhanced_bane_damage);
+    }
+  }
+
   // Dragon champion level 3 abil: +1 hitroll +2 damage
   if (HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_CHAMPION) && is_riding_dragon_mount(ch))
   {
@@ -7120,6 +7132,41 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += holy_sword_dice;
       if (display_mode)
         send_to_char(ch, "Holy Sword (vs Evil): \tW%d\tn\r\n", holy_sword_dice);
+    }
+    
+    /* Inquisitor Enhanced Bane - bonus damage against judgment target */
+    if (!IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    {
+      int bane_damage = 0;
+      bool applies = false;
+      
+      /* Check if target matches judgment target directly */
+      if (GET_JUDGEMENT_TARGET(ch) && vict == GET_JUDGEMENT_TARGET(ch))
+      {
+        applies = true;
+      }
+      /* Check rank 4 - AoE effect on all creatures of same type as judgment target */
+      else if (GET_JUDGEMENT_TARGET(ch) && has_inquisitor_enhanced_bane_aoe(ch))
+      {
+        /* Compare race for NPCs, or use RACE_TYPE_HUMANOID for PCs */
+        if ((!IS_NPC(vict) && !IS_NPC(GET_JUDGEMENT_TARGET(ch))) ||
+            (IS_NPC(vict) && IS_NPC(GET_JUDGEMENT_TARGET(ch)) && 
+             GET_RACE(vict) == GET_RACE(GET_JUDGEMENT_TARGET(ch))))
+        {
+          applies = true;
+        }
+      }
+      
+      if (applies)
+      {
+        bane_damage = get_inquisitor_enhanced_bane_damage(ch);
+        if (bane_damage > 0)
+        {
+          dambonus += bane_damage;
+          if (display_mode)
+            send_to_char(ch, "Enhanced Bane: \tY%d\tn\r\n", bane_damage);
+        }
+      }
     }
   }
 
@@ -10727,6 +10774,41 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += supreme_style_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", supreme_style_bonus, "Supreme Style To-Hit");
+    }
+  }
+
+  /* Inquisitor Enhanced Bane - attack bonus against judgment target */
+  if (victim && !IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+  {
+    int bane_attack = 0;
+    bool applies = false;
+    
+    /* Check if target matches judgment target directly */
+    if (GET_JUDGEMENT_TARGET(ch) && victim == GET_JUDGEMENT_TARGET(ch))
+    {
+      applies = true;
+    }
+    /* Check rank 4 - AoE effect on all creatures of same type as judgment target */
+    else if (GET_JUDGEMENT_TARGET(ch) && has_inquisitor_enhanced_bane_aoe(ch))
+    {
+      /* Compare race for NPCs, or use RACE_TYPE_HUMANOID for PCs */
+      if ((!IS_NPC(victim) && !IS_NPC(GET_JUDGEMENT_TARGET(ch))) ||
+          (IS_NPC(victim) && IS_NPC(GET_JUDGEMENT_TARGET(ch)) && 
+           GET_RACE(victim) == GET_RACE(GET_JUDGEMENT_TARGET(ch))))
+      {
+        applies = true;
+      }
+    }
+    
+    if (applies)
+    {
+      bane_attack = get_inquisitor_enhanced_bane_attack(ch);
+      if (bane_attack > 0)
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += bane_attack;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", bane_attack, "Enhanced Bane");
+      }
     }
   }
 

@@ -277,6 +277,18 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   /* Paladin Spell Penetration perk */
   if (!IS_NPC(ch) && has_paladin_spell_penetration(ch) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
     challenge += 4;
+  
+  /* Inquisitor Spell Penetration perk: +1 per rank (max +3) */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0)
+  {
+    int inq_spell_pen = get_inquisitor_spell_penetration(ch);
+    if (inq_spell_pen > 0)
+      challenge += inq_spell_pen;
+    
+    /* Rank 3: Ignore first 5 points of spell resistance */
+    if (has_inquisitor_spell_penetration_ignore(ch))
+      resist -= 5;
+  }
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 && WEAPON_SPELL_PROC(ch) == TRUE)
   {

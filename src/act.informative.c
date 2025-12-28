@@ -8726,11 +8726,11 @@ ACMD(do_survey)
     return;
   }
 
-  if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
-  {
-    send_to_char(ch, "Its too bright to survey!\r\n");
-    return;
-  }
+  // if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  // {
+  //   send_to_char(ch, "Its too bright to survey!\r\n");
+  //   return;
+  // }
 
   /* Get current coordinates */
   x = world[IN_ROOM(ch)].coords[0];

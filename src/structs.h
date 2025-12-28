@@ -4175,10 +4175,17 @@
 #define PERK_INQUISITOR_SPELL_FOCUS_DIVINATION 1446
 #define PERK_INQUISITOR_JUDGMENT_RECOVERY      1447
 
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 2) */
+#define PERK_INQUISITOR_ENHANCED_BANE          1448
+#define PERK_INQUISITOR_DIVINE_RESILIENCE      1449
+#define PERK_INQUISITOR_SPELL_PENETRATION      1450
+#define PERK_INQUISITOR_PERSISTENT_JUDGMENT    1451
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
 /* Implemented: Judgment & Spellcasting Tree Tier 1 (1444-1447) */
+/* Implemented: Judgment & Spellcasting Tree Tier 2 (1448-1451) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -4199,7 +4206,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1448
+#define NUM_PERKS 1452
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20

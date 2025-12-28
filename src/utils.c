@@ -8183,7 +8183,6 @@ bool is_judgement_possible(struct char_data *ch, struct char_data *t, int type)
 
   if (GET_JUDGEMENT_TARGET(ch) != t)
     return false;
-
   if (!IS_JUDGEMENT_ACTIVE(ch, type))
     return false;
 

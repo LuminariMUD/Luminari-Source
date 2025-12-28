@@ -5519,6 +5519,9 @@ void mag_assign_spells(void)
   spello(SPELL_DRAGONBORN_ANCESTRY_BREATH, "dragonborn breath weapon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
 
+  spello(AFFECT_PERSISTENT_JUDGMENT, "persistent judgment", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+         
   // 2nd level spell
   spello(SPELL_PROTECTION_FROM_ARROWS, "protection from arrows", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
