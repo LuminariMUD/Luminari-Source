@@ -993,6 +993,78 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("When toggling off a judgment, the judgment bonus persists as a morale bonus for 5 rounds. 20 round cooldown per judgment type.");
   perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 1: JUDGMENT & SPELLCASTING - Tier 3
+   **************************************************************************/
+
+  /* Tier 3: Greater Judgment (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_GREATER_JUDGMENT];
+  perk->id = PERK_INQUISITOR_GREATER_JUDGMENT;
+  perk->name = strdup("Greater Judgment");
+  perk->description = strdup("Your judgment abilities reach their full potential.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Bonuses are doubled */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Choose one judgment type whose bonuses are doubled. Change selection after long rest.");
+  perk->toggleable = false;
+
+  /* Tier 3: Spell Metamastery (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_SPELL_METAMASTERY];
+  perk->id = PERK_INQUISITOR_SPELL_METAMASTERY;
+  perk->name = strdup("Spell Metamastery");
+  perk->description = strdup("Apply metamagic effects with minimal effort.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 level adjustment max */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per encounter, apply a known metamagic feat without increasing casting time or slot level (max +2 adjustment).");
+  perk->toggleable = false;
+
+  /* Tier 3: Righteous Strike (2 ranks, 3 points each) */
+  perk = &perk_list[PERK_INQUISITOR_RIGHTEOUS_STRIKE];
+  perk->id = PERK_INQUISITOR_RIGHTEOUS_STRIKE;
+  perk->name = strdup("Righteous Strike");
+  perk->description = strdup("Channel spell energy through your weapon.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("After casting an inquisitor spell, next melee attack within 1 round deals 2d6 damage per rank. Damage type matches spell.");
+  perk->toggleable = false;
+
+  /* Tier 3: Versatile Judgment (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_VERSATILE_JUDGMENT];
+  perk->id = PERK_INQUISITOR_VERSATILE_JUDGMENT;
+  perk->name = strdup("Versatile Judgment");
+  perk->description = strdup("Switch between judgments with practiced ease.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 judgment use */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Change active judgment as swift action. Gain +1 daily judgment use.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -1124,6 +1196,66 @@ bool has_inquisitor_spell_penetration_ignore(struct char_data *ch)
 bool has_inquisitor_persistent_judgment(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERSISTENT_JUDGMENT);
+}
+
+/* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 3 */
+
+/**
+ * Check if inquisitor has Greater Judgment perk.
+ */
+bool has_inquisitor_greater_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_GREATER_JUDGMENT);
+}
+
+/**
+ * Get the selected judgment type for Greater Judgment perk.
+ * Stored in ch's perk data. Returns judgment type ID (1-9) or 0 if not set.
+ */
+int get_inquisitor_greater_judgment_type(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  /* This would be stored in a character variable or affect modifier */
+  /* Placeholder - implement via character struct if needed */
+  return 0;
+}
+
+/**
+ * Check if inquisitor has Spell Metamastery perk.
+ */
+bool has_inquisitor_spell_metamastery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SPELL_METAMASTERY);
+}
+
+/**
+ * Get Righteous Strike damage dice bonus.
+ * Returns 2d6 per rank (1-2d6, 2-4d6).
+ */
+int get_inquisitor_righteous_strike_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_RIGHTEOUS_STRIKE, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor has Righteous Strike perk active.
+ */
+bool has_inquisitor_righteous_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_RIGHTEOUS_STRIKE, CLASS_INQUISITOR) > 0;
+}
+
+/**
+ * Check if inquisitor has Versatile Judgment perk.
+ */
+bool has_inquisitor_versatile_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_VERSATILE_JUDGMENT);
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */

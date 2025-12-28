@@ -1077,6 +1077,8 @@ int load_char(const char *name, struct char_data *ch)
           ch->desc->pProtocol->bGMCP = atoi(line);
         else if (!strcmp(tag, "GrDs"))
           GET_GRAND_DISCOVERY(ch) = atoi(line);
+        else if (!strcmp(tag, "GjTp"))
+          ch->player_specials->inq_greater_judgment_type = atoi(line);
         else if (!strcmp(tag, "GTCT"))
           GRAVE_TOUCH_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "GTCU"))
@@ -2897,6 +2899,9 @@ void save_char(struct char_data *ch, int mode)
   for (i = 0; i < NUM_INQ_JUDGEMENTS; i++)
     BUFFER_WRITE( "%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
   BUFFER_WRITE( "-1\n");
+
+  /* Inquisitor Greater Judgment selection */
+  BUFFER_WRITE( "GjTp: %d\n", ch->player_specials->inq_greater_judgment_type);
 
   BUFFER_WRITE( "Lang:\n");
   for (i = 0; i < NUM_LANGUAGES; i++)

@@ -2649,6 +2649,13 @@ will be using for casting this spell */
         /* NEW SPELL PREP SYSTEM */
         if (GET_CASTING_CLASS(ch) != CLASS_SHADOWDANCER)
         {
+          /* TODO: Spell Metamastery implementation
+           * If has_inquisitor_spell_metamastery(ch) && !char_has_mud_event(ch, eSPELL_METAMASTERY_USED) && metamagic > 0:
+           * - Allow extracting spell at base level instead of metamagic-adjusted level
+           * - Create event: attach_mud_event(new_mud_event(eSPELL_METAMASTERY_USED, ch, NULL), encounter_duration)
+           * - This requires modification to spell_prep_gen_extract to accept a "free metamagic" flag
+           * - Notify player: "You channel your Spell Metamastery to enhance this spell without cost!"
+           */
           ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
           if (canCastAtWill(ch, spellnum))
           {
@@ -2717,7 +2724,18 @@ will be using for casting this spell */
     USE_MOVE_ACTION(ch); 
   }
 
-    return (call_magic(ch, tch, tobj, spellnum, metamagic, clevel, CAST_SPELL));
+    {
+      int result = call_magic(ch, tch, tobj, spellnum, metamagic, clevel, CAST_SPELL);
+      
+      /* Inquisitor Righteous Strike: Set flag when inquisitor spell is cast */
+      if (result && !IS_NPC(ch) && has_inquisitor_righteous_strike(ch) &&
+          GET_CASTING_CLASS(ch) == CLASS_INQUISITOR)
+      {
+        ch->player_specials->inq_righteous_strike_rounds = 1;
+      }
+      
+      return result;
+    }
   }
   else
   {

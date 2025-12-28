@@ -239,6 +239,7 @@ typedef enum
   eEMPOWERED_JUDGMENT_DUAL,              /* Inquisitor Empowered Judgment dual judgment encounter gate */
   eSWIFT_SPELLCASTER_USED,               /* Inquisitor Swift Spellcaster casting time reduction used */
   eJUDGMENT_RECOVERY_USED,               /* Inquisitor Judgment Recovery kill-triggered use used */
+  eSPELL_METAMASTERY_USED,               /* Inquisitor Spell Metamastery 5-minute cooldown */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -6509,6 +6509,25 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Inquisitor Righteous Strike perk: 2d6 per rank if spell was cast within last round */
+  if (vict && !IS_NPC(ch) && has_inquisitor_righteous_strike(ch) && 
+      ch->player_specials->inq_righteous_strike_rounds > 0)
+  {
+    int righteous_dice = get_inquisitor_righteous_strike_dice(ch);
+    if (righteous_dice > 0)
+    {
+      int righteous_damage = 0;
+      int i;
+      for (i = 0; i < righteous_dice * 2; i++)
+        righteous_damage += dice(2, 6);
+      
+      dambonus += righteous_damage;
+      ch->player_specials->inq_righteous_strike_rounds--; /* Consume the bonus after use */
+      if (display_mode)
+        send_to_char(ch, "Righteous Strike (\tC%dd6\tn): \tR%d\tn\r\n", righteous_dice * 2, righteous_damage);
+    }
+  }
+
   // Dragon champion level 3 abil: +1 hitroll +2 damage
   if (HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_CHAMPION) && is_riding_dragon_mount(ch))
   {

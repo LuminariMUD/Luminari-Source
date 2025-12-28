@@ -283,6 +283,7 @@ struct mud_event_list mud_event_index[] = {
     {"Empowered Judgement Dual", event_daily_use_cooldown, EVENT_CHAR, "You can use Empowered Judgment dual judgment again.", NULL, FEAT_UNDEFINED, 0},
     {"Swift Spellcaster Used", event_daily_use_cooldown, EVENT_CHAR, "You can benefit from Swift Spellcaster again.", NULL, FEAT_UNDEFINED, 0},
     {"Judgment Recovery Used", event_daily_use_cooldown, EVENT_CHAR, "You can use Judgment Recovery again.", NULL, FEAT_UNDEFINED, 0},
+    {"Spell Metamastery Used", event_countdown, EVENT_CHAR, "You can use Spell Metamastery again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

@@ -47,6 +47,14 @@ int get_inquisitor_spell_penetration(struct char_data *ch);
 bool has_inquisitor_spell_penetration_ignore(struct char_data *ch);
 bool has_inquisitor_persistent_judgment(struct char_data *ch);
 
+/* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 3 */
+bool has_inquisitor_greater_judgment(struct char_data *ch);
+int get_inquisitor_greater_judgment_type(struct char_data *ch);
+bool has_inquisitor_spell_metamastery(struct char_data *ch);
+int get_inquisitor_righteous_strike_dice(struct char_data *ch);
+bool has_inquisitor_righteous_strike(struct char_data *ch);
+bool has_inquisitor_versatile_judgment(struct char_data *ch);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);

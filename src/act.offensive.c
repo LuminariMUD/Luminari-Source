@@ -12967,6 +12967,56 @@ ACMDU(do_judgement)
   }
 }
 
+/* Greater Judgment Perk Command - Select which judgment type gets doubled bonuses */
+ACMDU(do_greater_judgment)
+{
+  int i = 0, judgment_type = 0;
+  char arg[200];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT) || !has_inquisitor_greater_judgment(ch))
+  {
+    send_to_char(ch, "You do not have access to the Greater Judgment ability.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "\r\nUsage: greater-judgment <type>\r\n\r\n");
+    send_to_char(ch, "Select a judgment type to receive doubled bonuses:\r\n");
+    for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+    {
+      send_to_char(ch, "  %s - %s\r\n", inquisitor_judgements[i], inquisitor_judgement_descriptions[i]);
+    }
+    if (ch->player_specials->inq_greater_judgment_type > 0)
+      send_to_char(ch, "\nCurrently selected: %s\r\n", inquisitor_judgements[ch->player_specials->inq_greater_judgment_type]);
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  CAP(arg);
+
+  for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+  {
+    if (is_abbrev(arg, inquisitor_judgements[i]))
+    {
+      judgment_type = i;
+      break;
+    }
+  }
+
+  if (judgment_type == 0)
+  {
+    send_to_char(ch, "That is not a valid judgment type. Type 'greater-judgment' with no arguments for a list.\r\n");
+    return;
+  }
+
+  ch->player_specials->inq_greater_judgment_type = judgment_type;
+  send_to_char(ch, "You have selected \tY%s\tn to receive doubled judgment bonuses.\r\n", inquisitor_judgements[judgment_type]);
+  act("$n has selected a new greater judgment type.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 void perform_bane(struct char_data *ch)
 {
   struct affected_type af;

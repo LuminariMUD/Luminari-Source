@@ -1960,6 +1960,16 @@ static int calculate_metamagic_modifier(struct char_data *ch, int char_class, in
       metamagic_mod += 1;
     }
   }
+
+  /* Inquisitor Spell Metamastery: one metamagic cast at no extra circle cost every 5 minutes */
+  if (metamagic > 0 && ch && !IS_NPC(ch) && char_class == CLASS_INQUISITOR &&
+      has_inquisitor_spell_metamastery(ch) &&
+      !char_has_mud_event(ch, eSPELL_METAMASTERY_USED))
+  {
+    metamagic_mod = 0;
+    attach_mud_event(new_mud_event(eSPELL_METAMASTERY_USED, ch, NULL), 5 * 60 * PASSES_PER_SEC);
+    send_to_char(ch, "\tYYou focus your Spell Metamastery to ignore metamagic strain for this casting.\tn\r\n");
+  }
   
   /* Apply divine metamagic reduction for divine casting classes */
   if (ch && !IS_NPC(ch) && is_divine_spellcasting_class(char_class)) {

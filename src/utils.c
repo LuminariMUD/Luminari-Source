@@ -8159,6 +8159,15 @@ int get_judgement_bonus(struct char_data *ch, int type)
   /* Inquisitor Empowered Judgment perk: +1 per rank to all judgment bonuses */
   bonus += get_inquisitor_empowered_judgment_bonus(ch);
 
+  /* Inquisitor Greater Judgment perk: Doubles bonus for selected judgment type */
+  if (!IS_NPC(ch) && has_inquisitor_greater_judgment(ch))
+  {
+    /* Greater Judgment can be configured - for now, check if player has stored selection */
+    int selected_judgment = ch->player_specials->inq_greater_judgment_type;
+    if (selected_judgment == type && selected_judgment > 0)
+      bonus *= 2;
+  }
+
   if (type == INQ_JUDGEMENT_RESISTANCE)
     bonus *= 4;
 

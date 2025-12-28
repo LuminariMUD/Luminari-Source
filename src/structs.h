@@ -4181,11 +4181,18 @@
 #define PERK_INQUISITOR_SPELL_PENETRATION      1450
 #define PERK_INQUISITOR_PERSISTENT_JUDGMENT    1451
 
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 3) */
+#define PERK_INQUISITOR_GREATER_JUDGMENT       1452
+#define PERK_INQUISITOR_SPELL_METAMASTERY      1453
+#define PERK_INQUISITOR_RIGHTEOUS_STRIKE       1454
+#define PERK_INQUISITOR_VERSATILE_JUDGMENT     1455
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
 /* Implemented: Judgment & Spellcasting Tree Tier 1 (1444-1447) */
 /* Implemented: Judgment & Spellcasting Tree Tier 2 (1448-1451) */
+/* Implemented: Judgment & Spellcasting Tree Tier 3 (1452-1455) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -4206,7 +4213,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1452
+#define NUM_PERKS 1456
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
@@ -6860,6 +6867,9 @@ struct player_special_data
     room_vnum walkto_location;
 
     struct char_data *judgement_target; // target of an inquisitor's judgement
+    int inq_greater_judgment_type;     // selected judgment type for Greater Judgment perk (0-9)
+    int inq_last_spell_cast;           // last inquisitor spell cast (for Righteous Strike perk)
+    int inq_righteous_strike_rounds;   // rounds remaining for Righteous Strike bonus
 
     // for the self buffing system
     int buff_slot;
