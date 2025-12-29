@@ -182,7 +182,7 @@ Range:   30000 - 40019 (reserved, do not use for builder zones)
 
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
-| 00 | Core Vessel System | TBD | Not Started |
+| 00 | Core Vessel System | 9 | Not Started |
 | 01 | Automation Layer | TBD | Planned |
 | 02 | Simple Vehicle Support | TBD | Planned |
 | 03 | Optimization & Polish | TBD | Planned |

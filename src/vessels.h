@@ -86,15 +86,6 @@
 
 /* Room flag for dockable areas */
 #define DOCKABLE                    ROOM_DOCKABLE   /* Room flag for dockable areas (41) */
-#define VESSEL_STATE_TRAVELING      1   /* Moving between locations */
-#define VESSEL_STATE_COMBAT         2   /* In battle */
-#define VESSEL_STATE_DAMAGED        3   /* Broken down */
-
-/* Vessel Sizes */
-#define VESSEL_SIZE_SMALL           1   /* 1-2 passengers */
-#define VESSEL_SIZE_MEDIUM          2   /* 3-6 passengers */
-#define VESSEL_SIZE_LARGE           3   /* 7-15 passengers */
-#define VESSEL_SIZE_HUGE            4   /* 16+ passengers */
 
 /* ========================================================================= */
 /* DIRECTION CONSTANTS                                                       */
@@ -317,91 +308,9 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
 /* Item Type for Greyhawk Ships */
 #define GREYHAWK_ITEM_SHIP          57   /* Greyhawk ship object type (avoid conflicts) */
 
-/* Greyhawk Ship Equipment Slot Structure */
-struct greyhawk_ship_slot {
-  char type;                            /* Type of slot (1=weapon, 2=oarsman, 3=ammo) */
-  char position;                        /* Position: FORE/PORT/REAR/STARBOARD */
-  unsigned char weight;                 /* Weight of equipment */
-  char desc[256];                       /* Description of slot equipment */
-  char val0, val1, val2, val3;          /* Equipment values (range, damage, etc.) */
-  unsigned char x, y;                   /* Slot x,y position on ship room */
-  short int timer;                      /* Reload/action timer */
-};
-
-/* Greyhawk Ship Crew Structure */
-struct greyhawk_ship_crew {
-  char crewname[256];                   /* Crew description */
-  char speedadjust;                     /* Speed adjustment modifier */
-  char gunadjust;                       /* Gunnery adjustment modifier */
-  char repairspeed;                     /* Repair speed modifier */
-};
-
-/* Greyhawk Ship Data Structure */
-struct greyhawk_ship_data {
-  /* Armor System - different sides of ship */
-  unsigned char maxfarmor, maxrarmor, maxparmor, maxsarmor;    /* Max armor values */
-  unsigned char maxfinternal, maxrinternal, maxsinternal, maxpinternal; /* Max internal */
-  unsigned char farmor, finternal;      /* Fore armor/internal current */
-  unsigned char rarmor, rinternal;      /* Rear armor/internal current */
-  unsigned char sarmor, sinternal;      /* Starboard armor/internal current */
-  unsigned char parmor, pinternal;      /* Port armor/internal current */
-
-  /* Ship Performance */
-  unsigned char maxturnrate, turnrate;  /* Maximum/current turn rate */
-  unsigned char mainsail, maxmainsail;  /* Main sail HP/condition */
-  unsigned char hullweight;             /* Weight of hull (in thousands) */
-  unsigned char maxslots;               /* Maximum number of equipment slots */
-
-  /* Position and Movement */
-  float x, y, z;                        /* Current coordinates */
-  float dx, dy, dz;                     /* Delta movement vectors */
-
-  /* Crew */
-  struct greyhawk_ship_crew sailcrew;   /* Sailing crew */
-  struct greyhawk_ship_crew guncrew;    /* Gunnery crew */
-
-  /* Equipment */
-  struct greyhawk_ship_slot slot[GREYHAWK_MAXSLOTS]; /* Equipment slots */
-
-  /* Identification */
-  char owner[64];                       /* Ship owner name */
-  struct obj_data *shipobj;             /* Associated ship object */
-  char name[128];                       /* Ship name */
-  char id[3];                           /* Ship ID designation (AA-ZZ) */
-
-  /* Location and Status */
-  int dock;                             /* Docked room number */
-  int shiproom;                         /* Ship interior room vnum */
-  int shipnum;                          /* Ship index number */
-  int location;                         /* Current world location */
-
-  /* Navigation */
-  short int heading;                    /* Current heading (0-360) */
-  short int setheading;                 /* Set heading (target) */
-  short int minspeed, maxspeed;         /* Speed range */
-  short int speed, setspeed;            /* Current and target speed */
-
-  /* Events */
-  struct event *action;                 /* Ship action event */
-};
-
-/* Greyhawk Contact Data Structure */
-struct greyhawk_contact_data {
-  int shipnum;                          /* Ship number being tracked */
-  int x, y, z;                          /* Contact coordinates */
-  int bearing;                          /* Bearing to contact */
-  float range;                          /* Range to contact */
-  char arc[3];                          /* Firing arc (F/P/R/S) */
-};
-
-/* Greyhawk Ship Action Event Structure */
+/* Greyhawk Ship Action Event Structure (unique to this conditional block) */
 struct greyhawk_ship_action_event {
   int shipnum;                          /* Ship performing action */
-};
-
-/* Greyhawk Tactical Map Structure */
-struct greyhawk_ship_map {
-  char map[10];                         /* Map symbol representation */
 };
 
 /* GREYHAWK SHIP SYSTEM MACROS (subset used by implementation) */
@@ -448,33 +357,6 @@ struct greyhawk_ship_map {
 #define GREYHAWK_SHIPLOCATION(in_room)     world[(in_room)].ship->location
 #define GREYHAWK_SHIPMINSPEED(in_room)     world[(in_room)].ship->minspeed
 
-/* FUNCTION PROTOTYPES - GREYHAWK SHIP SYSTEM */
-void greyhawk_initialize_ships(void);
-int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord, short int z_cord);
-void greyhawk_nameship(char *name, int shipnum);
-bool greyhawk_setsail(int class, int shipnum);
-
-void greyhawk_getstatus(int slot, int rnum);
-void greyhawk_getposition(int slot, int rnum);
-void greyhawk_dispweapon(int slot, int rnum);
-
-int greyhawk_bearing(float x1, float y1, float x2, float y2);
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2);
-int greyhawk_weaprange(int shipnum, int slot, char range);
-
-void greyhawk_dispcontact(int i);
-int greyhawk_getcontacts(int shipnum);
-void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
-int greyhawk_getarc(int ship1, int ship2);
-
-void greyhawk_getmap(int shipnum);
-void greyhawk_setsymbol(int x, int y, int symbol);
-
-/* Greyhawk specials exposed as plain functions for Luminari SPECIAL binding */
-int greyhawk_ship_commands(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
-int greyhawk_ship_object(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
-int greyhawk_ship_loader(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
-
 #endif /* VESSELS_ENABLE_GREYHAWK */
 
 /* ========================================================================= */
@@ -488,11 +370,6 @@ ACMD_DECL(do_board);        /* Board a vessel */
 /* ========================================================================= */
 /* GREYHAWK SHIP DATA STRUCTURES                                            */
 /* ========================================================================= */
-
-/* Forward declarations */
-struct greyhawk_ship_data;
-struct greyhawk_contact_data;
-struct greyhawk_ship_map;
 
 /* Greyhawk Ship Equipment Slot Structure */
 struct greyhawk_ship_slot {

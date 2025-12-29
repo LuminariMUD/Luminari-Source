@@ -570,9 +570,11 @@ set(SRC_C_FILES
     src/mob_race.c
     src/mob_psionic.c
     src/mob_class.c
+    src/mob_known_spells.c
     src/mob_spells.c
     src/mob_spellslots.c
     src/modify.c
+    src/moon_bonus_spells.c
     src/msgedit.c
     src/mud_event.c
     src/mud_event_list.c
