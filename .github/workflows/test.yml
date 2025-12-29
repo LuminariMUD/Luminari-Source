@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool libgd-dev
+          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool libgd-dev libcurl4-openssl-dev
 
       - name: Copy config headers
         run: |
