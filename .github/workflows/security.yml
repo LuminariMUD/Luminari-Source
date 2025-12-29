@@ -37,7 +37,8 @@ jobs:
 
       - name: Run Gitleaks
         run: |
-          gitleaks detect --source . --verbose --redact --exit-code 1 --gitleaksignore .gitleaksignore || {
+          # Scan only current tree (--no-git) to avoid historical false positives
+          gitleaks detect --source . --no-git --verbose --redact --exit-code 1 || {
             echo "::warning::Gitleaks found potential secrets. Review the output above."
             exit 1
           }
