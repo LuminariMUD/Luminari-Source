@@ -17,6 +17,7 @@
 #include "act.h"
 #include "spec_procs.h"
 #include "modify.h"
+#include "dg_scripts.h"
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -759,11 +760,234 @@ bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship) {
   if (!ch || !ship) return FALSE;
   
   ch_room = IN_ROOM(ch);
-  
+
   /* Must be in the bridge to pilot */
   if (real_room(ship->bridge_room) == ch_room) {
     return TRUE;
   }
-  
+
   return FALSE;
+}
+
+/* ========================================================================= */
+/* SHIP INTERIOR MOVEMENT FUNCTIONS                                          */
+/* ========================================================================= */
+
+/**
+ * Check if a character is currently in a ship interior room.
+ *
+ * This is a convenience wrapper around get_ship_from_room() that returns
+ * a simple boolean indicating whether the character is aboard a vessel.
+ *
+ * @param ch The character to check
+ * @return TRUE if character is in a ship interior room, FALSE otherwise
+ */
+bool is_in_ship_interior(struct char_data *ch)
+{
+  if (!ch)
+  {
+    return FALSE;
+  }
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    return FALSE;
+  }
+
+  return (get_ship_from_room(IN_ROOM(ch)) != NULL);
+}
+
+/**
+ * Get the destination room for a ship interior exit in a given direction.
+ *
+ * Searches the ship's connections array for a connection from the current
+ * room in the specified direction. Handles bidirectional lookup - checks
+ * both from_room->to_room and to_room->from_room with reverse direction.
+ *
+ * @param ship Pointer to the ship data structure
+ * @param current The room rnum the character is currently in
+ * @param dir The direction to check (NORTH, SOUTH, etc.)
+ * @return The destination room rnum, or NOWHERE if no exit exists
+ */
+room_rnum get_ship_exit(struct greyhawk_ship_data *ship, room_rnum current, int dir)
+{
+  int i;
+  int current_vnum;
+
+  if (!ship)
+  {
+    return NOWHERE;
+  }
+
+  if (current == NOWHERE || current < 0 || current > top_of_world)
+  {
+    return NOWHERE;
+  }
+
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+  {
+    return NOWHERE;
+  }
+
+  /* Get the vnum of the current room for comparison with connections */
+  current_vnum = world[current].number;
+
+  /* Search connections for a match */
+  for (i = 0; i < ship->num_connections; i++)
+  {
+    /* Check forward direction: from_room -> to_room */
+    if (ship->connections[i].from_room == current_vnum &&
+        ship->connections[i].direction == dir)
+    {
+      return real_room(ship->connections[i].to_room);
+    }
+
+    /* Check reverse direction: to_room -> from_room */
+    if (ship->connections[i].to_room == current_vnum &&
+        ship->connections[i].direction == rev_dir[dir])
+    {
+      return real_room(ship->connections[i].from_room);
+    }
+  }
+
+  return NOWHERE;
+}
+
+/**
+ * Check if a passage or hatch is blocked in the given direction.
+ *
+ * Examines the ship's connections to determine if movement is blocked
+ * by a locked hatch or sealed passage. This is separate from standard
+ * door mechanics and uses the is_locked flag in the room_connection.
+ *
+ * @param ship Pointer to the ship data structure
+ * @param room The room rnum to check from
+ * @param dir The direction to check
+ * @return TRUE if passage is blocked, FALSE if movement is allowed
+ */
+bool is_passage_blocked(struct greyhawk_ship_data *ship, room_rnum room, int dir)
+{
+  int i;
+  int room_vnum;
+
+  if (!ship)
+  {
+    return FALSE;
+  }
+
+  if (room == NOWHERE || room < 0 || room > top_of_world)
+  {
+    return FALSE;
+  }
+
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+  {
+    return FALSE;
+  }
+
+  room_vnum = world[room].number;
+
+  /* Search connections for the passage */
+  for (i = 0; i < ship->num_connections; i++)
+  {
+    /* Check forward direction */
+    if (ship->connections[i].from_room == room_vnum &&
+        ship->connections[i].direction == dir)
+    {
+      return ship->connections[i].is_locked;
+    }
+
+    /* Check reverse direction */
+    if (ship->connections[i].to_room == room_vnum &&
+        ship->connections[i].direction == rev_dir[dir])
+    {
+      return ship->connections[i].is_locked;
+    }
+  }
+
+  /* No connection found - not blocked (but also no exit) */
+  return FALSE;
+}
+
+/**
+ * Handle character movement between ship interior rooms.
+ *
+ * This function is the primary handler for ship interior movement,
+ * called from do_simple_move() when a character is detected to be
+ * aboard a vessel. It handles:
+ * - Exit validation via get_ship_exit()
+ * - Blocked passage checks via is_passage_blocked()
+ * - Character movement with char_from_room/char_to_room
+ * - Movement messages for leaving and entering rooms
+ *
+ * @param ch The character attempting to move
+ * @param dir The direction to move (NORTH, SOUTH, etc.)
+ */
+void do_move_ship_interior(struct char_data *ch, int dir)
+{
+  struct greyhawk_ship_data *ship;
+  room_rnum dest_room;
+
+  /* Validate character pointer */
+  if (!ch)
+  {
+    log("SYSERR: do_move_ship_interior called with NULL character!");
+    return;
+  }
+
+  /* Validate character location */
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    log("SYSERR: do_move_ship_interior called for character in NOWHERE!");
+    return;
+  }
+
+  /* Validate direction */
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+  {
+    send_to_char(ch, "You can't go that way.\r\n");
+    return;
+  }
+
+  /* Get ship from current room */
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (!ship)
+  {
+    /* Not in a ship interior - this shouldn't happen if called correctly */
+    send_to_char(ch, "You are not aboard a vessel.\r\n");
+    return;
+  }
+
+  /* Get destination room */
+  dest_room = get_ship_exit(ship, IN_ROOM(ch), dir);
+  if (dest_room == NOWHERE)
+  {
+    send_to_char(ch, "There is no passage in that direction.\r\n");
+    return;
+  }
+
+  /* Check if passage is blocked */
+  if (is_passage_blocked(ship, IN_ROOM(ch), dir))
+  {
+    send_to_char(ch, "The hatch is sealed shut.\r\n");
+    return;
+  }
+
+  /* Send departure message to room */
+  act("$n moves $T.", TRUE, ch, 0, (void *)dirs[dir], TO_ROOM);
+
+  /* Move the character */
+  char_from_room(ch);
+  char_to_room(ch, dest_room);
+
+  /* Send arrival message to new room */
+  act("$n arrives from $T.", TRUE, ch, 0, (void *)dirs[rev_dir[dir]], TO_ROOM);
+
+  /* Show the new room */
+  look_at_room(ch, 0);
+
+  /* Entry triggers for the new room */
+  entry_mtrigger(ch);
+  greet_mtrigger(ch, dir);
+  greet_memory_mtrigger(ch);
 }

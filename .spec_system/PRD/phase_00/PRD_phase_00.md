@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 5/9 sessions (56%)
+**Progress**: 6/9 sessions (67%)
 
 ---
 
@@ -46,7 +46,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 | 03 | Vessel Type System | Complete | 20 | 2025-12-29 |
 | 04 | Phase 2 Command Registration | Complete | 15 | 2025-12-29 |
 | 05 | Interior Room Generation Wiring | Complete | 18 | 2025-12-29 |
-| 06 | Interior Movement Implementation | Not Started | ~20-25 | - |
+| 06 | Interior Movement Implementation | Complete | 18 | 2025-12-29 |
 | 07 | Persistence Integration | Not Started | ~18-22 | - |
 | 08 | External View & Display Systems | Not Started | ~20-25 | - |
 | 09 | Testing & Validation | Not Started | ~15-20 | - |
@@ -80,11 +80,16 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 18/18
 - **Summary**: Wired generate_ship_interior() to greyhawk_loadship() so vessels have interior rooms on creation. Implemented derive_vessel_type_from_template() to determine vessel type from hull weight. Added idempotent checks to prevent duplicate room generation. Changed VNUM base from 30000 to 70000 to avoid zone conflicts.
 
+### Session 06: Interior Movement Implementation
+- **Completed**: 2025-12-29
+- **Tasks**: 18/18
+- **Summary**: Implemented interior movement system for vessels enabling navigation between ship rooms using standard direction commands. Created get_ship_exit() for exit lookup, is_passage_blocked() for hatch checks, and do_move_ship_interior() for movement handling. Integrated ship interior detection into movement.c do_simple_move() with minimal changes (4 lines).
+
 ---
 
 ## Upcoming Sessions
 
-- Session 06: Interior Movement Implementation
+- Session 07: Persistence Integration
 
 ---
 
@@ -130,7 +135,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **[P00] Duplicate struct definitions**: Must be resolved in Session 01 before further work
 - **[P00] Silent movement failures**: Critical bug addressed in Session 02
 - **[P00] Hard-coded room templates**: Should query DB table instead (Session 05)
-- **[P00] Interior movement unimplemented**: Core functionality for Session 06
+- ~~**[P00] Interior movement unimplemented**: Core functionality for Session 06~~ (Resolved)
 
 ---
 

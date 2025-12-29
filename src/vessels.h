@@ -557,6 +557,7 @@ enum vessel_class derive_vessel_type_from_template(int hullweight);
 bool ship_has_interior_rooms(struct greyhawk_ship_data *ship);
 
 /* Room Navigation */
+bool is_in_ship_interior(struct char_data *ch);
 void do_move_ship_interior(struct char_data *ch, int dir);
 struct greyhawk_ship_data *get_ship_from_room(room_rnum room);
 room_rnum get_ship_exit(struct greyhawk_ship_data *ship, room_rnum current, int dir);

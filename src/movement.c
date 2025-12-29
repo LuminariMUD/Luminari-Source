@@ -43,6 +43,9 @@
 /* Include movement system header */
 #include "movement.h"
 
+/* Include vessel system for ship interior movement */
+#include "vessels.h"
+
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 
 
@@ -171,6 +174,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return 0;
+
+  /* Ship interior movement handling - delegate to vessel system */
+  if (is_in_ship_interior(ch))
+  {
+    do_move_ship_interior(ch, dir);
+    return 1;
+  }
 
   /* dummy check, if you teleport while in a falling event, BOOM otherwise :P */
   if (!EXIT(ch, dir))
