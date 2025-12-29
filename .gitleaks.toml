@@ -1,0 +1,29 @@
+# Gitleaks configuration for LuminariMUD
+# Excludes template files and known false positives
+
+title = "LuminariMUD Gitleaks Config"
+
+[extend]
+useDefault = true
+
+# Paths to exclude from scanning
+[allowlist]
+description = "Allowlist for LuminariMUD false positives"
+paths = [
+    '''\.env\.example$''',
+    '''\.env_example$''',
+    '''lib/\.env$''',
+    '''lib/\.env_example$''',
+    '''docs/''',
+    '''sql/''',
+]
+regexes = [
+    '''your_password''',
+    '''your_username''',
+    '''change_this_password''',
+    '''your_32_character_secret_key_here''',
+    '''your_actual_.*_here''',
+    '''sk-your-openai-api-key-here''',
+    '''EXAMPLE_''',
+    '''example_''',
+]

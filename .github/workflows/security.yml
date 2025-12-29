@@ -37,8 +37,8 @@ jobs:
 
       - name: Run Gitleaks
         run: |
-          # Scan only current tree (--no-git) to avoid historical false positives
-          gitleaks detect --source . --no-git --verbose --redact --exit-code 1 || {
+          # Scan only current tree with custom config for template file exclusions
+          gitleaks detect --source . --no-git --config .gitleaks.toml --verbose --redact --exit-code 1 || {
             echo "::warning::Gitleaks found potential secrets. Review the output above."
             exit 1
           }
