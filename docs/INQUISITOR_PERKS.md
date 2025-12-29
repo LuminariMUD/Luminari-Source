@@ -96,6 +96,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 1. **Studied Target**
    - *4 ranks, 1 point each*
    - Mark a target for focused hunting. As a move action, study a creature within 60 feet. Gain +1 per rank to attack rolls, damage rolls, and skill checks against that target. You can maintain this on one target at a time.
+   - Usage: use the shared `mark` command to set or clear your quarry: `mark <target>` or `mark clear`. This command is shared with assassins and rangers and now also applies Studied Target for inquisitors (consumes a move action).
 
 2. **Favored Terrain**
    - *1 rank, 1 point*
@@ -103,11 +104,11 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 3. **Hunter's Precision**
    - *2 ranks, 1 point each*
-   - Strike at vulnerable points with deadly accuracy. Once per encounter per rank, reroll a damage roll and take the higher result. This applies to both weapon and spell damage.
+   - Strike at vulnerable points with deadly accuracy. 5% chance per rank to reroll a damage roll and take the higher result. This applies to both weapon and spell damage.
 
 4. **Track and Hunt**
    - *1 rank, 1 point*
-   - Follow your prey with supernatural persistence. Double your Survival skill modifier when tracking. You automatically succeed on tracking checks if the target's trail is less than 24 hours old.
+   - Follow your prey with supernatural persistence. Double your Survival skill modifier when tracking.
 
 ### Tier 2 (4 Perks)
 

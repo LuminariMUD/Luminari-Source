@@ -398,6 +398,18 @@
 /** The total number of room Sector Types */
 #define NUM_ROOM_SECTORS 37
 
+#define TERRAIN_TYPE_NONE 0;
+#define TERRAIN_TYPE_URBAN 1
+#define TERRAIN_TYPE_WATER 2
+#define TERRAIN_TYPE_FOREST 3
+#define TERRAIN_TYPE_MOUNTAINS 4
+#define TERRAIN_TYPE_DESERT 5
+#define TERRAIN_TYPE_SWAMP 6
+#define TERRAIN_TYPE_CAVERNS 7
+#define TERRAIN_TYPE_PLAINS 8
+
+#define NUM_TERRAIN_TYPES 9
+
 /* char and mob-related defines */
 
 /* History */
@@ -4192,12 +4204,20 @@
 #define PERK_INQUISITOR_INEXORABLE_JUDGMENT    1458
 #define PERK_INQUISITOR_SUPREME_SPELLCASTING   1459
 
+/* Inquisitor Perks - Hunter's Arsenal Tree (Tier 1) */
+#define PERK_INQUISITOR_STUDIED_TARGET         1460
+#define PERK_INQUISITOR_FAVORED_TERRAIN        1461
+#define PERK_INQUISITOR_HUNTERS_PRECISION      1462
+#define PERK_INQUISITOR_TRACK_AND_HUNT         1463
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
 /* Implemented: Judgment & Spellcasting Tree Tier 1 (1444-1447) */
 /* Implemented: Judgment & Spellcasting Tree Tier 2 (1448-1451) */
 /* Implemented: Judgment & Spellcasting Tree Tier 3 (1452-1455) */
+/* Implemented: Judgment & Spellcasting Tree Tier 4 (1456-1459) */
+/* Implemented: Hunter's Arsenal Tree Tier 1 (1460-1463) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -4218,7 +4238,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1456
+#define NUM_PERKS 1500
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
@@ -6667,6 +6687,9 @@ struct player_special_data_saved
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
     byte slayer_judgement;                      // which judgement is using the slayer bonus
 
+    int inq_favored_terrain;                    // selected favored terrain type (-1 = none)
+    time_t inq_favored_terrain_reset;           // real-time timestamp when terrain can be changed again
+
     int setcloak_timer; // used for setting stats on vampire cloaks.
 
     int time_since_last_feeding; // how long since the vampire last fed on blood
@@ -6872,6 +6895,7 @@ struct player_special_data
     room_vnum walkto_location;
 
     struct char_data *judgement_target; // target of an inquisitor's judgement
+    struct char_data *inq_studied_target; // target of the Studied Target perk
     int inq_greater_judgment_type;     // selected judgment type for Greater Judgment perk (0-9)
     int inq_last_spell_cast;           // last inquisitor spell cast (for Righteous Strike perk)
     int inq_righteous_strike_rounds;   // rounds remaining for Righteous Strike bonus

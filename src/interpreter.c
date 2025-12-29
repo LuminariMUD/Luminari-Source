@@ -588,6 +588,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"irresistablemagic", "irresistablemagic", POS_FIGHTING, do_irresistablemagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_irresistablemagic},
     {"insectbeing", "insectbeing", POS_FIGHTING, do_insectbeing, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_insectbeing},
     {"inspirecourage", "inspirecourage", POS_FIGHTING, do_inspire_courage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"favoredterrain", "favterrain", POS_RECLINING, do_favored_terrain, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"flourish", "flourish", POS_FIGHTING, do_flourish, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"curtaincall", "curtaincall", POS_FIGHTING, do_curtain_call, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 

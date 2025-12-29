@@ -8611,6 +8611,8 @@ void clear_group_marks(struct char_data *ch, struct char_data *victim)
     {
       GET_MARK(tch) = NULL;
       GET_MARK_ROUNDS(tch) = 0;
+      if (GET_STUDIED_TARGET(tch) == victim)
+        GET_STUDIED_TARGET(tch) = NULL;
     }
   }
 }
@@ -11425,6 +11427,54 @@ void change_account_experience(struct char_data *ch, int amount)
   ch->desc->account->experience += amount;
   if (ch->desc->account->experience < 0)
     ch->desc->account->experience = 0;
+}
+
+int sector_type_to_terrain_type(int sector)
+{
+  switch (sector)
+  {
+    case SECT_INSIDE:
+    case SECT_CITY:
+    case SECT_UD_CITY:
+    case SECT_UD_INSIDE:
+    case SECT_INSIDE_ROOM:
+      return TERRAIN_TYPE_URBAN;
+
+    case SECT_FIELD:
+    case SECT_TUNDRA:
+      return TERRAIN_TYPE_PLAINS;
+
+    case SECT_FOREST:
+    case SECT_JUNGLE:
+    case SECT_TAIGA:
+      return TERRAIN_TYPE_FOREST;
+
+    case SECT_HILLS:
+    case SECT_MOUNTAIN:
+    case SECT_HIGH_MOUNTAIN:
+      return TERRAIN_TYPE_MOUNTAINS;
+
+    case SECT_WATER_SWIM:
+    case SECT_WATER_NOSWIM:
+    case SECT_UNDERWATER:
+    case SECT_OCEAN:
+    case SECT_UD_WATER:
+    case SECT_UD_NOSWIM:
+    case SECT_RIVER:
+      return TERRAIN_TYPE_WATER;
+
+    case SECT_DESERT:
+    case SECT_BEACH:
+      return TERRAIN_TYPE_DESERT;
+
+    case SECT_MARSHLAND:
+      return TERRAIN_TYPE_SWAMP;
+      
+    case SECT_UD_WILD:
+    case SECT_CAVE:
+      return TERRAIN_TYPE_CAVERNS;
+  }
+  return TERRAIN_TYPE_NONE;
 }
 
 /* EoF */

@@ -1319,6 +1319,20 @@ const char *sector_types[] = {
     "\n"};
 CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
 
+const char *terrain_types[] = {
+    "None",
+    "Urban",
+    "Water",
+    "Forest",
+    "Mountains",
+    "Desert",
+    "Swamp",
+    "Caverns",
+    "Plains",
+    "\n"
+};
+CHECK_TABLE_SIZE(terrain_types, NUM_TERRAIN_TYPES + 1);
+
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */

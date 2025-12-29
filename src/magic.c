@@ -3187,6 +3187,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     dam *= 1.5;  
   }
 
+  /* Store initial dice damage for Hunter's Precision reroll */
+  int base_spell_dice_damage = dam;
+
   if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
   {
     if (HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER))
@@ -3583,6 +3586,38 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else
   {
+    /* Hunter's Precision: reroll spell damage and keep the higher result */
+    if (!IS_NPC(ch) && num_dice > 0)
+    {
+      int precision_chance = get_inquisitor_hunters_precision_chance(ch);
+      if (precision_chance > 0 && rand_number(1, 100) <= precision_chance)
+      {
+        int reroll_base = 0;
+        
+        /* Reroll the base dice damage (with same metamagic modifiers) */
+        if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
+        {
+          reroll_base = (num_dice * size_dice) + bonus;
+        }
+        else
+        {
+          reroll_base = min_dice(num_dice, size_dice, min_dice_roll) + bonus;
+        }
+        
+        if (IS_SET(metamagic, METAMAGIC_EMPOWER))
+        {
+          reroll_base *= 1.5;
+        }
+        
+        /* If reroll is better, replace base damage and recalculate total */
+        if (reroll_base > base_spell_dice_damage)
+        {
+          dam = dam - base_spell_dice_damage + reroll_base;
+          send_to_char(ch, "\tMYour hunter's precision maximizes your spell's power!\tn\r\n");
+        }
+      }
+    }
+
     /* Bard Spellsinger: Crescendo - add sonic damage to first spell after song */
     int crescendo_sonic_dam = 0;
     if (!IS_NPC(ch) && ch->char_specials.performance_vars[4] > 0)

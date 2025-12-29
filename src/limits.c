@@ -2062,11 +2062,16 @@ void update_player_misc(void)
     if (GET_MARK(ch))
     {
       /* Assassin death attack uses 3 rounds; Ranger Hunter's Mark uses 5 rounds */
-      int max_rounds = 3;
-      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
-        max_rounds = 5;
+      int max_rounds = 0;
+      if (!IS_NPC(ch))
+      {
+        if (has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+          max_rounds = 5;
+        else if (CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0)
+          max_rounds = 3;
+      }
 
-      if (GET_MARK_ROUNDS(ch) < max_rounds)
+      if (max_rounds > 0 && GET_MARK_ROUNDS(ch) < max_rounds)
       {
         GET_MARK_ROUNDS(ch) += 1;
         if (GET_MARK_ROUNDS(ch) >= max_rounds || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))

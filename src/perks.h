@@ -59,6 +59,14 @@ int get_inquisitor_righteous_strike_dice(struct char_data *ch);
 bool has_inquisitor_righteous_strike(struct char_data *ch);
 bool has_inquisitor_versatile_judgment(struct char_data *ch);
 
+/* Inquisitor helper functions - Hunter's Arsenal Tree Tier 1 */
+int get_inquisitor_studied_target_bonus(struct char_data *ch);
+bool is_inquisitor_studied_target(struct char_data *ch, struct char_data *vict);
+bool has_inquisitor_favored_terrain(struct char_data *ch);
+bool is_inquisitor_in_favored_terrain(struct char_data *ch);
+int get_inquisitor_hunters_precision_chance(struct char_data *ch);
+bool has_inquisitor_track_and_hunt(struct char_data *ch);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);

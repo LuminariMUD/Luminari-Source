@@ -1374,6 +1374,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
         value += 8;
     }
+
+    /* Inquisitor Favored Terrain: +2 Stealth in favored terrain */
+    if (is_inquisitor_in_favored_terrain(ch))
+      value += 2;
+
     value += (size_modifiers_inverse[GET_SIZE(ch)] * 4);
     value += compute_gear_armor_penalty(ch);
     

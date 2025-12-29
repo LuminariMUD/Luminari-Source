@@ -39,6 +39,7 @@
 #include "craft.h"
 #include "assign_wpn_armor.h"
 #include "perks.h"
+#include "perks.h"
 #include "grapple.h"
 #include "alchemy.h"
 #include "missions.h"
@@ -653,6 +654,10 @@ int get_initiative_modifier(struct char_data *ch)
   
   /* Tactical Fighter perk: Improved Initiative I */
   initiative += 2 * get_perk_rank(ch, PERK_FIGHTER_IMPROVED_INITIATIVE_1, CLASS_WARRIOR);
+
+  /* Inquisitor Favored Terrain: +2 initiative in favored terrain */
+  if (is_inquisitor_in_favored_terrain(ch))
+    initiative += 2;
   
   return initiative;
 }
@@ -2391,6 +2396,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   CLOUDKILL(ch) = 0;
   GET_MARK(killer) = NULL;
   GET_MARK_ROUNDS(killer) = 0;
+  if (GET_STUDIED_TARGET(killer))
+    GET_STUDIED_TARGET(killer) = NULL;
 
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
@@ -6497,6 +6504,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Judgement of Destruction: \tR%d\tn\r\n", get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION));
   }
 
+  /* Inquisitor Studied Target: +damage vs marked target */
+  if (mode == MODE_NORMAL_HIT && vict && !IS_NPC(ch) && is_inquisitor_studied_target(ch, vict))
+  {
+    int studied_bonus = get_inquisitor_studied_target_bonus(ch);
+    if (studied_bonus > 0)
+    {
+      dambonus += studied_bonus;
+      if (display_mode)
+        send_to_char(ch, "Studied Target: \tR%d\tn\r\n", studied_bonus);
+    }
+  }
+
   /* Inquisitor Enhanced Bane perk: +1 damage per rank against judged targets */
   if (vict && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_ENHANCED_BANE))
   {
@@ -8287,7 +8306,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
                        int w_type, int diceroll, int mode, bool is_critical, int attack_type, int dam_type)
 {
-  int dam = 0, damage_holder = 0;
+  int dam = 0, damage_holder = 0, base_weapon_damage = 0;
   int loop = 1;
   struct obj_data *wielded = NULL;
 
@@ -8306,9 +8325,14 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   {
     /* determine weapon dice damage (or lack of weaopn) */
     dam = compute_dam_dice(ch, victim, wielded, mode, attack_type);
+    base_weapon_damage = dam;
+
+    /* rerollable dice also include the extra Champion roll */
     if (HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_CHAMPION))
     {
-      dam += compute_dam_dice(ch, victim, wielded, mode, attack_type);
+      int extra_roll = compute_dam_dice(ch, victim, wielded, mode, attack_type);
+      dam += extra_roll;
+      base_weapon_damage += extra_roll;
     }
 
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
@@ -8922,6 +8946,29 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     dam = compute_dam_dice(ch, ch, wielded, mode, attack_type);
     /* modifiers to melee damage */
     dam += compute_damage_bonus(ch, ch, wielded, TYPE_UNDEFINED_WTYPE, NO_MOD, mode, attack_type);
+  }
+
+  /* Hunter's Precision: reroll damage and keep the higher result */
+  if (mode == MODE_NORMAL_HIT && !IS_NPC(ch))
+  {
+    int precision_chance = get_inquisitor_hunters_precision_chance(ch);
+    if (precision_chance > 0 && rand_number(1, 100) <= precision_chance)
+    {
+      int reroll_damage = compute_dam_dice(ch, victim, wielded, mode, attack_type);
+
+      /* include the dragon champion extra dice if applicable */
+      if (HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_CHAMPION))
+      {
+        reroll_damage += compute_dam_dice(ch, victim, wielded, mode, attack_type);
+      }
+
+      int rerolled_total = dam - base_weapon_damage + reroll_damage;
+      if (rerolled_total > dam)
+      {
+        dam = rerolled_total;
+        send_to_char(ch, "Your hunter's precision lets you strike harder!\r\n");
+      }
+    }
   }
 
   return MAX(1, dam); // min damage of 1
@@ -10793,6 +10840,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += supreme_style_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", supreme_style_bonus, "Supreme Style To-Hit");
+    }
+  }
+
+  /* Inquisitor Studied Target: untyped attack bonus vs marked target */
+  if (victim && !IS_NPC(ch) && is_inquisitor_studied_target(ch, victim))
+  {
+    int studied_bonus = get_inquisitor_studied_target_bonus(ch);
+    if (studied_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += studied_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", studied_bonus, "Studied Target");
     }
   }
 

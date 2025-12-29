@@ -12690,18 +12690,38 @@ ACMD(do_mark)
 {
   struct char_data *vict = NULL;
   char arg[100];
+  bool is_assassin = CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0;
+  int studied_bonus = get_inquisitor_studied_target_bonus(ch);
+  bool is_inquisitor = studied_bonus > 0;
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (CLASS_LEVEL(ch, CLASS_ASSASSIN) < 1)
+  if (!is_assassin && !is_inquisitor)
   {
-    send_to_char(ch, "Only assassins know how to do that!\r\n");
+    send_to_char(ch, "You don't know how to do that.\r\n");
     return;
   }
 
   if (!*arg)
   {
-    send_to_char(ch, "Who would you like to mark for assassination?\r\n");
+    if (GET_MARK(ch))
+      send_to_char(ch, "You are marking %s. Usage: mark <target|clear>\r\n", GET_NAME(GET_MARK(ch)));
+    else
+      send_to_char(ch, "Usage: mark <target|clear>\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "clear"))
+  {
+    if (GET_MARK(ch))
+      send_to_char(ch, "You let your mark fade.\r\n");
+    else
+      send_to_char(ch, "You have no mark to clear.\r\n");
+
+    GET_MARK(ch) = NULL;
+    GET_MARK_ROUNDS(ch) = 0;
+    if (is_inquisitor)
+      GET_STUDIED_TARGET(ch) = NULL;
     return;
   }
 
@@ -12711,9 +12731,38 @@ ACMD(do_mark)
     return;
   }
 
-  act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
+  if (vict == ch)
+  {
+    send_to_char(ch, "Marking yourself is not very helpful.\r\n");
+    return;
+  }
+
+  if (is_inquisitor && !is_action_available(ch, atMOVE, TRUE))
+  {
+    send_to_char(ch, "Studying a quarry requires a move action.\r\n");
+    return;
+  }
+
   GET_MARK(ch) = vict;
   GET_MARK_ROUNDS(ch) = 0;
+
+  /* Inquisitors piggyback on the mark system for Studied Target */
+  if (is_inquisitor)
+    GET_STUDIED_TARGET(ch) = vict;
+
+  if (is_inquisitor && !is_assassin)
+  {
+    act("You study $N carefully, marking $M as your quarry.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n studies you carefully, eyes narrowing.", FALSE, ch, 0, vict, TO_VICT);
+    act("$n studies $N carefully, marking a new quarry.", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_MOVE_ACTION(ch);
+  }
+  else
+  {
+    act("You begin to mark $N for assassination.", FALSE, ch, 0, vict, TO_CHAR);
+    if (is_inquisitor)
+      act("$n studies $N carefully, marking a new quarry.", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
 }
 
 /* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
@@ -13029,6 +13078,87 @@ ACMDU(do_inexorable_judgment)
 
   USE_STANDARD_ACTION(ch);
   attach_mud_event(new_mud_event(eINEXORABLE_JUDGMENT_USED, ch, NULL), SECS_PER_MUD_DAY);
+}
+
+/* Favored Terrain: choose a terrain type for passive bonuses */
+ACMDU(do_favored_terrain)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  time_t now = time(NULL);
+  int terrain = -1;
+
+  if (!has_inquisitor_favored_terrain(ch))
+  {
+    send_to_char(ch, "You have not mastered favored terrain.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: favoredterrain <terrain|list|clear>\r\n");
+    if (GET_FAVORED_TERRAIN(ch) >= 0 && GET_FAVORED_TERRAIN(ch) < NUM_TERRAIN_TYPES)
+      send_to_char(ch, "Current favored terrain: %s\r\n", terrain_types[GET_FAVORED_TERRAIN(ch)]);
+    else
+      send_to_char(ch, "Current favored terrain: none\r\n");
+
+    send_to_char(ch, "Type 'favoredterrain list' to see options.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "list"))
+  {
+    int i;
+    send_to_char(ch, "Available terrains:\r\n");
+    for (i = 0; i < NUM_TERRAIN_TYPES; i++)
+      send_to_char(ch, "  %-2d) %s\r\n", i, terrain_types[i]);
+    return;
+  }
+
+  if (is_abbrev(arg, "clear"))
+  {
+    if (GET_FAVORED_TERRAIN(ch) < 0)
+    {
+      send_to_char(ch, "You have no favored terrain set.\r\n");
+      return;
+    }
+    if (GET_FAVORED_TERRAIN(ch) >= 0 && now < GET_FAVORED_TERRAIN_RESET(ch))
+    {
+      long remain = GET_FAVORED_TERRAIN_RESET(ch) - now;
+      send_to_char(ch, "You can change your favored terrain again in about %ld hour(s).\r\n", (remain + 3599) / 3600);
+      return;
+    }
+    GET_FAVORED_TERRAIN(ch) = -1;
+    GET_FAVORED_TERRAIN_RESET(ch) = now + (7 * SECS_PER_REAL_DAY);
+    send_to_char(ch, "You clear your favored terrain selection.\r\n");
+    return;
+  }
+
+  terrain = search_block(arg, terrain_types, FALSE);
+  if (terrain < 0 || terrain >= NUM_TERRAIN_TYPES)
+  {
+    send_to_char(ch, "That is not a valid terrain. Try 'favoredterrain list'.\r\n");
+    return;
+  }
+
+  if (GET_FAVORED_TERRAIN(ch) == terrain)
+  {
+    send_to_char(ch, "You already favor that terrain.\r\n");
+    return;
+  }
+
+  if (GET_FAVORED_TERRAIN(ch) >= 0 && now < GET_FAVORED_TERRAIN_RESET(ch))
+  {
+    long remain = GET_FAVORED_TERRAIN_RESET(ch) - now;
+    send_to_char(ch, "You can change your favored terrain again in about %ld hour(s).\r\n", (remain + 3599) / 3600);
+    return;
+  }
+
+  GET_FAVORED_TERRAIN(ch) = terrain;
+  GET_FAVORED_TERRAIN_RESET(ch) = now + (7 * SECS_PER_REAL_DAY);
+  send_to_char(ch, "Favored terrain set to %s. You gain +2 initiative and Stealth there.\r\n", terrain_types[terrain]);
 }
 
 /* Greater Judgment Perk Command - Select which judgment type gets doubled bonuses */

@@ -288,6 +288,7 @@ ACMD_DECL(do_slayer);
 ACMD_DECL(do_true_judgement);
 ACMD_DECL(do_greater_judgment);
 ACMD_DECL(do_inexorable_judgment);
+ACMD_DECL(do_favored_terrain);
 ACMD_DECL(do_flightlist);
 ACMD_DECL(do_kapak_saliva);
 ACMD_DECL(do_roomvnum);

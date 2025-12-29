@@ -1133,6 +1133,78 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Gain an extra slot per spell level and once per day cast any inquisitor spell you know for free.");
   perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 2: HUNTER'S ARSENAL - Tier 1
+   **************************************************************************/
+
+  /* Tier 1: Studied Target (4 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_STUDIED_TARGET];
+  perk->id = PERK_INQUISITOR_STUDIED_TARGET;
+  perk->name = strdup("Studied Target");
+  perk->description = strdup("Mark a target for focused hunting, gaining bonuses against it.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 4;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank to attack/damage/skills vs studied target */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Use a move action to study one creature within 60 feet; gain +1 per rank to attack, damage, and relevant skill checks against that target (one target at a time).");
+  perk->toggleable = false;
+
+  /* Tier 1: Favored Terrain (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_FAVORED_TERRAIN];
+  perk->id = PERK_INQUISITOR_FAVORED_TERRAIN;
+  perk->name = strdup("Favored Terrain");
+  perk->description = strdup("Master fighting in a chosen environment.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 initiative/stealth in chosen terrain */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Choose a favored terrain; gain +2 to initiative and Stealth checks in that terrain. Can change the selection once per real week.");
+  perk->toggleable = false;
+
+  /* Tier 1: Hunter's Precision (2 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_HUNTERS_PRECISION];
+  perk->id = PERK_INQUISITOR_HUNTERS_PRECISION;
+  perk->name = strdup("Hunter's Precision");
+  perk->description = strdup("Reroll damage with lethal accuracy.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance per rank to reroll damage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain a 5%% chance per rank to reroll a damage roll and keep the higher result. Applies to weapon and spell damage.");
+  perk->toggleable = false;
+
+  /* Tier 1: Track and Hunt (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_TRACK_AND_HUNT];
+  perk->id = PERK_INQUISITOR_TRACK_AND_HUNT;
+  perk->name = strdup("Track and Hunt");
+  perk->description = strdup("Double down on your quarry's trail.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* double Survival modifier while tracking */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Double your Survival modifier when tracking creatures; pairs well with Favored Terrain.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -1344,6 +1416,57 @@ bool has_inquisitor_righteous_strike(struct char_data *ch)
 bool has_inquisitor_versatile_judgment(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_VERSATILE_JUDGMENT);
+}
+
+/* Inquisitor Helper Functions - Hunter's Arsenal Tree Tier 1 */
+
+int get_inquisitor_studied_target_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_STUDIED_TARGET, CLASS_INQUISITOR);
+}
+
+bool is_inquisitor_studied_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch))
+    return false;
+  if (!has_perk(ch, PERK_INQUISITOR_STUDIED_TARGET))
+    return false;
+  if (!GET_STUDIED_TARGET(ch) || GET_STUDIED_TARGET(ch) != vict)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(vict) == NOWHERE)
+    return false;
+  return IN_ROOM(ch) == IN_ROOM(vict);
+}
+
+bool has_inquisitor_favored_terrain(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_FAVORED_TERRAIN);
+}
+
+bool is_inquisitor_in_favored_terrain(struct char_data *ch)
+{
+  if (!has_inquisitor_favored_terrain(ch))
+    return false;
+  if (GET_FAVORED_TERRAIN(ch) < 0 || GET_FAVORED_TERRAIN(ch) >= NUM_TERRAIN_TYPES)
+    return false;
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  return sector_type_to_terrain_type(world[IN_ROOM(ch)].sector_type) == GET_FAVORED_TERRAIN(ch);
+}
+
+int get_inquisitor_hunters_precision_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int rank = get_perk_rank(ch, PERK_INQUISITOR_HUNTERS_PRECISION, CLASS_INQUISITOR);
+  return MIN(100, rank * 5);
+}
+
+bool has_inquisitor_track_and_hunt(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_TRACK_AND_HUNT);
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */

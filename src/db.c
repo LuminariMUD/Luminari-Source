@@ -6697,6 +6697,11 @@ void init_char(struct char_data *ch)
   if (ch->player_specials == NULL)
     CREATE(ch->player_specials, struct player_special_data, 1);
 
+  /* Initialize inquisitor perk tracking */
+  ch->player_specials->saved.inq_favored_terrain = -1;
+  ch->player_specials->saved.inq_favored_terrain_reset = 0;
+  ch->player_specials->inq_studied_target = NULL;
+
   if (ch->bags == NULL)
     CREATE(ch->bags, struct bag_data, 1);
   
