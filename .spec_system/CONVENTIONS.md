@@ -209,7 +209,7 @@ if (!mysql_connection)
 | Code Quality | configured | .github/workflows/quality.yml |
 | Build & Test | configured | .github/workflows/test.yml |
 | Security | configured | .github/workflows/security.yml |
-| Integration | not configured | - |
+| Integration | configured | .github/workflows/integration.yml |
 | Operations | partial | .github/workflows/pages.yml (docs only) |
 
 ## When In Doubt
