@@ -192,6 +192,26 @@ if (!mysql_connection)
 /* Free result sets after use */
 ```
 
+## Local Dev Tools
+
+| Category | Tool | Config |
+|----------|------|--------|
+| Formatter | clang-format | .clang-format |
+| Linter | clang-tidy | .clang-tidy |
+| Type Safety | GCC/Clang -Wall -Wextra | Makefile/CMakeLists.txt |
+| Testing | CuTest | unittests/CuTest/Makefile |
+| Git Hooks | pre-commit | .pre-commit-config.yaml |
+
+## CI/CD
+
+| Bundle | Status | Workflow |
+|--------|--------|----------|
+| Code Quality | configured | .github/workflows/quality.yml |
+| Build & Test | not configured | - |
+| Security | not configured | - |
+| Integration | not configured | - |
+| Operations | partial | .github/workflows/pages.yml (docs only) |
+
 ## When In Doubt
 
 - Ask
