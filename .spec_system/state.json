@@ -19,7 +19,8 @@
     "phase00-session04-phase2-command-registration",
     "phase00-session05-interior-room-generation-wiring",
     "phase00-session06-interior-movement-implementation",
-    "phase00-session07-persistence-integration"
+    "phase00-session07-persistence-integration",
+    "phase00-session08-external-view-display-systems"
   ],
   "next_session_history": [
     {
@@ -55,6 +56,11 @@
     {
       "date": "2025-12-29",
       "session": "phase00-session07-persistence-integration",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-29",
+      "session": "phase00-session08-external-view-display-systems",
       "status": "completed"
     }
   ]

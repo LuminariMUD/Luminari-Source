@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 7/9 sessions (78%)
+**Progress**: 8/9 sessions (89%)
 
 ---
 
@@ -48,7 +48,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 | 05 | Interior Room Generation Wiring | Complete | 18 | 2025-12-29 |
 | 06 | Interior Movement Implementation | Complete | 18 | 2025-12-29 |
 | 07 | Persistence Integration | Complete | 18 | 2025-12-29 |
-| 08 | External View & Display Systems | Not Started | ~20-25 | - |
+| 08 | External View & Display Systems | Complete | 18 | 2025-12-29 |
 | 09 | Testing & Validation | Not Started | ~15-20 | - |
 
 ---
@@ -90,11 +90,15 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 18/18
 - **Summary**: Wired persistence layer to save and load vessel state across server restarts. Implemented is_valid_ship(), load_all_ship_interiors(), and save_all_vessels() functions in vessels_db.c. Integrated save_ship_interior() after interior generation, load_all_ship_interiors() at boot sequence, save_all_vessels() at shutdown, and docking record persistence on dock/undock operations.
 
+### Session 08: External View & Display Systems
+- **Completed**: 2025-12-29
+- **Tasks**: 18/18
+- **Summary**: Implemented external view and tactical display systems for vessels. Added weather integration to look_outside command using get_weather(). Created 11x11 ASCII tactical map display with terrain symbols. Implemented contacts command for vessel detection with distance/bearing calculations. Completed disembark command with dock detection, swimming checks, and water exit handling.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 08: External View & Display Systems
 - Session 09: Testing & Validation
 
 ---

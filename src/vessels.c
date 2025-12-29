@@ -35,7 +35,7 @@ struct greyhawk_ship_map greyhawk_tactical[151][151];
 /* Global string buffers for Greyhawk system */
 static char greyhawk_status[20];
 static char greyhawk_position[20];
-static char greyhawk_weapon[100];
+static char greyhawk_weapon[320];
 /* These will be used when full implementation is added */
 /* static char greyhawk_contact[256]; */
 /* static char greyhawk_arc[3]; */
@@ -674,11 +674,11 @@ void greyhawk_dispweapon(int slot, int rnum) {
   } else {
     greyhawk_getstatus(slot, rnum);
     greyhawk_getposition(slot, rnum);
-    sprintf(greyhawk_weapon, "%-20s &N%-6s  &+W%-9s  %d",
-            world[rnum].ship->slot[slot].desc,
-            greyhawk_status,
-            greyhawk_position,
-            world[rnum].ship->slot[slot].val3);
+    snprintf(greyhawk_weapon, sizeof(greyhawk_weapon), "%-20s &N%-6s  &+W%-9s  %d",
+             world[rnum].ship->slot[slot].desc,
+             greyhawk_status,
+             greyhawk_position,
+             world[rnum].ship->slot[slot].val3);
   }
 }
 
@@ -1198,6 +1198,87 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
 }
 
 /* ========================================================================= */
+/* EXTERNAL VIEW DISPLAY CONSTANTS AND HELPERS                              */
+/* ========================================================================= */
+
+/* Weather thresholds (matching wilderness weather system) */
+#define VESSEL_WEATHER_CLEAR_MAX     127
+#define VESSEL_WEATHER_CLOUDY_MAX    177
+#define VESSEL_WEATHER_RAIN_MAX      199
+#define VESSEL_WEATHER_STORM_MAX     224
+/* Values 225-255 are lightning/thunderstorm */
+
+/* Weather string lookup table */
+static const char *vessel_weather_strings[] = {
+  "Clear skies",            /* WEATHER_CLEAR (0-127) */
+  "Overcast and cloudy",    /* WEATHER_CLOUDY (128-177) */
+  "Light rain falling",     /* WEATHER_RAINY (178-199) */
+  "Heavy storm conditions", /* WEATHER_STORMY (200-224) */
+  "Thunderstorm with lightning" /* WEATHER_LIGHTNING (225-255) */
+};
+
+/**
+ * Convert raw weather value (0-255) to descriptive string.
+ * Used by look_outside and tactical display commands.
+ *
+ * @param weather_val Raw weather value from get_weather()
+ * @return Pointer to static weather description string
+ */
+static const char *get_vessel_weather_string(int weather_val)
+{
+  if (weather_val <= VESSEL_WEATHER_CLEAR_MAX)
+    return vessel_weather_strings[0];
+  else if (weather_val <= VESSEL_WEATHER_CLOUDY_MAX)
+    return vessel_weather_strings[1];
+  else if (weather_val <= VESSEL_WEATHER_RAIN_MAX)
+    return vessel_weather_strings[2];
+  else if (weather_val <= VESSEL_WEATHER_STORM_MAX)
+    return vessel_weather_strings[3];
+  else
+    return vessel_weather_strings[4];
+}
+
+/* Tactical display constants */
+#define TACTICAL_GRID_SIZE     11   /* 11x11 grid centered on ship */
+#define TACTICAL_HALF_SIZE     5    /* Half the grid size for centering */
+#define TACTICAL_MAX_WIDTH     40   /* Maximum display width in characters */
+
+/* Tactical display symbols */
+#define TACT_SYM_SHIP      '@'  /* Current vessel position */
+#define TACT_SYM_OTHER     'V'  /* Other vessels */
+#define TACT_SYM_OCEAN     '~'  /* Ocean/deep water */
+#define TACT_SYM_SHALLOW   '.'  /* Shallow water */
+#define TACT_SYM_LAND      '#'  /* Land/impassable */
+#define TACT_SYM_UNKNOWN   '?'  /* Unknown terrain */
+#define TACT_SYM_DOCK      'D'  /* Dock/port */
+#define TACT_SYM_BEACH     ':'  /* Beach */
+
+/* Contact detection constants */
+#define CONTACT_DETECTION_RANGE    50   /* Default detection range in units */
+#define CONTACT_MAX_DISPLAY        20   /* Maximum contacts to display */
+
+/* Bearing direction strings (8 cardinal/ordinal directions) */
+static const char *bearing_direction_str(int bearing)
+{
+  if (bearing >= 337 || bearing < 23)
+    return "N";
+  else if (bearing >= 23 && bearing < 68)
+    return "NE";
+  else if (bearing >= 68 && bearing < 113)
+    return "E";
+  else if (bearing >= 113 && bearing < 158)
+    return "SE";
+  else if (bearing >= 158 && bearing < 203)
+    return "S";
+  else if (bearing >= 203 && bearing < 248)
+    return "SW";
+  else if (bearing >= 248 && bearing < 293)
+    return "W";
+  else
+    return "NW";
+}
+
+/* ========================================================================= */
 /* COMMAND FUNCTIONS                                                        */
 /* ========================================================================= */
 
@@ -1208,10 +1289,180 @@ ACMD(do_board_vessel) {
   /* This command exists just so 'board' is recognized as a valid command */
 }
 
-/* These will be implemented after the core system is working */
+/**
+ * Get a simple ASCII character for terrain type display.
+ * Used by tactical display for 80-column terminal compatibility.
+ *
+ * @param sector_type The sector type constant
+ * @return Single character representing terrain
+ */
+static char get_tactical_terrain_char(int sector_type)
+{
+  switch (sector_type)
+  {
+    case SECT_OCEAN:
+    case SECT_WATER_NOSWIM:
+    case SECT_UD_NOSWIM:
+      return TACT_SYM_OCEAN;
 
+    case SECT_WATER_SWIM:
+    case SECT_RIVER:
+    case SECT_UD_WATER:
+      return TACT_SYM_SHALLOW;
+
+    case SECT_BEACH:
+    case SECT_SEAPORT:
+      return TACT_SYM_BEACH;
+
+    case SECT_FIELD:
+    case SECT_FOREST:
+    case SECT_HILLS:
+    case SECT_JUNGLE:
+    case SECT_TAIGA:
+    case SECT_TUNDRA:
+    case SECT_DESERT:
+    case SECT_MARSHLAND:
+      return TACT_SYM_LAND;
+
+    case SECT_MOUNTAIN:
+    case SECT_HIGH_MOUNTAIN:
+      return TACT_SYM_LAND;
+
+    case SECT_CITY:
+    case SECT_INSIDE:
+      return TACT_SYM_DOCK;
+
+    default:
+      return TACT_SYM_UNKNOWN;
+  }
+}
+
+/* Tactical display command */
 ACMD(do_greyhawk_tactical) {
-  send_to_char(ch, "Tactical display not yet implemented.\r\n");
+  room_rnum ship_room;
+  int shipnum;
+  int ship_x, ship_y;
+  int grid_x, grid_y;
+  int world_x, world_y;
+  int sector_type;
+  int i;
+  char grid[TACTICAL_GRID_SIZE][TACTICAL_GRID_SIZE];
+  int weather_val;
+
+  ship_room = IN_ROOM(ch);
+
+  /* Check if character is on a ship */
+  if (!world[ship_room].ship)
+  {
+    send_to_char(ch, "You must be aboard a vessel to view the tactical display.\r\n");
+    return;
+  }
+
+  shipnum = world[ship_room].ship->shipnum;
+
+  /* Validate ship number */
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    send_to_char(ch, "Error: Invalid vessel data.\r\n");
+    return;
+  }
+
+  /* Get ship position */
+  ship_x = (int)greyhawk_ships[shipnum].x;
+  ship_y = (int)greyhawk_ships[shipnum].y;
+
+  /* Initialize grid with terrain data */
+  for (grid_y = 0; grid_y < TACTICAL_GRID_SIZE; grid_y++)
+  {
+    for (grid_x = 0; grid_x < TACTICAL_GRID_SIZE; grid_x++)
+    {
+      /* Calculate world coordinates (grid is centered on ship) */
+      world_x = ship_x + (grid_x - TACTICAL_HALF_SIZE);
+      world_y = ship_y + (TACTICAL_HALF_SIZE - grid_y); /* Y is inverted for display */
+
+      /* Get terrain at this position */
+      sector_type = get_modified_sector_type(0, world_x, world_y);
+      grid[grid_y][grid_x] = get_tactical_terrain_char(sector_type);
+    }
+  }
+
+  /* Mark ship position at center */
+  grid[TACTICAL_HALF_SIZE][TACTICAL_HALF_SIZE] = TACT_SYM_SHIP;
+
+  /* Mark other vessels in range */
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    if (greyhawk_ships[i].shipnum > 0 && i != shipnum)
+    {
+      int other_x = (int)greyhawk_ships[i].x;
+      int other_y = (int)greyhawk_ships[i].y;
+      int rel_x = other_x - ship_x + TACTICAL_HALF_SIZE;
+      int rel_y = TACTICAL_HALF_SIZE - (other_y - ship_y);
+
+      /* Check if in display range */
+      if (rel_x >= 0 && rel_x < TACTICAL_GRID_SIZE &&
+          rel_y >= 0 && rel_y < TACTICAL_GRID_SIZE)
+      {
+        grid[rel_y][rel_x] = TACT_SYM_OTHER;
+      }
+    }
+  }
+
+  /* Display tactical header */
+  send_to_char(ch, "\r\n");
+  send_to_char(ch, "       TACTICAL DISPLAY\r\n");
+  send_to_char(ch, "   Position: [%d, %d]\r\n", ship_x, ship_y);
+  send_to_char(ch, "   Heading: %d degrees\r\n", greyhawk_ships[shipnum].heading);
+
+  /* Weather info */
+  weather_val = get_weather(ship_x, ship_y);
+  send_to_char(ch, "   Weather: %s\r\n", get_vessel_weather_string(weather_val));
+  send_to_char(ch, "\r\n");
+
+  /* Compass header */
+  send_to_char(ch, "            N\r\n");
+  send_to_char(ch, "       +-----------+\r\n");
+
+  /* Render grid with borders */
+  for (grid_y = 0; grid_y < TACTICAL_GRID_SIZE; grid_y++)
+  {
+    /* West indicator on center row */
+    if (grid_y == TACTICAL_HALF_SIZE)
+    {
+      send_to_char(ch, "     W |");
+    }
+    else
+    {
+      send_to_char(ch, "       |");
+    }
+
+    /* Grid row */
+    for (grid_x = 0; grid_x < TACTICAL_GRID_SIZE; grid_x++)
+    {
+      send_to_char(ch, "%c", grid[grid_y][grid_x]);
+    }
+
+    /* East indicator on center row */
+    if (grid_y == TACTICAL_HALF_SIZE)
+    {
+      send_to_char(ch, "| E\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "|\r\n");
+    }
+  }
+
+  /* Compass footer */
+  send_to_char(ch, "       +-----------+\r\n");
+  send_to_char(ch, "            S\r\n");
+
+  /* Legend */
+  send_to_char(ch, "\r\n");
+  send_to_char(ch, "   Legend: %c=You  %c=Vessel  %c=Ocean  %c=Shallow\r\n",
+               TACT_SYM_SHIP, TACT_SYM_OTHER, TACT_SYM_OCEAN, TACT_SYM_SHALLOW);
+  send_to_char(ch, "           %c=Land  %c=Beach  %c=Dock\r\n",
+               TACT_SYM_LAND, TACT_SYM_BEACH, TACT_SYM_DOCK);
 }
 
 ACMD(do_greyhawk_status) {
@@ -1397,12 +1648,263 @@ ACMD(do_greyhawk_heading) {
   }
 }
 
-ACMD(do_greyhawk_contacts) {
-  send_to_char(ch, "Contact list not yet implemented.\r\n");
+/* Structure for sorting contacts by distance */
+struct contact_entry {
+  int shipnum;
+  float range;
+  int bearing;
+};
+
+/* Comparison function for qsort - sort by range ascending */
+static int compare_contacts(const void *a, const void *b)
+{
+  const struct contact_entry *ca = (const struct contact_entry *)a;
+  const struct contact_entry *cb = (const struct contact_entry *)b;
+  if (ca->range < cb->range) return -1;
+  if (ca->range > cb->range) return 1;
+  return 0;
 }
 
+/* Contacts display command */
+ACMD(do_greyhawk_contacts) {
+  room_rnum ship_room;
+  int shipnum;
+  int ship_x, ship_y, ship_z;
+  int i;
+  int contact_count = 0;
+  struct contact_entry contacts[CONTACT_MAX_DISPLAY];
+
+  ship_room = IN_ROOM(ch);
+
+  /* Check if character is on a ship */
+  if (!world[ship_room].ship)
+  {
+    send_to_char(ch, "You must be aboard a vessel to check contacts.\r\n");
+    return;
+  }
+
+  shipnum = world[ship_room].ship->shipnum;
+
+  /* Validate ship number */
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    send_to_char(ch, "Error: Invalid vessel data.\r\n");
+    return;
+  }
+
+  /* Get our ship position */
+  ship_x = (int)greyhawk_ships[shipnum].x;
+  ship_y = (int)greyhawk_ships[shipnum].y;
+  ship_z = (int)greyhawk_ships[shipnum].z;
+
+  /* Scan for other vessels in range */
+  for (i = 0; i < GREYHAWK_MAXSHIPS && contact_count < CONTACT_MAX_DISPLAY; i++)
+  {
+    if (greyhawk_ships[i].shipnum > 0 && i != shipnum)
+    {
+      float range = greyhawk_range(ship_x, ship_y, ship_z,
+                                   greyhawk_ships[i].x,
+                                   greyhawk_ships[i].y,
+                                   greyhawk_ships[i].z);
+
+      if (range <= CONTACT_DETECTION_RANGE)
+      {
+        contacts[contact_count].shipnum = i;
+        contacts[contact_count].range = range;
+        contacts[contact_count].bearing = greyhawk_bearing(ship_x, ship_y,
+                                                           (int)greyhawk_ships[i].x,
+                                                           (int)greyhawk_ships[i].y);
+        contact_count++;
+      }
+    }
+  }
+
+  /* Sort contacts by distance */
+  if (contact_count > 1)
+  {
+    qsort(contacts, contact_count, sizeof(struct contact_entry), compare_contacts);
+  }
+
+  /* Display header */
+  send_to_char(ch, "\r\n");
+  send_to_char(ch, "       CONTACT LIST\r\n");
+  send_to_char(ch, "   Our Position: [%d, %d]\r\n", ship_x, ship_y);
+  send_to_char(ch, "   Detection Range: %d units\r\n", CONTACT_DETECTION_RANGE);
+  send_to_char(ch, "\r\n");
+
+  if (contact_count == 0)
+  {
+    send_to_char(ch, "   No contacts detected within range.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "   %-20s  %8s  %7s  %4s\r\n",
+                 "VESSEL", "RANGE", "BEARING", "DIR");
+    send_to_char(ch, "   -------------------------------------------\r\n");
+
+    for (i = 0; i < contact_count; i++)
+    {
+      int idx = contacts[i].shipnum;
+      const char *name = greyhawk_ships[idx].name[0] ?
+                         greyhawk_ships[idx].name : "Unknown Vessel";
+
+      send_to_char(ch, "   %-20s  %6.1f u  %5d deg  %s\r\n",
+                   name,
+                   contacts[i].range,
+                   contacts[i].bearing,
+                   bearing_direction_str(contacts[i].bearing));
+    }
+
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "   Total contacts: %d\r\n", contact_count);
+  }
+}
+
+/* Disembark command - leave vessel */
 ACMD(do_greyhawk_disembark) {
-  send_to_char(ch, "Disembark function not yet implemented.\r\n");
+  room_rnum ship_room;
+  room_rnum exit_room = NOWHERE;
+  int shipnum;
+  int terrain_type;
+  bool is_docked = FALSE;
+  bool can_swim = FALSE;
+
+  ship_room = IN_ROOM(ch);
+
+  /* Check if character is on a ship */
+  if (!world[ship_room].ship)
+  {
+    send_to_char(ch, "You're not aboard a vessel.\r\n");
+    return;
+  }
+
+  shipnum = world[ship_room].ship->shipnum;
+
+  /* Validate ship number */
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    send_to_char(ch, "Error: Invalid vessel data.\r\n");
+    return;
+  }
+
+  /* Check if vessel is moving */
+  if (greyhawk_ships[shipnum].speed > 0)
+  {
+    send_to_char(ch, "You can't disembark while the vessel is moving!\r\n");
+    send_to_char(ch, "Bring the vessel to a stop first.\r\n");
+    return;
+  }
+
+  /* Get terrain type at ship position */
+  terrain_type = get_ship_terrain_type(shipnum);
+
+  /* Check if docked (at a dock room or to another ship) */
+  if (greyhawk_ships[shipnum].dock > 0 || greyhawk_ships[shipnum].docked_to_ship >= 0)
+  {
+    is_docked = TRUE;
+  }
+
+  /* Check for beach/seaport terrain */
+  if (terrain_type == SECT_BEACH || terrain_type == SECT_SEAPORT)
+  {
+    is_docked = TRUE;
+  }
+
+  if (is_docked)
+  {
+    /* Docked - can safely disembark to dock */
+    exit_room = find_room_by_coordinates((int)greyhawk_ships[shipnum].x,
+                                         (int)greyhawk_ships[shipnum].y);
+
+    if (exit_room == NOWHERE)
+    {
+      send_to_char(ch, "Error: Unable to find a valid exit point.\r\n");
+      return;
+    }
+
+    send_to_char(ch, "You step off the vessel onto the dock.\r\n");
+    act("$n disembarks from the vessel.", TRUE, ch, 0, 0, TO_ROOM);
+
+    /* Move character to exit room */
+    char_from_room(ch);
+    char_to_room(ch, exit_room);
+
+    act("$n arrives from a nearby vessel.", TRUE, ch, 0, 0, TO_ROOM);
+    look_at_room(ch, 0);
+    return;
+  }
+
+  /* Not docked - disembarking to water */
+  switch (terrain_type)
+  {
+    case SECT_OCEAN:
+    case SECT_WATER_NOSWIM:
+    case SECT_UD_NOSWIM:
+      /* Deep water - cannot swim here */
+      send_to_char(ch, "The water here is too deep and dangerous to enter.\r\n");
+      send_to_char(ch, "You need to find a dock or shallower water.\r\n");
+      return;
+
+    case SECT_WATER_SWIM:
+    case SECT_UD_WATER:
+    case SECT_RIVER:
+      /* Swimmable water - check if character can swim */
+      break;
+
+    default:
+      send_to_char(ch, "You can't disembark here - no valid exit point.\r\n");
+      return;
+  }
+
+  /* Check for swimming ability */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    can_swim = TRUE;
+  }
+  else if (AFF_FLAGGED(ch, AFF_WATERWALK) || AFF_FLAGGED(ch, AFF_FLYING) ||
+           AFF_FLAGGED(ch, AFF_LEVITATE))
+  {
+    can_swim = TRUE;
+  }
+  else if (GET_MOVE(ch) < 20)
+  {
+    send_to_char(ch, "You don't have enough energy to swim.\r\n");
+    return;
+  }
+  else
+  {
+    can_swim = TRUE;
+    /* Deduct movement cost */
+    GET_MOVE(ch) -= 20;
+    send_to_char(ch, "You prepare to swim...\r\n");
+  }
+
+  if (!can_swim)
+  {
+    send_to_char(ch, "You can't enter the water safely.\r\n");
+    return;
+  }
+
+  /* Find exit room */
+  exit_room = find_room_by_coordinates((int)greyhawk_ships[shipnum].x,
+                                       (int)greyhawk_ships[shipnum].y);
+
+  if (exit_room == NOWHERE)
+  {
+    send_to_char(ch, "Error: Unable to find a valid exit point.\r\n");
+    return;
+  }
+
+  /* Perform the disembark */
+  send_to_char(ch, "You leap from the vessel into the water!\r\n");
+  act("$n jumps overboard into the water!", TRUE, ch, 0, 0, TO_ROOM);
+
+  /* Move character to water room */
+  char_from_room(ch);
+  char_to_room(ch, exit_room);
+
+  act("$n surfaces nearby, having jumped from a vessel.", TRUE, ch, 0, 0, TO_ROOM);
+  look_at_room(ch, 0);
 }
 
 ACMD(do_greyhawk_shipload) {
