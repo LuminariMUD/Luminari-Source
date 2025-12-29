@@ -618,44 +618,64 @@ ACMD(do_look_outside) {
 }
 
 /* COMMAND: List ship interior rooms */
-ACMD(do_ship_rooms) {
+ACMD(do_ship_rooms)
+{
   struct greyhawk_ship_data *ship;
   room_rnum room;
   int i;
-  
+
   ship = get_ship_from_room(IN_ROOM(ch));
-  if (!ship) {
+  if (!ship)
+  {
     send_to_char(ch, "You must be on a vessel to see its layout.\r\n");
     return;
   }
-  
+
   send_to_char(ch, "Interior layout of %s:\r\n", ship->name);
   send_to_char(ch, "==================================\r\n");
-  
-  for (i = 0; i < ship->num_rooms; i++) {
+
+  /* Handle edge case: ship has no interior rooms */
+  if (ship->num_rooms == 0)
+  {
+    send_to_char(ch, "  This vessel has no interior rooms.\r\n");
+    return;
+  }
+
+  for (i = 0; i < ship->num_rooms; i++)
+  {
     room = real_room(ship->room_vnums[i]);
-    if (room != NOWHERE) {
+    if (room != NOWHERE)
+    {
       send_to_char(ch, "%2d. %s", i + 1, world[room].name);
-      
+
       /* Mark special rooms */
-      if (ship->room_vnums[i] == ship->bridge_room) {
+      if (ship->room_vnums[i] == ship->bridge_room)
+      {
         send_to_char(ch, " [BRIDGE]");
       }
-      if (ship->room_vnums[i] == ship->entrance_room) {
+      if (ship->room_vnums[i] == ship->entrance_room)
+      {
         send_to_char(ch, " [ENTRANCE]");
       }
-      if (real_room(ship->room_vnums[i]) == IN_ROOM(ch)) {
+      if (real_room(ship->room_vnums[i]) == IN_ROOM(ch))
+      {
         send_to_char(ch, " [YOU ARE HERE]");
       }
-      
+
       send_to_char(ch, "\r\n");
     }
   }
-  
-  if (ship->docked_to_ship >= 0) {
+
+  /* Show vessel type info */
+  send_to_char(ch, "\r\nVessel Type: %s (%d rooms)\r\n",
+               get_vessel_type_name(ship->vessel_type), ship->num_rooms);
+
+  if (ship->docked_to_ship >= 0)
+  {
     struct greyhawk_ship_data *docked = get_ship_by_id(ship->docked_to_ship);
-    if (docked) {
-      send_to_char(ch, "\r\nDocked with: %s\r\n", docked->name);
+    if (docked)
+    {
+      send_to_char(ch, "Docked with: %s\r\n", docked->name);
     }
   }
 }

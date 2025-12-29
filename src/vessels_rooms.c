@@ -133,14 +133,83 @@ int get_max_rooms_for_type(enum vessel_class type) {
   }
 }
 
+/**
+ * Derive vessel classification from ship template hull weight.
+ * Uses the hullweight field from the template object to determine
+ * vessel size and capabilities.
+ *
+ * @param hullweight The hull weight value from the ship template
+ * @return The appropriate vessel_class enum value
+ */
+enum vessel_class derive_vessel_type_from_template(int hullweight)
+{
+  if (hullweight < 50)
+  {
+    return VESSEL_RAFT;
+  }
+  else if (hullweight < 150)
+  {
+    return VESSEL_BOAT;
+  }
+  else if (hullweight < 400)
+  {
+    return VESSEL_SHIP;
+  }
+  else if (hullweight < 800)
+  {
+    return VESSEL_WARSHIP;
+  }
+  else
+  {
+    return VESSEL_TRANSPORT;
+  }
+}
+
+/**
+ * Check if a ship already has interior rooms generated.
+ * Used for idempotent room generation to prevent duplicates.
+ *
+ * @param ship Pointer to the ship data structure
+ * @return TRUE if rooms already exist, FALSE otherwise
+ */
+bool ship_has_interior_rooms(struct greyhawk_ship_data *ship)
+{
+  if (!ship)
+  {
+    return FALSE;
+  }
+
+  /* Check if any rooms have been generated */
+  if (ship->num_rooms > 0)
+  {
+    return TRUE;
+  }
+
+  /* Additional safety check - verify first room vnum is set */
+  if (ship->room_vnums[0] != 0)
+  {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 /* Create a ship room of specified type */
-int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) {
+int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
+{
   room_rnum new_room;
   int room_vnum;
   struct room_template *template = NULL;
   char buf[MAX_STRING_LENGTH];
   int i;
-  
+
+  /* NULL check for ship pointer */
+  if (!ship)
+  {
+    log("SYSERR: create_ship_room called with NULL ship!");
+    return NOWHERE;
+  }
+
   /* Find the template for this room type */
   for (i = 0; i < sizeof(room_templates) / sizeof(room_templates[0]); i++) {
     if (room_templates[i].type == type) {
@@ -154,20 +223,28 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) 
     return NOWHERE;
   }
   
-  /* Allocate a new room vnum (using a reserved range for ship interiors) */
-  /* For Phase 2, we'll use vnums 30000-39999 for dynamic ship rooms */
-  room_vnum = 30000 + (ship->shipnum * MAX_SHIP_ROOMS) + ship->num_rooms;
-  
-  /* Check if room already exists */
-  if (real_room(room_vnum) != NOWHERE) {
-    log("SYSERR: Room vnum %d already exists!", room_vnum);
+  /* Allocate a new room vnum using the reserved ship interior range */
+  room_vnum = SHIP_INTERIOR_VNUM_BASE + (ship->shipnum * MAX_SHIP_ROOMS) + ship->num_rooms;
+
+  /* Validate VNUM is within allowed range */
+  if (room_vnum > SHIP_INTERIOR_VNUM_MAX)
+  {
+    log("SYSERR: Ship interior VNUM %d exceeds maximum %d (ship %d, room %d)",
+        room_vnum, SHIP_INTERIOR_VNUM_MAX, ship->shipnum, ship->num_rooms);
     return NOWHERE;
   }
-  
-  /* Expand world array if needed */
-  /* Check if we're running out of room space - use a large number */
-  if (top_of_world >= 30000) {
-    log("SYSERR: Maximum room limit reached!");
+
+  /* Check if room already exists (VNUM collision) */
+  if (real_room(room_vnum) != NOWHERE)
+  {
+    log("SYSERR: Room vnum %d already exists for ship %d!", room_vnum, ship->shipnum);
+    return NOWHERE;
+  }
+
+  /* Verify world array has capacity */
+  if (top_of_world >= 99999)
+  {
+    log("SYSERR: Maximum room limit reached! Cannot create ship room.");
     return NOWHERE;
   }
   
@@ -262,15 +339,25 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) {
 }
 
 /* Generate complete ship interior based on vessel type */
-void generate_ship_interior(struct greyhawk_ship_data *ship) {
+void generate_ship_interior(struct greyhawk_ship_data *ship)
+{
   int max_rooms;
   int i;
-  
-  if (!ship) {
+
+  if (!ship)
+  {
     log("SYSERR: generate_ship_interior called with NULL ship!");
     return;
   }
-  
+
+  /* Idempotent check - don't regenerate if rooms already exist */
+  if (ship_has_interior_rooms(ship))
+  {
+    log("GREYHAWK SHIPS: Ship %d already has %d interior rooms, skipping generation",
+        ship->shipnum, ship->num_rooms);
+    return;
+  }
+
   /* Clear existing room data */
   ship->num_rooms = 0;
   ship->bridge_room = 0;

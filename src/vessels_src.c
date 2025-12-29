@@ -2382,10 +2382,21 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
   
   /* Place ship object in world */
   obj_to_room(obj, to_room);
-  
+
   /* Clean up template object */
   extract_obj(shiptemplateobj);
-  
+
+  /* Phase 2: Set vessel type based on hull weight and generate interior rooms */
+  greyhawk_ships[j].vessel_type = derive_vessel_type_from_template(greyhawk_ships[j].hullweight);
+
+  /* Generate ship interior rooms if not already present */
+  if (!ship_has_interior_rooms(&greyhawk_ships[j]))
+  {
+    generate_ship_interior(&greyhawk_ships[j]);
+    log("GREYHAWK SHIPS: Generated %d interior rooms for ship %d (type %d)",
+        greyhawk_ships[j].num_rooms, j, greyhawk_ships[j].vessel_type);
+  }
+
   return j;
 }
 

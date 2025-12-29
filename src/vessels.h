@@ -399,6 +399,11 @@ struct greyhawk_ship_crew {
 #define MAX_SHIP_ROOMS              20   /* Maximum interior rooms per ship */
 #define MAX_SHIP_CONNECTIONS        40   /* Maximum connections between rooms */
 
+/* VNUM range for dynamically generated ship interior rooms */
+/* Using 70000-79999 range (zones 700-799 are unused by builders) */
+#define SHIP_INTERIOR_VNUM_BASE     70000  /* Base VNUM for ship interiors */
+#define SHIP_INTERIOR_VNUM_MAX      79999  /* Maximum VNUM for ship interiors */
+
 /* Ship room types for multi-room vessels */
 enum ship_room_type {
   ROOM_TYPE_BRIDGE,         /* Command center/helm */
@@ -548,6 +553,8 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
 void generate_room_connections(struct greyhawk_ship_data *ship);
 int get_base_rooms_for_type(enum vessel_class type);
 int get_max_rooms_for_type(enum vessel_class type);
+enum vessel_class derive_vessel_type_from_template(int hullweight);
+bool ship_has_interior_rooms(struct greyhawk_ship_data *ship);
 
 /* Room Navigation */
 void do_move_ship_interior(struct char_data *ch, int dir);

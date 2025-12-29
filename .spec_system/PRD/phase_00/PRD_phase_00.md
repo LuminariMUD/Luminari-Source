@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 4/9 sessions (44%)
+**Progress**: 5/9 sessions (56%)
 
 ---
 
@@ -45,7 +45,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 | 02 | Dynamic Wilderness Room Allocation | Complete | 18 | 2025-12-29 |
 | 03 | Vessel Type System | Complete | 20 | 2025-12-29 |
 | 04 | Phase 2 Command Registration | Complete | 15 | 2025-12-29 |
-| 05 | Interior Room Generation Wiring | Not Started | ~18-22 | - |
+| 05 | Interior Room Generation Wiring | Complete | 18 | 2025-12-29 |
 | 06 | Interior Movement Implementation | Not Started | ~20-25 | - |
 | 07 | Persistence Integration | Not Started | ~18-22 | - |
 | 08 | External View & Display Systems | Not Started | ~20-25 | - |
@@ -75,11 +75,16 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 15/15
 - **Summary**: Registered 5 Phase 2 vessel commands (dock, undock, board_hostile, look_outside, ship_rooms) in interpreter.c cmd_info[] array. Created help entries for all commands in lib/text/help/help.hlp. Build compiles cleanly with no new warnings. Commands are now recognized by the parser and ready for testing.
 
+### Session 05: Interior Room Generation Wiring
+- **Completed**: 2025-12-29
+- **Tasks**: 18/18
+- **Summary**: Wired generate_ship_interior() to greyhawk_loadship() so vessels have interior rooms on creation. Implemented derive_vessel_type_from_template() to determine vessel type from hull weight. Added idempotent checks to prevent duplicate room generation. Changed VNUM base from 30000 to 70000 to avoid zone conflicts.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 05: Interior Room Generation Wiring
+- Session 06: Interior Movement Implementation
 
 ---
 
