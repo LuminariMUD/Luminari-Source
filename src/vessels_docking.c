@@ -239,10 +239,13 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   /* Notify crews */
   send_to_ship(ship1, "Docking complete with %s.", ship2->name);
   send_to_ship(ship2, "Docking complete with %s.", ship1->name);
-  
+
   /* Log the event */
-  log("Ships docked: %s (%d) <-> %s (%d)", 
+  log("Ships docked: %s (%d) <-> %s (%d)",
       ship1->name, ship1->shipnum, ship2->name, ship2->shipnum);
+
+  /* Save docking record to database */
+  save_docking_record(ship1, ship2, "standard");
 }
 
 /* Separate two vessels after undocking */
@@ -489,11 +492,14 @@ ACMD(do_undock) {
   
   /* Separate vessels */
   separate_vessels(ship, docked);
-  
+
+  /* Mark docking record as completed in database */
+  end_docking_record(ship, docked);
+
   /* Notifications */
   send_to_ship(ship, "Undocking complete.");
   send_to_ship(docked, "%s has undocked.", ship->name);
-  
+
   send_to_char(ch, "You have successfully undocked from %s.\r\n", docked->name);
 }
 

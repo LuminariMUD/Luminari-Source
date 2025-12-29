@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 6/9 sessions (67%)
+**Progress**: 7/9 sessions (78%)
 
 ---
 
@@ -32,8 +32,8 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - ~~Dynamic wilderness room allocation~~ (Session 02 Complete)
 - ~~Per-vessel type mapping~~ (Session 03 Complete)
 - ~~Phase 2 command registration~~ (Session 04 Complete)
-- Interior movement functions
-- Persistence integration
+- ~~Interior movement functions~~ (Session 06 Complete)
+- ~~Persistence integration~~ (Session 07 Complete)
 
 ---
 
@@ -47,7 +47,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 | 04 | Phase 2 Command Registration | Complete | 15 | 2025-12-29 |
 | 05 | Interior Room Generation Wiring | Complete | 18 | 2025-12-29 |
 | 06 | Interior Movement Implementation | Complete | 18 | 2025-12-29 |
-| 07 | Persistence Integration | Not Started | ~18-22 | - |
+| 07 | Persistence Integration | Complete | 18 | 2025-12-29 |
 | 08 | External View & Display Systems | Not Started | ~20-25 | - |
 | 09 | Testing & Validation | Not Started | ~15-20 | - |
 
@@ -85,11 +85,17 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 18/18
 - **Summary**: Implemented interior movement system for vessels enabling navigation between ship rooms using standard direction commands. Created get_ship_exit() for exit lookup, is_passage_blocked() for hatch checks, and do_move_ship_interior() for movement handling. Integrated ship interior detection into movement.c do_simple_move() with minimal changes (4 lines).
 
+### Session 07: Persistence Integration
+- **Completed**: 2025-12-29
+- **Tasks**: 18/18
+- **Summary**: Wired persistence layer to save and load vessel state across server restarts. Implemented is_valid_ship(), load_all_ship_interiors(), and save_all_vessels() functions in vessels_db.c. Integrated save_ship_interior() after interior generation, load_all_ship_interiors() at boot sequence, save_all_vessels() at shutdown, and docking record persistence on dock/undock operations.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 07: Persistence Integration
+- Session 08: External View & Display Systems
+- Session 09: Testing & Validation
 
 ---
 
@@ -132,10 +138,11 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Integration**: Many touchpoints with existing systems - Mitigation: Incremental wiring with testing at each step
 
 ### Relevant Considerations
-- **[P00] Duplicate struct definitions**: Must be resolved in Session 01 before further work
-- **[P00] Silent movement failures**: Critical bug addressed in Session 02
-- **[P00] Hard-coded room templates**: Should query DB table instead (Session 05)
+- ~~**[P00] Duplicate struct definitions**: Must be resolved in Session 01 before further work~~ (Resolved)
+- ~~**[P00] Silent movement failures**: Critical bug addressed in Session 02~~ (Resolved)
+- ~~**[P00] Hard-coded room templates**: Should query DB table instead (Session 05)~~ (Resolved)
 - ~~**[P00] Interior movement unimplemented**: Core functionality for Session 06~~ (Resolved)
+- ~~**[P00] Persistence not wired**: DB functions existed but not called~~ (Resolved in Session 07)
 
 ---
 
@@ -143,11 +150,11 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 
 Phase complete when:
 - [ ] All 9 sessions completed and validated
-- [ ] No duplicate definitions in vessels.h
-- [ ] Vessel movement works across entire wilderness grid
-- [ ] All Phase 2 commands registered and functional
-- [ ] Interior rooms generated and navigable
-- [ ] Persistence working across server restarts
+- [x] No duplicate definitions in vessels.h
+- [x] Vessel movement works across entire wilderness grid
+- [x] All Phase 2 commands registered and functional
+- [x] Interior rooms generated and navigable
+- [x] Persistence working across server restarts
 - [ ] Unit tests created and passing
 - [ ] Memory validation clean (Valgrind)
 - [ ] Performance targets met (<100ms response, <1KB per vessel)

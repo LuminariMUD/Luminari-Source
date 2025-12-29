@@ -461,9 +461,105 @@ void init_vessel_db(void)
         log("Info: MySQL not available, vessel persistence disabled");
         return;
     }
-    
+
     /* Clean up any orphaned dockings on startup */
     cleanup_orphaned_dockings();
-    
+
     log("Info: Vessel database persistence initialized");
+}
+
+/* ========================================================================= */
+/* PERSISTENCE LIFECYCLE FUNCTIONS                                           */
+/* ========================================================================= */
+
+/* External array declaration */
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
+/**
+ * Check if a ship slot contains valid ship data.
+ *
+ * A valid ship has shipnum > 0, which indicates the slot is in use.
+ * This follows the pattern established throughout the codebase.
+ *
+ * @param ship Pointer to ship data structure
+ * @return TRUE if ship is valid, FALSE otherwise
+ */
+int is_valid_ship(struct greyhawk_ship_data *ship)
+{
+    if (ship == NULL)
+    {
+        return FALSE;
+    }
+
+    /* A valid ship has shipnum > 0 */
+    if (ship->shipnum > 0)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * Load all ship interiors from database on server boot.
+ *
+ * Iterates through the greyhawk_ships array and loads interior
+ * configurations for any valid ships that have saved data.
+ * Should be called after rooms are loaded in boot_world().
+ */
+void load_all_ship_interiors(void)
+{
+    int i;
+    int loaded_count = 0;
+
+    if (!mysql_available)
+    {
+        log("Info: MySQL not available, skipping ship interior load");
+        return;
+    }
+
+    log("Info: Loading ship interiors from database...");
+
+    for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+    {
+        if (is_valid_ship(&greyhawk_ships[i]))
+        {
+            load_ship_interior(&greyhawk_ships[i]);
+            loaded_count++;
+        }
+    }
+
+    log("Info: Loaded interior configurations for %d ships", loaded_count);
+}
+
+/**
+ * Save all vessel states to database.
+ *
+ * Iterates through the greyhawk_ships array and saves interior
+ * configurations for all valid ships. Should be called at shutdown
+ * and periodically during auto-save.
+ */
+void save_all_vessels(void)
+{
+    int i;
+    int saved_count = 0;
+
+    if (!mysql_available)
+    {
+        log("Info: MySQL not available, skipping vessel save");
+        return;
+    }
+
+    log("Info: Saving all vessel states to database...");
+
+    for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+    {
+        if (is_valid_ship(&greyhawk_ships[i]))
+        {
+            save_ship_interior(&greyhawk_ships[i]);
+            saved_count++;
+        }
+    }
+
+    log("Info: Saved %d vessel states to database", saved_count);
 }

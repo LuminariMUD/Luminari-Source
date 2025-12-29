@@ -107,6 +107,7 @@
 #include "discord_bridge.h" /* Discord bridge integration */
 #include "terrain_bridge.h" /* Terrain bridge API server */
 #include "systems/intermud3/i3_client.h" /* Intermud3 client */
+#include "vessels.h" /* Vessel persistence */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -673,7 +674,11 @@ static void init_game(ush_int local_port)
   game_loop(mother_desc);
 
   Crash_save_all();
-  
+
+  /* Save all vessel states to database */
+  log("Saving vessel states to database.");
+  save_all_vessels();
+
   /* Shutdown Discord bridge */
   log("Shutting down Discord bridge.");
   shutdown_discord_bridge();

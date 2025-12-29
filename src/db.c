@@ -1245,6 +1245,9 @@ void boot_db(void)
   log("Initializing Greyhawk ship systems...");
   greyhawk_initialize_ships();
 
+  log("Loading ship interiors from database...");
+  load_all_ship_interiors();
+
   if (!no_rent_check)
   {
     log("Deleting timed-out crash and rent files:");

@@ -2395,6 +2395,9 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
     generate_ship_interior(&greyhawk_ships[j]);
     log("GREYHAWK SHIPS: Generated %d interior rooms for ship %d (type %d)",
         greyhawk_ships[j].num_rooms, j, greyhawk_ships[j].vessel_type);
+
+    /* Save the newly generated interior to database */
+    save_ship_interior(&greyhawk_ships[j]);
   }
 
   return j;
