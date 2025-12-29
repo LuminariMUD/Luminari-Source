@@ -48,8 +48,8 @@ jobs:
 
       - name: Verify binary exists
         run: |
-          test -f bin/circle
-          echo "Build successful: bin/circle created"
+          test -f circle
+          echo "Build successful: circle binary created"
 
   unit-tests:
     name: Unit Tests
