@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool
+          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool libgd-dev
 
       - name: Copy config headers
         run: |
@@ -63,9 +63,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential
 
+      - name: List test directory
+        run: ls -la unittests/CuTest/
+
       - name: Build unit tests
         working-directory: unittests/CuTest
-        run: make
+        run: make all
 
       - name: Run unit tests
         working-directory: unittests/CuTest
@@ -89,7 +92,7 @@ jobs:
 
       - name: Build unit tests
         working-directory: unittests/CuTest
-        run: make
+        run: make all
 
       - name: Run Valgrind on unit tests
         working-directory: unittests/CuTest
