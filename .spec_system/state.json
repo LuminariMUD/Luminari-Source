@@ -1,0 +1,16 @@
+{
+  "version": "2.0",
+  "project_name": "LuminariMUD Vessel System",
+  "description": "Unified vessel system for LuminariMUD enabling vessels to navigate freely across the 2048x2048 wilderness coordinate system with terrain-aware movement, elevation support (airships/submarines), and multi-room ship interiors.",
+  "current_phase": 0,
+  "current_session": null,
+  "phases": {
+    "0": {
+      "name": "Core Vessel System",
+      "status": "not_started",
+      "session_count": 0
+    }
+  },
+  "completed_sessions": [],
+  "next_session_history": []
+}
