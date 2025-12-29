@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 1/9 sessions (11%)
+**Progress**: 2/9 sessions (22%)
 
 ---
 
@@ -29,7 +29,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - Room templates (19 types in ship_room_templates)
 
 **Missing Implementation:**
-- Dynamic wilderness room allocation
+- ~~Dynamic wilderness room allocation~~ (Session 02 Complete)
 - Per-vessel type mapping
 - Phase 2 command registration
 - Interior movement functions
@@ -42,7 +42,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 | Session | Name | Status | Est. Tasks | Validated |
 |---------|------|--------|------------|-----------|
 | 01 | Header Cleanup & Foundation | Complete | 20 | 2025-12-29 |
-| 02 | Dynamic Wilderness Room Allocation | Not Started | ~18-22 | - |
+| 02 | Dynamic Wilderness Room Allocation | Complete | 18 | 2025-12-29 |
 | 03 | Vessel Type System | Not Started | ~15-18 | - |
 | 04 | Phase 2 Command Registration | Not Started | ~12-15 | - |
 | 05 | Interior Room Generation Wiring | Not Started | ~18-22 | - |
@@ -60,11 +60,16 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 20/20
 - **Summary**: Removed 123 lines of duplicate definitions from vessels.h, consolidated struct definitions, preserved Phase 2 multi-room fields, fixed pre-existing build issues (GOLEM_* constants, missing source files)
 
+### Session 02: Dynamic Wilderness Room Allocation
+- **Completed**: 2025-12-29
+- **Tasks**: 18/18
+- **Summary**: Implemented dynamic wilderness room allocation for vessels using the proven pattern from movement.c. Created helper function `get_or_allocate_wilderness_room()` and updated 3 vessel functions to use dynamic allocation with coordinate bounds validation and error logging.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 02: Dynamic Wilderness Room Allocation
+- Session 03: Vessel Type System
 
 ---
 

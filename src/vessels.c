@@ -62,6 +62,52 @@ bool greyhawk_setsail(int class, int shipnum);
 void greyhawk_initialize_ships(void);
 
 /* ========================================================================= */
+/* WILDERNESS ROOM ALLOCATION HELPER                                        */
+/* ========================================================================= */
+
+/**
+ * Get or allocate a wilderness room at the given coordinates.
+ *
+ * This function implements the dynamic room allocation pattern from movement.c.
+ * It first checks if a room already exists at the coordinates. If not, it
+ * allocates a room from the dynamic wilderness pool and configures it.
+ *
+ * @param x Wilderness X coordinate (-1024 to +1024)
+ * @param y Wilderness Y coordinate (-1024 to +1024)
+ * @return Room number (rnum) if successful, NOWHERE if allocation fails
+ */
+static room_rnum get_or_allocate_wilderness_room(int x, int y)
+{
+  room_rnum room;
+
+  /* Validate coordinates are within wilderness bounds */
+  if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
+  {
+    log("SYSERR: get_or_allocate_wilderness_room: Coordinates out of bounds (%d, %d)", x, y);
+    return NOWHERE;
+  }
+
+  /* Try to find existing room at coordinates */
+  room = find_room_by_coordinates(x, y);
+
+  if (room == NOWHERE)
+  {
+    /* No room exists, allocate from dynamic pool */
+    room = find_available_wilderness_room();
+    if (room == NOWHERE)
+    {
+      log("SYSERR: get_or_allocate_wilderness_room: Room pool exhausted at (%d, %d)", x, y);
+      return NOWHERE;
+    }
+
+    /* Configure the room for these coordinates */
+    assign_wilderness_room(room, x, y);
+  }
+
+  return room;
+}
+
+/* ========================================================================= */
 /* GREYHAWK SHIP UTILITY FUNCTIONS                                         */
 /* ========================================================================= */
 
@@ -249,42 +295,47 @@ void greyhawk_initialize_ships(void) {
  * @param new_z New elevation/depth for airships/submarines
  * @return TRUE if position update successful, FALSE otherwise
  */
-bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z) {
+bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z)
+{
   room_rnum wilderness_room;
-  
+
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS) {
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
     log("SYSERR: update_ship_wilderness_position: Invalid ship number %d", shipnum);
     return FALSE;
   }
-  
+
   /* Validate coordinates within wilderness bounds */
-  if (new_x < -1024 || new_x > 1024 || new_y < -1024 || new_y > 1024) {
+  if (new_x < -1024 || new_x > 1024 || new_y < -1024 || new_y > 1024)
+  {
     log("SYSERR: update_ship_wilderness_position: Coordinates out of bounds (%d, %d)", new_x, new_y);
     return FALSE;
   }
-  
+
   /* Update ship coordinates */
   greyhawk_ships[shipnum].x = (float)new_x;
   greyhawk_ships[shipnum].y = (float)new_y;
   greyhawk_ships[shipnum].z = (float)new_z;
-  
-  /* Find or create wilderness room at these coordinates */
-  wilderness_room = find_room_by_coordinates(new_x, new_y);
-  if (wilderness_room == NOWHERE) {
-    log("SYSERR: update_ship_wilderness_position: Could not find/create wilderness room at (%d, %d)", new_x, new_y);
+
+  /* Get or allocate wilderness room at these coordinates using dynamic allocation */
+  wilderness_room = get_or_allocate_wilderness_room(new_x, new_y);
+  if (wilderness_room == NOWHERE)
+  {
+    log("SYSERR: update_ship_wilderness_position: Room pool exhausted or invalid coordinates (%d, %d)", new_x, new_y);
     return FALSE;
   }
-  
+
   /* Update ship's location to the wilderness room */
   greyhawk_ships[shipnum].location = world[wilderness_room].number;
-  
+
   /* If ship object exists, move it to new location */
-  if (greyhawk_ships[shipnum].shipobj) {
+  if (greyhawk_ships[shipnum].shipobj)
+  {
     obj_from_room(greyhawk_ships[shipnum].shipobj);
     obj_to_room(greyhawk_ships[shipnum].shipobj, wilderness_room);
   }
-  
+
   return TRUE;
 }
 
@@ -294,25 +345,30 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
  * @param shipnum Ship index number
  * @return Sector type at ship's coordinates
  */
-int get_ship_terrain_type(int shipnum) {
+int get_ship_terrain_type(int shipnum)
+{
   room_rnum wilderness_room;
-  int x, y;
-  
+  int x;
+  int y;
+
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS) {
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
     return SECT_INSIDE;  /* Default safe sector */
   }
-  
+
   /* Get ship coordinates */
   x = (int)greyhawk_ships[shipnum].x;
   y = (int)greyhawk_ships[shipnum].y;
-  
-  /* Find wilderness room at coordinates */
-  wilderness_room = find_room_by_coordinates(x, y);
-  if (wilderness_room == NOWHERE) {
+
+  /* Get or allocate wilderness room at coordinates using dynamic allocation */
+  wilderness_room = get_or_allocate_wilderness_room(x, y);
+  if (wilderness_room == NOWHERE)
+  {
+    log("SYSERR: get_ship_terrain_type: Room pool exhausted at (%d, %d)", x, y);
     return SECT_INSIDE;  /* Default safe sector */
   }
-  
+
   /* Return the sector type of the wilderness room */
   return world[wilderness_room].sector_type;
 }
@@ -325,47 +381,59 @@ int get_ship_terrain_type(int shipnum) {
  * @param z Target Z coordinate (elevation/depth)
  * @return TRUE if vessel can enter terrain, FALSE otherwise
  */
-bool can_vessel_traverse_terrain(int vessel_type, int x, int y, int z) {
+bool can_vessel_traverse_terrain(int vessel_type, int x, int y, int z)
+{
   room_rnum wilderness_room;
   int sector_type;
-  
-  /* Find wilderness room at coordinates */
-  wilderness_room = find_room_by_coordinates(x, y);
-  if (wilderness_room == NOWHERE) {
+
+  /* Validate coordinates within wilderness bounds first */
+  if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
+  {
     return FALSE;
   }
-  
+
+  /* Get or allocate wilderness room at coordinates using dynamic allocation */
+  wilderness_room = get_or_allocate_wilderness_room(x, y);
+  if (wilderness_room == NOWHERE)
+  {
+    log("SYSERR: can_vessel_traverse_terrain: Room pool exhausted at (%d, %d)", x, y);
+    return FALSE;
+  }
+
   sector_type = world[wilderness_room].sector_type;
-  
+
   /* Check vessel type capabilities against terrain */
-  switch (vessel_type) {
+  switch (vessel_type)
+  {
     case VESSEL_TYPE_SAILING_SHIP:
       /* Sailing ships can only traverse water */
-      return (sector_type == SECT_WATER_SWIM || 
+      return (sector_type == SECT_WATER_SWIM ||
               sector_type == SECT_WATER_NOSWIM ||
               sector_type == SECT_UNDERWATER ||
               sector_type == SECT_OCEAN);
-      
+
     case VESSEL_TYPE_SUBMARINE:
       /* Submarines can traverse all water including underwater */
-      return (sector_type == SECT_WATER_SWIM || 
+      return (sector_type == SECT_WATER_SWIM ||
               sector_type == SECT_WATER_NOSWIM ||
               sector_type == SECT_UNDERWATER ||
               sector_type == SECT_OCEAN);
-      
+
     case VESSEL_TYPE_AIRSHIP:
       /* Airships can fly over any terrain if elevation is high enough */
-      if (z > 100) {  /* Flying altitude */
+      if (z > 100)
+      {
+        /* Flying altitude */
         return TRUE;
       }
       /* At low altitude, avoid mountains */
       return (sector_type != SECT_MOUNTAIN);
-      
+
     case VESSEL_TYPE_MAGICAL_CRAFT:
       /* Magical vessels have fewer restrictions */
-      return (sector_type != SECT_INSIDE && 
+      return (sector_type != SECT_INSIDE &&
               sector_type != SECT_LAVA);
-      
+
     default:
       return FALSE;
   }
