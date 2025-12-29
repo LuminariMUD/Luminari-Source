@@ -45,10 +45,12 @@ jobs:
           ./configure
 
       - name: Build
-        run: make -j$(nproc)
+        run: make -j"$(nproc)"
 
       - name: Verify binary exists
-        run: test -f bin/circle && echo "Build successful: bin/circle created"
+        run: |
+          test -f bin/circle
+          echo "Build successful: bin/circle created"
 
   unit-tests:
     name: Unit Tests
