@@ -21512,3 +21512,47 @@ int get_bard_curtain_call_damage_bonus(struct char_data *ch)
   /* 2d6 precision damage */
   return dice(2, 6);
 }
+
+int class_to_perk_class(int class_type, int which_perk)
+{
+  switch (class_type)
+  {
+    case  CLASS_WIZARD: return CLASS_WIZARD;
+    case  CLASS_CLERIC: return CLASS_CLERIC;
+    case  CLASS_ROGUE: return CLASS_ROGUE;
+    case  CLASS_WARRIOR: return CLASS_WARRIOR;
+    case  CLASS_MONK: return CLASS_MONK;
+    case  CLASS_DRUID: return CLASS_DRUID;
+    case  CLASS_BERSERKER: return CLASS_BERSERKER;
+    case  CLASS_SORCERER: return CLASS_SORCERER;
+    case  CLASS_PALADIN: return CLASS_PALADIN;
+    case  CLASS_RANGER: return CLASS_RANGER;
+    case  CLASS_BARD: return CLASS_BARD;
+    case  CLASS_WEAPON_MASTER: return CLASS_WARRIOR;
+    case  CLASS_ARCANE_ARCHER: if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_WIZARD;
+    case  CLASS_STALWART_DEFENDER: return CLASS_WARRIOR
+    case  CLASS_SHIFTER: return CLASS_DRUID;
+    case  CLASS_DUELIST: if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_ROGUE;
+    case  CLASS_MYSTIC_THEURGE:if (which_perk == 1) return CLASS_WIZARD; else return CLASS_CLERIC;
+    case  CLASS_ALCHEMIST: return CLASS_ALCHEMIST;
+    case  CLASS_ARCANE_SHADOW:if (which_perk == 1) return CLASS_WIZARD; else return CLASS_ROGUE;
+    case  CLASS_SACRED_FIST:if (which_perk == 1) return CLASS_MONK; else return CLASS_CLERIC;
+    case  CLASS_ELDRITCH_KNIGHT:if (which_perk == 1) return CLASS_WIZARD; else return CLASS_WARRIOR;
+    case  CLASS_PSIONICIST: return CLASS_PSIONICIST;
+    case  CLASS_SPELLSWORD:if (which_perk == 1) return CLASS_WIZARD; else return CLASS_WARRIOR;
+    case  CLASS_SHADOW_DANCER: return CLASS_ROGUE;
+    case  CLASS_BLACKGUARD: return CLASS_BLACKGUARD;
+    case  CLASS_ASSASSIN: return CLASS_ROGUE;
+    case  CLASS_INQUISITOR: return CLASS_INQUISITOR;
+    case  CLASS_SUMMONER: return CLASS_SUMMONER;
+    case  CLASS_WARLOCK: return CLASS_WARLOCK;
+    case  CLASS_NECROMANCER: if (which_perk == 1) return CLASS_WIZARD; else return CLASS_CLERIC;
+    case  CLASS_KNIGHT_OF_SOLAMNIA: if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_CLERIC;
+    case  CLASS_KNIGHT_OF_THE_THORN:if (which_perk == 1) return CLASS_WIZARD; else return CLASS_WARRIOR;
+    case  CLASS_KNIGHT_OF_THE_SKULL:if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_CLERIC;
+    case  CLASS_KNIGHT_OF_THE_LILY:if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_WIZARD;
+    case  CLASS_DRAGONRIDER: return CLASS_WARRIOR;
+    case  CLASS_ARTIFICER: return CLASS_ARTIFICER;
+  }
+  return -1;
+}
