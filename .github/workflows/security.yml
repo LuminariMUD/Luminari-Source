@@ -37,7 +37,7 @@ jobs:
 
       - name: Run Gitleaks
         run: |
-          gitleaks detect --source . --verbose --redact --exit-code 1 || {
+          gitleaks detect --source . --verbose --redact --exit-code 1 --gitleaksignore .gitleaksignore || {
             echo "::warning::Gitleaks found potential secrets. Review the output above."
             exit 1
           }
