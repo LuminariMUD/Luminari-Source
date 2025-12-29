@@ -1,0 +1,25 @@
+# Dependabot configuration for LuminariMUD
+# Keeps GitHub Actions up to date automatically
+
+version: 2
+updates:
+  # GitHub Actions - keep workflows current
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 5
+    groups:
+      # Group minor/patch updates together to reduce PR noise
+      actions-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
