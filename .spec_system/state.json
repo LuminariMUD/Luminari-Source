@@ -15,7 +15,8 @@
   "completed_sessions": [
     "phase00-session01-header-cleanup-foundation",
     "phase00-session02-dynamic-wilderness-room-allocation",
-    "phase00-session03-vessel-type-system"
+    "phase00-session03-vessel-type-system",
+    "phase00-session04-phase2-command-registration"
   ],
   "next_session_history": [
     {
@@ -31,6 +32,11 @@
     {
       "date": "2025-12-29",
       "session": "phase00-session03-vessel-type-system",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-29",
+      "session": "phase00-session04-phase2-command-registration",
       "status": "completed"
     }
   ]

@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 3/9 sessions (33%)
+**Progress**: 4/9 sessions (44%)
 
 ---
 
@@ -30,8 +30,8 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 
 **Missing Implementation:**
 - ~~Dynamic wilderness room allocation~~ (Session 02 Complete)
-- Per-vessel type mapping
-- Phase 2 command registration
+- ~~Per-vessel type mapping~~ (Session 03 Complete)
+- ~~Phase 2 command registration~~ (Session 04 Complete)
 - Interior movement functions
 - Persistence integration
 
@@ -44,7 +44,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 | 01 | Header Cleanup & Foundation | Complete | 20 | 2025-12-29 |
 | 02 | Dynamic Wilderness Room Allocation | Complete | 18 | 2025-12-29 |
 | 03 | Vessel Type System | Complete | 20 | 2025-12-29 |
-| 04 | Phase 2 Command Registration | Not Started | ~12-15 | - |
+| 04 | Phase 2 Command Registration | Complete | 15 | 2025-12-29 |
 | 05 | Interior Room Generation Wiring | Not Started | ~18-22 | - |
 | 06 | Interior Movement Implementation | Not Started | ~20-25 | - |
 | 07 | Persistence Integration | Not Started | ~18-22 | - |
@@ -70,11 +70,16 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 20/20
 - **Summary**: Implemented per-vessel type terrain capabilities using static lookup table. Created vessel_terrain_data array mapping all 8 vessel types to 40 sector types. Added get_vessel_terrain_caps(), get_vessel_type_from_ship(), and get_vessel_type_name() accessors. Replaced all hardcoded VESSEL_TYPE_SAILING_SHIP references with actual vessel type lookups.
 
+### Session 04: Phase 2 Command Registration
+- **Completed**: 2025-12-29
+- **Tasks**: 15/15
+- **Summary**: Registered 5 Phase 2 vessel commands (dock, undock, board_hostile, look_outside, ship_rooms) in interpreter.c cmd_info[] array. Created help entries for all commands in lib/text/help/help.hlp. Build compiles cleanly with no new warnings. Commands are now recognized by the parser and ready for testing.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 04: Phase 2 Command Registration
+- Session 05: Interior Room Generation Wiring
 
 ---
 

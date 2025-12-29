@@ -1164,7 +1164,13 @@ cpp_extern const struct command_info cmd_info[] = {
     {"boardfind", "boardfind", POS_DEAD, do_boardfind, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disembark", "disembark", POS_STANDING, do_greyhawk_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"shipload", "shipload", POS_DEAD, do_greyhawk_shipload, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},    
+    {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    /* Phase 2 Vessel Commands */
+    {"dock", "dock", POS_STANDING, do_dock, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"undock", "undock", POS_STANDING, do_undock, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"board_hostile", "board_hostile", POS_FIGHTING, do_board_hostile, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"look_outside", "look_outside", POS_RESTING, do_look_outside, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"ship_rooms", "ship_rooms", POS_RESTING, do_ship_rooms, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* test commands for new prep system */
     //{ "memtest", "memtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},
