@@ -262,6 +262,13 @@ ACMD(do_grapple)
   else if (HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
    grapple_mod = 4;
 
+  /* Root cantrip: +3 resistance vs trip/knockdown/grapple */
+  if (affected_by_spell(vict, SPELL_ROOT))
+  {
+    grapple_mod -= 3;
+    send_to_char(vict, "Your rooted stance grants you +3 resistance to being grappled!\r\n");
+  }
+
   /* try for reversale? */
   if (GRAPPLE_ATTACKER(ch) && GRAPPLE_ATTACKER(ch) == vict &&
       AFF_FLAGGED(ch, AFF_GRAPPLED))

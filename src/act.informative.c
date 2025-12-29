@@ -58,6 +58,7 @@
 #include "perfmon.h"
 #include "routing.h"
 #include "perks.h"
+#include "moon_bonus_spells.h"
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
@@ -218,7 +219,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(tch, i + 1, NULL), compute_energy_absorb(tch, i + 1));
+                   compute_damtype_reduction(tch, i + 1, NULL, TYPE_UNDEFINED), compute_energy_absorb(tch, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -486,6 +487,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     {
       act("\r\n$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
     }
+      if (GET_OBJ_ARCANE_MARK(obj))
+        send_to_char(ch, "\r\nIt bears an arcane mark reading \"%s\".", GET_OBJ_ARCANE_MARK(obj));
 
     break;
 
@@ -2514,7 +2517,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(k, i + 1, NULL), compute_energy_absorb(k, i + 1));
+                   compute_damtype_reduction(k, i + 1, NULL, TYPE_UNDEFINED), compute_energy_absorb(k, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -2645,6 +2648,15 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   send_to_char(ch, "\tn");
 
   for (i = 0; i < NUM_AFF_FLAGS; i++)
+  {
+    if (IS_SET_AR(AFF_FLAGS(k), i))
+    {
+      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n",
+                   CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
+                   CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
+    }
+  }
+  for (i = 0; i < NUM_AFF2_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(k), i))
     {
@@ -3101,6 +3113,8 @@ ACMD(do_look)
     }
     if (!*arg) /* "look" alone, without an argument at all */
       look_at_room(ch, 1);
+    else if (is_abbrev(arg, "moons"))
+      look_at_moons(ch);
     else if (is_abbrev(arg, "in"))
       look_in_obj(ch, arg2);
     /* did the char type 'look <direction>?' */
@@ -3958,7 +3972,7 @@ ACMD(do_score)
   /* Display race with bounds checking */
   send_to_char(ch, "\tcRace : \tn%-20s ", 
                (valid_luminari_race(GET_RACE(ch)) ? 
-                 race_list[GET_RACE(ch)].type : "Unknown");
+                 race_list[GET_RACE(ch)].type : "Unknown"));
 #endif
 
   /* Build class string - shows all classes for multiclass characters */
@@ -4374,6 +4388,38 @@ ACMD(do_score)
                   restricted_school_reference[school] >= 0 && 
                   restricted_school_reference[school] < NUM_SCHOOLS) ? 
                    school_names[restricted_school_reference[school]] : "None"); /* Opposing school */
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  if (is_arcane_caster(ch))
+  {
+    if (IS_GOOD(ch))
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[0],  
+        weather_info.moons.solinari_st >= 0 ? "+" : "", weather_info.moons.solinari_st,
+        weather_info.moons.solinari_lv >= 0 ? "+" : "", weather_info.moons.solinari_lv,
+        MAX(0, weather_info.moons.solinari_sp)
+      );
+    }
+    else if (IS_NEUTRAL(ch))
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[0],  
+        weather_info.moons.lunitari_st >= 0 ? "+" : "", weather_info.moons.lunitari_st,
+        weather_info.moons.lunitari_lv >= 0 ? "+" : "", weather_info.moons.lunitari_lv,
+        MAX(0, weather_info.moons.lunitari_sp)
+      );
+    }
+    else
+    {
+      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
+        moon_names[1],  
+        weather_info.moons.nuitari_st >= 0 ? "+" : "", weather_info.moons.nuitari_st,
+        weather_info.moons.nuitari_lv >= 0 ? "+" : "", weather_info.moons.nuitari_lv,
+        MAX(0, weather_info.moons.nuitari_sp)
+      );
+    }
     draw_line(ch, line_length, '-', '-');
   }
 
@@ -8680,11 +8726,11 @@ ACMD(do_survey)
     return;
   }
 
-  if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
-  {
-    send_to_char(ch, "Its too bright to survey!\r\n");
-    return;
-  }
+  // if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  // {
+  //   send_to_char(ch, "Its too bright to survey!\r\n");
+  //   return;
+  // }
 
   /* Get current coordinates */
   x = world[IN_ROOM(ch)].coords[0];
@@ -10489,6 +10535,59 @@ void perform_master_spell_list(struct char_data *ch)
 
   page_string(ch->desc, out, TRUE);
   free(out);
+}
+
+
+void look_at_moons(struct char_data *ch)
+{
+
+    if (!CONFIG_ARCANE_MOON_PHASES)
+    {
+      send_to_char(ch, "The moon phases system is not enabled on this server.\r\n");
+      return;
+    }
+
+  if (!OUTSIDE(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "Perhaps you could get a better view of the moons outside?\r\n");
+    return;
+  }
+
+  if (!(weather_info.sunlight == SUN_DARK))
+  {
+    send_to_char(ch, "Waiting until night would make this task much easier.\r\n");
+    return;
+  }
+
+  if (weather_info.moons.solinari_phase > 27)
+    send_to_char(ch, "A silvery glow can be seen in the sky as %s begins to appear.\r\n", moon_names[0]);
+  else if (weather_info.moons.solinari_phase > 18)
+    send_to_char(ch, "%s illuminates the sky with silvery light.\r\n", moon_names[0]);
+  else if (weather_info.moons.solinari_phase > 9)
+    send_to_char(ch, "The sky grows dimmer as %s slowly fades away.\r\n", moon_names[0]);
+  else
+    send_to_char(ch, "No trace of the silvery light from %s is visible.\r\n", moon_names[0]);
+
+  if (weather_info.moons.lunitari_phase > 6)
+    send_to_char(ch, "A crimson glow can be seen in the sky as %s begins to appear.\r\n", moon_names[1]);
+  else if (weather_info.moons.lunitari_phase > 4)
+    send_to_char(ch, "%s casts a crimson glow throughout the sky.\r\n", moon_names[1]);
+  else if (weather_info.moons.lunitari_phase > 2)
+    send_to_char(ch, "The crimson glow weakens as %s slowly fades away.\r\n", moon_names[1]);
+  else
+    send_to_char(ch, "No trace of the crimson light from %s is visible.\r\n", moon_names[1]);
+
+  if (IS_EVIL(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    if (weather_info.moons.nuitari_phase > 21)
+      send_to_char(ch, "The night sky seems to grow darker as %s slowly appears.\r\n", moon_names[2]);
+    else if (weather_info.moons.nuitari_phase > 4)
+      send_to_char(ch, "Total blackness envelopes the area of the sky where %s resides.\r\n", moon_names[2]);
+    else if (weather_info.moons.nuitari_phase > 2)
+      send_to_char(ch, "The darkness seems to lessen as %s begins to vanish.\r\n", moon_names[2]);
+    else
+      send_to_char(ch, "No trace of the infinite darkness from %s is visible.\r\n", moon_names[2]);
+  }
 }
 
 /*EOF*/

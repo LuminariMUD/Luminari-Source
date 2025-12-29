@@ -254,11 +254,39 @@ struct mud_event_list mud_event_index[] = {
     {"Fist of Four Thunders", event_fist_of_four_thunders, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Savage Charge Used", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Divine Sacrifice", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    // 175
     {"Radiant Aura", event_radiant_aura, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Paladin Channel Energy", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Mass Cure Wounds", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Feral Charge Used", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0}
-    // 175
+    {"Feral Charge Used", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Device Repair", event_device_repair, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    // 180
+    {"Curtain Call Cooldown", event_countdown, EVENT_CHAR, "Your curtain call is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Perfect Tempo Cooldown", event_countdown, EVENT_CHAR, "Your perfect tempo is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Universal Mutagen Cooldown", event_countdown, EVENT_CHAR, "You can arm Universal Mutagen again.", NULL, FEAT_UNDEFINED, 0},
+    {"Deflective Screen Cooldown", event_countdown, EVENT_CHAR, "Your deflective screen is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Accelerated Manifestation Cooldown", event_countdown, EVENT_CHAR, "You can use Accelerated Manifestation again.", NULL, FEAT_UNDEFINED, 0},
+    {"Rapid Manifester Cooldown", event_countdown, EVENT_CHAR, "You can use Rapid Manifester again.", NULL, FEAT_UNDEFINED, 0},
+    {"Command the Weak (Swift)", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Fear Escalation", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Midnight Edict", event_daily_use_cooldown, EVENT_CHAR, "You are ready to unleash Midnight Edict again.", NULL, FEAT_UNDEFINED, 1},
+    {"Profane Dominion Damage", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Profane Weapon Bond", event_daily_use_cooldown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Relentless Assault", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Unholy Blitz", event_countdown, EVENT_CHAR, "Your unholy blitz is ready again.", NULL, FEAT_UNDEFINED, 0},
+    {"Avatar of Profanity", event_daily_use_cooldown, EVENT_CHAR, "You may invoke Avatar of Profanity again.", NULL, FEAT_UNDEFINED, 0},
+    {"Cataclysmic Smite", event_daily_use_cooldown, EVENT_CHAR, "You can unleash Cataclysmic Smite again.", NULL, FEAT_UNDEFINED, 0},
+    {"Graveborn Vigor", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Sinister Recovery", event_daily_use_cooldown, EVENT_CHAR, "You feel ready to channel sinister recovery again.", NULL, FEAT_UNDEFINED, 0},
+    {"Shade Step", event_countdown, EVENT_CHAR, "You slip back into the shadows.", NULL, FEAT_UNDEFINED, 0},
+    {"Undying Vigor", event_daily_use_cooldown, EVENT_CHAR, "Your undying vigor has recovered and can save you from death again.", NULL, FEAT_UNDEFINED, 0},
+    {"Empowered Judgement Dual", event_daily_use_cooldown, EVENT_CHAR, "You can use Empowered Judgment dual judgment again.", NULL, FEAT_UNDEFINED, 0},
+    {"Swift Spellcaster Used", event_daily_use_cooldown, EVENT_CHAR, "You can benefit from Swift Spellcaster again.", NULL, FEAT_UNDEFINED, 0},
+    {"Judgment Recovery Used", event_daily_use_cooldown, EVENT_CHAR, "You can use Judgment Recovery again.", NULL, FEAT_UNDEFINED, 0},
+    {"Spell Metamastery Used", event_countdown, EVENT_CHAR, "You can use Spell Metamastery again.", NULL, FEAT_UNDEFINED, 0},
+    {"Divine Spellstrike Used", event_daily_use_cooldown, EVENT_CHAR, "You can use Divine Spellstrike again.", NULL, FEAT_UNDEFINED, 0},
+    {"Inexorable Judgment Used", event_daily_use_cooldown, EVENT_CHAR, "You can call upon Inexorable Judgment again.", NULL, FEAT_UNDEFINED, 0},
+    {"Supreme Spellcasting Used", event_daily_use_cooldown, EVENT_CHAR, "You can invoke Supreme Spellcasting again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

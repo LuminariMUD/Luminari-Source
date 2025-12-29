@@ -225,6 +225,22 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
+  if (obj->arcane_mark)
+  {
+    fprintf(fp, "AMrk: %s\n", obj->arcane_mark);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "AMrk: %s\n", obj->arcane_mark);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
+  if (obj->restring_identifier)
+  {
+    fprintf(fp, "RtID: %s\n", obj->restring_identifier);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "RtID: %s\n", obj->restring_identifier);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
   if (TEST_OBJS(obj, temp, short_description))
   {
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
@@ -333,6 +349,14 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
+  if (TEST_OBJN(bitvector2))
+  {
+    fprintf(fp, "Prm2: %d %d %d %d\n", GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "Prm2: %d %d %d %d\n", GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
   if (TEST_OBJN(wear_flags))
   {
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
@@ -352,22 +376,32 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+  {
+    bool diff = obj->affected[counter2].modifier != temp->affected[counter2].modifier ||
+                obj->affected[counter2].location != temp->affected[counter2].location ||
+                obj->affected[counter2].bonus_type != temp->affected[counter2].bonus_type ||
+                obj->affected[counter2].specific != temp->affected[counter2].specific ||
+                obj->affected[counter2].specific != 0; /* force-save specific if set */
+
+    if (diff)
     {
-      fprintf(fp, "Aff : %d %d %d %d\n",
+      fprintf(fp, "Aff : %d %d %d %d %d\n",
               counter2,
               obj->affected[counter2].location,
               obj->affected[counter2].modifier,
-              obj->affected[counter2].bonus_type);
+              obj->affected[counter2].bonus_type,
+              obj->affected[counter2].specific);
 #ifdef OBJSAVE_DB
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d %d\n",
                counter2,
                obj->affected[counter2].location,
                obj->affected[counter2].modifier,
-               obj->affected[counter2].bonus_type);
+               obj->affected[counter2].bonus_type,
+               obj->affected[counter2].specific);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
+  }
 
   /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description)
@@ -1942,12 +1976,15 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "Aff "))
       {
-        sscanf(line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+        t[4] = 0;
+        sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
         if (t[0] < MAX_OBJ_AFFECT)
         {
           temp->affected[t[0]].location = t[1];
           temp->affected[t[0]].modifier = t[2];
           temp->affected[t[0]].bonus_type = t[3];
+          temp->affected[t[0]].specific = t[4];
+
         }
       }
       else if (!strcmp(tag, "Actv"))
@@ -1959,7 +1996,12 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
         temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
       }
-      break;
+      else if (!strcmp(tag, "AMrk"))
+      {
+        if (temp->arcane_mark)
+          free(temp->arcane_mark);
+        temp->arcane_mark = strdup(line);
+      }
     case 'C':
       if (!strcmp(tag, "Cost"))
         GET_OBJ_COST(temp) = num;
@@ -2027,6 +2069,18 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         GET_OBJ_PERM(temp)
         [3] = asciiflag_conv(f4);
       }
+      else if (!strcmp(tag, "Prm2"))
+      {
+        sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+        GET_OBJ2_PERM(temp)
+        [0] = asciiflag_conv(f1);
+        GET_OBJ2_PERM(temp)
+        [1] = asciiflag_conv(f2);
+        GET_OBJ2_PERM(temp)
+        [2] = asciiflag_conv(f3);
+        GET_OBJ2_PERM(temp)
+        [3] = asciiflag_conv(f4);
+      }
       break;
       if (!strcmp(tag, "Prof"))
         GET_OBJ_PROF(temp) = num;
@@ -2034,6 +2088,12 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'R':
       if (!strcmp(tag, "Rent"))
         GET_OBJ_RENT(temp) = num;
+      else if (!strcmp(tag, "RtID"))
+      {
+        if (temp->restring_identifier)
+          free(temp->restring_identifier);
+        temp->restring_identifier = strdup(line);
+      }
       break;
     case 'S':
       if (!strcmp(tag, "Shrt"))
@@ -2397,12 +2457,14 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          t[4] = 0;
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
+            temp->affected[t[0]].specific = t[4];
           }
         }
         else if (!strcmp(tag, "Actv"))
@@ -2413,6 +2475,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           temp->activate_spell[ACT_SPELL_CURRENT_USES]  = t[2];
           temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
           temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
+        }
+        else if (!strcmp(tag, "AMrk"))
+        {
+          if (temp->arcane_mark)
+            free(temp->arcane_mark);
+          temp->arcane_mark = strdup(*line);
         }
         break;
       case 'C':
@@ -2486,12 +2554,26 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           GET_OBJ_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
+        else if (!strcmp(tag, "Prm2"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ2_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ2_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ2_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ2_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
         break;
       case 'R':
         if (!strcmp(tag, "Rent"))
           GET_OBJ_RENT(temp) = num;
+        else if (!strcmp(tag, "RtID"))
+          temp->restring_identifier = strdup(*line);
         break;
       case 'S':
         if (!strcmp(tag, "Shrt"))
@@ -3066,6 +3148,12 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
     snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
+  if (TEST_OBJN(bitvector2))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Prm2: %d %d %d %d\n", 
+      GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
   if (TEST_OBJN(wear_flags))
   {
     snprintf(line_buf, sizeof(line_buf), "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
@@ -3079,15 +3167,24 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+  {
+    bool diff = obj->affected[counter2].modifier != temp->affected[counter2].modifier ||
+                obj->affected[counter2].location != temp->affected[counter2].location ||
+                obj->affected[counter2].bonus_type != temp->affected[counter2].bonus_type ||
+                obj->affected[counter2].specific != temp->affected[counter2].specific ||
+                obj->affected[counter2].specific != 0; /* force-save specific if set */
+
+    if (diff)
     {
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+            snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d %d\n",
                counter2,
                obj->affected[counter2].location,
                obj->affected[counter2].modifier,
-               obj->affected[counter2].bonus_type);
+              obj->affected[counter2].bonus_type,
+              obj->affected[counter2].specific);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
     }
+  }
 
 /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description)
@@ -3392,12 +3489,14 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          t[4] = 0;
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
+            temp->affected[t[0]].specific = t[4];
           }
         }
         else if (!strcmp(tag, "Actv"))
@@ -3479,6 +3578,18 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           GET_OBJ_PERM(temp)
           [2] = asciiflag_conv(f3);
           GET_OBJ_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        if (!strcmp(tag, "Prm2"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ2_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ2_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ2_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ2_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))
@@ -3744,6 +3855,12 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
     snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
+  if (TEST_OBJN(bitvector2))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Prm2: %d %d %d %d\n", 
+        GET_OBJ2_PERM(obj)[0], GET_OBJ2_PERM(obj)[1], GET_OBJ2_PERM(obj)[2], GET_OBJ2_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
   if (TEST_OBJN(wear_flags))
   {
     snprintf(line_buf, sizeof(line_buf), "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
@@ -3757,15 +3874,24 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+  {
+    bool diff = obj->affected[counter2].modifier != temp->affected[counter2].modifier ||
+                obj->affected[counter2].location != temp->affected[counter2].location ||
+                obj->affected[counter2].bonus_type != temp->affected[counter2].bonus_type ||
+                obj->affected[counter2].specific != temp->affected[counter2].specific ||
+                obj->affected[counter2].specific != 0; /* force-save specific if set */
+
+    if (diff)
     {
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+            snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d %d\n",
                counter2,
                obj->affected[counter2].location,
                obj->affected[counter2].modifier,
-               obj->affected[counter2].bonus_type);
+              obj->affected[counter2].bonus_type,
+              obj->affected[counter2].specific);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
     }
+  }
 
 /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description)
@@ -4068,12 +4194,14 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          t[4] = 0;
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
+            temp->affected[t[0]].specific = t[4];
           }
         }
         else if (!strcmp(tag, "Actv"))
@@ -4155,6 +4283,18 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           GET_OBJ_PERM(temp)
           [2] = asciiflag_conv(f3);
           GET_OBJ_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        if (!strcmp(tag, "Prm2"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ2_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ2_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ2_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ2_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))

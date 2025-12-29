@@ -38,6 +38,8 @@
 #include "actionqueues.h"
 #include "craft.h"
 #include "assign_wpn_armor.h"
+#include "perks.h"
+#include "perks.h"
 #include "grapple.h"
 #include "alchemy.h"
 #include "missions.h"
@@ -389,6 +391,12 @@ void perform_flee(struct char_data *ch)
       GUI_CMBT_NOTVICT_OPEN(ch, NULL);
       act("$n failed to flee the battle!", TRUE, ch, 0, 0, TO_ROOM);
       GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
+      /* Bard Swashbuckler: Agile Disengage - +4 AC for 3 rounds on failed flee */
+      if (has_bard_agile_disengage(ch) && !is_affected_by_agile_disengage(ch))
+      {
+        call_magic(ch, ch, 0, AFFECT_BARD_AGILE_DISENGAGE, 0, CASTER_LEVEL(ch), CAST_INNATE);
+      }
     }
   }
 }
@@ -646,6 +654,10 @@ int get_initiative_modifier(struct char_data *ch)
   
   /* Tactical Fighter perk: Improved Initiative I */
   initiative += 2 * get_perk_rank(ch, PERK_FIGHTER_IMPROVED_INITIATIVE_1, CLASS_WARRIOR);
+
+  /* Inquisitor Favored Terrain: +2 initiative in favored terrain */
+  if (is_inquisitor_in_favored_terrain(ch))
+    initiative += 2;
   
   return initiative;
 }
@@ -1098,6 +1110,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     /* Berserker Primal Warrior perk: Uncanny Dodge Mastery - +3 dodge AC */
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_berserker_uncanny_dodge_ac_bonus(ch);
+
+    /* Ranger Wilderness Warrior: Tempest - dodge AC bonus when dual wielding */
+    if (!IS_NPC(ch) && is_dual_wielding(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_ranger_tempest_ac(ch);
       
     /* Paladin Knight of the Chalice perk: Sacred Defender - +1 AC per rank when using weapon and shield */
     if (!IS_NPC(ch))
@@ -1128,6 +1144,54 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
           }
         }
       }
+    }
+
+    /* Bard Spellsinger: Protective Chorus - +2 dodge AC for allies in song */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_protective_chorus_ac_bonus(ch);
+    }
+
+    /* Bard Warchanter: Steel Serenade - +2 natural AC while performing */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_steel_serenade_ac_bonus(ch);
+    }
+
+    /* Bard Warchanter: Warchanter's Dominance - +1 AC while performing (capstone) */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_warchanters_dominance_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Fencer's Footwork I - +1 Dodge AC per rank while wielding finesse/single weapon */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_fencers_footwork_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Fencer's Footwork II - Additional +1 Dodge AC per rank while wielding finesse/single weapon */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_fencers_footwork_ii_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Flourish - +2 AC while active */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_flourish_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Agile Disengage - +4 AC for 3 rounds after failed flee */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_agile_disengage_ac_bonus(ch);
+    }
+
+    /* Bard Swashbuckler: Supreme Style - +2 dodge AC (Tier 4 Capstone) */
+    if (!IS_NPC(ch))
+    {
+      bonuses[BONUS_TYPE_DODGE] += get_bard_supreme_style_ac_bonus(ch);
     }
 
     /* Monk weapon AC bonus - One With Wood and Stone perk */
@@ -1258,6 +1322,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     {
       bonuses[BONUS_TYPE_MORALE] += (CLASS_LEVEL(ch, CLASS_RANGER) / 5) + 2;
     }
+    /* Note: Favored Enemy Mastery damage bonus is applied in compute_damage_bonus() */
   }
 
   // dragon rider united we stand: dragon portion
@@ -1766,10 +1831,14 @@ void stop_fighting(struct char_data *ch)
   GET_TOTAL_AOO(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
   
-  /* Update Perfect Kill combat end timestamp */
+  /* Update combat-end timestamps for once-per-combat perks */
   if (!IS_NPC(ch))
   {
     update_perfect_kill_combat_end(ch);
+    update_chimeric_transmutation_combat_end(ch);
+    
+    /* Blackguard: Reset Resilient Corruption stacks when leaving combat */
+    reset_blackguard_resilient_corruption(ch);
   }
   
   if (affected_by_spell(ch, SKILL_SMITE_EVIL))
@@ -1946,6 +2015,15 @@ static void make_corpse(struct char_data *ch)
     }
   } /* if we continue on, we need to actually make a corpse.... */
 #endif
+
+  /* Check if this is a golem that died - drop materials before creating corpse */
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM) && ch->master)
+  {
+    /* Recover materials (25% of original cost) from golem death */
+    extern void recover_golem_materials(struct char_data *ch, struct char_data *golem, int recovery_percent);
+    recover_golem_materials(ch->master, ch, 25);
+  }
+
   /* create the corpse object, blank prototype */
   corpse = create_obj();
 
@@ -2318,6 +2396,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   CLOUDKILL(ch) = 0;
   GET_MARK(killer) = NULL;
   GET_MARK_ROUNDS(killer) = 0;
+  if (GET_STUDIED_TARGET(killer))
+    GET_STUDIED_TARGET(killer) = NULL;
 
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
@@ -2599,6 +2679,15 @@ void die(struct char_data *ch, struct char_data *killer)
         send_to_char(killer, "\tWYour righteous fury is restored by slaying %s!\tn\r\n", GET_NAME(ch));
       }
     }
+  }
+
+  /* Blackguard: Doom Cleave - free attack on kill */
+  if (killer && !IS_NPC(killer) && has_perk(killer, PERK_BLACKGUARD_DOOM_CLEAVE) && 
+      IN_ROOM(killer) != NOWHERE)
+  {
+    send_to_char(killer, "\tRYour profane fury grants you an extra cleave attack!\tn\r\n");
+    /* Will handle free attack in next combat round via handle_cleave() */
+    /* The flag/state for this is set implicitly by the cleave logic */
   }
 
   raw_kill(ch, killer);
@@ -3628,16 +3717,27 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
-int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker)
+int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker, int w_type)
 {
   int damtype_reduction = 0;
 
+  /* Psychic Sundering: take 10% more damage from all sources */
+  if (affected_by_spell(ch, PERK_PSIONICIST_PSYCHIC_SUNDERING))
+    damtype_reduction -= 10;
+
   /* Force of Nature: druid spells bypass damage resistance for elemental damage */
-  if (attacker && !IS_NPC(attacker) && GET_CASTING_CLASS(attacker) == CLASS_DRUID && 
+  if (attacker && !IS_NPC(attacker) && GET_CASTING_CLASS(attacker) == CLASS_DRUID &&
       has_druid_force_of_nature(attacker) &&
       (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_ELECTRIC || dam_type == DAM_ACID))
   {
     return 0; /* bypass all damage resistance */
+  }
+
+  /* Bomb Craftsman: Elemental Bomb bypass */
+  if (attacker && w_type == SKILL_BOMB_TOSS && has_alchemist_elemental_bomb(attacker) &&
+      (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_ACID || dam_type == DAM_ELECTRIC))
+  {
+    damtype_reduction = MAX(0, damtype_reduction - get_alchemist_elemental_bomb_bypass(attacker, dam_type));
   }
 
   /* base resistance */
@@ -4300,6 +4400,27 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     damage_reduction += 1;
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance", 1);
+  }
+
+  /* Blackguard: Dark Aegis grants DR while not flat-footed */
+  if (!IS_NPC(ch))
+  {
+    int dark_aegis_dr = get_blackguard_dark_aegis_dr(ch);
+    if (dark_aegis_dr > 0 && !AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
+    {
+      damage_reduction += dark_aegis_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Dark Aegis", dark_aegis_dr);
+    }
+    
+    /* Blackguard: Resilient Corruption stacking DR */
+    int corruption_dr = get_blackguard_resilient_corruption_dr(ch);
+    if (corruption_dr > 0)
+    {
+      damage_reduction += corruption_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Resilient Corruption", corruption_dr);
+    }
   }
 
   /* Defensive Stance perk */
@@ -4989,7 +5110,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
     if (can_dam_be_resisted(dam_type))
     {
-      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch);
+      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch, attacktype);
       damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
       dam -= (int)damtype_reduction;
     }
@@ -5096,6 +5217,17 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
 
       damage_reduction = compute_damage_reduction(victim, dam_type);
+
+      /* Blackguard: Defiant Hide adds DR against holy damage or good foes */
+      if (!IS_NPC(victim) && has_blackguard_defiant_hide(victim))
+      {
+        int defiant_dr = 0;
+        if (ch && IS_GOOD(ch))
+          defiant_dr += 2;
+        if (dam_type == DAM_HOLY)
+          defiant_dr += 2;
+        damage_reduction += defiant_dr;
+      }
 
       if (affected_by_spell(victim, ABILITY_AFFECT_STONES_ENDURANCE))
       {
@@ -5251,6 +5383,36 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         group_gain(ch, victim);
       else
         solo_gain(ch, victim);
+    }
+
+    /* Inquisitor Judgment Recovery: Restore one judgment use when reducing enemy to 0 HP */
+    if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 && has_inquisitor_judgment_recovery(ch))
+    {
+      if (!char_has_mud_event(ch, eJUDGMENT_RECOVERY_USED))
+      {
+        struct mud_event_data *pMudEvent = NULL;
+        int uses = 0;
+        char buf[MAX_STRING_LENGTH];
+
+        /* Try to restore one daily use of judgement */
+        pMudEvent = char_has_mud_event(ch, eJUDGEMENT);
+        if (pMudEvent && pMudEvent->sVariables)
+        {
+          if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
+          {
+            uses--;
+            free(pMudEvent->sVariables);
+            snprintf(buf, sizeof(buf), "uses:%d", uses);
+            pMudEvent->sVariables = strdup(buf);
+
+            send_to_char(ch, "Your divine connection surges! You recover a judgment use.\r\n");
+            act("$n's eyes flash with renewed divine authority.", FALSE, ch, 0, 0, TO_ROOM);
+          }
+        }
+        
+        /* Mark as used this encounter */
+        attach_mud_event(new_mud_event(eJUDGMENT_RECOVERY_USED, ch, NULL), 0);
+      }
     }
   }
 
@@ -5472,6 +5634,19 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   if (offhand == 2)
     is_ranged = TRUE;
+
+  /* Deflective Screen: first hit each round reduced by 5 damage */
+  if (dam > 0 && has_deflective_screen(victim) &&
+      (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) || affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
+  {
+    if (!char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND))
+    {
+      int dr = get_deflective_screen_first_hit_dr(victim);
+      dam = MAX(0, dam - dr);
+      attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
+                       10 * PASSES_PER_SEC);
+    }
+  }
 
   if (GET_POS(victim) <= POS_DEAD)
   { // delayed extraction
@@ -5696,6 +5871,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     return 0;
   }
 
+  /* Aura of Desecration: empower unholy damage dealt by the blackguard */
+  if (ch && dam > 0 && has_blackguard_aura_of_desecration(ch) && dam_type == DAM_UNHOLY)
+  {
+    dam = dam * 110 / 100; /* +10% */
+  }
+
 #if defined(CAMPAIGN_DL)
   if (IS_NPC(ch))
   {
@@ -5752,6 +5933,66 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   GET_HIT(victim) -= dam;
+
+  /* Blackguard: Soul Carapace - convert portion of incoming damage to temp HP */
+  if (dam > 0 && !IS_NPC(victim))
+  {
+    apply_blackguard_soul_carapace(victim, dam);
+  }
+
+  /* Blackguard: Resilient Corruption - increment stacks when taking damage */
+  if (dam > 0 && !IS_NPC(victim) && has_blackguard_resilient_corruption(victim))
+  {
+    increment_blackguard_resilient_corruption(victim);
+  }
+
+  /* Blackguard: Undying Vigor - survive killing blow once per day */
+  if (GET_HIT(victim) <= 0 && !IS_NPC(victim))
+  {
+    if (trigger_blackguard_undying_vigor(victim))
+    {
+      /* Undying Vigor triggered, victim survives with 1 HP */
+      /* Continue processing normally */
+    }
+  }
+
+  /* Blackguard: Graveborn Vigor triggers when bloodied */
+  if (!IS_NPC(victim) && dam > 0 && GET_HIT(victim) > 0)
+  {
+    int hp_pct = (GET_HIT(victim) * 100) / MAX(1, GET_MAX_HIT(victim));
+    if (hp_pct <= 50)
+      trigger_blackguard_graveborn_vigor(victim);
+  }
+
+  /* Blackguard: Sanguine Barrier - gain temp HP from damage dealt */
+  if (dam > 0 && ch && !IS_NPC(ch))
+  {
+    apply_blackguard_sanguine_barrier(ch, dam);
+  }
+  
+  /* Energy Retort (Perk): reflect level-based energy damage on melee hits while psychokinesis affect active */
+  if (dam > 0 && has_energy_retort_perk(victim) && !is_ranged)
+  {
+    if (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) ||
+        affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR) ||
+        affected_by_spell(victim, PSIONIC_ENERGY_RETORT))
+    {
+      int retort_dam = get_energy_retort_bonus_damage(victim);
+      int retort_type = IS_NPC(victim) ? DAM_FORCE : GET_PSIONIC_ENERGY_TYPE(victim);
+      damage(victim, ch, retort_dam, PSIONIC_ENERGY_RETORT, retort_type, FALSE);
+    }
+  }
+  
+  /* Perfect Tempo perk: Track that this character was hit this round */
+  if (dam > 0 && !IS_NPC(victim) && has_bard_perfect_tempo(victim))
+  {
+    if (!char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
+    {
+      /* Attach event to track that they were hit this round (lasts 1 round) */
+      attach_mud_event(new_mud_event(ePERFECT_TEMPO_HIT_THIS_ROUND, victim, NULL), 
+                       10 * PASSES_PER_SEC); /* ~1 round */
+    }
+  }
   
   /* Sacred Vengeance: Trigger when ally drops below 25% HP or dies */
   if (victim && !IS_NPC(victim) && GROUP(victim))
@@ -5841,9 +6082,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   /* xp gain for damage, limiting it more -zusuk */
   int exp_to_give = GET_LEVEL(victim) * dam;
-  if (CONFIG_MELEE_EXP_OPTION == 2) // reduced exp
+  if (CONFIG_MELEE_EXP_OPTION == 1) // reduced exp
     exp_to_give /= 2;
-  else if (CONFIG_MELEE_EXP_OPTION == 3) // no exp
+  else if (CONFIG_MELEE_EXP_OPTION == 2) // no exp
     exp_to_give = 0;  
 
   if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3 && exp_to_give > 0)
@@ -6125,6 +6366,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* damroll (should be mostly just gear, spell affections) */
   dambonus += GET_DAMROLL(ch);
+
+  /* Blackguard's Reprisal: consume and apply next-attack damage bonus */
+  if (!IS_NPC(ch) && affected_by_spell(ch, AFFECT_BLACKGUARD_REPRISAL))
+  {
+    int reprisal = get_blackguard_reprisal_damage_bonus(ch, vict);
+    if (reprisal > 0)
+    {
+      dambonus += reprisal;
+      affect_from_char(ch, AFFECT_BLACKGUARD_REPRISAL);
+      send_to_char(ch, "\tDYour reprisal strikes with amplified malice! (+%d)\tn\r\n", reprisal);
+    }
+  }
   if (display_mode)
     send_to_char(ch, "Damroll: \tR%d\tn\r\n", GET_DAMROLL(ch));
 
@@ -6133,6 +6386,61 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += 2;
     if (display_mode)
       send_to_char(ch, "Dragonborn Fury: \tR2\tn\r\n");
+  }
+
+  /* Blackguard Profane Might: Vile Strike, Cruel Momentum, Brutal Oath, Profane Weapon Bond rider */
+  if (!IS_NPC(ch))
+  {
+    int vile = get_blackguard_vile_strike_damage(ch, vict);
+    if (vile > 0)
+    {
+      dambonus += vile;
+      if (display_mode)
+        send_to_char(ch, "Vile Strike: \tR+%d\tn\r\n", vile);
+    }
+
+    {
+      int cm = get_blackguard_cruel_momentum_damage(ch);
+      if (cm > 0)
+      {
+        dambonus += cm;
+        if (display_mode)
+          send_to_char(ch, "Cruel Momentum: \tR+%d\tn\r\n", cm);
+      }
+    }
+
+    if (vict)
+    {
+      int bo = get_blackguard_brutal_oath_bonus(ch, vict);
+      if (bo > 0)
+      {
+        dambonus += bo;
+        if (display_mode)
+          send_to_char(ch, "Brutal Oath (damage): \tR+%d\tn\r\n", bo);
+      }
+    }
+
+    /* Profane Weapon Bond: minor profane rider damage while active */
+    if (affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
+    {
+      int bond_bonus = dice(1, 4);
+      dambonus += bond_bonus;
+      if (display_mode)
+        send_to_char(ch, "Profane Weapon Bond: \tR1d4 (%d)\tn\r\n", bond_bonus);
+    }
+
+    /* Soul Rend: extra 2d6 damage vs good outsiders/undead */
+    if (vict)
+    {
+      int soul_rend_bonus = get_blackguard_soul_rend_bonus(ch, vict);
+      if (soul_rend_bonus > 0)
+      {
+        int sr_dam = dice(soul_rend_bonus, 6);
+        dambonus += sr_dam;
+        if (display_mode)
+          send_to_char(ch, "Soul Rend: \tR%dd6 (%d)\tn\r\n", soul_rend_bonus, sr_dam);
+      }
+    }
   }
 
   if (ch && vict && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(vict) * 2) < GET_MAX_HIT(vict))
@@ -6194,6 +6502,49 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION);
     if (display_mode)
       send_to_char(ch, "Judgement of Destruction: \tR%d\tn\r\n", get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION));
+  }
+
+  /* Inquisitor Studied Target: +damage vs marked target */
+  if (mode == MODE_NORMAL_HIT && vict && !IS_NPC(ch) && is_inquisitor_studied_target(ch, vict))
+  {
+    int studied_bonus = get_inquisitor_studied_target_bonus(ch);
+    if (studied_bonus > 0)
+    {
+      dambonus += studied_bonus;
+      if (display_mode)
+        send_to_char(ch, "Studied Target: \tR%d\tn\r\n", studied_bonus);
+    }
+  }
+
+  /* Inquisitor Enhanced Bane perk: +1 damage per rank against judged targets */
+  if (vict && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_ENHANCED_BANE))
+  {
+    int enhanced_bane_damage = get_inquisitor_enhanced_bane_damage(ch);
+    if (enhanced_bane_damage > 0)
+    {
+      dambonus += enhanced_bane_damage;
+      if (display_mode)
+        send_to_char(ch, "Enhanced Bane (damage): \tR%d\tn\r\n", enhanced_bane_damage);
+    }
+  }
+
+  /* Inquisitor Righteous Strike perk: 2d6 per rank if spell was cast within last round */
+  if (vict && !IS_NPC(ch) && has_inquisitor_righteous_strike(ch) && 
+      ch->player_specials->inq_righteous_strike_rounds > 0)
+  {
+    int righteous_dice = get_inquisitor_righteous_strike_dice(ch);
+    if (righteous_dice > 0)
+    {
+      int righteous_damage = 0;
+      int i;
+      for (i = 0; i < righteous_dice * 2; i++)
+        righteous_damage += dice(2, 6);
+      
+      dambonus += righteous_damage;
+      ch->player_specials->inq_righteous_strike_rounds--; /* Consume the bonus after use */
+      if (display_mode)
+        send_to_char(ch, "Righteous Strike (\tC%dd6\tn): \tR%d\tn\r\n", righteous_dice * 2, righteous_damage);
+    }
   }
 
   // Dragon champion level 3 abil: +1 hitroll +2 damage
@@ -6414,6 +6765,31 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     send_to_char(ch, "Size modifier: \tR%s%d\tn\r\n", size_modifiers[GET_SIZE(ch)] >= 0 ? "+" : "", size_modifiers[GET_SIZE(ch)] * 2);
   dambonus += size_modifiers[GET_SIZE(ch)] * 2;
 
+  /* Wilderness Warrior: Favored Enemy Mastery I - bonus damage vs favored enemies */
+  if (vict && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER) && attack_type != ATTACK_TYPE_RANGED)
+  {
+    if ((!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict))))
+    {
+      int fe_mastery_bonus = get_ranger_favored_enemy_mastery_damage(ch);
+      if (fe_mastery_bonus > 0)
+      {
+        dambonus += fe_mastery_bonus;
+        if (display_mode)
+          send_to_char(ch, "Favored Enemy Mastery I: \tR%d\tn\r\n", fe_mastery_bonus);
+      }
+
+      /* Wilderness Warrior: Deadly Hunter - +2d6 damage vs favored enemies */
+      if (has_perk(ch, PERK_RANGER_DEADLY_HUNTER))
+      {
+        int deadly_hunter_bonus = dice(2, 6);
+        dambonus += deadly_hunter_bonus;
+        if (display_mode)
+          send_to_char(ch, "Deadly Hunter: \tR%dd6\tn\r\n", 2);
+      }
+    }
+  }
+
   // Sorcerer Draconic Bloodline Claw Attacks
   if (ch && vict && affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 11)
   {
@@ -6563,6 +6939,38 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Unarmed enhancement bonus: \tR%d\tn\r\n", get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
     dambonus += get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL);
+  }
+
+  /* Wilderness Warrior: Dual Strike I - off-hand weapon damage bonus */
+  if ((attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK) && is_dual_wielding(ch))
+  {
+    int dual_strike_bonus = get_ranger_dual_strike_offhand(ch);
+    if (dual_strike_bonus > 0)
+    {
+      dambonus += dual_strike_bonus;
+      if (display_mode)
+        send_to_char(ch, "Dual Strike I: \tR%d\tn\r\n", dual_strike_bonus);
+    }
+  }
+
+  /* Wilderness Warrior: Two-Weapon Focus II - damage bonus when dual wielding (both hands) */
+  if (is_dual_wielding(ch))
+  {
+    int twf_damage_bonus = get_ranger_two_weapon_focus_damage(ch);
+    if (twf_damage_bonus > 0)
+    {
+      dambonus += twf_damage_bonus;
+      if (display_mode)
+        send_to_char(ch, "Two-Weapon Focus II: \tR%d\tn\r\n", twf_damage_bonus);
+    }
+    
+    /* Wilderness Warrior: Perfect WW Two-Weapon Fighting - additional damage when dual wielding */
+    if (has_perk(ch, PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING))
+    {
+      dambonus += 4;
+      if (display_mode)
+        send_to_char(ch, "Perfect WW Two-Weapon Fighting: \tR4\tn\r\n");
+    }
   }
 
   /* monk glove enhancement bonus */
@@ -6763,6 +7171,41 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Holy Sword (vs Evil): \tW%d\tn\r\n", holy_sword_dice);
     }
+    
+    /* Inquisitor Enhanced Bane - bonus damage against judgment target */
+    if (!IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    {
+      int bane_damage = 0;
+      bool applies = false;
+      
+      /* Check if target matches judgment target directly */
+      if (GET_JUDGEMENT_TARGET(ch) && vict == GET_JUDGEMENT_TARGET(ch))
+      {
+        applies = true;
+      }
+      /* Check rank 4 - AoE effect on all creatures of same type as judgment target */
+      else if (GET_JUDGEMENT_TARGET(ch) && has_inquisitor_enhanced_bane_aoe(ch))
+      {
+        /* Compare race for NPCs, or use RACE_TYPE_HUMANOID for PCs */
+        if ((!IS_NPC(vict) && !IS_NPC(GET_JUDGEMENT_TARGET(ch))) ||
+            (IS_NPC(vict) && IS_NPC(GET_JUDGEMENT_TARGET(ch)) && 
+             GET_RACE(vict) == GET_RACE(GET_JUDGEMENT_TARGET(ch))))
+        {
+          applies = true;
+        }
+      }
+      
+      if (applies)
+      {
+        bane_damage = get_inquisitor_enhanced_bane_damage(ch);
+        if (bane_damage > 0)
+        {
+          dambonus += bane_damage;
+          if (display_mode)
+            send_to_char(ch, "Enhanced Bane: \tY%d\tn\r\n", bane_damage);
+        }
+      }
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_BG_GLADIATOR) && GET_CLAN(ch) > 0 && are_clans_allied(GET_CLAN(ch), zone_table[world[IN_ROOM(ch)].zone].faction))
@@ -6854,6 +7297,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Smite Good bonus: \tR%d\tn\r\n", get_smite_good_level(ch) * smite_good_target_type(vict));
 
     dambonus += get_smite_good_level(ch) * smite_good_target_type(vict);
+
+    /* Blackguard: Dark Channel - extra 1d6 damage and bypass DR/good */
+    if (!IS_NPC(ch))
+    {
+      int dc_bonus = get_blackguard_dark_channel_damage(ch);
+      if (dc_bonus > 0 && smite_good_target_type(vict))
+      {
+        dambonus += dc_bonus;
+        if (display_mode)
+          send_to_char(ch, "Dark Channel: \tR1d6 (%d)\tn\r\n", dc_bonus);
+      }
+    }
   }
   /* destructive smite (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION) && vict)
@@ -6983,6 +7438,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += perk_bonus;
       if (display_mode)
         send_to_char(ch, "Perk Weapon Damage bonus: \tR%d\tn\r\n", perk_bonus);
+    }
+  }
+
+  /* Blackguard: Cruel Edge bonus damage vs fearful foes */
+  if (!IS_NPC(ch) && vict && (AFF_FLAGGED(vict, AFF_FEAR) || AFF_FLAGGED(vict, AFF_SHAKEN)))
+  {
+    int cruel_bonus = get_blackguard_cruel_edge_damage_bonus(ch, vict);
+    if (cruel_bonus > 0)
+    {
+      dambonus += cruel_bonus;
+      if (display_mode)
+        send_to_char(ch, "Cruel Edge bonus: \tR%d\tn\r\n", cruel_bonus);
     }
   }
 
@@ -7211,7 +7678,7 @@ int crit_range_extension(struct char_data *ch, struct obj_data *weap) {
 }
  */
 
-int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
+int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struct char_data *victim)
 {
   int threat_range = 19;
 
@@ -7319,6 +7786,31 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
     }
   }
 
+  /* Bard Swashbuckler: Duelist's Poise - +1 threat range with finesse weapon */
+  if (!IS_NPC(ch))
+  {
+    int poise_bonus = get_bard_duelists_poise_threat_range_bonus(ch);
+    if (poise_bonus > 0)
+      threat_range -= poise_bonus;
+  }
+
+  /* Wilderness Warrior: Apex Predator - improved crit range vs favored enemies */
+  if (!IS_NPC(ch) && victim && has_perk(ch, PERK_RANGER_APEX_PREDATOR))
+  {
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+    {
+      threat_range--;
+    }
+  }
+
+  /* Blackguard: Blackened Precision - while Profane Weapon Bond active, improve threat range */
+  if (!IS_NPC(ch) && has_blackguard_blackened_precision(ch) && 
+      affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
+  {
+    threat_range--;
+  }
+
   /* end mods */
 
   if (threat_range <= 2) /* just in case */
@@ -7329,7 +7821,7 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
 #define CRIT_MULTI_MIN 2
 #define CRIT_MULTI_MAX 7
 
-int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded)
+int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded, struct char_data *victim)
 {
   int crit_multi = 2;
 
@@ -7388,6 +7880,23 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
   if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
   {
     crit_multi += (GET_LEVEL(ch) - 30);
+  }
+
+  /* Wilderness Warrior: Apex Predator - improved crit multiplier vs favored enemies */
+  if (!IS_NPC(ch) && victim && has_perk(ch, PERK_RANGER_APEX_PREDATOR))
+  {
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+    {
+      crit_multi++;
+    }
+  }
+
+  /* Blackguard: Blackened Precision - while Profane Weapon Bond active, improve crit multiplier */
+  if (!IS_NPC(ch) && has_blackguard_blackened_precision(ch) && 
+      affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
+  {
+    crit_multi++;
   }
 
   /* establish some caps */
@@ -7624,8 +8133,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED)
   {
-    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded));
-    send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded));
+    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded, NULL));
+    send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded, NULL));
     send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
   }
 
@@ -7667,7 +8176,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
 /* simple test for testing (confirming) critical hit */
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
-                    int calc_bab, int victim_ac)
+                    int calc_bab, int victim_ac, struct char_data *victim)
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
@@ -7688,6 +8197,14 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     int crit_bonus = get_perk_critical_confirmation_bonus(ch);
     if (crit_bonus > 0)
       confirm_roll += crit_bonus;
+  }
+
+  /* Bard Swashbuckler: Supreme Style crit confirmation bonus (Tier 4 Capstone) */
+  if (!IS_NPC(ch))
+  {
+    int supreme_style_crit_bonus = get_bard_supreme_style_crit_confirm_bonus(ch);
+    if (supreme_style_crit_bonus > 0)
+      confirm_roll += supreme_style_crit_bonus;
   }
 
   /* new code to help really powerful beings overcome checks here */
@@ -7735,7 +8252,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* we get here, the powerful being beat it */
   }
 
-  threat_range = determine_threat_range(ch, wielded);
+  threat_range = determine_threat_range(ch, wielded, victim);
 
   if (diceroll >= threat_range)
   { /* critical potential? */
@@ -7789,7 +8306,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
                        int w_type, int diceroll, int mode, bool is_critical, int attack_type, int dam_type)
 {
-  int dam = 0, damage_holder = 0;
+  int dam = 0, damage_holder = 0, base_weapon_damage = 0;
   int loop = 1;
   struct obj_data *wielded = NULL;
 
@@ -7808,9 +8325,14 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   {
     /* determine weapon dice damage (or lack of weaopn) */
     dam = compute_dam_dice(ch, victim, wielded, mode, attack_type);
+    base_weapon_damage = dam;
+
+    /* rerollable dice also include the extra Champion roll */
     if (HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_CHAMPION))
     {
-      dam += compute_dam_dice(ch, victim, wielded, mode, attack_type);
+      int extra_roll = compute_dam_dice(ch, victim, wielded, mode, attack_type);
+      dam += extra_roll;
+      base_weapon_damage += extra_roll;
     }
 
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
@@ -7945,7 +8467,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "\tW[DEVASTATING!]\tn");
         if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[DEVASTATING!]\tn");
-        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
+        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim) - 1); loop++)
         {
           // overwhelming critical damage
           dam += dice(1, 6);
@@ -7959,7 +8481,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "\tW[OVERWHELMING!]\tn");
         if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[OVERWHELMING!]\tn");
-        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
+        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim) - 1); loop++)
         {
           dam += dice(1, 6);
         }
@@ -7996,7 +8518,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
 
       /* critical bonus */
-      dam *= determine_critical_multiplier(ch, wielded);
+      dam *= determine_critical_multiplier(ch, wielded, victim);
 
       /* Ranger: Sniper - add +2d6 damage on ranged critical hits (not multiplied) */
       if (!IS_NPC(ch) && wielded)
@@ -8426,6 +8948,29 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     dam += compute_damage_bonus(ch, ch, wielded, TYPE_UNDEFINED_WTYPE, NO_MOD, mode, attack_type);
   }
 
+  /* Hunter's Precision: reroll damage and keep the higher result */
+  if (mode == MODE_NORMAL_HIT && !IS_NPC(ch))
+  {
+    int precision_chance = get_inquisitor_hunters_precision_chance(ch);
+    if (precision_chance > 0 && rand_number(1, 100) <= precision_chance)
+    {
+      int reroll_damage = compute_dam_dice(ch, victim, wielded, mode, attack_type);
+
+      /* include the dragon champion extra dice if applicable */
+      if (HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_CHAMPION))
+      {
+        reroll_damage += compute_dam_dice(ch, victim, wielded, mode, attack_type);
+      }
+
+      int rerolled_total = dam - base_weapon_damage + reroll_damage;
+      if (rerolled_total > dam)
+      {
+        dam = rerolled_total;
+        send_to_char(ch, "Your hunter's precision lets you strike harder!\r\n");
+      }
+    }
+  }
+
   return MAX(1, dam); // min damage of 1
 }
 
@@ -8587,6 +9132,9 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           passed = TRUE;
         if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS))
           passed = TRUE;
+        /* Hardened Constructs II: summon attacks count as magic */
+        if (AFF2_FLAGGED(ch, AFF2_MAGIC_ATTACKS))
+          passed = TRUE;
         break;
       case DR_BYPASS_CAT_MATERIAL:
         if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i])
@@ -8601,12 +9149,18 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
             passed = true;
           if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_GOOD(ch))
             passed = true;
+          /* Blackguard Dark Channel: Smite Good bypasses DR/good */
+          if (!IS_NPC(ch) && affected_by_spell(ch, SKILL_SMITE_GOOD) && has_blackguard_dark_channel(ch))
+            passed = true;
         }
         else if (dr->bypass_val[i] == DR_ALIGNTYPE_EVIL)
         {
           if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_EVIL || GET_SUBRACE(ch, 1) == SUBRACE_EVIL || GET_SUBRACE(ch, 2) == SUBRACE_EVIL))
             passed = true;
           if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_EVIL(ch))
+            passed = true;
+          /* Profane Weapon Bond: attacks count as evil-aligned for DR bypass */
+          if (!IS_NPC(ch) && affected_by_spell(ch, AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND))
             passed = true;
         }
         else if (dr->bypass_val[i] == DR_ALIGNTYPE_LAW)
@@ -9227,6 +9781,27 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     {
       send_to_char(ch, "%2d: %-50s\r\n", dual_wielding_penalty(ch, (attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK)), "Two Weapon Fighting");
     }
+
+    /* Wilderness Warrior: Two-Weapon Focus I - reduces TWF penalty */
+    int twf_bonus = get_ranger_two_weapon_focus_tohit(ch);
+    if (twf_bonus > 0)
+    {
+      calc_bab += twf_bonus;
+      if (display)
+      {
+        send_to_char(ch, "%2d: %-50s\r\n", twf_bonus, "Two-Weapon Focus I");
+      }
+    }
+    
+    /* Wilderness Warrior: Perfect WW Two-Weapon Fighting - bonus to-hit when dual wielding */
+    if (has_perk(ch, PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING))
+    {
+      calc_bab += 2;
+      if (display)
+      {
+        send_to_char(ch, " 2: %-50s\r\n", "Perfect WW Two-Weapon Fighting");
+      }
+    }
   }
 
   /* start with our base bonus of strength (or dex with feat/ranged)
@@ -9272,6 +9847,13 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     calc_bab += HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2;
     if (display)
         send_to_char(ch, "%2d: %-50s\r\n", HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2, "Eldritch Master");
+    // we'll add weapon focus ranged
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_SUPERIOR_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
+    if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
+      calc_bab += 1;
     /* fall through is intentional here */
   case ATTACK_TYPE_RANGED:
     calc_bab += GET_DEX_BONUS(ch);
@@ -9287,6 +9869,15 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       calc_bab += 2;
       if (display)
         send_to_char(ch, " 2: %-50s\r\n", "Precise Bombs");
+    }
+    {
+      int perk_precise = get_alchemist_bomb_precision_bonus(ch);
+      if (perk_precise != 0)
+      {
+        calc_bab += perk_precise;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", perk_precise, "Bomb Craftsman Precision");
+      }
     }
     break;
   case ATTACK_TYPE_UNARMED:
@@ -9429,6 +10020,12 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
     if (display)
         send_to_char(ch, "-2: %-50s\r\n", "Shaken"); 
+  }
+  if (AFF_FLAGGED(ch, AFF_COWERING))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 4;
+    if (display)
+        send_to_char(ch, "-4: %-50s\r\n", "Cowering"); 
   }
   if (AFF_FLAGGED(ch, AFF_DAZZLED))
   {
@@ -9883,6 +10480,25 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       if (display)
         send_to_char(ch, "-4: %-50s\r\n", "Smite Good Target");
     }
+
+    /* Bard Spellsinger: Aria of Stasis - -2 to hit enemies attacking protected allies */
+    if (!IS_NPC(victim) && GROUP(victim) != NULL)
+    {
+      struct char_data *tch = NULL;
+      simple_list(NULL); /* Reset iterator */
+      while ((tch = (struct char_data *)simple_list(GROUP(victim)->members)) != NULL)
+      {
+        if (tch != victim && IN_ROOM(tch) == IN_ROOM(victim) && 
+            !IS_NPC(tch) && CLASS_LEVEL(tch, CLASS_BARD) > 0 &&
+            has_bard_aria_of_stasis(tch))
+        {
+          bonuses[BONUS_TYPE_UNDEFINED] -= 2;
+          if (display)
+            send_to_char(ch, "-2: %-50s\r\n", "Aria of Stasis (enemy penalty)");
+          break; /* Only one Aria penalty */
+        }
+      }
+    }
   }
 
   // Assassin stuff
@@ -9924,6 +10540,27 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
       if (display)
         send_to_char(ch, " 1: %-50s\r\n", "Aligned Attack (Law)");
+    }
+
+    /* Blackguard: Brutal Oath - to-hit bonus vs favored foe */
+    if (!IS_NPC(ch))
+    {
+      int bo_hit = get_blackguard_brutal_oath_bonus(ch, victim);
+      if (bo_hit > 0)
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += bo_hit;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", bo_hit, "Brutal Oath (to-hit)");
+      }
+    }
+
+    /* Blackguard: Shackles of Awe - attack penalty to feared enemies in blackguard's aura */
+    int shackles_penalty = get_shackles_of_awe_attack_penalty(ch, victim);
+    if (shackles_penalty < 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += shackles_penalty;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", shackles_penalty, "Shackles of Awe (victim feared)");
     }
   }
 
@@ -10191,6 +10828,65 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += power_strike_penalty;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", power_strike_penalty, "Power Strike Penalty");
+    }
+  }
+
+  /* Bard Swashbuckler: Supreme Style - +2 to-hit (Tier 4 Capstone) */
+  if (wielded && !IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
+  {
+    int supreme_style_bonus = get_bard_supreme_style_tohit_bonus(ch);
+    if (supreme_style_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += supreme_style_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", supreme_style_bonus, "Supreme Style To-Hit");
+    }
+  }
+
+  /* Inquisitor Studied Target: untyped attack bonus vs marked target */
+  if (victim && !IS_NPC(ch) && is_inquisitor_studied_target(ch, victim))
+  {
+    int studied_bonus = get_inquisitor_studied_target_bonus(ch);
+    if (studied_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += studied_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", studied_bonus, "Studied Target");
+    }
+  }
+
+  /* Inquisitor Enhanced Bane - attack bonus against judgment target */
+  if (victim && !IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+  {
+    int bane_attack = 0;
+    bool applies = false;
+    
+    /* Check if target matches judgment target directly */
+    if (GET_JUDGEMENT_TARGET(ch) && victim == GET_JUDGEMENT_TARGET(ch))
+    {
+      applies = true;
+    }
+    /* Check rank 4 - AoE effect on all creatures of same type as judgment target */
+    else if (GET_JUDGEMENT_TARGET(ch) && has_inquisitor_enhanced_bane_aoe(ch))
+    {
+      /* Compare race for NPCs, or use RACE_TYPE_HUMANOID for PCs */
+      if ((!IS_NPC(victim) && !IS_NPC(GET_JUDGEMENT_TARGET(ch))) ||
+          (IS_NPC(victim) && IS_NPC(GET_JUDGEMENT_TARGET(ch)) && 
+           GET_RACE(victim) == GET_RACE(GET_JUDGEMENT_TARGET(ch))))
+      {
+        applies = true;
+      }
+    }
+    
+    if (applies)
+    {
+      bane_attack = get_inquisitor_enhanced_bane_attack(ch);
+      if (bane_attack > 0)
+      {
+        bonuses[BONUS_TYPE_UNDEFINED] += bane_attack;
+        if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", bane_attack, "Enhanced Bane");
+      }
     }
   }
 
@@ -10526,6 +11222,34 @@ int attack_roll(struct char_data *ch,     /* Attacker */
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
+  /* Perfect Deflection: negate one incoming ranged/bomb attack and reflect force damage */
+  if (victim && AFF_FLAGGED(victim, AFF_PERFECT_DEFLECTION_ACTIVE) &&
+      (attack_type == ATTACK_TYPE_RANGED || attack_type == ATTACK_TYPE_BOMB_TOSS))
+  {
+    /* consume the stance */
+    REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_PERFECT_DEFLECTION_ACTIVE);
+
+    send_to_char(victim, "\tCYou perfectly deflect the incoming attack!\tn\r\n");
+    act("$n angles the attack aside and redirects it!", FALSE, victim, 0, ch, TO_ROOM);
+    act("Your attack is turned back on you!", FALSE, victim, 0, ch, TO_VICT);
+
+    /* reflect force damage back to the attacker */
+    damage(victim, ch, dice(MAX(1, GET_LEVEL(victim) / 2), 6) + MAX(0, GET_INT_BONUS(victim)),
+           PSIONIC_ENERGY_RAY, DAM_FORCE, FALSE);
+
+    return -1; /* treated as a miss/negated */
+  }
+
+  /* Deflective Screen: +2 AC vs ranged while shield/armor active */
+  if (attack_type == ATTACK_TYPE_RANGED)
+  {
+    if (has_deflective_screen(victim) &&
+        (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) || affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
+    {
+      victim_ac += get_deflective_screen_ranged_ac_bonus(victim);
+    }
+  }
+
   if (GET_TOUCH_SPELL_QUEUED(ch) == SPELL_SHOCKING_GRASP && is_touch && is_wearing_metal(victim))
     attack_bonus += 3;
 
@@ -10579,7 +11303,7 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
   int diceroll = d20(ch);
-  if (diceroll >= critical_threshold && is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac) && !IS_IMMUNE_CRITS(ch, victim))
+  if (diceroll >= critical_threshold && is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac, victim) && !IS_IMMUNE_CRITS(ch, victim))
     return 999;
   int result = ((attack_bonus + diceroll) - victim_ac);
 
@@ -12283,8 +13007,21 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* Apply Damage Reduction - void strike ignores DR */
   if (void_strike_bonus == 0)
   {
-    if ((dam = apply_damage_reduction(ch, victim, wielded, dam, FALSE)) == -1)
+    /* Wilderness Warrior: Deadly Hunter - ignore 10 DR vs favored enemies */
+    int dr_bypass = 0;
+    if (!IS_NPC(ch) && victim && has_perk(ch, PERK_RANGER_DEADLY_HUNTER) && CLASS_LEVEL(ch, CLASS_RANGER))
+    {
+      if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+          (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
+      {
+        dr_bypass = 10;
+      }
+    }
+
+    if ((dam = apply_damage_reduction(ch, victim, wielded, dam - dr_bypass, FALSE)) == -1)
       return (HIT_MISS); /* This should be changed to something more reasonable */
+    
+    dam += dr_bypass; /* Add back the bypassed DR */
   }
 
   /* ok we are about to do damage() so here we are adding a special counter-attack
@@ -12336,6 +13073,60 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* So do damage! (We aren't trelux, so do it normally) */
       if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
+
+      /* Blackguard: Ravaging Smite - apply bleed on smite good hit */
+      if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_blackguard_ravaging_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_GOOD) && IS_GOOD(victim))
+      {
+        apply_blackguard_ravaging_smite(ch, victim);
+      }
+
+      /* Blackguard: Cruel Momentum - gain stack on kill or critical */
+      if (!IS_NPC(ch) && (victim_is_dead || is_critical))
+      {
+        apply_blackguard_cruel_momentum_stack(ch);
+      }
+
+      /* Blackguard: Relentless Assault - extra attack on charge or on kill (1/round) */
+      if (!IS_NPC(ch) && has_blackguard_relentless_assault(ch) && can_trigger_relentless_assault(ch))
+      {
+        bool trigger = FALSE;
+        if (AFF_FLAGGED(ch, AFF_CHARGING))
+          trigger = TRUE;
+        else if (victim_is_dead)
+          trigger = FALSE; /* No current target; selection logic not implemented */
+
+        if (trigger)
+        {
+          trigger_relentless_assault(ch);
+          if (!victim_is_dead && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(ch) > POS_DEAD)
+          {
+            /* Immediate bonus attack */
+            hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+          }
+        }
+      }
+
+      /* Blackguard: Intimidating Smite - Shaken on smite good hits (Will save negates) */
+      if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_blackguard_intimidating_smite(ch) &&
+          affected_by_spell(ch, SKILL_SMITE_GOOD) && IS_GOOD(victim) && !is_immune_fear(ch, victim, TRUE) &&
+          !is_immune_mind_affecting(ch, victim, TRUE))
+      {
+        int bg_level = CLASS_LEVEL(ch, CLASS_BLACKGUARD) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+        int save_mod = affected_by_aura_of_cowardice(victim) ? (-4 - get_blackguard_extra_fear_aura_penalty(victim)) : 0;
+        if (!savingthrow(ch, victim, SAVING_WILL, save_mod, CAST_INNATE, bg_level, ENCHANTMENT))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SKILL_SMITE_GOOD;
+          af.duration = MAX(2, (bg_level / 6));
+          SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+          affect_to_char(victim, &af);
+          act("\tDYour profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
+          act("\tD$n's profane smite terrifies you!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
+          act("\tD$n's profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+      }
 
       /* Blinding Smite: Blind target on smite evil hits */
       if (!victim_is_dead && dam > 0 && !IS_NPC(ch) && has_paladin_blinding_smite(ch) &&
@@ -12493,6 +13284,30 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (IS_EFREETI(ch))
     damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
 
+  /* Wilderness Warrior: Whirling Steel - 5% chance per hit for extra attack when dual wielding */
+  if (!IS_NPC(ch) && !victim_is_dead && has_perk(ch, PERK_RANGER_WHIRLING_STEEL) && 
+      is_dual_wielding(ch) && dice(1, 100) <= 5)
+  {
+    send_to_char(ch, "\tW[WHIRLING STEEL!]\tn\r\n");
+    hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  }
+
+  /* Wilderness Warrior: Crippling Strike - 5% chance to apply slow on melee hit */
+  if (!IS_NPC(ch) && !victim_is_dead && has_perk(ch, PERK_RANGER_CRIPPLING_STRIKE) &&
+      attack_type != ATTACK_TYPE_RANGED && !affected_by_spell(victim, SPELL_SLOW) &&
+      dice(1, 100) <= 5)
+  {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SPELL_SLOW;
+    af.duration = 3;
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+    affect_to_char(victim, &af);
+    send_to_char(victim, "\tRYou feel your movements slow down!\tn\r\n");
+    send_to_char(ch, "\tW[CRIPPLING STRIKE!]\tn Your strike slows your opponent!\r\n");
+    act("$n's strike slows $N's movements!", FALSE, ch, 0, victim, TO_NOTVICT);
+  }
+
   if (is_evolution_attack(attack_type))
   {
     process_evolution_elemental_damage(ch, victim);
@@ -12598,6 +13413,16 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
     else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_ASHIELD))
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
+    }
+
+    /* Frostbite Refrain I: cold damage rider on melee hits while performing */
+    if (dam && !IS_NPC(ch) && has_bard_frostbite_refrain(ch))
+    {
+      int cold_dam = get_bard_frostbite_cold_damage(ch);
+      if (cold_dam > 0)
+      {
+        return_val = damage(victim, ch, cold_dam, PERK_BARD_FROSTBITE_REFRAIN_I, DAM_COLD, attack_type);
+      }
     }
 
     if (dam && victim && GET_HIT(victim) >= -1 && (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) && affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
@@ -12972,7 +13797,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     diceroll = d20(ch) + HAS_FEAT(ch, FEAT_WEAPON_TRAINING);
   else
     diceroll = d20(ch);
-  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(ch, victim))
+  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac, victim) && !IS_IMMUNE_CRITS(ch, victim))
   {
     can_hit = TRUE;
     is_critical = TRUE;
@@ -13213,6 +14038,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     if (HAS_FEAT(ch, FEAT_CENSORING_CRITICAL))
       mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, ABILITY_CENSORING_CRITICAL, SAVING_WILL, CAST_INNATE, 0);
 
+    /* Showstopper perk: apply -2 AC and -2 to-hit debuff on critical hit confirmation */
+    if (has_bard_showstopper(ch))
+    {
+      mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, AFFECT_BARD_SHOWSTOPPER, SAVING_FORT, CAST_INNATE, 0);
+    }
+
     /* Crippling Blow - Berserker Primal Warrior perk */
     int crippling_chance = get_berserker_crippling_blow_chance(ch);
     if (crippling_chance > 0 && !IS_IMMUNE_CRITS(ch, victim))
@@ -13271,6 +14102,166 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       act("$N resists your stunning blow!", FALSE, ch, 0, victim, TO_CHAR);
     }
+  }
+
+  /* Frostbite Refrain I: Apply -1 to attack debuff on natural 20 while performing */
+  if (!IS_NPC(ch) && diceroll == 20 && has_bard_frostbite_refrain(ch) && can_hit > 0)
+  {
+    int debuff_modifier = get_bard_frostbite_natural_20_debuff(ch);
+    if (debuff_modifier < 0)
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_FROSTBITE_REFRAIN_I;
+      af.location = APPLY_HITROLL;
+      af.duration = 1; /* 1 round */
+      af.modifier = debuff_modifier; /* -1 to attack */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      
+      act("\tC[\tBFROSTBITE\tC]\tn Your frostbite refrain freezes $N's movements, making them sluggish!", 
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("\tC[\tBFROSTBITE\tC]\tn The bitter cold from $n's refrain freezes your movements, making them sluggish!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      act("\tC[\tBFROSTBITE\tC]\tn $n's frostbite refrain freezes $N!", 
+          FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+  }
+
+  /* Frostbite Refrain II: Apply enhanced -2 to attack AND -1 to AC debuff on natural 20 while performing */
+  if (!IS_NPC(ch) && diceroll == 20 && has_bard_frostbite_refrain_ii(ch) && can_hit > 0)
+  {
+    int attack_debuff = get_bard_frostbite_refrain_ii_natural_20_debuff_attack(ch);
+    int ac_debuff = get_bard_frostbite_refrain_ii_natural_20_debuff_ac(ch);
+    
+    if (attack_debuff < 0)
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_FROSTBITE_REFRAIN_II;
+      af.location = APPLY_HITROLL;
+      af.duration = 1; /* 1 round */
+      af.modifier = attack_debuff; /* -2 to attack */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+    }
+    
+    if (ac_debuff < 0)
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_FROSTBITE_REFRAIN_II;
+      af.location = APPLY_AC;
+      af.duration = 1; /* 1 round */
+      af.modifier = ac_debuff; /* -1 to AC */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+    }
+    
+    act("\tC[\tBFROSTBITE\tC]\tn Your enhanced frostbite refrain DEEPLY freezes $N, sapping their combat effectiveness!", 
+        FALSE, ch, 0, victim, TO_CHAR);
+    act("\tC[\tBFROSTBITE\tC]\tn The bitter cold from $n's refrain DEEPLY freezes you, numbing your defenses!", 
+        FALSE, ch, 0, victim, TO_VICT);
+    act("\tC[\tBFROSTBITE\tC]\tn $n's enhanced frostbite refrain DEEPLY freezes $N!", 
+        FALSE, ch, 0, victim, TO_NOTVICT);
+  }
+
+  /* Bard Warchanter: Commanding Cadence - Daze on melee hit (once per target per 5 rounds) */
+  if (!IS_NPC(ch) && has_bard_commanding_cadence(ch) && can_hit > 0 && 
+      !affected_by_spell(victim, PERK_BARD_COMMANDING_CADENCE))
+  {
+    int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
+    
+    if (!savingthrow(victim, ch, SAVING_WILL, save_dc, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_COMMANDING_CADENCE;
+      af.location = APPLY_NONE;
+      af.duration = 1; /* 1 round daze */
+      SET_BIT_AR(af.bitvector, AFF_DAZED);
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      
+      act("\tM[\tYCOMMANDING CADENCE\tM]\tn Your rhythm dazzles $N, leaving them dazed!", 
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("\tM[\tYCOMMANDING CADENCE\tM]\tn The bard's commanding rhythm dazzles you, leaving you dazed!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      act("\tM[\tYCOMMANDING CADENCE\tM]\tn $n's commanding rhythm dazzles $N!", 
+          FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+    
+    /* Apply 5-round cooldown on this target */
+    struct affected_type af = {0};
+    new_affect(&af);
+    af.spell = PERK_BARD_COMMANDING_CADENCE;
+    af.location = APPLY_NONE;
+    af.duration = 5; /* 5 round cooldown */
+    af.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  /* Bard Warchanter: Winter's War March - Room-wide damage and slow (capstone) */
+  if (!IS_NPC(ch) && has_bard_winters_war_march(ch) && can_hit > 0 && 
+      !affected_by_spell(victim, PERK_BARD_WINTERS_WAR_MARCH))
+  {
+    int cold_damage = 0, i = 0;
+    int num_dice = get_bard_winters_war_march_damage(ch);
+    int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
+    
+    /* Roll 4d6 cold damage */
+    for (i = 0; i < num_dice; i++)
+      cold_damage += rand_number(1, 6);
+    
+    /* Check if victim saves */
+    if (savingthrow(victim, ch, SAVING_WILL, save_dc, CAST_INNATE, GET_LEVEL(ch), EVOCATION))
+    {
+      cold_damage /= 2; /* Half damage on save */
+      
+      /* Apply 1 round slow on successful save */
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_WINTERS_WAR_MARCH;
+      af.location = APPLY_STR;
+      af.modifier = -4;
+      af.duration = 1; /* 1 round */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      
+      act("\tC[\tBWINTER'S WAR MARCH\tC]\tn You partially resist the frigid martial anthem, taking \tW%d\tn cold damage and moving slowly!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      GET_HIT(victim) -= cold_damage;
+    }
+    else
+    {
+      /* Full damage + 3 round slow on failed save */
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BARD_WINTERS_WAR_MARCH;
+      af.location = APPLY_STR;
+      af.modifier = -4;
+      af.duration = 3; /* 3 rounds */
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      
+      act("\tC[\tBWINTER'S WAR MARCH\tC]\tn The devastating martial anthem freezes you, dealing \tW%d\tn cold damage and severely slowing your movement!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      GET_HIT(victim) -= cold_damage;
+    }
+    
+    act("\tC[\tBWINTER'S WAR MARCH\tC]\tn Your martial anthem engulfs $N in frigid power!", 
+        FALSE, ch, 0, victim, TO_CHAR);
+    act("\tC[\tBWINTER'S WAR MARCH\tC]\tn $n's martial anthem engulfs $N in frigid power!", 
+        FALSE, ch, 0, victim, TO_NOTVICT);
+    
+    /* Apply cooldown so this doesn't proc constantly */
+    struct affected_type af_cd = {0};
+    new_affect(&af_cd);
+    af_cd.spell = PERK_BARD_WINTERS_WAR_MARCH;
+    af_cd.location = APPLY_NONE;
+    af_cd.duration = 2; /* 2 round cooldown between procs */
+    af_cd.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_join(victim, &af_cd, FALSE, FALSE, FALSE, FALSE);
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger
@@ -14312,6 +15303,68 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       }
     }
 
+    /* Wilderness Warrior Two-Weapon Fighting: 10% chance for extra off-hand attack */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10)
+    {
+      numAttacks++;
+      if (mode == NORMAL_ATTACK_ROUTINE)
+      {
+        if (valid_fight_cond(ch, FALSE))
+          if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) ||
+                                      (numAttacks == 5) ||
+                                      (numAttacks == 8) ||
+                                      (numAttacks == 11) ||
+                                      (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) ||
+                                      (numAttacks == 6) ||
+                                      (numAttacks == 9) ||
+                                      (numAttacks == 12) ||
+                                      (numAttacks == 15))))
+          {
+            send_to_char(ch, "\tG[Wilderness Warrior TWF!]\tn\r\n");
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, ATTACK_TYPE_OFFHAND);
+          }
+      }
+      else if (mode == DISPLAY_ROUTINE_POTENTIAL)
+      {
+        send_to_char(ch, "Offhand (WW Two-Weapon Fighting - 10%% proc), Attack Bonus:  %d; ",
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
+      }
+    }
+
+    /* Greater Wilderness Warrior Two-Weapon Fighting: another 10% chance for extra off-hand attack */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10)
+    {
+      numAttacks++;
+      if (mode == NORMAL_ATTACK_ROUTINE)
+      {
+        if (valid_fight_cond(ch, FALSE))
+          if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) ||
+                                      (numAttacks == 5) ||
+                                      (numAttacks == 8) ||
+                                      (numAttacks == 11) ||
+                                      (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) ||
+                                      (numAttacks == 6) ||
+                                      (numAttacks == 9) ||
+                                      (numAttacks == 12) ||
+                                      (numAttacks == 15))))
+          {
+            send_to_char(ch, "\tG[Greater WW TWF!]\tn\r\n");
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY, ATTACK_TYPE_OFFHAND);
+          }
+      }
+      else if (mode == DISPLAY_ROUTINE_POTENTIAL)
+      {
+        send_to_char(ch, "Offhand (Greater WW Two-Weapon Fighting - 10%% proc), Attack Bonus:  %d; ",
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
+      }
+    }
+
     if (!IS_NPC(ch) && is_skilled_dualer(ch, MODE_EPIC_2_WPN))
     { /* perfect two weapon fighting */
       numAttacks++;
@@ -14551,6 +15604,19 @@ EVENTFUNC(event_combat_round)
   /* execute phase */
   perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables) ? atoi(pMudEvent->sVariables) : 0));
 
+  /* Alchemist: Unstable Mutagen backlash (10% chance per round while mutagen active)
+   * Perfect Mutagen capstone grants immunity to this backlash. */
+  if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN) && !has_alchemist_perfect_mutagen(ch))
+  {
+    if (rand_number(1, 100) <= 10)
+    {
+      int backlash = MAX(1, GET_LEVEL(ch));
+      send_to_char(ch, "Your unstable mutagen backlashes, harming you!\r\n");
+      act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
+      damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
+    }
+  }
+
   /* set the next phase */
   if (pMudEvent->sVariables != NULL)
     sprintf(pMudEvent->sVariables, "%d", (atoi(pMudEvent->sVariables) < 3 ? atoi(pMudEvent->sVariables) + 1 : 1));
@@ -14674,6 +15740,19 @@ void perform_violence(struct char_data *ch, int phase)
       MOUNTED_BLOCKS_LEFT(ch) = 1;
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
       MOUNTED_BLOCKS_LEFT(ch) += 1;
+
+    /* Blackguard: Profane Dominion - periodic damage to feared enemies */
+    if (!IS_NPC(ch) && FIGHTING(ch) && has_blackguard_profane_dominion(ch))
+    {
+      struct char_data *vict = FIGHTING(ch);
+      int profane_dom_dam = get_profane_dominion_damage(ch, vict);
+      if (profane_dom_dam > 0)
+      {
+        act("\tD$N suffers under your profane dominion!\tn", FALSE, ch, 0, vict, TO_CHAR);
+        act("\tDYou suffer under $n's profane dominion!\tn", FALSE, ch, 0, vict, TO_VICT);
+        damage(ch, vict, profane_dom_dam, TYPE_UNDEFINED, DAM_UNHOLY, FALSE);
+      }
+    }
 
     /* You must have at least one hand free to use this feat.
      * Once per round when you would normally be hit with an attack from a ranged

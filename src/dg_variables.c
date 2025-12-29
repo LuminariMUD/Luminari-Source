@@ -1819,7 +1819,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         {
           if (subfield && *subfield)
           {
-            if (check_flags_by_name_ar(GET_OBJ_AFFECT(o), NUM_AFF_FLAGS, subfield, affected_bits) == TRUE)
+            if (check_flags_by_name_ar(GET_OBJ_AFFECT(o), NUM_AFF_FLAGS, subfield, affected_bits) == TRUE ||
+                check_flags_by_name_ar(GET_OBJ2_AFFECT(o), NUM_AFF2_FLAGS, subfield, affected2_bits) == TRUE)
               snprintf(str, slen, "1");
             else
               snprintf(str, slen, "0");

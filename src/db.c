@@ -85,6 +85,7 @@
 #include "crafting_recipes.h"
 #include "mob_spellslots.h"
 #include "mob_known_spells.h"
+#include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -1422,6 +1423,99 @@ static void reset_time(void)
     weather_info.sky = SKY_CLOUDY;
   else
     weather_info.sky = SKY_CLOUDLESS;
+
+  /* Reset Moon Phases */
+  switch (rand_number(1, 8))
+  {
+  case 1:
+    weather_info.moons.solinari_phase = 8;
+    break;
+  case 2:
+    weather_info.moons.solinari_phase = 6;
+    break;
+  case 3:
+    weather_info.moons.solinari_phase = 4;
+    break;
+  case 4:
+    weather_info.moons.solinari_phase = 2;
+    break;
+  case 5:
+    weather_info.moons.solinari_phase = 34;
+    break;
+  case 6:
+    weather_info.moons.solinari_phase = 32;
+    break;
+  case 7:
+    weather_info.moons.solinari_phase = 30;
+    break;
+  case 8:
+    weather_info.moons.solinari_phase = 28;
+    break;
+  default:
+    weather_info.moons.solinari_phase = 1;
+    break;
+  }
+  switch (rand_number(1, 8))
+  {
+  case 1:
+    weather_info.moons.lunitari_phase = 2;
+    break;
+  case 2:
+    weather_info.moons.lunitari_phase = 1;
+    break;
+  case 3:
+    weather_info.moons.lunitari_phase = 8;
+    break;
+  case 4:
+    weather_info.moons.lunitari_phase = 7;
+    break;
+  case 5:
+    weather_info.moons.lunitari_phase = 6;
+    break;
+  case 6:
+    weather_info.moons.lunitari_phase = 5;
+    break;
+  case 7:
+    weather_info.moons.lunitari_phase = 4;
+    break;
+  case 8:
+    weather_info.moons.lunitari_phase = 3;
+    break;
+  default:
+    weather_info.moons.lunitari_phase = 1;
+    break;
+  }
+  switch (rand_number(1, 8))
+  {
+  case 1:
+    weather_info.moons.nuitari_phase = 18;
+    break;
+  case 2:
+    weather_info.moons.nuitari_phase = 15;
+    break;
+  case 3:
+    weather_info.moons.nuitari_phase = 11;
+    break;
+  case 4:
+    weather_info.moons.nuitari_phase = 8;
+    break;
+  case 5:
+    weather_info.moons.nuitari_phase = 4;
+    break;
+  case 6:
+    weather_info.moons.nuitari_phase = 1;
+    break;
+  case 7:
+    weather_info.moons.nuitari_phase = 25;
+    break;
+  case 8:
+    weather_info.moons.nuitari_phase = 22;
+    break;
+  default:
+    weather_info.moons.nuitari_phase = 1;
+    break;
+  }
+  calc_moon_bonus();
 }
 
 /* Write the time in 'when' to the MUD-time file. */
@@ -2676,7 +2770,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 static void interpret_espec(const char *keyword, const char *value, int i, int nr)
 {
   int num_arg = 0, matched = FALSE;
-  int num, num2;
+  int num, num2, num3, num4;
 
   /* If there isn't a colon, there is no value.  While Boolean options are
    * possible, we don't actually have any.  Feel free to make some. */
@@ -2796,6 +2890,15 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   {
     sscanf(value, "%d %d", &num, &num2);
     MOB_SET_FEAT(mob_proto + i, num, num2);
+  }
+
+  CASE("Aff2")
+  {
+    sscanf(value, "%d %d %d %d", &num, &num2, &num3, &num4);
+    AFF2_FLAGS(mob_proto + i)[0] = num;
+    AFF2_FLAGS(mob_proto + i)[1] = num2;
+    AFF2_FLAGS(mob_proto + i)[2] = num3;
+    AFF2_FLAGS(mob_proto + i)[3] = num4;
   }
 
   CASE("DR_MOD")
@@ -3300,6 +3403,7 @@ const char *parse_object(FILE *obj_f, int nr)
   char *tmpptr, buf2[128], f1[READ_SIZE], f2[READ_SIZE], f3[READ_SIZE], f4[READ_SIZE];
   char f5[READ_SIZE], f6[READ_SIZE], f7[READ_SIZE], f8[READ_SIZE];
   char f9[READ_SIZE], f10[READ_SIZE], f11[READ_SIZE], f12[READ_SIZE];
+  char f13[READ_SIZE], f14[READ_SIZE], f15[READ_SIZE], f16[READ_SIZE];
   struct extra_descr_data *new_descr;
   struct obj_special_ability *new_specab;
 
@@ -3336,8 +3440,8 @@ const char *parse_object(FILE *obj_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %s %s %s %s %s %s %s %s %s %s %s %s", t, f1, f2, f3,
-                        f4, f5, f6, f7, f8, f9, f10, f11, f12)) == 4) &&
+  if (((retval = sscanf(line, " %d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s", t, f1, f2, f3,
+                        f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16)) == 4) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3415,9 +3519,45 @@ const char *parse_object(FILE *obj_f, int nr)
     GET_OBJ_PERM(obj_proto + i)
     [3] = asciiflag_conv(f12);
   }
+  else if (retval == 17)
+  {
+
+    GET_OBJ_EXTRA(obj_proto + i)
+    [0] = asciiflag_conv(f1);
+    GET_OBJ_EXTRA(obj_proto + i)
+    [1] = asciiflag_conv(f2);
+    GET_OBJ_EXTRA(obj_proto + i)
+    [2] = asciiflag_conv(f3);
+    GET_OBJ_EXTRA(obj_proto + i)
+    [3] = asciiflag_conv(f4);
+    GET_OBJ_WEAR(obj_proto + i)
+    [0] = asciiflag_conv(f5);
+    GET_OBJ_WEAR(obj_proto + i)
+    [1] = asciiflag_conv(f6);
+    GET_OBJ_WEAR(obj_proto + i)
+    [2] = asciiflag_conv(f7);
+    GET_OBJ_WEAR(obj_proto + i)
+    [3] = asciiflag_conv(f8);
+    GET_OBJ_PERM(obj_proto + i)
+    [0] = asciiflag_conv(f9);
+    GET_OBJ_PERM(obj_proto + i)
+    [1] = asciiflag_conv(f10);
+    GET_OBJ_PERM(obj_proto + i)
+    [2] = asciiflag_conv(f11);
+    GET_OBJ_PERM(obj_proto + i)
+    [3] = asciiflag_conv(f12);
+    GET_OBJ2_PERM(obj_proto + i)
+    [0] = asciiflag_conv(f13);
+    GET_OBJ2_PERM(obj_proto + i)
+    [1] = asciiflag_conv(f14);
+    GET_OBJ2_PERM(obj_proto + i)
+    [2] = asciiflag_conv(f15);
+    GET_OBJ2_PERM(obj_proto + i)
+    [3] = asciiflag_conv(f16);
+  }
   else
   {
-    log("SYSERR: Format error in first numeric line (expecting 13 args, got %d), %s", retval, buf2);
+    log("SYSERR: Format error in first numeric line (expecting 13 or 17 args, got %d), %s", retval, buf2);
     exit(1);
   }
 
@@ -3734,6 +3874,16 @@ const char *parse_object(FILE *obj_f, int nr)
       }
       (obj_proto + i)->mob_recepient = t[0];
       break;
+    case 'R': /* restring identifier */
+      if (!get_line(obj_f, line))
+      {
+        log("SYSERR: Format error in 'R' field, %s\n"
+            "...expecting restring identifier but file ended!",
+            buf2);
+        exit(1);
+      }
+      (obj_proto + i)->restring_identifier = strdup(line);
+      break;
     case 'K': // object activated spells
       if (!get_line(obj_f, line))
       {
@@ -3751,6 +3901,9 @@ const char *parse_object(FILE *obj_f, int nr)
       obj_proto[i].activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
       obj_proto[i].activate_spell[ACT_SPELL_MAX_USES] = t[3];
       obj_proto[i].activate_spell[ACT_SPELL_COOLDOWN] = t[4];
+      break;
+    case 'P': // AFF2 flags
+      
       break;
     case 'S': // weapon spells
       /*
@@ -4496,6 +4649,15 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   GET_ID(obj) = max_obj_id++;
   /* find_obj helper */
   add_to_lookup_table(GET_ID(obj), (void *)obj);
+
+  /* Handle string fields that shouldn't be shared with prototype */
+  /* For arcane_mark and restring_identifier, we need to create instance-specific copies
+   * if they exist in the prototype, so modifications to one instance don't affect others */
+  if (obj_proto[i].arcane_mark)
+    obj->arcane_mark = strdup(obj_proto[i].arcane_mark);
+  
+  if (obj_proto[i].restring_identifier)
+    obj->restring_identifier = strdup(obj_proto[i].restring_identifier);
 
   /* Copy the spellbook information - Uses pointer math to access and array...*/
   if (obj_proto[i].sbinfo)
@@ -6069,6 +6231,10 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->saved.completed_quests);
     if (ch->player_specials->saved.autocquest_desc)
       free(ch->player_specials->saved.autocquest_desc);
+    if (GET_ARCANE_MARK(ch)) {
+      free(GET_ARCANE_MARK(ch));
+      GET_ARCANE_MARK(ch) = NULL;
+    }
     if (ch->player.background)
       free(ch->player.background);
     if (ch->player.goals)
@@ -6531,6 +6697,11 @@ void init_char(struct char_data *ch)
   if (ch->player_specials == NULL)
     CREATE(ch->player_specials, struct player_special_data, 1);
 
+  /* Initialize inquisitor perk tracking */
+  ch->player_specials->saved.inq_favored_terrain = -1;
+  ch->player_specials->saved.inq_favored_terrain_reset = 0;
+  ch->player_specials->inq_studied_target = NULL;
+
   if (ch->bags == NULL)
     CREATE(ch->bags, struct bag_data, 1);
   
@@ -6770,6 +6941,9 @@ void init_char(struct char_data *ch)
   {
     ch->player_specials->saved.perk_points[i] = 0;
   }
+
+  /* Initialize moon bonus spells for arcane casters */
+  init_moon_bonus_spells(ch);
 }
 
 /* returns the real number of the room with given virtual number */
@@ -7239,6 +7413,8 @@ static void load_default_config(void)
   CONFIG_WILDERNESS_SYSTEM = 0;
   CONFIG_MELEE_EXP_OPTION = 0;  /* 0 = Full */
   CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
+  CONFIG_SPELLCASTING_TIME_MODE = 0; /* 0 = Standard action */
+  CONFIG_ARCANE_MOON_PHASES = 0;  /* 0 = OFF, 1 = ON */
 }
 
 void load_config(void)
@@ -7286,6 +7462,8 @@ void load_config(void)
         CONFIG_ALCHEMY_PREP_TIME = num;
       else if (!str_cmp(tag, "allow_cexchange"))
         CONFIG_ALLOW_CEXCHANGE = num;
+      else if (!str_cmp(tag, "arcane_moon_phases"))
+        CONFIG_ARCANE_MOON_PHASES = num;
       break;
 
     case 'b':
@@ -7610,6 +7788,8 @@ void load_config(void)
         CONFIG_SUMMON_LEVEL_21_30_AC = num;
       else if (!str_cmp(tag, "spell_cast_exp_option"))
         CONFIG_SPELL_CAST_EXP_OPTION = num;
+      else if (!str_cmp(tag, "spellcasting_time_mode"))
+        CONFIG_SPELLCASTING_TIME_MODE = num;
       break;
 
     case 't':

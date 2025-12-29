@@ -141,3 +141,21 @@ int categorize_known_spell(int spellnum)
   /* Everything else is utility */
   return KNOWN_SPELL_CATEGORY_UTILITY;
 }
+
+/* Check if mob has any known spells */
+bool mob_has_known_spells(struct char_data *ch)
+{
+  int i = 0;
+  
+  if (!ch || !IS_NPC(ch))
+    return false;
+  
+  /* Check if any spell is known */
+  for (i = 0; i < MAX_SPELLS; i++)
+  {
+    if (MOB_KNOWS_SPELL(ch, i))
+      return true;
+  }
+  
+  return false;
+}

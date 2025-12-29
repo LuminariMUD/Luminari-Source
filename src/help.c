@@ -839,6 +839,30 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
             break;
         }
     }
+
+    /* If there is no keyword_list (common for DB help), fall back to tag/keywords string. */
+    if (!exact_match_found && entries->keyword_list == NULL) {
+      /* First, check tag directly. */
+      if ((entries->tag && strcasecmp(entries->tag, argument) == 0) ||
+        (entries->tag && strcasecmp(entries->tag, raw_argument) == 0)) {
+        exact_match_found = 1;
+        if (HELP_DEBUG) log("DEBUG: handle_database_help: EXACT MATCH via tag '%s'", entries->tag);
+      } else if (entries->keywords && *entries->keywords) {
+        /* Keywords string is a comma-separated list; check each token. */
+        char kw_buf[MAX_STRING_LENGTH];
+        char *tok = NULL, *saveptr = NULL;
+        strlcpy(kw_buf, entries->keywords, sizeof(kw_buf));
+        for (tok = strtok_r(kw_buf, ",", &saveptr); tok; tok = strtok_r(NULL, ",", &saveptr)) {
+          /* Trim leading spaces */
+          while (*tok == ' ') tok++;
+          if (strcasecmp(tok, argument) == 0 || strcasecmp(tok, raw_argument) == 0) {
+            exact_match_found = 1;
+            if (HELP_DEBUG) log("DEBUG: handle_database_help: EXACT MATCH via keywords string '%s'", tok);
+            break;
+          }
+        }
+      }
+    }
     if (!exact_match_found && HELP_DEBUG) {
         log("DEBUG: handle_database_help: No exact match found, only partial matches");
     }

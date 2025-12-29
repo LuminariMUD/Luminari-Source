@@ -677,6 +677,9 @@ void init_domain_spell_level(void)
    otherwise return domain */
 int is_domain_spell_of_ch(struct char_data *ch, int spellnum)
 {
+  if (IS_NPC(ch))
+    return FALSE;
+    
   int counter = 0;
 
   if (GET_1ST_DOMAIN(ch))

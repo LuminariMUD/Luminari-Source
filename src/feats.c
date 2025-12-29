@@ -249,8 +249,7 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
       "Spontaneous",
       "Any"};
 
-  prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type,
-                               circle);
+  prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
   snprintf(buf, sizeof(buf), "Ability to cast %s %s (%d circle) spells", casting_types[casting_type],
            spell_preparation_types[prep_type], circle);
@@ -4648,6 +4647,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_IRON_GOLEM_IMMUNITY, "iron golem immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immunity to all magic, except fire and lightning.",
         "immunity to all magic, except fire and lightning. Fire will heal the golem instead.  Electric damage will slow the golem instead.");
+  feato(FEAT_WOOD_GOLEM_IMMUNITY, "wood golem immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "immunity to all magic, except fire and cold.",
+        "immunity to all magic, except fire and cold. Cold will heal the golem instead.  Fire damage will cause extra damage.");
+  feato(FEAT_STONE_GOLEM_IMMUNITY, "stone golem immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "immunity to all magic",
+        "immunity to all magic.");
   feato(FEAT_POISON_BREATH, "poison breath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "allows breathing poison gas into the room",
         "dragon shape");
@@ -5450,12 +5455,13 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "An artificer's invention ability expands to include the creation of true magic items, even if the artificer does not "
         "have access to the prerequisite spells. The artificer must make a Craft check to emulate each required spell.");
 
-  feato(FEAT_SALVAGE, "salvage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Ability to salvage materials and motes from items.",
+  feato(FEAT_SALVAGE, "salvage", TRUE, TRUE, FALSE, FEAT_TYPE_CRAFT,
+        "Ability to salvage coins, materials and motes from items.",
         "The player can dismantle items to recover valuable materials. Salvaging gives 15% of the item's gold value "
         "immediately, plus a chance to recover crafting materials and elemental motes. Material chance is "
         "((player level / 3) + 10)% to get 1 to (item level / 6) materials. Mote chance is half that, yielding "
-        "1 to (bonus level adjustment / 6) motes per magical bonus on the item.");
+        "1 to (bonus level adjustment / 6) motes per magical bonus on the item. Note that having the Scavenger "
+        "talent and the Salvage feat does not provide any additional benefit.");
 
   feato(FEAT_METAMAGIC_SCIENCE, "metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Apply metamagic feats to spell trigger items like wands.",
@@ -5476,6 +5482,24 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "Add half artificer level to all skills.",
         "The artificer's jack of all trades ability reaches its zenith: The artificer may now add half their artificer class level "
         "to all skill checks, representing the pinnacle of versatile expertise.");
+
+    feato(FEAT_CONSTRUCT_WOOD_GOLEM, "construct wood golem", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "Craft and command a wooden golem using harvested materials.",
+      "At 10th level, the artificer can design and assemble a wooden golem as a personal construct. "
+      "Creating the golem consumes harvested wood and metal components and ties it to the artificer for control.");
+
+    feato(FEAT_CONSTRUCT_STONE_GOLEM, "construct stone golem", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "Craft and command a stone golem built from quarried stone and metals.",
+      "At 20th level, the artificer can build a stone golem. Constructing it consumes significant quantities of stone "
+      "and metal reagents and binds the construct to the artificer's commands.");
+
+    feato(FEAT_CONSTRUCT_IRON_GOLEM, "construct iron golem", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "Craft and command a powerful iron golem guardian.",
+      "Alows one to forge an iron golem. This process requires large amounts of iron and refined materials "
+      "and produces a durable construct that answers only to its creator. Artificers egt this feat for free at level 30.");
+    feat_prereq_ability(FEAT_CONSTRUCT_IRON_GOLEM, ABILITY_ARCANA, 26);
+    feat_prereq_spellcasting(FEAT_CONSTRUCT_IRON_GOLEM, CASTING_TYPE_ARCANE, 3, 9);
+    feat_prereq_feat(FEAT_CONSTRUCT_IRON_GOLEM, FEAT_CONSTRUCT_STONE_GOLEM, 1);
 
   feato(FEAT_GNOMISH_TINKERING, "gnomish tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "Gnomish expertise in mechanical devices and weird science.",
@@ -5571,6 +5595,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   epicfeat(FEAT_PSI_POWER_RAZOR_STORM);
   epicfeat(FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING);
   epicfeat(FEAT_PSI_POWER_EPIC_PSIONIC_WARD);
+  epicfeat(FEAT_CONSTRUCT_IRON_GOLEM);
 
   epicfeat(FEAT_LAST_FEAT);
 

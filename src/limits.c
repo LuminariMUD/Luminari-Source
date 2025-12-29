@@ -37,6 +37,7 @@
 #include "evolutions.h"
 #include "spell_prep.h"
 #include "perks.h"
+#include "moon_bonus_spells.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -220,7 +221,7 @@ void affliction_tick(struct char_data *ch)
   if (affected_by_spell(ch, WARLOCK_CHILLING_TENTACLES))
   {
     damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, WARLOCK_CHILLING_TENTACLES, DAM_FORCE, FALSE);
-    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES, DAM_COLD, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES_COLD, DAM_COLD, FALSE);
   }
   else if (affected_by_spell(ch, SPELL_GREATER_BLACK_TENTACLES))
   {
@@ -388,6 +389,20 @@ void pulse_luminari()
     /* an assortment of affliction types */
     affliction_tick(i);
 
+    /* Bard Spellsinger: Sustaining Melody - recover PC spell slots (spontaneous) */
+    if (!IS_NPC(i) && GET_CASTING_CLASS(i) == CLASS_BARD &&
+        FIGHTING(i) && IS_PERFORMING(i) && has_bard_sustaining_melody(i))
+    {
+      /* 20% chance per combat round to recover 1 spell slot */
+      if (rand_number(1, 100) <= 20)
+      {
+        if (sustain_melody_recover_one_slot(i, CLASS_BARD))
+        {
+          send_to_char(i, "\tYYour sustaining melody recovers a spell slot!\tn\r\n");
+        }
+      }
+    }
+
     /* grapple cleanup */
     grapple_cleanup(i);
 
@@ -530,6 +545,10 @@ int get_healing_aura_regen_bonus(struct char_data *ch)
 int regen_hps(struct char_data *ch)
 {
   int hp = 0;
+
+  /* Constructed golems never regenerate naturally; they must be repaired */
+  if (IS_GOLEM(ch))
+    return 0;
 
   /* base regen rate */
   if (rand_number(0, 1))
@@ -800,6 +819,15 @@ void regen_update(struct char_data *ch)
   }
   /* End of bleeding check! */
 
+  /* Golems: immune to fatigue/move drain and rely solely on repairs for HP */
+  if (IS_GOLEM(ch))
+  {
+    if (AFF_FLAGGED(ch, AFF_FATIGUED))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FATIGUED);
+
+    GET_MOVE(ch) = GET_MAX_MOVE(ch);
+  }
+
   // we don't have hunger and thirst here.
   /*
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
@@ -820,7 +848,6 @@ void regen_update(struct char_data *ch)
   if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && has_primal_vigor(ch->master) && FIGHTING(ch))
   {
     hp += 1;
-    send_to_char(ch->master, "\tG[Primal Vigor: Companion +1 HP]\tn ");
   }
 
   /* Paladin Sacred Defender perk: Aura of Life - allies in aura regenerate HP */
@@ -2035,11 +2062,16 @@ void update_player_misc(void)
     if (GET_MARK(ch))
     {
       /* Assassin death attack uses 3 rounds; Ranger Hunter's Mark uses 5 rounds */
-      int max_rounds = 3;
-      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
-        max_rounds = 5;
+      int max_rounds = 0;
+      if (!IS_NPC(ch))
+      {
+        if (has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+          max_rounds = 5;
+        else if (CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0)
+          max_rounds = 3;
+      }
 
-      if (GET_MARK_ROUNDS(ch) < max_rounds)
+      if (max_rounds > 0 && GET_MARK_ROUNDS(ch) < max_rounds)
       {
         GET_MARK_ROUNDS(ch) += 1;
         if (GET_MARK_ROUNDS(ch) >= max_rounds || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
@@ -2064,6 +2096,40 @@ void proc_d20_round(void)
 
   for (i = character_list; i; i = i->next)
   {
+    /* Cowering: 10% chance per round to be too afraid to act */
+    if (FIGHTING(i) && AFF_FLAGGED(i, AFF_COWERING) && rand_number(1, 100) <= 10)
+    {
+      send_to_char(i, "\tRYou are too afraid to act!\tn\r\n");
+      act("$n cowers in fear, unable to act!", FALSE, i, 0, 0, TO_ROOM);
+      /* Consume all actions - the character can't do anything this round */
+      USE_STANDARD_ACTION(i);
+      USE_MOVE_ACTION(i);
+      USE_SWIFT_ACTION(i);
+    }
+
+    /* Perfect Tempo perk: Apply buff if character avoided all hits this round */
+    if (FIGHTING(i) && has_bard_perfect_tempo(i) && !is_affected_by_perfect_tempo(i))
+    {
+      /* Check if they were hit this round (ePERFECT_TEMPO_HIT_THIS_ROUND event) */
+      if (!char_has_mud_event(i, ePERFECT_TEMPO_HIT_THIS_ROUND))
+      {
+        /* They avoided all hits - apply the buff */
+        new_affect(&af);
+        af.spell = AFFECT_BARD_PERFECT_TEMPO;
+        af.duration = 2; /* 2 rounds */
+        af.location = APPLY_HITROLL;
+        af.modifier = 4; /* +4 to-hit */
+        affect_to_char(i, &af);
+        
+        send_to_char(i, "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
+        act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, i, 0, 0, TO_ROOM);
+      }
+      else
+      {
+        /* They were hit this round, remove the tracking event for next round */
+        event_cancel_specific(i, ePERFECT_TEMPO_HIT_THIS_ROUND);
+      }
+    }
 
     if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) > 0)
     {
@@ -2307,7 +2373,7 @@ void check_devices(void)
   {
     next_char = i->next;
 
-    /* Artificer device recharge: Every 30 seconds recharge 1 use */
+    /* Artificer device recharge: Every 30 seconds recharge 1 use or reduce DC penalty */
     if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) &&
         i->player_specials->saved.num_inventions > 0)
     {
@@ -2322,15 +2388,28 @@ void check_devices(void)
       {
         struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
         
-        /* Only recharge if device has been used at all */
-        if (inv->uses > 0)
+        /* Skip broken devices - they cannot be recharged until repaired */
+        if (inv->broken)
+          continue;
+        
+        /* Process device if it has been used or has DC penalty */
+        if (inv->uses > 0 || inv->dc_penalty > 0)
         {
-          inv->uses--;
-          inv->dc_penalty = MAX(0, inv->dc_penalty - 2); /* Also reduce DC penalty */
-          
-          send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
-                      inv->short_description, max_uses - inv->uses, max_uses);
-          break; /* Only recharge one device per 30 seconds */
+          /* If device has DC penalty, reduce it instead of recharging uses */
+          if (inv->dc_penalty > 0)
+          {
+            inv->dc_penalty = MAX(0, inv->dc_penalty - 4);
+            send_to_char(i, "\tgYour device '%s' stabilizes. (DC penalty: +%d)\tn\r\n",
+                        inv->short_description, inv->dc_penalty);
+          }
+          /* Only recharge uses if DC penalty is now 0 and device has been used */
+          else if (inv->uses > 0)
+          {
+            inv->uses--;
+            send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
+                        inv->short_description, max_uses - inv->uses, max_uses);
+          }
+          break; /* Only process one device per 30 seconds */
         }
       }
     }
@@ -2945,6 +3024,9 @@ void update_damage_and_effects_over_time(void)
         }
       }
     } // end immolation bombs
+
+    /* Moon-based bonus spell slot regeneration */
+    regenerate_moon_bonus_spell(ch);
 
   } // end character_list loop
 }

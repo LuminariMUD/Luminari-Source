@@ -65,7 +65,10 @@
 #include "spell_prep.h"
 #include "domains_schools.h"
 #include "perks.h"          /* For divine metamagic reduction */
+#include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
+#include "mud_event.h"
 #include <limits.h> /* For INT_MAX overflow checks */
+#include "moon_bonus_spells.h"
 /** END header files **/
 
 /** START Globals **/
@@ -1618,6 +1621,54 @@ int count_total_slots(struct char_data *ch, int class, int circle)
 }
 
 /**
+ * sustain_melody_recover_one_slot - Instantly recover one spontaneous slot
+ * @ch: Character to recover a slot for (PC only)
+ * @ch_class: Spontaneous caster class (e.g., CLASS_BARD)
+ *
+ * For spontaneous casters (Sorcerer, Bard, etc.), available slots are computed
+ * as compute_slots_by_circle() minus slots in use across prepared collection and
+ * the innate (recovering) queue. To "recover" a slot immediately, we remove one
+ * entry from the innate magic queue. This increases available slots by one.
+ *
+ * This helper scans for the lowest-circle recovering slot and removes it. If no
+ * recovering slots exist, returns FALSE.
+ */
+bool sustain_melody_recover_one_slot(struct char_data *ch, int ch_class)
+{
+  struct innate_magic_data *iter, *best = NULL;
+
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+
+  /* Only applies to classes that use innate magic */
+  switch (ch_class) {
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+    case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
+      break;
+    default:
+      return FALSE;
+  }
+
+  if (!INNATE_MAGIC(ch, ch_class))
+    return FALSE;
+
+  /* Find the lowest-circle entry in the innate (recovering) queue */
+  for (iter = INNATE_MAGIC(ch, ch_class); iter; iter = iter->next) {
+    if (!best || iter->circle < best->circle)
+      best = iter;
+  }
+
+  if (!best)
+    return FALSE;
+
+  /* Remove it to make one slot of that circle available immediately */
+  innate_magic_remove(ch, best, ch_class);
+  return TRUE;
+}
+
+/**
  * is_spell_in_prep_queue - Check if spell is being prepared
  * @ch: Character to check
  * @class: Class to check preparation for
@@ -1910,6 +1961,16 @@ static int calculate_metamagic_modifier(struct char_data *ch, int char_class, in
       metamagic_mod += 1;
     }
   }
+
+  /* Inquisitor Spell Metamastery: one metamagic cast at no extra circle cost every 5 minutes */
+  if (metamagic > 0 && ch && !IS_NPC(ch) && char_class == CLASS_INQUISITOR &&
+      has_inquisitor_spell_metamastery(ch) &&
+      !char_has_mud_event(ch, eSPELL_METAMASTERY_USED))
+  {
+    metamagic_mod = 0;
+    attach_mud_event(new_mud_event(eSPELL_METAMASTERY_USED, ch, NULL), 5 * 60 * PASSES_PER_SEC);
+    send_to_char(ch, "\tYYou focus your Spell Metamastery to ignore metamagic strain for this casting.\tn\r\n");
+  }
   
   /* Apply divine metamagic reduction for divine casting classes */
   if (ch && !IS_NPC(ch) && is_divine_spellcasting_class(char_class)) {
@@ -2193,6 +2254,10 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   campaign_override = check_campaign_spell_override(spellnum);
   if (campaign_override > 0)
     return campaign_override;
+
+  /* Cantrips are always circle 0 and ignore metamagic adjustments */
+  if (spell_is_cantrip(spellnum))
+    return 0;
 
   /* Calculate metamagic modifiers (with divine metamagic reduction if applicable) */
   metamagic_mod = calculate_metamagic_modifier(ch, char_class, metamagic);
@@ -2977,7 +3042,7 @@ void assign_feat_spell_slots(int ch_class)
 int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 {
   int ch_class = CLASS_UNDEFINED, prep_time = INVALID_PREP_TIME,
-      circle = TOP_CIRCLE + 1, is_domain = FALSE;
+      circle = TOP_CIRCLE + 1, is_domain = FALSE, i;
 
   if (DEBUGMODE)
   {
@@ -2991,11 +3056,79 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
         GET_NAME(ch), spellnum, spell_name(spellnum), metamagic);
   }
 
+  /* MOON BONUS SPELL CHECK: Check if we have available moon bonus spells FIRST */
+  /* This allows arcane casters to cast for free using moon bonus spells */
+  if (!IS_NPC(ch) && has_moon_bonus_spells(ch))
+  {
+    /* Check if this is an arcane spell they can cast */
+    bool is_arcane_spell = FALSE;
+    for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
+    {
+      /* Check prepared spells */
+      if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
+      {
+        is_arcane_spell = (ch_class == CLASS_WIZARD || ch_class == CLASS_SORCERER || 
+                          ch_class == CLASS_BARD || ch_class == CLASS_SUMMONER ||
+                          ch_class == CLASS_ARCANE_SHADOW || ch_class == CLASS_KNIGHT_OF_THE_THORN ||
+                          ch_class == CLASS_ELDRITCH_KNIGHT || ch_class == CLASS_ARCANE_ARCHER ||
+                          ch_class == CLASS_SPELLSWORD || ch_class == CLASS_WARLOCK);
+        if (is_arcane_spell)
+          break;
+      }
+      /* Check spontaneous spells */
+      if (is_a_known_spell(ch, ch_class, spellnum))
+      {
+        is_arcane_spell = (ch_class == CLASS_WIZARD || ch_class == CLASS_SORCERER || 
+                          ch_class == CLASS_BARD || ch_class == CLASS_SUMMONER ||
+                          ch_class == CLASS_ARCANE_SHADOW || ch_class == CLASS_KNIGHT_OF_THE_THORN ||
+                          ch_class == CLASS_ELDRITCH_KNIGHT || ch_class == CLASS_ARCANE_ARCHER ||
+                          ch_class == CLASS_SPELLSWORD || ch_class == CLASS_WARLOCK);
+        if (is_arcane_spell)
+          break;
+      }
+    }
+
+    if (is_arcane_spell)
+    {
+      /* Use a moon bonus spell instead of a regular slot */
+      if (use_moon_bonus_spell(ch))
+      {
+        send_to_char(ch, "\tC[Moon Bonus Spell]:\tn You cast this spell using a bonus spell slot granted by the moon phases!\r\n");
+        /* Return the class that could cast this spell - we don't remove the actual spell */
+        /* Just use the moon bonus and let them keep the spell ready */
+        for (i = 0; i < NUM_CLASSES; i++)
+        {
+          if (is_spell_in_collection(ch, i, spellnum, metamagic) ||
+              is_a_known_spell(ch, i, spellnum))
+            return i;
+        }
+      }
+    }
+  }
+
   /* FIRST: Check all prepared spell collections */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
     if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
     {
+      if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
+          !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
+      {
+        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL), SECS_PER_MUD_DAY);
+        send_to_char(ch, "\tY[Supreme Spellcasting]:\tn You cast this spell without expending the prepared slot!\r\n");
+        return ch_class; /* keep spell prepared */
+      }
+      /* Alchemist Extract I: chance to not consume the prepared extract */
+      if (ch_class == CLASS_ALCHEMIST)
+      {
+        int extract_preserve = get_alchemist_extract_not_consumed_chance(ch);
+        if (extract_preserve > 0 && rand_number(1, 100) <= extract_preserve)
+        {
+          send_to_char(ch, "\tG[Your practiced extraction preserves this vial intact!]\tn\r\n");
+          return ch_class; /* Keep the extract in the collection */
+        }
+      }
+
       /* Check if this is an arcane class and if spell slot is preserved */
       bool is_arcane_class = (ch_class == CLASS_WIZARD || 
                               ch_class == CLASS_SORCERER || 
@@ -3045,6 +3178,13 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
              count_total_slots(ch, ch_class, circle) >
          0))
     {
+      if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
+          !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
+      {
+        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL), SECS_PER_MUD_DAY);
+        send_to_char(ch, "\tY[Supreme Spellcasting]:\tn You cast this spell without expending a spell slot!\r\n");
+        return ch_class; /* slot preserved */
+      }
       /* Check if this is an arcane class and if spell slot is preserved */
       bool is_arcane_class = (ch_class == CLASS_WIZARD || 
                               ch_class == CLASS_SORCERER || 
@@ -3109,6 +3249,34 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
     return true;
 
   int class = CLASS_UNDEFINED;
+
+  /* Cantrips are always available if the character's class list grants them */
+  if (spell_is_cantrip(spellnum))
+  {
+    for (class = 0; class < NUM_CLASSES; class++)
+    {
+      int required_level = LVL_IMMORT + 1;
+
+      if (!CLASS_LEVEL(ch, class))
+        continue;
+
+      if (class == CLASS_CLERIC || class == CLASS_INQUISITOR)
+      {
+        required_level = MIN_SPELL_LVL(spellnum, class, GET_1ST_DOMAIN(ch));
+        required_level = MIN(required_level, MIN_SPELL_LVL(spellnum, class, GET_2ND_DOMAIN(ch)));
+      }
+      else
+      {
+        required_level = spell_info[spellnum].min_level[class];
+      }
+
+      if (required_level <= CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class))
+        return class;
+    }
+
+    /* No eligible class found */
+    return CLASS_UNDEFINED;
+  }
 
   /* FIRST: Check all prepared spell collections */
   for (class = 0; class < NUM_CLASSES; class ++)
@@ -3858,6 +4026,13 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   /* Ensure minimum 1 second prep time */
   if (prep_time <= 0)
     prep_time = 1;
+
+  /* Swift Extraction: 20% prep speed for alchemists */
+  if (class == CLASS_ALCHEMIST && !IS_NPC(ch) && has_alchemist_swift_extraction(ch))
+  {
+    int swift_bonus = prep_time / 5; /* 20% reduction */
+    prep_time -= swift_bonus;
+  }
 
   /* Final cap: preparation time cannot be less than the spell's circle
    * This ensures higher level spells always take meaningful time

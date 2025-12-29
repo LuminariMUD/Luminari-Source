@@ -206,6 +206,15 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   /* Apply any external modifier passed to the function
    * This allows spells or abilities to temporarily adjust SR */
   resist += modifier;
+  
+  /* Blackguard: Blasphemous Warding - bonus SR vs divine spells/good casters
+   * Note: This function doesn't currently receive spellnum, so we check caster alignment */
+  if (!IS_NPC(vict) && ch)
+  {
+    /* For now, apply bonus if caster is good-aligned or has divine casting classes */
+    int warding_bonus = get_blackguard_blasphemous_warding_sr(vict, ch, -1);
+    resist += warding_bonus;
+  }
 
   /* Cap the result between 0 and 99
    * SR can never be negative, and 99 is the system maximum
@@ -218,7 +227,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
 {
 
-  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY))
+  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY)
+  || HAS_FEAT(vict, FEAT_STONE_GOLEM_IMMUNITY)
+  || HAS_FEAT(vict, FEAT_WOOD_GOLEM_IMMUNITY))
     return TRUE;
 
   int challenge = d20(ch),
@@ -250,10 +261,34 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
   challenge += get_spell_penetration_bonus(ch);
+    /* Blackguard: Warding Malice - reduce caster's penetration vs blackguard */
+    if (!IS_NPC(vict) && has_blackguard_warding_malice(vict) && ch)
+    {
+      challenge -= get_blackguard_warding_malice_penalty(vict, ch);
+    }
+  /* Psionicist: Psionic Disruptor I applies +1 manifester level vs PR for Telepathy powers */
+  if (ch) {
+    int current_spellnum = CASTING_SPELLNUM(ch);
+    if (is_spellnum_psionic(current_spellnum) && psionic_powers[current_spellnum].power_type == TELEPATHY) {
+      challenge += get_psionic_telepathy_penetration_bonus(ch);
+    }
+  }
   
   /* Paladin Spell Penetration perk */
   if (!IS_NPC(ch) && has_paladin_spell_penetration(ch) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
     challenge += 4;
+  
+  /* Inquisitor Spell Penetration perk: +1 per rank (max +3) */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0)
+  {
+    int inq_spell_pen = get_inquisitor_spell_penetration(ch);
+    if (inq_spell_pen > 0)
+      challenge += inq_spell_pen;
+    
+    /* Rank 3: Ignore first 5 points of spell resistance */
+    if (has_inquisitor_spell_penetration_ignore(ch))
+      resist -= 5;
+  }
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 && WEAPON_SPELL_PROC(ch) == TRUE)
   {
@@ -310,6 +345,16 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
       int monk_bonus = get_monk_reflex_save_bonus(vict);
       if (monk_bonus > 0)
         saves += monk_bonus;
+    }
+    /* bard swashbuckler reflex save bonus from perks */
+    if (!IS_NPC(vict) && CLASS_LEVEL(vict, CLASS_BARD))
+    {
+      int bard_reflex_bonus = get_bard_fencers_footwork_reflex_bonus(vict);
+      if (bard_reflex_bonus > 0)
+        saves += bard_reflex_bonus;
+      bard_reflex_bonus = get_bard_fencers_footwork_ii_reflex_bonus(vict);
+      if (bard_reflex_bonus > 0)
+        saves += bard_reflex_bonus;
     }
     break;
 
@@ -454,6 +499,18 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (!IS_NPC(vict))
     savethrow += get_paladin_bulwark_saves_bonus(vict);
 
+  /* Bard Spellsinger: Protective Chorus - +2 to all saves for allies */
+  if (!IS_NPC(vict))
+  {
+    savethrow += get_bard_protective_chorus_save_bonus(vict);
+  }
+
+  /* Bard Spellsinger: Aria of Stasis - +4 to all saves for allies while performing */
+  if (!IS_NPC(vict) && ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0)
+  {
+    savethrow += get_bard_aria_stasis_ally_saves_bonus(ch);
+  }
+
   /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
   if (!IS_NPC(vict) && GROUP(vict) != NULL)
   {
@@ -471,9 +528,37 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      savethrow += weather_info.moons.solinari_st;
+    else if (IS_NEUTRAL(ch))
+      savethrow += weather_info.moons.lunitari_st;
+    else
+      savethrow += weather_info.moons.nuitari_st;
+  }
+
   if (ch && type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
   {
     savethrow += 1;
+  }
+
+  /* Blackguard: Profane Fortitude and Fell Ward */
+  if (!IS_NPC(vict))
+  {
+    savethrow += get_blackguard_profane_fortitude_bonus(vict, ch);
+
+    if (has_blackguard_fell_ward(vict) && ch)
+    {
+      int caster_class = CLASS_UNDEFINED;
+      if (!IS_NPC(ch))
+        caster_class = GET_CASTING_CLASS(ch);
+      else
+        caster_class = GET_CLASS(ch);
+
+      if (caster_class != CLASS_UNDEFINED && is_divine_spellcasting_class(caster_class))
+        savethrow += 2;
+    }
   }
 
   if (GET_POS(vict) == POS_DEAD)
@@ -509,6 +594,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       challenge += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
       stat_bonus = GET_INT_BONUS(ch);
       challenge += stat_bonus;
+      challenge += get_alchemist_bomb_dc_bonus(ch);
     }
     break;
   case CAST_CRUELTY:
@@ -518,6 +604,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       stat_bonus = GET_CHA_BONUS(ch);
       challenge += stat_bonus;
     }
+    break;
+  case CAST_DEVICE:
+    challenge += level;
+    challenge += GET_INT_BONUS(ch);
     break;
   case CAST_SPELL:
   default:
@@ -558,6 +648,11 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     {
       challenge += HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 2 : 1);
     }
+    /* Psionicist: Mind Spike I applies +1 DC to Telepathy powers */
+    if (ch && psionic_powers[spellnum].power_type == TELEPATHY)
+    {
+      challenge += get_psionic_telepathy_dc_bonus(ch);
+    }
   }
 
   if (ch && IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US))
@@ -593,6 +688,12 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     challenge += get_master_enchanter_dc_bonus(ch);
   }
   
+  /* Inquisitor Spell Focus: Divination adds +1 per rank to divination spell DC */
+  if (ch && school == DIVINATION)
+  {
+    challenge += get_inquisitor_divination_dc_bonus(ch);
+  }
+  
   /* Master Transmuter adds +3 DC to transmutation spells */
   if (ch && school == TRANSMUTATION)
   {
@@ -603,6 +704,18 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (ch && school == ILLUSION)
   {
     challenge += get_master_illusionist_dc_bonus(ch);
+  }
+  
+  /* Bard Spellsinger Tree - Enchanter's Guile applies to Enchantment and Illusion */
+  if (ch && (school == ENCHANTMENT || school == ILLUSION))
+  {
+    challenge += get_bard_enchanters_guile_dc_bonus(ch);
+  }
+  
+  /* Bard Spellsinger Tree - Spellsong Maestra adds +2 DC to bard spells while performing */
+  if (ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0 && casttype == CAST_SPELL)
+  {
+    challenge += get_bard_spellsong_maestra_dc_bonus(ch);
   }
   
   /* Archmage of Control adds +5 DC to control spells (charm, confuse, daze, sleep) */
@@ -672,6 +785,17 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (ch && AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch))
     savethrow += 2;
+
+  /* Blackguard: Profane Fortitude - save bonus vs good casters */
+  if (!IS_NPC(vict))
+  {
+    int pf_bonus = get_blackguard_profane_fortitude_bonus(vict, ch);
+    if (pf_bonus > 0)
+    {
+      savethrow += pf_bonus;
+    }
+  }
+
   if (ch && casttype == CAST_WEAPON_POISON)
     savethrow += get_poison_save_mod(ch, vict);
   if (ch && is_poison_spell(spellnum))
@@ -788,6 +912,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       }
     }
 
+    /* Blackguard's Reprisal: on successful save vs spell, mark next-attack bonus */
+    if (!IS_NPC(vict))
+      trigger_blackguard_reprisal_on_save(vict, casttype);
+
     /* Persistent Spell perk - target must succeed on TWO saves to resist */
     if (ch && is_persistent_spell_active(ch))
     {
@@ -815,6 +943,43 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
       GET_HIT(vict) += 2 * CLASS_LEVEL(vict, CLASS_BERSERKER) + 10 +
                        GET_STR_BONUS(vict) + GET_DEX_BONUS(vict) + GET_CON_BONUS(vict);
       send_to_char(vict, "\tWResisting the spell restores some of your vitality!\tn\r\n");
+    }
+
+    /* Overwhelm perk - force a second save if victim passes first one */
+    if (ch && type == SAVING_WILL && psionic_powers[spellnum].power_type == TELEPATHY &&
+        has_overwhelm(ch) && !overwhelm_used_this_combat(ch))
+    {
+      static bool in_overwhelm_save = FALSE;
+      
+      /* Prevent infinite recursion */
+      if (!in_overwhelm_save)
+      {
+        in_overwhelm_save = TRUE;
+        
+        send_to_char(ch, "\tY[Overwhelm: Target must save again!]\tn\r\n");
+        send_to_char(vict, "\tR[Overwhelm: Your mind is hit with another psychic assault - save again!]\tn\r\n");
+        
+        /* Make the second save call - if they fail this one, spell affects them */
+        int second_save = savingthrow_full(ch, vict, type, modifier, casttype, level, school, spellnum);
+        
+        if (!second_save)
+        {
+          /* Mark Overwhelm as used this combat */
+          set_overwhelm_cooldown(ch);
+        }
+        
+        in_overwhelm_save = FALSE;
+        return second_save;
+      }
+    }
+
+    /* Mental Backlash perk - chip damage even on successful save */
+    if (ch && vict && vict != ch && is_spellnum_psionic(spellnum) &&
+        psionic_powers[spellnum].power_type == TELEPATHY && has_psionic_mental_backlash(ch))
+    {
+      int backlash = get_psionic_mental_backlash_damage(ch, level);
+      if (backlash > 0)
+        damage(ch, vict, backlash, spellnum, DAM_MENTAL, FALSE);
     }
 
     return (TRUE);
@@ -1266,6 +1431,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL || ch == NULL)
     return (0);
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   spell_school = spell_info[spellnum].schoolOfMagic;
 
   if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END && HAS_REAL_FEAT(ch, FEAT_ELDRITCH_MASTER))
@@ -1438,6 +1613,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_PUNCTURE;
     num_dice = 1 + GET_AUGMENT_PSP(ch);
+    num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     bonus = 0;
 
@@ -1511,11 +1689,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 1 + GET_AUGMENT_PSP(ch);
+    num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
       bonus = (energy_type != DAM_ELECTRIC && energy_type != DAM_SOUND) ? num_dice : 0;
     }
+    
+    /* Kinetic Edge III: +2 DC for energy ray */
+    GET_DC_BONUS(ch) += get_kinetic_edge_iii_dc_bonus(ch, PSIONIC_ENERGY_RAY);
 
     break;
 
@@ -1524,6 +1708,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = DAM_FORCE;
     num_dice = 1 + (GET_AUGMENT_PSP(ch) / 2);
+    num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     bonus = 0;
     break;
@@ -1533,6 +1720,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 2 + (GET_AUGMENT_PSP(ch) / 2);
+    num_dice += get_kinetic_edge_bonus(ch);
+    num_dice += get_kinetic_edge_ii_bonus(ch);
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 6;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1540,21 +1730,39 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    /* Kinetic Edge III: +2 DC for energy push */
+    GET_DC_BONUS(ch) += get_kinetic_edge_iii_dc_bonus(ch, PSIONIC_ENERGY_PUSH);
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      int extra_force_damage = 0;
       GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+      GET_DC_BONUS(ch) += get_vector_shove_movement_bonus(ch); /* Vector Shove +2 to movement check */
       mag_resist_bonus = (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? -2 : 0;
       if (!savingthrow(ch, victim, energy_type == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
           !power_resistance(ch, victim, mag_resist_bonus) && ((GET_SIZE(victim) - GET_SIZE(ch)) <= 1))
       {
-        change_position(victim, POS_SITTING);
-        act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+        /* Kinetic Crush: enhanced prone effect on failed save */
+        if (has_kinetic_crush(ch) && !MOB_FLAGGED(victim, MOB_NOBASH))
+        {
+          change_position(victim, POS_RESTING); /* more severe knockdown */
+          act("The kinetic force \tRslams you prone\tn with devastating effect!", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n is \tRslammed prone\tn by the kinetic force!", TRUE, victim, 0, ch, TO_ROOM);
+        }
+        else
+        {
+          change_position(victim, POS_SITTING);
+          act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+        }
+        
         if (!OUTDOORS(victim))
         {
           act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
           act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
-          damage(ch, victim, dice(num_dice, size_dice) + bonus, spellnum, DAM_FORCE, FALSE);
+          extra_force_damage = dice(get_vector_shove_damage_bonus(ch), 6); /* +1 die force on success */
+          /* Kinetic Crush: add collision damage = manifester level */
+          extra_force_damage += get_kinetic_crush_collision_damage(ch);
+          damage(ch, victim, dice(num_dice, size_dice) + bonus + extra_force_damage, spellnum, DAM_FORCE, FALSE);
         }
       }
     }
@@ -1625,6 +1833,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     mag_resist = TRUE;
     num_dice = 5 + GET_AUGMENT_PSP(ch);
+    /* Kinetic Edge II: splash +1 die */
+    num_dice += get_kinetic_edge_ii_bonus(ch);
+    /* Kinetic Edge III: splash +1 die (total +2 with Tier II) */
+    num_dice += get_kinetic_edge_iii_bonus(ch);
     size_dice = 8;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -1803,9 +2015,87 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_ACID_SPLASH:
     save = SAVING_REFL;
-    num_dice = 2;
-    size_dice = 3;
     element = DAM_ACID;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_RAY_OF_FROST:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_COLD;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_JOLT:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_ELECTRIC;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_DISRUPT_UNDEAD:
+    if (!IS_UNDEAD(victim))
+    {
+      send_to_char(ch, "Your disrupt undead spell has no effect on living creatures.\r\n");
+      return (0);
+    }
+    save = -1;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    num_dice = 1;
+    size_dice = 10;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    break;
+
+  case SPELL_FIRE_BOLT:
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    num_dice = 2;
+    size_dice = 4;
+    if (level >= 7)
+      num_dice++;
+    if (level >= 15)
+      num_dice++;
+    if (level >= 22)
+      num_dice++;
+    if (level >= 30)
+      num_dice++;
+    bonus = 0;
     break;
 
   case SPELL_BALL_OF_LIGHTNING: // evocation
@@ -2223,13 +2513,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = MIN(level, 5);
     break;
 
-  case SPELL_RAY_OF_FROST:
-    save = SAVING_REFL;
-    num_dice = 2;
-    size_dice = 3;
-    element = DAM_COLD;
-    break;
-
   case SPELL_SCORCHING_RAY: // evocation
     save = -1;
     mag_resist = TRUE;
@@ -2593,6 +2876,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
+  case SPELL_POISON_BREATH: // evocation
+    // AoE - 4d6 + 2d6 per size above small
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_POISON;
+    {
+      int size_bonus = MAX(0, GET_SIZE(ch) - SIZE_SMALL);
+      num_dice = 4 + (size_bonus * 2);
+      size_dice = 6;
+      bonus = 0;
+    }
+    break;
+
   case SPELL_FLAMING_SPHERE: // evocation
     save = SAVING_REFL;
     mag_resist = TRUE;
@@ -2629,6 +2925,30 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_COLD;
     num_dice = MIN(15, CASTER_LEVEL(ch));
     size_dice = 8;
+    bonus = 0;
+    break;
+
+  case SPELL_SPLINTER_STORM: // evocation
+    // AoE - 6d6 slashing damage, 6d8 in forest/taiga
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_SLICE;
+    num_dice = 6;
+    // Increase damage die to d8 if in forest or taiga
+    if (SECT(IN_ROOM(ch)) == SECT_FOREST || SECT(IN_ROOM(ch)) == SECT_TAIGA)
+      size_dice = 8;
+    else
+      size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_SHOCKWAVE: // transmutation
+    // AoE - 10d6 bludgeoning damage with knockdown
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    num_dice = 10;
+    size_dice = 6;
     bonus = 0;
     break;
 
@@ -2832,6 +3152,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = get_master_of_elements_override(ch, element);
   }
   
+  /* Apply Energy Specialization DC bonus for energy-type powers */
+  if (!IS_NPC(ch) && (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END))
+  {
+    GET_DC_BONUS(ch) += get_energy_specialization_dc_bonus(ch, element);
+  }
+  
   /* Check for Druid Elemental Mastery */
   if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
       GET_ELEMENTAL_MASTERY_ACTIVE(ch) &&
@@ -2860,6 +3186,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     dam *= 1.5;  
   }
+
+  /* Store initial dice damage for Hunter's Precision reroll */
+  int base_spell_dice_damage = dam;
 
   if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
   {
@@ -2898,6 +3227,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     // each rank of epic psionics increases psi power damage by 10%, or 20% if under psionic focus affect
     if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
       dam = dam * (100 + (HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 20 : 10))) / 100;
+
+    /* Mind Spike II Tier 2 perk - adds +1 damage die to Telepathy damage powers */
+    if (psionic_powers[spellnum].power_type == TELEPATHY && has_mind_spike_ii_bonus(ch, GET_AUGMENT_PSP(ch)))
+    {
+      dam += dice(1, size_dice);
+    }
   }
 
   // vampire bonuses / penalties for feeding
@@ -2980,16 +3315,26 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (process_iron_golem_immunity(ch, victim, element, dam))
     return 1;
 
+  if (process_wood_golem_immunity(ch, victim, element, dam))
+    return 1;
+
   // resistances to magic, message in mag_resistance
   if (dam && mag_resist && casttype != CAST_DEVICE)
   {
     if (process_iron_golem_immunity(ch, victim, element, dam))
       ;
+    else if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_FIRE)
+      ;
     else
     {
       if (is_spellnum_psionic(spellnum))
       {
-        if (power_resistance(ch, victim, mag_resist_bonus))
+        int pr_bonus = mag_resist_bonus;
+
+        if (psionic_powers[spellnum].power_type == TELEPATHY)
+          pr_bonus += get_psionic_piercing_will_bonus(ch);
+
+        if (power_resistance(ch, victim, pr_bonus))
           return 0;
       }
       else
@@ -3241,7 +3586,164 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else
   {
+    /* Hunter's Precision: reroll spell damage and keep the higher result */
+    if (!IS_NPC(ch) && num_dice > 0)
+    {
+      int precision_chance = get_inquisitor_hunters_precision_chance(ch);
+      if (precision_chance > 0 && rand_number(1, 100) <= precision_chance)
+      {
+        int reroll_base = 0;
+        
+        /* Reroll the base dice damage (with same metamagic modifiers) */
+        if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
+        {
+          reroll_base = (num_dice * size_dice) + bonus;
+        }
+        else
+        {
+          reroll_base = min_dice(num_dice, size_dice, min_dice_roll) + bonus;
+        }
+        
+        if (IS_SET(metamagic, METAMAGIC_EMPOWER))
+        {
+          reroll_base *= 1.5;
+        }
+        
+        /* If reroll is better, replace base damage and recalculate total */
+        if (reroll_base > base_spell_dice_damage)
+        {
+          dam = dam - base_spell_dice_damage + reroll_base;
+          send_to_char(ch, "\tMYour hunter's precision maximizes your spell's power!\tn\r\n");
+        }
+      }
+    }
+
+    /* Bard Spellsinger: Crescendo - add sonic damage to first spell after song */
+    int crescendo_sonic_dam = 0;
+    if (!IS_NPC(ch) && ch->char_specials.performance_vars[4] > 0)
+    {
+      crescendo_sonic_dam = dice(ch->char_specials.performance_vars[4], 6); /* 1d6 sonic damage */
+      ch->char_specials.performance_vars[4] = 0; /* Reset after use */
+    }
+    
     int result = damage(ch, victim, dam, spellnum, element, FALSE);
+    
+    /* Apply Crescendo sonic damage as additional damage */
+    if (crescendo_sonic_dam > 0)
+    {
+      damage(ch, victim, crescendo_sonic_dam, spellnum, DAM_SOUND, FALSE);
+    }
+
+    /* Shard Volley: crystal shard gains +1 projectile when augmented by ≥2 PSP */
+    if (spellnum == PSIONIC_CRYSTAL_SHARD &&
+        should_add_extra_shard_projectile(ch, GET_AUGMENT_PSP(ch)))
+    {
+      if (attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
+      {
+        int extra_dam = min_dice(num_dice, size_dice, min_dice_roll) + bonus;
+        damage(ch, victim, extra_dam, spellnum, element, FALSE);
+        send_to_char(ch, "\tM[Shard Volley] An additional shard strikes true!\tn\r\n");
+      }
+    }
+
+    /* Shardstorm Option 2: Augmented AoE Mode for Crystal Shard */
+    if (spellnum == PSIONIC_CRYSTAL_SHARD && !IS_NPC(ch) && has_shardstorm(ch) &&
+        GET_AUGMENT_PSP(ch) >= 4)
+    {
+      /* Convert to AoE: hit all enemies in the room */
+      struct char_data *tch_aoe, *next_tch;
+      int aoe_count = 0;
+      send_to_char(ch, "\tM[Shardstorm] Crystal shards explode in all directions!\tn\r\n");
+      for (tch_aoe = world[IN_ROOM(ch)].people; tch_aoe; tch_aoe = next_tch)
+      {
+        next_tch = tch_aoe->next_in_room;
+        if (tch_aoe == ch)
+          continue;
+        /* Skip charmed, sleeping, or dead targets */
+        if (AFF_FLAGGED(tch_aoe, AFF_CHARM) || !AWAKE(tch_aoe) || GET_POS(tch_aoe) <= POS_DEAD)
+          continue;
+        if (attack_roll(ch, tch_aoe, ATTACK_TYPE_PSIONICS, TRUE, 0))
+        {
+          int aoe_dam = dice(num_dice, size_dice) + bonus;
+          damage(ch, tch_aoe, aoe_dam, spellnum, element, FALSE);
+          aoe_count++;
+          /* Apply bleed rider: Fortitude save negates */
+          if (!savingthrow(ch, tch_aoe, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+          {
+            struct affected_type af;
+            memset(&af, 0, sizeof(af));
+            af.spell = PSIONIC_CRYSTAL_SHARD;
+            af.duration = 10;
+            af.modifier = 1;
+            af.location = APPLY_NONE;
+            SET_BIT_AR(af.bitvector, AFF_BLEED);
+            affect_to_char(tch_aoe, &af);
+            send_to_char(tch_aoe, "\tRYou begin bleeding from the shards!\tn\r\n");
+          }
+        }
+      }
+      if (aoe_count > 0)
+        send_to_char(ch, "\tM[Shardstorm] %d targets struck!\tn\r\n", aoe_count);
+      return 0; /* Already handled damage and riders */
+    }
+    /* Single-target Shardstorm rider for non-augmented or Swarm */
+    if (!IS_NPC(ch) && has_shardstorm(ch) && dam > 0 && result != -1 &&
+        spellnum == PSIONIC_CRYSTAL_SHARD && GET_AUGMENT_PSP(ch) < 4)
+    {
+      /* Fortitude save negates bleed rider */
+      if (!savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+      {
+        struct affected_type af;
+        memset(&af, 0, sizeof(af));
+        af.spell = PSIONIC_CRYSTAL_SHARD;
+        af.duration = 10;
+        af.modifier = 1;
+        af.location = APPLY_NONE;
+        SET_BIT_AR(af.bitvector, AFF_BLEED);
+        affect_to_char(victim, &af);
+        send_to_char(ch, "\tM[Shardstorm] Bleeding rider takes hold!\tn\r\n");
+        send_to_char(victim, "\tRYou begin bleeding from the shards!\tn\r\n");
+      }
+      else
+      {
+        send_to_char(ch, "Your target resists the Shardstorm rider.\r\n");
+      }
+    }
+    else if (spellnum == PSIONIC_SWARM_OF_CRYSTALS && !IS_NPC(ch) && has_shardstorm(ch) && dam > 0 && result != -1)
+    {
+      /* Reflex save negates attack penalty rider */
+      if (!savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NOSCHOOL))
+      {
+        struct affected_type af;
+        memset(&af, 0, sizeof(af));
+        af.spell = PSIONIC_SWARM_OF_CRYSTALS;
+        af.duration = 10;
+        af.modifier = -2;
+        af.location = APPLY_HITROLL;
+        af.bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+        affect_to_char(victim, &af);
+        send_to_char(ch, "\tM[Shardstorm] Crystalline barrage hampers attacks!\tn\r\n");
+        send_to_char(victim, "\tYShards hamper your ability to strike!\tn\r\n");
+      }
+      else
+      {
+        send_to_char(ch, "Targets resist the Shardstorm rider.\r\n");
+      }
+    }
+
+    /* Psychic Sundering: telepathy damage inflicts vulnerability debuff */
+    if (is_spellnum_psionic(spellnum) && psionic_powers[spellnum].power_type == TELEPATHY &&
+        has_psychic_sundering(ch) && dam > 0 && result != -1)
+    {
+      apply_psychic_sundering_debuff(ch, victim);
+    }
+
+    /* Absolute Geas: telepathy powers have 10% chance to apply debuffs */
+    if (is_spellnum_psionic(spellnum) && psionic_powers[spellnum].power_type == TELEPATHY &&
+        has_psionic_absolute_geas(ch) && dam > 0 && result != -1)
+    {
+      apply_absolute_geas_debuffs(ch, victim, GET_PSIONIC_LEVEL(ch));
+    }
     
     /* Storm Caller: Lightning spells have 25% chance to hit again at half damage */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
@@ -3305,6 +3807,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
   
   /* Beast Master: Shared Spells perk - beneficial spells cast on ranger also affect companion 
    * Only shares non-violent (beneficial) spells cast on self to animal companions.
@@ -3336,6 +3848,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       dc_mod -= 2;
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
       dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_SOLAMNIA);
+  }
+
+  /* Hive Commander perk: victim marked grants +3 DC bonus to further Telepathy powers */
+  if (ch && victim && is_spellnum_psionic(spellnum) && 
+      psionic_powers[spellnum].power_type == TELEPATHY &&
+      affected_by_spell(victim, SPELL_HIVE_COMMANDER_MARK))
+  {
+    dc_mod += 3;
   }
 
   /* elven drow resistance to certain enchantments such as sleep */
@@ -3942,7 +4462,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
@@ -3966,7 +4486,28 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_SHIELD;
     af[0].duration = level * 12;
+    af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
+    af[0].modifier += get_force_screen_ac_bonus(ch);
+    /* Force Aegis: +3 AC vs ranged/spells */
+    af[0].modifier += get_force_aegis_ranged_ac_bonus(ch);
+    
+    /* Deflective Screen: +2 Reflex while active */
+    if (has_deflective_screen(ch))
+    {
+      af[1].location = APPLY_SAVING_REFL;
+      af[1].bonus_type = BONUS_TYPE_RESISTANCE;
+      af[1].duration = af[0].duration;
+      af[1].modifier = get_deflective_screen_reflex_bonus(ch);
+    }
+
+    /* Force Aegis: grant temp HP = manifester level */
+    if (has_force_aegis(ch))
+    {
+      int temp_hp = get_force_aegis_temp_hp_bonus(ch);
+      GET_HIT(ch) += temp_hp;
+      send_to_char(ch, "You gain %d temporary hit points!\r\n", temp_hp);
+    }
 
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible shield of force appear in front of you.";
@@ -4009,7 +4550,28 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_ARMOR;
     af[0].duration = level * 600;
+    af[0].duration += (af[0].duration * get_force_screen_duration_bonus(ch)) / 100;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
+    af[0].modifier += get_force_screen_ac_bonus(ch);
+    /* Force Aegis: +3 AC vs ranged/spells */
+    af[0].modifier += get_force_aegis_ranged_ac_bonus(ch);
+    
+    /* Deflective Screen: +2 Reflex while active */
+    if (has_deflective_screen(ch))
+    {
+      af[1].location = APPLY_SAVING_REFL;
+      af[1].bonus_type = BONUS_TYPE_RESISTANCE;
+      af[1].duration = af[0].duration;
+      af[1].modifier = get_deflective_screen_reflex_bonus(ch);
+    }
+
+    /* Force Aegis: grant temp HP = manifester level */
+    if (has_force_aegis(ch))
+    {
+      int temp_hp = get_force_aegis_temp_hp_bonus(ch);
+      GET_HIT(ch) += temp_hp;
+      send_to_char(ch, "You gain %d temporary hit points!\r\n", temp_hp);
+    }
 
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible armor of force surround you.";
@@ -4105,7 +4667,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is unfazed.\r\n");
       return;
     }
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
       return;
@@ -4116,6 +4678,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
     {
       return;
@@ -4323,7 +4887,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_INFLICT_PAIN:
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
@@ -4343,7 +4907,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_MENTAL_DISRUPTION:
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (!can_daze(victim))
         return;
@@ -4468,7 +5032,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
@@ -4493,7 +5057,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_DEATH_URGE:
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
@@ -4519,7 +5083,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_INCITE_PASSION:
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
       return;
@@ -4559,7 +5123,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (is_immune_fear(ch, victim, 0))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (GET_AUGMENT_PSP(ch) < 4 && savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
@@ -4641,7 +5205,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_BRUTALIZE_WOUNDS:
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     af[0].duration = level;
     af[0].modifier = savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
@@ -4933,7 +5497,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
       return;
     }
-    if (power_resistance(ch, victim, 0))
+    if (power_resistance(ch, victim, get_psionic_piercing_will_bonus(ch)))
       return;
     if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
     {
@@ -5467,6 +6031,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "Despair grips you and you feel weakened.";
     break;
 
+  case SPELL_ROOT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[0].specific = 0; // can be used to specify type if needed
+    to_vict = "You feel deeply rooted, resistant to trip, knockdown, and grapple attempts.";
+    to_room = "$n looks deeply rooted and harder to knock down.";
+    break;
+
   case WARLOCK_DREAD_SEIZURE:
     if (mag_resistance(ch, victim, 0))
       return;
@@ -5718,6 +6292,77 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel divinely aided.";
     break;
 
+  case SPELL_LULLABY:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
+      return;
+    if (is_immune_mind_affecting(ch, victim, TRUE))
+      return;
+
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_PERCEPTION;
+    af[0].modifier = -5;
+    af[0].duration = 12;
+    to_vict = "You feel drowsy...";
+    to_room = "$n looks drowsy.";
+    break;
+
+  case SPELL_GUIDANCE:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+    to_vict = "You feel guided in your actions.";
+    to_room = "$n looks more guided.";
+    break;
+
+  case SPELL_GRASP:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_COMPETENCE;
+    to_vict = "Your feel your ability to climb improve.";
+    to_room = "$n looks more sure-footed.";
+    break;    
+
+  case SPELL_FLARE:
+    if (!can_blind(victim))
+      return;
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      return;
+    if (AFF_FLAGGED(victim, AFF_BLIND))
+      return;
+    if (AFF_FLAGGED(victim, AFF_DAZZLED))
+      return;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = 12;
+    SET_BIT_AR(af[0].bitvector, AFF_DAZZLED);
+    to_vict = "A bright light flashes before your eyes!";
+    to_room = "$n is momentarily blinded by a flash of light!";
+    break;
+
+  case SPELL_ENHANCED_DIPLOMACY:
+  
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_PERSUASION;
+    af[0].modifier = 2;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_SKILL;
+    af[1].specific = ABILITY_INTIMIDATE;
+    af[1].modifier = 2;
+    af[1].duration = 12;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+    
+    to_vict = "You feel more persuasive.";
+    to_room = "$n looks more persuasive.";
+    break;
+
   case SPELL_SHIELD_OF_FAITH:
 
     af[0].location = APPLY_AC_NEW;
@@ -5726,6 +6371,17 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].bonus_type = BONUS_TYPE_DEFLECTION;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by a shield of faith!";
+    break;
+
+  case SPELL_VIRTUE:
+    /* Virtue: grants temporary HP equal to 1d4 + (level / 5) */
+    af[0].location = APPLY_HIT;
+    af[0].modifier = dice(1, 4) + (level / 5);
+    af[0].duration = 600; /* 10 minutes */
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    GET_HIT(victim) += af[0].modifier;
+    to_vict = "You feel momentary vigor course through your body.";
+    to_room = "$n appears invigorated momentarily.";
     break;
 
   case SPELL_RIGHTEOUS_VIGOR:
@@ -6135,9 +6791,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   case AFFECT_RALLYING_CRY:
 
-    af[0].duration = level + 10;
-    af[0].location = APPLY_SPECIAL;
-    af[0].modifier = 1;
+    af[0].duration = 5; /* 5 rounds */
+    af[0].location = APPLY_SAVING_WILL;
+    af[0].modifier = 2; /* +2 morale to saves vs. fear/mind-affecting */
     af[0].bonus_type = BONUS_TYPE_MORALE;
     to_room = "$n looks more eager to fight!";
     to_vict = "You feel more confident and able in your abilities!";
@@ -6215,7 +6871,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     
     af[1].duration = level + 10;
     af[1].location = APPLY_DAMROLL;
-    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + get_bard_battle_hymn_damage_bonus(ch);
     af[1].bonus_type = BONUS_TYPE_MORALE;
 
     af[2].duration = level + 10;
@@ -6223,8 +6879,133 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[2].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
     af[2].bonus_type = BONUS_TYPE_MORALE;
 
+    /* Warchanter's Dominance: Additional +1 attack and +1 AC to allies */
+    if (has_bard_warchanters_dominance(ch))
+    {
+      /* Additional +1 to hit from Warchanter's Dominance */
+      af[3].duration = level + 10;
+      af[3].location = APPLY_HITROLL;
+      af[3].modifier = 1;
+      af[3].bonus_type = BONUS_TYPE_MORALE;
+      
+      /* Additional +1 AC from Warchanter's Dominance (negative for AC system) */
+      af[4].duration = level + 10;
+      af[4].location = APPLY_AC_NEW;
+      af[4].modifier = -1;
+      af[4].bonus_type = BONUS_TYPE_MORALE;
+      
+      /* Warbeat Enhancement: Additional +1 damage to allies */
+      af[5].duration = level + 10;
+      af[5].location = APPLY_DAMROLL;
+      af[5].modifier = 1;
+      af[5].bonus_type = BONUS_TYPE_MORALE;
+    }
+
     to_room = "$n looks more confident!";
     to_vict = "Your courage surges and with it your fighting prowess!";
+    break;
+
+  case AFFECT_BARD_FLOURISH:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = 2;
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = -2;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n performs a dazzling flourish!";
+    to_vict = "You perform a dazzling flourish, your movements become fluid and precise!";
+    break;
+
+  case AFFECT_BARD_AGILE_DISENGAGE:
+
+    af[0].duration = 3;
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = 4;
+    af[0].bonus_type = BONUS_TYPE_DODGE;
+
+    to_room = "$n assumes a defensive stance after the failed escape!";
+    to_vict = "You gracefully recover from the failed escape, gaining a defensive boost!";
+    break;
+
+  case AFFECT_BARD_PERFECT_TEMPO:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 4;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n moves with perfect timing!";
+    to_vict = "You move with perfect timing, your next strike will be devastating!";
+    break;
+
+  case AFFECT_BARD_SHOWSTOPPER:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = -2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = 2;
+    af[1].location = APPLY_HITROLL;
+    af[1].modifier = -2;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$N has been dazzled by $n's showstopping move!";
+    to_vict = "$n's showstopper move has left you stunned and vulnerable!";
+    break;
+
+  case AFFECT_BARD_FEINT_AND_FINISH:
+
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n prepares a finishing move after feinting!";
+    to_vict = "You've set up a finishing move with your feint!";
+    break;
+
+  case AFFECT_BARD_SUPREME_STYLE:
+    /* Continuous passive buff while wielding finesse/single weapon */
+    af[0].duration = -1;  /* Permanent until removed */
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = -1;
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = 2;  /* +2 AC (dodge) */
+    af[1].bonus_type = BONUS_TYPE_DODGE;
+
+    to_room = "$n flows with supreme duelist grace!";
+    to_vict = "You flow with supreme duelist grace, your every movement perfect!";
+    break;
+
+  case AFFECT_BARD_CURTAIN_CALL:
+    /* Active buff during Curtain Call execution */
+    af[0].duration = 1;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 0;  /* Placeholder for multi-target effect */
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n takes center stage for a final curtain call!";
+    to_vict = "You take center stage for your final curtain call!";
+    break;
+
+  case AFFECT_BARD_CURTAIN_CALL_DISORIENTED:
+    /* Disoriented condition - disadvantage on attacks (penalty to to-hit) */
+    af[0].duration = 2;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -2;  /* Disadvantage represented as -2 to hit */
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$N is disoriented by the stunning performance!";
+    to_vict = "You're disoriented by the stunning performance, struggling to act!";
     break;
 
   case SPELL_SILENCE: // illusion
@@ -6727,6 +7508,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -8060,6 +8843,20 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n gets violently ill!";
     break;
 
+  case SPELL_POISON_BREATH: // evocation
+    // poison check made above in passed_poison_checks
+    // Apply CON debuff: 1d4 + 1 per size category above small
+    {
+      int size_bonus = MAX(0, GET_SIZE(ch) - SIZE_SMALL);
+      af[0].location = APPLY_CON;
+      af[0].duration = level * 10;
+      af[0].modifier = -(dice(1, 4) + size_bonus);
+      SET_BIT_AR(af[0].bitvector, AFF_POISON);
+      to_vict = "You inhale the toxic fumes and feel your vitality draining away!";
+      to_room = "$n chokes on toxic fumes, looking weakened!";
+    }
+    break;
+
   case SPELL_WIND_WALL:
     af[0].duration = level;
     SET_BIT_AR(af[0].bitvector, AFF_WIND_WALL);
@@ -8501,6 +9298,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (affected_by_spell(victim, SPELL_LULLABY))
+      misc_bonus -= 2;
     if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -9222,6 +10021,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
           return;
         }
       }
+      for (j = 0; j < NUM_AFF2_FLAGS; j++)
+      {
+        if (IS_SET_AR(af[i].bitvector2, j) && AFF2_FLAGGED(victim, j))
+        {
+          send_to_char(ch, "Target is already under the effect of %s", affected2_bits[j]);
+          return;
+        }
+      }
     }
   }
 
@@ -9340,6 +10147,26 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       if (af[i].modifier > 0)
         af[i].modifier = af[i].modifier * get_spell_potency_bonus(ch) / 100;
     }
+    /* Ectoplasmic Artisan I: +10% duration on metacreative buffs */
+    if (is_spellnum_psionic(spellnum) &&
+        psionic_powers[spellnum].power_type == METACREATIVITY &&
+        !spell_info[spellnum].violent)
+    {
+      int dur_bonus = get_ectoplasmic_artisan_duration_bonus(ch);
+      if (dur_bonus > 0)
+      {
+        for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+        {
+          if (af[i].duration > 0)
+          {
+            int old_duration = af[i].duration;
+            af[i].duration = af[i].duration * (100 + dur_bonus) / 100;
+            if (af[i].duration < old_duration + 1)
+              af[i].duration = old_duration + 1;
+          }
+        }
+      }
+    }
   }
 
   /* send messages */
@@ -9360,6 +10187,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
   }
 
+  apply_psionic_dominion_extension(ch, victim, spellnum, af, MAX_SPELL_AFFECTS);
+
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
     if (af[i].bitvector[0] || af[i].bitvector[1] ||
@@ -9372,6 +10201,36 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
     }
   }
+
+  /* Linked Menace perk - apply AC penalty after successful Telepathy debuff */
+  if (ch && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+      psionic_powers[spellnum].power_type == TELEPATHY && has_linked_menace(ch))
+  {
+    struct affected_type menace_af;
+    new_affect(&menace_af);
+    menace_af.spell = spellnum;
+    menace_af.location = APPLY_AC_NEW;
+    menace_af.modifier = -2;
+    menace_af.duration = level * 12;
+    menace_af.bonus_type = BONUS_TYPE_UNIVERSAL;
+    affect_join(victim, &menace_af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(victim, "\tRYour mind reels from the mental assault - your reflexes falter!\tn\r\n");
+  }
+
+  /* Hive Commander perk - mark target for +3 DC and grant allies +2 to hit */
+  if (ch && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+      psionic_powers[spellnum].power_type == TELEPATHY && has_psionic_hive_commander(ch))
+  {
+    apply_hive_commander_mark(ch, victim);
+  }
+
+  /* Absolute Geas: violent telepathy powers have 10% chance to apply debuffs */
+  if (ch && spell_info[spellnum].violent && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+      psionic_powers[spellnum].power_type == TELEPATHY && has_psionic_absolute_geas(ch))
+  {
+    apply_absolute_geas_debuffs(ch, victim, GET_PSIONIC_LEVEL(ch));
+  }
+
   if (HAS_FEAT(ch, FEAT_DRAGON_LINK) && is_riding_dragon_mount(ch) && !recursive_call)
   {
     mag_affects_full(level, (ch), RIDING(ch), wpn, spellnum, savetype, casttype, metamagic, true);
@@ -9998,6 +10857,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n calls forth many large, black tentacles from the ground!";
     isEffect = TRUE;
     break;
+  case WARLOCK_CHILLING_TENTACLES:
+    to_char = "You call forth many writhing, frost-covered tentacles from the ground!";
+    to_room = "$n calls forth many writhing, frost-covered tentacles from the ground!";
+    isEffect = TRUE;
+    break;
   case AFFECT_PRESCIENCE:
     spellnum = AFFECT_PRESCIENCE_DEBUFF;
     isEffect = TRUE;
@@ -10057,6 +10921,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ICE_STORM:
     to_char = "You conjure a storm of ice that blankets the area!";
     to_room = "$n conjures a storm of ice, blanketing the area!";
+    break;
+  case SPELL_SPLINTER_STORM:
+    to_char = "You summon a whirling storm of razor-sharp wooden splinters!";
+    to_room = "$n summons a whirling storm of razor-sharp wooden splinters!";
+    break;
+  case SPELL_SHOCKWAVE:
+    to_char = "You slam the ground, sending a devastating shockwave through the area!";
+    to_room = "$n slams the ground, sending a devastating shockwave through the area!";
     break;
   case SPELL_FIREBALL:
     to_char = "You hurl a bead of flame which explodes into a conflagration!";
@@ -10259,6 +11131,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n exhales breathing acid!";
     break;
   case SPELL_POISON_BREATHE:
+    is_eff_and_dam = TRUE;
     to_char = "You exhale breathing out poison!";
     to_room = "$n exhales breathing poison!";
     break;
@@ -10365,6 +11238,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
           spatial_audio_test_sound_effect(X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
             "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash devastating fury upon the mortal realm", 
             AUDIO_FREQ_LOW, 20);
+        }
+        
+        /* Add shockwave knockdown effect after damage is dealt */
+        if (spellnum == SPELL_SHOCKWAVE && tch != ch) {
+          perform_knockdown(ch, tch, SPELL_SHOCKWAVE, false, true);
         }
       }
 
@@ -10567,6 +11445,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   if (ch == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   switch (spellnum)
   {
@@ -11352,6 +12240,79 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     add_follower(mob, ch);
     if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
+
+    /* Hardened Constructs I: temp HP = manifester level and +1 AC for shambler */
+    if (!IS_NPC(ch) && spellnum == PSIONIC_ECTOPLASMIC_SHAMBLER)
+    {
+      int temp_hp = get_hardened_constructs_temp_hp(ch);
+      int ac_bonus = get_hardened_constructs_ac_bonus(ch);
+      if (temp_hp > 0)
+      {
+        GET_HIT(mob) += temp_hp;
+        send_to_char(ch, "\tM[Hardened Constructs] Summon reinforced with %d temporary HP!\tn \r\n", temp_hp);
+      }
+      if (ac_bonus > 0)
+      {
+        GET_REAL_AC(mob) += ac_bonus;
+      }
+
+      /* Hardened Constructs II: +2 AC, DR 2/—, and magic attacks on shambler */
+      if (has_hardened_constructs_ii(ch))
+      {
+        int ac2 = get_hardened_constructs_ii_ac_bonus(ch);
+        int dr_amt = get_hardened_constructs_dr_amount(ch);
+        if (ac2 > 0)
+          GET_REAL_AC(mob) += ac2;
+        if (dr_amt > 0)
+        {
+          struct damage_reduction_type *new_dr = NULL;
+          CREATE(new_dr, struct damage_reduction_type, 1);
+          new_dr->duration = 600; /* defensive default */
+          new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+          new_dr->bypass_val[0] = 0;
+          new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+          new_dr->bypass_val[1] = 0;
+          new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+          new_dr->bypass_val[2] = 0;
+          new_dr->amount = dr_amt;
+          new_dr->max_damage = -1;
+          new_dr->spell = PSIONIC_ECTOPLASMIC_SHAMBLER;
+          new_dr->feat = FEAT_UNDEFINED;
+          new_dr->next = GET_DR(mob);
+          GET_DR(mob) = new_dr;
+          send_to_char(ch, "\tM[Hardened Constructs II] Summon gains DR %d/—!\tn \r\n", dr_amt);
+        }
+        /* Apply AFF_MAGIC_ATTACKS so summon's attacks bypass non-magic DR */
+        struct affected_type af;
+        memset(&af, 0, sizeof(af));
+        af.spell = PSIONIC_ECTOPLASMIC_SHAMBLER;
+        af.duration = -1; /* Permanent until death */
+        af.location = APPLY_NONE;
+        SET_BIT_AR(af.bitvector2, AFF2_MAGIC_ATTACKS);
+        affect_to_char(mob, &af);
+        send_to_char(ch, "\tM[Hardened Constructs II] Summon's attacks count as magic!\tn\r\n");
+      }
+
+      /* Astral Juggernaut: Enhance shambler to Large size with improved combat stats (1/day) */
+      if (can_use_astral_juggernaut(ch))
+      {
+        /* Make it Large size (one size larger) */
+        GET_REAL_SIZE(mob) = SIZE_LARGE;
+        
+        /* Increase combat stats based on manifester level */
+        int level_bonus = GET_PSIONIC_LEVEL(ch);
+        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (level_bonus * 2); /* +2 HP per level */
+        GET_HIT(mob) = GET_MAX_HIT(mob);
+        GET_REAL_DAMROLL(mob) += (level_bonus / 5); /* +1 damage per 5 levels */
+        GET_REAL_HITROLL(mob) += (level_bonus / 5); /* +1 to hit per 5 levels */
+        GET_REAL_AC(mob) += (level_bonus / 5); /* +1 AC per 5 levels */
+        
+        /* Mark as used for the day */
+        use_astral_juggernaut(ch);
+        send_to_char(ch, "\tM[Astral Juggernaut] Your shambler transforms into a massive construct!\tn\r\n");
+        act("$n's ectoplasmic shambler suddenly grows to an enormous size!", FALSE, ch, 0, 0, TO_ROOM);
+      }
+    }
   }
 
   /* raise dead type of spells */
@@ -11464,16 +12425,51 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
                 struct obj_data *obj, int spellnum, int savetype, int casttype)
 {
   int healing = 0, move = 0, psp = 0, max_psp = 0;
+  struct char_data *tch = NULL, *aura_holder = NULL;
+  bool aura_hostile = FALSE;
   const char *to_notvict = NULL, *to_char = NULL, *to_vict = NULL;
 
   if (victim == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
+  /* Golems are immune to magical/psionic healing; they require repair */
+  if (IS_GOLEM(victim))
+  {
+    if (ch && ch != victim)
+      send_to_char(ch, "%s is a construct and cannot be healed by magic-use golemrepair command instead.\r\n", GET_NAME(victim));
+    send_to_char(victim, "Your construct form rejects magical healing.\r\n");
+    return;
+  }
 
   if (casttype == CAST_WEAPON_POISON || casttype == CAST_WEAPON_SPELL)
     ;
   else
     /* bards, alchemists and summoners also get some healing spells */
     level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_BARD) + ALCHEMIST_LEVEL(ch);
+
+  /* Locate any Aura of Desecration in the room */
+  if (IN_ROOM(victim) != NOWHERE)
+  {
+    for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room)
+    {
+      if (has_blackguard_aura_of_desecration(tch))
+      {
+        aura_holder = tch;
+        aura_hostile = (tch != victim && !is_player_grouped(victim, tch));
+        break;
+      }
+    }
+  }
 
   switch (spellnum)
   {
@@ -11487,7 +12483,6 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       to_char = "You \twvigorize light\tn on $N.";
     to_vict = "$n \twvigorizes you lightly.\tn";
     break;
-
   case SPELL_VIGORIZE_SERIOUS:
     move = dice(40, 4) + 150;
 
@@ -11635,6 +12630,25 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     to_notvict = "$N's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
     send_to_char(victim, "A \tWwarm feeling\tn floods your body as \tRvampiric "
                          "\tDmagic\tn takes over.\r\n");
+    break;
+
+  case SPELL_STABILIZE:
+    /* Stabilize: heals 10 HP if target is below 10% max HP */
+    if (GET_HIT(victim) < (GET_MAX_HIT(victim) / 10))
+    {
+      healing = 10;
+      to_notvict = "$N is stabilized.";
+      if (ch == victim)
+        to_char = "You stabilize yourself.";
+      else
+        to_char = "You stabilize $N.";
+      to_vict = "$n stabilizes you.";
+    }
+    else
+    {
+      send_to_char(ch, "The target is not in critical condition.\r\n");
+      return;
+    }
     break;
 
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
@@ -11874,6 +12888,16 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL)
     return;
+
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
 
   switch (spellnum)
   {
@@ -12196,6 +13220,16 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
   if (obj == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
   case SPELL_BLESS:
@@ -12294,9 +13328,19 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   if (ch == NULL)
     return;
 
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+
   switch (spellnum)
   {
-  case SPELL_BALL_OF_LIGHT:
+  case SPELL_CONTINUAL_LIGHT:
     to_char = "You summon forth $p.";
     to_room = "$n summons forth $p.";
     object_vnum = 20839;
@@ -13039,6 +14083,8 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_FLAME_STRIKE :
     case SPELL_DESTRUCTION :
     case SPELL_ICE_STORM :
+    case SPELL_SPLINTER_STORM :
+    case SPELL_SHOCKWAVE :
     case SPELL_BALL_OF_LIGHTNING :
     case SPELL_MISSILE_STORM :
     case SPELL_CHAIN_LIGHTNING :
@@ -13070,6 +14116,9 @@ bool can_spell_be_empowered(int spellnum)
     case SPELL_CHARISMA :
     case SPELL_ACID_SPLASH:
     case SPELL_RAY_OF_FROST:
+    case SPELL_FIRE_BOLT:
+    case SPELL_JOLT:
+    case SPELL_DISRUPT_UNDEAD:
     case SPELL_RAINBOW_PATTERN :
     case SPELL_ENLARGE_PERSON :
     case SPELL_SHRINK_PERSON :

@@ -568,7 +568,7 @@
 #define SPELL_MASS_CHARM_MONSTER 487
 #define SPELL_GENIEKIND 488
 #define SPELL_GRAND_DESTINY 489
-#define SPELL_BALL_OF_LIGHT 490
+#define SPELL_UNUSED_SPELL_490 490
 #define SPELL_TOUCH_OF_FATIGUE 491
 #define SPELL_LESSER_REJUVENATE_EIDOLON 492
 #define SPELL_REJUVENATE_EIDOLON 493
@@ -589,9 +589,26 @@
 #define SPELL_HOLY_AURA 508
 #define SPELL_FLAME_ARROW 509
 #define SPELL_MASS_IDENTIFY 510
+#define SPELL_FIRE_BOLT 511
+#define SPELL_JOLT 512
+#define SPELL_DISRUPT_UNDEAD 513
+#define SPELL_ARCANE_MARK 514
+#define SPELL_UNUSED_515 515
+#define SPELL_ENHANCED_DIPLOMACY 516
+#define SPELL_FLARE 517
+#define SPELL_GRASP 518
+#define SPELL_GUIDANCE 519
+#define SPELL_LULLABY 520
+#define SPELL_ROOT 521
+#define SPELL_STABILIZE 522
+#define SPELL_SUMMON_INSTRUMENT 523
+#define SPELL_VIRTUE 524
+#define SPELL_SPLINTER_STORM 525
+#define SPELL_SHOCKWAVE 526
+#define SPELL_POISON_BREATH 527
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 511
+#define NUM_SPELLS 528
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -691,6 +708,30 @@
 #define MOB_ABILITY_CORRUPTION 1282
 #define ABILITY_BOZAK_DRACONIAN_DEATH_THROES 1283
 #define AFFECT_FALLING_DAMAGE 1284
+#define AFFECT_BARD_FLOURISH 1285
+#define AFFECT_BARD_AGILE_DISENGAGE 1286
+#define AFFECT_BARD_PERFECT_TEMPO 1287
+#define AFFECT_BARD_SHOWSTOPPER 1288
+#define AFFECT_BARD_FEINT_AND_FINISH 1289
+#define AFFECT_BARD_SUPREME_STYLE 1290
+#define AFFECT_BARD_CURTAIN_CALL 1291
+#define AFFECT_BARD_CURTAIN_CALL_DISORIENTED 1292
+#define AFFECT_BLACKGUARD_SHAKEN 1293
+#define AFFECT_BLACKGUARD_FEAR 1294
+#define AFFECT_BLACKGUARD_COWER 1295
+#define AFFECT_BLACKGUARD_CRUEL_MOMENTUM 1296
+#define AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND 1297
+#define AFFECT_BLACKGUARD_BLEEDING 1298
+#define AFFECT_BLACKGUARD_UNHOLY_BLITZ 1299
+#define AFFECT_BLACKGUARD_AVATAR_OF_PROFANITY 1300
+#define AFFECT_BLACKGUARD_CATACLYSMIC_SMITE 1301
+#define AFFECT_BLACKGUARD_SHADE_STEP 1302
+#define AFFECT_BLACKGUARD_REPRISAL   1303
+#define AFFECT_PERSISTENT_JUDGMENT 1304
+#define AFFECT_DIVINE_RESILIENCE 1305
+#define AFFECT_RIGHTEOUS_STRIKE 1306
+#define AFFECT_SPELL_METAMASTERY 1307
+#define AFFECT_GREATER_JUDGMENT 1308
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -834,9 +875,14 @@
 #define PSIONIC_PSYCHOKINETIC_THRASHING 1600
 #define PSIONIC_EPIC_PSIONIC_WARD 1601
 // end epic
+// Tier 4 Perk Affects
+#define SPELL_ABSOLUTE_GEAS 1602
+#define SPELL_HIVE_COMMANDER_MARK 1603
+// Tier 3 Perk Powers
+#define PSIONIC_GRAVITY_WELL 1604
 
 /***************************************/
-#define PSIONIC_POWER_END 1602
+#define PSIONIC_POWER_END 1605
 /***************************************/
 
 /** we're going to start warlock powers at 1649.
@@ -1150,9 +1196,10 @@
 #define SKILL_HOLY_AVENGER 2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
 #define SKILL_BEACON_OF_HOPE 2236 // Paladin Divine Champion - Tier 4 (party buff)
 #define SKILL_APPLY_NATURES_WRATH_DAMAGE 2237 /* Custom: +2d8 damage for Nature's Wrath */
+#define WARLOCK_CHILLING_TENTACLES_COLD 2238 /* Custom: Cold damage for Chilling Tentacles */
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2238 // Total number of skills (increment when adding new skills)
+#define NUM_SKILLS 2239 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 
@@ -1597,6 +1644,8 @@ struct spell_info_type
         bool cant_cast;  // is this spell castable?
         bool touch_spell; // Is the spell a touch spell?
 
+        bool is_cantrip;   // Cast-at-will cantrip (circle 0, no slots/prep)
+
         bool actual_ability; // is this a learnable or obtainable ability or is it just a spell effect?
 };
 
@@ -1654,6 +1703,7 @@ ASPELL(spell_control_weather);
 ASPELL(spell_create_water);
 ASPELL(spell_creeping_doom);
 ASPELL(spell_detect_poison);
+ASPELL(spell_arcane_mark);
 ASPELL(spell_dismissal);
 ASPELL(spell_dispel_magic);
 ASPELL(spell_dominate_person);
@@ -1678,6 +1728,7 @@ ASPELL(spell_salvation);
 ASPELL(spell_spellstaff);
 ASPELL(spell_storm_of_vengeance);
 ASPELL(spell_summon);
+ASPELL(spell_summon_instrument);
 ASPELL(spell_teleport);
 ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);
@@ -1825,6 +1876,8 @@ void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
+sbyte canCastAtWill(struct char_data *ch, int spellnum);
+bool spell_is_cantrip(int spellnum);
 bool is_spell_mind_affecting(int snum);
 bool can_spell_be_extended(int spellnum);
 
@@ -1832,7 +1885,6 @@ bool can_spell_be_extended(int spellnum);
 bool isSummonMob(int vnum);
 
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum);
-sbyte canCastAtWill(struct char_data *ch, int spellnum);
 sbyte isLunarMagic(struct char_data *ch, int spellnum);
 sbyte isWarlockMagic(struct char_data *ch, int spellnum);
 sbyte isDrowMagic(struct char_data *ch, int spellnum);
@@ -1850,6 +1902,7 @@ bool isThornMagic(struct char_data *ch, int spellnum);
 bool isSkullMagic(struct char_data *ch, int spellnum);
 bool isDragonRiderMagic(struct char_data *ch, int spellnum);
 bool isBozakMagic(struct char_data *ch, int spellnum);
+int find_cantrip_class(struct char_data *ch, int spellnum);
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call);

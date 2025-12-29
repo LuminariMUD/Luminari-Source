@@ -126,7 +126,7 @@ void mobile_activity(void)
           npc_ability_behave(ch);
         else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
           npc_assigned_spells(ch);
-        else if (IS_NPC_CASTER(ch))
+        else if (IS_NPC_CASTER(ch) || mob_has_known_spells(ch))
         {
           /* Use specialized wizard AI for wizard and sorcerer mobs */
           if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
@@ -138,7 +138,7 @@ void mobile_activity(void)
           npc_class_behave(ch);
         continue;
       }
-      else if (!rand_number(0, 15) && IS_NPC_CASTER(ch))
+      else if (!rand_number(0, 15) && (IS_NPC_CASTER(ch) || mob_has_known_spells(ch)))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
         /* Wizards and sorcerers use specialized pre-buffing with long-duration spells */

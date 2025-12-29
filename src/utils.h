@@ -349,6 +349,7 @@ bool is_fav_enemy_of(struct char_data *ch, int race);
 bool can_bleed(struct char_data *ch);
 int compute_arcana_golem_level(struct char_data *ch);
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
 int count_follower_by_type(struct char_data *ch, int mob_flag);
 int specific_follower_count(struct char_data *ch, mob_vnum mvnum);
 int color_count(char *bufptr);
@@ -762,6 +763,9 @@ void char_from_furniture(struct char_data *ch);
 /** Affect flags on the NPC or PC. */
 #define AFF_FLAGS(ch) ((ch)->char_specials.saved.affected_by)
 
+/** Second affect flags on the NPC or PC. */
+#define AFF2_FLAGS(ch) ((ch)->char_specials.saved.affected2_by)
+
 /** Room flags.
  * @param loc The real room number. */
 #define ROOM_FLAGS(loc) (world[(loc)].room_flags)
@@ -818,6 +822,9 @@ void char_from_furniture(struct char_data *ch);
 /** 1 if flag is set in the affect bitarray, 0 if not. */
 #define AFF_FLAGGED(ch, flag) (IS_SET_AR(AFF_FLAGS(ch), (flag)))
 
+/** 1 if flag is set in the second affect bitarray, 0 if not. */
+#define AFF2_FLAGGED(ch, flag) (IS_SET_AR(AFF2_FLAGS(ch), (flag)))
+
 /** 1 if flag is set in the preferences bitarray, 0 if not. */
 #define PRF_FLAGGED(ch, flag) (IS_SET_AR(PRF_FLAGS(ch), (flag)))
 
@@ -832,6 +839,9 @@ void char_from_furniture(struct char_data *ch);
 
 /** 1 if flag is set in the affects bitarray of obj, 0 if not. */
 #define OBJAFF_FLAGGED(obj, flag) (IS_SET_AR(GET_OBJ_AFFECT(obj), (flag)))
+
+/** 1 if flag is set in the affects bitarray of obj, 0 if not. */
+#define OBJAFF2_FLAGGED(obj, flag) (IS_SET_AR(GET_OBJ_AFFECT2(obj), (flag)))
 
 /** 1 if flag is set in the element of obj value, 0 if not. */
 #define OBJVAL_FLAGGED(obj, flag) (IS_SET(GET_OBJ_VAL((obj), 1), (flag)))
@@ -950,12 +960,13 @@ void char_from_furniture(struct char_data *ch);
 #define MAGIC_LEVEL(ch) ARCANE_LEVEL(ch)
 #define ALCHEMIST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : (GET_LEVEL(ch) > 30) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + \
-                          MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - \
+                          MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) + GET_ARTIFICER_LEVEL(ch) - \
                           (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_WARLOCK_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
+#define GET_ARTIFICER_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_ARTIFICER))
 #define GET_SUMMONER_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
 #define GET_CALL_EIDOLON_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
 #define GET_PSIONIC_LEVEL(ch) (((IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST) || GET_LEVEL(ch) >= LVL_IMMORT) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
@@ -1767,6 +1778,9 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Permanent affects on obj. */
 #define GET_OBJ_PERM(obj) ((obj)->obj_flags.bitvector)
+#define GET_OBJ_PERM2(obj) ((obj)->obj_flags.bitvector2)
+#define GET_OBJ2_PERM(obj) ((obj)->obj_flags.bitvector2)
+
 
 /** Object material of object **/
 #define GET_OBJ_MATERIAL(obj) ((obj)->obj_flags.material)
@@ -1785,6 +1799,8 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Affect flags on obj. */
 #define GET_OBJ_AFFECT(obj) ((obj)->obj_flags.bitvector)
+#define GET_OBJ_AFFECT2(obj) ((obj)->obj_flags.bitvector2)
+#define GET_OBJ2_AFFECT(obj) ((obj)->obj_flags.bitvector2)
 
 /** Extra flags bit array on obj. */
 #define GET_OBJ_EXTRA(obj) ((obj)->obj_flags.extra_flags)
@@ -1827,6 +1843,8 @@ int ACTUAL_BAB(struct char_data *ch);
 /* i_sort determines how it is sorted in inventory */
 #define GET_OBJ_SORT(obj) ((obj)->obj_flags.i_sort)
 #define GET_BAG_NAME(ch, bagnum)  (ch->player_specials->saved.bag_names[bagnum])
+#define GET_ARCANE_MARK(ch)       ((ch)->player_specials->saved.arcane_mark)
+#define GET_OBJ_ARCANE_MARK(obj)  ((obj)->arcane_mark)
 
 /** Defines if an obj is a corpse. */
 #define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \
@@ -2217,6 +2235,7 @@ int ACTUAL_BAB(struct char_data *ch);
                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
 #define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
+#define IS_GOLEM(ch) (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM))
 #define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) ||    \
                           (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
                           (IS_IRON_GOLEM(ch)))
@@ -2610,6 +2629,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
 #define CONFIG_MELEE_EXP_OPTION config_info.extra.melee_exp_option
 #define CONFIG_SPELL_CAST_EXP_OPTION config_info.extra.spell_cast_exp_option
+#define CONFIG_SPELLCASTING_TIME_MODE config_info.extra.spellcasting_time_mode
+#define CONFIG_ARCANE_MOON_PHASES config_info.extra.arcane_moon_phases
 
 /* Mob Stats Config */
 #define CONFIG_MOB_WARRIORS_HP config_info.mob_stats.warriors.hit_points
@@ -2728,6 +2749,9 @@ void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vic
 
 // Inquisitor Stuff
 #define GET_JUDGEMENT_TARGET(ch) (ch->player_specials->judgement_target)
+#define GET_STUDIED_TARGET(ch) (ch->player_specials->inq_studied_target)
+#define GET_FAVORED_TERRAIN(ch) (ch->player_specials->saved.inq_favored_terrain)
+#define GET_FAVORED_TERRAIN_RESET(ch) (ch->player_specials->saved.inq_favored_terrain_reset)
 #define IS_JUDGEMENT_ACTIVE(ch, i) (ch->player_specials->saved.judgement_enabled[i])
 #define GET_SLAYER_JUDGEMENT(ch) (ch->player_specials->saved.slayer_judgement)
 #define GET_BANE_TARGET_TYPE(ch) (ch->player_specials->saved.bane_enemy_type)
@@ -2798,6 +2822,8 @@ bool has_reach(struct char_data *ch);
 #define IS_DRAGON_CRAFT_MATERIAL(material) (IS_DRAGONHIDE(material) || IS_DRAGONSCALE(material) || IS_DRAGONBONE(material))
 
 #define GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) (ch->char_specials.saved.kapak_healing_cooldown)
+
+#define GET_BLACKGUARD_FAVORED_FOE(ch) (ch->char_specials.saved.blackguard_favored_foe)
 
 #define IS_OBJ_CONSUMABLE(obj)  (GET_OBJ_TYPE(obj) == ITEM_POTION || GET_OBJ_TYPE(obj) == ITEM_SCROLL || \
                                  GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)

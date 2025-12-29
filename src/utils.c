@@ -244,6 +244,7 @@ int compute_arcane_level(struct char_data *ch)
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_WARLOCK);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
   arcane_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
   if (NECROMANCER_CAST_TYPE(ch) == 1)
@@ -1013,6 +1014,13 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
   
   if (HAS_FEAT(target, FEAT_ESSENCE_OF_UNDEATH))
     return true;
+  
+  /* Blackguard: Unholy Fortification - immune to crits from good attackers */
+  if (!IS_NPC(target) && has_blackguard_unholy_fortification(target))
+  {
+    if (attacker && IS_GOOD(attacker))
+      return TRUE;
+  }
 
   /* preserve organs as 25% of stopping crits */
   if (!IS_NPC(target) && (KNOWS_DISCOVERY(target, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
@@ -1147,7 +1155,8 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
   int summons_allowed = 1,
       pets_allowed = 1,
       mercs_allowed = 1,
-      genie_allowed = 1;
+      genie_allowed = 1,
+      golems_allowed = 1;
 
   if (IS_SUMMONER(ch))
     summons_allowed++;
@@ -1171,6 +1180,10 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
       else if (MOB_FLAGGED(pet, MOB_MERCENARY))
       {
         mercs_allowed--;
+      }
+      else if (MOB_FLAGGED(pet, MOB_GOLEM))
+      {
+        golems_allowed--;
       }
       else
       {
@@ -1209,6 +1222,13 @@ bool can_add_follower(struct char_data *ch, int mob_vnum)
   {
     extract_char(mob);
     if (mercs_allowed > 0)
+      return true;
+    return false;
+  }
+  else if (MOB_FLAGGED(mob, MOB_GOLEM))
+  {
+    extract_char(mob);
+    if (golems_allowed > 0)
       return true;
     return false;
   }
@@ -1565,6 +1585,15 @@ bool can_see_hidden(struct char_data *ch, struct char_data *hider)
 int skill_roll(struct char_data *ch, int skillnum)
 {
   int roll = d20(ch);
+  int guidance = 0;
+
+  if (affected_by_spell(ch, SPELL_GUIDANCE))
+  {
+    guidance = dice(1, 4);
+    send_to_char(ch, "\tG[Guidance +%d]\tn ", guidance);
+    affect_from_char(ch, SPELL_GUIDANCE);
+    roll += guidance;
+  }
 
   if (skillnum == ABILITY_DIPLOMACY && affected_by_spell(ch, SPELL_HONEYED_TONGUE))
   {
@@ -5613,6 +5642,17 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     return TRUE;
   }
 
+  /* Explicit immunity for crafted golems even if race data is missing */
+  if (IS_GOLEM(victim))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s is a golem construct and immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your golem nature shrugs off %s's mind-affecting magic.\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
   if (IS_OOZE(victim))
   {
     if (display)
@@ -7042,6 +7082,10 @@ int get_power_penetrate_mod(struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_BREACH_POWER_RESISTANCE))
     bonus += MAX(0, GET_INT_BONUS(ch));
 
+  /* Psionic Disruptor perks - penetration bonus to overcome power resistance */
+  if (!IS_NPC(ch))
+    bonus += get_psionic_telepathy_penetration_bonus(ch);
+
   return bonus;
 }
 
@@ -7575,7 +7619,6 @@ bool can_spell_be_revoked(int spellnum)
 // returns false if damage should proceed normally
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam)
 {
-
   if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
   {
     GET_HIT(victim) += dam;
@@ -7597,6 +7640,23 @@ bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim,
     act("The spell deals no damage, but slows $N instead!", TRUE, ch, 0, victim, TO_ROOM);
     return true;
   }
+  return false;
+}
+
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam)
+{
+
+  if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_COLD)
+  {
+    dam /= 3;
+    GET_HIT(victim) += dam;
+    if (GET_HIT(victim) > GET_MAX_HIT(victim))
+      GET_HIT(victim) = GET_MAX_HIT(victim);
+    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
+    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return true;
+  }
+
   return false;
 }
 
@@ -7857,6 +7917,16 @@ void calculate_max_hp(struct char_data *ch, bool display)
   if (display && CONFIG_EXTRA_PLAYER_HP_PER_LEVEL > 0)
     send_to_char(ch, "%-40s = +%d\r\n", "Game Setting 'Extra HP Gains'", GET_LEVEL(ch) * CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);
 
+  // bard anthem of fortitude hp bonus (percentage)
+  int anthem_fortitude_hp_bonus_pct = get_bard_anthem_fortitude_hp_bonus(ch);
+  if (anthem_fortitude_hp_bonus_pct > 0)
+  {
+    int anthem_hp_increase = (max_hp * anthem_fortitude_hp_bonus_pct) / 100;
+    max_hp += anthem_hp_increase;
+    if (display)
+      send_to_char(ch, "%-40s = +%d (%d%%)\r\n", "Anthem of Fortitude", anthem_hp_increase, anthem_fortitude_hp_bonus_pct);
+  }
+
   // Clamp to minimum 1 HP
   if (max_hp < 1)
   {
@@ -8086,6 +8156,18 @@ int get_judgement_bonus(struct char_data *ch, int type)
 
   bonus += HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT);
 
+  /* Inquisitor Empowered Judgment perk: +1 per rank to all judgment bonuses */
+  bonus += get_inquisitor_empowered_judgment_bonus(ch);
+
+  /* Inquisitor Greater Judgment perk: Doubles bonus for selected judgment type */
+  if (!IS_NPC(ch) && has_inquisitor_greater_judgment(ch))
+  {
+    /* Greater Judgment can be configured - for now, check if player has stored selection */
+    int selected_judgment = ch->player_specials->inq_greater_judgment_type;
+    if (selected_judgment == type && selected_judgment > 0)
+      bonus *= 2;
+  }
+
   if (type == INQ_JUDGEMENT_RESISTANCE)
     bonus *= 4;
 
@@ -8110,7 +8192,6 @@ bool is_judgement_possible(struct char_data *ch, struct char_data *t, int type)
 
   if (GET_JUDGEMENT_TARGET(ch) != t)
     return false;
-
   if (!IS_JUDGEMENT_ACTIVE(ch, type))
     return false;
 
@@ -8530,6 +8611,8 @@ void clear_group_marks(struct char_data *ch, struct char_data *victim)
     {
       GET_MARK(tch) = NULL;
       GET_MARK_ROUNDS(tch) = 0;
+      if (GET_STUDIED_TARGET(tch) == victim)
+        GET_STUDIED_TARGET(tch) = NULL;
     }
   }
 }
@@ -9737,6 +9820,10 @@ int get_fast_healing_amount(struct char_data *ch)
 {
   int hp = 0;
 
+  /* Constructed golems do not benefit from fast healing or food/drink regen */
+  if (IS_GOLEM(ch))
+    return 0;
+
   if (affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
     hp += 4;
   else if (affected_by_spell(ch, SPELL_PLANAR_HEALING))
@@ -9762,6 +9849,10 @@ int get_fast_healing_amount(struct char_data *ch)
   hp += HAS_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
 
   hp += get_apply_type_gear_mod(ch, APPLY_FAST_HEALING);
+  
+  /* Blackguard: Necrotic Regeneration - fast healing 2 when below 50% HP */
+  if (!IS_NPC(ch))
+    hp += get_blackguard_necrotic_regeneration(ch);
 
   return hp;
 }
@@ -9769,6 +9860,9 @@ int get_fast_healing_amount(struct char_data *ch)
 int get_hp_regen_amount(struct char_data *ch)
 {
   int hp = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
 
   hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_HP_REGEN);
   hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_HP_REGEN);
@@ -9782,6 +9876,9 @@ int get_psp_regen_amount(struct char_data *ch)
 {
   int psp = 0;
 
+  if (IS_GOLEM(ch))
+    return 0;
+
   psp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_PSP_REGEN);
   psp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_PSP_REGEN);
   psp += get_apply_type_gear_mod(ch, APPLY_PSP_REGEN);
@@ -9793,6 +9890,9 @@ int get_psp_regen_amount(struct char_data *ch)
 int get_mv_regen_amount(struct char_data *ch)
 {
   int mv = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
 
   mv += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_MV_REGEN);
   mv += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_MV_REGEN);
@@ -10702,6 +10802,14 @@ int get_spell_dc_bonus(struct char_data *ch)
       dc_bonus += spell_focus_bonus;
   }
   
+  /* Alchemist Infusion I perk bonus */
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) > 0)
+  {
+    int infusion_bonus = get_alchemist_infusion_dc_bonus(ch);
+    if (infusion_bonus > 0)
+      dc_bonus += infusion_bonus;
+  }
+  
   /* Holy Avenger: +2 DC to next spell after destroying undead */
   if (affected_by_spell(ch, SKILL_HOLY_AVENGER))
     dc_bonus += 2;
@@ -11319,6 +11427,54 @@ void change_account_experience(struct char_data *ch, int amount)
   ch->desc->account->experience += amount;
   if (ch->desc->account->experience < 0)
     ch->desc->account->experience = 0;
+}
+
+int sector_type_to_terrain_type(int sector)
+{
+  switch (sector)
+  {
+    case SECT_INSIDE:
+    case SECT_CITY:
+    case SECT_UD_CITY:
+    case SECT_UD_INSIDE:
+    case SECT_INSIDE_ROOM:
+      return TERRAIN_TYPE_URBAN;
+
+    case SECT_FIELD:
+    case SECT_TUNDRA:
+      return TERRAIN_TYPE_PLAINS;
+
+    case SECT_FOREST:
+    case SECT_JUNGLE:
+    case SECT_TAIGA:
+      return TERRAIN_TYPE_FOREST;
+
+    case SECT_HILLS:
+    case SECT_MOUNTAIN:
+    case SECT_HIGH_MOUNTAIN:
+      return TERRAIN_TYPE_MOUNTAINS;
+
+    case SECT_WATER_SWIM:
+    case SECT_WATER_NOSWIM:
+    case SECT_UNDERWATER:
+    case SECT_OCEAN:
+    case SECT_UD_WATER:
+    case SECT_UD_NOSWIM:
+    case SECT_RIVER:
+      return TERRAIN_TYPE_WATER;
+
+    case SECT_DESERT:
+    case SECT_BEACH:
+      return TERRAIN_TYPE_DESERT;
+
+    case SECT_MARSHLAND:
+      return TERRAIN_TYPE_SWAMP;
+      
+    case SECT_UD_WILD:
+    case SECT_CAVE:
+      return TERRAIN_TYPE_CAVERNS;
+  }
+  return TERRAIN_TYPE_NONE;
 }
 
 /* EoF */

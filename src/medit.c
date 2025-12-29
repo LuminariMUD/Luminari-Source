@@ -659,6 +659,20 @@ static void medit_disp_aff_flags(struct descriptor_data *d)
                   cyn, flags, nrm);
 }
 
+/* Display affection2 flags menu. */
+static void medit_disp_aff2_flags(struct descriptor_data *d)
+{
+  char flags[MAX_STRING_LENGTH] = {'\0'};
+
+  get_char_colors(d->character);
+  clear_screen(d);
+  /* +1 since AFF_FLAGS don't start at 0. */
+  column_list(d->character, 0, affected2_bits + 1, NUM_AFF2_FLAGS - 1, TRUE);
+  sprintbitarray(AFF2_FLAGS(OLC_MOB(d)), affected2_bits, AF_ARRAY_MAX, flags);
+  write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff2 flags (0 to quit) : ",
+                  cyn, flags, nrm);
+}
+
 // needs to be fixed/finished
 
 void delete_echo_entry(struct char_data *mob, int entry_num)
@@ -707,6 +721,7 @@ static void medit_disp_menu(struct descriptor_data *d)
   int i = 0;
   char flags[MAX_STRING_LENGTH] = {'\0'},
        flag2[MAX_STRING_LENGTH] = {'\0'},
+       flag3[MAX_STRING_LENGTH] = {'\0'},
        path[MAX_STRING_LENGTH] = {'\0'},
        buf[MAX_STRING_LENGTH] = {'\0'};
   const char *specname = NULL;
@@ -751,6 +766,7 @@ static void medit_disp_menu(struct descriptor_data *d)
 
   sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
   sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
+  sprintbitarray(AFF2_FLAGS(mob), affected2_bits, AF_ARRAY_MAX, flag3);
 
   write_to_output(d,
                   "%s6%s) Position  : %s%s\r\n"
@@ -774,6 +790,7 @@ static void medit_disp_menu(struct descriptor_data *d)
                   //          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
                   "%sA%s) NPC Flags : %s%s\r\n"
                   "%sB%s) AFF Flags : %s%s\r\n"
+                  "%sU%s) AFF2 Flags: %s%s\r\n"
                   "%sS%s) Script    : %s%s\r\n"
                   "%sV%s) Path Edit : %s%s%s\r\n"
                   "%sZ%s) SpecProc  : %s%s\r\n"
@@ -804,6 +821,7 @@ static void medit_disp_menu(struct descriptor_data *d)
                   //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
                   grn, nrm, cyn, flags,
                   grn, nrm, cyn, flag2,
+                  grn, nrm, cyn, flag3,
                   grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
                   grn, nrm, cyn, path, nrm,
                   grn, nrm, cyn, specname ? specname : "None",
@@ -1204,6 +1222,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'B':
       OLC_MODE(d) = MEDIT_AFF_FLAGS;
       medit_disp_aff_flags(d);
+      return;
+    case 'u':
+    case 'U':
+      OLC_MODE(d) = MEDIT_AFF2_FLAGS;
+      medit_disp_aff2_flags(d);
       return;
     case 'w':
     case 'W':
@@ -1847,6 +1870,14 @@ void medit_parse(struct descriptor_data *d, char *arg)
     REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_ACID_COAT);
     REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_SLEEP);
     medit_disp_aff_flags(d);
+    return;
+
+  case MEDIT_AFF2_FLAGS:
+    if ((i = atoi(arg)) <= 0)
+      break;
+    else if (i <= NUM_AFF2_FLAGS)
+      TOGGLE_BIT_AR(AFF2_FLAGS(OLC_MOB(d)), i);
+    medit_disp_aff2_flags(d);
     return;
 
     /* Numerical responses. */

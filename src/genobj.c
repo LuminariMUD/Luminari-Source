@@ -208,6 +208,8 @@ int save_objects(zone_rnum zone_num)
        wbuf3[MAX_STRING_LENGTH] = {'\0'}, wbuf4[MAX_STRING_LENGTH] = {'\0'};
   char pbuf1[MAX_STRING_LENGTH] = {'\0'}, pbuf2[MAX_STRING_LENGTH] = {'\0'},
        pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
+  char p2buf1[MAX_STRING_LENGTH] = {'\0'}, p2buf2[MAX_STRING_LENGTH] = {'\0'},
+       p2buf3[MAX_STRING_LENGTH] = {'\0'}, p2buf4[MAX_STRING_LENGTH] = {'\0'};
   int counter, counter2, realcounter;
   FILE *fp;
   struct obj_data *obj;
@@ -275,8 +277,12 @@ int save_objects(zone_rnum zone_num)
       sprintascii(pbuf2, GET_OBJ_PERM(obj)[1]);
       sprintascii(pbuf3, GET_OBJ_PERM(obj)[2]);
       sprintascii(pbuf4, GET_OBJ_PERM(obj)[3]);
+      sprintascii(p2buf1, GET_OBJ2_PERM(obj)[0]);
+      sprintascii(p2buf2, GET_OBJ2_PERM(obj)[1]);
+      sprintascii(p2buf3, GET_OBJ2_PERM(obj)[2]);
+      sprintascii(p2buf4, GET_OBJ2_PERM(obj)[3]);
 
-      fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s\n"
+      fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n"
                   "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n"
                   "%d %d %d %d %d\n",
 
@@ -284,6 +290,7 @@ int save_objects(zone_rnum zone_num)
               ebuf1, ebuf2, ebuf3, ebuf4,
               wbuf1, wbuf2, wbuf3, wbuf4,
               pbuf1, pbuf2, pbuf3, pbuf4,
+              p2buf1, p2buf2, p2buf3, p2buf4,
               GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
               GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
               GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
@@ -371,6 +378,14 @@ int save_objects(zone_rnum zone_num)
                   "%d\n",
               obj->mob_recepient);
 
+      // R: restring identifier
+      if (obj->restring_identifier && *obj->restring_identifier)
+      {
+        fprintf(fp, "R\n"
+                    "%s\n",
+            obj->restring_identifier);
+      }
+
       // k: spells that can be activated
       if (obj->activate_spell[ACT_SPELL_LEVEL] > 0 && obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
       {
@@ -437,6 +452,8 @@ void free_object_strings(struct obj_data *obj)
   /* Free corpse-specific fields */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->restring_identifier)
+    free(obj->restring_identifier);
 }
 
 /* For object instances that are not the prototype. */
@@ -483,6 +500,10 @@ void free_object_strings_proto(struct obj_data *obj)
   /* Free corpse-specific fields - corpses should never have prototypes */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->arcane_mark)
+    free(obj->arcane_mark);
+  if (obj->restring_identifier && obj->restring_identifier != obj_proto[robj_num].restring_identifier)
+    free(obj->restring_identifier);
 }
 
 static void copy_object_strings(struct obj_data *to, struct obj_data *from)
@@ -491,6 +512,9 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
+  /* Ensure restring_identifier is deep-copied so prototypes don't share OLC buffers */
+  to->restring_identifier = from->restring_identifier ? strdup(from->restring_identifier) : NULL;
 
   if (from->ex_description)
     copy_ex_descriptions(&to->ex_description, from->ex_description);
@@ -500,7 +524,8 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 
 int copy_object(struct obj_data *to, struct obj_data *from)
 {
-  free_object_strings(to);
+  /* Free strings safely for object instances that may share prototype strings. */
+  free_object_strings_proto(to);
   return copy_object_main(to, from, TRUE);
 }
 

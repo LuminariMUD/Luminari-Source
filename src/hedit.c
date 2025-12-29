@@ -43,6 +43,7 @@ static void hedit_setup_new(struct descriptor_data *);
 static void hedit_save_to_disk(struct descriptor_data *);
 static void hedit_save_to_db(struct descriptor_data *);
 static void hedit_save_internally(struct descriptor_data *);
+static void hedit_load_keywords(struct help_entry_list *entries);
 static bool validate_help_tag(const char *tag, struct descriptor_data *d);
 static bool validate_help_keyword(const char *keyword, struct descriptor_data *d);
 static bool validate_help_content(const char *content, struct descriptor_data *d);
@@ -287,6 +288,9 @@ ACMD(do_oasis_hedit)
   }
 
   OLC_HELP(d) = search_help(OLC_STORAGE(d), LVL_IMPL);
+
+  /* Ensure keyword_list is populated; search_help omits it for performance. */
+  hedit_load_keywords(OLC_HELP(d));
 
   if (OLC_HELP(d) == NULL)
   {
@@ -618,8 +622,51 @@ cleanup:
         /* Try to rollback */
         mysql_query(conn, "ROLLBACK");
       } else {
+        /* Clear runtime cache so subsequent HELP uses the updated text immediately. */
+        clear_help_cache();
         write_to_output(d, "Help entry '%s' saved successfully to database.\r\n", OLC_HELP(d)->tag);
       }
+    }
+  }
+}
+
+/* Populate keyword_list for all retrieved help entries. */
+static void hedit_load_keywords(struct help_entry_list *entries)
+{
+  struct help_entry_list *cur;
+
+  for (cur = entries; cur; cur = cur->next) {
+    struct help_keyword_list *new_keyword = NULL;
+    char kw_buf[MAX_STRING_LENGTH];
+    char *tok = NULL, *saveptr = NULL;
+
+    if (!cur || cur->keyword_list)
+      continue;
+
+    /* Prefer authoritative keyword list from the database when available. */
+    if (conn && mysql_available) {
+      cur->keyword_list = get_help_keywords(cur->tag);
+      if (cur->keyword_list)
+        continue;
+    }
+
+    if (!cur->keywords || !*cur->keywords)
+      continue;
+
+    /* Fall back to parsing the keywords string (comma/space separated). */
+    strlcpy(kw_buf, cur->keywords, sizeof(kw_buf));
+    for (tok = strtok_r(kw_buf, ", ", &saveptr); tok; tok = strtok_r(NULL, ", ", &saveptr)) {
+      while (*tok == ' ')
+        tok++;
+      if (!*tok)
+        continue;
+
+      CREATE(new_keyword, struct help_keyword_list, 1);
+      new_keyword->tag = cur->tag ? strdup(cur->tag) : NULL;
+      new_keyword->keyword = strdup(tok);
+      new_keyword->next = cur->keyword_list;
+      cur->keyword_list = new_keyword;
+      new_keyword = NULL;
     }
   }
 }

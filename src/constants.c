@@ -41,6 +41,14 @@ cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
+/* Moon names for Dragonlance setting */
+const char *moon_names[] = {
+    "Solinari",   /* white moon */
+    "Lunitari",   /* red moon */
+    "Nuitari",    /* black moon */
+    "\n"
+};
+
 // armor suit types
 const char *armor_suit_types[] = {
     "none",
@@ -1311,6 +1319,20 @@ const char *sector_types[] = {
     "\n"};
 CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
 
+const char *terrain_types[] = {
+    "None",
+    "Urban",
+    "Water",
+    "Forest",
+    "Mountains",
+    "Desert",
+    "Swamp",
+    "Caverns",
+    "Plains",
+    "\n"
+};
+CHECK_TABLE_SIZE(terrain_types, NUM_TERRAIN_TYPES + 1);
+
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
@@ -1560,6 +1582,7 @@ const char *action_bits[] = {
     "Unlimited-Spell-Slots",
     "Custom-Mob-Stats",
     "No-Block-Bypass",
+    "Golem",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1718,6 +1741,7 @@ const char *bonus_types[] = {
     "Drink",
     "Eidolon",
     "Universal",
+    "Alchemist Quintessential",
     "\n"};
 CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 
@@ -1756,6 +1780,7 @@ const char *affected_bits[] = {
     "Protect-Elements",
     "Deaf",
     "Fear", // 30
+    "Cowering",
     "Stunned",
     "Paralyzed",
     "Ultra-Vision",
@@ -1850,6 +1875,8 @@ const char *affected_bits[] = {
     "Crippled",
     "Encased-in-Ice",
     "Nextattack-Stun",
+    "Hive-Marked",
+    "Perfect-Deflection-Ready",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1892,6 +1919,7 @@ const char *affected_bit_descs[] = {
     "You are protected from the elements.",
     "You can't hear a thing.",
     "You are terrified.", // 30
+    "You are cowering in fear.",
     "You are stunned.",
     "You can't move!",
     "You can see in the ultra-violet spectrum.",
@@ -1986,8 +2014,32 @@ const char *affected_bit_descs[] = {
     "Your legs are crippled! (50% movement speed, 50% movement fail chance)",
     "You are encased in ice and paralyzed! (Immune to cold, DR 5/-)",
     "Your next attack will carry overwhelming force!",
+    "You have been marked by a Hive Commander's psychic link!",
+    "You are prepared to perfectly deflect the next ranged attack and reflect it!",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
+
+/** Second affect bit names.
+ * @pre Must be in the same order as the defines.
+ * Must end array with a single newline. */
+const char *affected2_bits[] = {
+    "\0", /* DO NOT REMOVE!! */
+    "Magic-Attacks",
+    "\n"};
+
+CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
+
+/** Second affected bits descriptions.
+ * @pre Must be in the same order as the defines.
+ * Must end array with a single newline.
+ * MUST BE 57 CHARACTERS OR LESS.
+ * */
+const char *affected2_bit_descs[] = {
+    "\0", /* DO NOT REMOVE!! */
+    //|---------------------------------------------------------|
+    "Attacks you make can bypass magic resistant damage reduction",
+    "\n"};
+CHECK_TABLE_SIZE(affected2_bit_descs, NUM_AFF2_FLAGS + 1);
 
 /** Connection type descriptions.
  * @pre Must be in the same order as the defines.
@@ -2597,6 +2649,7 @@ const char *extra_bits[] = {
     "Crafting-Carpentry-Table",
     "Trapped",
     "Costs-Account-Experience",
+    "Can-Be-Reforged",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -4097,7 +4150,7 @@ const char *feat_types[] = {
     "\n"};
 
 const char *ability_names[] = {
-    "RESERVED",
+    "No-Skill",
     "Acrobatics",
     "Stealth",
     "Religion",
@@ -6402,7 +6455,7 @@ const char *regions[] = {
     "Evermeet",
     "Halruaa",
     "Icewind Dale",
-    "Impilitur",
+    "Impiltur",
     "Kara-Tur",
     "Luiren",
     "Luruar",
@@ -6669,6 +6722,7 @@ const char *crafting_materials[] = {
     "brass",
     "flax",
     "bone",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
@@ -6710,6 +6764,7 @@ const char *crafting_material_descriptions[] = {
     "brass",
     "flax",
     "bone",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_descriptions, NUM_CRAFT_MATS + 1);
@@ -6751,6 +6806,7 @@ const char *crafting_material_nodes[] = {
     "brass",
     "a patch of flax plants",
     "bone",
+    "a stone quarry",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_nodes, NUM_CRAFT_MATS + 1);
@@ -6792,6 +6848,7 @@ const char *harvesting_messages[] = {
     "brass",
     "gathering a patch of flax plants",
     "bone",
+    "quarrying stone",
     "\n"
 };
 CHECK_TABLE_SIZE(harvesting_messages, NUM_CRAFT_MATS + 1);
@@ -6802,6 +6859,7 @@ const char *crafting_types[] = {
     "armor",
     "misc",
     "instrument",
+    "golem",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_types, NUM_CRAFT_TYPES + 1);
@@ -6845,6 +6903,7 @@ const char *crafting_material_groups[] = {
     "cloth",
     "refining",
     "resizing",
+    "stone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_groups, NUM_CRAFT_GROUPS + 1);
@@ -6934,6 +6993,12 @@ const char * exp_option [] = {
     "Full",
     "Reduced",
     "None",
+    "\n"
+};
+
+const char * spellcasting_time_options [] = {
+    "1 standard action",
+    "Individual spell times in seconds",
     "\n"
 };
 

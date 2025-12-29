@@ -398,6 +398,18 @@
 /** The total number of room Sector Types */
 #define NUM_ROOM_SECTORS 37
 
+#define TERRAIN_TYPE_NONE 0;
+#define TERRAIN_TYPE_URBAN 1
+#define TERRAIN_TYPE_WATER 2
+#define TERRAIN_TYPE_FOREST 3
+#define TERRAIN_TYPE_MOUNTAINS 4
+#define TERRAIN_TYPE_DESERT 5
+#define TERRAIN_TYPE_SWAMP 6
+#define TERRAIN_TYPE_CAVERNS 7
+#define TERRAIN_TYPE_PLAINS 8
+
+#define NUM_TERRAIN_TYPES 9
+
 /* char and mob-related defines */
 
 /* History */
@@ -987,6 +999,47 @@
 
 #define NUM_REGIONS 27
 
+#elif defined(CAMPAIGN_FR)
+
+#define REGION_NONE                 0
+#define REGION_AGLAROND             1
+#define REGION_AMN                  2
+#define REGION_ANAUROCH_DESERT      3
+#define REGION_CALIMSHAN            4   
+#define REGION_CHESSENTA            5  
+#define REGION_CHULT                6
+#define REGION_CORMYR               7
+#define REGION_DAMBRATH             8
+#define REGION_ELFHARROW            9
+#define REGION_EVERMEET             10
+#define REGION_HALRUAA              11
+#define REGION_ICEWIND_DALE         12
+#define REGION_IMPILTUR             13
+#define REGION_KARA_TUR             14
+#define REGION_LUIREN               15
+#define REGION_LURUAR               16
+#define REGION_MULHORAND            17
+#define REGION_RASHEMEN             18
+#define REGION_SEMBIA               19
+#define REGION_TETHYR               20
+#define REGION_THAY                 21
+#define REGION_THESK                22
+#define REGION_THE_COLD_LANDS       23
+#define REGION_THE_DALELANDS        24
+#define REGION_THE_HORDELANDS       25
+#define REGION_THE_LAKE_OF_STEAM    26
+#define REGION_THE_MOONSEA          27
+#define REGION_THE_SAVAGE_FRONTIER  28
+#define REGION_THE_SWORD_COAST      29
+#define REGION_THE_UNDERDARK        30
+#define REGION_TURMISH              31
+#define REGION_TYMANTHER            32
+#define REGION_UNTHER               33
+#define REGION_WESTGATE             34
+#define REGION_ZAKHARA              35
+#define REGION_OUTER_PLANES         36
+#define NUM_REGIONS                 37
+
 #else
 
 #define REGION_NONE                 0
@@ -1209,8 +1262,9 @@
 #define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
 #define MOB_CUSTOM_MOB_STATS 101 /**< Mob uses custom stat modifiers instead of category defaults */
 #define MOB_NO_BLOCK_BYPASS 102 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
+#define MOB_GOLEM 103 /**< Mob is a constructed golem (for follower tracking) */
 /**********************/
-#define NUM_MOB_FLAGS 103
+#define NUM_MOB_FLAGS 104
 /**********************/
 /**********************/
 
@@ -1469,109 +1523,120 @@
 #define AFF_ELEMENT_PROT 28        // endure elements, etc
 #define AFF_DEAF 29                // deafened
 #define AFF_FEAR 30                // under affect of fear
-#define AFF_STUN 31                // stunned
-#define AFF_PARALYZED 32           // paralyzed
-#define AFF_ULTRAVISION 33         /**< Char can see in dark */
-#define AFF_GRAPPLED 34            // grappled (combat maneuver)
-#define AFF_TAMED 35               // tamed therefore mountable
-#define AFF_CLIMB 36               // affect that allows you to climb
-#define AFF_NAUSEATED 37           // nauseated - physical abilities reduced
-#define AFF_NON_DETECTION 38       /* can't be scryed */
-#define AFF_SLOW 39                /* supernaturally slowed - less attacks */
-#define AFF_FSHIELD 40             // fire shield - reflect damage
-#define AFF_CSHIELD 41             // cold shield - reflect damage
-#define AFF_MINOR_GLOBE 42         // invulnerable to lower level spells
-#define AFF_ASHIELD 43             // acid shield - reflect damage
-#define AFF_SIZECHANGED 44         /* size is unusual, bigger or smaller class */
-#define AFF_TRUE_SIGHT 45          /* highest level of enhanced magical vision */
-#define AFF_SPOT 46                /* spot mode - better chance at seeing 'hide' */
-#define AFF_FATIGUED 47            /* exhausted, less physically effective */
-#define AFF_REGEN 48               /* regenerating health at accelerated rate */
-#define AFF_DISEASE 49             /* affected by a disease */
-#define AFF_TFORM 50               // tenser's transformation - powerful physical transofmration
-#define AFF_GLOBE_OF_INVULN 51     /* invulernability to certain spells */
-#define AFF_LISTEN 52              /* in listen mode - better chance at hearing 'sneak' */
-#define AFF_DISPLACE 53            /* displacement - 50% concealment */
-#define AFF_SPELL_MANTLE 54        /* spell absorbtion defense */
-#define AFF_CONFUSED 55            /* confused, taking random actions */
-#define AFF_REFUGE 56              /* refuge from danger - effectively stealthed */
-#define AFF_SPELL_TURNING 57       /* able to deflect an opponents offensive spell! */
-#define AFF_MIND_BLANK 58          /* mind blanked from harsh enchantments */
-#define AFF_SHADOW_SHIELD 59       /* surrounded by powerful defensive shadow magic */
-#define AFF_TIME_STOPPED 60        /* all non-offensive spells are free actions! */
-#define AFF_BRAVERY 61             /* immune to fear */
-#define AFF_FREE_MOVEMENT 62       /* able to resist movement impending effects */
-#define AFF_FAERIE_FIRE 63         /* surrounded by purple flame */
-#define AFF_BATTLETIDE 64          /* powerful physical presence */
-#define AFF_SPELL_RESISTANT 65     /* bonus to resisting spells */
-#define AFF_DIM_LOCK 66            // locked to current plane (can't teleport)
-#define AFF_DEATH_WARD 67          /* warded from death effects */
-#define AFF_SPELLBATTLE 68         /* arcana golem spellbattle mode */
-#define AFF_VAMPIRIC_TOUCH 69      // will make next attack vampiric
-#define AFF_BLACKMANTLE 70         // stop normal regen, reduce healing
-#define AFF_DANGERSENSE 71         // sense aggro in surround rooms
-#define AFF_SAFEFALL 72            // reduce damage from falling
-#define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage (no effect yet)
-#define AFF_INERTIAL_BARRIER 74    // absorb damage based on psp
-#define AFF_NOTELEPORT 75          // make target not reachable via teleport
+#define AFF_COWERING 31            // cowering (worse than fear/shaken)
+#define AFF_STUN 32                // stunned
+#define AFF_PARALYZED 33           // paralyzed
+#define AFF_ULTRAVISION 34         /**< Char can see in dark */
+#define AFF_GRAPPLED 35            // grappled (combat maneuver)
+#define AFF_TAMED 36               // tamed therefore mountable
+#define AFF_CLIMB 37               // affect that allows you to climb
+#define AFF_NAUSEATED 38           // nauseated - physical abilities reduced
+#define AFF_NON_DETECTION 39       /* can't be scryed */
+#define AFF_SLOW 40                /* supernaturally slowed - less attacks */
+#define AFF_FSHIELD 41             // fire shield - reflect damage
+#define AFF_CSHIELD 42             // cold shield - reflect damage
+#define AFF_MINOR_GLOBE 43         // invulnerable to lower level spells
+#define AFF_ASHIELD 44             // acid shield - reflect damage
+#define AFF_SIZECHANGED 45         /* size is unusual, bigger or smaller class */
+#define AFF_TRUE_SIGHT 46          /* highest level of enhanced magical vision */
+#define AFF_SPOT 47                /* spot mode - better chance at seeing 'hide' */
+#define AFF_FATIGUED 48            /* exhausted, less physically effective */
+#define AFF_REGEN 49               /* regenerating health at accelerated rate */
+#define AFF_DISEASE 50             /* affected by a disease */
+#define AFF_TFORM 51               // tenser's transformation - powerful physical transofmration
+#define AFF_GLOBE_OF_INVULN 52     /* invulernability to certain spells */
+#define AFF_LISTEN 53              /* in listen mode - better chance at hearing 'sneak' */
+#define AFF_DISPLACE 54            /* displacement - 50% concealment */
+#define AFF_SPELL_MANTLE 55        /* spell absorbtion defense */
+#define AFF_CONFUSED 56            /* confused, taking random actions */
+#define AFF_REFUGE 57              /* refuge from danger - effectively stealthed */
+#define AFF_SPELL_TURNING 58       /* able to deflect an opponents offensive spell! */
+#define AFF_MIND_BLANK 59          /* mind blanked from harsh enchantments */
+#define AFF_SHADOW_SHIELD 60       /* surrounded by powerful defensive shadow magic */
+#define AFF_TIME_STOPPED 61        /* all non-offensive spells are free actions! */
+#define AFF_BRAVERY 62             /* immune to fear */
+#define AFF_FREE_MOVEMENT 63       /* able to resist movement impending effects */
+#define AFF_FAERIE_FIRE 64         /* surrounded by purple flame */
+#define AFF_BATTLETIDE 65          /* powerful physical presence */
+#define AFF_SPELL_RESISTANT 66     /* bonus to resisting spells */
+#define AFF_DIM_LOCK 67            // locked to current plane (can't teleport)
+#define AFF_DEATH_WARD 68          /* warded from death effects */
+#define AFF_SPELLBATTLE 69         /* arcana golem spellbattle mode */
+#define AFF_VAMPIRIC_TOUCH 70      // will make next attack vampiric
+#define AFF_BLACKMANTLE 71         // stop normal regen, reduce healing
+#define AFF_DANGERSENSE 72         // sense aggro in surround rooms
+#define AFF_SAFEFALL 73            // reduce damage from falling
+#define AFF_TOWER_OF_IRON_WILL 74  // reduce psionic damage (no effect yet)
+#define AFF_INERTIAL_BARRIER 75    // absorb damage based on psp
+#define AFF_NOTELEPORT 76          // make target not reachable via teleport
 /* works in progress */
-#define AFF_MAX_DAMAGE 76   // enhance next attack/spell/etc (no affect yet)
-#define AFF_IMMATERIAL 77   // no physical body (ghost-like)
-#define AFF_CAGE 78         // can't interact/be-interacted with
-#define AFF_MAGE_FLAME 79   // light up an individual
-#define AFF_DARKVISION 80   // perfect vision day/night
-#define AFF_BODYWEAPONRY 81 // martial arts
-#define AFF_FARSEE 82       // can see outside of room
-#define AFF_MENZOCHOKER 83  // special object affect
+#define AFF_MAX_DAMAGE 77   // enhance next attack/spell/etc (no affect yet)
+#define AFF_IMMATERIAL 78   // no physical body (ghost-like)
+#define AFF_CAGE 79         // can't interact/be-interacted with
+#define AFF_MAGE_FLAME 80   // light up an individual
+#define AFF_DARKVISION 81   // perfect vision day/night
+#define AFF_BODYWEAPONRY 82 // martial arts
+#define AFF_FARSEE 83       // can see outside of room
+#define AFF_MENZOCHOKER 84  // special object affect
 /** Total number of affect flags not including the don't use flag. */
 // don't forget to add to constants.c!
-#define AFF_RAPID_SHOT 84  /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
-#define AFF_DAZED 85       /* Dazed*/
-#define AFF_FLAT_FOOTED 86 /* caught off guard! */
+#define AFF_RAPID_SHOT 85  /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
+#define AFF_DAZED 86       /* Dazed*/
+#define AFF_FLAT_FOOTED 87 /* caught off guard! */
 
-#define AFF_DUAL_WIELD 87        /* Dual wield mode */
-#define AFF_FLURRY_OF_BLOWS 88   /* Flurry of blows mode */
-#define AFF_COUNTERSPELL 89      /* Counterspell mode */
-#define AFF_DEFENSIVE_CASTING 90 /* Defensive casting mode */
-#define AFF_WHIRLWIND_ATTACK 91  /*  Whirlwind attack mode */
+#define AFF_DUAL_WIELD 88        /* Dual wield mode */
+#define AFF_FLURRY_OF_BLOWS 89   /* Flurry of blows mode */
+#define AFF_COUNTERSPELL 90      /* Counterspell mode */
+#define AFF_DEFENSIVE_CASTING 91 /* Defensive casting mode */
+#define AFF_WHIRLWIND_ATTACK 92  /*  Whirlwind attack mode */
 
-#define AFF_CHARGING 92            /* charging in combat */
-#define AFF_WILD_SHAPE 93          /* wildshape, shapechange */
-#define AFF_FEINTED 94             /* flat-footed */
-#define AFF_PINNED 95              /* pinned to the ground (grapple) */
-#define AFF_MIRROR_IMAGED 96       /* duplicate illusions of self! */
-#define AFF_WARDED 97              /* warded (damage protection) */
-#define AFF_ENTANGLED 98           /* entangled (can't move) */
-#define AFF_ACROBATIC 99           /* acrobatic!  currently used for druid jump \ \ \ \
+#define AFF_CHARGING 93            /* charging in combat */
+#define AFF_WILD_SHAPE 94          /* wildshape, shapechange */
+#define AFF_FEINTED 95             /* flat-footed */
+#define AFF_PINNED 96              /* pinned to the ground (grapple) */
+#define AFF_MIRROR_IMAGED 97       /* duplicate illusions of self! */
+#define AFF_WARDED 98              /* warded (damage protection) */
+#define AFF_ENTANGLED 99           /* entangled (can't move) */
+#define AFF_ACROBATIC 100           /* acrobatic!  currently used for druid jump \ \ \ \
                                       spell, possible expansion to follow */
-#define AFF_BLINKING 100           /* in a state of blinking between prime/eth */
-#define AFF_AWARE 101              /* aware - too aware to be backstabed */
-#define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
-#define AFF_LEVITATE 103           /**< Char can float above the ground */
-#define AFF_BLEED 104              /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
-#define AFF_STAGGERED 105          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
-#define AFF_DAZZLED 106            /* suffers -1 to attacks and perception checks */
-#define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
-#define AFF_ESHIELD 108            // electric shield - reflect damage
-#define AFF_SICKENED 109           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
-#define AFF_SILENCED 110           // silenced, can't speak or cast spells
-#define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
-#define AFF_WIND_WALL 112          // surrounded by a wall of wind
-#define AFF_FEAR_AURA 113
-#define AFF_SPIDER_CLIMB 114
-#define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
-#define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
-#define AFF_REPULSION 117          // A field of repulsion is around person
-#define AFF_ON_FIRE 118             // person is on fire
-#define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
-#define AFF_SICKENING_AURA 120
-#define AFF_RAPID_BUFF 121          // increases buff speed
-#define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
-#define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
-#define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
+#define AFF_BLINKING 101           /* in a state of blinking between prime/eth */
+#define AFF_AWARE 102              /* aware - too aware to be backstabed */
+#define AFF_CRIPPLING_CRITICAL 103 /* duelist crippling critical affection */
+#define AFF_LEVITATE 104           /**< Char can float above the ground */
+#define AFF_BLEED 105              /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
+#define AFF_STAGGERED 106          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
+#define AFF_DAZZLED 107            /* suffers -1 to attacks and perception checks */
+#define AFF_SHAKEN 108             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
+#define AFF_ESHIELD 109            // electric shield - reflect damage
+#define AFF_SICKENED 110           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
+#define AFF_SILENCED 111           // silenced, can't speak or cast spells
+#define AFF_HIDE_ALIGNMENT 112     // alignment can't be detected
+#define AFF_WIND_WALL 113          // surrounded by a wall of wind
+#define AFF_FEAR_AURA 114
+#define AFF_SPIDER_CLIMB 115
+#define AFF_DEADLY_AIM 116         // used to determine if using deadly aim feat benefits.
+#define AFF_ACID_COAT 117              /**< (R) Char is covered in acid */
+#define AFF_REPULSION 118          // A field of repulsion is around person
+#define AFF_ON_FIRE 119             // person is on fire
+#define AFF_FLAME_BLADE 120        // melee hits deal 1d6 fire damage extra
+#define AFF_SICKENING_AURA 121
+#define AFF_RAPID_BUFF 122          // increases buff speed
+#define AFF_CRIPPLED 123            // crippled - movement speed halved, chance to fail movement
+#define AFF_ENCASED_IN_ICE 124      // encased in ice - paralyzed, immune to cold damage, DR 5/-
+#define AFF_NEXTATTACK_STUN 125     // next attack will attempt to stun the target (Berserker Stunning Blow)
+#define AFF_HIVE_MARKED 126         // marked by Hive Commander - gives +3 DC to further telepathy powers
+#define AFF_PERFECT_DEFLECTION_ACTIVE 127    // ready to deflect next attack (Psionicist Perfect Deflection)
 
 /*---*/
-#define NUM_AFF_FLAGS 125
+#define NUM_AFF_FLAGS 128
+
+// we've run out of AFF_ flag slots, caps at 128, so time to make AFF2_ flags
+/* Affect2 bits: used in char_data.char_specials.saved.affected2_by */
+#define AFF2_DONTUSE 0           /**< DON'T USE! */
+#define AFF2_MAGIC_ATTACKS 1     // summon/creature attacks count as magic for DR purposes
+
+#define NUM_AFF2_FLAGS 2
+
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -1604,8 +1669,9 @@
 #define BONUS_TYPE_DRINK 21        // For drink items only.
 #define BONUS_TYPE_EIDOLON 22      // For eidolons only
 #define BONUS_TYPE_UNIVERSAL 23    // stacks with everything, including itself
+#define BONUS_TYPE_ALCHEMIST_QUINTESSENTIAL 24 /* Alchemist Quintessential Extraction stacking */
 /**/
-#define NUM_BONUS_TYPES 24
+#define NUM_BONUS_TYPES 25
 /****/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
@@ -2973,11 +3039,17 @@
 
 #define FEAT_GNOMISH_TINKERING                  1254
 #define FEAT_BRILLIANCE_AND_BLUNDER 1255
+#define FEAT_CONSTRUCT_WOOD_GOLEM 1256
+#define FEAT_CONSTRUCT_STONE_GOLEM 1257
+#define FEAT_CONSTRUCT_IRON_GOLEM 1258
+
+#define FEAT_WOOD_GOLEM_IMMUNITY 1260
+#define FEAT_STONE_GOLEM_IMMUNITY 1261
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1256
+#define FEAT_LAST_FEAT 1262
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1257
+#define NUM_FEATS 1263
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3059,6 +3131,30 @@
 #define PERK_CATEGORY_KNIGHT_OF_THE_CHALICE 27
 #define PERK_CATEGORY_SACRED_DEFENDER 28
 #define PERK_CATEGORY_DIVINE_CHAMPION 29
+/* Bard Perk Categories */
+#define PERK_CATEGORY_SPELLSINGER 30
+#define PERK_CATEGORY_WARCHANTER 31
+#define PERK_CATEGORY_SWASHBUCKLER 32
+
+/* Alchemist Perk Categories */
+#define PERK_CATEGORY_MUTAGENIST 33
+#define PERK_CATEGORY_BOMB_CRAFTSMAN 34
+#define PERK_CATEGORY_EXTRACT_MASTER 35
+
+/* Psionicist Perk Categories */
+#define PERK_CATEGORY_TELEPATHIC_CONTROL 36
+#define PERK_CATEGORY_PSYCHOKINETIC_ARSENAL 37
+#define PERK_CATEGORY_METACREATIVE_GENIUS 38
+/* Blackguard Perk Categories */
+#define PERK_CATEGORY_TYRANNY_AND_FEAR 39
+#define PERK_CATEGORY_PROFANE_MIGHT 40
+#define PERK_CATEGORY_UNHOLY_RESILIENCE 41
+/* Inquisitor Perk Categories */
+#define PERK_CATEGORY_JUDGMENT_SPELLCASTING 42
+#define PERK_CATEGORY_HUNTERS_ARSENAL 43
+#define PERK_CATEGORY_INVESTIGATION_PERCEPTION 44
+#define PERK_CATEGORY_ADAPTABLE_TACTICS 45
+
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3790,34 +3886,338 @@
 /* Beast Master Tree - Tier 4 */
 #define PERK_RANGER_PRIMAL_AVATAR 1033
 #define PERK_RANGER_NATURES_WRATH 1034
-/* Wilderness Warrior Tree - new perks */
-#define PERK_RANGER_FAVORED_ENEMY_SLAYER 1035
-#define PERK_RANGER_APEX_PREDATOR 1036
+
+/* Wilderness Warrior Tree - Tier 1 */
+#define PERK_RANGER_TWO_WEAPON_FOCUS_I 1035
+#define PERK_RANGER_DUAL_STRIKE_I 1036
+#define PERK_RANGER_FAVORED_ENEMY_MASTERY_I 1037
+#define PERK_RANGER_RANGER_TOUGHNESS_I 1038
+
+/* Wilderness Warrior Tree - Tier 2 */
+#define PERK_RANGER_TWO_WEAPON_FOCUS_II 1039
+#define PERK_RANGER_WW_TWO_WEAPON_FIGHTING 1040
+#define PERK_RANGER_TEMPEST 1041
+#define PERK_RANGER_FAVORED_ENEMY_SLAYER 1042
+
+/* Wilderness Warrior Tree - Tier 3 */
+#define PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING 1043
+#define PERK_RANGER_WHIRLING_STEEL 1044
+#define PERK_RANGER_DEADLY_HUNTER 1045
+#define PERK_RANGER_CRIPPLING_STRIKE 1046
+
+/* Wilderness Warrior Tree - Tier 4 */
+#define PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING 1047
+#define PERK_RANGER_APEX_PREDATOR 1048
 
 /* ============================================================================
  * BARD PERKS (1100-1199)
  * ============================================================================ */
-/* Not yet implemented */
+/* Spellsinger Tree - Tier 1 */
+#define PERK_BARD_SONGWEAVER_I 1100
+#define PERK_BARD_ENCHANTERS_GUILE_I 1101
+#define PERK_BARD_RESONANT_VOICE_I 1102
+#define PERK_BARD_HARMONIC_CASTING 1103
+
+/* Bard Spellsinger Tree Tier II */
+#define PERK_BARD_SONGWEAVER_II 1104
+#define PERK_BARD_ENCHANTERS_GUILE_II 1105
+#define PERK_BARD_CRESCENDO 1106
+#define PERK_BARD_SUSTAINING_MELODY 1107
+
+/* Bard Spellsinger Tree Tier III */
+#define PERK_BARD_MASTER_OF_MOTIFS 1108
+#define PERK_BARD_DIRGE_OF_DISSONANCE 1109
+#define PERK_BARD_HEIGHTENED_HARMONY 1110
+#define PERK_BARD_PROTECTIVE_CHORUS 1111
+
+/* Bard Spellsinger Tree Tier IV - Capstones */
+#define PERK_BARD_SPELLSONG_MAESTRA 1112
+#define PERK_BARD_ARIA_OF_STASIS 1113
+#define PERK_BARD_SYMPHONIC_RESONANCE 1114
+#define PERK_BARD_ENDLESS_REFRAIN 1115
+
+/* Bard Warchanter Tree - Tier 1 */
+#define PERK_BARD_BATTLE_HYMN_I 1116
+#define PERK_BARD_DRUMMERS_RHYTHM_I 1117
+#define PERK_BARD_RALLYING_CRY 1118
+#define PERK_BARD_FROSTBITE_REFRAIN_I 1119
+
+/* Bard Warchanter Tree - Tier 2 */
+#define PERK_BARD_BATTLE_HYMN_II 1120
+#define PERK_BARD_DRUMMERS_RHYTHM_II 1121
+#define PERK_BARD_WARBEAT 1122
+#define PERK_BARD_FROSTBITE_REFRAIN_II 1123
+
+/* Bard Warchanter Tree - Tier 3 */
+#define PERK_BARD_ANTHEM_OF_FORTITUDE 1124
+#define PERK_BARD_COMMANDING_CADENCE 1125
+#define PERK_BARD_STEEL_SERENADE 1126
+#define PERK_BARD_BANNER_VERSE 1127
+
+/* Bard Warchanter Tree - Tier 4 */
+#define PERK_BARD_WARCHANTERS_DOMINANCE 1128
+#define PERK_BARD_WINTERS_WAR_MARCH 1129
+
+/* Bard Swashbuckler Tree - Tier 1 */
+#define PERK_BARD_FENCERS_FOOTWORK_I 1130
+#define PERK_BARD_PRECISE_STRIKE_I 1131
+#define PERK_BARD_RIPOSTE_TRAINING_I 1132
+#define PERK_BARD_FLOURISH 1133
+
+/* Bard Swashbuckler Tree - Tier 2 */
+#define PERK_BARD_FENCERS_FOOTWORK_II 1134
+#define PERK_BARD_PRECISE_STRIKE_II 1135
+#define PERK_BARD_DUELISTS_POISE 1136
+#define PERK_BARD_AGILE_DISENGAGE 1137
+
+/* Bard Swashbuckler Tree - Tier 3 */
+#define PERK_BARD_PERFECT_TEMPO 1138
+#define PERK_BARD_SHOWSTOPPER 1139
+#define PERK_BARD_ACROBATIC_CHARGE 1140
+#define PERK_BARD_FEINT_AND_FINISH 1141
+
+/* Bard Swashbuckler Tree - Tier 4 (Capstone) */
+#define PERK_BARD_SUPREME_STYLE 1142
+#define PERK_BARD_CURTAIN_CALL 1143
 
 /* ============================================================================
  * ALCHEMIST PERKS (1200-1299)
  * ============================================================================ */
-/* Not yet implemented */
+/* Mutagenist - Tier 1 */
+#define PERK_ALCHEMIST_MUTAGEN_I 1200
+#define PERK_ALCHEMIST_HARDY_CONSTITUTION_I 1201
+#define PERK_ALCHEMIST_ALCHEMICAL_REFLEXES 1202
+#define PERK_ALCHEMIST_NATURAL_ARMOR 1203
+/* Mutagenist Tree - Tier II */
+#define PERK_ALCHEMIST_MUTAGEN_II 1204
+#define PERK_ALCHEMIST_PERSISTENCE_MUTAGEN 1205
+#define PERK_ALCHEMIST_INFUSED_WITH_VIGOR 1206
+#define PERK_ALCHEMIST_CELLULAR_ADAPTATION 1207
+/* Mutagenist Tree - Tier III */
+#define PERK_ALCHEMIST_IMPROVED_MUTAGEN 1208
+#define PERK_ALCHEMIST_UNSTABLE_MUTAGEN 1209
+#define PERK_ALCHEMIST_UNIVERSAL_MUTAGEN 1210
+#define PERK_ALCHEMIST_MUTAGENIC_MASTERY 1211
+/* Mutagenist Tree - Tier IV (Capstones) */
+#define PERK_ALCHEMIST_PERFECT_MUTAGEN 1212
+#define PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION 1213
+/* Bomb Craftsman Tree - Tier I */
+#define PERK_ALCHEMIST_ALCHEMICAL_BOMB_I 1214
+#define PERK_ALCHEMIST_PRECISE_BOMBS_PERK 1215
+#define PERK_ALCHEMIST_SPLASH_DAMAGE 1216
+#define PERK_ALCHEMIST_QUICK_BOMB 1217
+/* Bomb Craftsman Tree - Tier II */
+#define PERK_ALCHEMIST_ALCHEMICAL_BOMB_II 1218
+#define PERK_ALCHEMIST_ELEMENTAL_BOMB 1219
+#define PERK_ALCHEMIST_CONCUSSIVE_BOMB 1220
+#define PERK_ALCHEMIST_POISON_BOMB 1221
+/* Bomb Craftsman Tree - Tier III */
+#define PERK_ALCHEMIST_INFERNO_BOMB 1222
+#define PERK_ALCHEMIST_CLUSTER_BOMB 1223
+#define PERK_ALCHEMIST_CALCULATED_THROW 1224
+#define PERK_ALCHEMIST_BOMB_MASTERY 1225
+/* Bomb Craftsman Tree - Tier IV (Capstones) */
+#define PERK_ALCHEMIST_BOMBARDIER_SAVANT 1226
+#define PERK_ALCHEMIST_VOLATILE_CATALYST 1227
+/* Extract Master Tree - Tier I */
+#define PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I 1228
+#define PERK_ALCHEMIST_INFUSION_I 1229
+#define PERK_ALCHEMIST_SWIFT_EXTRACTION 1230
+#define PERK_ALCHEMIST_RESONANT_EXTRACT 1231
+#define PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II 1232
+#define PERK_ALCHEMIST_INFUSION_II 1233
+#define PERK_ALCHEMIST_CONCENTRATED_ESSENCE 1234
+#define PERK_ALCHEMIST_PERSISTENT_EXTRACTION 1235
+/* Extract Master Tree - Tier III */
+#define PERK_ALCHEMIST_HEALING_EXTRACTION 1236
+#define PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY 1237
+#define PERK_ALCHEMIST_DISCOVERY_EXTRACTION 1238
+#define PERK_ALCHEMIST_MASTER_ALCHEMIST 1239
+/* Extract Master Tree - Tier IV (Capstones) */
+#define PERK_ALCHEMIST_ETERNAL_EXTRACT 1240
+#define PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION 1241
 
 /* ============================================================================
  * PSIONICIST PERKS (1300-1399)
  * ============================================================================ */
-/* Not yet implemented */
+/* Telepathic Control - Tier I */
+#define PERK_PSIONICIST_MIND_SPIKE_I           1300
+#define PERK_PSIONICIST_SUGGESTION_PRIMER      1301
+#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_I    1302
+#define PERK_PSIONICIST_FOCUS_CHANNELING       1303
+
+/* Telepathic Control - Tier II */
+#define PERK_PSIONICIST_MIND_SPIKE_II          1304
+#define PERK_PSIONICIST_OVERWHELM              1305
+#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_II   1306
+#define PERK_PSIONICIST_LINKED_MENACE          1307
+/* Telepathic Control - Tier III */
+#define PERK_PSIONICIST_DOMINION               1308
+#define PERK_PSIONICIST_PSYCHIC_SUNDERING      1309
+#define PERK_PSIONICIST_MENTAL_BACKLASH        1310
+#define PERK_PSIONICIST_PIERCING_WILL          1311
+/* Telepathic Control - Tier IV (Capstones) */
+#define PERK_PSIONICIST_ABSOLUTE_GEAS          1312
+#define PERK_PSIONICIST_HIVE_COMMANDER         1313
+/* Psychokinetic Arsenal - Tier I */
+#define PERK_PSIONICIST_KINETIC_EDGE_I         1314
+#define PERK_PSIONICIST_FORCE_SCREEN_ADEPT    1315
+#define PERK_PSIONICIST_VECTOR_SHOVE           1316
+#define PERK_PSIONICIST_ENERGY_SPECIALIZATION 1317
+/* Psychokinetic Arsenal - Tier II */
+#define PERK_PSIONICIST_KINETIC_EDGE_II        1318
+#define PERK_PSIONICIST_DEFLECTIVE_SCREEN      1319
+#define PERK_PSIONICIST_ACCELERATED_MANIFEST   1320
+#define PERK_PSIONICIST_ENERGY_RETORT_PERK     1321
+/* Psychokinetic Arsenal - Tier III */
+#define PERK_PSIONICIST_KINETIC_EDGE_III       1322
+#define PERK_PSIONICIST_GRAVITY_WELL           1323
+#define PERK_PSIONICIST_FORCE_AEGIS            1324
+#define PERK_PSIONICIST_KINETIC_CRUSH          1325
+/* Psychokinetic Arsenal - Tier IV (Capstones) */
+#define PERK_PSIONICIST_SINGULAR_IMPACT        1326
+#define PERK_PSIONICIST_PERFECT_DEFLECTION     1327
+/* Metacreative Genius - Tier I */
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I  1328
+#define PERK_PSIONICIST_SHARD_VOLLEY           1329
+#define PERK_PSIONICIST_HARDENED_CONSTRUCTS_I  1330
+#define PERK_PSIONICIST_FABRICATE_FOCUS        1331
+
+/* Metacreative Genius - Tier II */
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II 1332
+#define PERK_PSIONICIST_SHARDSTORM             1333
+#define PERK_PSIONICIST_HARDENED_CONSTRUCTS_II 1334
+#define PERK_PSIONICIST_RAPID_MANIFESTER       1335
+
+/* Metacreative Genius - Tier III */
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III 1336
+#define PERK_PSIONICIST_EMPOWERED_CREATION     1337
+#define PERK_PSIONICIST_CONSTRUCT_COMMANDER    1338
+#define PERK_PSIONICIST_SELF_FORGED            1339
+
+/* Metacreative Genius - Tier IV (Capstones) */
+#define PERK_PSIONICIST_ASTRAL_JUGGERNAUT     1340
+#define PERK_PSIONICIST_PERFECT_FABRICATOR    1341
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
  * ============================================================================ */
-/* Not yet implemented */
+/* TREE A: Tyranny & Fear - Tier 1 */
+#define PERK_BLACKGUARD_DREAD_PRESENCE        1400
+#define PERK_BLACKGUARD_INTIMIDATING_SMITE    1401
+#define PERK_BLACKGUARD_CRUEL_EDGE            1402
+#define PERK_BLACKGUARD_COMMAND_THE_WEAK      1403
+
+/* TREE A: Tyranny & Fear - Tier 2 */
+#define PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK 1404 /* enhances existing aura feat */
+#define PERK_BLACKGUARD_TERROR_TACTICS         1405
+#define PERK_BLACKGUARD_BLACK_SERAPH_STEP      1406
+#define PERK_BLACKGUARD_NIGHTMARISH_VISAGE     1407
+
+/* TREE A: Tyranny & Fear - Tier 3 */
+#define PERK_BLACKGUARD_PARALYZING_DREAD       1408
+#define PERK_BLACKGUARD_DESPAIR_HARVEST        1409
+#define PERK_BLACKGUARD_SHACKLES_OF_AWE        1410
+#define PERK_BLACKGUARD_PROFANE_DOMINION       1411
+
+/* TREE A: Tyranny & Fear - Tier 4 (Capstones) */
+#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
+#define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
+
+/* TREE A: Tyranny & Fear - Tier 3 */
+#define PERK_BLACKGUARD_PARALYZING_DREAD       1408
+#define PERK_BLACKGUARD_DESPAIR_HARVEST        1409
+#define PERK_BLACKGUARD_SHACKLES_OF_AWE        1410
+#define PERK_BLACKGUARD_PROFANE_DOMINION       1411
+
+/* TREE A: Tyranny & Fear - Tier 4 (Capstones) */
+#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
+#define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
+
+/* TREE B: Profane Might - Tier 1 */
+#define PERK_BLACKGUARD_VILE_STRIKE            1414
+#define PERK_BLACKGUARD_CRUEL_MOMENTUM         1415
+#define PERK_BLACKGUARD_DARK_CHANNEL           1416
+#define PERK_BLACKGUARD_BRUTAL_OATH            1417
+
+/* TREE B: Profane Might - Tier 2 */
+#define PERK_BLACKGUARD_RAVAGING_SMITE         1418
+#define PERK_BLACKGUARD_PROFANE_WEAPON_BOND    1419
+#define PERK_BLACKGUARD_RELENTLESS_ASSAULT     1420
+#define PERK_BLACKGUARD_SANGUINE_BARRIER       1421
+
+/* TREE B: Profane Might - Tier 3 */
+#define PERK_BLACKGUARD_DOOM_CLEAVE            1422
+#define PERK_BLACKGUARD_SOUL_REND              1423
+#define PERK_BLACKGUARD_BLACKENED_PRECISION   1424
+#define PERK_BLACKGUARD_UNHOLY_BLITZ           1425
+
+/* TREE B: Profane Might - Tier 4 (Capstones) */
+#define PERK_BLACKGUARD_AVATAR_OF_PROFANITY    1426
+#define PERK_BLACKGUARD_CATACLYSMIC_SMITE      1427
+
+/* TREE C: Unholy Resilience - Tier 1 */
+#define PERK_BLACKGUARD_PROFANE_FORTITUDE      1428
+#define PERK_BLACKGUARD_DARK_AEGIS             1429
+#define PERK_BLACKGUARD_GRAVEBORN_VIGOR        1430
+#define PERK_BLACKGUARD_SINISTER_RECOVERY      1431
+
+/* TREE C: Unholy Resilience - Tier 2 */
+#define PERK_BLACKGUARD_AURA_OF_DESECRATION    1432
+#define PERK_BLACKGUARD_FELL_WARD             1433
+#define PERK_BLACKGUARD_DEFIANT_HIDE           1434
+#define PERK_BLACKGUARD_SHADE_STEP             1435
+
+/* TREE C: Unholy Resilience - Tier 3 */
+#define PERK_BLACKGUARD_NECROTIC_REGENERATION  1436
+#define PERK_BLACKGUARD_UNHOLY_FORTIFICATION   1437
+#define PERK_BLACKGUARD_BLASPHEMOUS_WARDING    1438
+#define PERK_BLACKGUARD_RESILIENT_CORRUPTION   1439
+
+/* TREE C: Unholy Resilience - Tier 4 (Capstone) */
+#define PERK_BLACKGUARD_UNDYING_VIGOR          1440
+/* New Blackguard Unholy Resilience Tier 3 additions */
+#define PERK_BLACKGUARD_SOUL_CARAPACE          1441
+#define PERK_BLACKGUARD_WARDING_MALICE         1442
+#define PERK_BLACKGUARD_BLACKGUARDS_REPRISAL   1443
+
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 1) */
+#define PERK_INQUISITOR_EMPOWERED_JUDGMENT     1444
+#define PERK_INQUISITOR_SWIFT_SPELLCASTER      1445
+#define PERK_INQUISITOR_SPELL_FOCUS_DIVINATION 1446
+#define PERK_INQUISITOR_JUDGMENT_RECOVERY      1447
+
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 2) */
+#define PERK_INQUISITOR_ENHANCED_BANE          1448
+#define PERK_INQUISITOR_DIVINE_RESILIENCE      1449
+#define PERK_INQUISITOR_SPELL_PENETRATION      1450
+#define PERK_INQUISITOR_PERSISTENT_JUDGMENT    1451
+
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 3) */
+#define PERK_INQUISITOR_GREATER_JUDGMENT       1452
+#define PERK_INQUISITOR_SPELL_METAMASTERY      1453
+#define PERK_INQUISITOR_RIGHTEOUS_STRIKE       1454
+#define PERK_INQUISITOR_VERSATILE_JUDGMENT     1455
+/* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 4) */
+#define PERK_INQUISITOR_JUDGMENT_MASTERY       1456
+#define PERK_INQUISITOR_DIVINE_SPELLSTRIKE     1457
+#define PERK_INQUISITOR_INEXORABLE_JUDGMENT    1458
+#define PERK_INQUISITOR_SUPREME_SPELLCASTING   1459
+
+/* Inquisitor Perks - Hunter's Arsenal Tree (Tier 1) */
+#define PERK_INQUISITOR_STUDIED_TARGET         1460
+#define PERK_INQUISITOR_FAVORED_TERRAIN        1461
+#define PERK_INQUISITOR_HUNTERS_PRECISION      1462
+#define PERK_INQUISITOR_TRACK_AND_HUNT         1463
 
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
-/* Not yet implemented */
+/* Implemented: Judgment & Spellcasting Tree Tier 1 (1444-1447) */
+/* Implemented: Judgment & Spellcasting Tree Tier 2 (1448-1451) */
+/* Implemented: Judgment & Spellcasting Tree Tier 3 (1452-1455) */
+/* Implemented: Judgment & Spellcasting Tree Tier 4 (1456-1459) */
+/* Implemented: Hunter's Arsenal Tree Tier 1 (1460-1463) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -3838,7 +4238,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1900
+#define NUM_PERKS 1500
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
@@ -4164,10 +4564,10 @@
 /** Total number of item mats.*/
 #define NUM_MATERIALS 59
 
-#define NUM_CRAFT_MATS 36
+#define NUM_CRAFT_MATS 37
 #define NUM_CRAFT_MOTES 9
 
-#define NUM_CRAFT_GROUPS 8
+#define NUM_CRAFT_GROUPS 9
 
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
@@ -4336,8 +4736,9 @@
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
 #define ITEM_TRAPPED 113 // This object has a trap attached
 #define ITEM_ACCOUNT_EXP 114 // item is bought for account exp
+#define ITEM_REFORGEABLE 115 // item can be reforged
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 115
+#define NUM_ITEM_FLAGS 116
 
 /* homeland-port */
 /*
@@ -5261,6 +5662,7 @@ struct obj_flag_data
     int cost_per_day;                 /**< Rent cost per real day */
     int timer;                        /**< Timer for object             */
     int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
+    int bitvector2[AF_ARRAY_MAX];      /**< Affects 2 characters           */
     int i_sort;                       /**< What 'bag' is it sorted into in the inventory? */
 
     byte material; // what material is the item made of?
@@ -5406,6 +5808,12 @@ struct crafting_data_info
     // efficient talent saved materials [material_type][amount]
     int efficient_saved_materials[NUM_CRAFT_GROUPS][2];
     
+    // golem crafting info
+    int golem_type;                 // GOLEM_TYPE_WOOD, STONE, IRON
+    int golem_size;                 // GOLEM_SIZE_SMALL, MEDIUM, LARGE, HUGE
+    int golem_materials[NUM_CRAFT_GROUPS][2];  // 0 = mat type, 1 = mat amount for golem
+    int golem_motes_required[NUM_CRAFT_MOTES]; // motes needed for golem
+    
 };
 
 /* ============================================================================ */
@@ -5487,6 +5895,12 @@ struct obj_data
 
     bool drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
     char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
+
+    /* Arcane mark imprint */
+    char *arcane_mark;
+
+    /* Restring identifier for partial object restrings */
+    char *restring_identifier;
 
     int tinker_bonus;
     int temp_bag_num;
@@ -5756,6 +6170,7 @@ struct char_special_data_saved
     long idnum;                    /**< PC's idnum; -1 for mobiles. */
     int act[PM_ARRAY_MAX];         /**< act flags for NPC's; player flag for PC's */
     int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
+    int affected2_by[AF_ARRAY_MAX]; /**< Second bitvector for spells/skills affected by */
     int warding[MAX_WARDING];      // saved warding spells like stoneskin
     int spec_abil[MAX_CLASSES];  // spec abilities (ex. lay on hands)
 
@@ -5797,6 +6212,9 @@ struct char_special_data_saved
     /* Perfect Kill tracking (Rogue Assassin perk) */
     time_t perfect_kill_last_combat; // timestamp of last combat end
     bool perfect_kill_used;          // whether perfect kill was used this combat cycle
+    
+    /* Blackguard Brutal Oath favored foe type */
+    int blackguard_favored_foe;      // race/creature type for Brutal Oath perk
 };
 
 /* not saved player data used for condensed combat */
@@ -5944,6 +6362,9 @@ struct char_special_data
     /* Raging Defender flags - set when hit by crit/sneak, checked in DR calculation */
     bool hit_by_critical;           // temporary flag set when struck by a critical hit
     bool hit_by_sneak_attack;       // temporary flag set when struck by a sneak attack
+    
+    /* Blackguard Resilient Corruption stacks */
+    int blackguard_corruption_stacks; // stacking DR bonus, max 5, resets out of combat
 
     int terror_cooldown;
 
@@ -6078,6 +6499,7 @@ struct player_invention {
     int uses;                 /* Number of times this device has been used */
     time_t cooldown_expires;  /* Individual device cooldown timestamp */
     int dc_penalty;           /* +2 DC penalty per failed out-of-charges attempt */
+    bool broken;              /* Device is broken and cannot be used */
 };
 
 struct player_special_data_saved
@@ -6182,6 +6604,7 @@ struct player_special_data_saved
     int discoveries[NUM_ALC_DISCOVERIES];
     int bombs[MAX_BOMBS_ALLOWED];
     int grand_discovery;
+    int cluster_bomb_iterations;  /* Temporary tracker for cluster bomb hits (not saved) */
 
     /* template system */
     ubyte template;
@@ -6264,6 +6687,9 @@ struct player_special_data_saved
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
     byte slayer_judgement;                      // which judgement is using the slayer bonus
 
+    int inq_favored_terrain;                    // selected favored terrain type (-1 = none)
+    time_t inq_favored_terrain_reset;           // real-time timestamp when terrain can be changed again
+
     int setcloak_timer; // used for setting stats on vampire cloaks.
 
     int time_since_last_feeding; // how long since the vampire last fed on blood
@@ -6311,6 +6737,9 @@ struct player_special_data_saved
 
     int craft_mats_owned[NUM_CRAFT_MATS];
     int craft_motes_owned[NUM_CRAFT_MOTES]; 
+
+    /* Arcane mark personalization */
+    char *arcane_mark;                           /**< Stored arcane mark string */
     
     /* Phase 4.5: Material subtype storage system */
     /* Stores wilderness materials with (category, subtype, quality) structure */
@@ -6350,6 +6779,10 @@ struct player_special_data_saved
     time_t perfect_kill_last_combat;            /**< Timestamp of last combat end */
     bool perfect_kill_used;                     /**< Whether perfect kill was used this combat cycle */
     
+    /* Alchemist Chimeric Transmutation tracking (Mutagenist Tier 4) */
+    time_t chimeric_breath_last_combat;         /**< Timestamp of last combat end for chimeric breath */
+    bool chimeric_breath_used;                  /**< Whether chimeric breath was used this combat cycle */
+    
     /* Wizard Evoker perks */
     time_t maximize_spell_cooldown;             /**< Timestamp until when free maximize spell is available again */
     time_t empower_spell_cooldown;              /**< Timestamp until when next empower spell charge regenerates */
@@ -6383,6 +6816,11 @@ struct player_special_data_saved
     /* Druid Elemental Mastery */
     bool elemental_mastery_active;              /**< Whether elemental mastery is active for next elemental spell */
     time_t elemental_mastery_cooldown;          /**< Timestamp until when elemental mastery can be used again (5 min cooldown) */
+    
+    /* Moon-based Bonus Spell Slots System */
+    int moon_bonus_spells;                      /**< Maximum moon bonus spells available (based on moon phase) */
+    int moon_bonus_spells_used;                 /**< Number of moon bonus spells used (current in use) */
+    int moon_bonus_regen_timer;                 /**< Timer for next moon bonus spell regeneration (in ticks, regen at 1 per 5 mins) */
 };
 
 struct weird_science_level {
@@ -6457,6 +6895,10 @@ struct player_special_data
     room_vnum walkto_location;
 
     struct char_data *judgement_target; // target of an inquisitor's judgement
+    struct char_data *inq_studied_target; // target of the Studied Target perk
+    int inq_greater_judgment_type;     // selected judgment type for Greater Judgment perk (0-9)
+    int inq_last_spell_cast;           // last inquisitor spell cast (for Righteous Strike perk)
+    int inq_righteous_strike_rounds;   // rounds remaining for Righteous Strike bonus
 
     // for the self buffing system
     int buff_slot;
@@ -6544,6 +6986,7 @@ struct affected_type
     sh_int modifier;             /**< Added/subtracted to/from apropriate ability     */
     int location;                /**< Tells which ability to change(APPLY_XXX). */
     int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
+    int bitvector2[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF2_XXX). */
 
     int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
 
@@ -7007,6 +7450,21 @@ struct cha_app_type
 {
     sh_int cha_bonus; /* charisma bonus */
 };
+/** Stores the current phase and associated bonuses of the three moons. */
+struct moon_data {
+   int  solinari_phase;  /* Good Moon                  */
+   int  lunitari_phase;  /* Neutral Moon               */
+   int  nuitari_phase;   /* Evil Moon                  */
+   int  solinari_st;     /* Good Saving Throw Mod      */
+   int  lunitari_st;     /* Neutral Saving Throw Mod   */
+   int  nuitari_st;      /* Evil Saving Throw Mod      */
+   int  solinari_sp;     /* Good Spell Bonus           */
+   int  lunitari_sp;     /* Neutral Spell Bonus        */
+   int  nuitari_sp;      /* Evil Spell Bonus           */
+   int  solinari_lv;     /* Good Spell Level           */
+   int  lunitari_lv;     /* Neutral Spell Level        */
+   int  nuitari_lv;      /* Evil Spell Level           */
+};
 
 /** Stores, and used to deliver, the current weather information
  * in the mud world. */
@@ -7016,6 +7474,7 @@ struct weather_data
     int change;   /**< How fast and what way does it change? */
     int sky;      /**< How is the sky? */
     int sunlight; /**< And how much sun? */
+    struct moon_data moons;
 };
 
 /** Element in monster and object index-tables.
@@ -7259,6 +7718,8 @@ struct extra_game_data
     ubyte wilderness_system;
     ubyte melee_exp_option;
     ubyte spell_cast_exp_option;
+    ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */
+    ubyte arcane_moon_phases;  /**< Enable arcane moon phase bonus spells */
 };
 
 /**

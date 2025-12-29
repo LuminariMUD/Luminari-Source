@@ -1703,7 +1703,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   if (bonus_value >= 1)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC); // add magic tag
 
-  obj_to_char(obj, ch); // deliver object
+  resize_obj_to_char(obj, ch); // deliver object
 
   /* inform ch and surrounding that they received this item */
   if (!silent_mode)

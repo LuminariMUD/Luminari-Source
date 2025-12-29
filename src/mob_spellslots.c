@@ -44,6 +44,10 @@ int get_spell_circle(int spellnum, int char_class)
   /* Check if this class can cast this spell at all */
   if (spell_info[spellnum].min_level[char_class] >= LVL_IMMORT)
     return -1;
+
+  /* Cantrips are always circle 0 */
+  if (spell_is_cantrip(spellnum))
+    return 0;
   
   /* Calculate circle based on class type */
   switch (char_class) {
@@ -338,6 +342,10 @@ bool has_sufficient_slots_for_buff(struct char_data *ch, int spellnum)
   if (circle == 0)
     return TRUE;
   
+  /* If max slots is 1, allow buffing if we have at least 1 slot */
+  if (max_slots == 1)
+    return (current_slots >= 1);
+  
   /* Check if we have more than 50% of max slots remaining */
   /* Use integer arithmetic: current * 2 > max means current > max/2 */
   return (current_slots * 2 > max_slots);
@@ -368,9 +376,9 @@ void regenerate_mob_spell_slot(struct char_data *ch)
   if (FIGHTING(ch))
     return;
   
-  /* Check if enough time has elapsed (120 seconds = 2 minutes) */
+  /* Check if enough time has elapsed (300 seconds = 5 minutes) */
   current_time = time(0);
-  if (current_time - ch->mob_specials.last_slot_regen < 120)
+  if (current_time - ch->mob_specials.last_slot_regen < 300)
     return;
   
   /* Build list of circles with less than maximum slots */

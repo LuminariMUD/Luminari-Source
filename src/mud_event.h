@@ -210,6 +210,39 @@ typedef enum
   ePALADIN_CHANNEL_ENERGY,          /* Paladin Channel Energy perk daily uses */
   eMASS_CURE_WOUNDS,                /* Mass Cure Wounds daily uses */
   eFERAL_CHARGE_USED,               /* Beast Master Feral Charge used this combat */
+  eDEVICE_REPAIR,                   // artificer device repair
+  eCURTAIN_CALL_COOLDOWN,           /* Curtain Call 5-minute cooldown */
+  ePERFECT_TEMPO_HIT_THIS_ROUND,    /* Bard Perfect Tempo - tracked hit this round */
+  eUNIVERSAL_MUTAGEN_COOLDOWN,      /* Alchemist Universal Mutagen 30-minute lockout */
+  eDEFLECTIVE_SCREEN_HIT_THIS_ROUND,/* Psionicist Deflective Screen - first hit DR per round */
+  eACCELERATED_MANIFESTATION_USED,  /* Psionicist Accelerated Manifestation - used this combat */
+  eGRAVITY_WELL_USED,               /* Psionicist Gravity Well - used this combat */
+  eSINGULAR_IMPACT_USED,            /* Psionicist Singular Impact - used today */
+  ePERFECT_DEFLECTION_USED,         /* Psionicist Perfect Deflection - used today */
+  eECTOPLASMIC_ARTISAN_USED,        /* Psionicist Ectoplasmic Artisan - PSP reduction used this encounter */
+  eRAPID_MANIFESTER_USED,           /* Psionicist Rapid Manifester - action reduction used this encounter */
+  eASTRAL_JUGGERNAUT_USED,          /* Psionicist Astral Juggernaut - used today */
+  ePERFECT_FABRICATOR_USED,         /* Psionicist Perfect Fabricator - used today */
+  eINTIMIDATE_SWIFT,                     /* Blackguard Command the Weak swift intimidate gate */
+  eFEAR_ESCALATION,                      /* Blackguard Sovereign of Terror fear escalation per round */
+  eMIDNIGHT_EDICT,                       /* Blackguard Midnight Edict daily cooldown */
+  ePROFANE_DOMINION_DAMAGE,              /* Blackguard Profane Dominion periodic damage */
+  ePROFANE_WEAPON_BOND,                  /* Blackguard Profane Weapon Bond encounter cooldown */
+  eRELENTLESS_ASSAULT,                   /* Blackguard Relentless Assault per-round gate */
+  eUNHOLY_BLITZ,                         /* Blackguard Unholy Blitz haste burst */
+  eAVATAR_OF_PROFANITY,                  /* Blackguard Avatar of Profanity daily cooldown */
+  eCATACLYSMIC_SMITE,                    /* Blackguard Cataclysmic Smite daily cooldown */
+  eGRAVEBORN_VIGOR,                      /* Blackguard Graveborn Vigor threshold cooldown */
+  eSINISTER_RECOVERY,                    /* Blackguard Sinister Recovery self-heal cooldown */
+  eSHADE_STEP,                           /* Blackguard Shade Step usage cooldown */
+  eUNDYING_VIGOR,                        /* Blackguard Undying Vigor death-save daily cooldown */
+  eEMPOWERED_JUDGMENT_DUAL,              /* Inquisitor Empowered Judgment dual judgment encounter gate */
+  eSWIFT_SPELLCASTER_USED,               /* Inquisitor Swift Spellcaster casting time reduction used */
+  eJUDGMENT_RECOVERY_USED,               /* Inquisitor Judgment Recovery kill-triggered use used */
+  eSPELL_METAMASTERY_USED,               /* Inquisitor Spell Metamastery 5-minute cooldown */
+  eDIVINE_SPELLSTRIKE_USED,              /* Inquisitor Divine Spellstrike daily use */
+  eINEXORABLE_JUDGMENT_USED,             /* Inexorable Judgment daily use */
+  eSUPREME_SPELLCASTING_USED,            /* Supreme Spellcasting daily free cast */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -294,4 +327,5 @@ EVENTFUNC(event_moonbeam);
 EVENTFUNC(event_aqueous_orb);
 EVENTFUNC(event_device_progress);
 EVENTFUNC(event_device_creation);
+EVENTFUNC(event_device_repair);
 #endif /* _MUD_EVENT_H_ */

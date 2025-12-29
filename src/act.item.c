@@ -47,11 +47,15 @@
 #include "genobj.h"
 #include "backgrounds.h"
 #include "crafting_new.h"
+#include "talents.h"
 
 /* local function prototypes */
 /* do_get utility functions */
 static int can_take_obj(struct char_data *ch, struct obj_data *obj);
 static void get_check_money(struct char_data *ch, struct obj_data *obj);
+#ifdef USE_NEW_CRAFTING_SYSTEM
+static void get_check_craft_material(struct char_data *ch, struct obj_data *obj);
+#endif
 static void get_from_container(struct char_data *ch, struct obj_data *cont, char *arg, int mode, int amount);
 static void get_from_room(struct char_data *ch, char *arg, int amount);
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj, struct obj_data *cont, int mode);
@@ -1345,6 +1349,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   struct obj_data *j2;
   struct extra_descr_data *desc;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80;
 
   if (mode == ITEM_STAT_MODE_G_LORE)
@@ -1488,10 +1493,11 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
     else
       send_to_char(ch, "Can be worn on: %s\r\n", buf);
     sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
+    sprintbitarray(GET_OBJ2_AFFECT(j), affected2_bits, AF_ARRAY_MAX, buf2);
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Set char bits : %s\r\n", buf);
+      send_to_group(NULL, GROUP(ch), "Set char bits : %s %s\r\n", buf, buf2);
     else
-      send_to_char(ch, "Set char bits : %s\r\n", buf);
+      send_to_char(ch, "Set char bits : %s %s\r\n", buf, buf2);
 
     sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
     if (mode == ITEM_STAT_MODE_G_LORE)
@@ -2161,6 +2167,44 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
   }
 }
 
+#ifdef USE_NEW_CRAFTING_SYSTEM
+/* Function to automatically add craft materials to player's storage when picked up.
+ * Works similarly to get_check_money() for gold coins.
+ * ITEM_MATERIAL objects have:
+ *   GET_OBJ_VAL(obj, 0) = quantity/bundle size
+ *   GET_OBJ_MATERIAL(obj) = material type
+ * Only active when USE_NEW_CRAFTING_SYSTEM is defined.
+ */
+static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
+{
+  int quantity = 0;
+  int material_type = 0;
+  
+  if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL)
+    return;
+    
+  quantity = MAX(1, GET_OBJ_VAL(obj, 0));
+  material_type = GET_OBJ_MATERIAL(obj);
+  
+  if (material_type < 0 || material_type >= NUM_MATERIALS)
+    return;
+    
+  extract_obj(obj);
+  
+  GET_CRAFT_MAT(ch, material_type) += quantity;
+  
+  if (!ch->char_specials.post_combat_messages)
+  {
+    extern const char *material_name[];
+    
+    if (quantity == 1)
+      send_to_char(ch, "You collect 1 %s material.\r\n", material_name[material_type]);
+    else
+      send_to_char(ch, "You collect %d %s materials.\r\n", quantity, material_name[material_type]);
+  }
+}
+#endif /* USE_NEW_CRAFTING_SYSTEM */
+
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj,
                                        struct obj_data *cont, int mode)
 {
@@ -2232,10 +2276,22 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       }
       /* Check if it's money before calling get_check_money */
       bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
+#ifdef USE_NEW_CRAFTING_SYSTEM
+      bool was_material = (GET_OBJ_TYPE(obj) == ITEM_MATERIAL);
+#else
+      bool was_material = false;
+#endif
+      
       get_check_money(ch, obj);
       
-      /* If it was money, obj has been extracted, so don't use it anymore */
+#ifdef USE_NEW_CRAFTING_SYSTEM
+      /* If money was extracted, obj is invalid - check material only if obj still valid */
       if (!was_money)
+        get_check_craft_material(ch, obj);
+#endif
+      
+      /* If it was money or material, obj has been extracted, so don't use it anymore */
+      if (!was_money && !was_material)
       {
         if (cont->carried_by != ch)
         {
@@ -2333,8 +2389,13 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     
     /* Check if it's money before calling get_check_money */
     bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
+#ifdef USE_NEW_CRAFTING_SYSTEM
+    bool was_material = (GET_OBJ_TYPE(obj) == ITEM_MATERIAL);
+#else
+    bool was_material = false;
+#endif
     
-    if (!was_money)
+    if (!was_money && !was_material)
     {
       if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
         auto_store_obj(ch, obj);
@@ -2343,6 +2404,12 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     }
     
     get_check_money(ch, obj);
+    
+#ifdef USE_NEW_CRAFTING_SYSTEM
+    /* If money was extracted, obj is invalid - check material only if obj still valid */
+    if (!was_money)
+      get_check_craft_material(ch, obj);
+#endif
 
     /* this is necessary because of disarm */
     if (FIGHTING(ch))
@@ -4158,7 +4225,14 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where != WEAR_FINGER_R && where != WEAR_FINGER_L &&
       where != WEAR_EAR_R && where != WEAR_EAR_L &&
       where != WEAR_ANKLE_R && where != WEAR_ANKLE_L &&
-      where != WEAR_EYES && where != WEAR_BADGE && where != WEAR_SHEATH)
+      where != WEAR_EYES && where != WEAR_BADGE && 
+      where != WEAR_SHEATH && where != WEAR_INSTRUMENT &&
+      where != WEAR_CRAFT_SICKLE && where != WEAR_CRAFT_AXE &&
+      where != WEAR_CRAFT_KNIFE && where != WEAR_CRAFT_PICKAXE &&
+      where != WEAR_CRAFT_ALCHEMY && where != WEAR_CRAFT_ARMOR_HAMMER &&
+      where != WEAR_CRAFT_JEWEL_PLIERS && where != WEAR_CRAFT_NEEDLE &&
+      where != WEAR_CRAFT_WEAPON_HAMMER && where != WEAR_ON_BACK
+    )
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
     {
@@ -7486,7 +7560,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTSH2\r\n");
           return;
         }
-        obj_to_char(itemA, ch);
+        resize_obj_to_char(itemA, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
         extract_obj(GET_OUTFIT_OBJ(ch));
         clear_outfit_info(ch);
@@ -7507,7 +7581,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA2\r\n");
           return;
         }
-        obj_to_char(itemA, ch);
+        resize_obj_to_char(itemA, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // head piece
@@ -7523,7 +7597,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMB2\r\n");
           return;
         }
-        obj_to_char(itemB, ch);
+        resize_obj_to_char(itemB, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemB->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // arms piece
@@ -7539,7 +7613,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMC2\r\n");
           return;
         }
-        obj_to_char(itemC, ch);
+        resize_obj_to_char(itemC, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemC->short_description, GET_OUTFIT_OBJ(ch)->short_description);
 
         // legs piece
@@ -7555,7 +7629,7 @@ ACMDU(do_outfit)
           send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMD2\r\n");
           return;
         }
-        obj_to_char(itemD, ch);
+        resize_obj_to_char(itemD, ch);
         send_to_char(ch, "You retrieve %s from your %s.\r\n", itemD->short_description, GET_OUTFIT_OBJ(ch)->short_description);
         extract_obj(GET_OUTFIT_OBJ(ch));
         clear_outfit_info(ch);
@@ -8233,6 +8307,7 @@ void downgrade_item(struct char_data *ch, struct obj_data *obj, int level)
 
   // downgraded items lose all perm affects
   obj->obj_flags.bitvector[0] = obj->obj_flags.bitvector[1] = obj->obj_flags.bitvector[2] = obj->obj_flags.bitvector[3] = 0;
+  obj->obj_flags.bitvector2[0] = obj->obj_flags.bitvector2[1] = obj->obj_flags.bitvector2[2] = obj->obj_flags.bitvector2 [3] = 0;
 
   // downgraded items lose any spell activations
   obj->activate_spell[0] = obj->activate_spell[1] = obj->activate_spell[2] = obj->activate_spell[3] = obj->activate_spell[4] = 0;
@@ -8538,7 +8613,7 @@ ACMD(do_salvage)
   one_argument(argument, arg, sizeof(arg));
 
   /* Check if player has the FEAT_SALVAGE */
-  if (!HAS_FEAT(ch, FEAT_SALVAGE))
+  if (!HAS_FEAT(ch, FEAT_SALVAGE) && !has_talent(ch, TALENT_SCAVENGER))
   {
     send_to_char(ch, "You don't know how to salvage items.\r\n");
     return;

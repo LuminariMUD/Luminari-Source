@@ -2382,6 +2382,7 @@ static void newbie_give_obj(struct char_data *ch, obj_vnum vnum, bool adjust_siz
     obj_to_char(obj, ch);
 }
 
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
 static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, bool adjust_size)
 {
   struct obj_data *obj = newbie_create_obj(ch, vnum, adjust_size);
@@ -2389,6 +2390,7 @@ static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, 
   if (obj)
     equip_char(ch, obj, wear_pos);
 }
+#endif
 
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
@@ -4136,7 +4138,21 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  /* golem crafting feats */
+  feat_assignment(CLASS_WIZARD, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_WIZARD, FEAT_CONSTRUCT_STONE_GOLEM, Y, 25, N);
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_SPLASH, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_RAY_OF_FROST, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_FIRE_BOLT, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_JOLT, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_ARCANE_MARK, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_FLARE, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_TOUCH_OF_FATIGUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_WIZARD, SPELL_HORIZIKAULS_BOOM, 1);
@@ -4478,6 +4494,14 @@ void load_class_list(void)
     feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
     feat_assignment(CLASS_CLERIC, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_CLERIC, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_FLARE, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_GUIDANCE, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_STABILIZE, 0);
+  spell_assignment(CLASS_CLERIC, SPELL_VIRTUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_CLERIC, SPELL_SHIELD_OF_FAITH, 1);
@@ -5126,6 +5150,15 @@ void load_class_list(void)
   feat_assignment(CLASS_DRUID, FEAT_COLOSSAL_WILD_SHAPE, Y, NOASSIGN_FEAT, N);
   /* no class feats */
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_DRUID, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_DRUID, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_DRUID, SPELL_FLARE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_GRASP, 0);
+  spell_assignment(CLASS_DRUID, SPELL_GUIDANCE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_ROOT, 0);
+  spell_assignment(CLASS_DRUID, SPELL_STABILIZE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_VIRTUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL, 1);
@@ -5187,6 +5220,8 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_FLAME_STRIKE, 7);
   spell_assignment(CLASS_DRUID, SPELL_FREE_MOVEMENT, 7);
   spell_assignment(CLASS_DRUID, SPELL_ICE_STORM, 7);
+  spell_assignment(CLASS_DRUID, SPELL_SPLINTER_STORM, 5);
+  spell_assignment(CLASS_DRUID, SPELL_SHOCKWAVE, 9);
   spell_assignment(CLASS_DRUID, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_DRUID, SPELL_SPIKE_STONES, 7);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_4, 7);
@@ -5477,7 +5512,21 @@ void load_class_list(void)
   feat_assignment(CLASS_SORCERER, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  /* golem crafting feats */
+  feat_assignment(CLASS_SORCERER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_SORCERER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 25, N);
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_SORCERER, SPELL_ACID_SPLASH, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_RAY_OF_FROST, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_FIRE_BOLT, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_JOLT, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_ARCANE_MARK, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_FLARE, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_TOUCH_OF_FATIGUE, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_SORCERER, SPELL_HORIZIKAULS_BOOM, 1);
@@ -6280,6 +6329,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_FREE_MOVEMENT, 15);
   spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC, 15);
   spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS, 15);
+  spell_assignment(CLASS_RANGER, SPELL_SPLINTER_STORM, 15);
   spell_assignment(CLASS_RANGER, SPELL_GROUP_VIGORIZE, 15);
 
   // epic class feats
@@ -6374,6 +6424,12 @@ void load_class_list(void)
   /* class feat assignments */
 
   /**** spell assign ****/
+  /* cantrips */
+  spell_assignment(CLASS_BARD, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_BARD, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_BARD, SPELL_FLARE, 0);
+  spell_assignment(CLASS_BARD, SPELL_LULLABY, 0);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_INSTRUMENT, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM, 1);
@@ -8528,6 +8584,16 @@ void load_class_list(void)
 
   /* no spell assignment */
 
+  /* cantrips */
+  spell_assignment(CLASS_INQUISITOR, SPELL_ACID_SPLASH, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_CONTINUAL_LIGHT, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_DISRUPT_UNDEAD, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_ENHANCED_DIPLOMACY, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_FLARE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_GUIDANCE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_STABILIZE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_VIRTUE, 0);
+
   /* spell circle 1 */
   spell_assignment(CLASS_INQUISITOR, SPELL_BLESS, 1);
   spell_assignment(CLASS_INQUISITOR, SPELL_CURE_LIGHT, 1);
@@ -8757,6 +8823,10 @@ void load_class_list(void)
 
   /* no spell assignment */
 
+  /* cantrips */
+  spell_assignment(CLASS_SUMMONER, SPELL_ACID_SPLASH, 0);
+  spell_assignment(CLASS_SUMMONER, SPELL_ARCANE_MARK, 0);
+
   /* spell circle 1 */
   spell_assignment(CLASS_SUMMONER, SPELL_ANT_HAUL, 1);
   spell_assignment(CLASS_SUMMONER, SPELL_CORROSIVE_TOUCH, 1);
@@ -8904,6 +8974,9 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_GRAND_EIDOLON, Y, 20, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_ASPECT, Y, 25, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_EIDOLON, Y, 30, N);
+  /* golem crafting feats */
+  feat_assignment(CLASS_SUMMONER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 25, N);
 
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
@@ -8915,6 +8988,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_5TH_CIRCLE, Y, 13, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_6TH_CIRCLE, Y, 16, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_EPIC_SPELL, Y, 21, N);
+  
 
   /* class feats */
     /* epic class */
@@ -9288,6 +9362,9 @@ void load_class_list(void)
   feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_METAMAGIC_SCIENCE, Y, 11, N);
   feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_JACK_OF_ALL_TRADES, Y, 13, N);
   feat_assignment(CLASS_ARTIFICER, FEAT_EXEMPLAR, Y, 20, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 10, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 20, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_IRON_GOLEM, Y, 30, N);
   /* bonus feats at levels 3, 8, 12, 16, 19 */
   /* class feats */
   feat_assignment(CLASS_ARTIFICER, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);

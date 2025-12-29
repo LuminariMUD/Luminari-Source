@@ -24,6 +24,7 @@
 #include "act.h"
 #include "fight.h"
 #include "evolutions.h"
+#include "perks.h"
 
 // external functions
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
@@ -658,13 +659,31 @@ ACMD(do_bombs)
       }
     }
 
-    if (!is_action_available(ch, KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD, TRUE))
+    int action_type = KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
+    bool quick_proc = FALSE;
+
+    int quick_chance = get_alchemist_quick_bomb_chance(ch);
+    if (quick_chance > 0 && rand_number(1, 100) <= quick_chance)
+    {
+      if (is_action_available(ch, ACTION_SWIFT, FALSE))
+      {
+        action_type = ACTION_SWIFT;
+        quick_proc = TRUE;
+        send_to_char(ch, "You react instantly and ready a bomb as a swift action!\r\n");
+      }
+    }
+
+    if (!is_action_available(ch, action_type, TRUE))
       return;
 
     if (!target)
       target = FIGHTING(ch);
 
-    if (bomb_is_friendly(type) || attack_roll(ch, target, ATTACK_TYPE_RANGED, TRUE, 1) >= 0)
+    int bombardier_attack_bonus = get_bombardier_savant_attack_bonus(ch);
+    int bomb_hit_result = bomb_is_friendly(type) ? 1 : attack_roll(ch, target, ATTACK_TYPE_RANGED, TRUE, 1);
+    bomb_hit_result += bombardier_attack_bonus;
+
+    if (bomb_is_friendly(type) || bomb_hit_result >= 0)
     {
       // we hit!
 
@@ -685,7 +704,9 @@ ACMD(do_bombs)
     // let's remove the bomb they just tossed
     GET_BOMB(ch, bSlot) = BOMB_NONE;
     save_char(ch, 0);
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS))
+    if (quick_proc)
+      USE_SWIFT_ACTION(ch);
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS))
       USE_MOVE_ACTION(ch);
     else
       USE_STANDARD_ACTION(ch);
@@ -831,21 +852,42 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
   if (!ch || !victim)
     return;
 
-  switch (bomb_type)
+  /* Cluster Bomb perk: 10% chance to fragment into 3 hits at 75% damage each */
+  bool is_cluster = FALSE;
+  int cluster_iter = 0;
+  int cluster_hits = 1;
+  
+  if (has_alchemist_cluster_bomb(ch) && rand_number(1, 100) <= 10)
   {
-  case BOMB_NORMAL:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // fire damage
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // fire damage
-    break;
-  case BOMB_ACID:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // acid damage
+    is_cluster = TRUE;
+    cluster_hits = 3;
+    act("\tC$n's bomb fragments into multiple projectiles!\tn", FALSE, ch, 0, victim, TO_ROOM);
+    act("\tCThe bomb fragments into multiple projectiles!\tn", FALSE, ch, 0, victim, TO_CHAR);
+  }
+  
+  for (cluster_iter = 0; cluster_iter < cluster_hits; cluster_iter++)
+  {
+    /* For cluster bombs, reduce damage to 75% per hit - store in temporary field */
+    if (is_cluster)
+    {
+      ch->player_specials->saved.cluster_bomb_iterations = cluster_iter + 1;
+    }
+
+    switch (bomb_type)
+    {
+    case BOMB_NORMAL:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // fire damage
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // fire damage
+      break;
+    case BOMB_ACID:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // acid damage
     perform_bomb_direct_effect(ch, victim, bomb_type); // DoT acid effect
     if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
       perform_bomb_splash_damage(ch, victim, bomb_type); // acid damage
@@ -979,13 +1021,60 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
     if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
       perform_bomb_splash_effect(ch, victim, bomb_type); // entangled
     break;
+    }
   }
+  
+  /* Reset cluster bomb state */
+  ch->player_specials->saved.cluster_bomb_iterations = 0;
+  
   if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS))
   {
     add_sticky_bomb_effect(ch, victim, bomb_type);
   }
-}
 
+  /* Volatile Catalyst capstone: 1% per bomb prepared chance to trigger additional bomb throw */
+  if (is_volatile_catalyst_on(ch))
+  {
+    int bombs_prepared = num_of_bombs_prepared(ch);
+    int volatile_chance = bombs_prepared; /* 1% per bomb prepared */
+    
+    if (bombs_prepared > 0 && rand_number(1, 100) <= volatile_chance)
+    {
+      /* Find a random prepared bomb */
+      int random_slot = rand_number(0, num_of_bombs_preparable(ch) - 1);
+      int attempts = 0;
+      
+      /* Find the next prepared bomb starting from random slot */
+      while (GET_BOMB(ch, random_slot) == BOMB_NONE && attempts < num_of_bombs_preparable(ch))
+      {
+        random_slot = (random_slot + 1) % num_of_bombs_preparable(ch);
+        attempts++;
+      }
+      
+      /* If we found a bomb, throw it without using an action (chain reaction) */
+      if (GET_BOMB(ch, random_slot) != BOMB_NONE)
+      {
+        int chain_bomb_type = GET_BOMB(ch, random_slot);
+        
+        act("\tC$n's volatile catalyst ignites, triggering an automatic chain bomb throw!\tn", TRUE, ch, 0, 0, TO_ROOM);
+        send_to_char(ch, "\tCYour volatile catalyst ignites, triggering an automatic chain bomb throw!\tn\r\n");
+        
+        /* Remove the bomb before throwing (prevents infinite loops) */
+        GET_BOMB(ch, random_slot) = BOMB_NONE;
+        
+        /* Throw the chain bomb without normal prerequisites or action requirements */
+        if (!bomb_is_friendly(chain_bomb_type) && !FIGHTING(ch))
+        {
+          /* If not in combat, start combat */
+          hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        }
+        
+        /* Execute the bomb effect (non-recursively - volatile catalyst only triggers once per throw) */
+        perform_bomb_effect(ch, victim, chain_bomb_type);
+      }
+    }
+  }
+}
 void send_bomb_direct_message(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
   /* dummy check */
@@ -1115,7 +1204,40 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   if (!active)
     return;
 
-  dam = dice(ndice, sdice) + damMod;
+  dam = dice(ndice, sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
+
+  /* Master Alchemist perk: 10% chance to maximize bomb damage */
+  if (has_alchemist_master_alchemist(ch) && rand_number(1, 100) <= 10)
+  {
+    /* Recalculate damage with maximized dice */
+    dam = (ndice * sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
+    act("\tM[Your mastery produces a perfectly maximized bomb!]\tn", FALSE, ch, 0, 0, TO_CHAR | TO_SLEEP);
+  }
+
+  /* Elemental Bomb perk: add 1d6 to elemental bombs */
+  dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
+
+  /* Bomb Mastery perk: add 2d6 to all bombs */
+  dam += get_alchemist_bomb_mastery_damage_bonus(ch);
+
+  /* Bombardier Savant capstone: add 6d6 to all bombs */
+  dam += get_bombardier_savant_damage_bonus(ch);
+
+  /* Inferno Bomb perk: 10% chance for +2d6 fire damage */
+  if (has_alchemist_inferno_bomb(ch) && rand_number(1, 100) <= 10)
+  {
+    int inferno_bonus = dice(2, 6);
+    dam += inferno_bonus;
+    act("\tRYour bomb explodes in a massive inferno, dealing an extra $t damage!\tn", FALSE, ch, (void *)(intptr_t)inferno_bonus, victim, TO_CHAR | TO_SLEEP);
+    act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_VICT);
+    act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+  }
+
+  /* Cluster Bomb perk: apply 75% damage multiplier to secondary hits */
+  if (ch->player_specials && ch->player_specials->saved.cluster_bomb_iterations > 0)
+  {
+    dam = (dam * 75) / 100;
+  }
 
   if (bomb_type == BOMB_HOLY)
   {
@@ -1147,6 +1269,71 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   }
 
   dam = damage(ch, victim, dam, SKILL_BOMB_TOSS, damType, SKILL_BOMB_TOSS);
+
+  /* Concussive Bomb perk: 10% chance to knock prone on hit */
+  if (dam > 0 && has_alchemist_concussive_bomb(ch) && rand_number(1, 100) <= 10)
+  {
+    /* Check for knockdown immunity */
+    if (MOB_FLAGGED(victim, MOB_NOBASH))
+    {
+      act("$N resists being knocked down!", FALSE, ch, 0, victim, TO_CHAR);
+    }
+    else if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("$N's freedom of movement prevents the knockdown from the concussive blast of your bomb!", FALSE, ch, 0, victim, TO_CHAR);
+      act("Your freedom of movement prevents the knockdown from the concussive blast of $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+    }
+    else if (has_perk(victim, PERK_FIGHTER_IMMOVABLE_OBJECT))
+    {
+      act("$N stands firm against the blast!", FALSE, ch, 0, victim, TO_CHAR);
+    }
+    else if (GET_POS(victim) == POS_SITTING)
+    {
+      /* Already down, no effect */
+    }
+    else if (IS_INCORPOREAL(victim))
+    {
+      /* Can't knock down incorporeal */
+    }
+    else if (HAS_SUBRACE(victim, SUBRACE_SWARM))
+    {
+      /* Can't knock down swarms */
+    }
+    else
+    {
+      act("You are rocked by the blast and knocked off your feet!", FALSE, ch, 0, victim, TO_VICT);
+      act("$N is rocked by the blast and knocked prone!", FALSE, ch, 0, victim, TO_ROOM);
+      GET_POS(victim) = POS_SITTING;
+      WAIT_STATE(victim, PULSE_VIOLENCE * 2);
+    }
+  }
+
+  /* Poison Bomb perk: 10% chance to poison on hit */
+  if (dam > 0 && has_alchemist_poison_bomb(ch) && rand_number(1, 100) <= 10)
+  {
+    if (can_poison(victim))
+    {
+      if (check_poison_resist(ch, victim, CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST)))
+      {
+        act("Your bomb's toxins fail to take hold of $N.", FALSE, ch, 0, victim, TO_CHAR);
+        act("You resist the poison from $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+      }
+      else
+      {
+        struct affected_type af;
+        new_affect(&af);
+        af.spell = SPELL_POISON;
+        SET_BIT_AR(af.bitvector, AFF_POISON);
+        af.location = APPLY_CON;
+        af.modifier = -2;
+        af.duration = 10;
+        af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+        affect_join(victim, &af, TRUE, FALSE, TRUE, FALSE);
+        act("Your bomb leaves $N reeling from poison!", FALSE, ch, 0, victim, TO_CHAR);
+        act("You are overcome by the poison from $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+      }
+    }
+  }
 
   if (dam > 0 && FALSE)
   {
@@ -1234,7 +1421,16 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
   if (!active)
     return;
 
-  dam = ndice + damMod;
+  dam = ndice + damMod + get_alchemist_bomb_splash_damage_bonus(ch);
+
+  /* Elemental Bomb perk: add 1d6 to elemental splash damage */
+  dam += get_alchemist_elemental_bomb_extra_damage(ch, damType);
+
+  /* Cluster Bomb perk: apply 75% damage multiplier to secondary hits */
+  if (ch->player_specials && ch->player_specials->saved.cluster_bomb_iterations > 0)
+  {
+    dam = (dam * 75) / 100;
+  }
 
   if (bomb_type == BOMB_HOLY)
   {
@@ -2127,6 +2323,9 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+  /* Tier II: Persistence Mutagen doubles duration */
+  if (has_alchemist_persistence_mutagen(ch))
+    duration *= 2;
 
   if (is_abbrev(arg2, "strength"))
   {
@@ -2208,6 +2407,36 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
     af2.modifier++;
 
+  /* Tier III: Universal Mutagen override */
+  if (is_alchemist_universal_mutagen_ready(ch))
+  {
+    int best = 0;
+    best = MAX(best, af.modifier);
+    best = MAX(best, af3.modifier);
+    best = MAX(best, af4.modifier);
+    /* cap duration to ~5 minutes (about 50 combat rounds) */
+    int five_min_rounds = (5 * 60 RL_SEC) / PULSE_VIOLENCE;
+    duration = MIN(duration, five_min_rounds);
+    /* clear penalty */
+    af2.modifier = 0;
+
+    /* mark base mods to be suppressed; we'll add universal later */
+    af.modifier = 0;
+    af3.modifier = 0;
+    af4.modifier = 0;
+
+    /* store best in af6.modifier temporarily for later universal application */
+    af6.location = APPLY_NONE;
+    af6.modifier = best;
+
+    /* turn off the toggle now */
+    set_perk_toggle(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN, FALSE);
+
+    /* start 30-minute universal mutagen lockout */
+    attach_mud_event(new_mud_event(eUNIVERSAL_MUTAGEN_COOLDOWN, ch, NULL), 30 * 60 RL_SEC);
+  }
+
+
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
     af.modifier = af5.modifier = af3.modifier = af4.modifier = 8;
@@ -2243,6 +2472,15 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   }
   */
 
+  /* Unstable Mutagen: boost base effects by +50% */
+  if (is_alchemist_unstable_mutagen_on(ch))
+  {
+    af.modifier = (int)(af.modifier * 1.5);
+    af3.modifier = (int)(af3.modifier * 1.5);
+    af4.modifier = (int)(af4.modifier * 1.5);
+    af5.modifier = (int)(af5.modifier * 1.5);
+  }
+
   if (af.modifier != 0)
   {
     af.spell = SKILL_MUTAGEN;
@@ -2277,9 +2515,29 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   }
   if (af6.location != APPLY_NONE)
   {
-    af6.spell = SKILL_MUTAGEN;
-    af6.duration = duration;
-    affect_to_char(ch, &af6);
+    /* Universal mutagen stored value: apply to all ability scores */
+    if (af6.location == APPLY_NONE && af6.modifier > 0)
+    {
+      struct affected_type uaf;
+      new_affect(&uaf);
+      uaf.spell = SKILL_MUTAGEN;
+      uaf.duration = duration;
+      uaf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      uaf.modifier = af6.modifier;
+
+      uaf.location = APPLY_STR; affect_to_char(ch, &uaf);
+      uaf.location = APPLY_DEX; affect_to_char(ch, &uaf);
+      uaf.location = APPLY_CON; affect_to_char(ch, &uaf);
+      uaf.location = APPLY_INT; affect_to_char(ch, &uaf);
+      uaf.location = APPLY_WIS; affect_to_char(ch, &uaf);
+      uaf.location = APPLY_CHA; affect_to_char(ch, &uaf);
+    }
+    else
+    {
+      af6.spell = SKILL_MUTAGEN;
+      af6.duration = duration;
+      affect_to_char(ch, &af6);
+    }
   }
   if (af7.location != APPLY_NONE)
   {
@@ -2288,11 +2546,297 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
     affect_to_char(ch, &af7);
   }
 
+  /* Tier 1 Mutagenist Perk Effects */
+  /* Mutagen I: +1 STR/DEX/CON per rank while mutagen active */
+  {
+    int extra = get_alchemist_mutagen_i_rank(ch);
+    if (extra > 0)
+    {
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL; /* ensure stacking with mutagen and other bonuses */
+      paf.location = APPLY_STR;
+      paf.modifier = extra;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
+    }
+  }
+
+  /* Alchemical Reflexes: +1 dodge AC and +1 Reflex */
+  if (has_alchemist_alchemical_reflexes(ch))
+  {
+    struct affected_type raf;
+    new_affect(&raf);
+    raf.spell = SKILL_MUTAGEN;
+    raf.duration = duration;
+    raf.location = APPLY_AC_NEW;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_DODGE;
+    affect_to_char(ch, &raf);
+
+    raf.location = APPLY_SAVING_REFL;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &raf);
+  }
+
+  /* Natural Armor: +2 natural armor while mutagen is active */
+  if (has_alchemist_natural_armor(ch))
+  {
+    struct affected_type naf;
+    new_affect(&naf);
+    naf.spell = SKILL_MUTAGEN;
+    naf.duration = duration;
+    naf.location = APPLY_AC_NEW;
+    naf.modifier = 2;
+    naf.bonus_type = BONUS_TYPE_NATURALARMOR;
+    affect_to_char(ch, &naf);
+  }
+
+  /* Tier 3: Improved Mutagen (+4 to chosen primary ability) */
+  if (has_alchemist_improved_mutagen(ch))
+  {
+    struct affected_type iaf;
+    new_affect(&iaf);
+    iaf.spell = SKILL_MUTAGEN;
+    iaf.duration = duration;
+    iaf.bonus_type = BONUS_TYPE_UNIVERSAL;
+    iaf.modifier = 4;
+    iaf.location = af.location; /* primary chosen ability */
+    affect_to_char(ch, &iaf);
+  }
+
+  /* Tier 3: Mutagenic Mastery (+2 to all ability scores) */
+  {
+    int mb = get_alchemist_mutagenic_mastery_bonus(ch);
+    if (mb > 0)
+    {
+      struct affected_type maf;
+      new_affect(&maf);
+      maf.spell = SKILL_MUTAGEN;
+      maf.duration = duration;
+      maf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      maf.modifier = mb;
+      maf.location = APPLY_STR; affect_to_char(ch, &maf);
+      maf.location = APPLY_DEX; affect_to_char(ch, &maf);
+      maf.location = APPLY_CON; affect_to_char(ch, &maf);
+      maf.location = APPLY_INT; affect_to_char(ch, &maf);
+      maf.location = APPLY_WIS; affect_to_char(ch, &maf);
+      maf.location = APPLY_CHA; affect_to_char(ch, &maf);
+    }
+  }
+    /* Tier 2 Mutagenist Perk Effects */
+    /* Mutagen II: +1 STR/DEX/CON per rank while mutagen active */
+    {
+      int extra2 = get_alchemist_mutagen_ii_rank(ch);
+      if (extra2 > 0)
+      {
+        struct affected_type paf;
+        new_affect(&paf);
+        paf.spell = SKILL_MUTAGEN;
+        paf.duration = duration;
+        paf.bonus_type = BONUS_TYPE_UNIVERSAL;
+        paf.location = APPLY_STR;
+        paf.modifier = extra2;
+        affect_to_char(ch, &paf);
+
+        paf.location = APPLY_DEX;
+        affect_to_char(ch, &paf);
+
+        paf.location = APPLY_CON;
+        affect_to_char(ch, &paf);
+      }
+    }
+
+    /* Infused with Vigor: immediate heal and Fast Healing 1 for 10 rounds */
+    if (has_alchemist_infused_with_vigor(ch))
+    {
+      int heal = dice(1, 6) + GET_LEVEL(ch);
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+
+      struct affected_type vaf;
+      new_affect(&vaf);
+      vaf.spell = SKILL_MUTAGEN;
+      vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
+      vaf.location = APPLY_FAST_HEALING;
+      vaf.modifier = 1;
+      vaf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &vaf);
+    }
+
+    /* Cellular Adaptation: DR 5/- while mutagen is active */
+    if (has_alchemist_cellular_adaptation(ch))
+    {
+      struct affected_type daf;
+      new_affect(&daf);
+      daf.spell = SKILL_MUTAGEN;
+      daf.duration = duration;
+      daf.location = APPLY_DR;
+      daf.modifier = 5;
+      daf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &daf);
+
+      /* Attach DR structure to character */
+      struct damage_reduction_type *new_dr;
+      CREATE(new_dr, struct damage_reduction_type, 1);
+      new_dr->duration = duration; /* tie to mutagen duration */
+      new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+      new_dr->bypass_val[0] = 0;
+      new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+      new_dr->bypass_val[1] = 0;
+      new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+      new_dr->bypass_val[2] = 0;
+      new_dr->amount = 5;
+      new_dr->max_damage = -1; /* unlimited */
+      new_dr->spell = SKILL_MUTAGEN;
+      new_dr->feat = FEAT_UNDEFINED;
+      new_dr->next = GET_DR(ch);
+      GET_DR(ch) = new_dr;
+    }
+  if (has_alchemist_natural_armor(ch))
+  {
+    struct affected_type naf;
+    new_affect(&naf);
+    naf.spell = SKILL_MUTAGEN;
+    naf.duration = duration;
+    naf.location = APPLY_AC_NEW;
+    naf.modifier = 2;
+    naf.bonus_type = BONUS_TYPE_NATURALARMOR;
+    affect_to_char(ch, &naf);
+  }
+
+  /* Tier 3: Improved Mutagen (+4 to chosen primary ability) */
+  if (has_alchemist_improved_mutagen(ch))
+  {
+    struct affected_type iaf;
+    new_affect(&iaf);
+    iaf.spell = SKILL_MUTAGEN;
+    iaf.duration = duration;
+    iaf.bonus_type = BONUS_TYPE_UNIVERSAL;
+    iaf.modifier = 4;
+    iaf.location = af.location; /* primary chosen ability */
+    affect_to_char(ch, &iaf);
+  }
+
+  /* Tier 3: Mutagenic Mastery (+2 to all ability scores) */
+  {
+    int mb = get_alchemist_mutagenic_mastery_bonus(ch);
+    if (mb > 0)
+    {
+      struct affected_type maf;
+      new_affect(&maf);
+      maf.spell = SKILL_MUTAGEN;
+      maf.duration = duration;
+      maf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      maf.modifier = mb;
+      maf.location = APPLY_STR; affect_to_char(ch, &maf);
+      maf.location = APPLY_DEX; affect_to_char(ch, &maf);
+      maf.location = APPLY_CON; affect_to_char(ch, &maf);
+      maf.location = APPLY_INT; affect_to_char(ch, &maf);
+      maf.location = APPLY_WIS; affect_to_char(ch, &maf);
+      maf.location = APPLY_CHA; affect_to_char(ch, &maf);
+    }
+  }
+
   act("$n swallows a vial of murky looking substance and grows more physically powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
   act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
+}
+
+/* Alchemist perk toggles: Unstable Mutagen */
+ACMD(do_unstablemutagen)
+{
+  if (!ch)
+    return;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!has_perk(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN)) {
+    send_to_char(ch, "You have not purchased the Unstable Mutagen perk.\r\n");
+    return;
+  }
+
+  bool current = is_perk_toggled_on(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN);
+  set_perk_toggle(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN, !current);
+  send_to_char(ch, "Unstable Mutagen toggled %s%s%s.\r\n",
+               !current ? "\tG" : "\tr",
+               !current ? "ON" : "OFF",
+               "\tn");
+  save_char(ch, 0);
+}
+
+/* Alchemist perk toggle: Universal Mutagen (arms next mutagen) */
+ACMD(do_universalmutagen)
+{
+  if (!ch)
+    return;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!has_perk(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN)) {
+    send_to_char(ch, "You have not purchased the Universal Mutagen perk.\r\n");
+    return;
+  }
+
+  /* Check 30-minute lockout */
+  struct mud_event_data *lock = char_has_mud_event(ch, eUNIVERSAL_MUTAGEN_COOLDOWN);
+  if (lock && lock->pEvent) {
+    long pulses = event_time(lock->pEvent);
+    int seconds = (int)(pulses / 10); /* RL_SEC is 10 pulses */
+    int minutes = seconds / 60;
+    send_to_char(ch, "You must wait %d minute%s before arming Universal Mutagen again.\r\n",
+                 minutes, minutes == 1 ? "" : "s");
+    return;
+  }
+
+  if (is_perk_toggled_on(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN)) {
+    send_to_char(ch, "Universal Mutagen is already armed for your next mutagen.\r\n");
+    return;
+  }
+
+  set_perk_toggle(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN, TRUE);
+  send_to_char(ch, "\tGUniversal Mutagen armed\tn: your next mutagen applies the highest bonus to all abilities with a short duration.\r\n");
+  save_char(ch, 0);
+}
+
+/* Alchemist perk toggle: Volatile Catalyst (chain bomb throws) */
+ACMD(do_volatilecatalyst)
+{
+  if (!ch)
+    return;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!has_alchemist_volatile_catalyst(ch)) {
+    send_to_char(ch, "You have not purchased the Volatile Catalyst perk.\r\n");
+    return;
+  }
+
+  bool current = is_volatile_catalyst_on(ch);
+  set_perk_toggle(ch, PERK_ALCHEMIST_VOLATILE_CATALYST, !current);
+  send_to_char(ch, "Volatile Catalyst toggled %s%s%s. Bombs will trigger chain reactions when enabled.\r\n",
+               !current ? "\tG" : "\tr",
+               !current ? "ON" : "OFF",
+               "\tn");
+  save_char(ch, 0);
 }
 
 void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
@@ -2320,6 +2864,9 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+  /* Tier II: Persistence Mutagen doubles duration */
+  if (has_alchemist_persistence_mutagen(ch))
+    duration *= 2;
 
   if (is_abbrev(arg2, "air"))
   {
@@ -2374,12 +2921,153 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
     af2.modifier /= 2;
   }
 
+  /* Tier III: Unstable Mutagen boosts elemental mutagen base values by +50% */
+  if (is_alchemist_unstable_mutagen_on(ch))
+  {
+    af.modifier = (int)(af.modifier * 1.5);
+    af2.modifier = (int)(af2.modifier * 1.5);
+  }
+
   if (af.modifier != 0)
   {
     af.spell = SKILL_MUTAGEN;
     af.duration = duration;
     af.modifier = af.modifier;
     affect_to_char(ch, &af);
+
+  /* Tier 1 Mutagenist perks also apply to elemental mutagen */
+  {
+    int extra = get_alchemist_mutagen_i_rank(ch);
+    if (extra > 0)
+    {
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL; /* ensure stacking with mutagen and other bonuses */
+      paf.location = APPLY_STR;
+      paf.modifier = extra;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
+    }
+  }
+
+  if (has_alchemist_alchemical_reflexes(ch))
+  {
+    struct affected_type raf;
+    new_affect(&raf);
+    raf.spell = SKILL_MUTAGEN;
+    raf.duration = duration;
+    raf.location = APPLY_AC_NEW;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_DODGE;
+    affect_to_char(ch, &raf);
+
+    raf.location = APPLY_SAVING_REFL;
+    raf.modifier = 1;
+    raf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &raf);
+  }
+
+  if (has_alchemist_natural_armor(ch))
+  {
+    struct affected_type naf;
+    new_affect(&naf);
+    naf.spell = SKILL_MUTAGEN;
+    naf.duration = duration;
+    naf.location = APPLY_AC_NEW;
+    naf.modifier = 2;
+    naf.bonus_type = BONUS_TYPE_NATURALARMOR;
+    affect_to_char(ch, &naf);
+  }
+  /* Tier 3: Mutagenic Mastery (+2 to all ability scores while mutagen active) */
+  {
+    int mb = get_alchemist_mutagenic_mastery_bonus(ch);
+    if (mb > 0)
+    {
+      struct affected_type maf;
+      new_affect(&maf);
+      maf.spell = SKILL_MUTAGEN;
+      maf.duration = duration;
+      maf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      maf.modifier = mb;
+      maf.location = APPLY_STR; affect_to_char(ch, &maf);
+      maf.location = APPLY_DEX; affect_to_char(ch, &maf);
+      maf.location = APPLY_CON; affect_to_char(ch, &maf);
+      maf.location = APPLY_INT; affect_to_char(ch, &maf);
+      maf.location = APPLY_WIS; affect_to_char(ch, &maf);
+      maf.location = APPLY_CHA; affect_to_char(ch, &maf);
+    }
+  }
+  /* Tier 2 Mutagenist perks also apply to elemental mutagen */
+  {
+    int extra2 = get_alchemist_mutagen_ii_rank(ch);
+    if (extra2 > 0)
+    {
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      paf.location = APPLY_STR;
+      paf.modifier = extra2;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
+
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
+    }
+  }
+
+  if (has_alchemist_infused_with_vigor(ch))
+  {
+    int heal = dice(1, 6) + GET_LEVEL(ch);
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+
+    struct affected_type vaf;
+    new_affect(&vaf);
+    vaf.spell = SKILL_MUTAGEN;
+    vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
+    vaf.location = APPLY_FAST_HEALING;
+    vaf.modifier = 1;
+    vaf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &vaf);
+  }
+
+  if (has_alchemist_cellular_adaptation(ch))
+  {
+    struct affected_type daf;
+    new_affect(&daf);
+    daf.spell = SKILL_MUTAGEN;
+    daf.duration = duration;
+    daf.location = APPLY_DR;
+    daf.modifier = 5;
+    daf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &daf);
+
+    struct damage_reduction_type *new_dr;
+    CREATE(new_dr, struct damage_reduction_type, 1);
+    new_dr->duration = duration;
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+    new_dr->bypass_val[0] = 0;
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0;
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0;
+    new_dr->amount = 5;
+    new_dr->max_damage = -1;
+    new_dr->spell = SKILL_MUTAGEN;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(ch);
+    GET_DR(ch) = new_dr;
+  }
   }
   if (af2.modifier != 0)
   {

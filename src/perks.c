@@ -27,10 +27,18 @@
 #undef NUM_ABILITIES
 
 #include "spells.h"
+#include "psionics.h"
+#include "domains_schools.h"
+#include "mud_event.h"
+#include "fight.h"
+#include "fight.h"
+#include "act.h"
+#include "fight.h"
 
 #include "interpreter.h"
 #include "constants.h"
 #include "perks.h"
+#include "mud_event.h"
 
 /* Forward declarations */
 static void define_wizard_controller_perks(void);
@@ -64,8 +72,23 @@ const char *perk_category_names[] = {
   "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
   "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
   "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
+  "Mutagenist",             /* 33 - PERK_CATEGORY_MUTAGENIST */
+  "Bomb Craftsman",         /* 34 - PERK_CATEGORY_BOMB_CRAFTSMAN */
+  "Extract Master",         /* 35 - PERK_CATEGORY_EXTRACT_MASTER */
+  "Telepathic Control",     /* 36 - PERK_CATEGORY_TELEPATHIC_CONTROL */
+  "Psychokinetic Arsenal",  /* 37 - PERK_CATEGORY_PSYCHOKINETIC_ARSENAL */
+  "Metacreative Genius",    /* 38 - PERK_CATEGORY_METACREATIVE_GENIUS */
+  "Tyranny & Fear",         /* 39 - PERK_CATEGORY_TYRANNY_AND_FEAR */
+  "Profane Might",          /* 40 - PERK_CATEGORY_PROFANE_MIGHT */
+  "Unholy Resilience",      /* 41 - PERK_CATEGORY_UNHOLY_RESILIENCE */
+  "Judgment & Spellcasting", /* 42 - PERK_CATEGORY_JUDGMENT_SPELLCASTING */
+  "Hunter's Arsenal",       /* 43 - PERK_CATEGORY_HUNTERS_ARSENAL */
+  "Investigation & Perception", /* 44 - PERK_CATEGORY_INVESTIGATION_PERCEPTION */
+  "Adaptable Tactics",      /* 45 - PERK_CATEGORY_ADAPTABLE_TACTICS */
   "\n"                      /* Terminator */
 };
+/* Forward declarations for perk definition functions */
+void define_bard_perks(void);
 
 /* Initialize the perk system - called at boot */
 void init_perks(void)
@@ -113,6 +136,8 @@ void init_perks(void)
   define_ranger_perks();
   
   /* Define Barbarian Perks */
+  /* Define Bard Perks */
+  define_bard_perks();
   define_barbarian_perks();
   
   /* Define Monk Perks */
@@ -120,8 +145,3065 @@ void init_perks(void)
   
   /* Define Paladin Perks */
   define_paladin_perks();
+
+  /* Define Alchemist Perks */
+  define_alchemist_perks();
+  void define_alchemist_perks(void);
+
+  /* Define Psionicist Perks */
+  define_psionicist_perks();
+
+  /* Define Blackguard Perks */
+  define_blackguard_perks();
+
+  /* Define Inquisitor Perks */
+  define_inquisitor_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
+}
+
+/* Define Blackguard Perks (Tier 1–2 for Tyranny & Fear tree) */
+void define_blackguard_perks(void)
+{
+  struct perk_data *perk;
+
+  /* Tier 1: Dread Presence */
+  perk = &perk_list[PERK_BLACKGUARD_DREAD_PRESENCE];
+  perk->id = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->name = strdup("Dread Presence");
+  perk->description = strdup("Aura imposes extra penalties to fear saves; +2 intimidate.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 intimidate */
+  perk->special_description = strdup("Intimidate +2; foes in your aura suffer extra fear save penalties.");
+
+  /* Tier 1: Intimidating Smite */
+  perk = &perk_list[PERK_BLACKGUARD_INTIMIDATING_SMITE];
+  perk->id = PERK_BLACKGUARD_INTIMIDATING_SMITE;
+  perk->name = strdup("Intimidating Smite");
+  perk->description = strdup("Smite Good applies shaken on hit; Will save negates.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("On smite good hits, target must save or be shaken.");
+
+  /* Tier 1: Cruel Edge */
+  perk = &perk_list[PERK_BLACKGUARD_CRUEL_EDGE];
+  perk->id = PERK_BLACKGUARD_CRUEL_EDGE;
+  perk->name = strdup("Cruel Edge");
+  perk->description = strdup("Bonus damage vs frightened/shaken foes; minor temp hp on kill.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* damage bonus scaling handled in code */
+  perk->special_description = strdup("Gain bonus damage vs fearful foes; small temp hp on kill.");
+
+  /* Tier 1: Command the Weak */
+  perk = &perk_list[PERK_BLACKGUARD_COMMAND_THE_WEAK];
+  perk->id = PERK_BLACKGUARD_COMMAND_THE_WEAK;
+  perk->name = strdup("Command the Weak");
+  perk->description = strdup("Demoralize faster: move action; 1/enc swift. Longer duration.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Demoralize as move; once per encounter as swift; extended duration.");
+
+  /* Tier 2: Aura of Cowardice (perk) */
+  perk = &perk_list[PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK];
+  perk->id = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->name = strdup("Aura of Cowardice");
+  perk->description = strdup("Enhance aura: extra penalties on fear saves; suppress more immunity.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* extra penalty scaling handled */
+  perk->special_description = strdup("Enemies in your aura take additional fear save penalties.");
+
+  /* Tier 2: Terror Tactics */
+  perk = &perk_list[PERK_BLACKGUARD_TERROR_TACTICS];
+  perk->id = PERK_BLACKGUARD_TERROR_TACTICS;
+  perk->name = strdup("Terror Tactics");
+  perk->description = strdup("Strong intimidate splashes to nearby foes on high roll.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_COMMAND_THE_WEAK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Intimidate can splash to adjacent enemies when exceeding DC.");
+
+  /* Tier 2: Black Seraph Step */
+  perk = &perk_list[PERK_BLACKGUARD_BLACK_SERAPH_STEP];
+  perk->id = PERK_BLACKGUARD_BLACK_SERAPH_STEP;
+  perk->name = strdup("Black Seraph Step");
+  perk->description = strdup("On forced move/knockdown/trip, auto-demoralize nearby foe.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Auto-demoralize trigger on positional disruption.");
+
+  /* Tier 2: Nightmarish Visage */
+  perk = &perk_list[PERK_BLACKGUARD_NIGHTMARISH_VISAGE];
+  perk->id = PERK_BLACKGUARD_NIGHTMARISH_VISAGE;
+  perk->name = strdup("Nightmarish Visage");
+  perk->description = strdup("Intimidate becomes more menacing; can affect multiple foes.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DREAD_PRESENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("AoE intimidate capabilities; improved visuals.");
+
+  /* Tier 3: Paralyzing Dread */
+  perk = &perk_list[PERK_BLACKGUARD_PARALYZING_DREAD];
+  perk->id = PERK_BLACKGUARD_PARALYZING_DREAD;
+  perk->name = strdup("Paralyzing Dread");
+  perk->description = strdup("Failed fear saves escalate: shaken -> frightened; big fail -> cower.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Shaken foes who fail saves become frightened; critical failures cower.");
+
+  /* Tier 3: Despair Harvest */
+  perk = &perk_list[PERK_BLACKGUARD_DESPAIR_HARVEST];
+  perk->id = PERK_BLACKGUARD_DESPAIR_HARVEST;
+  perk->name = strdup("Despair Harvest");
+  perk->description = strdup("Gain temp hp when foes fail fear saves; capped per round.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Harvest temporary hit points from enemy fear; limited per round.");
+
+  /* Tier 3: Shackles of Awe */
+  perk = &perk_list[PERK_BLACKGUARD_SHACKLES_OF_AWE];
+  perk->id = PERK_BLACKGUARD_SHACKLES_OF_AWE;
+  perk->name = strdup("Shackles of Awe");
+  perk->description = strdup("Fear effects reduce speed and attack bonus of afflicted enemies.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Fearful foes suffer speed and attack penalties.");
+
+  /* Tier 3: Profane Dominion */
+  perk = &perk_list[PERK_BLACKGUARD_PROFANE_DOMINION];
+  perk->id = PERK_BLACKGUARD_PROFANE_DOMINION;
+  perk->name = strdup("Profane Dominion");
+  perk->description = strdup("Feared foes take periodic profane damage each round.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_CRUEL_EDGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Enemies suffering fear effects take ongoing profane damage.");
+
+  /* Tier 4: Sovereign of Terror */
+  perk = &perk_list[PERK_BLACKGUARD_SOVEREIGN_OF_TERROR];
+  perk->id = PERK_BLACKGUARD_SOVEREIGN_OF_TERROR;
+  perk->name = strdup("Sovereign of Terror");
+  perk->description = strdup("Aura escalates fear each round (cap cower); immunity -> resistance.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PARALYZING_DREAD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Fear immunity becomes resistance; aura escalates fear per round.");
+
+  /* Tier 4: Midnight Edict */
+  perk = &perk_list[PERK_BLACKGUARD_MIDNIGHT_EDICT];
+  perk->id = PERK_BLACKGUARD_MIDNIGHT_EDICT;
+  perk->name = strdup("Midnight Edict");
+  perk->description = strdup("1/day: All in aura save vs mass fright/panic; fail = stagger too.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_TYRANNY_AND_FEAR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PARALYZING_DREAD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Once per day AoE mass fear with stagger on failure.");
+
+  /**************************************************************************
+   * TREE B: PROFANE MIGHT - Tier 1 & 2
+   **************************************************************************/
+  
+  /* Tier 1: Vile Strike */
+  perk = &perk_list[PERK_BLACKGUARD_VILE_STRIKE];
+  perk->id = PERK_BLACKGUARD_VILE_STRIKE;
+  perk->name = strdup("Vile Strike");
+  perk->description = strdup("Melee attacks deal bonus profane damage; extra vs good/holy foes.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 base profane damage per rank */
+  perk->special_description = strdup("+1 profane damage per rank; double vs good alignment.");
+
+  /* Tier 1: Cruel Momentum */
+  perk = &perk_list[PERK_BLACKGUARD_CRUEL_MOMENTUM];
+  perk->id = PERK_BLACKGUARD_CRUEL_MOMENTUM;
+  perk->name = strdup("Cruel Momentum");
+  perk->description = strdup("On kill or critical hit, gain stacking damage buff.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 damage per stack */
+  perk->special_description = strdup("Gain +2 damage stacking buff on kill/crit; lasts 10 seconds, max 3 stacks.");
+
+  /* Tier 1: Dark Channel */
+  perk = &perk_list[PERK_BLACKGUARD_DARK_CHANNEL];
+  perk->id = PERK_BLACKGUARD_DARK_CHANNEL;
+  perk->name = strdup("Dark Channel");
+  perk->description = strdup("Smite Good adds extra damage die and bypasses DR/good.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* adds 1d6 to smite */
+  perk->special_description = strdup("Smite Good deals +1d6 damage and bypasses DR/good.");
+
+  /* Tier 1: Brutal Oath */
+  perk = &perk_list[PERK_BLACKGUARD_BRUTAL_OATH];
+  perk->id = PERK_BLACKGUARD_BRUTAL_OATH;
+  perk->name = strdup("Brutal Oath");
+  perk->description = strdup("Choose favored foe creature type; gain bonus to-hit and damage vs that type.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 hit/damage vs favored type */
+  perk->special_description = strdup("Choose favored foe creature type (use 'brutalfoe' command); +2 hit/damage vs chosen type. Works like ranger favored enemies.");
+
+  /* Tier 2: Ravaging Smite */
+  perk = &perk_list[PERK_BLACKGUARD_RAVAGING_SMITE];
+  perk->id = PERK_BLACKGUARD_RAVAGING_SMITE;
+  perk->name = strdup("Ravaging Smite");
+  perk->description = strdup("Smite Good inflicts bleeding damage over time.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_CHANNEL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* bleeding damage handled by code */
+  perk->special_description = strdup("Smite Good causes ongoing bleeding damage (1d6 per round, 5 rounds).");
+
+  /* Tier 2: Profane Weapon Bond */
+  perk = &perk_list[PERK_BLACKGUARD_PROFANE_WEAPON_BOND];
+  perk->id = PERK_BLACKGUARD_PROFANE_WEAPON_BOND;
+  perk->name = strdup("Profane Weapon Bond");
+  perk->description = strdup("Activate buff: weapon gains magic, evil alignment, and on-hit rider.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_VILE_STRIKE;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Use 'profanebond' command; 1/enc, 1 minute duration, weapon is magic/evil, applies weakness on hit.");
+
+  /* Tier 2: Relentless Assault */
+  perk = &perk_list[PERK_BLACKGUARD_RELENTLESS_ASSAULT];
+  perk->id = PERK_BLACKGUARD_RELENTLESS_ASSAULT;
+  perk->name = strdup("Relentless Assault");
+  perk->description = strdup("Extra attack after charge or killing blow; once per round.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_CRUEL_MOMENTUM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Gain free attack after charge or killing blow; 1/round limit.");
+
+  /* Tier 2: Sanguine Barrier */
+  perk = &perk_list[PERK_BLACKGUARD_SANGUINE_BARRIER];
+  perk->id = PERK_BLACKGUARD_SANGUINE_BARRIER;
+  perk->name = strdup("Sanguine Barrier");
+  perk->description = strdup("Portion of damage dealt converts to temporary hit points.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_VILE_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% conversion rate */
+  perk->special_description = strdup("20% of damage dealt becomes temp hp; max 5*level per round.");
+
+  /* Tier 3: Doom Cleave */
+  perk = &perk_list[PERK_BLACKGUARD_DOOM_CLEAVE];
+  perk->id = PERK_BLACKGUARD_DOOM_CLEAVE;
+  perk->name = strdup("Doom Cleave");
+  perk->description = strdup("On kill, gain free attack on another foe in the room.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_SANGUINE_BARRIER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("On kill, make free attack on another foe fighting you or your party.");
+
+  /* Tier 3: Soul Rend */
+  perk = &perk_list[PERK_BLACKGUARD_SOUL_REND];
+  perk->id = PERK_BLACKGUARD_SOUL_REND;
+  perk->name = strdup("Soul Rend");
+  perk->description = strdup("Extra dice vs good outsiders/undead; may suppress resist.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_RELENTLESS_ASSAULT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 extra */
+  perk->special_description = strdup("Attacks vs good outsiders/undead deal +2d6 damage; may suppress their resist.");
+
+  /* Tier 3: Blackened Precision */
+  perk = &perk_list[PERK_BLACKGUARD_BLACKENED_PRECISION];
+  perk->id = PERK_BLACKGUARD_BLACKENED_PRECISION;
+  perk->name = strdup("Blackened Precision");
+  perk->description = strdup("Increased critical range or crit multiplier while bonded.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PROFANE_WEAPON_BOND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("While Profane Weapon Bond active: threat range +1 and crit mult +1.");
+
+  /* Tier 3: Unholy Blitz */
+  perk = &perk_list[PERK_BLACKGUARD_UNHOLY_BLITZ];
+  perk->id = PERK_BLACKGUARD_UNHOLY_BLITZ;
+  perk->name = strdup("Unholy Blitz");
+  perk->description = strdup("Brief haste-like burst after smite hit with limited uses.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_CHANNEL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("After smite hit: gain extra attack/movement for 1 round, 2/encounter.");
+
+  /* Tier 4: Avatar of Profanity (Capstone) */
+  perk = &perk_list[PERK_BLACKGUARD_AVATAR_OF_PROFANITY];
+  perk->id = PERK_BLACKGUARD_AVATAR_OF_PROFANITY;
+  perk->name = strdup("Avatar of Profanity");
+  perk->description = strdup("Long-cooldown self-buff: big profane damage, DR/—, resist, and auto-bypass alignment DR.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DOOM_CLEAVE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Capstone active: 'profaneavatar' command for +profane dmg/DR/resist/DR bypass, 1 hour cooldown.");
+
+  /* Tier 4: Cataclysmic Smite (Capstone) */
+  perk = &perk_list[PERK_BLACKGUARD_CATACLYSMIC_SMITE];
+  perk->id = PERK_BLACKGUARD_CATACLYSMIC_SMITE;
+  perk->name = strdup("Cataclysmic Smite");
+  perk->description = strdup("1/day smite detonates in dark burst: AoE damage + save vs sickened/staggered.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_PROFANE_MIGHT;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_SOUL_REND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Capstone active: smite can detonate in dark burst, 1/day. AoE damage + debuff riders.");
+
+  /**************************************************************************
+   * TREE C: UNHOLY RESILIENCE - Tier 1 & 2 defined elsewhere
+   * TREE C: UNHOLY RESILIENCE - Tier 3 & 4
+   **************************************************************************/
+
+
+  /**************************************************************************
+   * TREE C: UNHOLY RESILIENCE - Tier 1 & 2
+   **************************************************************************/
+
+  /* Tier 1: Profane Fortitude */
+  perk = &perk_list[PERK_BLACKGUARD_PROFANE_FORTITUDE];
+  perk->id = PERK_BLACKGUARD_PROFANE_FORTITUDE;
+  perk->name = strdup("Profane Fortitude");
+  perk->description = strdup("Gain profane bonus to saves vs holy/good magic.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 profane bonus */
+  perk->special_description = strdup("+2 profane bonus on saves vs good-aligned casters or holy effects.");
+
+  /* Tier 1: Dark Aegis */
+  perk = &perk_list[PERK_BLACKGUARD_DARK_AEGIS];
+  perk->id = PERK_BLACKGUARD_DARK_AEGIS;
+  perk->name = strdup("Dark Aegis");
+  perk->description = strdup("Gain a small DR/— while not flat-footed; scales lightly with level.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("+1 DR/— plus small scaling while not flat-footed.");
+
+  /* Tier 1: Graveborn Vigor */
+  perk = &perk_list[PERK_BLACKGUARD_GRAVEBORN_VIGOR];
+  perk->id = PERK_BLACKGUARD_GRAVEBORN_VIGOR;
+  perk->name = strdup("Graveborn Vigor");
+  perk->description = strdup("When bloodied, gain a burst of profane vitality (temp hp) once per cooldown.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Trigger at 50% HP or lower: gain temp hp; 5-minute cooldown.");
+
+  /* Tier 1: Sinister Recovery */
+  perk = &perk_list[PERK_BLACKGUARD_SINISTER_RECOVERY];
+  perk->id = PERK_BLACKGUARD_SINISTER_RECOVERY;
+  perk->name = strdup("Sinister Recovery");
+  perk->description = strdup("Channel profane energy to heal yourself; nearby good foes take half.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Command 'sinisterrecovery'; heals you for level-based amount, deals half to nearby good foes. Daily cooldown.");
+
+  /* Tier 2: Aura of Desecration */
+  perk = &perk_list[PERK_BLACKGUARD_AURA_OF_DESECRATION];
+  perk->id = PERK_BLACKGUARD_AURA_OF_DESECRATION;
+  perk->name = strdup("Aura of Desecration");
+  perk->description = strdup("Enemy healing in your presence is blighted; allies’ negative energy effects bite harder.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PROFANE_FORTITUDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Enemy healing reduced near you; your negative energy heals/damage are slightly empowered.");
+
+  /* Tier 2: Fell Ward */
+  perk = &perk_list[PERK_BLACKGUARD_FELL_WARD];
+  perk->id = PERK_BLACKGUARD_FELL_WARD;
+  perk->name = strdup("Fell Ward");
+  perk->description = strdup("After being targeted by divine magic, your next save is bolstered.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_PROFANE_FORTITUDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("+2 saves vs divine spellcasters.");
+
+  /* Tier 2: Defiant Hide */
+  perk = &perk_list[PERK_BLACKGUARD_DEFIANT_HIDE];
+  perk->id = PERK_BLACKGUARD_DEFIANT_HIDE;
+  perk->name = strdup("Defiant Hide");
+  perk->description = strdup("Gain DR versus good foes and smiting weapons.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_AEGIS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->special_description = strdup("Additional DR vs good-aligned enemies or smiting attacks.");
+
+  /* Tier 2: Shade Step */
+  perk = &perk_list[PERK_BLACKGUARD_SHADE_STEP];
+  perk->id = PERK_BLACKGUARD_SHADE_STEP;
+  perk->name = strdup("Shade Step");
+  perk->description = strdup("Slip through shadow, gaining brief evasion and repositioning.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_GRAVEBORN_VIGOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Command 'shadestep'; swift action, grants brief blur/concealment and positions you defensively. 1-minute cooldown.");
+  perk->special_description = strdup("Improves power attack: +2 damage, reduces to-hit penalty to -1");
+
+   
+/* Tier 3: Soul Carapace */
+  perk = &perk_list[PERK_BLACKGUARD_SOUL_CARAPACE];
+  perk->id = PERK_BLACKGUARD_SOUL_CARAPACE;
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DEFIANT_HIDE;
+  perk->prerequisite_rank = 1;
+  perk->name = strdup("Soul Carapace");
+  perk->description = strdup("Portion of incoming damage converts to temporary HP (per-round cap).");
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Convert ~15% incoming damage to temp HP; capped per round by level.");
+
+  /* Tier 3: Warding Malice */
+  perk = &perk_list[PERK_BLACKGUARD_WARDING_MALICE];
+  perk->id = PERK_BLACKGUARD_WARDING_MALICE;
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_FELL_WARD;
+  perk->prerequisite_rank = 1;
+  perk->name = strdup("Warding Malice");
+  perk->description = strdup("Enemies suffer penalties to caster level checks vs your wards and saves.");
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Apply -2 penalty to spell penetration checks against you.");
+
+  /* Tier 3: Blackguard's Reprisal */
+  perk = &perk_list[PERK_BLACKGUARD_BLACKGUARDS_REPRISAL];
+  perk->id = PERK_BLACKGUARD_BLACKGUARDS_REPRISAL;
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_FELL_WARD;
+  perk->prerequisite_rank = 1;
+  perk->name = strdup("Blackguard's Reprisal");
+  perk->description = strdup("After you save vs a spell, your next attack gains bonus damage.");
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("On successful spell save: next attack +CHA and level-based bonus damage.");
+  
+
+  /* Tier 3: Necrotic Regeneration */
+  perk = &perk_list[PERK_BLACKGUARD_NECROTIC_REGENERATION];
+  perk->id = PERK_BLACKGUARD_NECROTIC_REGENERATION;
+  perk->name = strdup("Necrotic Regeneration");
+  perk->description = strdup("Gain fast healing 2 while below 50% HP.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_GRAVEBORN_VIGOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Fast Healing 2 */
+  perk->special_description = strdup("While below 50% HP, gain fast healing 2 (heals 2 HP per round).");
+
+  /* Tier 3: Unholy Fortification */
+  perk = &perk_list[PERK_BLACKGUARD_UNHOLY_FORTIFICATION];
+  perk->id = PERK_BLACKGUARD_UNHOLY_FORTIFICATION;
+  perk->name = strdup("Unholy Fortification");
+  perk->description = strdup("Immune to critical hits and sneak attacks from good-aligned attackers.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DARK_AEGIS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Good-aligned attackers cannot land critical hits or sneak attacks against you.");
+
+  /* Tier 3: Blasphemous Warding */
+  perk = &perk_list[PERK_BLACKGUARD_BLASPHEMOUS_WARDING];
+  perk->id = PERK_BLACKGUARD_BLASPHEMOUS_WARDING;
+  perk->name = strdup("Blasphemous Warding");
+  perk->description = strdup("Gain bonus spell resistance vs divine spells and good-aligned casters.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_FELL_WARD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 SR vs divine spells */
+  perk->special_description = strdup("Gain +5 spell resistance vs divine spells and spells from good-aligned casters.");
+
+  /* Tier 3: Resilient Corruption */
+  perk = &perk_list[PERK_BLACKGUARD_RESILIENT_CORRUPTION];
+  perk->id = PERK_BLACKGUARD_RESILIENT_CORRUPTION;
+  perk->name = strdup("Resilient Corruption");
+  perk->description = strdup("Gain stacking +1 DR each time damaged, max 5 stacks, resets out of combat.");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_DEFIANT_HIDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DR per stack */
+  perk->special_description = strdup("Each time you take damage, gain +1 DR (max 5 stacks). Resets when combat ends.");
+
+  /* Tier 4: Undying Vigor (Capstone) */
+  perk = &perk_list[PERK_BLACKGUARD_UNDYING_VIGOR];
+  perk->id = PERK_BLACKGUARD_UNDYING_VIGOR;
+  perk->name = strdup("Undying Vigor");
+  perk->description = strdup("Once per day, survive a killing blow with 1 HP (auto-triggers).");
+  perk->associated_class = CLASS_BLACKGUARD;
+  perk->perk_category = PERK_CATEGORY_UNHOLY_RESILIENCE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BLACKGUARD_NECROTIC_REGENERATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->special_description = strdup("Capstone: Once per day, if reduced to 0 or fewer HP, survive with 1 HP instead. Triggers automatically.");
+}
+
+/* Define Inquisitor Perks - Judgment & Spellcasting (Tier 1) */
+void define_inquisitor_perks(void)
+{
+  struct perk_data *perk;
+
+  /**************************************************************************
+   * TREE 1: JUDGMENT & SPELLCASTING - Tier 1
+   **************************************************************************/
+
+  /* Tier 1: Empowered Judgment (3 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_EMPOWERED_JUDGMENT];
+  perk->id = PERK_INQUISITOR_EMPOWERED_JUDGMENT;
+  perk->name = strdup("Empowered Judgment");
+  perk->description = strdup("Your judgment abilities become more potent. Increase judgment bonuses by +1 per rank.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 bonus per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Rank 1-3: +1 to judgment bonuses per rank. At rank 3, can maintain two judgments for 1d4 rounds once per encounter.");
+  perk->toggleable = false;
+
+  /* Tier 1: Swift Spellcaster (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_SWIFT_SPELLCASTER];
+  perk->id = PERK_INQUISITOR_SWIFT_SPELLCASTER;
+  perk->name = strdup("Swift Spellcaster");
+  perk->description = strdup("Channel divine magic with practiced efficiency.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to concentration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Reduce casting time of inquisitor spells by one step once per encounter. +2 to concentration checks.");
+  perk->toggleable = false;
+
+  /* Tier 1: Spell Focus: Divination (2 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_SPELL_FOCUS_DIVINATION];
+  perk->id = PERK_INQUISITOR_SPELL_FOCUS_DIVINATION;
+  perk->name = strdup("Spell Focus: Divination");
+  perk->description = strdup("Your divination spells pierce through deception.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 DC per rank */
+  perk->effect_modifier = ABJURATION; /* Will use for divination school */
+  perk->special_description = strdup("Rank 1-2: Increase DC of divination spells by +1 per rank. At rank 2, gain one additional divination spell slot per spell level.");
+  perk->toggleable = false;
+
+  /* Tier 1: Judgment Recovery (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_JUDGMENT_RECOVERY];
+  perk->id = PERK_INQUISITOR_JUDGMENT_RECOVERY;
+  perk->name = strdup("Judgment Recovery");
+  perk->description = strdup("Your judgment powers refresh more quickly.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Regain one use of judgment ability when you reduce an enemy to 0 hit points or below. Once per encounter.");
+  perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 1: JUDGMENT & SPELLCASTING - Tier 2
+   **************************************************************************/
+
+  /* Tier 2: Enhanced Bane (4 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_ENHANCED_BANE];
+  perk->id = PERK_INQUISITOR_ENHANCED_BANE;
+  perk->name = strdup("Enhanced Bane");
+  perk->description = strdup("Your weapon gains the bane property against your judged target.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 4;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 damage per rank, +1 attack per 2 ranks */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Add +1 damage per rank and +1 to attack rolls per 2 ranks against judged target. At rank 4, bane extends to all creatures of same type.");
+  perk->toggleable = false;
+
+  /* Tier 2: Divine Resilience (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_DIVINE_RESILIENCE];
+  perk->id = PERK_INQUISITOR_DIVINE_RESILIENCE;
+  perk->name = strdup("Divine Resilience");
+  perk->description = strdup("Channel divine energy to bolster yourself when activating judgment.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("When you activate judgment, gain temporary hit points equal to inquisitor level + Wisdom modifier.");
+  perk->toggleable = false;
+
+  /* Tier 2: Spell Penetration (3 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_SPELL_PENETRATION];
+  perk->id = PERK_INQUISITOR_SPELL_PENETRATION;
+  perk->name = strdup("Spell Penetration");
+  perk->description = strdup("Your spells overcome magical defenses more easily.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank to spell penetration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain +1 per rank to checks to overcome spell resistance. At rank 3, ignore the first 5 points of spell resistance.");
+  perk->toggleable = false;
+
+  /* Tier 2: Persistent Judgment (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_PERSISTENT_JUDGMENT];
+  perk->id = PERK_INQUISITOR_PERSISTENT_JUDGMENT;
+  perk->name = strdup("Persistent Judgment");
+  perk->description = strdup("When a judgment is toggled off, its effect persists for 5 rounds.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5 rounds duration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("When toggling off a judgment, the judgment bonus persists as a morale bonus for 5 rounds. 20 round cooldown per judgment type.");
+  perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 1: JUDGMENT & SPELLCASTING - Tier 3
+   **************************************************************************/
+
+  /* Tier 3: Greater Judgment (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_GREATER_JUDGMENT];
+  perk->id = PERK_INQUISITOR_GREATER_JUDGMENT;
+  perk->name = strdup("Greater Judgment");
+  perk->description = strdup("Your judgment abilities reach their full potential.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Bonuses are doubled */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Choose one judgment type whose bonuses are doubled. Change selection after long rest.");
+  perk->toggleable = false;
+
+  /* Tier 3: Spell Metamastery (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_SPELL_METAMASTERY];
+  perk->id = PERK_INQUISITOR_SPELL_METAMASTERY;
+  perk->name = strdup("Spell Metamastery");
+  perk->description = strdup("Apply metamagic effects with minimal effort.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 level adjustment max */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per encounter, apply a known metamagic feat without increasing casting time or slot level (max +2 adjustment).");
+  perk->toggleable = false;
+
+  /* Tier 3: Righteous Strike (2 ranks, 3 points each) */
+  perk = &perk_list[PERK_INQUISITOR_RIGHTEOUS_STRIKE];
+  perk->id = PERK_INQUISITOR_RIGHTEOUS_STRIKE;
+  perk->name = strdup("Righteous Strike");
+  perk->description = strdup("Channel spell energy through your weapon.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("After casting an inquisitor spell, next melee attack within 1 round deals 2d6 damage per rank. Damage type matches spell.");
+  perk->toggleable = false;
+
+  /* Tier 3: Versatile Judgment (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_VERSATILE_JUDGMENT];
+  perk->id = PERK_INQUISITOR_VERSATILE_JUDGMENT;
+  perk->name = strdup("Versatile Judgment");
+  perk->description = strdup("Switch between judgments with practiced ease.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 judgment use */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Change active judgment as swift action. Gain +1 daily judgment use.");
+  perk->toggleable = false;
+
+  /* Tier 4: Judgment Mastery (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_JUDGMENT_MASTERY];
+  perk->id = PERK_INQUISITOR_JUDGMENT_MASTERY;
+  perk->name = strdup("Judgment Mastery");
+  perk->description = strdup("Maintain three judgments and extend their linger.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* target minimum concurrent judgments */
+  perk->effect_modifier = 2; /* linger rounds */
+  perk->special_description = strdup("Maintain up to three simultaneous judgments; judgments linger 2 rounds after you stop focusing.");
+  perk->toggleable = false;
+
+  /* Tier 4: Divine Spellstrike (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_DIVINE_SPELLSTRIKE];
+  perk->id = PERK_INQUISITOR_DIVINE_SPELLSTRIKE;
+  perk->name = strdup("Divine Spellstrike");
+  perk->description = strdup("Once per day, cast an inquisitor spell as a swift action and follow with an immediate full attack.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per day, cast an inquisitor spell as a swift action and immediately make a full attack; spell resolves on hit as touch.");
+  perk->toggleable = false;
+
+  /* Tier 4: Inexorable Judgment (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_INEXORABLE_JUDGMENT];
+  perk->id = PERK_INQUISITOR_INEXORABLE_JUDGMENT;
+  perk->name = strdup("Inexorable Judgment");
+  perk->description = strdup("Once per day, smite with irresistible judgment.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per day, force a Will save (DC 10 + 1/2 level + Wis) or deal 1d6/level untyped damage; judgment bonuses ignore immunities.");
+  perk->toggleable = false;
+
+  /* Tier 4: Supreme Spellcasting (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_SUPREME_SPELLCASTING];
+  perk->id = PERK_INQUISITOR_SUPREME_SPELLCASTING;
+  perk->name = strdup("Supreme Spellcasting");
+  perk->description = strdup("Once per day, cast an inquisitor spell without expending a slot.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_JUDGMENT_SPELLCASTING;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain an extra slot per spell level and once per day cast any inquisitor spell you know for free.");
+  perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 2: HUNTER'S ARSENAL - Tier 1
+   **************************************************************************/
+
+  /* Tier 1: Studied Target (4 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_STUDIED_TARGET];
+  perk->id = PERK_INQUISITOR_STUDIED_TARGET;
+  perk->name = strdup("Studied Target");
+  perk->description = strdup("Mark a target for focused hunting, gaining bonuses against it.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 4;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank to attack/damage/skills vs studied target */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Use a move action to study one creature within 60 feet; gain +1 per rank to attack, damage, and relevant skill checks against that target (one target at a time).");
+  perk->toggleable = false;
+
+  /* Tier 1: Favored Terrain (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_FAVORED_TERRAIN];
+  perk->id = PERK_INQUISITOR_FAVORED_TERRAIN;
+  perk->name = strdup("Favored Terrain");
+  perk->description = strdup("Master fighting in a chosen environment.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 initiative/stealth in chosen terrain */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Choose a favored terrain; gain +2 to initiative and Stealth checks in that terrain. Can change the selection once per real week.");
+  perk->toggleable = false;
+
+  /* Tier 1: Hunter's Precision (2 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_HUNTERS_PRECISION];
+  perk->id = PERK_INQUISITOR_HUNTERS_PRECISION;
+  perk->name = strdup("Hunter's Precision");
+  perk->description = strdup("Reroll damage with lethal accuracy.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance per rank to reroll damage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain a 5%% chance per rank to reroll a damage roll and keep the higher result. Applies to weapon and spell damage.");
+  perk->toggleable = false;
+
+  /* Tier 1: Track and Hunt (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_TRACK_AND_HUNT];
+  perk->id = PERK_INQUISITOR_TRACK_AND_HUNT;
+  perk->name = strdup("Track and Hunt");
+  perk->description = strdup("Double down on your quarry's trail.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* double Survival modifier while tracking */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Double your Survival modifier when tracking creatures; pairs well with Favored Terrain.");
+  perk->toggleable = false;
+}
+
+/* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
+
+/**
+ * Get the bonus to judgment from Empowered Judgment perk.
+ * Returns +1 per rank (max 3).
+ */
+int get_inquisitor_empowered_judgment_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_EMPOWERED_JUDGMENT, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor can use dual judgment (requires rank 3 of Empowered Judgment).
+ */
+bool can_inquisitor_dual_judgment(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_EMPOWERED_JUDGMENT, CLASS_INQUISITOR) >= 3;
+}
+
+/**
+ * Check if inquisitor has Swift Spellcaster perk.
+ */
+bool has_inquisitor_swift_spellcaster(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SWIFT_SPELLCASTER);
+}
+
+bool has_inquisitor_judgment_mastery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_JUDGMENT_MASTERY);
+}
+
+bool has_inquisitor_divine_spellstrike(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DIVINE_SPELLSTRIKE);
+}
+
+bool has_inquisitor_inexorable_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_INEXORABLE_JUDGMENT);
+}
+
+bool has_inquisitor_supreme_spellcasting(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SUPREME_SPELLCASTING);
+}
+
+/**
+ * Get the DC bonus for divination spells from Spell Focus: Divination.
+ * Returns +1 per rank (max 2).
+ */
+int get_inquisitor_divination_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_FOCUS_DIVINATION, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor has bonus divination spell slots (requires rank 2).
+ */
+bool has_inquisitor_divination_bonus_slot(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_FOCUS_DIVINATION, CLASS_INQUISITOR) >= 2;
+}
+
+/**
+ * Check if inquisitor has Judgment Recovery perk.
+ */
+bool has_inquisitor_judgment_recovery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_JUDGMENT_RECOVERY);
+}
+
+/* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 2 */
+
+/**
+ * Get the damage bonus from Enhanced Bane perk.
+ * Returns +1 per rank (max +4).
+ */
+int get_inquisitor_enhanced_bane_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_ENHANCED_BANE, CLASS_INQUISITOR);
+}
+
+/**
+ * Get the attack bonus from Enhanced Bane perk.
+ * Returns +1 per 2 ranks (max +2 at rank 4).
+ */
+int get_inquisitor_enhanced_bane_attack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_ENHANCED_BANE, CLASS_INQUISITOR) / 2;
+}
+
+/**
+ * Check if Enhanced Bane applies to all creatures of the same type (rank 4).
+ */
+bool has_inquisitor_enhanced_bane_aoe(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_ENHANCED_BANE, CLASS_INQUISITOR) >= 4;
+}
+
+/**
+ * Check if inquisitor has Divine Resilience perk.
+ */
+bool has_inquisitor_divine_resilience(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DIVINE_RESILIENCE);
+}
+
+/**
+ * Get spell penetration bonus from Spell Penetration perk.
+ * Returns +1 per rank (max +3).
+ */
+int get_inquisitor_spell_penetration(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_PENETRATION, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor ignores first 5 SR (rank 3 of Spell Penetration).
+ */
+bool has_inquisitor_spell_penetration_ignore(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_SPELL_PENETRATION, CLASS_INQUISITOR) >= 3;
+}
+
+/**
+ * Check if inquisitor has Persistent Judgment perk.
+ */
+bool has_inquisitor_persistent_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERSISTENT_JUDGMENT);
+}
+
+/* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 3 */
+
+/**
+ * Check if inquisitor has Greater Judgment perk.
+ */
+bool has_inquisitor_greater_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_GREATER_JUDGMENT);
+}
+
+/**
+ * Get the selected judgment type for Greater Judgment perk.
+ * Stored in ch's perk data. Returns judgment type ID (1-9) or 0 if not set.
+ */
+int get_inquisitor_greater_judgment_type(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  /* This would be stored in a character variable or affect modifier */
+  /* Placeholder - implement via character struct if needed */
+  return 0;
+}
+
+/**
+ * Check if inquisitor has Spell Metamastery perk.
+ */
+bool has_inquisitor_spell_metamastery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SPELL_METAMASTERY);
+}
+
+/**
+ * Get Righteous Strike damage dice bonus.
+ * Returns 2d6 per rank (1-2d6, 2-4d6).
+ */
+int get_inquisitor_righteous_strike_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_RIGHTEOUS_STRIKE, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor has Righteous Strike perk active.
+ */
+bool has_inquisitor_righteous_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return false;
+  return get_perk_rank(ch, PERK_INQUISITOR_RIGHTEOUS_STRIKE, CLASS_INQUISITOR) > 0;
+}
+
+/**
+ * Check if inquisitor has Versatile Judgment perk.
+ */
+bool has_inquisitor_versatile_judgment(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_VERSATILE_JUDGMENT);
+}
+
+/* Inquisitor Helper Functions - Hunter's Arsenal Tree Tier 1 */
+
+int get_inquisitor_studied_target_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_STUDIED_TARGET, CLASS_INQUISITOR);
+}
+
+bool is_inquisitor_studied_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch))
+    return false;
+  if (!has_perk(ch, PERK_INQUISITOR_STUDIED_TARGET))
+    return false;
+  if (!GET_STUDIED_TARGET(ch) || GET_STUDIED_TARGET(ch) != vict)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(vict) == NOWHERE)
+    return false;
+  return IN_ROOM(ch) == IN_ROOM(vict);
+}
+
+bool has_inquisitor_favored_terrain(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_FAVORED_TERRAIN);
+}
+
+bool is_inquisitor_in_favored_terrain(struct char_data *ch)
+{
+  if (!has_inquisitor_favored_terrain(ch))
+    return false;
+  if (GET_FAVORED_TERRAIN(ch) < 0 || GET_FAVORED_TERRAIN(ch) >= NUM_TERRAIN_TYPES)
+    return false;
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  return sector_type_to_terrain_type(world[IN_ROOM(ch)].sector_type) == GET_FAVORED_TERRAIN(ch);
+}
+
+int get_inquisitor_hunters_precision_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int rank = get_perk_rank(ch, PERK_INQUISITOR_HUNTERS_PRECISION, CLASS_INQUISITOR);
+  return MIN(100, rank * 5);
+}
+
+bool has_inquisitor_track_and_hunt(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_TRACK_AND_HUNT);
+}
+
+/* Helpers for Blackguard Tyranny & Fear mechanics */
+int get_blackguard_dread_presence_intimidate_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  return has_perk(ch, PERK_BLACKGUARD_DREAD_PRESENCE) ? 2 : 0;
+}
+
+/* Additional fear save penalty for enemies in aura beyond base -4 */
+int get_blackguard_extra_fear_aura_penalty(struct char_data *vict)
+{
+  if (!vict) return 0;
+  int penalty = 0;
+  struct char_data *tch = NULL;
+  for (tch = world[IN_ROOM(vict)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == vict) continue;
+    if (GROUP(vict) == GROUP(tch)) continue;
+    if (!pvp_ok_single(vict, false)) continue;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_COWARDICE) && CLASS_LEVEL(tch, CLASS_BLACKGUARD) > 0)
+    {
+      if (has_perk(tch, PERK_BLACKGUARD_DREAD_PRESENCE)) penalty += 2;
+      if (has_perk(tch, PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK)) penalty += 2;
+    }
+  }
+  return penalty;
+}
+
+bool has_blackguard_intimidating_smite(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_INTIMIDATING_SMITE);
+}
+
+int get_blackguard_cruel_edge_damage_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_perk(ch, PERK_BLACKGUARD_CRUEL_EDGE)) return 0;
+  if (AFF_FLAGGED(vict, AFF_FEAR) || AFF_FLAGGED(vict, AFF_SHAKEN))
+    return MAX(1, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 5);
+  return 0;
+}
+
+bool has_blackguard_command_the_weak(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_COMMAND_THE_WEAK);
+}
+
+bool has_blackguard_terror_tactics(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_TERROR_TACTICS);
+}
+
+bool has_blackguard_nightmarish_visage(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_NIGHTMARISH_VISAGE);
+}
+
+/* Encounter-gated swift intimidate usage for Command the Weak */
+bool can_use_command_the_weak_swift(struct char_data *ch)
+{
+  if (!has_blackguard_command_the_weak(ch)) return false;
+  /* Gate by mud event eINTIMIDATE_SWIFT if present; if not present, allow */
+  return (char_has_mud_event(ch, eINTIMIDATE_SWIFT) == NULL);
+}
+
+void use_command_the_weak_swift(struct char_data *ch)
+{
+  if (!has_blackguard_command_the_weak(ch)) return;
+  /* Start a short encounter cooldown (e.g., 120 seconds) */
+  attach_mud_event(new_mud_event(eINTIMIDATE_SWIFT, ch, NULL), 120 * PASSES_PER_SEC);
+}
+
+/* ========================================================================
+ * TIER 3 BLACKGUARD HELPERS - Tyranny & Fear
+ * ======================================================================== */
+
+bool has_blackguard_paralyzing_dread(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PARALYZING_DREAD);
+}
+
+/**
+ * Try to apply Paralyzing Dread escalation on a victim who just failed a fear save.
+ * Should be called whenever a character fails a fear-related saving throw.
+ * @param vict The victim who failed the fear save
+ * @return TRUE if Paralyzing Dread applied (escalated), FALSE otherwise
+ */
+bool try_paralyzing_dread(struct char_data *vict)
+{
+  struct char_data *blackguard = NULL;
+  struct affected_type af;
+  
+  if (!vict || IS_NPC(vict))
+    return FALSE;
+  
+  /* Only applies if victim is already shaken */
+  if (!AFF_FLAGGED(vict, AFF_SHAKEN))
+    return FALSE;
+  
+  /* Look for a Blackguard with Paralyzing Dread in the room */
+  if (!affected_by_aura_of_cowardice(vict))
+    return FALSE;
+    
+  for (blackguard = world[IN_ROOM(vict)].people; blackguard; blackguard = blackguard->next_in_room) {
+    if (!IS_NPC(blackguard) && has_blackguard_paralyzing_dread(blackguard))
+      break;
+  }
+  
+  if (!blackguard)
+    return FALSE;
+  
+  /* 30% chance of critical failure -> cower, otherwise -> frightened */
+  if (rand_number(1, 100) <= 30) {
+    /* Critical failure: escalate to cowering */
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_COWER;
+    af.duration = dice(3, 6);
+    SET_BIT_AR(af.bitvector, AFF_COWERING);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYou are paralyzed with dread and cower in terror!\tn\r\n");
+    act("$N cowers in paralyzing dread!", FALSE, blackguard, 0, vict, TO_CHAR);
+    apply_despair_harvest(blackguard, vict);
+  } else {
+    /* Normal failure: escalate to frightened */
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_FEAR;
+    af.duration = dice(4, 6);
+    SET_BIT_AR(af.bitvector, AFF_FEAR);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYour shaken state deepens into frightful terror!\tn\r\n");
+    act("$N's shaken state escalates to terror!", FALSE, blackguard, 0, vict, TO_CHAR);
+    apply_despair_harvest(blackguard, vict);
+  }
+  
+  return TRUE;
+}
+
+bool has_blackguard_despair_harvest(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DESPAIR_HARVEST);
+}
+
+bool has_blackguard_shackles_of_awe(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SHACKLES_OF_AWE);
+}
+
+bool has_blackguard_profane_dominion(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PROFANE_DOMINION);
+}
+
+/**
+ * Apply Despair Harvest: Grant temp HP when enemy fails fear save.
+ * Capped per round (tracks via affect).
+ * @param ch The blackguard
+ * @param vict The victim who failed the fear save
+ */
+void apply_despair_harvest(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return;
+  if (!has_blackguard_despair_harvest(ch)) return;
+
+  /* Calculate temp hp: 1 + CHA mod + BG level / 5 */
+  int temp_hp = 1 + GET_CHA_BONUS(ch) + (CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 5);
+  
+  /* Award temp hp (game's temp hp system handles stacking/caps) */
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+  
+  send_to_char(ch, "\tDYou harvest the despair of %s, gaining vitality!\tn\r\n", GET_NAME(vict));
+}
+
+/**
+ * Get Shackles of Awe attack penalty for fearful victim.
+ * @param ch The blackguard (attacker)
+ * @param vict The victim
+ * @return Attack penalty (negative value)
+ */
+int get_shackles_of_awe_attack_penalty(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_shackles_of_awe(ch)) return 0;
+  
+  /* Check if victim is affected by fear/shaken/cowering */
+  if (AFF_FLAGGED(vict, AFF_FEAR))
+    return -3;
+  if (AFF_FLAGGED(vict, AFF_SHAKEN))
+    return -2;
+  if (AFF_FLAGGED(vict, AFF_COWERING))
+    return -4;
+  
+  return 0;
+}
+
+/**
+ * Get Shackles of Awe speed penalty for fearful victim.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Speed penalty (percentage, e.g., 20 = 20% slower)
+ */
+int get_shackles_of_awe_speed_penalty(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_shackles_of_awe(ch)) return 0;
+  
+  /* Check if victim is affected by fear/shaken/cowering */
+  if (AFF_FLAGGED(vict, AFF_FEAR))
+    return 30;
+  if (AFF_FLAGGED(vict, AFF_SHAKEN))
+    return 20;
+  if (AFF_FLAGGED(vict, AFF_COWERING))
+    return 40;
+  
+  return 0;
+}
+
+/**
+ * Get Profane Dominion damage for feared victim.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Profane damage per round
+ */
+int get_profane_dominion_damage(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_profane_dominion(ch)) return 0;
+  
+  /* Only affect enemies with fear-type effects */
+  if (!AFF_FLAGGED(vict, AFF_FEAR) && !AFF_FLAGGED(vict, AFF_SHAKEN) && !AFF_FLAGGED(vict, AFF_COWERING))
+    return 0;
+  
+  /* Base damage: 1d6 + CHA mod */
+  return dice(1, 6) + GET_CHA_BONUS(ch);
+}
+
+/* ========================================================================
+ * TIER 4 BLACKGUARD HELPERS - Tyranny & Fear (Capstones)
+ * ======================================================================== */
+
+bool has_blackguard_sovereign_of_terror(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SOVEREIGN_OF_TERROR);
+}
+
+bool has_blackguard_midnight_edict(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_MIDNIGHT_EDICT);
+}
+
+/**
+ * Apply Sovereign of Terror fear escalation to a victim.
+ * Escalates: shaken -> frightened (AFF_FEAR) -> cower.
+ * @param ch The blackguard
+ * @param vict The victim in aura
+ */
+void apply_sovereign_fear_escalation(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return;
+  if (!has_blackguard_sovereign_of_terror(ch)) return;
+  
+  /* Check if already at max (cowering) */
+  if (AFF_FLAGGED(vict, AFF_COWERING)) return;
+  
+  /* Escalate fear level */
+  if (AFF_FLAGGED(vict, AFF_FEAR)) {
+    /* Frightened -> Cowering */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_COWER;
+    af.duration = 10;
+    SET_BIT_AR(af.bitvector, AFF_COWERING);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYou are overwhelmed by terror and cower in fear!\tn\r\n");
+  } else if (AFF_FLAGGED(vict, AFF_SHAKEN)) {
+    /* Shaken -> Frightened */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_FEAR;
+    af.duration = 10;
+    SET_BIT_AR(af.bitvector, AFF_FEAR);
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(vict, "\tRYour shaken state deepens into frightful terror!\tn\r\n");
+  }
+}
+
+/**
+ * Perform Midnight Edict: AoE mass fear with stagger on failure.
+ * @param ch The blackguard
+ * @return TRUE if successful, FALSE if on cooldown
+ */
+bool perform_midnight_edict(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return FALSE;
+  if (!has_blackguard_midnight_edict(ch)) return FALSE;
+  
+  /* Check cooldown */
+  if (char_has_mud_event(ch, eMIDNIGHT_EDICT)) {
+    send_to_char(ch, "You cannot use Midnight Edict again yet.\r\n");
+    return FALSE;
+  }
+  
+  /* Process all enemies in room */
+  struct char_data *vict, *next_vict;
+  int affected_count = 0;
+  
+  act("\tD$n pronounces a \tRMidnight Edict\tD, and waves of terror wash over the area!\tn", 
+      FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "\tDYou pronounce a \tRMidnight Edict\tD!\tn\r\n");
+  
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+    
+    if (vict == ch || !IS_NPC(vict))
+      continue;
+    
+    /* Apply extra aura penalty */
+    int penalty = get_blackguard_extra_fear_aura_penalty(ch);
+    
+    /* Will save */
+    if (savingthrow(ch, vict, SAVING_WILL, -penalty, CAST_INNATE, CLASS_LEVEL(ch, CLASS_BLACKGUARD), ENCHANTMENT)) {
+      /* Success: minor shaken */
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = AFFECT_BLACKGUARD_SHAKEN;
+      af.duration = 5;
+      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+      send_to_char(vict, "\tYYou resist the Midnight Edict but feel unnerved.\tn\r\n");
+    } else {
+      /* Failure: frightened + stagger */
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = AFFECT_BLACKGUARD_FEAR;
+      af.duration = 10;
+      SET_BIT_AR(af.bitvector, AFF_FEAR);
+      SET_BIT_AR(af.bitvector, AFF_STAGGERED);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+      send_to_char(vict, "\tRYou succumb to the Midnight Edict: fear and stagger grip you!\tn\r\n");
+      
+      /* Despair Harvest proc if available */
+      apply_despair_harvest(ch, vict);
+    }
+    affected_count++;
+  }
+  
+  /* Start daily cooldown: 24 hours */
+  NEW_EVENT(eMIDNIGHT_EDICT, ch, NULL, 24 * 60 * 60 * PASSES_PER_SEC);
+  
+  send_to_char(ch, "You have affected %d enemies with your Midnight Edict.\r\n", affected_count);
+  return TRUE;
+}
+
+/**
+ * Check if character is cowering.
+ * @param ch The character
+ * @return TRUE if cowering
+ */
+bool is_cowering(struct char_data *ch)
+{
+  return ch && AFF_FLAGGED(ch, AFF_COWERING);
+}
+
+/* ========================================================================
+ * BLACKGUARD HELPERS - Profane Might (Tree B) Tier 1 & 2
+ * ======================================================================== */
+
+/**
+ * Get Vile Strike profane damage bonus.
+ * @param ch The blackguard
+ * @param vict The victim (NULL if just checking base bonus)
+ * @return Profane damage bonus (doubled vs good alignment)
+ */
+int get_blackguard_vile_strike_damage(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  
+  int ranks = get_perk_rank(ch, PERK_BLACKGUARD_VILE_STRIKE, CLASS_BLACKGUARD);
+  if (ranks <= 0) return 0;
+  
+  int base_damage = ranks; /* +1 per rank */
+  
+  /* Double vs good alignment */
+  if (vict && IS_GOOD(vict))
+    return base_damage * 2;
+  
+  return base_damage;
+}
+
+/**
+ * Check if character has Cruel Momentum perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_cruel_momentum(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_CRUEL_MOMENTUM);
+}
+
+/**
+ * Get current Cruel Momentum damage bonus from stacks.
+ * @param ch The blackguard
+ * @return Damage bonus (2 per stack)
+ */
+int get_blackguard_cruel_momentum_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  if (!has_blackguard_cruel_momentum(ch)) return 0;
+  
+  /* Check for affect tracking stacks */
+  struct affected_type *af = NULL;
+  for (af = ch->affected; af; af = af->next) {
+    if (af->spell == AFFECT_BLACKGUARD_CRUEL_MOMENTUM)
+      break;
+  }
+  if (!af) return 0;
+  
+  /* modifier field stores stack count (1-3) */
+  int stacks = MIN(3, MAX(0, af->modifier));
+  return stacks * 2; /* +2 damage per stack */
+}
+
+/**
+ * Apply Cruel Momentum stack on kill or crit.
+ * @param ch The blackguard
+ */
+void apply_blackguard_cruel_momentum_stack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!has_blackguard_cruel_momentum(ch)) return;
+  
+  struct affected_type *existing = NULL, *iter = NULL;
+  for (iter = ch->affected; iter; iter = iter->next) {
+    if (iter->spell == AFFECT_BLACKGUARD_CRUEL_MOMENTUM) {
+      existing = iter;
+      break;
+    }
+  }
+  
+  if (existing) {
+    /* Increment stack (max 3) */
+    existing->modifier = MIN(3, existing->modifier + 1);
+    existing->duration = 17; /* refresh to 10 seconds */
+    send_to_char(ch, "\tRYour Cruel Momentum intensifies! (%d/3 stacks)\tn\r\n", existing->modifier);
+  } else {
+    /* Apply first stack */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_CRUEL_MOMENTUM;
+    af.duration = 17; /* 10 seconds = ~17 rounds */
+    af.modifier = 1; /* stack count */
+    affect_to_char(ch, &af);
+    send_to_char(ch, "\tRYou gain Cruel Momentum! (1/3 stacks)\tn\r\n");
+  }
+}
+
+/**
+ * Check if character has Dark Channel perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_dark_channel(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DARK_CHANNEL);
+}
+
+/**
+ * Get Dark Channel extra smite damage (1d6).
+ * @param ch The blackguard
+ * @return Extra damage die result
+ */
+int get_blackguard_dark_channel_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  if (!has_blackguard_dark_channel(ch)) return 0;
+  
+  return dice(1, 6);
+}
+
+/**
+ * Check if character has Brutal Oath perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_brutal_oath(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BRUTAL_OATH);
+}
+
+/**
+ * Get Brutal Oath bonus vs favored foe type.
+ * Works like ranger favored enemies using RACE_TYPE_X creature types.
+ * For player victims, only triggers if RACE_TYPE_HUMANOID is selected.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Hit/damage bonus vs favored type
+ */
+int get_blackguard_brutal_oath_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_brutal_oath(ch)) return 0;
+  
+  /* Check if victim matches favored foe type */
+  int favored_foe = GET_BLACKGUARD_FAVORED_FOE(ch);
+  if (favored_foe <= 0) return 0; /* not set */
+  
+  /* For player victims, only RACE_TYPE_HUMANOID applies */
+  if (!IS_NPC(vict))
+  {
+    if (favored_foe == RACE_TYPE_HUMANOID)
+      return 2; /* +2 hit/damage vs humanoids (players) */
+    return 0;
+  }
+  
+  /* For NPC victims, check their creature type */
+  if (GET_NPC_RACE(vict) == favored_foe)
+    return 2; /* +2 hit/damage vs favored type */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Ravaging Smite perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_ravaging_smite(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_RAVAGING_SMITE);
+}
+
+/**
+ * Apply Ravaging Smite bleeding effect on smite hit.
+ * @param ch The blackguard
+ * @param vict The victim
+ */
+void apply_blackguard_ravaging_smite(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return;
+  if (!has_blackguard_ravaging_smite(ch)) return;
+  
+  /* Apply bleeding affect: 1d6 per round for 5 rounds */
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_BLEEDING;
+  af.duration = 5;
+  af.modifier = 6; /* 1d6 damage per round */
+  SET_BIT_AR(af.bitvector, AFF_BLEED);
+  affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+  
+  send_to_char(vict, "\tRYou begin bleeding from the profane smite!\tn\r\n");
+  act("\tR$N begins bleeding from your ravaging smite!\tn", FALSE, ch, 0, vict, TO_CHAR);
+}
+
+/**
+ * Check if character has Profane Weapon Bond perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_profane_weapon_bond(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PROFANE_WEAPON_BOND);
+}
+
+/**
+ * Check if Profane Weapon Bond can be activated.
+ * @param ch The blackguard
+ * @return TRUE if can activate
+ */
+bool can_use_profane_weapon_bond(struct char_data *ch)
+{
+  if (!has_blackguard_profane_weapon_bond(ch)) return FALSE;
+  
+  /* Check for cooldown event */
+  return (char_has_mud_event(ch, ePROFANE_WEAPON_BOND) == NULL);
+}
+
+/**
+ * Activate Profane Weapon Bond buff.
+ * @param ch The blackguard
+ * @return TRUE if activated successfully
+ */
+bool activate_profane_weapon_bond(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return FALSE;
+  if (!can_use_profane_weapon_bond(ch)) {
+    send_to_char(ch, "You cannot use Profane Weapon Bond again yet.\r\n");
+    return FALSE;
+  }
+  
+  /* Apply buff affect: 1 minute duration */
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND;
+  af.duration = 10; /* 1 minute = 10 rounds */
+  /* Ensure attacks count as magic for DR bypass during the bond */
+  SET_BIT_AR(af.bitvector2, AFF2_MAGIC_ATTACKS);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  
+  send_to_char(ch, "\tDYour weapon crackles with profane energy!\tn\r\n");
+  act("\tD$n's weapon crackles with profane energy!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Start encounter cooldown */
+  NEW_EVENT(ePROFANE_WEAPON_BOND, ch, NULL, 120 * PASSES_PER_SEC);
+  
+  return TRUE;
+}
+
+/**
+ * Command: brutalfoe
+ * 
+ * Allows blackguards with the Brutal Oath perk to select a favored foe type.
+ * Works like ranger favored enemies using RACE_TYPE_X creature types.
+ * Grants +2 to-hit and +2 damage vs the selected type.
+ * 
+ * Usage: brutalfoe <race type name or number>
+ *        brutalfoe list - Show available race types
+ */
+ACMD(do_brutalfoe)
+{
+  char arg[MAX_INPUT_LENGTH];
+  int race_type = RACE_TYPE_UNDEFINED;
+  int i;
+  
+  /* Check if character has the Brutal Oath perk */
+  if (!has_blackguard_brutal_oath(ch))
+  {
+    send_to_char(ch, "You do not have the Brutal Oath perk.\r\n");
+    return;
+  }
+  
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg)
+  {
+    /* Show current favored foe */
+    int current_foe = GET_BLACKGUARD_FAVORED_FOE(ch);
+    send_to_char(ch, "Your current favored foe type: %s\r\n", 
+                 (current_foe > 0 && current_foe < NUM_RACE_TYPES) ? race_family_types[current_foe] : "None");
+    send_to_char(ch, "Usage: brutalfoe <race type name or number>\r\n");
+    send_to_char(ch, "       brutalfoe list  (to see available race types)\r\n");
+    return;
+  }
+  
+  /* Handle \"list\" subcommand */
+  if (is_abbrev(arg, "list"))
+  {
+    send_to_char(ch, "Available creature types for Brutal Oath:\r\n");
+    send_to_char(ch, "-----------------------------------------\r\n");
+    for (i = 1; i < NUM_RACE_TYPES; i++)
+    {
+      send_to_char(ch, "[%2d] %s\r\n", i, race_family_types[i]);
+    }
+    send_to_char(ch, "\r\nUse 'brutalfoe <name or number>' to select your favored foe type.\r\n");
+    return;
+  }
+  
+  /* Try to parse as race type number */
+  if (isdigit(*arg))
+  {
+    race_type = atoi(arg);
+    if (race_type < 1 || race_type >= NUM_RACE_TYPES)
+    {
+      send_to_char(ch, "Invalid race type number. Use 'brutalfoe list' to see available types.\r\n");
+      return;
+    }
+  }
+  else
+  {
+    /* Try to find race type by name */
+    for (i = 1; i < NUM_RACE_TYPES; i++)
+    {
+      if (is_abbrev(arg, race_family_types[i]))
+      {
+        race_type = i;
+        break;
+      }
+    }
+    
+    if (race_type == RACE_TYPE_UNDEFINED)
+    {
+      send_to_char(ch, "Unknown race type '%s'. Use 'brutalfoe list' to see available types.\r\n", arg);
+      return;
+    }
+  }
+  
+  /* Set the favored foe */
+  GET_BLACKGUARD_FAVORED_FOE(ch) = race_type;
+  send_to_char(ch, "\tDYou swear a \tRBrutal Oath\tD against %s!\tn\r\n", race_family_types_plural[race_type]);
+  send_to_char(ch, "You now gain +2 to-hit and +2 damage vs %s.\r\n", race_family_types_plural[race_type]);
+}
+
+/**
+ * Command: profanebond
+ * 
+ * Activates the Profane Weapon Bond buff for blackguards with that perk.
+ * Grants weapon magic/evil properties and on-hit weakness rider for 1 minute.
+ * 1/encounter cooldown.
+ * 
+ * Usage: profanebond
+ */
+ACMD(do_profanebond)
+{
+  /* Check if character has the Profane Weapon Bond perk */
+  if (!has_blackguard_profane_weapon_bond(ch))
+  {
+    send_to_char(ch, "You do not have the Profane Weapon Bond perk.\r\n");
+    return;
+  }
+  
+  /* Check if on cooldown */
+  if (!can_use_profane_weapon_bond(ch))
+  {
+    send_to_char(ch, "You cannot use Profane Weapon Bond again yet.\r\n");
+    return;
+  }
+  
+  /* Activate the buff */
+  if (activate_profane_weapon_bond(ch))
+  {
+    act("\tD$n's weapon \tRcrackles with profane energy\tD!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  }
+}
+
+/**
+ * Command to activate Unholy Blitz.
+ * Grants temporary haste-like buff for next attack + extra attack uses.
+ */
+ACMD(do_unholyblitz)
+{
+  struct affected_type af;
+  int duration_rounds = 2; /* 12 seconds = 2 rounds */
+
+  if (!has_blackguard_unholy_blitz(ch))
+  {
+    send_to_char(ch, "You do not have the Unholy Blitz perk.\r\n");
+    return;
+  }
+
+  /* Check daily cooldown */
+  if (char_has_mud_event(ch, eUNHOLY_BLITZ))
+  {
+    send_to_char(ch, "Your unholy blitz is still recharging.\r\n");
+    return;
+  }
+
+  /* Check if must be in combat */
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You must be in combat to use Unholy Blitz!\r\n");
+    return;
+  }
+
+  /* Apply the buff affect */
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_UNHOLY_BLITZ;
+  af.duration = duration_rounds;
+  af.modifier = 0;
+  af.location = APPLY_NONE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tRYour body surges with profane power! You move with supernatural speed!\tn\r\n");
+  act("\tR$n's eyes glow with profane fury as $e surges forward with preternatural speed!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Set encounter cooldown for next use */
+  NEW_EVENT(eUNHOLY_BLITZ, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command to activate Avatar of Profanity.
+ * Daily ability granting major damage bonus, DR/—, resists, and DR bypass.
+ */
+ACMD(do_avatarprofanity)
+{
+  struct affected_type af;
+  int duration_rounds = 10; /* 60 seconds = 10 rounds */
+
+  if (!has_blackguard_avatar_of_profanity(ch))
+  {
+    send_to_char(ch, "You do not have the Avatar of Profanity perk.\r\n");
+    return;
+  }
+
+  /* Check daily cooldown */
+  if (char_has_mud_event(ch, eAVATAR_OF_PROFANITY))
+  {
+    send_to_char(ch, "You cannot invoke Avatar of Profanity again today.\r\n");
+    return;
+  }
+
+  /* Apply the buff affect */
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_AVATAR_OF_PROFANITY;
+  af.duration = duration_rounds;
+  af.modifier = 0;
+  af.location = APPLY_NONE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tRYou transform into an avatar of profane wrath! Your form writhes with unholy power!\tn\r\n");
+  act("\tR$n transforms into a terrifying avatar of profane power!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Set daily cooldown (approximately 24 hours) */
+  NEW_EVENT(eAVATAR_OF_PROFANITY, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command to trigger Cataclysmic Smite.
+ * AoE smite attack dealing profane damage and imposing sickened/staggered.
+ */
+ACMD(do_cataclysmsmite)
+{
+  struct affected_type af;
+  int duration_rounds = 3; /* 18 seconds */
+  struct char_data *vict, *next_vict;
+  int dam;
+
+  if (!has_blackguard_cataclysmic_smite(ch))
+  {
+    send_to_char(ch, "You do not have the Cataclysmic Smite perk.\r\n");
+    return;
+  }
+
+  /* Check daily cooldown */
+  if (char_has_mud_event(ch, eCATACLYSMIC_SMITE))
+  {
+    send_to_char(ch, "Your cataclysmic smite is not ready again yet.\r\n");
+    return;
+  }
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "You must be somewhere to use this ability!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tRYou unleash a cataclysmic smite, a burst of profane energy engulfing the area!\tn\r\n");
+  act("\tR$n unleashes a cataclysmic smite, a massive burst of profane energy exploding outward!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Hit all enemies in the room */
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (vict == ch) continue;
+    if (is_player_grouped(vict, ch)) continue;
+    if (FIGHTING(ch) != vict && !IS_NPC(vict)) continue; /* Don't hit uninvolved PCs */
+
+    /* Deal profane damage (3d10) */
+    dam = dice(3, 10);
+    GET_HIT(vict) -= dam;
+
+    send_to_char(vict, "\tRYou are engulfed in a burst of profane energy, taking %d damage!\tn\r\n", dam);
+    act("\tR$N is engulfed in profane energy!\tn", FALSE, ch, 0, vict, TO_ROOM);
+
+    /* Apply sickened debuff (Fort save for half effect, we skip save for now) */
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_CATACLYSMIC_SMITE;
+    af.duration = duration_rounds;
+    af.modifier = -2; /* -2 to all saves and rolls */
+    af.location = APPLY_NONE;
+    affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  /* Set daily cooldown */
+  NEW_EVENT(eCATACLYSMIC_SMITE, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command to channel Sinister Recovery.
+ * Heals the blackguard and damages nearby good foes for half the amount.
+ */
+ACMD(do_sinisterrecovery)
+{
+  struct char_data *tch, *next_tch;
+  int heal = 0;
+
+  if (!has_blackguard_sinister_recovery(ch))
+  {
+    send_to_char(ch, "You do not have the Sinister Recovery perk.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSINISTER_RECOVERY))
+  {
+    send_to_char(ch, "You cannot call upon Sinister Recovery again yet.\r\n");
+    return;
+  }
+
+  heal = MAX(10, CLASS_LEVEL(ch, CLASS_BLACKGUARD) + GET_CHA_BONUS(ch));
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+  send_to_char(ch, "\tDProfane energy knits your flesh for %d hit points!\tn\r\n", heal);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (tch == ch)
+      continue;
+    if (is_player_grouped(tch, ch))
+      continue;
+    if (FIGHTING(ch) != tch && !IS_NPC(tch)) continue; /* Don't hit uninvolved PCs */
+    if (IS_GOOD(tch))
+    {
+      int dmg = heal / 2;
+      send_to_char(tch, "\tRProfane backlash sears you for %d damage!\tn\r\n", dmg);
+      damage(ch, tch, dmg, TYPE_UNDEFINED, DAM_UNHOLY, FALSE);
+    }
+  }
+
+  NEW_EVENT(eSINISTER_RECOVERY, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+}
+
+/**
+ * Command: Shade Step
+ * Swift action to gain brief blur/concealment and drop aggression slightly.
+ */
+ACMD(do_shadestep)
+{
+  struct affected_type af;
+
+  if (!has_blackguard_shade_step(ch))
+  {
+    send_to_char(ch, "You do not have the Shade Step perk.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSHADE_STEP))
+  {
+    send_to_char(ch, "You cannot shade step again just yet.\r\n");
+    return;
+  }
+
+  new_affect(&af);
+  af.spell = AFFECT_BLACKGUARD_SHADE_STEP;
+  af.duration = 1; /* 1 round */
+  af.location = APPLY_AC_NEW;
+  af.modifier = -2; /* small dodge boost */
+  SET_BIT_AR(af.bitvector, AFF_BLUR);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tDYou slip through shadow, becoming harder to strike!\tn\r\n");
+  act("\tD$n blurs, stepping through the shadows with unsettling grace.\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  NEW_EVENT(eSHADE_STEP, ch, NULL, 60 * PASSES_PER_SEC);
+}
+
+/**
+ * Check if character has Sanguine Barrier perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_relentless_assault(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_RELENTLESS_ASSAULT);
+}
+
+/**
+ * Check if Relentless Assault can trigger (1/round gate).
+ * @param ch The blackguard
+ * @return TRUE if can trigger
+ */
+bool can_trigger_relentless_assault(struct char_data *ch)
+{
+  if (!has_blackguard_relentless_assault(ch)) return FALSE;
+  
+  /* Check if already triggered this round */
+  return (char_has_mud_event(ch, eRELENTLESS_ASSAULT) == NULL);
+}
+
+/**
+ * Trigger Relentless Assault free attack.
+ * @param ch The blackguard
+ */
+void trigger_relentless_assault(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!can_trigger_relentless_assault(ch)) return;
+  
+  send_to_char(ch, "\tYYou press the assault with relentless fury!\tn\r\n");
+  act("\tY$n presses the assault with relentless fury!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Grant extra attack (implementation hook needed in combat code) */
+  /* TODO: Hook into combat system to grant extra attack */
+  
+  /* Set 1-round cooldown */
+  NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC); /* 1 round = 6 seconds */
+}
+
+/**
+ * Check if character has Sanguine Barrier perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_sanguine_barrier(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SANGUINE_BARRIER);
+}
+
+/**
+ * Apply Sanguine Barrier temp HP from damage dealt.
+ * @param ch The blackguard
+ * @param damage The damage dealt
+ */
+void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!has_blackguard_sanguine_barrier(ch)) return;
+  
+  /* 20% of damage becomes temp HP */
+  int temp_hp = (damage * 20) / 100;
+  
+  /* Cap at 5 * level per round */
+  int max_per_round = CLASS_LEVEL(ch, CLASS_BLACKGUARD) * 5;
+  temp_hp = MIN(temp_hp, max_per_round);
+  
+  if (temp_hp > 0) {
+    /* Award temp HP (capped at max HP + 50) */
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+    send_to_char(ch, "\tDYou absorb %d vitality from your strike!\tn\r\n", temp_hp);
+  }
+}
+
+/* ------------------ Unholy Resilience Tier 1–2 helpers ------------------ */
+
+bool has_blackguard_profane_fortitude(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_PROFANE_FORTITUDE);
+}
+
+int get_blackguard_profane_fortitude_bonus(struct char_data *vict, struct char_data *caster)
+{
+  if (!has_blackguard_profane_fortitude(vict))
+    return 0;
+  if (caster && IS_GOOD(caster))
+    return 2;
+  return 0;
+}
+
+bool has_blackguard_dark_aegis(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DARK_AEGIS);
+}
+
+int get_blackguard_dark_aegis_dr(struct char_data *ch)
+{
+  if (!has_blackguard_dark_aegis(ch))
+    return 0;
+  int bonus = 1 + (CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 10);
+  return MAX(1, bonus);
+}
+
+bool has_blackguard_graveborn_vigor(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_GRAVEBORN_VIGOR);
+}
+
+void trigger_blackguard_graveborn_vigor(struct char_data *ch)
+{
+  if (!has_blackguard_graveborn_vigor(ch))
+    return;
+  if (char_has_mud_event(ch, eGRAVEBORN_VIGOR))
+    return;
+
+  int temp_hp = MAX(5, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2 + GET_CHA_BONUS(ch));
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+  send_to_char(ch, "\tWProfane vigor knits your wounds! (+%d hp)\tn\r\n", temp_hp);
+  NEW_EVENT(eGRAVEBORN_VIGOR, ch, NULL, 5 * 60 * PASSES_PER_SEC);
+}
+
+bool has_blackguard_sinister_recovery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SINISTER_RECOVERY);
+}
+
+bool has_blackguard_aura_of_desecration(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_AURA_OF_DESECRATION);
+}
+
+bool has_blackguard_fell_ward(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_FELL_WARD);
+}
+
+bool has_blackguard_defiant_hide(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DEFIANT_HIDE);
+}
+
+bool has_blackguard_shade_step(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SHADE_STEP);
+}
+
+/* ------------------ Unholy Resilience Tier 3–4 helpers ------------------ */
+
+/* New: Soul Carapace */
+bool has_blackguard_soul_carapace(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SOUL_CARAPACE);
+}
+
+void apply_blackguard_soul_carapace(struct char_data *ch, int damage)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!has_blackguard_soul_carapace(ch)) return;
+
+  /* 15% of incoming damage becomes temp HP; cap per round */
+  int temp_hp = (damage * 15) / 100;
+  int max_per_round = CLASS_LEVEL(ch, CLASS_BLACKGUARD) * 4;
+  temp_hp = MIN(temp_hp, max_per_round);
+
+  if (temp_hp > 0) {
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
+    send_to_char(ch, "\tDYour soul carapace hardens, mitigating %d damage!\tn\r\n", temp_hp);
+  }
+}
+
+/* New: Warding Malice */
+bool has_blackguard_warding_malice(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_WARDING_MALICE);
+}
+
+int get_blackguard_warding_malice_penalty(struct char_data *vict, struct char_data *caster)
+{
+  if (!has_blackguard_warding_malice(vict))
+    return 0;
+  if (caster == NULL)
+    return 0;
+  /* Flat -2 penalty to caster's penetration vs the blackguard */
+  return 2;
+}
+
+/* New: Blackguard's Reprisal */
+bool has_blackguard_blackguards_reprisal(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BLACKGUARDS_REPRISAL);
+}
+
+void trigger_blackguard_reprisal_on_save(struct char_data *ch, int casttype)
+{
+  if (!ch || IS_NPC(ch)) return;
+  if (!has_blackguard_blackguards_reprisal(ch)) return;
+  /* Only trigger on saving vs spells or weapon spells */
+  if (casttype != CAST_SPELL && casttype != CAST_WEAPON_SPELL) return;
+
+  if (!affected_by_spell(ch, AFFECT_BLACKGUARD_REPRISAL)) {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = AFFECT_BLACKGUARD_REPRISAL;
+    af.duration = 12; /* ~2 rounds; consumed on next attack */
+    af.location = APPLY_SPECIAL;
+    af.modifier = 1; /* marker */
+    affect_to_char(ch, &af);
+    send_to_char(ch, "\tDYou turn resisted magic into ruthless reprisal!\tn\r\n");
+  }
+}
+
+int get_blackguard_reprisal_damage_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || IS_NPC(ch)) return 0;
+  if (!affected_by_spell(ch, AFFECT_BLACKGUARD_REPRISAL)) return 0;
+  int bonus = 2 + GET_CHA_BONUS(ch) + MAX(1, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 5);
+  /* Additional +1 if victim is good-aligned */
+  if (vict && IS_GOOD(vict)) bonus += 1;
+  return bonus;
+}
+
+
+/**
+ * Check if character has Necrotic Regeneration perk.
+ */
+bool has_blackguard_necrotic_regeneration(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_NECROTIC_REGENERATION);
+}
+
+/**
+ * Get fast healing amount from Necrotic Regeneration (only when below 50% HP).
+ */
+int get_blackguard_necrotic_regeneration(struct char_data *ch)
+{
+  if (!has_blackguard_necrotic_regeneration(ch))
+    return 0;
+  
+  /* Only active when below 50% HP */
+  if (GET_HIT(ch) > GET_MAX_HIT(ch) / 2)
+    return 0;
+  
+  return 2; /* Fast Healing 2 */
+}
+
+/**
+ * Check if character has Unholy Fortification perk.
+ */
+bool has_blackguard_unholy_fortification(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_UNHOLY_FORTIFICATION);
+}
+
+/**
+ * Check if character has Blasphemous Warding perk.
+ */
+bool has_blackguard_blasphemous_warding(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BLASPHEMOUS_WARDING);
+}
+
+/**
+ * Get bonus spell resistance from Blasphemous Warding vs divine spells.
+ * @param ch The blackguard defender
+ * @param caster The spell caster (can be NULL)
+ * @param spellnum The spell being cast
+ * @return SR bonus (0 if not applicable, +5 vs divine/good casters)
+ */
+int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster, int spellnum)
+{
+  if (!has_blackguard_blasphemous_warding(ch))
+    return 0;
+  
+  /* Check if spell is divine (clerics, druids, paladins, rangers cast divine spells) */
+  bool is_divine = FALSE;
+  if (caster)
+  {
+    if (CLASS_LEVEL(caster, CLASS_CLERIC) > 0 ||
+        CLASS_LEVEL(caster, CLASS_DRUID) > 0 ||
+        CLASS_LEVEL(caster, CLASS_PALADIN) > 0 ||
+        CLASS_LEVEL(caster, CLASS_RANGER) > 0 ||
+        CLASS_LEVEL(caster, CLASS_INQUISITOR) > 0)
+    {
+      is_divine = TRUE;
+    }
+    
+    /* Also applies if caster is good-aligned */
+    if (IS_GOOD(caster))
+      is_divine = TRUE;
+  }
+  
+  return is_divine ? 5 : 0;
+}
+
+/**
+ * Check if character has Resilient Corruption perk.
+ */
+bool has_blackguard_resilient_corruption(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_RESILIENT_CORRUPTION);
+}
+
+/**
+ * Get current DR from Resilient Corruption stacks.
+ * Note: Stacks stored in a character field (needs to be added to char_data).
+ */
+int get_blackguard_resilient_corruption_dr(struct char_data *ch)
+{
+  if (!has_blackguard_resilient_corruption(ch))
+    return 0;
+  
+  /* Return stacks value - each stack = +1 DR, max 5 */
+  return MIN(5, ch->char_specials.blackguard_corruption_stacks);
+}
+
+/**
+ * Increment Resilient Corruption stacks when taking damage.
+ */
+void increment_blackguard_resilient_corruption(struct char_data *ch)
+{
+  if (!has_blackguard_resilient_corruption(ch))
+    return;
+  
+  if (ch->char_specials.blackguard_corruption_stacks < 5)
+  {
+    ch->char_specials.blackguard_corruption_stacks++;
+    if (ch->char_specials.blackguard_corruption_stacks == 5)
+    {
+      send_to_char(ch, "\tDYour resilient corruption reaches maximum hardness!\tn\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "\tDYour resilient corruption hardens! (+%d DR)\tn\r\n", 
+                   ch->char_specials.blackguard_corruption_stacks);
+    }
+  }
+}
+
+/**
+ * Reset Resilient Corruption stacks (called when combat ends).
+ */
+void reset_blackguard_resilient_corruption(struct char_data *ch)
+{
+  if (!has_blackguard_resilient_corruption(ch))
+    return;
+  
+  if (ch->char_specials.blackguard_corruption_stacks > 0)
+  {
+    ch->char_specials.blackguard_corruption_stacks = 0;
+    send_to_char(ch, "\tDYour resilient corruption fades...\tn\r\n");
+  }
+}
+
+/**
+ * Check if character has Undying Vigor perk.
+ */
+bool has_blackguard_undying_vigor(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_UNDYING_VIGOR);
+}
+
+/**
+ * Try to trigger Undying Vigor when reduced to 0 or below HP.
+ * @param ch The blackguard
+ * @return TRUE if triggered and saved from death, FALSE if already used today
+ */
+bool trigger_blackguard_undying_vigor(struct char_data *ch)
+{
+  if (!has_blackguard_undying_vigor(ch))
+    return FALSE;
+  
+  /* Check if already used today (using mud event with 24-hour cooldown) */
+  if (char_has_mud_event(ch, eUNDYING_VIGOR))
+    return FALSE;
+  
+  /* Trigger the save */
+  GET_HIT(ch) = 1;
+  send_to_char(ch, "\tW*** UNDYING VIGOR ACTIVATES! ***\tn\r\n");
+  send_to_char(ch, "\tWProfane vitality surges through you, refusing death itself!\tn\r\n");
+  act("\tW$n's eyes flash with unholy light as $e refuses to die!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* Set daily cooldown (24 in-game hours) */
+  NEW_EVENT(eUNDYING_VIGOR, ch, NULL, 24 * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  
+  return TRUE;
+}
+
+/**
+ * Check if character has Doom Cleave perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_doom_cleave(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_DOOM_CLEAVE);
+}
+
+/**
+ * Check if character has Soul Rend perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_soul_rend(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_SOUL_REND);
+}
+
+/**
+ * Get Soul Rend extra dice for attacks vs good outsiders/undead.
+ * @param ch The blackguard
+ * @param vict The victim
+ * @return Number of extra d6 to roll
+ */
+int get_blackguard_soul_rend_bonus(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || IS_NPC(ch)) return 0;
+  if (!has_blackguard_soul_rend(ch)) return 0;
+  
+  /* Check if victim is good outsider or undead */
+  if (!IS_NPC(vict)) {
+    /* PC is good and check if outsider-like */
+    if (IS_GOOD(vict)) return 2; /* 2d6 extra vs good PCs */
+    return 0;
+  }
+  
+  /* For NPCs, check race type and alignment */
+  int vict_race = GET_NPC_RACE(vict);
+  if (IS_GOOD(vict)) {
+    if (vict_race == RACE_TYPE_OUTSIDER || vict_race == RACE_TYPE_UNDEAD)
+      return 2; /* 2d6 extra */
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Blackened Precision perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_blackened_precision(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_BLACKENED_PRECISION);
+}
+
+/**
+ * Check if character has Unholy Blitz perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_unholy_blitz(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_UNHOLY_BLITZ);
+}
+
+/**
+ * Check if Unholy Blitz can be used (has uses remaining).
+ * @param ch The blackguard
+ * @return TRUE if can activate
+ */
+bool can_use_unholy_blitz(struct char_data *ch)
+{
+  if (!has_blackguard_unholy_blitz(ch)) return FALSE;
+  
+  /* Check for existing Unholy Blitz event */
+  return (char_has_mud_event(ch, eUNHOLY_BLITZ) == NULL);
+}
+
+/**
+ * Check if character has Avatar of Profanity perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_avatar_of_profanity(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_AVATAR_OF_PROFANITY);
+}
+
+/**
+ * Check if character has Cataclysmic Smite perk.
+ * @param ch The blackguard
+ * @return TRUE if has perk
+ */
+bool has_blackguard_cataclysmic_smite(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_BLACKGUARD_CATACLYSMIC_SMITE);
+}
+
+/* Define Psionicist Perks */
+void define_psionicist_perks(void)
+{
+  struct perk_data *perk;
+
+  /*** Telepathic Control - Tier I ***/
+
+  /* Mind Spike I */
+  perk = &perk_list[PERK_PSIONICIST_MIND_SPIKE_I];
+  perk->id = PERK_PSIONICIST_MIND_SPIKE_I;
+  perk->name = strdup("Mind Spike I");
+  perk->description = strdup("+1 DC to Telepathy powers.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers gain +1 DC.");
+
+  /* Suggestion Primer */
+  perk = &perk_list[PERK_PSIONICIST_SUGGESTION_PRIMER];
+  perk->id = PERK_PSIONICIST_SUGGESTION_PRIMER;
+  perk->name = strdup("Suggestion Primer");
+  perk->description = strdup("Telepathy debuffs gain +1 round duration on failed save (non-boss).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 round */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy MAG_AFFECTS powers extend by +1 round.");
+
+  /* Psionic Disruptor I */
+  perk = &perk_list[PERK_PSIONICIST_PSIONIC_DISRUPTOR_I];
+  perk->id = PERK_PSIONICIST_PSIONIC_DISRUPTOR_I;
+  perk->name = strdup("Psionic Disruptor I");
+  perk->description = strdup("+1 manifester level vs power resistance with Telepathy powers.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 penetration check */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers gain +1 to penetration checks.");
+
+  /* Focus Channeling */
+  perk = &perk_list[PERK_PSIONICIST_FOCUS_CHANNELING];
+  perk->id = PERK_PSIONICIST_FOCUS_CHANNELING;
+  perk->name = strdup("Focus Channeling");
+  perk->description = strdup("Regain 1 PSP when a Telepathy power affects or damages at least one target (once per round).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* PSP amount */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Regain 1 PSP once per round on Telepathy power hit.");
+
+  /*** Telepathic Control - Tier II ***/
+
+  /* Mind Spike II */
+  perk = &perk_list[PERK_PSIONICIST_MIND_SPIKE_II];
+  perk->id = PERK_PSIONICIST_MIND_SPIKE_II;
+  perk->name = strdup("Mind Spike II");
+  perk->description = strdup("Total +2 Telepathy DCs; Telepathy damage powers add +1 die if augmented by ≥2 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_MIND_SPIKE_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Total +2 DC */
+  perk->effect_modifier = 1; /* +1 die on damage */
+  perk->special_description = strdup("Telepathy powers gain +2 DC total; damage powers gain +1 die if augmented ≥2 PSP.");
+
+  /* Overwhelm */
+  perk = &perk_list[PERK_PSIONICIST_OVERWHELM];
+  perk->id = PERK_PSIONICIST_OVERWHELM;
+  perk->name = strdup("Overwhelm");
+  perk->description = strdup("First Telepathy power each encounter forces targets to save twice, taking the worse (once per combat).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SUGGESTION_PRIMER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Save twice, take worse */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("First Telepathy power each encounter: targets save twice, use worse result.");
+
+  /* Psionic Disruptor II */
+  perk = &perk_list[PERK_PSIONICIST_PSIONIC_DISRUPTOR_II];
+  perk->id = PERK_PSIONICIST_PSIONIC_DISRUPTOR_II;
+  perk->name = strdup("Psionic Disruptor II");
+  perk->description = strdup("Total +2 manifester level vs power resistance for Telepathy powers.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PSIONIC_DISRUPTOR_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Total +2 manifester level */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers gain +2 manifester level vs PR.");
+
+  /* Linked Menace */
+  perk = &perk_list[PERK_PSIONICIST_LINKED_MENACE];
+  perk->id = PERK_PSIONICIST_LINKED_MENACE;
+  perk->name = strdup("Linked Menace");
+  perk->description = strdup("When landing a Telepathy debuff, target takes -2 penalty to AC for 2 rounds.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FOCUS_CHANNELING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = -2; /* -2 AC */
+  perk->effect_modifier = 2; /* 2 round duration */
+  perk->special_description = strdup("Telepathy debuffs apply -2 AC for 2 rounds.");
+
+  /*** METACREATIVE GENIUS - TIER II PERKS ***/
+
+  /* Ectoplasmic Artisan II */
+  perk = &perk_list[PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II];
+  perk->id = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II;
+  perk->name = strdup("Ectoplasmic Artisan II");
+  perk->description = strdup("Total –2 PSP (min 1) once per encounter; +20% duration on metacreative buffs.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* Total PSP reduction */
+  perk->effect_modifier = 20; /* 20% duration bonus */
+  perk->special_description = strdup("Tier 2: Metacreativity PSP cost -2 (once/encounter); +20% buff duration.");
+
+  /* Shardstorm */
+  perk = &perk_list[PERK_PSIONICIST_SHARDSTORM];
+  perk->id = PERK_PSIONICIST_SHARDSTORM;
+  perk->name = strdup("Shardstorm");
+  perk->description = strdup("Crystal shard converts to AoE when augmented ≥4 PSP; applies bleed rider on hit.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SHARD_VOLLEY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* Requires ≥4 PSP */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Crystal shard becomes room-wide AoE when augmented ≥4 PSP; applies bleed on Fort fail.");
+
+  /* Hardened Constructs II */
+  perk = &perk_list[PERK_PSIONICIST_HARDENED_CONSTRUCTS_II];
+  perk->id = PERK_PSIONICIST_HARDENED_CONSTRUCTS_II;
+  perk->name = strdup("Hardened Constructs II");
+  perk->description = strdup("Summons/creations gain +2 AC, DR 2/—, and attacks count as magic for DR.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_HARDENED_CONSTRUCTS_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC, DR 2 */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Summons gain +2 AC, DR 2/—, and magic attacks.");
+
+  /* Rapid Manifester */
+  perk = &perk_list[PERK_PSIONICIST_RAPID_MANIFESTER];
+  perk->id = PERK_PSIONICIST_RAPID_MANIFESTER;
+  perk->name = strdup("Rapid Manifester");
+  perk->description = strdup("Once per encounter reduce action time of a metacreative power by one step.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FABRICATE_FOCUS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* One step faster */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Once per encounter manifest one Metacreative power one action step faster.");
+
+  /*** METACREATIVE GENIUS - TIER III PERKS ***/
+
+  /* Ectoplasmic Artisan III */
+  perk = &perk_list[PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III];
+  perk->id = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III;
+  perk->name = strdup("Ectoplasmic Artisan III");
+  perk->description = strdup("Total –3 PSP (min 1) once per encounter; +30% duration on metacreative buffs and walls.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* Total PSP reduction */
+  perk->effect_modifier = 30; /* 30% duration bonus */
+  perk->special_description = strdup("Tier 3: Metacreativity PSP cost -3 (once/encounter); +30% buff/wall duration.");
+
+  /* Empowered Creation */
+  perk = &perk_list[PERK_PSIONICIST_EMPOWERED_CREATION];
+  perk->id = PERK_PSIONICIST_EMPOWERED_CREATION;
+  perk->name = strdup("Empowered Creation");
+  perk->description = strdup("Metacreativity damage powers add +2 dice if augmented by ≥4 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SHARDSTORM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 dice */
+  perk->effect_modifier = 4; /* Requires ≥4 PSP */
+  perk->special_description = strdup("Tier 3: Metacreativity damage powers (shrapnel burst, razor storm) gain +2 dice when augmented ≥4 PSP.");
+
+  /* Construct Commander */
+  perk = &perk_list[PERK_PSIONICIST_CONSTRUCT_COMMANDER];
+  perk->id = PERK_PSIONICIST_CONSTRUCT_COMMANDER;
+  perk->name = strdup("Construct Commander");
+  perk->description = strdup("Summons gain +1 attack and +10% movement; shambler gains taunt pulse (1/round, small radius).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_HARDENED_CONSTRUCTS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 attack */
+  perk->effect_modifier = 10; /* +10% movement */
+  perk->special_description = strdup("Tier 3: Summons gain +1 to hit and +10% movement speed; shambler gains taunt pulse.");
+
+  /* Self-Forged */
+  perk = &perk_list[PERK_PSIONICIST_SELF_FORGED];
+  perk->id = PERK_PSIONICIST_SELF_FORGED;
+  perk->name = strdup("Self-Forged");
+  perk->description = strdup("When manifesting a metacreative power, gain temp HP = 1/2 manifester level (stacks up to manifester level).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_RAPID_MANIFESTER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1/2 manifester level */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 3: Gain temp HP = 1/2 manifester level when manifesting Metacreative powers (stacks to manifester level max).");
+
+  /*** METACREATIVE GENIUS - TIER IV (CAPSTONES) ***/
+
+  /* Astral Juggernaut */
+  perk = &perk_list[PERK_PSIONICIST_ASTRAL_JUGGERNAUT];
+  perk->id = PERK_PSIONICIST_ASTRAL_JUGGERNAUT;
+  perk->name = strdup("Astral Juggernaut");
+  perk->description = strdup("1/day summon a Large construct with reach, taunt, and force slam that scales on manifester level.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_CONSTRUCT_COMMANDER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 4 Capstone: Once per day summon a Large construct with reach, taunt, and force slam; scales with manifester level.");
+
+  /* Perfect Fabricator */
+  perk = &perk_list[PERK_PSIONICIST_PERFECT_FABRICATOR];
+  perk->id = PERK_PSIONICIST_PERFECT_FABRICATOR;
+  perk->name = strdup("Perfect Fabricator");
+  perk->description = strdup("1/day manifest a metacreative power for free (0 PSP) as a swift action; conjured gear/construct counts as masterwork/magical for 1 hour.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_SELF_FORGED;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 4 Capstone: Once per day manifest a Metacreative power for free (0 PSP) as a swift action; counts as masterwork/magical for 1 hour.");
 }
 
 /* Count how many perks are actually defined */
@@ -175,8 +3257,7 @@ void define_fighter_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Improves power attack: +2 damage, reduces to-hit penalty to -1");
-  
+
   /* Critical Awareness I */
   perk = &perk_list[PERK_FIGHTER_CRITICAL_AWARENESS_1];
   perk->id = PERK_FIGHTER_CRITICAL_AWARENESS_1;
@@ -1865,7 +4946,405 @@ void define_cleric_perks(void)
   perk->effect_value = 2; /* 2d6 */
   perk->effect_modifier = 6;
   perk->special_description = strdup("Requires Radiant Servant I (at least 2 ranks). Grants the ability to channel positive energy to heal all allies in the room for 2d6 HP. Can be used once per short rest.");
+
+  /*** Telepathic Control - Tier III ***/
+
+  /* Dominion */
+  perk = &perk_list[PERK_PSIONICIST_DOMINION];
+  perk->id = PERK_PSIONICIST_DOMINION;
+  perk->name = strdup("Dominion");
+  perk->description = strdup("Total +3 Telepathy DCs; charm/dominate effects gain +2 rounds on failed saves (non-boss).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_MIND_SPIKE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* Total +3 DC */
+  perk->effect_modifier = 2; /* +2 rounds on charm/dominate */
+  perk->special_description = strdup("Telepathy powers gain +3 DC total; charm/dominate extend +2 rounds (non-boss).");
+
+  /* Psychic Sundering */
+  perk = &perk_list[PERK_PSIONICIST_PSYCHIC_SUNDERING];
+  perk->id = PERK_PSIONICIST_PSYCHIC_SUNDERING;
+  perk->name = strdup("Psychic Sundering");
+  perk->description = strdup("Telepathy damage powers make targets vulnerable: +10% damage from all sources for 3 rounds.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_OVERWHELM;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% damage taken */
+  perk->effect_modifier = 3; /* 3 round duration */
+  perk->special_description = strdup("Telepathy damage applies 3-round 10% vulnerability to all damage sources.");
+
+  /* Mental Backlash */
+  perk = &perk_list[PERK_PSIONICIST_MENTAL_BACKLASH];
+  perk->id = PERK_PSIONICIST_MENTAL_BACKLASH;
+  perk->name = strdup("Mental Backlash");
+  perk->description = strdup("When a target saves vs your Telepathy, it still takes (5 + 1/2 level) mental damage (no save).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_LINKED_MENACE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* base chip damage */
+  perk->effect_modifier = 2; /* scaling uses level/2 */
+  perk->special_description = strdup("Successful saves vs your Telepathy still take chip mental damage.");
+
+  /* Piercing Will */
+  perk = &perk_list[PERK_PSIONICIST_PIERCING_WILL];
+  perk->id = PERK_PSIONICIST_PIERCING_WILL;
+  perk->name = strdup("Piercing Will");
+  perk->description = strdup("Ignore 5 power resistance when manifesting Telepathy powers (stacks with Disruptor).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PSIONIC_DISRUPTOR_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* ignore 5 PR */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Telepathy powers ignore 5 PR; stacks with Disruptor perks.");
+
+  /*** TELEPATHIC CONTROL - TIER 4 CAPSTONE PERKS (5 points each) ***/
+
+  /* Absolute Geas */
+  perk = &perk_list[PERK_PSIONICIST_ABSOLUTE_GEAS];
+  perk->id = PERK_PSIONICIST_ABSOLUTE_GEAS;
+  perk->name = strdup("Absolute Geas");
+  perk->description = strdup("When you manifest a hostile Telepathy power against a target, there is a 10% chance it applies shaken, fatigued, and deafened (3 rounds, Will save negates).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PIERCING_WILL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 3; /* 3 round duration */
+  perk->special_description = strdup("Tier 4 Capstone: 10% chance on Telepathy powers applies shaken/fatigued/deafened (Will save negates).");
+
+  /* Hive Commander */
+  perk = &perk_list[PERK_PSIONICIST_HIVE_COMMANDER];
+  perk->id = PERK_PSIONICIST_HIVE_COMMANDER;
+  perk->name = strdup("Hive Commander");
+  perk->description = strdup("On successful hostile Telepathy powers, grant yourself +3 DC to further powers vs that target and +2 to-hit for allies (3 rounds).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_TELEPATHIC_CONTROL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_PIERCING_WILL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 DC bonus */
+  perk->effect_modifier = 3; /* 3 round duration */
+  perk->special_description = strdup("Tier 4 Capstone: Successful Telepathy powers mark target for +3 DC and grant +2 to-hit to allies.");
+
+  /*** PSYCHOKINETIC ARSENAL - TIER 1 PERKS (1-2 points each) ***/
+
+  /* Kinetic Edge I */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_EDGE_I];
+  perk->id = PERK_PSIONICIST_KINETIC_EDGE_I;
+  perk->name = strdup("Kinetic Edge I");
+  perk->description = strdup("+1 damage die on Psychokinesis blasts (energy ray, crystal shard, energy push, concussion blast) if augmented by >=1 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 damage die */
+  perk->effect_modifier = 1; /* requires augmentation >= 1 */
+  perk->special_description = strdup("Tier 1: +1 damage die on Psychokinesis blasts when augmented by >=1 PSP.");
+
+  /* Force Screen Adept */
+  perk = &perk_list[PERK_PSIONICIST_FORCE_SCREEN_ADEPT];
+  perk->id = PERK_PSIONICIST_FORCE_SCREEN_ADEPT;
+  perk->name = strdup("Force Screen Adept");
+  perk->description = strdup("Inertial armor and force screen grant +1 AC and +10% duration.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 AC */
+  perk->effect_modifier = 10; /* +10% duration */
+  perk->special_description = strdup("Tier 1: Inertial armor/force screen +1 AC and +10% duration.");
+
+  /* Vector Shove */
+  perk = &perk_list[PERK_PSIONICIST_VECTOR_SHOVE];
+  perk->id = PERK_PSIONICIST_VECTOR_SHOVE;
+  perk->name = strdup("Vector Shove");
+  perk->description = strdup("Energy push/telekinetic shoves get +2 to the movement check; on success deal +1 die force damage.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to movement check */
+  perk->effect_modifier = 1; /* +1 die force damage */
+  perk->special_description = strdup("Tier 1: Energy push/telekinetic shoves +2 to movement check; +1 die force on success.");
+
+  /* Energy Specialization */
+  perk = &perk_list[PERK_PSIONICIST_ENERGY_SPECIALIZATION];
+  perk->id = PERK_PSIONICIST_ENERGY_SPECIALIZATION;
+  perk->name = strdup("Energy Specialization");
+  perk->description = strdup("Choose an energy type (fire, cold, electric, acid, sonic, force). Your Psychokinesis powers of that type gain +1 DC.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC */
+  perk->effect_modifier = 0; /* chosen energy type stored elsewhere */
+  perk->special_description = strdup("Tier 1: Choose energy type; Psychokinesis powers of that type gain +1 DC.");
   
+  /*** PSYCHOKINETIC ARSENAL - TIER 2 PERKS (2 points each) ***/
+
+  /* Kinetic Edge II */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_EDGE_II];
+  perk->id = PERK_PSIONICIST_KINETIC_EDGE_II;
+  perk->name = strdup("Kinetic Edge II");
+  perk->description = strdup("Total +2 dice on Psychokinesis blasts when augmented by >=3 PSP; energy burst/concussion blast splash +1 die.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_KINETIC_EDGE_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* total +2 dice at >=3 PSP (combined with Tier I) */
+  perk->effect_modifier = 3; /* requires augmentation >= 3 */
+  perk->special_description = strdup("Tier 2: Psychokinesis blasts reach +2 dice at >=3 PSP; burst/concussion splash +1 die.");
+
+  /* Deflective Screen */
+  perk = &perk_list[PERK_PSIONICIST_DEFLECTIVE_SCREEN];
+  perk->id = PERK_PSIONICIST_DEFLECTIVE_SCREEN;
+  perk->name = strdup("Deflective Screen");
+  perk->description = strdup("While force screen or inertial armor is active, gain +2 AC vs ranged and +2 Reflex; first hit each round is reduced by 5 damage.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FORCE_SCREEN_ADEPT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC vs ranged */
+  perk->effect_modifier = 2; /* +2 Reflex; 5 DR on first hit each round (handled in code) */
+  perk->special_description = strdup("Tier 2: +2 AC (ranged) and +2 Reflex while shield/armor active; first hit each round -5 damage.");
+
+  /* Accelerated Manifestation */
+  perk = &perk_list[PERK_PSIONICIST_ACCELERATED_MANIFEST];
+  perk->id = PERK_PSIONICIST_ACCELERATED_MANIFEST;
+  perk->name = strdup("Accelerated Manifestation");
+  perk->description = strdup("Once per combat, reduce PSP cost of a Psychokinesis power by 2 (min 1) and make it a faster action.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* -2 PSP cost */
+  perk->effect_modifier = 1; /* faster action */
+  perk->special_description = strdup("Tier 2: Once per combat -2 PSP (min 1) and quickened cast for one Psychokinesis power.");
+
+  /* Energy Retort (Perk) */
+  perk = &perk_list[PERK_PSIONICIST_ENERGY_RETORT_PERK];
+  perk->id = PERK_PSIONICIST_ENERGY_RETORT_PERK;
+  perk->name = strdup("Energy Retort");
+  perk->description = strdup("When struck in melee while you have an active Psychokinesis affect (force screen, energy retort, inertial armor), return level-based energy damage (scales with augment).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 2: Reflect level-based energy damage when hit in melee while shield/armor/retort is active.");
+
+  /*** PSYCHOKINETIC ARSENAL - TIER 3 PERKS (3 points each) ***/
+
+  /* Kinetic Edge III */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_EDGE_III];
+  perk->id = PERK_PSIONICIST_KINETIC_EDGE_III;
+  perk->name = strdup("Kinetic Edge III");
+  perk->description = strdup("Total +3 dice on Psychokinesis blasts; energy ray/energy push gain +2 DC.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_KINETIC_EDGE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* total +3 dice (combined with Tier I and II) */
+  perk->effect_modifier = 2; /* +2 DC to energy ray/push */
+  perk->special_description = strdup("Tier 3: Psychokinesis blasts reach +3 dice total; energy ray/push +2 DC.");
+
+  /* Gravity Well */
+  perk = &perk_list[PERK_PSIONICIST_GRAVITY_WELL];
+  perk->id = PERK_PSIONICIST_GRAVITY_WELL;
+  perk->name = strdup("Gravity Well");
+  perk->description = strdup("Once per combat, create an AoE effect that halves speed and prevents fleeing (Reflex negates each round); lasts 3 rounds.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3 round duration */
+  perk->effect_modifier = 50; /* 50% speed reduction */
+  perk->special_description = strdup("Tier 3: Once/combat AoE gravity field halves speed, prevents fleeing (Reflex negates/round, 3 rounds).");
+
+  /* Force Aegis */
+  perk = &perk_list[PERK_PSIONICIST_FORCE_AEGIS];
+  perk->id = PERK_PSIONICIST_FORCE_AEGIS;
+  perk->name = strdup("Force Aegis");
+  perk->description = strdup("+3 AC vs ranged/spells while force screen/inertial armor active; gain temp HP = manifester level on cast.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_DEFLECTIVE_SCREEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 AC vs ranged/spells */
+  perk->effect_modifier = 1; /* temp HP = manifester level */
+  perk->special_description = strdup("Tier 3: +3 AC (ranged/spells) while shield/armor active; gain temp HP = manifester level on cast.");
+
+  /* Kinetic Crush */
+  perk = &perk_list[PERK_PSIONICIST_KINETIC_CRUSH];
+  perk->id = PERK_PSIONICIST_KINETIC_CRUSH;
+  perk->name = strdup("Kinetic Crush");
+  perk->description = strdup("Forced-movement powers add prone on failed Reflex; if target collides, take extra force damage = manifester level.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_VECTOR_SHOVE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* prone on failed save */
+  perk->effect_modifier = 1; /* collision damage = manifester level */
+  perk->special_description = strdup("Tier 3: Forced-movement powers prone on failed Reflex; collision adds force damage = manifester level.");
+
+  /*** PSYCHOKINETIC ARSENAL - TIER 4 PERKS (Capstones - 5 points each) ***/
+
+  /* Singular Impact */
+  perk = &perk_list[PERK_PSIONICIST_SINGULAR_IMPACT];
+  perk->id = PERK_PSIONICIST_SINGULAR_IMPACT;
+  perk->name = strdup("Singular Impact");
+  perk->description = strdup("1/day Psychokinesis strike: heavy force damage, auto-bull rush, and stun 1 round (Fort partial: half damage, no stun).");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_KINETIC_EDGE_III;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1 round stun */
+  perk->effect_modifier = 1; /* 1/day usage */
+  perk->special_description = strdup("Tier 4 Capstone: 1/day heavy force strike with auto-bull rush and stun (Fort partial).");
+
+  /* Perfect Deflection */
+  perk = &perk_list[PERK_PSIONICIST_PERFECT_DEFLECTION];
+  perk->id = PERK_PSIONICIST_PERFECT_DEFLECTION;
+  perk->name = strdup("Perfect Deflection");
+  perk->description = strdup("1/day reaction: negate one ranged/spell/psionic attack against you and reflect it using your casting stat vs the original attacker.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_PSYCHOKINETIC_ARSENAL;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_PSIONICIST_FORCE_AEGIS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1/day usage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 4 Capstone: 1/day reaction negate and reflect one ranged/spell/psionic attack.");
+
+  /*** METACREATIVE GENIUS - TIER 1 PERKS (1-2 points each) ***/
+
+  /* Ectoplasmic Artisan I */
+  perk = &perk_list[PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I];
+  perk->id = PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I;
+  perk->name = strdup("Ectoplasmic Artisan I");
+  perk->description = strdup("Metacreativity powers cost 1 less PSP (min 1) once per encounter; +10% duration on metacreative buffs.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* PSP reduction */
+  perk->effect_modifier = 10; /* 10% duration bonus */
+  perk->special_description = strdup("Tier 1: Metacreativity PSP cost -1 (once/encounter); +10% buff duration.");
+
+  /* Shard Volley */
+  perk = &perk_list[PERK_PSIONICIST_SHARD_VOLLEY];
+  perk->id = PERK_PSIONICIST_SHARD_VOLLEY;
+  perk->name = strdup("Shard Volley");
+  perk->description = strdup("Crystal shard gains +1 projectile (additional attack roll) when augmented by ≥2 PSP.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 projectile */
+  perk->effect_modifier = 2; /* requires ≥2 PSP augment */
+  perk->special_description = strdup("Tier 1: Crystal shard gains extra projectile when augmented ≥2 PSP.");
+
+  /* Hardened Constructs I */
+  perk = &perk_list[PERK_PSIONICIST_HARDENED_CONSTRUCTS_I];
+  perk->id = PERK_PSIONICIST_HARDENED_CONSTRUCTS_I;
+  perk->name = strdup("Hardened Constructs I");
+  perk->description = strdup("Summons/creations gain temp HP = manifester level and +1 AC.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 AC */
+  perk->effect_modifier = 1; /* temp HP = manifester level */
+  perk->special_description = strdup("Tier 1: Summons gain temp HP = manifester level and +1 AC.");
+
+  /* Fabricate Focus */
+  perk = &perk_list[PERK_PSIONICIST_FABRICATE_FOCUS];
+  perk->id = PERK_PSIONICIST_FABRICATE_FOCUS;
+  perk->name = strdup("Fabricate Focus");
+  perk->description = strdup("Metacreative powers manifest 10% faster.");
+  perk->associated_class = CLASS_PSIONICIST;
+  perk->perk_category = PERK_CATEGORY_METACREATIVE_GENIUS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% faster manifesting */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Tier 1: Metacreative powers manifest 10% faster.");
+
   /* Healing Aura I */
   perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
   perk->id = PERK_CLERIC_HEALING_AURA_1;
@@ -4083,9 +7562,3090 @@ void define_ranger_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Capstone: +5 to-hit vs favored enemies");
+
+  /*** WILDERNESS WARRIOR TREE - TIER I ***/
+
+  /* Two-Weapon Focus I */
+  perk = &perk_list[PERK_RANGER_TWO_WEAPON_FOCUS_I];
+  perk->id = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->name = strdup("Two-Weapon Focus I");
+  perk->description = strdup("+1 to attacks when dual wielding, per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 to hit when dual wielding per rank");
+
+  /* Dual Strike I */
+  perk = &perk_list[PERK_RANGER_DUAL_STRIKE_I];
+  perk->id = PERK_RANGER_DUAL_STRIKE_I;
+  perk->name = strdup("Dual Strike I");
+  perk->description = strdup("+1 damage with off-hand weapon per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage with off-hand weapon per rank");
+
+  /* Favored Enemy Mastery I */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_MASTERY_I];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_MASTERY_I;
+  perk->name = strdup("Favored Enemy Mastery I");
+  perk->description = strdup("+1 damage vs favored enemies per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage vs favored enemies per rank");
+
+  /* Ranger Toughness I */
+  perk = &perk_list[PERK_RANGER_RANGER_TOUGHNESS_I];
+  perk->id = PERK_RANGER_RANGER_TOUGHNESS_I;
+  perk->name = strdup("Ranger Toughness I");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+5 HP per rank");
+
+  /*** WILDERNESS WARRIOR TREE - TIER II ***/
+
+  /* Two-Weapon Focus II */
+  perk = &perk_list[PERK_RANGER_TWO_WEAPON_FOCUS_II];
+  perk->id = PERK_RANGER_TWO_WEAPON_FOCUS_II;
+  perk->name = strdup("Two-Weapon Focus II");
+  perk->description = strdup("+1 damage when dual wielding per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 damage when dual wielding per rank (stacks with TWF I)");
+
+  /* Wilderness Warrior Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Wilderness Warrior Two-Weapon Fighting");
+  perk->description = strdup("10% chance to gain an additional off-hand attack per round");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% chance per round for an extra off-hand attack when dual wielding");
+
+  /* Tempest */
+  perk = &perk_list[PERK_RANGER_TEMPEST];
+  perk->id = PERK_RANGER_TEMPEST;
+  perk->name = strdup("Tempest");
+  perk->description = strdup("+1 AC dodge bonus when fighting with two weapons per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 AC dodge bonus per rank when dual wielding");
+
+  /* Favored Enemy Slayer */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_SLAYER];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->name = strdup("Favored Enemy Slayer");
+  perk->description = strdup("+2 to hit against favored enemies, critical threat range +1 vs favored enemies");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_MASTERY_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("+2 to hit vs favored enemies and +1 critical threat range");
+
+  /*** WILDERNESS WARRIOR TREE - TIER III ***/
+
+  /* Greater Wilderness Warrior Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Greater WW Two-Weapon Fighting");
+  perk->description = strdup("10% chance to gain a second additional off-hand attack per round");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_WW_TWO_WEAPON_FIGHTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% chance per round for a second extra off-hand attack");
+
+  /* Whirling Steel */
+  perk = &perk_list[PERK_RANGER_WHIRLING_STEEL];
+  perk->id = PERK_RANGER_WHIRLING_STEEL;
+  perk->name = strdup("Whirling Steel");
+  perk->description = strdup("5% chance per hit to make an additional free attack when dual wielding");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_TWO_WEAPON_FOCUS_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("5% chance per hit for a free attack when dual wielding");
+
+  /* Deadly Hunter */
+  perk = &perk_list[PERK_RANGER_DEADLY_HUNTER];
+  perk->id = PERK_RANGER_DEADLY_HUNTER;
+  perk->name = strdup("Deadly Hunter");
+  perk->description = strdup("Against favored enemies: +2d6 damage and attacks ignore 10 points of DR");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_FAVORED_ENEMY_SLAYER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("+2d6 damage and ignore 10 DR vs favored enemies");
+
+  /* Crippling Strike */
+  perk = &perk_list[PERK_RANGER_CRIPPLING_STRIKE];
+  perk->id = PERK_RANGER_CRIPPLING_STRIKE;
+  perk->name = strdup("Crippling Strike");
+  perk->description = strdup("Successful melee attacks have a 5% chance to apply slow for 3 rounds");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_DUAL_STRIKE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("5% chance to slow target for 3 rounds on melee hit");
+
+  /*** WILDERNESS WARRIOR TREE - TIER IV (CAPSTONES) ***/
+
+  /* Perfect WW Two-Weapon Fighting */
+  perk = &perk_list[PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING];
+  perk->id = PERK_RANGER_PERFECT_WW_TWO_WEAPON_FIGHTING;
+  perk->name = strdup("Perfect WW Two-Weapon Fighting");
+  perk->description = strdup("All weapon attacks gain +2 to hit +4 to damage when dual wielding");
+  perk->associated_class = CLASS_RANGER;
+  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 4;
+  perk->special_description = strdup("+2 to hit, +4 to damage when dual wielding (capstone)");
+}
+
+/* Define Bard Perks */
+void define_bard_perks(void)
+{
+  struct perk_data *perk;
+
+  /*** SPELLSINGER TREE - TIER I ***/
+
+  /* Songweaver I */
+  perk = &perk_list[PERK_BARD_SONGWEAVER_I];
+  perk->id = PERK_BARD_SONGWEAVER_I;
+  perk->name = strdup("Songweaver I");
+  perk->description = strdup("Bard songs gain +1 effective level per rank for duration and potency");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bard songs gain +1 effective level per rank");
+
+  /* Enchanter's Guile I */
+  perk = &perk_list[PERK_BARD_ENCHANTERS_GUILE_I];
+  perk->id = PERK_BARD_ENCHANTERS_GUILE_I;
+  perk->name = strdup("Enchanter's Guile I");
+  perk->description = strdup("+1 DC to Enchantment and Illusion spells per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 DC to Enchantment and Illusion spells per rank");
+
+  /* Resonant Voice I */
+  perk = &perk_list[PERK_BARD_RESONANT_VOICE_I];
+  perk->id = PERK_BARD_RESONANT_VOICE_I;
+  perk->name = strdup("Resonant Voice I");
+  perk->description = strdup("Allies under your songs gain +1 competence to saves vs. mind-affecting per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allies gain +1 save vs. mind-affecting per rank");
+
+  /* Harmonic Casting */
+  perk = &perk_list[PERK_BARD_HARMONIC_CASTING];
+  perk->id = PERK_BARD_HARMONIC_CASTING;
+  perk->name = strdup("Harmonic Casting");
+  perk->description = strdup("Casting a bard spell while maintaining a song has a 50% chance to not consume a performance round");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("50% chance to save performance round when casting spell during song");
+
+  /*** SPELLSINGER TREE - TIER II ***/
+
+  /* Songweaver II */
+  perk = &perk_list[PERK_BARD_SONGWEAVER_II];
+  perk->id = PERK_BARD_SONGWEAVER_II;
+  perk->name = strdup("Songweaver II");
+  perk->description = strdup("Additional +1 effective song level per rank (stacks with Songweaver I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_SONGWEAVER_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Additional +1 effective song level per rank");
+
+  /* Enchanter's Guile II */
+  perk = &perk_list[PERK_BARD_ENCHANTERS_GUILE_II];
+  perk->id = PERK_BARD_ENCHANTERS_GUILE_II;
+  perk->name = strdup("Enchanter's Guile II");
+  perk->description = strdup("Additional +1 DC to Enchantment and Illusion spells per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_ENCHANTERS_GUILE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Additional +1 DC to Enchantment and Illusion spells per rank");
+
+  /* Crescendo */
+  perk = &perk_list[PERK_BARD_CRESCENDO];
+  perk->id = PERK_BARD_CRESCENDO;
+  perk->name = strdup("Crescendo");
+  perk->description = strdup("The first spell you cast after starting a song deals +1d6 sonic damage and has +2 to its save DC");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_HARMONIC_CASTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("First spell after song: +1d6 sonic damage, +2 save DC");
+
+  /* Sustaining Melody */
+  perk = &perk_list[PERK_BARD_SUSTAINING_MELODY];
+  perk->id = PERK_BARD_SUSTAINING_MELODY;
+  perk->name = strdup("Sustaining Melody");
+  perk->description = strdup("While a song is active, you have a 20% chance per combat round to recover 1 spell slot only while in combat");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SONGWEAVER_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("20% chance per round to recover 1 spell slot while performing in combat");
+
+  /* ========================================================================
+   * TIER III - SPELLSINGER TREE
+   * ======================================================================== */
+
+  /* Master of Motifs */
+  perk = &perk_list[PERK_BARD_MASTER_OF_MOTIFS];
+  perk->id = PERK_BARD_MASTER_OF_MOTIFS;
+  perk->name = strdup("Master of Motifs");
+  perk->description = strdup("Maintain up to two distinct bard songs simultaneously (shared performance pool)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SUSTAINING_MELODY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allows maintaining 2 distinct bard songs simultaneously");
+
+  /* Dirge of Dissonance */
+  perk = &perk_list[PERK_BARD_DIRGE_OF_DISSONANCE];
+  perk->id = PERK_BARD_DIRGE_OF_DISSONANCE;
+  perk->name = strdup("Dirge of Dissonance");
+  perk->description = strdup("Enemies in the room take 1d6 sonic damage per round and -2 penalty to concentration checks while your song persists");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_CRESCENDO;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6; /* 1d6 damage */
+  perk->effect_modifier = -2; /* concentration penalty */
+  perk->special_description = strdup("Room-wide attrition: 1d6 sonic damage and -2 concentration per round");
+
+  /* Heightened Harmony */
+  perk = &perk_list[PERK_BARD_HEIGHTENED_HARMONY];
+  perk->id = PERK_BARD_HEIGHTENED_HARMONY;
+  perk->name = strdup("Heightened Harmony");
+  perk->description = strdup("When you spend metamagic on a bard spell, you gain +5 to your perform skill for one minute");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_ENCHANTERS_GUILE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* perform bonus */
+  perk->effect_modifier = 60; /* duration in seconds */
+  perk->special_description = strdup("Metamagic grants +5 perform for 1 minute");
+
+  /* Protective Chorus */
+  perk = &perk_list[PERK_BARD_PROTECTIVE_CHORUS];
+  perk->id = PERK_BARD_PROTECTIVE_CHORUS;
+  perk->name = strdup("Protective Chorus");
+  perk->description = strdup("Allies under your song gain +2 to saves vs. spells and +2 to AC vs. attacks of opportunity");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RESONANT_VOICE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* save bonus */
+  perk->effect_modifier = 2; /* AC bonus */
+  perk->special_description = strdup("Allies gain +2 saves vs. spells and +2 AC vs. AoO");
+
+  /* Tier IV Spellsinger Perks - Capstones */
+
+  /* Spellsong Maestra */
+  perk = &perk_list[PERK_BARD_SPELLSONG_MAESTRA];
+  perk->id = PERK_BARD_SPELLSONG_MAESTRA;
+  perk->name = strdup("Spellsong Maestra");
+  perk->description = strdup("While performing, bard spells gain +2 caster level, +2 spell DC, and metamagic on bard spells is free");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_MASTER_OF_MOTIFS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* caster level bonus */
+  perk->effect_modifier = 2; /* DC bonus */
+  perk->special_description = strdup("Capstone: +2 caster, +2 DC on bard spells while performing; free metamagic on bard spells");
+
+  /* Aria of Stasis */
+  perk = &perk_list[PERK_BARD_ARIA_OF_STASIS];
+  perk->id = PERK_BARD_ARIA_OF_STASIS;
+  perk->name = strdup("Aria of Stasis");
+  perk->description = strdup("Allies gain +4 to all saves and immunity to slow. Enemies suffer -2 to hit and 10% movement penalty");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_PROTECTIVE_CHORUS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* ally save bonus */
+  perk->effect_modifier = 2; /* enemy tohit penalty */
+  perk->special_description = strdup("Capstone: Allies +4 saves/immune to slow; Enemies -2 hit/10% slow");
+
+  /* Symphonic Resonance */
+  perk = &perk_list[PERK_BARD_SYMPHONIC_RESONANCE];
+  perk->id = PERK_BARD_SYMPHONIC_RESONANCE;
+  perk->name = strdup("Symphonic Resonance");
+  perk->description = strdup("Each round while performing, gain 1d6 temp HP (max 30 rounds). Enchantment/Illusion spells in songs daze enemies 1 round in 20 ft");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_CRESCENDO;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6; /* temp HP d6 */
+  perk->effect_modifier = 1; /* daze duration */
+  perk->special_description = strdup("Capstone: 1d6 temp HP/round (max 180 total); Enchantment/Illusion spells daze in 20 ft radius");
+
+  /* Endless Refrain */
+  perk = &perk_list[PERK_BARD_ENDLESS_REFRAIN];
+  perk->id = PERK_BARD_ENDLESS_REFRAIN;
+  perk->name = strdup("Endless Refrain");
+  perk->description = strdup("Performance costs nothing and regenerates 1 spell slot per round. Songs last indefinitely until stopped");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SPELLSINGER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SUSTAINING_MELODY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* spell slot regen */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Capstone: Performance is free; regenerate 1 spell slot per round; songs last indefinitely");
+
+  /*** WARCHANTER TREE - TIER I ***/
+
+  /* Battle Hymn I */
+  perk = &perk_list[PERK_BARD_BATTLE_HYMN_I];
+  perk->id = PERK_BARD_BATTLE_HYMN_I;
+  perk->name = strdup("Battle Hymn I");
+  perk->description = strdup("Inspire Courage also grants +1 competence to damage per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Inspire Courage grants +1 competence to damage per rank");
+
+  /* Drummer's Rhythm I */
+  perk = &perk_list[PERK_BARD_DRUMMERS_RHYTHM_I];
+  perk->id = PERK_BARD_DRUMMERS_RHYTHM_I;
+  perk->name = strdup("Drummer's Rhythm I");
+  perk->description = strdup("While a song is active, you gain +1 to hit in melee per rank");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("While performing, gain +1 melee to-hit per rank");
+
+  /* Rallying Cry */
+  perk = &perk_list[PERK_BARD_RALLYING_CRY];
+  perk->id = PERK_BARD_RALLYING_CRY;
+  perk->name = strdup("Rallying Cry");
+  perk->description = strdup("Activate to remove the shaken condition from allies and grant +2 morale to saves vs. fear for 5 rounds");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 5;
+  perk->special_description = strdup("Remove shaken condition; grant +2 morale to fear saves for 5 rounds");
+
+  /* Frostbite Refrain I */
+  perk = &perk_list[PERK_BARD_FROSTBITE_REFRAIN_I];
+  perk->id = PERK_BARD_FROSTBITE_REFRAIN_I;
+  perk->name = strdup("Frostbite Refrain I");
+  perk->description = strdup("Your melee hits deal +1 cold damage per rank while a song is active; enemies you hit suffer -1 to attack for 1 round on a natural 20");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = -1;
+  perk->special_description = strdup("While performing: melee hits +1 cold damage per rank; nat 20 applies -1 attack debuff for 1 round");
+
+  /*** WARCHANTER TREE - TIER II ***/
+
+  /* Battle Hymn II */
+  perk = &perk_list[PERK_BARD_BATTLE_HYMN_II];
+  perk->id = PERK_BARD_BATTLE_HYMN_II;
+  perk->name = strdup("Battle Hymn II");
+  perk->description = strdup("Additional +1 damage granted by Inspire Courage per rank (stacks with Battle Hymn I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_BATTLE_HYMN_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Inspire Courage grants additional +1 competence to damage per rank");
+
+  /* Drummer's Rhythm II */
+  perk = &perk_list[PERK_BARD_DRUMMERS_RHYTHM_II];
+  perk->id = PERK_BARD_DRUMMERS_RHYTHM_II;
+  perk->name = strdup("Drummer's Rhythm II");
+  perk->description = strdup("Additional +1 melee to-hit per rank while a martial song is active (stacks with Drummer's Rhythm I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_DRUMMERS_RHYTHM_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("While performing, gain additional +1 melee to-hit per rank");
+
+  /* Warbeat */
+  perk = &perk_list[PERK_BARD_WARBEAT];
+  perk->id = PERK_BARD_WARBEAT;
+  perk->name = strdup("Warbeat");
+  perk->description = strdup("On your first turn in combat, make an extra melee attack at your highest bonus; on hit, grant allies +1d4 damage for 2 rounds");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RALLYING_CRY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("First turn in combat: extra melee attack; on hit grants allies +1d4 damage for 2 rounds");
+
+  /* Frostbite Refrain II */
+  perk = &perk_list[PERK_BARD_FROSTBITE_REFRAIN_II];
+  perk->id = PERK_BARD_FROSTBITE_REFRAIN_II;
+  perk->name = strdup("Frostbite Refrain II");
+  perk->description = strdup("Melee hits deal an additional +1 cold damage per rank; your natural 20 debuff becomes -2 to attack and -1 to AC for 1 round");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_FROSTBITE_REFRAIN_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = -2;
+  perk->special_description = strdup("Melee hits +1 cold damage per rank; nat 20 applies -2 attack and -1 AC debuff for 1 round");
+
+  /*** WARCHANTER TREE - TIER III ***/
+
+  /* Anthem of Fortitude */
+  perk = &perk_list[PERK_BARD_ANTHEM_OF_FORTITUDE];
+  perk->id = PERK_BARD_ANTHEM_OF_FORTITUDE;
+  perk->name = strdup("Anthem of Fortitude");
+  perk->description = strdup("Allies under your songs gain +10% max HP and +2 to Fortitude saves");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_BATTLE_HYMN_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("While performing: allies gain +10% max HP and +2 to Fortitude saves");
+
+  /* Commanding Cadence */
+  perk = &perk_list[PERK_BARD_COMMANDING_CADENCE];
+  perk->id = PERK_BARD_COMMANDING_CADENCE;
+  perk->name = strdup("Commanding Cadence");
+  perk->description = strdup("Enemies you hit in melee must save or be dazed for 1 round (once per target per 5 rounds)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_WARBEAT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 5;
+  perk->special_description = strdup("On melee hit: enemy must save vs Will or be dazed 1 round (once per target per 5 rounds)");
+
+  /* Steel Serenade */
+  perk = &perk_list[PERK_BARD_STEEL_SERENADE];
+  perk->id = PERK_BARD_STEEL_SERENADE;
+  perk->name = strdup("Steel Serenade");
+  perk->description = strdup("While singing, you gain +2 natural AC and 10% physical damage resistance");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_DRUMMERS_RHYTHM_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("While performing: +2 natural AC and 10% physical damage resistance");
+
+  /* Banner Verse */
+  perk = &perk_list[PERK_BARD_BANNER_VERSE];
+  perk->id = PERK_BARD_BANNER_VERSE;
+  perk->name = strdup("Banner Verse");
+  perk->description = strdup("Plant a musical standard object in the room for 5 rounds; allies in the room gain +2 to hit and +2 to all saves");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RALLYING_CRY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 5;
+  perk->special_description = strdup("Plant musical banner: allies in room gain +2 to hit and +2 to all saves for 5 rounds");
+
+  /* Warchanter's Dominance - Tier 4 Capstone */
+  perk = &perk_list[PERK_BARD_WARCHANTERS_DOMINANCE];
+  perk->id = PERK_BARD_WARCHANTERS_DOMINANCE;
+  perk->name = strdup("Warchanter's Dominance");
+  perk->description = strdup("Inspire Courage now also grants +1 attack and +1 AC; your Warbeat now gives allies an additional +1d4 to damage and +1 to AC");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_ANTHEM_OF_FORTITUDE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("Capstone: Inspire Courage grants +1 attack/+1 AC; Warbeat grants +1d4 damage/+1 AC to allies");
+
+  /* Winter's War March - Tier 4 Capstone */
+  perk = &perk_list[PERK_BARD_WINTERS_WAR_MARCH];
+  perk->id = PERK_BARD_WINTERS_WAR_MARCH;
+  perk->name = strdup("Winter's War March");
+  perk->description = strdup("Perform a devastating martial anthem: deal 4d6 cold damage to all enemies and slow them for 3 rounds (save halves damage and reduces slow to 1 round). Useable at-will.");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_WARCHANTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_COMMANDING_CADENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Room-wide martial anthem: 4d6 cold damage, enemies slow for 3 rounds (save halves/reduces to 1 round)");
+
+  /*** SWASHBUCKLER TREE - TIER I ***/
+
+  /* Fencer's Footwork I */
+  perk = &perk_list[PERK_BARD_FENCERS_FOOTWORK_I];
+  perk->id = PERK_BARD_FENCERS_FOOTWORK_I;
+  perk->name = strdup("Fencer's Footwork I");
+  perk->description = strdup("+1 Dodge AC and +1 Reflex save per rank while wielding a finesse weapon or single one-handed weapon");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("While wielding finesse or single one-handed weapon: +1 Dodge AC and +1 Reflex per rank");
+
+  /* Precise Strike I */
+  perk = &perk_list[PERK_BARD_PRECISE_STRIKE_I];
+  perk->id = PERK_BARD_PRECISE_STRIKE_I;
+  perk->name = strdup("Precise Strike I");
+  perk->description = strdup("+1 precision damage per rank with finesse or one-handed piercing/slashing weapons (not multiplied on crits)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("With finesse or one-handed piercing/slashing: +1 precision damage per rank (not on crit multiplier)");
+
+  /* Riposte Training I */
+  perk = &perk_list[PERK_BARD_RIPOSTE_TRAINING_I];
+  perk->id = PERK_BARD_RIPOSTE_TRAINING_I;
+  perk->name = strdup("Riposte Training I");
+  perk->description = strdup("3% chance per rank to make an immediate counterattack after you successfully dodge or parry");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("After dodging/parrying: 3% chance per rank to make immediate counterattack");
+
+  /* Flourish */
+  perk = &perk_list[PERK_BARD_FLOURISH];
+  perk->id = PERK_BARD_FLOURISH;
+  perk->name = strdup("Flourish");
+  perk->description = strdup("Activate for +2 to hit and +2 AC for 2 rounds; ends if you are knocked prone or grappled. Requires and uses a move action");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Activate: +2 to hit and +2 AC for 2 rounds (ends if knocked prone/grappled)");
+
+  /*** SWASHBUCKLER TREE - TIER II ***/
+
+  /* Fencer's Footwork II */
+  perk = &perk_list[PERK_BARD_FENCERS_FOOTWORK_II];
+  perk->id = PERK_BARD_FENCERS_FOOTWORK_II;
+  perk->name = strdup("Fencer's Footwork II");
+  perk->description = strdup("Additional +1 Dodge AC and +1 Reflex per rank while using a finesse/single weapon");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_FENCERS_FOOTWORK_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("While wielding finesse or single one-handed weapon: +1 Dodge AC and +1 Reflex per rank (stacks with Tier I)");
+
+  /* Precise Strike II */
+  perk = &perk_list[PERK_BARD_PRECISE_STRIKE_II];
+  perk->id = PERK_BARD_PRECISE_STRIKE_II;
+  perk->name = strdup("Precise Strike II");
+  perk->description = strdup("Additional +1 precision damage per rank (stacks with Precise Strike I)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BARD_PRECISE_STRIKE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("With finesse or one-handed piercing/slashing: +1 precision damage per rank (stacks with Tier I, not on crit multiplier)");
+
+  /* Duelist's Poise */
+  perk = &perk_list[PERK_BARD_DUELISTS_POISE];
+  perk->id = PERK_BARD_DUELISTS_POISE;
+  perk->name = strdup("Duelist's Poise");
+  perk->description = strdup("Gain +2 to critical confirmation and +1 critical threat range when using a finesse weapon");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_FLOURISH;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("With finesse weapon: +2 to critical confirmation rolls and +1 critical threat range");
+
+  /* Agile Disengage */
+  perk = &perk_list[PERK_BARD_AGILE_DISENGAGE];
+  perk->id = PERK_BARD_AGILE_DISENGAGE;
+  perk->name = strdup("Agile Disengage");
+  perk->description = strdup("On a failed flee attempt, you gain +4 AC for 3 rounds. This bonus ends if you move out of the room you're in");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_FENCERS_FOOTWORK_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Failed flee: +4 AC for 3 rounds (ends if you move rooms)");
+
+  /*** SWASHBUCKLER TREE - TIER III ***/
+
+  /* Perfect Tempo */
+  perk = &perk_list[PERK_BARD_PERFECT_TEMPO];
+  perk->id = PERK_BARD_PERFECT_TEMPO;
+  perk->name = strdup("Perfect Tempo");
+  perk->description = strdup("If you avoid all melee hits for a full round, your next attack gains +4 to hit and +2d6 precision damage");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_DUELISTS_POISE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 12;
+  perk->special_description = strdup("Avoided all hits this round: +4 to hit and +2d6 precision damage on next attack");
+
+  /* Showstopper */
+  perk = &perk_list[PERK_BARD_SHOWSTOPPER];
+  perk->id = PERK_BARD_SHOWSTOPPER;
+  perk->name = strdup("Showstopper");
+  perk->description = strdup("On a confirmed crit, impose -2 to enemy AC and -2 to attack rolls for 2 rounds (once per target per 5 rounds)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_PRECISE_STRIKE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Critical hit: enemy takes -2 AC and -2 to hit for 2 rounds (once per target/5 min)");
+
+  /* Acrobatic Charge */
+  perk = &perk_list[PERK_BARD_ACROBATIC_CHARGE];
+  perk->id = PERK_BARD_ACROBATIC_CHARGE;
+  perk->name = strdup("Acrobatic Charge");
+  perk->description = strdup("You can charge through difficult terrain and around allies; you gain +2 to hit on charges");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_AGILE_DISENGAGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Charge through terrain and allies: +2 to hit on charges");
+
+  /* Feint and Finish */
+  perk = &perk_list[PERK_BARD_FEINT_AND_FINISH];
+  perk->id = PERK_BARD_FEINT_AND_FINISH;
+  perk->name = strdup("Feint and Finish");
+  perk->description = strdup("After successfully feinting, your next attack deals +2d6 precision damage and gains +2 to confirm criticals");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_RIPOSTE_TRAINING_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 12;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("After successful feint: +2d6 precision damage and +2 crit confirm on next attack");
+
+  /* Swashbuckler's Supreme Style - TIER 4 CAPSTONE */
+  perk = &perk_list[PERK_BARD_SUPREME_STYLE];
+  perk->id = PERK_BARD_SUPREME_STYLE;
+  perk->name = strdup("Swashbuckler's Supreme Style");
+  perk->description = strdup("While wielding a finesse or single one-handed weapon, gain +2 to hit, +2 dodge AC, +2 to crit confirmation, and one additional attack per 3 rounds");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_PERFECT_TEMPO;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Tier 4 Capstone: +2 to hit, +2 AC, +2 crit confirm, +1 attack per 3 rounds (finesse/1H weapon only)");
+
+  /* Curtain Call - TIER 4 CAPSTONE */
+  perk = &perk_list[PERK_BARD_CURTAIN_CALL];
+  perk->id = PERK_BARD_CURTAIN_CALL;
+  perk->name = strdup("Curtain Call");
+  perk->description = strdup("Once per 5 minutes, make a free attack against up to 3 adjacent enemies, each dealing +2d6 precision damage; creatures struck must save or be disoriented for 2 rounds (disadvantage on attacks)");
+  perk->associated_class = CLASS_BARD;
+  perk->perk_category = PERK_CATEGORY_SWASHBUCKLER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARD_SHOWSTOPPER;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 12;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Tier 4 Capstone: Free multi-target attack 1/5min, +2d6 precision damage, targets save vs disoriented");
+}
+
+/* Define Alchemist Perks */
+void define_alchemist_perks(void)
+{
+  struct perk_data *perk;
+
+  /*** MUTAGENIST TREE - TIER I ***/
+
+  /* Mutagen I */
+  perk = &perk_list[PERK_ALCHEMIST_MUTAGEN_I];
+  perk->id = PERK_ALCHEMIST_MUTAGEN_I;
+  perk->name = strdup("Mutagen I");
+  perk->description = strdup("Your mutagens give +1 to STR, DEX, and CON per rank while active.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Applies +1 per rank to STR/DEX/CON only while under your mutagen.");
+
+  /* Hardy Constitution I */
+  perk = &perk_list[PERK_ALCHEMIST_HARDY_CONSTITUTION_I];
+  perk->id = PERK_ALCHEMIST_HARDY_CONSTITUTION_I;
+  perk->name = strdup("Hardy Constitution I");
+  perk->description = strdup("When you drink your own mutagen, gain +1 max HP per level per rank while it lasts.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus max HP scales with level and persists only during mutagen.");
+
+  /* Alchemical Reflexes */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_REFLEXES];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_REFLEXES;
+  perk->name = strdup("Alchemical Reflexes");
+  perk->description = strdup("While a mutagen is active: +1 dodge AC and +1 Reflex saves.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Applies +1 dodge AC and +1 Reflex while under mutagen.");
+
+  /* Natural Armor */
+  perk = &perk_list[PERK_ALCHEMIST_NATURAL_ARMOR];
+  perk->id = PERK_ALCHEMIST_NATURAL_ARMOR;
+  perk->name = strdup("Natural Armor");
+  perk->description = strdup("While a mutagen is active, gain +2 natural armor.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +2 natural armor only while under mutagen.");
+
+  /*** MUTAGENIST TREE - TIER II ***/
+
+  /* Mutagen II */
+  perk = &perk_list[PERK_ALCHEMIST_MUTAGEN_II];
+  perk->id = PERK_ALCHEMIST_MUTAGEN_II;
+  perk->name = strdup("Mutagen II");
+  perk->description = strdup("Additional +1 to STR/DEX/CON per rank while a mutagen is active.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MUTAGEN_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +1 per rank to STR/DEX/CON while under mutagen; stacks with Mutagen I.");
+
+  /* Persistence Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_PERSISTENCE_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_PERSISTENCE_MUTAGEN;
+  perk->name = strdup("Persistence Mutagen");
+  perk->description = strdup("Your mutagens last twice as long.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MUTAGEN_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Doubles duration of mutagen and elemental mutagen.");
+
+  /* Infused with Vigor */
+  perk = &perk_list[PERK_ALCHEMIST_INFUSED_WITH_VIGOR];
+  perk->id = PERK_ALCHEMIST_INFUSED_WITH_VIGOR;
+  perk->name = strdup("Infused with Vigor");
+  perk->description = strdup("On drinking your mutagen, heal 1d6 + level; also gain fast healing 1 for 10 rounds.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_HARDY_CONSTITUTION_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Heal on drink: 1d6 + level; Fast Healing 1 for 10 rounds.");
+
+  /* Cellular Adaptation */
+  perk = &perk_list[PERK_ALCHEMIST_CELLULAR_ADAPTATION];
+  perk->id = PERK_ALCHEMIST_CELLULAR_ADAPTATION;
+  perk->name = strdup("Cellular Adaptation");
+  perk->description = strdup("While a mutagen is active, gain DR 5/-.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_NATURAL_ARMOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants 5/- damage reduction while mutagen lasts.");
+
+  /*** MUTAGENIST TREE - TIER III ***/
+
+  /* Improved Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_IMPROVED_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_IMPROVED_MUTAGEN;
+  perk->name = strdup("Improved Mutagen");
+  perk->description = strdup("Mutagens grant an additional +4 to the chosen ability.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MUTAGEN_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +4 to the primary ability of your mutagen.");
+
+  /* Unstable Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_UNSTABLE_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_UNSTABLE_MUTAGEN;
+  perk->name = strdup("Unstable Mutagen");
+  perk->description = strdup("Toggle: mutagen effects are +50% stronger but may backlash.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_CELLULAR_ADAPTATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Use a toggle to enable/disable; boosts mutagen effects by 50%.");
+
+  /* Universal Mutagen */
+  perk = &perk_list[PERK_ALCHEMIST_UNIVERSAL_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_UNIVERSAL_MUTAGEN;
+  perk->name = strdup("Universal Mutagen");
+  perk->description = strdup("Activate: next mutagen applies highest bonus to all abilities (short duration).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_IMPROVED_MUTAGEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Next mutagen: highest ability bonus applies to all; lasts up to ~5 minutes.");
+
+  /* Mutagenic Mastery */
+  perk = &perk_list[PERK_ALCHEMIST_MUTAGENIC_MASTERY];
+  perk->id = PERK_ALCHEMIST_MUTAGENIC_MASTERY;
+  perk->name = strdup("Mutagenic Mastery");
+  perk->description = strdup("While mutagen is active, gain +2 to all ability scores.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFUSED_WITH_VIGOR;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +2 to STR/DEX/CON/INT/WIS/CHA while mutagen lasts.");
+
+  /*** MUTAGENIST TREE - TIER IV CAPSTONES ***/
+
+  /* Perfect Mutagen (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_PERFECT_MUTAGEN];
+  perk->id = PERK_ALCHEMIST_PERFECT_MUTAGEN;
+  perk->name = strdup("Perfect Mutagen");
+  perk->description = strdup("Mutagens perfected: +4 to chosen ability and +2 to all others; immune to Unstable Mutagen backlash.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  /* System supports single prerequisite; enforce Improved Mutagen directly and document both */
+  perk->prerequisite_perk = PERK_ALCHEMIST_IMPROVED_MUTAGEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Mutagenic Mastery and Improved Mutagen. Grants immunity to Unstable Mutagen backlash; ensures +4 primary and +2 others while mutagen lasts.");
+
+  /* Chimeric Transmutation (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION];
+  perk->id = PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION;
+  perk->name = strdup("Chimeric Transmutation");
+  perk->description = strdup("While under mutagen, unleash a swift-action breath weapon once per combat: 3d6 fire, 3d6 poison, and 3d6 cold.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_MUTAGENIST;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  /* Single prerequisite field; use Universal Mutagen and document both */
+  perk->prerequisite_perk = PERK_ALCHEMIST_UNIVERSAL_MUTAGEN;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Universal Mutagen and Unstable Mutagen. Grants a once-per-combat swift breath attack while mutagen is active.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER I ***/
+
+  /* Alchemical Bomb I */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_BOMB_I];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->name = strdup("Alchemical Bomb I");
+  perk->description = strdup("Your direct bomb damage increases by +3 per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +3 bomb damage per rank to the direct hit component.");
+
+  /* Precise Bombs (perk) */
+  perk = &perk_list[PERK_ALCHEMIST_PRECISE_BOMBS_PERK];
+  perk->id = PERK_ALCHEMIST_PRECISE_BOMBS_PERK;
+  perk->name = strdup("Precise Bombs");
+  perk->description = strdup("Gain +3 to hit on bomb ranged touch attacks.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +3 to ranged touch attack rolls with bombs.");
+
+  /* Splash Damage */
+  perk = &perk_list[PERK_ALCHEMIST_SPLASH_DAMAGE];
+  perk->id = PERK_ALCHEMIST_SPLASH_DAMAGE;
+  perk->name = strdup("Splash Damage");
+  perk->description = strdup("Splash damage from bombs increases by +3 and bomb save DCs increase by +2 per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Adds +3 splash damage and +2 save DC per rank to bomb effects.");
+
+  /* Quick Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_QUICK_BOMB];
+  perk->id = PERK_ALCHEMIST_QUICK_BOMB;
+  perk->name = strdup("Quick Bomb");
+  perk->description = strdup("10% chance to throw a bomb as a swift action instead of the usual action.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("10% proc: bomb throw uses a swift action if available.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER II ***/
+
+  /* Alchemical Bomb II */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_BOMB_II];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_BOMB_II;
+  perk->name = strdup("Alchemical Bomb II");
+  perk->description = strdup("Your bombs deal an additional +3 damage per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +3 damage per rank on top of Alchemical Bomb I.");
+
+  /* Elemental Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_ELEMENTAL_BOMB];
+  perk->id = PERK_ALCHEMIST_ELEMENTAL_BOMB;
+  perk->name = strdup("Elemental Bomb");
+  perk->description = strdup("Elemental bombs bypass 10 resistance and deal an extra 1d6 damage.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* resistance bypass */
+  perk->effect_modifier = 6; /* extra damage die size marker */
+  perk->special_description = strdup("Fire/cold/acid/electric bombs ignore 10 resistance and add 1d6 damage.");
+
+  /* Concussive Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_CONCUSSIVE_BOMB];
+  perk->id = PERK_ALCHEMIST_CONCUSSIVE_BOMB;
+  perk->name = strdup("Concussive Bomb");
+  perk->description = strdup("10% chance on hit to knock targets prone; cannot be reversed on you.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_SPLASH_DAMAGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("On hit: 10% chance to knock targets prone without backlash.");
+
+  /* Poison Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_POISON_BOMB];
+  perk->id = PERK_ALCHEMIST_POISON_BOMB;
+  perk->name = strdup("Poison Bomb");
+  perk->description = strdup("10% chance on hit to poison targets.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("On hit: 10% chance to inflict poison.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER III ***/
+
+  /* Inferno Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_INFERNO_BOMB];
+  perk->id = PERK_ALCHEMIST_INFERNO_BOMB;
+  perk->name = strdup("Inferno Bomb");
+  perk->description = strdup("Your bombs have a 10% chance to deal +2d6 fire damage.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ELEMENTAL_BOMB;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 2; /* 2d6 bonus damage */
+  perk->special_description = strdup("10% chance for bombs to deal an additional 2d6 fire damage.");
+
+  /* Cluster Bomb */
+  perk = &perk_list[PERK_ALCHEMIST_CLUSTER_BOMB];
+  perk->id = PERK_ALCHEMIST_CLUSTER_BOMB;
+  perk->name = strdup("Cluster Bomb");
+  perk->description = strdup("Your bombs have a 10% chance to become cluster bombs, hitting 3 times at 75% damage each.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* proc chance */
+  perk->effect_modifier = 75; /* damage multiplier per hit */
+  perk->special_description = strdup("10% chance for bombs to fragment: 3 hits at 75% damage each.");
+
+  /* Calculated Throw */
+  perk = &perk_list[PERK_ALCHEMIST_CALCULATED_THROW];
+  perk->id = PERK_ALCHEMIST_CALCULATED_THROW;
+  perk->name = strdup("Calculated Throw");
+  perk->description = strdup("Your bombs are extra precise, making DCs to resist their effects +3 higher.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_PRECISE_BOMBS_PERK;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* DC bonus */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("All bomb save DCs increased by +3.");
+
+  /* Bomb Mastery */
+  perk = &perk_list[PERK_ALCHEMIST_BOMB_MASTERY];
+  perk->id = PERK_ALCHEMIST_BOMB_MASTERY;
+  perk->name = strdup("Bomb Mastery");
+  perk->description = strdup("Bombs now deal +2d6 extra damage.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_BOMB_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 bonus damage */
+  perk->effect_modifier = 6; /* die size */
+  perk->special_description = strdup("All bombs deal an additional 2d6 damage.");
+
+  /*** BOMB CRAFTSMAN TREE - TIER IV (CAPSTONES) ***/
+
+  /* Bombardier Savant (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_BOMBARDIER_SAVANT];
+  perk->id = PERK_ALCHEMIST_BOMBARDIER_SAVANT;
+  perk->name = strdup("Bombardier Savant");
+  perk->description = strdup("Expert bomb thrower. Bombs gain +3 to hit and +6d6 damage. Throw 2 bombs when starting combat.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_BOMB_MASTERY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 to hit */
+  perk->effect_modifier = 6; /* +6d6 damage */
+  perk->special_description = strdup("Capstone: +3 ranged touch attack, +6d6 damage, dual bomb throw at combat start.");
+
+  /* Volatile Catalyst (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_VOLATILE_CATALYST];
+  perk->id = PERK_ALCHEMIST_VOLATILE_CATALYST;
+  perk->name = strdup("Volatile Catalyst");
+  perk->description = strdup("Bombs trigger chain reactions. 1% per bomb prepared to throw an additional bomb. Toggleable.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_BOMB_CRAFTSMAN;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFERNO_BOMB;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1% per bomb */
+  perk->effect_modifier = 0;
+  perk->toggleable = TRUE;
+  perk->special_description = strdup("Capstone: Bombs have 1% chance per bomb prepared to trigger an auto-throw. Requires toggle.");
+
+  /*** EXTRACT MASTER TREE - TIER I ***/
+
+  /* Alchemical Extract I */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I;
+  perk->name = strdup("Alchemical Extract I");
+  perk->description = strdup("Your extracts now have a 3% chance per rank to not expend a use.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Extract bottling: 3% per rank chance extracts don't consume.");
+
+  /* Infusion I */
+  perk = &perk_list[PERK_ALCHEMIST_INFUSION_I];
+  perk->id = PERK_ALCHEMIST_INFUSION_I;
+  perk->name = strdup("Infusion I");
+  perk->description = strdup("Your extract saving throw DCs are +1 higher per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Focused specialization: +1 per rank to extract save DCs.");
+
+  /* Swift Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_SWIFT_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_SWIFT_EXTRACTION;
+  perk->name = strdup("Swift Extraction");
+  perk->description = strdup("Extracts take 20% less time to prepare.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% speed boost */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Crafting speed: Extracts prepared 20% faster.");
+
+  /* Resonant Extract */
+  perk = &perk_list[PERK_ALCHEMIST_RESONANT_EXTRACT];
+  perk->id = PERK_ALCHEMIST_RESONANT_EXTRACT;
+  perk->name = strdup("Resonant Extract");
+  perk->description = strdup("Extracts you create gain the resonant property. They have a 5% chance to affect all members in your party.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Party synergy: Extracts have 5% chance to affect all party members.");
+
+  /*** EXTRACT MASTER TREE - TIER II ***/
+
+  /* Alchemical Extract II */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II;
+  perk->name = strdup("Alchemical Extract II");
+  perk->description = strdup("Additional 3% chance per rank for extracts to not expend a use.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3% per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Further bottling refinement: +3% per rank non-consumption chance.");
+
+  /* Infusion II */
+  perk = &perk_list[PERK_ALCHEMIST_INFUSION_II];
+  perk->id = PERK_ALCHEMIST_INFUSION_II;
+  perk->name = strdup("Infusion II");
+  perk->description = strdup("Your extract saving throw DCs gain another +1 per rank.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFUSION_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Advanced infusion: additional +1 DC per rank.");
+
+  /* Concentrated Essence */
+  perk = &perk_list[PERK_ALCHEMIST_CONCENTRATED_ESSENCE];
+  perk->id = PERK_ALCHEMIST_CONCENTRATED_ESSENCE;
+  perk->name = strdup("Concentrated Essence");
+  perk->description = strdup("All extracts have a 20% chance to be empowered when used.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_SWIFT_EXTRACTION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Power concentration: 20% chance to apply Empower to extracts on use.");
+
+  /* Persistent Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_PERSISTENT_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_PERSISTENT_EXTRACTION;
+  perk->name = strdup("Persistent Extraction");
+  perk->description = strdup("All extracts have a 20% chance to be extended when used.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_RESONANT_EXTRACT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Duration extension: 20% chance to apply Extend to extracts on use.");
+
+  /*** EXTRACT MASTER TREE - TIER III ***/
+
+  /* Healing Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_HEALING_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_HEALING_EXTRACTION;
+  perk->name = strdup("Healing Extraction");
+  perk->description = strdup("All extracts heal you for (level/2) HP when used (minimum 1).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Advanced spell bottling: Extract use heals level/2 HP.");
+
+  /* Alchemical Compatibility */
+  perk = &perk_list[PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY];
+  perk->id = PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY;
+  perk->name = strdup("Alchemical Compatibility");
+  perk->description = strdup("Extracts automatically apply to other alchemists in your party when used.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_CONCENTRATED_ESSENCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Combination effects: Extracts auto-apply to alchemist allies in party.");
+
+  /* Discovery Extraction */
+  perk = &perk_list[PERK_ALCHEMIST_DISCOVERY_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+  perk->name = strdup("Discovery Extraction");
+  perk->description = strdup("10% chance for extracts to grant +1 INT (stacks to +10, 2 min duration, resets on proc).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_INFUSION_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 1; /* +1 INT per stack */
+  perk->special_description = strdup("Unique effect: 10% proc for stacking INT buff (+1 per proc, max +10, 2 min).");
+
+  /* Master Alchemist */
+  perk = &perk_list[PERK_ALCHEMIST_MASTER_ALCHEMIST];
+  perk->id = PERK_ALCHEMIST_MASTER_ALCHEMIST;
+  perk->name = strdup("Master Alchemist");
+  perk->description = strdup("Extracts and bombs have a 10% chance to be maximized.");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Crafting excellence: 10% chance for Maximize on extracts and bombs.");
+
+  /*** EXTRACT MASTER TREE - TIER IV (CAPSTONES) ***/
+
+  /* Eternal Extract (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_ETERNAL_EXTRACT];
+  perk->id = PERK_ALCHEMIST_ETERNAL_EXTRACT;
+  perk->name = strdup("Eternal Extract");
+  perk->description = strdup("Extracts have a 5% chance to last 1 hour (unless the duration would be higher anyway).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_MASTER_ALCHEMIST;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance */
+  perk->effect_modifier = 3600; /* 1 hour in seconds */
+  perk->special_description = strdup("Ultimate alchemy: Extracts have 5% chance to last 1 hour.");
+
+  /* Quintessential Extraction (Capstone) */
+  perk = &perk_list[PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION];
+  perk->id = PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+  perk->name = strdup("Quintessential Extraction");
+  perk->description = strdup("Using extracts heals 10 HP and increases max HP by 10 for 5 min (stacks to +100 max HP).");
+  perk->associated_class = CLASS_ALCHEMIST;
+  perk->perk_category = PERK_CATEGORY_EXTRACT_MASTER;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10 HP heal */
+  perk->effect_modifier = 10; /* +10 max HP per stack */
+  perk->special_description = strdup("Perfect mastery: Extracts heal 10 HP and grant +10 max HP (5 min, stacks to +100).");
+}
+
+
+/* Alchemist Mutagenist helper implementations */
+int get_alchemist_mutagen_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_MUTAGEN_I, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_hardy_constitution_hp_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  if (!affected_by_spell(ch, SKILL_MUTAGEN))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_HARDY_CONSTITUTION_I, CLASS_ALCHEMIST);
+  if (ranks <= 0)
+    return 0;
+  return GET_LEVEL(ch) * ranks;
+}
+
+bool has_alchemist_alchemical_reflexes(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ALCHEMICAL_REFLEXES) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+bool has_alchemist_natural_armor(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_NATURAL_ARMOR) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+bool has_alchemist_improved_mutagen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_IMPROVED_MUTAGEN);
+}
+
+bool is_alchemist_unstable_mutagen_on(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN) && is_perk_toggled_on(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN);
+}
+
+bool is_alchemist_universal_mutagen_ready(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  if (!has_perk(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN))
+    return FALSE;
+  /* must be toggled and not under cooldown */
+  if (!is_perk_toggled_on(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN))
+    return FALSE;
+  if (char_has_mud_event(ch, eUNIVERSAL_MUTAGEN_COOLDOWN))
+    return FALSE;
+  return TRUE;
+}
+
+int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_MUTAGENIC_MASTERY) ? 2 : 0;
+}
+
+int get_alchemist_mutagen_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_MUTAGEN_II, CLASS_ALCHEMIST);
+}
+
+bool has_alchemist_persistence_mutagen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_PERSISTENCE_MUTAGEN);
+}
+
+bool has_alchemist_infused_with_vigor(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_INFUSED_WITH_VIGOR);
+}
+
+bool has_alchemist_cellular_adaptation(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CELLULAR_ADAPTATION) && affected_by_spell(ch, SKILL_MUTAGEN);
+}
+
+/* Mutagenist Tier IV helpers (file scope) */
+bool has_alchemist_perfect_mutagen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_PERFECT_MUTAGEN);
+}
+
+bool can_use_chimeric_transmutation(struct char_data *ch)
+{
+  time_t current_time;
+
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+
+  /* Must have perk and be under mutagen */
+  if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
+    return FALSE;
+  if (!affected_by_spell(ch, SKILL_MUTAGEN))
+    return FALSE;
+
+  /* Reset flag if 60s have passed since last combat end */
+  current_time = time(0);
+  if (ch->player_specials->saved.chimeric_breath_last_combat > 0 &&
+      (current_time - ch->player_specials->saved.chimeric_breath_last_combat) >= 60)
+  {
+    ch->player_specials->saved.chimeric_breath_used = FALSE;
+  }
+
+  return !ch->player_specials->saved.chimeric_breath_used;
+}
+
+void use_chimeric_transmutation(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  ch->player_specials->saved.chimeric_breath_used = TRUE;
+}
+
+void update_chimeric_transmutation_combat_end(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
+    return;
+  ch->player_specials->saved.chimeric_breath_last_combat = time(0);
+}
+
+/* Bomb Craftsman Tier I helpers */
+int get_alchemist_bomb_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks_i = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_I, CLASS_ALCHEMIST);
+  int ranks_ii = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_II, CLASS_ALCHEMIST);
+  return (ranks_i * 3) + (ranks_ii * 3);
+}
+
+int get_alchemist_bomb_precision_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_PRECISE_BOMBS_PERK) ? 3 : 0;
+}
+
+int get_alchemist_bomb_splash_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_SPLASH_DAMAGE, CLASS_ALCHEMIST);
+  return ranks * 3;
+}
+
+int get_alchemist_bomb_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_ALCHEMIST_SPLASH_DAMAGE, CLASS_ALCHEMIST);
+  int calculated_throw = get_alchemist_calculated_throw_dc_bonus(ch);
+  return (ranks * 2) + calculated_throw;
+}
+
+int get_alchemist_quick_bomb_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_QUICK_BOMB) ? 10 : 0;
+}
+
+/* Bomb Craftsman Tier II helpers */
+int get_alchemist_bomb_damage_bonus_tier2(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks_ii = get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_BOMB_II, CLASS_ALCHEMIST);
+  return ranks_ii * 3;
+}
+
+bool has_alchemist_elemental_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ELEMENTAL_BOMB);
+}
+
+static bool is_elemental_damage_type(int dam_type)
+{
+  switch (dam_type)
+  {
+  case DAM_FIRE:
+  case DAM_COLD:
+  case DAM_ACID:
+  case DAM_ELECTRIC:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+int get_alchemist_elemental_bomb_bypass(struct char_data *ch, int dam_type)
+{
+  if (!has_alchemist_elemental_bomb(ch))
+    return 0;
+  return is_elemental_damage_type(dam_type) ? 10 : 0;
+}
+
+int get_alchemist_elemental_bomb_extra_damage(struct char_data *ch, int dam_type)
+{
+  if (!has_alchemist_elemental_bomb(ch))
+    return 0;
+  return is_elemental_damage_type(dam_type) ? dice(1, 6) : 0;
+}
+
+bool has_alchemist_concussive_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CONCUSSIVE_BOMB);
+}
+
+bool has_alchemist_poison_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_POISON_BOMB);
+}
+
+/* Bomb Craftsman Tier III helpers */
+bool has_alchemist_inferno_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_INFERNO_BOMB);
+}
+
+bool has_alchemist_cluster_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CLUSTER_BOMB);
+}
+
+int get_alchemist_calculated_throw_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_CALCULATED_THROW) ? 3 : 0;
+}
+
+bool has_alchemist_bomb_mastery(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_BOMB_MASTERY);
+}
+
+int get_alchemist_bomb_mastery_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_BOMB_MASTERY) ? dice(2, 6) : 0;
+}
+
+/* Bomb Craftsman Tier IV helpers */
+bool has_alchemist_bombardier_savant(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_BOMBARDIER_SAVANT);
+}
+
+int get_bombardier_savant_attack_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_BOMBARDIER_SAVANT) ? 3 : 0;
+}
+
+int get_bombardier_savant_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return has_perk(ch, PERK_ALCHEMIST_BOMBARDIER_SAVANT) ? dice(6, 6) : 0;
+}
+
+bool has_alchemist_volatile_catalyst(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_VOLATILE_CATALYST);
+}
+
+bool is_volatile_catalyst_on(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_VOLATILE_CATALYST) && is_perk_toggled_on(ch, PERK_ALCHEMIST_VOLATILE_CATALYST);
+}
+
+/* Extract Master Tier I helpers */
+int get_alchemist_extract_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_I, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_extract_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_ALCHEMICAL_EXTRACT_II, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_extract_not_consumed_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int rank_i = get_alchemist_extract_i_rank(ch);
+  int rank_ii = get_alchemist_extract_ii_rank(ch);
+  int total_rank = rank_i + rank_ii;
+  if (total_rank <= 0)
+    return 0;
+  return total_rank * 3; /* 3% per rank across both tiers */
+}
+
+int get_alchemist_infusion_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_INFUSION_I, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_infusion_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_ALCHEMIST_INFUSION_II, CLASS_ALCHEMIST);
+}
+
+int get_alchemist_infusion_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int total = get_alchemist_infusion_i_rank(ch) + get_alchemist_infusion_ii_rank(ch);
+  if (total <= 0)
+    return 0;
+  return total; /* +1 per rank across both tiers */
+}
+
+bool has_alchemist_swift_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_SWIFT_EXTRACTION);
+}
+
+bool has_alchemist_resonant_extract(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_RESONANT_EXTRACT);
+}
+
+bool has_alchemist_concentrated_essence(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_CONCENTRATED_ESSENCE);
+}
+
+bool has_alchemist_persistent_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_PERSISTENT_EXTRACTION);
+}
+
+/* Extract Master Tier III helpers */
+bool has_alchemist_healing_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_HEALING_EXTRACTION);
+}
+
+int get_alchemist_healing_extraction_amount(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !has_alchemist_healing_extraction(ch))
+    return 0;
+  return MAX(1, GET_LEVEL(ch) / 2);
+}
+
+bool has_alchemist_alchemical_compatibility(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ALCHEMICAL_COMPATIBILITY);
+}
+
+bool has_alchemist_discovery_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_DISCOVERY_EXTRACTION);
+}
+
+bool has_alchemist_master_alchemist(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_MASTER_ALCHEMIST);
+}
+
+/* Extract Master Tier IV helpers */
+bool has_alchemist_eternal_extract(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_ETERNAL_EXTRACT);
+}
+
+bool has_alchemist_quintessential_extraction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION);
 }
 
 /* Define Barbarian Perks */
+/* Psionicist Telepathic Control Tier I and II helpers */
+int get_psionic_telepathy_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Tier I: +1 DC */
+  if (has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_I))
+    bonus += 1;
+  
+  /* Tier II: additional +1 DC (total +2) */
+  if (has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_II))
+    bonus += 1;
+
+  /* Tier III: additional +1 DC (total +3) */
+  if (has_perk(ch, PERK_PSIONICIST_DOMINION))
+    bonus += 1;
+  
+  return bonus;
+}
+
+int get_psionic_telepathy_penetration_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Tier I: +1 manifester level */
+  if (has_perk(ch, PERK_PSIONICIST_PSIONIC_DISRUPTOR_I))
+    bonus += 1;
+  
+  /* Tier II: additional +1 manifester level (total +2) */
+  if (has_perk(ch, PERK_PSIONICIST_PSIONIC_DISRUPTOR_II))
+    bonus += 1;
+  
+  return bonus;
+}
+
+bool has_psionic_suggestion_primer(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_SUGGESTION_PRIMER);
+}
+
+bool has_psionic_focus_channeling(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_FOCUS_CHANNELING);
+}
+
+/* Apply Suggestion Primer duration extension
+ * Extends target's affect for matching Telepathy power by +1 round (6 ticks)
+ */
+void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum, int routines_flags)
+{
+  if (!ch || !vict)
+    return;
+  if (!has_psionic_suggestion_primer(ch))
+    return;
+  if (!is_spellnum_psionic(spellnum))
+    return;
+  if (psionic_powers[spellnum].power_type != TELEPATHY)
+    return;
+  if (!IS_SET(routines_flags, MAG_AFFECTS))
+    return;
+
+  /* Optional: limit duration extension to non-boss targets.
+   * Heuristic similar to banishment safeguards: many bosses are uncharmable
+   * and have very high max HP. If victim matches that profile, skip. */
+  if (IS_NPC(vict) && (MOB_FLAGGED(vict, MOB_NOCHARM) || GET_MAX_HIT(vict) >= 1000))
+    return;
+
+  struct affected_type *hjp = NULL;
+  for (hjp = vict->affected; hjp; hjp = hjp->next)
+  {
+    if (hjp->spell == spellnum)
+    {
+      hjp->duration += 6;
+      break;
+    }
+  }
+}
+
+/* Apply Focus Channeling PSP regain with 1/round throttle */
+void apply_psionic_focus_channeling(struct char_data *ch)
+{
+  if (!ch)
+    return;
+  if (!has_psionic_focus_channeling(ch))
+    return;
+  if (affected_by_spell(ch, PERK_PSIONICIST_FOCUS_CHANNELING))
+    return;
+
+  int before = GET_PSP(ch);
+  int after = MIN(GET_MAX_PSP(ch), before + 1);
+  GET_PSP(ch) = after;
+  if (after > before)
+    send_to_char(ch, "\tGYou channel focus and regain 1 PSP.\tn\r\n");
+
+  struct affected_type af; new_affect(&af);
+  af.spell = PERK_PSIONICIST_FOCUS_CHANNELING;
+  af.duration = 6; /* ~1 round */
+  affect_to_char(ch, &af);
+}
+
+/* Tier II Telepathic Control Helpers */
+
+/* Check if character has Mind Spike II and meets augment threshold */
+bool has_mind_spike_ii_bonus(struct char_data *ch, int augment_spent)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  if (!has_perk(ch, PERK_PSIONICIST_MIND_SPIKE_II))
+    return FALSE;
+  return augment_spent >= 2;
+}
+
+/* Check if character has Overwhelm perk */
+bool has_overwhelm(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_OVERWHELM);
+}
+
+/* Check if Overwhelm has been used this combat (track via affect) */
+bool overwhelm_used_this_combat(struct char_data *ch)
+{
+  if (!has_overwhelm(ch))
+    return FALSE;
+  return affected_by_spell(ch, PERK_PSIONICIST_OVERWHELM);
+}
+
+/* Set Overwhelm cooldown for this combat */
+void set_overwhelm_cooldown(struct char_data *ch)
+{
+  if (!has_overwhelm(ch))
+    return;
+  
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_PSIONICIST_OVERWHELM;
+  af.duration = 60; /* ~10 minutes for a combat encounter */
+  affect_to_char(ch, &af);
+}
+
+/* Check if character has Linked Menace perk */
+bool has_linked_menace(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_LINKED_MENACE);
+}
+
+/* Apply Linked Menace AC penalty to target */
+void apply_linked_menace_ac_penalty(struct char_data *vict)
+{
+  if (!vict)
+    return;
+  
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_PSIONICIST_LINKED_MENACE;
+  af.location = APPLY_AC;
+  af.modifier = 2; /* -2 AC (note: lower AC is worse, so +2 to the AC value) */
+  af.duration = 12; /* 2 rounds */
+  affect_to_char(vict, &af);
+}
+
+/* Tier III Telepathic Control Helpers */
+
+bool has_psionic_dominion(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_DOMINION);
+}
+
+bool has_psychic_sundering(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_PSYCHIC_SUNDERING);
+}
+
+bool has_psionic_mental_backlash(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_MENTAL_BACKLASH);
+}
+
+bool has_psionic_piercing_will(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_PIERCING_WILL);
+}
+
+/* Extend charm/dominate durations by +2 rounds (12 ticks) for Telepathy powers */
+void apply_psionic_dominion_extension(struct char_data *ch, struct char_data *vict, int spellnum,
+                                      struct affected_type *af_array, int count)
+{
+  int i = 0;
+
+  if (!ch || !vict || !af_array)
+    return;
+  if (!has_psionic_dominion(ch))
+    return;
+  if (!is_spellnum_psionic(spellnum) || psionic_powers[spellnum].power_type != TELEPATHY)
+    return;
+
+  /* Skip bosses / uncharmables */
+  if (IS_NPC(vict) && (MOB_FLAGGED(vict, MOB_NOCHARM) || GET_MAX_HIT(vict) >= 1000))
+    return;
+
+  for (i = 0; i < count; i++)
+  {
+    if (af_array[i].location == APPLY_NONE && !af_array[i].bitvector[0] &&
+        !af_array[i].bitvector[1] && !af_array[i].bitvector[2] && !af_array[i].bitvector[3])
+      continue;
+
+    if (IS_SET_AR(af_array[i].bitvector, AFF_CHARM))
+    {
+      af_array[i].duration += 12; /* +2 rounds */
+    }
+  }
+}
+
+/* Apply 3-round 10% vulnerability marker for Psychic Sundering */
+void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict)
+    return;
+  if (!has_psychic_sundering(ch))
+    return;
+
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_PSIONICIST_PSYCHIC_SUNDERING;
+  af.location = APPLY_NONE;
+  af.modifier = 0;
+  af.duration = 18; /* 3 rounds */
+  affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
+  send_to_char(vict, "\tRYour mind is torn open, leaving you vulnerable!\tn\r\n");
+}
+
+/* +5 PR bypass for Telepathy powers */
+int get_psionic_piercing_will_bonus(struct char_data *ch)
+{
+  if (!has_psionic_piercing_will(ch))
+    return 0;
+  return 5;
+}
+
+/* Chip damage amount for Mental Backlash */
+int get_psionic_mental_backlash_damage(struct char_data *ch, int level)
+{
+  if (!has_psionic_mental_backlash(ch))
+    return 0;
+
+  int dmg = 5 + (level / 2);
+  return MAX(1, dmg);
+}
+
+/* ===== TIER IV CAPSTONE HELPERS ===== */
+
+bool has_psionic_absolute_geas(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_ABSOLUTE_GEAS);
+}
+
+bool has_psionic_hive_commander(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_HIVE_COMMANDER);
+}
+
+/* Apply random debuffs (shaken, fatigued, silenced) from Absolute Geas */
+void apply_absolute_geas_debuffs(struct char_data *ch, struct char_data *vict, int level)
+{
+  struct affected_type af;
+  int debuff_flags[3] = {AFF_SHAKEN, AFF_FATIGUED, AFF_SILENCED};
+  int i;
+  const char *debuff_descs[3] = {
+    "You feel shaken by the mental assault!",
+    "You feel fatigued by the mental assault!",
+    "You are silenced by the mental assault!"
+  };
+
+  if (!ch || !vict || !has_psionic_absolute_geas(ch))
+    return;
+
+  /* 10% chance roll */
+  if (rand_number(1, 100) > 10)
+    return;
+
+  /* Will save to negate entire effect */
+  if (savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, level, NO_SUBSCHOOL))
+    return;
+
+  /* Apply all three debuffs for 3 rounds (180 ticks) */
+  for (i = 0; i < 3; i++)
+  {
+    new_affect(&af);
+    af.spell = SPELL_ABSOLUTE_GEAS;
+    af.duration = 3;
+    af.location = APPLY_NONE;
+    af.modifier = 0;
+    SET_BIT_AR(af.bitvector, debuff_flags[i]);
+    affect_to_char(vict, &af);
+  }
+
+  send_to_char(vict, "%s\r\n", debuff_descs[rand_number(0, 2)]);
+}
+
+/* Mark a target with Hive Commander bonus: +3 DC to future powers, +2 to hit for allies */
+void apply_hive_commander_mark(struct char_data *ch, struct char_data *vict)
+{
+  struct affected_type af;
+  struct follow_type *f;
+
+  if (!ch || !vict || !has_psionic_hive_commander(ch))
+    return;
+
+  /* Apply +3 DC marker affect to victim */
+  new_affect(&af);
+  af.spell = SPELL_HIVE_COMMANDER_MARK;
+  af.duration = 3;
+  af.location = APPLY_NONE;
+  af.modifier = 0;
+  SET_BIT_AR(af.bitvector, AFF_HIVE_MARKED);
+  affect_to_char(vict, &af);
+
+  send_to_char(vict, "You feel marked by the Hive Commander's psychic link!\r\n");
+  send_to_char(ch, "%s is now marked by your psychic link!\r\n", GET_NAME(vict));
+
+  /* Grant +2 to-hit to caster */
+  new_affect(&af);
+  af.spell = SPELL_HIVE_COMMANDER_MARK;
+  af.duration = 3;
+  af.location = APPLY_HITROLL;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_to_char(ch, &af);
+
+  /* Grant +2 to-hit to leader (if caster is not leader) */
+  if (ch->master)
+  {
+    new_affect(&af);
+    af.spell = SPELL_HIVE_COMMANDER_MARK;
+    af.duration = 3;
+    af.location = APPLY_HITROLL;
+    af.modifier = 2;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_to_char(ch->master, &af);
+  }
+
+  /* Grant to all followers in group */
+  for (f = ch->followers; f; f = f->next)
+  {
+    if (f->follower && f->follower->in_room == ch->in_room && !IS_NPC(f->follower))
+    {
+      new_affect(&af);
+      af.spell = SPELL_HIVE_COMMANDER_MARK;
+      af.duration = 3;
+      af.location = APPLY_HITROLL;
+      af.modifier = 2;
+      af.bonus_type = BONUS_TYPE_MORALE;
+      affect_to_char(f->follower, &af);
+    }
+  }
+
+  send_to_char(ch, "\tY[Hive Commander] Your allies are bolstered!\tn\r\n");
+}
+
+/* ===== PSYCHOKINETIC ARSENAL TIER I HELPERS ===== */
+
+bool has_kinetic_edge_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_EDGE_I);
+}
+
+bool has_force_screen_adept(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_FORCE_SCREEN_ADEPT);
+}
+
+bool has_vector_shove(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_VECTOR_SHOVE);
+}
+
+bool has_energy_specialization(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  return has_perk(ch, PERK_PSIONICIST_ENERGY_SPECIALIZATION);
+}
+
+/* Returns bonus damage dice for Kinetic Edge I (+1 die when augmented >= 1 PSP) */
+int get_kinetic_edge_bonus(struct char_data *ch)
+{
+  if (!has_kinetic_edge_i(ch))
+    return 0;
+  /* Bonus applies when augmented by >= 1 PSP */
+  if (GET_AUGMENT_PSP(ch) >= 1)
+    return 1; /* +1 damage die */
+  return 0;
+}
+
+/* Returns AC bonus for Force Screen Adept (+1 AC) */
+int get_force_screen_ac_bonus(struct char_data *ch)
+{
+  if (!has_force_screen_adept(ch))
+    return 0;
+  return 1; /* +1 AC */
+}
+
+/* Returns duration bonus percentage for Force Screen Adept (+10% duration) */
+int get_force_screen_duration_bonus(struct char_data *ch)
+{
+  if (!has_force_screen_adept(ch))
+    return 0;
+  return 10; /* +10% duration */
+}
+
+/* Returns movement check bonus for Vector Shove (+2) */
+int get_vector_shove_movement_bonus(struct char_data *ch)
+{
+  if (!has_vector_shove(ch))
+    return 0;
+  return 2; /* +2 to movement check */
+}
+
+/* Returns damage bonus (dice) for Vector Shove (+1 die force damage) */
+int get_vector_shove_damage_bonus(struct char_data *ch)
+{
+  if (!has_vector_shove(ch))
+    return 0;
+  return 1; /* +1 die force damage */
+}
+
+/* Returns DC bonus for Energy Specialization based on chosen element */
+int get_energy_specialization_dc_bonus(struct char_data *ch, int element)
+{
+  if (!has_energy_specialization(ch))
+    return 0;
+  
+  /* Energy Specialization grants +1 DC to powers of the chosen element type */
+  if (element == GET_PSIONIC_ENERGY_TYPE(ch))
+    return 1;
+  
+  return 0;
+}
+
+/* ===== Tier 2 Psychokinetic Arsenal helper implementations ===== */
+
+bool has_kinetic_edge_ii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_EDGE_II);
+}
+
+/* Returns additional +1 die when augmented >= 3 PSP (total +2 with Tier I) */
+int get_kinetic_edge_ii_bonus(struct char_data *ch)
+{
+  if (!has_kinetic_edge_ii(ch))
+    return 0;
+  if (GET_AUGMENT_PSP(ch) >= 3)
+    return 1;
+  return 0;
+}
+
+bool has_deflective_screen(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_DEFLECTIVE_SCREEN);
+}
+
+int get_deflective_screen_ranged_ac_bonus(struct char_data *ch)
+{
+  return has_deflective_screen(ch) ? 2 : 0;
+}
+
+int get_deflective_screen_reflex_bonus(struct char_data *ch)
+{
+  return has_deflective_screen(ch) ? 2 : 0;
+}
+
+int get_deflective_screen_first_hit_dr(struct char_data *ch)
+{
+  return has_deflective_screen(ch) ? 5 : 0;
+}
+
+bool has_accelerated_manifestation(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ACCELERATED_MANIFEST);
+}
+
+bool has_energy_retort_perk(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ENERGY_RETORT_PERK);
+}
+
+/* Level-based energy retort bonus damage: simple scaling on psionic level and augment */
+int get_energy_retort_bonus_damage(struct char_data *victim)
+{
+  int lvl = GET_PSIONIC_LEVEL(victim);
+  int aug = GET_AUGMENT_PSP(victim);
+  int ndice = MAX(1, lvl / 5) + (aug >= 1 ? 1 : 0);
+  /* use d6s */
+  return dice(ndice, 6);
+}
+
+/* ===== Tier 3 Psychokinetic Arsenal helper implementations ===== */
+
+bool has_kinetic_edge_iii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_EDGE_III);
+}
+
+/* Returns additional +1 die when has tier III (total +3 with Tier I and II) */
+int get_kinetic_edge_iii_bonus(struct char_data *ch)
+{
+  if (!has_kinetic_edge_iii(ch))
+    return 0;
+  return 1;
+}
+
+/* Returns +2 DC bonus for energy ray and energy push powers */
+int get_kinetic_edge_iii_dc_bonus(struct char_data *ch, int spellnum)
+{
+  if (!has_kinetic_edge_iii(ch))
+    return 0;
+  
+  if (spellnum == PSIONIC_ENERGY_RAY || spellnum == PSIONIC_ENERGY_PUSH)
+    return 2;
+  
+  return 0;
+}
+
+bool has_gravity_well(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_GRAVITY_WELL);
+}
+
+bool can_use_gravity_well(struct char_data *ch)
+{
+  if (!has_gravity_well(ch))
+    return FALSE;
+  
+  /* Check if already used this combat */
+  if (char_has_mud_event(ch, eGRAVITY_WELL_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_gravity_well(struct char_data *ch)
+{
+  if (!can_use_gravity_well(ch))
+    return;
+  
+  /* Mark as used for this combat - will clear on combat end */
+  attach_mud_event(new_mud_event(eGRAVITY_WELL_USED, ch, NULL), 0);
+}
+
+bool has_force_aegis(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_FORCE_AEGIS);
+}
+
+int get_force_aegis_ranged_ac_bonus(struct char_data *ch)
+{
+  if (!has_force_aegis(ch))
+    return 0;
+  
+  /* Check if force screen or inertial armor is active */
+  if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN) || 
+      affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR))
+    return 3;
+  
+  return 0;
+}
+
+int get_force_aegis_temp_hp_bonus(struct char_data *ch)
+{
+  if (!has_force_aegis(ch))
+    return 0;
+  
+  return GET_PSIONIC_LEVEL(ch);
+}
+
+bool has_kinetic_crush(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_KINETIC_CRUSH);
+}
+
+bool should_apply_kinetic_crush_prone(struct char_data *ch)
+{
+  return has_kinetic_crush(ch);
+}
+
+int get_kinetic_crush_collision_damage(struct char_data *ch)
+{
+  if (!has_kinetic_crush(ch))
+    return 0;
+  
+  return GET_PSIONIC_LEVEL(ch);
+}
+
+/* ===== Tier 4 Psychokinetic Arsenal helper implementations ===== */
+
+bool has_singular_impact(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SINGULAR_IMPACT);
+}
+
+bool can_use_singular_impact(struct char_data *ch)
+{
+  if (!has_singular_impact(ch))
+    return FALSE;
+  
+  /* Check if already used today */
+  if (char_has_mud_event(ch, eSINGULAR_IMPACT_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_singular_impact(struct char_data *ch, struct char_data *victim)
+{
+  int dam;
+  struct affected_type af;
+  
+  if (!can_use_singular_impact(ch))
+    return;
+  
+  /* Calculate heavy force damage: scales with manifester level */
+  dam = dice(GET_PSIONIC_LEVEL(ch) / 2, 10) + GET_INT(ch);
+  
+  send_to_char(ch, "\tWYou channel your psychokinetic power into a singular devastating impact!\tn\r\n");
+  act("$n \tWunleashes a devastating psychokinetic blast at $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+  act("$n \tWunleashes a devastating psychokinetic blast at you!\tn", FALSE, ch, 0, victim, TO_VICT);
+  
+  /* Apply damage */
+  damage(ch, victim, dam, PSIONIC_ENERGY_RAY, DAM_FORCE, FALSE);
+  
+  /* Auto bull rush - push back */
+  if (victim && GET_POS(victim) > POS_DEAD && !MOB_FLAGGED(victim, MOB_NOBASH))
+  {
+    send_to_char(victim, "The force of the blast hurls you backwards!\r\n");
+    change_position(victim, POS_SITTING);
+  }
+  
+  /* Apply stun on failed Fort save (50% chance or save negates) */
+  if (victim && GET_POS(victim) > POS_DEAD)
+  {
+    if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_PSIONIC_LEVEL(ch), PSYCHOKINESIS))
+    {
+      new_affect(&af);
+      af.spell = PSIONIC_ENERGY_STUN; /* Use existing psionic stun spell */
+      af.duration = 10; /* 1 round */
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+      affect_to_char(victim, &af);
+      send_to_char(victim, "You are \tRstunned\tn by the impact!\r\n");
+    }
+    else
+    {
+      send_to_char(victim, "You manage to resist the stunning effect!\r\n");
+    }
+  }
+  
+  /* Mark as used for the day */
+  attach_mud_event(new_mud_event(eSINGULAR_IMPACT_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC); /* 24 hours */
+}
+
+bool has_perfect_deflection(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_PERFECT_DEFLECTION);
+}
+
+bool can_use_perfect_deflection(struct char_data *ch)
+{
+  if (!has_perfect_deflection(ch))
+    return FALSE;
+  
+  /* Check if already used today */
+  if (char_has_mud_event(ch, ePERFECT_DEFLECTION_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_perfect_deflection(struct char_data *ch)
+{
+  if (!can_use_perfect_deflection(ch))
+    return;
+  
+  /* The actual reflection logic will be handled in the attack code */
+  /* This just marks it as used */
+  attach_mud_event(new_mud_event(ePERFECT_DEFLECTION_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC); /* 24 hours */
+  
+  send_to_char(ch, "\tCYou prepare to deflect the next attack against you!\tn\r\n");
+}
+/* ===== METACREATIVE GENIUS TIER I HELPERS ===== */
+
+bool has_ectoplasmic_artisan_i(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I);
+}
+
+bool has_ectoplasmic_artisan_ii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II);
+}
+
+bool can_use_ectoplasmic_artisan_psp_reduction(struct char_data *ch)
+{
+  if (!has_ectoplasmic_artisan_i(ch) && !has_ectoplasmic_artisan_ii(ch))
+    return FALSE;
+  
+  /* Check if already used this encounter */
+  if (char_has_mud_event(ch, eECTOPLASMIC_ARTISAN_USED))
+    return FALSE;
+  
+  return TRUE;
+}
+
+void use_ectoplasmic_artisan_psp_reduction(struct char_data *ch)
+{
+  if (!can_use_ectoplasmic_artisan_psp_reduction(ch))
+    return;
+  
+  /* Mark as used for this encounter - will clear on combat end */
+  attach_mud_event(new_mud_event(eECTOPLASMIC_ARTISAN_USED, ch, NULL), 0);
+}
+
+int get_ectoplasmic_artisan_psp_reduction(struct char_data *ch)
+{
+  if (!can_use_ectoplasmic_artisan_psp_reduction(ch))
+    return 0;
+  
+  /* Tier II increases the reduction to -2 PSP */
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 2;
+  return 1; /* -1 PSP cost */
+}
+
+int get_ectoplasmic_artisan_duration_bonus(struct char_data *ch)
+{
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 20; /* +20% duration for Tier II */
+  if (has_ectoplasmic_artisan_i(ch))
+    return 10; /* +10% duration for Tier I */
+  return 0;
+}
+
+bool has_shard_volley(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SHARD_VOLLEY);
+}
+
+bool should_add_extra_shard_projectile(struct char_data *ch, int augment_psp)
+{
+  if (!has_shard_volley(ch))
+    return FALSE;
+  
+  /* Requires ≥2 PSP augment */
+  if (augment_psp < 2)
+    return FALSE;
+  
+  return TRUE;
+}
+
+bool has_hardened_constructs_i(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_HARDENED_CONSTRUCTS_I);
+}
+
+int get_hardened_constructs_temp_hp(struct char_data *ch)
+{
+  if (!has_hardened_constructs_i(ch))
+    return 0;
+  
+  return GET_PSIONIC_LEVEL(ch);
+}
+
+int get_hardened_constructs_ac_bonus(struct char_data *ch)
+{
+  if (!has_hardened_constructs_i(ch))
+    return 0;
+  
+  return 1; /* +1 AC */
+}
+
+bool has_hardened_constructs_ii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_HARDENED_CONSTRUCTS_II);
+}
+
+int get_hardened_constructs_ii_ac_bonus(struct char_data *ch)
+{
+  if (!has_hardened_constructs_ii(ch))
+    return 0;
+  return 2; /* +2 AC */
+}
+
+int get_hardened_constructs_dr_amount(struct char_data *ch)
+{
+  if (!has_hardened_constructs_ii(ch))
+    return 0;
+  return 2; /* DR 2/— */
+}
+
+bool has_fabricate_focus(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_FABRICATE_FOCUS);
+}
+
+int get_fabricate_focus_casting_time_reduction(struct char_data *ch)
+{
+  if (!has_fabricate_focus(ch))
+    return 0;
+  
+  return 10; /* 10% faster */
+}
+
+bool has_shardstorm(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SHARDSTORM);
+}
+
+bool has_rapid_manifester(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_RAPID_MANIFESTER);
+}
+
+bool can_use_rapid_manifester(struct char_data *ch)
+{
+  if (!has_rapid_manifester(ch))
+    return FALSE;
+  if (char_has_mud_event(ch, eRAPID_MANIFESTER_USED))
+    return FALSE;
+  return TRUE;
+}
+
+void use_rapid_manifester(struct char_data *ch)
+{
+  if (!can_use_rapid_manifester(ch))
+    return;
+  /* Mark as used for this encounter */
+  attach_mud_event(new_mud_event(eRAPID_MANIFESTER_USED, ch, NULL), 0);
+}
+
+/* ===== METACREATIVE GENIUS TIER III HELPERS ===== */
+
+bool has_ectoplasmic_artisan_iii(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III);
+}
+
+int get_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch)
+{
+  if (!can_use_ectoplasmic_artisan_psp_reduction(ch))
+    return 0;
+  
+  if (has_ectoplasmic_artisan_iii(ch))
+    return 3; /* -3 PSP total */
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 2;
+  return 1;
+}
+
+int get_ectoplasmic_artisan_iii_duration_bonus(struct char_data *ch)
+{
+  if (has_ectoplasmic_artisan_iii(ch))
+    return 30; /* +30% duration */
+  if (has_ectoplasmic_artisan_ii(ch))
+    return 20;
+  if (has_ectoplasmic_artisan_i(ch))
+    return 10;
+  return 0;
+}
+
+bool can_use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch)
+{
+  return can_use_ectoplasmic_artisan_psp_reduction(ch);
+}
+
+void use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch)
+{
+  use_ectoplasmic_artisan_psp_reduction(ch);
+}
+
+bool has_empowered_creation(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_EMPOWERED_CREATION);
+}
+
+bool has_construct_commander(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_CONSTRUCT_COMMANDER);
+}
+
+int get_construct_commander_summon_bonus(struct char_data *ch)
+{
+  if (!has_construct_commander(ch))
+    return 0;
+  return 1; /* +1 to hit */
+}
+
+bool has_self_forged(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_SELF_FORGED);
+}
+
+int get_self_forged_temp_hp(struct char_data *ch)
+{
+  if (!has_self_forged(ch))
+    return 0;
+  return GET_PSIONIC_LEVEL(ch) / 2; /* Half manifester level */
+}
+
+/* ===== METACREATIVE GENIUS TIER IV (CAPSTONE) HELPERS ===== */
+
+bool has_astral_juggernaut(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_ASTRAL_JUGGERNAUT);
+}
+
+bool can_use_astral_juggernaut(struct char_data *ch)
+{
+  if (!has_astral_juggernaut(ch))
+    return FALSE;
+  if (char_has_mud_event(ch, eASTRAL_JUGGERNAUT_USED))
+    return FALSE;
+  return TRUE;
+}
+
+void use_astral_juggernaut(struct char_data *ch)
+{
+  if (!can_use_astral_juggernaut(ch))
+    return;
+  /* Mark as used for 24 hours (daily cooldown) */
+  attach_mud_event(new_mud_event(eASTRAL_JUGGERNAUT_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC);
+}
+
+bool has_perfect_fabricator(struct char_data *ch)
+{
+  return has_perk(ch, PERK_PSIONICIST_PERFECT_FABRICATOR);
+}
+
+bool can_use_perfect_fabricator(struct char_data *ch)
+{
+  if (!has_perfect_fabricator(ch))
+    return FALSE;
+  if (char_has_mud_event(ch, ePERFECT_FABRICATOR_USED))
+    return FALSE;
+  return TRUE;
+}
+
+void use_perfect_fabricator(struct char_data *ch)
+{
+  if (!can_use_perfect_fabricator(ch))
+    return;
+  /* Mark as used for 24 hours (daily cooldown) */
+  attach_mud_event(new_mud_event(ePERFECT_FABRICATOR_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC);
+}
+
 void define_barbarian_perks(void)
 {
   struct perk_data *perk;
@@ -6089,16 +12649,16 @@ bool is_perk_toggled_on(struct char_data *ch, int perk_id)
 void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
 {
   int byte_index, bit_index;
-  
+
   if (!ch || IS_NPC(ch))
     return;
-    
+
   if (perk_id < 0 || perk_id >= 256)
     return;
-  
+
   byte_index = perk_id / 8;
   bit_index = perk_id % 8;
-  
+
   if (state)
     ch->player_specials->saved.perk_toggles[byte_index] |= (1 << bit_index);
   else
@@ -6355,6 +12915,67 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
       return FALSE;
     }
   }
+
+  /* Special prerequisite check for Cluster Bomb - requires Alchemical Bomb II (1 rank) AND Precise Bombs */
+  if (perk_id == PERK_ALCHEMIST_CLUSTER_BOMB)
+  {
+    int precise_bombs_rank = get_perk_rank(ch, PERK_ALCHEMIST_PRECISE_BOMBS_PERK, class_id);
+    if (precise_bombs_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Precise Bombs to purchase Cluster Bomb.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Calculated Throw - requires Precise Bombs AND Quick Bomb */
+  if (perk_id == PERK_ALCHEMIST_CALCULATED_THROW)
+  {
+    int quick_bomb_rank = get_perk_rank(ch, PERK_ALCHEMIST_QUICK_BOMB, class_id);
+    if (quick_bomb_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Quick Bomb to purchase Calculated Throw.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Bomb Mastery - requires Alchemical Bomb II (any) AND (Concussive Bomb OR Poison Bomb) */
+  if (perk_id == PERK_ALCHEMIST_BOMB_MASTERY)
+  {
+    int concussive_rank = get_perk_rank(ch, PERK_ALCHEMIST_CONCUSSIVE_BOMB, class_id);
+    int poison_rank = get_perk_rank(ch, PERK_ALCHEMIST_POISON_BOMB, class_id);
+    if (concussive_rank < 1 && poison_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have either Concussive Bomb or Poison Bomb to purchase Bomb Mastery.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Bombardier Savant - requires Bomb Mastery AND Calculated Throw */
+  if (perk_id == PERK_ALCHEMIST_BOMBARDIER_SAVANT)
+  {
+    int calculated_throw_rank = get_perk_rank(ch, PERK_ALCHEMIST_CALCULATED_THROW, class_id);
+    if (calculated_throw_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Calculated Throw to purchase Bombardier Savant.");
+      return FALSE;
+    }
+  }
+
+  /* Special prerequisite check for Volatile Catalyst - requires Inferno Bomb AND Cluster Bomb */
+  if (perk_id == PERK_ALCHEMIST_VOLATILE_CATALYST)
+  {
+    int cluster_bomb_rank = get_perk_rank(ch, PERK_ALCHEMIST_CLUSTER_BOMB, class_id);
+    if (cluster_bomb_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Cluster Bomb to purchase Volatile Catalyst.");
+      return FALSE;
+    }
+  }
   
   /* All checks passed */
   return TRUE;
@@ -6568,7 +13189,21 @@ int get_perk_bonus(struct char_data *ch, int effect_type, int effect_modifier)
  */
 int get_perk_hp_bonus(struct char_data *ch)
 {
-  return get_perk_bonus(ch, PERK_EFFECT_HP, -1);
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Get all HP bonuses from perks */
+  bonus += get_perk_bonus(ch, PERK_EFFECT_HP, -1);
+  
+  /* Wilderness Warrior: Ranger Toughness I */
+  bonus += get_ranger_toughness_hp(ch);
+
+  /* Alchemist Mutagenist: Hardy Constitution I (only while mutagen is active) */
+  bonus += get_alchemist_hardy_constitution_hp_bonus(ch);
+  
+  return bonus;
 }
 
 /**
@@ -6698,23 +13333,54 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
  */
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
 {
+  int bonus = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
     
   /* If wielded is NULL, character is unarmed - apply bonus */
   if (!wielded)
-    return get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
-  
-  /* Check if the weapon is ranged - if so, don't apply bonus */
-  if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
+  else
   {
-    int weapon_type = GET_OBJ_VAL(wielded, 0);
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
-      return 0; /* No bonus for ranged weapons */
+    /* Check if the weapon is ranged - if so, don't apply bonus */
+    if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+    {
+      int weapon_type = GET_OBJ_VAL(wielded, 0);
+      if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+        return 0; /* No bonus for ranged weapons */
+    }
+    
+    /* Weapon is melee, apply bonus */
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
   }
   
-  /* Weapon is melee, apply bonus */
-  return get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
+  /* Add Bard Warchanter perks */
+  /* Battle Hymn I & II: +1 damage per rank for Inspire Courage recipients */
+  bonus += get_bard_battle_hymn_damage_bonus(ch);
+  bonus += get_bard_battle_hymn_ii_damage_bonus(ch);
+  
+  /* Frostbite Refrain I & II: +1 cold damage per rank while performing */
+  bonus += get_bard_frostbite_cold_damage(ch);
+  bonus += get_bard_frostbite_refrain_ii_cold_damage(ch);
+  
+  /* Warchanter's Dominance: +1 damage while performing */
+  bonus += get_bard_warchanters_dominance_damage_bonus(ch);
+
+  /* Add Bard Swashbuckler perks */
+  /* Precise Strike I: +1 precision damage per rank with appropriate weapons */
+  bonus += get_bard_precise_strike_i_bonus(ch);
+  
+  /* Precise Strike II: Additional +1 precision damage per rank with appropriate weapons */
+  bonus += get_bard_precise_strike_ii_bonus(ch);
+  
+  /* Perfect Tempo: +2d6 precision damage on next attack after avoiding all hits */
+  bonus += get_bard_perfect_tempo_damage_bonus(ch);
+  
+  /* Feint and Finish: +2d6 precision damage on next attack after feint */
+  bonus += get_bard_feint_and_finish_damage_bonus(ch);
+  
+  return bonus;
 }
 
 /**
@@ -6727,23 +13393,57 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
  */
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
 {
+  int bonus = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
     
   /* If wielded is NULL, character is unarmed - apply bonus */
   if (!wielded)
-    return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
-  
-  /* Check if the weapon is ranged - if so, don't apply bonus */
-  if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
   {
-    int weapon_type = GET_OBJ_VAL(wielded, 0);
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
-      return 0; /* No bonus for ranged weapons */
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+  }
+  else
+  {
+    /* Check if the weapon is ranged - if so, don't apply bonus */
+    if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+    {
+      int weapon_type = GET_OBJ_VAL(wielded, 0);
+      if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+        return 0; /* No bonus for ranged weapons */
+    }
+    
+    /* Weapon is melee, apply bonus */
+    bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
   }
   
-  /* Weapon is melee, apply bonus */
-  return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+  /* Add Drummer's Rhythm I & II bonus while performing */
+  bonus += get_bard_drummers_rhythm_tohit_bonus(ch);
+  bonus += get_bard_drummers_rhythm_ii_tohit_bonus(ch);
+  
+  /* Add Warchanter's Dominance bonus */
+  bonus += get_bard_warchanters_dominance_tohit_bonus(ch);
+
+  /* Add Bard Swashbuckler bonuses */
+  /* Flourish: +2 to hit while active */
+  bonus += get_bard_flourish_tohit_bonus(ch);
+  
+  /* Perfect Tempo: +4 to hit on next attack after avoiding all hits */
+  bonus += get_bard_perfect_tempo_tohit_bonus(ch);
+  
+  /* Feint and Finish: +2 to hit bonus (note: actual bonus is crit confirm, but also +2 to-hit from affect) */
+  if (is_affected_by_feint_and_finish(ch))
+    bonus += 2;
+  
+  /* Inquisitor Enhanced Bane: +1 to attack per 2 ranks (max +2 at rank 4) */
+  if (has_perk(ch, PERK_INQUISITOR_ENHANCED_BANE))
+  {
+    int enhanced_bane_attack = get_inquisitor_enhanced_bane_attack(ch);
+    if (enhanced_bane_attack > 0)
+      bonus += enhanced_bane_attack;
+  }
+  
+  return bonus;
 }
 
 /**
@@ -6795,6 +13495,12 @@ int get_perk_critical_confirmation_bonus(struct char_data *ch)
   /* Improved Vital Strike: +2 more (+4 total) */
   if (has_perk(ch, PERK_ROGUE_IMPROVED_VITAL_STRIKE))
     bonus += 2;
+  
+  /* Bard Swashbuckler: Duelist's Poise - +2 with finesse weapon */
+  bonus += get_bard_duelists_poise_crit_confirm_bonus(ch);
+  
+  /* Bard Swashbuckler: Feint and Finish - +2 to crit confirmation after feint */
+  bonus += get_bard_feint_and_finish_crit_confirm_bonus(ch);
   
   return bonus;
 }
@@ -7240,6 +13946,158 @@ int get_greater_summons_attack_bonus(struct char_data *ch)
   
   if (has_perk(ch, PERK_RANGER_GREATER_SUMMONS))
     return 4;
+  
+  return 0;
+}
+
+/* === WILDERNESS WARRIOR PERK HELPERS === */
+
+/**
+ * Get Two-Weapon Focus to-hit bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return To-hit bonus
+ */
+int get_ranger_two_weapon_focus_tohit(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Two-Weapon Focus I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TWO_WEAPON_FOCUS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Two-Weapon Focus damage bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return Damage bonus
+ */
+int get_ranger_two_weapon_focus_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Two-Weapon Focus II: +1 per rank (max 2) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TWO_WEAPON_FOCUS_II);
+  
+  return bonus;
+}
+
+/**
+ * Get Dual Strike off-hand damage bonus.
+ * 
+ * @param ch The character
+ * @return Off-hand damage bonus
+ */
+int get_ranger_dual_strike_offhand(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Dual Strike I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_DUAL_STRIKE_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Favored Enemy Mastery damage bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return Damage bonus vs favored enemies
+ */
+int get_ranger_favored_enemy_mastery_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Mastery I: +1 per rank (max 3) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_FAVORED_ENEMY_MASTERY_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Ranger Toughness HP bonus.
+ * 
+ * @param ch The character
+ * @return HP bonus
+ */
+int get_ranger_toughness_hp(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Ranger Toughness I: +5 HP per rank (max 3) */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_RANGER_RANGER_TOUGHNESS_I);
+  
+  return bonus;
+}
+
+/**
+ * Get Tempest AC bonus when dual wielding.
+ * 
+ * @param ch The character
+ * @return AC dodge bonus
+ */
+int get_ranger_tempest_ac(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Tempest: +1 AC per rank (max 2) */
+  bonus += get_total_perk_ranks(ch, PERK_RANGER_TEMPEST);
+  
+  return bonus;
+}
+
+/**
+ * Get Favored Enemy Slayer to-hit bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return To-hit bonus
+ */
+int get_ranger_favored_enemy_slayer_tohit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Slayer: +2 to-hit */
+  if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Favored Enemy Slayer critical threat range bonus vs favored enemies.
+ * 
+ * @param ch The character
+ * @return Critical threat range increase
+ */
+int get_ranger_favored_enemy_slayer_crit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Favored Enemy Slayer: +1 crit threat range */
+  if (has_perk(ch, PERK_RANGER_FAVORED_ENEMY_SLAYER))
+    return 1;
   
   return 0;
 }
@@ -12467,3 +19325,2190 @@ bool has_paladin_beacon_of_hope(struct char_data *ch)
   return has_perk(ch, PERK_PALADIN_BEACON_OF_HOPE);
 }
 
+
+/******************************************************************************
+ * Bard Spellsinger Tree Perk Functions
+ ******************************************************************************/
+
+/**
+ * Get Enchanter's Guile DC bonus for Enchantment and Illusion spells.
+ * 
+ * @param ch The character
+ * @return Total DC bonus for Enchantment/Illusion spells
+ */
+int get_bard_enchanters_guile_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enchanter's Guile I: +1 DC per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_I, CLASS_BARD);
+  
+  /* Enchanter's Guile II: +1 additional DC per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get Songweaver song level bonus for bardic performance scaling.
+ * 
+ * @param ch The character
+ * @return Total effective song level bonus
+ */
+int get_bard_songweaver_level_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Songweaver I: +1 effective song level per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_I, CLASS_BARD);
+  
+  /* Songweaver II: +1 additional effective song level per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get Resonant Voice save bonus for allies under bard songs.
+ * 
+ * @param ch The character
+ * @return Total save bonus vs. mind-affecting for allies
+ */
+int get_bard_resonant_voice_save_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Resonant Voice I: +1 competence to saves per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_RESONANT_VOICE_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Harmonic Casting perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Harmonic Casting, FALSE otherwise
+ */
+bool has_bard_harmonic_casting(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_HARMONIC_CASTING);
+}
+/**
+ * Get Songweaver II song level bonus (Tier 2).
+ * 
+ * @param ch The character
+ * @return Additional effective song level bonus from Tier 2
+ */
+int get_bard_songweaver_ii_level_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Songweaver II: +1 additional effective song level per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get Enchanter's Guile II DC bonus (Tier 2).
+ * 
+ * @param ch The character
+ * @return Additional DC bonus for Enchantment/Illusion spells from Tier 2
+ */
+int get_bard_enchanters_guile_ii_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Enchanter's Guile II: +1 additional DC per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Crescendo perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Crescendo, FALSE otherwise
+ */
+bool has_bard_crescendo(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_CRESCENDO);
+}
+
+/**
+ * Get sonic damage dice value for Crescendo.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice to roll for sonic damage (1 if has perk, 0 otherwise)
+ */
+int get_bard_crescendo_sonic_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_crescendo(ch))
+    return 1; /* +1d6 sonic damage */
+  
+  return 0;
+}
+
+/**
+ * Get save DC bonus for Crescendo.
+ * 
+ * @param ch The character
+ * @return DC bonus (+2 if has perk, 0 otherwise)
+ */
+int get_bard_crescendo_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_crescendo(ch))
+    return 2; /* +2 to save DC */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Sustaining Melody perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Sustaining Melody, FALSE otherwise
+ */
+bool has_bard_sustaining_melody(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SUSTAINING_MELODY);
+}
+
+/* ============================================================================
+ * TIER III SPELLSINGER PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Master of Motifs perk.
+ * Allows maintaining two distinct bard songs simultaneously.
+ * 
+ * @param ch The character
+ * @return TRUE if has Master of Motifs, FALSE otherwise
+ */
+bool has_bard_master_of_motifs(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_MASTER_OF_MOTIFS);
+}
+
+/**
+ * Check if character has Dirge of Dissonance perk.
+ * Causes enemies in the room to take sonic damage and concentration penalties.
+ * 
+ * @param ch The character
+ * @return TRUE if has Dirge of Dissonance, FALSE otherwise
+ */
+bool has_bard_dirge_of_dissonance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_DIRGE_OF_DISSONANCE);
+}
+
+/**
+ * Get sonic damage dice value for Dirge of Dissonance.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice to roll for sonic damage per round (1 if has perk, 0 otherwise)
+ */
+int get_bard_dirge_sonic_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_dirge_of_dissonance(ch))
+    return 1; /* 1d6 sonic damage per round */
+  
+  return 0;
+}
+
+/**
+ * Get concentration penalty for Dirge of Dissonance.
+ * 
+ * @param ch The character
+ * @return Concentration check penalty (-2 if has perk, 0 otherwise)
+ */
+int get_bard_dirge_concentration_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_dirge_of_dissonance(ch))
+    return -2; /* -2 to concentration checks */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Heightened Harmony perk.
+ * Grants perform skill bonus when using metamagic on bard spells.
+ * 
+ * @param ch The character
+ * @return TRUE if has Heightened Harmony, FALSE otherwise
+ */
+bool has_bard_heightened_harmony(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_HEIGHTENED_HARMONY);
+}
+
+/**
+ * Get perform skill bonus from Heightened Harmony.
+ * 
+ * @param ch The character
+ * @return Perform skill bonus (+5 if has perk and buff is active, 0 otherwise)
+ */
+int get_bard_heightened_harmony_perform_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_heightened_harmony(ch) && affected_by_spell(ch, PERK_BARD_HEIGHTENED_HARMONY))
+    return 5; /* +5 to perform skill */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Protective Chorus perk.
+ * Grants defensive bonuses to allies under bard songs.
+ * 
+ * @param ch The character
+ * @return TRUE if has Protective Chorus, FALSE otherwise
+ */
+bool has_bard_protective_chorus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PROTECTIVE_CHORUS);
+}
+
+/**
+ * Get save bonus from Protective Chorus.
+ * 
+ * @param ch The character
+ * @return Save bonus vs. spells (+2 if has perk, 0 otherwise)
+ */
+int get_bard_protective_chorus_save_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_protective_chorus(ch))
+    return 2; /* +2 to saves vs. spells */
+  
+  return 0;
+}
+
+/**
+ * Get AC bonus from Protective Chorus.
+ * 
+ * @param ch The character
+ * @return AC bonus vs. attacks of opportunity (+2 if has perk, 0 otherwise)
+ */
+int get_bard_protective_chorus_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_protective_chorus(ch))
+    return 2; /* +2 AC vs. attacks of opportunity */
+  
+  return 0;
+}
+
+/* ============================================================================
+ * TIER IV SPELLSINGER PERK FUNCTIONS - CAPSTONES
+ * ============================================================================ */
+
+/**
+ * Check if character has Spellsong Maestra perk.
+ * Grants +2 caster level and DC to bard spells while performing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Spellsong Maestra, FALSE otherwise
+ */
+bool has_bard_spellsong_maestra(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SPELLSONG_MAESTRA);
+}
+
+/**
+ * Get caster level bonus from Spellsong Maestra.
+ * Only applies while performing.
+ * 
+ * @param ch The character
+ * @return Caster level bonus (+2 if performing with perk, 0 otherwise)
+ */
+int get_bard_spellsong_maestra_caster_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+    return 2; /* +2 caster level */
+  
+  return 0;
+}
+
+/**
+ * Get spell DC bonus from Spellsong Maestra.
+ * Only applies to bard spells while performing.
+ * 
+ * @param ch The character
+ * @return Spell DC bonus (+2 if performing with perk, 0 otherwise)
+ */
+int get_bard_spellsong_maestra_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+    return 2; /* +2 spell DC */
+  
+  return 0;
+}
+
+/**
+ * Check if Spellsong Maestra allows free metamagic on bard spells.
+ * When active during performance, metamagic on bard spells costs nothing.
+ * 
+ * @param ch The character
+ * @return TRUE if metamagic is free on bard spells, FALSE otherwise
+ */
+bool has_bard_spellsong_maestra_metamagic_free(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+    return TRUE; /* Metamagic on bard spells is free while performing */
+  
+  return FALSE;
+}
+
+/**
+ * Check if character has Aria of Stasis perk.
+ * Grants save bonuses and movement penalties to foes.
+ * 
+ * @param ch The character
+ * @return TRUE if has Aria of Stasis, FALSE otherwise
+ */
+bool has_bard_aria_of_stasis(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ARIA_OF_STASIS);
+}
+
+/**
+ * Get save bonus from Aria of Stasis for allies.
+ * Applies +4 to all saves.
+ * 
+ * @param ch The character
+ * @return Save bonus (+4 if has perk, 0 otherwise)
+ */
+int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_aria_of_stasis(ch))
+    return 4; /* +4 to all saves */
+  
+  return 0;
+}
+
+/**
+ * Get to-hit penalty from Aria of Stasis for enemies.
+ * Applies -2 to hit penalty.
+ * 
+ * @param ch The character
+ * @return To-hit penalty (-2 if has perk, 0 otherwise)
+ */
+int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_aria_of_stasis(ch))
+    return -2; /* -2 to hit */
+  
+  return 0;
+}
+
+/**
+ * Get movement speed penalty from Aria of Stasis for enemies.
+ * Returns percentage reduction (10).
+ * 
+ * @param ch The character
+ * @return Movement penalty percentage (10 if has perk, 0 otherwise)
+ */
+int get_bard_aria_stasis_movement_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_aria_of_stasis(ch))
+    return 10; /* 10% movement speed reduction */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Symphonic Resonance perk.
+ * Grants temp HP and daze effect on certain spells.
+ * 
+ * @param ch The character
+ * @return TRUE if has Symphonic Resonance, FALSE otherwise
+ */
+bool has_bard_symphonic_resonance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SYMPHONIC_RESONANCE);
+}
+
+/**
+ * Get temporary HP from Symphonic Resonance per round.
+ * Returns 1d6.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice for temp HP (1 if has perk, 0 otherwise)
+ */
+int get_bard_symphonic_resonance_temp_hp(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_symphonic_resonance(ch))
+    return 1; /* 1d6 temp HP per round */
+  
+  return 0;
+}
+
+/**
+ * Get daze duration from Symphonic Resonance.
+ * Returns number of rounds for daze effect.
+ * 
+ * @param ch The character
+ * @return Daze duration in rounds (1 if has perk, 0 otherwise)
+ */
+int get_bard_symphonic_resonance_daze_duration(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_symphonic_resonance(ch))
+    return 1; /* 1 round daze */
+  
+  return 0;
+}
+
+/**
+ * Get daze range from Symphonic Resonance in feet.
+ * 
+ * @param ch The character
+ * @return Daze range in feet (20 if has perk, 0 otherwise)
+ */
+int get_bard_symphonic_resonance_daze_range(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_symphonic_resonance(ch))
+    return 20; /* 20 feet range */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Endless Refrain perk.
+ * Makes performance free and regenerates spell slots.
+ * 
+ * @param ch The character
+ * @return TRUE if has Endless Refrain, FALSE otherwise
+ */
+bool has_bard_endless_refrain(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ENDLESS_REFRAIN);
+}
+
+/**
+ * Get spell slot regeneration from Endless Refrain.
+ * Returns number of spell slots regenerated per round.
+ * 
+ * @param ch The character
+ * @return Spell slots regenerated per round (1 if has perk, 0 otherwise)
+ */
+int get_bard_endless_refrain_slot_regen(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_bard_endless_refrain(ch))
+    return 1; /* Regenerate 1 spell slot per round */
+  
+  return 0;
+}
+
+/**
+ * Check if Endless Refrain allows performance to continue without consuming resources.
+ * When active, performance costs nothing and doesn't consume rounds.
+ * 
+ * @param ch The character
+ * @return FALSE if Endless Refrain is active (don't consume), TRUE otherwise
+ */
+bool should_endless_refrain_consume_performance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return TRUE;
+  
+  if (has_bard_endless_refrain(ch) && IS_PERFORMING(ch))
+    return FALSE; /* Don't consume performance */
+  
+  return TRUE; /* Normal bards consume performance */
+}
+/* ============================================================================
+ * WARCHANTER TREE PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Get damage bonus from Battle Hymn I.
+ * Provides +1 competence damage per rank to Inspire Courage recipients.
+ * 
+ * @param ch The character
+ * @return Damage bonus per rank (cumulative)
+ */
+int get_bard_battle_hymn_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Battle Hymn I: +1 competence to damage per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_BATTLE_HYMN_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get to-hit bonus from Drummer's Rhythm I.
+ * Provides +1 to-hit per rank while performing.
+ * 
+ * @param ch The character
+ * @return To-hit bonus per rank (cumulative)
+ */
+int get_bard_drummers_rhythm_tohit_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  /* Drummer's Rhythm I: +1 melee to-hit per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_DRUMMERS_RHYTHM_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Rallying Cry perk.
+ * Allows removing shaken condition and granting fear save bonuses to allies.
+ * 
+ * @param ch The character
+ * @return TRUE if has Rallying Cry, FALSE otherwise
+ */
+bool has_bard_rallying_cry_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_RALLYING_CRY);
+}
+
+/**
+ * Get fear save bonus from Rallying Cry effect.
+ * Returns morale bonus to saves vs. fear.
+ * 
+ * @param ch The character
+ * @return +2 if affected by Rallying Cry, 0 otherwise
+ */
+int get_bard_rallying_cry_fear_save_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Check if character is affected by AFFECT_RALLYING_CRY */
+  if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
+    return 2; /* +2 morale to fear saves */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Frostbite Refrain I perk.
+ * Adds cold damage to melee hits and applies debuff on natural 20.
+ * 
+ * @param ch The character
+ * @return TRUE if has Frostbite Refrain I, FALSE otherwise
+ */
+bool has_bard_frostbite_refrain(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FROSTBITE_REFRAIN_I);
+}
+
+/**
+ * Get cold damage bonus from Frostbite Refrain I.
+ * Returns +1 cold damage per rank while performing.
+ * 
+ * @param ch The character
+ * @return Cold damage bonus per rank (cumulative)
+ */
+int get_bard_frostbite_cold_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain(ch))
+    return 0;
+  
+  /* Frostbite Refrain I: +1 cold damage per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_FROSTBITE_REFRAIN_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get natural 20 debuff modifier from Frostbite Refrain I.
+ * Returns the to-hit penalty applied on natural 20 hit.
+ * 
+ * @param ch The character
+ * @return -1 to attack (as specified in effect_modifier)
+ */
+int get_bard_frostbite_natural_20_debuff(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain(ch))
+    return 0;
+  
+  /* Frostbite Refrain I: natural 20 applies -1 to attack debuff */
+  return -1;
+}
+
+/* ============================================================================
+ * WARCHANTER TREE TIER 2 PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Get additional damage bonus from Battle Hymn II.
+ * Provides additional +1 competence damage per rank to Inspire Courage recipients (stacks with Tier 1).
+ * 
+ * @param ch The character
+ * @return Additional damage bonus per rank (cumulative)
+ */
+int get_bard_battle_hymn_ii_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Battle Hymn II: Additional +1 competence to damage per rank */
+  bonus += get_perk_rank(ch, PERK_BARD_BATTLE_HYMN_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get additional to-hit bonus from Drummer's Rhythm II.
+ * Provides additional +1 to-hit per rank while performing (stacks with Tier 1).
+ * 
+ * @param ch The character
+ * @return Additional to-hit bonus per rank (cumulative)
+ */
+int get_bard_drummers_rhythm_ii_tohit_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  /* Drummer's Rhythm II: Additional +1 melee to-hit per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_DRUMMERS_RHYTHM_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Warbeat perk.
+ * Grants first-turn-in-combat extra melee attack and ally damage buff on hit.
+ * 
+ * @param ch The character
+ * @return TRUE if has Warbeat, FALSE otherwise
+ */
+bool has_bard_warbeat(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_WARBEAT);
+}
+
+/**
+ * Get ally damage bonus from Warbeat perk.
+ * Returns the number of d4 dice for the damage bonus to allies.
+ * 
+ * @param ch The character
+ * @return 1 (for 1d4 damage bonus), 0 if not applicable
+ */
+int get_bard_warbeat_ally_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_warbeat(ch))
+    return 0;
+  
+  /* Warbeat: On hit, grant allies +1d4 damage for 2 rounds */
+  return 1; /* 1d4 */
+}
+
+/**
+ * Check if character has Frostbite Refrain II perk.
+ * Adds enhanced cold damage to melee hits with upgraded natural 20 debuff.
+ * 
+ * @param ch The character
+ * @return TRUE if has Frostbite Refrain II, FALSE otherwise
+ */
+bool has_bard_frostbite_refrain_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FROSTBITE_REFRAIN_II);
+}
+
+/**
+ * Get cold damage bonus from Frostbite Refrain II.
+ * Returns additional +1 cold damage per rank while performing (stacks with Tier 1).
+ * 
+ * @param ch The character
+ * @return Cold damage bonus per rank (cumulative)
+ */
+int get_bard_frostbite_refrain_ii_cold_damage(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain_ii(ch))
+    return 0;
+  
+  /* Frostbite Refrain II: Additional +1 cold damage per rank while performing */
+  bonus += get_perk_rank(ch, PERK_BARD_FROSTBITE_REFRAIN_II, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * Get natural 20 to-hit debuff from Frostbite Refrain II.
+ * Returns the enhanced to-attack penalty applied on natural 20 hit.
+ * 
+ * @param ch The character
+ * @return -2 to attack (upgraded from Tier 1's -1)
+ */
+int get_bard_frostbite_refrain_ii_natural_20_debuff_attack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain_ii(ch))
+    return 0;
+  
+  /* Frostbite Refrain II: natural 20 applies -2 to attack debuff (upgraded from Tier 1) */
+  return -2;
+}
+
+/**
+ * Get natural 20 AC debuff from Frostbite Refrain II.
+ * Returns the AC penalty applied on natural 20 hit (new in Tier 2).
+ * 
+ * @param ch The character
+ * @return -1 to AC for 1 round
+ */
+int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!IS_PERFORMING(ch))
+    return 0;
+  
+  if (!has_bard_frostbite_refrain_ii(ch))
+    return 0;
+  
+  /* Frostbite Refrain II: natural 20 also applies -1 to AC debuff (new effect) */
+  return -1;
+}
+
+/* ============================================================================
+ * WARCHANTER TREE TIER 3 PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Anthem of Fortitude perk.
+ * Grants allies +10% max HP and +2 to Fortitude saves while performing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Anthem of Fortitude, FALSE otherwise
+ */
+bool has_bard_anthem_of_fortitude(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ANTHEM_OF_FORTITUDE);
+}
+
+/**
+ * Get max HP bonus from Anthem of Fortitude for allies.
+ * Returns the percentage of max HP bonus.
+ * 
+ * @param ch The character
+ * @return 10 (for 10% max HP bonus)
+ */
+int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch)
+{
+  if (!has_bard_anthem_of_fortitude(ch))
+    return 0;
+  
+  /* Anthem of Fortitude: +10% max HP */
+  return 10;
+}
+
+/**
+ * Get Fortitude save bonus from Anthem of Fortitude for allies.
+ * Returns the morale bonus to Fortitude saves.
+ * 
+ * @param ch The character
+ * @return +2 to Fortitude saves
+ */
+int get_bard_anthem_fortitude_save_bonus(struct char_data *ch)
+{
+  if (!has_bard_anthem_of_fortitude(ch))
+    return 0;
+  
+  /* Anthem of Fortitude: +2 to Fortitude saves */
+  return 2;
+}
+
+/**
+ * Check if character has Commanding Cadence perk.
+ * Enemies hit in melee must save or be dazed.
+ * 
+ * @param ch The character
+ * @return TRUE if has Commanding Cadence, FALSE otherwise
+ */
+bool has_bard_commanding_cadence(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_COMMANDING_CADENCE);
+}
+
+/**
+ * Get daze chance (save DC) from Commanding Cadence.
+ * Returns the Will save DC that enemies must beat to avoid daze.
+ * 
+ * @param ch The character
+ * @return 1 (flag that daze should be applied if save fails)
+ */
+int get_bard_commanding_cadence_daze_chance(struct char_data *ch)
+{
+  if (!has_bard_commanding_cadence(ch))
+    return 0;
+  
+  /* Commanding Cadence: 1 indicates daze should be applied */
+  return 1;
+}
+
+/**
+ * Check if character has Steel Serenade perk.
+ * Grants +2 natural AC and 10% physical damage resistance while performing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Steel Serenade, FALSE otherwise
+ */
+bool has_bard_steel_serenade(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_STEEL_SERENADE);
+}
+
+/**
+ * Get natural AC bonus from Steel Serenade.
+ * Returns the AC improvement while performing.
+ * 
+ * @param ch The character
+ * @return +2 AC (note: lower is better in this system)
+ */
+int get_bard_steel_serenade_ac_bonus(struct char_data *ch)
+{
+  if (!has_bard_steel_serenade(ch))
+    return 0;
+  
+  /* Steel Serenade: +2 natural AC (2 point improvement) */
+  return 2;
+}
+
+/**
+ * Get physical damage resistance from Steel Serenade.
+ * Returns the percentage resistance to physical damage types.
+ * 
+ * @param ch The character
+ * @return 10 (for 10% physical damage resistance)
+ */
+int get_bard_steel_serenade_damage_resistance(struct char_data *ch)
+{
+  if (!has_bard_steel_serenade(ch))
+    return 0;
+  
+  /* Steel Serenade: 10% physical damage resistance */
+  return 10;
+}
+
+/**
+ * Check if character has Banner Verse perk.
+ * Plants a musical standard that grants allies bonuses.
+ * 
+ * @param ch The character
+ * @return TRUE if has Banner Verse, FALSE otherwise
+ */
+bool has_bard_banner_verse(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_BANNER_VERSE);
+}
+
+/**
+ * Get to-hit bonus from Banner Verse for allies in the room.
+ * Returns the competence bonus to hit.
+ * 
+ * @param ch The character
+ * @return +2 to hit
+ */
+int get_bard_banner_verse_tohit_bonus(struct char_data *ch)
+{
+  if (!has_bard_banner_verse(ch))
+    return 0;
+  
+  /* Banner Verse: +2 to hit in the room */
+  return 2;
+}
+
+/**
+ * Get save bonus from Banner Verse for allies in the room.
+ * Returns the morale bonus to all saves.
+ * 
+ * @param ch The character
+ * @return +2 to all saves
+ */
+int get_bard_banner_verse_save_bonus(struct char_data *ch)
+{
+  if (!has_bard_banner_verse(ch))
+    return 0;
+  
+  /* Banner Verse: +2 to all saves in the room */
+  return 2;
+}
+
+/* ============================================================================
+ * BARD WARCHANTER TIER 4 HELPER FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Warchanter's Dominance perk.
+ * Capstone that enhances Inspire Courage and Warbeat effects.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_bard_warchanters_dominance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_WARCHANTERS_DOMINANCE);
+}
+
+/**
+ * Get to-hit bonus from Warchanter's Dominance.
+ * Inspire Courage grants +1 additional attack bonus.
+ * 
+ * @param ch The character
+ * @return +1 to hit while performing
+ */
+int get_bard_warchanters_dominance_tohit_bonus(struct char_data *ch)
+{
+  if (!has_bard_warchanters_dominance(ch))
+    return 0;
+  
+  /* Warchanter's Dominance: +1 to hit from Inspire Courage enhancement */
+  return 1;
+}
+
+/**
+ * Get AC bonus from Warchanter's Dominance.
+ * Inspire Courage grants +1 additional AC.
+ * 
+ * @param ch The character
+ * @return +1 AC while performing (negative value for AC system)
+ */
+int get_bard_warchanters_dominance_ac_bonus(struct char_data *ch)
+{
+  if (!has_bard_warchanters_dominance(ch))
+    return 0;
+  
+  /* Warchanter's Dominance: +1 AC from Inspire Courage enhancement */
+  return 1;
+}
+
+/**
+ * Get damage bonus from Warchanter's Dominance.
+ * Enhance damage output on first attack (Warbeat enhancement).
+ * 
+ * @param ch The character
+ * @return +1 to damage
+ */
+int get_bard_warchanters_dominance_damage_bonus(struct char_data *ch)
+{
+  if (!has_bard_warchanters_dominance(ch))
+    return 0;
+  
+  /* Warchanter's Dominance: +1 to damage via Warbeat enhancement */
+  return 1;
+}
+
+/**
+ * Check if character has Winter's War March perk.
+ * Room-wide martial anthem that damages and slows enemies.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_bard_winters_war_march(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!IS_PERFORMING(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_WINTERS_WAR_MARCH);
+}
+
+/**
+ * Get damage from Winter's War March ability.
+ * Returns number of dice for 4d6 damage.
+ * 
+ * @param ch The character
+ * @return 4 (for 4d6 cold damage)
+ */
+int get_bard_winters_war_march_damage(struct char_data *ch)
+{
+  if (!has_bard_winters_war_march(ch))
+    return 0;
+  
+  /* Winter's War March: 4d6 cold damage */
+  return 4;
+}
+
+/* ============================================================================
+ * SWASHBUCKLER TREE PERK FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Check if character has Fencer's Footwork I perk.
+ * Grants +1 dodge AC and +1 reflex save per rank with finesse/single weapon.
+ * 
+ * @param ch The character
+ * @return TRUE if has Fencer's Footwork I, FALSE otherwise
+ */
+bool has_bard_fencers_footwork_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FENCERS_FOOTWORK_I);
+}
+
+/**
+ * Get AC dodge bonus from Fencer's Footwork I.
+ * Returns +1 dodge AC per rank while wielding finesse or single one-handed weapon.
+ * 
+ * @param ch The character
+ * @return Dodge AC bonus per rank (cumulative)
+ */
+int get_bard_fencers_footwork_ac_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_i(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Get Reflex save bonus from Fencer's Footwork I.
+ * Returns +1 reflex save per rank while wielding finesse/single weapon.
+ * 
+ * @param ch The character
+ * @return Reflex save bonus per rank (cumulative)
+ */
+int get_bard_fencers_footwork_reflex_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_i(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Precise Strike I perk.
+ * Grants +1 precision damage per rank with finesse/one-handed piercing/slashing.
+ * 
+ * @param ch The character
+ * @return TRUE if has Precise Strike I, FALSE otherwise
+ */
+bool has_bard_precise_strike_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PRECISE_STRIKE_I);
+}
+
+/**
+ * Get precision damage bonus from Precise Strike I.
+ * Returns +1 precision damage per rank with finesse or one-handed piercing/slashing.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus per rank (not multiplied on crits)
+ */
+int get_bard_precise_strike_i_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  int damage_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_precise_strike_i(ch))
+    return 0;
+  
+  /* Check if wielding appropriate weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  damage_type = GET_OBJ_VAL(wielded, 3);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Check if finesse weapon with correct damage type */
+  if (is_finesse)
+  {
+    /* Check if piercing or slashing */
+    if (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  /* Check if single one-handed weapon with correct damage type */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if ((size <= SIZE_SMALL || size == SIZE_MEDIUM) &&
+        (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING))
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_I, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Riposte Training I perk.
+ * Grants 3% chance per rank to counterattack after dodging/parrying.
+ * 
+ * @param ch The character
+ * @return TRUE if has Riposte Training I, FALSE otherwise
+ */
+bool has_bard_riposte_training_i(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_RIPOSTE_TRAINING_I);
+}
+
+/**
+ * Get riposte chance from Riposte Training I.
+ * Returns 3% per rank chance to counterattack.
+ * 
+ * @param ch The character
+ * @return Riposte chance percentage per rank (3% per rank)
+ */
+int get_bard_riposte_training_i_chance(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_riposte_training_i(ch))
+    return 0;
+  
+  /* Riposte Training I: 3% per rank */
+  bonus = 3 * get_perk_rank(ch, PERK_BARD_RIPOSTE_TRAINING_I, CLASS_BARD);
+  
+  return bonus;
+}
+
+/**
+ * SWASHBUCKLER TREE TIER 2 PERK FUNCTIONS
+ */
+
+/**
+ * Check if character has Fencer's Footwork II perk.
+ * Grants additional +1 Dodge AC and +1 Reflex per rank.
+ * 
+ * @param ch The character
+ * @return TRUE if has Fencer's Footwork II, FALSE otherwise
+ */
+bool has_bard_fencers_footwork_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FENCERS_FOOTWORK_II);
+}
+
+/**
+ * Get Fencer's Footwork II AC bonus.
+ * Returns +1 Dodge AC per rank when wielding finesse or single one-handed weapon.
+ * Stacks with Tier I bonus.
+ * 
+ * @param ch The character
+ * @return AC bonus (0-2)
+ */
+int get_bard_fencers_footwork_ii_ac_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_ii(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Get Fencer's Footwork II Reflex save bonus.
+ * Returns +1 Reflex per rank when wielding finesse or single one-handed weapon.
+ * Stacks with Tier I bonus.
+ * 
+ * @param ch The character
+ * @return Reflex save bonus (0-2)
+ */
+int get_bard_fencers_footwork_ii_reflex_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_fencers_footwork_ii(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon or single one-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    return 0;
+  
+  if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Grant bonus if finesse weapon */
+  if (is_finesse)
+  {
+    bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+    return bonus;
+  }
+  
+  /* Check if single one-handed weapon (no offhand weapon) */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if (size <= SIZE_SMALL || size == SIZE_MEDIUM)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_FENCERS_FOOTWORK_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Precise Strike II perk.
+ * Grants additional +1 precision damage per rank.
+ * 
+ * @param ch The character
+ * @return TRUE if has Precise Strike II, FALSE otherwise
+ */
+bool has_bard_precise_strike_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PRECISE_STRIKE_II);
+}
+
+/**
+ * Get Precise Strike II precision damage bonus.
+ * Returns +1 precision damage per rank with finesse or one-handed piercing/slashing weapons.
+ * Stacks with Tier I bonus, not multiplied on crits.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0-2)
+ */
+int get_bard_precise_strike_ii_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int bonus = 0;
+  int weapon_type;
+  int damage_type;
+  bool is_finesse = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_precise_strike_ii(ch))
+    return 0;
+  
+  /* Check if wielding appropriate weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  damage_type = GET_OBJ_VAL(wielded, 3);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    is_finesse = TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    is_finesse = TRUE;
+  
+  /* Check if finesse weapon with correct damage type */
+  if (is_finesse)
+  {
+    /* Check if piercing or slashing */
+    if (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING)
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  /* Check if single one-handed weapon with correct damage type */
+  if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+  {
+    int size = GET_OBJ_SIZE(wielded);
+    if ((size <= SIZE_SMALL || size == SIZE_MEDIUM) &&
+        (damage_type == DAMAGE_TYPE_PIERCING || damage_type == DAMAGE_TYPE_SLASHING))
+    {
+      bonus = get_perk_rank(ch, PERK_BARD_PRECISE_STRIKE_II, CLASS_BARD);
+      return bonus;
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Check if character has Duelist's Poise perk.
+ * Grants +2 to critical confirmation and +1 critical threat range with finesse weapon.
+ * 
+ * @param ch The character
+ * @return TRUE if has Duelist's Poise, FALSE otherwise
+ */
+bool has_bard_duelists_poise(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_DUELISTS_POISE);
+}
+
+/**
+ * Get Duelist's Poise critical confirmation bonus.
+ * Returns +2 to critical confirmation rolls when using a finesse weapon.
+ * 
+ * @param ch The character
+ * @return Critical confirmation bonus (0 or 2)
+ */
+int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int weapon_type;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_duelists_poise(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    return 2;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Duelist's Poise critical threat range bonus.
+ * Returns +1 to critical threat range when using a finesse weapon.
+ * 
+ * @param ch The character
+ * @return Critical threat range bonus (0 or 1)
+ */
+int get_bard_duelists_poise_threat_range_bonus(struct char_data *ch)
+{
+  struct obj_data *wielded;
+  int weapon_type;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_duelists_poise(ch))
+    return 0;
+  
+  /* Check if wielding a finesse weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
+    return 0;
+  
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  
+  /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
+  if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
+    return 1;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Agile Disengage perk.
+ * Grants +4 AC for 3 rounds on failed flee (ends if moving rooms).
+ * 
+ * @param ch The character
+ * @return TRUE if has Agile Disengage, FALSE otherwise
+ */
+bool has_bard_agile_disengage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_AGILE_DISENGAGE);
+}
+
+/**
+ * Check if character is affected by Agile Disengage buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Agile Disengage, FALSE otherwise
+ */
+bool is_affected_by_agile_disengage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  /* Check for AFFECT_BARD_AGILE_DISENGAGE affect */
+  return affected_by_spell(ch, AFFECT_BARD_AGILE_DISENGAGE);
+}
+
+/**
+ * Get Agile Disengage AC bonus.
+ * Returns +4 AC if affected by Agile Disengage buff.
+ * 
+ * @param ch The character
+ * @return AC bonus (0 or 4)
+ */
+int get_bard_agile_disengage_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_agile_disengage(ch))
+    return 0;
+  
+  return 4;
+}
+
+/**
+ * SWASHBUCKLER TREE TIER 3 PERK FUNCTIONS
+ */
+
+/**
+ * Check if character has Perfect Tempo perk.
+ * Grants +4 to hit and +2d6 damage on next attack if you avoid all melee hits for a round.
+ * 
+ * @param ch The character
+ * @return TRUE if has Perfect Tempo, FALSE otherwise
+ */
+bool has_bard_perfect_tempo(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_PERFECT_TEMPO);
+}
+
+/**
+ * Check if character is affected by Perfect Tempo buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Perfect Tempo, FALSE otherwise
+ */
+bool is_affected_by_perfect_tempo(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_PERFECT_TEMPO);
+}
+
+/**
+ * Get Perfect Tempo to-hit bonus.
+ * Returns +4 to hit when Perfect Tempo is active.
+ * 
+ * @param ch The character
+ * @return To-hit bonus (0 or 4)
+ */
+int get_bard_perfect_tempo_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_perfect_tempo(ch))
+    return 0;
+  
+  return 4;
+}
+
+/**
+ * Get Perfect Tempo precision damage bonus.
+ * Returns 2d6 precision damage when Perfect Tempo is active.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0 or 2d6)
+ */
+int get_bard_perfect_tempo_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_perfect_tempo(ch))
+    return 0;
+  
+  /* 2d6 damage */
+  return dice(2, 6);
+}
+
+/**
+ * Check if character has Showstopper perk.
+ * Imposes AC and attack penalties on critical hit.
+ * 
+ * @param ch The character
+ * @return TRUE if has Showstopper, FALSE otherwise
+ */
+bool has_bard_showstopper(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SHOWSTOPPER);
+}
+
+/**
+ * Check if character has Acrobatic Charge perk.
+ * Allows charging through terrain and allies with +2 to hit.
+ * 
+ * @param ch The character
+ * @return TRUE if has Acrobatic Charge, FALSE otherwise
+ */
+bool has_bard_acrobatic_charge(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_ACROBATIC_CHARGE);
+}
+
+/**
+ * Get Acrobatic Charge to-hit bonus on charges.
+ * Returns +2 to hit when using Acrobatic Charge ability.
+ * 
+ * @param ch The character
+ * @return To-hit bonus (0 or 2)
+ */
+int get_bard_acrobatic_charge_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_acrobatic_charge(ch))
+    return 0;
+  
+  return 2;
+}
+
+/**
+ * Check if character has Feint and Finish perk.
+ * Grants +2d6 damage and +2 crit confirm on next attack after feint.
+ * 
+ * @param ch The character
+ * @return TRUE if has Feint and Finish, FALSE otherwise
+ */
+bool has_bard_feint_and_finish(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FEINT_AND_FINISH);
+}
+
+/**
+ * Check if character is affected by Feint and Finish buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Feint and Finish, FALSE otherwise
+ */
+bool is_affected_by_feint_and_finish(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_FEINT_AND_FINISH);
+}
+
+/**
+ * Get Feint and Finish precision damage bonus.
+ * Returns +2d6 precision damage after successful feint.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0 or 2d6)
+ */
+int get_bard_feint_and_finish_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_feint_and_finish(ch))
+    return 0;
+  
+  /* 2d6 damage */
+  return dice(2, 6);
+}
+
+/**
+ * Get Feint and Finish critical confirmation bonus.
+ * Returns +2 to critical confirmation after successful feint.
+ * 
+ * @param ch The character
+ * @return Crit confirmation bonus (0 or 2)
+ */
+int get_bard_feint_and_finish_crit_confirm_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_feint_and_finish(ch))
+    return 0;
+  
+  return 2;
+}
+
+/**
+ * Check if character has Flourish perk.
+ * Allows +2 to hit and +2 AC for 2 rounds.
+ * 
+ * @param ch The character
+ * @return TRUE if has Flourish, FALSE otherwise
+ */
+bool has_bard_flourish_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_FLOURISH);
+}
+
+/**
+ * Check if character is currently under Flourish effect.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Flourish, FALSE otherwise
+ */
+bool is_affected_by_flourish(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+  
+  /* Check for AFFECT_BARD_FLOURISH affect */
+  return affected_by_spell(ch, AFFECT_BARD_FLOURISH);
+}
+
+/**
+ * Get Flourish bonus to hit.
+ * Returns +2 to hit while Flourish is active.
+ * 
+ * @param ch The character
+ * @return +2 to hit bonus, 0 if not active
+ */
+int get_bard_flourish_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_flourish(ch))
+    return 0;
+  
+  return 2;
+}
+
+/**
+ * Get Flourish bonus to AC.
+ * Returns +2 to AC while Flourish is active.
+ * 
+ * @param ch The character
+ * @return -2 (for AC system), 0 if not active
+ */
+int get_bard_flourish_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_flourish(ch))
+    return 0;
+  
+  return 2;
+}
+
+/* ============================================================================
+ * TIER 4 SWASHBUCKLER PERK FUNCTIONS (Capstone Perks)
+ * ============================================================================ */
+
+/**
+ * Check if character has Swashbuckler's Supreme Style perk.
+ * Grants +2 to hit, +2 dodge AC, +2 crit confirm, +1 attack per 3 rounds with finesse/1H weapons.
+ * 
+ * @param ch The character
+ * @return TRUE if has Supreme Style, FALSE otherwise
+ */
+bool has_bard_supreme_style(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_SUPREME_STYLE);
+}
+
+/**
+ * Check if character is affected by Supreme Style buff.
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Supreme Style, FALSE otherwise
+ */
+bool is_affected_by_supreme_style(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_SUPREME_STYLE);
+}
+
+/**
+ * Get Supreme Style to-hit bonus.
+ * Returns +2 while wielding finesse or single one-handed weapon.
+ * 
+ * @param ch The character
+ * @return To-hit bonus (0 or 2)
+ */
+int get_bard_supreme_style_tohit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_supreme_style(ch))
+    return 0;
+  
+  /* TODO: Verify wielding appropriate weapon type (finesse or single 1H) */
+  if (is_affected_by_supreme_style(ch))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Supreme Style AC bonus (dodge).
+ * Returns +2 dodge AC while wielding finesse or single one-handed weapon.
+ * 
+ * @param ch The character
+ * @return AC bonus (0 or 2 for dodge AC)
+ */
+int get_bard_supreme_style_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_supreme_style(ch))
+    return 0;
+  
+  /* TODO: Verify wielding appropriate weapon type (finesse or single 1H) */
+  if (is_affected_by_supreme_style(ch))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Supreme Style critical confirmation bonus.
+ * Returns +2 to critical confirmation.
+ * 
+ * @param ch The character
+ * @return Crit confirmation bonus (0 or 2)
+ */
+int get_bard_supreme_style_crit_confirm_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_bard_supreme_style(ch))
+    return 0;
+  
+  /* TODO: Verify wielding appropriate weapon type (finesse or single 1H) */
+  if (is_affected_by_supreme_style(ch))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Curtain Call perk.
+ * Multi-target free attack, 1/5 min, +2d6 precision damage, targets save vs disoriented.
+ * 
+ * @param ch The character
+ * @return TRUE if has Curtain Call, FALSE otherwise
+ */
+bool has_bard_curtain_call(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_BARD_CURTAIN_CALL);
+}
+
+/**
+ * Check if character is affected by Curtain Call buff (during active use).
+ * 
+ * @param ch The character
+ * @return TRUE if affected by Curtain Call, FALSE otherwise
+ */
+bool is_affected_by_curtain_call(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_CURTAIN_CALL);
+}
+
+/**
+ * Check if character is disoriented by Curtain Call.
+ * Disoriented creatures have disadvantage on attacks for 2 rounds.
+ * 
+ * @param ch The character
+ * @return TRUE if disoriented, FALSE otherwise
+ */
+bool is_affected_by_curtain_call_disoriented(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return affected_by_spell(ch, AFFECT_BARD_CURTAIN_CALL_DISORIENTED);
+}
+
+/**
+ * Get Curtain Call precision damage bonus.
+ * Returns +2d6 precision damage per affected target.
+ * 
+ * @param ch The character
+ * @return Precision damage bonus (0 or 2d6)
+ */
+int get_bard_curtain_call_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!is_affected_by_curtain_call(ch))
+    return 0;
+  
+  /* 2d6 precision damage */
+  return dice(2, 6);
+}

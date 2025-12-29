@@ -27,6 +27,7 @@
 #include "wilderness.h"
 #include "shop.h" /* shopkeepers hunting?! */
 #include "evolutions.h"
+#include "perks.h"
 
 /* local functions */
 static int VALID_EDGE(room_rnum x, int y);
@@ -255,10 +256,16 @@ ACMD(do_track)
   if (HAS_EVOLUTION(ch, EVOLUTION_KEEN_SCENT))
     track_dc -= 5;
 
+  int track_roll = skill_roll(ch, ABILITY_SURVIVAL);
+  if (!IS_NPC(ch) && has_inquisitor_track_and_hunt(ch))
+  {
+    track_roll += compute_ability(ch, ABILITY_SURVIVAL);
+  }
+
   /* skill check continue */
   if (GET_LEVEL(ch) >= LVL_IMPL)
     ;
-  else if (!skill_check(ch, ABILITY_SURVIVAL, track_dc))
+  else if (track_roll < track_dc)
   {
     if (!HAS_FEAT(ch, FEAT_SWIFT_TRACKER))
       USE_MOVE_ACTION(ch);

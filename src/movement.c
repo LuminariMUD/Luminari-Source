@@ -571,6 +571,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   {
     /* do a climb check */
     int climb_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
+    if (affected_by_spell(ch, SPELL_GRASP))
+      climb_dc -= 2;
     send_to_char(ch, "Climb DC: %d - ", climb_dc);
     if (!skill_check(ch, ABILITY_CLIMB, climb_dc) && !AFF_FLAGGED(ch, AFF_FLYING))
     {
@@ -842,6 +844,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   Y_LOC(ch) = new_y;
 
   char_to_room(ch, going_to);
+  
+  /* Bard Swashbuckler: Agile Disengage - remove AC bonus if character moves to different room */
+  if (!IS_NPC(ch) && is_affected_by_agile_disengage(ch))
+  {
+    affect_from_char(ch, AFFECT_BARD_AGILE_DISENGAGE);
+  }
   /* end the actual technical moving of the char */
   
   /* Autosearch: Check for traps automatically if enabled */

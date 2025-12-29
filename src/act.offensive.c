@@ -19,6 +19,7 @@
 #include "handler.h"
 #include "db.h"
 #include "spells.h"
+#include "psionics.h"
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"
@@ -42,6 +43,167 @@
 extern char cast_arg2[MAX_INPUT_LENGTH];
 
 int roll_initiative(struct char_data *ch);
+
+/* ============================================================================
+ * PSIONICIST PERK ABILITIES
+ * ============================================================================ */
+
+ACMDCHECK(can_gravity_well)
+{
+  if (!has_gravity_well(ch))
+  {
+    ACMD_ERRORMSG("You don't know how to create a gravity well!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  if (!can_use_gravity_well(ch))
+  {
+    ACMD_ERRORMSG("You can only use gravity well once per combat!\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  if (GET_PSP(ch) < 5)
+  {
+    ACMD_ERRORMSG("You need at least 5 psionic spell points to create a gravity well.\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  return CAN_CMD;
+}
+
+ACMD(do_gravity_well)
+{
+  struct char_data *tch = NULL;
+  int cost = 5;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_gravity_well);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  send_to_char(ch, "\tCYou create a powerful \tWgravity well\tC, distorting space around you!\tn\r\n");
+  act("$n creates a powerful gravity well, distorting space around everyone!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Apply gravity well effect to all enemies in room */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch || !aoeOK(ch, tch, -1))
+      continue;
+
+    if (savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, GET_PSIONIC_LEVEL(ch), PSYCHOKINESIS))
+    {
+      send_to_char(tch, "You feel a pull from gravity but manage to resist!\r\n");
+      continue;
+    }
+
+    /* Apply gravity well effect: halve speed, prevent fleeing */
+    send_to_char(tch, "\tCYou are caught in a \tWgravity well\tC!\tn\r\n");
+    GET_MOVE(tch) = MAX(0, GET_MOVE(tch) / 2);
+
+    /* Add a temporary affect to prevent fleeing for 3 rounds */
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SKILL_TRIP; /* Using trip as placeholder for immobilization */
+    af.duration = 30;      /* 3 rounds */
+    af.modifier = 1;       /* Mark as gravity well effect */
+    affect_to_char(tch, &af);
+  }
+
+  /* Consume PSP and mark as used */
+  GET_PSP(ch) -= cost;
+  use_gravity_well(ch);
+
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_singular_impact)
+{
+  if (!has_singular_impact(ch))
+  {
+    ACMD_ERRORMSG("You don't know how to channel a singular impact!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  if (!can_use_singular_impact(ch))
+  {
+    ACMD_ERRORMSG("You can only use singular impact once per day!\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  if (GET_PSP(ch) < 10)
+  {
+    ACMD_ERRORMSG("You need at least 10 psionic spell points to perform a singular impact.\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  return CAN_CMD;
+}
+
+ACMD(do_singular_impact)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  int cost = 10;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_singular_impact);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Use singular impact on whom?\r\n");
+    return;
+  }
+
+  /* Perform the singular impact */
+  use_singular_impact(ch, vict);
+
+  /* Consume PSP */
+  GET_PSP(ch) -= cost;
+
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_perfect_deflection)
+{
+  if (!has_perfect_deflection(ch))
+  {
+    ACMD_ERRORMSG("You don't know how to perform perfect deflection!\r\n");
+    return CANT_CMD_PERM;
+  }
+
+  if (!can_use_perfect_deflection(ch))
+  {
+    ACMD_ERRORMSG("You can only use perfect deflection once per day!\r\n");
+    return CANT_CMD_TEMP;
+  }
+
+  return CAN_CMD;
+}
+
+ACMD(do_perfect_deflection)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_perfect_deflection);
+
+  send_to_char(ch, "\tCYou prepare to deflect the next incoming attack with perfect precision!\tn\r\n");
+  act("$n takes a defensive stance, prepared to deflect the next attack!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Mark as active and used */
+  use_perfect_deflection(ch);
+
+  /* Set a flag indicating perfect deflection is active (until next round or attack) */
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_PERFECT_DEFLECTION_ACTIVE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
 /* Returns true if the Avatar of the Elements granted a free ki use (25% chance)
  * Caller should still ensure the player had a ki point available before calling. */
 static bool avatar_consumes_ki_free(struct char_data *ch)
@@ -1225,6 +1387,9 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
 
   af[1].location = APPLY_HITROLL; /* bonus */
   af[1].modifier = 2;
+  /* Acrobatic Charge perk: additional +2 to-hit on charges */
+  if (has_bard_acrobatic_charge(ch))
+    af[1].modifier += 2;
 
   af[2].location = APPLY_AC_NEW; /* penalty */
   af[2].modifier = -2;
@@ -1485,6 +1650,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     }
     defense_check = d20(vict) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
+    /* Root cantrip: +3 resistance vs trip/knockdown/grapple */
+    if (affected_by_spell(vict, SPELL_ROOT))
+    {
+      defense_check += 3;
+      send_to_char(vict, "Your rooted stance grants you +3 resistance to being knocked down!\r\n");
+    }
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP) && skill != SPELL_BANISHING_BLADE)
     {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed.
@@ -1643,7 +1815,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
         }
       }
     }
-
     /* FAILED attack roll */
   }
   else
@@ -5114,6 +5285,8 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
     attempt += compute_ability(ch, ABILITY_INTIMIDATE);
   else
     attempt += GET_LEVEL(vict);
+  /* Blackguard: Dread Presence adds a small intimidate bonus */
+  attempt += get_blackguard_dread_presence_intimidate_bonus(ch);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
   else
@@ -5131,8 +5304,33 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "You intimidate your opponent!\r\n");
     act("You are \tRintimidated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWintimidates\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eINTIMIDATED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
+    long base_duration = (attempt - resist + 6) * PASSES_PER_SEC;
+    /* Blackguard: Command the Weak modest duration bump */
+    if (has_blackguard_command_the_weak(ch))
+      base_duration += (2 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eINTIMIDATED, vict, NULL), base_duration);
     success = 1;
+    /* Blackguard Tier 2: Terror Tactics/Nightmarish Visage splash */
+    if (!IS_NPC(ch) && (has_blackguard_terror_tactics(ch) || has_blackguard_nightmarish_visage(ch)))
+    {
+      int margin = attempt - resist;
+      int splashes = 0;
+      struct char_data *tch = NULL;
+      for (tch = world[IN_ROOM(ch)].people; tch && splashes < 2; tch = tch->next_in_room)
+      {
+        if (tch == vict || tch == ch) continue;
+        if (GROUP(ch) == GROUP(tch)) continue;
+        if (!pvp_ok_single(tch, false)) continue;
+        if (char_has_mud_event(tch, eINTIMIDATED)) continue;
+        /* splash condition: higher margin for Terror Tactics; lower for Nightmarish Visage */
+        if ((has_blackguard_terror_tactics(ch) && margin >= 10) || (has_blackguard_nightmarish_visage(ch) && margin >= 6))
+        {
+          act("$n's terrifying presence unsettles $N!", FALSE, ch, 0, tch, TO_NOTVICT);
+          attach_mud_event(new_mud_event(eINTIMIDATED, tch, NULL), (6 * PASSES_PER_SEC));
+          splashes++;
+        }
+      }
+    }
   }
   else
   {
@@ -5143,11 +5341,17 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
+  /* Action economy: feats or Blackguard Command the Weak */
   if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) && HAS_FEAT(ch, FEAT_DEMORALIZE))
   {
     USE_SWIFT_ACTION(ch);
   }
-  if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) || HAS_FEAT(ch, FEAT_DEMORALIZE))
+  else if (has_blackguard_command_the_weak(ch) && can_use_command_the_weak_swift(ch))
+  {
+    USE_SWIFT_ACTION(ch);
+    use_command_the_weak_swift(ch);
+  }
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) || HAS_FEAT(ch, FEAT_DEMORALIZE) || has_blackguard_command_the_weak(ch))
   {
     USE_MOVE_ACTION(ch);
   }
@@ -5870,7 +6074,7 @@ static int dragonfear_callback(struct char_data *ch, struct char_data *tch, void
     return 0;
   if (mag_resistance(ch, tch, 0))
     return 0;
-  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? (-4 - get_blackguard_extra_fear_aura_penalty(tch)) : 0, 
                   CAST_INNATE, *cast_level, ENCHANTMENT))
     return 0;
 
@@ -5944,7 +6148,7 @@ static int fear_aura_callback(struct char_data *ch, struct char_data *tch, void 
     return 0;
   if (mag_resistance(ch, tch, 0))
     return 0;
-  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? (-4 - get_blackguard_extra_fear_aura_penalty(tch)) : 0, 
                   CAST_INNATE, *cast_level, ENCHANTMENT))
     return 0;
 
@@ -7151,7 +7355,7 @@ ACMD(do_grave_magic)
     }
     else
     {
-      if (savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
+      if (savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? (-4 - get_blackguard_extra_fear_aura_penalty(victim)) : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
       {
         act("You touch $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_CHAR);
         act("$n touches you, but you shake off the fear affect immediately.", false, ch, 0, victim, TO_VICT);
@@ -11247,6 +11451,17 @@ int perform_feint(struct char_data *ch, struct char_data *vict)
     af.duration = 10;
     SET_BIT_AR(af.bitvector, AFF_FEINTED);
     affect_to_char(vict, &af);
+    
+    /* Feint and Finish perk: apply damage/crit bonus affect after successful feint */
+    if (has_bard_feint_and_finish(ch))
+    {
+      new_affect(&af);
+      af.spell = AFFECT_BARD_FEINT_AND_FINISH;
+      af.duration = 2; /* 2 rounds */
+      af.location = APPLY_HITROLL;
+      af.modifier = 2; /* +2 to-hit bonus */
+      affect_to_char(ch, &af);
+    }
   }
   else
   { /* failure */
@@ -12475,18 +12690,38 @@ ACMD(do_mark)
 {
   struct char_data *vict = NULL;
   char arg[100];
+  bool is_assassin = CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0;
+  int studied_bonus = get_inquisitor_studied_target_bonus(ch);
+  bool is_inquisitor = studied_bonus > 0;
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (CLASS_LEVEL(ch, CLASS_ASSASSIN) < 1)
+  if (!is_assassin && !is_inquisitor)
   {
-    send_to_char(ch, "Only assassins know how to do that!\r\n");
+    send_to_char(ch, "You don't know how to do that.\r\n");
     return;
   }
 
   if (!*arg)
   {
-    send_to_char(ch, "Who would you like to mark for assassination?\r\n");
+    if (GET_MARK(ch))
+      send_to_char(ch, "You are marking %s. Usage: mark <target|clear>\r\n", GET_NAME(GET_MARK(ch)));
+    else
+      send_to_char(ch, "Usage: mark <target|clear>\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "clear"))
+  {
+    if (GET_MARK(ch))
+      send_to_char(ch, "You let your mark fade.\r\n");
+    else
+      send_to_char(ch, "You have no mark to clear.\r\n");
+
+    GET_MARK(ch) = NULL;
+    GET_MARK_ROUNDS(ch) = 0;
+    if (is_inquisitor)
+      GET_STUDIED_TARGET(ch) = NULL;
     return;
   }
 
@@ -12496,9 +12731,38 @@ ACMD(do_mark)
     return;
   }
 
-  act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
+  if (vict == ch)
+  {
+    send_to_char(ch, "Marking yourself is not very helpful.\r\n");
+    return;
+  }
+
+  if (is_inquisitor && !is_action_available(ch, atMOVE, TRUE))
+  {
+    send_to_char(ch, "Studying a quarry requires a move action.\r\n");
+    return;
+  }
+
   GET_MARK(ch) = vict;
   GET_MARK_ROUNDS(ch) = 0;
+
+  /* Inquisitors piggyback on the mark system for Studied Target */
+  if (is_inquisitor)
+    GET_STUDIED_TARGET(ch) = vict;
+
+  if (is_inquisitor && !is_assassin)
+  {
+    act("You study $N carefully, marking $M as your quarry.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n studies you carefully, eyes narrowing.", FALSE, ch, 0, vict, TO_VICT);
+    act("$n studies $N carefully, marking a new quarry.", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_MOVE_ACTION(ch);
+  }
+  else
+  {
+    act("You begin to mark $N for assassination.", FALSE, ch, 0, vict, TO_CHAR);
+    if (is_inquisitor)
+      act("$n studies $N carefully, marking a new quarry.", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
 }
 
 /* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
@@ -12554,6 +12818,19 @@ int max_judgements_active(struct char_data *ch)
     num++;
   if (HAS_REAL_FEAT(ch, FEAT_FIFTH_JUDGEMENT))
     num++;
+
+  /* Inquisitor Empowered Judgment perk rank 3: Can maintain +1 dual judgment for 1d4 rounds once per encounter */
+  if (can_inquisitor_dual_judgment(ch) && !char_has_mud_event(ch, eEMPOWERED_JUDGMENT_DUAL))
+  {
+    num++;
+  }
+
+  /* Judgment Mastery perk adds one judgement and auarantees at least three concurrent judgments */
+
+  if (has_inquisitor_judgment_mastery(ch))
+  {
+    num = MAX(++num, 3);
+  }
 
   return num;
 }
@@ -12673,6 +12950,31 @@ ACMDU(do_judgement)
     if (IS_JUDGEMENT_ACTIVE(ch, judgement))
     {
       send_to_char(ch, "You turn \tRoff\tn the '%s' judgement effect.\r\n", inquisitor_judgements[judgement]);
+      if (has_inquisitor_persistent_judgment(ch))
+      {
+        if (!affected_by_spell(ch, AFFECT_PERSISTENT_JUDGMENT))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = AFFECT_PERSISTENT_JUDGMENT;
+          af.duration = 5;
+          af.bonus_type = BONUS_TYPE_MORALE;
+          af.modifier = get_judgement_bonus(ch, judgement);
+          switch (judgement)
+          {
+            case INQ_JUDGEMENT_DESTRUCTION: af.location = APPLY_DAMROLL; break;
+            case INQ_JUDGEMENT_HEALING: af.location = APPLY_FAST_HEALING; break;
+            case INQ_JUDGEMENT_JUSTICE: af.location = APPLY_SAVING_WILL; break;
+            case INQ_JUDGEMENT_PIERCING: af.location = APPLY_HITROLL; break;
+            case INQ_JUDGEMENT_PROTECTION: af.location = APPLY_AC_NEW; break;
+            case INQ_JUDGEMENT_PURITY: af.location = APPLY_HIT; af.modifier *= 10; break;
+            case INQ_JUDGEMENT_RESILIENCY: af.location = APPLY_SAVING_FORT; break;
+            case INQ_JUDGEMENT_RESISTANCE: af.location = APPLY_SAVING_REFL; break;
+          }
+          affect_to_char(ch, &af);
+          send_to_char(ch, "Your persistent judgment effect gives you a related bonus for 5 more rounds.\r\n");
+        }
+      }
       IS_JUDGEMENT_ACTIVE(ch, judgement) = 0;
       if (GET_SLAYER_JUDGEMENT(ch) == judgement)
       {
@@ -12689,6 +12991,24 @@ ACMDU(do_judgement)
       }
       send_to_char(ch, "You turn \tGon\tn the '%s' judgement effect.\r\n", inquisitor_judgements[judgement]);
       IS_JUDGEMENT_ACTIVE(ch, judgement) = 1;
+      
+      /* Inquisitor Divine Resilience perk: Grant temporary hit points when activating judgment */
+      if (!IS_NPC(ch) && has_inquisitor_divine_resilience(ch))
+      {
+        int temp_hp = CLASS_LEVEL(ch, CLASS_INQUISITOR) + GET_WIS_BONUS(ch);
+        if (temp_hp > 0)
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = AFFECT_DIVINE_RESILIENCE;
+          af.duration = 1; /* Lasts as long as judgment is active, but gets reapplied on toggle */
+          af.location = APPLY_HIT;
+          af.modifier = temp_hp;
+          af.bonus_type = BONUS_TYPE_SACRED;
+          affect_to_char(ch, &af);
+          send_to_char(ch, "The divine energy bolsters you with \tC%d temporary hit points\tn.\r\n", temp_hp);
+        }
+      }
     }
   }
   else
@@ -12701,6 +13021,194 @@ ACMDU(do_judgement)
                      "\r\n");
     return;
   }
+}
+
+/* Inexorable Judgment: once/day will-save burst */
+ACMDU(do_inexorable_judgment)
+{
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dam = 0;
+
+  if (!has_inquisitor_inexorable_judgment(ch))
+  {
+    send_to_char(ch, "You have not mastered Inexorable Judgment.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: inexorablejudgment <target>\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You do not see that target here.\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Turning your judgment on yourself would serve no purpose.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eINEXORABLE_JUDGMENT_USED))
+  {
+    send_to_char(ch, "You have already pronounced Inexorable Judgment today.\r\n");
+    return;
+  }
+
+  dam = dice(CLASS_LEVEL(ch, CLASS_INQUISITOR), 6);
+
+  act("You invoke an inexorable judgment upon $N!", TRUE, ch, 0, vict, TO_CHAR);
+  act("$n invokes an inexorable judgment upon you!", TRUE, ch, 0, vict, TO_VICT);
+  act("$n invokes an inexorable judgment upon $N!", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  if (savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, GET_LEVEL(ch), ENCHANTMENT))
+  {
+    send_to_char(ch, "Your target steels their will and shrugs off the judgment.\r\n");
+  }
+  else
+  {
+    damage(ch, vict, dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+  }
+
+  USE_STANDARD_ACTION(ch);
+  attach_mud_event(new_mud_event(eINEXORABLE_JUDGMENT_USED, ch, NULL), SECS_PER_MUD_DAY);
+}
+
+/* Favored Terrain: choose a terrain type for passive bonuses */
+ACMDU(do_favored_terrain)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  time_t now = time(NULL);
+  int terrain = -1;
+
+  if (!has_inquisitor_favored_terrain(ch))
+  {
+    send_to_char(ch, "You have not mastered favored terrain.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: favoredterrain <terrain|list|clear>\r\n");
+    if (GET_FAVORED_TERRAIN(ch) >= 0 && GET_FAVORED_TERRAIN(ch) < NUM_TERRAIN_TYPES)
+      send_to_char(ch, "Current favored terrain: %s\r\n", terrain_types[GET_FAVORED_TERRAIN(ch)]);
+    else
+      send_to_char(ch, "Current favored terrain: none\r\n");
+
+    send_to_char(ch, "Type 'favoredterrain list' to see options.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "list"))
+  {
+    int i;
+    send_to_char(ch, "Available terrains:\r\n");
+    for (i = 0; i < NUM_TERRAIN_TYPES; i++)
+      send_to_char(ch, "  %-2d) %s\r\n", i, terrain_types[i]);
+    return;
+  }
+
+  if (is_abbrev(arg, "clear"))
+  {
+    if (GET_FAVORED_TERRAIN(ch) < 0)
+    {
+      send_to_char(ch, "You have no favored terrain set.\r\n");
+      return;
+    }
+    if (GET_FAVORED_TERRAIN(ch) >= 0 && now < GET_FAVORED_TERRAIN_RESET(ch))
+    {
+      long remain = GET_FAVORED_TERRAIN_RESET(ch) - now;
+      send_to_char(ch, "You can change your favored terrain again in about %ld hour(s).\r\n", (remain + 3599) / 3600);
+      return;
+    }
+    GET_FAVORED_TERRAIN(ch) = -1;
+    GET_FAVORED_TERRAIN_RESET(ch) = now + (7 * SECS_PER_REAL_DAY);
+    send_to_char(ch, "You clear your favored terrain selection.\r\n");
+    return;
+  }
+
+  terrain = search_block(arg, terrain_types, FALSE);
+  if (terrain < 0 || terrain >= NUM_TERRAIN_TYPES)
+  {
+    send_to_char(ch, "That is not a valid terrain. Try 'favoredterrain list'.\r\n");
+    return;
+  }
+
+  if (GET_FAVORED_TERRAIN(ch) == terrain)
+  {
+    send_to_char(ch, "You already favor that terrain.\r\n");
+    return;
+  }
+
+  if (GET_FAVORED_TERRAIN(ch) >= 0 && now < GET_FAVORED_TERRAIN_RESET(ch))
+  {
+    long remain = GET_FAVORED_TERRAIN_RESET(ch) - now;
+    send_to_char(ch, "You can change your favored terrain again in about %ld hour(s).\r\n", (remain + 3599) / 3600);
+    return;
+  }
+
+  GET_FAVORED_TERRAIN(ch) = terrain;
+  GET_FAVORED_TERRAIN_RESET(ch) = now + (7 * SECS_PER_REAL_DAY);
+  send_to_char(ch, "Favored terrain set to %s. You gain +2 initiative and Stealth there.\r\n", terrain_types[terrain]);
+}
+
+/* Greater Judgment Perk Command - Select which judgment type gets doubled bonuses */
+ACMDU(do_greater_judgment)
+{
+  int i = 0, judgment_type = 0;
+  char arg[200];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT) || !has_inquisitor_greater_judgment(ch))
+  {
+    send_to_char(ch, "You do not have access to the Greater Judgment ability.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "\r\nUsage: greater-judgment <type>\r\n\r\n");
+    send_to_char(ch, "Select a judgment type to receive doubled bonuses:\r\n");
+    for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+    {
+      send_to_char(ch, "  %s - %s\r\n", inquisitor_judgements[i], inquisitor_judgement_descriptions[i]);
+    }
+    if (ch->player_specials->inq_greater_judgment_type > 0)
+      send_to_char(ch, "\nCurrently selected: %s\r\n", inquisitor_judgements[ch->player_specials->inq_greater_judgment_type]);
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  CAP(arg);
+
+  for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+  {
+    if (is_abbrev(arg, inquisitor_judgements[i]))
+    {
+      judgment_type = i;
+      break;
+    }
+  }
+
+  if (judgment_type == 0)
+  {
+    send_to_char(ch, "That is not a valid judgment type. Type 'greater-judgment' with no arguments for a list.\r\n");
+    return;
+  }
+
+  ch->player_specials->inq_greater_judgment_type = judgment_type;
+  send_to_char(ch, "You have selected \tY%s\tn to receive doubled judgment bonuses.\r\n", inquisitor_judgements[judgment_type]);
+  act("$n has selected a new greater judgment type.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 void perform_bane(struct char_data *ch)
@@ -13540,6 +14048,75 @@ ACMD(do_evobreath)
   USE_STANDARD_ACTION(ch);
 }
 
+/* Alchemist Mutagenist Tier IV capstone: Chimeric Transmutation
+ * While under mutagen, unleash a swift-action breath once per combat:
+ * deals 3d6 fire, 3d6 poison, and 3d6 cold damage to enemies in room. */
+ACMD(do_chimericbreath)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!has_perk(ch, PERK_ALCHEMIST_CHIMERIC_TRANSMUTATION))
+  {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_MUTAGEN))
+  {
+    send_to_char(ch, "You must be under the effects of a mutagen to do that.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  if (!can_use_chimeric_transmutation(ch))
+  {
+    send_to_char(ch, "You have already used your chimeric breath this combat.\r\n");
+    return;
+  }
+
+  act("You inhale and unleash a chimeric breath of flame, toxin, and frost!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n inhales and unleashes a chimeric breath of flame, toxin, and frost!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Data structure for chimeric breath callback */
+  struct chimeric_breath_data {
+    int fire_dam;
+    int poison_dam;
+    int cold_dam;
+  } cbd;
+
+  cbd.fire_dam = dice(3, 6);
+  cbd.poison_dam = dice(3, 6);
+  cbd.cold_dam = dice(3, 6);
+
+  int chimeric_breath_cb(struct char_data *ch, struct char_data *tch, void *data)
+  {
+    struct chimeric_breath_data *bd = (struct chimeric_breath_data *)data;
+
+    /* Handle immunities (e.g., iron golem immunity to poison) */
+    if (!process_iron_golem_immunity(ch, tch, DAM_FIRE, bd->fire_dam))
+      damage(ch, tch, bd->fire_dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+
+    if (!process_iron_golem_immunity(ch, tch, DAM_POISON, bd->poison_dam))
+      damage(ch, tch, bd->poison_dam, SPELL_POISON_BREATHE, DAM_POISON, FALSE);
+
+    if (!process_iron_golem_immunity(ch, tch, DAM_COLD, bd->cold_dam))
+      damage(ch, tch, bd->cold_dam, SPELL_FROST_BREATHE, DAM_COLD, FALSE);
+
+    return 1;
+  }
+
+  aoe_effect(ch, SPELL_FIRE_BREATHE, chimeric_breath_cb, &cbd);
+
+  USE_SWIFT_ACTION(ch);
+  use_chimeric_transmutation(ch);
+}
+
 ACMD(do_vital_strike)
 {
   if (!HAS_FEAT(ch, FEAT_VITAL_STRIKE))
@@ -13741,7 +14318,7 @@ ACMD(do_rallying_cry)
 
   int uses_remaining = 0;
   
-  if (!HAS_REAL_FEAT(ch, FEAT_RALLYING_CRY))
+  if (!HAS_REAL_FEAT(ch, FEAT_RALLYING_CRY) && !has_bard_rallying_cry_perk(ch))
   {
     send_to_char(ch, "You do not have the rallying cry ability.\r\n");
     return;
@@ -13753,16 +14330,20 @@ ACMD(do_rallying_cry)
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_RALLYING_CRY)) == 0)
+  /* Feat version uses daily resources; perk version is always available */
+  if (HAS_REAL_FEAT(ch, FEAT_RALLYING_CRY))
   {
-    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
-    return;
-  }
+    if ((uses_remaining = daily_uses_remaining(ch, FEAT_RALLYING_CRY)) == 0)
+    {
+      send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+      return;
+    }
 
-  if (uses_remaining < 0)
-  {
-    send_to_char(ch, "You have no uses in this ability.\r\n");
-    return;
+    if (uses_remaining < 0)
+    {
+      send_to_char(ch, "You have no uses in this ability.\r\n");
+      return;
+    }
   }
 
   if (!is_action_available(ch, atSWIFT, TRUE))
@@ -13774,9 +14355,26 @@ ACMD(do_rallying_cry)
   send_to_char(ch, "You raise your arm and rally your allies!\r\n");
   act("$n raises $s arm and rallies $s allies.", false, ch, 0, 0, TO_ROOM);
 
+  /* If using Warchanter perk, remove shaken condition from all allies in the room */
+  if (!IS_NPC(ch) && has_bard_rallying_cry_perk(ch))
+  {
+    struct char_data *in_room_ch;
+    
+    for (in_room_ch = world[IN_ROOM(ch)].people; in_room_ch; in_room_ch = in_room_ch->next_in_room)
+    {
+      if (in_room_ch != ch && !IS_NPC(in_room_ch) && 
+          in_room_ch->master != ch && IS_AFFECTED(in_room_ch, AFF_SHAKEN))
+      {
+        REMOVE_BIT_AR(AFF_FLAGS(in_room_ch), AFF_SHAKEN);
+        send_to_char(in_room_ch, "You feel the shaken condition lift as your ally rallies you!\r\n");
+        act("$N looks bolstered by $n's rally cry!", false, ch, 0, in_room_ch, TO_NOTVICT);
+      }
+    }
+  }
+
   call_magic(ch, ch, 0, AFFECT_RALLYING_CRY, 0, CASTER_LEVEL(ch), CAST_INNATE);
   
-  if (!IS_NPC(ch))
+  if (HAS_REAL_FEAT(ch, FEAT_RALLYING_CRY) && !IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_RALLYING_CRY);
 
   USE_SWIFT_ACTION(ch);
@@ -13829,6 +14427,118 @@ ACMD(do_inspire_courage)
     start_daily_use_cooldown(ch, FEAT_INSPIRE_COURAGE);
 
   USE_SWIFT_ACTION(ch);
+}
+
+
+ACMD(do_flourish)
+{
+  
+  if (!has_bard_flourish_perk(ch))
+  {
+    send_to_char(ch, "You do not have the Flourish ability.\r\n");
+    return;
+  }
+
+  if (is_affected_by_flourish(ch))
+  {
+    send_to_char(ch, "You are already in a flourish stance.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atMOVE, TRUE))
+  {
+    send_to_char(ch, "Flourish requires a move action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You perform a dazzling flourish, gaining enhanced combat prowess!\r\n");
+  act("$n performs a dazzling flourish, moving with enhanced grace!", false, ch, 0, 0, TO_ROOM);
+
+  call_magic(ch, ch, 0, AFFECT_BARD_FLOURISH, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  USE_MOVE_ACTION(ch);
+}
+
+
+ACMD(do_curtain_call)
+{
+  struct char_data *victim, *next_victim;
+  int num_targets = 0;
+  int max_targets = 3;
+  int damage;
+
+  if (!has_bard_curtain_call(ch))
+  {
+    send_to_char(ch, "You do not have the Curtain Call ability.\r\n");
+    return;
+  }
+
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You must be in combat to use Curtain Call.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eCURTAIN_CALL_COOLDOWN))
+  {
+    send_to_char(ch, "You need to recover from your last curtain call. (5 minute cooldown)\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    send_to_char(ch, "Curtain Call requires a standard action to use.\r\n");
+    return;
+  }
+
+  /* Start the curtain call effect */
+  send_to_char(ch, "\tY[CURTAIN CALL]\tn You step forward and unleash a devastating multi-target attack!\r\n");
+  act("\tY[CURTAIN CALL]\tn $n steps forward and unleashes a devastating performance-based attack on all nearby foes!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Attack all nearby enemies (up to 3 adjacent) */
+  for (victim = world[ch->in_room].people; victim && num_targets < max_targets; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    
+    /* Skip non-hostile targets */
+    if (victim == ch || !FIGHTING(ch) || FIGHTING(ch) != victim)
+      continue;
+
+    num_targets++;
+
+    /* Simple hit/miss and damage */
+    damage = get_bard_curtain_call_damage_bonus(ch) + dice(1, 4) + 2;
+    
+    GET_HIT(victim) -= damage;
+
+    send_to_char(ch, "\tYYour curtain call strikes $N for \tR%d\tn\tY damage!\tn\r\n", damage);
+    send_to_char(victim, "\tY$n's curtain call strikes you for \tR%d\tn\tY damage!\tn\r\n", damage);
+    act("\tY$n's curtain call strikes $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+
+    /* Apply disoriented condition (must save vs disoriented for 2 rounds) */
+    int dc = 10 + GET_LEVEL(ch) + GET_CHA_BONUS(ch);
+    if (!savingthrow(ch, victim, SAVING_WILL, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    {
+      mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, AFFECT_BARD_CURTAIN_CALL_DISORIENTED, SAVING_WILL, CAST_INNATE, 0);
+      send_to_char(victim, "\tRYou are \tYdisoriented\tR by the stunning performance!\tn\r\n");
+    }
+    else
+    {
+      send_to_char(victim, "You resist the disorienting effect of the performance.\r\n");
+    }
+  }
+
+  if (num_targets == 0)
+  {
+    send_to_char(ch, "There are no nearby enemies to target!\r\n");
+    return;
+  }
+
+  /* Set cooldown: 5 minutes = 300 seconds */
+  attach_mud_event(new_mud_event(eCURTAIN_CALL_COOLDOWN, ch, NULL), 300 * PASSES_PER_SEC);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 
@@ -14708,3 +15418,26 @@ ACMD(do_natureswrath)
   /* Set cooldown (e.g., 24 hours) */
   SET_NATURES_WRATH_COOLDOWN(ch, 5 * 60);
 }
+
+/* Blackguard Capstone: Midnight Edict */
+ACMD(do_midnight_edict)
+{
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot use Midnight Edict.\r\n");
+    return;
+  }
+  
+  if (!has_blackguard_midnight_edict(ch)) {
+    send_to_char(ch, "You do not possess the Midnight Edict perk.\r\n");
+    return;
+  }
+  
+  if (!perform_midnight_edict(ch)) {
+    /* perform_midnight_edict already sent the cooldown message */
+    return;
+  }
+  
+  USE_STANDARD_ACTION(ch);
+}
+
+

@@ -25,6 +25,47 @@ void define_barbarian_perks(void);
 void define_monk_perks(void);
 void define_druid_perks(void);
 void define_paladin_perks(void);
+void define_alchemist_perks(void);
+void define_psionicist_perks(void);
+void define_blackguard_perks(void);
+void define_inquisitor_perks(void);
+
+/* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 1 */
+int get_inquisitor_empowered_judgment_bonus(struct char_data *ch);
+bool can_inquisitor_dual_judgment(struct char_data *ch);
+bool has_inquisitor_swift_spellcaster(struct char_data *ch);
+int get_inquisitor_divination_dc_bonus(struct char_data *ch);
+bool has_inquisitor_divination_bonus_slot(struct char_data *ch);
+bool has_inquisitor_judgment_recovery(struct char_data *ch);
+
+/* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 2 */
+int get_inquisitor_enhanced_bane_damage(struct char_data *ch);
+int get_inquisitor_enhanced_bane_attack(struct char_data *ch);
+bool has_inquisitor_judgment_mastery(struct char_data *ch);
+bool has_inquisitor_divine_spellstrike(struct char_data *ch);
+bool has_inquisitor_inexorable_judgment(struct char_data *ch);
+bool has_inquisitor_supreme_spellcasting(struct char_data *ch);
+bool has_inquisitor_enhanced_bane_aoe(struct char_data *ch);
+bool has_inquisitor_divine_resilience(struct char_data *ch);
+int get_inquisitor_spell_penetration(struct char_data *ch);
+bool has_inquisitor_spell_penetration_ignore(struct char_data *ch);
+bool has_inquisitor_persistent_judgment(struct char_data *ch);
+
+/* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 3 */
+bool has_inquisitor_greater_judgment(struct char_data *ch);
+int get_inquisitor_greater_judgment_type(struct char_data *ch);
+bool has_inquisitor_spell_metamastery(struct char_data *ch);
+int get_inquisitor_righteous_strike_dice(struct char_data *ch);
+bool has_inquisitor_righteous_strike(struct char_data *ch);
+bool has_inquisitor_versatile_judgment(struct char_data *ch);
+
+/* Inquisitor helper functions - Hunter's Arsenal Tree Tier 1 */
+int get_inquisitor_studied_target_bonus(struct char_data *ch);
+bool is_inquisitor_studied_target(struct char_data *ch, struct char_data *vict);
+bool has_inquisitor_favored_terrain(struct char_data *ch);
+bool is_inquisitor_in_favored_terrain(struct char_data *ch);
+int get_inquisitor_hunters_precision_chance(struct char_data *ch);
+bool has_inquisitor_track_and_hunt(struct char_data *ch);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -73,6 +114,314 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num);
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 
+/* Alchemist Mutagenist helper functions */
+int get_alchemist_mutagen_i_rank(struct char_data *ch);
+int get_alchemist_hardy_constitution_hp_bonus(struct char_data *ch);
+bool has_alchemist_alchemical_reflexes(struct char_data *ch);
+bool has_alchemist_natural_armor(struct char_data *ch);
+int get_alchemist_mutagen_ii_rank(struct char_data *ch);
+bool has_alchemist_persistence_mutagen(struct char_data *ch);
+bool has_alchemist_infused_with_vigor(struct char_data *ch);
+bool has_alchemist_cellular_adaptation(struct char_data *ch);
+/* Tier III */
+bool has_alchemist_improved_mutagen(struct char_data *ch);
+bool is_alchemist_unstable_mutagen_on(struct char_data *ch);
+bool is_alchemist_universal_mutagen_ready(struct char_data *ch);
+int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch);
+
+/* Tier III */
+bool has_alchemist_improved_mutagen(struct char_data *ch);
+bool is_alchemist_unstable_mutagen_on(struct char_data *ch);
+bool is_alchemist_universal_mutagen_ready(struct char_data *ch);
+int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch);
+
+/* Mutagenist Tier IV helpers */
+bool has_alchemist_perfect_mutagen(struct char_data *ch);
+bool can_use_chimeric_transmutation(struct char_data *ch);
+void use_chimeric_transmutation(struct char_data *ch);
+void update_chimeric_transmutation_combat_end(struct char_data *ch);
+
+/* Bomb Craftsman Tier I helpers */
+int get_alchemist_bomb_damage_bonus(struct char_data *ch);
+int get_alchemist_bomb_precision_bonus(struct char_data *ch);
+int get_alchemist_bomb_splash_damage_bonus(struct char_data *ch);
+int get_alchemist_bomb_dc_bonus(struct char_data *ch);
+int get_alchemist_quick_bomb_chance(struct char_data *ch);
+
+/* Bomb Craftsman Tier II helpers */
+int get_alchemist_bomb_damage_bonus_tier2(struct char_data *ch);
+bool has_alchemist_elemental_bomb(struct char_data *ch);
+int get_alchemist_elemental_bomb_bypass(struct char_data *ch, int dam_type);
+int get_alchemist_elemental_bomb_extra_damage(struct char_data *ch, int dam_type);
+bool has_alchemist_concussive_bomb(struct char_data *ch);
+bool has_alchemist_poison_bomb(struct char_data *ch);
+
+/* Bomb Craftsman Tier III helpers */
+bool has_alchemist_inferno_bomb(struct char_data *ch);
+bool has_alchemist_cluster_bomb(struct char_data *ch);
+int get_alchemist_calculated_throw_dc_bonus(struct char_data *ch);
+bool has_alchemist_bomb_mastery(struct char_data *ch);
+int get_alchemist_bomb_mastery_damage_bonus(struct char_data *ch);
+
+/* Bomb Craftsman Tier IV helpers */
+bool has_alchemist_bombardier_savant(struct char_data *ch);
+int get_bombardier_savant_attack_bonus(struct char_data *ch);
+int get_bombardier_savant_damage_bonus(struct char_data *ch);
+bool has_alchemist_volatile_catalyst(struct char_data *ch);
+bool is_volatile_catalyst_on(struct char_data *ch);
+
+/* Extract Master Tier I helpers */
+int get_alchemist_extract_i_rank(struct char_data *ch);
+int get_alchemist_extract_not_consumed_chance(struct char_data *ch);
+int get_alchemist_infusion_i_rank(struct char_data *ch);
+int get_alchemist_infusion_dc_bonus(struct char_data *ch);
+bool has_alchemist_swift_extraction(struct char_data *ch);
+bool has_alchemist_resonant_extract(struct char_data *ch);
+
+/* Extract Master Tier II helpers */
+int get_alchemist_extract_ii_rank(struct char_data *ch);
+int get_alchemist_infusion_ii_rank(struct char_data *ch);
+bool has_alchemist_concentrated_essence(struct char_data *ch);
+bool has_alchemist_persistent_extraction(struct char_data *ch);
+
+/* Extract Master Tier III helpers */
+bool has_alchemist_healing_extraction(struct char_data *ch);
+int get_alchemist_healing_extraction_amount(struct char_data *ch);
+bool has_alchemist_alchemical_compatibility(struct char_data *ch);
+bool has_alchemist_discovery_extraction(struct char_data *ch);
+bool has_alchemist_master_alchemist(struct char_data *ch);
+
+/* Extract Master Tier IV helpers */
+bool has_alchemist_eternal_extract(struct char_data *ch);
+bool has_alchemist_quintessential_extraction(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier I helpers */
+int get_psionic_telepathy_dc_bonus(struct char_data *ch);
+int get_psionic_telepathy_penetration_bonus(struct char_data *ch);
+bool has_psionic_suggestion_primer(struct char_data *ch);
+bool has_psionic_focus_channeling(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier I mechanics */
+void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum, int routines_flags);
+void apply_psionic_focus_channeling(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier II helpers */
+bool has_mind_spike_ii_bonus(struct char_data *ch, int augment_spent);
+bool has_overwhelm(struct char_data *ch);
+bool overwhelm_used_this_combat(struct char_data *ch);
+void set_overwhelm_cooldown(struct char_data *ch);
+bool has_linked_menace(struct char_data *ch);
+
+/* Psionicist Telepathic Control Tier II mechanics */
+void apply_linked_menace_ac_penalty(struct char_data *vict);
+
+/* Psionicist Telepathic Control Tier III helpers */
+bool has_psionic_dominion(struct char_data *ch);
+bool has_psychic_sundering(struct char_data *ch);
+bool has_psionic_mental_backlash(struct char_data *ch);
+bool has_psionic_piercing_will(struct char_data *ch);
+void apply_psionic_dominion_extension(struct char_data *ch, struct char_data *vict, int spellnum, struct affected_type *af_array, int count);
+void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict);
+int get_psionic_piercing_will_bonus(struct char_data *ch);
+int get_psionic_mental_backlash_damage(struct char_data *ch, int level);
+
+/* Psionicist Telepathic Control Tier IV helpers */
+bool has_psionic_absolute_geas(struct char_data *ch);
+bool has_psionic_hive_commander(struct char_data *ch);
+void apply_absolute_geas_debuffs(struct char_data *ch, struct char_data *vict, int level);
+void apply_hive_commander_mark(struct char_data *ch, struct char_data *vict);
+
+/* Psionicist Psychokinetic Arsenal Tier I helpers */
+bool has_kinetic_edge_i(struct char_data *ch);
+bool has_force_screen_adept(struct char_data *ch);
+bool has_vector_shove(struct char_data *ch);
+bool has_energy_specialization(struct char_data *ch);
+int get_kinetic_edge_bonus(struct char_data *ch);
+int get_force_screen_ac_bonus(struct char_data *ch);
+int get_force_screen_duration_bonus(struct char_data *ch);
+int get_vector_shove_movement_bonus(struct char_data *ch);
+int get_vector_shove_damage_bonus(struct char_data *ch);
+int get_energy_specialization_dc_bonus(struct char_data *ch, int element);
+
+/* Tier 2 Psychokinetic Arsenal helpers */
+bool has_kinetic_edge_ii(struct char_data *ch);
+int get_kinetic_edge_ii_bonus(struct char_data *ch);
+
+bool has_deflective_screen(struct char_data *ch);
+int get_deflective_screen_ranged_ac_bonus(struct char_data *ch);
+int get_deflective_screen_reflex_bonus(struct char_data *ch);
+int get_deflective_screen_first_hit_dr(struct char_data *ch);
+
+bool has_accelerated_manifestation(struct char_data *ch);
+
+bool has_energy_retort_perk(struct char_data *ch);
+int get_energy_retort_bonus_damage(struct char_data *victim);
+
+/* Tier 3 Psychokinetic Arsenal helpers */
+bool has_kinetic_edge_iii(struct char_data *ch);
+int get_kinetic_edge_iii_bonus(struct char_data *ch);
+int get_kinetic_edge_iii_dc_bonus(struct char_data *ch, int spellnum);
+
+bool has_gravity_well(struct char_data *ch);
+bool can_use_gravity_well(struct char_data *ch);
+void use_gravity_well(struct char_data *ch);
+
+bool has_force_aegis(struct char_data *ch);
+int get_force_aegis_ranged_ac_bonus(struct char_data *ch);
+int get_force_aegis_temp_hp_bonus(struct char_data *ch);
+
+bool has_kinetic_crush(struct char_data *ch);
+bool should_apply_kinetic_crush_prone(struct char_data *ch);
+int get_kinetic_crush_collision_damage(struct char_data *ch);
+
+/* Tier 4 Psychokinetic Arsenal helpers */
+bool has_singular_impact(struct char_data *ch);
+bool can_use_singular_impact(struct char_data *ch);
+void use_singular_impact(struct char_data *ch, struct char_data *victim);
+
+bool has_perfect_deflection(struct char_data *ch);
+bool can_use_perfect_deflection(struct char_data *ch);
+void use_perfect_deflection(struct char_data *ch);
+/* Metacreative Genius Tier I helpers */
+bool has_ectoplasmic_artisan_i(struct char_data *ch);
+bool can_use_ectoplasmic_artisan_psp_reduction(struct char_data *ch);
+void use_ectoplasmic_artisan_psp_reduction(struct char_data *ch);
+int get_ectoplasmic_artisan_psp_reduction(struct char_data *ch);
+int get_ectoplasmic_artisan_duration_bonus(struct char_data *ch);
+
+/* Metacreative Genius Tier II helpers */
+bool has_ectoplasmic_artisan_ii(struct char_data *ch);
+bool has_shardstorm(struct char_data *ch);
+bool has_hardened_constructs_ii(struct char_data *ch);
+int get_hardened_constructs_ii_ac_bonus(struct char_data *ch);
+int get_hardened_constructs_dr_amount(struct char_data *ch);
+bool has_rapid_manifester(struct char_data *ch);
+bool can_use_rapid_manifester(struct char_data *ch);
+void use_rapid_manifester(struct char_data *ch);
+
+/* Metacreative Genius - Tier III */
+bool has_ectoplasmic_artisan_iii(struct char_data *ch);
+int get_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch);
+int get_ectoplasmic_artisan_iii_duration_bonus(struct char_data *ch);
+bool can_use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch);
+void use_ectoplasmic_artisan_iii_psp_reduction(struct char_data *ch);
+bool has_empowered_creation(struct char_data *ch);
+bool has_construct_commander(struct char_data *ch);
+int get_construct_commander_summon_bonus(struct char_data *ch);
+bool has_self_forged(struct char_data *ch);
+int get_self_forged_temp_hp(struct char_data *ch);
+
+/* Metacreative Genius - Tier IV (Capstones) */
+bool has_astral_juggernaut(struct char_data *ch);
+bool can_use_astral_juggernaut(struct char_data *ch);
+void use_astral_juggernaut(struct char_data *ch);
+bool has_perfect_fabricator(struct char_data *ch);
+bool can_use_perfect_fabricator(struct char_data *ch);
+void use_perfect_fabricator(struct char_data *ch);
+
+bool has_shard_volley(struct char_data *ch);
+bool should_add_extra_shard_projectile(struct char_data *ch, int augment_psp);
+
+bool has_hardened_constructs_i(struct char_data *ch);
+int get_hardened_constructs_temp_hp(struct char_data *ch);
+int get_hardened_constructs_ac_bonus(struct char_data *ch);
+
+bool has_fabricate_focus(struct char_data *ch);
+int get_fabricate_focus_casting_time_reduction(struct char_data *ch);
+
+/* Blackguard Tyranny & Fear Tier I–II helpers */
+int get_blackguard_dread_presence_intimidate_bonus(struct char_data *ch);
+int get_blackguard_extra_fear_aura_penalty(struct char_data *vict);
+bool has_blackguard_intimidating_smite(struct char_data *ch);
+int get_blackguard_cruel_edge_damage_bonus(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_command_the_weak(struct char_data *ch);
+bool can_use_command_the_weak_swift(struct char_data *ch);
+void use_command_the_weak_swift(struct char_data *ch);
+bool has_blackguard_terror_tactics(struct char_data *ch);
+bool has_blackguard_nightmarish_visage(struct char_data *ch);
+
+/* Blackguard Tyranny & Fear Tier III–IV helpers */
+bool has_blackguard_paralyzing_dread(struct char_data *ch);
+bool try_paralyzing_dread(struct char_data *vict);
+bool has_blackguard_despair_harvest(struct char_data *ch);
+void apply_despair_harvest(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_shackles_of_awe(struct char_data *ch);
+int get_shackles_of_awe_attack_penalty(struct char_data *ch, struct char_data *vict);
+int get_shackles_of_awe_speed_penalty(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_profane_dominion(struct char_data *ch);
+int get_profane_dominion_damage(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_sovereign_of_terror(struct char_data *ch);
+void apply_sovereign_fear_escalation(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_midnight_edict(struct char_data *ch);
+bool can_use_midnight_edict(struct char_data *ch);
+bool perform_midnight_edict(struct char_data *ch);
+bool is_cowering(struct char_data *ch);
+
+/* Blackguard Profane Might Tier I–II helpers */
+int get_blackguard_vile_strike_damage(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_cruel_momentum(struct char_data *ch);
+int get_blackguard_cruel_momentum_damage(struct char_data *ch);
+void apply_blackguard_cruel_momentum_stack(struct char_data *ch);
+bool has_blackguard_dark_channel(struct char_data *ch);
+int get_blackguard_dark_channel_damage(struct char_data *ch);
+bool has_blackguard_brutal_oath(struct char_data *ch);
+int get_blackguard_brutal_oath_bonus(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_ravaging_smite(struct char_data *ch);
+void apply_blackguard_ravaging_smite(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_profane_weapon_bond(struct char_data *ch);
+bool can_use_profane_weapon_bond(struct char_data *ch);
+bool activate_profane_weapon_bond(struct char_data *ch);
+bool has_blackguard_relentless_assault(struct char_data *ch);
+bool can_trigger_relentless_assault(struct char_data *ch);
+void trigger_relentless_assault(struct char_data *ch);
+bool has_blackguard_sanguine_barrier(struct char_data *ch);
+void apply_blackguard_sanguine_barrier(struct char_data *ch, int damage);
+
+/* Blackguard Profane Might Tier III–IV helpers */
+bool has_blackguard_doom_cleave(struct char_data *ch);
+bool has_blackguard_soul_rend(struct char_data *ch);
+int get_blackguard_soul_rend_bonus(struct char_data *ch, struct char_data *vict);
+bool has_blackguard_blackened_precision(struct char_data *ch);
+bool has_blackguard_unholy_blitz(struct char_data *ch);
+bool can_use_unholy_blitz(struct char_data *ch);
+bool has_blackguard_avatar_of_profanity(struct char_data *ch);
+bool has_blackguard_cataclysmic_smite(struct char_data *ch);
+
+/* Blackguard Unholy Resilience Tier 1-2 helpers */
+bool has_blackguard_profane_fortitude(struct char_data *ch);
+int get_blackguard_profane_fortitude_bonus(struct char_data *vict, struct char_data *caster);
+bool has_blackguard_dark_aegis(struct char_data *ch);
+int get_blackguard_dark_aegis_dr(struct char_data *ch);
+bool has_blackguard_graveborn_vigor(struct char_data *ch);
+void trigger_blackguard_graveborn_vigor(struct char_data *ch);
+bool has_blackguard_sinister_recovery(struct char_data *ch);
+bool has_blackguard_aura_of_desecration(struct char_data *ch);
+bool has_blackguard_fell_ward(struct char_data *ch);
+bool has_blackguard_defiant_hide(struct char_data *ch);
+bool has_blackguard_shade_step(struct char_data *ch);
+
+/* Blackguard Unholy Resilience Tier 3-4 helpers */
+bool has_blackguard_necrotic_regeneration(struct char_data *ch);
+int get_blackguard_necrotic_regeneration(struct char_data *ch);
+bool has_blackguard_unholy_fortification(struct char_data *ch);
+bool has_blackguard_blasphemous_warding(struct char_data *ch);
+int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster, int spellnum);
+bool has_blackguard_resilient_corruption(struct char_data *ch);
+int get_blackguard_resilient_corruption_dr(struct char_data *ch);
+void increment_blackguard_resilient_corruption(struct char_data *ch);
+void reset_blackguard_resilient_corruption(struct char_data *ch);
+bool has_blackguard_undying_vigor(struct char_data *ch);
+bool trigger_blackguard_undying_vigor(struct char_data *ch);
+
+/* New Blackguard Unholy Resilience Tier 3 helpers */
+bool has_blackguard_soul_carapace(struct char_data *ch);
+void apply_blackguard_soul_carapace(struct char_data *ch, int damage);
+bool has_blackguard_warding_malice(struct char_data *ch);
+int get_blackguard_warding_malice_penalty(struct char_data *vict, struct char_data *caster);
+bool has_blackguard_blackguards_reprisal(struct char_data *ch);
+void trigger_blackguard_reprisal_on_save(struct char_data *ch, int casttype);
+int get_blackguard_reprisal_damage_bonus(struct char_data *ch, struct char_data *vict);
+
 /* Ranger-specific perk bonus functions */
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);
@@ -97,6 +446,16 @@ int get_ranger_conjuration_dc_bonus(struct char_data *ch);
 int get_greater_summons_hp_bonus(struct char_data *ch);
 int get_greater_summons_damage(struct char_data *ch);
 int get_greater_summons_attack_bonus(struct char_data *ch);
+
+/* Ranger Wilderness Warrior perk functions */
+int get_ranger_two_weapon_focus_tohit(struct char_data *ch);
+int get_ranger_two_weapon_focus_damage(struct char_data *ch);
+int get_ranger_dual_strike_offhand(struct char_data *ch);
+int get_ranger_favored_enemy_mastery_damage(struct char_data *ch);
+int get_ranger_toughness_hp(struct char_data *ch);
+int get_ranger_tempest_ac(struct char_data *ch);
+int get_ranger_favored_enemy_slayer_tohit(struct char_data *ch);
+int get_ranger_favored_enemy_slayer_crit(struct char_data *ch);
 
 /* Rogue-specific perk bonus functions */
 int get_perk_sneak_attack_dice(struct char_data *ch);
@@ -469,5 +828,138 @@ bool remove_char_perk(struct char_data *ch, int perk_id, int class_id);  /* Retu
 void remove_class_perks(struct char_data *ch, int class_id);              /* Remove all perks for a class */
 void remove_all_perks(struct char_data *ch);                               /* Remove all perks (for respec) */
 void reset_all_perk_points(struct char_data *ch);                          /* Reset all perk points to 0 */
+
+/* Bard Spellsinger Tree Perk Functions */
+int get_bard_enchanters_guile_dc_bonus(struct char_data *ch);
+int get_bard_songweaver_level_bonus(struct char_data *ch);
+int get_bard_resonant_voice_save_bonus(struct char_data *ch);
+bool has_bard_harmonic_casting(struct char_data *ch);
+int get_bard_songweaver_ii_level_bonus(struct char_data *ch);
+int get_bard_enchanters_guile_ii_dc_bonus(struct char_data *ch);
+bool has_bard_crescendo(struct char_data *ch);
+int get_bard_crescendo_sonic_damage(struct char_data *ch);
+int get_bard_crescendo_dc_bonus(struct char_data *ch);
+bool has_bard_sustaining_melody(struct char_data *ch);
+
+/* Bard Spellsinger Tree Tier 3 Functions */
+bool has_bard_master_of_motifs(struct char_data *ch);
+bool has_bard_dirge_of_dissonance(struct char_data *ch);
+int get_bard_dirge_sonic_damage(struct char_data *ch);
+int get_bard_dirge_concentration_penalty(struct char_data *ch);
+bool has_bard_heightened_harmony(struct char_data *ch);
+int get_bard_heightened_harmony_perform_bonus(struct char_data *ch);
+bool has_bard_protective_chorus(struct char_data *ch);
+int get_bard_protective_chorus_save_bonus(struct char_data *ch);
+int get_bard_protective_chorus_ac_bonus(struct char_data *ch);
+
+/* Bard Spellsinger Tree Tier 4 Functions - Capstones */
+bool has_bard_spellsong_maestra(struct char_data *ch);
+int get_bard_spellsong_maestra_caster_bonus(struct char_data *ch);
+int get_bard_spellsong_maestra_dc_bonus(struct char_data *ch);
+bool has_bard_spellsong_maestra_metamagic_free(struct char_data *ch);
+
+bool has_bard_aria_of_stasis(struct char_data *ch);
+int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch);
+int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch);
+int get_bard_aria_stasis_movement_penalty(struct char_data *ch);
+
+bool has_bard_symphonic_resonance(struct char_data *ch);
+int get_bard_symphonic_resonance_temp_hp(struct char_data *ch);
+int get_bard_symphonic_resonance_daze_duration(struct char_data *ch);
+int get_bard_symphonic_resonance_daze_range(struct char_data *ch);
+
+bool has_bard_endless_refrain(struct char_data *ch);
+int get_bard_endless_refrain_slot_regen(struct char_data *ch);
+bool should_endless_refrain_consume_performance(struct char_data *ch);
+
+/* Bard Warchanter Tree Tier 1 Functions */
+int get_bard_battle_hymn_damage_bonus(struct char_data *ch);
+int get_bard_drummers_rhythm_tohit_bonus(struct char_data *ch);
+bool has_bard_rallying_cry_perk(struct char_data *ch);
+int get_bard_rallying_cry_fear_save_bonus(struct char_data *ch);
+bool has_bard_frostbite_refrain(struct char_data *ch);
+int get_bard_frostbite_cold_damage(struct char_data *ch);
+int get_bard_frostbite_natural_20_debuff(struct char_data *ch);
+
+/* Bard Warchanter Tree Tier 2 Functions */
+int get_bard_battle_hymn_ii_damage_bonus(struct char_data *ch);
+int get_bard_drummers_rhythm_ii_tohit_bonus(struct char_data *ch);
+bool has_bard_warbeat(struct char_data *ch);
+int get_bard_warbeat_ally_damage_bonus(struct char_data *ch);
+bool has_bard_frostbite_refrain_ii(struct char_data *ch);
+int get_bard_frostbite_refrain_ii_cold_damage(struct char_data *ch);
+int get_bard_frostbite_refrain_ii_natural_20_debuff_attack(struct char_data *ch);
+int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch);
+
+/* Bard Warchanter Tree Tier 3 Functions */
+bool has_bard_anthem_of_fortitude(struct char_data *ch);
+int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch);
+int get_bard_anthem_fortitude_save_bonus(struct char_data *ch);
+bool has_bard_commanding_cadence(struct char_data *ch);
+int get_bard_commanding_cadence_daze_chance(struct char_data *ch);
+bool has_bard_steel_serenade(struct char_data *ch);
+int get_bard_steel_serenade_ac_bonus(struct char_data *ch);
+int get_bard_steel_serenade_damage_resistance(struct char_data *ch);
+bool has_bard_banner_verse(struct char_data *ch);
+int get_bard_banner_verse_tohit_bonus(struct char_data *ch);
+int get_bard_banner_verse_save_bonus(struct char_data *ch);
+
+/* Bard Warchanter Tree Tier 4 Functions */
+bool has_bard_warchanters_dominance(struct char_data *ch);
+int get_bard_warchanters_dominance_tohit_bonus(struct char_data *ch);
+int get_bard_warchanters_dominance_ac_bonus(struct char_data *ch);
+int get_bard_warchanters_dominance_damage_bonus(struct char_data *ch);
+bool has_bard_winters_war_march(struct char_data *ch);
+int get_bard_winters_war_march_damage(struct char_data *ch);
+
+/* Bard Swashbuckler Tree Tier 1 Functions */
+bool has_bard_fencers_footwork_i(struct char_data *ch);
+int get_bard_fencers_footwork_ac_bonus(struct char_data *ch);
+int get_bard_fencers_footwork_reflex_bonus(struct char_data *ch);
+bool has_bard_precise_strike_i(struct char_data *ch);
+int get_bard_precise_strike_i_bonus(struct char_data *ch);
+bool has_bard_riposte_training_i(struct char_data *ch);
+int get_bard_riposte_training_i_chance(struct char_data *ch);
+bool has_bard_flourish_perk(struct char_data *ch);
+bool is_affected_by_flourish(struct char_data *ch);
+int get_bard_flourish_tohit_bonus(struct char_data *ch);
+int get_bard_flourish_ac_bonus(struct char_data *ch);
+
+/* Bard Swashbuckler Tree Tier 2 Functions */
+bool has_bard_fencers_footwork_ii(struct char_data *ch);
+int get_bard_fencers_footwork_ii_ac_bonus(struct char_data *ch);
+int get_bard_fencers_footwork_ii_reflex_bonus(struct char_data *ch);
+bool has_bard_precise_strike_ii(struct char_data *ch);
+int get_bard_precise_strike_ii_bonus(struct char_data *ch);
+bool has_bard_duelists_poise(struct char_data *ch);
+int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch);
+int get_bard_duelists_poise_threat_range_bonus(struct char_data *ch);
+bool has_bard_agile_disengage(struct char_data *ch);
+bool is_affected_by_agile_disengage(struct char_data *ch);
+int get_bard_agile_disengage_ac_bonus(struct char_data *ch);
+
+/* Bard Swashbuckler Tree Tier 3 Functions */
+bool has_bard_perfect_tempo(struct char_data *ch);
+bool is_affected_by_perfect_tempo(struct char_data *ch);
+int get_bard_perfect_tempo_tohit_bonus(struct char_data *ch);
+int get_bard_perfect_tempo_damage_bonus(struct char_data *ch);
+bool has_bard_showstopper(struct char_data *ch);
+bool has_bard_acrobatic_charge(struct char_data *ch);
+int get_bard_acrobatic_charge_tohit_bonus(struct char_data *ch);
+bool has_bard_feint_and_finish(struct char_data *ch);
+bool is_affected_by_feint_and_finish(struct char_data *ch);
+int get_bard_feint_and_finish_damage_bonus(struct char_data *ch);
+int get_bard_feint_and_finish_crit_confirm_bonus(struct char_data *ch);
+
+/* Tier 4 Swashbuckler Capstone Perks */
+bool has_bard_supreme_style(struct char_data *ch);
+bool is_affected_by_supreme_style(struct char_data *ch);
+int get_bard_supreme_style_tohit_bonus(struct char_data *ch);
+int get_bard_supreme_style_ac_bonus(struct char_data *ch);
+int get_bard_supreme_style_crit_confirm_bonus(struct char_data *ch);
+bool has_bard_curtain_call(struct char_data *ch);
+bool is_affected_by_curtain_call(struct char_data *ch);
+bool is_affected_by_curtain_call_disoriented(struct char_data *ch);
+int get_bard_curtain_call_damage_bonus(struct char_data *ch);
 
 #endif /* _PERKS_H_ */

@@ -1231,28 +1231,9 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
-  // for a dialogue quest, if there are future quests that depend on the dialogue quest being done we
-  // need to check for either:
-  // A: The dialogue quest was finished and was not failed
-  // B: The dialogue quest was finished, but it failed, and the alternative dialogue quest was complete
-  // do this here... >>>
-  if ((QST_PREV(rnum) != NOTHING) && is_complete(ch, QST_PREV(rnum)))
-  {
-    if (is_dialogue_quest_failed(ch, QST_PREV(rnum)))
-    {
-      qst_rnum prev_quest = real_quest(QST_PREV(rnum));
-      qst_vnum alt_quest = aquest_table[prev_quest].dialogue_alternative_quest;
-      if (!is_complete(ch, alt_quest))
-      {
-        send_to_char(ch, "The previous quest was a dialogue quest which failed. You will need to complete its alternative quest in order to take this quest.\r\n");
-        return;
-      }
-    }
-  }
-
-
-  // if this is a dialogue quest's alternative quest we need to check if the dialogue quest was finished
-  // and failed. If not, we cannot take this quest
+  // if this is a dialogue quest's alternative quest, we can join it only if:
+  // 1. The parent dialogue quest is complete
+  // 2. The parent dialogue quest failed
   if (is_dialogue_alternative_quest(QST_NUM(rnum)))
   {
     if (!is_complete(ch, QST_PREV(rnum)) || !is_dialogue_quest_failed(ch, QST_PREV(rnum)))
@@ -1263,6 +1244,25 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
       else 
         send_to_char(ch, "Error getting dialogue alternative quest rnum. Please report to staff.\r\n");
       return;
+    }
+  }
+
+  // for non-alternative quests with a dialogue quest parent, verify one of:
+  // A: The dialogue quest was finished and was not failed
+  // B: The dialogue quest was finished, it failed, and the alternative quest is complete
+  if ((QST_PREV(rnum) != NOTHING) && is_complete(ch, QST_PREV(rnum)) && !is_dialogue_alternative_quest(QST_NUM(rnum)))
+  {
+    if (is_dialogue_quest_failed(ch, QST_PREV(rnum)))
+    {
+      qst_rnum prev_quest = real_quest(QST_PREV(rnum));
+      qst_vnum alt_quest = aquest_table[prev_quest].dialogue_alternative_quest;
+      
+      // Only block if there IS an alternative quest and it's NOT complete
+      if (alt_quest != NOTHING && alt_quest > 0 && !is_complete(ch, alt_quest))
+      {
+        send_to_char(ch, "The previous quest was a dialogue quest which failed. You will need to complete its alternative quest in order to take this quest.\r\n");
+        return;
+      }
     }
   }
 
@@ -2029,6 +2029,15 @@ bool is_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum)
   {
 
      return false;
+  }
+
+  /* If the alternative quest is already completed, treat the dialogue quest
+   * as resolved and clear any lingering failure flag. */
+  qst_vnum alt_vnum = aquest_table[q_rnum].dialogue_alternative_quest;
+  if (alt_vnum > 0 && is_complete(ch, alt_vnum))
+  {
+    set_dialogue_quest_succeeded(ch, q_vnum);
+    return false;
   }
 
   for (i = 0; i < 100; i++)

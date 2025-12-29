@@ -60,6 +60,7 @@
 #include "evolutions.h"
 #include "traps.h"  /* For trap system functions */
 #include "constants.h"
+#include "crafting_new.h"  /* For golem repair functions */
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -1172,6 +1173,8 @@ ACMD(do_imbuearrow)
   case SPELL_FLAME_STRIKE:
   case SPELL_DESTRUCTION:
   case SPELL_ICE_STORM:
+  case SPELL_SPLINTER_STORM:
+  case SPELL_SHOCKWAVE:
   case SPELL_BALL_OF_LIGHTNING:
   case SPELL_MISSILE_STORM:
   case SPELL_CHAIN_LIGHTNING:
@@ -2390,6 +2393,162 @@ ACMD(do_dismiss)
 
     save_char_pets(ch);
   }
+}
+
+ACMD(do_destroygolem)
+{
+  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+  {
+      send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
+      return;
+  }
+  
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *golem = NULL;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Which golem do you want to destroy?\r\n");
+    return;
+  }
+
+  if (!(golem = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see that here.\r\n");
+    return;
+  }
+
+  /* Check if this is actually a golem */
+  if (!MOB_FLAGGED(golem, MOB_GOLEM))
+  {
+    send_to_char(ch, "That's not a golem!\r\n");
+    return;
+  }
+
+  /* Check if this golem belongs to the player */
+  if (golem->master != ch)
+  {
+    send_to_char(ch, "That golem doesn't belong to you!\r\n");
+    return;
+  }
+
+  /* Check if this golem is charmed (should be if it's theirs) */
+  if (!AFF_FLAGGED(golem, AFF_CHARM))
+  {
+    send_to_char(ch, "That golem is not under your control!\r\n");
+    return;
+  }
+
+  act("You carefully dismantle $N, recovering some of the materials used in its construction.",
+      FALSE, ch, 0, golem, TO_CHAR);
+  act("$n carefully dismantles $N, breaking it down into component materials.",
+      TRUE, ch, 0, golem, TO_ROOM);
+
+  /* Recover materials (50% of original cost) before extracting the golem */
+  recover_golem_materials(ch, golem, 50);
+
+  /* Remove the golem */
+  extract_char(golem);
+
+  save_char_pets(ch);
+}
+
+ACMD(do_golemrepair)
+{
+
+  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+  {
+      send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
+      return;
+  }
+
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *golem = NULL;
+  int material_needed = 0, material_type = 0;
+  int golem_vnum, golem_type, golem_size;
+  int roll, dc, skill;
+  int missing_hp, heal_amount;
+  
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Repair which golem?\r\n");
+    return;
+  }
+
+  if (!(golem = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see that here.\r\n");
+    return;
+  }
+
+  /* Check if this is actually a golem */
+  if (!MOB_FLAGGED(golem, MOB_GOLEM))
+  {
+    send_to_char(ch, "That's not a golem!\r\n");
+    return;
+  }
+
+  /* Check if we can repair the golem (validates materials, combat status, etc) */
+  extern bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *material_needed, int *material_type);
+  if (!can_repair_golem(ch, golem, &material_needed, &material_type))
+    return;
+
+  /* Get golem type and size */
+  golem_vnum = GET_MOB_VNUM(golem);
+  golem_type = get_golem_type_from_vnum(golem_vnum);
+  golem_size = get_golem_size_from_vnum(golem_vnum);
+  
+  if (golem_type < 0 || golem_size < 0)
+  {
+    send_to_char(ch, "That golem is invalid!\r\n");
+    return;
+  }
+
+  /* Make the Arcana skill check */
+  extern int get_golem_repair_dc(int golem_type, int golem_size);
+  dc = get_golem_repair_dc(golem_type, golem_size);
+  roll = d20(ch);
+  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  
+  send_to_char(ch, "You begin carefully repairing %s. You rolled %d + %d Arcana = %d vs. DC %d.\r\n",
+      GET_NAME(golem), roll, skill, roll + skill, dc);
+
+  if (roll + skill < dc)
+  {
+    send_to_char(ch, "You fail to properly repair the golem. The materials are wasted.\r\n");
+    send_to_char(ch, "\tRConsumed: %d units of %s\tn\r\n", material_needed, crafting_materials[material_type]);
+    act("$n attempts to repair $N but fails!", FALSE, ch, 0, golem, TO_ROOM);
+    
+    /* Consume materials even on failure - use the selected material type */
+    GET_CRAFT_MAT(ch, material_type) -= material_needed;
+    save_char_pets(ch);
+    return;
+  }
+
+  /* Success! Consume materials - use the selected material type */
+  GET_CRAFT_MAT(ch, material_type) -= material_needed;
+  
+  /* Calculate healing amount - heal all damage in phases over 2 seconds per 10% missing HP */
+  missing_hp = GET_MAX_HIT(golem) - GET_HIT(golem);
+  heal_amount = missing_hp;  /* Full repair on successful check */
+  
+  send_to_char(ch, "\tGSuccess!\tn You begin repairing %s, restoring \tc%d\tn hit points.\r\n",
+      GET_NAME(golem), heal_amount);
+  send_to_char(ch, "\tGMaterials used: %d units of %s\tn\r\n", material_needed, crafting_materials[material_type]);
+  act("$n begins carefully repairing $N's structure.", FALSE, ch, 0, golem, TO_ROOM);
+  
+  /* Heal the golem */
+  GET_HIT(golem) += heal_amount;
+  if (GET_HIT(golem) > GET_MAX_HIT(golem))
+    GET_HIT(golem) = GET_MAX_HIT(golem);
+  
+  act("\tc$N's form solidifies as the repairs complete!\tn", FALSE, ch, 0, golem, TO_ROOM);
+  
+  save_char_pets(ch);
 }
 
 /* recharge allows the refilling of charges for wands and staves
@@ -6053,9 +6212,9 @@ ACMD(do_spells)
     if (*arg1)
     {
       circle = atoi(arg1);
-      if (circle < 1 || circle > 9)
+      if (circle < 0 || circle > 9)
       {
-        send_to_char(ch, "That is an invalid %s circle!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
+        send_to_char(ch, "That is an invalid %s circle (use 0 for cantrips).\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
         return;
       }
     }
@@ -6103,9 +6262,9 @@ ACMD(do_spelllist)
     if (*arg)
     {
       circle = atoi(arg);
-      if (circle < 1 || circle > 9)
+      if (circle < 0 || circle > 9)
       {
-        send_to_char(ch, "That is an invalid extract circle!\r\n");
+        send_to_char(ch, "That is an invalid extract circle (use 0 for cantrips).\r\n");
         return;
       }
     }
@@ -6116,9 +6275,9 @@ ACMD(do_spelllist)
     if (*arg)
     {
       circle = atoi(arg);
-      if (circle < 1 || circle > 9)
+      if (circle < 0 || circle > 9)
       {
-        send_to_char(ch, "That is an invalid power circle!\r\n");
+        send_to_char(ch, "That is an invalid power circle (use 0 for cantrips).\r\n");
         return;
       }
     }
@@ -6140,9 +6299,9 @@ ACMD(do_spelllist)
       if (*arg1)
       {
         circle = atoi(arg1);
-        if (circle < 1 || circle > 9)
+        if (circle < 0 || circle > 9)
         {
-          send_to_char(ch, "That is an invalid spell circle!\r\n");
+          send_to_char(ch, "That is an invalid spell circle (use 0 for cantrips).\r\n");
           return;
         }
       }
@@ -6304,6 +6463,57 @@ ACMDU(do_title)
     set_title(ch, argument);
     send_to_char(ch, "Okay, you're now %s.\r\n", GET_TITLE(ch));
   }
+}
+
+ACMDU(do_arcanemark)
+{
+  char mark[MAX_INPUT_LENGTH];
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Mobs do not maintain arcane marks.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  /* Show or set default mark when no argument is provided */
+  if (!*argument)
+  {
+    if (GET_ARCANE_MARK(ch))
+    {
+      send_to_char(ch, "Your arcane mark is set to: %s\r\n", GET_ARCANE_MARK(ch));
+      return;
+    }
+
+    GET_ARCANE_MARK(ch) = strdup(GET_NAME(ch));
+    send_to_char(ch, "Your arcane mark now defaults to your name: %s\r\n", GET_ARCANE_MARK(ch));
+    return;
+  }
+
+  if (GET_ARCANE_MARK(ch) && GET_LEVEL(ch) < LVL_STAFF)
+  {
+    send_to_char(ch, "You have already set your arcane mark. Staff can reset it for you.\r\n");
+    send_to_char(ch, "Current arcane mark: %s\r\n", GET_ARCANE_MARK(ch));
+    return;
+  }
+
+  delete_doubledollar(argument);
+  strlcpy(mark, argument, sizeof(mark));
+
+  if (strlen(mark) > 250)
+  {
+    mark[250] = '\0';
+    send_to_char(ch, "Arcane marks are limited to 250 characters; your entry was truncated.\r\n");
+  }
+
+  parse_at(mark);
+
+  if (GET_ARCANE_MARK(ch))
+    free(GET_ARCANE_MARK(ch));
+
+  GET_ARCANE_MARK(ch) = strdup(mark);
+  send_to_char(ch, "Arcane mark set to: %s\r\n", GET_ARCANE_MARK(ch));
 }
 
 ACMDU(do_immtitle)
@@ -10312,6 +10522,7 @@ ACMDU(do_device)
     send_to_char(ch, "  device list                             - List your current devices\r\n");
     send_to_char(ch, "  device info <device>                    - Get information about a device\r\n");
     send_to_char(ch, "  device rename <device> <new name>       - Change the name of a device\r\n");
+    send_to_char(ch, "  device repair <device>                  - Repair a broken device (removes instability)\r\n");
     send_to_char(ch, "  device destroy <device>                 - Permanently destroy a device (requires confirmation)\r\n");
     send_to_char(ch, "  device spells <arcane|divine>           - Show available spells by level\r\n");
     send_to_char(ch, "  device usage                            - Show spell slot usage and limits\r\n");
@@ -10862,9 +11073,9 @@ ACMDU(do_device)
                  inv->short_description);
     act("$n carefully dismantles a weird science invention.", TRUE, ch, 0, 0, TO_ROOM);
     
-    /* Set 30-minute cooldown on device creation */
-    ch->player_specials->saved.device_creation_cooldown = time(0) + (30 * 60);
-    send_to_char(ch, "You must wait 30 minutes before creating another device.\r\n");
+    /* Set 20-minute cooldown on device creation */
+    ch->player_specials->saved.device_creation_cooldown = time(0) + (20 * 60);
+    send_to_char(ch, "You must wait 20 minutes before creating another device.\r\n");
     
     /* Shift all inventions after this one down by one */
     {
@@ -10881,6 +11092,81 @@ ACMDU(do_device)
     
     send_to_char(ch, "Invention destroyed. You now have %d inventions remaining.\r\n", 
                  ch->player_specials->saved.num_inventions);
+    return;
+  }
+
+  if (is_abbrev(arg1, "repair"))
+  {
+    /* Handle the cancel subcommand for device repair */
+    if (is_abbrev(arg2, "cancel")) {
+      if (!char_has_mud_event(ch, eDEVICE_REPAIR)) {
+        send_to_char(ch, "You are not currently repairing any device.\r\n");
+        return;
+      }
+      
+      /* Cancel the repair event */
+      event_cancel_specific(ch, eDEVICE_REPAIR);
+      send_to_char(ch, "You stop working on the device repair and set your tools aside.\r\n");
+      act("$n stops working on $s device repair.", TRUE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: device repair <number>\r\n");
+      send_to_char(ch, "       device repair cancel\r\n");
+      send_to_char(ch, "Repairs a broken or unstable device, removing DC penalties.\r\n");
+      send_to_char(ch, "Repair time: 30 seconds + 10 seconds per point of DC penalty.\r\n");
+      return;
+    }
+    
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    
+    /* Check if device needs repair (broken or has DC penalty) */
+    if (!inv->broken && inv->dc_penalty <= 0) {
+      send_to_char(ch, "Device %d is not damaged and doesn't need repairs.\r\n", inv_idx + 1);
+      return;
+    }
+    
+    /* Check if player is already repairing a device */
+    if (char_has_mud_event(ch, eDEVICE_REPAIR)) {
+      send_to_char(ch, "You are already repairing a device!\r\n");
+      return;
+    }
+    
+    /* Check if player is creating a device */
+    if (char_has_mud_event(ch, eDEVICE_CREATION)) {
+      send_to_char(ch, "You cannot repair a device while creating one!\r\n");
+      return;
+    }
+    
+    /* Calculate repair time: 30 seconds base + 10 seconds per DC penalty point */
+    int repair_time = 30 + (inv->dc_penalty * 10);
+    /* Add extra time if device is broken */
+    if (inv->broken) {
+      repair_time += 20; /* Additional 20 seconds to repair broken device */
+    }
+    
+    /* Store the device index in the event data */
+    char event_data[64];
+    snprintf(event_data, sizeof(event_data), "%d", inv_idx);
+    
+    /* Start the repair event */
+    attach_mud_event(new_mud_event(eDEVICE_REPAIR, ch, event_data), repair_time * PASSES_PER_SEC);
+    
+    send_to_char(ch, "You begin repairing %s. This will take %d seconds to complete.\r\n", 
+                 inv->short_description, repair_time);
+    if (inv->broken) {
+      send_to_char(ch, "The device is broken and will require extensive repairs.\r\n");
+    } else {
+      send_to_char(ch, "Current DC penalty: +%d\r\n", inv->dc_penalty);
+    }
+    act("$n begins carefully repairing a malfunctioning invention.", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
 
@@ -10977,6 +11263,13 @@ ACMDU(do_device)
     
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
     
+    /* Check if device is broken */
+    if (inv->broken) {
+      send_to_char(ch, "The device is broken and completely unusable until it is repaired.\r\n");
+      act("$n tries to activate a broken invention, but nothing happens.", TRUE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    
     /* Determine if device contains violent or non-violent spells */
     int device_is_violent = 0;
     if (inv->num_spells > 0) {
@@ -11031,21 +11324,23 @@ ACMDU(do_device)
       
       if (total < dc) {
         /* UMD check failed - device doesn't work and has a chance to break */
-        /* Increase DC penalty by 2 for each failed attempt */
-        inv->dc_penalty += 2;
+        /* Increase DC penalty by 4 for each failed attempt */
+        inv->dc_penalty += 4;
         send_to_char(ch, "The invention fails to activate and you struggle to make it work.\r\n");
         send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n", inv->dc_penalty);
         act("$n's invention sparks and sputters but doesn't activate.", TRUE, ch, 0, 0, TO_ROOM);
         
         /* Chance for device to break on failed UMD check */
         int break_chance = 25;
-        if (rand_number(1, 100) <= break_chance) {
+        if (rand_number(1, 100) <= break_chance)
+        {
           /* Device breaks! */
           send_to_char(ch, "The invention sparks, sputters, and breaks down completely!\r\n");
           act("$n's invention sparks and breaks down!", TRUE, ch, 0, 0, TO_ROOM);
           
           /* Brilliance and Blunder explosion logic */
-          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
+          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+          {
             /* Calculate total spell circles for explosion damage */
             int total_circles = 0;
             int j;
@@ -11088,10 +11383,8 @@ ACMDU(do_device)
             }
           }
           
-          /* Set device cooldown when it breaks */
-          inv->cooldown_expires = time(0) + (30 * 60);
-          send_to_char(ch, "Device %d is now broken and on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
-          
+          /* Device breaks - mark it as broken and unusable */
+          inv->broken = TRUE;
           inv->uses = 0; /* Reset uses on destruction */
           return;
         }
@@ -11099,36 +11392,33 @@ ACMDU(do_device)
       }
       if (total < dc)
       {
-        /* Increase DC penalty by 2 even on successful attempts when out of charges */
-        inv->dc_penalty += 2;
+        /* Increase DC penalty by 4 even on successful attempts when out of charges */
+        inv->dc_penalty += 4;
         send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");
         send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n", inv->dc_penalty);
         act("$n's invention emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
         return;
       }
       /* Success! But still increase DC penalty since device is out of charges */
-      inv->dc_penalty += 2;
-      if (inv->dc_penalty > 2) {
+      inv->dc_penalty += 4;
+      if (inv->dc_penalty > 4) {
         send_to_char(ch, "You manage to coax the depleted device to work, but it's getting harder... (DC penalty: +%d)\r\n", inv->dc_penalty);
       }
     }
     
     /* Device passed all checks - execute the spell effects */
-    send_to_char(ch, "You activate your invention: %s\r\n", inv->short_description);
-  char invbuf[200];
-  snprintf(invbuf, sizeof(invbuf), "$n activates an invention: %s", inv->short_description);
-  act(invbuf, TRUE, ch, 0, 0, TO_ROOM);
+    if (target == ch) {
+      send_to_char(ch, "You activate %s on yourself.\r\n", inv->short_description);
+      act("$n activates $s invention on $mself.", TRUE, ch, 0, 0, TO_ROOM);
+    } else {
+      send_to_char(ch, "You activate %s at %s.\r\n", inv->short_description, GET_NAME(target));
+      act("$n activates $s invention at $N.", TRUE, ch, 0, target, TO_NOTVICT);
+      act("$n activates $s invention at you.", TRUE, ch, 0, target, TO_VICT);
+    }
+    
     for (i = 0; i < inv->num_spells; i++) {
       int spell_num = inv->spell_effects[i];
       if (spell_num > 0 && spell_num < NUM_SPELLS) {
-        if (target == ch) {
-          send_to_char(ch, "The invention triggers %s on you!\r\n", spell_info[spell_num].name);
-        } else {
-          send_to_char(ch, "The invention triggers %s at %s!\r\n", 
-                       spell_info[spell_num].name, GET_NAME(target));
-          send_to_char(target, "%s's invention triggers %s at you!\r\n", 
-                       GET_NAME(ch), spell_info[spell_num].name);
-        }
         call_magic(ch, target, NULL, spell_num, 0, artificer_level, CAST_DEVICE);
       }
     }
@@ -11136,14 +11426,19 @@ ACMDU(do_device)
     /* Consume a standard action for using the device */
     USE_STANDARD_ACTION(ch);
     
-    /* Set individual device cooldown when device is first used */
-    if (inv->uses == 0) {
-      /* 30 minute cooldown for this specific device */
-      inv->cooldown_expires = time(0) + (30 * 60);
-      send_to_char(ch, "Device %d is now on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
-    }
-    
     inv->uses++;
+    
+    /* Show remaining charges */
+    max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+      max_uses += 1;
+    }
+    int remaining_charges = max_uses - inv->uses;
+    if (remaining_charges < 0) {
+      remaining_charges = 0;
+    }
+    send_to_char(ch, "Charges remaining: %d/%d\r\n", remaining_charges, max_uses);
+    
     return;
   }
 
@@ -11238,8 +11533,10 @@ ACMDU(do_device)
         
         /* Determine status */
         const char *status;
-        if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+        if (inv->broken) {
           status = "BROKEN";
+        } else if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+          status = "COOLDOWN";
         } else {
           status = "OK";
         }
@@ -11996,6 +12293,62 @@ EVENTFUNC(event_device_creation)
   save_char(ch, 0);
   /* No need to manually cancel progress; it will self-terminate when creation event is gone.
      Any progress tick that fires after this will see missing creation event and stop. */
+  
+  return 0;
+}
+
+/* Event handler for device repair */
+EVENTFUNC(event_device_repair)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  
+  pMudEvent = (struct mud_event_data *)event_obj;
+  
+  if (!pMudEvent || !pMudEvent->pStruct) {
+    log("SYSERR: event_device_repair() called with NULL event data");
+    return 0;
+  }
+  
+  ch = (struct char_data *)pMudEvent->pStruct;
+  
+  if (!ch) {
+    log("SYSERR: event_device_repair() called with NULL character");
+    return 0;
+  }
+  
+  /* Parse the device index from the event variables */
+  if (!pMudEvent->sVariables) {
+    send_to_char(ch, "Your device repair was interrupted due to missing data.\r\n");
+    return 0;
+  }
+  
+  int inv_idx = atoi(pMudEvent->sVariables);
+  
+  /* Validate device index */
+  if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+    send_to_char(ch, "Your device repair failed - the device no longer exists.\r\n");
+    return 0;
+  }
+  
+  struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+  
+  /* Store old DC penalty for message */
+  int old_penalty = inv->dc_penalty;
+  
+  /* Reset DC penalty, restore uses to zero, and clear broken flag */
+  inv->dc_penalty = 0;
+  inv->uses = 0;
+  inv->broken = FALSE;
+  
+  send_to_char(ch, "\tGYour repair is complete!\tn %s has been fully restored.\r\n", 
+               inv->short_description);
+  send_to_char(ch, "DC penalty removed: +%d -> 0\r\n", old_penalty);
+  act("$n finishes repairing an invention, which hums smoothly once more.", 
+      TRUE, ch, 0, 0, TO_ROOM);
+  
+  /* Save the character data */
+  save_char(ch, 0);
   
   return 0;
 }

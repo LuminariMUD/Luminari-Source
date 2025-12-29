@@ -152,6 +152,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"account", "account", POS_DEAD, do_account, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"arcanemark", "arcanem", POS_DEAD, do_arcanemark, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"activate", "activate", POS_FIGHTING, do_activate, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -241,6 +242,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"brief", "br", POS_DEAD, do_gen_tog, 0, SCMD_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"brutalfoe", "brutalfoe", POS_RECLINING, do_brutalfoe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breply", "breply", POS_STANDING, do_reply_board, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bedit", "bedit", POS_DEAD, do_bedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"blist", "blist", POS_DEAD, do_blist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -355,7 +357,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"device", "device", POS_STANDING, do_device, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"device", "device", POS_FIGHTING, do_device, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -376,6 +378,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"eternalmountaindefense", "eternalmountaindefense", POS_FIGHTING, do_eternalmountaindefense, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_eternalmountaindefense},
     {"dismount", "dismount", POS_FIGHTING, do_dismount, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"dismiss", "dismiss", POS_FIGHTING, do_dismiss, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"destroygolem", "destroygolem", POS_STANDING, do_destroygolem, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"golemrepair", "golemrepair", POS_STANDING, do_golemrepair, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"disenchant", "disenchant", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dirtkick", "dirtkick", POS_FIGHTING, do_dirtkick, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dirtkick},
     {"disembark", "disembark", POS_STANDING, do_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -584,6 +588,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"irresistablemagic", "irresistablemagic", POS_FIGHTING, do_irresistablemagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_irresistablemagic},
     {"insectbeing", "insectbeing", POS_FIGHTING, do_insectbeing, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_insectbeing},
     {"inspirecourage", "inspirecourage", POS_FIGHTING, do_inspire_courage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"favoredterrain", "favterrain", POS_RECLINING, do_favored_terrain, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"flourish", "flourish", POS_FIGHTING, do_flourish, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"curtaincall", "curtaincall", POS_FIGHTING, do_curtain_call, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* Intermud3 commands */
     {"i3admin", "i3admin", POS_DEAD, do_i3admin, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -603,6 +610,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"judgement", "judge", POS_RECLINING, do_judgement, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"greaterjudgment", "gj", POS_RECLINING, do_greater_judgment, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"inexorablejudgment", "ij", POS_RECLINING, do_inexorable_judgment, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -645,6 +654,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"manifest", "m", POS_SITTING, do_manifest, 1, SCMD_CAST_PSIONIC, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"maneuvers", "maneuvers", POS_DEAD, do_commands, 0, SCMD_MANEUVERS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"midnightedict", "midnightedict", POS_FIGHTING, do_midnight_edict, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"memorize", "memorize", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mail", "mail", POS_STANDING, do_new_mail, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -739,6 +749,12 @@ cpp_extern const struct command_info cmd_info[] = {
 #endif
     {"pilfer", "pil", POS_STANDING, do_loot, 1, SCMD_PILFER, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"profanebond", "profanebond", POS_RECLINING, do_profanebond, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"sinisterrecovery", "srecovery", POS_FIGHTING, do_sinisterrecovery, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"shadestep", "shstep", POS_FIGHTING, do_shadestep, 0, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
+    {"unholyblitz", "ublitz", POS_FIGHTING, do_unholyblitz, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"avatarprofanity", "avatar", POS_RECLINING, do_avatarprofanity, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"cataclysmsmite", "catsmite", POS_FIGHTING, do_cataclysmsmite, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -768,6 +784,9 @@ cpp_extern const struct command_info cmd_info[] = {
     //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"psionicfocus", "psionicfocus", POS_FIGHTING, do_psionic_focus, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_psionic_focus},
     {"psychokinetic", "psychokinetic", POS_FIGHTING, do_psychokinetic, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
+      {"gravitywell", "gravitywell", POS_FIGHTING, do_gravity_well, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_gravity_well},
+      {"singularimpact", "singularimpact", POS_FIGHTING, do_singular_impact, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_singular_impact},
+      {"perfectdeflection", "perfectdeflection", POS_FIGHTING, do_perfect_deflection, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_perfect_deflection},
     {"pushswitch", "pushswitch", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     //{ "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -811,7 +830,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
-    {"reforge", "reforge", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"reforge", "reforge", POS_STANDING, do_reforge, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reloadimm", "reloadimm", POS_DEAD, do_reboot, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -907,7 +926,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setcloak", "setcloak", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setmaterials", "setm", POS_DEAD, do_setmaterial, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"settestchar", "settc", POS_DEAD, do_settestchar, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"settestkit", "settk", POS_DEAD, do_settestkit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomname", "setrn", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomflags", "setroomf", POS_DEAD, do_setroomflag, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -966,6 +987,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"strength", "strength", POS_FIGHTING, do_strength, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"strengthofhonor", "strengthofhonor", POS_FIGHTING, do_strength_of_honor, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
+    {"unstablemutagen", "unstablemutagen", POS_RECLINING, do_unstablemutagen, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"volatilecatalyst", "volatilecatalyst", POS_RECLINING, do_volatilecatalyst, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"universalmutagen", "universalmutagen", POS_RECLINING, do_universalmutagen, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"chimericbreath", "chimericbreath", POS_FIGHTING, do_chimericbreath, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"sweepingcinder", "sweepingc", POS_STANDING, do_sweepingcinder, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_sweepingcinder},
     {"sweepingstrike", "sweepings", POS_DEAD, do_gen_tog, 0, SCMD_SWEEPING_STRIKE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1550,7 +1575,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eDEVICE_REPAIR) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1578,6 +1603,8 @@ void command_interpreter(struct char_data *ch, char *argument)
         send_to_char(ch, "You are too busy crafting to do that! ");
       else if (char_has_mud_event(ch, eDEVICE_CREATION))
         send_to_char(ch, "You are too busy devising your creation to do that! ");
+      else if (char_has_mud_event(ch, eDEVICE_REPAIR))
+        send_to_char(ch, "You are too busy repairing your device to do that! ");
       else if (char_has_mud_event(ch, eBREWING))
         send_to_char(ch, "You are too busy brewing to do that! ");
       send_to_char(ch, "[Available commands: gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");

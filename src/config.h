@@ -105,6 +105,7 @@ extern int extra_level_hp;
 extern int extra_level_mv;
 extern int ac__cap;
 extern int exp_level_difference;
+extern int spellcasting_time_mode; // 0 = standard action, 1 = per-spell seconds
 extern int summon_1_10_hp;
 extern int summon_1_10_hit_and_dam;
 extern int summon_1_10_ac;

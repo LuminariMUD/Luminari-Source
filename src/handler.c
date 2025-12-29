@@ -1343,8 +1343,10 @@ void affect_join(struct char_data *ch, struct affected_type *af,
   {
     next = hjp->next;
 
-    /* matching spell-number AND affection location matches? */
-    if ((hjp->spell == af->spell) && (hjp->location == af->location))
+    /* Matching spell-number and location; include specific for skill-based mods
+     * so different skills from the same spell don't overwrite each other. */
+    if ((hjp->spell == af->spell) && (hjp->location == af->location) &&
+      (af->location != APPLY_SKILL || hjp->specific == af->specific))
     {
       if (add_dur)
         af->duration += hjp->duration;
@@ -1622,6 +1624,23 @@ void char_to_room(struct char_data *ch, room_rnum room)
     if (ch->desc)
       MSDPFlush(ch->desc, eMSDP_ROOM);
   }
+}
+
+void resize_obj_to_char(struct obj_data *object, struct char_data *ch)
+{
+  switch (GET_OBJ_TYPE(object))
+  {
+    case ITEM_ARMOR:
+      if (IS_NPC(ch)) // For NPCs we won't change the size
+        break;
+      else
+        GET_OBJ_SIZE(object) = race_list[GET_REAL_RACE(ch)].size; // in case they are shapechanged/wildshaped/enlarged/etc.
+      break;
+    default:
+      break;
+  }
+
+  obj_to_char(object, ch);
 }
 
 /* Give an object to a char. */

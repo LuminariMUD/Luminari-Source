@@ -70,6 +70,9 @@ struct syllable
   const char *org;
   const char *news;
 };
+
+/* Tracks a single-cast Perfect Fabricator activation across do_gen_cast -> cast_spell */
+static bool perfect_fabricator_flag = FALSE;
 static struct syllable syls[] = {
     {" ", " "},
     {"ar", "abra"},
@@ -176,7 +179,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
     concentration_dc -= 4;
   if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END && HAS_FEAT(ch, FEAT_COMBAT_MANIFESTATION))
     concentration_dc -= 4;
-  if (!is_tanking(ch))
+  if (FIGHTING(ch) && !is_tanking(ch))
     concentration_dc -= 10;
   if (char_has_mud_event(ch, eTAUNTED))
     concentration_dc += 6;
@@ -191,6 +194,10 @@ bool concentration_check(struct char_data *ch, int spellnum)
       concentration_dc +=
           compute_cmb(GRAPPLE_TARGET(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
   }
+
+  /* Inquisitor Swift Spellcaster perk: +2 to concentration checks */
+  if (has_inquisitor_swift_spellcaster(ch))
+    concentration_dc -= 2;
 
   if (CASTING_CLASS(ch) != CLASS_ALCHEMIST)
   {
@@ -226,6 +233,14 @@ int lowest_spell_level(int spellnum)
       lvl = SINFO.min_level[i];
 
   return lvl;
+}
+
+bool spell_is_cantrip(int spellnum)
+{
+  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
+    return FALSE;
+
+  return spell_info[spellnum].is_cantrip;
 }
 
 /* displays substitute text for spells to represent 'magical phrases' */
@@ -662,7 +677,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case CLASS_WARLOCK:
     case CLASS_BARD:
     case CLASS_SUMMONER:
-      if (!canCastAtWill(caster, spellnum))
+      if (!canCastAtWill(caster, spellnum) && casttype != CAST_DEVICE)
       {
         /* bards, summoners & warlocks can wear light armor and cast unpenalized (bard spells) */
         if (compute_gear_armor_type(caster) > (HAS_FEAT(caster, FEAT_BATTLE_CASTER) ? ARMOR_TYPE_MEDIUM : ARMOR_TYPE_LIGHT) ||
@@ -677,7 +692,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       break;
     case CLASS_SORCERER:
     case CLASS_WIZARD:
-      if (!canCastAtWill(caster, spellnum))
+      if (!canCastAtWill(caster, spellnum) && casttype != CAST_DEVICE)
       {
         if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
         {
@@ -815,6 +830,9 @@ SAVING_WILL here...  */
     break;
   case CAST_WAND:
     savetype = SAVING_WILL;
+    spell_level = level;
+    break;
+  case CAST_DEVICE:
     spell_level = level;
     break;
 
@@ -970,6 +988,9 @@ SAVING_WILL here...  */
     case SPELL_ACID_ARROW:
       MANUAL_SPELL(spell_acid_arrow);
       break;
+    case SPELL_ARCANE_MARK:
+      MANUAL_SPELL(spell_arcane_mark);
+      break;
     case SPELL_AQUEOUS_ORB:
       MANUAL_SPELL(spell_aqueous_orb);
       break;
@@ -1100,6 +1121,9 @@ SAVING_WILL here...  */
       break;
     case SPELL_SPELLSTAFF:
       MANUAL_SPELL(spell_spellstaff);
+      break;
+    case SPELL_SUMMON_INSTRUMENT:
+      MANUAL_SPELL(spell_summon_instrument);
       break;
     case SPELL_STORM_OF_VENGEANCE:
       MANUAL_SPELL(spell_storm_of_vengeance);
@@ -1638,6 +1662,97 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
   
+  /* Bard Spellsinger: Harmonic Casting - chance to not interrupt performance when casting during a song */
+  bool harmony_procced = FALSE;
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch))
+  {
+    if (has_bard_harmonic_casting(ch))
+    {
+      /* 50% chance to not interrupt performance */
+      if (!rand_number(0, 1))
+      {
+        harmony_procced = TRUE;
+        send_to_char(ch, "\tCThe harmonious melody flows through your casting, sustaining your song!\tn\r\n");
+      }
+    }
+    
+    /* If Harmonic Casting didn't proc, casting interrupts the performance */
+    if (!harmony_procced)
+    {
+      IS_PERFORMING(ch) = FALSE;
+      GET_PERFORMING(ch) = -1;
+      GET_PERFORMANCE_VAR(ch, 2) = -1;
+      send_to_char(ch, "\tRYour spellcasting interrupts your performance!\tn\r\n");
+      act("$n's performance falters as $e casts a spell.", TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
+
+  /* Bard Spellsinger: Crescendo - bonus to first spell after starting song */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_crescendo(ch))
+  {
+    /* Check if this is the first spell cast after starting a song (check performance_vars[3]) */
+    if (ch->char_specials.performance_vars[3] == 0)
+    {
+      /* Mark that we've used the crescendo bonus this performance */
+      ch->char_specials.performance_vars[3] = 1;
+      /* Store sonic damage dice value for this spell in performance_vars[4] */
+      ch->char_specials.performance_vars[4] = get_bard_crescendo_sonic_damage(ch); /* 1d6 sonic */
+      GET_DC_BONUS(ch) += get_bard_crescendo_dc_bonus(ch); /* +2 DC */
+      send_to_char(ch, "\tYYour spell reaches a crescendo of power!\tn\r\n");
+    }
+  }
+  
+  /* Bard Spellsinger: Heightened Harmony - apply perform bonus after metamagic cast */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && CASTING_METAMAGIC(ch) != 0 && has_bard_heightened_harmony(ch))
+  {
+    struct affected_type hh_af;
+    new_affect(&hh_af);
+    hh_af.spell = PERK_BARD_HEIGHTENED_HARMONY;
+    hh_af.duration = 3; /* lasts a few rounds */
+    hh_af.location = APPLY_SKILL;
+    hh_af.specific = ABILITY_PERFORM;
+    hh_af.modifier = get_bard_heightened_harmony_perform_bonus(ch); /* +5 */
+    hh_af.bonus_type = BONUS_TYPE_COMPETENCE;
+    affect_to_char(ch, &hh_af);
+    send_to_char(ch, "\tCYour metamagic resonates, heightening your performance! (+%d)\tn\r\n", hh_af.modifier);
+  }
+
+  /* Tier 4 Spellsinger: Symphonic Resonance - daze enemies on Enchantment/Illusion spells */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) && has_bard_symphonic_resonance(ch))
+  {
+    int spellnum = CASTING_SPELLNUM(ch);
+    if (spellnum > 0 && spellnum < NUM_SPELLS)
+    {
+      int school = spell_info[spellnum].schoolOfMagic;
+      if (school == ENCHANTMENT || school == ILLUSION)
+      {
+        int duration = get_bard_symphonic_resonance_daze_duration(ch); /* 1 round */
+        struct char_data *tch = NULL, *next_tch = NULL;
+        
+        /* Daze all enemies in range within the same room */
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+        {
+          next_tch = tch->next_in_room;
+          
+          /* Skip self, allies, and NPCs */
+          if (tch == ch || !aoeOK(ch, tch, -1) || IS_NPC(tch))
+            continue;
+          
+          /* Apply daze affect */
+          struct affected_type daze_af;
+          new_affect(&daze_af);
+          daze_af.spell = PERK_BARD_SYMPHONIC_RESONANCE;
+          daze_af.duration = duration;
+          SET_BIT_AR(daze_af.bitvector, AFF_DAZED);
+          affect_to_char(tch, &daze_af);
+          
+          send_to_char(tch, "\tMThe symphonic resonance dazes you!\tn\r\n");
+          send_to_char(ch, "\tCYour spell resonates, dazing nearby enemies!\tn\r\n");
+        }
+      }
+    }
+  }
+
   /* Consume metamagic reduction use if applicable */
   if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0) {
     use_metamagic_reduction(ch);
@@ -1648,9 +1763,9 @@ void finishCasting(struct char_data *ch)
   // exp gained for casting spells
   int spell_circle = spell_info[CASTING_SPELLNUM(ch)].min_level[CASTING_CLASS(ch)];
   int exp_to_give = GET_LEVEL(ch) * spell_circle * 50;
-  if (CONFIG_SPELL_CAST_EXP_OPTION == 2) // reduced exp
+  if (CONFIG_SPELL_CAST_EXP_OPTION == 1) // reduced exp
     exp_to_give /= 2;
-  else if (CONFIG_SPELL_CAST_EXP_OPTION == 3) // no exp
+  else if (CONFIG_SPELL_CAST_EXP_OPTION == 2) // no exp
     exp_to_give = 0;  
   
   if (FIGHTING(ch) && !IS_NPC(ch) && exp_to_give > 0)
@@ -1658,14 +1773,228 @@ void finishCasting(struct char_data *ch)
     gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
   }
 
+  int final_metamagic = CASTING_METAMAGIC(ch);
+
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
   {
     manifest_mastermind_power(ch);
   }
   else
   {
-    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+    const int spellnum = CASTING_SPELLNUM(ch);
+
+    /* Master Alchemist: 10% chance to maximize extracts */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_master_alchemist(ch) &&
+        !IS_SET(final_metamagic, METAMAGIC_MAXIMIZE) && rand_number(1, 100) <= 10)
+    {
+      SET_BIT(final_metamagic, METAMAGIC_MAXIMIZE);
+      send_to_char(ch, "\tM[Your mastery produces a perfectly maximized extract!]\tn\r\n");
+    }
+
+    /* Concentrated Essence: 20% chance to empower extracts */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_concentrated_essence(ch) &&
+        !IS_SET(final_metamagic, METAMAGIC_EMPOWER) && can_spell_be_empowered(spellnum) && rand_number(1, 100) <= 20)
+    {
+      SET_BIT(final_metamagic, METAMAGIC_EMPOWER);
+      send_to_char(ch, "\tY[Your extract is concentrated and empowered!]\tn\r\n");
+    }
+
+    /* Persistent Extraction: 20% chance to extend extracts */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_persistent_extraction(ch) &&
+        !IS_SET(final_metamagic, METAMAGIC_EXTEND) && can_spell_be_extended(spellnum) && rand_number(1, 100) <= 20)
+    {
+      SET_BIT(final_metamagic, METAMAGIC_EXTEND);
+      send_to_char(ch, "\tY[Your extract persists longer than expected!]\tn\r\n");
+    }
+
+    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, final_metamagic,
                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+
+    /* Psionicist Telepathic Control Tier I mechanics */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_PSIONICIST && is_spellnum_psionic(spellnum))
+    {
+      /* Telepathy-only perks */
+      if (psionic_powers[spellnum].power_type == TELEPATHY)
+      {
+        /* Suggestion Primer: extend Telepathy MAG_AFFECTS duration on target by +1 round */
+        if (CASTING_TCH(ch))
+        {
+          apply_psionic_suggestion_primer(ch, CASTING_TCH(ch), spellnum, SINFO.routines);
+        }
+        /* Focus Channeling: regain 1 PSP once per round when Telepathy hits */
+        apply_psionic_focus_channeling(ch);
+      }
+    }
+
+    /* Healing Extraction: heal user when extract is used */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_healing_extraction(ch))
+    {
+      int heal_amount = get_alchemist_healing_extraction_amount(ch);
+      if (heal_amount > 0)
+      {
+        GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal_amount);
+        send_to_char(ch, "\tG[Your extract's energy heals you for %d HP!]\tn\r\n", heal_amount);
+      }
+    }
+
+    /* Discovery Extraction: 10% chance for stacking INT buff */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_discovery_extraction(ch) &&
+        rand_number(1, 100) <= 10)
+    {
+      struct affected_type af;
+      struct affected_type *current_discovery = NULL;
+      struct affected_type *hjp = NULL;
+      int current_bonus = 0;
+      
+      /* Search for existing Discovery Extraction affect */
+      for (hjp = ch->affected; hjp; hjp = hjp->next)
+      {
+        if (hjp->spell == PERK_ALCHEMIST_DISCOVERY_EXTRACTION)
+        {
+          current_discovery = hjp;
+          current_bonus = hjp->modifier;
+          break;
+        }
+      }
+      
+      if (current_bonus < 10)
+      {
+        /* Remove old affect if exists */
+        if (current_discovery)
+          affect_from_char(ch, PERK_ALCHEMIST_DISCOVERY_EXTRACTION);
+        
+        /* Apply new stacking buff */
+        new_affect(&af);
+        af.spell = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+        af.duration = 120; /* 2 minutes */
+        af.location = APPLY_INT;
+        af.modifier = current_bonus + 1;
+        af.bonus_type = BONUS_TYPE_INSIGHT;
+        affect_to_char(ch, &af);
+        
+        send_to_char(ch, "\tC[Your extract sparks a discovery! INT +%d]\tn\r\n", af.modifier);
+      }
+    }
+
+    /* Alchemical Compatibility: auto-apply to alchemist party members */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_alchemical_compatibility(ch) &&
+        CASTING_TCH(ch) && GROUP(ch) && !SINFO.violent)
+    {
+      struct char_data *ally = NULL, *ally_next = NULL;
+      bool found_alchemist = FALSE;
+      
+      for (ally = world[IN_ROOM(ch)].people; ally; ally = ally_next)
+      {
+        ally_next = ally->next_in_room;
+        
+        /* Skip original target, non-party, and non-alchemists */
+        if (ally == CASTING_TCH(ch) || GROUP(ally) != GROUP(ch) || IS_NPC(ally))
+          continue;
+        if (CLASS_LEVEL(ally, CLASS_ALCHEMIST) <= 0)
+          continue;
+        
+        found_alchemist = TRUE;
+        call_magic(ch, ally, CASTING_TOBJ(ch), spellnum, final_metamagic,
+                   (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+      }
+      
+      if (found_alchemist)
+        send_to_char(ch, "\tC[Your extract's alchemical compatibility shares it with fellow alchemists!]\tn\r\n");
+    }
+
+    /* Resonant Extract: small chance to echo the extract onto grouped allies in the room */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_resonant_extract(ch))
+    {
+      struct char_data *ally = NULL, *ally_next = NULL;
+
+      if (CASTING_TCH(ch) && GROUP(ch) && !SINFO.violent && rand_number(1, 100) <= 5)
+      {
+        send_to_char(ch, "\tC[Your extract resonates through your party!]\tn\r\n");
+        for (ally = world[IN_ROOM(ch)].people; ally; ally = ally_next)
+        {
+          ally_next = ally->next_in_room;
+
+          /* Share only with grouped allies in the same room, skip the original target */
+          if (ally == CASTING_TCH(ch))
+            continue;
+          if (GROUP(ally) != GROUP(ch))
+            continue;
+
+          call_magic(ch, ally, CASTING_TOBJ(ch), spellnum, final_metamagic,
+                     (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+        }
+      }
+    }
+
+    /* Eternal Extract: 5% chance to make extract last exactly 1 hour */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_eternal_extract(ch))
+    {
+      if (rand_number(1, 100) <= 5 && CASTING_TCH(ch))
+      {
+        struct affected_type *hjp = NULL;
+        
+        /* Search for the extract spell just cast on the target */
+        for (hjp = CASTING_TCH(ch)->affected; hjp; hjp = hjp->next)
+        {
+          /* Look for the spell that was just cast */
+          if (hjp->spell == spellnum)
+          {
+            hjp->duration = 600; /* 1 hour = 600 ticks (10 ticks per minute in the system) */
+            send_to_char(ch, "\tM[Your extract becomes eternal, lasting a full hour!]\tn\r\n");
+            break;
+          }
+        }
+      }
+    }
+
+    /* Quintessential Extraction: extract heals 10 HP and grants +10 max HP for 5 min (stacks to +100) */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST && has_alchemist_quintessential_extraction(ch))
+    {
+      struct affected_type af;
+      struct affected_type *current_quint = NULL;
+      struct affected_type *hjp = NULL;
+      int current_bonus = 0;
+
+      if (CASTING_TCH(ch))
+      {
+        /* Heal 10 HP to target */
+        GET_HIT(CASTING_TCH(ch)) = MIN(GET_MAX_HIT(CASTING_TCH(ch)), GET_HIT(CASTING_TCH(ch)) + 10);
+
+        /* Search for existing Quintessential Extraction affect */
+        for (hjp = CASTING_TCH(ch)->affected; hjp; hjp = hjp->next)
+        {
+          if (hjp->spell == PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION)
+          {
+            current_quint = hjp;
+            current_bonus = hjp->modifier;
+            break;
+          }
+        }
+
+        /* Cap at +100 max HP */
+        if (current_bonus < 100)
+        {
+          int new_bonus = current_bonus + 10;
+          if (new_bonus > 100)
+            new_bonus = 100;
+
+          /* Remove old affect if exists */
+          if (current_quint)
+            affect_from_char(CASTING_TCH(ch), PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION);
+
+          /* Apply new stacking buff */
+          new_affect(&af);
+          af.spell = PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+          af.duration = 5; /* 5 minutes */
+          af.location = APPLY_HIT;
+          af.modifier = new_bonus;
+          af.bonus_type = BONUS_TYPE_ALCHEMIST_QUINTESSENTIAL;
+          affect_to_char(CASTING_TCH(ch), &af);
+
+          send_to_char(CASTING_TCH(ch), "\tG[You feel an alchemical essence enhancing your vitality, your max HP increases by 10 (total: +%d)!]\tn\r\n", new_bonus);
+        }
+      }
+    }
   }
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
@@ -1677,7 +2006,7 @@ void finishCasting(struct char_data *ch)
     }
     else
     {
-      call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+      call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), final_metamagic,
                  (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
     }
     affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
@@ -1873,10 +2202,16 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   int position = GET_POS(ch);
   int ch_class = CLASS_WIZARD;
   int casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   bool quickened = FALSE;
-#endif
   int clevel = 0;
+  bool perfect_fabricator_active = FALSE; /* Track Perfect Fabricator usage across this cast */
+
+  /* Pull through Perfect Fabricator state from do_gen_cast (if any) */
+  if (perfect_fabricator_flag)
+  {
+    perfect_fabricator_active = TRUE;
+    perfect_fabricator_flag = FALSE; /* consume the flag */
+  }
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
   {
@@ -2037,16 +2372,19 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     break;
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-  // We don't use casting times unless it's a ritual spell
-  if (SINFO.ritual_spell)
-    casting_time = SINFO.time;
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
+    // We don't use casting times unless it's a ritual spell
+    if (SINFO.ritual_spell)
+      casting_time = SINFO.time;
+    else
+      casting_time = 1;
+  }
   else
-    casting_time = 1;
-#else
-  /* establish base casting time for spell */
-  casting_time = SINFO.time;
-#endif
+  {
+    /* establish base casting time for spell */
+    casting_time = SINFO.time;
+  }
 
   /* meta magic! */
   if (!IS_NPC(ch))
@@ -2054,18 +2392,16 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (IS_SET(metamagic, METAMAGIC_QUICKEN))
     {
       casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-      quickened = TRUE;
-#endif
+      if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+        quickened = TRUE;
     }
     else if (HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
     {
       if (compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
       {
         casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-        quickened = true;
-#endif
+        if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          quickened = true;
       }
     }
     if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
@@ -2085,75 +2421,137 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (GET_WEAPON_TOUCH_SPELL(ch) != 0)
   {
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
   if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
   {
     HAS_ELDRITCH_SPELL_CRIT(ch) = false;
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
   if (spellnum == PSIONIC_MIND_TRAP)
   {
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
   if (has_paladin_quickened_blessing(ch) && is_quickened_blessing_spell(spellnum))
   {
     casting_time = 0;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    quickened = TRUE;
-#endif
+    if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+      quickened = TRUE;
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  /* Inquisitor Swift Spellcaster perk: reduce casting time by one step once per encounter */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 && 
+      has_inquisitor_swift_spellcaster(ch) && 
+      !char_has_mud_event(ch, eSWIFT_SPELLCASTER_USED) &&
+      spellnum > 0 && spellnum < NUM_SPELLS)
+  {
+    if (casting_time > 0)
+    {
+      casting_time -= 1;
+      attach_mud_event(new_mud_event(eSWIFT_SPELLCASTER_USED, ch, NULL), 0);
+      send_to_char(ch, "Your spell casts faster due to practiced efficiency.\r\n");
+    }
+  }
 
-  if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
   {
-    casting_time = 0;
-    quickened = true;
-    ch->char_specials.quick_chant = false;
-    send_to_char(ch, "Your casting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+    if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
+    {
+      casting_time = 0;
+      quickened = true;
+      ch->char_specials.quick_chant = false;
+      send_to_char(ch, "Your casting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+    }
+    else if (!quickened && ch->char_specials.quick_mind && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      casting_time = 0;
+      quickened = true;
+      ch->char_specials.quick_mind = false;
+      send_to_char(ch, "Your manifesting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+    }
+    /* Accelerated Manifestation: make one Psychokinesis power faster per combat */
+    else if (!quickened && !IS_NPC(ch) && (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END))
+    {
+      if (has_accelerated_manifestation(ch) && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      {
+        /* Only for Psychokinesis powers */
+        if (psionic_powers[spellnum].power_type == PSYCHOKINESIS)
+        {
+          casting_time = 0;
+          quickened = true;
+          attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL), 10 * PASSES_PER_SEC);
+          send_to_char(ch, "Your manifesting of '%s' accelerates to a faster action.\r\n", spell_info[spellnum].name);
+        }
+      }
+    }
   }
-  else if (!quickened && ch->char_specials.quick_mind && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
-  {
-    casting_time = 0;
-    quickened = true;
-    ch->char_specials.quick_mind = false;
-    send_to_char(ch, "Your manifesting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
-  }
-#endif
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
-  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 1)
   {
-    casting_time += get_augment_casting_time_adjustment(ch);
-    if (IS_BUFFING(ch))
-      GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      casting_time += get_augment_casting_time_adjustment(ch);
+      if (IS_BUFFING(ch))
+        GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
+    }
+
+    /* Fabricate Focus: metacreativity manual/creation powers manifest 10% faster */
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+        psionic_powers[spellnum].power_type == METACREATIVITY)
+    {
+      int routines = spell_info[spellnum].routines;
+      bool is_creation = IS_SET(routines, MAG_MANUAL) || IS_SET(routines, MAG_SUMMONS) || IS_SET(routines, MAG_CREATIONS);
+      if (is_creation)
+      {
+        int reduction = get_fabricate_focus_casting_time_reduction(ch);
+        if (reduction > 0)
+        {
+          casting_time = MAX(0, casting_time * (100 - reduction) / 100);
+          if (IS_BUFFING(ch))
+            GET_BUFF_TIMER(ch) = MAX(0, GET_BUFF_TIMER(ch) * (100 - reduction) / 100);
+        }
+      }
+    }
   }
-#endif
 
   if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
   {
     if (GET_AUGMENT_PSP(ch) >= 4)
     {
       casting_time = 1;
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-      quickened = TRUE;
-#endif
+      if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+        quickened = TRUE;
     }
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
+    bool rapid_manifest = false;
+    /* Rapid Manifester: once per encounter, reduce action time by one step for a metacreativity power */
+    if (!quickened && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END &&
+        psionic_powers[spellnum].power_type == METACREATIVITY &&
+        can_use_rapid_manifester(ch))
+    {
+      rapid_manifest = true;
+      use_rapid_manifester(ch);
+      send_to_char(ch, "Your manifesting of '%s' speeds up a step.\r\n", spell_info[spellnum].name);
+    }
+
+    /* Perfect Fabricator: manifests as swift action (already marked as used in PSP cost section) */
+    if (!quickened && perfect_fabricator_active)
+    {
+      quickened = TRUE;
+      send_to_char(ch, "\tM[Perfect Fabricator] Power manifests as a swift action!\tn\r\n");
+    }
+
     if (quickened)
     {
       if (!is_action_available(ch, atSWIFT, FALSE))
@@ -2190,10 +2588,27 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
     else
     {
-      USE_STANDARD_ACTION(ch);
-      USE_MOVE_ACTION(ch);
+      if (rapid_manifest)
+      {
+        /* Consume only a move action instead of standard+move */
+        if (!is_action_available(ch, atMOVE, FALSE))
+        {
+          /* Fallback to standard if move is unavailable */
+          if (is_action_available(ch, atSTANDARD, FALSE))
+            USE_STANDARD_ACTION(ch);
+        }
+        else
+        {
+          USE_MOVE_ACTION(ch);
+        }
+      }
+      else
+      {
+        USE_STANDARD_ACTION(ch);
+        USE_MOVE_ACTION(ch);
+      }
     }
-#endif
+  }
 
   /* Going to adjust spell queue and establish what class the character
 will be using for casting this spell */
@@ -2234,6 +2649,13 @@ will be using for casting this spell */
         /* NEW SPELL PREP SYSTEM */
         if (GET_CASTING_CLASS(ch) != CLASS_SHADOWDANCER)
         {
+          /* TODO: Spell Metamastery implementation
+           * If has_inquisitor_spell_metamastery(ch) && !char_has_mud_event(ch, eSPELL_METAMASTERY_USED) && metamagic > 0:
+           * - Allow extracting spell at base level instead of metamagic-adjusted level
+           * - Create event: attach_mud_event(new_mud_event(eSPELL_METAMASTERY_USED, ch, NULL), encounter_duration)
+           * - This requires modification to spell_prep_gen_extract to accept a "free metamagic" flag
+           * - Notify player: "You channel your Spell Metamastery to enhance this spell without cost!"
+           */
           ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
           if (canCastAtWill(ch, spellnum))
           {
@@ -2287,19 +2709,46 @@ will be using for casting this spell */
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+  {
     CASTING_TIME(ch) = casting_time;
     CASTING_TIME_MAX(ch) = casting_time;
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
     CASTING_METAMAGIC(ch) = metamagic;
-#else
-    /* mandatory wait-state for any spell */
-    USE_MOVE_ACTION(ch);
-#endif
+  }
+  else
+  {
+    /* mandatory action cost for any spell */
+    USE_MOVE_ACTION(ch); 
+  }
 
-    return (call_magic(ch, tch, tobj, spellnum, metamagic, clevel, CAST_SPELL));
+    {
+      int result = call_magic(ch, tch, tobj, spellnum, metamagic, clevel, CAST_SPELL);
+      
+      /* Inquisitor Righteous Strike: Set flag when inquisitor spell is cast */
+      if (result && !IS_NPC(ch) && has_inquisitor_righteous_strike(ch) &&
+          GET_CASTING_CLASS(ch) == CLASS_INQUISITOR)
+      {
+        ch->player_specials->inq_righteous_strike_rounds = 1;
+      }
+      
+      /* Divine Spellstrike: once/day swift-cast inquisitor spell and follow with full attack */
+      if (result && !IS_NPC(ch) && has_inquisitor_divine_spellstrike(ch) &&
+          GET_CASTING_CLASS(ch) == CLASS_INQUISITOR && FIGHTING(ch) &&
+          !char_has_mud_event(ch, eDIVINE_SPELLSTRIKE_USED))
+      {
+        attach_mud_event(new_mud_event(eDIVINE_SPELLSTRIKE_USED, ch, NULL), SECS_PER_MUD_DAY);
+        USE_SWIFT_ACTION(ch);
+        send_to_char(ch, "\tYYou channel Divine Spellstrike, unleashing a flurry of blows!\tn\r\n");
+#define NORMAL_ATTACK_ROUTINE 0 /* perform full attack routine */
+        perform_attacks(ch, NORMAL_ATTACK_ROUTINE, 0);
+#undef NORMAL_ATTACK_ROUTINE
+      }
+
+      return result;
+    }
   }
   else
   {
@@ -2345,10 +2794,11 @@ will be using for casting this spell */
       NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
     }
 
-#if !defined(CAMPAIGN_FR) || !defined(CAMPAIGN_DL)
-    /* mandatory wait-state for any spell */
+  if (CONFIG_SPELLCASTING_TIME_MODE == 1)
+  { 
+    /* mandatory wait-state for any spell (seconds-based mode only) */
     USE_MOVE_ACTION(ch);
-#endif
+  }
 
   }
   // this return value has to be checked -zusuk
@@ -2404,6 +2854,7 @@ ACMDU(do_gen_cast)
   struct affected_type af;
   int class_num = CLASS_UNDEFINED;
   int circle = 99, school = 0;
+  bool perfect_fabricator_active = FALSE; /* Track Perfect Fabricator usage for psionic powers */
 
   if (IS_NPC(ch))
   {
@@ -2902,22 +3353,73 @@ return;
     // then adjust it to the specifications of the level and power used
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
 
+    /* Perfect Fabricator: Free (0 PSP) Metacreative power once per day */
+    if (!IS_NPC(ch) && can_use_perfect_fabricator(ch) && psionic_powers[spellnum].power_type == METACREATIVITY)
+    {
+      perfect_fabricator_active = TRUE;
+      perfect_fabricator_flag = TRUE; /* carry into cast_spell */
+      send_to_char(ch, "\tM[Perfect Fabricator] Power manifested for free (0 PSP)!\tn\r\n");
+    }
+
     if (!IS_NPC(ch))
     {
-      // we mainly separate the next two checks for the different messages to characters
-      if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
+      int effective_psp_cost = psionic_powers[spellnum].psp_cost;
+      
+      /* If Perfect Fabricator is active, set cost to 0 */
+      if (perfect_fabricator_active)
+      {
+        effective_psp_cost = 0;
+      }
+      /* Accelerated Manifestation: effective PSP cost reduction by 2 (min 1), once per combat */
+      else if (has_accelerated_manifestation(ch) && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      {
+        if (psionic_powers[spellnum].power_type == PSYCHOKINESIS)
+        {
+          effective_psp_cost = MAX(1, effective_psp_cost - 2);
+        }
+      }
+      /* Ectoplasmic Artisan I/II/III: Metacreativity PSP cost reduction (once per encounter) */
+      if (!perfect_fabricator_active && can_use_ectoplasmic_artisan_psp_reduction(ch))
+      {
+        if (psionic_powers[spellnum].power_type == METACREATIVITY)
+        {
+          int reduction = get_ectoplasmic_artisan_psp_reduction(ch);
+          effective_psp_cost = MAX(1, effective_psp_cost - reduction);
+          send_to_char(ch, "\tM[Ectoplasmic Artisan: PSP cost reduced!]\tn\r\n");
+        }
+      }
+
+      if (GET_PSP(ch) < effective_psp_cost)
       {
         send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
         return;
       }
-      if (GET_PSP(ch) < (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch)))
+      if (GET_PSP(ch) < (effective_psp_cost + GET_AUGMENT_PSP(ch)))
       {
         send_to_char(ch, "You don't have enough psp to manifest that power at that augmented amount.\r\n");
         return;
       }
 
       // All is well, deduct the psp and augment psp
-      GET_PSP(ch) -= (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch));
+      GET_PSP(ch) -= (effective_psp_cost + GET_AUGMENT_PSP(ch));
+
+      /* Mark Perfect Fabricator as used (daily) */
+      if (perfect_fabricator_active)
+      {
+        use_perfect_fabricator(ch);
+      }
+      /* Mark Accelerated Manifestation as used (per combat) */
+      else if (effective_psp_cost < psionic_powers[spellnum].psp_cost && !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
+      {
+        attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL), 10 * PASSES_PER_SEC);
+      }
+      /* Mark Ectoplasmic Artisan as used (per encounter) if it was used for this power */
+      if (!perfect_fabricator_active && psionic_powers[spellnum].power_type == METACREATIVITY && 
+          effective_psp_cost < psionic_powers[spellnum].psp_cost && 
+          can_use_ectoplasmic_artisan_psp_reduction(ch))
+      {
+        use_ectoplasmic_artisan_psp_reduction(ch);
+      }
 
       // many powers only benefit from certain intervals of augment psp such
       // as damage bonus = augment psp / 2.  So if their augment psp has a remainder
@@ -2947,7 +3449,19 @@ return;
     if (subcmd != SCMD_CAST_SHADOW)
     {
       if (canCastAtWill(ch, spellnum))
-        GET_CASTING_CLASS(ch) = class_num = CLASS_WIZARD;
+      {
+        int atwill_class = CLASS_UNDEFINED;
+
+        if (isWarlockMagic(ch, spellnum))
+          atwill_class = CLASS_WARLOCK;
+        else
+          atwill_class = find_cantrip_class(ch, spellnum);
+
+        if (atwill_class == CLASS_UNDEFINED)
+          atwill_class = CLASS_WIZARD;
+
+        GET_CASTING_CLASS(ch) = class_num = atwill_class;
+      }
       else
         GET_CASTING_CLASS(ch) = class_num;
     }
@@ -3283,7 +3797,7 @@ void spell_level(int spell, int chclass, int level)
     bad = 1;
   }
 
-  if (level < 1 || level > LVL_IMPL)
+  if (level < 0 || level > LVL_IMPL)
   {
     log("SYSERR: assigning '%s' to illegal level %d/%d.", spell_name(spell),
         level, LVL_IMPL);
@@ -3414,6 +3928,7 @@ void unused_spell(int spl)
   spell_info[spl].schoolOfMagic = NOSCHOOL; // noschool
   spell_info[spl].quest = FALSE;
   spell_info[spl].ritual_spell = FALSE;
+  spell_info[spl].is_cantrip = FALSE;
   spell_info[spl].actual_ability = FALSE;
 }
 
@@ -3667,13 +4182,70 @@ void mag_assign_spells(void)
   spello(SPELL_ACID_SPLASH, "acid splash", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_ARCANE_MARK, "arcane mark", 0, 0, 0, POS_STANDING,
+      TAR_OBJ_INV, FALSE, MAG_MANUAL,
+      NULL, 0, 1, TRANSMUTATION, FALSE);
   spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
-  spello(SPELL_BALL_OF_LIGHT, "globe of light", 0, 0, 0, POS_FIGHTING,
+    spello(SPELL_FIRE_BOLT, "fire bolt", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+      NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_JOLT, "jolt", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+      NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_DISRUPT_UNDEAD, "disrupt undead", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+      NULL, 0, 1, EVOCATION, FALSE);
+    spello(SPELL_ENHANCED_DIPLOMACY, "enhanced diplomacy", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+      "Your diplomatic focus fades.", 0, 1, ENCHANTMENT, FALSE);
+    spello(SPELL_FLARE, "flare", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+      "The dazzling light fades.", 0, 1, EVOCATION, FALSE);
+    spello(SPELL_GRASP, "grasp", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+      "Your enhanced grip relaxes.", 0, 1, TRANSMUTATION, FALSE);
+    spello(SPELL_GUIDANCE, "guidance", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "You feel less guided.", 0, 1, DIVINATION, FALSE);
+    spello(SPELL_LULLABY, "lullaby", 0, 0, 0, POS_FIGHTING,
+      TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+      "The soothing melody leaves your mind.", 0, 1, ENCHANTMENT, FALSE);
+    spello(SPELL_ROOT, "root", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "You feel less rooted in place.", 0, 1, ABJURATION, FALSE);
+    spello(SPELL_STABILIZE, "stabilize", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+      NULL, 0, 1, CONJURATION, FALSE);
+    spello(SPELL_SUMMON_INSTRUMENT, "summon instrument", 0, 0, 0, POS_STANDING,
+      TAR_IGNORE, FALSE, MAG_MANUAL,
+      NULL, 0, 1, CONJURATION, FALSE);
+    spello(SPELL_VIRTUE, "virtue", 0, 0, 0, POS_STANDING,
+      TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+      "Your momentary vigor fades.", 0, 1, ABJURATION, FALSE);
+  spello(SPELL_CONTINUAL_LIGHT, "continual light", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 0, 1, EVOCATION, FALSE);
   spello(SPELL_TOUCH_OF_FATIGUE, "touch of fatigue", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You fatigue passes.", 0, 1, NECROMANCY, FALSE);
+
+    spell_info[SPELL_ACID_SPLASH].is_cantrip = TRUE;
+    spell_info[SPELL_RAY_OF_FROST].is_cantrip = TRUE;
+    spell_info[SPELL_FIRE_BOLT].is_cantrip = TRUE;
+    spell_info[SPELL_JOLT].is_cantrip = TRUE;
+    spell_info[SPELL_DISRUPT_UNDEAD].is_cantrip = TRUE;
+    spell_info[SPELL_ARCANE_MARK].is_cantrip = TRUE;
+    spell_info[SPELL_ENHANCED_DIPLOMACY].is_cantrip = TRUE;
+    spell_info[SPELL_FLARE].is_cantrip = TRUE;
+    spell_info[SPELL_GRASP].is_cantrip = TRUE;
+    spell_info[SPELL_GUIDANCE].is_cantrip = TRUE;
+    spell_info[SPELL_LULLABY].is_cantrip = TRUE;
+    spell_info[SPELL_ROOT].is_cantrip = TRUE;
+    spell_info[SPELL_STABILIZE].is_cantrip = TRUE;
+    spell_info[SPELL_SUMMON_INSTRUMENT].is_cantrip = TRUE;
+    spell_info[SPELL_VIRTUE].is_cantrip = TRUE;
+    spell_info[SPELL_CONTINUAL_LIGHT].is_cantrip = TRUE;
+    spell_info[SPELL_TOUCH_OF_FATIGUE].is_cantrip = TRUE;
 
   spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -3931,6 +4503,9 @@ void mag_assign_spells(void)
   spello(SPELL_FIREBALL, "fireball", 44, 29, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AREAS,
          NULL, 3, 11, EVOCATION, FALSE);
+  spello(SPELL_SPLINTER_STORM, "splinter storm", 44, 29, 1, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_FLAME_ARROW, "flame arrow", 44, 29, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 3, 11, EVOCATION, FALSE);
@@ -4032,6 +4607,9 @@ void mag_assign_spells(void)
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 5, 13, EVOCATION, FALSE);
+  spello(SPELL_SHOCKWAVE, "shockwave", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 5, 13, TRANSMUTATION, FALSE);
   spello(SPELL_FIRE_SHIELD, "fire shield", 37, 22, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "You watch your fire shield fade away.", 5, 13, EVOCATION, FALSE);
@@ -4895,7 +5473,7 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 6, FALSE);
   spellabilo(WARLOCK_CHILLING_TENTACLES, "chilling tentacles", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AREAS,
+        TAR_IGNORE, TRUE, MAG_AREAS,
         NULL, 1, 1, NOSCHOOL, 5, FALSE);
   spellabilo(WARLOCK_DEVOUR_MAGIC, "devour magic", 0, 0, 0, POS_FIGHTING,
         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
@@ -4960,6 +5538,9 @@ void mag_assign_spells(void)
   spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_POISON_BREATH, "poison breath", 58, 43, 1, POS_FIGHTING,
+        TAR_IGNORE, TRUE, MAG_AREAS,
+        "You're no longer poisoned.", 5, 13, EVOCATION, FALSE);
   spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
@@ -4969,6 +5550,9 @@ void mag_assign_spells(void)
   spello(SPELL_DRAGONBORN_ANCESTRY_BREATH, "dragonborn breath weapon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
 
+  spello(AFFECT_PERSISTENT_JUDGMENT, "persistent judgment", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+         
   // 2nd level spell
   spello(SPELL_PROTECTION_FROM_ARROWS, "protection from arrows", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -5833,9 +6417,43 @@ void display_shadowcast_spells(struct char_data *ch)
     }
   }
 }
+
+/* Return the first character class that grants this cantrip. */
+int find_cantrip_class(struct char_data *ch, int spellnum)
+{
+  int class = CLASS_UNDEFINED;
+
+  if (!spell_is_cantrip(spellnum))
+    return CLASS_UNDEFINED;
+
+  for (class = 0; class < NUM_CLASSES; class++)
+  {
+    int required_level = LVL_IMMORT + 1;
+
+    if (!CLASS_LEVEL(ch, class))
+      continue;
+
+    if (class == CLASS_CLERIC || class == CLASS_INQUISITOR)
+    {
+      required_level = MIN_SPELL_LVL(spellnum, class, GET_1ST_DOMAIN(ch));
+      required_level = MIN(required_level, MIN_SPELL_LVL(spellnum, class, GET_2ND_DOMAIN(ch)));
+    }
+    else
+    {
+      required_level = spell_info[spellnum].min_level[class];
+    }
+
+    if (required_level <= CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class))
+      return class;
+  }
+
+  return CLASS_UNDEFINED;
+}
 sbyte canCastAtWill(struct char_data *ch, int spellnum)
 {
   if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return true;
+  if (find_cantrip_class(ch, spellnum) != CLASS_UNDEFINED)
     return true;
   if (isWarlockMagic(ch, spellnum) && is_a_known_spell(ch, CLASS_WARLOCK, spellnum))
     return true;
@@ -6015,7 +6633,7 @@ sbyte isEidolonMagic(struct char_data *ch, int spellnum)
     case SPELL_DETECT_MAGIC:
     case SPELL_ACID_SPLASH:
     case SPELL_RAY_OF_FROST:
-    case SPELL_BALL_OF_LIGHT:
+    case SPELL_CONTINUAL_LIGHT:
     case SPELL_TOUCH_OF_FATIGUE:
       if (HAS_EVOLUTION(ch, EVOLUTION_BASIC_MAGIC))
         return true;
@@ -6538,7 +7156,7 @@ bool npc_can_cast(struct char_data *ch, int spellnum)
       {
         case SPELL_DAZE_MONSTER:
         case SPELL_DETECT_MAGIC:
-        case SPELL_BALL_OF_LIGHT:
+        case SPELL_CONTINUAL_LIGHT:
         case SPELL_ACID_SPLASH:
         case SPELL_RAY_OF_FROST:
         case SPELL_TOUCH_OF_FATIGUE:

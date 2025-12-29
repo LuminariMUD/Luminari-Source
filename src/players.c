@@ -666,6 +666,8 @@ int load_char(const char *name, struct char_data *ch)
       GET_BAG_NAME(ch, i) = NULL;
     }
 
+    GET_ARCANE_MARK(ch) = NULL;
+
     for (i = 0; i < 100; i++)
     {
       ch->player_specials->saved.failed_dialogue_quests[i] = 0;
@@ -759,6 +761,12 @@ int load_char(const char *name, struct char_data *ch)
           (ch)->player_specials->saved.character_age_saved = atoi(line);
         else if (!strcmp(tag, "Alis"))
           read_aliases_ascii(fl, ch, atoi(line));
+        else if (!strcmp(tag, "AMrk"))
+        {
+          if (GET_ARCANE_MARK(ch))
+            free(GET_ARCANE_MARK(ch));
+          GET_ARCANE_MARK(ch) = strdup(line);
+        }
         break;
 
       case 'B':
@@ -1069,6 +1077,8 @@ int load_char(const char *name, struct char_data *ch)
           ch->desc->pProtocol->bGMCP = atoi(line);
         else if (!strcmp(tag, "GrDs"))
           GET_GRAND_DISCOVERY(ch) = atoi(line);
+        else if (!strcmp(tag, "GjTp"))
+          ch->player_specials->inq_greater_judgment_type = atoi(line);
         else if (!strcmp(tag, "GTCT"))
           GRAVE_TOUCH_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "GTCU"))
@@ -1221,6 +1231,13 @@ int load_char(const char *name, struct char_data *ch)
           GET_CURRENT_MISSION_ROOM(ch) = atoi(line);
         else if (!strcmp(tag, "MVRg"))
           GET_MV_REGEN(ch) = atoi(line);
+        /* Moon bonus spells */
+        else if (!strcmp(tag, "MBSp"))
+          ch->player_specials->saved.moon_bonus_spells = atoi(line);
+        else if (!strcmp(tag, "MBSU"))
+          ch->player_specials->saved.moon_bonus_spells_used = atoi(line);
+        else if (!strcmp(tag, "MBSR"))
+          ch->player_specials->saved.moon_bonus_regen_timer = atoi(line);
         break;
 
       case 'N':
@@ -1325,6 +1342,16 @@ int load_char(const char *name, struct char_data *ch)
           {
             ch->player_specials->saved.perfect_kill_last_combat = (time_t)timestamp;
             ch->player_specials->saved.perfect_kill_used = (used != 0);
+          }
+        }
+        else if (!strcmp(tag, "PCBr"))
+        {
+          long timestamp;
+          int used;
+          if (sscanf(line, "%ld %d", &timestamp, &used) == 2)
+          {
+            ch->player_specials->saved.chimeric_breath_last_combat = (time_t)timestamp;
+            ch->player_specials->saved.chimeric_breath_used = (used != 0);
           }
         }
         else if (!strcmp(tag, "PMxS"))
@@ -2164,6 +2191,8 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_HOST(ch))
     BUFFER_WRITE( "Host: %s\n", GET_HOST(ch));
+  // save arcane mark no matter what
+  BUFFER_WRITE( "AMrk: %s\n", GET_ARCANE_MARK(ch));
   if (GET_HEIGHT(ch) != PFDEF_HEIGHT)
     BUFFER_WRITE( "Hite: %d\n", GET_HEIGHT(ch));
   if (HIGH_ELF_CANTRIP(ch))
@@ -2358,6 +2387,14 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "MVRg : %d\n", GET_MV_REGEN(ch));
   if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
     BUFFER_WRITE( "PSRg : %d\n", GET_PSP_REGEN(ch));
+
+  /* Moon bonus spells */
+  if (ch->player_specials->saved.moon_bonus_spells != 0)
+    BUFFER_WRITE( "MBSp: %d\n", ch->player_specials->saved.moon_bonus_spells);
+  if (ch->player_specials->saved.moon_bonus_spells_used != 0)
+    BUFFER_WRITE( "MBSU: %d\n", ch->player_specials->saved.moon_bonus_spells_used);
+  if (ch->player_specials->saved.moon_bonus_regen_timer != 0)
+    BUFFER_WRITE( "MBSR: %d\n", ch->player_specials->saved.moon_bonus_regen_timer);
 
   if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
     BUFFER_WRITE( "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
@@ -2863,6 +2900,9 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
   BUFFER_WRITE( "-1\n");
 
+  /* Inquisitor Greater Judgment selection */
+  BUFFER_WRITE( "GjTp: %d\n", ch->player_specials->inq_greater_judgment_type);
+
   BUFFER_WRITE( "Lang:\n");
   for (i = 0; i < NUM_LANGUAGES; i++)
     BUFFER_WRITE( "%d\n", ch->player_specials->saved.languages_known[i]);
@@ -2942,6 +2982,11 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "PKil: %ld %d\n", 
     (long)ch->player_specials->saved.perfect_kill_last_combat,
     ch->player_specials->saved.perfect_kill_used ? 1 : 0);
+
+  /* Save Chimeric Transmutation (Alchemist) data */
+  BUFFER_WRITE( "PCBr: %ld %d\n",
+    (long)ch->player_specials->saved.chimeric_breath_last_combat,
+    ch->player_specials->saved.chimeric_breath_used ? 1 : 0);
   
   /* Save Maximize Spell cooldown */
   BUFFER_WRITE( "PMxS: %ld\n",
@@ -3370,7 +3415,7 @@ void save_char(struct char_data *ch, int mode)
       aff = &tmp_aff[i];
       if (aff->spell)
         BUFFER_WRITE(
-                "%d %d %d %d %d %d %d %d %d %d\n",
+                "%d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
                 aff->spell,
                 aff->duration,
                 aff->modifier,
@@ -3380,9 +3425,13 @@ void save_char(struct char_data *ch, int mode)
                 aff->bitvector[2],
                 aff->bitvector[3],
                 aff->bonus_type,
-                aff->specific);
+                aff->specific,
+                aff->bitvector2[0],
+                aff->bitvector2[1],
+                aff->bitvector2[2],
+                aff->bitvector2[3]);
     }
-    BUFFER_WRITE( "0 0 0 0 0 0 0 0 0 0\n");
+    BUFFER_WRITE( "0 0 0 0 0 0 0 0 0 0 0 0 0 0\n");
   }
 
   /* Save Damage Reduction */
@@ -3896,6 +3945,19 @@ static void load_affects(FILE *fl, struct char_data *ch)
       af.duration = num2;
       af.modifier = num3;
       af.location = num4;
+      if (n_vars == 14)
+      { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type = num9;
+        af.specific = num10;
+        af.bitvector2[0] = num11;
+        af.bitvector2[1] = num12;
+        af.bitvector2[2] = num13;
+        af.bitvector2[3] = num14;
+      }
       if (n_vars == 10)
       { /* Version with bonus type! */
         af.bitvector[0] = num5;
