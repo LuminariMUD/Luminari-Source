@@ -1,0 +1,102 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'src/**'
+      - 'unittests/**'
+      - 'CMakeLists.txt'
+      - 'configure.ac'
+      - 'Makefile.am'
+      - '.github/workflows/test.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'src/**'
+      - 'unittests/**'
+      - 'CMakeLists.txt'
+      - 'configure.ac'
+      - 'Makefile.am'
+      - '.github/workflows/test.yml'
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool
+
+      - name: Copy config headers
+        run: |
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Configure with autotools
+        run: |
+          autoreconf -fvi
+          ./configure
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Verify binary exists
+        run: test -f bin/circle && echo "Build successful: bin/circle created"
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Build unit tests
+        working-directory: unittests/CuTest
+        run: make
+
+      - name: Run unit tests
+        working-directory: unittests/CuTest
+        run: ./vessel_tests
+
+      - name: Run stress tests
+        working-directory: unittests/CuTest
+        run: ./vessel_stress_test
+
+  memory-check:
+    name: Memory Leak Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential valgrind
+
+      - name: Build unit tests
+        working-directory: unittests/CuTest
+        run: make
+
+      - name: Run Valgrind on unit tests
+        working-directory: unittests/CuTest
+        run: |
+          valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./vessel_tests 2>&1 | tee valgrind.log
+          # Check for memory leaks
+          if grep -q "definitely lost: [1-9]" valgrind.log; then
+            echo "::error::Memory leaks detected!"
+            exit 1
+          fi
+          echo "No memory leaks detected"
