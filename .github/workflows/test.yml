@@ -63,9 +63,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential
 
-      - name: List test directory
-        run: ls -la unittests/CuTest/
-
       - name: Build unit tests
         working-directory: unittests/CuTest
         run: make all
