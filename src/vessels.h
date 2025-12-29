@@ -168,9 +168,14 @@ struct vessel_result vessel_execute_command(struct char_data *actor,
 
 bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z);
 int get_ship_terrain_type(int shipnum);
-bool can_vessel_traverse_terrain(int vessel_type, int x, int y, int z);
-int get_terrain_speed_modifier(int vessel_type, int sector_type, int weather_conditions);
+bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
+int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type, int weather_conditions);
 bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
+
+/* Vessel type accessor functions */
+const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vessel_type);
+enum vessel_class get_vessel_type_from_ship(int shipnum);
+const char *get_vessel_type_name(enum vessel_class vessel_type);
 
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - FUTURE ADVANCED VESSEL SYSTEM                       */

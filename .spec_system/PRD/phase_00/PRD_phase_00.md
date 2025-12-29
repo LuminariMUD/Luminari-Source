@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 4-6 days
 
-**Progress**: 2/9 sessions (22%)
+**Progress**: 3/9 sessions (33%)
 
 ---
 
@@ -43,7 +43,7 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 |---------|------|--------|------------|-----------|
 | 01 | Header Cleanup & Foundation | Complete | 20 | 2025-12-29 |
 | 02 | Dynamic Wilderness Room Allocation | Complete | 18 | 2025-12-29 |
-| 03 | Vessel Type System | Not Started | ~15-18 | - |
+| 03 | Vessel Type System | Complete | 20 | 2025-12-29 |
 | 04 | Phase 2 Command Registration | Not Started | ~12-15 | - |
 | 05 | Interior Room Generation Wiring | Not Started | ~18-22 | - |
 | 06 | Interior Movement Implementation | Not Started | ~20-25 | - |
@@ -65,11 +65,16 @@ Complete the core vessel system implementation by wiring existing Phase 1 and Ph
 - **Tasks**: 18/18
 - **Summary**: Implemented dynamic wilderness room allocation for vessels using the proven pattern from movement.c. Created helper function `get_or_allocate_wilderness_room()` and updated 3 vessel functions to use dynamic allocation with coordinate bounds validation and error logging.
 
+### Session 03: Vessel Type System
+- **Completed**: 2025-12-29
+- **Tasks**: 20/20
+- **Summary**: Implemented per-vessel type terrain capabilities using static lookup table. Created vessel_terrain_data array mapping all 8 vessel types to 40 sector types. Added get_vessel_terrain_caps(), get_vessel_type_from_ship(), and get_vessel_type_name() accessors. Replaced all hardcoded VESSEL_TYPE_SAILING_SHIP references with actual vessel type lookups.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 03: Vessel Type System
+- Session 04: Phase 2 Command Registration
 
 ---
 

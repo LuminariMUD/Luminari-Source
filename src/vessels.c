@@ -43,6 +43,513 @@ static char greyhawk_weapon[100];
 /* static char greyhawk_arg1[80]; */
 /* static char greyhawk_arg2[80]; */
 
+/* ========================================================================= */
+/* VESSEL TYPE TERRAIN CAPABILITY DATA                                       */
+/* ========================================================================= */
+/* Static lookup table mapping vessel_class enum to terrain capabilities      */
+/* Indexed by vessel_class enum values (VESSEL_RAFT=0 through VESSEL_MAGICAL=7) */
+
+/* Number of vessel types (must match vessel_class enum count) */
+#define NUM_VESSEL_TYPES 8
+
+/**
+ * Static terrain capability data for each vessel type.
+ * This table provides O(1) lookup for vessel capabilities.
+ *
+ * Format: {can_ocean, can_shallow, can_air, can_underwater, min_depth, max_alt, speed_mods}
+ * Speed modifiers indexed by sector type (0-39), values are percentages (100=normal).
+ */
+static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = {
+  /* VESSEL_RAFT (0): Small, rivers/shallow water only */
+  {
+    FALSE,  /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    FALSE,  /* can_traverse_air */
+    FALSE,  /* can_traverse_underwater */
+    0,      /* min_water_depth */
+    0,      /* max_altitude */
+    {
+      /* Speed modifiers by sector type (index 0-39) */
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 0,
+      /* SECT_FIELD=2 */ 0,
+      /* SECT_FOREST=3 */ 0,
+      /* SECT_HILLS=4 */ 0,
+      /* SECT_MOUNTAIN=5 */ 0,
+      /* SECT_WATER_SWIM=6 */ 100,  /* Full speed in shallow water */
+      /* SECT_WATER_NOSWIM=7 */ 0,  /* Cannot navigate deep water */
+      /* SECT_FLYING=8 */ 0,
+      /* SECT_UNDERWATER=9 */ 0,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 0,
+      /* SECT_ROAD_EW=12 */ 0,
+      /* SECT_ROAD_INT=13 */ 0,
+      /* SECT_DESERT=14 */ 0,
+      /* SECT_OCEAN=15 */ 0,  /* Cannot navigate ocean */
+      /* SECT_MARSHLAND=16 */ 75,  /* Slow in marshes */
+      /* SECT_HIGH_MOUNTAIN=17 */ 0,
+      /* SECT_PLANES=18 */ 0,
+      /* SECT_UD_WILD=19 */ 0,
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 80,  /* Slow in UD water */
+      /* SECT_UD_NOSWIM=23 */ 0,
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 0,
+      /* SECT_D_ROAD_NS=26 */ 0,
+      /* SECT_D_ROAD_EW=27 */ 0,
+      /* SECT_D_ROAD_INT=28 */ 0,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 0,
+      /* SECT_TUNDRA=31 */ 0,
+      /* SECT_TAIGA=32 */ 0,
+      /* SECT_BEACH=33 */ 50,  /* Very slow near beach */
+      /* SECT_SEAPORT=34 */ 60,  /* Slow in port */
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 100,  /* Full speed on rivers */
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_BOAT (1): Medium, coastal waters */
+  {
+    FALSE,  /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    FALSE,  /* can_traverse_air */
+    FALSE,  /* can_traverse_underwater */
+    0,      /* min_water_depth */
+    0,      /* max_altitude */
+    {
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 0,
+      /* SECT_FIELD=2 */ 0,
+      /* SECT_FOREST=3 */ 0,
+      /* SECT_HILLS=4 */ 0,
+      /* SECT_MOUNTAIN=5 */ 0,
+      /* SECT_WATER_SWIM=6 */ 100,  /* Full speed in shallow water */
+      /* SECT_WATER_NOSWIM=7 */ 75, /* Reduced in deeper water */
+      /* SECT_FLYING=8 */ 0,
+      /* SECT_UNDERWATER=9 */ 0,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 0,
+      /* SECT_ROAD_EW=12 */ 0,
+      /* SECT_ROAD_INT=13 */ 0,
+      /* SECT_DESERT=14 */ 0,
+      /* SECT_OCEAN=15 */ 0,  /* Cannot navigate ocean */
+      /* SECT_MARSHLAND=16 */ 80,
+      /* SECT_HIGH_MOUNTAIN=17 */ 0,
+      /* SECT_PLANES=18 */ 0,
+      /* SECT_UD_WILD=19 */ 0,
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 90,
+      /* SECT_UD_NOSWIM=23 */ 60,
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 0,
+      /* SECT_D_ROAD_NS=26 */ 0,
+      /* SECT_D_ROAD_EW=27 */ 0,
+      /* SECT_D_ROAD_INT=28 */ 0,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 0,
+      /* SECT_TUNDRA=31 */ 0,
+      /* SECT_TAIGA=32 */ 0,
+      /* SECT_BEACH=33 */ 60,
+      /* SECT_SEAPORT=34 */ 70,
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 100,
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_SHIP (2): Large, ocean-capable */
+  {
+    TRUE,   /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    FALSE,  /* can_traverse_air */
+    FALSE,  /* can_traverse_underwater */
+    2,      /* min_water_depth (needs deeper water) */
+    0,      /* max_altitude */
+    {
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 0,
+      /* SECT_FIELD=2 */ 0,
+      /* SECT_FOREST=3 */ 0,
+      /* SECT_HILLS=4 */ 0,
+      /* SECT_MOUNTAIN=5 */ 0,
+      /* SECT_WATER_SWIM=6 */ 75,   /* Reduced in shallow water */
+      /* SECT_WATER_NOSWIM=7 */ 100, /* Full speed in deep water */
+      /* SECT_FLYING=8 */ 0,
+      /* SECT_UNDERWATER=9 */ 0,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 0,
+      /* SECT_ROAD_EW=12 */ 0,
+      /* SECT_ROAD_INT=13 */ 0,
+      /* SECT_DESERT=14 */ 0,
+      /* SECT_OCEAN=15 */ 100, /* Full speed in ocean */
+      /* SECT_MARSHLAND=16 */ 0, /* Cannot navigate marsh */
+      /* SECT_HIGH_MOUNTAIN=17 */ 0,
+      /* SECT_PLANES=18 */ 0,
+      /* SECT_UD_WILD=19 */ 0,
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 0,
+      /* SECT_UD_NOSWIM=23 */ 80,
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 0,
+      /* SECT_D_ROAD_NS=26 */ 0,
+      /* SECT_D_ROAD_EW=27 */ 0,
+      /* SECT_D_ROAD_INT=28 */ 0,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 0,
+      /* SECT_TUNDRA=31 */ 0,
+      /* SECT_TAIGA=32 */ 0,
+      /* SECT_BEACH=33 */ 0, /* Too shallow */
+      /* SECT_SEAPORT=34 */ 50, /* Slow in port */
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 50, /* Too large for most rivers */
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_WARSHIP (3): Combat vessel, heavily armed - same as SHIP */
+  {
+    TRUE,   /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    FALSE,  /* can_traverse_air */
+    FALSE,  /* can_traverse_underwater */
+    2,      /* min_water_depth */
+    0,      /* max_altitude */
+    {
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 0,
+      /* SECT_FIELD=2 */ 0,
+      /* SECT_FOREST=3 */ 0,
+      /* SECT_HILLS=4 */ 0,
+      /* SECT_MOUNTAIN=5 */ 0,
+      /* SECT_WATER_SWIM=6 */ 75,
+      /* SECT_WATER_NOSWIM=7 */ 100,
+      /* SECT_FLYING=8 */ 0,
+      /* SECT_UNDERWATER=9 */ 0,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 0,
+      /* SECT_ROAD_EW=12 */ 0,
+      /* SECT_ROAD_INT=13 */ 0,
+      /* SECT_DESERT=14 */ 0,
+      /* SECT_OCEAN=15 */ 100,
+      /* SECT_MARSHLAND=16 */ 0,
+      /* SECT_HIGH_MOUNTAIN=17 */ 0,
+      /* SECT_PLANES=18 */ 0,
+      /* SECT_UD_WILD=19 */ 0,
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 0,
+      /* SECT_UD_NOSWIM=23 */ 80,
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 0,
+      /* SECT_D_ROAD_NS=26 */ 0,
+      /* SECT_D_ROAD_EW=27 */ 0,
+      /* SECT_D_ROAD_INT=28 */ 0,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 0,
+      /* SECT_TUNDRA=31 */ 0,
+      /* SECT_TAIGA=32 */ 0,
+      /* SECT_BEACH=33 */ 0,
+      /* SECT_SEAPORT=34 */ 50,
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 50,
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_AIRSHIP (4): Flying vessel, ignores terrain when airborne */
+  {
+    TRUE,   /* can_traverse_ocean (when landed/low) */
+    TRUE,   /* can_traverse_shallow */
+    TRUE,   /* can_traverse_air */
+    FALSE,  /* can_traverse_underwater */
+    0,      /* min_water_depth */
+    500,    /* max_altitude */
+    {
+      /* At altitude, airships have 100 speed over all terrain except lava */
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 80,
+      /* SECT_FIELD=2 */ 100,
+      /* SECT_FOREST=3 */ 100,
+      /* SECT_HILLS=4 */ 100,
+      /* SECT_MOUNTAIN=5 */ 100, /* Can fly over mountains at altitude */
+      /* SECT_WATER_SWIM=6 */ 100,
+      /* SECT_WATER_NOSWIM=7 */ 100,
+      /* SECT_FLYING=8 */ 100,
+      /* SECT_UNDERWATER=9 */ 0,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 100,
+      /* SECT_ROAD_EW=12 */ 100,
+      /* SECT_ROAD_INT=13 */ 100,
+      /* SECT_DESERT=14 */ 100,
+      /* SECT_OCEAN=15 */ 100,
+      /* SECT_MARSHLAND=16 */ 100,
+      /* SECT_HIGH_MOUNTAIN=17 */ 100,
+      /* SECT_PLANES=18 */ 100,
+      /* SECT_UD_WILD=19 */ 0, /* Cannot fly underground */
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 0,
+      /* SECT_UD_NOSWIM=23 */ 0,
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 80, /* Heat updrafts */
+      /* SECT_D_ROAD_NS=26 */ 100,
+      /* SECT_D_ROAD_EW=27 */ 100,
+      /* SECT_D_ROAD_INT=28 */ 100,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 100,
+      /* SECT_TUNDRA=31 */ 100,
+      /* SECT_TAIGA=32 */ 100,
+      /* SECT_BEACH=33 */ 100,
+      /* SECT_SEAPORT=34 */ 100,
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 100,
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_SUBMARINE (5): Underwater vessel, depth navigation */
+  {
+    TRUE,   /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    FALSE,  /* can_traverse_air */
+    TRUE,   /* can_traverse_underwater */
+    0,      /* min_water_depth */
+    0,      /* max_altitude (negative z for depth) */
+    {
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 0,
+      /* SECT_FIELD=2 */ 0,
+      /* SECT_FOREST=3 */ 0,
+      /* SECT_HILLS=4 */ 0,
+      /* SECT_MOUNTAIN=5 */ 0,
+      /* SECT_WATER_SWIM=6 */ 50,  /* Slow in shallow water */
+      /* SECT_WATER_NOSWIM=7 */ 90,
+      /* SECT_FLYING=8 */ 0,
+      /* SECT_UNDERWATER=9 */ 100, /* Full speed underwater */
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 0,
+      /* SECT_ROAD_EW=12 */ 0,
+      /* SECT_ROAD_INT=13 */ 0,
+      /* SECT_DESERT=14 */ 0,
+      /* SECT_OCEAN=15 */ 100, /* Full speed in ocean */
+      /* SECT_MARSHLAND=16 */ 0,
+      /* SECT_HIGH_MOUNTAIN=17 */ 0,
+      /* SECT_PLANES=18 */ 0,
+      /* SECT_UD_WILD=19 */ 0,
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 90,
+      /* SECT_UD_NOSWIM=23 */ 100, /* Good in UD deep water */
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 0,
+      /* SECT_D_ROAD_NS=26 */ 0,
+      /* SECT_D_ROAD_EW=27 */ 0,
+      /* SECT_D_ROAD_INT=28 */ 0,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 0,
+      /* SECT_TUNDRA=31 */ 0,
+      /* SECT_TAIGA=32 */ 0,
+      /* SECT_BEACH=33 */ 0,
+      /* SECT_SEAPORT=34 */ 40, /* Very slow at surface in port */
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 0, /* Too large for rivers */
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_TRANSPORT (6): Cargo/passenger vessel - similar to SHIP */
+  {
+    TRUE,   /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    FALSE,  /* can_traverse_air */
+    FALSE,  /* can_traverse_underwater */
+    2,      /* min_water_depth */
+    0,      /* max_altitude */
+    {
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 0,
+      /* SECT_FIELD=2 */ 0,
+      /* SECT_FOREST=3 */ 0,
+      /* SECT_HILLS=4 */ 0,
+      /* SECT_MOUNTAIN=5 */ 0,
+      /* SECT_WATER_SWIM=6 */ 60,  /* Slow in shallow - heavy */
+      /* SECT_WATER_NOSWIM=7 */ 90, /* Good in deep water */
+      /* SECT_FLYING=8 */ 0,
+      /* SECT_UNDERWATER=9 */ 0,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 0,
+      /* SECT_ROAD_EW=12 */ 0,
+      /* SECT_ROAD_INT=13 */ 0,
+      /* SECT_DESERT=14 */ 0,
+      /* SECT_OCEAN=15 */ 100, /* Full speed in ocean */
+      /* SECT_MARSHLAND=16 */ 0,
+      /* SECT_HIGH_MOUNTAIN=17 */ 0,
+      /* SECT_PLANES=18 */ 0,
+      /* SECT_UD_WILD=19 */ 0,
+      /* SECT_UD_CITY=20 */ 0,
+      /* SECT_UD_INSIDE=21 */ 0,
+      /* SECT_UD_WATER=22 */ 0,
+      /* SECT_UD_NOSWIM=23 */ 70,
+      /* SECT_UD_NOGROUND=24 */ 0,
+      /* SECT_LAVA=25 */ 0,
+      /* SECT_D_ROAD_NS=26 */ 0,
+      /* SECT_D_ROAD_EW=27 */ 0,
+      /* SECT_D_ROAD_INT=28 */ 0,
+      /* SECT_CAVE=29 */ 0,
+      /* SECT_JUNGLE=30 */ 0,
+      /* SECT_TUNDRA=31 */ 0,
+      /* SECT_TAIGA=32 */ 0,
+      /* SECT_BEACH=33 */ 0,
+      /* SECT_SEAPORT=34 */ 60,
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 40, /* Very slow on rivers */
+      /* unused */ 0, 0, 0
+    }
+  },
+
+  /* VESSEL_MAGICAL (7): Special magical vessels - most capable */
+  {
+    TRUE,   /* can_traverse_ocean */
+    TRUE,   /* can_traverse_shallow */
+    TRUE,   /* can_traverse_air */
+    TRUE,   /* can_traverse_underwater */
+    0,      /* min_water_depth */
+    1000,   /* max_altitude */
+    {
+      /* SECT_INSIDE=0 */ 0,
+      /* SECT_CITY=1 */ 80,
+      /* SECT_FIELD=2 */ 100,
+      /* SECT_FOREST=3 */ 100,
+      /* SECT_HILLS=4 */ 100,
+      /* SECT_MOUNTAIN=5 */ 100,
+      /* SECT_WATER_SWIM=6 */ 100,
+      /* SECT_WATER_NOSWIM=7 */ 100,
+      /* SECT_FLYING=8 */ 100,
+      /* SECT_UNDERWATER=9 */ 100,
+      /* SECT_ZONE_START=10 */ 0,
+      /* SECT_ROAD_NS=11 */ 100,
+      /* SECT_ROAD_EW=12 */ 100,
+      /* SECT_ROAD_INT=13 */ 100,
+      /* SECT_DESERT=14 */ 100,
+      /* SECT_OCEAN=15 */ 100,
+      /* SECT_MARSHLAND=16 */ 100,
+      /* SECT_HIGH_MOUNTAIN=17 */ 100,
+      /* SECT_PLANES=18 */ 100, /* Can traverse planes */
+      /* SECT_UD_WILD=19 */ 80,
+      /* SECT_UD_CITY=20 */ 80,
+      /* SECT_UD_INSIDE=21 */ 80,
+      /* SECT_UD_WATER=22 */ 100,
+      /* SECT_UD_NOSWIM=23 */ 100,
+      /* SECT_UD_NOGROUND=24 */ 100,
+      /* SECT_LAVA=25 */ 0, /* Even magic won't survive lava */
+      /* SECT_D_ROAD_NS=26 */ 100,
+      /* SECT_D_ROAD_EW=27 */ 100,
+      /* SECT_D_ROAD_INT=28 */ 100,
+      /* SECT_CAVE=29 */ 80,
+      /* SECT_JUNGLE=30 */ 100,
+      /* SECT_TUNDRA=31 */ 100,
+      /* SECT_TAIGA=32 */ 100,
+      /* SECT_BEACH=33 */ 100,
+      /* SECT_SEAPORT=34 */ 100,
+      /* SECT_INSIDE_ROOM=35 */ 0,
+      /* SECT_RIVER=36 */ 100,
+      /* unused */ 0, 0, 0
+    }
+  }
+};
+
+/* ========================================================================= */
+/* VESSEL TYPE ACCESSOR FUNCTIONS                                            */
+/* ========================================================================= */
+
+/**
+ * Get terrain capabilities for a vessel type.
+ *
+ * Returns a const pointer to the terrain capability structure for the
+ * specified vessel type. Provides O(1) lookup from the static data table.
+ *
+ * @param vessel_type The vessel_class enum value (VESSEL_RAFT through VESSEL_MAGICAL)
+ * @return Pointer to const vessel_terrain_caps structure, or NULL if invalid type
+ */
+const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vessel_type)
+{
+  /* Bounds check - default to VESSEL_SHIP for invalid types */
+  if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
+  {
+    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %d, defaulting to VESSEL_SHIP", vessel_type);
+    return &vessel_terrain_data[VESSEL_SHIP];
+  }
+
+  return &vessel_terrain_data[vessel_type];
+}
+
+/**
+ * Get vessel type from ship data.
+ *
+ * Extracts the vessel_type field from a greyhawk_ship_data structure
+ * with proper bounds checking. Returns VESSEL_SHIP as default for
+ * invalid or uninitialized values.
+ *
+ * @param shipnum The ship index number in greyhawk_ships array
+ * @return The vessel_class enum value for this ship
+ */
+enum vessel_class get_vessel_type_from_ship(int shipnum)
+{
+  enum vessel_class vtype;
+
+  /* Validate ship number */
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    log("SYSERR: get_vessel_type_from_ship: Invalid ship number %d", shipnum);
+    return VESSEL_SHIP;  /* Default to standard ship */
+  }
+
+  vtype = greyhawk_ships[shipnum].vessel_type;
+
+  /* Bounds check the vessel type - default to VESSEL_SHIP for invalid values */
+  if (vtype < 0 || vtype >= NUM_VESSEL_TYPES)
+  {
+    /* Uninitialized or invalid vessel type */
+    return VESSEL_SHIP;
+  }
+
+  return vtype;
+}
+
+/**
+ * Get vessel type name for display.
+ *
+ * Returns a human-readable string for the vessel type.
+ *
+ * @param vessel_type The vessel_class enum value
+ * @return Static string with vessel type name
+ */
+const char *get_vessel_type_name(enum vessel_class vessel_type)
+{
+  static const char *vessel_names[NUM_VESSEL_TYPES] = {
+    "Raft",
+    "Boat",
+    "Ship",
+    "Warship",
+    "Airship",
+    "Submarine",
+    "Transport",
+    "Magical Vessel"
+  };
+
+  if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
+  {
+    return "Unknown Vessel";
+  }
+
+  return vessel_names[vessel_type];
+}
+
 /* Forward declarations for Greyhawk functions */
 void greyhawk_getstatus(int slot, int rnum);
 void greyhawk_getposition(int slot, int rnum);
@@ -374,17 +881,23 @@ int get_ship_terrain_type(int shipnum)
 }
 
 /**
- * Check if vessel can traverse terrain at given coordinates
- * @param vessel_type Type of vessel (VESSEL_TYPE_SAILING_SHIP, etc.)
+ * Check if vessel can traverse terrain at given coordinates.
+ *
+ * Uses the static terrain capability data table for O(1) lookup.
+ * Checks vessel_class capabilities against the sector type at the
+ * target coordinates.
+ *
+ * @param vessel_type The vessel_class enum value (VESSEL_RAFT through VESSEL_MAGICAL)
  * @param x Target X coordinate
  * @param y Target Y coordinate
  * @param z Target Z coordinate (elevation/depth)
  * @return TRUE if vessel can enter terrain, FALSE otherwise
  */
-bool can_vessel_traverse_terrain(int vessel_type, int x, int y, int z)
+bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z)
 {
   room_rnum wilderness_room;
   int sector_type;
+  const struct vessel_terrain_caps *caps;
 
   /* Validate coordinates within wilderness bounds first */
   if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
@@ -402,116 +915,115 @@ bool can_vessel_traverse_terrain(int vessel_type, int x, int y, int z)
 
   sector_type = world[wilderness_room].sector_type;
 
-  /* Check vessel type capabilities against terrain */
-  switch (vessel_type)
+  /* Get terrain capabilities for this vessel type */
+  caps = get_vessel_terrain_caps(vessel_type);
+  if (caps == NULL)
   {
-    case VESSEL_TYPE_SAILING_SHIP:
-      /* Sailing ships can only traverse water */
-      return (sector_type == SECT_WATER_SWIM ||
-              sector_type == SECT_WATER_NOSWIM ||
-              sector_type == SECT_UNDERWATER ||
-              sector_type == SECT_OCEAN);
-
-    case VESSEL_TYPE_SUBMARINE:
-      /* Submarines can traverse all water including underwater */
-      return (sector_type == SECT_WATER_SWIM ||
-              sector_type == SECT_WATER_NOSWIM ||
-              sector_type == SECT_UNDERWATER ||
-              sector_type == SECT_OCEAN);
-
-    case VESSEL_TYPE_AIRSHIP:
-      /* Airships can fly over any terrain if elevation is high enough */
-      if (z > 100)
-      {
-        /* Flying altitude */
-        return TRUE;
-      }
-      /* At low altitude, avoid mountains */
-      return (sector_type != SECT_MOUNTAIN);
-
-    case VESSEL_TYPE_MAGICAL_CRAFT:
-      /* Magical vessels have fewer restrictions */
-      return (sector_type != SECT_INSIDE &&
-              sector_type != SECT_LAVA);
-
-    default:
-      return FALSE;
+    return FALSE;
   }
+
+  /* Airships at altitude can fly over most terrain */
+  if (vessel_type == VESSEL_AIRSHIP && z > 100)
+  {
+    /* Flying altitude - check max altitude and underground restrictions */
+    if (z > caps->max_altitude)
+    {
+      return FALSE;  /* Too high */
+    }
+    /* Cannot fly underground */
+    if (sector_type >= SECT_UD_WILD && sector_type <= SECT_UD_NOGROUND)
+    {
+      return FALSE;
+    }
+    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE ||
+        sector_type == SECT_INSIDE_ROOM)
+    {
+      return FALSE;
+    }
+    return TRUE;  /* Can fly over everything else at altitude */
+  }
+
+  /* Submarines must be submerged for underwater, surfaced otherwise */
+  if (vessel_type == VESSEL_SUBMARINE)
+  {
+    if (sector_type == SECT_UNDERWATER && z >= 0)
+    {
+      return FALSE;  /* Must dive (negative z) for underwater */
+    }
+    if (sector_type != SECT_UNDERWATER && z < 0)
+    {
+      /* Submerged but not in underwater terrain - can travel in ocean/deep water */
+      if (sector_type != SECT_OCEAN && sector_type != SECT_WATER_NOSWIM)
+      {
+        return FALSE;
+      }
+    }
+  }
+
+  /* Check speed modifier - 0 means impassable */
+  if (sector_type >= 0 && sector_type < 40)
+  {
+    if (caps->terrain_speed_mod[sector_type] == 0)
+    {
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  /* Default fallback for unknown sector types */
+  return FALSE;
 }
 
 /**
- * Calculate terrain-based speed modifier for vessel
- * @param vessel_type Type of vessel
+ * Calculate terrain-based speed modifier for vessel.
+ *
+ * Uses the static terrain capability data table for O(1) lookup.
+ * Returns the speed modifier as a percentage (100 = normal speed).
+ * Weather conditions apply additional penalties.
+ *
+ * @param vessel_type The vessel_class enum value (VESSEL_RAFT through VESSEL_MAGICAL)
  * @param sector_type Terrain sector type
  * @param weather_conditions Current weather (0=clear, higher=worse)
- * @return Speed modifier as percentage (100 = normal speed)
+ * @return Speed modifier as percentage (100 = normal speed, 0 = impassable)
  */
-int get_terrain_speed_modifier(int vessel_type, int sector_type, int weather_conditions) {
-  int base_modifier = 100;
-  
-  /* Apply terrain modifiers based on vessel type */
-  switch (vessel_type) {
-    case VESSEL_TYPE_SAILING_SHIP:
-      switch (sector_type) {
-        case SECT_OCEAN:
-        case SECT_WATER_NOSWIM:
-          base_modifier = 100;  /* Full speed in deep water */
-          break;
-        case SECT_WATER_SWIM:
-          base_modifier = 75;   /* Reduced speed in shallow water */
-          break;
-        case SECT_UNDERWATER:
-          base_modifier = 0;    /* Cannot move underwater */
-          break;
-        default:
-          base_modifier = 0;    /* Cannot move on land */
-          break;
-      }
-      break;
-      
-    case VESSEL_TYPE_SUBMARINE:
-      switch (sector_type) {
-        case SECT_UNDERWATER:
-        case SECT_OCEAN:
-          base_modifier = 100;  /* Full speed underwater/deep water */
-          break;
-        case SECT_WATER_NOSWIM:
-          base_modifier = 90;   /* Slightly reduced at surface */
-          break;
-        case SECT_WATER_SWIM:
-          base_modifier = 50;   /* Very slow in shallow water */
-          break;
-        default:
-          base_modifier = 0;    /* Cannot move on land */
-          break;
-      }
-      break;
-      
-    case VESSEL_TYPE_AIRSHIP:
-      /* Airships are less affected by terrain */
-      base_modifier = 100;
-      /* But weather affects them more */
-      if (weather_conditions > 0) {
-        base_modifier -= (weather_conditions * 10);
-      }
-      break;
-      
-    case VESSEL_TYPE_MAGICAL_CRAFT:
-      /* Magical vessels maintain consistent speed */
-      base_modifier = 100;
-      break;
+int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type, int weather_conditions)
+{
+  int base_modifier;
+  const struct vessel_terrain_caps *caps;
+
+  /* Get terrain capabilities for this vessel type */
+  caps = get_vessel_terrain_caps(vessel_type);
+  if (caps == NULL)
+  {
+    return 0;  /* Invalid vessel type */
   }
-  
+
+  /* Validate sector type and get base modifier from table */
+  if (sector_type < 0 || sector_type >= 40)
+  {
+    return 0;  /* Invalid sector type */
+  }
+
+  base_modifier = (int)caps->terrain_speed_mod[sector_type];
+
+  /* Airships are more affected by weather */
+  if (vessel_type == VESSEL_AIRSHIP && weather_conditions > 0)
+  {
+    base_modifier -= (weather_conditions * 10);
+  }
+
   /* Apply weather penalties (except for submarines underwater) */
-  if (vessel_type != VESSEL_TYPE_SUBMARINE || sector_type != SECT_UNDERWATER) {
-    if (weather_conditions > 0) {
+  if (vessel_type != VESSEL_SUBMARINE || sector_type != SECT_UNDERWATER)
+  {
+    if (weather_conditions > 0)
+    {
       base_modifier -= (weather_conditions * 5);
     }
   }
-  
+
   /* Ensure modifier doesn't go below 0 or above 150 */
   base_modifier = MAX(0, MIN(150, base_modifier));
-  
+
   return base_modifier;
 }
 
@@ -527,12 +1039,15 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
   int speed_modifier;
   int terrain_type;
   int weather_conditions;
-  int vessel_type = VESSEL_TYPE_SAILING_SHIP;  /* TODO: Get from ship data */
-  
+  enum vessel_class vessel_type;
+
   /* Validate ship number */
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS) {
     return FALSE;
   }
+
+  /* Get actual vessel type from ship data */
+  vessel_type = get_vessel_type_from_ship(shipnum);
   
   /* Get current position */
   new_x = (int)greyhawk_ships[shipnum].x;
@@ -595,7 +1110,49 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
   /* Check if vessel can traverse the target terrain */
   if (!can_vessel_traverse_terrain(vessel_type, new_x, new_y, new_z)) {
     if (ch) {
-      send_to_char(ch, "The vessel cannot navigate that terrain!\r\n");
+      /* Send vessel-type-specific denial message */
+      switch (vessel_type)
+      {
+        case VESSEL_RAFT:
+          send_to_char(ch, "Your raft cannot navigate these waters! It's only suitable for rivers and shallow water.\r\n");
+          break;
+        case VESSEL_BOAT:
+          send_to_char(ch, "Your boat cannot handle these conditions! It's designed for coastal waters only.\r\n");
+          break;
+        case VESSEL_SHIP:
+        case VESSEL_WARSHIP:
+          send_to_char(ch, "The ship cannot navigate this terrain! It requires deep water to sail.\r\n");
+          break;
+        case VESSEL_AIRSHIP:
+          if (new_z < 100)
+          {
+            send_to_char(ch, "The airship cannot fly through this terrain at low altitude! Gain more altitude.\r\n");
+          }
+          else
+          {
+            send_to_char(ch, "The airship cannot fly here - perhaps it's underground or the altitude is too extreme.\r\n");
+          }
+          break;
+        case VESSEL_SUBMARINE:
+          if (new_z >= 0)
+          {
+            send_to_char(ch, "The submarine must dive to navigate underwater terrain! Use 'heading down' to submerge.\r\n");
+          }
+          else
+          {
+            send_to_char(ch, "The submarine cannot traverse this area while submerged!\r\n");
+          }
+          break;
+        case VESSEL_TRANSPORT:
+          send_to_char(ch, "The transport vessel draws too much water for this area!\r\n");
+          break;
+        case VESSEL_MAGICAL:
+          send_to_char(ch, "Even magical forces cannot penetrate this barrier!\r\n");
+          break;
+        default:
+          send_to_char(ch, "The vessel cannot navigate that terrain!\r\n");
+          break;
+      }
     }
     return FALSE;
   }
@@ -749,29 +1306,40 @@ ACMD(do_greyhawk_speed) {
   /* Set the new speed */
   greyhawk_ships[shipnum].setspeed = new_speed;
   greyhawk_ships[shipnum].speed = new_speed;
-  
-  /* Apply terrain modifiers */
-  int terrain_type = get_ship_terrain_type(shipnum);
-  int speed_modifier = get_terrain_speed_modifier(VESSEL_TYPE_SAILING_SHIP, terrain_type, 0);
-  greyhawk_ships[shipnum].speed = (new_speed * speed_modifier) / 100;
-  
-  /* Send feedback */
-  if (new_speed == 0) {
-    send_to_char(ch, "All stop! The vessel comes to a halt.\r\n");
-    act("$n brings the vessel to a stop.", FALSE, ch, 0, 0, TO_ROOM);
-  } else if (new_speed < greyhawk_ships[shipnum].maxspeed / 3) {
-    send_to_char(ch, "Slow ahead. Speed set to %d.\r\n", new_speed);
-    act("$n reduces the vessel's speed.", FALSE, ch, 0, 0, TO_ROOM);
-  } else if (new_speed < (greyhawk_ships[shipnum].maxspeed * 2) / 3) {
-    send_to_char(ch, "Half speed. Speed set to %d.\r\n", new_speed);
-    act("$n sets the vessel to half speed.", FALSE, ch, 0, 0, TO_ROOM);
-  } else {
-    send_to_char(ch, "Full speed ahead! Speed set to %d.\r\n", new_speed);
-    act("$n sets the vessel to full speed!", FALSE, ch, 0, 0, TO_ROOM);
-  }
-  
-  if (speed_modifier != 100) {
-    send_to_char(ch, "Effective speed after terrain modifiers: %d\r\n", greyhawk_ships[shipnum].speed);
+
+  /* Apply terrain modifiers using actual vessel type */
+  {
+    enum vessel_class vtype = get_vessel_type_from_ship(shipnum);
+    int terrain_type = get_ship_terrain_type(shipnum);
+    int speed_modifier = get_terrain_speed_modifier(vtype, terrain_type, 0);
+    greyhawk_ships[shipnum].speed = (new_speed * speed_modifier) / 100;
+
+    /* Send feedback */
+    if (new_speed == 0)
+    {
+      send_to_char(ch, "All stop! The vessel comes to a halt.\r\n");
+      act("$n brings the vessel to a stop.", FALSE, ch, 0, 0, TO_ROOM);
+    }
+    else if (new_speed < greyhawk_ships[shipnum].maxspeed / 3)
+    {
+      send_to_char(ch, "Slow ahead. Speed set to %d.\r\n", new_speed);
+      act("$n reduces the vessel's speed.", FALSE, ch, 0, 0, TO_ROOM);
+    }
+    else if (new_speed < (greyhawk_ships[shipnum].maxspeed * 2) / 3)
+    {
+      send_to_char(ch, "Half speed. Speed set to %d.\r\n", new_speed);
+      act("$n sets the vessel to half speed.", FALSE, ch, 0, 0, TO_ROOM);
+    }
+    else
+    {
+      send_to_char(ch, "Full speed ahead! Speed set to %d.\r\n", new_speed);
+      act("$n sets the vessel to full speed!", FALSE, ch, 0, 0, TO_ROOM);
+    }
+
+    if (speed_modifier != 100)
+    {
+      send_to_char(ch, "Effective speed after terrain modifiers: %d\r\n", greyhawk_ships[shipnum].speed);
+    }
   }
 }
 
