@@ -5,11 +5,13 @@ on:
     paths:
       - 'src/**'
       - '.github/workflows/security.yml'
+      - '.gitleaks.toml'
   pull_request:
     branches: [master, main]
     paths:
       - 'src/**'
       - '.github/workflows/security.yml'
+      - '.gitleaks.toml'
   schedule:
     # Run weekly on Sundays at midnight UTC
     - cron: '0 0 * * 0'
