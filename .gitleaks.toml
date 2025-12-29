@@ -16,6 +16,9 @@ paths = [
     '''lib/\.env_example$''',
     '''docs/''',
     '''sql/''',
+    '''README\.md$''',
+    '''CHANGELOG''',
+    '''\.github/''',
 ]
 regexes = [
     '''your_password''',
