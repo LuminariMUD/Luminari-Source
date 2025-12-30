@@ -4,7 +4,7 @@
 **Sessions**: 6 (initial estimate)
 **Estimated Duration**: 2-3 days
 
-**Progress**: 4/6 sessions (67%)
+**Progress**: 5/6 sessions (83%)
 
 ---
 
@@ -22,7 +22,7 @@ Complete the vessel system by addressing remaining technical debt, implementing 
 | 02 | Interior Movement Implementation | Complete | 16 | 2025-12-30 |
 | 03 | Command Registration & Wiring | Complete | 0 | 2025-12-30 |
 | 04 | Dynamic Wilderness Rooms | Complete | 20 | 2025-12-30 |
-| 05 | Vessel Type System | Not Started | ~14-18 | - |
+| 05 | Vessel Type System | Complete | 20 | 2025-12-30 |
 | 06 | Final Testing & Documentation | Not Started | ~20-25 | - |
 
 ---
@@ -45,11 +45,14 @@ Validation session confirming all Phase 2 command registration and wiring was co
 
 Fixed vessel wilderness movement to use centralized room allocation. Modified `move_vessel_toward_waypoint()` to call `update_ship_wilderness_position()` instead of direct manipulation, ensuring proper room allocation via `find_available_wilderness_room()`. Added departure logging for debugging room cleanup. Created 14 comprehensive mock-based unit tests covering room pool initialization, allocation/release cycles, multi-vessel coordination, and boundary conditions. All tests Valgrind clean (32 allocs, 32 frees).
 
+### Session 05: Vessel Type System (2025-12-30)
+
+Verified vessel type system is SUBSTANTIALLY COMPLETE with no hardcoded placeholders. All 8 vessel types (RAFT, BOAT, SHIP, WARSHIP, AIRSHIP, SUBMARINE, TRANSPORT, MAGICAL) have proper terrain capabilities and speed modifiers. Added warship and transport capability tests. Created 11 integration tests for end-to-end validation covering terrain restrictions, speed modifiers, weather effects, and type names. Total vessel type test coverage: 104 tests. Valgrind clean. Resolved Active Concern: "Per-vessel type mapping missing".
+
 ---
 
 ## Upcoming Sessions
 
-- Session 05: Vessel Type System
 - Session 06: Final Testing & Documentation
 
 ---
@@ -117,8 +120,8 @@ Phase complete when:
 - [ ] No duplicate struct/constant definitions remain
 - [ ] All interior movement functions implemented and tested
 - [ ] All Phase 2 commands registered and functional
-- [ ] Dynamic wilderness room allocation working
-- [ ] Per-vessel type system complete
+- [x] Dynamic wilderness room allocation working
+- [x] Per-vessel type system complete
 - [ ] Test coverage >90% (target: 200+ tests)
 - [ ] Valgrind clean across all test suites
 - [ ] Documentation updated and complete

@@ -322,6 +322,38 @@ void Test_vessel_submarine_capabilities(CuTest *tc)
 }
 
 /**
+ * Test warship capabilities
+ */
+void Test_vessel_warship_capabilities(CuTest *tc)
+{
+  const struct vessel_terrain_caps *caps = get_vessel_terrain_caps(VESSEL_WARSHIP);
+
+  CuAssertPtrNotNull(tc, caps);
+  CuAssertIntEquals(tc, TRUE, caps->can_traverse_ocean);
+  CuAssertIntEquals(tc, TRUE, caps->can_traverse_shallow);
+  CuAssertIntEquals(tc, FALSE, caps->can_traverse_air);
+  CuAssertIntEquals(tc, FALSE, caps->can_traverse_underwater);
+  CuAssertIntEquals(tc, 2, caps->min_water_depth);
+  CuAssertIntEquals(tc, 0, caps->max_altitude);
+}
+
+/**
+ * Test transport capabilities
+ */
+void Test_vessel_transport_capabilities(CuTest *tc)
+{
+  const struct vessel_terrain_caps *caps = get_vessel_terrain_caps(VESSEL_TRANSPORT);
+
+  CuAssertPtrNotNull(tc, caps);
+  CuAssertIntEquals(tc, TRUE, caps->can_traverse_ocean);
+  CuAssertIntEquals(tc, TRUE, caps->can_traverse_shallow);
+  CuAssertIntEquals(tc, FALSE, caps->can_traverse_air);
+  CuAssertIntEquals(tc, FALSE, caps->can_traverse_underwater);
+  CuAssertIntEquals(tc, 2, caps->min_water_depth);
+  CuAssertIntEquals(tc, 0, caps->max_altitude);
+}
+
+/**
  * Test magical vessel capabilities (most versatile)
  */
 void Test_vessel_magical_capabilities(CuTest *tc)
@@ -536,8 +568,10 @@ CuSuite *VesselTypesGetSuite(void)
   SUITE_ADD_TEST(suite, Test_vessel_raft_capabilities);
   SUITE_ADD_TEST(suite, Test_vessel_boat_capabilities);
   SUITE_ADD_TEST(suite, Test_vessel_ship_capabilities);
+  SUITE_ADD_TEST(suite, Test_vessel_warship_capabilities);
   SUITE_ADD_TEST(suite, Test_vessel_airship_capabilities);
   SUITE_ADD_TEST(suite, Test_vessel_submarine_capabilities);
+  SUITE_ADD_TEST(suite, Test_vessel_transport_capabilities);
   SUITE_ADD_TEST(suite, Test_vessel_magical_capabilities);
 
   /* Traversal tests */

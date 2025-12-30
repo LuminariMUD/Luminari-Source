@@ -89,6 +89,11 @@ WILDERNESS_ROOMS_TEST_SRC = test_vessel_wilderness_rooms.c
 WILDERNESS_ROOMS_TEST_OBJ = $(BUILD_DIR)/test_vessel_wilderness_rooms.o
 WILDERNESS_ROOMS_TEST_EXE = vessel_wilderness_rooms_tests
 
+# Vessel type integration test files (Phase 03, Session 05)
+VESSEL_TYPE_INTEGRATION_TEST_SRC = test_vessel_type_integration.c
+VESSEL_TYPE_INTEGRATION_TEST_OBJ = $(BUILD_DIR)/test_vessel_type_integration.o
+VESSEL_TYPE_INTEGRATION_TEST_EXE = vessel_type_integration_tests
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -103,7 +108,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE) $(VEHICLE_CREATION_TEST_EXE) $(VEHICLE_COMMANDS_TEST_EXE) $(TRANSPORT_UNIFIED_TEST_EXE) $(WILDERNESS_ROOMS_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE) $(VEHICLE_CREATION_TEST_EXE) $(VEHICLE_COMMANDS_TEST_EXE) $(TRANSPORT_UNIFIED_TEST_EXE) $(WILDERNESS_ROOMS_TEST_EXE) $(VESSEL_TYPE_INTEGRATION_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -192,6 +197,10 @@ $(BUILD_DIR)/vehicle_stress_test.o: vehicle_stress_test.c CuTest.h
 $(BUILD_DIR)/test_vessel_wilderness_rooms.o: test_vessel_wilderness_rooms.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile vessel type integration tests (Phase 03, Session 05)
+$(BUILD_DIR)/test_vessel_type_integration.o: test_vessel_type_integration.c CuTest.h
+	$(CC) $(CFLAGS) -DSTANDALONE_TEST -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -251,6 +260,10 @@ $(VEHICLE_STRESS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_STRESS_TEST_OBJ
 # Link vessel wilderness rooms tests (Phase 03, Session 04)
 $(WILDERNESS_ROOMS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(WILDERNESS_ROOMS_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(WILDERNESS_ROOMS_TEST_OBJ) $(LDFLAGS)
+
+# Link vessel type integration tests (Phase 03, Session 05)
+$(VESSEL_TYPE_INTEGRATION_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TYPE_INTEGRATION_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TYPE_INTEGRATION_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -312,6 +325,10 @@ vehicle-stress: $(VEHICLE_STRESS_TEST_EXE)
 wilderness-rooms: $(WILDERNESS_ROOMS_TEST_EXE)
 	./$(WILDERNESS_ROOMS_TEST_EXE)
 
+# Run vessel type integration tests (Phase 03, Session 05)
+vessel-type-integration: $(VESSEL_TYPE_INTEGRATION_TEST_EXE)
+	./$(VESSEL_TYPE_INTEGRATION_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -367,6 +384,10 @@ valgrind-vehicle-stress: $(VEHICLE_STRESS_TEST_EXE)
 # Run vessel wilderness rooms tests with Valgrind (Phase 03, Session 04)
 valgrind-wilderness-rooms: $(WILDERNESS_ROOMS_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(WILDERNESS_ROOMS_TEST_EXE)
+
+# Run vessel type integration tests with Valgrind (Phase 03, Session 05)
+valgrind-vessel-type-integration: $(VESSEL_TYPE_INTEGRATION_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TYPE_INTEGRATION_TEST_EXE)
 
 # Run all tests
 test-all: test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified
@@ -471,6 +492,7 @@ clean:
 	rm -f $(TRANSPORT_UNIFIED_TEST_EXE)
 	rm -f $(VEHICLE_STRESS_TEST_EXE)
 	rm -f $(WILDERNESS_ROOMS_TEST_EXE)
+	rm -f $(VESSEL_TYPE_INTEGRATION_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -499,4 +521,4 @@ help:
 	@echo "  rebuild           - Clean and rebuild"
 	@echo "  help              - Show this help"
 
-.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified vehicle-stress wilderness-rooms valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport valgrind-vehicle-creation valgrind-vehicle-commands valgrind-transport-unified valgrind-vehicle-stress valgrind-wilderness-rooms phase01-tests valgrind-phase01 phase02-tests valgrind-phase02 test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified vehicle-stress wilderness-rooms vessel-type-integration valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport valgrind-vehicle-creation valgrind-vehicle-commands valgrind-transport-unified valgrind-vehicle-stress valgrind-wilderness-rooms valgrind-vessel-type-integration phase01-tests valgrind-phase01 phase02-tests valgrind-phase02 test-all clean rebuild help

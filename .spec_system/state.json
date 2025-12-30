@@ -59,7 +59,8 @@
     "phase03-session01-code-consolidation",
     "phase03-session02-interior-movement-implementation",
     "phase03-session03-command-registration-wiring",
-    "phase03-session04-dynamic-wilderness-rooms"
+    "phase03-session04-dynamic-wilderness-rooms",
+    "phase03-session05-vessel-type-system"
   ],
   "next_session_history": [
     {
@@ -195,6 +196,11 @@
     {
       "date": "2025-12-30",
       "session": "phase03-session04-dynamic-wilderness-rooms",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase03-session05-vessel-type-system",
       "status": "completed"
     }
   ]

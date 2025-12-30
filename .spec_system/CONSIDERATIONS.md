@@ -35,9 +35,7 @@ Items requiring attention in upcoming phases. Review before each session.
 ### Architecture
 <!-- Max 5 items -->
 
-1. **Vessel movement fails silently** - Destination wilderness coordinate has no allocated room; must implement dynamic room allocation using find_available_wilderness_room() + assign_wilderness_room() pattern.
-2. **Per-vessel type mapping missing** - Currently hardcoded to VESSEL_TYPE_SAILING_SHIP placeholder.
-3. **Phase 2 commands not registered** - dock, undock, board_hostile, look_outside, ship_rooms need adding to interpreter.c.
+1. **Phase 2 commands not registered** - dock, undock, board_hostile, look_outside, ship_rooms need adding to interpreter.c.
 
 ---
 
@@ -83,6 +81,8 @@ Recently closed items (buffer - rotates out after 2 phases).
 
 | Phase | Item | Resolution |
 |-------|------|------------|
+| P03 | Per-vessel type mapping | Validated: 104 tests, all 8 types fully implemented |
+| P03 | Dynamic wilderness rooms | Implemented via get_or_allocate_wilderness_room() pattern |
 | P03 | Interior movement unimplemented | Validated: all 3 functions implemented in vessels_rooms.c |
 | P02 | Max 1000 vehicles target | Validated via stress test (100/500/1000) |
 | P02 | Memory <512 bytes/vehicle | Achieved: 148 bytes/vehicle |
