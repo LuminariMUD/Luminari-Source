@@ -1061,6 +1061,27 @@ enum vehicle_state
 #define VEHICLE_SPEED_MOD_DAMAGED 50 /* 50% speed when damaged */
 #define VEHICLE_SPEED_MOD_OFFROAD 50 /* 50% speed on non-road terrain */
 
+/**
+ * Terrain-based speed modifiers (percentage of base speed).
+ * Applied based on sector type.
+ */
+#define VEHICLE_SPEED_MOD_ROAD 150    /* 150% speed on roads */
+#define VEHICLE_SPEED_MOD_PLAINS 100  /* 100% speed on plains/fields */
+#define VEHICLE_SPEED_MOD_FOREST 75   /* 75% speed in forests */
+#define VEHICLE_SPEED_MOD_HILLS 75    /* 75% speed in hills */
+#define VEHICLE_SPEED_MOD_MOUNTAIN 50 /* 50% speed in mountains */
+#define VEHICLE_SPEED_MOD_SWAMP 50    /* 50% speed in swamps */
+#define VEHICLE_SPEED_MOD_DESERT 75   /* 75% speed in desert */
+
+/**
+ * Wilderness coordinate bounds.
+ * Vehicles use the same wilderness grid as vessels.
+ */
+#define VEHICLE_WILDERNESS_MIN_X (-1024)
+#define VEHICLE_WILDERNESS_MAX_X (1024)
+#define VEHICLE_WILDERNESS_MIN_Y (-1024)
+#define VEHICLE_WILDERNESS_MAX_Y (1024)
+
 /* ========================================================================= */
 /* VEHICLE CONDITION CONSTANTS                                                */
 /* ========================================================================= */
@@ -1104,6 +1125,8 @@ struct vehicle_data
   /* ===== Location Fields (T010) ===== */
   room_rnum location; /* Current room vnum */
   int direction;      /* Facing direction (0-5, matches exits) */
+  int x_coord;        /* Wilderness X coordinate (-1024 to +1024) */
+  int y_coord;        /* Wilderness Y coordinate (-1024 to +1024) */
 
   /* ===== Capacity Fields (T011) ===== */
   int max_passengers;     /* Maximum passenger count */
@@ -1155,6 +1178,12 @@ int vehicle_can_move(struct vehicle_data *vehicle, int direction);
 int vehicle_move(struct vehicle_data *vehicle, int direction);
 int vehicle_get_speed(struct vehicle_data *vehicle);
 int vehicle_can_traverse_terrain(struct vehicle_data *vehicle, int sector_type);
+
+/* Movement Helper Functions (Phase 02, Session 03) */
+void vehicle_get_direction_delta(int direction, int *dx, int *dy);
+int sector_to_vterrain(int sector_type);
+int get_vehicle_speed_modifier(struct vehicle_data *vehicle, int sector_type);
+int move_vehicle(struct vehicle_data *vehicle, int direction);
 
 /* Condition Functions (Phase 02, Session 02) */
 int vehicle_damage(struct vehicle_data *vehicle, int amount);

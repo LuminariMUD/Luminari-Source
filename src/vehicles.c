@@ -23,6 +23,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
+#include "wilderness.h"
 
 /* ========================================================================= */
 /* EXTERNAL VARIABLES                                                         */
@@ -151,6 +152,8 @@ void vehicle_init(struct vehicle_data *vehicle, enum vehicle_type type)
   /* Initialize location */
   vehicle->location = NOWHERE;
   vehicle->direction = 0;
+  vehicle->x_coord = 0;
+  vehicle->y_coord = 0;
 
   /* Set type-specific defaults */
   switch (type)
@@ -817,6 +820,8 @@ void ensure_vehicle_table_exists(void)
       "  vehicle_name VARCHAR(64) NOT NULL DEFAULT '',"
       "  location INT NOT NULL DEFAULT 0,"
       "  direction INT NOT NULL DEFAULT 0,"
+      "  x_coord INT NOT NULL DEFAULT 0,"
+      "  y_coord INT NOT NULL DEFAULT 0,"
       "  max_passengers INT NOT NULL DEFAULT 0,"
       "  current_passengers INT NOT NULL DEFAULT 0,"
       "  max_weight INT NOT NULL DEFAULT 0,"
@@ -830,7 +835,8 @@ void ensure_vehicle_table_exists(void)
       "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
       "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
       "  INDEX idx_location (location),"
-      "  INDEX idx_owner (owner_id)"
+      "  INDEX idx_owner (owner_id),"
+      "  INDEX idx_coords (x_coord, y_coord)"
       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
   if (!mysql_available)
@@ -872,15 +878,15 @@ int vehicle_save(struct vehicle_data *vehicle)
   snprintf(query, sizeof(query),
            "REPLACE INTO vehicle_data "
            "(vehicle_id, vehicle_type, vehicle_state, vehicle_name, "
-           "location, direction, max_passengers, current_passengers, "
+           "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
            "max_weight, current_weight, base_speed, current_speed, "
            "terrain_flags, max_condition, vehicle_condition, owner_id) "
-           "VALUES (%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld)",
+           "VALUES (%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld)",
            vehicle->id, vehicle->type, vehicle->state, escaped_name, vehicle->location,
-           vehicle->direction, vehicle->max_passengers, vehicle->current_passengers,
-           vehicle->max_weight, vehicle->current_weight, vehicle->base_speed,
-           vehicle->current_speed, vehicle->terrain_flags, vehicle->max_condition,
-           vehicle->condition, vehicle->owner_id);
+           vehicle->direction, vehicle->x_coord, vehicle->y_coord, vehicle->max_passengers,
+           vehicle->current_passengers, vehicle->max_weight, vehicle->current_weight,
+           vehicle->base_speed, vehicle->current_speed, vehicle->terrain_flags,
+           vehicle->max_condition, vehicle->condition, vehicle->owner_id);
 
   if (mysql_query(conn, query))
   {
@@ -911,7 +917,7 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
 
   snprintf(query, sizeof(query),
            "SELECT vehicle_id, vehicle_type, vehicle_state, vehicle_name, "
-           "location, direction, max_passengers, current_passengers, "
+           "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
            "max_weight, current_weight, base_speed, current_speed, "
            "terrain_flags, max_condition, vehicle_condition, owner_id "
            "FROM vehicle_data WHERE vehicle_id = %d",
@@ -944,16 +950,18 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
 
     vehicle->location = atoi(row[4]);
     vehicle->direction = atoi(row[5]);
-    vehicle->max_passengers = atoi(row[6]);
-    vehicle->current_passengers = atoi(row[7]);
-    vehicle->max_weight = atoi(row[8]);
-    vehicle->current_weight = atoi(row[9]);
-    vehicle->base_speed = atoi(row[10]);
-    vehicle->current_speed = atoi(row[11]);
-    vehicle->terrain_flags = atoi(row[12]);
-    vehicle->max_condition = atoi(row[13]);
-    vehicle->condition = atoi(row[14]);
-    vehicle->owner_id = atol(row[15]);
+    vehicle->x_coord = atoi(row[6]);
+    vehicle->y_coord = atoi(row[7]);
+    vehicle->max_passengers = atoi(row[8]);
+    vehicle->current_passengers = atoi(row[9]);
+    vehicle->max_weight = atoi(row[10]);
+    vehicle->current_weight = atoi(row[11]);
+    vehicle->base_speed = atoi(row[12]);
+    vehicle->current_speed = atoi(row[13]);
+    vehicle->terrain_flags = atoi(row[14]);
+    vehicle->max_condition = atoi(row[15]);
+    vehicle->condition = atoi(row[16]);
+    vehicle->owner_id = atol(row[17]);
     vehicle->obj = NULL;
 
     mysql_free_result(result);
@@ -1021,7 +1029,7 @@ void vehicle_load_all(void)
 
   /* Query all vehicles */
   query = "SELECT vehicle_id, vehicle_type, vehicle_state, vehicle_name, "
-          "location, direction, max_passengers, current_passengers, "
+          "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
           "max_weight, current_weight, base_speed, current_speed, "
           "terrain_flags, max_condition, vehicle_condition, owner_id "
           "FROM vehicle_data ORDER BY vehicle_id";
@@ -1064,16 +1072,18 @@ void vehicle_load_all(void)
 
     vehicle->location = atoi(row[4]);
     vehicle->direction = atoi(row[5]);
-    vehicle->max_passengers = atoi(row[6]);
-    vehicle->current_passengers = atoi(row[7]);
-    vehicle->max_weight = atoi(row[8]);
-    vehicle->current_weight = atoi(row[9]);
-    vehicle->base_speed = atoi(row[10]);
-    vehicle->current_speed = atoi(row[11]);
-    vehicle->terrain_flags = atoi(row[12]);
-    vehicle->max_condition = atoi(row[13]);
-    vehicle->condition = atoi(row[14]);
-    vehicle->owner_id = atol(row[15]);
+    vehicle->x_coord = atoi(row[6]);
+    vehicle->y_coord = atoi(row[7]);
+    vehicle->max_passengers = atoi(row[8]);
+    vehicle->current_passengers = atoi(row[9]);
+    vehicle->max_weight = atoi(row[10]);
+    vehicle->current_weight = atoi(row[11]);
+    vehicle->base_speed = atoi(row[12]);
+    vehicle->current_speed = atoi(row[13]);
+    vehicle->terrain_flags = atoi(row[14]);
+    vehicle->max_condition = atoi(row[15]);
+    vehicle->condition = atoi(row[16]);
+    vehicle->owner_id = atol(row[17]);
     vehicle->obj = NULL;
 
     /* Track max ID for next_vehicle_id */
@@ -1099,6 +1109,469 @@ void vehicle_load_all(void)
   next_vehicle_id = max_id + 1;
 
   log("Info: Loaded %d vehicles (next_vehicle_id=%d)", loaded_count, next_vehicle_id);
+}
+
+/* ========================================================================= */
+/* VEHICLE MOVEMENT FUNCTIONS (Phase 02, Session 03)                          */
+/* ========================================================================= */
+
+/**
+ * Get the X/Y coordinate delta for a given direction.
+ *
+ * Converts MUD direction constants to wilderness coordinate changes.
+ * Supports all 8 cardinal and diagonal directions.
+ *
+ * @param direction The direction constant (NORTH, EAST, etc.)
+ * @param dx Pointer to store X delta (-1, 0, or +1)
+ * @param dy Pointer to store Y delta (-1, 0, or +1)
+ */
+void vehicle_get_direction_delta(int direction, int *dx, int *dy)
+{
+  if (dx == NULL || dy == NULL)
+  {
+    log("SYSERR: vehicle_get_direction_delta called with NULL pointer");
+    return;
+  }
+
+  /* Initialize to no movement */
+  *dx = 0;
+  *dy = 0;
+
+  switch (direction)
+  {
+  case NORTH:
+    *dy = 1;
+    break;
+  case SOUTH:
+    *dy = -1;
+    break;
+  case EAST:
+    *dx = 1;
+    break;
+  case WEST:
+    *dx = -1;
+    break;
+  case NORTHEAST:
+    *dx = 1;
+    *dy = 1;
+    break;
+  case NORTHWEST:
+    *dx = -1;
+    *dy = 1;
+    break;
+  case SOUTHEAST:
+    *dx = 1;
+    *dy = -1;
+    break;
+  case SOUTHWEST:
+    *dx = -1;
+    *dy = -1;
+    break;
+  default:
+    /* Invalid direction (UP, DOWN, etc.) - no movement */
+    break;
+  }
+}
+
+/**
+ * Map sector type to vehicle terrain capability flag.
+ *
+ * Converts SECT_* constants to VTERRAIN_* bitfield values.
+ * Returns 0 for terrain that vehicles cannot traverse (water, air, etc.).
+ *
+ * @param sector_type The SECT_* sector type constant
+ * @return The corresponding VTERRAIN_* flag, or 0 if impassable
+ */
+int sector_to_vterrain(int sector_type)
+{
+  switch (sector_type)
+  {
+  /* Road terrain - fastest travel */
+  case SECT_ROAD_NS:
+  case SECT_ROAD_EW:
+  case SECT_ROAD_INT:
+  case SECT_D_ROAD_NS:
+  case SECT_D_ROAD_EW:
+  case SECT_D_ROAD_INT:
+    return VTERRAIN_ROAD;
+
+  /* Plains/field terrain - standard travel */
+  case SECT_FIELD:
+  case SECT_CITY:
+  case SECT_INSIDE:
+  case SECT_INSIDE_ROOM:
+    return VTERRAIN_PLAINS;
+
+  /* Forest terrain - slower travel */
+  case SECT_FOREST:
+  case SECT_JUNGLE:
+  case SECT_TAIGA:
+    return VTERRAIN_FOREST;
+
+  /* Hilly terrain - slower travel */
+  case SECT_HILLS:
+  case SECT_BEACH:
+    return VTERRAIN_HILLS;
+
+  /* Mountain terrain - slowest land travel */
+  case SECT_MOUNTAIN:
+  case SECT_HIGH_MOUNTAIN:
+  case SECT_CAVE:
+    return VTERRAIN_MOUNTAIN;
+
+  /* Desert terrain - slow travel */
+  case SECT_DESERT:
+  case SECT_TUNDRA:
+    return VTERRAIN_DESERT;
+
+  /* Swamp terrain - slow and difficult */
+  case SECT_MARSHLAND:
+    return VTERRAIN_SWAMP;
+
+  /* Impassable terrain for land vehicles */
+  case SECT_WATER_SWIM:
+  case SECT_WATER_NOSWIM:
+  case SECT_OCEAN:
+  case SECT_UNDERWATER:
+  case SECT_RIVER:
+  case SECT_FLYING:
+  case SECT_LAVA:
+  case SECT_UD_WATER:
+  case SECT_UD_NOSWIM:
+  case SECT_UD_NOGROUND:
+  default:
+    return 0; /* Impassable */
+  }
+}
+
+/**
+ * Check if a vehicle can traverse the given sector type.
+ *
+ * Compares the vehicle's terrain_flags bitfield against the
+ * terrain capability required for the sector type.
+ *
+ * @param vehicle Pointer to the vehicle
+ * @param sector_type The SECT_* sector type to check
+ * @return 1 if vehicle can traverse, 0 if blocked
+ */
+int vehicle_can_traverse_terrain(struct vehicle_data *vehicle, int sector_type)
+{
+  int required_terrain;
+
+  if (vehicle == NULL)
+  {
+    log("SYSERR: vehicle_can_traverse_terrain called with NULL vehicle");
+    return 0;
+  }
+
+  /* Get required terrain capability */
+  required_terrain = sector_to_vterrain(sector_type);
+
+  /* Impassable terrain */
+  if (required_terrain == 0)
+  {
+    return 0;
+  }
+
+  /* Check if vehicle has the required terrain capability */
+  return (vehicle->terrain_flags & required_terrain) ? 1 : 0;
+}
+
+/**
+ * Get the speed modifier for a vehicle on a given terrain type.
+ *
+ * Returns a percentage (50-150) to multiply against base speed.
+ * Higher values = faster travel.
+ *
+ * @param vehicle Pointer to the vehicle (for future type-specific modifiers)
+ * @param sector_type The SECT_* sector type
+ * @return Speed modifier percentage (50-150), or 0 if impassable
+ */
+int get_vehicle_speed_modifier(struct vehicle_data *vehicle, int sector_type)
+{
+  int terrain;
+
+  if (vehicle == NULL)
+  {
+    return 0;
+  }
+
+  terrain = sector_to_vterrain(sector_type);
+
+  /* Impassable terrain */
+  if (terrain == 0)
+  {
+    return 0;
+  }
+
+  /* Return speed modifier based on terrain type */
+  switch (terrain)
+  {
+  case VTERRAIN_ROAD:
+    return VEHICLE_SPEED_MOD_ROAD;
+  case VTERRAIN_PLAINS:
+    return VEHICLE_SPEED_MOD_PLAINS;
+  case VTERRAIN_FOREST:
+    return VEHICLE_SPEED_MOD_FOREST;
+  case VTERRAIN_HILLS:
+    return VEHICLE_SPEED_MOD_HILLS;
+  case VTERRAIN_MOUNTAIN:
+    return VEHICLE_SPEED_MOD_MOUNTAIN;
+  case VTERRAIN_SWAMP:
+    return VEHICLE_SPEED_MOD_SWAMP;
+  case VTERRAIN_DESERT:
+    return VEHICLE_SPEED_MOD_DESERT;
+  default:
+    return VEHICLE_SPEED_MOD_PLAINS; /* Fallback to base speed */
+  }
+}
+
+/**
+ * Get the current effective speed of a vehicle.
+ *
+ * Applies load and damage modifiers to base speed.
+ *
+ * @param vehicle Pointer to the vehicle
+ * @return Current effective speed, or 0 if unable to move
+ */
+int vehicle_get_speed(struct vehicle_data *vehicle)
+{
+  int speed;
+
+  if (vehicle == NULL)
+  {
+    return 0;
+  }
+
+  /* Cannot move if damaged */
+  if (vehicle->state == VSTATE_DAMAGED)
+  {
+    return 0;
+  }
+
+  /* Cannot move if hitched */
+  if (vehicle->state == VSTATE_HITCHED)
+  {
+    return 0;
+  }
+
+  /* Start with base speed */
+  speed = vehicle->base_speed;
+
+  /* Apply damage modifier if condition is poor */
+  if (vehicle->condition < VEHICLE_CONDITION_FAIR)
+  {
+    speed = (speed * VEHICLE_SPEED_MOD_DAMAGED) / 100;
+  }
+
+  /* Apply load modifier if heavily loaded */
+  if (vehicle->current_weight > (vehicle->max_weight * 75 / 100) ||
+      vehicle->current_passengers == vehicle->max_passengers)
+  {
+    speed = (speed * VEHICLE_SPEED_MOD_LOADED) / 100;
+  }
+
+  /* Ensure minimum speed of 1 if moving is possible */
+  if (speed < 1)
+  {
+    speed = 1;
+  }
+
+  return speed;
+}
+
+/**
+ * Check if a vehicle can move in the given direction.
+ *
+ * Validates:
+ * - Vehicle is not NULL and is operational
+ * - Direction is valid for wilderness movement
+ * - Destination coordinates are within bounds
+ * - Destination terrain is traversable
+ *
+ * @param vehicle Pointer to the vehicle
+ * @param direction The direction to move (NORTH, EAST, etc.)
+ * @return 1 if movement is possible, 0 if blocked
+ */
+int vehicle_can_move(struct vehicle_data *vehicle, int direction)
+{
+  int dx, dy;
+  int new_x, new_y;
+  room_rnum dest_room;
+  int sector;
+
+  if (vehicle == NULL)
+  {
+    return 0;
+  }
+
+  /* Check if vehicle is operational */
+  if (!vehicle_is_operational(vehicle))
+  {
+    return 0;
+  }
+
+  /* Check if vehicle can move (not hitched) */
+  if (vehicle->state == VSTATE_HITCHED)
+  {
+    return 0;
+  }
+
+  /* Get direction delta */
+  vehicle_get_direction_delta(direction, &dx, &dy);
+
+  /* Invalid direction (no movement) */
+  if (dx == 0 && dy == 0)
+  {
+    return 0;
+  }
+
+  /* Calculate destination coordinates */
+  new_x = vehicle->x_coord + dx;
+  new_y = vehicle->y_coord + dy;
+
+  /* Check wilderness bounds */
+  if (new_x < VEHICLE_WILDERNESS_MIN_X || new_x > VEHICLE_WILDERNESS_MAX_X ||
+      new_y < VEHICLE_WILDERNESS_MIN_Y || new_y > VEHICLE_WILDERNESS_MAX_Y)
+  {
+    return 0;
+  }
+
+  /* Try to find or allocate destination room */
+  dest_room = find_room_by_coordinates(new_x, new_y);
+  if (dest_room == NOWHERE)
+  {
+    /* Try to allocate a new room */
+    dest_room = find_available_wilderness_room();
+    if (dest_room == NOWHERE)
+    {
+      return 0; /* Room pool exhausted */
+    }
+  }
+
+  /* Get sector type at destination */
+  sector = get_modified_sector_type(real_zone(WILD_ZONE_VNUM), new_x, new_y);
+
+  /* Check terrain traversability */
+  if (!vehicle_can_traverse_terrain(vehicle, sector))
+  {
+    return 0;
+  }
+
+  return 1;
+}
+
+/**
+ * Move a vehicle in the given direction.
+ *
+ * Core movement function that:
+ * 1. Validates movement is possible
+ * 2. Calculates new coordinates
+ * 3. Allocates/assigns wilderness room
+ * 4. Updates vehicle state
+ * 5. Applies speed modifiers
+ * 6. Persists position to database
+ *
+ * @param vehicle Pointer to the vehicle
+ * @param direction The direction to move (NORTH, EAST, etc.)
+ * @return 1 on success, 0 on failure
+ */
+int move_vehicle(struct vehicle_data *vehicle, int direction)
+{
+  int dx, dy;
+  int new_x, new_y;
+  room_rnum dest_room;
+  int sector;
+  int speed_mod;
+  enum vehicle_state prev_state;
+
+  /* Validate vehicle */
+  if (vehicle == NULL)
+  {
+    log("SYSERR: move_vehicle called with NULL vehicle");
+    return 0;
+  }
+
+  /* Check if movement is possible */
+  if (!vehicle_can_move(vehicle, direction))
+  {
+    return 0;
+  }
+
+  /* Get direction delta */
+  vehicle_get_direction_delta(direction, &dx, &dy);
+
+  /* Calculate destination coordinates */
+  new_x = vehicle->x_coord + dx;
+  new_y = vehicle->y_coord + dy;
+
+  /* Get or allocate destination room */
+  dest_room = find_room_by_coordinates(new_x, new_y);
+  if (dest_room == NOWHERE)
+  {
+    dest_room = find_available_wilderness_room();
+    if (dest_room == NOWHERE)
+    {
+      log("SYSERR: move_vehicle - room pool exhausted for vehicle #%d", vehicle->id);
+      return 0;
+    }
+    assign_wilderness_room(dest_room, new_x, new_y);
+  }
+
+  /* Get sector type at destination */
+  sector = get_modified_sector_type(real_zone(WILD_ZONE_VNUM), new_x, new_y);
+
+  /* Calculate speed modifier */
+  speed_mod = get_vehicle_speed_modifier(vehicle, sector);
+
+  /* Save previous state for transition */
+  prev_state = vehicle->state;
+
+  /* Update vehicle state to MOVING */
+  vehicle->state = VSTATE_MOVING;
+
+  /* Update coordinates */
+  vehicle->x_coord = new_x;
+  vehicle->y_coord = new_y;
+  vehicle->location = dest_room;
+  vehicle->direction = direction;
+
+  /* Apply speed modifier */
+  vehicle->current_speed = (vehicle->base_speed * speed_mod) / 100;
+  if (vehicle->current_speed < 1)
+  {
+    vehicle->current_speed = 1;
+  }
+
+  /* Restore state (IDLE or LOADED based on cargo/passengers) */
+  if (vehicle->current_passengers > 0 || vehicle->current_weight > 0)
+  {
+    vehicle->state = VSTATE_LOADED;
+  }
+  else
+  {
+    vehicle->state = VSTATE_IDLE;
+  }
+
+  /* Persist position to database */
+  vehicle_save(vehicle);
+
+  log("Info: Vehicle #%d moved to (%d, %d) room %d, speed=%d", vehicle->id, new_x, new_y, dest_room,
+      vehicle->current_speed);
+
+  return 1;
+}
+
+/**
+ * Simple vehicle_move wrapper for API consistency.
+ *
+ * @param vehicle Pointer to the vehicle
+ * @param direction The direction to move
+ * @return 1 on success, 0 on failure
+ */
+int vehicle_move(struct vehicle_data *vehicle, int direction)
+{
+  return move_vehicle(vehicle, direction);
 }
 
 /* ========================================================================= */
