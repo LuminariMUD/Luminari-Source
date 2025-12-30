@@ -12335,7 +12335,7 @@ int calculate_stage_xp_needed(struct char_data *ch)
 /**
  * Check if character has enough XP to advance to the next stage.
  * Awards perk points for stages 1-3, and sets ready-to-level flag for stage 4.
- * Perk points are awarded to GET_CLASS(ch) (the last class gained).
+ * Perk points are awarded using class_to_perk_class to determine the appropriate classes.
  * 
  * @param ch The character
  * @param perk_points_awarded Output parameter - set to 1 if points awarded, 0 otherwise
@@ -12385,16 +12385,49 @@ bool check_stage_advancement(struct char_data *ch, int *perk_points_awarded)
     stages_gained++;
     advanced = TRUE;
     
-    /* Award perk points for stages 1-3 to the last class gained */
+    /* Award perk points for stages 1-3 using class_to_perk_class */
     if (current_stage < STAGES_PER_LEVEL)
     {
       int award_class = GET_CLASS(ch);
+      int perk_class_1, perk_class_2;
+      
       if (award_class < 0 || award_class >= NUM_CLASSES)
       {
         send_to_char(ch, "\tR[DEBUG] Invalid GET_CLASS: %d (should be 0-%d)\tn\r\n", 
                     award_class, NUM_CLASSES-1);
       }
-      award_stage_perk_points(ch, award_class);
+      
+      /* Get the two perk classes using class_to_perk_class */
+      perk_class_1 = class_to_perk_class(award_class, 1);
+      perk_class_2 = class_to_perk_class(award_class, 2);
+
+      if (perk_class_1 == perk_class_2 &&
+          perk_class_1 >= 0 && perk_class_1 < NUM_CLASSES &&
+          perk_class_2 >= 0 && perk_class_2 < NUM_CLASSES)
+      {
+        ch->player_specials->saved.perk_points[perk_class_1] += 2;
+        send_to_char(ch, "\tGYou gain 2 perk point for your %s class! (Total: %d)\tn\r\n",
+                    class_names[perk_class_1], ch->player_specials->saved.perk_points[perk_class_1]);
+      }
+      else
+      {
+        /* Award perk points to both classes (1 point each, 2 points total per stage) */
+        if (perk_class_1 >= 0 && perk_class_1 < NUM_CLASSES)
+        {
+          ch->player_specials->saved.perk_points[perk_class_1]++;
+          send_to_char(ch, "\tGYou gain 1 perk point for your %s class! (Total: %d)\tn\r\n",
+                      class_names[perk_class_1], ch->player_specials->saved.perk_points[perk_class_1]);
+        }
+        
+        /* Award second perk point (may be to same class or different class) */
+        if (perk_class_2 >= 0 && perk_class_2 < NUM_CLASSES)
+        {
+          ch->player_specials->saved.perk_points[perk_class_2]++;
+          send_to_char(ch, "\tGYou gain 1 perk point for your %s class! (Total: %d)\tn\r\n",
+                      class_names[perk_class_2], ch->player_specials->saved.perk_points[perk_class_2]);
+        }
+      }
+      
       if (perk_points_awarded)
         (*perk_points_awarded)++;
     }
@@ -21530,7 +21563,7 @@ int class_to_perk_class(int class_type, int which_perk)
     case  CLASS_BARD: return CLASS_BARD;
     case  CLASS_WEAPON_MASTER: return CLASS_WARRIOR;
     case  CLASS_ARCANE_ARCHER: if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_WIZARD;
-    case  CLASS_STALWART_DEFENDER: return CLASS_WARRIOR
+    case  CLASS_STALWART_DEFENDER: return CLASS_WARRIOR;
     case  CLASS_SHIFTER: return CLASS_DRUID;
     case  CLASS_DUELIST: if (which_perk == 1) return CLASS_WARRIOR; else return CLASS_ROGUE;
     case  CLASS_MYSTIC_THEURGE:if (which_perk == 1) return CLASS_WIZARD; else return CLASS_CLERIC;

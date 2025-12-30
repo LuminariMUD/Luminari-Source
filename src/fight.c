@@ -12601,15 +12601,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        send_to_char(ch, "[\tDSNEAK\tn] ");
-      }
-
-      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
-      {
-      }
-      else
-      {
-        send_to_char(victim, "[\tRSNEAK\tn] ");
+        send_combat_roll_info(ch, "[\tDSNEAK\tn] ");
       }
     }
 
@@ -12731,15 +12723,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        send_to_char(ch, "[\tDSNEAK\tn] ");
-      }
-
-      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
-      {
-      }
-      else
-      {
-        send_to_char(victim, "[\tRSNEAK\tn] ");
+        send_combat_roll_info(ch, "[\tDSNEAK\tn] ");
       }
       
       /* Apply Bleeding Attack if perk active */
