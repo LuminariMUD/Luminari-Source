@@ -188,10 +188,12 @@ static const char *get_direction_name(int direction)
 /**
  * Check if a player is currently in a vehicle.
  *
+ * Externally accessible for unified transport interface.
+ *
  * @param ch The character to check
  * @return 1 if player is in a vehicle, 0 otherwise
  */
-static int is_player_in_vehicle(struct char_data *ch)
+int is_player_in_vehicle(struct char_data *ch)
 {
   int i;
 
@@ -214,10 +216,12 @@ static int is_player_in_vehicle(struct char_data *ch)
 /**
  * Get the vehicle a player is currently riding.
  *
+ * Externally accessible for unified transport interface.
+ *
  * @param ch The character to check
  * @return Pointer to vehicle_data if mounted, NULL otherwise
  */
-static struct vehicle_data *get_player_vehicle(struct char_data *ch)
+struct vehicle_data *get_player_vehicle(struct char_data *ch)
 {
   int i;
   int vehicle_id;
@@ -242,11 +246,13 @@ static struct vehicle_data *get_player_vehicle(struct char_data *ch)
 /**
  * Register a player as mounted on a vehicle.
  *
+ * Externally accessible for unified transport interface.
+ *
  * @param ch The player mounting the vehicle
  * @param vehicle The vehicle being mounted
  * @return 1 on success, 0 on failure
  */
-static int register_player_mount(struct char_data *ch, struct vehicle_data *vehicle)
+int register_player_mount(struct char_data *ch, struct vehicle_data *vehicle)
 {
   int i;
 
@@ -279,10 +285,12 @@ static int register_player_mount(struct char_data *ch, struct vehicle_data *vehi
 /**
  * Unregister a player from their vehicle.
  *
+ * Externally accessible for unified transport interface.
+ *
  * @param ch The player dismounting
  * @return 1 on success, 0 if not mounted
  */
-static int unregister_player_mount(struct char_data *ch)
+int unregister_player_mount(struct char_data *ch)
 {
   int i;
 

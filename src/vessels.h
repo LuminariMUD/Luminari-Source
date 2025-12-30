@@ -1239,6 +1239,15 @@ struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel
 void vehicle_sync_with_vessel(struct vehicle_data *vehicle, struct greyhawk_ship_data *vessel);
 
 /* ========================================================================= */
+/* VEHICLE PLAYER TRACKING (Phase 02, Session 04/06)                          */
+/* ========================================================================= */
+
+int is_player_in_vehicle(struct char_data *ch);
+struct vehicle_data *get_player_vehicle(struct char_data *ch);
+int register_player_mount(struct char_data *ch, struct vehicle_data *vehicle);
+int unregister_player_mount(struct char_data *ch);
+
+/* ========================================================================= */
 /* VEHICLE COMMAND PROTOTYPES (Phase 02, Session 04)                          */
 /* ========================================================================= */
 
@@ -1250,5 +1259,14 @@ ACMD_DECL(do_drive);         /* Drive a vehicle in a direction */
 ACMD_DECL(do_vstatus);       /* Show vehicle status */
 ACMD_DECL(do_loadvehicle);   /* Load vehicle onto a vessel (S0205) */
 ACMD_DECL(do_unloadvehicle); /* Unload vehicle from a vessel (S0205) */
+
+/* ========================================================================= */
+/* UNIFIED TRANSPORT COMMAND PROTOTYPES (Phase 02, Session 06)                */
+/* ========================================================================= */
+
+ACMD_DECL(do_transport_enter); /* Unified entry (vehicle/vessel) */
+ACMD_DECL(do_exit_transport);  /* Unified exit (vehicle/vessel) */
+ACMD_DECL(do_transport_go);    /* Unified movement (vehicle/vessel) */
+ACMD_DECL(do_transportstatus); /* Unified status display (vehicle/vessel) */
 
 #endif /* _VESSELS_H_ */

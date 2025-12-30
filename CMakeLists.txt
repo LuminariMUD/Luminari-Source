@@ -627,6 +627,7 @@ set(SRC_C_FILES
     src/templates.c
     src/trade.c
     src/transport.c
+    src/transport_unified.c
     src/traps_new.c
     src/treasure.c
     src/treasure_const.c

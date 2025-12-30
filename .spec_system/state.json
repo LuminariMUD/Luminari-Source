@@ -46,7 +46,8 @@
     "phase02-session02-vehicle-creation-system",
     "phase02-session03-vehicle-movement-system",
     "phase02-session04-vehicle-player-commands",
-    "phase02-session05-vehicle-in-vehicle-mechanics"
+    "phase02-session05-vehicle-in-vehicle-mechanics",
+    "phase02-session06-unified-command-interface"
   ],
   "next_session_history": [
     {
@@ -152,6 +153,11 @@
     {
       "date": "2025-12-30",
       "session": "phase02-session05-vehicle-in-vehicle-mechanics",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase02-session06-unified-command-interface",
       "status": "completed"
     }
   ]

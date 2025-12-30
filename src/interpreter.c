@@ -4634,6 +4634,21 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 6},
      NULL},
 
+    /* Unified Transport Commands (Phase 02, Session 06) */
+    {"tenter", "tenter", POS_STANDING, do_transport_enter, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"texit", "texit", POS_STANDING, do_exit_transport, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"tgo", "tgo", POS_STANDING, do_transport_go, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"tstatus",
+     "tstatus",
+     POS_RECLINING,
+     do_transportstatus,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
+
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
