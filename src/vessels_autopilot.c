@@ -4,14 +4,25 @@
  *              Phase 3 - Automation Layer                                   *
  *              Session 01: Data structures                                  *
  *              Session 02: Waypoint/Route database persistence              *
+ *              Session 03: Path-following logic                             *
  * ********************************************************************** */
 
+/* CRITICAL: math.h must be included before utils.h (included via vessels.h)
+ * to avoid conflict between math.h's log() function and the log() macro
+ * defined in utils.h. The sequence below ensures correct include order. */
+#include "conf.h"
+#include "sysdep.h"
+#include <math.h>
 #include "vessels.h"
 #include "mysql.h"
+#include "wilderness.h"
 
 /* External MySQL connection variables */
 extern MYSQL *conn;
 extern bool mysql_available;
+
+/* External ship data array from vessels.c */
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* ========================================================================= */
 /* GLOBAL CACHE VARIABLES                                                    */
@@ -1743,4 +1754,494 @@ void save_all_routes(void)
   }
 
   log("Info: Verified %d routes in cache at shutdown", count);
+}
+
+/* ========================================================================= */
+/* PATH-FOLLOWING FUNCTIONS (Session 03)                                     */
+/* ========================================================================= */
+
+/**
+ * Calculate the Euclidean distance from the ship to a waypoint.
+ *
+ * Uses 2D distance formula: sqrt((x2-x1)^2 + (y2-y1)^2)
+ * Z coordinate is included for 3D calculations when applicable.
+ *
+ * @param ship The ship to calculate distance from
+ * @param wp The waypoint to calculate distance to
+ * @return The distance in coordinate units, or -1.0 on error
+ */
+float calculate_distance_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp)
+{
+  float dx, dy, dz;
+  float distance;
+
+  if (ship == NULL)
+  {
+    log("SYSERR: calculate_distance_to_waypoint called with NULL ship");
+    return -1.0f;
+  }
+
+  if (wp == NULL)
+  {
+    log("SYSERR: calculate_distance_to_waypoint called with NULL waypoint");
+    return -1.0f;
+  }
+
+  dx = wp->x - ship->x;
+  dy = wp->y - ship->y;
+  dz = wp->z - ship->z;
+
+  /* Calculate 3D Euclidean distance */
+  distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+
+  return distance;
+}
+
+/**
+ * Calculate the heading direction vector from ship to waypoint.
+ *
+ * Returns a normalized direction vector (dx, dy) that points from
+ * the ship's current position toward the waypoint. The vector length
+ * represents one unit of travel distance.
+ *
+ * @param ship The ship to calculate heading for
+ * @param wp The waypoint to head toward
+ * @param dx Output: normalized X direction component
+ * @param dy Output: normalized Y direction component
+ */
+void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp,
+                                   float *dx, float *dy)
+{
+  float raw_dx, raw_dy;
+  float distance;
+
+  if (ship == NULL || wp == NULL || dx == NULL || dy == NULL)
+  {
+    log("SYSERR: calculate_heading_to_waypoint called with NULL parameter");
+    if (dx != NULL) *dx = 0.0f;
+    if (dy != NULL) *dy = 0.0f;
+    return;
+  }
+
+  raw_dx = wp->x - ship->x;
+  raw_dy = wp->y - ship->y;
+
+  /* Calculate 2D distance for normalization */
+  distance = (float)sqrt((double)(raw_dx * raw_dx + raw_dy * raw_dy));
+
+  if (distance < 0.001f)
+  {
+    /* Already at waypoint or very close */
+    *dx = 0.0f;
+    *dy = 0.0f;
+    return;
+  }
+
+  /* Normalize to unit vector */
+  *dx = raw_dx / distance;
+  *dy = raw_dy / distance;
+}
+
+/**
+ * Check if a ship has arrived at a waypoint within tolerance.
+ *
+ * @param ship The ship to check
+ * @param wp The waypoint to check arrival at
+ * @return TRUE if within tolerance, FALSE otherwise
+ */
+int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp)
+{
+  float distance;
+  float tolerance;
+
+  if (ship == NULL || wp == NULL)
+  {
+    log("SYSERR: check_waypoint_arrival called with NULL parameter");
+    return FALSE;
+  }
+
+  distance = calculate_distance_to_waypoint(ship, wp);
+  if (distance < 0.0f)
+  {
+    /* Error in distance calculation */
+    return FALSE;
+  }
+
+  /* Use waypoint tolerance, default to 5.0 if not set */
+  tolerance = wp->tolerance;
+  if (tolerance <= 0.0f)
+  {
+    tolerance = 5.0f;
+  }
+
+  return (distance <= tolerance) ? TRUE : FALSE;
+}
+
+/**
+ * Advance the ship to the next waypoint in the route.
+ *
+ * Handles route progression logic including:
+ * - Advancing to next waypoint in sequence
+ * - Loop routes: restart from beginning
+ * - Non-loop routes: set COMPLETE state
+ *
+ * @param ship The ship to advance
+ * @return 1 if advanced to next waypoint, 0 if route complete or error
+ */
+int advance_to_next_waypoint(struct greyhawk_ship_data *ship)
+{
+  struct autopilot_data *ap;
+  struct ship_route *route;
+  int next_index;
+
+  if (ship == NULL)
+  {
+    log("SYSERR: advance_to_next_waypoint called with NULL ship");
+    return 0;
+  }
+
+  ap = ship->autopilot;
+  if (ap == NULL)
+  {
+    log("SYSERR: advance_to_next_waypoint called on ship without autopilot");
+    return 0;
+  }
+
+  route = ap->current_route;
+  if (route == NULL)
+  {
+    log("SYSERR: advance_to_next_waypoint called with NULL route");
+    ap->state = AUTOPILOT_OFF;
+    return 0;
+  }
+
+  /* Calculate next waypoint index */
+  next_index = ap->current_waypoint_index + 1;
+
+  if (next_index >= route->num_waypoints)
+  {
+    /* Reached end of route */
+    if (route->loop)
+    {
+      /* Loop route: restart from beginning */
+      ap->current_waypoint_index = 0;
+      ap->state = AUTOPILOT_TRAVELING;
+      log("Info: Ship %d route '%s' looping to waypoint 0",
+          ship->shipnum, route->name);
+      return 1;
+    }
+    else
+    {
+      /* Non-loop route: mark complete */
+      ap->state = AUTOPILOT_COMPLETE;
+      log("Info: Ship %d completed route '%s'",
+          ship->shipnum, route->name);
+      return 0;
+    }
+  }
+
+  /* Advance to next waypoint */
+  ap->current_waypoint_index = next_index;
+  ap->state = AUTOPILOT_TRAVELING;
+
+  return 1;
+}
+
+/**
+ * Handle arrival at a waypoint.
+ *
+ * When a ship arrives at a waypoint, this function:
+ * - Sets state to WAITING if wait_time > 0
+ * - Otherwise advances to next waypoint
+ *
+ * @param ship The ship that has arrived
+ */
+void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
+{
+  struct autopilot_data *ap;
+  struct waypoint *wp;
+
+  if (ship == NULL)
+  {
+    log("SYSERR: handle_waypoint_arrival called with NULL ship");
+    return;
+  }
+
+  ap = ship->autopilot;
+  if (ap == NULL)
+  {
+    return;
+  }
+
+  wp = waypoint_get_current(ship);
+  if (wp == NULL)
+  {
+    log("SYSERR: handle_waypoint_arrival - no current waypoint");
+    ap->state = AUTOPILOT_OFF;
+    return;
+  }
+
+  /* Check if we need to wait at this waypoint */
+  if (wp->wait_time > 0)
+  {
+    ap->state = AUTOPILOT_WAITING;
+    ap->wait_remaining = wp->wait_time;
+    ap->last_update = time(0);
+    log("Info: Ship %d arrived at waypoint '%s', waiting %d seconds",
+        ship->shipnum, wp->name, wp->wait_time);
+  }
+  else
+  {
+    /* No wait time, advance immediately */
+    log("Info: Ship %d arrived at waypoint '%s', advancing",
+        ship->shipnum, wp->name);
+    advance_to_next_waypoint(ship);
+  }
+}
+
+/**
+ * Move a vessel toward its current waypoint.
+ *
+ * Calculates movement direction and distance, validates terrain,
+ * and updates ship position. Uses the wilderness room allocation
+ * pattern for terrain validation.
+ *
+ * @param ship The ship to move
+ * @return 1 if moved successfully, 0 if movement failed
+ */
+int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
+{
+  struct autopilot_data *ap;
+  struct waypoint *wp;
+  float dx, dy;
+  float speed;
+  float new_x, new_y;
+  int target_x, target_y;
+  room_rnum dest_room;
+
+  if (ship == NULL)
+  {
+    log("SYSERR: move_vessel_toward_waypoint called with NULL ship");
+    return 0;
+  }
+
+  ap = ship->autopilot;
+  if (ap == NULL)
+  {
+    return 0;
+  }
+
+  wp = waypoint_get_current(ship);
+  if (wp == NULL)
+  {
+    log("SYSERR: move_vessel_toward_waypoint - no current waypoint");
+    return 0;
+  }
+
+  /* Get ship speed (use current_speed or a default) */
+  speed = (float)ship->speed;
+  if (speed <= 0.0f)
+  {
+    speed = 1.0f;  /* Minimum movement speed */
+  }
+
+  /* Calculate heading to waypoint */
+  calculate_heading_to_waypoint(ship, wp, &dx, &dy);
+
+  /* If already at destination (heading is zero) */
+  if (dx == 0.0f && dy == 0.0f)
+  {
+    return 0;
+  }
+
+  /* Calculate new position */
+  new_x = ship->x + (dx * speed);
+  new_y = ship->y + (dy * speed);
+
+  /* Round to integer coordinates for wilderness system */
+  target_x = (int)(new_x + 0.5f);
+  target_y = (int)(new_y + 0.5f);
+
+  /* Validate terrain at destination using wilderness room allocation */
+  dest_room = find_room_by_coordinates(target_x, target_y);
+  if (dest_room == NOWHERE)
+  {
+    /* Try to allocate a new wilderness room */
+    dest_room = find_available_wilderness_room();
+    if (dest_room == NOWHERE)
+    {
+      log("SYSERR: Autopilot ship %d - wilderness room pool exhausted at (%d, %d)",
+          ship->shipnum, target_x, target_y);
+      return 0;
+    }
+    assign_wilderness_room(dest_room, target_x, target_y);
+  }
+
+  /* Check if terrain is valid for this vessel */
+  if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, (int)ship->z))
+  {
+    log("Info: Autopilot ship %d - impassable terrain at (%d, %d)",
+        ship->shipnum, target_x, target_y);
+    return 0;
+  }
+
+  /* Update ship position */
+  ship->x = new_x;
+  ship->y = new_y;
+
+  return 1;
+}
+
+/**
+ * Process a vessel in WAITING state.
+ *
+ * Decrements the wait timer and transitions to TRAVELING
+ * when the wait is complete, then advances to next waypoint.
+ *
+ * @param ship The ship to process
+ */
+void process_waiting_vessel(struct greyhawk_ship_data *ship)
+{
+  struct autopilot_data *ap;
+  time_t now;
+  int elapsed;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  ap = ship->autopilot;
+  if (ap == NULL || ap->state != AUTOPILOT_WAITING)
+  {
+    return;
+  }
+
+  /* Calculate elapsed time since last update */
+  now = time(0);
+  elapsed = (int)(now - ap->last_update);
+  ap->last_update = now;
+
+  /* Decrement wait timer */
+  ap->wait_remaining -= elapsed;
+
+  if (ap->wait_remaining <= 0)
+  {
+    /* Wait complete, advance to next waypoint */
+    ap->wait_remaining = 0;
+    ap->state = AUTOPILOT_TRAVELING;
+    log("Info: Ship %d wait complete, advancing to next waypoint",
+        ship->shipnum);
+    advance_to_next_waypoint(ship);
+  }
+}
+
+/**
+ * Process a vessel in TRAVELING state.
+ *
+ * Main movement loop for a single vessel:
+ * - Check if arrived at current waypoint
+ * - If arrived: handle arrival (wait or advance)
+ * - If not arrived: move toward waypoint
+ *
+ * @param ship The ship to process
+ */
+void process_traveling_vessel(struct greyhawk_ship_data *ship)
+{
+  struct autopilot_data *ap;
+  struct waypoint *wp;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  ap = ship->autopilot;
+  if (ap == NULL || ap->state != AUTOPILOT_TRAVELING)
+  {
+    return;
+  }
+
+  /* Get current waypoint */
+  wp = waypoint_get_current(ship);
+  if (wp == NULL)
+  {
+    log("SYSERR: process_traveling_vessel - no current waypoint for ship %d",
+        ship->shipnum);
+    ap->state = AUTOPILOT_OFF;
+    return;
+  }
+
+  /* Check if we've arrived at the waypoint */
+  if (check_waypoint_arrival(ship, wp))
+  {
+    handle_waypoint_arrival(ship);
+    return;
+  }
+
+  /* Not arrived yet, move toward waypoint */
+  move_vessel_toward_waypoint(ship);
+}
+
+/**
+ * Main autopilot tick function.
+ *
+ * Called from the game heartbeat every AUTOPILOT_TICK_INTERVAL pulses.
+ * Iterates through all ships in greyhawk_ships[] and processes
+ * those with active autopilot.
+ */
+void autopilot_tick(void)
+{
+  struct greyhawk_ship_data *ship;
+  struct autopilot_data *ap;
+  int i;
+  int active_count;
+
+  active_count = 0;
+
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    ship = &greyhawk_ships[i];
+
+    /* Skip uninitialized ships (check for valid shipnum) */
+    if (ship->shipnum <= 0)
+    {
+      continue;
+    }
+
+    /* Skip ships without autopilot */
+    ap = ship->autopilot;
+    if (ap == NULL)
+    {
+      continue;
+    }
+
+    /* Process based on autopilot state */
+    switch (ap->state)
+    {
+      case AUTOPILOT_TRAVELING:
+        process_traveling_vessel(ship);
+        active_count++;
+        break;
+
+      case AUTOPILOT_WAITING:
+        process_waiting_vessel(ship);
+        active_count++;
+        break;
+
+      case AUTOPILOT_PAUSED:
+        /* Paused ships don't move but count as active */
+        active_count++;
+        break;
+
+      case AUTOPILOT_OFF:
+      case AUTOPILOT_COMPLETE:
+      default:
+        /* No processing needed */
+        break;
+    }
+  }
+
+  /* Optional: Log active autopilot count periodically for debugging */
+  /* if (active_count > 0) log("Info: Autopilot tick - %d active ships", active_count); */
 }

@@ -737,6 +737,18 @@ int route_save(struct ship_route *route);
 int route_activate(struct ship_route *route);
 int route_deactivate(struct ship_route *route);
 
+/* Path-Following Functions (Session 03) */
+float calculate_distance_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp);
+void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp,
+                                   float *dx, float *dy);
+int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp);
+int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
+void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
+int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
+void process_waiting_vessel(struct greyhawk_ship_data *ship);
+void process_traveling_vessel(struct greyhawk_ship_data *ship);
+void autopilot_tick(void);
+
 /* ========================================================================= */
 /* WAYPOINT/ROUTE DATABASE PERSISTENCE                                       */
 /* ========================================================================= */

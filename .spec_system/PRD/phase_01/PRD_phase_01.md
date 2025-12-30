@@ -4,7 +4,7 @@
 **Sessions**: 7 (initial estimate)
 **Estimated Duration**: 3-5 days
 
-**Progress**: 2/7 sessions (29%)
+**Progress**: 3/7 sessions (43%)
 
 ---
 
@@ -20,7 +20,7 @@ Implement vessel automation capabilities including autopilot systems, waypoint-b
 |---------|------|--------|------------|-----------|
 | 01 | Autopilot Data Structures | Complete | 21 | 2025-12-30 |
 | 02 | Waypoint Route Management | Complete | 20 | 2025-12-30 |
-| 03 | Path Following Logic | Not Started | ~18-22 | - |
+| 03 | Path Following Logic | Complete | 20 | 2025-12-30 |
 | 04 | Autopilot Player Commands | Not Started | ~15-18 | - |
 | 05 | NPC Pilot Integration | Not Started | ~15-20 | - |
 | 06 | Scheduled Route System | Not Started | ~15-18 | - |
@@ -40,11 +40,16 @@ Implement vessel automation capabilities including autopilot systems, waypoint-b
 - **Tasks**: 20/20
 - **Key Deliverables**: Database schema (3 tables), waypoint CRUD operations, route CRUD operations, cache layer (waypoint_list, route_list), boot/shutdown loading, unit tests (11 tests passing)
 
+### Session 03: Path Following Logic
+- **Completed**: 2025-12-30
+- **Tasks**: 20/20
+- **Key Deliverables**: Distance/heading calculations, tolerance-based arrival detection, waypoint advancement with loop support, wait time handling, terrain-validated movement, heartbeat integration, unit tests (30 tests passing)
+
 ---
 
 ## Upcoming Sessions
 
-- Session 03: Path Following Logic
+- Session 04: Autopilot Player Commands
 
 ---
 

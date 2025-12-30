@@ -1408,6 +1408,12 @@ void heartbeat(int heart_pulse)
     regen_psp();
   }
 
+  /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
+  if (!(heart_pulse % AUTOPILOT_TICK_INTERVAL))
+  {
+    autopilot_tick();
+  }
+
   if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))
     process_walkto_actions();
 
