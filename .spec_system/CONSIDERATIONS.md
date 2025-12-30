@@ -1,7 +1,7 @@
 # Considerations
 
 > Institutional memory for AI assistants. Updated between phases via /carryforward.
-> **Line budget**: 600 max | **Last updated**: Phase 00 (2025-12-29)
+> **Line budget**: 600 max | **Last updated**: Phase 01 (2025-12-30)
 
 ---
 
@@ -27,8 +27,8 @@ Items requiring attention in upcoming phases. Review before each session.
 ### Performance / Security
 <!-- Max 5 items -->
 
-1. **Max 500 concurrent vessels target** - Performance not validated yet.
-2. **Memory target: <1KB per vessel** - Not validated.
+1. **Max 500 concurrent vessels validated** - Stress test passed at 100/250/500 vessels.
+2. **Memory target achieved: 1016 bytes/vessel** - Within <1KB target.
 3. **VNUM range 30000-40019 reserved** - Do not use for builder zones.
 
 ### Architecture
@@ -50,6 +50,11 @@ Proven patterns and anti-patterns. Reference during implementation.
 1. **Auto-create DB tables at startup** - Schema matches runtime code exactly.
 2. **Greyhawk system as foundation** - Most complete existing implementation.
 3. **Wilderness coordinate system** - Provides solid X/Y/Z navigation framework.
+4. **Standalone unit test files** - Self-contained tests without server dependencies.
+5. **Incremental session approach** - Each session builds cleanly on prior work.
+6. **Valgrind with suppression file** - Filters CuTest framework leaks, validates real code.
+7. **Memory-efficient autopilot struct** - 48 bytes per vessel enables scaling.
+8. **In-memory cache for waypoints/routes** - Fast lookups without DB round-trips.
 
 ### What to Avoid
 <!-- Max 10 items -->
@@ -73,7 +78,9 @@ Recently closed items (buffer - rotates out after 2 phases).
 
 | Phase | Item | Resolution |
 |-------|------|------------|
-| - | *No resolved items yet* | - |
+| P01 | Max 500 vessels target | Validated via stress test (100/250/500) |
+| P01 | Memory <1KB per vessel | Achieved: 1016 bytes/vessel |
+| P01 | 84 unit tests for automation | All passing, Valgrind clean |
 
 ---
 

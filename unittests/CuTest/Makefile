@@ -44,6 +44,11 @@ SCHEDULE_TEST_SRC = test_schedule.c
 SCHEDULE_TEST_OBJ = $(BUILD_DIR)/test_schedule.o
 SCHEDULE_TEST_EXE = schedule_tests
 
+# Waypoint cache test files (Phase 01, Session 02)
+WAYPOINT_TEST_SRC = test_waypoint_cache.c
+WAYPOINT_TEST_OBJ = $(BUILD_DIR)/test_waypoint_cache.o
+WAYPOINT_TEST_EXE = test_waypoint_cache
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -58,7 +63,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -111,6 +116,10 @@ $(BUILD_DIR)/test_npc_pilot.o: test_npc_pilot.c CuTest.h
 $(BUILD_DIR)/test_schedule.o: test_schedule.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile waypoint cache tests
+$(BUILD_DIR)/test_waypoint_cache.o: test_waypoint_cache.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -134,6 +143,10 @@ $(PILOT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(PILOT_TEST_OBJ)
 # Link schedule tests
 $(SCHEDULE_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(SCHEDULE_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(SCHEDULE_TEST_OBJ) $(LDFLAGS)
+
+# Link waypoint cache tests
+$(WAYPOINT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(WAYPOINT_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(WAYPOINT_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -159,6 +172,10 @@ pilot: $(PILOT_TEST_EXE)
 schedule: $(SCHEDULE_TEST_EXE)
 	./$(SCHEDULE_TEST_EXE)
 
+# Run waypoint cache tests
+waypoint: $(WAYPOINT_TEST_EXE)
+	./$(WAYPOINT_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -183,8 +200,51 @@ valgrind-pilot: $(PILOT_TEST_EXE)
 valgrind-schedule: $(SCHEDULE_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(SCHEDULE_TEST_EXE)
 
+# Run waypoint cache tests with Valgrind
+valgrind-waypoint: $(WAYPOINT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(WAYPOINT_TEST_EXE)
+
 # Run all tests
-test-all: test stress autopilot pathfinding pilot schedule
+test-all: test stress autopilot pathfinding pilot schedule waypoint
+
+# Run all Phase 01 tests (autopilot automation layer)
+phase01-tests: $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(WAYPOINT_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE)
+	@echo "========================================="
+	@echo "Running Phase 01 Automation Layer Tests"
+	@echo "========================================="
+	@echo ""
+	@echo "--- Autopilot Structs (14 tests) ---"
+	./$(AUTOPILOT_TEST_EXE)
+	@echo ""
+	@echo "--- Pathfinding (30 tests) ---"
+	./$(PATHFINDING_TEST_EXE)
+	@echo ""
+	@echo "--- Waypoint Cache (11 tests) ---"
+	./$(WAYPOINT_TEST_EXE)
+	@echo ""
+	@echo "--- NPC Pilot (12 tests) ---"
+	./$(PILOT_TEST_EXE)
+	@echo ""
+	@echo "--- Schedule (17 tests) ---"
+	./$(SCHEDULE_TEST_EXE)
+	@echo ""
+	@echo "========================================="
+	@echo "Phase 01 Tests Complete: 84 tests total"
+	@echo "========================================="
+
+# Run Phase 01 tests with Valgrind
+valgrind-phase01: $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(WAYPOINT_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE)
+	@echo "========================================="
+	@echo "Valgrind: Phase 01 Automation Layer Tests"
+	@echo "========================================="
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(AUTOPILOT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(PATHFINDING_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(WAYPOINT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(PILOT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(SCHEDULE_TEST_EXE)
+	@echo "========================================="
+	@echo "Valgrind Phase 01: All tests passed"
+	@echo "========================================="
 
 # Clean build artifacts
 clean:
@@ -195,6 +255,7 @@ clean:
 	rm -f $(PATHFINDING_TEST_EXE)
 	rm -f $(PILOT_TEST_EXE)
 	rm -f $(SCHEDULE_TEST_EXE)
+	rm -f $(WAYPOINT_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -209,14 +270,16 @@ help:
 	@echo "LuminariMUD Vessel Test Suite Makefile"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all           - Build all tests (default)"
-	@echo "  test          - Run unit tests"
-	@echo "  stress        - Run stress tests"
-	@echo "  valgrind      - Run unit tests with Valgrind"
+	@echo "  all             - Build all tests (default)"
+	@echo "  test            - Run vessel unit tests"
+	@echo "  stress          - Run stress tests"
+	@echo "  phase01-tests   - Run all Phase 01 tests (84 tests)"
+	@echo "  valgrind-phase01- Run Phase 01 tests with Valgrind"
+	@echo "  valgrind        - Run vessel tests with Valgrind"
 	@echo "  valgrind-stress - Run stress tests with Valgrind"
-	@echo "  test-all      - Run all tests"
-	@echo "  clean         - Remove build artifacts"
-	@echo "  rebuild       - Clean and rebuild"
-	@echo "  help          - Show this help"
+	@echo "  test-all        - Run all tests"
+	@echo "  clean           - Remove build artifacts"
+	@echo "  rebuild         - Clean and rebuild"
+	@echo "  help            - Show this help"
 
-.PHONY: all test stress autopilot pathfinding pilot schedule valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot schedule waypoint valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint phase01-tests valgrind-phase01 test-all clean rebuild help

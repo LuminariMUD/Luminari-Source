@@ -1,10 +1,10 @@
 # LuminariMUD Vessel System - Product Requirements Document
 
-**Document Version:** 2.1
+**Document Version:** 2.2
 **Created:** December 29, 2025
 **Last Updated:** December 30, 2025
 **Project Code:** VESSELS-UNIFIED-2025
-**Status:** Phase 00 Complete - Core Vessel System Validated
+**Status:** Phase 01 Complete - Automation Layer Validated
 
 ---
 
@@ -183,7 +183,7 @@ Range:   30000 - 40019 (reserved, do not use for builder zones)
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
 | 00 | Core Vessel System | 9 | Complete (2025-12-30) |
-| 01 | Automation Layer | 7 | Not Started |
+| 01 | Automation Layer | 7 | Complete (2025-12-30) |
 | 02 | Simple Vehicle Support | TBD | Planned |
 | 03 | Optimization & Polish | TBD | Planned |
 
@@ -225,18 +225,23 @@ Complete wiring of existing Phase 1 and Phase 2 code.
 - Interior movement helpers declared in `vessels.h:671-674` (`do_move_ship_interior()`, `get_ship_exit()`, `is_passage_blocked()`) have no implementation.
 - `do_look_outside()` prints placeholder; does not call `get_weather()` or render wilderness view.
 
-### Phase 01: Automation Layer (Not Started)
+### Phase 01: Automation Layer (Complete)
 
-**Sessions**: 7 | **PRD**: [phase_01/PRD_phase_01.md](phase_01/PRD_phase_01.md)
+**Sessions**: 7 | **PRD**: [phase_01/PRD_phase_01.md](phase_01/PRD_phase_01.md) | **Completed**: 2025-12-30
 
-Implement vessel automation capabilities:
-- Session 01: Autopilot data structures and constants
-- Session 02: Waypoint and route management with DB persistence
-- Session 03: Path-following movement logic
-- Session 04: Autopilot player commands
-- Session 05: NPC pilot integration
-- Session 06: Scheduled route system
-- Session 07: Testing and validation
+Vessel automation capabilities:
+- Session 01: Autopilot data structures and constants (Complete)
+- Session 02: Waypoint and route management with DB persistence (Complete)
+- Session 03: Path-following movement logic (Complete)
+- Session 04: Autopilot player commands (Complete)
+- Session 05: NPC pilot integration (Complete)
+- Session 06: Scheduled route system (Complete)
+- Session 07: Testing and validation (Complete)
+
+**Key Deliverables:**
+- 84 unit tests (100% pass rate, Valgrind clean)
+- Memory usage: 1016 bytes/vessel (target: <1KB)
+- Stress tested: 100/250/500 concurrent vessels
 
 ### Phase 02: Simple Vehicle Support (Planned)
 
