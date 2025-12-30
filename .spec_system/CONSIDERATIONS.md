@@ -15,7 +15,6 @@ Items requiring attention in upcoming phases. Review before each session.
 1. **Duplicate struct definitions in vessels.h** - greyhawk_ship_slot, greyhawk_ship_crew, greyhawk_ship_data defined twice (lines 321-405 and 498-612). Needs consolidation.
 2. **VESSEL_STATE constants duplicated** - VESSEL_STATE_TRAVELING/COMBAT/DAMAGED and VESSEL_SIZE_* defined twice (lines 50-58 and 89-97).
 3. **Room templates hard-coded** - vessels_rooms.c uses 10 hard-coded templates instead of querying ship_room_templates DB table.
-4. **Interior movement unimplemented** - do_move_ship_interior(), get_ship_exit(), is_passage_blocked() declared but not implemented.
 
 ### External Dependencies
 <!-- Max 5 items -->
@@ -84,6 +83,7 @@ Recently closed items (buffer - rotates out after 2 phases).
 
 | Phase | Item | Resolution |
 |-------|------|------------|
+| P03 | Interior movement unimplemented | Validated: all 3 functions implemented in vessels_rooms.c |
 | P02 | Max 1000 vehicles target | Validated via stress test (100/500/1000) |
 | P02 | Memory <512 bytes/vehicle | Achieved: 148 bytes/vehicle |
 | P02 | 151+ unit tests for vehicles | All passing, Valgrind clean |
