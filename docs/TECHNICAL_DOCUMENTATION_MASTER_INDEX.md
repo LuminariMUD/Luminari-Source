@@ -62,7 +62,9 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
 
 ### Advanced Systems
-- **[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
+- **[VESSEL_SYSTEM.md](VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
+- **[VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks and stress test results
+- **[VESSEL_TROUBLESHOOTING.md](guides/VESSEL_TROUBLESHOOTING.md)** - Common vessel system issues and solutions
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
 - **[WILDERNESS_SYSTEM.md](building_game-data/WILDERNESS_SYSTEM.md)** - Dynamic wilderness generation

@@ -1,7 +1,7 @@
 # Considerations
 
 > Institutional memory for AI assistants. Updated between phases via /carryforward.
-> **Line budget**: 600 max | **Last updated**: Phase 02 (2025-12-30)
+> **Line budget**: 600 max | **Last updated**: Phase 03 Complete (2025-12-30)
 
 ---
 
@@ -58,6 +58,9 @@ Proven patterns and anti-patterns. Reference during implementation.
 10. **Vehicle-in-vessel mechanics** - Clean layered transport with nesting limits.
 11. **POSIX macro for C89 compatibility** - _POSIX_C_SOURCE 200809L enables snprintf/strcasecmp.
 12. **151+ Phase 02 unit tests** - Comprehensive coverage of vehicle systems.
+13. **353 total tests across 14 suites** - Exceeds 215+ target by 64%.
+14. **Comprehensive documentation** - VESSEL_SYSTEM.md, BENCHMARKS, TROUBLESHOOTING files created.
+15. **cutest.supp suppression file** - Filters framework noise for accurate Valgrind results.
 
 ### What to Avoid
 <!-- Max 10 items -->
@@ -81,6 +84,7 @@ Recently closed items (buffer - rotates out after 2 phases).
 
 | Phase | Item | Resolution |
 |-------|------|------------|
+| P03 | Final testing/documentation | 353 tests pass, Valgrind clean, docs complete |
 | P03 | Per-vessel type mapping | Validated: 104 tests, all 8 types fully implemented |
 | P03 | Dynamic wilderness rooms | Implemented via get_or_allocate_wilderness_room() pattern |
 | P03 | Interior movement unimplemented | Validated: all 3 functions implemented in vessels_rooms.c |
