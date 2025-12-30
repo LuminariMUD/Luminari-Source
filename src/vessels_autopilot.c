@@ -2016,7 +2016,6 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   float speed;
   float new_x, new_y;
   int target_x, target_y;
-  room_rnum dest_room;
 
   if (ship == NULL)
   {
@@ -2061,22 +2060,7 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   target_x = (int)(new_x + 0.5f);
   target_y = (int)(new_y + 0.5f);
 
-  /* Validate terrain at destination using wilderness room allocation */
-  dest_room = find_room_by_coordinates(target_x, target_y);
-  if (dest_room == NOWHERE)
-  {
-    /* Try to allocate a new wilderness room */
-    dest_room = find_available_wilderness_room();
-    if (dest_room == NOWHERE)
-    {
-      log("SYSERR: Autopilot ship %d - wilderness room pool exhausted at (%d, %d)", ship->shipnum,
-          target_x, target_y);
-      return 0;
-    }
-    assign_wilderness_room(dest_room, target_x, target_y);
-  }
-
-  /* Check if terrain is valid for this vessel */
+  /* Check if terrain is valid for this vessel before moving */
   if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, (int)ship->z))
   {
     log("Info: Autopilot ship %d - impassable terrain at (%d, %d)", ship->shipnum, target_x,
@@ -2084,9 +2068,19 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  /* Update ship position */
-  ship->x = new_x;
-  ship->y = new_y;
+  /* Update ship position using the centralized wilderness position function.
+   * This handles:
+   * - Coordinate updates (ship->x, ship->y, ship->z)
+   * - Dynamic wilderness room allocation via get_or_allocate_wilderness_room()
+   * - Updating ship->location to the new room vnum
+   * - Moving ship object via obj_from_room()/obj_to_room() to allow room recycling
+   */
+  if (!update_ship_wilderness_position(ship->shipnum, target_x, target_y, (int)ship->z))
+  {
+    log("SYSERR: Autopilot ship %d - failed to update position to (%d, %d)", ship->shipnum,
+        target_x, target_y);
+    return 0;
+  }
 
   return 1;
 }

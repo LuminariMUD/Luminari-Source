@@ -58,7 +58,8 @@
     "phase02-session07-testing-validation",
     "phase03-session01-code-consolidation",
     "phase03-session02-interior-movement-implementation",
-    "phase03-session03-command-registration-wiring"
+    "phase03-session03-command-registration-wiring",
+    "phase03-session04-dynamic-wilderness-rooms"
   ],
   "next_session_history": [
     {
@@ -189,6 +190,11 @@
     {
       "date": "2025-12-30",
       "session": "phase03-session03-command-registration-wiring",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase03-session04-dynamic-wilderness-rooms",
       "status": "completed"
     }
   ]

@@ -836,9 +836,23 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   /* Update ship's location to the wilderness room */
   greyhawk_ships[shipnum].location = world[wilderness_room].number;
 
-  /* If ship object exists, move it to new location */
+  /* If ship object exists, move it to new location.
+   * ROOM LIFECYCLE: obj_from_room() removes the ship object from the old room's
+   * contents list. Once empty (no people, no objects, no effects), the
+   * event_check_occupied() event will clear ROOM_OCCUPIED flag, making the
+   * room available for reuse by find_available_wilderness_room().
+   */
   if (greyhawk_ships[shipnum].shipobj)
   {
+    room_rnum old_room = IN_ROOM(greyhawk_ships[shipnum].shipobj);
+
+    /* Log departure for debugging room cleanup */
+    if (old_room != NOWHERE && old_room != wilderness_room)
+    {
+      log("Info: Ship %d departing room %d, moving to room %d at (%d, %d)", shipnum,
+          world[old_room].number, world[wilderness_room].number, new_x, new_y);
+    }
+
     obj_from_room(greyhawk_ships[shipnum].shipobj);
     obj_to_room(greyhawk_ships[shipnum].shipobj, wilderness_room);
   }

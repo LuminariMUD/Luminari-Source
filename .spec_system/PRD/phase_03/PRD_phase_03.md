@@ -4,7 +4,7 @@
 **Sessions**: 6 (initial estimate)
 **Estimated Duration**: 2-3 days
 
-**Progress**: 3/6 sessions (50%)
+**Progress**: 4/6 sessions (67%)
 
 ---
 
@@ -21,7 +21,7 @@ Complete the vessel system by addressing remaining technical debt, implementing 
 | 01 | Code Consolidation | Complete | 18 | 2025-12-30 |
 | 02 | Interior Movement Implementation | Complete | 16 | 2025-12-30 |
 | 03 | Command Registration & Wiring | Complete | 0 | 2025-12-30 |
-| 04 | Dynamic Wilderness Rooms | Not Started | ~16-20 | - |
+| 04 | Dynamic Wilderness Rooms | Complete | 20 | 2025-12-30 |
 | 05 | Vessel Type System | Not Started | ~14-18 | - |
 | 06 | Final Testing & Documentation | Not Started | ~20-25 | - |
 
@@ -41,11 +41,16 @@ Validation session confirming Phase 00 Session 06 implementation is complete. Ve
 
 Validation session confirming all Phase 2 command registration and wiring was completed in earlier Phase 00 sessions. Verified: dock (interpreter.c:4938), undock (interpreter.c:4939), board_hostile (interpreter.c:4940-4949), look_outside (interpreter.c:4950-4959), ship_rooms (interpreter.c:4960-4969). Interior generation wiring (vessels_src.c:2392-2401), persistence (vessels_db.c:580,612), and weather integration (vessels_docking.c:713) all confirmed functional. Zero tasks required - all objectives pre-implemented.
 
+### Session 04: Dynamic Wilderness Rooms (2025-12-30)
+
+Fixed vessel wilderness movement to use centralized room allocation. Modified `move_vessel_toward_waypoint()` to call `update_ship_wilderness_position()` instead of direct manipulation, ensuring proper room allocation via `find_available_wilderness_room()`. Added departure logging for debugging room cleanup. Created 14 comprehensive mock-based unit tests covering room pool initialization, allocation/release cycles, multi-vessel coordination, and boundary conditions. All tests Valgrind clean (32 allocs, 32 frees).
+
 ---
 
 ## Upcoming Sessions
 
-- Session 04: Dynamic Wilderness Rooms
+- Session 05: Vessel Type System
+- Session 06: Final Testing & Documentation
 
 ---
 
