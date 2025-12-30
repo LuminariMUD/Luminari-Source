@@ -53,11 +53,13 @@ Clan Header File
 #define CLAN_ERR_IMMORTAL_RESTRICTION "Immortals cannot join clans.\r\n"
 #define CLAN_ERR_ZONE_ALREADY_CLAIMED "This zone is already claimed by your clan.\r\n"
 #define CLAN_ERR_ZONE_CANNOT_CLAIM "This zone cannot be claimed.\r\n"
-#define CLAN_ERR_INSUFFICIENT_POPULARITY "Your clan lacks sufficient popularity to claim this zone.\r\n"
+#define CLAN_ERR_INSUFFICIENT_POPULARITY                                                           \
+  "Your clan lacks sufficient popularity to claim this zone.\r\n"
 #define CLAN_ERR_ALREADY_ALLIED "Your clans are already allied.\r\n"
 #define CLAN_ERR_ALREADY_AT_WAR "Your clans are already at war.\r\n"
 #define CLAN_ERR_CANNOT_SELF_TARGET "You cannot target your own clan.\r\n"
-#define CLAN_ERR_DATA_CORRUPTION "Clan data corruption detected. Please contact an administrator.\r\n"
+#define CLAN_ERR_DATA_CORRUPTION                                                                   \
+  "Clan data corruption detected. Please contact an administrator.\r\n"
 
 #define NO_CLAN ((IDXTYPE)~0) /**< Sets to ush_int_MAX, or 65,535 */
 #define NO_CLANRANK 0         /**< A non-ranking value            */
@@ -77,16 +79,16 @@ Clan Header File
 #define MAX_CLAN_ABREV 5
 
 /* Default clan values */
-#define DEFAULT_CLAN_RANKS 6        /**< Default number of ranks in a new clan */
-#define DEFAULT_MAX_MEMBERS 50      /**< Default maximum members (0 = unlimited) */
-#define DEFAULT_WAR_DURATION 1440   /**< Default war duration in ticks (48 hours) */
-#define DEFAULT_CACHE_TIMEOUT 300   /**< Default cache timeout in seconds (5 minutes) */
-#define CLAN_LOCK_DURATION 60       /**< Lock duration in seconds (1 minute) */
-#define MIN_CLAN_NAME_LENGTH 3      /**< Minimum length for clan names */
-#define MAX_CLAN_LOG_LINES 100      /**< Maximum lines to show from clan log */
-#define CLAN_LOG_DIR "lib/etc/clan_logs/"  /**< Directory for clan log files */
-#define CLAN_POINTS_PER_COIN 10     /**< Gold cost per clan point awarded */
-#define RANDOM_CODE_LENGTH 6        /**< Length of random code for clan leave confirmation */
+#define DEFAULT_CLAN_RANKS 6              /**< Default number of ranks in a new clan */
+#define DEFAULT_MAX_MEMBERS 50            /**< Default maximum members (0 = unlimited) */
+#define DEFAULT_WAR_DURATION 1440         /**< Default war duration in ticks (48 hours) */
+#define DEFAULT_CACHE_TIMEOUT 300         /**< Default cache timeout in seconds (5 minutes) */
+#define CLAN_LOCK_DURATION 60             /**< Lock duration in seconds (1 minute) */
+#define MIN_CLAN_NAME_LENGTH 3            /**< Minimum length for clan names */
+#define MAX_CLAN_LOG_LINES 100            /**< Maximum lines to show from clan log */
+#define CLAN_LOG_DIR "lib/etc/clan_logs/" /**< Directory for clan log files */
+#define CLAN_POINTS_PER_COIN 10           /**< Gold cost per clan point awarded */
+#define RANDOM_CODE_LENGTH 6              /**< Length of random code for clan leave confirmation */
 
 #define CLAN_NAME(c) (clan_list[c].clan_name)
 #define CLAN_LEADER(c) (clan_list[c].leader)
@@ -108,102 +110,102 @@ Clan Header File
 #define IS_IN_CLAN(ch) (GET_CLAN(ch) != 0 && GET_CLAN(ch) != NO_CLAN)
 /* Used only by clan edit OLC for checking editor's privs */
 /* Returns true for Imps, clan leader, or if member has sufficient rank */
-#define CHK_CP(p) ((GET_LEVEL(d->character) == LVL_IMPL) ||            \
-                   (GET_IDNUM(d->character) == OLC_CLAN(d)->leader) || \
-                   (GET_CLANRANK(d->character) <= OLC_CLAN(d)->privilege[(p)]))
+#define CHK_CP(p)                                                                                  \
+  ((GET_LEVEL(d->character) == LVL_IMPL) || (GET_IDNUM(d->character) == OLC_CLAN(d)->leader) ||    \
+   (GET_CLANRANK(d->character) <= OLC_CLAN(d)->privilege[(p)]))
 
 /** Diplomacy data is used for the do_diplomacy general command (act.other.c) */
 struct diplomacy_data
 {
-       /**< The subcommand number, defined in interpreter.h */
-       int subcmd;
-       /**< The skill number, defined in spells.h           */
-       int skill;
-       /**< The popularity increase this skill causes       */
-       float increase;
-       /**< The number of ticks that must pass between uses */
-       int wait;
+  /**< The subcommand number, defined in interpreter.h */
+  int subcmd;
+  /**< The skill number, defined in spells.h           */
+  int skill;
+  /**< The popularity increase this skill causes       */
+  float increase;
+  /**< The number of ticks that must pass between uses */
+  int wait;
 };
 
 /** Claim data holds information regarding zone claims */
 struct claim_data
 {
-       /**< The VNUM of the zone that this data is for     */
-       zone_vnum zn;
-       /**< The ID of the player who last claimed the zone */
-       long claimant;
-       /**< The VNUM of the current controlling clan       */
-       clan_vnum clan;
-       /**< Popularity Values for the zone for each clan   */
-       float popularity[MAX_CLANS];
-       /**< Linked list pointer to the next claim_data     */
-       struct claim_data *next;
+  /**< The VNUM of the zone that this data is for     */
+  zone_vnum zn;
+  /**< The ID of the player who last claimed the zone */
+  long claimant;
+  /**< The VNUM of the current controlling clan       */
+  clan_vnum clan;
+  /**< Popularity Values for the zone for each clan   */
+  float popularity[MAX_CLANS];
+  /**< Linked list pointer to the next claim_data     */
+  struct claim_data *next;
 };
 
 /** Clan command structure - data entered at the top of clan.c */
 struct clan_cmds
 {
-       const char *command;
-       int priv_rank;
-       int imm_lvl;
-       void (*command_pointer)(struct char_data *ch, const char *argument, int cmd, int subcmd);
-       const char *list_text;
+  const char *command;
+  int priv_rank;
+  int imm_lvl;
+  void (*command_pointer)(struct char_data *ch, const char *argument, int cmd, int subcmd);
+  const char *list_text;
 };
 
 /* The main clan data structure - holds all clan information */
 struct clan_data
 {
-       clan_vnum vnum;                  /**< Unique vnum of this clan       */
-       char *clan_name;                 /**< The name of this clan          */
-       char *description;               /**< The clan's information         */
-       long leader;                     /**< The ID of the clan leader      */
-       ubyte ranks;                     /**< Number of clan ranks           */
-       char *rank_name[MAX_CLANRANKS];  /**< Clan rank names                */
-       ubyte privilege[NUM_CLAN_PRIVS]; /**< Priv ranks for members         */
-       int applev;                      /**< Min level to apply to clan     */
-       int appfee;                      /**< Cost when application accepted */
-       int taxrate;                     /**< Tax rate for other clans       */
-       int war_timer;                   /**< Ticks left for current 'war'   */
-       zone_vnum hall;                  /**< The zone for the clan's hall   */
-       int at_war[MAX_CLANS];           /**< TRUE if at war                 */
-       int allies[MAX_CLANS];           /**< TRUE if allied                 */
-       long treasure;                   /**< The clan's bank account        */
-       int pk_win;                      /**< How many PK's have been won    */
-       int pk_lose;                     /**< How many PK's have been lost   */
-       int raided;                      /**< How many times been raided */
-       char *abrev;                     /**< Abbreviation for the clan      */
-       
-       /* Performance optimization: cached values */
-       int cached_member_count;         /**< Cached member count (updated periodically) */
-       int cached_member_power;         /**< Cached total member levels */
-       time_t cache_timestamp;          /**< When cache was last updated */
-       
-       /* Activity tracking */
-       time_t last_activity;            /**< Timestamp of last clan activity */
-       
-       /* Member limits */
-       int max_members;                 /**< Maximum allowed members (0 = unlimited) */
-       
-       /* Optimization flags */
-       bool modified;                   /**< TRUE if clan needs to be saved */
-       
-       /* Locking mechanism */
-       time_t locked_until;             /**< Timestamp when lock expires */
-       long locked_by;                  /**< ID of player holding lock */
-       
-       /* Clan Statistics */
-       long total_deposits;             /**< Total gold deposited */
-       long total_withdrawals;          /**< Total gold withdrawn */
-       int total_members_joined;        /**< Total members who have joined */
-       int total_members_left;          /**< Total members who have left */
-       int total_zones_claimed;         /**< Total zones ever claimed */
-       int current_zones_owned;         /**< Current number of zones owned */
-       time_t date_founded;             /**< When the clan was created */
-       int highest_member_count;        /**< Peak member count */
-       long total_taxes_collected;      /**< Total taxes collected from members */
-       int total_wars_won;              /**< Total wars won */
-       int total_wars_lost;             /**< Total wars lost */
-       int total_alliances_formed;      /**< Total alliances formed */
+  clan_vnum vnum;                  /**< Unique vnum of this clan       */
+  char *clan_name;                 /**< The name of this clan          */
+  char *description;               /**< The clan's information         */
+  long leader;                     /**< The ID of the clan leader      */
+  ubyte ranks;                     /**< Number of clan ranks           */
+  char *rank_name[MAX_CLANRANKS];  /**< Clan rank names                */
+  ubyte privilege[NUM_CLAN_PRIVS]; /**< Priv ranks for members         */
+  int applev;                      /**< Min level to apply to clan     */
+  int appfee;                      /**< Cost when application accepted */
+  int taxrate;                     /**< Tax rate for other clans       */
+  int war_timer;                   /**< Ticks left for current 'war'   */
+  zone_vnum hall;                  /**< The zone for the clan's hall   */
+  int at_war[MAX_CLANS];           /**< TRUE if at war                 */
+  int allies[MAX_CLANS];           /**< TRUE if allied                 */
+  long treasure;                   /**< The clan's bank account        */
+  int pk_win;                      /**< How many PK's have been won    */
+  int pk_lose;                     /**< How many PK's have been lost   */
+  int raided;                      /**< How many times been raided */
+  char *abrev;                     /**< Abbreviation for the clan      */
+
+  /* Performance optimization: cached values */
+  int cached_member_count; /**< Cached member count (updated periodically) */
+  int cached_member_power; /**< Cached total member levels */
+  time_t cache_timestamp;  /**< When cache was last updated */
+
+  /* Activity tracking */
+  time_t last_activity; /**< Timestamp of last clan activity */
+
+  /* Member limits */
+  int max_members; /**< Maximum allowed members (0 = unlimited) */
+
+  /* Optimization flags */
+  bool modified; /**< TRUE if clan needs to be saved */
+
+  /* Locking mechanism */
+  time_t locked_until; /**< Timestamp when lock expires */
+  long locked_by;      /**< ID of player holding lock */
+
+  /* Clan Statistics */
+  long total_deposits;        /**< Total gold deposited */
+  long total_withdrawals;     /**< Total gold withdrawn */
+  int total_members_joined;   /**< Total members who have joined */
+  int total_members_left;     /**< Total members who have left */
+  int total_zones_claimed;    /**< Total zones ever claimed */
+  int current_zones_owned;    /**< Current number of zones owned */
+  time_t date_founded;        /**< When the clan was created */
+  int highest_member_count;   /**< Peak member count */
+  long total_taxes_collected; /**< Total taxes collected from members */
+  int total_wars_won;         /**< Total wars won */
+  int total_wars_lost;        /**< Total wars lost */
+  int total_alliances_formed; /**< Total alliances formed */
 };
 
 /* globals */
@@ -212,8 +214,9 @@ extern struct claim_data *claim_list;
 extern int num_of_clans;
 
 /* Hash table for fast clan lookups */
-#define CLAN_HASH_SIZE 127  /* Prime number for better distribution */
-struct clan_hash_entry {
+#define CLAN_HASH_SIZE 127 /* Prime number for better distribution */
+struct clan_hash_entry
+{
   clan_vnum vnum;
   clan_rnum rnum;
   struct clan_hash_entry *next;
@@ -240,8 +243,7 @@ void save_clans(void);
 void save_single_clan(clan_rnum c);
 void mark_clan_modified(clan_rnum c);
 bool can_edit_clan(struct char_data *ch, clan_vnum c);
-void duplicate_clan_data(struct clan_data *to_clan,
-                         struct clan_data *from_clan);
+void duplicate_clan_data(struct clan_data *to_clan, struct clan_data *from_clan);
 bool are_clans_allied(int clanA, int clanB);
 bool are_clans_at_war(int clanA, int clanB);
 ACMD_DECL(do_clan);
@@ -302,8 +304,7 @@ void load_claims(void);
 /* Popularity handling functions */
 float get_popularity(zone_vnum zn, clan_vnum cn);
 void increase_popularity(zone_vnum zn, clan_vnum cn, float amt);
-void show_zone_popularities(struct char_data *ch,
-                            struct claim_data *this_claim);
+void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim);
 void show_clan_popularities(struct char_data *ch, clan_vnum c_v);
 void show_popularity(struct char_data *ch, char *arg);
 void check_diplomacy(void);
@@ -311,7 +312,8 @@ void update_clan_member_cache(clan_rnum c);
 void update_all_clan_caches(void);
 void update_clan_activity(clan_vnum c);
 void log_clan_activity(clan_vnum c, const char *format, ...);
-void log_clan_error(const char *function, const char *format, ...) __attribute__((format(printf, 2, 3)));
+void log_clan_error(const char *function, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 
 /* Data validation and recovery functions */
 bool validate_clan_data(struct clan_data *clan, bool fix_errors);

@@ -24,10 +24,9 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af);
 void affect_from_char(struct char_data *ch, int type);
 void affect_type_from_char(struct char_data *ch, int type);
 bool affected_by_spell(struct char_data *ch, int type);
-void affect_join(struct char_data *ch, struct affected_type *af,
-                 bool add_dur, bool avg_dur, bool add_mod, bool avg_mod);
-void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[],
-                      bool add);
+void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, bool avg_dur,
+                 bool add_mod, bool avg_mod);
+void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bool add);
 void change_spell_mod(struct char_data *ch, int spellnum, int location, int amount, bool display);
 void reset_char_points(struct char_data *ch);
 void compute_char_cap(struct char_data *ch, int mode);
@@ -97,10 +96,13 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
 
 struct obj_data *get_obj_in_list_num(int num, struct obj_data *list);
 struct obj_data *get_obj_num(obj_rnum nr);
-struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *number, struct obj_data *list);
+struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *number,
+                                     struct obj_data *list);
 struct obj_data *get_obj_vis(struct char_data *ch, char *name, int *num);
-struct obj_data *get_obj_in_equip_vis(struct char_data *ch, char *arg, int *number, struct obj_data *equipment[]);
-int get_obj_pos_in_equip_vis(struct char_data *ch, char *arg, int *num, struct obj_data *equipment[]);
+struct obj_data *get_obj_in_equip_vis(struct char_data *ch, char *arg, int *number,
+                                      struct obj_data *equipment[]);
+int get_obj_pos_in_equip_vis(struct char_data *ch, char *arg, int *num,
+                             struct obj_data *equipment[]);
 
 /* find all dots */
 int find_all_dots(char *arg);
@@ -150,13 +152,13 @@ void clearMemory(struct char_data *ch);
 
 struct last_entry
 {
-        int close_type;
-        char hostname[MEDIUM_STRING];
-        char username[16];
-        time_t time;
-        time_t close_time;
-        int idnum;
-        int punique;
+  int close_type;
+  char hostname[MEDIUM_STRING];
+  char username[16];
+  time_t time;
+  time_t close_time;
+  int idnum;
+  int punique;
 };
 
 void add_llog_entry(struct char_data *ch, int type);

@@ -27,17 +27,17 @@ struct command_info cmd_info[] = {
   { "west", POS_STANDING, do_move, 0, SCMD_WEST },
   { "up", POS_STANDING, do_move, 0, SCMD_UP },
   { "down", POS_STANDING, do_move, 0, SCMD_DOWN },
-  
+
   { "look", POS_RESTING, do_look, 0, SCMD_LOOK },
   { "examine", POS_RESTING, do_look, 0, SCMD_LOOK },
   { "l", POS_RESTING, do_look, 0, SCMD_LOOK },
-  
+
   { "say", POS_RESTING, do_say, 0, 0 },
   { "'", POS_RESTING, do_say, 0, 0 },
-  
+
   { "tell", POS_DEAD, do_tell, 0, 0 },
   { "reply", POS_DEAD, do_reply, 0, 0 },
-  
+
   // ... hundreds more commands
 };
 ```
@@ -74,18 +74,18 @@ void game_loop(int local_port) {
 void command_interpreter(struct char_data *ch, char *argument) {
   int cmd, length;
   char *line;
-  
+
   // Remove leading spaces
   skip_spaces(&argument);
-  
+
   // Handle empty input
   if (!*argument) {
     return;
   }
-  
+
   // Extract command word
   line = any_one_arg(argument, arg);
-  
+
   // Find command in table
   if ((cmd = find_command(arg)) < 0) {
     // Check for social commands
@@ -93,11 +93,11 @@ void command_interpreter(struct char_data *ch, char *argument) {
       do_action(ch, argument, cmd, 0);
       return;
     }
-    
+
     send_to_char(ch, "Huh?!?\r\n");
     return;
   }
-  
+
   // Execute command
   if (perform_command(ch, cmd, line)) {
     // Command executed successfully
@@ -113,7 +113,7 @@ bool perform_command(struct char_data *ch, int cmd, char *argument) {
     send_to_char(ch, "You are a mob, you can't use commands.\r\n");
     return FALSE;
   }
-  
+
   // Check position requirements
   if (GET_POS(ch) < cmd_info[cmd].minimum_position) {
     switch (GET_POS(ch)) {
@@ -142,13 +142,13 @@ bool perform_command(struct char_data *ch, int cmd, char *argument) {
     }
     return FALSE;
   }
-  
+
   // Check level requirements
   if (GET_LEVEL(ch) < cmd_info[cmd].minimum_level) {
     send_to_char(ch, "You don't have enough experience to use that command.\r\n");
     return FALSE;
   }
-  
+
   // Execute the command
   ((*cmd_info[cmd].command_pointer) (ch, argument, cmd, cmd_info[cmd].subcmd));
   return TRUE;
@@ -171,22 +171,22 @@ ACMD(do_command_name) {
 ACMD(do_look) {
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int look_type;
-  
+
   if (!ch->desc) return;
-  
+
   if (GET_POS(ch) < POS_SLEEPING) {
     send_to_char(ch, "You can't see anything but stars!\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_BLIND)) {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
   }
-  
+
   // Parse arguments
   two_arguments(argument, arg, arg2);
-  
+
   if (subcmd == SCMD_READ) {
     if (!*arg) {
       send_to_char(ch, "Read what?\r\n");
@@ -216,38 +216,38 @@ ACMD(do_move) {
 int perform_move(struct char_data *ch, int dir, int need_specials_check) {
   room_rnum was_in;
   struct follow_type *k, *next;
-  
+
   if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS || FIGHTING(ch)) {
     return 0;
   }
-  
+
   // Check for valid exit
   if (!EXIT(ch, dir) || EXIT(ch, dir)->to_room == NOWHERE) {
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
     return 0;
   }
-  
+
   // Check if exit is closed
   if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED)) {
     if (EXIT(ch, dir)->keyword) {
-      send_to_char(ch, "The %s seems to be closed.\r\n", 
+      send_to_char(ch, "The %s seems to be closed.\r\n",
                    fname(EXIT(ch, dir)->keyword));
     } else {
       send_to_char(ch, "It seems to be closed.\r\n");
     }
     return 0;
   }
-  
+
   // Perform the move
   was_in = IN_ROOM(ch);
   char_from_room(ch);
   char_to_room(ch, EXIT(ch, dir)->to_room);
-  
+
   // Show new room
   if (!AFF_FLAGGED(ch, AFF_BLIND)) {
     look_at_room(ch, 0);
   }
-  
+
   // Handle followers
   for (k = ch->followers; k; k = next) {
     next = k->next;
@@ -257,7 +257,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
       perform_move(k->follower, dir, 1);
     }
   }
-  
+
   return 1;
 }
 ```
@@ -266,15 +266,15 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
 ```c
 ACMD(do_say) {
   skip_spaces(&argument);
-  
+
   if (!*argument) {
     send_to_char(ch, "Yes, but WHAT do you want to say?\r\n");
   } else {
     char buf[MAX_STRING_LENGTH];
-    
+
     snprintf(buf, sizeof(buf), "$n says, '%s'", argument);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
-    
+
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT)) {
       send_to_char(ch, "%s", CONFIG_OK);
     } else {
@@ -286,9 +286,9 @@ ACMD(do_say) {
 ACMD(do_tell) {
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
-  
+
   half_chop(argument, buf, buf2);
-  
+
   if (!*buf || !*buf2) {
     send_to_char(ch, "Who do you wish to tell what??\r\n");
   } else if (GET_LEVEL(ch) < LVL_IMMORT) {
@@ -314,23 +314,23 @@ ACMD(do_tell) {
 ```c
 int find_command(const char *command) {
   int cmd, length;
-  
+
   length = strlen(command);
-  
+
   // Exact match first
   for (cmd = 0; *cmd_info[cmd].command != '\n'; cmd++) {
     if (!strcmp(cmd_info[cmd].command, command)) {
       return cmd;
     }
   }
-  
+
   // Partial match (abbreviation)
   for (cmd = 0; *cmd_info[cmd].command != '\n'; cmd++) {
     if (!strncmp(cmd_info[cmd].command, command, length)) {
       return cmd;
     }
   }
-  
+
   return -1; // Command not found
 }
 ```
@@ -342,7 +342,7 @@ struct social_messg {
   int act_nr;
   int hide;
   int min_victim_position;
-  
+
   // Messages for different scenarios
   char *char_no_arg;      // To character when no argument
   char *others_no_arg;    // To others when no argument
@@ -364,24 +364,24 @@ ACMD(do_action) {
   struct char_data *vict = NULL;
   struct obj_data *targ_obj = NULL;
   char *bodypart;
-  
+
   if ((act_nr = find_action(argument)) < 0) {
     send_to_char(ch, "That action is not supported.\r\n");
     return;
   }
-  
+
   action = &soc_mess_list[act_nr];
-  
+
   if (!argument || !*argument) {
     // No argument - general social
     send_to_char(ch, "%s\r\n", action->char_no_arg);
     act(action->others_no_arg, action->hide, ch, 0, 0, TO_ROOM);
     return;
   }
-  
+
   // Parse target and optional body part
   two_arguments(argument, buf, buf2);
-  
+
   if (!(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM))) {
     // Try to find object
     if (!(targ_obj = get_obj_in_list_vis(ch, buf, NULL, ch->carrying))) {
@@ -391,7 +391,7 @@ ACMD(do_action) {
       }
     }
   }
-  
+
   if (vict == ch) {
     // Targeting self
     send_to_char(ch, "%s\r\n", action->char_auto);
@@ -426,52 +426,52 @@ ACMD(do_cast) {
   struct obj_data *tobj = NULL;
   char *s, *t;
   int mana, spellnum, i, target = 0;
-  
+
   // Check if already casting
   if (CASTING(ch)) {
     send_to_char(ch, "You are already casting a spell!\r\n");
     return;
   }
-  
+
   // Parse spell name and target
   s = strtok(argument, "'");
   if (s == NULL) {
     send_to_char(ch, "Cast what where?\r\n");
     return;
   }
-  
+
   s = strtok(NULL, "'");
   if (s == NULL) {
     send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
     return;
   }
-  
+
   t = strtok(NULL, "\0");
-  
+
   // Find spell
   spellnum = find_skill_num(s);
   if (spellnum < 1 || spellnum > MAX_SPELLS) {
     send_to_char(ch, "Cast what?!?\r\n");
     return;
   }
-  
+
   // Check if character knows the spell
   if (GET_SKILL(ch, spellnum) == 0) {
     send_to_char(ch, "You are unfamiliar with that spell.\r\n");
     return;
   }
-  
+
   // Check mana cost
   mana = mag_manacost(ch, spellnum);
   if (GET_MANA(ch) < mana) {
     send_to_char(ch, "You haven't the energy to cast that spell!\r\n");
     return;
   }
-  
+
   // Start casting process
   CASTING_SPELLNUM(ch) = spellnum;
   CASTING_TIME(ch) = spell_info[spellnum].cast_time;
-  
+
   if (t != NULL) {
     one_argument(t, arg);
     if (spell_info[spellnum].targets & TAR_CHAR_ROOM) {
@@ -481,11 +481,11 @@ ACMD(do_cast) {
       }
     }
   }
-  
+
   // Begin casting
   send_to_char(ch, "You begin casting %s.\r\n", spell_info[spellnum].name);
   act("$n begins casting a spell.", TRUE, ch, 0, 0, TO_ROOM);
-  
+
   // Set up casting event
   attach_mud_event(new_mud_event(eCAST, ch, CASTING_TIME(ch) * PULSE_CAST), ch);
 }
@@ -500,17 +500,17 @@ bool has_command_permission(struct char_data *ch, int cmd) {
   if (GET_LEVEL(ch) < cmd_info[cmd].minimum_level) {
     return FALSE;
   }
-  
+
   // Check special restrictions
   if (PLR_FLAGGED(ch, PLR_FROZEN) && cmd_info[cmd].minimum_level < LVL_IMPL) {
     return FALSE;
   }
-  
+
   // Check if command is disabled
   if (cmd_info[cmd].minimum_level == LVL_IMPL + 1) {
     return FALSE; // Command disabled
   }
-  
+
   return TRUE;
 }
 ```
@@ -519,7 +519,7 @@ bool has_command_permission(struct char_data *ch, int cmd) {
 ```c
 void sanitize_input(char *input) {
   char *src, *dest;
-  
+
   // Remove control characters and excessive whitespace
   for (src = dest = input; *src; src++) {
     if (*src >= ' ' && *src <= '~') {
@@ -530,7 +530,7 @@ void sanitize_input(char *input) {
     // Skip other control characters
   }
   *dest = '\0';
-  
+
   // Trim trailing whitespace
   while (dest > input && *(dest - 1) == ' ') {
     *--dest = '\0';
@@ -548,12 +548,12 @@ static int command_hash[COMMAND_HASH_SIZE];
 
 void init_command_hash() {
   int cmd;
-  
+
   // Initialize hash table
   for (cmd = 0; cmd < COMMAND_HASH_SIZE; cmd++) {
     command_hash[cmd] = -1;
   }
-  
+
   // Build hash table
   for (cmd = 0; *cmd_info[cmd].command != '\n'; cmd++) {
     int hash = hash_string(cmd_info[cmd].command) % COMMAND_HASH_SIZE;
@@ -565,7 +565,7 @@ void init_command_hash() {
 int find_command_fast(const char *command) {
   int hash = hash_string(command) % COMMAND_HASH_SIZE;
   int cmd = command_hash[hash];
-  
+
   while (cmd != -1) {
     if (!strcmp(cmd_info[cmd].command, command)) {
       return cmd;
@@ -573,7 +573,7 @@ int find_command_fast(const char *command) {
     // Follow collision chain
     cmd = cmd_info[cmd].next_hash;
   }
-  
+
   return -1; // Not found
 }
 ```

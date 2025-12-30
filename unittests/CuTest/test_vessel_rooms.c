@@ -8,6 +8,8 @@
  * Part of Phase 00, Session 09: Testing and Validation
  */
 
+/* Enable POSIX features for snprintf in C89 mode */
+#define _POSIX_C_SOURCE 200112L
 #include "CuTest.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,13 +37,14 @@ typedef int room_vnum;
 
 /* Constants for room generation */
 #define SHIP_INTERIOR_VNUM_BASE 70000
-#define SHIP_INTERIOR_VNUM_MAX  79999
-#define MAX_SHIP_ROOMS          20
-#define MAX_SHIP_CONNECTIONS    40
-#define GREYHAWK_MAXSHIPS       500
+#define SHIP_INTERIOR_VNUM_MAX 79999
+#define MAX_SHIP_ROOMS 20
+#define MAX_SHIP_CONNECTIONS 40
+#define GREYHAWK_MAXSHIPS 500
 
 /* Vessel class enum */
-enum vessel_class {
+enum vessel_class
+{
   VESSEL_RAFT = 0,
   VESSEL_BOAT = 1,
   VESSEL_SHIP = 2,
@@ -53,7 +56,8 @@ enum vessel_class {
 };
 
 /* Ship room types */
-enum ship_room_type {
+enum ship_room_type
+{
   ROOM_TYPE_BRIDGE,
   ROOM_TYPE_QUARTERS,
   ROOM_TYPE_CARGO,
@@ -69,7 +73,8 @@ enum ship_room_type {
 #define NUM_ROOM_TYPES 10
 
 /* Room connection structure */
-struct room_connection {
+struct room_connection
+{
   int from_room;
   int to_room;
   int direction;
@@ -78,7 +83,8 @@ struct room_connection {
 };
 
 /* Mock ship data */
-struct mock_ship_data {
+struct mock_ship_data
+{
   int shipnum;
   char name[128];
   enum vessel_class vessel_type;
@@ -94,7 +100,7 @@ struct mock_ship_data {
 /* MOCK VNUM ALLOCATION SYSTEM                                               */
 /* ========================================================================= */
 
-static int allocated_vnums[10000];  /* Track which VNUMs are allocated */
+static int allocated_vnums[10000]; /* Track which VNUMs are allocated */
 static int num_allocated = 0;
 
 /**
@@ -177,15 +183,24 @@ static int get_base_rooms_for_type(enum vessel_class type)
 {
   switch (type)
   {
-    case VESSEL_RAFT:       return 1;
-    case VESSEL_BOAT:       return 2;
-    case VESSEL_SHIP:       return 3;
-    case VESSEL_WARSHIP:    return 5;
-    case VESSEL_AIRSHIP:    return 4;
-    case VESSEL_SUBMARINE:  return 4;
-    case VESSEL_TRANSPORT:  return 6;
-    case VESSEL_MAGICAL:    return 3;
-    default:                return 1;
+  case VESSEL_RAFT:
+    return 1;
+  case VESSEL_BOAT:
+    return 2;
+  case VESSEL_SHIP:
+    return 3;
+  case VESSEL_WARSHIP:
+    return 5;
+  case VESSEL_AIRSHIP:
+    return 4;
+  case VESSEL_SUBMARINE:
+    return 4;
+  case VESSEL_TRANSPORT:
+    return 6;
+  case VESSEL_MAGICAL:
+    return 3;
+  default:
+    return 1;
   }
 }
 
@@ -196,15 +211,24 @@ static int get_max_rooms_for_type(enum vessel_class type)
 {
   switch (type)
   {
-    case VESSEL_RAFT:       return 2;
-    case VESSEL_BOAT:       return 4;
-    case VESSEL_SHIP:       return 8;
-    case VESSEL_WARSHIP:    return 15;
-    case VESSEL_AIRSHIP:    return 10;
-    case VESSEL_SUBMARINE:  return 12;
-    case VESSEL_TRANSPORT:  return 20;
-    case VESSEL_MAGICAL:    return 10;
-    default:                return 1;
+  case VESSEL_RAFT:
+    return 2;
+  case VESSEL_BOAT:
+    return 4;
+  case VESSEL_SHIP:
+    return 8;
+  case VESSEL_WARSHIP:
+    return 15;
+  case VESSEL_AIRSHIP:
+    return 10;
+  case VESSEL_SUBMARINE:
+    return 12;
+  case VESSEL_TRANSPORT:
+    return 20;
+  case VESSEL_MAGICAL:
+    return 10;
+  default:
+    return 1;
   }
 }
 
@@ -280,7 +304,7 @@ static int mock_create_ship_room(struct mock_ship_data *ship, enum ship_room_typ
 
   if (!allocate_vnum(vnum))
   {
-    return NOWHERE;  /* VNUM collision */
+    return NOWHERE; /* VNUM collision */
   }
 
   ship->room_vnums[ship->num_rooms] = vnum;
@@ -489,7 +513,7 @@ void Test_room_vnum_collision(CuTest *tc)
   CuAssertIntEquals(tc, 70000, vnum1);
 
   /* Try to create duplicate by manipulating ship number */
-  init_mock_ship(&ship2, 0, VESSEL_SHIP);  /* Same shipnum! */
+  init_mock_ship(&ship2, 0, VESSEL_SHIP); /* Same shipnum! */
   vnum2 = mock_create_ship_room(&ship2, ROOM_TYPE_BRIDGE);
 
   /* Should fail due to collision */
@@ -534,7 +558,7 @@ void Test_room_connection_add(CuTest *tc)
   mock_create_ship_room(&ship, ROOM_TYPE_BRIDGE);
   mock_create_ship_room(&ship, ROOM_TYPE_QUARTERS);
 
-  result = mock_add_connection(&ship, 70000, 70001, 0);  /* North */
+  result = mock_add_connection(&ship, 70000, 70001, 0); /* North */
 
   CuAssertIntEquals(tc, TRUE, result);
   CuAssertIntEquals(tc, 1, ship.num_connections);

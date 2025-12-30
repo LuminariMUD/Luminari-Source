@@ -17,22 +17,14 @@
 void npc_class_behave(struct char_data *ch);
 
 /* individual class behaviors */
-void npc_monk_behave(struct char_data *ch, struct char_data *vict,
-                     int engaged);
-void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
-                      int engaged);
-void npc_bard_behave(struct char_data *ch, struct char_data *vict,
-                     int engaged);
-void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
-                        int engaged);
-void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
-                       int engaged);
-void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
-                        int engaged);
-void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
-                            int engaged);
-void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
-                          int engaged);
+void npc_monk_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_rogue_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_bard_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_warrior_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_ranger_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_paladin_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict, int engaged);
+void npc_berserker_behave(struct char_data *ch, struct char_data *vict, int engaged);
 
 /* ability behaviors */
 void npc_ability_behave(struct char_data *ch);

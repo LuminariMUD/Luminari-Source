@@ -44,7 +44,8 @@
 #define LIB_PLRFILES ":plrfiles:"
 #define LIB_HOUSE ":house:"
 #define SLASH ":"
-#elif defined(CIRCLE_AMIGA) || defined(CIRCLE_UNIX) || defined(CIRCLE_WINDOWS) || defined(CIRCLE_ACORN) || defined(CIRCLE_VMS)
+#elif defined(CIRCLE_AMIGA) || defined(CIRCLE_UNIX) || defined(CIRCLE_WINDOWS) ||                  \
+    defined(CIRCLE_ACORN) || defined(CIRCLE_VMS)
 #define LIB_WORLD "world/"
 #define LIB_TEXT "text/"
 #define LIB_TEXT_HELP "text/help/"
@@ -166,18 +167,18 @@
 /* structure for the reset commands */
 struct reset_com
 {
-   char command; /* current command                      */
+  char command; /* current command                      */
 
-   signed char if_flag; /* if TRUE: exe only if preceding exe'd */
-   int arg1;            /*                                      */
-   int arg2;            /* Arguments to the command             */
-   int arg3;            /*                                      */
-   int arg4;            /* probability of command executing     */
-   int line;            /* line number this command appears on  */
-   char *sarg1;         /* string argument                      */
-   char *sarg2;         /* string argument                      */
+  signed char if_flag; /* if TRUE: exe only if preceding exe'd */
+  int arg1;            /*                                      */
+  int arg2;            /* Arguments to the command             */
+  int arg3;            /*                                      */
+  int arg4;            /* probability of command executing     */
+  int line;            /* line number this command appears on  */
+  char *sarg1;         /* string argument                      */
+  char *sarg2;         /* string argument                      */
 
-   /* Commands:
+  /* Commands:
     *  'M': Read a mobile
     *  'O': Read an object
     *  'G': Give obj to mob
@@ -192,33 +193,33 @@ struct reset_com
 /* zone definition structure. for the 'zone-table'   */
 struct zone_data
 {
-   char *name;     /* name of this zone                  */
-   char *builders; /* namelist of builders allowed to    */
-                   /* modify this zone.		  */
-   int lifespan;   /* how long between resets (minutes)  */
-   int age;        /* current age of this zone (minutes) */
-   room_vnum bot;  /* starting room number for this zone */
-   room_vnum top;  /* upper limit for rooms in this zone */
+  char *name;     /* name of this zone                  */
+  char *builders; /* namelist of builders allowed to    */
+                  /* modify this zone.		  */
+  int lifespan;   /* how long between resets (minutes)  */
+  int age;        /* current age of this zone (minutes) */
+  room_vnum bot;  /* starting room number for this zone */
+  room_vnum top;  /* upper limit for rooms in this zone */
 
-   int zone_flags[ZN_ARRAY_MAX]; /* Zone Flags bitvector */
-   int min_level;                /* Minimum level a player must be to enter this zone */
-   int max_level;                /* Maximum level a player must be to enter this zone */
+  int zone_flags[ZN_ARRAY_MAX]; /* Zone Flags bitvector */
+  int min_level;                /* Minimum level a player must be to enter this zone */
+  int max_level;                /* Maximum level a player must be to enter this zone */
 
-   int reset_mode;        /* conditions for reset (see below)   */
-   zone_vnum number;      /* virtual number of this zone	  */
-   struct reset_com *cmd; /* command table for reset	          */
+  int reset_mode;        /* conditions for reset (see below)   */
+  zone_vnum number;      /* virtual number of this zone	  */
+  struct reset_com *cmd; /* command table for reset	          */
 
-   int show_weather;
+  int show_weather;
 
-   int region;
-   int city;
-   int faction;
+  int region;
+  int city;
+  int faction;
 
-   /* Zone reset state - for preventing race conditions */
-   int reset_state;     /* 0 = normal, 1 = resetting */
-   time_t reset_start;  /* When reset started (for timeout detection) */
+  /* Zone reset state - for preventing race conditions */
+  int reset_state;    /* 0 = normal, 1 = resetting */
+  time_t reset_start; /* When reset started (for timeout detection) */
 
-   /* Reset mode:
+  /* Reset mode:
     *   0: Don't reset, and don't update age.
     *   1: Reset if no PC's are located in zone.
     *   2: Just reset. */
@@ -227,27 +228,27 @@ struct zone_data
 /* for queueing zones for update   */
 struct reset_q_element
 {
-   zone_rnum zone_to_reset; /* ref to zone_data */
-   struct reset_q_element *next;
+  zone_rnum zone_to_reset; /* ref to zone_data */
+  struct reset_q_element *next;
 };
 
 /* structure for the update queue     */
 struct reset_q_type
 {
-   struct reset_q_element *head;
-   struct reset_q_element *tail;
+  struct reset_q_element *head;
+  struct reset_q_element *tail;
 };
 
 /* Added level, flags, and last, primarily for pfile autocleaning.  You can also
  * use them to keep online statistics, and add race, class, etc if you like. */
 struct player_index_element
 {
-   char *name;
-   long id;
-   int level;
-   int flags;
-   time_t last;
-   int clan;
+  char *name;
+  long id;
+  int level;
+  int flags;
+  time_t last;
+  int clan;
 };
 
 /* Legacy file-based help structure - DEPRECATED
@@ -256,11 +257,11 @@ struct player_index_element
  * See help.h for the modern database-driven help structures. */
 struct help_index_element
 {
-   char *index;    /*Future Use */
-   char *keywords; /*Keyword Place holder and sorter */
-   char *entry;    /*Entries for help files with Keywords at very top*/
-   int duplicate;  /*Duplicate entries for multple keywords*/
-   int min_level;  /*Min Level to read help entry*/
+  char *index;    /*Future Use */
+  char *keywords; /*Keyword Place holder and sorter */
+  char *entry;    /*Entries for help files with Keywords at very top*/
+  int duplicate;  /*Duplicate entries for multple keywords*/
+  int min_level;  /*Min Level to read help entry*/
 };
 
 /* The ban defines and structs were moved to ban.h */
@@ -268,10 +269,10 @@ struct help_index_element
 /* for the "buffered" rent and house object loading */
 struct obj_save_data_t
 {
-   struct obj_data *obj;
-   int locate;
-   struct obj_save_data_t *next;
-   int db_idnum;
+  struct obj_data *obj;
+  int locate;
+  struct obj_save_data_t *next;
+  int db_idnum;
 };
 typedef struct obj_save_data_t obj_save_data;
 
@@ -321,7 +322,8 @@ void Crash_rentsave(struct char_data *ch, int cost);
 obj_save_data *objsave_parse_objects(FILE *fl);
 obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum);
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fl, int location);
-int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum, FILE *fl, int location);
+int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum,
+                               FILE *fl, int location);
 /* Special functions */
 SPECIAL_DECL(receptionist);
 SPECIAL_DECL(cryogenicist);
@@ -377,8 +379,9 @@ struct char_data *new_char();
 
 /* Object rnum hash table for fast lookups */
 #define OBJ_RNUM_HASH_SIZE 1024
-struct obj_rnum_hash_bucket {
-  struct obj_data *objs;  /* Head of linked list of objects with this rnum */
+struct obj_rnum_hash_bucket
+{
+  struct obj_data *objs; /* Head of linked list of objects with this rnum */
 };
 
 #ifndef __DB_C__

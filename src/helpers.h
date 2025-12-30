@@ -35,13 +35,14 @@ const char *any_one_arg_c(const char *argument, char *first_arg, size_t n);
 /* unsafe version */
 char *two_arguments_u(char *argument, char *first_arg, char *second_arg);
 /* safe version */
-const char *two_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2);
+const char *two_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg,
+                          size_t n2);
 
 /* Searches an array of strings for a target string.  "exact" can be 0 or non-0,
  * depending on whether or not the match must be exact for it to be returned.
  * Returns -1 if not found; 0..n otherwise.  Array must be terminated with a
  * '\n' so it knows to stop searching. */
-int search_block(char *arg, const char * const *list, bool exact);
+int search_block(char *arg, const char *const *list, bool exact);
 
 int fill_word(char *argument);
 

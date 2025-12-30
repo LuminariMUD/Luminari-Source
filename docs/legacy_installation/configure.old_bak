@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # Guess values for system-dependent variables and create Makefiles.
-# Generated automatically using autoconf version 2.13 
+# Generated automatically using autoconf version 2.13
 # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
 #
 # This configure script is free software; the Free Software Foundation
@@ -796,7 +796,7 @@ echo "configure:796: checking whether ${CC-cc} -Wall also needs -Wno-char-subscr
 if eval "test \"`echo '$''{'ac_cv_char_warn'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  
+
     OLDCFLAGS=$CFLAGS
     CFLAGS="$CFLAGS -Wall -Werror"
     cat > conftest.$ac_ext <<EOF
@@ -808,7 +808,7 @@ int main() {
          i = isascii(c);
          i = isdigit(c);
          i = isprint(c);
-       
+
 ; return 0; }
 EOF
 if { (eval echo configure:815: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
@@ -822,7 +822,7 @@ else
 fi
 rm -f conftest*
     CFLAGS=$OLDCFLAGS
-  
+
 fi
 
 echo "$ac_t""$ac_cv_char_warn" 1>&6
@@ -832,7 +832,7 @@ echo "configure:832: checking whether ${CC-cc} accepts -Wno-char-subscripts" >&5
 if eval "test \"`echo '$''{'ac_cv_gcc_ncs'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  
+
     OLDCFLAGS=$CFLAGS
     CFLAGS="$CFLAGS -Wno-char-subscripts"
     cat > conftest.$ac_ext <<EOF
@@ -854,7 +854,7 @@ else
 fi
 rm -f conftest*
     CFLAGS=$OLDCFLAGS
-  
+
 fi
 
 echo "$ac_t""$ac_cv_gcc_ncs" 1>&6
@@ -864,7 +864,7 @@ echo "configure:864: checking whether ${CC-cc} accepts -fno-builtin" >&5
 if eval "test \"`echo '$''{'ac_cv_gcc_fnb'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  
+
     OLDCFLAGS=$CFLAGS
     CFLAGS="$CFLAGS -fno-builtin"
     cat > conftest.$ac_ext <<EOF
@@ -886,12 +886,12 @@ else
 fi
 rm -f conftest*
     CFLAGS=$OLDCFLAGS
-  
+
 fi
 
 echo "$ac_t""$ac_cv_gcc_fnb" 1>&6
 
-        
+
   if test ${ac_cv_char_warn:-ERROR} = no; then
     MYFLAGS="-Wall"
   else
@@ -1273,7 +1273,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-    
+
 fi
 
 
@@ -1537,7 +1537,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -1577,7 +1577,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -1617,7 +1617,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -1657,7 +1657,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -1697,7 +1697,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -1710,7 +1710,7 @@ echo "configure:1710: checking whether crypt needs over 10 characters" >&5
 if eval "test \"`echo '$''{'ac_cv_unsafe_crypt'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  
+
     if test ${ac_cv_header_crypt_h-no} = yes; then
       use_crypt_header="#include <crypt.h>"
     fi
@@ -1841,7 +1841,7 @@ fi
 echo "$ac_t""$ac_cv_c_const" 1>&6
 if test $ac_cv_c_const = no; then
   cat >> confdefs.h <<\EOF
-#define const 
+#define const
 EOF
 
 fi
@@ -2264,7 +2264,7 @@ if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_func 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -2322,7 +2322,7 @@ if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_func 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -2381,7 +2381,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_ACCEPT_PROTO 
+#define NEED_ACCEPT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2438,7 +2438,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_ATOI_PROTO 
+#define NEED_ATOI_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2495,7 +2495,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_ATOL_PROTO 
+#define NEED_ATOL_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2552,7 +2552,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_BIND_PROTO 
+#define NEED_BIND_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2609,7 +2609,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_BZERO_PROTO 
+#define NEED_BZERO_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2666,7 +2666,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_CHDIR_PROTO 
+#define NEED_CHDIR_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2723,7 +2723,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_CLOSE_PROTO 
+#define NEED_CLOSE_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2780,7 +2780,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_CRYPT_PROTO 
+#define NEED_CRYPT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2837,7 +2837,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FCLOSE_PROTO 
+#define NEED_FCLOSE_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2894,7 +2894,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FCNTL_PROTO 
+#define NEED_FCNTL_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -2951,7 +2951,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FFLUSH_PROTO 
+#define NEED_FFLUSH_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3008,7 +3008,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FPRINTF_PROTO 
+#define NEED_FPRINTF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3065,7 +3065,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FPUTC_PROTO 
+#define NEED_FPUTC_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3122,7 +3122,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FPUTS_PROTO 
+#define NEED_FPUTS_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3179,7 +3179,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FREAD_PROTO 
+#define NEED_FREAD_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3236,7 +3236,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FSCANF_PROTO 
+#define NEED_FSCANF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3293,7 +3293,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FSEEK_PROTO 
+#define NEED_FSEEK_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3350,7 +3350,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_FWRITE_PROTO 
+#define NEED_FWRITE_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3407,7 +3407,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_GETPEERNAME_PROTO 
+#define NEED_GETPEERNAME_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3464,7 +3464,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_GETPID_PROTO 
+#define NEED_GETPID_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3521,7 +3521,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_GETRLIMIT_PROTO 
+#define NEED_GETRLIMIT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3578,7 +3578,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_GETSOCKNAME_PROTO 
+#define NEED_GETSOCKNAME_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3635,7 +3635,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_GETTIMEOFDAY_PROTO 
+#define NEED_GETTIMEOFDAY_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3692,7 +3692,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_HTONL_PROTO 
+#define NEED_HTONL_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3749,7 +3749,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_HTONS_PROTO 
+#define NEED_HTONS_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3806,7 +3806,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_INET_ADDR_PROTO 
+#define NEED_INET_ADDR_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3863,7 +3863,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_INET_ATON_PROTO 
+#define NEED_INET_ATON_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3920,7 +3920,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_INET_NTOA_PROTO 
+#define NEED_INET_NTOA_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -3977,7 +3977,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_LISTEN_PROTO 
+#define NEED_LISTEN_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4034,7 +4034,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_NTOHL_PROTO 
+#define NEED_NTOHL_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4091,7 +4091,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_PERROR_PROTO 
+#define NEED_PERROR_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4148,7 +4148,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_PRINTF_PROTO 
+#define NEED_PRINTF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4205,7 +4205,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_QSORT_PROTO 
+#define NEED_QSORT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4262,7 +4262,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_READ_PROTO 
+#define NEED_READ_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4319,7 +4319,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_REMOVE_PROTO 
+#define NEED_REMOVE_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4376,7 +4376,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_REWIND_PROTO 
+#define NEED_REWIND_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4433,7 +4433,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SELECT_PROTO 
+#define NEED_SELECT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4490,7 +4490,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SETITIMER_PROTO 
+#define NEED_SETITIMER_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4547,7 +4547,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SETRLIMIT_PROTO 
+#define NEED_SETRLIMIT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4604,7 +4604,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SETSOCKOPT_PROTO 
+#define NEED_SETSOCKOPT_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4661,7 +4661,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SNPRINTF_PROTO 
+#define NEED_SNPRINTF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4718,7 +4718,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SOCKET_PROTO 
+#define NEED_SOCKET_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4775,7 +4775,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SPRINTF_PROTO 
+#define NEED_SPRINTF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4832,7 +4832,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SSCANF_PROTO 
+#define NEED_SSCANF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4889,7 +4889,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRCASECMP_PROTO 
+#define NEED_STRCASECMP_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -4946,7 +4946,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRDUP_PROTO 
+#define NEED_STRDUP_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5003,7 +5003,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRERROR_PROTO 
+#define NEED_STRERROR_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5060,7 +5060,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRICMP_PROTO 
+#define NEED_STRICMP_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5117,7 +5117,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRLCPY_PROTO 
+#define NEED_STRLCPY_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5174,7 +5174,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRNCASECMP_PROTO 
+#define NEED_STRNCASECMP_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5231,7 +5231,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_STRNICMP_PROTO 
+#define NEED_STRNICMP_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5288,7 +5288,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_SYSTEM_PROTO 
+#define NEED_SYSTEM_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5345,7 +5345,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_TIME_PROTO 
+#define NEED_TIME_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5402,7 +5402,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_UNLINK_PROTO 
+#define NEED_UNLINK_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5459,7 +5459,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_VSNPRINTF_PROTO 
+#define NEED_VSNPRINTF_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6
@@ -5516,7 +5516,7 @@ if eval "test \"`echo '$ac_cv_prototype_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
 else
   cat >> confdefs.h <<\EOF
-#define NEED_WRITE_PROTO 
+#define NEED_WRITE_PROTO
 EOF
 
   echo "$ac_t""no" 1>&6

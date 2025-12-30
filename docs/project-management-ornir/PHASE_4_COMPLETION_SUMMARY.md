@@ -74,7 +74,7 @@ The new system successfully:
 ```json
 {
   "vegetation_multiplier": 1.5,
-  "herb_multiplier": 1.8, 
+  "herb_multiplier": 1.8,
   "wood_multiplier": 2.0,
   "mineral_penalty": 0.3
 }

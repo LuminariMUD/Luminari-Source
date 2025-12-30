@@ -414,7 +414,7 @@ switch (result) {
 #define PUBSUB_DEBUG 1
 
 // Debug messages will appear in logs
-pubsub_debug("Processed spatial audio for %s at (%d,%d,%d)", 
+pubsub_debug("Processed spatial audio for %s at (%d,%d,%d)",
             GET_NAME(ch), x, y, z);
 ```
 

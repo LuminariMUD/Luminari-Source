@@ -23,7 +23,7 @@ The three branches of the Order of Light represent the evolution of knightly vir
 
 **Sacred Duty**: To enforce divine contracts and ensure that oaths--from marriage vows to international treaties--are kept. They can smell broken promises and see lies as physical tears in reality.
 
-**Class Alignment**: 
+**Class Alignment**:
 - Max Level: 5
 - Focus on martial prowess and honor-based abilities
 - Strength of Honor, Knightly Courage, Heroic Initiative mirror Crown abilities

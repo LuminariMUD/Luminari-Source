@@ -14,7 +14,7 @@
 
 ### Performance Optimization - Object Lookup Hash Table - IMPLEMENTED
 - **Issue**: get_obj_num() function performs O(n) linear search through entire object_list
-- **Files Modified**: 
+- **Files Modified**:
   - handler.c (get_obj_num function)
   - db.c (added hash table functions, initialization)
   - db.h (added hash table structures and declarations)
@@ -36,7 +36,7 @@
 
 ### Object Index Integrity Fixes - IMPLEMENTED
 - **Issue**: Object counts in obj_index can become negative or incorrect causing crashes
-- **Files Modified**: 
+- **Files Modified**:
   - handler.c (extract_obj function)
   - act.wizard.c (new do_objcheck command)
   - interpreter.c (added objcheck command)
@@ -98,7 +98,7 @@
 - **Result**: Code compiles successfully, comprehensive logging verified
 - **Impact**: Server crashes prevented, administrators can now diagnose object loading failures
 - **Documentation**: See detailed code examples below
-- **Remaining Issues**: 
+- **Remaining Issues**:
   - Vnum validation at parse time still needed
   - Race conditions not addressed
   - Performance issues remain
@@ -119,7 +119,7 @@
 ```c
 /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
 if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
-  log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'X' command", 
+  log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'X' command",
       zone_table[zone].number, cmd_no, ZCMD.arg1);
   push_result(0);
   break;
@@ -131,7 +131,7 @@ if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
 obj = read_object(ZCMD.arg1, REAL);
 /* CRITICAL FIX: Check for NULL object before use */
 if (!obj) {
-  log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d", 
+  log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d",
       zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
   push_result(0);
   break;
@@ -152,7 +152,7 @@ if (!(obj_to = get_obj_num(ZCMD.arg3))) {
 /* Add logging for debugging why objects don't load */
 if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
   log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d)",
-      zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+      zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,
       obj_index[ZCMD.arg1].number, ZCMD.arg2);
 } else if (rand_number(1, 100) > ZCMD.arg4) {
   log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%)",

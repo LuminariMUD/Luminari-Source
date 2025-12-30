@@ -21,7 +21,7 @@
 extern struct weather_data weather_info;
 
 /* Define for moon bonus spell regeneration - one spell per 5 minutes */
-#define MOON_BONUS_REGEN_TICKS (5 * 60 * 10)  /* 5 minutes in ticks (assuming 10 ticks per second) */
+#define MOON_BONUS_REGEN_TICKS (5 * 60 * 10) /* 5 minutes in ticks (assuming 10 ticks per second) */
 
 /**
  * Initialize moon bonus spells for a character based on their alignment
@@ -174,7 +174,7 @@ bool has_moon_bonus_spells(struct char_data *ch)
 {
   if (!CONFIG_ARCANE_MOON_PHASES)
     return FALSE;
-  
+
   return get_available_moon_bonus_spells(ch) > 0;
 }
 

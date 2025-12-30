@@ -48,13 +48,11 @@ struct level_rec
   struct name_rec *names;
 };
 
-struct control_rec level_params[] =
-    {
-        {LVL_IMMORT, "Staff"},
-        {LVL_STAFF, "Senior Staff"},
-        {LVL_GRSTAFF, "World Forgers"},
-        {LVL_IMPL, "Forgers"},
-        {0, ""}};
+struct control_rec level_params[] = {{LVL_IMMORT, "Staff"},
+                                     {LVL_STAFF, "Senior Staff"},
+                                     {LVL_GRSTAFF, "World Forgers"},
+                                     {LVL_IMPL, "Forgers"},
+                                     {0, ""}};
 
 struct level_rec *levels = 0;
 
@@ -72,7 +70,8 @@ void initialize(void)
   while (level_params[i].level > 0)
   {
     tmp = (struct level_rec *)malloc(sizeof(struct level_rec));
-    if (!tmp) {
+    if (!tmp)
+    {
       fprintf(stderr, "Error: Failed to allocate memory for level record\n");
       exit(1);
     }
@@ -115,8 +114,7 @@ void read_file(void)
     sscanf(line, "%ld %s %d %s %d", &id, name, &level, bits, &last);
     CAP(name);
     flags = asciiflag_conv(bits);
-    if (level >= MIN_LEVEL &&
-        !(IS_SET(flags, PINDEX_NOWIZLIST)) &&
+    if (level >= MIN_LEVEL && !(IS_SET(flags, PINDEX_NOWIZLIST)) &&
         !(IS_SET(flags, PINDEX_DELETED)))
       add_name(level, name);
   }
@@ -147,7 +145,8 @@ void add_name(byte level, char *name)
       return;
 
   tmp = (struct name_rec *)malloc(sizeof(struct name_rec));
-  if (!tmp) {
+  if (!tmp)
+  {
     fprintf(stderr, "Error: Failed to allocate memory for name record\n");
     return;
   }
@@ -159,10 +158,13 @@ void add_name(byte level, char *name)
   while (curr_level && curr_level->params->level > level)
     curr_level = curr_level->next;
 
-  if (curr_level) {
+  if (curr_level)
+  {
     tmp->next = curr_level->names;
     curr_level->names = tmp;
-  } else {
+  }
+  else
+  {
     /* No appropriate level found, free the allocated memory */
     free(tmp);
   }
@@ -205,8 +207,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
 
   for (curr_level = levels; curr_level; curr_level = curr_level->next)
   {
-    if (curr_level->params->level < minlev ||
-        curr_level->params->level > maxlev)
+    if (curr_level->params->level < minlev || curr_level->params->level > maxlev)
       continue;
     i = 39 - (strlen(curr_level->params->level_name) >> 1);
     for (j = 1; j <= i; j++)
@@ -287,8 +288,7 @@ int main(int argc, char **argv)
 
   if (argc != 5 && argc != 6)
   {
-    printf("Format: %s wizlev wizlistfile immlev immlistfile [pid to signal]\n",
-           argv[0]);
+    printf("Format: %s wizlev wizlistfile immlev immlistfile [pid to signal]\n", argv[0]);
     printf("\n");
     printf("Generates wizard and immortal lists from player index file.\n");
     printf("wizlev    - minimum level for wizard list\n");
@@ -349,7 +349,8 @@ int get_line(FILE *fl, char *buf)
 
   do
   {
-    if (!fgets(temp, MEDIUM_STRING, fl)) {
+    if (!fgets(temp, MEDIUM_STRING, fl))
+    {
       if (feof(fl))
         return (0);
       /* Handle error case */
@@ -360,7 +361,8 @@ int get_line(FILE *fl, char *buf)
   } while (*temp == '*' || *temp == '\n');
 
   /* Remove trailing newline if present */
-  if (strlen(temp) > 0 && temp[strlen(temp) - 1] == '\n') {
+  if (strlen(temp) > 0 && temp[strlen(temp) - 1] == '\n')
+  {
     temp[strlen(temp) - 1] = '\0';
   }
   strcpy(buf, temp);

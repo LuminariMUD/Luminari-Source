@@ -21,14 +21,14 @@ Combat initialization is handled through the damage system. When damage is dealt
 // From damage() function in fight.c
 if (victim != ch) {
     /* Only auto engage if both parties are unengaged. */
-    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && 
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) &&
         (FIGHTING(victim) == NULL) && !is_wall_spell(w_type))
         set_fighting(ch, victim);
-    
-    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL) && 
+
+    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL) &&
         !is_wall_spell(w_type))
         set_fighting(victim, ch);
-    
+
     victim->last_attacker = ch;
 }
 ```
@@ -71,16 +71,16 @@ void perform_violence(struct char_data *ch, int phase) {
     // Handle confused/feared states
     if (AFF_FLAGGED(ch, AFF_CONFUSED)) { /* confusion logic */ }
     if (AFF_FLAGGED(ch, AFF_FEAR)) { /* fear logic */ }
-    
+
     // Group auto-assist logic
     if (GROUP(ch)) { /* auto-assist code */ }
-    
+
     // Main combat execution
-    if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) && 
+    if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) &&
         !(AFF_FLAGGED(ch, AFF_GRAPPLED) && /* grapple restrictions */)) {
         // Execute attack routine
         perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
-        
+
         // Handle cleave attacks
         if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE))
             handle_cleave(ch);
@@ -132,14 +132,14 @@ Attack resolution is handled through multiple functions:
 
 ```c
 // Main attack functions from fight.h
-int attack_roll(struct char_data *ch, struct char_data *victim, 
+int attack_roll(struct char_data *ch, struct char_data *victim,
                 int attack_type, int is_touch, int attack_number);
-int attack_roll_with_critical(struct char_data *ch, struct char_data *victim, 
-                              int attack_type, int is_touch, int attack_number, 
+int attack_roll_with_critical(struct char_data *ch, struct char_data *victim,
+                              int attack_type, int is_touch, int attack_number,
                               int threat_range);
-int compute_attack_bonus(struct char_data *ch, struct char_data *victim, 
+int compute_attack_bonus(struct char_data *ch, struct char_data *victim,
                         int attack_type);
-int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, 
+int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim,
                              int attack_type, bool display);
 ```
 
@@ -194,7 +194,7 @@ Armor Class is calculated with multiple modes:
 #define MODE_ARMOR_CLASS_DISPLAY 3
 #define MODE_ARMOR_CLASS_TOUCH 4
 
-int compute_armor_class(struct char_data *attacker, struct char_data *ch, 
+int compute_armor_class(struct char_data *attacker, struct char_data *ch,
                        int is_touch, int mode);
 ```
 
@@ -226,11 +226,11 @@ Damage calculation is complex and involves multiple functions:
 
 ```c
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
-                      int w_type, int diceroll, int mode, 
+                      int w_type, int diceroll, int mode,
                       bool is_critical, int attack_type, int dam_type);
 
 int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
-                        struct obj_data *wielded, int w_type, int mod, 
+                        struct obj_data *wielded, int w_type, int mod,
                         int mode, int attack_type);
 ```
 
@@ -294,7 +294,7 @@ The damage_handling() function implements comprehensive mitigation:
 
 **Damage Reduction:**
 - **DR Types**: DR X/material (e.g., DR 10/magic)
-- **Sources**: 
+- **Sources**:
   - Class features (Barbarian, etc.)
   - Racial (Warforged, etc.)
   - Spells (Stoneskin)
@@ -367,7 +367,7 @@ Attacks of opportunity provide battlefield control:
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim,
                          int penalty);
 void attacks_of_opportunity(struct char_data *victim, int penalty);
-void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, 
+void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty,
                                    int featnum);
 ```
 

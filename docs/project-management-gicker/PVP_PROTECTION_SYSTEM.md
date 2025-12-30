@@ -253,7 +253,7 @@ Potential improvements to consider:
 ### Common Issues
 
 **Problem**: Players with PVP enabled can't attack each other
-**Check**: 
+**Check**:
 - Verify CONFIG_PK_ALLOWED is enabled
 - Check if they're in a ROOM_PEACEFUL flagged room
 - Verify both players have PRF_PVP flag set

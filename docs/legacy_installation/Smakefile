@@ -4,10 +4,10 @@
 CC = sc
 
 # Any special flags you want to pass to the compiler
-MYFLAGS = 
+MYFLAGS =
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -24,11 +24,11 @@ OBJFILES = comm.o act.comm.o act.informative.o act.movement.o act.item.o \
 	objsave.o olc.o shop.o spec_assign.o spec_procs.o spell_parser.o \
 	spells.o utils.o weather.o random.o players.o
 
-default: 
+default:
 	$(MAKE) /bin/circle
 
 
-utils: 
+utils:
 	$(MAKE) /bin/asciipasswd
 	$(MAKE) /bin/autowiz
 	$(MAKE) /bin/listrent
@@ -189,4 +189,3 @@ utils.o: utils.c conf.h sysdep.h structs.h utils.h comm.h screen.h spells.h \
 weather.o: weather.c conf.h sysdep.h structs.h utils.h comm.h handler.h \
   interpreter.h db.h
 	$(CC) $(CFLAGS) weather.c
-

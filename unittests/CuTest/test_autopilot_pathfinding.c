@@ -32,11 +32,12 @@
 
 typedef int bool;
 
-#define AUTOPILOT_NAME_LENGTH       64
-#define MAX_WAYPOINTS_PER_ROUTE     20
+#define AUTOPILOT_NAME_LENGTH 64
+#define MAX_WAYPOINTS_PER_ROUTE 20
 
 /* Autopilot states */
-enum autopilot_state {
+enum autopilot_state
+{
   AUTOPILOT_OFF,
   AUTOPILOT_TRAVELING,
   AUTOPILOT_WAITING,
@@ -45,7 +46,8 @@ enum autopilot_state {
 };
 
 /* Waypoint structure */
-struct waypoint {
+struct waypoint
+{
   float x;
   float y;
   float z;
@@ -56,7 +58,8 @@ struct waypoint {
 };
 
 /* Ship route structure */
-struct ship_route {
+struct ship_route
+{
   int route_id;
   char name[AUTOPILOT_NAME_LENGTH];
   struct waypoint waypoints[MAX_WAYPOINTS_PER_ROUTE];
@@ -66,7 +69,8 @@ struct ship_route {
 };
 
 /* Autopilot data structure */
-struct autopilot_data {
+struct autopilot_data
+{
   enum autopilot_state state;
   struct ship_route *current_route;
   int current_waypoint_index;
@@ -77,7 +81,8 @@ struct autopilot_data {
 };
 
 /* Minimal ship data for testing */
-struct test_ship_data {
+struct test_ship_data
+{
   float x, y, z;
   int shipnum;
   short int speed;
@@ -102,15 +107,17 @@ static float test_calculate_distance(struct test_ship_data *ship, struct waypoin
   return (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
 }
 
-static void test_calculate_heading(struct test_ship_data *ship, struct waypoint *wp,
-                                   float *dx, float *dy)
+static void test_calculate_heading(struct test_ship_data *ship, struct waypoint *wp, float *dx,
+                                   float *dy)
 {
   float raw_dx, raw_dy, distance;
 
   if (ship == NULL || wp == NULL || dx == NULL || dy == NULL)
   {
-    if (dx) *dx = 0.0f;
-    if (dy) *dy = 0.0f;
+    if (dx)
+      *dx = 0.0f;
+    if (dy)
+      *dy = 0.0f;
     return;
   }
 
@@ -219,8 +226,8 @@ static void init_test_ship(struct test_ship_data *ship, float x, float y, float 
   ship->speed = 1;
 }
 
-static void init_test_waypoint(struct waypoint *wp, float x, float y, float z,
-                               const char *name, float tolerance, int wait_time)
+static void init_test_waypoint(struct waypoint *wp, float x, float y, float z, const char *name,
+                               float tolerance, int wait_time)
 {
   memset(wp, 0, sizeof(struct waypoint));
   wp->x = x;
@@ -321,7 +328,7 @@ void Test_distance_3d(CuTest *tc)
   init_test_waypoint(&wp, 2.0f, 2.0f, 2.0f, "3D", 5.0f, 0);
 
   distance = test_calculate_distance(&ship, &wp);
-  expected = (float)sqrt(12.0);  /* sqrt(4+4+4) */
+  expected = (float)sqrt(12.0); /* sqrt(4+4+4) */
 
   CuAssertTrue(tc, fabs(distance - expected) < 0.01f);
 }
@@ -395,7 +402,7 @@ void Test_heading_diagonal(CuTest *tc)
   init_test_waypoint(&wp, 10.0f, 10.0f, 0.0f, "NE", 5.0f, 0);
 
   test_calculate_heading(&ship, &wp, &dx, &dy);
-  expected = (float)(1.0 / sqrt(2.0));  /* 45 degrees */
+  expected = (float)(1.0 / sqrt(2.0)); /* 45 degrees */
 
   CuAssertTrue(tc, fabs(dx - expected) < 0.01f);
   CuAssertTrue(tc, fabs(dy - expected) < 0.01f);
@@ -477,7 +484,7 @@ void Test_arrival_at_boundary(CuTest *tc)
 
   arrived = test_check_arrival(&ship, &wp);
 
-  CuAssertTrue(tc, arrived == TRUE);  /* <= tolerance */
+  CuAssertTrue(tc, arrived == TRUE); /* <= tolerance */
 }
 
 void Test_arrival_default_tolerance(CuTest *tc)
@@ -487,7 +494,7 @@ void Test_arrival_default_tolerance(CuTest *tc)
   int arrived;
 
   init_test_ship(&ship, 0.0f, 0.0f, 0.0f);
-  init_test_waypoint(&wp, 3.0f, 0.0f, 0.0f, "Near", 0.0f, 0);  /* 0 tolerance -> default 5 */
+  init_test_waypoint(&wp, 3.0f, 0.0f, 0.0f, "Near", 0.0f, 0); /* 0 tolerance -> default 5 */
 
   arrived = test_check_arrival(&ship, &wp);
 
@@ -505,7 +512,7 @@ void Test_arrival_very_small_tolerance(CuTest *tc)
 
   arrived = test_check_arrival(&ship, &wp);
 
-  CuAssertTrue(tc, arrived == FALSE);  /* 0.5 > 0.3 */
+  CuAssertTrue(tc, arrived == FALSE); /* 0.5 > 0.3 */
 }
 
 /* ========================================================================= */
@@ -559,7 +566,7 @@ void Test_advance_last_waypoint_noloop(CuTest *tc)
   memset(&ap, 0, sizeof(struct autopilot_data));
   ap.state = AUTOPILOT_TRAVELING;
   ap.current_route = &route;
-  ap.current_waypoint_index = 1;  /* At last waypoint */
+  ap.current_waypoint_index = 1; /* At last waypoint */
 
   ship.autopilot = &ap;
 
@@ -586,14 +593,14 @@ void Test_advance_last_waypoint_loop(CuTest *tc)
   memset(&ap, 0, sizeof(struct autopilot_data));
   ap.state = AUTOPILOT_TRAVELING;
   ap.current_route = &route;
-  ap.current_waypoint_index = 1;  /* At last waypoint */
+  ap.current_waypoint_index = 1; /* At last waypoint */
 
   ship.autopilot = &ap;
 
   result = test_advance_waypoint(&ship);
 
   CuAssertIntEquals(tc, 1, result);
-  CuAssertIntEquals(tc, 0, ap.current_waypoint_index);  /* Back to start */
+  CuAssertIntEquals(tc, 0, ap.current_waypoint_index); /* Back to start */
   CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ap.state);
 }
 
@@ -707,7 +714,7 @@ void Test_get_current_waypoint_invalid_index(CuTest *tc)
 
   memset(&ap, 0, sizeof(struct autopilot_data));
   ap.current_route = &route;
-  ap.current_waypoint_index = 5;  /* Invalid index */
+  ap.current_waypoint_index = 5; /* Invalid index */
 
   ship.autopilot = &ap;
 

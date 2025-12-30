@@ -60,24 +60,22 @@ static char greyhawk_weapon[320];
  * Speed modifiers indexed by sector type (0-39), values are percentages (100=normal).
  */
 static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = {
-  /* VESSEL_RAFT (0): Small, rivers/shallow water only */
-  {
-    FALSE,  /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    FALSE,  /* can_traverse_air */
-    FALSE,  /* can_traverse_underwater */
-    0,      /* min_water_depth */
-    0,      /* max_altitude */
-    {
-      /* Speed modifiers by sector type (index 0-39) */
+    /* VESSEL_RAFT (0): Small, rivers/shallow water only */
+    {FALSE, /* can_traverse_ocean */
+     TRUE,  /* can_traverse_shallow */
+     FALSE, /* can_traverse_air */
+     FALSE, /* can_traverse_underwater */
+     0,     /* min_water_depth */
+     0,     /* max_altitude */
+     {      /* Speed modifiers by sector type (index 0-39) */
       /* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 0,
       /* SECT_FIELD=2 */ 0,
       /* SECT_FOREST=3 */ 0,
       /* SECT_HILLS=4 */ 0,
       /* SECT_MOUNTAIN=5 */ 0,
-      /* SECT_WATER_SWIM=6 */ 100,  /* Full speed in shallow water */
-      /* SECT_WATER_NOSWIM=7 */ 0,  /* Cannot navigate deep water */
+      /* SECT_WATER_SWIM=6 */ 100, /* Full speed in shallow water */
+      /* SECT_WATER_NOSWIM=7 */ 0, /* Cannot navigate deep water */
       /* SECT_FLYING=8 */ 0,
       /* SECT_UNDERWATER=9 */ 0,
       /* SECT_ZONE_START=10 */ 0,
@@ -85,14 +83,14 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_ROAD_EW=12 */ 0,
       /* SECT_ROAD_INT=13 */ 0,
       /* SECT_DESERT=14 */ 0,
-      /* SECT_OCEAN=15 */ 0,  /* Cannot navigate ocean */
-      /* SECT_MARSHLAND=16 */ 75,  /* Slow in marshes */
+      /* SECT_OCEAN=15 */ 0,      /* Cannot navigate ocean */
+      /* SECT_MARSHLAND=16 */ 75, /* Slow in marshes */
       /* SECT_HIGH_MOUNTAIN=17 */ 0,
       /* SECT_PLANES=18 */ 0,
       /* SECT_UD_WILD=19 */ 0,
       /* SECT_UD_CITY=20 */ 0,
       /* SECT_UD_INSIDE=21 */ 0,
-      /* SECT_UD_WATER=22 */ 80,  /* Slow in UD water */
+      /* SECT_UD_WATER=22 */ 80, /* Slow in UD water */
       /* SECT_UD_NOSWIM=23 */ 0,
       /* SECT_UD_NOGROUND=24 */ 0,
       /* SECT_LAVA=25 */ 0,
@@ -103,24 +101,22 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_JUNGLE=30 */ 0,
       /* SECT_TUNDRA=31 */ 0,
       /* SECT_TAIGA=32 */ 0,
-      /* SECT_BEACH=33 */ 50,  /* Very slow near beach */
-      /* SECT_SEAPORT=34 */ 60,  /* Slow in port */
+      /* SECT_BEACH=33 */ 50,   /* Very slow near beach */
+      /* SECT_SEAPORT=34 */ 60, /* Slow in port */
       /* SECT_INSIDE_ROOM=35 */ 0,
-      /* SECT_RIVER=36 */ 100,  /* Full speed on rivers */
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* SECT_RIVER=36 */ 100, /* Full speed on rivers */
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_BOAT (1): Medium, coastal waters */
-  {
-    FALSE,  /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    FALSE,  /* can_traverse_air */
-    FALSE,  /* can_traverse_underwater */
-    0,      /* min_water_depth */
-    0,      /* max_altitude */
-    {
-      /* SECT_INSIDE=0 */ 0,
+    /* VESSEL_BOAT (1): Medium, coastal waters */
+    {FALSE, /* can_traverse_ocean */
+     TRUE,  /* can_traverse_shallow */
+     FALSE, /* can_traverse_air */
+     FALSE, /* can_traverse_underwater */
+     0,     /* min_water_depth */
+     0,     /* max_altitude */
+     {/* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 0,
       /* SECT_FIELD=2 */ 0,
       /* SECT_FOREST=3 */ 0,
@@ -135,7 +131,7 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_ROAD_EW=12 */ 0,
       /* SECT_ROAD_INT=13 */ 0,
       /* SECT_DESERT=14 */ 0,
-      /* SECT_OCEAN=15 */ 0,  /* Cannot navigate ocean */
+      /* SECT_OCEAN=15 */ 0, /* Cannot navigate ocean */
       /* SECT_MARSHLAND=16 */ 80,
       /* SECT_HIGH_MOUNTAIN=17 */ 0,
       /* SECT_PLANES=18 */ 0,
@@ -157,26 +153,24 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_SEAPORT=34 */ 70,
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 100,
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_SHIP (2): Large, ocean-capable */
-  {
-    TRUE,   /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    FALSE,  /* can_traverse_air */
-    FALSE,  /* can_traverse_underwater */
-    2,      /* min_water_depth (needs deeper water) */
-    0,      /* max_altitude */
-    {
-      /* SECT_INSIDE=0 */ 0,
+    /* VESSEL_SHIP (2): Large, ocean-capable */
+    {TRUE,  /* can_traverse_ocean */
+     TRUE,  /* can_traverse_shallow */
+     FALSE, /* can_traverse_air */
+     FALSE, /* can_traverse_underwater */
+     2,     /* min_water_depth (needs deeper water) */
+     0,     /* max_altitude */
+     {/* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 0,
       /* SECT_FIELD=2 */ 0,
       /* SECT_FOREST=3 */ 0,
       /* SECT_HILLS=4 */ 0,
       /* SECT_MOUNTAIN=5 */ 0,
-      /* SECT_WATER_SWIM=6 */ 75,   /* Reduced in shallow water */
+      /* SECT_WATER_SWIM=6 */ 75,    /* Reduced in shallow water */
       /* SECT_WATER_NOSWIM=7 */ 100, /* Full speed in deep water */
       /* SECT_FLYING=8 */ 0,
       /* SECT_UNDERWATER=9 */ 0,
@@ -185,7 +179,7 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_ROAD_EW=12 */ 0,
       /* SECT_ROAD_INT=13 */ 0,
       /* SECT_DESERT=14 */ 0,
-      /* SECT_OCEAN=15 */ 100, /* Full speed in ocean */
+      /* SECT_OCEAN=15 */ 100,   /* Full speed in ocean */
       /* SECT_MARSHLAND=16 */ 0, /* Cannot navigate marsh */
       /* SECT_HIGH_MOUNTAIN=17 */ 0,
       /* SECT_PLANES=18 */ 0,
@@ -203,24 +197,22 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_JUNGLE=30 */ 0,
       /* SECT_TUNDRA=31 */ 0,
       /* SECT_TAIGA=32 */ 0,
-      /* SECT_BEACH=33 */ 0, /* Too shallow */
+      /* SECT_BEACH=33 */ 0,    /* Too shallow */
       /* SECT_SEAPORT=34 */ 50, /* Slow in port */
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 50, /* Too large for most rivers */
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_WARSHIP (3): Combat vessel, heavily armed - same as SHIP */
-  {
-    TRUE,   /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    FALSE,  /* can_traverse_air */
-    FALSE,  /* can_traverse_underwater */
-    2,      /* min_water_depth */
-    0,      /* max_altitude */
-    {
-      /* SECT_INSIDE=0 */ 0,
+    /* VESSEL_WARSHIP (3): Combat vessel, heavily armed - same as SHIP */
+    {TRUE,  /* can_traverse_ocean */
+     TRUE,  /* can_traverse_shallow */
+     FALSE, /* can_traverse_air */
+     FALSE, /* can_traverse_underwater */
+     2,     /* min_water_depth */
+     0,     /* max_altitude */
+     {/* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 0,
       /* SECT_FIELD=2 */ 0,
       /* SECT_FOREST=3 */ 0,
@@ -257,20 +249,18 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_SEAPORT=34 */ 50,
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 50,
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_AIRSHIP (4): Flying vessel, ignores terrain when airborne */
-  {
-    TRUE,   /* can_traverse_ocean (when landed/low) */
-    TRUE,   /* can_traverse_shallow */
-    TRUE,   /* can_traverse_air */
-    FALSE,  /* can_traverse_underwater */
-    0,      /* min_water_depth */
-    500,    /* max_altitude */
-    {
-      /* At altitude, airships have 100 speed over all terrain except lava */
+    /* VESSEL_AIRSHIP (4): Flying vessel, ignores terrain when airborne */
+    {TRUE,  /* can_traverse_ocean (when landed/low) */
+     TRUE,  /* can_traverse_shallow */
+     TRUE,  /* can_traverse_air */
+     FALSE, /* can_traverse_underwater */
+     0,     /* min_water_depth */
+     500,   /* max_altitude */
+     {      /* At altitude, airships have 100 speed over all terrain except lava */
       /* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 80,
       /* SECT_FIELD=2 */ 100,
@@ -308,26 +298,24 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_SEAPORT=34 */ 100,
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 100,
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_SUBMARINE (5): Underwater vessel, depth navigation */
-  {
-    TRUE,   /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    FALSE,  /* can_traverse_air */
-    TRUE,   /* can_traverse_underwater */
-    0,      /* min_water_depth */
-    0,      /* max_altitude (negative z for depth) */
-    {
-      /* SECT_INSIDE=0 */ 0,
+    /* VESSEL_SUBMARINE (5): Underwater vessel, depth navigation */
+    {TRUE,  /* can_traverse_ocean */
+     TRUE,  /* can_traverse_shallow */
+     FALSE, /* can_traverse_air */
+     TRUE,  /* can_traverse_underwater */
+     0,     /* min_water_depth */
+     0,     /* max_altitude (negative z for depth) */
+     {/* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 0,
       /* SECT_FIELD=2 */ 0,
       /* SECT_FOREST=3 */ 0,
       /* SECT_HILLS=4 */ 0,
       /* SECT_MOUNTAIN=5 */ 0,
-      /* SECT_WATER_SWIM=6 */ 50,  /* Slow in shallow water */
+      /* SECT_WATER_SWIM=6 */ 50, /* Slow in shallow water */
       /* SECT_WATER_NOSWIM=7 */ 90,
       /* SECT_FLYING=8 */ 0,
       /* SECT_UNDERWATER=9 */ 100, /* Full speed underwater */
@@ -358,26 +346,24 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_SEAPORT=34 */ 40, /* Very slow at surface in port */
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 0, /* Too large for rivers */
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_TRANSPORT (6): Cargo/passenger vessel - similar to SHIP */
-  {
-    TRUE,   /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    FALSE,  /* can_traverse_air */
-    FALSE,  /* can_traverse_underwater */
-    2,      /* min_water_depth */
-    0,      /* max_altitude */
-    {
-      /* SECT_INSIDE=0 */ 0,
+    /* VESSEL_TRANSPORT (6): Cargo/passenger vessel - similar to SHIP */
+    {TRUE,  /* can_traverse_ocean */
+     TRUE,  /* can_traverse_shallow */
+     FALSE, /* can_traverse_air */
+     FALSE, /* can_traverse_underwater */
+     2,     /* min_water_depth */
+     0,     /* max_altitude */
+     {/* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 0,
       /* SECT_FIELD=2 */ 0,
       /* SECT_FOREST=3 */ 0,
       /* SECT_HILLS=4 */ 0,
       /* SECT_MOUNTAIN=5 */ 0,
-      /* SECT_WATER_SWIM=6 */ 60,  /* Slow in shallow - heavy */
+      /* SECT_WATER_SWIM=6 */ 60,   /* Slow in shallow - heavy */
       /* SECT_WATER_NOSWIM=7 */ 90, /* Good in deep water */
       /* SECT_FLYING=8 */ 0,
       /* SECT_UNDERWATER=9 */ 0,
@@ -408,20 +394,18 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_SEAPORT=34 */ 60,
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 40, /* Very slow on rivers */
-      /* unused */ 0, 0, 0
-    }
-  },
+      /* unused */ 0,
+      0,
+      0}},
 
-  /* VESSEL_MAGICAL (7): Special magical vessels - most capable */
-  {
-    TRUE,   /* can_traverse_ocean */
-    TRUE,   /* can_traverse_shallow */
-    TRUE,   /* can_traverse_air */
-    TRUE,   /* can_traverse_underwater */
-    0,      /* min_water_depth */
-    1000,   /* max_altitude */
-    {
-      /* SECT_INSIDE=0 */ 0,
+    /* VESSEL_MAGICAL (7): Special magical vessels - most capable */
+    {TRUE, /* can_traverse_ocean */
+     TRUE, /* can_traverse_shallow */
+     TRUE, /* can_traverse_air */
+     TRUE, /* can_traverse_underwater */
+     0,    /* min_water_depth */
+     1000, /* max_altitude */
+     {/* SECT_INSIDE=0 */ 0,
       /* SECT_CITY=1 */ 80,
       /* SECT_FIELD=2 */ 100,
       /* SECT_FOREST=3 */ 100,
@@ -458,10 +442,9 @@ static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = 
       /* SECT_SEAPORT=34 */ 100,
       /* SECT_INSIDE_ROOM=35 */ 0,
       /* SECT_RIVER=36 */ 100,
-      /* unused */ 0, 0, 0
-    }
-  }
-};
+      /* unused */ 0,
+      0,
+      0}}};
 
 /* ========================================================================= */
 /* VESSEL TYPE ACCESSOR FUNCTIONS                                            */
@@ -481,7 +464,8 @@ const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vess
   /* Bounds check - default to VESSEL_SHIP for invalid types */
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
-    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %d, defaulting to VESSEL_SHIP", vessel_type);
+    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %d, defaulting to VESSEL_SHIP",
+        vessel_type);
     return &vessel_terrain_data[VESSEL_SHIP];
   }
 
@@ -506,7 +490,7 @@ enum vessel_class get_vessel_type_from_ship(int shipnum)
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
   {
     log("SYSERR: get_vessel_type_from_ship: Invalid ship number %d", shipnum);
-    return VESSEL_SHIP;  /* Default to standard ship */
+    return VESSEL_SHIP; /* Default to standard ship */
   }
 
   vtype = greyhawk_ships[shipnum].vessel_type;
@@ -532,15 +516,7 @@ enum vessel_class get_vessel_type_from_ship(int shipnum)
 const char *get_vessel_type_name(enum vessel_class vessel_type)
 {
   static const char *vessel_names[NUM_VESSEL_TYPES] = {
-    "Raft",
-    "Boat",
-    "Ship",
-    "Warship",
-    "Airship",
-    "Submarine",
-    "Transport",
-    "Magical Vessel"
-  };
+      "Raft", "Boat", "Ship", "Warship", "Airship", "Submarine", "Transport", "Magical Vessel"};
 
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
@@ -563,7 +539,8 @@ void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, 
 int greyhawk_getarc(int ship1, int ship2);
 void greyhawk_setsymbol(int x, int y, int symbol);
 void greyhawk_getmap(int shipnum);
-int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord, short int z_cord);
+int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord,
+                      short int z_cord);
 void greyhawk_nameship(char *name, int shipnum);
 bool greyhawk_setsail(int class, int shipnum);
 void greyhawk_initialize_ships(void);
@@ -623,42 +600,45 @@ static room_rnum get_or_allocate_wilderness_room(int x, int y)
  * @param slot Weapon slot number
  * @param rnum Room number containing ship
  */
-void greyhawk_getstatus(int slot, int rnum) {
+void greyhawk_getstatus(int slot, int rnum)
+{
   if (world[rnum].ship->slot[slot].timer > 0)
     sprintf(greyhawk_status, "&+R%-6d", world[rnum].ship->slot[slot].timer);
   else if (world[rnum].ship->slot[slot].timer == 0)
     strcpy(greyhawk_status, "Ready");
   else if (world[rnum].ship->slot[slot].timer < 0)
     strcpy(greyhawk_status, "&+L***   ");
-  
+
   if (world[rnum].ship->slot[slot].desc[0] == '\0')
     strcpy(greyhawk_status, "");
 }
 
 /**
  * Get weapon position string for display
- * @param slot Weapon slot number  
+ * @param slot Weapon slot number
  * @param rnum Room number containing ship
  */
-void greyhawk_getposition(int slot, int rnum) {
-  switch (world[rnum].ship->slot[slot].position) {
-    case GREYHAWK_FORE:
-      strcpy(greyhawk_position, "Forward");
-      break;
-    case GREYHAWK_REAR:
-      strcpy(greyhawk_position, "Rear");
-      break;
-    case GREYHAWK_PORT:
-      strcpy(greyhawk_position, "Port");
-      break;
-    case GREYHAWK_STARBOARD:
-      strcpy(greyhawk_position, "Starboard");
-      break;
-    default:
-      strcpy(greyhawk_position, "ERROR");
-      break;
+void greyhawk_getposition(int slot, int rnum)
+{
+  switch (world[rnum].ship->slot[slot].position)
+  {
+  case GREYHAWK_FORE:
+    strcpy(greyhawk_position, "Forward");
+    break;
+  case GREYHAWK_REAR:
+    strcpy(greyhawk_position, "Rear");
+    break;
+  case GREYHAWK_PORT:
+    strcpy(greyhawk_position, "Port");
+    break;
+  case GREYHAWK_STARBOARD:
+    strcpy(greyhawk_position, "Starboard");
+    break;
+  default:
+    strcpy(greyhawk_position, "ERROR");
+    break;
   }
-  
+
   if (world[rnum].ship->slot[slot].desc[0] == '\0')
     strcpy(greyhawk_position, "");
 }
@@ -668,16 +648,18 @@ void greyhawk_getposition(int slot, int rnum) {
  * @param slot Weapon slot number
  * @param rnum Room number containing ship
  */
-void greyhawk_dispweapon(int slot, int rnum) {
-  if (world[rnum].ship->slot[slot].type != 1) {
+void greyhawk_dispweapon(int slot, int rnum)
+{
+  if (world[rnum].ship->slot[slot].type != 1)
+  {
     strcpy(greyhawk_weapon, " ");
-  } else {
+  }
+  else
+  {
     greyhawk_getstatus(slot, rnum);
     greyhawk_getposition(slot, rnum);
     snprintf(greyhawk_weapon, sizeof(greyhawk_weapon), "%-20s &N%-6s  &+W%-9s  %d",
-             world[rnum].ship->slot[slot].desc,
-             greyhawk_status,
-             greyhawk_position,
+             world[rnum].ship->slot[slot].desc, greyhawk_status, greyhawk_position,
              world[rnum].ship->slot[slot].val3);
   }
 }
@@ -689,23 +671,28 @@ void greyhawk_dispweapon(int slot, int rnum) {
  * @param range Range type (SHORT/MED/LONG)
  * @return Calculated range value
  */
-int greyhawk_weaprange(int shipnum, int slot, char range) {
+int greyhawk_weaprange(int shipnum, int slot, char range)
+{
   if (greyhawk_ships[shipnum].slot[slot].type != 1)
     return 0;
-    
-  switch (range) {
-    case GREYHAWK_SHRTRANGE:
-      return (int)((float)(greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) / 3 +
-                  greyhawk_ships[shipnum].slot[slot].val1);
-    case GREYHAWK_MEDRANGE:
-      return (int)((float)((greyhawk_ships[shipnum].slot[slot].val0 -
-                           greyhawk_ships[shipnum].slot[slot].val1) / 3) * 2 +
-                  greyhawk_ships[shipnum].slot[slot].val1);
-    case GREYHAWK_LNGRANGE:
-      return greyhawk_ships[shipnum].slot[slot].val0;
-    default:
-      return 0;
+
+  switch (range)
+  {
+  case GREYHAWK_SHRTRANGE:
+    return (int)((float)(greyhawk_ships[shipnum].slot[slot].val0 -
+                         greyhawk_ships[shipnum].slot[slot].val1) /
+                     3 +
+                 greyhawk_ships[shipnum].slot[slot].val1);
+  case GREYHAWK_MEDRANGE:
+    return (int)((float)((greyhawk_ships[shipnum].slot[slot].val0 -
+                          greyhawk_ships[shipnum].slot[slot].val1) /
+                         3) *
+                     2 +
+                 greyhawk_ships[shipnum].slot[slot].val1);
+  case GREYHAWK_LNGRANGE:
+    return greyhawk_ships[shipnum].slot[slot].val0;
+  default:
+    return 0;
   }
 }
 
@@ -717,29 +704,35 @@ int greyhawk_weaprange(int shipnum, int slot, char range) {
  * @param y2 Target Y coordinate
  * @return Bearing in degrees (0-360)
  */
-int greyhawk_bearing(float x1, float y1, float x2, float y2) {
+int greyhawk_bearing(float x1, float y1, float x2, float y2)
+{
   int val;
-  
-  if (y1 == y2) {
+
+  if (y1 == y2)
+  {
     if (x1 > x2)
       return 270;
     return 90;
   }
-  
-  if (x1 == x2) {
+
+  if (x1 == x2)
+  {
     if (y1 > y2)
       return 180;
     else
       return 0;
   }
-  
+
   val = atan((x2 - x1) / (y2 - y1)) * 180 / M_PI;
-  
-  if (y1 < y2) {
+
+  if (y1 < y2)
+  {
     if (val >= 0)
       return val;
     return (val + 360);
-  } else {
+  }
+  else
+  {
     return val + 180;
   }
 }
@@ -754,11 +747,12 @@ int greyhawk_bearing(float x1, float y1, float x2, float y2) {
  * @param z2 Target Z coordinate
  * @return 3D distance
  */
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2) {
+float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
+{
   float dx = x2 - x1;
   float dy = y2 - y1;
   float dz = z2 - z1;
-  
+
   return sqrt((dx * dx) + (dy * dy) + (dz * dz));
 }
 
@@ -769,22 +763,25 @@ float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
  * Initialize Greyhawk ship system
  * Call this during game boot sequence
  */
-void greyhawk_initialize_ships(void) {
+void greyhawk_initialize_ships(void)
+{
   int i, j;
-  
+
   /* Clear ship array */
   memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
-  
+
   /* Clear contact array */
   memset(greyhawk_contacts, 0, sizeof(greyhawk_contacts));
-  
+
   /* Initialize tactical map with default ocean pattern */
-  for (i = 0; i < 151; i++) {
-    for (j = 0; j < 151; j++) {
+  for (i = 0; i < 151; i++)
+  {
+    for (j = 0; j < 151; j++)
+    {
       strcpy(greyhawk_tactical[i][j].map, "  ");
     }
   }
-  
+
   log("Greyhawk ship system initialized.");
 }
 
@@ -816,7 +813,8 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   /* Validate coordinates within wilderness bounds */
   if (new_x < -1024 || new_x > 1024 || new_y < -1024 || new_y > 1024)
   {
-    log("SYSERR: update_ship_wilderness_position: Coordinates out of bounds (%d, %d)", new_x, new_y);
+    log("SYSERR: update_ship_wilderness_position: Coordinates out of bounds (%d, %d)", new_x,
+        new_y);
     return FALSE;
   }
 
@@ -829,7 +827,9 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   wilderness_room = get_or_allocate_wilderness_room(new_x, new_y);
   if (wilderness_room == NOWHERE)
   {
-    log("SYSERR: update_ship_wilderness_position: Room pool exhausted or invalid coordinates (%d, %d)", new_x, new_y);
+    log("SYSERR: update_ship_wilderness_position: Room pool exhausted or invalid coordinates (%d, "
+        "%d)",
+        new_x, new_y);
     return FALSE;
   }
 
@@ -861,7 +861,7 @@ int get_ship_terrain_type(int shipnum)
   /* Validate ship number */
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
   {
-    return SECT_INSIDE;  /* Default safe sector */
+    return SECT_INSIDE; /* Default safe sector */
   }
 
   /* Get ship coordinates */
@@ -873,7 +873,7 @@ int get_ship_terrain_type(int shipnum)
   if (wilderness_room == NOWHERE)
   {
     log("SYSERR: get_ship_terrain_type: Room pool exhausted at (%d, %d)", x, y);
-    return SECT_INSIDE;  /* Default safe sector */
+    return SECT_INSIDE; /* Default safe sector */
   }
 
   /* Return the sector type of the wilderness room */
@@ -928,19 +928,18 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
     /* Flying altitude - check max altitude and underground restrictions */
     if (z > caps->max_altitude)
     {
-      return FALSE;  /* Too high */
+      return FALSE; /* Too high */
     }
     /* Cannot fly underground */
     if (sector_type >= SECT_UD_WILD && sector_type <= SECT_UD_NOGROUND)
     {
       return FALSE;
     }
-    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE ||
-        sector_type == SECT_INSIDE_ROOM)
+    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE || sector_type == SECT_INSIDE_ROOM)
     {
       return FALSE;
     }
-    return TRUE;  /* Can fly over everything else at altitude */
+    return TRUE; /* Can fly over everything else at altitude */
   }
 
   /* Submarines must be submerged for underwater, surfaced otherwise */
@@ -948,7 +947,7 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
   {
     if (sector_type == SECT_UNDERWATER && z >= 0)
     {
-      return FALSE;  /* Must dive (negative z) for underwater */
+      return FALSE; /* Must dive (negative z) for underwater */
     }
     if (sector_type != SECT_UNDERWATER && z < 0)
     {
@@ -986,7 +985,8 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
  * @param weather_conditions Current weather (0=clear, higher=worse)
  * @return Speed modifier as percentage (100 = normal speed, 0 = impassable)
  */
-int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type, int weather_conditions)
+int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
+                               int weather_conditions)
 {
   int base_modifier;
   const struct vessel_terrain_caps *caps;
@@ -995,13 +995,13 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type, i
   caps = get_vessel_terrain_caps(vessel_type);
   if (caps == NULL)
   {
-    return 0;  /* Invalid vessel type */
+    return 0; /* Invalid vessel type */
   }
 
   /* Validate sector type and get base modifier from table */
   if (sector_type < 0 || sector_type >= 40)
   {
-    return 0;  /* Invalid sector type */
+    return 0; /* Invalid sector type */
   }
 
   base_modifier = (int)caps->terrain_speed_mod[sector_type];
@@ -1034,7 +1034,8 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type, i
  * @param ch Character piloting the ship (for messages)
  * @return TRUE if movement successful, FALSE otherwise
  */
-bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
+bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
+{
   int new_x, new_y, new_z;
   int speed_modifier;
   int terrain_type;
@@ -1042,158 +1043,182 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
   enum vessel_class vessel_type;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS) {
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
     return FALSE;
   }
 
   /* Get actual vessel type from ship data */
   vessel_type = get_vessel_type_from_ship(shipnum);
-  
+
   /* Get current position */
   new_x = (int)greyhawk_ships[shipnum].x;
   new_y = (int)greyhawk_ships[shipnum].y;
   new_z = (int)greyhawk_ships[shipnum].z;
-  
+
   /* Get weather conditions at current position */
   weather_conditions = get_weather(new_x, new_y);
-  
+
   /* Calculate new position based on direction and speed */
   int move_distance = MAX(1, greyhawk_ships[shipnum].speed / 10);
-  
+
   /* Weather affects movement distance */
-  if (weather_conditions > 50) {  /* Stormy weather */
-    move_distance = move_distance * 75 / 100;  /* 25% reduction */
-    if (ch) {
+  if (weather_conditions > 50)
+  {                                           /* Stormy weather */
+    move_distance = move_distance * 75 / 100; /* 25% reduction */
+    if (ch)
+    {
       send_to_char(ch, "The harsh weather conditions slow your progress!\r\n");
     }
   }
-  
-  switch (direction) {
-    case NORTH:
-      new_y += move_distance;
-      break;
-    case SOUTH:
-      new_y -= move_distance;
-      break;
-    case EAST:
-      new_x += move_distance;
-      break;
-    case WEST:
-      new_x -= move_distance;
-      break;
-    case NORTHEAST:
-      new_x += move_distance;
-      new_y += move_distance;
-      break;
-    case NORTHWEST:
-      new_x -= move_distance;
-      new_y += move_distance;
-      break;
-    case SOUTHEAST:
-      new_x += move_distance;
-      new_y -= move_distance;
-      break;
-    case SOUTHWEST:
-      new_x -= move_distance;
-      new_y -= move_distance;
-      break;
-    case UP:  /* For airships/submarines */
-      new_z += 10;
-      break;
-    case DOWN:  /* For airships/submarines */
-      new_z -= 10;
-      break;
-    default:
-      return FALSE;
+
+  switch (direction)
+  {
+  case NORTH:
+    new_y += move_distance;
+    break;
+  case SOUTH:
+    new_y -= move_distance;
+    break;
+  case EAST:
+    new_x += move_distance;
+    break;
+  case WEST:
+    new_x -= move_distance;
+    break;
+  case NORTHEAST:
+    new_x += move_distance;
+    new_y += move_distance;
+    break;
+  case NORTHWEST:
+    new_x -= move_distance;
+    new_y += move_distance;
+    break;
+  case SOUTHEAST:
+    new_x += move_distance;
+    new_y -= move_distance;
+    break;
+  case SOUTHWEST:
+    new_x -= move_distance;
+    new_y -= move_distance;
+    break;
+  case UP: /* For airships/submarines */
+    new_z += 10;
+    break;
+  case DOWN: /* For airships/submarines */
+    new_z -= 10;
+    break;
+  default:
+    return FALSE;
   }
-  
+
   /* Check if vessel can traverse the target terrain */
-  if (!can_vessel_traverse_terrain(vessel_type, new_x, new_y, new_z)) {
-    if (ch) {
+  if (!can_vessel_traverse_terrain(vessel_type, new_x, new_y, new_z))
+  {
+    if (ch)
+    {
       /* Send vessel-type-specific denial message */
       switch (vessel_type)
       {
-        case VESSEL_RAFT:
-          send_to_char(ch, "Your raft cannot navigate these waters! It's only suitable for rivers and shallow water.\r\n");
-          break;
-        case VESSEL_BOAT:
-          send_to_char(ch, "Your boat cannot handle these conditions! It's designed for coastal waters only.\r\n");
-          break;
-        case VESSEL_SHIP:
-        case VESSEL_WARSHIP:
-          send_to_char(ch, "The ship cannot navigate this terrain! It requires deep water to sail.\r\n");
-          break;
-        case VESSEL_AIRSHIP:
-          if (new_z < 100)
-          {
-            send_to_char(ch, "The airship cannot fly through this terrain at low altitude! Gain more altitude.\r\n");
-          }
-          else
-          {
-            send_to_char(ch, "The airship cannot fly here - perhaps it's underground or the altitude is too extreme.\r\n");
-          }
-          break;
-        case VESSEL_SUBMARINE:
-          if (new_z >= 0)
-          {
-            send_to_char(ch, "The submarine must dive to navigate underwater terrain! Use 'heading down' to submerge.\r\n");
-          }
-          else
-          {
-            send_to_char(ch, "The submarine cannot traverse this area while submerged!\r\n");
-          }
-          break;
-        case VESSEL_TRANSPORT:
-          send_to_char(ch, "The transport vessel draws too much water for this area!\r\n");
-          break;
-        case VESSEL_MAGICAL:
-          send_to_char(ch, "Even magical forces cannot penetrate this barrier!\r\n");
-          break;
-        default:
-          send_to_char(ch, "The vessel cannot navigate that terrain!\r\n");
-          break;
+      case VESSEL_RAFT:
+        send_to_char(ch, "Your raft cannot navigate these waters! It's only suitable for rivers "
+                         "and shallow water.\r\n");
+        break;
+      case VESSEL_BOAT:
+        send_to_char(
+            ch,
+            "Your boat cannot handle these conditions! It's designed for coastal waters only.\r\n");
+        break;
+      case VESSEL_SHIP:
+      case VESSEL_WARSHIP:
+        send_to_char(ch,
+                     "The ship cannot navigate this terrain! It requires deep water to sail.\r\n");
+        break;
+      case VESSEL_AIRSHIP:
+        if (new_z < 100)
+        {
+          send_to_char(ch, "The airship cannot fly through this terrain at low altitude! Gain more "
+                           "altitude.\r\n");
+        }
+        else
+        {
+          send_to_char(ch, "The airship cannot fly here - perhaps it's underground or the altitude "
+                           "is too extreme.\r\n");
+        }
+        break;
+      case VESSEL_SUBMARINE:
+        if (new_z >= 0)
+        {
+          send_to_char(ch, "The submarine must dive to navigate underwater terrain! Use 'heading "
+                           "down' to submerge.\r\n");
+        }
+        else
+        {
+          send_to_char(ch, "The submarine cannot traverse this area while submerged!\r\n");
+        }
+        break;
+      case VESSEL_TRANSPORT:
+        send_to_char(ch, "The transport vessel draws too much water for this area!\r\n");
+        break;
+      case VESSEL_MAGICAL:
+        send_to_char(ch, "Even magical forces cannot penetrate this barrier!\r\n");
+        break;
+      default:
+        send_to_char(ch, "The vessel cannot navigate that terrain!\r\n");
+        break;
       }
     }
     return FALSE;
   }
-  
+
   /* Update ship position */
-  if (!update_ship_wilderness_position(shipnum, new_x, new_y, new_z)) {
-    if (ch) {
+  if (!update_ship_wilderness_position(shipnum, new_x, new_y, new_z))
+  {
+    if (ch)
+    {
       send_to_char(ch, "Movement failed - unable to update position.\r\n");
     }
     return FALSE;
   }
-  
+
   /* Get terrain at new position and calculate speed modifier including weather */
   terrain_type = get_ship_terrain_type(shipnum);
   speed_modifier = get_terrain_speed_modifier(vessel_type, terrain_type, weather_conditions / 25);
-  
+
   /* Adjust ship speed based on terrain and weather */
   greyhawk_ships[shipnum].speed = (greyhawk_ships[shipnum].setspeed * speed_modifier) / 100;
-  
+
   /* Send movement messages */
-  if (ch) {
+  if (ch)
+  {
     send_to_char(ch, "The vessel moves %s across the wilderness.\r\n", dirs[direction]);
     send_to_char(ch, "Current position: (%d, %d, %d)\r\n", new_x, new_y, new_z);
-    if (speed_modifier != 100) {
+    if (speed_modifier != 100)
+    {
       send_to_char(ch, "Speed affected by terrain and weather: %d%%\r\n", speed_modifier);
     }
-    
+
     /* Weather-specific messages */
-    if (weather_conditions > 75) {
+    if (weather_conditions > 75)
+    {
       send_to_char(ch, "The vessel struggles against the severe storm!\r\n");
       act("The ship rocks violently in the storm!", FALSE, ch, 0, 0, TO_ROOM);
-    } else if (weather_conditions > 50) {
+    }
+    else if (weather_conditions > 50)
+    {
       send_to_char(ch, "Strong winds and rain buffet the vessel.\r\n");
       act("The ship sways in the rough weather.", FALSE, ch, 0, 0, TO_ROOM);
-    } else if (weather_conditions > 25) {
+    }
+    else if (weather_conditions > 25)
+    {
       send_to_char(ch, "Light rain patters against the deck.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "The weather is clear for sailing.\r\n");
     }
   }
-  
+
   return TRUE;
 }
 
@@ -1202,19 +1227,19 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
 /* ========================================================================= */
 
 /* Weather thresholds (matching wilderness weather system) */
-#define VESSEL_WEATHER_CLEAR_MAX     127
-#define VESSEL_WEATHER_CLOUDY_MAX    177
-#define VESSEL_WEATHER_RAIN_MAX      199
-#define VESSEL_WEATHER_STORM_MAX     224
+#define VESSEL_WEATHER_CLEAR_MAX 127
+#define VESSEL_WEATHER_CLOUDY_MAX 177
+#define VESSEL_WEATHER_RAIN_MAX 199
+#define VESSEL_WEATHER_STORM_MAX 224
 /* Values 225-255 are lightning/thunderstorm */
 
 /* Weather string lookup table */
 static const char *vessel_weather_strings[] = {
-  "Clear skies",            /* WEATHER_CLEAR (0-127) */
-  "Overcast and cloudy",    /* WEATHER_CLOUDY (128-177) */
-  "Light rain falling",     /* WEATHER_RAINY (178-199) */
-  "Heavy storm conditions", /* WEATHER_STORMY (200-224) */
-  "Thunderstorm with lightning" /* WEATHER_LIGHTNING (225-255) */
+    "Clear skies",                /* WEATHER_CLEAR (0-127) */
+    "Overcast and cloudy",        /* WEATHER_CLOUDY (128-177) */
+    "Light rain falling",         /* WEATHER_RAINY (178-199) */
+    "Heavy storm conditions",     /* WEATHER_STORMY (200-224) */
+    "Thunderstorm with lightning" /* WEATHER_LIGHTNING (225-255) */
 };
 
 /**
@@ -1239,23 +1264,23 @@ static const char *get_vessel_weather_string(int weather_val)
 }
 
 /* Tactical display constants */
-#define TACTICAL_GRID_SIZE     11   /* 11x11 grid centered on ship */
-#define TACTICAL_HALF_SIZE     5    /* Half the grid size for centering */
-#define TACTICAL_MAX_WIDTH     40   /* Maximum display width in characters */
+#define TACTICAL_GRID_SIZE 11 /* 11x11 grid centered on ship */
+#define TACTICAL_HALF_SIZE 5  /* Half the grid size for centering */
+#define TACTICAL_MAX_WIDTH 40 /* Maximum display width in characters */
 
 /* Tactical display symbols */
-#define TACT_SYM_SHIP      '@'  /* Current vessel position */
-#define TACT_SYM_OTHER     'V'  /* Other vessels */
-#define TACT_SYM_OCEAN     '~'  /* Ocean/deep water */
-#define TACT_SYM_SHALLOW   '.'  /* Shallow water */
-#define TACT_SYM_LAND      '#'  /* Land/impassable */
-#define TACT_SYM_UNKNOWN   '?'  /* Unknown terrain */
-#define TACT_SYM_DOCK      'D'  /* Dock/port */
-#define TACT_SYM_BEACH     ':'  /* Beach */
+#define TACT_SYM_SHIP '@'    /* Current vessel position */
+#define TACT_SYM_OTHER 'V'   /* Other vessels */
+#define TACT_SYM_OCEAN '~'   /* Ocean/deep water */
+#define TACT_SYM_SHALLOW '.' /* Shallow water */
+#define TACT_SYM_LAND '#'    /* Land/impassable */
+#define TACT_SYM_UNKNOWN '?' /* Unknown terrain */
+#define TACT_SYM_DOCK 'D'    /* Dock/port */
+#define TACT_SYM_BEACH ':'   /* Beach */
 
 /* Contact detection constants */
-#define CONTACT_DETECTION_RANGE    50   /* Default detection range in units */
-#define CONTACT_MAX_DISPLAY        20   /* Maximum contacts to display */
+#define CONTACT_DETECTION_RANGE 50 /* Default detection range in units */
+#define CONTACT_MAX_DISPLAY 20     /* Maximum contacts to display */
 
 /* Bearing direction strings (8 cardinal/ordinal directions) */
 static const char *bearing_direction_str(int bearing)
@@ -1283,7 +1308,8 @@ static const char *bearing_direction_str(int bearing)
 /* ========================================================================= */
 
 /* Board command - handled by special procedure on ship objects */
-ACMD(do_board_vessel) {
+ACMD(do_board_vessel)
+{
   send_to_char(ch, "You need to be near a ship to board it.\r\n");
   /* The actual boarding is handled by the greyhawk_ship_object special procedure */
   /* This command exists just so 'board' is recognized as a valid command */
@@ -1300,45 +1326,46 @@ static char get_tactical_terrain_char(int sector_type)
 {
   switch (sector_type)
   {
-    case SECT_OCEAN:
-    case SECT_WATER_NOSWIM:
-    case SECT_UD_NOSWIM:
-      return TACT_SYM_OCEAN;
+  case SECT_OCEAN:
+  case SECT_WATER_NOSWIM:
+  case SECT_UD_NOSWIM:
+    return TACT_SYM_OCEAN;
 
-    case SECT_WATER_SWIM:
-    case SECT_RIVER:
-    case SECT_UD_WATER:
-      return TACT_SYM_SHALLOW;
+  case SECT_WATER_SWIM:
+  case SECT_RIVER:
+  case SECT_UD_WATER:
+    return TACT_SYM_SHALLOW;
 
-    case SECT_BEACH:
-    case SECT_SEAPORT:
-      return TACT_SYM_BEACH;
+  case SECT_BEACH:
+  case SECT_SEAPORT:
+    return TACT_SYM_BEACH;
 
-    case SECT_FIELD:
-    case SECT_FOREST:
-    case SECT_HILLS:
-    case SECT_JUNGLE:
-    case SECT_TAIGA:
-    case SECT_TUNDRA:
-    case SECT_DESERT:
-    case SECT_MARSHLAND:
-      return TACT_SYM_LAND;
+  case SECT_FIELD:
+  case SECT_FOREST:
+  case SECT_HILLS:
+  case SECT_JUNGLE:
+  case SECT_TAIGA:
+  case SECT_TUNDRA:
+  case SECT_DESERT:
+  case SECT_MARSHLAND:
+    return TACT_SYM_LAND;
 
-    case SECT_MOUNTAIN:
-    case SECT_HIGH_MOUNTAIN:
-      return TACT_SYM_LAND;
+  case SECT_MOUNTAIN:
+  case SECT_HIGH_MOUNTAIN:
+    return TACT_SYM_LAND;
 
-    case SECT_CITY:
-    case SECT_INSIDE:
-      return TACT_SYM_DOCK;
+  case SECT_CITY:
+  case SECT_INSIDE:
+    return TACT_SYM_DOCK;
 
-    default:
-      return TACT_SYM_UNKNOWN;
+  default:
+    return TACT_SYM_UNKNOWN;
   }
 }
 
 /* Tactical display command */
-ACMD(do_greyhawk_tactical) {
+ACMD(do_greyhawk_tactical)
+{
   room_rnum ship_room;
   int shipnum;
   int ship_x, ship_y;
@@ -1400,8 +1427,7 @@ ACMD(do_greyhawk_tactical) {
       int rel_y = TACTICAL_HALF_SIZE - (other_y - ship_y);
 
       /* Check if in display range */
-      if (rel_x >= 0 && rel_x < TACTICAL_GRID_SIZE &&
-          rel_y >= 0 && rel_y < TACTICAL_GRID_SIZE)
+      if (rel_x >= 0 && rel_x < TACTICAL_GRID_SIZE && rel_y >= 0 && rel_y < TACTICAL_GRID_SIZE)
       {
         grid[rel_y][rel_x] = TACT_SYM_OTHER;
       }
@@ -1459,101 +1485,136 @@ ACMD(do_greyhawk_tactical) {
 
   /* Legend */
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "   Legend: %c=You  %c=Vessel  %c=Ocean  %c=Shallow\r\n",
-               TACT_SYM_SHIP, TACT_SYM_OTHER, TACT_SYM_OCEAN, TACT_SYM_SHALLOW);
-  send_to_char(ch, "           %c=Land  %c=Beach  %c=Dock\r\n",
-               TACT_SYM_LAND, TACT_SYM_BEACH, TACT_SYM_DOCK);
+  send_to_char(ch, "   Legend: %c=You  %c=Vessel  %c=Ocean  %c=Shallow\r\n", TACT_SYM_SHIP,
+               TACT_SYM_OTHER, TACT_SYM_OCEAN, TACT_SYM_SHALLOW);
+  send_to_char(ch, "           %c=Land  %c=Beach  %c=Dock\r\n", TACT_SYM_LAND, TACT_SYM_BEACH,
+               TACT_SYM_DOCK);
 }
 
-ACMD(do_greyhawk_status) {
+ACMD(do_greyhawk_status)
+{
   room_rnum ship_room = IN_ROOM(ch);
   int shipnum;
   int terrain_type;
   const char *terrain_name = "Unknown";
-  
+
   /* Check if character is in a ship */
-  if (!world[ship_room].ship) {
+  if (!world[ship_room].ship)
+  {
     send_to_char(ch, "You must be aboard a ship to check its status!\r\n");
     return;
   }
-  
+
   shipnum = world[ship_room].ship->shipnum;
-  
+
   /* Get terrain type at current position */
   terrain_type = get_ship_terrain_type(shipnum);
-  
+
   /* Convert terrain type to name */
-  switch (terrain_type) {
-    case SECT_OCEAN: terrain_name = "Ocean"; break;
-    case SECT_WATER_NOSWIM: terrain_name = "Deep Water"; break;
-    case SECT_WATER_SWIM: terrain_name = "Shallow Water"; break;
-    case SECT_UNDERWATER: terrain_name = "Underwater"; break;
-    case SECT_FIELD: terrain_name = "Plains"; break;
-    case SECT_FOREST: terrain_name = "Forest"; break;
-    case SECT_HILLS: terrain_name = "Hills"; break;
-    case SECT_MOUNTAIN: terrain_name = "Mountains"; break;
-    case SECT_BEACH: terrain_name = "Beach"; break;
-    default: terrain_name = "Unknown"; break;
+  switch (terrain_type)
+  {
+  case SECT_OCEAN:
+    terrain_name = "Ocean";
+    break;
+  case SECT_WATER_NOSWIM:
+    terrain_name = "Deep Water";
+    break;
+  case SECT_WATER_SWIM:
+    terrain_name = "Shallow Water";
+    break;
+  case SECT_UNDERWATER:
+    terrain_name = "Underwater";
+    break;
+  case SECT_FIELD:
+    terrain_name = "Plains";
+    break;
+  case SECT_FOREST:
+    terrain_name = "Forest";
+    break;
+  case SECT_HILLS:
+    terrain_name = "Hills";
+    break;
+  case SECT_MOUNTAIN:
+    terrain_name = "Mountains";
+    break;
+  case SECT_BEACH:
+    terrain_name = "Beach";
+    break;
+  default:
+    terrain_name = "Unknown";
+    break;
   }
-  
+
   send_to_char(ch, "\r\n");
   send_to_char(ch, "=== Ship Status ===\r\n");
-  send_to_char(ch, "Ship Name: %s\r\n", greyhawk_ships[shipnum].name[0] ? greyhawk_ships[shipnum].name : "Unnamed Vessel");
+  send_to_char(ch, "Ship Name: %s\r\n",
+               greyhawk_ships[shipnum].name[0] ? greyhawk_ships[shipnum].name : "Unnamed Vessel");
   send_to_char(ch, "Ship ID: %s\r\n", greyhawk_ships[shipnum].id);
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Position ==\r\n");
-  send_to_char(ch, "Coordinates: (%d, %d)\r\n", (int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y);
+  send_to_char(ch, "Coordinates: (%d, %d)\r\n", (int)greyhawk_ships[shipnum].x,
+               (int)greyhawk_ships[shipnum].y);
   send_to_char(ch, "Elevation/Depth: %d\r\n", (int)greyhawk_ships[shipnum].z);
   send_to_char(ch, "Terrain: %s\r\n", terrain_name);
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Navigation ==\r\n");
   send_to_char(ch, "Heading: %d degrees\r\n", greyhawk_ships[shipnum].heading);
-  send_to_char(ch, "Speed: %d / %d\r\n", greyhawk_ships[shipnum].speed, greyhawk_ships[shipnum].maxspeed);
+  send_to_char(ch, "Speed: %d / %d\r\n", greyhawk_ships[shipnum].speed,
+               greyhawk_ships[shipnum].maxspeed);
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Hull Integrity ==\r\n");
-  send_to_char(ch, "Forward: %d/%d\r\n", greyhawk_ships[shipnum].farmor, greyhawk_ships[shipnum].maxfarmor);
-  send_to_char(ch, "Port: %d/%d\r\n", greyhawk_ships[shipnum].parmor, greyhawk_ships[shipnum].maxparmor);
-  send_to_char(ch, "Starboard: %d/%d\r\n", greyhawk_ships[shipnum].sarmor, greyhawk_ships[shipnum].maxsarmor);
-  send_to_char(ch, "Rear: %d/%d\r\n", greyhawk_ships[shipnum].rarmor, greyhawk_ships[shipnum].maxrarmor);
+  send_to_char(ch, "Forward: %d/%d\r\n", greyhawk_ships[shipnum].farmor,
+               greyhawk_ships[shipnum].maxfarmor);
+  send_to_char(ch, "Port: %d/%d\r\n", greyhawk_ships[shipnum].parmor,
+               greyhawk_ships[shipnum].maxparmor);
+  send_to_char(ch, "Starboard: %d/%d\r\n", greyhawk_ships[shipnum].sarmor,
+               greyhawk_ships[shipnum].maxsarmor);
+  send_to_char(ch, "Rear: %d/%d\r\n", greyhawk_ships[shipnum].rarmor,
+               greyhawk_ships[shipnum].maxrarmor);
   send_to_char(ch, "\r\n");
 }
 
-ACMD(do_greyhawk_speed) {
+ACMD(do_greyhawk_speed)
+{
   char arg[MAX_INPUT_LENGTH];
   room_rnum ship_room = IN_ROOM(ch);
   int shipnum;
   int new_speed;
-  
+
   /* Check if character is in a ship control room */
-  if (!world[ship_room].ship) {
+  if (!world[ship_room].ship)
+  {
     send_to_char(ch, "You must be in a ship's control room to adjust speed!\r\n");
     return;
   }
-  
+
   shipnum = world[ship_room].ship->shipnum;
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
-  if (!*arg) {
-    send_to_char(ch, "Current speed: %d / %d\r\n", 
-                 greyhawk_ships[shipnum].speed, greyhawk_ships[shipnum].maxspeed);
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Current speed: %d / %d\r\n", greyhawk_ships[shipnum].speed,
+                 greyhawk_ships[shipnum].maxspeed);
     send_to_char(ch, "Usage: speed <0-%d>\r\n", greyhawk_ships[shipnum].maxspeed);
     return;
   }
-  
+
   new_speed = atoi(arg);
-  
+
   /* Validate speed */
-  if (new_speed < 0) {
+  if (new_speed < 0)
+  {
     send_to_char(ch, "Speed cannot be negative!\r\n");
     return;
   }
-  
-  if (new_speed > greyhawk_ships[shipnum].maxspeed) {
+
+  if (new_speed > greyhawk_ships[shipnum].maxspeed)
+  {
     send_to_char(ch, "Maximum speed is %d!\r\n", greyhawk_ships[shipnum].maxspeed);
     return;
   }
-  
+
   /* Set the new speed */
   greyhawk_ships[shipnum].setspeed = new_speed;
   greyhawk_ships[shipnum].speed = new_speed;
@@ -1589,33 +1650,38 @@ ACMD(do_greyhawk_speed) {
 
     if (speed_modifier != 100)
     {
-      send_to_char(ch, "Effective speed after terrain modifiers: %d\r\n", greyhawk_ships[shipnum].speed);
+      send_to_char(ch, "Effective speed after terrain modifiers: %d\r\n",
+                   greyhawk_ships[shipnum].speed);
     }
   }
 }
 
-ACMD(do_greyhawk_heading) {
+ACMD(do_greyhawk_heading)
+{
   char arg[MAX_INPUT_LENGTH];
   int direction = -1;
   int shipnum = -1;
   room_rnum ship_room = IN_ROOM(ch);
-  
+
   /* Check if character is in a ship control room */
-  if (!world[ship_room].ship) {
+  if (!world[ship_room].ship)
+  {
     send_to_char(ch, "You must be in a ship's control room to set heading!\r\n");
     return;
   }
-  
+
   shipnum = world[ship_room].ship->shipnum;
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
-  if (!*arg) {
+
+  if (!*arg)
+  {
     send_to_char(ch, "Set heading to which direction?\r\n");
-    send_to_char(ch, "Valid directions: north, south, east, west, northeast, northwest, southeast, southwest\r\n");
+    send_to_char(ch, "Valid directions: north, south, east, west, northeast, northwest, southeast, "
+                     "southwest\r\n");
     return;
   }
-  
+
   /* Parse direction */
   if (!str_cmp(arg, "north") || !str_cmp(arg, "n"))
     direction = NORTH;
@@ -1637,19 +1703,22 @@ ACMD(do_greyhawk_heading) {
     direction = UP;
   else if (!str_cmp(arg, "down") || !str_cmp(arg, "d"))
     direction = DOWN;
-  else {
+  else
+  {
     send_to_char(ch, "Invalid direction!\r\n");
     return;
   }
-  
+
   /* Move the ship using wilderness coordinates */
-  if (move_ship_wilderness(shipnum, direction, ch)) {
+  if (move_ship_wilderness(shipnum, direction, ch))
+  {
     act("$n adjusts the ship's heading and the vessel begins to move.", FALSE, ch, 0, 0, TO_ROOM);
   }
 }
 
 /* Structure for sorting contacts by distance */
-struct contact_entry {
+struct contact_entry
+{
   int shipnum;
   float range;
   int bearing;
@@ -1660,13 +1729,16 @@ static int compare_contacts(const void *a, const void *b)
 {
   const struct contact_entry *ca = (const struct contact_entry *)a;
   const struct contact_entry *cb = (const struct contact_entry *)b;
-  if (ca->range < cb->range) return -1;
-  if (ca->range > cb->range) return 1;
+  if (ca->range < cb->range)
+    return -1;
+  if (ca->range > cb->range)
+    return 1;
   return 0;
 }
 
 /* Contacts display command */
-ACMD(do_greyhawk_contacts) {
+ACMD(do_greyhawk_contacts)
+{
   room_rnum ship_room;
   int shipnum;
   int ship_x, ship_y, ship_z;
@@ -1702,18 +1774,15 @@ ACMD(do_greyhawk_contacts) {
   {
     if (greyhawk_ships[i].shipnum > 0 && i != shipnum)
     {
-      float range = greyhawk_range(ship_x, ship_y, ship_z,
-                                   greyhawk_ships[i].x,
-                                   greyhawk_ships[i].y,
+      float range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x, greyhawk_ships[i].y,
                                    greyhawk_ships[i].z);
 
       if (range <= CONTACT_DETECTION_RANGE)
       {
         contacts[contact_count].shipnum = i;
         contacts[contact_count].range = range;
-        contacts[contact_count].bearing = greyhawk_bearing(ship_x, ship_y,
-                                                           (int)greyhawk_ships[i].x,
-                                                           (int)greyhawk_ships[i].y);
+        contacts[contact_count].bearing =
+            greyhawk_bearing(ship_x, ship_y, (int)greyhawk_ships[i].x, (int)greyhawk_ships[i].y);
         contact_count++;
       }
     }
@@ -1738,21 +1807,16 @@ ACMD(do_greyhawk_contacts) {
   }
   else
   {
-    send_to_char(ch, "   %-20s  %8s  %7s  %4s\r\n",
-                 "VESSEL", "RANGE", "BEARING", "DIR");
+    send_to_char(ch, "   %-20s  %8s  %7s  %4s\r\n", "VESSEL", "RANGE", "BEARING", "DIR");
     send_to_char(ch, "   -------------------------------------------\r\n");
 
     for (i = 0; i < contact_count; i++)
     {
       int idx = contacts[i].shipnum;
-      const char *name = greyhawk_ships[idx].name[0] ?
-                         greyhawk_ships[idx].name : "Unknown Vessel";
+      const char *name = greyhawk_ships[idx].name[0] ? greyhawk_ships[idx].name : "Unknown Vessel";
 
-      send_to_char(ch, "   %-20s  %6.1f u  %5d deg  %s\r\n",
-                   name,
-                   contacts[i].range,
-                   contacts[i].bearing,
-                   bearing_direction_str(contacts[i].bearing));
+      send_to_char(ch, "   %-20s  %6.1f u  %5d deg  %s\r\n", name, contacts[i].range,
+                   contacts[i].bearing, bearing_direction_str(contacts[i].bearing));
     }
 
     send_to_char(ch, "\r\n");
@@ -1761,7 +1825,8 @@ ACMD(do_greyhawk_contacts) {
 }
 
 /* Disembark command - leave vessel */
-ACMD(do_greyhawk_disembark) {
+ACMD(do_greyhawk_disembark)
+{
   room_rnum ship_room;
   room_rnum exit_room = NOWHERE;
   int shipnum;
@@ -1813,8 +1878,8 @@ ACMD(do_greyhawk_disembark) {
   if (is_docked)
   {
     /* Docked - can safely disembark to dock */
-    exit_room = find_room_by_coordinates((int)greyhawk_ships[shipnum].x,
-                                         (int)greyhawk_ships[shipnum].y);
+    exit_room =
+        find_room_by_coordinates((int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y);
 
     if (exit_room == NOWHERE)
     {
@@ -1837,23 +1902,23 @@ ACMD(do_greyhawk_disembark) {
   /* Not docked - disembarking to water */
   switch (terrain_type)
   {
-    case SECT_OCEAN:
-    case SECT_WATER_NOSWIM:
-    case SECT_UD_NOSWIM:
-      /* Deep water - cannot swim here */
-      send_to_char(ch, "The water here is too deep and dangerous to enter.\r\n");
-      send_to_char(ch, "You need to find a dock or shallower water.\r\n");
-      return;
+  case SECT_OCEAN:
+  case SECT_WATER_NOSWIM:
+  case SECT_UD_NOSWIM:
+    /* Deep water - cannot swim here */
+    send_to_char(ch, "The water here is too deep and dangerous to enter.\r\n");
+    send_to_char(ch, "You need to find a dock or shallower water.\r\n");
+    return;
 
-    case SECT_WATER_SWIM:
-    case SECT_UD_WATER:
-    case SECT_RIVER:
-      /* Swimmable water - check if character can swim */
-      break;
+  case SECT_WATER_SWIM:
+  case SECT_UD_WATER:
+  case SECT_RIVER:
+    /* Swimmable water - check if character can swim */
+    break;
 
-    default:
-      send_to_char(ch, "You can't disembark here - no valid exit point.\r\n");
-      return;
+  default:
+    send_to_char(ch, "You can't disembark here - no valid exit point.\r\n");
+    return;
   }
 
   /* Check for swimming ability */
@@ -1886,8 +1951,8 @@ ACMD(do_greyhawk_disembark) {
   }
 
   /* Find exit room */
-  exit_room = find_room_by_coordinates((int)greyhawk_ships[shipnum].x,
-                                       (int)greyhawk_ships[shipnum].y);
+  exit_room =
+      find_room_by_coordinates((int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y);
 
   if (exit_room == NOWHERE)
   {
@@ -1907,10 +1972,12 @@ ACMD(do_greyhawk_disembark) {
   look_at_room(ch, 0);
 }
 
-ACMD(do_greyhawk_shipload) {
+ACMD(do_greyhawk_shipload)
+{
   send_to_char(ch, "Ship loading not yet implemented.\r\n");
 }
 
-ACMD(do_greyhawk_setsail) {
+ACMD(do_greyhawk_setsail)
+{
   send_to_char(ch, "Set sail function not yet implemented.\r\n");
 }

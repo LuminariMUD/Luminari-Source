@@ -61,15 +61,15 @@ struct olc_data {
 ACMD(do_redit) {
   room_vnum vnum;
   room_rnum real_num;
-  
+
   one_argument(argument, buf);
-  
+
   if (!*buf) {
     vnum = world[IN_ROOM(ch)].number;
   } else {
     vnum = atoi(buf);
   }
-  
+
   if ((real_num = real_room(vnum)) == NOWHERE) {
     // Create new room
     if (can_edit_zone(ch, zone_table[vnum / 100].number)) {
@@ -79,18 +79,18 @@ ACMD(do_redit) {
       return;
     }
   }
-  
+
   // Enter editing mode
   STATE(ch->desc) = CON_REDIT;
   act("$n starts using OLC.", TRUE, ch, 0, 0, TO_ROOM);
   SET_BIT(PLR_FLAGS(ch), PLR_WRITING);
-  
+
   // Initialize OLC data
   CREATE(OLC(ch->desc), struct olc_data, 1);
   OLC_ROOM(ch->desc) = &world[real_num];
   OLC_NUM(ch->desc) = vnum;
   OLC_VAL(ch->desc) = 0;
-  
+
   redit_disp_menu(ch->desc);
 }
 ```
@@ -99,7 +99,7 @@ ACMD(do_redit) {
 ```c
 void redit_disp_menu(struct descriptor_data *d) {
   struct room_data *room = OLC_ROOM(d);
-  
+
   clear_screen(d);
   write_to_output(d,
     "-- Room Number: [%s%d%s]  Room Zone: [%s%d%s]\r\n"
@@ -120,7 +120,7 @@ void redit_disp_menu(struct descriptor_data *d) {
     "%sX%s) Delete room\r\n"
     "%sQ%s) Quit\r\n"
     "Enter choice : ",
-    
+
     cyn, OLC_NUM(d), nrm,
     cyn, zone_table[room->zone].number, nrm,
     grn, nrm, yel, room->name ? room->name : "Undefined",
@@ -140,7 +140,7 @@ void redit_disp_menu(struct descriptor_data *d) {
     grn, nrm,
     grn, nrm
   );
-  
+
   OLC_MODE(d) = REDIT_MAIN_MENU;
 }
 ```
@@ -149,7 +149,7 @@ void redit_disp_menu(struct descriptor_data *d) {
 ```c
 void redit_disp_exit_menu(struct descriptor_data *d) {
   struct room_direction_data *exit = OLC_EXIT(d);
-  
+
   write_to_output(d,
     "%s-- Exit info --\r\n"
     "%s1%s) Exit to room : %s%d\r\n"
@@ -159,7 +159,7 @@ void redit_disp_exit_menu(struct descriptor_data *d) {
     "%s5%s) Door flags   : %s%s\r\n"
     "%s6%s) Purge exit.\r\n"
     "Enter choice, 0 to quit : ",
-    
+
     cyn,
     grn, nrm, cyn, exit && exit->to_room != NOWHERE ? world[exit->to_room].number : -1,
     grn, nrm, yel, exit && exit->general_description ? exit->general_description : "None",
@@ -179,39 +179,39 @@ ACMD(do_oedit) {
   obj_vnum vnum;
   obj_rnum real_num;
   struct obj_data *obj;
-  
+
   one_argument(argument, buf);
-  
+
   if (!*buf) {
     send_to_char(ch, "Specify an object VNUM to edit.\r\n");
     return;
   }
-  
+
   vnum = atoi(buf);
-  
+
   if ((real_num = real_object(vnum)) == NOTHING) {
     // Create new object
     if (!can_edit_zone(ch, vnum / 100)) {
       send_to_char(ch, "You don't have permission to edit that zone.\r\n");
       return;
     }
-    
+
     real_num = create_new_object(vnum);
   }
-  
+
   obj = &obj_proto[real_num];
-  
+
   // Enter editing mode
   STATE(ch->desc) = CON_OEDIT;
   act("$n starts using OLC.", TRUE, ch, 0, 0, TO_ROOM);
   SET_BIT(PLR_FLAGS(ch), PLR_WRITING);
-  
+
   // Initialize OLC data
   CREATE(OLC(ch->desc), struct olc_data, 1);
   OLC_OBJ(ch->desc) = obj;
   OLC_NUM(ch->desc) = vnum;
   OLC_VAL(ch->desc) = 0;
-  
+
   oedit_disp_menu(ch->desc);
 }
 ```
@@ -220,7 +220,7 @@ ACMD(do_oedit) {
 ```c
 void oedit_disp_menu(struct descriptor_data *d) {
   struct obj_data *obj = OLC_OBJ(d);
-  
+
   clear_screen(d);
   write_to_output(d,
     "-- Object Number: [%s%d%s]\r\n"
@@ -245,7 +245,7 @@ void oedit_disp_menu(struct descriptor_data *d) {
     "%sX%s) Delete object\r\n"
     "%sQ%s) Quit\r\n"
     "Enter choice : ",
-    
+
     cyn, OLC_NUM(d), nrm,
     grn, nrm, yel, obj->name ? obj->name : "undefined",
     grn, nrm, yel, obj->short_description ? obj->short_description : "undefined",
@@ -268,7 +268,7 @@ void oedit_disp_menu(struct descriptor_data *d) {
     grn, nrm,
     grn, nrm
   );
-  
+
   OLC_MODE(d) = OEDIT_MAIN_MENU;
 }
 ```
@@ -277,7 +277,7 @@ void oedit_disp_menu(struct descriptor_data *d) {
 ```c
 void oedit_disp_val1_menu(struct descriptor_data *d) {
   struct obj_data *obj = OLC_OBJ(d);
-  
+
   switch (GET_OBJ_TYPE(obj)) {
     case ITEM_WEAPON:
       write_to_output(d, "Weapon type (0-13): ");
@@ -316,39 +316,39 @@ ACMD(do_medit) {
   mob_vnum vnum;
   mob_rnum real_num;
   struct char_data *mob;
-  
+
   one_argument(argument, buf);
-  
+
   if (!*buf) {
     send_to_char(ch, "Specify a mobile VNUM to edit.\r\n");
     return;
   }
-  
+
   vnum = atoi(buf);
-  
+
   if ((real_num = real_mobile(vnum)) == NOBODY) {
     // Create new mobile
     if (!can_edit_zone(ch, vnum / 100)) {
       send_to_char(ch, "You don't have permission to edit that zone.\r\n");
       return;
     }
-    
+
     real_num = create_new_mobile(vnum);
   }
-  
+
   mob = &mob_proto[real_num];
-  
+
   // Enter editing mode
   STATE(ch->desc) = CON_MEDIT;
   act("$n starts using OLC.", TRUE, ch, 0, 0, TO_ROOM);
   SET_BIT(PLR_FLAGS(ch), PLR_WRITING);
-  
+
   // Initialize OLC data
   CREATE(OLC(ch->desc), struct olc_data, 1);
   OLC_MOB(ch->desc) = mob;
   OLC_NUM(ch->desc) = vnum;
   OLC_VAL(ch->desc) = 0;
-  
+
   medit_disp_menu(ch->desc);
 }
 ```
@@ -357,7 +357,7 @@ ACMD(do_medit) {
 ```c
 void medit_disp_stats_menu(struct descriptor_data *d) {
   struct char_data *mob = OLC_MOB(d);
-  
+
   write_to_output(d,
     "%s-- Mob Number:  [%s%d%s]\r\n"
     "%s1%s) Level       : %s%d\r\n"
@@ -379,7 +379,7 @@ void medit_disp_stats_menu(struct descriptor_data *d) {
     "%sH%s) Charisma    : %s%d\r\n"
     "%sQ%s) Quit\r\n"
     "Enter choice : ",
-    
+
     cyn, cyn, OLC_NUM(d), nrm,
     grn, nrm, cyn, GET_LEVEL(mob),
     grn, nrm, cyn, GET_HITROLL(mob),
@@ -400,7 +400,7 @@ void medit_disp_stats_menu(struct descriptor_data *d) {
     grn, nrm, cyn, GET_CHA(mob),
     grn, nrm
   );
-  
+
   OLC_MODE(d) = MEDIT_STATS_MENU;
 }
 ```
@@ -436,7 +436,7 @@ struct reset_com {
 void zedit_disp_menu(struct descriptor_data *d) {
   struct zone_data *zone = OLC_ZONE(d);
   int i = 0;
-  
+
   clear_screen(d);
   write_to_output(d,
     "Zone number: %s%d%s        Zone name: %s%s%s\r\n"
@@ -444,7 +444,7 @@ void zedit_disp_menu(struct descriptor_data *d) {
     "Top of zone: %s%d%s        Lifespan: %s%d%s minutes\r\n"
     "Reset Mode: %s%s%s        Zone flags: %s%s%s\r\n"
     "Min Level: %s%d%s         Max Level: %s%d%s\r\n\r\n",
-    
+
     cyn, zone->number, nrm,
     yel, zone->name ? zone->name : "Undefined", nrm,
     yel, zone->builders ? zone->builders : "None", nrm,
@@ -455,15 +455,15 @@ void zedit_disp_menu(struct descriptor_data *d) {
     cyn, zone->min_level, nrm,
     cyn, zone->max_level, nrm
   );
-  
+
   // Display zone commands
   write_to_output(d, "Zone commands:\r\n");
   for (i = 0; zone->cmd[i].command != 'S'; i++) {
-    write_to_output(d, "%s%2d%s - %s\r\n", 
-                    cyn, i, nrm, 
+    write_to_output(d, "%s%2d%s - %s\r\n",
+                    cyn, i, nrm,
                     zedit_get_command_desc(&zone->cmd[i]));
   }
-  
+
   write_to_output(d,
     "\r\n%sN%s) New command.    %sE%s) Edit a command.    %sD%s) Delete a command.\r\n"
     "%sZ%s) Zone info.       %sQ%s) Quit\r\n"
@@ -471,7 +471,7 @@ void zedit_disp_menu(struct descriptor_data *d) {
     grn, nrm, grn, nrm, grn, nrm,
     grn, nrm, grn, nrm
   );
-  
+
   OLC_MODE(d) = ZEDIT_MAIN_MENU;
 }
 ```
@@ -482,7 +482,7 @@ void zedit_disp_menu(struct descriptor_data *d) {
 ```c
 void trigedit_disp_menu(struct descriptor_data *d) {
   struct trig_data *trig = OLC_TRIG(d);
-  
+
   clear_screen(d);
   write_to_output(d,
     "Trigger Editor [%s%d%s]\r\n"
@@ -494,7 +494,7 @@ void trigedit_disp_menu(struct descriptor_data *d) {
     "%s6%s) Commands:\r\n%s%s\r\n"
     "%sQ%s) Quit\r\n"
     "Enter choice : ",
-    
+
     cyn, OLC_NUM(d), nrm,
     grn, nrm, yel, trig->name ? trig->name : "Undefined",
     grn, nrm, cyn, attach_types[trig->attach_type],
@@ -504,7 +504,7 @@ void trigedit_disp_menu(struct descriptor_data *d) {
     grn, nrm, yel, trigedit_get_command_list(trig),
     grn, nrm
   );
-  
+
   OLC_MODE(d) = TRIGEDIT_MAIN_MENU;
 }
 ```
@@ -516,25 +516,25 @@ void trigedit_disp_menu(struct descriptor_data *d) {
 bool can_edit_zone(struct char_data *ch, zone_vnum zone_num) {
   struct zone_data *zone;
   char *builders, *builder_name;
-  
+
   // Implementors can edit anything
   if (GET_LEVEL(ch) >= LVL_IMPL) {
     return TRUE;
   }
-  
+
   // Find the zone
   if ((zone = real_zone(zone_num)) == NULL) {
     return FALSE;
   }
-  
+
   // Check if character is listed as a builder
   if (!zone->builders || !*zone->builders) {
     return FALSE; // No builders specified
   }
-  
+
   builders = strdup(zone->builders);
   builder_name = strtok(builders, " ");
-  
+
   while (builder_name) {
     if (!str_cmp(builder_name, GET_NAME(ch))) {
       free(builders);
@@ -542,7 +542,7 @@ bool can_edit_zone(struct char_data *ch, zone_vnum zone_num) {
     }
     builder_name = strtok(NULL, " ");
   }
-  
+
   free(builders);
   return FALSE;
 }
@@ -552,26 +552,26 @@ bool can_edit_zone(struct char_data *ch, zone_vnum zone_num) {
 ```c
 bool olc_security_check(struct char_data *ch, int vnum) {
   zone_vnum zone = vnum / 100;
-  
+
   // Check basic permissions
   if (!can_edit_zone(ch, zone)) {
     send_to_char(ch, "You don't have permission to edit zone %d.\r\n", zone);
     return FALSE;
   }
-  
+
   // Check if zone is locked
   if (zone_table[zone].locked) {
     send_to_char(ch, "Zone %d is currently locked for editing.\r\n", zone);
     return FALSE;
   }
-  
+
   // Check if vnum is in valid range
   if (vnum < zone * 100 || vnum > zone_table[zone].top) {
-    send_to_char(ch, "VNUM %d is outside the valid range for zone %d.\r\n", 
+    send_to_char(ch, "VNUM %d is outside the valid range for zone %d.\r\n",
                  vnum, zone);
     return FALSE;
   }
-  
+
   return TRUE;
 }
 ```
@@ -601,7 +601,7 @@ void olc_save_to_disk(struct descriptor_data *d) {
       trigedit_save_to_disk(d);
       break;
   }
-  
+
   send_to_char(d->character, "Saved to disk.\r\n");
 }
 ```
@@ -613,11 +613,11 @@ bool validate_room_data(struct room_data *room) {
   if (!room->name || !*room->name) {
     return FALSE;
   }
-  
+
   if (!room->description || !*room->description) {
     return FALSE;
   }
-  
+
   // Validate exits
   int dir;
   for (dir = 0; dir < NUM_OF_DIRS; dir++) {
@@ -627,7 +627,7 @@ bool validate_room_data(struct room_data *room) {
       }
     }
   }
-  
+
   return TRUE;
 }
 
@@ -636,11 +636,11 @@ bool validate_object_data(struct obj_data *obj) {
   if (!obj->name || !*obj->name) {
     return FALSE;
   }
-  
+
   if (!obj->short_description || !*obj->short_description) {
     return FALSE;
   }
-  
+
   // Validate object values based on type
   switch (GET_OBJ_TYPE(obj)) {
     case ITEM_WEAPON:
@@ -654,7 +654,7 @@ bool validate_object_data(struct obj_data *obj) {
       }
       break;
   }
-  
+
   return TRUE;
 }
 ```
@@ -666,22 +666,22 @@ bool validate_object_data(struct obj_data *obj) {
 ACMD(do_copy) {
   char from_arg[MAX_INPUT_LENGTH], to_arg[MAX_INPUT_LENGTH];
   int from_vnum, to_vnum;
-  
+
   two_arguments(argument, from_arg, to_arg);
-  
+
   if (!*from_arg || !*to_arg) {
     send_to_char(ch, "Usage: copy <from_vnum> <to_vnum>\r\n");
     return;
   }
-  
+
   from_vnum = atoi(from_arg);
   to_vnum = atoi(to_arg);
-  
+
   // Validate permissions for both vnums
   if (!olc_security_check(ch, from_vnum) || !olc_security_check(ch, to_vnum)) {
     return;
   }
-  
+
   // Perform the copy based on current editing mode
   switch (STATE(ch->desc)) {
     case CON_REDIT:
@@ -694,7 +694,7 @@ ACMD(do_copy) {
       copy_mobile(from_vnum, to_vnum);
       break;
   }
-  
+
   send_to_char(ch, "Copied %d to %d.\r\n", from_vnum, to_vnum);
 }
 ```
@@ -705,28 +705,28 @@ ACMD(do_massroomset) {
   char field_arg[MAX_INPUT_LENGTH], value_arg[MAX_INPUT_LENGTH];
   char range_arg[MAX_INPUT_LENGTH];
   int start_vnum, end_vnum, i;
-  
+
   three_arguments(argument, range_arg, field_arg, value_arg);
-  
+
   if (!*range_arg || !*field_arg || !*value_arg) {
     send_to_char(ch, "Usage: massroomset <start-end> <field> <value>\r\n");
     return;
   }
-  
+
   // Parse range
   sscanf(range_arg, "%d-%d", &start_vnum, &end_vnum);
-  
+
   // Apply changes to all rooms in range
   for (i = start_vnum; i <= end_vnum; i++) {
     room_rnum real_num = real_room(i);
     if (real_num == NOWHERE) continue;
-    
+
     if (!can_edit_zone(ch, i / 100)) continue;
-    
+
     // Apply the field change
     apply_room_field_change(&world[real_num], field_arg, value_arg);
   }
-  
+
   send_to_char(ch, "Applied changes to rooms %d-%d.\r\n", start_vnum, end_vnum);
 }
 ```

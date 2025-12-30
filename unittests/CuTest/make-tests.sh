@@ -18,7 +18,7 @@ echo '
 
 '
 
-cat $FILES | grep '^void Test' | 
+cat $FILES | grep '^void Test' |
     sed -e 's/(.*$//' \
         -e 's/$/(CuTest*);/' \
         -e 's/^/extern /'
@@ -26,13 +26,13 @@ cat $FILES | grep '^void Test' |
 echo \
 '
 
-void RunAllTests(void) 
+void RunAllTests(void)
 {
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();
 
 '
-cat $FILES | grep '^void Test' | 
+cat $FILES | grep '^void Test' |
     sed -e 's/^void //' \
         -e 's/(.*$//' \
         -e 's/^/    SUITE_ADD_TEST(suite, /' \

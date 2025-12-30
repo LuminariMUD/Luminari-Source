@@ -29,13 +29,14 @@
 typedef int bool;
 
 /* Autopilot constants */
-#define MAX_WAYPOINTS_PER_ROUTE     20
-#define AUTOPILOT_NAME_LENGTH       64
-#define CREW_ROLE_PILOT             "pilot"
-#define NOBODY                      -1
+#define MAX_WAYPOINTS_PER_ROUTE 20
+#define AUTOPILOT_NAME_LENGTH 64
+#define CREW_ROLE_PILOT "pilot"
+#define NOBODY -1
 
 /* Autopilot state enum */
-enum autopilot_state {
+enum autopilot_state
+{
   AUTOPILOT_OFF,
   AUTOPILOT_TRAVELING,
   AUTOPILOT_WAITING,
@@ -44,7 +45,8 @@ enum autopilot_state {
 };
 
 /* Waypoint structure */
-struct waypoint {
+struct waypoint
+{
   float x;
   float y;
   float z;
@@ -55,7 +57,8 @@ struct waypoint {
 };
 
 /* Ship route structure */
-struct ship_route {
+struct ship_route
+{
   int route_id;
   char name[AUTOPILOT_NAME_LENGTH];
   struct waypoint waypoints[MAX_WAYPOINTS_PER_ROUTE];
@@ -65,7 +68,8 @@ struct ship_route {
 };
 
 /* Autopilot data structure */
-struct autopilot_data {
+struct autopilot_data
+{
   enum autopilot_state state;
   struct ship_route *current_route;
   int current_waypoint_index;

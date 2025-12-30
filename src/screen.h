@@ -1,13 +1,13 @@
 /**
 * @file screen.h                                            LuminariMUD
 * Header file with ANSI color codes for online color.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-*                                                                        
-* All rights reserved.  See license for complete information.                                                                
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               
+*
+* All rights reserved.  See license for complete information.
+* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
 */
 #ifndef _SCREEN_H_
 #define _SCREEN_H_
@@ -66,7 +66,8 @@
 #define CSLH "\\"
 
 #define CUDL "\x1B[4m" /* Underline ANSI code */
-#define CFSH "\x1B[5m" /* Flashing ANSI code.  Change to #define CFSH "" if \
+#define CFSH                                                                                       \
+  "\x1B[5m"            /* Flashing ANSI code.  Change to #define CFSH "" if \
                         * you want to disable flashing colour codes         \
                         */
 #define CRVS "\x1B[7m" /* Reverse video ANSI code */
@@ -76,9 +77,10 @@
 #define C_SPR 1
 #define C_NRM 2
 #define C_CMP 3
-#define _clrlevel(ch) (!IS_NPC(ch) ? (PRF_FLAGGED((ch), PRF_COLOR_1) ? 1 : 0) +   \
-                                         (PRF_FLAGGED((ch), PRF_COLOR_2) ? 2 : 0) \
-                                   : 0)
+#define _clrlevel(ch)                                                                              \
+  (!IS_NPC(ch)                                                                                     \
+       ? (PRF_FLAGGED((ch), PRF_COLOR_1) ? 1 : 0) + (PRF_FLAGGED((ch), PRF_COLOR_2) ? 2 : 0)       \
+       : 0)
 #define clr(ch, lvl) (_clrlevel(ch) >= (lvl))
 
 /* Player dependant foreground color codes */

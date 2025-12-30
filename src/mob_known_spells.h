@@ -28,10 +28,10 @@ int categorize_known_spell(int spellnum);
 /* Check if mob has any known spells */
 bool mob_has_known_spells(struct char_data *ch);
 
-#define KNOWN_SPELL_CATEGORY_BUFF     0
-#define KNOWN_SPELL_CATEGORY_HEAL     1
+#define KNOWN_SPELL_CATEGORY_BUFF 0
+#define KNOWN_SPELL_CATEGORY_HEAL 1
 #define KNOWN_SPELL_CATEGORY_OFFENSIVE 2
-#define KNOWN_SPELL_CATEGORY_SUMMON   3
-#define KNOWN_SPELL_CATEGORY_UTILITY  4
+#define KNOWN_SPELL_CATEGORY_SUMMON 3
+#define KNOWN_SPELL_CATEGORY_UTILITY 4
 
 #endif

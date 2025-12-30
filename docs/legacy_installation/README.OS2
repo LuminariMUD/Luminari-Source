@@ -23,12 +23,12 @@ All needed files can be found at the hobbes.nmsu.edu FTP site.
   were not included in earlier versions of GCC for OS/2.  The current version
   is 2.7.0
 
-* GNU's TAR and GZIP programs to decompress the necessary files.  Again 
+* GNU's TAR and GZIP programs to decompress the necessary files.  Again
   these can be found at hobbes.nmsu.edu in os2/unix.
   **** You only need this if you plan on getting some of the various
   **** addons for Circle that others have coded.
 
-* A MAKE program.  Either the GNU Make, or IBM's NMAKE should work.  You 
+* A MAKE program.  Either the GNU Make, or IBM's NMAKE should work.  You
   can obtain the NMAKE from either IBM's Developers kit or from
   hobbes.nmsu.edu in os2/16dev.
 

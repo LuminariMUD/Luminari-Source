@@ -46,7 +46,7 @@
 - **New Files Created:**
   - `src/vessels_rooms.c` - Room generation and management (600+ lines)
   - `src/vessels_docking.c` - Docking and boarding mechanics (700+ lines)
-  
+
 - **Modified Files:**
   - `src/vessels.h` - Extended data structures for multi-room support
   - Added room types, connections, docking fields
@@ -139,4 +139,3 @@
 - NPC automation and pathfinding
 - Resource gathering from vessels
 - Advanced collision detection
-

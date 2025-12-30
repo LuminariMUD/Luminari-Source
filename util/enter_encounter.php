@@ -5,7 +5,7 @@
  * SECURITY NOTICE:
  * This tool generates C code and should be heavily restricted.
  * Only authorized developers should have access to this tool.
- * 
+ *
  * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
  *      deployment guide, and security best practices for all PHP tools.
  */
@@ -28,37 +28,37 @@ if (!isset($_SESSION['csrf_token'])) {
 
 /**
  * enter_encounter.php - LuminariMUD Random Encounter Generator Tool
- * 
+ *
  * PURPOSE:
  * This tool generates C code for random encounter definitions in the LuminariMUD
  * encounter system. It provides a web form interface for game designers to create
  * new encounter types without manually writing code.
- * 
+ *
  * FUNCTIONALITY:
  * - Accepts encounter parameters through a web form
  * - Validates and processes input data
  * - Generates properly formatted C code for encounters.c
  * - Handles encounter groups (multiple mobs in one encounter)
  * - Supports terrain-based encounter spawning
- * 
+ *
  * ENCOUNTER SYSTEM OVERVIEW:
  * Random encounters in LuminariMUD spawn dynamically based on:
  * - Player level range
  * - Terrain type (forest, mountains, underdark, etc.)
  * - Encounter probability tables
  * - Group composition (single or multiple mobs)
- * 
+ *
  * GENERATED CODE FORMAT:
  * The tool generates three types of C code:
  * 1. add_encounter_record() - Main encounter definition
  * 2. set_encounter_description() - Look description
  * 3. add_encounter_sector() - Terrain assignments
- * 
+ *
  * INTEGRATION:
  * Generated code should be added to:
  * - encounters.c (function calls)
  * - encounters.h (macro definitions)
- * 
+ *
  * SECURITY NOTES:
  * - Input sanitization is performed on all text fields
  * - Quotes are escaped to prevent code injection
@@ -196,7 +196,7 @@ if ($_POST)
         http_response_code(400);
         die("Invalid level range. Must be numbers with min <= max.");
     }
-    
+
     // Validate encounter group
     $encounter_group_raw = validateInput($_POST['encounter_group'] ?? '', 'identifier', 50);
     if ($encounter_group_raw === false) {
@@ -244,10 +244,10 @@ if ($_POST)
         http_response_code(400);
         die("Invalid class selection.");
     }
-    
+
     // Extra treasure table reference
     $treasure_table = $_POST['treasure_table'];
-    
+
     // Mob characteristics
     $alignment = $_POST['alignment'];
     $race_type = $_POST['race_type'];
@@ -255,18 +255,18 @@ if ($_POST)
     $subrace2 = $_POST['subrace2'];
     $subrace3 = $_POST['subrace3'];
     $size = $_POST['size'];
-    
+
     // Behavior flags
     $hostile = $_POST['hostile'];      // Can players leave without fighting?
     $sentient = $_POST['sentient'];    // Can be negotiated with?
-    
+
     // Descriptions
     $long_desc = $_POST['long_desc'];   // Room description
     $desc = $_POST['description'];      // Look at mob description
 
     /**
      * Generate C code for encounter definition
-     * 
+     *
      * Function: add_encounter_record()
      * Parameters:
      * - encounter_id: Unique identifier
@@ -290,7 +290,7 @@ if ($_POST)
                $load_chance.", ".$min_number.", ".$max_number.", \n      ".$treasure_table.
               ", ".$class.", ".$encounter_strength.", ".$alignment.", ".$race_type.", \n".
             "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$hostile.", ".$sentient.", ".$size." );\n";
-    
+
     // Generate description setter calls
     // Note: Double quotes are converted to single quotes to avoid C string issues
     $output .= "    set_encounter_description(".$encounter_record.", \"".addslashes(str_replace("\"", "'", $desc))."\");\n";
@@ -298,7 +298,7 @@ if ($_POST)
 
     /**
      * Process terrain selections
-     * 
+     *
      * Terrain assignment methods:
      * - set_encounter_terrain_any(): All terrains
      * - set_encounter_terrain_all_surface(): All surface world terrains
@@ -306,7 +306,7 @@ if ($_POST)
      * - set_encounter_terrain_all_roads(): All road types
      * - set_encounter_terrain_all_water(): All water types
      * - add_encounter_sector(): Specific terrain types
-     * 
+     *
      * Code formatting: 2 terrain assignments per line for readability
      */
     $i = 0;
@@ -326,7 +326,7 @@ if ($_POST)
         else
             // Individual terrain type
             $output .= "    add_encounter_sector(".$encounter_record.", ".$key.");";
-        
+
         // Format output: 2 entries per line
         if (($i % 2) == 1)
             $output .= "\n";
@@ -335,7 +335,7 @@ if ($_POST)
         $i++;
     }
     $output .= "\n";
-    
+
     // Add macro definitions for encounters.h
     $output .= "#define ".$encounter_record."\n";
     $output .= "#define ".$encounter_group."\n";
@@ -343,12 +343,12 @@ if ($_POST)
 <script>
 /**
  * Copy generated code to clipboard
- * 
+ *
  * This function:
  * 1. Selects all text in the output textarea
  * 2. Copies it to the system clipboard
  * 3. Shows confirmation alert
- * 
+ *
  * Browser compatibility: Works in all modern browsers
  * Mobile support: setSelectionRange ensures mobile compatibility
  */
@@ -388,7 +388,7 @@ function copyCode() {
 else{
     /**
      * Display the encounter creation form
-     * 
+     *
      * The form is displayed when no POST data is present
      * All fields include Bootstrap tooltips explaining their purpose
      */
@@ -662,13 +662,13 @@ else{
             <?php
             /**
              * Terrain selection list
-             * 
+             *
              * Terrain categories:
              * - Special groups (ALL, ALL_SURFACE, etc.) - Apply multiple terrains at once
              * - Surface world terrains - Normal overworld locations
              * - Underdark terrains - Underground specific locations
              * - Special terrains - Water, flying, lava, etc.
-             * 
+             *
              * Note: Using a special group (like SECT_ALL_SURFACE) will override
              * individual terrain selections for that category
              */
@@ -680,7 +680,7 @@ else{
                 <option value="SECT_ALL_UD">All Underdark Terrains</option>
                 <option value="SECT_ROADS">All Surface Roads</option>
                 <option value="SECT_ALL_WATER">All Water Types</option>
-                
+
                 <!-- Surface world terrains -->
                 <option value="SECT_INSIDE">Inside (Eg. Buildings)</option>
                 <option value="SECT_CITY">City Streets</option>
@@ -696,7 +696,7 @@ else{
                 <option value="SECT_OCEAN">Ocean</option>
                 <option value="SECT_MARSHLAND">Marshland</option>
                 <option value="SECT_HIGH_MOUNTAIN">High Mountains (Requires Flight or Climbing)</option>
-                
+
                 <!-- Underdark specific terrains -->
                 <option value="SECT_UD_WILD">Underdark Wild</option>
                 <option value="SECT_UD_CITY">Underdark City Streets</option>
@@ -704,7 +704,7 @@ else{
                 <option value="SECT_UD_WATER">Underdark Swimmable Water</option>
                 <option value="SECT_UD_NOSWIM">Underdark Unswimmable Water</option>
                 <option value="SECT_UD_NOGROUND">Underdark Flying (Eg. Chasm)</option>
-                
+
                 <!-- Other terrain types -->
                 <option value="SECT_LAVA">Lava</option>
                 <option value="SECT_CAVE">Cave</option>

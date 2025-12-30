@@ -1,15 +1,15 @@
 /**
 * @file dg_olc.h                                LuminariMUD
 * This source file is used in extending Oasis OLC for trigedit.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-* 
+*
 * This source code, which was not part of the CircleMUD legacy code,
-* was created by the following people:                                      
-* $Author: Mark A. Heilpern/egreen/Welcor $                              
-* $Date: 2004/10/11 12:07:00$                                            
-* $Revision: 1.0.14 $                                                    
+* was created by the following people:
+* $Author: Mark A. Heilpern/egreen/Welcor $
+* $Date: 2004/10/11 12:07:00$
+* $Revision: 1.0.14 $
 */
 #ifndef _DG_OLC_H_
 #define _DG_OLC_H_

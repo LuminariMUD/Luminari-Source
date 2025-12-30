@@ -43,16 +43,11 @@ static struct
   int (*func)(IDXTYPE rnum);
   const char *message;
 } save_types[] = {
-    {SL_MOB, save_mobiles, "mobile"},
-    {SL_OBJ, save_objects, "object"},
-    {SL_SHP, save_shops, "shop"},
-    {SL_WLD, save_rooms, "room"},
-    {SL_ZON, save_zone, "zone"},
-    {SL_CFG, save_config, "config"},
-    {SL_QST, save_quests, "quest"},
-    {SL_ACT, NULL, "social"},
-    {SL_HLP, NULL, "help"},
-    {-1, NULL, NULL},
+    {SL_MOB, save_mobiles, "mobile"}, {SL_OBJ, save_objects, "object"},
+    {SL_SHP, save_shops, "shop"},     {SL_WLD, save_rooms, "room"},
+    {SL_ZON, save_zone, "zone"},      {SL_CFG, save_config, "config"},
+    {SL_QST, save_quests, "quest"},   {SL_ACT, NULL, "social"},
+    {SL_HLP, NULL, "help"},           {-1, NULL, NULL},
 };
 /* for Zone Export */
 static int zone_exits = 0;
@@ -223,7 +218,8 @@ int add_to_save_list(zone_vnum zone, int type)
   {
     if (zone != AEDIT_PERMISSION && zone != HEDIT_PERMISSION)
     {
-      log("SYSERR: add_to_save_list: Invalid zone number passed. (%d => %d, 0-%d)", zone, rznum, top_of_zone_table);
+      log("SYSERR: add_to_save_list: Invalid zone number passed. (%d => %d, 0-%d)", zone, rznum,
+          top_of_zone_table);
       return FALSE;
     }
   }
@@ -393,7 +389,8 @@ ACMD(do_export_zone)
   if (!export_info_file(zrnum))
   {
     snprintf(sysbuf, sizeof(sysbuf), "mkdir %s", path);
-    if (system(sysbuf) == -1) {
+    if (system(sysbuf) == -1)
+    {
       log("SYSERR: Failed to create directory %s", path);
     }
   }
@@ -429,19 +426,24 @@ ACMD(do_export_zone)
 
   /* Remove the old copy. */
   snprintf(sysbuf, sizeof(sysbuf), "rm %s%s.tar.gz", path, f);
-  if (system(sysbuf) == -1) {
+  if (system(sysbuf) == -1)
+  {
     log("SYSERR: Failed to remove old tar file");
   }
 
   /* Tar the new copy. */
-  snprintf(sysbuf, sizeof(sysbuf), "tar -cf %s%s.tar %sqq.info %sqq.wld %sqq.zon %sqq.mob %sqq.obj %sqq.trg %sqq.shp", path, f, path, path, path, path, path, path, path);
-  if (system(sysbuf) == -1) {
+  snprintf(sysbuf, sizeof(sysbuf),
+           "tar -cf %s%s.tar %sqq.info %sqq.wld %sqq.zon %sqq.mob %sqq.obj %sqq.trg %sqq.shp", path,
+           f, path, path, path, path, path, path, path);
+  if (system(sysbuf) == -1)
+  {
     log("SYSERR: Failed to create tar file");
   }
 
   /* Gzip it. */
   snprintf(sysbuf, sizeof(sysbuf), "gzip %s%s.tar", path, f);
-  if (system(sysbuf) == -1) {
+  if (system(sysbuf) == -1)
+  {
     log("SYSERR: Failed to gzip tar file");
   }
 
@@ -465,19 +467,27 @@ static int export_info_file(zone_rnum zrnum)
     return FALSE;
   }
 
-  fprintf(info_file, "The files accompanying this info file contain the area: %s\n", zone_table[zrnum].name);
+  fprintf(info_file, "The files accompanying this info file contain the area: %s\n",
+          zone_table[zrnum].name);
   fprintf(info_file, "It was written by: %s.\n\n", zone_table[zrnum].builders);
-  fprintf(info_file, "The author has given permission to distribute the area, provided credit is\n");
-  fprintf(info_file, "given. The area may be modified as you see fit, except you are not allowed to\n");
+  fprintf(info_file,
+          "The author has given permission to distribute the area, provided credit is\n");
+  fprintf(info_file,
+          "given. The area may be modified as you see fit, except you are not allowed to\n");
   fprintf(info_file, "remove the builder name or credits.\n\n");
   fprintf(info_file, "Implementation:\n");
-  fprintf(info_file, "1. All the files have been QQ'ed. This means all occurences of the zone number\n");
-  fprintf(info_file, "   have been changed to QQ. In other words, if you decide to have this zone as\n");
-  fprintf(info_file, "   zone 123, replace all occurences of QQ with 123 and rename the qq.zon file\n");
-  fprintf(info_file, "   to 123.zon (etc.). And of course add 123.zon to the respective index file.\n");
+  fprintf(info_file,
+          "1. All the files have been QQ'ed. This means all occurences of the zone number\n");
+  fprintf(info_file,
+          "   have been changed to QQ. In other words, if you decide to have this zone as\n");
+  fprintf(info_file,
+          "   zone 123, replace all occurences of QQ with 123 and rename the qq.zon file\n");
+  fprintf(info_file,
+          "   to 123.zon (etc.). And of course add 123.zon to the respective index file.\n");
   if (zone_exits)
   {
-    fprintf(info_file, "2. Exits out of this zone have been ZZ'd. So all doors leading out have ZZ??\n");
+    fprintf(info_file,
+            "2. Exits out of this zone have been ZZ'd. So all doors leading out have ZZ??\n");
     fprintf(info_file, "   instead of the room vnum (?? are numbers 00 - 99).\n");
     fprintf(info_file, "   In this zone, the exit rooms in question are:\n");
 
@@ -500,8 +510,7 @@ static int export_info_file(zone_rnum zrnum)
         if (R_EXIT(room, j)->to_room == NOWHERE || world[R_EXIT(room, j)->to_room].zone == zrnum)
           continue;
 
-        fprintf(info_file, "      Room QQ%02d : Exit to the %s\n",
-                room->number % 100, dirs[j]);
+        fprintf(info_file, "      Room QQ%02d : Exit to the %s\n", room->number % 100, dirs[j]);
       }
     }
     zone_exits = 0;
@@ -509,10 +518,12 @@ static int export_info_file(zone_rnum zrnum)
   else
   {
     fprintf(info_file, "2. This area doesn't have any exits _out_ of the zone.\n");
-    fprintf(info_file, "   More info on connections can be found in the zone description room (QQ00).\n");
+    fprintf(info_file,
+            "   More info on connections can be found in the zone description room (QQ00).\n");
   }
 
-  fprintf(info_file, "\nAdditional zone information is available in the zone description room QQ00.\n");
+  fprintf(info_file,
+          "\nAdditional zone information is available in the zone description room QQ00.\n");
   fprintf(info_file, "Luminari MUD is maintaining and improving these zones.\n\n");
 
   fclose(info_file);
@@ -556,48 +567,42 @@ static int export_save_shops(zone_rnum zrnum)
       fprintf(shop_file, "-1\n");
 
       /* Save the rates. */
-      fprintf(shop_file, "%1.2f\n"
-                         "%1.2f\n",
-              S_BUYPROFIT(shop),
-              S_SELLPROFIT(shop));
+      fprintf(shop_file,
+              "%1.2f\n"
+              "%1.2f\n",
+              S_BUYPROFIT(shop), S_SELLPROFIT(shop));
 
       /* Save the buy types and namelists. */
       for (j = 0; S_BUYTYPE(shop, j) != NOTHING; j++)
-        fprintf(shop_file, "%d%s\n",
-                S_BUYTYPE(shop, j),
+        fprintf(shop_file, "%d%s\n", S_BUYTYPE(shop, j),
                 S_BUYWORD(shop, j) ? S_BUYWORD(shop, j) : "");
       fprintf(shop_file, "-1\n");
 
       /* Save messages. Added some defaults as sanity checks. */
-      fprintf(shop_file,
-              "%s~\n"
-              "%s~\n"
-              "%s~\n"
-              "%s~\n"
-              "%s~\n"
-              "%s~\n"
-              "%s~\n"
-              "%d\n"
-              "%ld\n"
-              "QQ%02d\n"
-              "%d\n",
-              S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
-              S_NOITEM2(shop) ? S_NOITEM2(shop) : "%s Ke?!",
-              S_NOBUY(shop) ? S_NOBUY(shop) : "%s Ke?!",
-              S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
-              S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!",
-              S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
-              S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?",
-              S_BROKE_TEMPER(shop),
-              S_BITVECTOR(shop),
-              mob_index[S_KEEPER(shop)].vnum % 100,
-              S_NOTRADE(shop));
+      fprintf(
+          shop_file,
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%d\n"
+          "%ld\n"
+          "QQ%02d\n"
+          "%d\n",
+          S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
+          S_NOITEM2(shop) ? S_NOITEM2(shop) : "%s Ke?!", S_NOBUY(shop) ? S_NOBUY(shop) : "%s Ke?!",
+          S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
+          S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!", S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
+          S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?", S_BROKE_TEMPER(shop), S_BITVECTOR(shop),
+          mob_index[S_KEEPER(shop)].vnum % 100, S_NOTRADE(shop));
 
       /* Save the rooms. */
       for (j = 0; S_ROOM(shop, j) != NOWHERE; j++)
       {
-        if (S_ROOM(shop, j) < genolc_zone_bottom(zrnum) ||
-            S_ROOM(shop, j) > zone_table[zrnum].top)
+        if (S_ROOM(shop, j) < genolc_zone_bottom(zrnum) || S_ROOM(shop, j) > zone_table[zrnum].top)
           continue;
 
         fprintf(shop_file, "QQ%02d\n", S_ROOM(shop, j) % 100);
@@ -605,8 +610,8 @@ static int export_save_shops(zone_rnum zrnum)
       fprintf(shop_file, "-1\n");
 
       /* Save open/closing times. */
-      fprintf(shop_file, "%d\n%d\n%d\n%d\n", S_OPEN1(shop), S_CLOSE1(shop),
-              S_OPEN2(shop), S_CLOSE2(shop));
+      fprintf(shop_file, "%d\n%d\n%d\n%d\n", S_OPEN1(shop), S_CLOSE1(shop), S_OPEN2(shop),
+              S_CLOSE2(shop));
     }
   }
   fprintf(shop_file, "$~\n");
@@ -652,36 +657,31 @@ static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   strip_cr(strncpy(ldesc, GET_LDESC(mob), MAX_STRING_LENGTH - 1));
   strip_cr(strncpy(ddesc, GET_DDESC(mob), MAX_STRING_LENGTH - 1));
 
-  fprintf(fd, "#QQ%02d\n"
-              "%s%c\n"
-              "%s%c\n"
-              "%s%c\n"
-              "%s%c\n",
-          mvnum % 100,
-          GET_ALIAS(mob), STRING_TERMINATOR,
-          GET_SDESC(mob), STRING_TERMINATOR,
-          ldesc, STRING_TERMINATOR,
-          ddesc, STRING_TERMINATOR);
+  fprintf(fd,
+          "#QQ%02d\n"
+          "%s%c\n"
+          "%s%c\n"
+          "%s%c\n"
+          "%s%c\n",
+          mvnum % 100, GET_ALIAS(mob), STRING_TERMINATOR, GET_SDESC(mob), STRING_TERMINATOR, ldesc,
+          STRING_TERMINATOR, ddesc, STRING_TERMINATOR);
 
-  fprintf(fd, "%d %d %d %d %d %d %d %d %d E\n"
-              "%d %d %d %dd%d+%d %dd%d+%d\n",
-          MOB_FLAGS(mob)[0], MOB_FLAGS(mob)[1],
-          MOB_FLAGS(mob)[2], MOB_FLAGS(mob)[3],
-          AFF_FLAGS(mob)[0], AFF_FLAGS(mob)[1],
-          AFF_FLAGS(mob)[2], AFF_FLAGS(mob)[3],
-          GET_ALIGNMENT(mob),
-          GET_LEVEL(mob), 20 - GET_HITROLL(mob), GET_AC(mob) / 10, GET_HIT(mob),
-          GET_PSP(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob),
-          GET_DAMROLL(mob));
+  fprintf(fd,
+          "%d %d %d %d %d %d %d %d %d E\n"
+          "%d %d %d %dd%d+%d %dd%d+%d\n",
+          MOB_FLAGS(mob)[0], MOB_FLAGS(mob)[1], MOB_FLAGS(mob)[2], MOB_FLAGS(mob)[3],
+          AFF_FLAGS(mob)[0], AFF_FLAGS(mob)[1], AFF_FLAGS(mob)[2], AFF_FLAGS(mob)[3],
+          GET_ALIGNMENT(mob), GET_LEVEL(mob), 20 - GET_HITROLL(mob), GET_AC(mob) / 10, GET_HIT(mob),
+          GET_PSP(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob), GET_DAMROLL(mob));
 
   /* pos_fighting is deprecated */
   if (pos == POS_FIGHTING)
     pos = POS_STANDING;
 
-  fprintf(fd, "%d %ld\n"
-              "%d %d %d\n",
-          GET_GOLD(mob), GET_EXP(mob),
-          GET_POS(mob), pos, GET_SEX(mob));
+  fprintf(fd,
+          "%d %ld\n"
+          "%d %d %d\n",
+          GET_GOLD(mob), GET_EXP(mob), GET_POS(mob), pos, GET_SEX(mob));
 
   if (write_mobile_espec(mvnum, mob, fd) < 0)
     log("SYSERR: GenOLC: Error writing E-specs for mobile #%d.", mvnum);
@@ -703,19 +703,16 @@ static int export_save_zone(zone_rnum zrnum)
   }
 
   /* Print zone header to file. */
-  fprintf(zone_file, "#QQ\n"
-                     "%s~\n"
-                     "%s~\n"
-                     "QQ%02d QQ%02d %d %d\n",
-          (zone_table[zrnum].builders && *zone_table[zrnum].builders)
-              ? zone_table[zrnum].builders
-              : "None.",
-          (zone_table[zrnum].name && *zone_table[zrnum].name)
-              ? zone_table[zrnum].name
-              : "undefined",
-          genolc_zone_bottom(zrnum) % 100,
-          zone_table[zrnum].top % 100,
-          zone_table[zrnum].lifespan,
+  fprintf(zone_file,
+          "#QQ\n"
+          "%s~\n"
+          "%s~\n"
+          "QQ%02d QQ%02d %d %d\n",
+          (zone_table[zrnum].builders && *zone_table[zrnum].builders) ? zone_table[zrnum].builders
+                                                                      : "None.",
+          (zone_table[zrnum].name && *zone_table[zrnum].name) ? zone_table[zrnum].name
+                                                              : "undefined",
+          genolc_zone_bottom(zrnum) % 100, zone_table[zrnum].top % 100, zone_table[zrnum].lifespan,
           zone_table[zrnum].reset_mode);
 
   /* Handy Quick Reference Chart for Zone Values.
@@ -738,81 +735,62 @@ static int export_save_zone(zone_rnum zrnum)
     switch (ZCMD(zrnum, subcmd).command)
     {
     case 'M':
-      fprintf(zone_file, "M %d QQ%02d %d QQ%02d \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              mob_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
-              ZCMD(zrnum, subcmd).arg2,
+      fprintf(zone_file, "M %d QQ%02d %d QQ%02d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              mob_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
               world[ZCMD(zrnum, subcmd).arg3].number % 100,
               mob_proto[ZCMD(zrnum, subcmd).arg1].player.short_descr);
       break;
     case 'O':
-      fprintf(zone_file, "O %d QQ%02d %d QQ%02d \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
-              ZCMD(zrnum, subcmd).arg2,
+      fprintf(zone_file, "O %d QQ%02d %d QQ%02d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
               world[ZCMD(zrnum, subcmd).arg3].number % 100,
               obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'G':
-      fprintf(zone_file, "G %d QQ%02d %d -1 \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
-              ZCMD(zrnum, subcmd).arg2,
+      fprintf(zone_file, "G %d QQ%02d %d -1 \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
               obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'E':
-      fprintf(zone_file, "E %d QQ%02d %d %d \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
-              ZCMD(zrnum, subcmd).arg2,
-              ZCMD(zrnum, subcmd).arg3,
-              obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
+      fprintf(zone_file, "E %d QQ%02d %d %d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
+              ZCMD(zrnum, subcmd).arg3, obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'P':
-      fprintf(zone_file, "P %d QQ%02d %d QQ%02d \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
-              ZCMD(zrnum, subcmd).arg2,
+      fprintf(zone_file, "P %d QQ%02d %d QQ%02d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
               obj_index[ZCMD(zrnum, subcmd).arg3].vnum % 100,
               obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'D':
-      fprintf(zone_file, "D %d QQ%02d %d %d \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              world[ZCMD(zrnum, subcmd).arg1].number % 100,
-              ZCMD(zrnum, subcmd).arg2,
-              ZCMD(zrnum, subcmd).arg3,
-              world[ZCMD(zrnum, subcmd).arg1].name);
+      fprintf(zone_file, "D %d QQ%02d %d %d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              world[ZCMD(zrnum, subcmd).arg1].number % 100, ZCMD(zrnum, subcmd).arg2,
+              ZCMD(zrnum, subcmd).arg3, world[ZCMD(zrnum, subcmd).arg1].name);
       break;
     case 'R':
-      fprintf(zone_file, "R %d QQ%02d QQ%02d -1 \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
+      fprintf(zone_file, "R %d QQ%02d QQ%02d -1 \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
               world[ZCMD(zrnum, subcmd).arg1].number % 100,
               obj_index[ZCMD(zrnum, subcmd).arg2].vnum % 100,
               obj_proto[ZCMD(zrnum, subcmd).arg2].short_description);
       break;
     case 'T':
-      fprintf(zone_file, "T %d %d QQ%02d QQ%02d \t(%s)\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              ZCMD(zrnum, subcmd).arg1,
-              trig_index[ZCMD(zrnum, subcmd).arg2]->vnum % 100,
+      fprintf(zone_file, "T %d %d QQ%02d QQ%02d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+              ZCMD(zrnum, subcmd).arg1, trig_index[ZCMD(zrnum, subcmd).arg2]->vnum % 100,
               world[ZCMD(zrnum, subcmd).arg3].number % 100,
               GET_TRIG_NAME(trig_index[ZCMD(zrnum, subcmd).arg2]->proto));
       break;
     case 'V':
-      fprintf(zone_file, "V %d %d %d QQ%02d %s %s\n",
-              ZCMD(zrnum, subcmd).if_flag,
-              ZCMD(zrnum, subcmd).arg1,
-              ZCMD(zrnum, subcmd).arg2,
-              world[ZCMD(zrnum, subcmd).arg3].number % 100,
-              ZCMD(zrnum, subcmd).sarg1,
+      fprintf(zone_file, "V %d %d %d QQ%02d %s %s\n", ZCMD(zrnum, subcmd).if_flag,
+              ZCMD(zrnum, subcmd).arg1, ZCMD(zrnum, subcmd).arg2,
+              world[ZCMD(zrnum, subcmd).arg3].number % 100, ZCMD(zrnum, subcmd).sarg1,
               ZCMD(zrnum, subcmd).sarg2);
       break;
     case '*':
       /* Invalid commands are replaced with '*' - Ignore them. */
       continue;
     default:
-      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: export_save_zone(): Unknown cmd '%c' - NOT saving", ZCMD(zrnum, subcmd).command);
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: export_save_zone(): Unknown cmd '%c' - NOT saving",
+             ZCMD(zrnum, subcmd).command);
       continue;
     }
   }
@@ -825,9 +803,12 @@ static int export_save_zone(zone_rnum zrnum)
 static int export_save_objects(zone_rnum zrnum)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char ebuf1[MAX_STRING_LENGTH] = {'\0'}, ebuf2[MAX_STRING_LENGTH] = {'\0'}, ebuf3[MAX_STRING_LENGTH] = {'\0'}, ebuf4[MAX_STRING_LENGTH] = {'\0'};
-  char wbuf1[MAX_STRING_LENGTH] = {'\0'}, wbuf2[MAX_STRING_LENGTH] = {'\0'}, wbuf3[MAX_STRING_LENGTH] = {'\0'}, wbuf4[MAX_STRING_LENGTH] = {'\0'};
-  char pbuf1[MAX_STRING_LENGTH] = {'\0'}, pbuf2[MAX_STRING_LENGTH] = {'\0'}, pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
+  char ebuf1[MAX_STRING_LENGTH] = {'\0'}, ebuf2[MAX_STRING_LENGTH] = {'\0'},
+       ebuf3[MAX_STRING_LENGTH] = {'\0'}, ebuf4[MAX_STRING_LENGTH] = {'\0'};
+  char wbuf1[MAX_STRING_LENGTH] = {'\0'}, wbuf2[MAX_STRING_LENGTH] = {'\0'},
+       wbuf3[MAX_STRING_LENGTH] = {'\0'}, wbuf4[MAX_STRING_LENGTH] = {'\0'};
+  char pbuf1[MAX_STRING_LENGTH] = {'\0'}, pbuf2[MAX_STRING_LENGTH] = {'\0'},
+       pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
   obj_rnum ornum;
   obj_vnum ovnum;
   int i;
@@ -860,11 +841,10 @@ static int export_save_objects(zone_rnum zrnum)
               "%s~\n"
               "%s~\n",
 
-              GET_OBJ_VNUM(obj) % 100,
-              (obj->name && *obj->name) ? obj->name : "undefined",
-              (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
-              (obj->description && *obj->description) ? obj->description : "undefined",
-              buf);
+              GET_OBJ_VNUM(obj) % 100, (obj->name && *obj->name) ? obj->name : "undefined",
+              (obj->short_description && *obj->short_description) ? obj->short_description
+                                                                  : "undefined",
+              (obj->description && *obj->description) ? obj->description : "undefined", buf);
 
       sprintascii(ebuf1, GET_OBJ_EXTRA(obj)[0]);
       sprintascii(ebuf2, GET_OBJ_EXTRA(obj)[1]);
@@ -879,35 +859,22 @@ static int export_save_objects(zone_rnum zrnum)
       sprintascii(pbuf3, GET_OBJ_PERM(obj)[2]);
       sprintascii(pbuf4, GET_OBJ_PERM(obj)[3]);
 
-      fprintf(obj_file,
-              "%d %s %s %s %s %s %s %s %s %s %s %s %s\n",
-              GET_OBJ_TYPE(obj),
-              ebuf1, ebuf2, ebuf3, ebuf4,
-              wbuf1, wbuf2, wbuf3, wbuf4,
-              pbuf1, pbuf2, pbuf3, pbuf4);
+      fprintf(obj_file, "%d %s %s %s %s %s %s %s %s %s %s %s %s\n", GET_OBJ_TYPE(obj), ebuf1, ebuf2,
+              ebuf3, ebuf4, wbuf1, wbuf2, wbuf3, wbuf4, pbuf1, pbuf2, pbuf3, pbuf4);
 
-      if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-          GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
-        fprintf(obj_file,
-                "%d %d %d %d\n",
-                GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
+      if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+        fprintf(obj_file, "%d %d %d %d\n", GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
+                GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
       else
-        fprintf(obj_file,
-                "%d %d %s%02d %d\n",
-                GET_OBJ_VAL(obj, 0),
-                GET_OBJ_VAL(obj, 1),
+        fprintf(obj_file, "%d %d %s%02d %d\n", GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
                 GET_OBJ_VAL(obj, 2) == -1 ? "" : "QQ", /* key */
-                GET_OBJ_VAL(obj, 2) == -1 ? -1 : GET_OBJ_VAL(obj, 2) % 100,
-                GET_OBJ_VAL(obj, 3));
+                GET_OBJ_VAL(obj, 2) == -1 ? -1 : GET_OBJ_VAL(obj, 2) % 100, GET_OBJ_VAL(obj, 3));
 
-      fprintf(obj_file,
-              "%d %d %d %d\n",
-              GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj));
+      fprintf(obj_file, "%d %d %d %d\n", GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj), GET_OBJ_RENT(obj),
+              GET_OBJ_LEVEL(obj));
 
       /* dunno what the point of this is unless they have our file format - zusuk*/
-      fprintf(obj_file,
-              "%d %d\n",
-              GET_OBJ_SIZE(obj), GET_OBJ_MATERIAL(obj));
+      fprintf(obj_file, "%d %d\n", GET_OBJ_SIZE(obj), GET_OBJ_MATERIAL(obj));
 
       /* Do we have script(s) attached? */
       export_script_save_to_disk(obj_file, obj, OBJ_TRIGGER);
@@ -918,26 +885,28 @@ static int export_save_objects(zone_rnum zrnum)
         for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next)
         {
           /* Sanity check to prevent nasty protection faults. */
-          if (!ex_desc->keyword || !ex_desc->description || !*ex_desc->keyword || !*ex_desc->description)
+          if (!ex_desc->keyword || !ex_desc->description || !*ex_desc->keyword ||
+              !*ex_desc->description)
           {
             mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: export_save_objects: Corrupt ex_desc!");
             continue;
           }
           strncpy(buf, ex_desc->description, sizeof(buf) - 1);
           strip_cr(buf);
-          fprintf(obj_file, "E\n"
-                            "%s~\n"
-                            "%s~\n",
+          fprintf(obj_file,
+                  "E\n"
+                  "%s~\n"
+                  "%s~\n",
                   ex_desc->keyword, buf);
         }
       }
       /* Do we have affects? */
       for (i = 0; i < MAX_OBJ_AFFECT; i++)
         if (obj->affected[i].modifier)
-          fprintf(obj_file, "A\n"
-                            "%d %d\n",
-                  obj->affected[i].location,
-                  obj->affected[i].modifier);
+          fprintf(obj_file,
+                  "A\n"
+                  "%d %d\n",
+                  obj->affected[i].location, obj->affected[i].modifier);
     }
   }
 
@@ -977,15 +946,14 @@ static int export_save_rooms(zone_rnum zrnum)
       strip_cr(buf);
 
       /* Save the numeric and string section of the file. */
-      fprintf(room_file, "#QQ%02d\n"
-                         "%s%c\n"
-                         "%s%c\n"
-                         "QQ %d %d %d %d %d\n",
-              room->number % 100,
-              room->name ? room->name : "Untitled", STRING_TERMINATOR,
-              buf, STRING_TERMINATOR,
-              room->room_flags[0], room->room_flags[1],
-              room->room_flags[2], room->room_flags[3], room->sector_type);
+      fprintf(room_file,
+              "#QQ%02d\n"
+              "%s%c\n"
+              "%s%c\n"
+              "QQ %d %d %d %d %d\n",
+              room->number % 100, room->name ? room->name : "Untitled", STRING_TERMINATOR, buf,
+              STRING_TERMINATOR, room->room_flags[0], room->room_flags[1], room->room_flags[2],
+              room->room_flags[3], room->sector_type);
 
       /* Now you write out the exits for the room. */
       for (j = 0; j < DIR_COUNT; j++)
@@ -1019,29 +987,25 @@ static int export_save_rooms(zone_rnum zrnum)
 
           /* Now write the exit to the file. */
           if (R_EXIT(room, j)->to_room == NOWHERE || world[R_EXIT(room, j)->to_room].zone == zrnum)
-            fprintf(room_file, "D%d\n"
-                               "%s~\n"
-                               "%s~\n"
-                               "%d %s%02d %s%02d\n",
-                    j,
-                    buf,
-                    buf1,
-                    dflag,
-                    R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
+            fprintf(room_file,
+                    "D%d\n"
+                    "%s~\n"
+                    "%s~\n"
+                    "%d %s%02d %s%02d\n",
+                    j, buf, buf1, dflag, R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
                     R_EXIT(room, j)->key == NOTHING ? -1 : R_EXIT(room, j)->key % 100,
                     R_EXIT(room, j)->to_room == NOTHING ? "" : "QQ",
-                    R_EXIT(room, j)->to_room != NOTHING ? (world[R_EXIT(room, j)->to_room].number % 100) : -1);
+                    R_EXIT(room, j)->to_room != NOTHING
+                        ? (world[R_EXIT(room, j)->to_room].number % 100)
+                        : -1);
           else
           {
-            fprintf(room_file, "D%d\n"
-                               "%s~\n"
-                               "%s~\n"
-                               "%d %s%02d ZZ%02d\n",
-                    j,
-                    buf,
-                    buf1,
-                    dflag,
-                    R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
+            fprintf(room_file,
+                    "D%d\n"
+                    "%s~\n"
+                    "%s~\n"
+                    "%d %s%02d ZZ%02d\n",
+                    j, buf, buf1, dflag, R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
                     R_EXIT(room, j)->key == NOTHING ? -1 : R_EXIT(room, j)->key % 100,
                     world[R_EXIT(room, j)->to_room].number % 100);
             zone_exits++;
@@ -1058,9 +1022,10 @@ static int export_save_rooms(zone_rnum zrnum)
           strncpy(buf, xdesc->description, sizeof(buf) - 1);
           buf[sizeof(buf) - 1] = '\0';
           strip_cr(buf);
-          fprintf(room_file, "E\n"
-                             "%s~\n"
-                             "%s~\n",
+          fprintf(room_file,
+                  "E\n"
+                  "%s~\n"
+                  "%s~\n",
                   xdesc->keyword, buf);
         }
       }
@@ -1125,18 +1090,19 @@ static int export_save_triggers(zone_rnum zrnum)
       fprintf(trig_file, "#QQ%02d\n", i % 100);
 
       sprintascii(bitBuf, GET_TRIG_TYPE(trig));
-      fprintf(trig_file, "%s%c\n"
-                         "%d %s %d\n"
-                         "%s%c\n",
+      fprintf(trig_file,
+              "%s%c\n"
+              "%d %s %d\n"
+              "%s%c\n",
               (GET_TRIG_NAME(trig)) ? (GET_TRIG_NAME(trig)) : "unknown trigger", STRING_TERMINATOR,
-              trig->attach_type,
-              *bitBuf ? bitBuf : "0", GET_TRIG_NARG(trig),
+              trig->attach_type, *bitBuf ? bitBuf : "0", GET_TRIG_NARG(trig),
               GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
 
-      fprintf(trig_file, "* This trigger has been exported 'as is'. This means that vnums\n"
-                         "* in this file are not changed, and will have to be edited by hand.\n"
-                         "* This zone was number %d on The Builder Academy, so you\n"
-                         "* should be looking for %dxx, where xx is 00-99.\n",
+      fprintf(trig_file,
+              "* This trigger has been exported 'as is'. This means that vnums\n"
+              "* in this file are not changed, and will have to be edited by hand.\n"
+              "* This zone was number %d on The Builder Academy, so you\n"
+              "* should be looking for %dxx, where xx is 00-99.\n",
               zone_table[zrnum].number, zone_table[zrnum].number);
       for (cmd = trig->cmdlist; cmd; cmd = cmd->next)
       {

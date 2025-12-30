@@ -121,8 +121,7 @@ bool valid_grapple_cond(struct char_data *ch)
   }
 
   /* grapple affection with no variable set */
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED) && !GRAPPLE_TARGET(ch) &&
-      !GRAPPLE_ATTACKER(ch))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) && !GRAPPLE_TARGET(ch) && !GRAPPLE_ATTACKER(ch))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
     valid_conditions = FALSE;
@@ -213,7 +212,8 @@ ACMD(do_grapple)
   struct char_data *vict = NULL;
   int grapple_mod = 0;
 
-  if (!can_npc_command(ch)) return;
+  if (!can_npc_command(ch))
+    return;
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
   {
@@ -253,14 +253,14 @@ ACMD(do_grapple)
   else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
     grapple_mod = -4;
   else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
-   grapple_mod = 4;
+    grapple_mod = 4;
 
-    if (HAS_EVOLUTION(vict, EVOLUTION_PINCERS) && HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
+  if (HAS_EVOLUTION(vict, EVOLUTION_PINCERS) && HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
     grapple_mod = 0;
   else if (HAS_EVOLUTION(vict, EVOLUTION_PINCERS))
     grapple_mod = -4;
   else if (HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
-   grapple_mod = 4;
+    grapple_mod = 4;
 
   /* Root cantrip: +3 resistance vs trip/knockdown/grapple */
   if (affected_by_spell(vict, SPELL_ROOT))
@@ -270,8 +270,7 @@ ACMD(do_grapple)
   }
 
   /* try for reversale? */
-  if (GRAPPLE_ATTACKER(ch) && GRAPPLE_ATTACKER(ch) == vict &&
-      AFF_FLAGGED(ch, AFF_GRAPPLED))
+  if (GRAPPLE_ATTACKER(ch) && GRAPPLE_ATTACKER(ch) == vict && AFF_FLAGGED(ch, AFF_GRAPPLED))
   {
     /* cmb, escape artist: check which is better is done in compute_cmb() */
     if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, grapple_mod) > 0)
@@ -303,8 +302,10 @@ ACMD(do_grapple)
     {
       /* failed reversal */
       act("\tyYou fail to reverse the grapple $N has on you!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-      act("\tyYou maneuver yourself perfectly to stop $n's attempt to reverse the grapple!\tn", FALSE, ch, NULL, vict, TO_VICT);
-      act("\ty$N maneuvers perfectly to avoid a reversal attempt from $n!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("\tyYou maneuver yourself perfectly to stop $n's attempt to reverse the grapple!\tn",
+          FALSE, ch, NULL, vict, TO_VICT);
+      act("\ty$N maneuvers perfectly to avoid a reversal attempt from $n!\tn", FALSE, ch, NULL,
+          vict, TO_NOTVICT);
     }
     USE_STANDARD_ACTION(ch);
     return;
@@ -332,13 +333,13 @@ ACMD(do_grapple)
 
     grapple_penalty -= grapple_mod;
 
-     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
-     {
-       act("You can't seem to get a grip on $N.", FALSE, ch, 0, vict, TO_CHAR);
-       act("$n isn't able to get a grip on YOU.", FALSE, ch, 0, vict, TO_VICT);
-       act("$n isn't able to get a grip on $N.", FALSE, ch, 0, vict, TO_NOTVICT);
-       return;
-     }
+    if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
+    {
+      act("You can't seem to get a grip on $N.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n isn't able to get a grip on YOU.", FALSE, ch, 0, vict, TO_VICT);
+      act("$n isn't able to get a grip on $N.", FALSE, ch, 0, vict, TO_NOTVICT);
+      return;
+    }
 
     if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_INIT_GRAPPLE, -(grapple_penalty)) > 0)
     {
@@ -404,7 +405,7 @@ ACMD(do_struggle)
   else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
     grapple_mod = -4;
   else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
-   grapple_mod = 4;
+    grapple_mod = 4;
 
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, grapple_mod) > 0)
   {
@@ -445,7 +446,8 @@ ACMD(do_pin)
 {
   UNUSED(argument);
 
-  if (!can_npc_command(ch)) return;
+  if (!can_npc_command(ch))
+    return;
 
   if (GRAPPLE_ATTACKER(ch))
   {
@@ -453,7 +455,8 @@ ACMD(do_pin)
     return;
   }
 
-  if (GRAPPLE_TARGET(ch) && AFF_FLAGGED(ch, AFF_GRAPPLED) && AFF_FLAGGED(GRAPPLE_TARGET(ch), AFF_GRAPPLED))
+  if (GRAPPLE_TARGET(ch) && AFF_FLAGGED(ch, AFF_GRAPPLED) &&
+      AFF_FLAGGED(GRAPPLE_TARGET(ch), AFF_GRAPPLED))
     ; /* good conditions */
   else
   {
@@ -472,7 +475,7 @@ ACMD(do_pin)
   else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
     grapple_mod = -4;
   else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
-   grapple_mod = 4;
+    grapple_mod = 4;
 
   if (vict == ch)
     return; /*huh?*/
@@ -519,7 +522,8 @@ ACMD(do_pin)
 ACMD(do_bind)
 {
   UNUSED(argument);
-  if (!can_npc_command(ch)) return;
+  if (!can_npc_command(ch))
+    return;
   send_to_char(ch, "Under construction.\r\n");
   return;
 }

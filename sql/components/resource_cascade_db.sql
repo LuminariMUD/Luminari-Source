@@ -21,7 +21,7 @@ CREATE TABLE resource_relationships (
 );
 
 -- Insert core ecological relationships
-INSERT INTO resource_relationships 
+INSERT INTO resource_relationships
 (source_resource, target_resource, effect_type, effect_magnitude, description) VALUES
 
 -- Vegetation affects herbs (symbiotic)
@@ -119,7 +119,7 @@ CREATE TABLE cascade_effects_log (
 
 -- View for easy ecosystem analysis
 CREATE VIEW ecosystem_analysis AS
-SELECT 
+SELECT
     eh.zone_vnum,
     eh.x_coord,
     eh.y_coord,
@@ -131,9 +131,9 @@ SELECT
     MAX(rd.depletion_level) as max_depletion,
     eh.last_updated
 FROM ecosystem_health eh
-LEFT JOIN resource_depletion rd ON 
-    eh.zone_vnum = rd.zone_vnum AND 
-    eh.x_coord = rd.x_coord AND 
+LEFT JOIN resource_depletion rd ON
+    eh.zone_vnum = rd.zone_vnum AND
+    eh.x_coord = rd.x_coord AND
     eh.y_coord = rd.y_coord
 GROUP BY eh.zone_vnum, eh.x_coord, eh.y_coord, eh.health_state, eh.health_score, eh.last_updated;
 

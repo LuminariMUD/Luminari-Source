@@ -15,73 +15,78 @@
 #include "resource_system.h"
 
 /* Ecosystem health states */
-enum ecosystem_states {
-    ECOSYSTEM_PRISTINE = 0,     /* All resources >80% */
-    ECOSYSTEM_HEALTHY,          /* Most resources >60% */
-    ECOSYSTEM_STRESSED,         /* Several resources <40% */
-    ECOSYSTEM_DEGRADED,         /* Multiple resources <20% */
-    ECOSYSTEM_COLLAPSED,        /* Core resources <10% */
-    NUM_ECOSYSTEM_STATES
+enum ecosystem_states
+{
+  ECOSYSTEM_PRISTINE = 0, /* All resources >80% */
+  ECOSYSTEM_HEALTHY,      /* Most resources >60% */
+  ECOSYSTEM_STRESSED,     /* Several resources <40% */
+  ECOSYSTEM_DEGRADED,     /* Multiple resources <20% */
+  ECOSYSTEM_COLLAPSED,    /* Core resources <10% */
+  NUM_ECOSYSTEM_STATES
 };
 
 /* Resource relationship effect types */
-enum cascade_effect_types {
-    CASCADE_DEPLETION = 0,      /* Negative effect on target resource */
-    CASCADE_ENHANCEMENT,        /* Positive effect on target resource */
-    CASCADE_THRESHOLD,          /* Effect only at certain thresholds */
-    NUM_CASCADE_TYPES
+enum cascade_effect_types
+{
+  CASCADE_DEPLETION = 0, /* Negative effect on target resource */
+  CASCADE_ENHANCEMENT,   /* Positive effect on target resource */
+  CASCADE_THRESHOLD,     /* Effect only at certain thresholds */
+  NUM_CASCADE_TYPES
 };
 
 /* Ecosystem health thresholds */
-#define ECOSYSTEM_PRISTINE_THRESHOLD    0.80
-#define ECOSYSTEM_HEALTHY_THRESHOLD     0.60
-#define ECOSYSTEM_STRESSED_THRESHOLD    0.40
-#define ECOSYSTEM_DEGRADED_THRESHOLD    0.20
-#define ECOSYSTEM_COLLAPSED_THRESHOLD   0.10
+#define ECOSYSTEM_PRISTINE_THRESHOLD 0.80
+#define ECOSYSTEM_HEALTHY_THRESHOLD 0.60
+#define ECOSYSTEM_STRESSED_THRESHOLD 0.40
+#define ECOSYSTEM_DEGRADED_THRESHOLD 0.20
+#define ECOSYSTEM_COLLAPSED_THRESHOLD 0.10
 
 /* Conservation scoring */
-#define CONSERVATION_PERFECT            1.0
-#define CONSERVATION_EXCELLENT          0.8
-#define CONSERVATION_GOOD               0.6
-#define CONSERVATION_POOR               0.4
-#define CONSERVATION_DESTRUCTIVE        0.2
+#define CONSERVATION_PERFECT 1.0
+#define CONSERVATION_EXCELLENT 0.8
+#define CONSERVATION_GOOD 0.6
+#define CONSERVATION_POOR 0.4
+#define CONSERVATION_DESTRUCTIVE 0.2
 
 /* Maximum cascade effect per single harvest */
-#define MAX_CASCADE_EFFECT              0.25
+#define MAX_CASCADE_EFFECT 0.25
 
 /* Resource relationship structure */
-struct resource_relationship {
-    int source_resource;        /* Resource being harvested */
-    int target_resource;        /* Resource being affected */
-    int effect_type;           /* Type of cascade effect */
-    float effect_magnitude;    /* Strength of effect (-1.0 to +1.0) */
-    float threshold_min;       /* Minimum threshold for effect */
-    float threshold_max;       /* Maximum threshold for effect */
-    char description[256];     /* Human readable description */
+struct resource_relationship
+{
+  int source_resource;    /* Resource being harvested */
+  int target_resource;    /* Resource being affected */
+  int effect_type;        /* Type of cascade effect */
+  float effect_magnitude; /* Strength of effect (-1.0 to +1.0) */
+  float threshold_min;    /* Minimum threshold for effect */
+  float threshold_max;    /* Maximum threshold for effect */
+  char description[256];  /* Human readable description */
 };
 
 /* Ecosystem health tracking structure */
-struct ecosystem_health {
-    int zone_vnum;
-    int x_coord;
-    int y_coord;
-    int health_state;
-    float health_score;        /* Overall health 0.0-1.0 */
-    time_t last_updated;
-    float resource_levels[NUM_RESOURCE_TYPES];
+struct ecosystem_health
+{
+  int zone_vnum;
+  int x_coord;
+  int y_coord;
+  int health_state;
+  float health_score; /* Overall health 0.0-1.0 */
+  time_t last_updated;
+  float resource_levels[NUM_RESOURCE_TYPES];
 };
 
 /* Player conservation tracking structure */
-struct player_conservation {
-    long player_id;
-    int zone_vnum;
-    int x_coord;
-    int y_coord;
-    float conservation_score;  /* 0.0-1.0 conservation rating */
-    int total_harvests;
-    int sustainable_harvests;
-    float ecosystem_damage;    /* Cumulative damage caused */
-    time_t last_harvest;
+struct player_conservation
+{
+  long player_id;
+  int zone_vnum;
+  int x_coord;
+  int y_coord;
+  float conservation_score; /* 0.0-1.0 conservation rating */
+  int total_harvests;
+  int sustainable_harvests;
+  float ecosystem_damage; /* Cumulative damage caused */
+  time_t last_harvest;
 };
 
 /* ===== CORE CASCADE FUNCTIONS ===== */
@@ -120,8 +125,8 @@ const char *get_ecosystem_state_description(int state);
 /* ===== CONSERVATION TRACKING FUNCTIONS ===== */
 
 /* Update player conservation score */
-void update_player_conservation_score(struct char_data *ch, int resource_type, 
-                                    int quantity, bool sustainable);
+void update_player_conservation_score(struct char_data *ch, int resource_type, int quantity,
+                                      bool sustainable);
 
 /* Get player conservation score for area */
 float get_player_conservation_score(struct char_data *ch, room_rnum room);
@@ -130,8 +135,8 @@ float get_player_conservation_score(struct char_data *ch, room_rnum room);
 bool is_harvest_sustainable(room_rnum room, int resource_type, int quantity);
 
 /* Log cascade effect for debugging */
-void log_cascade_effect(room_rnum room, int source_resource, int target_resource, 
-                       float effect_magnitude, struct char_data *ch);
+void log_cascade_effect(room_rnum room, int source_resource, int target_resource,
+                        float effect_magnitude, struct char_data *ch);
 
 /* ===== ENHANCED SURVEY FUNCTIONS ===== */
 

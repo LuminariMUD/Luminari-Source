@@ -15,8 +15,8 @@
 #define OFFENSIVE_SPELLS 60
 #define OFFENSIVE_AOE_SPELLS 16
 #define OFFENSIVE_AOE_POWERS 6
-#define WIZARD_GROUP_BUFFS 10  /* Group buff spells for wizards/sorcerers */
-#define WIZARD_AOE_SPELLS 15   /* AoE damage/debuff spells for wizards/sorcerers */
+#define WIZARD_GROUP_BUFFS 10 /* Group buff spells for wizards/sorcerers */
+#define WIZARD_AOE_SPELLS 15  /* AoE damage/debuff spells for wizards/sorcerers */
 
 #if defined(CAMPAIGN_DL)
 #define SPELLUP_SPELLS 53
@@ -47,7 +47,8 @@ void npc_assigned_spells(struct char_data *ch);
 bool mob_knows_assigned_spells(struct char_data *ch);
 
 /* Cast a known spell as an innate ability (bypasses class restrictions) */
-int cast_known_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum);
+int cast_known_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj,
+                     int spellnum);
 
 /* Wizard AI functions */
 bool wizard_is_long_duration_buff(int spellnum);

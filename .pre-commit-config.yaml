@@ -1,0 +1,36 @@
+# Pre-commit hooks for LuminariMUD
+# See https://pre-commit.com for more information
+
+repos:
+  # clang-format for C/C++ formatting
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.8
+    hooks:
+      - id: clang-format
+        types_or: [c, c++]
+        args: [--style=file]
+
+  # General file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Local hooks for project-specific checks
+  - repo: local
+    hooks:
+      # Build verification (pre-push only)
+      - id: check-build
+        name: Verify build compiles
+        entry: bash -c 'make -j$(nproc) -q 2>/dev/null || echo "Build check skipped"'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

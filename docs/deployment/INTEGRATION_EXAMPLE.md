@@ -12,13 +12,13 @@
 void boot_db(void)
 {
     /* ... existing boot code ... */
-    
+
     /* After connect_to_mysql() is called */
     connect_to_mysql();
-    
+
     /* ADD THIS LINE: Initialize database during startup */
     startup_database_init();
-    
+
     /* ... rest of existing boot code ... */
 }
 
@@ -29,13 +29,13 @@ void boot_db(void)
 void game_loop(int mother_desc)
 {
     /* ... existing game loop code ... */
-    
+
     while (!circle_shutdown) {
         /* ... existing loop code ... */
-        
+
         /* ADD THIS LINE: Periodic database health check */
         periodic_database_health_check();
-        
+
         /* ... rest of existing loop code ... */
     }
 }
@@ -46,13 +46,13 @@ void game_loop(int mother_desc)
 
 const struct command_info cmd_info[] = {
     /* ... existing commands ... */
-    
+
     /* ADD THESE LINES: Database administration commands */
     { "database"        , POS_DEAD    , do_database        , LVL_GRGOD, 0 },
     { "db_init_system"  , POS_DEAD    , do_db_init_system  , LVL_IMPL , 0 },
     { "db_info"         , POS_DEAD    , do_db_info         , LVL_GRGOD, 0 },
     { "db_export_schema", POS_DEAD    , do_db_export_schema, LVL_IMPL , 0 },
-    
+
     /* ... rest of existing commands ... */
 };
 
@@ -75,7 +75,7 @@ OBJFILES = \
 ACMD(do_shutdown)
 {
     /* ... existing shutdown code ... */
-    
+
     /* Before shutting down, you might want to verify database state */
     if (is_database_available()) {
         log("Shutdown: Database connection active - checking integrity...");
@@ -85,13 +85,13 @@ ACMD(do_shutdown)
             log("WARNING: Database integrity issues detected during shutdown");
         }
     }
-    
+
     /* ... rest of shutdown code ... */
 }
 
 /* ===== 6. INTEGRATION WITH EXISTING RESOURCE SYSTEM ===== */
 
-/* If you already have resource depletion code, you can check if 
+/* If you already have resource depletion code, you can check if
    the database is properly initialized before using it: */
 
 void some_existing_resource_function(void)
@@ -105,7 +105,7 @@ void some_existing_resource_function(void)
         populate_material_system_data();
         populate_region_effects_data();
     }
-    
+
     /* Now proceed with existing resource code */
     /* ... existing resource depletion code ... */
 }
@@ -120,13 +120,13 @@ void some_feature_that_needs_database(struct char_data *ch)
         send_to_char(ch, "This feature requires database connectivity.\r\n");
         return;
     }
-    
+
     if (!verify_core_player_tables()) {
         send_to_char(ch, "Player database tables not available.\r\n");
         send_to_char(ch, "Contact an administrator to initialize the database.\r\n");
         return;
     }
-    
+
     /* Proceed with database-dependent functionality */
     /* ... existing code ... */
 }
@@ -145,7 +145,7 @@ void init_custom_mud_tables(void)
     log("Initializing custom MUD tables...");
 
     /* Your custom table creation */
-    const char *create_custom_table = 
+    const char *create_custom_table =
         "CREATE TABLE IF NOT EXISTS my_custom_table ("
         "id INT AUTO_INCREMENT PRIMARY KEY, "
         "custom_data TEXT"
@@ -164,7 +164,7 @@ void custom_init_luminari_database(void)
 {
     /* Call the standard initialization */
     init_luminari_database();
-    
+
     /* Add your custom initialization */
     init_custom_mud_tables();
 }

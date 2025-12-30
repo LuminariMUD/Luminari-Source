@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Mail System                                                           
-/  Created By: Gicker                                                           
-\                                                             
-/                                                             
-\         todo:                                                    
-/                                                                                                                                                                                       
+\
+/  Luminari Mail System
+/  Created By: Gicker
+\
+/
+\         todo:
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /* adjusted to return number of NEW mail and added 'silent' mode -zusuk */

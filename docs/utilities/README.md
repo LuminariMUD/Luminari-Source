@@ -281,7 +281,7 @@ When deployed on a web server, the tools can be accessed at:
    ```bash
    # Copy environment configuration (if using .env)
    cp .env.example .env
-   
+
    # Edit .env with your actual configuration
    nano .env
    ```
@@ -306,22 +306,22 @@ When deployed on a web server, the tools can be accessed at:
    ```
 
 5. **Web Server Configuration**
-   
+
    **Apache (.htaccess in util/ directory)**
    ```apache
    # Deny access to sensitive files
    <Files ".env">
        Require all denied
    </Files>
-   
+
    <Files "config.php">
        Require all denied
    </Files>
-   
+
    <Files "autoload.php">
        Require all denied
    </Files>
-   
+
    # Force HTTPS
    RewriteEngine On
    RewriteCond %{HTTPS} off
@@ -334,11 +334,11 @@ When deployed on a web server, the tools can be accessed at:
    location ~ /util/\.(env|git) {
        deny all;
    }
-   
+
    location ~ /util/(config|autoload)\.php$ {
        deny all;
    }
-   
+
    # Force HTTPS
    if ($scheme != "https") {
        return 301 https://$server_name$request_uri;

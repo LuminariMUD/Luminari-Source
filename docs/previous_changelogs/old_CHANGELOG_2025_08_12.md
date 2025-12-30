@@ -87,11 +87,11 @@ Fixed critical stack corruption bug in DG Scripts trigger system where parameter
   - Created `script_call_args` struct to encapsulate all parameters
   - Changed `script_driver()` to accept struct pointer instead of multiple arguments
   - Eliminates stack corruption by passing single pointer
-  
+
 - **Updated Function Signature** (src/dg_scripts.c)
   - Modified `script_driver()` to extract parameters from struct
   - Maintains all original functionality with safer parameter passing
-  
+
 - **Updated All Call Sites**
   - Modified 42 calls in dg_triggers.c
   - Modified 1 recursive call in dg_scripts.c
@@ -137,12 +137,12 @@ Fixed critical bug where the help system's soundex (fuzzy matching) feature was 
   - Exact matches stop the handler chain (return 1)
   - Partial matches show help but continue to soundex (return 0)
   - Added stricter matching for very short searches (1-2 characters)
-  
+
 - **Improved Soundex Handler** (src/help.c:895-960)
   - Coordinates with database handler using global flag
   - Shows different messages for partial matches vs no matches
   - Provides "Perhaps you meant" suggestions when partial help is shown
-  
+
 - **Enhanced Soundex Query** (src/help.c:363-390)
   - Improved SQL query with multiple matching strategies:
     - SOUNDS LIKE for phonetic matching
@@ -184,18 +184,18 @@ Implemented a robust MySQL connection pooling system to improve database perform
   - Thread-safe operations with per-connection mutexes
   - Pool expansion on demand when all connections are busy
   - Pool shrinking to remove idle connections
-  
+
 - **Pool Statistics Tracking**
   - Total connection requests
   - Wait count when pool exhausted
   - Error count for failed connections
   - Connection uptime tracking
-  
+
 - **Backward Compatibility**
   - Legacy conn/conn2/conn3 pointers maintained
   - Existing code continues to work without modification
   - Transparent migration path for future updates
-  
+
 - **Configuration**
   - Uses existing mysql_config file
   - No additional configuration required
@@ -228,7 +228,7 @@ Fixed critical bugs in MySQL prepared statement implementation that were prevent
   - Removed problematic metadata refresh after statement execution that was corrupting the statement context
   - Fixed order of operations: now properly stores results before binding result buffers
   - Ensured all MYSQL_BIND structures are properly initialized with memset()
-  
+
 - **Memory Management Issues**
   - Added missing `error` field cleanup in `mysql_stmt_cleanup()` (mysql.c:950-952)
   - Fixed memory leaks in error paths throughout prepared statement functions
@@ -375,7 +375,7 @@ Fixed critical bugs in MySQL prepared statement implementation that caused all d
   - `is_null` field was being set to literal values (0 or 1) instead of pointers to my_bool variables
   - MySQL C API requires `is_null` to be a pointer, not a value
   - Fixed both string and integer parameter binding functions
-  
+
 - **Insufficient buffer allocation for GROUP_CONCAT results**
   - `field->length` was often 0 or too small for aggregated results
   - GROUP_CONCAT can return very long concatenated strings

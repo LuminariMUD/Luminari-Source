@@ -57,7 +57,7 @@ For each spell with help documentation, the HTML displays:
 - **Modern Gradient Background**: Purple gradient (from #667eea to #764ba2)
 - **Card-Based Layout**: Each spell in a white card with rounded corners and shadows
 - **Responsive Grid**: Structured information displayed in a clean grid layout
-- **Color-Coded Elements**: 
+- **Color-Coded Elements**:
   - Blue for spell names and headers
   - Yellow for missing help entries
   - Light blue backgrounds for descriptions

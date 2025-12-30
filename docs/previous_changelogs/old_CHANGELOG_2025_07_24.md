@@ -8,7 +8,7 @@
 #### Fixed Major Memory Leak in tokenize() Function (mysql.c)
 - **Issue**: 318KB memory leak - the largest single memory leak identified in valgrind analysis
 - **Root Cause**: In mysql.c, three locations were manually freeing individual tokens but not calling `free_tokens()` to properly free the token array itself
-- **Solution**: 
+- **Solution**:
   - Replaced manual token cleanup loops with proper `free_tokens()` calls in:
     - `load_regions()` at line 337 (was lines 332-338)
     - `load_paths()` at line 691 (was lines 686-693)  
@@ -19,7 +19,7 @@
 #### Fixed Critical Use-After-Free in close_socket()
 - **Issue**: Use-after-free bug causing segfaults during player disconnection
 - **Root Cause**: In `comm.c:2951`, the code used `simple_list()` to iterate through descriptor events while calling `event_cancel()`, which freed the memory that the iterator was still referencing
-- **Solution**: 
+- **Solution**:
   - Replaced unsafe `simple_list()` iteration with direct access to first item
   - New code safely gets events from the list head while the list size > 0
   - Prevents iterator from accessing freed memory
@@ -33,12 +33,12 @@
 #### Fixed Critical Memory Leaks in tokenize() Function Usage
 - **Issue**: Most frequently occurring memory leak in valgrind analysis - tokenize() results not being freed
 - **Root Cause**: The tokenize() function returns dynamically allocated arrays of strings, but several callers were not freeing the array itself (only the individual strings)
-- **Solution**: 
+- **Solution**:
   - Added `free_tokens()` helper function in mysql.c to properly free both strings and the array
   - Fixed memory leaks in:
     - objsave.c: Added `free_tokens(lines)` calls in objsave_parse_objects_db() (3 locations)
     - mud_event.c: Added `free_tokens(tokens)` in event_encounter_reset()
-- **Files Modified**: 
+- **Files Modified**:
   - mysql.c:232-248 (added free_tokens function)
   - mysql.h:29 (added free_tokens declaration)
   - objsave.c:2417, 3340, 3968 (added free_tokens calls)
@@ -110,7 +110,7 @@
   - Fixed misleading indentation in act.wizard.c else clause
 
 #### Previous Fixes: Critical Compiler Warnings (86 → 6 warnings)
-- **Dangling Pointer Warnings**: 
+- **Dangling Pointer Warnings**:
   - Fixed in `spec_procs.c` (mayor function) - Made path arrays static to prevent dangling pointers
   - Fixed in `zone_procs.c` (king_welmar function) - Made path arrays static
 - **Null Pointer Dereferences**:
@@ -135,7 +135,7 @@
 #### Fixed Use-After-Free Bug in List Iterator System
 - **Issue**: Use-after-free error in `lists.c:553` when removing items during iteration
 - **Root Cause**: `simple_list()` iterator held stale pointers to freed items after `remove_from_list()`
-- **Solution**: 
+- **Solution**:
   - Added NULL pointer safety check in `next_in_list()` to prevent dereferencing freed memory
   - Refactored `free_list()` functions to use safe iteration pattern with cached next pointers
   - Prevents iterator from accessing freed memory by pre-caching next item before removal
@@ -179,7 +179,7 @@
   - `treasure.c:1525,1702` - NPCs accessing PRF_USE_STORED_CONSUMABLES preference flag
   - `spec_procs.c:6315,6335,6354,6376,6395,6417,6436,6458` - NPCs accessing PRF_CONDENSED preference flag
   - `magic.c` - Multiple instances of NPCs accessing GET_PSIONIC_ENERGY_TYPE
-- **Solution**: 
+- **Solution**:
   - Added `!IS_NPC()` checks before all PRF_FLAGGED macro uses
   - Implemented safe energy type access: `IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch)`
   - NPCs now default to DAM_MENTAL damage type for psionic abilities
@@ -194,7 +194,7 @@
   - 64KB initial buffer with dynamic growth capability
   - All player data collected in memory before one disk write
   - Dramatically reduces system call overhead
-- **String Operation Optimization**: 
+- **String Operation Optimization**:
   - Created `buffer_write_string_field()` helper function to consolidate repetitive string operations
   - Pre-allocated buffers to minimize memory allocations
   - Reduced redundant string copying operations
@@ -218,7 +218,7 @@
 
 #### Fixed "degenerate board" Error
 - **Issue**: Board initialization was missing the rnum field, causing find_board() to fail
-- **Solution**: 
+- **Solution**:
   - Explicitly initialized rnum to NOTHING in board_info array declarations
   - Fixed array initialization for both CAMPAIGN_DL (7 boards) and standard (1 board)
   - Added enhanced error logging to identify problematic boards
@@ -408,4 +408,3 @@
 - Most remaining issues are world file problems (missing triggers, invalid zone commands, etc.) rather than code bugs
 - The code already handles most world file issues gracefully by logging errors and continuing operation
 - Magic items will now be properly awarded when treasure is generated
-

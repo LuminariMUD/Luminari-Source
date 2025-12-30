@@ -29,7 +29,7 @@
 #include "ibt.h"
 #include "constants.h"
 #include <mariadb/mysql.h> // We add this for additional mysql functions such as mysql_insert_id, etc.
-#include "mysql.h"        // For mysql_escape_string_alloc
+#include "mysql.h"         // For mysql_escape_string_alloc
 #include "feats.h"
 
 /* local (file scope) function prototpyes  */
@@ -99,7 +99,6 @@ void strip_colors(char *str)
 
   while (p && *p)
   {
-
     if (*p == '@')
     {
       if (*(p + 1) != '@')
@@ -215,7 +214,7 @@ void string_add(struct descriptor_data *d, char *str)
     else
     {
       RECREATE(*d->str, char, strlen(*d->str) + strlen(str) + 3); /* \r\n\0 */
-      strcat(*d->str, str);                                       /* strcat: OK (size precalculated) */
+      strcat(*d->str, str); /* strcat: OK (size precalculated) */
     }
   }
 
@@ -286,29 +285,28 @@ void string_add(struct descriptor_data *d, char *str)
     {
       int mode;
       void (*func)(struct descriptor_data *d, int action);
-    } cleanup_modes[] = {
-        {CON_CEDIT, cedit_string_cleanup},
-        {CON_MEDIT, medit_string_cleanup},
-        {CON_OEDIT, oedit_string_cleanup},
-        {CON_REDIT, redit_string_cleanup},
-        {CON_TEDIT, tedit_string_cleanup},
-        {CON_TRIGEDIT, trigedit_string_cleanup},
-        {CON_PLR_DESC, exdesc_string_cleanup},
-        {CON_PLR_BG, bg_string_cleanup},
-        {CON_CHARACTER_GOALS_ENTER, goal_string_cleanup},
-        {CON_CHARACTER_PERSONALITY_ENTER, personality_string_cleanup},
-        {CON_CHARACTER_IDEALS_ENTER, ideals_string_cleanup},
-        {CON_CHARACTER_BONDS_ENTER, bonds_string_cleanup},
-        {CON_CHARACTER_FLAWS_ENTER, flaws_string_cleanup},
-        {CON_PLAYING, playing_string_cleanup},
-        {CON_HEDIT, hedit_string_cleanup},
-        {CON_QEDIT, qedit_string_cleanup},
-        //      { CON_HLQEDIT  , hlqedit_string_cleanup },
-        {CON_IBTEDIT, ibtedit_string_cleanup},
-        {CON_NEWMAIL, new_mail_string_cleanup},
-        {CON_BOARD_POST, board_post_string_cleanup},
-        {CON_BOARD_POST_ABORT, board_post_string_cleanup},
-        {-1, NULL}};
+    } cleanup_modes[] = {{CON_CEDIT, cedit_string_cleanup},
+                         {CON_MEDIT, medit_string_cleanup},
+                         {CON_OEDIT, oedit_string_cleanup},
+                         {CON_REDIT, redit_string_cleanup},
+                         {CON_TEDIT, tedit_string_cleanup},
+                         {CON_TRIGEDIT, trigedit_string_cleanup},
+                         {CON_PLR_DESC, exdesc_string_cleanup},
+                         {CON_PLR_BG, bg_string_cleanup},
+                         {CON_CHARACTER_GOALS_ENTER, goal_string_cleanup},
+                         {CON_CHARACTER_PERSONALITY_ENTER, personality_string_cleanup},
+                         {CON_CHARACTER_IDEALS_ENTER, ideals_string_cleanup},
+                         {CON_CHARACTER_BONDS_ENTER, bonds_string_cleanup},
+                         {CON_CHARACTER_FLAWS_ENTER, flaws_string_cleanup},
+                         {CON_PLAYING, playing_string_cleanup},
+                         {CON_HEDIT, hedit_string_cleanup},
+                         {CON_QEDIT, qedit_string_cleanup},
+                         //      { CON_HLQEDIT  , hlqedit_string_cleanup },
+                         {CON_IBTEDIT, ibtedit_string_cleanup},
+                         {CON_NEWMAIL, new_mail_string_cleanup},
+                         {CON_BOARD_POST, board_post_string_cleanup},
+                         {CON_BOARD_POST_ABORT, board_post_string_cleanup},
+                         {-1, NULL}};
 
     for (i = 0; cleanup_modes[i].func; i++)
       if (STATE(d) == cleanup_modes[i].mode)
@@ -355,8 +353,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
     board_save_board(d->mail_to - BOARD_MAGIC);
     if (action == STRINGADD_ABORT)
     {
-      act("$n stops writing to the board.", TRUE, d->character, NULL,
-          NULL, TO_ROOM);
+      act("$n stops writing to the board.", TRUE, d->character, NULL, NULL, TO_ROOM);
       write_to_output(d, "Post not aborted, use REMOVE <post #>.\r\n");
     }
   }
@@ -371,15 +368,13 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
                          " ideas..  If the idea is rejected, a polite game-mail will be"
                          " sent giving the reason why.  Thanks for your input!\r\n");
       act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
-             GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.", GET_NAME(d->character));
       save_ibt_file(SCMD_IDEA);
     }
     else
     {
       act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
-             GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.", GET_NAME(d->character));
       write_to_output(d, "Idea aborted!\r\n");
 
       clean_ibt_list(SCMD_IDEA);
@@ -396,15 +391,13 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
                          " ideas..  If the idea is rejected, a polite game-mail will be"
                          " sent giving the reason why.  Thanks for your input!\r\n");
       act("$n finishes submitting a bug.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
-             GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.", GET_NAME(d->character));
       save_ibt_file(SCMD_BUG);
     }
     else
     {
       act("$n finishes submitting a bug.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
-             GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.", GET_NAME(d->character));
       write_to_output(d, "Bug aborted!\r\n");
 
       clean_ibt_list(SCMD_BUG);
@@ -417,15 +410,13 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
     {
       write_to_output(d, "Typo saved!\r\n");
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
-             GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.", GET_NAME(d->character));
       save_ibt_file(SCMD_TYPO);
     }
     else
     {
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
-             GET_NAME(d->character));
+      mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.", GET_NAME(d->character));
       write_to_output(d, "Typo aborted!\r\n");
 
       clean_ibt_list(SCMD_TYPO);
@@ -594,13 +585,15 @@ ACMDU(do_skillset)
   else if (spell_info[skill].min_level[(pc)] > pl)
   {
     send_to_char(ch, "%s is a level %d %s.\r\n", GET_NAME(vict), pl, CLSLIST_NAME(pc));
-    send_to_char(ch, "The minimum level for %s is %d for %ss.\r\n", spell_info[skill].name, spell_info[skill].min_level[(pc)], CLSLIST_NAME(pc));
+    send_to_char(ch, "The minimum level for %s is %d for %ss.\r\n", spell_info[skill].name,
+                 spell_info[skill].min_level[(pc)], CLSLIST_NAME(pc));
   }
 
   /* find_skill_num() guarantees a valid spell_info[] index, or -1, and we
    * checked for the -1 above so we are safe here. */
   SET_SKILL(vict, skill, value);
-  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict), spell_info[skill].name, value);
+  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict),
+         spell_info[skill].name, value);
   send_to_char(ch, "You change %s's %s to %d.\r\n", GET_NAME(vict), spell_info[skill].name, value);
 }
 
@@ -694,7 +687,8 @@ ACMDU(do_abilityset)
   /* find_ability_num() guarantees a valid ability index, or -1, and we
    * checked for the -1 above so we are safe here. */
   SET_ABILITY(vict, skill, value);
-  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict), ability_names[skill], value);
+  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict),
+         ability_names[skill], value);
   send_to_char(ch, "You change %s's %s to %d.\r\n", GET_NAME(vict), ability_names[skill], value);
 }
 
@@ -710,8 +704,9 @@ ACMDU(do_featset)
 
   if (!*name)
   { /* no arguments. print an informative text */
-    send_to_char(ch, "Syntax: featset <target name> '<feat name>' <# of this feat to add or subtract>\r\n"
-                     "Make sure to use the magical symbols ' around the feat name\r\n");
+    send_to_char(
+        ch, "Syntax: featset <target name> '<feat name>' <# of this feat to add or subtract>\r\n"
+            "Make sure to use the magical symbols ' around the feat name\r\n");
     return;
   }
 
@@ -787,8 +782,10 @@ ACMDU(do_featset)
   /* set the feat here */
   SET_FEAT(vict, feat_num, HAS_REAL_FEAT(vict, feat_num) + value);
 
-  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict), feat_list[feat_num].name, HAS_FEAT(ch, feat_num));
-  send_to_char(ch, "You change %s's %s to %d.\r\n", GET_NAME(vict), feat_list[feat_num].name, HAS_FEAT(ch, feat_num));
+  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict),
+         feat_list[feat_num].name, HAS_FEAT(ch, feat_num));
+  send_to_char(ch, "You change %s's %s to %d.\r\n", GET_NAME(vict), feat_list[feat_num].name,
+               HAS_FEAT(ch, feat_num));
 }
 
 /* By Michael Buselli. Traverse down the string until the begining of the next
@@ -797,7 +794,8 @@ static char *next_page(char *str, struct char_data *ch)
 {
   int col = 1, line = 1, count, pw;
 
-  pw = (GET_SCREEN_WIDTH(ch) >= 40 && GET_SCREEN_WIDTH(ch) <= 250) ? GET_SCREEN_WIDTH(ch) : PAGE_WIDTH;
+  pw = (GET_SCREEN_WIDTH(ch) >= 40 && GET_SCREEN_WIDTH(ch) <= 250) ? GET_SCREEN_WIDTH(ch)
+                                                                   : PAGE_WIDTH;
 
   for (;; str++)
   {
@@ -927,7 +925,8 @@ void show_string(struct descriptor_data *d, char *input)
 
   else if (*buf)
   {
-    send_to_char(d->character, "Valid commands while paging are RETURN, Q, R, B, or a numeric value.\r\n");
+    send_to_char(d->character,
+                 "Valid commands while paging are RETURN, Q, R, B, or a numeric value.\r\n");
     return;
   }
   /* If we're displaying the last page, just send it to the character, and
@@ -939,7 +938,8 @@ void show_string(struct descriptor_data *d, char *input)
     if (d->showstr_count == 1)
       send_to_char(d->character, "%s\r\n\tn\r\n", d->showstr_vector[d->showstr_page]);
     else
-      send_to_char(d->character, "%s\r\n[Page %d/%d]\tn\r\n", d->showstr_vector[d->showstr_page], d->showstr_page + 1, d->showstr_count);
+      send_to_char(d->character, "%s\r\n[Page %d/%d]\tn\r\n", d->showstr_vector[d->showstr_page],
+                   d->showstr_page + 1, d->showstr_count);
     free(d->showstr_vector);
     d->showstr_vector = NULL;
     d->showstr_count = 0;
@@ -954,7 +954,8 @@ void show_string(struct descriptor_data *d, char *input)
     diff = d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page];
     if (diff > MAX_STRING_LENGTH - 3) /* 3=\r\n\0 */
       diff = MAX_STRING_LENGTH - 3;
-    strncpy(buffer, d->showstr_vector[d->showstr_page], diff); /* strncpy: OK (size truncated above) */
+    strncpy(buffer, d->showstr_vector[d->showstr_page],
+            diff); /* strncpy: OK (size truncated above) */
     /* Fix for prompt overwriting last line in compact mode by Peter Ajamian */
     if (buffer[diff - 2] == '\r' && buffer[diff - 1] == '\n')
       buffer[diff] = '\0';
@@ -975,7 +976,6 @@ void show_string(struct descriptor_data *d, char *input)
 
 void new_mail_string_cleanup(struct descriptor_data *d, int action)
 {
-
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Mail aborted.\r\n");
   else
@@ -983,7 +983,8 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
     extern MYSQL *conn;
 
     /* Check the connection, reconnect if necessary. */
-    if (!MYSQL_PING_CONN(conn)) {
+    if (!MYSQL_PING_CONN(conn))
+    {
       write_to_output(d, "Database connection failed. Mail could not be sent.\r\n");
       return;
     }
@@ -1009,11 +1010,11 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
     if (found)
     {
-
       extern MYSQL *conn2;
 
       /* Check the connection, reconnect if necessary. */
-      if (!MYSQL_PING_CONN(conn2)) {
+      if (!MYSQL_PING_CONN(conn2))
+      {
         write_to_output(d, "Database connection failed. Mail could not be sent.\r\n");
         return;
       }
@@ -1037,7 +1038,8 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
       // }
       // snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE clan='%s'", escaped_clan);
       // free(escaped_clan);
-      snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE clan='%s'", "WE WANT THIS TO FAIL TILL WE HAVE CLANS" /*cptr->name // no clans right now */);
+      snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE clan='%s'",
+               "WE WANT THIS TO FAIL TILL WE HAVE CLANS" /*cptr->name // no clans right now */);
       //    send_to_char(ch, "%s\r\n", query);
 
       mysql_query(conn2, query);
@@ -1046,8 +1048,8 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
       {
         while ((row = mysql_fetch_row(res)) != NULL)
         {
-
-          end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
+          end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, "
+                              "message) VALUES(NOW(),");
           *end++ = '\'';
           end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
           *end++ = '\'';
@@ -1057,18 +1059,21 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
           *end++ = '\'';
           *end++ = ',';
           *end++ = '\'';
-          end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject, strlen(ch->player_specials->new_mail_subject));
+          end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject,
+                                          strlen(ch->player_specials->new_mail_subject));
           *end++ = '\'';
           *end++ = ',';
           *end++ = '\'';
-          end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content, strlen(ch->player_specials->new_mail_content));
+          end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content,
+                                          strlen(ch->player_specials->new_mail_content));
           *end++ = '\'';
           *end++ = ')';
           *end++ = '\0';
 
           if (mysql_query(conn, query))
           {
-            log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
+            log("Unable to store note message in database for %s query='%s'.",
+                GET_NAME(d->character), query);
           }
 
           last_id = mysql_insert_id(conn);
@@ -1076,14 +1081,20 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
           if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
           {
             char *escaped_name_del = mysql_escape_string_alloc(conn, GET_NAME(ch));
-            if (!escaped_name_del) {
+            if (!escaped_name_del)
+            {
               log("SYSERR: Failed to escape player name in modify mail_deleted insert");
-            } else {
-              snprintf(query, sizeof(query), "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')", escaped_name_del, last_id);
+            }
+            else
+            {
+              snprintf(query, sizeof(query),
+                       "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')",
+                       escaped_name_del, last_id);
               free(escaped_name_del);
               if (mysql_query(conn, query))
               {
-                log("Unable to add deleted flag to mail in database for %s query='%s'.", GET_NAME(ch), query);
+                log("Unable to add deleted flag to mail in database for %s query='%s'.",
+                    GET_NAME(ch), query);
               }
             }
           }
@@ -1095,24 +1106,27 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
           {
             nch = tch->next;
             if (!strcmp(GET_NAME(tch), row[0]))
-              send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
+              send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n",
+                           GET_NAME(ch), ch->player_specials->new_mail_subject);
           }
         }
       }
       mysql_free_result(res);
 
-      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, "NO DICE TILL CLANS ARE DONE" /*cptr->name // not till we have clans*/);
+      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n",
+                      ch->player_specials->new_mail_subject,
+                      "NO DICE TILL CLANS ARE DONE" /*cptr->name // not till we have clans*/);
     }
     else
     {
-
       if (!conn)
       {
         write_to_output(d, "Database connection not available. Mail could not be sent.\r\n");
         return;
       }
       /* Check the connection, reconnect if necessary. */
-      if (!MYSQL_PING_CONN(conn)) {
+      if (!MYSQL_PING_CONN(conn))
+      {
         write_to_output(d, "Database connection failed. Mail could not be sent.\r\n");
         return;
       }
@@ -1123,39 +1137,49 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
       char *end = NULL;
 
-      end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
+      end = stpcpy(
+          query,
+          "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
       *end++ = '\'';
       end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
       *end++ = '\'';
       *end++ = ',';
       *end++ = '\'';
-      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_receiver, strlen(ch->player_specials->new_mail_receiver));
+      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_receiver,
+                                      strlen(ch->player_specials->new_mail_receiver));
       *end++ = '\'';
       *end++ = ',';
       *end++ = '\'';
-      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject, strlen(ch->player_specials->new_mail_subject));
+      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject,
+                                      strlen(ch->player_specials->new_mail_subject));
       *end++ = '\'';
       *end++ = ',';
       *end++ = '\'';
-      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content, strlen(ch->player_specials->new_mail_content));
+      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content,
+                                      strlen(ch->player_specials->new_mail_content));
       *end++ = '\'';
       *end++ = ')';
       *end++ = '\0';
 
       if (mysql_query(conn, query))
       {
-        log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
+        log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character),
+            query);
       }
 
-      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, ch->player_specials->new_mail_receiver);
+      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n",
+                      ch->player_specials->new_mail_subject,
+                      ch->player_specials->new_mail_receiver);
       struct char_data *tch;
       struct char_data *nch;
 
       for (tch = character_list; tch; tch = nch)
       {
         nch = tch->next;
-        if (!strcmp(GET_NAME(tch), ch->player_specials->new_mail_receiver) || !strcmp("All", ch->player_specials->new_mail_receiver))
-          send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
+        if (!strcmp(GET_NAME(tch), ch->player_specials->new_mail_receiver) ||
+            !strcmp("All", ch->player_specials->new_mail_receiver))
+          send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n",
+                       GET_NAME(ch), ch->player_specials->new_mail_subject);
       }
 
     } // end !found
@@ -1171,15 +1195,21 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
  */
 static void board_post_string_cleanup(struct descriptor_data *d, int action)
 {
-  extern void mysql_board_finish_post(struct descriptor_data *d, int save);
-  
-  if (!d->str) {
+  extern void mysql_board_finish_post(struct descriptor_data * d, int save);
+
+  if (!d->str)
+  {
     log("SYSERR: board_post_string_cleanup: CON_BOARD_POST with NULL d->str");
     mysql_board_finish_post(d, 0);
-  } else {
-    if (action == STRINGADD_SAVE) {
+  }
+  else
+  {
+    if (action == STRINGADD_SAVE)
+    {
       mysql_board_finish_post(d, 1);
-    } else {
+    }
+    else
+    {
       mysql_board_finish_post(d, 0);
     }
   }

@@ -34,15 +34,15 @@ The PubSub system acts as a **message broker** between publishers and handlers:
 /* In your combat system (fight.c) */
 void hit(struct char_data *ch, struct char_data *victim, int damage) {
     /* ... existing combat code ... */
-    
+
     /* Publish combat event - no need to know who handles it */
     char event_data[MAX_STRING_LENGTH];
     snprintf(event_data, sizeof(event_data),
             "Combat: %s attacks %s for %d damage",
             GET_NAME(ch), GET_NAME(victim), damage);
-    
+
     pubsub_trigger_event("events.combat.action", ch, event_data, PUBSUB_PRIORITY_LOW);
-    
+
     /* Critical hit? */
     if (damage > GET_MAX_HIT(victim) / 4) {
         pubsub_trigger_event("events.combat.critical", ch, event_data, PUBSUB_PRIORITY_NORMAL);
@@ -56,12 +56,12 @@ void hit(struct char_data *ch, struct char_data *victim, int damage) {
 /* In your spell system (spells.c) */
 void cast_fireball(struct char_data *ch, int level) {
     /* ... spell casting logic ... */
-    
+
     /* Publish spatial audio event for nearby players */
     char event_data[MAX_STRING_LENGTH];
     snprintf(event_data, sizeof(event_data),
             "A massive fireball explodes with tremendous force!");
-    
+
     pubsub_publish_wilderness_audio(X_LOC(ch), Y_LOC(ch), 0,
                                    GET_NAME(ch), event_data,
                                    5 + level, /* hearing distance */
@@ -75,26 +75,26 @@ void cast_fireball(struct char_data *ch, int level) {
 /* Event handler that automatically processes player deaths */
 int pubsub_handler_death_processor(struct char_data *ch, struct pubsub_message *msg) {
     if (!ch || !msg) return PUBSUB_ERROR_INVALID_PARAM;
-    
+
     /* Apply death penalties */
     int exp_loss = GET_EXP(ch) / 10; /* 10% experience loss */
     gain_exp(ch, -exp_loss);
-    
+
     /* Create corpse */
     make_corpse(ch);
-    
+
     /* Resurrect player at temple */
     char_from_room(ch);
     char_to_room(ch, find_temple_room());
-    
+
     /* Announce death */
     if (GET_LEVEL(ch) >= 10) {
         char death_msg[MAX_STRING_LENGTH];
-        snprintf(death_msg, sizeof(death_msg), 
+        snprintf(death_msg, sizeof(death_msg),
                 "%s has died and been resurrected", GET_NAME(ch));
         pubsub_trigger_event("announcements.death", NULL, death_msg, PUBSUB_PRIORITY_HIGH);
     }
-    
+
     return PUBSUB_SUCCESS;
 }
 ```
@@ -136,14 +136,14 @@ events.zone.123.events    - Zone-specific events
 /* During MUD initialization */
 void setup_event_system(void) {
     /* Create event topics */
-    pubsub_create_topic("events.combat.action", "Combat events", 
+    pubsub_create_topic("events.combat.action", "Combat events",
                        PUBSUB_CATEGORY_SYSTEM, PUBSUB_ACCESS_PUBLIC, "System");
     pubsub_create_topic("events.player.death", "Death events",
                        PUBSUB_CATEGORY_SYSTEM, PUBSUB_ACCESS_PUBLIC, "System");
-    
+
     /* Initialize event handlers */
     pubsub_init_event_handlers();
-    
+
     /* Set up "system subscriptions" - handlers that process events automatically */
     /* This would need special implementation since there's no "character" */
 }
@@ -159,13 +159,13 @@ int pubsub_handler_guild_monitor(struct char_data *ch, struct pubsub_message *ms
     if (!ch || GET_GUILD(ch) == GUILD_UNDEFINED) {
         return PUBSUB_SUCCESS; /* Skip non-guild players */
     }
-    
+
     /* Process guild-specific logic */
     if (strstr(msg->content, "promotion")) {
         award_guild_experience(ch, 100);
         send_guild_announcement(GET_GUILD(ch), "Member promoted!");
     }
-    
+
     return PUBSUB_SUCCESS;
 }
 ```
@@ -177,13 +177,13 @@ int pubsub_handler_guild_monitor(struct char_data *ch, struct pubsub_message *ms
 int pubsub_handler_death_processor(struct char_data *ch, struct pubsub_message *msg) {
     /* Process death */
     apply_death_penalties(ch);
-    
+
     /* Trigger secondary events */
-    pubsub_trigger_event("events.economy.death_tax", ch, 
+    pubsub_trigger_event("events.economy.death_tax", ch,
                         "Death tax collection", PUBSUB_PRIORITY_NORMAL);
     pubsub_trigger_event("events.quest.death_failure", ch,
                         "Quest failure due to death", PUBSUB_PRIORITY_HIGH);
-    
+
     return PUBSUB_SUCCESS;
 }
 ```
@@ -192,30 +192,30 @@ int pubsub_handler_death_processor(struct char_data *ch, struct pubsub_message *
 
 ```c
 /* Create detailed event with metadata */
-void publish_detailed_combat_event(struct char_data *attacker, struct char_data *victim, 
+void publish_detailed_combat_event(struct char_data *attacker, struct char_data *victim,
                                   int damage, int weapon_type) {
     struct pubsub_message *msg;
     char event_data[MAX_STRING_LENGTH];
     char metadata[MAX_STRING_LENGTH];
-    
+
     snprintf(event_data, sizeof(event_data),
-            "Combat: %s -> %s, %d damage", 
+            "Combat: %s -> %s, %d damage",
             GET_NAME(attacker), GET_NAME(victim), damage);
-    
+
     /* Create rich metadata */
     snprintf(metadata, sizeof(metadata),
             "{\"attacker_level\":%d,\"victim_level\":%d,\"weapon_type\":%d,"
             "\"damage\":%d,\"room\":%d,\"time\":%ld}",
             GET_LEVEL(attacker), GET_LEVEL(victim), weapon_type,
             damage, GET_ROOM_VNUM(IN_ROOM(attacker)), time(NULL));
-    
+
     msg = pubsub_create_message(
         pubsub_find_topic_by_name("events.combat.detailed")->topic_id,
         GET_NAME(attacker), event_data,
         PUBSUB_MESSAGE_TYPE_SYSTEM, PUBSUB_MESSAGE_CATEGORY_COMBAT,
         PUBSUB_PRIORITY_LOW
     );
-    
+
     if (msg) {
         msg->metadata = strdup(metadata);
         pubsub_db_save_message(msg);
@@ -256,12 +256,12 @@ void publish_detailed_combat_event(struct char_data *attacker, struct char_data 
 ACMD(do_testevent) {
     char topic[128], data[MAX_STRING_LENGTH];
     two_arguments(argument, topic, data);
-    
+
     if (!*topic || !*data) {
         send_to_char(ch, "Usage: testevent <topic> <data>\r\n");
         return;
     }
-    
+
     pubsub_trigger_event(topic, ch, data, PUBSUB_PRIORITY_NORMAL);
     send_to_char(ch, "Event triggered: %s -> %s\r\n", topic, data);
 }
@@ -290,10 +290,10 @@ ACMD(do_testevent) {
 /* 1. Publish events from combat system */
 void hit(struct char_data *ch, struct char_data *victim, int damage) {
     /* ... combat logic ... */
-    
+
     char event_data[MAX_STRING_LENGTH];
     snprintf(event_data, sizeof(event_data),
-            "hit:%s:%s:%d:%d", GET_NAME(ch), GET_NAME(victim), 
+            "hit:%s:%s:%d:%d", GET_NAME(ch), GET_NAME(victim),
             damage, weapon_type);
     pubsub_trigger_event("events.combat.action", ch, event_data, PUBSUB_PRIORITY_LOW);
 }
@@ -303,13 +303,13 @@ int pubsub_handler_combat_analytics(struct char_data *ch, struct pubsub_message 
     /* Parse event data */
     char action[32], attacker[64], victim[64];
     int damage, weapon;
-    
-    sscanf(msg->content, "%[^:]:%[^:]:%[^:]:%d:%d", 
+
+    sscanf(msg->content, "%[^:]:%[^:]:%[^:]:%d:%d",
            action, attacker, victim, &damage, &weapon);
-    
+
     /* Update analytics database */
     log_combat_action(attacker, victim, damage, weapon, time(NULL));
-    
+
     /* Check for balance issues */
     if (damage > 500) { /* Extremely high damage */
         char alert[MAX_STRING_LENGTH];
@@ -318,7 +318,7 @@ int pubsub_handler_combat_analytics(struct char_data *ch, struct pubsub_message 
                 attacker, damage, victim);
         pubsub_trigger_event("admin.balance_alerts", NULL, alert, PUBSUB_PRIORITY_URGENT);
     }
-    
+
     return PUBSUB_SUCCESS;
 }
 
@@ -328,7 +328,7 @@ void init_combat_analytics(void) {
                        PUBSUB_CATEGORY_SYSTEM, PUBSUB_ACCESS_PUBLIC, "System");
     pubsub_create_topic("admin.balance_alerts", "Game balance alerts",
                        PUBSUB_CATEGORY_SYSTEM, PUBSUB_ACCESS_ADMIN_ONLY, "System");
-    
+
     pubsub_register_handler("combat_analytics", "Combat analytics processor",
                            pubsub_handler_combat_analytics);
 }

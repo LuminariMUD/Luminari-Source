@@ -12,7 +12,7 @@ usage() {
     echo ""
     echo "Campaigns:"
     echo "  fr        Forgotten Realms"
-    echo "  dl        Dragonlance" 
+    echo "  dl        Dragonlance"
     echo "  luminari  Luminari (default campaign)"
     echo ""
     echo "Environments:"
@@ -158,19 +158,19 @@ if [[ "$ENV" == "dev" ]]; then
     echo "Development environment detected"
     echo "1 second delay before starting server..."
     sleep 1
-    
+
     if [[ "$CAMPAIGN" == "luminari" ]]; then
         echo "Starting dev server on port 4101"
     else
         echo "Starting dev server"
     fi
-    
+
     cd "$BASE_PATH" && ./checkmud.sh &
     echo ""
     echo "Server started in background"
     echo "To change to the dev directory, run:"
     echo "cd $BASE_PATH"
-    
+
 else
     # Live environment - manual restart required
     echo "Binary deployment complete for LIVE server."

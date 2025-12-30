@@ -176,7 +176,7 @@ Your AI agents will receive through your existing API:
   ],
   "profile": {
     "theme": "Ancient mystical forest with primordial energy",
-    "mood": "Serene yet alive with ancient power", 
+    "mood": "Serene yet alive with ancient power",
     "style": "poetic",
     "complexity": 3
   }
@@ -225,13 +225,13 @@ The stars shine in the night sky.
 
 ### After (AI-Enhanced System)
 ```
-You are standing within the heart of Whispering Wood. Ancient oak trees 
-tower overhead, their gnarled branches creating a natural cathedral of 
-green. Thick carpets of moss cover fallen logs, and delicate wildflowers 
-bloom in dappled clearings where moonlight filters through the canopy. 
-The gentle rustle of leaves mingles with the distant hoot of an owl and 
-the soft trickle of a hidden stream. The air carries the rich scent of 
-earth and growing things, tinged with the sweetness of night-blooming 
+You are standing within the heart of Whispering Wood. Ancient oak trees
+tower overhead, their gnarled branches creating a natural cathedral of
+green. Thick carpets of moss cover fallen logs, and delicate wildflowers
+bloom in dappled clearings where moonlight filters through the canopy.
+The gentle rustle of leaves mingles with the distant hoot of an owl and
+the soft trickle of a hidden stream. The air carries the rich scent of
+earth and growing things, tinged with the sweetness of night-blooming
 jasmine.
 ```
 

@@ -105,8 +105,8 @@ Specifically, the following are required:
    you are encouraged to do so by all means, but use of any part of the
    CircleMUD or DikuMUD source code requires that their respective licenses
    be followed, including the crediting requirements.
-   
-   
+
+
 The third part of the license simply states that you must comply with the
 DikuMUD license.  This is required because CircleMUD is a DikuMUD derivative.
 The DikuMUD license is included below.
@@ -208,7 +208,7 @@ Rules:
 
    If you wish to setup a version of DikuMud on any computer system, you
    must send us a message , by snail-mail or e-mail, and inform us where
-   and when you are running the game. (remember to include 
+   and when you are running the game. (remember to include
    your address, name etc.)
 
 

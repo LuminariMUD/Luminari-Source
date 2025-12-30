@@ -23,23 +23,25 @@
 
 /* Copyover debug logging - controlled by copyover_debug_enabled in comm.c */
 extern int copyover_debug_enabled;
-#define COPYOVER_DEBUG(msg, ...) \
-    do { \
-        if (copyover_debug_enabled) { \
-            log("INFO: " msg, ##__VA_ARGS__); \
-        } \
-    } while(0)
+#define COPYOVER_DEBUG(msg, ...)                                                                   \
+  do                                                                                               \
+  {                                                                                                \
+    if (copyover_debug_enabled)                                                                    \
+    {                                                                                              \
+      log("INFO: " msg, ##__VA_ARGS__);                                                            \
+    }                                                                                              \
+  } while (0)
 
 /* comm.c */
 void close_socket(struct descriptor_data *d);
 void game_info(const char *messg, ...) __attribute__((format(printf, 1, 2)));
-size_t send_to_char(struct char_data *ch, const char *messg, ...) __attribute__((format(printf, 2, 3)));
-void send_to_all(const char *messg, ...) __attribute__((format(printf, 1,
-                                                               2)));
+size_t send_to_char(struct char_data *ch, const char *messg, ...)
+    __attribute__((format(printf, 2, 3)));
+void send_to_all(const char *messg, ...) __attribute__((format(printf, 1, 2)));
 void send_to_room(room_rnum room, const char *messg, ...) __attribute__((format(printf, 2, 3)));
-void send_to_outdoor(const char *messg, ...) __attribute__((format(printf, 1,
-                                                                   2)));
-void send_to_group(struct char_data *ch, struct group_data *group, const char *msg, ...) __attribute__((format(printf, 3, 4)));
+void send_to_outdoor(const char *messg, ...) __attribute__((format(printf, 1, 2)));
+void send_to_group(struct char_data *ch, struct group_data *group, const char *msg, ...)
+    __attribute__((format(printf, 3, 4)));
 void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
     __attribute__((format(printf, 3, 4)));
 void update_msdp_room(struct char_data *ch);
@@ -55,14 +57,16 @@ void send_to_mud(struct char_data *broadcaster, char *message);
 #define DG_NO_TRIG 256 /**< act() flag: don't check act trigger   */
 
 /* act functions */
-void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
-                 void *vict_obj, struct char_data *to, bool carrier_return);
-const char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj, void *vict_obj, int type);
+void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj, void *vict_obj,
+                 struct char_data *to, bool carrier_return);
+const char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj,
+                void *vict_obj, int type);
 
 /* I/O functions */
 void write_to_q(const char *txt, struct txt_q *queue, int aliased);
 int write_to_descriptor(socket_t desc, const char *txt);
-size_t write_to_output(struct descriptor_data *d, const char *txt, ...) __attribute__((format(printf, 2, 3)));
+size_t write_to_output(struct descriptor_data *d, const char *txt, ...)
+    __attribute__((format(printf, 2, 3)));
 size_t vwrite_to_output(struct descriptor_data *d, const char *format, va_list args);
 
 typedef RETSIGTYPE sigfunc(int);

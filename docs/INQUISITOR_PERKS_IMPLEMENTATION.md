@@ -95,7 +95,7 @@ To complete the Inquisitor perk system, the following should be implemented:
 ## Integration Points
 The following game systems will need to reference these perks:
 - **Judgment system**: Apply bonuses from Empowered Judgment
-- **Spellcasting system**: 
+- **Spellcasting system**:
   - Handle Swift Spellcaster casting time reduction
   - Apply Spell Focus: Divination DC bonuses
   - Grant bonus spell slots at rank 2

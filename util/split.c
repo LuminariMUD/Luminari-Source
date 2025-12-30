@@ -62,7 +62,8 @@ int main(void)
     {
       /* Remove newline from filename */
       newline_pos = strchr(line, '\n');
-      if (newline_pos) {
+      if (newline_pos)
+      {
         *newline_pos = '\0';
       }
 
@@ -103,7 +104,8 @@ int main(void)
   /* Close files and finish */
   fputs("$\r\n", index);
   fclose(index);
-  if (outfile) {
+  if (outfile)
+  {
     fclose(outfile);
   }
 

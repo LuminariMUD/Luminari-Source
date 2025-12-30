@@ -143,7 +143,6 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict)
 #define RESCUE_LOOP 20
 bool npc_rescue(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -221,8 +220,7 @@ bool move_on_path(struct char_data *ch)
     return FALSE;
   }
 
-  send_to_char(ch, "OK, I am in room %d (%d)...  ", GET_ROOM_VNUM(IN_ROOM(ch)),
-               IN_ROOM(ch));
+  send_to_char(ch, "OK, I am in room %d (%d)...  ", GET_ROOM_VNUM(IN_ROOM(ch)), IN_ROOM(ch));
 
   PATH_DELAY(ch) = PATH_RESET(ch);
 
@@ -231,18 +229,18 @@ bool move_on_path(struct char_data *ch)
 
   next = GET_PATH(ch, PATH_INDEX(ch));
 
-  send_to_char(ch, "PATH:  Path-Index:  %d, Next (get-path vnum):  %d (%d).\r\n",
-               PATH_INDEX(ch), next, real_room(next));
+  send_to_char(ch, "PATH:  Path-Index:  %d, Next (get-path vnum):  %d (%d).\r\n", PATH_INDEX(ch),
+               next, real_room(next));
 
   dir = find_first_step(IN_ROOM(ch), real_room(next));
 
   if (EXIT(ch, dir)->to_room != real_room(next))
   {
     send_to_char(ch, "Hrm, it appears I am off-path...\r\n");
-    send_to_char(ch, "I want to go %s, which is room %d, but I need to get to"
-                     " room %d..\r\n",
-                 dirs[dir], GET_ROOM_VNUM(EXIT(ch, dir)->to_room),
-                 next);
+    send_to_char(ch,
+                 "I want to go %s, which is room %d, but I need to get to"
+                 " room %d..\r\n",
+                 dirs[dir], GET_ROOM_VNUM(EXIT(ch, dir)->to_room), next);
   }
   else
   {
@@ -253,14 +251,14 @@ bool move_on_path(struct char_data *ch)
   {
   case BFS_ERROR:
     send_to_char(ch, "Hmm.. something seems to be seriously wrong.\r\n");
-    log("PATH ERROR: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
+    log("PATH ERROR: Mob %s, in room %d, trying to get to %d", GET_NAME(ch),
+        world[IN_ROOM(ch)].number, next);
     break;
   case BFS_ALREADY_THERE:
     send_to_char(ch, "I seem to be in the right room already!\r\n");
     break;
   case BFS_NO_PATH:
-    send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n",
-                 next, real_room(next));
+    send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n", next, real_room(next));
     // log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
     break;
   default: /* Success! */
@@ -364,15 +362,15 @@ int can_continue(struct char_data *ch, bool fighting)
 bool npc_should_call_companion(struct char_data *ch, int call_type)
 {
   struct follow_type *k = NULL;
-  
+
   /* Basic checks */
   if (!ch || !IS_NPC(ch))
     return FALSE;
-    
+
   /* Don't call if we're almost dead */
   if (GET_HIT(ch) < (GET_MAX_HIT(ch) / 4))
     return FALSE;
-    
+
   /* Check if companion already exists */
   for (k = ch->followers; k; k = k->next)
   {
@@ -383,52 +381,52 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
       return FALSE;
     }
   }
-  
+
   /* Class and feat checks */
   switch (call_type)
   {
-    case MOB_C_ANIMAL:
-      /* Rangers and Druids */
-      if (GET_CLASS(ch) != CLASS_RANGER && GET_CLASS(ch) != CLASS_DRUID)
-        return FALSE;
-      if (GET_CLASS(ch) == CLASS_RANGER && GET_LEVEL(ch) < 4)
-        return FALSE;
-      break;
-      
-    case MOB_C_FAMILIAR:
-      /* Wizards and Sorcerers */
-      if (GET_CLASS(ch) != CLASS_WIZARD && GET_CLASS(ch) != CLASS_SORCERER)
-        return FALSE;
-      break;
-      
-    case MOB_C_MOUNT:
-      /* Paladins and Blackguards */
-      if (GET_CLASS(ch) != CLASS_PALADIN && GET_CLASS(ch) != CLASS_BLACKGUARD)
-        return FALSE;
-      break;
-      
-    case MOB_EIDOLON:
-      /* Summoners and Necromancers */
-      if (GET_CLASS(ch) != CLASS_SUMMONER && GET_CLASS(ch) != CLASS_NECROMANCER)
-        return FALSE;
-      break;
-      
-    case MOB_SHADOW:
-      /* Shadowdancers */
-      if (GET_CLASS(ch) != CLASS_SHADOWDANCER)
-        return FALSE;
-      break;
-      
-    case MOB_C_DRAGON:
-      /* Dragonriders */
-      if (GET_CLASS(ch) != CLASS_DRAGONRIDER)
-        return FALSE;
-      break;
-      
-    default:
+  case MOB_C_ANIMAL:
+    /* Rangers and Druids */
+    if (GET_CLASS(ch) != CLASS_RANGER && GET_CLASS(ch) != CLASS_DRUID)
       return FALSE;
+    if (GET_CLASS(ch) == CLASS_RANGER && GET_LEVEL(ch) < 4)
+      return FALSE;
+    break;
+
+  case MOB_C_FAMILIAR:
+    /* Wizards and Sorcerers */
+    if (GET_CLASS(ch) != CLASS_WIZARD && GET_CLASS(ch) != CLASS_SORCERER)
+      return FALSE;
+    break;
+
+  case MOB_C_MOUNT:
+    /* Paladins and Blackguards */
+    if (GET_CLASS(ch) != CLASS_PALADIN && GET_CLASS(ch) != CLASS_BLACKGUARD)
+      return FALSE;
+    break;
+
+  case MOB_EIDOLON:
+    /* Summoners and Necromancers */
+    if (GET_CLASS(ch) != CLASS_SUMMONER && GET_CLASS(ch) != CLASS_NECROMANCER)
+      return FALSE;
+    break;
+
+  case MOB_SHADOW:
+    /* Shadowdancers */
+    if (GET_CLASS(ch) != CLASS_SHADOWDANCER)
+      return FALSE;
+    break;
+
+  case MOB_C_DRAGON:
+    /* Dragonriders */
+    if (GET_CLASS(ch) != CLASS_DRAGONRIDER)
+      return FALSE;
+    break;
+
+  default:
+    return FALSE;
   }
-  
+
   /* In combat - high priority to call companion */
   if (FIGHTING(ch))
   {
@@ -443,6 +441,6 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
     if (!rand_number(0, 9))
       return TRUE;
   }
-  
+
   return FALSE;
 }

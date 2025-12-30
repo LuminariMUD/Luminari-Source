@@ -33,12 +33,7 @@ static char *invalid_list[MAX_INVALID_NAMES];
 static void write_ban_list(void);
 static void _write_one_node(FILE *fp, struct ban_list_element *node);
 
-static const char *ban_types[] = {
-    "no",
-    "new",
-    "select",
-    "all",
-    "ERROR"};
+static const char *ban_types[] = {"no", "new", "select", "all", "ERROR"};
 
 void load_banned(void)
 {
@@ -63,7 +58,8 @@ void load_banned(void)
   while (fscanf(fl, " %s %s %d %s ", ban_type, site_name, &date, name) == 4)
   {
     CREATE(next_node, struct ban_list_element, 1);
-    strncpy(next_node->site, site_name, BANNED_SITE_LENGTH); /* strncpy: OK (n_n->site:BANNED_SITE_LENGTH+1) */
+    strncpy(next_node->site, site_name,
+            BANNED_SITE_LENGTH); /* strncpy: OK (n_n->site:BANNED_SITE_LENGTH+1) */
     next_node->site[BANNED_SITE_LENGTH] = '\0';
     strncpy(next_node->name, name, MAX_NAME_LENGTH); /* strncpy: OK (n_n->name:MAX_NAME_LENGTH+1) */
     next_node->name[MAX_NAME_LENGTH] = '\0';
@@ -105,8 +101,7 @@ static void _write_one_node(FILE *fp, struct ban_list_element *node)
   if (node)
   {
     _write_one_node(fp, node->next);
-    fprintf(fp, "%s %s %ld %s\n", ban_types[node->type],
-            node->site, (long)node->date, node->name);
+    fprintf(fp, "%s %s %ld %s\n", ban_types[node->type], node->site, (long)node->date, node->name);
   }
 }
 
@@ -139,15 +134,9 @@ ACMD(do_ban)
       send_to_char(ch, "No sites are banned.\r\n");
       return;
     }
-    send_to_char(ch, BAN_LIST_FORMAT,
-                 "Banned Site Name",
-                 "Ban Type",
-                 "Banned On",
-                 "Banned By");
-    send_to_char(ch, BAN_LIST_FORMAT,
-                 "---------------------------------",
-                 "---------------------------------",
-                 "---------------------------------",
+    send_to_char(ch, BAN_LIST_FORMAT, "Banned Site Name", "Ban Type", "Banned On", "Banned By");
+    send_to_char(ch, BAN_LIST_FORMAT, "---------------------------------",
+                 "---------------------------------", "---------------------------------",
                  "---------------------------------");
 
     for (ban_node = ban_list; ban_node; ban_node = ban_node->next)
@@ -160,7 +149,8 @@ ACMD(do_ban)
       else
         strlcpy(timestr, "Unknown", sizeof(timestr)); /* strcpy: OK (strlen("Unknown") < 16) */
 
-      send_to_char(ch, BAN_LIST_FORMAT, ban_node->site, ban_types[ban_node->type], timestr, ban_node->name);
+      send_to_char(ch, BAN_LIST_FORMAT, ban_node->site, ban_types[ban_node->type], timestr,
+                   ban_node->name);
     }
     return;
   }
@@ -187,10 +177,11 @@ ACMD(do_ban)
 
   CREATE(ban_node, struct ban_list_element, 1);
   strncpy(ban_node->site, site, BANNED_SITE_LENGTH - 1); /* Reserve space for null terminator */
-  ban_node->site[BANNED_SITE_LENGTH - 1] = '\0'; /* Ensure null termination */
+  ban_node->site[BANNED_SITE_LENGTH - 1] = '\0';         /* Ensure null termination */
   for (nextchar = ban_node->site; *nextchar; nextchar++)
     *nextchar = LOWER(*nextchar);
-  strncpy(ban_node->name, GET_NAME(ch), MAX_NAME_LENGTH); /* strncpy: OK (b_n->size:MAX_NAME_LENGTH+1) */
+  strncpy(ban_node->name, GET_NAME(ch),
+          MAX_NAME_LENGTH); /* strncpy: OK (b_n->size:MAX_NAME_LENGTH+1) */
   ban_node->name[MAX_NAME_LENGTH] = '\0';
   ban_node->date = time(0);
 

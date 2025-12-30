@@ -13,7 +13,7 @@ Added a check to prevent players from entering the game without setting their sh
 ```c
 case '1':
   /* Check if introduction system is OFF and player hasn't set short description */
-  if (!CONFIG_USE_INTRO_SYSTEM && 
+  if (!CONFIG_USE_INTRO_SYSTEM &&
       (GET_PC_DESCRIPTOR_1(d->character) == 0 || GET_PC_ADJECTIVE_1(d->character) == 0))
   {
     write_to_output(d, "\r\n");

@@ -1,6 +1,6 @@
 -- AI Service Database Migration Script for LuminariMUD
 -- This script creates the necessary tables for AI service functionality
--- 
+--
 -- Author: Zusuk
 -- Date: 2025-01-27
 
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS ai_npc_personalities (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Insert default configuration values
-INSERT INTO ai_config (config_key, config_value) VALUES 
+INSERT INTO ai_config (config_key, config_value) VALUES
   ('enabled', 'false'),
   ('model', 'gpt-4.1-mini'),
   ('max_tokens', '500'),
@@ -72,7 +72,7 @@ END$$
 DROP PROCEDURE IF EXISTS get_ai_usage_stats$$
 CREATE PROCEDURE get_ai_usage_stats(IN days INT)
 BEGIN
-  SELECT 
+  SELECT
     DATE(created_at) as usage_date,
     request_type,
     COUNT(*) as request_count,
@@ -92,7 +92,7 @@ ON SCHEDULE EVERY 1 DAY
 DO CALL cleanup_ai_cache();
 
 -- Example personality for an NPC (commented out by default)
--- INSERT INTO ai_npc_personalities (mob_vnum, personality) VALUES 
+-- INSERT INTO ai_npc_personalities (mob_vnum, personality) VALUES
 -- (3001, '{"name": "Grumpy Dwarf Merchant", "traits": ["gruff", "business-minded", "secretly kind"], "background": "Former miner turned merchant after injury", "speech_patterns": ["uses mining metaphors", "complains about prices", "calls everyone laddie or lassie"]}');
 
 -- Grant permissions (adjust username as needed)

@@ -37,14 +37,14 @@ while (1) {
   # Open SYSLOG and dup STDERR into SYSLOG
   open (SYSLOG, ">> syslog");
   open (STDERR, ">& SYSLOG");
-  
+
   print SYSLOG "autoscript starting game ", `date`;
   open (SERVER, "bin/circle $flags $port |");
-  
+
   while (<SERVER>) {
     print SYSLOG;
   }
-  
+
   # First we open everything
   open (SYSLOG, "<syslog");
   open (DELETE, ">>log/delete");
@@ -58,7 +58,7 @@ while (1) {
   open (SYSERR, ">>log/errors");
   open (GODCMD, ">>log/godcmds");
   open (BADPWS, ">>log/badpws");
-  
+
   # Then we stash everything
   while (<SYSLOG>) {
     print DELETE if /self-delete/;
@@ -75,7 +75,7 @@ while (1) {
     print BADPWs if /Bad PW/;
   }
   close (SYSLOG);
-  
+
   # Rotate SYSLOG files
   unlink ('log/syslog.6');
   rename ('log/syslog.5', 'log/syslog.6');
@@ -84,7 +84,7 @@ while (1) {
   rename ('log/syslog.2', 'log/syslog.3');
   rename ('log/syslog.1', 'log/syslog.2');
   rename ('syslog'      , 'log/syslog.1');
-  
+
   # should we stay dead?
   if (-r '.killscript') {
     unlink '.killscript';
@@ -92,7 +92,7 @@ while (1) {
     print SYSLOG "autoscript terminated ", `date`;
     exit;
   }
-  
+
   # or just play dead?
   while (-r '.pause') {
     sleep 60;

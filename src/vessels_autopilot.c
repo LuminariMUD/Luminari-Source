@@ -174,8 +174,7 @@ int autopilot_pause(struct greyhawk_ship_data *ship)
   }
 
   /* TODO: Session 03 - Implement pause logic */
-  if (ship->autopilot->state == AUTOPILOT_TRAVELING ||
-      ship->autopilot->state == AUTOPILOT_WAITING)
+  if (ship->autopilot->state == AUTOPILOT_TRAVELING || ship->autopilot->state == AUTOPILOT_WAITING)
   {
     ship->autopilot->state = AUTOPILOT_PAUSED;
     return 1;
@@ -406,7 +405,7 @@ struct ship_route *route_create(const char *name)
     return NULL;
   }
 
-  route->route_id = 0;  /* TODO: Generate unique ID */
+  route->route_id = 0; /* TODO: Generate unique ID */
   route->num_waypoints = 0;
   route->loop = FALSE;
   route->active = TRUE;
@@ -457,7 +456,7 @@ int route_load(struct ship_route *route, int route_id)
   }
 
   /* TODO: Session 02 - Implement database load logic */
-  (void)route_id;  /* Suppress unused parameter warning */
+  (void)route_id; /* Suppress unused parameter warning */
   return 0;
 }
 
@@ -747,9 +746,9 @@ int waypoint_db_create(const struct waypoint *wp)
 
   /* Build INSERT query */
   snprintf(query, sizeof(query),
-    "INSERT INTO ship_waypoints (name, x, y, z, tolerance, wait_time, flags) "
-    "VALUES ('%s', %.2f, %.2f, %.2f, %.2f, %d, %d)",
-    escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time, wp->flags);
+           "INSERT INTO ship_waypoints (name, x, y, z, tolerance, wait_time, flags) "
+           "VALUES ('%s', %.2f, %.2f, %.2f, %.2f, %d, %d)",
+           escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time, wp->flags);
 
   if (mysql_query(conn, query))
   {
@@ -769,8 +768,8 @@ int waypoint_db_create(const struct waypoint *wp)
     waypoint_cache_add(node);
   }
 
-  log("Info: Created waypoint %d '%s' at (%.2f, %.2f, %.2f)",
-      new_id, wp->name, wp->x, wp->y, wp->z);
+  log("Info: Created waypoint %d '%s' at (%.2f, %.2f, %.2f)", new_id, wp->name, wp->x, wp->y,
+      wp->z);
 
   return new_id;
 }
@@ -802,9 +801,9 @@ struct waypoint_node *waypoint_db_load(int waypoint_id)
   }
 
   snprintf(query, sizeof(query),
-    "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags "
-    "FROM ship_waypoints WHERE waypoint_id = %d",
-    waypoint_id);
+           "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags "
+           "FROM ship_waypoints WHERE waypoint_id = %d",
+           waypoint_id);
 
   if (mysql_query(conn, query))
   {
@@ -891,10 +890,9 @@ int waypoint_db_update(int waypoint_id, const struct waypoint *wp)
 
   /* Build UPDATE query */
   snprintf(query, sizeof(query),
-    "UPDATE ship_waypoints SET name='%s', x=%.2f, y=%.2f, z=%.2f, "
-    "tolerance=%.2f, wait_time=%d, flags=%d WHERE waypoint_id=%d",
-    escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time,
-    wp->flags, waypoint_id);
+           "UPDATE ship_waypoints SET name='%s', x=%.2f, y=%.2f, z=%.2f, "
+           "tolerance=%.2f, wait_time=%d, flags=%d WHERE waypoint_id=%d",
+           escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time, wp->flags, waypoint_id);
 
   if (mysql_query(conn, query))
   {
@@ -930,9 +928,7 @@ int waypoint_db_delete(int waypoint_id)
     return 0;
   }
 
-  snprintf(query, sizeof(query),
-    "DELETE FROM ship_waypoints WHERE waypoint_id = %d",
-    waypoint_id);
+  snprintf(query, sizeof(query), "DELETE FROM ship_waypoints WHERE waypoint_id = %d", waypoint_id);
 
   if (mysql_query(conn, query))
   {
@@ -983,9 +979,9 @@ int route_db_create(const char *name, bool loop_route)
 
   /* Build INSERT query */
   snprintf(query, sizeof(query),
-    "INSERT INTO ship_routes (name, loop_route, active) "
-    "VALUES ('%s', %d, 1)",
-    escaped_name, loop_route ? 1 : 0);
+           "INSERT INTO ship_routes (name, loop_route, active) "
+           "VALUES ('%s', %d, 1)",
+           escaped_name, loop_route ? 1 : 0);
 
   if (mysql_query(conn, query))
   {
@@ -1042,9 +1038,9 @@ struct route_node *route_db_load(int route_id)
   }
 
   snprintf(query, sizeof(query),
-    "SELECT route_id, name, loop_route, active "
-    "FROM ship_routes WHERE route_id = %d",
-    route_id);
+           "SELECT route_id, name, loop_route, active "
+           "FROM ship_routes WHERE route_id = %d",
+           route_id);
 
   if (mysql_query(conn, query))
   {
@@ -1134,17 +1130,17 @@ int route_db_update(int route_id, const char *name, bool loop_route, bool active
 
     /* Build UPDATE query with name */
     snprintf(query, sizeof(query),
-      "UPDATE ship_routes SET name='%s', loop_route=%d, active=%d "
-      "WHERE route_id=%d",
-      escaped_name, loop_route ? 1 : 0, active ? 1 : 0, route_id);
+             "UPDATE ship_routes SET name='%s', loop_route=%d, active=%d "
+             "WHERE route_id=%d",
+             escaped_name, loop_route ? 1 : 0, active ? 1 : 0, route_id);
   }
   else
   {
     /* Build UPDATE query without name */
     snprintf(query, sizeof(query),
-      "UPDATE ship_routes SET loop_route=%d, active=%d "
-      "WHERE route_id=%d",
-      loop_route ? 1 : 0, active ? 1 : 0, route_id);
+             "UPDATE ship_routes SET loop_route=%d, active=%d "
+             "WHERE route_id=%d",
+             loop_route ? 1 : 0, active ? 1 : 0, route_id);
   }
 
   if (mysql_query(conn, query))
@@ -1188,9 +1184,7 @@ int route_db_delete(int route_id)
     return 0;
   }
 
-  snprintf(query, sizeof(query),
-    "DELETE FROM ship_routes WHERE route_id = %d",
-    route_id);
+  snprintf(query, sizeof(query), "DELETE FROM ship_routes WHERE route_id = %d", route_id);
 
   if (mysql_query(conn, query))
   {
@@ -1232,9 +1226,9 @@ int route_add_waypoint_db(int route_id, int waypoint_id, int sequence_num)
   }
 
   snprintf(query, sizeof(query),
-    "INSERT INTO ship_route_waypoints (route_id, waypoint_id, sequence_num) "
-    "VALUES (%d, %d, %d)",
-    route_id, waypoint_id, sequence_num);
+           "INSERT INTO ship_route_waypoints (route_id, waypoint_id, sequence_num) "
+           "VALUES (%d, %d, %d)",
+           route_id, waypoint_id, sequence_num);
 
   if (mysql_query(conn, query))
   {
@@ -1272,8 +1266,7 @@ int route_add_waypoint_db(int route_id, int waypoint_id, int sequence_num)
     }
   }
 
-  log("Info: Added waypoint %d to route %d at position %d",
-      waypoint_id, route_id, sequence_num);
+  log("Info: Added waypoint %d to route %d at position %d", waypoint_id, route_id, sequence_num);
 
   return 1;
 }
@@ -1302,9 +1295,9 @@ int route_remove_waypoint_db(int route_id, int waypoint_id)
 
   /* Get the sequence number of the waypoint being removed */
   snprintf(query, sizeof(query),
-    "SELECT sequence_num FROM ship_route_waypoints "
-    "WHERE route_id = %d AND waypoint_id = %d",
-    route_id, waypoint_id);
+           "SELECT sequence_num FROM ship_route_waypoints "
+           "WHERE route_id = %d AND waypoint_id = %d",
+           route_id, waypoint_id);
 
   if (mysql_query(conn, query))
   {
@@ -1314,9 +1307,9 @@ int route_remove_waypoint_db(int route_id, int waypoint_id)
 
   /* Delete the waypoint association */
   snprintf(query, sizeof(query),
-    "DELETE FROM ship_route_waypoints "
-    "WHERE route_id = %d AND waypoint_id = %d",
-    route_id, waypoint_id);
+           "DELETE FROM ship_route_waypoints "
+           "WHERE route_id = %d AND waypoint_id = %d",
+           route_id, waypoint_id);
 
   if (mysql_query(conn, query))
   {
@@ -1326,12 +1319,12 @@ int route_remove_waypoint_db(int route_id, int waypoint_id)
 
   /* Resequence remaining waypoints */
   snprintf(query, sizeof(query),
-    "SET @seq := -1; "
-    "UPDATE ship_route_waypoints "
-    "SET sequence_num = (@seq := @seq + 1) "
-    "WHERE route_id = %d "
-    "ORDER BY sequence_num",
-    route_id);
+           "SET @seq := -1; "
+           "UPDATE ship_route_waypoints "
+           "SET sequence_num = (@seq := @seq + 1) "
+           "WHERE route_id = %d "
+           "ORDER BY sequence_num",
+           route_id);
 
   /* Note: This is two statements; execute separately */
   if (mysql_query(conn, "SET @seq := -1"))
@@ -1340,11 +1333,11 @@ int route_remove_waypoint_db(int route_id, int waypoint_id)
   }
 
   snprintf(query, sizeof(query),
-    "UPDATE ship_route_waypoints "
-    "SET sequence_num = (@seq := @seq + 1) "
-    "WHERE route_id = %d "
-    "ORDER BY sequence_num",
-    route_id);
+           "UPDATE ship_route_waypoints "
+           "SET sequence_num = (@seq := @seq + 1) "
+           "WHERE route_id = %d "
+           "ORDER BY sequence_num",
+           route_id);
 
   if (mysql_query(conn, query))
   {
@@ -1410,9 +1403,7 @@ int route_reorder_waypoints_db(int route_id, int *waypoint_ids, int count)
   }
 
   /* Delete all existing associations */
-  snprintf(query, sizeof(query),
-    "DELETE FROM ship_route_waypoints WHERE route_id = %d",
-    route_id);
+  snprintf(query, sizeof(query), "DELETE FROM ship_route_waypoints WHERE route_id = %d", route_id);
 
   if (mysql_query(conn, query))
   {
@@ -1424,9 +1415,9 @@ int route_reorder_waypoints_db(int route_id, int *waypoint_ids, int count)
   for (i = 0; i < count; i++)
   {
     snprintf(query, sizeof(query),
-      "INSERT INTO ship_route_waypoints (route_id, waypoint_id, sequence_num) "
-      "VALUES (%d, %d, %d)",
-      route_id, waypoint_ids[i], i);
+             "INSERT INTO ship_route_waypoints (route_id, waypoint_id, sequence_num) "
+             "VALUES (%d, %d, %d)",
+             route_id, waypoint_ids[i], i);
 
     if (mysql_query(conn, query))
     {
@@ -1494,9 +1485,9 @@ int route_get_waypoint_ids(int route_id, int **waypoint_ids, int *count)
   }
 
   snprintf(query, sizeof(query),
-    "SELECT waypoint_id FROM ship_route_waypoints "
-    "WHERE route_id = %d ORDER BY sequence_num",
-    route_id);
+           "SELECT waypoint_id FROM ship_route_waypoints "
+           "WHERE route_id = %d ORDER BY sequence_num",
+           route_id);
 
   if (mysql_query(conn, query))
   {
@@ -1515,7 +1506,7 @@ int route_get_waypoint_ids(int route_id, int **waypoint_ids, int *count)
   if (num_rows == 0)
   {
     mysql_free_result(result);
-    return 1;  /* Success with empty result */
+    return 1; /* Success with empty result */
   }
 
   /* Allocate array */
@@ -1568,8 +1559,8 @@ void load_all_waypoints(void)
   waypoint_cache_clear();
 
   snprintf(query, sizeof(query),
-    "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags "
-    "FROM ship_waypoints ORDER BY waypoint_id");
+           "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags "
+           "FROM ship_waypoints ORDER BY waypoint_id");
 
   if (mysql_query(conn, query))
   {
@@ -1643,8 +1634,8 @@ void load_all_routes(void)
   route_cache_clear();
 
   snprintf(query, sizeof(query),
-    "SELECT route_id, name, loop_route, active "
-    "FROM ship_routes ORDER BY route_id");
+           "SELECT route_id, name, loop_route, active "
+           "FROM ship_routes ORDER BY route_id");
 
   if (mysql_query(conn, query))
   {
@@ -1812,8 +1803,8 @@ float calculate_distance_to_waypoint(struct greyhawk_ship_data *ship, struct way
  * @param dx Output: normalized X direction component
  * @param dy Output: normalized Y direction component
  */
-void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp,
-                                   float *dx, float *dy)
+void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp, float *dx,
+                                   float *dy)
 {
   float raw_dx, raw_dy;
   float distance;
@@ -1821,8 +1812,10 @@ void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypo
   if (ship == NULL || wp == NULL || dx == NULL || dy == NULL)
   {
     log("SYSERR: calculate_heading_to_waypoint called with NULL parameter");
-    if (dx != NULL) *dx = 0.0f;
-    if (dy != NULL) *dy = 0.0f;
+    if (dx != NULL)
+      *dx = 0.0f;
+    if (dy != NULL)
+      *dy = 0.0f;
     return;
   }
 
@@ -1929,16 +1922,14 @@ int advance_to_next_waypoint(struct greyhawk_ship_data *ship)
       /* Loop route: restart from beginning */
       ap->current_waypoint_index = 0;
       ap->state = AUTOPILOT_TRAVELING;
-      log("Info: Ship %d route '%s' looping to waypoint 0",
-          ship->shipnum, route->name);
+      log("Info: Ship %d route '%s' looping to waypoint 0", ship->shipnum, route->name);
       return 1;
     }
     else
     {
       /* Non-loop route: mark complete */
       ap->state = AUTOPILOT_COMPLETE;
-      log("Info: Ship %d completed route '%s'",
-          ship->shipnum, route->name);
+      log("Info: Ship %d completed route '%s'", ship->shipnum, route->name);
       return 0;
     }
   }
@@ -1996,14 +1987,13 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
     ap->state = AUTOPILOT_WAITING;
     ap->wait_remaining = wp->wait_time;
     ap->last_update = time(0);
-    log("Info: Ship %d arrived at waypoint '%s', waiting %d seconds",
-        ship->shipnum, wp->name, wp->wait_time);
+    log("Info: Ship %d arrived at waypoint '%s', waiting %d seconds", ship->shipnum, wp->name,
+        wp->wait_time);
   }
   else
   {
     /* No wait time, advance immediately */
-    log("Info: Ship %d arrived at waypoint '%s', advancing",
-        ship->shipnum, wp->name);
+    log("Info: Ship %d arrived at waypoint '%s', advancing", ship->shipnum, wp->name);
     advance_to_next_waypoint(ship);
   }
 }
@@ -2051,7 +2041,7 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   speed = (float)ship->speed;
   if (speed <= 0.0f)
   {
-    speed = 1.0f;  /* Minimum movement speed */
+    speed = 1.0f; /* Minimum movement speed */
   }
 
   /* Calculate heading to waypoint */
@@ -2079,8 +2069,8 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
     dest_room = find_available_wilderness_room();
     if (dest_room == NOWHERE)
     {
-      log("SYSERR: Autopilot ship %d - wilderness room pool exhausted at (%d, %d)",
-          ship->shipnum, target_x, target_y);
+      log("SYSERR: Autopilot ship %d - wilderness room pool exhausted at (%d, %d)", ship->shipnum,
+          target_x, target_y);
       return 0;
     }
     assign_wilderness_room(dest_room, target_x, target_y);
@@ -2089,8 +2079,8 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   /* Check if terrain is valid for this vessel */
   if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, (int)ship->z))
   {
-    log("Info: Autopilot ship %d - impassable terrain at (%d, %d)",
-        ship->shipnum, target_x, target_y);
+    log("Info: Autopilot ship %d - impassable terrain at (%d, %d)", ship->shipnum, target_x,
+        target_y);
     return 0;
   }
 
@@ -2139,8 +2129,7 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
     ap->state = AUTOPILOT_TRAVELING;
-    log("Info: Ship %d wait complete, advancing to next waypoint",
-        ship->shipnum);
+    log("Info: Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);
   }
 }
@@ -2175,8 +2164,7 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   wp = waypoint_get_current(ship);
   if (wp == NULL)
   {
-    log("SYSERR: process_traveling_vessel - no current waypoint for ship %d",
-        ship->shipnum);
+    log("SYSERR: process_traveling_vessel - no current waypoint for ship %d", ship->shipnum);
     ap->state = AUTOPILOT_OFF;
     return;
   }
@@ -2228,41 +2216,40 @@ void autopilot_tick(void)
     /* Process based on autopilot state */
     switch (ap->state)
     {
-      case AUTOPILOT_TRAVELING:
-        process_traveling_vessel(ship);
-        active_count++;
-        break;
+    case AUTOPILOT_TRAVELING:
+      process_traveling_vessel(ship);
+      active_count++;
+      break;
 
-      case AUTOPILOT_WAITING:
-        process_waiting_vessel(ship);
-        active_count++;
-        break;
+    case AUTOPILOT_WAITING:
+      process_waiting_vessel(ship);
+      active_count++;
+      break;
 
-      case AUTOPILOT_PAUSED:
-        /* Paused ships don't move but count as active */
-        active_count++;
-        break;
+    case AUTOPILOT_PAUSED:
+      /* Paused ships don't move but count as active */
+      active_count++;
+      break;
 
-      case AUTOPILOT_OFF:
-        /* Auto-engage if pilot assigned with route */
-        if (ap->pilot_mob_vnum != -1 &&
-            ap->current_route != NULL &&
-            ap->current_route->num_waypoints > 0)
+    case AUTOPILOT_OFF:
+      /* Auto-engage if pilot assigned with route */
+      if (ap->pilot_mob_vnum != -1 && ap->current_route != NULL &&
+          ap->current_route->num_waypoints > 0)
+      {
+        /* Verify pilot is still present */
+        if (get_pilot_from_ship(ship) != NULL)
         {
-          /* Verify pilot is still present */
-          if (get_pilot_from_ship(ship) != NULL)
-          {
-            autopilot_start(ship, ap->current_route);
-            send_to_ship(ship, "The pilot engages autopilot.\r\n");
-            active_count++;
-          }
+          autopilot_start(ship, ap->current_route);
+          send_to_ship(ship, "The pilot engages autopilot.\r\n");
+          active_count++;
         }
-        break;
+      }
+      break;
 
-      case AUTOPILOT_COMPLETE:
-      default:
-        /* No processing needed */
-        break;
+    case AUTOPILOT_COMPLETE:
+    default:
+      /* No processing needed */
+      break;
     }
   }
 
@@ -2352,12 +2339,18 @@ static const char *autopilot_state_name(enum autopilot_state state)
 {
   switch (state)
   {
-    case AUTOPILOT_OFF:       return "Off";
-    case AUTOPILOT_TRAVELING: return "Traveling";
-    case AUTOPILOT_WAITING:   return "Waiting at Waypoint";
-    case AUTOPILOT_PAUSED:    return "Paused";
-    case AUTOPILOT_COMPLETE:  return "Route Complete";
-    default:                  return "Unknown";
+  case AUTOPILOT_OFF:
+    return "Off";
+  case AUTOPILOT_TRAVELING:
+    return "Traveling";
+  case AUTOPILOT_WAITING:
+    return "Waiting at Waypoint";
+  case AUTOPILOT_PAUSED:
+    return "Paused";
+  case AUTOPILOT_COMPLETE:
+    return "Route Complete";
+  default:
+    return "Unknown";
   }
 }
 
@@ -2401,22 +2394,17 @@ ACMD(do_autopilot)
 
     if (ap->current_route != NULL)
     {
-      send_to_char(ch, "Route: %s (%d waypoints%s)\r\n",
-                   ap->current_route->name,
-                   ap->current_route->num_waypoints,
-                   ap->current_route->loop ? ", looping" : "");
-      send_to_char(ch, "Progress: Waypoint %d of %d\r\n",
-                   ap->current_waypoint_index + 1,
+      send_to_char(ch, "Route: %s (%d waypoints%s)\r\n", ap->current_route->name,
+                   ap->current_route->num_waypoints, ap->current_route->loop ? ", looping" : "");
+      send_to_char(ch, "Progress: Waypoint %d of %d\r\n", ap->current_waypoint_index + 1,
                    ap->current_route->num_waypoints);
 
       wp = waypoint_get_current(ship);
       if (wp != NULL)
       {
-        send_to_char(ch, "Current Target: %s (%.1f, %.1f)\r\n",
-                     wp->name[0] ? wp->name : "Unnamed",
+        send_to_char(ch, "Current Target: %s (%.1f, %.1f)\r\n", wp->name[0] ? wp->name : "Unnamed",
                      wp->x, wp->y);
-        send_to_char(ch, "Distance: %.1f\r\n",
-                     calculate_distance_to_waypoint(ship, wp));
+        send_to_char(ch, "Distance: %.1f\r\n", calculate_distance_to_waypoint(ship, wp));
       }
 
       if (ap->state == AUTOPILOT_WAITING && ap->wait_remaining > 0)
@@ -2561,8 +2549,7 @@ ACMD(do_setwaypoint)
   /* Validate name length */
   if (strlen(arg) >= AUTOPILOT_NAME_LENGTH)
   {
-    send_to_char(ch, "Waypoint name too long (max %d characters).\r\n",
-                 AUTOPILOT_NAME_LENGTH - 1);
+    send_to_char(ch, "Waypoint name too long (max %d characters).\r\n", AUTOPILOT_NAME_LENGTH - 1);
     return;
   }
 
@@ -2571,7 +2558,8 @@ ACMD(do_setwaypoint)
   {
     if (!isalnum(arg[i]) && arg[i] != '_' && arg[i] != '-')
     {
-      send_to_char(ch, "Waypoint name can only contain letters, numbers, underscores, and hyphens.\r\n");
+      send_to_char(
+          ch, "Waypoint name can only contain letters, numbers, underscores, and hyphens.\r\n");
       return;
     }
   }
@@ -2595,8 +2583,8 @@ ACMD(do_setwaypoint)
     return;
   }
 
-  send_to_char(ch, "Waypoint '%s' created at position (%.1f, %.1f, %.1f).\r\n",
-               arg, wp.x, wp.y, wp.z);
+  send_to_char(ch, "Waypoint '%s' created at position (%.1f, %.1f, %.1f).\r\n", arg, wp.x, wp.y,
+               wp.z);
 }
 
 /**
@@ -2619,19 +2607,15 @@ ACMD(do_listwaypoints)
   }
 
   send_to_char(ch, "\r\n--- Waypoints ---\r\n");
-  send_to_char(ch, "%-4s %-20s %10s %10s %10s\r\n",
-               "ID", "Name", "X", "Y", "Z");
+  send_to_char(ch, "%-4s %-20s %10s %10s %10s\r\n", "ID", "Name", "X", "Y", "Z");
   send_to_char(ch, "---- -------------------- ---------- ---------- ----------\r\n");
 
   count = 0;
   for (current = waypoint_list; current != NULL; current = current->next)
   {
-    send_to_char(ch, "%-4d %-20s %10.1f %10.1f %10.1f\r\n",
-                 current->waypoint_id,
-                 current->data.name[0] ? current->data.name : "(unnamed)",
-                 current->data.x,
-                 current->data.y,
-                 current->data.z);
+    send_to_char(ch, "%-4d %-20s %10.1f %10.1f %10.1f\r\n", current->waypoint_id,
+                 current->data.name[0] ? current->data.name : "(unnamed)", current->data.x,
+                 current->data.y, current->data.z);
     count++;
   }
 
@@ -2747,8 +2731,7 @@ ACMD(do_createroute)
   /* Validate name length */
   if (strlen(arg) >= AUTOPILOT_NAME_LENGTH)
   {
-    send_to_char(ch, "Route name too long (max %d characters).\r\n",
-                 AUTOPILOT_NAME_LENGTH - 1);
+    send_to_char(ch, "Route name too long (max %d characters).\r\n", AUTOPILOT_NAME_LENGTH - 1);
     return;
   }
 
@@ -2757,7 +2740,8 @@ ACMD(do_createroute)
   {
     if (!isalnum(arg[i]) && arg[i] != '_' && arg[i] != '-')
     {
-      send_to_char(ch, "Route name can only contain letters, numbers, underscores, and hyphens.\r\n");
+      send_to_char(ch,
+                   "Route name can only contain letters, numbers, underscores, and hyphens.\r\n");
       return;
     }
   }
@@ -2842,16 +2826,16 @@ ACMD(do_addtoroute)
   /* Check route capacity */
   if (route->num_waypoints >= MAX_WAYPOINTS_PER_ROUTE)
   {
-    send_to_char(ch, "Route '%s' is full (max %d waypoints).\r\n",
-                 route_arg, MAX_WAYPOINTS_PER_ROUTE);
+    send_to_char(ch, "Route '%s' is full (max %d waypoints).\r\n", route_arg,
+                 MAX_WAYPOINTS_PER_ROUTE);
     return;
   }
 
   /* Add waypoint to route */
   if (route_add_waypoint_db(route->route_id, waypoint->waypoint_id, route->num_waypoints))
   {
-    send_to_char(ch, "Waypoint '%s' added to route '%s' at position %d.\r\n",
-                 wp_arg, route_arg, route->num_waypoints);
+    send_to_char(ch, "Waypoint '%s' added to route '%s' at position %d.\r\n", wp_arg, route_arg,
+                 route->num_waypoints);
   }
   else
   {
@@ -2879,19 +2863,15 @@ ACMD(do_listroutes)
   }
 
   send_to_char(ch, "\r\n--- Routes ---\r\n");
-  send_to_char(ch, "%-4s %-20s %5s %6s %6s\r\n",
-               "ID", "Name", "WPs", "Loop", "Active");
+  send_to_char(ch, "%-4s %-20s %5s %6s %6s\r\n", "ID", "Name", "WPs", "Loop", "Active");
   send_to_char(ch, "---- -------------------- ----- ------ ------\r\n");
 
   count = 0;
   for (current = route_list; current != NULL; current = current->next)
   {
-    send_to_char(ch, "%-4d %-20s %5d %6s %6s\r\n",
-                 current->route_id,
-                 current->name[0] ? current->name : "(unnamed)",
-                 current->num_waypoints,
-                 current->loop ? "Yes" : "No",
-                 current->active ? "Yes" : "No");
+    send_to_char(ch, "%-4d %-20s %5d %6s %6s\r\n", current->route_id,
+                 current->name[0] ? current->name : "(unnamed)", current->num_waypoints,
+                 current->loop ? "Yes" : "No", current->active ? "Yes" : "No");
     count++;
   }
 
@@ -3015,8 +2995,8 @@ ACMD(do_setroute)
   ap->current_route = route;
   ap->current_waypoint_index = 0;
 
-  send_to_char(ch, "Route '%s' assigned to autopilot (%d waypoints).\r\n",
-               arg, route->num_waypoints);
+  send_to_char(ch, "Route '%s' assigned to autopilot (%d waypoints).\r\n", arg,
+               route->num_waypoints);
   send_to_char(ch, "Use 'autopilot on' to begin navigation.\r\n");
 }
 
@@ -3033,8 +3013,7 @@ ACMD(do_setroute)
  * @param ship The vessel to assign pilot to
  * @return TRUE if valid pilot, FALSE otherwise (sends error to ch)
  */
-int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
-                       struct greyhawk_ship_data *ship)
+int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc, struct greyhawk_ship_data *ship)
 {
   if (ch == NULL)
   {
@@ -3065,8 +3044,7 @@ int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
   /* Must be in the helm/bridge room */
   if (IN_ROOM(npc) != real_room(ship->bridge_room))
   {
-    send_to_char(ch, "%s must be in the helm room to be assigned as pilot.\r\n",
-                 GET_NAME(npc));
+    send_to_char(ch, "%s must be in the helm room to be assigned as pilot.\r\n", GET_NAME(npc));
     return FALSE;
   }
 
@@ -3074,7 +3052,7 @@ int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
   if (ship->autopilot != NULL && ship->autopilot->pilot_mob_vnum != -1)
   {
     send_to_char(ch, "This vessel already has a pilot assigned. "
-                 "Use 'unassignpilot' first.\r\n");
+                     "Use 'unassignpilot' first.\r\n");
     return FALSE;
   }
 
@@ -3225,8 +3203,7 @@ ACMD(do_assignpilot)
   send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
 
   /* If a route is already set, auto-engage autopilot */
-  if (ship->autopilot->current_route != NULL &&
-      ship->autopilot->current_route->num_waypoints > 0 &&
+  if (ship->autopilot->current_route != NULL && ship->autopilot->current_route->num_waypoints > 0 &&
       ship->autopilot->state == AUTOPILOT_OFF)
   {
     autopilot_start(ship, ship->autopilot->current_route);
@@ -3285,8 +3262,7 @@ ACMD(do_unassignpilot)
   }
 
   /* Stop autopilot if running */
-  if (ship->autopilot->state == AUTOPILOT_TRAVELING ||
-      ship->autopilot->state == AUTOPILOT_WAITING)
+  if (ship->autopilot->state == AUTOPILOT_TRAVELING || ship->autopilot->state == AUTOPILOT_WAITING)
   {
     autopilot_stop(ship);
     send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
@@ -3374,8 +3350,8 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
   /* Save to database */
   schedule_save(ship);
 
-  log("Info: Created schedule for ship %d (route %d, interval %d hours)",
-      ship->shipnum, route_id, interval);
+  log("Info: Created schedule for ship %d (route %d, interval %d hours)", ship->shipnum, route_id,
+      interval);
   return 1;
 }
 
@@ -3395,7 +3371,7 @@ int schedule_clear(struct greyhawk_ship_data *ship)
 
   if (ship->schedule == NULL)
   {
-    return 1;  /* Already cleared */
+    return 1; /* Already cleared */
   }
 
   /* Free memory */
@@ -3463,9 +3439,8 @@ int schedule_check_trigger(struct greyhawk_ship_data *ship)
   }
 
   /* Check if vessel already traveling */
-  if (ship->autopilot != NULL &&
-      (ship->autopilot->state == AUTOPILOT_TRAVELING ||
-       ship->autopilot->state == AUTOPILOT_WAITING))
+  if (ship->autopilot != NULL && (ship->autopilot->state == AUTOPILOT_TRAVELING ||
+                                  ship->autopilot->state == AUTOPILOT_WAITING))
   {
     return 0;
   }
@@ -3566,8 +3541,8 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
   schedule_calculate_next_departure(ship->schedule);
   schedule_save(ship);
 
-  log("Info: Scheduled departure triggered for ship %d on route %s",
-      ship->shipnum, route_node->name);
+  log("Info: Scheduled departure triggered for ship %d on route %s", ship->shipnum,
+      route_node->name);
 
   return 1;
 }
@@ -3583,8 +3558,7 @@ void schedule_tick(void)
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (is_valid_ship(&greyhawk_ships[i]) &&
-        schedule_check_trigger(&greyhawk_ships[i]))
+    if (is_valid_ship(&greyhawk_ships[i]) && schedule_check_trigger(&greyhawk_ships[i]))
     {
       if (schedule_trigger_departure(&greyhawk_ships[i]))
       {
@@ -3634,8 +3608,8 @@ ACMD(do_setschedule)
   {
     send_to_char(ch, "Usage: setschedule <route> <interval>\r\n");
     send_to_char(ch, "  route    - Name of the route to run\r\n");
-    send_to_char(ch, "  interval - Hours between departures (%d-%d)\r\n",
-                 SCHEDULE_INTERVAL_MIN, SCHEDULE_INTERVAL_MAX);
+    send_to_char(ch, "  interval - Hours between departures (%d-%d)\r\n", SCHEDULE_INTERVAL_MIN,
+                 SCHEDULE_INTERVAL_MAX);
     return;
   }
 
@@ -3643,8 +3617,8 @@ ACMD(do_setschedule)
   interval = atoi(interval_arg);
   if (interval < SCHEDULE_INTERVAL_MIN || interval > SCHEDULE_INTERVAL_MAX)
   {
-    send_to_char(ch, "Interval must be between %d and %d MUD hours.\r\n",
-                 SCHEDULE_INTERVAL_MIN, SCHEDULE_INTERVAL_MAX);
+    send_to_char(ch, "Interval must be between %d and %d MUD hours.\r\n", SCHEDULE_INTERVAL_MIN,
+                 SCHEDULE_INTERVAL_MAX);
     return;
   }
 
@@ -3679,10 +3653,8 @@ ACMD(do_setschedule)
     return;
   }
 
-  send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n",
-               route_arg, interval);
-  send_to_char(ch, "Next departure: MUD hour %d\r\n",
-               ship->schedule->next_departure);
+  send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n", route_arg, interval);
+  send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure);
   send_to_ship(ship, "A departure schedule has been set for this vessel.\r\n");
 }
 
@@ -3771,10 +3743,8 @@ ACMD(do_showschedule)
   }
 
   send_to_char(ch, "\r\n--- Vessel Schedule ---\r\n");
-  send_to_char(ch, "Route: %s\r\n",
-               route_node ? route_node->name : "(unknown)");
-  send_to_char(ch, "Interval: Every %d MUD hour%s\r\n",
-               sched->interval_hours,
+  send_to_char(ch, "Route: %s\r\n", route_node ? route_node->name : "(unknown)");
+  send_to_char(ch, "Interval: Every %d MUD hour%s\r\n", sched->interval_hours,
                sched->interval_hours == 1 ? "" : "s");
   send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure);
   send_to_char(ch, "Current Time: MUD hour %d\r\n", time_info.hours);

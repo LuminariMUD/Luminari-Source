@@ -383,7 +383,7 @@ $!
 $ IF (F$SEARCH("SYS$DISK:[]CONF.H").EQS."")
 $ THEN
 $!
-$!  The File Dosen't Exist So Check To See If The CONF.H_VMS File Exists. 
+$!  The File Dosen't Exist So Check To See If The CONF.H_VMS File Exists.
 $!
 $   IF (F$SEARCH("SYS$DISK:[]CONF.H_VMS").NES."")
 $   THEN

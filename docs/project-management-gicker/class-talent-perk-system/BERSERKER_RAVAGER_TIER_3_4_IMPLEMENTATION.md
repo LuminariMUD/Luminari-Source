@@ -48,7 +48,7 @@ November 5, 2024
 - **Max Ranks**: 1
 - **Prerequisite**: Rage Damage II (2 ranks)
 - **Effect**: Gain +1 damage for every 10% HP missing while raging (max +9 at 10% HP)
-- **Implementation**: 
+- **Implementation**:
   - Calculates current HP percentage
   - Adds bonus damage based on missing HP
   - Integrated into rage damage section of fight.c
@@ -60,7 +60,7 @@ November 5, 2024
 - **Max Ranks**: 1
 - **Prerequisite**: Devastating Critical (2 ranks)
 - **Effect**: Critical hits deal 25% weapon damage to all other enemies in the room
-- **Implementation**: 
+- **Implementation**:
   - Checks for multiple enemies after critical hit
   - Deals splash damage to all non-grouped combatants
   - Uses existing damage() function

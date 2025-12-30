@@ -42,7 +42,7 @@ ACMD(do_board_vessel) {
 /* Router for the 'board' command */
 ACMD(do_board) {
     struct obj_data *board_obj;
-    
+
     /* Check if there's a bulletin board object in the room */
     board_obj = find_board_obj_in_room(ch);
     if (board_obj) {

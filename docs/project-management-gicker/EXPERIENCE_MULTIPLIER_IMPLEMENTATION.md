@@ -12,7 +12,7 @@ November 6, 2024
 - **Name**: Experience Multiplier
 - **Type**: Integer (percentage)
 - **Default Value**: 100 (represents 100%, normal experience rates)
-- **Usage**: 
+- **Usage**:
   - 100 = Normal experience (no change)
   - 200 = Double experience
   - 50 = Half experience
@@ -142,7 +142,7 @@ Successfully compiled with no errors or warnings.
 1. **Default Value Test**: Verify the multiplier defaults to 100 on fresh install
 2. **Menu Access Test**: Confirm 'V' option appears in cedit gameplay menu
 3. **Save/Load Test**: Set multiplier, save, restart server, verify value persists
-4. **Experience Calculation Test**: 
+4. **Experience Calculation Test**:
    - Set to 50 (double XP), check required exp for level
    - Set to 200 (half XP), check required exp for level
    - Set to 100, verify normal rates restored

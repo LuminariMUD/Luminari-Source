@@ -123,7 +123,8 @@ void room_aff_tick(struct raff_node *raff)
     caster->next_in_room = caster_room->people;
     caster_room->people = caster;
     caster->in_room = real_room(caster_room->number);
-    call_magic(caster, NULL, NULL, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, DG_SPELL_LEVEL, CAST_SPELL);
+    call_magic(caster, NULL, NULL, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, DG_SPELL_LEVEL,
+               CAST_SPELL);
     extract_char(caster);
     break;
 
@@ -175,16 +176,17 @@ void affliction_tick(struct char_data *ch)
     if (CLOUDKILL(ch) <= 0)
     {
       send_to_char(ch, "Your cloud of death dissipates!\r\n");
-      act("The cloud of death following $n dissipates!", TRUE, ch, 0, NULL,
-          TO_ROOM);
+      act("The cloud of death following $n dissipates!", TRUE, ch, 0, NULL, TO_ROOM);
     }
   } // end cloudkill
 
   /* creeping doom */
   else if (DOOM(ch))
   {
-    call_magic(ch, NULL, NULL, SPELL_AFFECT_CREEPING_DOOM_BITE, 0, DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch), CAST_SPELL);
-    call_magic(ch, NULL, NULL, POISON_TYPE_CENTIPEDE_STRONG, 0, DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_AFFECT_CREEPING_DOOM_BITE, 0,
+               DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, POISON_TYPE_CENTIPEDE_STRONG, 0,
+               DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch), CAST_SPELL);
     DOOM(ch)--;
     if (DOOM(ch) <= 0)
     {
@@ -196,12 +198,14 @@ void affliction_tick(struct char_data *ch)
   /* tenacious plague */
   else if (TENACIOUS_PLAGUE(ch))
   {
-    mag_areas(GET_WARLOCK_LEVEL(ch), ch, NULL, WARLOCK_TENACIOUS_PLAGUE, 0, SAVING_REFL, CAST_INNATE);
+    mag_areas(GET_WARLOCK_LEVEL(ch), ch, NULL, WARLOCK_TENACIOUS_PLAGUE, 0, SAVING_REFL,
+              CAST_INNATE);
     TENACIOUS_PLAGUE(ch)--;
     if (TENACIOUS_PLAGUE(ch) <= 0)
     {
       send_to_char(ch, "Your swarm of biting and stinging insects dissipates!\r\n");
-      act("The swarm of biting and stinging insects following $n dissipates!", TRUE, ch, 0, NULL, TO_ROOM);
+      act("The swarm of biting and stinging insects following $n dissipates!", TRUE, ch, 0, NULL,
+          TO_ROOM);
     }
   } // end tenacious plague
 
@@ -220,23 +224,28 @@ void affliction_tick(struct char_data *ch)
 
   if (affected_by_spell(ch, WARLOCK_CHILLING_TENTACLES))
   {
-    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, WARLOCK_CHILLING_TENTACLES, DAM_FORCE, FALSE);
-    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES_COLD, DAM_COLD, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(4, 6) + 13, WARLOCK_CHILLING_TENTACLES,
+           DAM_FORCE, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES_COLD,
+           DAM_COLD, FALSE);
   }
   else if (affected_by_spell(ch, SPELL_GREATER_BLACK_TENTACLES))
   {
-    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, SPELL_GREATER_BLACK_TENTACLES, DAM_FORCE, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(4, 6) + 13, SPELL_GREATER_BLACK_TENTACLES,
+           DAM_FORCE, FALSE);
   }
   else if (affected_by_spell(ch, SPELL_BLACK_TENTACLES))
   {
-    damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(1, 6) + 4, SPELL_BLACK_TENTACLES, DAM_FORCE, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(1, 6) + 4, SPELL_BLACK_TENTACLES, DAM_FORCE,
+           FALSE);
   }
 
 
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE))
   {
-    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY) || HAS_FEAT(ch, FEAT_PLAGUE_BRINGER)))
+    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY) ||
+                        HAS_FEAT(ch, FEAT_PLAGUE_BRINGER)))
     {
       if (affected_by_spell(ch, SPELL_EYEBITE))
         affect_from_char(ch, SPELL_EYEBITE);
@@ -297,15 +306,13 @@ void mount_cleanup(struct char_data *ch)
  * falling/drowning/lava/etc */
 void hazard_tick(struct char_data *ch)
 {
-
   /* falling */
   if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING))
   {
     /* the svariable value of 20 is just a rough number for feet */
     attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
     send_to_char(ch, "Suddenly your realize you are falling!\r\n");
-    act("$n has just realized $e has no visible means of support!",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("$n has just realized $e has no visible means of support!", FALSE, ch, 0, 0, TO_ROOM);
   }
 
   if (!IS_NPC(ch))
@@ -319,7 +326,8 @@ void hazard_tick(struct char_data *ch)
     case SECT_UNDERWATER:
       if (IS_NPC(ch) && (GET_MOB_VNUM(ch) == 1260 || IS_UNDEAD(ch)))
         break;
-      if (!IS_UNDEAD(ch) && !AFF_FLAGGED(ch, AFF_WATER_BREATH) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
+      if (!IS_UNDEAD(ch) && !AFF_FLAGGED(ch, AFF_WATER_BREATH) &&
+          !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
         damage(ch, ch, rand_number(1, 65), TYPE_DROWNING, DAM_WATER, FALSE);
       break;
     }
@@ -352,7 +360,6 @@ void pulse_luminari()
   // looping through char list, what needs to be done?
   for (i = character_list; i; i = i->next)
   {
-
     /* dummy check + added for falling event */
     if (death_check(i))
       continue; // i is dead
@@ -373,10 +380,8 @@ void pulse_luminari()
     mount_cleanup(i);
 
     /* vitals regeneration */
-    if (GET_HIT(i) == GET_MAX_HIT(i) &&
-        GET_MOVE(i) == GET_MAX_MOVE(i) &&
-        GET_PSP(i) == GET_MAX_PSP(i) &&
-        !AFF_FLAGGED(i, AFF_POISON) &&
+    if (GET_HIT(i) == GET_MAX_HIT(i) && GET_MOVE(i) == GET_MAX_MOVE(i) &&
+        GET_PSP(i) == GET_MAX_PSP(i) && !AFF_FLAGGED(i, AFF_POISON) &&
         !AFF_FLAGGED(i, AFF_ACID_COAT))
       ;
     else
@@ -390,8 +395,8 @@ void pulse_luminari()
     affliction_tick(i);
 
     /* Bard Spellsinger: Sustaining Melody - recover PC spell slots (spontaneous) */
-    if (!IS_NPC(i) && GET_CASTING_CLASS(i) == CLASS_BARD &&
-        FIGHTING(i) && IS_PERFORMING(i) && has_bard_sustaining_melody(i))
+    if (!IS_NPC(i) && GET_CASTING_CLASS(i) == CLASS_BARD && FIGHTING(i) && IS_PERFORMING(i) &&
+        has_bard_sustaining_melody(i))
     {
       /* 20% chance per combat round to recover 1 spell slot */
       if (rand_number(1, 100) <= 20)
@@ -417,7 +422,6 @@ void pulse_luminari()
  When age >= 80 return the value p6 */
 int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
 {
-
   if (grafage < 15)
     return (p0); /* < 15   */
   else if (grafage <= 29)
@@ -435,7 +439,7 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
 /**
  * Check if a character benefits from a healing aura in range.
  * Searches for allies with Healing Aura perk within the specified range.
- * 
+ *
  * @param ch The character to check
  * @return Total healing bonus from all auras in range
  */
@@ -446,98 +450,99 @@ int get_healing_aura_regen_bonus(struct char_data *ch)
   int max_range = 0;
   room_rnum room = NOWHERE;
   int dir = 0;
-  
+
   if (!ch || IS_NPC(ch))
     return 0;
-  
+
   /* Check current room for aura casters */
-  for (aura_caster = world[IN_ROOM(ch)].people; aura_caster; aura_caster = aura_caster->next_in_room)
+  for (aura_caster = world[IN_ROOM(ch)].people; aura_caster;
+       aura_caster = aura_caster->next_in_room)
   {
     if (aura_caster == ch || IS_NPC(aura_caster))
       continue;
-    
+
     if (!has_healing_aura(aura_caster))
       continue;
-    
+
     /* Must be groupmates or self */
     if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(aura_caster, AFF_GROUP))
       continue;
-    
+
     total_bonus += get_healing_aura_bonus(aura_caster);
   }
-  
+
   /* Check adjacent rooms (1 room away) */
   for (dir = 0; dir < NUM_OF_DIRS; dir++)
   {
     if (world[IN_ROOM(ch)].dir_option[dir] == NULL)
       continue;
-    
+
     room = world[IN_ROOM(ch)].dir_option[dir]->to_room;
     if (room == NOWHERE)
       continue;
-    
+
     for (aura_caster = world[room].people; aura_caster; aura_caster = aura_caster->next_in_room)
     {
       if (aura_caster == ch || IS_NPC(aura_caster))
         continue;
-      
+
       if (!has_healing_aura(aura_caster))
         continue;
-      
+
       max_range = get_healing_aura_range(aura_caster);
       if (max_range < 1)
         continue;
-      
+
       /* Must be groupmates */
       if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(aura_caster, AFF_GROUP))
         continue;
-      
+
       total_bonus += get_healing_aura_bonus(aura_caster);
     }
   }
-  
+
   /* Check 2 rooms away (need to check each direction from adjacent rooms) */
   for (dir = 0; dir < NUM_OF_DIRS; dir++)
   {
     if (world[IN_ROOM(ch)].dir_option[dir] == NULL)
       continue;
-    
+
     room = world[IN_ROOM(ch)].dir_option[dir]->to_room;
     if (room == NOWHERE)
       continue;
-    
+
     /* Now check each direction from this adjacent room */
     int dir2 = 0;
     for (dir2 = 0; dir2 < NUM_OF_DIRS; dir2++)
     {
       if (world[room].dir_option[dir2] == NULL)
         continue;
-      
+
       room_rnum room2 = world[room].dir_option[dir2]->to_room;
       if (room2 == NOWHERE || room2 == IN_ROOM(ch))
         continue;
-      
+
       for (aura_caster = world[room2].people; aura_caster; aura_caster = aura_caster->next_in_room)
       {
         if (aura_caster == ch || IS_NPC(aura_caster))
           continue;
-        
+
         if (!has_healing_aura(aura_caster))
           continue;
-        
+
         max_range = get_healing_aura_range(aura_caster);
         if (max_range < 2)
           continue;
-        
+
         /* Must be groupmates */
         if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(aura_caster, AFF_GROUP))
           continue;
-        
+
         total_bonus += get_healing_aura_bonus(aura_caster);
       }
     }
   }
-  
+
   return total_bonus;
 }
 
@@ -655,7 +660,6 @@ void regen_update(struct char_data *ch)
      -zusuk */
   if (AFF_FLAGGED(ch, AFF_POISON))
   {
-
     /* venom immunity  */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY))
     {
@@ -699,7 +703,10 @@ void regen_update(struct char_data *ch)
       {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch)
         {
-          damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
+          damage(tch, ch, dice(1, 4), SPELL_POISON,
+                 KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON
+                                                                  : DAM_POISON,
+                 FALSE);
           /* we use to have custom damage message here for this */
           /* act("$N looks really \tgsick\tn and shivers uncomfortably.",
                      FALSE, tch, NULL, ch, TO_CHAR);
@@ -791,13 +798,13 @@ void regen_update(struct char_data *ch)
   }
 
   /****/
-  
+
   /* Bleeding Attack damage processing */
   if (AFF_FLAGGED(ch, AFF_BLEED) && affected_by_spell(ch, SKILL_BLEEDING_ATTACK))
   {
     int found = 0;
     struct char_data *tch = NULL;
-    
+
     /* In combat, damage comes from the attacker */
     if (FIGHTING(ch) || dice(1, 2) == 2)
     {
@@ -810,7 +817,7 @@ void regen_update(struct char_data *ch)
           break;
         }
       }
-      
+
       if (!found)
         damage(ch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
       update_pos(ch);
@@ -845,7 +852,8 @@ void regen_update(struct char_data *ch)
     send_to_char(ch, "\tG[Primal Vigor +1 HP]\tn ");
   }
   /* If this is a companion, check if master has Primal Vigor */
-  if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && has_primal_vigor(ch->master) && FIGHTING(ch))
+  if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && has_primal_vigor(ch->master) &&
+      FIGHTING(ch))
   {
     hp += 1;
   }
@@ -941,7 +949,6 @@ void regen_psp(void)
 
   for (d = descriptor_list; d; d = d->next)
   {
-
     if (STATE(d) != CON_PLAYING)
       continue;
     if (!d->character)
@@ -988,7 +995,6 @@ void regen_psp(void)
 /* this isn't used anymore -- Gicker */
 int psp_gain(struct char_data *ch)
 {
-
   return 0;
 
   int gain;
@@ -1024,7 +1030,8 @@ int psp_gain(struct char_data *ch)
       break;
     }
 
-    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch) || IS_BARD(ch) || IS_DRUID(ch) || IS_PALADIN(ch) || IS_RANGER(ch))
+    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch) || IS_BARD(ch) || IS_DRUID(ch) ||
+        IS_PALADIN(ch) || IS_RANGER(ch))
       gain *= 2;
 
     if ((GET_COND(ch, HUNGER) == 0) || (GET_COND(ch, THIRST) == 0))
@@ -1049,7 +1056,6 @@ int hit_gain(struct char_data *ch)
   }
   else
   {
-
     gain = graf(age(ch)->year, 8, 12, 20, 32, 16, 10, 4);
 
     /* Class/Level calculations */
@@ -1139,7 +1145,8 @@ void set_title(struct char_data *ch, char *title)
   // OK to remove sex check!
   if (title == NULL)
   {
-    GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ? titles(GET_CLASS(ch), GET_LEVEL(ch)) : titles(GET_CLASS(ch), GET_LEVEL(ch)));
+    GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ? titles(GET_CLASS(ch), GET_LEVEL(ch))
+                                                     : titles(GET_CLASS(ch), GET_LEVEL(ch)));
   }
   else
   {
@@ -1152,7 +1159,8 @@ void set_title(struct char_data *ch, char *title)
 
 void set_imm_title(struct char_data *ch, char *title)
 {
-  if (GET_LEVEL(ch) < LVL_IMMORT) return;
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+    return;
 
   if (GET_IMM_TITLE(ch) != NULL)
     free(GET_IMM_TITLE(ch));
@@ -1161,7 +1169,7 @@ void set_imm_title(struct char_data *ch, char *title)
   // OK to remove sex check!
   if (title == NULL)
   {
-    GET_IMM_TITLE(ch) = strdup(admin_level_names[GET_LEVEL(ch)-LVL_IMMORT]);
+    GET_IMM_TITLE(ch) = strdup(admin_level_names[GET_LEVEL(ch) - LVL_IMMORT]);
   }
   else
   {
@@ -1180,18 +1188,19 @@ void run_autowiz(void)
     size_t res;
     char buf[1024];
 #if defined(CIRCLE_UNIX)
-    res = snprintf(buf, sizeof(buf), "nice ../bin/autowiz %d %s %d %s %d &",
-                   CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE, (int)getpid());
+    res = snprintf(buf, sizeof(buf), "nice ../bin/autowiz %d %s %d %s %d &", CONFIG_MIN_WIZLIST_LEV,
+                   WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE, (int)getpid());
 #elif defined(CIRCLE_WINDOWS)
-    res = snprintf(buf, sizeof(buf), "autowiz %d %s %d %s",
-                   CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE);
+    res = snprintf(buf, sizeof(buf), "autowiz %d %s %d %s", CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE,
+                   LVL_IMMORT, IMMLIST_FILE);
 #endif /* CIRCLE_WINDOWS */
 
     /* Abusing signed -> unsigned conversion to avoid '-1' check. */
     if (res < sizeof(buf))
     {
       mudlog(CMP, LVL_IMMORT, FALSE, "Initiating autowiz.");
-      if (system(buf) == -1) {
+      if (system(buf) == -1)
+      {
         log("SYSERR: Failed to run autowiz command");
       }
       reboot_wizlists();
@@ -1214,7 +1223,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   long int xp_to_lvl = 0;
   long int xp_to_lvl_cap = 0;
   long int gain_cap = 0;
-  
+
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
     return 0;
 
@@ -1234,15 +1243,15 @@ int gain_exp(struct char_data *ch, int gain, int mode)
 
   if (gain > 0)
   {
-
     if (GET_EXP(ch) > xp_to_lvl_cap && gain > 0 && GET_LEVEL(ch) < 30)
     {
-      send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
+      send_to_char(ch, "Your experience has been capped.  You must gain a level before you can "
+                       "begin earning experience again.\r\n");
       return 0;
     }
 
     // leadership bonus
-    gain = (int)((float)gain * ((float) leadership_exp_multiplier(ch) / (float)(100)));
+    gain = (int)((float)gain * ((float)leadership_exp_multiplier(ch) / (float)(100)));
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
@@ -1254,7 +1263,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
       gain += (int)((float)gain * .05);
 
 #if defined(CAMPAIGN_DL)
-/* flat rate for now! (halfed the rate for testing purposes) */
+    /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
     {
       if (gain >= 1000 && GET_ACCEXP_DESC(ch) <= 99999999)
@@ -1272,7 +1281,6 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     {
       if (gain >= 3000 && GET_ACCEXP_DESC(ch) <= 99999999)
       {
-        
         if (!ch->char_specials.post_combat_messages)
         {
           if (gain / 3000 >= 4)
@@ -1377,7 +1385,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
 
     /* new gain xp cap -zusuk */
     GET_EXP(ch) += gain;
-    
+
     /* Check for stage advancement (Stage-based XP tracking - Step 3) */
     if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT)
     {
@@ -1387,7 +1395,6 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   }
   else if (gain < 0)
   {
-
     gain = MAX(-CONFIG_MAX_EXP_LOSS, gain); /* Cap max exp lost per death */
 
     /* end game characters get hit much harder */
@@ -1436,12 +1443,9 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
 
   if (!is_ress)
   {
-
     if (!IS_NPC(ch))
     {
-
-      while (GET_LEVEL(ch) < LVL_IMPL &&
-             GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+      while (GET_LEVEL(ch) < LVL_IMPL && GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
       {
         GET_LEVEL(ch) += 1;
         if (CLASS_LEVEL(ch, GET_CLASS(ch)) < (LVL_STAFF - 1))
@@ -1461,7 +1465,7 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
           send_to_char(ch, "You rise a level!\r\n");
         else
           send_to_char(ch, "You rise %d levels!\r\n", num_levels);
-#if  !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
         set_title(ch, NULL);
 #endif
       }
@@ -1476,8 +1480,7 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
-    send_to_char(ch,
-                 "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+    send_to_char(ch, "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
 
   return gain;
 }
@@ -1598,7 +1601,8 @@ void recharge_activated_items(void)
             obj->activate_spell[ACT_SPELL_COOLDOWN]--;
             if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0)
             {
-              if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+              if (obj->activate_spell[ACT_SPELL_MAX_USES] >
+                  obj->activate_spell[ACT_SPELL_CURRENT_USES])
               {
                 obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
                 snprintf(where_name, sizeof(where_name), "%s", equipment_types[i]);
@@ -1606,14 +1610,15 @@ void recharge_activated_items(void)
                 {
                   where_name[j] = tolower(where_name[j]);
                 }
-                snprintf(buf, sizeof(buf), "$p, %s, regains 1 charge of '%s'.",
-                  where_name, spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                snprintf(buf, sizeof(buf), "$p, %s, regains 1 charge of '%s'.", where_name,
+                         spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
                 act(buf, TRUE, ch, obj, 0, TO_CHAR);
                 obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;
               }
             }
           }
-          else if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+          else if (obj->activate_spell[ACT_SPELL_MAX_USES] >
+                   obj->activate_spell[ACT_SPELL_CURRENT_USES])
           {
             obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;
           }
@@ -1624,22 +1629,23 @@ void recharge_activated_items(void)
     for (obj = ch->carrying; obj; obj = obj->next_content)
     {
       if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
         {
-          if (obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
+          obj->activate_spell[ACT_SPELL_COOLDOWN]--;
+          if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0)
           {
-            obj->activate_spell[ACT_SPELL_COOLDOWN]--;
-            if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0)
+            if (obj->activate_spell[ACT_SPELL_MAX_USES] >
+                obj->activate_spell[ACT_SPELL_CURRENT_USES])
             {
-              if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
-              {
-                obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
-                snprintf(buf, sizeof(buf), "$p, in your inventory, regains 1 charge of '%s'.",
-                  spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
-                act(buf, TRUE, ch, obj, 0, TO_CHAR);
-              }
+              obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+              snprintf(buf, sizeof(buf), "$p, in your inventory, regains 1 charge of '%s'.",
+                       spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+              act(buf, TRUE, ch, obj, 0, TO_CHAR);
             }
           }
         }
+      }
     }
 
     for (obj = ch->bags->bag1; obj; obj = obj->next_content)
@@ -1650,7 +1656,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #1, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1664,7 +1670,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #2, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1678,7 +1684,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #3, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1692,7 +1698,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #4, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1706,7 +1712,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #5, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1720,7 +1726,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #6, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1734,7 +1740,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #7, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1748,7 +1754,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #8, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1762,7 +1768,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #9, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1776,7 +1782,7 @@ void recharge_activated_items(void)
         {
           obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
           snprintf(buf, sizeof(buf), "$p, in your bag #10, regains 1 charge of '%s'.",
-            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                   spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
           act(buf, TRUE, ch, obj, 0, TO_CHAR);
         }
       }
@@ -1865,7 +1871,9 @@ void update_player_misc(void)
       }
     }
 
-    if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
+    if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE ||
+        GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START ||
+        GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
       ;
     else
       GET_LAST_ROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
@@ -1885,9 +1893,9 @@ void update_player_misc(void)
       /* Increment regeneration counter */
       if (!GET_BONUS_DOMAIN_REGEN_TIMER(ch))
         GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
-      
+
       GET_BONUS_DOMAIN_REGEN_TIMER(ch)++;
-      
+
       /* Regenerate 1 slot every 5 ticks (5 minutes) */
       if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) >= 5)
       {
@@ -1906,9 +1914,9 @@ void update_player_misc(void)
       /* Increment regeneration counter */
       if (!GET_BONUS_SLOTS_REGEN_TIMER(ch))
         GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
-      
+
       GET_BONUS_SLOTS_REGEN_TIMER(ch)++;
-      
+
       /* Regenerate 1 slot every 5 ticks (5 minutes) */
       if (GET_BONUS_SLOTS_REGEN_TIMER(ch) >= 5)
       {
@@ -1964,7 +1972,8 @@ void update_player_misc(void)
       GET_SETCLOAK_TIMER(ch)--;
       if (GET_SETCLOAK_TIMER(ch) == 0)
       {
-        send_to_char(ch, "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
+        send_to_char(ch,
+                     "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
       }
     }
 
@@ -2088,7 +2097,6 @@ void update_player_misc(void)
 // every 6 seconds
 void proc_d20_round(void)
 {
-
   struct char_data *i = NULL, *tch = NULL;
   struct raff_node *raff, *next_raff;
   struct affected_type af;
@@ -2120,8 +2128,9 @@ void proc_d20_round(void)
         af.location = APPLY_HITROLL;
         af.modifier = 4; /* +4 to-hit */
         affect_to_char(i, &af);
-        
-        send_to_char(i, "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
+
+        send_to_char(
+            i, "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
         act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, i, 0, 0, TO_ROOM);
       }
       else
@@ -2214,7 +2223,7 @@ void proc_d20_round(void)
       i->char_specials.entertain_cooldown--;
     if (i->char_specials.tribute_cooldown > 0)
       i->char_specials.tribute_cooldown--;
-      
+
     if (i->char_specials.recently_slammed > 0)
       i->char_specials.recently_slammed--;
     if (i->char_specials.recently_kicked > 0)
@@ -2264,33 +2273,34 @@ void proc_d20_round(void)
         }
       }
       if (GET_SICKENING_AURA_TIMER(i) <= 0)
-      for (tch = world[IN_ROOM(i)].people; tch; tch = tch->next_in_room)
-      {
-        if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
+        for (tch = world[IN_ROOM(i)].people; tch; tch = tch->next_in_room)
         {
-          if (savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), NOSCHOOL))
+          if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
           {
-            act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
-            act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
-            act("$N is unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
-          }
-          else
-          {
-            act("$N succumbs to your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
-            act("You succumb to $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
-            act("$N succumbs to $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
+            if (savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch),
+                            NOSCHOOL))
+            {
+              act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
+              act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
+              act("$N is unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
+            }
+            else
+            {
+              act("$N succumbs to your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
+              act("You succumb to $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
+              act("$N succumbs to $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
 
-            new_affect(&af);
-            af.spell = EVOLUTION_SICKENING_EFFECT;
-            af.location = APPLY_CON;
-            af.modifier = -2;
-            af.duration = 1;
-            SET_BIT_AR(af.bitvector, AFF_SICKENED);
-            affect_to_char(i, &af);
+              new_affect(&af);
+              af.spell = EVOLUTION_SICKENING_EFFECT;
+              af.location = APPLY_CON;
+              af.modifier = -2;
+              af.duration = 1;
+              SET_BIT_AR(af.bitvector, AFF_SICKENED);
+              affect_to_char(i, &af);
+            }
+            GET_SICKENING_AURA_TIMER(i) = 10;
           }
-          GET_SICKENING_AURA_TIMER(i) = 10;
         }
-      }
     }
 
     if (!IS_NPC(i)) // players only
@@ -2311,7 +2321,6 @@ void proc_d20_round(void)
       }
       if (MOB_FLAGGED(i, MOB_ENCOUNTER))
       {
-
         if (i->mob_specials.extract_timer > 0)
         {
           i->mob_specials.extract_timer--;
@@ -2327,7 +2336,9 @@ void proc_d20_round(void)
           if (i->mob_specials.peaceful_timer == 0)
           {
             i->mob_specials.peaceful_timer = -1;
-            act("$n is no longer peaceful and will have to be dealt with again in some manner. (HELP ENCOUNTERS)\r\n", false, i, 0, 0, TO_ROOM);
+            act("$n is no longer peaceful and will have to be dealt with again in some manner. "
+                "(HELP ENCOUNTERS)\r\n",
+                false, i, 0, 0, TO_ROOM);
           }
         }
 
@@ -2365,7 +2376,6 @@ void proc_d20_round(void)
 
 void check_devices(void)
 {
-
   struct char_data *i = NULL, *next_char = NULL;
   int artificer_level, max_uses;
 
@@ -2381,17 +2391,17 @@ void check_devices(void)
       max_uses = 1 + (artificer_level / 2);
       if (HAS_FEAT(i, FEAT_GNOMISH_TINKERING))
         max_uses += 1;
-      
+
       /* Find the first device that can be recharged (working from top of list) */
       int dev_idx;
       for (dev_idx = 0; dev_idx < i->player_specials->saved.num_inventions; dev_idx++)
       {
         struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
-        
+
         /* Skip broken devices - they cannot be recharged until repaired */
         if (inv->broken)
           continue;
-        
+
         /* Process device if it has been used or has DC penalty */
         if (inv->uses > 0 || inv->dc_penalty > 0)
         {
@@ -2400,14 +2410,14 @@ void check_devices(void)
           {
             inv->dc_penalty = MAX(0, inv->dc_penalty - 4);
             send_to_char(i, "\tgYour device '%s' stabilizes. (DC penalty: +%d)\tn\r\n",
-                        inv->short_description, inv->dc_penalty);
+                         inv->short_description, inv->dc_penalty);
           }
           /* Only recharge uses if DC penalty is now 0 and device has been used */
           else if (inv->uses > 0)
           {
             inv->uses--;
             send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
-                        inv->short_description, max_uses - inv->uses, max_uses);
+                         inv->short_description, max_uses - inv->uses, max_uses);
           }
           break; /* Only process one device per 30 seconds */
         }
@@ -2419,7 +2429,7 @@ void check_devices(void)
 void check_thirty_seconds(void)
 {
   check_auction();
-  check_devices();  
+  check_devices();
 }
 
 /* Update PCs, NPCs, and objects */
@@ -2467,7 +2477,7 @@ void point_update(void)
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
         check_idling(i);
-      
+
       // eldritch knight spell crit expires after combat ends if not used.
       if (!FIGHTING(i) && HAS_ELDRITCH_SPELL_CRIT(i))
         HAS_ELDRITCH_SPELL_CRIT(i) = false;
@@ -2499,9 +2509,11 @@ void point_update(void)
           /*obj timer is back to 0*/
 
           if (j->carried_by) /* carried in your inventory */
-            act("$p briefly flares as the imbued magic returns.", FALSE, j->carried_by, j, 0, TO_CHAR);
+            act("$p briefly flares as the imbued magic returns.", FALSE, j->carried_by, j, 0,
+                TO_CHAR);
           else if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
-            act("$p briefly flares as the imbued magic returns.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
+            act("$p briefly flares as the imbued magic returns.", FALSE, j->in_obj->carried_by, j,
+                0, TO_CHAR);
           else if (j->worn_by)
             act("$p briefly flares as the imbued magic returns.", FALSE, j->worn_by, j, 0, TO_CHAR);
         }
@@ -2525,9 +2537,11 @@ void point_update(void)
         GET_OBJ_VAL(j, 1) = 0;
         /* now send a message if appropriate */
         if (j->carried_by) /* carried in your inventory */
-          act("$p briefly shudders as the imbued magic fades.", FALSE, j->carried_by, j, 0, TO_CHAR);
+          act("$p briefly shudders as the imbued magic fades.", FALSE, j->carried_by, j, 0,
+              TO_CHAR);
         if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
-          act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
+          act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0,
+              TO_CHAR);
       }
     }
 
@@ -2557,12 +2571,10 @@ void point_update(void)
         {
           act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
               "fades, then disappears.",
-              TRUE, world[IN_ROOM(j)].people,
-              j, 0, TO_ROOM);
+              TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
           act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
               "fades, then disappears.",
-              TRUE, world[IN_ROOM(j)].people,
-              j, 0, TO_CHAR);
+              TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
         }
         extract_obj(j);
         continue; /* object is gone */
@@ -2578,10 +2590,10 @@ void point_update(void)
         /* send message if it makes sense */
         if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
         {
-          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
-              j, 0, TO_ROOM);
-          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
-              j, 0, TO_CHAR);
+          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people, j, 0,
+              TO_ROOM);
+          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people, j, 0,
+              TO_CHAR);
         }
         extract_obj(j);
         continue; /* object is gone */
@@ -2598,10 +2610,10 @@ void point_update(void)
           act("$p decays in your hands.", FALSE, j->carried_by, j, 0, TO_CHAR);
         else if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
         {
-          act("A quivering horde of maggots consumes $p.",
-              TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
-          act("A quivering horde of maggots consumes $p.",
-              TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
+          act("A quivering horde of maggots consumes $p.", TRUE, world[IN_ROOM(j)].people, j, 0,
+              TO_ROOM);
+          act("A quivering horde of maggots consumes $p.", TRUE, world[IN_ROOM(j)].people, j, 0,
+              TO_CHAR);
         }
 
         for (jj = j->contains; jj; jj = next_thing2)
@@ -2649,7 +2661,10 @@ int increase_gold(struct char_data *ch, int amt)
       GET_GOLD(ch) = MAX_GOLD;
   }
   if (GET_GOLD(ch) == MAX_GOLD)
-    send_to_char(ch, "%sYou have reached the maximum gold!\r\n%sYou must spend it or bank it before you can gain any more.\r\n", QBRED, QNRM);
+    send_to_char(ch,
+                 "%sYou have reached the maximum gold!\r\n%sYou must spend it or bank it before "
+                 "you can gain any more.\r\n",
+                 QBRED, QNRM);
 
   return (GET_GOLD(ch));
 }
@@ -2686,7 +2701,10 @@ int increase_bank(struct char_data *ch, int amt)
       GET_BANK_GOLD(ch) = MAX_BANK;
   }
   if (GET_BANK_GOLD(ch) == MAX_BANK)
-    send_to_char(ch, "%sYou have reached the maximum bank balance!\r\n%sYou cannot put more into your account unless you withdraw some first.\r\n", QBRED, QNRM);
+    send_to_char(ch,
+                 "%sYou have reached the maximum bank balance!\r\n%sYou cannot put more into your "
+                 "account unless you withdraw some first.\r\n",
+                 QBRED, QNRM);
   return (GET_BANK_GOLD(ch));
 }
 
@@ -2707,9 +2725,8 @@ void increase_anger(struct char_data *ch, float amount)
 // function that performs the "meat" of the vampiric blood drain mechanic!
 void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 {
-
   struct affected_type af;
-  
+
   // struct affected_type *af2;
 
   // for (af2 = ch->affected; af2; af2 = af2->next)
@@ -2726,18 +2743,21 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
   //   }
   // }
 
-  if (!ch || !vict) return;
-  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(vict) == NOWHERE) return;
+  if (!ch || !vict)
+    return;
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(vict) == NOWHERE)
+    return;
 
   if (IN_SUNLIGHT(ch) || IN_MOVING_WATER(ch))
   {
-    send_to_char(ch, "You cannot drain blood in sunlight or moving water, even if wearing a vampire cloak.\r\n");
+    send_to_char(
+        ch,
+        "You cannot drain blood in sunlight or moving water, even if wearing a vampire cloak.\r\n");
     return;
   }
 
   if (!can_blood_drain_target(ch, vict))
   {
-    
     return;
   }
 
@@ -2761,7 +2781,7 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
       af.spell = ABILITY_SCORE_DAMAGE;
       af.location = APPLY_CON;
       af.modifier = -dice(1, 4);
-      af.duration = 50; // approx five minutes
+      af.duration = 50;                      // approx five minutes
       if ((GET_CON(vict) + af.modifier) < 0) // we're adding a negative number so it's + not -
         af.modifier = GET_CON(vict);
       affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
@@ -2801,7 +2821,7 @@ void update_damage_and_effects_over_time(void)
 
     // Disabled as causes issues with different things, such as wildshape
     // This code handles ability score damage which can be healed with various 'restoration' spells
-    // if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 || 
+    // if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 ||
     //     GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
     // {
     //   struct affected_type af;
@@ -2852,7 +2872,8 @@ void update_damage_and_effects_over_time(void)
       ch->char_specials.banishing_blade_procced_this_round = FALSE;
 
     if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
-        !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
+        !affected_by_spell(ch, AFFECT_RECENTLY_DIED) &&
+        !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
     {
       if (IN_SUNLIGHT(ch) && !is_covered(ch))
       {
@@ -2878,7 +2899,8 @@ void update_damage_and_effects_over_time(void)
       {
         if (IS_SET_AR(affects->bitvector, AFF_BLEED))
         {
-          dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
+          dam =
+              damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
 
           if (dam <= 0)
           { /* they died */
@@ -2919,7 +2941,8 @@ void update_damage_and_effects_over_time(void)
       {
         if (affects->spell == AFFECT_CAUSTIC_BLOOD_DAMAGE)
         {
-          dam = damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
+          dam =
+              damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
 
           if (dam <= 0)
           { /* they died */
@@ -2935,8 +2958,10 @@ void update_damage_and_effects_over_time(void)
       {
         if (affects->spell == BOMB_AFFECT_BONESHARD)
         {
-          act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0, 0, TO_CHAR);
-          act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0, TO_ROOM);
+          act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0,
+              0, TO_CHAR);
+          act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0,
+              TO_ROOM);
           dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
           if (dam <= 0)
           { /* they died */
@@ -2954,27 +2979,36 @@ void update_damage_and_effects_over_time(void)
     {
       if (GET_STICKY_BOMB(ch, 0) != BOMB_FIRE_BRAND && GET_STICKY_BOMB(ch, 0) != BOMB_HEALING)
       {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.", bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.",
+                 bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.",
+                 bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1), SKILL_BOMB_TOSS);
+        dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1),
+                     SKILL_BOMB_TOSS);
         GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
       }
       else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING)
       {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.",
+                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.",
+                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         perform_bomb_direct_healing(ch, ch, BOMB_HEALING);
         GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
       }
       else if (GET_STICKY_BOMB(ch, 0) == BOMB_FIRE_BRAND)
       {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting your weapons aflame anew.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
+        snprintf(buf, sizeof(buf),
+                 "A sticky %s bomb explodes again, setting your weapons aflame anew.",
+                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting $n's weapons aflame anew.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
+        snprintf(buf, sizeof(buf),
+                 "A sticky %s bomb explodes again, setting $n's weapons aflame anew.",
+                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         perform_bomb_self_effect(ch, ch, BOMB_FIRE_BRAND);
         GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
@@ -2991,7 +3025,8 @@ void update_damage_and_effects_over_time(void)
     }
 
     // judgement of healing
-    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) &&
+        !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
       GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
       GET_HIT(ch)--;
@@ -2999,7 +3034,8 @@ void update_damage_and_effects_over_time(void)
     // paladin fast healing mercy effect
     if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
     {
-      GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
+      GET_HIT(ch) +=
+          get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
         GET_HIT(ch)--;
     }
@@ -3088,7 +3124,8 @@ void self_buffing(void)
       }
     }
 
-    while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 && GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
+    while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 &&
+           GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
     {
       GET_CURRENT_BUFF_SLOT(ch)++;
     }

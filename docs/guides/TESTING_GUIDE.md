@@ -115,13 +115,13 @@ static void TestFeatureName()
 {
     // Arrange - Set up test data
     SomeStruct* data = create_test_data();
-    
+
     // Act - Execute the function being tested
     int result = function_under_test(data);
-    
+
     // Assert - Verify the results
     assert(result == expected_value);
-    
+
     // Cleanup
     cleanup_test_data(data);
 }

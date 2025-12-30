@@ -134,12 +134,10 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob)
    */
   if (ch && ch->mob_specials.quest)
   {
-
     for (qexist = ch->mob_specials.quest; qexist; qexist = qexist->next)
     {
       if (ch && qexist)
       {
-
         CREATE(qtmp, struct quest_entry, 1);
         clear_hlquest(qtmp);
         qtmp->type = qexist->type;
@@ -188,7 +186,7 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob)
         } /* end out chain */
 
       } /* end if qexist */
-    }   /* for loop */
+    } /* for loop */
   }
   /*
    * Attach reference to quest to player's struct descriptor_data.
@@ -342,11 +340,9 @@ void hlqedit_save_to_disk(int zone_num)
           if (quest->type == QUEST_GIVE || quest->type == QUEST_ROOM)
           {
             for (qcom = quest->in; qcom; qcom = qcom->next)
-              fprintf(fp, "I %c %d %d\n", hlqedit_command[qcom->type], qcom->value,
-                      qcom->location);
+              fprintf(fp, "I %c %d %d\n", hlqedit_command[qcom->type], qcom->value, qcom->location);
             for (qcom = quest->out; qcom; qcom = qcom->next)
-              fprintf(fp, "O %c %d %d\n", hlqedit_command[qcom->type],
-                      qcom->value, qcom->location);
+              fprintf(fp, "O %c %d %d\n", hlqedit_command[qcom->type], qcom->value, qcom->location);
             fprintf(fp, "S\n");
           }
         }
@@ -386,8 +382,7 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d)
            "\r\nQuest-Give Menu\r\n"
            "%sC%s) Give Coins to Mob\r\n"
            "%sI%s) Give Item to Mob\r\n",
-           grn, nrm,
-           grn, nrm);
+           grn, nrm, grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, "%s", buf);
@@ -412,18 +407,8 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
            "%sU%s) Set Church (not yet implemented)\r\n"
            "%sK%s) Change Kit (not yet implemented)\r\n"
            "%sS%s) Cast Spell\r\n",
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm);
+           grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
+           grn, nrm, grn, nrm, grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, "%s", buf);
@@ -475,20 +460,20 @@ void hlqedit_disp_menu(struct descriptor_data *d)
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next)
   {
     if (quest->type == QUEST_ASK)
-      snprintf(buf, sizeof(buf), "%d) (%s) ASK %s", num, quest->approved ? "OK" : "-", quest->keywords);
+      snprintf(buf, sizeof(buf), "%d) (%s) ASK %s", num, quest->approved ? "OK" : "-",
+               quest->keywords);
     else if (quest->type == QUEST_ROOM)
-      snprintf(buf, sizeof(buf), "%d) (%s) ROOM %d", num, quest->approved ? "OK" : "-", quest->room);
+      snprintf(buf, sizeof(buf), "%d) (%s) ROOM %d", num, quest->approved ? "OK" : "-",
+               quest->room);
     else
     {
       if (quest->in > 0)
       {
         if (quest->in->type == QUEST_COMMAND_ITEM)
-          snprintf(buf, sizeof(buf), "%d) (%s) GIVE %s", num,
-                   quest->approved ? "OK" : "-",
+          snprintf(buf, sizeof(buf), "%d) (%s) GIVE %s", num, quest->approved ? "OK" : "-",
                    obj_proto[real_object(quest->in->value)].short_description);
         else
-          snprintf(buf, sizeof(buf), "%d) (%s) GIVE %d coins", num,
-                   quest->approved ? "OK" : "-",
+          snprintf(buf, sizeof(buf), "%d) (%s) GIVE %d coins", num, quest->approved ? "OK" : "-",
                    quest->in->value);
 
         if (quest->in->next)
@@ -510,11 +495,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
            "%sQ%s) Quit\r\n"
            "Enter choice : ",
 
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm,
-           grn, nrm);
+           grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm);
   send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HLQEDIT_MAIN_MENU;
@@ -554,7 +535,6 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   switch (OLC_MODE(d))
   {
-
   case HLQEDIT_CONFIRM_HLSAVESTRING:
     d->str = 0;
     switch (*arg)
@@ -1166,8 +1146,7 @@ ACMD(do_hlqedit)
   // give descriptor olc struct
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis_hlquest: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_hlquest: Player already had olc structure.");
     free(d->olc);
   }
   CREATE(d->olc, struct oasis_olc_data, 1);
@@ -1198,10 +1177,8 @@ ACMD(do_hlqedit)
 
   if (save)
   {
-    send_to_char(ch, "Saving all hlquest info in zone %d.\r\n",
-                 zone_table[OLC_ZNUM(d)].number);
-    log("OLC: %s saves hlquest info for zone %d.", GET_NAME(ch),
-        zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all hlquest info in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
+    log("OLC: %s saves hlquest info for zone %d.", GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     send_to_char(ch, "Saving to disk...");
     hlqedit_save_to_disk(OLC_ZNUM(d));
@@ -1231,7 +1208,6 @@ ACMD(do_hlqedit)
   act("$n starts using OLC (hlqedit).", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(BRF, LVL_IMMORT, TRUE,
-         "OLC: %s starts editing zone %d allowed zone %d",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
+         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }

@@ -19,9 +19,9 @@ void load_clan_investments(void);
 ACMD_DECL(do_claninvest);
 
 /* Transaction types for tax collection */
-#define TRANS_SHOP_BUY      0
-#define TRANS_SHOP_SELL     1
-#define TRANS_PLAYER_TRADE  2
-#define TRANS_AUCTION       3
+#define TRANS_SHOP_BUY 0
+#define TRANS_SHOP_SELL 1
+#define TRANS_PLAYER_TRADE 2
+#define TRANS_AUCTION 3
 
 #endif /* _CLAN_ECONOMY_H_ */

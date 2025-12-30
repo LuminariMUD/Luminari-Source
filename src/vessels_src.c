@@ -12,7 +12,7 @@
  *
  * FILE ORGANIZATION:
  * 1. Includes and Forward Declarations      (Lines 46-51)
- * 2. Global Variables and Data Structures   (Lines 53-79)  
+ * 2. Global Variables and Data Structures   (Lines 53-79)
  * 3. Future Advanced Vessel System          (Lines 81-191)
  * 4. CWG Vehicle System Functions           (Lines 193-405)
  * 5. CWG Drive Command                      (Lines 407-557)
@@ -112,12 +112,12 @@ void save_vessels(void) {
  */
 struct vessel_data *find_vessel_by_id(int vessel_id) {
   struct vessel_data *vessel;
-  
+
   for (vessel = vessel_list; vessel; vessel = vessel->next) {
     if (vessel->id == vessel_id)
       return vessel;
   }
-  
+
   return NULL;
 }
 
@@ -128,7 +128,7 @@ struct vessel_data *find_vessel_by_id(int vessel_id) {
  */
 void vessel_movement_tick(void) {
   struct vessel_data *vessel;
-  
+
   for (vessel = vessel_list; vessel; vessel = vessel->next) {
     if (vessel->state == VESSEL_STATE_TRAVELING) {
       /* TODO: Implement movement logic */
@@ -144,12 +144,12 @@ void vessel_movement_tick(void) {
 void enter_vessel(struct char_data *ch, struct vessel_data *vessel) {
   if (!ch || !vessel)
     return;
-    
+
   if (vessel->num_passengers >= vessel->capacity) {
     send_to_char(ch, "The %s is at full capacity.\r\n", vessel->name);
     return;
   }
-  
+
   /* TODO: Implement boarding logic */
   send_to_char(ch, "You board the %s.\r\n", vessel->name);
 }
@@ -161,7 +161,7 @@ void enter_vessel(struct char_data *ch, struct vessel_data *vessel) {
 void exit_vessel(struct char_data *ch) {
   if (!ch)
     return;
-    
+
   /* TODO: Implement disembarking logic */
   send_to_char(ch, "You disembark from the vessel.\r\n");
 }
@@ -175,7 +175,7 @@ void exit_vessel(struct char_data *ch) {
 int can_pilot_vessel(struct char_data *ch, struct vessel_data *vessel) {
   if (!ch || !vessel)
     return FALSE;
-    
+
   /* TODO: Check piloting skills/requirements */
   return TRUE;
 }
@@ -188,7 +188,7 @@ int can_pilot_vessel(struct char_data *ch, struct vessel_data *vessel) {
 void pilot_vessel(struct char_data *ch, int direction) {
   if (!ch)
     return;
-    
+
   /* TODO: Implement piloting logic */
   send_to_char(ch, "You steer the vessel.\r\n");
 }
@@ -205,7 +205,7 @@ void pilot_vessel(struct char_data *ch, int direction) {
  * Find a vehicle object by its vnum in the global object list
  * @param vnum Virtual number of the vehicle object to find
  * @return Pointer to the vehicle object, or NULL if not found
- * 
+ *
  * Usage: Used internally by the drive system to locate vehicles
  * that are referenced by control objects.
  */
@@ -226,7 +226,7 @@ struct obj_data *find_vehicle_by_vnum(int vnum) {
  * @param type Object type to search for (ITEM_VEHICLE, ITEM_CONTROL, etc.)
  * @param list Head of the object list to search
  * @return Pointer to first matching object, or NULL if none found
- * 
+ *
  * Usage: Generic utility function used to find controls, hatches, etc.
  * in rooms, inventory, or equipment lists.
  */
@@ -245,7 +245,7 @@ struct obj_data *get_obj_in_list_type(int type, struct obj_data *list) {
  * Searches in order: room contents, character inventory, character equipment
  * @param ch Character looking for controls
  * @return Pointer to control object, or NULL if none found
- * 
+ *
  * Usage: Called by do_drive to determine if character can pilot a vehicle.
  * Controls can be in the room (helm), carried (remote), or worn (crown).
  */
@@ -255,20 +255,20 @@ struct obj_data *find_control(struct char_data *ch) {
 
   /* First check room contents for controls (like a ship's helm) */
   controls = get_obj_in_list_type(ITEM_CONTROL, world[IN_ROOM(ch)].contents);
-  
+
   /* Then check character's inventory for portable controls */
   if (!controls)
     for (obj = ch->carrying; obj && !controls; obj = obj->next_content)
       if (CAN_SEE_OBJ(ch, obj) && GET_OBJ_TYPE(obj) == ITEM_CONTROL)
         controls = obj;
-        
+
   /* Finally check worn equipment for control items */
   if (!controls)
     for (j = 0; j < NUM_WEARS && !controls; j++)
       if (GET_EQ(ch, j) && CAN_SEE_OBJ(ch, GET_EQ(ch, j)) &&
               GET_OBJ_TYPE(GET_EQ(ch, j)) == ITEM_CONTROL)
         controls = GET_EQ(ch, j);
-        
+
   return controls;
 }
 
@@ -277,7 +277,7 @@ struct obj_data *find_control(struct char_data *ch) {
  * @param ch Character doing the driving
  * @param vehicle The vehicle being driven
  * @param arg Name of the target vehicle to drive into
- * 
+ *
  * Usage: Called when player uses "drive into <vehicle_name>"
  * The target vehicle must have ROOM_VEHICLE flag set in its interior room.
  * Vehicle value[0] should contain the room vnum of the vehicle's interior.
@@ -310,7 +310,7 @@ void drive_into_vehicle(struct char_data *ch, struct obj_data *vehicle, char *ar
       obj_from_room(vehicle);
       obj_to_room(vehicle, is_going_to);
       is_in = IN_ROOM(vehicle);
-      
+
       /* Update driver's view and notify destination room */
       if (ch->desc != NULL)
         look_at_room(ch, 0);  /* Fixed: Luminari signature is (ch, mode) */
@@ -324,7 +324,7 @@ void drive_into_vehicle(struct char_data *ch, struct obj_data *vehicle, char *ar
  * Drive a vehicle out of another vehicle (like driving off a ferry)
  * @param ch Character doing the driving
  * @param vehicle The vehicle being driven out
- * 
+ *
  * Usage: Called when player uses "drive outside"
  * Requires an ITEM_HATCH object in the current room that points to the
  * parent vehicle via its value[0] field containing the parent vehicle's vnum.
@@ -363,7 +363,7 @@ void drive_outof_vehicle(struct char_data *ch, struct obj_data *vehicle) {
  * @param ch Character doing the driving
  * @param vehicle The vehicle being driven
  * @param dir Direction constant (NORTH, SOUTH, EAST, WEST, UP, DOWN)
- * 
+ *
  * Usage: Called when player uses "drive north", "drive east", etc.
  * The destination room must have the ROOM_VEHICLE flag set to allow vehicles.
  * Standard movement restrictions apply (closed doors, no exit, etc.).
@@ -493,18 +493,18 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
 
 /**
  * Main drive command for the CWG vehicle system
- * 
+ *
  * Usage:
  *   drive north          - Drive vehicle north
  *   drive into ferry     - Drive vehicle into another vehicle named "ferry"
  *   drive outside        - Drive vehicle out of current parent vehicle
- * 
+ *
  * Prerequisites:
  *   - Character must have access to an ITEM_CONTROL object
  *   - Control object's value[0] must contain vnum of ITEM_VEHICLE to control
  *   - Vehicle must be in a room with ROOM_VEHICLE flag (for directional movement)
  *   - Target rooms must have ROOM_VEHICLE flag set
- * 
+ *
  * @param ch Character issuing the command
  * @param cmd Command number (unused)
  * @param argument Command arguments (direction or "into <target>")
@@ -537,7 +537,7 @@ ACMD(do_drive) {
 
     argument = any_one_arg(argument, arg);  /* Get first word */
     one_argument(argument, arg2);           /* Get second word */
-    
+
     if (!*arg) {
       send_to_char(ch, "Drive, yes, but where?\r\n");
     } else if (is_abbrev(arg, "into") ||
@@ -593,7 +593,7 @@ int find_outcast_ship(struct obj_data *obj) {
   for (i = 0; i < total_num_outcast_ships; i++) {
     if (outcast_ships[i].obj == obj)
       return i;
-    
+
     if (outcast_ships[i].obj_num == GET_OBJ_RNUM(obj)) {
       if (!outcast_ships[i].obj) {
         /* A new object was found! */
@@ -611,7 +611,7 @@ int find_outcast_ship(struct obj_data *obj) {
           if (t_obj == outcast_ships[i].obj)
             return -1;  /* Can't have two same ship objects */
         }
-        
+
         /* Use this obj as new ship obj */
         outcast_ships[i].obj = obj;
         outcast_ships[i].in_room = IN_ROOM(obj);
@@ -754,7 +754,7 @@ static void init_outcast_ship(int ent_room, int obj_num) {
     total_num_outcast_ships--;
     return;
   }
-  
+
   if (update_outcast_ship_location(num) == FALSE) {
     log("SHIP: Need to have an object #%d of ship type", obj_num);
     total_num_outcast_ships--;
@@ -825,7 +825,7 @@ static void transfer_all_room_to_room(int from_room, int to_room) {
     obj_from_room(obj);
     obj_to_room(obj, to_room);
   }
-  
+
   for (ch = world[from_room].people; ch; ch = next_ch) {
     next_ch = ch->next_in_room;
     char_from_room(ch);
@@ -880,7 +880,7 @@ void sink_outcast_ship(int t_ship) {
     log("SHIP: Strange... you just sunk a ghost ship.");
     return;
   }
-  
+
   if (!outcast_ships[t_ship].obj) {
     log("SHIP: Strange... ship object doesn't exist.");
     return;
@@ -917,7 +917,7 @@ void sink_outcast_ship(int t_ship) {
     outcast_ships[outcast_ships[t_ship].dock_vehicle].dock_vehicle = -1;
     outcast_ships[t_ship].dock_vehicle = -1;
   }
-  
+
   outcast_ships[t_ship].obj = NULL;
 }
 
@@ -1060,14 +1060,14 @@ void outcast_ship_activity(void) {
         room = outcast_nav_info[k].control_room;
         if (room == -1)
           continue;
-        
+
         for (j = 0; j < outcast_ships[i].num_room; j++) {
           if (room == outcast_ships[i].room_list[j])
             break;
         }
         if (j >= outcast_ships[i].num_room)
           continue;
-          
+
         for (ch = world[room].people; ch; ch = ch->next_in_room) {
           if (IS_NPC(ch) && (GET_MOB_RNUM(ch) == outcast_nav_info[k].mob)) {
             nav = outcast_navigation(ch, k, i);
@@ -1236,7 +1236,7 @@ int outcast_navigation(struct char_data *ch, int mob, int t_ship) {
     default:
       log("SHIP: Navigation error - invalid path character");
   }
-  
+
   outcast_nav_info[mob].path++;
   return TRUE;
 }
@@ -1259,40 +1259,40 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   /* Handle look at panel command */
   if (cmd == CMD_LOOK) {
     argument = one_argument(argument, arg1);
-    
+
     if (!*arg1)
       return FALSE;
-      
+
     if (!isname(arg1, "panel instrument"))
       return FALSE;
-      
+
     if ((t_ship = in_which_outcast_ship(ch)) < 0) {
       return FALSE;
     }
-    
+
     if (!is_valid_outcast_ship(t_ship)) {
       send_to_char(ch, "Strange... this ship is not operable!\r\n");
       return TRUE;
     }
-    
+
     sprintf(buf, "You look at %s's instrument panels and see...\r\n", outcast_ships[t_ship].obj->name);
     send_to_char(ch, buf);
     sprintf(buf, "  hull: (%d/%d), speed: (%d/%d), velocity: %d\r\n",
-            GET_OBJ_VAL(outcast_ships[t_ship].obj, 0), outcast_ships[t_ship].hull, 
-            GET_OBJ_VAL(outcast_ships[t_ship].obj, 1), outcast_ships[t_ship].speed, 
+            GET_OBJ_VAL(outcast_ships[t_ship].obj, 0), outcast_ships[t_ship].hull,
+            GET_OBJ_VAL(outcast_ships[t_ship].obj, 1), outcast_ships[t_ship].speed,
             outcast_ships[t_ship].velocity);
     send_to_char(ch, buf);
-    sprintf(buf, "  fire-power: %d, docked: %s, capacity: (%d/%d)\r\n", 
+    sprintf(buf, "  fire-power: %d, docked: %s, capacity: (%d/%d)\r\n",
             outcast_ships[t_ship].damage,
             is_outcast_ship_docked(t_ship) ? ((outcast_ships[t_ship].dock_vehicle != -1) ? "Ship" : "Port") : "None",
             num_char_in_outcast_ship(t_ship), outcast_ships[t_ship].capacity);
     send_to_char(ch, buf);
-    
+
     if (GET_LEVEL(ch) > LVL_IMMORT) {
-      sprintf(buf, "  size: %d, number of rooms: %d, repeat: %d\r\n", 
+      sprintf(buf, "  size: %d, number of rooms: %d, repeat: %d\r\n",
               outcast_ships[t_ship].size, outcast_ships[t_ship].num_room, outcast_ships[t_ship].repeat);
       send_to_char(ch, buf);
-      sprintf(buf, "  timer: %d, move-timer: %d, in_room: %d\r\n", 
+      sprintf(buf, "  timer: %d, move-timer: %d, in_room: %d\r\n",
               outcast_ships[t_ship].timer, outcast_ships[t_ship].move_timer,
               outcast_ships[t_ship].in_room != NOWHERE ? GET_ROOM_VNUM(outcast_ships[t_ship].in_room) : -1);
       send_to_char(ch, buf);
@@ -1309,7 +1309,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   if ((t_ship = in_which_outcast_ship(ch)) < 0) {
     return FALSE;
   }
-  
+
   if (!is_valid_outcast_ship(t_ship)) {
     send_to_char(ch, "Strange... this ship is not operable!\r\n");
     return TRUE;
@@ -1319,13 +1319,13 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   if (is_abbrev(arg1, "sail")) {
     send_to_char(ch, "You shout out an order to sail!\r\n");
     act("$n shouts out an order to sail!", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     if (outcast_ships[t_ship].repeat) {
       send_to_char(ch, "Disengaging auto-mode.\r\n");
       act("$n presses a button and turns off the auto-mode.", FALSE, ch, 0, 0, TO_ROOM);
       outcast_ships[t_ship].repeat = 0;
     }
-    
+
     /* Check for dock_vehicle */
     if (outcast_ships[t_ship].dock_vehicle != -1) {
       if (is_valid_outcast_ship(outcast_ships[t_ship].dock_vehicle) &&
@@ -1343,14 +1343,14 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
         outcast_ships[t_ship].dock_vehicle = -1;
       }
     }
-    
+
     if (outcast_ships[t_ship].move_timer > 0) {
       send_to_char(ch, "The ship is slow to respond to your control.\r\n");
       return TRUE;
     }
-    
+
     argument = one_argument(argument, arg2);
-    
+
     /* Parse direction */
     if (is_abbrev(arg2, "north")) {
       if (move_outcast_ship(t_ship, CMD_NORTH, ch)) {
@@ -1423,7 +1423,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
       outcast_ships[t_ship].lastdir = 0;
       return TRUE;
     }
-    
+
     /* Check for repeat sailing */
     argument = one_argument(argument, arg2);
     if (isdigit(*arg2)) {
@@ -1440,21 +1440,21 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   } else if (is_abbrev(arg1, "board")) {
     send_to_char(ch, "You shout out an order to board another ship!\r\n");
     act("$n shouts out an order to board another ship!", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     if (outcast_ships[t_ship].repeat) {
       send_to_char(ch, "Disengaging auto-mode.\r\n");
       act("$n presses a button and turns off the auto-mode.", FALSE, ch, 0, 0, TO_ROOM);
       outcast_ships[t_ship].repeat = 0;
     }
-    
+
     if (is_outcast_ship_docked(t_ship)) {
       send_to_char(ch, "You can't dock a ship already docked.\r\n");
       return TRUE;
     }
-    
+
     argument = one_argument(argument, arg2);
     target_obj = get_obj_in_list_vis(ch, arg2, world[outcast_ships[t_ship].in_room].contents);
-    
+
     if (!target_obj || (GET_OBJ_TYPE(target_obj) != ITEM_SHIP)) {
       send_to_char(ch, "What ship do you want to dock?\r\n");
     } else if ((vict_ship = find_outcast_ship(target_obj)) < 0) {
@@ -1478,22 +1478,22 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   } else if (is_abbrev(arg1, "fire")) {
     send_to_char(ch, "You shout out an order to fire another ship!\r\n");
     act("$n shouts out an order to fire another ship!", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     if (is_outcast_ship_docked(t_ship)) {
       send_to_char(ch, "You can't fire cannon on a docked ship.\r\n");
       return TRUE;
     }
-    
+
     if (outcast_ships[t_ship].timer > 0) {
       send_to_char(ch, "The ship is slow to respond to your control.\r\n");
       return TRUE;
     }
-    
+
     if (outcast_ships[t_ship].damage <= 0) {
       send_to_char(ch, "Your ship cannot fire.\r\n");
       return TRUE;
     }
-    
+
     argument = one_argument(argument, arg2);
     old_room = IN_ROOM(ch);
     char_from_room(ch);
@@ -1501,7 +1501,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
     target_obj = get_obj_in_list_vis(ch, arg2, world[outcast_ships[t_ship].in_room].contents);
     char_from_room(ch);
     char_to_room(ch, old_room);
-    
+
     if (!target_obj || (GET_OBJ_TYPE(target_obj) != ITEM_SHIP)) {
       send_to_char(ch, "There's no ship to fire at.\r\n");
     } else if ((vict_ship = find_outcast_ship(target_obj)) < 0) {
@@ -1509,16 +1509,16 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
     } else {
       /* Damage the target ship */
       GET_OBJ_VAL(outcast_ships[vict_ship].obj, 0) -= outcast_ships[t_ship].damage;
-      
+
       sprintf(buf, "Your ship fires at %s.", outcast_ships[vict_ship].obj->short_description);
       act_to_all_in_outcast_ship_outside(t_ship, buf);
       act_to_all_in_outcast_ship(t_ship, "You hear a deafening boom!");
-      
+
       sprintf(buf, "%s fires at your ship.", outcast_ships[t_ship].obj->short_description);
       CAP(buf);
       act_to_all_in_outcast_ship_outside(vict_ship, buf);
       act_to_all_in_outcast_ship(vict_ship, "The whole ship begins to shake and creak!");
-      
+
       /* Display battle message to ocean room */
       sprintf(buf, "%s fires at %s.", outcast_ships[t_ship].obj->short_description,
               outcast_ships[vict_ship].obj->short_description);
@@ -1527,7 +1527,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
         act(buf, FALSE, world[outcast_ships[t_ship].in_room].people, 0, 0, TO_ROOM);
         act(buf, FALSE, world[outcast_ships[t_ship].in_room].people, 0, 0, TO_CHAR);
       }
-      
+
       /* Display battle message to all other ships in same room */
       for (i = 0; i < total_num_outcast_ships; i++) {
         if ((i != vict_ship) && (i != t_ship) && is_valid_outcast_ship(i) &&
@@ -1535,9 +1535,9 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
           act_to_all_in_outcast_ship_outside(i, buf);
         }
       }
-      
+
       outcast_ships[t_ship].timer = SHIP_MAX_SPEED - GET_OBJ_VAL(outcast_ships[t_ship].obj, 1);
-      
+
       /* Check if target ship is destroyed */
       if (GET_OBJ_VAL(outcast_ships[vict_ship].obj, 0) <= 0) {
         sink_outcast_ship(vict_ship);
@@ -1548,17 +1548,17 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   } else if (is_abbrev(arg1, "ram")) {
     send_to_char(ch, "You shout out an order to ram another ship!\r\n");
     act("$n shouts out an order to ram another ship!", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     if (is_outcast_ship_docked(t_ship)) {
       send_to_char(ch, "You can't perform a ramming on a docked ship.\r\n");
       return TRUE;
     }
-    
+
     if (outcast_ships[t_ship].timer > 0) {
       send_to_char(ch, "The ship is slow to respond to your control.\r\n");
       return TRUE;
     }
-    
+
     argument = one_argument(argument, arg2);
     old_room = IN_ROOM(ch);
     char_from_room(ch);
@@ -1566,7 +1566,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
     target_obj = get_obj_in_list_vis(ch, arg2, world[outcast_ships[t_ship].in_room].contents);
     char_from_room(ch);
     char_to_room(ch, old_room);
-    
+
     if (!target_obj || (GET_OBJ_TYPE(target_obj) != ITEM_SHIP)) {
       send_to_char(ch, "What ship do you want to ram?\r\n");
     } else if ((vict_ship = find_outcast_ship(target_obj)) < 0) {
@@ -1577,17 +1577,17 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
       /* Mutual damage from ramming */
       GET_OBJ_VAL(outcast_ships[vict_ship].obj, 0) -= outcast_ships[t_ship].size;
       GET_OBJ_VAL(outcast_ships[t_ship].obj, 0) -= outcast_ships[vict_ship].size;
-      
+
       sprintf(buf, "Your ship rams into %s.", outcast_ships[vict_ship].obj->short_description);
       act_to_all_in_outcast_ship_outside(t_ship, buf);
-      
+
       sprintf(buf, "%s rams into your ship.", outcast_ships[t_ship].obj->short_description);
       CAP(buf);
       act_to_all_in_outcast_ship_outside(vict_ship, buf);
-      
+
       act_to_all_in_outcast_ship(t_ship, "The whole ship begins to shake and creak!");
       act_to_all_in_outcast_ship(vict_ship, "The whole ship begins to shake and creak!");
-      
+
       /* Display battle message to ocean room */
       sprintf(buf, "%s rams into %s.", outcast_ships[t_ship].obj->short_description,
               outcast_ships[vict_ship].obj->short_description);
@@ -1596,7 +1596,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
         act(buf, FALSE, world[outcast_ships[t_ship].in_room].people, 0, 0, TO_ROOM);
         act(buf, FALSE, world[outcast_ships[t_ship].in_room].people, 0, 0, TO_CHAR);
       }
-      
+
       /* Display battle message to all other ships in same room */
       for (i = 0; i < total_num_outcast_ships; i++) {
         if ((i != vict_ship) && (i != t_ship) && is_valid_outcast_ship(i) &&
@@ -1604,15 +1604,15 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
           act_to_all_in_outcast_ship_outside(i, buf);
         }
       }
-      
+
       outcast_ships[t_ship].timer = SHIP_MAX_SPEED - GET_OBJ_VAL(outcast_ships[t_ship].obj, 1);
-      
+
       /* Check if target ship is destroyed */
       if (GET_OBJ_VAL(outcast_ships[vict_ship].obj, 0) <= 0) {
         sink_outcast_ship(vict_ship);
         extract_obj(target_obj);
       }
-      
+
       /* Check if our ship is destroyed too */
       if (GET_OBJ_VAL(outcast_ships[t_ship].obj, 0) <= 0) {
         sink_outcast_ship(t_ship);
@@ -1623,14 +1623,14 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   } else if (is_abbrev(arg1, "speed")) {
     send_to_char(ch, "You shout out an order to change speed!\r\n");
     act("$n shouts out an order to change speed!", FALSE, ch, 0, 0, TO_ROOM);
-    
+
     if (is_outcast_ship_docked(t_ship)) {
       send_to_char(ch, "You can't control the speed on the docked ship.\r\n");
       return TRUE;
     }
-    
+
     argument = one_argument(argument, arg2);
-    
+
     if (is_abbrev(arg2, "fast")) {
       outcast_ships[t_ship].velocity = GET_OBJ_VAL(outcast_ships[t_ship].obj, 1);
       act("The ship sails at maximum speed.", FALSE, ch, 0, 0, TO_ROOM);
@@ -1653,7 +1653,7 @@ int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, c
   } else {
     return FALSE;
   }
-  
+
   return TRUE;
 }
 
@@ -1675,30 +1675,30 @@ int outcast_ship_exit_room(int room, struct char_data *ch, int cmd, char *arg) {
     send_to_char(ch, "You can't disembark unless you are in a ship.\r\n");
     return FALSE;
   }
-  
+
   if (!is_valid_outcast_ship(t_ship)) {
     send_to_char(ch, "This ship is not operable!\r\n");
     return FALSE;
   }
-  
+
   if (cmd == CMD_LOOK) {
     if (!arg || !*arg || strcmp(arg, "out"))
       return FALSE;
-      
+
     look_at_room(ch, outcast_ships[t_ship].in_room);
     return TRUE;
   }
-  
+
   if (!is_outcast_ship_docked(t_ship) && GET_LEVEL(ch) < LVL_IMMORT) {
     send_to_char(ch, "You better not leave the ship until it's docked.\r\n");
     return TRUE;
   }
-  
+
   if (GET_POS(ch) < POS_STANDING) {
     send_to_char(ch, "You're in no position to disembark!\r\n");
     return TRUE;
   }
-  
+
   /* Board another ship */
   if ((to_ship = outcast_ships[t_ship].dock_vehicle) != -1) {
     if (!is_valid_outcast_ship(to_ship)) {
@@ -1721,7 +1721,7 @@ int outcast_ship_exit_room(int room, struct char_data *ch, int cmd, char *arg) {
     char_to_room(ch, outcast_ships[t_ship].in_room);
     act("$n disembarks from $p.", TRUE, ch, outcast_ships[t_ship].obj, 0, TO_ROOM);
   }
-  
+
   return TRUE;
 }
 
@@ -1746,7 +1746,7 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
     send_to_char(ch, "You must be inside a ship to look out!\r\n");
     return FALSE;
   }
-  
+
   if (!is_valid_outcast_ship(t_ship)) {
     send_to_char(ch, "This ship is not operable!\r\n");
     return FALSE;
@@ -1793,7 +1793,7 @@ void greyhawk_getstatus(int slot, int rnum) {
     strcpy(greyhawk_status, "Ready");
   else if (world[rnum].ship->slot[slot].timer < 0)
     strcpy(greyhawk_status, "&+L***   ");
-  
+
   if (world[rnum].ship->slot[slot].desc == NULL)
     strcpy(greyhawk_status, "");
 }
@@ -1821,7 +1821,7 @@ void greyhawk_getposition(int slot, int rnum) {
       strcpy(greyhawk_position, "ERROR");
       break;
   }
-  
+
   if (world[rnum].ship->slot[slot].desc == NULL)
     strcpy(greyhawk_position, "");
 }
@@ -1855,7 +1855,7 @@ void greyhawk_dispweapon(int slot, int rnum) {
 int greyhawk_weaprange(int shipnum, int slot, char range) {
   if (greyhawk_ships[shipnum].slot[slot].type != 1)
     return 0;
-    
+
   switch (range) {
     case GREYHAWK_SHRTRANGE:
       return (int)((float)(greyhawk_ships[shipnum].slot[slot].val0 -
@@ -1882,22 +1882,22 @@ int greyhawk_weaprange(int shipnum, int slot, char range) {
  */
 int greyhawk_bearing(float x1, float y1, float x2, float y2) {
   int val;
-  
+
   if (y1 == y2) {
     if (x1 > x2)
       return 270;
     return 90;
   }
-  
+
   if (x1 == x2) {
     if (y1 > y2)
       return 180;
     else
       return 0;
   }
-  
+
   val = atan((x2 - x1) / (y2 - y1)) * 180 / M_PI;
-  
+
   if (y1 < y2) {
     if (val >= 0)
       return val;
@@ -1921,7 +1921,7 @@ float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
   float dx = x2 - x1;
   float dy = y2 - y1;
   float dz = z2 - z1;
-  
+
   return sqrt((dx * dx) + (dy * dy) + (dz * dz));
 }
 
@@ -1932,14 +1932,14 @@ float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
 void greyhawk_dispcontact(int i) {
   int x, y, z, bearing, j;
   float range;
-  
+
   x = greyhawk_contacts[i].x;
   y = greyhawk_contacts[i].y;
   z = greyhawk_contacts[i].z;
   range = greyhawk_contacts[i].range;
   bearing = greyhawk_contacts[i].bearing;
   j = greyhawk_contacts[i].shipnum;
-  
+
   sprintf(greyhawk_contact, "[%s] %-30s X:%-3d Y:%-3d Z:%-3d R:%-5.1f B:%-3d H:%-3d S:%-3d|%s\r\n",
           greyhawk_ships[j].id, greyhawk_ships[j].name, x, y, z, range, bearing,
           greyhawk_ships[j].heading, greyhawk_ships[j].speed, greyhawk_contacts[i].arc);
@@ -1953,10 +1953,10 @@ void greyhawk_dispcontact(int i) {
 int greyhawk_getcontacts(int shipnum) {
   int rroom, i, j, to_room;
   struct obj_data *obj, *obj_next;
-  
+
   rroom = real_room(greyhawk_ships[shipnum].location);
   i = 0;
-  
+
   /* Check objects in current room */
   for (obj = world[rroom].contents; obj; obj = obj_next) {
     obj_next = obj->next_content;
@@ -1973,7 +1973,7 @@ int greyhawk_getcontacts(int shipnum) {
       }
     }
   }
-  
+
   /* Check adjacent rooms */
   for (j = 0; j < NUM_OF_DIRS; j++) {
     if (world[rroom].dir_option[j]) {
@@ -1995,7 +1995,7 @@ int greyhawk_getcontacts(int shipnum) {
                 case WEST:      xoffset = -50; break;
                 case NORTHWEST: xoffset = -50; yoffset = 50; break;
               }
-              
+
               if (greyhawk_range(greyhawk_ships[shipnum].x, greyhawk_ships[shipnum].y,
                                 greyhawk_ships[shipnum].z,
                                 greyhawk_ships[GET_OBJ_VAL(obj, 1)].x + xoffset,
@@ -2010,7 +2010,7 @@ int greyhawk_getcontacts(int shipnum) {
       }
     }
   }
-  
+
   return i;
 }
 
@@ -2027,19 +2027,19 @@ void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, 
                                                  greyhawk_ships[shipnum].y,
                                                  (greyhawk_ships[GET_OBJ_VAL(obj, 1)].x + (float)xoffset),
                                                  (greyhawk_ships[GET_OBJ_VAL(obj, 1)].y + (float)yoffset));
-  
+
   greyhawk_contacts[i].range = greyhawk_range(greyhawk_ships[shipnum].x,
                                              greyhawk_ships[shipnum].y,
                                              greyhawk_ships[shipnum].z,
                                              greyhawk_ships[GET_OBJ_VAL(obj, 1)].x + xoffset,
                                              greyhawk_ships[GET_OBJ_VAL(obj, 1)].y + yoffset,
                                              greyhawk_ships[GET_OBJ_VAL(obj, 1)].z);
-  
+
   greyhawk_contacts[i].x = (int)greyhawk_ships[GET_OBJ_VAL(obj, 1)].x + xoffset;
   greyhawk_contacts[i].y = (int)greyhawk_ships[GET_OBJ_VAL(obj, 1)].y + yoffset;
   greyhawk_contacts[i].z = (int)greyhawk_ships[GET_OBJ_VAL(obj, 1)].z;
   greyhawk_contacts[i].shipnum = GET_OBJ_VAL(obj, 1);
-  
+
   greyhawk_getarc(shipnum, GET_OBJ_VAL(obj, 1));
   strcpy(greyhawk_contacts[i].arc, greyhawk_arc);
 }
@@ -2053,17 +2053,17 @@ void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, 
 int greyhawk_getarc(int ship1, int ship2) {
   float x1, y1, x2, y2;
   int shipbearing, shipheading, rroom, to_room, i;
-  
+
   rroom = real_room(greyhawk_ships[ship1].location);
   to_room = real_room(greyhawk_ships[ship2].location);
-  
+
   x1 = greyhawk_ships[ship1].x;
   y1 = greyhawk_ships[ship1].y;
   shipheading = greyhawk_ships[ship1].heading;
-  
+
   x2 = greyhawk_ships[ship2].x;
   y2 = greyhawk_ships[ship2].y;
-  
+
   /* Adjust coordinates if ships are in adjacent rooms */
   for (i = 0; i < NUM_OF_DIRS; i++) {
     if (world[rroom].dir_option[i]) {
@@ -2082,13 +2082,13 @@ int greyhawk_getarc(int ship1, int ship2) {
       }
     }
   }
-  
+
   shipbearing = greyhawk_bearing(x1, y1, x2, y2);
   if (shipheading < shipbearing)
     shipheading += 360;
-  
+
   strcpy(greyhawk_arc, "*");
-  
+
   if ((shipbearing > (shipheading - 140)) && (shipbearing < (shipheading - 40))) {
     strcpy(greyhawk_arc, "P");
     return GREYHAWK_PORT;
@@ -2106,7 +2106,7 @@ int greyhawk_getarc(int ship1, int ship2) {
     strcpy(greyhawk_arc, "F");
     return GREYHAWK_FORE;
   }
-  
+
   return GREYHAWK_FORE;
 }
 
@@ -2117,7 +2117,7 @@ int greyhawk_getarc(int ship1, int ship2) {
 /**
  * Set tactical map symbol at coordinates
  * @param x X coordinate
- * @param y Y coordinate  
+ * @param y Y coordinate
  * @param symbol Map symbol identifier
  */
 void greyhawk_setsymbol(int x, int y, int symbol) {
@@ -2147,16 +2147,16 @@ void greyhawk_setsymbol(int x, int y, int symbol) {
  */
 void greyhawk_getmap(int shipnum) {
   int x, y, i, rroom, to_room = 0, k;
-  
+
   /* Clear tactical map */
   for (x = 0; x < 150; x++) {
     for (y = 0; y < 150; y++) {
       strcpy(greyhawk_tactical[x][y].map, "  ");
     }
   }
-  
+
   rroom = real_room(greyhawk_ships[shipnum].location);
-  
+
   /* Load current room map data */
   for (y = 50; y < 100; y++) {
     for (x = 50; x < 100; x++) {
@@ -2165,13 +2165,13 @@ void greyhawk_getmap(int shipnum) {
       }
     }
   }
-  
+
   /* Load adjacent room map data */
   for (i = 0; i < NUM_OF_DIRS; i++) {
     if (world[rroom].dir_option[i]) {
       if (world[rroom].dir_option[i]->to_room != NOWHERE) {
         to_room = world[rroom].dir_option[i]->to_room;
-        
+
         switch (i) {
           case NORTH:
             for (y = 0; y < 50; y++) {
@@ -2249,14 +2249,14 @@ void greyhawk_getmap(int shipnum) {
       }
     }
   }
-  
+
   /* Add ship contacts to map */
   k = greyhawk_getcontacts(shipnum);
   for (i = 0; i < k; i++) {
     sprintf(greyhawk_tactical[greyhawk_contacts[i].x][150 - greyhawk_contacts[i].y].map, "&+W%s&N",
             greyhawk_ships[greyhawk_contacts[i].shipnum].id);
   }
-  
+
   /* Add our ship to map */
   sprintf(greyhawk_tactical[(int)greyhawk_ships[shipnum].x][150 - (int)greyhawk_ships[shipnum].y].map, "&+W**&N");
 }
@@ -2278,14 +2278,14 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
   struct obj_data *shiptemplateobj = NULL, *obj = NULL;
   int i = 45000, j = 0, x, y, c, rroom;
   unsigned char armor, internal;
-  
+
   /* Read template object */
   shiptemplateobj = read_object(template, VIRTUAL);
   if (!shiptemplateobj) {
     log("GREYHAWK SHIPS: Failed to load template object %d", template);
     return -1;
   }
-  
+
   /* Create ship object */
   obj = read_object(4500, VIRTUAL);  /* TODO: Make this configurable */
   if (!obj) {
@@ -2293,37 +2293,37 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
     extract_obj(shiptemplateobj);
     return -1;
   }
-  
+
   /* Calculate armor and internal values */
   armor = GET_OBJ_VAL(shiptemplateobj, 2) / 2;
   internal = armor / 4;
-  
+
   if (armor == 0) armor = 1;
   if (internal == 0) internal = 1;
-  
+
   /* Find available ship room */
   while (world[real_room(i)].ship != NULL && i < 46000) {
     i++;
   }
-  
+
   /* Find available ship slot */
   while (greyhawk_ships[j].shiproom != 0 && j < GREYHAWK_MAXSHIPS) {
     j++;
   }
-  
+
   if (j >= GREYHAWK_MAXSHIPS) {
     log("GREYHAWK SHIPS: No available ship slots");
     extract_obj(shiptemplateobj);
     extract_obj(obj);
     return -1;
   }
-  
+
   /* Initialize ship data */
   memset(&greyhawk_ships[j], 0, sizeof(struct greyhawk_ship_data));
-  
+
   /* Link room to ship */
   world[real_room(i)].ship = &greyhawk_ships[j];
-  
+
   /* Set basic ship properties */
   greyhawk_ships[j].shipnum = j;
   greyhawk_ships[j].shiproom = i;
@@ -2344,25 +2344,25 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
   greyhawk_ships[j].sinternal = internal;
   greyhawk_ships[j].maxsinternal = internal;
   greyhawk_ships[j].hullweight = GET_OBJ_VAL(shiptemplateobj, 2);
-  
+
   /* Set position */
   greyhawk_ships[j].x = y_cord + 50;
   greyhawk_ships[j].y = (50 - x_cord) + 50;
   greyhawk_ships[j].z = z_cord;
   greyhawk_ships[j].location = world[to_room].number;
   greyhawk_ships[j].shipobj = obj;
-  
+
   /* Configure ship object */
   GET_OBJ_VAL(greyhawk_ships[j].shipobj, 0) = i;
   GET_OBJ_VAL(greyhawk_ships[j].shipobj, 1) = j;
-  
+
   /* Copy room properties from template */
   rroom = real_room(i);
   world[rroom].room_flags = world[real_room(template)].room_flags;
   world[rroom].x_size = world[real_room(template)].x_size;
   world[rroom].y_size = world[real_room(template)].y_size;
   world[rroom].z_size = world[real_room(template)].z_size;
-  
+
   /* Copy map data if available */
   if (world[real_room(template)].map) {
     if (world[rroom].map == NULL) {
@@ -2372,14 +2372,14 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
         CREATE(world[rroom].map->map_grid[c], sh_int, world[rroom].y_size + 1);
       }
     }
-    
+
     for (x = 0; x < world[rroom].x_size; x++) {
       for (y = 0; y < world[rroom].y_size; y++) {
         world[rroom].map->map_grid[x][y] = world[real_room(template)].map->map_grid[x][y];
       }
     }
   }
-  
+
   /* Place ship object in world */
   obj_to_room(obj, to_room);
 
@@ -2413,16 +2413,16 @@ void greyhawk_nameship(char *name, int shipnum) {
     log("GREYHAWK SHIPS: Invalid ship number %d in nameship", shipnum);
     return;
   }
-  
+
   strncpy(greyhawk_ships[shipnum].name, name, sizeof(greyhawk_ships[shipnum].name) - 1);
   greyhawk_ships[shipnum].name[sizeof(greyhawk_ships[shipnum].name) - 1] = '\0';
-  
+
   if (greyhawk_ships[shipnum].shipobj) {
     if (greyhawk_ships[shipnum].shipobj->description)
       free(greyhawk_ships[shipnum].shipobj->description);
     if (greyhawk_ships[shipnum].shipobj->short_description)
       free(greyhawk_ships[shipnum].shipobj->short_description);
-      
+
     greyhawk_ships[shipnum].shipobj->description = str_dup(name);
     greyhawk_ships[shipnum].shipobj->short_description = str_dup(name);
   }
@@ -2436,37 +2436,37 @@ void greyhawk_nameship(char *name, int shipnum) {
  */
 bool greyhawk_setsail(int class, int shipnum) {
   int weight, i;
-  
+
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS) {
     log("GREYHAWK SHIPS: Invalid ship number %d in setsail", shipnum);
     return FALSE;
   }
-  
+
   /* Check if hull can support this sail class */
   if (greyhawk_ships[shipnum].hullweight < class - 25)
     return FALSE;
-  
+
   /* Calculate total equipment weight */
   weight = 0;
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++) {
     weight += greyhawk_ships[shipnum].slot[i].weight;
   }
-  
+
   /* Check weight capacity */
   if ((weight + class / 3) > (greyhawk_ships[shipnum].hullweight / 2))
     return FALSE;
-  
+
   /* Set speed characteristics */
   greyhawk_ships[shipnum].minspeed = -1;
   greyhawk_ships[shipnum].maxspeed = (int)(class * (66.0 / greyhawk_ships[shipnum].hullweight) + 0.5);
-  
+
   if (greyhawk_ships[shipnum].maxspeed < 0)
     greyhawk_ships[shipnum].maxspeed = 0;
-  
+
   /* Set sail values */
   greyhawk_ships[shipnum].mainsail = class / 2;
   greyhawk_ships[shipnum].maxmainsail = class / 2;
-  
+
   return TRUE;
 }
 
@@ -2476,13 +2476,13 @@ bool greyhawk_setsail(int class, int shipnum) {
  */
 void greyhawk_initialize_ships(void) {
   int i;
-  
+
   /* Clear ship array */
   memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
-  
+
   /* Clear contact array */
   memset(greyhawk_contacts, 0, sizeof(greyhawk_contacts));
-  
+
   /* Initialize tactical map with default ocean pattern */
   for (i = 0; i < 150; i++) {
     int j;
@@ -2490,7 +2490,7 @@ void greyhawk_initialize_ships(void) {
       strcpy(greyhawk_tactical[i][j].map, "&+b~~&N");
     }
   }
-  
+
   log("GREYHAWK SHIPS: Ship system initialized");
 }
 
@@ -2510,7 +2510,7 @@ void greyhawk_initialize_ships(void) {
 SPECIAL(greyhawk_ship_commands) {
   int i, j, k, p;
   char buf[MAX_STRING_LENGTH];
-  
+
   if (!ch || !cmd)
     return FALSE;
 
@@ -2548,7 +2548,7 @@ SPECIAL(greyhawk_ship_commands) {
         return TRUE;
       }
     }
-    
+
     greyhawk_getmap(GREYHAWK_SHIPNUM(ch->in_room));
     sprintf(buf, "&+W     %-3d   %-3d   %-3d   %-3d   %-3d  %-3d   %-3d   %-3d   %-3d   %-3d   %-3d   %-3d&N\r\n",
             x - 11, x - 9, x - 7, x - 5, x - 3, x - 1, x + 1, x + 3, x + 5, x + 7, x + 9, x + 11);
@@ -2590,7 +2590,7 @@ SPECIAL(greyhawk_ship_commands) {
     send_to_char(ch, "       \\__/  \\__/  \\__/  \\__/  \\__/  \\__/  \\__/  \\__/  \\__/  \\__/  \\__/\r\n");
     return TRUE;
   }
-  
+
   if (CMD_IS("contacts")) {
     k = greyhawk_getcontacts(GREYHAWK_SHIPNUM(ch->in_room));
     send_to_char(ch, "&+WContact listing\r\n===============================================&N\r\n");
@@ -2602,7 +2602,7 @@ SPECIAL(greyhawk_ship_commands) {
     }
     return TRUE;
   }
-  
+
   if (CMD_IS("weaponspec")) {
     if (world[ch->in_room].ship != NULL) {
       send_to_char(ch, "&+rWeapon Specifications&N\r\n");
@@ -2630,7 +2630,7 @@ SPECIAL(greyhawk_ship_commands) {
     }
     return FALSE;
   }
-  
+
   if (CMD_IS("status")) {
     if (world[ch->in_room].ship != NULL) {
       sprintf(buf, "%s\r\n", GREYHAWK_SHIPNAME(ch->in_room));
@@ -2729,7 +2729,7 @@ SPECIAL(greyhawk_ship_commands) {
     }
     return TRUE;
   }
-  
+
   if (CMD_IS("speed")) {
     char speed;
     one_argument(argument, greyhawk_arg1);
@@ -2758,7 +2758,7 @@ SPECIAL(greyhawk_ship_commands) {
     }
     return TRUE;
   }
-  
+
   if (CMD_IS("heading")) {
     int heading;
     one_argument(argument, greyhawk_arg1);
@@ -2779,7 +2779,7 @@ SPECIAL(greyhawk_ship_commands) {
     send_to_char(ch, "Please enter a heading from 0-360.\r\n");
     return TRUE;
   }
-  
+
   if (CMD_IS("disembark")) {
     int to_room, in_room;
     short int x, y, z;
@@ -2802,13 +2802,13 @@ SPECIAL(greyhawk_ship_commands) {
     char_to_room(ch, to_room);
     return TRUE;
   }
-  
+
   if (CMD_IS("debug")) {
     sprintf(buf, "SHIPLOCATION: %d\r\n", GREYHAWK_SHIPLOCATION(ch->in_room));
     send_to_char(ch, buf);
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
@@ -2824,7 +2824,7 @@ SPECIAL(greyhawk_ship_object) {
   struct obj_data *obj;
   int to_room;
   char buf[MAX_STRING_LENGTH];
-  
+
   obj = me;
 
   if (!ch || !cmd)
@@ -2869,7 +2869,7 @@ SPECIAL(greyhawk_ship_object) {
  */
 SPECIAL(greyhawk_ship_loader) {
   char buf[MAX_STRING_LENGTH];
-  
+
   if (!ch || !cmd)
     return FALSE;
 
@@ -2894,7 +2894,7 @@ SPECIAL(greyhawk_ship_loader) {
     send_to_char(ch, "X Y must be numbers\r\n");
     return TRUE;
   }
-  
+
   if (CMD_IS("mapload")) {
     int x, y;
     for (x = 0; x < 150; x++) {
@@ -2905,7 +2905,7 @@ SPECIAL(greyhawk_ship_loader) {
     send_to_char(ch, "Loaded test map\r\n");
     return TRUE;
   }
-  
+
   if (CMD_IS("shipload")) {
     int template, shipnum, shiproom;
 
@@ -2921,21 +2921,21 @@ SPECIAL(greyhawk_ship_loader) {
     }
     template = atoi(greyhawk_arg1);
     send_to_char(ch, "Loading ship data\r\n");
-    
+
     /* Get character coordinates - simplified for Luminari */
     int x_coord = 50, y_coord = 50, z_coord = 0;  /* Default coordinates */
-    
+
     shipnum = greyhawk_loadship(template, ch->in_room, x_coord, y_coord, z_coord);
     if (shipnum < 0) {
       send_to_char(ch, "Failed to load ship.\r\n");
       return TRUE;
     }
-    
+
     if (!greyhawk_setsail(150, shipnum))
       send_to_char(ch, "Ship cannot support this sail.\r\n");
-      
+
     shiproom = real_room(greyhawk_ships[shipnum].shiproom);
-    
+
     /* Configure sample ship */
     sprintf(buf, "&+LThe 'Chtorran'&N");
     greyhawk_nameship(buf, GREYHAWK_SHIPNUM(shiproom));
@@ -2943,12 +2943,12 @@ SPECIAL(greyhawk_ship_loader) {
     strcpy(GREYHAWK_SHIPID(shiproom), "AB");
     strcpy(GREYHAWK_SHIPSAILNAME(shiproom), "Magical Automatons");
     strcpy(GREYHAWK_SHIPGUNNAME(shiproom), "Magical Automatons");
-    
+
     /* Configure sample weapons */
     strcpy(GREYHAWK_SHIPSLOT(shiproom)[0].desc, "Catapult of Slaying");
     strcpy(GREYHAWK_SHIPSLOT(shiproom)[1].desc, "Large Ballistae");
     strcpy(GREYHAWK_SHIPSLOT(shiproom)[2].desc, "Large Ballistae");
-    
+
     GREYHAWK_SHIPSLOT(shiproom)[0].type = 1;
     GREYHAWK_SHIPSLOT(shiproom)[0].timer = 0;
     GREYHAWK_SHIPSLOT(shiproom)[0].position = GREYHAWK_FORE;
@@ -2956,7 +2956,7 @@ SPECIAL(greyhawk_ship_loader) {
     GREYHAWK_SHIPSLOT(shiproom)[0].val1 = 10;
     GREYHAWK_SHIPSLOT(shiproom)[0].val2 = 20;
     GREYHAWK_SHIPSLOT(shiproom)[0].val3 = 100;
-    
+
     GREYHAWK_SHIPSLOT(shiproom)[1].type = 1;
     GREYHAWK_SHIPSLOT(shiproom)[1].timer = 0;
     GREYHAWK_SHIPSLOT(shiproom)[1].position = GREYHAWK_PORT;
@@ -2964,7 +2964,7 @@ SPECIAL(greyhawk_ship_loader) {
     GREYHAWK_SHIPSLOT(shiproom)[1].val1 = 0;
     GREYHAWK_SHIPSLOT(shiproom)[1].val2 = 7;
     GREYHAWK_SHIPSLOT(shiproom)[1].val3 = 100;
-    
+
     GREYHAWK_SHIPSLOT(shiproom)[2].type = 1;
     GREYHAWK_SHIPSLOT(shiproom)[2].timer = 23;
     GREYHAWK_SHIPSLOT(shiproom)[2].position = GREYHAWK_STARBOARD;
@@ -2972,11 +2972,11 @@ SPECIAL(greyhawk_ship_loader) {
     GREYHAWK_SHIPSLOT(shiproom)[2].val1 = 0;
     GREYHAWK_SHIPSLOT(shiproom)[2].val2 = 7;
     GREYHAWK_SHIPSLOT(shiproom)[2].val3 = 100;
-    
+
     send_to_char(ch, "Done.\r\n");
     return TRUE;
   }
-  
+
   if (CMD_IS("setsail")) {
     if (world[ch->in_room].ship == NULL) {
       send_to_char(ch, "&+WThis room is not a ship or has no data.&N\r\n");
@@ -2995,7 +2995,7 @@ SPECIAL(greyhawk_ship_loader) {
     send_to_char(ch, "done.\r\n");
     return TRUE;
   }
-  
+
   return FALSE;
 }
 

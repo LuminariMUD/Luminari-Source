@@ -117,7 +117,7 @@ This project embodies commitment, self-motivation, and perseverance through chal
 - **Compiler**: GCC or Clang (C90/C89 with GNU extensions)
 - **Build System**: CMake 3.12+ or Autotools
 - **Database**: MariaDB 10.0+ or MySQL 5.7+ (REQUIRED - not optional)
-- **Libraries**: 
+- **Libraries**:
   - libmariadb-dev (MariaDB client library - required)
   - libcrypt, libgd, libm, libcurl, libssl, libcrypto, libpthread
 

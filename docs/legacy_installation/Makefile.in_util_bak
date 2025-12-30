@@ -11,7 +11,7 @@ CC = @CC@
 MYFLAGS = @MYFLAGS@ -DCIRCLE_UTIL
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -35,7 +35,7 @@ all: $(BINDIR)/asciipasswd \
 	$(BINDIR)/sign \
 	$(BINDIR)/split \
 	$(BINDIR)/wld2html \
-	$(BINDIR)/webster 
+	$(BINDIR)/webster
 
 asciipasswd: $(BINDIR)/asciipasswd
 

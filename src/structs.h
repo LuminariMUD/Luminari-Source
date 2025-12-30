@@ -24,11 +24,11 @@
 // for the campaign that you can use to disable luminari code you don't want in
 // and add theme-specific code. This is mainly used for the Faerun codebase.
 #include "campaign.h"
-#define CAMPAIGN_LUMINARI           0
-#define CAMPAIGN_DRAGONLANCE        1
-#define CAMPAIGN_FORGOTTEN_REALMS   2
+#define CAMPAIGN_LUMINARI 0
+#define CAMPAIGN_DRAGONLANCE 1
+#define CAMPAIGN_FORGOTTEN_REALMS 2
 
-#define NUM_CAMPAIGN_SETTINGS       3
+#define NUM_CAMPAIGN_SETTINGS 3
 
 // You will need to add a mud_options.h file that contains the various
 // options which must be defined in the code to work properly. This will
@@ -72,39 +72,40 @@
 #define NOBODY ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
 #define NOFLAG ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
 #else
-#define IDXTYPE signed int    /** Index types are unsigned short ints */
-#define IDXTYPE_MAX INT_MAX   /** Used for compatibility checks. */
-#define IDXTYPE_MIN INT_MIN   /** Used for compatibility checks. */
-#define NOWHERE ((IDXTYPE)-1) /**< nil reference for rooms */
-#define NOTHING ((IDXTYPE)-1) /**< nil reference for objects */
-#define NOBODY ((IDXTYPE)-1)  /**< nil reference for mobiles  */
-#define NOFLAG ((IDXTYPE)-1)  /**< nil reference for flags   */
+#define IDXTYPE signed int      /** Index types are unsigned short ints */
+#define IDXTYPE_MAX INT_MAX     /** Used for compatibility checks. */
+#define IDXTYPE_MIN INT_MIN     /** Used for compatibility checks. */
+#define NOWHERE ((IDXTYPE) - 1) /**< nil reference for rooms */
+#define NOTHING ((IDXTYPE) - 1) /**< nil reference for objects */
+#define NOBODY ((IDXTYPE) - 1)  /**< nil reference for mobiles  */
+#define NOFLAG ((IDXTYPE) - 1)  /**< nil reference for flags   */
 #endif
 
 /** Function macro for the mob, obj and room special functions */
-#define SPECIAL_DECL(name) \
-    int(name)(struct char_data * ch, void *me, int cmd, const char *argument)
+#define SPECIAL_DECL(name) int(name)(struct char_data * ch, void *me, int cmd, const char *argument)
 
-#define SPECIAL(name)                                                                   \
-    static int impl_##name##_(struct char_data *ch, void *me, int cmd, char *argument); \
-    int(name)(struct char_data * ch, void *me, int cmd, const char *argument)           \
-    {                                                                                   \
-        PERF_PROF_ENTER(pr_, #name);                                                    \
-        int rtn;                                                                        \
-        if (!argument)                                                                  \
-        {                                                                               \
-            rtn = impl_##name##_(ch, me, cmd, NULL);                                    \
-        }                                                                               \
-        else                                                                            \
-        {                                                                               \
-            char arg_buf[MAX_INPUT_LENGTH];                                             \
-            strlcpy(arg_buf, argument, sizeof(arg_buf));                                \
-            rtn = impl_##name##_(ch, me, cmd, arg_buf);                                 \
-        }                                                                               \
-        PERF_PROF_EXIT(pr_);                                                            \
-        return rtn;                                                                     \
-    }                                                                                   \
-    static int impl_##name##_(struct char_data *ch __attribute__((unused)), void *me __attribute__((unused)), int cmd __attribute__((unused)), char *argument __attribute__((unused)))
+#define SPECIAL(name)                                                                              \
+  static int impl_##name##_(struct char_data *ch, void *me, int cmd, char *argument);              \
+  int(name)(struct char_data * ch, void *me, int cmd, const char *argument)                        \
+  {                                                                                                \
+    PERF_PROF_ENTER(pr_, #name);                                                                   \
+    int rtn;                                                                                       \
+    if (!argument)                                                                                 \
+    {                                                                                              \
+      rtn = impl_##name##_(ch, me, cmd, NULL);                                                     \
+    }                                                                                              \
+    else                                                                                           \
+    {                                                                                              \
+      char arg_buf[MAX_INPUT_LENGTH];                                                              \
+      strlcpy(arg_buf, argument, sizeof(arg_buf));                                                 \
+      rtn = impl_##name##_(ch, me, cmd, arg_buf);                                                  \
+    }                                                                                              \
+    PERF_PROF_EXIT(pr_);                                                                           \
+    return rtn;                                                                                    \
+  }                                                                                                \
+  static int impl_##name##_(struct char_data *ch __attribute__((unused)),                          \
+                            void *me __attribute__((unused)), int cmd __attribute__((unused)),     \
+                            char *argument __attribute__((unused)))
 
 /* room-related defines */
 /* The cardinal directions: used as index to room_data.dir_option[] */
@@ -150,26 +151,26 @@
 #define NUM_TRAP_TRIGGERS 6
 
 /* Trap Types - Based on NWN trap system */
-#define TRAP_TYPE_ACID_BLOB 0      /* Acid damage + paralysis */
-#define TRAP_TYPE_ACID_SPLASH 1    /* Acid damage only */
-#define TRAP_TYPE_ELECTRICAL 2     /* Lightning/electrical damage, area effect */
-#define TRAP_TYPE_FIRE 3           /* Fire damage, area effect */
-#define TRAP_TYPE_FROST 4          /* Cold damage + paralysis */
-#define TRAP_TYPE_GAS 5            /* Poison gas cloud */
-#define TRAP_TYPE_HOLY 6           /* Divine damage (extra vs undead) */
-#define TRAP_TYPE_NEGATIVE 7       /* Negative energy + ability drain */
-#define TRAP_TYPE_SONIC 8          /* Sonic damage + stun, area effect */
-#define TRAP_TYPE_SPIKE 9          /* Piercing damage */
-#define TRAP_TYPE_TANGLE 10        /* Slow/entangle effect */
+#define TRAP_TYPE_ACID_BLOB 0   /* Acid damage + paralysis */
+#define TRAP_TYPE_ACID_SPLASH 1 /* Acid damage only */
+#define TRAP_TYPE_ELECTRICAL 2  /* Lightning/electrical damage, area effect */
+#define TRAP_TYPE_FIRE 3        /* Fire damage, area effect */
+#define TRAP_TYPE_FROST 4       /* Cold damage + paralysis */
+#define TRAP_TYPE_GAS 5         /* Poison gas cloud */
+#define TRAP_TYPE_HOLY 6        /* Divine damage (extra vs undead) */
+#define TRAP_TYPE_NEGATIVE 7    /* Negative energy + ability drain */
+#define TRAP_TYPE_SONIC 8       /* Sonic damage + stun, area effect */
+#define TRAP_TYPE_SPIKE 9       /* Piercing damage */
+#define TRAP_TYPE_TANGLE 10     /* Slow/entangle effect */
 /* Legacy trap types from old system */
-#define TRAP_TYPE_DART 11          /* Piercing dart */
-#define TRAP_TYPE_PIT 12           /* Spike pit */
-#define TRAP_TYPE_DISPEL 13        /* Dispel magic */
-#define TRAP_TYPE_AMBUSH 14        /* Spawn hostile mobs */
-#define TRAP_TYPE_BOULDER 15       /* Crushing damage */
-#define TRAP_TYPE_WALL_SMASH 16    /* Wall crushing */
-#define TRAP_TYPE_SPIDER_HORDE 17  /* Spider swarm + web */
-#define TRAP_TYPE_GLYPH 18         /* Mental damage + feeblemind */
+#define TRAP_TYPE_DART 11           /* Piercing dart */
+#define TRAP_TYPE_PIT 12            /* Spike pit */
+#define TRAP_TYPE_DISPEL 13         /* Dispel magic */
+#define TRAP_TYPE_AMBUSH 14         /* Spawn hostile mobs */
+#define TRAP_TYPE_BOULDER 15        /* Crushing damage */
+#define TRAP_TYPE_WALL_SMASH 16     /* Wall crushing */
+#define TRAP_TYPE_SPIDER_HORDE 17   /* Spider swarm + web */
+#define TRAP_TYPE_GLYPH 18          /* Mental damage + feeblemind */
 #define TRAP_TYPE_SKELETAL_HANDS 19 /* Undead hands */
 #define NUM_TRAP_TYPES 20
 
@@ -182,93 +183,95 @@
 #define NUM_TRAP_SEVERITIES 5
 
 /* Trap Save Types */
-#define TRAP_SAVE_NONE 0         /* No save */
-#define TRAP_SAVE_REFLEX 1       /* Reflex save */
-#define TRAP_SAVE_FORTITUDE 2    /* Fortitude save */
-#define TRAP_SAVE_WILL 3         /* Will save */
+#define TRAP_SAVE_NONE 0      /* No save */
+#define TRAP_SAVE_REFLEX 1    /* Reflex save */
+#define TRAP_SAVE_FORTITUDE 2 /* Fortitude save */
+#define TRAP_SAVE_WILL 3      /* Will save */
 #define NUM_TRAP_SAVE_TYPES 4
 
 /* Trap Flags - Stored as bitvector */
-#define TRAP_FLAG_DETECTED (1 << 0)      /* Trap has been detected */
-#define TRAP_FLAG_DISARMED (1 << 1)      /* Trap has been disarmed */
-#define TRAP_FLAG_TRIGGERED (1 << 2)     /* Trap has been triggered */
+#define TRAP_FLAG_DETECTED (1 << 0)       /* Trap has been detected */
+#define TRAP_FLAG_DISARMED (1 << 1)       /* Trap has been disarmed */
+#define TRAP_FLAG_TRIGGERED (1 << 2)      /* Trap has been triggered */
 #define TRAP_FLAG_AUTO_GENERATED (1 << 3) /* Randomly generated, won't save */
-#define TRAP_FLAG_RECOVERABLE (1 << 4)   /* Can be recovered/salvaged */
-#define TRAP_FLAG_AREA_EFFECT (1 << 5)   /* Affects multiple targets in area */
-#define TRAP_FLAG_ONE_SHOT (1 << 6)      /* Destroyed after triggering */
-#define TRAP_FLAG_MAGICAL (1 << 7)       /* Magical trap (detect magic works) */
-#define TRAP_FLAG_MECHANICAL (1 << 8)    /* Mechanical trap */
+#define TRAP_FLAG_RECOVERABLE (1 << 4)    /* Can be recovered/salvaged */
+#define TRAP_FLAG_AREA_EFFECT (1 << 5)    /* Affects multiple targets in area */
+#define TRAP_FLAG_ONE_SHOT (1 << 6)       /* Destroyed after triggering */
+#define TRAP_FLAG_MAGICAL (1 << 7)        /* Magical trap (detect magic works) */
+#define TRAP_FLAG_MECHANICAL (1 << 8)     /* Mechanical trap */
 
 /* Special Effects that traps can inflict */
 #define TRAP_SPECIAL_NONE 0
-#define TRAP_SPECIAL_PARALYSIS 1         /* Paralyzed for duration */
-#define TRAP_SPECIAL_SLOW 2              /* Slowed movement */
-#define TRAP_SPECIAL_STUN 3              /* Stunned */
-#define TRAP_SPECIAL_POISON 4            /* Poisoned */
-#define TRAP_SPECIAL_ABILITY_DRAIN 5     /* Ability score damage */
-#define TRAP_SPECIAL_LEVEL_DRAIN 6       /* Negative level */
-#define TRAP_SPECIAL_ENTANGLE 7          /* Entangled/webbed */
-#define TRAP_SPECIAL_BLIND 8             /* Blinded */
-#define TRAP_SPECIAL_FEEBLEMIND 9        /* Intelligence damage */
-#define TRAP_SPECIAL_SUMMON_CREATURE 10  /* Summons hostile creature */
+#define TRAP_SPECIAL_PARALYSIS 1        /* Paralyzed for duration */
+#define TRAP_SPECIAL_SLOW 2             /* Slowed movement */
+#define TRAP_SPECIAL_STUN 3             /* Stunned */
+#define TRAP_SPECIAL_POISON 4           /* Poisoned */
+#define TRAP_SPECIAL_ABILITY_DRAIN 5    /* Ability score damage */
+#define TRAP_SPECIAL_LEVEL_DRAIN 6      /* Negative level */
+#define TRAP_SPECIAL_ENTANGLE 7         /* Entangled/webbed */
+#define TRAP_SPECIAL_BLIND 8            /* Blinded */
+#define TRAP_SPECIAL_FEEBLEMIND 9       /* Intelligence damage */
+#define TRAP_SPECIAL_SUMMON_CREATURE 10 /* Summons hostile creature */
 #define NUM_TRAP_SPECIAL_EFFECTS 11
 
 /*end traps*/
 
-#define NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP  33
+#define NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP 33
 #define NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST 33
 #define RANDOM_TREASURE_CHEST_VNUM 837
-#define RANDOM_TREASURE_TRAP_VNUM  838
+#define RANDOM_TREASURE_TRAP_VNUM 838
 
 /* Room flags: used in room_data.room_flags */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
-#define ROOM_DARK 0             /**< Dark room, light needed to see */
-#define ROOM_DEATH 1            /**< Death trap, instant death */
-#define ROOM_NOMOB 2            /**< MOBs not allowed in room */
-#define ROOM_INDOORS 3          /**< Indoors, no weather */
-#define ROOM_PEACEFUL 4         /**< Violence not allowed	*/
-#define ROOM_SOUNDPROOF 5       /**< Shouts, gossip blocked */
-#define ROOM_NOTRACK 6          /**< Track won't go through */
-#define ROOM_NOMAGIC 7          /**< Magic not allowed */
-#define ROOM_TUNNEL 8           /**< Room for only 1 pers	*/
-#define ROOM_PRIVATE 9          /**< Can't teleport in */
-#define ROOM_STAFFROOM 10       /**< LVL_STAFF+ only allowed */
-#define ROOM_HOUSE 11           /**< (R) Room is a house */
-#define ROOM_HOUSE_CRASH 12     /**< (R) House needs saving */
-#define ROOM_ATRIUM 13          /**< (R) The door to a house */
-#define ROOM_OLC 14             /**< (R) Modifyable/!compress */
-#define ROOM_BFS_MARK 15        /**< (R) breath-first srch mrk */
-#define ROOM_WORLDMAP 16        /**< World-map style maps here */
-#define ROOM_REGEN 17           /* regen room */
-#define ROOM_FLY_NEEDED 18      /* will drop without fly */
-#define ROOM_NORECALL 19        /* no recalling from/to this room */
-#define ROOM_SINGLEFILE 20      /* very narrow room */
-#define ROOM_NOTELEPORT 21      /* no teleportin from/to this room */
-#define ROOM_MAGICDARK 22       /* pitch black, not lightable */
-#define ROOM_MAGICLIGHT 23      /* lit */
-#define ROOM_NOSUMMON 24        /* no summoning from/to this room */
-#define ROOM_NOHEAL 25          /* all regen stops in this room */
-#define ROOM_NOFLY 26           /* can't fly in this room */
-#define ROOM_FOG 27             /* fogged (hamper vision/stops daylight) */
-#define ROOM_AIRY 28            /* airy (breathe underwater) */
-#define ROOM_OCCUPIED 29        /* Used only in wilderness zones, if set the \ \ \ \
+#define ROOM_DARK 0         /**< Dark room, light needed to see */
+#define ROOM_DEATH 1        /**< Death trap, instant death */
+#define ROOM_NOMOB 2        /**< MOBs not allowed in room */
+#define ROOM_INDOORS 3      /**< Indoors, no weather */
+#define ROOM_PEACEFUL 4     /**< Violence not allowed	*/
+#define ROOM_SOUNDPROOF 5   /**< Shouts, gossip blocked */
+#define ROOM_NOTRACK 6      /**< Track won't go through */
+#define ROOM_NOMAGIC 7      /**< Magic not allowed */
+#define ROOM_TUNNEL 8       /**< Room for only 1 pers	*/
+#define ROOM_PRIVATE 9      /**< Can't teleport in */
+#define ROOM_STAFFROOM 10   /**< LVL_STAFF+ only allowed */
+#define ROOM_HOUSE 11       /**< (R) Room is a house */
+#define ROOM_HOUSE_CRASH 12 /**< (R) House needs saving */
+#define ROOM_ATRIUM 13      /**< (R) The door to a house */
+#define ROOM_OLC 14         /**< (R) Modifyable/!compress */
+#define ROOM_BFS_MARK 15    /**< (R) breath-first srch mrk */
+#define ROOM_WORLDMAP 16    /**< World-map style maps here */
+#define ROOM_REGEN 17       /* regen room */
+#define ROOM_FLY_NEEDED 18  /* will drop without fly */
+#define ROOM_NORECALL 19    /* no recalling from/to this room */
+#define ROOM_SINGLEFILE 20  /* very narrow room */
+#define ROOM_NOTELEPORT 21  /* no teleportin from/to this room */
+#define ROOM_MAGICDARK 22   /* pitch black, not lightable */
+#define ROOM_MAGICLIGHT 23  /* lit */
+#define ROOM_NOSUMMON 24    /* no summoning from/to this room */
+#define ROOM_NOHEAL 25      /* all regen stops in this room */
+#define ROOM_NOFLY 26       /* can't fly in this room */
+#define ROOM_FOG 27         /* fogged (hamper vision/stops daylight) */
+#define ROOM_AIRY 28        /* airy (breathe underwater) */
+#define ROOM_OCCUPIED                                                                              \
+  29                            /* Used only in wilderness zones, if set the \ \ \ \
                                    room will be kept and used for the set    \ \ \ \
                                    coordinates. */
 #define ROOM_SIZE_TINY 30       /* need to be tiny or smaller to enter */
 #define ROOM_SIZE_DIMINUTIVE 31 /* need to be diminutive or smaller to enter */
 #define ROOM_CLIMB_NEEDED 32    /* need climb skill, based on zone level */
 #define ROOM_HASTRAP 33         /* has trap (attached via trap system) */
-#define ROOM_GENDESC 34         /* Must be a wilderness room!  Use generated \ \ \ \
+#define ROOM_GENDESC                                                                               \
+  34                         /* Must be a wilderness room!  Use generated \ \ \ \
                                   descriptions in a static room, useful for  \ \ \ \
                                   rooms that block different directions.     \ \ \ \
                                   (eg. around obstacles.) */
-#define ROOM_PLAYER_SHOP 35     /* indicates player shop, currently used so hsort() won't work */
-#define ROOM_RANDOM_TRAP 36    // Auto-generate trap in this room on zone reset
-#define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
-#define ROOM_HARVEST_NODE 38    // this room will always load a harvest node
+#define ROOM_PLAYER_SHOP 35  /* indicates player shop, currently used so hsort() won't work */
+#define ROOM_RANDOM_TRAP 36  // Auto-generate trap in this room on zone reset
+#define ROOM_RANDOM_CHEST 37 // a random treasure chest will load in this room
+#define ROOM_HARVEST_NODE 38 // this room will always load a harvest node
 #define ROOM_ROAD 39
-#define ROOM_VEHICLE 40         // Room that vehicles/ships can move through
-#define ROOM_DOCKABLE 41        // Room where ships can dock
+#define ROOM_VEHICLE 40  // Room that vehicles/ships can move through
+#define ROOM_DOCKABLE 41 // Room where ships can dock
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
@@ -297,17 +300,17 @@
 #define NUM_RAFF 16
 
 /* Zone reset states: Used in zone_data.reset_state */
-#define ZONE_RESET_NORMAL    0  /**< Zone is operating normally */
-#define ZONE_RESET_ACTIVE    1  /**< Zone is currently being reset */
+#define ZONE_RESET_NORMAL 0 /**< Zone is operating normally */
+#define ZONE_RESET_ACTIVE 1 /**< Zone is currently being reset */
 
 /* Zone info: Used in zone_data.zone_flags */
-#define ZONE_CLOSED 0       /**< Zone is closed - players cannot enter */
-#define ZONE_NOIMMORT 1     /**< Immortals (below LVL_GRSTAFF) cannot enter this zone */
-#define ZONE_QUEST 2        /**< This zone is a quest zone (not implemented) */
-#define ZONE_GRID 3         /**< Zone is 'on the grid', connected, show on 'areas' */
+#define ZONE_CLOSED 0   /**< Zone is closed - players cannot enter */
+#define ZONE_NOIMMORT 1 /**< Immortals (below LVL_GRSTAFF) cannot enter this zone */
+#define ZONE_QUEST 2    /**< This zone is a quest zone (not implemented) */
+#define ZONE_GRID 3     /**< Zone is 'on the grid', connected, show on 'areas' */
 #define ZONE_OPEN ZONE_GRID
-#define ZONE_NOBUILD 4      /**< Building is not allowed in the zone */
-#define ZONE_NOASTRAL 5     /**< No teleportation magic will work to or from this zone */
+#define ZONE_NOBUILD 4  /**< Building is not allowed in the zone */
+#define ZONE_NOASTRAL 5 /**< No teleportation magic will work to or from this zone */
 #define ZONE_NOTELEPORT ZONE_NOASTRAL
 #define ZONE_WORLDMAP 6     /**< Whole zone uses the WORLDMAP by default */
 #define ZONE_NOCLAIM 7      /**< Zone can't be claimed, or popularity changed */
@@ -316,10 +319,10 @@
 #define ZONE_ELEMENTAL 10   /* elemental plane */
 #define ZONE_WILDERNESS 11
 #define ZONE_RANDOM_CHESTS 12 // random treasure chests will load in this zone
-#define ZONE_RANDOM_TRAPS 13 // Auto-generate traps in this zone on reset
+#define ZONE_RANDOM_TRAPS 13  // Auto-generate traps in this zone on reset
 #define ZONE_NOMAP 14
-#define ZONE_HUNTS 15   // zone can allow hunts to load within
-#define ZONE_MISSIONS 16 // zone can allow missions to load within
+#define ZONE_HUNTS 15             // zone can allow hunts to load within
+#define ZONE_MISSIONS 16          // zone can allow missions to load within
 #define ZONE_RANDOM_ENCOUNTERS 17 // zone can allow random encounters to load within
 /** The total number of Zone Flags */
 #define NUM_ZONE_FLAGS 18
@@ -425,8 +428,8 @@
 #define HIST_CLANTALK 9 /**< Index to history of all 'clantalk' */
 #define HIST_GSAY 10    /**< Index to history of all 'gsay' */
 #define HIST_GTELL HIST_GSAY
-#define HIST_OSAY 11      /**< Index to history of all 'osay' */
-#define HIST_RSAY 12      /**< Index to history of all 'rsay' */
+#define HIST_OSAY 11 /**< Index to history of all 'osay' */
+#define HIST_RSAY 12 /**< Index to history of all 'rsay' */
 /**/
 #define NUM_HIST 13    /**< Total number of history indexes */
 #define HISTORY_SIZE 5 /**< Number of last commands kept in each history */
@@ -507,7 +510,7 @@
 #define CLASS_WARLOCK 28
 #define CLASS_NECROMANCER 29
 #define CLASS_PALE_MASTER CLASS_NECROMANCER
-#define CLASS_KNIGHT_OF_SOLAMNIA 30  /* Combined Crown/Sword/Rose - 20 levels */
+#define CLASS_KNIGHT_OF_SOLAMNIA 30 /* Combined Crown/Sword/Rose - 20 levels */
 #define CLASS_KNIGHT_OF_THE_THORN 31
 #define CLASS_KNIGHT_OF_THE_SKULL 32
 #define CLASS_KNIGHT_OF_THE_LILY 33
@@ -632,10 +635,12 @@
 // warding spells that need to be saved, i started using it for other stuff too since its already allocated in saving/loading functions - zusuk
 #define MIRROR 0
 #define STONESKIN 1
-#define STORED_XP 2 /* zusuk is SO lame, he is storing lost xp here to put into corpse for ressurect :P  -zusuk */
+#define STORED_XP                                                                                  \
+  2 /* zusuk is SO lame, he is storing lost xp here to put into corpse for ressurect :P  -zusuk */
 /*---------*/
 #define NUM_WARDING 3
-#define MAX_WARDING 10 // "warding" type spells, such as stoneskin that save (also now + etc (misc) such as saving xp lost for death)
+#define MAX_WARDING                                                                                \
+  10 // "warding" type spells, such as stoneskin that save (also now + etc (misc) such as saving xp lost for death)
 
 /* at the beginning, spec_abil was an array reserved for daily resets
    considering we've converted most of our system to a cooldown system
@@ -692,7 +697,7 @@
 #define MAX_INSTRUMENTS 6
 /****************************************/
 
-#define INSTRUMENT_BREAKABILITY_DEFAULT     30
+#define INSTRUMENT_BREAKABILITY_DEFAULT 30
 
 /* Draconic Heritages from Sorcerer Bloodline: Draconic */
 #define DRACONIC_HERITAGE_NONE 0
@@ -970,7 +975,7 @@
 #if defined(CAMPAIGN_DL)
 
 #define REGION_NONE 0
-#define REGION_ABANASINIA  1
+#define REGION_ABANASINIA 1
 #define REGION_BALIFOR 2
 #define REGION_BLODE 3
 #define REGION_BLOOD_SEA_ISLES 4
@@ -1001,73 +1006,73 @@
 
 #elif defined(CAMPAIGN_FR)
 
-#define REGION_NONE                 0
-#define REGION_AGLAROND             1
-#define REGION_AMN                  2
-#define REGION_ANAUROCH_DESERT      3
-#define REGION_CALIMSHAN            4   
-#define REGION_CHESSENTA            5  
-#define REGION_CHULT                6
-#define REGION_CORMYR               7
-#define REGION_DAMBRATH             8
-#define REGION_ELFHARROW            9
-#define REGION_EVERMEET             10
-#define REGION_HALRUAA              11
-#define REGION_ICEWIND_DALE         12
-#define REGION_IMPILTUR             13
-#define REGION_KARA_TUR             14
-#define REGION_LUIREN               15
-#define REGION_LURUAR               16
-#define REGION_MULHORAND            17
-#define REGION_RASHEMEN             18
-#define REGION_SEMBIA               19
-#define REGION_TETHYR               20
-#define REGION_THAY                 21
-#define REGION_THESK                22
-#define REGION_THE_COLD_LANDS       23
-#define REGION_THE_DALELANDS        24
-#define REGION_THE_HORDELANDS       25
-#define REGION_THE_LAKE_OF_STEAM    26
-#define REGION_THE_MOONSEA          27
-#define REGION_THE_SAVAGE_FRONTIER  28
-#define REGION_THE_SWORD_COAST      29
-#define REGION_THE_UNDERDARK        30
-#define REGION_TURMISH              31
-#define REGION_TYMANTHER            32
-#define REGION_UNTHER               33
-#define REGION_WESTGATE             34
-#define REGION_ZAKHARA              35
-#define REGION_OUTER_PLANES         36
-#define NUM_REGIONS                 37
+#define REGION_NONE 0
+#define REGION_AGLAROND 1
+#define REGION_AMN 2
+#define REGION_ANAUROCH_DESERT 3
+#define REGION_CALIMSHAN 4
+#define REGION_CHESSENTA 5
+#define REGION_CHULT 6
+#define REGION_CORMYR 7
+#define REGION_DAMBRATH 8
+#define REGION_ELFHARROW 9
+#define REGION_EVERMEET 10
+#define REGION_HALRUAA 11
+#define REGION_ICEWIND_DALE 12
+#define REGION_IMPILTUR 13
+#define REGION_KARA_TUR 14
+#define REGION_LUIREN 15
+#define REGION_LURUAR 16
+#define REGION_MULHORAND 17
+#define REGION_RASHEMEN 18
+#define REGION_SEMBIA 19
+#define REGION_TETHYR 20
+#define REGION_THAY 21
+#define REGION_THESK 22
+#define REGION_THE_COLD_LANDS 23
+#define REGION_THE_DALELANDS 24
+#define REGION_THE_HORDELANDS 25
+#define REGION_THE_LAKE_OF_STEAM 26
+#define REGION_THE_MOONSEA 27
+#define REGION_THE_SAVAGE_FRONTIER 28
+#define REGION_THE_SWORD_COAST 29
+#define REGION_THE_UNDERDARK 30
+#define REGION_TURMISH 31
+#define REGION_TYMANTHER 32
+#define REGION_UNTHER 33
+#define REGION_WESTGATE 34
+#define REGION_ZAKHARA 35
+#define REGION_OUTER_PLANES 36
+#define NUM_REGIONS 37
 
 #else
 
-#define REGION_NONE                 0
-#define REGION_ASHENPORT            1
-#define REGION_SANCTUS              2
-#define REGION_ONDUIS               3
-#define REGION_SELERISH             4
-#define REGION_CARSTAN              5
-#define REGION_AXTROS               6
-#define REGION_HIR                  7
-#define REGION_QUECHIAN             8
-#define REGION_VAILAND              9
-#define REGION_OORPII               10
-#define REGION_KELLUST              11
-#define REGION_EAST_UBDINA          12
-#define REGION_WEST_UBDINA          13
-#define NUM_REGIONS                 14
+#define REGION_NONE 0
+#define REGION_ASHENPORT 1
+#define REGION_SANCTUS 2
+#define REGION_ONDUIS 3
+#define REGION_SELERISH 4
+#define REGION_CARSTAN 5
+#define REGION_AXTROS 6
+#define REGION_HIR 7
+#define REGION_QUECHIAN 8
+#define REGION_VAILAND 9
+#define REGION_OORPII 10
+#define REGION_KELLUST 11
+#define REGION_EAST_UBDINA 12
+#define REGION_WEST_UBDINA 13
+#define NUM_REGIONS 14
 
 #endif
 
 /* factions */
 #if defined(CAMPAIGN_DL)
-#define FACTION_NONE                    0
-#define FACTION_ADVENTURERS             FACTION_NONE
-#define FACTION_FORCES_OF_WHITESTONE    1
-#define FACTION_DRAGONARMIES            2
-#define FACTION_NEUTRAL                 3
-#define NUM_FACTIONS                    4
+#define FACTION_NONE 0
+#define FACTION_ADVENTURERS FACTION_NONE
+#define FACTION_FORCES_OF_WHITESTONE 1
+#define FACTION_DRAGONARMIES 2
+#define FACTION_NEUTRAL 3
+#define NUM_FACTIONS 4
 #else
 #define FACTION_NONE 0
 #define FACTION_ADVENTURER 0
@@ -1085,35 +1090,35 @@
 // cities
 #if defined(CAMPAIGN_DL)
 
-#define CITY_NONE           0
-#define CITY_PALANTHAS      1
-#define CITY_SANCTION       2
-#define CITY_SOLACE         3
-#define CITY_CAERGOTH       4
-#define CITY_SOLANTHUS      5
-#define CITY_THELGAARD      6
-#define CITY_NERAKA         7
-#define CITY_MORNING_DEW    8
-#define CITY_TARSIS         9
-#define CITY_QUALINOST      10
-#define CITY_KENDERMORE     11
+#define CITY_NONE 0
+#define CITY_PALANTHAS 1
+#define CITY_SANCTION 2
+#define CITY_SOLACE 3
+#define CITY_CAERGOTH 4
+#define CITY_SOLANTHUS 5
+#define CITY_THELGAARD 6
+#define CITY_NERAKA 7
+#define CITY_MORNING_DEW 8
+#define CITY_TARSIS 9
+#define CITY_QUALINOST 10
+#define CITY_KENDERMORE 11
 
-#define NUM_CITIES          12
+#define NUM_CITIES 12
 
 #elif defined(CAMPAIGN_FR)
 
-#define CITY_NONE           0
-#define CITY_LUSKAN         1
+#define CITY_NONE 0
+#define CITY_LUSKAN 1
 
-#define NUM_CITIES          2
+#define NUM_CITIES 2
 
 #else
 
-#define CITY_NONE           0
-#define CITY_ASHENPORT      1
-#define CITY_SANCTUS        2
+#define CITY_NONE 0
+#define CITY_ASHENPORT 1
+#define CITY_SANCTUS 2
 
-#define NUM_CITIES          3
+#define NUM_CITIES 3
 
 #endif
 
@@ -1257,11 +1262,12 @@
 #define MOB_RETAINER 95
 #define MOB_BUFF_OUTSIDE_COMBAT 96 /**< UNUSED - kept for backward compatibility */
 #define MOB_NOPARALYZE 97
-#define MOB_AI_ENABLED 98   /**< Mob uses AI for responses */
-#define MOB_QUARTERMASTER 99 /**< Mob can accept/complete supply orders */
+#define MOB_AI_ENABLED 98             /**< Mob uses AI for responses */
+#define MOB_QUARTERMASTER 99          /**< Mob can accept/complete supply orders */
 #define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
 #define MOB_CUSTOM_MOB_STATS 101 /**< Mob uses custom stat modifiers instead of category defaults */
-#define MOB_NO_BLOCK_BYPASS 102 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
+#define MOB_NO_BLOCK_BYPASS                                                                        \
+  102                 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
 #define MOB_GOLEM 103 /**< Mob is a constructed golem (for follower tracking) */
 /**********************/
 #define NUM_MOB_FLAGS 104
@@ -1303,23 +1309,26 @@
 #define MOB_FIRE_ELEMENTAL 51
 #define MOB_EARTH_ELEMENTAL 52
 #define MOB_AIR_ELEMENTAL 53
-#define MOB_WATER_ELEMENTAL 54                // these elementals are for rest of s.c.
-#define MOB_GHOST 55                          // great animation
-#define MOB_SPECTRE 56                        // great animation
-#define MOB_BANSHEE 57                        // great animation
-#define MOB_WIGHT 58                          // great animation
-#define MOB_BLADE_OF_DISASTER 59              // black blade of disaster
-#define MOB_ECTOPLASMIC_SHAMBLER 93           // ectoplasmic shambler psionic ability
+#define MOB_WATER_ELEMENTAL 54      // these elementals are for rest of s.c.
+#define MOB_GHOST 55                // great animation
+#define MOB_SPECTRE 56              // great animation
+#define MOB_BANSHEE 57              // great animation
+#define MOB_WIGHT 58                // great animation
+#define MOB_BLADE_OF_DISASTER 59    // black blade of disaster
+#define MOB_ECTOPLASMIC_SHAMBLER 93 // ectoplasmic shambler psionic ability
 
 #if defined(CAMPAIGN_DL)
 
-#define MOB_GHOST_WOLF 20801                    // Mob to use for ghost wolf spell
+#define MOB_GHOST_WOLF 20801 // Mob to use for ghost wolf spell
 #define MOB_NUM_EIDOLON 20802
-#define MOB_DIRE_RAT 40100                     // summon natures ally i
-#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 40119 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_RATS 40120   // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_BATS 40121   // Potential mob for children of the night vampire ability.
-#define MOB_CREATE_VAMPIRE_SPAWN 40122         // Mob to use for create vampire spawn
+#define MOB_DIRE_RAT 40100 // summon natures ally i
+#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES                                                           \
+  40119 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_RATS                                                             \
+  40120 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_BATS                                                             \
+  40121                                // Potential mob for children of the night vampire ability.
+#define MOB_CREATE_VAMPIRE_SPAWN 40122 // Mob to use for create vampire spawn
 #define MOB_MOUNT_SPELL 40320
 #define MOB_DJINNI_KIND 40321
 #define MOB_EFREETI_KIND 40322
@@ -1328,13 +1337,16 @@
 
 #else
 
-#define MOB_DIRE_RAT 9400                     // summon natures ally i
+#define MOB_DIRE_RAT 9400 // summon natures ally i
 #define MOB_MOUNT_SPELL 101320
-#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 9419 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420   // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421   // Potential mob for children of the night vampire ability.
-#define MOB_CREATE_VAMPIRE_SPAWN 9422         // Mob to use for create vampire spawn
-#define MOB_GHOST_WOLF 801                    // Mob to use for ghost wolf spell
+#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES                                                           \
+  9419 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_RATS                                                             \
+  9420 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_BATS                                                             \
+  9421                                // Potential mob for children of the night vampire ability.
+#define MOB_CREATE_VAMPIRE_SPAWN 9422 // Mob to use for create vampire spawn
+#define MOB_GHOST_WOLF 801            // Mob to use for ghost wolf spell
 #define MOB_DJINNI_KIND 101321
 #define MOB_EFREETI_KIND 101322
 #define MOB_MARID_KIND 101323
@@ -1366,128 +1378,132 @@
 
 /**********************/
 /* Preference flags: used by char_data.player_specials.pref */
-#define PRF_BRIEF 0                   /**< Room descs won't normally be shown */
-#define PRF_COMPACT 1                 /**< No extra CRLF pair before prompts */
-#define PRF_NOSHOUT 2                 /**< Can't hear shouts */
-#define PRF_NOTELL 3                  /**< Can't receive tells */
-#define PRF_DISPHP 4                  /**< Display hit points in prompt */
-#define PRF_DISPPSP 5                 /**< Display psp points in prompt */
-#define PRF_DISPMOVE 6                /**< Display move points in prompt */
-#define PRF_AUTOEXIT 7                /**< Display exits in a room */
-#define PRF_NOHASSLE 8                /**< Aggr mobs won't attack */
-#define PRF_QUEST 9                   /**< On quest */
-#define PRF_SUMMONABLE 10             /**< Can be summoned */
-#define PRF_NOREPEAT 11               /**< No repetition of comm commands */
-#define PRF_HOLYLIGHT 12              /**< Can see in dark */
-#define PRF_COLOR_1 13                /**< Color (low bit) */
-#define PRF_COLOR_2 14                /**< Color (high bit) */
-#define PRF_NOWIZ 15                  /**< Can't hear wizline */
-#define PRF_LOG1 16                   /**< On-line System Log (low bit) */
-#define PRF_LOG2 17                   /**< On-line System Log (high bit) */
-#define PRF_NOAUCT 18                 /**< Can't hear auction channel */
-#define PRF_NOGOSS 19                 /**< Can't hear gossip channel */
-#define PRF_NOGRATZ 20                /**< Can't hear grats channel */
-#define PRF_SHOWVNUMS 21              /**< Can see VNUMs */
-#define PRF_DISPAUTO 22               /**< Show prompt HP, MP, MV when < 25% */
-#define PRF_CLS 23                    /**< Clear screen in OLC */
-#define PRF_BUILDWALK 24              /**< Build new rooms while walking */
-#define PRF_AFK 25                    /**< AFK flag */
-#define PRF_AUTOLOOT 26               /**< Loot everything from a corpse */
-#define PRF_AUTOGOLD 27               /**< Loot gold from a corpse */
-#define PRF_AUTOSPLIT 28              /**< Split gold with group */
-#define PRF_AUTOSAC 29                /**< Sacrifice a corpse */
-#define PRF_AUTOASSIST 30             /**< Auto-assist toggle */
-#define PRF_AUTOMAP 31                /**< Show map at the side of room descs */
-#define PRF_AUTOKEY 32                /**< Automatically unlock locked doors when opening */
-#define PRF_AUTODOOR 33               /**< Use the next available door */
-#define PRF_NOCLANTALK 34             /**< Don't show ALL clantalk channels (Imm-only) */
-#define PRF_AUTOSCAN 35               // automatically scan each step?
-#define PRF_DISPEXP 36                // autoprompt xp display
-#define PRF_DISPEXITS 37              // autoprompt exits display
-#define PRF_DISPROOM 38               // display room name and/or #
-#define PRF_DISPMEMTIME 39            // display memtimes
-#define PRF_DISPACTIONS 40            /**< action system display on prompt */
-#define PRF_AUTORELOAD 41             /**< Attempt to automatically reload weapon (xbow/slings) */
-#define PRF_COMBATROLL 42             /**< extra info during combat */
-#define PRF_GUI_MODE 43               /**< add special tags to code for MSDP GUI */
-#define PRF_NOHINT 44                 /**< show in-game hints to newer players */
-#define PRF_AUTOCOLLECT 45            /**< collect ammo after combat automatically */
-#define PRF_RP 46                     /**< Interested in Role-Playing! */
-#define PRF_AOE_BOMBS 47              /** Bombs will use splash damage instead of single target */
-#define PRF_FRIGHTENED 48             /* If set, victims of fear affects will flee */
-#define PRF_PVP 49                    /* If set, will allow player vs. player combat against others also flagged */
-#define PRF_AUTOCON 50                /* autoconsider, shows level difference of mobs in look command */
-#define PRF_SMASH_DEFENSE 51          // stalwart defender level 10 ability
-#define PRF_DISPGOLD 52               // will show gold in prompt
-#define PRF_NO_CHARMIE_RESCUE 53      // charmie mobs won't rescue you
-#define PRF_SEEK_ENCOUNTERS 54        // will try to find random encounters in wilderness
-#define PRF_AVOID_ENCOUNTERS 55       // will try to avoid random encounters in wilderness
-#define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
-#define PRF_DISPTIME 57               // shows game time in prompt
-#define PRF_AUTO_STAND 58             // attempt to auto stand
-#define PRF_BLOOD_DRAIN 59            // Vampires will drain blood when grappling if this is turned on.
-#define PRF_AUTOHIT 60                // You will hit the first eligible mob in the room when typing 'hit' by itself.
-#define PRF_NO_FOLLOW 61              /**< Toggle PC followers */
-#define PRF_CONDENSED 62              /**< Toggle combat condensed mode */
-#define PRF_CAREFUL_PET 63            /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
-#define PRF_NO_RAGE 64                // Will reject casting of rage spell on them.
-#define PRF_LIFE_BOND 65              // Summoner's life bond ability/feat
-#define PRF_CHARMIE_COMBATROLL 66     // Will display combat roll info for any of your charmies in battle.
+#define PRF_BRIEF 0        /**< Room descs won't normally be shown */
+#define PRF_COMPACT 1      /**< No extra CRLF pair before prompts */
+#define PRF_NOSHOUT 2      /**< Can't hear shouts */
+#define PRF_NOTELL 3       /**< Can't receive tells */
+#define PRF_DISPHP 4       /**< Display hit points in prompt */
+#define PRF_DISPPSP 5      /**< Display psp points in prompt */
+#define PRF_DISPMOVE 6     /**< Display move points in prompt */
+#define PRF_AUTOEXIT 7     /**< Display exits in a room */
+#define PRF_NOHASSLE 8     /**< Aggr mobs won't attack */
+#define PRF_QUEST 9        /**< On quest */
+#define PRF_SUMMONABLE 10  /**< Can be summoned */
+#define PRF_NOREPEAT 11    /**< No repetition of comm commands */
+#define PRF_HOLYLIGHT 12   /**< Can see in dark */
+#define PRF_COLOR_1 13     /**< Color (low bit) */
+#define PRF_COLOR_2 14     /**< Color (high bit) */
+#define PRF_NOWIZ 15       /**< Can't hear wizline */
+#define PRF_LOG1 16        /**< On-line System Log (low bit) */
+#define PRF_LOG2 17        /**< On-line System Log (high bit) */
+#define PRF_NOAUCT 18      /**< Can't hear auction channel */
+#define PRF_NOGOSS 19      /**< Can't hear gossip channel */
+#define PRF_NOGRATZ 20     /**< Can't hear grats channel */
+#define PRF_SHOWVNUMS 21   /**< Can see VNUMs */
+#define PRF_DISPAUTO 22    /**< Show prompt HP, MP, MV when < 25% */
+#define PRF_CLS 23         /**< Clear screen in OLC */
+#define PRF_BUILDWALK 24   /**< Build new rooms while walking */
+#define PRF_AFK 25         /**< AFK flag */
+#define PRF_AUTOLOOT 26    /**< Loot everything from a corpse */
+#define PRF_AUTOGOLD 27    /**< Loot gold from a corpse */
+#define PRF_AUTOSPLIT 28   /**< Split gold with group */
+#define PRF_AUTOSAC 29     /**< Sacrifice a corpse */
+#define PRF_AUTOASSIST 30  /**< Auto-assist toggle */
+#define PRF_AUTOMAP 31     /**< Show map at the side of room descs */
+#define PRF_AUTOKEY 32     /**< Automatically unlock locked doors when opening */
+#define PRF_AUTODOOR 33    /**< Use the next available door */
+#define PRF_NOCLANTALK 34  /**< Don't show ALL clantalk channels (Imm-only) */
+#define PRF_AUTOSCAN 35    // automatically scan each step?
+#define PRF_DISPEXP 36     // autoprompt xp display
+#define PRF_DISPEXITS 37   // autoprompt exits display
+#define PRF_DISPROOM 38    // display room name and/or #
+#define PRF_DISPMEMTIME 39 // display memtimes
+#define PRF_DISPACTIONS 40 /**< action system display on prompt */
+#define PRF_AUTORELOAD 41  /**< Attempt to automatically reload weapon (xbow/slings) */
+#define PRF_COMBATROLL 42  /**< extra info during combat */
+#define PRF_GUI_MODE 43    /**< add special tags to code for MSDP GUI */
+#define PRF_NOHINT 44      /**< show in-game hints to newer players */
+#define PRF_AUTOCOLLECT 45 /**< collect ammo after combat automatically */
+#define PRF_RP 46          /**< Interested in Role-Playing! */
+#define PRF_AOE_BOMBS 47   /** Bombs will use splash damage instead of single target */
+#define PRF_FRIGHTENED 48  /* If set, victims of fear affects will flee */
+#define PRF_PVP 49     /* If set, will allow player vs. player combat against others also flagged */
+#define PRF_AUTOCON 50 /* autoconsider, shows level difference of mobs in look command */
+#define PRF_SMASH_DEFENSE 51     // stalwart defender level 10 ability
+#define PRF_DISPGOLD 52          // will show gold in prompt
+#define PRF_NO_CHARMIE_RESCUE 53 // charmie mobs won't rescue you
+#define PRF_SEEK_ENCOUNTERS 54   // will try to find random encounters in wilderness
+#define PRF_AVOID_ENCOUNTERS 55  // will try to avoid random encounters in wilderness
+#define PRF_USE_STORED_CONSUMABLES                                                                 \
+  56 // will use the stored consumables system instead of stock TBAMUD use command
+#define PRF_DISPTIME 57    // shows game time in prompt
+#define PRF_AUTO_STAND 58  // attempt to auto stand
+#define PRF_BLOOD_DRAIN 59 // Vampires will drain blood when grappling if this is turned on.
+#define PRF_AUTOHIT                                                                                \
+  60 // You will hit the first eligible mob in the room when typing 'hit' by itself.
+#define PRF_NO_FOLLOW 61   /**< Toggle PC followers */
+#define PRF_CONDENSED 62   /**< Toggle combat condensed mode */
+#define PRF_CAREFUL_PET 63 /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
+#define PRF_NO_RAGE 64     // Will reject casting of rage spell on them.
+#define PRF_LIFE_BOND 65   // Summoner's life bond ability/feat
+#define PRF_CHARMIE_COMBATROLL                                                                     \
+  66 // Will display combat roll info for any of your charmies in battle.
 #define PRF_AUTO_PREP 67
-#define PRF_AUGMENT_BUFFS 68          // Will attempt to use max psp to augment buffs
-#define PRF_AUTO_SORT 69              // will automatically sort items into the proper bag upon acquisition
-#define PRF_AUTO_STORE 70             // will automatically store consumables upon acquisition
+#define PRF_AUGMENT_BUFFS 68 // Will attempt to use max psp to augment buffs
+#define PRF_AUTO_SORT 69     // will automatically sort items into the proper bag upon acquisition
+#define PRF_AUTO_STORE 70    // will automatically store consumables upon acquisition
 #define PRF_AUTO_GROUP 71
 #define PRF_CONTAIN_AOE 72
 #define PRF_NON_ROLEPLAYER 73
 #define PRF_POST_COMBAT_BRIEF 74
 #define PRF_AUTOBLAST 75
 #define PRF_NO_CRAFT_PROGRESS 76
-#define PRF_SCORE_CLASSIC 77          /**< Use classic score display instead of enhanced */
-#define PRF_SCORE_COMPACT 78          /**< Use compact score layout */
-#define PRF_SCORE_WIDE 79             /**< Use wide score layout (120+ chars) */
-#define PRF_SCORE_NOCOLOR 80          /**< Disable colors in score display */
-#define PRF_SCORE_BORDERS 81          /**< Display class-themed borders in score */
-#define PRF_SCORE_RACE_SYMBOLS 82     /**< Display race symbols in score */
-#define PRF_BOARDCHECK 83             /**< Display board check on login */
-#define PRF_AUTOSEARCH 84             /**< Automatically search for traps when moving (1/2 perception, 1/2 speed, lose initiative) */
-#define PRF_SWEEPING_STRIKE 85        /**< Monk sweeping strike: auto-trip on first flurry attack */
+#define PRF_SCORE_CLASSIC 77      /**< Use classic score display instead of enhanced */
+#define PRF_SCORE_COMPACT 78      /**< Use compact score layout */
+#define PRF_SCORE_WIDE 79         /**< Use wide score layout (120+ chars) */
+#define PRF_SCORE_NOCOLOR 80      /**< Disable colors in score display */
+#define PRF_SCORE_BORDERS 81      /**< Display class-themed borders in score */
+#define PRF_SCORE_RACE_SYMBOLS 82 /**< Display race symbols in score */
+#define PRF_BOARDCHECK 83         /**< Display board check on login */
+#define PRF_AUTOSEARCH                                                                             \
+  84 /**< Automatically search for traps when moving (1/2 perception, 1/2 speed, lose initiative) */
+#define PRF_SWEEPING_STRIKE 85 /**< Monk sweeping strike: auto-trip on first flurry attack */
 
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS 86
 
 /* Score Color Theme constants */
-#define SCORE_THEME_ENHANCED     0    /**< Enhanced theme with rich colors */
-#define SCORE_THEME_CLASSIC      1    /**< Classic minimal coloring theme */
-#define SCORE_THEME_MINIMAL      2    /**< Minimal color theme */
-#define SCORE_THEME_HIGHCONTRAST 3    /**< High contrast theme for visibility */
-#define SCORE_THEME_DARK         4    /**< Dark theme with muted colors */
-#define SCORE_THEME_COLORBLIND   5    /**< Colorblind-friendly theme */
+#define SCORE_THEME_ENHANCED 0     /**< Enhanced theme with rich colors */
+#define SCORE_THEME_CLASSIC 1      /**< Classic minimal coloring theme */
+#define SCORE_THEME_MINIMAL 2      /**< Minimal color theme */
+#define SCORE_THEME_HIGHCONTRAST 3 /**< High contrast theme for visibility */
+#define SCORE_THEME_DARK 4         /**< Dark theme with muted colors */
+#define SCORE_THEME_COLORBLIND 5   /**< Colorblind-friendly theme */
 
 /* Score Display Context constants */
-#define CONTEXT_NORMAL      0    /**< Normal gameplay context */
-#define CONTEXT_COMBAT      1    /**< Character is in combat */
-#define CONTEXT_ROLEPLAY    2    /**< Character is in roleplay mode */
+#define CONTEXT_NORMAL 0   /**< Normal gameplay context */
+#define CONTEXT_COMBAT 1   /**< Character is in combat */
+#define CONTEXT_ROLEPLAY 2 /**< Character is in roleplay mode */
 
 /* Score Layout Template constants */
-#define LAYOUT_DEFAULT      0    /**< Default layout ordering */
-#define LAYOUT_COMBAT       1    /**< Combat-focused layout */
-#define LAYOUT_ROLEPLAY     2    /**< Roleplay-focused layout */
-#define LAYOUT_EXPLORER     3    /**< Exploration-focused layout */
-#define LAYOUT_CASTER       4    /**< Magic-user focused layout */
+#define LAYOUT_DEFAULT 0  /**< Default layout ordering */
+#define LAYOUT_COMBAT 1   /**< Combat-focused layout */
+#define LAYOUT_ROLEPLAY 2 /**< Roleplay-focused layout */
+#define LAYOUT_EXPLORER 3 /**< Exploration-focused layout */
+#define LAYOUT_CASTER 4   /**< Magic-user focused layout */
 
 /* Score Section constants for ordering */
-#define SECTION_IDENTITY    0    /**< Character identity section */
-#define SECTION_VITALS      1    /**< HP/Move/PSP section */
-#define SECTION_EXPERIENCE  2    /**< Level and experience section */
-#define SECTION_ABILITIES   3    /**< Stats and saves section */
-#define SECTION_COMBAT      4    /**< Combat stats section */
-#define SECTION_MAGIC       5    /**< Magic/PSP section */
-#define SECTION_WEALTH      6    /**< Gold and wealth section */
-#define SECTION_EQUIPMENT   7    /**< Equipment summary section */
-#define CONTEXT_EXPLORING   3    /**< Character is exploring/moving */
-#define CONTEXT_SHOPPING    4    /**< Character is shopping */
-#define CONTEXT_CRAFTING    5    /**< Character is crafting */
+#define SECTION_IDENTITY 0   /**< Character identity section */
+#define SECTION_VITALS 1     /**< HP/Move/PSP section */
+#define SECTION_EXPERIENCE 2 /**< Level and experience section */
+#define SECTION_ABILITIES 3  /**< Stats and saves section */
+#define SECTION_COMBAT 4     /**< Combat stats section */
+#define SECTION_MAGIC 5      /**< Magic/PSP section */
+#define SECTION_WEALTH 6     /**< Gold and wealth section */
+#define SECTION_EQUIPMENT 7  /**< Equipment summary section */
+#define CONTEXT_EXPLORING 3  /**< Character is exploring/moving */
+#define CONTEXT_SHOPPING 4   /**< Character is shopping */
+#define CONTEXT_CRAFTING 5   /**< Character is crafting */
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1590,50 +1606,57 @@
 #define AFF_DEFENSIVE_CASTING 91 /* Defensive casting mode */
 #define AFF_WHIRLWIND_ATTACK 92  /*  Whirlwind attack mode */
 
-#define AFF_CHARGING 93            /* charging in combat */
-#define AFF_WILD_SHAPE 94          /* wildshape, shapechange */
-#define AFF_FEINTED 95             /* flat-footed */
-#define AFF_PINNED 96              /* pinned to the ground (grapple) */
-#define AFF_MIRROR_IMAGED 97       /* duplicate illusions of self! */
-#define AFF_WARDED 98              /* warded (damage protection) */
-#define AFF_ENTANGLED 99           /* entangled (can't move) */
-#define AFF_ACROBATIC 100           /* acrobatic!  currently used for druid jump \ \ \ \
+#define AFF_CHARGING 93      /* charging in combat */
+#define AFF_WILD_SHAPE 94    /* wildshape, shapechange */
+#define AFF_FEINTED 95       /* flat-footed */
+#define AFF_PINNED 96        /* pinned to the ground (grapple) */
+#define AFF_MIRROR_IMAGED 97 /* duplicate illusions of self! */
+#define AFF_WARDED 98        /* warded (damage protection) */
+#define AFF_ENTANGLED 99     /* entangled (can't move) */
+#define AFF_ACROBATIC                                                                              \
+  100                              /* acrobatic!  currently used for druid jump \ \ \ \
                                       spell, possible expansion to follow */
 #define AFF_BLINKING 101           /* in a state of blinking between prime/eth */
 #define AFF_AWARE 102              /* aware - too aware to be backstabed */
 #define AFF_CRIPPLING_CRITICAL 103 /* duelist crippling critical affection */
 #define AFF_LEVITATE 104           /**< Char can float above the ground */
-#define AFF_BLEED 105              /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
-#define AFF_STAGGERED 106          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
-#define AFF_DAZZLED 107            /* suffers -1 to attacks and perception checks */
-#define AFF_SHAKEN 108             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
-#define AFF_ESHIELD 109            // electric shield - reflect damage
-#define AFF_SICKENED 110           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
-#define AFF_SILENCED 111           // silenced, can't speak or cast spells
-#define AFF_HIDE_ALIGNMENT 112     // alignment can't be detected
-#define AFF_WIND_WALL 113          // surrounded by a wall of wind
+#define AFF_BLEED                                                                                  \
+  105 /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
+#define AFF_STAGGERED                                                                              \
+  106 /* A staggered character has a 50% chance to fail a spell or a single melee attack */
+#define AFF_DAZZLED 107 /* suffers -1 to attacks and perception checks */
+#define AFF_SHAKEN                                                                                 \
+  108 // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
+#define AFF_ESHIELD 109 // electric shield - reflect damage
+#define AFF_SICKENED                                                                               \
+  110 // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
+#define AFF_SILENCED 111       // silenced, can't speak or cast spells
+#define AFF_HIDE_ALIGNMENT 112 // alignment can't be detected
+#define AFF_WIND_WALL 113      // surrounded by a wall of wind
 #define AFF_FEAR_AURA 114
 #define AFF_SPIDER_CLIMB 115
-#define AFF_DEADLY_AIM 116         // used to determine if using deadly aim feat benefits.
-#define AFF_ACID_COAT 117              /**< (R) Char is covered in acid */
-#define AFF_REPULSION 118          // A field of repulsion is around person
-#define AFF_ON_FIRE 119             // person is on fire
-#define AFF_FLAME_BLADE 120        // melee hits deal 1d6 fire damage extra
+#define AFF_DEADLY_AIM 116  // used to determine if using deadly aim feat benefits.
+#define AFF_ACID_COAT 117   /**< (R) Char is covered in acid */
+#define AFF_REPULSION 118   // A field of repulsion is around person
+#define AFF_ON_FIRE 119     // person is on fire
+#define AFF_FLAME_BLADE 120 // melee hits deal 1d6 fire damage extra
 #define AFF_SICKENING_AURA 121
-#define AFF_RAPID_BUFF 122          // increases buff speed
-#define AFF_CRIPPLED 123            // crippled - movement speed halved, chance to fail movement
-#define AFF_ENCASED_IN_ICE 124      // encased in ice - paralyzed, immune to cold damage, DR 5/-
-#define AFF_NEXTATTACK_STUN 125     // next attack will attempt to stun the target (Berserker Stunning Blow)
-#define AFF_HIVE_MARKED 126         // marked by Hive Commander - gives +3 DC to further telepathy powers
-#define AFF_PERFECT_DEFLECTION_ACTIVE 127    // ready to deflect next attack (Psionicist Perfect Deflection)
+#define AFF_RAPID_BUFF 122     // increases buff speed
+#define AFF_CRIPPLED 123       // crippled - movement speed halved, chance to fail movement
+#define AFF_ENCASED_IN_ICE 124 // encased in ice - paralyzed, immune to cold damage, DR 5/-
+#define AFF_NEXTATTACK_STUN                                                                        \
+  125                       // next attack will attempt to stun the target (Berserker Stunning Blow)
+#define AFF_HIVE_MARKED 126 // marked by Hive Commander - gives +3 DC to further telepathy powers
+#define AFF_PERFECT_DEFLECTION_ACTIVE                                                              \
+  127 // ready to deflect next attack (Psionicist Perfect Deflection)
 
 /*---*/
 #define NUM_AFF_FLAGS 128
 
 // we've run out of AFF_ flag slots, caps at 128, so time to make AFF2_ flags
 /* Affect2 bits: used in char_data.char_specials.saved.affected2_by */
-#define AFF2_DONTUSE 0           /**< DON'T USE! */
-#define AFF2_MAGIC_ATTACKS 1     // summon/creature attacks count as magic for DR purposes
+#define AFF2_DONTUSE 0       /**< DON'T USE! */
+#define AFF2_MAGIC_ATTACKS 1 // summon/creature attacks count as magic for DR purposes
 
 #define NUM_AFF2_FLAGS 2
 
@@ -1645,30 +1668,30 @@
                      const char *affected_bit_descs */
 
 /* Bonus types */
-#define BONUS_TYPE_UNDEFINED 0     /* Undefined bonus type (stacks) */
-#define BONUS_TYPE_ALCHEMICAL 1    /* Alchemical bonus : potion/food/chemical */
-#define BONUS_TYPE_ARMOR 2         /* Armor bonus : +/- AC */
-#define BONUS_TYPE_CIRCUMSTANCE 3  /* Circumstance Bonus (stacks) */
-#define BONUS_TYPE_COMPETENCE 4    /* Competence bonus : skills, etc. */
-#define BONUS_TYPE_DEFLECTION 5    /* Deflection bonus : + AC usually */
-#define BONUS_TYPE_DODGE 6         /* Dodge bonus : + AC usually */
-#define BONUS_TYPE_ENHANCEMENT 7   /* Enhancement bonus : weapon/armor */
-#define BONUS_TYPE_INHERENT 8      /* Inherent bonus : powerful magic */
-#define BONUS_TYPE_INSIGHT 9       /* Insight bonus */
-#define BONUS_TYPE_LUCK 10         /* Luck bonus */
-#define BONUS_TYPE_MORALE 11       /* Morale bonus */
-#define BONUS_TYPE_NATURALARMOR 12 /* Natural Armor bonus : + AC */
-#define BONUS_TYPE_PROFANE 13      /* Profane bonus : evil */
-#define BONUS_TYPE_RACIAL 14       /* Racial bonus */
-#define BONUS_TYPE_RESISTANCE 15   /* Resistance bonus : saves */
-#define BONUS_TYPE_SACRED 16       /* Sacred Bonus : good */
-#define BONUS_TYPE_SHIELD 17       /* Shield bonus */
-#define BONUS_TYPE_SIZE 18         /* Size bonus */
-#define BONUS_TYPE_TRAIT 19        /* Character Trait bonus */
-#define BONUS_TYPE_FOOD 20         // For food items only.
-#define BONUS_TYPE_DRINK 21        // For drink items only.
-#define BONUS_TYPE_EIDOLON 22      // For eidolons only
-#define BONUS_TYPE_UNIVERSAL 23    // stacks with everything, including itself
+#define BONUS_TYPE_UNDEFINED 0                 /* Undefined bonus type (stacks) */
+#define BONUS_TYPE_ALCHEMICAL 1                /* Alchemical bonus : potion/food/chemical */
+#define BONUS_TYPE_ARMOR 2                     /* Armor bonus : +/- AC */
+#define BONUS_TYPE_CIRCUMSTANCE 3              /* Circumstance Bonus (stacks) */
+#define BONUS_TYPE_COMPETENCE 4                /* Competence bonus : skills, etc. */
+#define BONUS_TYPE_DEFLECTION 5                /* Deflection bonus : + AC usually */
+#define BONUS_TYPE_DODGE 6                     /* Dodge bonus : + AC usually */
+#define BONUS_TYPE_ENHANCEMENT 7               /* Enhancement bonus : weapon/armor */
+#define BONUS_TYPE_INHERENT 8                  /* Inherent bonus : powerful magic */
+#define BONUS_TYPE_INSIGHT 9                   /* Insight bonus */
+#define BONUS_TYPE_LUCK 10                     /* Luck bonus */
+#define BONUS_TYPE_MORALE 11                   /* Morale bonus */
+#define BONUS_TYPE_NATURALARMOR 12             /* Natural Armor bonus : + AC */
+#define BONUS_TYPE_PROFANE 13                  /* Profane bonus : evil */
+#define BONUS_TYPE_RACIAL 14                   /* Racial bonus */
+#define BONUS_TYPE_RESISTANCE 15               /* Resistance bonus : saves */
+#define BONUS_TYPE_SACRED 16                   /* Sacred Bonus : good */
+#define BONUS_TYPE_SHIELD 17                   /* Shield bonus */
+#define BONUS_TYPE_SIZE 18                     /* Size bonus */
+#define BONUS_TYPE_TRAIT 19                    /* Character Trait bonus */
+#define BONUS_TYPE_FOOD 20                     // For food items only.
+#define BONUS_TYPE_DRINK 21                    // For drink items only.
+#define BONUS_TYPE_EIDOLON 22                  // For eidolons only
+#define BONUS_TYPE_UNIVERSAL 23                // stacks with everything, including itself
 #define BONUS_TYPE_ALCHEMIST_QUINTESSENTIAL 24 /* Alchemist Quintessential Extraction stacking */
 /**/
 #define NUM_BONUS_TYPES 25
@@ -1731,7 +1754,7 @@
 #define CON_QREGION_HELP 52
 
 // character description system
-#define CON_GEN_DESCS_INTRO 53          /* Introduction text for generic short descs */
+#define CON_GEN_DESCS_INTRO 53         /* Introduction text for generic short descs */
 #define CON_GEN_DESCS_DESCRIPTORS_1 54 /* Set descriptor 1 for generic short descs */
 #define CON_GEN_DESCS_DESCRIPTORS_2 55 /* Set descriptor 2 for generic short descs */
 #define CON_GEN_DESCS_ADJECTIVES_1 56  /* Set adjective 1 for generic short descs */
@@ -1739,7 +1762,7 @@
 #define CON_GEN_DESCS_MENU 58          /* Generic short desc menu */
 #define CON_GEN_DESCS_MENU_PARSE 59    /* Decide what to do from generic short desc menu choice */
 
-#define CON_PLR_BG  60
+#define CON_PLR_BG 60
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT    /**< The first CON_ state that is an OLC */
@@ -1768,11 +1791,11 @@
 #define CON_CHAR_RP_DECIDE 80
 
 /* Board system connection states */
-#define CON_BOARD_TITLE 81          /**< Getting title for board post */
-#define CON_BOARD_BODY 82           /**< Getting body for board post (handled by string editor) */
-#define CON_BOARD_POST 83           /**< Board post completion */
-#define CON_BOARD_POST_ABORT 84     /**< Board post aborted */
-#define CON_BEDIT 85                /**< OLC mode - board editor */
+#define CON_BOARD_TITLE 81      /**< Getting title for board post */
+#define CON_BOARD_BODY 82       /**< Getting body for board post (handled by string editor) */
+#define CON_BOARD_POST 83       /**< Board post completion */
+#define CON_BOARD_POST_ABORT 84 /**< Board post aborted */
+#define CON_BEDIT 85            /**< OLC mode - board editor */
 
 #define NUM_CON_STATES 86
 
@@ -1824,7 +1847,7 @@
 #define WEAR_CRAFT_JEWEL_PLIERS 39  /* jewel's pliers (jewelcraft) */
 #define WEAR_CRAFT_NEEDLE 40        /* sewing needle (tailoring) */
 #define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
-#define WEAR_ON_BACK 42            /* worn on back (quiver, etc) */
+#define WEAR_ON_BACK 42             /* worn on back (quiver, etc) */
 /** Total number of available equipment lcoations */
 #define NUM_WEARS 43
 /**/
@@ -2852,7 +2875,7 @@
 #define FEAT_STAGGERING_CRITICAL 979
 #define FEAT_STUNNING_CRITICAL 980
 #define FEAT_SICKENING_CRITICAL 981
-#define FEAT_IMPALING_CRITICAL 982 // unfinished
+#define FEAT_IMPALING_CRITICAL 982          // unfinished
 #define FEAT_IMPROVED_IMPALING_CRITICAL 983 // unfinished
 #define FEAT_CENSORING_CRITICAL 984
 #define FEAT_BLEEDING_CRITICAL 985
@@ -3037,7 +3060,7 @@
 #define FEAT_IMPROVED_JACK_OF_ALL_TRADES 1252
 #define FEAT_EXEMPLAR 1253
 
-#define FEAT_GNOMISH_TINKERING                  1254
+#define FEAT_GNOMISH_TINKERING 1254
 #define FEAT_BRILLIANCE_AND_BLUNDER 1255
 #define FEAT_CONSTRUCT_WOOD_GOLEM 1256
 #define FEAT_CONSTRUCT_STONE_GOLEM 1257
@@ -3062,18 +3085,18 @@
 
 /* Perk Effect Types - what the perk modifies */
 #define PERK_EFFECT_NONE 0
-#define PERK_EFFECT_HP 1              /* Increases max HP */
-#define PERK_EFFECT_SPELL_POINTS 2    /* Increases max spell points */
-#define PERK_EFFECT_ABILITY_SCORE 3   /* Modifies STR/DEX/CON/INT/WIS/CHA */
-#define PERK_EFFECT_SAVE 4            /* Modifies saving throws */
-#define PERK_EFFECT_AC 5              /* Modifies armor class */
-#define PERK_EFFECT_SKILL 6           /* Modifies skill ranks/bonuses */
-#define PERK_EFFECT_WEAPON_DAMAGE 7   /* Adds damage to weapons */
-#define PERK_EFFECT_WEAPON_TOHIT 8    /* Adds to-hit bonus */
-#define PERK_EFFECT_SPELL_DC 9        /* Increases spell save DC */
-#define PERK_EFFECT_SPELL_DAMAGE 10   /* Increases spell damage */
-#define PERK_EFFECT_SPELL_DURATION 11 /* Increases spell duration */
-#define PERK_EFFECT_CASTER_LEVEL 12   /* Increases effective caster level */
+#define PERK_EFFECT_HP 1                /* Increases max HP */
+#define PERK_EFFECT_SPELL_POINTS 2      /* Increases max spell points */
+#define PERK_EFFECT_ABILITY_SCORE 3     /* Modifies STR/DEX/CON/INT/WIS/CHA */
+#define PERK_EFFECT_SAVE 4              /* Modifies saving throws */
+#define PERK_EFFECT_AC 5                /* Modifies armor class */
+#define PERK_EFFECT_SKILL 6             /* Modifies skill ranks/bonuses */
+#define PERK_EFFECT_WEAPON_DAMAGE 7     /* Adds damage to weapons */
+#define PERK_EFFECT_WEAPON_TOHIT 8      /* Adds to-hit bonus */
+#define PERK_EFFECT_SPELL_DC 9          /* Increases spell save DC */
+#define PERK_EFFECT_SPELL_DAMAGE 10     /* Increases spell damage */
+#define PERK_EFFECT_SPELL_DURATION 11   /* Increases spell duration */
+#define PERK_EFFECT_CASTER_LEVEL 12     /* Increases effective caster level */
 #define PERK_EFFECT_DAMAGE_REDUCTION 13 /* Adds damage reduction */
 #define PERK_EFFECT_SPELL_RESISTANCE 14 /* Adds spell resistance */
 #define PERK_EFFECT_CRITICAL_MULT 15    /* Increases critical multiplier */
@@ -3251,27 +3274,28 @@
 #define PERK_WIZARD_IRRESISTIBLE_MAGIC 144
 
 /* TREE 4: VERSATILE CASTER - Tier 1 Perks (145-148) */
-#define PERK_WIZARD_SPELL_FOCUS_I 145        /* 2% chance per rank spell doesn't expend slot, max 5 ranks */
-#define PERK_WIZARD_QUICK_CAST_I 146         /* Free quicken metamagic once per 5 min */
-#define PERK_WIZARD_ARCANE_KNOWLEDGE_I 147  /* +2 spellcraft per rank, max 3 ranks */
-#define PERK_WIZARD_COMBAT_CASTING_I 148    /* +2 concentration in combat per rank, max 3 */
+#define PERK_WIZARD_SPELL_FOCUS_I                                                                  \
+  145                                /* 2% chance per rank spell doesn't expend slot, max 5 ranks */
+#define PERK_WIZARD_QUICK_CAST_I 146 /* Free quicken metamagic once per 5 min */
+#define PERK_WIZARD_ARCANE_KNOWLEDGE_I 147 /* +2 spellcraft per rank, max 3 ranks */
+#define PERK_WIZARD_COMBAT_CASTING_I 148   /* +2 concentration in combat per rank, max 3 */
 
 /* TREE 4: VERSATILE CASTER - Tier 2 Perks (149-153) */
-#define PERK_WIZARD_SPELL_FOCUS_II 149      /* Additional 2% chance per rank, max 3 ranks */
-#define PERK_WIZARD_QUICK_CAST_II 150       /* Free quicken once per combat */
-#define PERK_WIZARD_SPELL_RECALL 151        /* Restore a spell slot once per day */
-#define PERK_WIZARD_METAMAGIC_MASTER_I 152  /* Randomly reduce metamagic circle increase by 1 */
-#define PERK_WIZARD_DEFENSIVE_CASTING 153   /* +4 AC when casting */
+#define PERK_WIZARD_SPELL_FOCUS_II 149     /* Additional 2% chance per rank, max 3 ranks */
+#define PERK_WIZARD_QUICK_CAST_II 150      /* Free quicken once per combat */
+#define PERK_WIZARD_SPELL_RECALL 151       /* Restore a spell slot once per day */
+#define PERK_WIZARD_METAMAGIC_MASTER_I 152 /* Randomly reduce metamagic circle increase by 1 */
+#define PERK_WIZARD_DEFENSIVE_CASTING 153  /* +4 AC when casting */
 
 /* TREE 4: VERSATILE CASTER - Tier 3 Perks (154-158) */
-#define PERK_WIZARD_SPELL_FOCUS_III 154     /* Additional 2% chance per rank, max 2 ranks (total 16%) */
+#define PERK_WIZARD_SPELL_FOCUS_III 154 /* Additional 2% chance per rank, max 2 ranks (total 16%) */
 #define PERK_WIZARD_METAMAGIC_MASTER_II 155 /* Metamagic circle increase reduced by 1 */
 #define PERK_WIZARD_ARCANE_RECOVERY 156     /* Reduce spell prep time once per day */
 #define PERK_WIZARD_SPELL_SHIELD 157        /* 10 DR + 4 AC when attacked first */
 
 /* TREE 4: VERSATILE CASTER - Tier 4 Capstones (158-159) */
-#define PERK_WIZARD_ARCHMAGES_POWER 158     /* +5% free spell, -1 metamagic cost */
-#define PERK_WIZARD_ARCANE_SUPREMACY 159    /* +2 spell DCs, +2 caster level, +2 spell damage */
+#define PERK_WIZARD_ARCHMAGES_POWER 158  /* +5% free spell, -1 metamagic cost */
+#define PERK_WIZARD_ARCANE_SUPREMACY 159 /* +2 spell DCs, +2 caster level, +2 spell damage */
 
 /* ============================================================================
  * CLERIC PERKS (200-299)
@@ -3358,8 +3382,8 @@
 #define PERK_CLERIC_MASTER_OF_UNDEAD 255
 
 /* Legacy cleric perks - deprecated aliases */
-#define PERK_CLERIC_HEALING_AMP 200  /* Now PERK_CLERIC_HEALING_POWER_1 */
-#define PERK_CLERIC_TOUGHNESS 205    /* Was Battle Cleric tree, now Radiant Servant 2 */
+#define PERK_CLERIC_HEALING_AMP 200 /* Now PERK_CLERIC_HEALING_POWER_1 */
+#define PERK_CLERIC_TOUGHNESS 205   /* Was Battle Cleric tree, now Radiant Servant 2 */
 
 /* ============================================================================
  * ROGUE PERKS (300-399)
@@ -3518,87 +3542,90 @@
  * ============================================================================ */
 
 /* TREE 1: PATH OF THE IRON FIST - Tier 1 Perks (500-504) */
-#define PERK_MONK_IMPROVED_UNARMED_STRIKE_I 500  /* +1 unarmed damage per rank, max 5 */
-#define PERK_MONK_FISTS_OF_IRON 501              /* Bypasses 2 DR */
-#define PERK_MONK_LIGHTNING_REFLEXES_I 502       /* +1 Reflex save per rank, max 3 */
-#define PERK_MONK_SWEEPING_STRIKE 503            /* +2 trip bonus, can trip during flurry */
-#define PERK_MONK_MEDITATION_FOCUS_I 504         /* +1 GP regen, +1 ki point per rank, max 3 */
+#define PERK_MONK_IMPROVED_UNARMED_STRIKE_I 500 /* +1 unarmed damage per rank, max 5 */
+#define PERK_MONK_FISTS_OF_IRON 501             /* Bypasses 2 DR */
+#define PERK_MONK_LIGHTNING_REFLEXES_I 502      /* +1 Reflex save per rank, max 3 */
+#define PERK_MONK_SWEEPING_STRIKE 503           /* +2 trip bonus, can trip during flurry */
+#define PERK_MONK_MEDITATION_FOCUS_I 504        /* +1 GP regen, +1 ki point per rank, max 3 */
 
 /* TREE 1: PATH OF THE IRON FIST - Tier 2 Perks (505-510) */
-#define PERK_MONK_IMPROVED_UNARMED_STRIKE_II 505 /* +1 unarmed damage per rank, lawful attacks, max 3 */
-#define PERK_MONK_STUNNING_FIST_ENHANCEMENT 506  /* +2 stunning fis DC, +1 round duration */
-#define PERK_MONK_IMPROVED_CRITICAL_UNARMED 507  /* 19-20 crit range */
-#define PERK_MONK_TIGER_CLAW 508                 /* +2 damage, bleeding 1d4 for 3 rounds */
-#define PERK_MONK_ONE_WITH_WOOD_AND_STONE 509    /* Can use quarterstaff/kama with monk abilities, +1 AC */
-#define PERK_MONK_FLURRY_FOCUS 510               /* -1 flurry penalty, 10% chance extra attack */
+#define PERK_MONK_IMPROVED_UNARMED_STRIKE_II                                                       \
+  505 /* +1 unarmed damage per rank, lawful attacks, max 3 */
+#define PERK_MONK_STUNNING_FIST_ENHANCEMENT 506 /* +2 stunning fis DC, +1 round duration */
+#define PERK_MONK_IMPROVED_CRITICAL_UNARMED 507 /* 19-20 crit range */
+#define PERK_MONK_TIGER_CLAW 508                /* +2 damage, bleeding 1d4 for 3 rounds */
+#define PERK_MONK_ONE_WITH_WOOD_AND_STONE                                                          \
+  509                              /* Can use quarterstaff/kama with monk abilities, +1 AC */
+#define PERK_MONK_FLURRY_FOCUS 510 /* -1 flurry penalty, 10% chance extra attack */
 
 /* TREE 1: PATH OF THE IRON FIST - Tier 3 Perks (511-516) */
-#define PERK_MONK_IMPROVED_UNARMED_STRIKE_III 511 /* +2 unarmed damage per rank, adamantine attacks, max 2 */
-#define PERK_MONK_FISTS_OF_FURY 512               /* Increases Flurry Focus extra attack to 20% */
-#define PERK_MONK_CRUSHING_BLOW 513               /* Ki point for +4d6 damage, ignores 10 DR */
+#define PERK_MONK_IMPROVED_UNARMED_STRIKE_III                                                      \
+  511                               /* +2 unarmed damage per rank, adamantine attacks, max 2 */
+#define PERK_MONK_FISTS_OF_FURY 512 /* Increases Flurry Focus extra attack to 20% */
+#define PERK_MONK_CRUSHING_BLOW 513 /* Ki point for +4d6 damage, ignores 10 DR */
 #define PERK_MONK_IMPROVED_CRITICAL_UNARMED_II 514 /* 18-20 crit range */
-#define PERK_MONK_POWER_STRIKE 515                /* -1 to hit for +3 damage per rank, max 2 */
+#define PERK_MONK_POWER_STRIKE 515                 /* -1 to hit for +3 damage per rank, max 2 */
 
 /* TREE 1: PATH OF THE IRON FIST - Tier 4 Capstone Perks (516-517) */
-#define PERK_MONK_LEGENDARY_FIST 516              /* +2d6 damage, crit multiplier x3 */
-#define PERK_MONK_SHATTERING_STRIKE 517           /* Ki point for +8d8 damage */
+#define PERK_MONK_LEGENDARY_FIST 516    /* +2d6 damage, crit multiplier x3 */
+#define PERK_MONK_SHATTERING_STRIKE 517 /* Ki point for +8d8 damage */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 1 Perks (518-524) */
-#define PERK_MONK_SHADOW_STEP_I 518               /* +5 feet movement per rank (max 3) */
-#define PERK_MONK_IMPROVED_HIDE_I 519             /* +2 to Stealth per rank (max 3) */
-#define PERK_MONK_ACROBATIC_DEFENSE 520           /* +1 dodge AC, +2 to Acrobatics */
-#define PERK_MONK_DEADLY_PRECISION_I 521          /* +1d6 sneak attack per rank (max 3) */
+#define PERK_MONK_SHADOW_STEP_I 518      /* +5 feet movement per rank (max 3) */
+#define PERK_MONK_IMPROVED_HIDE_I 519    /* +2 to Stealth per rank (max 3) */
+#define PERK_MONK_ACROBATIC_DEFENSE 520  /* +1 dodge AC, +2 to Acrobatics */
+#define PERK_MONK_DEADLY_PRECISION_I 521 /* +1d6 sneak attack per rank (max 3) */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 2 Perks (525-530) */
-#define PERK_MONK_SHADOW_STEP_II 525              /* +10 feet movement per rank (max 2) */
-#define PERK_MONK_VANISHING_TECHNIQUE 526         /* Ki point to cast invisibility */
-#define PERK_MONK_DEADLY_PRECISION_II 527         /* +1d6 sneak attack per rank (max 2) */
-#define PERK_MONK_SHADOW_CLONE 528                /* Ki point to cast mirror image */
-#define PERK_MONK_PRESSURE_POINT_STRIKE 529       /* 5% stun chance on sneak attacks */
-#define PERK_MONK_SMOKE_BOMB 530                  /* Ki point to cast darkness */
+#define PERK_MONK_SHADOW_STEP_II 525        /* +10 feet movement per rank (max 2) */
+#define PERK_MONK_VANISHING_TECHNIQUE 526   /* Ki point to cast invisibility */
+#define PERK_MONK_DEADLY_PRECISION_II 527   /* +1d6 sneak attack per rank (max 2) */
+#define PERK_MONK_SHADOW_CLONE 528          /* Ki point to cast mirror image */
+#define PERK_MONK_PRESSURE_POINT_STRIKE 529 /* 5% stun chance on sneak attacks */
+#define PERK_MONK_SMOKE_BOMB 530            /* Ki point to cast darkness */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 3 Perks (531-535) */
-#define PERK_MONK_SHADOW_STEP_III 531             /* +15 feet movement, ki point for waterwalk/spider climb */
-#define PERK_MONK_DEADLY_PRECISION_III 532        /* +2d6 sneak attack, +3d6 on crits */
-#define PERK_MONK_ASSASSINATE 533                 /* +4d6 vs stunned/paralyzed */
-#define PERK_MONK_SHADOW_FADE 534                 /* 20% concealment, 50% in dim light */
-#define PERK_MONK_BLINDING_SPEED 535              /* Ki point to cast haste */
+#define PERK_MONK_SHADOW_STEP_III 531 /* +15 feet movement, ki point for waterwalk/spider climb */
+#define PERK_MONK_DEADLY_PRECISION_III 532 /* +2d6 sneak attack, +3d6 on crits */
+#define PERK_MONK_ASSASSINATE 533          /* +4d6 vs stunned/paralyzed */
+#define PERK_MONK_SHADOW_FADE 534          /* 20% concealment, 50% in dim light */
+#define PERK_MONK_BLINDING_SPEED 535       /* Ki point to cast haste */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 4 Perks (536-537) */
-#define PERK_MONK_SHADOW_MASTER 536               /* Hide in plain sight, +4d6 sneak, greater invis */
-#define PERK_MONK_VOID_STRIKE 537                 /* Stunning fist for +8d6 force, ignores DR */
+#define PERK_MONK_SHADOW_MASTER 536 /* Hide in plain sight, +4d6 sneak, greater invis */
+#define PERK_MONK_VOID_STRIKE 537   /* Stunning fist for +8d6 force, ignores DR */
 
 /* TREE 3: WAY OF THE FOUR ELEMENTS (538-580) */
 /* TREE 3: WAY OF THE FOUR ELEMENTS - Tier 1 Perks (538-543) */
-#define PERK_MONK_ELEMENTAL_ATTUNEMENT_I 538      /* +1 saves vs elemental, 1 DR per rank */
-#define PERK_MONK_FANGS_OF_FIRE_SNAKE 539         /* Stunning fist for +1d6 fire on unarmed */
-#define PERK_MONK_WATER_WHIP 540                  /* Stunning fist for 3d6 damage + entangle */
-#define PERK_MONK_GONG_OF_SUMMIT 541              /* Stunning fist for 3d6 sound + deafen */
-#define PERK_MONK_FIST_OF_UNBROKEN_AIR 542        /* Stunning fist for force blast (30ft per rank) */
-#define PERK_MONK_ELEMENTAL_RESISTANCE_I 543      /* Resistance 5 per rank to elements */
+#define PERK_MONK_ELEMENTAL_ATTUNEMENT_I 538 /* +1 saves vs elemental, 1 DR per rank */
+#define PERK_MONK_FANGS_OF_FIRE_SNAKE 539    /* Stunning fist for +1d6 fire on unarmed */
+#define PERK_MONK_WATER_WHIP 540             /* Stunning fist for 3d6 damage + entangle */
+#define PERK_MONK_GONG_OF_SUMMIT 541         /* Stunning fist for 3d6 sound + deafen */
+#define PERK_MONK_FIST_OF_UNBROKEN_AIR 542   /* Stunning fist for force blast (30ft per rank) */
+#define PERK_MONK_ELEMENTAL_RESISTANCE_I 543 /* Resistance 5 per rank to elements */
 
 /* TREE 3: WAY OF THE FOUR ELEMENTS - Tier 2 Perks (544-551) */
-#define PERK_MONK_ELEMENTAL_ATTUNEMENT_II 544     /* +2 saves vs elemental per rank, +1 stunning fist */
-#define PERK_MONK_SHAPE_FLOWING_RIVER 545         /* 2 ki for wall of water */
-#define PERK_MONK_SWEEPING_CINDER_STRIKE 546      /* 2 ki for 15ft cone 3d6 fire */
-#define PERK_MONK_RUSH_OF_GALE_SPIRITS 547        /* 2 ki for gust of wind */
-#define PERK_MONK_CLENCH_NORTH_WIND 548           /* 2 ki for ice prison */
-#define PERK_MONK_ELEMENTAL_RESISTANCE_II 549     /* +5 to all resistances, change element free */
-#define PERK_MONK_MIST_STANCE 550                 /* 2 ki for gaseous form 1 min */
-#define PERK_MONK_SWARMING_ICE_RABBIT 551         /* 2 ki for ice spike ranged 60ft 3d6 cold */
-#define PERK_MONK_FLOWING_RIVER 552               /* 1 ki for AoE water damage + extinguish fire */
+#define PERK_MONK_ELEMENTAL_ATTUNEMENT_II 544 /* +2 saves vs elemental per rank, +1 stunning fist */
+#define PERK_MONK_SHAPE_FLOWING_RIVER 545     /* 2 ki for wall of water */
+#define PERK_MONK_SWEEPING_CINDER_STRIKE 546  /* 2 ki for 15ft cone 3d6 fire */
+#define PERK_MONK_RUSH_OF_GALE_SPIRITS 547    /* 2 ki for gust of wind */
+#define PERK_MONK_CLENCH_NORTH_WIND 548       /* 2 ki for ice prison */
+#define PERK_MONK_ELEMENTAL_RESISTANCE_II 549 /* +5 to all resistances, change element free */
+#define PERK_MONK_MIST_STANCE 550             /* 2 ki for gaseous form 1 min */
+#define PERK_MONK_SWARMING_ICE_RABBIT 551     /* 2 ki for ice spike ranged 60ft 3d6 cold */
+#define PERK_MONK_FLOWING_RIVER 552           /* 1 ki for AoE water damage + extinguish fire */
 /* Tier 3 */
-#define PERK_MONK_ELEMENTAL_ATTUNEMENT_III 553    /* +4 ki points, immune to one element per rank */
-#define PERK_MONK_FLAMES_OF_PHOENIX 554           /* 2 ki for AoE 8d6 fire, set on fire */
-#define PERK_MONK_WAVE_OF_ROLLING_EARTH 555       /* 1 ki for AoE 8d6 earth, knock prone */
-#define PERK_MONK_RIDE_THE_WIND 556               /* 3 ki for fly 60ft 10 min */
-#define PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE 557    /* 1 ki for 5/- DR absorbs 100 HP */
-#define PERK_MONK_FIST_OF_FOUR_THUNDERS 558       /* 3 ki 4d6 sound AoE + 3x3d10 lightning */
-#define PERK_MONK_RIVER_OF_HUNGRY_FLAME 559       /* 4 ki wall of fire 20-ft 5d8 */
+#define PERK_MONK_ELEMENTAL_ATTUNEMENT_III 553 /* +4 ki points, immune to one element per rank */
+#define PERK_MONK_FLAMES_OF_PHOENIX 554        /* 2 ki for AoE 8d6 fire, set on fire */
+#define PERK_MONK_WAVE_OF_ROLLING_EARTH 555    /* 1 ki for AoE 8d6 earth, knock prone */
+#define PERK_MONK_RIDE_THE_WIND 556            /* 3 ki for fly 60ft 10 min */
+#define PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE 557 /* 1 ki for 5/- DR absorbs 100 HP */
+#define PERK_MONK_FIST_OF_FOUR_THUNDERS 558    /* 3 ki 4d6 sound AoE + 3x3d10 lightning */
+#define PERK_MONK_RIVER_OF_HUNGRY_FLAME 559    /* 4 ki wall of fire 20-ft 5d8 */
 /* Tier 4 */
-#define PERK_MONK_BREATH_OF_WINTER 560            /* 5 ki cone of cold 60-ft 12d6 */
-#define PERK_MONK_ELEMENTAL_EMBODIMENT 561        /* 5 ki transform elemental 1 min */
-#define PERK_MONK_AVATAR_OF_ELEMENTS 562          /* -2 ki cost, +2d6 damage, all elem immunity */
+#define PERK_MONK_BREATH_OF_WINTER 560     /* 5 ki cone of cold 60-ft 12d6 */
+#define PERK_MONK_ELEMENTAL_EMBODIMENT 561 /* 5 ki transform elemental 1 min */
+#define PERK_MONK_AVATAR_OF_ELEMENTS 562   /* -2 ki cost, +2d6 damage, all elem immunity */
 
 /* ============================================================================
  * DRUID PERKS (600-699)
@@ -4041,174 +4068,174 @@
  * PSIONICIST PERKS (1300-1399)
  * ============================================================================ */
 /* Telepathic Control - Tier I */
-#define PERK_PSIONICIST_MIND_SPIKE_I           1300
-#define PERK_PSIONICIST_SUGGESTION_PRIMER      1301
-#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_I    1302
-#define PERK_PSIONICIST_FOCUS_CHANNELING       1303
+#define PERK_PSIONICIST_MIND_SPIKE_I 1300
+#define PERK_PSIONICIST_SUGGESTION_PRIMER 1301
+#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_I 1302
+#define PERK_PSIONICIST_FOCUS_CHANNELING 1303
 
 /* Telepathic Control - Tier II */
-#define PERK_PSIONICIST_MIND_SPIKE_II          1304
-#define PERK_PSIONICIST_OVERWHELM              1305
-#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_II   1306
-#define PERK_PSIONICIST_LINKED_MENACE          1307
+#define PERK_PSIONICIST_MIND_SPIKE_II 1304
+#define PERK_PSIONICIST_OVERWHELM 1305
+#define PERK_PSIONICIST_PSIONIC_DISRUPTOR_II 1306
+#define PERK_PSIONICIST_LINKED_MENACE 1307
 /* Telepathic Control - Tier III */
-#define PERK_PSIONICIST_DOMINION               1308
-#define PERK_PSIONICIST_PSYCHIC_SUNDERING      1309
-#define PERK_PSIONICIST_MENTAL_BACKLASH        1310
-#define PERK_PSIONICIST_PIERCING_WILL          1311
+#define PERK_PSIONICIST_DOMINION 1308
+#define PERK_PSIONICIST_PSYCHIC_SUNDERING 1309
+#define PERK_PSIONICIST_MENTAL_BACKLASH 1310
+#define PERK_PSIONICIST_PIERCING_WILL 1311
 /* Telepathic Control - Tier IV (Capstones) */
-#define PERK_PSIONICIST_ABSOLUTE_GEAS          1312
-#define PERK_PSIONICIST_HIVE_COMMANDER         1313
+#define PERK_PSIONICIST_ABSOLUTE_GEAS 1312
+#define PERK_PSIONICIST_HIVE_COMMANDER 1313
 /* Psychokinetic Arsenal - Tier I */
-#define PERK_PSIONICIST_KINETIC_EDGE_I         1314
-#define PERK_PSIONICIST_FORCE_SCREEN_ADEPT    1315
-#define PERK_PSIONICIST_VECTOR_SHOVE           1316
+#define PERK_PSIONICIST_KINETIC_EDGE_I 1314
+#define PERK_PSIONICIST_FORCE_SCREEN_ADEPT 1315
+#define PERK_PSIONICIST_VECTOR_SHOVE 1316
 #define PERK_PSIONICIST_ENERGY_SPECIALIZATION 1317
 /* Psychokinetic Arsenal - Tier II */
-#define PERK_PSIONICIST_KINETIC_EDGE_II        1318
-#define PERK_PSIONICIST_DEFLECTIVE_SCREEN      1319
-#define PERK_PSIONICIST_ACCELERATED_MANIFEST   1320
-#define PERK_PSIONICIST_ENERGY_RETORT_PERK     1321
+#define PERK_PSIONICIST_KINETIC_EDGE_II 1318
+#define PERK_PSIONICIST_DEFLECTIVE_SCREEN 1319
+#define PERK_PSIONICIST_ACCELERATED_MANIFEST 1320
+#define PERK_PSIONICIST_ENERGY_RETORT_PERK 1321
 /* Psychokinetic Arsenal - Tier III */
-#define PERK_PSIONICIST_KINETIC_EDGE_III       1322
-#define PERK_PSIONICIST_GRAVITY_WELL           1323
-#define PERK_PSIONICIST_FORCE_AEGIS            1324
-#define PERK_PSIONICIST_KINETIC_CRUSH          1325
+#define PERK_PSIONICIST_KINETIC_EDGE_III 1322
+#define PERK_PSIONICIST_GRAVITY_WELL 1323
+#define PERK_PSIONICIST_FORCE_AEGIS 1324
+#define PERK_PSIONICIST_KINETIC_CRUSH 1325
 /* Psychokinetic Arsenal - Tier IV (Capstones) */
-#define PERK_PSIONICIST_SINGULAR_IMPACT        1326
-#define PERK_PSIONICIST_PERFECT_DEFLECTION     1327
+#define PERK_PSIONICIST_SINGULAR_IMPACT 1326
+#define PERK_PSIONICIST_PERFECT_DEFLECTION 1327
 /* Metacreative Genius - Tier I */
-#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I  1328
-#define PERK_PSIONICIST_SHARD_VOLLEY           1329
-#define PERK_PSIONICIST_HARDENED_CONSTRUCTS_I  1330
-#define PERK_PSIONICIST_FABRICATE_FOCUS        1331
+#define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_I 1328
+#define PERK_PSIONICIST_SHARD_VOLLEY 1329
+#define PERK_PSIONICIST_HARDENED_CONSTRUCTS_I 1330
+#define PERK_PSIONICIST_FABRICATE_FOCUS 1331
 
 /* Metacreative Genius - Tier II */
 #define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_II 1332
-#define PERK_PSIONICIST_SHARDSTORM             1333
+#define PERK_PSIONICIST_SHARDSTORM 1333
 #define PERK_PSIONICIST_HARDENED_CONSTRUCTS_II 1334
-#define PERK_PSIONICIST_RAPID_MANIFESTER       1335
+#define PERK_PSIONICIST_RAPID_MANIFESTER 1335
 
 /* Metacreative Genius - Tier III */
 #define PERK_PSIONICIST_ECTOPLASMIC_ARTISAN_III 1336
-#define PERK_PSIONICIST_EMPOWERED_CREATION     1337
-#define PERK_PSIONICIST_CONSTRUCT_COMMANDER    1338
-#define PERK_PSIONICIST_SELF_FORGED            1339
+#define PERK_PSIONICIST_EMPOWERED_CREATION 1337
+#define PERK_PSIONICIST_CONSTRUCT_COMMANDER 1338
+#define PERK_PSIONICIST_SELF_FORGED 1339
 
 /* Metacreative Genius - Tier IV (Capstones) */
-#define PERK_PSIONICIST_ASTRAL_JUGGERNAUT     1340
-#define PERK_PSIONICIST_PERFECT_FABRICATOR    1341
+#define PERK_PSIONICIST_ASTRAL_JUGGERNAUT 1340
+#define PERK_PSIONICIST_PERFECT_FABRICATOR 1341
 
 /* ============================================================================
  * BLACKGUARD PERKS (1400-1499)
  * ============================================================================ */
 /* TREE A: Tyranny & Fear - Tier 1 */
-#define PERK_BLACKGUARD_DREAD_PRESENCE        1400
-#define PERK_BLACKGUARD_INTIMIDATING_SMITE    1401
-#define PERK_BLACKGUARD_CRUEL_EDGE            1402
-#define PERK_BLACKGUARD_COMMAND_THE_WEAK      1403
+#define PERK_BLACKGUARD_DREAD_PRESENCE 1400
+#define PERK_BLACKGUARD_INTIMIDATING_SMITE 1401
+#define PERK_BLACKGUARD_CRUEL_EDGE 1402
+#define PERK_BLACKGUARD_COMMAND_THE_WEAK 1403
 
 /* TREE A: Tyranny & Fear - Tier 2 */
 #define PERK_BLACKGUARD_AURA_OF_COWARDICE_PERK 1404 /* enhances existing aura feat */
-#define PERK_BLACKGUARD_TERROR_TACTICS         1405
-#define PERK_BLACKGUARD_BLACK_SERAPH_STEP      1406
-#define PERK_BLACKGUARD_NIGHTMARISH_VISAGE     1407
+#define PERK_BLACKGUARD_TERROR_TACTICS 1405
+#define PERK_BLACKGUARD_BLACK_SERAPH_STEP 1406
+#define PERK_BLACKGUARD_NIGHTMARISH_VISAGE 1407
 
 /* TREE A: Tyranny & Fear - Tier 3 */
-#define PERK_BLACKGUARD_PARALYZING_DREAD       1408
-#define PERK_BLACKGUARD_DESPAIR_HARVEST        1409
-#define PERK_BLACKGUARD_SHACKLES_OF_AWE        1410
-#define PERK_BLACKGUARD_PROFANE_DOMINION       1411
+#define PERK_BLACKGUARD_PARALYZING_DREAD 1408
+#define PERK_BLACKGUARD_DESPAIR_HARVEST 1409
+#define PERK_BLACKGUARD_SHACKLES_OF_AWE 1410
+#define PERK_BLACKGUARD_PROFANE_DOMINION 1411
 
 /* TREE A: Tyranny & Fear - Tier 4 (Capstones) */
-#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
-#define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
+#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR 1412
+#define PERK_BLACKGUARD_MIDNIGHT_EDICT 1413
 
 /* TREE A: Tyranny & Fear - Tier 3 */
-#define PERK_BLACKGUARD_PARALYZING_DREAD       1408
-#define PERK_BLACKGUARD_DESPAIR_HARVEST        1409
-#define PERK_BLACKGUARD_SHACKLES_OF_AWE        1410
-#define PERK_BLACKGUARD_PROFANE_DOMINION       1411
+#define PERK_BLACKGUARD_PARALYZING_DREAD 1408
+#define PERK_BLACKGUARD_DESPAIR_HARVEST 1409
+#define PERK_BLACKGUARD_SHACKLES_OF_AWE 1410
+#define PERK_BLACKGUARD_PROFANE_DOMINION 1411
 
 /* TREE A: Tyranny & Fear - Tier 4 (Capstones) */
-#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR    1412
-#define PERK_BLACKGUARD_MIDNIGHT_EDICT         1413
+#define PERK_BLACKGUARD_SOVEREIGN_OF_TERROR 1412
+#define PERK_BLACKGUARD_MIDNIGHT_EDICT 1413
 
 /* TREE B: Profane Might - Tier 1 */
-#define PERK_BLACKGUARD_VILE_STRIKE            1414
-#define PERK_BLACKGUARD_CRUEL_MOMENTUM         1415
-#define PERK_BLACKGUARD_DARK_CHANNEL           1416
-#define PERK_BLACKGUARD_BRUTAL_OATH            1417
+#define PERK_BLACKGUARD_VILE_STRIKE 1414
+#define PERK_BLACKGUARD_CRUEL_MOMENTUM 1415
+#define PERK_BLACKGUARD_DARK_CHANNEL 1416
+#define PERK_BLACKGUARD_BRUTAL_OATH 1417
 
 /* TREE B: Profane Might - Tier 2 */
-#define PERK_BLACKGUARD_RAVAGING_SMITE         1418
-#define PERK_BLACKGUARD_PROFANE_WEAPON_BOND    1419
-#define PERK_BLACKGUARD_RELENTLESS_ASSAULT     1420
-#define PERK_BLACKGUARD_SANGUINE_BARRIER       1421
+#define PERK_BLACKGUARD_RAVAGING_SMITE 1418
+#define PERK_BLACKGUARD_PROFANE_WEAPON_BOND 1419
+#define PERK_BLACKGUARD_RELENTLESS_ASSAULT 1420
+#define PERK_BLACKGUARD_SANGUINE_BARRIER 1421
 
 /* TREE B: Profane Might - Tier 3 */
-#define PERK_BLACKGUARD_DOOM_CLEAVE            1422
-#define PERK_BLACKGUARD_SOUL_REND              1423
-#define PERK_BLACKGUARD_BLACKENED_PRECISION   1424
-#define PERK_BLACKGUARD_UNHOLY_BLITZ           1425
+#define PERK_BLACKGUARD_DOOM_CLEAVE 1422
+#define PERK_BLACKGUARD_SOUL_REND 1423
+#define PERK_BLACKGUARD_BLACKENED_PRECISION 1424
+#define PERK_BLACKGUARD_UNHOLY_BLITZ 1425
 
 /* TREE B: Profane Might - Tier 4 (Capstones) */
-#define PERK_BLACKGUARD_AVATAR_OF_PROFANITY    1426
-#define PERK_BLACKGUARD_CATACLYSMIC_SMITE      1427
+#define PERK_BLACKGUARD_AVATAR_OF_PROFANITY 1426
+#define PERK_BLACKGUARD_CATACLYSMIC_SMITE 1427
 
 /* TREE C: Unholy Resilience - Tier 1 */
-#define PERK_BLACKGUARD_PROFANE_FORTITUDE      1428
-#define PERK_BLACKGUARD_DARK_AEGIS             1429
-#define PERK_BLACKGUARD_GRAVEBORN_VIGOR        1430
-#define PERK_BLACKGUARD_SINISTER_RECOVERY      1431
+#define PERK_BLACKGUARD_PROFANE_FORTITUDE 1428
+#define PERK_BLACKGUARD_DARK_AEGIS 1429
+#define PERK_BLACKGUARD_GRAVEBORN_VIGOR 1430
+#define PERK_BLACKGUARD_SINISTER_RECOVERY 1431
 
 /* TREE C: Unholy Resilience - Tier 2 */
-#define PERK_BLACKGUARD_AURA_OF_DESECRATION    1432
-#define PERK_BLACKGUARD_FELL_WARD             1433
-#define PERK_BLACKGUARD_DEFIANT_HIDE           1434
-#define PERK_BLACKGUARD_SHADE_STEP             1435
+#define PERK_BLACKGUARD_AURA_OF_DESECRATION 1432
+#define PERK_BLACKGUARD_FELL_WARD 1433
+#define PERK_BLACKGUARD_DEFIANT_HIDE 1434
+#define PERK_BLACKGUARD_SHADE_STEP 1435
 
 /* TREE C: Unholy Resilience - Tier 3 */
-#define PERK_BLACKGUARD_NECROTIC_REGENERATION  1436
-#define PERK_BLACKGUARD_UNHOLY_FORTIFICATION   1437
-#define PERK_BLACKGUARD_BLASPHEMOUS_WARDING    1438
-#define PERK_BLACKGUARD_RESILIENT_CORRUPTION   1439
+#define PERK_BLACKGUARD_NECROTIC_REGENERATION 1436
+#define PERK_BLACKGUARD_UNHOLY_FORTIFICATION 1437
+#define PERK_BLACKGUARD_BLASPHEMOUS_WARDING 1438
+#define PERK_BLACKGUARD_RESILIENT_CORRUPTION 1439
 
 /* TREE C: Unholy Resilience - Tier 4 (Capstone) */
-#define PERK_BLACKGUARD_UNDYING_VIGOR          1440
+#define PERK_BLACKGUARD_UNDYING_VIGOR 1440
 /* New Blackguard Unholy Resilience Tier 3 additions */
-#define PERK_BLACKGUARD_SOUL_CARAPACE          1441
-#define PERK_BLACKGUARD_WARDING_MALICE         1442
-#define PERK_BLACKGUARD_BLACKGUARDS_REPRISAL   1443
+#define PERK_BLACKGUARD_SOUL_CARAPACE 1441
+#define PERK_BLACKGUARD_WARDING_MALICE 1442
+#define PERK_BLACKGUARD_BLACKGUARDS_REPRISAL 1443
 
 /* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 1) */
-#define PERK_INQUISITOR_EMPOWERED_JUDGMENT     1444
-#define PERK_INQUISITOR_SWIFT_SPELLCASTER      1445
+#define PERK_INQUISITOR_EMPOWERED_JUDGMENT 1444
+#define PERK_INQUISITOR_SWIFT_SPELLCASTER 1445
 #define PERK_INQUISITOR_SPELL_FOCUS_DIVINATION 1446
-#define PERK_INQUISITOR_JUDGMENT_RECOVERY      1447
+#define PERK_INQUISITOR_JUDGMENT_RECOVERY 1447
 
 /* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 2) */
-#define PERK_INQUISITOR_ENHANCED_BANE          1448
-#define PERK_INQUISITOR_DIVINE_RESILIENCE      1449
-#define PERK_INQUISITOR_SPELL_PENETRATION      1450
-#define PERK_INQUISITOR_PERSISTENT_JUDGMENT    1451
+#define PERK_INQUISITOR_ENHANCED_BANE 1448
+#define PERK_INQUISITOR_DIVINE_RESILIENCE 1449
+#define PERK_INQUISITOR_SPELL_PENETRATION 1450
+#define PERK_INQUISITOR_PERSISTENT_JUDGMENT 1451
 
 /* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 3) */
-#define PERK_INQUISITOR_GREATER_JUDGMENT       1452
-#define PERK_INQUISITOR_SPELL_METAMASTERY      1453
-#define PERK_INQUISITOR_RIGHTEOUS_STRIKE       1454
-#define PERK_INQUISITOR_VERSATILE_JUDGMENT     1455
+#define PERK_INQUISITOR_GREATER_JUDGMENT 1452
+#define PERK_INQUISITOR_SPELL_METAMASTERY 1453
+#define PERK_INQUISITOR_RIGHTEOUS_STRIKE 1454
+#define PERK_INQUISITOR_VERSATILE_JUDGMENT 1455
 /* Inquisitor Perks - Judgment & Spellcasting Tree (Tier 4) */
-#define PERK_INQUISITOR_JUDGMENT_MASTERY       1456
-#define PERK_INQUISITOR_DIVINE_SPELLSTRIKE     1457
-#define PERK_INQUISITOR_INEXORABLE_JUDGMENT    1458
-#define PERK_INQUISITOR_SUPREME_SPELLCASTING   1459
+#define PERK_INQUISITOR_JUDGMENT_MASTERY 1456
+#define PERK_INQUISITOR_DIVINE_SPELLSTRIKE 1457
+#define PERK_INQUISITOR_INEXORABLE_JUDGMENT 1458
+#define PERK_INQUISITOR_SUPREME_SPELLCASTING 1459
 
 /* Inquisitor Perks - Hunter's Arsenal Tree (Tier 1) */
-#define PERK_INQUISITOR_STUDIED_TARGET         1460
-#define PERK_INQUISITOR_FAVORED_TERRAIN        1461
-#define PERK_INQUISITOR_HUNTERS_PRECISION      1462
-#define PERK_INQUISITOR_TRACK_AND_HUNT         1463
+#define PERK_INQUISITOR_STUDIED_TARGET 1460
+#define PERK_INQUISITOR_FAVORED_TERRAIN 1461
+#define PERK_INQUISITOR_HUNTERS_PRECISION 1462
+#define PERK_INQUISITOR_TRACK_AND_HUNT 1463
 
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
@@ -4412,14 +4439,14 @@
 #define ITEM_HUNT_TROPHY 49    // used to mark a hunt target mob
 #define ITEM_WEAPON_OIL 50
 #define ITEM_GEAR_OUTFIT 51
-#define ITEM_DRINK 52 // Used for the nerw drink system.  Replaces drink containers and fountains.
+#define ITEM_DRINK 52   // Used for the nerw drink system.  Replaces drink containers and fountains.
 #define ITEM_VEHICLE 53 // General vehicle object (for CWG style)
-#define ITEM_SHIP_OBJECT 54 // Outcast style ship object
-#define ITEM_VESSEL 55 // Unified vessel system object
+#define ITEM_SHIP_OBJECT 54   // Outcast style ship object
+#define ITEM_VESSEL 55        // Unified vessel system object
 #define ITEM_GREYHAWK_SHIP 56 // Greyhawk ship object type (type 57 conflicts resolved to 56)
 /* make sure to add to - display_item_object_values() */
 #define ITEM_CRAFTING_TOOL 57 // Crafting tool for item creation
-#define NUM_ITEM_TYPES 58 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 58     /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
@@ -4734,7 +4761,7 @@
 #define ITEM_CRAFTING_JEWELCRAFTING_STATION 110
 #define ITEM_CRAFTING_TANNERY 111
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
-#define ITEM_TRAPPED 113 // This object has a trap attached
+#define ITEM_TRAPPED 113     // This object has a trap attached
 #define ITEM_ACCOUNT_EXP 114 // item is bought for account exp
 #define ITEM_REFORGEABLE 115 // item can be reforged
 /** Total number of item flags */
@@ -4833,20 +4860,20 @@
 /** Total number of applies */
 #define NUM_APPLIES 75
 
-#define APPLY_TYPE_NONE             0
-#define APPLY_TYPE_ABILITY          1
-#define APPLY_TYPE_RESOURCE         2
-#define APPLY_TYPE_ATTACK           3
-#define APPLY_TYPE_SAVE             4
-#define APPLY_TYPE_SKILL            5
-#define APPLY_TYPE_RESIST_MAGIC     6
-#define APPLY_TYPE_RESIST_PHYSICAL  7
-#define APPLY_TYPE_AC               8
+#define APPLY_TYPE_NONE 0
+#define APPLY_TYPE_ABILITY 1
+#define APPLY_TYPE_RESOURCE 2
+#define APPLY_TYPE_ATTACK 3
+#define APPLY_TYPE_SAVE 4
+#define APPLY_TYPE_SKILL 5
+#define APPLY_TYPE_RESIST_MAGIC 6
+#define APPLY_TYPE_RESIST_PHYSICAL 7
+#define APPLY_TYPE_AC 8
 #define APPLY_TYPE_DAMAGE_REDUCTION 9
-#define APPLY_TYPE_REGEN            10
-#define APPLY_TYPE_SPELL_RESIST     11
-#define APPLY_TYPE_SPELL_SLOT       12
-#define APPLY_TYPE_SPELL_ENHANCE    13
+#define APPLY_TYPE_REGEN 10
+#define APPLY_TYPE_SPELL_RESIST 11
+#define APPLY_TYPE_SPELL_SLOT 12
+#define APPLY_TYPE_SPELL_ENHANCE 13
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 40
@@ -5377,19 +5404,19 @@
 #define NUM_KENDER_BAUBLES 314
 
 // eldritch blast cooldown types
-#define ELDRITCH_BLAST_COOLDOWN_NONE                0
-#define ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST      1
-#define ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST     2
-#define ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST    3
-#define ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST     4
-#define ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST      5
-#define ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST    6
-#define ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST       7
-#define ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST     8
-#define ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST       9
-#define ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST     10
+#define ELDRITCH_BLAST_COOLDOWN_NONE 0
+#define ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST 1
+#define ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST 2
+#define ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST 3
+#define ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST 4
+#define ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST 5
+#define ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST 6
+#define ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST 7
+#define ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST 8
+#define ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST 9
+#define ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST 10
 
-#define NUM_ELDRITCH_BLAST_COOLDOWNS                11
+#define NUM_ELDRITCH_BLAST_COOLDOWNS 11
 
 /* invention system */
 #define MAX_PLAYER_INVENTIONS 10
@@ -5500,7 +5527,7 @@
  * This should be set >= SECS_PER_MUD_HOUR */
 #define PULSE_TIMESAVE (30 * 60 RL_SEC)
 // how often to reset the new crafting system harvest materials
-#define PULSE_RESET_HARVEST_MATS  (30 * 60 RL_SEC)
+#define PULSE_RESET_HARVEST_MATS (30 * 60 RL_SEC)
 /* Variables for the output buffering system */
 #define MAX_SOCK_BUF (24 * 1024) /**< Size of kernel's sock buf   */
 #define MAX_PROMPT_LENGTH 400    /**< Max length of prompt        */
@@ -5521,23 +5548,23 @@
 #define PLR_DESC_LENGTH 4096             /**< Max length for PC description */
 #define MAX_HELP_ENTRY MAX_STRING_LENGTH /**< Max size of help entry */
 
-#define MAX_MESSAGES 200      /**< Max Different attack message types */
-#define MAX_NAME_LENGTH 20    /**< Max PC/NPC name length */
-#define MAX_PWD_LENGTH 30     /**< Max PC password length */
-#define MAX_TITLE_LENGTH 80   /**< Max PC title length */
-#define MAX_IMM_TITLE_LENGTH 20   /**< Max Imm Title Length */
-#define HOST_LENGTH 40        /**< Max hostname resolution length */
-#define MAX_NOTE_LENGTH 4000  /**< Max length of text on a note obj */
-#define MAX_LAST_ENTRIES 6000 /**< Max log entries?? */
+#define MAX_MESSAGES 200        /**< Max Different attack message types */
+#define MAX_NAME_LENGTH 20      /**< Max PC/NPC name length */
+#define MAX_PWD_LENGTH 30       /**< Max PC password length */
+#define MAX_TITLE_LENGTH 80     /**< Max PC title length */
+#define MAX_IMM_TITLE_LENGTH 20 /**< Max Imm Title Length */
+#define HOST_LENGTH 40          /**< Max hostname resolution length */
+#define MAX_NOTE_LENGTH 4000    /**< Max length of text on a note obj */
+#define MAX_LAST_ENTRIES 6000   /**< Max log entries?? */
 
-#define MAX_SKILLS 4000           /**< Max number of skills */
-#define MAX_SPELLS 2000           /**< Max number of spells */
-#define MAX_ABILITIES 200         /**< Max number of abilities */
-#define MAX_AFFECT 32             /**< Max number of player affections */
-#define MAX_OBJ_AFFECT 6          /**< Max object affects */
-#define MAX_HELP_KEYWORDS 256     /**< Max length of help keyword string */
-#define MAX_COMPLETED_QUESTS 1024 /**< Maximum number of completed quests allowed */
-#define MAX_ANGER 100             /**< Maximum mob anger/frustration as percentage */
+#define MAX_SKILLS 4000                 /**< Max number of skills */
+#define MAX_SPELLS 2000                 /**< Max number of spells */
+#define MAX_ABILITIES 200               /**< Max number of abilities */
+#define MAX_AFFECT 32                   /**< Max number of player affections */
+#define MAX_OBJ_AFFECT 6                /**< Max object affects */
+#define MAX_HELP_KEYWORDS 256           /**< Max length of help keyword string */
+#define MAX_COMPLETED_QUESTS 1024       /**< Maximum number of completed quests allowed */
+#define MAX_ANGER 100                   /**< Maximum mob anger/frustration as percentage */
 #define PLR_BG_LENGTH MAX_STRING_LENGTH /**< Max length for PC background story */
 #define PLR_GOALS_LENGTH MAX_STRING_LENGTH
 #define PLR_PERSONALITY_LENGTH MAX_STRING_LENGTH
@@ -5586,7 +5613,7 @@ typedef signed short int sh_int;    /**< 2 bytes; vals = -32,768 to 32,767 */
 typedef unsigned short int ush_int; /**< 2 bytes; vals = 0 to 65,535 */
 
 #if !defined(CIRCLE_WINDOWS) || defined(LCC_WIN32) /* Hm, sysdep.h? */
-typedef signed char byte;                          /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */
+typedef signed char byte; /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */
 #endif
 
 /* Various virtual (human-reference) number types. */
@@ -5614,9 +5641,9 @@ typedef IDXTYPE clan_rnum;   /**< references an instance of a clan */
 typedef IDXTYPE region_rnum; /**< references an instance of a region */
 typedef IDXTYPE path_rnum;   /**< references an instance of a path */
 
-typedef IDXTYPE	room_num;
-typedef IDXTYPE	room_num;
-typedef IDXTYPE	obj_num;
+typedef IDXTYPE room_num;
+typedef IDXTYPE room_num;
+typedef IDXTYPE obj_num;
 
 /** Bitvector type for 32 bit unsigned long bitvectors. 'unsigned long long'
  * will give you at least 64 bits if you have GCC. You'll have to search
@@ -5631,9 +5658,9 @@ typedef unsigned long int bitvector_t;
  * linked list. */
 struct extra_descr_data
 {
-    char *keyword;                 /**< Keyword for look/examine  */
-    char *description;             /**< What is shown when this keyword is 'seen' */
-    struct extra_descr_data *next; /**< Next description for this mob/obj/room */
+  char *keyword;                 /**< Keyword for look/examine  */
+  char *description;             /**< What is shown when this keyword is 'seen' */
+  struct extra_descr_data *next; /**< Next description for this mob/obj/room */
 };
 
 /* object-related structures */
@@ -5651,57 +5678,58 @@ struct extra_descr_data
  * a real object, values that can change during gameplay. */
 struct obj_flag_data
 {
-    int value[NUM_OBJ_VAL_POSITIONS]; /**< Values of the item (see list)    */
-    byte type_flag;                   /**< Type of item			    */
-    byte prof_flag;                   // proficiency associated with item
-    int level;                        /**< Minimum level to use object	    */
-    int wear_flags[TW_ARRAY_MAX];     /**< Where you can wear it, if wearable */
-    int extra_flags[EF_ARRAY_MAX];    /**< If it hums, glows, etc.	    */
-    int weight;                       /**< Weight of the object */
-    int cost;                         /**< Value when sold             */
-    int cost_per_day;                 /**< Rent cost per real day */
-    int timer;                        /**< Timer for object             */
-    int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
-    int bitvector2[AF_ARRAY_MAX];      /**< Affects 2 characters           */
-    int i_sort;                       /**< What 'bag' is it sorted into in the inventory? */
+  int value[NUM_OBJ_VAL_POSITIONS]; /**< Values of the item (see list)    */
+  byte type_flag;                   /**< Type of item			    */
+  byte prof_flag;                   // proficiency associated with item
+  int level;                        /**< Minimum level to use object	    */
+  int wear_flags[TW_ARRAY_MAX];     /**< Where you can wear it, if wearable */
+  int extra_flags[EF_ARRAY_MAX];    /**< If it hums, glows, etc.	    */
+  int weight;                       /**< Weight of the object */
+  int cost;                         /**< Value when sold             */
+  int cost_per_day;                 /**< Rent cost per real day */
+  int timer;                        /**< Timer for object             */
+  int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
+  int bitvector2[AF_ARRAY_MAX];     /**< Affects 2 characters           */
+  int i_sort;                       /**< What 'bag' is it sorted into in the inventory? */
 
-    byte material; // what material is the item made of?
-    int size;      // how big is the object?
+  byte material; // what material is the item made of?
+  int size;      // how big is the object?
 
-    int spec_timer[SPEC_TIMER_MAX]; /* For timed procs - from homeland*/
-    int bound_id;                   /* ID of player this item is bound to */
+  int spec_timer[SPEC_TIMER_MAX]; /* For timed procs - from homeland*/
+  int bound_id;                   /* ID of player this item is bound to */
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
  * and already have a player base and don't want to do a player wipe. */
 struct obj_affected_type
 {
-    byte location;  /**< Which ability to change (APPLY_XXX) */
-    int modifier;   /**< How much it changes by              */
-    int bonus_type; /**< What type of bonus is this. */
-    int specific;   // for feats and skills
+  byte location;  /**< Which ability to change (APPLY_XXX) */
+  int modifier;   /**< How much it changes by              */
+  int bonus_type; /**< What type of bonus is this. */
+  int specific;   // for feats and skills
 };
 
 /* For weapon spells. */
 struct weapon_spells
 {
-    int spellnum;  // spellnum weapon will cast
-    int level;     // level at which it will cast spellnum
-    int percent;   // chance spellnum will fire per round
-    int inCombat;  // will spellnum fire only in combat?
-    int uses_left; // If it'd a temporary effect, this is the number of uses left
+  int spellnum;  // spellnum weapon will cast
+  int level;     // level at which it will cast spellnum
+  int percent;   // chance spellnum will fire per round
+  int inCombat;  // will spellnum fire only in combat?
+  int uses_left; // If it'd a temporary effect, this is the number of uses left
 };
 
 /* For special abilities for weapons, armor and 'wonderous items' - Ornir */
 struct obj_special_ability
 {
-    int ability;                         /* Which ability does this object have? */
-    int level;                           /* The 'Caster Level' of the affect. */
-    int activation_method;               /* Command word, wearing/wielding, Hitting, On Critical, etc. */
-    char *command_word;                  /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */
-    int value[NUM_SPECAB_VAL_POSITIONS]; /* Values for the special ability, see specab.c/specab.h for a list. */
+  int ability;           /* Which ability does this object have? */
+  int level;             /* The 'Caster Level' of the affect. */
+  int activation_method; /* Command word, wearing/wielding, Hitting, On Critical, etc. */
+  char *command_word; /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */
+  int value
+      [NUM_SPECAB_VAL_POSITIONS]; /* Values for the special ability, see specab.c/specab.h for a list. */
 
-    struct obj_special_ability *next; /* This is a list of abilities. */
+  struct obj_special_ability *next; /* This is a list of abilities. */
 };
 
 // Spellbooks
@@ -5711,109 +5739,109 @@ struct obj_special_ability
 /* the spellbook struct */
 struct obj_spellbook_spell
 {
-    ush_int spellname; /* Which spell is written */
-    ubyte pages;       /* How many pages does it take up */
+  ush_int spellname; /* Which spell is written */
+  ubyte pages;       /* How many pages does it take up */
 };
 
 /* for weapons, the poison-data if poison is applied */
 struct obj_weapon_poison
 {
-    int poison;       /* right now this is a spell (i.e. spellnum) */
-    int poison_level; /* level to cast above spell */
-    int poison_hits;  /* how many times the poison will fire off the weapon */
+  int poison;       /* right now this is a spell (i.e. spellnum) */
+  int poison_level; /* level to cast above spell */
+  int poison_hits;  /* how many times the poison will fire off the weapon */
 };
 
 // Supply contract structure for slot-based system
-struct supply_contract {
-    int contract_id;
-    int contract_type;
-    int recipe;
-    int variant;
-    int quantity;
-    int reward;
-    int difficulty_modifier;
-    char *description;
-    char *requirements;
-    int time_limit;  // in real hours, 0 = no limit
-    int reputation_requirement;
-    int quality_tier_requirement;
-    time_t expiration_time;
+struct supply_contract
+{
+  int contract_id;
+  int contract_type;
+  int recipe;
+  int variant;
+  int quantity;
+  int reward;
+  int difficulty_modifier;
+  char *description;
+  char *requirements;
+  int time_limit; // in real hours, 0 = no limit
+  int reputation_requirement;
+  int quality_tier_requirement;
+  time_t expiration_time;
 };
 
 struct crafting_data_info
 {
-    // craft info
-    int crafting_method;                            // crafting method Eg. create, restring, resize, etc.
-    int crafting_item_type;                         // weapon, armor, misc
-    int crafting_specific;                          // long sword, full plate breastplate, earring
-    int skill_type;
-    int crafting_recipe;
-    int craft_variant;
-    int materials[NUM_CRAFT_GROUPS][2];             // 0 = mat type, 1 = mat amount
-    int craft_obj_rnum;
+  // craft info
+  int crafting_method;    // crafting method Eg. create, restring, resize, etc.
+  int crafting_item_type; // weapon, armor, misc
+  int crafting_specific;  // long sword, full plate breastplate, earring
+  int skill_type;
+  int crafting_recipe;
+  int craft_variant;
+  int materials[NUM_CRAFT_GROUPS][2]; // 0 = mat type, 1 = mat amount
+  int craft_obj_rnum;
 
-    // obj info
-    char *keywords;
-    char *short_description;
-    char *room_description;
-    char *ex_description;
-    struct obj_flag_data obj_flags;
-    struct obj_affected_type affected[MAX_OBJ_AFFECT];
-    int motes_required[MAX_OBJ_AFFECT];
-    int enhancement;
-    int enhancement_motes_required;
+  // obj info
+  char *keywords;
+  char *short_description;
+  char *room_description;
+  char *ex_description;
+  struct obj_flag_data obj_flags;
+  struct obj_affected_type affected[MAX_OBJ_AFFECT];
+  int motes_required[MAX_OBJ_AFFECT];
+  int enhancement;
+  int enhancement_motes_required;
 
-    // process info
-    int skill_roll;
-    int dc;
-    int craft_duration;
-    int obj_level;
-    int level_adjust;
+  // process info
+  int skill_roll;
+  int dc;
+  int craft_duration;
+  int obj_level;
+  int level_adjust;
 
-    // refining info
-    int refining_materials[3][2];
-    int refining_result[2];
+  // refining info
+  int refining_materials[3][2];
+  int refining_result[2];
 
-    // resize info
-    int new_size;
-    int resize_mat_type;
-    int resize_mat_num;
+  // resize info
+  int new_size;
+  int resize_mat_type;
+  int resize_mat_num;
 
-    // supply order info
-    int supply_num_required;
-    int supply_contract_type;
-    int supply_reputation_points;
-    time_t supply_contract_expiration;
-    int supply_quality_tier_requirement;
-    bool has_supply_order_active;               // New field to track active supply orders
-    int supply_active_slot;                     // Which slot index is currently being worked (-1 if none)
-    
-    // supply order slot system
-    struct supply_contract supply_slots[5];     // 5 persistent supply order slots
-    bool supply_slot_active[5];                 // Which slots are occupied
-    time_t supply_slot_cooldowns[5];            // Individual cooldowns for each slot (when taken/abandoned)
-    time_t supply_slots_last_refresh;           // When slots were last refreshed
-    time_t supply_slots_next_refresh;           // When next refresh is available
+  // supply order info
+  int supply_num_required;
+  int supply_contract_type;
+  int supply_reputation_points;
+  time_t supply_contract_expiration;
+  int supply_quality_tier_requirement;
+  bool has_supply_order_active; // New field to track active supply orders
+  int supply_active_slot;       // Which slot index is currently being worked (-1 if none)
 
-    // surveying;
-    int survey_rooms;
+  // supply order slot system
+  struct supply_contract supply_slots[5]; // 5 persistent supply order slots
+  bool supply_slot_active[5];             // Which slots are occupied
+  time_t supply_slot_cooldowns[5];  // Individual cooldowns for each slot (when taken/abandoned)
+  time_t supply_slots_last_refresh; // When slots were last refreshed
+  time_t supply_slots_next_refresh; // When next refresh is available
 
-    // instruments
-    int instrument_type;
-    int instrument_quality;
-    int instrument_effectiveness;
-    int instrument_breakability;
-    int instrument_motes[4];
-    
-    // efficient talent saved materials [material_type][amount]
-    int efficient_saved_materials[NUM_CRAFT_GROUPS][2];
-    
-    // golem crafting info
-    int golem_type;                 // GOLEM_TYPE_WOOD, STONE, IRON
-    int golem_size;                 // GOLEM_SIZE_SMALL, MEDIUM, LARGE, HUGE
-    int golem_materials[NUM_CRAFT_GROUPS][2];  // 0 = mat type, 1 = mat amount for golem
-    int golem_motes_required[NUM_CRAFT_MOTES]; // motes needed for golem
-    
+  // surveying;
+  int survey_rooms;
+
+  // instruments
+  int instrument_type;
+  int instrument_quality;
+  int instrument_effectiveness;
+  int instrument_breakability;
+  int instrument_motes[4];
+
+  // efficient talent saved materials [material_type][amount]
+  int efficient_saved_materials[NUM_CRAFT_GROUPS][2];
+
+  // golem crafting info
+  int golem_type;                            // GOLEM_TYPE_WOOD, STONE, IRON
+  int golem_size;                            // GOLEM_SIZE_SMALL, MEDIUM, LARGE, HUGE
+  int golem_materials[NUM_CRAFT_GROUPS][2];  // 0 = mat type, 1 = mat amount for golem
+  int golem_motes_required[NUM_CRAFT_MOTES]; // motes needed for golem
 };
 
 /* ============================================================================ */
@@ -5823,99 +5851,102 @@ struct crafting_data_info
 /** Trap Data Structure - Attached to rooms or objects */
 struct trap_data
 {
-    int trap_type;               /* TRAP_TYPE_* constant (acid, fire, spike, etc) */
-    int severity;                /* TRAP_SEVERITY_* (minor, average, strong, deadly, epic) */
-    int trigger_type;            /* TRAP_TRIGGER_* (enter room, open container, etc) */
-    int detect_dc;               /* DC for Perception check to detect trap */
-    int disarm_dc;               /* DC for Disable Device check to disarm trap */
-    int save_dc;                 /* DC for saving throw if trap triggers */
-    int save_type;               /* TRAP_SAVE_* (none, reflex, fortitude, will) */
-    int damage_dice_num;         /* Number of damage dice (e.g., 3 in 3d6) */
-    int damage_dice_size;        /* Size of damage dice (e.g., 6 in 3d6) */
-    int damage_type;             /* DAM_* type (fire, cold, acid, etc) */
-    int special_effect;          /* TRAP_SPECIAL_* effect (paralysis, slow, etc) */
-    int special_duration;        /* Duration of special effect in rounds */
-    int area_radius;             /* Radius of area effect (0 = single target) */
-    int max_targets;             /* Max targets for area effect traps */
-    long flags;                  /* TRAP_FLAG_* bitvector */
-    int trigger_vnum;            /* For object traps: vnum of triggering object/door */
-    int trigger_direction;       /* For door traps: direction of the door */
-    char *trap_name;             /* Custom name for the trap (optional) */
-    char *trigger_message_char;  /* Message to character when trap triggers */
-    char *trigger_message_room;  /* Message to room when trap triggers */
-    struct trap_data *next;      /* For lists of traps in a room */
+  int trap_type;              /* TRAP_TYPE_* constant (acid, fire, spike, etc) */
+  int severity;               /* TRAP_SEVERITY_* (minor, average, strong, deadly, epic) */
+  int trigger_type;           /* TRAP_TRIGGER_* (enter room, open container, etc) */
+  int detect_dc;              /* DC for Perception check to detect trap */
+  int disarm_dc;              /* DC for Disable Device check to disarm trap */
+  int save_dc;                /* DC for saving throw if trap triggers */
+  int save_type;              /* TRAP_SAVE_* (none, reflex, fortitude, will) */
+  int damage_dice_num;        /* Number of damage dice (e.g., 3 in 3d6) */
+  int damage_dice_size;       /* Size of damage dice (e.g., 6 in 3d6) */
+  int damage_type;            /* DAM_* type (fire, cold, acid, etc) */
+  int special_effect;         /* TRAP_SPECIAL_* effect (paralysis, slow, etc) */
+  int special_duration;       /* Duration of special effect in rounds */
+  int area_radius;            /* Radius of area effect (0 = single target) */
+  int max_targets;            /* Max targets for area effect traps */
+  long flags;                 /* TRAP_FLAG_* bitvector */
+  int trigger_vnum;           /* For object traps: vnum of triggering object/door */
+  int trigger_direction;      /* For door traps: direction of the door */
+  char *trap_name;            /* Custom name for the trap (optional) */
+  char *trigger_message_char; /* Message to character when trap triggers */
+  char *trigger_message_room; /* Message to room when trap triggers */
+  struct trap_data *next;     /* For lists of traps in a room */
 };
 
 /** The Object structure. */
 struct obj_data
 {
-    obj_rnum item_number; /**< The unique id of this object instance. */
-    room_rnum in_room;    /**< What room is the object lying in, or -1? */
+  obj_rnum item_number; /**< The unique id of this object instance. */
+  room_rnum in_room;    /**< What room is the object lying in, or -1? */
 
-    struct obj_flag_data obj_flags;                    /**< Object information */
-    struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
-    struct obj_weapon_poison weapon_poison;            /* for weapons, applied poison */
+  struct obj_flag_data obj_flags;                    /**< Object information */
+  struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
+  struct obj_weapon_poison weapon_poison;            /* for weapons, applied poison */
 
-    char *name;                              /**< Keyword reference(s) for object. */
-    char *description;                       /**< Shown when the object is lying in a room. */
-    char *short_description;                 /**< Shown when worn, carried, in a container */
-    char *action_description;                /**< Displays when (if) the object is used */
-    struct extra_descr_data *ex_description; /**< List of extra descriptions */
-    struct char_data *carried_by;            /**< Points to PC/NPC carrying, or NULL */
-    struct char_data *worn_by;               /**< Points to PC/NPC wearing, or NULL */
-    sh_int worn_on;                          /**< If the object can be worn, where can it be worn? */
+  char *name;                              /**< Keyword reference(s) for object. */
+  char *description;                       /**< Shown when the object is lying in a room. */
+  char *short_description;                 /**< Shown when worn, carried, in a container */
+  char *action_description;                /**< Displays when (if) the object is used */
+  struct extra_descr_data *ex_description; /**< List of extra descriptions */
+  struct char_data *carried_by;            /**< Points to PC/NPC carrying, or NULL */
+  struct char_data *worn_by;               /**< Points to PC/NPC wearing, or NULL */
+  sh_int worn_on;                          /**< If the object can be worn, where can it be worn? */
 
-    struct obj_data *in_obj;   /**< Points to carrying object, or NULL */
-    struct obj_data *contains; /**< List of objects being carried, or NULL */
+  struct obj_data *in_obj;   /**< Points to carrying object, or NULL */
+  struct obj_data *contains; /**< List of objects being carried, or NULL */
 
-    long id;                              /**< used by DG triggers - unique id  */
-    struct trig_proto_list *proto_script; /**< list of default triggers  */
-    struct script_data *script;           /**< script info for the object */
+  long id;                              /**< used by DG triggers - unique id  */
+  struct trig_proto_list *proto_script; /**< list of default triggers  */
+  struct script_data *script;           /**< script info for the object */
 
-    struct obj_data *next_gitem;    /**< For group loot list   */
-    struct obj_data *next_content;  /**< For 'contains' lists   */
-    struct obj_data *next;          /**< For the object list */
-    struct char_data *sitting_here; /**< For furniture, who is sitting in it */
+  struct obj_data *next_gitem;    /**< For group loot list   */
+  struct obj_data *next_content;  /**< For 'contains' lists   */
+  struct obj_data *next;          /**< For the object list */
+  struct char_data *sitting_here; /**< For furniture, who is sitting in it */
 
-    bool has_spells; // used to keep track if weapon has weapon_spells
-    // weapon spells allow gear to fire off spells intermittently or in combat
-    struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
+  bool has_spells; // used to keep track if weapon has weapon_spells
+  // weapon spells allow gear to fire off spells intermittently or in combat
+  struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
 
-    struct obj_spellbook_spell *sbinfo; /* For spellbook info */
+  struct obj_spellbook_spell *sbinfo; /* For spellbook info */
 
-    struct list_data *events; /**< Used for object events */
+  struct list_data *events; /**< Used for object events */
 
-    struct obj_special_ability *special_abilities; /**< List used to store special abilities */
+  struct obj_special_ability *special_abilities; /**< List used to store special abilities */
 
-    long missile_id; // non saving variable to id missiles
+  long missile_id; // non saving variable to id missiles
 
-    struct weapon_spells channel_spells[MAX_WEAPON_CHANNEL_SPELLS];
+  struct weapon_spells channel_spells[MAX_WEAPON_CHANNEL_SPELLS];
 
-    mob_vnum mob_recepient; // if this is set, then the object can only be given to a mob with this vnum (or any player)
+  mob_vnum
+      mob_recepient; // if this is set, then the object can only be given to a mob with this vnum (or any player)
 
-    bool drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
-    char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
+  bool
+      drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
+  char *
+      char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
 
-    /* Arcane mark imprint */
-    char *arcane_mark;
+  /* Arcane mark imprint */
+  char *arcane_mark;
 
-    /* Restring identifier for partial object restrings */
-    char *restring_identifier;
+  /* Restring identifier for partial object restrings */
+  char *restring_identifier;
 
-    int tinker_bonus;
-    int temp_bag_num;
+  int tinker_bonus;
+  int temp_bag_num;
 
-    int activate_spell[5]; // used for spells that the item allows you to use.
+  int activate_spell[5]; // used for spells that the item allows you to use.
 
-    struct obj_data *sheath_primary;     // for wielded or 2H weapon
-    struct obj_data *sheath_secondary;   // for offhand weapon or shield
-    
-    /* Trap system - trap attached to this object (container/door) */
-    struct trap_data *trap;              // Trap on this object
-    
-    /* Hash table support for fast rnum lookups */
-    struct obj_data *next_in_hash;      // Next object in hash bucket
-    struct obj_data *prev_in_hash;      // Previous object in hash bucket
+  struct obj_data *sheath_primary;   // for wielded or 2H weapon
+  struct obj_data *sheath_secondary; // for offhand weapon or shield
+
+  /* Trap system - trap attached to this object (container/door) */
+  struct trap_data *trap; // Trap on this object
+
+  /* Hash table support for fast rnum lookups */
+  struct obj_data *next_in_hash; // Next object in hash bucket
+  struct obj_data *prev_in_hash; // Previous object in hash bucket
 };
 
 /** Instance info for an object that gets saved to disk.
@@ -5923,17 +5954,17 @@ struct obj_data
  * and already have a player base and don't want to do a player wipe. */
 struct obj_file_elem
 {
-    obj_vnum item_number; /**< The prototype, non-unique info for this object. */
+  obj_vnum item_number; /**< The prototype, non-unique info for this object. */
 
 #if USE_AUTOEQ
-    sh_int location; /**< If re-equipping objects on load, wear object here */
+  sh_int location; /**< If re-equipping objects on load, wear object here */
 #endif
-    int value[NUM_OBJ_VAL_POSITIONS];                  /**< Current object values */
-    int extra_flags[EF_ARRAY_MAX];                     /**< Object extra flags */
-    int weight;                                        /**< Object weight */
-    int timer;                                         /**< Current object timer setting */
-    int bitvector[AF_ARRAY_MAX];                       /**< Object affects */
-    struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< Affects to mobs */
+  int value[NUM_OBJ_VAL_POSITIONS];                  /**< Current object values */
+  int extra_flags[EF_ARRAY_MAX];                     /**< Object extra flags */
+  int weight;                                        /**< Object weight */
+  int timer;                                         /**< Current object timer setting */
+  int bitvector[AF_ARRAY_MAX];                       /**< Object affects */
+  struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< Affects to mobs */
 };
 
 /** Header block for rent files.
@@ -5946,20 +5977,20 @@ struct obj_file_elem
  * NOTE 2: This structure appears to be unused in this codebase? */
 struct rent_info
 {
-    int time;
-    int rentcode;          /**< How this character rented */
-    int net_cost_per_diem; /**< ? Appears to be unused ? */
-    int gold;              /**< ? Appears to be unused ? */
-    int account;           /**< ? Appears to be unused ? */
-    int nitems;            /**< ? Appears to be unused ? */
-    int spare0;
-    int spare1;
-    int spare2;
-    int spare3;
-    int spare4;
-    int spare5;
-    int spare6;
-    int spare7;
+  int time;
+  int rentcode;          /**< How this character rented */
+  int net_cost_per_diem; /**< ? Appears to be unused ? */
+  int gold;              /**< ? Appears to be unused ? */
+  int account;           /**< ? Appears to be unused ? */
+  int nitems;            /**< ? Appears to be unused ? */
+  int spare0;
+  int spare1;
+  int spare2;
+  int spare3;
+  int spare4;
+  int spare5;
+  int spare6;
+  int spare7;
 };
 
 /* room-related structures */
@@ -5967,28 +5998,28 @@ struct rent_info
 /** Direction (north, south, east...) information for rooms. */
 struct room_direction_data
 {
-    char *general_description; /**< Show to char looking in this direction. */
+  char *general_description; /**< Show to char looking in this direction. */
 
-    char *keyword; /**< for interacting (open/close) this direction */
+  char *keyword; /**< for interacting (open/close) this direction */
 
-    sh_int /*bitvector_t*/ exit_info; /**< Door, and what type? */
-    obj_vnum key;                     /**< Key's vnum (-1 for no key) */
-    room_rnum to_room;                /**< Where direction leads, or NOWHERE if not defined */
+  sh_int /*bitvector_t*/ exit_info; /**< Door, and what type? */
+  obj_vnum key;                     /**< Key's vnum (-1 for no key) */
+  room_rnum to_room;                /**< Where direction leads, or NOWHERE if not defined */
 
-    /* Extra door flags. */
+  /* Extra door flags. */
 };
 
 struct raff_node
 {
-    room_rnum room;       /* location in the world[] array of the room */
-    int timer;            /* how many rounds this affection lasts */
-    long affection;       /* which affection does this room have */
-    int spell;            /* the spell number */
-    struct char_data *ch; // caster of this affection
-    int dc;               // save dc, if specified
-    bool special;         // true if a special affect associated with the room affect applies
+  room_rnum room;       /* location in the world[] array of the room */
+  int timer;            /* how many rounds this affection lasts */
+  long affection;       /* which affection does this room have */
+  int spell;            /* the spell number */
+  struct char_data *ch; // caster of this affection
+  int dc;               // save dc, if specified
+  bool special;         // true if a special affect associated with the room affect applies
 
-    struct raff_node *next; /* link to the next node */
+  struct raff_node *next; /* link to the next node */
 };
 
 /* From trails.h */
@@ -5997,40 +6028,40 @@ struct trail_data_list;
 /** The Room Structure. */
 struct room_data
 {
-    room_vnum number;                                    /**< Rooms number (vnum) */
-    zone_rnum zone;                                      /**< Room zone (for resetting) */
-    int coords[2];                                       /**< Room coordinates (for wilderness) */
-    int sector_type;                                     /**< sector type (move/hide) */
-    int room_flags[RF_ARRAY_MAX];                        /**< INDOORS, DARK, etc */
-    long room_affections;                                /* bitvector for spells/skills */
-    char *name;                                          /**< Room name */
-    char *description;                                   /**< Shown when entered, looked at */
-    struct extra_descr_data *ex_description;             /**< Additional things to look at */
-    struct room_direction_data *dir_option[NUM_OF_DIRS]; /**< Directions */
-    byte light;                                          /**< Number of lightsources in room */
-    byte globe;                                          /**< Number of darkness sources in room */
-    SPECIAL_DECL(*func);                                 /**< Points to special function attached to room */
-    struct trig_proto_list *proto_script;                /**< list of default triggers */
-    struct script_data *script;                          /**< script info for the room */
-    struct obj_data *contents;                           /**< List of items in room */
-    struct char_data *people;                            /**< List of NPCs / PCs in room */
+  room_vnum number;                                    /**< Rooms number (vnum) */
+  zone_rnum zone;                                      /**< Room zone (for resetting) */
+  int coords[2];                                       /**< Room coordinates (for wilderness) */
+  int sector_type;                                     /**< sector type (move/hide) */
+  int room_flags[RF_ARRAY_MAX];                        /**< INDOORS, DARK, etc */
+  long room_affections;                                /* bitvector for spells/skills */
+  char *name;                                          /**< Room name */
+  char *description;                                   /**< Shown when entered, looked at */
+  struct extra_descr_data *ex_description;             /**< Additional things to look at */
+  struct room_direction_data *dir_option[NUM_OF_DIRS]; /**< Directions */
+  byte light;                                          /**< Number of lightsources in room */
+  byte globe;                                          /**< Number of darkness sources in room */
+  SPECIAL_DECL(*func);                  /**< Points to special function attached to room */
+  struct trig_proto_list *proto_script; /**< list of default triggers */
+  struct script_data *script;           /**< script info for the room */
+  struct obj_data *contents;            /**< List of items in room */
+  struct char_data *people;             /**< List of NPCs / PCs in room */
 
-    struct list_data *events; // room events
+  struct list_data *events; // room events
 
-    struct trail_data_list *trail_tracks;
-    // struct trail_data_list *trail_scent;
-    // struct trail_data_list *trail_blood;
-    //// struct trail_data_list *trail_magic;
-    struct moving_room_data  *mover;  /*  if it's a moving room       */
+  struct trail_data_list *trail_tracks;
+  // struct trail_data_list *trail_scent;
+  // struct trail_data_list *trail_blood;
+  //// struct trail_data_list *trail_magic;
+  struct moving_room_data *mover; /*  if it's a moving room       */
 
-    int harvest_material;
-    int harvest_material_amount;
-    
-    /* Greyhawk ship system - pointer to ship data if room is a ship */
-    struct greyhawk_ship_data *ship;
-    
-    /* Trap system - linked list of traps in this room */
-    struct trap_data *traps;  // Pointer to first trap in room (can have multiple)
+  int harvest_material;
+  int harvest_material_amount;
+
+  /* Greyhawk ship system - pointer to ship data if room is a ship */
+  struct greyhawk_ship_data *ship;
+
+  /* Trap system - linked list of traps in this room */
+  struct trap_data *traps; // Pointer to first trap in room (can have multiple)
 };
 
 /* char-related structures */
@@ -6038,8 +6069,8 @@ struct room_data
 /** Memory structure used by NPCs to remember specific PCs. */
 struct memory_rec_struct
 {
-    long id;                        /**< The PC id to remember. */
-    struct memory_rec_struct *next; /**< Next PC to remember */
+  long id;                        /**< The PC id to remember. */
+  struct memory_rec_struct *next; /**< Next PC to remember */
 };
 
 /** memory_rec_struct typedef */
@@ -6049,27 +6080,27 @@ typedef struct memory_rec_struct memory_rec;
  * information about time (real or mudwise). */
 struct time_info_data
 {
-    int hours;   /**< numeric hour */
-    int day;     /**< numeric day */
-    int month;   /**< numeric month */
-    sh_int year; /**< numeric year */
+  int hours;   /**< numeric hour */
+  int day;     /**< numeric day */
+  int month;   /**< numeric month */
+  sh_int year; /**< numeric year */
 };
 
 /** Player specific time information. */
 struct time_data
 {
-    time_t birth; /**< Represents the PCs birthday, used to calculate age. */
-    time_t logon; /**< Time of the last logon, used to calculate time played */
-    int played;   /**< This is the total accumulated time played in secs */
+  time_t birth; /**< Represents the PCs birthday, used to calculate age. */
+  time_t logon; /**< Time of the last logon, used to calculate time played */
+  int played;   /**< This is the total accumulated time played in secs */
 };
 
 /* Group Data Struct */
 struct group_data
 {
-    struct char_data *leader;  /**< leader of group >**/
-    struct list_data *members; /**< list of members >**/
-    int group_flags;           /**< group flags set >**/
-    struct obj_data *gitems;   /**< List head for objects in group loot >**/
+  struct char_data *leader;  /**< leader of group >**/
+  struct list_data *members; /**< list of members >**/
+  int group_flags;           /**< group flags set >**/
+  struct obj_data *gitems;   /**< List head for objects in group loot >**/
 };
 
 /** The pclean_criteria_data is set up in config.c and used in db.c to determine
@@ -6077,41 +6108,41 @@ struct group_data
  * if the automagic pwipe system is enabled (see config.c). */
 struct pclean_criteria_data
 {
-    int level; /**< PC level and below to check for deletion */
-    int days;  /**< time limit in days, for this level of PC */
+  int level; /**< PC level and below to check for deletion */
+  int days;  /**< time limit in days, for this level of PC */
 };
 
 /** General info used by PC's and NPC's. */
 struct char_player_data
 {
-    char passwd[MAX_PWD_LENGTH + 1]; /**< PC's password */
-    char *name;                      /**< PC / NPC name */
-    char *short_descr;               /**< NPC 'actions' */
-    char *long_descr;                /**< PC / NPC look description */
-    char *description;               /**< NPC Extra descriptions */
-    char *title;                     /**< PC / NPC title */
-    byte sex;                        /**< PC / NPC sex */
-    byte chclass;                    /**< PC / NPC class */
-    byte level;                      /**< PC / NPC level */
-    struct time_data time;           /**< PC AGE in days */
-    ubyte weight;                    /**< PC / NPC weight */
-    ubyte height;                    /**< PC / NPC height */
-    byte race;                       // Race
-    byte pc_subrace;                 // SubRace
-    char *walkin;                    // NPC (for now) walkin message
-    char *walkout;                   // NPC (for now) walkout message
-    char *background;                // Character Backgrounds
-    byte exploit_weaknesses;         // has exploit weaknesses taken effect?
-    char *eidolon_shortdescription;
-    char *eidolon_longdescription;
-    char *eidolon_detaildescription;
-    bool weaponSpellProc;
-    char *imm_title;                 // custom title for staff members
-    char *goals;                     // character role play goals
-    char *personality;               // character role play personality
-    char *ideals;                     // character role play ideals
-    char *bonds;                     // character role play bonds
-    char *flaws;                     // character role play flaws
+  char passwd[MAX_PWD_LENGTH + 1]; /**< PC's password */
+  char *name;                      /**< PC / NPC name */
+  char *short_descr;               /**< NPC 'actions' */
+  char *long_descr;                /**< PC / NPC look description */
+  char *description;               /**< NPC Extra descriptions */
+  char *title;                     /**< PC / NPC title */
+  byte sex;                        /**< PC / NPC sex */
+  byte chclass;                    /**< PC / NPC class */
+  byte level;                      /**< PC / NPC level */
+  struct time_data time;           /**< PC AGE in days */
+  ubyte weight;                    /**< PC / NPC weight */
+  ubyte height;                    /**< PC / NPC height */
+  byte race;                       // Race
+  byte pc_subrace;                 // SubRace
+  char *walkin;                    // NPC (for now) walkin message
+  char *walkout;                   // NPC (for now) walkout message
+  char *background;                // Character Backgrounds
+  byte exploit_weaknesses;         // has exploit weaknesses taken effect?
+  char *eidolon_shortdescription;
+  char *eidolon_longdescription;
+  char *eidolon_detaildescription;
+  bool weaponSpellProc;
+  char *imm_title;   // custom title for staff members
+  char *goals;       // character role play goals
+  char *personality; // character role play personality
+  char *ideals;      // character role play ideals
+  char *bonds;       // character role play bonds
+  char *flaws;       // character role play flaws
 };
 
 /** Character abilities. Different instances of this structure are used for
@@ -6119,14 +6150,14 @@ struct char_player_data
  * player strength). */
 struct char_ability_data
 {
-    sbyte str;   /**< Strength.  */
-    sbyte intel; /**< Intelligence */
-    sbyte wis;   /**< Wisdom */
-    sbyte dex;   /**< Dexterity */
-    sbyte con;   /**< Constitution */
-    sbyte cha;   /**< Charisma */
+  sbyte str;   /**< Strength.  */
+  sbyte intel; /**< Intelligence */
+  sbyte wis;   /**< Wisdom */
+  sbyte dex;   /**< Dexterity */
+  sbyte con;   /**< Constitution */
+  sbyte cha;   /**< Charisma */
 
-    /*unused*/ sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */
+  /*unused*/ sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */
 };
 #define NUM_ABILITY_MODS 6
 
@@ -6136,29 +6167,29 @@ struct char_ability_data
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data
 {
-    int psp;               /**< Current psp level  */
-    int max_psp;           /**< Max psp level */
-    int hit;               /**< Curent hit point, or health, level */
-    int max_hit;           /**< Max hit point, or health, level */
-    int move;              /**< Current move point, or stamina, level */
-    int max_move;          /**< Max move point, or stamina, level */
-    sh_int armor;          /**< armor class */
-    sh_int disguise_armor; /**< disguise armor class bonus */
-    sh_int spell_res;      /**< spell resistance */
+  int psp;               /**< Current psp level  */
+  int max_psp;           /**< Max psp level */
+  int hit;               /**< Curent hit point, or health, level */
+  int max_hit;           /**< Max hit point, or health, level */
+  int move;              /**< Current move point, or stamina, level */
+  int max_move;          /**< Max move point, or stamina, level */
+  sh_int armor;          /**< armor class */
+  sh_int disguise_armor; /**< disguise armor class bonus */
+  sh_int spell_res;      /**< spell resistance */
 
-    int gold;      /**< Current gold carried on character */
-    int bank_gold; /**< Gold the char has in a bank account	*/
-    long int exp;       /**< The experience points, or value, of the character. */
-    int artisan_exp; /**< Artisan experience points from supply orders */
+  int gold;        /**< Current gold carried on character */
+  int bank_gold;   /**< Gold the char has in a bank account	*/
+  long int exp;    /**< The experience points, or value, of the character. */
+  int artisan_exp; /**< Artisan experience points from supply orders */
 
-    sbyte hitroll; /**< Any bonus or penalty to the hit roll */
-    sbyte damroll; /**< Any bonus or penalty to the damage roll */
+  sbyte hitroll; /**< Any bonus or penalty to the hit roll */
+  sbyte damroll; /**< Any bonus or penalty to the damage roll */
 
-    int size;                                        /**< size */
-    sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
-    sh_int resistances[NUM_DAM_TYPES];               /**< resistances (dam-types) */
+  int size;                                        /**< size */
+  sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
+  sh_int resistances[NUM_DAM_TYPES];               /**< resistances (dam-types) */
 
-    /* note - if you add something new here, make sure to check
+  /* note - if you add something new here, make sure to check
      handler.c reset_char_points() to see if it needs to be added */
 };
 
@@ -6166,229 +6197,236 @@ struct char_point_data
  * common, but which must be saved to the players file for PC's. */
 struct char_special_data_saved
 {
-    int alignment;                 /**< -1000 (evil) to 1000 (good) range. */
-    long idnum;                    /**< PC's idnum; -1 for mobiles. */
-    int act[PM_ARRAY_MAX];         /**< act flags for NPC's; player flag for PC's */
-    int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
-    int affected2_by[AF_ARRAY_MAX]; /**< Second bitvector for spells/skills affected by */
-    int warding[MAX_WARDING];      // saved warding spells like stoneskin
-    int spec_abil[MAX_CLASSES];  // spec abilities (ex. lay on hands)
+  int alignment;                  /**< -1000 (evil) to 1000 (good) range. */
+  long idnum;                     /**< PC's idnum; -1 for mobiles. */
+  int act[PM_ARRAY_MAX];          /**< act flags for NPC's; player flag for PC's */
+  int affected_by[AF_ARRAY_MAX];  /**< Bitvector for spells/skills affected by */
+  int affected2_by[AF_ARRAY_MAX]; /**< Second bitvector for spells/skills affected by */
+  int warding[MAX_WARDING];       // saved warding spells like stoneskin
+  int spec_abil[MAX_CLASSES];     // spec abilities (ex. lay on hands)
 
-    struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
+  struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
-    /* disguise system port d20mud */
-    sh_int disguise_race;
-    sh_int disguise_sex;
-    sh_int disguise_dsc1;
-    sh_int disguise_dsc2;
-    sh_int disguise_adj1;
-    sh_int disguise_adj2;
-    sh_int disguise_roll;
-    sh_int disguise_seen;
+  /* disguise system port d20mud */
+  sh_int disguise_race;
+  sh_int disguise_sex;
+  sh_int disguise_dsc1;
+  sh_int disguise_dsc2;
+  sh_int disguise_adj1;
+  sh_int disguise_adj2;
+  sh_int disguise_roll;
+  sh_int disguise_seen;
 
-    /* Feat data */
-    int feats[NUM_FEATS];                       /* Feats (value is the number of times each feat is taken) */
-    int combat_feats[NUM_CFEATS][FT_ARRAY_MAX]; /* One bitvector array per CFEAT_ type  */
-    int school_feats[NUM_SFEATS];               /* One bitvector array per CFEAT_ type  */
-    int hp_regen;
-    int mv_regen;
-    int psp_regen;
-    int encumbrance_mod;                        // This is added to strength only for purposes of calculating encumbrance limits.
-    int fast_healing_mod;                       // This is like hp regen, except it will heal in combat.
-    int initiative_mod;                         // bonus to initative
+  /* Feat data */
+  int feats[NUM_FEATS]; /* Feats (value is the number of times each feat is taken) */
+  int combat_feats[NUM_CFEATS][FT_ARRAY_MAX]; /* One bitvector array per CFEAT_ type  */
+  int school_feats[NUM_SFEATS];               /* One bitvector array per CFEAT_ type  */
+  int hp_regen;
+  int mv_regen;
+  int psp_regen;
+  int encumbrance_mod; // This is added to strength only for purposes of calculating encumbrance limits.
+  int fast_healing_mod; // This is like hp regen, except it will heal in combat.
+  int initiative_mod;   // bonus to initative
 
-    /* Warlock data */
-    int eldritch_shape;            // saved shape for eldritch blasts
-    int eldritch_essence;          // the essence used for eldritch blasts
-    int damage_reduction_mod;
+  /* Warlock data */
+  int eldritch_shape;   // saved shape for eldritch blasts
+  int eldritch_essence; // the essence used for eldritch blasts
+  int damage_reduction_mod;
 
-    // summoner
-    int eidolon_evolutions[NUM_EVOLUTIONS]; //active eidolon evolutions 
-    int known_evolutions[NUM_EVOLUTIONS]; // known eidolon evolutions
-    int eidolon_base_form;  // Eidolon base form determines their starting stats and evolutions
+  // summoner
+  int eidolon_evolutions[NUM_EVOLUTIONS]; //active eidolon evolutions
+  int known_evolutions[NUM_EVOLUTIONS];   // known eidolon evolutions
+  int eidolon_base_form; // Eidolon base form determines their starting stats and evolutions
 
-    int kapak_healing_cooldown; // number of ticks before able to benefit from kapak healing saliva
-    
-    /* Perfect Kill tracking (Rogue Assassin perk) */
-    time_t perfect_kill_last_combat; // timestamp of last combat end
-    bool perfect_kill_used;          // whether perfect kill was used this combat cycle
-    
-    /* Blackguard Brutal Oath favored foe type */
-    int blackguard_favored_foe;      // race/creature type for Brutal Oath perk
+  int kapak_healing_cooldown; // number of ticks before able to benefit from kapak healing saliva
+
+  /* Perfect Kill tracking (Rogue Assassin perk) */
+  time_t perfect_kill_last_combat; // timestamp of last combat end
+  bool perfect_kill_used;          // whether perfect kill was used this combat cycle
+
+  /* Blackguard Brutal Oath favored foe type */
+  int blackguard_favored_foe; // race/creature type for Brutal Oath perk
 };
 
 /* not saved player data used for condensed combat */
 struct condensed_combat_data
 {
-    /* attacker */
-    int num_times_attacking;
-    int num_times_hit_targets; /* skills / spells (non melee) */
-    int num_times_hit_targets_ranged;
-    int num_times_hit_targets_melee;
-    int num_times_performed_deathblow;
-    int damage_inflicted;
+  /* attacker */
+  int num_times_attacking;
+  int num_times_hit_targets; /* skills / spells (non melee) */
+  int num_times_hit_targets_ranged;
+  int num_times_hit_targets_melee;
+  int num_times_performed_deathblow;
+  int damage_inflicted;
 
-    /* target/victim */
-    int num_times_others_attack_you;
-    int num_times_shieldblock;
-    int num_times_parry;
-    int num_times_glance;
-    int num_times_dodge;
-    int num_times_hit_by_others;
-    int num_times_hit_by_others_ranged;
-    int num_times_hit_by_others_melee;
-    int damage_received;
+  /* target/victim */
+  int num_times_others_attack_you;
+  int num_times_shieldblock;
+  int num_times_parry;
+  int num_times_glance;
+  int num_times_dodge;
+  int num_times_hit_by_others;
+  int num_times_hit_by_others_ranged;
+  int num_times_hit_by_others_melee;
+  int damage_received;
 
-    int num_targets_hit_by_your_spells;
-    int num_times_hit_by_spell;
+  int num_targets_hit_by_your_spells;
+  int num_times_hit_by_spell;
 };
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data
 {
-    /* combat related */
-    int initiative;                                 /* What is this char's initiative score? */
-    struct char_data *fighting;                     /**< Target of fight; else NULL */
-    struct char_data *hunting;                      /**< Target of NPC hunt; else NULL */
-    int totalDefense;                               /* how many totaldefense attempts left in the round */
-    struct char_data *guarding;                     /* target for 'guard' ability */
-    bool firing;                                    /* is char firing missile weapon? */
-    bool blasting;                                  /* is char eldritch blasting? */
-    int mounted_blocks_left;                        /* how many mounted combat blocks left in the round */
-    int deflect_arrows_left;                        /* deflect arrows left */
-    struct condensed_combat_data *condensed_combat; /* condensed combat struct */
+  /* combat related */
+  int initiative;             /* What is this char's initiative score? */
+  struct char_data *fighting; /**< Target of fight; else NULL */
+  struct char_data *hunting;  /**< Target of NPC hunt; else NULL */
+  int totalDefense;           /* how many totaldefense attempts left in the round */
+  struct char_data *guarding; /* target for 'guard' ability */
+  bool firing;                /* is char firing missile weapon? */
+  bool blasting;              /* is char eldritch blasting? */
+  int mounted_blocks_left;    /* how many mounted combat blocks left in the round */
+  int deflect_arrows_left;    /* deflect arrows left */
+  struct condensed_combat_data *condensed_combat; /* condensed combat struct */
 
 
-    /* Mode Data */
-    int mode_value; /* Bonus/penalty for power attack and combat expertise. */
+  /* Mode Data */
+  int mode_value; /* Bonus/penalty for power attack and combat expertise. */
 
-    /* Combat related, reset each combat round. We do not use events for these because
+  /* Combat related, reset each combat round. We do not use events for these because
      * the timing needs to be perfect - They should be reset in accordance with the
      * initiation of auto-attacks in each round. */
-    int attacks_of_opportunity; /* The number of AOO performed this round. */
+  int attacks_of_opportunity; /* The number of AOO performed this round. */
 
-    /* furniture */
-    struct obj_data *furniture;          /**< Object being sat on/in; else NULL */
-    struct char_data *next_in_furniture; /**< Next person sitting, else NULL */
+  /* furniture */
+  struct obj_data *furniture;          /**< Object being sat on/in; else NULL */
+  struct char_data *next_in_furniture; /**< Next person sitting, else NULL */
 
-    /* mounts */
-    struct char_data *riding;    /* Who are they riding? */
-    struct char_data *ridden_by; /* Who is riding them? */
+  /* mounts */
+  struct char_data *riding;    /* Who are they riding? */
+  struct char_data *ridden_by; /* Who is riding them? */
 
-    /* carrying */
-    int carry_weight; /**< Carried weight */
-    int carry_items; /**< Number of items carried */
+  /* carrying */
+  int carry_weight; /**< Carried weight */
+  int carry_items;  /**< Number of items carried */
 
-    /** casting (time) **/
-    bool isCasting;               // casting or not
-    int castingTime;              // casting time (remaining)
-    int castingTimeMax;           // original casting time (for progress calc)
-    int castingSpellnum;          // spell casting
-    int castingMetamagic;         // spell metamagic
-    int castingClass;             // spell casting class
-    struct char_data *castingTCH; // target char of spell
-    struct obj_data *castingTOBJ; // target obj of spell
+  /** casting (time) **/
+  bool isCasting;               // casting or not
+  int castingTime;              // casting time (remaining)
+  int castingTimeMax;           // original casting time (for progress calc)
+  int castingSpellnum;          // spell casting
+  int castingMetamagic;         // spell metamagic
+  int castingClass;             // spell casting class
+  struct char_data *castingTCH; // target char of spell
+  struct obj_data *castingTOBJ; // target obj of spell
 
-    int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
+  int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
 
-    /** crafting **/
-    ubyte crafting_type;              // like SCMD_x
-    ubyte crafting_ticks;             // ticks left to complete task
-    struct obj_data *crafting_object; // refers to obj crafting (deprecated)
-    ubyte crafting_repeat;            // multiple objects created in one session
-    int crafting_bonus;               // bonus for crafting the item
+  /** crafting **/
+  ubyte crafting_type;              // like SCMD_x
+  ubyte crafting_ticks;             // ticks left to complete task
+  struct obj_data *crafting_object; // refers to obj crafting (deprecated)
+  ubyte crafting_repeat;            // multiple objects created in one session
+  int crafting_bonus;               // bonus for crafting the item
 
-    /* mob feats (npc's and pc wildshaped) */
-    byte mob_feats[MAX_FEATS]; /* Feats (booleans and counters)  */
+  /* mob feats (npc's and pc wildshaped) */
+  byte mob_feats[MAX_FEATS]; /* Feats (booleans and counters)  */
 
-    /* miscellaneous */
-    int is_preparing[NUM_CASTERS];    // memorization
-    int preparing_state[NUM_CLASSES]; /* spell preparation */
-    byte position;                    /**< Standing, fighting, sleeping, etc. */
-    int timer;                        /**< Timer for update */
+  /* miscellaneous */
+  int is_preparing[NUM_CASTERS];    // memorization
+  int preparing_state[NUM_CLASSES]; /* spell preparation */
+  byte position;                    /**< Standing, fighting, sleeping, etc. */
+  int timer;                        /**< Timer for update */
 
-    int weather; /**< The current weather this player is affected by. */
+  int weather; /**< The current weather this player is affected by. */
 
-    struct queue_type *action_queue; /**< Action command queue */
-    struct queue_type *attack_queue; /**< Attack action queue */
+  struct queue_type *action_queue; /**< Action command queue */
+  struct queue_type *attack_queue; /**< Attack action queue */
 
-    struct char_special_data_saved saved; /**< Constants saved for PCs. */
+  struct char_special_data_saved saved; /**< Constants saved for PCs. */
 
-    struct char_data *grapple_target;   /**< Target of grapple attempt; else NULL */
-    struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
+  struct char_data *grapple_target;   /**< Target of grapple attempt; else NULL */
+  struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 
-    bool energy_retort_used; // used with energy retort ability, which only fires once per round.
+  bool energy_retort_used; // used with energy retort ability, which only fires once per round.
 
-    bool autodoor_message; // used for message handling in autodoor
+  bool autodoor_message; // used for message handling in autodoor
 
-    bool drainKilled; // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
+  bool
+      drainKilled; // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
 
-    bool banishing_blade_procced_this_round; // has the creature had a banishing blade affect attempted against him this round?
+  bool
+      banishing_blade_procced_this_round; // has the creature had a banishing blade affect attempted against him this round?
 
-    bool quick_chant; // true if under the effect of quick chant
-    bool quick_mind; // true if under the effect of quick mind
+  bool quick_chant; // true if under the effect of quick chant
+  bool quick_mind;  // true if under the effect of quick mind
 
-    struct list_data *repulse_blacklist; // characters who can't attack through repulse
-    struct list_data *repulse_whitelist; // characters who are able to attack through repulse
+  struct list_data *repulse_blacklist; // characters who can't attack through repulse
+  struct list_data *repulse_whitelist; // characters who are able to attack through repulse
 
-    /* Warlock data */
-    int eldritch_shape;            // saved shape for eldritch blasts
-    int daze_cooldown;             // once a character is dazed, we'll give them temporary immunity
+  /* Warlock data */
+  int eldritch_shape; // saved shape for eldritch blasts
+  int daze_cooldown;  // once a character is dazed, we'll give them temporary immunity
 
-    int consecutive_hits;           // increases each time a melee attack hits, resets to zero on a miss.
-    int has_been_pushed;            // If they have been pushed, this is the cooldown until they can be pushed again
-    int sickening_aura_timer;       // When this timer is active, the creature is not susceptible to sickening aura
-    int frightful_presence_timer;       // When this timer is active, the creature is not susceptible to frightful presence
-    int temporary_eidolon_evolutions[NUM_EVOLUTIONS]; // temporary eidolon evolutions , such as with merge forms ability
+  int consecutive_hits; // increases each time a melee attack hits, resets to zero on a miss.
+  int has_been_pushed; // If they have been pushed, this is the cooldown until they can be pushed again
+  int sickening_aura_timer; // When this timer is active, the creature is not susceptible to sickening aura
+  int frightful_presence_timer; // When this timer is active, the creature is not susceptible to frightful presence
+  int temporary_eidolon_evolutions
+      [NUM_EVOLUTIONS]; // temporary eidolon evolutions , such as with merge forms ability
 
-    bool has_borrow_been_attempted; // if true, the mob can no longer be 'borrowed' from (kender ability)
-    int which_treasure_message;           // when we want to use a custom message for random treasure
-    int swindle_cooldown;
-    int entertain_cooldown;
-    int tribute_cooldown;
-    int extortion_cooldown;
+  bool
+      has_borrow_been_attempted; // if true, the mob can no longer be 'borrowed' from (kender ability)
+  int which_treasure_message;    // when we want to use a custom message for random treasure
+  int swindle_cooldown;
+  int entertain_cooldown;
+  int tribute_cooldown;
+  int extortion_cooldown;
 
-    int acid_arrow_level;
+  int acid_arrow_level;
 
-    byte recently_kicked;
-    byte recently_slammed;
+  byte recently_kicked;
+  byte recently_slammed;
 
-    bool deathless_touch;           // when killing a victim with deathless touch, the necromancer will give bonus stats on his next animate dead or greater animation spell
+  bool
+      deathless_touch; // when killing a victim with deathless touch, the necromancer will give bonus stats on his next animate dead or greater animation spell
 
-    bool has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
-    
-    bool perfect_kill_active;       // temporary flag set when Perfect Kill is triggered for this attack
-    
-    /* Raging Defender flags - set when hit by crit/sneak, checked in DR calculation */
-    bool hit_by_critical;           // temporary flag set when struck by a critical hit
-    bool hit_by_sneak_attack;       // temporary flag set when struck by a sneak attack
-    
-    /* Blackguard Resilient Corruption stacks */
-    int blackguard_corruption_stacks; // stacking DR bonus, max 5, resets out of combat
+  bool
+      has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
 
-    int terror_cooldown;
+  bool perfect_kill_active; // temporary flag set when Perfect Kill is triggered for this attack
 
-    byte foretell_uses;
-    bool not_commanded_to_cast;     // This is set in the mobact.c file to prevent players from using the order command on charmees to use psionic powers
+  /* Raging Defender flags - set when hit by crit/sneak, checked in DR calculation */
+  bool hit_by_critical;     // temporary flag set when struck by a critical hit
+  bool hit_by_sneak_attack; // temporary flag set when struck by a sneak attack
 
-    // warlock blast essence cooldowns
-    int eldritch_blast_cooldowns[NUM_ELDRITCH_BLAST_COOLDOWNS];
+  /* Blackguard Resilient Corruption stacks */
+  int blackguard_corruption_stacks; // stacking DR bonus, max 5, resets out of combat
 
-    bool is_charmie;
-    int sage_mob_vnum;
+  int terror_cooldown;
 
-    bool post_combat_messages;
-    int post_combat_exp;
-    int post_combat_gold;
-    int post_combat_account_exp;
+  byte foretell_uses;
+  bool
+      not_commanded_to_cast; // This is set in the mobact.c file to prevent players from using the order command on charmees to use psionic powers
+
+  // warlock blast essence cooldowns
+  int eldritch_blast_cooldowns[NUM_ELDRITCH_BLAST_COOLDOWNS];
+
+  bool is_charmie;
+  int sage_mob_vnum;
+
+  bool post_combat_messages;
+  int post_combat_exp;
+  int post_combat_gold;
+  int post_combat_account_exp;
 };
 
 /* old memorization struct */
 struct old_spell_data
 {
-    int spell;     /* spellnum of this spell in the collection */
-    int metamagic; /* Bitvector of metamagic affecting this spell. */
-    int prep_time; /* time to prepare */
+  int spell;     /* spellnum of this spell in the collection */
+  int metamagic; /* Bitvector of metamagic affecting this spell. */
+  int prep_time; /* time to prepare */
 };
 /**/
 
@@ -6397,34 +6435,34 @@ struct old_spell_data
 /* known spells list */
 struct known_spell_data
 {
-    int spell;     /* spellnum of this spell in the collection */
-    int metamagic; /* Bitvector of metamagic affecting this spell. */
-    int prep_time; /* Remaining time for preparing this spell. */
-    int domain;    /* domain info */
+  int spell;     /* spellnum of this spell in the collection */
+  int metamagic; /* Bitvector of metamagic affecting this spell. */
+  int prep_time; /* Remaining time for preparing this spell. */
+  int domain;    /* domain info */
 
-    struct known_spell_data *next; /*linked-list*/
+  struct known_spell_data *next; /*linked-list*/
 };
 
 /* spell parapation, collection data */
 struct prep_collection_spell_data
 {
-    int spell;     /* spellnum of this spell in the collection */
-    int metamagic; /* Bitvector of metamagic affecting this spell. */
-    int prep_time; /* Remaining time for preparing this spell. */
-    int domain;    /* domain info */
+  int spell;     /* spellnum of this spell in the collection */
+  int metamagic; /* Bitvector of metamagic affecting this spell. */
+  int prep_time; /* Remaining time for preparing this spell. */
+  int domain;    /* domain info */
 
-    struct prep_collection_spell_data *next; /*linked-list*/
+  struct prep_collection_spell_data *next; /*linked-list*/
 };
 
 /* innate magic preparation data */
 struct innate_magic_data
 {
-    int circle;    /* circle in the collection */
-    int metamagic; /* Bitvector of metamagic affecting this spell. */
-    int prep_time; /* Remaining time for preparing this spell. */
-    int domain;    /* domain info */
+  int circle;    /* circle in the collection */
+  int metamagic; /* Bitvector of metamagic affecting this spell. */
+  int prep_time; /* Remaining time for preparing this spell. */
+  int domain;    /* domain info */
 
-    struct innate_magic_data *next; /*linked-list*/
+  struct innate_magic_data *next; /*linked-list*/
 };
 /***/
 
@@ -6433,38 +6471,38 @@ struct innate_magic_data
 /** Stage progression tracking - holds XP progress within a level */
 struct stage_data
 {
-    int current_stage;      /* Current stage (1-4 for stages, 4 = ready to level) */
-    int stage_exp;          /* Experience points within current stage */
-    int exp_to_next_stage;  /* XP needed to reach next stage (25% of level XP) */
+  int current_stage;     /* Current stage (1-4 for stages, 4 = ready to level) */
+  int stage_exp;         /* Experience points within current stage */
+  int exp_to_next_stage; /* XP needed to reach next stage (25% of level XP) */
 };
 
 /** Perk definition - describes a perk's properties */
 struct perk_data
 {
-    int id;                           /* Unique perk identifier */
-    char *name;                       /* Perk name */
-    char *description;                /* Perk description */
-    int associated_class;             /* Which class this perk belongs to */
-    int perk_category;                /* Which perk tree/category (e.g., PERK_CATEGORY_WEAPON_SPECIALIST) */
-    int cost;                         /* Perk point cost to purchase */
-    int max_rank;                     /* Maximum times this perk can be taken */
-    int prerequisite_perk;            /* Perk ID required before this one (-1 if none) */
-    int prerequisite_rank;            /* Rank of prerequisite required */
-    int effect_type;                  /* Type of effect (PERK_EFFECT_*) */
-    int effect_value;                 /* Magnitude of effect per rank */
-    int effect_modifier;              /* Additional modifier (skill num, save type, etc) */
-    char *special_description;        /* For PERK_EFFECT_SPECIAL, describe what it does */
-    bool toggleable;                  /* Can this perk be toggled on/off? */
+  int id;                    /* Unique perk identifier */
+  char *name;                /* Perk name */
+  char *description;         /* Perk description */
+  int associated_class;      /* Which class this perk belongs to */
+  int perk_category;         /* Which perk tree/category (e.g., PERK_CATEGORY_WEAPON_SPECIALIST) */
+  int cost;                  /* Perk point cost to purchase */
+  int max_rank;              /* Maximum times this perk can be taken */
+  int prerequisite_perk;     /* Perk ID required before this one (-1 if none) */
+  int prerequisite_rank;     /* Rank of prerequisite required */
+  int effect_type;           /* Type of effect (PERK_EFFECT_*) */
+  int effect_value;          /* Magnitude of effect per rank */
+  int effect_modifier;       /* Additional modifier (skill num, save type, etc) */
+  char *special_description; /* For PERK_EFFECT_SPECIAL, describe what it does */
+  bool toggleable;           /* Can this perk be toggled on/off? */
 };
 
 /** Character's acquired perk - tracks which perks a PC has and their ranks */
 struct char_perk_data
 {
-    int perk_id;                      /* Which perk this is */
-    int perk_class;                   /* Which class granted this perk */
-    int current_rank;                 /* Current rank in this perk */
-    
-    struct char_perk_data *next;      /* Linked list of character's perks */
+  int perk_id;      /* Which perk this is */
+  int perk_class;   /* Which class granted this perk */
+  int current_rank; /* Current rank in this perk */
+
+  struct char_perk_data *next; /* Linked list of character's perks */
 };
 
 /***/
@@ -6474,358 +6512,376 @@ struct char_perk_data
 #define MAX_STORED_MATERIALS 100
 
 /* Quality level constants for clarity */
-#define MATERIAL_QUALITY_POOR      1
-#define MATERIAL_QUALITY_COMMON    2  
-#define MATERIAL_QUALITY_UNCOMMON  3
-#define MATERIAL_QUALITY_RARE      4
+#define MATERIAL_QUALITY_POOR 1
+#define MATERIAL_QUALITY_COMMON 2
+#define MATERIAL_QUALITY_UNCOMMON 3
+#define MATERIAL_QUALITY_RARE 4
 #define MATERIAL_QUALITY_LEGENDARY 5
 
-struct material_storage {
-    int category;               /* Resource category (RESOURCE_HERBS, etc) */
-    int subtype;                /* Specific material (HERB_MARJORAM, etc) */
-    int quality;                /* Quality level (1-5) */
-    int quantity;               /* Amount stored */
+struct material_storage
+{
+  int category; /* Resource category (RESOURCE_HERBS, etc) */
+  int subtype;  /* Specific material (HERB_MARJORAM, etc) */
+  int quality;  /* Quality level (1-5) */
+  int quantity; /* Amount stored */
 };
 
-struct player_invention {
-    char keywords[MAX_INVENTION_KEYWORDS];
-    char short_description[MAX_INVENTION_SHORTDESC];
-    char long_description[MAX_INVENTION_LONGDESC];
-    int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
-    int spell_levels[MAX_INVENTION_SPELLS];  /* chosen class spell level for each effect (1-7), 0 = unspecified */
-    int num_spells;
-    int duration;
-    int reliability;
-    int uses;                 /* Number of times this device has been used */
-    time_t cooldown_expires;  /* Individual device cooldown timestamp */
-    int dc_penalty;           /* +2 DC penalty per failed out-of-charges attempt */
-    bool broken;              /* Device is broken and cannot be used */
+struct player_invention
+{
+  char keywords[MAX_INVENTION_KEYWORDS];
+  char short_description[MAX_INVENTION_SHORTDESC];
+  char long_description[MAX_INVENTION_LONGDESC];
+  int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
+  int spell_levels
+      [MAX_INVENTION_SPELLS]; /* chosen class spell level for each effect (1-7), 0 = unspecified */
+  int num_spells;
+  int duration;
+  int reliability;
+  int uses;                /* Number of times this device has been used */
+  time_t cooldown_expires; /* Individual device cooldown timestamp */
+  int dc_penalty;          /* +2 DC penalty per failed out-of-charges attempt */
+  bool broken;             /* Device is broken and cannot be used */
 };
 
 struct player_special_data_saved
 {
-    int skills[MAX_SKILLS + 1];         // saved skills
-    int spells[MAX_SPELLS];             // saved spells, should be MAX_SPELLS + 1 from spells.h
-    ubyte abilities[MAX_ABILITIES + 1]; // abilities
+  int skills[MAX_SKILLS + 1];         // saved skills
+  int spells[MAX_SPELLS];             // saved spells, should be MAX_SPELLS + 1 from spells.h
+  ubyte abilities[MAX_ABILITIES + 1]; // abilities
 
-    /* Feats */
-    byte feat_points;                         /* How many general feats you can take  */
-    byte epic_feat_points;                    /* How many epic feats you can take */
-    byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
-    byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
+  /* Feats */
+  byte feat_points;                         /* How many general feats you can take  */
+  byte epic_feat_points;                    /* How many epic feats you can take */
+  byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
+  byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
 
-    /* Talent system (crafting / harvesting) */
-    int talent_points;                        /* Unspent crafting talent points */
-    /* New rank-based talent storage; index by talent id. 0 = not learned. */
-    /* Using 64 as a stable upper bound; must be >= TALENT_MAX from talents.h */
-    ubyte talent_ranks[64];
-    /* Legacy bitset kept for backwards-compat load. No longer used by game logic. */
-    unsigned int talents_bits[2];             /* [DEPRECATED] Bitset for up to 64 talents */
+  /* Talent system (crafting / harvesting) */
+  int talent_points; /* Unspent crafting talent points */
+  /* New rank-based talent storage; index by talent id. 0 = not learned. */
+  /* Using 64 as a stable upper bound; must be >= TALENT_MAX from talents.h */
+  ubyte talent_ranks[64];
+  /* Legacy bitset kept for backwards-compat load. No longer used by game logic. */
+  unsigned int talents_bits[2]; /* [DEPRECATED] Bitset for up to 64 talents */
 
-    bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
+  bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
-    ubyte morphed;                    // polymorphed and form
-    int class_level[MAX_CLASSES];    // multi class
-    int spells_to_learn;              // prac sessions left
-    int abilities_to_learn;           // training sessiosn left
-    ubyte boosts;                     // stat boosts left
-    ubyte favored_enemy[MAX_ENEMIES]; // list of ranger favored enemies
+  ubyte morphed;                    // polymorphed and form
+  int class_level[MAX_CLASSES];     // multi class
+  int spells_to_learn;              // prac sessions left
+  int abilities_to_learn;           // training sessiosn left
+  ubyte boosts;                     // stat boosts left
+  ubyte favored_enemy[MAX_ENEMIES]; // list of ranger favored enemies
 
-    /* old spell prep system, can be removed */
-    struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
-    struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
+  /* old spell prep system, can be removed */
+  struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
+  struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
 
-    /* new system for spell preparation */
-    struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
-    struct prep_collection_spell_data *spell_collection[NUM_CLASSES];
-    struct innate_magic_data *innate_magic_queue[NUM_CLASSES];
-    struct known_spell_data *known_spells[NUM_CLASSES];
+  /* new system for spell preparation */
+  struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
+  struct prep_collection_spell_data *spell_collection[NUM_CLASSES];
+  struct innate_magic_data *innate_magic_queue[NUM_CLASSES];
+  struct known_spell_data *known_spells[NUM_CLASSES];
 
-    byte church; // homeland-port, currently unused
+  byte church; // homeland-port, currently unused
 
-    /* schools / domains */
-    byte domain_1;            /* cleric domains */
-    byte domain_2;            /* cleric domains */
-    byte specialty_school;    /* wizard specialty */
-    byte restricted_school_1; /* restricted school */
-    byte restricted_school_2; /* restricted school */
+  /* schools / domains */
+  byte domain_1;            /* cleric domains */
+  byte domain_2;            /* cleric domains */
+  byte specialty_school;    /* wizard specialty */
+  byte restricted_school_1; /* restricted school */
+  byte restricted_school_2; /* restricted school */
 
-    /* preferred caster classs, used for prestige classes such as arcane archer */
-    byte preferred_arcane;
-    byte preferred_divine;
+  /* preferred caster classs, used for prestige classes such as arcane archer */
+  byte preferred_arcane;
+  byte preferred_divine;
 
-    int wimp_level;                        /**< Below this # of hit points, flee! */
-    byte freeze_level;                     /**< Level of god who froze char, if any */
-    sh_int invis_level;                    /**< level of invisibility */
-    room_vnum load_room;                   /**< Which room to load PC into */
-    int pref[PR_ARRAY_MAX];                /**< preference flags */
-    ubyte bad_pws;                         /**< number of bad login attempts */
-    sbyte conditions[3];                   /**< Drunk, hunger, and thirst */
-    struct txt_block *comm_hist[NUM_HIST]; /**< Communication history */
-    struct txt_block *todo_list;           /* Player's todo list */
-    ubyte page_length;                     /**< Max number of rows of text to send at once */
-    ubyte screen_width;                    /**< How wide the display page is */
-    int olc_zone;                          /**< Current olc permissions */
+  int wimp_level;                        /**< Below this # of hit points, flee! */
+  byte freeze_level;                     /**< Level of god who froze char, if any */
+  sh_int invis_level;                    /**< level of invisibility */
+  room_vnum load_room;                   /**< Which room to load PC into */
+  int pref[PR_ARRAY_MAX];                /**< preference flags */
+  ubyte bad_pws;                         /**< number of bad login attempts */
+  sbyte conditions[3];                   /**< Drunk, hunger, and thirst */
+  struct txt_block *comm_hist[NUM_HIST]; /**< Communication history */
+  struct txt_block *todo_list;           /* Player's todo list */
+  ubyte page_length;                     /**< Max number of rows of text to send at once */
+  ubyte screen_width;                    /**< How wide the display page is */
+  int olc_zone;                          /**< Current olc permissions */
 
-    /* clan system */
-    int clanpoints; /**< Clan points may be spent in a clanhall */
-    clan_vnum clan; /**< The clan number to which the player belongs     */
-    int clanrank;   /**< The player's rank within their clan (1=highest) */
+  /* clan system */
+  int clanpoints; /**< Clan points may be spent in a clanhall */
+  clan_vnum clan; /**< The clan number to which the player belongs     */
+  int clanrank;   /**< The player's rank within their clan (1=highest) */
 
 /* autoquest */
 #define MAX_CURRENT_QUESTS 3
-    int questpoints;                       // quest points earned
-    qst_vnum *completed_quests;            /**< Quests completed              */
-    int num_completed_quests;              /**< Number completed              */
-    int current_quest[MAX_CURRENT_QUESTS]; /**< vnums of current quests         */
-    int quest_time[MAX_CURRENT_QUESTS];    /**< time left on current quest    */
-    int quest_counter[MAX_CURRENT_QUESTS]; /**< Count of targets left to get  */
-    int failed_dialogue_quests[100];
+  int questpoints;                       // quest points earned
+  qst_vnum *completed_quests;            /**< Quests completed              */
+  int num_completed_quests;              /**< Number completed              */
+  int current_quest[MAX_CURRENT_QUESTS]; /**< vnums of current quests         */
+  int quest_time[MAX_CURRENT_QUESTS];    /**< time left on current quest    */
+  int quest_counter[MAX_CURRENT_QUESTS]; /**< Count of targets left to get  */
+  int failed_dialogue_quests[100];
 
-    /* auto crafting quest */
-    unsigned int autocquest_vnum; // vnum of crafting quest item
-    char *autocquest_desc;        // description of crafting quest item
-    ubyte autocquest_material;    // material used for crafting quest
-    ubyte autocquest_makenum;     // how many more objects to finish quest
-    ubyte autocquest_qp;          // quest point reward for quest
-    unsigned int autocquest_exp;  // exp reward for quest
-    unsigned int autocquest_gold; // gold reward for quest
+  /* auto crafting quest */
+  unsigned int autocquest_vnum; // vnum of crafting quest item
+  char *autocquest_desc;        // description of crafting quest item
+  ubyte autocquest_material;    // material used for crafting quest
+  ubyte autocquest_makenum;     // how many more objects to finish quest
+  ubyte autocquest_qp;          // quest point reward for quest
+  unsigned int autocquest_exp;  // exp reward for quest
+  unsigned int autocquest_gold; // gold reward for quest
 
-    time_t lastmotd; /**< Last time player read motd */
-    time_t lastnews; /**< Last time player read news */
+  time_t lastmotd; /**< Last time player read motd */
+  time_t lastnews; /**< Last time player read news */
 
-    char *account_name; // The account stored with this character.
+  char *account_name; // The account stored with this character.
 
-    int sorcerer_bloodline_subtype; // if the sorcerer bloodline has a subtype (ie. draconic)
-    int new_arcana_circles[4];
-    int mail_days;
+  int sorcerer_bloodline_subtype; // if the sorcerer bloodline has a subtype (ie. draconic)
+  int new_arcana_circles[4];
+  int mail_days;
 
-    /* alchemists */
-    int discoveries[NUM_ALC_DISCOVERIES];
-    int bombs[MAX_BOMBS_ALLOWED];
-    int grand_discovery;
-    int cluster_bomb_iterations;  /* Temporary tracker for cluster bomb hits (not saved) */
+  /* alchemists */
+  int discoveries[NUM_ALC_DISCOVERIES];
+  int bombs[MAX_BOMBS_ALLOWED];
+  int grand_discovery;
+  int cluster_bomb_iterations; /* Temporary tracker for cluster bomb hits (not saved) */
 
-    /* template system */
-    ubyte template;
-    int premade_build;
+  /* template system */
+  ubyte template;
+  int premade_build;
 
-    int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
+  int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
 
-    int racial_magic[3];
-    int racial_cooldown[3];
-    int primordial_magic[3];
-    int primordial_cooldown[3];
-    int dragonborn_draconic_ancestry;
+  int racial_magic[3];
+  int racial_cooldown[3];
+  int primordial_magic[3];
+  int primordial_cooldown[3];
+  int dragonborn_draconic_ancestry;
 
-    /* factional mission system */
-    int current_mission;
-    long mission_credits;
-    long mission_standing;
-    int mission_faction;
-    long mission_reputation;
-    long mission_experience;
-    int mission_difficulty;
-    long faction_standing[NUM_FACTIONS + 1];
-    long faction_standing_spent[NUM_FACTIONS + 1];
-    bool mission_decline;
-    int mission_rand_name;
-    bool mission_complete;
-    int mission_cooldown;
-    room_rnum current_mission_room;
-    int faction;
+  /* factional mission system */
+  int current_mission;
+  long mission_credits;
+  long mission_standing;
+  int mission_faction;
+  long mission_reputation;
+  long mission_experience;
+  int mission_difficulty;
+  long faction_standing[NUM_FACTIONS + 1];
+  long faction_standing_spent[NUM_FACTIONS + 1];
+  bool mission_decline;
+  int mission_rand_name;
+  bool mission_complete;
+  int mission_cooldown;
+  room_rnum current_mission_room;
+  int faction;
 
-    /* staff event variables */
-    int staff_ran_events[STAFF_RAN_EVENTS_VAR];
+  /* staff event variables */
+  int staff_ran_events[STAFF_RAN_EVENTS_VAR];
 
-    // set true if ability scores have been set in study
-    bool have_stats_been_set_study;
+  // set true if ability scores have been set in study
+  bool have_stats_been_set_study;
 
-    int pixie_dust_uses;
-    int pixie_dust_timer;
-    int efreeti_magic_uses;
-    int efreeti_magic_timer;
-    int dragon_magic_uses;
-    int dragon_magic_timer;
-    int laughing_touch_uses;
-    int laughing_touch_timer;
-    int fleeting_glance_uses;
-    int fleeting_glance_timer;
-    int fey_shadow_walk_uses;
-    int fey_shadow_walk_timer;
-    int grave_touch_uses;
-    int grave_touch_timer;
-    int grasp_of_the_dead_uses;
-    int grasp_of_the_dead_timer;
-    int incorporeal_form_uses;
-    int incorporeal_form_timer;
+  int pixie_dust_uses;
+  int pixie_dust_timer;
+  int efreeti_magic_uses;
+  int efreeti_magic_timer;
+  int dragon_magic_uses;
+  int dragon_magic_timer;
+  int laughing_touch_uses;
+  int laughing_touch_timer;
+  int fleeting_glance_uses;
+  int fleeting_glance_timer;
+  int fey_shadow_walk_uses;
+  int fey_shadow_walk_timer;
+  int grave_touch_uses;
+  int grave_touch_timer;
+  int grasp_of_the_dead_uses;
+  int grasp_of_the_dead_timer;
+  int incorporeal_form_uses;
+  int incorporeal_form_timer;
 
-    int psionic_energy_type; // this is the element that will be used when using psionic energy powers
+  int psionic_energy_type; // this is the element that will be used when using psionic energy powers
 
-    int potions[MAX_SPELLS]; // used in new consumables system store/unstore/quaff
-    int scrolls[MAX_SPELLS]; // used in new consumables system store/unstore/recite
-    int wands[MAX_SPELLS];   // used in new consumables system store/unstore/use
-    int staves[MAX_SPELLS];  // used in new consumables system store/unstore/use
+  int potions[MAX_SPELLS]; // used in new consumables system store/unstore/quaff
+  int scrolls[MAX_SPELLS]; // used in new consumables system store/unstore/recite
+  int wands[MAX_SPELLS];   // used in new consumables system store/unstore/use
+  int staves[MAX_SPELLS];  // used in new consumables system store/unstore/use
 
-    int holy_weapon_type;                               // type of weapon to use withn holy weapon spell, also known as holy sword spell
-    int paladin_mercies[NUM_PALADIN_MERCIES];           // stores a paladin's mercies known
-    int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
-    int active_fiendish_boons;                          // active fiendish boons by blackguard
-    int channel_energy_type;                            // neutral clerics must decide either positive or negative
-    int deity;                                          // what deity does the person follow?
-    int languages_known[NUM_LANGUAGES]; // languages known by the character
-    int speaking; // language currently being spoken, defaults to common
-    int region;   // the region in which a human hails from.  Used for languages
+  int holy_weapon_type; // type of weapon to use withn holy weapon spell, also known as holy sword spell
+  int paladin_mercies[NUM_PALADIN_MERCIES];           // stores a paladin's mercies known
+  int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
+  int active_fiendish_boons;                          // active fiendish boons by blackguard
+  int channel_energy_type;            // neutral clerics must decide either positive or negative
+  int deity;                          // what deity does the person follow?
+  int languages_known[NUM_LANGUAGES]; // languages known by the character
+  int speaking;                       // language currently being spoken, defaults to common
+  int region;                         // the region in which a human hails from.  Used for languages
 
-    // used for the character short description system
-    int sdesc_descriptor_1;
-    int sdesc_descriptor_2;
-    int sdesc_adjective_1;
-    int sdesc_adjective_2;
+  // used for the character short description system
+  int sdesc_descriptor_1;
+  int sdesc_descriptor_2;
+  int sdesc_adjective_1;
+  int sdesc_adjective_2;
 
-    byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
-    int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
-    byte slayer_judgement;                      // which judgement is using the slayer bonus
+  byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
+  int bane_enemy_type;   // which type of enemy the inquisitor's bane effect with target
+  byte slayer_judgement; // which judgement is using the slayer bonus
 
-    int inq_favored_terrain;                    // selected favored terrain type (-1 = none)
-    time_t inq_favored_terrain_reset;           // real-time timestamp when terrain can be changed again
+  int inq_favored_terrain;          // selected favored terrain type (-1 = none)
+  time_t inq_favored_terrain_reset; // real-time timestamp when terrain can be changed again
 
-    int setcloak_timer; // used for setting stats on vampire cloaks.
+  int setcloak_timer; // used for setting stats on vampire cloaks.
 
-    int time_since_last_feeding; // how long since the vampire last fed on blood
+  int time_since_last_feeding; // how long since the vampire last fed on blood
 
-    int buff_abilities[MAX_BUFFS][2]; // This is used with the buff command to simplify the process of buffing by casters
+  int buff_abilities
+      [MAX_BUFFS]
+      [2]; // This is used with the buff command to simplify the process of buffing by casters
 
-    bool new_race_stats; // For use with racefix command.
+  bool new_race_stats; // For use with racefix command.
 
-    int call_eidolon_cooldown;  // When this cooldown is active, the summoner cannot call their eidolon
-    int merge_forms_timer;      // How long the merge forms process lasts
-    char *bag_names[MAX_BAGS+1];  // nicknames for the characters' bags
-    int fixed_bab;  // This is the character's final bab which is set upon reaching lvl 20 and determines # of attacks per round
-    bool vital_strike;                              /* if we're using vital strike */
-    int necromancer_bonus_levels; // 1 for arcane, 2 for divine
-    int fight_to_the_death_cooldown;
-    int dragon_bond_type;
-    int dragon_rider_dragon_type;
-    int background_type;
+  int call_eidolon_cooldown; // When this cooldown is active, the summoner cannot call their eidolon
+  int merge_forms_timer;     // How long the merge forms process lasts
+  char *bag_names[MAX_BAGS + 1]; // nicknames for the characters' bags
+  int fixed_bab; // This is the character's final bab which is set upon reaching lvl 20 and determines # of attacks per round
+  bool vital_strike;            /* if we're using vital strike */
+  int necromancer_bonus_levels; // 1 for arcane, 2 for divine
+  int fight_to_the_death_cooldown;
+  int dragon_bond_type;
+  int dragon_rider_dragon_type;
+  int background_type;
 
-    int hometown;
+  int hometown;
 
-    int forage_cooldown;
-    int retainer_cooldown;
-    int scrounge_cooldown;
-    int spiritual_weapon_cooldown;  // Battle Cleric perk: 5 minute cooldown for free spiritual weapon casting
-    int irresistible_magic_cooldown;  // Wizard Controller perk: 5 minute cooldown for auto-success spell
-    int quick_cast_cooldown;          // Versatile Caster perk: 5 minute cooldown for free quicken metamagic
-    int spell_recall_cooldown;        // Versatile Caster perk: daily cooldown for restoring a spell slot
-    int deathless_frenzy_timer;       // Berserker Occult Slayer perk: 5 minute cooldown for Deathless Frenzy
-    
-    /* Domain Master perk bonus spell slot tracking */
-    int bonus_domain_slots_used;    // Tracks used bonus domain spell slots
-    int bonus_domain_regen_timer;   // Timer for domain slot regeneration (ticks until next regen)
-    int bonus_slots_used;           // Tracks used bonus any-level spell slots
-    int bonus_slots_regen_timer;    // Timer for any-level slot regeneration (ticks until next regen)
-    
-    int character_age;
-    bool character_age_saved;
+  int forage_cooldown;
+  int retainer_cooldown;
+  int scrounge_cooldown;
+  int spiritual_weapon_cooldown; // Battle Cleric perk: 5 minute cooldown for free spiritual weapon casting
+  int irresistible_magic_cooldown; // Wizard Controller perk: 5 minute cooldown for auto-success spell
+  int quick_cast_cooldown;    // Versatile Caster perk: 5 minute cooldown for free quicken metamagic
+  int spell_recall_cooldown;  // Versatile Caster perk: daily cooldown for restoring a spell slot
+  int deathless_frenzy_timer; // Berserker Occult Slayer perk: 5 minute cooldown for Deathless Frenzy
 
-    room_vnum last_room;
+  /* Domain Master perk bonus spell slot tracking */
+  int bonus_domain_slots_used;  // Tracks used bonus domain spell slots
+  int bonus_domain_regen_timer; // Timer for domain slot regeneration (ticks until next regen)
+  int bonus_slots_used;         // Tracks used bonus any-level spell slots
+  int bonus_slots_regen_timer;  // Timer for any-level slot regeneration (ticks until next regen)
 
-    char *intro_list[MAX_INTROS];                     // Stores names of characters known
+  int character_age;
+  bool character_age_saved;
 
-    struct crafting_data_info craft_data;             // New crafting system info
+  room_vnum last_room;
 
-    int craft_mats_owned[NUM_CRAFT_MATS];
-    int craft_motes_owned[NUM_CRAFT_MOTES]; 
+  char *intro_list[MAX_INTROS]; // Stores names of characters known
 
-    /* Arcane mark personalization */
-    char *arcane_mark;                           /**< Stored arcane mark string */
-    
-    /* Phase 4.5: Material subtype storage system */
-    /* Stores wilderness materials with (category, subtype, quality) structure */
-    int stored_material_count;                         /* Number of different materials stored */
-    struct material_storage stored_materials[MAX_STORED_MATERIALS];  /* Material storage array */ 
-    int ability_exp[MAX_ABILITIES + 1];               // abilities
+  struct crafting_data_info craft_data; // New crafting system info
 
-    int new_supply_num_made;
-    int new_supply_cooldown;
+  int craft_mats_owned[NUM_CRAFT_MATS];
+  int craft_motes_owned[NUM_CRAFT_MOTES];
 
-    /* Score display preferences */
-    byte score_display_width;     /**< Preferred score display width (80, 120, 160) */
-    byte score_color_theme;       /**< Color theme preference (0=enhanced, 1=classic, 2=minimal, 3=highcontrast, 4=dark, 5=colorblind) */
-    byte score_info_density;      /**< Information density (0=full, 1=compact, 2=minimal) */
-    byte score_layout_template;   /**< Layout template (0=default, 1=combat, 2=roleplay, 3=explorer, 4=caster) */
-    byte score_section_order[8];  /**< Custom section ordering for score display */
+  /* Arcane mark personalization */
+  char *arcane_mark; /**< Stored arcane mark string */
 
-    /* Device destruction tracking to prevent abuse */
-    time_t last_device_destruction;    /**< Timestamp of last device destruction */
-    int devices_destroyed_today;       /**< Number of devices destroyed in past 24 hours */
-    time_t device_creation_cooldown;   /**< Timestamp until when device creation is blocked */
-    time_t last_device_recharge;       /**< Timestamp of last out-of-combat device recharge */
+  /* Phase 4.5: Material subtype storage system */
+  /* Stores wilderness materials with (category, subtype, quality) structure */
+  int stored_material_count; /* Number of different materials stored */
+  struct material_storage stored_materials[MAX_STORED_MATERIALS]; /* Material storage array */
+  int ability_exp[MAX_ABILITIES + 1];                             // abilities
 
-    /* PvP timer - tracks when PvP flag was enabled */
-    time_t pvp_timer;                  /**< Timestamp when PvP was enabled, prevents turning off for 15 minutes */
+  int new_supply_num_made;
+  int new_supply_cooldown;
 
-    struct player_invention inventions[MAX_PLAYER_INVENTIONS];
-    int num_inventions;
+  /* Score display preferences */
+  byte score_display_width; /**< Preferred score display width (80, 120, 160) */
+  byte
+      score_color_theme; /**< Color theme preference (0=enhanced, 1=classic, 2=minimal, 3=highcontrast, 4=dark, 5=colorblind) */
+  byte score_info_density; /**< Information density (0=full, 1=compact, 2=minimal) */
+  byte
+      score_layout_template; /**< Layout template (0=default, 1=combat, 2=roleplay, 3=explorer, 4=caster) */
+  byte score_section_order[8]; /**< Custom section ordering for score display */
 
-    /* Perks System - Stage-based progression */
-    struct stage_data stage_info;               /**< Current stage and stage XP within level */
-    int perk_points[NUM_CLASSES];               /**< Unspent perk points per class */
-    struct char_perk_data *perks;               /**< Linked list of acquired perks */
-    byte perk_toggles[32];                      /**< Bitfield tracking toggled perks (256 perks max, 1 bit each) */
-    
-    /* Perfect Kill tracking (Rogue Assassin perk) */
-    time_t perfect_kill_last_combat;            /**< Timestamp of last combat end */
-    bool perfect_kill_used;                     /**< Whether perfect kill was used this combat cycle */
-    
-    /* Alchemist Chimeric Transmutation tracking (Mutagenist Tier 4) */
-    time_t chimeric_breath_last_combat;         /**< Timestamp of last combat end for chimeric breath */
-    bool chimeric_breath_used;                  /**< Whether chimeric breath was used this combat cycle */
-    
-    /* Wizard Evoker perks */
-    time_t maximize_spell_cooldown;             /**< Timestamp until when free maximize spell is available again */
-    time_t empower_spell_cooldown;              /**< Timestamp until when next empower spell charge regenerates */
-    int empower_spell_uses;                     /**< Number of empower spell uses available (max 2) */
-    int master_of_elements_type;                /**< Preferred elemental damage type (DAM_FIRE, DAM_COLD, DAM_ELECTRIC), 0 = none */
-    
-    /* Wizard Controller perks */
-    time_t persistent_spell_cooldown;           /**< Timestamp until when next persistent spell charge regenerates */
-    int persistent_spell_uses;                  /**< Number of persistent spell uses available (max 2) */
-    bool persistent_spell_active;               /**< Whether persistent spell effect is active for next spell */
-    time_t split_enchantment_cooldown;          /**< Timestamp until when split enchantment is available again */
-    
-    /* Wizard Versatile Caster perks */
-    int defensive_casting_timer;                /**< Rounds remaining for defensive casting AC bonus */
-    time_t arcane_recovery_cooldown;            /**< Timestamp until when arcane recovery is available again */
-    int spell_shield_timer;                     /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
-    time_t spell_shield_cooldown;               /**< Timestamp until when spell shield can be activated again (2 min cooldown) */
-    time_t metamagic_reduction_cooldown;        /**< Timestamp until when next metamagic reduction charge regenerates */
-    
-    /* Monk Power Strike mode - separate from power attack */
-    sbyte power_strike;                         /**< Power strike value 0-2: -1 hit/+2 dam per rank for unarmed/monk weapons */
-    int void_strike_timer;                      /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
-    time_t void_strike_cooldown;                /**< Timestamp until when void strike can be used again (1 min cooldown) */
-    int firesnake_timer;                        /**< Rounds remaining for fangs of fire snake effect (+1d6 fire per attack) */
-    int clench_of_north_wind_timer;             /**< Rounds remaining for clench of north wind effect (ice prison on next attack) */
-    time_t clench_of_north_wind_cooldown;       /**< Timestamp until when clench of the north wind can be used again (1 min cooldown) */
-    int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
-    int elemental_embodiment_timer;             /**< Rounds remaining for elemental embodiment transformation */
-    int elemental_embodiment_type;              /**< Type of element embodied: 1=fire, 2=water, 3=air, 4=earth, 0=none */
-    
-    /* Druid Elemental Mastery */
-    bool elemental_mastery_active;              /**< Whether elemental mastery is active for next elemental spell */
-    time_t elemental_mastery_cooldown;          /**< Timestamp until when elemental mastery can be used again (5 min cooldown) */
-    
-    /* Moon-based Bonus Spell Slots System */
-    int moon_bonus_spells;                      /**< Maximum moon bonus spells available (based on moon phase) */
-    int moon_bonus_spells_used;                 /**< Number of moon bonus spells used (current in use) */
-    int moon_bonus_regen_timer;                 /**< Timer for next moon bonus spell regeneration (in ticks, regen at 1 per 5 mins) */
+  /* Device destruction tracking to prevent abuse */
+  time_t last_device_destruction;  /**< Timestamp of last device destruction */
+  int devices_destroyed_today;     /**< Number of devices destroyed in past 24 hours */
+  time_t device_creation_cooldown; /**< Timestamp until when device creation is blocked */
+  time_t last_device_recharge;     /**< Timestamp of last out-of-combat device recharge */
+
+  /* PvP timer - tracks when PvP flag was enabled */
+  time_t pvp_timer; /**< Timestamp when PvP was enabled, prevents turning off for 15 minutes */
+
+  struct player_invention inventions[MAX_PLAYER_INVENTIONS];
+  int num_inventions;
+
+  /* Perks System - Stage-based progression */
+  struct stage_data stage_info; /**< Current stage and stage XP within level */
+  int perk_points[NUM_CLASSES]; /**< Unspent perk points per class */
+  struct char_perk_data *perks; /**< Linked list of acquired perks */
+  byte perk_toggles[32];        /**< Bitfield tracking toggled perks (256 perks max, 1 bit each) */
+
+  /* Perfect Kill tracking (Rogue Assassin perk) */
+  time_t perfect_kill_last_combat; /**< Timestamp of last combat end */
+  bool perfect_kill_used;          /**< Whether perfect kill was used this combat cycle */
+
+  /* Alchemist Chimeric Transmutation tracking (Mutagenist Tier 4) */
+  time_t chimeric_breath_last_combat; /**< Timestamp of last combat end for chimeric breath */
+  bool chimeric_breath_used;          /**< Whether chimeric breath was used this combat cycle */
+
+  /* Wizard Evoker perks */
+  time_t
+      maximize_spell_cooldown;   /**< Timestamp until when free maximize spell is available again */
+  time_t empower_spell_cooldown; /**< Timestamp until when next empower spell charge regenerates */
+  int empower_spell_uses;        /**< Number of empower spell uses available (max 2) */
+  int master_of_elements_type; /**< Preferred elemental damage type (DAM_FIRE, DAM_COLD, DAM_ELECTRIC), 0 = none */
+
+  /* Wizard Controller perks */
+  time_t
+      persistent_spell_cooldown; /**< Timestamp until when next persistent spell charge regenerates */
+  int persistent_spell_uses;     /**< Number of persistent spell uses available (max 2) */
+  bool persistent_spell_active; /**< Whether persistent spell effect is active for next spell */
+  time_t
+      split_enchantment_cooldown; /**< Timestamp until when split enchantment is available again */
+
+  /* Wizard Versatile Caster perks */
+  int defensive_casting_timer;     /**< Rounds remaining for defensive casting AC bonus */
+  time_t arcane_recovery_cooldown; /**< Timestamp until when arcane recovery is available again */
+  int spell_shield_timer;          /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
+  time_t
+      spell_shield_cooldown; /**< Timestamp until when spell shield can be activated again (2 min cooldown) */
+  time_t
+      metamagic_reduction_cooldown; /**< Timestamp until when next metamagic reduction charge regenerates */
+
+  /* Monk Power Strike mode - separate from power attack */
+  sbyte
+      power_strike; /**< Power strike value 0-2: -1 hit/+2 dam per rank for unarmed/monk weapons */
+  int void_strike_timer; /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
+  time_t
+      void_strike_cooldown; /**< Timestamp until when void strike can be used again (1 min cooldown) */
+  int firesnake_timer; /**< Rounds remaining for fangs of fire snake effect (+1d6 fire per attack) */
+  int clench_of_north_wind_timer; /**< Rounds remaining for clench of north wind effect (ice prison on next attack) */
+  time_t
+      clench_of_north_wind_cooldown; /**< Timestamp until when clench of the north wind can be used again (1 min cooldown) */
+  int metamagic_reduction_uses;   /**< Number of metamagic reduction uses available (max 2) */
+  int elemental_embodiment_timer; /**< Rounds remaining for elemental embodiment transformation */
+  int elemental_embodiment_type; /**< Type of element embodied: 1=fire, 2=water, 3=air, 4=earth, 0=none */
+
+  /* Druid Elemental Mastery */
+  bool
+      elemental_mastery_active; /**< Whether elemental mastery is active for next elemental spell */
+  time_t
+      elemental_mastery_cooldown; /**< Timestamp until when elemental mastery can be used again (5 min cooldown) */
+
+  /* Moon-based Bonus Spell Slots System */
+  int moon_bonus_spells;      /**< Maximum moon bonus spells available (based on moon phase) */
+  int moon_bonus_spells_used; /**< Number of moon bonus spells used (current in use) */
+  int moon_bonus_regen_timer; /**< Timer for next moon bonus spell regeneration (in ticks, regen at 1 per 5 mins) */
 };
 
-struct weird_science_level {
-	int level;
-	int devices[4]; /* Max devices at spell levels 1-4 */
+struct weird_science_level
+{
+  int level;
+  int devices[4]; /* Max devices at spell levels 1-4 */
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -6833,175 +6889,176 @@ struct weird_science_level {
  * of it labelled 'saved' is saved in the players file. */
 struct player_special_data
 {
-    struct player_special_data_saved saved; /**< Information to be saved. */
+  struct player_special_data_saved saved; /**< Information to be saved. */
 
-    char *poofin;               /**< Description displayed to room on arrival of a god. */
-    char *poofout;              /**< Description displayed to room at a god's exit. */
-    struct alias_data *aliases; /**< Command aliases			*/
-    long last_tell;             /**< idnum of PC who last told this PC, used to reply */
-    void *last_olc_targ;        /**< ? Currently Unused ? */
-    int last_olc_mode;          /**< ? Currently Unused ? */
-    char *host;                 /**< Resolved hostname, or ip, for player. */
-    int diplomacy_wait;         /**< Diplomacy Timer */
-    int buildwalk_sector;       /**< Default sector type for buildwalk */
+  char *poofin;               /**< Description displayed to room on arrival of a god. */
+  char *poofout;              /**< Description displayed to room at a god's exit. */
+  struct alias_data *aliases; /**< Command aliases			*/
+  long last_tell;             /**< idnum of PC who last told this PC, used to reply */
+  void *last_olc_targ;        /**< ? Currently Unused ? */
+  int last_olc_mode;          /**< ? Currently Unused ? */
+  char *host;                 /**< Resolved hostname, or ip, for player. */
+  int diplomacy_wait;         /**< Diplomacy Timer */
+  int buildwalk_sector;       /**< Default sector type for buildwalk */
 
-    /* salvation spell */
-    room_vnum salvation_room;
-    char *salvation_name;
+  /* salvation spell */
+  room_vnum salvation_room;
+  char *salvation_name;
 
-    /* levelup data structure - Saved data for study process. */
-    struct level_data *levelup;
+  /* levelup data structure - Saved data for study process. */
+  struct level_data *levelup;
 
-    byte dc_bonus;                /* used to apply dc bonuses, usually to spells.
+  byte dc_bonus;                /* used to apply dc bonuses, usually to spells.
                     Must be reset to zero manually after applying the bonus */
-    byte arcane_apotheosis_slots; /* used with the apotheosis command to store spell slots
+  byte arcane_apotheosis_slots; /* used with the apotheosis command to store spell slots
                                    to be used in place of wand or staff charges.  These stored
                                   slots decay at a rate of 1 per 6-second round and cannot have
                                   more than 9 stored at any given time.  They are not saved over
                                   reboots/copyovers/character quitting. */
-    char *new_mail_receiver;
-    char *new_mail_subject;
-    char *new_mail_content;
-    byte has_eldritch_knight_spell_critical;
-    int destination;                      // used for carriage and sailing systems
-    int travel_timer;                     // used for carriage and sailing systems
-    int travel_type;                      // used for carriage and sailing systems
-    int travel_locale;                    // used for carriage and sailing systems
-    int bane_race;                        // used in applyoil command to create a proper bane weapon
-    int bane_subrace;                     // used in applyoil command to create a proper bane weapon
-    int augment_psp;                      // used when augmenting psionic powers
-    int temp_attack_roll_bonus;           // used when needing to add to an attack roll from outside, and before calling the attack_roll function
-    int dam_co_holder_ndice;              // a holder for number of damage dice for psionic_concussive_onslaught
-    int dam_co_holder_sdice;              // a holder for size of damage dice for psionic_concussive_onslaught
-    int dam_co_holder_bonus;              // a holder for bonus to damage for psionic_concussive_onslaught
-    int save_co_holder_dc_bonus;          // a holder for bonus to save dc for psionic_concussive_onslaught
-    bool cosmic_awareness;                // cosmic awareness psionic power and command
-    int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
+  char *new_mail_receiver;
+  char *new_mail_subject;
+  char *new_mail_content;
+  byte has_eldritch_knight_spell_critical;
+  int destination;            // used for carriage and sailing systems
+  int travel_timer;           // used for carriage and sailing systems
+  int travel_type;            // used for carriage and sailing systems
+  int travel_locale;          // used for carriage and sailing systems
+  int bane_race;              // used in applyoil command to create a proper bane weapon
+  int bane_subrace;           // used in applyoil command to create a proper bane weapon
+  int augment_psp;            // used when augmenting psionic powers
+  int temp_attack_roll_bonus; // used when needing to add to an attack roll from outside, and before calling the attack_roll function
+  int dam_co_holder_ndice;    // a holder for number of damage dice for psionic_concussive_onslaught
+  int dam_co_holder_sdice;    // a holder for size of damage dice for psionic_concussive_onslaught
+  int dam_co_holder_bonus;    // a holder for bonus to damage for psionic_concussive_onslaught
+  int save_co_holder_dc_bonus; // a holder for bonus to save dc for psionic_concussive_onslaught
+  bool cosmic_awareness;       // cosmic awareness psionic power and command
+  int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
 
-    int casting_class;   // The class number that is currently casting a spell
-    sbyte canCastInnate; // for innate racial skills and other innate powers
+  int casting_class;   // The class number that is currently casting a spell
+  sbyte canCastInnate; // for innate racial skills and other innate powers
 
-    int concussive_onslaught_duration;
-    bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt
-    struct obj_data *outfit_obj;
-    int outfit_type;
-    char *outfit_desc;
-    char *outfit_confirmation;
+  int concussive_onslaught_duration;
+  bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt
+  struct obj_data *outfit_obj;
+  int outfit_type;
+  char *outfit_desc;
+  char *outfit_confirmation;
 
-    short mark_rounds;             // number of rounds a character has marked their opponent for
-    struct char_data *mark_target; // person the character is marking for assassination
-    int death_attack_hit_bonus;
-    int death_attack_dam_bonus;
-    room_vnum walkto_location;
+  short mark_rounds;             // number of rounds a character has marked their opponent for
+  struct char_data *mark_target; // person the character is marking for assassination
+  int death_attack_hit_bonus;
+  int death_attack_dam_bonus;
+  room_vnum walkto_location;
 
-    struct char_data *judgement_target; // target of an inquisitor's judgement
-    struct char_data *inq_studied_target; // target of the Studied Target perk
-    int inq_greater_judgment_type;     // selected judgment type for Greater Judgment perk (0-9)
-    int inq_last_spell_cast;           // last inquisitor spell cast (for Righteous Strike perk)
-    int inq_righteous_strike_rounds;   // rounds remaining for Righteous Strike bonus
+  struct char_data *judgement_target;   // target of an inquisitor's judgement
+  struct char_data *inq_studied_target; // target of the Studied Target perk
+  int inq_greater_judgment_type;        // selected judgment type for Greater Judgment perk (0-9)
+  int inq_last_spell_cast;              // last inquisitor spell cast (for Righteous Strike perk)
+  int inq_righteous_strike_rounds;      // rounds remaining for Righteous Strike bonus
 
-    // for the self buffing system
-    int buff_slot;
-    int buff_timer;
-    bool is_buffing;
-    struct char_data *buff_target;
-    char *unstuck;
-    int weapon_touch_spell;
-    int touch_spell_queued;
+  // for the self buffing system
+  int buff_slot;
+  int buff_timer;
+  bool is_buffing;
+  struct char_data *buff_target;
+  char *unstuck;
+  int weapon_touch_spell;
+  int touch_spell_queued;
 
-    int buildwalk_flags[RF_ARRAY_MAX];
-    char *buildwalk_name;
-    char *buildwalk_desc;
+  int buildwalk_flags[RF_ARRAY_MAX];
+  char *buildwalk_name;
+  char *buildwalk_desc;
 
-    char *downgrade_confirm;
+  char *downgrade_confirm;
 
-    char *forge_as_signature;
-    int forge_check;
-    char *retainer_mail_recipient;
+  char *forge_as_signature;
+  int forge_check;
+  char *retainer_mail_recipient;
 
-    bool surveyed_room;
+  bool surveyed_room;
 
-    char *clan_leave_code;
-    
-    /* Device destroy confirmation */
-    char *device_destroy_confirm;
-    int device_destroy_inv_idx;
+  char *clan_leave_code;
+
+  /* Device destroy confirmation */
+  char *device_destroy_confirm;
+  int device_destroy_inv_idx;
 };
 
 /** Special data used by NPCs, not PCs */
 struct mob_special_data
 {
-    memory_rec *memory;         /**< List of PCs to remember */
-    byte attack_type;           /**< The primary attack type (bite, sting, hit, etc.) */
-    byte default_pos;           /**< Default position (standing, sleeping, etc.) */
-    byte damnodice;             /**< The number of dice to roll for damage */
-    byte damsizedice;           /**< The size of each die rolled for damage. */
-    float frustration_level;    /**< The anger/frustration level of the mob */
-    byte subrace[MAX_SUBRACES]; // SubRace
-    struct quest_entry *quest;  // quest info for a mob (homeland-port)
-    room_rnum loadroom;         // mob loadroom saved
-    /* echo system */
-    byte echo_is_zone;    // display the echo to entire zone
-    byte echo_frequency;  // how often to display echo
-    byte echo_sequential; // sequential/random
-    sh_int echo_count;    // how many echos
-    char **echo_entries;  // echo array
-    sh_int current_echo;  // keep track of the current echo, for sequential echos
-    /* path system */
-    int path_index;
-    int path_delay;
-    int path_reset;
-    int path_size;
-    int path[MAX_PATH];
-    /* a (generally) boolean macro that marks whether a proc fired, general use is
+  memory_rec *memory;         /**< List of PCs to remember */
+  byte attack_type;           /**< The primary attack type (bite, sting, hit, etc.) */
+  byte default_pos;           /**< Default position (standing, sleeping, etc.) */
+  byte damnodice;             /**< The number of dice to roll for damage */
+  byte damsizedice;           /**< The size of each die rolled for damage. */
+  float frustration_level;    /**< The anger/frustration level of the mob */
+  byte subrace[MAX_SUBRACES]; // SubRace
+  struct quest_entry *quest;  // quest info for a mob (homeland-port)
+  room_rnum loadroom;         // mob loadroom saved
+  /* echo system */
+  byte echo_is_zone;    // display the echo to entire zone
+  byte echo_frequency;  // how often to display echo
+  byte echo_sequential; // sequential/random
+  sh_int echo_count;    // how many echos
+  char **echo_entries;  // echo array
+  sh_int current_echo;  // keep track of the current echo, for sequential echos
+  /* path system */
+  int path_index;
+  int path_delay;
+  int path_reset;
+  int path_size;
+  int path[MAX_PATH];
+  /* a (generally) boolean macro that marks whether a proc fired, general use is
        for zone-procs */
-    int proc_fired;
-    room_rnum temp_room_data;   /* for homeland, for storing temporary room data */
-    bool hostile;               // used for encounters, hostile mobs will aggro after a timer
-    bool sentient;              // used for encounters, sentient mobs can be bribeed, intimidated, bluffed, etc.
-    int aggro_timer;            // used for encounters, this timer will start for hostile mobs, after which the aggro flag will be applied
-    int extract_timer;          // used for encounters.  This timer is set when the player(s) leave the room.  When timer ends, mob will be extracted
-    int peaceful_timer;         // used for encounter. While active hostile encounters are suspended, and the player(s) can leave the room
-    bool coersion_attempted[5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
-    int hunt_type;              // for hunts, used to track which hunt entry it is on the huhnt table
-    int hunt_cooldown;          // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
-    int temp_feat;
-    byte spells_known[MAX_SPELLS];  /* Changed from int to byte - saves 6KB per mob! */
-    
-    /* Spell slot system for mobs */
-    int spell_slots[10];        /* Current spell slots per circle (0-9) */
-    int max_spell_slots[10];    /* Maximum spell slots per circle (0-9) */
-    time_t last_slot_regen;     /* Timestamp of last spell slot regeneration */
-    
-    /* Known spell slot system for mobs (max 2 slots per known spell, regenerate 1 per minute) */
-    byte known_spell_slots[MAX_SPELLS];      /* Current slots per known spell (max 2) */
-    time_t last_known_slot_regen;            /* Timestamp of last known spell slot regeneration */
+  int proc_fired;
+  room_rnum temp_room_data; /* for homeland, for storing temporary room data */
+  bool hostile;             // used for encounters, hostile mobs will aggro after a timer
+  bool sentient;   // used for encounters, sentient mobs can be bribeed, intimidated, bluffed, etc.
+  int aggro_timer; // used for encounters, this timer will start for hostile mobs, after which the aggro flag will be applied
+  int extract_timer; // used for encounters.  This timer is set when the player(s) leave the room.  When timer ends, mob will be extracted
+  int peaceful_timer; // used for encounter. While active hostile encounters are suspended, and the player(s) can leave the room
+  bool coersion_attempted
+      [5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
+  int hunt_type; // for hunts, used to track which hunt entry it is on the huhnt table
+  int hunt_cooldown; // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
+  int temp_feat;
+  byte spells_known[MAX_SPELLS]; /* Changed from int to byte - saves 6KB per mob! */
+
+  /* Spell slot system for mobs */
+  int spell_slots[10];     /* Current spell slots per circle (0-9) */
+  int max_spell_slots[10]; /* Maximum spell slots per circle (0-9) */
+  time_t last_slot_regen;  /* Timestamp of last spell slot regeneration */
+
+  /* Known spell slot system for mobs (max 2 slots per known spell, regenerate 1 per minute) */
+  byte known_spell_slots[MAX_SPELLS]; /* Current slots per known spell (max 2) */
+  time_t last_known_slot_regen;       /* Timestamp of last known spell slot regeneration */
 };
 
 /** An affect structure. */
 struct affected_type
 {
-    sh_int spell;                /**< The spell that caused this */
-    sh_int duration;             /**< For how long its effects will last      */
-    sh_int modifier;             /**< Added/subtracted to/from apropriate ability     */
-    int location;                /**< Tells which ability to change(APPLY_XXX). */
-    int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
-    int bitvector2[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF2_XXX). */
+  sh_int spell;                 /**< The spell that caused this */
+  sh_int duration;              /**< For how long its effects will last      */
+  sh_int modifier;              /**< Added/subtracted to/from apropriate ability     */
+  int location;                 /**< Tells which ability to change(APPLY_XXX). */
+  int bitvector[AF_ARRAY_MAX];  /**< Tells which bits to set (AFF_XXX). */
+  int bitvector2[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF2_XXX). */
 
-    int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
+  int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
 
-    struct affected_type *next; /**< The next affect in the list of affects. */
-    sh_int specific;
+  struct affected_type *next; /**< The next affect in the list of affects. */
+  sh_int specific;
 };
 
 /* The Maximum number of types that can be required to bypass DR. */
 #define MAX_DR_BYPASS 3
 
-#define DR_BYPASS_CAT_UNUSED 0   /* Unused bypass - skip. */
-#define DR_BYPASS_CAT_NONE 1     /* Nothing bypasses the DR */
-#define DR_BYPASS_CAT_MATERIAL 2 /* Materials that bypass the DR*/
-#define DR_BYPASS_CAT_MAGIC 3    /* Magical weapons bypass the DR */
-#define DR_BYPASS_CAT_DAMTYPE 4  /* DR Damage types that bypass the DR */
+#define DR_BYPASS_CAT_UNUSED 0    /* Unused bypass - skip. */
+#define DR_BYPASS_CAT_NONE 1      /* Nothing bypasses the DR */
+#define DR_BYPASS_CAT_MATERIAL 2  /* Materials that bypass the DR*/
+#define DR_BYPASS_CAT_MAGIC 3     /* Magical weapons bypass the DR */
+#define DR_BYPASS_CAT_DAMTYPE 4   /* DR Damage types that bypass the DR */
 #define DR_BYPASS_CAT_ALIGNMENT 5 // Alignment types that bypass the DR
 
 #define DR_DAMTYPE_BLUDGEONING 0 /* Bludgeoning damage bypasses the DR */
@@ -7020,13 +7077,13 @@ struct affected_type
 /** A damage reduction structure. */
 struct damage_reduction_type
 {
-    int duration;   /* The duration of this DR effect. */
-    int amount;     /* The amount of DR. */
-    int max_damage; /* The amount of damage this DR can take before it dissipates.  -1 is perm. */
-    int spell;      /* Spell granting this DR. */
-    int feat;       /* Feat granting this DR. */
+  int duration;   /* The duration of this DR effect. */
+  int amount;     /* The amount of DR. */
+  int max_damage; /* The amount of damage this DR can take before it dissipates.  -1 is perm. */
+  int spell;      /* Spell granting this DR. */
+  int feat;       /* Feat granting this DR. */
 
-    /* The following values can be a bit confusing - So a clarification
+  /* The following values can be a bit confusing - So a clarification
      * is in order.
      *
      * 'bypass_cat' is an array of integer values (one of the above defines)
@@ -7042,10 +7099,10 @@ struct damage_reduction_type
      * meaning that if a dr 10 has two categories, for example magic and spell, it
      * would be DR 10/(magic or spell)
      */
-    int bypass_cat[MAX_DR_BYPASS]; /* Category of bypass */
-    int bypass_val[MAX_DR_BYPASS]; /* Value (required for certain categories) */
+  int bypass_cat[MAX_DR_BYPASS]; /* Category of bypass */
+  int bypass_val[MAX_DR_BYPASS]; /* Value (required for certain categories) */
 
-    struct damage_reduction_type *next;
+  struct damage_reduction_type *next;
 };
 
 /* Structure for levelup data - Used as a temporary storage area during 'study' command
@@ -7053,89 +7110,89 @@ struct damage_reduction_type
 
 struct level_data
 {
-    int level;
-    int class;
-    int feats[NUM_FEATS];
-    int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
-    int school_feats[NUM_SFEATS];
-    int boosts[6];
-    bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
+  int level;
+  int class;
+  int feats[NUM_FEATS];
+  int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
+  int school_feats[NUM_SFEATS];
+  int boosts[6];
+  bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
-    /* Feat point information */
-    int feat_points;
-    int class_feat_points;
-    int epic_feat_points;
-    int epic_class_feat_points;
-    int teamwork_feat_points;
+  /* Feat point information */
+  int feat_points;
+  int class_feat_points;
+  int epic_feat_points;
+  int epic_class_feat_points;
+  int teamwork_feat_points;
 
-    /* Ability, skill, boost information */
-    int practices;
-    int trains;
-    int num_boosts;
+  /* Ability, skill, boost information */
+  int practices;
+  int trains;
+  int num_boosts;
 
-    int spell_circle;
-    int favored_slot;
+  int spell_circle;
+  int favored_slot;
 
-    int feat_type;
-    int tempFeat;
-    int feat_weapons[NUM_FEATS];
-    int feat_skills[NUM_FEATS];
-    /*        int spells_known[NUM_SPELLS];*/
-    int spell_slots[10];
-    int spells_learned[MAX_SPELLS];
+  int feat_type;
+  int tempFeat;
+  int feat_weapons[NUM_FEATS];
+  int feat_skills[NUM_FEATS];
+  /*        int spells_known[NUM_SPELLS];*/
+  int spell_slots[10];
+  int spells_learned[MAX_SPELLS];
 
-    /* setting stats */
-    int str;
-    int dex;
-    int con;
-    int inte;
-    int wis;
-    int cha;
+  /* setting stats */
+  int str;
+  int dex;
+  int con;
+  int inte;
+  int wis;
+  int cha;
 
-    // Sorcerer Bloodline Subtype
-    int sorcerer_bloodline_subtype;
-    // Alchemist Discoveries
-    int discoveries[NUM_ALC_DISCOVERIES];
-    int tempDiscovery;
-    int grand_discovery;
-    int skills[MAX_SKILLS + 1];
-    int paladin_mercies[NUM_PALADIN_MERCIES];
-    int tempMercy;
-    int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES];
-    int tempCruelty;
-    int dragonborn_draconic_ancestry;
-    int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
-    int languages[NUM_LANGUAGES];
+  // Sorcerer Bloodline Subtype
+  int sorcerer_bloodline_subtype;
+  // Alchemist Discoveries
+  int discoveries[NUM_ALC_DISCOVERIES];
+  int tempDiscovery;
+  int grand_discovery;
+  int skills[MAX_SKILLS + 1];
+  int paladin_mercies[NUM_PALADIN_MERCIES];
+  int tempMercy;
+  int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES];
+  int tempCruelty;
+  int dragonborn_draconic_ancestry;
+  int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
+  int languages[NUM_LANGUAGES];
 
-    int eidolon_base_form;
-    int eidolon_evolutions[NUM_EVOLUTIONS];
-    int summoner_aspects[NUM_EVOLUTIONS];
-    int temp_evolution;
-    int necromancer_bonus_levels; // 1 for arcane, 2 for divine
-    int dragon_rider_dragon_type;
-    int dragon_rider_bond_type;
+  int eidolon_base_form;
+  int eidolon_evolutions[NUM_EVOLUTIONS];
+  int summoner_aspects[NUM_EVOLUTIONS];
+  int temp_evolution;
+  int necromancer_bonus_levels; // 1 for arcane, 2 for divine
+  int dragon_rider_dragon_type;
+  int dragon_rider_bond_type;
 };
 
 /** The list element that makes up a list of characters following this
  * character. */
 struct follow_type
 {
-    struct char_data *follower; /**< Character directly following. */
-    struct follow_type *next;   /**< Next character following. */
+  struct char_data *follower; /**< Character directly following. */
+  struct follow_type *next;   /**< Next character following. */
 };
 
 struct bag_data
 {
-    struct obj_data *bag1;
-    struct obj_data *bag2;
-    struct obj_data *bag3;
-    struct obj_data *bag4;
-    struct obj_data *bag5;
-    struct obj_data *bag6;
-    struct obj_data *bag7;
-    struct obj_data *bag8;
-    struct obj_data *bag9;
-    struct obj_data *bag10;
+  struct obj_data *bag1;
+  struct obj_data *bag2;
+  struct obj_data *bag3;
+  struct obj_data *bag4;
+  struct obj_data *bag5;
+  struct obj_data *bag6;
+  struct obj_data *bag7;
+  struct obj_data *bag8;
+  struct obj_data *bag9;
+  struct obj_data *bag10;
 };
 
 
@@ -7165,114 +7222,116 @@ message to dest room when docking~
 ~
 */
 
-#define  MAX_MOVING_ROOMS    150   /* # of connectiong rooms             */
-#define  ENDMOVING            -2   /* end of moving room list in from[]  */
+#define MAX_MOVING_ROOMS 150 /* # of connectiong rooms             */
+#define ENDMOVING -2         /* end of moving room list in from[]  */
 
-struct moving_room_data {     /*  all room num are VNUM  */
+struct moving_room_data
+{ /*  all room num are VNUM  */
   /*  current state  */
-  int        resetZonePulse;       /* zone pulses per reset         */
-  int        remainingZonePulses;  /* zone pulses left until reset  */
-  int        currentInbound;       /* current conn room (array idx) */
+  int resetZonePulse;      /* zone pulses per reset         */
+  int remainingZonePulses; /* zone pulses left until reset  */
+  int currentInbound;      /* current conn room (array idx) */
 
   /*  constants  */
-  room_num   destination;          /* the target room               */
-  int        inbound_dir;          /* the in/out dir of target room */
-  int        randomMove;           /* whether room moves randomly   */
-  sh_int     exitInfo;             /* door type                     */
-  obj_num    keyInfo;              /* virtual key number            */
-  char     * keywords;             /* keywords                      */
+  room_num destination; /* the target room               */
+  int inbound_dir;      /* the in/out dir of target room */
+  int randomMove;       /* whether room moves randomly   */
+  sh_int exitInfo;      /* door type                     */
+  obj_num keyInfo;      /* virtual key number            */
+  char *keywords;       /* keywords                      */
 
-  room_num * from;                 /* array of from rooms           */
-  int      * fromDir;              /* array of from dirs            */
+  room_num *from; /* array of from rooms           */
+  int *fromDir;   /* array of from dirs            */
 
-  char     * msg_transit;
-  char     * msg_docking;
-  char     * msg_dest_docking;
+  char *msg_transit;
+  char *msg_docking;
+  char *msg_dest_docking;
 
-  struct room_direction_data *dir_option[NUM_OF_DIRS];    /* Directions */
+  struct room_direction_data *dir_option[NUM_OF_DIRS]; /* Directions */
 
-  struct moving_room_data * next;  /* the next in the list          */
+  struct moving_room_data *next; /* the next in the list          */
 };
 
-struct oldNextMove {
-  int       nextDir;
-  int       oldDir;
-  room_num  nextRoom;
-  room_num  oldRoom;
-  room_num  moveRoom;
+struct oldNextMove
+{
+  int nextDir;
+  int oldDir;
+  room_num nextRoom;
+  room_num oldRoom;
+  room_num moveRoom;
 };
 
 /** Master structure for PCs and NPCs. */
 struct char_data
 {
-    int pfilepos;          /**< PC playerfile pos and id number */
-    mob_rnum nr;           /**< NPC real instance number */
-    int coords[2];         /**< Current coordinate location, used in wilderness. */
-    room_rnum in_room;     /**< Current location (real room number) */
-    room_rnum was_in_room; /**< Previous location for linkdead people  */
-    int wait;              /**< wait for how many loops before taking action. */
+  int pfilepos;          /**< PC playerfile pos and id number */
+  mob_rnum nr;           /**< NPC real instance number */
+  int coords[2];         /**< Current coordinate location, used in wilderness. */
+  room_rnum in_room;     /**< Current location (real room number) */
+  room_rnum was_in_room; /**< Previous location for linkdead people  */
+  int wait;              /**< wait for how many loops before taking action. */
 
-    struct char_player_data player;              /**< General PC/NPC data */
-    struct char_ability_data real_abils;         /**< Abilities without modifiers */
-    struct char_ability_data aff_abils;          /**< Abilities with modifiers */
-    struct char_ability_data disguise_abils;     /* wildshape/shapechange/etc bonuses */
-    struct char_point_data points;               /**< Point/statistics */
-    struct char_point_data real_points;          /**< Point/statistics */
-    struct char_special_data char_specials;      /**< PC/NPC specials	  */
-    struct player_special_data *player_specials; /**< PC specials		  */
-    struct mob_special_data mob_specials;        /**< NPC specials		  */
+  struct char_player_data player;              /**< General PC/NPC data */
+  struct char_ability_data real_abils;         /**< Abilities without modifiers */
+  struct char_ability_data aff_abils;          /**< Abilities with modifiers */
+  struct char_ability_data disguise_abils;     /* wildshape/shapechange/etc bonuses */
+  struct char_point_data points;               /**< Point/statistics */
+  struct char_point_data real_points;          /**< Point/statistics */
+  struct char_special_data char_specials;      /**< PC/NPC specials	  */
+  struct player_special_data *player_specials; /**< PC specials		  */
+  struct mob_special_data mob_specials;        /**< NPC specials		  */
 
-    struct affected_type *affected;        /**< affected by what spells    */
-    struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
+  struct affected_type *affected;        /**< affected by what spells    */
+  struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
-    struct obj_data *carrying;    /**< List head for objects in inventory */
-    struct bag_data *bags;    /**< List head for objects in various bags */
-    struct descriptor_data *desc; /**< Descriptor/connection info; NPCs = NULL */
+  struct obj_data *carrying;    /**< List head for objects in inventory */
+  struct bag_data *bags;        /**< List head for objects in various bags */
+  struct descriptor_data *desc; /**< Descriptor/connection info; NPCs = NULL */
 
-    long id;                              /**< used by DG triggers - unique id */
-    struct trig_proto_list *proto_script; /**< list of default triggers */
-    struct script_data *script;           /**< script info for the object */
-    struct script_memory *memory;         /**< for mob memory triggers */
+  long id;                              /**< used by DG triggers - unique id */
+  struct trig_proto_list *proto_script; /**< list of default triggers */
+  struct script_data *script;           /**< script info for the object */
+  struct script_memory *memory;         /**< for mob memory triggers */
 
-    struct char_data *next_in_room;  /**< Next PC in the room */
-    struct char_data *next;          /**< Next char_data in the room */
-    struct char_data *next_fighting; /**< Next in line to fight */
+  struct char_data *next_in_room;  /**< Next PC in the room */
+  struct char_data *next;          /**< Next char_data in the room */
+  struct char_data *next_fighting; /**< Next in line to fight */
 
-    struct follow_type *followers; /**< List of characters following */
-    struct char_data *master;      /**< List of character being followed */
+  struct follow_type *followers; /**< List of characters following */
+  struct char_data *master;      /**< List of character being followed */
 
-    struct group_data *group; /**< Character's Group */
+  struct group_data *group; /**< Character's Group */
 
-    long pref; /**< unique session id */
+  long pref; /**< unique session id */
 
-    struct list_data *events;
+  struct list_data *events;
 
-    struct char_data *last_attacker; // mainly to prevent type_suffering from awarding exp
+  struct char_data *last_attacker; // mainly to prevent type_suffering from awarding exp
 
-    int sticky_bomb[3];
-    long mission_owner;
-    bool dead;
+  int sticky_bomb[3];
+  long mission_owner;
+  bool dead;
 
-    long int confuser_idnum;
-    bool preserve_organs_procced;
-    bool mute_equip_messages;
+  long int confuser_idnum;
+  bool preserve_organs_procced;
+  bool mute_equip_messages;
 
-    int natures_wrath_cooldown; /* Beast Master capstone cooldown (seconds) */
+  int natures_wrath_cooldown; /* Beast Master capstone cooldown (seconds) */
 };
 
 /** descriptor-related structures */
 struct txt_block
 {
-    char *text;             /**< ? */
-    int aliased;            /**< ? */
-    struct txt_block *next; /**< ? */
+  char *text;             /**< ? */
+  int aliased;            /**< ? */
+  struct txt_block *next; /**< ? */
 };
 
 /** ? */
 struct txt_q
 {
-    struct txt_block *head; /**< ? */
-    struct txt_block *tail; /**< ? */
+  struct txt_block *head; /**< ? */
+  struct txt_block *tail; /**< ? */
 };
 
 /** Master structure players. Holds the real players connection to the mud.
@@ -7280,51 +7339,51 @@ struct txt_q
  * is the soul. */
 struct descriptor_data
 {
-    socket_t descriptor;               /**< file descriptor for socket */
-    char host[HOST_LENGTH + 1];        /**< hostname */
-    byte bad_pws;                      /**< number of bad pw attemps this login */
-    byte idle_tics;                    /**< tics idle at password prompt		*/
-    int connected;                     /**< mode of 'connectedness'		*/
-    int desc_num;                      /**< unique num assigned to desc		*/
-    time_t login_time;                 /**< when the person connected		*/
-    char *showstr_head;                /**< for keeping track of an internal str	*/
-    char **showstr_vector;             /**< for paging through texts		*/
-    int showstr_count;                 /**< number of pages to page through	*/
-    int showstr_page;                  /**< which page are we currently showing?	*/
-    char **str;                        /**< for the modify-str system		*/
-    char *backstr;                     /**< backup string for modify-str system	*/
-    size_t max_str;                    /**< maximum size of string in modify-str	*/
-    long mail_to;                      /**< name for mail system			*/
-    int has_prompt;                    /**< is the user at a prompt?             */
-    char inbuf[MAX_RAW_INPUT_LENGTH];  /**< buffer for raw input		*/
-    char last_input[MAX_INPUT_LENGTH]; /**< the last input			*/
-    char small_outbuf[SMALL_BUFSIZE];  /**< standard output buffer		*/
-    char *output;                      /**< ptr to the current output buffer	*/
-    char **history;                    /**< History of commands, for ! mostly.	*/
-    int history_pos;                   /**< Circular array position.		*/
-    int bufptr;                        /**< ptr to end of current output		*/
-    int bufspace;                      /**< space left in the output buffer	*/
-    struct txt_block *large_outbuf;    /**< ptr to large buffer, if we need it */
-    struct txt_q input;                /**< q of unprocessed input		*/
-    struct char_data *character;       /**< linked to char			*/
-    struct char_data *original;        /**< original char if switched		*/
-    struct descriptor_data *snooping;  /**< Who is this char snooping	*/
-    struct descriptor_data *snoop_by;  /**< And who is snooping this char	*/
-    struct descriptor_data *next;      /**< link to next descriptor		*/
-    struct oasis_olc_data *olc;        /**< OLC info */
+  socket_t descriptor;               /**< file descriptor for socket */
+  char host[HOST_LENGTH + 1];        /**< hostname */
+  byte bad_pws;                      /**< number of bad pw attemps this login */
+  byte idle_tics;                    /**< tics idle at password prompt		*/
+  int connected;                     /**< mode of 'connectedness'		*/
+  int desc_num;                      /**< unique num assigned to desc		*/
+  time_t login_time;                 /**< when the person connected		*/
+  char *showstr_head;                /**< for keeping track of an internal str	*/
+  char **showstr_vector;             /**< for paging through texts		*/
+  int showstr_count;                 /**< number of pages to page through	*/
+  int showstr_page;                  /**< which page are we currently showing?	*/
+  char **str;                        /**< for the modify-str system		*/
+  char *backstr;                     /**< backup string for modify-str system	*/
+  size_t max_str;                    /**< maximum size of string in modify-str	*/
+  long mail_to;                      /**< name for mail system			*/
+  int has_prompt;                    /**< is the user at a prompt?             */
+  char inbuf[MAX_RAW_INPUT_LENGTH];  /**< buffer for raw input		*/
+  char last_input[MAX_INPUT_LENGTH]; /**< the last input			*/
+  char small_outbuf[SMALL_BUFSIZE];  /**< standard output buffer		*/
+  char *output;                      /**< ptr to the current output buffer	*/
+  char **history;                    /**< History of commands, for ! mostly.	*/
+  int history_pos;                   /**< Circular array position.		*/
+  int bufptr;                        /**< ptr to end of current output		*/
+  int bufspace;                      /**< space left in the output buffer	*/
+  struct txt_block *large_outbuf;    /**< ptr to large buffer, if we need it */
+  struct txt_q input;                /**< q of unprocessed input		*/
+  struct char_data *character;       /**< linked to char			*/
+  struct char_data *original;        /**< original char if switched		*/
+  struct descriptor_data *snooping;  /**< Who is this char snooping	*/
+  struct descriptor_data *snoop_by;  /**< And who is snooping this char	*/
+  struct descriptor_data *next;      /**< link to next descriptor		*/
+  struct oasis_olc_data *olc;        /**< OLC info */
 
-    protocol_t *pProtocol;    /**< Kavir plugin */
-    struct list_data *events; // event system
+  protocol_t *pProtocol;    /**< Kavir plugin */
+  struct list_data *events; // event system
 
-    struct account_data *account; /**< Account system */
-    
-    /* Board system fields */
-    int board_id;                /**< Board ID for board posting system */
-    char *board_title;           /**< Title being written for board post */
-    int reply_to_post_id;        /**< Post ID being replied to (0 = not a reply) */
-    
-    /* Short description setup tracking */
-    bool forced_short_desc_setup; /**< TRUE if forced to set short desc before game entry */
+  struct account_data *account; /**< Account system */
+
+  /* Board system fields */
+  int board_id;         /**< Board ID for board posting system */
+  char *board_title;    /**< Title being written for board post */
+  int reply_to_post_id; /**< Post ID being replied to (0 = not a reply) */
+
+  /* Short description setup tracking */
+  bool forced_short_desc_setup; /**< TRUE if forced to set short desc before game entry */
 };
 
 /* other miscellaneous structures */
@@ -7333,207 +7392,208 @@ struct descriptor_data
  * be displayed for every different violent hit type. */
 struct msg_type
 {
-    char *attacker_msg; /**< Message displayed to attecker. */
-    char *victim_msg;   /**< Message displayed to victim. */
-    char *room_msg;     /**< Message displayed to rest of players in room. */
+  char *attacker_msg; /**< Message displayed to attecker. */
+  char *victim_msg;   /**< Message displayed to victim. */
+  char *room_msg;     /**< Message displayed to rest of players in room. */
 };
 
 /** An entire message structure for a type of hit or spell or skill. */
 struct message_type
 {
-    struct msg_type die_msg;   /**< Messages for death strikes. */
-    struct msg_type miss_msg;  /**< Messages for missed strikes. */
-    struct msg_type hit_msg;   /**< Messages for a succesful strike. */
-    struct msg_type god_msg;   /**< Messages when trying to hit a god. */
-    struct message_type *next; /**< Next set of messages. */
+  struct msg_type die_msg;   /**< Messages for death strikes. */
+  struct msg_type miss_msg;  /**< Messages for missed strikes. */
+  struct msg_type hit_msg;   /**< Messages for a succesful strike. */
+  struct msg_type god_msg;   /**< Messages when trying to hit a god. */
+  struct message_type *next; /**< Next set of messages. */
 };
 
 /** Head of list of messages for an attack type. */
 struct message_list
 {
-    int a_type;               /**< The id of this attack type. */
-    int number_of_attacks;    /**< How many attack messages to chose from. */
-    struct message_type *msg; /**< List of messages.			*/
+  int a_type;               /**< The id of this attack type. */
+  int number_of_attacks;    /**< How many attack messages to chose from. */
+  struct message_type *msg; /**< List of messages.			*/
 };
 
 /** Social message data structure. */
 struct social_messg
 {
-    int act_nr;              /**< The social id. */
-    char *command;           /**< The command to activate (smile, wave, etc.) */
-    char *sort_as;           /**< Priority of social sorted by this. */
-    int hide;                /**< If true, and target can't see actor, target doesn't see */
-    int min_victim_position; /**< Required Position of victim */
-    int min_char_position;   /**< Required Position of char */
-    int min_level_char;      /**< Minimum PC level required to use this social. */
+  int act_nr;              /**< The social id. */
+  char *command;           /**< The command to activate (smile, wave, etc.) */
+  char *sort_as;           /**< Priority of social sorted by this. */
+  int hide;                /**< If true, and target can't see actor, target doesn't see */
+  int min_victim_position; /**< Required Position of victim */
+  int min_char_position;   /**< Required Position of char */
+  int min_level_char;      /**< Minimum PC level required to use this social. */
 
-    /* No argument was supplied */
-    char *char_no_arg;   /**< Displayed to char when no argument is supplied */
-    char *others_no_arg; /**< Displayed to others when no arg is supplied */
+  /* No argument was supplied */
+  char *char_no_arg;   /**< Displayed to char when no argument is supplied */
+  char *others_no_arg; /**< Displayed to others when no arg is supplied */
 
-    /* An argument was there, and a victim was found */
-    char *char_found;   /**< Display to char when arg is supplied */
-    char *others_found; /**< Display to others when arg is supplied */
-    char *vict_found;   /**< Display to target arg */
+  /* An argument was there, and a victim was found */
+  char *char_found;   /**< Display to char when arg is supplied */
+  char *others_found; /**< Display to others when arg is supplied */
+  char *vict_found;   /**< Display to target arg */
 
-    /* An argument was there, as well as a body part, and a victim was found */
-    char *char_body_found;   /**< Display to actor */
-    char *others_body_found; /**< Display to others */
-    char *vict_body_found;   /**< Display to target argument */
+  /* An argument was there, as well as a body part, and a victim was found */
+  char *char_body_found;   /**< Display to actor */
+  char *others_body_found; /**< Display to others */
+  char *vict_body_found;   /**< Display to target argument */
 
-    /* An argument was there, but no victim was found */
-    char *not_found; /**< Display when no victim is found */
+  /* An argument was there, but no victim was found */
+  char *not_found; /**< Display when no victim is found */
 
-    /* The victim turned out to be the character */
-    char *char_auto;   /**< Display when self is supplied */
-    char *others_auto; /**< Display to others when self is supplied */
+  /* The victim turned out to be the character */
+  char *char_auto;   /**< Display when self is supplied */
+  char *others_auto; /**< Display to others when self is supplied */
 
-    /* If the char cant be found search the char's inven and do these: */
-    char *char_obj_found;   /**< Social performed on object, display to char */
-    char *others_obj_found; /**< Social performed on object, display to others */
+  /* If the char cant be found search the char's inven and do these: */
+  char *char_obj_found;   /**< Social performed on object, display to char */
+  char *others_obj_found; /**< Social performed on object, display to others */
 };
 
 /** Describes bonuses, or negatives, applied to thieves skills. In practice
  * this list is tied to the character's dexterity attribute. */
 struct dex_skill_type
 {
-    sh_int p_pocket; /**< Alters the success rate of pick pockets */
-    sh_int p_locks;  /**< Alters the success of pick locks */
-    sh_int traps;    /**< Historically alters the success of trap finding. */
-    sh_int sneak;    /**< Alters the success of sneaking without being detected */
-    sh_int hide;     /**< Alters the success of hiding out of sight */
+  sh_int p_pocket; /**< Alters the success rate of pick pockets */
+  sh_int p_locks;  /**< Alters the success of pick locks */
+  sh_int traps;    /**< Historically alters the success of trap finding. */
+  sh_int sneak;    /**< Alters the success of sneaking without being detected */
+  sh_int hide;     /**< Alters the success of hiding out of sight */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * strength attribute. */
 struct dex_app_type
 {
-    sh_int reaction;  /**< Historically affects reaction savings throws. */
-    sh_int miss_att;  /**< Historically affects missile attacks */
-    sh_int defensive; /**< Alters character's inherent armor class */
+  sh_int reaction;  /**< Historically affects reaction savings throws. */
+  sh_int miss_att;  /**< Historically affects missile attacks */
+  sh_int defensive; /**< Alters character's inherent armor class */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * strength attribute. */
 struct str_app_type
 {
-    sh_int tohit;   /**< To Hit (THAC0) Bonus/Penalty        */
-    sh_int todam;   /**< Damage Bonus/Penalty                */
-    int carry_w; /**< Maximum weight that can be carrried */
-    sh_int wield_w; /**< Maximum weight that can be wielded  */
+  sh_int tohit;   /**< To Hit (THAC0) Bonus/Penalty        */
+  sh_int todam;   /**< Damage Bonus/Penalty                */
+  int carry_w;    /**< Maximum weight that can be carrried */
+  sh_int wield_w; /**< Maximum weight that can be wielded  */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * wisdom attribute. */
 struct wis_app_type
 {
-    byte bonus; /**< how many practices player gains per lev */
+  byte bonus; /**< how many practices player gains per lev */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * intelligence attribute. */
 struct int_app_type
 {
-    byte learn; /**< how many % a player learns a spell/skill */
+  byte learn; /**< how many % a player learns a spell/skill */
 };
 
 /** Describes the bonuses applied for a specific value of a
  * character's constitution attribute. */
 struct con_app_type
 {
-    sh_int hitp; /**< Added to a character's new MAXHP at each new level. */
+  sh_int hitp; /**< Added to a character's new MAXHP at each new level. */
 };
 
 /** Describes the bonuses applied for a specific value of a
  * character's charisma attribute. */
 struct cha_app_type
 {
-    sh_int cha_bonus; /* charisma bonus */
+  sh_int cha_bonus; /* charisma bonus */
 };
 /** Stores the current phase and associated bonuses of the three moons. */
-struct moon_data {
-   int  solinari_phase;  /* Good Moon                  */
-   int  lunitari_phase;  /* Neutral Moon               */
-   int  nuitari_phase;   /* Evil Moon                  */
-   int  solinari_st;     /* Good Saving Throw Mod      */
-   int  lunitari_st;     /* Neutral Saving Throw Mod   */
-   int  nuitari_st;      /* Evil Saving Throw Mod      */
-   int  solinari_sp;     /* Good Spell Bonus           */
-   int  lunitari_sp;     /* Neutral Spell Bonus        */
-   int  nuitari_sp;      /* Evil Spell Bonus           */
-   int  solinari_lv;     /* Good Spell Level           */
-   int  lunitari_lv;     /* Neutral Spell Level        */
-   int  nuitari_lv;      /* Evil Spell Level           */
+struct moon_data
+{
+  int solinari_phase; /* Good Moon                  */
+  int lunitari_phase; /* Neutral Moon               */
+  int nuitari_phase;  /* Evil Moon                  */
+  int solinari_st;    /* Good Saving Throw Mod      */
+  int lunitari_st;    /* Neutral Saving Throw Mod   */
+  int nuitari_st;     /* Evil Saving Throw Mod      */
+  int solinari_sp;    /* Good Spell Bonus           */
+  int lunitari_sp;    /* Neutral Spell Bonus        */
+  int nuitari_sp;     /* Evil Spell Bonus           */
+  int solinari_lv;    /* Good Spell Level           */
+  int lunitari_lv;    /* Neutral Spell Level        */
+  int nuitari_lv;     /* Evil Spell Level           */
 };
 
 /** Stores, and used to deliver, the current weather information
  * in the mud world. */
 struct weather_data
 {
-    int pressure; /**< How is the pressure ( Mb )? */
-    int change;   /**< How fast and what way does it change? */
-    int sky;      /**< How is the sky? */
-    int sunlight; /**< And how much sun? */
-    struct moon_data moons;
+  int pressure; /**< How is the pressure ( Mb )? */
+  int change;   /**< How fast and what way does it change? */
+  int sky;      /**< How is the sky? */
+  int sunlight; /**< And how much sun? */
+  struct moon_data moons;
 };
 
 /** Element in monster and object index-tables.
  NOTE: Assumes sizeof(mob_vnum) >= sizeof(obj_vnum) */
 struct index_data
 {
-    mob_vnum vnum; /**< virtual number of this mob/obj   */
-    int number;    /**< number of existing units of this mob/obj  */
-    /** Point to any SPECIAL function assoicated with mob/obj.
+  mob_vnum vnum; /**< virtual number of this mob/obj   */
+  int number;    /**< number of existing units of this mob/obj  */
+  /** Point to any SPECIAL function assoicated with mob/obj.
      * Note: These are not trigger scripts. They are functions hard coded in
      * the source code. */
-    SPECIAL_DECL(*func);
+  SPECIAL_DECL(*func);
 
-    char *farg;              /**< String argument for special function. */
-    struct trig_data *proto; /**< Points to the trigger prototype. */
+  char *farg;              /**< String argument for special function. */
+  struct trig_data *proto; /**< Points to the trigger prototype. */
 };
 
 /** Master linked list for the mob/object prototype trigger lists. */
 struct trig_proto_list
 {
-    int vnum;                     /**< vnum of the trigger   */
-    struct trig_proto_list *next; /**< next trigger          */
+  int vnum;                     /**< vnum of the trigger   */
+  struct trig_proto_list *next; /**< next trigger          */
 };
 
 struct guild_info_type
 {
-    int pc_class;
-    room_vnum guild_room;
-    int direction;
+  int pc_class;
+  room_vnum guild_room;
+  int direction;
 };
 
 /* Staff Ran Event Data */
 struct staffevent_struct
 {
-    int event_num;  /* index # reference for event happening */
-    int ticks_left; /* time left for event */
-    int delay;      /* time between the events */
+  int event_num;  /* index # reference for event happening */
+  int ticks_left; /* time left for event */
+  int delay;      /* time between the events */
 };
 
 /** Happy Hour Data */
 struct happyhour
 {
-    int qp_rate;       // % increase in qp
-    int exp_rate;      // % increase in exp
-    int gold_rate;     // % increase in gold
-    int treasure_rate; // % increase in treasure drop
-    int ticks_left;    // time left for happyhour
+  int qp_rate;       // % increase in qp
+  int exp_rate;      // % increase in exp
+  int gold_rate;     // % increase in gold
+  int treasure_rate; // % increase in treasure drop
+  int ticks_left;    // time left for happyhour
 };
 
 /** structure for list of recent players (see 'recent' command) */
 struct recent_player
 {
-    int vnum;                   /* The ID number for this instance */
-    char name[MAX_NAME_LENGTH]; /* The char name of the player     */
-    bool new_player;            /* Is this a new player?           */
-    bool copyover_player;       /* Is this a player that was on during the last copyover? */
-    time_t time;                /* login time                      */
-    char host[HOST_LENGTH + 1]; /* Host IP address                 */
-    struct recent_player *next; /* Pointer to the next instance    */
+  int vnum;                   /* The ID number for this instance */
+  char name[MAX_NAME_LENGTH]; /* The char name of the player     */
+  bool new_player;            /* Is this a new player?           */
+  bool copyover_player;       /* Is this a player that was on during the last copyover? */
+  time_t time;                /* login time                      */
+  char host[HOST_LENGTH + 1]; /* Host IP address                 */
+  struct recent_player *next; /* Pointer to the next instance    */
 };
 
 /* Config structs */
@@ -7542,184 +7602,184 @@ struct recent_player
  * variables. */
 struct game_data
 {
-    int pk_allowed;          /**< Is player killing allowed?    */
-    int pt_allowed;          /**< Is player thieving allowed?   */
-    int level_can_shout;     /**< Level player must be to shout.   */
-    int holler_move_cost;    /**< Cost to holler in move points.    */
-    int tunnel_size;         /**< Number of people allowed in a tunnel.*/
-    int max_exp_gain;        /**< Maximum experience gainable per kill.*/
-    int max_exp_loss;        /**< Maximum experience losable per death.*/
-    int experience_multiplier; /**< Percentage multiplier for experience gain (100 = normal).*/
-    int max_npc_corpse_time; /**< Num tics before NPC corpses decompose*/
-    int max_pc_corpse_time;  /**< Num tics before PC corpse decomposes.*/
-    int idle_void;           /**< Num tics before PC sent to void(idle)*/
-    int idle_rent_time;      /**< Num tics before PC is autorented.   */
-    int idle_max_level;      /**< Level of players immune to idle.     */
-    int dts_are_dumps;       /**< Should items in dt's be junked?   */
-    int load_into_inventory; /**< Objects load in immortals inventory. */
-    int track_through_doors; /**< Track through doors while closed?    */
-    int no_mort_to_immort;   /**< Prevent mortals leveling to imms?    */
-    int disp_closed_doors;   /**< Display closed doors in autoexit?    */
-    int diagonal_dirs;       /**< Are there 6 or 10 directions? */
-    int map_option;          /**< MAP_ON, MAP_OFF or MAP_IMM_ONLY      */
-    int map_size;            /**< Default size for map command         */
-    int minimap_size;        /**< Default size for mini-map (automap)  */
-    int script_players;      /**< Is attaching scripts to players allowed? */
-    float min_pop_to_claim;  /**< Minimum popularity percentage required to claim a zone */
-    int use_introduction_system; /**< Use the introduction system for character names? */
-    int perk_system;         /**< Is the perk system enabled? */
+  int pk_allowed;              /**< Is player killing allowed?    */
+  int pt_allowed;              /**< Is player thieving allowed?   */
+  int level_can_shout;         /**< Level player must be to shout.   */
+  int holler_move_cost;        /**< Cost to holler in move points.    */
+  int tunnel_size;             /**< Number of people allowed in a tunnel.*/
+  int max_exp_gain;            /**< Maximum experience gainable per kill.*/
+  int max_exp_loss;            /**< Maximum experience losable per death.*/
+  int experience_multiplier;   /**< Percentage multiplier for experience gain (100 = normal).*/
+  int max_npc_corpse_time;     /**< Num tics before NPC corpses decompose*/
+  int max_pc_corpse_time;      /**< Num tics before PC corpse decomposes.*/
+  int idle_void;               /**< Num tics before PC sent to void(idle)*/
+  int idle_rent_time;          /**< Num tics before PC is autorented.   */
+  int idle_max_level;          /**< Level of players immune to idle.     */
+  int dts_are_dumps;           /**< Should items in dt's be junked?   */
+  int load_into_inventory;     /**< Objects load in immortals inventory. */
+  int track_through_doors;     /**< Track through doors while closed?    */
+  int no_mort_to_immort;       /**< Prevent mortals leveling to imms?    */
+  int disp_closed_doors;       /**< Display closed doors in autoexit?    */
+  int diagonal_dirs;           /**< Are there 6 or 10 directions? */
+  int map_option;              /**< MAP_ON, MAP_OFF or MAP_IMM_ONLY      */
+  int map_size;                /**< Default size for map command         */
+  int minimap_size;            /**< Default size for mini-map (automap)  */
+  int script_players;          /**< Is attaching scripts to players allowed? */
+  float min_pop_to_claim;      /**< Minimum popularity percentage required to claim a zone */
+  int use_introduction_system; /**< Use the introduction system for character names? */
+  int perk_system;             /**< Is the perk system enabled? */
 
-    char *OK;       /**< When player receives 'Okay.' text.    */
-    char *NOPERSON; /**< 'No one by that name here.'   */
-    char *NOEFFECT; /**< 'Nothing seems to happen.'            */
+  char *OK;       /**< When player receives 'Okay.' text.    */
+  char *NOPERSON; /**< 'No one by that name here.'   */
+  char *NOEFFECT; /**< 'Nothing seems to happen.'            */
 };
 
 // automatic hour happy info saved in game config, cedit
 struct happy_hour_data
 {
-    int qp;       // percent increase in number of qp
-    int exp;      // percent increase in exp
-    int gold;     // percent increase in gold
-    int treasure; // percent increase in random treasure chance
-    int chance;   // percent chance the happy hour will occur each rl hour
+  int qp;       // percent increase in number of qp
+  int exp;      // percent increase in exp
+  int gold;     // percent increase in gold
+  int treasure; // percent increase in random treasure chance
+  int chance;   // percent chance the happy hour will occur each rl hour
 };
 
 /** The rent and crashsave options. */
 struct crash_save_data
 {
-    int free_rent;          /**< Should the MUD allow rent for free?   */
-    int max_obj_save;       /**< Max items players can rent.           */
-    int min_rent_cost;      /**< surcharge on top of item costs.       */
-    int auto_save;          /**< Does the game automatically save ppl? */
-    int autosave_time;      /**< if auto_save=TRUE, how often?         */
-    int crash_file_timeout; /**< Life of crashfiles and idlesaves.     */
-    int rent_file_timeout;  /**< Lifetime of normal rent files in days */
+  int free_rent;          /**< Should the MUD allow rent for free?   */
+  int max_obj_save;       /**< Max items players can rent.           */
+  int min_rent_cost;      /**< surcharge on top of item costs.       */
+  int auto_save;          /**< Does the game automatically save ppl? */
+  int autosave_time;      /**< if auto_save=TRUE, how often?         */
+  int crash_file_timeout; /**< Life of crashfiles and idlesaves.     */
+  int rent_file_timeout;  /**< Lifetime of normal rent files in days */
 };
 
 /** Important room numbers. This structure stores vnums, not real array
  * numbers. */
 struct room_numbers
 {
-    room_vnum mortal_start_room;  /**< vnum of room that mortals enter at.  */
-    room_vnum mortal_start_room2; /**< vnum of room that mortals enter at.  */
-    room_vnum immort_start_room;  /**< vnum of room that immorts enter at.  */
-    room_vnum frozen_start_room;  /**< vnum of room that frozen ppl enter.  */
-    room_vnum donation_room_1;    /**< vnum of donation room #1.            */
-    room_vnum donation_room_2;    /**< vnum of donation room #2.            */
-    room_vnum donation_room_3;    /**< vnum of donation room #3.            */
+  room_vnum mortal_start_room;  /**< vnum of room that mortals enter at.  */
+  room_vnum mortal_start_room2; /**< vnum of room that mortals enter at.  */
+  room_vnum immort_start_room;  /**< vnum of room that immorts enter at.  */
+  room_vnum frozen_start_room;  /**< vnum of room that frozen ppl enter.  */
+  room_vnum donation_room_1;    /**< vnum of donation room #1.            */
+  room_vnum donation_room_2;    /**< vnum of donation room #2.            */
+  room_vnum donation_room_3;    /**< vnum of donation room #3.            */
 };
 
 /** Operational game variables. */
 struct game_operation
 {
-    ush_int DFLT_PORT;        /**< The default port to run the game.  */
-    char *DFLT_IP;            /**< Bind to all interfaces.     */
-    char *DFLT_DIR;           /**< The default directory (lib).    */
-    char *LOGNAME;            /**< The file to log messages to.    */
-    int max_playing;          /**< Maximum number of players allowed. */
-    int max_filesize;         /**< Maximum size of misc files.   */
-    int max_bad_pws;          /**< Maximum number of pword attempts.  */
-    int siteok_everyone;      /**< Everyone from all sites are SITEOK.*/
-    int nameserver_is_slow;   /**< Is the nameserver slow or fast?   */
-    int use_new_socials;      /**< Use new or old socials file ?      */
-    int auto_save_olc;        /**< Does OLC save to disk right away ? */
-    char *MENU;               /**< The MAIN MENU.        */
-    char *WELC_MESSG;         /**< The welcome message.      */
-    char *START_MESSG;        /**< The start msg for new characters.  */
-    int medit_advanced;       /**< Does the medit OLC show the advanced stats menu ? */
-    int ibt_autosave;         /**< Does "bug resolve" autosave ? */
-    int protocol_negotiation; /**< Enable the protocol negotiation system ? */
-    int special_in_comm;      /**< Enable use of a special character in communication channels ? */
-    int debug_mode;           /**< Current Debug Mode */
+  ush_int DFLT_PORT;        /**< The default port to run the game.  */
+  char *DFLT_IP;            /**< Bind to all interfaces.     */
+  char *DFLT_DIR;           /**< The default directory (lib).    */
+  char *LOGNAME;            /**< The file to log messages to.    */
+  int max_playing;          /**< Maximum number of players allowed. */
+  int max_filesize;         /**< Maximum size of misc files.   */
+  int max_bad_pws;          /**< Maximum number of pword attempts.  */
+  int siteok_everyone;      /**< Everyone from all sites are SITEOK.*/
+  int nameserver_is_slow;   /**< Is the nameserver slow or fast?   */
+  int use_new_socials;      /**< Use new or old socials file ?      */
+  int auto_save_olc;        /**< Does OLC save to disk right away ? */
+  char *MENU;               /**< The MAIN MENU.        */
+  char *WELC_MESSG;         /**< The welcome message.      */
+  char *START_MESSG;        /**< The start msg for new characters.  */
+  int medit_advanced;       /**< Does the medit OLC show the advanced stats menu ? */
+  int ibt_autosave;         /**< Does "bug resolve" autosave ? */
+  int protocol_negotiation; /**< Enable the protocol negotiation system ? */
+  int special_in_comm;      /**< Enable use of a special character in communication channels ? */
+  int debug_mode;           /**< Current Debug Mode */
 };
 
 /** The Autowizard options. */
 struct autowiz_data
 {
-    int use_autowiz;     /**< Use the autowiz feature?   */
-    int min_wizlist_lev; /**< Minimun level to show on wizlist.  */
+  int use_autowiz;     /**< Use the autowiz feature?   */
+  int min_wizlist_lev; /**< Minimun level to show on wizlist.  */
 };
 
 struct mob_stat_category
 {
-    int hit_points;
-    int armor_class;
-    int attack_bonus;
-    int damage_bonus;
-    int saving_throws;
-    int ability_scores;
-    int gold;
+  int hit_points;
+  int armor_class;
+  int attack_bonus;
+  int damage_bonus;
+  int saving_throws;
+  int ability_scores;
+  int gold;
 };
 
 struct mob_stats_config_data
 {
-    struct mob_stat_category warriors;
-    struct mob_stat_category arcane_casters;
-    struct mob_stat_category divine_casters;
-    struct mob_stat_category rogues;
+  struct mob_stat_category warriors;
+  struct mob_stat_category arcane_casters;
+  struct mob_stat_category divine_casters;
+  struct mob_stat_category rogues;
 };
 
 struct player_config_data
 {
-    // spell damage.  This is the percent of extra damage done.
-    // if 0, damage is normal.  If 20, damage will be 120% normal.
-    // if -20, damage will be 80% normal.
-    int psionic_power_damage_bonus;
-    int divine_spell_damage_bonus;
-    int arcane_spell_damage_bonus;
+  // spell damage.  This is the percent of extra damage done.
+  // if 0, damage is normal.  If 20, damage will be 120% normal.
+  // if -20, damage will be 80% normal.
+  int psionic_power_damage_bonus;
+  int divine_spell_damage_bonus;
+  int arcane_spell_damage_bonus;
 
-    int extra_hp_per_level;
-    int extra_mv_per_level;
+  int extra_hp_per_level;
+  int extra_mv_per_level;
 
-    // No player armor class can go above this value
-    int armor_class_cap;
+  // No player armor class can go above this value
+  int armor_class_cap;
 
-    // This is the maximum difference in level between the
-    // level of the player and the mob, to gain exp.
-    // If 3, and the player level is 20, the player will
-    // gain exp over any mobs level 17+. Anything 16 or
-    // less will yeild no exp.
-    int group_level_difference_restriction;
+  // This is the maximum difference in level between the
+  // level of the player and the mob, to gain exp.
+  // If 3, and the player level is 20, the player will
+  // gain exp over any mobs level 17+. Anything 16 or
+  // less will yeild no exp.
+  int group_level_difference_restriction;
 
-    // these values apply to mobs created with any kind
-    // of summoning spell, such as summon creature, dragon knight,
-    // mummy dust, etc.
-    // The value is a percentage of the normal values. If 100
-    // then the stats are unchanged.  If 80, the stats are 80%
-    // of normal.  if 120, the stats are 120% normal.
-    int level_1_10_summon_hp;
-    int level_1_10_summon_hit_and_dam;
-    int level_1_10_summon_ac;
-    int level_11_20_summon_hp;
-    int level_11_20_summon_hit_and_dam;
-    int level_11_20_summon_ac;
-    int level_21_30_summon_hp;
-    int level_21_30_summon_hit_and_dam;
-    int level_21_30_summon_ac;
+  // these values apply to mobs created with any kind
+  // of summoning spell, such as summon creature, dragon knight,
+  // mummy dust, etc.
+  // The value is a percentage of the normal values. If 100
+  // then the stats are unchanged.  If 80, the stats are 80%
+  // of normal.  if 120, the stats are 120% normal.
+  int level_1_10_summon_hp;
+  int level_1_10_summon_hit_and_dam;
+  int level_1_10_summon_ac;
+  int level_11_20_summon_hp;
+  int level_11_20_summon_hit_and_dam;
+  int level_11_20_summon_ac;
+  int level_21_30_summon_hp;
+  int level_21_30_summon_hit_and_dam;
+  int level_21_30_summon_ac;
 
-    // spell/power prep time modifiers
-    int psionic_mem_times;
-    int divine_mem_times;
-    int arcane_mem_times;
-    int alchemy_mem_times;
+  // spell/power prep time modifiers
+  int psionic_mem_times;
+  int divine_mem_times;
+  int arcane_mem_times;
+  int alchemy_mem_times;
 
-    // death penalty exp loss modifier
-    int death_exp_loss_penalty;
+  // death penalty exp loss modifier
+  int death_exp_loss_penalty;
 };
 
 struct extra_game_data
 {
-    ubyte campaign;
-    ubyte bag_system;
-    ubyte new_player_gear;
-    ubyte crafting_system;
-    ubyte landmarks_system;
-    ubyte allow_cexchange;
-    ubyte wilderness_system;
-    ubyte melee_exp_option;
-    ubyte spell_cast_exp_option;
-    ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */
-    ubyte arcane_moon_phases;  /**< Enable arcane moon phase bonus spells */
+  ubyte campaign;
+  ubyte bag_system;
+  ubyte new_player_gear;
+  ubyte crafting_system;
+  ubyte landmarks_system;
+  ubyte allow_cexchange;
+  ubyte wilderness_system;
+  ubyte melee_exp_option;
+  ubyte spell_cast_exp_option;
+  ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */
+  ubyte arcane_moon_phases;     /**< Enable arcane moon phase bonus spells */
 };
 
 /**
@@ -7733,26 +7793,26 @@ struct extra_game_data
  */
 struct config_data
 {
-    /** Path to on-disk file where the config_data structure gets written. */
-    char *CONFFILE;
-    /** In-game specific global settings, such as allowing player killing. */
-    struct game_data play;
-    /** How is renting, crash files, and object saving handled? */
-    struct crash_save_data csd;
-    /** Special designated rooms, like start rooms, and donation rooms. */
-    struct room_numbers room_nums;
-    /** Basic operational settings, like max file sizes and max players. */
-    struct game_operation operation;
-    /** Autowiz specific settings, like turning it on and minimum level */
-    struct autowiz_data autowiz;
-    /** Automatic happy hour activation options */
-    struct happy_hour_data happy_hour;
-    /** player stat config data */
-    struct player_config_data player_config;
-    /** mob stats config data */
-    struct mob_stats_config_data mob_stats;
-    /** additonal game options */
-    struct extra_game_data extra;
+  /** Path to on-disk file where the config_data structure gets written. */
+  char *CONFFILE;
+  /** In-game specific global settings, such as allowing player killing. */
+  struct game_data play;
+  /** How is renting, crash files, and object saving handled? */
+  struct crash_save_data csd;
+  /** Special designated rooms, like start rooms, and donation rooms. */
+  struct room_numbers room_nums;
+  /** Basic operational settings, like max file sizes and max players. */
+  struct game_operation operation;
+  /** Autowiz specific settings, like turning it on and minimum level */
+  struct autowiz_data autowiz;
+  /** Automatic happy hour activation options */
+  struct happy_hour_data happy_hour;
+  /** player stat config data */
+  struct player_config_data player_config;
+  /** mob stats config data */
+  struct mob_stats_config_data mob_stats;
+  /** additonal game options */
+  struct extra_game_data extra;
 };
 
 #ifdef MEMORY_DEBUG
@@ -7762,9 +7822,9 @@ struct config_data
 /* Action types */
 typedef enum
 {
-    atSTANDARD,
-    atMOVE,
-    atSWIFT
+  atSTANDARD,
+  atMOVE,
+  atSWIFT
 } action_type;
 
 #define NUM_ACTIONS 3
@@ -7783,69 +7843,69 @@ typedef enum
  * but loaded into this structure while the player is in-game. */
 struct account_data
 {
-    int id;
-    char *name;
-    char password[MAX_PWD_LENGTH + 1];
-    sbyte bad_password_count;
-    char *character_names[MAX_CHARS_PER_ACCOUNT];
-    int experience;
-    //        ush_int gift_experience;
-    //        sbyte level;
-    //        int account_flags;
-    //        time_t last_login;
-    //        sbyte read_rules;
-    //        char * websiteAccount;
-    //        byte polls[100];
-    //        char * web_password;
-    int classes[MAX_UNLOCKED_CLASSES];
-    int races[MAX_UNLOCKED_RACES];
-    char *email;
-    //        int surveys[4];
-    //        struct obj_data *item_bank;
-    //        int item_bank_size;
-    //        char *ignored[MAX_CHARS_PER_ACCOUNT];
+  int id;
+  char *name;
+  char password[MAX_PWD_LENGTH + 1];
+  sbyte bad_password_count;
+  char *character_names[MAX_CHARS_PER_ACCOUNT];
+  int experience;
+  //        ush_int gift_experience;
+  //        sbyte level;
+  //        int account_flags;
+  //        time_t last_login;
+  //        sbyte read_rules;
+  //        char * websiteAccount;
+  //        byte polls[100];
+  //        char * web_password;
+  int classes[MAX_UNLOCKED_CLASSES];
+  int races[MAX_UNLOCKED_RACES];
+  char *email;
+  //        int surveys[4];
+  //        struct obj_data *item_bank;
+  //        int item_bank_size;
+  //        char *ignored[MAX_CHARS_PER_ACCOUNT];
 };
 
 /* structs - race data for extension of races */
 struct race_data
 {
-    /* displaying the race */
-    char *name;         /* lower case no-spaces (for like accessing help file) */
-    char *type;         /* full capitalized and spaced version */
-    char *type_color;   /* full colored, capitalized and spaced version */
-    char *abbrev;       /* 4 letter abbreviation */
-    char *abbrev_color; /* 4 letter abbreviation colored */
+  /* displaying the race */
+  char *name;         /* lower case no-spaces (for like accessing help file) */
+  char *type;         /* full capitalized and spaced version */
+  char *type_color;   /* full colored, capitalized and spaced version */
+  char *abbrev;       /* 4 letter abbreviation */
+  char *abbrev_color; /* 4 letter abbreviation colored */
 
-    /* extended race details */
-    char *descrip;       /* race description */
-    char *morph_to_char; /* wildshape message to ch */
-    char *morph_to_room; /* wildshape message to room */
+  /* extended race details */
+  char *descrip;       /* race description */
+  char *morph_to_char; /* wildshape message to ch */
+  char *morph_to_room; /* wildshape message to room */
 
-    /* race assigned values! */
-    ubyte family;           /* race's family type (iron golem would be a CONSTRUCT) */
-    byte size;              /* default size class for this race */
-    bool is_pc;             /* can a PC select this race to play? */
-    ubyte level_adjustment; /* for pc-races: penalty to xp for race due to power */
-    int unlock_cost;        /* if locked, cost to unlock in account xp */
-    byte epic_adv;          /* normal, advance or epic race (pc)? */
+  /* race assigned values! */
+  ubyte family;           /* race's family type (iron golem would be a CONSTRUCT) */
+  byte size;              /* default size class for this race */
+  bool is_pc;             /* can a PC select this race to play? */
+  ubyte level_adjustment; /* for pc-races: penalty to xp for race due to power */
+  int unlock_cost;        /* if locked, cost to unlock in account xp */
+  byte epic_adv;          /* normal, advance or epic race (pc)? */
 
-    /* array assigned values! */
-    sbyte genders[NUM_SEX];              /* this race can be this sex? */
-    byte ability_mods[NUM_ABILITY_MODS]; /* modifications to base stats based on race */
-    sbyte alignments[NUM_ALIGNMENTS];    /* acceptable alignments for this race */
-    byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
+  /* array assigned values! */
+  sbyte genders[NUM_SEX];              /* this race can be this sex? */
+  byte ability_mods[NUM_ABILITY_MODS]; /* modifications to base stats based on race */
+  sbyte alignments[NUM_ALIGNMENTS];    /* acceptable alignments for this race */
+  byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
 
-    /* linked lists */
-    struct race_feat_assign *featassign_list; /* list of feat assigns */
-    struct affect_assign *affassign_list;     /* list of affect assigns */
+  /* linked lists */
+  struct race_feat_assign *featassign_list; /* list of feat assigns */
+  struct affect_assign *affassign_list;     /* list of affect assigns */
 
-    int racial_language; // automatic spoken language for race.  Mainly used in Faeurn
+  int racial_language; // automatic spoken language for race.  Mainly used in Faeurn
 
-    /* these are only ideas for now */
+  /* these are only ideas for now */
 
-    /*int body_parts[NUM_WEARS];*/   /* for expansion - to add customized wear slots */
-    /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
-    /*ush_int language;*/            /* default language - not used yet */
+  /*int body_parts[NUM_WEARS];*/   /* for expansion - to add customized wear slots */
+  /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
+  /*ush_int language;*/            /* default language - not used yet */
 };
 
 extern struct race_data race_list[];
@@ -7856,23 +7916,26 @@ extern struct race_data race_list[];
 #ifndef TALENT_ACCESS_MACROS
 #define TALENT_ACCESS_MACROS
 /* Rank access; bounds-safe: talents are 1..TALENT_MAX-1. */
-#define GET_TALENT_RANK(ch, talent) \
-    (((ch) && (ch)->player_specials && (talent) > 0 && (talent) < 64) ? \
-        (ch)->player_specials->saved.talent_ranks[(talent)] : 0)
+#define GET_TALENT_RANK(ch, talent)                                                                \
+  (((ch) && (ch)->player_specials && (talent) > 0 && (talent) < 64)                                \
+       ? (ch)->player_specials->saved.talent_ranks[(talent)]                                       \
+       : 0)
 
 /* Backward-compatible boolean check: has at least rank 1 */
 #define HAS_TALENT(ch, talent) (GET_TALENT_RANK((ch), (talent)) > 0)
 
 /* Historical macro; now sets at least rank 1 if currently zero. Prefer using learn_talent(). */
-#define SET_TALENT(ch, talent) do { \
-    if ((ch) && (talent) > 0 && (talent) < 64 && GET_TALENT_RANK((ch),(talent)) == 0) \
-        (ch)->player_specials->saved.talent_ranks[(talent)] = 1; \
-} while(0)
+#define SET_TALENT(ch, talent)                                                                     \
+  do                                                                                               \
+  {                                                                                                \
+    if ((ch) && (talent) > 0 && (talent) < 64 && GET_TALENT_RANK((ch), (talent)) == 0)             \
+      (ch)->player_specials->saved.talent_ranks[(talent)] = 1;                                     \
+  } while (0)
 
-#define GET_TALENT_POINTS(ch)    ((ch)->player_specials->saved.talent_points)
-#define PLR_TALENTS(ch, talent)  HAS_TALENT(ch, talent)
+#define GET_TALENT_POINTS(ch) ((ch)->player_specials->saved.talent_points)
+#define PLR_TALENTS(ch, talent) HAS_TALENT(ch, talent)
 
 /* Monk power strike - separate from power attack mode */
-#define GET_POWER_STRIKE(ch)     ((ch)->player_specials->saved.power_strike)
+#define GET_POWER_STRIKE(ch) ((ch)->player_specials->saved.power_strike)
 #endif
 #endif /* _STRUCTS_H_ */

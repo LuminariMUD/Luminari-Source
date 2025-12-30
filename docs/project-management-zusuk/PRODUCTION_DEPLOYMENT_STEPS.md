@@ -57,12 +57,12 @@ mysql -u root -p luminari_mudprod < verify_vessels_schema.sql
 
 # Quick manual checks
 mysql -u root -p luminari_mudprod -e "
-  SELECT COUNT(*) as table_count FROM information_schema.TABLES 
+  SELECT COUNT(*) as table_count FROM information_schema.TABLES
   WHERE TABLE_SCHEMA = 'luminari_mudprod' AND TABLE_NAME LIKE 'ship_%';
-  
+
   SELECT COUNT(*) as template_count FROM ship_room_templates;
-  
-  SHOW PROCEDURE STATUS WHERE Db = 'luminari_mudprod' 
+
+  SHOW PROCEDURE STATUS WHERE Db = 'luminari_mudprod'
   AND Name IN ('cleanup_orphaned_dockings', 'get_active_dockings');"
 ```
 
@@ -126,8 +126,8 @@ Log into the MUD and test:
 ```bash
 mysql -u root -p luminari_mudprod -e "
   SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH/1024 as size_kb
-  FROM information_schema.TABLES 
-  WHERE TABLE_SCHEMA = 'luminari_mudprod' 
+  FROM information_schema.TABLES
+  WHERE TABLE_SCHEMA = 'luminari_mudprod'
   AND TABLE_NAME LIKE 'ship_%';"
 ```
 
@@ -144,7 +144,7 @@ mysql -u root -p luminari_mudprod -e "
 ### Check Ship Interiors (once data exists)
 ```sql
 mysql -u root -p luminari_mudprod -e "
-  SELECT ship_id, vessel_name, num_rooms, created_at 
+  SELECT ship_id, vessel_name, num_rooms, created_at
   FROM ship_interiors LIMIT 10;"
 ```
 
@@ -175,7 +175,7 @@ FLUSH PRIVILEGES;
 **Solution:** This shouldn't happen on fresh install. If it does, use rollback.
 
 ### Issue: MUD server can't access new tables
-**Solution:** 
+**Solution:**
 1. Check MUD user permissions
 2. Restart MUD server
 3. Verify connection string in MUD config
@@ -205,16 +205,16 @@ mysql -u root -p luminari_mudprod < vessels_phase2_schema.sql
 
 # 3. Verify
 mysql -u root -p luminari_mudprod -e "
-  SELECT 'Tables:' as Check_Type, COUNT(*) as Result 
-  FROM information_schema.TABLES 
+  SELECT 'Tables:' as Check_Type, COUNT(*) as Result
+  FROM information_schema.TABLES
   WHERE TABLE_SCHEMA = 'luminari_mudprod' AND TABLE_NAME LIKE 'ship_%'
   UNION ALL
-  SELECT 'Templates:' as Check_Type, COUNT(*) as Result 
+  SELECT 'Templates:' as Check_Type, COUNT(*) as Result
   FROM ship_room_templates
   UNION ALL
   SELECT 'Procedures:' as Check_Type, COUNT(*) as Result
-  FROM information_schema.ROUTINES 
-  WHERE ROUTINE_SCHEMA = 'luminari_mudprod' 
+  FROM information_schema.ROUTINES
+  WHERE ROUTINE_SCHEMA = 'luminari_mudprod'
   AND ROUTINE_NAME IN ('cleanup_orphaned_dockings', 'get_active_dockings');"
 
 # Expected output:

@@ -53,7 +53,7 @@ bool is_covered(struct char_data *ch);
 /**
  * Process all post-movement events
  * This is called after a character has successfully moved to a new room
- * 
+ *
  * @param ch Character who moved
  * @param was_in Room they moved from
  * @param going_to Room they moved to
@@ -126,7 +126,7 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
 
 /**
  * Process room damage effects like spike growth
- * 
+ *
  * @param ch Character entering the room
  * @param room Room being entered
  * @param riding TRUE if mounted
@@ -171,18 +171,17 @@ void process_room_damage(struct char_data *ch, room_rnum room, int riding, int s
 
 /**
  * Process trap detection for characters with trap sense
- * 
+ *
  * @param ch Character to check for trap detection
  */
 void process_trap_detection(struct char_data *ch)
 {
- 
   /* Trap sense feat allows automatic detection */
   if (!IS_NPC(ch))
   {
     int trap_check = 0;
     int dc = 21;
-    
+
     if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE)))
     {
       if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
@@ -196,7 +195,7 @@ void process_trap_detection(struct char_data *ch)
 
 /**
  * Process wilderness-specific events
- * 
+ *
  * @param ch Character who moved
  * @param was_in Previous room
  */
@@ -231,7 +230,7 @@ void process_wilderness_events(struct char_data *ch, room_rnum was_in)
 
 /**
  * Process vampire weakness effects
- * 
+ *
  * @param ch Character to check for vampire weaknesses
  */
 void process_vampire_weaknesses(struct char_data *ch)
@@ -239,13 +238,13 @@ void process_vampire_weaknesses(struct char_data *ch)
   /* Skip if not a vampire or protected */
   if (!HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES))
     return;
-  
+
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return;
-    
+
   if (affected_by_spell(ch, AFFECT_RECENTLY_DIED))
     return;
-    
+
   if (affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
     return;
 
@@ -264,7 +263,7 @@ void process_vampire_weaknesses(struct char_data *ch)
 
 /**
  * Process pre-movement trap checks
- * 
+ *
  * @param ch Character leaving a room
  */
 void process_leave_traps(struct char_data *ch)

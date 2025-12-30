@@ -69,9 +69,9 @@ systems/spatial/*           - Spatial system components
 ### Data Flow
 
 ```
-Player Movement → Coordinate Calculation → Room Lookup/Creation → 
-Terrain Generation → Resource Calculation → Region/Path Application → 
-Room Assignment → Weather/Description Generation → Spatial Event Processing → 
+Player Movement → Coordinate Calculation → Room Lookup/Creation →
+Terrain Generation → Resource Calculation → Region/Path Application →
+Room Assignment → Weather/Description Generation → Spatial Event Processing →
 PubSub Event Distribution → Player Display/Audio Delivery
 ```
 
@@ -91,7 +91,7 @@ The wilderness system integrates multiple subsystems:
 ### Coordinate Space
 - **Range**: -1024 to +1024 on both X and Y axes
 - **Origin**: (0,0) at the center of the wilderness
-- **Directions**: 
+- **Directions**:
   - North: +Y
   - South: -Y  
   - East: +X
@@ -711,7 +711,7 @@ The PubSub system provides:
 ```c
 // Publish spatial audio to wilderness area
 pubsub_publish_wilderness_audio(source_x, source_y, source_z,
-                               sender_name, content, 
+                               sender_name, content,
                                max_distance, priority);
 ```
 
@@ -799,7 +799,7 @@ int target_z = get_modified_elevation(X_LOC(target), Y_LOC(target));
 **Distance Calculation:**
 ```c
 // 3D distance with elevation weighting
-float distance = sqrt(pow(X_LOC(target) - source_x, 2) + 
+float distance = sqrt(pow(X_LOC(target) - source_x, 2) +
                      pow(Y_LOC(target) - source_y, 2) +
                      pow((target_z - source_z) / 4.0, 2));
 ```
@@ -1127,14 +1127,14 @@ void boot_world(void) {
 
     // 4. Initialize wilderness systems
     initialize_wilderness_lists();   // KD-Tree indexing for static rooms
-    
+
     // 5. Initialize enhanced systems
     log("Initializing PubSub system...");
     pubsub_init();                   // Event-driven messaging system
-    
+
     log("Initializing Resource System...");
     init_wilderness_resource_tables(); // Resource system database
-    
+
     log("Initializing Spatial Systems...");
     spatial_init();                  // 3D spatial audio/visual systems
 }
@@ -1229,11 +1229,11 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
         free(world[room].name);
     if (world[room].description && world[room].description != wilderness_desc)
         free(world[room].description);
-    
+
     /* Step 2: Assign static defaults */
     world[room].name = wilderness_name;
     world[room].description = wilderness_desc;
-    
+
     /* Step 3: Dynamic overrides (regions/paths) */
     if (region_overrides_name) {
         if (world[room].name && world[room].name != wilderness_name)
@@ -1304,11 +1304,11 @@ For future memory leak audits, follow these guidelines to avoid breaking the wil
 ```c
 // Memory debugging for wilderness rooms
 void debug_wilderness_memory(room_rnum room) {
-    log("DEBUG: Room %d name ptr: %p (static: %p)", 
+    log("DEBUG: Room %d name ptr: %p (static: %p)",
         room, world[room].name, wilderness_name);
-    log("DEBUG: Room %d desc ptr: %p (static: %p)", 
+    log("DEBUG: Room %d desc ptr: %p (static: %p)",
         room, world[room].description, wilderness_desc);
-    log("DEBUG: Name is %s: '%s'", 
+    log("DEBUG: Name is %s: '%s'",
         (world[room].name == wilderness_name) ? "STATIC" : "DYNAMIC",
         world[room].name ? world[room].name : "NULL");
 }
@@ -1513,7 +1513,7 @@ int wild_waterline = 128;                  // Runtime waterline for actual terra
 
 ### Resource System Issues
 
-**Resources Always 0%:** 
+**Resources Always 0%:**
 - Check if you're in wilderness zone (`ZONE_WILDERNESS` flag)
 - Verify resource system initialization in server startup
 - Test with `resourceadmin debug` for detailed diagnostics

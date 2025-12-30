@@ -30,7 +30,7 @@ Implemented **Tier 2 perks** from the **Judgment & Spellcasting** tree for Inqui
 **Mechanics Integrated:**
 - **Challenge Roll Bonus**: Added to `mag_resistance()` in [magic.c](magic.c#L288) - gains +1 per rank to spell resistance check
 - **SR Reduction (Rank 3)**: At rank 3, ignores first 5 points of enemy spell resistance
-- **Implementation**: 
+- **Implementation**:
   - Bonus applied via `get_inquisitor_spell_penetration()` to challenge roll
   - SR reduction via `has_inquisitor_spell_penetration_ignore()` check in resistance calculation
 - **Helper Functions**:

@@ -105,7 +105,7 @@
 #define TYPE_WAND 3
 #define TYPE_STAFF 4
 
-#define CUSTOM_TREASURE_MESSAGE_NONE   0
+#define CUSTOM_TREASURE_MESSAGE_NONE 0
 #define CUSTOM_TREASURE_MESSAGE_BORROW 1
 #define CUSTOM_TREASURE_MESSAGE_SWINDLE 2
 #define CUSTOM_TREASURE_MESSAGE_PERFORM 3
@@ -152,8 +152,8 @@ bool valid_item_spell(int spellnum);
 /* when grouped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *killer);
 /* modify objects bonuses, set value, level, 'say' and deliver */
-void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-                              int enchantment_grade, int cp_type, int rare_grade, int silent_mode);
+void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj, int enchantment_grade,
+                              int cp_type, int rare_grade, int silent_mode);
 // determines whether the character will get treasure or not
 void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out

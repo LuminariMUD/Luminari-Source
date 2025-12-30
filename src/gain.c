@@ -137,16 +137,8 @@ int familiar_vnums[] = {
 
 /* make a list of names in order, first animals */
 const char *animal_names[] = {
-    "Unknown",
-    "1) Black Bear",
-    "2) Boar",
-    "3) Lion",
-    "4) Crocodile",
-    "5) Hyena",
-    "6) Snow Leopard",
-    "7) Skull Spider",
-    "8) Fire Beetle",
-    "\n" /* end with this */
+    "Unknown",  "1) Black Bear",   "2) Boar",         "3) Lion",        "4) Crocodile",
+    "5) Hyena", "6) Snow Leopard", "7) Skull Spider", "8) Fire Beetle", "\n" /* end with this */
 };
 /* ... now mounts */
 const char *mount_names[] = {
@@ -164,16 +156,8 @@ const char *mount_names[] = {
 };
 /* ... now familiars */
 const char *familiar_names[] = {
-    "Unknown",
-    "1) Night Hunter",
-    "2) Black Panther",
-    "3) Tiny Mouse",
-    "4) Eagle",
-    "5) Raven",
-    "6) Imp",
-    "7) Pixie",
-    "8) Faerie Dragon",
-    "\n" /* end with this */
+    "Unknown",  "1) Night Hunter", "2) Black Panther", "3) Tiny Mouse",    "4) Eagle",
+    "5) Raven", "6) Imp",          "7) Pixie",         "8) Faerie Dragon", "\n" /* end with this */
 };
 
 /*-------------------------------------------------------------------*\
@@ -283,8 +267,7 @@ ACMD(do_study)
 
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_study: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_study: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -292,8 +275,7 @@ ACMD(do_study)
 
   STATE(d) = CON_STUDY;
 
-  act("$n starts adjust studying $s skill-set.",
-      TRUE, d->character, 0, 0, TO_ROOM);
+  act("$n starts adjust studying $s skill-set.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   if (class == CLASS_SORCERER)
@@ -360,20 +342,34 @@ static void sorc_disp_menu(struct descriptor_data *d)
                   "\r\n"
                   "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 2),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 3),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 4),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 5),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 6),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 7),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] - count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
-                  grn, nrm,
-                  grn, nrm,
-                  mgn, nrm,
-                  mgn, nrm);
+                  mgn, grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 2),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 3),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 4),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 5),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 6),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 7),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
+                  grn, nrm, yel,
+                  sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
+                      count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
+                  grn, nrm, grn, nrm, mgn, nrm, mgn, nrm);
 
   OLC_MODE(d) = SORC_MAIN_MENU;
 }
@@ -406,8 +402,9 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
                   sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][circle - 1] -
                       count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
-  write_to_output(d, "%sEnter spell choice, to add or remove "
-                     "(Q to exit to main menu) : ",
+  write_to_output(d,
+                  "%sEnter spell choice, to add or remove "
+                  "(Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = STUDY_SPELLS;
@@ -441,16 +438,25 @@ static void bard_disp_menu(struct descriptor_data *d)
                   "\r\n"
                   "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][0] - count_known_spells_by_circle(d->character, CLASS_BARD, 1),
-                  grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][1] - count_known_spells_by_circle(d->character, CLASS_BARD, 2),
-                  grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][2] - count_known_spells_by_circle(d->character, CLASS_BARD, 3),
-                  grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][3] - count_known_spells_by_circle(d->character, CLASS_BARD, 4),
-                  grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][4] - count_known_spells_by_circle(d->character, CLASS_BARD, 5),
-                  grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][5] - count_known_spells_by_circle(d->character, CLASS_BARD, 6),
-                  grn, nrm,
-                  grn, nrm,
-                  mgn, nrm);
+                  mgn, grn, nrm, yel,
+                  bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][0] -
+                      count_known_spells_by_circle(d->character, CLASS_BARD, 1),
+                  grn, nrm, yel,
+                  bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][1] -
+                      count_known_spells_by_circle(d->character, CLASS_BARD, 2),
+                  grn, nrm, yel,
+                  bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][2] -
+                      count_known_spells_by_circle(d->character, CLASS_BARD, 3),
+                  grn, nrm, yel,
+                  bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][3] -
+                      count_known_spells_by_circle(d->character, CLASS_BARD, 4),
+                  grn, nrm, yel,
+                  bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][4] -
+                      count_known_spells_by_circle(d->character, CLASS_BARD, 5),
+                  grn, nrm, yel,
+                  bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][5] -
+                      count_known_spells_by_circle(d->character, CLASS_BARD, 6),
+                  grn, nrm, grn, nrm, mgn, nrm);
 
   OLC_MODE(d) = BARD_MAIN_MENU;
 }
@@ -483,8 +489,9 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
                   sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][circle - 1] -
                       count_known_spells_by_circle(d->character, CLASS_BARD, circle));
-  write_to_output(d, "%sEnter spell choice, to add or remove "
-                     "(Q to exit to main menu) : ",
+  write_to_output(d,
+                  "%sEnter spell choice, to add or remove "
+                  "(Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = BARD_STUDY_SPELLS;
@@ -525,9 +532,7 @@ static void ranger_disp_menu(struct descriptor_data *d)
                   grn, nrm,
                   /* empty line */
                   /* empty line */
-                  grn, nrm,
-                  mgn, nrm,
-                  mgn, nrm);
+                  grn, nrm, mgn, nrm, mgn, nrm);
 
   OLC_MODE(d) = RANG_MAIN_MENU;
 }
@@ -551,13 +556,11 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
                   "\r\n"
                   "Enter Choice : ",
 
-                  mgn, nrm,
-                  favored,
+                  mgn, nrm, favored,
                   /* empty line */
                   npc_race_menu,
                   /* empty line */
-                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, favored)],
-                  grn, nrm
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, favored)], grn, nrm
                   /* empty line */
   );
 
@@ -591,16 +594,16 @@ static void favored_enemy_menu(struct descriptor_data *d)
 
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 2)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 3)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 4)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 5)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 6)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 7)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
+                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 2)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 3)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 4)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 5)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 6)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 7)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -644,10 +647,11 @@ static void animal_companion_menu(struct descriptor_data *d)
 
   write_to_output(d, "You can select 0 (Zero) to deselect the current "
                      "companion.\r\n");
-  write_to_output(d, "\r\n"
-                     "%s Q%s) Quit\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm);
 
   OLC_MODE(d) = ANIMAL_COMPANION;
@@ -684,9 +688,7 @@ static void druid_disp_menu(struct descriptor_data *d)
                   grn, nrm,
                   /* empty line */
                   /* empty line */
-                  grn, nrm,
-                  mgn, nrm,
-                  mgn, nrm);
+                  grn, nrm, mgn, nrm, mgn, nrm);
 
   OLC_MODE(d) = DRUID_MAIN_MENU;
 }
@@ -726,9 +728,7 @@ static void wizard_disp_menu(struct descriptor_data *d)
                   grn, nrm,
                   /* empty line */
                   /* empty line */
-                  grn, nrm,
-                  mgn, nrm,
-                  mgn, nrm);
+                  grn, nrm, mgn, nrm, mgn, nrm);
 
   OLC_MODE(d) = WIZ_MAIN_MENU;
 }
@@ -769,10 +769,11 @@ static void familiar_menu(struct descriptor_data *d)
 
   write_to_output(d, "You can select 0 (Zero) to deselect the current "
                      "familiar.\r\n");
-  write_to_output(d, "\r\n"
-                     "%s Q%s) Quit\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm);
 
   OLC_MODE(d) = FAMILIAR_MENU;
@@ -789,7 +790,6 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   switch (OLC_MODE(d))
   {
-
     /******* start sorcerer **********/
 
     /* familiar menu is shared with wizard and can
@@ -1119,8 +1119,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Invalid race!\r\n");
       else
       {
-        GET_FAVORED_ENEMY(d->character, favored_slot) =
-            number;
+        GET_FAVORED_ENEMY(d->character, favored_slot) = number;
         favored_enemy_menu(d);
         OLC_MODE(d) = FAVORED_ENEMY;
         return;
@@ -1166,8 +1165,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       else
       {
         GET_ANIMAL_COMPANION(d->character) = animal_vnums[number];
-        write_to_output(d, "You have selected %s.\r\n",
-                        animal_names[number]);
+        write_to_output(d, "You have selected %s.\r\n", animal_names[number]);
       }
 
       OLC_MODE(d) = ANIMAL_COMPANION;
@@ -1235,8 +1233,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       else
       {
         GET_FAMILIAR(d->character) = familiar_vnums[number];
-        write_to_output(d, "You have selected %s.\r\n",
-                        familiar_names[number]);
+        write_to_output(d, "You have selected %s.\r\n", familiar_names[number]);
       }
 
       OLC_MODE(d) = FAMILIAR_MENU;

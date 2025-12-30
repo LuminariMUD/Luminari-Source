@@ -23,8 +23,7 @@
 
 /* Local functions, macros, defines and structs */
 
-#define WCMD(name) \
-  void(name)(room_data * room, char *argument, int cmd, int subcmd)
+#define WCMD(name) void(name)(room_data * room, char *argument, int cmd, int subcmd)
 
 /* for do_wsend */
 #define SCMD_WSEND 0
@@ -118,7 +117,6 @@ WCMD(do_wecho)
 
 WCMD(do_wgecho)
 {
-
   skip_spaces(&argument);
 
   if (!*argument)
@@ -205,14 +203,7 @@ WCMD(do_wdoor)
   struct room_direction_data *newexit;
   int dir, fd, to_room;
 
-  const char *door_field[] = {
-      "purge",
-      "description",
-      "flags",
-      "key",
-      "name",
-      "room",
-      "\n"};
+  const char *door_field[] = {"purge", "description", "flags", "key", "name", "room", "\n"};
 
   argument = two_arguments_u(argument, target, direction);
   value = one_argument_u(argument, field);
@@ -502,7 +493,8 @@ WCMD(do_wload)
     {
       if (!isdigit(*target) || (rnum = real_room(atoi(target))) == NOWHERE)
       {
-        wld_log(room, "wload: room target vnum doesn't exist (loading mob vnum %d to room %s)", number, target);
+        wld_log(room, "wload: room target vnum doesn't exist (loading mob vnum %d to room %s)",
+                number, target);
         return;
       }
     }
@@ -553,8 +545,8 @@ WCMD(do_wload)
     tch = get_char_in_room(room, arg1);
     if (tch)
     {
-      if (*arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
-          !GET_EQ(tch, pos) && can_wear_on_pos(object, pos))
+      if (*arg2 && (pos = find_eq_pos_script(arg2)) >= 0 && !GET_EQ(tch, pos) &&
+          can_wear_on_pos(object, pos))
       {
         equip_char(tch, object, pos);
         load_otrigger(object);
@@ -565,8 +557,7 @@ WCMD(do_wload)
       return;
     }
     cnt = get_obj_in_room(room, arg1);
-    if (cnt && (GET_OBJ_TYPE(cnt) == ITEM_CONTAINER ||
-                GET_OBJ_TYPE(cnt) == ITEM_AMMO_POUCH))
+    if (cnt && (GET_OBJ_TYPE(cnt) == ITEM_CONTAINER || GET_OBJ_TYPE(cnt) == ITEM_AMMO_POUCH))
     {
       obj_to_obj(object, cnt);
       load_otrigger(object);
@@ -671,7 +662,6 @@ WCMD(do_wmove)
   }
   else if (!str_cmp(arg1, "all"))
   {
-
     for (obj = room->contents; obj; obj = next_obj)
     {
       next_obj = obj->next_content;
@@ -729,8 +719,7 @@ void wld_command_interpreter(room_data *room, char *argument)
   line = any_one_arg(argument, arg);
 
   /* find the command */
-  for (length = strlen(arg), cmd = 0;
-       *wld_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = strlen(arg), cmd = 0; *wld_cmd_info[cmd].command != '\n'; cmd++)
     if (!strncmp(wld_cmd_info[cmd].command, arg, length))
       break;
 

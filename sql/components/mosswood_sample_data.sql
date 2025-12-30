@@ -9,7 +9,7 @@
 INSERT INTO region_data (
     vnum, zone_vnum, name, region_type, region_props, region_reset_data,
     region_description, description_style, description_length,
-    has_historical_context, has_resource_info, has_wildlife_info, 
+    has_historical_context, has_resource_info, has_wildlife_info,
     has_geological_info, has_cultural_info, description_quality_score,
     is_approved, ai_agent_source
 ) VALUES (
@@ -156,7 +156,7 @@ INSERT INTO region_hints (region_vnum, hint_category, hint_text, priority, seaso
 SELECT 'Mosswood region (1000004) sample data inserted successfully!' as status;
 SELECT COUNT(*) as hint_count FROM region_hints WHERE region_vnum = 1000004;
 SELECT COUNT(*) as profile_count FROM region_profiles WHERE region_vnum = 1000004;
-SELECT 
+SELECT
     vnum,
     name,
     description_style,
@@ -164,5 +164,5 @@ SELECT
     description_quality_score,
     is_approved,
     ai_agent_source
-FROM region_data 
+FROM region_data
 WHERE vnum = 1000004;

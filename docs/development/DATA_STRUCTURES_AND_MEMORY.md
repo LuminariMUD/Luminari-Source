@@ -18,7 +18,7 @@ struct char_data {
     room_rnum in_room;         // Current room location
     room_rnum was_in_room;     // Previous location (for linkdead)
     int wait;                  // Action delay counter
-    
+
     // Core character data
     struct char_player_data player;              // Name, class, race, etc.
     struct char_ability_data real_abils;         // Base abilities
@@ -27,12 +27,12 @@ struct char_data {
     struct char_special_data char_specials;      // Special flags/data
     struct player_special_data *player_specials; // PC-only data
     struct mob_special_data mob_specials;        // NPC-only data
-    
+
     // Equipment and inventory
     struct obj_data *equipment[NUM_WEARS];       // Worn equipment
     struct obj_data *carrying;                   // Inventory list
     struct bag_data *bags;                       // Container organization
-    
+
     // Relationships and connections
     struct descriptor_data *desc;                // Network connection (PCs only)
     struct char_data *next_in_room;              // Room occupant list
@@ -41,13 +41,13 @@ struct char_data {
     struct follow_type *followers;               // Followers list
     struct char_data *master;                    // Following target
     struct group_data *group;                    // Group membership
-    
+
     // Scripting and events
     long id;                                     // Unique DG script ID
     struct trig_proto_list *proto_script;        // Default triggers
     struct script_data *script;                  // Active script data
     struct list_data *events;                    // Event queue
-    
+
     // Combat and status
     struct affected_type *affected;              // Active spell effects
     struct char_data *last_attacker;             // Combat tracking
@@ -73,27 +73,27 @@ struct room_data {
     int sector_type;                             // Terrain type
     int room_flags[RF_ARRAY_MAX];                // Room properties
     long room_affections;                        // Active spell effects
-    
+
     // Descriptions
     char *name;                                  // Room title
     char *description;                           // Room description
     struct extra_descr_data *ex_description;     // Additional descriptions
-    
+
     // Connections and contents
     struct room_direction_data *dir_option[NUM_OF_DIRS]; // Exits
     struct obj_data *contents;                   // Objects in room
     struct char_data *people;                    // Characters in room
-    
+
     // Lighting and atmosphere
     byte light;                                  // Light sources
     byte globe;                                  // Darkness sources
-    
+
     // Scripting and special functions
     SPECIAL_DECL(*func);                         // Special procedure
     struct trig_proto_list *proto_script;        // Default triggers
     struct script_data *script;                  // Active scripts
     struct list_data *events;                    // Room events
-    
+
     // Advanced features
     struct trail_data_list *trail_tracks;        // Tracking system
     struct moving_room_data *mover;              // Moving room data
@@ -115,35 +115,35 @@ Represents all items, equipment, and objects in the game:
 struct obj_data {
     obj_rnum item_number;                        // Unique object ID
     room_rnum in_room;                           // Room location (-1 if carried)
-    
+
     // Object properties
     struct obj_flag_data obj_flags;              // Type, wear flags, etc.
     struct obj_affected_type affected[MAX_OBJ_AFFECT]; // Stat bonuses
     struct obj_weapon_poison weapon_poison;      // Weapon poison data
-    
+
     // Descriptions and identification
     char *name;                                  // Keywords
     char *description;                           // Room description
     char *short_description;                     // Inventory description
     char *action_description;                    // Action messages
     struct extra_descr_data *ex_description;     // Additional descriptions
-    
+
     // Container relationships
     struct obj_data *in_obj;                     // Container holding this object
     struct obj_data *contains;                   // Objects inside this container
     struct obj_data *next_content;               // Next in container list
     struct obj_data *next;                       // Next in global object list
-    
+
     // Character relationships
     struct char_data *carried_by;                // Character carrying object
     struct char_data *worn_by;                   // Character wearing object
     struct char_data *sitting_here;              // Character using furniture
-    
+
     // Scripting and special features
     long id;                                     // DG script unique ID
     struct trig_proto_list *proto_script;        // Default triggers
     struct script_data *script;                  // Active script data
-    
+
     // Advanced features
     int activate_spell[5];                       // Usable spells
     struct obj_data *sheath_primary;             // Weapon sheathing
@@ -171,29 +171,29 @@ struct descriptor_data {
     int connected;                               // Connection state
     int desc_num;                                // Unique descriptor ID
     time_t login_time;                           // Connection timestamp
-    
+
     // Input/Output buffers
     char *showstr_head;                          // Pager system
     char *showstr_point;                         // Current pager position
     char **str;                                  // String editor pointer
     size_t max_str;                              // String editor limit
     long mail_to;                                // Mail recipient
-    
+
     // Input/Output queues
     struct txt_q input;                          // Input command queue
     char *output;                                // Output buffer
     char *history[HISTORY_SIZE];                 // Command history
     int history_pos;                             // History position
-    
+
     // Character and session data
     struct char_data *character;                 // Associated character
     struct char_data *original;                  // Original character (for switch)
-    
+
     // Administrative features
     struct descriptor_data *snooping;            // Snooping target
     struct descriptor_data *snoop_by;            // Snooped by whom
     struct descriptor_data *next;                // Next in descriptor list
-    
+
     // Extended features
     struct oasis_olc_data *olc;                  // Online creation data
     protocol_t *pProtocol;                       // Protocol handler
@@ -223,15 +223,15 @@ struct zone_data {
     room_vnum top;                               // Top room vnum
     int reset_mode;                              // Reset behavior
     zone_vnum number;                            // Zone number
-    
+
     // Zone properties
     int zone_flags[ZF_ARRAY_MAX];                // Zone flags
     int min_level;                               // Minimum level
     int max_level;                               // Maximum level
-    
+
     // Reset commands
     struct reset_com *cmd;                       // Reset command list
-    
+
     // Scripting
     struct trig_proto_list *proto_script;        // Zone triggers
 };

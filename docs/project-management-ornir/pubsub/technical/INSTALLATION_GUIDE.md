@@ -376,17 +376,17 @@ Set up monitoring for:
 
 ```sql
 -- Clean up old messages (if persistence enabled)
-DELETE FROM pubsub_messages 
+DELETE FROM pubsub_messages
 WHERE expires_at < NOW() - INTERVAL 7 DAY;
 
 -- Optimize tables
 OPTIMIZE TABLE pubsub_topics, pubsub_subscriptions, pubsub_messages;
 
 -- Check table sizes
-SELECT 
-    table_name, 
+SELECT
+    table_name,
     ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)"
-FROM information_schema.tables 
+FROM information_schema.tables
 WHERE table_name LIKE 'pubsub_%';
 ```
 

@@ -23,7 +23,7 @@ if (PRF_FLAGGED(k, PRF_PVP) && GET_PVP_TIMER(k) > 0)
   time_t current_time = time(0);
   time_t time_since_enabled = current_time - GET_PVP_TIMER(k);
   int seconds_remaining = (15 * 60) - time_since_enabled;
-  
+
   if (seconds_remaining > 0)
     send_to_char(ch, "PvP Flag Cooldown - Duration: %d seconds\r\n", seconds_remaining);
 }

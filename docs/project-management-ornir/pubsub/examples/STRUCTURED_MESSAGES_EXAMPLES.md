@@ -50,7 +50,7 @@ void handle_quest_completion(struct char_data *ch, int quest_id) {
 
     /* Set rich metadata */
     struct pubsub_message_metadata_v3 *metadata = pubsub_create_metadata_v3();
-    
+
     /* Character information */
     pubsub_metadata_set_sender_info(metadata,
         GET_NAME(ch),                       /* Real character name */
@@ -59,7 +59,7 @@ void handle_quest_completion(struct char_data *ch, int quest_id) {
         CLASS_ABBR(ch),                     /* Character class */
         race_list[GET_RACE(ch)].name        /* Character race */
     );
-    
+
     /* Location information */
     pubsub_metadata_set_origin(metadata,
         GET_ROOM_VNUM(IN_ROOM(ch)),        /* Room number */
@@ -69,7 +69,7 @@ void handle_quest_completion(struct char_data *ch, int quest_id) {
         world[IN_ROOM(ch)].coords[1],      /* Y coordinate */
         world[IN_ROOM(ch)].coords[2]       /* Z coordinate */
     );
-    
+
     /* Context information */
     pubsub_metadata_set_context(metadata,
         "QUEST_COMPLETION",                 /* Context type */
@@ -95,7 +95,7 @@ void handle_quest_completion(struct char_data *ch, int quest_id) {
 
     /* Publish the structured message */
     pubsub_publish_structured_message(msg);
-    
+
     /* Message will be delivered to all subscribers of quest notifications
      * with rich context and searchable metadata */
 }
@@ -133,7 +133,7 @@ void weather_system_update(int zone_id, int weather_type, int intensity) {
     if (intensity > 7) {
         pubsub_message_add_tag(msg, "severe-weather", PUBSUB_TAG_CATEGORY_PRIORITY, 8);
     }
-    
+
     /* Zone and location tags */
     char zone_tag[64];
     snprintf(zone_tag, sizeof(zone_tag), "zone-%d", zone_id);
@@ -145,13 +145,13 @@ void weather_system_update(int zone_id, int weather_type, int intensity) {
     metadata->origin_area_name = strdup(zone_table[zone_id].name);
     metadata->context_type = strdup("WEATHER_UPDATE");
     metadata->trigger_event = strdup("scheduled_weather_check");
-    
+
     /* Add weather-specific metadata */
-    pubsub_message_add_field_string(metadata->custom_fields, "weather_pattern", 
+    pubsub_message_add_field_string(metadata->custom_fields, "weather_pattern",
                                    get_weather_pattern_name(zone_id));
-    pubsub_message_add_field_int(metadata->custom_fields, "seasonal_modifier", 
+    pubsub_message_add_field_int(metadata->custom_fields, "seasonal_modifier",
                                 get_seasonal_modifier());
-    
+
     pubsub_message_set_metadata(msg, metadata);
 
     /* Publish weather update */
@@ -163,7 +163,7 @@ void weather_system_update(int zone_id, int weather_type, int intensity) {
 
 ```c
 /* Scenario: Combat action in wilderness with spatial audio */
-void combat_action_with_spatial(struct char_data *attacker, struct char_data *victim, 
+void combat_action_with_spatial(struct char_data *attacker, struct char_data *victim,
                                int damage, int attack_type) {
     struct pubsub_message_v3 *msg = pubsub_create_message_v3(
         TOPIC_WILDERNESS_COMBAT,            /* Wilderness combat topic */
@@ -205,10 +205,10 @@ void combat_action_with_spatial(struct char_data *attacker, struct char_data *vi
                 world[IN_ROOM(attacker)].coords[0],
                 world[IN_ROOM(attacker)].coords[1],
                 world[IN_ROOM(attacker)].coords[2]);
-        
+
         if (msg->spatial_data) free(msg->spatial_data);
         msg->spatial_data = strdup(spatial_data);
-        
+
         /* Add spatial-specific fields */
         pubsub_message_add_field_int(msg, "audio_range", 25);
         pubsub_message_add_field_string(msg, "audio_type", "combat_clash");
@@ -217,7 +217,7 @@ void combat_action_with_spatial(struct char_data *attacker, struct char_data *vi
 
     /* Rich metadata for combat */
     struct pubsub_message_metadata_v3 *metadata = pubsub_create_metadata_v3();
-    
+
     /* Attacker metadata */
     pubsub_metadata_set_sender_info(metadata,
         GET_NAME(attacker),
@@ -226,7 +226,7 @@ void combat_action_with_spatial(struct char_data *attacker, struct char_data *vi
         CLASS_ABBR(attacker),
         race_list[GET_RACE(attacker)].name
     );
-    
+
     /* Combat location */
     pubsub_metadata_set_origin(metadata,
         GET_ROOM_VNUM(IN_ROOM(attacker)),
@@ -236,7 +236,7 @@ void combat_action_with_spatial(struct char_data *attacker, struct char_data *vi
         world[IN_ROOM(attacker)].coords[1],
         world[IN_ROOM(attacker)].coords[2]
     );
-    
+
     /* Combat context */
     pubsub_metadata_set_context(metadata,
         "COMBAT_ACTION",
@@ -246,11 +246,11 @@ void combat_action_with_spatial(struct char_data *attacker, struct char_data *vi
     );
 
     /* Combat-specific metadata */
-    pubsub_message_add_field_string(metadata->custom_fields, "combat_round", 
+    pubsub_message_add_field_string(metadata->custom_fields, "combat_round",
                                    itoa(get_combat_round(attacker)));
     pubsub_message_add_field_string(metadata->custom_fields, "terrain_type",
                                    get_terrain_type_name(IN_ROOM(attacker)));
-    
+
     pubsub_message_set_metadata(msg, metadata);
 
     /* Publish combat event */
@@ -268,43 +268,43 @@ void combat_action_with_spatial(struct char_data *attacker, struct char_data *vi
 /* Scenario: Guild leader wants to monitor guild members in combat */
 void setup_guild_combat_filter(struct char_data *guild_leader) {
     struct pubsub_message_filter_v3 *filter = malloc(sizeof(struct pubsub_message_filter_v3));
-    
+
     /* Initialize filter */
     memset(filter, 0, sizeof(struct pubsub_message_filter_v3));
-    
+
     /* Filter for combat messages only */
     filter->allowed_types = malloc(sizeof(int) * 1);
     filter->allowed_types[0] = PUBSUB_MESSAGE_COMBAT;
     filter->allowed_type_count = 1;
-    
+
     /* High and urgent priority only */
     filter->min_priority = PUBSUB_PRIORITY_HIGH;
     filter->max_priority = PUBSUB_PRIORITY_CRITICAL;
-    
+
     /* Must have combat-related tags */
     filter->required_tags = malloc(sizeof(char*) * 2);
     filter->required_tags[0] = strdup("combat-action");
     filter->required_tags[1] = strdup("guild-member");
     filter->required_tag_count = 2;
-    
+
     /* Exclude minor combat actions */
     filter->excluded_tags = malloc(sizeof(char*) * 1);
     filter->excluded_tags[0] = strdup("minor-damage");
     filter->excluded_tag_count = 1;
-    
+
     /* Required fields for guild combat monitoring */
     filter->required_fields = malloc(sizeof(char*) * 3);
     filter->required_fields[0] = strdup("damage");
     filter->required_fields[1] = strdup("attacker");
     filter->required_fields[2] = strdup("victim");
     filter->required_field_count = 3;
-    
+
     /* Only recent messages (last 10 minutes) */
     filter->created_after = time(NULL) - 600;
-    
+
     /* Guild leader's level or higher */
     filter->min_sender_level = GET_LEVEL(guild_leader);
-    
+
     /* Register this filter for the guild leader */
     pubsub_register_player_filter(guild_leader, "guild_combat_monitor", filter);
 }
@@ -317,30 +317,30 @@ void setup_guild_combat_filter(struct char_data *guild_leader) {
 void setup_weather_travel_alerts(struct char_data *ch) {
     struct pubsub_message_filter_v3 *filter = malloc(sizeof(struct pubsub_message_filter_v3));
     memset(filter, 0, sizeof(struct pubsub_message_filter_v3));
-    
+
     /* Weather messages only */
     filter->allowed_types = malloc(sizeof(int) * 1);
     filter->allowed_types[0] = PUBSUB_MESSAGE_WEATHER;
     filter->allowed_type_count = 1;
-    
+
     /* Environmental category */
     filter->allowed_categories = malloc(sizeof(int) * 1);
     filter->allowed_categories[0] = PUBSUB_CATEGORY_ENVIRONMENT;
     filter->allowed_category_count = 1;
-    
+
     /* Must have weather tags that affect travel */
     filter->required_tags = malloc(sizeof(char*) * 1);
     filter->required_tags[0] = strdup("affects-travel");
     filter->required_tag_count = 1;
-    
+
     /* Must have affects_travel field set to true */
     filter->required_fields = malloc(sizeof(char*) * 1);
     filter->required_fields[0] = strdup("affects_travel");
     filter->required_field_count = 1;
-    
+
     /* Urgent weather only */
     filter->min_priority = PUBSUB_PRIORITY_URGENT;
-    
+
     /* Register weather travel filter */
     pubsub_register_player_filter(ch, "weather_travel_alerts", filter);
 }
@@ -375,19 +375,19 @@ void market_transaction_notification(struct char_data *buyer, struct char_data *
     pubsub_message_add_field_int(msg, "item_vnum", GET_OBJ_VNUM(item));
     pubsub_message_add_field_int(msg, "price", price);
     pubsub_message_add_field_string(msg, "currency", "gold");
-    
+
     /* Item properties */
     pubsub_message_add_field_int(msg, "item_type", GET_OBJ_TYPE(item));
     pubsub_message_add_field_int(msg, "item_level", GET_OBJ_LEVEL(item));
     pubsub_message_add_field_bool(msg, "item_magical", OBJ_FLAGGED(item, ITEM_MAGIC));
     pubsub_message_add_field_int(msg, "item_weight", GET_OBJ_WEIGHT(item));
     pubsub_message_add_field_int(msg, "item_value", GET_OBJ_COST(item));
-    
+
     /* Market analysis fields */
     pubsub_message_add_field_float(msg, "price_ratio", (float)price / GET_OBJ_COST(item));
     pubsub_message_add_field_bool(msg, "good_deal", price < GET_OBJ_COST(item) * 0.8);
     pubsub_message_add_field_string(msg, "market_trend", get_market_trend_for_item(item));
-    
+
     /* Economic tags */
     pubsub_message_add_tag(msg, "market-transaction", PUBSUB_TAG_CATEGORY_EVENT, 6);
     pubsub_message_add_tag(msg, get_item_category_tag(item), PUBSUB_TAG_CATEGORY_CONTENT, 5);
@@ -425,20 +425,20 @@ void marriage_ceremony_event(struct char_data *spouse1, struct char_data *spouse
     pubsub_message_add_field_int(msg, "officiant_id", GET_IDNUM(officiant));
     pubsub_message_add_field_string(msg, "ceremony_location", world[ceremony_room].name);
     pubsub_message_add_field_int(msg, "ceremony_room", world[ceremony_room].number);
-    
+
     /* Relationship fields */
     pubsub_message_add_field_string(msg, "relationship_type", "marriage");
-    pubsub_message_add_field_bool(msg, "first_marriage_spouse1", 
+    pubsub_message_add_field_bool(msg, "first_marriage_spouse1",
                                  is_first_marriage(spouse1));
-    pubsub_message_add_field_bool(msg, "first_marriage_spouse2", 
+    pubsub_message_add_field_bool(msg, "first_marriage_spouse2",
                                  is_first_marriage(spouse2));
-    pubsub_message_add_field_int(msg, "relationship_duration_days", 
+    pubsub_message_add_field_int(msg, "relationship_duration_days",
                                 get_courtship_duration(spouse1, spouse2));
-    
+
     /* Ceremony details */
     pubsub_message_add_field_string(msg, "ceremony_style", "traditional");
     pubsub_message_add_field_int(msg, "guest_count", count_players_in_room(ceremony_room));
-    pubsub_message_add_field_bool(msg, "public_ceremony", 
+    pubsub_message_add_field_bool(msg, "public_ceremony",
                                  ROOM_FLAGGED(ceremony_room, ROOM_PUBLIC));
 
     /* Social tags */
@@ -460,11 +460,11 @@ void marriage_ceremony_event(struct char_data *spouse1, struct char_data *spouse
 
 ```c
 /* Scenario: Multi-part quest conversation */
-void quest_dialog_system(struct char_data *ch, struct char_data *npc, 
+void quest_dialog_system(struct char_data *ch, struct char_data *npc,
                         const char *dialog_text, int dialog_stage) {
     static int conversation_thread_id = 0;
     static int message_sequence = 1;
-    
+
     /* Start new conversation thread if this is the first message */
     if (dialog_stage == 1) {
         conversation_thread_id = generate_thread_id();
@@ -498,7 +498,7 @@ void quest_dialog_system(struct char_data *ch, struct char_data *npc,
         /* First message in thread */
         pubsub_message_v3_set_parent(msg, 0, conversation_thread_id);
     }
-    
+
     msg->sequence_number = message_sequence++;
 
     /* Dialog tags */
@@ -523,21 +523,21 @@ void export_combat_statistics(time_t start_time, time_t end_time, const char *fi
     /* Create filter for combat messages in time range */
     struct pubsub_message_filter_v3 *filter = malloc(sizeof(struct pubsub_message_filter_v3));
     memset(filter, 0, sizeof(struct pubsub_message_filter_v3));
-    
+
     filter->allowed_types = malloc(sizeof(int) * 1);
     filter->allowed_types[0] = PUBSUB_MESSAGE_COMBAT;
     filter->allowed_type_count = 1;
-    
+
     filter->created_after = start_time;
     filter->created_before = end_time;
-    
+
     /* Get all combat messages in range */
     struct pubsub_message_v3 **combat_messages;
     int message_count = pubsub_get_filtered_messages(filter, &combat_messages);
-    
+
     /* Export to JSON file for analysis */
     pubsub_export_messages_to_file(combat_messages, message_count, filename);
-    
+
     /* The exported JSON will include all structured data:
      * {
      *   "messages": [
@@ -568,7 +568,7 @@ void export_combat_statistics(time_t start_time, time_t end_time, const char *fi
      *   ]
      * }
      */
-    
+
     free(combat_messages);
     free(filter);
 }
@@ -585,7 +585,7 @@ void export_combat_statistics(time_t start_time, time_t end_time, const char *fi
 void optimized_weather_broadcast(void) {
     /* Use message pool for efficient allocation */
     struct pubsub_message_v3 *msg = pubsub_pool_acquire_message_v3();
-    
+
     /* Initialize with weather data */
     pubsub_message_v3_init(msg,
         TOPIC_WEATHER_GLOBAL,
@@ -600,10 +600,10 @@ void optimized_weather_broadcast(void) {
     /* Add weather fields efficiently */
     pubsub_message_add_field_int(msg, "global_temperature", get_global_temperature());
     pubsub_message_add_field_string(msg, "dominant_pattern", get_dominant_weather_pattern());
-    
+
     /* Minimal tagging for performance */
     pubsub_message_add_tag(msg, "weather-update", PUBSUB_TAG_CATEGORY_EVENT, 3);
-    
+
     /* Use cached metadata for weather system */
     static struct pubsub_message_metadata_v3 *weather_metadata = NULL;
     if (!weather_metadata) {
@@ -613,7 +613,7 @@ void optimized_weather_broadcast(void) {
 
     /* Publish optimized message */
     pubsub_publish_structured_message(msg);
-    
+
     /* Message automatically returned to pool after delivery */
 }
 ```

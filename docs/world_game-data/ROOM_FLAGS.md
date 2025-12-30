@@ -560,7 +560,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Darkness**: Use ROOM_DARK for natural darkness, ROOM_MAGICDARK for magical darkness that resists light sources.
 
-**Movement Restrictions**: 
+**Movement Restrictions**:
 - ROOM_TUNNEL limits total occupants
 - ROOM_SINGLEFILE limits combat positioning
 - ROOM_PRIVATE limits to 2 people

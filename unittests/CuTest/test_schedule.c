@@ -14,13 +14,14 @@
 /* ========================================================================= */
 
 /* Schedule constants (mirrors vessels.h) */
-#define SCHEDULE_INTERVAL_MIN       1
-#define SCHEDULE_INTERVAL_MAX       24
-#define SCHEDULE_FLAG_ENABLED       (1 << 0)
-#define SCHEDULE_FLAG_PAUSED        (1 << 1)
+#define SCHEDULE_INTERVAL_MIN 1
+#define SCHEDULE_INTERVAL_MAX 24
+#define SCHEDULE_FLAG_ENABLED (1 << 0)
+#define SCHEDULE_FLAG_PAUSED (1 << 1)
 
 /* Mock time structure */
-struct time_info_data {
+struct time_info_data
+{
   int hours;
   int day;
   int month;
@@ -28,7 +29,8 @@ struct time_info_data {
 };
 
 /* Mock vessel schedule structure */
-struct vessel_schedule {
+struct vessel_schedule
+{
   int schedule_id;
   int ship_id;
   int route_id;

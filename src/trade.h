@@ -13,7 +13,7 @@
 extern "C"
 {
 #endif
-  /*****************************************************************************/
+/*****************************************************************************/
 
 #define TRADE_ALE 0
 #define TRADE_ARMOR 1
@@ -40,7 +40,7 @@ extern "C"
 
 #define NUM_TRADE_GOODS 22
 
-  extern char *trade_name[NUM_TRADE_GOODS];
+extern char *trade_name[NUM_TRADE_GOODS];
 
 /*****************************************************************************/
 #ifdef __cplusplus

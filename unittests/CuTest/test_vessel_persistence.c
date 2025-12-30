@@ -8,6 +8,8 @@
  * Part of Phase 00, Session 09: Testing and Validation
  */
 
+/* Enable POSIX features for snprintf in C89 mode */
+#define _POSIX_C_SOURCE 200112L
 #include "CuTest.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +34,8 @@
 typedef int bool;
 
 /* Vessel class enum */
-enum vessel_class {
+enum vessel_class
+{
   VESSEL_RAFT = 0,
   VESSEL_BOAT = 1,
   VESSEL_SHIP = 2,
@@ -44,7 +47,8 @@ enum vessel_class {
 };
 
 /* Ship room types */
-enum ship_room_type {
+enum ship_room_type
+{
   ROOM_TYPE_BRIDGE,
   ROOM_TYPE_QUARTERS,
   ROOM_TYPE_CARGO,
@@ -63,7 +67,8 @@ enum ship_room_type {
 #define MAX_SERIAL_BUFFER 4096
 
 /* Room connection structure */
-struct room_connection {
+struct room_connection
+{
   int from_room;
   int to_room;
   int direction;
@@ -72,7 +77,8 @@ struct room_connection {
 };
 
 /* Mock ship data for persistence testing */
-struct mock_ship_data {
+struct mock_ship_data
+{
   int shipnum;
   char name[128];
   char owner[64];
@@ -109,20 +115,15 @@ static int serialize_ship_data(struct mock_ship_data *ship, char *buffer, int bu
 
   /* Basic data */
   written = snprintf(buffer, bufsize,
-    "SHIP %d\n"
-    "NAME %s\n"
-    "OWNER %s\n"
-    "POS %.2f %.2f %.2f\n"
-    "NAV %d %d\n"
-    "TYPE %d\n"
-    "ROOMS %d\n",
-    ship->shipnum,
-    ship->name,
-    ship->owner,
-    ship->x, ship->y, ship->z,
-    ship->heading, ship->speed,
-    ship->vessel_type,
-    ship->num_rooms);
+                     "SHIP %d\n"
+                     "NAME %s\n"
+                     "OWNER %s\n"
+                     "POS %.2f %.2f %.2f\n"
+                     "NAV %d %d\n"
+                     "TYPE %d\n"
+                     "ROOMS %d\n",
+                     ship->shipnum, ship->name, ship->owner, ship->x, ship->y, ship->z,
+                     ship->heading, ship->speed, ship->vessel_type, ship->num_rooms);
 
   if (written < 0 || written >= bufsize)
   {
@@ -154,11 +155,9 @@ static int serialize_ship_data(struct mock_ship_data *ship, char *buffer, int bu
   {
     int len = strlen(buffer);
     int added = snprintf(buffer + len, bufsize - len, "CONN %d %d %d %d %d\n",
-      ship->connections[i].from_room,
-      ship->connections[i].to_room,
-      ship->connections[i].direction,
-      ship->connections[i].is_hatch,
-      ship->connections[i].is_locked);
+                         ship->connections[i].from_room, ship->connections[i].to_room,
+                         ship->connections[i].direction, ship->connections[i].is_hatch,
+                         ship->connections[i].is_locked);
     if (added < 0 || len + added >= bufsize)
     {
       return -1;
@@ -169,13 +168,11 @@ static int serialize_ship_data(struct mock_ship_data *ship, char *buffer, int bu
   {
     int len = strlen(buffer);
     snprintf(buffer + len, bufsize - len,
-      "ENTRANCE %d\n"
-      "BRIDGE %d\n"
-      "DOCKED %d\n"
-      "END\n",
-      ship->entrance_room,
-      ship->bridge_room,
-      ship->docked_to_ship);
+             "ENTRANCE %d\n"
+             "BRIDGE %d\n"
+             "DOCKED %d\n"
+             "END\n",
+             ship->entrance_room, ship->bridge_room, ship->docked_to_ship);
   }
 
   return (int)strlen(buffer);
@@ -189,8 +186,7 @@ static bool deserialize_ship_data(const char *buffer, struct mock_ship_data *shi
 {
   const char *line;
   char lineBuffer[256];
-  int offset = 0;
-  int len;
+  size_t len;
 
   if (!buffer || !ship)
   {
@@ -207,8 +203,9 @@ static bool deserialize_ship_data(const char *buffer, struct mock_ship_data *shi
     const char *eol = strchr(line, '\n');
     if (eol)
     {
-      len = (int)(eol - line);
-      if (len >= sizeof(lineBuffer)) len = sizeof(lineBuffer) - 1;
+      len = (size_t)(eol - line);
+      if (len >= sizeof(lineBuffer))
+        len = sizeof(lineBuffer) - 1;
       strncpy(lineBuffer, line, len);
       lineBuffer[len] = '\0';
       line = eol + 1;
@@ -310,8 +307,6 @@ static bool deserialize_ship_data(const char *buffer, struct mock_ship_data *shi
  */
 static bool validate_ship_data(struct mock_ship_data *ship)
 {
-  int i;
-
   if (!ship)
   {
     return FALSE;
@@ -373,8 +368,6 @@ static bool validate_ship_data(struct mock_ship_data *ship)
  */
 static void init_test_ship(struct mock_ship_data *ship)
 {
-  int i;
-
   memset(ship, 0, sizeof(*ship));
   ship->shipnum = 42;
   strcpy(ship->name, "Test Vessel");
@@ -397,7 +390,7 @@ static void init_test_ship(struct mock_ship_data *ship)
   ship->num_connections = 2;
   ship->connections[0].from_room = 70840;
   ship->connections[0].to_room = 70841;
-  ship->connections[0].direction = 0;  /* North */
+  ship->connections[0].direction = 0; /* North */
   ship->connections[0].is_hatch = FALSE;
   ship->connections[0].is_locked = FALSE;
 
@@ -451,7 +444,7 @@ void Test_persistence_serialize_null(CuTest *tc)
 void Test_persistence_serialize_small_buffer(CuTest *tc)
 {
   struct mock_ship_data ship;
-  char buffer[50];  /* Too small */
+  char buffer[50]; /* Too small */
   int result;
 
   init_test_ship(&ship);
@@ -471,22 +464,21 @@ void Test_persistence_deserialize_basic(CuTest *tc)
 {
   struct mock_ship_data ship;
   bool result;
-  const char *data =
-    "SHIP 42\n"
-    "NAME Test Ship\n"
-    "OWNER TestOwner\n"
-    "POS 100.00 -50.00 0.00\n"
-    "NAV 90 10\n"
-    "TYPE 2\n"
-    "ROOMS 2\n"
-    "RVNUM 0 70000\n"
-    "RVNUM 1 70001\n"
-    "CONNECTIONS 1\n"
-    "CONN 70000 70001 0 0 0\n"
-    "ENTRANCE 70000\n"
-    "BRIDGE 70000\n"
-    "DOCKED -1\n"
-    "END\n";
+  const char *data = "SHIP 42\n"
+                     "NAME Test Ship\n"
+                     "OWNER TestOwner\n"
+                     "POS 100.00 -50.00 0.00\n"
+                     "NAV 90 10\n"
+                     "TYPE 2\n"
+                     "ROOMS 2\n"
+                     "RVNUM 0 70000\n"
+                     "RVNUM 1 70001\n"
+                     "CONNECTIONS 1\n"
+                     "CONN 70000 70001 0 0 0\n"
+                     "ENTRANCE 70000\n"
+                     "BRIDGE 70000\n"
+                     "DOCKED -1\n"
+                     "END\n";
 
   result = deserialize_ship_data(data, &ship);
 

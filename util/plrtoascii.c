@@ -110,7 +110,7 @@ struct player_special_data_saved_plrtoascii
 
   ubyte abilities[MAX_ABILITIES + 1]; // ability array
   ubyte boosts;                       // stat boosts left
-  int spec_abil[MAX_CLASSES];       // spec ability (daily resets)
+  int spec_abil[MAX_CLASSES];         // spec ability (daily resets)
   ubyte spare2;
   ubyte morphed; // morph form
   ubyte page_length;
@@ -218,8 +218,7 @@ void convert(char *filename)
 
     printf("writing: %s\n", outname);
 
-    fprintf(index_file, "%ld %s %d 0 %ld\n",
-            player.char_specials_saved.idnum, bits, player.level,
+    fprintf(index_file, "%ld %s %d 0 %ld\n", player.char_specials_saved.idnum, bits, player.level,
             (long)player.last_logon);
 
     if (!(outfile = fopen(outname, "w")))
@@ -365,8 +364,7 @@ void convert(char *filename)
     if (psds->conditions[THIRST] && player.level < LVL_IMMORT &&
         psds->conditions[THIRST] != PFDEF_THIRST)
       fprintf(outfile, "Thir: %d\n", (int)psds->conditions[1]);
-    if (psds->conditions[2] && player.level < LVL_IMMORT &&
-        psds->conditions[DRUNK] != PFDEF_DRUNK)
+    if (psds->conditions[2] && player.level < LVL_IMMORT && psds->conditions[DRUNK] != PFDEF_DRUNK)
       fprintf(outfile, "Drnk: %d\n", (int)psds->conditions[2]);
     if (psds->spells_to_learn != PFDEF_PRACTICES)
       fprintf(outfile, "Lern: %d\n", (int)psds->spells_to_learn);
@@ -437,8 +435,8 @@ void convert(char *filename)
     {
       aff = &(player.affected[i]);
       if (aff->type)
-        fprintf(outfile, "%d %d %d %d %d\n", aff->type, aff->duration,
-                aff->modifier, aff->location, (int)aff->bitvector);
+        fprintf(outfile, "%d %d %d %d %d\n", aff->type, aff->duration, aff->modifier, aff->location,
+                (int)aff->bitvector);
     }
     fprintf(outfile, "0 0 0 0 0\n");
 

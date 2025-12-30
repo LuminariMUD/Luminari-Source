@@ -14,7 +14,7 @@ ACT.COMM.C
         holler, shout, gossip, auction,
         congrats, etc.)
     do_qcomm (quest chat)
-    
+
     functions:
     void perform_tell (ch, vict, arg)
     int is_tell_ok (ch, vict)
@@ -219,7 +219,7 @@ ACT.OFFENSIVE.C
     do_rescue
     do_whirlwind
     do_kick
-    
+
     eventfunc:
     event_whirlwind
 

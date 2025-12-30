@@ -55,7 +55,8 @@ void medit_add_class_feats(struct descriptor_data *d)
   struct char_data *mob = OLC_MOB(d);
   struct class_feat_assign *feat_assign = NULL;
 
-  if (!mob) return;
+  if (!mob)
+    return;
 
   if (class_list[cl].featassign_list == NULL)
     return;
@@ -64,7 +65,8 @@ void medit_add_class_feats(struct descriptor_data *d)
 
   for (lvl = 1; lvl <= GET_LEVEL(mob); lvl++)
   {
-    for (feat_assign = class_list[cl].featassign_list; feat_assign != NULL; feat_assign = feat_assign->next) 
+    for (feat_assign = class_list[cl].featassign_list; feat_assign != NULL;
+         feat_assign = feat_assign->next)
     {
       if (feat_assign->level_received == lvl)
       {
@@ -79,13 +81,13 @@ void medit_clear_all_feats(struct descriptor_data *d)
   struct char_data *mob = OLC_MOB(d);
   int i = 0;
 
-  if (!mob) return;
+  if (!mob)
+    return;
 
   for (i = 0; i < FEAT_LAST_FEAT; i++)
   {
     MOB_SET_FEAT(mob, i, 0);
   }
-
 }
 
 void medit_clear_all_spells(struct descriptor_data *d)
@@ -93,35 +95,41 @@ void medit_clear_all_spells(struct descriptor_data *d)
   struct char_data *mob = OLC_MOB(d);
   int i = 0;
 
-  if (!mob) return;
+  if (!mob)
+    return;
 
   for (i = 1; i < NUM_SPELLS; i++)
   {
     MOB_KNOWS_SPELL(mob, i) = 0;
   }
-
 }
 
 bool does_mob_have_feats(struct char_data *mob)
 {
-  if (!mob) return false;
-  if (!IS_NPC(mob)) return false;
+  if (!mob)
+    return false;
+  if (!IS_NPC(mob))
+    return false;
 
   int i = 0;
   for (i = 0; i < FEAT_LAST_FEAT; i++)
-    if (MOB_HAS_FEAT(mob, i)) return true;
+    if (MOB_HAS_FEAT(mob, i))
+      return true;
 
   return false;
 }
 
 bool does_mob_have_spells(struct char_data *mob)
 {
-  if (!mob) return false;
-  if (!IS_NPC(mob)) return false;
+  if (!mob)
+    return false;
+  if (!IS_NPC(mob))
+    return false;
 
   int i = 0;
   for (i = 1; i < NUM_SPELLS; i++)
-    if (MOB_KNOWS_SPELL(mob, i) > 0) return true;
+    if (MOB_KNOWS_SPELL(mob, i) > 0)
+      return true;
   return false;
 }
 
@@ -144,7 +152,8 @@ void medit_disp_add_feats(struct descriptor_data *d)
       count++;
     }
   }
-  write_to_output(d, "\r\n\r\nType addclassfeats to add all class feats for any classes the mob has.\r\n");
+  write_to_output(
+      d, "\r\n\r\nType addclassfeats to add all class feats for any classes the mob has.\r\n");
   write_to_output(d, "Enter erase to delete all feats, or quit to exit this screen.\r\n");
   write_to_output(d, "\r\nPlease enter the name of the feat you wish to toggle: ");
 }
@@ -166,10 +175,10 @@ void medit_disp_add_spells(struct descriptor_data *d)
     }
   }
   write_to_output(d, "\r\n\r\nEnter erase to delete all spells, or quit to exit this screen.\r\n");
-  write_to_output(d, "Please understand that these spells are in addition to any the mob might know from having spellcaster class levels.\r\n");
+  write_to_output(d, "Please understand that these spells are in addition to any the mob might "
+                     "know from having spellcaster class levels.\r\n");
   write_to_output(d, "\r\nPlease enter the name of the spell you wish to toggle: ");
 }
-
 
 
 /*  utility functions */
@@ -244,8 +253,7 @@ ACMD(do_oasis_medit)
   /* Give descriptor an OLC structure. */
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis_medit: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_medit: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -274,10 +282,8 @@ ACMD(do_oasis_medit)
   /* If save is TRUE, save the mobiles. */
   if (save)
   {
-    send_to_char(ch, "Saving all mobiles in zone %d.\r\n",
-                 zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-           "OLC: %s saves mobile info for zone %d.",
+    send_to_char(ch, "Saving all mobiles in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves mobile info for zone %d.",
            GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     /* Save the mobiles. */
@@ -306,8 +312,8 @@ ACMD(do_oasis_medit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
+         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void medit_save_to_disk(zone_vnum foo)
@@ -411,8 +417,7 @@ void medit_save_internally(struct descriptor_data *d)
   mob_index[new_rnum].func = OLC(d)->specmob;
 
   /* Update triggers and free old proto list */
-  if (mob_proto[new_rnum].proto_script &&
-      mob_proto[new_rnum].proto_script != OLC_SCRIPT(d))
+  if (mob_proto[new_rnum].proto_script && mob_proto[new_rnum].proto_script != OLC_SCRIPT(d))
     free_proto_script(&mob_proto[new_rnum], MOB_TRIGGER);
 
   mob_proto[new_rnum].proto_script = OLC_SCRIPT(d);
@@ -440,11 +445,14 @@ void medit_save_internally(struct descriptor_data *d)
   for (dsc = descriptor_list; dsc; dsc = dsc->next)
   {
     if (STATE(dsc) == CON_SEDIT)
-      S_KEEPER(OLC_SHOP(dsc)) += (S_KEEPER(OLC_SHOP(dsc)) != NOTHING && S_KEEPER(OLC_SHOP(dsc)) >= new_rnum);
+      S_KEEPER(OLC_SHOP(dsc)) +=
+          (S_KEEPER(OLC_SHOP(dsc)) != NOTHING && S_KEEPER(OLC_SHOP(dsc)) >= new_rnum);
     else if (STATE(dsc) == CON_MEDIT)
-      GET_MOB_RNUM(OLC_MOB(dsc)) += (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
+      GET_MOB_RNUM(OLC_MOB(dsc)) +=
+          (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
     else if (STATE(dsc) == CON_HLQEDIT)
-      GET_MOB_RNUM(OLC_MOB(dsc)) += (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
+      GET_MOB_RNUM(OLC_MOB(dsc)) +=
+          (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
   }
 
   /* Update other people in zedit too. From: C.Raehl 4/27/99 */
@@ -484,8 +492,8 @@ void medit_disp_race(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_RACE_TYPES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    race_family_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, race_family_types[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
@@ -500,8 +508,8 @@ void medit_disp_subrace1(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, npc_subrace_types[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
@@ -516,8 +524,8 @@ void medit_disp_subrace2(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, npc_subrace_types[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
@@ -532,8 +540,8 @@ void medit_disp_subrace3(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, npc_subrace_types[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
@@ -548,8 +556,8 @@ void medit_disp_class(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_CLASSES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    CLSLIST_NAME(counter), !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, CLSLIST_NAME(counter),
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%s(Set the classless MOBFLAG to turn off the class)", nrm);
@@ -565,8 +573,7 @@ void medit_disp_size(struct descriptor_data *d)
   for (i = -1; i < NUM_SIZES; i++)
   {
     snprintf(buf, sizeof(buf), "%2d) %-20.20s  %s", i,
-             (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i],
-             !(++columns % 2) ? "\r\n" : "");
+             (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i], !(++columns % 2) ? "\r\n" : "");
     write_to_output(d, "%s", buf);
   }
   write_to_output(d, "\r\nEnter size number (-1 for default): ");
@@ -642,7 +649,8 @@ static void medit_disp_mob_flags(struct descriptor_data *d)
   }
 
   sprintbitarray(MOB_FLAGS(OLC_MOB(d)), action_bits, AF_ARRAY_MAX, flags);
-  write_to_output(d, "\r\nCurrent flags : %s%s%s\r\nEnter mob flags (0 to quit) : ", cyn, flags, nrm);
+  write_to_output(d, "\r\nCurrent flags : %s%s%s\r\nEnter mob flags (0 to quit) : ", cyn, flags,
+                  nrm);
 }
 
 /* Display affection flags menu. */
@@ -655,8 +663,8 @@ static void medit_disp_aff_flags(struct descriptor_data *d)
   /* +1 since AFF_FLAGS don't start at 0. */
   column_list(d->character, 0, affected_bits + 1, NUM_AFF_FLAGS - 1, TRUE);
   sprintbitarray(AFF_FLAGS(OLC_MOB(d)), affected_bits, AF_ARRAY_MAX, flags);
-  write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff flags (0 to quit) : ",
-                  cyn, flags, nrm);
+  write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff flags (0 to quit) : ", cyn, flags,
+                  nrm);
 }
 
 /* Display affection2 flags menu. */
@@ -669,8 +677,8 @@ static void medit_disp_aff2_flags(struct descriptor_data *d)
   /* +1 since AFF_FLAGS don't start at 0. */
   column_list(d->character, 0, affected2_bits + 1, NUM_AFF2_FLAGS - 1, TRUE);
   sprintbitarray(AFF2_FLAGS(OLC_MOB(d)), affected2_bits, AF_ARRAY_MAX, flags);
-  write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff2 flags (0 to quit) : ",
-                  cyn, flags, nrm);
+  write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff2 flags (0 to quit) : ", cyn, flags,
+                  nrm);
 }
 
 // needs to be fixed/finished
@@ -719,10 +727,8 @@ static void medit_disp_menu(struct descriptor_data *d)
 {
   struct char_data *mob = NULL;
   int i = 0;
-  char flags[MAX_STRING_LENGTH] = {'\0'},
-       flag2[MAX_STRING_LENGTH] = {'\0'},
-       flag3[MAX_STRING_LENGTH] = {'\0'},
-       path[MAX_STRING_LENGTH] = {'\0'},
+  char flags[MAX_STRING_LENGTH] = {'\0'}, flag2[MAX_STRING_LENGTH] = {'\0'},
+       flag3[MAX_STRING_LENGTH] = {'\0'}, path[MAX_STRING_LENGTH] = {'\0'},
        buf[MAX_STRING_LENGTH] = {'\0'};
   const char *specname = NULL;
 
@@ -746,7 +752,8 @@ static void medit_disp_menu(struct descriptor_data *d)
 
   /* Current spec proc name (from OLC selection if any, else from index) */
   if (GET_MOB_RNUM(mob) != NOBODY)
-    specname = get_spec_func_name(OLC(d)->specmob ? OLC(d)->specmob : mob_index[GET_MOB_RNUM(mob)].func);
+    specname =
+        get_spec_func_name(OLC(d)->specmob ? OLC(d)->specmob : mob_index[GET_MOB_RNUM(mob)].func);
   else
     specname = get_spec_func_name(OLC(d)->specmob);
 
@@ -757,77 +764,61 @@ static void medit_disp_menu(struct descriptor_data *d)
                   "%s4%s) L-Desc:-\r\n%s%s\r\n"
                   "%s5%s) D-Desc:-\r\n%s%s\r\n",
 
-                  cyn, OLC_NUM(d), nrm,
-                  grn, nrm, yel, genders[(int)GET_SEX(mob)], nrm,
-                  grn, nrm, yel, GET_ALIAS(mob),
-                  grn, nrm, yel, GET_SDESC(mob),
-                  grn, nrm, yel, GET_LDESC(mob),
+                  cyn, OLC_NUM(d), nrm, grn, nrm, yel, genders[(int)GET_SEX(mob)], nrm, grn, nrm,
+                  yel, GET_ALIAS(mob), grn, nrm, yel, GET_SDESC(mob), grn, nrm, yel, GET_LDESC(mob),
                   grn, nrm, yel, GET_DDESC(mob));
 
   sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
   sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
   sprintbitarray(AFF2_FLAGS(mob), affected2_bits, AF_ARRAY_MAX, flag3);
 
-  write_to_output(d,
-                  "%s6%s) Position  : %s%s\r\n"
-                  "%s7%s) Default   : %s%s\r\n"
-                  "%s8%s) Attack    : %s%s\r\n"
-                  "%s9%s) Stats Menu...\r\n"
-                  "%sG%s) Resists   ...\r\n"
-                  "%sR%s) Race      : %s%s\r\n"
-                  "%sD%s) SubRace   : %s%s\r\n"
-                  "%sE%s) SubRace   : %s%s\r\n"
-                  "%sF%s) SubRace   : %s%s\r\n"
-                  "%sC%s) Class     : %s%s\r\n"
-                  "%sH%s) Feats     : %s%s\r\n"
-                  "%sN%s) Spells    : %s%s\r\n"
-                  "%sI%s) Size      : %s%s\r\n"
-                  "%sJ%s) Walk-In   : %s%s\r\n"
-                  "%sK%s) Walk-Out  : %s%s\r\n"
-                  "%sL%s) Echo Menu...\r\n"
-                  "%sM%s) Set Plot Mob Flags & Settings (Shopkeepers, Questmasters, Etc.)\r\n"
-                  "%sO%s) Set Random Descriptions (Shopkeepers, Questmasters, Etc.)\r\n"
-                  //          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
-                  "%sA%s) NPC Flags : %s%s\r\n"
-                  "%sB%s) AFF Flags : %s%s\r\n"
-                  "%sU%s) AFF2 Flags: %s%s\r\n"
-                  "%sS%s) Script    : %s%s\r\n"
-                  "%sV%s) Path Edit : %s%s%s\r\n"
-                  "%sZ%s) SpecProc  : %s%s\r\n"
-                  "%sW%s) Copy mob\r\n"
-                  "%sX%s) Delete mob\r\n"
-                  "%sQ%s) Quit\r\n"
-                  "Enter choice : ",
+  write_to_output(
+      d,
+      "%s6%s) Position  : %s%s\r\n"
+      "%s7%s) Default   : %s%s\r\n"
+      "%s8%s) Attack    : %s%s\r\n"
+      "%s9%s) Stats Menu...\r\n"
+      "%sG%s) Resists   ...\r\n"
+      "%sR%s) Race      : %s%s\r\n"
+      "%sD%s) SubRace   : %s%s\r\n"
+      "%sE%s) SubRace   : %s%s\r\n"
+      "%sF%s) SubRace   : %s%s\r\n"
+      "%sC%s) Class     : %s%s\r\n"
+      "%sH%s) Feats     : %s%s\r\n"
+      "%sN%s) Spells    : %s%s\r\n"
+      "%sI%s) Size      : %s%s\r\n"
+      "%sJ%s) Walk-In   : %s%s\r\n"
+      "%sK%s) Walk-Out  : %s%s\r\n"
+      "%sL%s) Echo Menu...\r\n"
+      "%sM%s) Set Plot Mob Flags & Settings (Shopkeepers, Questmasters, Etc.)\r\n"
+      "%sO%s) Set Random Descriptions (Shopkeepers, Questmasters, Etc.)\r\n"
+      //          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
+      "%sA%s) NPC Flags : %s%s\r\n"
+      "%sB%s) AFF Flags : %s%s\r\n"
+      "%sU%s) AFF2 Flags: %s%s\r\n"
+      "%sS%s) Script    : %s%s\r\n"
+      "%sV%s) Path Edit : %s%s%s\r\n"
+      "%sZ%s) SpecProc  : %s%s\r\n"
+      "%sW%s) Copy mob\r\n"
+      "%sX%s) Delete mob\r\n"
+      "%sQ%s) Quit\r\n"
+      "Enter choice : ",
 
-                  grn, nrm, yel, position_types[(int)GET_POS(mob)],
-                  grn, nrm, yel, position_types[(int)GET_DEFAULT_POS(mob)],
-                  grn, nrm, yel, attack_hit_text[(int)GET_ATTACK(mob)].singular,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm, yel, race_family_types[GET_RACE(mob)],
-                  grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
-                  grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
-                  grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 2)],
-                  grn, nrm, yel, CLSLIST_NAME(GET_CLASS(mob)),
-                  grn, nrm, yel, does_mob_have_feats(mob) ? "Set" : "None",
-                  grn, nrm, yel, does_mob_have_spells(mob) ? "Set" : "None",
-                  grn, nrm, yel, size_names[GET_SIZE(mob)],
-                  grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
-                  grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
-                  //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
-                  grn, nrm, cyn, flags,
-                  grn, nrm, cyn, flag2,
-                  grn, nrm, cyn, flag3,
-                  grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
-                  grn, nrm, cyn, path, nrm,
-                  grn, nrm, cyn, specname ? specname : "None",
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm);
+      grn, nrm, yel, position_types[(int)GET_POS(mob)], grn, nrm, yel,
+      position_types[(int)GET_DEFAULT_POS(mob)], grn, nrm, yel,
+      attack_hit_text[(int)GET_ATTACK(mob)].singular, grn, nrm, grn, nrm, grn, nrm, yel,
+      race_family_types[GET_RACE(mob)], grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)], grn,
+      nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)], grn, nrm, yel,
+      npc_subrace_types[GET_SUBRACE(mob, 2)], grn, nrm, yel, CLSLIST_NAME(GET_CLASS(mob)), grn, nrm,
+      yel, does_mob_have_feats(mob) ? "Set" : "None", grn, nrm, yel,
+      does_mob_have_spells(mob) ? "Set" : "None", grn, nrm, yel, size_names[GET_SIZE(mob)], grn,
+      nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.", grn, nrm, yel,
+      GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.", grn, nrm, grn, nrm, grn, nrm,
+      //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
+      //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
+      grn, nrm, cyn, flags, grn, nrm, cyn, flag2, grn, nrm, cyn, flag3, grn, nrm, cyn,
+      OLC_SCRIPT(d) ? "Set." : "Not Set.", grn, nrm, cyn, path, nrm, grn, nrm, cyn,
+      specname ? specname : "None", grn, nrm, grn, nrm, grn, nrm);
   OLC_MODE(d) = MEDIT_MAIN_MENU;
 }
 
@@ -855,19 +846,18 @@ static void medit_disp_echo_menu(struct descriptor_data *d)
     write_to_output(d, "-=- NONE -=-\r\n\r\n");
   }
 
-  write_to_output(d, "%sA%s) Add Echo\r\n"
-                     "%sD%s) Delete Echo\r\n"
-                     "%sE%s) Edit Echo\r\n"
-                     "%sF%s) Echo Frequency: %d%%\r\n"
-                     "%sT%s) Echo Type: [%s%s%s]\r\n"
-                     "%sZ%s) Zone Echo: [%s%s%s]\r\n\r\n"
-                     "%sQ%s) Quit to main menu\r\n"
-                     "Enter choice : ",
-                  grn, nrm,
-                  grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob),
-                  grn, nrm, cyn, ECHO_SEQUENTIAL(mob) ? "SEQUENTIAL" : "RANDOM", nrm,
-                  grn, nrm, cyn, ECHO_IS_ZONE(mob) ? "YES" : "NO", nrm,
-                  grn, nrm);
+  write_to_output(d,
+                  "%sA%s) Add Echo\r\n"
+                  "%sD%s) Delete Echo\r\n"
+                  "%sE%s) Edit Echo\r\n"
+                  "%sF%s) Echo Frequency: %d%%\r\n"
+                  "%sT%s) Echo Type: [%s%s%s]\r\n"
+                  "%sZ%s) Zone Echo: [%s%s%s]\r\n\r\n"
+                  "%sQ%s) Quit to main menu\r\n"
+                  "Enter choice : ",
+                  grn, nrm, grn, nrm, grn, nrm, grn, nrm, ECHO_FREQ(mob), grn, nrm, cyn,
+                  ECHO_SEQUENTIAL(mob) ? "SEQUENTIAL" : "RANDOM", nrm, grn, nrm, cyn,
+                  ECHO_IS_ZONE(mob) ? "YES" : "NO", nrm, grn, nrm);
 
   OLC_MODE(d) = MEDIT_ECHO_MENU;
 }
@@ -881,39 +871,33 @@ static void medit_disp_resistances_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "-- RESISTANCES -- Mob Number:  %s[%s%d%s]%s\r\n"
-                  "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Bludgeon: %s[%s%4d%s]%s\r\n"
-                  "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
-                  "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
-                  "(%sD%s) Earth:    %s[%s%4d%s]%s   (%sN%s) Disease:  %s[%s%4d%s]%s\r\n"
-                  "(%sE%s) Acid:     %s[%s%4d%s]%s   (%sO%s) Negative: %s[%s%4d%s]%s\r\n"
-                  "(%sF%s) Holy:     %s[%s%4d%s]%s   (%sP%s) Illusion: %s[%s%4d%s]%s\r\n"
-                  "(%sG%s) Electric: %s[%s%4d%s]%s   (%sR%s) Mental:   %s[%s%4d%s]%s\r\n"
-                  "(%sH%s) Unholy:   %s[%s%4d%s]%s   (%sS%s) Light:    %s[%s%4d%s]%s\r\n"
-                  "(%sI%s) Slash:    %s[%s%4d%s]%s   (%sT%s) Energy:   %s[%s%4d%s]%s\r\n"
-                  "(%sJ%s) Piercing: %s[%s%4d%s]%s   (%sU%s) Water:    %s[%s%4d%s]%s\r\n\r\n",
-                  cyn, yel, OLC_NUM(d), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 1), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 11), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 2), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 12), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 3), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 13), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 4), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 14), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 5), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 15), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 6), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 16), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 7), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 17), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 8), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 18), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 9), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 19), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 10), cyn, nrm, cyn, nrm,
-                  cyn, yel, GET_RESISTANCES(mob, 20), cyn, nrm);
+  write_to_output(
+      d,
+      "-- RESISTANCES -- Mob Number:  %s[%s%d%s]%s\r\n"
+      "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Bludgeon: %s[%s%4d%s]%s\r\n"
+      "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
+      "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
+      "(%sD%s) Earth:    %s[%s%4d%s]%s   (%sN%s) Disease:  %s[%s%4d%s]%s\r\n"
+      "(%sE%s) Acid:     %s[%s%4d%s]%s   (%sO%s) Negative: %s[%s%4d%s]%s\r\n"
+      "(%sF%s) Holy:     %s[%s%4d%s]%s   (%sP%s) Illusion: %s[%s%4d%s]%s\r\n"
+      "(%sG%s) Electric: %s[%s%4d%s]%s   (%sR%s) Mental:   %s[%s%4d%s]%s\r\n"
+      "(%sH%s) Unholy:   %s[%s%4d%s]%s   (%sS%s) Light:    %s[%s%4d%s]%s\r\n"
+      "(%sI%s) Slash:    %s[%s%4d%s]%s   (%sT%s) Energy:   %s[%s%4d%s]%s\r\n"
+      "(%sJ%s) Piercing: %s[%s%4d%s]%s   (%sU%s) Water:    %s[%s%4d%s]%s\r\n\r\n",
+      cyn, yel, OLC_NUM(d), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 1), cyn, nrm, cyn,
+      nrm, cyn, yel, GET_RESISTANCES(mob, 11), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_RESISTANCES(mob, 2), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 12), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 3), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_RESISTANCES(mob, 13), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 4), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 14), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_RESISTANCES(mob, 5), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 15), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 6), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_RESISTANCES(mob, 16), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 7), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 17), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_RESISTANCES(mob, 8), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 18), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 9), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_RESISTANCES(mob, 19), cyn, nrm, cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 10), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_RESISTANCES(mob, 20), cyn, nrm);
 
   /* Quit to previous menu option */
   write_to_output(d, "(%sQ%s) Quit to main menu\r\nEnter choice : ", cyn, nrm);
@@ -932,36 +916,37 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
   clear_screen(d);
 
   /* Color codes have to be used here, for count_color_codes to work */
-  snprintf(buf, sizeof(buf), "(range \ty%d\tn to \ty%d\tn)", GET_HIT(mob) + GET_MOVE(mob), (GET_HIT(mob) * GET_PSP(mob)) + GET_MOVE(mob));
+  snprintf(buf, sizeof(buf), "(range \ty%d\tn to \ty%d\tn)", GET_HIT(mob) + GET_MOVE(mob),
+           (GET_HIT(mob) * GET_PSP(mob)) + GET_MOVE(mob));
 
   /* Top section - standard stats */
-  write_to_output(d,
-                  "-- Mob Number:  %s[%s%d%s]%s\r\n"
-                  "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
-                  "(%s2%s) %sAuto Set Stats (*set level/race/class first)%s\r\n\r\n"
-                  "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
-                  "(%s3%s) HP NumDice:  %s[%s%5d%s]%s    (%s6%s) BHD NumDice:  %s[%s%5d%s]%s\r\n"
-                  "(%s4%s) HP SizeDice: %s[%s%5d%s]%s    (%s7%s) BHD SizeDice: %s[%s%5d%s]%s\r\n"
-                  "(%s5%s) HP Addition: %s[%s%5d%s]%s    (%s8%s) DamRoll:      %s[%s%5d%s]%s\r\n"
-                  "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
+  write_to_output(
+      d,
+      "-- Mob Number:  %s[%s%d%s]%s\r\n"
+      "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
+      "(%s2%s) %sAuto Set Stats (*set level/race/class first)%s\r\n\r\n"
+      "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
+      "(%s3%s) HP NumDice:  %s[%s%5d%s]%s    (%s6%s) BHD NumDice:  %s[%s%5d%s]%s\r\n"
+      "(%s4%s) HP SizeDice: %s[%s%5d%s]%s    (%s7%s) BHD SizeDice: %s[%s%5d%s]%s\r\n"
+      "(%s5%s) HP Addition: %s[%s%5d%s]%s    (%s8%s) DamRoll:      %s[%s%5d%s]%s\r\n"
+      "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
 
-                  "(%sA%s) Armor Class: %s[%s%4d (%2d) %s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
-                  "(%sB%s) Exp Points:  %s[%s%10ld%s]%s   (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
-                  "(%sC%s) Gold:        %s[%s%10d%s]%s   (%sR%s) Damage Reduction: %s[%s%d%s]%s\r\n\r\n",
-                  cyn, yel, OLC_NUM(d), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm,
-                  cyn, nrm, cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_HIT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_NDD(mob), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_PSP(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SDD(mob), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_MOVE(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_DAMROLL(mob), cyn, nrm,
+      "(%sA%s) Armor Class: %s[%s%4d (%2d) %s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
+      "(%sB%s) Exp Points:  %s[%s%10ld%s]%s   (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
+      "(%sC%s) Gold:        %s[%s%10d%s]%s   (%sR%s) Damage Reduction: %s[%s%d%s]%s\r\n\r\n",
+      cyn, yel, OLC_NUM(d), cyn, nrm, cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm, cyn, nrm, cyn,
+      nrm, cyn, nrm, cyn, yel, GET_HIT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_NDD(mob), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_PSP(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SDD(mob), cyn, nrm, cyn,
+      nrm, cyn, yel, GET_MOVE(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_DAMROLL(mob), cyn, nrm,
 
-                  count_color_chars(buf) + 28, buf,
-                  yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm,
-                  yel, (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
+      count_color_chars(buf) + 28, buf, yel, GET_NDD(mob) + GET_DAMROLL(mob), nrm, yel,
+      (GET_NDD(mob) * GET_SDD(mob)) + GET_DAMROLL(mob), nrm,
 
-                  cyn, nrm, cyn, yel, GET_AC(mob), compute_armor_class(NULL, mob, FALSE, MODE_ARMOR_CLASS_NORMAL), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_DR_MOD(mob), cyn, nrm);
+      cyn, nrm, cyn, yel, GET_AC(mob),
+      compute_armor_class(NULL, mob, FALSE, MODE_ARMOR_CLASS_NORMAL), cyn, nrm, cyn, nrm, cyn, yel,
+      GET_HITROLL(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel,
+      get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm, cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm,
+      cyn, nrm, cyn, yel, GET_DR_MOD(mob), cyn, nrm);
 
   if (CONFIG_MEDIT_ADVANCED)
   {
@@ -973,12 +958,14 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
                     "(%sI%s) Dex: %s[%s%3d%s]%s      (%sN%s) Petrification %s[%s%3d%s]%s\r\n"
                     "(%sJ%s) Con: %s[%s%3d%s]%s      (%sO%s) Breath        %s[%s%3d%s]%s\r\n"
                     "(%sK%s) Cha: %s[%s%3d%s]%s      (%sP%s) Spells        %s[%s%3d%s]%s\r\n\r\n",
-                    cyn, nrm, cyn, yel, GET_STR(mob), GET_ADD(mob), cyn, nrm,
-                    cyn, nrm, cyn, yel, GET_INT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_FORT), cyn, nrm,
-                    cyn, nrm, cyn, yel, GET_WIS(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_REFL), cyn, nrm,
-                    cyn, nrm, cyn, yel, GET_DEX(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_WILL), cyn, nrm,
-                    cyn, nrm, cyn, yel, GET_CON(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_POISON), cyn, nrm,
-                    cyn, nrm, cyn, yel, GET_CHA(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_DEATH), cyn, nrm);
+                    cyn, nrm, cyn, yel, GET_STR(mob), GET_ADD(mob), cyn, nrm, cyn, nrm, cyn, yel,
+                    GET_INT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_FORT), cyn,
+                    nrm, cyn, nrm, cyn, yel, GET_WIS(mob), cyn, nrm, cyn, nrm, cyn, yel,
+                    GET_SAVE(mob, SAVING_REFL), cyn, nrm, cyn, nrm, cyn, yel, GET_DEX(mob), cyn,
+                    nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_WILL), cyn, nrm, cyn, nrm, cyn,
+                    yel, GET_CON(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SAVE(mob, SAVING_POISON),
+                    cyn, nrm, cyn, nrm, cyn, yel, GET_CHA(mob), cyn, nrm, cyn, nrm, cyn, yel,
+                    GET_SAVE(mob, SAVING_DEATH), cyn, nrm);
   }
 
   /* Quit to previous menu option */
@@ -1009,25 +996,30 @@ void medit_parse(struct descriptor_data *d, char *arg)
   }
   switch (OLC_MODE(d))
   {
-  case MEDIT_SPEC_PROC: {
+  case MEDIT_SPEC_PROC:
+  {
     /* Expecting a number: 0 clears, otherwise select by 1-based index */
     int choice = atoi(arg);
-    if (!*arg) {
+    if (!*arg)
+    {
       write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
       return;
     }
-    if (*arg == 'q' || *arg == 'Q') {
+    if (*arg == 'q' || *arg == 'Q')
+    {
       medit_disp_menu(d);
       return;
     }
-    if (choice == 0) {
+    if (choice == 0)
+    {
       OLC(d)->specmob = NULL;
       OLC_VAL(d) = 1;
       medit_disp_menu(d);
       return;
     }
     choice--; /* convert to 0-based */
-    if (choice < 0 || choice >= get_spec_func_count()) {
+    if (choice < 0 || choice >= get_spec_func_count())
+    {
       write_to_output(d, "Invalid selection. Try again: ");
       return;
     }
@@ -1045,7 +1037,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       /* Save the mob in memory and to disk. */
       medit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits mob %d", GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits mob %d",
+             GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         medit_save_to_disk(zone_table[real_zone_by_thing(OLC_NUM(d))].number);
@@ -1074,21 +1067,23 @@ void medit_parse(struct descriptor_data *d, char *arg)
     i = 0;
     switch (*arg)
     {
-        case 'z':
-        case 'Z': {
-          /* List all available spec procs */
-          int count = get_spec_func_count();
-          int n;
-          clear_screen(d);
-          write_to_output(d, "Spec Procedures (0 = None)\r\n");
-          for (n = 0; n < count; n++) {
-            write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
-                           ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
-          }
-          write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
-          OLC_MODE(d) = MEDIT_SPEC_PROC;
-          return;
-        }
+    case 'z':
+    case 'Z':
+    {
+      /* List all available spec procs */
+      int count = get_spec_func_count();
+      int n;
+      clear_screen(d);
+      write_to_output(d, "Spec Procedures (0 = None)\r\n");
+      for (n = 0; n < count; n++)
+      {
+        write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
+                        ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
+      }
+      write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
+      OLC_MODE(d) = MEDIT_SPEC_PROC;
+      return;
+    }
     case 'q':
     case 'Q':
       if (OLC_VAL(d))
@@ -1264,17 +1259,23 @@ void medit_parse(struct descriptor_data *d, char *arg)
       (OLC_MOB(d))->points.size = GET_REAL_SIZE(OLC_MOB(d));
       OLC_VAL(d) = TRUE;
       medit_disp_menu(d);
-      write_to_output(d, "\r\nThe mob has been set with appropriate flags and settings for a plot mob.\r\n\r\n");
+      write_to_output(
+          d,
+          "\r\nThe mob has been set with appropriate flags and settings for a plot mob.\r\n\r\n");
       return;
     case 'o':
     case 'O':
       GET_SEX(OLC_MOB(d)) = dice(1, 2);
-      snprintf(t_buf, sizeof(t_buf), "%s %s", GET_SEX(OLC_MOB(d)) == SEX_MALE ? random_male_names[dice(1, NUM_MALE_NAMES) - 1] : random_female_names[dice(1, NUM_FEMALE_NAMES) - 1], random_surnames[dice(1, NUM_SURNAMES) - 1]);
+      snprintf(t_buf, sizeof(t_buf), "%s %s",
+               GET_SEX(OLC_MOB(d)) == SEX_MALE ? random_male_names[dice(1, NUM_MALE_NAMES) - 1]
+                                               : random_female_names[dice(1, NUM_FEMALE_NAMES) - 1],
+               random_surnames[dice(1, NUM_SURNAMES) - 1]);
       OLC_MOB(d)->player.name = strdup(t_buf);
       OLC_MOB(d)->player.short_descr = strdup(t_buf);
       snprintf(t_buf, sizeof(t_buf), "%s is here before you.", OLC_MOB(d)->player.short_descr);
       OLC_MOB(d)->player.long_descr = strdup(t_buf);
-      snprintf(t_buf, sizeof(t_buf), "%s is a %s %s.\n", OLC_MOB(d)->player.short_descr, genders[GET_SEX(OLC_MOB(d))], race_list[dice(1, NUM_RACES) - 1].name);
+      snprintf(t_buf, sizeof(t_buf), "%s is a %s %s.\n", OLC_MOB(d)->player.short_descr,
+               genders[GET_SEX(OLC_MOB(d))], race_list[dice(1, NUM_RACES) - 1].name);
       OLC_MOB(d)->player.description = strdup(t_buf);
       OLC_VAL(d) = TRUE;
       medit_disp_menu(d);
@@ -1438,7 +1439,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
-        write_to_output(d, "You need someone more privileged than you to enable zone echo.\r\nEnter choice : ");
+        write_to_output(
+            d, "You need someone more privileged than you to enable zone echo.\r\nEnter choice : ");
       }
       return;
     default:
@@ -1982,7 +1984,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     medit_disp_stats_menu(d);
     return;
 
-    case MEDIT_DR:
+  case MEDIT_DR:
     GET_DR_MOD(OLC_MOB(d)) = LIMIT(i, 0, 100);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
@@ -2202,9 +2204,9 @@ void medit_parse(struct descriptor_data *d, char *arg)
       GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
     break;
 
-  
+
   case MEDIT_ADD_FEATS:
-    
+
     if (arg && *arg)
     {
       if (is_abbrev(arg, "quit") || is_abbrev(arg, "QUIT"))
@@ -2225,15 +2227,13 @@ void medit_parse(struct descriptor_data *d, char *arg)
         medit_disp_add_feats(d);
         return;
       }
-      
+
       for (k = 0; k < FEAT_LAST_FEAT; k++)
       {
         if (is_abbrev(arg, feat_list[k].name))
         {
-          
           if (feat_list[k].can_stack && feat_list[k].in_game)
           {
-            
             write_to_output(d, "How many ranks do you want to add? (0 to remove feat): ");
             OLC_MOB(d)->mob_specials.temp_feat = k;
             OLC_MODE(d) = MEDIT_SET_FEAT_RANKS;
@@ -2241,7 +2241,6 @@ void medit_parse(struct descriptor_data *d, char *arg)
           }
           else
           {
-            
             if (MOB_HAS_FEAT(OLC_MOB(d), k))
               MOB_SET_FEAT(OLC_MOB(d), k, 0);
             else
@@ -2262,8 +2261,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
     medit_disp_add_feats(d);
     return;
 
-    case MEDIT_ADD_SPELLS:
-    
+  case MEDIT_ADD_SPELLS:
+
     if (arg && *arg)
     {
       if (is_abbrev(arg, "quit") || is_abbrev(arg, "QUIT"))
@@ -2277,15 +2276,15 @@ void medit_parse(struct descriptor_data *d, char *arg)
         medit_disp_add_spells(d);
         return;
       }
-      
+
       for (k = 1; k < NUM_SPELLS; k++)
       {
         if (is_abbrev(arg, spell_info[k].name))
         {
           if (MOB_KNOWS_SPELL(OLC_MOB(d), k))
-              MOB_KNOWS_SPELL(OLC_MOB(d), k) = 0;
-            else
-              MOB_KNOWS_SPELL(OLC_MOB(d), k) = 1;
+            MOB_KNOWS_SPELL(OLC_MOB(d), k) = 0;
+          else
+            MOB_KNOWS_SPELL(OLC_MOB(d), k) = 1;
           medit_disp_add_spells(d);
           return;
         }
@@ -2302,7 +2301,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_SET_FEAT_RANKS:
-    if (OLC_MOB(d)->mob_specials.temp_feat < 0 || 
+    if (OLC_MOB(d)->mob_specials.temp_feat < 0 ||
         OLC_MOB(d)->mob_specials.temp_feat >= FEAT_LAST_FEAT)
     {
       write_to_output(d, "The feat selected is invalid.\r\n");
@@ -2387,7 +2386,6 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator)
 {
   switch (OLC_MODE(d))
   {
-
   case MEDIT_D_DESC:
   default:
     medit_disp_menu(d);
@@ -2516,7 +2514,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
     mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 10;
-    break; 
+    break;
   case CLASS_DRUID:
   case CLASS_SHIFTER:
     GET_WIS(mob) += bonus;
@@ -2717,6 +2715,5 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
 
 void medit_autoroll_stats(struct descriptor_data *d)
 {
-
   autoroll_mob(OLC_MOB(d), FALSE, FALSE);
 }

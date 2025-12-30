@@ -20,20 +20,20 @@ Compiling with MS Visual C++ 6.0:
 
 5. Expand the plus sign of Circle files, right-click the headers Folder,
    and click Add Files to Folder... Select all of the .h files in the src
-   directory. 
+   directory.
 
 5. Right-click "Circle files", click settings..., and change settings to
    all configurations.
 
 6. Click the Link tab and add wsock32.lib to end of the Object/Library
    modules list.
-  
-7. Save the workspace. 
+
+7. Save the workspace.
 
 8. Choose Build|Build circle.exe.
 
 9. Move the circle.exe file from the circle\debug directory to the root
-   directory. 
+   directory.
 
 =========
 

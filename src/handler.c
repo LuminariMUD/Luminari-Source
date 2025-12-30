@@ -108,7 +108,8 @@ int isname_tok(const char *str, const char *namelist)
 
   newlist = strdup(namelist); /* make a copy since strtok 'modifies' strings */
 
-  for (curtok = strtok_r(newlist, WHITESPACE, &saveptr); curtok; curtok = strtok_r(NULL, WHITESPACE, &saveptr))
+  for (curtok = strtok_r(newlist, WHITESPACE, &saveptr); curtok;
+       curtok = strtok_r(NULL, WHITESPACE, &saveptr))
   {
     if (curtok && is_abbrev(str, curtok))
     {
@@ -138,7 +139,8 @@ int isname(const char *str, const char *namelist)
     return 1;
 
   strlist = strdup(str);
-  for (substr = strtok_r(strlist, KEYWORDJOIN, &saveptr); substr; substr = strtok_r(NULL, KEYWORDJOIN, &saveptr))
+  for (substr = strtok_r(strlist, KEYWORDJOIN, &saveptr); substr;
+       substr = strtok_r(NULL, KEYWORDJOIN, &saveptr))
   {
     if (!substr)
       continue;
@@ -156,10 +158,8 @@ int isname(const char *str, const char *namelist)
 /* modify a character's given apply-type (loc) by value */
 void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *msg)
 {
-
   switch (loc)
   {
-
   case APPLY_STR:
     (ch)->aff_abils.str += mod;
     break;
@@ -362,7 +362,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
     /* end Do Not Use */
 
   default:
-    log("SYSERR: Unknown apply adjust to %s (location: %d) attempt (%s, affect_modify).", GET_NAME(ch), loc, __FILE__);
+    log("SYSERR: Unknown apply adjust to %s (location: %d) attempt (%s, affect_modify).",
+        GET_NAME(ch), loc, __FILE__);
     break;
 
   } /* switch */
@@ -391,7 +392,8 @@ void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bo
   aff_apply_modify(ch, loc, mod, "affect_modify_ar");
 }
 
-int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq, int except_spell)
+int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq,
+                       int except_spell)
 {
   struct affected_type *af = NULL;
   int i = 0, j = 0;
@@ -400,9 +402,7 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
   int penalty = 0;
 
   /* Skip stackable bonus types and bonus types without a modifier. */
-  if ((location == APPLY_NONE) ||
-      (location == APPLY_DR) ||
-      (BONUS_TYPE_STACKS(bonus_type)))
+  if ((location == APPLY_NONE) || (location == APPLY_DR) || (BONUS_TYPE_STACKS(bonus_type)))
     return 0;
 
   /* Check affect structures */
@@ -478,7 +478,7 @@ void reset_char_points(struct char_data *ch)
     ch->points.apply_saving_throw[i] = ch->real_points.apply_saving_throw[i];
   for (i = 0; i < NUM_DAM_TYPES; i++)
     ch->points.resistances[i] = ch->real_points.resistances[i];
-  
+
   /* NOTE: Perk bonuses are applied in affect_total_plus() */
 
   /* Reset damage reduction */
@@ -509,8 +509,7 @@ void reset_char_points(struct char_data *ch)
 #define SPELL_RESIST_CAP 75
 void compute_char_cap(struct char_data *ch, int mode)
 {
-  int psp_cap, move_cap, hit_cap, dam_cap,
-      spell_resist_cap, class, class_level = 0;
+  int psp_cap, move_cap, hit_cap, dam_cap, spell_resist_cap, class, class_level = 0;
   int save_fort_cap, save_rflx_cap, save_will_cap, save_psn_cap, save_dth_cap;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
   int rage_bonus = 0;
@@ -873,8 +872,7 @@ int affect_total_sub(struct char_data *ch)
           temp_mod = GET_EQ(ch, i)->affected[j].modifier;
           if (is_weapon_wielded_two_handed(GET_EQ(ch, i), ch))
             temp_mod *= 2;
-          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-                           temp_mod,
+          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location, temp_mod,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
         }
         else
@@ -942,8 +940,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
           temp_mod = GET_EQ(ch, i)->affected[j].modifier;
           if (is_weapon_wielded_two_handed(GET_EQ(ch, i), ch))
             temp_mod *= 2;
-          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-                           temp_mod,
+          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location, temp_mod,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         }
         else
@@ -983,11 +980,11 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   {
     ch->points.max_psp += get_perk_spell_points_bonus(ch);
     ch->points.armor += get_perk_ac_bonus(ch);
-    
+
     /* Add save bonuses */
     for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
       ch->points.apply_saving_throw[i] += get_perk_save_bonus(ch, i);
-    
+
     /* Add berserker spell resistance */
     int berserker_sr = get_berserker_spell_resistance(ch);
     if (berserker_sr > 0)
@@ -1042,62 +1039,59 @@ void update_msdp_affects(struct char_data *ch)
   msdp_buffer[0] = '\0';
   /* Open up the AFFECTS table */
   char buf2[100];
-  snprintf(buf2, sizeof(buf2), "%c"
-                               "%c%s%c"
-                               "%c",
-           (char)MSDP_TABLE_OPEN,
-           (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
+  snprintf(buf2, sizeof(buf2),
+           "%c"
+           "%c%s%c"
+           "%c",
+           (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
            (char)MSDP_ARRAY_OPEN);
   strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
   for (i = 0; i < NUM_AFF_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(ch), i))
     {
-        char buf[200];
-        snprintf(buf, sizeof(buf), "%c%c"
-                                   "%c%s%c%s"
-                                   "%c%s%c%s"
-                                   "%c",
-                 (char)MSDP_VAL,
-                 (char)MSDP_TABLE_OPEN,
-                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
-                 (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
-                 (char)MSDP_TABLE_CLOSE);
+      char buf[200];
+      snprintf(buf, sizeof(buf),
+               "%c%c"
+               "%c%s%c%s"
+               "%c%s%c%s"
+               "%c",
+               (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "NAME", (char)MSDP_VAL,
+               affected_bits[i], (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
+               (char)MSDP_TABLE_CLOSE);
       strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
     }
   }
-  snprintf(buf2, sizeof(buf2), "%c"
-                                 "%c%s%c"
-                                 "%c",
-             (char)MSDP_ARRAY_CLOSE,
-             (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
-             (char)MSDP_ARRAY_OPEN);
+  snprintf(buf2, sizeof(buf2),
+           "%c"
+           "%c%s%c"
+           "%c",
+           (char)MSDP_ARRAY_CLOSE, (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
+           (char)MSDP_ARRAY_OPEN);
   strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
   for (af = ch->affected; af; af = next)
   {
-      char buf[400]; // Buffer for building the affect table for MSDP
-      next = af->next;
-      snprintf(buf, sizeof(buf), "%c%c"
-                                 "%c%s%c%s"
-                                 "%c%s%c%s"
-                                 "%c%s%c%d"
-                                 "%c%s%c%s"
-                                 "%c%s%c%d"
-                                 "%c",
-               (char)MSDP_VAL,
-               (char)MSDP_TABLE_OPEN,
-               (char)MSDP_VAR, "NAME", (char)MSDP_VAL, spell_name(af->spell),
-               (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int)af->location],
-               (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, af->modifier,
-               (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
-               (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
-               (char)MSDP_TABLE_CLOSE);
+    char buf[400]; // Buffer for building the affect table for MSDP
+    next = af->next;
+    snprintf(buf, sizeof(buf),
+             "%c%c"
+             "%c%s%c%s"
+             "%c%s%c%s"
+             "%c%s%c%d"
+             "%c%s%c%s"
+             "%c%s%c%d"
+             "%c",
+             (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "NAME", (char)MSDP_VAL,
+             spell_name(af->spell), (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL,
+             apply_types[(int)af->location], (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL,
+             af->modifier, (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
+             (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration, (char)MSDP_TABLE_CLOSE);
     strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
   }
-  snprintf(buf2, sizeof(buf2), "%c"
-                                 "%c",
-             (char)MSDP_ARRAY_CLOSE,
-             (char)MSDP_TABLE_CLOSE);
+  snprintf(buf2, sizeof(buf2),
+           "%c"
+           "%c",
+           (char)MSDP_ARRAY_CLOSE, (char)MSDP_TABLE_CLOSE);
   strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
 
   // send_to_char(ch, "%s", msdp_buffer);
@@ -1147,7 +1141,9 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
   }
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
-    aff_apply_modify(ch, af->location, -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_to_char");
+    aff_apply_modify(ch, af->location,
+                     -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+                     "affect_to_char");
     /*affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location,
              af->bonus_type, -1, af->spell), empty_bits, FALSE);*/
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
@@ -1181,7 +1177,9 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   }
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
-    aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove_no_total");
+    aff_apply_modify(ch, af->location,
+                     calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+                     "affect_remove_no_total");
   }
 
   /* Check if we have anything that is 'nonstandard' from this affect */
@@ -1191,11 +1189,11 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
     struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
-      next_dr = dr->next;  /* Save next pointer before potential removal */
+      next_dr = dr->next; /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-        free(dr);  /* Free the damage reduction structure */
+        free(dr); /* Free the damage reduction structure */
       }
     }
   }
@@ -1229,7 +1227,9 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   }
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
-    aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove");
+    aff_apply_modify(ch, af->location,
+                     calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+                     "affect_remove");
     // affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);
     //  affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
@@ -1241,11 +1241,11 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
     struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
-      next_dr = dr->next;  /* Save next pointer before potential removal */
+      next_dr = dr->next; /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-        free(dr);  /* Free the damage reduction structure */
+        free(dr); /* Free the damage reduction structure */
       }
     }
   }
@@ -1287,7 +1287,7 @@ void affect_from_char(struct char_data *ch, int spell)
     next = hjp->next;
     if (hjp->spell == spell)
     {
-      /* not sure why this is here, but it's causing issues with bardic performance 
+      /* not sure why this is here, but it's causing issues with bardic performance
            APPLY_HIT is for MAX HP -- why would losing the spell hurt your current HP?*/
       /*
       if (hjp->location == APPLY_HIT)
@@ -1332,8 +1332,8 @@ bool affected_by_spell(struct char_data *ch, int type)
 /* primary entry point to adding an affection to a player
    @in: character, affection structure, (on same affects:)
         Add duration? Avg duration? Add mod? Avg mod?*/
-void affect_join(struct char_data *ch, struct affected_type *af,
-                 bool add_dur, bool avg_dur, bool add_mod, bool avg_mod)
+void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, bool avg_dur,
+                 bool add_mod, bool avg_mod)
 {
   struct affected_type *hjp = NULL, *next = NULL;
   bool found = FALSE;
@@ -1346,7 +1346,7 @@ void affect_join(struct char_data *ch, struct affected_type *af,
     /* Matching spell-number and location; include specific for skill-based mods
      * so different skills from the same spell don't overwrite each other. */
     if ((hjp->spell == af->spell) && (hjp->location == af->location) &&
-      (af->location != APPLY_SKILL || hjp->specific == af->specific))
+        (af->location != APPLY_SKILL || hjp->specific == af->specific))
     {
       if (add_dur)
         af->duration += hjp->duration;
@@ -1494,8 +1494,7 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness)
   room_rnum room = NOWHERE;
 
   if (ch == NULL)
-    log("SYSERR: Illegal value(s) passed to char_to_coords. ((x, y): (%d,%d) Ch: %p)",
-        x, y, ch);
+    log("SYSERR: Illegal value(s) passed to char_to_coords. ((x, y): (%d,%d) Ch: %p)", x, y, ch);
   else
   {
     room = find_room_by_coordinates(x, y);
@@ -1524,16 +1523,14 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness)
 /* place a character in a room */
 void char_to_room(struct char_data *ch, room_rnum room)
 {
-
   if (ch == NULL || room == NOWHERE || room > top_of_world)
   {
-    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)",
-        room, top_of_world, ch);
+    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)", room, top_of_world,
+        ch);
     return;
   }
   else
   {
-
     /* If this is a wilderness room, set coords. */
     zone_rnum zone = GET_ROOM_ZONE(room);
     bool is_wilderness_room = (zone != NOWHERE && zone >= 0 && zone <= top_of_zone_table &&
@@ -1556,11 +1553,11 @@ void char_to_room(struct char_data *ch, room_rnum room)
         }
       }
       /* MEMORY MANAGEMENT: Set occupied flag for dynamic wilderness rooms
-       * 
+       *
        * This flag prevents the room from being recycled while in use.
        * The flag will be automatically cleared by event_check_occupied()
        * when the room becomes empty, making it available for reuse.
-       * 
+       *
        * CRITICAL: Room strings (name/description) are NOT freed when rooms
        * are recycled - they are safely managed by assign_wilderness_room()
        * which handles both static and dynamic string pointers correctly.
@@ -1586,12 +1583,14 @@ void char_to_room(struct char_data *ch, room_rnum room)
     IN_ROOM(ch) = room;
 
     /* Trigger lazy regeneration for wilderness rooms (Phase 6) */
-    if (is_wilderness_room && !IS_NPC(ch)) {
-        /* Apply lazy regeneration for all resource types when player enters */
-        int resource_type;
-        for (resource_type = 0; resource_type < NUM_RESOURCE_TYPES; resource_type++) {
-            apply_lazy_regeneration(room, resource_type);
-        }
+    if (is_wilderness_room && !IS_NPC(ch))
+    {
+      /* Apply lazy regeneration for all resource types when player enters */
+      int resource_type;
+      for (resource_type = 0; resource_type < NUM_RESOURCE_TYPES; resource_type++)
+      {
+        apply_lazy_regeneration(room, resource_type);
+      }
     }
 
     /* autoquest system check point -Zusuk */
@@ -1616,8 +1615,7 @@ void char_to_room(struct char_data *ch, room_rnum room)
       /* the svariable value of 20 is just a rough number for feet */
       attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
       send_to_char(ch, "Suddenly your realize you are falling!\r\n");
-      act("$n has just realized $e has no visible means of support!",
-          FALSE, ch, 0, 0, TO_ROOM);
+      act("$n has just realized $e has no visible means of support!", FALSE, ch, 0, 0, TO_ROOM);
     }
     // Send new MSDP data.
     update_msdp_room(ch);
@@ -1630,14 +1628,15 @@ void resize_obj_to_char(struct obj_data *object, struct char_data *ch)
 {
   switch (GET_OBJ_TYPE(object))
   {
-    case ITEM_ARMOR:
-      if (IS_NPC(ch)) // For NPCs we won't change the size
-        break;
-      else
-        GET_OBJ_SIZE(object) = race_list[GET_REAL_RACE(ch)].size; // in case they are shapechanged/wildshaped/enlarged/etc.
+  case ITEM_ARMOR:
+    if (IS_NPC(ch)) // For NPCs we won't change the size
       break;
-    default:
-      break;
+    else
+      GET_OBJ_SIZE(object) = race_list[GET_REAL_RACE(ch)]
+                                 .size; // in case they are shapechanged/wildshaped/enlarged/etc.
+    break;
+  default:
+    break;
   }
 
   obj_to_char(object, ch);
@@ -1688,53 +1687,52 @@ void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
 {
   if (object && ch)
   {
-
     switch (bagnum)
     {
-      case 1:
-        object->next_content = ch->bags->bag1;
-        ch->bags->bag1 = object;
-        break;
-      case 2:
-        object->next_content = ch->bags->bag2;
-        ch->bags->bag2 = object;
-        break;
-      case 3:
-        object->next_content = ch->bags->bag3;
-        ch->bags->bag3 = object;
-        break;
-      case 4:
-        object->next_content = ch->bags->bag4;
-        ch->bags->bag4 = object;
-        break;
-      case 5:
-        object->next_content = ch->bags->bag5;
-        ch->bags->bag5 = object;
-        break;
-      case 6:
-        object->next_content = ch->bags->bag6;
-        ch->bags->bag6 = object;
-        break;
-      case 7:
-        object->next_content = ch->bags->bag7;
-        ch->bags->bag7 = object;
-        break;
-      case 8:
-        object->next_content = ch->bags->bag8;
-        ch->bags->bag8 = object;
-        break;
-      case 9:
-        object->next_content = ch->bags->bag9;
-        ch->bags->bag9 = object;
-        break;
-      case 10:
-        object->next_content = ch->bags->bag10;
-        ch->bags->bag10 = object;
-        break;
-      default:
-        object->next_content = ch->bags->bag1;
-        ch->bags->bag1 = object;
-        break;
+    case 1:
+      object->next_content = ch->bags->bag1;
+      ch->bags->bag1 = object;
+      break;
+    case 2:
+      object->next_content = ch->bags->bag2;
+      ch->bags->bag2 = object;
+      break;
+    case 3:
+      object->next_content = ch->bags->bag3;
+      ch->bags->bag3 = object;
+      break;
+    case 4:
+      object->next_content = ch->bags->bag4;
+      ch->bags->bag4 = object;
+      break;
+    case 5:
+      object->next_content = ch->bags->bag5;
+      ch->bags->bag5 = object;
+      break;
+    case 6:
+      object->next_content = ch->bags->bag6;
+      ch->bags->bag6 = object;
+      break;
+    case 7:
+      object->next_content = ch->bags->bag7;
+      ch->bags->bag7 = object;
+      break;
+    case 8:
+      object->next_content = ch->bags->bag8;
+      ch->bags->bag8 = object;
+      break;
+    case 9:
+      object->next_content = ch->bags->bag9;
+      ch->bags->bag9 = object;
+      break;
+    case 10:
+      object->next_content = ch->bags->bag10;
+      ch->bags->bag10 = object;
+      break;
+    default:
+      object->next_content = ch->bags->bag1;
+      ch->bags->bag1 = object;
+      break;
     }
     IN_ROOM(object) = NOWHERE;
     IS_CARRYING_W(ch) += GET_OBJ_WEIGHT(object);
@@ -1769,36 +1767,36 @@ void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum)
 
   switch (bagnum)
   {
-    case 1:
-      REMOVE_FROM_LIST(object, ch->bags->bag1, next_content);
-      break;
-    case 2:
-      REMOVE_FROM_LIST(object, ch->bags->bag2, next_content);
-      break;
-    case 3:
-      REMOVE_FROM_LIST(object, ch->bags->bag3, next_content);
-      break;
-    case 4:
-      REMOVE_FROM_LIST(object, ch->bags->bag4, next_content);
-      break;
-    case 5:
-      REMOVE_FROM_LIST(object, ch->bags->bag5, next_content);
-      break;
-    case 6:
-      REMOVE_FROM_LIST(object, ch->bags->bag6, next_content);
-      break;
-    case 7:
-      REMOVE_FROM_LIST(object, ch->bags->bag7, next_content);
-      break;
-    case 8:
-      REMOVE_FROM_LIST(object, ch->bags->bag8, next_content);
-      break;
-    case 9:
-      REMOVE_FROM_LIST(object, ch->bags->bag9, next_content);
-      break;
-    case 10:
-      REMOVE_FROM_LIST(object, ch->bags->bag10, next_content);
-      break;
+  case 1:
+    REMOVE_FROM_LIST(object, ch->bags->bag1, next_content);
+    break;
+  case 2:
+    REMOVE_FROM_LIST(object, ch->bags->bag2, next_content);
+    break;
+  case 3:
+    REMOVE_FROM_LIST(object, ch->bags->bag3, next_content);
+    break;
+  case 4:
+    REMOVE_FROM_LIST(object, ch->bags->bag4, next_content);
+    break;
+  case 5:
+    REMOVE_FROM_LIST(object, ch->bags->bag5, next_content);
+    break;
+  case 6:
+    REMOVE_FROM_LIST(object, ch->bags->bag6, next_content);
+    break;
+  case 7:
+    REMOVE_FROM_LIST(object, ch->bags->bag7, next_content);
+    break;
+  case 8:
+    REMOVE_FROM_LIST(object, ch->bags->bag8, next_content);
+    break;
+  case 9:
+    REMOVE_FROM_LIST(object, ch->bags->bag9, next_content);
+    break;
+  case 10:
+    REMOVE_FROM_LIST(object, ch->bags->bag10, next_content);
+    break;
   }
 
   /* set flag for crash-save system, but not on mobs! */
@@ -1884,7 +1882,6 @@ int apply_ac(struct char_data *ch, int eq_pos)
 
   switch (eq_pos)
   {
-
   default:
     factor = 1;
     break;
@@ -1985,8 +1982,8 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   {
     r_rnum = IN_ROOM(ch);
 
-    log("SYSERR: Char/Loc [%d][%d] is already equipped: %s, %s", GET_MOB_VNUM(ch), GET_ROOM_VNUM(r_rnum), GET_NAME(ch),
-        obj->short_description);
+    log("SYSERR: Char/Loc [%d][%d] is already equipped: %s, %s", GET_MOB_VNUM(ch),
+        GET_ROOM_VNUM(r_rnum), GET_NAME(ch), obj->short_description);
     return;
   }
   if (obj->carried_by)
@@ -2051,12 +2048,20 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 
     if ((obj->affected[j].modifier) < 0)
     {
-      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
+      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier,
+                       GET_OBJ_AFFECT(obj), TRUE);
     }
-    else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1))
+    else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location,
+                                                              obj->affected[j].bonus_type, pos, -1))
     {
-      affect_modify_ar(ch, obj->affected[j].location, is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2: obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
-      aff_apply_modify(ch, obj->affected[j].location, -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
+      affect_modify_ar(ch, obj->affected[j].location,
+                       is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2
+                                                             : obj->affected[j].modifier,
+                       GET_OBJ_AFFECT(obj), TRUE);
+      aff_apply_modify(
+          ch, obj->affected[j].location,
+          -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1),
+          "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
   }
@@ -2103,12 +2108,20 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
 
     if ((obj->affected[j].modifier) < 0)
     {
-      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
+      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier,
+                       GET_OBJ_AFFECT(obj), FALSE);
     }
-    else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1))
+    else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location,
+                                                              obj->affected[j].bonus_type, pos, -1))
     {
-      affect_modify_ar(ch, obj->affected[j].location, is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2: obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
-      aff_apply_modify(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
+      affect_modify_ar(ch, obj->affected[j].location,
+                       is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2
+                                                             : obj->affected[j].modifier,
+                       GET_OBJ_AFFECT(obj), FALSE);
+      aff_apply_modify(
+          ch, obj->affected[j].location,
+          calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1),
+          "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
     }
   }
@@ -2132,7 +2145,6 @@ int get_number(char **name)
 
   if ((ppos = strchr(namebuf, '.')) != NULL)
   {
-
     *ppos++ = '\0';
     strlcpy(number, namebuf, sizeof(number));
     strcpy(*name, ppos); /* strcpy: OK (always smaller) */
@@ -2167,13 +2179,13 @@ struct obj_data *get_obj_num(obj_rnum nr)
   struct obj_data *obj;
   int hash_key;
   extern struct obj_rnum_hash_bucket obj_rnum_hash[];
-  
+
   if (nr == NOTHING)
     return NULL;
-    
+
   /* Get the hash bucket for this rnum */
   hash_key = nr % OBJ_RNUM_HASH_SIZE;
-  
+
   /* Search only the objects in this hash bucket - O(1) average case */
   for (obj = obj_rnum_hash[hash_key].objs; obj; obj = obj->next_in_hash)
     if (GET_OBJ_RNUM(obj) == nr)
@@ -2221,8 +2233,8 @@ struct char_data *get_char_num(mob_rnum nr)
 void obj_to_room(struct obj_data *object, room_rnum room)
 {
   if (!object || room == NOWHERE || room > top_of_world)
-    log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%d/%d, obj %p)",
-        room, top_of_world, object);
+    log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%d/%d, obj %p)", room, top_of_world,
+        object);
   else
   {
     object->next_content = world[room].contents;
@@ -2246,8 +2258,8 @@ void obj_from_room(struct obj_data *object)
 
   if (!object || IN_ROOM(object) == NOWHERE)
   {
-    log("SYSERR: NULL object (%p) or obj not in a room (%d) passed to obj_from_room",
-        object, IN_ROOM(object));
+    log("SYSERR: NULL object (%p) or obj not in a room (%d) passed to obj_from_room", object,
+        IN_ROOM(object));
     return;
   }
 
@@ -2283,11 +2295,12 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
   }
 
   /* Check for circular containment - prevent object from being placed in its own container hierarchy */
-  for (tmp_obj = obj_to; tmp_obj; tmp_obj = tmp_obj->in_obj) {
-    if (tmp_obj == obj) {
+  for (tmp_obj = obj_to; tmp_obj; tmp_obj = tmp_obj->in_obj)
+  {
+    if (tmp_obj == obj)
+    {
       log("SYSERR: Circular containment detected! Object %s (#%d) would contain itself.",
-          obj->short_description ? obj->short_description : "UNDEFINED",
-          GET_OBJ_VNUM(obj));
+          obj->short_description ? obj->short_description : "UNDEFINED", GET_OBJ_VNUM(obj));
       return;
     }
   }
@@ -2353,7 +2366,6 @@ void object_list_new_owner(struct obj_data *list, struct char_data *ch)
 /* Extract an object from the world */
 void extract_obj(struct obj_data *obj)
 {
-
   struct descriptor_data *d = NULL;
 
   // before we extract it we need to ensure we've removed it from any characters
@@ -2402,15 +2414,19 @@ void extract_obj(struct obj_data *obj)
     extract_obj(obj->contains);
 
   REMOVE_FROM_LIST(obj, object_list, next);
-  
+
   /* Remove object from rnum hash table */
   remove_obj_from_rnum_hash(obj);
 
-  if (GET_OBJ_RNUM(obj) != NOTHING) {
+  if (GET_OBJ_RNUM(obj) != NOTHING)
+  {
     /* CRITICAL: Prevent negative object counts */
-    if (obj_index[GET_OBJ_RNUM(obj)].number > 0) {
+    if (obj_index[GET_OBJ_RNUM(obj)].number > 0)
+    {
       (obj_index[GET_OBJ_RNUM(obj)].number)--;
-    } else {
+    }
+    else
+    {
       log("SYSERR: Attempt to decrement object count below 0 - vnum %d, rnum %d",
           obj_index[GET_OBJ_RNUM(obj)].vnum, GET_OBJ_RNUM(obj));
     }
@@ -2430,7 +2446,7 @@ void extract_obj(struct obj_data *obj)
        * if simple_list was used elsewhere and not completed, it would
        * continue from where it left off instead of starting fresh. */
       simple_list(NULL);
-      
+
       while ((pEvent = simple_list(obj->events)) != NULL)
         event_cancel(pEvent);
     }
@@ -2438,7 +2454,8 @@ void extract_obj(struct obj_data *obj)
     obj->events = NULL;
   }
 
-  if (GET_OBJ_RNUM(obj) == NOTHING || obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
+  if (GET_OBJ_RNUM(obj) == NOTHING ||
+      obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
     free_proto_script(obj, OBJ_TRIGGER);
 
   free_obj(obj);
@@ -2502,14 +2519,15 @@ void extract_char_final(struct char_data *ch)
 
   if (IN_ROOM(ch) == NOWHERE)
   {
-    log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)",
-        GET_NAME(ch), __FILE__);
+    log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)", GET_NAME(ch), __FILE__);
     exit(1);
   }
 
   /* Clear last_attacker references to this character */
-  for (k = character_list; k; k = k->next) {
-    if (k->last_attacker == ch) {
+  for (k = character_list; k; k = k->next)
+  {
+    if (k->last_attacker == ch)
+    {
       k->last_attacker = NULL;
     }
   }
@@ -2671,12 +2689,12 @@ void extract_char_final(struct char_data *ch)
       pItem = ch->events->pFirstItem;
       while (pItem)
       {
-        pNextItem = pItem->pNextItem;  /* Cache next pointer */
+        pNextItem = pItem->pNextItem; /* Cache next pointer */
         pEvent = (struct event *)pItem->pContent;
-        
+
         if (pEvent && event_is_queued(pEvent))
           add_to_list(pEvent, temp_list);
-          
+
         pItem = pNextItem;
       }
 
@@ -2684,12 +2702,12 @@ void extract_char_final(struct char_data *ch)
       pItem = temp_list->pFirstItem;
       while (pItem)
       {
-        pNextItem = pItem->pNextItem;  /* Cache next pointer before event_cancel */
+        pNextItem = pItem->pNextItem; /* Cache next pointer before event_cancel */
         pEvent = (struct event *)pItem->pContent;
-        
+
         if (pEvent)
           event_cancel(pEvent);
-          
+
         pItem = pNextItem;
       }
 
@@ -2701,7 +2719,8 @@ void extract_char_final(struct char_data *ch)
   }
 
   /* CRITICAL FIX: Clean up affects for players going to menu to prevent memory leaks */
-  if (!IS_NPC(ch) && ch->desc) {
+  if (!IS_NPC(ch) && ch->desc)
+  {
     /* Player with descriptor going to menu - clean up affects but don't free character */
     while (ch->affected)
       affect_remove_no_total(ch, ch->affected);
@@ -2720,7 +2739,6 @@ void extract_char_final(struct char_data *ch)
  * really confused otherwise. */
 void extract_char(struct char_data *ch)
 {
-
   char_from_furniture(ch);
   char_from_buff_targets(ch);
 
@@ -2745,9 +2763,9 @@ void extract_char(struct char_data *ch)
   {
     if (MOB_FLAGGED(ch, MOB_NOTDEADYET))
     {
-      log("WARNING: extract_char() called on mob %s (vnum %d) already marked for extraction", 
+      log("WARNING: extract_char() called on mob %s (vnum %d) already marked for extraction",
           GET_NAME(ch), GET_MOB_VNUM(ch));
-      return;  /* Already pending extraction, don't double-count */
+      return; /* Already pending extraction, don't double-count */
     }
     SET_BIT_AR(MOB_FLAGS(ch), MOB_NOTDEADYET);
   }
@@ -2755,9 +2773,9 @@ void extract_char(struct char_data *ch)
   {
     if (PLR_FLAGGED(ch, PLR_NOTDEADYET))
     {
-      log("WARNING: extract_char() called on player %s already marked for extraction", 
+      log("WARNING: extract_char() called on player %s already marked for extraction",
           GET_NAME(ch));
-      return;  /* Already pending extraction, don't double-count */
+      return; /* Already pending extraction, don't double-count */
     }
     SET_BIT_AR(PLR_FLAGS(ch), PLR_NOTDEADYET);
   }
@@ -2803,9 +2821,10 @@ void extract_pending_chars(void)
   if (extractions_pending > 0)
   {
     /* Enhanced error message with debugging information */
-    log("SYSERR: extract_pending_chars() - %d extraction(s) still pending after processing character_list.", 
+    log("SYSERR: extract_pending_chars() - %d extraction(s) still pending after processing "
+        "character_list.",
         extractions_pending);
-    
+
     /* Let's count how many actually have the NOTDEADYET flag to help debug */
     int mob_count = 0, plr_count = 0, total_chars = 0;
     for (vict = character_list; vict; vict = vict->next)
@@ -2814,20 +2833,20 @@ void extract_pending_chars(void)
       if (MOB_FLAGGED(vict, MOB_NOTDEADYET))
       {
         mob_count++;
-        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %d, room %d)", 
-            GET_NAME(vict), GET_MOB_VNUM(vict), IN_ROOM(vict));
+        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %d, room %d)", GET_NAME(vict),
+            GET_MOB_VNUM(vict), IN_ROOM(vict));
       }
       else if (PLR_FLAGGED(vict, PLR_NOTDEADYET))
       {
         plr_count++;
-        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %d)", 
-            GET_NAME(vict), IN_ROOM(vict));
+        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %d)", GET_NAME(vict),
+            IN_ROOM(vict));
       }
     }
-    
-    log("  Summary: %d chars in list, %d mobs flagged, %d players flagged, %d expected", 
+
+    log("  Summary: %d chars in list, %d mobs flagged, %d players flagged, %d expected",
         total_chars, mob_count, plr_count, extractions_pending);
-    
+
     /* This might indicate a race condition where extract_char() was called
      * multiple times on the same character, or the flag was cleared elsewhere
      * without decrementing extractions_pending */
@@ -2955,12 +2974,12 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
   {
     bool matched = FALSE;
     char *short_desc = NULL;
-    
+
     if (IN_ROOM(ch) == IN_ROOM(i))
       continue;
     if (!CAN_SEE(ch, i))
       continue;
-    
+
     /* Try matching by actual name first */
     if (isname(name, i->player.name))
     {
@@ -2975,14 +2994,14 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
         matched = TRUE;
       }
     }
-    
+
     /* Free allocated memory for short_desc */
     if (!IS_NPC(i) && short_desc)
       free(short_desc);
-    
+
     if (!matched)
       continue;
-    
+
     if (--(*number) != 0)
       continue;
 
@@ -2993,14 +3012,12 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
 
 struct char_data *get_char_vis(struct char_data *ch, char *name, int *number, int where)
 {
-
   if (where == FIND_CHAR_ROOM)
   {
     if (get_player_vis(ch, name, NULL, FIND_CHAR_ROOM) == NULL)
       return get_char_room_vis(ch, name, number);
     else
       return get_player_vis(ch, name, NULL, FIND_CHAR_ROOM);
-
   }
   else if (where == FIND_CHAR_WORLD)
   {
@@ -3017,7 +3034,8 @@ struct char_data *get_char_vis(struct char_data *ch, char *name, int *number, in
     return (NULL);
 }
 
-struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *number, struct obj_data *list)
+struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *number,
+                                     struct obj_data *list)
 {
   struct obj_data *i;
   int num;
@@ -3077,7 +3095,8 @@ struct obj_data *get_obj_vis(struct char_data *ch, char *name, int *number)
   return (NULL);
 }
 
-struct obj_data *get_obj_in_equip_vis(struct char_data *ch, char *arg, int *number, struct obj_data *equipment[])
+struct obj_data *get_obj_in_equip_vis(struct char_data *ch, char *arg, int *number,
+                                      struct obj_data *equipment[])
 {
   int j, num;
 
@@ -3098,7 +3117,8 @@ struct obj_data *get_obj_in_equip_vis(struct char_data *ch, char *arg, int *numb
   return (NULL);
 }
 
-int get_obj_pos_in_equip_vis(struct char_data *ch, char *arg, int *number, struct obj_data *equipment[])
+int get_obj_pos_in_equip_vis(struct char_data *ch, char *arg, int *number,
+                             struct obj_data *equipment[])
 {
   int j, num;
 
@@ -3332,7 +3352,9 @@ struct group_data *create_group(struct char_data *leader)
   if (IS_NPC(leader))
     SET_BIT(GROUP_FLAGS(new_group), GROUP_NPC);
 
-  send_to_char(leader, "You have created a new group, type 'group option' to toggle your group settings.\r\n");
+  send_to_char(
+      leader,
+      "You have created a new group, type 'group option' to toggle your group settings.\r\n");
 
   join_group(leader, new_group);
 
@@ -3350,8 +3372,7 @@ void free_group(struct group_data *group)
 
   if (group->members->iSize)
   {
-    for (tch = (struct char_data *)merge_iterator(&Iterator, group->members);
-         tch;
+    for (tch = (struct char_data *)merge_iterator(&Iterator, group->members); tch;
          tch = next_in_list(&Iterator))
       leave_group(tch);
 
@@ -3383,12 +3404,14 @@ void leave_group(struct char_data *ch)
   if (group->members->iSize)
   {
     tch = (struct char_data *)merge_iterator(&Iterator, group->members);
-    if (tch) {
-      do {
+    if (tch)
+    {
+      do
+      {
         if (!IS_NPC(tch))
           found_pc = TRUE;
       } while ((tch = next_in_list(&Iterator)));
-      
+
       remove_iterator(&Iterator);
     }
   }
@@ -3399,7 +3422,8 @@ void leave_group(struct char_data *ch)
   if (GROUP_LEADER(group) == ch && group->members->iSize)
   {
     group->leader = (struct char_data *)random_from_list(group->members);
-    send_to_group(NULL, group, "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(group)));
+    send_to_group(NULL, group, "%s has assumed leadership of the group.\r\n",
+                  GET_NAME(GROUP_LEADER(group)));
   }
   else if (group->members->iSize == 0)
     free_group(group);
@@ -3479,7 +3503,8 @@ void change_spell_mod(struct char_data *ch, int spellnum, int location, int amou
       af->modifier += amount;
       if (display)
       {
-        send_to_char(ch, "Your %s %s effect has been changed by %d and is now %d.\r\n", spell_info[spellnum].name, apply_types[location], amount, af->modifier);
+        send_to_char(ch, "Your %s %s effect has been changed by %d and is now %d.\r\n",
+                     spell_info[spellnum].name, apply_types[location], amount, af->modifier);
       }
     }
   }

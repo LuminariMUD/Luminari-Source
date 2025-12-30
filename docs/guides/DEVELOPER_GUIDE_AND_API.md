@@ -141,7 +141,7 @@ void function_name(int parameter) {
 }
 
 // Long parameter lists: align parameters
-int complex_function(struct char_data *ch, 
+int complex_function(struct char_data *ch,
                      struct obj_data *obj,
                      int flags,
                      const char *argument) {
@@ -153,23 +153,23 @@ int complex_function(struct char_data *ch,
 ```c
 /**
  * Calculate combat damage based on weapon and character stats
- * 
+ *
  * @param ch The attacking character
  * @param weapon The weapon being used (NULL for unarmed)
  * @param target The target being attacked
  * @return Total damage dealt (0 if miss)
  */
-int calculate_combat_damage(struct char_data *ch, 
+int calculate_combat_damage(struct char_data *ch,
                            struct obj_data *weapon,
                            struct char_data *target) {
   // Implementation details...
-  
+
   /* Multi-line comment for complex logic */
   if (weapon && GET_OBJ_TYPE(weapon) == ITEM_WEAPON) {
     // Single line comment for simple explanations
     base_damage = dice(GET_OBJ_VAL(weapon, 1), GET_OBJ_VAL(weapon, 2));
   }
-  
+
   return total_damage;
 }
 ```
@@ -209,7 +209,7 @@ int perform_calculation(int value) {
 // Use appropriate log levels
 log("INFO: Player %s connected", GET_NAME(ch));
 log("SYSERR: Failed to load room %d", room_vnum);
-mudlog(BRF, LVL_IMMORT, TRUE, "DEATH: %s killed by %s", 
+mudlog(BRF, LVL_IMMORT, TRUE, "DEATH: %s killed by %s",
        GET_NAME(victim), GET_NAME(killer));
 
 // Include context in error messages
@@ -232,26 +232,26 @@ struct char_data *create_new_player(const char *name) {
     log("SYSERR: Failed to create character structure");
     return NULL;
   }
-  
+
   // Initialize character data
   ch->player.name = strdup(name);
   ch->player_specials = create_player_specials();
-  
+
   return ch;
 }
 
 // Always use free_char() for cleanup
 void cleanup_character(struct char_data *ch) {
   if (!ch) return;
-  
+
   // Remove from lists first
   char_from_room(ch);
-  
+
   // Clean up allocated memory
   if (ch->player.name) {
     free(ch->player.name);
   }
-  
+
   // Use the standard cleanup function
   free_char(ch);
 }
@@ -266,22 +266,22 @@ struct obj_data *create_game_object(obj_vnum vnum) {
     log("SYSERR: Failed to create object %d", vnum);
     return NULL;
   }
-  
+
   // Set unique ID for scripting
   GET_ID(obj) = max_obj_id++;
-  
+
   return obj;
 }
 
 // Proper object cleanup
 void destroy_game_object(struct obj_data *obj) {
   if (!obj) return;
-  
+
   // Remove from containers/rooms/characters
   obj_from_char(obj);
   obj_from_room(obj);
   obj_from_obj(obj);
-  
+
   // Extract and free
   extract_obj(obj);
 }
@@ -294,14 +294,14 @@ void destroy_game_object(struct obj_data *obj) {
 // Define event function
 EVENTFUNC(combat_round_event) {
   struct char_data *ch = (struct char_data *)event_obj;
-  
+
   if (!ch || !FIGHTING(ch)) {
     return 0; // Event ends
   }
-  
+
   // Perform combat round
   perform_combat_round(ch);
-  
+
   // Return pulse delay for next event (or 0 to end)
   return PULSE_COMBAT;
 }
@@ -311,7 +311,7 @@ void start_combat_events(struct char_data *ch) {
   if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
     return; // Already has combat event
   }
-  
+
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, PULSE_COMBAT), ch);
 }
 ```
@@ -323,7 +323,7 @@ void stop_character_events(struct char_data *ch) {
   if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
     remove_mud_event(ch, eCOMBAT_ROUND);
   }
-  
+
   // Or remove all events for character
   clear_char_event_list(ch);
 }
@@ -366,7 +366,7 @@ struct obj_data *GET_EQ(struct char_data *ch, int pos);
 // Inventory management
 void obj_to_char(struct obj_data *obj, struct char_data *ch);
 void obj_from_char(struct obj_data *obj);
-struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, 
+struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name,
                                      int *number, struct obj_data *list);
 ```
 
@@ -420,11 +420,11 @@ void mysql_safe_query(const char *format, ...);
 ```c
 // Script execution
 void script_trigger_check(void);
-int script_driver(struct char_data *ch, struct trig_data *trig, 
+int script_driver(struct char_data *ch, struct trig_data *trig,
                   int type, int mode);
 
 // Variable management
-void add_var(struct trig_var_data **var_list, char *name, char *value, 
+void add_var(struct trig_var_data **var_list, char *name, char *value,
              long id);
 struct trig_var_data *find_var(struct trig_var_data *var_list, char *name);
 void remove_var(struct trig_var_data **var_list, char *name);
@@ -464,17 +464,17 @@ git push origin feature/new-combat-system
 // Example unit test using CuTest framework
 void test_combat_initiative_calculation(CuTest *tc) {
     struct char_data *ch = create_char();
-    
+
     // Set test values
     GET_DEX(ch) = 16; // +3 modifier
     GET_LEVEL(ch) = 5;
-    
+
     // Test initiative calculation
     int initiative = calculate_initiative(ch);
-    
+
     // Verify result (base roll + DEX mod + level/4)
     CuAssertTrue(tc, initiative >= 4 && initiative <= 24); // 1d20+3+1
-    
+
     free_char(ch);
 }
 ```
@@ -527,22 +527,22 @@ valgrind --tool=memcheck ../bin/circle
 ACMD(do_newcommand) {
   struct char_data *victim;
   char arg[MAX_INPUT_LENGTH];
-  
+
   // Parse arguments
   one_argument(argument, arg);
-  
+
   // Validate input
   if (!*arg) {
     send_to_char(ch, "Usage: newcommand <target>\r\n");
     return;
   }
-  
+
   // Find target
   if (!(victim = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     send_to_char(ch, "They aren't here.\r\n");
     return;
   }
-  
+
   // Perform command action
   perform_newcommand(ch, victim);
 }
@@ -570,12 +570,12 @@ const char *skill_names[] = {
 // Implement skill function
 void perform_new_skill(struct char_data *ch, struct char_data *victim) {
   int skill_level = GET_SKILL(ch, SKILL_NEW_SKILL);
-  
+
   if (skill_level < 1) {
     send_to_char(ch, "You don't know how to do that.\r\n");
     return;
   }
-  
+
   // Skill implementation...
   improve_skill(ch, SKILL_NEW_SKILL);
 }

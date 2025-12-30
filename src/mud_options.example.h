@@ -1,14 +1,14 @@
 /**
  * @file mud_options.example.h
  * @brief MUD configuration options and compile-time settings
- * 
+ *
  * This file contains various MUD options that must be set in the code.
- * 
+ *
  * IMPORTANT: Make a copy of this file and name it mud_options.h, then change
  * the options to suit your MUD's needs. Please ensure you read the comment
  * associated with each option, as some configurations, if not done correctly,
  * can cause your game to crash.
- * 
+ *
  * This file controls compile-time options that affect game behavior, including:
  * - Container system configuration
  * - Newbie equipment selection
@@ -21,43 +21,43 @@
 
 /* ************************************************************************
  * Container System Configuration
- * 
+ *
  * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
  * Defining both or neither will cause compilation errors.
  * ************************************************************************ */
 
 /**
  * USE_CONTAINER_OBJECTS - Traditional container object system
- * 
- * If defined, the game will use container objects. 
- * 
+ *
+ * If defined, the game will use container objects.
+ *
  * Status: RECOMMENDED
  */
 #define USE_CONTAINER_OBJECTS
 
 /**
  * USE_VIRTUAL_BAGS_ONLY - Virtual bag container system
- * 
+ *
  * If defined, the game will only use virtual bags for containers. This is
  * the recommended option for most MUDs. Instead of using container objects,
  * everything will be contained in virtual bags.
- * 
+ *
  * See HELP BAGS in game for more information.
- * 
+ *
  * Status: Up to you!
  */
 /* #define USE_VIRTUAL_BAGS_ONLY */
 
 /* ************************************************************************
  * Newbie Equipment Configuration
- * 
+ *
  * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
  * Defining both or neither will cause compilation errors.
  * ************************************************************************ */
 
 /**
  * USE_NEW_NOOB_GEAR - Chronicles of Krynn newbie equipment
- * 
+ *
  * Uses the new newbie gear created in Chronicles of Krynn.
  * This gear is more balanced and fits the Krynn campaign setting.
  */
@@ -65,7 +65,7 @@
 
 /**
  * USE_OLD_NOOB_GEAR - LuminariMUD legacy newbie equipment
- * 
+ *
  * Uses the old newbie gear created in LuminariMUD.
  * This gear is for backward compatibility with existing areas.
  */
@@ -73,38 +73,38 @@
 
 /* ************************************************************************
  * Crafting System Configuration
- * 
+ *
  * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
  * Defining both or neither will cause compilation errors.
- * 
+ *
  * The crafting system determines how magic items are awarded in the game.
  * ************************************************************************ */
 
 /**
  * USE_OLD_CRAFTING_SYSTEM - Traditional magic item award system
- * 
+ *
  * This is the simpler, more stable option and is recommended for most MUDs.
  * Provides basic crafting functionality with proven stability.
- * 
+ *
  * Status: RECOMMENDED - Stable and well-tested
  */
 #define USE_OLD_CRAFTING_SYSTEM
 
 /**
  * USE_NEW_CRAFTING_SYSTEM - Advanced crafting system
- * 
+ *
  * Provides more advanced crafting features including:
  * - More complex recipes
  * - Additional crafting skills
  * - Enhanced customization options
- * 
+ *
  * Status: EXPERIMENTAL - May be less stable
  */
 /* #define USE_NEW_CRAFTING_SYSTEM */
 
 // One of these two must be chosen.
 // basic materials means that each type of material (iron, steel, mithril, etc) has a static quality
-// variable quality means that each time materials are harvested, their quality can vary, such as 
+// variable quality means that each time materials are harvested, their quality can vary, such as
 // iron of a quality 1.5 or 0.6 or 1.8 with the quality affecting crafting success and degree
 // Variable quality requires the use of wilderness maps
 // #define USE_BASIC_MATERIALS
@@ -112,14 +112,14 @@
 
 /* ************************************************************************
  * Available Races Configuration
- * 
+ *
  * Define which races are available for player selection.
  * Comment out any races you don't want available in your MUD.
  * ************************************************************************ */
 
 /**
  * RACE_ALLOW_KENDER - Enable Kender race
- * 
+ *
  * Kender are a unique race from the Dragonlance setting, known for their
  * curiosity, fearlessness, and "borrowin//g" habits.
  */
@@ -127,7 +127,7 @@
 
 /**
  * RACE_ALLOW_DROW - Enable Drow Elf race
- * 
+ *
  * Drow are dark elves who typically dwell in the Underdark. They have
  * unique abilities including innate magic and superior darkvision.
  */
@@ -135,7 +135,7 @@
 
 /**
  * RACE_ALLOW_VAMPIRE - Enable Vampire race
- * 
+ *
  * Vampires are undead creatures with special powers and limitations.
  * This is an advanced race that may require special handling.
  */
@@ -145,7 +145,7 @@
  * WalkTo - Enabling either:
  *   Landmarks - walk across the world (non-wilderness system)
  *   City landmarks - walk within a city (wilderness system)
- * 
+ *
  * You should only have one enabled!
  */
 
@@ -157,9 +157,9 @@
 
 /* ************************************************************************
  * Random Object Guidelines Configuration
- * 
+ *
  * Define which random object guidelines to use.
- * 
+ *
  * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
  * Defining both or neither will cause compilation errors.
  * ************************************************************************ */

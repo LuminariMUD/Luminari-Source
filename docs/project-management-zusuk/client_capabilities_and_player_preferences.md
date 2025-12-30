@@ -259,5 +259,3 @@ This is enforced in the color helpers, which check PRF flags before using protoc
 ### Notes
 - Effective behavior is designed to be safe: we never try to send what the client won’t accept; and we never override a player’s PRF with connect-time detection.
 - The only PRF mutations outside `prefedit` are one-time new-character defaults and the “recommended flags” prompt.
-
-

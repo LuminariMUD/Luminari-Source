@@ -5,7 +5,7 @@
 ### Clan Levels and Experience
 **Enhancement**: Add clan progression system
 **Benefit**: Provides long-term goals for clan growth
-**Implementation**: 
+**Implementation**:
 - Add experience points for clan activities
 - Create level-based benefits and unlocks
 - Implement clan achievements
@@ -81,25 +81,25 @@ struct clan_data {
     int pk_lose;                     // PK losses count
     int raided;                      // Times been raided
     char *abrev;                     // Abbreviation (max 5 chars)
-    
+
     /* Performance optimization: cached values */
     int cached_member_count;         // Cached member count (updated periodically)
     int cached_member_power;         // Cached total member levels
     time_t cache_timestamp;          // When cache was last updated
-    
+
     /* Activity tracking */
     time_t last_activity;            // Timestamp of last clan activity
-    
+
     /* Member limits */
     int max_members;                 // Maximum allowed members (0 = unlimited)
-    
+
     /* Optimization flags */
     bool modified;                   // TRUE if clan needs to be saved
-    
+
     /* Locking mechanism */
     time_t locked_until;             // Timestamp when lock expires
     long locked_by;                  // ID of player holding lock
-    
+
     /* Clan Statistics */
     long total_deposits;             // Total gold deposited
     long total_withdrawals;          // Total gold withdrawn

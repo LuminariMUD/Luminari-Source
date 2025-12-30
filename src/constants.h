@@ -1,5 +1,6 @@
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifdef __cplusplus
@@ -34,7 +35,7 @@ extern const char *npc_race_menu;
 extern const char *bagnames[];
 extern const char *character_ages[];
 extern const int character_age_attributes[][6];
-extern const char * dragon_bond_types[];
+extern const char *dragon_bond_types[];
 extern const int dragon_type_specab_types[];
 extern const char *npc_subrace_types[NUM_SUB_RACES + 1];
 extern const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1];
@@ -48,7 +49,7 @@ extern const char *attack_hit_types[];
 extern const char *instrument_names[MAX_INSTRUMENTS + 1];
 extern const char *random_male_names[NUM_MALE_NAMES + 1];
 extern const char *random_female_names[NUM_FEMALE_NAMES + 1];
-extern const char * random_surnames[NUM_SURNAMES+1];
+extern const char *random_surnames[NUM_SURNAMES + 1];
 extern const char *regions[];
 extern const char *languages[];
 extern const char *pantheons[];
@@ -78,7 +79,7 @@ extern const int size_modifiers[];
 extern const int size_modifiers_inverse[];
 extern const int grapple_size_modifiers[];
 extern const char *room_affections[];
-extern const char * const luminari_version;
+extern const char *const luminari_version;
 extern const char *damtype_display[];
 extern const char *dirs[];
 extern const char *dirs_short[];
@@ -166,8 +167,8 @@ extern const char *eidolon_base_form_names[];
 extern const char *eidolon_base_form_descs[];
 extern const char *do_cast_types[][6];
 extern const char *ability_score_names[6];
-extern const char * const faction_names[];
-extern const char * const faction_names_lwr[];
+extern const char *const faction_names[];
+extern const char *const faction_names_lwr[];
 extern const char *award_types[];
 extern const char *paladin_mercy_descriptions[];
 extern const char *paladin_mercies[];
@@ -215,22 +216,22 @@ extern const char *crafting_jewelry_types[];
 extern const char *crafting_instrument_types[];
 extern const char *crafting_misc_types[];
 extern const char *crafting_material_groups[];
-extern const char *crafting_methods [];
+extern const char *crafting_methods[];
 extern const char *crafting_methods_short[];
 
 /* NewCraft */
 extern const char *craft_flags[];
 extern const char *requirement_flags[];
-extern const char *crafting_motes [];
+extern const char *crafting_motes[];
 
-extern const char *campaigns [];
-extern const char * bag_system_options [];
-extern const char * crafting_system_options [];
-extern const char * landmark_system_options [];
-extern const char * new_player_gear_options [];
-extern const char * allow_cexchange_options [];
-extern const char * wilderness_system_options [];
-extern const char * exp_option [];
-extern const char * spellcasting_time_options [];
+extern const char *campaigns[];
+extern const char *bag_system_options[];
+extern const char *crafting_system_options[];
+extern const char *landmark_system_options[];
+extern const char *new_player_gear_options[];
+extern const char *allow_cexchange_options[];
+extern const char *wilderness_system_options[];
+extern const char *exp_option[];
+extern const char *spellcasting_time_options[];
 
 #endif /* _CONSTANTS_H_ */

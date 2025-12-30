@@ -12,7 +12,7 @@ MYFLAGS = -Wall -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations 
 #MYFLAGS = -Wall
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -25,7 +25,7 @@ PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = bin
 
-CFLAGS = -g -O2 -std=gnu90 -Isrc $(MYFLAGS) $(PROFILE) 
+CFLAGS = -g -O2 -std=gnu90 -Isrc $(MYFLAGS) $(PROFILE)
 CXXFLAGS = $(CFLAGS) -std=c++11
 
 LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
@@ -77,4 +77,3 @@ depend:
 	$(CC) -MM src/*.c | sed "s|^\([^:]*\)\.o:|src/\1.o:|" > depend
 
 -include depend
-

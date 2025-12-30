@@ -102,12 +102,12 @@
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "crafting_new.h"
-#include "ai_service.h" /* for shutdown_ai_service() */
-#include "pubsub.h"     /* for automatic queue processing */
-#include "discord_bridge.h" /* Discord bridge integration */
-#include "terrain_bridge.h" /* Terrain bridge API server */
+#include "ai_service.h"                  /* for shutdown_ai_service() */
+#include "pubsub.h"                      /* for automatic queue processing */
+#include "discord_bridge.h"              /* Discord bridge integration */
+#include "terrain_bridge.h"              /* Terrain bridge API server */
 #include "systems/intermud3/i3_client.h" /* Intermud3 client */
-#include "vessels.h" /* Vessel persistence */
+#include "vessels.h"                     /* Vessel persistence */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -122,15 +122,15 @@ int buf_largecount = 0;                         /* # of large buffers which exis
 
 /* Copyover debug toggle - set to 0 to disable debug messages */
 int copyover_debug_enabled = 0;
-int buf_overflows = 0;                          /* # of overflows of output */
-int buf_switches = 0;                           /* # of switches from small to large buf */
-int circle_shutdown = 0;                        /* clean shutdown */
-int circle_reboot = 0;                          /* reboot the game after a shutdown */
+int buf_overflows = 0;                               /* # of overflows of output */
+int buf_switches = 0;                                /* # of switches from small to large buf */
+int circle_shutdown = 0;                             /* clean shutdown */
+int circle_reboot = 0;                               /* reboot the game after a shutdown */
 static volatile sig_atomic_t shutdown_requested = 0; /* flag for signal-triggered shutdown */
-int no_specials = 0;                            /* Suppress ass. of special routines */
-int scheck = 0;                                 /* for syntax checking mode */
-FILE *logfile = NULL;                           /* Where to send the log messages. */
-unsigned long pulse = 0;                        /* number of pulses since game start */
+int no_specials = 0;                                 /* Suppress ass. of special routines */
+int scheck = 0;                                      /* for syntax checking mode */
+FILE *logfile = NULL;                                /* Where to send the log messages. */
+unsigned long pulse = 0;                             /* number of pulses since game start */
 ush_int port;
 socket_t mother_desc;
 int next_tick = SECS_PER_MUD_HOUR; /* Tick countdown */
@@ -408,7 +408,7 @@ int main(int argc, char **argv)
     exit(1);
   }
   log("Using %s as data directory.", dir);
-  
+
   if (fCopyOver)
     log("Info: Copyover mode detected, mother_desc=%d", mother_desc);
 
@@ -480,8 +480,8 @@ void copyover_recover()
   /* there are some descriptors open which will hang forever then ? */
   if (!fp)
   {
-    log("SYSERR: copyover_recover: fopen(%s) failed - %s (errno %d)", 
-        COPYOVER_FILE, strerror(errno), errno);
+    log("SYSERR: copyover_recover: fopen(%s) failed - %s (errno %d)", COPYOVER_FILE,
+        strerror(errno), errno);
     log("SYSERR: Copyover file not found. Exiting.");
     exit(1);
   }
@@ -492,11 +492,13 @@ void copyover_recover()
 
   if (i != 1)
   {
-    log("SYSERR: copyover_recover: Error reading boot time from copyover file (read %d values, expected 1)", i);
+    log("SYSERR: copyover_recover: Error reading boot time from copyover file (read %d values, "
+        "expected 1)",
+        i);
     fclose(fp);
     exit(1);
   }
-  
+
   COPYOVER_DEBUG("copyover_recover: Boot time read successfully: %ld", (long)boot_time);
 
   COPYOVER_DEBUG("copyover_recover: Beginning descriptor recovery loop");
@@ -509,10 +511,12 @@ void copyover_recover()
       COPYOVER_DEBUG("copyover_recover: Found end marker (-1), finishing recovery");
       break;
     }
-    
+
     if (i != 5)
     {
-      log("SYSERR: copyover_recover: Invalid line format in copyover file (read %d values, expected 5)", i);
+      log("SYSERR: copyover_recover: Invalid line format in copyover file (read %d values, "
+          "expected 5)",
+          i);
       continue;
     }
 
@@ -566,7 +570,7 @@ void copyover_recover()
     /* Player file not found?! */
     if (!fOld)
     {
-      log("SYSERR: copyover_recover: Character '%s' could not be loaded (player_i=%d, deleted=%d)", 
+      log("SYSERR: copyover_recover: Character '%s' could not be loaded (player_i=%d, deleted=%d)",
           name, player_i, (player_i >= 0 && PLR_FLAGGED(d->character, PLR_DELETED)) ? 1 : 0);
       write_to_descriptor(desc, "\n\rSomehow, your character was lost in the copyover. Sorry.\n\r");
       close_socket(d);
@@ -588,14 +592,16 @@ void copyover_recover()
       /* Add to the list of 'recent' players (since last reboot) with copyover flag */
       if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, TRUE) == FALSE)
       {
-        mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
+        mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE,
+               "Failure to AddRecentPlayer (returned FALSE).");
       }
-      
-      COPYOVER_DEBUG("copyover_recover: Successfully restored player %s on descriptor %d", GET_NAME(d->character), desc);
+
+      COPYOVER_DEBUG("copyover_recover: Successfully restored player %s on descriptor %d",
+                     GET_NAME(d->character), desc);
     }
   }
   fclose(fp);
-  
+
   /* Delete the copyover file after successfully reading all data */
   if (unlink(COPYOVER_FILE) != 0)
   {
@@ -605,7 +611,7 @@ void copyover_recover()
   {
     COPYOVER_DEBUG("copyover_recover: Successfully deleted copyover file");
   }
-  
+
   COPYOVER_DEBUG("copyover_recover: Copyover recovery complete");
 }
 
@@ -661,7 +667,8 @@ static void init_game(ush_int local_port)
 
   /* Initialize Intermud3 client */
   log("Initializing Intermud3 client.");
-  if (i3_initialize() < 0) {
+  if (i3_initialize() < 0)
+  {
     log("WARNING: Failed to initialize I3 client");
   }
 
@@ -711,11 +718,12 @@ static void init_game(ush_int local_port)
   /* Beginner's Note: If we got here from a signal (Ctrl+C, kill, etc.),
    * convert the flag to the normal shutdown flag so the rest of the
    * cleanup code works properly. */
-  if (shutdown_requested) {
+  if (shutdown_requested)
+  {
     circle_shutdown = 1;
     log("Shutdown initiated by signal - performing cleanup...");
   }
-  
+
   log("Normal termination of game.");
 }
 
@@ -751,8 +759,7 @@ static socket_t init_socket(ush_int local_port)
 
     if ((s = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
-      log("SYSERR: Error opening network connection: Winsock error #%d",
-          WSAGetLastError());
+      log("SYSERR: Error opening network connection: Winsock error #%d", WSAGetLastError());
       exit(1);
     }
   }
@@ -889,8 +896,7 @@ static int get_max_players(void)
 
   if (max_descs <= 0)
   {
-    log("SYSERR: Non-positive max player limit!  (Set at %d using %s).",
-        max_descs, method);
+    log("SYSERR: Non-positive max player limit!  (Set at %d using %s).", max_descs, method);
     exit(1);
   }
   log("   Setting player limit to %d using %s.", max_descs, method);
@@ -934,26 +940,27 @@ void game_loop(socket_t local_mother_desc)
    * Checking both ensures clean exit in all cases. */
   while (!circle_shutdown && !shutdown_requested)
   {
-
     /* Sleep if we don't have any connections */
     if (descriptor_list == NULL)
     {
       log("No connections.  Going to sleep.");
       FD_ZERO(&input_set);
       FD_SET(local_mother_desc, &input_set);
-      
+
       int max_sleep_desc = local_mother_desc;
-      
+
       /* Add terrain bridge server socket to wake up on API connections */
-      if (terrain_api_is_running()) {
+      if (terrain_api_is_running())
+      {
         struct terrain_api_server *terrain_server = get_terrain_api_server();
-        if (terrain_server && terrain_server->server_socket != INVALID_SOCKET) {
+        if (terrain_server && terrain_server->server_socket != INVALID_SOCKET)
+        {
           FD_SET(terrain_server->server_socket, &input_set);
           if (terrain_server->server_socket > max_sleep_desc)
             max_sleep_desc = terrain_server->server_socket;
         }
       }
-      
+
       if (select(max_sleep_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL) < 0)
       {
         if (errno == EINTR)
@@ -972,15 +979,18 @@ void game_loop(socket_t local_mother_desc)
     FD_SET(local_mother_desc, &input_set);
 
     maxdesc = local_mother_desc;
-    
+
     /* Add Discord bridge sockets to select sets */
-    if (discord_bridge) {
-      if (discord_bridge->server_socket != INVALID_SOCKET) {
+    if (discord_bridge)
+    {
+      if (discord_bridge->server_socket != INVALID_SOCKET)
+      {
         FD_SET(discord_bridge->server_socket, &input_set);
         if (discord_bridge->server_socket > maxdesc)
           maxdesc = discord_bridge->server_socket;
       }
-      if (discord_bridge->client_socket != INVALID_SOCKET) {
+      if (discord_bridge->client_socket != INVALID_SOCKET)
+      {
         FD_SET(discord_bridge->client_socket, &input_set);
         if (discord_bridge->outbuf_len > 0)
           FD_SET(discord_bridge->client_socket, &output_set);
@@ -988,7 +998,7 @@ void game_loop(socket_t local_mother_desc)
           maxdesc = discord_bridge->client_socket;
       }
     }
-    
+
     for (d = descriptor_list; d; d = d->next)
     {
 #ifndef CIRCLE_WINDOWS
@@ -1020,7 +1030,7 @@ void game_loop(socket_t local_mother_desc)
         time_t current_time = time(NULL);
         int should_log = 0;
         const char *severity = "";
-        
+
         /* Determine severity and rate limit based on usage percentage */
         if (usage_pcnt > 1000.0)
         {
@@ -1052,23 +1062,25 @@ void game_loop(socket_t local_mother_desc)
             last_moderate_log_time = current_time;
           }
         }
-        
+
         if (should_log)
         {
           char buf[MAX_STRING_LENGTH] = {'\0'};
           PERF_prof_repr_pulse(buf, sizeof(buf));
-          
+
           if (perf_log_suppressed > 0)
           {
-            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. (%d similar messages suppressed). Trace info: \n%s",
+            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. (%d similar "
+                "messages suppressed). Trace info: \n%s",
                 severity, usage_pcnt, total_usec, perf_log_suppressed, buf);
           }
           else
           {
-            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: \n%s",
+            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: "
+                "\n%s",
                 severity, usage_pcnt, total_usec, buf);
           }
-          
+
           perf_log_suppressed = 0;
         }
         else
@@ -1124,27 +1136,31 @@ void game_loop(socket_t local_mother_desc)
     /* If there are new connections waiting, accept them. */
     if (FD_ISSET(local_mother_desc, &input_set))
       new_descriptor(local_mother_desc);
-    
+
     /* Process Discord bridge */
-    if (discord_bridge) {
+    if (discord_bridge)
+    {
       /* Check for new Discord bridge connections */
-      if (discord_bridge->server_socket != INVALID_SOCKET && 
-          FD_ISSET(discord_bridge->server_socket, &input_set)) {
+      if (discord_bridge->server_socket != INVALID_SOCKET &&
+          FD_ISSET(discord_bridge->server_socket, &input_set))
+      {
         accept_discord_connection();
       }
-      
+
       /* Process Discord bridge input */
       if (discord_bridge->client_socket != INVALID_SOCKET &&
-          FD_ISSET(discord_bridge->client_socket, &input_set)) {
+          FD_ISSET(discord_bridge->client_socket, &input_set))
+      {
         process_discord_input();
       }
-      
+
       /* Process Discord bridge output */
       if (discord_bridge->client_socket != INVALID_SOCKET &&
-          FD_ISSET(discord_bridge->client_socket, &output_set)) {
+          FD_ISSET(discord_bridge->client_socket, &output_set))
+      {
         process_discord_output();
       }
-      
+
       /* Discord timeout check disabled - maintains persistent connection */
       /* check_discord_timeout(); */
     }
@@ -1202,7 +1218,6 @@ void game_loop(socket_t local_mother_desc)
           d->character->char_specials.timer = 0;
           if (STATE(d) == CON_PLAYING && GET_WAS_IN(d->character) != NOWHERE)
           {
-
             if (IN_ROOM(d->character) != NOWHERE)
               char_from_room(d->character);
 
@@ -1228,18 +1243,16 @@ void game_loop(socket_t local_mother_desc)
         else if (STATE(d) != CON_PLAYING) /* In menus, etc. */
           nanny(d, comm);
         else
-        {                                                /* else: we're playing normally. */
-          if (aliased)                                   /* To prevent recursive aliases. */
-            d->has_prompt = TRUE;                        /* To get newline before next cmd output. */
+        {                         /* else: we're playing normally. */
+          if (aliased)            /* To prevent recursive aliases. */
+            d->has_prompt = TRUE; /* To get newline before next cmd output. */
           else if (perform_alias(d, comm, sizeof(comm))) /* Run it through aliasing system */
             get_from_q(&d->input, comm, &aliased);
           command_interpreter(d->character, comm); /* Send it to interpreter */
         }
       }
-      else if (d->character && STATE(d) == CON_PLAYING &&
-               pending_actions(d->character) &&
-               !d->showstr_count &&
-               !d->str)
+      else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&
+               !d->showstr_count && !d->str)
       {
         d->has_prompt = TRUE;
         execute_next_action(d->character);
@@ -1353,9 +1366,9 @@ void proc_update()
 
   for (obj = object_list; obj; obj = obj->next)
   {
-
     // start_fall_object_event(obj);
-    if (!OBJ_FLAGGED(obj, ITEM_AUTOPROC) || (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
+    if (!OBJ_FLAGGED(obj, ITEM_AUTOPROC) ||
+        (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
       continue;
 
     if (obj_index[GET_OBJ_RNUM(obj)].func != NULL)
@@ -1526,10 +1539,10 @@ void heartbeat(int heart_pulse)
     /* Clean up old trails once per mud hour */
     cleanup_all_trails();
 #endif
-    
+
     PERF_PROF_EXIT(pr_ost_);
   }
-  
+
   /* Process clan investments once per mud day (24 mud hours) */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC)))
   {
@@ -1629,16 +1642,15 @@ static void record_usage(void)
       sockets_playing++;
   }
 
-  log("nusage: %-3d sockets connected, %-3d sockets playing",
-      sockets_connected, sockets_playing);
+  log("nusage: %-3d sockets connected, %-3d sockets playing", sockets_connected, sockets_playing);
 
 #ifdef RUSAGE /* Not RUSAGE_SELF because it doesn't guarantee prototype. */
   {
     struct rusage ru;
 
     getrusage(RUSAGE_SELF, &ru);
-    log("rusage: user time: %ld sec, system time: %ld sec, max res size: %ld",
-        ru.ru_utime.tv_sec, ru.ru_stime.tv_sec, ru.ru_maxrss);
+    log("rusage: user time: %ld sec, system time: %ld sec, max res size: %ld", ru.ru_utime.tv_sec,
+        ru.ru_stime.tv_sec, ru.ru_maxrss);
   }
 #endif
 }
@@ -1659,11 +1671,7 @@ void echo_off(struct descriptor_data *d)
 /* Turn on echoing (specific to telnet client) */
 void echo_on(struct descriptor_data *d)
 {
-  char on_string[] = {
-      (char)IAC,
-      (char)WONT,
-      (char)TELOPT_ECHO,
-      (char)0};
+  char on_string[] = {(char)IAC, (char)WONT, (char)TELOPT_ECHO, (char)0};
 
   write_to_output(d, "%s", on_string);
 }
@@ -1688,9 +1696,10 @@ static char *make_prompt(struct descriptor_data *d)
 
   if (d->showstr_count)
   { /* # of pages to page through */
-    count = snprintf(prompt, sizeof(prompt),
-                     "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
-                     d->showstr_page, d->showstr_count);
+    count =
+        snprintf(prompt, sizeof(prompt),
+                 "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
+                 d->showstr_page, d->showstr_count);
     if (count >= 0)
       len += count;
   }
@@ -1706,8 +1715,7 @@ static char *make_prompt(struct descriptor_data *d)
     /* show invis level if applicable */
     if (GET_INVIS_LEV(d->character) && len < sizeof(prompt))
     {
-      count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ",
-                       GET_INVIS_LEV(d->character));
+      count = snprintf(prompt + len, sizeof(prompt) - len, "i%d ", GET_INVIS_LEV(d->character));
       if (count >= 0)
         len += count;
     }
@@ -1718,24 +1726,22 @@ static char *make_prompt(struct descriptor_data *d)
       struct char_data *ch = d->character;
       if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ",
-                         GET_HIT(ch),
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ", GET_HIT(ch),
                          CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
       }
-      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) > 0 && GET_PSP(ch) << 2 < GET_MAX_PSP(ch) && len < sizeof(prompt))
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) > 0 && GET_PSP(ch) << 2 < GET_MAX_PSP(ch) &&
+          len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ",
-                         GET_PSP(ch),
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ", GET_PSP(ch),
                          CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
       }
       if (GET_MOVE(ch) << 2 < GET_MAX_MOVE(ch) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sV%s ",
-                         GET_MOVE(ch),
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sV%s ", GET_MOVE(ch),
                          CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
@@ -1745,23 +1751,23 @@ static char *make_prompt(struct descriptor_data *d)
     }
     else
     {
-
       /* display hit points */
-      float hit_percent = (float)GET_HIT(d->character) /
-                          (float)GET_MAX_HIT(d->character) * 100.0;
+      float hit_percent = (float)GET_HIT(d->character) / (float)GET_MAX_HIT(d->character) * 100.0;
 
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt))
       {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%d%s/%s%d%sH%s ",
-                         hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ? CBGRN(ch, C_CMP)
-                                                             : hit_percent >= 65   ? CCCYN(ch, C_CMP)
-                                                             : hit_percent >= 25   ? CBYEL(ch, C_CMP)
-                                                                                   : CBRED(ch, C_CMP),
+                         hit_percent >= 100  ? CCWHT(ch, C_CMP)
+                         : hit_percent >= 90 ? CBGRN(ch, C_CMP)
+                         : hit_percent >= 65 ? CCCYN(ch, C_CMP)
+                         : hit_percent >= 25 ? CBYEL(ch, C_CMP)
+                                             : CBRED(ch, C_CMP),
                          GET_HIT(d->character), CCNRM(d->character, C_NRM),
-                         hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ? CBGRN(ch, C_CMP)
-                                                             : hit_percent >= 65   ? CCCYN(ch, C_CMP)
-                                                             : hit_percent >= 25   ? CBYEL(ch, C_CMP)
-                                                                                   : CBRED(ch, C_CMP),
+                         hit_percent >= 100  ? CCWHT(ch, C_CMP)
+                         : hit_percent >= 90 ? CBGRN(ch, C_CMP)
+                         : hit_percent >= 65 ? CCCYN(ch, C_CMP)
+                         : hit_percent >= 25 ? CBYEL(ch, C_CMP)
+                                             : CBRED(ch, C_CMP),
                          GET_MAX_HIT(d->character), CCYEL(d->character, C_NRM),
                          CCNRM(d->character, C_NRM));
         if (count >= 0)
@@ -1769,11 +1775,12 @@ static char *make_prompt(struct descriptor_data *d)
       }
 
       /* display psp points */
-      if (CLASS_LEVEL(d->character, CLASS_PSIONICIST) > 0 && PRF_FLAGGED(d->character, PRF_DISPPSP) && len < sizeof(prompt))
+      if (CLASS_LEVEL(d->character, CLASS_PSIONICIST) > 0 &&
+          PRF_FLAGGED(d->character, PRF_DISPPSP) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sP%s ",
-                         GET_PSP(d->character), GET_MAX_PSP(d->character),
-                         CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sP%s ", GET_PSP(d->character),
+                         GET_MAX_PSP(d->character), CCYEL(d->character, C_NRM),
+                         CCNRM(d->character, C_NRM));
         if (count >= 0)
           len += count;
       }
@@ -1781,9 +1788,9 @@ static char *make_prompt(struct descriptor_data *d)
       /* display move points */
       if (PRF_FLAGGED(d->character, PRF_DISPMOVE) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sV%s ",
-                         GET_MOVE(d->character), GET_MAX_MOVE(d->character),
-                         CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sV%s ", GET_MOVE(d->character),
+                         GET_MAX_MOVE(d->character), CCYEL(d->character, C_NRM),
+                         CCNRM(d->character, C_NRM));
         if (count >= 0)
           len += count;
       }
@@ -1791,10 +1798,10 @@ static char *make_prompt(struct descriptor_data *d)
       /* display exp to next level */
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%sXP:%s%ld ",
-                         CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-                         (long)(level_exp(d->character, GET_LEVEL(d->character) + 1) -
-                             GET_EXP(d->character)));
+        count = snprintf(
+            prompt + len, sizeof(prompt) - len, "%sXP:%s%ld ", CCYEL(d->character, C_NRM),
+            CCNRM(d->character, C_NRM),
+            (long)(level_exp(d->character, GET_LEVEL(d->character) + 1) - GET_EXP(d->character)));
         if (count >= 0)
           len += count;
       }
@@ -1802,8 +1809,9 @@ static char *make_prompt(struct descriptor_data *d)
       /* display gold on hand */
       if (PRF_FLAGGED(d->character, PRF_DISPGOLD) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%sGold:%s%d ",
-                         CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), GET_GOLD(d->character));
+        count =
+            snprintf(prompt + len, sizeof(prompt) - len, "%sGold:%s%d ", CCYEL(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM), GET_GOLD(d->character));
         if (count >= 0)
           len += count;
       }
@@ -1811,8 +1819,7 @@ static char *make_prompt(struct descriptor_data *d)
       /* display rooms */
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-                         world[IN_ROOM(ch)].name,
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ", world[IN_ROOM(ch)].name,
                          CCNRM(d->character, C_NRM));
         if (count >= 0)
           len += count;
@@ -1833,16 +1840,14 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
         for (i = 0; i < NUM_CLASSES; i++)
         {
-          if (SPELL_PREP_QUEUE(d->character, i) &&
-              SPELL_PREP_QUEUE(d->character, i)->prep_time)
+          if (SPELL_PREP_QUEUE(d->character, i) && SPELL_PREP_QUEUE(d->character, i)->prep_time)
           {
             count = snprintf(prompt + len, sizeof(prompt) - len, "%d ",
                              SPELL_PREP_QUEUE(d->character, i)->prep_time);
             if (count >= 0)
               len += count;
           }
-          if (INNATE_MAGIC(d->character, i) &&
-              INNATE_MAGIC(d->character, i)->prep_time)
+          if (INNATE_MAGIC(d->character, i) && INNATE_MAGIC(d->character, i)->prep_time)
           {
             count = snprintf(prompt + len, sizeof(prompt) - len, "%d ",
                              INNATE_MAGIC(d->character, i)->prep_time);
@@ -1866,8 +1871,7 @@ static char *make_prompt(struct descriptor_data *d)
       /* display exits */
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
-                         CCYEL(d->character, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:", CCYEL(d->character, C_NRM));
 
         int isDark = 0, seesExits = 1;
 
@@ -1893,30 +1897,28 @@ static char *make_prompt(struct descriptor_data *d)
         {
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
-          if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-              !CONFIG_DISP_CLOSED_DOORS)
+          if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
             continue;
-          if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
-              !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+          if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
             continue;
           if (!seesExits)
             continue;
           if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
             count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
-                             EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM) : CCRED(ch, C_NRM),
+                             EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM)
+                                                                     : CCRED(ch, C_NRM),
                              autoexits[door], CCCYN(ch, C_NRM));
           else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
-            count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
-                             CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+            count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s", CCWHT(ch, C_NRM),
+                             autoexits[door], CCCYN(ch, C_NRM));
           else
-            count = snprintf(prompt + len, sizeof(prompt) - len, "%s",
-                             autoexits[door]);
+            count = snprintf(prompt + len, sizeof(prompt) - len, "%s", autoexits[door]);
           slen++;
           if (count >= 0)
             len += count;
         }
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-                         slen ? "" : "None! ", CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ", slen ? "" : "None! ",
+                         CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
       }
@@ -1924,7 +1926,9 @@ static char *make_prompt(struct descriptor_data *d)
       if (PRF_FLAGGED(d->character, PRF_DISPTIME) && len < sizeof(prompt))
       {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sTime:%s%d%s ",
-                         CCYEL(d->character, C_NRM), CCNRM(ch, C_NRM), (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12), (time_info.hours >= 12) ? "pm" : "am");
+                         CCYEL(d->character, C_NRM), CCNRM(ch, C_NRM),
+                         (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12),
+                         (time_info.hours >= 12) ? "pm" : "am");
 
         if (count >= 0)
           len += count;
@@ -2007,8 +2011,7 @@ static char *make_prompt(struct descriptor_data *d)
 
       /* TANK elements only active if... */
       if ((tank = char_fighting->char_specials.fighting) &&
-          (d->character->in_room == tank->in_room) &&
-          len < sizeof(prompt))
+          (d->character->in_room == tank->in_room) && len < sizeof(prompt))
       {
         if (count >= 0)
           len += count;
@@ -2047,13 +2050,14 @@ static char *make_prompt(struct descriptor_data *d)
             strlcat(prompt, " \t[F500]unconscious\tn", sizeof(prompt));
         }
         len += 30; // just counting the strcat's above
-      }            /* end tank elements */
+      } /* end tank elements */
 
       /* tank combat-position,  enemy name */
       if (len < sizeof(prompt))
-        count = sprintf(prompt + strlen(prompt), " (%s)> <\tRE:\tn %s",
-                        tank ? position_types[GET_POS(tank)] : " ",
-                        (CAN_SEE(d->character, char_fighting) ? GET_NAME(char_fighting) : "someone"));
+        count =
+            sprintf(prompt + strlen(prompt), " (%s)> <\tRE:\tn %s",
+                    tank ? position_types[GET_POS(tank)] : " ",
+                    (CAN_SEE(d->character, char_fighting) ? GET_NAME(char_fighting) : "someone"));
       if (count >= 0)
         len += count;
 
@@ -2093,15 +2097,14 @@ static char *make_prompt(struct descriptor_data *d)
       if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
       {
-        count = sprintf(prompt + strlen(prompt), " (%s)> \r\n",
-                        position_types[GET_POS(char_fighting)]);
+        count =
+            sprintf(prompt + strlen(prompt), " (%s)> \r\n", position_types[GET_POS(char_fighting)]);
         if (count >= 0)
           len += count;
       }
       else if (len < sizeof(prompt))
       {
-        count = sprintf(prompt + strlen(prompt), " (%s)> ",
-                        position_types[GET_POS(char_fighting)]);
+        count = sprintf(prompt + strlen(prompt), " (%s)> ", position_types[GET_POS(char_fighting)]);
         if (count >= 0)
           len += count;
       }
@@ -2120,46 +2123,43 @@ static char *make_prompt(struct descriptor_data *d)
   }
   else if (STATE(d) == CON_PLAYING && IS_NPC(d->character))
   {
-    count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
-                     CCYEL(d->character, C_NRM));
+    count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:", CCYEL(d->character, C_NRM));
     if (count >= 0)
       len += count;
     for (door = 0; door < DIR_COUNT; door++)
     {
       if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
         continue;
-      if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-          !CONFIG_DISP_CLOSED_DOORS)
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
         continue;
-      if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
-          !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+      if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
         continue;
       if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
       {
         if (len < sizeof(prompt))
           count = snprintf(prompt + len, sizeof(prompt) - len, "%s(%s)%s",
-                           EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM) : CCRED(ch, C_NRM),
+                           EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM)
+                                                                   : CCRED(ch, C_NRM),
                            autoexits[door], CCCYN(ch, C_NRM));
       }
       else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
       {
         if (len < sizeof(prompt))
-          count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s",
-                           CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+          count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s%s", CCWHT(ch, C_NRM),
+                           autoexits[door], CCCYN(ch, C_NRM));
       }
       else
       {
         if (len < sizeof(prompt))
-          count = snprintf(prompt + len, sizeof(prompt) - len, "%s",
-                           autoexits[door]);
+          count = snprintf(prompt + len, sizeof(prompt) - len, "%s", autoexits[door]);
       }
       slen++;
       if (count >= 0)
         len += count;
     }
     if (len < sizeof(prompt))
-      count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ",
-                       slen ? ">> " : "None! >> ", CCNRM(ch, C_NRM));
+      count = snprintf(prompt + len, sizeof(prompt) - len, "%s%s ", slen ? ">> " : "None! >> ",
+                       CCNRM(ch, C_NRM));
     if (count >= 0)
       len += count;
 
@@ -2248,9 +2248,9 @@ static void flush_queues(struct descriptor_data *d)
       pool_count++;
       tmp = tmp->next;
     }
-    
+
     /* If we have too many buffers in the pool, free this one instead */
-    if (pool_count >= 5)  /* Keep max 5 buffers in pool */
+    if (pool_count >= 5) /* Keep max 5 buffers in pool */
     {
       if (d->large_outbuf->text)
         free(d->large_outbuf->text);
@@ -2287,8 +2287,7 @@ size_t write_to_output(struct descriptor_data *t, const char *txt, ...)
 }
 
 /* Add a new string to a player's output queue. */
-size_t vwrite_to_output(struct descriptor_data *t, const char *format,
-                        va_list args)
+size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list args)
 {
   const char *text_overflow = "\r\nOVERFLOW\r\n";
   static char txt[MAX_STRING_LENGTH] = {'\0'};
@@ -2362,7 +2361,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
    * When a large buffer is reused, t->output may already point to t->large_outbuf->text,
    * causing source and destination to overlap. In this case, we don't need to copy
    * at all since the data is already in the right place.
-   * 
+   *
    * This fixes a critical memory corruption issue detected by Valgrind where
    * "Source and destination overlap in strcpy" was reported. */
   if (t->output != t->large_outbuf->text)
@@ -2371,9 +2370,9 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
     strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (no overlap) */
   }
   /* else: source and destination are the same - no copy needed, data already there */
-  
-  t->output = t->large_outbuf->text;        /* make big buffer primary */
-  strcat(t->output, txt);                   /* strcat: OK (size checked) */
+
+  t->output = t->large_outbuf->text; /* make big buffer primary */
+  strcat(t->output, txt);            /* strcat: OK (size checked) */
 
   /* set the pointer for the next write */
   t->bufptr = strlen(t->output);
@@ -2422,8 +2421,7 @@ static struct in_addr *get_bind_addr()
     /* If the parsing fails, use INADDR_ANY */
     if (!parse_ip(CONFIG_DFLT_IP, &bind_addr))
     {
-      log("SYSERR: DFLT_IP of %s appears to be an invalid IP address",
-          CONFIG_DFLT_IP);
+      log("SYSERR: DFLT_IP of %s appears to be an invalid IP address", CONFIG_DFLT_IP);
       bind_addr.s_addr = htonl(INADDR_ANY);
     }
   }
@@ -2503,7 +2501,7 @@ static void init_descriptor(struct descriptor_data *newd, int desc)
   newd->login_time = time(0);
   *newd->output = '\0';
   newd->bufptr = 0;
-  newd->has_prompt = 1;                                                            /* prompt is part of greetings */
+  newd->has_prompt = 1; /* prompt is part of greetings */
   STATE(newd) = CONFIG_PROTOCOL_NEGOTIATION ? CON_GET_PROTOCOL : CON_ACCOUNT_NAME; // CON_GET_NAME;
   CREATE(newd->history, char *, HISTORY_SIZE);
   if (++last_desc == 1000)
@@ -2555,16 +2553,15 @@ static int new_descriptor(socket_t s)
 
   /* find the sitename */
   if (CONFIG_NS_IS_SLOW ||
-      !(from = gethostbyaddr((char *)&peer.sin_addr,
-                             sizeof(peer.sin_addr), AF_INET)))
+      !(from = gethostbyaddr((char *)&peer.sin_addr, sizeof(peer.sin_addr), AF_INET)))
   {
-
     /* resolution failed */
     if (!CONFIG_NS_IS_SLOW)
       perror("SYSERR: gethostbyaddr");
 
     /* find the numeric site address */
-    strncpy(newd->host, (char *)inet_ntoa(peer.sin_addr), HOST_LENGTH); /* strncpy: OK (n->host:HOST_LENGTH+1) */
+    strncpy(newd->host, (char *)inet_ntoa(peer.sin_addr),
+            HOST_LENGTH); /* strncpy: OK (n->host:HOST_LENGTH+1) */
     *(newd->host + HOST_LENGTH) = '\0';
   }
   else
@@ -2685,9 +2682,9 @@ static int process_output(struct descriptor_data *t)
         pool_count++;
         tmp = tmp->next;
       }
-      
+
       /* If we have too many buffers in the pool, free this one instead */
-      if (pool_count >= 5)  /* Keep max 5 buffers in pool */
+      if (pool_count >= 5) /* Keep max 5 buffers in pool */
       {
         if (t->large_outbuf->text)
           free(t->large_outbuf->text);
@@ -2936,8 +2933,7 @@ static int process_input(struct descriptor_data *t)
   int buf_length = 0, failed_subst = 0;
   ssize_t bytes_read = 0;
   size_t space_left = 0;
-  char *ptr = NULL, *read_point = NULL,
-       *write_point = NULL, *nl_pos = NULL;
+  char *ptr = NULL, *read_point = NULL, *write_point = NULL, *nl_pos = NULL;
   char tmp[MAX_INPUT_LENGTH] = {'\0'};
   static char read_buf[MAX_PROTOCOL_BUFFER] = {'\0'}; /* KaVir's plugin */
 
@@ -2956,8 +2952,7 @@ static int process_input(struct descriptor_data *t)
 
     /* Read # of "bytes_read" from socket, and if we have something, mark the
      * sizeof data in the read_buf array as NULL */
-    if ((bytes_read =
-             perform_socket_read(t->descriptor, read_buf, space_left)) > 0)
+    if ((bytes_read = perform_socket_read(t->descriptor, read_buf, space_left)) > 0)
       read_buf[bytes_read] = '\0';
 
     /* Since we have received at least 1 byte of data from the socket, lets run
@@ -3150,7 +3145,8 @@ static int perform_subst(struct descriptor_data *t, char *orig, char *subst)
   /* now, we construct the new string for output. */
 
   /* first, everything in the original, up to the string to be replaced */
-  strncpy(newsub, orig, strpos - orig); /* strncpy: OK (newsub:MAX_INPUT_LENGTH+5 > orig:MAX_INPUT_LENGTH) */
+  strncpy(newsub, orig,
+          strpos - orig); /* strncpy: OK (newsub:MAX_INPUT_LENGTH+5 > orig:MAX_INPUT_LENGTH) */
   newsub[strpos - orig] = '\0';
 
   /* now, the replacement string */
@@ -3159,7 +3155,8 @@ static int perform_subst(struct descriptor_data *t, char *orig, char *subst)
   /* now, if there's anything left in the original after the string to
    * replaced, copy that too. */
   if (((strpos - orig) + strlen(first)) < strlen(orig))
-    strncat(newsub, strpos + strlen(first), MAX_INPUT_LENGTH - strlen(newsub) - 1); /* strncpy: OK */
+    strncat(newsub, strpos + strlen(first),
+            MAX_INPUT_LENGTH - strlen(newsub) - 1); /* strncpy: OK */
 
   /* terminate the string in case of an overflow from strncat */
   newsub[MAX_INPUT_LENGTH - 1] = '\0';
@@ -3216,18 +3213,21 @@ void close_socket(struct descriptor_data *d)
 
       /* We are guaranteed to have a person. */
       act("$n has lost $s link.", TRUE, link_challenged, 0, 0, TO_ROOM);
-      
+
       /* Clean up supply order slots before saving */
-      if (link_challenged) {
+      if (link_challenged)
+      {
         cleanup_supply_slots(link_challenged);
       }
-      
+
       save_char(link_challenged, 0);
-      mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(link_challenged)), TRUE, "Closing link to: %s.", GET_NAME(link_challenged));
+      mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(link_challenged)), TRUE, "Closing link to: %s.",
+             GET_NAME(link_challenged));
     }
     else
     {
-      mudlog(CMP, LVL_IMMORT, TRUE, "Losing player: %s.", GET_NAME(d->character) ? GET_NAME(d->character) : "<null>");
+      mudlog(CMP, LVL_IMMORT, TRUE, "Losing player: %s.",
+             GET_NAME(d->character) ? GET_NAME(d->character) : "<null>");
       free_char(d->character);
     }
   }
@@ -3301,18 +3301,23 @@ void close_socket(struct descriptor_data *d)
   //    free(d->host);
 
   /* Free account data if present */
-  if (d->account) {
+  if (d->account)
+  {
     int i;
-    if (d->account->name) {
+    if (d->account->name)
+    {
       free(d->account->name);
       d->account->name = NULL;
     }
-    if (d->account->email) {
+    if (d->account->email)
+    {
       free(d->account->email);
       d->account->email = NULL;
     }
-    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
-      if (d->account->character_names[i]) {
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+    {
+      if (d->account->character_names[i])
+      {
         free(d->account->character_names[i]);
         d->account->character_names[i] = NULL;
       }
@@ -3467,12 +3472,12 @@ static RETSIGTYPE hupsig(int sig)
   /* Beginner's Note: Signal handlers should do minimal work to avoid race conditions.
    * We just set a flag here that the main game loop checks. This ensures all
    * cleanup code in destroy_db() runs before exit, preventing memory leaks.
-   * 
+   *
    * The 'volatile sig_atomic_t' type ensures the variable can be safely
    * modified in a signal handler and read in the main program. */
   log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Initiating graceful shutdown...", sig);
-  shutdown_requested = 1;  /* Set flag for main loop to check */
-  
+  shutdown_requested = 1; /* Set flag for main loop to check */
+
   /* Do NOT call exit() here! That would skip all cleanup code and leak memory.
    * The main game loop will detect shutdown_requested and exit cleanly. */
 }
@@ -3673,8 +3678,7 @@ void send_to_outdoor(const char *messg, ...)
     rm = IN_ROOM(i->character);
     zn = GET_ROOM_ZONE(rm);
 
-    if (!AWAKE(i->character) || !OUTSIDE(i->character) ||
-        !zone_table[zn].show_weather)
+    if (!AWAKE(i->character) || !OUTSIDE(i->character) || !zone_table[zn].show_weather)
       continue;
 
     va_start(args, messg);
@@ -3718,13 +3722,13 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char *m
    * if simple_list was used elsewhere and not completed, it would
    * continue from where it left off instead of starting fresh. */
   simple_list(NULL);
-  
+
   while ((tch = (struct char_data *)simple_list(group->members)) != NULL)
   {
     if (tch != ch && !IS_NPC(tch) && tch->desc && STATE(tch->desc) == CON_PLAYING)
     {
-      write_to_output(tch->desc, "%s[%sGroup%s]%s ",
-                      CCGRN(tch, C_NRM), CBGRN(tch, C_NRM), CCGRN(tch, C_NRM), CCNRM(tch, C_NRM));
+      write_to_output(tch->desc, "%s[%sGroup%s]%s ", CCGRN(tch, C_NRM), CBGRN(tch, C_NRM),
+                      CCGRN(tch, C_NRM), CCNRM(tch, C_NRM));
       va_start(args, msg);
       vwrite_to_output(tch->desc, msg, args);
       va_end(args);
@@ -3765,15 +3769,15 @@ void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
 }
 
 const char *ACTNULL = "<NULL>";
-#define CHECK_NULL(pointer, expression) \
-  if ((pointer) == NULL)                \
-    i = ACTNULL;                        \
-  else                                  \
+#define CHECK_NULL(pointer, expression)                                                            \
+  if ((pointer) == NULL)                                                                           \
+    i = ACTNULL;                                                                                   \
+  else                                                                                             \
     i = (expression);
 
 /* higher-level communication: the act() function */
-void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
-                 void *vict_obj, struct char_data *to, bool carrier_return)
+void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj, void *vict_obj,
+                 struct char_data *to, bool carrier_return)
 {
   const char *i = NULL;
   char lbuf[MAX_STRING_LENGTH] = {'\0'}, *buf = NULL, *j = NULL;
@@ -3920,8 +3924,8 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
      a field for other extraneous handling not originally built
      into this function until we develop a more elegant handling -zusuk
    hide_invisible = ACT_CONDENSE_VALUE : this is for handling to_room condensed combat mode scenarios -zusuk */
-const char *act(const char *str, int hide_invisible, struct char_data *ch,
-                struct obj_data *obj, void *vict_obj, int type)
+const char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj,
+                void *vict_obj, int type)
 {
   struct char_data *to = NULL;
   int to_sleeping = 0;
@@ -3997,13 +4001,12 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
 
     for (i = descriptor_list; i; i = i->next)
     {
-      if (!i->connected && i->character &&
-          !PRF_FLAGGED(i->character, PRF_NOGOSS) &&
+      if (!i->connected && i->character && !PRF_FLAGGED(i->character, PRF_NOGOSS) &&
           !PLR_FLAGGED(i->character, PLR_WRITING) &&
           !ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF))
       {
-
-        snprintf(buf, sizeof(buf), "%s%s%s", CCYEL(i->character, C_NRM), str, CCNRM(i->character, C_NRM));
+        snprintf(buf, sizeof(buf), "%s%s%s", CCYEL(i->character, C_NRM), str,
+                 CCNRM(i->character, C_NRM));
         perform_act(buf, ch, obj, vict_obj, i->character, TRUE);
       }
     }
@@ -4118,8 +4121,7 @@ static int open_logfile(const char *filename, FILE *stderr_fp)
 
   if (logfile)
   {
-    printf("Using log file '%s'%s.\n",
-           filename, stderr_fp ? " with redirection" : "");
+    printf("Using log file '%s'%s.\n", filename, stderr_fp ? " with redirection" : "");
     return (TRUE);
   }
 
@@ -4220,8 +4222,7 @@ void update_msdp_room(struct char_data *ch)
   {
     /* Location information */
     /*  Only update room stuff if they've changed room */
-    if (IN_ROOM(ch) != NOWHERE &&
-        VALID_ROOM_RNUM(IN_ROOM(ch)) &&
+    if (IN_ROOM(ch) != NOWHERE && VALID_ROOM_RNUM(IN_ROOM(ch)) &&
         GET_ROOM_VNUM(IN_ROOM(ch)) != ch->desc->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
     {
       room_rnum room = IN_ROOM(ch);
@@ -4264,68 +4265,51 @@ void update_msdp_room(struct char_data *ch)
         if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
           continue;
 
-        snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
+        snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal,
+                 GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
         //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
         strlcat(room_exits, buf3, sizeof(room_exits));
         if (!EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR))
           continue;
-        snprintf(buf4, sizeof(buf4), "%c%s%c%s%c", MsdpVar, dirs[door], MsdpVal, EXIT(ch, door)->keyword, '\0');
+        snprintf(buf4, sizeof(buf4), "%c%s%c%s%c", MsdpVar, dirs[door], MsdpVal,
+                 EXIT(ch, door)->keyword, '\0');
         strlcat(room_doors, buf4, sizeof(room_doors));
       }
 
       //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
 
       /* Build the ROOM table.  */
-      snprintf(buf2, sizeof(buf2), "%cVNUM"
-                                   "%c%d"
-                                   "%cNAME"
-                                   "%c%s"
-                                   "%cAREA"
-                                   "%c%s"
-                                   "%cENVIRONMENT"
-                                   "%c%s"
-                                   "%cCOORDS"
-                                   "%c%c"
-                                   "%cX"
-                                   "%c%d"
-                                   "%cY"
-                                   "%c%d"
-                                   "%cZ"
-                                   "%c%d%c"
-                                   "%cTERRAIN"
-                                   "%c%s"
-                                   "%cEXITS"
-                                   "%c%c%s%c"
-                                   "%cDOORS"
-                                   "%c%c%s%c",
-               MsdpVar, MsdpVal,
-               GET_ROOM_VNUM(room),
-               MsdpVar, MsdpVal,
-               world[room].name ? world[room].name : "An Unnamed Location",
-               MsdpVar, MsdpVal,
-               zone_name,
-               MsdpVar, MsdpVal,
-               (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)) ? "Wilderness" : "Room"),
-               MsdpVar, MsdpVal,
-               MSDP_TABLE_OPEN,
-               MsdpVar, MsdpVal,
-               world[room].coords[X_COORD],
-               MsdpVar, MsdpVal,
-               world[room].coords[Y_COORD],
-               MsdpVar, MsdpVal,
-               0,
-               MSDP_TABLE_CLOSE,
-               MsdpVar, MsdpVal,
-               sector_types[world[room].sector_type],
-               MsdpVar, MsdpVal,
-               MSDP_TABLE_OPEN,
-               room_exits,
-               MSDP_TABLE_CLOSE,
-               MsdpVar,
-               MsdpVal,
-               MSDP_TABLE_OPEN,
-               room_doors,
-               MSDP_TABLE_CLOSE);
+      snprintf(buf2, sizeof(buf2),
+               "%cVNUM"
+               "%c%d"
+               "%cNAME"
+               "%c%s"
+               "%cAREA"
+               "%c%s"
+               "%cENVIRONMENT"
+               "%c%s"
+               "%cCOORDS"
+               "%c%c"
+               "%cX"
+               "%c%d"
+               "%cY"
+               "%c%d"
+               "%cZ"
+               "%c%d%c"
+               "%cTERRAIN"
+               "%c%s"
+               "%cEXITS"
+               "%c%c%s%c"
+               "%cDOORS"
+               "%c%c%s%c",
+               MsdpVar, MsdpVal, GET_ROOM_VNUM(room), MsdpVar, MsdpVal,
+               world[room].name ? world[room].name : "An Unnamed Location", MsdpVar, MsdpVal,
+               zone_name, MsdpVar, MsdpVal,
+               (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)) ? "Wilderness" : "Room"), MsdpVar, MsdpVal,
+               MSDP_TABLE_OPEN, MsdpVar, MsdpVal, world[room].coords[X_COORD], MsdpVar, MsdpVal,
+               world[room].coords[Y_COORD], MsdpVar, MsdpVal, 0, MSDP_TABLE_CLOSE, MsdpVar, MsdpVal,
+               sector_types[world[room].sector_type], MsdpVar, MsdpVal, MSDP_TABLE_OPEN, room_exits,
+               MSDP_TABLE_CLOSE, MsdpVar, MsdpVal, MSDP_TABLE_OPEN, room_doors, MSDP_TABLE_CLOSE);
 
       strip_colors(buf2);
       MSDPSetTable(ch->desc, eMSDP_ROOM, buf2);
@@ -4371,7 +4355,8 @@ static void msdp_update(void)
       MSDPSetNumber(d, eMSDP_ALIGNMENT, GET_ALIGNMENT(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-      MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX, level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
+      MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX,
+                    level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
 
       MSDPSetNumber(d, eMSDP_HEALTH, GET_HIT(ch));
       MSDPSetNumber(d, eMSDP_HEALTH_MAX, GET_MAX_HIT(ch));
@@ -4429,7 +4414,6 @@ static void msdp_update(void)
       if (IN_ROOM(ch) != NOWHERE &&
           GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
       {
-
         /* Format for the room data is:
          * ROOM
          *   VNUM
@@ -4455,7 +4439,8 @@ static void msdp_update(void)
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
 
-          snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
+          snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal,
+                   GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
           //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
           strlcat(room_exits, buf3, sizeof(room_exits));
         }
@@ -4466,7 +4451,8 @@ static void msdp_update(void)
         for (sector = 0; sector < NUM_ROOM_SECTORS; sector++)
         {
           sector_buf[0] = '\0';
-          snprintf(sector_buf, sizeof(sector_buf), "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
+          snprintf(sector_buf, sizeof(sector_buf), "%c%s%c%d", MsdpVar, sector_types[sector],
+                   MsdpVal, sector);
           strlcat(sectors, sector_buf, sizeof(sectors));
         }
         // snprintf(sector_buf, sizeof(sector_buf), "%c", MSDP_TABLE_CLOSE);

@@ -24,7 +24,7 @@ The PRF_FLAGGED macro accesses the player_specials structure which NPCs don't ha
 
 #### 3. `DG_SCRIPT_FIXES_NEEDED.md` - Created documentation
 - **Purpose**: Document DG Script errors requiring builder-level access
-- **Contents**: 
+- **Contents**:
   - Dragon egg timer script (VNum 1015) syntax error
   - Objects executing scripts from NOWHERE location
 - **Result**: Clear tracking of script issues for builders to fix
@@ -312,7 +312,7 @@ The search functions were using word-by-word matching but only verified that all
 ### Files Modified
 
 #### 1. `feats.c`
-- **Function**: `find_feat_num()` 
+- **Function**: `find_feat_num()`
 - **Line**: 8347
 - **Change**: Modified condition from `if (ok && !*first2)` to `if (ok && !*first2 && !*first)`
 - **Note**: This fix was already present in the codebase
@@ -361,7 +361,7 @@ For developers setting up local builds:
    ```bash
    # Create campaign.h with minimal content
    echo '/* Campaign-specific configuration */' > campaign.h
-   
+
    # Copy example files
    cp vnums.example.h vnums.h
    cp mud_options.example.h mud_options.h

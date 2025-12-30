@@ -28,7 +28,8 @@
 typedef int bool;
 
 /* Vessel class enum */
-enum vessel_class {
+enum vessel_class
+{
   VESSEL_RAFT = 0,
   VESSEL_BOAT = 1,
   VESSEL_SHIP = 2,
@@ -42,17 +43,18 @@ enum vessel_class {
 #define NUM_VESSEL_TYPES 8
 
 /* Sector types used in terrain validation */
-#define SECT_INSIDE       0
-#define SECT_WATER_SWIM   6
+#define SECT_INSIDE 0
+#define SECT_WATER_SWIM 6
 #define SECT_WATER_NOSWIM 7
-#define SECT_UNDERWATER   9
-#define SECT_OCEAN       15
-#define SECT_MARSHLAND   16
-#define SECT_BEACH       33
-#define SECT_RIVER       36
+#define SECT_UNDERWATER 9
+#define SECT_OCEAN 15
+#define SECT_MARSHLAND 16
+#define SECT_BEACH 33
+#define SECT_RIVER 36
 
 /* Vessel terrain capabilities */
-struct vessel_terrain_caps {
+struct vessel_terrain_caps
+{
   bool can_traverse_ocean;
   bool can_traverse_shallow;
   bool can_traverse_air;
@@ -67,38 +69,47 @@ struct vessel_terrain_caps {
 /* ========================================================================= */
 
 static const struct vessel_terrain_caps vessel_terrain_data[NUM_VESSEL_TYPES] = {
-  /* VESSEL_RAFT: Small, rivers/shallow water only */
-  {FALSE, TRUE, FALSE, FALSE, 0, 0,
-   {0,0,0,0,0,0, 100,0,0,0, 0,0,0,0,0,0, 75,0,0,0, 0,0,80,0,0,0, 0,0,0,0,0,0,0, 50,60,0,100, 0,0,0}},
+    /* VESSEL_RAFT: Small, rivers/shallow water only */
+    {FALSE, TRUE, FALSE, FALSE, 0, 0, {0, 0, 0,  0, 0, 0,  100, 0, 0,   0, 0, 0, 0, 0,
+                                       0, 0, 75, 0, 0, 0,  0,   0, 80,  0, 0, 0, 0, 0,
+                                       0, 0, 0,  0, 0, 50, 60,  0, 100, 0, 0, 0}},
 
-  /* VESSEL_BOAT: Medium, coastal waters */
-  {FALSE, TRUE, FALSE, FALSE, 0, 0,
-   {0,0,0,0,0,0, 100,75,0,0, 0,0,0,0,0,0, 80,0,0,0, 0,0,90,60,0,0, 0,0,0,0,0,0,0, 60,70,0,100, 0,0,0}},
+    /* VESSEL_BOAT: Medium, coastal waters */
+    {FALSE, TRUE, FALSE, FALSE, 0, 0, {0, 0, 0,  0, 0, 0,  100, 75, 0,   0,  0, 0, 0, 0,
+                                       0, 0, 80, 0, 0, 0,  0,   0,  90,  60, 0, 0, 0, 0,
+                                       0, 0, 0,  0, 0, 60, 70,  0,  100, 0,  0, 0}},
 
-  /* VESSEL_SHIP: Large, ocean-capable */
-  {TRUE, TRUE, FALSE, FALSE, 2, 0,
-   {0,0,0,0,0,0, 75,100,0,0, 0,0,0,0,0,100, 0,0,0,0, 0,0,0,80,0,0, 0,0,0,0,0,0,0, 0,50,0,50, 0,0,0}},
+    /* VESSEL_SHIP: Large, ocean-capable */
+    {TRUE, TRUE, FALSE, FALSE, 2, 0, {0, 0,   0, 0, 0, 0, 75, 100, 0,  0,  0, 0, 0, 0,
+                                      0, 100, 0, 0, 0, 0, 0,  0,   0,  80, 0, 0, 0, 0,
+                                      0, 0,   0, 0, 0, 0, 50, 0,   50, 0,  0, 0}},
 
-  /* VESSEL_WARSHIP: Combat vessel */
-  {TRUE, TRUE, FALSE, FALSE, 2, 0,
-   {0,0,0,0,0,0, 75,100,0,0, 0,0,0,0,0,100, 0,0,0,0, 0,0,0,80,0,0, 0,0,0,0,0,0,0, 0,50,0,50, 0,0,0}},
+    /* VESSEL_WARSHIP: Combat vessel */
+    {TRUE, TRUE, FALSE, FALSE, 2, 0, {0, 0,   0, 0, 0, 0, 75, 100, 0,  0,  0, 0, 0, 0,
+                                      0, 100, 0, 0, 0, 0, 0,  0,   0,  80, 0, 0, 0, 0,
+                                      0, 0,   0, 0, 0, 0, 50, 0,   50, 0,  0, 0}},
 
-  /* VESSEL_AIRSHIP: Flying vessel */
-  {TRUE, TRUE, TRUE, FALSE, 0, 500,
-   {0,80,100,100,100,100, 100,100,100,0, 0,100,100,100,100,100, 100,100,100,0, 0,0,0,0,0,80, 100,100,100,0,100,100,100, 100,100,0,100, 0,0,0}},
+    /* VESSEL_AIRSHIP: Flying vessel */
+    {TRUE, TRUE, TRUE, FALSE, 0, 500, {0,   80,  100, 100, 100, 100, 100, 100, 100, 0,
+                                       0,   100, 100, 100, 100, 100, 100, 100, 100, 0,
+                                       0,   0,   0,   0,   0,   80,  100, 100, 100, 0,
+                                       100, 100, 100, 100, 100, 0,   100, 0,   0,   0}},
 
-  /* VESSEL_SUBMARINE: Underwater vessel */
-  {TRUE, TRUE, FALSE, TRUE, 0, 0,
-   {0,0,0,0,0,0, 0,100,0,100, 0,0,0,0,0,100, 0,0,0,0, 0,0,100,100,0,0, 0,0,0,0,0,0,0, 0,50,0,0, 0,0,0}},
+    /* VESSEL_SUBMARINE: Underwater vessel */
+    {TRUE, TRUE, FALSE, TRUE, 0, 0, {0, 0,   0, 0, 0, 0, 0,  100, 0,   100, 0, 0, 0, 0,
+                                     0, 100, 0, 0, 0, 0, 0,  0,   100, 100, 0, 0, 0, 0,
+                                     0, 0,   0, 0, 0, 0, 50, 0,   0,   0,   0, 0}},
 
-  /* VESSEL_TRANSPORT: Cargo vessel */
-  {TRUE, TRUE, FALSE, FALSE, 2, 0,
-   {0,0,0,0,0,0, 60,100,0,0, 0,0,0,0,0,100, 0,0,0,0, 0,0,0,70,0,0, 0,0,0,0,0,0,0, 0,40,0,40, 0,0,0}},
+    /* VESSEL_TRANSPORT: Cargo vessel */
+    {TRUE, TRUE, FALSE, FALSE, 2, 0, {0, 0,   0, 0, 0, 0, 60, 100, 0,  0,  0, 0, 0, 0,
+                                      0, 100, 0, 0, 0, 0, 0,  0,   0,  70, 0, 0, 0, 0,
+                                      0, 0,   0, 0, 0, 0, 40, 0,   40, 0,  0, 0}},
 
-  /* VESSEL_MAGICAL: Special magical vessels */
-  {TRUE, TRUE, TRUE, TRUE, 0, 300,
-   {50,50,75,75,75,75, 100,100,100,100, 50,75,75,75,100,100, 100,100,100,50, 50,50,100,100,50,0, 75,75,75,50,75,75,75, 80,80,50,100, 0,0,0}}
-};
+    /* VESSEL_MAGICAL: Special magical vessels */
+    {TRUE, TRUE, TRUE, TRUE, 0, 300, {50, 50, 75,  75,  75,  75,  100, 100, 100, 100,
+                                      50, 75, 75,  75,  100, 100, 100, 100, 100, 50,
+                                      50, 50, 100, 100, 50,  0,   75,  75,  75,  50,
+                                      75, 75, 75,  80,  80,  50,  100, 0,   0,   0}}};
 
 /* ========================================================================= */
 /* HELPER FUNCTIONS                                                          */
@@ -123,15 +134,24 @@ static int get_base_rooms_for_type(enum vessel_class type)
 {
   switch (type)
   {
-    case VESSEL_RAFT:       return 1;
-    case VESSEL_BOAT:       return 2;
-    case VESSEL_SHIP:       return 3;
-    case VESSEL_WARSHIP:    return 5;
-    case VESSEL_AIRSHIP:    return 4;
-    case VESSEL_SUBMARINE:  return 4;
-    case VESSEL_TRANSPORT:  return 6;
-    case VESSEL_MAGICAL:    return 3;
-    default:                return 1;
+  case VESSEL_RAFT:
+    return 1;
+  case VESSEL_BOAT:
+    return 2;
+  case VESSEL_SHIP:
+    return 3;
+  case VESSEL_WARSHIP:
+    return 5;
+  case VESSEL_AIRSHIP:
+    return 4;
+  case VESSEL_SUBMARINE:
+    return 4;
+  case VESSEL_TRANSPORT:
+    return 6;
+  case VESSEL_MAGICAL:
+    return 3;
+  default:
+    return 1;
   }
 }
 
@@ -142,15 +162,24 @@ static int get_max_rooms_for_type(enum vessel_class type)
 {
   switch (type)
   {
-    case VESSEL_RAFT:       return 2;
-    case VESSEL_BOAT:       return 4;
-    case VESSEL_SHIP:       return 8;
-    case VESSEL_WARSHIP:    return 15;
-    case VESSEL_AIRSHIP:    return 10;
-    case VESSEL_SUBMARINE:  return 12;
-    case VESSEL_TRANSPORT:  return 20;
-    case VESSEL_MAGICAL:    return 10;
-    default:                return 1;
+  case VESSEL_RAFT:
+    return 2;
+  case VESSEL_BOAT:
+    return 4;
+  case VESSEL_SHIP:
+    return 8;
+  case VESSEL_WARSHIP:
+    return 15;
+  case VESSEL_AIRSHIP:
+    return 10;
+  case VESSEL_SUBMARINE:
+    return 12;
+  case VESSEL_TRANSPORT:
+    return 20;
+  case VESSEL_MAGICAL:
+    return 10;
+  default:
+    return 1;
   }
 }
 
@@ -187,7 +216,8 @@ static enum vessel_class derive_vessel_type_from_template(int hullweight)
 static bool can_traverse_ocean(enum vessel_class type)
 {
   const struct vessel_terrain_caps *caps = get_vessel_terrain_caps(type);
-  if (!caps) return FALSE;
+  if (!caps)
+    return FALSE;
   return caps->can_traverse_ocean;
 }
 
@@ -197,7 +227,8 @@ static bool can_traverse_ocean(enum vessel_class type)
 static bool can_traverse_air(enum vessel_class type)
 {
   const struct vessel_terrain_caps *caps = get_vessel_terrain_caps(type);
-  if (!caps) return FALSE;
+  if (!caps)
+    return FALSE;
   return caps->can_traverse_air;
 }
 
@@ -207,7 +238,8 @@ static bool can_traverse_air(enum vessel_class type)
 static bool can_traverse_underwater(enum vessel_class type)
 {
   const struct vessel_terrain_caps *caps = get_vessel_terrain_caps(type);
-  if (!caps) return FALSE;
+  if (!caps)
+    return FALSE;
   return caps->can_traverse_underwater;
 }
 
@@ -453,7 +485,8 @@ void Test_vessel_room_scaling(CuTest *tc)
   /* Larger vessels should have more rooms */
   CuAssertTrue(tc, get_base_rooms_for_type(VESSEL_SHIP) > get_base_rooms_for_type(VESSEL_RAFT));
   CuAssertTrue(tc, get_base_rooms_for_type(VESSEL_WARSHIP) > get_base_rooms_for_type(VESSEL_BOAT));
-  CuAssertTrue(tc, get_max_rooms_for_type(VESSEL_TRANSPORT) >= get_max_rooms_for_type(VESSEL_WARSHIP));
+  CuAssertTrue(tc,
+               get_max_rooms_for_type(VESSEL_TRANSPORT) >= get_max_rooms_for_type(VESSEL_WARSHIP));
 }
 
 /* ========================================================================= */

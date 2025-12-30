@@ -6,10 +6,10 @@ $!              A-Com Computing, Inc.
 $!              ByerRA@aol.com
 $!              byer@mail.all-net.net
 $!
-$! This script is used to run the CircleMUD executable as a detached 
+$! This script is used to run the CircleMUD executable as a detached
 $! process.
 $!
-$! This ONLY runs the CircleMUD CIRCLE executable, it does NOT do anything 
+$! This ONLY runs the CircleMUD CIRCLE executable, it does NOT do anything
 $! else extra that the Unix "autorun" script does.
 $!
 $! To have the CIRCLE executable execute under a different UIC, change the

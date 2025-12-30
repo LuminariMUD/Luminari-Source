@@ -177,7 +177,8 @@ ACMD(do_track)
   int ch_in_wild = FALSE, vict_in_wild = FALSE, moves = 0;
 
   /* The character must have the track skill. */
-  if (!HAS_FEAT(ch, FEAT_NATURAL_TRACKER) && !HAS_FEAT(ch, FEAT_TRACK) && !HAS_EVOLUTION(ch, EVOLUTION_SCENT))
+  if (!HAS_FEAT(ch, FEAT_NATURAL_TRACKER) && !HAS_FEAT(ch, FEAT_TRACK) &&
+      !HAS_EVOLUTION(ch, EVOLUTION_SCENT))
   {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
@@ -201,7 +202,8 @@ ACMD(do_track)
     send_to_char(ch, "No one is around by that name.\r\n");
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
-      snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n", GET_NAME(ch->master), GET_NAME(vict));
+      snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n",
+               GET_NAME(ch->master), GET_NAME(vict));
       do_tell(ch, buf, 0, 0);
     }
     return;
@@ -213,7 +215,8 @@ ACMD(do_track)
     send_to_char(ch, "You sense they left no trail...\r\n");
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
-      snprintf(buf, sizeof(buf), " %s I sense no trail to %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+      snprintf(buf, sizeof(buf), " %s I sense no trail to %s.\r\n", GET_NAME(ch->master),
+               GET_NAME(vict));
       do_tell(ch, buf, 0, 0);
     }
     return;
@@ -224,7 +227,9 @@ ACMD(do_track)
     send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
-      snprintf(buf, sizeof(buf), " %s The fog makes it impossible to attempt to track anything from here.\r\n", GET_NAME(ch->master));
+      snprintf(buf, sizeof(buf),
+               " %s The fog makes it impossible to attempt to track anything from here.\r\n",
+               GET_NAME(ch->master));
       do_tell(ch, buf, 0, 0);
     }
     return;
@@ -278,10 +283,11 @@ ACMD(do_track)
     send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
-      snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master), GET_NAME(vict), dirs[dir]);
+      snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master),
+               GET_NAME(vict), dirs[dir]);
       do_tell(ch, buf, 0, 0);
     }
-      
+
     return;
   }
 
@@ -317,7 +323,7 @@ ACMD(do_track)
       send_to_char(ch, "south");
       snprintf(dirchar, sizeof(dirchar), "south");
     }
-  
+
     /* x corresponds to east/west (duh) */
     if (vict_x_location > ch_x_location) /* east! */
     {
@@ -335,7 +341,8 @@ ACMD(do_track)
 
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
-      snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master), GET_NAME(vict), dirchar);
+      snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master),
+               GET_NAME(vict), dirchar);
       do_tell(ch, buf, 0, 0);
     }
   }
@@ -353,7 +360,8 @@ ACMD(do_track)
       send_to_char(ch, "You're already in the same room!!\r\n");
       if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
       {
-        snprintf(buf, sizeof(buf), " %s We're already in the same room as %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+        snprintf(buf, sizeof(buf), " %s We're already in the same room as %s.\r\n",
+                 GET_NAME(ch->master), GET_NAME(vict));
         do_tell(ch, buf, 0, 0);
       }
       break;
@@ -361,7 +369,8 @@ ACMD(do_track)
       send_to_char(ch, "You can't sense a trail to %s from here.\r\n", HMHR(vict));
       if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
       {
-        snprintf(buf, sizeof(buf), " %s I can't sense a trail to %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+        snprintf(buf, sizeof(buf), " %s I can't sense a trail to %s.\r\n", GET_NAME(ch->master),
+                 GET_NAME(vict));
         do_tell(ch, buf, 0, 0);
       }
       break;
@@ -369,7 +378,8 @@ ACMD(do_track)
       send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
       if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
       {
-        snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master), GET_NAME(vict), dirs[dir]);
+        snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n",
+                 GET_NAME(ch->master), GET_NAME(vict), dirs[dir]);
         do_tell(ch, buf, 0, 0);
       }
       break;
@@ -382,7 +392,8 @@ ACMD(do_track)
     send_to_char(ch, "The trail has gone cold.\r\n");
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
-      snprintf(buf, sizeof(buf), " %s The trail to %s has gone cold.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+      snprintf(buf, sizeof(buf), " %s The trail to %s has gone cold.\r\n", GET_NAME(ch->master),
+               GET_NAME(vict));
       do_tell(ch, buf, 0, 0);
     }
   }
@@ -418,8 +429,7 @@ void hunt_victim(struct char_data *ch)
     if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch))
     {
       mem_found = FALSE;
-      for (mem_found = FALSE, tmp = character_list; tmp && !mem_found;
-           tmp = tmp->next)
+      for (mem_found = FALSE, tmp = character_list; tmp && !mem_found; tmp = tmp->next)
       {
         if (IS_NPC(tmp) || !CAN_SEE(ch, tmp) || PRF_FLAGGED(tmp, PRF_NOHASSLE))
           continue;
@@ -459,7 +469,9 @@ void hunt_victim(struct char_data *ch)
 
   if (!ok_damage_shopkeeper(vict, ch))
   {
-    send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to hunt!\r\n");
+    send_to_char(
+        ch,
+        "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to hunt!\r\n");
     return;
   }
 
@@ -564,11 +576,13 @@ void hunt_loadroom(struct char_data *ch)
   perform_move(ch, dir, 1);
 }
 
-int count_rooms_between(room_rnum src, room_rnum target) {
+int count_rooms_between(room_rnum src, room_rnum target)
+{
   room_rnum curr;
   int visited[top_of_world + 1];
   int queue[top_of_world];
-  int head = 0, tail = 0;int dir = 0;
+  int head = 0, tail = 0;
+  int dir = 0;
 
   if (src == NOWHERE || target == NOWHERE)
     return -1;
@@ -580,10 +594,12 @@ int count_rooms_between(room_rnum src, room_rnum target) {
   visited[src] = 1;
   queue[tail++] = src;
 
-  while (head < tail) {
+  while (head < tail)
+  {
     curr = queue[head++];
 
-    for (dir = 0; dir < NUM_OF_DIRS; dir++) {
+    for (dir = 0; dir < NUM_OF_DIRS; dir++)
+    {
       room_rnum next = world[curr].dir_option[dir] ? world[curr].dir_option[dir]->to_room : NOWHERE;
 
       if (next == NOWHERE || visited[next])

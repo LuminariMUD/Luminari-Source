@@ -227,7 +227,7 @@ if (PkgConfig_FOUND)
             find_path(MYSQL_INCLUDE_DIR mysql.h
                 PATHS /usr/include/mariadb /usr/include/mysql /usr/local/include/mariadb /usr/local/include/mysql
                 PATH_SUFFIXES mariadb mysql)
-            find_library(MYSQL_LIBRARY 
+            find_library(MYSQL_LIBRARY
                 NAMES mariadb mysqlclient
                 PATHS /usr/lib /usr/local/lib
                 PATH_SUFFIXES mariadb mysql)
@@ -782,10 +782,10 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCC)
     # Use C90 but allow C++ style comments for pragmatic reasons
     target_compile_options(circle PRIVATE -std=gnu90)
-    
+
     # Additional warnings for development
     if (DEVELOPER_MODE)
-        target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual 
+        target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual
                                -Wwrite-strings -Wconversion -Wunreachable-code)
     endif()
 endif()
@@ -821,16 +821,16 @@ if (BUILD_UTILS)
     add_executable(split util/split.c)
     add_executable(wld2html util/wld2html.c)
     add_executable(webster util/webster.c)
-    
+
     # hl_events utility has both .c and .h files
     add_executable(hl_events util/hl_events.c)
-    
+
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
                           rebuildMailIndex shopconv sign split wld2html
                           webster hl_events
                           PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
-    
+
     # Link libraries for utilities that need them
     target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
 endif()
@@ -853,23 +853,23 @@ if (BUILD_TESTS)
         unittests/CuTest/test_treasure.c
         unittests/CuTest/test_utils.c
     )
-    
+
     add_executable(cutest ${CUTEST_FILES})
     target_include_directories(cutest PRIVATE src unittests/CuTest)
     set_target_properties(cutest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
-    
+
     # Individual test executables from unittests/ root
     # Note: These tests have hardcoded relative paths and may need adjustment
     # Commenting out for now as they need proper refactoring
     # add_executable(test_act_comm unittests/test_act.comm.c unittests/mocks.c)
     # add_executable(test_clan unittests/test_clan.c unittests/mocks.c)
     # add_executable(test_staff_events unittests/test_staff_events.c unittests/mocks.c)
-    
+
     # Include directories for individual tests
     # target_include_directories(test_act_comm PRIVATE src unittests)
     # target_include_directories(test_clan PRIVATE src unittests)
     # target_include_directories(test_staff_events PRIVATE src unittests)
-    
+
     # Output directory for test executables
     # set_target_properties(test_act_comm test_clan test_staff_events
     #                       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})

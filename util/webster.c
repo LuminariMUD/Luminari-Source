@@ -59,7 +59,8 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  if (argc >= 3) {
+  if (argc >= 3)
+  {
     pid = atoi(argv[2]);
   }
 
@@ -72,7 +73,8 @@ int main(int argc, char **argv)
            argv[1]);
 
   printf("Fetching data from online dictionary...\n");
-  if (system(buf) != 0) {
+  if (system(buf) != 0)
+  {
     /* If system call fails, we'll still try to parse what we have */
     log("Warning: Failed to execute lynx command - check if lynx is installed");
   }
@@ -81,7 +83,8 @@ int main(int argc, char **argv)
   parse_webster_html(argv[1]);
 
   /* Signal the requesting process if PID was provided */
-  if (pid > 0) {
+  if (pid > 0)
+  {
     printf("Signaling process %d\n", pid);
     kill(pid, SIGUSR2);
   }
@@ -128,7 +131,6 @@ void parse_webster_html(char *arg)
 
   for (; get_line(infile, buf) != 0;)
   {
-
     if (strncmp(buf, "<script>write_ads(AdsNum, 0, 1)</script>", 40) != 0)
       continue; // read until we hit the line with results in it.
 
@@ -146,8 +148,10 @@ void parse_webster_html(char *arg)
 
       strncpy(scanbuf, p, sizeof(scanbuf)); // strtok on a copy.
 
-      p = strtok(scanbuf, ">"); // chop the line at the end of tags: <br><b>word</b> becomes "<br" "<b" "word</b"
-      p = strtok(NULL, ">");    // skip the rest of this tag.
+      p = strtok(
+          scanbuf,
+          ">"); // chop the line at the end of tags: <br><b>word</b> becomes "<br" "<b" "word</b"
+      p = strtok(NULL, ">"); // skip the rest of this tag.
 
       fprintf(outfile, "Info on: %s\n\n", arg);
 
@@ -160,7 +164,8 @@ void parse_webster_html(char *arg)
           assert(p < scanbuf + sizeof(scanbuf));
           *q++ = *p++;
         }
-        if (!strncmp(p, "<br", 3) || !strncmp(p, "<p", 2) || !strncmp(p, "<div class=\"ds-list\"", 23) || !strncmp(p, "<div class=\"sds-list\"", 24))
+        if (!strncmp(p, "<br", 3) || !strncmp(p, "<p", 2) ||
+            !strncmp(p, "<div class=\"ds-list\"", 23) || !strncmp(p, "<div class=\"sds-list\"", 24))
           *q++ = '\n';
         // if it's not a <br> tag or a <div class="sds-list"> or <div class="ds-list"> tag, ignore it.
 
@@ -177,8 +182,10 @@ void parse_webster_html(char *arg)
     {
       strncpy(scanbuf, p, sizeof(scanbuf)); // strtok on a copy.
 
-      p = strtok(scanbuf, ">"); // chop the line at the end of tags: <br><b>word</b> becomes "<br>" "<b>" "word</b>"
-      p = strtok(NULL, ">");    // skip the rest of this tag.
+      p = strtok(
+          scanbuf,
+          ">"); // chop the line at the end of tags: <br><b>word</b> becomes "<br>" "<b>" "word</b>"
+      p = strtok(NULL, ">"); // skip the rest of this tag.
 
       while (1)
       {
@@ -203,9 +210,10 @@ void parse_webster_html(char *arg)
     else
     {
       // weird.. one of the above should be correct.
-      fprintf(outfile, "It would appear that the free online dictionary has changed their format.\n"
-                       "Sorry, but you might need a webrowser instead.\n\n"
-                       "See http://www.thefreedictionary.com/%s",
+      fprintf(outfile,
+              "It would appear that the free online dictionary has changed their format.\n"
+              "Sorry, but you might need a webrowser instead.\n\n"
+              "See http://www.thefreedictionary.com/%s",
               arg);
       goto end;
     }

@@ -60,7 +60,7 @@ The system is divided into several specialized modules:
 #### mob_act.c/h - Main Coordination
 - **Purpose**: Central activity loop and behavior coordination
 - **Key Function**: `mobile_activity()` - called each game tick
-- **Responsibilities**: 
+- **Responsibilities**:
   - Iterate through all mobs
   - Coordinate behavior execution
   - Handle special procedures
@@ -227,7 +227,7 @@ The spell selection system uses intelligent prioritization:
 1. **Buff Saturation Check**: Count existing buffs, reduce frequency if well-buffed (5+ buffs)
 2. **Priority Buffs**: Try important combat buffs first (Stoneskin, Sanctuary, Haste, etc.)
 3. **Random Selection**: Pick from valid spells based on level
-4. **Special Restrictions**: 
+4. **Special Restrictions**:
    - No invisibility for shopkeepers
    - No invisibility for quest mobs
    - No invisibility for mounts

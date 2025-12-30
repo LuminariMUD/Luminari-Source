@@ -18,7 +18,7 @@ The talent system provides progression rewards for advancing crafting and harves
   - Rank 4: base × 8
   - Rank 5: base × 16
   - etc.
-- **Requirements**: 
+- **Requirements**:
   - Sufficient talent points
   - Sufficient gold
   - Talent must be in_game (enabled)
@@ -257,8 +257,8 @@ The `gain_talent_point()` function is **already integrated** into the crafting s
 ```c
 if (GET_CRAFT_SKILL_EXP(ch, abil) >= craft_skill_level_exp(ch, get_craft_skill_value(ch, abil)+1))
 {
-    send_to_char(ch, "\tYYour skill in '%s' has increased from %d to %d!\r\n\tn", 
-                 ability_names[abil], get_craft_skill_value(ch, abil), 
+    send_to_char(ch, "\tYYour skill in '%s' has increased from %d to %d!\r\n\tn",
+                 ability_names[abil], get_craft_skill_value(ch, abil),
                  get_craft_skill_value(ch, abil)+1);
     SET_ABILITY(ch, abil, get_craft_skill_value(ch, abil)+1);
     /* Award 1 crafting talent point per crafting/harvesting skill level up */

@@ -231,7 +231,8 @@ void execute_next_action(struct char_data *ch)
   if (action == NULL) /* No action. */
     return;
 
-  if (IS_SET(action->actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE))
+  if (IS_SET(action->actions_required, ACTION_STANDARD) &&
+      !is_action_available(ch, atSTANDARD, FALSE))
     return;
 
   if (IS_SET(action->actions_required, ACTION_MOVE) && !is_action_available(ch, atMOVE, FALSE))
@@ -307,7 +308,6 @@ ACMD(do_queue)
 
   if (is_abbrev(arg, "clear"))
   {
-
     /* Argument: clear - Clear the queue. */
     if (subcmd == SCMD_ACTION_QUEUE)
       clear_action_queue(GET_QUEUE(ch));
@@ -318,6 +318,7 @@ ACMD(do_queue)
   }
   else
   {
-    send_to_char(ch, "What do you want to do to your queue? ('queue clear' to clear your queue)\r\n");
+    send_to_char(ch,
+                 "What do you want to do to your queue? ('queue clear' to clear your queue)\r\n");
   }
 }

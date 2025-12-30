@@ -112,8 +112,7 @@ ACMD(do_oasis_qedit)
     {
       if (d->olc && OLC_NUM(d) == number)
       {
-        send_to_char(ch, "That quest is currently being edited by %s.\r\n",
-                     PERS(d->character, ch));
+        send_to_char(ch, "That quest is currently being edited by %s.\r\n", PERS(d->character, ch));
         return;
       }
     }
@@ -129,8 +128,7 @@ ACMD(do_oasis_qedit)
   /****************************************************************************/
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis_quest: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_quest: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -164,10 +162,8 @@ ACMD(do_oasis_qedit)
 
   if (save)
   {
-    send_to_char(ch, "Saving all quests in zone %d.\r\n",
-                 zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-           "OLC: %s saves quest info for zone %d.",
+    send_to_char(ch, "Saving all quests in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves quest info for zone %d.",
            GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     /**************************************************************************/
@@ -195,9 +191,8 @@ ACMD(do_oasis_qedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(BRF, LVL_IMMORT, TRUE,
-         "OLC: %s starts editing zone %d allowed zone %d",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
+         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 /* initialize a blank quest for usage */
@@ -304,22 +299,18 @@ static void qedit_disp_menu(struct descriptor_data *d)
   sprintbit(quest->flags, aq_flags, quest_flags, sizeof(quest_flags));
 
   /* create target mob for returning object quest */
-  if (quest->type == AQ_OBJ_RETURN ||
-      quest->type == AQ_GIVE_GOLD)
+  if (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD)
   {
     if ((return_mob = real_mobile(quest->value[5])) != NOBODY)
-      snprintf(buf2, sizeof(buf2), "to %s [%d]",
-               mob_proto[return_mob].player.short_descr,
+      snprintf(buf2, sizeof(buf2), "to %s [%d]", mob_proto[return_mob].player.short_descr,
                quest->value[5]);
     else
-      snprintf(buf2, sizeof(buf2), "to an unknown mob [%d].",
-               quest->value[5]);
+      snprintf(buf2, sizeof(buf2), "to an unknown mob [%d].", quest->value[5]);
   }
 
   /* customization on output based on quest type */
   switch (quest->type)
   {
-
   /* being specific for quest types that don't need a target */
   case AQ_HOUSE_FIND:
     snprintf(targetname, sizeof(targetname), "No target used for this quest type ");
@@ -356,7 +347,9 @@ static void qedit_disp_menu(struct descriptor_data *d)
   case AQ_OBJ_FIND:
   case AQ_OBJ_RETURN:
     snprintf(targetname, sizeof(targetname), "%s",
-             real_object(quest->target) == NOTHING ? "An unknown object" : obj_proto[real_object(quest->target)].short_description);
+             real_object(quest->target) == NOTHING
+                 ? "An unknown object"
+                 : obj_proto[real_object(quest->target)].short_description);
     break;
 
   case AQ_GIVE_GOLD:
@@ -364,13 +357,15 @@ static void qedit_disp_menu(struct descriptor_data *d)
     break;
 
   case AQ_WILD_FIND:
-    snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d per the next line", quest->coord_x, quest->coord_y);
+    snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d per the next line", quest->coord_x,
+             quest->coord_y);
     break;
 
   case AQ_ROOM_FIND:
   case AQ_ROOM_CLEAR:
     snprintf(targetname, sizeof(targetname), "%s",
-             real_room(quest->target) == NOWHERE ? "An unknown room" : world[real_room(quest->target)].name);
+             real_room(quest->target) == NOWHERE ? "An unknown room"
+                                                 : world[real_room(quest->target)].name);
     break;
 
   case AQ_MOB_FIND:
@@ -378,7 +373,9 @@ static void qedit_disp_menu(struct descriptor_data *d)
   case AQ_MOB_KILL:
   case AQ_DIALOGUE:
     snprintf(targetname, sizeof(targetname), "%s",
-             real_mobile(quest->target) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(quest->target)]));
+             real_mobile(quest->target) == NOBODY
+                 ? "An unknown mobile"
+                 : GET_NAME(&mob_proto[real_mobile(quest->target)]));
     break;
 
   case AQ_MOB_MULTI_KILL:
@@ -398,7 +395,8 @@ static void qedit_disp_menu(struct descriptor_data *d)
         {
           int a = atoi(pt);
           snprintf(targs[count], sizeof(targs[count]), "(%d) %s ", a,
-                   real_mobile(a) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(a)]));
+                   real_mobile(a) == NOBODY ? "An unknown mobile"
+                                            : GET_NAME(&mob_proto[real_mobile(a)]));
         }
         count++;
 
@@ -409,7 +407,8 @@ static void qedit_disp_menu(struct descriptor_data *d)
     {
       snprintf(buf3, sizeof(buf3), "%6d", -1);
     }
-    snprintf(targetname, sizeof(targetname), "%s%s%s%s%s", targs[0], targs[1], targs[2], targs[3], targs[4]);
+    snprintf(targetname, sizeof(targetname), "%s%s%s%s%s", targs[0], targs[1], targs[2], targs[3],
+             targs[4]);
     break;
 
   /* catch all */
@@ -421,95 +420,96 @@ static void qedit_disp_menu(struct descriptor_data *d)
   if (quest->type != AQ_MOB_MULTI_KILL)
     snprintf(buf3, sizeof(buf3), "%6d", (quest->target == NOBODY ? -1 : quest->target));
 
-  write_to_output(d,
-                  "-- Quest Number    : \tn[\tc%6d\tn]\r\n"
-                  "\tg 1\tn) Quest Name     : \ty%s\r\n"
-                  "\tg 2\tn) Description    : \ty%s\r\n"
-                  "\tg 3\tn) Accept Message\r\n\ty%s"
-                  "\tg 4\tn) Completion Message\r\n\ty%s"
-                  "\tg 5\tn) Quit Message\r\n\ty%s"
-                  "\tg 6\tn) Quest Flags    : \tc%s\r\n"
-                  "\tg 7\tn) Quest Type     : \tc%s %s\r\n"
-                  "\tg 8\tn) Quest Master   : [\tc%6d\tn] \ty%s\r\n"
-                  "\tg 9\tn) Quest Target   : [\tc%s\tn] \ty%s\r\n"
-                  "\tg H\tn) X-Coord (wild) : [\tc%6d\tn]      \tg I\tn) Y-Coord     : [\tc%6d\tn]\r\n"
-                  "\tg A\tn) Quantity       : [\tc%6d\tn]\r\n"
-                  "\tn    Quest Point Rewards\r\n"
-                  "\tg B\tn) Completed      : [\tc%6d\tn]      \tg C\tn) Abandoned   : [\tc%6d\tn]\r\n"
-                  "\tn    Other Rewards Rewards\r\n"
-                  "\tg G\tn) Gold Coins     : [\tc%6d\tn]      \tg T\tn) Exp Points  : [\tc%6d\tn] \tg O\tn) Object : [\tc%6d\tn]\r\n"
-                  "\tg R\tn) Race           : [\tc%6d\tn] (%s) \tg J\tn) Follower    : [\tc%6d\tn] \ty%s\r\n"
-                  "\tn    Level Limits to Accept Quest\r\n"
-                  "\tg D\tn) Lower Level    : [\tc%6d\tn]      \tg E\tn) Upper Level : [\tc%6d\tn]\r\n"
-                  "\tg F\tn) Prerequisite   : [\tc%6d\tn] \ty%s\r\n"
-                  "\tg L\tn) Time Limit     : [\tc%6d\tn]\r\n"
-                  "\tg N\tn) Next Quest     : [\tc%6d\tn] \ty%s\r\n"
-                  "\tg P\tn) Previous Quest : [\tc%6d\tn] \ty%s\r\n"
-                  "\tg S\tn) Quest Dialogue Options\tn\r\n"
-                  "\tg X\tn) Delete Quest\r\n"
-                  "\tg Q\tn) Quit\r\n"
-                  "Enter Choice : ",
-                  quest->vnum,
-                  quest->name,
-                  quest->desc,
-                  quest->info && (str_cmp(quest->info, "undefined"))
-                      ? quest->info
-                      : "Nothing\r\n",
-                  quest->done && (str_cmp(quest->done, "undefined"))
-                      ? quest->done
-                      : "Nothing\r\n",
-                  quest->quit && (str_cmp(quest->quit, "undefined"))
-                      ? quest->quit
-                      : "Nothing\r\n",
-                  quest_flags,
-                  quest->type == AQ_UNDEFINED ? "undefined" : quest_types[quest->type],
-                  (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD) ? buf2 : "",
-                  quest->qm == NOBODY ? -1 : quest->qm,
-                  real_mobile(quest->qm) == NOBODY ? "Invalid Mob" : mob_proto[(real_mobile(quest->qm))].player.short_descr,
+  write_to_output(
+      d,
+      "-- Quest Number    : \tn[\tc%6d\tn]\r\n"
+      "\tg 1\tn) Quest Name     : \ty%s\r\n"
+      "\tg 2\tn) Description    : \ty%s\r\n"
+      "\tg 3\tn) Accept Message\r\n\ty%s"
+      "\tg 4\tn) Completion Message\r\n\ty%s"
+      "\tg 5\tn) Quit Message\r\n\ty%s"
+      "\tg 6\tn) Quest Flags    : \tc%s\r\n"
+      "\tg 7\tn) Quest Type     : \tc%s %s\r\n"
+      "\tg 8\tn) Quest Master   : [\tc%6d\tn] \ty%s\r\n"
+      "\tg 9\tn) Quest Target   : [\tc%s\tn] \ty%s\r\n"
+      "\tg H\tn) X-Coord (wild) : [\tc%6d\tn]      \tg I\tn) Y-Coord     : [\tc%6d\tn]\r\n"
+      "\tg A\tn) Quantity       : [\tc%6d\tn]\r\n"
+      "\tn    Quest Point Rewards\r\n"
+      "\tg B\tn) Completed      : [\tc%6d\tn]      \tg C\tn) Abandoned   : [\tc%6d\tn]\r\n"
+      "\tn    Other Rewards Rewards\r\n"
+      "\tg G\tn) Gold Coins     : [\tc%6d\tn]      \tg T\tn) Exp Points  : [\tc%6d\tn] \tg O\tn) "
+      "Object : [\tc%6d\tn]\r\n"
+      "\tg R\tn) Race           : [\tc%6d\tn] (%s) \tg J\tn) Follower    : [\tc%6d\tn] \ty%s\r\n"
+      "\tn    Level Limits to Accept Quest\r\n"
+      "\tg D\tn) Lower Level    : [\tc%6d\tn]      \tg E\tn) Upper Level : [\tc%6d\tn]\r\n"
+      "\tg F\tn) Prerequisite   : [\tc%6d\tn] \ty%s\r\n"
+      "\tg L\tn) Time Limit     : [\tc%6d\tn]\r\n"
+      "\tg N\tn) Next Quest     : [\tc%6d\tn] \ty%s\r\n"
+      "\tg P\tn) Previous Quest : [\tc%6d\tn] \ty%s\r\n"
+      "\tg S\tn) Quest Dialogue Options\tn\r\n"
+      "\tg X\tn) Delete Quest\r\n"
+      "\tg Q\tn) Quit\r\n"
+      "Enter Choice : ",
+      quest->vnum, quest->name, quest->desc,
+      quest->info && (str_cmp(quest->info, "undefined")) ? quest->info : "Nothing\r\n",
+      quest->done && (str_cmp(quest->done, "undefined")) ? quest->done : "Nothing\r\n",
+      quest->quit && (str_cmp(quest->quit, "undefined")) ? quest->quit : "Nothing\r\n", quest_flags,
+      quest->type == AQ_UNDEFINED ? "undefined" : quest_types[quest->type],
+      (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD) ? buf2 : "",
+      quest->qm == NOBODY ? -1 : quest->qm,
+      real_mobile(quest->qm) == NOBODY ? "Invalid Mob"
+                                       : mob_proto[(real_mobile(quest->qm))].player.short_descr,
 
-                  buf3, targetname,
+      buf3, targetname,
 
-                  quest->coord_x, quest->coord_y,
-                  quest->value[6],
-                  quest->value[0], quest->value[1],
-                  quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
-                  quest->race_reward,
-                  (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_EXTENDED_RACES) ? race_list[quest->race_reward].type_color : "n/a",
-                  quest->follower_reward == NOBODY ? -1 : quest->follower_reward,
-                  real_mobile(quest->follower_reward) == NOBODY ? "Invalid Mob" : mob_proto[(real_mobile(quest->follower_reward))].player.short_descr,
-                  quest->value[2],
-                  quest->value[3],
-                  quest->prereq == NOTHING ? -1 : quest->prereq,
-                  quest->prereq == NOTHING ? "" : real_object(quest->prereq) == NOTHING ? "an unknown object"
-                                                                                        : obj_proto[real_object(quest->prereq)].short_description,
-                  quest->value[4],
-                  quest->next_quest == NOTHING ? -1 : quest->next_quest,
-                  real_quest(quest->next_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->next_quest)),
-                  quest->prev_quest == NOTHING ? -1 : quest->prev_quest,
-                  real_quest(quest->prev_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->prev_quest)));
+      quest->coord_x, quest->coord_y, quest->value[6], quest->value[0], quest->value[1],
+      quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
+      quest->race_reward,
+      (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_EXTENDED_RACES)
+          ? race_list[quest->race_reward].type_color
+          : "n/a",
+      quest->follower_reward == NOBODY ? -1 : quest->follower_reward,
+      real_mobile(quest->follower_reward) == NOBODY
+          ? "Invalid Mob"
+          : mob_proto[(real_mobile(quest->follower_reward))].player.short_descr,
+      quest->value[2], quest->value[3], quest->prereq == NOTHING ? -1 : quest->prereq,
+      quest->prereq == NOTHING ? ""
+      : real_object(quest->prereq) == NOTHING
+          ? "an unknown object"
+          : obj_proto[real_object(quest->prereq)].short_description,
+      quest->value[4], quest->next_quest == NOTHING ? -1 : quest->next_quest,
+      real_quest(quest->next_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->next_quest)),
+      quest->prev_quest == NOTHING ? -1 : quest->prev_quest,
+      real_quest(quest->prev_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->prev_quest)));
 
   OLC_MODE(d) = QEDIT_MAIN_MENU;
 }
 
 void show_quest_dialogue_menu(struct descriptor_data *d)
 {
-  write_to_output(d,     "\r\n"
-                         "Quest Dialogue Menu\r\n"
-                         "If the quest has one of these DCs set above zero, then the quest will considered a dialogue quest.\r\n"
-                         "A dialogue quest must be attempted by using one of the social skills below. Only one attempt may be made\r\n"
-                         "even if multiple DCs are set. If any DC is set above zero, that skill may be used to attempt to complete\r\n"
-                         "the quest. If the skill check fails, then the Dialogue Fail Quest will trigger, allowing the character to complete\r\n"
-                         "the principal quest through another method.\r\n"
-                         "\r\n"
-                         "\tg 1\tn) Diplomacy DC                : \ty%d\r\n"
-                         "\tg 2\tn) Intimidate DC               : \ty%d\r\n"
-                         "\tg 3\tn) Bluff DC                    : \ty%d\r\n"
-                         "\tg 4\tn) Quest VNum on Dialogue Fail : \ty%s\r\n"
-                         "\tg Q\tn) Exit to Main Quest Menu    : \tn\r\n"
-                         "\r\n",
-                         OLC_QUEST(d)->diplomacy_dc, OLC_QUEST(d)->intimidate_dc, OLC_QUEST(d)->bluff_dc, 
-                         real_quest(OLC_QUEST(d)->dialogue_alternative_quest) == NOTHING ? "" : QST_DESC(real_quest(OLC_QUEST(d)->dialogue_alternative_quest))
-                         );
+  write_to_output(d,
+                  "\r\n"
+                  "Quest Dialogue Menu\r\n"
+                  "If the quest has one of these DCs set above zero, then the quest will "
+                  "considered a dialogue quest.\r\n"
+                  "A dialogue quest must be attempted by using one of the social skills below. "
+                  "Only one attempt may be made\r\n"
+                  "even if multiple DCs are set. If any DC is set above zero, that skill may be "
+                  "used to attempt to complete\r\n"
+                  "the quest. If the skill check fails, then the Dialogue Fail Quest will trigger, "
+                  "allowing the character to complete\r\n"
+                  "the principal quest through another method.\r\n"
+                  "\r\n"
+                  "\tg 1\tn) Diplomacy DC                : \ty%d\r\n"
+                  "\tg 2\tn) Intimidate DC               : \ty%d\r\n"
+                  "\tg 3\tn) Bluff DC                    : \ty%d\r\n"
+                  "\tg 4\tn) Quest VNum on Dialogue Fail : \ty%s\r\n"
+                  "\tg Q\tn) Exit to Main Quest Menu    : \tn\r\n"
+                  "\r\n",
+                  OLC_QUEST(d)->diplomacy_dc, OLC_QUEST(d)->intimidate_dc, OLC_QUEST(d)->bluff_dc,
+                  real_quest(OLC_QUEST(d)->dialogue_alternative_quest) == NOTHING
+                      ? ""
+                      : QST_DESC(real_quest(OLC_QUEST(d)->dialogue_alternative_quest)));
 }
 
 /* For quest type.  */
@@ -530,8 +530,10 @@ void qedit_disp_flag_menu(struct descriptor_data *d)
   clear_screen(d);
   column_list(d->character, 0, aq_flags, NUM_AQ_FLAGS, TRUE);
   sprintbit(OLC_QUEST(d)->flags, aq_flags, bits, sizeof(bits));
-  write_to_output(d, "\r\nQuest flags: \tc%s\tn\r\n"
-                     "Enter quest flags, 0 to quit : ", bits);
+  write_to_output(d,
+                  "\r\nQuest flags: \tc%s\tn\r\n"
+                  "Enter quest flags, 0 to quit : ",
+                  bits);
   OLC_MODE(d) = QEDIT_FLAGS;
 }
 
@@ -553,8 +555,8 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       send_to_char(d->character, "Saving Quest to memory.\r\n");
       qedit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
-             "OLC: %s edits quest %d", GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits quest %d",
+             GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         qedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
@@ -569,8 +571,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       cleanup_olc(d, CLEANUP_ALL);
       return;
     default:
-      write_to_output(d,
-                      "Invalid choice!\r\nDo you wish to save the quest? : ");
+      write_to_output(d, "Invalid choice!\r\nDo you wish to save the quest? : ");
       return;
     }
     break;
@@ -598,8 +599,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       qedit_disp_menu(d);
       return;
     default:
-      write_to_output(d,
-                      "Invalid choice!\r\nDo you wish to delete the quest? : ");
+      write_to_output(d, "Invalid choice!\r\nDo you wish to delete the quest? : ");
       return;
     }
     break;
@@ -612,8 +612,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     case 'Q':
       if (OLC_VAL(d))
       { /*. Anything been changed? . */
-        write_to_output(d,
-                        "Do you wish to save the changes to the Quest? (y/n) : ");
+        write_to_output(d, "Do you wish to save the changes to the Quest? (y/n) : ");
         OLC_MODE(d) = QEDIT_CONFIRM_SAVESTRING;
       }
       else
@@ -688,8 +687,10 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       break;
     case '9':
       OLC_MODE(d) = QEDIT_TARGET;
-      write_to_output(d, "Enter target mob/obj vnum (comma-separated for multi types), amount of gold coins, or mission "
-                         "difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 severe): ");
+      write_to_output(
+          d, "Enter target mob/obj vnum (comma-separated for multi types), amount of gold coins, "
+             "or mission "
+             "difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 severe): ");
       break;
     case 'a':
     case 'A':
@@ -787,30 +788,32 @@ void qedit_parse(struct descriptor_data *d, char *arg)
   case QEDIT_DIALOGUE_MENU:
     switch (*arg)
     {
-      case '1':
-        write_to_output(d, "Enter dc for diplomacy check (-1 for none) : ");
-        OLC_MODE(d) = QEDIT_DIPLOMACY;
-        break;
-      case '2':
-        write_to_output(d, "Enter dc for intimidate check (-1 for none) : ");
-        OLC_MODE(d) = QEDIT_INTIMIDATE;
-        break;
-      case '3':
-        write_to_output(d, "Enter dc for bluff check (-1 for none) : ");
-        OLC_MODE(d) = QEDIT_BLUFF;
-        break;
-      case '4':
-        write_to_output(d, "Enter the quest vnum for the quest to trigger if dialogue checks fail (-1 for none) : ");
-        OLC_MODE(d) = QEDIT_DIALOGUE_NEXT;
-        break;
-      case 'q':
-      case 'Q':
-        OLC_VAL(d) = 1;
-        qedit_disp_menu(d);
-        break;
-      default:
-        write_to_output(d, "That is an invalid choice.\r\n");
-        break;
+    case '1':
+      write_to_output(d, "Enter dc for diplomacy check (-1 for none) : ");
+      OLC_MODE(d) = QEDIT_DIPLOMACY;
+      break;
+    case '2':
+      write_to_output(d, "Enter dc for intimidate check (-1 for none) : ");
+      OLC_MODE(d) = QEDIT_INTIMIDATE;
+      break;
+    case '3':
+      write_to_output(d, "Enter dc for bluff check (-1 for none) : ");
+      OLC_MODE(d) = QEDIT_BLUFF;
+      break;
+    case '4':
+      write_to_output(
+          d,
+          "Enter the quest vnum for the quest to trigger if dialogue checks fail (-1 for none) : ");
+      OLC_MODE(d) = QEDIT_DIALOGUE_NEXT;
+      break;
+    case 'q':
+    case 'Q':
+      OLC_VAL(d) = 1;
+      qedit_disp_menu(d);
+      break;
+    default:
+      write_to_output(d, "That is an invalid choice.\r\n");
+      break;
     }
     return;
   case QEDIT_DIPLOMACY:
@@ -1059,8 +1062,9 @@ void qedit_parse(struct descriptor_data *d, char *arg)
   default:
     /*. We should never get here . */
     cleanup_olc(d, CLEANUP_ALL);
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: qedit_parse(): "
-                                   "Reached default case!");
+    mudlog(BRF, LVL_BUILDER, TRUE,
+           "SYSERR: OLC: qedit_parse(): "
+           "Reached default case!");
     write_to_output(d, "Oops...\r\n");
     break;
   }

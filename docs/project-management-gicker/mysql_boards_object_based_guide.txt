@@ -113,7 +113,7 @@ ACMD(do_note);
 
 2. Add board post completion handling in string_add() function:
 
-Find the section where CON_EXDESC cases are handled (around the switch statement 
+Find the section where CON_EXDESC cases are handled (around the switch statement
 that handles different connection states), and add this case alongside the existing ones:
 
 ```c
@@ -143,7 +143,7 @@ extern void show_board_in_room(struct char_data *ch);
 
 2. Integrate board display in the look command:
 
-Find your do_look function and in the section where room descriptions are shown 
+Find your do_look function and in the section where room descriptions are shown
 (typically after showing the room description but before showing exits), add:
 
 ```c
@@ -193,18 +193,18 @@ Modify the default_boards array to match your MUD's object vnums and level struc
 ```c
 static struct mysql_board_config default_boards[] = {
     /* board_id, name, type, read_lvl, write_lvl, delete_lvl, obj_vnum, clan_id, active */
-    
+
     // IMPORTANT! BOARD NAMES CANNOT CONTAIN ' (single quote) unless you implement
     // additional escaping in the synchronization function
-    
+
     // Immortal Boards
     {1, "Immortal General Board", BOARD_TYPE_IMMORTAL, 31, 31, 36, 1200, 0, true},
     {2, "Immortal Development Board", BOARD_TYPE_IMMORTAL, 31, 31, 36, 1201, 0, true},
-    
+
     // Player Boards
     {3, "General Board", BOARD_TYPE_GENERAL, 1, 1, 31, 3099, 0, true},
     {4, "Roleplay Board", BOARD_TYPE_RP, 1, 1, 31, 3098, 0, true},
-    
+
     // Add more boards as needed
     {-1, NULL, 0, 0, 0, 0, 0, 0, false} /* End marker - don't remove */
 };
@@ -235,7 +235,7 @@ Short: a bulletin board~
 Long: A large wooden bulletin board is mounted on the wall here. Various notices and
 messages are pinned to its cork surface with small brass tacks. The board appears
 well-used and is titled "General Board" across the top.~
-ActionDesc: 
+ActionDesc:
 Type: OTHER
 ExtraFlags: 0
 WearFlags: 0
@@ -250,7 +250,7 @@ You can use 'board' or 'note' commands to interact with it.
 #
 ```
 
-NOTE: Board objects can now be placed in any room, carried by players, or even worn 
+NOTE: Board objects can now be placed in any room, carried by players, or even worn
 (if you set appropriate wear flags). The board system will find and use any accessible
 board object when players issue board commands.
 
@@ -434,7 +434,7 @@ The system now includes comprehensive protection against SQL injection attacks:
    - Author names are escaped to prevent injection through character names
    - Board names are escaped during configuration synchronization
 
-2. **Buffer Management**: 
+2. **Buffer Management**:
    - Escaped string buffers are properly sized (original_length * 2 + 1)
    - Query buffers are large enough to accommodate escaped content
    - No buffer overflows during string processing
@@ -466,9 +466,9 @@ The system now includes comprehensive protection against SQL injection attacks:
 
 ## System Overview
 
-The board system will automatically create the necessary database tables 
-(mysql_boards and mysql_board_posts) on first initialization. Each board is tied 
-to a specific object vnum, and players can read/write when they have access to that 
+The board system will automatically create the necessary database tables
+(mysql_boards and mysql_board_posts) on first initialization. Each board is tied
+to a specific object vnum, and players can read/write when they have access to that
 object based on their level and permissions.
 
 ### Key Changes from Room-Based System:
@@ -488,7 +488,7 @@ object based on their level and permissions.
 
 ### Board Types Available:
 - BOARD_TYPE_GENERAL (0) - General discussion boards
-- BOARD_TYPE_IMMORTAL (1) - Immortal-only boards  
+- BOARD_TYPE_IMMORTAL (1) - Immortal-only boards
 - BOARD_TYPE_CLAN (2) - Clan-specific boards
 - BOARD_TYPE_QUEST (3) - Quest/builder boards
 - BOARD_TYPE_RP (4) - Roleplay boards

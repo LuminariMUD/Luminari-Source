@@ -38,7 +38,7 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 - **Abbreviation Matching**: Flexible command input
 
 ### 3. Game World Layer
-- **World Database (db.c)**: 
+- **World Database (db.c)**:
   - Zone loading and management
   - Mobile (NPC) templates
   - Object templates

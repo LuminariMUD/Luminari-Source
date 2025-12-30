@@ -3,7 +3,7 @@
 -- =====================================================================
 -- This script corrects table name inconsistencies in views and foreign keys
 -- that were using incorrect prefixed table names (ai_ prefix).
--- 
+--
 -- Date: August 22, 2025
 -- Purpose: Fix naming inconsistencies in narrative weaver database schema
 
@@ -19,7 +19,7 @@ DROP VIEW IF EXISTS hint_analytics;
 
 -- Recreate active_region_hints view with correct table names
 CREATE VIEW active_region_hints AS
-SELECT 
+SELECT
     rh.id,
     rh.region_vnum,
     rh.hint_category,
@@ -38,7 +38,7 @@ ORDER BY rh.region_vnum, rh.priority DESC;
 
 -- Recreate hint_analytics view with correct table names
 CREATE VIEW hint_analytics AS
-SELECT 
+SELECT
     rh.region_vnum,
     rh.hint_category,
     COUNT(hul.id) as usage_count,
@@ -56,15 +56,15 @@ GROUP BY rh.region_vnum, rh.hint_category;
 
 -- Check if hint_usage_log foreign key needs to be recreated
 -- First, let's check current foreign key constraints
-SELECT 
+SELECT
     CONSTRAINT_NAME,
     TABLE_NAME,
     COLUMN_NAME,
     REFERENCED_TABLE_NAME,
     REFERENCED_COLUMN_NAME
-FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-WHERE TABLE_SCHEMA = 'luminari_mudprod' 
-AND TABLE_NAME = 'hint_usage_log' 
+FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'luminari_mudprod'
+AND TABLE_NAME = 'hint_usage_log'
 AND REFERENCED_TABLE_NAME IS NOT NULL;
 
 -- If the foreign key points to the wrong table, we'll need to drop and recreate it
@@ -74,7 +74,7 @@ AND REFERENCED_TABLE_NAME IS NOT NULL;
 -- 3. ADD MIGRATION RECORD
 -- =====================================================================
 
-INSERT INTO schema_migrations (version, description, applied_at) 
+INSERT INTO schema_migrations (version, description, applied_at)
 VALUES (5, 'Fix narrative weaver schema table name inconsistencies', NOW())
 ON DUPLICATE KEY UPDATE applied_at = NOW();
 
@@ -88,14 +88,14 @@ UNION ALL
 SELECT 'hint_analytics' as view_name, COUNT(*) as record_count FROM hint_analytics;
 
 -- Show current foreign key constraints for verification
-SELECT 
+SELECT
     CONSTRAINT_NAME,
     TABLE_NAME,
     COLUMN_NAME,
     REFERENCED_TABLE_NAME,
     REFERENCED_COLUMN_NAME
-FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-WHERE TABLE_SCHEMA = 'luminari_mudprod' 
+FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'luminari_mudprod'
 AND TABLE_NAME IN ('hint_usage_log', 'region_hints', 'region_profiles')
 AND REFERENCED_TABLE_NAME IS NOT NULL
 ORDER BY TABLE_NAME, CONSTRAINT_NAME;

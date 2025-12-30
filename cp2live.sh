@@ -32,5 +32,3 @@ fi
 cp "$DEST_DIR"/../changelog "$DEST_DIR"/../lib/text/news
 
 echo "/home/krynn/live/mud"
-
-

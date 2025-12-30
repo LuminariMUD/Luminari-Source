@@ -77,41 +77,45 @@ extern const char *activation_methods[];
 /* Armor and Shields */
 /* NOTE: Some of these could be implemented using APPLY_* tags.  If this works, then they can be removed
  * from this list.  They are included here for completeness. */
-#define ARMOR_SPECAB_ACID_RESIST 31    /* Reduce damage from Acid-based attacks. */
-#define ARMOR_SPECAB_ANIMATED 32       /* Shields only, shield floats in front of the wielder. */
-#define ARMOR_SPECAB_ARROW_CATCHING 33 /* Shields only, divert projectiles from other targets to the shield. */
-#define ARMOR_SPECAB_ARROW_DEFLECT 34  /* Shields only, deflects mundane arrows and projectiles. */
-#define ARMOR_SPECAB_BASHING 35        /* Shields only, bonus to shield bash. (+1)*/
-#define ARMOR_SPECAB_BLINDING 36       /* Shields only, flashes with brilliant light, short group blind. */
-#define ARMOR_SPECAB_COLD_RESIST 37    /* Reduce damage from Cold-based attacks. */
-#define ARMOR_SPECAB_ELEC_RESIST 38    /* Reduce damage from Electricity-based attacks. */
-#define ARMOR_SPECAB_ETHEREALNESS 39   /* Allows wearer to become ethereal. */
-#define ARMOR_SPECAB_FIRE_RESIST 40    /* Reduce damage from Fire-based attacks. */
-#define ARMOR_SPECAB_FORTIFICATION 41  /* Proctect the wearer from sneak attack and critical hits. */
-#define ARMOR_SPECAB_GHOST_TOUCH 42    /* Protects from attacks by incorporeal creatures. */
-#define ARMOR_SPECAB_GLAMERED 43       /* Disguise armor as normal clothing on command. */
+#define ARMOR_SPECAB_ACID_RESIST 31 /* Reduce damage from Acid-based attacks. */
+#define ARMOR_SPECAB_ANIMATED 32    /* Shields only, shield floats in front of the wielder. */
+#define ARMOR_SPECAB_ARROW_CATCHING                                                                \
+  33 /* Shields only, divert projectiles from other targets to the shield. */
+#define ARMOR_SPECAB_ARROW_DEFLECT 34 /* Shields only, deflects mundane arrows and projectiles. */
+#define ARMOR_SPECAB_BASHING 35       /* Shields only, bonus to shield bash. (+1)*/
+#define ARMOR_SPECAB_BLINDING                                                                      \
+  36 /* Shields only, flashes with brilliant light, short group blind. */
+#define ARMOR_SPECAB_COLD_RESIST 37   /* Reduce damage from Cold-based attacks. */
+#define ARMOR_SPECAB_ELEC_RESIST 38   /* Reduce damage from Electricity-based attacks. */
+#define ARMOR_SPECAB_ETHEREALNESS 39  /* Allows wearer to become ethereal. */
+#define ARMOR_SPECAB_FIRE_RESIST 40   /* Reduce damage from Fire-based attacks. */
+#define ARMOR_SPECAB_FORTIFICATION 41 /* Proctect the wearer from sneak attack and critical hits. */
+#define ARMOR_SPECAB_GHOST_TOUCH 42   /* Protects from attacks by incorporeal creatures. */
+#define ARMOR_SPECAB_GLAMERED 43      /* Disguise armor as normal clothing on command. */
 #define ARMOR_SPECAB_INVULNERABILTY 44 /* Provide damage Reduction 5/magic. */
 #define ARMOR_SPECAB_REFLECTING 45     /* Reflect a spell back to it's caster 1x/day */
 #define ARMOR_SPECAB_SHADOW 46         /* Blurs the wearer during hide attempts, bonus to hide. */
 #define ARMOR_SPECAB_SILENT_MOVES 47   /* Allows wearer to move silently, bonus to sneak. */
-#define ARMOR_SPECAB_SLICK 48          /* Armor is covered by a slick oil, bonus to escape artist. */
-#define ARMOR_SPECAB_SONIC_RESIST 49   /* Reduce damage from Sonic-based attacks. */
-#define ARMOR_SPECAB_SPELL_RESIST 50   /* Grant the wearer spell resistance. */
+#define ARMOR_SPECAB_SLICK 48        /* Armor is covered by a slick oil, bonus to escape artist. */
+#define ARMOR_SPECAB_SONIC_RESIST 49 /* Reduce damage from Sonic-based attacks. */
+#define ARMOR_SPECAB_SPELL_RESIST 50 /* Grant the wearer spell resistance. */
 #define ARMOR_SPECAB_UNDEAD_CONTROL 51 /* Control up to 26HD of undead/day, lose control at dawn. */
 #define ARMOR_SPECAB_WILD 52           /* Preserve armo/enhancement bonus while in wild shape. */
 
 #define ITEM_SPECAB_HORN_OF_SUMMONING 53 /* Horns only - Summon mobile vnum in val1 */
 
-#define WEAPON_SPECAB_BLINDING 54        // Attempts to blind opponent on a critical hit
-#define WEAPON_SPECAB_ADAPTIVE 55        // ranged weapons can use full strength bonus
-#define WEAPON_SPECAB_AGILE 56           // Weapons that qualify for weapon finesse deal dex damage instead of strength damage if higher
+#define WEAPON_SPECAB_BLINDING 54 // Attempts to blind opponent on a critical hit
+#define WEAPON_SPECAB_ADAPTIVE 55 // ranged weapons can use full strength bonus
+#define WEAPON_SPECAB_AGILE                                                                        \
+  56 // Weapons that qualify for weapon finesse deal dex damage instead of strength damage if higher
 #define WEAPON_SPECAB_BEWILDERING 57     // will add confuse effect to opponents on crit
 #define WEAPON_SPECAB_CORROSIVE 58       // adds acid damage
 #define WEAPON_SPECAB_CORROSIVE_BURST 59 // adds acid damage plus more on crit
 #define WEAPON_SPECAB_EXHAUSTING 60      // sets fatigue and drains moves on crit
 #define WEAPON_SPECAB_VAMPIRIC 61        // heals damage on hit
-#define WEAPON_SPECAB_LUCKY 62           // 5% chance to add 1/2 weapon enhancement bonus to almost any d20 roll
-#define WEAPON_SPECAB_INVIGORATING 63    // restores tamina points with each hit
+#define WEAPON_SPECAB_LUCKY                                                                        \
+  62 // 5% chance to add 1/2 weapon enhancement bonus to almost any d20 roll
+#define WEAPON_SPECAB_INVIGORATING 63 // restores tamina points with each hit
 
 #define ITEM_SPECAB_ITEM_SUMMON 64 /* summon item - Summon mobile vnum in val1 */
 
@@ -120,14 +124,15 @@ extern const char *activation_methods[];
 char *get_weapon_specab_default_command_word(int specab);
 bool obj_has_special_ability(struct obj_data *obj, int ability);
 struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ability);
-int process_armor_abilities(struct char_data *ch, struct char_data *victim,
-                            int actmtd, const char *cmdword);
-#define SPECAB_PROC_DEF(specab_proc)                                                                   \
-  void (*specab_proc)(struct obj_special_ability * specab, /* The ability structure, to get values. */ \
-                      struct obj_data * obj,               /* The item with the ability. */            \
-                      struct char_data * ch,               /* The wearer/wielder of the item. */       \
-                      struct char_data * victim,           /* The target of the ability. */            \
-                      int actmtd)                          /* The activation method triggered. */
+int process_armor_abilities(struct char_data *ch, struct char_data *victim, int actmtd,
+                            const char *cmdword);
+#define SPECAB_PROC_DEF(specab_proc)                                                               \
+  void (*specab_proc)(struct obj_special_ability *                                                 \
+                          specab,                /* The ability structure, to get values. */       \
+                      struct obj_data * obj,     /* The item with the ability. */                  \
+                      struct char_data * ch,     /* The wearer/wielder of the item. */             \
+                      struct char_data * victim, /* The target of the ability. */                  \
+                      int actmtd)                /* The activation method triggered. */
 
 /* Special Ability Types */
 #define SPECAB_TYPE_NONE 0
@@ -159,44 +164,37 @@ struct special_ability_info_type
 extern struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
 /* Macros for defining the actual abilities */
-#define WEAPON_SPECIAL_ABILITY(abilityname)            \
-  void abilityname(struct obj_special_ability *specab, \
-                   struct obj_data *weapon,            \
-                   struct char_data *ch,               \
-                   struct char_data *victim,           \
-                   int actmtd)
+#define WEAPON_SPECIAL_ABILITY(abilityname)                                                        \
+  void abilityname(struct obj_special_ability *specab, struct obj_data *weapon,                    \
+                   struct char_data *ch, struct char_data *victim, int actmtd)
 
-#define ARMOR_SPECIAL_ABILITY(abilityname)             \
-  void abilityname(struct obj_special_ability *specab, \
-                   struct obj_data *armor,             \
-                   struct char_data *ch,               \
-                   struct char_data *victim,           \
-                   int actmtd)
+#define ARMOR_SPECIAL_ABILITY(abilityname)                                                         \
+  void abilityname(struct obj_special_ability *specab, struct obj_data *armor,                     \
+                   struct char_data *ch, struct char_data *victim, int actmtd)
 
-#define ITEM_SPECIAL_ABILITY(abilityname)              \
-  void abilityname(struct obj_special_ability *specab, \
-                   struct obj_data *obj,               \
-                   struct char_data *ch,               \
-                   struct char_data *victim,           \
-                   int actmtd)
+#define ITEM_SPECIAL_ABILITY(abilityname)                                                          \
+  void abilityname(struct obj_special_ability *specab, struct obj_data *obj, struct char_data *ch, \
+                   struct char_data *victim, int actmtd)
 
 void initialize_special_abilities(void);
 
 /* Process weapon abilities for the specified activation method. */
-int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check for special abilities. */
-                             struct char_data *ch,     /* The wielder of the weapon. */
-                             struct char_data *victim, /* The target of the ability (either fighting or
+int process_weapon_abilities(
+    struct obj_data *weapon,  /* The weapon to check for special abilities. */
+    struct char_data *ch,     /* The wielder of the weapon. */
+    struct char_data *victim, /* The target of the ability (either fighting or
                                                         * specified explicitly. */
-                             int actmtd,               /* Activation method */
-                             const char *cmdword);     /* Command word (optional, NULL if none. */
+    int actmtd,               /* Activation method */
+    const char *cmdword);     /* Command word (optional, NULL if none. */
 
 /* Process weapon abilities for the specified activation method. */
-int process_item_abilities(struct obj_data *obj,     /* The weapon to check for special abilities. */
-                           struct char_data *ch,     /* The wielder of the weapon. */
-                           struct char_data *victim, /* The target of the ability (either fighting or
+int process_item_abilities(
+    struct obj_data *obj,     /* The weapon to check for special abilities. */
+    struct char_data *ch,     /* The wielder of the weapon. */
+    struct char_data *victim, /* The target of the ability (either fighting or
                                                       * specified explicitly. */
-                           int actmtd,               /* Activation method */
-                           char *cmdword);           /* Command word (optional, NULL if none. */
+    int actmtd,               /* Activation method */
+    char *cmdword);           /* Command word (optional, NULL if none. */
 
 /* Function that deactivates the specified weapon special ability. */
 // int deactivate_weapon_ability(struct obj_data *weapon, /* The weapon to check. */

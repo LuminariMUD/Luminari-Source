@@ -7,7 +7,7 @@
 -- ============================================================================
 
 -- Add comprehensive description fields to region_data table
-ALTER TABLE region_data 
+ALTER TABLE region_data
 ADD COLUMN IF NOT EXISTS region_description LONGTEXT DEFAULT NULL COMMENT 'Comprehensive description for AI context',
 ADD COLUMN IF NOT EXISTS description_version INT DEFAULT 1 COMMENT 'Version tracking for description updates',
 ADD COLUMN IF NOT EXISTS ai_agent_source VARCHAR(100) DEFAULT NULL COMMENT 'Which AI agent created/updated description',
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS region_description_cache (
 
 -- Create active_region_hints view
 CREATE OR REPLACE VIEW active_region_hints AS
-SELECT 
+SELECT
     rh.id,
     rh.region_vnum,
     rh.hint_category,
@@ -124,7 +124,7 @@ WHERE rh.is_active = TRUE;
 
 -- Create hint_analytics view
 CREATE OR REPLACE VIEW hint_analytics AS
-SELECT 
+SELECT
     rh.id as hint_id,
     rh.region_vnum,
     rh.hint_category,

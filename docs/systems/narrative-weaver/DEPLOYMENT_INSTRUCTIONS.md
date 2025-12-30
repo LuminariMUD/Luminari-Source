@@ -90,24 +90,24 @@ mysql -u root -p luminari_mudprod
 
 ```sql
 -- Check enhanced region_data table
-SELECT COUNT(*) as enhanced_columns 
-FROM information_schema.COLUMNS 
-WHERE table_schema = 'luminari_mudprod' 
-AND table_name = 'region_data' 
+SELECT COUNT(*) as enhanced_columns
+FROM information_schema.COLUMNS
+WHERE table_schema = 'luminari_mudprod'
+AND table_name = 'region_data'
 AND column_name IN ('region_description', 'description_style', 'ai_agent_source');
 -- Should return: 3
 
 -- Check narrative weaver tables
 SELECT COUNT(*) as narrative_tables
-FROM information_schema.TABLES 
-WHERE table_schema = 'luminari_mudprod' 
+FROM information_schema.TABLES
+WHERE table_schema = 'luminari_mudprod'
 AND table_name IN ('region_hints', 'region_profiles', 'hint_usage_log', 'region_description_cache');
 -- Should return: 4
 
 -- Check narrative weaver views
 SELECT COUNT(*) as narrative_views
-FROM information_schema.VIEWS 
-WHERE table_schema = 'luminari_mudprod' 
+FROM information_schema.VIEWS
+WHERE table_schema = 'luminari_mudprod'
 AND table_name IN ('active_region_hints', 'hint_analytics');
 -- Should return: 2
 
@@ -213,7 +213,7 @@ DROP TABLE IF EXISTS region_profiles;
 DROP TABLE IF EXISTS region_hints;
 
 -- Remove enhanced columns from region_data
-ALTER TABLE region_data 
+ALTER TABLE region_data
 DROP COLUMN IF EXISTS region_description,
 DROP COLUMN IF EXISTS description_version,
 DROP COLUMN IF EXISTS ai_agent_source,
@@ -242,17 +242,17 @@ DROP COLUMN IF EXISTS is_approved;
 ### Performance Monitoring:
 ```sql
 -- Check narrative weaver usage stats
-SELECT 
+SELECT
     region_vnum,
     hint_category,
     COUNT(*) as usage_count,
     MAX(used_at) as last_used
-FROM hint_usage_log 
-GROUP BY region_vnum, hint_category 
+FROM hint_usage_log
+GROUP BY region_vnum, hint_category
 ORDER BY usage_count DESC;
 
 -- Check cache performance
-SELECT 
+SELECT
     COUNT(*) as total_cached_descriptions,
     AVG(TIMESTAMPDIFF(MINUTE, created_at, NOW())) as avg_age_minutes
 FROM region_description_cache;
@@ -261,11 +261,11 @@ FROM region_description_cache;
 ### Regular Maintenance:
 ```sql
 -- Clean old cache entries (run weekly)
-DELETE FROM region_description_cache 
+DELETE FROM region_description_cache
 WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY);
 
 -- Clean old usage logs (run monthly)
-DELETE FROM hint_usage_log 
+DELETE FROM hint_usage_log
 WHERE used_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 ```
 

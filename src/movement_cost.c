@@ -30,8 +30,8 @@
 
 int get_speed(struct char_data *ch, sbyte to_display)
 {
-
-  if (!ch) return 30;
+  if (!ch)
+    return 30;
 
   int speed = 30;
 
@@ -82,13 +82,14 @@ int get_speed(struct char_data *ch, sbyte to_display)
   if (monk_gear_ok(ch))
   {
     speed += MIN(60, CLASS_LEVEL(ch, CLASS_MONK) / 3 * 10);
-    
+
     /* Add Shadow Step bonus for monks */
     if (!IS_NPC(ch))
       speed += get_monk_shadow_step_bonus(ch);
   }
   else if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
-    if (compute_gear_armor_type(ch) <= ARMOR_TYPE_MEDIUM || affected_by_spell(ch, SPELL_EFFORTLESS_ARMOR))
+    if (compute_gear_armor_type(ch) <= ARMOR_TYPE_MEDIUM ||
+        affected_by_spell(ch, SPELL_EFFORTLESS_ARMOR))
       speed += 10;
 
   if (affected_by_spell(ch, SPELL_GREASE))
@@ -103,7 +104,7 @@ int get_speed(struct char_data *ch, sbyte to_display)
   // function is called to apply their speed.  If to_display is true,
   // we won't worry about the blind effect, because it's only showing
   // the person's base speed for display purposes (ie. score)
-  
+
   // Autosearch penalty - moving cautiously to detect traps is slow
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH))
     speed /= 2;
@@ -142,17 +143,18 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
 /**
  * Calculate the movement point cost for moving from one room to another
- * 
+ *
  * @param ch Character who is moving
  * @param from_room Room moving from
  * @param to_room Room moving to
  * @param riding TRUE if character is mounted
  * @return Movement point cost
  */
-int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum to_room, int riding)
+int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum to_room,
+                            int riding)
 {
   int need_movement;
-  
+
   /* Special case: woodland stride reduces outdoor movement to 1 */
   if (OUTDOORS(ch) && HAS_FEAT(riding ? RIDING(ch) : ch, FEAT_WOODLAND_STRIDE))
   {
@@ -175,15 +177,15 @@ int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum
   /* Difficult terrain doubles cost */
   if (ROOM_AFFECTED(to_room, RAFF_DIFFICULT_TERRAIN))
     need_movement *= 2;
-    
+
   /* Spot mode doubles cost */
   if (AFF_FLAGGED(ch, AFF_SPOT))
     need_movement *= 2;
-    
+
   /* Listen mode doubles cost */
   if (AFF_FLAGGED(ch, AFF_LISTEN))
     need_movement *= 2;
-    
+
   /* Reclining quadruples cost */
   if (GET_POS(ch) <= POS_RECLINING)
     need_movement *= 4;
@@ -193,7 +195,8 @@ int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum
 
   /* Skill-based reduction */
   int skill_bonus = skill_roll(ch, riding ? MAX(ABILITY_RIDE, ABILITY_SURVIVAL) : ABILITY_SURVIVAL);
-  if (SECT(to_room) == SECT_HILLS || SECT(to_room) == SECT_MOUNTAIN || SECT(to_room) == SECT_HIGH_MOUNTAIN)
+  if (SECT(to_room) == SECT_HILLS || SECT(to_room) == SECT_MOUNTAIN ||
+      SECT(to_room) == SECT_HIGH_MOUNTAIN)
     skill_bonus += skill_roll(ch, ABILITY_CLIMB) / 2;
 
   need_movement -= skill_bonus;
@@ -214,7 +217,7 @@ int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum
 
 /**
  * Check if character has enough movement points
- * 
+ *
  * @param ch Character to check
  * @param need_movement Required movement points
  * @param riding TRUE if mounted
@@ -239,7 +242,7 @@ bool check_movement_points(struct char_data *ch, int need_movement, int riding, 
 
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", 
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n",
                      get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
@@ -247,13 +250,13 @@ bool check_movement_points(struct char_data *ch, int need_movement, int riding, 
       return FALSE;
     }
   }
-  
+
   return TRUE;
 }
 
 /**
  * Deduct movement points from character
- * 
+ *
  * @param ch Character to deduct from
  * @param need_movement Amount to deduct
  * @param riding TRUE if mounted

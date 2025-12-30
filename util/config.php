@@ -1,17 +1,17 @@
 <?php
 /**
  * config.php - Shared Configuration and Utilities for LuminariMUD PHP Tools
- * 
+ *
  * This file provides common functionality used across multiple PHP tools:
  * - Database connection management
  * - Security functions
  * - Input validation
  * - Error handling
  * - Authentication helpers
- * 
+ *
  * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
  *      deployment guide, and security best practices for all PHP tools.
- * 
+ *
  * @author LuminariMUD Development Team
  * @version 1.0
  * @since 2025-01-24
@@ -27,7 +27,7 @@ if (!defined('LUMINARI_TOOLS')) {
  * Security Configuration
  */
 class SecurityConfig {
-    
+
     /**
      * Initialize security settings
      */
@@ -37,7 +37,7 @@ class SecurityConfig {
         header('X-Frame-Options: DENY');
         header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
-        
+
         // Start session with secure settings
         if (session_status() === PHP_SESSION_NONE) {
             ini_set('session.cookie_httponly', 1);
@@ -45,16 +45,16 @@ class SecurityConfig {
             ini_set('session.use_strict_mode', 1);
             session_start();
         }
-        
+
         // Generate CSRF token if not exists
         if (!isset($_SESSION['csrf_token'])) {
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
     }
-    
+
     /**
      * Check if user is authenticated
-     * 
+     *
      * @param array $required_roles Required roles for access
      * @return bool True if authenticated with required role
      */
@@ -62,18 +62,18 @@ class SecurityConfig {
         if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
             return false;
         }
-        
+
         if (!empty($required_roles)) {
             $user_role = $_SESSION['role'] ?? '';
             return in_array($user_role, $required_roles, true);
         }
-        
+
         return true;
     }
-    
+
     /**
      * Validate CSRF token
-     * 
+     *
      * @throws Exception If CSRF validation fails
      */
     public static function validateCSRF() {
@@ -90,12 +90,12 @@ class SecurityConfig {
  * Database Connection Manager
  */
 class DatabaseManager {
-    
+
     private static $pdo = null;
-    
+
     /**
      * Get PDO database connection
-     * 
+     *
      * @return PDO Database connection
      * @throws Exception If connection fails
      */
@@ -105,10 +105,10 @@ class DatabaseManager {
         }
         return self::$pdo;
     }
-    
+
     /**
      * Establish database connection
-     * 
+     *
      * @throws Exception If connection fails
      */
     private static function connect() {
@@ -117,13 +117,13 @@ class DatabaseManager {
         $user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? '';
         $pass = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?? '';
         $name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?? '';
-        
+
         // Validate credentials are provided
         if (empty($host) || empty($user) || empty($pass) || empty($name)) {
             error_log("Database credentials not properly configured");
             throw new Exception("Database configuration error. Please contact administrator.");
         }
-        
+
         try {
             self::$pdo = new PDO(
                 "mysql:host=$host;dbname=$name;charset=utf8mb4",
@@ -147,10 +147,10 @@ class DatabaseManager {
  * Input Validation Utilities
  */
 class InputValidator {
-    
+
     /**
      * Validate and sanitize input
-     * 
+     *
      * @param string $input The input to validate
      * @param string $type The type of input (identifier, text, number, email)
      * @param int $max_length Maximum allowed length
@@ -160,7 +160,7 @@ class InputValidator {
         if (strlen($input) > $max_length) {
             return false;
         }
-        
+
         switch ($type) {
             case 'identifier':
                 // Only allow alphanumeric and underscores for C identifiers
@@ -168,28 +168,28 @@ class InputValidator {
                     return false;
                 }
                 return trim($input);
-                
+
             case 'text':
                 // Remove potentially dangerous characters
                 return preg_replace('/[<>"\'\\\]/', '', trim($input));
-                
+
             case 'number':
                 if (!is_numeric($input) || $input < 0 || $input > 999999) {
                     return false;
                 }
                 return (int)$input;
-                
+
             case 'email':
                 return filter_var($input, FILTER_VALIDATE_EMAIL);
-                
+
             default:
                 return false;
         }
     }
-    
+
     /**
      * Validate input against whitelist
-     * 
+     *
      * @param string $input Input to validate
      * @param array $allowed_values Whitelist of allowed values
      * @return string|false Valid input or false if not in whitelist
@@ -203,10 +203,10 @@ class InputValidator {
  * Error Handling Utilities
  */
 class ErrorHandler {
-    
+
     /**
      * Handle validation error
-     * 
+     *
      * @param string $message Error message
      * @param int $code HTTP status code
      */
@@ -215,10 +215,10 @@ class ErrorHandler {
         http_response_code($code);
         die("Error: $message");
     }
-    
+
     /**
      * Handle database error
-     * 
+     *
      * @param Exception $e Database exception
      */
     public static function databaseError($e) {
@@ -226,10 +226,10 @@ class ErrorHandler {
         http_response_code(500);
         die("Database error. Please contact administrator.");
     }
-    
+
     /**
      * Handle authentication error
-     * 
+     *
      * @param string $tool_name Name of the tool being accessed
      */
     public static function authenticationError($tool_name) {
@@ -327,30 +327,30 @@ class CacheManager {
  * HTML Utilities
  */
 class HTMLHelper {
-    
+
     /**
      * Generate CSRF token input field
-     * 
+     *
      * @return string HTML input field
      */
     public static function csrfTokenField() {
         $token = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
         return "<input type=\"hidden\" name=\"csrf_token\" value=\"$token\">";
     }
-    
+
     /**
      * Escape HTML output safely
-     * 
+     *
      * @param string $text Text to escape
      * @return string Escaped text
      */
     public static function escape($text) {
         return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
-    
+
     /**
      * Generate standard HTML document header
-     * 
+     *
      * @param string $title Page title
      * @return string HTML header
      */

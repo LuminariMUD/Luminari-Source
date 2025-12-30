@@ -12,15 +12,15 @@ one exists.)
 
 ========================================
 
-Message List: 
-0 ) [5  ] 1, burning hands        30) [314] 2, Unknown           
-1 ) [6  ] 1, call lightning       31) [399] 2, Unknown           
-2 ) [8  ] 1, chill touch          32) [33 ] 1, poison            
-3 ) [10 ] 1, color spray          33) [202] 1, !UNUSED!          
-4 ) [22 ] 1, dispel evil          34) [203] 1, !UNUSED!          
-5 ) [23 ] 1, earthquake           35) [204] 1, !UNUSED!          
-6 ) [25 ] 1, energy drain         36) [205] 1, !UNUSED!          
-7 ) [26 ] 1, fireball             37) [206] 1, !UNUSED!      
+Message List:
+0 ) [5  ] 1, burning hands        30) [314] 2, Unknown
+1 ) [6  ] 1, call lightning       31) [399] 2, Unknown
+2 ) [8  ] 1, chill touch          32) [33 ] 1, poison
+3 ) [10 ] 1, color spray          33) [202] 1, !UNUSED!
+4 ) [22 ] 1, dispel evil          34) [203] 1, !UNUSED!
+5 ) [23 ] 1, earthquake           35) [204] 1, !UNUSED!
+6 ) [25 ] 1, energy drain         36) [205] 1, !UNUSED!
+7 ) [26 ] 1, fireball             37) [206] 1, !UNUSED!
 
 =========================================
 
@@ -69,7 +69,7 @@ To edit the A), "char death message", simply type from the message editor:
 
 Enter Selection : a
 Example: You kill $N!
-Enter new string : 
+Enter new string :
 
 =============================================
 

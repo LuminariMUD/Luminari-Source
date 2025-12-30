@@ -82,4 +82,4 @@ Do this:
   Expand 'C/C++'
   Click on Preprocessor
   At the end of the 'Preprocessor Definitions' add:
-  ;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE 
+  ;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE

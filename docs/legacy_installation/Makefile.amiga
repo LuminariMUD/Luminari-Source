@@ -5,13 +5,13 @@
 CC = gcc
 
 # Any special flags you want to pass to the compiler
-MYFLAGS = 
+MYFLAGS =
 #Amiga Stuff <jpatton@intserv.com>
 MYFLAGS = -g -Wall -DAMIGA -DNOCRYPT
 LIBS = -lc -lamiga -lauto
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -30,7 +30,7 @@ default: .accepted
 	$(MAKE) ../bin/circle
 
 .accepted:
-	./licheck 
+	./licheck
 
 utils: .accepted
 	$(MAKE) ../bin/asciipasswd
@@ -199,5 +199,5 @@ qedit.o: qedit.c conf.h sysdep.h structs.h utils.h comm.h db.h oasis.h \
   improved-edit.h screen.h genolc.h genzon.h interpreter.h quest.h
 	$(CC) -c $(CFLAGS) qedit.c
 genqst.o: genqst.c conf.h sysdep.h structs.h utils.h db.h quest.h \
-  genolc.h genzon.h 
+  genolc.h genzon.h
 	$(CC) -c $(CFLAGS) genqst.c

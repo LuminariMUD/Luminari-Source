@@ -187,7 +187,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return 0;
 
   /* The following is to support the wilderness code. */
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) && (EXIT(ch, dir)->to_room == real_room(1000000)))
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) &&
+      (EXIT(ch, dir)->to_room == real_room(1000000)))
   {
     new_x = X_LOC(ch); // world[IN_ROOM(ch)].coords[0];
     new_y = Y_LOC(ch); // world[IN_ROOM(ch)].coords[1];
@@ -218,7 +219,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       going_to = find_available_wilderness_room();
       if (going_to == NOWHERE)
       {
-        log("SYSERR: Wilderness movement failed from (%d, %d) to (%d, %d)", X_LOC(ch), Y_LOC(ch), new_x, new_y);
+        log("SYSERR: Wilderness movement failed from (%d, %d) to (%d, %d)", X_LOC(ch), Y_LOC(ch),
+            new_x, new_y);
         return 0;
       }
       /* Must set the coords, etc in the going_to room. */
@@ -228,7 +230,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
   else if (world[IN_ROOM(ch)].dir_option[dir])
   {
-
     going_to = EXIT(ch, dir)->to_room;
 
     /* Since we are in non-wilderness moving to wilderness, set up the coords. */
@@ -274,7 +275,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     act("$n struggles to move, but can't!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;
   }
-  
+
   /* Crippled characters have a 50% chance to fail movement */
   if (AFF_FLAGGED(ch, AFF_CRIPPLED))
   {
@@ -285,9 +286,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       return 0;
     }
   }
-  
-  if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) &&
-      !HAS_FEAT(ch, FEAT_MOBILE_DEFENSE))
+
+  if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) && !HAS_FEAT(ch, FEAT_MOBILE_DEFENSE))
   {
     send_to_char(ch, "You can't move while in defensive stance!\r\n");
     return 0;
@@ -356,7 +356,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         act("$n squeezes by the prone body of $N.", FALSE, ch, 0, other, TO_NOTVICT);
         return 0;
       }
-      else if (GET_POS(ch) == POS_RECLINING && GET_POS(other) >= POS_FIGHTING && FIGHTING(ch) != other && FIGHTING(other) != ch)
+      else if (GET_POS(ch) == POS_RECLINING && GET_POS(other) >= POS_FIGHTING &&
+               FIGHTING(ch) != other && FIGHTING(other) != ch)
       {
         was_top = is_top_of_room_for_singlefile(ch, dir);
         prev = &world[ch->in_room].people;
@@ -433,15 +434,17 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       send_to_char(ch, "You need a boat to go there.\r\n");
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n",
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
       return (0);
     }
   }
 
-  if (SECT(was_in) == SECT_WATER_SWIM || SECT(was_in) == SECT_UD_WATER || SECT(was_in) == SECT_UNDERWATER ||
-      SECT(going_to) == SECT_WATER_SWIM || SECT(going_to) == SECT_UD_WATER || SECT(going_to) == SECT_UNDERWATER)
+  if (SECT(was_in) == SECT_WATER_SWIM || SECT(was_in) == SECT_UD_WATER ||
+      SECT(was_in) == SECT_UNDERWATER || SECT(going_to) == SECT_WATER_SWIM ||
+      SECT(going_to) == SECT_UD_WATER || SECT(going_to) == SECT_UNDERWATER)
   {
     if ((riding && !has_boat(RIDING(ch), going_to)) || !has_boat(ch, going_to))
     {
@@ -470,27 +473,25 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   /* Underwater Room: Does lack of underwater breathing prevent movement? */
-  if ((SECT(was_in) == SECT_UNDERWATER) ||
-      (SECT(going_to) == SECT_UNDERWATER))
+  if ((SECT(was_in) == SECT_UNDERWATER) || (SECT(going_to) == SECT_UNDERWATER))
   {
     if (!has_scuba(ch, going_to) && (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)))
     {
-      send_to_char(ch,
-                   "You need to be able to breathe water to go there!\r\n");
+      send_to_char(ch, "You need to be able to breathe water to go there!\r\n");
       return (0);
     }
   }
 
   /* High Mountain (and any other climb rooms) */
-  if ((SECT(was_in) == SECT_HIGH_MOUNTAIN) ||
-      (SECT(going_to) == SECT_HIGH_MOUNTAIN))
+  if ((SECT(was_in) == SECT_HIGH_MOUNTAIN) || (SECT(going_to) == SECT_HIGH_MOUNTAIN))
   {
     if ((riding && !can_climb(RIDING(ch))) || !can_climb(ch))
     {
       send_to_char(ch, "You need to be able to climb to go there!\r\n");
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n",
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
       return (0);
@@ -544,8 +545,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return (0);
   }
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) &&
-      (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF))
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) &&
+      (GET_LEVEL(ch) < LVL_GRSTAFF))
   {
     send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
     return (0);
@@ -588,13 +589,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     {
       send_to_char(ch, "You attempt to climb to that area, but fall and get hurt!\r\n");
       int climb_dam = dice(climb_dc - 10, 4);
-      
+
       /* berserker mighty leap reduces fall damage by 50% */
       if (has_berserker_mighty_leap(ch))
       {
         climb_dam /= 2;
       }
-      
+
       damage((ch), (ch), climb_dam, -1, -1, -1);
       update_pos(ch);
       return 0;
@@ -699,13 +700,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (block && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
   {
     act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
-    act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
+    act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE,
+        ch, 0, mob, TO_ROOM);
     if (GET_WALKTO_LOC(ch))
     {
-      send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+      send_to_char(ch, "You stop walking to the '%s' landmark.\r\n",
+                   get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
       GET_WALKTO_LOC(ch) = 0;
     }
-    
+
     return 0;
   }
 
@@ -763,7 +766,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   // be a fraction of 10.
 
   int skill_bonus = skill_roll(ch, riding ? MAX(ABILITY_RIDE, ABILITY_SURVIVAL) : ABILITY_SURVIVAL);
-  if (SECT(going_to) == SECT_HILLS || SECT(going_to) == SECT_MOUNTAIN || SECT(going_to) == SECT_HIGH_MOUNTAIN)
+  if (SECT(going_to) == SECT_HILLS || SECT(going_to) == SECT_MOUNTAIN ||
+      SECT(going_to) == SECT_HIGH_MOUNTAIN)
     skill_bonus += skill_roll(ch, ABILITY_CLIMB) / 2;
 
   need_movement -= skill_bonus;
@@ -800,7 +804,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n",
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
 
@@ -809,15 +814,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   /* chance of being thrown off mount */
-  if (riding && !HAS_FEAT(ch, FEAT_MOUNTED_COMBAT) && 
-      (compute_ability(ch, ABILITY_RIDE) + d20(ch)) < rand_number(1, GET_LEVEL(RIDING(ch))) - rand_number(-4, need_movement))
+  if (riding && !HAS_FEAT(ch, FEAT_MOUNTED_COMBAT) &&
+      (compute_ability(ch, ABILITY_RIDE) + d20(ch)) <
+          rand_number(1, GET_LEVEL(RIDING(ch))) - rand_number(-4, need_movement))
   {
-    act("$N rears backwards, throwing you to the ground.",
-        FALSE, ch, 0, RIDING(ch), TO_CHAR);
-    act("You rear backwards, throwing $n to the ground.",
-        FALSE, ch, 0, RIDING(ch), TO_VICT);
-    act("$N rears backwards, throwing $n to the ground.",
-        FALSE, ch, 0, RIDING(ch), TO_NOTVICT);
+    act("$N rears backwards, throwing you to the ground.", FALSE, ch, 0, RIDING(ch), TO_CHAR);
+    act("You rear backwards, throwing $n to the ground.", FALSE, ch, 0, RIDING(ch), TO_VICT);
+    act("$N rears backwards, throwing $n to the ground.", FALSE, ch, 0, RIDING(ch), TO_NOTVICT);
     dismount_char(ch);
     damage(ch, ch, dice(1, 6), -1, -1, -1);
     return 0;
@@ -854,14 +857,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   Y_LOC(ch) = new_y;
 
   char_to_room(ch, going_to);
-  
+
   /* Bard Swashbuckler: Agile Disengage - remove AC bonus if character moves to different room */
   if (!IS_NPC(ch) && is_affected_by_agile_disengage(ch))
   {
     affect_from_char(ch, AFFECT_BARD_AGILE_DISENGAGE);
   }
   /* end the actual technical moving of the char */
-  
+
   /* Autosearch: Check for traps automatically if enabled */
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH))
   {
@@ -920,8 +923,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
       char_to_room(RIDING(ch), ch->in_room);
     }
-    else if (ridden_by && same_room &&
-             RIDDEN_BY(ch)->in_room != ch->in_room)
+    else if (ridden_by && same_room && RIDDEN_BY(ch)->in_room != ch->in_room)
     {
       char_from_room(RIDDEN_BY(ch));
 
@@ -1016,7 +1018,8 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if (char_has_mud_event(ch, eFALLING))
     send_to_char(ch, "You can't, you are falling!!!\r\n");
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) &&
+           (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
   {
     if ((!IS_NPC(ch)) && (PRF_FLAGGED(ch, PRF_AUTODOOR)) && recursive)
     {
@@ -1026,7 +1029,8 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
       do_gen_door(ch, open_cmd, 0, SCMD_OPEN);
       if (ch->char_specials.autodoor_message)
       {
-        snprintf(open_cmd, sizeof(open_cmd), "You open the %s to the %s.", EXIT(ch, dir)->keyword, dirs[dir]);
+        snprintf(open_cmd, sizeof(open_cmd), "You open the %s to the %s.", EXIT(ch, dir)->keyword,
+                 dirs[dir]);
         act(open_cmd, FALSE, ch, 0, 0, TO_CHAR);
         ch->char_specials.autodoor_message = false;
       }
@@ -1061,8 +1065,7 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     for (k = ch->followers; k; k = next)
     {
       next = k->next;
-      if ((IN_ROOM(k->follower) == was_in) &&
-          (GET_POS(k->follower) >= POS_STANDING))
+      if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
       {
         act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
         perform_move(k->follower, dir, 1);
@@ -1076,7 +1079,6 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
 
 ACMD(do_move)
 {
-
   /* this test added for newer reclining position */
   if (GET_POS(ch) == POS_SITTING || GET_POS(ch) == POS_RESTING)
   {
@@ -1169,8 +1171,7 @@ ACMD(do_enter)
           return;
         }
 
-        if (((!IS_EVIL(ch)) && !(IS_GOOD(ch))) &&
-            OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL))
+        if (((!IS_EVIL(ch)) && !(IS_GOOD(ch))) && OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL))
         {
           act("You try to enter $p, but a mysterious power "
               "forces you back!  (alignment restriction)",
@@ -1234,8 +1235,7 @@ ACMD(do_enter)
           diff = portal->obj_flags.value[1] - portal->obj_flags.value[2];
           do
           {
-            portal_dest =
-                (portal->obj_flags.value[2]) + rand_number(0, diff);
+            portal_dest = (portal->obj_flags.value[2]) + rand_number(0, diff);
           } while ((real_room(portal_dest) == NOWHERE) && (++count < 150));
         }
         else
@@ -1251,7 +1251,8 @@ ACMD(do_enter)
         break;
 
       default:
-        mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Invalid portal type (%d) in room %d", portal->obj_flags.value[0], world[IN_ROOM(ch)].number);
+        mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Invalid portal type (%d) in room %d",
+               portal->obj_flags.value[0], world[IN_ROOM(ch)].number);
         send_to_char(ch, "This portal is broken, please tell an Imm.\r\n");
         return;
         break;
@@ -1296,7 +1297,8 @@ ACMD(do_enter)
       if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_CLOSED))
       {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                         "brightly, pushing you back!!!!!  (destination zone is closed for construction/repairs)\r\n");
+                         "brightly, pushing you back!!!!!  (destination zone is closed for "
+                         "construction/repairs)\r\n");
         return;
       }
 
@@ -1319,8 +1321,7 @@ ACMD(do_enter)
       /* Then, any followers should auto-follow (Jamdog 19th June 2006) */
       for (k = ch->followers; k; k = k->next)
       {
-        if ((IN_ROOM(k->follower) == was_in) &&
-            (GET_POS(k->follower) >= POS_STANDING))
+        if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
         {
           act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
           act("$n enters $p, and vanishes!", FALSE, k->follower, portal, 0, TO_ROOM);
@@ -1369,8 +1370,7 @@ ACMD(do_enter)
       {
         if (EXIT(ch, door)->to_room != NOWHERE)
         {
-          if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) &&
-              ROOM_OUTSIDE(EXIT(ch, door)->to_room))
+          if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && ROOM_OUTSIDE(EXIT(ch, door)->to_room))
           {
             perform_move(ch, door, 1);
             return;
@@ -1512,7 +1512,6 @@ ACMD(do_unlead)
 
 ACMD(do_sorcerer_draconic_wings)
 {
-
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_WINGS))
   {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -1652,9 +1651,12 @@ ACMD(do_transposition)
   for (f = ch->followers; f; f = f->next)
   {
     mob = f->follower;
-    if (!mob) continue;
-    if (!IS_NPC(mob)) continue;
-    if (!MOB_FLAGGED(mob, MOB_EIDOLON)) continue;
+    if (!mob)
+      continue;
+    if (!IS_NPC(mob))
+      continue;
+    if (!MOB_FLAGGED(mob, MOB_EIDOLON))
+      continue;
     eidolon = mob;
     break;
   }
@@ -1674,7 +1676,8 @@ ACMD(do_transposition)
     return;
   }
 
-  if (!valid_mortal_tele_dest(eidolon, chRoom, true) || !valid_mortal_tele_dest(ch, eidolonRoom, true))
+  if (!valid_mortal_tele_dest(eidolon, chRoom, true) ||
+      !valid_mortal_tele_dest(ch, eidolonRoom, true))
   {
     send_to_char(ch, "You are unable to transposition yourself and your eidolon.\r\n");
     return;
@@ -1727,9 +1730,15 @@ ACMDU(do_unstuck)
   if (GET_LEVEL(ch) <= 5)
     exp = gold = 0;
   else if (GET_LEVEL(ch) <= 10)
-    { exp /= 4; gold /= 4; }
+  {
+    exp /= 4;
+    gold /= 4;
+  }
   else if (GET_LEVEL(ch) <= 20)
-    { exp /= 2; gold /= 2; }
+  {
+    exp /= 2;
+    gold /= 2;
+  }
 
   if (ch->player_specials->unstuck == NULL)
   {
@@ -1740,9 +1749,11 @@ ACMDU(do_unstuck)
 
   if (!*argument)
   {
-    send_to_char(ch, "You didn't supply a confirmation code.\r\n"
-                     "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
-                     "You will be transported to the MUD start room", ch->player_specials->unstuck);
+    send_to_char(ch,
+                 "You didn't supply a confirmation code.\r\n"
+                 "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
+                 "You will be transported to the MUD start room",
+                 ch->player_specials->unstuck);
     if (exp > 0)
       send_to_char(ch, ", and it will cost you %d experience points and %d coins", exp, gold);
     send_to_char(ch, ".\r\n");
@@ -1750,8 +1761,11 @@ ACMDU(do_unstuck)
   }
   if (strcmp(argument, ch->player_specials->unstuck))
   {
-    send_to_char(ch, "Please enter 'unstuck %s' to confirm your desire to become unstuck. You typed: %s\r\n"
-                     "You will be transported to the MUD start room", ch->player_specials->unstuck, argument);
+    send_to_char(
+        ch,
+        "Please enter 'unstuck %s' to confirm your desire to become unstuck. You typed: %s\r\n"
+        "You will be transported to the MUD start room",
+        ch->player_specials->unstuck, argument);
     if (exp > 0)
       send_to_char(ch, ", and it will cost you %d experience points and %d coins", exp, gold);
     send_to_char(ch, ".\r\n");
@@ -1798,7 +1812,7 @@ ACMDU(do_unstuck)
 ACMD(do_lastroom)
 {
   unsigned int last_room = GET_LAST_ROOM(ch);
-  unsigned int start_room = (unsigned int) CONFIG_MORTAL_START;
+  unsigned int start_room = (unsigned int)CONFIG_MORTAL_START;
 
   if (GET_ROOM_VNUM(IN_ROOM(ch)) != start_room)
   {
@@ -1819,7 +1833,6 @@ ACMD(do_lastroom)
   do_look(ch, "", 0, 0);
 
   char_pets_to_char_loc(ch);
-
 }
 
 /* undefines */

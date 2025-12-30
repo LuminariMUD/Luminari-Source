@@ -41,23 +41,23 @@ graph TB
     B --> C[start_staff_event]
     B --> D[end_staff_event]
     B --> E[staff_event_info]
-    
+
     F[Game Loop] --> G[staff_event_tick]
     G --> H[Event Maintenance]
     G --> I[Mob Respawning]
     G --> J[Environment Effects]
     G --> K[Auto-End Check]
-    
+
     L[Combat System] --> M[check_event_drops]
     M --> N[Reward Distribution]
-    
+
     O[Event Data] --> P[staff_events_list Array]
     P --> Q[EVENT_TITLE]
     P --> R[EVENT_BEGIN]
     P --> S[EVENT_END]
     P --> T[EVENT_DETAIL]
     P --> U[EVENT_SUMMARY]
-    
+
     V[Global State] --> W[STAFF_EVENT_NUM]
     V --> X[STAFF_EVENT_TIME]
     V --> Y[STAFF_EVENT_DELAY]
@@ -83,19 +83,19 @@ sequenceDiagram
     participant System
     participant Players
     participant GameLoop
-    
+
     Staff->>System: staffevents start [num]
     System->>System: Validate event conditions
     System->>Players: World announcement (BEGIN)
     System->>System: Initialize event-specific content
     System->>System: Set STAFF_EVENT_NUM & TIME
-    
+
     loop Every Tick
         GameLoop->>System: staff_event_tick()
         System->>System: Event-specific maintenance
         System->>System: Check auto-end conditions
     end
-    
+
     System->>Players: World announcement (END)
     System->>System: Cleanup event content
     System->>System: Reset global state
@@ -207,16 +207,16 @@ Add to `staff_events_list` array in [`staff_events.c`](../src/staff_events.c):
 {/* YOUR_NEW_EVENT */
  /* title - EVENT_TITLE */
  "\tCYour Event Title\tn",
- 
+
  /* event start message - EVENT_BEGIN */
  "\tWYour event has begun!\tn",
- 
+
  /* event end message - EVENT_END */  
  "\tRYour event has ended!\tn",
- 
+
  /* event info message - EVENT_DETAIL */
  "\tgDetailed description of your event...\tn",
- 
+
  /* event summary/conclusion - EVENT_SUMMARY */
  "\tgThank you for participating...\tn"
 },
@@ -474,7 +474,7 @@ Stored in `game_info` structure:
 - Conditional execution based on event type
 - Random chance gates for expensive operations
 
-**Mob Management**: 
+**Mob Management**:
 - Efficient counting via character list traversal
 - Batch operations for spawning
 - Cleanup purges all instances

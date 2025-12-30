@@ -40,8 +40,7 @@ int has_boat(struct char_data *ch, room_rnum going_to)
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
-  if (AFF_FLAGGED(ch, AFF_WATERWALK) || is_flying(ch) ||
-      AFF_FLAGGED(ch, AFF_LEVITATE))
+  if (AFF_FLAGGED(ch, AFF_WATERWALK) || is_flying(ch) || AFF_FLAGGED(ch, AFF_LEVITATE))
     return (1);
 
   if (RIDING(ch))
@@ -63,14 +62,16 @@ int has_boat(struct char_data *ch, room_rnum going_to)
       return (1);
 
   // they can't swim here, so no need for a skill check.
-  if (SECT(going_to) == SECT_WATER_NOSWIM || SECT(going_to) == SECT_UD_WATER_NOSWIM || SECT(going_to) == SECT_UD_NOSWIM)
+  if (SECT(going_to) == SECT_WATER_NOSWIM || SECT(going_to) == SECT_UD_WATER_NOSWIM ||
+      SECT(going_to) == SECT_UD_NOSWIM)
     return 0;
 
   /* we should do a swim check now */
   int swim_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
   skill_roll = d20(ch);
   skill_val = compute_ability(ch, ABILITY_ATHLETICS);
-  send_to_char(ch, "Swimming: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. Swim DC (%d) ", skill_val, skill_roll, skill_val + skill_roll, swim_dc);
+  send_to_char(ch, "Swimming: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. Swim DC (%d) ",
+               skill_val, skill_roll, skill_val + skill_roll, swim_dc);
   if ((skill_roll + skill_val) < swim_dc)
   {
     send_to_char(ch, "You attempt to swim, but fail!\r\n");
@@ -142,7 +143,6 @@ int has_scuba(struct char_data *ch, room_rnum destination)
 /* Simple function to determine if char can climb */
 int can_climb(struct char_data *ch)
 {
-
   struct obj_data *obj;
   int i;
 
@@ -172,17 +172,20 @@ int can_climb(struct char_data *ch)
   int climb_dc = 10 + movement_loss[SECT(IN_ROOM(ch))];
   int skill_roll = d20(ch);
   int skill_val = compute_ability(ch, ABILITY_ATHLETICS);
-  send_to_char(ch, "Climbing: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. Climb DC (%d) ", skill_val, skill_roll, skill_val + skill_roll, climb_dc);
+  send_to_char(ch, "Climbing: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. Climb DC (%d) ",
+               skill_val, skill_roll, skill_val + skill_roll, climb_dc);
   if ((skill_roll + skill_val) < climb_dc)
   {
     send_to_char(ch, "You attempt to climb, but fail!\r\n");
     act("$n attempts to climb, but fails.", TRUE, ch, 0, 0, TO_ROOM);
-    
+
     // they fell, check for damage.
     int acro_dc = 10 + movement_loss[SECT(IN_ROOM(ch))];
     skill_roll = d20(ch);
     skill_val = compute_ability(ch, ABILITY_ACROBATICS);
-    send_to_char(ch, "Falling! Acrobatics Skill (%d) + d20 roll (%d) = Total (%d) vs. Climb DC (%d) ", skill_val, skill_roll, skill_val + skill_roll, climb_dc);
+    send_to_char(ch,
+                 "Falling! Acrobatics Skill (%d) + d20 roll (%d) = Total (%d) vs. Climb DC (%d) ",
+                 skill_val, skill_roll, skill_val + skill_roll, climb_dc);
     if ((skill_roll + skill_val) < acro_dc)
     {
       send_to_char(ch, "You're falling... ");
@@ -203,8 +206,9 @@ int can_climb(struct char_data *ch)
       }
       else
       {
-        send_to_char(ch, "You fall and take %d damage! %s\r\n", dam, 
-                     HAS_FEAT(ch, FEAT_SLOW_FALL) ? "Your slow fall ability has reduced the damage." : "");
+        send_to_char(ch, "You fall and take %d damage! %s\r\n", dam,
+                     HAS_FEAT(ch, FEAT_SLOW_FALL) ? "Your slow fall ability has reduced the damage."
+                                                  : "");
         act("$n falls down hard!", TRUE, ch, 0, 0, TO_ROOM);
         damage(ch, ch, dam, AFFECT_FALLING_DAMAGE, DAM_BLUDGEON, FALSE);
       }

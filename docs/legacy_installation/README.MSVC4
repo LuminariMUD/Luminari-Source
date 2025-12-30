@@ -34,7 +34,7 @@ package mentioned in the README.WIN file if you don't want to buy MSVC.
    "compiling under DOS" -- the MS-DOS prompt is just a command-line
    interface to Windows 95.  This step can be done by going to the Start
    menu, going to the Programs submenu, and selecting "MS-DOS prompt".  All
-   the following commands are performed at the MS-DOS prompt. 
+   the following commands are performed at the MS-DOS prompt.
 
 4) Use the CD command to switch to the main CircleMUD directory.  For
    example, type "CD \circle30bplXX", where 'XX' is the patchlevel of the
@@ -49,7 +49,7 @@ package mentioned in the README.WIN file if you don't want to buy MSVC.
 	copy conf.h.win conf.h
 	del Makefile
 	copy Makefile.msvc Makefile
-	
+
 6) If you have MSVC++ 4.x installed in C:\MSDEV, skip to the next step.
    Otherwise, bring up the Makefile in your favorite text editor (for
    example, to use the DOS EDIT command, type "EDIT MAKEFILE".)  Find the
@@ -67,7 +67,7 @@ package mentioned in the README.WIN file if you don't want to buy MSVC.
    command prompt for help, or check the manual to learn how to use the
    PATH command.
 
-8) To compile Circle, stay in the src directory and type: 
+8) To compile Circle, stay in the src directory and type:
 
         NMAKE
 
@@ -83,9 +83,9 @@ package mentioned in the README.WIN file if you don't want to buy MSVC.
    necessary; otherwise go to the Control Panel's "Network" settings,
    select "Add Protocol", and add Microsoft's TCP/IP.  Consult the
    documentation for Windows 95 (do not write me mail) if you have any
-   additional questions about how to set up TCP/IP under Windows 95. 
+   additional questions about how to set up TCP/IP under Windows 95.
 
-   YOU MUST INSTALL AND CONFIGURE YOUR TCP/IP STACK, EVEN IF YOU ARE NOT 
+   YOU MUST INSTALL AND CONFIGURE YOUR TCP/IP STACK, EVEN IF YOU ARE NOT
    CONNECTED TO THE INTERNET.
 
 10) Go back to Circle's main directory (like in Step 4), and run the server

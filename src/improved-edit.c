@@ -28,7 +28,7 @@ int improved_editor_execute(struct descriptor_data *d, char *str)
 {
   char actions[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (*str && str[0]== '@')
+  if (*str && str[0] == '@')
     return STRINGADD_SAVE;
 
   if (*str != '/')
@@ -113,24 +113,24 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
   switch (command)
   {
   case PARSE_HELP:
-    write_to_output(d,
-                    "Editor command formats: /<letter>\r\n\r\n"
-                    "/a         -  aborts editor\r\n"
-                    "/c         -  clears buffer\r\n"
-                    "/d#        -  deletes a line #\r\n"
-                    "/e# <text> -  changes the line at # with <text>\r\n"
-                    "/f         -  formats text\r\n"
-                    "/fi        -  indented formatting of text\r\n"
-                    "/h         -  list text editor commands\r\n"
-                    "/i# <text> -  inserts <text> before line #\r\n"
-                    "/l         -  lists buffer\r\n"
-                    "/n         -  lists buffer with line numbers\r\n"
-                    "/r 'a' 'b' -  replace 1st occurance of text <a> in buffer with text <b>\r\n"
-                    "/ra 'a' 'b'-  replace all occurances of text <a> within buffer with text <b>\r\n"
-                    "              usage: /r[a] 'pattern' 'replacement'\r\n"
-                    "/t         -  toggles '@' and tabs\r\n"
-                    "/s         -  saves text\r\n"
-                    "@          -  also saves text\r\n");
+    write_to_output(
+        d, "Editor command formats: /<letter>\r\n\r\n"
+           "/a         -  aborts editor\r\n"
+           "/c         -  clears buffer\r\n"
+           "/d#        -  deletes a line #\r\n"
+           "/e# <text> -  changes the line at # with <text>\r\n"
+           "/f         -  formats text\r\n"
+           "/fi        -  indented formatting of text\r\n"
+           "/h         -  list text editor commands\r\n"
+           "/i# <text> -  inserts <text> before line #\r\n"
+           "/l         -  lists buffer\r\n"
+           "/n         -  lists buffer with line numbers\r\n"
+           "/r 'a' 'b' -  replace 1st occurance of text <a> in buffer with text <b>\r\n"
+           "/ra 'a' 'b'-  replace all occurances of text <a> within buffer with text <b>\r\n"
+           "              usage: /r[a] 'pattern' 'replacement'\r\n"
+           "/t         -  toggles '@' and tabs\r\n"
+           "/s         -  saves text\r\n"
+           "@          -  also saves text\r\n");
     break;
   case PARSE_TOGGLE:
     if (!*d->str)
@@ -221,14 +221,16 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     {
       if ((replaced = replace_str(d->str, s, t, rep_all, d->max_str)) > 0)
       {
-        write_to_output(d, "Replaced %d occurance%sof '%s' with '%s'.\r\n", replaced, ((replaced != 1) ? "s " : " "), s, t);
+        write_to_output(d, "Replaced %d occurance%sof '%s' with '%s'.\r\n", replaced,
+                        ((replaced != 1) ? "s " : " "), s, t);
       }
       else if (replaced == 0)
       {
         write_to_output(d, "String '%s' not found.\r\n", s);
       }
       else
-        write_to_output(d, "ERROR: Replacement string causes buffer overflow, aborted replace.\r\n");
+        write_to_output(d,
+                        "ERROR: Replacement string causes buffer overflow, aborted replace.\r\n");
     }
     else
       write_to_output(d, "Not enough space left in buffer.\r\n");
@@ -577,7 +579,8 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
 
 /* Re-formats message type formatted char *. (for strings edited with d->str)
  * (mostly olc and mail). */
-int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned int maxlen, int low, int high)
+int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned int maxlen,
+                int low, int high)
 {
   int line_chars, cap_next = TRUE, cap_next_next = FALSE, color_chars = 0, i, pass_line = 0;
   char *flow, *start = NULL, temp;

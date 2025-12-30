@@ -10,26 +10,26 @@
 
 struct craft_data
 {
-    int craft_id;
-    char *craft_name;
-    int craft_flags;
-    obj_vnum craft_object_vnum;
-    int craft_timer;
+  int craft_id;
+  char *craft_name;
+  int craft_flags;
+  obj_vnum craft_object_vnum;
+  int craft_timer;
 
-    char *craft_msg_self;
-    char *craft_msg_room;
+  char *craft_msg_self;
+  char *craft_msg_room;
 
-    int craft_skill;
-    int craft_skill_level;
+  int craft_skill;
+  int craft_skill_level;
 
-    struct list_data *requirements;
+  struct list_data *requirements;
 };
 
 struct requirement_data
 {
-    obj_vnum req_vnum;
-    int req_amount;
-    int req_flags;
+  obj_vnum req_vnum;
+  int req_amount;
+  int req_flags;
 };
 
 #define CRAFT_ID(craft) (craft->craft_id)

@@ -152,7 +152,7 @@ In world files, the flags can be set using their numeric values (108-112) or str
 5. **Skill Value Types**: The codebase uses two different skill constant systems:
    - **CRAFT_SKILL_*** (stored in crafting_recipes): CRAFT_SKILL_WEAPONSMITH, CRAFT_SKILL_TAILOR, etc.
    - **ABILITY_CRAFT_*** (used by abilities): ABILITY_CRAFT_WEAPONSMITHING, ABILITY_CRAFT_TAILORING, etc.
-   
+
    Regular crafting and refining use ABILITY_CRAFT_* values directly. Supply orders use CRAFT_SKILL_* values and require conversion via `recipe_skill_to_actual_crafting_skill()` before checking station requirements.
 
 ### Future Enhancements

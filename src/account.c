@@ -163,7 +163,6 @@ int change_account_xp(struct char_data *ch, int change_val)
 */
 int has_unlocked_race(struct char_data *ch, int race)
 {
-
   if (IS_CAMPAIGN_DL || IS_CAMPAIGN_FR)
   {
     // In FR/DL campaigns, we allow LICH and Vampire
@@ -254,11 +253,14 @@ ACMD(do_accexp)
   /* Get first argument */
   remainder = one_argument(argument, arg, sizeof(arg));
   /* For class/race commands, get the rest of the line as arg2 */
-  if (is_abbrev(arg, "class") || is_abbrev(arg, "race")) {
+  if (is_abbrev(arg, "class") || is_abbrev(arg, "race"))
+  {
     /* Skip spaces and copy rest of line */
     skip_spaces_c(&remainder);
     strlcpy(arg2, remainder, sizeof(arg2));
-  } else {
+  }
+  else
+  {
     /* For other commands, get the next single argument */
     one_argument(remainder, arg2, sizeof(arg2));
   }
@@ -273,12 +275,14 @@ ACMD(do_accexp)
   /* Alignment purchase branch */
   if (is_abbrev(arg, "align"))
   {
-
     cost = ALIGN_COST;
 
     if (!*arg2)
     {
-      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
+      send_to_char(ch,
+                   "Please choose 'good' for good alignment change or 'evil' for evil alignment "
+                   "change.  It cost %d account exp for each.\r\n",
+                   cost);
       return;
     }
 
@@ -292,7 +296,10 @@ ACMD(do_accexp)
     }
     else
     {
-      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
+      send_to_char(ch,
+                   "Please choose 'good' for good alignment change or 'evil' for evil alignment "
+                   "change.  It cost %d account exp for each.\r\n",
+                   cost);
       return;
     }
 
@@ -307,7 +314,8 @@ ACMD(do_accexp)
       else if (GET_ACCEXP_DESC(ch) >= cost)
       {
         change_account_xp(ch, -cost);
-        send_to_char(ch, "You have changed your alignment by %d points, costing %d account points!\r\n",
+        send_to_char(ch,
+                     "You have changed your alignment by %d points, costing %d account points!\r\n",
                      align_change, cost);
 
         GET_ALIGNMENT(ch) += align_change;
@@ -329,8 +337,9 @@ ACMD(do_accexp)
       }
       else
       {
-        send_to_char(ch, "You need %d account experience to purchase that change and you only have %d.\r\n",
-                     cost, GET_ACCEXP_DESC(ch));
+        send_to_char(
+            ch, "You need %d account experience to purchase that change and you only have %d.\r\n",
+            cost, GET_ACCEXP_DESC(ch));
         return;
       }
     }
@@ -347,13 +356,18 @@ ACMD(do_accexp)
     int start = 0;
     int end = 0;
 
-    if (IS_CAMPAIGN_FR) {
+    if (IS_CAMPAIGN_FR)
+    {
       start = 0;
       end = NUM_EXTENDED_PC_RACES;
-    } else if (IS_CAMPAIGN_DL) {
+    }
+    else if (IS_CAMPAIGN_DL)
+    {
       start = DL_RACE_START;
       end = DL_RACE_END;
-    } else {
+    }
+    else
+    {
       start = 0;
       end = NUM_RACES;
     }
@@ -363,7 +377,8 @@ ACMD(do_accexp)
     {
       send_to_char(ch, "Please choose from the following races:\r\n");
 
-      for (i = start; i < end; i++) {
+      for (i = start; i < end; i++)
+      {
         if (!is_locked_race(i) || has_unlocked_race(ch, i))
           continue;
 
@@ -373,26 +388,27 @@ ACMD(do_accexp)
     }
 
     /* Identify the intended race to unlock by name abbreviation */
-  for (i = start; i < end; i++) {
-    if (race_list[i].is_pc &&
-        is_abbrev(arg2, race_list[i].type) &&
-        is_locked_race(i) &&
-        !has_unlocked_race(ch, i)) {
-      cost = locked_race_cost(i);
-      break;
-    }
-  }
-
-  if (i >= end) {
-    send_to_char(ch, "Either that race does not exist, is not an advanced race, "
-                     "is not available for players, or you've already unlocked it.\r\n");
-    return;
-  }
+    for (i = start; i < end; i++)
+    {
+      if (race_list[i].is_pc && is_abbrev(arg2, race_list[i].type) && is_locked_race(i) &&
+          !has_unlocked_race(ch, i))
       {
-        send_to_char(ch, "Either that race does not exist, is not an advanced race, "
-                         "is not available for players, or you've already unlocked it.\r\n");
-        return;
+        cost = locked_race_cost(i);
+        break;
       }
+    }
+
+    if (i >= end)
+    {
+      send_to_char(ch, "Either that race does not exist, is not an advanced race, "
+                       "is not available for players, or you've already unlocked it.\r\n");
+      return;
+    }
+    {
+      send_to_char(ch, "Either that race does not exist, is not an advanced race, "
+                       "is not available for players, or you've already unlocked it.\r\n");
+      return;
+    }
     if (ch->desc && ch->desc->account)
     {
       /* Find an empty slot in account->races array */
@@ -410,16 +426,18 @@ ACMD(do_accexp)
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
         ch->desc->account->races[j] = i;
-        send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
-                         "and future characters on your account!.\r\n",
+        send_to_char(ch,
+                     "You have unlocked the advanced race '%s' for all character "
+                     "and future characters on your account!.\r\n",
                      race_list[i].type);
         change_account_xp(ch, -cost); /* this will call save_account() for us */
         return;
       }
       else
       {
-        send_to_char(ch, "You need %d account experience to purchase that advanced "
-                         "race and you only have %d.\r\n",
+        send_to_char(ch,
+                     "You need %d account experience to purchase that advanced "
+                     "race and you only have %d.\r\n",
                      cost, GET_ACCEXP_DESC(ch));
         return;
       }
@@ -457,7 +475,7 @@ ACMD(do_accexp)
       /* Skip already unlocked classes and non-lockable classes */
       if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
         continue;
-        
+
       /* Check if this class matches the input */
       if (is_abbrev(arg2, CLSLIST_NAME(i)))
       {
@@ -467,42 +485,44 @@ ACMD(do_accexp)
           cost = CLSLIST_COST(i);
         break;
       }
-      
+
       /* For knight classes, also check alternate names */
-      if (i == CLASS_KNIGHT_OF_SOLAMNIA || (i >= CLASS_KNIGHT_OF_THE_THORN && i <= CLASS_KNIGHT_OF_THE_LILY))
+      if (i == CLASS_KNIGHT_OF_SOLAMNIA ||
+          (i >= CLASS_KNIGHT_OF_THE_THORN && i <= CLASS_KNIGHT_OF_THE_LILY))
       {
         bool matches_alternate = FALSE;
-        switch (i) {
-          case CLASS_KNIGHT_OF_SOLAMNIA:
+        switch (i)
+        {
+        case CLASS_KNIGHT_OF_SOLAMNIA:
 #ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the luminous thread");
+          matches_alternate = is_abbrev(arg2, "knight of the luminous thread");
 #else
-            matches_alternate = is_abbrev(arg2, "knight of solamnia");
+          matches_alternate = is_abbrev(arg2, "knight of solamnia");
 #endif
-            break;
-          case CLASS_KNIGHT_OF_THE_LILY:
+          break;
+        case CLASS_KNIGHT_OF_THE_LILY:
 #ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the howling moon");
+          matches_alternate = is_abbrev(arg2, "knight of the howling moon");
 #else
-            matches_alternate = is_abbrev(arg2, "knight of the lily");
+          matches_alternate = is_abbrev(arg2, "knight of the lily");
 #endif
-            break;
-          case CLASS_KNIGHT_OF_THE_THORN:
+          break;
+        case CLASS_KNIGHT_OF_THE_THORN:
 #ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the shattered mirror");
+          matches_alternate = is_abbrev(arg2, "knight of the shattered mirror");
 #else
-            matches_alternate = is_abbrev(arg2, "knight of the thorn");
+          matches_alternate = is_abbrev(arg2, "knight of the thorn");
 #endif
-            break;
-          case CLASS_KNIGHT_OF_THE_SKULL:
+          break;
+        case CLASS_KNIGHT_OF_THE_SKULL:
 #ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the pale throne");
+          matches_alternate = is_abbrev(arg2, "knight of the pale throne");
 #else
-            matches_alternate = is_abbrev(arg2, "knight of the skull");
+          matches_alternate = is_abbrev(arg2, "knight of the skull");
 #endif
-            break;
+          break;
         }
-        
+
         if (matches_alternate)
         {
           if (IS_CAMPAIGN_DL)
@@ -536,15 +556,18 @@ ACMD(do_accexp)
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
         ch->desc->account->classes[j] = i;
-        send_to_char(ch, "You have unlocked the prestige class '%s' for all "
-                         "character and future characters on your account!.\r\n",
+        send_to_char(ch,
+                     "You have unlocked the prestige class '%s' for all "
+                     "character and future characters on your account!.\r\n",
                      CLSLIST_NAME(i));
         change_account_xp(ch, -cost); /* this will call save_account() for us */
         return;
       }
       else
       {
-        send_to_char(ch, "You need %d account experience to purchase that prestige class and you only have %d.\r\n",
+        send_to_char(ch,
+                     "You need %d account experience to purchase that prestige class and you only "
+                     "have %d.\r\n",
                      cost, GET_ACCEXP_DESC(ch));
         return;
       }
@@ -587,30 +610,37 @@ int load_account(char *name, struct account_data *account)
   char buf[2048];
 
   /* Check if MySQL is available */
-  if (!mysql_available || !conn) {
-    return -1;  /* Account not found - no MySQL */
+  if (!mysql_available || !conn)
+  {
+    return -1; /* Account not found - no MySQL */
   }
 
   /* Check if the account has data, if so, clear it. */
-  if (account != NULL) {
+  if (account != NULL)
+  {
     int i;
-    if (account->name != NULL) {
+    if (account->name != NULL)
+    {
       free(account->name);
       account->name = NULL;
     }
-    if (account->email != NULL) {
+    if (account->email != NULL)
+    {
       free(account->email);
       account->email = NULL;
     }
-    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
-      if (account->character_names[i] != NULL) {
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+    {
+      if (account->character_names[i] != NULL)
+      {
         free(account->character_names[i]);
         account->character_names[i] = NULL;
       }
     }
   }
   /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed", __func__);
     return -1;
   }
@@ -618,9 +648,11 @@ int load_account(char *name, struct account_data *account)
   /* Escape the account name to prevent SQL injection */
   char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
   mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-  
+
   /* Case-insensitive match on the escaped account name */
-  snprintf(buf, sizeof(buf), "SELECT id, name, password, experience, email from account_data where lower(name) = lower('%s')",
+  snprintf(buf, sizeof(buf),
+           "SELECT id, name, password, experience, email from account_data where lower(name) = "
+           "lower('%s')",
            escaped_name);
 
   if (mysql_query(conn, buf))
@@ -671,51 +703,52 @@ void cleanup_duplicate_characters(struct account_data *account)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char buf[2048];
-  
+
   if (!account || account->id <= 0)
     return;
-    
+
   /* Get list of duplicate character names for this account */
-  snprintf(buf, sizeof(buf), 
-    "SELECT name, COUNT(*) as cnt "
-    "FROM player_data "
-    "WHERE account_id = %d "
-    "GROUP BY name "
-    "HAVING cnt > 1", account->id);
-    
+  snprintf(buf, sizeof(buf),
+           "SELECT name, COUNT(*) as cnt "
+           "FROM player_data "
+           "WHERE account_id = %d "
+           "GROUP BY name "
+           "HAVING cnt > 1",
+           account->id);
+
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to check for duplicate characters: %s", mysql_error(conn));
     return;
   }
-  
+
   if (!(result = mysql_store_result(conn)))
   {
     log("SYSERR: Unable to store duplicate check results: %s", mysql_error(conn));
     return;
   }
-  
+
   /* Process each duplicate character */
   while ((row = mysql_fetch_row(result)))
   {
     char *name = row[0];
     int count = atoi(row[1]);
-    
+
     /* Escape character name */
     char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
     mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-    
+
     /* Delete all but one - we delete count-1 duplicates
      * ORDER BY ensures we keep a consistent row (the "first" one)
      * This approach works regardless of table structure */
     snprintf(buf, sizeof(buf),
-      "DELETE FROM player_data "
-      "WHERE account_id = %d "
-      "AND lower(name) = lower('%s') "
-      "ORDER BY name "
-      "LIMIT %d",
-      account->id, escaped_name, count - 1);
-      
+             "DELETE FROM player_data "
+             "WHERE account_id = %d "
+             "AND lower(name) = lower('%s') "
+             "ORDER BY name "
+             "LIMIT %d",
+             account->id, escaped_name, count - 1);
+
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to delete duplicate character %s: %s", name, mysql_error(conn));
@@ -723,10 +756,10 @@ void cleanup_duplicate_characters(struct account_data *account)
     else
     {
       log("Info: Cleaned up %ld duplicate(s) of character %s for account %s",
-        (long)mysql_affected_rows(conn), name, account->name);
+          (long)mysql_affected_rows(conn), name, account->name);
     }
   }
-  
+
   mysql_free_result(result);
 }
 
@@ -757,10 +790,11 @@ void load_account_characters(struct account_data *account)
     }
 
   /* First check if we need to clean up duplicates */
-  snprintf(buf, sizeof(buf), 
-    "SELECT COUNT(*) as total, COUNT(DISTINCT name) as unique_names "
-    "FROM player_data WHERE account_id = %d", account->id);
-    
+  snprintf(buf, sizeof(buf),
+           "SELECT COUNT(*) as total, COUNT(DISTINCT name) as unique_names "
+           "FROM player_data WHERE account_id = %d",
+           account->id);
+
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to check for duplicates: %s", mysql_error(conn));
@@ -773,7 +807,7 @@ void load_account_characters(struct account_data *account)
       int unique_count = atoi(row[1]);
       if (total > unique_count)
       {
-        log("Info: Detected %d duplicate character entries for account %s, cleaning up...", 
+        log("Info: Detected %d duplicate character entries for account %s, cleaning up...",
             total - unique_count, account->name);
         mysql_free_result(result);
         cleanup_duplicate_characters(account);
@@ -834,8 +868,9 @@ void load_account_unlocks(struct account_data *account)
   int i = 0;
 
   /* load locked classes */
-  snprintf(buf, sizeof(buf), "SELECT class_id from unlocked_classes "
-                             "WHERE account_id = %d",
+  snprintf(buf, sizeof(buf),
+           "SELECT class_id from unlocked_classes "
+           "WHERE account_id = %d",
            account->id);
 
   if (mysql_query(conn, buf))
@@ -851,7 +886,7 @@ void load_account_unlocks(struct account_data *account)
   }
 
   i = 0;
-  
+
   while ((row = mysql_fetch_row(result)) && i < MAX_UNLOCKED_CLASSES)
   {
     account->classes[i] = atoi(row[0]);
@@ -860,8 +895,9 @@ void load_account_unlocks(struct account_data *account)
   mysql_free_result(result);
 
   /* load locked races */
-  snprintf(buf, sizeof(buf), "SELECT race_id from unlocked_races "
-                             "WHERE account_id = %d",
+  snprintf(buf, sizeof(buf),
+           "SELECT race_id from unlocked_races "
+           "WHERE account_id = %d",
            account->id);
   if (mysql_query(conn, buf))
   {
@@ -908,8 +944,11 @@ char *get_char_account_name(char *name)
   /* Escape character name to prevent SQL injection */
   char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
   mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-  
-  snprintf(buf, sizeof(buf), "select a.name from account_data a, player_data p where p.account_id = a.id and p.name = '%s'", escaped_name);
+
+  snprintf(buf, sizeof(buf),
+           "select a.name from account_data a, player_data p where p.account_id = a.id and p.name "
+           "= '%s'",
+           escaped_name);
 
   if (mysql_query(conn, buf))
   {
@@ -924,7 +963,7 @@ char *get_char_account_name(char *name)
   while ((row = mysql_fetch_row(result)))
   {
     if (acct_name)
-      free(acct_name);  /* Free previous allocation if multiple rows */
+      free(acct_name); /* Free previous allocation if multiple rows */
     acct_name = (row[0] ? strdup(row[0]) : NULL);
   }
   mysql_free_result(result);
@@ -959,16 +998,14 @@ void save_account(struct account_data *account)
     return;
   }
 
-  snprintf(buf, sizeof(buf), "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', '%s', %d, %s%s%s)"
-                             " on duplicate key update password = VALUES(password), "
-                             "                         experience = VALUES(experience), "
-                             "                         email = VALUES(email);",
-           account->id,
-           account->name,
-           account->password,
-           account->experience,
-           (account->email ? "'" : ""),
-           (account->email ? account->email : "NULL"),
+  snprintf(buf, sizeof(buf),
+           "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', "
+           "'%s', %d, %s%s%s)"
+           " on duplicate key update password = VALUES(password), "
+           "                         experience = VALUES(experience), "
+           "                         email = VALUES(email);",
+           account->id, account->name, account->password, account->experience,
+           (account->email ? "'" : ""), (account->email ? account->email : "NULL"),
            (account->email ? "'" : ""));
 
   if (mysql_query(conn, buf))
@@ -987,15 +1024,18 @@ void save_account(struct account_data *account)
     buf[0] = '\0';
     /* Escape character name to prevent SQL injection */
     char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
-    mysql_real_escape_string(conn, escaped_name, account->character_names[i], strlen(account->character_names[i]));
-    
-    snprintf(buf, sizeof(buf), "UPDATE player_data SET account_id = %d "
-                               "WHERE lower(name) = lower('%s');",
+    mysql_real_escape_string(conn, escaped_name, account->character_names[i],
+                             strlen(account->character_names[i]));
+
+    snprintf(buf, sizeof(buf),
+             "UPDATE player_data SET account_id = %d "
+             "WHERE lower(name) = lower('%s');",
              account->id, escaped_name);
     if (mysql_query(conn, buf))
     {
       /* Log error but continue - don't abort for single character update failure */
-      log("SYSERR: Unable to UPDATE player_data for %s: %s", account->character_names[i], mysql_error(conn));
+      log("SYSERR: Unable to UPDATE player_data for %s: %s", account->character_names[i],
+          mysql_error(conn));
     }
   }
 
@@ -1003,9 +1043,10 @@ void save_account(struct account_data *account)
   for (i = 0; i < MAX_UNLOCKED_RACES; i++)
   {
     buf[0] = '\0';
-    snprintf(buf, sizeof(buf), "INSERT into unlocked_races (account_id, race_id) "
-                               "VALUES (%d, %d)"
-                               "on duplicate key update race_id = VALUES(race_id);",
+    snprintf(buf, sizeof(buf),
+             "INSERT into unlocked_races (account_id, race_id) "
+             "VALUES (%d, %d)"
+             "on duplicate key update race_id = VALUES(race_id);",
              account->id, account->races[i]);
     if (mysql_query(conn, buf))
     {
@@ -1018,9 +1059,10 @@ void save_account(struct account_data *account)
   for (i = 0; i < MAX_UNLOCKED_CLASSES; i++)
   {
     buf[0] = '\0';
-    snprintf(buf, sizeof(buf), "INSERT into unlocked_classes (account_id, class_id) "
-                               "VALUES (%d, %d)"
-                               "on duplicate key update class_id = VALUES(class_id);",
+    snprintf(buf, sizeof(buf),
+             "INSERT into unlocked_classes (account_id, class_id) "
+             "VALUES (%d, %d)"
+             "on duplicate key update class_id = VALUES(class_id);",
              account->id, account->classes[i]);
     if (mysql_query(conn, buf))
     {
@@ -1074,11 +1116,13 @@ void show_account_menu(struct descriptor_data *d)
   size_t len = 0;
 
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
-  write_to_output(d, "  \tc#  \tC| \tcName                \tC| \tcLvl \tC| \tcRace \tC| \tcClass\tn \r\n");
+  write_to_output(
+      d, "  \tc#  \tC| \tcName                \tC| \tcLvl \tC| \tcRace \tC| \tcClass\tn \r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
 
   /*  Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: save_account: Database connection failed");
     return;
   }
@@ -1098,19 +1142,23 @@ void show_account_menu(struct descriptor_data *d)
       CREATE(xtch->player_specials, struct player_special_data, 1);
       new_mobile_data(xtch);
 
-      if (d->account->character_names[i] != NULL && load_char(d->account->character_names[i], xtch) > -1)
+      if (d->account->character_names[i] != NULL &&
+          load_char(d->account->character_names[i], xtch) > -1)
       {
         /* Character loaded successfully, we're done with xtch */
         free_char(xtch);
         xtch = NULL;
 
-        write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
+        write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1,
+                        d->account->character_names[i]);
         char *escaped_name = mysql_escape_string_alloc(conn, d->account->character_names[i]);
-        if (!escaped_name) {
+        if (!escaped_name)
+        {
           log("SYSERR: Failed to escape character name in display_account_menu");
           continue;
         }
-        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", escaped_name);
+        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')",
+                 escaped_name);
         free(escaped_name);
 
         if (mysql_query(conn, query))
@@ -1145,7 +1193,8 @@ void show_account_menu(struct descriptor_data *d)
               }
 
               /* Level and race abbreviation with color formatting */
-              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev_color);
+              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch),
+                              race_list[GET_REAL_RACE(tch)].abbrev_color);
 
               if (GET_LEVEL(tch) >= LVL_IMMORT)
               {
@@ -1164,8 +1213,7 @@ void show_account_menu(struct descriptor_data *d)
                   {
                     if (classCount)
                       len += snprintf(buf + len, sizeof(buf) - len, "/");
-                    len += snprintf(buf + len, sizeof(buf) - len, "%s",
-                                    CLSLIST_CLRABBRV(inc));
+                    len += snprintf(buf + len, sizeof(buf) - len, "%s", CLSLIST_CLRABBRV(inc));
                     classCount++;
                   }
                 }
@@ -1189,9 +1237,11 @@ void show_account_menu(struct descriptor_data *d)
   write_to_output(d, "You can view more info about your account by typing "
                      "'account' in-game.\r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
-  write_to_output(d, "\tcType the # of a character listed above or choose one of the following:\r\n");
+  write_to_output(d,
+                  "\tcType the # of a character listed above or choose one of the following:\r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
-  write_to_output(d, " \tn(\tCC\tn)\tcreate a new character \tC| \tn(\tCA\tn)\tcdd a character      \tC| \tn(\tCQ\tn)\tcuit\tn\r\n");
+  write_to_output(d, " \tn(\tCC\tn)\tcreate a new character \tC| \tn(\tCA\tn)\tcdd a character     "
+                     " \tC| \tn(\tCQ\tn)\tcuit\tn\r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
   write_to_output(d, "\tcYour choice :\tn ");
 
@@ -1244,9 +1294,7 @@ void perform_do_account(struct char_data *ch, struct char_data *vict)
   struct account_data *acc = vict->desc->account;
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
-  send_to_char(ch,
-               "\tcAccount Information for \tW%s\tc\r\n",
-               acc->name);
+  send_to_char(ch, "\tcAccount Information for \tW%s\tc\r\n", acc->name);
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch,
@@ -1340,8 +1388,9 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
   /* Escape character name to prevent SQL injection */
   char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
   mysql_real_escape_string(conn, escaped_name, GET_NAME(ch), strlen(GET_NAME(ch)));
-  
-  snprintf(buf, sizeof(buf), "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
+
+  snprintf(buf, sizeof(buf),
+           "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
            escaped_name, account->id);
 
   if (mysql_query(conn, buf))
@@ -1353,5 +1402,6 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
   /* Reload the character names */
   load_account_characters(account);
 
-  log("Info: Character %s removed from account %s : %s", GET_NAME(ch), account->name, mysql_info(conn));
+  log("Info: Character %s removed from account %s : %s", GET_NAME(ch), account->name,
+      mysql_info(conn));
 }

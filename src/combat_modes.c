@@ -70,8 +70,7 @@ struct combat_mode_data combat_mode_info[] = {
     {"counterspell", AFF_COUNTERSPELL, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
     {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
     {"whirlwind attack", AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, FALSE, MODE_GROUP_NONE},
-    {"deadly aim", AFF_DEADLY_AIM, FEAT_DEADLY_AIM, TRUE, MODE_GROUP_NONE}
-    };
+    {"deadly aim", AFF_DEADLY_AIM, FEAT_DEADLY_AIM, TRUE, MODE_GROUP_NONE}};
 
 /* Unified combat mode management */
 bool is_mode_enabled(const struct char_data *ch, const int mode)
@@ -99,8 +98,7 @@ int is_mode_blocked(const struct char_data *ch, const int mode)
   /* Check the modes groups.  Modes set to MODE_GROUP_NONE do not ever block. */
   for (i = 1; i < MAX_MODES; i++)
   {
-    if ((i != MODE_GROUP_NONE) &&
-        (combat_mode_info[mode].group == combat_mode_info[i].group) &&
+    if ((i != MODE_GROUP_NONE) && (combat_mode_info[mode].group == combat_mode_info[i].group) &&
         is_mode_enabled(ch, i))
     {
       return i;
@@ -111,8 +109,7 @@ int is_mode_blocked(const struct char_data *ch, const int mode)
 
 bool can_enable_mode(struct char_data *ch, const int mode)
 {
-  if ((is_mode_blocked(ch, mode)) ||
-      (!HAS_FEAT(ch, combat_mode_info[mode].required_feat)))
+  if ((is_mode_blocked(ch, mode)) || (!HAS_FEAT(ch, combat_mode_info[mode].required_feat)))
   {
     return FALSE;
   }
@@ -141,7 +138,6 @@ void disable_combat_mode(struct char_data *ch, int mode)
 /* Generic mode manager */
 ACMD(do_mode)
 {
-
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int number = -1;
   int blocking_mode = 0;
@@ -159,10 +155,8 @@ ACMD(do_mode)
       return;
     }
   }
-  if (is_mode_enabled(ch, mode) &&
-      ((combat_mode_info[mode].has_value == FALSE) ||
-       ((combat_mode_info[mode].has_value == TRUE) &&
-        (!*arg))))
+  if (is_mode_enabled(ch, mode) && ((combat_mode_info[mode].has_value == FALSE) ||
+                                    ((combat_mode_info[mode].has_value == TRUE) && (!*arg))))
   {
     send_to_char(ch, "You leave %s mode.\r\n", combat_mode_info[mode].name);
     disable_combat_mode(ch, mode);
@@ -178,11 +172,11 @@ ACMD(do_mode)
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  if (((blocking_mode = is_mode_blocked(ch, mode)) != MODE_NONE) &&
-      (blocking_mode != mode))
+  if (((blocking_mode = is_mode_blocked(ch, mode)) != MODE_NONE) && (blocking_mode != mode))
   {
     /* There is a blocking mode */
-    send_to_char(ch, "You can't combine %s and %s modes!\r\n", combat_mode_info[mode].name, combat_mode_info[blocking_mode].name);
+    send_to_char(ch, "You can't combine %s and %s modes!\r\n", combat_mode_info[mode].name,
+                 combat_mode_info[blocking_mode].name);
     return;
   }
   if (combat_mode_info[mode].has_value)
@@ -190,7 +184,8 @@ ACMD(do_mode)
     /* No argument */
     if (!*arg)
     {
-      send_to_char(ch, "You must specify an argument when entering %s mode.\r\n", combat_mode_info[mode].name);
+      send_to_char(ch, "You must specify an argument when entering %s mode.\r\n",
+                   combat_mode_info[mode].name);
       return;
     }
 
@@ -210,17 +205,20 @@ ACMD(do_mode)
       ;
     else if (!IS_NPC(ch) && number > MODE_CAP)
     {
-      send_to_char(ch, "The maximum value you can specify for %s is %d (mode cap).\r\n", combat_mode_info[mode].name, MODE_CAP);
+      send_to_char(ch, "The maximum value you can specify for %s is %d (mode cap).\r\n",
+                   combat_mode_info[mode].name, MODE_CAP);
       return;
     }
     else if (!IS_NPC(ch) && number > NUM_ATTACKS_BAB(ch))
     {
-      send_to_char(ch, "Mode %s is limited to %d - your base attack bonus (BAB).\r\n", combat_mode_info[mode].name, NUM_ATTACKS_BAB(ch));
+      send_to_char(ch, "Mode %s is limited to %d - your base attack bonus (BAB).\r\n",
+                   combat_mode_info[mode].name, NUM_ATTACKS_BAB(ch));
       return;
     }
     else if (number < 1)
     {
-      send_to_char(ch, "The minimum value you can specify for %s is 1.\r\n", combat_mode_info[mode].name);
+      send_to_char(ch, "The minimum value you can specify for %s is 1.\r\n",
+                   combat_mode_info[mode].name);
       return;
     }
   }
@@ -230,7 +228,8 @@ ACMD(do_mode)
   }
   else if (combat_mode_info[mode].has_value)
   {
-    send_to_char(ch, "You change the value for %s mode to %d.\r\n", combat_mode_info[mode].name, number);
+    send_to_char(ch, "You change the value for %s mode to %d.\r\n", combat_mode_info[mode].name,
+                 number);
   }
   else
   {
@@ -255,10 +254,8 @@ ACMD(do_spellbattle)
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_EXPERTISE) ||
-      AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) ||
-      AFF_FLAGGED(ch, AFF_DEADLY_AIM) ||
-      AFF_FLAGGED(ch, AFF_POWER_ATTACK))
+  if (AFF_FLAGGED(ch, AFF_EXPERTISE) || AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) ||
+      AFF_FLAGGED(ch, AFF_DEADLY_AIM) || AFF_FLAGGED(ch, AFF_POWER_ATTACK))
   {
     send_to_char(ch, "You can't be in a combat-mode and enter spell-battle.\r\n");
     return;
@@ -270,8 +267,7 @@ ACMD(do_spellbattle)
   /* OK no argument, that means we're attempting to turn it off */
   if (!*arg)
   {
-    if (AFF_FLAGGED(ch, AFF_SPELLBATTLE) &&
-        !char_has_mud_event(ch, eSPELLBATTLE))
+    if (AFF_FLAGGED(ch, AFF_SPELLBATTLE) && !char_has_mud_event(ch, eSPELLBATTLE))
     {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
       send_to_char(ch, "You leave 'spellbattle' mode.\r\n");
@@ -290,8 +286,7 @@ ACMD(do_spellbattle)
     }
   }
 
-  if (char_has_mud_event(ch, eSPELLBATTLE) ||
-      affected_by_spell(ch, SKILL_SPELLBATTLE))
+  if (char_has_mud_event(ch, eSPELLBATTLE) || affected_by_spell(ch, SKILL_SPELLBATTLE))
   {
     send_to_char(ch, "You are already in spellbattle mode!\r\n");
     return;
@@ -345,8 +340,7 @@ ACMD(do_spellbattle)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
-  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL),
-                   1 * SECS_PER_REAL_HOUR);
+  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), 1 * SECS_PER_REAL_HOUR);
 }
 
 #undef SPELLBATTLE_CAP

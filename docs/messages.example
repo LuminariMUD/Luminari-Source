@@ -759,7 +759,7 @@ M
 	c$n's grasping hand squeezes the life from $N!	n
 	cYour grasping hand closes in on air as $N avoids it!	n
 	cYou barely avoid being crushed to death by $n's 	Cgr	casp	Cin	cg 	Cha	cnd!	n
-	c$n's 	Cgr	casp	Cin	cg 	Ch	ca	Cnd	c barely misses its attempt to crush the life from $N!	N 
+	c$n's 	Cgr	casp	Cin	cg 	Ch	ca	Cnd	c barely misses its attempt to crush the life from $N!	N
 	cYou conjure an ethereal hand which reaches out and crushes $N!	n
 	c$n speaks ancient words and an ethereal hand suddenly appears and attempts to craush the life from you!	N
 	c$n speaks ancient words and an ethereal hand suddenly appears and attempts to craush the life from $N!	N
@@ -3029,7 +3029,7 @@ You reach out to touch $N with an undead arm, but $E evades you.
 $n reaches out to touch You with an undead arm, but You evade $m.
 $n reaches out to touch $N with an undead arm, but $E evades $m.
 You touch $N with an undead arm and $E shrivels and withers painfully.
-$n touches You with an undead arm and You shrivel and wither painfully. 
+$n touches You with an undead arm and You shrivel and wither painfully.
 $n touch $N with an undead arm and $E shrivels and withers painfully.
 You reach out to touch $N with an undead arm, but $E evades you.
 $n reaches out to touch You with an undead arm, but You evade $m.
@@ -3130,4 +3130,3 @@ $n's barrage of missiles veers off and misses $N!
 Your barrage of missiles fizzles harmlessly before reaching $N!
 $n's barrage of missiles fizzles pathetically before reaching you.
 $n's barrage of missiles fizzles harmlessly before reaching $N.
-

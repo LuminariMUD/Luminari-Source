@@ -53,7 +53,7 @@ This document details the implementation of Tier 3 and Tier 4 perks from the Sea
 **Benefits:**
 - Lightning spells chain to 2 additional targets for 50% damage each
 
-**Implementation Status:** 
+**Implementation Status:**
 - Helper function `has_druid_storm_caller()` created in perks.c
 - **NOT YET FULLY IMPLEMENTED** - Requires complex area-of-effect spell modification
 - Would need to modify individual lightning spell implementations to add chaining effect

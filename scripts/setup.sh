@@ -2,7 +2,7 @@
 
 ################################################################################
 # LuminariMUD Setup Script
-# 
+#
 # Automated deployment script that builds and configures LuminariMUD from source.
 # This script handles all necessary steps for a complete deployment.
 #
@@ -85,7 +85,7 @@ if [[ -d lib/world/minimal ]]; then
     else
         echo '$' > lib/world/zon/index
     fi
-    
+
     # World/room files
     if [[ -f lib/world/minimal/0.wld ]]; then
         cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
@@ -94,7 +94,7 @@ if [[ -d lib/world/minimal ]]; then
     else
         echo '$' > lib/world/wld/index
     fi
-    
+
     # Mob files
     if [[ -f lib/world/minimal/0.mob ]]; then
         cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
@@ -103,7 +103,7 @@ if [[ -d lib/world/minimal ]]; then
     else
         echo '$' > lib/world/mob/index
     fi
-    
+
     # Object files - create a minimal one if it doesn't exist
     if [[ -f lib/world/minimal/0.obj ]]; then
         cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
@@ -125,7 +125,7 @@ EOF
         echo "0.obj" > lib/world/obj/index
         echo '$' >> lib/world/obj/index
     fi
-    
+
     # Shop files
     if [[ -f lib/world/minimal/0.shp ]]; then
         cp lib/world/minimal/*.shp lib/world/shp/ 2>/dev/null || true
@@ -134,7 +134,7 @@ EOF
     else
         echo '$' > lib/world/shp/index
     fi
-    
+
     # Trigger files
     if [[ -f lib/world/minimal/0.trg ]]; then
         cp lib/world/minimal/*.trg lib/world/trg/ 2>/dev/null || true
@@ -143,7 +143,7 @@ EOF
     else
         echo '$' > lib/world/trg/index
     fi
-    
+
     # Quest files
     if [[ -f lib/world/minimal/0.qst ]]; then
         cp lib/world/minimal/*.qst lib/world/qst/ 2>/dev/null || true
@@ -152,7 +152,7 @@ EOF
     else
         echo '$' > lib/world/qst/index
     fi
-    
+
     echo "  Set up minimal world files"
 else
     echo -e "${YELLOW}  Warning: No minimal world directory found${NC}"

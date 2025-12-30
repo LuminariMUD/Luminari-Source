@@ -60,7 +60,7 @@ The SKORE system automatically detects your current activity context and reorder
 The magic section now includes active spell effects with visual duration indicators:
 
 - **Progress Bars**: Shows remaining duration as a filled bar
-- **Color Coding**: 
+- **Color Coding**:
   - Green: More than 1 hour remaining
   - Yellow: 10-60 minutes remaining
   - Red: Less than 10 minutes remaining

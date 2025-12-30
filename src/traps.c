@@ -77,7 +77,6 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
   /* check the room for any traps */
   for (trap = world[room].contents; trap; trap = trap->next_content)
   {
-
     /* is this a trap? */
     if (GET_OBJ_TYPE(trap) == ITEM_TRAP && GET_OBJ_VAL(trap, 0) == trap_type)
     {
@@ -131,7 +130,8 @@ ACMD(do_disabletrap)
         act("...and is successful!", FALSE, ch, 0, 0, TO_ROOM);
         act("...and are successful!", FALSE, ch, 0, 0, TO_CHAR);
         exp = dc * dc * 100;
-        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+        send_to_char(ch, "You receive %d experience points.\r\n",
+                     gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
         extract_obj(trap);
       }
       else
@@ -174,7 +174,8 @@ int perform_detecttrap(struct char_data *ch, bool silent)
         act("You have detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_CHAR);
         set_trap_detected(trap);
         exp = dc * 100;
-        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+        send_to_char(ch, "You receive %d experience points.\r\n",
+                     gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
         return 1;
       }
     }
@@ -191,7 +192,6 @@ int perform_detecttrap(struct char_data *ch, bool silent)
 
 ACMD(do_detecttrap)
 {
-
   if (!GET_ABILITY(ch, ABILITY_PERCEPTION))
   {
     send_to_char(ch, "But you do not know how.\r\n");
@@ -259,7 +259,6 @@ EVENTFUNC(event_trap_triggered)
 
   switch (pMudEvent->iId)
   {
-
   case eTRAPTRIGGERED:
     /* init the af-struct */
     af.spell = TYPE_UNDEFINED;
@@ -288,17 +287,19 @@ EVENTFUNC(event_trap_triggered)
       /* ok so its not a spell and should be a valid value, lets handle it */
       switch (effect)
       {
-
       case TRAP_TYPE_FIRE:
-        to_char = "\tLThe air is sucked from your lungs as a wall of \tRflames\tL erupts at your feet\tn!";
+        to_char = "\tLThe air is sucked from your lungs as a wall of \tRflames\tL erupts at your "
+                  "feet\tn!";
         to_room = "\tLYou watch in horror as \tn$n\tL is engulfed in a \tRwall \trof \tRflames!\tn";
         dam = dice(20, 20);
         dam_type = DAM_FIRE;
         break;
 
       case TRAP_TYPE_ELECTRICAL:
-        to_char = "\twA brilliant light suddenly blinds you and the smell of your own \tLscorched flesh\tw fills your nostrils.\tn";
-        to_room = "\twA bright flash blinds you, striking \tn$n\tw and filling the room with the stench of \tLburnt flesh.\tn";
+        to_char = "\twA brilliant light suddenly blinds you and the smell of your own \tLscorched "
+                  "flesh\tw fills your nostrils.\tn";
+        to_room = "\twA bright flash blinds you, striking \tn$n\tw and filling the room with the "
+                  "stench of \tLburnt flesh.\tn";
         dam = dice(20, 30);
         dam_type = DAM_ELECTRIC;
         break;
@@ -308,8 +309,10 @@ EVENTFUNC(event_trap_triggered)
         if (!paralysis_immunity(ch))
           SET_BIT_AR(af.bitvector, AFF_PARALYZED);
         af.duration = 5;
-        to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
-        to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
+        to_char =
+            "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
+        to_room =
+            "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
         dam = dice(15, 20);
         dam_type = DAM_PUNCTURE;
         break;
@@ -319,15 +322,18 @@ EVENTFUNC(event_trap_triggered)
         af.modifier = -10;
         af.location = APPLY_INT;
         af.duration = 25;
-        to_char = "\tLA dark glyph \tYFLASHES\tL brightly as you walk through it, sending searing pain through your brain.\tn";
+        to_char = "\tLA dark glyph \tYFLASHES\tL brightly as you walk through it, sending searing "
+                  "pain through your brain.\tn";
         to_room = "\tLAs \tn$n\tL walks through a dark glyph, it \tYflashes\tL brightly.\tn";
         dam = 300 + dice(15, 20);
         dam_type = DAM_MENTAL;
         break;
 
       case TRAP_TYPE_PIT:
-        to_char = "\tLYou stumble into a shallow hole, screaming out in pain as small spikes in the bottom pierce your foot.\tn";
-        to_room = "\tn$n\tL stumbles, screaming as $s foot is impaled on tiny spikes in a shallow hole.\tn";
+        to_char = "\tLYou stumble into a shallow hole, screaming out in pain as small spikes in "
+                  "the bottom pierce your foot.\tn";
+        to_room = "\tn$n\tL stumbles, screaming as $s foot is impaled on tiny spikes in a shallow "
+                  "hole.\tn";
         dam_type = DAM_PUNCTURE;
         dam = dice(2, 10);
         break;
@@ -354,8 +360,10 @@ EVENTFUNC(event_trap_triggered)
 
       case TRAP_TYPE_DISPEL:
         /* special handling, done below */
-        to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel all of your enchantments fade away.\tn";
-        to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It disappears as quickly as it came.\tn";
+        to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel "
+                  "all of your enchantments fade away.\tn";
+        to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It "
+                  "disappears as quickly as it came.\tn";
 
         break;
 
@@ -389,24 +397,27 @@ EVENTFUNC(event_trap_triggered)
 
       case TRAP_TYPE_BOULDER:
         dam = GET_HIT(ch) / 5;
-        to_char = "A \tyboulder\tn suddenly thunders down from somewhere high above, striking you squarely.";
+        to_char = "A \tyboulder\tn suddenly thunders down from somewhere high above, striking you "
+                  "squarely.";
         to_room = "A \tyboulder\tn falls from somewhere above, hitting $n squarely.";
         break;
 
       case TRAP_TYPE_WALL_SMASH:
         dam = GET_HIT(ch) / 5;
         to_char = "\tcA nearby wall suddenly shifts, pressing you against the hard stone.\tn";
-        to_room = "\tn$n \tcis suddenly slammed against the stone when an adjacent wall moves inward.\tn";
+        to_room =
+            "\tn$n \tcis suddenly slammed against the stone when an adjacent wall moves inward.\tn";
         break;
 
       case TRAP_TYPE_SPIDER_HORDE:
         dam = GET_HIT(ch) / 6;
-        to_char = "A horde of \tmspiders\tn drops onto your head from above, the tiny creatures biting any exposed skin.";
+        to_char = "A horde of \tmspiders\tn drops onto your head from above, the tiny creatures "
+                  "biting any exposed skin.";
         to_room = "$n is suddenly covered in thousands of biting \tmspiders\tn.";
         break;
 
-      // TRAP_TYPE_DAMAGE_GAS now combined with TRAP_TYPE_GAS above
-      /*
+        // TRAP_TYPE_DAMAGE_GAS now combined with TRAP_TYPE_GAS above
+        /*
       case TRAP_TYPE_GAS:
         dam = GET_HIT(ch) / 4;
         to_char = "A cloud of \tggas\tn surrounds you!";
@@ -419,7 +430,8 @@ EVENTFUNC(event_trap_triggered)
         // cold damage..
         dam = dice(10, 20);
         dam_type = DAM_COLD;
-        to_char = "\tbThe bone-chilling cold bites deep into you, causing you to shudder uncontrollably.\tn";
+        to_char = "\tbThe bone-chilling cold bites deep into you, causing you to shudder "
+                  "uncontrollably.\tn";
         to_room = "\tn$n \tbshudders as the icy cold bites deep into $s bones.\tn";
         break;
 
@@ -428,15 +440,19 @@ EVENTFUNC(event_trap_triggered)
         if (dice(1, 10) < 5)
         {
           dam = GET_MAX_HIT(ch) * 2;
-          to_char = "\twYou feel a bone-chilling \tCcold\tw as you are raked by \tWskeletal claws\tw thrusting up from the cold waters below.\tn";
-          to_room = "\twA gout of icy water washes over \tn$n\tw as hands reach up from below and drag $m under.\tn";
+          to_char = "\twYou feel a bone-chilling \tCcold\tw as you are raked by \tWskeletal "
+                    "claws\tw thrusting up from the cold waters below.\tn";
+          to_room = "\twA gout of icy water washes over \tn$n\tw as hands reach up from below and "
+                    "drag $m under.\tn";
         }
         else
         {
           dam_type = DAM_COLD;
           dam = dice(10, 40);
-          to_char = "\twSkeletal hands suddenly thrust up from the waters below, grasping at your feet in an effort to drag you under.\tn";
-          to_room = "\twSkeletal hands thrust up from the cold waters, slashing \tn$n\tw and causing $m to shudder with cold and pain.\tn";
+          to_char = "\twSkeletal hands suddenly thrust up from the waters below, grasping at your "
+                    "feet in an effort to drag you under.\tn";
+          to_room = "\twSkeletal hands thrust up from the cold waters, slashing \tn$n\tw and "
+                    "causing $m to shudder with cold and pain.\tn";
         }
         break;
 
@@ -444,8 +460,10 @@ EVENTFUNC(event_trap_triggered)
         af.spell = SPELL_WEB;
         SET_BIT_AR(af.bitvector, AFF_ENTANGLED);
         af.duration = 20;
-        to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
-        to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";
+        to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast "
+                  "as spiders descend from above.\tn";
+        to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend "
+                  "on $m from all sides.\tn";
 
         // spiders loading..
         count = dice(1, 3);

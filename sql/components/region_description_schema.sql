@@ -4,7 +4,7 @@
 -- Purpose: Support template-free narrative weaving system
 
 -- Add new columns to region_data table for comprehensive descriptions
-ALTER TABLE region_data 
+ALTER TABLE region_data
 ADD COLUMN region_description LONGTEXT DEFAULT NULL COMMENT 'Comprehensive description for AI context',
 ADD COLUMN description_version INT DEFAULT 1 COMMENT 'Version tracking for description updates',
 ADD COLUMN ai_agent_source VARCHAR(100) DEFAULT NULL COMMENT 'Which AI agent created/updated description',
@@ -31,7 +31,7 @@ CREATE INDEX idx_region_style_length ON region_data (description_style, descript
 INSERT INTO region_data (
     vnum, zone_vnum, name, region_type, region_props, region_reset_data,
     region_description, description_style, description_length,
-    has_historical_context, has_resource_info, has_wildlife_info, 
+    has_historical_context, has_resource_info, has_wildlife_info,
     has_geological_info, has_cultural_info, description_quality_score,
     is_approved, ai_agent_source
 ) VALUES (

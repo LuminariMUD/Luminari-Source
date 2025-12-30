@@ -10,7 +10,7 @@ MYFLAGS = -O2 -Wall
 PROFILE =
 
 # Libraires that need to be included for use with GCC for OS/2
-LIB = -lsocket 
+LIB = -lsocket
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -19,7 +19,7 @@ LIB = -lsocket
 # For compiling circle with GDB debugger Information
 #CFLAGS = -g -O $(MYFLAGS) $(PROFILE)
 # Uncomment the line below if you don't want to compile with GDB info
-CFLAGS = $(MYFLAGS) $(PROFILE) 
+CFLAGS = $(MYFLAGS) $(PROFILE)
 
 OBJFILES = comm.o act.comm.o act.informative.o act.movement.o act.item.o \
         act.offensive.o act.other.o act.social.o act.wizard.o ban.o boards.o \
@@ -79,14 +79,14 @@ wld2html:
 ../bin/shopconv: util/shopconv.c conf.h sysdep.h structs.h db.h utils.h shop.h
         $(CC) $(CFLAGS) -o ../bin/shopconv util/shopconv.c
 ../bin/sign: util/sign.c conf.h sysdep.h
-        $(CC) $(CFLAGS) -o ../bin/sign util/sign.c 
+        $(CC) $(CFLAGS) -o ../bin/sign util/sign.c
 ../bin/split: util/split.c
         $(CC) $(CFLAGS) -o ../bin/split util/split.c
 ../bin/wld2html: util/wld2html.c
         $(CC) $(CFLAGS) -o ../bin/wld2html util/wld2html.c
 
 ../bin/circle : $(OBJFILES)
-        $(CC) -o circle.exe $(PROFILE) $(OBJFILES) $(LIB) 
+        $(CC) -o circle.exe $(PROFILE) $(OBJFILES) $(LIB)
 clean:
         rm -f *.o
 
@@ -201,5 +201,5 @@ qedit.obj: qedit.c conf.h sysdep.h structs.h utils.h comm.h db.h oasis.h \
   improved-edit.h screen.h genolc.h genzon.h interpreter.h quest.h
         $(CC) -c $(CFLAGS) qedit.c
 genqst.obj: genqst.c conf.h sysdep.h structs.h utils.h db.h quest.h \
-  genolc.h genzon.h 
+  genolc.h genzon.h
         $(CC) -c $(CFLAGS) genqst.c

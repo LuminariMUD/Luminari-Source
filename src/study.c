@@ -163,16 +163,8 @@ int familiar_vnums[] = {
 
 /* make a list of names in order, first animals */
 const char *animal_names[] = {
-    "Unknown",
-    "1) Black Bear",
-    "2) Boar",
-    "3) Lion",
-    "4) Crocodile",
-    "5) Hyena",
-    "6) Snow Leopard",
-    "7) Skull Spider",
-    "8) Fire Beetle",
-    "\n" /* end with this */
+    "Unknown",  "1) Black Bear",   "2) Boar",         "3) Lion",        "4) Crocodile",
+    "5) Hyena", "6) Snow Leopard", "7) Skull Spider", "8) Fire Beetle", "\n" /* end with this */
 };
 /* ... now mounts */
 const char *mount_names[] = {
@@ -190,16 +182,8 @@ const char *mount_names[] = {
 };
 /* ... now familiars */
 const char *familiar_names[] = {
-    "Unknown",
-    "1) Night Hunter",
-    "2) Black Panther",
-    "3) Tiny Mouse",
-    "4) Eagle",
-    "5) Raven",
-    "6) Imp",
-    "7) Pixie",
-    "8) Faerie Dragon",
-    "\n" /* end with this */
+    "Unknown",  "1) Night Hunter", "2) Black Panther", "3) Tiny Mouse",    "4) Eagle",
+    "5) Raven", "6) Imp",          "7) Pixie",         "8) Faerie Dragon", "\n" /* end with this */
 };
 
 /* NOTE: The above static menus should be converted to dynamic menus.
@@ -219,8 +203,7 @@ void init_study(struct descriptor_data *d, int class)
 
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_study: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_study: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -228,8 +211,7 @@ void init_study(struct descriptor_data *d, int class)
 
   if (LEVELUP(ch))
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_study: Player already had levelup structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_study: Player already had levelup structure.");
     free(LEVELUP(ch));
   }
 
@@ -341,7 +323,6 @@ void finalize_study(struct descriptor_data *d)
   {
     if (LEVELUP(ch)->feats[i])
     {
-
       SET_FEAT(ch, i, HAS_REAL_FEAT(ch, i) + LEVELUP(ch)->feats[i]);
 
       if ((subfeat = feat_to_skfeat(i)) != -1)
@@ -425,21 +406,21 @@ void finalize_study(struct descriptor_data *d)
         GET_REAL_MAX_PSP(ch) += 50;
         break;
       case FEAT_DAMAGE_REDUCTION:
-        {
+      {
         /* Create the DR structure and attach it to the player. */
         struct damage_reduction_type *next_dr;
         for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
         {
-          next_dr = dr->next;  /* Save next pointer before potential removal */
+          next_dr = dr->next; /* Save next pointer before potential removal */
           if (dr->feat == FEAT_DAMAGE_REDUCTION)
           {
             struct damage_reduction_type *temp;
             REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-            free(dr);  /* Free the damage reduction structure */
+            free(dr); /* Free the damage reduction structure */
           }
         }
         CREATE(dr, struct damage_reduction_type, 1);
-        dr->duration = 0;  /* Initialize duration field - CRITICAL FIX (feat-based DR) */
+        dr->duration = 0; /* Initialize duration field - CRITICAL FIX (feat-based DR) */
         dr->spell = 0;
         dr->feat = FEAT_DAMAGE_REDUCTION;
         dr->amount = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
@@ -452,8 +433,8 @@ void finalize_study(struct descriptor_data *d)
         dr->bypass_val[2] = 0; /* Unused. */
         dr->next = GET_DR(ch);
         GET_DR(ch) = dr;
-        }
-        break;
+      }
+      break;
       case FEAT_SORCERER_BLOODLINE_DRACONIC:
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
         SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
@@ -476,7 +457,8 @@ void finalize_study(struct descriptor_data *d)
 
   // Assign dragonborn ancestry if necessary
   if (LEVELUP(ch)->dragonborn_draconic_ancestry > 0)
-    ch->player_specials->saved.dragonborn_draconic_ancestry = LEVELUP(ch)->dragonborn_draconic_ancestry;
+    ch->player_specials->saved.dragonborn_draconic_ancestry =
+        LEVELUP(ch)->dragonborn_draconic_ancestry;
 
   // Assign chosen alchemist discoveries
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
@@ -535,13 +517,14 @@ void finalize_study(struct descriptor_data *d)
 
 void use_boost_point(struct char_data *ch, int stat)
 {
-
   struct descriptor_data *d = ch->desc;
 
   if (stat < 0 || stat > 6)
   {
-    send_to_char(ch, "Error: Stat number out of bounds in use_boost_point.  Please report to staff.\r\n");
-    mudlog(NRM, 31, TRUE, "Error: Stat number out of bounds in use_boost_point.  Please report to a coder.\r\n");
+    send_to_char(
+        ch, "Error: Stat number out of bounds in use_boost_point.  Please report to staff.\r\n");
+    mudlog(NRM, 31, TRUE,
+           "Error: Stat number out of bounds in use_boost_point.  Please report to a coder.\r\n");
     return;
   }
 
@@ -592,12 +575,12 @@ ACMD(do_study)
 
   init_study(d, GET_CLASS(ch));
 
-  act("$n starts adjusting $s skill-set.",
-      TRUE, d->character, 0, 0, TO_ROOM);
+  act("$n starts adjusting $s skill-set.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   // if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0)  // old -- gicker, june 10, 2020
-  if (GET_LEVEL(ch) == 1 && !HAS_SET_STATS_STUDY(ch) && GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
+  if (GET_LEVEL(ch) == 1 && !HAS_SET_STATS_STUDY(ch) &&
+      GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
   {
     set_stats_menu(d);
     return;
@@ -649,23 +632,20 @@ bool add_levelup_feat(struct descriptor_data *d, int feat)
       return FALSE;
     }
     if ((feat_type == FEAT_TYPE_EPIC_CLASS) &&
-        ((LEVELUP(ch)->epic_feat_points < 1) &&
-         (LEVELUP(ch)->epic_class_feat_points < 1)))
+        ((LEVELUP(ch)->epic_feat_points < 1) && (LEVELUP(ch)->epic_class_feat_points < 1)))
     {
       write_to_output(d, "You do not have enough epic class feat points to gain that feat.\r\n");
       return FALSE;
     }
     if ((feat_type == FEAT_TYPE_NORMAL_CLASS) &&
-        ((LEVELUP(ch)->class_feat_points < 1) &&
-         (LEVELUP(ch)->feat_points < 1) &&
-         (LEVELUP(ch)->epic_class_feat_points < 1) &&
-         (LEVELUP(ch)->epic_feat_points < 1)))
+        ((LEVELUP(ch)->class_feat_points < 1) && (LEVELUP(ch)->feat_points < 1) &&
+         (LEVELUP(ch)->epic_class_feat_points < 1) && (LEVELUP(ch)->epic_feat_points < 1)))
     {
       write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
       return FALSE;
     }
-    if ((feat_type == FEAT_TYPE_NORMAL_TEAMWORK) && (LEVELUP(ch)->feat_points < 1) && (LEVELUP(ch)->teamwork_feat_points < 1) &&
-        (LEVELUP(ch)->epic_feat_points < 1))
+    if ((feat_type == FEAT_TYPE_NORMAL_TEAMWORK) && (LEVELUP(ch)->feat_points < 1) &&
+        (LEVELUP(ch)->teamwork_feat_points < 1) && (LEVELUP(ch)->epic_feat_points < 1))
     {
       write_to_output(d, "You do not have enough teamwork feat points to gain that feat.\r\n");
       return FALSE;
@@ -717,9 +697,10 @@ bool add_levelup_feat(struct descriptor_data *d, int feat)
       else
       {
         LEVELUP(ch)->epic_feat_points--;
-        write_to_output(d, "You have used an epic feat point to acquire a normal "
-                           "teamwork feat, if you do not want to do this, exit out of the study menu "
-                           "without saving.\r\n");
+        write_to_output(d,
+                        "You have used an epic feat point to acquire a normal "
+                        "teamwork feat, if you do not want to do this, exit out of the study menu "
+                        "without saving.\r\n");
       }
       break;
     case FEAT_TYPE_NORMAL:
@@ -762,7 +743,8 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d)
 
   char arcana_slots[100];
   if (free_arcana_slots(d->character) > 0)
-    snprintf(arcana_slots, sizeof(arcana_slots), "%s A%s) Assign New Arcana Circle\r\n\r\n", grn, nrm);
+    snprintf(arcana_slots, sizeof(arcana_slots), "%s A%s) Assign New Arcana Circle\r\n\r\n", grn,
+             nrm);
   else
     snprintf(arcana_slots, sizeof(arcana_slots), "%s", nrm);
 
@@ -806,36 +788,24 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d)
                   arcana_slots,
                   grn, nrm
 */
-                  mgn,
-                  grn, nrm, yel,
-                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 1),
-                  grn, nrm, yel,
+                  mgn, grn, nrm, yel, count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 1), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 2),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 2),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 2), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 3),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 3),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 3), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 4),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 4),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 4), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 5),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 5),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 5), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 6),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 6),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 6), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 7),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 7),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 7), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 8),
-                  grn, nrm, yel,
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 8), grn, nrm, yel,
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
-                  compute_slots_by_circle(d->character, CLASS_SORCERER, 9),
-                  arcana_slots,
-                  grn, nrm);
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 9), arcana_slots, grn, nrm);
 
   OLC_MODE(d) = STUDY_SORC_KNOWN_SPELLS_MENU;
 }
@@ -849,7 +819,8 @@ static void psionicist_known_powers_disp_menu(struct descriptor_data *d)
 
   char arcana_slots[100];
   if (free_arcana_slots(d->character) > 0)
-    snprintf(arcana_slots, sizeof(arcana_slots), "%s A%s) Assign New Arcana Circle\r\n\r\n", grn, nrm);
+    snprintf(arcana_slots, sizeof(arcana_slots), "%s A%s) Assign New Arcana Circle\r\n\r\n", grn,
+             nrm);
   else
     snprintf(arcana_slots, sizeof(arcana_slots), "%s", nrm);
 
@@ -873,18 +844,9 @@ static void psionicist_known_powers_disp_menu(struct descriptor_data *d)
                   "\r\n"
                   "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  yel, num_psionicist_powers_known(d->character), nrm, yel, num_psionicist_powers_available(d->character), nrm,
-                  grn, nrm);
+                  mgn, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn,
+                  nrm, grn, nrm, yel, num_psionicist_powers_known(d->character), nrm, yel,
+                  num_psionicist_powers_available(d->character), nrm, grn, nrm);
 
   OLC_MODE(d) = STUDY_PSIONICIST_KNOWN_POWERS_MENU;
 }
@@ -903,9 +865,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(d->character, CLASS_SORCERER,
-                              counter,
-                              METAMAGIC_NONE,
+    if (compute_spells_circle(d->character, CLASS_SORCERER, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
@@ -921,10 +881,13 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
                   //          sorcerer_known[class_level][circle] -
                   compute_slots_by_circle(d->character, CLASS_SORCERER, circle) -
                       count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
-  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
+  write_to_output(
+      d,
+      "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
-  write_to_output(d, "%sEnter spell choice, to add or remove "
-                     "(Q to exit to main menu) : ",
+  write_to_output(d,
+                  "%sEnter spell choice, to add or remove "
+                  "(Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = STUDY_SPELLS;
@@ -932,64 +895,74 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
 
 void warlock_known_spells_disp_menu(struct descriptor_data *d)
 {
-  int class_level = CLASS_LEVEL(d->character, CLASS_WARLOCK) +
-                    BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
+  int class_level =
+      CLASS_LEVEL(d->character, CLASS_WARLOCK) + BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
 
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "\r\n-- %sInvocations Known Menu\r\n"
-                  "\r\n"
-                  "%s 1%s) Least      : %s%d\r\n"
-                  "%s 2%s) Lesser     : %s%d\r\n"
-                  "%s 3%s) Greater    : %s%d\r\n"
-                  "%s 4%s) Dark       : %s%d\r\n"
-                  "\r\n"
-                  "%s Q%s) Quit\r\n"
-                  "\r\n"
-                  "Enter Choice : ",
+  write_to_output(
+      d,
+      "\r\n-- %sInvocations Known Menu\r\n"
+      "\r\n"
+      "%s 1%s) Least      : %s%d\r\n"
+      "%s 2%s) Lesser     : %s%d\r\n"
+      "%s 3%s) Greater    : %s%d\r\n"
+      "%s 4%s) Dark       : %s%d\r\n"
+      "\r\n"
+      "%s Q%s) Quit\r\n"
+      "\r\n"
+      "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm, yel, warlock_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 1),
-                  grn, nrm, yel, warlock_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 2),
-                  grn, nrm, yel, warlock_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 3),
-                  grn, nrm, yel, warlock_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 4),
-                  grn, nrm);
+      mgn, grn, nrm, yel,
+      warlock_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 1),
+      grn, nrm, yel,
+      warlock_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 2),
+      grn, nrm, yel,
+      warlock_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 3),
+      grn, nrm, yel,
+      warlock_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 4),
+      grn, nrm);
 
   OLC_MODE(d) = STUDY_WARLOCK_KNOWN_SPELLS_MENU;
 }
 
 static void bard_known_spells_disp_menu(struct descriptor_data *d)
 {
-  int class_level = CLASS_LEVEL(d->character, CLASS_BARD) +
-                    BONUS_CASTER_LEVEL(d->character, CLASS_BARD);
+  int class_level =
+      CLASS_LEVEL(d->character, CLASS_BARD) + BONUS_CASTER_LEVEL(d->character, CLASS_BARD);
 
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "\r\n-- %sSpells Known Menu\r\n"
-                  "\r\n"
-                  "%s 1%s) 1st Circle     : %s%d\r\n"
-                  "%s 2%s) 2nd Circle     : %s%d\r\n"
-                  "%s 3%s) 3rd Circle     : %s%d\r\n"
-                  "%s 4%s) 4th Circle     : %s%d\r\n"
-                  "%s 5%s) 5th Circle     : %s%d\r\n"
-                  "%s 6%s) 6th Circle     : %s%d\r\n"
-                  "\r\n"
-                  "%s Q%s) Quit\r\n"
-                  "\r\n"
-                  "Enter Choice : ",
+  write_to_output(
+      d,
+      "\r\n-- %sSpells Known Menu\r\n"
+      "\r\n"
+      "%s 1%s) 1st Circle     : %s%d\r\n"
+      "%s 2%s) 2nd Circle     : %s%d\r\n"
+      "%s 3%s) 3rd Circle     : %s%d\r\n"
+      "%s 4%s) 4th Circle     : %s%d\r\n"
+      "%s 5%s) 5th Circle     : %s%d\r\n"
+      "%s 6%s) 6th Circle     : %s%d\r\n"
+      "\r\n"
+      "%s Q%s) Quit\r\n"
+      "\r\n"
+      "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm, yel, bard_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_BARD, 1),
-                  grn, nrm, yel, bard_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_BARD, 2),
-                  grn, nrm, yel, bard_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_BARD, 3),
-                  grn, nrm, yel, bard_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_BARD, 4),
-                  grn, nrm, yel, bard_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_BARD, 5),
-                  grn, nrm, yel, bard_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_BARD, 6),
-                  grn, nrm);
+      mgn, grn, nrm, yel,
+      bard_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_BARD, 1), grn,
+      nrm, yel,
+      bard_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_BARD, 2), grn,
+      nrm, yel,
+      bard_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_BARD, 3), grn,
+      nrm, yel,
+      bard_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_BARD, 4), grn,
+      nrm, yel,
+      bard_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_BARD, 5), grn,
+      nrm, yel,
+      bard_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_BARD, 6), grn,
+      nrm);
 
   OLC_MODE(d) = STUDY_BARD_KNOWN_SPELLS_MENU;
 }
@@ -997,34 +970,40 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d)
 
 static void summoner_known_spells_disp_menu(struct descriptor_data *d)
 {
-  int class_level = CLASS_LEVEL(d->character, CLASS_SUMMONER) +
-                    BONUS_CASTER_LEVEL(d->character, CLASS_SUMMONER);
+  int class_level =
+      CLASS_LEVEL(d->character, CLASS_SUMMONER) + BONUS_CASTER_LEVEL(d->character, CLASS_SUMMONER);
 
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "\r\n-- %sSpells Known Menu\r\n"
-                  "\r\n"
-                  "%s 1%s) 1st Circle     : %s%d\r\n"
-                  "%s 2%s) 2nd Circle     : %s%d\r\n"
-                  "%s 3%s) 3rd Circle     : %s%d\r\n"
-                  "%s 4%s) 4th Circle     : %s%d\r\n"
-                  "%s 5%s) 5th Circle     : %s%d\r\n"
-                  "%s 6%s) 6th Circle     : %s%d\r\n"
-                  "\r\n"
-                  "%s Q%s) Quit\r\n"
-                  "\r\n"
-                  "Enter Choice : ",
+  write_to_output(
+      d,
+      "\r\n-- %sSpells Known Menu\r\n"
+      "\r\n"
+      "%s 1%s) 1st Circle     : %s%d\r\n"
+      "%s 2%s) 2nd Circle     : %s%d\r\n"
+      "%s 3%s) 3rd Circle     : %s%d\r\n"
+      "%s 4%s) 4th Circle     : %s%d\r\n"
+      "%s 5%s) 5th Circle     : %s%d\r\n"
+      "%s 6%s) 6th Circle     : %s%d\r\n"
+      "\r\n"
+      "%s Q%s) Quit\r\n"
+      "\r\n"
+      "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm, yel, bard_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 1),
-                  grn, nrm, yel, bard_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 2),
-                  grn, nrm, yel, bard_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 3),
-                  grn, nrm, yel, bard_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 4),
-                  grn, nrm, yel, bard_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 5),
-                  grn, nrm, yel, bard_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 6),
-                  grn, nrm);
+      mgn, grn, nrm, yel,
+      bard_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 1),
+      grn, nrm, yel,
+      bard_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 2),
+      grn, nrm, yel,
+      bard_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 3),
+      grn, nrm, yel,
+      bard_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 4),
+      grn, nrm, yel,
+      bard_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 5),
+      grn, nrm, yel,
+      bard_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 6),
+      grn, nrm);
 
   OLC_MODE(d) = STUDY_SUMMONER_KNOWN_SPELLS_MENU;
 }
@@ -1051,13 +1030,24 @@ static void inquisitor_known_spells_disp_menu(struct descriptor_data *d)
                   "\r\n"
                   "Enter Choice : ",
 
-                  mgn,
-                  grn, nrm, yel, inquisitor_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 1),
-                  grn, nrm, yel, inquisitor_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 2),
-                  grn, nrm, yel, inquisitor_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 3),
-                  grn, nrm, yel, inquisitor_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 4),
-                  grn, nrm, yel, inquisitor_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 5),
-                  grn, nrm, yel, inquisitor_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 6),
+                  mgn, grn, nrm, yel,
+                  inquisitor_known[class_level][1] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 1),
+                  grn, nrm, yel,
+                  inquisitor_known[class_level][2] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 2),
+                  grn, nrm, yel,
+                  inquisitor_known[class_level][3] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 3),
+                  grn, nrm, yel,
+                  inquisitor_known[class_level][4] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 4),
+                  grn, nrm, yel,
+                  inquisitor_known[class_level][5] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 5),
+                  grn, nrm, yel,
+                  inquisitor_known[class_level][6] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 6),
                   grn, nrm);
 
   OLC_MODE(d) = STUDY_INQUISITOR_KNOWN_SPELLS_MENU;
@@ -1078,28 +1068,27 @@ void inquisitor_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(d->character, CLASS_INQUISITOR,
-                              counter,
-                              METAMAGIC_NONE,
+    if (compute_spells_circle(d->character, CLASS_INQUISITOR, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_INQUISITOR, counter))
         write_to_output(d, "%s%3d%s) %s+%-30.30s %s", grn, counter, nrm, mgn,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%3d%s) %s %-30.30s %s", grn, counter, nrm, yel,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
                   inquisitor_known[class_level][circle] -
                       count_known_spells_by_circle(d->character, CLASS_INQUISITOR, circle));
-  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
-  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
-                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+  write_to_output(
+      d,
+      "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
+  write_to_output(d,
+                  "%s+ A plus sign marks your current selection(s).\r\n"
+                  "Enter spell choice, to add or remove (Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = INQUISITOR_STUDY_SPELLS;
@@ -1108,8 +1097,8 @@ void inquisitor_study_menu(struct descriptor_data *d, int circle)
 /* the menu for each circle, warlock */
 void warlock_study_menu(struct descriptor_data *d, int circle)
 {
-  int class_level = CLASS_LEVEL(d->character, CLASS_WARLOCK) +
-                    BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
+  int class_level =
+      CLASS_LEVEL(d->character, CLASS_WARLOCK) + BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
   int counter, columns = 0;
 
   LEVELUP(d->character)->spell_circle = circle;
@@ -1119,31 +1108,30 @@ void warlock_study_menu(struct descriptor_data *d, int circle)
 
   /* SPELL PREPARATION HOOK */
   for (counter = WARLOCK_POWER_START + 2; counter < WARLOCK_POWER_END; counter++)
-  {    
-    if (compute_spells_circle(d->character, CLASS_WARLOCK,
-                              counter,
-                              METAMAGIC_NONE,
+  {
+    if (compute_spells_circle(d->character, CLASS_WARLOCK, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
-      if (warlock_spell_type(counter) == WARLOCK_POWER_NONE) continue;
+      if (warlock_spell_type(counter) == WARLOCK_POWER_NONE)
+        continue;
 
       if (is_a_known_spell(d->character, CLASS_WARLOCK, counter))
         write_to_output(d, "%s%2d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
                   warlock_known[class_level][circle] -
                       count_known_spells_by_circle(d->character, CLASS_WARLOCK, circle));
-  write_to_output(d, "\tCType the invocation number followed by 'help' to see help on that invocation.  Eg. 81 help\r\n\tn");
-  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
-                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+  write_to_output(d, "\tCType the invocation number followed by 'help' to see help on that "
+                     "invocation.  Eg. 81 help\r\n\tn");
+  write_to_output(d,
+                  "%s+ A plus sign marks your current selection(s).\r\n"
+                  "Enter spell choice, to add or remove (Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = WARLOCK_STUDY_SPELLS;
@@ -1152,8 +1140,8 @@ void warlock_study_menu(struct descriptor_data *d, int circle)
 /* the menu for each circle, bard */
 void bard_study_menu(struct descriptor_data *d, int circle)
 {
-  int class_level = CLASS_LEVEL(d->character, CLASS_BARD) +
-                    BONUS_CASTER_LEVEL(d->character, CLASS_BARD);
+  int class_level =
+      CLASS_LEVEL(d->character, CLASS_BARD) + BONUS_CASTER_LEVEL(d->character, CLASS_BARD);
   int counter, columns = 0;
 
   LEVELUP(d->character)->spell_circle = circle;
@@ -1164,28 +1152,27 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(d->character, CLASS_BARD,
-                              counter,
-                              METAMAGIC_NONE,
+    if (compute_spells_circle(d->character, CLASS_BARD, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_BARD, counter))
         write_to_output(d, "%s%3d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%3d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
                   bard_known[class_level][circle] -
                       count_known_spells_by_circle(d->character, CLASS_BARD, circle));
-  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
-  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
-                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+  write_to_output(
+      d,
+      "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
+  write_to_output(d,
+                  "%s+ A plus sign marks your current selection(s).\r\n"
+                  "Enter spell choice, to add or remove (Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = BARD_STUDY_SPELLS;
@@ -1194,7 +1181,8 @@ void bard_study_menu(struct descriptor_data *d, int circle)
 /* the menu for each circle, bard */
 void summoner_study_menu(struct descriptor_data *d, int circle)
 {
-  int class_level = CLASS_LEVEL(d->character, CLASS_SUMMONER) + BONUS_CASTER_LEVEL(d->character, CLASS_SUMMONER);
+  int class_level =
+      CLASS_LEVEL(d->character, CLASS_SUMMONER) + BONUS_CASTER_LEVEL(d->character, CLASS_SUMMONER);
   int counter, columns = 0;
 
   LEVELUP(d->character)->spell_circle = circle;
@@ -1205,27 +1193,27 @@ void summoner_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(d->character, CLASS_SUMMONER,
-                              counter,
-                              METAMAGIC_NONE,
+    if (compute_spells_circle(d->character, CLASS_SUMMONER, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_SUMMONER, counter))
         write_to_output(d, "%s%3d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%3d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                        spell_info[counter].name,
-                        !(++columns % 3) ? "\r\n" : "");
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-                  summoner_known[class_level][circle] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, circle));
-  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
-  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
-                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+                  summoner_known[class_level][circle] -
+                      count_known_spells_by_circle(d->character, CLASS_SUMMONER, circle));
+  write_to_output(
+      d,
+      "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
+  write_to_output(d,
+                  "%s+ A plus sign marks your current selection(s).\r\n"
+                  "Enter spell choice, to add or remove (Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = SUMMONER_STUDY_SPELLS;
@@ -1255,11 +1243,15 @@ void psionicist_study_menu(struct descriptor_data *d, int circle)
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-                  num_psionicist_powers_available(d->character) - num_psionicist_powers_known(d->character));
-  write_to_output(d, "\tCType the power number followed by 'help' to see help on that power.  Eg. 81 help\r\n\tn");
+                  num_psionicist_powers_available(d->character) -
+                      num_psionicist_powers_known(d->character));
+  write_to_output(
+      d,
+      "\tCType the power number followed by 'help' to see help on that power.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
-  write_to_output(d, "%sEnter power choice, to add or remove "
-                     "(Q to exit to main menu) : ",
+  write_to_output(d,
+                  "%sEnter power choice, to add or remove "
+                  "(Q to exit to main menu) : ",
                   nrm);
 
   OLC_MODE(d) = PSIONICIST_STUDY_POWERS;
@@ -1285,13 +1277,11 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
                   "\r\n"
                   "Enter Choice : ",
 
-                  mgn, nrm,
-                  favored,
+                  mgn, nrm, favored,
                   /* empty line */
                   npc_race_menu,
                   /* empty line */
-                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, favored)],
-                  grn, nrm
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, favored)], grn, nrm
                   /* empty line */
   );
 
@@ -1364,8 +1354,7 @@ int compute_base_str(struct char_data *ch)
 }
 int compute_str_cost(struct char_data *ch, int number)
 {
-  int base_str = compute_base_str(ch),
-      current_str = LEVELUP(ch)->str + number;
+  int base_str = compute_base_str(ch), current_str = LEVELUP(ch)->str + number;
   return stat_cost_chart[current_str - base_str];
 }
 int compute_base_con(struct char_data *ch)
@@ -1510,76 +1499,96 @@ static void set_stats_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "\r\n-- %sSet Character Stats%s\r\n"
-                  "From this menu you can set your starting stats.  If you are completely\r\n"
-                  "unfamiliar with what type of stats you want, it is highly recommended\r\n"
-                  "to keep all values at or above 10, and spread out your points.  This choice\r\n"
-                  "will give you access to the most feats possible regardless of class.\r\n"
-                  "You will be required to use all your points before advancing your char.\r\n"
-                  "As you get more familiar with the feat system, there are opportunities\r\n"
-                  "to reset your characters stats to try a different configuration.\r\n"
-                  "Change made to base stat:   1  2  3  4  5  6  7  8   9   10\r\n"
-                  "Point cost              :   1  2  3  4  5  6  8  10  13  16\r\n"
-                  "                 Base | Race Mod | Age Mod |Final\r\n"
-                  "%s 0%s) Strength:      %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
-                  "%s 1%s) Dexterity:     %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
-                  "%s 2%s) Constitution:  %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
-                  "%s 3%s) Intelligence:  %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
-                  "%s 4%s) Wisdom:        %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
-                  "%s 5%s) Charisma:      %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
-                  "%sPoints Left:         %d%s\r\n"
-                  "\r\n"
-                  "%s H%s) Help - Info on What Each Ability Score Does.\r\n"
-                  "%s Q%s) Quit\r\n"
-                  "\r\n"
-                  "To set up your base ability scores type the number to the left of the ability score \r\n"
-                  "you wish to modify and press enter, then type the number of points you wish to invest \r\n"
-                  "or remove as a digit.\r\n"
-                  "EG. 0 <ENTER> 4 <ENTER>\r\n"
-                  "This example willl add 4 points to your strength score.  Note that higher ability scores \r\n"
-                  "use up more points as per the table above.\r\n"
-                  "\r\n"
-                  "Enter Choice : ",
+  write_to_output(
+      d,
+      "\r\n-- %sSet Character Stats%s\r\n"
+      "From this menu you can set your starting stats.  If you are completely\r\n"
+      "unfamiliar with what type of stats you want, it is highly recommended\r\n"
+      "to keep all values at or above 10, and spread out your points.  This choice\r\n"
+      "will give you access to the most feats possible regardless of class.\r\n"
+      "You will be required to use all your points before advancing your char.\r\n"
+      "As you get more familiar with the feat system, there are opportunities\r\n"
+      "to reset your characters stats to try a different configuration.\r\n"
+      "Change made to base stat:   1  2  3  4  5  6  7  8   9   10\r\n"
+      "Point cost              :   1  2  3  4  5  6  8  10  13  16\r\n"
+      "                 Base | Race Mod | Age Mod |Final\r\n"
+      "%s 0%s) Strength:      %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+      "%s 1%s) Dexterity:     %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+      "%s 2%s) Constitution:  %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+      "%s 3%s) Intelligence:  %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+      "%s 4%s) Wisdom:        %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+      "%s 5%s) Charisma:      %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+      "%sPoints Left:         %d%s\r\n"
+      "\r\n"
+      "%s H%s) Help - Info on What Each Ability Score Does.\r\n"
+      "%s Q%s) Quit\r\n"
+      "\r\n"
+      "To set up your base ability scores type the number to the left of the ability score \r\n"
+      "you wish to modify and press enter, then type the number of points you wish to invest \r\n"
+      "or remove as a digit.\r\n"
+      "EG. 0 <ENTER> 4 <ENTER>\r\n"
+      "This example willl add 4 points to your strength score.  Note that higher ability scores "
+      "\r\n"
+      "use up more points as per the table above.\r\n"
+      "\r\n"
+      "Enter Choice : ",
 
-                  mgn, nrm,
-                  /* empty line */
-                  grn, nrm, LEVELUP(d->character)->str, nrm, "", get_race_stat(GET_RACE(d->character), R_STR_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_STR_MOD), 
-                  "", character_age_attributes[GET_CH_AGE(d->character)][0] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][0],
-                  get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str +  character_age_attributes[GET_CH_AGE(d->character)][0],
+      mgn, nrm,
+      /* empty line */
+      grn, nrm, LEVELUP(d->character)->str, nrm, "",
+      get_race_stat(GET_RACE(d->character), R_STR_MOD) >= 0 ? "+" : "",
+      get_race_stat(GET_RACE(d->character), R_STR_MOD), "",
+      character_age_attributes[GET_CH_AGE(d->character)][0] >= 0 ? "+" : "",
+      character_age_attributes[GET_CH_AGE(d->character)][0],
+      get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str +
+          character_age_attributes[GET_CH_AGE(d->character)][0],
 
-                  grn, nrm, LEVELUP(d->character)->dex, nrm, "", get_race_stat(GET_RACE(d->character), R_DEX_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_DEX_MOD), 
-                  "", character_age_attributes[GET_CH_AGE(d->character)][1] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][1],
-                  get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex + character_age_attributes[GET_CH_AGE(d->character)][1],
+      grn, nrm, LEVELUP(d->character)->dex, nrm, "",
+      get_race_stat(GET_RACE(d->character), R_DEX_MOD) >= 0 ? "+" : "",
+      get_race_stat(GET_RACE(d->character), R_DEX_MOD), "",
+      character_age_attributes[GET_CH_AGE(d->character)][1] >= 0 ? "+" : "",
+      character_age_attributes[GET_CH_AGE(d->character)][1],
+      get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex +
+          character_age_attributes[GET_CH_AGE(d->character)][1],
 
-                  grn, nrm, LEVELUP(d->character)->con, nrm, "", get_race_stat(GET_RACE(d->character), R_CON_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_CON_MOD),
-                  "", character_age_attributes[GET_CH_AGE(d->character)][2] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][2],
-                  get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con + character_age_attributes[GET_CH_AGE(d->character)][2],
+      grn, nrm, LEVELUP(d->character)->con, nrm, "",
+      get_race_stat(GET_RACE(d->character), R_CON_MOD) >= 0 ? "+" : "",
+      get_race_stat(GET_RACE(d->character), R_CON_MOD), "",
+      character_age_attributes[GET_CH_AGE(d->character)][2] >= 0 ? "+" : "",
+      character_age_attributes[GET_CH_AGE(d->character)][2],
+      get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con +
+          character_age_attributes[GET_CH_AGE(d->character)][2],
 
-                  grn, nrm, LEVELUP(d->character)->inte, nrm, "", get_race_stat(GET_RACE(d->character), R_INTEL_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_INTEL_MOD), 
-                  "", character_age_attributes[GET_CH_AGE(d->character)][3] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][3],
-                  get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte + character_age_attributes[GET_CH_AGE(d->character)][3],
+      grn, nrm, LEVELUP(d->character)->inte, nrm, "",
+      get_race_stat(GET_RACE(d->character), R_INTEL_MOD) >= 0 ? "+" : "",
+      get_race_stat(GET_RACE(d->character), R_INTEL_MOD), "",
+      character_age_attributes[GET_CH_AGE(d->character)][3] >= 0 ? "+" : "",
+      character_age_attributes[GET_CH_AGE(d->character)][3],
+      get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte +
+          character_age_attributes[GET_CH_AGE(d->character)][3],
 
-                  grn, nrm, LEVELUP(d->character)->wis, nrm, "", get_race_stat(GET_RACE(d->character), R_WIS_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_WIS_MOD), 
-                  "", character_age_attributes[GET_CH_AGE(d->character)][4] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][4],
-                  get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis + character_age_attributes[GET_CH_AGE(d->character)][4],
+      grn, nrm, LEVELUP(d->character)->wis, nrm, "",
+      get_race_stat(GET_RACE(d->character), R_WIS_MOD) >= 0 ? "+" : "",
+      get_race_stat(GET_RACE(d->character), R_WIS_MOD), "",
+      character_age_attributes[GET_CH_AGE(d->character)][4] >= 0 ? "+" : "",
+      character_age_attributes[GET_CH_AGE(d->character)][4],
+      get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis +
+          character_age_attributes[GET_CH_AGE(d->character)][4],
 
-                  grn, nrm, LEVELUP(d->character)->cha, nrm, "", get_race_stat(GET_RACE(d->character), R_CHA_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_CHA_MOD), 
-                  "", character_age_attributes[GET_CH_AGE(d->character)][5] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][5],
-                  get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha + character_age_attributes[GET_CH_AGE(d->character)][5],
+      grn, nrm, LEVELUP(d->character)->cha, nrm, "",
+      get_race_stat(GET_RACE(d->character), R_CHA_MOD) >= 0 ? "+" : "",
+      get_race_stat(GET_RACE(d->character), R_CHA_MOD), "",
+      character_age_attributes[GET_CH_AGE(d->character)][5] >= 0 ? "+" : "",
+      character_age_attributes[GET_CH_AGE(d->character)][5],
+      get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha +
+          character_age_attributes[GET_CH_AGE(d->character)][5],
 
-                  grn, stat_points_left(d->character), nrm,
-                  /* empty line */
-                  grn, nrm,
-                  /* empty line */
-                  grn, nrm
-                  /* empty line */
+      grn, stat_points_left(d->character), nrm,
+      /* empty line */
+      grn, nrm,
+      /* empty line */
+      grn, nrm
+      /* empty line */
   );
 
   OLC_MODE(d) = STUDY_SET_STATS;
@@ -1618,8 +1627,9 @@ static void set_school_menu(struct descriptor_data *d)
 
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, school_names[GET_SPECIALTY_SCHOOL(d->character)], nrm,
-                  nrm, school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(d->character)]], nrm,
+                  grn, nrm, school_names[GET_SPECIALTY_SCHOOL(d->character)], nrm, nrm,
+                  school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(d->character)]],
+                  nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -1660,16 +1670,36 @@ static void set_bloodline_draconic(struct descriptor_data *d)
   write_to_output(d, "Your draconic heritage determines the damage type for your\r\n");
   write_to_output(d, "breath weapon and energy resistance once acquired.\r\n");
   write_to_output(d, "\r\n");
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLACK, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLACK), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLACK));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLUE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLUE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLUE));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GREEN, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GREEN), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GREEN));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_RED, DRCHRTLIST_NAME(DRACONIC_HERITAGE_RED), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_RED));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_WHITE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_WHITE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_WHITE));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRASS, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRASS), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRASS));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRONZE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRONZE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRONZE));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_COPPER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_COPPER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_COPPER));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_SILVER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_SILVER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_SILVER));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GOLD, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GOLD), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GOLD));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLACK,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLACK),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLACK));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLUE,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLUE),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLUE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GREEN,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_GREEN),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GREEN));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_RED,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_RED),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_RED));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_WHITE,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_WHITE),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_WHITE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRASS,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRASS),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRASS));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRONZE,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRONZE),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRONZE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_COPPER,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_COPPER),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_COPPER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_SILVER,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_SILVER),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_SILVER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GOLD,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_GOLD),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GOLD));
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sSelect the dragon type for your draconic heritage : ", nrm);
 }
@@ -1695,21 +1725,22 @@ static void display_new_arcana_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "\r\n"
-                  "New Arcana Menu\r\n"
-                  "\r\n"
-                  "Free NewArcana Slots: %s%d%s\r\n"
-                  "\r\n"
-                  "Please type in the number of the spell circle for which you would like\r\n"
-                  "to receive a bonus spell choice.  For example if you would like to have an\r\n"
-                  "extra circle 2 slot added to the list of spells you can case, then simply type\r\n"
-                  "in '2' (without the quotes).  Once spent, these can only be recovered with a\r\n"
-                  "respec, so choose carefully.  It also must be of a spell circle you are able\r\n"
-                  "to cast.\r\n"
-                  "\r\n"
-                  "Enter Choice : ",
-                  yel, free_arcana_slots(ch), nrm);
+  write_to_output(
+      d,
+      "\r\n"
+      "New Arcana Menu\r\n"
+      "\r\n"
+      "Free NewArcana Slots: %s%d%s\r\n"
+      "\r\n"
+      "Please type in the number of the spell circle for which you would like\r\n"
+      "to receive a bonus spell choice.  For example if you would like to have an\r\n"
+      "extra circle 2 slot added to the list of spells you can case, then simply type\r\n"
+      "in '2' (without the quotes).  Once spent, these can only be recovered with a\r\n"
+      "respec, so choose carefully.  It also must be of a spell circle you are able\r\n"
+      "to cast.\r\n"
+      "\r\n"
+      "Enter Choice : ",
+      yel, free_arcana_slots(ch), nrm);
 
   OLC_MODE(d) = SET_NEW_ARCANA;
 }
@@ -1721,16 +1752,20 @@ static void set_preferred_caster(struct descriptor_data *d)
     return;
   if (!d->character)
     return;
-  if (GET_PREFERRED_ARCANE(d->character) >= NUM_CLASSES || GET_PREFERRED_ARCANE(d->character) <= CLASS_UNDEFINED)
+  if (GET_PREFERRED_ARCANE(d->character) >= NUM_CLASSES ||
+      GET_PREFERRED_ARCANE(d->character) <= CLASS_UNDEFINED)
   {
     GET_PREFERRED_ARCANE(d->character) = CLASS_WIZARD;
-    write_to_output(d, "There was an error, reset to wizard and exiting for you to try again!\r\n\r\n");
+    write_to_output(
+        d, "There was an error, reset to wizard and exiting for you to try again!\r\n\r\n");
     return;
   }
-  if (GET_PREFERRED_DIVINE(d->character) >= NUM_CLASSES || GET_PREFERRED_DIVINE(d->character) <= CLASS_UNDEFINED)
+  if (GET_PREFERRED_DIVINE(d->character) >= NUM_CLASSES ||
+      GET_PREFERRED_DIVINE(d->character) <= CLASS_UNDEFINED)
   {
     GET_PREFERRED_DIVINE(d->character) = CLASS_CLERIC;
-    write_to_output(d, "There was an error, reset to cleric and exiting for you to try again!\r\n\r\n");
+    write_to_output(
+        d, "There was an error, reset to cleric and exiting for you to try again!\r\n\r\n");
     return;
   }
 
@@ -1749,8 +1784,8 @@ static void set_preferred_caster(struct descriptor_data *d)
 
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, CLSLIST_NAME(GET_PREFERRED_ARCANE(d->character)), nrm,
-                  grn, nrm, CLSLIST_NAME(GET_PREFERRED_DIVINE(d->character)), nrm,
+                  grn, nrm, CLSLIST_NAME(GET_PREFERRED_ARCANE(d->character)), nrm, grn, nrm,
+                  CLSLIST_NAME(GET_PREFERRED_DIVINE(d->character)), nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -1770,8 +1805,10 @@ char *levelup_show_necromancer_cast_type(struct char_data *ch)
 {
   switch (LEVELUP(ch)->necromancer_bonus_levels)
   {
-    case 1: return "Arcane";
-    case 2: return "Divine";
+  case 1:
+    return "Arcane";
+  case 2:
+    return "Divine";
   }
   return "Not Chosen";
 }
@@ -1848,20 +1885,17 @@ static void select_alchemist_discoveries(struct descriptor_data *d)
   int i = 0;
   for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
   {
-    if ((i < 1) ||
-        (i >= NUM_ALC_DISCOVERIES) ||
-        (KNOWS_DISCOVERY(d->character, i)) ||
-        (LEVELUP(d->character)->discoveries[i]) ||
-        (!can_learn_discovery(d->character, i)))
+    if ((i < 1) || (i >= NUM_ALC_DISCOVERIES) || (KNOWS_DISCOVERY(d->character, i)) ||
+        (LEVELUP(d->character)->discoveries[i]) || (!can_learn_discovery(d->character, i)))
       continue;
-    write_to_output(d, "%s %2d%s) %s\r\n",
-                    grn, i, nrm, alchemical_discovery_names[i]);
+    write_to_output(d, "%s %2d%s) %s\r\n", grn, i, nrm, alchemical_discovery_names[i]);
   }
 
-  write_to_output(d, "\r\n"
-                     "%s -1%s) Quit\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s -1%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm);
 
   OLC_MODE(d) = STUDY_SELECT_ALC_DISCOVERY;
@@ -1873,7 +1907,8 @@ static void select_paladin_mercies(struct descriptor_data *d)
   clear_screen(d);
 
   int i = 0;
-  int mercies_known = (CLASS_LEVEL(d->character, CLASS_PALADIN) / 3) - num_paladin_mercies_known(d->character);
+  int mercies_known =
+      (CLASS_LEVEL(d->character, CLASS_PALADIN) / 3) - num_paladin_mercies_known(d->character);
   for (i = 0; i < NUM_PALADIN_MERCIES; i++)
     if (LEVELUP(d->character)->paladin_mercies[i])
       mercies_known--;
@@ -1885,24 +1920,23 @@ static void select_paladin_mercies(struct descriptor_data *d)
 
   for (i = 1; i < NUM_PALADIN_MERCIES; i++)
   {
-    if ((i < 1) ||
-        (i >= NUM_PALADIN_MERCIES) ||
-        (KNOWS_MERCY(d->character, i)) ||
-        (LEVELUP(d->character)->paladin_mercies[i]) ||
-        (!can_learn_paladin_mercy(d->character, i)))
+    if ((i < 1) || (i >= NUM_PALADIN_MERCIES) || (KNOWS_MERCY(d->character, i)) ||
+        (LEVELUP(d->character)->paladin_mercies[i]) || (!can_learn_paladin_mercy(d->character, i)))
       continue;
-    write_to_output(d, "%s %2d%s) %s : %s\r\n",
-                    grn, i, nrm, paladin_mercies[i], paladin_mercy_descriptions[i]);
+    write_to_output(d, "%s %2d%s) %s : %s\r\n", grn, i, nrm, paladin_mercies[i],
+                    paladin_mercy_descriptions[i]);
   }
 
-  write_to_output(d, "\r\n"
-                     "%s -1%s) Quit\r\n"
-                     "\r\n"
-                     "%d mercies can be selected\r\n"
-                     "\r\n"
-                     "If you wish to change the choices made in this screen, please quit the study session without saving.\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s -1%s) Quit\r\n"
+                  "\r\n"
+                  "%d mercies can be selected\r\n"
+                  "\r\n"
+                  "If you wish to change the choices made in this screen, please quit the study "
+                  "session without saving.\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm, mercies_known);
 
   OLC_MODE(d) = STUDY_SELECT_PAL_MERCY;
@@ -1924,8 +1958,7 @@ static void choose_necromancer_cast_type(struct descriptor_data *d)
                   "Enter Choice : ",
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, nrm,
-                  grn, nrm, nrm,
+                  grn, nrm, nrm, grn, nrm, nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -1943,7 +1976,9 @@ static void choose_languages(struct descriptor_data *d)
 
   int i = 0, count = 0;
   int langs_known = num_languages_learned(ch);
-  int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) + MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) + MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
+  int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) +
+                        MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) +
+                        MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
 
   for (i = 0; i < NUM_LANGUAGES; i++)
   {
@@ -1977,12 +2012,13 @@ static void choose_languages(struct descriptor_data *d)
     send_to_char(ch, "\r\n");
   }
 
-  write_to_output(d, "\r\n"
-                     "%s -1%s) Quit\r\n"
-                     "\r\n"
-                     "%d language(s) can be selected\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s -1%s) Quit\r\n"
+                  "\r\n"
+                  "%d language(s) can be selected\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm, langs_can_learn - langs_known);
 
   OLC_MODE(d) = STUDY_CHOOSE_LANGUAGES;
@@ -1994,7 +2030,8 @@ static void select_blackguard_cruelties(struct descriptor_data *d)
   clear_screen(d);
 
   int i = 0;
-  int cruelties_known = (CLASS_LEVEL(d->character, CLASS_BLACKGUARD) / 3) - num_blackguard_cruelties_known(d->character);
+  int cruelties_known = (CLASS_LEVEL(d->character, CLASS_BLACKGUARD) / 3) -
+                        num_blackguard_cruelties_known(d->character);
   for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
     if (LEVELUP(d->character)->blackguard_cruelties[i])
       cruelties_known--;
@@ -2006,24 +2043,24 @@ static void select_blackguard_cruelties(struct descriptor_data *d)
 
   for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
   {
-    if ((i < 1) ||
-        (i >= NUM_BLACKGUARD_CRUELTIES) ||
-        (KNOWS_CRUELTY(d->character, i)) ||
+    if ((i < 1) || (i >= NUM_BLACKGUARD_CRUELTIES) || (KNOWS_CRUELTY(d->character, i)) ||
         (LEVELUP(d->character)->blackguard_cruelties[i]) ||
         (!can_learn_blackguard_cruelty(d->character, i)))
       continue;
-    write_to_output(d, "%s %2d%s) %s : %s\r\n",
-                    grn, i, nrm, blackguard_cruelties[i], blackguard_cruelty_descriptions[i]);
+    write_to_output(d, "%s %2d%s) %s : %s\r\n", grn, i, nrm, blackguard_cruelties[i],
+                    blackguard_cruelty_descriptions[i]);
   }
 
-  write_to_output(d, "\r\n"
-                     "%s -1%s) Quit\r\n"
-                     "\r\n"
-                     "%d cruelties can be selected\r\n"
-                     "\r\n"
-                     "If you wish to change the choices made in this screen, please quit the study session without saving.\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s -1%s) Quit\r\n"
+                  "\r\n"
+                  "%d cruelties can be selected\r\n"
+                  "\r\n"
+                  "If you wish to change the choices made in this screen, please quit the study "
+                  "session without saving.\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm, cruelties_known);
 
   OLC_MODE(d) = STUDY_SELECT_BG_CRUELTY;
@@ -2051,16 +2088,36 @@ static void set_dragonborn_draconic_ancestry(struct descriptor_data *d)
   write_to_output(d, "Your draconic ancestry determines the damage type for your\r\n");
   write_to_output(d, "breath weapon and energy resistance once acquired.\r\n");
   write_to_output(d, "\r\n");
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLACK, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLACK), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLACK));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLUE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLUE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLUE));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GREEN, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GREEN), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GREEN));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_RED, DRCHRTLIST_NAME(DRACONIC_HERITAGE_RED), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_RED));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_WHITE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_WHITE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_WHITE));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRASS, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRASS), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRASS));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRONZE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRONZE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRONZE));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_COPPER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_COPPER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_COPPER));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_SILVER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_SILVER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_SILVER));
-  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GOLD, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GOLD), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GOLD));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLACK,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLACK),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLACK));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLUE,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLUE),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLUE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GREEN,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_GREEN),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GREEN));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_RED,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_RED),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_RED));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_WHITE,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_WHITE),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_WHITE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRASS,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRASS),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRASS));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRONZE,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRONZE),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRONZE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_COPPER,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_COPPER),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_COPPER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_SILVER,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_SILVER),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_SILVER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GOLD,
+                  DRCHRTLIST_NAME(DRACONIC_HERITAGE_GOLD),
+                  DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GOLD));
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sSelect the dragon type for your draconic ancestry : ", nrm);
 }
@@ -2098,8 +2155,8 @@ static void set_domain_menu(struct descriptor_data *d)
 
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, domain_list[GET_1ST_DOMAIN(d->character)].name, nrm,
-                  grn, nrm, domain_list[GET_2ND_DOMAIN(d->character)].name, nrm,
+                  grn, nrm, domain_list[GET_1ST_DOMAIN(d->character)].name, nrm, grn, nrm,
+                  domain_list[GET_2ND_DOMAIN(d->character)].name, nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -2110,7 +2167,6 @@ static void set_domain_menu(struct descriptor_data *d)
 
 void print_school_info(struct descriptor_data *d, int school_number)
 {
-
   write_to_output(d, "\r\n");
   write_to_output(d, "%s\r\n", school_benefits[school_number]);
   write_to_output(d, "\r\n");
@@ -2120,17 +2176,18 @@ void print_domain_info(struct descriptor_data *d, int domain_number)
 {
   int j = 0;
 
-  write_to_output(d, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
-                  cyn, nrm, domain_list[domain_number].name,
-                  cyn, nrm, weapon_list[domain_list[domain_number].favored_weapon].name,
-                  cyn, nrm, domain_list[domain_number].description);
+  write_to_output(d, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n", cyn,
+                  nrm, domain_list[domain_number].name, cyn, nrm,
+                  weapon_list[domain_list[domain_number].favored_weapon].name, cyn, nrm,
+                  domain_list[domain_number].description);
 
   write_to_output(d, "%sGranted powers: |%s", cyn, nrm);
   for (j = 0; j < MAX_GRANTED_POWERS; j++)
   {
     if (domain_list[domain_number].granted_powers[j] != DOMAIN_POWER_UNDEFINED)
     {
-      write_to_output(d, "%s%s|%s", domainpower_names[domain_list[domain_number].granted_powers[j]], cyn, nrm);
+      write_to_output(d, "%s%s|%s", domainpower_names[domain_list[domain_number].granted_powers[j]],
+                      cyn, nrm);
     }
   }
   write_to_output(d, "\r\n");
@@ -2140,7 +2197,8 @@ void print_domain_info(struct descriptor_data *d, int domain_number)
   {
     if (domain_list[domain_number].domain_spells[j] != SPELL_RESERVED_DBC)
     {
-      write_to_output(d, "%s%s|%s", spell_info[domain_list[domain_number].domain_spells[j]].name, cyn, nrm);
+      write_to_output(d, "%s%s|%s", spell_info[domain_list[domain_number].domain_spells[j]].name,
+                      cyn, nrm);
     }
   }
 }
@@ -2170,16 +2228,16 @@ static void favored_enemy_menu(struct descriptor_data *d)
 
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 2)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 3)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 4)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 5)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 6)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 7)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm,
-                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
+                  grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 2)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 3)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 4)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 5)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 6)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 7)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm, grn, nrm,
+                  race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -2222,10 +2280,11 @@ static void animal_companion_menu(struct descriptor_data *d)
 
   write_to_output(d, "You can select 0 (Zero) to deselect the current "
                      "companion.\r\n");
-  write_to_output(d, "\r\n"
-                     "%s Q%s) Quit\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm);
 
   OLC_MODE(d) = ANIMAL_COMPANION;
@@ -2266,10 +2325,11 @@ static void familiar_menu(struct descriptor_data *d)
 
   write_to_output(d, "You can select 0 (Zero) to deselect the current "
                      "familiar.\r\n");
-  write_to_output(d, "\r\n"
-                     "%s Q%s) Quit\r\n"
-                     "\r\n"
-                     "Enter Choice : ",
+  write_to_output(d,
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
                   grn, nrm);
 
   OLC_MODE(d) = FAMILIAR_MENU;
@@ -2289,8 +2349,7 @@ bool can_study_feat_type(struct char_data *ch, int feat_type)
 
   for (i = 0; i < NUM_FEATS; i++)
   {
-    if (feat_list[i].in_game &&
-        (feat_list[i].feat_type == feat_type))
+    if (feat_list[i].in_game && (feat_list[i].feat_type == feat_type))
     {
       if (feat_is_available(ch, i, 0, NULL))
         result = TRUE;
@@ -2317,10 +2376,8 @@ static void main_feat_disp_menu(struct descriptor_data *d)
   for (i = 1; i < NUM_LEARNABLE_FEAT_TYPES; i++)
   {
     can_study = can_study_feat_type(ch, i);
-    write_to_output(d,
-                    "%s %d%s) %s%s\r\n",
-                    (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"), feat_types[i],
-                    (can_study ? "" : "*"));
+    write_to_output(d, "%s %d%s) %s%s\r\n", (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"),
+                    feat_types[i], (can_study ? "" : "*"));
   }
   write_to_output(d,
                   "\r\n"
@@ -2335,7 +2392,6 @@ static void main_feat_disp_menu(struct descriptor_data *d)
 
 static void main_boosts_disp_menu(struct descriptor_data *d)
 {
-
   struct char_data *ch = d->character;
 
   get_char_colors(ch);
@@ -2346,22 +2402,29 @@ static void main_boosts_disp_menu(struct descriptor_data *d)
                   "\r\n",
                   grn);
 
-  send_to_char(ch, "Boosts Remaining: %s%d%s\r\n\r\n"
+  send_to_char(ch,
+               "Boosts Remaining: %s%d%s\r\n\r\n"
 
-                   "Strength     : %d %s--> %d%s\r\n"
-                   "Dexterity    : %d %s--> %d%s\r\n"
-                   "Constitution : %d %s--> %d%s\r\n"
-                   "Intelligence : %d %s--> %d%s\r\n"
-                   "Wisdom       : %d %s--> %d%s\r\n"
-                   "Charisma     : %d %s--> %d%s\r\n",
+               "Strength     : %d %s--> %d%s\r\n"
+               "Dexterity    : %d %s--> %d%s\r\n"
+               "Constitution : %d %s--> %d%s\r\n"
+               "Intelligence : %d %s--> %d%s\r\n"
+               "Wisdom       : %d %s--> %d%s\r\n"
+               "Charisma     : %d %s--> %d%s\r\n",
 
-               mgn, GET_LEVELUP_BOOSTS(ch), nrm,
-               GET_REAL_STR(ch), GET_LEVELUP_BOOST_STATS(ch, 0) > 0 ? mgn : nrm, GET_REAL_STR(ch) + GET_LEVELUP_BOOST_STATS(ch, 0), nrm,
-               GET_REAL_DEX(ch), GET_LEVELUP_BOOST_STATS(ch, 1) > 0 ? mgn : nrm, GET_REAL_DEX(ch) + GET_LEVELUP_BOOST_STATS(ch, 1), nrm,
-               GET_REAL_CON(ch), GET_LEVELUP_BOOST_STATS(ch, 2) > 0 ? mgn : nrm, GET_REAL_CON(ch) + GET_LEVELUP_BOOST_STATS(ch, 2), nrm,
-               GET_REAL_INT(ch), GET_LEVELUP_BOOST_STATS(ch, 3) > 0 ? mgn : nrm, GET_REAL_INT(ch) + GET_LEVELUP_BOOST_STATS(ch, 3), nrm,
-               GET_REAL_WIS(ch), GET_LEVELUP_BOOST_STATS(ch, 4) > 0 ? mgn : nrm, GET_REAL_WIS(ch) + GET_LEVELUP_BOOST_STATS(ch, 4), nrm,
-               GET_REAL_CHA(ch), GET_LEVELUP_BOOST_STATS(ch, 5) > 0 ? mgn : nrm, GET_REAL_CHA(ch) + GET_LEVELUP_BOOST_STATS(ch, 5), nrm
+               mgn, GET_LEVELUP_BOOSTS(ch), nrm, GET_REAL_STR(ch),
+               GET_LEVELUP_BOOST_STATS(ch, 0) > 0 ? mgn : nrm,
+               GET_REAL_STR(ch) + GET_LEVELUP_BOOST_STATS(ch, 0), nrm, GET_REAL_DEX(ch),
+               GET_LEVELUP_BOOST_STATS(ch, 1) > 0 ? mgn : nrm,
+               GET_REAL_DEX(ch) + GET_LEVELUP_BOOST_STATS(ch, 1), nrm, GET_REAL_CON(ch),
+               GET_LEVELUP_BOOST_STATS(ch, 2) > 0 ? mgn : nrm,
+               GET_REAL_CON(ch) + GET_LEVELUP_BOOST_STATS(ch, 2), nrm, GET_REAL_INT(ch),
+               GET_LEVELUP_BOOST_STATS(ch, 3) > 0 ? mgn : nrm,
+               GET_REAL_INT(ch) + GET_LEVELUP_BOOST_STATS(ch, 3), nrm, GET_REAL_WIS(ch),
+               GET_LEVELUP_BOOST_STATS(ch, 4) > 0 ? mgn : nrm,
+               GET_REAL_WIS(ch) + GET_LEVELUP_BOOST_STATS(ch, 4), nrm, GET_REAL_CHA(ch),
+               GET_LEVELUP_BOOST_STATS(ch, 5) > 0 ? mgn : nrm,
+               GET_REAL_CHA(ch) + GET_LEVELUP_BOOST_STATS(ch, 5), nrm
 
   );
 
@@ -2388,17 +2451,19 @@ static void main_skills_disp_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn);
 
-  send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
-                   "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
-               GET_LEVELUP_SKILL_POINTS(ch));
+  send_to_char(
+      ch,
+      "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
+      "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
+      GET_LEVELUP_SKILL_POINTS(ch));
 
   for (i = 0; i < NUM_SKILLS_IN_GAME; i++)
-    {
-      send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
-                 ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]) + LEVELUP(ch)->skills[skills_alphabetic[i]], 
+  {
+    send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n", ability_names[skills_alphabetic[i]],
+                 GET_ABILITY(ch, skills_alphabetic[i]) + LEVELUP(ch)->skills[skills_alphabetic[i]],
                  compute_ability(ch, skills_alphabetic[i]),
                  cross_names[is_class_skill(ch, skills_alphabetic[i])]);
-    }
+  }
 
   send_to_char(ch, "Please type quit or the name of the skill you wish to increase in rank: ");
 
@@ -2438,16 +2503,13 @@ static void display_study_feats(struct descriptor_data *d)
     }
 
 
-    if (((feat_list[i].feat_type == LEVELUP(ch)->feat_type) &&
-         feat_is_available(ch, i, 0, NULL) &&
-         feat_list[i].in_game &&
-         feat_list[i].can_learn &&
+    if (((feat_list[i].feat_type == LEVELUP(ch)->feat_type) && feat_is_available(ch, i, 0, NULL) &&
+         feat_list[i].in_game && feat_list[i].can_learn &&
          (!has_feat_requirement_check(ch, i) || feat_list[i].can_stack)))
     {
-
-      write_to_output(d,
-                      "%s%s%3d%s) %-30s%s",
-                      (class_feat ? (feat_list[i].epic ? "\tM(EC)" : "\tC (C)") : (feat_list[i].epic ? "\tM (E)" : "    ")),
+      write_to_output(d, "%s%s%3d%s) %-30s%s",
+                      (class_feat ? (feat_list[i].epic ? "\tM(EC)" : "\tC (C)")
+                                  : (feat_list[i].epic ? "\tM (E)" : "    ")),
                       grn, i, nrm, feat_list[i].name, nrm);
       count++;
 
@@ -2461,16 +2523,20 @@ static void display_study_feats(struct descriptor_data *d)
 
   write_to_output(d, "\r\n");
 
-  write_to_output(d,
-                  "To view more info about a feat, just select the number beside it.\r\n  "
-                  "Class feats are in \tCcyan\tn and marked with a (C).\r\n"
-                  "Epic feats, both class and regular, are in \tMMagenta\tn and are marked with (EC) or (E).\r\n");
-  write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s) Teamwork (%s%d%s)\r\n",
-                  (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
-                  (LEVELUP(ch)->class_feat_points > 0 ? grn : red), LEVELUP(ch)->class_feat_points, nrm,
-                  (LEVELUP(ch)->epic_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_feat_points, nrm,
-                  (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points, nrm,
-                  (LEVELUP(ch)->teamwork_feat_points > 0 ? grn : red), LEVELUP(ch)->teamwork_feat_points, nrm);
+  write_to_output(d, "To view more info about a feat, just select the number beside it.\r\n  "
+                     "Class feats are in \tCcyan\tn and marked with a (C).\r\n"
+                     "Epic feats, both class and regular, are in \tMMagenta\tn and are marked with "
+                     "(EC) or (E).\r\n");
+  write_to_output(
+      d,
+      "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s) Teamwork "
+      "(%s%d%s)\r\n",
+      (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
+      (LEVELUP(ch)->class_feat_points > 0 ? grn : red), LEVELUP(ch)->class_feat_points, nrm,
+      (LEVELUP(ch)->epic_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_feat_points, nrm,
+      (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points,
+      nrm, (LEVELUP(ch)->teamwork_feat_points > 0 ? grn : red), LEVELUP(ch)->teamwork_feat_points,
+      nrm);
 
   write_to_output(d, "Your choice? (type -1 or Q to exit) : ");
 }
@@ -2494,14 +2560,22 @@ void show_dragon_rider_menu(struct descriptor_data *d)
 {
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(d, "\r\n-- %sDragon Rider%s\r\n"
-                     "\r\n",
-                     mgn, nrm);
-  write_to_output(d, "1) Dragon Mount Type: %s (%s)\r\n", 
-    LEVELUP(d->character)->dragon_rider_dragon_type ? draconic_heritage_names[LEVELUP(d->character)->dragon_rider_dragon_type] : "unchosen", 
-    LEVELUP(d->character)->dragon_rider_dragon_type ? damtypes[draconic_heritage_energy_types[LEVELUP(d->character)->dragon_rider_dragon_type]] : "unchosen");
-  write_to_output(d, "2) Dragon Bond Type:  %s\r\n", 
-    LEVELUP(d->character)->dragon_rider_bond_type ? dragon_bond_types[LEVELUP(d->character)->dragon_rider_bond_type] : "unchosen");
+  write_to_output(d,
+                  "\r\n-- %sDragon Rider%s\r\n"
+                  "\r\n",
+                  mgn, nrm);
+  write_to_output(d, "1) Dragon Mount Type: %s (%s)\r\n",
+                  LEVELUP(d->character)->dragon_rider_dragon_type
+                      ? draconic_heritage_names[LEVELUP(d->character)->dragon_rider_dragon_type]
+                      : "unchosen",
+                  LEVELUP(d->character)->dragon_rider_dragon_type
+                      ? damtypes[draconic_heritage_energy_types[LEVELUP(d->character)
+                                                                    ->dragon_rider_dragon_type]]
+                      : "unchosen");
+  write_to_output(d, "2) Dragon Bond Type:  %s\r\n",
+                  LEVELUP(d->character)->dragon_rider_bond_type
+                      ? dragon_bond_types[LEVELUP(d->character)->dragon_rider_bond_type]
+                      : "unchosen");
   write_to_output(d, "Q) Exit this menu.\r\n");
   write_to_output(d, "\r\n");
   OLC_MODE(d) = STUDY_DRAGON_RIDER_MENU;
@@ -2528,60 +2602,65 @@ static void generic_main_disp_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d,
-                  "\r\n-- %sStudy Menu\r\n"
-                  "\r\n"
-                  "%s 0%s) Skills%s\r\n"
-                  "%s 1%s) Ability Score Boosts%s\r\n"
-                  "%s 2%s) Feats%s\r\n"
-                  "%s 3%s) Known Spells%s\r\n"
-                  "%s 4%s) Known Psionic Powers%s\r\n"
-                  "%s 5%s) Choose Familiar%s\r\n"
-                  "%s 6%s) Animal Companion%s\r\n"
-                  "%s 7%s) Ranger Favored Enemy%s\r\n"
-                  "%s 8%s) Cleric Domain Selection%s\r\n"
-                  "%s 9%s) Wizard School Selection%s\r\n"
-                  "%s A%s) Preferred Caster Classes (Prestige)%s\r\n"
-                  "%s B%s) Sorcerer Bloodline Selection%s\r\n"
-                  "%s C%s) Alchemist Discoveries Selection%s\r\n"
-                  "%s D%s) Paladin Mercies%s\r\n"
-                  "%s E%s) Blackguard Cruelties%s\r\n"
-                  "%s F%s) Summoner Eidolons%s\r\n"
-                  "%s G%s) Racial Abilities Selection%s\r\n"
-                  "%s H%s) Necromancer Casting Type%s\r\n"
-                  "%s I%s) Languages%s\r\n"
-                  "%s J%s) Dragon Riders%s\r\n"
-                  "\r\n"
-                  "%s R%s) Reset Character%s\r\n"
-                  "%s Q%s) Quit\r\n"
-                  "\r\n"
-                  "* - An asterisk indicates you don't have access to this option.  %s\r\n"
-                  "Enter Choice : ",
+  write_to_output(
+      d,
+      "\r\n-- %sStudy Menu\r\n"
+      "\r\n"
+      "%s 0%s) Skills%s\r\n"
+      "%s 1%s) Ability Score Boosts%s\r\n"
+      "%s 2%s) Feats%s\r\n"
+      "%s 3%s) Known Spells%s\r\n"
+      "%s 4%s) Known Psionic Powers%s\r\n"
+      "%s 5%s) Choose Familiar%s\r\n"
+      "%s 6%s) Animal Companion%s\r\n"
+      "%s 7%s) Ranger Favored Enemy%s\r\n"
+      "%s 8%s) Cleric Domain Selection%s\r\n"
+      "%s 9%s) Wizard School Selection%s\r\n"
+      "%s A%s) Preferred Caster Classes (Prestige)%s\r\n"
+      "%s B%s) Sorcerer Bloodline Selection%s\r\n"
+      "%s C%s) Alchemist Discoveries Selection%s\r\n"
+      "%s D%s) Paladin Mercies%s\r\n"
+      "%s E%s) Blackguard Cruelties%s\r\n"
+      "%s F%s) Summoner Eidolons%s\r\n"
+      "%s G%s) Racial Abilities Selection%s\r\n"
+      "%s H%s) Necromancer Casting Type%s\r\n"
+      "%s I%s) Languages%s\r\n"
+      "%s J%s) Dragon Riders%s\r\n"
+      "\r\n"
+      "%s R%s) Reset Character%s\r\n"
+      "%s Q%s) Quit\r\n"
+      "\r\n"
+      "* - An asterisk indicates you don't have access to this option.  %s\r\n"
+      "Enter Choice : ",
 
-                  mgn,
-                  MENU_OPT(CAN_STUDY_SKILLS(ch)), (CAN_STUDY_SKILLS(ch)) ? "" : "*",                                   // 0
-                  MENU_OPT(CAN_STUDY_BOOSTS(ch)), CAN_STUDY_BOOSTS(ch) ? "" : "*",                                     // 1
-                  MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*",                                       // 2
-                  MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*",                         // 3
-                  MENU_OPT(CAN_STUDY_KNOWN_PSIONICS(ch)), CAN_STUDY_KNOWN_PSIONICS(ch) ? "" : "*",                     // 4
-                  MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*",                                 // 5
-                  MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*",                               // 6
-                  MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*",                       // 7
-                  MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*",                                         // 8
-                  MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*",                                         // 9
-                  MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                                     // A
-                  MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               // B
-                  MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", // C
-                  MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             // D
-                  MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
-                  MENU_OPT(has_eidolon_choices_unchosen(ch)), has_eidolon_choices_unchosen(ch) ? "" : "*",             // F
-                  MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // G
-                  MENU_OPT(has_necromancer_cast_type_unchosen(ch)), has_necromancer_cast_type_unchosen(ch) ? "" : "*",  // H
-                  MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // I
-                  MENU_OPT(has_unchosen_dragon_rider(ch)), has_unchosen_dragon_rider(ch) ? "" : "*",                   // J
-                  MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
-                  grn, nrm,
-                  (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
+      mgn, MENU_OPT(CAN_STUDY_SKILLS(ch)), (CAN_STUDY_SKILLS(ch)) ? "" : "*",          // 0
+      MENU_OPT(CAN_STUDY_BOOSTS(ch)), CAN_STUDY_BOOSTS(ch) ? "" : "*",                 // 1
+      MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*",                   // 2
+      MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*",     // 3
+      MENU_OPT(CAN_STUDY_KNOWN_PSIONICS(ch)), CAN_STUDY_KNOWN_PSIONICS(ch) ? "" : "*", // 4
+      MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*",             // 5
+      MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*",           // 6
+      MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*",   // 7
+      MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*",                     // 8
+      MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*",                     // 9
+      MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                 // A
+      MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",           // B
+      MENU_OPT(has_alchemist_discoveries_unchosen(ch)),
+      has_alchemist_discoveries_unchosen(ch) ? "" : "*",                                       // C
+      MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*", // D
+      MENU_OPT(has_blackguard_cruelties_unchosen(ch)),
+      has_blackguard_cruelties_unchosen(ch) ? "" : "*",                                        // E
+      MENU_OPT(has_eidolon_choices_unchosen(ch)), has_eidolon_choices_unchosen(ch) ? "" : "*", // F
+      MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",       // G
+      MENU_OPT(has_necromancer_cast_type_unchosen(ch)),
+      has_necromancer_cast_type_unchosen(ch) ? "" : "*",                                 // H
+      MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",       // I
+      MENU_OPT(has_unchosen_dragon_rider(ch)), has_unchosen_dragon_rider(ch) ? "" : "*", // J
+      MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                       // R
+      grn, nrm,
+      (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+          ? "(You are using premade build, options are limited!)"
+          : "");
 
   OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
 }
@@ -2607,7 +2686,8 @@ static void cfeat_disp_menu(struct descriptor_data *d)
 
   column_list(d->character, 3, feat_weapons, counter, TRUE);
 
-  write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
+  write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm,
+                  feat_list[LEVELUP(d->character)->tempFeat].name);
 
   OLC_MODE(d) = STUDY_CFEAT_MENU;
 }
@@ -2648,7 +2728,8 @@ static void cfeat_disp_menu_old(struct descriptor_data *d)
 
   column_list(d->character, 3, feat_weapons, counter, TRUE);
 
-  write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
+  write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm,
+                  feat_list[LEVELUP(d->character)->tempFeat].name);
 
   OLC_MODE(d) = STUDY_CFEAT_MENU;
 }
@@ -2665,7 +2746,8 @@ static void sfeat_disp_menu(struct descriptor_data *d)
   for (i = 1; i < NUM_SCHOOLS; i++)
     write_to_output(d, "%d) %s\r\n", i, spell_schools[i]);
 
-  write_to_output(d, "\r\n%sChoose a spell school for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
+  write_to_output(d, "\r\n%sChoose a spell school for the %s feat : ", nrm,
+                  feat_list[LEVELUP(d->character)->tempFeat].name);
 
   OLC_MODE(d) = STUDY_SFEAT_MENU;
 }
@@ -2785,9 +2867,10 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'Q':
       if (GET_LEVEL(ch) == 1)
       {
-        write_to_output(d, "Your training points will be reset upon exit to "
-                           "account for any changes made to your intelligence stat. (This will only occur at "
-                           "level 1)\r\n");
+        write_to_output(
+            d, "Your training points will be reset upon exit to "
+               "account for any changes made to your intelligence stat. (This will only occur at "
+               "level 1)\r\n");
       }
       write_to_output(d, "You can currently study as much as you want per level.\r\n");
       /* in the future we will probably change study to be limited to 1/ level ?*/
@@ -2819,31 +2902,40 @@ void study_parse(struct descriptor_data *d, char *arg)
       if (CAN_STUDY_KNOWN_SPELLS(ch))
       {
         if (LEVELUP(ch)->class == CLASS_SORCERER ||
-            ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+            ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER ||
+              LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
               LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
               LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
+              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
+              (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
              GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
           sorc_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_BARD ||
-                 ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
-                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+                 ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER ||
+                   LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW ||
+                   LEVELUP(ch)->class == CLASS_SPELLSWORD ||
                    LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
+                   (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
           bard_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_SUMMONER ||
-                 ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
-                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+                 ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER ||
+                   LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW ||
+                   LEVELUP(ch)->class == CLASS_SPELLSWORD ||
                    LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
+                   (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
           summoner_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
-                 ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || LEVELUP(ch)->class == CLASS_KNIGHT_OF_SOLAMNIA || 
-                 LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL || 
-                 (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
-                 GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+                 ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+                   LEVELUP(ch)->class == CLASS_KNIGHT_OF_SOLAMNIA ||
+                   LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL ||
+                   (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) &&
+                  GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
           inquisitor_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_WARLOCK)
           warlock_known_spells_disp_menu(d);
@@ -2857,7 +2949,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '4':
       if (LEVELUP(ch) && LEVELUP(ch)->inte != GET_REAL_INT(ch))
       {
-        send_to_char(ch, "\tYSince you have changed your intelligence ability score, you need to save and\r\nquit from study before you can select your powers.\r\n");
+        send_to_char(ch, "\tYSince you have changed your intelligence ability score, you need to "
+                         "save and\r\nquit from study before you can select your powers.\r\n");
         break;
       }
       if (CAN_STUDY_KNOWN_PSIONICS(ch))
@@ -3065,10 +3158,12 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'r':
       if (GET_LEVEL(ch) != 1)
       {
-        send_to_char(ch, "You can't reset your level after you've passed level 1.  Please exit the study menu and use the respec command instead.\r\n");
+        send_to_char(ch, "You can't reset your level after you've passed level 1.  Please exit the "
+                         "study menu and use the respec command instead.\r\n");
         break;
       }
-      send_to_char(ch, "Are you sure you wish to reset your level?  This will undo all of your changes and make you a freshly made level one character again.\r\nY or N?");
+      send_to_char(ch, "Are you sure you wish to reset your level?  This will undo all of your "
+                       "changes and make you a freshly made level one character again.\r\nY or N?");
       OLC_MODE(d) = STUDY_CONFIRM_RESET;
       break;
     default:
@@ -3094,7 +3189,9 @@ void study_parse(struct descriptor_data *d, char *arg)
       do_start(ch);
       HAS_SET_STATS_STUDY(ch) = FALSE;
       GET_EXP(ch) = tempXP;
-      send_to_char(ch, "You have reset your character and can begin choosing stats, skills and feats anew.\r\n");
+      send_to_char(
+          ch,
+          "You have reset your character and can begin choosing stats, skills and feats anew.\r\n");
       save_char(d->character, 0);
       cleanup_olc(d, CLEANUP_ALL);
       free(LEVELUP(d->character));
@@ -3116,7 +3213,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
     default: /* Choose Feats */
       number = atoi(arg);
-      if (!CAN_STUDY_FEATS(ch) || (number < 1) || (number >= NUM_LEARNABLE_FEAT_TYPES) || !can_study_feat_type(ch, number))
+      if (!CAN_STUDY_FEATS(ch) || (number < 1) || (number >= NUM_LEARNABLE_FEAT_TYPES) ||
+          !can_study_feat_type(ch, number))
       {
         write_to_output(d, "That is an invalid choice!\r\n");
         main_feat_disp_menu(d);
@@ -3132,7 +3230,8 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     if (!*arg)
     {
-      send_to_char(d->character, "\r\nPlease type the full name of the ability score you wish to increase or type quit to leave this menu.\r\n");
+      send_to_char(d->character, "\r\nPlease type the full name of the ability score you wish to "
+                                 "increase or type quit to leave this menu.\r\n");
       send_to_char(d->character, "Your choice (quit or ability score name) : ");
       return;
     }
@@ -3145,7 +3244,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       // let's update trains
       if (GET_LEVELUP_BOOST_STATS(ch, 3) > 0)
         intel_bonus += ((GET_REAL_INT(ch) + 1) % 2) ? 0 : 1;
-      
+
       GET_LEVELUP_SKILL_POINTS(ch) += intel_bonus;
       display_main_menu(d);
       return;
@@ -3183,7 +3282,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      send_to_char(d->character, "\r\nPlease type the full name of the ability score you wish to increase or type quit to leave this menu.\r\n");
+      send_to_char(d->character, "\r\nPlease type the full name of the ability score you wish to "
+                                 "increase or type quit to leave this menu.\r\n");
       send_to_char(d->character, "Your choice (quit or ability score name) : ");
       return;
     }
@@ -3194,7 +3294,8 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     if (!*arg)
     {
-      send_to_char(d->character, "\r\nPlease type the full name of the skill you wish to increase or type quit to leave this menu.\r\n");
+      send_to_char(d->character, "\r\nPlease type the full name of the skill you wish to increase "
+                                 "or type quit to leave this menu.\r\n");
       send_to_char(d->character, "Your choice (quit or skill to improve) : ");
       return;
     }
@@ -3223,7 +3324,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     // skill not available to this class
     int skill_type = is_class_skill(ch, skill_num);
-    
+
     if (skill_type == 0)
     {
       send_to_char(ch, "This skill is not available to your class...\r\n");
@@ -3234,7 +3335,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     // cross-class skill
     if (GET_LEVELUP_SKILL_POINTS(ch) < 2 && skill_type == 1)
     {
-      send_to_char(ch, "(Cross-Class) You don't have enough skill points to train that skill...\r\n");
+      send_to_char(ch,
+                   "(Cross-Class) You don't have enough skill points to train that skill...\r\n");
       send_to_char(d->character, "Your choice (quit or skill to improve) : ");
       return;
     }
@@ -3269,7 +3371,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       send_to_char(ch, "You are now fully trained for your level in that area.\r\n");
     if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
       ;
-    else if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && is_class_skill(ch, skill_num) == 1)
+    else if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) &&
+             is_class_skill(ch, skill_num) == 1)
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
 
     main_skills_disp_menu(d);
@@ -3285,8 +3388,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     /* Check if the discovery is available. */
-    if ((number < 1) ||
-        (number >= NUM_ALC_DISCOVERIES) ||
+    if ((number < 1) || (number >= NUM_ALC_DISCOVERIES) ||
         (KNOWS_DISCOVERY(d->character, number)) ||
         (LEVELUP(d->character)->discoveries[number] == TRUE) ||
         (!can_learn_discovery(d->character, number)))
@@ -3297,7 +3399,9 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     if (!has_alchemist_discoveries_unchosen_study(ch))
     {
-      send_to_char(ch, "You cannot choose new discoveries at this time.  If you wish to change your choices in this study session, quit the study menu without saving the changes.\r\n");
+      send_to_char(
+          ch, "You cannot choose new discoveries at this time.  If you wish to change your choices "
+              "in this study session, quit the study menu without saving the changes.\r\n");
       break;
     }
 
@@ -3305,9 +3409,11 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempDiscovery = number;
 
     /* Display the description of the feat, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\n\r\n"
-                       "Choose this discovery? (y/n) : ",
-                    nrm, alchemical_discovery_names[number], nrm, alchemical_discovery_descriptions[number]);
+    write_to_output(d,
+                    "%s%s%s: %s\r\n\r\n"
+                    "Choose this discovery? (y/n) : ",
+                    nrm, alchemical_discovery_names[number], nrm,
+                    alchemical_discovery_descriptions[number]);
 
     OLC_MODE(d) = STUDY_CONFIRM_ADD_DISCOVERY;
     break;
@@ -3321,9 +3427,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     /* Check if the discovery is available. */
-    if ((number < 1) ||
-        (number >= NUM_PALADIN_MERCIES) ||
-        (KNOWS_MERCY(d->character, number)) ||
+    if ((number < 1) || (number >= NUM_PALADIN_MERCIES) || (KNOWS_MERCY(d->character, number)) ||
         (LEVELUP(d->character)->paladin_mercies[number] == TRUE) ||
         (!can_learn_paladin_mercy(d->character, number)))
     {
@@ -3343,8 +3447,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempMercy = number;
 
     /* Display the description of the feat, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\n\r\n"
-                       "Choose this mercy? (y/n) : ",
+    write_to_output(d,
+                    "%s%s%s: %s\r\n\r\n"
+                    "Choose this mercy? (y/n) : ",
                     nrm, paladin_mercies[number], nrm, paladin_mercy_descriptions[number]);
 
     OLC_MODE(d) = STUDY_CONFIRM_ADD_MERCY;
@@ -3359,11 +3464,14 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     if (number <= 0 || number > 2)
     {
-      write_to_output(d, "Please select either 1 for arcane spell progression or 2 for divine spell progression.\r\n");
+      write_to_output(d, "Please select either 1 for arcane spell progression or 2 for divine "
+                         "spell progression.\r\n");
       break;
     }
     LEVELUP(ch)->necromancer_bonus_levels = number;
-    write_to_output(d, "Your necromancer levels will now count towards your %s spell progression.\r\n", (number == 1) ? "arcane" : "divine");
+    write_to_output(d,
+                    "Your necromancer levels will now count towards your %s spell progression.\r\n",
+                    (number == 1) ? "arcane" : "divine");
     display_main_menu(d);
     break;
 
@@ -3376,9 +3484,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     /* Check if the language is available. */
-    if ((number < LANG_COMMON) ||
-        (number >= NUM_LANGUAGES) ||
-        (CAN_SPEAK(d->character, number)))
+    if ((number < LANG_COMMON) || (number >= NUM_LANGUAGES) || (CAN_SPEAK(d->character, number)))
     {
       write_to_output(d, "Invalid language, try again.\r\n");
       break;
@@ -3392,7 +3498,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     else
     {
       int langs_known = num_languages_learned(ch);
-      int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) + MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) + MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
+      int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) +
+                            MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) +
+                            MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
       for (i = 0; i < NUM_LANGUAGES; i++)
       {
         if (LEVELUP(ch)->languages[i])
@@ -3422,8 +3530,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     /* Check if the discovery is available. */
-    if ((number < 1) ||
-        (number >= NUM_BLACKGUARD_CRUELTIES) ||
+    if ((number < 1) || (number >= NUM_BLACKGUARD_CRUELTIES) ||
         (KNOWS_CRUELTY(d->character, number)) ||
         (LEVELUP(d->character)->blackguard_cruelties[number] == TRUE) ||
         (!can_learn_blackguard_cruelty(d->character, number)))
@@ -3444,9 +3551,11 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempCruelty = number;
 
     /* Display the description of the feat, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\n\r\n"
-                       "Choose this cruelty? (y/n) : ",
-                    nrm, blackguard_cruelties[number], nrm, blackguard_cruelty_descriptions[number]);
+    write_to_output(d,
+                    "%s%s%s: %s\r\n\r\n"
+                    "Choose this cruelty? (y/n) : ",
+                    nrm, blackguard_cruelties[number], nrm,
+                    blackguard_cruelty_descriptions[number]);
 
     OLC_MODE(d) = STUDY_CONFIRM_ADD_CRUELTY;
     break;
@@ -3461,7 +3570,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       LEVELUP(d->character)->discoveries[LEVELUP(ch)->tempDiscovery] = TRUE;
-      write_to_output(d, "Alchemist Discovery %s chosen!\r\n", alchemical_discovery_names[LEVELUP(ch)->tempDiscovery]);
+      write_to_output(d, "Alchemist Discovery %s chosen!\r\n",
+                      alchemical_discovery_names[LEVELUP(ch)->tempDiscovery]);
       LEVELUP(ch)->tempDiscovery = 0;
       select_alchemist_discoveries(d);
       break;
@@ -3495,7 +3605,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       LEVELUP(d->character)->blackguard_cruelties[LEVELUP(ch)->tempCruelty] = TRUE;
-      write_to_output(d, "Blackguard Cruelty %s chosen!\r\n", blackguard_cruelties[LEVELUP(ch)->tempCruelty]);
+      write_to_output(d, "Blackguard Cruelty %s chosen!\r\n",
+                      blackguard_cruelties[LEVELUP(ch)->tempCruelty]);
       LEVELUP(ch)->tempCruelty = 0;
       select_blackguard_cruelties(d);
       break;
@@ -3511,12 +3622,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     /* Check if the feat is available. */
-    if ((number < 1) ||
-        (number >= NUM_FEATS) ||
-        (!feat_is_available(d->character, number, 0, NULL)) ||
-        (!feat_list[number].can_learn) ||
-        (has_feat_requirement_check(d->character, number) &&
-         feat_list[number].can_stack == FALSE &&
+    if ((number < 1) || (number >= NUM_FEATS) ||
+        (!feat_is_available(d->character, number, 0, NULL)) || (!feat_list[number].can_learn) ||
+        (has_feat_requirement_check(d->character, number) && feat_list[number].can_stack == FALSE &&
          feat_list[number].combat_feat == FALSE))
     {
       write_to_output(d, "Invalid feat, try again.\r\n");
@@ -3528,9 +3636,11 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempFeat = number;
 
     /* Display the description of the feat, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\n\r\n"
-                       "Choose this feat? (y/n) : ",
-                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description);
+    write_to_output(d,
+                    "%s%s%s: %s\r\n\r\n"
+                    "Choose this feat? (y/n) : ",
+                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm,
+                    feat_list[LEVELUP(ch)->tempFeat].description);
 
     OLC_MODE(d) = STUDY_CONFIRM_ADD_FEAT;
     break;
@@ -3600,8 +3710,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       SET_LEVELUP_COMBAT_FEAT(d->character, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number);
 
       write_to_output(d, "Feat %s (%s) chosen!\r\n",
-                      feat_list[LEVELUP(d->character)->tempFeat].name,
-                      weapon_family[number]);
+                      feat_list[LEVELUP(d->character)->tempFeat].name, weapon_family[number]);
     }
     else
     {
@@ -3639,7 +3748,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
       SET_LEVELUP_SCHOOL_FEAT(d->character, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number);
 
-      write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, spell_schools[number]);
+      write_to_output(d, "Feat %s (%s) chosen!\r\n",
+                      feat_list[LEVELUP(d->character)->tempFeat].name, spell_schools[number]);
     }
     else
     {
@@ -3688,7 +3798,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
       SET_LEVELUP_SKILL_FEAT(d->character, number, feat_to_skfeat(LEVELUP(d->character)->tempFeat));
 
-      write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, ability_names[number]);
+      write_to_output(d, "Feat %s (%s) chosen!\r\n",
+                      feat_list[LEVELUP(d->character)->tempFeat].name, ability_names[number]);
     }
     else
     {
@@ -3763,20 +3874,24 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
-        write_to_output(d, "You've assigned an extra spell circle %s with your new arcana prowess.\r\n", arg);
+        write_to_output(
+            d, "You've assigned an extra spell circle %s with your new arcana prowess.\r\n", arg);
         if (NEW_ARCANA_SLOT(d->character, 0) <= 0)
           NEW_ARCANA_SLOT(d->character, 0) = atoi(arg);
         else if (NEW_ARCANA_SLOT(d->character, 1) <= 0)
           NEW_ARCANA_SLOT(d->character, 1) = atoi(arg);
         else if (NEW_ARCANA_SLOT(d->character, 2) <= 0)
           NEW_ARCANA_SLOT(d->character, 2) = atoi(arg);
-        write_to_output(d, "You have %d new arcana slots let to spend.\r\n", free_arcana_slots(d->character));
+        write_to_output(d, "You have %d new arcana slots let to spend.\r\n",
+                        free_arcana_slots(d->character));
       }
-      write_to_output(d, "Please select a spell circle, or type 'Q' to exit this menu.\r\nEnter your choice:");
+      write_to_output(
+          d, "Please select a spell circle, or type 'Q' to exit this menu.\r\nEnter your choice:");
       break;
     default:
       write_to_output(d, "That is an invalid choice!\r\n");
-      write_to_output(d, "Please select a spell circle, or type 'Q' to exit this menu.\r\nEnter your choice:");
+      write_to_output(
+          d, "Please select a spell circle, or type 'Q' to exit this menu.\r\nEnter your choice:");
       break;
     }
     break;
@@ -3797,11 +3912,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(ch, CLASS_SORCERER,
-                                    counter,
-                                    METAMAGIC_NONE,
-                                    DOMAIN_UNDEFINED) ==
-              LEVELUP(d->character)->spell_circle)
+          if (compute_spells_circle(ch, CLASS_SORCERER, counter, METAMAGIC_NONE,
+                                    DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help"))
             {
@@ -3813,7 +3925,8 @@ void study_parse(struct descriptor_data *d, char *arg)
             {
               if (!LEVELUP(d->character)->spells_learned[counter])
               {
-                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a "
+                                           "spell you already chose this level. "
                                            "To change past choices, you need "
                                            "to respec your character.\r\n\tn");
                 break;
@@ -3884,10 +3997,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number && warlock_spell_type(counter) != WARLOCK_POWER_NONE)
         {
-          if (compute_spells_circle(ch, CLASS_WARLOCK,
-                                    counter,
-                                    METAMAGIC_NONE,
-                                    DOMAIN_UNDEFINED) ==
+          if (compute_spells_circle(ch, CLASS_WARLOCK, counter, METAMAGIC_NONE, DOMAIN_UNDEFINED) ==
               LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help"))
@@ -3900,7 +4010,8 @@ void study_parse(struct descriptor_data *d, char *arg)
             {
               if (!LEVELUP(d->character)->spells_learned[counter])
               {
-                send_to_char(d->character, "\tCYou cannot remove invocation known, unless it is an invocation you already chose this level. "
+                send_to_char(d->character, "\tCYou cannot remove invocation known, unless it is an "
+                                           "invocation you already chose this level. "
                                            "To change past choices, you need "
                                            "to respec your character.\r\n\tn");
                 break;
@@ -3975,10 +4086,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(ch, CLASS_BARD,
-                                    counter,
-                                    METAMAGIC_NONE,
-                                    DOMAIN_UNDEFINED) ==
+          if (compute_spells_circle(ch, CLASS_BARD, counter, METAMAGIC_NONE, DOMAIN_UNDEFINED) ==
               LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help"))
@@ -3991,7 +4099,8 @@ void study_parse(struct descriptor_data *d, char *arg)
             {
               if (!LEVELUP(d->character)->spells_learned[counter])
               {
-                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a "
+                                           "spell you already chose this level. "
                                            "To change past choices, you need "
                                            "to respec your character.\r\n\tn");
                 break;
@@ -4066,11 +4175,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(ch, CLASS_SUMMONER,
-                                    counter,
-                                    METAMAGIC_NONE,
-                                    DOMAIN_UNDEFINED) ==
-              LEVELUP(d->character)->spell_circle)
+          if (compute_spells_circle(ch, CLASS_SUMMONER, counter, METAMAGIC_NONE,
+                                    DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help"))
             {
@@ -4082,8 +4188,10 @@ void study_parse(struct descriptor_data *d, char *arg)
             {
               if (!LEVELUP(d->character)->spells_learned[counter])
               {
-                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
-                                           "To change past choices, you need to respec your character.\r\n\tn");
+                send_to_char(d->character,
+                             "\tCYou cannot remove spells known, unless it is a spell you already "
+                             "chose this level. "
+                             "To change past choices, you need to respec your character.\r\n\tn");
                 break;
               }
               else
@@ -4113,281 +4221,292 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
 
-    case STUDY_MAIN_EIDOLON_MENU:
-      switch (*arg)
+  case STUDY_MAIN_EIDOLON_MENU:
+    switch (*arg)
+    {
+    case '1': // choose base form
+      if (GET_EIDOLON_BASE_FORM(ch) != 0 || LEVELUP(d->character)->eidolon_base_form != 0)
       {
-        case '1': // choose base form
-        if (GET_EIDOLON_BASE_FORM(ch) != 0 || LEVELUP(d->character)->eidolon_base_form != 0)
-          {
-            write_to_output(d, "You have already chosen your eidolon base form.  You will need to respec to change it.\r\n");
-            break;
-          }
-          study_eidolon_base_form_select(d);
-          break;
-        
+        write_to_output(d, "You have already chosen your eidolon base form.  You will need to "
+                           "respec to change it.\r\n");
         break;
-        case '2': // choose evolutions
-          if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
-          {
-            write_to_output(d, "You need to choose your base form first.\r\n");
-            return;
-          }
-          study_eidolon_evolutions_select(d);
-          break;
-        case '3': // choose aspects
-          if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
-          {
-            write_to_output(d, "You need to choose your base form first.\r\n");
-            return;
-          }
-          if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
-          {
-            write_to_output(d, "You need to choose your base form first.\r\n");
-            return;
-          }
-          else if (!study_has_aspects_unchosen(d))
-          {
-            write_to_output(d, "\r\nYou are not currently able to select summoner aspects.\r\n");
-            return;
-          }
-          study_summoner_aspect_select(d);
-          break;
-        case 'q':
-        case 'Q':
-          display_main_menu(d);
-          break;
-        default:
-          write_to_output(d, "That is not a valid option.\r\n");
-          break;
       }
+      study_eidolon_base_form_select(d);
       break;
 
-    case STUDY_EIDOLON_BASE_FORM_SELECT:
-      switch (*arg)
+      break;
+    case '2': // choose evolutions
+      if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
       {
-        case 'q':
-        case 'Q':
-          study_eidolon_main_menu_select(d);
-          break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-          study_assign_eidolon_base_form(d->character, atoi(arg));
-          write_to_output(d, "\tGEidolon Base Form '%s' Selected.\tn\r\n", eidolon_base_form_names[atoi(arg)]);
-          study_eidolon_main_menu_select(d);
-          break;
-        default:
-          send_to_char(ch, "Please choose again: ");
-          break;
+        write_to_output(d, "You need to choose your base form first.\r\n");
+        return;
       }
-      
+      study_eidolon_evolutions_select(d);
+      break;
+    case '3': // choose aspects
+      if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
+      {
+        write_to_output(d, "You need to choose your base form first.\r\n");
+        return;
+      }
+      if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
+      {
+        write_to_output(d, "You need to choose your base form first.\r\n");
+        return;
+      }
+      else if (!study_has_aspects_unchosen(d))
+      {
+        write_to_output(d, "\r\nYou are not currently able to select summoner aspects.\r\n");
+        return;
+      }
+      study_summoner_aspect_select(d);
+      break;
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
+      break;
+    default:
+      write_to_output(d, "That is not a valid option.\r\n");
+      break;
+    }
+    break;
+
+  case STUDY_EIDOLON_BASE_FORM_SELECT:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      study_eidolon_main_menu_select(d);
+      break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+      study_assign_eidolon_base_form(d->character, atoi(arg));
+      write_to_output(d, "\tGEidolon Base Form '%s' Selected.\tn\r\n",
+                      eidolon_base_form_names[atoi(arg)]);
+      study_eidolon_main_menu_select(d);
+      break;
+    default:
+      send_to_char(ch, "Please choose again: ");
+      break;
+    }
+
+    break;
+
+  case STUDY_SELECT_EVOLUTIONS:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      study_eidolon_main_menu_select(d);
+      break;
+    }
+    if (is_abbrev(arg, "fulllist"))
+    {
+      for (i = 1; i < NUM_EVOLUTIONS; i++)
+      {
+        write_to_output(d, "%s%2d) [%2d] %-25s \tn",
+                        study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn "
+                                                                              : "\trUn\tn ",
+                        i, evolution_list[i].evolution_points, evolution_list[i].name);
+        if ((i % 2) == 1)
+          write_to_output(d, "\r\n");
+      }
+      if ((i % 2) != 1)
+        write_to_output(d, "\r\n");
+      study_show_evolution_select_bottom_text(d);
+      return;
+    }
+    else if (is_abbrev(arg, "list"))
+    {
+      counter = 0;
+      for (i = 1; i < NUM_EVOLUTIONS; i++)
+      {
+        if (!study_qualifies_for_evolution(d->character, i, false))
+          continue;
+        counter++;
+        found = TRUE;
+        write_to_output(d, "%s%2d) [%2d] %-25s \tn",
+                        study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn "
+                                                                              : "\trUn\tn ",
+                        i, evolution_list[i].evolution_points, evolution_list[i].name);
+        if ((counter % 2) == 1)
+          write_to_output(d, "\r\n");
+      }
+      if ((counter % 2) != 1)
+        write_to_output(d, "\r\n");
+      if (!found)
+      {
+        write_to_output(d, "\tCThere are no available evolutions for you right now.\r\n");
+      }
+      study_show_evolution_select_bottom_text(d);
+      return;
+    }
+    number = atoi(arg);
+
+    if (number < 1 || number >= NUM_EVOLUTIONS)
+    {
+      write_to_output(d, "That is not a valid evolution.\r\n");
+      return;
+    }
+
+    LEVELUP(d->character)->temp_evolution = number;
+
+    study_disp_evolution_confirm(d);
+    break;
+
+  case STUDY_SELECT_EVOLUTION_CONFIRM:
+    if (!*arg)
+    {
+      write_to_output(d, "Please select 'Yes' or 'No': ");
+      return;
+    }
+    if (is_abbrev(arg, "Yes") || is_abbrev(arg, "yes") || is_abbrev(arg, "YES"))
+    {
+      LEVELUP(d->character)->eidolon_evolutions[LEVELUP(d->character)->temp_evolution]++;
+      write_to_output(d, "You have selected the '%s' evolution for %d evolution points.\r\n",
+                      evolution_list[LEVELUP(d->character)->temp_evolution].name,
+                      evolution_list[LEVELUP(d->character)->temp_evolution].evolution_points);
+      study_eidolon_evolutions_select(d);
+      LEVELUP(d->character)->temp_evolution = 0;
+      break;
+    }
+    else if (is_abbrev(arg, "No") || is_abbrev(arg, "no") || is_abbrev(arg, "NO"))
+    {
+      study_eidolon_evolutions_select(d);
+      write_to_output(d, "Okay, skipping selection of '%s'.\r\n",
+                      evolution_list[LEVELUP(d->character)->temp_evolution].name);
+      LEVELUP(d->character)->temp_evolution = 0;
+    }
+    else
+    {
+      write_to_output(d, "Please select 'Yes' or 'No': ");
+      return;
+    }
+    break;
+
+  case STUDY_SELECT_ASPECT:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      study_eidolon_main_menu_select(d);
+      break;
+    }
+    if (is_abbrev(arg, "list"))
+    {
+      counter = 0;
+      for (i = 1; i < NUM_EVOLUTIONS; i++)
+      {
+        if (LEVELUP(d->character)->summoner_aspects[i])
+          continue;
+        if (!evolution_list[i].pc_avail)
+          continue;
+        write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
+        if ((counter % 2) == 1)
+          write_to_output(d, "\r\n");
+        counter++;
+      }
+      if ((counter % 2) != 1)
+        write_to_output(d, "\r\n");
+      return;
+    }
+    number = atoi(arg);
+
+    if (number < 1 || number >= NUM_EVOLUTIONS)
+    {
+      write_to_output(d, "That is not a valid evolution.\r\n");
+      return;
+    }
+
+    if (LEVELUP(d->character)->summoner_aspects[i])
+    {
+      write_to_output(d, "You have already chosen that aspect.\r\n");
+      return;
+    }
+
+    LEVELUP(d->character)->temp_evolution = number;
+
+    study_disp_aspect_confirm(d);
+    break;
+
+  case STUDY_SELECT_ASPECT_CONFIRM:
+    if (!*arg)
+    {
+      write_to_output(d, "Please select 'Yes' or 'No': ");
+      return;
+    }
+    if (is_abbrev(arg, "Yes") || is_abbrev(arg, "yes") || is_abbrev(arg, "YES"))
+    {
+      LEVELUP(d->character)->summoner_aspects[LEVELUP(d->character)->temp_evolution] = 1;
+      write_to_output(d, "You have selected the '%s' aspect.\r\n",
+                      evolution_list[LEVELUP(d->character)->temp_evolution].name);
+      study_summoner_aspect_select(d);
+      LEVELUP(d->character)->temp_evolution = 0;
+      break;
+    }
+    else if (is_abbrev(arg, "No") || is_abbrev(arg, "no") || is_abbrev(arg, "NO"))
+    {
+      study_summoner_aspect_select(d);
+      write_to_output(d, "Okay, skipping selection of '%s'.\r\n",
+                      evolution_list[LEVELUP(d->character)->temp_evolution].name);
+      LEVELUP(d->character)->temp_evolution = 0;
+    }
+    else
+    {
+      write_to_output(d, "Please select 'Yes' or 'No': ");
+      return;
+    }
+    break;
+
+    /******* end summoner **********/
+
+    /******* start inquisitor **********/
+
+  case STUDY_INQUISITOR_KNOWN_SPELLS_MENU:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
       break;
 
-    case STUDY_SELECT_EVOLUTIONS:
-      switch (*arg)
-      {
-      case 'q':
-      case 'Q':
-          study_eidolon_main_menu_select(d);
-          break;
-      }
-      if (is_abbrev(arg, "fulllist"))
-      {
-          for (i = 1; i < NUM_EVOLUTIONS; i++)
-          {
-            write_to_output(d, "%s%2d) [%2d] %-25s \tn", study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn " : "\trUn\tn ", i, evolution_list[i].evolution_points, evolution_list[i].name);
-            if ((i % 2) == 1)
-          write_to_output(d, "\r\n");
-          }
-          if ((i % 2) != 1)
-            write_to_output(d, "\r\n");
-          study_show_evolution_select_bottom_text(d);
-          return;
-      }
-      else if (is_abbrev(arg, "list"))
-      {
-          counter = 0;
-          for (i = 1; i < NUM_EVOLUTIONS; i++)
-          {
-            if (!study_qualifies_for_evolution(d->character, i, false))
-              continue;
-            counter++;
-            found = TRUE;
-            write_to_output(d, "%s%2d) [%2d] %-25s \tn", study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn " : "\trUn\tn ", i, evolution_list[i].evolution_points, evolution_list[i].name);
-            if ((counter % 2) == 1)
-          write_to_output(d, "\r\n");
-          }
-          if ((counter % 2) != 1)
-            write_to_output(d, "\r\n");
-          if (!found)
-          {
-            write_to_output(d, "\tCThere are no available evolutions for you right now.\r\n");
-          }
-          study_show_evolution_select_bottom_text(d);
-          return;
-      }
+      /* here are our spell levels for 'spells known' */
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+      inquisitor_study_menu(d, atoi(arg));
+      break;
+    default:
+      write_to_output(d, "That is an invalid choice!\r\n");
+      inquisitor_known_spells_disp_menu(d);
+      break;
+    }
+    break;
+
+  case INQUISITOR_STUDY_SPELLS:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      inquisitor_known_spells_disp_menu(d);
+      break;
+
+    default:
       number = atoi(arg);
 
-      if (number < 1 || number >= NUM_EVOLUTIONS)
+      /* SPELL PREPARATION HOOK */
+      for (counter = 1; counter < NUM_SPELLS; counter++)
       {
-          write_to_output(d, "That is not a valid evolution.\r\n");
-          return;
-      }
-
-      LEVELUP(d->character)->temp_evolution = number;
-
-      study_disp_evolution_confirm(d);
-      break;
-
-    case STUDY_SELECT_EVOLUTION_CONFIRM:
-      if (!*arg)
-      {
-          write_to_output(d, "Please select 'Yes' or 'No': ");
-          return;
-      }
-      if (is_abbrev(arg, "Yes") || is_abbrev(arg, "yes") || is_abbrev(arg, "YES"))
-      {
-          LEVELUP(d->character)->eidolon_evolutions[LEVELUP(d->character)->temp_evolution]++;
-          write_to_output(d, "You have selected the '%s' evolution for %d evolution points.\r\n",
-                          evolution_list[LEVELUP(d->character)->temp_evolution].name, evolution_list[LEVELUP(d->character)->temp_evolution].evolution_points);
-          study_eidolon_evolutions_select(d);
-          LEVELUP(d->character)->temp_evolution = 0;
-          break;
-      }
-      else if (is_abbrev(arg, "No") || is_abbrev(arg, "no") || is_abbrev(arg, "NO"))
-      {
-          study_eidolon_evolutions_select(d);
-          write_to_output(d, "Okay, skipping selection of '%s'.\r\n", evolution_list[LEVELUP(d->character)->temp_evolution].name);
-          LEVELUP(d->character)->temp_evolution = 0;
-      }
-      else
-      {
-          write_to_output(d, "Please select 'Yes' or 'No': ");
-          return;
-      }
-      break;
-
-    case STUDY_SELECT_ASPECT:
-      switch (*arg)
-      {
-      case 'q':
-      case 'Q':
-          study_eidolon_main_menu_select(d);
-          break;
-      }
-      if (is_abbrev(arg, "list"))
-      {
-          counter = 0;
-          for (i = 1; i < NUM_EVOLUTIONS; i++)
-          {
-            if (LEVELUP(d->character)->summoner_aspects[i]) continue;    
-            if (!evolution_list[i].pc_avail) continue;
-            write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
-            if ((counter % 2) == 1)
-              write_to_output(d, "\r\n");
-            counter++;
-          }
-          if ((counter % 2) != 1)
-            write_to_output(d, "\r\n");
-          return;
-      }
-      number = atoi(arg);
-
-      if (number < 1 || number >= NUM_EVOLUTIONS)
-      {
-          write_to_output(d, "That is not a valid evolution.\r\n");
-          return;
-      }
-
-      if (LEVELUP(d->character)->summoner_aspects[i])
-      {
-          write_to_output(d, "You have already chosen that aspect.\r\n");
-          return;
-      }
-
-      LEVELUP(d->character)->temp_evolution = number;
-
-      study_disp_aspect_confirm(d);
-      break;
-
-    case STUDY_SELECT_ASPECT_CONFIRM:
-      if (!*arg)
-      {
-          write_to_output(d, "Please select 'Yes' or 'No': ");
-          return;
-      }
-      if (is_abbrev(arg, "Yes") || is_abbrev(arg, "yes") || is_abbrev(arg, "YES"))
-      {
-          LEVELUP(d->character)->summoner_aspects[LEVELUP(d->character)->temp_evolution] = 1;
-          write_to_output(d, "You have selected the '%s' aspect.\r\n", evolution_list[LEVELUP(d->character)->temp_evolution].name);
-          study_summoner_aspect_select(d);
-          LEVELUP(d->character)->temp_evolution = 0;
-          break;
-      }
-      else if (is_abbrev(arg, "No") || is_abbrev(arg, "no") || is_abbrev(arg, "NO"))
-      {
-          study_summoner_aspect_select(d);
-          write_to_output(d, "Okay, skipping selection of '%s'.\r\n", evolution_list[LEVELUP(d->character)->temp_evolution].name);
-          LEVELUP(d->character)->temp_evolution = 0;
-      }
-      else
-      {
-          write_to_output(d, "Please select 'Yes' or 'No': ");
-          return;
-      }
-      break;
-
-      /******* end summoner **********/
-
-      /******* start inquisitor **********/
-
-        case STUDY_INQUISITOR_KNOWN_SPELLS_MENU:
-      switch (*arg)
-      {
-      case 'q':
-      case 'Q':
-          display_main_menu(d);
-          break;
-
-          /* here are our spell levels for 'spells known' */
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-          inquisitor_study_menu(d, atoi(arg));
-          break;
-      default:
-          write_to_output(d, "That is an invalid choice!\r\n");
-          inquisitor_known_spells_disp_menu(d);
-          break;
-      }
-      break;
-
-    case INQUISITOR_STUDY_SPELLS:
-      switch (*arg)
-      {
-      case 'q':
-      case 'Q':
-          inquisitor_known_spells_disp_menu(d);
-          break;
-
-      default:
-          number = atoi(arg);
-
-          /* SPELL PREPARATION HOOK */
-          for (counter = 1; counter < NUM_SPELLS; counter++)
-          {
-            if (counter == number)
-            {
-          if (compute_spells_circle(ch, CLASS_INQUISITOR,
-                                    counter,
-                                    METAMAGIC_NONE,
-                                    DOMAIN_UNDEFINED) ==
-              LEVELUP(d->character)->spell_circle)
+        if (counter == number)
+        {
+          if (compute_spells_circle(ch, CLASS_INQUISITOR, counter, METAMAGIC_NONE,
+                                    DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help"))
             {
@@ -4399,7 +4518,8 @@ void study_parse(struct descriptor_data *d, char *arg)
             {
               if (!LEVELUP(d->character)->spells_learned[counter])
               {
-                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a "
+                                           "spell you already chose this level. "
                                            "To change past choices, you need "
                                            "to respec your character.\r\n\tn");
                 break;
@@ -4453,7 +4573,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '9':
       if (((CLASS_LEVEL(d->character, CLASS_PSIONICIST) + 1) / 2) < atoi(arg))
       {
-        send_to_char(d->character, "You are not yet able to learn psionic powers of that level.\r\n");
+        send_to_char(d->character,
+                     "You are not yet able to learn psionic powers of that level.\r\n");
         break;
       }
       psionicist_study_menu(d, atoi(arg));
@@ -4482,7 +4603,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_powers_circle(CLASS_PSIONICIST, counter, METAMAGIC_NONE) == LEVELUP(d->character)->spell_circle)
+          if (compute_powers_circle(CLASS_PSIONICIST, counter, METAMAGIC_NONE) ==
+              LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help"))
             {
@@ -4494,8 +4616,10 @@ void study_parse(struct descriptor_data *d, char *arg)
             {
               if (!LEVELUP(d->character)->spells_learned[counter])
               {
-                send_to_char(d->character, "\tCYou cannot remove powers known, unless it is a power you already chose this level. "
-                                           "To change past choices, you need to respec your character.\r\n\tn");
+                send_to_char(d->character,
+                             "\tCYou cannot remove powers known, unless it is a power you already "
+                             "chose this level. "
+                             "To change past choices, you need to respec your character.\r\n\tn");
                 break;
               }
               else
@@ -4669,9 +4793,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     /***/
   case SET_PREFERRED_ARCANE:
     number = atoi(arg);
-    if (number != CLASS_WIZARD &&
-        number != CLASS_SORCERER &&
-        number != CLASS_SUMMONER &&
+    if (number != CLASS_WIZARD && number != CLASS_SORCERER && number != CLASS_SUMMONER &&
         number != CLASS_BARD)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
@@ -4686,9 +4808,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
   case SET_PREFERRED_DIVINE:
     number = atoi(arg);
-    if (number != CLASS_DRUID &&
-        number != CLASS_INQUISITOR &&
-        number != CLASS_CLERIC)
+    if (number != CLASS_DRUID && number != CLASS_INQUISITOR && number != CLASS_CLERIC)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
       OLC_MODE(d) = SET_PREFERRED_DIVINE;
@@ -4752,13 +4872,15 @@ void study_parse(struct descriptor_data *d, char *arg)
       case 2:
         LEVELUP(ch)->tempFeat = FEAT_SORCERER_BLOODLINE_FEY;
         OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
-        write_to_output(d, "\r\n%s%s:\r\n%s%s\r\n\r\n", nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description);
+        write_to_output(d, "\r\n%s%s:\r\n%s%s\r\n\r\n", nrm, feat_list[LEVELUP(ch)->tempFeat].name,
+                        nrm, feat_list[LEVELUP(ch)->tempFeat].description);
         write_to_output(d, "Choose the fey bloodline? (Y/N): ");
         return;
       case 3:
         LEVELUP(ch)->tempFeat = FEAT_SORCERER_BLOODLINE_UNDEAD;
         OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
-        write_to_output(d, "\r\n%s%s:\r\n%s%s\r\n\r\n", nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description);
+        write_to_output(d, "\r\n%s%s:\r\n%s%s\r\n\r\n", nrm, feat_list[LEVELUP(ch)->tempFeat].name,
+                        nrm, feat_list[LEVELUP(ch)->tempFeat].description);
         write_to_output(d, "Choose the undead bloodline? (Y/N): ");
         return;
       default:
@@ -4772,16 +4894,11 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case SET_BLOODLINE_DRACONIC:
     number = atoi(arg);
-    if (number != DRACONIC_HERITAGE_BLACK &&
-        number != DRACONIC_HERITAGE_BLUE &&
-        number != DRACONIC_HERITAGE_GREEN &&
-        number != DRACONIC_HERITAGE_RED &&
-        number != DRACONIC_HERITAGE_WHITE &&
-        number != DRACONIC_HERITAGE_BRASS &&
-        number != DRACONIC_HERITAGE_BRONZE &&
-        number != DRACONIC_HERITAGE_COPPER &&
-        number != DRACONIC_HERITAGE_SILVER &&
-        number != DRACONIC_HERITAGE_GOLD)
+    if (number != DRACONIC_HERITAGE_BLACK && number != DRACONIC_HERITAGE_BLUE &&
+        number != DRACONIC_HERITAGE_GREEN && number != DRACONIC_HERITAGE_RED &&
+        number != DRACONIC_HERITAGE_WHITE && number != DRACONIC_HERITAGE_BRASS &&
+        number != DRACONIC_HERITAGE_BRONZE && number != DRACONIC_HERITAGE_COPPER &&
+        number != DRACONIC_HERITAGE_SILVER && number != DRACONIC_HERITAGE_GOLD)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
       OLC_MODE(d) = SET_BLOODLINE_DRACONIC;
@@ -4793,146 +4910,161 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempFeat = FEAT_SORCERER_BLOODLINE_DRACONIC;
     LEVELUP(ch)->sorcerer_bloodline_subtype = number;
     /* Display the description of the bloodline, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\nDraconic Heritage: %s dragon - %s energy type\r\n"
-                       "Choose this bloodline and heritage? (y/n) : ",
-                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description,
+    write_to_output(d,
+                    "%s%s%s: %s\r\nDraconic Heritage: %s dragon - %s energy type\r\n"
+                    "Choose this bloodline and heritage? (y/n) : ",
+                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm,
+                    feat_list[LEVELUP(ch)->tempFeat].description,
                     DRCHRTLIST_NAME(LEVELUP(ch)->sorcerer_bloodline_subtype),
                     DRCHRT_ENERGY_TYPE(LEVELUP(ch)->sorcerer_bloodline_subtype));
     OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
     break;
 
   case STUDY_DRAGON_RIDER_MENU:
-    switch(*arg)
+    switch (*arg)
     {
-      case '1':
-        if (GET_DRAGON_RIDER_DRAGON_TYPE(ch))
-        {
-          write_to_output(d, "You've already chosen your dragon mount type. To choose a different one you will need to respec.\r\n");
-          break;
-        }
-        show_dragonrider_mount_type(d);
+    case '1':
+      if (GET_DRAGON_RIDER_DRAGON_TYPE(ch))
+      {
+        write_to_output(d, "You've already chosen your dragon mount type. To choose a different "
+                           "one you will need to respec.\r\n");
         break;
-      case '2':
-        if (GET_DRAGON_BOND_TYPE(ch))
-        {
-          write_to_output(d, "You've already chosen your dragon bond type. To choose a different one you will need to respec.\r\n");
-          break;
-        }
-        show_dragonrider_bond_type(d);
+      }
+      show_dragonrider_mount_type(d);
+      break;
+    case '2':
+      if (GET_DRAGON_BOND_TYPE(ch))
+      {
+        write_to_output(d, "You've already chosen your dragon bond type. To choose a different one "
+                           "you will need to respec.\r\n");
         break;
-      case 'q':
-      case 'Q':
-        display_main_menu(d);
-        break;
-      default:
-        write_to_output(d, "Invalid Choice.\r\n");
-        break;
+      }
+      show_dragonrider_bond_type(d);
+      break;
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
+      break;
+    default:
+      write_to_output(d, "Invalid Choice.\r\n");
+      break;
     }
     break;
 
-    case STUDY_DRAGON_RIDER_DRAGON_TYPE:
-      number = atoi(arg);
+  case STUDY_DRAGON_RIDER_DRAGON_TYPE:
+    number = atoi(arg);
 
-      if (number < 1 || number >= NUM_DRAGON_TYPES)
-      {
-        send_to_char(ch, "That is not a valid selection.\r\n");
-        break;
-      }
-      if (*arg == 'q' || *arg == 'Q')
-      {
-        show_dragon_rider_menu(d);
-        break;
-      }
-
-      LEVELUP(d->character)->dragon_rider_dragon_type = number;
-      send_to_char(ch, "Choose the '%s' dragon type with '%s' elemental damage? (Y/N): ",
-        DRCHRTLIST_NAME(LEVELUP(ch)->dragon_rider_dragon_type),
-        DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragon_rider_dragon_type));
-      OLC_MODE(d) = STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM;
+    if (number < 1 || number >= NUM_DRAGON_TYPES)
+    {
+      send_to_char(ch, "That is not a valid selection.\r\n");
       break;
-    
-    case STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM:
-      switch(*arg)
-      {
-        case 'y':
-        case 'Y':
-          write_to_output(d, "You've selected the '%s' dragon mount type with '%s' elemental damage.\r\n",
-              DRCHRTLIST_NAME(LEVELUP(ch)->dragon_rider_dragon_type),
-              DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragon_rider_dragon_type));
-          show_dragon_rider_menu(d);
-          break;
-        case 'n':
-        case 'N':
-          LEVELUP(d->character)->dragon_rider_dragon_type = 0;
-          show_dragonrider_mount_type(d);
-          break;
-        default:
-          write_to_output(d, "Invalid Choice.\r\n");
-          break;
-      }
+    }
+    if (*arg == 'q' || *arg == 'Q')
+    {
+      show_dragon_rider_menu(d);
+      break;
+    }
+
+    LEVELUP(d->character)->dragon_rider_dragon_type = number;
+    send_to_char(ch, "Choose the '%s' dragon type with '%s' elemental damage? (Y/N): ",
+                 DRCHRTLIST_NAME(LEVELUP(ch)->dragon_rider_dragon_type),
+                 DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragon_rider_dragon_type));
+    OLC_MODE(d) = STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM;
     break;
-  
+
+  case STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM:
+    switch (*arg)
+    {
+    case 'y':
+    case 'Y':
+      write_to_output(d,
+                      "You've selected the '%s' dragon mount type with '%s' elemental damage.\r\n",
+                      DRCHRTLIST_NAME(LEVELUP(ch)->dragon_rider_dragon_type),
+                      DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragon_rider_dragon_type));
+      show_dragon_rider_menu(d);
+      break;
+    case 'n':
+    case 'N':
+      LEVELUP(d->character)->dragon_rider_dragon_type = 0;
+      show_dragonrider_mount_type(d);
+      break;
+    default:
+      write_to_output(d, "Invalid Choice.\r\n");
+      break;
+    }
+    break;
+
 
   case STUDY_DRAGON_RIDER_BOND_TYPE:
     switch (*arg)
     {
-      case '1':
-        write_to_output(d, "Dragon Champion:\r\n");
-        write_to_output(d, "Level 3: (Draconic Strength) +1 hitroll and +2 damroll when riding dragon mount.\r\n");
-        write_to_output(d, "Level 7: (Draconic Guardian) 10%% reisist to piercing, slashing and bludgeoning damage when riding dragon mount.\r\n");
-        write_to_output(d, "Level 10: (Master of War) Weapon base damage (XdY) doubled when riding dragon mount.\r\n");
-        write_to_output(d, "\r\n");
-        write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
-        LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_CHAMPION;
-        OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
-        break;
-      case '2':
-        write_to_output(d, "Dragon Scion:\r\n");
-        write_to_output(d, "Level 3: (Magic Blade) Melee attacks gain elemental damage based on dragon mount type, when riding dragon mount.\r\n");
-        write_to_output(d, "Level 7: (Awakened Mind) Number of Dragoon points are doubled.\r\n");
-        write_to_output(d, "Level 10: (Deadly Power) Can sacrifice hit points to restore spell slots.\r\n");
-        write_to_output(d, "\r\n");
-        write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
-        LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_MAGE;
-        OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
-        break;
-      case '3':
-        write_to_output(d, "Dragon Kin:\r\n");
-        write_to_output(d, "Level 3: (Lesser Scales) Armor class increases by 2 when riding dragon mount.\r\n");
-        write_to_output(d, "Level 7: (Glory's Call) Can spend a dragoon point to give allies +2 to hitroll and 5d6 to maximum hit points.\r\n");
-        write_to_output(d, "Level 10: (Great Charge) Charging while riding dragon mount has a chance to knock enemy prone and charge damage increases by 10.\r\n");
-        write_to_output(d, "\r\n");
-        write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
-        LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_KIN;
-        OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
-        break;
-      case 'q':
-      case 'Q':
-        show_dragon_rider_menu(d);
-        break;
-      default:
-        write_to_output(d, "Invalid Choice.\r\n");
-        break;      
+    case '1':
+      write_to_output(d, "Dragon Champion:\r\n");
+      write_to_output(
+          d,
+          "Level 3: (Draconic Strength) +1 hitroll and +2 damroll when riding dragon mount.\r\n");
+      write_to_output(d, "Level 7: (Draconic Guardian) 10%% reisist to piercing, slashing and "
+                         "bludgeoning damage when riding dragon mount.\r\n");
+      write_to_output(d, "Level 10: (Master of War) Weapon base damage (XdY) doubled when riding "
+                         "dragon mount.\r\n");
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
+      LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_CHAMPION;
+      OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
+      break;
+    case '2':
+      write_to_output(d, "Dragon Scion:\r\n");
+      write_to_output(d, "Level 3: (Magic Blade) Melee attacks gain elemental damage based on "
+                         "dragon mount type, when riding dragon mount.\r\n");
+      write_to_output(d, "Level 7: (Awakened Mind) Number of Dragoon points are doubled.\r\n");
+      write_to_output(
+          d, "Level 10: (Deadly Power) Can sacrifice hit points to restore spell slots.\r\n");
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
+      LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_MAGE;
+      OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
+      break;
+    case '3':
+      write_to_output(d, "Dragon Kin:\r\n");
+      write_to_output(
+          d, "Level 3: (Lesser Scales) Armor class increases by 2 when riding dragon mount.\r\n");
+      write_to_output(d, "Level 7: (Glory's Call) Can spend a dragoon point to give allies +2 to "
+                         "hitroll and 5d6 to maximum hit points.\r\n");
+      write_to_output(d, "Level 10: (Great Charge) Charging while riding dragon mount has a chance "
+                         "to knock enemy prone and charge damage increases by 10.\r\n");
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
+      LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_KIN;
+      OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
+      break;
+    case 'q':
+    case 'Q':
+      show_dragon_rider_menu(d);
+      break;
+    default:
+      write_to_output(d, "Invalid Choice.\r\n");
+      break;
     }
     break;
 
   case STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM:
-      switch(*arg)
-      {
-        case 'y':
-        case 'Y':
-          write_to_output(d, "You've selected the '%s' dragon bond.\r\n", dragon_bond_types[LEVELUP(d->character)->dragon_rider_bond_type]);
-          show_dragon_rider_menu(d);
-          break;
-        case 'n':
-        case 'N':
-          LEVELUP(d->character)->dragon_rider_bond_type = 0;
-          show_dragon_rider_bond_menu(d);
-          break;
-        default:
-          write_to_output(d, "Invalid Choice.\r\n");
-          break;
-      }
+    switch (*arg)
+    {
+    case 'y':
+    case 'Y':
+      write_to_output(d, "You've selected the '%s' dragon bond.\r\n",
+                      dragon_bond_types[LEVELUP(d->character)->dragon_rider_bond_type]);
+      show_dragon_rider_menu(d);
+      break;
+    case 'n':
+    case 'N':
+      LEVELUP(d->character)->dragon_rider_bond_type = 0;
+      show_dragon_rider_bond_menu(d);
+      break;
+    default:
+      write_to_output(d, "Invalid Choice.\r\n");
+      break;
+    }
     break;
 
   case SET_BLOODLINE_ARCANE:
@@ -4948,9 +5080,11 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempFeat = FEAT_SORCERER_BLOODLINE_ARCANE;
     LEVELUP(ch)->sorcerer_bloodline_subtype = number;
     /* Display the description of the bloodline, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\nArcane Heritage: %s school of arcane magic\r\n"
-                       "Choose this bloodline and heritage? (y/n) : ",
-                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description,
+    write_to_output(d,
+                    "%s%s%s: %s\r\nArcane Heritage: %s school of arcane magic\r\n"
+                    "Choose this bloodline and heritage? (y/n) : ",
+                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm,
+                    feat_list[LEVELUP(ch)->tempFeat].description,
                     spell_schools[LEVELUP(ch)->sorcerer_bloodline_subtype]);
     OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
     break;
@@ -5045,9 +5179,11 @@ void study_parse(struct descriptor_data *d, char *arg)
       LEVELUP(ch)->high_elf_cantrip = number;
       OLC_MODE(d) = STUDY_CONFIRM_HIGH_ELF_CANTRIP;
       /* Display the spell chosen, and give the player an option. */
-      write_to_output(d, "%s%s%s: %s\r\nHigh Elf Cantrip: %s\r\n"
-                         "Choose this spell as your high elf cantrip? (y/n) : ",
-                      nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description, spell_info[number].name);
+      write_to_output(d,
+                      "%s%s%s: %s\r\nHigh Elf Cantrip: %s\r\n"
+                      "Choose this spell as your high elf cantrip? (y/n) : ",
+                      nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm,
+                      feat_list[LEVELUP(ch)->tempFeat].description, spell_info[number].name);
       /* Store the feat number in the work area in the data structure. */
       break;
     }
@@ -5065,7 +5201,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         {
           if (LEVELUP(ch)->tempFeat == FEAT_HIGH_ELF_CANTRIP)
           {
-            write_to_output(d, "You've selected the %s spell for your high elf cantrip.\r\n", spell_info[LEVELUP(ch)->high_elf_cantrip].name);
+            write_to_output(d, "You've selected the %s spell for your high elf cantrip.\r\n",
+                            spell_info[LEVELUP(ch)->high_elf_cantrip].name);
           }
         }
       }
@@ -5080,16 +5217,11 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case SET_DRAGONBORN_ANCESTRY:
     number = atoi(arg);
-    if (number != DRACONIC_HERITAGE_BLACK &&
-        number != DRACONIC_HERITAGE_BLUE &&
-        number != DRACONIC_HERITAGE_GREEN &&
-        number != DRACONIC_HERITAGE_RED &&
-        number != DRACONIC_HERITAGE_WHITE &&
-        number != DRACONIC_HERITAGE_BRASS &&
-        number != DRACONIC_HERITAGE_BRONZE &&
-        number != DRACONIC_HERITAGE_COPPER &&
-        number != DRACONIC_HERITAGE_SILVER &&
-        number != DRACONIC_HERITAGE_GOLD)
+    if (number != DRACONIC_HERITAGE_BLACK && number != DRACONIC_HERITAGE_BLUE &&
+        number != DRACONIC_HERITAGE_GREEN && number != DRACONIC_HERITAGE_RED &&
+        number != DRACONIC_HERITAGE_WHITE && number != DRACONIC_HERITAGE_BRASS &&
+        number != DRACONIC_HERITAGE_BRONZE && number != DRACONIC_HERITAGE_COPPER &&
+        number != DRACONIC_HERITAGE_SILVER && number != DRACONIC_HERITAGE_GOLD)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
       OLC_MODE(d) = SET_DRAGONBORN_ANCESTRY;
@@ -5101,9 +5233,11 @@ void study_parse(struct descriptor_data *d, char *arg)
     LEVELUP(d->character)->tempFeat = FEAT_DRAGONBORN_ANCESTRY;
     LEVELUP(ch)->dragonborn_draconic_ancestry = number;
     /* Display the description of the ancestry, and give the player an option. */
-    write_to_output(d, "%s%s%s: %s\r\nDraconic Ancestry: %s dragon - %s energy type\r\n"
-                       "Choose this draconic ancestry? (y/n) : ",
-                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description,
+    write_to_output(d,
+                    "%s%s%s: %s\r\nDraconic Ancestry: %s dragon - %s energy type\r\n"
+                    "Choose this draconic ancestry? (y/n) : ",
+                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm,
+                    feat_list[LEVELUP(ch)->tempFeat].description,
                     DRCHRTLIST_NAME(LEVELUP(ch)->dragonborn_draconic_ancestry),
                     DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragonborn_draconic_ancestry));
     OLC_MODE(d) = STUDY_CONFIRM_DRAGONBORN_ANCESTRY;
@@ -5121,7 +5255,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         {
           if (LEVELUP(ch)->tempFeat == FEAT_DRAGONBORN_ANCESTRY)
           {
-            write_to_output(d, "You've selected %s dragon as your dragonborn ancestry.\r\n", DRCHRTLIST_NAME(LEVELUP(ch)->dragonborn_draconic_ancestry));
+            write_to_output(d, "You've selected %s dragon as your dragonborn ancestry.\r\n",
+                            DRCHRTLIST_NAME(LEVELUP(ch)->dragonborn_draconic_ancestry));
           }
         }
       }
@@ -5151,12 +5286,18 @@ void study_parse(struct descriptor_data *d, char *arg)
       // same with age modifiers
       if (!HAS_SET_STATS_STUDY(ch))
       {
-        LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD) + character_age_attributes[GET_CH_AGE(ch)][2];
-        LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD) + character_age_attributes[GET_CH_AGE(ch)][0];
-        LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD) + character_age_attributes[GET_CH_AGE(ch)][1];
-        LEVELUP(d->character)->inte += get_race_stat(GET_RACE(ch), R_INTEL_MOD) + character_age_attributes[GET_CH_AGE(ch)][3];
-        LEVELUP(d->character)->wis += get_race_stat(GET_RACE(ch), R_WIS_MOD) + character_age_attributes[GET_CH_AGE(ch)][4];
-        LEVELUP(d->character)->cha += get_race_stat(GET_RACE(ch), R_CHA_MOD) + character_age_attributes[GET_CH_AGE(ch)][5];
+        LEVELUP(d->character)->con +=
+            get_race_stat(GET_RACE(ch), R_CON_MOD) + character_age_attributes[GET_CH_AGE(ch)][2];
+        LEVELUP(d->character)->str +=
+            get_race_stat(GET_RACE(ch), R_STR_MOD) + character_age_attributes[GET_CH_AGE(ch)][0];
+        LEVELUP(d->character)->dex +=
+            get_race_stat(GET_RACE(ch), R_DEX_MOD) + character_age_attributes[GET_CH_AGE(ch)][1];
+        LEVELUP(d->character)->inte +=
+            get_race_stat(GET_RACE(ch), R_INTEL_MOD) + character_age_attributes[GET_CH_AGE(ch)][3];
+        LEVELUP(d->character)->wis +=
+            get_race_stat(GET_RACE(ch), R_WIS_MOD) + character_age_attributes[GET_CH_AGE(ch)][4];
+        LEVELUP(d->character)->cha +=
+            get_race_stat(GET_RACE(ch), R_CHA_MOD) + character_age_attributes[GET_CH_AGE(ch)][5];
         HAS_SET_STATS_STUDY(ch) = TRUE;
       }
       // let's update trains
@@ -5169,9 +5310,11 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     default:
       number = atoi(arg);
-      write_to_output(d, "Please enter the value to modify your current stat by."
-                         "  Example:  If you want to change your stat from 10 to 14, you would enter "
-                         "'4' now.  If you wanted to change your stat from 10 to 8, you would enter '-2' now.\r\n");
+      write_to_output(d,
+                      "Please enter the value to modify your current stat by."
+                      "  Example:  If you want to change your stat from 10 to 14, you would enter "
+                      "'4' now.  If you wanted to change your stat from 10 to 8, you would enter "
+                      "'-2' now.\r\n");
       switch (number)
       {
       case 0: /* str */
@@ -5217,8 +5360,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "This would put you below/above the stat-cap!\r\n");
       break;
     }
-    cost_for_number = compute_str_cost(d->character, number) -
-                      compute_str_cost(d->character, 0); /*total cost*/
+    cost_for_number =
+        compute_str_cost(d->character, number) - compute_str_cost(d->character, 0); /*total cost*/
     /*debug*/
     // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
@@ -5260,8 +5403,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "This would put you below/above the stat-cap!\r\n");
       break;
     }
-    cost_for_number = compute_dex_cost(d->character, number) -
-                      compute_dex_cost(d->character, 0);
+    cost_for_number = compute_dex_cost(d->character, number) - compute_dex_cost(d->character, 0);
     /*debug*/
     // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
@@ -5303,8 +5445,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "This would put you below/above the stat-cap!\r\n");
       break;
     }
-    cost_for_number = compute_con_cost(d->character, number) -
-                      compute_con_cost(d->character, 0);
+    cost_for_number = compute_con_cost(d->character, number) - compute_con_cost(d->character, 0);
     /*debug*/
     // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
@@ -5346,8 +5487,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "This would put you below/above the stat-cap!\r\n");
       break;
     }
-    cost_for_number = compute_inte_cost(d->character, number) -
-                      compute_inte_cost(d->character, 0);
+    cost_for_number = compute_inte_cost(d->character, number) - compute_inte_cost(d->character, 0);
     /*debug*/
     // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
@@ -5389,8 +5529,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "This would put you below/above the stat-cap!\r\n");
       break;
     }
-    cost_for_number = compute_wis_cost(d->character, number) -
-                      compute_wis_cost(d->character, 0);
+    cost_for_number = compute_wis_cost(d->character, number) - compute_wis_cost(d->character, 0);
     /*debug*/
     // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
@@ -5432,8 +5571,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "This would put you below/above the stat-cap!\r\n");
       break;
     }
-    cost_for_number = compute_cha_cost(d->character, number) -
-                      compute_cha_cost(d->character, 0);
+    cost_for_number = compute_cha_cost(d->character, number) - compute_cha_cost(d->character, 0);
     /*debug*/
     write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
@@ -5596,8 +5734,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Invalid race!\r\n");
       else
       {
-        GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) =
-            number;
+        GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) = number;
         favored_enemy_menu(d);
         OLC_MODE(d) = FAVORED_ENEMY;
         return;
@@ -5630,8 +5767,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       else
       {
         GET_ANIMAL_COMPANION(d->character) = animal_vnums[number];
-        write_to_output(d, "You have selected %s.\r\n",
-                        animal_names[number]);
+        write_to_output(d, "You have selected %s.\r\n", animal_names[number]);
       }
 
       animal_companion_menu(d);
@@ -5661,8 +5797,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       else
       {
         GET_FAMILIAR(d->character) = familiar_vnums[number];
-        write_to_output(d, "You have selected %s.\r\n",
-                        familiar_names[number]);
+        write_to_output(d, "You have selected %s.\r\n", familiar_names[number]);
       }
 
       familiar_menu(d);
@@ -5712,7 +5847,8 @@ void study_eidolon_base_form_select(struct descriptor_data *d)
   write_to_output(d, "Choose Your Eidolon Base Form:\r\n\r\n");
   for (i = 1; i < NUM_EIDOLON_BASE_FORMS; i++)
   {
-    write_to_output(d, "%d) %-10s: %s\r\n", i, eidolon_base_form_names[i], eidolon_base_form_descs[i]);
+    write_to_output(d, "%d) %-10s: %s\r\n", i, eidolon_base_form_names[i],
+                    eidolon_base_form_descs[i]);
   }
   write_to_output(d, "\tnYour Choice: ");
   OLC_MODE(d) = STUDY_EIDOLON_BASE_FORM_SELECT;
@@ -5720,16 +5856,18 @@ void study_eidolon_base_form_select(struct descriptor_data *d)
 
 void study_eidolon_main_menu_select(struct descriptor_data *d)
 {
-  write_to_output(d, "Summoner Eidolons and Aspects:\r\n"
-                     "\r\n"
-                     "1) Choose Eidolon Base Form : %s\tn\r\n"
-                     "2) Choose Eidolon Evolutions: %s\tn\r\n"
-                     "3) Choose Summoner Aspects  : %s\tn\r\n"
-                     "Q) Quit to Main Menu\r\n"
-                     "\r\n"
-                     "\tnYour Choice: ",
-                  (LEVELUP(d->character)->eidolon_base_form == 0) ? "Must Choose this First" : 
-                  eidolon_base_form_names[LEVELUP(d->character)->eidolon_base_form],
+  write_to_output(d,
+                  "Summoner Eidolons and Aspects:\r\n"
+                  "\r\n"
+                  "1) Choose Eidolon Base Form : %s\tn\r\n"
+                  "2) Choose Eidolon Evolutions: %s\tn\r\n"
+                  "3) Choose Summoner Aspects  : %s\tn\r\n"
+                  "Q) Quit to Main Menu\r\n"
+                  "\r\n"
+                  "\tnYour Choice: ",
+                  (LEVELUP(d->character)->eidolon_base_form == 0)
+                      ? "Must Choose this First"
+                      : eidolon_base_form_names[LEVELUP(d->character)->eidolon_base_form],
                   has_evolutions_unchosen(d->character) ? "\tGAvailable" : "\trNot Available",
                   study_has_aspects_unchosen(d) ? "\tGAvailable" : "\trNot Available");
   OLC_MODE(d) = STUDY_MAIN_EIDOLON_MENU;
@@ -5737,26 +5875,28 @@ void study_eidolon_main_menu_select(struct descriptor_data *d)
 
 int study_num_free_evolution_points(struct char_data *ch)
 {
-  int num_points = evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
+  int num_points =
+      evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
   int num_spent = 0, form_evo = 0;
   int i = 0;
 
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
-    form_evo = is_eidolon_base_form_evolution(GET_EIDOLON_BASE_FORM(ch) > 0 ? GET_EIDOLON_BASE_FORM(ch) : LEVELUP(ch)->eidolon_base_form, i);
+    form_evo = is_eidolon_base_form_evolution(
+        GET_EIDOLON_BASE_FORM(ch) > 0 ? GET_EIDOLON_BASE_FORM(ch) : LEVELUP(ch)->eidolon_base_form,
+        i);
     if (LEVELUP(ch)->eidolon_evolutions[i] > 0)
     {
-      num_spent += MAX(0, LEVELUP(ch)->eidolon_evolutions[i] - form_evo) * evolution_list[i].evolution_points;
+      num_spent += MAX(0, LEVELUP(ch)->eidolon_evolutions[i] - form_evo) *
+                   evolution_list[i].evolution_points;
     }
   }
 
   return (num_points - num_spent);
-
 }
 
 void study_show_evolution_select_bottom_text(struct descriptor_data *d)
 {
-
   int num_avail = study_num_free_evolution_points(d->character);
 
   write_to_output(d, "\r\n");
@@ -5765,17 +5905,23 @@ void study_show_evolution_select_bottom_text(struct descriptor_data *d)
   write_to_output(d, "\r\n");
   write_to_output(d, "Evolutions marked \tGAv\tn are eligible to take.\r\n");
   write_to_output(d, "Evolutions marked \trUn\tn are ineligible to take.\r\n");
-  write_to_output(d, "Numbers in square brackets (Eg. [4]) are how many evoilution points the ability costs.\r\n");
+  write_to_output(
+      d,
+      "Numbers in square brackets (Eg. [4]) are how many evoilution points the ability costs.\r\n");
   write_to_output(d, "Evolution eligibility will update after exiting the entire study menu.\r\n");
-  write_to_output(d, "Type \tClist\tn to see the list of available evolutions or \tCfulllist\tn to see a list of all evolutions.\r\n");
-  write_to_output(d, "You currently have \tG%d evolution point%s\tn to spend.\r\n", num_avail, num_avail != 1 ? "s" : "");
-  write_to_output(d, "Please enter the number of the evolution you wish to take or see information about.\r\nYour Choice: ");
+  write_to_output(d, "Type \tClist\tn to see the list of available evolutions or \tCfulllist\tn to "
+                     "see a list of all evolutions.\r\n");
+  write_to_output(d, "You currently have \tG%d evolution point%s\tn to spend.\r\n", num_avail,
+                  num_avail != 1 ? "s" : "");
+  write_to_output(d, "Please enter the number of the evolution you wish to take or see information "
+                     "about.\r\nYour Choice: ");
 }
 
 void study_show_aspect_select_bottom_text(struct descriptor_data *d)
 {
-
-  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_EPIC_ASPECT);
+  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) +
+                 HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) +
+                 HAS_REAL_FEAT(d->character, FEAT_EPIC_ASPECT);
   int num_chosen = study_num_aspects_chosen(d);
   int num_avail = MAX(0, num_evos - num_chosen);
 
@@ -5783,8 +5929,10 @@ void study_show_aspect_select_bottom_text(struct descriptor_data *d)
   write_to_output(d, "\r\n");
   write_to_output(d, "Q) Exit from this Menu.\r\n");
   write_to_output(d, "\r\n");
-  write_to_output(d, "You are able to choose %d aspect%s\r\n", num_avail, num_avail != 1 ? "s" : "");
-  write_to_output(d, "Please enter the number of the aspect you wish to take or see information about.\r\nYour Choice: ");
+  write_to_output(d, "You are able to choose %d aspect%s\r\n", num_avail,
+                  num_avail != 1 ? "s" : "");
+  write_to_output(d, "Please enter the number of the aspect you wish to take or see information "
+                     "about.\r\nYour Choice: ");
 }
 
 void study_eidolon_evolutions_select(struct descriptor_data *d)
@@ -5800,7 +5948,10 @@ void study_eidolon_evolutions_select(struct descriptor_data *d)
       continue;
     count++;
     found = true;
-    write_to_output(d, "%s%2d) [%2d] %-25s \tn", study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn " : "\trUn\tn ", i, evolution_list[i].evolution_points, evolution_list[i].name);
+    write_to_output(d, "%s%2d) [%2d] %-25s \tn",
+                    study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn "
+                                                                          : "\trUn\tn ",
+                    i, evolution_list[i].evolution_points, evolution_list[i].name);
     if ((count % 2) == 1)
       write_to_output(d, "\r\n");
   }
@@ -5813,14 +5964,14 @@ void study_eidolon_evolutions_select(struct descriptor_data *d)
 }
 
 
-
 void study_summoner_aspect_select(struct descriptor_data *d)
 {
   int i = 0, count = 0;
 
   if (!study_has_aspects_unchosen(d))
   {
-    write_to_output(d, "You do not have any aspects left to choose.  If you have chosen an aspect in error, please exit the study menu without saving and try again.\r\n");
+    write_to_output(d, "You do not have any aspects left to choose.  If you have chosen an aspect "
+                       "in error, please exit the study menu without saving and try again.\r\n");
     study_show_aspect_select_bottom_text(d);
     OLC_MODE(d) = STUDY_SELECT_ASPECT;
     return;
@@ -5830,8 +5981,10 @@ void study_summoner_aspect_select(struct descriptor_data *d)
                      "\r\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
-    if (LEVELUP(d->character)->summoner_aspects[i]) continue;
-    if (!evolution_list[i].pc_avail) continue;
+    if (LEVELUP(d->character)->summoner_aspects[i])
+      continue;
+    if (!evolution_list[i].pc_avail)
+      continue;
     write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
     if ((count % 2) == 1)
       write_to_output(d, "\r\n");
@@ -5888,7 +6041,8 @@ void study_disp_aspect_confirm(struct descriptor_data *d)
   }
   if (!study_has_aspects_unchosen(d))
   {
-    write_to_output(d, "\r\nYou cannot choose more aspects.  If you've chosen in error, please exit the study menu without saving and try again.\r\n");
+    write_to_output(d, "\r\nYou cannot choose more aspects.  If you've chosen in error, please "
+                       "exit the study menu without saving and try again.\r\n");
     return;
   }
 
@@ -5910,7 +6064,6 @@ void show_dragonrider_bond_type(struct descriptor_data *d)
   write_to_output(d, "Enter Choice: ");
 
   OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE;
-
 }
 void show_dragonrider_mount_type(struct descriptor_data *d)
 {
@@ -5923,7 +6076,8 @@ void show_dragonrider_mount_type(struct descriptor_data *d)
 
   for (i = 1; i < NUM_DRACONIC_HERITAGE_TYPES; i++)
   {
-    write_to_output(d, "%2d) %-12s (%s damage type)\r\n", i, draconic_heritage_names[i], damtypes[draconic_heritage_energy_types[i]]);
+    write_to_output(d, "%2d) %-12s (%s damage type)\r\n", i, draconic_heritage_names[i],
+                    damtypes[draconic_heritage_energy_types[i]]);
   }
 
   write_to_output(d, "Q) Quit\r\n");
@@ -5931,7 +6085,6 @@ void show_dragonrider_mount_type(struct descriptor_data *d)
   write_to_output(d, "Enter Choice: ");
 
   OLC_MODE(d) = STUDY_DRAGON_RIDER_DRAGON_TYPE;
-
 }
 
 /* some undefines from top of file */

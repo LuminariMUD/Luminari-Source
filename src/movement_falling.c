@@ -50,8 +50,7 @@ bool obj_should_fall(struct obj_data *obj)
 
   if (OBJ_FLAGGED(obj, ITEM_FLOAT))
   {
-    act("You watch as $p floats gracefully in the air!",
-        FALSE, 0, obj, 0, TO_ROOM);
+    act("You watch as $p floats gracefully in the air!", FALSE, 0, obj, 0, TO_ROOM);
     return FALSE;
   }
 
@@ -128,14 +127,12 @@ EVENTFUNC(event_falling)
   /* already checked if there is a down exit, lets move the char down */
   do_simple_move(ch, DOWN, FALSE);
   send_to_char(ch, "You fall into a new area!\r\n");
-  act("$n appears from above, arms flailing helplessly as $e falls...",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n appears from above, arms flailing helplessly as $e falls...", FALSE, ch, 0, 0, TO_ROOM);
   height_fallen += 20; // 20 feet per room right now
 
   /* can we continue this fall? */
   if (!ROOM_FLAGGED(ch->in_room, ROOM_FLY_NEEDED) || !CAN_GO(ch, DOWN))
   {
-
     if (AFF_FLAGGED(ch, AFF_SAFEFALL))
     {
       send_to_char(ch, "Moments before slamming into the ground, a 'safefall'"
@@ -170,7 +167,9 @@ EVENTFUNC(event_falling)
     if (dam <= 0)
     { /* woo! avoided damage */
       send_to_char(ch, "You gracefully land on your feet from your perilous fall!\r\n");
-      act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);
+      act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and "
+          "lands gracefully on $s feet!",
+          FALSE, ch, 0, 0, TO_ROOM);
       return 0; // end event
     }
     else

@@ -2,7 +2,7 @@
  * @file dotenv.h
  * @author LuminariMUD Dev Team
  * @brief Simple .env file parser header
- * 
+ *
  * Part of the LuminariMUD distribution.
  */
 

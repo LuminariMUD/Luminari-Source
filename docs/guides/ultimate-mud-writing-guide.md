@@ -118,10 +118,10 @@ Every detail should whisper stories:
 
 **Example:**
 ```
-Ancient stone arches frame this circular chamber, their surfaces carved with 
-symbols that seem to shift in the flickering torchlight. Channels cut into 
-the floor form a complex pattern, dark stains suggesting their grim purpose. 
-The air tastes of copper and old magic, heavy with the weight of forgotten 
+Ancient stone arches frame this circular chamber, their surfaces carved with
+symbols that seem to shift in the flickering torchlight. Channels cut into
+the floor form a complex pattern, dark stains suggesting their grim purpose.
+The air tastes of copper and old magic, heavy with the weight of forgotten
 rituals.
 ```
 
@@ -149,16 +149,16 @@ Every mob should feel like it belongs:
 
 **Humanoid Example:**
 ```
-This grizzled merchant's face tells a story of hard-won success, deep lines 
-mapping years of sharp deals and narrow escapes. His fingers, adorned with 
-gaudy rings, never stop moving—counting invisible coins or reaching for 
+This grizzled merchant's face tells a story of hard-won success, deep lines
+mapping years of sharp deals and narrow escapes. His fingers, adorned with
+gaudy rings, never stop moving—counting invisible coins or reaching for
 goods that aren't there.
 ```
 
 **Creature Example:**
 ```
-Muscles ripple beneath the dire wolf's matted fur as it paces, yellow eyes 
-never blinking. Scars crisscross its muzzle, and one ear hangs torn and 
+Muscles ripple beneath the dire wolf's matted fur as it paces, yellow eyes
+never blinking. Scars crisscross its muzzle, and one ear hangs torn and
 useless. Its presence fills the clearing with primal menace.
 ```
 

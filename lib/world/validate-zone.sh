@@ -31,5 +31,3 @@ echo "Checking terminators..."
 grep -L "~$" lib/world/*/${ZONE}.* 2>/dev/null || true
 
 echo "Validation complete"
-
-

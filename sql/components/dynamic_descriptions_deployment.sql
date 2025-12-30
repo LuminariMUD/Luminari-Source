@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS resource_depletion (
     cascade_effects TEXT DEFAULT NULL,  -- JSON data for cascade effect tracking
     regeneration_rate DECIMAL(5,4) DEFAULT 0.0010,  -- Custom regeneration rate
     last_regeneration TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_location (zone_vnum, x_coord, y_coord),
     INDEX idx_resource (resource_type),
     INDEX idx_depletion (depletion_level),
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS player_conservation (
     ecosystem_damage DECIMAL(8,3) DEFAULT 0.0,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_player_id (player_id),
     INDEX idx_conservation_score (conservation_score),
     UNIQUE KEY unique_player (player_id)
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS resource_statistics (
     peak_depletion_level FLOAT DEFAULT 1.0,
     critical_locations INT DEFAULT 0,  -- Locations below 0.2 depletion
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     UNIQUE KEY unique_resource (resource_type),
     FOREIGN KEY (resource_type) REFERENCES resource_types(resource_id) ON DELETE CASCADE
 );
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS resource_regeneration_log (
     regeneration_amount FLOAT NOT NULL,
     regeneration_type ENUM('natural', 'seasonal', 'magical', 'admin', 'cascade') DEFAULT 'natural',
     regeneration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_location_regen (zone_vnum, x_coord, y_coord),
     INDEX idx_time_regen (regeneration_time),
     INDEX idx_resource_type (resource_type),
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS resource_relationships (
     threshold_max DECIMAL(4,3) DEFAULT NULL COMMENT 'Maximum threshold for effect',
     description VARCHAR(255) COMMENT 'Human readable description',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_source_resource (source_resource),
     INDEX idx_target_resource (target_resource),
     UNIQUE KEY unique_relationship (source_resource, target_resource, effect_type),
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS resource_relationships (
 );
 
 -- Insert core ecological relationships
-INSERT IGNORE INTO resource_relationships 
+INSERT IGNORE INTO resource_relationships
 (source_resource, target_resource, effect_type, effect_magnitude, description) VALUES
 
 -- Vegetation affects herbs (symbiotic)
@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS ecosystem_health (
     stability_index DECIMAL(4,3) DEFAULT 1.000,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     UNIQUE KEY unique_location (zone_vnum, x_coord, y_coord),
     INDEX idx_health_state (health_state),
     INDEX idx_health_score (health_score),
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS cascade_effects_log (
     player_id BIGINT DEFAULT NULL,
     harvest_amount INT DEFAULT 0,
     logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_location_time (zone_vnum, x_coord, y_coord, logged_at),
     INDEX idx_resources (source_resource, target_resource),
     INDEX idx_player (player_id),
@@ -254,7 +254,7 @@ CREATE TABLE IF NOT EXISTS player_location_conservation (
     ecosystem_damage DECIMAL(6,3) DEFAULT 0.0 COMMENT 'Cumulative ecosystem damage caused',
     last_harvest TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_player_location (player_id, zone_vnum, x_coord, y_coord),
     INDEX idx_conservation_score (conservation_score),
     INDEX idx_location (zone_vnum, x_coord, y_coord),
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS region_effects (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     INDEX idx_effect_type (effect_type),
     INDEX idx_effect_name (effect_name),
     INDEX idx_active (is_active)
@@ -290,7 +290,7 @@ CREATE TABLE IF NOT EXISTS region_effect_assignments (
     is_active BOOLEAN DEFAULT TRUE,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,  -- NULL = permanent, otherwise temporary effect
-    
+
     FOREIGN KEY (effect_id) REFERENCES region_effects(effect_id) ON DELETE CASCADE,
     INDEX idx_region_vnum (region_vnum),
     INDEX idx_effect_id (effect_id),
@@ -313,7 +313,7 @@ CREATE TABLE IF NOT EXISTS weather_cache (
     weather_type ENUM('clear', 'cloudy', 'rainy', 'stormy', 'lightning') NOT NULL,
     cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
-    
+
     UNIQUE KEY unique_location (zone_vnum, x_coord, y_coord),
     INDEX idx_weather_type (weather_type),
     INDEX idx_expires (expires_at)
@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS room_description_settings (
     resource_awareness_enabled BOOLEAN DEFAULT TRUE,
     time_of_day_effects_enabled BOOLEAN DEFAULT TRUE,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     INDEX idx_room_vnum (room_vnum),
     INDEX idx_dynamic_enabled (use_dynamic_descriptions)
 );
@@ -344,7 +344,7 @@ CREATE TABLE IF NOT EXISTS material_categories (
     category_name VARCHAR(50) NOT NULL UNIQUE,
     category_description TEXT,
     resource_type INT NOT NULL,  -- Links to resource_types table
-    
+
     FOREIGN KEY (resource_type) REFERENCES resource_types(resource_id) ON DELETE CASCADE,
     INDEX idx_resource_type (resource_type)
 );
@@ -358,7 +358,7 @@ CREATE TABLE IF NOT EXISTS material_subtypes (
     base_rarity DECIMAL(4,3) DEFAULT 1.000,
     terrain_preference SET('forest', 'plains', 'mountain', 'desert', 'swamp', 'water') DEFAULT '',
     seasonal_availability SET('spring', 'summer', 'autumn', 'winter') DEFAULT 'spring,summer,autumn,winter',
-    
+
     FOREIGN KEY (category_id) REFERENCES material_categories(category_id) ON DELETE CASCADE,
     INDEX idx_category (category_id),
     INDEX idx_subtype_name (subtype_name),
@@ -388,7 +388,7 @@ INSERT IGNORE INTO material_qualities (quality_id, quality_name, quality_descrip
 
 -- View for easy ecosystem analysis
 CREATE VIEW IF NOT EXISTS ecosystem_analysis AS
-SELECT 
+SELECT
     eh.zone_vnum,
     eh.x_coord,
     eh.y_coord,
@@ -401,15 +401,15 @@ SELECT
     SUM(CASE WHEN rd.depletion_level < 0.2 THEN 1 ELSE 0 END) as critical_resources,
     eh.last_updated
 FROM ecosystem_health eh
-LEFT JOIN resource_depletion rd ON 
-    eh.zone_vnum = rd.zone_vnum AND 
-    eh.x_coord = rd.x_coord AND 
+LEFT JOIN resource_depletion rd ON
+    eh.zone_vnum = rd.zone_vnum AND
+    eh.x_coord = rd.x_coord AND
     eh.y_coord = rd.y_coord
 GROUP BY eh.zone_vnum, eh.x_coord, eh.y_coord, eh.health_state, eh.health_score, eh.last_updated;
 
 -- View for resource availability summary
 CREATE VIEW IF NOT EXISTS resource_availability_summary AS
-SELECT 
+SELECT
     rt.resource_name,
     COUNT(rd.id) as locations_tracked,
     AVG(rd.depletion_level) as avg_availability,
@@ -425,7 +425,7 @@ ORDER BY rt.resource_id;
 
 -- View for player conservation ranking
 CREATE VIEW IF NOT EXISTS player_conservation_ranking AS
-SELECT 
+SELECT
     pc.player_id,
     pc.conservation_score,
     pc.total_harvests,
@@ -445,22 +445,22 @@ ORDER BY pc.conservation_score DESC;
 
 -- Insert some example resource effects for regions
 INSERT IGNORE INTO region_effects (effect_name, effect_type, effect_description, effect_data) VALUES
-('Forest Abundance', 'resource', 'Increases wood and vegetation resources in forested areas', 
+('Forest Abundance', 'resource', 'Increases wood and vegetation resources in forested areas',
  JSON_OBJECT('resource_modifiers', JSON_OBJECT('wood', JSON_OBJECT('multiplier', 1.5, 'bonus', 5), 'vegetation', JSON_OBJECT('multiplier', 1.2, 'bonus', 2)))),
 
-('Mineral Rich', 'resource', 'Increases stone and metal resources', 
+('Mineral Rich', 'resource', 'Increases stone and metal resources',
  JSON_OBJECT('resource_modifiers', JSON_OBJECT('stone', JSON_OBJECT('multiplier', 1.4, 'bonus', 3), 'minerals', JSON_OBJECT('multiplier', 1.6, 'bonus', 4)))),
 
-('Magical Essence', 'resource', 'Enhances magical resource gathering', 
+('Magical Essence', 'resource', 'Enhances magical resource gathering',
  JSON_OBJECT('resource_modifiers', JSON_OBJECT('crystal', JSON_OBJECT('multiplier', 2.0, 'bonus', 10), 'herbs', JSON_OBJECT('multiplier', 1.3, 'bonus', 3)))),
 
-('Pristine Wilderness', 'description', 'Enhanced descriptions for untouched natural areas', 
+('Pristine Wilderness', 'description', 'Enhanced descriptions for untouched natural areas',
  JSON_OBJECT('description_modifiers', JSON_OBJECT('detail_level', 5, 'nature_emphasis', true, 'wildlife_presence', 1.5))),
 
-('Storm Front', 'weather', 'Increases frequency of storms and severe weather', 
+('Storm Front', 'weather', 'Increases frequency of storms and severe weather',
  JSON_OBJECT('weather_modifiers', JSON_OBJECT('storm_chance', 1.8, 'lightning_chance', 2.0))),
 
-('Desert Oasis', 'resource', 'Rare water sources in arid regions', 
+('Desert Oasis', 'resource', 'Rare water sources in arid regions',
  JSON_OBJECT('resource_modifiers', JSON_OBJECT('water', JSON_OBJECT('multiplier', 3.0, 'bonus', 15), 'herbs', JSON_OBJECT('multiplier', 0.8, 'bonus', -2))));
 
 -- Insert material categories for detailed resource subtypes
@@ -493,20 +493,20 @@ DELIMITER //
 CREATE PROCEDURE IF NOT EXISTS CleanupOldLogs()
 BEGIN
     -- Clean up regeneration logs older than 30 days
-    DELETE FROM resource_regeneration_log 
+    DELETE FROM resource_regeneration_log
     WHERE regeneration_time < DATE_SUB(NOW(), INTERVAL 30 DAY);
-    
-    -- Clean up cascade effect logs older than 7 days  
-    DELETE FROM cascade_effects_log 
+
+    -- Clean up cascade effect logs older than 7 days
+    DELETE FROM cascade_effects_log
     WHERE logged_at < DATE_SUB(NOW(), INTERVAL 7 DAY);
-    
+
     -- Clean up expired weather cache
-    DELETE FROM weather_cache 
+    DELETE FROM weather_cache
     WHERE expires_at < NOW();
-    
+
     -- Update resource statistics
     INSERT INTO resource_statistics (resource_type, total_harvested, total_depleted_locations, average_depletion_level, critical_locations)
-    SELECT 
+    SELECT
         rd.resource_type,
         SUM(rd.total_harvested),
         COUNT(DISTINCT CONCAT(rd.zone_vnum, '_', rd.x_coord, '_', rd.y_coord)),
@@ -548,6 +548,6 @@ SHOW TABLES LIKE '%weather%';
 SHOW TABLES LIKE '%material%';
 
 -- Basic verification query
-SELECT 'System Ready' as Status, 
+SELECT 'System Ready' as Status,
        'All database structures created successfully' as Message,
        'Use admin commands: settime, setweather for testing' as 'Testing Commands';

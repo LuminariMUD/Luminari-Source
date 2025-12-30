@@ -37,8 +37,8 @@ typedef int room_rnum;
 #define COORD_MAX_X (1024)
 #define COORD_MIN_Y (-1024)
 #define COORD_MAX_Y (1024)
-#define COORD_MIN_Z (-500)   /* Submarine depth limit */
-#define COORD_MAX_Z (500)    /* Airship altitude limit */
+#define COORD_MIN_Z (-500) /* Submarine depth limit */
+#define COORD_MAX_Z (500)  /* Airship altitude limit */
 
 /* ========================================================================= */
 /* COORDINATE VALIDATION FUNCTIONS                                           */
@@ -83,7 +83,7 @@ static float calculate_distance(int x1, int y1, int x2, int y2)
 {
   int dx = x2 - x1;
   int dy = y2 - y1;
-  return (float)((dx * dx) + (dy * dy));  /* Return squared distance for efficiency */
+  return (float)((dx * dx) + (dy * dy)); /* Return squared distance for efficiency */
 }
 
 /**
@@ -297,7 +297,7 @@ void Test_coord_distance_negative(CuTest *tc)
 
   /* Symmetric distance */
   dist = calculate_distance(-100, -100, 100, 100);
-  CuAssertDblEquals(tc, 80000.0, dist, 0.001);  /* 200^2 + 200^2 */
+  CuAssertDblEquals(tc, 80000.0, dist, 0.001); /* 200^2 + 200^2 */
 }
 
 /* ========================================================================= */

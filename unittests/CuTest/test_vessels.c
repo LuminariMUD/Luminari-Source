@@ -9,6 +9,8 @@
  * Part of Phase 00, Session 09: Testing and Validation
  */
 
+/* Enable POSIX features for snprintf in C89 mode */
+#define _POSIX_C_SOURCE 200112L
 #include "CuTest.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +46,8 @@ typedef int room_rnum;
 typedef int room_vnum;
 
 /* Vessel class enum (mirrors production) */
-enum vessel_class {
+enum vessel_class
+{
   VESSEL_RAFT = 0,
   VESSEL_BOAT = 1,
   VESSEL_SHIP = 2,
@@ -56,29 +59,30 @@ enum vessel_class {
 };
 
 /* Sector types used in terrain validation */
-#define SECT_INSIDE       0
-#define SECT_CITY         1
-#define SECT_FIELD        2
-#define SECT_FOREST       3
-#define SECT_HILLS        4
-#define SECT_MOUNTAIN     5
-#define SECT_WATER_SWIM   6
+#define SECT_INSIDE 0
+#define SECT_CITY 1
+#define SECT_FIELD 2
+#define SECT_FOREST 3
+#define SECT_HILLS 4
+#define SECT_MOUNTAIN 5
+#define SECT_WATER_SWIM 6
 #define SECT_WATER_NOSWIM 7
-#define SECT_FLYING       8
-#define SECT_UNDERWATER   9
-#define SECT_OCEAN       15
-#define SECT_MARSHLAND   16
-#define SECT_LAVA        25
-#define SECT_CAVE        29
-#define SECT_BEACH       33
-#define SECT_SEAPORT     34
+#define SECT_FLYING 8
+#define SECT_UNDERWATER 9
+#define SECT_OCEAN 15
+#define SECT_MARSHLAND 16
+#define SECT_LAVA 25
+#define SECT_CAVE 29
+#define SECT_BEACH 33
+#define SECT_SEAPORT 34
 #define SECT_INSIDE_ROOM 35
-#define SECT_RIVER       36
-#define SECT_UD_WILD     19
+#define SECT_RIVER 36
+#define SECT_UD_WILD 19
 #define SECT_UD_NOGROUND 24
 
 /* Vessel terrain capabilities (mirrors production) */
-struct vessel_terrain_caps {
+struct vessel_terrain_caps
+{
   bool can_traverse_ocean;
   bool can_traverse_shallow;
   bool can_traverse_air;
@@ -89,7 +93,8 @@ struct vessel_terrain_caps {
 };
 
 /* Ship room types */
-enum ship_room_type {
+enum ship_room_type
+{
   ROOM_TYPE_BRIDGE,
   ROOM_TYPE_QUARTERS,
   ROOM_TYPE_CARGO,
@@ -111,11 +116,12 @@ enum ship_room_type {
 #define MAX_SHIP_ROOMS 20
 #define MAX_SHIP_CONNECTIONS 40
 #define SHIP_INTERIOR_VNUM_BASE 70000
-#define SHIP_INTERIOR_VNUM_MAX  79999
+#define SHIP_INTERIOR_VNUM_MAX 79999
 #define GREYHAWK_MAXSHIPS 500
 
 /* Room connection structure */
-struct room_connection {
+struct room_connection
+{
   int from_room;
   int to_room;
   int direction;
@@ -124,7 +130,8 @@ struct room_connection {
 };
 
 /* Simplified ship data for testing */
-struct mock_ship_data {
+struct mock_ship_data
+{
   float x, y, z;
   int location;
   int shipnum;
@@ -139,7 +146,8 @@ struct mock_ship_data {
 };
 
 /* Mock room data */
-struct mock_room_data {
+struct mock_room_data
+{
   room_vnum number;
   int sector_type;
   int room_flags;
@@ -216,7 +224,7 @@ void vessel_test_fixture_reset(void)
   for (i = 0; i < 100; i++)
   {
     mock_world[i].number = i;
-    mock_world[i].sector_type = SECT_OCEAN;  /* Default to ocean for ships */
+    mock_world[i].sector_type = SECT_OCEAN; /* Default to ocean for ships */
     mock_world[i].room_flags = 0;
     mock_world[i].name = NULL;
     mock_world[i].description = NULL;
@@ -290,15 +298,24 @@ int test_get_base_rooms_for_type(enum vessel_class type)
 {
   switch (type)
   {
-    case VESSEL_RAFT:       return 1;
-    case VESSEL_BOAT:       return 2;
-    case VESSEL_SHIP:       return 3;
-    case VESSEL_WARSHIP:    return 5;
-    case VESSEL_AIRSHIP:    return 4;
-    case VESSEL_SUBMARINE:  return 4;
-    case VESSEL_TRANSPORT:  return 6;
-    case VESSEL_MAGICAL:    return 3;
-    default:                return 1;
+  case VESSEL_RAFT:
+    return 1;
+  case VESSEL_BOAT:
+    return 2;
+  case VESSEL_SHIP:
+    return 3;
+  case VESSEL_WARSHIP:
+    return 5;
+  case VESSEL_AIRSHIP:
+    return 4;
+  case VESSEL_SUBMARINE:
+    return 4;
+  case VESSEL_TRANSPORT:
+    return 6;
+  case VESSEL_MAGICAL:
+    return 3;
+  default:
+    return 1;
   }
 }
 
@@ -309,15 +326,24 @@ int test_get_max_rooms_for_type(enum vessel_class type)
 {
   switch (type)
   {
-    case VESSEL_RAFT:       return 2;
-    case VESSEL_BOAT:       return 4;
-    case VESSEL_SHIP:       return 8;
-    case VESSEL_WARSHIP:    return 15;
-    case VESSEL_AIRSHIP:    return 10;
-    case VESSEL_SUBMARINE:  return 12;
-    case VESSEL_TRANSPORT:  return 20;
-    case VESSEL_MAGICAL:    return 10;
-    default:                return 1;
+  case VESSEL_RAFT:
+    return 2;
+  case VESSEL_BOAT:
+    return 4;
+  case VESSEL_SHIP:
+    return 8;
+  case VESSEL_WARSHIP:
+    return 15;
+  case VESSEL_AIRSHIP:
+    return 10;
+  case VESSEL_SUBMARINE:
+    return 12;
+  case VESSEL_TRANSPORT:
+    return 20;
+  case VESSEL_MAGICAL:
+    return 10;
+  default:
+    return 1;
   }
 }
 
@@ -353,16 +379,8 @@ enum vessel_class test_derive_vessel_type_from_template(int hullweight)
  */
 const char *test_get_vessel_type_name(enum vessel_class type)
 {
-  static const char *names[] = {
-    "Raft",
-    "Boat",
-    "Ship",
-    "Warship",
-    "Airship",
-    "Submarine",
-    "Transport",
-    "Magical Vessel"
-  };
+  static const char *names[] = {"Raft",    "Boat",      "Ship",      "Warship",
+                                "Airship", "Submarine", "Transport", "Magical Vessel"};
 
   if (type < 0 || type > VESSEL_MAGICAL)
   {
@@ -489,8 +507,10 @@ void Test_vessel_type_room_counts(CuTest *tc)
   CuAssertIntEquals(tc, 20, test_get_max_rooms_for_type(VESSEL_TRANSPORT));
 
   /* Max should always be >= base */
-  CuAssertTrue(tc, test_get_max_rooms_for_type(VESSEL_RAFT) >= test_get_base_rooms_for_type(VESSEL_RAFT));
-  CuAssertTrue(tc, test_get_max_rooms_for_type(VESSEL_SHIP) >= test_get_base_rooms_for_type(VESSEL_SHIP));
+  CuAssertTrue(tc, test_get_max_rooms_for_type(VESSEL_RAFT) >=
+                       test_get_base_rooms_for_type(VESSEL_RAFT));
+  CuAssertTrue(tc, test_get_max_rooms_for_type(VESSEL_SHIP) >=
+                       test_get_base_rooms_for_type(VESSEL_SHIP));
 }
 
 /**

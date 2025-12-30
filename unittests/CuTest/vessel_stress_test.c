@@ -8,6 +8,8 @@
  * Part of Phase 00, Session 09: Testing and Validation
  */
 
+/* Enable POSIX features for snprintf in C89 mode */
+#define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,9 +30,9 @@
 typedef int bool;
 
 /* Stress test levels */
-#define STRESS_LEVEL_100   100
-#define STRESS_LEVEL_250   250
-#define STRESS_LEVEL_500   500
+#define STRESS_LEVEL_100 100
+#define STRESS_LEVEL_250 250
+#define STRESS_LEVEL_500 500
 
 /* Memory target: <1KB per vessel */
 #define MEMORY_TARGET_PER_VESSEL 1024
@@ -41,7 +43,8 @@ typedef int bool;
 #define MAX_SHIP_CONNECTIONS 40
 
 /* Vessel class enum */
-enum vessel_class {
+enum vessel_class
+{
   VESSEL_RAFT = 0,
   VESSEL_BOAT = 1,
   VESSEL_SHIP = 2,
@@ -53,7 +56,8 @@ enum vessel_class {
 };
 
 /* Room connection */
-struct room_connection {
+struct room_connection
+{
   int from_room;
   int to_room;
   int direction;
@@ -62,7 +66,8 @@ struct room_connection {
 };
 
 /* Simplified vessel structure for stress testing */
-struct stress_vessel {
+struct stress_vessel
+{
   int id;
   char name[64];
   char owner[32];
@@ -78,7 +83,8 @@ struct stress_vessel {
 };
 
 /* Test results structure */
-struct stress_results {
+struct stress_results
+{
   int num_vessels;
   size_t total_memory;
   size_t per_vessel_memory;
@@ -182,15 +188,33 @@ static bool create_stress_vessel(struct stress_vessel *vessel, int id)
   /* Generate rooms based on vessel type */
   switch (vessel->type)
   {
-    case VESSEL_RAFT:       num_rooms = 1; break;
-    case VESSEL_BOAT:       num_rooms = 2; break;
-    case VESSEL_SHIP:       num_rooms = 3; break;
-    case VESSEL_WARSHIP:    num_rooms = 5; break;
-    case VESSEL_AIRSHIP:    num_rooms = 4; break;
-    case VESSEL_SUBMARINE:  num_rooms = 4; break;
-    case VESSEL_TRANSPORT:  num_rooms = 6; break;
-    case VESSEL_MAGICAL:    num_rooms = 3; break;
-    default:                num_rooms = 1; break;
+  case VESSEL_RAFT:
+    num_rooms = 1;
+    break;
+  case VESSEL_BOAT:
+    num_rooms = 2;
+    break;
+  case VESSEL_SHIP:
+    num_rooms = 3;
+    break;
+  case VESSEL_WARSHIP:
+    num_rooms = 5;
+    break;
+  case VESSEL_AIRSHIP:
+    num_rooms = 4;
+    break;
+  case VESSEL_SUBMARINE:
+    num_rooms = 4;
+    break;
+  case VESSEL_TRANSPORT:
+    num_rooms = 6;
+    break;
+  case VESSEL_MAGICAL:
+    num_rooms = 3;
+    break;
+  default:
+    num_rooms = 1;
+    break;
   }
 
   vessel->num_rooms = num_rooms;
@@ -207,7 +231,7 @@ static bool create_stress_vessel(struct stress_vessel *vessel, int id)
   {
     vessel->connections[i].from_room = vessel->room_vnums[i];
     vessel->connections[i].to_room = vessel->room_vnums[i + 1];
-    vessel->connections[i].direction = 0;  /* North */
+    vessel->connections[i].direction = 0; /* North */
     vessel->connections[i].is_hatch = FALSE;
     vessel->connections[i].is_locked = FALSE;
   }
@@ -232,10 +256,14 @@ static bool simulate_vessel_operation(struct stress_vessel *vessel)
   vessel->y += ((float)(vessel->speed) / 10.0f) * 0.1f;
 
   /* Wrap coordinates */
-  while (vessel->x > 1024) vessel->x -= 2048;
-  while (vessel->x < -1024) vessel->x += 2048;
-  while (vessel->y > 1024) vessel->y -= 2048;
-  while (vessel->y < -1024) vessel->y += 2048;
+  while (vessel->x > 1024)
+    vessel->x -= 2048;
+  while (vessel->x < -1024)
+    vessel->x += 2048;
+  while (vessel->y > 1024)
+    vessel->y -= 2048;
+  while (vessel->y < -1024)
+    vessel->y += 2048;
 
   /* Simulate heading change */
   vessel->heading = (vessel->heading + 1) % 360;
@@ -316,7 +344,8 @@ static void run_stress_test(int num_vessels, struct stress_results *results)
   /* Record memory usage after creation */
   results->total_memory = peak_allocated;
   results->per_vessel_memory = results->total_memory / num_vessels;
-  printf("  Memory used: %lu bytes (%.2f KB)\n", (unsigned long)results->total_memory, results->total_memory / 1024.0);
+  printf("  Memory used: %lu bytes (%.2f KB)\n", (unsigned long)results->total_memory,
+         results->total_memory / 1024.0);
   printf("  Per-vessel: %lu bytes\n", (unsigned long)results->per_vessel_memory);
 
   /* Phase 2: Simulate operations */
@@ -359,8 +388,7 @@ static void run_stress_test(int num_vessels, struct stress_results *results)
   printf("  Destruction time: %.2f ms\n", results->destruction_time_ms);
 
   /* Determine pass/fail */
-  results->passed = (results->creation_failures == 0 &&
-                     results->operation_failures == 0 &&
+  results->passed = (results->creation_failures == 0 && results->operation_failures == 0 &&
                      results->per_vessel_memory <= MEMORY_TARGET_PER_VESSEL);
 
   printf("Result: %s\n", results->passed ? "PASSED" : "FAILED");
@@ -415,26 +443,17 @@ int main(int argc, char *argv[])
   printf("\n");
   printf("| Level | Memory   | Per-Vessel | Create | Ops    | Pass |\n");
   printf("|-------|----------|------------|--------|--------|------|\n");
-  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n",
-         results_100.num_vessels,
-         results_100.total_memory / 1024.0,
-         (unsigned long)results_100.per_vessel_memory,
-         results_100.creation_time_ms,
-         results_100.operation_time_ms,
+  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n", results_100.num_vessels,
+         results_100.total_memory / 1024.0, (unsigned long)results_100.per_vessel_memory,
+         results_100.creation_time_ms, results_100.operation_time_ms,
          results_100.passed ? "PASS" : "FAIL");
-  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n",
-         results_250.num_vessels,
-         results_250.total_memory / 1024.0,
-         (unsigned long)results_250.per_vessel_memory,
-         results_250.creation_time_ms,
-         results_250.operation_time_ms,
+  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n", results_250.num_vessels,
+         results_250.total_memory / 1024.0, (unsigned long)results_250.per_vessel_memory,
+         results_250.creation_time_ms, results_250.operation_time_ms,
          results_250.passed ? "PASS" : "FAIL");
-  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n",
-         results_500.num_vessels,
-         results_500.total_memory / 1024.0,
-         (unsigned long)results_500.per_vessel_memory,
-         results_500.creation_time_ms,
-         results_500.operation_time_ms,
+  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n", results_500.num_vessels,
+         results_500.total_memory / 1024.0, (unsigned long)results_500.per_vessel_memory,
+         results_500.creation_time_ms, results_500.operation_time_ms,
          results_500.passed ? "PASS" : "FAIL");
   printf("\n");
 

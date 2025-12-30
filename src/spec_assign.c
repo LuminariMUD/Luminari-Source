@@ -112,7 +112,7 @@ void assign_mobiles(void)
   ASSIGNMOB(7022, faction_mission);
   ASSIGNMOB(7023, huntsmaster);
 #elif defined(CAMPAIGN_DL)
-// palanthas
+  // palanthas
   ASSIGNMOB(2427, buyweapons);
   ASSIGNMOB(2428, buyarmor);
   ASSIGNMOB(2430, buyweapons);
@@ -162,7 +162,7 @@ void assign_mobiles(void)
   ASSIGNMOB(145394, eqstats);
 
   // ashenport
-  ASSIGNMOB(103499, buyarmor); // +1 armor
+  ASSIGNMOB(103499, buyarmor);   // +1 armor
   ASSIGNMOB(103498, buyweapons); // +1 weapons
   ASSIGNMOB(103801, huntsmaster);
   // ASSIGNMOB(103802, buyarmor); // +2 armor - mob #103802 doesn't exist
@@ -770,7 +770,6 @@ void assign_mobiles(void)
 /* assign special procedures to objects */
 void assign_objects(void)
 {
-
 #ifdef CAMPAIGN_FR
 
   ASSIGNOBJ(115, bank);
@@ -782,7 +781,7 @@ void assign_objects(void)
 #elif defined(CAMPAIGN_DL)
   // general
   ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
-  
+
 #else
   ASSIGNOBJ(1226, gen_board);   /* builder's board */
   ASSIGNOBJ(1227, gen_board);   /* staff board */
@@ -1038,18 +1037,18 @@ void assign_rooms(void)
 #elif defined(CAMPAIGN_DL)
 
   // palanthas
-  ASSIGNROOM(2314, bank); // s of fountain
+  ASSIGNROOM(2314, bank);           // s of fountain
   ASSIGNROOM(7068, wizard_library); // academy
-  ASSIGNROOM(2496, bazaar); // market st
-  ASSIGNROOM(15301, pet_shops); // pets
-  ASSIGNROOM(15303, pet_shops); // mounts
-  ASSIGNROOM(15306, pet_shops); // mercs
+  ASSIGNROOM(2496, bazaar);         // market st
+  ASSIGNROOM(15301, pet_shops);     // pets
+  ASSIGNROOM(15303, pet_shops);     // mounts
+  ASSIGNROOM(15306, pet_shops);     // mercs
 
   // sanction
-  ASSIGNROOM(6525, bank); // sw of fountain
+  ASSIGNROOM(6525, bank);            // sw of fountain
   ASSIGNROOM(13814, wizard_library); // academy
-  ASSIGNROOM(13815, bazaar); // market st
-  ASSIGNROOM(13819, pet_shops); // pets
+  ASSIGNROOM(13815, bazaar);         // market st
+  ASSIGNROOM(13819, pet_shops);      // pets
 
 #else
 
@@ -1210,8 +1209,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Wizard Library", wizard_library, ""},
 
     /* this has to be last */
-    {
-        "\n", NULL, ""}};
+    {"\n", NULL, ""}};
 /** !!MAKE SURE TO ADD TO: spec_procs.h!!!  **/
 
 /* Accessors for spec_func_list so OLC editors can use it */

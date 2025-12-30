@@ -19,11 +19,11 @@ check_dir() {
     local dir=$1
     local expected_perms=$2
     local description=$3
-    
+
     if [ -d "$dir" ]; then
         actual_perms=$(stat -c "%a" "$dir" 2>/dev/null)
         owner=$(stat -c "%U:%G" "$dir" 2>/dev/null)
-        
+
         if [ "$actual_perms" = "$expected_perms" ]; then
             echo -e "${GREEN}[OK]${NC} $dir - $description"
             echo "     Permissions: $actual_perms (${owner})"
@@ -41,11 +41,11 @@ check_file() {
     local file=$1
     local expected_perms=$2
     local description=$3
-    
+
     if [ -f "$file" ]; then
         actual_perms=$(stat -c "%a" "$file" 2>/dev/null)
         owner=$(stat -c "%U:%G" "$file" 2>/dev/null)
-        
+
         if [ "$actual_perms" = "$expected_perms" ]; then
             echo -e "${GREEN}[OK]${NC} $file - $description"
             echo "     Permissions: $actual_perms (${owner})"

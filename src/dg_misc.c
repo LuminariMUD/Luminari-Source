@@ -69,15 +69,15 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
   s = strtok(cmd, "'");
   if (s == NULL)
   {
-    script_log("Trigger: %s, VNum %d. dg_cast needs spell name.",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %d. dg_cast needs spell name.", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig));
     return;
   }
   s = strtok(NULL, "'");
   if (s == NULL)
   {
-    script_log("Trigger: %s, VNum %d. dg_cast needs spell name in `'s.",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %d. dg_cast needs spell name in `'s.", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig));
     return;
   }
   t = strtok(NULL, "\0");
@@ -86,8 +86,8 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
   spellnum = find_skill_num(s);
   if ((spellnum < 1) || (spellnum > MAX_SPELLS))
   {
-    script_log("Trigger: %s, VNum %d. dg_cast: invalid spell name (%s)",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), orig_cmd);
+    script_log("Trigger: %s, VNum %d. dg_cast: invalid spell name (%s)", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), orig_cmd);
     return;
   }
 
@@ -103,19 +103,14 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
   }
   else if (t != NULL && *t)
   {
-    if (!target &&
-        (IS_SET(SINFO.targets, TAR_CHAR_ROOM) ||
-         IS_SET(SINFO.targets, TAR_CHAR_WORLD)))
+    if (!target && (IS_SET(SINFO.targets, TAR_CHAR_ROOM) || IS_SET(SINFO.targets, TAR_CHAR_WORLD)))
     {
       if ((tch = get_char(t)) != NULL)
         target = TRUE;
     }
 
-    if (!target &&
-        (IS_SET(SINFO.targets, TAR_OBJ_INV) ||
-         IS_SET(SINFO.targets, TAR_OBJ_EQUIP) ||
-         IS_SET(SINFO.targets, TAR_OBJ_ROOM) ||
-         IS_SET(SINFO.targets, TAR_OBJ_WORLD)))
+    if (!target && (IS_SET(SINFO.targets, TAR_OBJ_INV) || IS_SET(SINFO.targets, TAR_OBJ_EQUIP) ||
+                    IS_SET(SINFO.targets, TAR_OBJ_ROOM) || IS_SET(SINFO.targets, TAR_OBJ_WORLD)))
     {
       if ((tobj = get_obj(t)) != NULL)
         target = TRUE;
@@ -123,8 +118,8 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
 
     if (!target)
     {
-      script_log("Trigger: %s, VNum %d. dg_cast: target not found (%s)",
-                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), orig_cmd);
+      script_log("Trigger: %s, VNum %d. dg_cast: target not found (%s)", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig), orig_cmd);
       return;
     }
   }
@@ -146,8 +141,7 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
     }
     /* set the caster's name to that of the object, or the gods.... */
     if (type == OBJ_TRIGGER)
-      caster->player.short_descr =
-          strdup(((struct obj_data *)go)->short_description);
+      caster->player.short_descr = strdup(((struct obj_data *)go)->short_description);
     else if (type == WLD_TRIGGER)
       caster->player.short_descr = strdup("The gods");
     caster->next_in_room = caster_room->people;
@@ -168,8 +162,7 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
 #define APPLY_TYPE 1
 #define AFFECT_TYPE 2
 
-void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
-                  int script_type, char *cmd)
+void do_dg_affect(void *go, struct script_data *sc, trig_data *trig, int script_type, char *cmd)
 {
   struct char_data *ch = NULL;
   int value = 0, duration = 0;
@@ -185,8 +178,7 @@ void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
   half_chop(cmd, value_p, duration_p);
 
   /* make sure all parameters are present */
-  if (!*charname || !*property ||
-      !*value_p || !*duration_p)
+  if (!*charname || !*property || !*value_p || !*duration_p)
   {
     script_log("Trigger: %s, VNum %d. dg_affect usage: <target> <property> <value> <duration>",
                GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
@@ -197,10 +189,10 @@ void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
   duration = atoi(duration_p);
   if (duration <= 0)
   {
-    script_log("Trigger: %s, VNum %d. dg_affect: need positive duration!",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
-    script_log("Line was: dg_affect %s %s %s %s (%d)",
-               charname, property, value_p, duration_p, duration);
+    script_log("Trigger: %s, VNum %d. dg_affect: need positive duration!", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig));
+    script_log("Line was: dg_affect %s %s %s %s (%d)", charname, property, value_p, duration_p,
+               duration);
     return;
   }
 
@@ -232,8 +224,8 @@ void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
 
   if (!type)
   { /* property not found */
-    script_log("Trigger: %s, VNum %d. dg_affect: unknown property '%s'!",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), property);
+    script_log("Trigger: %s, VNum %d. dg_affect: unknown property '%s'!", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), property);
     return;
   }
 
@@ -241,8 +233,8 @@ void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
   ch = get_char(charname);
   if (!ch)
   {
-    script_log("Trigger: %s, VNum %d. dg_affect: cannot locate target!",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %d. dg_affect: cannot locate target!", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig));
     return;
   }
 
@@ -306,13 +298,15 @@ int valid_dg_target(struct char_data *ch, int bitvector)
 {
   if (IS_NPC(ch))
     return TRUE; /* all npcs are allowed as targets */
-  else if (ch->desc && ((STATE(ch->desc) != CON_PREFEDIT) && (STATE(ch->desc) != CON_PLAYING) && (STATE(ch->desc) != CON_STUDY)))
+  else if (ch->desc && ((STATE(ch->desc) != CON_PREFEDIT) && (STATE(ch->desc) != CON_PLAYING) &&
+                        (STATE(ch->desc) != CON_STUDY)))
     return FALSE; /* Only PC's who are playing can be targetted */
   else if (GET_LEVEL(ch) < LVL_IMMORT)
     return TRUE; /* as well as all mortals */
   else if (!IS_SET(bitvector, DG_ALLOW_STAFFS) &&
-           GET_LEVEL(ch) >= LVL_GRSTAFF) /* LVL_STAFF has the advance command. Can't allow them to be forced. */
-    return FALSE;                        /* but not always the highest gods */
+           GET_LEVEL(ch) >=
+               LVL_GRSTAFF) /* LVL_STAFF has the advance command. Can't allow them to be forced. */
+    return FALSE;           /* but not always the highest gods */
   else if (!PRF_FLAGGED(ch, PRF_NOHASSLE))
     return TRUE; /* the ones in between as allowed as long as they have no-hassle off.   */
   else
@@ -341,8 +335,7 @@ void script_damage(struct char_data *vict, int dam)
   if (GET_POS(vict) == POS_DEAD)
   {
     if (!IS_NPC(vict))
-      mudlog(BRF, 0, TRUE, "%s killed by script at %s",
-             GET_NAME(vict), world[vict->in_room].name);
+      mudlog(BRF, 0, TRUE, "%s killed by script at %s", GET_NAME(vict), world[vict->in_room].name);
     die(vict, NULL);
   }
 }

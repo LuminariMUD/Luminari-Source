@@ -19,7 +19,7 @@
 #include "constants.h"
 #include "act.h"
 #include "fight.h"
-#include "evolutions.h"  /* for EVOLUTION_UNDEAD_APPEARANCE */
+#include "evolutions.h" /* for EVOLUTION_UNDEAD_APPEARANCE */
 #include "mob_utils.h"
 #include "mob_race.h"
 #include "mob_psionic.h"
@@ -53,10 +53,8 @@ void npc_ability_behave(struct char_data *ch)
 
 // monk behaviour, behave based on level
 
-void npc_monk_behave(struct char_data *ch, struct char_data *vict,
-                     int engaged)
+void npc_monk_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
-
   /* list of skills to use:
    1) switch opponents
    2) springleap
@@ -92,10 +90,8 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
 }
 // rogue behaviour, behave based on level
 
-void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
-                      int engaged)
+void npc_rogue_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
-
   /* almost finished victims, they will stop using these skills -zusuk */
   if (GET_HIT(vict) <= 5)
     return;
@@ -137,10 +133,8 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
 }
 // bard behaviour, behave based on level
 
-void npc_bard_behave(struct char_data *ch, struct char_data *vict,
-                     int engaged)
+void npc_bard_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
-
   /* list of skills to use:
    1) trip
    2) dirt kick
@@ -170,10 +164,8 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
 }
 // warrior behaviour, behave based on circle
 
-void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
-                        int engaged)
+void npc_warrior_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
-
   /* list of skills to use:
    1) rescue
    2) bash
@@ -206,10 +198,8 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
 }
 // ranger behaviour, behave based on level
 
-void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
-                       int engaged)
+void npc_ranger_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
-
   /* list of skills to use:
    1) rescue
    2) switch opponents
@@ -237,8 +227,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 
 // paladin behaviour, behave based on level
 
-void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
-                        int engaged)
+void npc_paladin_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
   float percent = ((float)GET_HIT(ch) / (float)GET_MAX_HIT(ch)) * 100.0;
 
@@ -254,27 +243,25 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   /* attempt to call mount if appropriate */
   if (npc_should_call_companion(ch, MOB_C_MOUNT))
     perform_call(ch, MOB_C_MOUNT, GET_LEVEL(ch));
-  
+
   /* attempt to mount if we have a mount and not currently riding */
   if (!RIDING(ch))
   {
     struct char_data *mount = NULL;
     struct follow_type *f = NULL;
-    
+
     /* look for our mount in the room */
     for (f = ch->followers; f; f = f->next)
     {
-      if (IN_ROOM(f->follower) == IN_ROOM(ch) && 
-          IS_NPC(f->follower) && 
-          MOB_FLAGGED(f->follower, MOB_C_MOUNT) &&
-          AFF_FLAGGED(f->follower, AFF_CHARM) &&
+      if (IN_ROOM(f->follower) == IN_ROOM(ch) && IS_NPC(f->follower) &&
+          MOB_FLAGGED(f->follower, MOB_C_MOUNT) && AFF_FLAGGED(f->follower, AFF_CHARM) &&
           !RIDDEN_BY(f->follower))
       {
         mount = f->follower;
         break;
       }
     }
-    
+
     /* if we found our mount, try to mount it */
     if (mount)
     {
@@ -304,8 +291,7 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 }
 
 // dragonrider behaviour
-void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
-                            int engaged)
+void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
   /* list of skills to use:
    1) call dragon mount
@@ -318,27 +304,25 @@ void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
   /* attempt to call dragon mount if appropriate */
   if (npc_should_call_companion(ch, MOB_C_DRAGON))
     perform_call(ch, MOB_C_DRAGON, GET_LEVEL(ch));
-  
+
   /* attempt to mount if we have a dragon mount and not currently riding */
   if (!RIDING(ch))
   {
     struct char_data *mount = NULL;
     struct follow_type *f = NULL;
-    
+
     /* look for our dragon mount in the room */
     for (f = ch->followers; f; f = f->next)
     {
-      if (IN_ROOM(f->follower) == IN_ROOM(ch) && 
-          IS_NPC(f->follower) && 
-          is_dragon_rider_mount(f->follower) &&
-          AFF_FLAGGED(f->follower, AFF_CHARM) &&
+      if (IN_ROOM(f->follower) == IN_ROOM(ch) && IS_NPC(f->follower) &&
+          is_dragon_rider_mount(f->follower) && AFF_FLAGGED(f->follower, AFF_CHARM) &&
           !RIDDEN_BY(f->follower))
       {
         mount = f->follower;
         break;
       }
     }
-    
+
     /* if we found our dragon mount, try to mount it */
     if (mount)
     {
@@ -363,10 +347,8 @@ void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
 
 // berserk behaviour, behave based on level
 
-void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
-                          int engaged)
+void npc_berserker_behave(struct char_data *ch, struct char_data *vict, int engaged)
 {
-
   /* list of skills to use:
    1) rescue
    2) berserk

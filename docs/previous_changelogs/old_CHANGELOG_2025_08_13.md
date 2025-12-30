@@ -253,4 +253,3 @@ helpgen import merge    - Import with intelligent merging (recommended)
 - Maintains backward compatibility
 - Follows ANSI C90 standards
 - Affected file: `src/hedit.c`
-

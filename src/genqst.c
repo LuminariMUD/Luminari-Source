@@ -23,7 +23,6 @@
 /* duplicate a quest in olc */
 int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings, int mode)
 {
-
   if (free_old_strings)
     free_quest_strings(to);
 
@@ -124,7 +123,6 @@ int add_quest(struct aq_data *nqst)
   }
   else
   {
-
     /* increase the number of quest table entries */
     total_quests++;
 
@@ -150,8 +148,7 @@ int add_quest(struct aq_data *nqst)
   qmrnum = real_mobile(QST_MASTER(rnum));
 
   /* Make sure we assign spec procs to the questmaster */
-  if (qmrnum != NOBODY && mob_index[qmrnum].func &&
-      mob_index[qmrnum].func != questmaster)
+  if (qmrnum != NOBODY && mob_index[qmrnum].func && mob_index[qmrnum].func != questmaster)
     QST_FUNC(rnum) = mob_index[qmrnum].func;
 
   if (qmrnum != NOBODY)
@@ -161,8 +158,7 @@ int add_quest(struct aq_data *nqst)
   if (rznum != NOWHERE)
     add_to_save_list(zone_table[rznum].number, SL_QST);
   else
-    mudlog(BRF, LVL_BUILDER, TRUE,
-           "SYSERR: GenOLC: Cannot determine quest zone.");
+    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: GenOLC: Cannot determine quest zone.");
 
   return rnum;
 }
@@ -187,8 +183,7 @@ int delete_quest(qst_rnum rnum)
 
   rznum = real_zone_by_thing(QST_NUM(rnum));
 
-  log("GenOLC: delete_quest: Deleting quest #%d (%s).",
-      QST_NUM(rnum), QST_NAME(rnum));
+  log("GenOLC: delete_quest: Deleting quest #%d (%s).", QST_NUM(rnum), QST_NAME(rnum));
 
   /* make a note of the quest master's secondary spec proc */
   tempfunc = QST_FUNC(rnum);
@@ -213,8 +208,7 @@ int delete_quest(qst_rnum rnum)
   if (rznum != NOWHERE)
     add_to_save_list(zone_table[rznum].number, SL_QST);
   else
-    mudlog(BRF, LVL_BUILDER, TRUE,
-           "SYSERR: GenOLC: Cannot determine quest zone.");
+    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: GenOLC: Cannot determine quest zone.");
 
   /* does the questmaster mob have any quests left? */
   if (qm != NOBODY)
@@ -251,17 +245,15 @@ int save_quests(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_quests: Invalid zone number %d passed! (0-%d)",
-        zone_num, top_of_zone_table);
+    log("SYSERR: GenOLC: save_quests: Invalid zone number %d passed! (0-%d)", zone_num,
+        top_of_zone_table);
     return FALSE;
   }
 
-  log("GenOLC: save_quests: Saving quests in zone #%d (%d-%d).",
-      zone_table[zone_num].number,
+  log("GenOLC: save_quests: Saving quests in zone #%d (%d-%d).", zone_table[zone_num].number,
       genolc_zone_bottom(zone_num), zone_table[zone_num].top);
 
-  snprintf(filename, sizeof(filename), "%s/%d.new",
-           QST_PREFIX, zone_table[zone_num].number);
+  snprintf(filename, sizeof(filename), "%s/%d.new", QST_PREFIX, zone_table[zone_num].number);
   if (!(sf = fopen(filename, "w")))
   {
     perror("SYSERR: save_quests");
@@ -273,14 +265,10 @@ int save_quests(zone_rnum zone_num)
     if ((rnum = real_quest(i)) != NOTHING)
     {
       /* Copy the text strings and strip off trailing newlines. */
-      strncpy(quest_desc, QST_DESC(rnum) ? QST_DESC(rnum) : "undefined",
-              sizeof(quest_desc) - 1);
-      strncpy(quest_info, QST_INFO(rnum) ? QST_INFO(rnum) : "undefined",
-              sizeof(quest_info) - 1);
-      strncpy(quest_done, QST_DONE(rnum) ? QST_DONE(rnum) : "undefined",
-              sizeof(quest_done) - 1);
-      strncpy(quest_quit, QST_QUIT(rnum) ? QST_QUIT(rnum) : "undefined",
-              sizeof(quest_quit) - 1);
+      strncpy(quest_desc, QST_DESC(rnum) ? QST_DESC(rnum) : "undefined", sizeof(quest_desc) - 1);
+      strncpy(quest_info, QST_INFO(rnum) ? QST_INFO(rnum) : "undefined", sizeof(quest_info) - 1);
+      strncpy(quest_done, QST_DONE(rnum) ? QST_DONE(rnum) : "undefined", sizeof(quest_done) - 1);
+      strncpy(quest_quit, QST_QUIT(rnum) ? QST_QUIT(rnum) : "undefined", sizeof(quest_quit) - 1);
       strncpy(quest_kill_list, QST_KLIST(rnum) ? QST_KLIST(rnum) : "undefined",
               sizeof(quest_kill_list) - 1);
       strip_cr(quest_desc);
@@ -298,7 +286,7 @@ int save_quests(zone_rnum zone_num)
                "%s%c\n"
 #if (defined(CAMPAIGN_DL))
                "%s%c\n"
-#endif               
+#endif
                "%s%c\n"
                "%d %d %s %d %d %d %d\n"
                "%d %d %d %d %d %d %d\n"
@@ -306,31 +294,22 @@ int save_quests(zone_rnum zone_num)
                "D\n"
                "%d %d %d %d\n"
                "S\n",
-               QST_NUM(rnum),
-               QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
-               quest_desc, STRING_TERMINATOR,
-               quest_info, STRING_TERMINATOR,
-               quest_done, STRING_TERMINATOR,
-               quest_quit, STRING_TERMINATOR,
+               QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
+               quest_desc, STRING_TERMINATOR, quest_info, STRING_TERMINATOR, quest_done,
+               STRING_TERMINATOR, quest_quit, STRING_TERMINATOR,
 #if (defined(CAMPAIGN_DL))
                quest_kill_list, STRING_TERMINATOR,
 #endif
-               QST_TYPE(rnum),
-               QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
-               quest_flags,
+               QST_TYPE(rnum), QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum), quest_flags,
                QST_TARGET(rnum) == NOTHING ? -1 : QST_TARGET(rnum),
                QST_PREV(rnum) == NOTHING ? -1 : QST_PREV(rnum),
                QST_NEXT(rnum) == NOTHING ? -1 : QST_NEXT(rnum),
-               QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
-               QST_POINTS(rnum), QST_PENALTY(rnum), QST_MINLEVEL(rnum),
-               QST_MAXLEVEL(rnum), QST_TIME(rnum),
-               QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum),
-               QST_QUANTITY(rnum), QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
-               QST_RACE(rnum),
-               QST_COORD_X(rnum), QST_COORD_Y(rnum),
-               QST_FOLLOWER(rnum),
-               QST_DIPLM(rnum), QST_INTIM(rnum), QST_BLUFF(rnum), QST_DIAGN(rnum)
-               );
+               QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum), QST_POINTS(rnum),
+               QST_PENALTY(rnum), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum), QST_TIME(rnum),
+               QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum), QST_QUANTITY(rnum),
+               QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), QST_RACE(rnum), QST_COORD_X(rnum),
+               QST_COORD_Y(rnum), QST_FOLLOWER(rnum), QST_DIPLM(rnum), QST_INTIM(rnum),
+               QST_BLUFF(rnum), QST_DIAGN(rnum));
 
       fprintf(sf, convert_from_tabs(buf), 0);
 
@@ -342,8 +321,7 @@ int save_quests(zone_rnum zone_num)
   fclose(sf);
 
   /* Old file we're replacing. */
-  snprintf(oldname, sizeof(oldname), "%s/%d.qst",
-           QST_PREFIX, zone_table[zone_num].number);
+  snprintf(oldname, sizeof(oldname), "%s/%d.qst", QST_PREFIX, zone_table[zone_num].number);
   remove(oldname);
   rename(filename, oldname);
 

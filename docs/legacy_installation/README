@@ -9,7 +9,7 @@ http://www.circlemud.org
 Although outdated, the CircleMUD archives contain many great ideas in the
 /contrib/ section.
 
-Both of these sites are outdated and no longer maintained. The latest 
+Both of these sites are outdated and no longer maintained. The latest
 information and downloads can be found at:
 http://tbamud.com
 
@@ -26,24 +26,24 @@ tbaMUD compiles under a large number of operating systems; instructions
 for compiling on each platform is can be found in the file doc/README.<system>
 Many of these instructions are outdated, please feel free to update them.
 
-AMIGA   - If you are using an Amiga running AmigaDOS. (If you're running 
+AMIGA   - If you are using an Amiga running AmigaDOS. (If you're running
           NetBSD or Linux on an Amiga, use README.UNIX instead.)
 ARC     - If you are using an Acorn running RiscOS.
 BORLAND - For those using Borland under Windows.
 CYGWIN  - If you are using Cygwin shell in Windows.
 MSVC#   - If you are using MSVC.
 OS2     - If you are using OS/2 Warp Connect v3.0 or OS/2 v2.x.
-UNIX    - If you have any type UNIX system, including Linux, MkLinux, Ultrix, 
-          HP/UX, Solaris, SunOS, IRIX, FreeBSD, OpenBSD, NetBSD, BSDi, 
+UNIX    - If you have any type UNIX system, including Linux, MkLinux, Ultrix,
+          HP/UX, Solaris, SunOS, IRIX, FreeBSD, OpenBSD, NetBSD, BSDi,
           Macintosh OS X, etc.
 VMS     - If you happen to be on OpenVMS.
 WATCOM  - If using WATCOM under Windows.
 WIN     - If you are using Windows.
 
-If you are interested in porting tbaMUD to a new platform, see the file 
+If you are interested in porting tbaMUD to a new platform, see the file
 doc/porting.txt for some tips.
 
-For a small, private MUD, or a MUD used only for testing and development, 
+For a small, private MUD, or a MUD used only for testing and development,
 about 10 megs of disk space and 16 megs of memory should be sufficient.
 For large, public MUDs with a large player base, 30 megs to 50 megs of
 disk space and at least 32 megs of memory are recommended.  Free memory
@@ -65,12 +65,12 @@ information.
 an overall description of how Circle works, how to get it to compile and
 run for the first time, information about customizing and configuration
 options and command-line arguments, and tips on maintenance and day-to-day
-MUD administration. 
+MUD administration.
 
 "The CircleMUD Builder's Manual" (building.pdf)
-    For the builders in your group, this documents the world-file format 
-and describes how to create new rooms, objects, and monsters.  Also, it 
-describes how to add new areas to the MUD and gives some tips about game 
+    For the builders in your group, this documents the world-file format
+and describes how to create new rooms, objects, and monsters.  Also, it
+describes how to add new areas to the MUD and gives some tips about game
 balance and world-file debugging.
 
 "The CircleMUD Coder's Manual" (coding.pdf)
@@ -87,7 +87,7 @@ and how to solve it.  An excellent guide for troubleshooting and area debugging.
 Getting Help
 ------------
 
-If you have strange problems -- and you can't figure out the answer by reading 
+If you have strange problems -- and you can't figure out the answer by reading
 the documentation -- fear not, there are many other resources available.
 
 http://cwg.lazuras.org/
@@ -103,7 +103,7 @@ following information:
      compiler you're using.
   -- A description of ANY changes you've made, no matter how small, that might
      have contributed to the error.
-  -- If you are having trouble getting Circle running for the very first time, 
+  -- If you are having trouble getting Circle running for the very first time,
      also be sure to include the output of 'configure' and the file
      'config.log'.
 

@@ -25,11 +25,9 @@
 //#define NO_MEMORY_PADDING
 
 #ifndef NO_MEMORY_PADDING
-static unsigned char beginPad[4] = {
-    0xde, 0xad, 0xde, 0xad};
+static unsigned char beginPad[4] = {0xde, 0xad, 0xde, 0xad};
 
-static unsigned char endPad[4] = {
-    0xde, 0xad, 0xde, 0xad};
+static unsigned char endPad[4] = {0xde, 0xad, 0xde, 0xad};
 #endif
 
 FILE *zfd = NULL;
@@ -72,7 +70,8 @@ void zmalloc_init(void)
   for (i = 0; i < NUM_ZBUCKETS; i++)
     memlist[i] = NULL;
 
-  if (!zfd) {
+  if (!zfd)
+  {
     zfd = fopen("zmalloc.log", "w+");
   }
 }
@@ -171,14 +170,16 @@ unsigned char *zrealloc(unsigned char *what, int len, char *file, int line)
       if (m->addr == what)
       {
 #ifndef NO_MEMORY_PADDING
-        ret = (unsigned char *)realloc(what - sizeof(beginPad), len + sizeof(beginPad) + sizeof(endPad));
+        ret = (unsigned char *)realloc(what - sizeof(beginPad),
+                                       len + sizeof(beginPad) + sizeof(endPad));
 #else
         ret = (unsigned char *)realloc(what, len);
 #endif
         if (!ret)
         {
-          fprintf(zfd, "zrealloc: FAILED for 0x%p %d bytes mallocd at %s:%d,\n"
-                       "          %d bytes reallocd at %s:%d.\n",
+          fprintf(zfd,
+                  "zrealloc: FAILED for 0x%p %d bytes mallocd at %s:%d,\n"
+                  "          %d bytes reallocd at %s:%d.\n",
                   m->addr, m->size, m->file, m->line, len, file, line);
           if (zmalloclogging > 1)
             zdump(m);
@@ -219,8 +220,8 @@ unsigned char *zrealloc(unsigned char *what, int len, char *file, int line)
   }
 
   /* NULL or invalid pointer given */
-  fprintf(zfd, "zrealloc: invalid pointer 0x%p, %d bytes to realloc at %s:%d.\n",
-          what, len, file, line);
+  fprintf(zfd, "zrealloc: invalid pointer 0x%p, %d bytes to realloc at %s:%d.\n", what, len, file,
+          line);
 
   return (zmalloc(len, file, line));
 }
@@ -245,8 +246,8 @@ void zfree(unsigned char *what, char *file, int line)
       /* got it.  Print it if verbose: */
       if (zmalloclogging > 2)
       {
-        fprintf(zfd, "zfree: Freed 0x%p %d bytes mallocd at %s:%d, freed at %s:%d\n",
-                m->addr, m->size, m->file, m->line, file, line);
+        fprintf(zfd, "zfree: Freed 0x%p %d bytes mallocd at %s:%d, freed at %s:%d\n", m->addr,
+                m->size, m->file, m->line, file, line);
       }
       /* check the padding: */
       pad_check(m);
@@ -257,8 +258,9 @@ void zfree(unsigned char *what, char *file, int line)
       /* check to see if it was freed > once */
       if (m->frees > 1)
       {
-        fprintf(zfd, "zfree: ERR: multiple frees! 0x%p %d bytes\n"
-                     "       mallocd at %s:%d, freed at %s:%d.\n",
+        fprintf(zfd,
+                "zfree: ERR: multiple frees! 0x%p %d bytes\n"
+                "       mallocd at %s:%d, freed at %s:%d.\n",
                 m->addr, m->size, m->file, m->line, file, line);
         if (zmalloclogging > 1)
           zdump(m);
@@ -269,8 +271,8 @@ void zfree(unsigned char *what, char *file, int line)
 
   if (!gotit)
   {
-    fprintf(zfd, "zfree: ERR: attempt to free unallocated memory 0x%p at %s:%d.\n",
-            what, file, line);
+    fprintf(zfd, "zfree: ERR: attempt to free unallocated memory 0x%p at %s:%d.\n", what, file,
+            line);
   }
   if (gotit > 1)
   {
@@ -312,8 +314,8 @@ void zmalloc_check()
       next_m = m->next;
       if (m->addr != 0 && m->frees <= 0)
       {
-        fprintf(zfd, "zmalloc: UNfreed memory 0x%p %d bytes mallocd at %s:%d\n",
-                m->addr, m->size, m->file, m->line);
+        fprintf(zfd, "zmalloc: UNfreed memory 0x%p %d bytes mallocd at %s:%d\n", m->addr, m->size,
+                m->file, m->line);
         if (zmalloclogging > 1)
           zdump(m);
 
@@ -348,8 +350,8 @@ void zmalloc_check()
       admonishemnt = "the X consortium has a job for you...";
     else
       admonishemnt = "close, but not there yet.";
-    fprintf(zfd, "zmalloc: %d leaks totalling %d bytes... %s\n",
-            num_leaks, total_leak, admonishemnt);
+    fprintf(zfd, "zmalloc: %d leaks totalling %d bytes... %s\n", num_leaks, total_leak,
+            admonishemnt);
   }
   else
   {

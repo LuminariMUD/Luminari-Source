@@ -187,8 +187,7 @@ void do_slug_rank(struct char_data *ch, const char *arg)
           c = d->original;
         else
           c = d->character;
-        if ((CAN_SEE(ch, c) /*&& !PRF_FLAGGED(c, PRF_NORANK)*/) ||
-            (GET_LEVEL(ch) == LVL_IMPL))
+        if ((CAN_SEE(ch, c) /*&& !PRF_FLAGGED(c, PRF_NORANK)*/) || (GET_LEVEL(ch) == LVL_IMPL))
         {
           if (k)
           {
@@ -239,14 +238,15 @@ void do_slug_rank(struct char_data *ch, const char *arg)
 
     /*print out */
     KEY_PRINTING = TRUE;
-    send_to_char(ch, "%s %d players ranked by %s.\n\r", toprank ? "Top" : "Bottom", rk, the_key->outstring);
+    send_to_char(ch, "%s %d players ranked by %s.\n\r", toprank ? "Top" : "Bottom", rk,
+                 the_key->outstring);
     for (i = 0; i < rk; i++)
     {
       strlcpy(kbuf, GET_KEY(tt[i].ch, the_key), sizeof(kbuf));
       for (kbp = kbuf; *kbp == ' '; kbp++)
         ;
-      send_to_char(ch, "#%2d: %15s %*s\n\r", i + 1, GET_NAME(tt[i].ch),
-                   count_color_chars(kbp) + 18, (GET_LEVEL(ch) >= LVL_IMMORT) ? kbp : "");
+      send_to_char(ch, "#%2d: %15s %*s\n\r", i + 1, GET_NAME(tt[i].ch), count_color_chars(kbp) + 18,
+                   (GET_LEVEL(ch) >= LVL_IMMORT) ? kbp : "");
     }
     send_to_char(ch, "%s\n\r", CONFIG_OK);
   }
@@ -293,7 +293,6 @@ void init_keys(void)
 
 struct key_data *search_key(char *key)
 {
-
   struct key_data *tk;
 
   if (strlen(key))
@@ -307,7 +306,6 @@ struct key_data *search_key(char *key)
 
 static void add_key(const char *key, const char *out, ranktype (*f)(struct char_data *ch))
 {
-
   struct key_data *tmp_key;
 
   CREATE(tmp_key, struct key_data, 1);
@@ -353,7 +351,6 @@ int char_compare(const void *n1, const void *n2)
 
 int rank_compare_bot(const void *n1, const void *n2)
 {
-
   strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
   strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
 
@@ -439,7 +436,8 @@ ranktype rank_cha(struct char_data *ch)
 
 ranktype rank_fitness(struct char_data *ch)
 {
-  snprintf(kbuf, sizeof(kbuf), "%20d", GET_STR(ch) + GET_INT(ch) + GET_WIS(ch) + GET_DEX(ch) + GET_CON(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d",
+           GET_STR(ch) + GET_INT(ch) + GET_WIS(ch) + GET_DEX(ch) + GET_CON(ch));
   return (kbuf);
 } /* end rank_fitness */
 
@@ -488,15 +486,15 @@ ranktype rank_weight(struct char_data *ch)
 ranktype rank_fatness(struct char_data *ch)
 {
   float bmi;
-  bmi = ((float)GET_WEIGHT(ch) * 10000.0) /
-        (2.2 * (float)GET_HEIGHT(ch) * (float)GET_HEIGHT(ch));
+  bmi = ((float)GET_WEIGHT(ch) * 10000.0) / (2.2 * (float)GET_HEIGHT(ch) * (float)GET_HEIGHT(ch));
   snprintf(kbuf, sizeof(kbuf), "%20.2f", bmi);
   return (kbuf);
 } /* end rank_fatness */
 
 ranktype rank_coolness(struct char_data *ch)
 {
-  snprintf(kbuf, sizeof(kbuf), "%20ld", (GET_LEVEL(ch) == LVL_IMPL) ? 100L : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
+  snprintf(kbuf, sizeof(kbuf), "%20ld",
+           (GET_LEVEL(ch) == LVL_IMPL) ? 100L : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
   return (kbuf);
 } /* end rank_coolness */
 

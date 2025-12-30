@@ -82,11 +82,11 @@ This ensures maximum compatibility with the various naming conventions used in t
 ### HTML Structure
 
 ```html
-<div style="margin: 20px 0; padding: 15px; background: #fff8e1; 
+<div style="margin: 20px 0; padding: 15px; background: #fff8e1;
      border-radius: 8px; border-left: 4px solid #ffa000;">
     <strong>🎓 Available to Classes:</strong><br>
     <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
-        <span style="background: #fff; padding: 6px 12px; border-radius: 15px; 
+        <span style="background: #fff; padding: 6px 12px; border-radius: 15px;
               border: 2px solid #ffa000; font-size: 13px;">
             <strong>Wizard</strong> (Level 5)
         </span>
@@ -122,7 +122,7 @@ This ensures maximum compatibility with the various naming conventions used in t
 
 - **Generator Script**: `util/generate_spell_html_detailed.py`
 - **Output File**: `docs/spells_reference.html`
-- **Data Sources**: 
+- **Data Sources**:
   - `src/spell_parser.c` (spell definitions)
   - `src/class.c` (class spell assignments)
   - MySQL `help_entries` table (spell descriptions)

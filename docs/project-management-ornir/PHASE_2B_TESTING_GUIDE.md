@@ -267,7 +267,7 @@ pubsubqueue invalid_command
 ### ❌ **Common Issues**
 
 #### Issue: "You must be in the wilderness to test spatial audio"
-**Solution:** 
+**Solution:**
 - Move to a wilderness zone (ZONE_WILDERNESS flag)
 - Use `goto` command to wilderness room
 - Check with `stat room` to verify zone flags

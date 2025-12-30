@@ -259,7 +259,7 @@ struct material_storage_upgrade {
 // Skill improvement on successful harvest
 if (harvest_successful) {
     improve_skill(ch, get_harvest_skill(resource_type));
-    
+
     // Bonus improvement for difficult harvests
     if (resource_availability < 0.3) {
         improve_skill(ch, get_harvest_skill(resource_type));

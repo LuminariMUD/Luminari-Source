@@ -30,7 +30,7 @@ This document provides a **step-by-step implementation plan** for the Structured
 
 ## 📋 **Phase 3.1: Core Enhanced Structures**
 
-### **Task 3.1.1: Enhanced Message Structure** 
+### **Task 3.1.1: Enhanced Message Structure**
 **Estimated Time**: 1 day  
 **Priority**: HIGH
 
@@ -44,18 +44,18 @@ struct pubsub_message_v3 {
     int topic_id;
     char *sender_name;
     long sender_id;                    /* NEW: Authenticated sender ID */
-    
+
     /* Enhanced Classification */
     int message_type;                  /* Existing types + new ones */
     int message_category;              /* NEW: Fine-grained categorization */
     int priority;                      /* Existing priority system */
-    
+
     /* Content System */
     char *content;                     /* Existing content field */
     char *content_type;                /* NEW: MIME-like type */
     char *content_encoding;            /* NEW: Encoding specification */
     int content_version;               /* NEW: Format versioning */
-    
+
     /* Existing Fields - Maintain Compatibility */
     char *metadata;                    /* Legacy metadata field */
     char *spatial_data;                /* Existing spatial data */
@@ -67,20 +67,20 @@ struct pubsub_message_v3 {
     bool is_processed;
     time_t processed_at;
     int reference_count;
-    
+
     /* Enhanced Features */
     time_t last_modified_at;           /* NEW: Modification tracking */
     int parent_message_id;             /* NEW: Message threading */
     int thread_id;                     /* NEW: Conversation threading */
     int sequence_number;               /* NEW: Thread ordering */
-    
+
     /* Extensible Data Pointers */
     struct pubsub_message_fields *fields;      /* NEW: Custom fields */
     struct pubsub_message_metadata_v3 *metadata_v3;  /* NEW: Rich metadata */
     struct pubsub_message_tags *tags;          /* NEW: Tag system */
     char **routing_keys;                       /* NEW: Advanced routing */
     int routing_key_count;
-    
+
     /* Linked List */
     struct pubsub_message_v3 *next;
 };
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS pubsub_messages_v3 (
     parent_message_id INT,
     thread_id INT,
     sequence_number INT DEFAULT 1,
-    
+
     -- Indexes for performance
     INDEX idx_topic_id (topic_id),
     INDEX idx_sender_id (sender_id),
@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS pubsub_messages_v3 (
     INDEX idx_priority (priority),
     INDEX idx_created_at (created_at),
     INDEX idx_thread_id (thread_id),
-    
+
     -- Foreign key constraints
     FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE,
     FOREIGN KEY (parent_message_id) REFERENCES pubsub_messages_v3(message_id) ON DELETE SET NULL
@@ -299,24 +299,24 @@ struct pubsub_message_metadata_v3 {
     int sender_level;
     char *sender_class;
     char *sender_race;
-    
+
     /* Origin Information */
     int origin_room;
     int origin_zone;
     char *origin_area_name;
     int origin_x, origin_y, origin_z;
-    
+
     /* Context Information */
     char *context_type;
     char *trigger_event;
     char *related_object;
     int related_object_id;
-    
+
     /* Processing Information */
     char *handler_chain;
     int processing_time_ms;
     char *processing_notes;
-    
+
     /* Custom Metadata Fields */
     struct pubsub_message_field *custom_fields;
 };
@@ -407,7 +407,7 @@ CREATE TABLE IF NOT EXISTS pubsub_message_fields (
     is_required BOOLEAN DEFAULT FALSE,
     is_searchable BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_message_id (message_id),
     INDEX idx_field_name (field_name),
     INDEX idx_is_searchable (is_searchable),
@@ -440,17 +440,17 @@ struct pubsub_message_filter_v3 {
     int content_keyword_count;
     bool content_case_sensitive;
     bool content_regex_enabled;
-    
+
     /* Field Filters */
     char **required_fields;
     int required_field_count;
-    
+
     /* Tag Filters */
     char **required_tags;
     int required_tag_count;
     char **excluded_tags;
     int excluded_tag_count;
-    
+
     /* Type and Priority Filters */
     int min_priority;
     int max_priority;
@@ -458,12 +458,12 @@ struct pubsub_message_filter_v3 {
     int allowed_type_count;
     int *allowed_categories;
     int allowed_category_count;
-    
+
     /* Temporal Filters */
     time_t created_after;
     time_t created_before;
     time_t expires_after;
-    
+
     /* Metadata Filters */
     char *sender_filter;
     int min_sender_level;

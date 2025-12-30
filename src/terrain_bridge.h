@@ -6,11 +6,11 @@
 
 /* Campaign-dependent port for terrain API server */
 #ifdef CAMPAIGN_DL
-  #define TERRAIN_API_DEFAULT_PORT 8202  /* DragonLance campaign port */
+#define TERRAIN_API_DEFAULT_PORT 8202 /* DragonLance campaign port */
 #elif defined(CAMPAIGN_FR)
-  #define TERRAIN_API_DEFAULT_PORT 8192  /* Forgotten Realms campaign port */
+#define TERRAIN_API_DEFAULT_PORT 8192 /* Forgotten Realms campaign port */
 #else
-  #define TERRAIN_API_DEFAULT_PORT 8182  /* Default Luminari port */
+#define TERRAIN_API_DEFAULT_PORT 8182 /* Default Luminari port */
 #endif
 
 /* Maximum clients and message sizes */
@@ -19,24 +19,26 @@
 #define TERRAIN_API_MAX_BATCH_SIZE 1000
 
 /* Client connection structure */
-struct terrain_api_client {
-    socket_t socket;
-    char input_buffer[TERRAIN_API_MAX_MSG_SIZE];
-    int input_pos;
-    time_t connect_time;
-    int requests_processed;
+struct terrain_api_client
+{
+  socket_t socket;
+  char input_buffer[TERRAIN_API_MAX_MSG_SIZE];
+  int input_pos;
+  time_t connect_time;
+  int requests_processed;
 };
 
 /* Main server structure */
-struct terrain_api_server {
-    socket_t server_socket;
-    int port;
-    struct terrain_api_client *clients;
-    int num_clients;
-    int max_clients;
-    int total_requests;
-    int total_connections;
-    time_t start_time;
+struct terrain_api_server
+{
+  socket_t server_socket;
+  int port;
+  struct terrain_api_client *clients;
+  int num_clients;
+  int max_clients;
+  int total_requests;
+  int total_connections;
+  time_t start_time;
 };
 
 /* Function prototypes */

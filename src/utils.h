@@ -35,39 +35,40 @@
  * to be first defined in interpreter.h. The reason for using a macro is
  * to allow for easier addition of parameters to the otherwise generic and
  * static function structure. */
-#define ACMD_DECL(name) \
-  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
+#define ACMD_DECL(name) void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
-#define ACMD(name)                                                                             \
-  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd); \
-  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                   \
-  {                                                                                            \
-    PERF_PROF_ENTER(pr_, #name);                                                               \
-    impl_##name##_(ch, argument, cmd, subcmd);                                                 \
-    PERF_PROF_EXIT(pr_);                                                                       \
-  }                                                                                            \
-  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
+#define ACMD(name)                                                                                 \
+  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd);     \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                       \
+  {                                                                                                \
+    PERF_PROF_ENTER(pr_, #name);                                                                   \
+    impl_##name##_(ch, argument, cmd, subcmd);                                                     \
+    PERF_PROF_EXIT(pr_);                                                                           \
+  }                                                                                                \
+  static void impl_##name##_(struct char_data *ch, const char *argument,                           \
+                             int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /* "unsafe" version of ACMD. Commands that still require non const argument due to using
    unsafe operations on argument */
-#define ACMDU(name)                                                                      \
-  static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
-  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
-  {                                                                                      \
-    PERF_PROF_ENTER(pr_, #name);                                                         \
-    if (!argument)                                                                       \
-    {                                                                                    \
-      impl_##name##_(ch, NULL, cmd, subcmd);                                             \
-    }                                                                                    \
-    else                                                                                 \
-    {                                                                                    \
-      char arg_buf[MAX_INPUT_LENGTH];                                                    \
-      strlcpy(arg_buf, argument, sizeof(arg_buf));                                       \
-      impl_##name##_(ch, arg_buf, cmd, subcmd);                                          \
-    }                                                                                    \
-    PERF_PROF_EXIT(pr_);                                                                 \
-  }                                                                                      \
-  static void impl_##name##_(struct char_data *ch, char *argument, int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
+#define ACMDU(name)                                                                                \
+  static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd);           \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                       \
+  {                                                                                                \
+    PERF_PROF_ENTER(pr_, #name);                                                                   \
+    if (!argument)                                                                                 \
+    {                                                                                              \
+      impl_##name##_(ch, NULL, cmd, subcmd);                                                       \
+    }                                                                                              \
+    else                                                                                           \
+    {                                                                                              \
+      char arg_buf[MAX_INPUT_LENGTH];                                                              \
+      strlcpy(arg_buf, argument, sizeof(arg_buf));                                                 \
+      impl_##name##_(ch, arg_buf, cmd, subcmd);                                                    \
+    }                                                                                              \
+    PERF_PROF_EXIT(pr_);                                                                           \
+  }                                                                                                \
+  static void impl_##name##_(struct char_data *ch, char *argument,                                 \
+                             int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /** Definition of the helper function for checking if a command can be used.
  *  If show_error is set, an error message will be sent to the user. Otherwise, it
@@ -77,10 +78,9 @@
  *   1 if the character lacks prerequsites
  *   2 if the character would normally be able to use the command, but temporarily can't.
  */
-#define ACMDCHECK(name) \
-  int name(struct char_data *ch, bool show_error)
-#define ACMD_ERRORMSG(error) \
-  if (show_error == true)    \
+#define ACMDCHECK(name) int name(struct char_data *ch, bool show_error)
+#define ACMD_ERRORMSG(error)                                                                       \
+  if (show_error == true)                                                                          \
     send_to_char(ch, error);
 
 /* external declarations and prototypes */
@@ -213,7 +213,8 @@ bool is_road_room(room_rnum room, int type);
 void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type);
 void dismiss_all_followers(struct char_data *ch);
 bool push_attempt(struct char_data *ch, struct char_data *vict, bool display);
-void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display);
+void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag,
+                                    bool display);
 bool can_learn_paladin_mercy(struct char_data *ch, int mercy);
 int num_paladin_mercies_known(struct char_data *ch);
 sbyte has_paladin_mercies_unchosen(struct char_data *ch);
@@ -221,7 +222,7 @@ sbyte has_paladin_mercies_unchosen_study(struct char_data *ch);
 void calculate_max_hp(struct char_data *ch, bool display);
 int compute_level_domain_spell_is_granted(int domain, int spell);
 int compute_current_size(struct char_data *ch);
-int  get_bonus_from_liquid_type(int liquid);
+int get_bonus_from_liquid_type(int liquid);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
@@ -243,7 +244,7 @@ int d20(struct char_data *ch);
 bool hide_damage_message(int snum);
 void manifest_mastermind_power(struct char_data *ch);
 bool in_intro_list(struct char_data *ch, struct char_data *target);
-char * which_desc(struct char_data *ch, struct char_data *target);
+char *which_desc(struct char_data *ch, struct char_data *target);
 bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
@@ -260,7 +261,8 @@ int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
 void basic_mud_vlog(const char *format, va_list args);
 int touch(const char *path);
-void mudlog(int type, int level, int file, const char *str, ...) __attribute__((format(printf, 4, 5)));
+void mudlog(int type, int level, int file, const char *str, ...)
+    __attribute__((format(printf, 4, 5)));
 int rand_number(int from, int to);
 bool is_in_water(struct char_data *ch);
 float rand_float(float from, float to);
@@ -313,8 +315,10 @@ int levenshtein_distance(const char *s1, const char *s2);
 struct time_info_data *real_time_passed(time_t t2, time_t t1);
 struct time_info_data *mud_time_passed(time_t t2, time_t t1);
 void prune_crlf(char *txt);
-void column_list(struct char_data *ch, int num_cols, const char **list, int list_length, bool show_nums);
-void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols, const char **list, int list_length, bool show_nums);
+void column_list(struct char_data *ch, int num_cols, const char **list, int list_length,
+                 bool show_nums);
+void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
+                         const char **list, int list_length, bool show_nums);
 int get_flag_by_name(const char *flag_list[], char *flag_name);
 int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read);
@@ -348,8 +352,10 @@ bool is_immaterial(struct char_data *ch);
 bool is_fav_enemy_of(struct char_data *ch, int race);
 bool can_bleed(struct char_data *ch);
 int compute_arcana_golem_level(struct char_data *ch);
-bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
-bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
+bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element,
+                                 int dam);
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element,
+                                 int dam);
 int count_follower_by_type(struct char_data *ch, int mob_flag);
 int specific_follower_count(struct char_data *ch, mob_vnum mvnum);
 int color_count(char *bufptr);
@@ -405,7 +411,7 @@ sbyte isRacialFeat(int feat);
 int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats);
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
-struct char_data * get_mob_follower(struct char_data *ch, int mob_type);
+struct char_data *get_mob_follower(struct char_data *ch, int mob_type);
 void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
 bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
@@ -484,8 +490,7 @@ bool is_grouped_in_room(struct char_data *ch);
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
 void add_history(struct char_data *ch, const char *msg, int type);
-void look_at_room_number(struct char_data *ch, int ignore_brief,
-                         long room_number);
+void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number);
 /* in spec_procs.c but connected to act.informative.c */
 void ship_lookout(struct char_data *ch);
 
@@ -584,16 +589,16 @@ void char_from_furniture(struct char_data *ch);
  * @param result Pointer to created memory.
  * @param type The type of memory (int, struct char_data, etc.).
  * @param number How many of type to make. */
-#define CREATE(result, type, number)                                             \
-  do                                                                             \
-  {                                                                              \
-    if ((number) * sizeof(type) <= 0)                                            \
-      log("SYSERR: Zero bytes or less requested at %s:%d.", __FILE__, __LINE__); \
-    if (!((result) = (type *)calloc((number), sizeof(type))))                    \
-    {                                                                            \
-      perror("SYSERR: malloc failure");                                          \
-      abort();                                                                   \
-    }                                                                            \
+#define CREATE(result, type, number)                                                               \
+  do                                                                                               \
+  {                                                                                                \
+    if ((number) * sizeof(type) <= 0)                                                              \
+      log("SYSERR: Zero bytes or less requested at %s:%d.", __FILE__, __LINE__);                   \
+    if (!((result) = (type *)calloc((number), sizeof(type))))                                      \
+    {                                                                                              \
+      perror("SYSERR: malloc failure");                                                            \
+      abort();                                                                                     \
+    }                                                                                              \
   } while (0)
 
 /** A realloc based memory reallocation macro. Reminder: realloc can reduce
@@ -601,14 +606,14 @@ void char_from_furniture(struct char_data *ch);
  * @param result Pointer to created memory.
  * @param type The type of memory (int, struct char_data, etc.).
  * @param number How many of type to make. */
-#define RECREATE(result, type, number)                                    \
-  do                                                                      \
-  {                                                                       \
-    if (!((result) = (type *)realloc((result), sizeof(type) * (number)))) \
-    {                                                                     \
-      perror("SYSERR: realloc failure");                                  \
-      abort();                                                            \
-    }                                                                     \
+#define RECREATE(result, type, number)                                                             \
+  do                                                                                               \
+  {                                                                                                \
+    if (!((result) = (type *)realloc((result), sizeof(type) * (number))))                          \
+    {                                                                                              \
+      perror("SYSERR: realloc failure");                                                           \
+      abort();                                                                                     \
+    }                                                                                              \
   } while (0)
 
 /** Remove an item from a linked list and reset the links.
@@ -622,16 +627,16 @@ void char_from_furniture(struct char_data *ch);
  * @param head Pointer to the head of the linked list.
  * @param next The variable name pointing to the next in the list.
  * */
-#define REMOVE_FROM_LIST(item, head, next) \
-  if ((item) == (head))                    \
-    head = (item)->next;                   \
-  else                                     \
-  {                                        \
-    temp = head;                           \
-    while (temp && (temp->next != (item))) \
-      temp = temp->next;                   \
-    if (temp)                              \
-      temp->next = (item)->next;           \
+#define REMOVE_FROM_LIST(item, head, next)                                                         \
+  if ((item) == (head))                                                                            \
+    head = (item)->next;                                                                           \
+  else                                                                                             \
+  {                                                                                                \
+    temp = head;                                                                                   \
+    while (temp && (temp->next != (item)))                                                         \
+      temp = temp->next;                                                                           \
+    if (temp)                                                                                      \
+      temp->next = (item)->next;                                                                   \
   }
 
 /* Connect 'link' to the end of a double-linked list
@@ -643,16 +648,16 @@ void char_from_furniture(struct char_data *ch);
  * @param next  The variable name pointing to the next in the list.
  * @param prev  The variable name pointing to the previous in the list.
  * */
-#define LINK(link, first, last, next, prev) \
-  do                                        \
-  {                                         \
-    if (!(first))                           \
-      (first) = (link);                     \
-    else                                    \
-      (last)->next = (link);                \
-    (link)->next = NULL;                    \
-    (link)->prev = (last);                  \
-    (last) = (link);                        \
+#define LINK(link, first, last, next, prev)                                                        \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(first))                                                                                  \
+      (first) = (link);                                                                            \
+    else                                                                                           \
+      (last)->next = (link);                                                                       \
+    (link)->next = NULL;                                                                           \
+    (link)->prev = (last);                                                                         \
+    (last) = (link);                                                                               \
   } while (0)
 
 /* Remove 'link' from a double-linked list
@@ -664,32 +669,32 @@ void char_from_furniture(struct char_data *ch);
  * @param next  The variable name pointing to the next in the list.
  * @param prev  The variable name pointing to the previous in the list.
  * */
-#define UNLINK(link, first, last, next, prev) \
-  do                                          \
-  {                                           \
-    if (!(link)->prev)                        \
-      (first) = (link)->next;                 \
-    else                                      \
-      (link)->prev->next = (link)->next;      \
-    if (!(link)->next)                        \
-      (last) = (link)->prev;                  \
-    else                                      \
-      (link)->next->prev = (link)->prev;      \
+#define UNLINK(link, first, last, next, prev)                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(link)->prev)                                                                             \
+      (first) = (link)->next;                                                                      \
+    else                                                                                           \
+      (link)->prev->next = (link)->next;                                                           \
+    if (!(link)->next)                                                                             \
+      (last) = (link)->prev;                                                                       \
+    else                                                                                           \
+      (link)->next->prev = (link)->prev;                                                           \
   } while (0)
 
 /* Free a pointer, and log if it was NULL
  * @param point The pointer to be free'd.
  * */
-#define DISPOSE(point)                                               \
-  do                                                                 \
-  {                                                                  \
-    if (!(point))                                                    \
-    {                                                                \
-      log("SYSERR: Freeing null pointer %s:%d", __FILE__, __LINE__); \
-    }                                                                \
-    else                                                             \
-      free(point);                                                   \
-    point = NULL;                                                    \
+#define DISPOSE(point)                                                                             \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(point))                                                                                  \
+    {                                                                                              \
+      log("SYSERR: Freeing null pointer %s:%d", __FILE__, __LINE__);                               \
+    }                                                                                              \
+    else                                                                                           \
+      free(point);                                                                                 \
+    point = NULL;                                                                                  \
   } while (0)
 
 /* String Utils */
@@ -745,8 +750,10 @@ void char_from_furniture(struct char_data *ch);
 #if 1
 /** Warn if accessing player_specials on a mob.
  * @todo Subtle bug in the var reporting, but works well for now. */
-#define CHECK_PLAYER_SPECIAL(ch, var) \
-  (*(((ch)->player_specials == &dummy_mob) ? (log("SYSERR: Mob using '" #var "' at %s:%d.", __FILE__, __LINE__), &(var)) : &(var)))
+#define CHECK_PLAYER_SPECIAL(ch, var)                                                              \
+  (*(((ch)->player_specials == &dummy_mob)                                                         \
+         ? (log("SYSERR: Mob using '" #var "' at %s:%d.", __FILE__, __LINE__), &(var))             \
+         : &(var)))
 #else
 #define CHECK_PLAYER_SPECIAL(ch, var) (var)
 #endif
@@ -796,24 +803,16 @@ void char_from_furniture(struct char_data *ch);
 #define IS_NPC(ch) (IS_SET_AR(MOB_FLAGS(ch), MOB_ISNPC))
 
 /** 1 if the character is a real NPC, 0 if the character is not. */
-#define IS_MOB(ch) (IS_NPC(ch) && GET_MOB_RNUM(ch) <= top_of_mobt && \
-                    GET_MOB_RNUM(ch) != NOBODY)
+#define IS_MOB(ch) (IS_NPC(ch) && GET_MOB_RNUM(ch) <= top_of_mobt && GET_MOB_RNUM(ch) != NOBODY)
 
 /** 1 if ch is flagged an NPC and flag is set in the act bitarray, 0 if not. */
 #define MOB_FLAGGED(ch, flag) (IS_NPC(ch) && IS_SET_AR(MOB_FLAGS(ch), (flag)))
 #define MOB_CAN_FIGHT(ch) (!MOB_FLAGGED(ch, MOB_NOFIGHT))
-#define IS_FAMILIAR(ch) (MOB_FLAGGED(ch, MOB_C_FAMILIAR) && \
-                         AFF_FLAGGED(ch, AFF_CHARM) &&      \
-                         ch->master)
-#define IS_PAL_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && \
-                          AFF_FLAGGED(ch, AFF_CHARM) &&   \
-                          ch->master)
-#define IS_BKG_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && \
-                          AFF_FLAGGED(ch, AFF_CHARM) &&   \
-                          ch->master)
-#define IS_COMPANION(ch) (MOB_FLAGGED(ch, MOB_C_ANIMAL) && \
-                          AFF_FLAGGED(ch, AFF_CHARM) &&    \
-                          ch->master)
+#define IS_FAMILIAR(ch)                                                                            \
+  (MOB_FLAGGED(ch, MOB_C_FAMILIAR) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+#define IS_PAL_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+#define IS_BKG_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+#define IS_COMPANION(ch) (MOB_FLAGGED(ch, MOB_C_ANIMAL) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
 
 /** 1 if ch is not flagged an NPC and flag is set in the act bitarray, 0 if
  * not. */
@@ -906,12 +905,10 @@ void char_from_furniture(struct char_data *ch);
 #endif
 
 /** The room number if this is a valid room, NOWHERE if it is not */
-#define GET_ROOM_VNUM(rnum) \
-  ((room_vnum)(VALID_ROOM_RNUM(rnum) ? world[(rnum)].number : NOWHERE))
+#define GET_ROOM_VNUM(rnum) ((room_vnum)(VALID_ROOM_RNUM(rnum) ? world[(rnum)].number : NOWHERE))
 
 /** Pointer to the room function, NULL if there is not one. */
-#define GET_ROOM_SPEC(room) \
-  (VALID_ROOM_RNUM(room) ? world[(room)].func : NULL)
+#define GET_ROOM_SPEC(room) (VALID_ROOM_RNUM(room) ? world[(room)].func : NULL)
 
 /* char utils */
 
@@ -949,8 +946,10 @@ void char_from_furniture(struct char_data *ch);
 #define IS_EPIC_LEVEL(ch) (GET_LEVEL(ch) > 20)
 #define IS_EPIC(ch) (IS_EPIC_LEVEL(ch))
 
-#define TOTAL_STAT_POINTS(ch) ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == DL_RACE_HUMAN) ? 34 : \
-                              (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == DL_RACE_HALF_ELF) ? 32 :30)
+#define TOTAL_STAT_POINTS(ch)                                                                      \
+  ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == DL_RACE_HUMAN)         ? 34            \
+   : (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == DL_RACE_HALF_ELF) ? 32            \
+                                                                                   : 30)
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
 
@@ -959,22 +958,39 @@ void char_from_furniture(struct char_data *ch);
 #define ARCANE_LEVEL(ch) (compute_arcane_level(ch))
 #define MAGIC_LEVEL(ch) ARCANE_LEVEL(ch)
 #define ALCHEMIST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
-#define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : (GET_LEVEL(ch) > 30) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + \
-                          MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) + GET_ARTIFICER_LEVEL(ch) - \
-                          (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
+#define CASTER_LEVEL(ch)                                                                           \
+  (MIN(IS_NPC(ch) ? GET_LEVEL(ch)                                                                  \
+       : (GET_LEVEL(ch) > 30)                                                                      \
+           ? GET_LEVEL(ch)                                                                         \
+           : DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) +    \
+                 GET_ARTIFICER_LEVEL(ch) - (compute_arcana_golem_level(ch)),                       \
+       LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
-#define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
-#define GET_WARLOCK_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
-#define GET_ARTIFICER_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_ARTIFICER))
-#define GET_SUMMONER_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
-#define GET_CALL_EIDOLON_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
-#define GET_PSIONIC_LEVEL(ch) (((IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST) || GET_LEVEL(ch) >= LVL_IMMORT) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
-#define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0 || (IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST))
-#define PSIONIC_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
-#define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID || c == CLASS_WARLOCK || \
-                                 c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD || c == CLASS_INQUISITOR || \
-                                 c == CLASS_SUMMONER)
+#define GET_SHIFTER_ABILITY_CAST_LEVEL(ch)                                                         \
+  (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
+#define GET_WARLOCK_LEVEL(ch)                                                                      \
+  (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
+#define GET_ARTIFICER_LEVEL(ch)                                                                    \
+  (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_ARTIFICER))
+#define GET_SUMMONER_LEVEL(ch)                                                                     \
+  ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
+#define GET_CALL_EIDOLON_LEVEL(ch)                                                                 \
+  ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch))                                                      \
+       ? GET_LEVEL(ch)                                                                             \
+       : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
+#define GET_PSIONIC_LEVEL(ch)                                                                      \
+  (((IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST) || GET_LEVEL(ch) >= LVL_IMMORT)              \
+       ? GET_LEVEL(ch)                                                                             \
+       : CLASS_LEVEL(ch, CLASS_PSIONICIST))
+#define IS_PSIONIC(ch)                                                                             \
+  (GET_PSIONIC_LEVEL(ch) > 0 || (IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST))
+#define PSIONIC_LEVEL(ch)                                                                          \
+  (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
+#define IS_SPELLCASTER_CLASS(c)                                                                    \
+  (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID ||            \
+   c == CLASS_WARLOCK || c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER ||        \
+   c == CLASS_BARD || c == CLASS_INQUISITOR || c == CLASS_SUMMONER)
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -984,7 +1000,7 @@ void char_from_furniture(struct char_data *ch);
 
 /** Gets the level of a player even if the player is switched.
  * @todo Make this the definition of GET_LEVEL. */
-#define GET_REAL_LEVEL(ch) \
+#define GET_REAL_LEVEL(ch)                                                                         \
   (ch->desc && ch->desc->original ? GET_LEVEL(ch->desc->original) : GET_LEVEL(ch))
 
 // player class is really defined by CLASS_LEVEL now - zusuk
@@ -1005,8 +1021,13 @@ void char_from_furniture(struct char_data *ch);
 #define GET_NPC_RACE(ch) (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
 
 #define GET_RACE(ch) ((GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_WILDSHAPED(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color \
-                                                                                          : ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color))))
+#define RACE_ABBR(ch)                                                                              \
+  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)]                                                  \
+   : IS_WILDSHAPED(ch)                                                                             \
+       ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color                                             \
+       : ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color                                 \
+                          : (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color \
+                                                   : race_list[GET_RACE(ch)].abbrev_color))))
 /*#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
   race_family_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
   race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)*/
@@ -1016,7 +1037,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_WILDSHAPED(ch) (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
 
 // intro system
-#define GET_INTRO(ch, i)  (ch->player_specials->saved.intro_list[i][0])
+#define GET_INTRO(ch, i) (ch->player_specials->saved.intro_list[i][0])
 
 /** Height of ch. */
 #define GET_HEIGHT(ch) ((ch)->player.height)
@@ -1035,7 +1056,10 @@ void char_from_furniture(struct char_data *ch);
 /** Current strength of ch. */
 #define GET_REAL_STR(ch) ((ch)->real_abils.str)
 #define GET_DISGUISE_STR(ch) ((ch)->disguise_abils.str)
-#define GET_STR(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_STR(ch) + (ch)->aff_abils.str : (ch)->aff_abils.str)
+#define GET_STR(ch)                                                                                \
+  ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))                                      \
+       ? GET_DISGUISE_STR(ch) + (ch)->aff_abils.str                                                \
+       : (ch)->aff_abils.str)
 #define GET_STR_BONUS(ch) (compute_strength_bonus(ch))
 /** Current strength modifer of ch, not in use (from stock circle) */
 #define GET_ADD(ch) ((ch)->aff_abils.str_add)
@@ -1043,13 +1067,19 @@ void char_from_furniture(struct char_data *ch);
 /** Current dexterity of ch. */
 #define GET_REAL_DEX(ch) ((ch)->real_abils.dex)
 #define GET_DISGUISE_DEX(ch) ((ch)->disguise_abils.dex)
-#define GET_DEX(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_DEX(ch) + (ch)->aff_abils.dex : (ch)->aff_abils.dex)
+#define GET_DEX(ch)                                                                                \
+  ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))                                      \
+       ? GET_DISGUISE_DEX(ch) + (ch)->aff_abils.dex                                                \
+       : (ch)->aff_abils.dex)
 #define GET_DEX_BONUS(ch) (compute_dexterity_bonus(ch))
 
 /** Current constitution of ch. */
 #define GET_REAL_CON(ch) ((ch)->real_abils.con)
 #define GET_DISGUISE_CON(ch) ((ch)->disguise_abils.con)
-#define GET_CON(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_CON(ch) + (ch)->aff_abils.con : (ch)->aff_abils.con)
+#define GET_CON(ch)                                                                                \
+  ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))                                      \
+       ? GET_DISGUISE_CON(ch) + (ch)->aff_abils.con                                                \
+       : (ch)->aff_abils.con)
 #define GET_CON_BONUS(ch) (compute_constitution_bonus(ch))
 
 /** Current intelligence of ch. */
@@ -1077,7 +1107,10 @@ void char_from_furniture(struct char_data *ch);
    10.  So naked AC = 10 in d20, or in our system 100 */
 #define GET_DISGUISE_AC(ch) ((ch)->points.disguise_armor)
 #define GET_REAL_AC(ch) ((ch)->real_points.armor)
-#define GET_AC(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_AC(ch) + (ch)->points.armor : (ch)->points.armor)
+#define GET_AC(ch)                                                                                 \
+  ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))                                      \
+       ? GET_DISGUISE_AC(ch) + (ch)->points.armor                                                  \
+       : (ch)->points.armor)
 /** Current hit points (health) of ch. */
 #define GET_HIT(ch) ((ch)->points.hit)
 /** Maximum hit points of ch. */
@@ -1274,13 +1307,13 @@ void char_from_furniture(struct char_data *ch);
 // practices, training and boost sessions remaining
 #define GET_PRACTICES(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.spells_to_learn))
 #define GET_TRAINS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.abilities_to_learn))
-#define GET_BOOSTS(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                            ((ch)->player_specials->saved.boosts))
+#define GET_BOOSTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.boosts))
 
 /* special spell macros */
-#define IS_EPIC_SPELL(spellnum) (spellnum == SPELL_MUMMY_DUST || spellnum == SPELL_DRAGON_KNIGHT ||                                   \
-                                 spellnum == SPELL_GREATER_RUIN || spellnum == SPELL_HELLBALL || spellnum == SPELL_EPIC_MAGE_ARMOR || \
-                                 spellnum == SPELL_EPIC_WARDING)
+#define IS_EPIC_SPELL(spellnum)                                                                    \
+  (spellnum == SPELL_MUMMY_DUST || spellnum == SPELL_DRAGON_KNIGHT ||                              \
+   spellnum == SPELL_GREATER_RUIN || spellnum == SPELL_HELLBALL ||                                 \
+   spellnum == SPELL_EPIC_MAGE_ARMOR || spellnum == SPELL_EPIC_WARDING)
 
 /* domain macros */
 #define GET_1ST_DOMAIN(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
@@ -1289,16 +1322,22 @@ void char_from_furniture(struct char_data *ch);
 /* macro for determining the level you get a spell, added to support
  domain granted-spells */
 /* this will return 99 if the 'domain' doesn't grant the 'spell' */
-#define LEVEL_DOMAIN_GRANTS_SPELL(domain, spell) (compute_level_domain_spell_is_granted(domain, spell))
-#define MIN_SPELL_LVL(spell, chclass, chdomain) (MIN((spell_info[spell].min_level[chclass]), (spell_info[spell].domain[chdomain])))
+#define LEVEL_DOMAIN_GRANTS_SPELL(domain, spell)                                                   \
+  (compute_level_domain_spell_is_granted(domain, spell))
+#define MIN_SPELL_LVL(spell, chclass, chdomain)                                                    \
+  (MIN((spell_info[spell].min_level[chclass]), (spell_info[spell].domain[chdomain])))
 /* wizard school of magic specialty */
-#define GET_SPECIALTY_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
-#define IS_SPECIALTY_SCHOOL(ch, spellnum) (IS_NPC(ch) ? 0 : GET_SPECIALTY_SCHOOL(ch) == spell_info[spellnum].schoolOfMagic)
+#define GET_SPECIALTY_SCHOOL(ch)                                                                   \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
+#define IS_SPECIALTY_SCHOOL(ch, spellnum)                                                          \
+  (IS_NPC(ch) ? 0 : GET_SPECIALTY_SCHOOL(ch) == spell_info[spellnum].schoolOfMagic)
 
-#define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
-#define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
-#define IS_RESTRICTED_SCHOOL(ch, i) (GET_1ST_RESTRICTED_SCHOOL(ch) == i || \
-                                     GET_2ND_RESTRICTED_SCHOOL(ch) == i)
+#define GET_1ST_RESTRICTED_SCHOOL(ch)                                                              \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
+#define GET_2ND_RESTRICTED_SCHOOL(ch)                                                              \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
+#define IS_RESTRICTED_SCHOOL(ch, i)                                                                \
+  (GET_1ST_RESTRICTED_SCHOOL(ch) == i || GET_2ND_RESTRICTED_SCHOOL(ch) == i)
 
 /** Current invisibility level of ch. */
 #define GET_INVIS_LEV(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.invis_level))
@@ -1344,11 +1383,16 @@ void char_from_furniture(struct char_data *ch);
 #define GET_PREF(ch) ((ch)->pref)
 
 /** Score display preference accessors */
-#define GET_SCORE_DISPLAY_WIDTH(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_display_width))
-#define GET_SCORE_COLOR_THEME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_color_theme))
-#define GET_SCORE_INFO_DENSITY(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_info_density))
-#define GET_SCORE_LAYOUT_TEMPLATE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_layout_template))
-#define GET_SCORE_SECTION_ORDER(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_section_order[(i)]))
+#define GET_SCORE_DISPLAY_WIDTH(ch)                                                                \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_display_width))
+#define GET_SCORE_COLOR_THEME(ch)                                                                  \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_color_theme))
+#define GET_SCORE_INFO_DENSITY(ch)                                                                 \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_info_density))
+#define GET_SCORE_LAYOUT_TEMPLATE(ch)                                                              \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_layout_template))
+#define GET_SCORE_SECTION_ORDER(ch, i)                                                             \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_section_order[(i)]))
 
 /** The number of ticks until the player can perform more diplomacy. */
 #define GET_DIPTIMER(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->diplomacy_wait))
@@ -1375,24 +1419,32 @@ void char_from_furniture(struct char_data *ch);
 #define GET_QUESTPOINTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.questpoints))
 
 /** Return the current quest that a player has assigned */
-#define GET_QUEST(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest[index]))
+#define GET_QUEST(ch, index)                                                                       \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest[index]))
 //#define GET_QUEST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest))
 
 /** Number of goals completed for this quest. */
-#define GET_QUEST_COUNTER(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_counter[index]))
+#define GET_QUEST_COUNTER(ch, index)                                                               \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_counter[index]))
 
 /** Time remaining to complete the quest ch is currently on. */
-#define GET_QUEST_TIME(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time[index]))
+#define GET_QUEST_TIME(ch, index)                                                                  \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time[index]))
 //#define GET_QUEST_TIME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time))
 
 /** The number of quests completed by ch. */
-#define GET_NUM_QUESTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.num_completed_quests))
+#define GET_NUM_QUESTS(ch)                                                                         \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.num_completed_quests))
 
 /** The type of quest ch is currently participating in. */
-#define GET_QUEST_TYPE(ch, index) (real_quest(GET_QUEST(ch, index)) != NOTHING ? aquest_table[real_quest(GET_QUEST(ch, index))].type : AQ_UNDEFINED)
+#define GET_QUEST_TYPE(ch, index)                                                                  \
+  (real_quest(GET_QUEST(ch, index)) != NOTHING                                                     \
+       ? aquest_table[real_quest(GET_QUEST(ch, index))].type                                       \
+       : AQ_UNDEFINED)
 
 /* staff ran events data */
-#define STAFFRAN_PVAR(ch, variable) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
+#define STAFFRAN_PVAR(ch, variable)                                                                \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
 
 /**** Clans *****/
 /** Return the vnum of the clan that the player belongs to */
@@ -1407,25 +1459,26 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SPELL(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.spells[i]))
 
 /** Copy the current skill level i of ch to pct. */
-#define SET_SKILL(ch, i, pct)                                                 \
-  do                                                                          \
-  {                                                                           \
-    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.skills[i]) = pct; \
+#define SET_SKILL(ch, i, pct)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.skills[i]) = pct;                      \
   } while (0)
 
 /** retrieves the sorcerer bloodline of the player character */
 #define GET_SORC_BLOODLINE(ch) (get_sorcerer_bloodline_type(ch))
 /** retrieves the sorcerer bloodline subtype, for example dragon color for draconic bloodline */
-#define GET_BLOODLINE_SUBTYPE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.sorcerer_bloodline_subtype))
+#define GET_BLOODLINE_SUBTYPE(ch)                                                                  \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.sorcerer_bloodline_subtype))
 
 /** The current trained level of ch for ability i. */
 #define GET_ABILITY(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.abilities[i]))
 
 /** Copy the current ability level i of ch to pct. */
-#define SET_ABILITY(ch, i, pct)                                                  \
-  do                                                                             \
-  {                                                                              \
-    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = pct; \
+#define SET_ABILITY(ch, i, pct)                                                                    \
+  do                                                                                               \
+  {                                                                                                \
+    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = pct;                   \
   } while (0)
 
 /* Levelup - data storage for study command. */
@@ -1442,7 +1495,14 @@ void char_from_furniture(struct char_data *ch);
 #define GET_EPIC_CLASS_FEATS(ch, cl) (ch->player_specials->saved.epic_class_feat_points[cl])
 
 #define IS_EPIC_FEAT(featnum) (feat_list[featnum].epic == TRUE)
-#define IS_SPELL_CIRCLE_FEAT(featnum) ((FEAT_BARD_1ST_CIRCLE <= featnum && featnum <= FEAT_BARD_EPIC_SPELL) || (FEAT_CLERIC_1ST_CIRCLE <= featnum && featnum <= FEAT_CLERIC_EPIC_SPELL) || (FEAT_DRUID_1ST_CIRCLE <= featnum && featnum <= FEAT_DRUID_EPIC_SPELL) || (FEAT_PALADIN_1ST_CIRCLE <= featnum && featnum <= FEAT_PALADIN_4TH_CIRCLE) || (FEAT_RANGER_1ST_CIRCLE <= featnum && featnum <= FEAT_RANGER_4TH_CIRCLE) || (FEAT_SORCERER_1ST_CIRCLE <= featnum && featnum <= FEAT_SORCERER_EPIC_SPELL) || (FEAT_WIZARD_1ST_CIRCLE <= featnum && featnum <= FEAT_WIZARD_EPIC_SPELL))
+#define IS_SPELL_CIRCLE_FEAT(featnum)                                                              \
+  ((FEAT_BARD_1ST_CIRCLE <= featnum && featnum <= FEAT_BARD_EPIC_SPELL) ||                         \
+   (FEAT_CLERIC_1ST_CIRCLE <= featnum && featnum <= FEAT_CLERIC_EPIC_SPELL) ||                     \
+   (FEAT_DRUID_1ST_CIRCLE <= featnum && featnum <= FEAT_DRUID_EPIC_SPELL) ||                       \
+   (FEAT_PALADIN_1ST_CIRCLE <= featnum && featnum <= FEAT_PALADIN_4TH_CIRCLE) ||                   \
+   (FEAT_RANGER_1ST_CIRCLE <= featnum && featnum <= FEAT_RANGER_4TH_CIRCLE) ||                     \
+   (FEAT_SORCERER_1ST_CIRCLE <= featnum && featnum <= FEAT_SORCERER_EPIC_SPELL) ||                 \
+   (FEAT_WIZARD_1ST_CIRCLE <= featnum && featnum <= FEAT_WIZARD_EPIC_SPELL))
 
 #define HAS_REAL_FEAT(ch, i) ((ch)->char_specials.saved.feats[i])
 #define HAS_FEAT(ch, i) (get_feat_value((ch), i))
@@ -1453,13 +1513,17 @@ void char_from_furniture(struct char_data *ch);
 #define HAS_SCHOOL_FEAT(ch, i, j) (IS_SET((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
 #define SET_SCHOOL_FEAT(ch, i, j) (SET_BIT((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
 #define HAS_SKILL_FEAT(ch, i, j) ((ch)->player_specials->saved.skill_focus[i][j])
-#define SET_SKILL_FEAT(ch, i, j) (((ch)->player_specials->saved.skill_focus[i][j]) ? (ch)->player_specials->saved.skill_focus[i][j] = FALSE : (ch)->player_specials->saved.skill_focus[i][j] = TRUE)
+#define SET_SKILL_FEAT(ch, i, j)                                                                   \
+  (((ch)->player_specials->saved.skill_focus[i][j])                                                \
+       ? (ch)->player_specials->saved.skill_focus[i][j] = FALSE                                    \
+       : (ch)->player_specials->saved.skill_focus[i][j] = TRUE)
 #define GET_SKILL_FEAT(ch, i, j) ((ch)->player_specials->saved.skill_focus[i][j])
 
 /* Macros to check LEVELUP feats. */
 #define HAS_LEVELUP_FEAT(ch, i) (has_feat_requirement_check((ch), i))
 #define SET_LEVELUP_FEAT(ch, i, j) (LEVELUP(ch)->feats[i] = j)
-#define HAS_LEVELUP_COMBAT_FEAT(ch, i, j) ((i == -1) ? 0 : IS_SET_AR(LEVELUP(ch)->combat_feats[i], j))
+#define HAS_LEVELUP_COMBAT_FEAT(ch, i, j)                                                          \
+  ((i == -1) ? 0 : IS_SET_AR(LEVELUP(ch)->combat_feats[i], j))
 #define SET_LEVELUP_COMBAT_FEAT(ch, i, j) (SET_BIT_AR(LEVELUP(ch)->combat_feats[(i)], (j)))
 #define HAS_LEVELUP_SCHOOL_FEAT(ch, i, j) (IS_SET(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
 #define SET_LEVELUP_SCHOOL_FEAT(ch, i, j) (SET_BIT(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
@@ -1478,22 +1542,36 @@ void char_from_furniture(struct char_data *ch);
 #define GET_LEVELUP_BOOSTS(ch) (LEVELUP(ch)->num_boosts)
 #define GET_LEVELUP_BOOST_STATS(ch, stat) (LEVELUP(ch)->boosts[stat])
 #define GET_LEVELUP_SKILL(ch, skill_num) (LEVELUP(ch)->skills[skill_num])
-#define GET_LEVELUP_ABILITY(ch, skill_num) (GET_ABILITY(ch, skill_num) + GET_LEVELUP_SKILL(ch, skill_num))
+#define GET_LEVELUP_ABILITY(ch, skill_num)                                                         \
+  (GET_ABILITY(ch, skill_num) + GET_LEVELUP_SKILL(ch, skill_num))
 
 /* MACRO to get a weapon's type. */
-#define GET_WEAPON_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0)
+#define GET_WEAPON_TYPE(obj)                                                                       \
+  ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)                    \
+       ? GET_OBJ_VAL(obj, 0)                                                                       \
+       : 0)
 #define IS_LIGHT_WEAPON_TYPE(type) (IS_SET(weapon_list[type].weaponFlags, WEAPON_FLAG_LIGHT))
-#define HAS_WEAPON_FLAG(obj, flag) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0)
+#define HAS_WEAPON_FLAG(obj, flag)                                                                 \
+  ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)                    \
+       ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag)                               \
+       : 0)
 #define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
-#define GET_ENHANCEMENT_BONUS(obj) (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) || (GET_OBJ_TYPE(obj) == ITEM_MISSILE)) ? GET_OBJ_VAL(obj, 4) : 0)
-#define IS_WEAPON_SHARP(obj) (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&                                       \
-                              (weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_PIERCING || \
-                               weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_SLASHING))
+#define GET_ENHANCEMENT_BONUS(obj)                                                                 \
+  (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ||                \
+    (GET_OBJ_TYPE(obj) == ITEM_ARMOR) || (GET_OBJ_TYPE(obj) == ITEM_MISSILE))                      \
+       ? GET_OBJ_VAL(obj, 4)                                                                       \
+       : 0)
+#define IS_WEAPON_SHARP(obj)                                                                       \
+  (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&                                                             \
+   (weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_PIERCING ||                       \
+    weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_SLASHING))
 #define GET_HOLY_WEAPON_TYPE(ch) (ch->player_specials->saved.holy_weapon_type)
 
 /* armor related macro's */
-#define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 1) : SPEC_ARMOR_TYPE_UNDEFINED)
-#define GET_ARMOR_TYPE_PROF(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorType : ARMOR_TYPE_NONE)
+#define GET_ARMOR_TYPE(obj)                                                                        \
+  ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 1) : SPEC_ARMOR_TYPE_UNDEFINED)
+#define GET_ARMOR_TYPE_PROF(obj)                                                                   \
+  ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorType : ARMOR_TYPE_NONE)
 
 #define GET_OUTFIT_OBJ(ch) (ch->player_specials->outfit_obj)
 #define GET_OUTFIT_DESC(ch) (ch->player_specials->outfit_desc)
@@ -1503,32 +1581,31 @@ void char_from_furniture(struct char_data *ch);
 #define GET_DEVICE_DESTROY_CONFIRM(ch) (ch->player_specials->device_destroy_confirm)
 #define GET_DEVICE_DESTROY_INV_IDX(ch) (ch->player_specials->device_destroy_inv_idx)
 
-#define IS_SHIELD(type) (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD || \
-                         type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
+#define IS_SHIELD(type)                                                                            \
+  (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD ||                      \
+   type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
 
 /* MACROS for the study system */
-#define CAN_STUDY_FEATS(ch) ((((GET_LEVELUP_FEAT_POINTS(ch) +                  \
-                                          GET_LEVELUP_CLASS_FEATS(ch) +      \
-                                          GET_LEVELUP_TEAMWORK_FEATS(ch) +   \
-                                          GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
-                                          GET_LEVELUP_EPIC_CLASS_FEATS(ch)) > \
-                                      0)                                      \
-                                  ? 1                                        \
-                                  : 0))
+#define CAN_STUDY_FEATS(ch)                                                                        \
+  ((((GET_LEVELUP_FEAT_POINTS(ch) + GET_LEVELUP_CLASS_FEATS(ch) + GET_LEVELUP_TEAMWORK_FEATS(ch) + \
+      GET_LEVELUP_EPIC_FEAT_POINTS(ch) + GET_LEVELUP_EPIC_CLASS_FEATS(ch)) > 0)                    \
+        ? 1                                                                                        \
+        : 0))
 #define CAN_STUDY_SKILLS(ch) (GET_LEVELUP_SKILL_POINTS(ch))
 #define CAN_STUDY_BOOSTS(ch) (GET_LEVELUP_BOOSTS(ch) > 0)
 #define HAS_SET_STATS_STUDY(ch) (ch->player_specials->saved.have_stats_been_set_study)
 
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 
-#define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1 || CLASS_LEVEL(ch, CLASS_INQUISITOR) == 1)
+#define CAN_SET_DOMAIN(ch)                                                                         \
+  (CLASS_LEVEL(ch, CLASS_CLERIC) == 1 || CLASS_LEVEL(ch, CLASS_INQUISITOR) == 1)
 #define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD) == 1)
-#define CAN_SET_S_BLOODLINE(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 1 && GET_SORC_BLOODLINE(ch) == 0 && get_levelup_sorcerer_bloodline_type(ch) == 0)
-#define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) +                  \
-                                                                       GET_LEVELUP_EPIC_CLASS_FEATS(ch) > \
-                                                                   0                                      \
-                                                               ? 1                                        \
-                                                               : 0))
+#define CAN_SET_S_BLOODLINE(ch)                                                                    \
+  (CLASS_LEVEL(ch, CLASS_SORCERER) >= 1 && GET_SORC_BLOODLINE(ch) == 0 &&                          \
+   get_levelup_sorcerer_bloodline_type(ch) == 0)
+#define CAN_STUDY_CLASS_FEATS(ch)                                                                  \
+  (CAN_STUDY_FEATS(ch) ||                                                                          \
+   (GET_LEVELUP_CLASS_FEATS(ch) + GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
 #define CAN_STUDY_KNOWN_SPELLS(ch) (can_study_known_spells(ch))
 #define CAN_STUDY_KNOWN_PSIONICS(ch) (can_study_known_psionics(ch))
@@ -1539,21 +1616,27 @@ void char_from_furniture(struct char_data *ch);
 /* study - setting preferred caster class, for prestige classes such as arcane archer */
 #define CAN_SET_P_CASTER(ch) (1)
 //#define CAN_SET_P_DIVINE(ch)  (CLASS_LEVEL(ch, CLASS_CLERIC) || CLASS_LEVEL(ch, CLASS_DRUID))
-#define GET_PREFERRED_ARCANE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_arcane))
-#define GET_PREFERRED_DIVINE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_divine))
+#define GET_PREFERRED_ARCANE(ch)                                                                   \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_arcane))
+#define GET_PREFERRED_DIVINE(ch)                                                                   \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_divine))
 #define BONUS_CASTER_LEVEL(ch, class) (compute_bonus_caster_level(ch, class))
 
 // Eldritch knight spell critical ability
-#define HAS_ELDRITCH_SPELL_CRIT(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
+#define HAS_ELDRITCH_SPELL_CRIT(ch)                                                                \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
 // Eldritch knight levels are added to warrior levels when determining qualification for certain warrior-only feats
-#define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2) + \
-                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
+#define WARRIOR_LEVELS(ch)                                                                         \
+  (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) +                       \
+   (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) +           \
+   CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
 
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
 
 /** The player's default sector type when buildwalking */
-#define GET_BUILDWALK_SECTOR(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_sector))
+#define GET_BUILDWALK_SECTOR(ch)                                                                   \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_sector))
 #define GET_BUILDWALK_FLAGS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_flags))
 #define GET_BUILDWALK_NAME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_name))
 #define GET_BUILDWALK_DESC(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_desc))
@@ -1562,7 +1645,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_EQ(ch, i) ((ch)->equipment[i])
 
 /* Free hand, means you can't have a shield, 2h weapon or dual wielding */
-#define HAS_FREE_HAND(ch) (!GET_EQ(ch, WEAR_SHIELD) && !GET_EQ(ch, WEAR_WIELD_2H) && !GET_EQ(ch, WEAR_WIELD_OFFHAND))
+#define HAS_FREE_HAND(ch)                                                                          \
+  (!GET_EQ(ch, WEAR_SHIELD) && !GET_EQ(ch, WEAR_WIELD_2H) && !GET_EQ(ch, WEAR_WIELD_OFFHAND))
 
 /* ranged-combat:  missiles */
 #define MISSILE_ID(obj) ((obj)->missile_id)
@@ -1570,13 +1654,15 @@ void char_from_furniture(struct char_data *ch);
 // weapon spells
 #define HAS_SPELLS(obj) ((obj)->has_spells)
 #define GET_WEAPON_SPELL(obj, i) ((obj)->wpn_spells[i].spellnum)
-#define GET_WEAPON_SPELL_LVL(obj, i) ((obj)->wpn_spells[i].level ? (obj)->wpn_spells[i].level : (LVL_IMMORT / 2))
+#define GET_WEAPON_SPELL_LVL(obj, i)                                                               \
+  ((obj)->wpn_spells[i].level ? (obj)->wpn_spells[i].level : (LVL_IMMORT / 2))
 #define GET_WEAPON_SPELL_PCT(obj, i) ((obj)->wpn_spells[i].percent)
 #define GET_WEAPON_SPELL_AGG(obj, i) ((obj)->wpn_spells[i].inCombat)
 
 // weapon channel spells for spellsword class
 #define GET_WEAPON_CHANNEL_SPELL(obj, i) ((obj)->channel_spells[i].spellnum)
-#define GET_WEAPON_CHANNEL_SPELL_LVL(obj, i) ((obj)->channel_spells[i].level ? (obj)->channel_spells[i].level : (LVL_IMMORT / 2))
+#define GET_WEAPON_CHANNEL_SPELL_LVL(obj, i)                                                       \
+  ((obj)->channel_spells[i].level ? (obj)->channel_spells[i].level : (LVL_IMMORT / 2))
 #define GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) ((obj)->channel_spells[i].percent)
 #define GET_WEAPON_CHANNEL_SPELL_AGG(obj, i) ((obj)->channel_spells[i].inCombat)
 #define GET_WEAPON_CHANNEL_SPELL_USES(obj, i) ((obj)->channel_spells[i].uses_left)
@@ -1590,7 +1676,7 @@ void char_from_furniture(struct char_data *ch);
 /** If mob is a mob, return the virtual number of it. */
 #define GET_MOB_VNUM(mob) (IS_MOB(mob) ? mob_index[GET_MOB_RNUM(mob)].vnum : NOBODY)
 
-#define MOB_KNOWS_SPELL(mob, spellnum)  ((mob)->mob_specials.spells_known[spellnum])
+#define MOB_KNOWS_SPELL(mob, spellnum) ((mob)->mob_specials.spells_known[spellnum])
 
 /** Return the default position of ch. */
 #define GET_DEFAULT_POS(ch) ((ch)->mob_specials.default_pos)
@@ -1641,17 +1727,20 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 /**********************************************/
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
-#define HAS_SUBRACE(ch, i) (GET_SUBRACE(ch, 0) == i || \
-                            GET_SUBRACE(ch, 1) == i || \
-                            GET_SUBRACE(ch, 2) == i)
+#define HAS_SUBRACE(ch, i)                                                                         \
+  (GET_SUBRACE(ch, 0) == i || GET_SUBRACE(ch, 1) == i || GET_SUBRACE(ch, 2) == i)
 
 /** Return the equivalent strength of ch if ch has level 18 strength. */
-#define STRENGTH_APPLY_INDEX(ch)                                                        \
-  (((GET_ADD(ch) == 0) || (GET_STR(ch) != 18)) ? GET_STR(ch) : (GET_ADD(ch) <= 50) ? 26 \
-                                                                                   : ((GET_ADD(ch) <= 75) ? 27 : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
+#define STRENGTH_APPLY_INDEX(ch)                                                                   \
+  (((GET_ADD(ch) == 0) || (GET_STR(ch) != 18)) ? GET_STR(ch)                                       \
+   : (GET_ADD(ch) <= 50)                                                                           \
+       ? 26                                                                                        \
+       : ((GET_ADD(ch) <= 75) ? 27                                                                 \
+                              : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
 
 // returns effectve strength score for determining max carry weight
-#define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + get_encumbrance_mod(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
+#define GET_CARRY_STRENGTH(ch)                                                                     \
+  (GET_STR(ch) + get_encumbrance_mod(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
 
 /** Return how much weight ch can carry. */
 #define CAN_CARRY_W(ch) (can_carry_weight_limit(ch))
@@ -1692,9 +1781,16 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define ALIGNMENT_NEUTRAL 0
 #define ALIGNMENT_EVIL -1000
 
-#define GET_ALIGN_ABBREV(e, a) (e > 250 ? (a > 250 ? "LG" : (a < -250 ? "LE" : "LN")) : (e < -250 ? (a > 250 ? "CG" : (a < -250 ? "CE" : "CN")) : ((a > 250 ? "NG" : (a < -250 ? "NE" : "TN")))))
+#define GET_ALIGN_ABBREV(e, a)                                                                     \
+  (e > 250 ? (a > 250 ? "LG" : (a < -250 ? "LE" : "LN"))                                           \
+           : (e < -250 ? (a > 250 ? "CG" : (a < -250 ? "CE" : "CN"))                               \
+                       : ((a > 250 ? "NG" : (a < -250 ? "NE" : "TN")))))
 
-#define GET_ALIGN_STRING(e, a) (e > 250 ? (a > 250 ? "Lawful Good" : (a < -250 ? "Lawful Evil" : "Lawful Neutral")) : (e < -250 ? (a > 250 ? "Chaotic Good" : (a < -250 ? "Chaotic Evil" : "Chaotic Neutral")) : ((a > 250 ? "Neutral Good" : (a < -250 ? "Neutral Evil" : "True Neutral")))))
+#define GET_ALIGN_STRING(e, a)                                                                     \
+  (e > 250                                                                                         \
+       ? (a > 250 ? "Lawful Good" : (a < -250 ? "Lawful Evil" : "Lawful Neutral"))                 \
+       : (e < -250 ? (a > 250 ? "Chaotic Good" : (a < -250 ? "Chaotic Evil" : "Chaotic Neutral"))  \
+                   : ((a > 250 ? "Neutral Good" : (a < -250 ? "Neutral Evil" : "True Neutral")))))
 
 #define GET_DEITY(ch) (ch->player_specials->saved.deity)
 #define FIXED_BAB(ch) (ch->player_specials->saved.fixed_bab)
@@ -1721,10 +1817,10 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Old wait state function.
  * @deprecated Use GET_WAIT_STATE */
-#define WAIT_STATE(ch, cycle)     \
-  do                              \
-  {                               \
-    GET_WAIT_STATE(ch) = (cycle); \
+#define WAIT_STATE(ch, cycle)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    GET_WAIT_STATE(ch) = (cycle);                                                                  \
   } while (0)
 
 /** Old check wait.
@@ -1743,15 +1839,16 @@ int ACTUAL_BAB(struct char_data *ch);
 #define STATE(d) ((d)->connected)
 
 /** Defines whether d is using an OLC or not. */
-#define IS_IN_OLC(d) (((STATE(d) >= FIRST_OLC_STATE) && (STATE(d) <= LAST_OLC_STATE)) || STATE(d) == CON_IEDIT)
+#define IS_IN_OLC(d)                                                                               \
+  (((STATE(d) >= FIRST_OLC_STATE) && (STATE(d) <= LAST_OLC_STATE)) || STATE(d) == CON_IEDIT)
 
 /** Defines whether d is playing or not. */
 #define IS_PLAYING(d) (IS_IN_OLC(d) || STATE(d) == CON_PLAYING)
 
 /** Defines if it is ok to send a message to ch. */
-#define SENDOK(ch) (((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
-                    (to_sleeping || AWAKE(ch)) &&                    \
-                    !PLR_FLAGGED((ch), PLR_WRITING))
+#define SENDOK(ch)                                                                                 \
+  (((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && (to_sleeping || AWAKE(ch)) &&                  \
+   !PLR_FLAGGED((ch), PLR_WRITING))
 
 /*#define SENDOK(ch)    (((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
                       (to_sleeping || AWAKE(ch)))
@@ -1767,8 +1864,7 @@ int ACTUAL_BAB(struct char_data *ch);
 /** Check for NOWHERE or the top array index? If using unsigned types, the top
  * array index will catch everything. If using signed types, NOTHING will
  * catch the majority of bad accesses. */
-#define VALID_OBJ_RNUM(obj) (GET_OBJ_RNUM(obj) <= top_of_objt && \
-                             GET_OBJ_RNUM(obj) != NOTHING)
+#define VALID_OBJ_RNUM(obj) (GET_OBJ_RNUM(obj) <= top_of_objt && GET_OBJ_RNUM(obj) != NOTHING)
 
 /** from homeland, used for object specs/procs **/
 #define GET_OBJ_SPECTIMER(obj, val) ((obj)->obj_flags.spec_timer[(val)])
@@ -1842,17 +1938,15 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /* i_sort determines how it is sorted in inventory */
 #define GET_OBJ_SORT(obj) ((obj)->obj_flags.i_sort)
-#define GET_BAG_NAME(ch, bagnum)  (ch->player_specials->saved.bag_names[bagnum])
-#define GET_ARCANE_MARK(ch)       ((ch)->player_specials->saved.arcane_mark)
-#define GET_OBJ_ARCANE_MARK(obj)  ((obj)->arcane_mark)
+#define GET_BAG_NAME(ch, bagnum) (ch->player_specials->saved.bag_names[bagnum])
+#define GET_ARCANE_MARK(ch) ((ch)->player_specials->saved.arcane_mark)
+#define GET_OBJ_ARCANE_MARK(obj) ((obj)->arcane_mark)
 
 /** Defines if an obj is a corpse. */
-#define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \
-                        GET_OBJ_VAL((obj), 3) == 1)
+#define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && GET_OBJ_VAL((obj), 3) == 1)
 
 /** Defines if an obj is a corpse. */
-#define IS_DECAYING_PORTAL(obj) (GET_OBJ_TYPE(obj) == ITEM_PORTAL && \
-                                 OBJ_FLAGGED(obj, ITEM_DECAY))
+#define IS_DECAYING_PORTAL(obj) (GET_OBJ_TYPE(obj) == ITEM_PORTAL && OBJ_FLAGGED(obj, ITEM_DECAY))
 
 /** Can the obj be worn on body part? */
 #define CAN_WEAR(obj, part) OBJWEAR_FLAGGED((obj), (part))
@@ -1863,7 +1957,7 @@ int ACTUAL_BAB(struct char_data *ch);
 /* Compound utilities and other macros. */
 /** Used to compute version. To see if the code running is newer than 3.0pl13,
  * you would use: if _LUMINARIMUD > LUMINARIMUD_VERSION(3,0,13) */
-#define LUMINARIMUD_VERSION(major, minor, patchlevel) \
+#define LUMINARIMUD_VERSION(major, minor, patchlevel)                                              \
   (((major) << 16) + ((minor) << 8) + (patchlevel))
 
 /** Figures out possessive pronoun for ch. */
@@ -1887,32 +1981,32 @@ int ACTUAL_BAB(struct char_data *ch);
 #define ULTRA_BLIND(ch, room) (ultra_blind(ch, room))
 
 // moved this here for connection between vision macros -zusuk
-#define CAN_SEE_IN_DARK(ch) \
-  (char_has_ultra(ch) || has_blindsense(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)) || \
-  (char_has_infra(ch) && OUTSIDE(ch)))
-#define CAN_INFRA_IN_DARK(ch) \
+#define CAN_SEE_IN_DARK(ch)                                                                        \
+  (char_has_ultra(ch) || has_blindsense(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)) ||  \
+   (char_has_infra(ch) && OUTSIDE(ch)))
+#define CAN_INFRA_IN_DARK(ch)                                                                      \
   (char_has_infra(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
 
 /* Various macros building up to CAN_SEE */
 /** Defines if ch can see in general in the dark. */
 
 /** Defines if there is enough light for sub to see in. */
-#define LIGHT_OK(sub) ((!AFF_FLAGGED(sub, AFF_BLIND) || has_blindsense(sub)) && \
-                       (IS_LIGHT(IN_ROOM(sub)) || CAN_SEE_IN_DARK(sub) ||                  \
-                        GET_LEVEL(sub) >= LVL_IMMORT))
-#define INFRA_OK(sub) (!AFF_FLAGGED(sub, AFF_BLIND) &&                      \
-                       (IS_LIGHT(IN_ROOM(sub)) || CAN_INFRA_IN_DARK(sub) || \
-                        GET_LEVEL(sub) >= LVL_IMMORT))
+#define LIGHT_OK(sub)                                                                              \
+  ((!AFF_FLAGGED(sub, AFF_BLIND) || has_blindsense(sub)) &&                                        \
+   (IS_LIGHT(IN_ROOM(sub)) || CAN_SEE_IN_DARK(sub) || GET_LEVEL(sub) >= LVL_IMMORT))
+#define INFRA_OK(sub)                                                                              \
+  (!AFF_FLAGGED(sub, AFF_BLIND) &&                                                                 \
+   (IS_LIGHT(IN_ROOM(sub)) || CAN_INFRA_IN_DARK(sub) || GET_LEVEL(sub) >= LVL_IMMORT))
 
 /** Defines if sub character can see the invisible obj character.
  *  returns FALSE if sub cannot see obj
  *  returns TRUE if sub can see obj
  */
-#define INVIS_OK(sub, obj)                                                       \
-  ((!AFF_FLAGGED((obj), AFF_INVISIBLE) || (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || \
-                                           AFF_FLAGGED(sub, AFF_TRUE_SIGHT) ||   \
-                                           HAS_FEAT(sub, FEAT_TRUE_SIGHT))) &&   \
-                                           (can_see_hidden(sub, obj)))
+#define INVIS_OK(sub, obj)                                                                         \
+  ((!AFF_FLAGGED((obj), AFF_INVISIBLE) ||                                                          \
+    (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || AFF_FLAGGED(sub, AFF_TRUE_SIGHT) ||                     \
+     HAS_FEAT(sub, FEAT_TRUE_SIGHT))) &&                                                           \
+   (can_see_hidden(sub, obj)))
 
 /** Defines if sub character can see obj character, assuming mortal only
  * settings. */
@@ -1921,61 +2015,63 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Defines if sub character can see obj character, assuming immortal
  * and mortal settings. */
-#define IMM_CAN_SEE(sub, obj) \
+#define IMM_CAN_SEE(sub, obj)                                                                      \
   (MORT_CAN_SEE(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED(sub, PRF_HOLYLIGHT)))
-#define IMM_CAN_INFRA(sub, obj) \
+#define IMM_CAN_INFRA(sub, obj)                                                                    \
   (MORT_CAN_INFRA(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED(sub, PRF_HOLYLIGHT)))
 
 /** Is obj character the same as sub character? */
 #define SELF(sub, obj) ((sub) == (obj))
 
 /** Can sub character see obj character? */
-#define CAN_SEE(sub, obj) (SELF(sub, obj) ||                                                       \
-                           ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? FALSE : GET_INVIS_LEV(obj))) && \
-                            IMM_CAN_SEE(sub, obj)))
-#define CAN_INFRA(sub, obj) (SELF(sub, obj) ||                                                       \
-                             ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? FALSE : GET_INVIS_LEV(obj))) && \
-                              IMM_CAN_INFRA(sub, obj)))
+#define CAN_SEE(sub, obj)                                                                          \
+  (SELF(sub, obj) ||                                                                               \
+   ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? FALSE : GET_INVIS_LEV(obj))) && IMM_CAN_SEE(sub, obj)))
+#define CAN_INFRA(sub, obj)                                                                        \
+  (SELF(sub, obj) || ((GET_REAL_LEVEL(sub) >= (IS_NPC(obj) ? FALSE : GET_INVIS_LEV(obj))) &&       \
+                      IMM_CAN_INFRA(sub, obj)))
 
 /* End of CAN_SEE */
 
 /* Object vision handling */
 
 /** Can the sub character see the obj if it is invisible? */
-#define INVIS_OK_OBJ(sub, obj) \
-  (!OBJ_FLAGGED((obj), ITEM_INVISIBLE) || AFF_FLAGGED((sub), AFF_DETECT_INVIS) || AFF_FLAGGED((sub), AFF_TRUE_SIGHT))
+#define INVIS_OK_OBJ(sub, obj)                                                                     \
+  (!OBJ_FLAGGED((obj), ITEM_INVISIBLE) || AFF_FLAGGED((sub), AFF_DETECT_INVIS) ||                  \
+   AFF_FLAGGED((sub), AFF_TRUE_SIGHT))
 
 /** Is anyone carrying this object and if so, are they visible? */
-#define CAN_SEE_OBJ_CARRIER(sub, obj)                     \
-  ((!obj->carried_by || CAN_SEE(sub, obj->carried_by)) && \
+#define CAN_SEE_OBJ_CARRIER(sub, obj)                                                              \
+  ((!obj->carried_by || CAN_SEE(sub, obj->carried_by)) &&                                          \
    (!obj->worn_by || CAN_SEE(sub, obj->worn_by)))
-#define CAN_INFRA_OBJ_CARRIER(sub, obj)                     \
-  ((!obj->carried_by || CAN_INFRA(sub, obj->carried_by)) && \
+#define CAN_INFRA_OBJ_CARRIER(sub, obj)                                                            \
+  ((!obj->carried_by || CAN_INFRA(sub, obj->carried_by)) &&                                        \
    (!obj->worn_by || CAN_INFRA(sub, obj->worn_by)))
-#define IS_TREASURE_CHEST_HIDDEN(obj)  (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST && GET_OBJ_VAL(obj, 3) > 0)
+#define IS_TREASURE_CHEST_HIDDEN(obj)                                                              \
+  (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST && GET_OBJ_VAL(obj, 3) > 0)
 
 /** Can sub character see the obj, using mortal only checks? */
-#define MORT_CAN_SEE_OBJ(sub, obj) \
-  (LIGHT_OK(sub) && INVIS_OK_OBJ(sub, obj) && CAN_SEE_OBJ_CARRIER(sub, obj) && !IS_TREASURE_CHEST_HIDDEN(obj))
-#define MORT_CAN_INFRA_OBJ(sub, obj) \
+#define MORT_CAN_SEE_OBJ(sub, obj)                                                                 \
+  (LIGHT_OK(sub) && INVIS_OK_OBJ(sub, obj) && CAN_SEE_OBJ_CARRIER(sub, obj) &&                     \
+   !IS_TREASURE_CHEST_HIDDEN(obj))
+#define MORT_CAN_INFRA_OBJ(sub, obj)                                                               \
   (INFRA_OK(sub) && INVIS_OK_OBJ(sub, obj) && CAN_INFRA_OBJ_CARRIER(sub, obj))
 
 /** Can sub character see the obj, using mortal and immortal checks? */
-#define CAN_SEE_OBJ(sub, obj)                                                           \
-  (MORT_CAN_SEE_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)) || \
+#define CAN_SEE_OBJ(sub, obj)                                                                      \
+  (MORT_CAN_SEE_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)) ||            \
    (!AFF_FLAGGED(sub, AFF_BLIND) && OBJ_FLAGGED(obj, ITEM_GLOW)))
-#define CAN_INFRA_OBJ(sub, obj) \
+#define CAN_INFRA_OBJ(sub, obj)                                                                    \
   (MORT_CAN_INFRA_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)))
 
 /** Can ch carry obj? */
-#define CAN_CARRY_OBJ(ch, obj)                                       \
-  (((IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj)) <= CAN_CARRY_W(ch)) && \
+#define CAN_CARRY_OBJ(ch, obj)                                                                     \
+  (((IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj)) <= CAN_CARRY_W(ch)) &&                               \
    ((IS_CARRYING_N(ch) + 1) <= CAN_CARRY_N(ch)))
 
 /** Can ch pick up obj? */
-#define CAN_GET_OBJ(ch, obj)                                        \
-  (CAN_WEAR((obj), ITEM_WEAR_TAKE) && CAN_CARRY_OBJ((ch), (obj)) && \
-   CAN_SEE_OBJ((ch), (obj)))
+#define CAN_GET_OBJ(ch, obj)                                                                       \
+  (CAN_WEAR((obj), ITEM_WEAR_TAKE) && CAN_CARRY_OBJ((ch), (obj)) && CAN_SEE_OBJ((ch), (obj)))
 
 /** If vict can see ch, return ch name, else return "someone". */
 /* OLD VERSION
@@ -1983,7 +2079,7 @@ int ACTUAL_BAB(struct char_data *ch);
    (!CAN_SEE(vict, ch) ? "someone" : !GET_DISGUISE_RACE(ch) ? GET_NAME(ch) \
                                                             : race_list[GET_DISGUISE_RACE(ch)].name
 */
-#define PERS(ch, vict)  (show_pers(ch, vict))
+#define PERS(ch, vict) (show_pers(ch, vict))
 
 /** If vict can see obj, return obj short description, else return
  * "something". */
@@ -2008,9 +2104,9 @@ int ACTUAL_BAB(struct char_data *ch);
 #define _3RD_EXIT(ch, door) (world[_2ND_EXIT(ch, door)->to_room].dir_option[door])
 
 /** Can ch walk through direction door. */
-#define CAN_GO(ch, door) (EXIT(ch, door) &&                       \
-                          (EXIT(ch, door)->to_room != NOWHERE) && \
-                          !IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))
+#define CAN_GO(ch, door)                                                                           \
+  (EXIT(ch, door) && (EXIT(ch, door)->to_room != NOWHERE) &&                                       \
+   !IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))
 
 /** True total number of directions available to move in. */
 #ifdef CAMPAIGN_FR
@@ -2020,15 +2116,15 @@ int ACTUAL_BAB(struct char_data *ch);
 #endif
 
 /* Returns TRUE if the direction is a diagonal one */
-#define IS_DIAGONAL(dir) (((dir) == NORTHWEST) || ((dir) == NORTHEAST) || \
-                          ((dir) == SOUTHEAST) || ((dir) == SOUTHWEST))
+#define IS_DIAGONAL(dir)                                                                           \
+  (((dir) == NORTHWEST) || ((dir) == NORTHEAST) || ((dir) == SOUTHEAST) || ((dir) == SOUTHWEST))
 
 /* is this room an "arena" room? 138600-138699 */
 #define ARENA_VNUM_START 138600
 #define ARENA_VNUM_END 138699
 #define CONFIG_ARENA_DEATH 138610
-#define IS_ARENA(rnum) ((world[rnum].number >= ARENA_VNUM_START) && \
-                        (world[rnum].number <= ARENA_VNUM_END))
+#define IS_ARENA(rnum)                                                                             \
+  ((world[rnum].number >= ARENA_VNUM_START) && (world[rnum].number <= ARENA_VNUM_END))
 #define IN_ARENA(ch) (IS_ARENA(IN_ROOM(ch)))
 
 /* handy macros for dealing with class_list[] */
@@ -2036,7 +2132,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CLSLIST_ABBRV(classnum) (class_list[classnum].abbrev)
 #define CLSLIST_CLRABBRV(classnum) (class_list[classnum].colored_abbrev)
 #define CLSLIST_MENU(classnum) (class_list[classnum].menu_name)
-#define CLSLIST_MAXLVL(classnum) ((class_list[classnum].max_level == -1) ? (LVL_IMMORT - 1) : (class_list[classnum].max_level))
+#define CLSLIST_MAXLVL(classnum)                                                                   \
+  ((class_list[classnum].max_level == -1) ? (LVL_IMMORT - 1) : (class_list[classnum].max_level))
 #define CLSLIST_LOCK(classnum) (class_list[classnum].locked_class)
 #define CLSLIST_PRESTIGE(classnum) (class_list[classnum].prestige_class)
 #define CLSLIST_BAB(classnum) (class_list[classnum].base_attack_bonus)
@@ -2057,7 +2154,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define DRCHRTLIST_NAME(drac_heritage) (draconic_heritage_names[drac_heritage])
 #define DRCHRT_ENERGY_TYPE(drac_heritage) (damtypes[draconic_heritage_energy_types[drac_heritage]])
 /* macros for dealing with sorcerer arcane bloodlines */
-#define NEW_ARCANA_SLOT(ch, i) CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.new_arcana_circles[i]))
+#define NEW_ARCANA_SLOT(ch, i)                                                                     \
+  CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.new_arcana_circles[i]))
 #define APOTHEOSIS_SLOTS(ch) ((ch)->player_specials->arcane_apotheosis_slots)
 
 /** Return the class abbreviation for ch. */
@@ -2081,8 +2179,11 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_INQUISITOR(ch) (CLASS_LEVEL(ch, CLASS_INQUISITOR))
 #define IS_DRUID(ch) (CLASS_LEVEL(ch, CLASS_DRUID))
 #define IS_ROGUE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE))
-#define IS_ROGUE_TYPE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_DUELIST) + CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + CLASS_LEVEL(ch, CLASS_ASSASSIN) + \
-                           CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_BARD))
+#define IS_ROGUE_TYPE(ch)                                                                          \
+  (CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_DUELIST) +                                 \
+   CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + CLASS_LEVEL(ch, CLASS_ASSASSIN) +                        \
+   CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_RANGER) +                          \
+   CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_PSI_TYPE(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST)) /* for expansion! */
 #define IS_WARRIOR(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_WEAPONMASTER(ch) (CLASS_LEVEL(ch, CLASS_WEAPON_MASTER))
@@ -2112,88 +2213,76 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_DRAGONRIDER(ch) (CLASS_LEVEL(ch, CLASS_DRAGONRIDER))
 #define IS_ARTIFICER(ch) (CLASS_LEVEL(ch, CLASS_ARTIFICER))
 
-#define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
-                       IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
-                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
-                       IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
-                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) || IS_SUMMONER(ch) || \
-                       IS_NECROMANCER(ch) || IS_KNIGHT_OF_SOLAMNIA(ch) || \
-                       IS_KNIGHT_OF_THE_THORN(ch) || IS_KNIGHT_OF_THE_SKULL(ch))
+#define IS_CASTER(ch)                                                                              \
+  (GET_LEVEL(ch) >= LVL_IMMORT || IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) ||                \
+   IS_SORCERER(ch) || IS_PALADIN(ch) || IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) ||        \
+   IS_ARCANE_ARCHER(ch) || IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) ||   \
+   IS_SHIFTER(ch) || IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) ||           \
+   IS_SUMMONER(ch) || IS_NECROMANCER(ch) || IS_KNIGHT_OF_SOLAMNIA(ch) ||                           \
+   IS_KNIGHT_OF_THE_THORN(ch) || IS_KNIGHT_OF_THE_SKULL(ch))
 
-#define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
-                        CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
-                        CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) ||         \
-                        CLASS_LEVEL(ch, CLASS_RANGER))
+#define IS_FIGHTER(ch)                                                                             \
+  (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||                       \
+   CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) ||                   \
+   CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) ||                           \
+   CLASS_LEVEL(ch, CLASS_RANGER))
 
-#define IS_NPC_CASTER(ch) (GET_CLASS(ch) == CLASS_CLERIC ||          \
-                           GET_CLASS(ch) == CLASS_WIZARD ||          \
-                           GET_CLASS(ch) == CLASS_DRUID ||           \
-                           GET_CLASS(ch) == CLASS_SORCERER ||        \
-                           GET_CLASS(ch) == CLASS_PALADIN ||         \
-                           GET_CLASS(ch) == CLASS_RANGER ||          \
-                           GET_CLASS(ch) == CLASS_ALCHEMIST ||       \
-                           GET_CLASS(ch) == CLASS_MYSTIC_THEURGE ||  \
-                           GET_CLASS(ch) == CLASS_ARCANE_ARCHER ||   \
-                           GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||   \
-                           GET_CLASS(ch) == CLASS_NECROMANCER ||   \
-                           GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT || \
-                           GET_CLASS(ch) == CLASS_SACRED_FIST ||     \
-                           GET_CLASS(ch) == CLASS_SHIFTER ||         \
-                           GET_CLASS(ch) == CLASS_INQUISITOR ||      \
-                           GET_CLASS(ch) == CLASS_KNIGHT_OF_SOLAMNIA || \
-                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_THORN || \
-                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SKULL || \
-                           GET_CLASS(ch) == CLASS_BARD)
+#define IS_NPC_CASTER(ch)                                                                          \
+  (GET_CLASS(ch) == CLASS_CLERIC || GET_CLASS(ch) == CLASS_WIZARD ||                               \
+   GET_CLASS(ch) == CLASS_DRUID || GET_CLASS(ch) == CLASS_SORCERER ||                              \
+   GET_CLASS(ch) == CLASS_PALADIN || GET_CLASS(ch) == CLASS_RANGER ||                              \
+   GET_CLASS(ch) == CLASS_ALCHEMIST || GET_CLASS(ch) == CLASS_MYSTIC_THEURGE ||                    \
+   GET_CLASS(ch) == CLASS_ARCANE_ARCHER || GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||                 \
+   GET_CLASS(ch) == CLASS_NECROMANCER || GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT ||                 \
+   GET_CLASS(ch) == CLASS_SACRED_FIST || GET_CLASS(ch) == CLASS_SHIFTER ||                         \
+   GET_CLASS(ch) == CLASS_INQUISITOR || GET_CLASS(ch) == CLASS_KNIGHT_OF_SOLAMNIA ||               \
+   GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_THORN || GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SKULL ||     \
+   GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
 
-#define NECROMANCER_CAST_TYPE(ch) (CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.necromancer_bonus_levels)))
+#define NECROMANCER_CAST_TYPE(ch)                                                                  \
+  (CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.necromancer_bonus_levels)))
 
 /* 1 if ch is race, 0 if not */
-#define IS_HUMAN(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == DL_RACE_HUMAN))
-#define IS_ELF(ch) (!IS_NPC(ch) && \
-                    (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_WILD_ELF || GET_RACE(ch) == RACE_HIGH_ELF))
-#define IS_DWARF(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_DWARF || GET_RACE(ch) == RACE_DUERGAR_DWARF || GET_RACE(ch) == RACE_GOLD_DWARF || GET_RACE(ch) == RACE_CRYSTAL_DWARF))
-#define IS_HALF_TROLL(ch) (!IS_NPC(ch) && \
-                           (GET_RACE(ch) == RACE_HALF_TROLL))
-#define IS_CRYSTAL_DWARF(ch) (!IS_NPC(ch) && \
-                              (GET_RACE(ch) == RACE_CRYSTAL_DWARF))
-#define IS_TRELUX(ch) (!IS_NPC(ch) && \
-                       (GET_RACE(ch) == RACE_TRELUX))
-#define IS_LICH(ch) (!IS_NPC(ch) && \
-                     (GET_RACE(ch) == RACE_LICH))
-#define IS_HALFLING(ch) (!IS_NPC(ch) && \
-                         (GET_RACE(ch) == RACE_HALFLING || GET_RACE(ch) == RACE_STOUT_HALFLING))
-#define IS_H_ELF(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_H_ELF || GET_RACE(ch) == RACE_HALF_DROW))
-#define IS_H_ORC(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_H_ORC))
-#define IS_GNOME(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME || GET_RACE(ch) == DL_RACE_GNOME))
-#define IS_ARCANA_GOLEM(ch) (!IS_NPC(ch) && \
-                             (GET_RACE(ch) == RACE_ARCANA_GOLEM))
-#define IS_ARCANE_GOLEM(ch) (!IS_NPC(ch) && \
-                             (GET_RACE(ch) == RACE_ARCANA_GOLEM))
-#define IS_DROW(ch) (!IS_NPC(ch) && \
-                     (GET_RACE(ch) == RACE_DROW))
-#define IS_DROW_ELF(ch) (!IS_NPC(ch) && \
-                         (GET_RACE(ch) == RACE_DROW))
-#define IS_DARK_ELF(ch) (!IS_NPC(ch) && \
-                         (GET_RACE(ch) == RACE_DROW))
-#define IS_DUERGAR(ch) (!IS_NPC(ch) && \
-                        (GET_RACE(ch) == RACE_DUERGAR))
-#define IS_GRAY_DWARF(ch) (!IS_NPC(ch) && \
-                           (GET_RACE(ch) == RACE_DUERGAR))
-#define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
-                           (GET_RACE(ch) == RACE_DUERGAR))
+#define IS_HUMAN(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == DL_RACE_HUMAN))
+#define IS_ELF(ch)                                                                                 \
+  (!IS_NPC(ch) &&                                                                                  \
+   (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_WILD_ELF || GET_RACE(ch) == RACE_HIGH_ELF))
+#define IS_DWARF(ch)                                                                               \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DWARF || GET_RACE(ch) == RACE_DUERGAR_DWARF ||             \
+                   GET_RACE(ch) == RACE_GOLD_DWARF || GET_RACE(ch) == RACE_CRYSTAL_DWARF))
+#define IS_HALF_TROLL(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HALF_TROLL))
+#define IS_CRYSTAL_DWARF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_CRYSTAL_DWARF))
+#define IS_TRELUX(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_TRELUX))
+#define IS_LICH(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_LICH))
+#define IS_HALFLING(ch)                                                                            \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HALFLING || GET_RACE(ch) == RACE_STOUT_HALFLING))
+#define IS_H_ELF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_H_ELF || GET_RACE(ch) == RACE_HALF_DROW))
+#define IS_H_ORC(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_H_ORC))
+#define IS_GNOME(ch)                                                                               \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME ||              \
+                   GET_RACE(ch) == DL_RACE_GNOME))
+#define IS_ARCANA_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_ARCANA_GOLEM))
+#define IS_ARCANE_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_ARCANA_GOLEM))
+#define IS_DROW(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DROW))
+#define IS_DROW_ELF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DROW))
+#define IS_DARK_ELF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DROW))
+#define IS_DUERGAR(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DUERGAR))
+#define IS_GRAY_DWARF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DUERGAR))
+#define IS_DARK_DWARF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DUERGAR))
 #if defined(CAMPAIGN_DL)
-#define IS_GOBLINOID(ch) ((IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID || \
-                          GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) || (!IS_NPC(ch) && (GET_RACE(ch) == DL_RACE_GOBLIN || GET_RACE(ch) == DL_RACE_HOBGOBLIN)))
+#define IS_GOBLINOID(ch)                                                                           \
+  ((IS_NPC(ch) &&                                                                                  \
+    (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID ||         \
+     GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) ||                                                  \
+   (!IS_NPC(ch) && (GET_RACE(ch) == DL_RACE_GOBLIN || GET_RACE(ch) == DL_RACE_HOBGOBLIN)))
 #else
-#define IS_GOBLINOID(ch) ((IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID || \
-                          GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) || (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GOBLIN || GET_RACE(ch) == RACE_HOBGOBLIN)))
+#define IS_GOBLINOID(ch)                                                                           \
+  ((IS_NPC(ch) &&                                                                                  \
+    (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID ||         \
+     GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) ||                                                  \
+   (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GOBLIN || GET_RACE(ch) == RACE_HOBGOBLIN)))
 #endif
 
 // backwards compatibility for old circlemud code snippets
@@ -2203,61 +2292,77 @@ int ACTUAL_BAB(struct char_data *ch);
 #define SPEAKING(ch) (ch->player_specials->saved.speaking)
 #define CAN_SPEAK(ch, i) (can_speak_language(ch, i))
 #define GET_REGION(ch) (ch->player_specials->saved.region)
-#define GET_LANG(ch)     ((ch)->player_specials->saved.speaking)
+#define GET_LANG(ch) ((ch)->player_specials->saved.speaking)
 
-#define HIGH_ELF_CANTRIP(ch)	(ch->player_specials->saved.high_elf_cantrip)
-#define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch) (HIGH_ELF_CANTRIP(ch) || (GET_RACE(d->character) != RACE_HIGH_ELF && GET_RACE(d->character) != DL_RACE_SILVANESTI_ELF))
+#define HIGH_ELF_CANTRIP(ch) (ch->player_specials->saved.high_elf_cantrip)
+#define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch)                                                            \
+  (HIGH_ELF_CANTRIP(ch) ||                                                                         \
+   (GET_RACE(d->character) != RACE_HIGH_ELF && GET_RACE(d->character) != DL_RACE_SILVANESTI_ELF))
 #define GET_RACIAL_MAGIC(ch, slot) (ch->player_specials->saved.racial_magic[slot])
 #define GET_RACIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.racial_cooldown[slot])
 #define GET_DRAGONBORN_ANCESTRY(ch) (ch->player_specials->saved.dragonborn_draconic_ancestry)
-#define CAN_CHOOSE_DRAGONBORN_ANCESTRY(ch) (GET_DRAGONBORN_ANCESTRY(ch) || GET_RACE(d->character) != RACE_DRAGONBORN)
+#define CAN_CHOOSE_DRAGONBORN_ANCESTRY(ch)                                                         \
+  (GET_DRAGONBORN_ANCESTRY(ch) || GET_RACE(d->character) != RACE_DRAGONBORN)
 #define GET_PRIMORDIAL_MAGIC(ch, slot) (ch->player_specials->saved.primordial_magic[slot])
 #define GET_PRIMORDIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.primordial_cooldown[slot])
 
 // shifter forms
-#define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
-#define IS_PIXIE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
-#define IS_EFREETI(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_EFREETI || GET_DISGUISE_RACE(ch) == RACE_EFREETI))
-#define IS_MANTICORE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_MANTICORE || GET_DISGUISE_RACE(ch) == RACE_MANTICORE))
+#define IS_IRON_GOLEM(ch)                                                                          \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
+#define IS_PIXIE(ch)                                                                               \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
+#define IS_EFREETI(ch)                                                                             \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_EFREETI || GET_DISGUISE_RACE(ch) == RACE_EFREETI))
+#define IS_MANTICORE(ch)                                                                           \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_MANTICORE || GET_DISGUISE_RACE(ch) == RACE_MANTICORE))
 
 // IS_race for various morph/shapechange equivalent of npc races
-#define IS_DRAGON(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_DRAGON) || \
-                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_DRAGON))
-#define IS_ANIMAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ANIMAL) || \
-                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL))
-#define IS_UNDEAD(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || \
-                       IS_LICH(ch) || IS_VAMPIRE(ch) ||                    \
-                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD) || \
-                       HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
-#define IS_ELEMENTAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) || \
-                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL))
-#define IS_PLANT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_PLANT) || \
-                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
-#define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
-                     (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
+#define IS_DRAGON(ch)                                                                              \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_DRAGON) ||                                             \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_DRAGON))
+#define IS_ANIMAL(ch)                                                                              \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ANIMAL) ||                                             \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL))
+#define IS_UNDEAD(ch)                                                                              \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || IS_LICH(ch) || IS_VAMPIRE(ch) ||            \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD) ||                                          \
+   HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
+#define IS_ELEMENTAL(ch)                                                                           \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) ||                                          \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL))
+#define IS_PLANT(ch)                                                                               \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_PLANT) ||                                              \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
+#define IS_OOZE(ch)                                                                                \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) ||                                               \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
 #define IS_GOLEM(ch) (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM))
-#define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) ||    \
-                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
-                          (IS_IRON_GOLEM(ch)))
-#define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
-                         IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||                 \
-                         (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER) || \
-                         affected_by_spell(ch, SPELL_PLANAR_HEALING) || \
-                         affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
-#define IS_HUMANOID(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||    \
-                         (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
-                         (!IS_NPC(ch) && !IS_MORPHED(ch)))
-#define IS_DRACONIAN(ch) (IS_NPC(ch) && (GET_RACE(ch) == DL_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == DL_RACE_BOZAK_DRACONIAN || \
-                                         GET_RACE(ch) == DL_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == DL_RACE_SIVAK_DRACONIAN || \
-                                         GET_RACE(ch) == DL_RACE_AURAK_DRACONIAN))
+#define IS_CONSTRUCT(ch)                                                                           \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) ||                                          \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || (IS_IRON_GOLEM(ch)))
+#define IS_OUTSIDER(ch)                                                                            \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||     \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER) ||                                        \
+   affected_by_spell(ch, SPELL_PLANAR_HEALING) ||                                                  \
+   affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
+#define IS_HUMANOID(ch)                                                                            \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||                                           \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || (!IS_NPC(ch) && !IS_MORPHED(ch)))
+#define IS_DRACONIAN(ch)                                                                           \
+  (IS_NPC(ch) &&                                                                                   \
+   (GET_RACE(ch) == DL_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == DL_RACE_BOZAK_DRACONIAN ||           \
+    GET_RACE(ch) == DL_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == DL_RACE_SIVAK_DRACONIAN ||          \
+    GET_RACE(ch) == DL_RACE_AURAK_DRACONIAN))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
-#define IS_VAMPIRE(ch) ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) ||         \
-                        (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
-                                        GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
+#define IS_VAMPIRE(ch)                                                                             \
+  ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) ||                                                \
+   (IS_NPC(ch) &&                                                                                  \
+    (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE ||             \
+     GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
 
 #define IS_POWERFUL_BEING(ch) ((ch && IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT))
 
-    bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
+bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch) (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
@@ -2299,7 +2404,8 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define GRASP_OF_THE_DEAD_USES(ch) (ch->player_specials->saved.grasp_of_the_dead_uses)
 #define GRASP_OF_THE_DEAD_TIMER(ch) (ch->player_specials->saved.grasp_of_the_dead_timer)
-#define GRASP_OF_THE_DEAD_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 ? 3 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 ? 2 : 1))
+#define GRASP_OF_THE_DEAD_USES_PER_DAY(ch)                                                         \
+  (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 ? 3 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 ? 2 : 1))
 
 #define INCORPOREAL_FORM_USES(ch) (ch->player_specials->saved.incorporeal_form_uses)
 #define INCORPOREAL_FORM_TIMER(ch) (ch->player_specials->saved.incorporeal_form_timer)
@@ -2316,37 +2422,42 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define KNOWS_MERCY(ch, i) (ch->player_specials->saved.paladin_mercies[i])
 #define KNOWS_CRUELTY(ch, i) (ch->player_specials->saved.blackguard_cruelties[i])
-#define FIENDISH_BOON_ACTIVE(ch, i) (IS_SET(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
-#define SET_FIENDISH_BOON(ch, i) (SET_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
-#define REMOVE_FIENDISH_BOON(ch, i) (REMOVE_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define FIENDISH_BOON_ACTIVE(ch, i)                                                                \
+  (IS_SET(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define SET_FIENDISH_BOON(ch, i)                                                                   \
+  (SET_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define REMOVE_FIENDISH_BOON(ch, i)                                                                \
+  (REMOVE_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))
-#define IN_WATER(ch)   (is_in_water(ch))
-#define IN_WILDERNESS(ch)   (is_in_wilderness(ch))
+#define IN_WATER(ch) (is_in_water(ch))
+#define IN_WILDERNESS(ch) (is_in_wilderness(ch))
 #define ROOM_OUTDOORS(room) (is_room_outdoors(room))
 #define OUTSIDE(ch) (is_outdoors(ch))
 #define ROOM_OUTSIDE(room) (is_room_outdoors(room))
-#define IS_SHADOW_CONDITIONS(ch) (ch && IN_ROOM(ch) != NOWHERE &&                                                                              \
-                                  ((!OUTSIDE(ch) && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_LIGHT) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_MAGICLIGHT)) || \
-                                   (OUTSIDE(ch) && weather_info.sunlight != SUN_LIGHT)))
+#define IS_SHADOW_CONDITIONS(ch)                                                                   \
+  (ch && IN_ROOM(ch) != NOWHERE &&                                                                 \
+   ((!OUTSIDE(ch) && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_LIGHT) &&                                    \
+     !ROOM_FLAGGED(IN_ROOM(ch), ROOM_MAGICLIGHT)) ||                                               \
+    (OUTSIDE(ch) && weather_info.sunlight != SUN_LIGHT)))
 
 /** A little more specific macro than above **/
-#define IN_NATURE(ch) (world[IN_ROOM(ch)].sector_type == SECT_FIELD ||         \
-                       world[IN_ROOM(ch)].sector_type == SECT_FOREST ||        \
-                       world[IN_ROOM(ch)].sector_type == SECT_HILLS ||         \
-                       world[IN_ROOM(ch)].sector_type == SECT_MOUNTAIN ||      \
-                       world[IN_ROOM(ch)].sector_type == SECT_WATER_SWIM ||    \
-                       world[IN_ROOM(ch)].sector_type == SECT_WATER_NOSWIM ||  \
-                       world[IN_ROOM(ch)].sector_type == SECT_DESERT ||        \
-                       world[IN_ROOM(ch)].sector_type == SECT_UD_WILD ||       \
-                       world[IN_ROOM(ch)].sector_type == SECT_HIGH_MOUNTAIN || \
-                       world[IN_ROOM(ch)].sector_type == SECT_UD_WATER ||      \
-                       world[IN_ROOM(ch)].sector_type == SECT_UD_NOSWIM ||     \
-                       world[IN_ROOM(ch)].sector_type == SECT_UD_NOGROUND ||   \
-                       world[IN_ROOM(ch)].sector_type == SECT_LAVA ||          \
-                       world[IN_ROOM(ch)].sector_type == SECT_FLYING ||        \
-                       world[IN_ROOM(ch)].sector_type == SECT_MARSHLAND)
+#define IN_NATURE(ch)                                                                              \
+  (world[IN_ROOM(ch)].sector_type == SECT_FIELD ||                                                 \
+   world[IN_ROOM(ch)].sector_type == SECT_FOREST ||                                                \
+   world[IN_ROOM(ch)].sector_type == SECT_HILLS ||                                                 \
+   world[IN_ROOM(ch)].sector_type == SECT_MOUNTAIN ||                                              \
+   world[IN_ROOM(ch)].sector_type == SECT_WATER_SWIM ||                                            \
+   world[IN_ROOM(ch)].sector_type == SECT_WATER_NOSWIM ||                                          \
+   world[IN_ROOM(ch)].sector_type == SECT_DESERT ||                                                \
+   world[IN_ROOM(ch)].sector_type == SECT_UD_WILD ||                                               \
+   world[IN_ROOM(ch)].sector_type == SECT_HIGH_MOUNTAIN ||                                         \
+   world[IN_ROOM(ch)].sector_type == SECT_UD_WATER ||                                              \
+   world[IN_ROOM(ch)].sector_type == SECT_UD_NOSWIM ||                                             \
+   world[IN_ROOM(ch)].sector_type == SECT_UD_NOGROUND ||                                           \
+   world[IN_ROOM(ch)].sector_type == SECT_LAVA || world[IN_ROOM(ch)].sector_type == SECT_FLYING || \
+   world[IN_ROOM(ch)].sector_type == SECT_MARSHLAND)
 
 /* Group related defines */
 #define GROUP(ch) (ch->group)
@@ -2367,9 +2478,8 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define HAPPY_TIME happy_data.ticks_left
 
-#define IS_HAPPYHOUR ((IS_HAPPYEXP || IS_HAPPYGOLD || IS_HAPPYQP || \
-                       IS_HAPPYTREASURE) &&                         \
-                      (HAPPY_TIME > 0))
+#define IS_HAPPYHOUR                                                                               \
+  ((IS_HAPPYEXP || IS_HAPPYGOLD || IS_HAPPYQP || IS_HAPPYTREASURE) && (HAPPY_TIME > 0))
 /**********************/
 
 /***************************/
@@ -2620,8 +2730,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_DEATH_EXP_LOSS config_info.player_config.death_exp_loss_penalty
 
 // extra game data
-#define CONFIG_CAMPAIGN        config_info.extra.campaign
-#define CONFIG_BAG_SYSTEM      config_info.extra.bag_system
+#define CONFIG_CAMPAIGN config_info.extra.campaign
+#define CONFIG_BAG_SYSTEM config_info.extra.bag_system
 #define CONFIG_CRAFTING_SYSTEM config_info.extra.crafting_system
 #define CONFIG_LANDMARK_SYSTEM config_info.extra.landmarks_system
 #define CONFIG_NEW_PLAYER_GEAR config_info.extra.new_player_gear
@@ -2671,26 +2781,26 @@ int ACTUAL_BAB(struct char_data *ch);
 #define MOB_STAT_CATEGORY_DIVINE 3
 #define MOB_STAT_CATEGORY_ROGUE 4
 
-#define LANDMARK_SYSTEM_NONE    0
-#define LANDMARK_SYSTEM_CITIES  1
-#define LANDMARK_SYSTEM_WORLD   2
+#define LANDMARK_SYSTEM_NONE 0
+#define LANDMARK_SYSTEM_CITIES 1
+#define LANDMARK_SYSTEM_WORLD 2
 
 #define BAG_SYSTEM_PHYSICAL 0
-#define BAG_SYSTEM_VIRTUAL  1
+#define BAG_SYSTEM_VIRTUAL 1
 
-#define CRAFTING_SYSTEM_NONE    0
-#define CRAFTING_SYSTEM_KITS    1
-#define CRAFTING_SYSTEM_MOTES   2
+#define CRAFTING_SYSTEM_NONE 0
+#define CRAFTING_SYSTEM_KITS 1
+#define CRAFTING_SYSTEM_MOTES 2
 
-#define NEW_PLAYER_GEAR_SHARED  0
-#define NEW_PLAYER_GEAR_UNIQUE  1
+#define NEW_PLAYER_GEAR_SHARED 0
+#define NEW_PLAYER_GEAR_UNIQUE 1
 
-#define CEXCHANGE_DENY  0
+#define CEXCHANGE_DENY 0
 #define CEXCHANGE_ALLOW 1
 
-#define WILDERNESS_SYSTEM_NONE      0
-#define WILDERNESS_SYSTEM_MANUAL    1
-#define WILDERNESS_SYSTEM_WILDEDIT  2
+#define WILDERNESS_SYSTEM_NONE 0
+#define WILDERNESS_SYSTEM_MANUAL 1
+#define WILDERNESS_SYSTEM_WILDEDIT 2
 
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)
@@ -2698,8 +2808,9 @@ int ACTUAL_BAB(struct char_data *ch);
 #define GET_BAB(ch) (BAB(ch))
 
 /* Bonus Types */
-#define BONUS_TYPE_STACKS(bonus_type) ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) || \
-                                       (bonus_type == BONUS_TYPE_UNDEFINED) || (bonus_type == BONUS_TYPE_UNIVERSAL))
+#define BONUS_TYPE_STACKS(bonus_type)                                                              \
+  ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) ||                  \
+   (bonus_type == BONUS_TYPE_UNDEFINED) || (bonus_type == BONUS_TYPE_UNIVERSAL))
 
 /* GUI MSDP Related Defines */
 #define GUI_CMBT_OPEN(ch) (gui_combat_wrap_open(ch))
@@ -2714,7 +2825,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #elif defined(CAMPAIGN_DL)
 #define CRAFTING_CRYSTAL "greygem shard"
 #else
-#define CRAFTING_CRYSTAL  "arcanite crystal"
+#define CRAFTING_CRYSTAL "arcanite crystal"
 #endif
 
 // LootBoxes / Treasure Chests
@@ -2723,13 +2834,15 @@ int ACTUAL_BAB(struct char_data *ch);
 #define LOOTBOX_TYPE(obj) (GET_OBJ_VAL(obj, 1))
 
 // Psionic related stuff
-#define GET_PSIONIC_ENERGY_TYPE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
+#define GET_PSIONIC_ENERGY_TYPE(ch)                                                                \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
 
 #define BRUTALIZE_WOUNDS_SAVE_SUCCESS 2
 #define BRUTALIZE_WOUNDS_SAVE_FAIL 1
 
 // Misc combat stuff
-#define GET_TEMP_ATTACK_ROLL_BONUS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->temp_attack_roll_bonus))
+#define GET_TEMP_ATTACK_ROLL_BONUS(ch)                                                             \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->temp_attack_roll_bonus))
 
 #define ARENA_START 138600
 #define ARENA_END 138608
@@ -2744,7 +2857,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define GET_MARK(ch) (ch->player_specials->mark_target)
 #define GET_MARK_HIT_BONUS(ch) (ch->player_specials->death_attack_hit_bonus)
 #define GET_MARK_DAM_BONUS(ch) (ch->player_specials->death_attack_dam_bonus)
-    bool is_marked_target(struct char_data *ch, struct char_data *vict);
+bool is_marked_target(struct char_data *ch, struct char_data *vict);
 void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
 
 // Inquisitor Stuff
@@ -2770,17 +2883,17 @@ int count_teamwork_feats_available(struct char_data *ch);
 #define GET_WALKTO_LOC(ch) (ch->player_specials->walkto_location)
 
 // Buff self
-#define GET_BUFF(ch, i, j)        (ch->player_specials->saved.buff_abilities[i][j])
+#define GET_BUFF(ch, i, j) (ch->player_specials->saved.buff_abilities[i][j])
 #define GET_CURRENT_BUFF_SLOT(ch) (ch->player_specials->buff_slot)
-#define GET_BUFF_TIMER(ch)        (ch->player_specials->buff_timer)
-#define IS_BUFFING(ch)            (ch->player_specials->is_buffing)
-#define GET_BUFF_TARGET(ch)       (ch->player_specials->buff_target)
+#define GET_BUFF_TIMER(ch) (ch->player_specials->buff_timer)
+#define IS_BUFFING(ch) (ch->player_specials->is_buffing)
+#define GET_BUFF_TARGET(ch) (ch->player_specials->buff_target)
 
 // summoners
 int char_has_evolution(struct char_data *ch, int evo);
 void save_eidolon_descs(struct char_data *ch);
 void set_eidolon_descs(struct char_data *ch);
-#define HAS_EVOLUTION(ch, i)      (char_has_evolution(ch, i))
+#define HAS_EVOLUTION(ch, i) (char_has_evolution(ch, i))
 #define HAS_REAL_EVOLUTION(ch, i) ((ch)->char_specials.saved.eidolon_evolutions[i])
 #define HAS_TEMP_EVOLUTION(ch, i) ((ch)->char_specials.temporary_eidolon_evolutions[i])
 #define KNOWS_EVOLUTION(ch, i) ((ch)->char_specials.saved.known_evolutions[i])
@@ -2788,29 +2901,29 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_EIDOLON_SHORT_DESCRIPTION(ch) (ch->player.eidolon_shortdescription)
 #define GET_EIDOLON_LONG_DESCRIPTION(ch) (ch->player.eidolon_longdescription)
 #define CALL_EIDOLON_COOLDOWN(ch) (ch->player_specials->saved.call_eidolon_cooldown)
-#define MERGE_FORMS_TIMER(ch)  (ch->player_specials->saved.merge_forms_timer)
+#define MERGE_FORMS_TIMER(ch) (ch->player_specials->saved.merge_forms_timer)
 
 // misc
-#define GET_CONSECUTIVE_HITS(ch)  ((ch)->char_specials.consecutive_hits)
-#define GET_PUSHED_TIMER(ch)  ((ch)->char_specials.has_been_pushed)
-#define GET_SICKENING_AURA_TIMER(ch)  ((ch)->char_specials.sickening_aura_timer)
-#define GET_FRIGHTFUL_PRESENCE_TIMER(ch)  ((ch)->char_specials.frightful_presence_timer)
-#define GET_DEFENSIVE_CASTING_TIMER(ch)  ((ch)->player_specials->saved.defensive_casting_timer)
-#define GET_ARCANE_RECOVERY_COOLDOWN(ch)  ((ch)->player_specials->saved.arcane_recovery_cooldown)
-#define GET_SPELL_SHIELD_TIMER(ch)  ((ch)->player_specials->saved.spell_shield_timer)
-#define GET_SPELL_SHIELD_COOLDOWN(ch)  ((ch)->player_specials->saved.spell_shield_cooldown)
-#define GET_VOID_STRIKE_TIMER(ch)  ((ch)->player_specials->saved.void_strike_timer)
-#define GET_VOID_STRIKE_COOLDOWN(ch)  ((ch)->player_specials->saved.void_strike_cooldown)
-#define GET_FIRESNAKE_TIMER(ch)  ((ch)->player_specials->saved.firesnake_timer)
-#define GET_CLENCH_NORTH_WIND_TIMER(ch)  ((ch)->player_specials->saved.clench_of_north_wind_timer)
-#define GET_ELEMENTAL_EMBODIMENT_TIMER(ch)  ((ch)->player_specials->saved.elemental_embodiment_timer)
-#define GET_ELEMENTAL_EMBODIMENT_TYPE(ch)  ((ch)->player_specials->saved.elemental_embodiment_type)
-#define GET_ELEMENTAL_MASTERY_ACTIVE(ch)  ((ch)->player_specials->saved.elemental_mastery_active)
-#define GET_ELEMENTAL_MASTERY_COOLDOWN(ch)  ((ch)->player_specials->saved.elemental_mastery_cooldown)
+#define GET_CONSECUTIVE_HITS(ch) ((ch)->char_specials.consecutive_hits)
+#define GET_PUSHED_TIMER(ch) ((ch)->char_specials.has_been_pushed)
+#define GET_SICKENING_AURA_TIMER(ch) ((ch)->char_specials.sickening_aura_timer)
+#define GET_FRIGHTFUL_PRESENCE_TIMER(ch) ((ch)->char_specials.frightful_presence_timer)
+#define GET_DEFENSIVE_CASTING_TIMER(ch) ((ch)->player_specials->saved.defensive_casting_timer)
+#define GET_ARCANE_RECOVERY_COOLDOWN(ch) ((ch)->player_specials->saved.arcane_recovery_cooldown)
+#define GET_SPELL_SHIELD_TIMER(ch) ((ch)->player_specials->saved.spell_shield_timer)
+#define GET_SPELL_SHIELD_COOLDOWN(ch) ((ch)->player_specials->saved.spell_shield_cooldown)
+#define GET_VOID_STRIKE_TIMER(ch) ((ch)->player_specials->saved.void_strike_timer)
+#define GET_VOID_STRIKE_COOLDOWN(ch) ((ch)->player_specials->saved.void_strike_cooldown)
+#define GET_FIRESNAKE_TIMER(ch) ((ch)->player_specials->saved.firesnake_timer)
+#define GET_CLENCH_NORTH_WIND_TIMER(ch) ((ch)->player_specials->saved.clench_of_north_wind_timer)
+#define GET_ELEMENTAL_EMBODIMENT_TIMER(ch) ((ch)->player_specials->saved.elemental_embodiment_timer)
+#define GET_ELEMENTAL_EMBODIMENT_TYPE(ch) ((ch)->player_specials->saved.elemental_embodiment_type)
+#define GET_ELEMENTAL_MASTERY_ACTIVE(ch) ((ch)->player_specials->saved.elemental_mastery_active)
+#define GET_ELEMENTAL_MASTERY_COOLDOWN(ch) ((ch)->player_specials->saved.elemental_mastery_cooldown)
 
 /* Raging Defender temporary flags */
-#define HIT_BY_CRITICAL(ch)  ((ch)->char_specials.hit_by_critical)
-#define HIT_BY_SNEAK_ATTACK(ch)  ((ch)->char_specials.hit_by_sneak_attack)
+#define HIT_BY_CRITICAL(ch) ((ch)->char_specials.hit_by_critical)
+#define HIT_BY_SNEAK_ATTACK(ch) ((ch)->char_specials.hit_by_sneak_attack)
 
 bool has_reach(struct char_data *ch);
 
@@ -2819,34 +2932,38 @@ bool has_reach(struct char_data *ch);
 #define IS_DRAGONHIDE(material) (material == MATERIAL_DRAGONHIDE)
 #define IS_DRAGONSCALE(material) (material == MATERIAL_DRAGONSCALE)
 #define IS_DRAGONBONE(material) (material == MATERIAL_DRAGONBONE)
-#define IS_DRAGON_CRAFT_MATERIAL(material) (IS_DRAGONHIDE(material) || IS_DRAGONSCALE(material) || IS_DRAGONBONE(material))
+#define IS_DRAGON_CRAFT_MATERIAL(material)                                                         \
+  (IS_DRAGONHIDE(material) || IS_DRAGONSCALE(material) || IS_DRAGONBONE(material))
 
 #define GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) (ch->char_specials.saved.kapak_healing_cooldown)
 
 #define GET_BLACKGUARD_FAVORED_FOE(ch) (ch->char_specials.saved.blackguard_favored_foe)
 
-#define IS_OBJ_CONSUMABLE(obj)  (GET_OBJ_TYPE(obj) == ITEM_POTION || GET_OBJ_TYPE(obj) == ITEM_SCROLL || \
-                                 GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)
+#define IS_OBJ_CONSUMABLE(obj)                                                                     \
+  (GET_OBJ_TYPE(obj) == ITEM_POTION || GET_OBJ_TYPE(obj) == ITEM_SCROLL ||                         \
+   GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)
 
-#define GET_WEAPON_TOUCH_SPELL(ch)  (ch->player_specials->weapon_touch_spell)
-#define GET_TOUCH_SPELL_QUEUED(ch)  (ch->player_specials->touch_spell_queued)
+#define GET_WEAPON_TOUCH_SPELL(ch) (ch->player_specials->weapon_touch_spell)
+#define GET_TOUCH_SPELL_QUEUED(ch) (ch->player_specials->touch_spell_queued)
 
-#define GET_FORETELL_USES(ch)       (ch->char_specials.foretell_uses)
+#define GET_FORETELL_USES(ch) (ch->char_specials.foretell_uses)
 
 #define GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) (ch->player_specials->saved.fight_to_the_death_cooldown)
 
-#define GET_DRAGON_BOND_TYPE(ch)  (ch->player_specials->saved.dragon_bond_type)
-#define GET_DRAGON_RIDER_DRAGON_TYPE(ch)  (ch->player_specials->saved.dragon_rider_dragon_type)
+#define GET_DRAGON_BOND_TYPE(ch) (ch->player_specials->saved.dragon_bond_type)
+#define GET_DRAGON_RIDER_DRAGON_TYPE(ch) (ch->player_specials->saved.dragon_rider_dragon_type)
 
-#define HAS_DRAGON_BOND_ABIL(ch, level, type)  (is_riding_dragon_mount(ch) && GET_DRAGON_BOND_TYPE(ch) == type && \
-                                                HAS_FEAT(ch, FEAT_RIDERS_BOND) && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) >= level))
+#define HAS_DRAGON_BOND_ABIL(ch, level, type)                                                      \
+  (is_riding_dragon_mount(ch) && GET_DRAGON_BOND_TYPE(ch) == type &&                               \
+   HAS_FEAT(ch, FEAT_RIDERS_BOND) && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) >= level))
 
 #define HAS_ACTIVATED_SPELLS(obj) (obj->activate_spell[0] <= 0 ? FALSE : TRUE)
 
-#define GET_BACKGROUND(ch)  (ch->player_specials->saved.background_type)
-#define HAS_BACKGROUND(ch, i)  (GET_LEVEL(ch) >= LVL_IMMORT ? TRUE : ch->player_specials->saved.background_type == i)
+#define GET_BACKGROUND(ch) (ch->player_specials->saved.background_type)
+#define HAS_BACKGROUND(ch, i)                                                                      \
+  (GET_LEVEL(ch) >= LVL_IMMORT ? TRUE : ch->player_specials->saved.background_type == i)
 
-#define GET_HOMETOWN(ch)    (ch->player_specials->saved.hometown)
+#define GET_HOMETOWN(ch) (ch->player_specials->saved.hometown)
 
 #define GET_FORAGE_COOLDOWN(ch) (ch->player_specials->saved.forage_cooldown)
 #define GET_RETAINER_COOLDOWN(ch) (ch->player_specials->saved.retainer_cooldown)
@@ -2863,20 +2980,20 @@ bool has_reach(struct char_data *ch);
 #define GET_BONUS_SLOTS_USED(ch) (ch->player_specials->saved.bonus_slots_used)
 #define GET_BONUS_SLOTS_REGEN_TIMER(ch) (ch->player_specials->saved.bonus_slots_regen_timer)
 
-#define GET_SAGE_MOB_VNUM(ch)   (ch->char_specials.sage_mob_vnum)
+#define GET_SAGE_MOB_VNUM(ch) (ch->char_specials.sage_mob_vnum)
 
 #define GET_RETAINER_MAIL_RECIPIENT(ch) (ch->player_specials->retainer_mail_recipient)
 
-#define GET_LAST_ROOM(ch)   (ch->player_specials->saved.last_room)
+#define GET_LAST_ROOM(ch) (ch->player_specials->saved.last_room)
 
 // new crafting system
-#define GET_CRAFT(ch)         (ch->player_specials->saved.craft_data)
-#define GET_CRAFT_MAT(ch, i)  (ch->player_specials->saved.craft_mats_owned[i])
-#define GET_CRAFT_MOTES(ch, i)  (ch->player_specials->saved.craft_motes_owned[i])
-#define GET_CRAFT_SKILL_EXP(ch, i)  (ch->player_specials->saved.ability_exp[i])
+#define GET_CRAFT(ch) (ch->player_specials->saved.craft_data)
+#define GET_CRAFT_MAT(ch, i) (ch->player_specials->saved.craft_mats_owned[i])
+#define GET_CRAFT_MOTES(ch, i) (ch->player_specials->saved.craft_motes_owned[i])
+#define GET_CRAFT_SKILL_EXP(ch, i) (ch->player_specials->saved.ability_exp[i])
 
-#define GET_NSUPPLY_NUM_MADE(ch)    (ch->player_specials->saved.new_supply_num_made)
-#define GET_NSUPPLY_COOLDOWN(ch)    (ch->player_specials->saved.new_supply_cooldown)
+#define GET_NSUPPLY_NUM_MADE(ch) (ch->player_specials->saved.new_supply_num_made)
+#define GET_NSUPPLY_COOLDOWN(ch) (ch->player_specials->saved.new_supply_cooldown)
 
 #endif /* _UTILS_H_ */
 

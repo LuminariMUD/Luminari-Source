@@ -287,7 +287,6 @@ shop_rnum real_shop(shop_vnum vnum)
 /* Generic string modifier for shop keeper messages. */
 void modify_shop_string(char **str, char *new_s)
 {
-
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char *pointer;
 
@@ -375,7 +374,8 @@ int save_shops(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_shops: Invalid real zone number %d. (0-%d)", zone_num, top_of_zone_table);
+    log("SYSERR: GenOLC: save_shops: Invalid real zone number %d. (0-%d)", zone_num,
+        top_of_zone_table);
     return FALSE;
   }
 
@@ -405,42 +405,37 @@ int save_shops(zone_rnum zone_num)
       fprintf(shop_file, "-1\n");
 
       /* Save the rates. */
-      fprintf(shop_file, "%1.2f\n"
-                         "%1.2f\n",
-              S_BUYPROFIT(shop),
-              S_SELLPROFIT(shop));
+      fprintf(shop_file,
+              "%1.2f\n"
+              "%1.2f\n",
+              S_BUYPROFIT(shop), S_SELLPROFIT(shop));
 
       /* Save the buy types and namelists. */
       for (j = 0; S_BUYTYPE(shop, j) != NOTHING; j++)
-        fprintf(shop_file, "%d%s\n",
-                S_BUYTYPE(shop, j),
+        fprintf(shop_file, "%d%s\n", S_BUYTYPE(shop, j),
                 S_BUYWORD(shop, j) ? S_BUYWORD(shop, j) : "");
       fprintf(shop_file, "-1\n");
 
       /* Save messages. Added some defaults as sanity checks. */
-      snprintf(buf, sizeof(buf),
-               "%s~\n"
-               "%s~\n"
-               "%s~\n"
-               "%s~\n"
-               "%s~\n"
-               "%s~\n"
-               "%s~\n"
-               "%d\n"
-               "%ld\n"
-               "%d\n"
-               "%d\n",
-               S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
-               S_NOITEM2(shop) ? S_NOITEM2(shop) : "%s Ke?!",
-               S_NOBUY(shop) ? S_NOBUY(shop) : "%s Ke?!",
-               S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
-               S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!",
-               S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
-               S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?",
-               S_BROKE_TEMPER(shop),
-               S_BITVECTOR(shop),
-               S_KEEPER(shop) == NOBODY ? -1 : mob_index[S_KEEPER(shop)].vnum,
-               S_NOTRADE(shop));
+      snprintf(
+          buf, sizeof(buf),
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%s~\n"
+          "%d\n"
+          "%ld\n"
+          "%d\n"
+          "%d\n",
+          S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
+          S_NOITEM2(shop) ? S_NOITEM2(shop) : "%s Ke?!", S_NOBUY(shop) ? S_NOBUY(shop) : "%s Ke?!",
+          S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
+          S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!", S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
+          S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?", S_BROKE_TEMPER(shop), S_BITVECTOR(shop),
+          S_KEEPER(shop) == NOBODY ? -1 : mob_index[S_KEEPER(shop)].vnum, S_NOTRADE(shop));
 
       fputs(convert_from_tabs(buf), shop_file);
 
@@ -450,8 +445,8 @@ int save_shops(zone_rnum zone_num)
       fprintf(shop_file, "-1\n");
 
       /* Save open/closing times. */
-      fprintf(shop_file, "%d\n%d\n%d\n%d\n", S_OPEN1(shop), S_CLOSE1(shop),
-              S_OPEN2(shop), S_CLOSE2(shop));
+      fprintf(shop_file, "%d\n%d\n%d\n%d\n", S_OPEN1(shop), S_CLOSE1(shop), S_OPEN2(shop),
+              S_CLOSE2(shop));
       num_shops++;
     }
   }

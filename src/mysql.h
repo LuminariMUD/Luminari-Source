@@ -1,5 +1,5 @@
 /********************************************************************
- * Name:   mysql.h 
+ * Name:   mysql.h
  * Author: Ornir (James McLaughlin)
  *
  * MySQL Header file for Luminari MUD.
@@ -13,51 +13,54 @@
 #include <time.h>
 
 /* Connection Pool Configuration */
-#define MYSQL_POOL_MIN_SIZE 3      /* Minimum connections in pool */
-#define MYSQL_POOL_MAX_SIZE 10     /* Maximum connections in pool */
-#define MYSQL_POOL_TIMEOUT 30      /* Seconds before idle connection closes */
-#define MYSQL_HEALTH_CHECK_INTERVAL 60  /* Seconds between health checks */
+#define MYSQL_POOL_MIN_SIZE 3          /* Minimum connections in pool */
+#define MYSQL_POOL_MAX_SIZE 10         /* Maximum connections in pool */
+#define MYSQL_POOL_TIMEOUT 30          /* Seconds before idle connection closes */
+#define MYSQL_HEALTH_CHECK_INTERVAL 60 /* Seconds between health checks */
 
 /* Connection states for pool management */
-enum mysql_conn_state {
-  CONN_STATE_FREE = 0,      /* Connection available for use */
-  CONN_STATE_IN_USE,        /* Connection currently in use */
-  CONN_STATE_STALE,         /* Connection needs refresh */
-  CONN_STATE_ERROR          /* Connection has error */
+enum mysql_conn_state
+{
+  CONN_STATE_FREE = 0, /* Connection available for use */
+  CONN_STATE_IN_USE,   /* Connection currently in use */
+  CONN_STATE_STALE,    /* Connection needs refresh */
+  CONN_STATE_ERROR     /* Connection has error */
 };
 
 /* MySQL Connection Pool Entry */
-typedef struct mysql_pool_conn {
-  MYSQL *conn;                      /* MySQL connection handle */
-  enum mysql_conn_state state;      /* Current state of connection */
-  time_t last_used;                 /* Last time connection was used */
-  time_t created;                   /* When connection was created */
-  pthread_mutex_t mutex;             /* Per-connection mutex */
-  int id;                           /* Connection ID for debugging */
-  unsigned long thread_id;          /* MySQL thread ID */
-  struct mysql_pool_conn *next;     /* Next in linked list */
+typedef struct mysql_pool_conn
+{
+  MYSQL *conn;                  /* MySQL connection handle */
+  enum mysql_conn_state state;  /* Current state of connection */
+  time_t last_used;             /* Last time connection was used */
+  time_t created;               /* When connection was created */
+  pthread_mutex_t mutex;        /* Per-connection mutex */
+  int id;                       /* Connection ID for debugging */
+  unsigned long thread_id;      /* MySQL thread ID */
+  struct mysql_pool_conn *next; /* Next in linked list */
 } MYSQL_POOL_CONN;
 
 /* MySQL Connection Pool Manager */
-typedef struct mysql_pool {
-  MYSQL_POOL_CONN *connections;     /* Linked list of connections */
-  int current_size;                 /* Current number of connections */
-  int active_count;                 /* Number of connections in use */
-  pthread_mutex_t pool_mutex;       /* Mutex for pool operations */
-  pthread_cond_t pool_cond;         /* Condition variable for waiting */
-  bool initialized;                 /* Pool initialization status */
-  
+typedef struct mysql_pool
+{
+  MYSQL_POOL_CONN *connections; /* Linked list of connections */
+  int current_size;             /* Current number of connections */
+  int active_count;             /* Number of connections in use */
+  pthread_mutex_t pool_mutex;   /* Mutex for pool operations */
+  pthread_cond_t pool_cond;     /* Condition variable for waiting */
+  bool initialized;             /* Pool initialization status */
+
   /* Configuration loaded from mysql_config */
   char host[128];
   char database[128];
   char username[128];
   char password[128];
-  
+
   /* Statistics for monitoring */
-  unsigned long total_requests;     /* Total connection requests */
-  unsigned long wait_count;         /* Times had to wait for connection */
-  unsigned long error_count;        /* Connection errors */
-  time_t last_health_check;        /* Last health check time */
+  unsigned long total_requests; /* Total connection requests */
+  unsigned long wait_count;     /* Times had to wait for connection */
+  unsigned long error_count;    /* Connection errors */
+  time_t last_health_check;     /* Last health check time */
 } MYSQL_POOL;
 
 /* Global connection pool */
@@ -75,7 +78,7 @@ extern pthread_mutex_t mysql_mutex2;
 extern pthread_mutex_t mysql_mutex3;
 
 /* Macros for safe MySQL operations */
-#define MYSQL_LOCK(mutex)   pthread_mutex_lock(&(mutex))
+#define MYSQL_LOCK(mutex) pthread_mutex_lock(&(mutex))
 #define MYSQL_UNLOCK(mutex) pthread_mutex_unlock(&(mutex))
 
 /* Connection Pool Management Functions */
@@ -102,7 +105,7 @@ char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str);
 /* Prepared Statement Support for Enhanced Security */
 /* These functions provide a secure way to execute parameterized SQL queries,
  * completely preventing SQL injection attacks by separating SQL logic from data.
- * 
+ *
  * Usage pattern:
  *   1. Create statement: mysql_stmt_create()
  *   2. Prepare query: mysql_stmt_prepare_query()
@@ -113,14 +116,15 @@ char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str);
  */
 
 /* Prepared statement wrapper structure */
-typedef struct prepared_stmt {
-  MYSQL_STMT *stmt;           /* MySQL statement handle */
-  MYSQL_BIND *params;         /* Parameter bindings */
-  MYSQL_BIND *results;        /* Result bindings */
-  int param_count;            /* Number of parameters */
-  int result_count;           /* Number of result columns */
-  MYSQL_RES *metadata;        /* Result metadata */
-  MYSQL *connection;          /* Associated connection */
+typedef struct prepared_stmt
+{
+  MYSQL_STMT *stmt;    /* MySQL statement handle */
+  MYSQL_BIND *params;  /* Parameter bindings */
+  MYSQL_BIND *results; /* Result bindings */
+  int param_count;     /* Number of parameters */
+  int result_count;    /* Number of result columns */
+  MYSQL_RES *metadata; /* Result metadata */
+  MYSQL *connection;   /* Associated connection */
 } PREPARED_STMT;
 
 /* Create and initialize a prepared statement */
@@ -159,16 +163,20 @@ void test_direct_query(const char *query);
  */
 
 /* Error handling macros */
-#define MYSQL_ERROR_CRITICAL(conn, msg) do { \
-  log("SYSERR: %s: %s", msg, mysql_error(conn)); \
-  exit(1); \
-} while(0)
+#define MYSQL_ERROR_CRITICAL(conn, msg)                                                            \
+  do                                                                                               \
+  {                                                                                                \
+    log("SYSERR: %s: %s", msg, mysql_error(conn));                                                 \
+    exit(1);                                                                                       \
+  } while (0)
 
-#define MYSQL_ERROR_RUNTIME(conn, msg) do { \
-  log("SYSERR: %s: %s", msg, mysql_error(conn)); \
-} while(0)
+#define MYSQL_ERROR_RUNTIME(conn, msg)                                                             \
+  do                                                                                               \
+  {                                                                                                \
+    log("SYSERR: %s: %s", msg, mysql_error(conn));                                                 \
+  } while (0)
 
-void connect_to_mysql();     /* Legacy - initializes pool now */
+void connect_to_mysql();      /* Legacy - initializes pool now */
 void disconnect_from_mysql(); /* Legacy - destroys pool now */
 void disconnect_from_mysql2();
 void disconnect_from_mysql3();

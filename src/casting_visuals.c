@@ -37,69 +37,63 @@
  */
 static const char *school_start_msgs[NUM_SCHOOLS][NUM_CAST_TARGET_TYPES] = {
     /* NOSCHOOL (0) - generic fallback messages */
-    {
-        "\tn$n \tcweaves $s hands in an \tmintricate\tc pattern and begins to chant the words, '\tC%s\tc'.\tn",
-        "\tn$n \tcweaves $s hands in an \tmintricate\tc pattern and begins to chant the words, '\tC%s\tc' at \tn$N\tc.\tn",
-        "\tn$n \tcstares at $p and begins chanting the words, '\tC%s\tc'.\tn",
-        "\tn$n \tcbegins chanting the words, '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tcweaves $s hands in an \tmintricate\tc pattern and begins to chant the words, "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcweaves $s hands in an \tmintricate\tc pattern and begins to chant the words, "
+     "'\tC%s\tc' at \tn$N\tc.\tn",
+     "\tn$n \tcstares at $p and begins chanting the words, '\tC%s\tc'.\tn",
+     "\tn$n \tcbegins chanting the words, '\tC%s\tc'.\tn"},
     /* ABJURATION (1) - protective/warding magic */
-    {
-        "\tn$n \tcdraws $s hands together as a \twprotective shimmer\tc emanates outward, chanting '\tC%s\tc'.\tn",
-        "\tn$n \tcextends $s palm toward \tn$N\tc, a \twprotective ward\tc forming as $e chants '\tC%s\tc'.\tn",
-        "\tn$n \tctraces \twgleaming runes\tc in the air above $p, chanting '\tC%s\tc'.\tn",
-        "\tn$n \tcraises $s hands as \twprotective energy\tc gathers around $m, chanting '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tcdraws $s hands together as a \twprotective shimmer\tc emanates outward, chanting "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcextends $s palm toward \tn$N\tc, a \twprotective ward\tc forming as $e chants "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tctraces \twgleaming runes\tc in the air above $p, chanting '\tC%s\tc'.\tn",
+     "\tn$n \tcraises $s hands as \twprotective energy\tc gathers around $m, chanting "
+     "'\tC%s\tc'.\tn"},
     /* CONJURATION (2) - summoning, teleportation, creation */
-    {
-        "\tn$n \tcgestures as a \tpfaint rift\tc in reality shimmers around $m, intoning '\tC%s\tc'.\tn",
-        "\tn$n \tcweaves $s hands toward \tn$N\tc as \tpspace itself warps\tc, intoning '\tC%s\tc'.\tn",
-        "\tn$n \tcfocuses on $p as \tpextraplanar energy\tc gathers, intoning '\tC%s\tc'.\tn",
-        "\tn$n \tcbegins to tear at the \tpfabric of reality\tc, intoning '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tcgestures as a \tpfaint rift\tc in reality shimmers around $m, intoning "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcweaves $s hands toward \tn$N\tc as \tpspace itself warps\tc, intoning "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcfocuses on $p as \tpextraplanar energy\tc gathers, intoning '\tC%s\tc'.\tn",
+     "\tn$n \tcbegins to tear at the \tpfabric of reality\tc, intoning '\tC%s\tc'.\tn"},
     /* DIVINATION (3) - knowledge, foresight, detection */
-    {
-        "\tn$n \tc's eyes begin to \tYglow with inner light\tc as $e softly speaks '\tC%s\tc'.\tn",
-        "\tn$n \tcfixes \tn$N\tc with a \tYpiercing gaze\tc, whispering '\tC%s\tc'.\tn",
-        "\tn$n \tcstuddies $p intently as $s eyes \tYflare with insight\tc, murmuring '\tC%s\tc'.\tn",
-        "\tn$n \tccloses $s eyes as \tYvisions swirl\tc behind $s lids, intoning '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tc's eyes begin to \tYglow with inner light\tc as $e softly speaks '\tC%s\tc'.\tn",
+     "\tn$n \tcfixes \tn$N\tc with a \tYpiercing gaze\tc, whispering '\tC%s\tc'.\tn",
+     "\tn$n \tcstuddies $p intently as $s eyes \tYflare with insight\tc, murmuring '\tC%s\tc'.\tn",
+     "\tn$n \tccloses $s eyes as \tYvisions swirl\tc behind $s lids, intoning '\tC%s\tc'.\tn"},
     /* ENCHANTMENT (4) - mind-affecting, charm, compulsion */
-    {
-        "\tn$n \tcbegins a \tMhypnotic cadence\tc, $s voice weaving the words '\tC%s\tc'.\tn",
-        "\tn$n \tcfixes \tn$N\tc with a \tMmesmerizing stare\tc, speaking in dulcet tones '\tC%s\tc'.\tn",
-        "\tn$n \tctraces \tMalluring patterns\tc over $p, speaking softly '\tC%s\tc'.\tn",
-        "\tn$n \tcfills the air with \tMcompelling whispers\tc, speaking '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tcbegins a \tMhypnotic cadence\tc, $s voice weaving the words '\tC%s\tc'.\tn",
+     "\tn$n \tcfixes \tn$N\tc with a \tMmesmerizing stare\tc, speaking in dulcet tones "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tctraces \tMalluring patterns\tc over $p, speaking softly '\tC%s\tc'.\tn",
+     "\tn$n \tcfills the air with \tMcompelling whispers\tc, speaking '\tC%s\tc'.\tn"},
     /* EVOCATION (5) - raw energy, damage spells */
-    {
-        "\tn$n \tc's fingertips \tRcrackle with raw energy\tc as $e begins to chant '\tC%s\tc'.\tn",
-        "\tn$n \tcthrusts $s hands toward \tn$N\tc as \tRenergy arcs between $s fingers\tc, shouting '\tC%s\tc'.\tn",
-        "\tn$n \tcfocuses \tRcrackling power\tc around $p, commanding '\tC%s\tc'.\tn",
-        "\tn$n \tcraises $s hands as \tRarcane energy swirls\tc around $m, shouting '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tc's fingertips \tRcrackle with raw energy\tc as $e begins to chant '\tC%s\tc'.\tn",
+     "\tn$n \tcthrusts $s hands toward \tn$N\tc as \tRenergy arcs between $s fingers\tc, shouting "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcfocuses \tRcrackling power\tc around $p, commanding '\tC%s\tc'.\tn",
+     "\tn$n \tcraises $s hands as \tRarcane energy swirls\tc around $m, shouting '\tC%s\tc'.\tn"},
     /* ILLUSION (6) - deception, phantasms, glamers */
-    {
-        "\tn$n \tcgestures as the air around $m \tbshimmers with impossible colors\tc, whispering '\tC%s\tc'.\tn",
-        "\tn$n \tcweaves $s fingers toward \tn$N\tc as \tbreality seems to blur\tc, murmuring '\tC%s\tc'.\tn",
-        "\tn$n \tctouches $p as \tbillusory light dances\tc across its surface, whispering '\tC%s\tc'.\tn",
-        "\tn$n \tcbegins to weave \tbdeceptive patterns\tc in the air, murmuring '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tcgestures as the air around $m \tbshimmers with impossible colors\tc, whispering "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcweaves $s fingers toward \tn$N\tc as \tbreality seems to blur\tc, murmuring "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tctouches $p as \tbillusory light dances\tc across its surface, whispering "
+     "'\tC%s\tc'.\tn",
+     "\tn$n \tcbegins to weave \tbdeceptive patterns\tc in the air, murmuring '\tC%s\tc'.\tn"},
     /* NECROMANCY (7) - death, undeath, life force */
-    {
-        "\tn$n \tc's features \tDdarken as shadows deepen\tc around $m, speaking '\tC%s\tc'.\tn",
-        "\tn$n \tcfixes \tn$N\tc with a \tDdeathly cold stare\tc, intoning darkly '\tC%s\tc'.\tn",
-        "\tn$n \tcruns a hand over $p as \tDshadows coil\tc around it, speaking '\tC%s\tc'.\tn",
-        "\tn$n \tcdraws upon \tDdark energies\tc, the shadows around $m deepening as $e speaks '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tc's features \tDdarken as shadows deepen\tc around $m, speaking '\tC%s\tc'.\tn",
+     "\tn$n \tcfixes \tn$N\tc with a \tDdeathly cold stare\tc, intoning darkly '\tC%s\tc'.\tn",
+     "\tn$n \tcruns a hand over $p as \tDshadows coil\tc around it, speaking '\tC%s\tc'.\tn",
+     "\tn$n \tcdraws upon \tDdark energies\tc, the shadows around $m deepening as $e speaks "
+     "'\tC%s\tc'.\tn"},
     /* TRANSMUTATION (8) - physical transformation, enhancement */
-    {
-        "\tn$n \tcgestures as \tGmatter itself ripples\tc around $m, speaking '\tC%s\tc'.\tn",
-        "\tn$n \tcreaches toward \tn$N\tc as the \tGair warps and bends\tc, intoning '\tC%s\tc'.\tn",
-        "\tn$n \tctouches $p as its \tGform begins to shimmer\tc, speaking '\tC%s\tc'.\tn",
-        "\tn$n \tcbegins to \tGreshape reality\tc with $s words, chanting '\tC%s\tc'.\tn"
-    }
-};
+    {"\tn$n \tcgestures as \tGmatter itself ripples\tc around $m, speaking '\tC%s\tc'.\tn",
+     "\tn$n \tcreaches toward \tn$N\tc as the \tGair warps and bends\tc, intoning '\tC%s\tc'.\tn",
+     "\tn$n \tctouches $p as its \tGform begins to shimmer\tc, speaking '\tC%s\tc'.\tn",
+     "\tn$n \tcbegins to \tGreshape reality\tc with $s words, chanting '\tC%s\tc'.\tn"}};
 
 /*
  * School-specific completion messages.
@@ -115,69 +109,51 @@ static const char *school_start_msgs[NUM_SCHOOLS][NUM_CAST_TARGET_TYPES] = {
  */
 static const char *school_complete_msgs[NUM_SCHOOLS][NUM_CAST_TARGET_TYPES] = {
     /* NOSCHOOL (0) - generic fallback messages */
-    {
-        "\tn$n \tccloses $s eyes and utters the words, '\tC%s\tc'.\tn",
-        "\tn$n \tcstares at \tn$N\tc and utters the words, '\tC%s\tc'.\tn",
-        "\tn$n \tcstares at $p and utters the words, '\tC%s\tc'.\tn",
-        "\tn$n \tcutters the words, '\tC%s\tc'.\tn"
-    },
+    {"\tn$n \tccloses $s eyes and utters the words, '\tC%s\tc'.\tn",
+     "\tn$n \tcstares at \tn$N\tc and utters the words, '\tC%s\tc'.\tn",
+     "\tn$n \tcstares at $p and utters the words, '\tC%s\tc'.\tn",
+     "\tn$n \tcutters the words, '\tC%s\tc'.\tn"},
     /* ABJURATION (1) - protective/warding magic */
-    {
-        "\tn$n \tcfinishes the incantation '\tC%s\tc' as a \twprotective barrier\tc forms around $m.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' and a \twshimmering ward\tc envelops \tn$N\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and $p \twglows with protective runes\tc.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' as \twprotective magic\tc radiates outward.\tn"
-    },
+    {"\tn$n \tcfinishes the incantation '\tC%s\tc' as a \twprotective barrier\tc forms around "
+     "$m.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' and a \twshimmering ward\tc envelops \tn$N\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and $p \twglows with protective runes\tc.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' as \twprotective magic\tc radiates outward.\tn"},
     /* CONJURATION (2) - summoning, teleportation, creation */
-    {
-        "\tn$n \tccompletes '\tC%s\tc' as \tpextraplanar energy\tc coalesces around $m.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' and \tpreality bends\tc around \tn$N\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' as \tpa rift in space\tc touches $p.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' and the \tpfabric of reality\tc shifts.\tn"
-    },
+    {"\tn$n \tccompletes '\tC%s\tc' as \tpextraplanar energy\tc coalesces around $m.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' and \tpreality bends\tc around \tn$N\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' as \tpa rift in space\tc touches $p.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' and the \tpfabric of reality\tc shifts.\tn"},
     /* DIVINATION (3) - knowledge, foresight, detection */
-    {
-        "\tn$n \tcfinishes '\tC%s\tc', $s eyes \tYflaring with sudden knowledge\tc.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' and \tYknowledge flows\tc between $m and \tn$N\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and $p's \tYsecrets are revealed\tc.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' as \tYclarity washes\tc over $m.\tn"
-    },
+    {"\tn$n \tcfinishes '\tC%s\tc', $s eyes \tYflaring with sudden knowledge\tc.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' and \tYknowledge flows\tc between $m and \tn$N\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and $p's \tYsecrets are revealed\tc.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' as \tYclarity washes\tc over $m.\tn"},
     /* ENCHANTMENT (4) - mind-affecting, charm, compulsion */
-    {
-        "\tn$n \tccompletes '\tC%s\tc' as a \tMsubtle presence\tc touches $s mind.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' and \tn$N\tc's eyes \tMglaze momentarily\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and $p \tMpulses with enchantment\tc.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' as \tMenchanting power\tc ripples outward.\tn"
-    },
+    {"\tn$n \tccompletes '\tC%s\tc' as a \tMsubtle presence\tc touches $s mind.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' and \tn$N\tc's eyes \tMglaze momentarily\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and $p \tMpulses with enchantment\tc.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' as \tMenchanting power\tc ripples outward.\tn"},
     /* EVOCATION (5) - raw energy, damage spells */
-    {
-        "\tn$n \tccompletes '\tC%s\tc' and \tRraw energy surges\tc through $m!\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' and \tRpower erupts\tc toward \tn$N\tc!\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and \tRenergy crackles\tc across $p!\tn",
-        "\tn$n \tccompletes '\tC%s\tc' and \tRarcane power explodes\tc outward!\tn"
-    },
+    {"\tn$n \tccompletes '\tC%s\tc' and \tRraw energy surges\tc through $m!\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' and \tRpower erupts\tc toward \tn$N\tc!\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and \tRenergy crackles\tc across $p!\tn",
+     "\tn$n \tccompletes '\tC%s\tc' and \tRarcane power explodes\tc outward!\tn"},
     /* ILLUSION (6) - deception, phantasms, glamers */
-    {
-        "\tn$n \tcfinishes '\tC%s\tc' as \tbreality shifts\tc around $m.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' and \tn$N\tc's \tbsenses swim\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and $p \tbshimmers deceptively\tc.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' as \tbillusion takes form\tc.\tn"
-    },
+    {"\tn$n \tcfinishes '\tC%s\tc' as \tbreality shifts\tc around $m.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' and \tn$N\tc's \tbsenses swim\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and $p \tbshimmers deceptively\tc.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' as \tbillusion takes form\tc.\tn"},
     /* NECROMANCY (7) - death, undeath, life force */
-    {
-        "\tn$n \tccompletes '\tC%s\tc' as \tDdeath's cold touch\tc embraces $m.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' and \tDnecrotic energy\tc flows into \tn$N\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and $p is \tDtouched by darkness\tc.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' as \tDthe shadow of death\tc spreads.\tn"
-    },
+    {"\tn$n \tccompletes '\tC%s\tc' as \tDdeath's cold touch\tc embraces $m.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' and \tDnecrotic energy\tc flows into \tn$N\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and $p is \tDtouched by darkness\tc.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' as \tDthe shadow of death\tc spreads.\tn"},
     /* TRANSMUTATION (8) - physical transformation, enhancement */
-    {
-        "\tn$n \tcfinishes '\tC%s\tc' as $s \tGform shimmers with change\tc.\tn",
-        "\tn$n \tccompletes '\tC%s\tc' and \tn$N\tc's \tGbody begins to transform\tc.\tn",
-        "\tn$n \tcspeaks '\tC%s\tc' and $p \tGwarps and shifts\tc.\tn",
-        "\tn$n \tcfinishes '\tC%s\tc' as \tGtransmutation takes hold\tc.\tn"
-    }
-};
+    {"\tn$n \tcfinishes '\tC%s\tc' as $s \tGform shimmers with change\tc.\tn",
+     "\tn$n \tccompletes '\tC%s\tc' and \tn$N\tc's \tGbody begins to transform\tc.\tn",
+     "\tn$n \tcspeaks '\tC%s\tc' and $p \tGwarps and shifts\tc.\tn",
+     "\tn$n \tcfinishes '\tC%s\tc' as \tGtransmutation takes hold\tc.\tn"}};
 
 /*
  * ==========================================================================
@@ -195,78 +171,58 @@ static const char *school_complete_msgs[NUM_SCHOOLS][NUM_CAST_TARGET_TYPES] = {
  */
 static const char *school_progress_caster[NUM_SCHOOLS][CAST_PROGRESS_STAGES] = {
     /* NOSCHOOL (0) - generic magical */
-    {
-        "\tcArcane energy begins to \tCgather\tc around you...\tn",
-        "\tcThe magical power \tCbuilds\tc within your grasp...\tn",
-        "\tcMagical forces \tCintensify\tc, responding to your will...\tn",
-        "\tcThe spell \tCstrains\tc against your control!\tn",
-        "\tc\tCPower surges\tc to its peak!\tn"
-    },
+    {"\tcArcane energy begins to \tCgather\tc around you...\tn",
+     "\tcThe magical power \tCbuilds\tc within your grasp...\tn",
+     "\tcMagical forces \tCintensify\tc, responding to your will...\tn",
+     "\tcThe spell \tCstrains\tc against your control!\tn",
+     "\tc\tCPower surges\tc to its peak!\tn"},
     /* ABJURATION (1) - protective/warding */
-    {
-        "\tcA faint \tWprotective shimmer\tc begins to form...\tn",
-        "\tc\tWWards\tc coalesce around you, strengthening...\tn",
-        "\tcThe \tWbarrier\tc thickens, growing more solid...\tn",
-        "\tc\tWProtective energies\tc strain at the boundaries!\tn",
-        "\tcThe \tWward\tc crystallizes to full strength!\tn"
-    },
+    {"\tcA faint \tWprotective shimmer\tc begins to form...\tn",
+     "\tc\tWWards\tc coalesce around you, strengthening...\tn",
+     "\tcThe \tWbarrier\tc thickens, growing more solid...\tn",
+     "\tc\tWProtective energies\tc strain at the boundaries!\tn",
+     "\tcThe \tWward\tc crystallizes to full strength!\tn"},
     /* CONJURATION (2) - summoning, teleportation */
-    {
-        "\tcA faint \tprift\tc begins to form in reality...\tn",
-        "\tcThe \tptear in space\tc widens, revealing glimpses beyond...\tn",
-        "\tc\tpExtraplanar energy\tc pours through the opening...\tn",
-        "\tcReality \tpbends\tc dangerously around you!\tn",
-        "\tcThe \tpplanar connection\tc stabilizes!\tn"
-    },
+    {"\tcA faint \tprift\tc begins to form in reality...\tn",
+     "\tcThe \tptear in space\tc widens, revealing glimpses beyond...\tn",
+     "\tc\tpExtraplanar energy\tc pours through the opening...\tn",
+     "\tcReality \tpbends\tc dangerously around you!\tn",
+     "\tcThe \tpplanar connection\tc stabilizes!\tn"},
     /* DIVINATION (3) - knowledge, foresight */
-    {
-        "\tcA \tYflicker of insight\tc touches your mind...\tn",
-        "\tc\tYVisions\tc begin to form at the edge of awareness...\tn",
-        "\tcKnowledge \tYflows\tc into your consciousness...\tn",
-        "\tcThe \tYveils of mystery\tc grow thin!\tn",
-        "\tc\tYClarity\tc washes over you!\tn"
-    },
+    {"\tcA \tYflicker of insight\tc touches your mind...\tn",
+     "\tc\tYVisions\tc begin to form at the edge of awareness...\tn",
+     "\tcKnowledge \tYflows\tc into your consciousness...\tn",
+     "\tcThe \tYveils of mystery\tc grow thin!\tn", "\tc\tYClarity\tc washes over you!\tn"},
     /* ENCHANTMENT (4) - mind-affecting */
-    {
-        "\tcA \tMsubtle presence\tc stirs in your mind...\tn",
-        "\tc\tMMesmerizing patterns\tc weave through your thoughts...\tn",
-        "\tcThe \tMenchantment\tc grows stronger, more compelling...\tn",
-        "\tc\tMIrresistible influence\tc builds to a crescendo!\tn",
-        "\tcThe \tMenchantment\tc reaches full potency!\tn"
-    },
+    {"\tcA \tMsubtle presence\tc stirs in your mind...\tn",
+     "\tc\tMMesmerizing patterns\tc weave through your thoughts...\tn",
+     "\tcThe \tMenchantment\tc grows stronger, more compelling...\tn",
+     "\tc\tMIrresistible influence\tc builds to a crescendo!\tn",
+     "\tcThe \tMenchantment\tc reaches full potency!\tn"},
     /* EVOCATION (5) - raw energy, damage */
-    {
-        "\tc\tRSparks\tc of raw energy gather at your fingertips...\tn",
-        "\tcThe \tRenergy\tc crackles and grows, barely contained...\tn",
-        "\tc\tRPower surges\tc through you, building to dangerous levels...\tn",
-        "\tcThe \tRarcane force\tc strains against your control!\tn",
-        "\tc\tRDestructive power\tc reaches its apex!\tn"
-    },
+    {"\tc\tRSparks\tc of raw energy gather at your fingertips...\tn",
+     "\tcThe \tRenergy\tc crackles and grows, barely contained...\tn",
+     "\tc\tRPower surges\tc through you, building to dangerous levels...\tn",
+     "\tcThe \tRarcane force\tc strains against your control!\tn",
+     "\tc\tRDestructive power\tc reaches its apex!\tn"},
     /* ILLUSION (6) - deception, phantasms */
-    {
-        "\tcReality \tBshimmers\tc as illusions begin to form...\tn",
-        "\tc\tBPhantasmal images\tc flicker at the edge of perception...\tn",
-        "\tcThe \tBillusion\tc grows more vivid, more believable...\tn",
-        "\tc\tBDeceptive magic\tc threatens to overwhelm the senses!\tn",
-        "\tcThe \tBillusion\tc solidifies into seeming reality!\tn"
-    },
+    {"\tcReality \tBshimmers\tc as illusions begin to form...\tn",
+     "\tc\tBPhantasmal images\tc flicker at the edge of perception...\tn",
+     "\tcThe \tBillusion\tc grows more vivid, more believable...\tn",
+     "\tc\tBDeceptive magic\tc threatens to overwhelm the senses!\tn",
+     "\tcThe \tBillusion\tc solidifies into seeming reality!\tn"},
     /* NECROMANCY (7) - death, undeath */
-    {
-        "\tc\tDShadows\tc begin to deepen around you...\tn",
-        "\tcThe \tDchill of death\tc seeps into your bones...\tn",
-        "\tc\tDNecrotic energy\tc pulses through your veins...\tn",
-        "\tcThe \tDveil between worlds\tc grows terrifyingly thin!\tn",
-        "\tc\tDDeath's power\tc is yours to command!\tn"
-    },
+    {"\tc\tDShadows\tc begin to deepen around you...\tn",
+     "\tcThe \tDchill of death\tc seeps into your bones...\tn",
+     "\tc\tDNecrotic energy\tc pulses through your veins...\tn",
+     "\tcThe \tDveil between worlds\tc grows terrifyingly thin!\tn",
+     "\tc\tDDeath's power\tc is yours to command!\tn"},
     /* TRANSMUTATION (8) - physical transformation */
-    {
-        "\tcMatter \tGshimmers\tc, becoming malleable...\tn",
-        "\tcThe \tGfabric of reality\tc begins to shift...\tn",
-        "\tc\tGTransformative energy\tc courses through you...\tn",
-        "\tcPhysical laws \tGbend\tc to your will!\tn",
-        "\tcThe \tGtransmutation\tc reaches completion!\tn"
-    }
-};
+    {"\tcMatter \tGshimmers\tc, becoming malleable...\tn",
+     "\tcThe \tGfabric of reality\tc begins to shift...\tn",
+     "\tc\tGTransformative energy\tc courses through you...\tn",
+     "\tcPhysical laws \tGbend\tc to your will!\tn",
+     "\tcThe \tGtransmutation\tc reaches completion!\tn"}};
 
 /*
  * Progress messages shown to OBSERVERS in the room during multi-round casting.
@@ -279,78 +235,58 @@ static const char *school_progress_caster[NUM_SCHOOLS][CAST_PROGRESS_STAGES] = {
  */
 static const char *school_progress_observer[NUM_SCHOOLS][CAST_PROGRESS_STAGES] = {
     /* NOSCHOOL (0) - generic magical */
-    {
-        "\tc\tCFaint energy\tc gathers around $n...\tn",
-        "\tcThe air around $n \tCshimmers\tc with growing power...\tn",
-        "\tc\tCMagical forces\tc swirl visibly around $n...\tn",
-        "\tcThe magic around $n \tCcrackles\tc with intensity!\tn",
-        "\tc$n's spell \tCreaches\tc its peak!\tn"
-    },
+    {"\tc\tCFaint energy\tc gathers around $n...\tn",
+     "\tcThe air around $n \tCshimmers\tc with growing power...\tn",
+     "\tc\tCMagical forces\tc swirl visibly around $n...\tn",
+     "\tcThe magic around $n \tCcrackles\tc with intensity!\tn",
+     "\tc$n's spell \tCreaches\tc its peak!\tn"},
     /* ABJURATION (1) - protective/warding */
-    {
-        "\tcA faint \tWglow\tc surrounds $n...\tn",
-        "\tc\tWProtective runes\tc shimmer around $n...\tn",
-        "\tcA \tWbarrier\tc of light strengthens around $n...\tn",
-        "\tc\tWWards\tc flare brilliantly around $n!\tn",
-        "\tc$n's \tWprotective magic\tc solidifies!\tn"
-    },
+    {"\tcA faint \tWglow\tc surrounds $n...\tn",
+     "\tc\tWProtective runes\tc shimmer around $n...\tn",
+     "\tcA \tWbarrier\tc of light strengthens around $n...\tn",
+     "\tc\tWWards\tc flare brilliantly around $n!\tn",
+     "\tc$n's \tWprotective magic\tc solidifies!\tn"},
     /* CONJURATION (2) - summoning, teleportation */
-    {
-        "\tcThe air around $n \tpripples\tc strangely...\tn",
-        "\tcA faint \tprift\tc begins to form near $n...\tn",
-        "\tc\tpExtraplanar energy\tc swirls around $n...\tn",
-        "\tcReality \tpdistorts\tc visibly around $n!\tn",
-        "\tcThe \tprift\tc around $n stabilizes!\tn"
-    },
+    {"\tcThe air around $n \tpripples\tc strangely...\tn",
+     "\tcA faint \tprift\tc begins to form near $n...\tn",
+     "\tc\tpExtraplanar energy\tc swirls around $n...\tn",
+     "\tcReality \tpdistorts\tc visibly around $n!\tn",
+     "\tcThe \tprift\tc around $n stabilizes!\tn"},
     /* DIVINATION (3) - knowledge, foresight */
-    {
-        "\tc$n's eyes begin to \tYflicker\tc with inner light...\tn",
-        "\tcA \tYgolden aura\tc forms around $n's head...\tn",
-        "\tc$n's gaze becomes \tYdistant\tc and unfocused...\tn",
-        "\tc\tYLight\tc pulses behind $n's eyes!\tn",
-        "\tc$n's eyes \tYblaze\tc with sudden knowledge!\tn"
-    },
+    {"\tc$n's eyes begin to \tYflicker\tc with inner light...\tn",
+     "\tcA \tYgolden aura\tc forms around $n's head...\tn",
+     "\tc$n's gaze becomes \tYdistant\tc and unfocused...\tn",
+     "\tc\tYLight\tc pulses behind $n's eyes!\tn",
+     "\tc$n's eyes \tYblaze\tc with sudden knowledge!\tn"},
     /* ENCHANTMENT (4) - mind-affecting */
-    {
-        "\tcA \tMhypnotic quality\tc enters $n's voice...\tn",
-        "\tc\tMMesmerizing patterns\tc form in the air around $n...\tn",
-        "\tcThe air grows \tMheavy\tc with enchantment around $n...\tn",
-        "\tc\tMCompelling power\tc radiates from $n!\tn",
-        "\tc$n's \tMenchantment\tc reaches full potency!\tn"
-    },
+    {"\tcA \tMhypnotic quality\tc enters $n's voice...\tn",
+     "\tc\tMMesmerizing patterns\tc form in the air around $n...\tn",
+     "\tcThe air grows \tMheavy\tc with enchantment around $n...\tn",
+     "\tc\tMCompelling power\tc radiates from $n!\tn",
+     "\tc$n's \tMenchantment\tc reaches full potency!\tn"},
     /* EVOCATION (5) - raw energy, damage */
-    {
-        "\tc\tRSparks\tc begin to dance around $n...\tn",
-        "\tcRaw \tRenergy\tc crackles visibly around $n...\tn",
-        "\tcThe air around $n \tRhums\tc with building power...\tn",
-        "\tc\tRArcs of energy\tc lash out from $n!\tn",
-        "\tc$n's spell \tRreaches\tc devastating intensity!\tn"
-    },
+    {"\tc\tRSparks\tc begin to dance around $n...\tn",
+     "\tcRaw \tRenergy\tc crackles visibly around $n...\tn",
+     "\tcThe air around $n \tRhums\tc with building power...\tn",
+     "\tc\tRArcs of energy\tc lash out from $n!\tn",
+     "\tc$n's spell \tRreaches\tc devastating intensity!\tn"},
     /* ILLUSION (6) - deception, phantasms */
-    {
-        "\tcThe air around $n \tBshimmers\tc oddly...\tn",
-        "\tcFaint \tBimages\tc flicker around $n...\tn",
-        "\tcReality seems to \tBblur\tc near $n...\tn",
-        "\tc\tBPhantasmal shapes\tc swirl around $n!\tn",
-        "\tc$n's \tBillusions\tc take solid form!\tn"
-    },
+    {"\tcThe air around $n \tBshimmers\tc oddly...\tn",
+     "\tcFaint \tBimages\tc flicker around $n...\tn",
+     "\tcReality seems to \tBblur\tc near $n...\tn",
+     "\tc\tBPhantasmal shapes\tc swirl around $n!\tn",
+     "\tc$n's \tBillusions\tc take solid form!\tn"},
     /* NECROMANCY (7) - death, undeath */
-    {
-        "\tc\tDShadows\tc deepen around $n...\tn",
-        "\tcA \tDchill\tc emanates from $n...\tn",
-        "\tc\tDDark tendrils\tc of energy coil around $n...\tn",
-        "\tcThe \tDstench of death\tc grows palpable around $n!\tn",
-        "\tc$n channels the \tDpower of death\tc itself!\tn"
-    },
+    {"\tc\tDShadows\tc deepen around $n...\tn", "\tcA \tDchill\tc emanates from $n...\tn",
+     "\tc\tDDark tendrils\tc of energy coil around $n...\tn",
+     "\tcThe \tDstench of death\tc grows palpable around $n!\tn",
+     "\tc$n channels the \tDpower of death\tc itself!\tn"},
     /* TRANSMUTATION (8) - physical transformation */
-    {
-        "\tcThe air around $n \tGwarps\tc subtly...\tn",
-        "\tcMatter near $n begins to \tGshift\tc...\tn",
-        "\tc\tGTransformative energy\tc radiates from $n...\tn",
-        "\tcPhysical reality \tGbends\tc around $n!\tn",
-        "\tc$n's \tGtransmutation\tc reaches completion!\tn"
-    }
-};
+    {"\tcThe air around $n \tGwarps\tc subtly...\tn",
+     "\tcMatter near $n begins to \tGshift\tc...\tn",
+     "\tc\tGTransformative energy\tc radiates from $n...\tn",
+     "\tcPhysical reality \tGbends\tc around $n!\tn",
+     "\tc$n's \tGtransmutation\tc reaches completion!\tn"}};
 
 /**
  * Gets the spell school index for array lookup.
@@ -464,8 +400,7 @@ const char *get_school_complete_msg(int school, int target_type)
  * @param tobj Target object (may be NULL).
  * @return One of CAST_TARGET_* constants.
  */
-int determine_cast_target_type(struct char_data *ch, struct char_data *tch,
-                               struct obj_data *tobj)
+int determine_cast_target_type(struct char_data *ch, struct char_data *tch, struct obj_data *tobj)
 {
   /* Safety check */
   if (ch == NULL)
@@ -741,8 +676,7 @@ static const char *class_casting_styles[NUM_CLASSES] = {
     NULL,
 
     /* CLASS_PLACEHOLDER_2 (37) */
-    NULL
-};
+    NULL};
 
 /*
  * School-specific flavor additions for class+school combinations.
@@ -770,8 +704,7 @@ static const char *school_flavor_additions[NUM_SCHOOLS] = {
     /* NECROMANCY (7) */
     "as shadows deepen",
     /* TRANSMUTATION (8) */
-    "as matter warps"
-};
+    "as matter warps"};
 
 /**
  * Gets the class-specific casting style description.
@@ -825,8 +758,8 @@ int has_class_casting_style(int class_num)
  * @param casting_class The class used for casting (CASTING_CLASS(ch)).
  * @return Pointer to static buffer with combined message, never NULL.
  */
-const char *build_class_start_msg(struct char_data *ch, int spellnum,
-                                  int target_type, int casting_class)
+const char *build_class_start_msg(struct char_data *ch, int spellnum, int target_type,
+                                  int casting_class)
 {
   static char msg_buf[MAX_STRING_LENGTH];
   const char *class_style = NULL;
@@ -866,28 +799,24 @@ const char *build_class_start_msg(struct char_data *ch, int spellnum,
   switch (target_type)
   {
   case CAST_TARGET_SELF:
-    snprintf(msg_buf, sizeof(msg_buf),
-             "%s %s, and begins to chant '\tC%%s\tc'.\tn",
-             class_style, school_flavor);
+    snprintf(msg_buf, sizeof(msg_buf), "%s %s, and begins to chant '\tC%%s\tc'.\tn", class_style,
+             school_flavor);
     break;
 
   case CAST_TARGET_CHAR:
-    snprintf(msg_buf, sizeof(msg_buf),
-             "%s %s toward \tn$N\tc, chanting '\tC%%s\tc'.\tn",
+    snprintf(msg_buf, sizeof(msg_buf), "%s %s toward \tn$N\tc, chanting '\tC%%s\tc'.\tn",
              class_style, school_flavor);
     break;
 
   case CAST_TARGET_OBJ:
-    snprintf(msg_buf, sizeof(msg_buf),
-             "%s %s around $p, chanting '\tC%%s\tc'.\tn",
-             class_style, school_flavor);
+    snprintf(msg_buf, sizeof(msg_buf), "%s %s around $p, chanting '\tC%%s\tc'.\tn", class_style,
+             school_flavor);
     break;
 
   case CAST_TARGET_NONE:
   default:
-    snprintf(msg_buf, sizeof(msg_buf),
-             "%s %s, chanting '\tC%%s\tc'.\tn",
-             class_style, school_flavor);
+    snprintf(msg_buf, sizeof(msg_buf), "%s %s, chanting '\tC%%s\tc'.\tn", class_style,
+             school_flavor);
     break;
   }
 
@@ -939,8 +868,7 @@ static const char *metamagic_visuals[NUM_METAMAGIC_VISUALS] = {
     "\tDperfectly motionless\tn, ",
 
     /* META_VIS_EXTEND (7) - spell with extended duration */
-    "\tpelongated magical threads\tn weave as "
-};
+    "\tpelongated magical threads\tn weave as "};
 
 /*
  * Short metamagic labels for progress display.
@@ -962,8 +890,7 @@ static const char *metamagic_progress_labels[NUM_METAMAGIC_VISUALS] = {
     /* META_VIS_STILL (6) */
     "\tD[STILL]\tn ",
     /* META_VIS_EXTEND (7) */
-    "\tp[EXTENDED]\tn "
-};
+    "\tp[EXTENDED]\tn "};
 
 /**
  * Gets the visual descriptor for a single metamagic type.
@@ -1064,8 +991,7 @@ const char *build_metamagic_prefix(int metamagic)
  * @param metamagic The metamagic bitfield.
  * @return Pointer to static buffer with progress description.
  */
-const char *build_metamagic_progress_desc(struct char_data *ch, int spellnum,
-                                          int metamagic)
+const char *build_metamagic_progress_desc(struct char_data *ch, int spellnum, int metamagic)
 {
   static char desc_buf[MAX_STRING_LENGTH];
   int i;
@@ -1124,30 +1050,18 @@ const char *build_metamagic_progress_desc(struct char_data *ch, int spellnum,
  */
 static const char *generic_env_reactions[NUM_ENV_INTENSITIES][ENV_MSG_VARIANTS] = {
     /* ENV_INTENSITY_NONE (0) - no effects */
-    {
-        NULL,
-        NULL,
-        NULL
-    },
+    {NULL, NULL, NULL},
     /* ENV_INTENSITY_SUBTLE (1) - minor effects for low-circle spells */
-    {
-        "\tcThe torches \tYflicker momentarily\tc.\tn",
-        "\tcA faint breeze stirs the air.\tn",
-        "\tcDust motes \tCswirl\tc in an unseen current.\tn"
-    },
+    {"\tcThe torches \tYflicker momentarily\tc.\tn", "\tcA faint breeze stirs the air.\tn",
+     "\tcDust motes \tCswirl\tc in an unseen current.\tn"},
     /* ENV_INTENSITY_MODERATE (2) - noticeable effects for mid-circle spells */
-    {
-        "\tcThe torches \tYflicker\tc as magical energies gather.\tn",
-        "\tcA \tbchill wind\tc sweeps through despite no apparent source.\tn",
-        "\tcSmall objects begin to \tCrattle\tc ominously.\tn"
-    },
+    {"\tcThe torches \tYflicker\tc as magical energies gather.\tn",
+     "\tcA \tbchill wind\tc sweeps through despite no apparent source.\tn",
+     "\tcSmall objects begin to \tCrattle\tc ominously.\tn"},
     /* ENV_INTENSITY_DRAMATIC (3) - powerful effects for high-circle spells */
-    {
-        "\tcThe ground \tRtrembles\tc as raw power builds!\tn",
-        "\tc\tMReality itself\tc seems to \tpwarp and twist\tc!\tn",
-        "\tcA \tRdeafening hum\tc resonates through the area!\tn"
-    }
-};
+    {"\tcThe ground \tRtrembles\tc as raw power builds!\tn",
+     "\tc\tMReality itself\tc seems to \tpwarp and twist\tc!\tn",
+     "\tcA \tRdeafening hum\tc resonates through the area!\tn"}};
 
 /*
  * School-specific environmental reaction messages.
@@ -1158,164 +1072,99 @@ static const char *generic_env_reactions[NUM_ENV_INTENSITIES][ENV_MSG_VARIANTS] 
 static const char *school_env_reactions[NUM_SCHOOLS][NUM_ENV_INTENSITIES][ENV_MSG_VARIANTS] = {
     /* NOSCHOOL (0) - uses generic effects, NULL here */
     {
-        {NULL, NULL, NULL},  /* NONE */
-        {NULL, NULL, NULL},  /* SUBTLE */
-        {NULL, NULL, NULL},  /* MODERATE */
-        {NULL, NULL, NULL}   /* DRAMATIC */
+        {NULL, NULL, NULL}, /* NONE */
+        {NULL, NULL, NULL}, /* SUBTLE */
+        {NULL, NULL, NULL}, /* MODERATE */
+        {NULL, NULL, NULL}  /* DRAMATIC */
     },
     /* ABJURATION (1) - protective energy, shimmering barriers */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcA faint \tWprotective shimmer\tc passes through the air.\tn",
-            "\tcThe air feels \tWslightly charged\tc with defensive energy.\tn",
-            "\tcA \tWmild tingling\tc sensation passes over your skin.\tn"
-        },
-        {
-            "\tc\tWGleaming runes\tc briefly flicker at the edges of vision.\tn",
-            "\tcAn invisible \tWbarrier\tc seems to pulse in the air.\tn",
-            "\tcThe hairs on your arms stand on end from \tWprotective energies\tc.\tn"
-        },
-        {
-            "\tc\tWBlinding protective wards\tc flash across the room!\tn",
-            "\tcThe air \tWcrackles\tc with raw defensive power!\tn",
-            "\tcA \tWshimmering dome\tc of energy briefly becomes visible!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcA faint \tWprotective shimmer\tc passes through the air.\tn",
+      "\tcThe air feels \tWslightly charged\tc with defensive energy.\tn",
+      "\tcA \tWmild tingling\tc sensation passes over your skin.\tn"},
+     {"\tc\tWGleaming runes\tc briefly flicker at the edges of vision.\tn",
+      "\tcAn invisible \tWbarrier\tc seems to pulse in the air.\tn",
+      "\tcThe hairs on your arms stand on end from \tWprotective energies\tc.\tn"},
+     {"\tc\tWBlinding protective wards\tc flash across the room!\tn",
+      "\tcThe air \tWcrackles\tc with raw defensive power!\tn",
+      "\tcA \tWshimmering dome\tc of energy briefly becomes visible!\tn"}},
     /* CONJURATION (2) - reality rifts, extraplanar energy */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcThe air \tpshimmers\tc strangely for a moment.\tn",
-            "\tcA faint \tpextraplanar scent\tc wafts through briefly.\tn",
-            "\tcReality \tpflickers\tc almost imperceptibly.\tn"
-        },
-        {
-            "\tcA small \tprift\tc in reality sparks and vanishes.\tn",
-            "\tcThe air grows \tpthick\tc with otherworldly energy.\tn",
-            "\tc\tpShadowy glimpses\tc of another plane flicker at the edges of vision.\tn"
-        },
-        {
-            "\tc\tpMassive rifts\tc tear through the air momentarily!\tn",
-            "\tcThe \tpboundaries between planes\tc grow dangerously thin!\tn",
-            "\tc\tpExtraplanar winds\tc howl through invisible doorways!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcThe air \tpshimmers\tc strangely for a moment.\tn",
+      "\tcA faint \tpextraplanar scent\tc wafts through briefly.\tn",
+      "\tcReality \tpflickers\tc almost imperceptibly.\tn"},
+     {"\tcA small \tprift\tc in reality sparks and vanishes.\tn",
+      "\tcThe air grows \tpthick\tc with otherworldly energy.\tn",
+      "\tc\tpShadowy glimpses\tc of another plane flicker at the edges of vision.\tn"},
+     {"\tc\tpMassive rifts\tc tear through the air momentarily!\tn",
+      "\tcThe \tpboundaries between planes\tc grow dangerously thin!\tn",
+      "\tc\tpExtraplanar winds\tc howl through invisible doorways!\tn"}},
     /* DIVINATION (3) - light, visions, knowledge */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcA \tYsoft glow\tc illuminates the air briefly.\tn",
-            "\tcYou catch a \tYflash of insight\tc at the edge of consciousness.\tn",
-            "\tcThe light in the room seems to \tYintensify\tc momentarily.\tn"
-        },
-        {
-            "\tc\tYGolden motes\tc of light drift through the air.\tn",
-            "\tcVisions of \tYpossible futures\tc flicker before your eyes.\tn",
-            "\tcThe room is bathed in a \tYwarm, knowing light\tc.\tn"
-        },
-        {
-            "\tc\tYBlinding radiance\tc fills the room with pure knowledge!\tn",
-            "\tcThe \tYveils of time and space\tc grow thin around you!\tn",
-            "\tc\tYAll secrets\tc seem laid bare in an instant of clarity!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcA \tYsoft glow\tc illuminates the air briefly.\tn",
+      "\tcYou catch a \tYflash of insight\tc at the edge of consciousness.\tn",
+      "\tcThe light in the room seems to \tYintensify\tc momentarily.\tn"},
+     {"\tc\tYGolden motes\tc of light drift through the air.\tn",
+      "\tcVisions of \tYpossible futures\tc flicker before your eyes.\tn",
+      "\tcThe room is bathed in a \tYwarm, knowing light\tc.\tn"},
+     {"\tc\tYBlinding radiance\tc fills the room with pure knowledge!\tn",
+      "\tcThe \tYveils of time and space\tc grow thin around you!\tn",
+      "\tc\tYAll secrets\tc seem laid bare in an instant of clarity!\tn"}},
     /* ENCHANTMENT (4) - hypnotic effects, mental influence */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcA \tMsubtle, pleasant sensation\tc washes over you.\tn",
-            "\tcYou notice an \tModdly compelling pattern\tc in the air.\tn",
-            "\tcThe atmosphere feels \tMslightly intoxicating\tc.\tn"
-        },
-        {
-            "\tc\tMMesmerizing patterns\tc dance in the air.\tn",
-            "\tcYour thoughts feel \tMstrangely malleable\tc for a moment.\tn",
-            "\tcA \tMcompelling whisper\tc seems to echo in your mind.\tn"
-        },
-        {
-            "\tc\tMIrresistible enchantment\tc saturates the very air!\tn",
-            "\tcYour will feels \tMcrushed\tc under overwhelming magical presence!\tn",
-            "\tc\tMHypnotic compulsion\tc threatens to overwhelm all thought!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcA \tMsubtle, pleasant sensation\tc washes over you.\tn",
+      "\tcYou notice an \tModdly compelling pattern\tc in the air.\tn",
+      "\tcThe atmosphere feels \tMslightly intoxicating\tc.\tn"},
+     {"\tc\tMMesmerizing patterns\tc dance in the air.\tn",
+      "\tcYour thoughts feel \tMstrangely malleable\tc for a moment.\tn",
+      "\tcA \tMcompelling whisper\tc seems to echo in your mind.\tn"},
+     {"\tc\tMIrresistible enchantment\tc saturates the very air!\tn",
+      "\tcYour will feels \tMcrushed\tc under overwhelming magical presence!\tn",
+      "\tc\tMHypnotic compulsion\tc threatens to overwhelm all thought!\tn"}},
     /* EVOCATION (5) - raw energy, fire, lightning, force */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tc\tRSparks\tc dance briefly in the air.\tn",
-            "\tcThe air grows \tRwarm\tc from ambient magical energy.\tn",
-            "\tcA faint \tRcrackle\tc of energy echoes through the room.\tn"
-        },
-        {
-            "\tc\tRArcs of energy\tc leap between nearby surfaces.\tn",
-            "\tcThe temperature in the room \tRfluctuates wildly\tc.\tn",
-            "\tc\tRCrackling power\tc makes your teeth ache.\tn"
-        },
-        {
-            "\tc\tRMassive bolts of energy\tc arc across the room!\tn",
-            "\tcThe air itself \tRignites\tc with raw power!\tn",
-            "\tc\tRDestructive force\tc shakes the very foundations!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tc\tRSparks\tc dance briefly in the air.\tn",
+      "\tcThe air grows \tRwarm\tc from ambient magical energy.\tn",
+      "\tcA faint \tRcrackle\tc of energy echoes through the room.\tn"},
+     {"\tc\tRArcs of energy\tc leap between nearby surfaces.\tn",
+      "\tcThe temperature in the room \tRfluctuates wildly\tc.\tn",
+      "\tc\tRCrackling power\tc makes your teeth ache.\tn"},
+     {"\tc\tRMassive bolts of energy\tc arc across the room!\tn",
+      "\tcThe air itself \tRignites\tc with raw power!\tn",
+      "\tc\tRDestructive force\tc shakes the very foundations!\tn"}},
     /* ILLUSION (6) - shifting reality, deceptive effects */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcThe shadows seem to \tBshift\tc slightly.\tn",
-            "\tcYou question whether the room always looked this way.\tn",
-            "\tcA \tBfaint shimmer\tc crosses your vision.\tn"
-        },
-        {
-            "\tc\tBReality wavers\tc like a reflection in disturbed water.\tn",
-            "\tcPhantom \tBimages\tc flicker at the edges of your sight.\tn",
-            "\tcYou \tBcan't quite trust\tc what your eyes are telling you.\tn"
-        },
-        {
-            "\tc\tBReality shatters\tc into a kaleidoscope of possibilities!\tn",
-            "\tcYou can no longer tell \tBwhat is real\tc and what is illusion!\tn",
-            "\tc\tBImpossible visions\tc assault your senses from every direction!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcThe shadows seem to \tBshift\tc slightly.\tn",
+      "\tcYou question whether the room always looked this way.\tn",
+      "\tcA \tBfaint shimmer\tc crosses your vision.\tn"},
+     {"\tc\tBReality wavers\tc like a reflection in disturbed water.\tn",
+      "\tcPhantom \tBimages\tc flicker at the edges of your sight.\tn",
+      "\tcYou \tBcan't quite trust\tc what your eyes are telling you.\tn"},
+     {"\tc\tBReality shatters\tc into a kaleidoscope of possibilities!\tn",
+      "\tcYou can no longer tell \tBwhat is real\tc and what is illusion!\tn",
+      "\tc\tBImpossible visions\tc assault your senses from every direction!\tn"}},
     /* NECROMANCY (7) - death, cold, shadows, decay */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcA \tDchill\tc passes through the room.\tn",
-            "\tcThe shadows seem to \tDdeepen\tc slightly.\tn",
-            "\tcA faint \tDscent of decay\tc wafts through briefly.\tn"
-        },
-        {
-            "\tc\tDCold tendrils\tc of darkness reach across the floor.\tn",
-            "\tcThe life force in the room \tDdims\tc perceptibly.\tn",
-            "\tc\tDWhispers from beyond\tc echo faintly in the darkness.\tn"
-        },
-        {
-            "\tc\tDThe shadow of death\tc falls heavily across the room!\tn",
-            "\tcThe \tDveil between life and death\tc grows terrifyingly thin!\tn",
-            "\tc\tDBone-chilling cold\tc seeps into your very soul!\tn"
-        }
-    },
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcA \tDchill\tc passes through the room.\tn",
+      "\tcThe shadows seem to \tDdeepen\tc slightly.\tn",
+      "\tcA faint \tDscent of decay\tc wafts through briefly.\tn"},
+     {"\tc\tDCold tendrils\tc of darkness reach across the floor.\tn",
+      "\tcThe life force in the room \tDdims\tc perceptibly.\tn",
+      "\tc\tDWhispers from beyond\tc echo faintly in the darkness.\tn"},
+     {"\tc\tDThe shadow of death\tc falls heavily across the room!\tn",
+      "\tcThe \tDveil between life and death\tc grows terrifyingly thin!\tn",
+      "\tc\tDBone-chilling cold\tc seeps into your very soul!\tn"}},
     /* TRANSMUTATION (8) - matter warping, physical change */
-    {
-        {NULL, NULL, NULL},  /* NONE */
-        {
-            "\tcObjects seem to \tGshimmer\tc slightly.\tn",
-            "\tcThe air feels \tGstrangely dense\tc for a moment.\tn",
-            "\tcA \tGripple\tc passes through solid surfaces.\tn"
-        },
-        {
-            "\tc\tGMatter warps\tc visibly around the room.\tn",
-            "\tcThe \tGlaws of physics\tc seem to bend momentarily.\tn",
-            "\tc\tGSolid objects\tc ripple like liquid for an instant.\tn"
-        },
-        {
-            "\tc\tGReality itself reshapes\tc before your eyes!\tn",
-            "\tcThe \tGfundamental nature of matter\tc is being rewritten!\tn",
-            "\tc\tGEverything transforms\tc in a chaos of possibility!\tn"
-        }
-    }
-};
+    {{NULL, NULL, NULL}, /* NONE */
+     {"\tcObjects seem to \tGshimmer\tc slightly.\tn",
+      "\tcThe air feels \tGstrangely dense\tc for a moment.\tn",
+      "\tcA \tGripple\tc passes through solid surfaces.\tn"},
+     {"\tc\tGMatter warps\tc visibly around the room.\tn",
+      "\tcThe \tGlaws of physics\tc seem to bend momentarily.\tn",
+      "\tc\tGSolid objects\tc ripple like liquid for an instant.\tn"},
+     {"\tc\tGReality itself reshapes\tc before your eyes!\tn",
+      "\tcThe \tGfundamental nature of matter\tc is being rewritten!\tn",
+      "\tc\tGEverything transforms\tc in a chaos of possibility!\tn"}}};
 
 /**
  * Determines the intensity level of environmental reactions for a spell.

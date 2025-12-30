@@ -22,8 +22,7 @@
 #include "fight.h"  /* for die() */
 
 /* Local functions */
-#define OCMD(name) \
-  void(name)(obj_data * obj, char *argument, int cmd, int subcmd)
+#define OCMD(name) void(name)(obj_data * obj, char *argument, int cmd, int subcmd)
 
 static void obj_log(obj_data *obj, const char *format, ...);
 static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr);
@@ -62,7 +61,8 @@ static void obj_log(obj_data *obj, const char *format, ...)
   va_list args;
   char output[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Obj (%s, VNum %d):: %s", obj->short_description, GET_OBJ_VNUM(obj), format);
+  snprintf(output, sizeof(output), "Obj (%s, VNum %d):: %s", obj->short_description,
+           GET_OBJ_VNUM(obj), format);
 
   va_start(args, format);
   script_vlog(output, args);
@@ -124,8 +124,8 @@ static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr)
       ROOM_FLAGGED(location, ROOM_HOUSE))
     return NOWHERE;
 
-  if (ROOM_FLAGGED(location, ROOM_PRIVATE) &&
-      world[location].people && world[location].people->next_in_room)
+  if (ROOM_FLAGGED(location, ROOM_PRIVATE) && world[location].people &&
+      world[location].people->next_in_room)
     return NOWHERE;
 
   return location;
@@ -155,7 +155,6 @@ static OCMD(do_oecho)
 
 static OCMD(do_ogecho)
 {
-
   skip_spaces(&argument);
 
   if (!*argument)
@@ -537,8 +536,9 @@ static OCMD(do_dgoload)
     {
       if (!isdigit(*target) || (rnum = real_room(atoi(target))) == NOWHERE)
       {
-        obj_log(obj, "oload: room target vnum doesn't exist "
-                     "(loading mob vnum %d to room %s)",
+        obj_log(obj,
+                "oload: room target vnum doesn't exist "
+                "(loading mob vnum %d to room %s)",
                 number, target);
         return;
       }
@@ -592,8 +592,8 @@ static OCMD(do_dgoload)
     tch = get_char_near_obj(obj, arg1);
     if (tch)
     {
-      if (*arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
-          !GET_EQ(tch, pos) && can_wear_on_pos(object, pos))
+      if (*arg2 && (pos = find_eq_pos_script(arg2)) >= 0 && !GET_EQ(tch, pos) &&
+          can_wear_on_pos(object, pos))
       {
         equip_char(tch, object, pos);
         load_otrigger(object);
@@ -604,8 +604,7 @@ static OCMD(do_dgoload)
       return;
     }
     cnt = get_obj_near_obj(obj, arg1);
-    if (cnt && (GET_OBJ_TYPE(cnt) == ITEM_CONTAINER ||
-                GET_OBJ_TYPE(cnt) == ITEM_AMMO_POUCH))
+    if (cnt && (GET_OBJ_TYPE(cnt) == ITEM_CONTAINER || GET_OBJ_TYPE(cnt) == ITEM_AMMO_POUCH))
     {
       obj_to_obj(object, cnt);
       load_otrigger(object);
@@ -686,14 +685,7 @@ static OCMD(do_odoor)
   struct room_direction_data *newexit;
   int dir, fd, to_room;
 
-  const char *const door_field[] = {
-      "purge",
-      "description",
-      "flags",
-      "key",
-      "name",
-      "room",
-      "\n"};
+  const char *const door_field[] = {"purge", "description", "flags", "key", "name", "room", "\n"};
 
   argument = two_arguments_u(argument, target, direction);
   value = one_argument_u(argument, field);
@@ -964,8 +956,7 @@ void obj_command_interpreter(obj_data *obj, char *argument)
   line = any_one_arg(argument, arg);
 
   /* find the command */
-  for (length = strlen(arg), cmd = 0;
-       *obj_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = strlen(arg), cmd = 0; *obj_cmd_info[cmd].command != '\n'; cmd++)
     if (!strncmp(obj_cmd_info[cmd].command, arg, length))
       break;
 

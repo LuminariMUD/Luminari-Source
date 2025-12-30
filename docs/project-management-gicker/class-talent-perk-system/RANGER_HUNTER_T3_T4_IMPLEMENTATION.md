@@ -45,7 +45,7 @@ if (has_perk(ch, PERK_RANGER_IMPROVED_MANYSHOT))
 **Code Changes:**
 ```c
 // In compute_hit_damage(), critical hit section:
-if (is_critical && attack_type == ATTACK_TYPE_RANGED && 
+if (is_critical && attack_type == ATTACK_TYPE_RANGED &&
     !IS_NPC(ch) && has_perk(ch, PERK_RANGER_SNIPER))
 {
   int sniper_dice = dice(2, 6);
@@ -195,7 +195,7 @@ ACMD(do_arrowstorm)
 
   aoe_effect(ch, -1, arrowstorm_callback, NULL);
 
-  attach_mud_event(new_mud_event(eARROW_STORM, ch, NULL), 
+  attach_mud_event(new_mud_event(eARROW_STORM, ch, NULL),
                    24 * 60 * 60 * PASSES_PER_SEC);
 
   USE_STANDARD_ACTION(ch);

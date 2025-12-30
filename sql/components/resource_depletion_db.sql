@@ -73,4 +73,3 @@ CREATE TABLE IF NOT EXISTS resource_regeneration_log (
     INDEX idx_location_regen (zone_vnum, x_coord, y_coord),
     INDEX idx_time_regen (regeneration_time)
 );
-

@@ -5,7 +5,7 @@
 
 /* Define if we are compiling under OS2 */
 #define CIRCLE_OS2
- 
+
 /* Define if we're compiling CircleMUD under any type of UNIX system */
 /* #undef CIRCLE_UNIX */
 

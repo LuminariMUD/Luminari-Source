@@ -444,7 +444,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 - Elevation advantages (higher ground provides better visibility)
 - Message types: clear sight → distant glimpse → shadowy movement → barely visible
 
-#### Audio System (`spatial_audio.c`) 
+#### Audio System (`spatial_audio.c`)
 **Strategies:**
 1. **Audio Stimulus Strategy** - Frequency-based intensity calculation with distance dropoff
 2. **Acoustic Line of Sight Strategy** - Sound blocking through terrain
@@ -529,7 +529,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 // Frequency types
 typedef enum {
     AUDIO_FREQ_LOW = 0,
-    AUDIO_FREQ_MID = 1, 
+    AUDIO_FREQ_MID = 1,
     AUDIO_FREQ_HIGH = 2
 } audio_frequency_t;
 

@@ -121,4 +121,3 @@ Phase 5 — Validation & cleanup
 - One explicit ownership model (destructor) replaces split logic and assumptions.
 - One core queue serves all events; MUD layer remains a thin ergonomic facade.
 - Compatibility preserved during migration; end state is smaller, clearer, and safer.
-

@@ -15,29 +15,29 @@ ACMD_DECL(do_queue);
 
 struct action_data
 {
-    char *argument;
-    int actions_required;
+  char *argument;
+  int actions_required;
 };
 
 struct attack_action_data
 {
-    int command;     /* Command that generated the action. */
-    int attack_type; /* Attack type - Subcmd of the command. */
-    char *argument;  /* Argument for the attack */
+  int command;     /* Command that generated the action. */
+  int attack_type; /* Attack type - Subcmd of the command. */
+  char *argument;  /* Argument for the attack */
 };
 
 struct queue_element_type
 {
-    //  	struct action_data   * action;
-    void *data;
-    struct queue_element_type *next;
+  //  	struct action_data   * action;
+  void *data;
+  struct queue_element_type *next;
 };
 
 struct queue_type
 {
-    struct queue_element_type *first;
-    struct queue_element_type *last;
-    int size;
+  struct queue_element_type *first;
+  struct queue_element_type *last;
+  int size;
 };
 
 /* Action queue */

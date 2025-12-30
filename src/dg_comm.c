@@ -35,8 +35,8 @@ char *any_one_name(char *argument, char *first_arg)
     argument++;
 
   /* Find length of first word */
-  for (arg = first_arg;
-       *argument && !isspace(*argument) && (!ispunct(*argument) || *argument == '#' || *argument == '-');
+  for (arg = first_arg; *argument && !isspace(*argument) &&
+                        (!ispunct(*argument) || *argument == '#' || *argument == '-');
        arg++, argument++)
     *arg = LOWER(*argument);
   *arg = '\0';
@@ -151,8 +151,8 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
       type[i] = *p;
       *s = '\0';
       p = any_one_name(++p, name);
-      otokens[i] =
-          find_invis ? (void *)get_char_in_room(&world[IN_ROOM(ch)], name) : (void *)get_char_room_vis(ch, name, NULL);
+      otokens[i] = find_invis ? (void *)get_char_in_room(&world[IN_ROOM(ch)], name)
+                              : (void *)get_char_room_vis(ch, name, NULL);
       tokens[++i] = ++s;
       break;
 
@@ -210,8 +210,7 @@ void send_to_zone(const char *messg, zone_rnum zone)
 
   for (i = descriptor_list; i; i = i->next)
     if (!i->connected && i->character && AWAKE(i->character) &&
-        (IN_ROOM(i->character) != NOWHERE) &&
-        (world[IN_ROOM(i->character)].zone == zone))
+        (IN_ROOM(i->character) != NOWHERE) && (world[IN_ROOM(i->character)].zone == zone))
       write_to_output(i, "%s", messg);
 }
 

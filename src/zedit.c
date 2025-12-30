@@ -30,7 +30,8 @@
 /* local functions */
 static int start_change_command(struct descriptor_data *d, int pos);
 static void zedit_setup(struct descriptor_data *d, int room_num);
-static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum bottom, room_vnum top);
+static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum bottom,
+                           room_vnum top);
 static void zedit_save_internally(struct descriptor_data *d);
 static void zedit_save_to_disk(int zone_num);
 static void zedit_disp_menu(struct descriptor_data *d);
@@ -54,7 +55,8 @@ ACMD(do_oasis_zedit)
     return;
 
   /* Parse any arguments. */
-  stop = one_argument(two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2)), sbot, sizeof(sbot));
+  stop = one_argument(two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2)), sbot,
+                      sizeof(sbot));
 
   /* If no argument was given, use the zone the builder is standing in. */
   if (!*buf1)
@@ -126,8 +128,7 @@ ACMD(do_oasis_zedit)
     {
       if (d->olc && OLC_NUM(d) == number)
       {
-        send_to_char(ch, "That zone is currently being edited by %s.\r\n",
-                     PERS(d->character, ch));
+        send_to_char(ch, "That zone is currently being edited by %s.\r\n", PERS(d->character, ch));
         return;
       }
     }
@@ -139,8 +140,9 @@ ACMD(do_oasis_zedit)
   /* Give the builder's descriptor an OLC structure. */
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_zedit: Player already "
-                                  "had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "SYSERR: do_oasis_zedit: Player already "
+           "had olc structure.");
     free(d->olc);
   }
 
@@ -204,8 +206,8 @@ ACMD(do_oasis_zedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
+         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 void perform_zone_restat(struct descriptor_data *d)
@@ -224,8 +226,7 @@ void perform_zone_restat(struct descriptor_data *d)
     {
       if (dat->olc && OLC_ZNUM(dat) == zone_num)
       {
-        send_to_char(ch, "Zone currently being edited by %s.\r\n",
-                     GET_NAME(dat->character));
+        send_to_char(ch, "Zone currently being edited by %s.\r\n", GET_NAME(dat->character));
         return;
       }
     }
@@ -318,7 +319,8 @@ static void zedit_setup(struct descriptor_data *d, int room_num)
 }
 
 /* Create a new zone. */
-static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum bottom, room_vnum top)
+static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum bottom,
+                           room_vnum top)
 {
   int result;
   const char *error;
@@ -353,7 +355,8 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
 
   zedit_save_to_disk(result); /* save to disk .. */
 
-  mudlog(BRF, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s creates new zone #%d", GET_NAME(ch), vzone_num);
+  mudlog(BRF, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s creates new zone #%d",
+         GET_NAME(ch), vzone_num);
   write_to_output(ch->desc, "Zone created successfully.\r\n");
 }
 
@@ -361,9 +364,7 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
  * the current zone table. */
 static void zedit_save_internally(struct descriptor_data *d)
 {
-  int mobloaded = FALSE,
-      objloaded = FALSE,
-      subcmd, i;
+  int mobloaded = FALSE, objloaded = FALSE, subcmd, i;
   room_rnum room_num = real_room(OLC_NUM(d));
 
   if (room_num == NOWHERE)
@@ -461,8 +462,9 @@ void zedit_disp_flag_menu(struct descriptor_data *d)
   column_list(d->character, 0, zone_bits, NUM_ZONE_FLAGS, TRUE);
 
   sprintbitarray(OLC_ZONE(d)->zone_flags, zone_bits, ZN_ARRAY_MAX, bits);
-  write_to_output(d, "\r\nZone flags: \tc%s\tn\r\n"
-                     "Enter Zone flags, 0 to quit : ",
+  write_to_output(d,
+                  "\r\nZone flags: \tc%s\tn\r\n"
+                  "Enter Zone flags, 0 to quit : ",
                   bits);
   OLC_MODE(d) = ZEDIT_ZONE_FLAGS;
 }
@@ -512,39 +514,36 @@ static void zedit_disp_menu(struct descriptor_data *d)
   levels_set = zedit_get_levels(d, lev_string);
 
   /* Menu header */
-  send_to_char(d->character,
-               "Room number: %s%d%s Room zone: %s%d\r\n"
-               "%s1%s) Builders       : %s%s\r\n"
-               "%sZ%s) Zone name      : %s%s\r\n"
-               "%sL%s) Lifespan       : %s%d minutes\r\n"
-               "%sW%s) Show Weather   : %s%d (0 Off / 1 On)\r\n"
-               "%sB%s) Bottom of zone : %s%d\r\n"
-               "%sT%s) Top of zone    : %s%d\r\n"
-               "%sR%s) Reset Mode     : %s%s\r\n"
-               "%sF%s) Zone Flags     : %s%s\r\n"
-               "%sM%s) Level Range    : %s%s\r\n"
-               "%s2%s) Region         : %s%s\r\n"
-               "%s3%s) City           : %s%s\r\n"
-               "%s4%s) Faction        : %s%s\r\n"
-               "%sA%s) Re-Stat all zone mobiles (unimplemented)\r\n"
-               "[Command list]\r\n",
+  send_to_char(
+      d->character,
+      "Room number: %s%d%s Room zone: %s%d\r\n"
+      "%s1%s) Builders       : %s%s\r\n"
+      "%sZ%s) Zone name      : %s%s\r\n"
+      "%sL%s) Lifespan       : %s%d minutes\r\n"
+      "%sW%s) Show Weather   : %s%d (0 Off / 1 On)\r\n"
+      "%sB%s) Bottom of zone : %s%d\r\n"
+      "%sT%s) Top of zone    : %s%d\r\n"
+      "%sR%s) Reset Mode     : %s%s\r\n"
+      "%sF%s) Zone Flags     : %s%s\r\n"
+      "%sM%s) Level Range    : %s%s\r\n"
+      "%s2%s) Region         : %s%s\r\n"
+      "%s3%s) City           : %s%s\r\n"
+      "%s4%s) Faction        : %s%s\r\n"
+      "%sA%s) Re-Stat all zone mobiles (unimplemented)\r\n"
+      "[Command list]\r\n",
 
-               cyn, OLC_NUM(d), nrm,
-               cyn, zone_table[OLC_ZNUM(d)].number,
-               grn, nrm, yel, OLC_ZONE(d)->builders ? OLC_ZONE(d)->builders : "None.",
-               grn, nrm, yel, OLC_ZONE(d)->name ? OLC_ZONE(d)->name : "<NONE!>",
-               grn, nrm, yel, OLC_ZONE(d)->lifespan,
-               grn, nrm, yel, OLC_ZONE(d)->show_weather,
-               grn, nrm, yel, OLC_ZONE(d)->bot,
-               grn, nrm, yel, OLC_ZONE(d)->top,
-               grn, nrm, yel,
-               OLC_ZONE(d)->reset_mode ? ((OLC_ZONE(d)->reset_mode == 1) ? "Reset when no players are in zone." : "Normal reset.") : "Never reset",
-               grn, nrm, cyn, buf1,
-               grn, nrm, levels_set ? cyn : yel, lev_string,
-               grn, nrm, yel, regions[OLC_ZONE(d)->region],
-               grn, nrm, yel, cities[OLC_ZONE(d)->city],
-               grn, nrm, yel, OLC_ZONE(d)->faction == 0 ? "None" : clan_list[OLC_ZONE(d)->faction-1].clan_name,
-               grn, nrm);
+      cyn, OLC_NUM(d), nrm, cyn, zone_table[OLC_ZNUM(d)].number, grn, nrm, yel,
+      OLC_ZONE(d)->builders ? OLC_ZONE(d)->builders : "None.", grn, nrm, yel,
+      OLC_ZONE(d)->name ? OLC_ZONE(d)->name : "<NONE!>", grn, nrm, yel, OLC_ZONE(d)->lifespan, grn,
+      nrm, yel, OLC_ZONE(d)->show_weather, grn, nrm, yel, OLC_ZONE(d)->bot, grn, nrm, yel,
+      OLC_ZONE(d)->top, grn, nrm, yel,
+      OLC_ZONE(d)->reset_mode
+          ? ((OLC_ZONE(d)->reset_mode == 1) ? "Reset when no players are in zone."
+                                            : "Normal reset.")
+          : "Never reset",
+      grn, nrm, cyn, buf1, grn, nrm, levels_set ? cyn : yel, lev_string, grn, nrm, yel,
+      regions[OLC_ZONE(d)->region], grn, nrm, yel, cities[OLC_ZONE(d)->city], grn, nrm, yel,
+      OLC_ZONE(d)->faction == 0 ? "None" : clan_list[OLC_ZONE(d)->faction - 1].clan_name, grn, nrm);
 
   /* Print the commands for this room into display buffer. */
   while (MYCMD.command != 'S')
@@ -558,77 +557,68 @@ static void zedit_disp_menu(struct descriptor_data *d)
       snprintf(buf1, sizeof(buf1), "IF line #%d %s,\r\n  ", counter - abs(MYCMD.if_flag),
                (MYCMD.if_flag < 0) ? "fails" : "executes");
     else
-      snprintf(buf1, sizeof(buf1), "%s", (MYCMD.if_flag == 0) ? "" : (MYCMD.if_flag < 0) ? "  [ELSE]: "
-                                                                                         : "  [THEN]: ");
+      snprintf(buf1, sizeof(buf1), "%s",
+               (MYCMD.if_flag == 0)  ? ""
+               : (MYCMD.if_flag < 0) ? "  [ELSE]: "
+                                     : "  [THEN]: ");
 
     /* Translate what the command means. */
     write_to_output(d, "%s%d - %s", nrm, counter, yel);
     switch (MYCMD.command)
     {
     case 'I':
-      write_to_output(d, "%sGive it random treasure (%d%%)",
-                      buf1, MYCMD.arg1);
+      write_to_output(d, "%sGive it random treasure (%d%%)", buf1, MYCMD.arg1);
       break;
     case 'L':
       write_to_output(d, "%sPut random treasure in %s [%s%d%s] (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg1].short_description,
-                      cyn, obj_index[MYCMD.arg1].vnum, yel,
+                      obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       MYCMD.arg2);
       break;
     case 'J':
       if ((counter + MYCMD.arg1) <= maxcount)
-        write_to_output(d, "%sJump over %d line%s to line #%d. (%d%%)",
-                        buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "",
-                        counter + MYCMD.arg1 + 1, MYCMD.arg2);
+        write_to_output(d, "%sJump over %d line%s to line #%d. (%d%%)", buf1, MYCMD.arg1,
+                        (MYCMD.arg1 > 1) ? "s" : "", counter + MYCMD.arg1 + 1, MYCMD.arg2);
       else
-        write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d%%)",
-                        buf1, MYCMD.arg1, (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
+        write_to_output(d, "%sJump over %d line%s to <OUTSIDE ROOM>. (%d%%)", buf1, MYCMD.arg1,
+                        (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
       break;
     case 'M':
       write_to_output(d, "%sLoad %s [%s%d%s], Max (%s) : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      mob_proto[MYCMD.arg1].player.short_descr, cyn,
-                      mob_index[MYCMD.arg1].vnum, yel,
-                      (MYCMD.arg2 < 0 ? "in room" : "in game"),
-                      abs(MYCMD.arg2), MYCMD.arg4);
+                      mob_proto[MYCMD.arg1].player.short_descr, cyn, mob_index[MYCMD.arg1].vnum,
+                      yel, (MYCMD.arg2 < 0 ? "in room" : "in game"), abs(MYCMD.arg2), MYCMD.arg4);
       break;
     case 'G':
       write_to_output(d, "%sGive it %s [%s%d%s], Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg1].short_description,
-                      cyn, obj_index[MYCMD.arg1].vnum, yel,
+                      obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       MYCMD.arg2, MYCMD.arg3);
       break;
     case 'O':
       write_to_output(d, "%sLoad %s [%s%d%s], Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg1].short_description,
-                      cyn, obj_index[MYCMD.arg1].vnum, yel,
+                      obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       MYCMD.arg2, MYCMD.arg4);
       break;
     case 'E':
       write_to_output(d, "%sEquip with %s [%s%d%s], %s, Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg1].short_description,
-                      cyn, obj_index[MYCMD.arg1].vnum, yel,
-                      equipment_types[MYCMD.arg3],
-                      MYCMD.arg2, MYCMD.arg4);
+                      obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
+                      equipment_types[MYCMD.arg3], MYCMD.arg2, MYCMD.arg4);
       break;
     case 'P':
       write_to_output(d, "%sPut %s [%s%d%s] in %s [%s%d%s], Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg1].short_description,
-                      cyn, obj_index[MYCMD.arg1].vnum, yel,
-                      obj_proto[MYCMD.arg3].short_description,
-                      cyn, obj_index[MYCMD.arg3].vnum, yel,
+                      obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
+                      obj_proto[MYCMD.arg3].short_description, cyn, obj_index[MYCMD.arg3].vnum, yel,
                       MYCMD.arg2, MYCMD.arg4);
       break;
     case 'R':
       write_to_output(d, "%sRemove %s [%s%d%s] from room.",
                       buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg2].short_description,
-                      cyn, obj_index[MYCMD.arg2].vnum, yel);
+                      obj_proto[MYCMD.arg2].short_description, cyn, obj_index[MYCMD.arg2].vnum,
+                      yel);
       break;
     case 'D':
       /* Build the string for the reset - There are many possibilities. */
@@ -665,7 +655,8 @@ static void zedit_disp_menu(struct descriptor_data *d)
         snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium) and hidden (easy)");
         break;
       case 10:
-        snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium) and hidden (medium)");
+        snprintf(door_reset_string, sizeof(door_reset_string),
+                 "locked (medium) and hidden (medium)");
         break;
       case 11:
         snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium) and hidden (hard)");
@@ -687,25 +678,33 @@ static void zedit_disp_menu(struct descriptor_data *d)
         break;
       }
 
-      write_to_output(d, "%sSet door %s as %s.",
-                      buf1, // MYCMD.if_flag ? " then " : "",
-                      dirs[MYCMD.arg2], door_reset_string
-                      //                MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
+      write_to_output(
+          d, "%sSet door %s as %s.",
+          buf1, // MYCMD.if_flag ? " then " : "",
+          dirs[MYCMD.arg2], door_reset_string
+          //                MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
       );
       break;
     case 'T':
-      write_to_output(d, "%sAttach trigger %s%s%s [%s%d%s] to %s",
-                      buf1, // MYCMD.if_flag ? " then " : "",
-                      cyn, trig_index[MYCMD.arg2]->proto->name, yel,
-                      cyn, trig_index[MYCMD.arg2]->vnum, yel,
-                      ((MYCMD.arg1 == MOB_TRIGGER) ? "mobile" : ((MYCMD.arg1 == OBJ_TRIGGER) ? "object" : ((MYCMD.arg1 == WLD_TRIGGER) ? "room" : "????"))));
+      write_to_output(
+          d, "%sAttach trigger %s%s%s [%s%d%s] to %s",
+          buf1, // MYCMD.if_flag ? " then " : "",
+          cyn, trig_index[MYCMD.arg2]->proto->name, yel, cyn, trig_index[MYCMD.arg2]->vnum, yel,
+          ((MYCMD.arg1 == MOB_TRIGGER)
+               ? "mobile"
+               : ((MYCMD.arg1 == OBJ_TRIGGER) ? "object"
+                                              : ((MYCMD.arg1 == WLD_TRIGGER) ? "room" : "????"))));
       break;
     case 'V':
-      write_to_output(d, "%sAssign global %s:%d to %s = %s",
-                      buf1, // MYCMD.if_flag ? " then " : "",
-                      MYCMD.sarg1, MYCMD.arg2,
-                      ((MYCMD.arg1 == MOB_TRIGGER) ? "mobile" : ((MYCMD.arg1 == OBJ_TRIGGER) ? "object" : ((MYCMD.arg1 == WLD_TRIGGER) ? "room" : "????"))),
-                      MYCMD.sarg2);
+      write_to_output(
+          d, "%sAssign global %s:%d to %s = %s",
+          buf1, // MYCMD.if_flag ? " then " : "",
+          MYCMD.sarg1, MYCMD.arg2,
+          ((MYCMD.arg1 == MOB_TRIGGER)
+               ? "mobile"
+               : ((MYCMD.arg1 == OBJ_TRIGGER) ? "object"
+                                              : ((MYCMD.arg1 == WLD_TRIGGER) ? "room" : "????"))),
+          MYCMD.sarg2);
       break;
     default:
       write_to_output(d, "<Unknown Command>");
@@ -732,19 +731,19 @@ static void zedit_disp_comtype(struct descriptor_data *d)
 {
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(d,
-                  "\r\n"
-                  "%sM%s) Load Mobile to room             %sO%s) Load Object to room\r\n"
-                  "%sE%s) Equip mobile with object        %sG%s) Give an object to a mobile\r\n"
-                  "%sP%s) Put object in another object    %sD%s) Open/Close/Lock a Door\r\n"
-                  "%sR%s) Remove an object from the room  %sJ%s) Jump over next <x> commands\r\n"
-                  "%sT%s) Assign a trigger                %sV%s) Set a global variable\r\n"
-                  "%sI%s) Give treasure to a mobile       %sL%s) Load treasure in another object\r\n"
-                  "\r\n"
-                  "What sort of command will this be? : ",
-                  grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
-                  grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
-                  grn, nrm, grn, nrm);
+  write_to_output(
+      d,
+      "\r\n"
+      "%sM%s) Load Mobile to room             %sO%s) Load Object to room\r\n"
+      "%sE%s) Equip mobile with object        %sG%s) Give an object to a mobile\r\n"
+      "%sP%s) Put object in another object    %sD%s) Open/Close/Lock a Door\r\n"
+      "%sR%s) Remove an object from the room  %sJ%s) Jump over next <x> commands\r\n"
+      "%sT%s) Assign a trigger                %sV%s) Set a global variable\r\n"
+      "%sI%s) Give treasure to a mobile       %sL%s) Load treasure in another object\r\n"
+      "\r\n"
+      "What sort of command will this be? : ",
+      grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn,
+      nrm, grn, nrm, grn, nrm);
   OLC_MODE(d) = ZEDIT_COMMAND_TYPE;
 }
 
@@ -866,7 +865,8 @@ static void zedit_disp_arg3(struct descriptor_data *d)
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     column_list(d->character, 0, equipment_types, NUM_WEARS, TRUE);
 #else
-    column_list(d->character, 0, equipment_types, NUM_WEARS - 4, TRUE); // added -4 to prevent ear/ear/eyes/badge
+    column_list(d->character, 0, equipment_types, NUM_WEARS - 4,
+                TRUE); // added -4 to prevent ear/ear/eyes/badge
 #endif
     write_to_output(d, "Location to equip : ");
     break;
@@ -1023,7 +1023,8 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       else
         write_to_output(d, "Saving zone info in memory.\r\n");
 
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits zone info for room %d.", GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits zone info for room %d.", GET_NAME(d->character), OLC_NUM(d));
       /* FALL THROUGH */
     case 'n':
     case 'N':
@@ -1119,7 +1120,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
             send_to_char(ch, "\r\n");
         }
         if ((i % 3) != 0)
-            send_to_char(ch, "\r\n");
+          send_to_char(ch, "\r\n");
         send_to_char(ch, "\r\n");
         write_to_output(d, "Enter the region this zone is within :\r\n");
         OLC_MODE(d) = ZEDIT_REGIONS;
@@ -1138,7 +1139,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
             send_to_char(ch, "\r\n");
         }
         if ((i % 3) != 0)
-            send_to_char(ch, "\r\n");
+          send_to_char(ch, "\r\n");
         send_to_char(ch, "\r\n");
         write_to_output(d, "Enter the city this zone is within :\r\n");
         OLC_MODE(d) = ZEDIT_CITIES;
@@ -1153,12 +1154,12 @@ void zedit_parse(struct descriptor_data *d, char *arg)
         send_to_char(ch, "%2d) %-20s ", 0, "None");
         for (i = 1; i <= num_of_clans; i++)
         {
-          send_to_char(ch, "%2d) %-20s ", i, clan_list[i-1].clan_name);
+          send_to_char(ch, "%2d) %-20s ", i, clan_list[i - 1].clan_name);
           if ((i % 3) == 2)
             send_to_char(ch, "\r\n");
         }
         if ((i % 3) != 2)
-            send_to_char(ch, "\r\n");
+          send_to_char(ch, "\r\n");
         send_to_char(ch, "\r\n");
         write_to_output(d, "Enter the clan that occupies this zone :\r\n");
         OLC_MODE(d) = ZEDIT_FACTION;
@@ -1342,9 +1343,11 @@ void zedit_parse(struct descriptor_data *d, char *arg)
         }
         else
         {
-          write_to_output(d, "Dependent commands: [T]hen, [E]lse or [N]ormal (indpendent)\r\n"
-                             "[T]hen and [E]lse can accept single number digits to reference previous lines.\r\n"
-                             "(t#/e#/n):  ");
+          write_to_output(
+              d,
+              "Dependent commands: [T]hen, [E]lse or [N]ormal (indpendent)\r\n"
+              "[T]hen and [E]lse can accept single number digits to reference previous lines.\r\n"
+              "(t#/e#/n):  ");
           OLC_MODE(d) = ZEDIT_IF_FLAG;
         }
       }
@@ -1860,7 +1863,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
   case ZEDIT_REGIONS:
     pos = atoi(arg);
     if (!isdigit(*arg) || pos < 1 || pos >= NUM_REGIONS)
-      write_to_output(d, "Try again (1-%d) : ", NUM_REGIONS-1);
+      write_to_output(d, "Try again (1-%d) : ", NUM_REGIONS - 1);
     else
     {
       OLC_ZONE(d)->region = pos;
@@ -1872,7 +1875,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
   case ZEDIT_CITIES:
     pos = atoi(arg);
     if (!isdigit(*arg) || pos < 1 || pos >= NUM_CITIES)
-      write_to_output(d, "Try again (1-%d) : ", NUM_CITIES-1);
+      write_to_output(d, "Try again (1-%d) : ", NUM_CITIES - 1);
     else
     {
       OLC_ZONE(d)->city = pos;
@@ -1899,7 +1902,8 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     if (OLC_ZNUM(d) == top_of_zone_table)
       OLC_ZONE(d)->top = LIMIT(atoi(arg), genolc_zonep_bottom(OLC_ZONE(d)), 32000);
     else
-      OLC_ZONE(d)->top = LIMIT(atoi(arg), genolc_zonep_bottom(OLC_ZONE(d)), genolc_zone_bottom(OLC_ZNUM(d) + 1) - 1);
+      OLC_ZONE(d)->top = LIMIT(atoi(arg), genolc_zonep_bottom(OLC_ZONE(d)),
+                               genolc_zone_bottom(OLC_ZNUM(d) + 1) - 1);
     OLC_ZONE(d)->number = 1;
     zedit_disp_menu(d);
     break;

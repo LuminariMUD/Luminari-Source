@@ -98,12 +98,12 @@ void wilderness_tree_fall_event(int x, int y, int tree_size) {
     /* Calculate max hearing distance based on tree size */
     int max_distance = 3 + (tree_size / 10); // Larger trees heard farther
     int base_volume = 50 + tree_size;        // Larger trees are louder
-    
+
     /* Only publish if players are nearby */
     if (!pubsub_has_listeners_in_radius(x, y, max_distance)) {
         return; /* No one around to hear it */
     }
-    
+
     /* Set up distance-based messages */
     const char *distance_messages[MAX_DISTANCE_VARIANTS] = {
         "A massive tree crashes down right next to you with earth-shaking force!",
@@ -112,7 +112,7 @@ void wilderness_tree_fall_event(int x, int y, int tree_size) {
         "A distant rumbling crash echoes through the forest.",
         "You barely make out the faint sound of something falling far away."
     };
-    
+
     /* Publish spatial event */
     pubsub_publish_spatial(
         pubsub_find_topic("world.wilderness.audio")->topic_id,
@@ -262,10 +262,10 @@ struct pubsub_topic {
     bool persistent;                       /* Survive reboots? */
     int max_subscribers;                   /* Subscriber limit (-1 = unlimited) */
     int message_ttl;                       /* Message time-to-live in seconds */
-    
+
     struct list_data *subscribers;         /* List of subscribers */
     struct list_data *moderators;          /* List of topic moderators */
-    
+
     struct pubsub_topic *next;             /* For linked list */
 };
 ```
@@ -293,16 +293,16 @@ struct pubsub_subscription {
     time_t subscribed;                     /* Subscription timestamp */
     time_t last_delivered;                 /* Last successful delivery */
     int messages_received;                 /* Total messages received */
-    
+
     /* Filtering options */
     char *filter_keywords;                 /* Keyword filters */
     int min_priority;                      /* Minimum message priority */
     bool offline_delivery;                 /* Deliver when offline? */
-    
+
     /* Handler configuration */
     char *handler_name;                    /* Handler function name */
     char *handler_data;                    /* Handler-specific data */
-    
+
     struct pubsub_subscription *next;      /* For linked list */
 };
 ```
@@ -346,20 +346,20 @@ struct pubsub_spatial_data {
     /* Spatial coordinates */
     int origin_x, origin_y;            /* Event origin coordinates */
     int origin_elevation;              /* Elevation of event origin */
-    
+
     /* Audio properties */
     int max_distance;                  /* Maximum hearing distance */
     int base_volume;                   /* Base volume level (0-100) */
     int frequency;                     /* Sound frequency (affects propagation) */
-    
+
     /* Environmental factors */
     int spatial_flags;                 /* Spatial processing flags */
     int weather_modifier;              /* Weather effect on sound (-50 to +50) */
-    
+
     /* Distance-based message variants */
     char *distance_messages[MAX_DISTANCE_VARIANTS];
     int distance_thresholds[MAX_DISTANCE_VARIANTS]; /* Distance breakpoints */
-    
+
     /* Color codes for different distances */
     char *distance_colors[MAX_DISTANCE_VARIANTS];
 };
@@ -372,24 +372,24 @@ struct pubsub_message {
     time_t timestamp;                      /* Message creation time */
     time_t expires;                        /* Message expiration time */
     long sender_id;                        /* Sender character ID */
-    
+
     /* Message content */
     char *content;                         /* Primary message content */
     char *metadata;                        /* JSON or key-value metadata */
     size_t content_length;                 /* Content size */
-    
+
     /* Spatial data (only for MSG_TYPE_SPATIAL) */
     struct pubsub_spatial_data *spatial;   /* Spatial event information */
-    
+
     /* Delivery tracking */
     int delivery_attempts;                 /* Number of delivery attempts */
     int successful_deliveries;             /* Successful deliveries count */
     int failed_deliveries;                 /* Failed deliveries count */
-    
+
     /* Processing state */
     bool processed;                        /* Has been processed? */
     time_t processed_time;                 /* When it was processed */
-    
+
     struct pubsub_message *next;           /* For queue linked list */
 };
 ```
@@ -409,7 +409,7 @@ struct pubsub_player_cache {
     int subscription_count;                /* Cached subscription count */
     int *subscribed_topics;                /* Array of topic IDs */
     time_t last_cache_update;              /* When cache was last refreshed */
-    
+
     struct pubsub_player_cache *next;      /* For hash table */
 };
 
@@ -425,7 +425,7 @@ extern struct pubsub_player_cache *subscription_cache[SUBSCRIPTION_CACHE_SIZE];
 
 ```c
 /* Topic Management */
-int pubsub_create_topic(const char *name, const char *description, 
+int pubsub_create_topic(const char *name, const char *description,
                        int category, int access_type, struct char_data *creator);
 int pubsub_delete_topic(int topic_id, struct char_data *deleter);
 struct pubsub_topic *pubsub_find_topic(const char *name);
@@ -440,34 +440,34 @@ int pubsub_pause_subscription(struct char_data *ch, int topic_id);
 int pubsub_resume_subscription(struct char_data *ch, int topic_id);
 
 /* Message Publishing */
-int pubsub_publish(int topic_id, const char *content, int priority, 
+int pubsub_publish(int topic_id, const char *content, int priority,
                    struct char_data *sender);
-int pubsub_publish_structured(int topic_id, const char *content, 
-                              const char *metadata, int priority, 
+int pubsub_publish_structured(int topic_id, const char *content,
+                              const char *metadata, int priority,
                               struct char_data *sender);
-int pubsub_publish_spatial(int topic_id, int origin_x, int origin_y, 
+int pubsub_publish_spatial(int topic_id, int origin_x, int origin_y,
                           const char **distance_messages, int max_distance,
                           int volume, int spatial_flags, struct char_data *sender);
-int pubsub_broadcast(const char *topic_pattern, const char *content, 
+int pubsub_broadcast(const char *topic_pattern, const char *content,
                      int priority, struct char_data *sender);
 
 /* Spatial Event Utilities */
 bool pubsub_has_listeners_in_radius(int center_x, int center_y, int radius);
 int pubsub_calculate_terrain_modifier(int from_x, int from_y, int to_x, int to_y);
-int pubsub_calculate_distance_modifier(int distance, int max_distance, 
+int pubsub_calculate_distance_modifier(int distance, int max_distance,
                                       int base_volume);
 int pubsub_get_wilderness_distance(int x1, int y1, int x2, int y2);
 
 /* Enhanced Subscription with Spatial Filtering */
-int pubsub_subscribe_spatial(struct char_data *ch, int topic_id, 
+int pubsub_subscribe_spatial(struct char_data *ch, int topic_id,
                             const char *handler, int max_distance);
-int pubsub_set_spatial_filter(struct char_data *ch, int topic_id, 
+int pubsub_set_spatial_filter(struct char_data *ch, int topic_id,
                              int max_distance, bool terrain_sensitive);
 
 /* Message Processing */
 void pubsub_process_messages(void);
 void pubsub_process_topic_messages(int topic_id);
-int pubsub_deliver_message(struct pubsub_message *msg, long player_id, 
+int pubsub_deliver_message(struct pubsub_message *msg, long player_id,
                            const char *handler_name, const char *handler_data);
 
 /* Database Operations */
@@ -485,7 +485,7 @@ void pubsub_refresh_subscription_cache(void);
 
 /* Database-Driven Subscription Operations */
 int pubsub_load_player_subscriptions(long player_id);
-int pubsub_save_subscription(long player_id, int topic_id, const char *handler, 
+int pubsub_save_subscription(long player_id, int topic_id, const char *handler,
                             const char *handler_data);
 int pubsub_remove_subscription(long player_id, int topic_id);
 int pubsub_get_player_subscription_count(long player_id);
@@ -511,20 +511,20 @@ int pubsub_cleanup_old_subscriptions(void);
 
 ```c
 /* Handler function pointer type */
-typedef int (*pubsub_handler_func)(struct char_data *subscriber, 
+typedef int (*pubsub_handler_func)(struct char_data *subscriber,
                                    struct pubsub_message *message,
                                    const char *handler_data);
 
 /* Built-in handlers */
-int pubsub_handler_send_text(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_send_text(struct char_data *ch, struct pubsub_message *msg,
                             const char *data);
-int pubsub_handler_send_formatted(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_send_formatted(struct char_data *ch, struct pubsub_message *msg,
                                  const char *data);
-int pubsub_handler_execute_command(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_execute_command(struct char_data *ch, struct pubsub_message *msg,
                                   const char *data);
-int pubsub_handler_trigger_event(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_trigger_event(struct char_data *ch, struct pubsub_message *msg,
                                 const char *data);
-int pubsub_handler_log_message(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_log_message(struct char_data *ch, struct pubsub_message *msg,
                               const char *data);
 ```
 
@@ -541,12 +541,12 @@ int pubsub_handler_log_message(struct char_data *ch, struct pubsub_message *msg,
 /* Add to main game loop, called every pulse */
 void game_loop(void) {
     // ... existing game loop code ...
-    
+
     /* Process PubSub messages */
     if (pulse % PULSE_PUBSUB == 0) {
         pubsub_process_messages();
     }
-    
+
     /* Cleanup expired messages periodically */
     if (pulse % (PULSE_PUBSUB * 60) == 0) {
         pubsub_cleanup_expired_messages();
@@ -567,18 +567,18 @@ void init_pubsub_tables(void) {
     }
 
     log("Initializing PubSub system tables...");
-    
+
     if (pubsub_db_create_tables() != PUBSUB_SUCCESS) {
         log("SYSERR: Failed to initialize PubSub database tables");
         return;
     }
-    
+
     /* Load existing topics into memory */
     if (pubsub_db_load_topics() != PUBSUB_SUCCESS) {
         log("SYSERR: Failed to load PubSub topics from database");
         return;
     }
-    
+
     log("PubSub system tables initialized successfully");
 }
 
@@ -598,13 +598,13 @@ void boot_db_pubsub_init(void) {
 /* In login process - load player's subscription cache */
 void pubsub_player_login(struct char_data *ch) {
     long player_id = GET_IDNUM(ch);
-    
+
     /* Load player's subscription data into memory cache */
     pubsub_cache_player_subscriptions(player_id);
-    
+
     /* Check for any offline messages */
     pubsub_deliver_offline_messages(player_id);
-    
+
     /* Update player's last online time */
     pubsub_update_player_last_online(player_id);
 }
@@ -612,10 +612,10 @@ void pubsub_player_login(struct char_data *ch) {
 /* In logout process - clean up player's cache */
 void pubsub_player_logout(struct char_data *ch) {
     long player_id = GET_IDNUM(ch);
-    
+
     /* Save any pending subscription changes */
     pubsub_flush_subscription_cache(player_id);
-    
+
     /* Remove from memory cache */
     pubsub_invalidate_player_cache(player_id);
 }
@@ -650,7 +650,7 @@ EVENTFUNC(event_pubsub_delayed_delivery);
 void trigger_weather_change_event(int weather_type, int zone) {
     char content[MAX_STRING_LENGTH];
     snprintf(content, sizeof(content), "weather_change:%d:%d", weather_type, zone);
-    pubsub_publish(pubsub_find_topic("world.weather"), content, 
+    pubsub_publish(pubsub_find_topic("world.weather"), content,
                    MSG_PRIORITY_NORMAL, NULL);
 }
 ```
@@ -661,14 +661,14 @@ void trigger_weather_change_event(int weather_type, int zone) {
 
 ```c
 /* Enhanced tell system using PubSub */
-void perform_tell_via_pubsub(struct char_data *ch, struct char_data *vict, 
+void perform_tell_via_pubsub(struct char_data *ch, struct char_data *vict,
                              const char *message) {
     char topic_name[MAX_STRING_LENGTH];
     snprintf(topic_name, sizeof(topic_name), "player.tell.%ld", GET_IDNUM(vict));
-    
+
     /* Create private topic if it doesn't exist */
     int topic_id = pubsub_find_or_create_private_topic(topic_name, vict);
-    
+
     /* Publish the tell message */
     pubsub_publish(topic_id, message, MSG_PRIORITY_HIGH, ch);
 }
@@ -688,36 +688,36 @@ void notify_weather_change(int zone, int old_weather, int new_weather) {
     struct pubsub_topic *topic = pubsub_find_topic("world.weather.changes");
     char content[MAX_STRING_LENGTH];
     char metadata[MAX_STRING_LENGTH];
-    
-    snprintf(content, sizeof(content), 
+
+    snprintf(content, sizeof(content),
              "The weather changes from %s to %s",
              weather_types[old_weather], weather_types[new_weather]);
-             
-    snprintf(metadata, sizeof(metadata), 
+
+    snprintf(metadata, sizeof(metadata),
              "{\"zone\":%d,\"old_weather\":%d,\"new_weather\":%d}",
              zone, old_weather, new_weather);
-    
-    pubsub_publish_structured(topic->topic_id, content, metadata, 
+
+    pubsub_publish_structured(topic->topic_id, content, metadata,
                              MSG_PRIORITY_NORMAL, NULL);
 }
 
 /* Weather subscription handler */
-int pubsub_handler_weather_change(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_weather_change(struct char_data *ch, struct pubsub_message *msg,
                                  const char *data) {
     /* Parse metadata to check if player is in affected zone */
     cJSON *json = cJSON_Parse(msg->metadata);
     int zone = cJSON_GetObjectItem(json, "zone")->valueint;
-    
+
     if (world[IN_ROOM(ch)].zone == zone) {
         send_to_char(ch, "\tY%s\tn\r\n", msg->content);
-        
+
         /* Optional: Add weather-specific effects */
         int new_weather = cJSON_GetObjectItem(json, "new_weather")->valueint;
         if (new_weather == WEATHER_LIGHTNING) {
             send_to_char(ch, "\tWLightning illuminates the area!\tn\r\n");
         }
     }
-    
+
     cJSON_Delete(json);
     return PUBSUB_DELIVERY_SUCCESS;
 }
@@ -732,14 +732,14 @@ int pubsub_handler_weather_change(struct char_data *ch, struct pubsub_message *m
 void guild_broadcast(int guild_id, const char *message, struct char_data *sender) {
     char topic_name[MAX_STRING_LENGTH];
     snprintf(topic_name, sizeof(topic_name), "guild.%d.broadcast", guild_id);
-    
+
     struct pubsub_topic *topic = pubsub_find_topic(topic_name);
     if (!topic) {
         /* Create guild topic automatically */
-        topic_id = pubsub_create_topic(topic_name, "Guild broadcast channel", 
+        topic_id = pubsub_create_topic(topic_name, "Guild broadcast channel",
                                       TOPIC_CAT_GUILD, TOPIC_ACCESS_RESTRICTED, sender);
     }
-    
+
     pubsub_publish(topic->topic_id, message, MSG_PRIORITY_NORMAL, sender);
 }
 
@@ -747,7 +747,7 @@ void guild_broadcast(int guild_id, const char *message, struct char_data *sender
 void auto_subscribe_guild_member(struct char_data *ch, int guild_id) {
     char topic_name[MAX_STRING_LENGTH];
     snprintf(topic_name, sizeof(topic_name), "guild.%d.broadcast", guild_id);
-    
+
     struct pubsub_topic *topic = pubsub_find_topic(topic_name);
     if (topic) {
         pubsub_subscribe(ch, topic->topic_id, "send_formatted");
@@ -764,20 +764,20 @@ void auto_subscribe_guild_member(struct char_data *ch, int guild_id) {
 void notify_quest_completion(struct char_data *ch, int quest_id) {
     char content[MAX_STRING_LENGTH];
     char metadata[MAX_STRING_LENGTH];
-    
-    snprintf(content, sizeof(content), 
+
+    snprintf(content, sizeof(content),
              "%s has completed the quest '%s'!",
              GET_NAME(ch), quest_table[quest_id].name);
-             
+
     snprintf(metadata, sizeof(metadata),
              "{\"player_id\":%ld,\"quest_id\":%d,\"quest_name\":\"%s\"}",
              GET_IDNUM(ch), quest_id, quest_table[quest_id].name);
-    
+
     /* Publish to zone-specific topic */
     char topic_name[MAX_STRING_LENGTH];
-    snprintf(topic_name, sizeof(topic_name), "zone.%d.quests", 
+    snprintf(topic_name, sizeof(topic_name), "zone.%d.quests",
              world[IN_ROOM(ch)].zone);
-    
+
     struct pubsub_topic *topic = pubsub_find_topic(topic_name);
     if (topic) {
         pubsub_publish_structured(topic->topic_id, content, metadata,
@@ -794,7 +794,7 @@ void notify_quest_completion(struct char_data *ch, int quest_id) {
 /* System shutdown notification */
 void notify_system_shutdown(int minutes_remaining) {
     char content[MAX_STRING_LENGTH];
-    
+
     if (minutes_remaining > 1) {
         snprintf(content, sizeof(content),
                 "\tR[SYSTEM]\tn The MUD will shut down in %d minutes for maintenance.\r\n"
@@ -805,8 +805,8 @@ void notify_system_shutdown(int minutes_remaining) {
                 "\tR[SYSTEM]\tn \tYSHUTDOWN IMMINENT!\tn\r\n"
                 "The MUD will shut down in less than 1 minute!");
     }
-    
-    pubsub_publish(pubsub_find_topic("system.announcements")->topic_id, 
+
+    pubsub_publish(pubsub_find_topic("system.announcements")->topic_id,
                    content, MSG_PRIORITY_URGENT, NULL);
 }
 ```
@@ -827,88 +827,88 @@ struct pubsub_spatial_message {
 };
 
 /* Spatial event publisher */
-void publish_wilderness_audio_event(int x, int y, const char *base_message, 
-                                   int max_distance, int volume, 
+void publish_wilderness_audio_event(int x, int y, const char *base_message,
+                                   int max_distance, int volume,
                                    bool terrain_sensitive) {
     /* Only publish if there are potential listeners nearby */
     if (!has_players_in_radius(x, y, max_distance)) {
         /* Tree falls in forest with no one to hear - no event */
         return;
     }
-    
+
     struct pubsub_spatial_message *spatial_msg = create_spatial_message();
     spatial_msg->origin_x = x;
     spatial_msg->origin_y = y;
     spatial_msg->max_distance = max_distance;
     spatial_msg->base_volume = volume;
     spatial_msg->terrain_affects = terrain_sensitive;
-    
+
     /* Set up distance-based message variants */
     spatial_msg->distance_variants[0] = strdup("A massive tree crashes to the ground with thunderous force!");
     spatial_msg->distance_variants[1] = strdup("You hear the loud crack and crash of a falling tree nearby.");
     spatial_msg->distance_variants[2] = strdup("A distant rumbling crash echoes from somewhere in the forest.");
     spatial_msg->distance_variants[3] = strdup("You hear a faint crashing sound carried on the wind.");
-    
+
     /* Create metadata with spatial information */
     char metadata[MAX_STRING_LENGTH];
     snprintf(metadata, sizeof(metadata),
              "{\"type\":\"spatial_audio\",\"origin\":[%d,%d],\"max_distance\":%d,"
              "\"volume\":%d,\"terrain_sensitive\":%s,\"event_type\":\"tree_fall\"}",
              x, y, max_distance, volume, terrain_sensitive ? "true" : "false");
-    
+
     /* Publish to wilderness audio topic */
     struct pubsub_topic *topic = pubsub_find_topic("world.wilderness.audio");
-    pubsub_publish_spatial(topic->topic_id, (struct pubsub_message*)spatial_msg, 
+    pubsub_publish_spatial(topic->topic_id, (struct pubsub_message*)spatial_msg,
                           metadata, MSG_PRIORITY_NORMAL, NULL);
 }
 
 /* Spatial audio handler with distance and terrain calculations */
-int pubsub_handler_spatial_audio(struct char_data *ch, struct pubsub_message *msg, 
+int pubsub_handler_spatial_audio(struct char_data *ch, struct pubsub_message *msg,
                                 const char *data) {
     struct pubsub_spatial_message *spatial = (struct pubsub_spatial_message*)msg;
-    
+
     /* Check if player is in wilderness */
     if (!IS_WILDERNESS(IN_ROOM(ch))) {
         return PUBSUB_DELIVERY_SUCCESS; /* Skip non-wilderness players */
     }
-    
+
     /* Calculate distance from event */
     int player_x = GET_COORD_X(ch);
     int player_y = GET_COORD_Y(ch);
-    int distance = calculate_wilderness_distance(player_x, player_y, 
+    int distance = calculate_wilderness_distance(player_x, player_y,
                                                 spatial->origin_x, spatial->origin_y);
-    
+
     /* Check if within hearing range */
     if (distance > spatial->max_distance) {
         return PUBSUB_DELIVERY_SUCCESS; /* Too far to hear */
     }
-    
+
     /* Calculate terrain-based sound modification */
     int terrain_modifier = 0;
     if (spatial->terrain_affects) {
         terrain_modifier = calculate_terrain_sound_modifier(
             player_x, player_y, spatial->origin_x, spatial->origin_y);
     }
-    
+
     /* Determine effective distance with terrain modification */
     int effective_distance = distance + terrain_modifier;
-    
+
     /* Select appropriate message variant based on effective distance */
     int variant_index = MIN(effective_distance / 2, MAX_DISTANCE_VARIANTS - 1);
     const char *message = spatial->distance_variants[variant_index];
-    
+
     /* Calculate volume with distance falloff */
-    int volume = spatial->base_volume * (spatial->max_distance - effective_distance) / 
+    int volume = spatial->base_volume * (spatial->max_distance - effective_distance) /
                  spatial->max_distance;
-    
+
     /* Apply additional effects based on distance and terrain */
     char final_message[MAX_STRING_LENGTH];
     if (effective_distance <= 1) {
         /* Very close - full impact with possible ground shake */
-        snprintf(final_message, sizeof(final_message), 
+        snprintf(final_message, sizeof(final_message),
                 "%s\r\nThe ground trembles beneath your feet!", message);
         send_to_char(ch, "\tR%s\tn\r\n", final_message);
-        
+
         /* Possible minor effects */
         if (GET_POS(ch) < POS_STANDING) {
             send_to_char(ch, "The impact nearly knocks you over!\r\n");
@@ -923,24 +923,24 @@ int pubsub_handler_spatial_audio(struct char_data *ch, struct pubsub_message *ms
         /* Far - very faint */
         send_to_char(ch, "\tg%s\tn\r\n", message);
     }
-    
+
     /* Log the event for debugging/analysis */
     mudlog(BRF, LVL_IMMORT, TRUE, "SPATIAL_AUDIO: %s at (%d,%d) heard tree fall "
            "from (%d,%d), distance=%d, effective=%d, volume=%d",
            GET_NAME(ch), player_x, player_y, spatial->origin_x, spatial->origin_y,
            distance, effective_distance, volume);
-    
+
     return PUBSUB_DELIVERY_SUCCESS;
 }
 
 /* Helper function to check for nearby players before publishing */
 bool has_players_in_radius(int center_x, int center_y, int radius) {
     struct descriptor_data *d;
-    
+
     for (d = descriptor_list; d; d = d->next) {
         if (STATE(d) != CON_PLAYING || !d->character) continue;
         if (!IS_WILDERNESS(IN_ROOM(d->character))) continue;
-        
+
         int dist = calculate_wilderness_distance(GET_COORD_X(d->character),
                                                GET_COORD_Y(d->character),
                                                center_x, center_y);
@@ -954,18 +954,18 @@ bool has_players_in_radius(int center_x, int center_y, int radius) {
 /* Terrain-based sound modification */
 int calculate_terrain_sound_modifier(int from_x, int from_y, int to_x, int to_y) {
     int modifier = 0;
-    
+
     /* Trace path between points and accumulate terrain effects */
     int dx = abs(to_x - from_x);
     int dy = abs(to_y - from_y);
     int steps = MAX(dx, dy);
-    
+
     for (int i = 0; i <= steps; i++) {
         int x = from_x + (i * (to_x - from_x)) / steps;
         int y = from_y + (i * (to_y - from_y)) / steps;
-        
+
         int terrain = get_wilderness_terrain(x, y);
-        
+
         switch (terrain) {
             case TERRAIN_FOREST:
                 modifier += 1; /* Trees muffle sound */
@@ -986,7 +986,7 @@ int calculate_terrain_sound_modifier(int from_x, int from_y, int to_x, int to_y)
                 break;
         }
     }
-    
+
     return modifier / (steps + 1); /* Average the modifier */
 }
 ```
@@ -997,11 +997,11 @@ int calculate_terrain_sound_modifier(int from_x, int from_y, int to_x, int to_y)
 
 ```c
 /* Enhanced tell with PubSub backend */
-void perform_enhanced_tell(struct char_data *ch, const char *target_name, 
+void perform_enhanced_tell(struct char_data *ch, const char *target_name,
                           const char *message) {
     struct char_data *vict = get_player_vis(ch, target_name, NULL, FIND_CHAR_WORLD);
     long target_id;
-    
+
     if (vict) {
         target_id = GET_IDNUM(vict);
     } else {
@@ -1012,32 +1012,32 @@ void perform_enhanced_tell(struct char_data *ch, const char *target_name,
             return;
         }
     }
-    
+
     /* Create or find personal message topic */
     char topic_name[MAX_STRING_LENGTH];
     snprintf(topic_name, sizeof(topic_name), "player.messages.%ld", target_id);
-    
+
     struct pubsub_topic *topic = pubsub_find_topic(topic_name);
     if (!topic) {
-        topic_id = pubsub_create_topic(topic_name, "Personal messages", 
+        topic_id = pubsub_create_topic(topic_name, "Personal messages",
                                       TOPIC_CAT_PLAYER, TOPIC_ACCESS_PRIVATE, ch);
         /* Auto-subscribe the target player */
         pubsub_subscribe_by_id(target_id, topic_id, "handler_personal_message");
     }
-    
+
     /* Format the message */
     char formatted_msg[MAX_STRING_LENGTH];
-    snprintf(formatted_msg, sizeof(formatted_msg), "%s tells you, '%s'", 
+    snprintf(formatted_msg, sizeof(formatted_msg), "%s tells you, '%s'",
              GET_NAME(ch), message);
-    
+
     /* Publish the message */
     pubsub_publish(topic->topic_id, formatted_msg, MSG_PRIORITY_HIGH, ch);
-    
+
     /* Confirmation to sender */
     if (vict) {
         send_to_char(ch, "You tell %s, '%s'\r\n", GET_NAME(vict), message);
     } else {
-        send_to_char(ch, "You leave a message for %s: '%s'\r\n", 
+        send_to_char(ch, "You leave a message for %s: '%s'\r\n",
                      target_name, message);
     }
 }
@@ -1174,7 +1174,7 @@ struct pubsub_message *pubsub_alloc_message(void) {
         memset(msg, 0, sizeof(struct pubsub_message));
         return msg;
     }
-    
+
     /* Allocate new message if pool is empty */
     return (struct pubsub_message *)calloc(1, sizeof(struct pubsub_message));
 }
@@ -1223,7 +1223,7 @@ struct pubsub_rate_limit {
 
 /* Safety checks */
 bool pubsub_check_subscription_limit(struct char_data *ch) {
-    if (ch->player_specials->saved.pubsub_data.subscription_count >= 
+    if (ch->player_specials->saved.pubsub_data.subscription_count >=
         MAX_PLAYER_SUBSCRIPTIONS) {
         send_to_char(ch, "You have reached your subscription limit (%d).\r\n",
                      MAX_PLAYER_SUBSCRIPTIONS);
@@ -1454,10 +1454,10 @@ int function_name(params) {
         log("SYSERR: function_name called with NULL param");
         return PUBSUB_ERROR_INVALID_PARAM;
     }
-    
+
     /* Main logic */
     // ... implementation ...
-    
+
     /* Cleanup and return */
     return PUBSUB_SUCCESS;
 }
@@ -1561,30 +1561,30 @@ log/
 /* Topic creation with proper cleanup */
 struct pubsub_topic *pubsub_create_topic_internal(const char *name) {
     struct pubsub_topic *topic = NULL;
-    
+
     CREATE(topic, struct pubsub_topic, 1);
     if (!topic) return NULL;
-    
+
     topic->name = str_dup(name);
     topic->subscribers = create_list();
     topic->moderators = create_list();
-    
+
     if (!topic->name || !topic->subscribers || !topic->moderators) {
         pubsub_free_topic(topic); // Handles partial cleanup
         return NULL;
     }
-    
+
     return topic;
 }
 
 void pubsub_free_topic(struct pubsub_topic *topic) {
     if (!topic) return;
-    
+
     if (topic->name) free(topic->name);
     if (topic->description) free(topic->description);
     if (topic->subscribers) free_list(topic->subscribers);
     if (topic->moderators) free_list(topic->moderators);
-    
+
     free(topic);
 }
 ```
@@ -1605,7 +1605,7 @@ struct pubsub_message *pubsub_alloc_message(void) {
         memset(msg, 0, sizeof(struct pubsub_message));
         return msg;
     }
-    
+
     /* Pool empty, allocate new */
     struct pubsub_message *msg;
     CREATE(msg, struct pubsub_message, 1);
@@ -1614,12 +1614,12 @@ struct pubsub_message *pubsub_alloc_message(void) {
 
 void pubsub_free_message(struct pubsub_message *msg) {
     if (!msg) return;
-    
+
     /* Free message content */
     if (msg->content) free(msg->content);
     if (msg->metadata) free(msg->metadata);
     if (msg->spatial) pubsub_free_spatial_data(msg->spatial);
-    
+
     /* Return to pool if not full */
     if (pool_count < PUBSUB_MESSAGE_POOL_SIZE) {
         msg->next = message_pool;
@@ -1715,20 +1715,20 @@ const char *pubsub_strerror(int error_code) {
         [-PUBSUB_ERROR_NOT_FOUND] = "Item not found",
         // ... etc
     };
-    
+
     if (error_code > 0 || error_code < -50) {
         return "Unknown error";
     }
-    
+
     return error_messages[-error_code];
 }
 
 /* Centralized error logging */
-void pubsub_log_error(int error_code, const char *function, 
+void pubsub_log_error(int error_code, const char *function,
                       const char *details) {
-    mudlog(BRF, LVL_IMMORT, TRUE, 
-           "PUBSUB ERROR in %s: %s (%s)", 
-           function, pubsub_strerror(error_code), 
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "PUBSUB ERROR in %s: %s (%s)",
+           function, pubsub_strerror(error_code),
            details ? details : "no details");
 }
 
@@ -1774,12 +1774,12 @@ str_dup()                 // Safe string duplication
 /* In comm.c heartbeat() function */
 void heartbeat(void) {
     // ... existing code ...
-    
+
     /* Process PubSub messages every pulse */
     if (pulse % PULSE_PUBSUB == 0) {
         pubsub_process_messages();
     }
-    
+
     /* Cleanup expired messages every minute */
     if (pulse % (60 * PASSES_PER_SEC) == 0) {
         pubsub_cleanup_expired();
@@ -1792,7 +1792,7 @@ void heartbeat(void) {
 /* Add to player_special_data_saved in structs.h */
 struct player_special_data_saved {
     // ... existing fields ...
-    
+
     /* PubSub player data */
     int pubsub_subscription_count;
     bool pubsub_enabled;
@@ -1808,12 +1808,12 @@ struct player_special_data_saved {
 ```c
 const struct command_info cmd_info[] = {
     // ... existing commands ...
-    
+
     /* PubSub administrative commands */
     { "pubsub"      , do_pubsub      , LVL_IMMORT, 0, 0 },
     { "topicadmin"  , do_topicadmin  , LVL_GRGOD , 0, 0 },
     { "pubsubstat"  , do_pubsubstat  , LVL_GRGOD , 0, 0 },
-    
+
     // ... rest of commands ...
 };
 ```
@@ -1822,15 +1822,15 @@ const struct command_info cmd_info[] = {
 ```c
 ACMD(do_pubsub) {
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
-    
+
     two_arguments(argument, arg1, arg2);
-    
+
     if (!*arg1) {
         send_to_char(ch, "Usage: pubsub <command> [arguments]\r\n"
                          "Commands: status, create, delete, list, publish\r\n");
         return;
     }
-    
+
     if (!str_cmp(arg1, "status")) {
         pubsub_show_status(ch);
     } else if (!str_cmp(arg1, "create")) {
@@ -1891,19 +1891,19 @@ struct pubsub_config {
     int max_subscriptions_per_player;
     int max_message_size;
     int message_queue_size;
-    
+
     /* Performance settings */
     int message_pool_size;
     int topic_hash_buckets;
     int subscription_hash_buckets;
     int cleanup_interval;
-    
+
     /* Spatial settings */
     int max_spatial_distance;
     float terrain_sound_multiplier;
     float weather_sound_modifier;
     float elevation_sound_factor;
-    
+
     /* Debug settings */
     int log_level;
     bool debug_spatial;
@@ -1957,29 +1957,29 @@ struct pubsub_stats {
     int total_topics;
     int active_topics;
     int private_topics;
-    
+
     /* Subscription statistics */
     int total_subscriptions;
     int active_subscriptions;
     int player_subscriptions;
     int system_subscriptions;
-    
+
     /* Message statistics */
     long long total_messages_sent;
     long long total_messages_delivered;
     long long total_messages_failed;
     long long messages_sent_this_hour;
-    
+
     /* Performance statistics */
     int avg_delivery_time_ms;
     int peak_queue_size;
     int current_queue_size;
-    
+
     /* Spatial statistics */
     int spatial_messages_sent;
     int spatial_calculations_performed;
     int players_in_range_checks;
-    
+
     /* Memory statistics */
     int topics_allocated;
     int messages_allocated;
@@ -2002,7 +2002,7 @@ void pubsub_show_stats(struct char_data *ch);
 ACMD(do_pubsubstat) {
     send_to_char(ch, "PubSub System Statistics:\r\n");
     send_to_char(ch, "========================\r\n");
-    send_to_char(ch, "Topics: %d total, %d active\r\n", 
+    send_to_char(ch, "Topics: %d total, %d active\r\n",
                  pubsub_stats.total_topics, pubsub_stats.active_topics);
     send_to_char(ch, "Subscriptions: %d total, %d active\r\n",
                  pubsub_stats.total_subscriptions, pubsub_stats.active_subscriptions);
@@ -2045,7 +2045,7 @@ CREATE TABLE IF NOT EXISTS pubsub_topics (
     message_ttl INT DEFAULT 3600,
     is_persistent BOOLEAN DEFAULT TRUE,
     is_active BOOLEAN DEFAULT TRUE,
-    
+
     INDEX idx_name (name),
     INDEX idx_category (category),
     INDEX idx_access_type (access_type),
@@ -2069,7 +2069,7 @@ CREATE TABLE IF NOT EXISTS pubsub_subscriptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_delivered_at TIMESTAMP NULL,
     messages_received INT DEFAULT 0,
-    
+
     UNIQUE KEY unique_player_topic (player_id, topic_id),
     INDEX idx_topic (topic_id),
     INDEX idx_player (player_id),
@@ -2096,7 +2096,7 @@ CREATE TABLE IF NOT EXISTS pubsub_messages (
     failed_deliveries INT DEFAULT 0,
     is_processed BOOLEAN DEFAULT FALSE,
     processed_at TIMESTAMP NULL,
-    
+
     INDEX idx_topic (topic_id),
     INDEX idx_sender (sender_id),
     INDEX idx_priority (priority),
@@ -2117,7 +2117,7 @@ CREATE TABLE IF NOT EXISTS pubsub_player_settings (
     last_cleanup_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_messages_received INT DEFAULT 0,
     last_message_at TIMESTAMP NULL,
-    
+
     FOREIGN KEY (player_id) REFERENCES player_data(id) ON DELETE CASCADE
 );
 
@@ -2127,7 +2127,7 @@ CREATE TABLE IF NOT EXISTS pubsub_statistics (
     stat_type VARCHAR(64) NOT NULL,
     stat_value BIGINT DEFAULT 0,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     UNIQUE KEY unique_stat_type (stat_type)
 );
 
@@ -2138,7 +2138,7 @@ CREATE TABLE IF NOT EXISTS pubsub_handlers (
     description TEXT,
     is_enabled BOOLEAN DEFAULT TRUE,
     usage_count INT DEFAULT 0,
-    
+
     INDEX idx_name (handler_name),
     INDEX idx_enabled (is_enabled)
 );
@@ -2180,12 +2180,12 @@ INSERT IGNORE INTO pubsub_statistics (stat_type, stat_value) VALUES
 int pubsub_migrate_data_v1_to_v2(void) {
     /* Migration logic for data format changes */
     pubsub_info("Starting data migration from v1 to v2...");
-    
+
     // Read old format
     // Convert to new format  
     // Write new format
     // Backup old format
-    
+
     pubsub_info("Data migration completed successfully");
     return PUBSUB_SUCCESS;
 }

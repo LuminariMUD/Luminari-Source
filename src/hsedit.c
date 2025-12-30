@@ -56,21 +56,10 @@ void free_house(struct house_control_rec *house);
 
 /*------------------------------------------------------------------------*/
 /* internal globals */
-const char *house_flags[] = {
-    "!GUEST",
-    "FREE",
-    "!IMM",
-    "IMP_ONLY",
-    "RENTFREE",
-    "SAVE_!RENT",
-    "!SAVE",
-    "\n"};
+const char *house_flags[] = {"!GUEST",   "FREE",       "!IMM",  "IMP_ONLY",
+                             "RENTFREE", "SAVE_!RENT", "!SAVE", "\n"};
 
-const char *house_types[] = {
-    "PLAYER_OWNED",
-    "IMM_OWNED",
-    "CLAN_OWNED",
-    "\n"};
+const char *house_types[] = {"PLAYER_OWNED", "IMM_OWNED", "CLAN_OWNED", "\n"};
 
 /*------------------------------------------------------------------------*\
   Utils and exported functions.
@@ -244,8 +233,8 @@ void hsedit_disp_flags_menu(struct descriptor_data *d)
   clear_screen(d);
   for (counter = 0; counter < HOUSE_NUM_FLAGS; counter++)
   {
-    send_to_char(d->character, "%s%2d%s) %-20.20s ",
-                 CBGRN(d->character, C_NRM), counter + 1, CCNRM(d->character, C_NRM), house_flags[counter]);
+    send_to_char(d->character, "%s%2d%s) %-20.20s ", CBGRN(d->character, C_NRM), counter + 1,
+                 CCNRM(d->character, C_NRM), house_flags[counter]);
     if (!(++columns % 2))
       send_to_char(d->character, "\r\n");
   }
@@ -270,9 +259,10 @@ void hsedit_owner_menu(struct descriptor_data *d)
            "%sQ%s) Back to main menu\r\n"
            "Enter choice : ",
 
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->owner), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), house->owner, CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->owner), CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+           CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), house->owner,
+           CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
   send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HSEDIT_OWNER_MENU;
@@ -290,10 +280,12 @@ void hsedit_dir_menu(struct descriptor_data *d)
 
   if ((house_rnum < 0) || (house_rnum == NOWHERE))
   {
-    snprintf(buf, sizeof(buf),
-             "%sWARNING%s: %sYou cannot set an atium direction before selecting a valid room vnum%s\r\n"
-             "(Press Enter)\r\n",
-             CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+    snprintf(
+        buf, sizeof(buf),
+        "%sWARNING%s: %sYou cannot set an atium direction before selecting a valid room vnum%s\r\n"
+        "(Press Enter)\r\n",
+        CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        CCNRM(d->character, C_NRM));
     OLC_MODE(d) = HSEDIT_NOVNUM;
   }
   else
@@ -307,23 +299,30 @@ void hsedit_dir_menu(struct descriptor_data *d)
         newroom[i] = NOWHERE;
     }
 
-    snprintf(buf, sizeof(buf),
-             "%s1%s) North  : (%s%s%s)\r\n"
-             "%s2%s) East   : (%s%s%s)\r\n"
-             "%s3%s) South  : (%s%s%s)\r\n"
-             "%s4%s) West   : (%s%s%s)\r\n"
-             "%s5%s) Up     : (%s%s%s)\r\n"
-             "%s6%s) Down   : (%s%s%s)\r\n"
-             "%sQ%s) Back to main menu\r\n"
-             "Enter atrium direction : ",
+    snprintf(
+        buf, sizeof(buf),
+        "%s1%s) North  : (%s%s%s)\r\n"
+        "%s2%s) East   : (%s%s%s)\r\n"
+        "%s3%s) South  : (%s%s%s)\r\n"
+        "%s4%s) West   : (%s%s%s)\r\n"
+        "%s5%s) Up     : (%s%s%s)\r\n"
+        "%s6%s) Down   : (%s%s%s)\r\n"
+        "%sQ%s) Back to main menu\r\n"
+        "Enter atrium direction : ",
 
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), newroom[0] == NOWHERE ? "NO ROOM" : world[(newroom[0])].name, CCNRM(d->character, C_NRM),
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), newroom[1] == NOWHERE ? "NO ROOM" : world[(newroom[1])].name, CCNRM(d->character, C_NRM),
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), newroom[2] == NOWHERE ? "NO ROOM" : world[(newroom[2])].name, CCNRM(d->character, C_NRM),
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), newroom[3] == NOWHERE ? "NO ROOM" : world[(newroom[3])].name, CCNRM(d->character, C_NRM),
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), newroom[4] == NOWHERE ? "NO ROOM" : world[(newroom[4])].name, CCNRM(d->character, C_NRM),
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), newroom[5] == NOWHERE ? "NO ROOM" : world[(newroom[5])].name, CCNRM(d->character, C_NRM),
-             CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        newroom[0] == NOWHERE ? "NO ROOM" : world[(newroom[0])].name, CCNRM(d->character, C_NRM),
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        newroom[1] == NOWHERE ? "NO ROOM" : world[(newroom[1])].name, CCNRM(d->character, C_NRM),
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        newroom[2] == NOWHERE ? "NO ROOM" : world[(newroom[2])].name, CCNRM(d->character, C_NRM),
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        newroom[3] == NOWHERE ? "NO ROOM" : world[(newroom[3])].name, CCNRM(d->character, C_NRM),
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        newroom[4] == NOWHERE ? "NO ROOM" : world[(newroom[4])].name, CCNRM(d->character, C_NRM),
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+        newroom[5] == NOWHERE ? "NO ROOM" : world[(newroom[5])].name, CCNRM(d->character, C_NRM),
+        CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
     OLC_MODE(d) = HSEDIT_DIR_MENU;
   }
   send_to_char(d->character, "%s", buf);
@@ -336,8 +335,8 @@ void hsedit_disp_type_menu(struct descriptor_data *d)
   clear_screen(d);
   for (counter = 0; counter < NUM_HOUSE_TYPES; counter++)
   {
-    send_to_char(d->character, "%s%2d%s) %-20.20s ",
-                 CBCYN(d->character, C_NRM), counter, CCNRM(d->character, C_NRM), house_types[counter]);
+    send_to_char(d->character, "%s%2d%s) %-20.20s ", CBCYN(d->character, C_NRM), counter,
+                 CCNRM(d->character, C_NRM), house_types[counter]);
     if (!(++columns % 2))
       send_to_char(d->character, "\r\n");
   }
@@ -353,7 +352,8 @@ void hsedit_disp_guest_menu(struct descriptor_data *d)
 
   house = OLC_HOUSE(d);
 
-  snprintf(not_set, sizeof(not_set), "%s<NOT SET>%s", CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  snprintf(not_set, sizeof(not_set), "%s<NOT SET>%s", CCYEL(d->character, C_NRM),
+           CCNRM(d->character, C_NRM));
 
   snprintf(buf, sizeof(buf),
            "%s 1%s) %s%s%s (%sID: %ld%s)\r\n"
@@ -372,19 +372,48 @@ void hsedit_disp_guest_menu(struct descriptor_data *d)
            "%sQ%s) Back to main menu\r\n"
            "Enter selection (A/D/C/Q): ",
 
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[0]) == NULL ? not_set : get_name_by_id(house->guests[0]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[0] < 1 ? 0 : house->guests[0], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[1]) == NULL ? not_set : get_name_by_id(house->guests[1]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[1] < 1 ? 0 : house->guests[1], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[2]) == NULL ? not_set : get_name_by_id(house->guests[2]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[2] < 1 ? 0 : house->guests[2], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[3]) == NULL ? not_set : get_name_by_id(house->guests[3]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[3] < 1 ? 0 : house->guests[3], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[4]) == NULL ? not_set : get_name_by_id(house->guests[4]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[4] < 1 ? 0 : house->guests[4], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[5]) == NULL ? not_set : get_name_by_id(house->guests[5]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[5] < 1 ? 0 : house->guests[5], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[6]) == NULL ? not_set : get_name_by_id(house->guests[6]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[6] < 1 ? 0 : house->guests[6], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[7]) == NULL ? not_set : get_name_by_id(house->guests[7]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[7] < 1 ? 0 : house->guests[7], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[8]) == NULL ? not_set : get_name_by_id(house->guests[8]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[8] < 1 ? 0 : house->guests[8], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->guests[9]) == NULL ? not_set : get_name_by_id(house->guests[9]), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house->guests[9] < 1 ? 0 : house->guests[9], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[0]) == NULL ? not_set : get_name_by_id(house->guests[0]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[0] < 1 ? 0 : house->guests[0], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[1]) == NULL ? not_set : get_name_by_id(house->guests[1]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[1] < 1 ? 0 : house->guests[1], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[2]) == NULL ? not_set : get_name_by_id(house->guests[2]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[2] < 1 ? 0 : house->guests[2], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[3]) == NULL ? not_set : get_name_by_id(house->guests[3]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[3] < 1 ? 0 : house->guests[3], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[4]) == NULL ? not_set : get_name_by_id(house->guests[4]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[4] < 1 ? 0 : house->guests[4], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[5]) == NULL ? not_set : get_name_by_id(house->guests[5]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[5] < 1 ? 0 : house->guests[5], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[6]) == NULL ? not_set : get_name_by_id(house->guests[6]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[6] < 1 ? 0 : house->guests[6], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[7]) == NULL ? not_set : get_name_by_id(house->guests[7]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[7] < 1 ? 0 : house->guests[7], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[8]) == NULL ? not_set : get_name_by_id(house->guests[8]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[8] < 1 ? 0 : house->guests[8], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+           get_name_by_id(house->guests[9]) == NULL ? not_set : get_name_by_id(house->guests[9]),
+           CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+           house->guests[9] < 1 ? 0 : house->guests[9], CCNRM(d->character, C_NRM),
+           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+           CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
   send_to_char(d->character, "%s", buf);
 
@@ -440,7 +469,8 @@ void hsedit_disp_val3_menu(struct descriptor_data *d)
   }
 }
 
-static const char *hsedit_list_guests(struct house_control_rec *thishouse, char *guestlist, size_t sz)
+static const char *hsedit_list_guests(struct house_control_rec *thishouse, char *guestlist,
+                                      size_t sz)
 {
   int j, num_printed;
   const char *temp;
@@ -472,7 +502,8 @@ static const char *hsedit_list_guests(struct house_control_rec *thishouse, char 
 /* the main menu */
 void hsedit_disp_menu(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'}, built_on[128], last_pay[128], buf2[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'}, built_on[128],
+       last_pay[128], buf2[MAX_STRING_LENGTH] = {'\0'};
   char *timestr, no_name[128];
   struct house_control_rec *house;
 
@@ -500,37 +531,46 @@ void hsedit_disp_menu(struct descriptor_data *d)
   *buf2 = '\0';
   sprintbit(house->bitvector, house_flags, buf1, sizeof(buf1));
   //  snprintf(buf2, sizeof(buf2), "%d %d %d %d", house->value[0], house->value[1], house->value[2], house->value[3]);
-  snprintf(no_name, sizeof(no_name), "%s<NOBODY>%s", CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
-  snprintf(buf, sizeof(buf),
-           "%s                                               %s\r\n"
-           "-- House number : [%s%d%s]  	House zone: [%s%d%s]\r\n"
-           "%s1%s) Owner       : %s%ld -- %s%s\r\n"
-           "%s2%s) Atrium      : %s%d%s\r\n"
-           "%s3%s) Direction   : %s%s%s\r\n"
-           "%s4%s) House Type  : %s%s%s\r\n"
-           "%s5%s) Built on    : %s%s%s\r\n"
-           "%s6%s) Payment     : %s%s%s\r\n"
-           "%s7%s) Guests      : %s%s%s\r\n"
-           "%s8%s) Flags       : %s%s%s\r\n"
-           //      "%s9%s) Values      : %s%s%s\r\n"
-           "%sX%s) Delete this house\r\n"
-           "%sQ%s) Quit\r\n"
-           "Enter choice : ",
+  snprintf(no_name, sizeof(no_name), "%s<NOBODY>%s", CBCYN(d->character, C_NRM),
+           CCNRM(d->character, C_NRM));
+  snprintf(
+      buf, sizeof(buf),
+      "%s                                               %s\r\n"
+      "-- House number : [%s%d%s]  	House zone: [%s%d%s]\r\n"
+      "%s1%s) Owner       : %s%ld -- %s%s\r\n"
+      "%s2%s) Atrium      : %s%d%s\r\n"
+      "%s3%s) Direction   : %s%s%s\r\n"
+      "%s4%s) House Type  : %s%s%s\r\n"
+      "%s5%s) Built on    : %s%s%s\r\n"
+      "%s6%s) Payment     : %s%s%s\r\n"
+      "%s7%s) Guests      : %s%s%s\r\n"
+      "%s8%s) Flags       : %s%s%s\r\n"
+      //      "%s9%s) Values      : %s%s%s\r\n"
+      "%sX%s) Delete this house\r\n"
+      "%sQ%s) Quit\r\n"
+      "Enter choice : ",
 
-           CBGRN(d->character, C_NRM), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), OLC_NUM(d), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), zone_table[OLC_ZNUM(d)].number, CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), house->owner, get_name_by_id(house->owner) == NULL ? no_name : get_name_by_id(house->owner), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), house->atrium, CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), ((house->exit_num >= 0) && (house->exit_num <= 5)) ? dirs[(house->exit_num)] : "NONE", CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house_types[(house->mode)], CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), built_on, CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), last_pay, CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), hsedit_list_guests(house, buf2, sizeof(buf2)), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf1, CCNRM(d->character, C_NRM),
-           //	CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf2, CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
-           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      CBGRN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+      OLC_NUM(d), CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+      zone_table[OLC_ZNUM(d)].number, CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), house->owner,
+      get_name_by_id(house->owner) == NULL ? no_name : get_name_by_id(house->owner),
+      CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      CBYEL(d->character, C_NRM), house->atrium, CCNRM(d->character, C_NRM),
+      CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+      ((house->exit_num >= 0) && (house->exit_num <= 5)) ? dirs[(house->exit_num)] : "NONE",
+      CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      CBGRN(d->character, C_NRM), house_types[(house->mode)], CCNRM(d->character, C_NRM),
+      CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), built_on,
+      CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      CBGRN(d->character, C_NRM), last_pay, CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM),
+      hsedit_list_guests(house, buf2, sizeof(buf2)), CCNRM(d->character, C_NRM),
+      CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf1,
+      CCNRM(d->character, C_NRM),
+      //	CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf2, CCNRM(d->character, C_NRM),
+      CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBCYN(d->character, C_NRM),
+      CCNRM(d->character, C_NRM));
   send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HSEDIT_MAIN_MENU;
@@ -721,7 +761,9 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     room_rnum = real_room(OLC_HOUSE(d)->vnum);
     if (real_room(number) == NOWHERE)
     {
-      send_to_char(d->character, "Room VNUM does not exist.\r\nEnter a valid room VNUM for this atrium (0 to exit) : ");
+      send_to_char(
+          d->character,
+          "Room VNUM does not exist.\r\nEnter a valid room VNUM for this atrium (0 to exit) : ");
       return;
     }
     else
@@ -740,7 +782,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
 
       if (found == FALSE)
       {
-        send_to_char(d->character, "Atrium MUST be an adjoining room.\r\nEnter a valid room VNUM for this atrium (0 to exit) : ");
+        send_to_char(d->character, "Atrium MUST be an adjoining room.\r\nEnter a valid room VNUM "
+                                   "for this atrium (0 to exit) : ");
         return;
       }
       else
@@ -768,13 +811,15 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     id = real_room(OLC_HOUSE(d)->vnum);
     if (!(world[id].dir_option[number]))
     {
-      send_to_char(d->character, "%sYou cannot set the atrium to a room that doesn't exist!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%sYou cannot set the atrium to a room that doesn't exist!%s\r\n",
+                   CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       hsedit_dir_menu(d);
       return;
     }
     else if ((world[id].dir_option[number]->to_room) == NOWHERE)
     {
-      send_to_char(d->character, "%sYou cannot set the atrium to nowhere!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%sYou cannot set the atrium to nowhere!%s\r\n",
+                   CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       hsedit_dir_menu(d);
       return;
     }
@@ -859,7 +904,10 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     case 'A':
       if (OLC_HOUSE(d)->num_of_guests > (MAX_GUESTS - 1))
       {
-        send_to_char(d->character, "%sGuest List Full! - delete some before adding more%s\r\nEnter selection (A/D/C/Q) : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(
+            d->character,
+            "%sGuest List Full! - delete some before adding more%s\r\nEnter selection (A/D/C/Q) : ",
+            CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       else
       {
@@ -872,7 +920,10 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     case 'D':
       if (OLC_HOUSE(d)->num_of_guests < 1)
       {
-        send_to_char(d->character, "%sGuest List Empty! - add a guest before trying to delete one%s\r\nEnter selection (A/D/C/Q) : ", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character,
+                     "%sGuest List Empty! - add a guest before trying to delete one%s\r\nEnter "
+                     "selection (A/D/C/Q) : ",
+                     CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       }
       else
       {
@@ -1130,8 +1181,7 @@ ACMD(do_oasis_hsedit)
     {
       if (d->olc && OLC_NUM(d) == number)
       {
-        send_to_char(ch, "That house is currently being edited by %s.\r\n",
-                     PERS(d->character, ch));
+        send_to_char(ch, "That house is currently being edited by %s.\r\n", PERS(d->character, ch));
         return;
       }
     }
@@ -1174,9 +1224,10 @@ ACMD(do_oasis_hsedit)
   /****************************************************************************/
   if (!can_edit_zone(ch, OLC_ZNUM(d)))
   {
-    send_to_char(ch, " You do not have permission to edit zone %d. Try zone %d.\r\n", zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
-    mudlog(BRF, LVL_IMPL, TRUE, "OLC: %s tried to edit zone %d allowed zone %d",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+    send_to_char(ch, " You do not have permission to edit zone %d. Try zone %d.\r\n",
+                 zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+    mudlog(BRF, LVL_IMPL, TRUE, "OLC: %s tried to edit zone %d allowed zone %d", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 
     /**************************************************************************/
     /** Free the descriptor's OLC structure.                                 **/
@@ -1191,11 +1242,9 @@ ACMD(do_oasis_hsedit)
   /****************************************************************************/
   if (save)
   {
-    send_to_char(ch, "Saving all houses in zone %d.\r\n",
-                 zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-           "OLC: %s saves house info for zone %d.", GET_NAME(ch),
-           zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all houses in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves house info for zone %d.",
+           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     /**************************************************************************/
     /** Save the houses in this zone.                                       **/

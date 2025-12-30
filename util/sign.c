@@ -138,8 +138,8 @@ char *get_text(char *fname)
       /* Add carriage return for telnet compatibility */
       if (tmp[strlen(tmp) - 1] == '\n')
       {
-        t[strlen(t) - 1] = '\0';  /* Remove \n */
-        strcat(t, "\r\n");        /* Add \r\n */
+        t[strlen(t) - 1] = '\0'; /* Remove \n */
+        strcat(t, "\r\n");       /* Add \r\n */
       }
     }
     else

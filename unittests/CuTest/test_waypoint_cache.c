@@ -8,6 +8,8 @@
  * Part of Phase 01, Session 02: Waypoint/Route Management
  */
 
+/* Enable POSIX features for snprintf in C89 mode */
+#define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,10 +29,11 @@
 
 typedef int bool;
 
-#define AUTOPILOT_NAME_LENGTH       64
+#define AUTOPILOT_NAME_LENGTH 64
 
 /* Waypoint structure */
-struct waypoint {
+struct waypoint
+{
   float x;
   float y;
   float z;
@@ -41,14 +44,16 @@ struct waypoint {
 };
 
 /* Waypoint cache node */
-struct waypoint_node {
+struct waypoint_node
+{
   int waypoint_id;
   struct waypoint data;
   struct waypoint_node *next;
 };
 
 /* Route cache node */
-struct route_node {
+struct route_node
+{
   int route_id;
   char name[AUTOPILOT_NAME_LENGTH];
   bool loop;
@@ -449,14 +454,14 @@ void test_waypoint_node_struct_size(CuTest *tc)
 {
   size_t size = sizeof(struct waypoint_node);
   CuAssertTrue(tc, size > 0);
-  CuAssertTrue(tc, size < 256);  /* Should be reasonable size */
+  CuAssertTrue(tc, size < 256); /* Should be reasonable size */
 }
 
 void test_route_node_struct_size(CuTest *tc)
 {
   size_t size = sizeof(struct route_node);
   CuAssertTrue(tc, size > 0);
-  CuAssertTrue(tc, size < 256);  /* Should be reasonable size */
+  CuAssertTrue(tc, size < 256); /* Should be reasonable size */
 }
 
 void test_memory_print_sizes(CuTest *tc)
@@ -464,7 +469,7 @@ void test_memory_print_sizes(CuTest *tc)
   printf("\n  Cache structure sizes:\n");
   printf("    struct waypoint_node: %lu bytes\n", (unsigned long)sizeof(struct waypoint_node));
   printf("    struct route_node: %lu bytes\n", (unsigned long)sizeof(struct route_node));
-  CuAssertTrue(tc, 1);  /* Always pass, just printing info */
+  CuAssertTrue(tc, 1); /* Always pass, just printing info */
 }
 
 /* ========================================================================= */

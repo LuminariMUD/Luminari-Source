@@ -111,7 +111,7 @@ The new `effectsadmin` command reuses all existing helper functions:
 ## Migration Notes
 
 ### For Administrators
-- Old command: `resourceadmin effects list` 
+- Old command: `resourceadmin effects list`
 - New command: `effectsadmin list`
 - All functionality preserved, just moved to dedicated command
 

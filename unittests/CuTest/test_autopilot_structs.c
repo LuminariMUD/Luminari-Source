@@ -29,13 +29,14 @@
 typedef int bool;
 
 /* Autopilot constants */
-#define MAX_WAYPOINTS_PER_ROUTE     20
-#define MAX_ROUTES_PER_SHIP         5
-#define AUTOPILOT_TICK_INTERVAL     5
-#define AUTOPILOT_NAME_LENGTH       64
+#define MAX_WAYPOINTS_PER_ROUTE 20
+#define MAX_ROUTES_PER_SHIP 5
+#define AUTOPILOT_TICK_INTERVAL 5
+#define AUTOPILOT_NAME_LENGTH 64
 
 /* Autopilot state enum */
-enum autopilot_state {
+enum autopilot_state
+{
   AUTOPILOT_OFF,
   AUTOPILOT_TRAVELING,
   AUTOPILOT_WAITING,
@@ -44,7 +45,8 @@ enum autopilot_state {
 };
 
 /* Waypoint structure */
-struct waypoint {
+struct waypoint
+{
   float x;
   float y;
   float z;
@@ -55,7 +57,8 @@ struct waypoint {
 };
 
 /* Ship route structure */
-struct ship_route {
+struct ship_route
+{
   int route_id;
   char name[AUTOPILOT_NAME_LENGTH];
   struct waypoint waypoints[MAX_WAYPOINTS_PER_ROUTE];
@@ -65,7 +68,8 @@ struct ship_route {
 };
 
 /* Autopilot data structure */
-struct autopilot_data {
+struct autopilot_data
+{
   enum autopilot_state state;
   struct ship_route *current_route;
   int current_waypoint_index;
@@ -117,7 +121,7 @@ void test_waypoint_struct_size(CuTest *tc)
   /* Waypoint should be reasonably sized */
   size_t size = sizeof(struct waypoint);
   CuAssertTrue(tc, size > 0);
-  CuAssertTrue(tc, size < 256);  /* Should be well under 256 bytes */
+  CuAssertTrue(tc, size < 256); /* Should be well under 256 bytes */
 }
 
 void test_waypoint_field_accessibility(CuTest *tc)
@@ -166,7 +170,7 @@ void test_ship_route_struct_size(CuTest *tc)
   size_t size = sizeof(struct ship_route);
   CuAssertTrue(tc, size > 0);
   /* Route contains 20 waypoints, should be substantial but reasonable */
-  CuAssertTrue(tc, size < 4096);  /* Should be under 4KB */
+  CuAssertTrue(tc, size < 4096); /* Should be under 4KB */
 }
 
 void test_ship_route_field_accessibility(CuTest *tc)
@@ -231,7 +235,7 @@ void test_autopilot_data_struct_size(CuTest *tc)
   size_t size = sizeof(struct autopilot_data);
   CuAssertTrue(tc, size > 0);
   /* Autopilot data should be compact (target <1KB) */
-  CuAssertTrue(tc, size < 128);  /* Should be well under 128 bytes */
+  CuAssertTrue(tc, size < 128); /* Should be well under 128 bytes */
 }
 
 void test_autopilot_data_field_accessibility(CuTest *tc)

@@ -70,16 +70,16 @@ struct class_table
   const char *abbrev;         /* abbreviation of class, ex. wiz (no color) */
   const char *colored_abbrev; /* same as abbrev, but colored */
   const char *menu_name;      /* colored full name of class for menu(s) */
-  int max_level;              /* maximum number of levels you can take in this class, -1 unlimited */
-  bool locked_class;          /* whether by default this class is locked or not */
-  bool prestige_class;        /* prestige class? */
-  int base_attack_bonus;      /* whether high, medium or low */
-  int hit_dice;               /* how many hp this class can get on level up */
-  int psp_gain;               /* how much psp this class gets on level up */
-  int move_gain;              /* how much moves this class gets on level up */
-  int trains_gain;            /* how many trains this class gets before int bonus */
-  bool in_game;               /* class currently in the game? */
-  int unlock_cost;            /* if locked, cost to unlock in account xp */
+  int max_level;         /* maximum number of levels you can take in this class, -1 unlimited */
+  bool locked_class;     /* whether by default this class is locked or not */
+  bool prestige_class;   /* prestige class? */
+  int base_attack_bonus; /* whether high, medium or low */
+  int hit_dice;          /* how many hp this class can get on level up */
+  int psp_gain;          /* how much psp this class gets on level up */
+  int move_gain;         /* how much moves this class gets on level up */
+  int trains_gain;       /* how many trains this class gets before int bonus */
+  bool in_game;          /* class currently in the game? */
+  int unlock_cost;       /* if locked, cost to unlock in account xp */
   /*note: !(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
   const char *prestige_spell_progression; /* spell progression for this prestige class */
@@ -122,8 +122,8 @@ int is_class_skill(struct char_data *ch, int ability);
 void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 extern int level_feats[][LEVEL_FEATS];
-void feat_assignment(int class_num, int feat_num, bool is_classfeat,
-                     int level_received, bool stacks);
+void feat_assignment(int class_num, int feat_num, bool is_classfeat, int level_received,
+                     bool stacks);
 bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output);
 bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output);
 int num_languages_learned(struct char_data *ch);

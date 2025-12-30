@@ -43,11 +43,11 @@
    # Switch to DL campaign (if available)
    campaign dl                 # Or equivalent command
    materials                   # Should show basic display only
-   
+
    # Switch to FR campaign (if available)  
    campaign fr                 # Or equivalent command
    materials                   # Should show basic display only
-   
+
    # Return to default
    campaign luminari           # Or equivalent command
    materials                   # Should show enhanced display again
@@ -145,7 +145,7 @@
    ```
    # Start with empty material storage
    materials clear             # If available
-   
+
    # Add materials and verify integration triggers
    gather herbs                # Should trigger integration
    mine metals                 # Should trigger integration
@@ -210,7 +210,7 @@ SELECT * FROM player_materials WHERE material_id >= 1000;
 -- Verify enhanced materials stored correctly
 
 -- Check for data consistency
-SELECT COUNT(*) FROM player_materials 
+SELECT COUNT(*) FROM player_materials
 WHERE category BETWEEN 0 AND 6 AND quality BETWEEN 1 AND 5;
 ```
 

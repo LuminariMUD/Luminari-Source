@@ -67,44 +67,44 @@ song of the magi        25 */
 /* NOTE: dont' forget to add associated feat */
 int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
     /* 0*/
-    {SKILL_SONG_OF_HEALING, INSTRUMENT_LYRE, SKILL_LYRE, 4,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_HEALING},
+    {SKILL_SONG_OF_HEALING, INSTRUMENT_LYRE, SKILL_LYRE, 4, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_GROUP, FEAT_SONG_OF_HEALING},
     /* 1*/
-    {SKILL_DANCE_OF_PROTECTION, INSTRUMENT_DRUM, SKILL_DRUM, 5,
-     PERFORMANCE_TYPE_DANCE, PERFORM_AOE_GROUP, FEAT_DANCE_OF_PROTECTION},
+    {SKILL_DANCE_OF_PROTECTION, INSTRUMENT_DRUM, SKILL_DRUM, 5, PERFORMANCE_TYPE_DANCE,
+     PERFORM_AOE_GROUP, FEAT_DANCE_OF_PROTECTION},
     /* 2*/
-    {SKILL_SONG_OF_FOCUSED_MIND, INSTRUMENT_HARP, SKILL_HARP, 6,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_FOCUSED_MIND},
+    {SKILL_SONG_OF_FOCUSED_MIND, INSTRUMENT_HARP, SKILL_HARP, 6, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_GROUP, FEAT_SONG_OF_FOCUSED_MIND},
     /* 3*/
-    {SKILL_SONG_OF_HEROISM, INSTRUMENT_DRUM, SKILL_DRUM, 8,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_HEROISM},
+    {SKILL_SONG_OF_HEROISM, INSTRUMENT_DRUM, SKILL_DRUM, 8, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_GROUP, FEAT_SONG_OF_HEROISM},
     /* 4*/
-    {SKILL_ORATORY_OF_REJUVENATION, INSTRUMENT_LYRE, SKILL_LYRE, 10,
-     PERFORMANCE_TYPE_ORATORY, PERFORM_AOE_GROUP, FEAT_ORATORY_OF_REJUVENATION},
+    {SKILL_ORATORY_OF_REJUVENATION, INSTRUMENT_LYRE, SKILL_LYRE, 10, PERFORMANCE_TYPE_ORATORY,
+     PERFORM_AOE_GROUP, FEAT_ORATORY_OF_REJUVENATION},
     /* 5*/
-    {SKILL_SONG_OF_FLIGHT, INSTRUMENT_HORN, SKILL_HORN, 12,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_FLIGHT},
+    {SKILL_SONG_OF_FLIGHT, INSTRUMENT_HORN, SKILL_HORN, 12, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_GROUP, FEAT_SONG_OF_FLIGHT},
     /* 6*/
-    {SKILL_SONG_OF_REVELATION, INSTRUMENT_FLUTE, SKILL_FLUTE, 14,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_REVELATION},
+    {SKILL_SONG_OF_REVELATION, INSTRUMENT_FLUTE, SKILL_FLUTE, 14, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_GROUP, FEAT_SONG_OF_REVELATION},
     /* 7*/
-    {SKILL_SONG_OF_FEAR, INSTRUMENT_HARP, SKILL_HARP, 16,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES, FEAT_SONG_OF_FEAR},
+    {SKILL_SONG_OF_FEAR, INSTRUMENT_HARP, SKILL_HARP, 16, PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,
+     FEAT_SONG_OF_FEAR},
     /* 8*/
-    {SKILL_ACT_OF_FORGETFULNESS, INSTRUMENT_FLUTE, SKILL_FLUTE, 18,
-     PERFORMANCE_TYPE_ACT, PERFORM_AOE_FOES, FEAT_ACT_OF_FORGETFULNESS},
+    {SKILL_ACT_OF_FORGETFULNESS, INSTRUMENT_FLUTE, SKILL_FLUTE, 18, PERFORMANCE_TYPE_ACT,
+     PERFORM_AOE_FOES, FEAT_ACT_OF_FORGETFULNESS},
     /* 9*/
-    {SKILL_SONG_OF_ROOTING, INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 20,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES, FEAT_SONG_OF_ROOTING},
+    {SKILL_SONG_OF_ROOTING, INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 20, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_FOES, FEAT_SONG_OF_ROOTING},
     /*10*/
-    {SKILL_SONG_OF_DRAGONS, INSTRUMENT_HORN, SKILL_HORN, 24,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_DRAGONS},
+    {SKILL_SONG_OF_DRAGONS, INSTRUMENT_HORN, SKILL_HORN, 24, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_GROUP, FEAT_SONG_OF_DRAGONS},
     /*11*/
-    {SKILL_SONG_OF_THE_MAGI, INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 29,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES, FEAT_SONG_OF_THE_MAGI},
+    {SKILL_SONG_OF_THE_MAGI, INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 29, PERFORMANCE_TYPE_SING,
+     PERFORM_AOE_FOES, FEAT_SONG_OF_THE_MAGI},
     /*12*/
-    {SKILL_DEAFENING_SONG, INSTRUMENT_DRUM, SKILL_DRUM, 20,
-     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES, FEAT_DEAFENING_SONG},
+    {SKILL_DEAFENING_SONG, INSTRUMENT_DRUM, SKILL_DRUM, 20, PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,
+     FEAT_DEAFENING_SONG},
     /*MAX_PERFORMANCES: 13*/
 };
 
@@ -220,7 +220,8 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "can_perform(): PNum: %d, NeedCheck %d, Silent %d.\r\n", performance_num, need_check, silent);
+    send_to_char(ch, "can_perform(): PNum: %d, NeedCheck %d, Silent %d.\r\n", performance_num,
+                 need_check, silent);
   }
 
   /* check for disqualifiers */
@@ -228,7 +229,8 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
   if (!is_valid_performance(performance_num))
   {
     if (!silent)
-      send_to_char(ch, "(%d) is an invalid performance number.  Please report this to staff.\r\n", performance_num);
+      send_to_char(ch, "(%d) is an invalid performance number.  Please report this to staff.\r\n",
+                   performance_num);
     return 0;
   }
 
@@ -278,7 +280,8 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
   }
 #endif
 
-  if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
+  if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) ||
+       AFF_FLAGGED(ch, AFF_SILENCED)) &&
       (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
        performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
        performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
@@ -314,13 +317,16 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
     if (vict)
     {
 #ifdef EVENT_RAN
-      if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
+      if (IN_ROOM(vict) != NOWHERE && vict != ch &&
+          (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
 #else
-      if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || IS_PERFORMING(vict)))
+      if (IN_ROOM(vict) != NOWHERE && vict != ch &&
+          (char_has_mud_event(vict, ePERFORM) || IS_PERFORMING(vict)))
 #endif
       {
         if (!silent)
-          send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n", GET_NAME(vict));
+          send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n",
+                       GET_NAME(vict));
         return 0;
       }
     }
@@ -341,7 +347,6 @@ ACMD(do_perform)
 
   if (!argument || (len = strlen(argument)) == 0)
   {
-
 #ifdef EVENT_RAN
     if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
     {
@@ -404,7 +409,8 @@ ACMD(do_perform)
 
   for (performance_num = 0; performance_num < MAX_PERFORMANCES; performance_num++)
   {
-    if (!strncmp(argument, skill_name(performance_info[performance_num][PERFORMANCE_SKILLNUM]), len))
+    if (!strncmp(argument, skill_name(performance_info[performance_num][PERFORMANCE_SKILLNUM]),
+                 len))
     {
       if (!HAS_FEAT(ch, performance_info[performance_num][PERFORMANCE_FEATNUM]))
       {
@@ -422,21 +428,21 @@ ACMD(do_perform)
         }
 
         /* SUCCESS! */
-          /* Tier 3 Spellsinger: Master of Motifs - handle dual performances */
-          if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && IS_PERFORMING(ch) && 
-              GET_PERFORMANCE_VAR(ch, 2) < 0)
-          {
-            /* Starting a second performance */
-            GET_PERFORMANCE_VAR(ch, 2) = performance_num;
-            act("You begin a second performance, maintaining both songs!", FALSE, ch, 0, 0, TO_CHAR);
-            act("$n begins performing a second song simultaneously!", TRUE, ch, 0, 0, TO_ROOM);
-          }
-          else
-          {
-            /* Starting first performance normally */
-            act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
-            act("$n starts performing.", TRUE, ch, 0, 0, TO_ROOM);
-          }
+        /* Tier 3 Spellsinger: Master of Motifs - handle dual performances */
+        if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && IS_PERFORMING(ch) &&
+            GET_PERFORMANCE_VAR(ch, 2) < 0)
+        {
+          /* Starting a second performance */
+          GET_PERFORMANCE_VAR(ch, 2) = performance_num;
+          act("You begin a second performance, maintaining both songs!", FALSE, ch, 0, 0, TO_CHAR);
+          act("$n begins performing a second song simultaneously!", TRUE, ch, 0, 0, TO_ROOM);
+        }
+        else
+        {
+          /* Starting first performance normally */
+          act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
+          act("$n starts performing.", TRUE, ch, 0, 0, TO_ROOM);
+        }
 
 #ifdef EVENT_RAN
         char buf[128];
@@ -446,13 +452,13 @@ ACMD(do_perform)
 #else
         IS_PERFORMING(ch) = TRUE;
         GET_PERFORMING(ch) = performance_num;
-        
-          /* Tier 3 Spellsinger: Master of Motifs - initialize second performance slot */
-          if (!IS_NPC(ch) && GET_PERFORMANCE_VAR(ch, 2) != performance_num)
-          {
-            GET_PERFORMANCE_VAR(ch, 2) = -1; /* -1 means no second performance */
-          }
-        
+
+        /* Tier 3 Spellsinger: Master of Motifs - initialize second performance slot */
+        if (!IS_NPC(ch) && GET_PERFORMANCE_VAR(ch, 2) != performance_num)
+        {
+          GET_PERFORMANCE_VAR(ch, 2) = -1; /* -1 means no second performance */
+        }
+
         /* Bard Spellsinger: Reset Crescendo flags when starting a new performance */
         ch->char_specials.performance_vars[3] = 0; /* Crescendo used flag */
         ch->char_specials.performance_vars[4] = 0; /* Crescendo damage dice */
@@ -474,7 +480,8 @@ ACMD(do_perform)
 }
 
 /* function for processing individual effects for the performance */
-int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum, int effectiveness, int aoe)
+int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum,
+                        int effectiveness, int aoe)
 {
   int return_val = 1, i = 0; /* return_val is 1, very limited reasons to fail here! */
   bool nomessage = FALSE, engage = TRUE;
@@ -488,7 +495,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "performance_effects(): tch: %s, SNum: %d, Effect %d, AoE %d.\r\n", GET_NAME(tch), spellnum, effectiveness, aoe);
+    send_to_char(ch, "performance_effects(): tch: %s, SNum: %d, Effect %d, AoE %d.\r\n",
+                 GET_NAME(tch), spellnum, effectiveness, aoe);
   }
 
   /* init affect array */
@@ -501,18 +509,18 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[i].bonus_type = BONUS_TYPE_INHERENT;
     af[i].modifier = 1;
     af[i].location = APPLY_NONE;
-  /* Bard Spellsinger: Songweaver I - add duration bonus */
-  if (!IS_NPC(ch))
-  {
-    int songweaver_bonus = get_bard_songweaver_level_bonus(ch);
-    if (songweaver_bonus > 0)
+    /* Bard Spellsinger: Songweaver I - add duration bonus */
+    if (!IS_NPC(ch))
     {
-      for (i = 0; i < BARD_AFFECTS; i++)
+      int songweaver_bonus = get_bard_songweaver_level_bonus(ch);
+      if (songweaver_bonus > 0)
       {
-        af[i].duration += songweaver_bonus;
+        for (i = 0; i < BARD_AFFECTS; i++)
+        {
+          af[i].duration += songweaver_bonus;
+        }
       }
     }
-  }
   }
 
   if (affected_by_spell(tch, spellnum))
@@ -529,10 +537,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
   switch (spellnum)
   {
-
   case SKILL_SONG_OF_HEALING:
     send_to_char(tch, "You are soothed by the power of music!\r\n");
-    process_healing(ch, tch, SKILL_SONG_OF_HEALING, rand_number(effectiveness, effectiveness * 2 + 10), 0, 0);
+    process_healing(ch, tch, SKILL_SONG_OF_HEALING,
+                    rand_number(effectiveness, effectiveness * 2 + 10), 0, 0);
     break;
 
   case SKILL_DANCE_OF_PROTECTION:
@@ -566,10 +574,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     if (GET_LEVEL(ch) >= 10 && !AFF_FLAGGED(tch, AFF_HASTE))
     {
       SET_BIT_AR(af[1].bitvector, AFF_HASTE);
-      act("You feel the world slow down around you.", FALSE, tch, 0, 0,
-          TO_CHAR);
-      act("$n starts to move with uncanny speed.", TRUE, tch, 0, 0,
-          TO_ROOM);
+      act("You feel the world slow down around you.", FALSE, tch, 0, 0, TO_CHAR);
+      act("$n starts to move with uncanny speed.", TRUE, tch, 0, 0, TO_ROOM);
     }
     break;
 
@@ -577,10 +583,12 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     if (GET_HIT(tch) < GET_MAX_HIT(tch))
     {
       send_to_char(tch, "You are soothed by the power of music!\r\n");
-      process_healing(ch, tch, SKILL_ORATORY_OF_REJUVENATION, rand_number(effectiveness / 3, effectiveness / 2), 0, 0);
+      process_healing(ch, tch, SKILL_ORATORY_OF_REJUVENATION,
+                      rand_number(effectiveness / 3, effectiveness / 2), 0, 0);
     }
 
-    process_healing(ch, tch, SKILL_ORATORY_OF_REJUVENATION, 0, rand_number(effectiveness * 40, effectiveness * 60 + 60), 0);
+    process_healing(ch, tch, SKILL_ORATORY_OF_REJUVENATION, 0,
+                    rand_number(effectiveness * 40, effectiveness * 60 + 60), 0);
 
     if (rand_number(0, 100) < effectiveness && affected_by_spell(tch, SPELL_POISON))
     {
@@ -681,7 +689,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
       act("$n fly through the air, free as a bird!", TRUE, tch, 0, 0, TO_ROOM);
     }
-    process_healing(ch, tch, SKILL_SONG_OF_FLIGHT, 0, rand_number(50, effectiveness * 10 / 3 + 50), 0);
+    process_healing(ch, tch, SKILL_SONG_OF_FLIGHT, 0, rand_number(50, effectiveness * 10 / 3 + 50),
+                    0);
     break;
 
   /* increases memming / casting effectiveness */
@@ -701,8 +710,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   case SKILL_SONG_OF_FEAR:
     if (!IS_NPC(tch) && has_aura_of_courage(tch) && !affected_by_aura_of_cowardice(tch))
       break;
-    if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_RP_FEARLESS_RAGE) &&
-        affected_by_spell(tch, SKILL_RAGE))
+    if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_RP_FEARLESS_RAGE) && affected_by_spell(tch, SKILL_RAGE))
       break;
     if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_FEARLESS_DEFENSE) &&
         affected_by_spell(tch, SKILL_DEFENSIVE_STANCE))
@@ -827,10 +835,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 /* main function for performance effects / message / targets / etc */
 int process_performance(struct char_data *ch, int performance_num, int effectiveness, int aoe)
 {
-
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "process_performance(): PNum: %d, Effect %d, AoE %d.\r\n", performance_num, effectiveness, aoe);
+    send_to_char(ch, "process_performance(): PNum: %d, Effect %d, AoE %d.\r\n", performance_num,
+                 effectiveness, aoe);
   }
 
   struct char_data *tch = NULL, *tch_next = NULL;
@@ -840,17 +848,15 @@ int process_performance(struct char_data *ch, int performance_num, int effective
   /* performance message */
   switch (performance_num)
   {
-
   case SKILL_SONG_OF_HEALING:
     act("You sing a song to heal all wounds.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song so well you feel your pain and suffering ebbing away.", TRUE,
-        ch, 0, 0, TO_ROOM);
+    act("$n sings a song so well you feel your pain and suffering ebbing away.", TRUE, ch, 0, 0,
+        TO_ROOM);
     break;
 
   case SKILL_DANCE_OF_PROTECTION:
     act("You dance to protect yourself from harm.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n performs a dance that envelops you in protection.", TRUE, ch, 0, 0,
-        TO_ROOM);
+    act("$n performs a dance that envelops you in protection.", TRUE, ch, 0, 0, TO_ROOM);
     break;
 
   case SKILL_SONG_OF_FLIGHT:
@@ -859,16 +865,13 @@ int process_performance(struct char_data *ch, int performance_num, int effective
     break;
 
   case SKILL_SONG_OF_HEROISM:
-    act("You sing a song that makes your heart swell with pride.", FALSE, ch, 0, 0,
-        TO_CHAR);
-    act("$n sings a song that makes your heart swell with pride.", TRUE, ch, 0, 0,
-        TO_ROOM);
+    act("You sing a song that makes your heart swell with pride.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n sings a song that makes your heart swell with pride.", TRUE, ch, 0, 0, TO_ROOM);
     break;
 
   case SKILL_ORATORY_OF_REJUVENATION:
     act("You conduct an oratory to rejuvenate the exhausted.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n conducts an oratory which eases some of your exhaustion.", TRUE, ch,
-        0, 0, TO_ROOM);
+    act("$n conducts an oratory which eases some of your exhaustion.", TRUE, ch, 0, 0, TO_ROOM);
     break;
 
   case SKILL_ACT_OF_FORGETFULNESS:
@@ -884,10 +887,10 @@ int process_performance(struct char_data *ch, int performance_num, int effective
     break;
 
   case SKILL_SONG_OF_DRAGONS:
-    act("You sing a song that defies the mightiest of dragons.", FALSE, ch, 0, 0,
-        TO_CHAR);
-    act("$n sings a song that defies the mightiest of dragons, inspiring you to truly heroic deeds!", TRUE, ch, 0, 0,
-        TO_ROOM);
+    act("You sing a song that defies the mightiest of dragons.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n sings a song that defies the mightiest of dragons, inspiring you to truly heroic "
+        "deeds!",
+        TRUE, ch, 0, 0, TO_ROOM);
     break;
 
   case SKILL_SONG_OF_FOCUSED_MIND:
@@ -911,8 +914,10 @@ int process_performance(struct char_data *ch, int performance_num, int effective
     break;
 
   case SKILL_SONG_OF_THE_MAGI:
-    act("You sing a song so well, that magic in itself feels strengthened by it.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song which makes you forget completely about hostile magic.", TRUE, ch, 0, 0, TO_ROOM);
+    act("You sing a song so well, that magic in itself feels strengthened by it.", FALSE, ch, 0, 0,
+        TO_CHAR);
+    act("$n sings a song which makes you forget completely about hostile magic.", TRUE, ch, 0, 0,
+        TO_ROOM);
     break;
 
   default:
@@ -926,7 +931,6 @@ int process_performance(struct char_data *ch, int performance_num, int effective
   /* here we handle the different type of dances */
   switch (aoe)
   {
-
   /* performance that should affect your group only */
   case PERFORM_AOE_GROUP:
     if (!GROUP(ch))
@@ -941,8 +945,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
        * continue from where it left off instead of starting fresh. */
       simple_list(NULL);
 
-      while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
-             NULL)
+      while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
       {
         if (IN_ROOM(tch) != IN_ROOM(ch))
           continue;
@@ -968,7 +971,8 @@ int process_performance(struct char_data *ch, int performance_num, int effective
 
       /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
       if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
-        return_val = performance_effects(ch, GROUP(ch)->leader, performance_num, effectiveness, aoe);
+        return_val =
+            performance_effects(ch, GROUP(ch)->leader, performance_num, effectiveness, aoe);
     }
     break;
 
@@ -1076,8 +1080,10 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
     /* instrument of quality <= 0 is unbreakable */
     if (!rand_number(0, 9) && rand_number(2, 11111) <= GET_OBJ_VAL(instrument, 3))
     {
-      act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_CHAR);
-      act("$n's $p cannot take the strain of magic any longer, and it breaks!", TRUE, ch, instrument, 0, TO_ROOM);
+      act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch,
+          instrument, 0, TO_CHAR);
+      act("$n's $p cannot take the strain of magic any longer, and it breaks!", TRUE, ch,
+          instrument, 0, TO_ROOM);
       extract_obj(instrument);
       instrument = NULL;
       effectiveness -= 5;
@@ -1101,7 +1107,8 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   /* if fighting, 1/2 effect of it.*/
   if (FIGHTING(ch))
   {
-    send_to_char(ch, "Your performance is slightly hindered as you are concentrating on the combat.\r\n");
+    send_to_char(
+        ch, "Your performance is slightly hindered as you are concentrating on the combat.\r\n");
     effectiveness /= 2;
   }
 
@@ -1184,8 +1191,7 @@ EVENTFUNC(event_bardic_performance)
   if (pMudEvent->sVariables == NULL)
   {
     /* This is odd - This field should always be populated! */
-    log("SYSERR: sVariables field is NULL for event_bardic_performance: %d",
-        pMudEvent->iId);
+    log("SYSERR: sVariables field is NULL for event_bardic_performance: %d", pMudEvent->iId);
     return 0;
   }
   else
@@ -1211,51 +1217,53 @@ void pulse_bardic_performance()
   /* we are going to cycle through the online players to find performers */
   for (pt = descriptor_list; pt; pt = pt->next)
   {
-    if (IS_PLAYING(pt) && pt->character &&
-        IS_PERFORMING(pt->character) && (GET_PERFORMING(pt->character) >= 0)) /* GET_PERFORMING: -1 is no perform/fail */
+    if (IS_PLAYING(pt) && pt->character && IS_PERFORMING(pt->character) &&
+        (GET_PERFORMING(pt->character) >= 0)) /* GET_PERFORMING: -1 is no perform/fail */
     {
       struct char_data *ch = pt->character;
-      
+
       /* Process primary performance */
       (bardic_performance_engine(ch, GET_PERFORMING(ch)));
-      
+
       /* Tier 3 Spellsinger: Master of Motifs - process second performance if active */
-      if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && 
-          GET_PERFORMANCE_VAR(ch, 2) >= 0 && IS_PERFORMING(ch))
+      if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && GET_PERFORMANCE_VAR(ch, 2) >= 0 &&
+          IS_PERFORMING(ch))
       {
         (bardic_performance_engine(ch, GET_PERFORMANCE_VAR(ch, 2)));
       }
-      
+
       /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
       if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))
       {
         struct char_data *tch = NULL, *next_tch = NULL;
         int dirge_damage = get_bard_dirge_sonic_damage(ch);
-        
+
         if (dirge_damage > 0)
         {
-          send_to_char(ch, "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
-          
+          send_to_char(ch,
+                       "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
+
           /* Damage all enemies in the room */
           for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
           {
             next_tch = tch->next_in_room;
-            
+
             /* Skip self, allies, and those not valid AOE targets */
             if (tch == ch || !aoeOK(ch, tch, -1))
               continue;
-            
+
             /* Apply sonic damage */
             int dam = dice(dirge_damage, 6);
             if (dam > 0)
             {
-              send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n", dam);
+              send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n",
+                           dam);
               damage(ch, tch, dam, -1, DAM_SOUND, FALSE);
             }
           }
         }
       }
-      
+
       /* Tier 4 Spellsinger: Symphonic Resonance - grant temp HP per round */
       if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_symphonic_resonance(ch))
       {
@@ -1264,10 +1272,11 @@ void pulse_bardic_performance()
         {
           /* Temporary HP implementation would go here */
           /* For now, just send a message indicating the effect is active */
-          send_to_char(ch, "\tCYour song grants temporary protection to you and your allies.\tn\r\n");
+          send_to_char(ch,
+                       "\tCYour song grants temporary protection to you and your allies.\tn\r\n");
         }
       }
-      
+
       /* Tier 4 Spellsinger: Endless Refrain - regenerate spell slots per round */
       if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_endless_refrain(ch))
       {
@@ -1276,7 +1285,7 @@ void pulse_bardic_performance()
         {
           int class_level = CLASS_LEVEL(ch, CLASS_BARD);
           int circle = MIN(6, class_level / 2);
-          
+
           if (circle > 0 && circle <= NUM_CIRCLES)
           {
             /* Note: Assuming spells_prepared array exists and tracks available slots */

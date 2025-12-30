@@ -33,24 +33,25 @@ typedef int bool;
 typedef int room_rnum;
 
 /* Direction constants */
-#define DIR_NORTH     0
-#define DIR_EAST      1
-#define DIR_SOUTH     2
-#define DIR_WEST      3
-#define DIR_UP        4
-#define DIR_DOWN      5
-#define NUM_DIRS      6
-#define DIR_INVALID  -1
+#define DIR_NORTH 0
+#define DIR_EAST 1
+#define DIR_SOUTH 2
+#define DIR_WEST 3
+#define DIR_UP 4
+#define DIR_DOWN 5
+#define NUM_DIRS 6
+#define DIR_INVALID -1
 
 /* Movement result codes */
-#define MOVE_SUCCESS       0
-#define MOVE_BLOCKED       1
-#define MOVE_NO_EXIT       2
-#define MOVE_INVALID_DIR   3
-#define MOVE_LOCKED        4
+#define MOVE_SUCCESS 0
+#define MOVE_BLOCKED 1
+#define MOVE_NO_EXIT 2
+#define MOVE_INVALID_DIR 3
+#define MOVE_LOCKED 4
 
 /* Room connection structure */
-struct room_connection {
+struct room_connection
+{
   int from_room;
   int to_room;
   int direction;
@@ -62,7 +63,8 @@ struct room_connection {
 #define MAX_SHIP_ROOMS 20
 #define MAX_SHIP_CONNECTIONS 40
 
-struct mock_ship_data {
+struct mock_ship_data
+{
   int shipnum;
   int num_rooms;
   int room_vnums[MAX_SHIP_ROOMS];
@@ -81,13 +83,20 @@ static int get_reverse_direction(int dir)
 {
   switch (dir)
   {
-    case DIR_NORTH: return DIR_SOUTH;
-    case DIR_SOUTH: return DIR_NORTH;
-    case DIR_EAST:  return DIR_WEST;
-    case DIR_WEST:  return DIR_EAST;
-    case DIR_UP:    return DIR_DOWN;
-    case DIR_DOWN:  return DIR_UP;
-    default:        return DIR_INVALID;
+  case DIR_NORTH:
+    return DIR_SOUTH;
+  case DIR_SOUTH:
+    return DIR_NORTH;
+  case DIR_EAST:
+    return DIR_WEST;
+  case DIR_WEST:
+    return DIR_EAST;
+  case DIR_UP:
+    return DIR_DOWN;
+  case DIR_DOWN:
+    return DIR_UP;
+  default:
+    return DIR_INVALID;
   }
 }
 
@@ -104,9 +113,7 @@ static bool is_valid_direction(int dir)
  */
 static const char *get_direction_name(int dir)
 {
-  static const char *names[] = {
-    "north", "east", "south", "west", "up", "down"
-  };
+  static const char *names[] = {"north", "east", "south", "west", "up", "down"};
 
   if (!is_valid_direction(dir))
   {
@@ -144,7 +151,8 @@ static void init_movement_ship(struct mock_ship_data *ship, int num_rooms)
 /**
  * Add a connection to ship
  */
-static bool add_ship_connection(struct mock_ship_data *ship, int from, int to, int dir, bool is_hatch, bool is_locked)
+static bool add_ship_connection(struct mock_ship_data *ship, int from, int to, int dir,
+                                bool is_hatch, bool is_locked)
 {
   if (!ship || ship->num_connections >= MAX_SHIP_CONNECTIONS)
   {
@@ -175,8 +183,7 @@ static int find_exit(struct mock_ship_data *ship, int from_room, int dir)
 
   for (i = 0; i < ship->num_connections; i++)
   {
-    if (ship->connections[i].from_room == from_room &&
-        ship->connections[i].direction == dir)
+    if (ship->connections[i].from_room == from_room && ship->connections[i].direction == dir)
     {
       return ship->connections[i].to_room;
     }
@@ -199,14 +206,13 @@ static bool is_passage_blocked(struct mock_ship_data *ship, int from_room, int d
 
   for (i = 0; i < ship->num_connections; i++)
   {
-    if (ship->connections[i].from_room == from_room &&
-        ship->connections[i].direction == dir)
+    if (ship->connections[i].from_room == from_room && ship->connections[i].direction == dir)
     {
       return ship->connections[i].is_locked;
     }
   }
 
-  return TRUE;  /* No exit = blocked */
+  return TRUE; /* No exit = blocked */
 }
 
 /**
@@ -231,8 +237,7 @@ static int attempt_move(struct mock_ship_data *ship, int from_room, int dir)
   /* Check if passage is locked */
   for (i = 0; i < ship->num_connections; i++)
   {
-    if (ship->connections[i].from_room == from_room &&
-        ship->connections[i].direction == dir)
+    if (ship->connections[i].from_room == from_room && ship->connections[i].direction == dir)
     {
       if (ship->connections[i].is_locked)
       {

@@ -201,7 +201,7 @@ The system automatically populates essential reference data:
 - With appropriate rarity and value multipliers
 
 ### Material Categories (9 categories)
-- Plant Fibers, Metal Ores, Precious Stones, Animal Parts, Wood Types, 
+- Plant Fibers, Metal Ores, Precious Stones, Animal Parts, Wood Types,
 - Textile Materials, Alchemical Components, Stone Materials, Building Stone
 
 ### Regional Effects (10 standard effects)
@@ -287,7 +287,7 @@ This system is designed to work alongside existing database code:
 To add new database systems:
 
 1. Create initialization function in `db_init.c`
-2. Add verification function 
+2. Add verification function
 3. Add to `init_luminari_database()` call list
 4. Add to `verify_database_integrity()` check list
 5. Update admin commands as needed

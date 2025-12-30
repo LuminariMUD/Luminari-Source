@@ -137,7 +137,7 @@ IMPORTANT: These are WORLD FILES, not source code. They are:
 
 When editing MUD world files:
 
-1. **Room Descriptions**: 
+1. **Room Descriptions**:
    - Use vivid, atmospheric descriptions
    - Include obvious exits in description
    - Consider all senses (sight, sound, smell)
@@ -164,7 +164,7 @@ When editing MUD world files:
 5. **File Format Standards**:
    - Maintain exact formatting of existing files
    - Use ~ for string terminators where required
-   - End sections with $ 
+   - End sections with $
    - Preserve vnum sequencing
 
 6. **Balance Guidelines**:
@@ -297,7 +297,7 @@ EOF
 
 ### Adding a New Area
 ```
-> I need to create a new level 25-30 undead themed zone (zone 125). 
+> I need to create a new level 25-30 undead themed zone (zone 125).
 > Start with 5 connected rooms forming a haunted crypt entrance.
 > Include atmospheric descriptions and appropriate sector types.
 ```
@@ -311,14 +311,14 @@ EOF
 
 ### Building Shops
 ```
-> Create a potion shop in room 12510. 
+> Create a potion shop in room 12510.
 > The shopkeeper should be a mysterious alchemist.
 > Sell healing, mana, and stat-boost potions appropriate for level 25-30.
 ```
 
 ### Quest Items
 ```
-> Design a quest line item: "The Amulet of Shadows" 
+> Design a quest line item: "The Amulet of Shadows"
 > It should be a neck item with +2 INT, +10 mana, and a dark aura.
 > Include lore-rich descriptions.
 ```
