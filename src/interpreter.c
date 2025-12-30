@@ -4612,6 +4612,28 @@ cpp_extern const struct command_info cmd_info[] = {
     {"drive", "drive", POS_STANDING, do_drive, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"vstatus", "vstatus", POS_RECLINING, do_vstatus, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* Vehicle Transport Commands (Phase 02, Session 05) */
+    {"loadvehicle",
+     "loadveh",
+     POS_STANDING,
+     do_loadvehicle,
+     0,
+     0,
+     FALSE,
+     ACTION_MOVE,
+     {0, 6},
+     NULL},
+    {"unloadvehicle",
+     "unloadveh",
+     POS_STANDING,
+     do_unloadvehicle,
+     0,
+     0,
+     FALSE,
+     ACTION_MOVE,
+     {0, 6},
+     NULL},
+
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

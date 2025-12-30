@@ -37,12 +37,6 @@ extern bool mysql_available;
 /* ========================================================================= */
 
 /**
- * Maximum number of concurrent vehicles in the game.
- * 1000 vehicles x 136 bytes = ~133KB memory usage.
- */
-#define MAX_VEHICLES 1000
-
-/**
  * Global vehicle tracking array.
  * NULL entries indicate available slots.
  */
@@ -117,6 +111,8 @@ const char *vehicle_state_name(enum vehicle_state state)
     return "hitched";
   case VSTATE_DAMAGED:
     return "damaged";
+  case VSTATE_ON_VESSEL:
+    return "on vessel";
   default:
     return "unknown";
   }
@@ -154,6 +150,7 @@ void vehicle_init(struct vehicle_data *vehicle, enum vehicle_type type)
   vehicle->direction = 0;
   vehicle->x_coord = 0;
   vehicle->y_coord = 0;
+  vehicle->parent_vessel_id = 0; /* Not loaded on any vessel (S0205) */
 
   /* Set type-specific defaults */
   switch (type)
@@ -880,13 +877,14 @@ int vehicle_save(struct vehicle_data *vehicle)
            "(vehicle_id, vehicle_type, vehicle_state, vehicle_name, "
            "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
            "max_weight, current_weight, base_speed, current_speed, "
-           "terrain_flags, max_condition, vehicle_condition, owner_id) "
-           "VALUES (%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld)",
+           "terrain_flags, max_condition, vehicle_condition, owner_id, parent_vessel_id) "
+           "VALUES (%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld, %d)",
            vehicle->id, vehicle->type, vehicle->state, escaped_name, vehicle->location,
            vehicle->direction, vehicle->x_coord, vehicle->y_coord, vehicle->max_passengers,
            vehicle->current_passengers, vehicle->max_weight, vehicle->current_weight,
            vehicle->base_speed, vehicle->current_speed, vehicle->terrain_flags,
-           vehicle->max_condition, vehicle->condition, vehicle->owner_id);
+           vehicle->max_condition, vehicle->condition, vehicle->owner_id,
+           vehicle->parent_vessel_id);
 
   if (mysql_query(conn, query))
   {
@@ -919,7 +917,7 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
            "SELECT vehicle_id, vehicle_type, vehicle_state, vehicle_name, "
            "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
            "max_weight, current_weight, base_speed, current_speed, "
-           "terrain_flags, max_condition, vehicle_condition, owner_id "
+           "terrain_flags, max_condition, vehicle_condition, owner_id, parent_vessel_id "
            "FROM vehicle_data WHERE vehicle_id = %d",
            vehicle_id);
 
@@ -962,6 +960,7 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
     vehicle->max_condition = atoi(row[15]);
     vehicle->condition = atoi(row[16]);
     vehicle->owner_id = atol(row[17]);
+    vehicle->parent_vessel_id = row[18] ? atoi(row[18]) : 0;
     vehicle->obj = NULL;
 
     mysql_free_result(result);

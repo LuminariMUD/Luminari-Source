@@ -974,6 +974,10 @@ enum vehicle_type
 /**
  * Vehicle lifecycle states for state machine management.
  * Determines available actions and display behavior.
+ *
+ * Note: VSTATE_ON_VESSEL indicates the vehicle is loaded onto a parent vessel.
+ * When a vehicle is on a vessel, its parent_vessel_id field will be > 0,
+ * and its coordinates will sync with the parent vessel's location.
  */
 enum vehicle_state
 {
@@ -982,6 +986,7 @@ enum vehicle_state
   VSTATE_LOADED,     /* Carrying cargo or passengers */
   VSTATE_HITCHED,    /* Attached to another vehicle (wagon train) */
   VSTATE_DAMAGED,    /* Broken, requires repair before use */
+  VSTATE_ON_VESSEL,  /* Loaded onto a water vessel (S0205) */
   NUM_VEHICLE_STATES /* Must be last - count of vehicle states */
 };
 
@@ -1028,6 +1033,12 @@ enum vehicle_state
 #define VEHICLE_PASSENGERS_MOUNT 1    /* Mount: single rider only */
 #define VEHICLE_PASSENGERS_CARRIAGE 4 /* Carriage: driver + 3 passengers */
 #define VEHICLE_MAX_PASSENGERS 8      /* Absolute maximum for any vehicle */
+
+/**
+ * Maximum number of concurrent vehicles in the game.
+ * 1000 vehicles x ~150 bytes = ~147KB memory usage.
+ */
+#define MAX_VEHICLES 1000
 
 /**
  * Maximum weight capacity by vehicle type (in pounds).
@@ -1106,13 +1117,14 @@ enum vehicle_state
  *
  * Memory layout estimate:
  *   - Identity fields: ~76 bytes (int + 2 enums + char[64])
- *   - Location fields: ~8 bytes (int + int)
+ *   - Location fields: ~16 bytes (4 ints)
+ *   - Transport fields: ~4 bytes (int for parent_vessel_id)
  *   - Capacity fields: ~16 bytes (4 ints)
  *   - Movement fields: ~12 bytes (3 ints)
  *   - Condition fields: ~8 bytes (2 ints)
  *   - Ownership: ~8 bytes (long)
  *   - Object pointer: ~8 bytes (pointer)
- *   Total: ~136 bytes
+ *   Total: ~148 bytes
  */
 struct vehicle_data
 {
@@ -1127,6 +1139,9 @@ struct vehicle_data
   int direction;      /* Facing direction (0-5, matches exits) */
   int x_coord;        /* Wilderness X coordinate (-1024 to +1024) */
   int y_coord;        /* Wilderness Y coordinate (-1024 to +1024) */
+
+  /* ===== Transport Fields (S0205) ===== */
+  int parent_vessel_id; /* ID of vessel this vehicle is loaded on (0 = none) */
 
   /* ===== Capacity Fields (T011) ===== */
   int max_passengers;     /* Maximum passenger count */
@@ -1206,14 +1221,34 @@ void vehicle_show_status(struct char_data *ch, struct vehicle_data *vehicle);
 void vehicle_show_passengers(struct char_data *ch, struct vehicle_data *vehicle);
 
 /* ========================================================================= */
+/* VEHICLE TRANSPORT PROTOTYPES (Phase 02, Session 05)                        */
+/* ========================================================================= */
+
+/* Capacity Validation (S0205) */
+int check_vessel_vehicle_capacity(struct greyhawk_ship_data *vessel, struct vehicle_data *vehicle);
+
+/* Loading/Unloading Functions (S0205) */
+int load_vehicle_onto_vessel(struct char_data *ch, struct vehicle_data *vehicle,
+                             struct greyhawk_ship_data *vessel);
+int unload_vehicle_from_vessel(struct char_data *ch, struct vehicle_data *vehicle);
+
+/* Vehicle List Functions (S0205) */
+struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel, int *count);
+
+/* Coordinate Synchronization (S0205) */
+void vehicle_sync_with_vessel(struct vehicle_data *vehicle, struct greyhawk_ship_data *vessel);
+
+/* ========================================================================= */
 /* VEHICLE COMMAND PROTOTYPES (Phase 02, Session 04)                          */
 /* ========================================================================= */
 
-ACMD_DECL(do_vmount);    /* Mount a vehicle (distinct from creature mount) */
-ACMD_DECL(do_vdismount); /* Dismount from vehicle (distinct from creature dismount) */
-ACMD_DECL(do_hitch);     /* Hitch vehicles together */
-ACMD_DECL(do_unhitch);   /* Unhitch vehicles */
-ACMD_DECL(do_drive);     /* Drive a vehicle in a direction */
-ACMD_DECL(do_vstatus);   /* Show vehicle status */
+ACMD_DECL(do_vmount);        /* Mount a vehicle (distinct from creature mount) */
+ACMD_DECL(do_vdismount);     /* Dismount from vehicle (distinct from creature dismount) */
+ACMD_DECL(do_hitch);         /* Hitch vehicles together */
+ACMD_DECL(do_unhitch);       /* Unhitch vehicles */
+ACMD_DECL(do_drive);         /* Drive a vehicle in a direction */
+ACMD_DECL(do_vstatus);       /* Show vehicle status */
+ACMD_DECL(do_loadvehicle);   /* Load vehicle onto a vessel (S0205) */
+ACMD_DECL(do_unloadvehicle); /* Unload vehicle from a vessel (S0205) */
 
 #endif /* _VESSELS_H_ */

@@ -59,6 +59,11 @@ VEHICLE_MOVEMENT_TEST_SRC = test_vehicle_movement.c
 VEHICLE_MOVEMENT_TEST_OBJ = $(BUILD_DIR)/test_vehicle_movement.o
 VEHICLE_MOVEMENT_TEST_EXE = vehicle_movement_tests
 
+# Vehicle transport test files (Phase 02, Session 05)
+VEHICLE_TRANSPORT_TEST_SRC = vehicle_transport_tests.c
+VEHICLE_TRANSPORT_TEST_OBJ = $(BUILD_DIR)/vehicle_transport_tests.o
+VEHICLE_TRANSPORT_TEST_EXE = vehicle_transport_tests
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -73,7 +78,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -138,6 +143,10 @@ $(BUILD_DIR)/test_vehicle_structs.o: test_vehicle_structs.c CuTest.h
 $(BUILD_DIR)/test_vehicle_movement.o: test_vehicle_movement.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile vehicle transport tests (Phase 02, Session 05)
+$(BUILD_DIR)/vehicle_transport_tests.o: vehicle_transport_tests.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -173,6 +182,10 @@ $(VEHICLE_STRUCTS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_STRUCTS_TEST_O
 # Link vehicle movement tests (Phase 02, Session 03)
 $(VEHICLE_MOVEMENT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_MOVEMENT_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_MOVEMENT_TEST_OBJ) $(LDFLAGS)
+
+# Link vehicle transport tests (Phase 02, Session 05)
+$(VEHICLE_TRANSPORT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_TRANSPORT_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_TRANSPORT_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -210,6 +223,10 @@ vehicle: $(VEHICLE_STRUCTS_TEST_EXE)
 vehicle-movement: $(VEHICLE_MOVEMENT_TEST_EXE)
 	./$(VEHICLE_MOVEMENT_TEST_EXE)
 
+# Run vehicle transport tests (Phase 02, Session 05)
+vehicle-transport: $(VEHICLE_TRANSPORT_TEST_EXE)
+	./$(VEHICLE_TRANSPORT_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -242,8 +259,12 @@ valgrind-waypoint: $(WAYPOINT_TEST_EXE)
 valgrind-vehicle: $(VEHICLE_STRUCTS_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_STRUCTS_TEST_EXE)
 
+# Run vehicle transport tests with Valgrind (Phase 02, Session 05)
+valgrind-vehicle-transport: $(VEHICLE_TRANSPORT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_TRANSPORT_TEST_EXE)
+
 # Run all tests
-test-all: test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement
+test-all: test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport
 
 # Run all Phase 01 tests (autopilot automation layer)
 phase01-tests: $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(WAYPOINT_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE)
@@ -296,6 +317,7 @@ clean:
 	rm -f $(WAYPOINT_TEST_EXE)
 	rm -f $(VEHICLE_STRUCTS_TEST_EXE)
 	rm -f $(VEHICLE_MOVEMENT_TEST_EXE)
+	rm -f $(VEHICLE_TRANSPORT_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -322,4 +344,4 @@ help:
 	@echo "  rebuild         - Clean and rebuild"
 	@echo "  help            - Show this help"
 
-.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle phase01-tests valgrind-phase01 test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport phase01-tests valgrind-phase01 test-all clean rebuild help

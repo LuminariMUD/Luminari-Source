@@ -633,6 +633,7 @@ set(SRC_C_FILES
     src/utils.c
     src/vehicles.c
     src/vehicles_commands.c
+    src/vehicles_transport.c
     src/vessels.c
     src/vessels_autopilot.c
     src/vessels_db.c

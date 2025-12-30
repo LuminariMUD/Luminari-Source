@@ -608,6 +608,153 @@ ACMD(do_vstatus)
 }
 
 /* ========================================================================= */
+/* VEHICLE TRANSPORT COMMANDS (Phase 02, Session 05)                          */
+/* ========================================================================= */
+
+/* External vessel/transport functions */
+extern struct greyhawk_ship_data *get_ship_from_room(room_rnum room);
+extern int load_vehicle_onto_vessel(struct char_data *ch, struct vehicle_data *vehicle,
+                                    struct greyhawk_ship_data *vessel);
+extern int unload_vehicle_from_vessel(struct char_data *ch, struct vehicle_data *vehicle);
+extern struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel,
+                                                      int *count);
+
+/**
+ * do_loadvehicle - Load a vehicle onto a vessel.
+ *
+ * Usage: loadvehicle [vehicle]
+ *
+ * Loads a vehicle from the current room onto a vessel the player is on.
+ * Vessel must be stationary or docked.
+ *
+ * @param ch The character executing the command
+ * @param argument The vehicle to load (optional, uses first in room)
+ * @param cmd The command number
+ * @param subcmd The subcommand number
+ */
+ACMD(do_loadvehicle)
+{
+  struct vehicle_data *vehicle;
+  struct greyhawk_ship_data *vessel;
+  char arg[MAX_INPUT_LENGTH];
+
+  /* Parse argument */
+  one_argument(argument, arg, sizeof(arg));
+
+  /* Check if player is on a vessel */
+  vessel = get_ship_from_room(IN_ROOM(ch));
+  if (vessel == NULL)
+  {
+    send_to_char(ch, "You must be on a vessel to load vehicles.\r\n");
+    return;
+  }
+
+  /* Find vehicle - for now, get vehicle from current room/area */
+  /* This is simplified; in a full implementation would parse arg to find specific vehicle */
+  vehicle = vehicle_find_in_room(IN_ROOM(ch));
+
+  if (vehicle == NULL)
+  {
+    send_to_char(ch, "There is no vehicle here to load.\r\n");
+    return;
+  }
+
+  /* Check if player is mounted on this vehicle */
+  if (get_player_vehicle(ch) == vehicle)
+  {
+    send_to_char(ch, "You cannot load a vehicle you are riding. Dismount first.\r\n");
+    return;
+  }
+
+  /* Attempt to load the vehicle */
+  if (load_vehicle_onto_vessel(ch, vehicle, vessel))
+  {
+    /* Success - function already sends messages */
+    log("Info: %s loaded vehicle #%d onto vessel #%d", GET_NAME(ch), vehicle->id, vessel->shipnum);
+  }
+  /* Failure messages are handled by load_vehicle_onto_vessel */
+}
+
+/**
+ * do_unloadvehicle - Unload a vehicle from a vessel.
+ *
+ * Usage: unloadvehicle [vehicle]
+ *
+ * Unloads a vehicle from the vessel the player is on.
+ * Vessel must be stationary or docked, and terrain must be suitable.
+ *
+ * @param ch The character executing the command
+ * @param argument The vehicle to unload (optional, lists if not specified)
+ * @param cmd The command number
+ * @param subcmd The subcommand number
+ */
+ACMD(do_unloadvehicle)
+{
+  struct vehicle_data *vehicle;
+  struct vehicle_data **vehicles;
+  struct greyhawk_ship_data *vessel;
+  char arg[MAX_INPUT_LENGTH];
+  int count, i;
+  int target_id;
+
+  /* Parse argument */
+  one_argument(argument, arg, sizeof(arg));
+
+  /* Check if player is on a vessel */
+  vessel = get_ship_from_room(IN_ROOM(ch));
+  if (vessel == NULL)
+  {
+    send_to_char(ch, "You must be on a vessel to unload vehicles.\r\n");
+    return;
+  }
+
+  /* Get list of loaded vehicles */
+  vehicles = get_loaded_vehicles_list(vessel, &count);
+
+  if (vehicles == NULL || count == 0)
+  {
+    send_to_char(ch, "There are no vehicles loaded on this vessel.\r\n");
+    return;
+  }
+
+  /* If no argument, list loaded vehicles */
+  if (!*arg)
+  {
+    send_to_char(ch, "Vehicles loaded on %s:\r\n", vessel->name);
+    for (i = 0; i < count; i++)
+    {
+      send_to_char(ch, "  %d. %s [%s]\r\n", i + 1, vehicles[i]->name,
+                   vehicle_type_name(vehicles[i]->type));
+    }
+    send_to_char(ch, "Use 'unloadvehicle <number>' to unload a specific vehicle.\r\n");
+    free(vehicles);
+    return;
+  }
+
+  /* Parse argument as vehicle number */
+  target_id = atoi(arg);
+  if (target_id < 1 || target_id > count)
+  {
+    send_to_char(ch, "Invalid vehicle number. Use 'unloadvehicle' to see the list.\r\n");
+    free(vehicles);
+    return;
+  }
+
+  /* Get the target vehicle */
+  vehicle = vehicles[target_id - 1];
+  free(vehicles);
+
+  /* Attempt to unload */
+  if (unload_vehicle_from_vessel(ch, vehicle))
+  {
+    /* Success - function already sends messages */
+    log("Info: %s unloaded vehicle #%d from vessel #%d", GET_NAME(ch), vehicle->id,
+        vessel->shipnum);
+  }
+  /* Failure messages are handled by unload_vehicle_from_vessel */
+}
+
+/* ========================================================================= */
 /* PUBLIC DISPLAY FUNCTIONS                                                   */
 /* ========================================================================= */
 

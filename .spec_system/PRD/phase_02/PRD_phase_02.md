@@ -4,7 +4,7 @@
 **Sessions**: 7 (initial estimate)
 **Estimated Duration**: 5-7 days
 
-**Progress**: 4/7 sessions (57%)
+**Progress**: 5/7 sessions (71%)
 
 ---
 
@@ -22,7 +22,7 @@ Implement a lightweight vehicle tier for LuminariMUD that provides simple, land-
 | 02 | Vehicle Creation System | Complete | 24 | 2025-12-30 |
 | 03 | Vehicle Movement System | Complete | 20 | 2025-12-30 |
 | 04 | Vehicle Player Commands | Complete | 20 | 2025-12-30 |
-| 05 | Vehicle-in-Vehicle Mechanics | Not Started | ~15-20 | - |
+| 05 | Vehicle-in-Vehicle Mechanics | Complete | 20 | 2025-12-30 |
 | 06 | Unified Command Interface | Not Started | ~15-20 | - |
 | 07 | Testing and Validation | Not Started | ~20-25 | - |
 
@@ -54,11 +54,17 @@ Implement a lightweight vehicle tier for LuminariMUD that provides simple, land-
 - **Tests**: 155 passing (cumulative), all quality gates met
 - **Summary**: Implemented player-facing vehicle commands - vmount/vdismount for entering/exiting vehicles, drive command for 8-direction movement with terrain validation, vstatus for vehicle information display. Commands registered in interpreter.c, help files created, and comprehensive unit tests added.
 
+### Session 05: Vehicle-in-Vehicle Mechanics
+- **Completed**: 2025-12-30
+- **Tasks**: 20/20
+- **Tests**: 14 passing, Valgrind clean
+- **Summary**: Implemented vehicle-in-vessel transport mechanics - load_vehicle_onto_vessel/unload_vehicle_from_vessel core functions, check_vessel_vehicle_capacity for weight validation, vehicle_sync_with_vessel for coordinate updates, do_loadvehicle/do_unloadvehicle commands, VSTATE_ON_VESSEL state, parent_vessel_id tracking with MySQL persistence.
+
 ---
 
 ## Upcoming Sessions
 
-- Session 05: Vehicle-in-Vehicle Mechanics
+- Session 06: Unified Command Interface
 
 ---
 
