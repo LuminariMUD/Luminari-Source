@@ -64,6 +64,26 @@ VEHICLE_TRANSPORT_TEST_SRC = vehicle_transport_tests.c
 VEHICLE_TRANSPORT_TEST_OBJ = $(BUILD_DIR)/vehicle_transport_tests.o
 VEHICLE_TRANSPORT_TEST_EXE = vehicle_transport_tests
 
+# Vehicle creation test files (Phase 02, Session 02)
+VEHICLE_CREATION_TEST_SRC = test_vehicle_creation.c
+VEHICLE_CREATION_TEST_OBJ = $(BUILD_DIR)/test_vehicle_creation.o
+VEHICLE_CREATION_TEST_EXE = vehicle_creation_tests
+
+# Vehicle commands test files (Phase 02, Session 04)
+VEHICLE_COMMANDS_TEST_SRC = test_vehicle_commands.c
+VEHICLE_COMMANDS_TEST_OBJ = $(BUILD_DIR)/test_vehicle_commands.o
+VEHICLE_COMMANDS_TEST_EXE = vehicle_commands_tests
+
+# Transport unified test files (Phase 02, Session 06)
+TRANSPORT_UNIFIED_TEST_SRC = test_transport_unified.c
+TRANSPORT_UNIFIED_TEST_OBJ = $(BUILD_DIR)/test_transport_unified.o
+TRANSPORT_UNIFIED_TEST_EXE = transport_unified_tests
+
+# Vehicle stress test files (Phase 02, Session 07)
+VEHICLE_STRESS_TEST_SRC = vehicle_stress_test.c
+VEHICLE_STRESS_TEST_OBJ = $(BUILD_DIR)/vehicle_stress_test.o
+VEHICLE_STRESS_TEST_EXE = vehicle_stress_test
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -78,7 +98,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE) $(VEHICLE_CREATION_TEST_EXE) $(VEHICLE_COMMANDS_TEST_EXE) $(TRANSPORT_UNIFIED_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -147,6 +167,22 @@ $(BUILD_DIR)/test_vehicle_movement.o: test_vehicle_movement.c CuTest.h
 $(BUILD_DIR)/vehicle_transport_tests.o: vehicle_transport_tests.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile vehicle creation tests (Phase 02, Session 02)
+$(BUILD_DIR)/test_vehicle_creation.o: test_vehicle_creation.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile vehicle commands tests (Phase 02, Session 04)
+$(BUILD_DIR)/test_vehicle_commands.o: test_vehicle_commands.c CuTest.h
+	$(CC) $(CFLAGS) -DTEST_VEHICLE_COMMANDS_STANDALONE -c $< -o $@
+
+# Compile transport unified tests (Phase 02, Session 06)
+$(BUILD_DIR)/test_transport_unified.o: test_transport_unified.c CuTest.h
+	$(CC) $(CFLAGS) -DSTANDALONE_TEST -c $< -o $@
+
+# Compile vehicle stress test (Phase 02, Session 07)
+$(BUILD_DIR)/vehicle_stress_test.o: vehicle_stress_test.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -186,6 +222,22 @@ $(VEHICLE_MOVEMENT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_MOVEMENT_TEST
 # Link vehicle transport tests (Phase 02, Session 05)
 $(VEHICLE_TRANSPORT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_TRANSPORT_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_TRANSPORT_TEST_OBJ) $(LDFLAGS)
+
+# Link vehicle creation tests (Phase 02, Session 02)
+$(VEHICLE_CREATION_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_CREATION_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_CREATION_TEST_OBJ) $(LDFLAGS)
+
+# Link vehicle commands tests (Phase 02, Session 04)
+$(VEHICLE_COMMANDS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_COMMANDS_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_COMMANDS_TEST_OBJ) $(LDFLAGS)
+
+# Link transport unified tests (Phase 02, Session 06)
+$(TRANSPORT_UNIFIED_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(TRANSPORT_UNIFIED_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(TRANSPORT_UNIFIED_TEST_OBJ) $(LDFLAGS)
+
+# Link vehicle stress test (Phase 02, Session 07)
+$(VEHICLE_STRESS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_STRESS_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_STRESS_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -227,6 +279,22 @@ vehicle-movement: $(VEHICLE_MOVEMENT_TEST_EXE)
 vehicle-transport: $(VEHICLE_TRANSPORT_TEST_EXE)
 	./$(VEHICLE_TRANSPORT_TEST_EXE)
 
+# Run vehicle creation tests (Phase 02, Session 02)
+vehicle-creation: $(VEHICLE_CREATION_TEST_EXE)
+	./$(VEHICLE_CREATION_TEST_EXE)
+
+# Run vehicle commands tests (Phase 02, Session 04)
+vehicle-commands: $(VEHICLE_COMMANDS_TEST_EXE)
+	./$(VEHICLE_COMMANDS_TEST_EXE)
+
+# Run transport unified tests (Phase 02, Session 06)
+transport-unified: $(TRANSPORT_UNIFIED_TEST_EXE)
+	./$(TRANSPORT_UNIFIED_TEST_EXE)
+
+# Run vehicle stress test (Phase 02, Session 07)
+vehicle-stress: $(VEHICLE_STRESS_TEST_EXE)
+	./$(VEHICLE_STRESS_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -263,8 +331,24 @@ valgrind-vehicle: $(VEHICLE_STRUCTS_TEST_EXE)
 valgrind-vehicle-transport: $(VEHICLE_TRANSPORT_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_TRANSPORT_TEST_EXE)
 
+# Run vehicle creation tests with Valgrind (Phase 02, Session 02)
+valgrind-vehicle-creation: $(VEHICLE_CREATION_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_CREATION_TEST_EXE)
+
+# Run vehicle commands tests with Valgrind (Phase 02, Session 04)
+valgrind-vehicle-commands: $(VEHICLE_COMMANDS_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_COMMANDS_TEST_EXE)
+
+# Run transport unified tests with Valgrind (Phase 02, Session 06)
+valgrind-transport-unified: $(TRANSPORT_UNIFIED_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(TRANSPORT_UNIFIED_TEST_EXE)
+
+# Run vehicle stress test with Valgrind (Phase 02, Session 07)
+valgrind-vehicle-stress: $(VEHICLE_STRESS_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_STRESS_TEST_EXE)
+
 # Run all tests
-test-all: test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport
+test-all: test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified
 
 # Run all Phase 01 tests (autopilot automation layer)
 phase01-tests: $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(WAYPOINT_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE)
@@ -305,6 +389,49 @@ valgrind-phase01: $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(WAYPOINT_TEST_
 	@echo "Valgrind Phase 01: All tests passed"
 	@echo "========================================="
 
+# Run all Phase 02 tests (Simple Vehicle Support)
+phase02-tests: $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE) $(VEHICLE_CREATION_TEST_EXE) $(VEHICLE_COMMANDS_TEST_EXE) $(TRANSPORT_UNIFIED_TEST_EXE)
+	@echo "========================================="
+	@echo "Running Phase 02 Simple Vehicle Tests"
+	@echo "========================================="
+	@echo ""
+	@echo "--- Vehicle Structs (19 tests) ---"
+	./$(VEHICLE_STRUCTS_TEST_EXE)
+	@echo ""
+	@echo "--- Vehicle Creation (27 tests) ---"
+	./$(VEHICLE_CREATION_TEST_EXE)
+	@echo ""
+	@echo "--- Vehicle Movement (45 tests) ---"
+	./$(VEHICLE_MOVEMENT_TEST_EXE)
+	@echo ""
+	@echo "--- Vehicle Commands (31 tests) ---"
+	./$(VEHICLE_COMMANDS_TEST_EXE)
+	@echo ""
+	@echo "--- Vehicle Transport (14 tests) ---"
+	./$(VEHICLE_TRANSPORT_TEST_EXE)
+	@echo ""
+	@echo "--- Transport Unified (15 tests) ---"
+	./$(TRANSPORT_UNIFIED_TEST_EXE)
+	@echo ""
+	@echo "========================================="
+	@echo "Phase 02 Tests Complete: 151 tests total"
+	@echo "========================================="
+
+# Run Phase 02 tests with Valgrind
+valgrind-phase02: $(VEHICLE_STRUCTS_TEST_EXE) $(VEHICLE_MOVEMENT_TEST_EXE) $(VEHICLE_TRANSPORT_TEST_EXE) $(VEHICLE_CREATION_TEST_EXE) $(VEHICLE_COMMANDS_TEST_EXE) $(TRANSPORT_UNIFIED_TEST_EXE)
+	@echo "========================================="
+	@echo "Valgrind: Phase 02 Simple Vehicle Tests"
+	@echo "========================================="
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_STRUCTS_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_CREATION_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_MOVEMENT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_COMMANDS_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_TRANSPORT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(TRANSPORT_UNIFIED_TEST_EXE)
+	@echo "========================================="
+	@echo "Valgrind Phase 02: All tests passed"
+	@echo "========================================="
+
 # Clean build artifacts
 clean:
 	rm -rf $(BUILD_DIR)
@@ -318,6 +445,10 @@ clean:
 	rm -f $(VEHICLE_STRUCTS_TEST_EXE)
 	rm -f $(VEHICLE_MOVEMENT_TEST_EXE)
 	rm -f $(VEHICLE_TRANSPORT_TEST_EXE)
+	rm -f $(VEHICLE_CREATION_TEST_EXE)
+	rm -f $(VEHICLE_COMMANDS_TEST_EXE)
+	rm -f $(TRANSPORT_UNIFIED_TEST_EXE)
+	rm -f $(VEHICLE_STRESS_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -332,16 +463,18 @@ help:
 	@echo "LuminariMUD Vessel Test Suite Makefile"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all             - Build all tests (default)"
-	@echo "  test            - Run vessel unit tests"
-	@echo "  stress          - Run stress tests"
-	@echo "  phase01-tests   - Run all Phase 01 tests (84 tests)"
-	@echo "  valgrind-phase01- Run Phase 01 tests with Valgrind"
-	@echo "  valgrind        - Run vessel tests with Valgrind"
-	@echo "  valgrind-stress - Run stress tests with Valgrind"
-	@echo "  test-all        - Run all tests"
-	@echo "  clean           - Remove build artifacts"
-	@echo "  rebuild         - Clean and rebuild"
-	@echo "  help            - Show this help"
+	@echo "  all               - Build all tests (default)"
+	@echo "  test              - Run vessel unit tests"
+	@echo "  stress            - Run stress tests"
+	@echo "  phase01-tests     - Run all Phase 01 tests (84 tests)"
+	@echo "  phase02-tests     - Run all Phase 02 tests (151 tests)"
+	@echo "  valgrind-phase01  - Run Phase 01 tests with Valgrind"
+	@echo "  valgrind-phase02  - Run Phase 02 tests with Valgrind"
+	@echo "  valgrind          - Run vessel tests with Valgrind"
+	@echo "  valgrind-stress   - Run stress tests with Valgrind"
+	@echo "  test-all          - Run all tests"
+	@echo "  clean             - Remove build artifacts"
+	@echo "  rebuild           - Clean and rebuild"
+	@echo "  help              - Show this help"
 
-.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport phase01-tests valgrind-phase01 test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified vehicle-stress valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport valgrind-vehicle-creation valgrind-vehicle-commands valgrind-transport-unified valgrind-vehicle-stress phase01-tests valgrind-phase01 phase02-tests valgrind-phase02 test-all clean rebuild help

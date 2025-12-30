@@ -4,9 +4,13 @@
  *              Phase 02 Session 04: Vehicle Player Commands                 *
  * ********************************************************************** */
 
+/* Enable POSIX functions (strcasecmp) in C89 mode */
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include "CuTest.h"
 
@@ -402,65 +406,73 @@ void test_parse_direction_case_insensitive(CuTest *tc)
 
 void test_is_player_in_vehicle_not_mounted(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
-  int result = is_player_in_vehicle_test(12345);
+  result = is_player_in_vehicle_test(12345);
   CuAssertIntEquals(tc, 0, result);
 }
 
 void test_is_player_in_vehicle_mounted(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
   register_player_mount_test(12345, 1);
-  int result = is_player_in_vehicle_test(12345);
+  result = is_player_in_vehicle_test(12345);
   CuAssertIntEquals(tc, 1, result);
 }
 
 void test_register_player_mount_success(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
-  int result = register_player_mount_test(12345, 1);
+  result = register_player_mount_test(12345, 1);
   CuAssertIntEquals(tc, 1, result);
   CuAssertIntEquals(tc, 1, mock_mounted_count);
 }
 
 void test_register_player_mount_already_mounted(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
   register_player_mount_test(12345, 1);
-  int result = register_player_mount_test(12345, 2);
+  result = register_player_mount_test(12345, 2);
   CuAssertIntEquals(tc, 0, result);
   CuAssertIntEquals(tc, 1, mock_mounted_count);
 }
 
 void test_unregister_player_mount_success(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
   register_player_mount_test(12345, 1);
   CuAssertIntEquals(tc, 1, mock_mounted_count);
-  int result = unregister_player_mount_test(12345);
+  result = unregister_player_mount_test(12345);
   CuAssertIntEquals(tc, 1, result);
   CuAssertIntEquals(tc, 0, mock_mounted_count);
 }
 
 void test_unregister_player_mount_not_mounted(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
-  int result = unregister_player_mount_test(12345);
+  result = unregister_player_mount_test(12345);
   CuAssertIntEquals(tc, 0, result);
 }
 
 void test_get_player_vehicle_id_mounted(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
   register_player_mount_test(12345, 42);
-  int result = get_player_vehicle_id_test(12345);
+  result = get_player_vehicle_id_test(12345);
   CuAssertIntEquals(tc, 42, result);
 }
 
 void test_get_player_vehicle_id_not_mounted(CuTest *tc)
 {
+  int result;
   reset_mock_tracking();
-  int result = get_player_vehicle_id_test(12345);
+  result = get_player_vehicle_id_test(12345);
   CuAssertIntEquals(tc, 0, result);
 }
 
@@ -584,8 +596,12 @@ CuSuite *CuGetVehicleCommandsSuite(void)
 
 int main(void)
 {
-  CuString *output = CuStringNew();
-  CuSuite *suite = CuGetVehicleCommandsSuite();
+  CuString *output;
+  CuSuite *suite;
+  int result;
+
+  output = CuStringNew();
+  suite = CuGetVehicleCommandsSuite();
 
   CuSuiteRun(suite);
   CuSuiteSummary(suite, output);
@@ -593,7 +609,13 @@ int main(void)
 
   printf("%s\n", output->buffer);
 
-  return suite->failCount > 0 ? 1 : 0;
+  /* Save fail count before freeing */
+  result = (suite->failCount > 0) ? 1 : 0;
+
+  CuStringDelete(output);
+  CuSuiteDelete(suite);
+
+  return result;
 }
 
 #endif /* TEST_VEHICLE_COMMANDS_STANDALONE */

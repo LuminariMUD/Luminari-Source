@@ -4,6 +4,9 @@
  *              Phase 02 Session 02: Vehicle Creation System                 *
  * ********************************************************************** */
 
+/* Enable POSIX functions (snprintf) in C89 mode */
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -959,8 +962,12 @@ CuSuite *GetVehicleCreationSuite(void)
 /* Standalone test runner */
 int main(void)
 {
-  CuString *output = CuStringNew();
-  CuSuite *suite = GetVehicleCreationSuite();
+  CuString *output;
+  CuSuite *suite;
+  int result;
+
+  output = CuStringNew();
+  suite = GetVehicleCreationSuite();
 
   printf("Running vehicle creation system unit tests...\n\n");
 
@@ -970,8 +977,10 @@ int main(void)
 
   printf("%s\n", output->buffer);
 
+  result = (suite->failCount > 0) ? 1 : 0;
+
   CuStringDelete(output);
   CuSuiteDelete(suite);
 
-  return suite->failCount;
+  return result;
 }

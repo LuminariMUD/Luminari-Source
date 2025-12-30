@@ -911,8 +911,12 @@ CuSuite *GetVehicleMovementSuite(void)
 /* Standalone test runner */
 int main(void)
 {
-  CuString *output = CuStringNew();
-  CuSuite *suite = GetVehicleMovementSuite();
+  CuString *output;
+  CuSuite *suite;
+  int result;
+
+  output = CuStringNew();
+  suite = GetVehicleMovementSuite();
 
   printf("Running vehicle movement system unit tests...\n\n");
 
@@ -922,8 +926,11 @@ int main(void)
 
   printf("%s\n", output->buffer);
 
+  /* Save fail count before freeing suite */
+  result = (suite->failCount > 0) ? 1 : 0;
+
   CuStringDelete(output);
   CuSuiteDelete(suite);
 
-  return suite->failCount;
+  return result;
 }

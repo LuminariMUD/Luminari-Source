@@ -1,7 +1,7 @@
 # Considerations
 
 > Institutional memory for AI assistants. Updated between phases via /carryforward.
-> **Line budget**: 600 max | **Last updated**: Phase 01 (2025-12-30)
+> **Line budget**: 600 max | **Last updated**: Phase 02 (2025-12-30)
 
 ---
 
@@ -30,6 +30,8 @@ Items requiring attention in upcoming phases. Review before each session.
 1. **Max 500 concurrent vessels validated** - Stress test passed at 100/250/500 vessels.
 2. **Memory target achieved: 1016 bytes/vessel** - Within <1KB target.
 3. **VNUM range 30000-40019 reserved** - Do not use for builder zones.
+4. **Max 1000 concurrent vehicles validated** - Stress test passed at 100/500/1000 vehicles.
+5. **Vehicle memory: 148 bytes/vehicle** - Well under 512-byte target.
 
 ### Architecture
 <!-- Max 5 items -->
@@ -55,6 +57,10 @@ Proven patterns and anti-patterns. Reference during implementation.
 6. **Valgrind with suppression file** - Filters CuTest framework leaks, validates real code.
 7. **Memory-efficient autopilot struct** - 48 bytes per vessel enables scaling.
 8. **In-memory cache for waypoints/routes** - Fast lookups without DB round-trips.
+9. **Unified transport interface** - transport_data struct abstracts vessel/vehicle differences.
+10. **Vehicle-in-vessel mechanics** - Clean layered transport with nesting limits.
+11. **POSIX macro for C89 compatibility** - _POSIX_C_SOURCE 200809L enables snprintf/strcasecmp.
+12. **151+ Phase 02 unit tests** - Comprehensive coverage of vehicle systems.
 
 ### What to Avoid
 <!-- Max 10 items -->
@@ -78,6 +84,10 @@ Recently closed items (buffer - rotates out after 2 phases).
 
 | Phase | Item | Resolution |
 |-------|------|------------|
+| P02 | Max 1000 vehicles target | Validated via stress test (100/500/1000) |
+| P02 | Memory <512 bytes/vehicle | Achieved: 148 bytes/vehicle |
+| P02 | 151+ unit tests for vehicles | All passing, Valgrind clean |
+| P02 | Unified transport interface | transport_data abstraction complete |
 | P01 | Max 500 vessels target | Validated via stress test (100/250/500) |
 | P01 | Memory <1KB per vessel | Achieved: 1016 bytes/vessel |
 | P01 | 84 unit tests for automation | All passing, Valgrind clean |

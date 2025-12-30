@@ -224,7 +224,7 @@ void test_transport_data_struct_size(CuTest *tc)
   /* Structure should be small - just enum + pointer */
   CuAssertTrue(tc, size <= 16);
 
-  printf("  transport_data size: %zu bytes\n", size);
+  printf("  transport_data size: %lu bytes\n", (unsigned long)size);
 }
 
 /**
@@ -477,8 +477,12 @@ CuSuite *GetTransportUnifiedSuite(void)
 #ifdef STANDALONE_TEST
 int main(void)
 {
-  CuString *output = CuStringNew();
-  CuSuite *suite = GetTransportUnifiedSuite();
+  CuString *output;
+  CuSuite *suite;
+  int result;
+
+  output = CuStringNew();
+  suite = GetTransportUnifiedSuite();
 
   printf("Running Transport Unified Tests...\n\n");
 
@@ -488,7 +492,7 @@ int main(void)
 
   printf("%s\n", output->buffer);
 
-  int result = (suite->failCount > 0) ? 1 : 0;
+  result = (suite->failCount > 0) ? 1 : 0;
 
   CuStringDelete(output);
   CuSuiteDelete(suite);
