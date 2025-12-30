@@ -686,6 +686,10 @@ static void init_game(ush_int local_port)
   log("Saving vessel states to database.");
   save_all_vessels();
 
+  /* Save all vehicle states to database */
+  log("Saving vehicle states to database.");
+  vehicle_save_all();
+
   /* Shutdown Discord bridge */
   log("Shutting down Discord bridge.");
   shutdown_discord_bridge();

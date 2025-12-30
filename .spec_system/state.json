@@ -42,7 +42,8 @@
     "phase01-session05-npc-pilot-integration",
     "phase01-session06-scheduled-route-system",
     "phase01-session07-testing-validation",
-    "phase02-session01-vehicle-data-structures"
+    "phase02-session01-vehicle-data-structures",
+    "phase02-session02-vehicle-creation-system"
   ],
   "next_session_history": [
     {
@@ -128,6 +129,11 @@
     {
       "date": "2025-12-30",
       "session": "phase02-session01-vehicle-data-structures",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase02-session02-vehicle-creation-system",
       "status": "completed"
     }
   ]

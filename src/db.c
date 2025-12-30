@@ -1254,6 +1254,9 @@ void boot_db(void)
   log("Loading ship interiors from database...");
   load_all_ship_interiors();
 
+  log("Loading vehicles from database...");
+  vehicle_load_all();
+
   if (!no_rent_check)
   {
     log("Deleting timed-out crash and rent files:");

@@ -631,6 +631,7 @@ set(SRC_C_FILES
     src/treasure.c
     src/treasure_const.c
     src/utils.c
+    src/vehicles.c
     src/vessels.c
     src/vessels_autopilot.c
     src/vessels_db.c

@@ -205,6 +205,7 @@ circle_SOURCES = \
 	src/treasure.c \
 	src/treasure_const.c \
 	src/utils.c \
+	src/vehicles.c \
 	src/vessels.c \
 	src/vessels_db.c \
 	src/vessels_docking.c \
