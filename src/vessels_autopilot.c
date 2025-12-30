@@ -1981,6 +1981,12 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
     return;
   }
 
+  /* Pilot announcement if pilot is assigned */
+  if (ap->pilot_mob_vnum != -1)
+  {
+    pilot_announce_waypoint(ship, wp);
+  }
+
   /* Check if we need to wait at this waypoint */
   if (wp->wait_time > 0)
   {
@@ -2235,6 +2241,21 @@ void autopilot_tick(void)
         break;
 
       case AUTOPILOT_OFF:
+        /* Auto-engage if pilot assigned with route */
+        if (ap->pilot_mob_vnum != -1 &&
+            ap->current_route != NULL &&
+            ap->current_route->num_waypoints > 0)
+        {
+          /* Verify pilot is still present */
+          if (get_pilot_from_ship(ship) != NULL)
+          {
+            autopilot_start(ship, ap->current_route);
+            send_to_ship(ship, "The pilot engages autopilot.\r\n");
+            active_count++;
+          }
+        }
+        break;
+
       case AUTOPILOT_COMPLETE:
       default:
         /* No processing needed */
@@ -2994,4 +3015,283 @@ ACMD(do_setroute)
   send_to_char(ch, "Route '%s' assigned to autopilot (%d waypoints).\r\n",
                arg, route->num_waypoints);
   send_to_char(ch, "Use 'autopilot on' to begin navigation.\r\n");
+}
+
+/* ========================================================================= */
+/* NPC PILOT FUNCTIONS                                                        */
+/* ========================================================================= */
+
+/**
+ * Validates if an NPC can serve as pilot for a vessel.
+ * Checks: is NPC, is in helm room, vessel doesn't already have pilot.
+ *
+ * @param ch The captain issuing the assignment
+ * @param npc The NPC to validate as pilot
+ * @param ship The vessel to assign pilot to
+ * @return TRUE if valid pilot, FALSE otherwise (sends error to ch)
+ */
+int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
+                       struct greyhawk_ship_data *ship)
+{
+  if (ch == NULL)
+  {
+    log("SYSERR: is_valid_pilot_npc called with NULL ch");
+    return FALSE;
+  }
+
+  if (npc == NULL)
+  {
+    send_to_char(ch, "You don't see that person here.\r\n");
+    return FALSE;
+  }
+
+  if (ship == NULL)
+  {
+    log("SYSERR: is_valid_pilot_npc called with NULL ship");
+    send_to_char(ch, "Error: No vessel context.\r\n");
+    return FALSE;
+  }
+
+  /* Must be an NPC */
+  if (!IS_NPC(npc))
+  {
+    send_to_char(ch, "Only NPCs can be assigned as vessel pilots.\r\n");
+    return FALSE;
+  }
+
+  /* Must be in the helm/bridge room */
+  if (IN_ROOM(npc) != real_room(ship->bridge_room))
+  {
+    send_to_char(ch, "%s must be in the helm room to be assigned as pilot.\r\n",
+                 GET_NAME(npc));
+    return FALSE;
+  }
+
+  /* Vessel cannot already have a pilot */
+  if (ship->autopilot != NULL && ship->autopilot->pilot_mob_vnum != -1)
+  {
+    send_to_char(ch, "This vessel already has a pilot assigned. "
+                 "Use 'unassignpilot' first.\r\n");
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Finds the pilot NPC for a ship by matching pilot_mob_vnum.
+ * Searches the helm/bridge room for an NPC with matching VNUM.
+ *
+ * @param ship The vessel to find pilot for
+ * @return Pointer to pilot NPC, or NULL if not found
+ */
+struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship)
+{
+  struct char_data *tch;
+  room_rnum bridge_room;
+
+  if (ship == NULL)
+  {
+    log("SYSERR: get_pilot_from_ship called with NULL ship");
+    return NULL;
+  }
+
+  if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1)
+  {
+    return NULL;
+  }
+
+  bridge_room = real_room(ship->bridge_room);
+  if (bridge_room == NOWHERE)
+  {
+    return NULL;
+  }
+
+  /* Search bridge room for NPC matching pilot VNUM */
+  for (tch = world[bridge_room].people; tch != NULL; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch) && GET_MOB_VNUM(tch) == ship->autopilot->pilot_mob_vnum)
+    {
+      return tch;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Announces waypoint arrival to all vessel occupants.
+ * Called when a piloted vessel arrives at a waypoint.
+ *
+ * @param ship The vessel arriving at waypoint
+ * @param wp The waypoint being arrived at
+ */
+void pilot_announce_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp)
+{
+  struct char_data *pilot;
+  char pilot_name[128];
+
+  if (ship == NULL || wp == NULL)
+  {
+    return;
+  }
+
+  pilot = get_pilot_from_ship(ship);
+  if (pilot != NULL)
+  {
+    snprintf(pilot_name, sizeof(pilot_name), "%s", GET_NAME(pilot));
+  }
+  else
+  {
+    snprintf(pilot_name, sizeof(pilot_name), "The pilot");
+  }
+
+  /* Announce to all aboard */
+  if (wp->name[0] != '\0')
+  {
+    send_to_ship(ship, "%s announces, 'Arriving at %s!'\r\n", pilot_name, wp->name);
+  }
+  else
+  {
+    send_to_ship(ship, "%s announces, 'Arriving at waypoint!'\r\n", pilot_name);
+  }
+}
+
+/* ========================================================================= */
+/* NPC PILOT COMMAND HANDLERS                                                 */
+/* ========================================================================= */
+
+/**
+ * ACMD handler for assignpilot command.
+ * Assigns an NPC in the helm room as the vessel's pilot.
+ * Usage: assignpilot <npc name>
+ */
+ACMD(do_assignpilot)
+{
+  struct greyhawk_ship_data *ship;
+  struct char_data *npc;
+  char arg[MAX_INPUT_LENGTH];
+  int num;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check captain permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Parse NPC name argument */
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: assignpilot <npc name>\r\n");
+    return;
+  }
+
+  /* Initialize autopilot if needed */
+  if (ship->autopilot == NULL)
+  {
+    ship->autopilot = autopilot_init(ship);
+    if (ship->autopilot == NULL)
+    {
+      send_to_char(ch, "Failed to initialize autopilot system.\r\n");
+      return;
+    }
+  }
+
+  /* Find NPC in helm room */
+  num = 1;
+  npc = get_char_room(arg, &num, real_room(ship->bridge_room));
+
+  /* Validate pilot */
+  if (!is_valid_pilot_npc(ch, npc, ship))
+  {
+    return;
+  }
+
+  /* Assign pilot */
+  ship->autopilot->pilot_mob_vnum = GET_MOB_VNUM(npc);
+
+  send_to_char(ch, "You assign %s as the vessel's pilot.\r\n", GET_NAME(npc));
+  send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
+
+  /* If a route is already set, auto-engage autopilot */
+  if (ship->autopilot->current_route != NULL &&
+      ship->autopilot->current_route->num_waypoints > 0 &&
+      ship->autopilot->state == AUTOPILOT_OFF)
+  {
+    autopilot_start(ship, ship->autopilot->current_route);
+    send_to_char(ch, "%s takes the helm and engages autopilot.\r\n", GET_NAME(npc));
+    send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
+  }
+}
+
+/**
+ * ACMD handler for unassignpilot command.
+ * Removes the current NPC pilot from the vessel.
+ * Usage: unassignpilot
+ */
+ACMD(do_unassignpilot)
+{
+  struct greyhawk_ship_data *ship;
+  struct char_data *pilot;
+  char pilot_name[128];
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check captain permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Check if vessel has autopilot */
+  if (ship->autopilot == NULL)
+  {
+    send_to_char(ch, "This vessel does not have autopilot capability.\r\n");
+    return;
+  }
+
+  /* Check if pilot is assigned */
+  if (ship->autopilot->pilot_mob_vnum == -1)
+  {
+    send_to_char(ch, "This vessel does not have a pilot assigned.\r\n");
+    return;
+  }
+
+  /* Get pilot name for message */
+  pilot = get_pilot_from_ship(ship);
+  if (pilot != NULL)
+  {
+    snprintf(pilot_name, sizeof(pilot_name), "%s", GET_NAME(pilot));
+  }
+  else
+  {
+    snprintf(pilot_name, sizeof(pilot_name), "The pilot");
+  }
+
+  /* Stop autopilot if running */
+  if (ship->autopilot->state == AUTOPILOT_TRAVELING ||
+      ship->autopilot->state == AUTOPILOT_WAITING)
+  {
+    autopilot_stop(ship);
+    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+  }
+
+  /* Clear pilot assignment */
+  ship->autopilot->pilot_mob_vnum = -1;
+
+  send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
+  send_to_ship(ship, "%s has been relieved of pilot duties.\r\n", pilot_name);
 }

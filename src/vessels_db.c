@@ -563,3 +563,141 @@ void save_all_vessels(void)
 
     log("Info: Saved %d vessel states to database", saved_count);
 }
+
+/* ========================================================================= */
+/* NPC PILOT PERSISTENCE FUNCTIONS                                            */
+/* ========================================================================= */
+
+/**
+ * Save pilot assignment to database.
+ *
+ * Stores the pilot VNUM in ship_crew_roster with role='pilot'.
+ * Only one pilot per ship is allowed, so existing pilot records
+ * are deleted before inserting the new one.
+ *
+ * @param ship The ship to save pilot for
+ */
+void vessel_db_save_pilot(struct greyhawk_ship_data *ship)
+{
+    char query[MAX_STRING_LENGTH];
+    struct char_data *pilot;
+    char escaped_name[MAX_NAME_LENGTH * 2 + 1];
+
+    if (!mysql_available || !ship)
+    {
+        return;
+    }
+
+    /* Delete any existing pilot record for this ship */
+    snprintf(query, sizeof(query),
+        "DELETE FROM ship_crew_roster WHERE ship_id = '%s' AND crew_role = '%s'",
+        ship->id, CREW_ROLE_PILOT);
+
+    if (mysql_query(conn, query))
+    {
+        log("SYSERR: Unable to clear pilot record for ship %s: %s",
+            ship->id, mysql_error(conn));
+        return;
+    }
+
+    /* If no pilot assigned, we're done */
+    if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1)
+    {
+        return;
+    }
+
+    /* Get pilot name if possible */
+    pilot = get_pilot_from_ship(ship);
+    if (pilot != NULL)
+    {
+        mysql_real_escape_string(conn, escaped_name, GET_NAME(pilot),
+                                 strlen(GET_NAME(pilot)));
+    }
+    else
+    {
+        snprintf(escaped_name, sizeof(escaped_name), "Unknown Pilot");
+    }
+
+    /* Insert new pilot record */
+    snprintf(query, sizeof(query),
+        "INSERT INTO ship_crew_roster "
+        "(ship_id, npc_vnum, npc_name, crew_role, assigned_room, status) "
+        "VALUES ('%s', %d, '%s', '%s', %d, 'active')",
+        ship->id, ship->autopilot->pilot_mob_vnum, escaped_name,
+        CREW_ROLE_PILOT, ship->bridge_room);
+
+    if (mysql_query(conn, query))
+    {
+        log("SYSERR: Unable to save pilot for ship %s: %s",
+            ship->id, mysql_error(conn));
+    }
+    else
+    {
+        log("Info: Saved pilot VNUM %d for ship %s",
+            ship->autopilot->pilot_mob_vnum, ship->id);
+    }
+}
+
+/**
+ * Load pilot assignment from database.
+ *
+ * Retrieves the pilot VNUM from ship_crew_roster and sets
+ * autopilot->pilot_mob_vnum. Does NOT spawn the NPC - that
+ * should be handled by load_crew_roster() separately.
+ *
+ * @param ship The ship to load pilot for
+ */
+void vessel_db_load_pilot(struct greyhawk_ship_data *ship)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[MAX_STRING_LENGTH];
+
+    if (!mysql_available || !ship)
+    {
+        return;
+    }
+
+    /* Ensure autopilot is initialized */
+    if (ship->autopilot == NULL)
+    {
+        ship->autopilot = autopilot_init(ship);
+        if (ship->autopilot == NULL)
+        {
+            return;
+        }
+    }
+
+    /* Query for pilot record */
+    snprintf(query, sizeof(query),
+        "SELECT npc_vnum FROM ship_crew_roster "
+        "WHERE ship_id = '%s' AND crew_role = '%s' AND status = 'active' "
+        "LIMIT 1",
+        ship->id, CREW_ROLE_PILOT);
+
+    if (mysql_query(conn, query))
+    {
+        log("SYSERR: Unable to load pilot for ship %s: %s",
+            ship->id, mysql_error(conn));
+        return;
+    }
+
+    result = mysql_store_result(conn);
+    if (!result)
+    {
+        return;
+    }
+
+    if ((row = mysql_fetch_row(result)))
+    {
+        ship->autopilot->pilot_mob_vnum = atoi(row[0]);
+        log("Info: Loaded pilot VNUM %d for ship %s",
+            ship->autopilot->pilot_mob_vnum, ship->id);
+    }
+    else
+    {
+        ship->autopilot->pilot_mob_vnum = -1;
+    }
+
+    mysql_free_result(result);
+}

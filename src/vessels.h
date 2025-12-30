@@ -96,6 +96,9 @@
 #define AUTOPILOT_TICK_INTERVAL     5    /* Ticks between autopilot updates */
 #define AUTOPILOT_NAME_LENGTH       64   /* Max length for waypoint/route names */
 
+/* Crew Role Constants (matches ship_crew_roster.crew_role ENUM) */
+#define CREW_ROLE_PILOT             "pilot"   /* NPC vessel pilot */
+
 /* ========================================================================= */
 /* DIRECTION CONSTANTS                                                       */
 /* ========================================================================= */
@@ -693,6 +696,10 @@ void save_ship_interior(struct greyhawk_ship_data *ship);
 void load_ship_interior(struct greyhawk_ship_data *ship);
 void serialize_ship_rooms(struct greyhawk_ship_data *ship, char *buffer);
 
+/* NPC Pilot Persistence */
+void vessel_db_save_pilot(struct greyhawk_ship_data *ship);
+void vessel_db_load_pilot(struct greyhawk_ship_data *ship);
+
 /* Persistence Lifecycle Functions */
 int is_valid_ship(struct greyhawk_ship_data *ship);
 void load_all_ship_interiors(void);
@@ -816,5 +823,40 @@ ACMD_DECL(do_createroute);          /* Create a new route */
 ACMD_DECL(do_addtoroute);           /* Add waypoint to route */
 ACMD_DECL(do_listroutes);           /* List all routes */
 ACMD_DECL(do_setroute);             /* Assign route to vessel */
+
+/* Phase 3 NPC Pilot Commands */
+ACMD_DECL(do_assignpilot);          /* Assign NPC pilot to vessel */
+ACMD_DECL(do_unassignpilot);        /* Remove NPC pilot from vessel */
+
+/* ========================================================================= */
+/* NPC PILOT FUNCTIONS                                                        */
+/* ========================================================================= */
+
+/**
+ * Validates if an NPC can serve as pilot for a vessel.
+ *
+ * @param ch The captain issuing the assignment
+ * @param npc The NPC to validate as pilot
+ * @param ship The vessel to assign pilot to
+ * @return TRUE if valid pilot, FALSE otherwise (sends error to ch)
+ */
+int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
+                       struct greyhawk_ship_data *ship);
+
+/**
+ * Finds the pilot NPC for a ship by matching pilot_mob_vnum.
+ *
+ * @param ship The vessel to find pilot for
+ * @return Pointer to pilot NPC, or NULL if not found
+ */
+struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship);
+
+/**
+ * Announces waypoint arrival to all vessel occupants.
+ *
+ * @param ship The vessel arriving at waypoint
+ * @param wp The waypoint being arrived at
+ */
+void pilot_announce_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp);
 
 #endif /* _VESSELS_H_ */

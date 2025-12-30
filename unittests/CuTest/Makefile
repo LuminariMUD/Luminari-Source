@@ -34,6 +34,11 @@ PATHFINDING_TEST_SRC = test_autopilot_pathfinding.c
 PATHFINDING_TEST_OBJ = $(BUILD_DIR)/test_autopilot_pathfinding.o
 PATHFINDING_TEST_EXE = autopilot_pathfinding_tests
 
+# NPC pilot test files (Phase 01, Session 05)
+PILOT_TEST_SRC = test_npc_pilot.c
+PILOT_TEST_OBJ = $(BUILD_DIR)/test_npc_pilot.o
+PILOT_TEST_EXE = npc_pilot_tests
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -48,7 +53,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -93,6 +98,10 @@ $(BUILD_DIR)/test_autopilot_structs.o: test_autopilot_structs.c CuTest.h
 $(BUILD_DIR)/test_autopilot_pathfinding.o: test_autopilot_pathfinding.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile NPC pilot tests
+$(BUILD_DIR)/test_npc_pilot.o: test_npc_pilot.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -108,6 +117,10 @@ $(AUTOPILOT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(AUTOPILOT_TEST_OBJ)
 # Link pathfinding tests
 $(PATHFINDING_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(PATHFINDING_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(PATHFINDING_TEST_OBJ) $(LDFLAGS)
+
+# Link NPC pilot tests
+$(PILOT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(PILOT_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(PILOT_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -125,6 +138,10 @@ autopilot: $(AUTOPILOT_TEST_EXE)
 pathfinding: $(PATHFINDING_TEST_EXE)
 	./$(PATHFINDING_TEST_EXE)
 
+# Run NPC pilot tests
+pilot: $(PILOT_TEST_EXE)
+	./$(PILOT_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -141,8 +158,12 @@ valgrind-autopilot: $(AUTOPILOT_TEST_EXE)
 valgrind-pathfinding: $(PATHFINDING_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(PATHFINDING_TEST_EXE)
 
+# Run NPC pilot tests with Valgrind
+valgrind-pilot: $(PILOT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(PILOT_TEST_EXE)
+
 # Run all tests
-test-all: test stress autopilot pathfinding
+test-all: test stress autopilot pathfinding pilot
 
 # Clean build artifacts
 clean:
@@ -151,6 +172,7 @@ clean:
 	rm -f $(STRESS_TEST_EXE)
 	rm -f $(AUTOPILOT_TEST_EXE)
 	rm -f $(PATHFINDING_TEST_EXE)
+	rm -f $(PILOT_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -175,4 +197,4 @@ help:
 	@echo "  rebuild       - Clean and rebuild"
 	@echo "  help          - Show this help"
 
-.PHONY: all test stress autopilot pathfinding valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot test-all clean rebuild help
