@@ -12034,6 +12034,58 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim)
   return FALSE;
 }
 
+/* Data structure for Fist of Unbroken Air callback */
+struct fist_air_data
+{
+  int perk_rank;
+  int monk_level;
+};
+
+/* Callback for Fist of Unbroken Air AoE */
+static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct fist_air_data *fist_data = (struct fist_air_data *)data;
+  int force_dam = dice(2, 6) + 2; /* Base: 2d6+2 */
+  int actual_force_dam;
+
+  force_dam *= fist_data->perk_rank; /* Multiply by perk rank */
+
+  if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_CONDENSED))
+  {
+  }
+  else
+  {
+    send_to_char(tch, "[\tCFIST-OF-UNBROKEN-AIR\tn] ");
+  }
+
+  act("\tCThe wave of force slams into $N!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+
+  /* Apply force damage with proper resistance/absorption checking */
+  actual_force_dam = damage(ch, tch, force_dam, SKILL_FIST_OF_UNBROKEN_AIR, DAM_AIR, FALSE);
+
+  /* Only apply prone effect if damage was dealt */
+  if (actual_force_dam > 0 && tch)
+  {
+    /* Reflex save to avoid being knocked prone */
+    if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, fist_data->monk_level / 2, NOSCHOOL))
+    {
+      /* Failed save - knock them down */
+      if (GET_POS(tch) > POS_SITTING)
+      {
+        send_to_char(tch, "\tCThe force knocks you off your feet!\tn\r\n");
+        act("\tC$N is knocked to the ground by the force!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+        change_position(tch, POS_SITTING);
+      }
+    }
+    else
+    {
+      send_to_char(tch, "You maintain your balance against the forceful blast!\r\n");
+    }
+  }
+
+  return 1;
+}
+
 /* called from hit() */
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
@@ -12684,57 +12736,6 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* Remove the gong of the summit affect */
       affect_from_char(ch, SKILL_GONG_OF_SUMMIT);
     }
-  }
-
-  /* Data structure for Fist of Unbroken Air callback */
-  struct fist_air_data
-  {
-    int perk_rank;
-    int monk_level;
-  };
-
-  /* Callback for Fist of Unbroken Air AoE */
-  int fist_air_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct fist_air_data *fist_data = (struct fist_air_data *)data;
-    int force_dam = dice(2, 6) + 2;    /* Base: 2d6+2 */
-    force_dam *= fist_data->perk_rank; /* Multiply by perk rank */
-    int actual_force_dam;
-
-    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_CONDENSED))
-    {
-    }
-    else
-    {
-      send_to_char(tch, "[\tCFIST-OF-UNBROKEN-AIR\tn] ");
-    }
-
-    act("\tCThe wave of force slams into $N!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
-
-    /* Apply force damage with proper resistance/absorption checking */
-    actual_force_dam = damage(ch, tch, force_dam, SKILL_FIST_OF_UNBROKEN_AIR, DAM_AIR, FALSE);
-
-    /* Only apply prone effect if damage was dealt */
-    if (actual_force_dam > 0 && tch)
-    {
-      /* Reflex save to avoid being knocked prone */
-      if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, fist_data->monk_level / 2, NOSCHOOL))
-      {
-        /* Failed save - knock them down */
-        if (GET_POS(tch) > POS_SITTING)
-        {
-          send_to_char(tch, "\tCThe force knocks you off your feet!\tn\r\n");
-          act("\tC$N is knocked to the ground by the force!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
-          change_position(tch, POS_SITTING);
-        }
-      }
-      else
-      {
-        send_to_char(tch, "You maintain your balance against the forceful blast!\r\n");
-      }
-    }
-
-    return 1;
   }
 
   /* Fist of Unbroken Air - monk elemental AoE attack */

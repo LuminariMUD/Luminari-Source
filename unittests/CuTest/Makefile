@@ -49,6 +49,11 @@ WAYPOINT_TEST_SRC = test_waypoint_cache.c
 WAYPOINT_TEST_OBJ = $(BUILD_DIR)/test_waypoint_cache.o
 WAYPOINT_TEST_EXE = test_waypoint_cache
 
+# Vehicle structs test files (Phase 02, Session 01)
+VEHICLE_STRUCTS_TEST_SRC = test_vehicle_structs.c
+VEHICLE_STRUCTS_TEST_OBJ = $(BUILD_DIR)/test_vehicle_structs.o
+VEHICLE_STRUCTS_TEST_EXE = vehicle_structs_tests
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -63,7 +68,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE) $(WAYPOINT_TEST_EXE) $(VEHICLE_STRUCTS_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -120,6 +125,10 @@ $(BUILD_DIR)/test_schedule.o: test_schedule.c CuTest.h
 $(BUILD_DIR)/test_waypoint_cache.o: test_waypoint_cache.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile vehicle structs tests (Phase 02)
+$(BUILD_DIR)/test_vehicle_structs.o: test_vehicle_structs.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -147,6 +156,10 @@ $(SCHEDULE_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(SCHEDULE_TEST_OBJ)
 # Link waypoint cache tests
 $(WAYPOINT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(WAYPOINT_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(WAYPOINT_TEST_OBJ) $(LDFLAGS)
+
+# Link vehicle structs tests (Phase 02)
+$(VEHICLE_STRUCTS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_STRUCTS_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_STRUCTS_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -176,6 +189,10 @@ schedule: $(SCHEDULE_TEST_EXE)
 waypoint: $(WAYPOINT_TEST_EXE)
 	./$(WAYPOINT_TEST_EXE)
 
+# Run vehicle structs tests (Phase 02)
+vehicle: $(VEHICLE_STRUCTS_TEST_EXE)
+	./$(VEHICLE_STRUCTS_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -204,8 +221,12 @@ valgrind-schedule: $(SCHEDULE_TEST_EXE)
 valgrind-waypoint: $(WAYPOINT_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(WAYPOINT_TEST_EXE)
 
+# Run vehicle structs tests with Valgrind (Phase 02)
+valgrind-vehicle: $(VEHICLE_STRUCTS_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VEHICLE_STRUCTS_TEST_EXE)
+
 # Run all tests
-test-all: test stress autopilot pathfinding pilot schedule waypoint
+test-all: test stress autopilot pathfinding pilot schedule waypoint vehicle
 
 # Run all Phase 01 tests (autopilot automation layer)
 phase01-tests: $(AUTOPILOT_TEST_EXE) $(PATHFINDING_TEST_EXE) $(WAYPOINT_TEST_EXE) $(PILOT_TEST_EXE) $(SCHEDULE_TEST_EXE)
@@ -256,6 +277,7 @@ clean:
 	rm -f $(PILOT_TEST_EXE)
 	rm -f $(SCHEDULE_TEST_EXE)
 	rm -f $(WAYPOINT_TEST_EXE)
+	rm -f $(VEHICLE_STRUCTS_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -282,4 +304,4 @@ help:
 	@echo "  rebuild         - Clean and rebuild"
 	@echo "  help            - Show this help"
 
-.PHONY: all test stress autopilot pathfinding pilot schedule waypoint valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint phase01-tests valgrind-phase01 test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle phase01-tests valgrind-phase01 test-all clean rebuild help

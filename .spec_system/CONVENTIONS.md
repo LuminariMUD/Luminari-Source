@@ -220,9 +220,11 @@ if (!mysql_connection)
 | Database | MySQL/MariaDB | Required, config in lib/mysql_config |
 | Process Mgmt | autorun.sh | Auto-restart, crash tracking, log rotation |
 | Health Monitor | copyover_watchdog.sh | Process monitoring, state analysis |
+| Security | ban.c, comm.c | Site banning, input buffer limits, connection throttling |
 | Deployment | deploy.sh | Full setup automation, systemd service |
 | Backup | scripts/backup.sh | World, players, DB, 7-day retention |
 | World Backup | lib/world/backup-zone.sh | Single zone backup utility |
+| CD/Release | .github/workflows/release.yml | GitHub Release on version tags |
 
 ## When In Doubt
 

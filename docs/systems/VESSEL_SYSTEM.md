@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System
 
 Last Updated: 2025-12-30
-Version: 1.0 (Phase 00 Complete)
+Version: 2.0 (Phase 01 Complete - Automation Layer)
 
 ---
 
@@ -20,6 +20,7 @@ The Vessel System provides a unified implementation for ships, airships, submari
 | `src/vessels_rooms.c` | Interior room generation and movement |
 | `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
 | `src/vessels_db.c` | MySQL persistence layer |
+| `src/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
 
 ### Dependencies
 
@@ -43,6 +44,12 @@ UNIFIED VESSEL SYSTEM
     |       VNUM Range: 70000-79999
     |
     +-- Terrain Integration (40 sector types, speed modifiers)
+    |
+    +-- Automation Layer (Phase 01)
+    |       +-- Autopilot system with waypoint navigation
+    |       +-- Named route management
+    |       +-- NPC pilot integration
+    |       +-- Scheduled route execution
     |
     +-- Database Persistence (5 MySQL tables)
 ```
@@ -104,6 +111,81 @@ UNIFIED VESSEL SYSTEM
 | `dock` | Create gangway to vessel | `dock [ship]` |
 | `undock` | Remove docking connection | `undock` |
 | `board_hostile` | Forced boarding attempt | `board_hostile <ship>` |
+
+### Autopilot Commands (Phase 01)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `autopilot` | Toggle autopilot on/off | `autopilot [on/off]` |
+| `autopilot status` | Display autopilot state | `autopilot status` |
+| `waypoint add` | Add waypoint to route | `waypoint add <x> <y> [z]` |
+| `waypoint remove` | Remove waypoint | `waypoint remove <index>` |
+| `waypoint list` | List all waypoints | `waypoint list` |
+| `waypoint clear` | Clear all waypoints | `waypoint clear` |
+| `route create` | Create named route | `route create <name>` |
+| `route load` | Load saved route | `route load <name>` |
+| `route save` | Save current route | `route save <name>` |
+| `route list` | List saved routes | `route list` |
+| `schedule` | Set scheduled departure | `schedule <time>` |
+| `schedule clear` | Clear schedule | `schedule clear` |
+
+### NPC Pilot Commands (Phase 01)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `pilot assign` | Assign NPC as pilot | `pilot assign <npc>` |
+| `pilot release` | Release current pilot | `pilot release` |
+| `pilot status` | Show pilot information | `pilot status` |
+
+---
+
+## Automation Layer (Phase 01)
+
+### Autopilot System
+
+The autopilot system enables hands-free navigation along predefined waypoint routes.
+
+**States:**
+- `AUTOPILOT_INACTIVE` - System off
+- `AUTOPILOT_ACTIVE` - Following route
+- `AUTOPILOT_PAUSED` - Temporarily stopped
+- `AUTOPILOT_COMPLETE` - Route finished
+
+**Features:**
+- Waypoint-based path following
+- Automatic terrain avoidance
+- Speed adjustment for conditions
+- Pause/resume capability
+
+### Route Management
+
+Routes are named collections of waypoints that can be saved and reused.
+
+**Structure:**
+- Up to 20 waypoints per route
+- X, Y, Z coordinates per waypoint
+- Optional waypoint names
+- Database persistence
+
+### NPC Pilot Integration
+
+NPC characters can be assigned as vessel pilots for automated operation.
+
+**Capabilities:**
+- Autonomous navigation
+- Route following
+- Alert generation for obstacles
+- Crew management integration
+
+### Scheduled Routes
+
+Vessels can be scheduled to depart at specific times.
+
+**Features:**
+- Time-based departure scheduling
+- Automatic route activation
+- Repeat schedule support
+- Integration with NPC pilots
 
 ---
 
@@ -182,7 +264,7 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 
 ## Performance Metrics
 
-Validated in Phase 00, Session 09:
+### Phase 00 (Core System)
 
 | Metric | Target | Achieved |
 |--------|--------|----------|
@@ -191,6 +273,26 @@ Validated in Phase 00, Session 09:
 | Command response time | <100ms | <1ms |
 | Unit test coverage | >90% | 91 tests, 100% pass |
 | Memory leaks | 0 | 0 (Valgrind clean) |
+
+### Phase 01 (Automation Layer)
+
+| Metric | Target | Achieved |
+|--------|--------|----------|
+| Unit tests | 84 | 84/84 pass |
+| Memory per vessel (with autopilot) | <1KB | 1016 bytes |
+| Stress test (100 vessels) | Stable | Pass |
+| Stress test (250 vessels) | Stable | Pass |
+| Stress test (500 vessels) | Stable | Pass |
+| Memory leaks | 0 | 0 (Valgrind clean) |
+
+### Autopilot Structure Sizes
+
+| Structure | Size |
+|-----------|------|
+| `struct waypoint` | 88 bytes |
+| `struct ship_route` | 1840 bytes |
+| `struct autopilot_data` | 48 bytes |
+| `struct waypoint_node` | 104 bytes |
 
 ---
 
@@ -263,10 +365,11 @@ SELECT COUNT(*) FROM ship_docking WHERE dock_status = 'active';
 
 ## Related Documentation
 
-- [PRD](.spec_system/PRD/PRD.md) - Product requirements and roadmap
+- [PRD](../../.spec_system/PRD/PRD.md) - Product requirements and roadmap
 - [Wilderness System](WILDERNESS_SYSTEM.md) - Coordinate system details
-- [Test Results](../testing/vessel_test_results.md) - Phase 00 test validation
+- [Phase 00 Test Results](../testing/vessel_test_results.md) - Core system validation
+- [Phase 01 Test Results](../testing/phase01_test_results.md) - Automation layer validation
 
 ---
 
-*Phase 00 "Core Vessel System" completed 2025-12-30. See `.spec_system/` for implementation details.*
+*Phase 00 "Core Vessel System" and Phase 01 "Automation Layer" completed 2025-12-30. See `.spec_system/` for implementation details.*

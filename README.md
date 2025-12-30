@@ -8,7 +8,7 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 
 ## Table of Contents
 
-- [Quick Start](#quick-start) - See also [docs/QUICKSTART.md](docs/QUICKSTART.md)
+- [Quick Start](#quick-start) - See also [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
@@ -236,24 +236,23 @@ nohup bin/circle &
 ## Documentation
 
 ### Quick Access
-- **[📚 Complete Documentation Index](docs/DOCUMENTATION_INDEX.md)**: Navigate all documentation by audience and topic
 - **[🔧 Technical Master Index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
+- **[Getting Started](docs/GETTING_STARTED.md)**: Quick start guide for new users
 
 ### Technical Documentation
-- **[Architecture](docs/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
-- **[Setup Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
-- **[Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
+- **[Architecture](docs/systems/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
+- **[Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
+- **[Build Guide](docs/development/CMAKE_BUILD_GUIDE.md)**: CMake build system details
 
 ### Game Documentation
-- **[Combat System](docs/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
-- **[Player Management](docs/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[World Simulation](docs/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
+- **[Combat System](docs/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
+- **[Player Management](docs/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
+- **[Vessel System](docs/systems/VESSEL_SYSTEM.md)**: Ships, airships, and navigation
 
 ### Additional Resources
-- **[Testing Guide](docs/TESTING_GUIDE.md)**: Quality assurance and testing procedures
-- **[Troubleshooting](docs/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
-- **[PHP Tools Guide](docs/utilities/PHP_TOOLS_README.md)**: Web tools security audit and deployment
-- **[Ultimate Writing Guide](docs/ultimate-mud-writing-guide.md)**: Zone building and content creation
+- **[Testing Guide](docs/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
+- **[Troubleshooting](docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
+- **[Ultimate Writing Guide](docs/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
 - **[AI Assistant Guide](CLAUDE.md)**: Comprehensive guide for AI-assisted development
 ## Contributing
 

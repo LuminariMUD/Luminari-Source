@@ -2,7 +2,7 @@
   "version": "2.0",
   "project_name": "LuminariMUD Vessel System",
   "description": "Unified vessel system for LuminariMUD enabling vessels to navigate freely across the 2048x2048 wilderness coordinate system with terrain-aware movement, elevation support (airships/submarines), and multi-room ship interiors.",
-  "current_phase": 1,
+  "current_phase": 2,
   "current_session": null,
   "phases": {
     "0": {
@@ -17,6 +17,12 @@
       "status": "complete",
       "session_count": 7,
       "completed_date": "2025-12-30"
+    },
+    "2": {
+      "name": "Simple Vehicle Support",
+      "description": "Implement lightweight vehicle tier (CWG-style), vehicle-in-vehicle mechanics, and unified command interface across all transport types.",
+      "status": "in_progress",
+      "session_count": 7
     }
   },
   "completed_sessions": [
@@ -35,7 +41,8 @@
     "phase01-session04-autopilot-player-commands",
     "phase01-session05-npc-pilot-integration",
     "phase01-session06-scheduled-route-system",
-    "phase01-session07-testing-validation"
+    "phase01-session07-testing-validation",
+    "phase02-session01-vehicle-data-structures"
   ],
   "next_session_history": [
     {
@@ -116,6 +123,11 @@
     {
       "date": "2025-12-30",
       "session": "phase01-session07-testing-validation",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase02-session01-vehicle-data-structures",
       "status": "completed"
     }
   ]

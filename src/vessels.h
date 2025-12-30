@@ -942,4 +942,249 @@ struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship);
  */
 void pilot_announce_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp);
 
+/* ========================================================================= */
+/* SIMPLE VEHICLE SYSTEM (Phase 02)                                          */
+/* ========================================================================= */
+/* Land-based transport vehicles: carts, wagons, mounts, carriages           */
+/* Unlike vessels, vehicles use room-to-room movement (no wilderness coords) */
+/* ========================================================================= */
+
+/* ========================================================================= */
+/* VEHICLE TYPE ENUMERATION                                                   */
+/* ========================================================================= */
+
+/**
+ * Vehicle type classification for land-based transport.
+ * Each type has distinct passenger capacity, weight limits, and speed.
+ */
+enum vehicle_type
+{
+  VEHICLE_NONE = 0, /* Invalid/uninitialized */
+  VEHICLE_CART,     /* 1-2 passengers, low capacity, moderate speed */
+  VEHICLE_WAGON,    /* 4-6 passengers, high capacity, slow speed */
+  VEHICLE_MOUNT,    /* 1 rider, minimal cargo, fast movement */
+  VEHICLE_CARRIAGE, /* 2-4 passengers, enclosed, moderate speed */
+  NUM_VEHICLE_TYPES /* Must be last - count of vehicle types */
+};
+
+/* ========================================================================= */
+/* VEHICLE STATE ENUMERATION                                                  */
+/* ========================================================================= */
+
+/**
+ * Vehicle lifecycle states for state machine management.
+ * Determines available actions and display behavior.
+ */
+enum vehicle_state
+{
+  VSTATE_IDLE = 0,   /* Stationary, not in use */
+  VSTATE_MOVING,     /* Currently traveling between rooms */
+  VSTATE_LOADED,     /* Carrying cargo or passengers */
+  VSTATE_HITCHED,    /* Attached to another vehicle (wagon train) */
+  VSTATE_DAMAGED,    /* Broken, requires repair before use */
+  NUM_VEHICLE_STATES /* Must be last - count of vehicle states */
+};
+
+/* ========================================================================= */
+/* VEHICLE TERRAIN CAPABILITY FLAGS                                           */
+/* ========================================================================= */
+
+/**
+ * Terrain type flags for vehicle traversal capabilities.
+ * Bitfield values - multiple flags can be combined with |.
+ * Example: cart_terrain = VTERRAIN_ROAD | VTERRAIN_PLAINS;
+ */
+#define VTERRAIN_ROAD (1 << 0)     /* Paved roads, cobblestone */
+#define VTERRAIN_PLAINS (1 << 1)   /* Open grassland, fields */
+#define VTERRAIN_FOREST (1 << 2)   /* Light forest, woodland paths */
+#define VTERRAIN_HILLS (1 << 3)    /* Hilly terrain, gentle slopes */
+#define VTERRAIN_MOUNTAIN (1 << 4) /* Mountain paths, steep terrain */
+#define VTERRAIN_DESERT (1 << 5)   /* Desert, sand, arid terrain */
+#define VTERRAIN_SWAMP (1 << 6)    /* Wetlands, marshes, bogs */
+#define VTERRAIN_ALL 0x7F          /* All terrain flags combined */
+
+/* Default terrain capabilities per vehicle type */
+#define VTERRAIN_CART_DEFAULT (VTERRAIN_ROAD | VTERRAIN_PLAINS)
+#define VTERRAIN_WAGON_DEFAULT (VTERRAIN_ROAD | VTERRAIN_PLAINS)
+#define VTERRAIN_MOUNT_DEFAULT (VTERRAIN_ROAD | VTERRAIN_PLAINS | VTERRAIN_FOREST | VTERRAIN_HILLS)
+#define VTERRAIN_CARRIAGE_DEFAULT (VTERRAIN_ROAD)
+
+/* ========================================================================= */
+/* VEHICLE CAPACITY CONSTANTS                                                 */
+/* ========================================================================= */
+
+/**
+ * Vehicle name buffer size.
+ * Sufficient for descriptive names like "Farmer John's old wooden cart".
+ */
+#define VEHICLE_NAME_LENGTH 64
+
+/**
+ * Maximum passengers by vehicle type.
+ * These are hard limits; actual vehicles may have lower values.
+ */
+#define VEHICLE_PASSENGERS_CART 2     /* Cart: driver + 1 passenger */
+#define VEHICLE_PASSENGERS_WAGON 6    /* Wagon: driver + 5 passengers */
+#define VEHICLE_PASSENGERS_MOUNT 1    /* Mount: single rider only */
+#define VEHICLE_PASSENGERS_CARRIAGE 4 /* Carriage: driver + 3 passengers */
+#define VEHICLE_MAX_PASSENGERS 8      /* Absolute maximum for any vehicle */
+
+/**
+ * Maximum weight capacity by vehicle type (in pounds).
+ * Includes cargo and passengers (average 150 lbs per person).
+ */
+#define VEHICLE_WEIGHT_CART 500     /* Light cargo, minimal structure */
+#define VEHICLE_WEIGHT_WAGON 2000   /* Heavy cargo, reinforced frame */
+#define VEHICLE_WEIGHT_MOUNT 200    /* Rider + saddlebags only */
+#define VEHICLE_WEIGHT_CARRIAGE 800 /* Passengers + luggage */
+#define VEHICLE_MAX_WEIGHT 5000     /* Absolute maximum for any vehicle */
+
+/* ========================================================================= */
+/* VEHICLE SPEED CONSTANTS                                                    */
+/* ========================================================================= */
+
+/**
+ * Base movement speed by vehicle type (rooms per movement tick).
+ * Higher values = faster movement.
+ * Speed may be modified by terrain, load, and condition.
+ */
+#define VEHICLE_SPEED_CART 2     /* Moderate speed, balanced */
+#define VEHICLE_SPEED_WAGON 1    /* Slow, prioritizes capacity */
+#define VEHICLE_SPEED_MOUNT 4    /* Fast, optimal for travel */
+#define VEHICLE_SPEED_CARRIAGE 2 /* Moderate, prioritizes comfort */
+
+/**
+ * Speed modifiers (percentage of base speed).
+ * Applied based on conditions.
+ */
+#define VEHICLE_SPEED_MOD_LOADED 75  /* 75% speed when fully loaded */
+#define VEHICLE_SPEED_MOD_DAMAGED 50 /* 50% speed when damaged */
+#define VEHICLE_SPEED_MOD_OFFROAD 50 /* 50% speed on non-road terrain */
+
+/* ========================================================================= */
+/* VEHICLE CONDITION CONSTANTS                                                */
+/* ========================================================================= */
+
+/**
+ * Vehicle condition/durability values.
+ * Condition degrades with use and damage, can be repaired.
+ */
+#define VEHICLE_CONDITION_MAX 100  /* Perfect condition */
+#define VEHICLE_CONDITION_GOOD 75  /* Minor wear */
+#define VEHICLE_CONDITION_FAIR 50  /* Noticeable wear */
+#define VEHICLE_CONDITION_POOR 25  /* Needs repair soon */
+#define VEHICLE_CONDITION_BROKEN 0 /* Cannot operate */
+
+/* ========================================================================= */
+/* VEHICLE DATA STRUCTURE                                                     */
+/* ========================================================================= */
+
+/**
+ * Core vehicle data structure for land-based transport.
+ * Designed to be memory-efficient (<512 bytes) for high concurrency.
+ *
+ * Memory layout estimate:
+ *   - Identity fields: ~76 bytes (int + 2 enums + char[64])
+ *   - Location fields: ~8 bytes (int + int)
+ *   - Capacity fields: ~16 bytes (4 ints)
+ *   - Movement fields: ~12 bytes (3 ints)
+ *   - Condition fields: ~8 bytes (2 ints)
+ *   - Ownership: ~8 bytes (long)
+ *   - Object pointer: ~8 bytes (pointer)
+ *   Total: ~136 bytes
+ */
+struct vehicle_data
+{
+  /* ===== Identity Fields (T009) ===== */
+  int id;                         /* Unique vehicle ID (database key) */
+  enum vehicle_type type;         /* Vehicle classification */
+  enum vehicle_state state;       /* Current lifecycle state */
+  char name[VEHICLE_NAME_LENGTH]; /* Vehicle name/description */
+
+  /* ===== Location Fields (T010) ===== */
+  room_rnum location; /* Current room vnum */
+  int direction;      /* Facing direction (0-5, matches exits) */
+
+  /* ===== Capacity Fields (T011) ===== */
+  int max_passengers;     /* Maximum passenger count */
+  int current_passengers; /* Current passenger count */
+  int max_weight;         /* Weight capacity in pounds */
+  int current_weight;     /* Current load weight in pounds */
+
+  /* ===== Movement Fields (T012) ===== */
+  int base_speed;    /* Base movement speed (rooms/tick) */
+  int current_speed; /* Modified speed after modifiers */
+  int terrain_flags; /* VTERRAIN_* bitfield of capabilities */
+
+  /* ===== Condition Fields (T013) ===== */
+  int max_condition; /* Maximum durability points */
+  int condition;     /* Current durability points */
+
+  /* ===== Ownership Fields (T013) ===== */
+  long owner_id; /* Player ID of owner (0 = none) */
+
+  /* ===== Object Reference (T013) ===== */
+  struct obj_data *obj; /* Associated MUD object (can be NULL) */
+};
+
+/* ========================================================================= */
+/* VEHICLE FUNCTION PROTOTYPES (T014)                                         */
+/* ========================================================================= */
+
+/* Lifecycle Functions (Phase 02, Session 02) */
+struct vehicle_data *vehicle_create(enum vehicle_type type, const char *name);
+void vehicle_destroy(struct vehicle_data *vehicle);
+void vehicle_init(struct vehicle_data *vehicle, enum vehicle_type type);
+
+/* State Management Functions (Phase 02, Session 02) */
+int vehicle_set_state(struct vehicle_data *vehicle, enum vehicle_state new_state);
+enum vehicle_state vehicle_get_state(struct vehicle_data *vehicle);
+const char *vehicle_state_name(enum vehicle_state state);
+const char *vehicle_type_name(enum vehicle_type type);
+
+/* Capacity Functions (Phase 02, Session 02) */
+int vehicle_can_add_passenger(struct vehicle_data *vehicle);
+int vehicle_add_passenger(struct vehicle_data *vehicle);
+int vehicle_remove_passenger(struct vehicle_data *vehicle);
+int vehicle_can_add_weight(struct vehicle_data *vehicle, int weight);
+int vehicle_add_weight(struct vehicle_data *vehicle, int weight);
+int vehicle_remove_weight(struct vehicle_data *vehicle, int weight);
+
+/* Movement Functions (Phase 02, Session 03) */
+int vehicle_can_move(struct vehicle_data *vehicle, int direction);
+int vehicle_move(struct vehicle_data *vehicle, int direction);
+int vehicle_get_speed(struct vehicle_data *vehicle);
+int vehicle_can_traverse_terrain(struct vehicle_data *vehicle, int sector_type);
+
+/* Condition Functions (Phase 02, Session 02) */
+int vehicle_damage(struct vehicle_data *vehicle, int amount);
+int vehicle_repair(struct vehicle_data *vehicle, int amount);
+int vehicle_is_operational(struct vehicle_data *vehicle);
+
+/* Lookup Functions (Phase 02, Session 02) */
+struct vehicle_data *vehicle_find_by_id(int id);
+struct vehicle_data *vehicle_find_in_room(room_rnum room);
+struct vehicle_data *vehicle_find_by_obj(struct obj_data *obj);
+
+/* Persistence Functions (Phase 02, Session 02) */
+int vehicle_save(struct vehicle_data *vehicle);
+int vehicle_load(int vehicle_id, struct vehicle_data *vehicle);
+void vehicle_save_all(void);
+void vehicle_load_all(void);
+
+/* Display Functions (Phase 02, Session 04) */
+void vehicle_show_status(struct char_data *ch, struct vehicle_data *vehicle);
+void vehicle_show_passengers(struct char_data *ch, struct vehicle_data *vehicle);
+
+/* ========================================================================= */
+/* VEHICLE COMMAND PROTOTYPES (Phase 02, Session 04)                          */
+/* ========================================================================= */
+
+ACMD_DECL(do_mount);    /* Mount a vehicle/animal */
+ACMD_DECL(do_dismount); /* Dismount from vehicle/animal */
+ACMD_DECL(do_hitch);    /* Hitch vehicles together */
+ACMD_DECL(do_unhitch);  /* Unhitch vehicles */
+ACMD_DECL(do_drive);    /* Drive a vehicle in a direction */
+ACMD_DECL(do_vstatus);  /* Show vehicle status */
+
 #endif /* _VESSELS_H_ */

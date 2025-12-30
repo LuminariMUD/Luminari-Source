@@ -184,7 +184,7 @@ Range:   30000 - 40019 (reserved, do not use for builder zones)
 |-------|------|----------|--------|
 | 00 | Core Vessel System | 9 | Complete (2025-12-30) |
 | 01 | Automation Layer | 7 | Complete (2025-12-30) |
-| 02 | Simple Vehicle Support | TBD | Planned |
+| 02 | Simple Vehicle Support | 7 | Not Started |
 | 03 | Optimization & Polish | TBD | Planned |
 
 ### Phase 00: Core Vessel System
@@ -243,11 +243,24 @@ Vessel automation capabilities:
 - Memory usage: 1016 bytes/vessel (target: <1KB)
 - Stress tested: 100/250/500 concurrent vessels
 
-### Phase 02: Simple Vehicle Support (Planned)
+### Phase 02: Simple Vehicle Support (Not Started)
 
-- Lightweight vehicle tier (CWG-style)
-- Vehicle-in-vehicle mechanics (cars on ferries)
-- Unified command interface across all vessel types
+**Sessions**: 7 | **PRD**: [phase_02/PRD_phase_02.md](phase_02/PRD_phase_02.md)
+
+Lightweight vehicle tier and transport unification:
+- Session 01: Vehicle data structures and constants
+- Session 02: Vehicle creation and initialization system
+- Session 03: Vehicle movement with terrain handling
+- Session 04: Vehicle player commands (mount, dismount, drive)
+- Session 05: Vehicle-in-vehicle mechanics (loading onto vessels)
+- Session 06: Unified command interface for all transport types
+- Session 07: Testing and validation
+
+**Key Objectives:**
+- Lightweight vehicle tier (CWG-style carts, wagons, mounts, carriages)
+- Vehicle-in-vehicle mechanics (cars on ferries, wagons on transport ships)
+- Unified command interface abstracting vehicles and vessels
+- Memory target: <512 bytes per simple vehicle
 
 ### Phase 03: Optimization & Polish (Planned)
 

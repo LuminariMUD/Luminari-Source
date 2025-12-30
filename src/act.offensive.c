@@ -6019,6 +6019,48 @@ ACMD(do_bite_attack)
   USE_SWIFT_ACTION(ch);
 }
 
+/* Data structure for frightful callback */
+struct frightful_data
+{
+  int modifier;
+  int level;
+};
+
+/* Callback for frightful AoE effect */
+static int frightful_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct frightful_data *fright = (struct frightful_data *)data;
+
+  if (is_immune_fear(ch, tch, TRUE))
+    return 0;
+
+  send_to_char(ch, "You roar at %s.\r\n", GET_NAME(tch));
+  send_to_char(tch, "A mighty roar from %s is directed at you!\r\n", GET_NAME(ch));
+  act("$n roars at $N!", FALSE, ch, 0, tch, TO_NOTVICT);
+
+  /* Check the save. */
+  if (has_aura_of_courage(tch) && !affected_by_aura_of_cowardice(tch))
+  {
+    send_to_char(tch, "You are unaffected!\r\n");
+    return 0;
+  }
+  else if (savingthrow(ch, tch, SAVING_WILL, fright->modifier, CAST_INNATE, fright->level,
+                       NOSCHOOL))
+  {
+    /* Lucky you, you saved! */
+    send_to_char(tch, "You stand your ground!\r\n");
+    return 0;
+  }
+  else
+  {
+    /* Failed save, tough luck. */
+    send_to_char(tch, "You PANIC!\r\n");
+    perform_flee(tch);
+    perform_flee(tch);
+    return 1;
+  }
+}
+
 /* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.
  * Currently this is limited to dragons, but really it should be doable by any fear-inspiring
  * creature.  Don't tell me the tarrasque isn't scary! :)
@@ -6077,48 +6119,6 @@ ACMD(do_frightful)
 
   send_to_char(ch, "You ROAR!\r\n");
   act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
-
-  /* Data structure for frightful callback */
-  struct frightful_data
-  {
-    int modifier;
-    int level;
-  };
-
-  /* Callback for frightful AoE effect */
-  int frightful_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct frightful_data *fright = (struct frightful_data *)data;
-
-    if (is_immune_fear(ch, tch, TRUE))
-      return 0;
-
-    send_to_char(ch, "You roar at %s.\r\n", GET_NAME(tch));
-    send_to_char(tch, "A mighty roar from %s is directed at you!\r\n", GET_NAME(ch));
-    act("$n roars at $N!", FALSE, ch, 0, tch, TO_NOTVICT);
-
-    /* Check the save. */
-    if (has_aura_of_courage(tch) && !affected_by_aura_of_cowardice(tch))
-    {
-      send_to_char(tch, "You are unaffected!\r\n");
-      return 0;
-    }
-    else if (savingthrow(ch, tch, SAVING_WILL, fright->modifier, CAST_INNATE, fright->level,
-                         NOSCHOOL))
-    {
-      /* Lucky you, you saved! */
-      send_to_char(tch, "You stand your ground!\r\n");
-      return 0;
-    }
-    else
-    {
-      /* Failed save, tough luck. */
-      send_to_char(tch, "You PANIC!\r\n");
-      perform_flee(tch);
-      perform_flee(tch);
-      return 1;
-    }
-  }
 
   struct frightful_data fright_data;
   fright_data.modifier = modifier;
@@ -6315,6 +6315,31 @@ ACMD(do_fear_aura)
   USE_SWIFT_ACTION(ch);
 }
 
+/* Data structure for breath weapon callback */
+struct breath_weapon_data
+{
+  int dam;
+  int dam_type;
+  int spellnum;
+  bool is_morphed;
+};
+
+/* Callback for breath weapon AoE damage */
+static int breath_weapon_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct breath_weapon_data *breath = (struct breath_weapon_data *)data;
+
+  if (process_iron_golem_immunity(ch, tch, breath->dam_type, breath->dam))
+    return 0;
+
+  if (breath->is_morphed)
+    damage(ch, tch, breath->dam, breath->spellnum, breath->dam_type, FALSE);
+  else
+    damage(ch, tch, breath->dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+
+  return 1;
+}
+
 ACMDCHECK(can_breathe)
 {
   ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
@@ -6373,31 +6398,6 @@ ACMD(do_breathe)
   int dam = dice(GET_LEVEL(ch), GET_LEVEL(ch) > 30 ? 14 : 6);
   if (IS_MORPHED(ch))
     dam = dice(cast_level, 6);
-
-  /* Data structure for breath weapon callback */
-  struct breath_weapon_data
-  {
-    int dam;
-    int dam_type;
-    int spellnum;
-    bool is_morphed;
-  };
-
-  /* Callback for breath weapon AoE damage */
-  int breath_weapon_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct breath_weapon_data *breath = (struct breath_weapon_data *)data;
-
-    if (process_iron_golem_immunity(ch, tch, breath->dam_type, breath->dam))
-      return 0;
-
-    if (breath->is_morphed)
-      damage(ch, tch, breath->dam, breath->spellnum, breath->dam_type, FALSE);
-    else
-      damage(ch, tch, breath->dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
-
-    return 1;
-  }
 
   struct breath_weapon_data breath_data;
   breath_data.dam = dam;
@@ -7728,6 +7728,25 @@ ACMD(do_grave_magic)
   }
 }
 
+/* Data structure for sorcerer breath callback */
+struct sorcerer_breath_data
+{
+  int dam;
+  int damtype;
+};
+
+/* Callback for sorcerer breath weapon AoE damage */
+static int sorcerer_breath_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct sorcerer_breath_data *breath = (struct sorcerer_breath_data *)data;
+
+  if (process_iron_golem_immunity(ch, tch, breath->damtype, breath->dam))
+    return 0;
+
+  damage(ch, tch, breath->dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, breath->damtype, FALSE);
+  return 1;
+}
+
 ACMDCHECK(can_sorcerer_breath_weapon)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_DRACONIC_HERITAGE_BREATHWEAPON,
@@ -7759,31 +7778,13 @@ ACMD(do_sorcerer_breath_weapon)
 
   int damtype = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
   int dam = 0;
+  struct sorcerer_breath_data breath_data;
+
   if (GET_LEVEL(ch) <= 15)
     dam = dice(GET_LEVEL(ch), 6);
   else
     dam = dice(GET_LEVEL(ch), 14);
 
-  /* Data structure for sorcerer breath callback */
-  struct sorcerer_breath_data
-  {
-    int dam;
-    int damtype;
-  };
-
-  /* Callback for sorcerer breath weapon AoE damage */
-  int sorcerer_breath_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct sorcerer_breath_data *breath = (struct sorcerer_breath_data *)data;
-
-    if (process_iron_golem_immunity(ch, tch, breath->damtype, breath->dam))
-      return 0;
-
-    damage(ch, tch, breath->dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, breath->damtype, FALSE);
-    return 1;
-  }
-
-  struct sorcerer_breath_data breath_data;
   breath_data.dam = dam;
   breath_data.damtype = damtype;
 
@@ -8772,6 +8773,20 @@ ACMDCHECK(can_whirlwind)
   return CAN_CMD;
 }
 
+/* Callback for whirlwind AoE attack */
+static int whirlwind_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int *remaining_attacks = (int *)data;
+
+  if (*remaining_attacks <= 0)
+    return 0;
+
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  (*remaining_attacks)--;
+
+  return 1;
+}
+
 /* whirlwind attack! */
 ACMD(do_whirlwind)
 {
@@ -8789,20 +8804,6 @@ ACMD(do_whirlwind)
 
   send_to_char(ch, "In a whirlwind of motion you strike out at your foes!\r\n");
   act("$n in a whirlwind of motions lashes out at $s foes!", FALSE, ch, 0, 0, TO_ROOM);
-
-  /* Callback for whirlwind AoE attack */
-  int whirlwind_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    int *remaining_attacks = (int *)data;
-
-    if (*remaining_attacks <= 0)
-      return 0;
-
-    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
-    (*remaining_attacks)--;
-
-    return 1;
-  }
 
   aoe_effect(ch, -1, whirlwind_callback, &num_attacks);
 
@@ -10498,6 +10499,32 @@ ACMD(do_kick)
   perform_kick(ch, vict);
 }
 
+/* Data structure for hitall callback */
+struct hitall_data
+{
+  int count;
+  int lag;
+};
+
+/* Callback for hitall AoE attack */
+static int hitall_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct hitall_data *hitall = (struct hitall_data *)data;
+
+  if (!IS_NPC(tch) || IS_PET(tch))
+    return 0;
+  if (!CAN_SEE(ch, tch) && !IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))
+    return 0;
+
+  hitall->count++;
+
+  if (rand_number(0, 111) < 20 || (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
+    hitall->lag++;
+
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 0);
+  return 1;
+}
+
 ACMD(do_hitall)
 {
   /* not used right now, whirlwind attack essentially replaces this */
@@ -10524,32 +10551,6 @@ ACMD(do_hitall)
   PREREQ_NOT_PEACEFUL_ROOM();
 
   PREREQ_NOT_SINGLEFILE_ROOM();
-
-  /* Data structure for hitall callback */
-  struct hitall_data
-  {
-    int count;
-    int lag;
-  };
-
-  /* Callback for hitall AoE attack */
-  int hitall_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct hitall_data *hitall = (struct hitall_data *)data;
-
-    if (!IS_NPC(tch) || IS_PET(tch))
-      return 0;
-    if (!CAN_SEE(ch, tch) && !IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))
-      return 0;
-
-    hitall->count++;
-
-    if (rand_number(0, 111) < 20 || (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
-      hitall->lag++;
-
-    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 0);
-    return 1;
-  }
 
   struct hitall_data hitall_data;
   hitall_data.count = 0;
@@ -12420,6 +12421,38 @@ ACMD(do_lichtouch)
   }
 }
 
+/* Callback for lich fear AoE effect */
+static int lich_fear_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct affected_type af;
+  int *cast_level = (int *)data;
+
+  /* exits */
+  if (is_immune_fear(ch, tch, TRUE))
+    return 0;
+  if (is_immune_mind_affecting(ch, tch, TRUE))
+    return 0;
+  if (savingthrow(ch, tch, SAVING_WILL, 0, CAST_INNATE, *cast_level, SCHOOL_NOSCHOOL))
+    return 0;
+
+  /* success */
+  act("$n glows with black energy as $s coutenance causes FEAR to $N!", FALSE, ch, NULL, tch,
+      TO_NOTVICT);
+  act("You glow with black energy as you cause fear to $N with your countenance!", FALSE, ch, NULL,
+      tch, TO_CHAR);
+  act("$n glows with black energy as $s countenance causes you uncontrollable fear!", FALSE, ch,
+      NULL, tch, TO_VICT | TO_SLEEP);
+  new_affect(&af);
+  af.spell = RACIAL_LICH_FEAR;
+  af.duration = dice(1, 6);
+  SET_BIT_AR(af.bitvector, AFF_FEAR);
+  affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+  do_flee(tch, 0, 0, 0);
+  do_flee(tch, 0, 0, 0);
+
+  return 1;
+}
+
 bool perform_lichfear(struct char_data *ch)
 {
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
@@ -12436,38 +12469,6 @@ bool perform_lichfear(struct char_data *ch)
 
   act("You raise your countenance to cause fear!", FALSE, ch, 0, 0, TO_CHAR);
   act("$n raises $s countenance to cause fear!", FALSE, ch, 0, 0, TO_ROOM);
-
-  /* Callback for lich fear AoE effect */
-  int lich_fear_callback(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct affected_type af;
-    int *cast_level = (int *)data;
-
-    /* exits */
-    if (is_immune_fear(ch, tch, TRUE))
-      return 0;
-    if (is_immune_mind_affecting(ch, tch, TRUE))
-      return 0;
-    if (savingthrow(ch, tch, SAVING_WILL, 0, CAST_INNATE, *cast_level, SCHOOL_NOSCHOOL))
-      return 0;
-
-    // success
-    act("$n glows with black energy as $s coutenance causes FEAR to $N!", FALSE, ch, NULL, tch,
-        TO_NOTVICT);
-    act("You glow with black energy as you cause fear to $N with your countenance!", FALSE, ch,
-        NULL, tch, TO_CHAR);
-    act("$n glows with black energy as $s countenance causes you uncontrollable fear!", FALSE, ch,
-        NULL, tch, TO_VICT | TO_SLEEP);
-    new_affect(&af);
-    af.spell = RACIAL_LICH_FEAR;
-    af.duration = dice(1, 6);
-    SET_BIT_AR(af.bitvector, AFF_FEAR);
-    affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
-    do_flee(tch, 0, 0, 0);
-    do_flee(tch, 0, 0, 0);
-
-    return 1;
-  }
 
   int cast_level = GET_LEVEL(ch);
   aoe_effect(ch, RACIAL_LICH_FEAR, lich_fear_callback, &cast_level);
@@ -14467,6 +14468,32 @@ ACMD(do_evobreath)
   USE_STANDARD_ACTION(ch);
 }
 
+/* Data structure for chimeric breath callback */
+struct chimeric_breath_data
+{
+  int fire_dam;
+  int poison_dam;
+  int cold_dam;
+};
+
+/* Callback for chimeric breath AoE damage */
+static int chimeric_breath_cb(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct chimeric_breath_data *bd = (struct chimeric_breath_data *)data;
+
+  /* Handle immunities (e.g., iron golem immunity to poison) */
+  if (!process_iron_golem_immunity(ch, tch, DAM_FIRE, bd->fire_dam))
+    damage(ch, tch, bd->fire_dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+
+  if (!process_iron_golem_immunity(ch, tch, DAM_POISON, bd->poison_dam))
+    damage(ch, tch, bd->poison_dam, SPELL_POISON_BREATHE, DAM_POISON, FALSE);
+
+  if (!process_iron_golem_immunity(ch, tch, DAM_COLD, bd->cold_dam))
+    damage(ch, tch, bd->cold_dam, SPELL_FROST_BREATHE, DAM_COLD, FALSE);
+
+  return 1;
+}
+
 /* Alchemist Mutagenist Tier IV capstone: Chimeric Transmutation
  * While under mutagen, unleash a swift-action breath once per combat:
  * deals 3d6 fire, 3d6 poison, and 3d6 cold damage to enemies in room. */
@@ -14504,34 +14531,10 @@ ACMD(do_chimericbreath)
   act("$n inhales and unleashes a chimeric breath of flame, toxin, and frost!", FALSE, ch, 0, 0,
       TO_ROOM);
 
-  /* Data structure for chimeric breath callback */
-  struct chimeric_breath_data
-  {
-    int fire_dam;
-    int poison_dam;
-    int cold_dam;
-  } cbd;
-
+  struct chimeric_breath_data cbd;
   cbd.fire_dam = dice(3, 6);
   cbd.poison_dam = dice(3, 6);
   cbd.cold_dam = dice(3, 6);
-
-  int chimeric_breath_cb(struct char_data * ch, struct char_data * tch, void *data)
-  {
-    struct chimeric_breath_data *bd = (struct chimeric_breath_data *)data;
-
-    /* Handle immunities (e.g., iron golem immunity to poison) */
-    if (!process_iron_golem_immunity(ch, tch, DAM_FIRE, bd->fire_dam))
-      damage(ch, tch, bd->fire_dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
-
-    if (!process_iron_golem_immunity(ch, tch, DAM_POISON, bd->poison_dam))
-      damage(ch, tch, bd->poison_dam, SPELL_POISON_BREATHE, DAM_POISON, FALSE);
-
-    if (!process_iron_golem_immunity(ch, tch, DAM_COLD, bd->cold_dam))
-      damage(ch, tch, bd->cold_dam, SPELL_FROST_BREATHE, DAM_COLD, FALSE);
-
-    return 1;
-  }
 
   aoe_effect(ch, SPELL_FIRE_BREATHE, chimeric_breath_cb, &cbd);
 
