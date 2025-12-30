@@ -452,6 +452,10 @@ struct room_connection {
 /* Forward declaration for autopilot_data */
 struct autopilot_data;
 
+/* Forward declarations for cache node structures */
+struct waypoint_node;
+struct route_node;
+
 /**
  * Individual navigation waypoint.
  * Stores coordinates and metadata for a single point on a route.
@@ -492,6 +496,38 @@ struct autopilot_data {
   time_t last_update;                   /* Timestamp of last state update */
   int pilot_mob_vnum;                   /* VNUM of NPC pilot (-1 if none) */
 };
+
+/* ========================================================================= */
+/* WAYPOINT/ROUTE CACHE STRUCTURES                                           */
+/* ========================================================================= */
+
+/**
+ * Waypoint cache node for in-memory linked list.
+ * Stores database ID and waypoint data for fast lookups.
+ */
+struct waypoint_node {
+  int waypoint_id;                      /* Database ID */
+  struct waypoint data;                 /* Waypoint data */
+  struct waypoint_node *next;           /* Next node in list */
+};
+
+/**
+ * Route cache node for in-memory linked list.
+ * Stores database ID and route data for fast lookups.
+ */
+struct route_node {
+  int route_id;                         /* Database ID */
+  char name[AUTOPILOT_NAME_LENGTH];     /* Route name */
+  bool loop;                            /* Repeat route when complete */
+  bool active;                          /* Route is available */
+  int num_waypoints;                    /* Count of waypoints in route */
+  int *waypoint_ids;                    /* Array of waypoint IDs (ordered) */
+  struct route_node *next;              /* Next node in list */
+};
+
+/* Global cache list heads (defined in vessels_autopilot.c) */
+extern struct waypoint_node *waypoint_list;
+extern struct route_node *route_list;
 
 /* Greyhawk Ship Data Structure */
 struct greyhawk_ship_data {
@@ -700,6 +736,42 @@ int route_load(struct ship_route *route, int route_id);
 int route_save(struct ship_route *route);
 int route_activate(struct ship_route *route);
 int route_deactivate(struct ship_route *route);
+
+/* ========================================================================= */
+/* WAYPOINT/ROUTE DATABASE PERSISTENCE                                       */
+/* ========================================================================= */
+
+/* Waypoint Database CRUD Functions */
+int waypoint_db_create(const struct waypoint *wp);
+struct waypoint_node *waypoint_db_load(int waypoint_id);
+int waypoint_db_update(int waypoint_id, const struct waypoint *wp);
+int waypoint_db_delete(int waypoint_id);
+
+/* Route Database CRUD Functions */
+int route_db_create(const char *name, bool loop_route);
+struct route_node *route_db_load(int route_id);
+int route_db_update(int route_id, const char *name, bool loop_route, bool active);
+int route_db_delete(int route_id);
+
+/* Route-Waypoint Association Functions */
+int route_add_waypoint_db(int route_id, int waypoint_id, int sequence_num);
+int route_remove_waypoint_db(int route_id, int waypoint_id);
+int route_reorder_waypoints_db(int route_id, int *waypoint_ids, int count);
+int route_get_waypoint_ids(int route_id, int **waypoint_ids, int *count);
+
+/* Boot-time Loading Functions */
+void load_all_waypoints(void);
+void load_all_routes(void);
+
+/* Shutdown Saving Functions */
+void save_all_waypoints(void);
+void save_all_routes(void);
+
+/* Cache Management Functions */
+void waypoint_cache_clear(void);
+void route_cache_clear(void);
+struct waypoint_node *waypoint_cache_find(int waypoint_id);
+struct route_node *route_cache_find(int route_id);
 
 /* ========================================================================= */
 /* COMMAND PROTOTYPES                                                        */

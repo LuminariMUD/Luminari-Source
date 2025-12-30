@@ -28,7 +28,8 @@
     "phase00-session07-persistence-integration",
     "phase00-session08-external-view-display-systems",
     "phase00-session09-testing-validation",
-    "phase01-session01-autopilot-data-structures"
+    "phase01-session01-autopilot-data-structures",
+    "phase01-session02-waypoint-route-management"
   ],
   "next_session_history": [
     {
@@ -79,6 +80,11 @@
     {
       "date": "2025-12-30",
       "session": "phase01-session01-autopilot-data-structures",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase01-session02-waypoint-route-management",
       "status": "completed"
     }
   ]

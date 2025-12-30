@@ -1257,6 +1257,64 @@ void init_vessel_system_tables(void)
         return;
     }
 
+    /* ship_waypoints - Individual navigation points for autopilot */
+    const char *create_ship_waypoints =
+        "CREATE TABLE IF NOT EXISTS ship_waypoints ("
+        "waypoint_id INT AUTO_INCREMENT PRIMARY KEY, "
+        "name VARCHAR(64) DEFAULT '', "
+        "x FLOAT NOT NULL, "
+        "y FLOAT NOT NULL, "
+        "z FLOAT NOT NULL DEFAULT 0, "
+        "tolerance FLOAT NOT NULL DEFAULT 5.0, "
+        "wait_time INT NOT NULL DEFAULT 0, "
+        "flags INT NOT NULL DEFAULT 0, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "INDEX idx_waypoint_name (name), "
+        "INDEX idx_waypoint_coords (x, y, z)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_waypoints)) {
+        log("SYSERR: Failed to create ship_waypoints table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* ship_routes - Named collections of waypoints for autopilot */
+    const char *create_ship_routes =
+        "CREATE TABLE IF NOT EXISTS ship_routes ("
+        "route_id INT AUTO_INCREMENT PRIMARY KEY, "
+        "name VARCHAR(64) NOT NULL, "
+        "loop_route TINYINT(1) NOT NULL DEFAULT 0, "
+        "active TINYINT(1) NOT NULL DEFAULT 1, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "INDEX idx_route_name (name), "
+        "INDEX idx_route_active (active)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_routes)) {
+        log("SYSERR: Failed to create ship_routes table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* ship_route_waypoints - Route-waypoint associations with ordering */
+    const char *create_ship_route_waypoints =
+        "CREATE TABLE IF NOT EXISTS ship_route_waypoints ("
+        "id INT AUTO_INCREMENT PRIMARY KEY, "
+        "route_id INT NOT NULL, "
+        "waypoint_id INT NOT NULL, "
+        "sequence_num INT NOT NULL, "
+        "FOREIGN KEY (route_id) REFERENCES ship_routes(route_id) ON DELETE CASCADE, "
+        "FOREIGN KEY (waypoint_id) REFERENCES ship_waypoints(waypoint_id) ON DELETE CASCADE, "
+        "UNIQUE KEY route_sequence (route_id, sequence_num), "
+        "INDEX idx_route_waypoint (route_id, waypoint_id)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_route_waypoints)) {
+        log("SYSERR: Failed to create ship_route_waypoints table: %s", mysql_error(conn));
+        return;
+    }
+
     create_vessel_procedures();
 
     log("Info: Vessel system tables initialized successfully");
