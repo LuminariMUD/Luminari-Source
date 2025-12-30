@@ -1,26 +1,46 @@
-# LuminariMUD Vessel System
+# LuminariMUD Vessel and Vehicle System
 
 Last Updated: 2025-12-30
-Version: 2.0 (Phase 01 Complete - Automation Layer)
+Version: 3.0 (Phase 02 Complete - Simple Vehicle Support)
 
 ---
 
 ## Overview
 
-The Vessel System provides a unified implementation for ships, airships, submarines, and other vehicles in LuminariMUD. It enables free-roaming navigation across the 2048x2048 wilderness coordinate system with terrain-aware movement, elevation support, and multi-room ship interiors.
+The Vessel and Vehicle System provides a unified implementation for ships, airships, submarines, and land vehicles in LuminariMUD. It enables free-roaming navigation across the 2048x2048 wilderness coordinate system with terrain-aware movement, elevation support, multi-room ship interiors, and a lightweight vehicle tier for carts, wagons, and mounts.
+
+### Two-Tier Transport Architecture
+
+| Tier | Type | Memory | Interior | Use Case |
+|------|------|--------|----------|----------|
+| **Vessel** | Ships, airships, submarines | ~1KB | Multi-room | Ocean travel, cargo transport, combat |
+| **Vehicle** | Carts, wagons, mounts | 148 bytes | None | Land travel, cargo hauling, quick transport |
 
 ## Architecture
 
 ### Source Files
 
+#### Vessel System (Ships, Airships, Submarines)
+
 | File | Purpose |
 |------|---------|
-| `src/vessels.h` | Structures, constants, prototypes |
+| `src/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
 | `src/vessels.c` | Core commands, wilderness movement, terrain system |
 | `src/vessels_rooms.c` | Interior room generation and movement |
 | `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
 | `src/vessels_db.c` | MySQL persistence layer |
 | `src/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
+
+#### Vehicle System (Phase 02)
+
+| File | Purpose |
+|------|---------|
+| `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
+| `src/vehicles_commands.c` | Player commands (vmount, vdismount, drive, vstatus) |
+| `src/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |
+| `src/transport_unified.c` | Unified transport interface across all transport types |
+| `src/transport_unified.h` | Transport abstraction types and prototypes |
+| `lib/text/help/vehicles.hlp` | Help file entries for vehicle commands |
 
 ### Dependencies
 
@@ -32,26 +52,33 @@ The Vessel System provides a unified implementation for ships, airships, submari
 ### System Diagram
 
 ```
-UNIFIED VESSEL SYSTEM
+UNIFIED TRANSPORT SYSTEM
     |
     +-- Wilderness Coordinate System (X, Y, Z navigation)
     |       Range: -1024 to +1024 on X/Y, -500 to +500 on Z
     |
-    +-- Vessel Type System (8 vessel classes)
-    |       RAFT, BOAT, SHIP, WARSHIP, AIRSHIP, SUBMARINE, TRANSPORT, MAGICAL
+    +-- VESSEL TIER (Heavy Transport)
+    |       +-- Vessel Type System (8 vessel classes)
+    |       |       RAFT, BOAT, SHIP, WARSHIP, AIRSHIP, SUBMARINE, TRANSPORT, MAGICAL
+    |       +-- Multi-Room Interiors (VNUM Range: 70000-79999)
+    |       +-- Automation Layer (autopilot, waypoints, NPC pilots)
+    |       +-- Docking and Boarding Systems
     |
-    +-- Multi-Room Interiors (dynamic room generation)
-    |       VNUM Range: 70000-79999
+    +-- VEHICLE TIER (Light Transport - Phase 02)
+    |       +-- Vehicle Type System (5 vehicle types)
+    |       |       NONE, CART, WAGON, MOUNT, CARRIAGE
+    |       +-- Land-based terrain navigation
+    |       +-- Vehicle-in-Vessel mechanics (loading vehicles onto ships)
+    |       +-- Lightweight persistence (148 bytes per vehicle)
+    |
+    +-- UNIFIED INTERFACE (Phase 02)
+    |       +-- Common commands: tenter, texit, tgo, tstatus
+    |       +-- Transport type detection
+    |       +-- Seamless vehicle/vessel interaction
     |
     +-- Terrain Integration (40 sector types, speed modifiers)
     |
-    +-- Automation Layer (Phase 01)
-    |       +-- Autopilot system with waypoint navigation
-    |       +-- Named route management
-    |       +-- NPC pilot integration
-    |       +-- Scheduled route execution
-    |
-    +-- Database Persistence (5 MySQL tables)
+    +-- Database Persistence (vessel and vehicle tables)
 ```
 
 ---
@@ -83,6 +110,54 @@ UNIFIED VESSEL SYSTEM
 
 ---
 
+## Vehicle Types (Phase 02)
+
+### Vehicle Classes
+
+| Type | Description | Capacity | Speed | Terrain |
+|------|-------------|----------|-------|---------|
+| `VEHICLE_NONE` | Invalid/unassigned | - | - | - |
+| `VEHICLE_CART` | Small hand cart | 1 passenger, 200 lbs | 80% | Road, plains |
+| `VEHICLE_WAGON` | Large cargo wagon | 4 passengers, 1000 lbs | 60% | Road, plains, forest |
+| `VEHICLE_MOUNT` | Riding mount | 1 passenger, 100 lbs | 120% | Most terrain |
+| `VEHICLE_CARRIAGE` | Passenger carriage | 6 passengers, 500 lbs | 70% | Road, plains |
+
+### Vehicle States
+
+| State | Description |
+|-------|-------------|
+| `VSTATE_IDLE` | Stationary, not in use |
+| `VSTATE_MOVING` | Currently in motion |
+| `VSTATE_LOADED` | Carrying cargo/passengers |
+| `VSTATE_HITCHED` | Connected to another vehicle |
+| `VSTATE_DAMAGED` | Requires repair before use |
+| `VSTATE_ON_VESSEL` | Loaded onto a vessel |
+
+### Vehicle Terrain Flags
+
+| Flag | Description |
+|------|-------------|
+| `VTERRAIN_ROAD` | Paved roads, paths |
+| `VTERRAIN_PLAINS` | Open grasslands |
+| `VTERRAIN_FOREST` | Wooded areas |
+| `VTERRAIN_HILLS` | Hilly terrain |
+| `VTERRAIN_MOUNTAIN` | Mountain passes (mounts only) |
+| `VTERRAIN_DESERT` | Desert terrain |
+| `VTERRAIN_WATER_SHALLOW` | Shallow water crossings |
+
+### Vehicle Speed Modifiers
+
+| Terrain | Cart | Wagon | Mount | Carriage |
+|---------|------|-------|-------|----------|
+| Road | 150% | 150% | 150% | 150% |
+| Plains | 100% | 100% | 100% | 100% |
+| Forest | 50% | 75% | 100% | 50% |
+| Hills | 50% | 50% | 75% | 50% |
+| Mountain | 0% | 0% | 50% | 0% |
+| Swamp | 0% | 0% | 50% | 0% |
+
+---
+
 ## Commands
 
 ### Navigation Commands
@@ -111,6 +186,33 @@ UNIFIED VESSEL SYSTEM
 | `dock` | Create gangway to vessel | `dock [ship]` |
 | `undock` | Remove docking connection | `undock` |
 | `board_hostile` | Forced boarding attempt | `board_hostile <ship>` |
+
+### Vehicle Commands (Phase 02)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `vmount` | Mount a vehicle | `vmount <vehicle>` |
+| `vdismount` | Dismount current vehicle | `vdismount` |
+| `drive` | Move vehicle in direction | `drive <direction>` |
+| `vstatus` | Display vehicle status | `vstatus` |
+
+### Vehicle Transport Commands (Phase 02)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `loadvehicle` | Load vehicle onto vessel | `loadvehicle <vehicle>` |
+| `unloadvehicle` | Unload vehicle from vessel | `unloadvehicle <vehicle>` |
+
+### Unified Transport Commands (Phase 02)
+
+These commands work with both vehicles and vessels:
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `tenter` | Enter any transport | `tenter <transport>` |
+| `texit` | Exit current transport | `texit` |
+| `tgo` | Move transport in direction | `tgo <direction>` |
+| `tstatus` | Display transport status | `tstatus` |
 
 ### Autopilot Commands (Phase 01)
 
@@ -186,6 +288,36 @@ Vessels can be scheduled to depart at specific times.
 - Automatic route activation
 - Repeat schedule support
 - Integration with NPC pilots
+
+---
+
+## Vehicle-in-Vessel Mechanics (Phase 02)
+
+Vehicles can be loaded onto vessels for transport across water.
+
+### Loading Requirements
+
+- Vessel must be stationary (speed = 0) or docked
+- Vehicle must be in same room as vessel boarding point
+- Vehicle must not already be on a vessel
+- Vessel must have available cargo capacity
+
+### Unloading Requirements
+
+- Vessel must be stationary or docked
+- Vehicle must be on the vessel
+- Must be at valid unload location (dock or shore)
+
+### State Transitions
+
+```
+VSTATE_IDLE --> loadvehicle --> VSTATE_ON_VESSEL
+VSTATE_ON_VESSEL --> unloadvehicle --> VSTATE_IDLE
+```
+
+### Coordinate Synchronization
+
+When a vessel moves, all loaded vehicles automatically update their coordinates to match the vessel's position.
 
 ---
 
@@ -294,6 +426,33 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 | `struct autopilot_data` | 48 bytes |
 | `struct waypoint_node` | 104 bytes |
 
+### Phase 02 (Simple Vehicle Support)
+
+| Metric | Target | Achieved |
+|--------|--------|----------|
+| Unit tests | 50+ | 159 (100% pass) |
+| Memory per vehicle | <512 bytes | 148 bytes |
+| Stress test (100 vehicles) | Stable | Pass |
+| Stress test (500 vehicles) | Stable | Pass |
+| Stress test (1000 vehicles) | Stable | Pass |
+| Memory leaks | 0 | 0 (Valgrind clean) |
+| Compiler warnings | 0 | 0 (-Wall -Wextra -std=c89 -pedantic) |
+
+### Vehicle Structure Size
+
+| Structure | Size |
+|-----------|------|
+| `struct vehicle_data` | 148 bytes |
+| `struct transport_data` | 16 bytes |
+
+### Vehicle Stress Test Results
+
+| Level | Memory Used | Per-Vehicle |
+|-------|-------------|-------------|
+| 100 vehicles | 14.5 KB | 148 bytes |
+| 500 vehicles | 72.3 KB | 148 bytes |
+| 1000 vehicles | 144.5 KB | 148 bytes |
+
 ---
 
 ## Development
@@ -312,6 +471,16 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 3. Add help entry in `lib/text/help/help.hlp`
 4. Add tests in `unittests/CuTest/test_vessels.c`
 
+### Adding New Vehicle Types
+
+1. Add enum value to `vehicle_type` in `vessels.h`
+2. Add terrain capabilities to default capability arrays
+3. Add capacity constants (passengers, weight)
+4. Add speed modifier constant
+5. Update `vehicle_type_name()` in `vehicles.c`
+6. Add help entry in `lib/text/help/vehicles.hlp`
+7. Add tests in `unittests/CuTest/test_vehicle_structs.c`
+
 ### Testing
 
 ```bash
@@ -320,12 +489,29 @@ cd unittests/CuTest
 make all
 make test
 
+# Run Phase 02 vehicle tests
+make phase02-tests
+
 # Run stress tests
 make stress
 
 # Run with Valgrind
 make valgrind
+make valgrind-phase02
 ```
+
+### Phase 02 Test Files
+
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| `test_vehicle_structs.c` | 19 | Enum values, struct sizes, constants |
+| `test_vehicle_creation.c` | 27 | Lifecycle, state management, capacity |
+| `test_vehicle_movement.c` | 45 | Direction, terrain, speed, movement |
+| `test_vehicle_commands.c` | 31 | Player commands, parsing |
+| `vehicle_transport_tests.c` | 14 | Vehicle-in-vessel mechanics |
+| `test_transport_unified.c` | 15 | Unified transport interface |
+| `vehicle_stress_test.c` | 8 | 100/500/1000 vehicle stress tests |
+| **Total** | **159** | 100% pass rate |
 
 ---
 
@@ -372,4 +558,4 @@ SELECT COUNT(*) FROM ship_docking WHERE dock_status = 'active';
 
 ---
 
-*Phase 00 "Core Vessel System" and Phase 01 "Automation Layer" completed 2025-12-30. See `.spec_system/` for implementation details.*
+*Phase 00 "Core Vessel System", Phase 01 "Automation Layer", and Phase 02 "Simple Vehicle Support" completed 2025-12-30. See `.spec_system/` for implementation details.*

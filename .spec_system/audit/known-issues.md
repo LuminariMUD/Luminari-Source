@@ -41,6 +41,21 @@ The following checks are intentionally disabled in `.clang-tidy`:
 
 **Resolution**: Acceptable - CuTest API limitation, does not affect test correctness
 
+## Build (CMake cutest target)
+
+### Legacy Integration Tests
+
+**Scope**: `unittests/CuTest/test.interpreter.c`, `unittests/CuTest/test_bounds_checking.c`
+
+**Issue**: CMake `cutest` target fails to link - these legacy integration tests reference functions (`three_arguments`, `three_arguments_u`, `get_wearoff`) that require linking against the main library, but CMake target doesn't include proper linking.
+
+**Impact**: None - main binary `bin/circle` builds successfully. Standalone unit tests in `unittests/CuTest/` work correctly via Makefile.
+
+**Resolution Strategy**:
+1. Either fix CMake linking for cutest target
+2. Or exclude legacy integration tests from CMake build
+3. Continue using standalone Makefile tests (currently functional)
+
 ---
 
 *Last updated: 2025-12-30*

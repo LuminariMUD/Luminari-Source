@@ -1,10 +1,10 @@
 #include "CuTest.h"
 
-// #include "../../"
-#include "../../bool.h"
-#include "../../utils.h"
-#include "../../structs.h"
-#include "../../interpreter.h"
+/* Include paths relative to src/ for CMake build */
+#include "../../src/bool.h"
+#include "../../src/utils.h"
+#include "../../src/structs.h"
+#include "../../src/interpreter.h"
 
 #include <stdio.h>
 #include <stddef.h>

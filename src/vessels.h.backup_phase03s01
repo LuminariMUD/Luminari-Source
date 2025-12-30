@@ -268,9 +268,8 @@ void drive_in_direction(struct char_data *ch, struct obj_data *vehicle,
 #endif
 
 #define SHIP_MAX_SPEED 30 /* Maximum ship speed value */
-
-/* Note: ITEM_SHIP and DOCKABLE removed - use GREYHAWK_ITEM_SHIP (56) and DOCKABLE
- * (alias for ROOM_DOCKABLE) defined unconditionally above. */
+#define ITEM_SHIP 56      /* Ship object type (avoid conflicts) */
+#define DOCKABLE 41       /* Room flag for dockable areas */
 
 /* Outcast Ship Data Structure */
 struct outcast_ship_data
@@ -336,9 +335,27 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
 /* ========================================================================= */
 #if VESSELS_ENABLE_GREYHAWK
 
-/* Note: GREYHAWK_MAXSHIPS, GREYHAWK_MAXSLOTS, position constants (FORE/PORT/REAR/STARBOARD),
- * range constants (SHRTRANGE/MEDRANGE/LNGRANGE), and GREYHAWK_ITEM_SHIP are now defined
- * unconditionally above (lines 65-88) to avoid duplication. */
+#ifndef GREYHAWK_MAXSHIPS
+#define GREYHAWK_MAXSHIPS 500 /* Maximum number of ships in game */
+#endif
+
+#ifndef GREYHAWK_MAXSLOTS
+#define GREYHAWK_MAXSLOTS 10 /* Maximum equipment slots per ship */
+#endif
+
+/* Ship Position Constants */
+#define GREYHAWK_FORE 0      /* Forward position */
+#define GREYHAWK_PORT 1      /* Port (left) position */
+#define GREYHAWK_REAR 2      /* Rear position */
+#define GREYHAWK_STARBOARD 3 /* Starboard (right) position */
+
+/* Weapon Range Types */
+#define GREYHAWK_SHRTRANGE 0 /* Short range */
+#define GREYHAWK_MEDRANGE 1  /* Medium range */
+#define GREYHAWK_LNGRANGE 2  /* Long range */
+
+/* Item Type for Greyhawk Ships */
+#define GREYHAWK_ITEM_SHIP 57 /* Greyhawk ship object type (avoid conflicts) */
 
 /* Greyhawk Ship Action Event Structure (unique to this conditional block) */
 struct greyhawk_ship_action_event

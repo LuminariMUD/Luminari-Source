@@ -4,7 +4,7 @@
 **Created:** December 29, 2025
 **Last Updated:** December 30, 2025
 **Project Code:** VESSELS-UNIFIED-2025
-**Status:** Phase 02 Complete - Simple Vehicle Support Validated
+**Status:** Phase 03 Ready - Optimization & Polish
 
 ---
 
@@ -185,7 +185,7 @@ Range:   30000 - 40019 (reserved, do not use for builder zones)
 | 00 | Core Vessel System | 9 | Complete (2025-12-30) |
 | 01 | Automation Layer | 7 | Complete (2025-12-30) |
 | 02 | Simple Vehicle Support | 7 | Complete (2025-12-30) |
-| 03 | Optimization & Polish | TBD | Planned |
+| 03 | Optimization & Polish | 6 | Not Started |
 
 ### Phase 00: Core Vessel System
 
@@ -262,11 +262,25 @@ Lightweight vehicle tier and transport unification:
 - Stress tested: 100/500/1000 concurrent vehicles
 - Unified transport interface across vehicles and vessels
 
-### Phase 03: Optimization & Polish (Planned)
+### Phase 03: Optimization & Polish (Not Started)
 
-- Performance optimization for 500+ concurrent vessels
-- Memory usage reduction
-- Comprehensive test coverage (>90%)
+**Sessions**: 6 | **PRD**: [phase_03/PRD_phase_03.md](phase_03/PRD_phase_03.md)
+
+Code quality, feature completion, and production readiness:
+- Session 01: Code Consolidation (duplicate structs/constants cleanup)
+- Session 02: Interior Movement Implementation (do_move_ship_interior, etc.)
+- Session 03: Command Registration & Wiring (Phase 2 commands in interpreter.c)
+- Session 04: Dynamic Wilderness Rooms (room allocation for vessel movement)
+- Session 05: Vessel Type System (per-vessel type mapping)
+- Session 06: Final Testing & Documentation (>90% coverage, docs completion)
+
+**Goals:**
+- Eliminate duplicate definitions in vessels.h
+- Implement missing interior movement functions
+- Register all Phase 2 commands
+- Enable dynamic wilderness room allocation
+- Complete per-vessel type system
+- Achieve >90% test coverage (target: 200+ tests)
 - Documentation completion
 
 ---
