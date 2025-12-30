@@ -210,7 +210,7 @@ if (!mysql_connection)
 | Build & Test | configured | .github/workflows/test.yml |
 | Security | configured | .github/workflows/security.yml |
 | Integration | configured | .github/workflows/integration.yml |
-| Operations | partial | .github/workflows/pages.yml (docs only) |
+| Operations | configured | .github/workflows/release.yml, .github/dependabot.yml, .github/workflows/pages.yml |
 
 ## When In Doubt
 
