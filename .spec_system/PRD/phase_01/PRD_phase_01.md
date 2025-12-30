@@ -4,7 +4,7 @@
 **Sessions**: 7 (initial estimate)
 **Estimated Duration**: 3-5 days
 
-**Progress**: 3/7 sessions (43%)
+**Progress**: 4/7 sessions (57%)
 
 ---
 
@@ -21,7 +21,7 @@ Implement vessel automation capabilities including autopilot systems, waypoint-b
 | 01 | Autopilot Data Structures | Complete | 21 | 2025-12-30 |
 | 02 | Waypoint Route Management | Complete | 20 | 2025-12-30 |
 | 03 | Path Following Logic | Complete | 20 | 2025-12-30 |
-| 04 | Autopilot Player Commands | Not Started | ~15-18 | - |
+| 04 | Autopilot Player Commands | Complete | 22 | 2025-12-30 |
 | 05 | NPC Pilot Integration | Not Started | ~15-20 | - |
 | 06 | Scheduled Route System | Not Started | ~15-18 | - |
 | 07 | Testing Validation | Not Started | ~12-15 | - |
@@ -45,11 +45,16 @@ Implement vessel automation capabilities including autopilot systems, waypoint-b
 - **Tasks**: 20/20
 - **Key Deliverables**: Distance/heading calculations, tolerance-based arrival detection, waypoint advancement with loop support, wait time handling, terrain-validated movement, heartbeat integration, unit tests (30 tests passing)
 
+### Session 04: Autopilot Player Commands
+- **Completed**: 2025-12-30
+- **Tasks**: 21/22 (T020 deferred by design)
+- **Key Deliverables**: 8 ACMD command handlers (autopilot, setwaypoint, listwaypoints, delwaypoint, createroute, addtoroute, listroutes, setroute), interpreter.c registration, autopilot.hlp help file, unit tests (44 tests passing)
+
 ---
 
 ## Upcoming Sessions
 
-- Session 04: Autopilot Player Commands
+- Session 05: NPC Pilot Integration
 
 ---
 

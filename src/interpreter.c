@@ -1171,6 +1171,15 @@ cpp_extern const struct command_info cmd_info[] = {
     {"board_hostile", "board_hostile", POS_FIGHTING, do_board_hostile, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"look_outside", "look_outside", POS_RESTING, do_look_outside, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"ship_rooms", "ship_rooms", POS_RESTING, do_ship_rooms, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    /* Phase 3 Autopilot Commands */
+    {"autopilot", "autopilot", POS_RESTING, do_autopilot, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"setwaypoint", "setwaypoint", POS_RESTING, do_setwaypoint, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"listwaypoints", "listwaypoints", POS_RESTING, do_listwaypoints, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"delwaypoint", "delwaypoint", POS_RESTING, do_delwaypoint, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"createroute", "createroute", POS_RESTING, do_createroute, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"addtoroute", "addtoroute", POS_RESTING, do_addtoroute, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"listroutes", "listroutes", POS_RESTING, do_listroutes, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"setroute", "setroute", POS_RESTING, do_setroute, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* test commands for new prep system */
     //{ "memtest", "memtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},

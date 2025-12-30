@@ -209,6 +209,7 @@ circle_SOURCES = \
 	src/vessels_db.c \
 	src/vessels_docking.c \
 	src/vessels_rooms.c \
+	src/vessels_autopilot.c \
 	src/weather.c \
 	src/wilderness.c \
 	src/wilderness_kb.c \

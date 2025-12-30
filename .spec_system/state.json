@@ -30,7 +30,8 @@
     "phase00-session09-testing-validation",
     "phase01-session01-autopilot-data-structures",
     "phase01-session02-waypoint-route-management",
-    "phase01-session03-path-following-logic"
+    "phase01-session03-path-following-logic",
+    "phase01-session04-autopilot-player-commands"
   ],
   "next_session_history": [
     {
@@ -91,6 +92,11 @@
     {
       "date": "2025-12-30",
       "session": "phase01-session03-path-following-logic",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase01-session04-autopilot-player-commands",
       "status": "completed"
     }
   ]

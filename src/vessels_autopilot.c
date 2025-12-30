@@ -2245,3 +2245,753 @@ void autopilot_tick(void)
   /* Optional: Log active autopilot count periodically for debugging */
   /* if (active_count > 0) log("Info: Autopilot tick - %d active ships", active_count); */
 }
+
+/* ========================================================================= */
+/* PLAYER COMMAND HELPER FUNCTIONS                                            */
+/* ========================================================================= */
+
+/**
+ * Get the vessel a character is currently on.
+ * Sends an error message if not on a vessel.
+ *
+ * @param ch The character to check
+ * @return Pointer to ship data, or NULL if not on a vessel
+ */
+static struct greyhawk_ship_data *get_vessel_for_command(struct char_data *ch)
+{
+  struct greyhawk_ship_data *ship;
+
+  if (ch == NULL)
+  {
+    return NULL;
+  }
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (ship == NULL)
+  {
+    send_to_char(ch, "You must be aboard a vessel to use this command.\r\n");
+    return NULL;
+  }
+
+  return ship;
+}
+
+/**
+ * Check if character has permission to control the vessel's autopilot.
+ * Must be at the helm (bridge) or be the ship owner.
+ * Sends an error message if permission denied.
+ *
+ * @param ch The character to check
+ * @param ship The ship to check permissions for
+ * @return TRUE if has permission, FALSE otherwise
+ */
+static int check_vessel_captain(struct char_data *ch, struct greyhawk_ship_data *ship)
+{
+  if (ch == NULL || ship == NULL)
+  {
+    return FALSE;
+  }
+
+  /* Check if at the helm (bridge room) */
+  if (is_pilot(ch, ship))
+  {
+    return TRUE;
+  }
+
+  /* Check if character is the owner */
+  if (ship->owner[0] != '\0' && !strcmp(ship->owner, GET_NAME(ch)))
+  {
+    return TRUE;
+  }
+
+  /* Immortals always have access */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    return TRUE;
+  }
+
+  send_to_char(ch, "You must be at the helm or be the ship's owner to control the autopilot.\r\n");
+  return FALSE;
+}
+
+/* ========================================================================= */
+/* AUTOPILOT STATE NAME HELPER                                                */
+/* ========================================================================= */
+
+/**
+ * Get a human-readable name for an autopilot state.
+ *
+ * @param state The autopilot state
+ * @return String name of the state
+ */
+static const char *autopilot_state_name(enum autopilot_state state)
+{
+  switch (state)
+  {
+    case AUTOPILOT_OFF:       return "Off";
+    case AUTOPILOT_TRAVELING: return "Traveling";
+    case AUTOPILOT_WAITING:   return "Waiting at Waypoint";
+    case AUTOPILOT_PAUSED:    return "Paused";
+    case AUTOPILOT_COMPLETE:  return "Route Complete";
+    default:                  return "Unknown";
+  }
+}
+
+/* ========================================================================= */
+/* PLAYER COMMAND HANDLERS - AUTOPILOT CONTROL                                */
+/* ========================================================================= */
+
+/**
+ * ACMD handler for autopilot command.
+ * Usage: autopilot [on|off|status]
+ */
+ACMD(do_autopilot)
+{
+  struct greyhawk_ship_data *ship;
+  struct autopilot_data *ap;
+  struct waypoint *wp;
+  char arg[MAX_INPUT_LENGTH];
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Parse argument */
+  one_argument(argument, arg, sizeof(arg));
+
+  /* Handle status subcommand (no permission needed) */
+  if (!*arg || !str_cmp(arg, "status"))
+  {
+    ap = ship->autopilot;
+    if (ap == NULL)
+    {
+      send_to_char(ch, "This vessel does not have autopilot capability.\r\n");
+      return;
+    }
+
+    send_to_char(ch, "\r\n--- Autopilot Status ---\r\n");
+    send_to_char(ch, "State: %s\r\n", autopilot_state_name(ap->state));
+
+    if (ap->current_route != NULL)
+    {
+      send_to_char(ch, "Route: %s (%d waypoints%s)\r\n",
+                   ap->current_route->name,
+                   ap->current_route->num_waypoints,
+                   ap->current_route->loop ? ", looping" : "");
+      send_to_char(ch, "Progress: Waypoint %d of %d\r\n",
+                   ap->current_waypoint_index + 1,
+                   ap->current_route->num_waypoints);
+
+      wp = waypoint_get_current(ship);
+      if (wp != NULL)
+      {
+        send_to_char(ch, "Current Target: %s (%.1f, %.1f)\r\n",
+                     wp->name[0] ? wp->name : "Unnamed",
+                     wp->x, wp->y);
+        send_to_char(ch, "Distance: %.1f\r\n",
+                     calculate_distance_to_waypoint(ship, wp));
+      }
+
+      if (ap->state == AUTOPILOT_WAITING && ap->wait_remaining > 0)
+      {
+        send_to_char(ch, "Wait Time Remaining: %d seconds\r\n", ap->wait_remaining);
+      }
+    }
+    else
+    {
+      send_to_char(ch, "Route: None assigned\r\n");
+    }
+
+    send_to_char(ch, "Position: (%.1f, %.1f, %.1f)\r\n", ship->x, ship->y, ship->z);
+    send_to_char(ch, "-------------------------\r\n");
+    return;
+  }
+
+  /* For on/off commands, need captain permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  if (!str_cmp(arg, "on"))
+  {
+    ap = ship->autopilot;
+    if (ap == NULL)
+    {
+      /* Initialize autopilot if not present */
+      ap = autopilot_init(ship);
+      if (ap == NULL)
+      {
+        send_to_char(ch, "Failed to initialize autopilot system.\r\n");
+        return;
+      }
+    }
+
+    if (ap->current_route == NULL)
+    {
+      send_to_char(ch, "No route assigned. Use 'setroute <name>' first.\r\n");
+      return;
+    }
+
+    if (ap->current_route->num_waypoints == 0)
+    {
+      send_to_char(ch, "The assigned route has no waypoints.\r\n");
+      return;
+    }
+
+    if (ap->state == AUTOPILOT_TRAVELING || ap->state == AUTOPILOT_WAITING)
+    {
+      send_to_char(ch, "Autopilot is already active.\r\n");
+      return;
+    }
+
+    if (ap->state == AUTOPILOT_PAUSED)
+    {
+      autopilot_resume(ship);
+      send_to_char(ch, "Autopilot resumed.\r\n");
+      send_to_ship(ship, "The vessel's autopilot has been resumed.\r\n");
+    }
+    else
+    {
+      autopilot_start(ship, ap->current_route);
+      send_to_char(ch, "Autopilot engaged on route '%s'.\r\n", ap->current_route->name);
+      send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
+    }
+    return;
+  }
+
+  if (!str_cmp(arg, "off"))
+  {
+    ap = ship->autopilot;
+    if (ap == NULL || ap->state == AUTOPILOT_OFF)
+    {
+      send_to_char(ch, "Autopilot is not active.\r\n");
+      return;
+    }
+
+    autopilot_stop(ship);
+    send_to_char(ch, "Autopilot disengaged.\r\n");
+    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+    return;
+  }
+
+  if (!str_cmp(arg, "pause"))
+  {
+    ap = ship->autopilot;
+    if (ap == NULL || (ap->state != AUTOPILOT_TRAVELING && ap->state != AUTOPILOT_WAITING))
+    {
+      send_to_char(ch, "Autopilot is not currently navigating.\r\n");
+      return;
+    }
+
+    autopilot_pause(ship);
+    send_to_char(ch, "Autopilot paused.\r\n");
+    send_to_ship(ship, "The vessel's autopilot has been paused.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Usage: autopilot [on|off|pause|status]\r\n");
+}
+
+/* ========================================================================= */
+/* PLAYER COMMAND HANDLERS - WAYPOINT MANAGEMENT                              */
+/* ========================================================================= */
+
+/**
+ * ACMD handler for setwaypoint command.
+ * Creates a new waypoint at the vessel's current position.
+ * Usage: setwaypoint <name>
+ */
+ACMD(do_setwaypoint)
+{
+  struct greyhawk_ship_data *ship;
+  struct waypoint wp;
+  char arg[MAX_INPUT_LENGTH];
+  int waypoint_id;
+  int i;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Get waypoint name */
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: setwaypoint <name>\r\n");
+    return;
+  }
+
+  /* Validate name length */
+  if (strlen(arg) >= AUTOPILOT_NAME_LENGTH)
+  {
+    send_to_char(ch, "Waypoint name too long (max %d characters).\r\n",
+                 AUTOPILOT_NAME_LENGTH - 1);
+    return;
+  }
+
+  /* Validate name characters (alphanumeric and underscore only) */
+  for (i = 0; arg[i]; i++)
+  {
+    if (!isalnum(arg[i]) && arg[i] != '_' && arg[i] != '-')
+    {
+      send_to_char(ch, "Waypoint name can only contain letters, numbers, underscores, and hyphens.\r\n");
+      return;
+    }
+  }
+
+  /* Initialize waypoint data */
+  memset(&wp, 0, sizeof(struct waypoint));
+  wp.x = ship->x;
+  wp.y = ship->y;
+  wp.z = ship->z;
+  wp.tolerance = 5.0f;
+  wp.wait_time = 0;
+  wp.flags = 0;
+  strncpy(wp.name, arg, AUTOPILOT_NAME_LENGTH - 1);
+  wp.name[AUTOPILOT_NAME_LENGTH - 1] = '\0';
+
+  /* Create waypoint in database */
+  waypoint_id = waypoint_db_create(&wp);
+  if (waypoint_id < 0)
+  {
+    send_to_char(ch, "Failed to create waypoint.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Waypoint '%s' created at position (%.1f, %.1f, %.1f).\r\n",
+               arg, wp.x, wp.y, wp.z);
+}
+
+/**
+ * ACMD handler for listwaypoints command.
+ * Lists all waypoints in the database.
+ * Usage: listwaypoints
+ */
+ACMD(do_listwaypoints)
+{
+  struct waypoint_node *current;
+  int count;
+
+  (void)argument; /* Unused */
+
+  /* Must be on a vessel */
+  if (!is_in_ship_interior(ch))
+  {
+    send_to_char(ch, "You must be aboard a vessel to use this command.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\r\n--- Waypoints ---\r\n");
+  send_to_char(ch, "%-4s %-20s %10s %10s %10s\r\n",
+               "ID", "Name", "X", "Y", "Z");
+  send_to_char(ch, "---- -------------------- ---------- ---------- ----------\r\n");
+
+  count = 0;
+  for (current = waypoint_list; current != NULL; current = current->next)
+  {
+    send_to_char(ch, "%-4d %-20s %10.1f %10.1f %10.1f\r\n",
+                 current->waypoint_id,
+                 current->data.name[0] ? current->data.name : "(unnamed)",
+                 current->data.x,
+                 current->data.y,
+                 current->data.z);
+    count++;
+  }
+
+  if (count == 0)
+  {
+    send_to_char(ch, "No waypoints defined.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "----------------------------\r\n");
+    send_to_char(ch, "Total: %d waypoint%s\r\n", count, count == 1 ? "" : "s");
+  }
+}
+
+/**
+ * ACMD handler for delwaypoint command.
+ * Deletes a waypoint by name.
+ * Usage: delwaypoint <name>
+ */
+ACMD(do_delwaypoint)
+{
+  struct greyhawk_ship_data *ship;
+  struct waypoint_node *current;
+  char arg[MAX_INPUT_LENGTH];
+  int found_id;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Get waypoint name */
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: delwaypoint <name>\r\n");
+    return;
+  }
+
+  /* Find waypoint by name */
+  found_id = -1;
+  for (current = waypoint_list; current != NULL; current = current->next)
+  {
+    if (!str_cmp(current->data.name, arg))
+    {
+      found_id = current->waypoint_id;
+      break;
+    }
+  }
+
+  if (found_id < 0)
+  {
+    send_to_char(ch, "Waypoint '%s' not found.\r\n", arg);
+    return;
+  }
+
+  /* Delete from database */
+  if (waypoint_db_delete(found_id))
+  {
+    send_to_char(ch, "Waypoint '%s' deleted.\r\n", arg);
+  }
+  else
+  {
+    send_to_char(ch, "Failed to delete waypoint '%s'.\r\n", arg);
+  }
+}
+
+/* ========================================================================= */
+/* PLAYER COMMAND HANDLERS - ROUTE MANAGEMENT                                 */
+/* ========================================================================= */
+
+/**
+ * ACMD handler for createroute command.
+ * Creates a new empty route.
+ * Usage: createroute <name>
+ */
+ACMD(do_createroute)
+{
+  struct greyhawk_ship_data *ship;
+  char arg[MAX_INPUT_LENGTH];
+  int route_id;
+  int i;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Get route name */
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: createroute <name>\r\n");
+    return;
+  }
+
+  /* Validate name length */
+  if (strlen(arg) >= AUTOPILOT_NAME_LENGTH)
+  {
+    send_to_char(ch, "Route name too long (max %d characters).\r\n",
+                 AUTOPILOT_NAME_LENGTH - 1);
+    return;
+  }
+
+  /* Validate name characters */
+  for (i = 0; arg[i]; i++)
+  {
+    if (!isalnum(arg[i]) && arg[i] != '_' && arg[i] != '-')
+    {
+      send_to_char(ch, "Route name can only contain letters, numbers, underscores, and hyphens.\r\n");
+      return;
+    }
+  }
+
+  /* Create route in database */
+  route_id = route_db_create(arg, FALSE);
+  if (route_id < 0)
+  {
+    send_to_char(ch, "Failed to create route.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Route '%s' created (ID: %d).\r\n", arg, route_id);
+}
+
+/**
+ * ACMD handler for addtoroute command.
+ * Adds a waypoint to a route.
+ * Usage: addtoroute <route> <waypoint>
+ */
+ACMD(do_addtoroute)
+{
+  struct greyhawk_ship_data *ship;
+  struct route_node *route;
+  struct waypoint_node *waypoint;
+  char route_arg[MAX_INPUT_LENGTH];
+  char wp_arg[MAX_INPUT_LENGTH];
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Parse arguments */
+  two_arguments_u((char *)argument, route_arg, wp_arg);
+  if (!*route_arg || !*wp_arg)
+  {
+    send_to_char(ch, "Usage: addtoroute <route> <waypoint>\r\n");
+    return;
+  }
+
+  /* Find route by name */
+  route = NULL;
+  for (route = route_list; route != NULL; route = route->next)
+  {
+    if (!str_cmp(route->name, route_arg))
+    {
+      break;
+    }
+  }
+
+  if (route == NULL)
+  {
+    send_to_char(ch, "Route '%s' not found.\r\n", route_arg);
+    return;
+  }
+
+  /* Find waypoint by name */
+  waypoint = NULL;
+  for (waypoint = waypoint_list; waypoint != NULL; waypoint = waypoint->next)
+  {
+    if (!str_cmp(waypoint->data.name, wp_arg))
+    {
+      break;
+    }
+  }
+
+  if (waypoint == NULL)
+  {
+    send_to_char(ch, "Waypoint '%s' not found.\r\n", wp_arg);
+    return;
+  }
+
+  /* Check route capacity */
+  if (route->num_waypoints >= MAX_WAYPOINTS_PER_ROUTE)
+  {
+    send_to_char(ch, "Route '%s' is full (max %d waypoints).\r\n",
+                 route_arg, MAX_WAYPOINTS_PER_ROUTE);
+    return;
+  }
+
+  /* Add waypoint to route */
+  if (route_add_waypoint_db(route->route_id, waypoint->waypoint_id, route->num_waypoints))
+  {
+    send_to_char(ch, "Waypoint '%s' added to route '%s' at position %d.\r\n",
+                 wp_arg, route_arg, route->num_waypoints);
+  }
+  else
+  {
+    send_to_char(ch, "Failed to add waypoint to route.\r\n");
+  }
+}
+
+/**
+ * ACMD handler for listroutes command.
+ * Lists all routes in the database.
+ * Usage: listroutes
+ */
+ACMD(do_listroutes)
+{
+  struct route_node *current;
+  int count;
+
+  (void)argument; /* Unused */
+
+  /* Must be on a vessel */
+  if (!is_in_ship_interior(ch))
+  {
+    send_to_char(ch, "You must be aboard a vessel to use this command.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\r\n--- Routes ---\r\n");
+  send_to_char(ch, "%-4s %-20s %5s %6s %6s\r\n",
+               "ID", "Name", "WPs", "Loop", "Active");
+  send_to_char(ch, "---- -------------------- ----- ------ ------\r\n");
+
+  count = 0;
+  for (current = route_list; current != NULL; current = current->next)
+  {
+    send_to_char(ch, "%-4d %-20s %5d %6s %6s\r\n",
+                 current->route_id,
+                 current->name[0] ? current->name : "(unnamed)",
+                 current->num_waypoints,
+                 current->loop ? "Yes" : "No",
+                 current->active ? "Yes" : "No");
+    count++;
+  }
+
+  if (count == 0)
+  {
+    send_to_char(ch, "No routes defined.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "----------------------------\r\n");
+    send_to_char(ch, "Total: %d route%s\r\n", count, count == 1 ? "" : "s");
+  }
+}
+
+/**
+ * ACMD handler for setroute command.
+ * Assigns a route to the vessel's autopilot.
+ * Usage: setroute <name>
+ */
+ACMD(do_setroute)
+{
+  struct greyhawk_ship_data *ship;
+  struct autopilot_data *ap;
+  struct route_node *route_node;
+  struct ship_route *route;
+  struct waypoint_node *wp_node;
+  char arg[MAX_INPUT_LENGTH];
+  int i;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Get route name */
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: setroute <name>\r\n");
+    return;
+  }
+
+  /* Find route by name in cache */
+  route_node = NULL;
+  for (route_node = route_list; route_node != NULL; route_node = route_node->next)
+  {
+    if (!str_cmp(route_node->name, arg))
+    {
+      break;
+    }
+  }
+
+  if (route_node == NULL)
+  {
+    send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if (route_node->num_waypoints == 0)
+  {
+    send_to_char(ch, "Route '%s' has no waypoints. Add waypoints with 'addtoroute'.\r\n", arg);
+    return;
+  }
+
+  /* Ensure autopilot is initialized */
+  ap = ship->autopilot;
+  if (ap == NULL)
+  {
+    ap = autopilot_init(ship);
+    if (ap == NULL)
+    {
+      send_to_char(ch, "Failed to initialize autopilot system.\r\n");
+      return;
+    }
+  }
+
+  /* Stop current autopilot if running */
+  if (ap->state != AUTOPILOT_OFF && ap->state != AUTOPILOT_COMPLETE)
+  {
+    autopilot_stop(ship);
+    send_to_char(ch, "Previous autopilot navigation stopped.\r\n");
+  }
+
+  /* Create ship_route from route_node data */
+  route = route_create(route_node->name);
+  if (route == NULL)
+  {
+    send_to_char(ch, "Failed to load route data.\r\n");
+    return;
+  }
+
+  route->route_id = route_node->route_id;
+  route->loop = route_node->loop;
+  route->active = route_node->active;
+  route->num_waypoints = 0;
+
+  /* Load waypoints into route */
+  for (i = 0; i < route_node->num_waypoints && i < MAX_WAYPOINTS_PER_ROUTE; i++)
+  {
+    wp_node = waypoint_cache_find(route_node->waypoint_ids[i]);
+    if (wp_node != NULL)
+    {
+      route->waypoints[route->num_waypoints] = wp_node->data;
+      route->num_waypoints++;
+    }
+  }
+
+  /* Assign route to autopilot */
+  if (ap->current_route != NULL)
+  {
+    route_destroy(ap->current_route);
+  }
+  ap->current_route = route;
+  ap->current_waypoint_index = 0;
+
+  send_to_char(ch, "Route '%s' assigned to autopilot (%d waypoints).\r\n",
+               arg, route->num_waypoints);
+  send_to_char(ch, "Use 'autopilot on' to begin navigation.\r\n");
+}

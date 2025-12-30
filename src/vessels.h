@@ -807,4 +807,14 @@ ACMD_DECL(do_look_outside);         /* Look outside from ship interior */
 ACMD_DECL(do_transfer_cargo);       /* Transfer cargo between docked ships */
 ACMD_DECL(do_ship_rooms);           /* List ship interior rooms */
 
+/* Phase 3 Autopilot Commands */
+ACMD_DECL(do_autopilot);            /* Autopilot control (on/off/status) */
+ACMD_DECL(do_setwaypoint);          /* Create waypoint at current position */
+ACMD_DECL(do_listwaypoints);        /* List all waypoints */
+ACMD_DECL(do_delwaypoint);          /* Delete a waypoint */
+ACMD_DECL(do_createroute);          /* Create a new route */
+ACMD_DECL(do_addtoroute);           /* Add waypoint to route */
+ACMD_DECL(do_listroutes);           /* List all routes */
+ACMD_DECL(do_setroute);             /* Assign route to vessel */
+
 #endif /* _VESSELS_H_ */

@@ -1,0 +1,173 @@
+AUTOPILOT
+
+Usage: autopilot [on|off|pause|status]
+
+The autopilot command controls automated vessel navigation. When enabled,
+your vessel will automatically follow the assigned route, moving from
+waypoint to waypoint without manual intervention.
+
+Subcommands:
+  on     - Enable autopilot and begin navigating the assigned route
+  off    - Disable autopilot and stop navigation
+  pause  - Temporarily pause navigation (can be resumed with 'on')
+  status - Display current autopilot state, route, and progress (default)
+
+Before using autopilot, you must:
+  1. Create waypoints with 'setwaypoint'
+  2. Create a route with 'createroute'
+  3. Add waypoints to the route with 'addtoroute'
+  4. Assign the route to autopilot with 'setroute'
+
+You must be at the helm (bridge) or be the ship's owner to control autopilot.
+Anyone aboard can view autopilot status.
+
+Example:
+  > autopilot status    - Check current autopilot state
+  > autopilot on        - Begin automated navigation
+  > autopilot pause     - Pause at current position
+  > autopilot off       - Stop autopilot completely
+
+See also: SETWAYPOINT, LISTWAYPOINTS, DELWAYPOINT, CREATEROUTE, ADDTOROUTE,
+          LISTROUTES, SETROUTE
+#
+SETWAYPOINT
+
+Usage: setwaypoint <name>
+
+Creates a new navigation waypoint at the vessel's current position.
+Waypoints are used to define points along a route for autopilot navigation.
+
+The waypoint name must:
+  - Be 1-63 characters long
+  - Contain only letters, numbers, underscores, and hyphens
+
+You must be at the helm or be the ship's owner to create waypoints.
+
+Example:
+  > setwaypoint harbor_entrance
+  Waypoint 'harbor_entrance' created at position (150.0, 200.0, 0.0).
+
+See also: LISTWAYPOINTS, DELWAYPOINT, AUTOPILOT
+#
+LISTWAYPOINTS
+
+Usage: listwaypoints
+
+Displays a list of all navigation waypoints in the database.
+Shows the waypoint ID, name, and coordinates (X, Y, Z) for each waypoint.
+
+This command can be used by anyone aboard a vessel.
+
+Example:
+  > listwaypoints
+  --- Waypoints ---
+  ID   Name                          X          Y          Z
+  ---- -------------------- ---------- ---------- ----------
+  1    harbor_entrance           150.0      200.0        0.0
+  2    open_sea                  500.0      500.0        0.0
+  ----------------------------
+  Total: 2 waypoints
+
+See also: SETWAYPOINT, DELWAYPOINT, AUTOPILOT
+#
+DELWAYPOINT
+
+Usage: delwaypoint <name>
+
+Deletes a navigation waypoint by name.
+
+WARNING: Deleting a waypoint that is part of an active route may cause
+navigation issues. Ensure the waypoint is not currently in use.
+
+You must be at the helm or be the ship's owner to delete waypoints.
+
+Example:
+  > delwaypoint old_dock
+  Waypoint 'old_dock' deleted.
+
+See also: SETWAYPOINT, LISTWAYPOINTS, AUTOPILOT
+#
+CREATEROUTE
+
+Usage: createroute <name>
+
+Creates a new empty navigation route. Routes are ordered collections of
+waypoints that define a path for autopilot navigation.
+
+The route name must:
+  - Be 1-63 characters long
+  - Contain only letters, numbers, underscores, and hyphens
+
+After creating a route, use 'addtoroute' to add waypoints to it.
+
+You must be at the helm or be the ship's owner to create routes.
+
+Example:
+  > createroute trade_run
+  Route 'trade_run' created (ID: 1).
+
+See also: ADDTOROUTE, LISTROUTES, SETROUTE, AUTOPILOT
+#
+ADDTOROUTE
+
+Usage: addtoroute <route> <waypoint>
+
+Adds an existing waypoint to a route. Waypoints are added to the end
+of the route in the order you add them.
+
+Each route can contain up to 20 waypoints.
+
+You must be at the helm or be the ship's owner to modify routes.
+
+Example:
+  > addtoroute trade_run harbor_entrance
+  Waypoint 'harbor_entrance' added to route 'trade_run' at position 0.
+
+  > addtoroute trade_run open_sea
+  Waypoint 'open_sea' added to route 'trade_run' at position 1.
+
+See also: CREATEROUTE, LISTROUTES, SETROUTE, SETWAYPOINT
+#
+LISTROUTES
+
+Usage: listroutes
+
+Displays a list of all navigation routes in the database.
+Shows the route ID, name, number of waypoints, and loop/active status.
+
+This command can be used by anyone aboard a vessel.
+
+Example:
+  > listroutes
+  --- Routes ---
+  ID   Name                  WPs  Loop   Active
+  ---- -------------------- ----- ------ ------
+  1    trade_run                5 No     Yes
+  2    patrol_route             8 Yes    Yes
+  ----------------------------
+  Total: 2 routes
+
+See also: CREATEROUTE, ADDTOROUTE, SETROUTE, AUTOPILOT
+#
+SETROUTE
+
+Usage: setroute <name>
+
+Assigns a route to the vessel's autopilot system. The route must exist
+and contain at least one waypoint.
+
+After assigning a route, use 'autopilot on' to begin navigation.
+
+If autopilot is currently active, it will be stopped before the new
+route is assigned.
+
+You must be at the helm or be the ship's owner to assign routes.
+
+Example:
+  > setroute trade_run
+  Route 'trade_run' assigned to autopilot (5 waypoints).
+  Use 'autopilot on' to begin navigation.
+
+See also: AUTOPILOT, CREATEROUTE, ADDTOROUTE, LISTROUTES
+#
+$~
