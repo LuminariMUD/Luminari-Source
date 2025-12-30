@@ -44,7 +44,8 @@
     "phase01-session07-testing-validation",
     "phase02-session01-vehicle-data-structures",
     "phase02-session02-vehicle-creation-system",
-    "phase02-session03-vehicle-movement-system"
+    "phase02-session03-vehicle-movement-system",
+    "phase02-session04-vehicle-player-commands"
   ],
   "next_session_history": [
     {
@@ -140,6 +141,11 @@
     {
       "date": "2025-12-30",
       "session": "phase02-session03-vehicle-movement-system",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase02-session04-vehicle-player-commands",
       "status": "completed"
     }
   ]

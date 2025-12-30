@@ -1209,11 +1209,11 @@ void vehicle_show_passengers(struct char_data *ch, struct vehicle_data *vehicle)
 /* VEHICLE COMMAND PROTOTYPES (Phase 02, Session 04)                          */
 /* ========================================================================= */
 
-ACMD_DECL(do_mount);    /* Mount a vehicle/animal */
-ACMD_DECL(do_dismount); /* Dismount from vehicle/animal */
-ACMD_DECL(do_hitch);    /* Hitch vehicles together */
-ACMD_DECL(do_unhitch);  /* Unhitch vehicles */
-ACMD_DECL(do_drive);    /* Drive a vehicle in a direction */
-ACMD_DECL(do_vstatus);  /* Show vehicle status */
+ACMD_DECL(do_vmount);    /* Mount a vehicle (distinct from creature mount) */
+ACMD_DECL(do_vdismount); /* Dismount from vehicle (distinct from creature dismount) */
+ACMD_DECL(do_hitch);     /* Hitch vehicles together */
+ACMD_DECL(do_unhitch);   /* Unhitch vehicles */
+ACMD_DECL(do_drive);     /* Drive a vehicle in a direction */
+ACMD_DECL(do_vstatus);   /* Show vehicle status */
 
 #endif /* _VESSELS_H_ */
