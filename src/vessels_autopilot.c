@@ -21,6 +21,9 @@
 extern MYSQL *conn;
 extern bool mysql_available;
 
+/* External time structure for schedule timing */
+extern struct time_info_data time_info;
+
 /* External ship data array from vessels.c */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
@@ -3294,4 +3297,496 @@ ACMD(do_unassignpilot)
 
   send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
   send_to_ship(ship, "%s has been relieved of pilot duties.\r\n", pilot_name);
+}
+
+/* ========================================================================= */
+/* SCHEDULE MANAGEMENT FUNCTIONS                                              */
+/* ========================================================================= */
+
+/**
+ * Calculate the next departure MUD hour based on current time and interval.
+ *
+ * @param sched The schedule to update
+ */
+void schedule_calculate_next_departure(struct vessel_schedule *sched)
+{
+  int current_hour;
+
+  if (sched == NULL)
+  {
+    return;
+  }
+
+  current_hour = time_info.hours;
+  sched->next_departure = current_hour + sched->interval_hours;
+
+  /* Wrap around 24-hour day */
+  if (sched->next_departure >= 24)
+  {
+    sched->next_departure = sched->next_departure % 24;
+  }
+}
+
+/**
+ * Create a schedule for a vessel.
+ *
+ * @param ship The ship to create schedule for
+ * @param route_id The route ID to assign
+ * @param interval The interval in MUD hours
+ * @return 1 on success, 0 on failure
+ */
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
+{
+  if (ship == NULL)
+  {
+    log("SYSERR: schedule_create called with NULL ship");
+    return 0;
+  }
+
+  /* Validate interval */
+  if (interval < SCHEDULE_INTERVAL_MIN || interval > SCHEDULE_INTERVAL_MAX)
+  {
+    log("SYSERR: schedule_create: invalid interval %d", interval);
+    return 0;
+  }
+
+  /* Allocate schedule if needed */
+  if (ship->schedule == NULL)
+  {
+    CREATE(ship->schedule, struct vessel_schedule, 1);
+    if (ship->schedule == NULL)
+    {
+      log("SYSERR: Unable to allocate schedule for ship %d", ship->shipnum);
+      return 0;
+    }
+  }
+
+  /* Set schedule data */
+  ship->schedule->schedule_id = 0;
+  ship->schedule->ship_id = ship->shipnum;
+  ship->schedule->route_id = route_id;
+  ship->schedule->interval_hours = interval;
+  ship->schedule->flags = SCHEDULE_FLAG_ENABLED;
+
+  /* Calculate first departure time */
+  schedule_calculate_next_departure(ship->schedule);
+
+  /* Save to database */
+  schedule_save(ship);
+
+  log("Info: Created schedule for ship %d (route %d, interval %d hours)",
+      ship->shipnum, route_id, interval);
+  return 1;
+}
+
+/**
+ * Clear/remove a vessel's schedule.
+ *
+ * @param ship The ship to clear schedule for
+ * @return 1 on success, 0 on failure
+ */
+int schedule_clear(struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL)
+  {
+    log("SYSERR: schedule_clear called with NULL ship");
+    return 0;
+  }
+
+  if (ship->schedule == NULL)
+  {
+    return 1;  /* Already cleared */
+  }
+
+  /* Free memory */
+  free(ship->schedule);
+  ship->schedule = NULL;
+
+  /* Remove from database */
+  schedule_save(ship);
+
+  log("Info: Cleared schedule for ship %d", ship->shipnum);
+  return 1;
+}
+
+/**
+ * Check if a vessel's schedule is enabled.
+ *
+ * @param ship The ship to check
+ * @return 1 if enabled, 0 otherwise
+ */
+int schedule_is_enabled(struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL || ship->schedule == NULL)
+  {
+    return 0;
+  }
+
+  return (ship->schedule->flags & SCHEDULE_FLAG_ENABLED) ? 1 : 0;
+}
+
+/**
+ * Get a vessel's schedule.
+ *
+ * @param ship The ship to get schedule for
+ * @return Pointer to schedule, or NULL if none
+ */
+struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL)
+  {
+    return NULL;
+  }
+
+  return ship->schedule;
+}
+
+/**
+ * Check if a vessel's schedule should trigger a departure.
+ *
+ * @param ship The ship to check
+ * @return 1 if should trigger, 0 otherwise
+ */
+int schedule_check_trigger(struct greyhawk_ship_data *ship)
+{
+  int current_hour;
+
+  if (ship == NULL || ship->schedule == NULL)
+  {
+    return 0;
+  }
+
+  /* Check if enabled */
+  if (!(ship->schedule->flags & SCHEDULE_FLAG_ENABLED))
+  {
+    return 0;
+  }
+
+  /* Check if vessel already traveling */
+  if (ship->autopilot != NULL &&
+      (ship->autopilot->state == AUTOPILOT_TRAVELING ||
+       ship->autopilot->state == AUTOPILOT_WAITING))
+  {
+    return 0;
+  }
+
+  current_hour = time_info.hours;
+
+  /* Use >= comparison for timer precision */
+  if (current_hour >= ship->schedule->next_departure)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+/**
+ * Trigger a scheduled departure for a vessel.
+ *
+ * @param ship The ship to trigger departure for
+ * @return 1 on success, 0 on failure
+ */
+int schedule_trigger_departure(struct greyhawk_ship_data *ship)
+{
+  struct route_node *route_node;
+  struct ship_route *route;
+  struct waypoint_node *wp_node;
+  int i;
+
+  if (ship == NULL || ship->schedule == NULL)
+  {
+    return 0;
+  }
+
+  /* Find route in cache */
+  route_node = NULL;
+  for (route_node = route_list; route_node != NULL; route_node = route_node->next)
+  {
+    if (route_node->route_id == ship->schedule->route_id)
+    {
+      break;
+    }
+  }
+
+  if (route_node == NULL)
+  {
+    log("SYSERR: schedule_trigger_departure: route %d not found for ship %d",
+        ship->schedule->route_id, ship->shipnum);
+    return 0;
+  }
+
+  /* Initialize autopilot if needed */
+  if (ship->autopilot == NULL)
+  {
+    ship->autopilot = autopilot_init(ship);
+    if (ship->autopilot == NULL)
+    {
+      log("SYSERR: schedule_trigger_departure: failed to init autopilot");
+      return 0;
+    }
+  }
+
+  /* Build route from cache */
+  route = route_create(route_node->name);
+  if (route == NULL)
+  {
+    return 0;
+  }
+
+  route->route_id = route_node->route_id;
+  route->loop = route_node->loop;
+  route->active = route_node->active;
+
+  /* Load waypoints into route */
+  for (i = 0; i < route_node->num_waypoints && i < MAX_WAYPOINTS_PER_ROUTE; i++)
+  {
+    wp_node = waypoint_cache_find(route_node->waypoint_ids[i]);
+    if (wp_node != NULL)
+    {
+      route->waypoints[route->num_waypoints] = wp_node->data;
+      route->num_waypoints++;
+    }
+  }
+
+  /* Start autopilot */
+  if (!autopilot_start(ship, route))
+  {
+    route_destroy(route);
+    return 0;
+  }
+
+  /* Announce departure via pilot if present */
+  if (ship->autopilot->pilot_mob_vnum != -1)
+  {
+    pilot_announce_waypoint(ship, waypoint_get_current(ship));
+  }
+
+  /* Calculate next departure */
+  schedule_calculate_next_departure(ship->schedule);
+  schedule_save(ship);
+
+  log("Info: Scheduled departure triggered for ship %d on route %s",
+      ship->shipnum, route_node->name);
+
+  return 1;
+}
+
+/**
+ * Timer tick for schedule processing.
+ * Called once per MUD hour to check and trigger scheduled departures.
+ */
+void schedule_tick(void)
+{
+  int i;
+  int triggered_count = 0;
+
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    if (is_valid_ship(&greyhawk_ships[i]) &&
+        schedule_check_trigger(&greyhawk_ships[i]))
+    {
+      if (schedule_trigger_departure(&greyhawk_ships[i]))
+      {
+        triggered_count++;
+      }
+    }
+  }
+
+  if (triggered_count > 0)
+  {
+    log("Info: schedule_tick triggered %d departures", triggered_count);
+  }
+}
+
+/* ========================================================================= */
+/* SCHEDULE COMMAND HANDLERS                                                  */
+/* ========================================================================= */
+
+/**
+ * ACMD handler for setschedule command.
+ * Usage: setschedule <route> <interval>
+ */
+ACMD(do_setschedule)
+{
+  struct greyhawk_ship_data *ship;
+  struct route_node *route_node;
+  char route_arg[MAX_INPUT_LENGTH];
+  char interval_arg[MAX_INPUT_LENGTH];
+  int interval;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check captain permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Parse arguments */
+  two_arguments_u((char *)argument, route_arg, interval_arg);
+  if (!*route_arg || !*interval_arg)
+  {
+    send_to_char(ch, "Usage: setschedule <route> <interval>\r\n");
+    send_to_char(ch, "  route    - Name of the route to run\r\n");
+    send_to_char(ch, "  interval - Hours between departures (%d-%d)\r\n",
+                 SCHEDULE_INTERVAL_MIN, SCHEDULE_INTERVAL_MAX);
+    return;
+  }
+
+  /* Validate interval */
+  interval = atoi(interval_arg);
+  if (interval < SCHEDULE_INTERVAL_MIN || interval > SCHEDULE_INTERVAL_MAX)
+  {
+    send_to_char(ch, "Interval must be between %d and %d MUD hours.\r\n",
+                 SCHEDULE_INTERVAL_MIN, SCHEDULE_INTERVAL_MAX);
+    return;
+  }
+
+  /* Find route by name */
+  route_node = NULL;
+  for (route_node = route_list; route_node != NULL; route_node = route_node->next)
+  {
+    if (!str_cmp(route_node->name, route_arg))
+    {
+      break;
+    }
+  }
+
+  if (route_node == NULL)
+  {
+    send_to_char(ch, "Route '%s' not found. Use 'listroutes' to see available routes.\r\n",
+                 route_arg);
+    return;
+  }
+
+  /* Check route has waypoints */
+  if (route_node->num_waypoints < 1)
+  {
+    send_to_char(ch, "Route '%s' has no waypoints defined.\r\n", route_arg);
+    return;
+  }
+
+  /* Create schedule */
+  if (!schedule_create(ship, route_node->route_id, interval))
+  {
+    send_to_char(ch, "Failed to create schedule.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n",
+               route_arg, interval);
+  send_to_char(ch, "Next departure: MUD hour %d\r\n",
+               ship->schedule->next_departure);
+  send_to_ship(ship, "A departure schedule has been set for this vessel.\r\n");
+}
+
+/**
+ * ACMD handler for clearschedule command.
+ * Usage: clearschedule
+ */
+ACMD(do_clearschedule)
+{
+  struct greyhawk_ship_data *ship;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  /* Check captain permission */
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* Check if schedule exists */
+  if (ship->schedule == NULL)
+  {
+    send_to_char(ch, "This vessel has no schedule to clear.\r\n");
+    return;
+  }
+
+  /* Clear schedule */
+  schedule_clear(ship);
+
+  send_to_char(ch, "Vessel schedule has been cleared.\r\n");
+  send_to_ship(ship, "The departure schedule for this vessel has been cancelled.\r\n");
+}
+
+/**
+ * ACMD handler for showschedule command.
+ * Usage: showschedule
+ */
+ACMD(do_showschedule)
+{
+  struct greyhawk_ship_data *ship;
+  struct vessel_schedule *sched;
+  struct route_node *route_node;
+  const char *status;
+
+  /* Get vessel context */
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  sched = ship->schedule;
+  if (sched == NULL)
+  {
+    send_to_char(ch, "This vessel has no schedule configured.\r\n");
+    return;
+  }
+
+  /* Find route name */
+  route_node = NULL;
+  for (route_node = route_list; route_node != NULL; route_node = route_node->next)
+  {
+    if (route_node->route_id == sched->route_id)
+    {
+      break;
+    }
+  }
+
+  /* Determine status */
+  if (sched->flags & SCHEDULE_FLAG_PAUSED)
+  {
+    status = "Paused";
+  }
+  else if (sched->flags & SCHEDULE_FLAG_ENABLED)
+  {
+    status = "Active";
+  }
+  else
+  {
+    status = "Disabled";
+  }
+
+  send_to_char(ch, "\r\n--- Vessel Schedule ---\r\n");
+  send_to_char(ch, "Route: %s\r\n",
+               route_node ? route_node->name : "(unknown)");
+  send_to_char(ch, "Interval: Every %d MUD hour%s\r\n",
+               sched->interval_hours,
+               sched->interval_hours == 1 ? "" : "s");
+  send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure);
+  send_to_char(ch, "Current Time: MUD hour %d\r\n", time_info.hours);
+  send_to_char(ch, "Status: %s\r\n", status);
+
+  /* Show pilot status */
+  if (ship->autopilot != NULL && ship->autopilot->pilot_mob_vnum != -1)
+  {
+    send_to_char(ch, "Pilot: Assigned (departures will be announced)\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "Pilot: None (silent departures)\r\n");
+  }
 }

@@ -1520,7 +1520,8 @@ void heartbeat(int heart_pulse)
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
-    
+    schedule_tick();   /* Check vessel scheduled departures */
+
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     /* Clean up old trails once per mud hour */
     cleanup_all_trails();

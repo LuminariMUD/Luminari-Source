@@ -32,7 +32,8 @@
     "phase01-session02-waypoint-route-management",
     "phase01-session03-path-following-logic",
     "phase01-session04-autopilot-player-commands",
-    "phase01-session05-npc-pilot-integration"
+    "phase01-session05-npc-pilot-integration",
+    "phase01-session06-scheduled-route-system"
   ],
   "next_session_history": [
     {
@@ -103,6 +104,11 @@
     {
       "date": "2025-12-30",
       "session": "phase01-session05-npc-pilot-integration",
+      "status": "completed"
+    },
+    {
+      "date": "2025-12-30",
+      "session": "phase01-session06-scheduled-route-system",
       "status": "completed"
     }
   ]

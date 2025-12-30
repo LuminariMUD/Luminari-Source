@@ -701,3 +701,229 @@ void vessel_db_load_pilot(struct greyhawk_ship_data *ship)
 
     mysql_free_result(result);
 }
+
+/* ========================================================================= */
+/* SCHEDULE PERSISTENCE FUNCTIONS                                             */
+/* ========================================================================= */
+
+/**
+ * Ensure the ship_schedules table exists in the database.
+ * Creates the table if it does not exist.
+ */
+void ensure_schedule_table_exists(void)
+{
+    const char *create_query =
+        "CREATE TABLE IF NOT EXISTS ship_schedules ("
+        "  schedule_id INT AUTO_INCREMENT PRIMARY KEY,"
+        "  ship_id INT NOT NULL,"
+        "  route_id INT NOT NULL,"
+        "  interval_hours INT NOT NULL,"
+        "  next_departure INT NOT NULL DEFAULT 0,"
+        "  enabled TINYINT NOT NULL DEFAULT 1,"
+        "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+        "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+        "  UNIQUE KEY uk_ship_schedule (ship_id)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (!mysql_available)
+    {
+        log("Info: MySQL not available, schedule table check skipped");
+        return;
+    }
+
+    if (mysql_query(conn, create_query))
+    {
+        log("SYSERR: Unable to create ship_schedules table: %s",
+            mysql_error(conn));
+    }
+    else
+    {
+        log("Info: ship_schedules table verified");
+    }
+}
+
+/**
+ * Save vessel schedule to database.
+ *
+ * @param ship The ship with schedule to save
+ * @return 1 on success, 0 on failure
+ */
+int schedule_save(struct greyhawk_ship_data *ship)
+{
+    char query[MAX_STRING_LENGTH];
+
+    if (!mysql_available || !ship)
+    {
+        return 0;
+    }
+
+    /* If no schedule, delete any existing record */
+    if (ship->schedule == NULL)
+    {
+        snprintf(query, sizeof(query),
+            "DELETE FROM ship_schedules WHERE ship_id = %d",
+            ship->shipnum);
+
+        if (mysql_query(conn, query))
+        {
+            log("SYSERR: Unable to delete schedule for ship %d: %s",
+                ship->shipnum, mysql_error(conn));
+            return 0;
+        }
+        return 1;
+    }
+
+    /* Insert or update schedule */
+    snprintf(query, sizeof(query),
+        "REPLACE INTO ship_schedules "
+        "(ship_id, route_id, interval_hours, next_departure, enabled) "
+        "VALUES (%d, %d, %d, %d, %d)",
+        ship->shipnum,
+        ship->schedule->route_id,
+        ship->schedule->interval_hours,
+        ship->schedule->next_departure,
+        (ship->schedule->flags & SCHEDULE_FLAG_ENABLED) ? 1 : 0);
+
+    if (mysql_query(conn, query))
+    {
+        log("SYSERR: Unable to save schedule for ship %d: %s",
+            ship->shipnum, mysql_error(conn));
+        return 0;
+    }
+
+    log("Info: Saved schedule for ship %d (route %d, interval %d hours)",
+        ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours);
+    return 1;
+}
+
+/**
+ * Load vessel schedule from database.
+ *
+ * @param ship The ship to load schedule for
+ * @return 1 on success, 0 on failure or no schedule
+ */
+int schedule_load(struct greyhawk_ship_data *ship)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[MAX_STRING_LENGTH];
+
+    if (!mysql_available || !ship)
+    {
+        return 0;
+    }
+
+    snprintf(query, sizeof(query),
+        "SELECT schedule_id, route_id, interval_hours, next_departure, enabled "
+        "FROM ship_schedules WHERE ship_id = %d",
+        ship->shipnum);
+
+    if (mysql_query(conn, query))
+    {
+        log("SYSERR: Unable to load schedule for ship %d: %s",
+            ship->shipnum, mysql_error(conn));
+        return 0;
+    }
+
+    result = mysql_store_result(conn);
+    if (!result)
+    {
+        return 0;
+    }
+
+    if ((row = mysql_fetch_row(result)))
+    {
+        /* Allocate schedule if needed */
+        if (ship->schedule == NULL)
+        {
+            CREATE(ship->schedule, struct vessel_schedule, 1);
+            if (ship->schedule == NULL)
+            {
+                log("SYSERR: Unable to allocate schedule for ship %d",
+                    ship->shipnum);
+                mysql_free_result(result);
+                return 0;
+            }
+        }
+
+        ship->schedule->schedule_id = atoi(row[0]);
+        ship->schedule->ship_id = ship->shipnum;
+        ship->schedule->route_id = atoi(row[1]);
+        ship->schedule->interval_hours = atoi(row[2]);
+        ship->schedule->next_departure = atoi(row[3]);
+        ship->schedule->flags = atoi(row[4]) ? SCHEDULE_FLAG_ENABLED : 0;
+
+        log("Info: Loaded schedule for ship %d (route %d, interval %d hours)",
+            ship->shipnum, ship->schedule->route_id,
+            ship->schedule->interval_hours);
+        mysql_free_result(result);
+        return 1;
+    }
+
+    mysql_free_result(result);
+    return 0;
+}
+
+/**
+ * Load all schedules from database at boot time.
+ */
+void load_all_schedules(void)
+{
+    int i;
+    int loaded_count = 0;
+
+    if (!mysql_available)
+    {
+        log("Info: MySQL not available, skipping schedule load");
+        return;
+    }
+
+    /* Ensure table exists */
+    ensure_schedule_table_exists();
+
+    log("Info: Loading vessel schedules from database...");
+
+    for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+    {
+        if (is_valid_ship(&greyhawk_ships[i]))
+        {
+            if (schedule_load(&greyhawk_ships[i]))
+            {
+                loaded_count++;
+            }
+        }
+    }
+
+    log("Info: Loaded %d vessel schedules", loaded_count);
+}
+
+/**
+ * Save all schedules to database.
+ */
+void save_all_schedules(void)
+{
+    int i;
+    int saved_count = 0;
+
+    if (!mysql_available)
+    {
+        log("Info: MySQL not available, skipping schedule save");
+        return;
+    }
+
+    log("Info: Saving all vessel schedules to database...");
+
+    for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+    {
+        if (is_valid_ship(&greyhawk_ships[i]) &&
+            greyhawk_ships[i].schedule != NULL)
+        {
+            if (schedule_save(&greyhawk_ships[i]))
+            {
+                saved_count++;
+            }
+        }
+    }
+
+    log("Info: Saved %d vessel schedules", saved_count);
+}

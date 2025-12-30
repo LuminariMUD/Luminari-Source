@@ -100,6 +100,18 @@
 #define CREW_ROLE_PILOT             "pilot"   /* NPC vessel pilot */
 
 /* ========================================================================= */
+/* SCHEDULE SYSTEM CONSTANTS                                                 */
+/* ========================================================================= */
+
+#define SCHEDULE_INTERVAL_MIN       1    /* Minimum schedule interval (MUD hours) */
+#define SCHEDULE_INTERVAL_MAX       24   /* Maximum schedule interval (MUD hours) */
+#define SCHEDULE_NAME_LENGTH        64   /* Max length for schedule names */
+
+/* Schedule State Flags */
+#define SCHEDULE_FLAG_ENABLED       (1 << 0)  /* Schedule is active */
+#define SCHEDULE_FLAG_PAUSED        (1 << 1)  /* Schedule temporarily paused */
+
+/* ========================================================================= */
 /* DIRECTION CONSTANTS                                                       */
 /* ========================================================================= */
 
@@ -500,6 +512,19 @@ struct autopilot_data {
   int pilot_mob_vnum;                   /* VNUM of NPC pilot (-1 if none) */
 };
 
+/**
+ * Vessel schedule data for timer-based route automation.
+ * Enables vessels to start routes at fixed MUD hour intervals.
+ */
+struct vessel_schedule {
+  int schedule_id;                      /* Database ID for persistence */
+  int ship_id;                          /* Ship index this schedule belongs to */
+  int route_id;                         /* Route to start when triggered */
+  int interval_hours;                   /* MUD hours between departures */
+  int next_departure;                   /* MUD hour for next departure */
+  int flags;                            /* SCHEDULE_FLAG_* bits */
+};
+
 /* ========================================================================= */
 /* WAYPOINT/ROUTE CACHE STRUCTURES                                           */
 /* ========================================================================= */
@@ -604,6 +629,7 @@ struct greyhawk_ship_data {
 
   /* Phase 3: Autopilot system */
   struct autopilot_data *autopilot;     /* Autopilot data (NULL if disabled) */
+  struct vessel_schedule *schedule;     /* Schedule data (NULL if none) */
 };
 
 /* Greyhawk Contact Data Structure (for radar/sensors) */
@@ -793,6 +819,31 @@ struct waypoint_node *waypoint_cache_find(int waypoint_id);
 struct route_node *route_cache_find(int route_id);
 
 /* ========================================================================= */
+/* SCHEDULE SYSTEM FUNCTIONS                                                  */
+/* ========================================================================= */
+
+/* Schedule Management Functions */
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval);
+int schedule_clear(struct greyhawk_ship_data *ship);
+int schedule_is_enabled(struct greyhawk_ship_data *ship);
+struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship);
+
+/* Schedule Persistence Functions */
+int schedule_save(struct greyhawk_ship_data *ship);
+int schedule_load(struct greyhawk_ship_data *ship);
+void load_all_schedules(void);
+void save_all_schedules(void);
+
+/* Schedule Timer Functions */
+void schedule_tick(void);
+int schedule_check_trigger(struct greyhawk_ship_data *ship);
+int schedule_trigger_departure(struct greyhawk_ship_data *ship);
+void schedule_calculate_next_departure(struct vessel_schedule *sched);
+
+/* Database Table Management */
+void ensure_schedule_table_exists(void);
+
+/* ========================================================================= */
 /* COMMAND PROTOTYPES                                                        */
 /* ========================================================================= */
 
@@ -827,6 +878,11 @@ ACMD_DECL(do_setroute);             /* Assign route to vessel */
 /* Phase 3 NPC Pilot Commands */
 ACMD_DECL(do_assignpilot);          /* Assign NPC pilot to vessel */
 ACMD_DECL(do_unassignpilot);        /* Remove NPC pilot from vessel */
+
+/* Phase 3 Schedule Commands */
+ACMD_DECL(do_setschedule);          /* Set vessel departure schedule */
+ACMD_DECL(do_clearschedule);        /* Clear vessel schedule */
+ACMD_DECL(do_showschedule);         /* Display vessel schedule status */
 
 /* ========================================================================= */
 /* NPC PILOT FUNCTIONS                                                        */

@@ -1183,6 +1183,10 @@ cpp_extern const struct command_info cmd_info[] = {
     /* Phase 3 NPC Pilot Commands */
     {"assignpilot", "assignpilot", POS_RESTING, do_assignpilot, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unassignpilot", "unassignpilot", POS_RESTING, do_unassignpilot, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    /* Phase 3 Schedule Commands */
+    {"setschedule", "setschedule", POS_RESTING, do_setschedule, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"clearschedule", "clearschedule", POS_RESTING, do_clearschedule, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"showschedule", "showschedule", POS_RESTING, do_showschedule, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* test commands for new prep system */
     //{ "memtest", "memtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},

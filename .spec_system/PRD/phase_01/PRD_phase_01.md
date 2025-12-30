@@ -4,7 +4,7 @@
 **Sessions**: 7 (initial estimate)
 **Estimated Duration**: 3-5 days
 
-**Progress**: 5/7 sessions (71%)
+**Progress**: 6/7 sessions (86%)
 
 ---
 
@@ -23,7 +23,7 @@ Implement vessel automation capabilities including autopilot systems, waypoint-b
 | 03 | Path Following Logic | Complete | 20 | 2025-12-30 |
 | 04 | Autopilot Player Commands | Complete | 22 | 2025-12-30 |
 | 05 | NPC Pilot Integration | Complete | 20 | 2025-12-30 |
-| 06 | Scheduled Route System | Not Started | ~15-18 | - |
+| 06 | Scheduled Route System | Complete | 20 | 2025-12-30 |
 | 07 | Testing Validation | Not Started | ~12-15 | - |
 
 ---
@@ -55,11 +55,16 @@ Implement vessel automation capabilities including autopilot systems, waypoint-b
 - **Tasks**: 20/20
 - **Key Deliverables**: NPC pilot assignment commands (assignpilot, unassignpilot), pilot validation functions, pilot announcements on waypoint arrival, pilot persistence via ship_crew_roster, auto-engage autopilot for piloted vessels, unit tests (12 tests passing)
 
+### Session 06: Scheduled Route System
+- **Completed**: 2025-12-30
+- **Tasks**: 20/20
+- **Key Deliverables**: Schedule data structure (vessel_schedule), ship_schedules database table, schedule management commands (setschedule, clearschedule, showschedule), timer integration with MUD hour heartbeat, automatic route triggering, schedule persistence, unit tests (17 tests passing, 164 total)
+
 ---
 
 ## Upcoming Sessions
 
-- Session 06: Scheduled Route System
+- Session 07: Testing Validation
 
 ---
 
