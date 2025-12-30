@@ -88,6 +88,15 @@
 #define DOCKABLE                    ROOM_DOCKABLE   /* Room flag for dockable areas (41) */
 
 /* ========================================================================= */
+/* AUTOPILOT SYSTEM CONSTANTS                                                */
+/* ========================================================================= */
+
+#define MAX_WAYPOINTS_PER_ROUTE     20   /* Maximum waypoints in a single route */
+#define MAX_ROUTES_PER_SHIP         5    /* Maximum routes a ship can store */
+#define AUTOPILOT_TICK_INTERVAL     5    /* Ticks between autopilot updates */
+#define AUTOPILOT_NAME_LENGTH       64   /* Max length for waypoint/route names */
+
+/* ========================================================================= */
 /* DIRECTION CONSTANTS                                                       */
 /* ========================================================================= */
 
@@ -109,6 +118,15 @@ enum vessel_class {
   VESSEL_SUBMARINE,      /* Underwater vessel, depth navigation */
   VESSEL_TRANSPORT,      /* Cargo/passenger vessel */
   VESSEL_MAGICAL         /* Special magical vessels */
+};
+
+/* Autopilot state machine for automated navigation */
+enum autopilot_state {
+  AUTOPILOT_OFF,         /* Autopilot disabled */
+  AUTOPILOT_TRAVELING,   /* Moving toward waypoint */
+  AUTOPILOT_WAITING,     /* At waypoint, waiting */
+  AUTOPILOT_PAUSED,      /* Temporarily suspended */
+  AUTOPILOT_COMPLETE     /* Route finished */
 };
 
 /* Vessel terrain capabilities structure */
@@ -427,6 +445,54 @@ struct room_connection {
   bool is_locked;           /* Currently locked/sealed */
 };
 
+/* ========================================================================= */
+/* AUTOPILOT DATA STRUCTURES                                                 */
+/* ========================================================================= */
+
+/* Forward declaration for autopilot_data */
+struct autopilot_data;
+
+/**
+ * Individual navigation waypoint.
+ * Stores coordinates and metadata for a single point on a route.
+ */
+struct waypoint {
+  float x;                              /* Target X coordinate */
+  float y;                              /* Target Y coordinate */
+  float z;                              /* Target Z coordinate (altitude/depth) */
+  char name[AUTOPILOT_NAME_LENGTH];     /* Waypoint name */
+  float tolerance;                      /* Arrival distance threshold */
+  int wait_time;                        /* Seconds to wait at waypoint */
+  int flags;                            /* Waypoint flags (future use) */
+};
+
+/**
+ * Ship navigation route.
+ * Ordered collection of waypoints with route metadata.
+ */
+struct ship_route {
+  int route_id;                                       /* Unique route identifier */
+  char name[AUTOPILOT_NAME_LENGTH];                   /* Route name */
+  struct waypoint waypoints[MAX_WAYPOINTS_PER_ROUTE]; /* Waypoint array */
+  int num_waypoints;                                  /* Actual waypoint count */
+  bool loop;                                          /* Repeat route when complete */
+  bool active;                                        /* Route is available */
+};
+
+/**
+ * Autopilot state data.
+ * Attached to greyhawk_ship_data to provide autonomous navigation.
+ */
+struct autopilot_data {
+  enum autopilot_state state;           /* Current autopilot state */
+  struct ship_route *current_route;     /* Active route (NULL if none) */
+  int current_waypoint_index;           /* Index in route waypoints array */
+  int tick_counter;                     /* Ticks since last update */
+  int wait_remaining;                   /* Seconds left at current waypoint */
+  time_t last_update;                   /* Timestamp of last state update */
+  int pilot_mob_vnum;                   /* VNUM of NPC pilot (-1 if none) */
+};
+
 /* Greyhawk Ship Data Structure */
 struct greyhawk_ship_data {
   /* Armor System - different sides of ship */
@@ -496,6 +562,9 @@ struct greyhawk_ship_data {
   /* Room discovery */
   float discovery_chance;               /* Probability of additional rooms */
   int room_templates[MAX_SHIP_ROOMS];  /* Template vnums for generation */
+
+  /* Phase 3: Autopilot system */
+  struct autopilot_data *autopilot;     /* Autopilot data (NULL if disabled) */
 };
 
 /* Greyhawk Contact Data Structure (for radar/sensors) */
@@ -604,6 +673,33 @@ bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
 void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...);
 void show_wilderness_from_ship(struct char_data *ch, struct greyhawk_ship_data *ship);
 void show_nearby_vessels(struct char_data *ch, struct greyhawk_ship_data *ship);
+
+/* ========================================================================= */
+/* PHASE 3: AUTOPILOT FUNCTIONS                                              */
+/* ========================================================================= */
+
+/* Autopilot Lifecycle Functions */
+struct autopilot_data *autopilot_init(struct greyhawk_ship_data *ship);
+void autopilot_cleanup(struct greyhawk_ship_data *ship);
+int autopilot_start(struct greyhawk_ship_data *ship, struct ship_route *route);
+int autopilot_stop(struct greyhawk_ship_data *ship);
+int autopilot_pause(struct greyhawk_ship_data *ship);
+int autopilot_resume(struct greyhawk_ship_data *ship);
+
+/* Waypoint Management Functions */
+int waypoint_add(struct ship_route *route, float x, float y, float z, const char *name);
+int waypoint_remove(struct ship_route *route, int index);
+void waypoint_clear_all(struct ship_route *route);
+struct waypoint *waypoint_get_current(struct greyhawk_ship_data *ship);
+struct waypoint *waypoint_get_next(struct greyhawk_ship_data *ship);
+
+/* Route Management Functions */
+struct ship_route *route_create(const char *name);
+void route_destroy(struct ship_route *route);
+int route_load(struct ship_route *route, int route_id);
+int route_save(struct ship_route *route);
+int route_activate(struct ship_route *route);
+int route_deactivate(struct ship_route *route);
 
 /* ========================================================================= */
 /* COMMAND PROTOTYPES                                                        */

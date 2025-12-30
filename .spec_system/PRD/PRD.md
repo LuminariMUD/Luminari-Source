@@ -183,7 +183,7 @@ Range:   30000 - 40019 (reserved, do not use for builder zones)
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
 | 00 | Core Vessel System | 9 | Complete (2025-12-30) |
-| 01 | Automation Layer | TBD | Planned |
+| 01 | Automation Layer | 7 | Not Started |
 | 02 | Simple Vehicle Support | TBD | Planned |
 | 03 | Optimization & Polish | TBD | Planned |
 
@@ -225,12 +225,18 @@ Complete wiring of existing Phase 1 and Phase 2 code.
 - Interior movement helpers declared in `vessels.h:671-674` (`do_move_ship_interior()`, `get_ship_exit()`, `is_passage_blocked()`) have no implementation.
 - `do_look_outside()` prints placeholder; does not call `get_weather()` or render wilderness view.
 
-### Phase 01: Automation Layer (Planned)
+### Phase 01: Automation Layer (Not Started)
 
-- Autopilot system for predefined paths
-- NPC pilot integration
-- Path-following algorithms
-- Scheduled route system
+**Sessions**: 7 | **PRD**: [phase_01/PRD_phase_01.md](phase_01/PRD_phase_01.md)
+
+Implement vessel automation capabilities:
+- Session 01: Autopilot data structures and constants
+- Session 02: Waypoint and route management with DB persistence
+- Session 03: Path-following movement logic
+- Session 04: Autopilot player commands
+- Session 05: NPC pilot integration
+- Session 06: Scheduled route system
+- Session 07: Testing and validation
 
 ### Phase 02: Simple Vehicle Support (Planned)
 

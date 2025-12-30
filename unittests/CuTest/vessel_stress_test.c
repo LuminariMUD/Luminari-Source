@@ -277,6 +277,7 @@ static void run_stress_test(int num_vessels, struct stress_results *results)
   double start_time, end_time;
   int i, j;
   int operations_per_vessel = 100;
+  size_t array_size;
 
   printf("\n--- Stress Test: %d Vessels ---\n", num_vessels);
 
@@ -285,7 +286,7 @@ static void run_stress_test(int num_vessels, struct stress_results *results)
   reset_memory_tracking();
 
   /* Allocate vessel array */
-  size_t array_size = sizeof(struct stress_vessel) * num_vessels;
+  array_size = sizeof(struct stress_vessel) * num_vessels;
   vessels = (struct stress_vessel *)tracked_malloc(array_size);
   if (!vessels)
   {
@@ -315,8 +316,8 @@ static void run_stress_test(int num_vessels, struct stress_results *results)
   /* Record memory usage after creation */
   results->total_memory = peak_allocated;
   results->per_vessel_memory = results->total_memory / num_vessels;
-  printf("  Memory used: %zu bytes (%.2f KB)\n", results->total_memory, results->total_memory / 1024.0);
-  printf("  Per-vessel: %zu bytes\n", results->per_vessel_memory);
+  printf("  Memory used: %lu bytes (%.2f KB)\n", (unsigned long)results->total_memory, results->total_memory / 1024.0);
+  printf("  Per-vessel: %lu bytes\n", (unsigned long)results->per_vessel_memory);
 
   /* Phase 2: Simulate operations */
   printf("Running %d operations per vessel...\n", operations_per_vessel);
@@ -367,8 +368,8 @@ static void run_stress_test(int num_vessels, struct stress_results *results)
   {
     if (results->per_vessel_memory > MEMORY_TARGET_PER_VESSEL)
     {
-      printf("  FAIL: Memory per vessel (%zu) exceeds target (%d)\n",
-             results->per_vessel_memory, MEMORY_TARGET_PER_VESSEL);
+      printf("  FAIL: Memory per vessel (%lu) exceeds target (%d)\n",
+             (unsigned long)results->per_vessel_memory, MEMORY_TARGET_PER_VESSEL);
     }
     if (results->creation_failures > 0)
     {
@@ -389,6 +390,9 @@ int main(int argc, char *argv[])
 {
   struct stress_results results_100, results_250, results_500;
   int all_passed = 1;
+
+  (void)argc;
+  (void)argv;
 
   printf("========================================\n");
   printf("LuminariMUD Vessel System Stress Tests\n");
@@ -411,24 +415,24 @@ int main(int argc, char *argv[])
   printf("\n");
   printf("| Level | Memory   | Per-Vessel | Create | Ops    | Pass |\n");
   printf("|-------|----------|------------|--------|--------|------|\n");
-  printf("| %3d   | %6.1fKB | %5zu B    | %5.1fms | %6.1fms | %s  |\n",
+  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n",
          results_100.num_vessels,
          results_100.total_memory / 1024.0,
-         results_100.per_vessel_memory,
+         (unsigned long)results_100.per_vessel_memory,
          results_100.creation_time_ms,
          results_100.operation_time_ms,
          results_100.passed ? "PASS" : "FAIL");
-  printf("| %3d   | %6.1fKB | %5zu B    | %5.1fms | %6.1fms | %s  |\n",
+  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n",
          results_250.num_vessels,
          results_250.total_memory / 1024.0,
-         results_250.per_vessel_memory,
+         (unsigned long)results_250.per_vessel_memory,
          results_250.creation_time_ms,
          results_250.operation_time_ms,
          results_250.passed ? "PASS" : "FAIL");
-  printf("| %3d   | %6.1fKB | %5zu B    | %5.1fms | %6.1fms | %s  |\n",
+  printf("| %3d   | %6.1fKB | %5lu B    | %5.1fms | %6.1fms | %s  |\n",
          results_500.num_vessels,
          results_500.total_memory / 1024.0,
-         results_500.per_vessel_memory,
+         (unsigned long)results_500.per_vessel_memory,
          results_500.creation_time_ms,
          results_500.operation_time_ms,
          results_500.passed ? "PASS" : "FAIL");

@@ -1,7 +1,7 @@
 # LuminariMUD System Architecture
 
-Last Updated: 2025-08-01  
-Version: 1.0
+Last Updated: 2025-12-30
+Version: 1.1
 
 ## Overview
 
@@ -141,6 +141,15 @@ encounters.c    - Random encounters
 hunts.c         - Hunt system
 templates.c     - Character templates
 trails.c        - Tracking system
+```
+
+### Vessel System Modules
+```
+vessels.h         - Structures, constants, prototypes
+vessels.c         - Core commands, wilderness movement, terrain system
+vessels_rooms.c   - Interior room generation and movement
+vessels_docking.c - Docking, boarding, ship-to-ship interaction
+vessels_db.c      - MySQL persistence layer
 ```
 
 ### Infrastructure Modules

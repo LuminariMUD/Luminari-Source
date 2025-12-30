@@ -24,6 +24,11 @@ VESSEL_TEST_SRCS = \
 
 VESSEL_TEST_OBJS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(VESSEL_TEST_SRCS))
 
+# Autopilot test files (Phase 01)
+AUTOPILOT_TEST_SRC = test_autopilot_structs.c
+AUTOPILOT_TEST_OBJ = $(BUILD_DIR)/test_autopilot_structs.o
+AUTOPILOT_TEST_EXE = autopilot_tests
+
 # Stress test files
 STRESS_TEST_SRC = vessel_stress_test.c
 STRESS_TEST_OBJ = $(BUILD_DIR)/vessel_stress_test.o
@@ -38,7 +43,7 @@ STRESS_TEST_EXE = vessel_stress_test
 ALL_TESTS_EXE = test_runner
 
 # Default target
-all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE)
+all: $(BUILD_DIR) $(VESSEL_TEST_EXE) $(STRESS_TEST_EXE) $(AUTOPILOT_TEST_EXE)
 
 # Create build directory
 $(BUILD_DIR):
@@ -75,6 +80,10 @@ $(BUILD_DIR)/vessel_test_runner.o: vessel_test_runner.c CuTest.h
 $(BUILD_DIR)/vessel_stress_test.o: vessel_stress_test.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Compile autopilot tests
+$(BUILD_DIR)/test_autopilot_structs.o: test_autopilot_structs.c CuTest.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link vessel unit tests
 $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNNER_OBJ) $(LDFLAGS)
@@ -82,6 +91,10 @@ $(VESSEL_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VESSEL_TEST_OBJS) $(VESSEL_RUNN
 # Link stress test
 $(STRESS_TEST_EXE): $(BUILD_DIR) $(STRESS_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(STRESS_TEST_OBJ) $(LDFLAGS)
+
+# Link autopilot tests
+$(AUTOPILOT_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(AUTOPILOT_TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(AUTOPILOT_TEST_OBJ) $(LDFLAGS)
 
 # Run unit tests
 test: $(VESSEL_TEST_EXE)
@@ -91,6 +104,10 @@ test: $(VESSEL_TEST_EXE)
 stress: $(STRESS_TEST_EXE)
 	./$(STRESS_TEST_EXE)
 
+# Run autopilot tests
+autopilot: $(AUTOPILOT_TEST_EXE)
+	./$(AUTOPILOT_TEST_EXE)
+
 # Run with Valgrind
 valgrind: $(VESSEL_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(VESSEL_TEST_EXE)
@@ -99,14 +116,19 @@ valgrind: $(VESSEL_TEST_EXE)
 valgrind-stress: $(STRESS_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes ./$(STRESS_TEST_EXE)
 
+# Run autopilot tests with Valgrind
+valgrind-autopilot: $(AUTOPILOT_TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./$(AUTOPILOT_TEST_EXE)
+
 # Run all tests
-test-all: test stress
+test-all: test stress autopilot
 
 # Clean build artifacts
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f $(VESSEL_TEST_EXE)
 	rm -f $(STRESS_TEST_EXE)
+	rm -f $(AUTOPILOT_TEST_EXE)
 	rm -f *.o
 
 # Rebuild from scratch
@@ -131,4 +153,4 @@ help:
 	@echo "  rebuild       - Clean and rebuild"
 	@echo "  help          - Show this help"
 
-.PHONY: all test stress valgrind valgrind-stress test-all clean rebuild help
+.PHONY: all test stress autopilot valgrind valgrind-stress valgrind-autopilot test-all clean rebuild help

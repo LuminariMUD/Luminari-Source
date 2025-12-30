@@ -212,6 +212,18 @@ if (!mysql_connection)
 | Integration | configured | .github/workflows/integration.yml |
 | Operations | configured | .github/workflows/release.yml, .github/dependabot.yml, .github/workflows/pages.yml |
 
+## Infrastructure
+
+| Component | Provider | Details |
+|-----------|----------|---------|
+| Platform | Native C | MUD server binary (bin/circle) |
+| Database | MySQL/MariaDB | Required, config in lib/mysql_config |
+| Process Mgmt | autorun.sh | Auto-restart, crash tracking, log rotation |
+| Health Monitor | copyover_watchdog.sh | Process monitoring, state analysis |
+| Deployment | deploy.sh | Full setup automation, systemd service |
+| Backup | scripts/backup.sh | World, players, DB, 7-day retention |
+| World Backup | lib/world/backup-zone.sh | Single zone backup utility |
+
 ## When In Doubt
 
 - Ask
