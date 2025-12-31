@@ -533,13 +533,13 @@ void Test_vessel_invalid_type(CuTest *tc)
   const struct vessel_terrain_caps *caps;
 
   caps = get_vessel_terrain_caps(-1);
-  CuAssertPtrEquals(tc, NULL, caps);
+  CuAssertPtrEquals(tc, NULL, (void *)caps);
 
   caps = get_vessel_terrain_caps(NUM_VESSEL_TYPES);
-  CuAssertPtrEquals(tc, NULL, caps);
+  CuAssertPtrEquals(tc, NULL, (void *)caps);
 
   caps = get_vessel_terrain_caps(100);
-  CuAssertPtrEquals(tc, NULL, caps);
+  CuAssertPtrEquals(tc, NULL, (void *)caps);
 }
 
 /**

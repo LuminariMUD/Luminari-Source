@@ -12622,8 +12622,8 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim, struc
                 int spellnum, int savetype, int casttype)
 {
   int healing = 0, move = 0, psp = 0, max_psp = 0;
-  struct char_data *tch = NULL, *aura_holder = NULL;
-  bool aura_hostile = FALSE;
+  struct char_data *tch = NULL;
+  bool aura_of_desecration_hostile = FALSE;
   const char *to_notvict = NULL, *to_char = NULL, *to_vict = NULL;
 
   if (victim == NULL)
@@ -12658,15 +12658,18 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim, struc
     level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_BARD) +
             ALCHEMIST_LEVEL(ch);
 
-  /* Locate any Aura of Desecration in the room */
+  /* Detect hostile Aura of Desecration in the room - reduces healing on enemies */
   if (IN_ROOM(victim) != NOWHERE)
   {
     for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room)
     {
       if (has_blackguard_aura_of_desecration(tch))
       {
-        aura_holder = tch;
-        aura_hostile = (tch != victim && !is_player_grouped(victim, tch));
+        /* Aura is hostile if holder is not the victim and not grouped with victim */
+        if (tch != victim && !is_player_grouped(victim, tch))
+        {
+          aura_of_desecration_hostile = TRUE;
+        }
         break;
       }
     }
@@ -13073,6 +13076,16 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim, struc
           send_to_char(ch, "\tGYou free $N from paralysis!\tn\r\n");
       }
     }
+  }
+
+  /* Aura of Desecration: reduce healing received by enemies in the aura */
+  if (aura_of_desecration_hostile && healing > 0)
+  {
+    int reduction = healing * 25 / 100; /* -25% healing */
+    healing -= reduction;
+    if (healing < 1)
+      healing = 1;
+    send_to_char(victim, "\tr[Aura of Desecration: -%d healing]\tn ", reduction);
   }
 
   /* newer centralized function for points (modifying healing, move and psp in one place) */

@@ -840,44 +840,12 @@ if (BUILD_UTILS)
 endif()
 
 # ========== Build unit tests AFTER main executable ==========
-# Build tests by default (can be disabled with -DBUILD_TESTS=OFF)
-option(BUILD_TESTS "Build unit tests" ON)
-
-if (BUILD_TESTS)
-    # CuTest framework tests
-    set(CUTEST_FILES
-        unittests/CuTest/CuTest.c
-        unittests/CuTest/test.helpers.c
-        unittests/CuTest/test.interpreter.c
-        unittests/CuTest/test_alignment.c
-        unittests/CuTest/test_bounds_checking.c
-        unittests/CuTest/test_char_cache.c
-        unittests/CuTest/test_char_skills.c
-        unittests/CuTest/test_random.c
-        unittests/CuTest/test_treasure.c
-        unittests/CuTest/test_utils.c
-    )
-
-    add_executable(cutest ${CUTEST_FILES})
-    target_include_directories(cutest PRIVATE src unittests/CuTest)
-    set_target_properties(cutest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
-
-    # Individual test executables from unittests/ root
-    # Note: These tests have hardcoded relative paths and may need adjustment
-    # Commenting out for now as they need proper refactoring
-    # add_executable(test_act_comm unittests/test_act.comm.c unittests/mocks.c)
-    # add_executable(test_clan unittests/test_clan.c unittests/mocks.c)
-    # add_executable(test_staff_events unittests/test_staff_events.c unittests/mocks.c)
-
-    # Include directories for individual tests
-    # target_include_directories(test_act_comm PRIVATE src unittests)
-    # target_include_directories(test_clan PRIVATE src unittests)
-    # target_include_directories(test_staff_events PRIVATE src unittests)
-
-    # Output directory for test executables
-    # set_target_properties(test_act_comm test_clan test_staff_events
-    #                       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
-endif()
+# IMPORTANT: CMake test targets are disabled by default because they require
+# linking against main library functions that aren't available standalone.
+# Use the Makefile in unittests/CuTest/ instead:
+#   cd unittests/CuTest && make all && ./vessel_tests
+# Enable with -DBUILD_TESTS=ON only if you've added proper mock implementations.
+option(BUILD_TESTS "Build unit tests (disabled - use Makefile instead)" OFF)
 
 # ========== Installation ==========
 install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
@@ -885,10 +853,6 @@ if (BUILD_UTILS)
     install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
                     rebuildMailIndex shopconv sign split wld2html
                     webster hl_events
-            DESTINATION ${BIN_OUTPUT_DIR})
-endif()
-if (BUILD_TESTS)
-    install(TARGETS cutest
             DESTINATION ${BIN_OUTPUT_DIR})
 endif()
 

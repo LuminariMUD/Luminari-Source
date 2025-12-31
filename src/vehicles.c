@@ -1497,6 +1497,9 @@ int move_vehicle(struct vehicle_data *vehicle, int direction)
     return 0;
   }
 
+  /* Save previous state for transition validation */
+  prev_state = vehicle->state;
+
   /* Get direction delta */
   vehicle_get_direction_delta(direction, &dx, &dy);
 
@@ -1523,11 +1526,13 @@ int move_vehicle(struct vehicle_data *vehicle, int direction)
   /* Calculate speed modifier */
   speed_mod = get_vehicle_speed_modifier(vehicle, sector);
 
-  /* Save previous state for transition */
-  prev_state = vehicle->state;
-
-  /* Update vehicle state to MOVING */
-  vehicle->state = VSTATE_MOVING;
+  /* Attempt state transition to MOVING - validates against DAMAGED/HITCHED states */
+  if (!vehicle_set_state(vehicle, VSTATE_MOVING))
+  {
+    log("SYSERR: move_vehicle - state transition to MOVING failed for vehicle #%d (was %s)",
+        vehicle->id, vehicle_state_name(prev_state));
+    return 0;
+  }
 
   /* Update coordinates */
   vehicle->x_coord = new_x;
@@ -1545,18 +1550,19 @@ int move_vehicle(struct vehicle_data *vehicle, int direction)
   /* Restore state (IDLE or LOADED based on cargo/passengers) */
   if (vehicle->current_passengers > 0 || vehicle->current_weight > 0)
   {
-    vehicle->state = VSTATE_LOADED;
+    vehicle_set_state(vehicle, VSTATE_LOADED);
   }
   else
   {
-    vehicle->state = VSTATE_IDLE;
+    vehicle_set_state(vehicle, VSTATE_IDLE);
   }
 
   /* Persist position to database */
   vehicle_save(vehicle);
 
-  log("Info: Vehicle #%d moved to (%d, %d) room %d, speed=%d", vehicle->id, new_x, new_y, dest_room,
-      vehicle->current_speed);
+  log("Info: Vehicle #%d moved to (%d, %d) room %d, speed=%d, state: %s -> %s", vehicle->id, new_x,
+      new_y, dest_room, vehicle->current_speed, vehicle_state_name(prev_state),
+      vehicle_state_name(vehicle->state));
 
   return 1;
 }

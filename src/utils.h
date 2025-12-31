@@ -162,6 +162,7 @@ int compute_wisdom_bonus(struct char_data *ch);
 int compute_charisma_bonus(struct char_data *ch);
 bool is_in_hometown(struct char_data *ch);
 int damage_type_to_resistance_type(int type);
+int sector_type_to_terrain_type(int sector);
 int stats_point_left(struct char_data *ch);
 int smite_evil_target_type(struct char_data *ch);
 int smite_good_target_type(struct char_data *ch);

@@ -782,6 +782,60 @@ void greyhawk_initialize_ships(void)
     }
   }
 
+  /* Initialize test vessel - interior room 1403 */
+  {
+    room_rnum interior_rnum = real_room(1403);
+    if (interior_rnum != NOWHERE)
+    {
+      /* Use slot 0 for test vessel */
+      greyhawk_ships[0].shipnum = 1;
+
+      /* Interior room vnum - where players go when they board */
+      greyhawk_ships[0].shiproom = 1403;
+
+      /* Wilderness location - where the ship object sits */
+      greyhawk_ships[0].x = -66.0;
+      greyhawk_ships[0].y = 92.0;
+      greyhawk_ships[0].z = 0.0;
+      greyhawk_ships[0].location = 0; /* Will be set when ship object loads */
+
+      /* Navigation */
+      greyhawk_ships[0].heading = 0;
+      greyhawk_ships[0].speed = 0;
+      greyhawk_ships[0].maxspeed = 10;
+      greyhawk_ships[0].minspeed = 0;
+      greyhawk_ships[0].vessel_type = VESSEL_SHIP;
+
+      /* Hull armor */
+      greyhawk_ships[0].farmor = 100;
+      greyhawk_ships[0].maxfarmor = 100;
+      greyhawk_ships[0].rarmor = 100;
+      greyhawk_ships[0].maxrarmor = 100;
+      greyhawk_ships[0].parmor = 100;
+      greyhawk_ships[0].maxparmor = 100;
+      greyhawk_ships[0].sarmor = 100;
+      greyhawk_ships[0].maxsarmor = 100;
+
+      /* Identity */
+      strncpy(greyhawk_ships[0].name, "Test Vessel", sizeof(greyhawk_ships[0].name) - 1);
+      strncpy(greyhawk_ships[0].id, "TV01", sizeof(greyhawk_ships[0].id) - 1);
+
+      /* Interior rooms array */
+      greyhawk_ships[0].room_vnums[0] = 1403;
+      greyhawk_ships[0].num_rooms = 1;
+
+      /* Link interior room to ship data - THIS IS THE KEY */
+      world[interior_rnum].ship = &greyhawk_ships[0];
+
+      log("Greyhawk: Test vessel initialized - interior room 1403 (rnum %d), location (-66, 92)",
+          interior_rnum);
+    }
+    else
+    {
+      log("Greyhawk: Interior room 1403 not found, test vessel not initialized");
+    }
+  }
+
   log("Greyhawk ship system initialized.");
 }
 

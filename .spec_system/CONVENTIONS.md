@@ -200,7 +200,11 @@ if (!mysql_connection)
 | Linter | clang-tidy | .clang-tidy |
 | Type Safety | GCC/Clang -Wall -Wextra | Makefile/CMakeLists.txt |
 | Testing | CuTest | unittests/CuTest/Makefile |
-| Git Hooks | pre-commit | .pre-commit-config.yaml |
+| Git Hooks | pre-commit (.venv) | .pre-commit-config.yaml |
+
+**NOTE**: pre-commit is installed in the project virtualenv at `.venv/bin/pre-commit`, NOT globally.
+To check: `.venv/bin/python3 -m pre_commit --version`
+To run manually: `.venv/bin/pre-commit run --all-files`
 
 ## CI/CD
 

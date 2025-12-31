@@ -1,0 +1,58 @@
+# LuminariMUD Code Ownership
+#
+# This file defines code ownership for the LuminariMUD project.
+# Each line is a file pattern followed by the owner(s).
+# Order matters: later patterns override earlier ones.
+#
+# For details: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners (applies to everything unless overridden)
+* @LuminariMUD/core-team
+
+# Core Systems
+src/comm.c             @LuminariMUD/core-team
+src/db.c               @LuminariMUD/core-team
+src/interpreter.c      @LuminariMUD/core-team
+src/handler.c          @LuminariMUD/core-team
+src/utils.c            @LuminariMUD/core-team
+
+# Combat System
+src/fight.c            @LuminariMUD/combat-team
+src/combat*.c          @LuminariMUD/combat-team
+
+# Spell System
+src/spell*.c           @LuminariMUD/magic-team
+src/magic.c            @LuminariMUD/magic-team
+
+# Vessel System
+src/vessels*.c         @LuminariMUD/vessel-team
+src/vehicles*.c        @LuminariMUD/vessel-team
+
+# Scripting System
+src/dg_*.c             @LuminariMUD/scripting-team
+
+# Build System
+CMakeLists.txt         @LuminariMUD/build-team
+configure.ac           @LuminariMUD/build-team
+Makefile.in            @LuminariMUD/build-team
+
+# Documentation
+docs/                  @LuminariMUD/docs-team
+*.md                   @LuminariMUD/docs-team
+CLAUDE.md              @LuminariMUD/core-team
+
+# Database
+src/mysql.c            @LuminariMUD/database-team
+src/db_init*.c         @LuminariMUD/database-team
+sql/                   @LuminariMUD/database-team
+
+# World Data
+lib/world/             @LuminariMUD/builders
+lib/text/              @LuminariMUD/builders
+
+# Unit Tests
+unittests/             @LuminariMUD/qa-team
+
+# Scripts and Utilities
+scripts/               @LuminariMUD/devops-team
+util/                  @LuminariMUD/devops-team

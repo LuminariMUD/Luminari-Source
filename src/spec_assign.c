@@ -1158,6 +1158,8 @@ void assign_rooms(void)
 
   /* greyhawk ships */
   ASSIGNROOM(21398, greyhawk_ship_commands);
+  ASSIGNROOM(1403, greyhawk_ship_commands);
+  ASSIGNROOM(70003, greyhawk_ship_commands);
 
 
 #endif
@@ -1207,6 +1209,10 @@ static const struct spec_func_data spec_func_list[] = {
     {"Temple Healer", temple, ""},
     {"Vampire Cloak", vampire_cloak, ""},
     {"Wizard Library", wizard_library, ""},
+
+    /* Vessel/Ship Special Procedures */
+    {"Greyhawk Ship", greyhawk_ship_object, ""},
+    {"Greyhawk Ship Commands", greyhawk_ship_commands, ""},
 
     /* this has to be last */
     {"\n", NULL, ""}};

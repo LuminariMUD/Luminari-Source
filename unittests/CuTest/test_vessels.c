@@ -165,35 +165,6 @@ static int mock_top_of_world = 0;
 /* ========================================================================= */
 
 /**
- * Mock wilderness room allocation
- * Returns a predictable room rnum based on coordinates
- */
-static room_rnum mock_get_or_allocate_wilderness_room(int x, int y)
-{
-  /* Validate coordinates */
-  if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
-  {
-    return NOWHERE;
-  }
-
-  /* Return a mock room index based on hash of coordinates */
-  /* Simple formula for test predictability */
-  return (room_rnum)(((x + 1024) * 2049 + (y + 1024)) % 100);
-}
-
-/**
- * Mock room sector type getter
- */
-static int mock_get_room_sector(room_rnum room)
-{
-  if (room < 0 || room >= 100)
-  {
-    return SECT_INSIDE;
-  }
-  return mock_world[room].sector_type;
-}
-
-/**
  * Reset all mock data to initial state
  * Called before each test for isolation
  */

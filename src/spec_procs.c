@@ -12022,9 +12022,10 @@ SPECIAL(greyhawk_ship_commands)
   /* This would need to iterate through ships to find matching interior room */
   /* For now, we'll use a simplified approach */
 
-  /* Check if this is a ship control command */
+  /* Check if this is a ship control command (bridge-only commands) */
+  /* Note: disembark removed - handled by do_greyhawk_disembark from any ship room */
   if (CMD_IS("setsail") || CMD_IS("heading") || CMD_IS("speed") || CMD_IS("anchor") ||
-      CMD_IS("disembark") || CMD_IS("tactical"))
+      CMD_IS("tactical"))
   {
     /* Validate this is actually a ship control room */
     if (!ROOM_FLAGGED(room, ROOM_HOUSE))
