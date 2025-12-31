@@ -2753,6 +2753,7 @@ void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vic
 #define GET_STUDIED_TARGET(ch) (ch->player_specials->inq_studied_target)
 #define GET_FAVORED_TERRAIN(ch) (ch->player_specials->saved.inq_favored_terrain)
 #define GET_FAVORED_TERRAIN_RESET(ch) (ch->player_specials->saved.inq_favored_terrain_reset)
+#define GET_FAVORED_TERRAINS(ch, slot) ((ch)->player_specials->saved.favored_terrains[slot])
 #define IS_JUDGEMENT_ACTIVE(ch, i) (ch->player_specials->saved.judgement_enabled[i])
 #define GET_SLAYER_JUDGEMENT(ch) (ch->player_specials->saved.slayer_judgement)
 #define GET_BANE_TARGET_TYPE(ch) (ch->player_specials->saved.bane_enemy_type)

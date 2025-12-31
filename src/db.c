@@ -6700,6 +6700,10 @@ void init_char(struct char_data *ch)
   /* Initialize inquisitor perk tracking */
   ch->player_specials->saved.inq_favored_terrain = -1;
   ch->player_specials->saved.inq_favored_terrain_reset = 0;
+  
+  /* Initialize favored terrains array */
+  for (i = 0; i < MAX_ENEMIES; i++)
+    ch->player_specials->saved.favored_terrains[i] = -1;
   ch->player_specials->inq_studied_target = NULL;
 
   if (ch->bags == NULL)

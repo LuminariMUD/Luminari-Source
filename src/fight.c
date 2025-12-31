@@ -1194,6 +1194,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += get_bard_supreme_style_ac_bonus(ch);
     }
 
+    /* Inquisitor Favored Enemy Enhancement - AC bonus against attacks from chosen creature types */
+    if (attacker && !IS_NPC(ch))
+    {
+      int favored_enemy_ac = get_inquisitor_favored_enemy_ac_bonus(ch, attacker);
+      if (favored_enemy_ac > 0)
+      {
+        bonuses[BONUS_TYPE_DODGE] += favored_enemy_ac;
+      }
+    }
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {
@@ -6528,6 +6538,39 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Inquisitor Favored Enemy Enhancement: +2 per rank against chosen creature types */
+  if (vict && !IS_NPC(ch))
+  {
+    int favored_enemy_damage = get_inquisitor_favored_enemy_attack_bonus(ch, vict);
+    if (favored_enemy_damage > 0)
+    {
+      dambonus += favored_enemy_damage;
+      if (display_mode)
+        send_to_char(ch, "Favored Enemy Enhancement (damage): \tR%d\tn\r\n", favored_enemy_damage);
+    }
+  }
+
+  /* Inquisitor Ambush Predator: 3d6 damage on first attack if target hasn't acted or is unaware */
+  if (vict && !IS_NPC(ch) && can_use_inquisitor_ambush_predator(ch, vict))
+  {
+    /* Check if this is the first attack (stored in a flag or affect) */
+    if (!affected_by_spell(ch, AFFECT_INQUISITOR_AMBUSH_USED))
+    {
+      int ambush_damage = dice(3, 6);
+      dambonus += ambush_damage;
+      
+      /* Mark as used so it only triggers once per combat */
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = AFFECT_INQUISITOR_AMBUSH_USED;
+      af.duration = 10; /* Combat duration */
+      affect_to_char(ch, &af);
+      
+      if (display_mode)
+        send_to_char(ch, "Ambush Predator: \tR3d6 (%d)\tn\r\n", ambush_damage);
+    }
+  }
+
   /* Inquisitor Righteous Strike perk: 2d6 per rank if spell was cast within last round */
   if (vict && !IS_NPC(ch) && has_inquisitor_righteous_strike(ch) && 
       ch->player_specials->inq_righteous_strike_rounds > 0)
@@ -10887,6 +10930,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
         if (display)
           send_to_char(ch, "%2d: %-50s\r\n", bane_attack, "Enhanced Bane");
       }
+    }
+  }
+
+  /* Inquisitor Favored Enemy Enhancement - attack bonus against chosen creature types */
+  if (victim && !IS_NPC(ch))
+  {
+    int favored_enemy_tohit = get_inquisitor_favored_enemy_attack_bonus(ch, victim);
+    if (favored_enemy_tohit > 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += favored_enemy_tohit;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", favored_enemy_tohit, "Favored Enemy Enhancement");
     }
   }
 

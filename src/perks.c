@@ -1205,6 +1205,78 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Double your Survival modifier when tracking creatures; pairs well with Favored Terrain.");
   perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 2: HUNTER'S ARSENAL - Tier 2
+   **************************************************************************/
+
+  /* Tier 2: Favored Enemy Enhancement (4 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT];
+  perk->id = PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT;
+  perk->name = strdup("Favored Enemy Enhancement");
+  perk->description = strdup("Specialize in hunting specific creature types.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 4;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 per rank to attack/damage */
+  perk->effect_modifier = 1; /* +1 per rank to AC */
+  perk->special_description = strdup("Choose a creature type each time you take this perk. Gain +2 per rank to attack and damage rolls against that type. Add +1 per rank to AC against attacks from that type.");
+  perk->toggleable = false;
+
+  /* Tier 2: Ambush Predator (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_AMBUSH_PREDATOR];
+  perk->id = PERK_INQUISITOR_AMBUSH_PREDATOR;
+  perk->name = strdup("Ambush Predator");
+  perk->description = strdup("Strike from concealment with devastating effect.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3d6 damage */
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("If you attack a creature that hasn't acted yet in combat or doesn't know you're there, deal an additional 3d6 damage on your first attack.");
+  perk->toggleable = false;
+
+  /* Tier 2: Terrain Mastery (3 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_TERRAIN_MASTERY];
+  perk->id = PERK_INQUISITOR_TERRAIN_MASTERY;
+  perk->name = strdup("Terrain Mastery");
+  perk->description = strdup("Gain additional favored terrains and enhanced abilities within them.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 per rank to Survival */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Choose one new favored terrain per rank. In favored terrains, you leave no trail unless you choose to, and gain +2 per rank to Survival checks.");
+  perk->toggleable = false;
+
+  /* Tier 2: Hunter's Endurance (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_HUNTERS_ENDURANCE];
+  perk->id = PERK_INQUISITOR_HUNTERS_ENDURANCE;
+  perk->name = strdup("Hunter's Endurance");
+  perk->description = strdup("Your body is conditioned for long pursuits.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 move regeneration per round */
+  perk->effect_modifier = 5; /* 5% chance to remove fatigue */
+  perk->special_description = strdup("Gain +2 move regeneration per round. 5% chance per round to remove any AFF_FATIGUE effect on the player.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -1447,13 +1519,33 @@ bool has_inquisitor_favored_terrain(struct char_data *ch)
 
 bool is_inquisitor_in_favored_terrain(struct char_data *ch)
 {
+  int i, current_terrain;
+  
   if (!has_inquisitor_favored_terrain(ch))
-    return false;
-  if (GET_FAVORED_TERRAIN(ch) < 0 || GET_FAVORED_TERRAIN(ch) >= NUM_TERRAIN_TYPES)
     return false;
   if (!ch || IN_ROOM(ch) == NOWHERE)
     return false;
-  return sector_type_to_terrain_type(world[IN_ROOM(ch)].sector_type) == GET_FAVORED_TERRAIN(ch);
+    
+  current_terrain = sector_type_to_terrain_type(world[IN_ROOM(ch)].sector_type);
+  
+  /* Check all favored terrain slots */
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_TERRAINS(ch, i) >= 0 && GET_FAVORED_TERRAINS(ch, i) < NUM_TERRAIN_TYPES)
+    {
+      if (GET_FAVORED_TERRAINS(ch, i) == current_terrain)
+        return true;
+    }
+  }
+  
+  /* Legacy support: also check old single-value field */
+  if (GET_FAVORED_TERRAIN(ch) >= 0 && GET_FAVORED_TERRAIN(ch) < NUM_TERRAIN_TYPES)
+  {
+    if (GET_FAVORED_TERRAIN(ch) == current_terrain)
+      return true;
+  }
+  
+  return false;
 }
 
 int get_inquisitor_hunters_precision_chance(struct char_data *ch)
@@ -1467,6 +1559,234 @@ int get_inquisitor_hunters_precision_chance(struct char_data *ch)
 bool has_inquisitor_track_and_hunt(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_TRACK_AND_HUNT);
+}
+
+/* Inquisitor Helper Functions - Hunter's Arsenal Tree Tier 2 */
+
+/**
+ * Get the total ranks in Favored Enemy Enhancement perk.
+ * Each rank gives +2 to attack/damage and +1 to AC against chosen creature type.
+ */
+int get_inquisitor_favored_enemy_enhancement_ranks(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT, CLASS_INQUISITOR);
+}
+
+/**
+ * Get attack/damage bonus against a specific creature type from Favored Enemy Enhancement.
+ * Returns +2 per rank (max +8 at rank 4).
+ */
+int get_inquisitor_favored_enemy_attack_bonus(struct char_data *ch, struct char_data *vict)
+{
+  int i, ranks, bonus = 0;
+  
+  if (!ch || !vict || IS_NPC(ch))
+    return 0;
+  ranks = get_inquisitor_favored_enemy_enhancement_ranks(ch);
+  if (ranks == 0)
+    return 0;
+  
+  /* Check if victim is one of the character's chosen favored enemy types */
+  /* This is stored in GET_FAVORED_ENEMY(ch, index) array */
+  /* Each rank can target the same or different creature type */
+  for (i = 0; i < ranks && i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) == GET_RACE(vict))
+      bonus += 2; /* +2 per rank that matches this creature type */
+  }
+  return bonus;
+}
+
+/**
+ * Get AC bonus against attacks from a specific creature type.
+ * Returns +1 per rank (max +4 at rank 4).
+ */
+int get_inquisitor_favored_enemy_ac_bonus(struct char_data *ch, struct char_data *attacker)
+{
+  int i, ranks, bonus = 0;
+  
+  if (!ch || !attacker || IS_NPC(ch))
+    return 0;
+  ranks = get_inquisitor_favored_enemy_enhancement_ranks(ch);
+  if (ranks == 0)
+    return 0;
+  
+  for (i = 0; i < ranks && i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) == GET_RACE(attacker))
+      bonus += 1; /* +1 per rank that matches this creature type */
+  }
+  return bonus;
+}
+
+/**
+ * Check if inquisitor has Ambush Predator perk.
+ */
+bool has_inquisitor_ambush_predator(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_AMBUSH_PREDATOR);
+}
+
+/**
+ * Check if conditions are met for Ambush Predator bonus damage (3d6).
+ * Target must not have acted yet or be unaware of attacker.
+ */
+bool can_use_inquisitor_ambush_predator(struct char_data *ch, struct char_data *vict)
+{
+  if (!has_inquisitor_ambush_predator(ch))
+    return false;
+  if (!ch || !vict || IS_NPC(ch))
+    return false;
+  
+  /* Check if this is the first attack of combat against this target */
+  /* Check if target hasn't acted yet (higher initiative or surprise) */
+  /* Check if target is unaware (blind, asleep, or hasn't detected attacker) */
+  if (GET_POS(vict) <= POS_SLEEPING)
+    return true;
+  if (AFF_FLAGGED(vict, AFF_BLIND))
+    return true;
+  /* Additional checks could include surprise round detection */
+  
+  return false;
+}
+
+/**
+ * Get Terrain Mastery bonus to Survival checks.
+ * Returns +2 per rank (max +6 at rank 3).
+ */
+int get_inquisitor_terrain_mastery_survival_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  int ranks = get_perk_rank(ch, PERK_INQUISITOR_TERRAIN_MASTERY, CLASS_INQUISITOR);
+  return ranks * 2; /* +2 per rank */
+}
+
+/**
+ * Check if inquisitor has Terrain Mastery perk.
+ */
+bool has_inquisitor_terrain_mastery(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_TERRAIN_MASTERY);
+}
+
+/**
+ * Check if inquisitor leaves no trail in favored terrain (Terrain Mastery).
+ */
+bool inquisitor_leaves_no_trail(struct char_data *ch)
+{
+  if (!has_inquisitor_terrain_mastery(ch))
+    return false;
+  return is_inquisitor_in_favored_terrain(ch);
+}
+
+/**
+ * Check if inquisitor has Hunter's Endurance perk.
+ */
+bool has_inquisitor_hunters_endurance(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_HUNTERS_ENDURANCE);
+}
+
+/**
+ * Get move regeneration bonus from Hunter's Endurance.
+ * Returns +2 move points per round.
+ */
+int get_inquisitor_hunters_endurance_move_regen(struct char_data *ch)
+{
+  if (!has_inquisitor_hunters_endurance(ch))
+    return 0;
+  return 2;
+}
+
+/**
+ * Check if Hunter's Endurance removes fatigue this round (5% chance).
+ */
+bool inquisitor_hunters_endurance_removes_fatigue(struct char_data *ch)
+{
+  if (!has_inquisitor_hunters_endurance(ch))
+    return false;
+  return rand_number(1, 100) <= 5;
+}
+
+/**
+ * Get number of favored enemy selections the inquisitor can have.
+ * 1 base (Favored Terrain perk) + 1 per rank of Favored Enemy Enhancement.
+ */
+int get_inquisitor_max_favored_enemies(struct char_data *ch)
+{
+  int max_enemies = 1; /* Base: 1 from Favored Terrain perk */
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_inquisitor_favored_terrain(ch))
+    return 0;
+    
+  /* Add 1 per rank of Favored Enemy Enhancement */
+  max_enemies += get_perk_rank(ch, PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT, CLASS_INQUISITOR);
+  
+  return max_enemies;
+}
+
+/**
+ * Get number of favored terrain selections the inquisitor can have.
+ * 1 base (Favored Terrain perk) + 1 per rank of Terrain Mastery.
+ */
+int get_inquisitor_max_favored_terrains(struct char_data *ch)
+{
+  int max_terrains = 1; /* Base: 1 from Favored Terrain perk */
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_inquisitor_favored_terrain(ch))
+    return 0;
+    
+  /* Add 1 per rank of Terrain Mastery */
+  max_terrains += get_perk_rank(ch, PERK_INQUISITOR_TERRAIN_MASTERY, CLASS_INQUISITOR);
+  
+  return max_terrains;
+}
+
+/**
+ * Count how many favored enemy types the inquisitor currently has selected.
+ */
+int count_inquisitor_favored_enemies(struct char_data *ch)
+{
+  int i, count = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) >= 0)
+      count++;
+  }
+  
+  return count;
+}
+
+/**
+ * Count how many favored terrains the inquisitor currently has selected.
+ */
+int count_inquisitor_favored_terrains(struct char_data *ch)
+{
+  int i, count = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_TERRAINS(ch, i) >= 0)
+      count++;
+  }
+  
+  return count;
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */

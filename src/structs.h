@@ -4210,6 +4210,12 @@
 #define PERK_INQUISITOR_HUNTERS_PRECISION      1462
 #define PERK_INQUISITOR_TRACK_AND_HUNT         1463
 
+/* Inquisitor Perks - Hunter's Arsenal Tree (Tier 2) */
+#define PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT 1464
+#define PERK_INQUISITOR_AMBUSH_PREDATOR        1465
+#define PERK_INQUISITOR_TERRAIN_MASTERY        1466
+#define PERK_INQUISITOR_HUNTERS_ENDURANCE      1467
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4218,6 +4224,7 @@
 /* Implemented: Judgment & Spellcasting Tree Tier 3 (1452-1455) */
 /* Implemented: Judgment & Spellcasting Tree Tier 4 (1456-1459) */
 /* Implemented: Hunter's Arsenal Tree Tier 1 (1460-1463) */
+/* Implemented: Hunter's Arsenal Tree Tier 2 (1464-1467) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -6687,8 +6694,9 @@ struct player_special_data_saved
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
     byte slayer_judgement;                      // which judgement is using the slayer bonus
 
-    int inq_favored_terrain;                    // selected favored terrain type (-1 = none)
+    int inq_favored_terrain;                    // selected favored terrain type (-1 = none) [LEGACY - use favored_terrains]
     time_t inq_favored_terrain_reset;           // real-time timestamp when terrain can be changed again
+    sbyte favored_terrains[MAX_ENEMIES];        // array of favored terrain types for Terrain Mastery perk (-1 = not selected)
 
     int setcloak_timer; // used for setting stats on vampire cloaks.
 

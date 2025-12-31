@@ -126,7 +126,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 4. **Hunter's Endurance**
    - *1 rank, 2 points*
-   - Your body is conditioned for long pursuits. Gain a +4 bonus to Constitution checks made to avoid exhaustion. You can hustle for twice as long before needing rest. Reduce your need for sleep by 2 hours.
+   - Your body is conditioned for long pursuits. Gain +2 move regeneration per round. 5% chance per round to remove any AFF_FATIGUE effect on the player.
 
 ### Tier 3 (4 Perks)
 
