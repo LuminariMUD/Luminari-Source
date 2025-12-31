@@ -45,6 +45,10 @@
 #include "quest.h"
 #include "backgrounds.h"
 #include "perks.h"
+#include "vessels.h"
+
+/* External vessel data for ship boarding */
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -11994,6 +11998,12 @@ SPECIAL(greyhawk_ship_object)
     send_to_char(ch, "You cannot find a way inside this ship.\r\n");
     return 0;
   }
+
+  /* Link interior room to ship data - required for disembark and ship commands */
+  world[interior_room].ship = &greyhawk_ships[ship_index];
+
+  /* Link ship data to ship object - required for coordinate sync to move object */
+  greyhawk_ships[ship_index].shipobj = obj;
 
   /* Move character to ship interior */
   act("$n boards $p.", TRUE, ch, obj, 0, TO_ROOM);

@@ -252,9 +252,6 @@ grep -i "vessel\|ship\|greyhawk" lib/log/syslog | tail -50
 mysql -u luminari_mud -p luminari_mudprod -e "SELECT COUNT(*) FROM ship_interiors;"
 ```
 
-**Resolution:**
-See [VESSEL_TROUBLESHOOTING.md](../guides/VESSEL_TROUBLESHOOTING.md) for detailed procedures.
-
 ---
 
 ## Escalation Procedures

@@ -166,7 +166,6 @@ Current limit of 500 provides comfortable headroom.
 ## Related Documentation
 
 - [VESSEL_SYSTEM.md](VESSEL_SYSTEM.md) - System documentation
-- [VESSEL_TROUBLESHOOTING.md](guides/VESSEL_TROUBLESHOOTING.md) - Troubleshooting guide
 
 ---
 

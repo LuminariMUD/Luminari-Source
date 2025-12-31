@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
 **Version**: 2.4840 (Phase 03 Complete)
-**Last Updated**: 2025-12-30
+**Last Updated**: 2025-12-31
 
 ---
 
@@ -14,20 +14,17 @@
 5. [API Reference](#api-reference)
 6. [Player Commands](#player-commands)
 7. [Integration Testing Workflows](#integration-testing-workflows)
-8. [Automation Layer](#automation-layer)
-9. [Vehicle-in-Vessel Mechanics](#vehicle-in-vessel-mechanics)
-10. [Interior Room Generation](#interior-room-generation)
-11. [Performance Characteristics](#performance-characteristics)
-12. [Key Constants](#key-constants)
-13. [Database Schema](#database-schema)
-14. [File Inventory](#file-inventory)
-15. [Dependencies](#dependencies)
-16. [Troubleshooting](#troubleshooting)
-17. [Verification & Monitoring](#verification--monitoring)
-18. [Risk Assessment](#risk-assessment)
-19. [Known Issues](#known-issues)
-20. [Deployment Notes](#deployment-notes)
-21. [Development](#development)
+8. [Vehicle-in-Vessel Mechanics](#vehicle-in-vessel-mechanics)
+9. [Performance Characteristics](#performance-characteristics)
+10. [Key Constants](#key-constants)
+11. [Database Schema](#database-schema)
+12. [File Inventory](#file-inventory)
+13. [Dependencies](#dependencies)
+14. [Troubleshooting](#troubleshooting)
+15. [Operations](#operations)
+16. [Risk Assessment](#risk-assessment)
+17. [Known Issues](#known-issues)
+18. [Development](#development)
 
 ---
 
@@ -69,29 +66,14 @@ The LuminariMUD Vessel System provides a comprehensive transport framework for w
 
 ### Memory Layout
 
-```
-+------------------+
-|  greyhawk_ship_  |  ~1016 bytes per vessel
-|      data        |  Maximum 500 vessels = ~496KB
-+------------------+
-        |
-        v
-+------------------+
-|  autopilot_data  |  Optional, ~64 bytes
-+------------------+
-        |
-        v
-+------------------+
-| vessel_schedule  |  Optional, ~32 bytes
-+------------------+
-```
+- **Vessel** (`greyhawk_ship_data`): ~1016 bytes, max 500 = ~496KB
+- **Autopilot** (`autopilot_data`): ~64 bytes (optional, attached to vessel)
+- **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
+- **Vehicle** (`vehicle_data`): ~148 bytes, max 1000 = ~145KB
 
-### Wilderness Coordinate System
+### Wilderness Coordinates
 
-Vessels operate on a 2D wilderness grid:
-- X coordinate: -1024 to +1024
-- Y coordinate: -1024 to +1024
-- Z coordinate: Altitude (airships) or depth (submarines)
+X/Y: -1024 to +1024; Z: altitude (airships) or depth (submarines)
 
 ### State Machine
 
@@ -157,6 +139,7 @@ struct greyhawk_ship_data {
     char id[3];               /* Ship ID (AA-ZZ) */
     char owner[64];           /* Owner name */
     int shipnum;              /* Ship index */
+    struct obj_data *shipobj; /* Associated ship object (critical for coord sync) */
 
     /* Position */
     float x, y, z;            /* Wilderness coordinates */
@@ -170,6 +153,7 @@ struct greyhawk_ship_data {
     unsigned char sarmor;     /* Starboard armor */
 
     /* Interior */
+    enum vessel_class vessel_type; /* Type of vessel */
     int num_rooms;            /* Room count (1-20) */
     int room_vnums[20];       /* Interior room VNUMs */
     int entrance_room;        /* Boarding point */
@@ -180,6 +164,14 @@ struct greyhawk_ship_data {
     struct vessel_schedule *schedule;
 };
 ```
+
+**Critical Linkages** (established during boarding in `spec_procs.c`):
+
+| Linkage | Purpose |
+|---------|---------|
+| `world[room].ship = &greyhawk_ships[idx]` | Interior room -> Ship data (enables disembark, ship commands) |
+| `greyhawk_ships[idx].shipobj = obj` | Ship data -> Ship object (enables coordinate sync to move object) |
+| `GET_OBJ_VAL(obj, 1) = idx` | Ship object -> Ship index (stored in object file) |
 
 ### Vehicle Data (vehicle_data)
 
@@ -224,16 +216,16 @@ struct autopilot_data {
 
 ### Vessel Classifications
 
-| Type | Terrain | Speed | Rooms | Use Case |
-|------|---------|-------|-------|----------|
-| RAFT | Rivers, shallow | Slow | 1 | Short river crossings |
-| BOAT | Coastal | Moderate | 1-3 | Fishing, coastal travel |
-| SHIP | Ocean | Moderate | 5-10 | Long-distance travel |
-| WARSHIP | Ocean | Fast | 8-15 | Naval combat |
-| AIRSHIP | Air | Fast | 5-12 | Flying transport |
-| SUBMARINE | Underwater | Slow | 4-8 | Underwater exploration |
-| TRANSPORT | Ocean | Slow | 10-20 | Cargo, passengers |
-| MAGICAL | Any | Variable | 1-5 | Special magical vessels |
+| Type | Terrain | Speed | Rooms | Generated Room Types |
+|------|---------|-------|-------|----------------------|
+| RAFT | Rivers, shallow | Slow | 1-2 | Bridge |
+| BOAT | Coastal | Moderate | 2-4 | Bridge, Quarters |
+| SHIP | Ocean | Moderate | 3-8 | Bridge, Quarters, Cargo, Deck |
+| WARSHIP | Ocean | Fast | 5-15 | Bridge, Armory, Weapons, Quarters, Brig |
+| AIRSHIP | Air | Fast | 4-12 | Bridge, Observation, Engineering, Quarters |
+| SUBMARINE | Underwater | Slow | 4-10 | Bridge, Helm, Engineering, Quarters |
+| TRANSPORT | Ocean | Slow | 6-20 | Bridge, Large Cargo, Passenger Quarters |
+| MAGICAL | Any | Variable | 1-5 | Custom configuration |
 
 ### Terrain Capabilities
 
@@ -258,40 +250,20 @@ struct vessel_terrain_caps {
 | Land/Mountains | 0% (blocked) | 75-100% | 0% (blocked) |
 | Storm conditions | -25% | -50% | 0% |
 
-### Vehicle Types
+### Vehicle System
 
-| Type | Description | Capacity | Speed | Terrain |
-|------|-------------|----------|-------|---------|
-| `VEHICLE_NONE` | Invalid/unassigned | - | - | - |
-| `VEHICLE_CART` | Small hand cart | 1 passenger, 200 lbs | 80% | Road, plains |
-| `VEHICLE_WAGON` | Large cargo wagon | 4 passengers, 1000 lbs | 60% | Road, plains, forest |
-| `VEHICLE_MOUNT` | Riding mount | 1 passenger, 100 lbs | 120% | Most terrain |
-| `VEHICLE_CARRIAGE` | Passenger carriage | 6 passengers, 500 lbs | 70% | Road, plains |
+| Type | Capacity | Base Speed | Terrain |
+|------|----------|------------|---------|
+| `VEHICLE_CART` | 1 pass, 200 lbs | 80% | Road, plains |
+| `VEHICLE_WAGON` | 4 pass, 1000 lbs | 60% | Road, plains, forest |
+| `VEHICLE_MOUNT` | 1 pass, 100 lbs | 120% | Most terrain |
+| `VEHICLE_CARRIAGE` | 6 pass, 500 lbs | 70% | Road, plains |
 
-### Vehicle States
+**States**: `IDLE`, `MOVING`, `LOADED`, `HITCHED`, `DAMAGED`, `ON_VESSEL`
 
-| State | Description |
-|-------|-------------|
-| `VSTATE_IDLE` | Stationary, not in use |
-| `VSTATE_MOVING` | Currently in motion |
-| `VSTATE_LOADED` | Carrying cargo/passengers |
-| `VSTATE_HITCHED` | Connected to another vehicle |
-| `VSTATE_DAMAGED` | Requires repair before use |
-| `VSTATE_ON_VESSEL` | Loaded onto a vessel |
+**Terrain Flags**: `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`, `WATER_SHALLOW`
 
-### Vehicle Terrain Flags
-
-| Flag | Description |
-|------|-------------|
-| `VTERRAIN_ROAD` | Paved roads, paths |
-| `VTERRAIN_PLAINS` | Open grasslands |
-| `VTERRAIN_FOREST` | Wooded areas |
-| `VTERRAIN_HILLS` | Hilly terrain |
-| `VTERRAIN_MOUNTAIN` | Mountain passes (mounts only) |
-| `VTERRAIN_DESERT` | Desert terrain |
-| `VTERRAIN_WATER_SHALLOW` | Shallow water crossings |
-
-### Vehicle Speed Modifiers by Terrain
+**Speed Modifiers by Terrain**:
 
 | Terrain | Cart | Wagon | Mount | Carriage |
 |---------|------|-------|-------|----------|
@@ -299,113 +271,63 @@ struct vessel_terrain_caps {
 | Plains | 100% | 100% | 100% | 100% |
 | Forest | 50% | 75% | 100% | 50% |
 | Hills | 50% | 50% | 75% | 50% |
-| Mountain | 0% | 0% | 50% | 0% |
-| Swamp | 0% | 0% | 50% | 0% |
+| Mountain | - | - | 50% | - |
+| Swamp | - | - | 50% | - |
 
 ---
 
 ## API Reference
 
-### Vessel Lifecycle
+### Vessel Functions
 
 ```c
-/* Initialize vessel system at boot */
-void vessel_init_all(void);
+/* Lifecycle */
+void vessel_init_all(void);                           // Initialize at boot
+void load_vessels(void);                              // Load from database
+void save_vessels(void);                              // Save to database
+struct vessel_data *find_vessel_by_id(int id);        // Find by ID
 
-/* Load/save vessel data */
-void load_vessels(void);
-void save_vessels(void);
-
-/* Find vessel by ID */
-struct vessel_data *find_vessel_by_id(int vessel_id);
-```
-
-### Vessel Movement
-
-```c
-/* Update wilderness position */
-bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z);
-
-/* Move ship in direction */
-bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
-
-/* Check terrain traversability */
-bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
-
-/* Get speed modifier for terrain */
-int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type, int weather);
+/* Movement */
+bool update_ship_wilderness_position(int ship, int x, int y, int z);
+bool move_ship_wilderness(int ship, int dir, struct char_data *ch);
+bool can_vessel_traverse_terrain(enum vessel_class type, int x, int y, int z);
+int get_terrain_speed_modifier(enum vessel_class type, int sector, int weather);
 ```
 
 ### Autopilot Functions
 
 ```c
-/* Lifecycle */
 struct autopilot_data *autopilot_init(struct greyhawk_ship_data *ship);
 void autopilot_cleanup(struct greyhawk_ship_data *ship);
-
-/* Control */
 int autopilot_start(struct greyhawk_ship_data *ship, struct ship_route *route);
-int autopilot_stop(struct greyhawk_ship_data *ship);
-int autopilot_pause(struct greyhawk_ship_data *ship);
-int autopilot_resume(struct greyhawk_ship_data *ship);
-
-/* Waypoints */
+int autopilot_stop/pause/resume(struct greyhawk_ship_data *ship);
 int waypoint_add(struct ship_route *route, float x, float y, float z, const char *name);
 struct waypoint *waypoint_get_current(struct greyhawk_ship_data *ship);
-
-/* Routes */
 struct ship_route *route_create(const char *name);
 int route_save(struct ship_route *route);
-
-/* Tick processing */
-void autopilot_tick(void);
+void autopilot_tick(void);                            // Called each game tick
 ```
 
 ### Vehicle Functions
 
 ```c
-/* Lifecycle */
 struct vehicle_data *vehicle_create(enum vehicle_type type, const char *name);
 void vehicle_destroy(struct vehicle_data *vehicle);
-
-/* State */
-int vehicle_set_state(struct vehicle_data *vehicle, enum vehicle_state new_state);
-const char *vehicle_state_name(enum vehicle_state state);
-
-/* Movement */
-int vehicle_can_move(struct vehicle_data *vehicle, int direction);
-int vehicle_move(struct vehicle_data *vehicle, int direction);
-int vehicle_can_traverse_terrain(struct vehicle_data *vehicle, int sector_type);
-
-/* Passengers */
-int vehicle_add_passenger(struct vehicle_data *vehicle);
-int vehicle_remove_passenger(struct vehicle_data *vehicle);
-
-/* Condition */
-int vehicle_damage(struct vehicle_data *vehicle, int amount);
-int vehicle_repair(struct vehicle_data *vehicle, int amount);
+int vehicle_set_state(struct vehicle_data *v, enum vehicle_state state);
+int vehicle_can_move/move(struct vehicle_data *v, int direction);
+int vehicle_can_traverse_terrain(struct vehicle_data *v, int sector);
+int vehicle_add/remove_passenger(struct vehicle_data *v);
+int vehicle_damage/repair(struct vehicle_data *v, int amount);
 ```
 
 ### Persistence Functions
 
 ```c
-/* Vessel persistence */
-void save_all_vessels(void);
-void load_all_ship_interiors(void);
-
-/* Waypoint/route persistence */
-void save_all_waypoints(void);
-void save_all_routes(void);
-void load_all_waypoints(void);
-void load_all_routes(void);
-
-/* Schedule persistence */
-void save_all_schedules(void);
-void load_all_schedules(void);
-
-/* Vehicle persistence */
-void vehicle_save_all(void);
-void vehicle_load_all(void);
+void save_all_vessels(void);      void load_all_ship_interiors(void);
+void save_all_waypoints(void);    void load_all_waypoints(void);
+void save_all_routes(void);       void load_all_routes(void);
+void save_all_schedules(void);    void load_all_schedules(void);
+void vehicle_save_all(void);      void vehicle_load_all(void);
 ```
 
 ---
@@ -519,56 +441,6 @@ void vehicle_load_all(void);
 
 ---
 
-## Automation Layer
-
-### Autopilot System
-
-The autopilot system enables hands-free navigation along predefined waypoint routes.
-
-**States:**
-- `AUTOPILOT_INACTIVE` - System off
-- `AUTOPILOT_ACTIVE` - Following route
-- `AUTOPILOT_PAUSED` - Temporarily stopped
-- `AUTOPILOT_COMPLETE` - Route finished
-
-**Features:**
-- Waypoint-based path following
-- Automatic terrain avoidance
-- Speed adjustment for conditions
-- Pause/resume capability
-
-### Route Management
-
-Routes are named collections of waypoints that can be saved and reused.
-
-**Structure:**
-- Up to 20 waypoints per route
-- X, Y, Z coordinates per waypoint
-- Optional waypoint names
-- Database persistence
-
-### NPC Pilot Integration
-
-NPC characters can be assigned as vessel pilots for automated operation.
-
-**Capabilities:**
-- Autonomous navigation
-- Route following
-- Alert generation for obstacles
-- Crew management integration
-
-### Scheduled Routes
-
-Vessels can be scheduled to depart at specific times.
-
-**Features:**
-- Time-based departure scheduling
-- Automatic route activation
-- Repeat schedule support
-- Integration with NPC pilots
-
----
-
 ## Vehicle-in-Vessel Mechanics
 
 Vehicles can be loaded onto vessels for transport across water.
@@ -599,23 +471,6 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 ---
 
-## Interior Room Generation
-
-Ships automatically generate interior rooms based on vessel type when loaded:
-
-| Vessel Type | Room Count | Rooms Generated |
-|-------------|------------|-----------------|
-| VESSEL_RAFT | 1-2 | Bridge only |
-| VESSEL_BOAT | 2-4 | Bridge, Quarters |
-| VESSEL_SHIP | 3-8 | Bridge, Quarters, Cargo, Deck |
-| VESSEL_WARSHIP | 5-15 | Bridge, Armory, Weapons, Quarters, Brig |
-| VESSEL_AIRSHIP | 4-12 | Bridge, Observation, Engineering, Quarters |
-| VESSEL_SUBMARINE | 4-10 | Bridge, Helm, Engineering, Quarters |
-| VESSEL_TRANSPORT | 6-20 | Bridge, Large Cargo, Passenger Quarters |
-| VESSEL_MAGICAL | Variable | Custom configuration |
-
----
-
 ## Performance Characteristics
 
 ### Memory Usage
@@ -626,21 +481,6 @@ Ships automatically generate interior rooms based on vessel type when loaded:
 | Vehicle | 148 bytes | 1000 | 145 KB |
 | Waypoint | ~80 bytes | 1000 | 78 KB |
 | Route | ~200 bytes | 200 | 39 KB |
-
-### Stress Test Results
-
-| Level | Vessels | Memory | Create Time | Ops/sec |
-|-------|---------|--------|-------------|---------|
-| Low | 100 | 99.2 KB | 0.05 ms | 185M |
-| Medium | 250 | 248 KB | 0.13 ms | 195M |
-| High | 500 | 496 KB | 0.21 ms | 192M |
-
-### Quality Metrics
-
-- **Unit Tests**: 353 tests, 100% passing
-- **Memory Leaks**: 0 (Valgrind verified)
-- **Coverage**: All core modules tested
-- **Stress**: 500 concurrent vessels stable
 
 ### Structure Sizes
 
@@ -654,13 +494,7 @@ Ships automatically generate interior rooms based on vessel type when loaded:
 | `struct waypoint_node` | 104 bytes |
 | `struct transport_data` | 16 bytes |
 
-### Vehicle Stress Test Results
-
-| Level | Vehicles | Memory Used | Per-Vehicle |
-|-------|----------|-------------|-------------|
-| Low | 100 | 14.5 KB | 148 bytes |
-| Medium | 500 | 72.3 KB | 148 bytes |
-| High | 1000 | 144.5 KB | 148 bytes |
+> See [VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md) for stress test results and quality metrics.
 
 ---
 
@@ -769,7 +603,7 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 |------|---------|
 | `src/wilderness.c` | Coordinate system and room allocation |
 | `src/weather.c` | Weather integration via `get_weather()` |
-| `src/spec_procs.c` | ITEM_GREYHAWK_SHIP special procedure |
+| `src/spec_procs.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
 | `src/interpreter.c` | Command registration |
 | `src/db.c` | Boot sequence integration |
 | `src/dg_scripts.c/h` | Trigger integration for interior movement |
@@ -781,7 +615,9 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 - **Item Type 56:** ITEM_GREYHAWK_SHIP
 - **Room Flags:** ROOM_VEHICLE (40), ROOM_DOCKABLE (41)
 
-### Test Zone (Zone 213)
+### Test Zones
+
+**Zone 213** (Legacy test zone):
 
 | VNUM | Purpose |
 |------|---------|
@@ -790,84 +626,83 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 | Room 21399 | Additional ship interior |
 | Object 21300 | Test ship (ITEM_GREYHAWK_SHIP, boarding functional) |
 
+**Zone 700** (Current test zone - see `VESSEL_MANUAL_TEST.md`):
+
+| VNUM | Purpose |
+|------|---------|
+| Object 70002 | Test vessel (ITEM_GREYHAWK_SHIP, ship_index=0) |
+| Room 70003 | Test vessel interior room |
+| Room 1000389 | Wilderness dock location at (-66, 92) |
+
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### Quick Reference
 
-**Issue: Foreign key constraint errors when inserting cargo/crew**
-- **Cause:** `ship_interiors` record must exist first (parent table)
-- **Solution:** Ensure vessel is saved to `ship_interiors` before adding cargo or crew records
-- **Note:** CASCADE DELETE is implemented; deleting ship_interiors removes related records automatically
+| Issue | Check First | Solution |
+|-------|-------------|----------|
+| Vessel not moving | Speed, dock status | `undock`, `speed 10`, `autopilot resume` |
+| Cannot board | Room DOCKABLE flag | Move to dock room, check `entrance_room` |
+| Interior nav fails | Room connections | `ship_rooms` to verify, regenerate if needed |
+| Autopilot stuck | Route waypoints | `listwaypoints`, verify terrain reachable |
+| Vehicle terrain blocked | Vehicle type | Use MOUNT for hills/mountains |
+| Coordinate desync | shipobj linkage | `greyhawk_shipload` (admin), check spec_procs.c |
+| Disembark fails | Interior room link | Verify `world[room].ship` is set |
+| Ship object doesn't move | shipobj not linked | Set `greyhawk_ships[idx].shipobj = obj` |
 
-**Issue: Stored procedures not working**
-- **Cause:** User lacks EXECUTE privilege
-- **Solution:**
-```sql
-GRANT EXECUTE ON luminari_mudprod.* TO 'luminari_mud'@'localhost';
+### Database Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| FK constraint errors | Parent record missing | Save to `ship_interiors` before cargo/crew |
+| Stored procedures fail | Missing EXECUTE privilege | `GRANT EXECUTE ON luminari_mudprod.* TO 'luminari_mud'@'localhost';` |
+| Silent movement fail | No wilderness room | Use `find_available_wilderness_room()` + `assign_wilderness_room()` |
+| Performance degradation | Missing indexes | Check with `EXPLAIN SELECT ...` |
+
+### Gameplay Issues Detail
+
+**Vessel Not Moving**: Check docking (`shipstatus`), speed > 0, autopilot state, terrain compatibility
+
+**Vehicle Loading**: Vessel must be docked/stationary, have cargo capacity, vehicle in cargo hold room
+
+**NPC Pilot Issues**: Verify pilot in ship interior, check `pilot_mob_vnum`, reassign with `assignpilot`
+
+**Schedule Issues**: Check `showschedule`, verify `SCHEDULE_FLAG_ENABLED`, route active
+
+### Debug Logging
+
+```c
+log("VESSEL: ship %d at (%f,%f,%f) heading %d speed %d", ship->shipnum, ship->x, ship->y, ship->z, ship->heading, ship->speed);
+log("AUTOPILOT: state=%d waypoint=%d wait=%d", ship->autopilot->state, ship->autopilot->current_waypoint_index, ship->autopilot->wait_remaining);
 ```
-
-**Issue: Vessel movement fails silently**
-- **Cause:** Destination wilderness coordinate has no allocated room
-- **Solution:** Implement dynamic room allocation using `find_available_wilderness_room()` + `assign_wilderness_room()` pattern
-
-**Issue: Phase 2 commands not recognized**
-- **Cause:** Commands not registered in `interpreter.c`
-- **Solution:** Add command entries for `dock`, `undock`, `board_hostile`, `look_outside`, `ship_rooms`
-
-**Issue: Performance degradation with many vessels**
-- **Diagnosis:** Check index usage:
-```sql
-EXPLAIN SELECT * FROM ship_docking WHERE ship1_id = '123';
-```
-- **Solution:** Verify indexes exist on frequently queried columns
 
 ---
 
-## Verification & Monitoring
+## Operations
 
-### Post-Deployment Verification
+### Deployment
 
-Run these queries to verify successful deployment:
+**Recommended**: Let server auto-create tables on first startup with MySQL. Manual:
+1. Backup: `mysqldump -u root -p luminari_mudprod > backup.sql`
+2. Execute schema, run verification, test vessel commands
+3. **Rollback**: `sql/components/vessels_phase2_rollback.sql`
+
+### Verification Queries
 
 ```sql
--- Check all 5 tables exist
-SELECT COUNT(*) as table_count FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'ship_%';
--- Expected: 5
-
--- Check room templates loaded
-SELECT COUNT(*) as template_count FROM ship_room_templates;
--- Expected: 19
-
--- Check stored procedures exist
-SHOW PROCEDURE STATUS WHERE Db = DATABASE()
-AND Name IN ('cleanup_orphaned_dockings', 'get_active_dockings');
--- Expected: 2 procedures
-
--- Verify table structure
-DESCRIBE ship_interiors;
-DESCRIBE ship_docking;
+SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_NAME LIKE 'ship_%';  -- Expect: 5
+SELECT COUNT(*) FROM ship_room_templates;  -- Expect: 19
+SHOW PROCEDURE STATUS WHERE Name IN ('cleanup_orphaned_dockings', 'get_active_dockings');  -- Expect: 2
 ```
 
-### Ongoing Monitoring
+### Monitoring & Maintenance
 
 ```sql
--- Check table sizes periodically
-SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH/1024/1024 as size_mb
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'ship_%';
-
--- Monitor active dockings
-SELECT COUNT(*) as active_docks FROM ship_docking WHERE dock_status = 'active';
-```
-
-### Scheduled Maintenance
-
-Run weekly to clean orphaned docking records:
-```sql
+-- Weekly: clean orphaned dockings
 CALL cleanup_orphaned_dockings();
+-- Check table sizes
+SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_NAME LIKE 'ship_%';
 ```
 
 ---
@@ -878,39 +713,18 @@ CALL cleanup_orphaned_dockings();
 |------|-------------|--------|------------|
 | Integration complexity | High | High | Incremental development, extensive testing |
 | Performance degradation | Medium | High | Tiered complexity, feature toggles |
-| Data migration issues | Medium | Medium | Phased migration, rollback scripts ready |
-| Scope creep | Medium | Medium | Strict change control, clear priorities |
-| Memory overhead | Medium | High | Ship pooling, bit fields, compressed coordinates |
-| Data corruption | Low | Critical | Bounds checking, null guards, transaction safety |
+| Data migration | Medium | Medium | Phased migration, rollback scripts |
+| Memory overhead | Medium | High | Ship pooling, bit fields |
+| Data corruption | Low | Critical | Bounds checking, null guards, transactions |
 
 ---
 
 ## Known Issues
 
-| Issue | Location | Description | Status |
-|-------|----------|-------------|--------|
-| Duplicate `disembark` registration | `interpreter.c:385` and `interpreter.c:1165` | Old and Greyhawk versions both registered; second (`do_greyhawk_disembark`) takes precedence | Working as intended |
-| Room templates hard-coded | `vessels_rooms.c:27-104` | 10 hard-coded templates used instead of querying `ship_room_templates` table | Future enhancement |
-
----
-
-## Deployment Notes
-
-### Recommended Approach
-
-Let the server auto-create vessel tables on first startup with MySQL available. This ensures schema matches runtime code exactly.
-
-### Manual Deployment (Production)
-
-1. Backup database: `mysqldump -u root -p luminari_mudprod > backup.sql`
-2. Validate `sql/components/vessels_phase2_schema.sql` matches `init_vessel_system_tables()`
-3. Execute schema script
-4. Run verification script
-5. Test basic vessel commands
-
-### Rollback
-
-Execute `sql/components/vessels_phase2_rollback.sql` to remove all vessel tables.
+| Issue | Location | Status |
+|-------|----------|--------|
+| Duplicate `disembark` registration | `interpreter.c:385,1165` | Working as intended (Greyhawk takes precedence) |
+| Hard-coded room templates | `vessels_rooms.c:27-104` | Future enhancement |
 
 ---
 
@@ -979,6 +793,7 @@ make valgrind-phase02
 ## Related Documentation
 
 - [VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md) - Detailed performance data
+- [VESSEL_MANUAL_TEST.md](VESSEL_MANUAL_TEST.md) - Manual testing setup and issue tracking
 - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
 
 ---

@@ -246,7 +246,6 @@ See [DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) for full deployment pr
 
 For environment-specific issues, see:
 - [TROUBLESHOOTING_AND_MAINTENANCE.md](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
-- [VESSEL_TROUBLESHOOTING.md](guides/VESSEL_TROUBLESHOOTING.md) (for vessel system)
 
 ## Security Considerations
 
