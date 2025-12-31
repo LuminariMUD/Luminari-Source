@@ -818,7 +818,7 @@ void greyhawk_initialize_ships(void)
 
       /* Identity */
       strncpy(greyhawk_ships[0].name, "Test Vessel", sizeof(greyhawk_ships[0].name) - 1);
-      strncpy(greyhawk_ships[0].id, "TV01", sizeof(greyhawk_ships[0].id) - 1);
+      snprintf(greyhawk_ships[0].id, sizeof(greyhawk_ships[0].id), "T1");
 
       /* Interior rooms array */
       greyhawk_ships[0].room_vnums[0] = 1403;
@@ -1946,8 +1946,11 @@ ACMD(do_greyhawk_disembark)
   if (is_docked)
   {
     /* Docked - can safely disembark to dock */
-    exit_room =
-        find_room_by_coordinates((int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y);
+    /* Use ship object's current room - reliable linkage established during boarding */
+    if (greyhawk_ships[shipnum].shipobj)
+    {
+      exit_room = IN_ROOM(greyhawk_ships[shipnum].shipobj);
+    }
 
     if (exit_room == NOWHERE)
     {
@@ -2018,9 +2021,11 @@ ACMD(do_greyhawk_disembark)
     return;
   }
 
-  /* Find exit room */
-  exit_room =
-      find_room_by_coordinates((int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y);
+  /* Find exit room - use ship object's current room */
+  if (greyhawk_ships[shipnum].shipobj)
+  {
+    exit_room = IN_ROOM(greyhawk_ships[shipnum].shipobj);
+  }
 
   if (exit_room == NOWHERE)
   {

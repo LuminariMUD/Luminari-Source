@@ -75,37 +75,37 @@ S
 
 ## Testing commands
 
-- Board - when typing board in a room that has a vessel object, you successfully go to the interior room set by the vessel object
+### Board - when typing board in a room that has a vessel object, you successfully go to the interior room set by the vessel object
+### Disembark - "You're not aboard a vessel" (FIXED)
+### Disembark - "Unable to find a valid exit point" (FIXED)
 
+**Issue:** After boarding a vessel, disembark command failed with "Error: Unable to find a valid exit point."
 
-## Issues Found During Testing (2025-12-31)
+**Root Cause:** `do_greyhawk_disembark()` used `find_room_by_coordinates()` which returned `NOWHERE` because the wilderness room wasn't registered in the dynamic room system.
 
-### Issue 1: Disembark says "You're not aboard a vessel" (FIXED)
+**Fix:** Changed to use `IN_ROOM(greyhawk_ships[shipnum].shipobj)` which directly accesses the room where the ship object is located. This linkage is properly established during boarding.
 
-**Cause:** `greyhawk_ship_object` special procedure in `spec_procs.c` moved player to interior room but never set `world[interior_room].ship` pointer. The `do_greyhawk_disembark` function checks this pointer at `vessels.c:1908`.
+**Files Modified:** `src/vessels.c` - lines 1948-1953 and 2024-2028
 
-**Fix Applied:** Added to `spec_procs.c` in `greyhawk_ship_object`:
-- Added `#include "vessels.h"` and extern for `greyhawk_ships[]`
-- Added `world[interior_room].ship = &greyhawk_ships[ship_index];` before moving player
-
-### Issue 2: Ship object not linked to ship data (FIXED)
-
-**Cause:** `greyhawk_ships[0].shipobj` was never set in the new vessel code.
-
-**Impact:** The sync code at `vessels.c:899-912` that moves the ship object when coordinates change would never execute because `greyhawk_ships[shipnum].shipobj` was NULL.
-
-**Fix Applied:** Added to `spec_procs.c` in `greyhawk_ship_object` (line 12006):
-```c
-greyhawk_ships[ship_index].shipobj = obj;
+**Test Log (before fix):**
+```
+[1000389] Testing Dock [ Dockable ]  [Sea Port] ( None )
+This unfinished room was created by Zusuk.
+ Current Location  : (-66, 92)
+ Weather           : 133
+[ Exits: N E S W ]
+[70002] A test vessel is here. ..It has a soft glowing aura! ..It emits a faint humming sound!
+15922/15922H 17000/17000P 830/830V [-mw] EX:NESW board
+You board the ship.
+[70003] A Vessel Test Room 01 [ Vehicle ]  [Inside] ( None )
+You are in an unfinished room.
+[ Exits: None!]
+15922/15922H 17000/17000P 830/830V [smw] EX:None!  disembark
+Error: Unable to find a valid exit point.
 ```
 
-### Required Linkages Summary
+**Retest Required:** Board vessel, then disembark - should return to room 1000389
 
-| Linkage | Code Location | Status |
-|---------|---------------|--------|
-| Interior Room -> Ship Data | `world[room].ship = &greyhawk_ships[idx]` | FIXED (boarding proc) |
-| Ship Data -> Ship Object | `greyhawk_ships[idx].shipobj = obj` | FIXED (boarding proc) |
-| Ship Object -> Ship Index | `GET_OBJ_VAL(obj, 1) = idx` | OK (object file) |
 
 
 # EoF
