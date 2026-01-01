@@ -1077,6 +1077,7 @@ int i3_load_config(const char *filename)
   char line[256];
   char key[128], value[128];
   char *p;
+  char *url_host;
   int len;
 
   fp = fopen(filename, "r");
@@ -1096,15 +1097,20 @@ int i3_load_config(const char *filename)
       continue;
     }
 
-    /* Remove trailing newline */
+    /* Remove trailing newline and carriage return */
     len = strlen(line);
-    if (len > 0 && line[len - 1] == '\n')
+    while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
     {
-      line[len - 1] = '\0';
+      line[--len] = '\0';
     }
 
-    /* Find the first space to split key and value */
-    p = strchr(line, ' ');
+    /* Try to find '=' first (new format), then space (old format) */
+    p = strchr(line, '=');
+    if (!p)
+    {
+      p = strchr(line, ' ');
+    }
+
     if (p)
     {
       *p = '\0';
@@ -1113,12 +1119,37 @@ int i3_load_config(const char *filename)
       strncpy(value, p + 1, sizeof(value) - 1);
       value[sizeof(value) - 1] = '\0';
 
-      /* Debug log for API key loading */
-      if (strcmp(key, "api_key") == 0)
+      /* Handle new I3_GATEWAY_URL format (extract host from URL) */
+      if (strcmp(key, "I3_GATEWAY_URL") == 0)
       {
-        i3_log("DEBUG: Loading API key from config: %s", value);
+        i3_log("DEBUG: Loading gateway URL from config: %s", value);
+        /* Extract host from URL like wss://host or ws://host */
+        url_host = value;
+        if (strncmp(url_host, "wss://", 6) == 0)
+        {
+          url_host += 6;
+        }
+        else if (strncmp(url_host, "ws://", 5) == 0)
+        {
+          url_host += 5;
+        }
+        strcpy(i3_client->gateway_host, url_host);
+        i3_log("DEBUG: Extracted gateway host: %s", i3_client->gateway_host);
       }
-      if (strcmp(key, "gateway_host") == 0)
+      /* Handle new I3_API_KEY format */
+      else if (strcmp(key, "I3_API_KEY") == 0)
+      {
+        i3_log("DEBUG: Loading API key from config (I3_API_KEY): %.30s...", value);
+        strcpy(i3_client->api_key, value);
+      }
+      /* Handle new I3_MUD_NAME format */
+      else if (strcmp(key, "I3_MUD_NAME") == 0)
+      {
+        i3_log("DEBUG: Loading MUD name from config (I3_MUD_NAME): %s", value);
+        strcpy(i3_client->mud_name, value);
+      }
+      /* Handle old gateway_host format */
+      else if (strcmp(key, "gateway_host") == 0)
       {
         strcpy(i3_client->gateway_host, value);
       }
@@ -1126,10 +1157,13 @@ int i3_load_config(const char *filename)
       {
         i3_client->gateway_port = atoi(value);
       }
+      /* Handle old api_key format */
       else if (strcmp(key, "api_key") == 0)
       {
+        i3_log("DEBUG: Loading API key from config (api_key): %.30s...", value);
         strcpy(i3_client->api_key, value);
       }
+      /* Handle old mud_name format */
       else if (strcmp(key, "mud_name") == 0)
       {
         strcpy(i3_client->mud_name, value);
@@ -1154,6 +1188,8 @@ int i3_load_config(const char *filename)
   }
 
   fclose(fp);
+  i3_log("DEBUG: Config loaded - Host: %s, Port: %d, MUD: %s", i3_client->gateway_host,
+         i3_client->gateway_port, i3_client->mud_name);
   return 0;
 }
 

@@ -3,19 +3,23 @@
 # Copy this file to i3_config and edit with your settings
 # Get your API key from the I3 Gateway administrator
 
+I3_GATEWAY_URL=wss://gateway.domain.name
+I3_API_KEY=your-muds-api-key
+I3_MUD_NAME=LuminariMUD
+
 # Gateway connection settings
 # The I3 Gateway typically runs on localhost if installed locally
 # Or use the hostname/IP of your remote gateway
-gateway_host localhost
-gateway_port 8081
+#gateway_host localhost
+#gateway_port 8081
 
 # Your MUD's API key - REQUIRED
 # Request this from your I3 Gateway administrator
-api_key YOUR-MUD-API-KEY-HERE
+#api_key YOUR-MUD-API-KEY-HERE
 
 # Your MUD's name as it will appear on the I3 network
 # This should match your registered MUD name
-mud_name LuminariMUD
+#mud_name LuminariMUD
 
 # Default channel for i3chat command
 # Common channels: intermud, gossip, chat
