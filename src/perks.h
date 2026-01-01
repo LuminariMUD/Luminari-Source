@@ -14,6 +14,7 @@ extern const char *perk_category_names[];
 /* Initialization */
 void init_perks(void);
 int count_defined_perks(void);
+int class_to_perk_class(int class_type, int which_perk);
 
 /* Perk definition functions */
 void define_fighter_perks(void);
@@ -66,6 +67,23 @@ bool has_inquisitor_favored_terrain(struct char_data *ch);
 bool is_inquisitor_in_favored_terrain(struct char_data *ch);
 int get_inquisitor_hunters_precision_chance(struct char_data *ch);
 bool has_inquisitor_track_and_hunt(struct char_data *ch);
+
+/* Inquisitor helper functions - Hunter's Arsenal Tree Tier 2 */
+int get_inquisitor_favored_enemy_enhancement_ranks(struct char_data *ch);
+int get_inquisitor_favored_enemy_attack_bonus(struct char_data *ch, struct char_data *vict);
+int get_inquisitor_favored_enemy_ac_bonus(struct char_data *ch, struct char_data *attacker);
+bool has_inquisitor_ambush_predator(struct char_data *ch);
+bool can_use_inquisitor_ambush_predator(struct char_data *ch, struct char_data *vict);
+int get_inquisitor_terrain_mastery_survival_bonus(struct char_data *ch);
+bool has_inquisitor_terrain_mastery(struct char_data *ch);
+bool inquisitor_leaves_no_trail(struct char_data *ch);
+bool has_inquisitor_hunters_endurance(struct char_data *ch);
+int get_inquisitor_hunters_endurance_move_regen(struct char_data *ch);
+bool inquisitor_hunters_endurance_removes_fatigue(struct char_data *ch);
+int get_inquisitor_max_favored_enemies(struct char_data *ch);
+int get_inquisitor_max_favored_terrains(struct char_data *ch);
+int count_inquisitor_favored_enemies(struct char_data *ch);
+int count_inquisitor_favored_terrains(struct char_data *ch);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);

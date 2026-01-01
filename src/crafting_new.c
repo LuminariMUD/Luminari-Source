@@ -5049,6 +5049,7 @@ void show_harvesting_tool_needed(struct char_data *ch)
     break;
   case CRAFT_GROUP_HARD_METALS:
   case CRAFT_GROUP_SOFT_METALS:
+  case CRAFT_GROUP_STONE:
     send_to_char(ch, "You need a pickaxe equipped to harvest %s.\r\n",
                  crafting_material_nodes[mat_type]);
     break;
@@ -5085,6 +5086,7 @@ bool has_proper_harvesting_tool_equipped(struct char_data *ch)
     break;
   case CRAFT_GROUP_HARD_METALS:
   case CRAFT_GROUP_SOFT_METALS:
+  case CRAFT_GROUP_STONE:
     has_tool = GET_EQ(ch, WEAR_CRAFT_PICKAXE);
     break;
   case CRAFT_GROUP_HIDES:

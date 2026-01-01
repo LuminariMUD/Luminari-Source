@@ -835,6 +835,14 @@ void regen_update(struct char_data *ch)
     GET_MOVE(ch) = GET_MAX_MOVE(ch);
   }
 
+  /* Inquisitor Hunter's Endurance: 5% chance per round to remove fatigue */
+  if (!IS_NPC(ch) && AFF_FLAGGED(ch, AFF_FATIGUED) &&
+      inquisitor_hunters_endurance_removes_fatigue(ch))
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FATIGUED);
+    send_to_char(ch, "\tG[Hunter's Endurance removes your fatigue!]\tn\r\n");
+  }
+
   // we don't have hunger and thirst here.
   /*
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
@@ -917,6 +925,14 @@ void regen_update(struct char_data *ch)
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ENDURANCE))
       move_regen += 2;
+
+    /* Inquisitor Hunter's Endurance: +2 move regeneration per round */
+    if (!IS_NPC(ch))
+    {
+      int hunters_endurance_bonus = get_inquisitor_hunters_endurance_move_regen(ch);
+      if (hunters_endurance_bonus > 0)
+        move_regen += hunters_endurance_bonus;
+    }
 
     if (!FIGHTING(ch))
       move_regen += get_psp_regen_amount(ch);

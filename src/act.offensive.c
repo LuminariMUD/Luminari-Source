@@ -13465,8 +13465,8 @@ ACMDU(do_inexorable_judgment)
 ACMDU(do_favored_terrain)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  time_t now = time(NULL);
   int terrain = -1;
+  int i, max_terrains, current_count;
 
   if (!has_inquisitor_favored_terrain(ch))
   {
@@ -13479,45 +13479,115 @@ ACMDU(do_favored_terrain)
 
   if (!*arg)
   {
-    send_to_char(ch, "Usage: favoredterrain <terrain|list|clear>\r\n");
-    if (GET_FAVORED_TERRAIN(ch) >= 0 && GET_FAVORED_TERRAIN(ch) < NUM_TERRAIN_TYPES)
-      send_to_char(ch, "Current favored terrain: %s\r\n", terrain_types[GET_FAVORED_TERRAIN(ch)]);
-    else
-      send_to_char(ch, "Current favored terrain: none\r\n");
+    send_to_char(ch, "Usage: favoredterrain <terrain|list|view|clear [#]>\r\n");
 
-    send_to_char(ch, "Type 'favoredterrain list' to see options.\r\n");
+    max_terrains = get_inquisitor_max_favored_terrains(ch);
+    current_count = count_inquisitor_favored_terrains(ch);
+
+    send_to_char(ch, "\r\nYour Favored Terrains (%d/%d):\r\n", current_count, max_terrains);
+
+    for (i = 0; i < MAX_ENEMIES; i++)
+    {
+      if (GET_FAVORED_TERRAINS(ch, i) >= 0 && GET_FAVORED_TERRAINS(ch, i) < NUM_TERRAIN_TYPES)
+        send_to_char(ch, "  [%d] %s\r\n", i, terrain_types[GET_FAVORED_TERRAINS(ch, i)]);
+    }
+
+    /* Legacy support: show old single-value field */
+    if (GET_FAVORED_TERRAIN(ch) >= 0 && GET_FAVORED_TERRAIN(ch) < NUM_TERRAIN_TYPES)
+      send_to_char(ch, "  (legacy) %s\r\n", terrain_types[GET_FAVORED_TERRAIN(ch)]);
+
+    if (current_count == 0)
+      send_to_char(ch, "  (none selected)\r\n");
+
+    send_to_char(ch, "\nType 'favoredterrain list' to see all terrain options.\r\n");
     return;
   }
 
   if (is_abbrev(arg, "list"))
   {
-    int i;
+    int j;
     send_to_char(ch, "Available terrains:\r\n");
-    for (i = 0; i < NUM_TERRAIN_TYPES; i++)
-      send_to_char(ch, "  %-2d) %s\r\n", i, terrain_types[i]);
+    for (j = 0; j < NUM_TERRAIN_TYPES; j++)
+      send_to_char(ch, "  %-2d) %s\r\n", j, terrain_types[j]);
+    return;
+  }
+
+  if (is_abbrev(arg, "view"))
+  {
+    int j;
+    max_terrains = get_inquisitor_max_favored_terrains(ch);
+    current_count = count_inquisitor_favored_terrains(ch);
+
+    send_to_char(ch, "Your Favored Terrains (%d/%d):\r\n", current_count, max_terrains);
+
+    for (j = 0; j < MAX_ENEMIES; j++)
+    {
+      if (GET_FAVORED_TERRAINS(ch, j) >= 0 && GET_FAVORED_TERRAINS(ch, j) < NUM_TERRAIN_TYPES)
+        send_to_char(ch, "  [%d] %s\r\n", j, terrain_types[GET_FAVORED_TERRAINS(ch, j)]);
+    }
+
+    /* Legacy support */
+    if (GET_FAVORED_TERRAIN(ch) >= 0 && GET_FAVORED_TERRAIN(ch) < NUM_TERRAIN_TYPES)
+      send_to_char(ch, "  (legacy) %s\r\n", terrain_types[GET_FAVORED_TERRAIN(ch)]);
+
+    if (current_count == 0)
+      send_to_char(ch, "  (none selected)\r\n");
     return;
   }
 
   if (is_abbrev(arg, "clear"))
   {
-    if (GET_FAVORED_TERRAIN(ch) < 0)
+    char arg2[MAX_INPUT_LENGTH] = {'\0'};
+    int slot = -1;
+
+    one_argument(argument, arg2, sizeof(arg2));
+
+    if (*arg2 && is_number(arg2))
     {
-      send_to_char(ch, "You have no favored terrain set.\r\n");
+      /* Clear specific slot */
+      slot = atoi(arg2);
+      if (slot < 0 || slot >= MAX_ENEMIES)
+      {
+        send_to_char(ch, "That is not a valid slot number.\r\n");
+        return;
+      }
+
+      if (GET_FAVORED_TERRAINS(ch, slot) < 0)
+      {
+        send_to_char(ch, "That slot is already empty.\r\n");
+        return;
+      }
+
+      send_to_char(ch, "You clear your favored terrain from slot %d.\r\n", slot);
+      GET_FAVORED_TERRAINS(ch, slot) = -1;
       return;
     }
-    if (GET_FAVORED_TERRAIN(ch) >= 0 && now < GET_FAVORED_TERRAIN_RESET(ch))
+    else
     {
-      long remain = GET_FAVORED_TERRAIN_RESET(ch) - now;
-      send_to_char(ch, "You can change your favored terrain again in about %ld hour(s).\r\n",
-                   (remain + 3599) / 3600);
+      /* Clear all terrains */
+      bool had_any = false;
+      for (i = 0; i < MAX_ENEMIES; i++)
+      {
+        if (GET_FAVORED_TERRAINS(ch, i) >= 0)
+        {
+          GET_FAVORED_TERRAINS(ch, i) = -1;
+          had_any = true;
+        }
+      }
+
+      if (!had_any && GET_FAVORED_TERRAIN(ch) < 0)
+      {
+        send_to_char(ch, "You have no favored terrains set.\r\n");
+        return;
+      }
+
+      GET_FAVORED_TERRAIN(ch) = -1;
+      send_to_char(ch, "You clear all your favored terrain selections.\r\n");
       return;
     }
-    GET_FAVORED_TERRAIN(ch) = -1;
-    GET_FAVORED_TERRAIN_RESET(ch) = now + (7 * SECS_PER_REAL_DAY);
-    send_to_char(ch, "You clear your favored terrain selection.\r\n");
-    return;
   }
 
+  /* Adding a new terrain */
   terrain = search_block(arg, terrain_types, FALSE);
   if (terrain < 0 || terrain >= NUM_TERRAIN_TYPES)
   {
@@ -13525,24 +13595,204 @@ ACMDU(do_favored_terrain)
     return;
   }
 
-  if (GET_FAVORED_TERRAIN(ch) == terrain)
+  /* Check if already selected */
+  for (i = 0; i < MAX_ENEMIES; i++)
   {
-    send_to_char(ch, "You already favor that terrain.\r\n");
+    if (GET_FAVORED_TERRAINS(ch, i) == terrain)
+    {
+      send_to_char(ch, "You already favor that terrain in slot %d.\r\n", i);
+      return;
+    }
+  }
+
+  /* Check if can add more */
+  max_terrains = get_inquisitor_max_favored_terrains(ch);
+  current_count = count_inquisitor_favored_terrains(ch);
+
+  if (current_count >= max_terrains)
+  {
+    send_to_char(
+        ch,
+        "You can only have %d favored terrain(s). Use 'favoredterrain clear #' to remove one.\r\n",
+        max_terrains);
     return;
   }
 
-  if (GET_FAVORED_TERRAIN(ch) >= 0 && now < GET_FAVORED_TERRAIN_RESET(ch))
+  /* Add to first available slot */
+  for (i = 0; i < MAX_ENEMIES; i++)
   {
-    long remain = GET_FAVORED_TERRAIN_RESET(ch) - now;
-    send_to_char(ch, "You can change your favored terrain again in about %ld hour(s).\r\n",
-                 (remain + 3599) / 3600);
+    if (GET_FAVORED_TERRAINS(ch, i) < 0)
+    {
+      GET_FAVORED_TERRAINS(ch, i) = terrain;
+      send_to_char(
+          ch, "Favored terrain added to slot %d: %s. You gain +2 initiative and Stealth there.\r\n",
+          i, terrain_types[terrain]);
+      return;
+    }
+  }
+}
+
+/* Inquisitor Favored Enemy Perk Command - Select creature types for Favored Enemy Enhancement */
+ACMDU(do_inquisitor_favored_enemy)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int enemy_type = -1;
+  int i, j, max_enemies, current_count;
+
+  if (!has_perk(ch, PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT))
+  {
+    send_to_char(ch, "You have not mastered the Favored Enemy Enhancement perk.\r\n");
     return;
   }
 
-  GET_FAVORED_TERRAIN(ch) = terrain;
-  GET_FAVORED_TERRAIN_RESET(ch) = now + (7 * SECS_PER_REAL_DAY);
-  send_to_char(ch, "Favored terrain set to %s. You gain +2 initiative and Stealth there.\r\n",
-               terrain_types[terrain]);
+  skip_spaces(&argument);
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: inqenemy <creature|list|view|clear [#]>\r\n");
+
+    max_enemies = get_inquisitor_max_favored_enemies(ch);
+    current_count = count_inquisitor_favored_enemies(ch);
+
+    send_to_char(ch, "\r\nYour Favored Enemies (%d/%d):\r\n", current_count, max_enemies);
+
+    for (i = 0; i < MAX_ENEMIES; i++)
+    {
+      if (GET_FAVORED_ENEMY(ch, i) >= 0)
+        send_to_char(ch, "  [%d] %s\r\n", i, race_family_abbrevs[GET_FAVORED_ENEMY(ch, i)]);
+    }
+
+    if (current_count == 0)
+      send_to_char(ch, "  (none selected)\r\n");
+
+    send_to_char(ch, "\nType 'inqenemy list' to see all creature options.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "list"))
+  {
+    send_to_char(ch, "Available creature types:\r\n");
+    for (j = 0; j < NUM_RACE_TYPES; j++)
+      send_to_char(ch, "  %-2d) %s\r\n", j, race_family_types[j]);
+    return;
+  }
+
+  if (is_abbrev(arg, "view"))
+  {
+    max_enemies = get_inquisitor_max_favored_enemies(ch);
+    current_count = count_inquisitor_favored_enemies(ch);
+
+    send_to_char(ch, "Your Favored Enemies (%d/%d):\r\n", current_count, max_enemies);
+
+    for (j = 0; j < MAX_ENEMIES; j++)
+    {
+      if (GET_FAVORED_ENEMY(ch, j) >= 0)
+        send_to_char(ch, "  [%d] %s\r\n", j, race_family_abbrevs[GET_FAVORED_ENEMY(ch, j)]);
+    }
+
+    if (current_count == 0)
+      send_to_char(ch, "  (none selected)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "clear"))
+  {
+    char arg2[MAX_INPUT_LENGTH] = {'\0'};
+    int slot = -1;
+
+    one_argument(argument, arg2, sizeof(arg2));
+
+    if (*arg2 && is_number(arg2))
+    {
+      /* Clear specific slot */
+      slot = atoi(arg2);
+      if (slot < 0 || slot >= MAX_ENEMIES)
+      {
+        send_to_char(ch, "That is not a valid slot number.\r\n");
+        return;
+      }
+
+      if (GET_FAVORED_ENEMY(ch, slot) < 0)
+      {
+        send_to_char(ch, "That slot is already empty.\r\n");
+        return;
+      }
+
+      send_to_char(ch, "You clear your favored enemy from slot %d.\r\n", slot);
+      GET_FAVORED_ENEMY(ch, slot) = -1;
+      return;
+    }
+    else
+    {
+      /* Clear all enemies */
+      bool had_any = false;
+      for (i = 0; i < MAX_ENEMIES; i++)
+      {
+        if (GET_FAVORED_ENEMY(ch, i) >= 0)
+        {
+          GET_FAVORED_ENEMY(ch, i) = -1;
+          had_any = true;
+        }
+      }
+
+      if (!had_any)
+      {
+        send_to_char(ch, "You have no favored enemies set.\r\n");
+        return;
+      }
+
+      send_to_char(ch, "You clear all your favored enemy selections.\r\n");
+      return;
+    }
+  }
+
+  /* Adding a new favored enemy */
+  enemy_type = search_block(arg, race_family_types, FALSE);
+  if (enemy_type < 0 || enemy_type >= NUM_RACE_TYPES)
+  {
+    send_to_char(ch, "That is not a valid creature type. Try 'inqenemy list'.\r\n");
+    return;
+  }
+
+  /* Check if already selected */
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) == enemy_type)
+    {
+      send_to_char(ch, "You already favor that creature type in slot %d.\r\n", i);
+      return;
+    }
+  }
+
+  /* Check if can add more */
+  max_enemies = get_inquisitor_max_favored_enemies(ch);
+  current_count = count_inquisitor_favored_enemies(ch);
+
+  if (current_count >= max_enemies)
+  {
+    send_to_char(
+        ch, "You can only have %d favored enemy type(s). Use 'inqenemy clear #' to remove one.\r\n",
+        max_enemies);
+    return;
+  }
+
+  /* Add to first available slot */
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) < 0)
+    {
+      GET_FAVORED_ENEMY(ch, i) = enemy_type;
+      send_to_char(
+          ch,
+          "Favored enemy added to slot %d: %s. You gain +%d attack, damage, and +%d AC against "
+          "them.\r\n",
+          i, race_family_types[enemy_type],
+          2 * get_perk_rank(ch, PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT, CLASS_INQUISITOR),
+          1 * get_perk_rank(ch, PERK_INQUISITOR_FAVORED_ENEMY_ENHANCEMENT, CLASS_INQUISITOR));
+      return;
+    }
+  }
 }
 
 /* Greater Judgment Perk Command - Select which judgment type gets doubled bonuses */

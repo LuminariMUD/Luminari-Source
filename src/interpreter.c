@@ -2343,6 +2343,16 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
+    {"inqenemy",
+     "inqenemy",
+     POS_RECLINING,
+     do_inquisitor_favored_enemy,
+     0,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
     {"flourish", "flourish", POS_FIGHTING, do_flourish, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"curtaincall",
      "curtaincall",
@@ -5300,10 +5310,10 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   }
-  else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) && GET_LEVEL(ch) < LVL_IMPL &&
+  else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
   {
-    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    send_to_char(ch, "You try, but you are unable to move due to paralysis!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
     {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
@@ -5311,10 +5321,10 @@ void command_interpreter(struct char_data *ch, char *argument)
       act("$n's free movement breaks the paralysis!", TRUE, ch, 0, 0, TO_ROOM);
     }
   }
-  else if ((AFF_FLAGGED(ch, AFF_STUN)) && GET_LEVEL(ch) < LVL_IMPL &&
+  else if ((AFF_FLAGGED(ch, AFF_STUN)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
   {
-    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    send_to_char(ch, "You try, but you are unable to move due to being stunned!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
     {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
@@ -5322,10 +5332,10 @@ void command_interpreter(struct char_data *ch, char *argument)
       act("$n's free movement breaks the paralysis!", TRUE, ch, 0, 0, TO_ROOM);
     }
   }
-  else if ((char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMPL &&
+  else if ((char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
   {
-    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    send_to_char(ch, "You try, but you are unable to move due to being under a stun effect!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
     {
       change_event_duration(ch, eSTUNNED, 0);

@@ -77,6 +77,7 @@ static void load_skill_focus(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
 static void load_ability_exp(FILE *fl, struct char_data *ch);
 static void load_favored_enemy(FILE *fl, struct char_data *ch);
+static void load_favored_terrains(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
 static void load_warding(FILE *fl, struct char_data *ch);
 static void load_class_level(FILE *fl, struct char_data *ch);
@@ -381,6 +382,10 @@ int load_char(const char *name, struct char_data *ch)
     }
     for (i = 0; i < MAX_ENEMIES; i++)
       GET_FAVORED_ENEMY(ch, i) = 0;
+    for (i = 0; i < MAX_ENEMIES; i++)
+      GET_FAVORED_TERRAINS(ch, i) = -1;
+    GET_FAVORED_TERRAIN(ch) = -1;
+    GET_FAVORED_TERRAIN_RESET(ch) = 0;
     for (i = 0; i < MAX_WARDING; i++)
       GET_WARDING(ch, i) = 0;
     for (i = 1; i < MAX_SKILLS; i++)
@@ -1043,6 +1048,8 @@ int load_char(const char *name, struct char_data *ch)
           FIXED_BAB(ch) = atoi(line);
         else if (!strcmp(tag, "FaEn"))
           load_favored_enemy(fl, ch);
+        else if (!strcmp(tag, "FaTr"))
+          load_favored_terrains(fl, ch);
         else if (!strcmp(tag, "FaAd"))
           GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
         else if (!strcmp(tag, "Feat"))
@@ -1124,6 +1131,10 @@ int load_char(const char *name, struct char_data *ch)
       case 'I':
         if (!strcmp(tag, "Id  "))
           GET_IDNUM(ch) = atol(line);
+        else if (!strcmp(tag, "InqT"))
+          GET_FAVORED_TERRAIN(ch) = atoi(line);
+        else if (!strcmp(tag, "InqR"))
+          GET_FAVORED_TERRAIN_RESET(ch) = atol(line);
         else if (!strcmp(tag, "Idel"))
           ch->player.ideals = fread_string(fl, buf2);
         else if (!strcmp(tag, "InMa"))
@@ -2655,6 +2666,10 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE("Slyr: %d\n", GET_SLAYER_JUDGEMENT(ch));
   if (GET_BANE_TARGET_TYPE(ch) != 0)
     BUFFER_WRITE("Bane: %d\n", GET_BANE_TARGET_TYPE(ch));
+  if (GET_FAVORED_TERRAIN(ch) != -1)
+    BUFFER_WRITE("InqT: %d\n", GET_FAVORED_TERRAIN(ch));
+  if (GET_FAVORED_TERRAIN_RESET(ch) != 0)
+    BUFFER_WRITE("InqR: %ld\n", (long)GET_FAVORED_TERRAIN_RESET(ch));
   if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) != 0)
     BUFFER_WRITE("KpkS: %d\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch));
   if (SCRIPT(ch))
@@ -3237,6 +3252,14 @@ void save_char(struct char_data *ch, int mode)
   for (i = 0; i < MAX_ENEMIES; i++)
   {
     BUFFER_WRITE("%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  // favored terrains (inquisitors)
+  BUFFER_WRITE("FaTr:\n");
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, GET_FAVORED_TERRAINS(ch, i));
   }
   BUFFER_WRITE("-1 -1\n");
 
@@ -4544,6 +4567,20 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
     if (num != -1)
       GET_FAVORED_ENEMY(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_favored_terrains(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1 && num >= 0 && num < MAX_ENEMIES)
+      GET_FAVORED_TERRAINS(ch, num) = num2;
   } while (num != -1);
 }
 

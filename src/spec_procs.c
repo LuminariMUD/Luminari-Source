@@ -1801,6 +1801,15 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    /* Inquisitor Terrain Mastery: +2 per rank to Survival checks in favored terrain */
+    if (!IS_NPC(ch) && is_inquisitor_in_favored_terrain(ch))
+    {
+      int terrain_mastery_bonus = get_inquisitor_terrain_mastery_survival_bonus(ch);
+      if (terrain_mastery_bonus > 0)
+        value += terrain_mastery_bonus;
+    }
+    /* Inquisitor Track and Hunt: double Survival modifier when tracking */
+    /* Note: This is context-specific and would be applied in tracking code */
     return value;
   case ABILITY_ATHLETICS:
     value += GET_STR_BONUS(ch);
