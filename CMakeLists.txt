@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
-project(LuminariMUD C CXX)
+# Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
+project(LuminariMUD VERSION 2.5000 LANGUAGES C CXX)
 
 # IMPORTANT: LuminariMUD uses ANSI C90/C89 standard, NOT C99!
 set(CMAKE_C_STANDARD 90)

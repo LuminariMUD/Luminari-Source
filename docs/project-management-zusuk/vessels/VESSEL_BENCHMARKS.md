@@ -1,6 +1,6 @@
 # Vessel System Performance Benchmarks
 
-**Version**: 2.4840
+**Version**: 2.5000-beta
 **Test Date**: 2025-12-30
 **Platform**: Linux 6.6.87.2 (WSL2 Ubuntu)
 

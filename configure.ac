@@ -1,5 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([LuminariMUD],[1.0],[bugs@luminarimud.com])
+dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
+AC_INIT([LuminariMUD],[2.5000-beta],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)

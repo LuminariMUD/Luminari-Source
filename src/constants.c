@@ -32,11 +32,13 @@
 #define CHECK_TABLE_SIZE(tbl, exp_sz)                                                              \
   _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
 
-/** Current LuminariMUD version.
- * @todo defined with _LUMINARIMUD so we don't have multiple constants to change.
- * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
- * works correctly with C compilers (at least in my Experience)
- * Jeremy Osborne 1/28/2008 */
+/** Current LuminariMUD version - CANONICAL SOURCE for display version string.
+ * Version is also defined in:
+ *   - src/structs.h (_LUMINARIMUD macro for code compatibility)
+ *   - configure.ac (AC_INIT for autotools build)
+ *   - CMakeLists.txt (project VERSION for CMake build)
+ *   - README.md (documentation)
+ * When updating version, update ALL locations above. */
 cpp_extern const char *const luminari_version = "LuminariMUD 2.5000-beta (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */

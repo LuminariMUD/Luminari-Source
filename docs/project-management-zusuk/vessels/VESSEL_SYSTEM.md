@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
-**Version**: 2.4840 (Phase 03 Complete)
-**Last Updated**: 2025-12-31
+**Version**: 2.5000-beta (Phase 03 Complete)
+**Last Updated**: 2026-01-01
 
 ---
 
