@@ -16,8 +16,14 @@ updates:
       - "github-actions"
     open-pull-requests-limit: 5
     groups:
+      # Group major updates together (breaking changes reviewed as one PR)
+      actions-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
       # Group minor/patch updates together to reduce PR noise
-      actions-minor:
+      actions-minor-patch:
         patterns:
           - "*"
         update-types:
