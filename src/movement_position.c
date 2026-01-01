@@ -30,7 +30,6 @@
 
 bool can_stand(struct char_data *ch)
 {
-
   if (AFF_FLAGGED(ch, AFF_PINNED))
     return FALSE;
 
@@ -124,8 +123,7 @@ ACMD(do_stand)
     break;
   default:
     send_to_char(ch, "You stop floating around, and put your feet on the ground.\r\n");
-    act("$n stops floating around, and puts $s feet on the ground.",
-        TRUE, ch, 0, 0, TO_ROOM);
+    act("$n stops floating around, and puts $s feet on the ground.", TRUE, ch, 0, 0, TO_ROOM);
     change_position(ch, POS_STANDING);
     break;
   }
@@ -224,7 +222,6 @@ ACMD(do_sit)
 
 ACMD(do_rest)
 {
-
   if (affected_by_spell(ch, SKILL_RAGE))
   {
     send_to_char(ch, "Rest now? No way. PRESS ON!\r\n");
@@ -304,7 +301,6 @@ ACMD(do_recline)
 
 ACMD(do_sleep)
 {
-
   if (affected_by_spell(ch, SKILL_RAGE))
   {
     send_to_char(ch, "You are way too hyper for that right now!\r\n");
@@ -329,8 +325,7 @@ ACMD(do_sleep)
     break;
   default:
     send_to_char(ch, "You stop floating around, and lie down to sleep.\r\n");
-    act("$n stops floating around, and lie down to sleep.",
-        TRUE, ch, 0, 0, TO_ROOM);
+    act("$n stops floating around, and lie down to sleep.", TRUE, ch, 0, 0, TO_ROOM);
     change_position(ch, POS_SLEEPING);
     break;
   }
@@ -390,8 +385,7 @@ int change_position(struct char_data *ch, int new_position)
   /* casting */
   if (char_has_mud_event(ch, eCASTING) && new_position <= POS_SITTING)
   {
-    act("$n's spell is interrupted!", FALSE, ch, 0, 0,
-        TO_ROOM);
+    act("$n's spell is interrupted!", FALSE, ch, 0, 0, TO_ROOM);
     send_to_char(ch, "Your spell is aborted!\r\n");
     resetCastingData(ch);
   }
@@ -399,8 +393,7 @@ int change_position(struct char_data *ch, int new_position)
   /* preparing spells */
   if (char_has_mud_event(ch, ePREPARATION) && new_position != POS_RESTING)
   {
-    act("$n's preparations are aborted!", FALSE, ch, 0, 0,
-        TO_ROOM);
+    act("$n's preparations are aborted!", FALSE, ch, 0, 0, TO_ROOM);
     send_to_char(ch, "Your preparations are aborted!\r\n");
     stop_all_preparations(ch);
   }

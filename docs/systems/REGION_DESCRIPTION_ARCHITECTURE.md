@@ -32,7 +32,7 @@ CREATE TABLE region_data (
 
 **Implementation:**
 ```sql
-ALTER TABLE region_data 
+ALTER TABLE region_data
 ADD COLUMN region_description LONGTEXT DEFAULT NULL,
 ADD COLUMN description_version INT DEFAULT 1,
 ADD COLUMN ai_agent_source VARCHAR(100) DEFAULT NULL,
@@ -98,8 +98,8 @@ The `region_description` field should contain rich, comprehensive information li
 WHISPERING WOOD COMPREHENSIVE DESCRIPTION
 
 OVERVIEW:
-An ancient primordial forest spanning approximately 15 square miles, dominated by 
-massive oak trees aged 800-1200 years. The forest maintains a mystical atmosphere 
+An ancient primordial forest spanning approximately 15 square miles, dominated by
+massive oak trees aged 800-1200 years. The forest maintains a mystical atmosphere
 with dappled sunlight filtering through multiple canopy layers.
 
 GEOGRAPHY & TERRAIN:
@@ -172,7 +172,7 @@ ACCESS POINTS:
 
 ```sql
 -- Add new columns to region_data table
-ALTER TABLE region_data 
+ALTER TABLE region_data
 ADD COLUMN region_description LONGTEXT DEFAULT NULL COMMENT 'Comprehensive description for AI context',
 ADD COLUMN description_version INT DEFAULT 1 COMMENT 'Version tracking for description updates',
 ADD COLUMN ai_agent_source VARCHAR(100) DEFAULT NULL COMMENT 'Which AI agent created/updated description',

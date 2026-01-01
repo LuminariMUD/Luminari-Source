@@ -213,7 +213,7 @@ pubsub_messages (
 ### Core Publishing API
 ```c
 // Standard topic-based publishing
-int pubsub_publish_message(int topic_id, const char *sender_name, 
+int pubsub_publish_message(int topic_id, const char *sender_name,
                           const char *content, int priority);
 
 // Spatial audio publishing (Phase 2B)
@@ -235,11 +235,11 @@ int pubsub_queue_process_batch(int max_messages);
 ### Spatial Audio API
 ```c
 // Main spatial handler
-int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, 
+int pubsub_handler_wilderness_spatial_audio(struct char_data *ch,
                                            struct pubsub_message *msg);
 
 // Multi-source audio mixing
-int pubsub_handler_audio_mixing(struct char_data *ch, 
+int pubsub_handler_audio_mixing(struct char_data *ch,
                                struct pubsub_message *msg);
 ```
 
@@ -294,7 +294,7 @@ int pubsub_handler_audio_mixing(struct char_data *ch,
 ### Debug Logging
 ```c
 pubsub_debug("Auto-processed %d messages from queue", processed);
-pubsub_info("Published wilderness audio from (%d,%d,%d), delivered to %d players", 
+pubsub_info("Published wilderness audio from (%d,%d,%d), delivered to %d players",
             source_x, source_y, source_z, processed);
 pubsub_error("Failed to parse spatial data: '%s'", msg->spatial_data);
 ```

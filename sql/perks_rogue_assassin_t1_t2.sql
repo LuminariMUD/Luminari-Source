@@ -14,13 +14,13 @@
 
 -- Perk ID 300: Sneak Attack I (Rank 1-5)
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -45,13 +45,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 301: Vital Strike
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -76,13 +76,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 302: Deadly Aim I (Rank 1-3)
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -107,13 +107,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 303: Opportunist I
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -142,13 +142,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 304: Sneak Attack II (Rank 1-3)
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -173,13 +173,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 305: Improved Vital Strike
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -204,13 +204,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 306: Assassinate I
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -235,13 +235,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 307: Deadly Aim II (Rank 1-2)
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -266,13 +266,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 308: Crippling Strike
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -297,13 +297,13 @@ INSERT INTO perk_data (
 
 -- Perk ID 309: Bleeding Attack
 INSERT INTO perk_data (
-    perk_id, 
-    name, 
-    description, 
-    associated_class, 
-    cost, 
-    max_rank, 
-    prerequisite_perk, 
+    perk_id,
+    name,
+    description,
+    associated_class,
+    cost,
+    max_rank,
+    prerequisite_perk,
     prerequisite_rank,
     effect_type,
     effect_value,
@@ -331,23 +331,23 @@ INSERT INTO perk_data (
 -- ============================================================================
 
 -- Check all Rogue Assassin T1-T2 perks were inserted
-SELECT 
+SELECT
     perk_id,
     name,
     cost,
     max_rank,
     prerequisite_perk,
     prerequisite_rank
-FROM perk_data 
+FROM perk_data
 WHERE perk_id BETWEEN 300 AND 309
 ORDER BY perk_id;
 
 -- Show the prerequisite chain
-SELECT 
+SELECT
     p.perk_id,
     p.name,
     p.cost,
-    CASE 
+    CASE
         WHEN p.prerequisite_perk = -1 THEN 'None'
         ELSE CONCAT(pre.name, ' (rank ', p.prerequisite_rank, ')')
     END AS prerequisite
@@ -357,11 +357,11 @@ WHERE p.perk_id BETWEEN 300 AND 309
 ORDER BY p.perk_id;
 
 -- Count perks by tier (based on cost)
-SELECT 
+SELECT
     cost AS tier_cost,
     COUNT(*) AS perk_count,
     SUM(cost * max_rank) AS max_point_investment
-FROM perk_data 
+FROM perk_data
 WHERE perk_id BETWEEN 300 AND 309
 GROUP BY cost
 ORDER BY cost;
@@ -369,7 +369,7 @@ ORDER BY cost;
 -- ============================================================================
 -- Implementation Notes
 -- ============================================================================
--- 
+--
 -- Tier 1 Perks (4 perks, 11 total ranks):
 --   - Sneak Attack I: 5 ranks × 1 point = 5 points
 --   - Vital Strike: 1 rank × 1 point = 1 point

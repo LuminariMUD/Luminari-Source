@@ -71,7 +71,7 @@ while kill -0 $BUILD_PID 2>/dev/null; do
             bar=$(printf '█%.0s' $(seq 1 $filled))
             spaces=$(printf '░%.0s' $(seq 1 $empty))
             printf "\r${GREEN}Progress: [${bar}${spaces}] ${percent}%%${NC}"
-            
+
             # When we hit 100%, show the message
             if [ "$percent" = "100" ] && [ "$hit_100" = "false" ]; then
                 hit_100=true

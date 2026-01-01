@@ -70,8 +70,8 @@ int holler_move_cost = 20;
 int tunnel_size = 2;
 
 /* Exp change limits. */
-int max_exp_gain = 100000; /* max gainable per kill */
-int max_exp_loss = 200000; /* max losable per death */
+int max_exp_gain = 100000;       /* max gainable per kill */
+int max_exp_loss = 200000;       /* max losable per death */
 int experience_multiplier = 100; /* percentage multiplier for exp gain (100 = normal) */
 
 /* Number of tics (usually 75 seconds) before PC/NPC corpses decompose. */
@@ -166,13 +166,10 @@ int auto_pwipe = NO;
      of the criteria.  The days entry is not used in this case. */
 struct pclean_criteria_data pclean_criteria[] = {
     /*	LEVEL		DAYS	*/
-    {0, 0}, /* level 0 */
-    {1, 4},
-    {4, 7},
-    {10, 30},
-    {LVL_IMMORT - 1, 60}, /* highest mortal */
-    {LVL_IMPL, 90},       /* all immortals */
-    {-1, 0}               /* no more level checks */
+    {0, 0},                                                 /* level 0 */
+    {1, 4},         {4, 7}, {10, 30}, {LVL_IMMORT - 1, 60}, /* highest mortal */
+    {LVL_IMPL, 90},                                         /* all immortals */
+    {-1, 0}                                                 /* no more level checks */
 };
 
 /* Do you want players who self-delete to be wiped immediately with no backup? */
@@ -277,17 +274,16 @@ int auto_save_olc = YES;
  * stock socials file. */
 int use_new_socials = YES;
 
-const char *MENU =
-    "\r\n"
-    "    @C*** @bReal@cms o@Wf Lu@cmina@bri @C***@n\r\n\r\n"
-    "    @W0) @CReturn to the Account Menu.@n\r\n"
-    "    @W1) @CEnter the game.@n\r\n"
-    "    @W2) @CEnter character description.@n\r\n"
-    "    @W3) @CRead the background story.@n\r\n"
-    "    @W4) @CChange password.@n\r\n"
-    "    @W5) @CDelete this character.@n\r\n"
-    "\r\n"
-    "   Make your choice: ";
+const char *MENU = "\r\n"
+                   "    @C*** @bReal@cms o@Wf Lu@cmina@bri @C***@n\r\n\r\n"
+                   "    @W0) @CReturn to the Account Menu.@n\r\n"
+                   "    @W1) @CEnter the game.@n\r\n"
+                   "    @W2) @CEnter character description.@n\r\n"
+                   "    @W3) @CRead the background story.@n\r\n"
+                   "    @W4) @CChange password.@n\r\n"
+                   "    @W5) @CDelete this character.@n\r\n"
+                   "\r\n"
+                   "   Make your choice: ";
 
 const char *WELC_MESSG =
     "\r\n"
@@ -345,13 +341,13 @@ int debug_mode = NO;
 // if 0, damage is normal.  If 20, damage will be 120% normal.
 // if -20, damage will be 80% normal.
 int psionic_power_damage = 0; // % value
-int divine_spell_damage  = 0;  // % value
-int arcane_spell_damage  = 0;  // % value
+int divine_spell_damage = 0;  // % value
+int arcane_spell_damage = 0;  // % value
 
 // These determine times for memorizing/preparing spells/powers
 int psionic_mem_times = 100;
-int divine_mem_times  = 100;
-int arcane_mem_times  = 100;
+int divine_mem_times = 100;
+int arcane_mem_times = 100;
 
 int extra_level_hp = 0; // This amount of hp will be added every time a player gains a level
 int extra_level_mv = 0; // This amount of mv will be added every time a player gains a level
@@ -359,8 +355,8 @@ int extra_level_mv = 0; // This amount of mv will be added every time a player g
 // No player armor class can go above this value
 int ac_cap = 60;
 
-int melee_exp_option = 1; // multiplier for melee experience gain
-int spell_cast_exp_option = 1; // multiplier for spell casting experience gain
+int melee_exp_option = 1;       // multiplier for melee experience gain
+int spell_cast_exp_option = 1;  // multiplier for spell casting experience gain
 int spellcasting_time_mode = 0; // 0 = standard action, 1 = per-spell seconds
 
 int arcane_moon_phases = 0; // 0 = OFF, 1 = ON
@@ -381,13 +377,12 @@ int death_exp_loss_penalty = 100;
 // The value is a percentage of the normal values. If 100
 // then the stats are unchanged.  If 80, the stats are 80%
 // of normal.  if 120, the stats are 120% normal.
-int summon_1_10_hp           = 100;
-int summon_1_10_hit_and_dam  = 100;
-int summon_1_10_ac           = 100;
-int summon_11_20_hp          = 100;
+int summon_1_10_hp = 100;
+int summon_1_10_hit_and_dam = 100;
+int summon_1_10_ac = 100;
+int summon_11_20_hp = 100;
 int summon_11_20_hit_and_dam = 100;
-int summon_11_20_ac          = 100;
-int summon_21_30_hp          = 100;
+int summon_11_20_ac = 100;
+int summon_21_30_hp = 100;
 int summon_21_30_hit_and_dam = 100;
-int summon_21_30_ac          = 100;
-
+int summon_21_30_ac = 100;

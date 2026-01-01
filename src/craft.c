@@ -219,14 +219,11 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
      not we are calling it invalid */
   for (counter = 0; counter < NUM_SIZES; counter++)
   {
-
     /* check our charts - chart A */
-    if (weapon_damage_a[counter][0] == num_of_dice &&
-        weapon_damage_a[counter][1] == size_of_dice)
+    if (weapon_damage_a[counter][0] == num_of_dice && weapon_damage_a[counter][1] == size_of_dice)
     {
       /* valid shift in chart?  calculate our new location on chart */
-      if (counter + size_shift >= NUM_SIZES ||
-          counter + size_shift <= SIZE_RESERVED)
+      if (counter + size_shift >= NUM_SIZES || counter + size_shift <= SIZE_RESERVED)
       {
         send_to_char(ch, "Invalid resize!\r\n");
         return FALSE;
@@ -239,12 +236,10 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
     }
 
     /* check our charts - chart B */
-    if (weapon_damage_b[counter][0] == num_of_dice &&
-        weapon_damage_b[counter][1] == size_of_dice)
+    if (weapon_damage_b[counter][0] == num_of_dice && weapon_damage_b[counter][1] == size_of_dice)
     {
       /* valid shift in chart?  calculate our new location on chart */
-      if (counter + size_shift >= NUM_SIZES ||
-          counter + size_shift <= SIZE_RESERVED)
+      if (counter + size_shift >= NUM_SIZES || counter + size_shift <= SIZE_RESERVED)
       {
         send_to_char(ch, "Invalid resize!\r\n");
         return FALSE;
@@ -257,12 +252,10 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
     }
 
     /* check our charts - chart C */
-    if (weapon_damage_c[counter][0] == num_of_dice &&
-        weapon_damage_c[counter][1] == size_of_dice)
+    if (weapon_damage_c[counter][0] == num_of_dice && weapon_damage_c[counter][1] == size_of_dice)
     {
       /* valid shift in chart?  calculate our new location on chart */
-      if (counter + size_shift >= NUM_SIZES ||
-          counter + size_shift <= SIZE_FINE)
+      if (counter + size_shift >= NUM_SIZES || counter + size_shift <= SIZE_FINE)
       { /* no 'fine' value for this weapon */
         send_to_char(ch, "Invalid resize!\r\n");
         return FALSE;
@@ -314,7 +307,6 @@ void reset_craft(struct char_data *ch)
 /* simple function to reset auto craft data */
 void reset_acraft(struct char_data *ch)
 {
-
   /* initialize values */
   GET_AUTOCQUEST_VNUM(ch) = 0;
   GET_AUTOCQUEST_MAKENUM(ch) = 0;
@@ -335,21 +327,21 @@ void cquest_report(struct char_data *ch)
   if (GET_AUTOCQUEST_VNUM(ch))
   {
     if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
-      send_to_char(ch, "You have completed your supply order for %s.\r\n",
-                   GET_AUTOCQUEST_DESC(ch));
+      send_to_char(ch, "You have completed your supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
     else
-      send_to_char(ch, "You have not yet completed your supply order "
-                       "for %s.\r\n"
-                       "You still need to make %d more.\r\n",
+      send_to_char(ch,
+                   "You have not yet completed your supply order "
+                   "for %s.\r\n"
+                   "You still need to make %d more.\r\n",
                    GET_AUTOCQUEST_DESC(ch), GET_AUTOCQUEST_MAKENUM(ch));
-    send_to_char(ch, "Once completed/turned-in you will receive the"
-                     " following:\r\n"
-                     "You will receive %d reputation points.\r\n"
-                     "%d gold will be awarded to you.\r\n"
-                     "You will receive %d experience points.\r\n"
-                     "(type 'supplyorder complete' at the supply office)\r\n",
-                 GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
-                 GET_AUTOCQUEST_EXP(ch));
+    send_to_char(ch,
+                 "Once completed/turned-in you will receive the"
+                 " following:\r\n"
+                 "You will receive %d reputation points.\r\n"
+                 "%d gold will be awarded to you.\r\n"
+                 "You will receive %d experience points.\r\n"
+                 "(type 'supplyorder complete' at the supply office)\r\n",
+                 GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
   }
   else
     send_to_char(ch, "Type 'supplyorder new' for a new supply order, "
@@ -393,7 +385,6 @@ void cquest_report(struct char_data *ch)
 /* this function returns an appropriate keyword(s) based on material */
 char *node_keywords(int material)
 {
-
   /* reference */
   /* steel      - vein of dull ore */
   /* cold iron  - vein of ore */
@@ -542,15 +533,14 @@ int random_node_material(int allowed)
 {
   int rand = 0;
 
-  if (mining_nodes >= (allowed * 2) && foresting_nodes >= allowed &&
-      farming_nodes >= allowed && hunting_nodes >= allowed)
+  if (mining_nodes >= (allowed * 2) && foresting_nodes >= allowed && farming_nodes >= allowed &&
+      hunting_nodes >= allowed)
     return MATERIAL_STEEL;
 
   rand = rand_number(1, 100);
   /* 34% mining, blacksmithing or goldsmithing */
   if (rand <= 34)
   {
-
     // mining
     if (mining_nodes >= (allowed * 2))
       return random_node_material(allowed);
@@ -559,7 +549,6 @@ int random_node_material(int allowed)
     /* 80% chance of blacksmithing (iron/steel/cold-iron/mithril/adamantine */
     if (rand <= 80)
     {
-
       rand = rand_number(1, 100);
       // blacksmithing
 
@@ -576,7 +565,6 @@ int random_node_material(int allowed)
     }
     else
     {
-
       // goldsmithing
 
       if (rand_number(1, 100) <= 90)
@@ -589,7 +577,6 @@ int random_node_material(int allowed)
   }
   else if (rand <= 67)
   {
-
     rand = rand_number(1, 100);
     // farming
 
@@ -622,7 +609,6 @@ int random_node_material(int allowed)
 
     if (rand <= 50)
     {
-
       rand = dice(1, 100);
       if (rand <= 99)
         return MATERIAL_LEATHER;
@@ -631,7 +617,6 @@ int random_node_material(int allowed)
     }
     else
     {
-
       rand = dice(1, 100);
       if (rand <= 99)
         return MATERIAL_WOOD;
@@ -722,7 +707,7 @@ void reset_harvesting_rooms(void)
       obj = read_object(HARVESTING_NODE, VIRTUAL);
       if (!obj)
         continue;
-      
+
       /* Duplicate strings from prototype to avoid double-free */
       if (obj->name)
         obj->name = strdup(obj->name);
@@ -730,7 +715,7 @@ void reset_harvesting_rooms(void)
         obj->short_description = strdup(obj->short_description);
       if (obj->description)
         obj->description = strdup(obj->description);
-      
+
       GET_OBJ_MATERIAL(obj) = random_node_material(nodes_allowed);
       switch (GET_OBJ_MATERIAL(obj))
       {
@@ -786,11 +771,14 @@ void reset_harvesting_rooms(void)
       GET_OBJ_VAL(obj, 0) = dice(2, 3);
 
       /* strdup()ed in node_foo() functions */
-      if (obj->name) free(obj->name);
+      if (obj->name)
+        free(obj->name);
       obj->name = node_keywords(GET_OBJ_MATERIAL(obj));
-      if (obj->short_description) free(obj->short_description);
+      if (obj->short_description)
+        free(obj->short_description);
       obj->short_description = node_sdesc(GET_OBJ_MATERIAL(obj));
-      if (obj->description) free(obj->description);
+      if (obj->description)
+        free(obj->description);
       obj->description = node_desc(GET_OBJ_MATERIAL(obj));
       obj_to_room(obj, cnt);
     }
@@ -866,18 +854,19 @@ int augment(struct obj_data *kit, struct char_data *ch)
   /* high enough skill? */
   if (essence_level > (GET_SKILL(ch, skill_type) / 3))
   {
-    send_to_char(ch, "The essence level is %d but your %s skill is "
-                     "only capable of creating level %d crystals.\r\n",
-                 essence_level, skill_name(skill_type),
-                 (GET_SKILL(ch, skill_type) / 3));
+    send_to_char(ch,
+                 "The essence level is %d but your %s skill is "
+                 "only capable of creating level %d crystals.\r\n",
+                 essence_level, skill_name(skill_type), (GET_SKILL(ch, skill_type) / 3));
     return 1;
   }
 
   cost = essence_level * 500 / 3; // expense for augmenting
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d coins on hand for supplies to augment this "
-                     "crystal.\r\n",
+    send_to_char(ch,
+                 "You need %d coins on hand for supplies to augment this "
+                 "crystal.\r\n",
                  cost);
     return 1;
   }
@@ -910,16 +899,16 @@ int augment(struct obj_data *kit, struct char_data *ch)
   /* exp bonus for crafting ticks */
   GET_CRAFTING_BONUS(ch) = 10 + MIN(30, essence_level);
   /* cost */
-  send_to_char(ch, "It cost you %d coins in supplies to augment this "
-                   "essence.\r\n",
+  send_to_char(ch,
+               "It cost you %d coins in supplies to augment this "
+               "essence.\r\n",
                cost);
   GET_GOLD(ch) -= cost;
 
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
   GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
   GET_CRAFTING_OBJ(ch) = essence_one;
-  send_to_char(ch, "You begin to augment %s.\r\n",
-               essence_one->short_description);
+  send_to_char(ch, "You begin to augment %s.\r\n", essence_one->short_description);
   act("$n begins to augment $p.", FALSE, ch, essence_one, 0, TO_ROOM);
 
   /* get rid of the items in the kit */
@@ -963,7 +952,10 @@ int convert(struct obj_data *kit, struct char_data *ch)
       {
         if (GET_OBJ_VAL(obj, 0) >= 2)
         {
-          send_to_char(ch, "%s is a bundled item, which must first be unbundled before you can use it to craft.\r\n", obj->short_description);
+          send_to_char(ch,
+                       "%s is a bundled item, which must first be unbundled before you can use it "
+                       "to craft.\r\n",
+                       obj->short_description);
           return 1;
         }
         if (material == -1)
@@ -1000,8 +992,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
   }
 
   if ((num_mats = convert_material(material)))
-    send_to_char(ch, "You are converting the material to:  %s\r\n",
-                 material_name[num_mats]);
+    send_to_char(ch, "You are converting the material to:  %s\r\n", material_name[num_mats]);
   else
   {
     send_to_char(ch, "You do not have a valid material in the crafting "
@@ -1011,26 +1002,25 @@ int convert(struct obj_data *kit, struct char_data *ch)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d gold on hand for supplies to covert these "
-                     "materials.\r\n",
+    send_to_char(ch,
+                 "You need %d gold on hand for supplies to covert these "
+                 "materials.\r\n",
                  cost);
     return 1;
   }
-  send_to_char(ch, "It cost you %d gold in supplies to convert this "
-                   "item.\r\n",
+  send_to_char(ch,
+               "It cost you %d gold in supplies to convert this "
+               "item.\r\n",
                cost);
   GET_GOLD(ch) -= cost;
   // new name
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  snprintf(buf, sizeof(buf), "\tca portion of %s material\tn",
-           material_name[num_mats]);
+  snprintf(buf, sizeof(buf), "\tca portion of %s material\tn", material_name[num_mats]);
   new_mat->name = strdup(buf);
   new_mat->short_description = strdup(buf);
-  snprintf(buf, sizeof(buf), "\tcA portion of %s material lies here.\tn",
-           material_name[num_mats]);
+  snprintf(buf, sizeof(buf), "\tcA portion of %s material lies here.\tn", material_name[num_mats]);
   new_mat->description = strdup(buf);
-  act("$n begins a conversion of materials into $p.", FALSE, ch,
-      new_mat, 0, TO_ROOM);
+  act("$n begins a conversion of materials into $p.", FALSE, ch, new_mat, 0, TO_ROOM);
 
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
   GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
@@ -1078,8 +1068,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     return 1;
   }
 
-  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
-      GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
   {
     if (obj->contains)
     {
@@ -1098,8 +1087,9 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   {
     if (!strstr(argument, material_name[GET_OBJ_MATERIAL(obj)]))
     {
-      send_to_char(ch, "You must include the material name, '%s', in the object "
-                       "description somewhere.\r\n",
+      send_to_char(ch,
+                   "You must include the material name, '%s', in the object "
+                   "description somewhere.\r\n",
                    material_name[GET_OBJ_MATERIAL(obj)]);
       return 1;
     }
@@ -1151,8 +1141,9 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d gold on hand for supplies to restring"
-                     " this item.\r\n",
+    send_to_char(ch,
+                 "You need %d gold on hand for supplies to restring"
+                 " this item.\r\n",
                  cost);
     return 1;
   }
@@ -1161,14 +1152,18 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   parse_at(argument);
 
   /* success!! */
-  if (obj->name) free(obj->name);
+  if (obj->name)
+    free(obj->name);
   obj->name = strdup(argument);
   strip_colors(obj->name);
-  if (obj->short_description) free(obj->short_description);
+  if (obj->short_description)
+    free(obj->short_description);
   obj->short_description = strdup(argument);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description) free(obj->description);
-  if (obj->description) free(obj->description);
+  if (obj->description)
+    free(obj->description);
+  if (obj->description)
+    free(obj->description);
   obj->description = strdup(buf);
   if (obj->ex_description)
   {
@@ -1183,11 +1178,11 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
   GET_CRAFTING_OBJ(ch) = obj;
 
-  send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",
-               cost);
+  send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
   GET_GOLD(ch) -= cost;
-  send_to_char(ch, "You put the item into the crafting kit and wait for it "
-                   "to transform into %s.\r\n",
+  send_to_char(ch,
+               "You put the item into the crafting kit and wait for it "
+               "to transform into %s.\r\n",
                obj->short_description);
 
   obj_from_obj(obj);
@@ -1222,8 +1217,7 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
     return 1;
   }
 
-  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
-      GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
   {
     if (obj->contains)
     {
@@ -1310,7 +1304,9 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
   GET_GOLD(ch) -= cost;
-  send_to_char(ch, "You put the item into the crafting kit and wait for it to transform into %s.\r\n", obj->short_description);
+  send_to_char(ch,
+               "You put the item into the crafting kit and wait for it to transform into %s.\r\n",
+               obj->short_description);
 
   obj_from_obj(obj);
 
@@ -1359,7 +1355,10 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
       {
         if (GET_OBJ_VAL(obj, 0) >= 2)
         {
-          send_to_char(ch, "%s is a bundled item, which must first be unbundled before you can use it to craft.\r\n", obj->short_description);
+          send_to_char(ch,
+                       "%s is a bundled item, which must first be unbundled before you can use it "
+                       "to craft.\r\n",
+                       obj->short_description);
           return 1;
         }
         if (GET_OBJ_MATERIAL(obj) != material)
@@ -1372,8 +1371,9 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
         num_mats++; /* we found matching material */
         if (num_mats > SUPPLYORDER_MATS)
         {
-          send_to_char(ch, "You have too much materials in the kit, put "
-                           "exactly %d for the supplyorder.\r\n",
+          send_to_char(ch,
+                       "You have too much materials in the kit, put "
+                       "exactly %d for the supplyorder.\r\n",
                        SUPPLYORDER_MATS);
           return 1;
         }
@@ -1388,8 +1388,9 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
 
   if (num_mats < SUPPLYORDER_MATS)
   {
-    send_to_char(ch, "You have %d material units in the kit, you will need "
-                     "%d more units to complete the supplyorder.\r\n",
+    send_to_char(ch,
+                 "You have %d material units in the kit, you will need "
+                 "%d more units to complete the supplyorder.\r\n",
                  num_mats, SUPPLYORDER_MATS - num_mats);
     return 1;
   }
@@ -1397,8 +1398,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
   GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch);
-  send_to_char(ch, "You begin a supply order for %s.\r\n",
-               GET_AUTOCQUEST_DESC(ch));
+  send_to_char(ch, "You begin a supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
 
   obj_vnum = GET_OBJ_VNUM(kit);
@@ -1477,8 +1477,9 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d coins on hand for supplies to resize this "
-                     "item.\r\n",
+    send_to_char(ch,
+                 "You need %d coins on hand for supplies to resize this "
+                 "item.\r\n",
                  cost);
     return 1;
   }
@@ -1493,8 +1494,8 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
     {
       /* success, weapon upgraded or downgraded in damage
          corresponding to size change */
-      send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n",
-                   num_dice, size_dice, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+      send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n", num_dice, size_dice,
+                   GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
     }
     else
     {
@@ -1505,13 +1506,11 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (cost > 0)
   {
-    send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
-                 cost);
+    send_to_char(ch, "It cost you %d coins to resize this item.\r\n", cost);
     GET_GOLD(ch) -= cost;
   }
-  send_to_char(ch, "You begin to resize %s from %s to %s.\r\n",
-               obj->short_description, size_names[GET_OBJ_SIZE(obj)],
-               size_names[newsize]);
+  send_to_char(ch, "You begin to resize %s from %s to %s.\r\n", obj->short_description,
+               size_names[GET_OBJ_SIZE(obj)], size_names[newsize]);
   act("$n begins resizing $p.", FALSE, ch, obj, 0, TO_ROOM);
   obj_from_obj(obj);
 
@@ -1566,12 +1565,12 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
     return 1;
   }
 
-    if (GET_OBJ_TYPE(obj) != ITEM_ARMOR)
+  if (GET_OBJ_TYPE(obj) != ITEM_ARMOR)
   {
     send_to_char(ch, "You can only convert armor and shields to bone.\r\n");
     return 1;
   }
- 
+
 
   if (GET_OBJ_MATERIAL(obj) == MATERIAL_BONE)
   {
@@ -1581,7 +1580,9 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (!strstr(argument, material_name[MATERIAL_BONE]))
   {
-    send_to_char(ch, "You must include the material name, '%s', in the object description somewhere.\r\n", material_name[MATERIAL_BONE]);
+    send_to_char(
+        ch, "You must include the material name, '%s', in the object description somewhere.\r\n",
+        material_name[MATERIAL_BONE]);
     return 1;
   }
 
@@ -1590,7 +1591,8 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d coins on hand for supplies to convert this item into bone.\r\n", cost);
+    send_to_char(ch, "You need %d coins on hand for supplies to convert this item into bone.\r\n",
+                 cost);
     return 1;
   }
 
@@ -1604,14 +1606,18 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
   parse_at(argument);
 
   /* success!! */
-  if (obj->name) free(obj->name);
+  if (obj->name)
+    free(obj->name);
   obj->name = strdup(argument);
   strip_colors(obj->name);
-  if (obj->short_description) free(obj->short_description);
+  if (obj->short_description)
+    free(obj->short_description);
   obj->short_description = strdup(argument);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description) free(obj->description);
-  if (obj->description) free(obj->description);
+  if (obj->description)
+    free(obj->description);
+  if (obj->description)
+    free(obj->description);
   obj->description = strdup(buf);
 
   send_to_char(ch, "You begin to convert %s into bone.\r\n", obj->short_description);
@@ -1662,7 +1668,7 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     return 1;
   }
 
-    if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+  if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
   {
     send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
     return 1;
@@ -1672,7 +1678,8 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (!*argument)
   {
-    send_to_char(ch, "Please specify the type of weapon, armor or shield you'd like to reforge this item into. Type weaponlist or armorlistfull to see options.\r\n");
+    send_to_char(ch, "Please specify the type of weapon, armor or shield you'd like to reforge "
+                     "this item into. Type weaponlist or armorlistfull to see options.\r\n");
     return 1;
   }
 
@@ -1691,86 +1698,93 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 
   switch (GET_OBJ_TYPE(obj))
   {
-    case ITEM_WEAPON:
-      for (i = 0; i < NUM_WEAPON_TYPES; i++)
+  case ITEM_WEAPON:
+    for (i = 0; i < NUM_WEAPON_TYPES; i++)
+    {
+      if (is_abbrev(weapon_list[i].name, argument))
+        break;
+    }
+    if (i >= NUM_WEAPON_TYPES)
+    {
+      send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
+      return 1;
+    }
+    if (i == GET_OBJ_VAL(obj, 0))
+    {
+      send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[i].name),
+                   weapon_list[i].name);
+      return 1;
+    }
+    set_weapon_object(obj, i);
+    break;
+  case ITEM_ARMOR:
+    if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
+    {
+      for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
       {
-        if (is_abbrev(weapon_list[i].name, argument))
+        if (!IS_SHIELD(i))
+          continue;
+        if (is_abbrev(armor_list[i].name, argument))
           break;
       }
-      if (i >= NUM_WEAPON_TYPES)
+      if (i >= NUM_SPEC_ARMOR_TYPES)
       {
-        send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
+        send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
         return 1;
       }
-      if (i == GET_OBJ_VAL(obj, 0))
+      if (i == GET_OBJ_VAL(obj, 1))
       {
-        send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[i].name), weapon_list[i].name);
+        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name),
+                     armor_list[i].name);
         return 1;
       }
-      set_weapon_object(obj, i);
-      break;
-    case ITEM_ARMOR:
-      if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
+      GET_OBJ_VAL(obj, 1) = i;
+    }
+    else
+    {
+      for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
       {
-        for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
+        if (IS_SHIELD(i))
+          continue;
+        if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[i].wear != ITEM_WEAR_HEAD)
         {
-          if (!IS_SHIELD(i)) continue;
-          if (is_abbrev(armor_list[i].name, argument))
-            break;
+          continue;
         }
-        if (i >= NUM_SPEC_ARMOR_TYPES)
+        else if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[i].wear != ITEM_WEAR_BODY)
         {
-          send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
-          return 1;
+          continue;
         }
-        if (i == GET_OBJ_VAL(obj, 1))
+        else if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[i].wear != ITEM_WEAR_ARMS)
         {
-          send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name), armor_list[i].name);
-          return 1;
+          continue;
         }
-        GET_OBJ_VAL(obj, 1) = i;
+        else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[i].wear != ITEM_WEAR_LEGS)
+        {
+          continue;
+        }
+        if (is_abbrev(armor_list[i].name, argument))
+          break;
       }
-      else
+      if (i >= NUM_SPEC_ARMOR_TYPES)
       {
-        for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
-        {
-          if (IS_SHIELD(i)) continue;
-          if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[i].wear != ITEM_WEAR_HEAD)
-          {
-            continue;
-          }
-          else if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[i].wear != ITEM_WEAR_BODY)
-          {
-            continue;
-          }
-          else if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[i].wear != ITEM_WEAR_ARMS)
-          {
-            continue;
-          }
-          else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[i].wear != ITEM_WEAR_LEGS)
-          {
-            continue;
-          }
-          if (is_abbrev(armor_list[i].name, argument))
-            break;
-        }
-        if (i >= NUM_SPEC_ARMOR_TYPES)
-        {
-          send_to_char(ch, "That is not a valid armor type. Type armorlistfull for options. Please ensure wear types match. Ie. You can only reforge a body wear slot to another body wear slot.\r\n");
-          return 1;
-        }
-        if (i == GET_OBJ_VAL(obj, 1))
-        {
-          send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name), armor_list[i].name);
-          return 1;
-        }
-        GET_OBJ_VAL(obj, 1) = i;
+        send_to_char(ch, "That is not a valid armor type. Type armorlistfull for options. Please "
+                         "ensure wear types match. Ie. You can only reforge a body wear slot to "
+                         "another body wear slot.\r\n");
+        return 1;
       }
-      set_armor_object(obj, i);
-      break;
-    default:
-      send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
-      return 1;
+      if (i == GET_OBJ_VAL(obj, 1))
+      {
+        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name),
+                     armor_list[i].name);
+        return 1;
+      }
+      GET_OBJ_VAL(obj, 1) = i;
+    }
+    set_armor_object(obj, i);
+    break;
+  default:
+    send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+    return 1;
   }
 
   GET_OBJ_COST(obj) = orig_cost;
@@ -1791,12 +1805,16 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     GET_GOLD(ch) -= cost;
   }
 
-  send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description, 
-                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name) : AN(armor_list[GET_OBJ_VAL(obj, 1)].name), 
-                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name : armor_list[GET_OBJ_VAL(obj, 1)].name);
-  snprintf(buf, sizeof(buf), "$n begins to reforge %s into %s %s.", obj->short_description, 
-                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name) : AN(armor_list[GET_OBJ_VAL(obj, 1)].name), 
-                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name : armor_list[GET_OBJ_VAL(obj, 1)].name);
+  send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description,
+               (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name)
+                                                  : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
+               (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name
+                                                  : armor_list[GET_OBJ_VAL(obj, 1)].name);
+  snprintf(buf, sizeof(buf), "$n begins to reforge %s into %s %s.", obj->short_description,
+           (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name)
+                                              : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
+           (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name
+                                              : armor_list[GET_OBJ_VAL(obj, 1)].name);
   act(buf, FALSE, ch, obj, 0, TO_ROOM);
 
   // new descriptions
@@ -1806,24 +1824,27 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     snprintf(bonus, sizeof(bonus), "(no enchantment bonus)");
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-  {   
+  {
     snprintf(buf, sizeof(buf), "a reforged %s %s", weapon_list[GET_OBJ_VAL(obj, 0)].name, bonus);
   }
   else
-  {  
+  {
     snprintf(buf, sizeof(buf), "a reforged %s %s", armor_list[GET_OBJ_VAL(obj, 1)].name, bonus);
   }
 
-  if (obj->name) free(obj->name);
+  if (obj->name)
+    free(obj->name);
   obj->name = strdup(buf);
   strip_colors(obj->name);
-  if (obj->short_description) free(obj->short_description);
+  if (obj->short_description)
+    free(obj->short_description);
   obj->short_description = strdup(buf);
-  
+
   /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
   char *temp_str = strdup(obj->short_description);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(temp_str));
-  if (obj->description) free(obj->description);
+  if (obj->description)
+    free(obj->description);
   obj->description = strdup(buf);
   free(temp_str);
 
@@ -1964,10 +1985,9 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
 int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
-                  *material = NULL, *essence = NULL;
-  int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
-      mats_needed = 12345, found = 0, i = 0, l = 0;
+  struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL, *material = NULL, *essence = NULL;
+  int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING, mats_needed = 12345,
+      found = 0, i = 0, l = 0;
   int fast_craft_bonus = 0;
   int chance_of_crit = 0;
 
@@ -1988,8 +2008,9 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   /* string length limit  -zusuk */
   if (l > CREATE_STRING_LIMIT)
   {
-    send_to_char(ch, "The length (%d) of the name you gave your object is over "
-                     "the limit (%d).\r\n",
+    send_to_char(ch,
+                 "The length (%d) of the name you gave your object is over "
+                 "the limit (%d).\r\n",
                  l, CREATE_STRING_LIMIT);
     return 1;
   }
@@ -2041,7 +2062,10 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       {
         if (GET_OBJ_VAL(obj, 0) >= 2)
         {
-          send_to_char(ch, "%s is a bundled item, which must first be unbundled before you can use it to craft.\r\n", obj->short_description);
+          send_to_char(ch,
+                       "%s is a bundled item, which must first be unbundled before you can use it "
+                       "to craft.\r\n",
+                       obj->short_description);
           return 1;
         }
         if (!material)
@@ -2103,32 +2127,28 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   }
 
   /* right material? */
-  if (HAS_FEAT(ch, FEAT_BONE_ARMOR) &&
-      (GET_OBJ_MATERIAL(material) == MATERIAL_BONE || GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONBONE))
+  if (HAS_FEAT(ch, FEAT_BONE_ARMOR) && (GET_OBJ_MATERIAL(material) == MATERIAL_BONE ||
+                                        GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONBONE))
   {
     send_to_char(ch, "You use your mastery in bone-crafting to substitutue "
                      "bone for the normal material needed...\r\n");
   }
-  else if (IS_CLOTH(GET_OBJ_MATERIAL(mold)) &&
-           !IS_CLOTH(GET_OBJ_MATERIAL(material)))
+  else if (IS_CLOTH(GET_OBJ_MATERIAL(mold)) && !IS_CLOTH(GET_OBJ_MATERIAL(material)))
   {
     send_to_char(ch, "You need cloth for this mold pattern.\r\n");
     return 1;
   }
-  else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)) &&
-           !IS_LEATHER(GET_OBJ_MATERIAL(material)))
+  else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)) && !IS_LEATHER(GET_OBJ_MATERIAL(material)))
   {
     send_to_char(ch, "You need leather for this mold pattern.\r\n");
     return 1;
   }
-  else if (IS_WOOD(GET_OBJ_MATERIAL(mold)) &&
-           !IS_WOOD(GET_OBJ_MATERIAL(material)))
+  else if (IS_WOOD(GET_OBJ_MATERIAL(mold)) && !IS_WOOD(GET_OBJ_MATERIAL(material)))
   {
     send_to_char(ch, "You need wood for this mold pattern.\r\n");
     return 1;
   }
-  else if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)) &&
-           !IS_HARD_METAL(GET_OBJ_MATERIAL(material)))
+  else if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)) && !IS_HARD_METAL(GET_OBJ_MATERIAL(material)))
   {
     send_to_char(ch, "You need hard metal for this mold pattern.\r\n");
     return 1;
@@ -2165,26 +2185,28 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
   if (num_mats < mats_needed)
   {
-    send_to_char(ch, "You do not have enough materials to make that item.  "
-                     "You need %d more units of the same type.\r\n",
+    send_to_char(ch,
+                 "You do not have enough materials to make that item.  "
+                 "You need %d more units of the same type.\r\n",
                  mats_needed - num_mats);
     return 1;
   }
   else if (num_mats > mats_needed)
   {
-    send_to_char(ch, "You put too much material in the kit, please "
-                     "take out %d units.\r\n",
+    send_to_char(ch,
+                 "You put too much material in the kit, please "
+                 "take out %d units.\r\n",
                  num_mats - mats_needed);
     return 1;
   }
 
   /** check for other disqualifiers */
   /* valid name */
-  if (mode == CREATE_MODE_CREATE && !strstr(argument,
-                                            material_name[GET_OBJ_MATERIAL(material)]))
+  if (mode == CREATE_MODE_CREATE && !strstr(argument, material_name[GET_OBJ_MATERIAL(material)]))
   {
-    send_to_char(ch, "You must include the material name, '%s', in the object "
-                     "description somewhere.\r\n",
+    send_to_char(ch,
+                 "You must include the material name, '%s', in the object "
+                 "description somewhere.\r\n",
                  material_name[GET_OBJ_MATERIAL(material)]);
 
     return 1;
@@ -2197,17 +2219,21 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     /* feat, etc bonuses */
     if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
     {
-      send_to_char(ch, "Your masterwork-crafting skill increases the chance of creating a master-piece!\r\n");
+      send_to_char(
+          ch,
+          "Your masterwork-crafting skill increases the chance of creating a master-piece!\r\n");
       chance_of_crit += 10;
     }
     if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
     {
-      send_to_char(ch, "Your dwarven-crafting skill increases the chance of creating a master-piece!\r\n");
+      send_to_char(
+          ch, "Your dwarven-crafting skill increases the chance of creating a master-piece!\r\n");
       chance_of_crit += 10;
     }
     if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
     {
-      send_to_char(ch, "Your draconic-crafting skill increases the chance of creating a master-piece!\r\n");
+      send_to_char(
+          ch, "Your draconic-crafting skill increases the chance of creating a master-piece!\r\n");
       chance_of_crit += 10;
     }
   }
@@ -2216,21 +2242,15 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   /* we determine crafting skill by wear-flag */
 
   /* jewel making (finger, */
-  if (CAN_WEAR(mold, ITEM_WEAR_FINGER) ||
-      CAN_WEAR(mold, ITEM_WEAR_ANKLE) ||
-      CAN_WEAR(mold, ITEM_WEAR_NECK) ||
-      CAN_WEAR(mold, ITEM_WEAR_HOLD))
+  if (CAN_WEAR(mold, ITEM_WEAR_FINGER) || CAN_WEAR(mold, ITEM_WEAR_ANKLE) ||
+      CAN_WEAR(mold, ITEM_WEAR_NECK) || CAN_WEAR(mold, ITEM_WEAR_HOLD))
   {
     skill = SKILL_JEWELRY_MAKING;
   } /* body armor pieces: either armor-smith/leather-worker/or knitting */
-  else if (CAN_WEAR(mold, ITEM_WEAR_BODY) ||
-           CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
-           CAN_WEAR(mold, ITEM_WEAR_LEGS) ||
-           CAN_WEAR(mold, ITEM_WEAR_HEAD) ||
-           CAN_WEAR(mold, ITEM_WEAR_FEET) ||
-           CAN_WEAR(mold, ITEM_WEAR_HANDS) ||
-           CAN_WEAR(mold, ITEM_WEAR_WRIST) ||
-           CAN_WEAR(mold, ITEM_WEAR_WAIST))
+  else if (CAN_WEAR(mold, ITEM_WEAR_BODY) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
+           CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_HEAD) ||
+           CAN_WEAR(mold, ITEM_WEAR_FEET) || CAN_WEAR(mold, ITEM_WEAR_HANDS) ||
+           CAN_WEAR(mold, ITEM_WEAR_WRIST) || CAN_WEAR(mold, ITEM_WEAR_WAIST))
   {
     if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
       skill = SKILL_ARMOR_SMITHING;
@@ -2243,8 +2263,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   {
     skill = SKILL_KNITTING;
   } /* weapon-smithing:  weapons and shields */
-  else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) ||
-           CAN_WEAR(mold, ITEM_WEAR_SHIELD))
+  else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD))
   {
     skill = SKILL_WEAPON_SMITHING;
   }
@@ -2287,8 +2306,9 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
                    chance_of_crit);
     }
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
-    send_to_char(ch, "It will make use of your %s skill, which has a value "
-                     "of %d.\r\n",
+    send_to_char(ch,
+                 "It will make use of your %s skill, which has a value "
+                 "of %d.\r\n",
                  spell_info[skill].name, GET_SKILL(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
@@ -2299,8 +2319,9 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   /* not enough gold? */
   else if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d coins on hand for supplies to make"
-                     "this item.\r\n",
+    send_to_char(ch,
+                 "You need %d coins on hand for supplies to make"
+                 "this item.\r\n",
                  cost);
     return 1;
   }
@@ -2344,8 +2365,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       /*debug*/
       if (GET_LEVEL(ch) >= LVL_IMMORT)
       {
-        send_to_char(ch, "Staff override on crit chance (real chance: %d)\r\n",
-                     chance_of_crit);
+        send_to_char(ch, "Staff override on crit chance (real chance: %d)\r\n", chance_of_crit);
         chance_of_crit = 101;
       }
       /*debug*/
@@ -2359,24 +2379,27 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       }
     }
 
-    GET_OBJ_COST(mold) = 100 + GET_OBJ_LEVEL(mold) * 50 * MAX(1, GET_OBJ_LEVEL(mold) - 1) + GET_OBJ_COST(mold);
+    GET_OBJ_COST(mold) =
+        100 + GET_OBJ_LEVEL(mold) * 50 * MAX(1, GET_OBJ_LEVEL(mold) - 1) + GET_OBJ_COST(mold);
     GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(mold));
 
-    send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",
-                 cost);
+    send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
     GET_GOLD(ch) -= cost;
 
     /* gotta convert @ sign */
     parse_at(argument);
 
     /* restringing aspect */
-    if (mold->short_description) free(mold->short_description);
+    if (mold->short_description)
+      free(mold->short_description);
     mold->short_description = strdup(argument);
     snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-    if (mold->description) free(mold->description);
+    if (mold->description)
+      free(mold->description);
     mold->description = strdup(buf);
     strip_colors(argument);
-    if (mold->name) free(mold->name);
+    if (mold->name)
+      free(mold->name);
     mold->name = strdup(argument); /*keywords, leave last*/
 
     send_to_char(ch, "You begin to craft %s.\r\n", mold->short_description);
@@ -2427,10 +2450,9 @@ SPECIAL(crafting_kit)
     return TRUE;
   }
 
-  if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
-      !CMD_IS("restring") && !CMD_IS("redesc") && !CMD_IS("augment") && !CMD_IS("convert") &&
-      !CMD_IS("autocraft") && !CMD_IS("disenchant") && !CMD_IS("bonearmor") &&
-      !CMD_IS("reforge"))
+  if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") && !CMD_IS("restring") &&
+      !CMD_IS("redesc") && !CMD_IS("augment") && !CMD_IS("convert") && !CMD_IS("autocraft") &&
+      !CMD_IS("disenchant") && !CMD_IS("bonearmor") && !CMD_IS("reforge"))
     return 0;
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
@@ -2451,18 +2473,20 @@ SPECIAL(crafting_kit)
   skip_spaces(&argument);
 
   /* Some of the commands require argument */
-  if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") &&
-      !CMD_IS("autocraft") && !CMD_IS("convert") && !CMD_IS("disenchant"))
+  if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") && !CMD_IS("autocraft") &&
+      !CMD_IS("convert") && !CMD_IS("disenchant"))
   {
     if (CMD_IS("create") || CMD_IS("restring") || CMD_IS("bonearmor") || CMD_IS("redesc"))
-      send_to_char(ch, "Please provide an item description containing the item name in the string.\r\n");
+      send_to_char(
+          ch, "Please provide an item description containing the item name in the string.\r\n");
     else if (CMD_IS("resize"))
       send_to_char(ch, "What would you like the new size to be?"
                        " (fine|diminutive|tiny|small|"
                        "medium|large|huge|gargantuan|colossal)\r\n");
     else if (CMD_IS("reforge"))
     {
-      send_to_char(ch, "Please specify the type of weapon, armor of shield you'd like to reforge this item into. See weaponlist and armorlistfull for options.\r\n");
+      send_to_char(ch, "Please specify the type of weapon, armor of shield you'd like to reforge "
+                       "this item into. See weaponlist and armorlistfull for options.\r\n");
     }
     return 1;
   }
@@ -2475,10 +2499,10 @@ SPECIAL(crafting_kit)
     else if (CMD_IS("autocraft"))
     {
       if (GET_AUTOCQUEST_MATERIAL(ch))
-        send_to_char(ch, "You must place %d units of %s or a similar type of "
-                         "material (all the same type) into the kit to continue.\r\n",
-                     SUPPLYORDER_MATS,
-                     material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
+        send_to_char(ch,
+                     "You must place %d units of %s or a similar type of "
+                     "material (all the same type) into the kit to continue.\r\n",
+                     SUPPLYORDER_MATS, material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
       else
         send_to_char(ch, "You do not have a supply order active "
                          "right now.\r\n");
@@ -2493,7 +2517,7 @@ SPECIAL(crafting_kit)
                        "crafting kit.\r\n");
     else if (CMD_IS("redesc"))
       send_to_char(ch, "You must place the item to redesc and in the "
-                       "crafting kit.\r\n"); 
+                       "crafting kit.\r\n");
     else if (CMD_IS("resize"))
       send_to_char(ch, "You must place the item in the kit to resize it.\r\n");
     else if (CMD_IS("bonearmor"))
@@ -2704,30 +2728,31 @@ SPECIAL(crafting_quest)
       GET_AUTOCQUEST_EXP(ch) = 1500;
     };
 
-    send_to_char(ch, "You have been commissioned for a supply order to "
-                     "make %s.  We expect you to make %d before you can collect your "
-                     "reward.  Good luck!  Once completed you will receive the "
-                     "following:  You will receive %d quest points."
-                     "  %d gold will be given to you.  You will receive %d "
-                     "experience points.\r\n",
-                 desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch),
-                 GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
+    send_to_char(ch,
+                 "You have been commissioned for a supply order to "
+                 "make %s.  We expect you to make %d before you can collect your "
+                 "reward.  Good luck!  Once completed you will receive the "
+                 "following:  You will receive %d quest points."
+                 "  %d gold will be given to you.  You will receive %d "
+                 "experience points.\r\n",
+                 desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
+                 GET_AUTOCQUEST_EXP(ch));
 #if defined(CAMPAIGN_DL)
     put_mysql_supply_orders_available(ch, --avail);
 #endif
-
   }
   else if (!strcmp(arg, "complete"))
   {
     if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0)
     {
-      send_to_char(ch, "You have completed your supply order contract"
-                       " for %s.\r\n"
-                       "You receive %d reputation points.\r\n"
-                       "%d gold has been given to you.\r\n"
-                       "You receive %d experience points.\r\n",
-                   GET_AUTOCQUEST_DESC(ch), GET_AUTOCQUEST_QP(ch),
-                   GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
+      send_to_char(ch,
+                   "You have completed your supply order contract"
+                   " for %s.\r\n"
+                   "You receive %d reputation points.\r\n"
+                   "%d gold has been given to you.\r\n"
+                   "You receive %d experience points.\r\n",
+                   GET_AUTOCQUEST_DESC(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
+                   GET_AUTOCQUEST_EXP(ch));
       GET_QUESTPOINTS(ch) += GET_AUTOCQUEST_QP(ch);
       GET_GOLD(ch) += GET_AUTOCQUEST_GOLD(ch);
       GET_EXP(ch) += GET_AUTOCQUEST_EXP(ch);
@@ -2739,8 +2764,8 @@ SPECIAL(crafting_quest)
   }
   else if (!strcmp(arg, "quit"))
   {
-    send_to_char(ch, "You abandon your supply order to make %d %s.\r\n",
-                 GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch));
+    send_to_char(ch, "You abandon your supply order to make %d %s.\r\n", GET_AUTOCQUEST_MAKENUM(ch),
+                 GET_AUTOCQUEST_DESC(ch));
     reset_acraft(ch);
   }
   else
@@ -2797,8 +2822,7 @@ EVENTFUNC(event_crafting)
     /* disenchant.   disenchant has no OBJ so we handle separate */
     if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT)
     {
-      send_to_char(ch, "You continue to %s.\r\n",
-                   craft_type[GET_CRAFTING_TYPE(ch)]);
+      send_to_char(ch, "You continue to %s.\r\n", craft_type[GET_CRAFTING_TYPE(ch)]);
       exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);
 
       /* should be everything that is not disenchant/supplyorder */
@@ -2806,16 +2830,14 @@ EVENTFUNC(event_crafting)
     else if (GET_CRAFTING_OBJ(ch))
     {
       send_to_char(ch, "You continue to %s and work to create %s.\r\n",
-                   craft_type[GET_CRAFTING_TYPE(ch)],
-                   GET_CRAFTING_OBJ(ch)->short_description);
+                   craft_type[GET_CRAFTING_TYPE(ch)], GET_CRAFTING_OBJ(ch)->short_description);
       exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);
 
       /* supply orders */
     }
     else
     {
-      send_to_char(ch, "You continue your supply order for %s.\r\n",
-                   GET_AUTOCQUEST_DESC(ch));
+      send_to_char(ch, "You continue your supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
       exp = GET_LEVEL(ch) * 2;
     }
 
@@ -2826,8 +2848,9 @@ EVENTFUNC(event_crafting)
       gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
       send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
     }
-    send_to_char(ch, "You have approximately %d seconds "
-                     "left to go.\r\n",
+    send_to_char(ch,
+                 "You have approximately %d seconds "
+                 "left to go.\r\n",
                  GET_CRAFTING_TICKS(ch) * 6);
 
     GET_CRAFTING_TICKS(ch)--;
@@ -2846,7 +2869,6 @@ EVENTFUNC(event_crafting)
 
     switch (GET_CRAFTING_TYPE(ch))
     {
-
     case SCMD_RESIZE:
       // no skill association
       snprintf(buf, sizeof(buf), "You resize $p.");
@@ -2870,15 +2892,19 @@ EVENTFUNC(event_crafting)
       autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
       break;
 
-      case SCMD_REFORGE:
+    case SCMD_REFORGE:
       if (GET_OBJ_TYPE(GET_CRAFTING_OBJ(ch)) == ITEM_WEAPON)
         skill = SKILL_WEAPON_SMITHING;
       else
         skill = SKILL_ARMOR_SMITHING;
 
-      snprintf(buf, sizeof(buf), "You finish reforging $p. It is recommended you use the restring command on this object.");
+      snprintf(buf, sizeof(buf),
+               "You finish reforging $p. It is recommended you use the restring command on this "
+               "object.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n finishes reforging $p. It is recommended you use the restring command on this object.");
+      snprintf(buf, sizeof(buf),
+               "$n finishes reforging $p. It is recommended you use the restring command on this "
+               "object.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* Save the character to persist restring_identifier and other object changes */
@@ -2892,8 +2918,7 @@ EVENTFUNC(event_crafting)
 
     case SCMD_DIVIDE:
       // no skill association
-      snprintf(buf, sizeof(buf), "You create $p (x%d).",
-               GET_CRAFTING_REPEAT(ch));
+      snprintf(buf, sizeof(buf), "You create $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
@@ -3145,8 +3170,9 @@ EVENTFUNC(event_crafting)
       {
         snprintf(buf, sizeof(buf), "$n completes a supply order.");
         act(buf, false, ch, NULL, 0, TO_ROOM);
-        send_to_char(ch, "You have completed another item in your supply "
-                         "order and have %d more to make.\r\n",
+        send_to_char(ch,
+                     "You have completed another item in your supply "
+                     "order and have %d more to make.\r\n",
                      GET_AUTOCQUEST_MAKENUM(ch));
       }
       break;
@@ -3237,7 +3263,6 @@ ACMD(do_harvest)
 
   switch (material)
   {
-
   case MATERIAL_STEEL:
     roll = dice(1, 100);
     if (roll <= 40)
@@ -3490,13 +3515,15 @@ ACMD(do_harvest)
     break;
 
   default:
-    send_to_char(ch, "That is not a valid node type, please report this to a staff member [1].\r\n");
+    send_to_char(ch,
+                 "That is not a valid node type, please report this to a staff member [1].\r\n");
     return;
   }
 
   if (!obj)
   {
-    send_to_char(ch, "That is not a valid node type, please report this to a staff member [2].\r\n");
+    send_to_char(ch,
+                 "That is not a valid node type, please report this to a staff member [2].\r\n");
     return;
   }
 
@@ -3562,19 +3589,23 @@ int get_mysql_supply_orders_available(struct char_data *ch)
   MYSQL_ROW row;
   char buf[MAX_STRING_LENGTH];
   int avail = 0;
-  
+
   /* Ensure database connection is active */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed", __func__);
     return 0;
   }
 
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name) {
+  if (!escaped_name)
+  {
     log("SYSERR: Failed to escape player name in get_avail_supply_orders");
     return -1;
   }
-  snprintf(buf, sizeof(buf), "SELECT supply_orders_available FROM player_supply_orders WHERE player_name='%s'", escaped_name);
+  snprintf(buf, sizeof(buf),
+           "SELECT supply_orders_available FROM player_supply_orders WHERE player_name='%s'",
+           escaped_name);
   free(escaped_name);
 
   if (mysql_query(conn, buf))
@@ -3602,24 +3633,29 @@ int get_mysql_supply_orders_available(struct char_data *ch)
 void put_mysql_supply_orders_available(struct char_data *ch, int avail)
 {
   char buf[MAX_STRING_LENGTH];
-  
+
   /* Ensure database connection is active */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed", __func__);
     return;
   }
 
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name) {
+  if (!escaped_name)
+  {
     log("SYSERR: Failed to escape player name in put_mysql_supply_orders_available");
     return;
   }
-  snprintf(buf, sizeof(buf), "DELETE FROM supply_orders_available WHERE player_name='%s'", escaped_name);
+  snprintf(buf, sizeof(buf), "DELETE FROM supply_orders_available WHERE player_name='%s'",
+           escaped_name);
 
   mysql_query(conn, buf);
 
-  snprintf(buf, sizeof(buf), "INSERT INTO supply_orders_available (idnum, player_name, supply_orders_available) VALUES(NULL, '%s', '%d')",
-          escaped_name, avail);
+  snprintf(buf, sizeof(buf),
+           "INSERT INTO supply_orders_available (idnum, player_name, supply_orders_available) "
+           "VALUES(NULL, '%s', '%d')",
+           escaped_name, avail);
   free(escaped_name);
 
   if (mysql_query(conn, buf))
@@ -3630,5 +3666,6 @@ void put_mysql_supply_orders_available(struct char_data *ch, int avail)
 
 ACMD(do_need_craft_kit)
 {
-  send_to_char(ch, "You must be in a room with a crafting station or have a crafting kit in your inventory to perform this action.\r\n");
+  send_to_char(ch, "You must be in a room with a crafting station or have a crafting kit in your "
+                   "inventory to perform this action.\r\n");
 }

@@ -15,8 +15,8 @@ When the introduction system is disabled via CONFIG_USE_INTRO_SYSTEM, players mu
 When a player attempts to enter the game from the main menu (option 1), the system now checks:
 
 1. **Is the introduction system disabled?** (`!CONFIG_USE_INTRO_SYSTEM`)
-2. **Has the player NOT set their short description?** 
-   - Either `GET_PC_DESCRIPTOR_1(d->character) == 0` 
+2. **Has the player NOT set their short description?**
+   - Either `GET_PC_DESCRIPTOR_1(d->character) == 0`
    - OR `GET_PC_ADJECTIVE_1(d->character) == 0`
 
 If BOTH conditions are true:
@@ -32,7 +32,7 @@ If either condition is false:
 ```c
 case '1':
   /* Check if introduction system is OFF and player hasn't set short description */
-  if (!CONFIG_USE_INTRO_SYSTEM && 
+  if (!CONFIG_USE_INTRO_SYSTEM &&
       (GET_PC_DESCRIPTOR_1(d->character) == 0 || GET_PC_ADJECTIVE_1(d->character) == 0))
   {
     write_to_output(d, "\r\n");
@@ -95,7 +95,7 @@ case '1':
    ```
    The introduction system is currently disabled on this MUD.
    You must set up your character's short description before entering the game.
-   
+
    SET CHARACTER SHORT DESCRIPTION: PRESS ENTER
    ```
 6. Player is redirected to `CON_GEN_DESCS_INTRO` state
@@ -137,7 +137,7 @@ int use_introduction_system = YES;  // or NO
 
 ### `show_short_description_main_menu()`
 **Location**: `src/interpreter.c` line ~4663
-**Purpose**: 
+**Purpose**:
 - Checks if player has already set description
 - If yes: Shows "already chosen" message
 - If no: Initiates short description setup (CON_GEN_DESCS_INTRO)
@@ -167,13 +167,13 @@ int use_introduction_system = YES;  // or NO
 ## Testing Scenarios
 
 ### Test 1: Fresh Character, Intro OFF
-**Setup**: 
+**Setup**:
 - New character creation
 - CONFIG_USE_INTRO_SYSTEM = NO
 - GET_PC_DESCRIPTOR_1 = 0
 - GET_PC_ADJECTIVE_1 = 0
 
-**Expected**: 
+**Expected**:
 - Cannot enter game
 - Redirected to short description setup
 - Must complete setup to enter

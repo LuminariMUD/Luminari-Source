@@ -244,17 +244,14 @@ void House_crashsave(room_vnum vnum)
 
   if (mysql_query(conn, "start transaction;"))
   {
-    log("SYSERR: Unable to start transaction for saving of house data: %s",
-        mysql_error(conn));
+    log("SYSERR: Unable to start transaction for saving of house data: %s", mysql_error(conn));
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%d';",
-           vnum);
+  snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%d';", vnum);
   if (mysql_query(conn, del_buf))
   {
-    log("SYSERR: Unable to delete house data: %s",
-        mysql_error(conn));
+    log("SYSERR: Unable to delete house data: %s", mysql_error(conn));
     mysql_query(conn, "rollback;");
     return;
   }
@@ -287,8 +284,7 @@ void House_crashsave(room_vnum vnum)
 
   if (mysql_query(conn, "commit;"))
   {
-    log("SYSERR: Unable to commit transaction for saving of house data: %s",
-        mysql_error(conn));
+    log("SYSERR: Unable to commit transaction for saving of house data: %s", mysql_error(conn));
     mysql_query(conn, "rollback;");
     return;
   }
@@ -343,8 +339,9 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
   loaded = objsave_parse_objects_db(NULL, vnum);
 
   for (current = loaded; current != NULL; current = current->next)
-    len += snprintf(buf + len, sizeof(buf) - len, " [%5d] (%5dau) %s\r\n",
-                    GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj), current->obj->short_description);
+    len +=
+        snprintf(buf + len, sizeof(buf) - len, " [%5d] (%5dau) %s\r\n", GET_OBJ_VNUM(current->obj),
+                 GET_OBJ_RENT(current->obj), current->obj->short_description);
 
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by obj_to_room()
@@ -488,9 +485,8 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
     return;
   }
 
-  send_to_char(ch,
-               "Address  Atrium  Build Date  Guests  Owner        Last Paymt\r\n"
-               "-------  ------  ----------  ------  ------------ ----------\r\n");
+  send_to_char(ch, "Address  Atrium  Build Date  Guests  Owner        Last Paymt\r\n"
+                   "-------  ------  ----------  ------  ------------ ----------\r\n");
 
   for (i = 0; i < num_of_houses; i++)
   {
@@ -506,7 +502,8 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
       built_on[10] = '\0';
     }
     else
-      strlcpy(built_on, "Unknown", sizeof(built_on)); /* strcpy: OK (for 'strlen("Unknown") < 128') */
+      strlcpy(built_on, "Unknown",
+              sizeof(built_on)); /* strcpy: OK (for 'strlen("Unknown") < 128') */
 
     if (house_control[i].last_payment)
     {
@@ -519,10 +516,11 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
       strlcpy(last_pay, "None", sizeof(last_pay)); /* strcpy: OK (for 'strlen("None") < 128') */
 
     /* Now we need a copy of the owner's name to capitalize. -gg 6/21/98 */
-    strlcpy(own_name, temp, sizeof(own_name)); /* strcpy: OK (names guaranteed <= MAX_NAME_LENGTH+1) */
-    send_to_char(ch, "%7d %7d  %-10s    %2d    %-12s %s\r\n",
-                 house_control[i].vnum, house_control[i].atrium, built_on,
-                 house_control[i].num_of_guests, CAP(own_name), last_pay);
+    strlcpy(own_name, temp,
+            sizeof(own_name)); /* strcpy: OK (names guaranteed <= MAX_NAME_LENGTH+1) */
+    send_to_char(ch, "%7d %7d  %-10s    %2d    %-12s %s\r\n", house_control[i].vnum,
+                 house_control[i].atrium, built_on, house_control[i].num_of_guests, CAP(own_name),
+                 last_pay);
 
     House_list_guests(ch, i, TRUE);
   }
@@ -693,7 +691,8 @@ static void hcontrol_pay_house(struct char_data *ch, char *arg)
     send_to_char(ch, "Unknown house.\r\n");
   else
   {
-    mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "Payment for house %s collected by %s.", arg, GET_NAME(ch));
+    mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "Payment for house %s collected by %s.",
+           arg, GET_NAME(ch));
 
     house_control[i].last_payment = time(0);
     House_save_control();
@@ -727,7 +726,8 @@ int House_can_enter(struct char_data *ch, room_vnum house)
     return (1);
 
   /* Not a god house, and player is a god */
-  if ((GET_LEVEL(ch) >= LVL_GRSTAFF) && (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
+  if ((GET_LEVEL(ch) >= LVL_GRSTAFF) &&
+      (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
     return (1);
 
   switch (house_control[i].mode)
@@ -748,7 +748,8 @@ int House_can_enter(struct char_data *ch, room_vnum house)
 
     zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
 
-    log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan_list[GET_CLAN(ch)].hall);
+    log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch),
+        clan_list[GET_CLAN(ch)].hall);
 
     if ((GET_CLAN(ch) > 0) && (clan_list[GET_CLAN(ch)].hall == zvnum))
       return (1);
@@ -893,7 +894,6 @@ ACMD(do_house)
 
 int can_hsort(struct char_data *ch, room_rnum location, bool silent)
 {
-
   if (location == NOWHERE)
   {
     return 0;
@@ -943,15 +943,13 @@ int can_hsort(struct char_data *ch, room_rnum location, bool silent)
 
 int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
 {
-
   if (location == NOWHERE)
   {
     return 0;
   }
 
-  struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
-                  *armor = NULL, *crafting = NULL, *misc = NULL,
-                  *obj = NULL, *next_obj = NULL;
+  struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL, *armor = NULL,
+                  *crafting = NULL, *misc = NULL, *obj = NULL, *next_obj = NULL;
   bool found = FALSE;
 
   /* should be valid conditions to start */
@@ -1114,7 +1112,6 @@ int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
 
     switch (GET_OBJ_TYPE(obj))
     {
-
       /* we aren't sorting these items */
     case ITEM_CONTAINER: /*fallthrough*/
     case ITEM_FURNITURE: /*fallthrough*/

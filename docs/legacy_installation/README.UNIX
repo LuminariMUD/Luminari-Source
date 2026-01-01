@@ -2,7 +2,7 @@ Although you will be compiling tbaMUD, this document is still relevant for
 recent versions of UNIX and LINUX.
 
                      Compiling CircleMUD under UNIX
-                            by Jeremy Elson 
+                            by Jeremy Elson
                  For help, write to help@circlemud.org
 
 Compiling CircleMUD is easy using almost any variant of UNIX (for
@@ -44,11 +44,11 @@ can try to make Circle work with every UNIX variant that we can.
 
     *** Macintosh OS X only:
       Open Makefile.in in the src directory and make the following change:
-      
+
       Find the line:         MYFLAGS = @MYFLAGS@
       Change it to:          MYFLAGS = -DCIRCLE_OS_X
     ***
-    
+
     From Circle's root directory, type
 
         ./configure
@@ -78,7 +78,7 @@ can try to make Circle work with every UNIX variant that we can.
 
 4)  Build the CircleMUD server.  This must be done from the 'src' directory.
     Type:
-   
+
         cd src; make all
 
     This will build CircleMUD proper as well as its 10 or so ancillary

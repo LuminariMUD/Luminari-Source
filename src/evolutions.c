@@ -32,8 +32,7 @@ struct evolution_info evolution_list[NUM_EVOLUTIONS];
 
 int compare_evolutions(const void *x, const void *y)
 {
-  int a = *(const int *)x,
-      b = *(const int *)y;
+  int a = *(const int *)x, b = *(const int *)y;
 
   return strcmp(feat_list[a].name, feat_list[b].name);
 }
@@ -50,22 +49,23 @@ void sort_evolutions(void)
   qsort(&evolution_sort_info[1], NUM_EVOLUTIONS, sizeof(int), compare_evolutions);
 }
 
-static void evolutiono(int evolution, const char *name, int points, bool stacks, int stack_level, bool pc_avail, 
-                       int req1, int req2, int req3, int req4, int req5, int req6, int req_type, const char *desc)
+static void evolutiono(int evolution, const char *name, int points, bool stacks, int stack_level,
+                       bool pc_avail, int req1, int req2, int req3, int req4, int req5, int req6,
+                       int req_type, const char *desc)
 {
-    evolution_list[evolution].name = name;
-    evolution_list[evolution].evolution_points = points;
-    evolution_list[evolution].stacks = stacks;
-    evolution_list[evolution].stack_level = stack_level;
-    evolution_list[evolution].pc_avail = pc_avail;
-    evolution_list[evolution].evolution_requirements[0] = req1;
-    evolution_list[evolution].evolution_requirements[1] = req2;
-    evolution_list[evolution].evolution_requirements[2] = req3;
-    evolution_list[evolution].evolution_requirements[3] = req4;
-    evolution_list[evolution].evolution_requirements[4] = req5;
-    evolution_list[evolution].evolution_requirements[5] = req6;
-    evolution_list[evolution].requirement_type = req_type;
-    evolution_list[evolution].desc = desc;
+  evolution_list[evolution].name = name;
+  evolution_list[evolution].evolution_points = points;
+  evolution_list[evolution].stacks = stacks;
+  evolution_list[evolution].stack_level = stack_level;
+  evolution_list[evolution].pc_avail = pc_avail;
+  evolution_list[evolution].evolution_requirements[0] = req1;
+  evolution_list[evolution].evolution_requirements[1] = req2;
+  evolution_list[evolution].evolution_requirements[2] = req3;
+  evolution_list[evolution].evolution_requirements[3] = req4;
+  evolution_list[evolution].evolution_requirements[4] = req5;
+  evolution_list[evolution].evolution_requirements[5] = req6;
+  evolution_list[evolution].requirement_type = req_type;
+  evolution_list[evolution].desc = desc;
 }
 
 void initialize_evolution_list(void)
@@ -93,239 +93,392 @@ void initialize_evolution_list(void)
 
 void assign_evolutions(void)
 {
+  initialize_evolution_list();
 
-    initialize_evolution_list();
+  // evolution, name, points, stacks, stack_level, pc_avail, req1, req2, req3, req4, req5, req6, req7, req8, req9, req10, reqtype,
+  // desc
 
-    // evolution, name, points, stacks, stack_level, pc_avail, req1, req2, req3, req4, req5, req6, req7, req8, req9, req10, reqtype, 
-    // desc
-
-    evolutiono(EVOLUTION_BASIC_MAGIC, "basic magic", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE, 
-               "The eidolon is able to cast the following spells at-will: daze monster, detect magic, ball of light, "
-               "acid splash, ray of frost, touch of fatigue.");
-    evolutiono(EVOLUTION_BITE, "bite attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE, 
-               "The eidolon gains a bite attack that deals 1d6 + 1/2 strength modifier piercing damage. 1d8 if large, 1d10 if huge.");
-    evolutiono(EVOLUTION_BLEED, "bleeding attack", 3, false, 1, true, 
-               EVOLUTION_BITE, EVOLUTION_CLAWS, EVOLUTION_PINCERS, EVOLUTION_GORE, EVOLUTION_RAKE, EVOLUTION_REND, EVOLUTION_REQ_TYPE_ANY,
-               "The eidolon can cause 2 points of bleeding damage for 3 rounds with the following attack types: "
-               "bite, claws, pincers, gore, rake and rend.");
-    evolutiono(EVOLUTION_CLAWS, "claw attacks", 4, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains two claw attacks that deal 1d4 + 1/2 str mod slashing damage each. 1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_GILLS, "gills", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains gills and can breathe underwater.");
-    evolutiono(EVOLUTION_HOOVES, "hoof attacks", 4, false, 1, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains two hoof attacks that deal 1d4 + 1/2 str mod bludgeoning damage each. 1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_IMPROVED_DAMAGE, "improved damage", 2, true, 4, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains +1 damage to all of their natural weapon attacks. Can be taken once every 4 summoner levels.");
-    evolutiono(EVOLUTION_IMPROVED_NATURAL_ARMOR, "improved natural armor", 2, true, 5, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains +2 natural armor bonus per rank.  Can be taken once every 5 summoner levels.");
-    evolutiono(EVOLUTION_MAGIC_ATTACKS, "magic attacks", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon's natural attacks are considered magic for the purpose of overcoming damage reduction. At summoner "
-               "level 10, their attacks are considered aligned, using the same alignment as the summoner, for the purpose of "
-               "overcoming damage reduction.");
-    evolutiono(EVOLUTION_MOUNT, "mountable", 1, false, 1, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon can be used as a mount, as long as it is one size category larger than the person mounting.");
-    evolutiono(EVOLUTION_PINCERS, "pincer attacks", 5, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains two pincer attacks, which deal 1d4 + 1/2 strength mod bludgeoning damage each, and also offer "
-               "a +4 bonus to attacks to grapple the opponent. 1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_PUSH, "bullrush", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains the ability to attempt to push another creature out of the room they are in. The "
-               "target must be smaller than the eidolon and the eidolon must succeed at a combat maneuver check. "
-               "Failure results in combat. Note that this does not work on targets that have freedom of movement "
-               "or mobiles with the sentinel flag. Uses the bullrush command.");
-    evolutiono(EVOLUTION_REACH, "reach attacks", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolons attacks are considered reach weapons, allowing them an extra attack in the first round "
-               "of any battle.");
-    evolutiono(EVOLUTION_FIRE_RESIST, "fire resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains resistance 5 to fire damage.  At summoner level 5, this increases to 10. At summoner "
-               "level 10, this increases to 15.");
-    evolutiono(EVOLUTION_COLD_RESIST, "cold resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains resistance 5 to cold damage.  At summoner level 5, this increases to 10. At summoner "
-               "level 10, this increases to 15.");
-    evolutiono(EVOLUTION_ACID_RESIST, "acid resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains resistance 5 to acid damage.  At summoner level 5, this increases to 10. At summoner "
-               "level 10, this increases to 15.");
-    evolutiono(EVOLUTION_ELECTRIC_RESIST, "electric resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains resistance 5 to electric damage.  At summoner level 5, this increases to 10. At summoner "
-               "level 10, this increases to 15.");
-    evolutiono(EVOLUTION_SONIC_RESIST, "sonic resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains resistance 5 to sonic damage.  At summoner level 5, this increases to 10. At summoner "
-               "level 10, this increases to 15.");
-    evolutiono(EVOLUTION_SCENT, "scent", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains the ability to track enemies by scent.");
-    evolutiono(EVOLUTION_SKILLED, "skilled", 3, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains +2 to all skills.  At summoner level 10 this is +3.  At summoner level 20 this is "
-               "+4 bonus and at summoner level 30, this is a +5 bonus.");
-    evolutiono(EVOLUTION_STING, "sting attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains a sting attack, which deals 1d4 + 1/2 strength mod piercing damage. "
-               "1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_SWIM, "swimmer", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon can swim with ease, gaining a +20 to swim skill checks. They also bestow their owners "
-               "with a +10 bonus to their swim checks.");
-    evolutiono(EVOLUTION_TAIL_SLAP, "tail slap", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains a tail slap attack that deals 1d6 + 1/2 strength mod bludgeoning damage. "
-               "1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_TENTACLE, "tentacle", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains a tentacle attack which deals 1d4 + 1/2 strength mod bludgeoning damage and "
-               "offers a +4 to grapple checks made by the eidolon. Damage is 1d6 if large and 1d8 if huge.");
-    evolutiono(EVOLUTION_WING_BUFFET, "wing buffet", 5, false, 1, true,  EVOLUTION_FLIGHT, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon gains two wing buffet attacks that deal 1d3 + 1/2 strength mod bludgeoning damage. "
-               "This attack will also attempt to knock down any creatures smaller than the eidolon at a -4 to the "
-               "check if one size category smaller, -2 for two size categories smaller, and no penalty for smaller. "
-               "This will not work on targets with freedom of movement, or mobs with the NoBash flag.  The check is "
-               "a CMB vs. CMD check.");
-    evolutiono(EVOLUTION_STR_INCREASE, "strength increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-              "The eidolon will gain +2 to their strength score for each rank.  Can be taken once every six "
-              "summoner levels.");
-    evolutiono(EVOLUTION_DEX_INCREASE, "dexterity increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-              "The eidolon will gain +2 to their dexterity score for each rank.  Can be taken once every six "
-              "summoner levels.");
-    evolutiono(EVOLUTION_CON_INCREASE, "constitution increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-              "The eidolon will gain +2 to their constitution score for each rank.  Can be taken once every six "
-              "summoner levels.");
-    evolutiono(EVOLUTION_INT_INCREASE, "intelligence increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-              "The eidolon will gain +2 to their intelligence score for each rank.  Can be taken once every six "
-              "summoner levels.");
-    evolutiono(EVOLUTION_WIS_INCREASE, "wisdom increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-              "The eidolon will gain +2 to their wisdom score for each rank.  Can be taken once every six "
-              "summoner levels.");
-    evolutiono(EVOLUTION_CHA_INCREASE, "charisma increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-              "The eidolon will gain +2 to their charisma score for each rank.  Can be taken once every six "
-              "summoner levels.");
-    evolutiono(EVOLUTION_THRASH_EVIL, "thrash evil", 2, true, 10, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon inflicts 1d6 holy damage on any successful attacks against evil foes.");
-    evolutiono(EVOLUTION_THRASH_GOOD, "thrash good", 2, true, 10, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon inflicts 1d6 unholy damage on any successful attacks against good foes.");
-    evolutiono(EVOLUTION_CONSTRICT, "constrict", 2, false, 1, true, EVOLUTION_TENTACLE, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon adds an additional +4 damage to any tentacle attacks it performs.");
-    evolutiono(EVOLUTION_FIRE_ATTACK, "flaming attacks", 4, false, 1, true, 
-              EVOLUTION_COLD_ATTACK, EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-              "The eidolon deals 1d6 fire damage on all of their natural attacks.");
-    evolutiono(EVOLUTION_COLD_ATTACK, "freezing attacks", 4, false, 1, true, 
-              EVOLUTION_FIRE_ATTACK, EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-              "The eidolon deals 1d6 cold damage on all of their natural attacks.");
-    evolutiono(EVOLUTION_ELECTRIC_ATTACK, "lightning attacks", 4, false, 1, true, 
-              EVOLUTION_COLD_ATTACK, EVOLUTION_FIRE_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-              "The eidolon deals 1d6 electric damage on all of their natural attacks.");
-    evolutiono(EVOLUTION_ACID_ATTACK, "acidic attacks", 4, false, 1, true, 
-              EVOLUTION_COLD_ATTACK, EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_FIRE_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-              "The eidolon deals 1d6 acid damage on all of their natural attacks.");
-    evolutiono(EVOLUTION_SONIC_ATTACK, "sonic attacks", 4, false, 1, true, 
-              EVOLUTION_COLD_ATTACK, EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_FIRE_ATTACK, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-              "The eidolon deals 1d6 sonic damage on all of their natural attacks.");
-    evolutiono(EVOLUTION_FLIGHT, "flight", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains the ability to fly at a speed of 50' per round.");
-    evolutiono(EVOLUTION_GORE, "gore attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains a gore attack that deals 1d6 + 1/2 strength mod piercing damage. 1d8 if large "
-               "and 1d10 if huge.");
-    evolutiono(EVOLUTION_MINOR_MAGIC, "minor magic", 3, false, 1, true,  EVOLUTION_BASIC_MAGIC, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ANY,
-              "The eidolon gains the ability to cast the following spells at-will:  burning hands, "
-              "detect alignment, magic missile, obscuring mist, minor image.");
-    evolutiono(EVOLUTION_POISON, "poison attack", 2, false, 1, true,  EVOLUTION_BITE, EVOLUTION_STING, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ANY,
-               "Any time a bite or sting attack lands, the target will be afflicted as if the poison spell was cast "
-               "upon them, unless they succeed with a fortitude saving throw against a dc equal to 10 + 1/2 the eidolon's "
-               "level plus the eidolon's constitution modifier.");
-    evolutiono(EVOLUTION_RAKE, "rake attacks", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gets two rake attacks dealing 1d6 + 1/2 strength mod slashing damage whenever the eidolon "
-               "is grappling a target.");
-    evolutiono(EVOLUTION_REND, "rend attack", 2, false, 1, true, EVOLUTION_CLAWS, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon is able to deal 1d4 + 1.5x strength modifier slashing damage whenever they hit on both "
-               "claw attacks. 1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_RIDER_BOND, "rider bond", 2, false, 1, false, EVOLUTION_MOUNT, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon offers a bonus to ride skill equal to 1/2 summoner level, and also provides the mounted "
-               "combat feat to the summoner when ridden by them.");
-    evolutiono(EVOLUTION_SHADOW_BLEND, "shadow blend", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains 20 percent concealment when not in bright light.  If the eidolon also has the "
-               "shadow form evolution, this benefit increases to 50 percent.");
-    evolutiono(EVOLUTION_SHADOW_FORM, "shadow form", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidilon can become incorporeal at will. This effect can be toggled on and off with the shadowform command. "
-               "Your eidolon will need to do this themselves. Eg. order eidolon shadowform. "
-               "This effect will only work indoors or outside at night, dusk or dawn.");
-    evolutiono(EVOLUTION_SICKENING, "sickening aura", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon emits a foul odour that affects everyone except the summoner and their party. "
-               "Any creature in the same room as the eidolon must save vs. fortitude each round or be "
-               "sickened for 1 round.  Once they have saved successfully, they are immune for 10 rounds. "
-               "This ability uses the 'sickeningaura' command to turn on and off the effect.");
-    evolutiono(EVOLUTION_TRAMPLE, "trample attack", 2, false, 1, true, EVOLUTION_HOOVES, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon is able to deal 1d4 + 1.5x strength modifier bludgeoning damage whenever they hit on both "
-               "hoof attacks. 1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_TRIP, "trip attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "Whenever the eidolon makes a successful bite attack it will attempt to trip the opponent, if and only "
-               "if the target is of the same size as the eidolon, or smaller.");
-  evolutiono(EVOLUTION_UNDEAD_APPEARANCE, "undead appearance", 2, false, 1, false, EVOLUTION_CELESTIAL_APPEARANCE, EVOLUTION_FIENDISH_APPEARANCE, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon appears as an undead creature. Negative energy heals and positive energy damages. "
-               "Is treated as undead for certain spells and effects that affect undead. Gains +2 racial bonus to saving "
-               "throws against disease, exhaustion, fatigue, paralysis, poison, sleep and stunning. At summoner "
-               "level 7, this increases to +4. At summoner level 12 this becomes immunity. Although the eidolon "
-               "appears as an undead they are still treated as an outsider.");
-  evolutiono(EVOLUTION_BLINDSIGHT, "blindsight", 4, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon's gains blindsense, allowing them to be able to 'see' even if blinded, in darkness, or if the entity is invisible.");
-  evolutiono(EVOLUTION_CELESTIAL_APPEARANCE, "celestial appearance", 3, false, 1, false, EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_FIENDISH_APPEARANCE, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon appears as a celestial being and gains some of their benefits. The eidolon gains a "
-               "+2 bonus on saves against disease, petrification, poison, and electricity spells and effects. It "
-               "also gains spell resistance equal to 5 + its HD. At 7th level the save bonuses increase to +4. At "
-               "12th level the protection becomes immunity and the spell resistance is increased to 10 + HD.");
-  evolutiono(EVOLUTION_DAMAGE_REDUCTION, "damage reduction", 3, true, 5, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains 3/- damage reduction per rank.");
-  evolutiono(EVOLUTION_FIENDISH_APPEARANCE, "fiendish appearance", 3, false, 1, false, EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_CELESTIAL_APPEARANCE, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon appears as a celestial being and gains some of their benefits. The eidolon gains a +2 "
-               "bonus on saving throws against acid, disease, fire, and poison spells and effects.  It "
-               "also gains spell resistance equal to 5 + its HD. At 7th level the save bonuses increase to +4. At "
-               "12th level the protection becomes immunity and the spell resistance is increased to 10 + HD.");
-  evolutiono(EVOLUTION_FRIGHTFUL_PRESENCE, "frightful presence", 3, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "An eidolon becomes unsettling to its foes, gaining the frightful presence ability. Opponents in combat with the "
-               "eidolon must make a Will save or become shaken for 3d6 rounds. The DC of this save is equal to 10 + 1/2 "
-               "the eidolon's HD + the eidolon's Charisma modifier. Once a successful save has been made, the opponent "
-               "is immune for 10 rounds. If the eidolon has at least 4 more Hit Dice than an opponent, that opponent "
-               "becomes frightened instead. Foes with more HD than the eidolon are immune to this effect.");
-  evolutiono(EVOLUTION_MAJOR_MAGIC, "major magic", 5, false, 1, true, EVOLUTION_BASIC_MAGIC, EVOLUTION_MINOR_MAGIC, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon can cast the following spells at-will: acid arrow, darkness, invisibility, lesser "
-               "restoration, levitate, scorching ray, detect invisibility and spider climb.");
-  evolutiono(EVOLUTION_SACRIFICE, "sacrifice", 3, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon can sacrifice its own hp to heal another at a ratio of 2:1 using the sachp command.");
+  evolutiono(EVOLUTION_BASIC_MAGIC, "basic magic", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon is able to cast the following spells at-will: daze monster, detect "
+             "magic, ball of light, "
+             "acid splash, ray of frost, touch of fatigue.");
+  evolutiono(EVOLUTION_BITE, "bite attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains a bite attack that deals 1d6 + 1/2 strength modifier piercing "
+             "damage. 1d8 if large, 1d10 if huge.");
+  evolutiono(EVOLUTION_BLEED, "bleeding attack", 3, false, 1, true, EVOLUTION_BITE, EVOLUTION_CLAWS,
+             EVOLUTION_PINCERS, EVOLUTION_GORE, EVOLUTION_RAKE, EVOLUTION_REND,
+             EVOLUTION_REQ_TYPE_ANY,
+             "The eidolon can cause 2 points of bleeding damage for 3 rounds with the following "
+             "attack types: "
+             "bite, claws, pincers, gore, rake and rend.");
+  evolutiono(EVOLUTION_CLAWS, "claw attacks", 4, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains two claw attacks that deal 1d4 + 1/2 str mod slashing damage each. "
+             "1d6 if large, 1d8 if huge.");
+  evolutiono(EVOLUTION_GILLS, "gills", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains gills and can breathe underwater.");
+  evolutiono(EVOLUTION_HOOVES, "hoof attacks", 4, false, 1, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains two hoof attacks that deal 1d4 + 1/2 str mod bludgeoning damage "
+             "each. 1d6 if large, 1d8 if huge.");
+  evolutiono(EVOLUTION_IMPROVED_DAMAGE, "improved damage", 2, true, 4, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains +1 damage to all of their natural weapon attacks. Can be taken "
+             "once every 4 summoner levels.");
+  evolutiono(EVOLUTION_IMPROVED_NATURAL_ARMOR, "improved natural armor", 2, true, 5, true, 0, 0, 0,
+             0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains +2 natural armor bonus per rank.  Can be taken once every 5 "
+             "summoner levels.");
+  evolutiono(EVOLUTION_MAGIC_ATTACKS, "magic attacks", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon's natural attacks are considered magic for the purpose of overcoming "
+             "damage reduction. At summoner "
+             "level 10, their attacks are considered aligned, using the same alignment as the "
+             "summoner, for the purpose of "
+             "overcoming damage reduction.");
+  evolutiono(EVOLUTION_MOUNT, "mountable", 1, false, 1, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon can be used as a mount, as long as it is one size category larger than "
+             "the person mounting.");
+  evolutiono(EVOLUTION_PINCERS, "pincer attacks", 5, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains two pincer attacks, which deal 1d4 + 1/2 strength mod bludgeoning "
+             "damage each, and also offer "
+             "a +4 bonus to attacks to grapple the opponent. 1d6 if large, 1d8 if huge.");
+  evolutiono(EVOLUTION_PUSH, "bullrush", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains the ability to attempt to push another creature out of the room "
+             "they are in. The "
+             "target must be smaller than the eidolon and the eidolon must succeed at a combat "
+             "maneuver check. "
+             "Failure results in combat. Note that this does not work on targets that have freedom "
+             "of movement "
+             "or mobiles with the sentinel flag. Uses the bullrush command.");
+  evolutiono(EVOLUTION_REACH, "reach attacks", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolons attacks are considered reach weapons, allowing them an extra attack in "
+             "the first round "
+             "of any battle.");
+  evolutiono(EVOLUTION_FIRE_RESIST, "fire resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains resistance 5 to fire damage.  At summoner level 5, this increases "
+             "to 10. At summoner "
+             "level 10, this increases to 15.");
+  evolutiono(EVOLUTION_COLD_RESIST, "cold resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains resistance 5 to cold damage.  At summoner level 5, this increases "
+             "to 10. At summoner "
+             "level 10, this increases to 15.");
+  evolutiono(EVOLUTION_ACID_RESIST, "acid resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains resistance 5 to acid damage.  At summoner level 5, this increases "
+             "to 10. At summoner "
+             "level 10, this increases to 15.");
+  evolutiono(EVOLUTION_ELECTRIC_RESIST, "electric resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains resistance 5 to electric damage.  At summoner level 5, this "
+             "increases to 10. At summoner "
+             "level 10, this increases to 15.");
+  evolutiono(EVOLUTION_SONIC_RESIST, "sonic resistance", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains resistance 5 to sonic damage.  At summoner level 5, this increases "
+             "to 10. At summoner "
+             "level 10, this increases to 15.");
+  evolutiono(EVOLUTION_SCENT, "scent", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains the ability to track enemies by scent.");
+  evolutiono(EVOLUTION_SKILLED, "skilled", 3, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains +2 to all skills.  At summoner level 10 this is +3.  At summoner "
+             "level 20 this is "
+             "+4 bonus and at summoner level 30, this is a +5 bonus.");
+  evolutiono(
+      EVOLUTION_STING, "sting attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon gains a sting attack, which deals 1d4 + 1/2 strength mod piercing damage. "
+      "1d6 if large, 1d8 if huge.");
+  evolutiono(EVOLUTION_SWIM, "swimmer", 1, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon can swim with ease, gaining a +20 to swim skill checks. They also bestow "
+             "their owners "
+             "with a +10 bonus to their swim checks.");
+  evolutiono(
+      EVOLUTION_TAIL_SLAP, "tail slap", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon gains a tail slap attack that deals 1d6 + 1/2 strength mod bludgeoning damage. "
+      "1d6 if large, 1d8 if huge.");
+  evolutiono(
+      EVOLUTION_TENTACLE, "tentacle", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon gains a tentacle attack which deals 1d4 + 1/2 strength mod bludgeoning damage "
+      "and "
+      "offers a +4 to grapple checks made by the eidolon. Damage is 1d6 if large and 1d8 if huge.");
+  evolutiono(EVOLUTION_WING_BUFFET, "wing buffet", 5, false, 1, true, EVOLUTION_FLIGHT, 0, 0, 0, 0,
+             0, EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon gains two wing buffet attacks that deal 1d3 + 1/2 strength mod "
+             "bludgeoning damage. "
+             "This attack will also attempt to knock down any creatures smaller than the eidolon "
+             "at a -4 to the "
+             "check if one size category smaller, -2 for two size categories smaller, and no "
+             "penalty for smaller. "
+             "This will not work on targets with freedom of movement, or mobs with the NoBash "
+             "flag.  The check is "
+             "a CMB vs. CMD check.");
+  evolutiono(EVOLUTION_STR_INCREASE, "strength increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon will gain +2 to their strength score for each rank.  Can be taken once "
+             "every six "
+             "summoner levels.");
+  evolutiono(EVOLUTION_DEX_INCREASE, "dexterity increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon will gain +2 to their dexterity score for each rank.  Can be taken once "
+             "every six "
+             "summoner levels.");
+  evolutiono(EVOLUTION_CON_INCREASE, "constitution increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon will gain +2 to their constitution score for each rank.  Can be taken "
+             "once every six "
+             "summoner levels.");
+  evolutiono(EVOLUTION_INT_INCREASE, "intelligence increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon will gain +2 to their intelligence score for each rank.  Can be taken "
+             "once every six "
+             "summoner levels.");
+  evolutiono(
+      EVOLUTION_WIS_INCREASE, "wisdom increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon will gain +2 to their wisdom score for each rank.  Can be taken once every six "
+      "summoner levels.");
+  evolutiono(EVOLUTION_CHA_INCREASE, "charisma increase", 2, true, 6, false, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon will gain +2 to their charisma score for each rank.  Can be taken once "
+             "every six "
+             "summoner levels.");
+  evolutiono(EVOLUTION_THRASH_EVIL, "thrash evil", 2, true, 10, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon inflicts 1d6 holy damage on any successful attacks against evil foes.");
+  evolutiono(EVOLUTION_THRASH_GOOD, "thrash good", 2, true, 10, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon inflicts 1d6 unholy damage on any successful attacks against good foes.");
+  evolutiono(EVOLUTION_CONSTRICT, "constrict", 2, false, 1, true, EVOLUTION_TENTACLE, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon adds an additional +4 damage to any tentacle attacks it performs.");
+  evolutiono(EVOLUTION_FIRE_ATTACK, "flaming attacks", 4, false, 1, true, EVOLUTION_COLD_ATTACK,
+             EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0,
+             EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon deals 1d6 fire damage on all of their natural attacks.");
+  evolutiono(EVOLUTION_COLD_ATTACK, "freezing attacks", 4, false, 1, true, EVOLUTION_FIRE_ATTACK,
+             EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0,
+             EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon deals 1d6 cold damage on all of their natural attacks.");
+  evolutiono(EVOLUTION_ELECTRIC_ATTACK, "lightning attacks", 4, false, 1, true,
+             EVOLUTION_COLD_ATTACK, EVOLUTION_FIRE_ATTACK, EVOLUTION_ACID_ATTACK,
+             EVOLUTION_SONIC_ATTACK, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon deals 1d6 electric damage on all of their natural attacks.");
+  evolutiono(EVOLUTION_ACID_ATTACK, "acidic attacks", 4, false, 1, true, EVOLUTION_COLD_ATTACK,
+             EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_FIRE_ATTACK, EVOLUTION_SONIC_ATTACK, 0, 0,
+             EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon deals 1d6 acid damage on all of their natural attacks.");
+  evolutiono(EVOLUTION_SONIC_ATTACK, "sonic attacks", 4, false, 1, true, EVOLUTION_COLD_ATTACK,
+             EVOLUTION_ELECTRIC_ATTACK, EVOLUTION_ACID_ATTACK, EVOLUTION_FIRE_ATTACK, 0, 0,
+             EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon deals 1d6 sonic damage on all of their natural attacks.");
+  evolutiono(EVOLUTION_FLIGHT, "flight", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains the ability to fly at a speed of 50' per round.");
+  evolutiono(EVOLUTION_GORE, "gore attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains a gore attack that deals 1d6 + 1/2 strength mod piercing damage. "
+             "1d8 if large "
+             "and 1d10 if huge.");
+  evolutiono(EVOLUTION_MINOR_MAGIC, "minor magic", 3, false, 1, true, EVOLUTION_BASIC_MAGIC, 0, 0,
+             0, 0, 0, EVOLUTION_REQ_TYPE_ANY,
+             "The eidolon gains the ability to cast the following spells at-will:  burning hands, "
+             "detect alignment, magic missile, obscuring mist, minor image.");
+  evolutiono(EVOLUTION_POISON, "poison attack", 2, false, 1, true, EVOLUTION_BITE, EVOLUTION_STING,
+             0, 0, 0, 0, EVOLUTION_REQ_TYPE_ANY,
+             "Any time a bite or sting attack lands, the target will be afflicted as if the poison "
+             "spell was cast "
+             "upon them, unless they succeed with a fortitude saving throw against a dc equal to "
+             "10 + 1/2 the eidolon's "
+             "level plus the eidolon's constitution modifier.");
+  evolutiono(EVOLUTION_RAKE, "rake attacks", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gets two rake attacks dealing 1d6 + 1/2 strength mod slashing damage "
+             "whenever the eidolon "
+             "is grappling a target.");
+  evolutiono(EVOLUTION_REND, "rend attack", 2, false, 1, true, EVOLUTION_CLAWS, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon is able to deal 1d4 + 1.5x strength modifier slashing damage whenever "
+             "they hit on both "
+             "claw attacks. 1d6 if large, 1d8 if huge.");
+  evolutiono(EVOLUTION_RIDER_BOND, "rider bond", 2, false, 1, false, EVOLUTION_MOUNT, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon offers a bonus to ride skill equal to 1/2 summoner level, and also "
+             "provides the mounted "
+             "combat feat to the summoner when ridden by them.");
+  evolutiono(EVOLUTION_SHADOW_BLEND, "shadow blend", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains 20 percent concealment when not in bright light.  If the eidolon "
+             "also has the "
+             "shadow form evolution, this benefit increases to 50 percent.");
+  evolutiono(EVOLUTION_SHADOW_FORM, "shadow form", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidilon can become incorporeal at will. This effect can be toggled on and off "
+             "with the shadowform command. "
+             "Your eidolon will need to do this themselves. Eg. order eidolon shadowform. "
+             "This effect will only work indoors or outside at night, dusk or dawn.");
+  evolutiono(
+      EVOLUTION_SICKENING, "sickening aura", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon emits a foul odour that affects everyone except the summoner and their party. "
+      "Any creature in the same room as the eidolon must save vs. fortitude each round or be "
+      "sickened for 1 round.  Once they have saved successfully, they are immune for 10 rounds. "
+      "This ability uses the 'sickeningaura' command to turn on and off the effect.");
+  evolutiono(EVOLUTION_TRAMPLE, "trample attack", 2, false, 1, true, EVOLUTION_HOOVES, 0, 0, 0, 0,
+             0, EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon is able to deal 1d4 + 1.5x strength modifier bludgeoning damage whenever "
+             "they hit on both "
+             "hoof attacks. 1d6 if large, 1d8 if huge.");
+  evolutiono(EVOLUTION_TRIP, "trip attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "Whenever the eidolon makes a successful bite attack it will attempt to trip the "
+             "opponent, if and only "
+             "if the target is of the same size as the eidolon, or smaller.");
+  evolutiono(EVOLUTION_UNDEAD_APPEARANCE, "undead appearance", 2, false, 1, false,
+             EVOLUTION_CELESTIAL_APPEARANCE, EVOLUTION_FIENDISH_APPEARANCE, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon appears as an undead creature. Negative energy heals and positive energy "
+             "damages. "
+             "Is treated as undead for certain spells and effects that affect undead. Gains +2 "
+             "racial bonus to saving "
+             "throws against disease, exhaustion, fatigue, paralysis, poison, sleep and stunning. "
+             "At summoner "
+             "level 7, this increases to +4. At summoner level 12 this becomes immunity. Although "
+             "the eidolon "
+             "appears as an undead they are still treated as an outsider.");
+  evolutiono(EVOLUTION_BLINDSIGHT, "blindsight", 4, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon's gains blindsense, allowing them to be able to 'see' even if blinded, "
+             "in darkness, or if the entity is invisible.");
+  evolutiono(EVOLUTION_CELESTIAL_APPEARANCE, "celestial appearance", 3, false, 1, false,
+             EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_FIENDISH_APPEARANCE, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon appears as a celestial being and gains some of their benefits. The "
+             "eidolon gains a "
+             "+2 bonus on saves against disease, petrification, poison, and electricity spells and "
+             "effects. It "
+             "also gains spell resistance equal to 5 + its HD. At 7th level the save bonuses "
+             "increase to +4. At "
+             "12th level the protection becomes immunity and the spell resistance is increased to "
+             "10 + HD.");
+  evolutiono(EVOLUTION_DAMAGE_REDUCTION, "damage reduction", 3, true, 5, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE, "The eidolon gains 3/- damage reduction per rank.");
+  evolutiono(
+      EVOLUTION_FIENDISH_APPEARANCE, "fiendish appearance", 3, false, 1, false,
+      EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_CELESTIAL_APPEARANCE, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_UNIQUE,
+      "The eidolon appears as a celestial being and gains some of their benefits. The eidolon "
+      "gains a +2 "
+      "bonus on saving throws against acid, disease, fire, and poison spells and effects.  It "
+      "also gains spell resistance equal to 5 + its HD. At 7th level the save bonuses increase to "
+      "+4. At "
+      "12th level the protection becomes immunity and the spell resistance is increased to 10 + "
+      "HD.");
+  evolutiono(
+      EVOLUTION_FRIGHTFUL_PRESENCE, "frightful presence", 3, false, 1, true, 0, 0, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_NONE,
+      "An eidolon becomes unsettling to its foes, gaining the frightful presence ability. "
+      "Opponents in combat with the "
+      "eidolon must make a Will save or become shaken for 3d6 rounds. The DC of this save is equal "
+      "to 10 + 1/2 "
+      "the eidolon's HD + the eidolon's Charisma modifier. Once a successful save has been made, "
+      "the opponent "
+      "is immune for 10 rounds. If the eidolon has at least 4 more Hit Dice than an opponent, that "
+      "opponent "
+      "becomes frightened instead. Foes with more HD than the eidolon are immune to this effect.");
+  evolutiono(EVOLUTION_MAJOR_MAGIC, "major magic", 5, false, 1, true, EVOLUTION_BASIC_MAGIC,
+             EVOLUTION_MINOR_MAGIC, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon can cast the following spells at-will: acid arrow, darkness, "
+             "invisibility, lesser "
+             "restoration, levitate, scorching ray, detect invisibility and spider climb.");
+  evolutiono(EVOLUTION_SACRIFICE, "sacrifice", 3, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon can sacrifice its own hp to heal another at a ratio of 2:1 using the "
+             "sachp command.");
   evolutiono(EVOLUTION_WEB, "web", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon can cast the web spell at will as a swift action.");
-  evolutiono(EVOLUTION_ACID_BREATH, "acid breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon can breathe acid dealing 1d6 / level acid damage to all enemies. The cooldown on this "
-               "ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 18 seconds. "
-               "This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_FIRE_BREATH, "fire breath", 4, true, 10, true, EVOLUTION_ACID_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon can breathe fire dealing 1d6 / level fire damage to all enemies. The cooldown on this "
-               "ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 18 seconds. "
-               "This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_COLD_BREATH, "cold breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_ACID_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon can breathe frigid ice dealing 1d6 / level cold damage to all enemies. The cooldown on"
-               " this ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 18 sec"
-               "onds. This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_ELECTRIC_BREATH, "electric breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ACID_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
-               "The eidolon can breathe electricity dealing 1d6 / level electric damage to all enemies. The cooldo"
-               "wn on this ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 1"
-               "8 seconds. This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_FAST_HEALING, "fast healing", 4, true, 6, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gets fast healing 2 per rank of this evolution.");
-  evolutiono(EVOLUTION_INCORPOREAL_FORM, "incorporeal form", 4, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon can become incorporeal at will.  While incorporeal the eidolon receives half damage "
-               "from non-incorporeal foes and deals 1/2 melee damage when attacking non-incorporeal foes.");
-  evolutiono(EVOLUTION_LARGE, "large sized", 4, false, 1, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon's base size increases to large, giving them +8 to strength and +4 to constitution as "
-               "well as a +2 bonus to natural armor. It takes a -2 penalty to dexterity.  The size change causes "
-               "a -1 penalty to AC and attack rolls, a +1 bonus to CMB and CMD, and a -4 penalty to stealth "
-               "skill checks. ");
-  evolutiono(EVOLUTION_HUGE, "huge sized", 6, false, 1, false, EVOLUTION_LARGE, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon's base size increases to huge, giving them +16 to strength and +8 to constitution as "
-               "well as a +5 bonus to natural armor. It takes a -4 penalty to dexterity.  The size change causes "
-               "a -2 penalty to AC and attack rolls, a +2 bonus to CMB and CMD, and a -8 penalty to stealth "
-               "skill checks. ");
-  evolutiono(EVOLUTION_SPELL_RESISTANCE, "spell resistance", 4, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon gains spell resistance equal to 10 + their level. If the eidolon also has the celestial or fiendish "
-               "appearance evolutions, the spell resistance increases to 15 + level.");
-  evolutiono(EVOLUTION_ULTIMATE_MAGIC, "ultimate magic", 8, false, 1, true, EVOLUTION_BASIC_MAGIC, EVOLUTION_MINOR_MAGIC, EVOLUTION_MAJOR_MAGIC, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon can cast the following spells at-will: daylight, fireball, gaseous form, lightning bolt, "
-               "fly, stinking cloud, tongues and water breathing.");
-  evolutiono(EVOLUTION_KEEN_SCENT, "keen scent", 4, false, 1, true, EVOLUTION_SCENT, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
-               "The eidolon improves their ability to track enemies by scent. The tracking dc is reduced by 5.");
-  evolutiono(EVOLUTION_PENETRATE_DR, "penetrate damage reduction", 1, true, 3, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon is able to reduce damage reduction of its opponent for each attack by 3 points per rank.");
-
+             "The eidolon can cast the web spell at will as a swift action.");
+  evolutiono(EVOLUTION_ACID_BREATH, "acid breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH,
+             EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon can breathe acid dealing 1d6 / level acid damage to all enemies. The "
+             "cooldown on this "
+             "ability starts at 60 seconds. For every extra rank of this feat the cooldown is "
+             "reduced by 18 seconds. "
+             "This ability uses the evobreath command.");
+  evolutiono(EVOLUTION_FIRE_BREATH, "fire breath", 4, true, 10, true, EVOLUTION_ACID_BREATH,
+             EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon can breathe fire dealing 1d6 / level fire damage to all enemies. The "
+             "cooldown on this "
+             "ability starts at 60 seconds. For every extra rank of this feat the cooldown is "
+             "reduced by 18 seconds. "
+             "This ability uses the evobreath command.");
+  evolutiono(EVOLUTION_COLD_BREATH, "cold breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH,
+             EVOLUTION_ACID_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon can breathe frigid ice dealing 1d6 / level cold damage to all enemies. "
+             "The cooldown on"
+             " this ability starts at 60 seconds. For every extra rank of this feat the cooldown "
+             "is reduced by 18 sec"
+             "onds. This ability uses the evobreath command.");
+  evolutiono(EVOLUTION_ELECTRIC_BREATH, "electric breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH,
+             EVOLUTION_COLD_BREATH, EVOLUTION_ACID_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+             "The eidolon can breathe electricity dealing 1d6 / level electric damage to all "
+             "enemies. The cooldo"
+             "wn on this ability starts at 60 seconds. For every extra rank of this feat the "
+             "cooldown is reduced by 1"
+             "8 seconds. This ability uses the evobreath command.");
+  evolutiono(EVOLUTION_FAST_HEALING, "fast healing", 4, true, 6, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gets fast healing 2 per rank of this evolution.");
+  evolutiono(
+      EVOLUTION_INCORPOREAL_FORM, "incorporeal form", 4, false, 1, true, 0, 0, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon can become incorporeal at will.  While incorporeal the eidolon receives half "
+      "damage "
+      "from non-incorporeal foes and deals 1/2 melee damage when attacking non-incorporeal foes.");
+  evolutiono(
+      EVOLUTION_LARGE, "large sized", 4, false, 1, false, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+      "The eidolon's base size increases to large, giving them +8 to strength and +4 to "
+      "constitution as "
+      "well as a +2 bonus to natural armor. It takes a -2 penalty to dexterity.  The size change "
+      "causes "
+      "a -1 penalty to AC and attack rolls, a +1 bonus to CMB and CMD, and a -4 penalty to stealth "
+      "skill checks. ");
+  evolutiono(
+      EVOLUTION_HUGE, "huge sized", 6, false, 1, false, EVOLUTION_LARGE, 0, 0, 0, 0, 0,
+      EVOLUTION_REQ_TYPE_ALL,
+      "The eidolon's base size increases to huge, giving them +16 to strength and +8 to "
+      "constitution as "
+      "well as a +5 bonus to natural armor. It takes a -4 penalty to dexterity.  The size change "
+      "causes "
+      "a -2 penalty to AC and attack rolls, a +2 bonus to CMB and CMD, and a -8 penalty to stealth "
+      "skill checks. ");
+  evolutiono(EVOLUTION_SPELL_RESISTANCE, "spell resistance", 4, false, 1, true, 0, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon gains spell resistance equal to 10 + their level. If the eidolon also "
+             "has the celestial or fiendish "
+             "appearance evolutions, the spell resistance increases to 15 + level.");
+  evolutiono(EVOLUTION_ULTIMATE_MAGIC, "ultimate magic", 8, false, 1, true, EVOLUTION_BASIC_MAGIC,
+             EVOLUTION_MINOR_MAGIC, EVOLUTION_MAJOR_MAGIC, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon can cast the following spells at-will: daylight, fireball, gaseous form, "
+             "lightning bolt, "
+             "fly, stinking cloud, tongues and water breathing.");
+  evolutiono(EVOLUTION_KEEN_SCENT, "keen scent", 4, false, 1, true, EVOLUTION_SCENT, 0, 0, 0, 0, 0,
+             EVOLUTION_REQ_TYPE_ALL,
+             "The eidolon improves their ability to track enemies by scent. The tracking dc is "
+             "reduced by 5.");
+  evolutiono(EVOLUTION_PENETRATE_DR, "penetrate damage reduction", 1, true, 3, true, 0, 0, 0, 0, 0,
+             0, EVOLUTION_REQ_TYPE_NONE,
+             "The eidolon is able to reduce damage reduction of its opponent for each attack by 3 "
+             "points per rank.");
 }
 
 // This will return true if the character passes all of the requirement checks
@@ -340,7 +493,8 @@ bool qualifies_for_evolution(struct char_data *ch, int evolution)
     return false;
 
   // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
-  if (evolution_list[evolution].stacks && KNOWS_EVOLUTION(ch, evolution) > (level / evolution_list[evolution].stack_level))
+  if (evolution_list[evolution].stacks &&
+      KNOWS_EVOLUTION(ch, evolution) > (level / evolution_list[evolution].stack_level))
     return false;
 
   // If there's no other requirements, they can take it
@@ -399,7 +553,8 @@ bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution
   int level = GET_CALL_EIDOLON_LEVEL(ch);
 
   // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
-  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
+  if (evolution_list[evolution].stacks &&
+      LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
     return true;
 
   return false;
@@ -409,7 +564,8 @@ bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution
 // otherwise it will return false.
 bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_pc)
 {
-  if (IS_NPC(ch)) return false;
+  if (IS_NPC(ch))
+    return false;
 
   int i = 0;
   int level = GET_CALL_EIDOLON_LEVEL(ch);
@@ -421,7 +577,8 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
     return false;
 
   // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
-  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
+  if (evolution_list[evolution].stacks &&
+      LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
     return false;
 
   if (study_num_free_evolution_points(ch) < evolution_list[evolution].evolution_points)
@@ -434,7 +591,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
   // If there's no other requirements, they can take it
   if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_NONE)
     return true;
-    
+
   // if It requires 'any' of the listed feats and they have any of them, they can take it
   // otherwise they can't
   else if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_ANY)
@@ -481,19 +638,19 @@ bool is_evolution_attack(int attack_type)
 {
   switch (attack_type)
   {
-    case ATTACK_TYPE_PRIMARY_EVO_BITE:
-    case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
-    case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
-    case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
-    case ATTACK_TYPE_PRIMARY_EVO_STING:
-    case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
-    case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
-    case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
-    case ATTACK_TYPE_PRIMARY_EVO_GORE:
-    case ATTACK_TYPE_PRIMARY_EVO_RAKE:
-    case ATTACK_TYPE_PRIMARY_EVO_REND:
-    case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
-      return true;
+  case ATTACK_TYPE_PRIMARY_EVO_BITE:
+  case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
+  case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
+  case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
+  case ATTACK_TYPE_PRIMARY_EVO_STING:
+  case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
+  case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
+  case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
+  case ATTACK_TYPE_PRIMARY_EVO_GORE:
+  case ATTACK_TYPE_PRIMARY_EVO_RAKE:
+  case ATTACK_TYPE_PRIMARY_EVO_REND:
+  case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
+    return true;
   }
   return false;
 }
@@ -502,28 +659,28 @@ int get_evolution_attack_w_type(int attack_type)
 {
   switch (attack_type)
   {
-    case ATTACK_TYPE_PRIMARY_EVO_BITE:
-      return TYPE_BITE;
-    case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
-    case ATTACK_TYPE_PRIMARY_EVO_REND:
-      return TYPE_CLAW;
-    case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
-      return TYPE_BLUDGEON;
-    case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
-      return TYPE_CRUSH;
-    case ATTACK_TYPE_PRIMARY_EVO_STING:
-      return TYPE_STING;
-    case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
-    case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
-      return TYPE_SMASH;
-    case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
-      return TYPE_BLAST;
-    case ATTACK_TYPE_PRIMARY_EVO_GORE:
-      return TYPE_GORE;
-    case ATTACK_TYPE_PRIMARY_EVO_RAKE:
-      return TYPE_RAKE;    
-    case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
-      return TYPE_TRAMPLE;
+  case ATTACK_TYPE_PRIMARY_EVO_BITE:
+    return TYPE_BITE;
+  case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
+  case ATTACK_TYPE_PRIMARY_EVO_REND:
+    return TYPE_CLAW;
+  case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
+    return TYPE_BLUDGEON;
+  case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
+    return TYPE_CRUSH;
+  case ATTACK_TYPE_PRIMARY_EVO_STING:
+    return TYPE_STING;
+  case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
+  case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
+    return TYPE_SMASH;
+  case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
+    return TYPE_BLAST;
+  case ATTACK_TYPE_PRIMARY_EVO_GORE:
+    return TYPE_GORE;
+  case ATTACK_TYPE_PRIMARY_EVO_RAKE:
+    return TYPE_RAKE;
+  case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
+    return TYPE_TRAMPLE;
   }
   return TYPE_HIT;
 }
@@ -532,24 +689,51 @@ int determine_evolution_attack_damage_dice(struct char_data *ch, int attack_type
 {
   switch (attack_type)
   {
-    case ATTACK_TYPE_PRIMARY_EVO_BITE:
-    case ATTACK_TYPE_PRIMARY_EVO_GORE:
-    case ATTACK_TYPE_PRIMARY_EVO_RAKE:
-    case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
-      switch(GET_SIZE(ch)) { case SIZE_LARGE: return dice(1, 8); case SIZE_HUGE: return dice(1, 10); 
-                            case SIZE_COLOSSAL: return dice(1, 12); default: return dice(1, 6); }
-    case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
-    case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
-    case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
-    case ATTACK_TYPE_PRIMARY_EVO_STING:
-    case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
-    case ATTACK_TYPE_PRIMARY_EVO_REND:
-    case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
-      switch(GET_SIZE(ch)) { case SIZE_LARGE: return dice(1, 6); case SIZE_HUGE: return dice(1, 8); 
-                            case SIZE_COLOSSAL: return dice(1, 10); default: return dice(1, 4); }
-    case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
-      switch(GET_SIZE(ch)) { case SIZE_LARGE: return dice(1, 4); case SIZE_HUGE: return dice(1, 6); 
-                            case SIZE_COLOSSAL: return dice(1, 8); default: return dice(1, 3); }
+  case ATTACK_TYPE_PRIMARY_EVO_BITE:
+  case ATTACK_TYPE_PRIMARY_EVO_GORE:
+  case ATTACK_TYPE_PRIMARY_EVO_RAKE:
+  case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
+    switch (GET_SIZE(ch))
+    {
+    case SIZE_LARGE:
+      return dice(1, 8);
+    case SIZE_HUGE:
+      return dice(1, 10);
+    case SIZE_COLOSSAL:
+      return dice(1, 12);
+    default:
+      return dice(1, 6);
+    }
+  case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
+  case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
+  case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
+  case ATTACK_TYPE_PRIMARY_EVO_STING:
+  case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
+  case ATTACK_TYPE_PRIMARY_EVO_REND:
+  case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
+    switch (GET_SIZE(ch))
+    {
+    case SIZE_LARGE:
+      return dice(1, 6);
+    case SIZE_HUGE:
+      return dice(1, 8);
+    case SIZE_COLOSSAL:
+      return dice(1, 10);
+    default:
+      return dice(1, 4);
+    }
+  case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
+    switch (GET_SIZE(ch))
+    {
+    case SIZE_LARGE:
+      return dice(1, 4);
+    case SIZE_HUGE:
+      return dice(1, 6);
+    case SIZE_COLOSSAL:
+      return dice(1, 8);
+    default:
+      return dice(1, 3);
+    }
   }
   return 0;
 }
@@ -559,25 +743,27 @@ int determine_evolution_attack_damage_dice(struct char_data *ch, int attack_type
 #define MODE_DISPLAY_PRIMARY 2
 #define PHASE_0 0
 #define PHASE_1 1
-void perform_evolution_attack(struct char_data *ch, int mode, int phase, int attack_type, int dam_type)
+void perform_evolution_attack(struct char_data *ch, int mode, int phase, int attack_type,
+                              int dam_type)
 {
-  
-  if (!ch) return;
-  
+  if (!ch)
+    return;
+
   if (mode == NORMAL_ATTACK_ROUTINE)
-  { 
+  {
     if (valid_fight_cond(ch, FALSE))
       if (phase == PHASE_0 || phase == PHASE_1)
       {
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, dam_type, 0, attack_type);
       }
-        
   }
   else if (mode == DISPLAY_ROUTINE_POTENTIAL)
   {
     /* display hitroll and damage bonuses */
-    send_to_char(ch, "%s, Attack Bonus:  %d; ", attack_types[attack_type], compute_attack_bonus(ch, ch, attack_type));
-    compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, attack_type, dam_type);
+    send_to_char(ch, "%s, Attack Bonus:  %d; ", attack_types[attack_type],
+                 compute_attack_bonus(ch, ch, attack_type));
+    compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE,
+                       attack_type, dam_type);
   }
 }
 #undef NORMAL_ATTACK_ROUTINE
@@ -588,12 +774,12 @@ void perform_evolution_attack(struct char_data *ch, int mode, int phase, int att
 
 void apply_evolution_bleed(struct char_data *ch)
 {
-
-  if (!ch) return;
+  if (!ch)
+    return;
 
   struct affected_type af;
   bool message = true;
-  
+
   if (affected_by_spell(ch, EVOLUTION_BLEED_EFFECT))
   {
     affect_from_char(ch, EVOLUTION_BLEED_EFFECT);
@@ -618,12 +804,13 @@ void apply_evolution_bleed(struct char_data *ch)
 
 void apply_evolution_poison(struct char_data *ch, struct char_data *vict)
 {
-
-  if (!ch) return;
-  if (!vict) return;
+  if (!ch)
+    return;
+  if (!vict)
+    return;
 
   struct affected_type af;
-  
+
   if (affected_by_spell(vict, SPELL_POISON))
   {
     return;
@@ -653,7 +840,7 @@ void process_evolution_elemental_damage(struct char_data *ch, struct char_data *
 {
   if (!ch || !victim)
     return;
-  
+
   if (HAS_EVOLUTION(ch, EVOLUTION_FIRE_ATTACK))
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
   else if (HAS_EVOLUTION(ch, EVOLUTION_ACID_ATTACK))
@@ -670,7 +857,7 @@ void process_evolution_thrash_alignment_damage(struct char_data *ch, struct char
 {
   if (!ch || !victim)
     return;
-  
+
   if (HAS_EVOLUTION(ch, EVOLUTION_THRASH_EVIL) && IS_EVIL(victim))
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
   if (HAS_EVOLUTION(ch, EVOLUTION_THRASH_GOOD) && IS_GOOD(victim))
@@ -698,7 +885,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
 {
   if (!ch || !mob)
     return;
-    
+
   int i = 0, mlev = GET_LEVEL(mob), amt = 0;
 
   for (i = 0; i < NUM_EVOLUTIONS; i++)
@@ -706,7 +893,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
     if (KNOWS_EVOLUTION(ch, i))
     {
       HAS_REAL_EVOLUTION(mob, i) = KNOWS_EVOLUTION(ch, i);
-    }      
+    }
   }
 
   // mob and aff flags
@@ -791,7 +978,6 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
     if (!from_db)
     {
-
     }
     GET_REAL_STR(mob) += 4;
     GET_REAL_CON(mob) += 4;
@@ -837,7 +1023,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
       GET_REAL_DEX(mob) += 2;
     }
     break;
-  } 
+  }
 
   if (HAS_REAL_FEAT(ch, FEAT_GRAND_EIDOLON))
   {
@@ -862,7 +1048,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
       (mob)->aff_abils.wis += 4;
       (mob)->aff_abils.cha += 4;
     }
-  } 
+  }
 }
 
 void merge_eidolon_evolutions(struct char_data *ch)
@@ -1082,8 +1268,8 @@ void merge_eidolon_evolutions(struct char_data *ch)
 
 int num_evo_breaths(struct char_data *ch)
 {
-
-  if (!ch) return 0;
+  if (!ch)
+    return 0;
 
   if (HAS_EVOLUTION(ch, EVOLUTION_FIRE_BREATH))
     return HAS_EVOLUTION(ch, EVOLUTION_FIRE_BREATH);
@@ -1137,25 +1323,31 @@ struct char_data *get_eidolon_in_room(struct char_data *ch)
 
 ACMD(do_eidolon)
 {
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'},
+       buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *eidolon = NULL;
-  char * desc = NULL;
+  char *desc = NULL;
   int i = 0, count = 0;
 
   half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
-    send_to_char(ch, "Please use one of the following options:\r\n"
-                     "-- evolutions - shows the evolutions you have learned.\r\n"
-                     "-- aspects - shows the aspects you have learned.\r\n"
-                     "-- shortdesc  - change the eidolon's short description.\r\n"
-                     "-- longdesc   - change the eidolon's long description.\r\n"
-                     "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
-                     "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
-                     "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
-                     "\r\n"
-                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'.\r\n");
+    send_to_char(
+        ch,
+        "Please use one of the following options:\r\n"
+        "-- evolutions - shows the evolutions you have learned.\r\n"
+        "-- aspects - shows the aspects you have learned.\r\n"
+        "-- shortdesc  - change the eidolon's short description.\r\n"
+        "-- longdesc   - change the eidolon's long description.\r\n"
+        "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your "
+        "character.\r\n"
+        "-- mergeforms - merge your eidolon with your own form and gain all of their "
+        "evolutions.\r\n"
+        "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
+        "\r\n"
+        "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type "
+        "'summon'.\r\n");
     return;
   }
 
@@ -1224,8 +1416,10 @@ ACMD(do_eidolon)
 
   if (!(eidolon = get_eidolon_in_room(ch)))
   {
-    send_to_char(ch, "You can only use this command if you have summoner your eidolon and it is in the same room as you.\r\n"
-                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'.\r\n");
+    send_to_char(ch, "You can only use this command if you have summoner your eidolon and it is in "
+                     "the same room as you.\r\n"
+                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your "
+                     "room, type 'summon'.\r\n");
     return;
   }
 
@@ -1235,7 +1429,8 @@ ACMD(do_eidolon)
     {
       send_to_char(ch, "Please specify what you would like the short desc to be as well.\r\n"
                        "Eg. eidolon shortdesc a massive black panther with deep purple eyes\r\n"
-                       "Type 'eidolon shortdesc reset' to reset the eidolon short description to the default.\r\n");
+                       "Type 'eidolon shortdesc reset' to reset the eidolon short description to "
+                       "the default.\r\n");
       return;
     }
 
@@ -1248,11 +1443,12 @@ ACMD(do_eidolon)
     if (!strcmp(arg2, "reset"))
     {
       GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
-      send_to_char(ch, "You've reset your eidolon short description.  This will be reflected next time you summon your eidolon.\r\n");
+      send_to_char(ch, "You've reset your eidolon short description.  This will be reflected next "
+                       "time you summon your eidolon.\r\n");
       return;
     }
-    
-    if(!valid_pet_name(arg2))
+
+    if (!valid_pet_name(arg2))
     {
       send_to_char(ch, "Pet descriptions cannot contain the \" or ; characters.\r\n");
       return;
@@ -1273,8 +1469,10 @@ ACMD(do_eidolon)
     if (!*arg2)
     {
       send_to_char(ch, "Please specify what you would like the long desc to be as well.\r\n"
-                       "Eg. eidolon longdesc A massive black panther with deep purple eyes paces back and forth here.\r\n"
-                       "Type 'eidolon longdesc reset' to reset the eidolon long description to the default.\r\n");
+                       "Eg. eidolon longdesc A massive black panther with deep purple eyes paces "
+                       "back and forth here.\r\n"
+                       "Type 'eidolon longdesc reset' to reset the eidolon long description to the "
+                       "default.\r\n");
       return;
     }
     if (strlen(arg2) > 120)
@@ -1285,11 +1483,12 @@ ACMD(do_eidolon)
     if (!strcmp(arg2, "reset"))
     {
       GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
-      send_to_char(ch, "You've reset your eidolon long description.  This will be reflected next time you summon your eidolon.\r\n");
+      send_to_char(ch, "You've reset your eidolon long description.  This will be reflected next "
+                       "time you summon your eidolon.\r\n");
       return;
     }
 
-    if(!valid_pet_name(arg2))
+    if (!valid_pet_name(arg2))
     {
       send_to_char(ch, "Pet descriptions cannot contain the \" or ; characters.\r\n");
       return;
@@ -1315,7 +1514,8 @@ ACMD(do_eidolon)
       send_to_char(ch, "You don't have the ability to bond senses with an eidolon.\r\n");
       return;
     }
-    send_to_char(ch, "You take control of your eidolon. (\tDType 'return' to return to your body\tn)\r\n");
+    send_to_char(
+        ch, "You take control of your eidolon. (\tDType 'return' to return to your body\tn)\r\n");
     ch->desc->character = eidolon;
     ch->desc->original = ch;
     eidolon->desc = ch->desc;
@@ -1328,7 +1528,7 @@ ACMD(do_eidolon)
       send_to_char(ch, "You do not know how to merge forms with your eidolon.\r\n");
       return;
     }
-    
+
     // approx 10 minutes before they can call their eidolon again
     CALL_EIDOLON_COOLDOWN(ch) = 100;
 
@@ -1351,16 +1551,21 @@ ACMD(do_eidolon)
   }
   else
   {
-    send_to_char(ch, "Please use one of the following options:\r\n"
-                     "-- evolutions - shows the evolutions you have learned.\r\n"
-                     "-- aspects    - shows the aspects you have learned.\r\n"
-                     "-- shortdesc  - change the eidolon's short description.\r\n"
-                     "-- longdesc   - change the eidolon's long description.\r\n"
-                     "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
-                     "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
-                     "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
-                     "\r\n"
-                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
+    send_to_char(
+        ch,
+        "Please use one of the following options:\r\n"
+        "-- evolutions - shows the evolutions you have learned.\r\n"
+        "-- aspects    - shows the aspects you have learned.\r\n"
+        "-- shortdesc  - change the eidolon's short description.\r\n"
+        "-- longdesc   - change the eidolon's long description.\r\n"
+        "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your "
+        "character.\r\n"
+        "-- mergeforms - merge your eidolon with your own form and gain all of their "
+        "evolutions.\r\n"
+        "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
+        "\r\n"
+        "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type "
+        "'summon'\r\n");
     return;
   }
 }
@@ -1388,7 +1593,8 @@ int get_shield_ally_bonus(struct char_data *ch)
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (GROUP(ch) == GROUP(tch) && get_eidolon_in_room(tch) && can_act(tch) && HAS_FEAT(tch, FEAT_GREATER_SHIELD_ALLY))
+    if (GROUP(ch) == GROUP(tch) && get_eidolon_in_room(tch) && can_act(tch) &&
+        HAS_FEAT(tch, FEAT_GREATER_SHIELD_ALLY))
     {
       bonus = 4;
       break;
@@ -1411,7 +1617,6 @@ int char_has_evolution(struct char_data *ch, int evo)
 
 void display_evolution_requirements(struct char_data *ch, int evo)
 {
-
   int i = 0, count = 0;
   int line_length = 80;
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
@@ -1421,12 +1626,14 @@ void display_evolution_requirements(struct char_data *ch, int evo)
     return;
   }
 
-  snprintf(buf, sizeof(buf), "\tnRequires %d evolution points.\r\n", evolution_list[evo].evolution_points);
+  snprintf(buf, sizeof(buf), "\tnRequires %d evolution points.\r\n",
+           evolution_list[evo].evolution_points);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
   if (evolution_list[evo].stacks)
   {
-    snprintf(buf, sizeof(buf), "\tnCan be taken multiple times once every %d summoner levels.\r\n", evolution_list[evo].stack_level);
+    snprintf(buf, sizeof(buf), "\tnCan be taken multiple times once every %d summoner levels.\r\n",
+             evolution_list[evo].stack_level);
     send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   }
 
@@ -1437,7 +1644,8 @@ void display_evolution_requirements(struct char_data *ch, int evo)
     {
       if (evolution_list[evo].evolution_requirements[i] > 0)
       {
-        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "", evolution_list[evolution_list[evo].evolution_requirements[i]].name);
+        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "",
+                 evolution_list[evolution_list[evo].evolution_requirements[i]].name);
         strlcat(buf, buf2, sizeof(buf));
         count++;
       }
@@ -1453,7 +1661,8 @@ void display_evolution_requirements(struct char_data *ch, int evo)
     {
       if (evolution_list[evo].evolution_requirements[i] > 0)
       {
-        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "", evolution_list[evolution_list[evo].evolution_requirements[i]].name);
+        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "",
+                 evolution_list[evolution_list[evo].evolution_requirements[i]].name);
         strlcat(buf, buf2, sizeof(buf));
         count++;
       }
@@ -1464,12 +1673,14 @@ void display_evolution_requirements(struct char_data *ch, int evo)
   if (evolution_list[evo].requirement_type == EVOLUTION_REQ_TYPE_UNIQUE)
   {
     count = 0;
-    snprintf(buf, sizeof(buf), "\tnCANNOT BE TAKEN if any of the following evolutions has already been chosen: ");
+    snprintf(buf, sizeof(buf),
+             "\tnCANNOT BE TAKEN if any of the following evolutions has already been chosen: ");
     for (i = 0; i < 6; i++)
     {
       if (evolution_list[evo].evolution_requirements[i] > 0)
       {
-        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "", evolution_list[evolution_list[evo].evolution_requirements[i]].name);
+        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "",
+                 evolution_list[evolution_list[evo].evolution_requirements[i]].name);
         strlcat(buf, buf2, sizeof(buf));
         count++;
       }
@@ -1486,7 +1697,6 @@ void display_evolution_requirements(struct char_data *ch, int evo)
 
 bool display_evolution_info(struct char_data *ch, const char *evoname)
 {
-
   int line_length = 80;
   char buf[MAX_STRING_LENGTH];
   int evo = 0;
@@ -1614,9 +1824,11 @@ void study_assign_eidolon_base_form(struct char_data *ch, int form)
 
 int study_num_aspects_chosen(struct descriptor_data *d)
 {
-  if (!d || !d->character) return 0;
-  
-  if (!LEVELUP(d->character)) return 0;
+  if (!d || !d->character)
+    return 0;
+
+  if (!LEVELUP(d->character))
+    return 0;
 
   int i = 0, num = 0;
 
@@ -1627,7 +1839,6 @@ int study_num_aspects_chosen(struct descriptor_data *d)
   }
 
   return num;
-
 }
 
 bool study_has_aspects_unchosen(struct descriptor_data *d)
@@ -1645,10 +1856,13 @@ bool study_has_aspects_unchosen(struct descriptor_data *d)
   if (GET_EIDOLON_BASE_FORM(d->character) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
     return false;
 
-  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_EPIC_ASPECT);
+  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) +
+                 HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) +
+                 HAS_REAL_FEAT(d->character, FEAT_EPIC_ASPECT);
   int num_chosen = study_num_aspects_chosen(d);
 
-  if ((num_evos - num_chosen) > 0) return true;
+  if ((num_evos - num_chosen) > 0)
+    return true;
 
   return false;
 }

@@ -36,7 +36,6 @@ extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 /* utility function to label 'rare grade' gear */
 const char *label_rare_grade(int rare_grade)
 {
-
   switch (rare_grade)
   {
   case RARE_GRADE_MYTHICAL:
@@ -125,7 +124,7 @@ int cp_convert_grade_enchantment(int grade)
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat()
 {
-  int diceroll = dice(1, 20);  /* Fixed: was dice(1,19) but case 20 exists for instruments */
+  int diceroll = dice(1, 20); /* Fixed: was dice(1,19) but case 20 exists for instruments */
   int category = 0;
 
   switch (diceroll)
@@ -188,7 +187,8 @@ int determine_rnd_misc_cat()
     break;
   default:
     /* This should never happen with dice(1,20), but safety first */
-    log("SYSERR: determine_rnd_misc_cat() rolled impossible value %d, defaulting to ring", diceroll);
+    log("SYSERR: determine_rnd_misc_cat() rolled impossible value %d, defaulting to ring",
+        diceroll);
     category = TRS_SLOT_FINGER;
     break;
   }
@@ -217,7 +217,10 @@ void say_treasure(struct char_data *ch, struct obj_data *obj)
   {
     if (ch && obj && obj->short_description)
     {
-      send_to_char(ch, "\tYSomeone seems to have misplaced %s\tn\tY! Lucky for them that you found it!\tn\r\n", obj->short_description);
+      send_to_char(
+          ch,
+          "\tYSomeone seems to have misplaced %s\tn\tY! Lucky for them that you found it!\tn\r\n",
+          obj->short_description);
     }
   }
   else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_SWINDLE)
@@ -231,35 +234,43 @@ void say_treasure(struct char_data *ch, struct obj_data *obj)
   {
     if (ch && obj && obj->short_description)
     {
-      send_to_char(ch, "\tYYour performance also awards you with %s!\tn\r\n", obj->short_description);
+      send_to_char(ch, "\tYYour performance also awards you with %s!\tn\r\n",
+                   obj->short_description);
     }
   }
   else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_TRIBUTE)
   {
     if (ch && obj && obj->short_description)
     {
-      send_to_char(ch, "\tYYour famous local accolades award you with an additonal tribute of %s!\tn\r\n", obj->short_description);
+      send_to_char(
+          ch, "\tYYour famous local accolades award you with an additonal tribute of %s!\tn\r\n",
+          obj->short_description);
     }
   }
   else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_EXTORTION)
   {
     if (ch && obj && obj->short_description)
     {
-      send_to_char(ch, "\tYYour extortion victim also hands you %s!\tn\r\n", obj->short_description);
+      send_to_char(ch, "\tYYour extortion victim also hands you %s!\tn\r\n",
+                   obj->short_description);
     }
   }
   else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_SCROUNGE)
   {
     if (ch && obj && obj->short_description)
     {
-      send_to_char(ch, "\tYYou scrounge the area for useful items and come across %s!\tn\r\n", obj->short_description);
+      send_to_char(ch, "\tYYou scrounge the area for useful items and come across %s!\tn\r\n",
+                   obj->short_description);
     }
   }
   else if (ch && obj && obj->short_description)
   {
-    send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
+    send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n",
+                 obj->short_description);
 
-    snprintf(buf, MAX_STRING_LENGTH, "$n \tYhas found %s\tn\tY in a nearby lair (random treasure drop)!\tn", obj->short_description);
+    snprintf(buf, MAX_STRING_LENGTH,
+             "$n \tYhas found %s\tn\tY in a nearby lair (random treasure drop)!\tn",
+             obj->short_description);
     act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
   }
 }
@@ -564,7 +575,6 @@ int determine_stat_apply(int wear)
 /* pick a random feat to put on our special items */
 int apply_bonus_feat(int rare_grade)
 {
-
   /* just in case */
   if (rare_grade <= RARE_GRADE_NORMAL)
     return FEAT_UNDEFINED;
@@ -781,7 +791,8 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE))
   {
     if (dice(1, 3) == 1)
-      award_magic_item(1, ch, grade); // we want magic item treasure drops to be better but less common
+      award_magic_item(1, ch,
+                       grade); // we want magic item treasure drops to be better but less common
     snprintf(buf, MEDIUM_STRING, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     snprintf(buf, MEDIUM_STRING, "$n \tYhas found %d coins hidden on $N's corpse!\tn", gold);
@@ -794,34 +805,34 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
 void award_random_magic_armor(struct char_data *ch, int grade)
 {
   if (dice(1, 3) != 3)
-      award_magic_armor_suit(ch, grade);
-    else
-      award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
+    award_magic_armor_suit(ch, grade);
+  else
+    award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
 }
 
 void award_random_expendible_item(struct char_data *ch, int grade)
 {
   switch (dice(1, 8))
   {
-    case 1:
-    case 2:
-    case 3:
-      award_expendable_item(ch, grade, TYPE_SCROLL);
-      award_expendable_item(ch, grade, TYPE_SCROLL);
-      break;
-    case 4:
-    case 5:
-    case 6:
-      award_expendable_item(ch, grade, TYPE_POTION);
-      award_expendable_item(ch, grade, TYPE_POTION);
-      award_expendable_item(ch, grade, TYPE_POTION);
-      break;
-    case 7:
-      award_expendable_item(ch, grade, TYPE_WAND);
-      break;
-    case 8:
-      award_expendable_item(ch, grade, TYPE_STAFF);
-      break;
+  case 1:
+  case 2:
+  case 3:
+    award_expendable_item(ch, grade, TYPE_SCROLL);
+    award_expendable_item(ch, grade, TYPE_SCROLL);
+    break;
+  case 4:
+  case 5:
+  case 6:
+    award_expendable_item(ch, grade, TYPE_POTION);
+    award_expendable_item(ch, grade, TYPE_POTION);
+    award_expendable_item(ch, grade, TYPE_POTION);
+    break;
+  case 7:
+    award_expendable_item(ch, grade, TYPE_WAND);
+    break;
+  case 8:
+    award_expendable_item(ch, grade, TYPE_STAFF);
+    break;
   }
 }
 
@@ -933,7 +944,7 @@ void award_magic_item(int number, struct char_data *ch, int grade)
 {
   int i = 0;
   int roll = 0;
-  
+
   if (number <= 0)
     number = 1;
 
@@ -1003,7 +1014,7 @@ int random_apply_value(void)
   /* There will be different groupings based on item type and wear location,
    * for example weapons will get hit/dam bonus (the +) and armor will get
    * ac_apply_new bonus (the +). */
-#if defined (CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL)
   switch (dice(1, 24))
 #else
   switch (dice(1, 12))
@@ -1183,11 +1194,11 @@ void award_random_crystal(struct char_data *ch, int grade)
   // two colors and descriptor
   if (roll >= 91)
   {
-    snprintf(buf, MEDIUM_STRING, "%s%s %s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1], colors[color2],
-             crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1],
+             colors[color2], crystal_descs[desc]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s, %s and %s %s", buf2, crystal_descs[desc],
-             colors[color1], colors[color2], CRAFTING_CRYSTAL);
+    snprintf(buf, MEDIUM_STRING, "%sa %s, %s and %s %s", buf2, crystal_descs[desc], colors[color1],
+             colors[color2], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
     snprintf(buf, MEDIUM_STRING, "%sA %s, %s and %s %s lies here.", buf2, crystal_descs[desc],
              colors[color1], colors[color2], CRAFTING_CRYSTAL);
@@ -1197,22 +1208,28 @@ void award_random_crystal(struct char_data *ch, int grade)
   }
   else if (roll >= 66)
   {
-    snprintf(buf, MEDIUM_STRING, "%s%s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1], crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1],
+             crystal_descs[desc]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s %s %s", buf2, crystal_descs[desc], colors[color1], CRAFTING_CRYSTAL);
+    snprintf(buf, MEDIUM_STRING, "%sa %s %s %s", buf2, crystal_descs[desc], colors[color1],
+             CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s %s %s lies here.", buf2, crystal_descs[desc], colors[color1], CRAFTING_CRYSTAL);
+    snprintf(buf, MEDIUM_STRING, "%sA %s %s %s lies here.", buf2, crystal_descs[desc],
+             colors[color1], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
 
     // two colors no descriptor
   }
   else if (roll >= 41)
   {
-    snprintf(buf, MEDIUM_STRING, "%s%s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1],
+             colors[color2]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s and %s %s", buf2, colors[color1], colors[color2], CRAFTING_CRYSTAL);
+    snprintf(buf, MEDIUM_STRING, "%sa %s and %s %s", buf2, colors[color1], colors[color2],
+             CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s and %s %s lies here.", buf2, colors[color1], colors[color2], CRAFTING_CRYSTAL);
+    snprintf(buf, MEDIUM_STRING, "%sA %s and %s %s lies here.", buf2, colors[color1],
+             colors[color2], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
   }
   else if (roll >= 21)
@@ -1232,11 +1249,13 @@ void award_random_crystal(struct char_data *ch, int grade)
     obj->name = strdup(buf);
     snprintf(buf, MEDIUM_STRING, "%sa %s %s", buf2, crystal_descs[desc], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s %s lies here.", buf2, crystal_descs[desc], CRAFTING_CRYSTAL);
+    snprintf(buf, MEDIUM_STRING, "%sA %s %s lies here.", buf2, crystal_descs[desc],
+             CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
   }
 
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_CRYSTAL, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_CRYSTAL,
+                           rare_grade, FALSE);
 }
 
 /* awards potions or scroll or wand or staff */
@@ -1341,8 +1360,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
 
       if (loop_counter >= 999)
         return;
-    } while (spell_level < spell_info[spell_num].min_level[class] ||
-             !valid_item_spell(spell_num));
+    } while (spell_level < spell_info[spell_num].min_level[class] || !valid_item_spell(spell_num));
   }
 
   /* first assign two random colors for usage */
@@ -1412,8 +1430,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
       snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s", colors[color1], colors[color2],
                spell_info[spell_num].name, keywords);
       obj->name = strdup(buf);
-      snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s and %s liquid", colors[color1],
-               colors[color2]);
+      snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s and %s liquid",
+               colors[color1], colors[color2]);
       obj->short_description = strdup(buf);
       snprintf(buf, MAX_STRING_LENGTH, "A glass vial filled with a %s and %s liquid lies here.",
                colors[color1], colors[color2]);
@@ -1430,8 +1448,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
       snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s", colors[color1],
                spell_info[spell_num].name, keywords);
       obj->name = strdup(buf);
-      snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s liquid",
-               colors[color1]);
+      snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s liquid", colors[color1]);
       obj->short_description = strdup(buf);
       snprintf(buf, MAX_STRING_LENGTH, "A glass vial filled with a %s liquid lies here.",
                colors[color1]);
@@ -1457,7 +1474,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "a wooden wand covered in %s runes", colors[color1]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "A wooden wand covered in %s runes lies here.", colors[color1]);
+    snprintf(buf, MAX_STRING_LENGTH, "A wooden wand covered in %s runes lies here.",
+             colors[color1]);
     obj->description = strdup(buf);
 
     GET_OBJ_VAL(obj, 0) = spell_level;
@@ -1543,8 +1561,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
  original version is right below this.  the bonus_value is measure in enchantment
  bonus as the currency, so we have to make decisions on the value of receiving
  other stats such as strength, hps, etc */
-void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-                              int enchantment_grade, int cp_type, int rare_grade, int silent_mode)
+void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj, int enchantment_grade,
+                              int cp_type, int rare_grade, int silent_mode)
 {
   int bonus_value = enchantment_grade, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
@@ -1553,8 +1571,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
       CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) ||
-      CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS) ||
-      cp_type == CP_TYPE_AMMO)
+      CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS) || cp_type == CP_TYPE_AMMO)
   {
     /* object value 4 for these particular objects are their enchantment bonus */
     GET_OBJ_VAL(obj, 4) = bonus_value;
@@ -1613,7 +1630,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     if (bonus_location >= APPLY_SPELL_CIRCLE_1 && bonus_location <= APPLY_SPELL_CIRCLE_9)
       obj->affected[0].specific = get_random_spellcaster_class();
     if (bonus_location == APPLY_SKILL)
-      obj->affected[0].specific = get_random_skill();    
+      obj->affected[0].specific = get_random_skill();
   }
 
   /* rare grade */
@@ -1659,7 +1676,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   GET_OBJ_LEVEL(obj) = MIN(30, bonus_value * 5);
 
 #if defined(USE_NEW_RANDOM_OBJECT_GUIDELINES)
-  
+
   if (rare_grade > RARE_GRADE_NORMAL)
   {
     feat_num = apply_bonus_feat(rare_grade);
@@ -1678,7 +1695,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   int num_bonuses = rare_grade + 2;
 
   assign_random_bonuses(obj, GET_OBJ_LEVEL(obj), num_bonuses);
-  
+
 #endif
 
 #if defined(USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES)
@@ -1922,11 +1939,14 @@ void award_magic_ammo(struct char_data *ch, int grade)
   else
   {
     armor_desc_rollB = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
-    snprintf(desc4, MEDIUM_STRING, "with %s %s tip", AN(ammo_head_descs[armor_desc_rollB]), ammo_head_descs[armor_desc_rollB]);
+    snprintf(desc4, MEDIUM_STRING, "with %s %s tip", AN(ammo_head_descs[armor_desc_rollB]),
+             ammo_head_descs[armor_desc_rollB]);
   }
 
   /* we are adding "ammo" as a keyword here for ease of handling for players */
-  snprintf(keywords, MEDIUM_STRING, "ammo %s %s %s %s", ammo_head_descs[armor_desc_rollB], material_name[GET_OBJ_MATERIAL(obj)], ammo_types[GET_OBJ_VAL(obj, 0)], ammo_descs[armor_desc_rollA]);
+  snprintf(keywords, MEDIUM_STRING, "ammo %s %s %s %s", ammo_head_descs[armor_desc_rollB],
+           material_name[GET_OBJ_MATERIAL(obj)], ammo_types[GET_OBJ_VAL(obj, 0)],
+           ammo_descs[armor_desc_rollA]);
   snprintf(desc, MEDIUM_STRING, "%s %s %s %s", desc1, desc2, desc3, desc4);
 
   /* finished descrips, so lets assign them */
@@ -1953,10 +1973,14 @@ void award_magic_ammo(struct char_data *ch, int grade)
   SET_BIT_AR(GET_OBJ_EXTRA(obj2), ITEM_MAGIC);
   SET_BIT_AR(GET_OBJ_EXTRA(obj3), ITEM_MAGIC);
   SET_BIT_AR(GET_OBJ_EXTRA(obj4), ITEM_MAGIC);
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
-  cp_modify_object_applies(ch, obj2, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
-  cp_modify_object_applies(ch, obj3, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
-  cp_modify_object_applies(ch, obj4, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade,
+                           FALSE);
+  cp_modify_object_applies(ch, obj2, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade,
+                           FALSE);
+  cp_modify_object_applies(ch, obj3, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade,
+                           FALSE);
+  cp_modify_object_applies(ch, obj4, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade,
+                           FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1999,7 +2023,8 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
            IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD))
   {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, "%s", AN(armor_special_descs[armor_desc_roll]));
+    dcount =
+        snprintf(desc + dlen, sizeof(desc) - dlen, "%s", AN(armor_special_descs[armor_desc_roll]));
     if (dcount > 0)
       dlen += dcount;
   }
@@ -2024,18 +2049,20 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s", armor_list[GET_ARMOR_TYPE(obj)].name);
+  kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s",
+                    armor_list[GET_ARMOR_TYPE(obj)].name);
   if (kcount > 0)
     klen += kcount;
-  kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s", material_name[GET_OBJ_MATERIAL(obj)]);
+  kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s",
+                    material_name[GET_OBJ_MATERIAL(obj)]);
   if (kcount > 0)
     klen += kcount;
 
   roll = dice(1, 3);
   if (roll == 3)
   { // armor spec adjective in desc?
-    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s",
-                      armor_special_descs[armor_desc_roll]);
+    dcount =
+        snprintf(desc + dlen, sizeof(desc) - dlen, " %s", armor_special_descs[armor_desc_roll]);
     if (dcount > 0)
       dlen += dcount;
 
@@ -2057,10 +2084,12 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   }
   else if (roll == 3)
   { // two colors
-    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s and %s", colors[color1], colors[color2]);
+    dcount =
+        snprintf(desc + dlen, sizeof(desc) - dlen, " %s and %s", colors[color1], colors[color2]);
     if (dcount > 0)
       dlen += dcount;
-    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s and %s", colors[color1], colors[color2]);
+    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s and %s", colors[color1],
+                      colors[color2]);
     if (kcount > 0)
       klen += kcount;
   }
@@ -2078,28 +2107,24 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   if (roll >= 7)
   { // crest?
     dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " with %s %s crest",
-                      AN(armor_crests[crest_num]),
-                      armor_crests[crest_num]);
+                      AN(armor_crests[crest_num]), armor_crests[crest_num]);
     if (dcount > 0)
       dlen += dcount;
 
     kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " with %s %s crest",
-                      AN(armor_crests[crest_num]),
-                      armor_crests[crest_num]);
+                      AN(armor_crests[crest_num]), armor_crests[crest_num]);
     if (kcount > 0)
       klen += kcount;
   }
   else if (roll >= 5)
   { // or symbol?
     dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " covered in symbols of %s %s",
-                      AN(armor_crests[crest_num]),
-                      armor_crests[crest_num]);
+                      AN(armor_crests[crest_num]), armor_crests[crest_num]);
     if (dcount > 0)
       dlen += dcount;
 
     kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " covered in symbols of %s %s",
-                      AN(armor_crests[crest_num]),
-                      armor_crests[crest_num]);
+                      AN(armor_crests[crest_num]), armor_crests[crest_num]);
     if (kcount > 0)
       klen += kcount;
   }
@@ -2235,8 +2260,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   if (roll >= 7)
   { // crest?
     char tmp[SMALL_STRING] = {'\0'};
-    snprintf(tmp, SMALL_STRING, " with %s %s crest",
-             AN(armor_crests[crest_num]),
+    snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
     strncat(desc, tmp, MEDIUM_STRING - strlen(desc));
     strncat(keywords, tmp, MEDIUM_STRING - strlen(keywords));
@@ -2244,8 +2268,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   else if (roll >= 5)
   { // or symbol?
     char tmp[SMALL_STRING] = {'\0'};
-    snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s",
-             AN(armor_crests[crest_num]),
+    snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
     strncat(desc, tmp, MEDIUM_STRING - strlen(desc));
     strncat(keywords, tmp, MEDIUM_STRING - strlen(keywords));
@@ -2262,7 +2285,8 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade,
+                           FALSE);
   /* END BONUS SECTION */
 }
 
@@ -2458,7 +2482,8 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   if (roll >= 7)
   { // crest?
     char tmp[SMALL_STRING] = {'\0'};
-    snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]), armor_crests[crest_num]);
+    snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]),
+             armor_crests[crest_num]);
     strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
     strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
     strncat(desca, tmp, MEDIUM_STRING - strlen(desca));
@@ -2471,7 +2496,8 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   else if (roll >= 5)
   { // or symbol?
     char tmp[SMALL_STRING] = {'\0'};
-    snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]), armor_crests[crest_num]);
+    snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]),
+             armor_crests[crest_num]);
     strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
     strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
     strncat(desca, tmp, MEDIUM_STRING - strlen(desca));
@@ -2508,10 +2534,14 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, body, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
-  cp_modify_object_applies(ch, head, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
-  cp_modify_object_applies(ch, arms, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
-  cp_modify_object_applies(ch, legs, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
+  cp_modify_object_applies(ch, body, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade,
+                           FALSE);
+  cp_modify_object_applies(ch, head, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade,
+                           FALSE);
+  cp_modify_object_applies(ch, arms, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade,
+                           FALSE);
+  cp_modify_object_applies(ch, legs, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade,
+                           FALSE);
   /* END BONUS SECTION */
 }
 
@@ -2522,7 +2552,6 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
  */
 void set_ammo_object(struct obj_data *obj, int type)
 {
-
   GET_OBJ_TYPE(obj) = ITEM_MISSILE;
 
   /* Ammo Type, 0 Value */
@@ -2581,8 +2610,7 @@ void set_armor_object(struct obj_data *obj, int type)
   TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
 
   /* now set the appropriate wear flag bit */
-  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj),
-                armor_list[GET_OBJ_VAL(obj, 1)].wear);
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), armor_list[GET_OBJ_VAL(obj, 1)].wear);
 }
 
 /* automatically set object up to be a given weapon type */
@@ -2835,8 +2863,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
   snprintf(desc, MEDIUM_STRING, "%s", label_rare_grade(rare_grade));
 
   /* ok assigning final material here, check for upgrade */
-  GET_OBJ_MATERIAL(obj) =
-      possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
+  GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
 
   /* grade-based processing complete */
 
@@ -2851,11 +2878,14 @@ void award_magic_weapon(struct char_data *ch, int grade)
   snprintf(head_color, SHORT_STRING, "%s", colors[color1]);
   snprintf(hilt_color, SHORT_STRING, "%s", colors[color2]);
   if (IS_BLADE(obj))
-    snprintf(special, SHORT_STRING, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc,
+             blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
-    snprintf(special, SHORT_STRING, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc,
+             piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
   else // blunt
-    snprintf(special, SHORT_STRING, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc,
+             blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
   roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);
@@ -2865,22 +2895,18 @@ void award_magic_weapon(struct char_data *ch, int grade)
   if (roll >= 91)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], special,
-             hilt_color,
-             handle_types[roll3]);
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)], special,
+             hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s", a_or_an(special), special,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s lies here.", a_or_an(special),
-             special, head_color, head_types[roll2],
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s lies here.",
+             a_or_an(special), special, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -2889,16 +2915,15 @@ void award_magic_weapon(struct char_data *ch, int grade)
   else if (roll >= 81)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], special);
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s", a_or_an(special), special,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s", a_or_an(special), special, head_color,
+             head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s lies here.", a_or_an(special),
-             special, head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s lies here.", a_or_an(special), special,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -2907,18 +2932,15 @@ void award_magic_weapon(struct char_data *ch, int grade)
   else if (roll >= 71)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color,
-             handle_types[roll3]);
+             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s", a_or_an(special), special,
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
              special, material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -2926,22 +2948,18 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
   else if (roll >= 41)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s",
-             weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)],
-             hilt_color,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)], hilt_color,
              handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s lies here.", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
@@ -2951,16 +2969,15 @@ void award_magic_weapon(struct char_data *ch, int grade)
   else if (roll >= 31)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)]);
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", a_or_an(head_color), head_color,
+             head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s lies here.", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s lies here.", a_or_an(head_color), head_color,
+             head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -2968,21 +2985,18 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
   else if (roll >= 21)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s",
-             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)],
-             hilt_color,
-             handle_types[roll3]);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+             material_name[GET_OBJ_MATERIAL(obj)], hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s", a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s",
+             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
              a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3005,10 +3019,11 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
   else
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s",
-             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)]);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+             material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s",
+             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
@@ -3020,7 +3035,8 @@ void award_magic_weapon(struct char_data *ch, int grade)
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, rare_grade,
+                           FALSE);
 }
 #undef SHORT_STRING
 
@@ -3053,8 +3069,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   /* we should have a completely usable weapon now, just missing descripts/stats */
 
   /* ok assigning final material here, check for upgrade */
-  GET_OBJ_MATERIAL(obj) =
-      possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
+  GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
 
   /* enchantment-based processing complete */
 
@@ -3069,11 +3084,14 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   snprintf(head_color, SHORT_STRING, "%s", colors[color1]);
   snprintf(hilt_color, SHORT_STRING, "%s", colors[color2]);
   if (IS_BLADE(obj))
-    snprintf(special, SHORT_STRING, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc,
+             blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
-    snprintf(special, SHORT_STRING, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc,
+             piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
   else // blunt
-    snprintf(special, SHORT_STRING, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc,
+             blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
   roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);
@@ -3083,22 +3101,18 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   if (roll >= 91)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], special,
-             hilt_color,
-             handle_types[roll3]);
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)], special,
+             hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s", a_or_an(special), special,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s lies here.", a_or_an(special),
-             special, head_color, head_types[roll2],
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s lies here.",
+             a_or_an(special), special, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3107,16 +3121,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   else if (roll >= 81)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], special);
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s", a_or_an(special), special,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s", a_or_an(special), special, head_color,
+             head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s lies here.", a_or_an(special),
-             special, head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s lies here.", a_or_an(special), special,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3125,18 +3138,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   else if (roll >= 71)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color,
-             handle_types[roll3]);
+             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s", a_or_an(special), special,
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
              special, material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3144,22 +3154,18 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   }
   else if (roll >= 41)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s",
-             weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)],
-             hilt_color,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)], hilt_color,
              handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s lies here.", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
@@ -3169,16 +3175,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   else if (roll >= 31)
   {
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)]);
+             head_color, head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", a_or_an(head_color), head_color,
+             head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s lies here.", a_or_an(head_color),
-             head_color, head_types[roll2],
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s lies here.", a_or_an(head_color), head_color,
+             head_types[roll2], material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3186,21 +3191,18 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   }
   else if (roll >= 21)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s",
-             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)],
-             hilt_color,
-             handle_types[roll3]);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+             material_name[GET_OBJ_MATERIAL(obj)], hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s", a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s",
+             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
              a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color,
-             handle_types[roll3]);
+             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3223,10 +3225,11 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   }
   else
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s",
-             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)]);
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+             material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s",
+             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
@@ -3284,14 +3287,16 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     vnum = BOOTS_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 4: /*hands*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 5: /*about*/
@@ -3305,7 +3310,8 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     vnum = BELT_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 7: /*wrist*/
@@ -3317,21 +3323,26 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   case 8: /*held*/
     vnum = HELD_MOLD;
     material = MATERIAL_ONYX;
-    snprintf(armor_name, MEDIUM_STRING, "%s", crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s",
+             crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
     snprintf(desc2, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 9: /*monk gloves*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, "%s", monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s",
+             monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 10: // Shoulder
     vnum = SHOULDERS_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s",
+             waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 11: // Eyes
@@ -3344,7 +3355,8 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     vnum = FACE_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", face_descs[rand_number(0, NUM_A_FACE_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 13: // Ears
@@ -3365,7 +3377,6 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
    determine whether an upgrade was achieved by enchantment */
   switch (material)
   {
-
   case MATERIAL_COPPER:
     switch (enchantment)
     {
@@ -3484,12 +3495,11 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   case ANKLET_MOLD:
   case EYES_MOLD:
   case FACE_MOLD:
-    snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
-             armor_name, material_name[material], desc2);
+    snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone", armor_name,
+             material_name[material], desc2);
     obj->name = strdup(keywords);
-    snprintf(buf, MEDIUM_STRING, "%s %s %s set with %s %s gemstone",
-             AN(material_name[material]), material_name[material],
-             armor_name, AN(desc2), desc2);
+    snprintf(buf, MEDIUM_STRING, "%s %s %s set with %s %s gemstone", AN(material_name[material]),
+             material_name[material], armor_name, AN(desc2), desc2);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
     strncpy(desc, " lies here.", MEDIUM_STRING - strlen(desc));
@@ -3499,12 +3509,10 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   case GLOVES_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
     obj->name = strdup(keywords);
-    snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3,
-             armor_name);
+    snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3, armor_name);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
-    snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3,
-             armor_name);
+    snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3, armor_name);
     obj->description = strdup(desc);
     break;
   case CLOAK_MOLD:
@@ -3512,25 +3520,21 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
              material_name[material], desc3);
     obj->name = strdup(keywords);
     snprintf(buf, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s", AN(desc3), desc3,
-             material_name[material], armor_name, AN(desc2),
-             desc2);
+             material_name[material], armor_name, AN(desc2), desc2);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
-    snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
-             material_name[material], armor_name, AN(desc2),
-             desc2);
+    snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.",
+             AN(desc3), desc3, material_name[material], armor_name, AN(desc2), desc2);
     obj->description = strdup(CAP(desc));
     break;
   case BELT_MOLD:
   case SHOULDERS_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
     obj->name = strdup(keywords);
-    snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3,
-             armor_name);
+    snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3, armor_name);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
-    snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
-             armor_name);
+    snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3, armor_name);
     obj->description = strdup(desc);
     break;
   case HELD_MOLD:
@@ -3597,14 +3601,16 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     vnum = BOOTS_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 4: /*hands*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 5: /*about*/
@@ -3618,7 +3624,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     vnum = BELT_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 7: /*wrist*/
@@ -3630,21 +3637,26 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case 8: /*held*/
     vnum = HELD_MOLD;
     material = MATERIAL_ONYX;
-    snprintf(armor_name, MEDIUM_STRING, "%s", crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s",
+             crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
     snprintf(desc2, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 9: /*monk gloves*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, "%s", monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s",
+             monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 10: // Shoulder
     vnum = SHOULDERS_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s",
+             waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 11: // Eyes
@@ -3657,7 +3669,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     vnum = FACE_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s", face_descs[rand_number(0, NUM_A_FACE_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s",
+             armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 13: // Ears
@@ -3685,7 +3698,9 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     break;
   default:
     /* Invalid category - log error and return safe default */
-    log("SYSERR: award_misc_magic_item() received invalid category %d from caller, defaulting to ring", category);
+    log("SYSERR: award_misc_magic_item() received invalid category %d from caller, defaulting to "
+        "ring",
+        category);
     vnum = RING_MOLD;
     material = MATERIAL_COPPER;
     snprintf(armor_name, MEDIUM_STRING, "%s", ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
@@ -3697,7 +3712,6 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
    determine whether an upgrade was achieved by grade */
   switch (material)
   {
-
   case MATERIAL_COPPER:
     switch (grade)
     {
@@ -3789,12 +3803,12 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   /* ok load object */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: award_misc_magic_item() failed to create object - category: %d, vnum: %d, grade: %d, "
+    log("SYSERR: award_misc_magic_item() failed to create object - category: %d, vnum: %d, grade: "
+        "%d, "
         "material: %d (%s), rare_grade: %d (%s), recipient: %s",
-        category, vnum, grade, 
-        material, (material >= 0 && material < NUM_MATERIALS) ? material_name[material] : "INVALID",
-        rare_grade, label_rare_grade(rare_grade),
-        ch ? GET_NAME(ch) : "NULL");
+        category, vnum, grade, material,
+        (material >= 0 && material < NUM_MATERIALS) ? material_name[material] : "INVALID",
+        rare_grade, label_rare_grade(rare_grade), ch ? GET_NAME(ch) : "NULL");
     return;
   }
 
@@ -3806,9 +3820,9 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     break;
   case 15: /* instrument */
     GET_OBJ_VAL(obj, 0) = instrument_type;
-    GET_OBJ_VAL(obj, 1) = dice(1, level) + 5; // quality
-    GET_OBJ_VAL(obj, 2) = dice(1, (level+5) / 5); // effectiveness
-    GET_OBJ_VAL(obj, 3) = dice(1, level) / 5; // breakability
+    GET_OBJ_VAL(obj, 1) = dice(1, level) + 5;       // quality
+    GET_OBJ_VAL(obj, 2) = dice(1, (level + 5) / 5); // effectiveness
+    GET_OBJ_VAL(obj, 3) = dice(1, level) / 5;       // breakability
   default:
     break;
   }
@@ -3827,17 +3841,15 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case EYES_MOLD:
   case FACE_MOLD:
   case INSTRUMENT_PROTO:
-    snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
-             armor_name, material_name[material], desc2);
+    snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone", armor_name,
+             material_name[material], desc2);
     obj->name = strdup(keywords);
-    snprintf(buf, MEDIUM_STRING, "%s %s %s set with %s %s gemstone",
-             AN(material_name[material]), material_name[material],
-             armor_name, AN(desc2), desc2);
+    snprintf(buf, MEDIUM_STRING, "%s %s %s set with %s %s gemstone", AN(material_name[material]),
+             material_name[material], armor_name, AN(desc2), desc2);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
     snprintf(desc, MEDIUM_STRING, "%s %s %s set with %s %s gemstone lies here.",
-             AN(material_name[material]), material_name[material],
-             armor_name, AN(desc2), desc2);
+             AN(material_name[material]), material_name[material], armor_name, AN(desc2), desc2);
     obj->description = strdup(CAP(desc));
     break;
   case BOOTS_MOLD:
@@ -3845,12 +3857,10 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case SHOULDERS_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
     obj->name = strdup(keywords);
-    snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3,
-             armor_name);
+    snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3, armor_name);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
-    snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3,
-             armor_name);
+    snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3, armor_name);
     obj->description = strdup(desc);
     break;
   case CLOAK_MOLD:
@@ -3858,24 +3868,20 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
              material_name[material], desc3);
     obj->name = strdup(keywords);
     snprintf(buf, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s", AN(desc3), desc3,
-             material_name[material], armor_name, AN(desc2),
-             desc2);
+             material_name[material], armor_name, AN(desc2), desc2);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
-    snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
-             material_name[material], armor_name, AN(desc2),
-             desc2);
+    snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.",
+             AN(desc3), desc3, material_name[material], armor_name, AN(desc2), desc2);
     obj->description = strdup(CAP(desc));
     break;
   case BELT_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
     obj->name = strdup(keywords);
-    snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3,
-             armor_name);
+    snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3, armor_name);
     strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
     obj->short_description = strdup(desc);
-    snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
-             armor_name);
+    snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3, armor_name);
     obj->description = strdup(desc);
     break;
   case HELD_MOLD:
@@ -3942,17 +3948,15 @@ void load_treasure(char_data *mob)
    as rings, necklaces, bracelets, etc */
 void disp_misc_type_menu(struct char_data *ch)
 {
-
-  send_to_char(ch,
-               "1) finger\r\n"
-               "2) neck\r\n"
-               "3) feet\r\n"
-               "4) hands\r\n"
-               "5) about\r\n"
-               "6) waist\r\n"
-               "7) wrist\r\n"
-               "8) hold\r\n"
-               "9) monk-gloves\r\n");
+  send_to_char(ch, "1) finger\r\n"
+                   "2) neck\r\n"
+                   "3) feet\r\n"
+                   "4) hands\r\n"
+                   "5) about\r\n"
+                   "6) waist\r\n"
+                   "7) wrist\r\n"
+                   "8) hold\r\n"
+                   "9) monk-gloves\r\n");
 }
 
 /* command to load specific treasure */
@@ -3970,12 +3974,12 @@ SPECIAL(bazaar)
 
   if (CMD_IS("bazaar"))
   {
-
     three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
     if (!*arg1)
     {
-      send_to_char(ch, "\tcSyntax:\tn bazaar <item category> <selection number> <enchantment level>\r\n");
+      send_to_char(
+          ch, "\tcSyntax:\tn bazaar <item category> <selection number> <enchantment level>\r\n");
       send_to_char(ch, "\tcItem Categories:\tn armor, weapon or misc.\r\n");
       send_to_char(ch, "\tcIf you type:\tn bazaar <item category> with no extra arguments, "
                        "it will display the 'selection number' choices\r\n");
@@ -4023,7 +4027,8 @@ SPECIAL(bazaar)
     /* selection number! */
     if (!*arg2)
     {
-      send_to_char(ch, "Second argument required, the second argument must be a 'selection number'\r\n");
+      send_to_char(
+          ch, "Second argument required, the second argument must be a 'selection number'\r\n");
       send_to_char(ch, "If you type: bazaar <item category> with no extra arguments, "
                        "it will display the 'selection number' choices\r\n");
       return TRUE;
@@ -4104,8 +4109,8 @@ SPECIAL(bazaar)
     else
     {
       GET_QUESTPOINTS(ch) -= cost;
-      send_to_char(ch, "You pay %d quest points.  You have %d left.\r\n",
-                   cost, GET_QUESTPOINTS(ch));
+      send_to_char(ch, "You pay %d quest points.  You have %d left.\r\n", cost,
+                   GET_QUESTPOINTS(ch));
     }
 
     /* we should be ready to go! */
@@ -4144,13 +4149,19 @@ ACMD(do_loadmagicspecific)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
-                     "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff] <AMOUNT>\r\n");
+    send_to_char(
+        ch,
+        "Syntax: lms [mundane|minor|typical|medium|major|superior] "
+        "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|"
+        "waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff] <AMOUNT>\r\n");
     return;
   }
   if (!*arg2)
   {
-    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff]\r\n");
+    send_to_char(
+        ch, "2nd argument must be: "
+            "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|"
+            "about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff]\r\n");
     return;
   }
 
@@ -4183,8 +4194,10 @@ ACMD(do_loadmagicspecific)
     grade = GRADE_SUPERIOR;
   else
   {
-    send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
-                     "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff]\r\n");
+    send_to_char(
+        ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
+            "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|"
+            "about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff]\r\n");
     return;
   }
 
@@ -4263,7 +4276,8 @@ ACMD(do_loadmagic)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# of items]\r\n");
+    send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# "
+                     "of items]\r\n");
     send_to_char(ch, "See also: loadmagicspecific (lms)\r\n");
     return;
   }
@@ -4288,7 +4302,8 @@ ACMD(do_loadmagic)
     grade = GRADE_SUPERIOR;
   else
   {
-    send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# of items]\r\n");
+    send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# "
+                     "of items]\r\n");
     return;
   }
 
@@ -4531,7 +4546,6 @@ int get_armor_piece_by_style(int style, int wear_loc)
 /*  Will return a random healing potion based on level */
 int get_random_healing_potion(int spell_level)
 {
-
   if (spell_level <= 5)
   {
     return SPELL_CURE_LIGHT;
@@ -4611,11 +4625,14 @@ bool proper_feat(struct obj_data *obj, int feat_num)
     }
     break;
   case ITEM_WEAPON:
-    if (feat_num == FEAT_SIMPLE_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_SIMPLE))
+    if (feat_num == FEAT_SIMPLE_WEAPON_PROFICIENCY &&
+        !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_SIMPLE))
       return false;
-    if (feat_num == FEAT_MARTIAL_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_MARTIAL))
+    if (feat_num == FEAT_MARTIAL_WEAPON_PROFICIENCY &&
+        !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_MARTIAL))
       return false;
-    if (feat_num == FEAT_EXOTIC_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_EXOTIC))
+    if (feat_num == FEAT_EXOTIC_WEAPON_PROFICIENCY &&
+        !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_EXOTIC))
       return false;
     break;
   }
@@ -4631,346 +4648,344 @@ int award_random_money(struct char_data *ch, int result)
   return amount;
 }
 
-const char *kender_loot[NUM_KENDER_BAUBLES] =
-{
-  "" // 0
-  "a blue fungus-covered book titled \"how to care for your cheese-mold\"",
-  "a cat teeth necklace",
-  "a chewed up old dragon saddle",
-  "a knights backscratcher",
-  "a book titled \"how to moo minotaur\" by taiwin cowtaunter",
-  "a list of questions to ask every race on krynn.",
-  "a pet rock",
-  "spome yellow chalk",
-  "some moldy spiced potatoes",
-  "a skillet",
-  "some elven underwear",
-  "a dead lizard",
-  "a diet plan",
-  "a tall, pointed grey hat",
-  "a nose picker",
-  "a rubber staff of magius",
-  "a bag full of nothing",
-  "a rat's finger bone",
-  "a chunk of shiny ice",
-  "some tangled elastic bands",
-  "eight tiny wooden reindeer",
-  "one chopstick",
-  "a cuttlebone",
-  "a potted venus fly trap",
-  "a spider that screams loudly when exposed to light",
-  "an old dried-out corn cob",
-  "a piece of toast",
-  "a small, mouth-blown reed instrument",
-  "a black carnival mask decorated with feathers",
-  "some pebbles",
-  "a spare hoopak twine",
-  "a green hood",
-  "a scrap of paper with the words \"get out of jail free\"",
-  "a blank scrap of parchment stained with berry juice",
-  "some squashed berries",
-  "three silver needles",
-  "a coloured thread",
-  "a dozen bracelets made of twine",
-  "a belt",
-  "some assorted small keys",
-  "a lizard cure",
-  "a finger bone of a minotaur",
-  "a feathered glove",
-  "a map of asalon with the letters p.c on it",
-  "some vampire's false teeth",
-  "an ogre's toenail clippings",
-  "a magical twig",
-  "a chunk of bastard sword blade",
-  "a hard boiled goose egg",
-  "a bundle of feathers",
-  "a piece of fools gold",
-  "assorted bread crumbs",
-  "a broken quill",
-  "a small container of red face paint",
-  "a rusted butterfly knife",
-  "a dead scorpion",
-  "a slightly ripped gift wrappings",
-  "a dull green book cover",
-  "a shoe of throwing",
-  "an ugly stick",
-  "some bat wings",
-  "a copy of \"this and that worthless gnome sayings\"",
-  "a tiger bone quill and ink",
-  "a wooden ladle",
-  "a pirate scarf",
-  "a pair of silver knives",
-  "some white gloves made of whale hide",
-  "some rainbow color pants",
-  "some parrot feathers",
-  "a telescope",
-  "a steel tooth",
-  "five feet of rope",
-  "the hilt of a sabre",
-  "a miniature anchor",
-  "the logbook of the ship joyrider",
-  "a squid in a jar",
-  "a bundle of sailcloth",
-  "the tip of a harpoon",
-  "some salted whalemeat",
-  "a dried up pea",
-  "a gnomish mechanical pencil",
-  "a monocle",
-  "a piece of unchewed gum",
-  "a yellow canary feather",
-  "the lid to a ceramic teapot",
-  "a copper bracelet",
-  "a piece of bright yellow candle wax",
-  "the missing link from a mithral chain shirt",
-  "a strand of prayer beads",
-  "a pre cataclysm map",
-  "a spool of copper wire",
-  "a kender spoon of stirring",
-  "a book entitled \"how to create a moat in  easy steps\" by waldo furrfoot",
-  "some donkey hair",
-  "some thorns from a rose bush",
-  "half of a lute string",
-  "a small, blue card that says \"get out of jail free\"",
-  "a leash for a squirrel",
-  "a piece of paper that asks \"if quizzes are quizicals, what are tests?\"",
-  "a rope of skipping",
-  "a trio of chopsticks",
-  "a stick of nosepicking",
-  "a pair of gnomish glasses with one cracked lens",
-  "a vial of rust",
-  "a stick",
-  "a red-brown leather map tube with a 'm' inlaid in gold on the lid",
-  "a book titled \"  ways to escape a kender\"",
-  "a mosquito stuck in amber colored goo",
-  "a realistic-looking dragonlance toothpick",
-  "a bottle filled with \"anti-misquito non disrepellent\"",
-  "a quill with the inscription of \"literacy=lunacy, you lunatic\"",
-  "a freaky twisted pig ear",
-  "a confusing gnomish mathematics book",
-  "a shapeless peice of jade",
-  "some squid suction cups",
-  "a rotten cracked egg",
-  "a sun dried frog legs",
-  "a soaked sock",
-  "a peanut",
-  "a walnut",
-  "a ball of yarn",
-  "a troll's nose hair",
-  "a piece of blue glass with a bug inside it",
-  "a bottle of takhisis's scale polish",
-  "a book called thievius raccoonus",
-  "a tiny carved mouse inside a clear blue ball",
-  "a ring with a bunch of funny writing on it",
-  "a book titled \" ways to stop a kender from invading the privacy of your pouches\"",
-  "a pair of silver scissors shaped like a stork",
-  "a small pewter figure of a kender",
-  "a rock that tastes funny",
-  "a jar of elbow grease",
-  "a button with a boat painted on it",
-  "a bead of red glass",
-  "a copper coin punched through and strung onto a black cord",
-  "smooth stone with a hole through the center",
-  "a sparkling blue marble",
-  "a broken silver chain",
-  "a richly embroidered ribbon",
-  "a small statuette in the shape of a lamb",
-  "a multicolored pebble",
-  "a piece of green amber",
-  "a cleverly painted wooden button",
-  "a yellow, pink and blue sock",
-  "a journal entitled \"what i found in a mage's sock drawer\"",
-  "some iron rations",
-  "an empty dwarven spirits bottle",
-  "an axe handle",
-  "a dried inkwell",
-  "a candle nubbin",
-  "a small, well-carved wooden dagger",
-  "a rock shaped like the head of a dragon",
-  "a bottle of invisible ink (contains water)",
-  "some sculptor's clay",
-  "a number scratched on a loose piece of parchment",
-  "a piece of lint-covered toffee",
-  "a bottle of algae-infested water",
-  "a pocket sundial",
-  "a small steel medallion",
-  "some unused lyre strings",
-  "a small conch shell",
-  "some colored beads",
-  "a first-aid bandages",
-  "some links from a piece of ring mail",
-  "a tiny cracked mirror",
-  "a bag of smooth pebbles",
-  "a whetstone",
-  "a cracked vial",
-  "a piece of stained glass",
-  "a small music box that plays an old elven lullaby",
-  "a handfull of clothespins",
-  "a pincushion full of pins",
-  "a dead daisy",
-  "a compass without a needle",
-  "a woolen sock",
-  "a jigsaw puzzle piece",
-  "a small piece of drift wood",
-  "a crystal prism",
-  "a bent silver arrowhead",
-  "a broken chain link",
-  "a small tooth from a troll",
-  "some torn lace",
-  "a clear green flattened pebble",
-  "a small pouch of powdered silver",
-  "a handful of amethyst chips",
-  "a pink apron with a picture of a chicken on it",
-  "a fake beard",
-  "an iron manicle",
-  "a cotton swab",
-  "a straw candy wrapper",
-  "some rusted caltrops",
-  "a book of bawdy tavern songs",
-  "a sign that says \"i'm with stupid\"",
-  "a jesters multi-colored hat",
-  "a wooden spoon",
-  "some silver noseplugs",
-  "a silver spoon",
-  "a fork with elven designs on it",
-  "a map of tarsis",
-  "an odd assortment of fishing hooks",
-  "four aces",
-  "a pipe that looks like a green leaf",
-  "a leather bracelet",
-  "a small wooden wolf totem",
-  "some silk slippers",
-  "a list of all the taverns on ansalon (pre-cataclysm)",
-  "a blood red fingernail",
-  "a burnt piece of a red shoe",
-  "a snippet of metal tripwire",
-  "a teddy bear",
-  "a large stick of celery with runes of power on it",
-  "a cheese knife",
-  "some moldy quith-pa rations",
-  "a candle snuffer",
-  "a chicken bone",
-  "am apple core",
-  "some orange peels",
-  "a worn-out glove",
-  "a bent caltrop",
-  "a handfull of charcoal sticks",
-  "a lump of chalk",
-  "a seven-fingered glove",
-  "a clay token",
-  "uncle tas belly button lint",
-  "white chicken feather",
-  "silver spoon",
-  "three polished river stones",
-  "piece of wood that resembles a minotaur",
-  "orange stockings",
-  "rat skull",
-  "a dead rat",
-  "sea shell",
-  "lock of griffon hair",
-  "fossilized frog skeleton",
-  "handle of a dagger",
-  "unicorn horn",
-  "three pages of a knight of solamnia's war journal",
-  "vial of acid from a black dragon",
-  "jar with an insect inside",
-  "a mug",
-  "a small hammer",
-  "a small religious emblem",
-  "piece of deer antler",
-  "piece of untanned leather",
-  "minotaur hoof",
-  "a set of random jail keys",
-  "a piece to a khas game",
-  "half a deck of cards",
-  "a pewter game piece",
-  "a piece of blackroot",
-  "horse shoe",
-  "seven leaf clover",
-  "four leaf clover",
-  "a rabbit's foot",
-  "whale bone needle",
-  "completely unraveled fishing line",
-  "fishing hook",
-  "a red feather",
-  "a toe nail claw from a kyrie",
-  "a fish skeleton",
-  "a smudged love letter",
-  "small bag of acorns and seed",
-  "a piece of 'space rock'",
-  "a beaded necklace",
-  "a baby's rattle",
-  "rattle snake tail",
-  "a wanted poster of someone",
-  "moldy cheese",
-  "a boiled egg",
-  "a sun dried cricket",
-  "a small tin with wax in it",
-  "a boot lace",
-  "a piece of sky",
-  "a miniature hoopak made from tooth picks",
-  "half of a solamnic knight's moustache",
-  "a funny hat",
-  "monkey's paw",
-  "cow bell",
-  "a bottle of tree sap",
-  "candle",
-  "candle stick",
-  "a child's doll",
-  "tavern menu",
-  "a fork",
-  "part of a bee's hive",
-  "a cork to a bottle",
-  "gnomish tool set",
-  "a bit of wool from a sheep",
-  "a bit of flesh from a zombie",
-  "a vampire's tooth",
-  "seventeen dead rollie pollies",
-  "a dead butterfly",
-  "a piece of cactus",
-  "an old cracked smoker's pipe",
-  "broken sling shot",
-  "small shriveled up octopus tentacle",
-  "a small star fish",
-  "a flute",
-  "a paint brush",
-  "four marbles",
-  "an apple",
-  "a half eaten carrot",
-  "a slice of jerky",
-  "a salt shaker",
-  "a pepper shaker",
-  "a green ball of slime",
-  "a live ferret",
-  "a twelve sided die",
-  "a potato peeler",
-  "an artist's chisel",
-  "a deed to someone's house",
-  "cooled lava rock",
-  "a mushroom"
-};
+const char *kender_loot[NUM_KENDER_BAUBLES] = {
+    "" // 0
+    "a blue fungus-covered book titled \"how to care for your cheese-mold\"",
+    "a cat teeth necklace",
+    "a chewed up old dragon saddle",
+    "a knights backscratcher",
+    "a book titled \"how to moo minotaur\" by taiwin cowtaunter",
+    "a list of questions to ask every race on krynn.",
+    "a pet rock",
+    "spome yellow chalk",
+    "some moldy spiced potatoes",
+    "a skillet",
+    "some elven underwear",
+    "a dead lizard",
+    "a diet plan",
+    "a tall, pointed grey hat",
+    "a nose picker",
+    "a rubber staff of magius",
+    "a bag full of nothing",
+    "a rat's finger bone",
+    "a chunk of shiny ice",
+    "some tangled elastic bands",
+    "eight tiny wooden reindeer",
+    "one chopstick",
+    "a cuttlebone",
+    "a potted venus fly trap",
+    "a spider that screams loudly when exposed to light",
+    "an old dried-out corn cob",
+    "a piece of toast",
+    "a small, mouth-blown reed instrument",
+    "a black carnival mask decorated with feathers",
+    "some pebbles",
+    "a spare hoopak twine",
+    "a green hood",
+    "a scrap of paper with the words \"get out of jail free\"",
+    "a blank scrap of parchment stained with berry juice",
+    "some squashed berries",
+    "three silver needles",
+    "a coloured thread",
+    "a dozen bracelets made of twine",
+    "a belt",
+    "some assorted small keys",
+    "a lizard cure",
+    "a finger bone of a minotaur",
+    "a feathered glove",
+    "a map of asalon with the letters p.c on it",
+    "some vampire's false teeth",
+    "an ogre's toenail clippings",
+    "a magical twig",
+    "a chunk of bastard sword blade",
+    "a hard boiled goose egg",
+    "a bundle of feathers",
+    "a piece of fools gold",
+    "assorted bread crumbs",
+    "a broken quill",
+    "a small container of red face paint",
+    "a rusted butterfly knife",
+    "a dead scorpion",
+    "a slightly ripped gift wrappings",
+    "a dull green book cover",
+    "a shoe of throwing",
+    "an ugly stick",
+    "some bat wings",
+    "a copy of \"this and that worthless gnome sayings\"",
+    "a tiger bone quill and ink",
+    "a wooden ladle",
+    "a pirate scarf",
+    "a pair of silver knives",
+    "some white gloves made of whale hide",
+    "some rainbow color pants",
+    "some parrot feathers",
+    "a telescope",
+    "a steel tooth",
+    "five feet of rope",
+    "the hilt of a sabre",
+    "a miniature anchor",
+    "the logbook of the ship joyrider",
+    "a squid in a jar",
+    "a bundle of sailcloth",
+    "the tip of a harpoon",
+    "some salted whalemeat",
+    "a dried up pea",
+    "a gnomish mechanical pencil",
+    "a monocle",
+    "a piece of unchewed gum",
+    "a yellow canary feather",
+    "the lid to a ceramic teapot",
+    "a copper bracelet",
+    "a piece of bright yellow candle wax",
+    "the missing link from a mithral chain shirt",
+    "a strand of prayer beads",
+    "a pre cataclysm map",
+    "a spool of copper wire",
+    "a kender spoon of stirring",
+    "a book entitled \"how to create a moat in  easy steps\" by waldo furrfoot",
+    "some donkey hair",
+    "some thorns from a rose bush",
+    "half of a lute string",
+    "a small, blue card that says \"get out of jail free\"",
+    "a leash for a squirrel",
+    "a piece of paper that asks \"if quizzes are quizicals, what are tests?\"",
+    "a rope of skipping",
+    "a trio of chopsticks",
+    "a stick of nosepicking",
+    "a pair of gnomish glasses with one cracked lens",
+    "a vial of rust",
+    "a stick",
+    "a red-brown leather map tube with a 'm' inlaid in gold on the lid",
+    "a book titled \"  ways to escape a kender\"",
+    "a mosquito stuck in amber colored goo",
+    "a realistic-looking dragonlance toothpick",
+    "a bottle filled with \"anti-misquito non disrepellent\"",
+    "a quill with the inscription of \"literacy=lunacy, you lunatic\"",
+    "a freaky twisted pig ear",
+    "a confusing gnomish mathematics book",
+    "a shapeless peice of jade",
+    "some squid suction cups",
+    "a rotten cracked egg",
+    "a sun dried frog legs",
+    "a soaked sock",
+    "a peanut",
+    "a walnut",
+    "a ball of yarn",
+    "a troll's nose hair",
+    "a piece of blue glass with a bug inside it",
+    "a bottle of takhisis's scale polish",
+    "a book called thievius raccoonus",
+    "a tiny carved mouse inside a clear blue ball",
+    "a ring with a bunch of funny writing on it",
+    "a book titled \" ways to stop a kender from invading the privacy of your pouches\"",
+    "a pair of silver scissors shaped like a stork",
+    "a small pewter figure of a kender",
+    "a rock that tastes funny",
+    "a jar of elbow grease",
+    "a button with a boat painted on it",
+    "a bead of red glass",
+    "a copper coin punched through and strung onto a black cord",
+    "smooth stone with a hole through the center",
+    "a sparkling blue marble",
+    "a broken silver chain",
+    "a richly embroidered ribbon",
+    "a small statuette in the shape of a lamb",
+    "a multicolored pebble",
+    "a piece of green amber",
+    "a cleverly painted wooden button",
+    "a yellow, pink and blue sock",
+    "a journal entitled \"what i found in a mage's sock drawer\"",
+    "some iron rations",
+    "an empty dwarven spirits bottle",
+    "an axe handle",
+    "a dried inkwell",
+    "a candle nubbin",
+    "a small, well-carved wooden dagger",
+    "a rock shaped like the head of a dragon",
+    "a bottle of invisible ink (contains water)",
+    "some sculptor's clay",
+    "a number scratched on a loose piece of parchment",
+    "a piece of lint-covered toffee",
+    "a bottle of algae-infested water",
+    "a pocket sundial",
+    "a small steel medallion",
+    "some unused lyre strings",
+    "a small conch shell",
+    "some colored beads",
+    "a first-aid bandages",
+    "some links from a piece of ring mail",
+    "a tiny cracked mirror",
+    "a bag of smooth pebbles",
+    "a whetstone",
+    "a cracked vial",
+    "a piece of stained glass",
+    "a small music box that plays an old elven lullaby",
+    "a handfull of clothespins",
+    "a pincushion full of pins",
+    "a dead daisy",
+    "a compass without a needle",
+    "a woolen sock",
+    "a jigsaw puzzle piece",
+    "a small piece of drift wood",
+    "a crystal prism",
+    "a bent silver arrowhead",
+    "a broken chain link",
+    "a small tooth from a troll",
+    "some torn lace",
+    "a clear green flattened pebble",
+    "a small pouch of powdered silver",
+    "a handful of amethyst chips",
+    "a pink apron with a picture of a chicken on it",
+    "a fake beard",
+    "an iron manicle",
+    "a cotton swab",
+    "a straw candy wrapper",
+    "some rusted caltrops",
+    "a book of bawdy tavern songs",
+    "a sign that says \"i'm with stupid\"",
+    "a jesters multi-colored hat",
+    "a wooden spoon",
+    "some silver noseplugs",
+    "a silver spoon",
+    "a fork with elven designs on it",
+    "a map of tarsis",
+    "an odd assortment of fishing hooks",
+    "four aces",
+    "a pipe that looks like a green leaf",
+    "a leather bracelet",
+    "a small wooden wolf totem",
+    "some silk slippers",
+    "a list of all the taverns on ansalon (pre-cataclysm)",
+    "a blood red fingernail",
+    "a burnt piece of a red shoe",
+    "a snippet of metal tripwire",
+    "a teddy bear",
+    "a large stick of celery with runes of power on it",
+    "a cheese knife",
+    "some moldy quith-pa rations",
+    "a candle snuffer",
+    "a chicken bone",
+    "am apple core",
+    "some orange peels",
+    "a worn-out glove",
+    "a bent caltrop",
+    "a handfull of charcoal sticks",
+    "a lump of chalk",
+    "a seven-fingered glove",
+    "a clay token",
+    "uncle tas belly button lint",
+    "white chicken feather",
+    "silver spoon",
+    "three polished river stones",
+    "piece of wood that resembles a minotaur",
+    "orange stockings",
+    "rat skull",
+    "a dead rat",
+    "sea shell",
+    "lock of griffon hair",
+    "fossilized frog skeleton",
+    "handle of a dagger",
+    "unicorn horn",
+    "three pages of a knight of solamnia's war journal",
+    "vial of acid from a black dragon",
+    "jar with an insect inside",
+    "a mug",
+    "a small hammer",
+    "a small religious emblem",
+    "piece of deer antler",
+    "piece of untanned leather",
+    "minotaur hoof",
+    "a set of random jail keys",
+    "a piece to a khas game",
+    "half a deck of cards",
+    "a pewter game piece",
+    "a piece of blackroot",
+    "horse shoe",
+    "seven leaf clover",
+    "four leaf clover",
+    "a rabbit's foot",
+    "whale bone needle",
+    "completely unraveled fishing line",
+    "fishing hook",
+    "a red feather",
+    "a toe nail claw from a kyrie",
+    "a fish skeleton",
+    "a smudged love letter",
+    "small bag of acorns and seed",
+    "a piece of 'space rock'",
+    "a beaded necklace",
+    "a baby's rattle",
+    "rattle snake tail",
+    "a wanted poster of someone",
+    "moldy cheese",
+    "a boiled egg",
+    "a sun dried cricket",
+    "a small tin with wax in it",
+    "a boot lace",
+    "a piece of sky",
+    "a miniature hoopak made from tooth picks",
+    "half of a solamnic knight's moustache",
+    "a funny hat",
+    "monkey's paw",
+    "cow bell",
+    "a bottle of tree sap",
+    "candle",
+    "candle stick",
+    "a child's doll",
+    "tavern menu",
+    "a fork",
+    "part of a bee's hive",
+    "a cork to a bottle",
+    "gnomish tool set",
+    "a bit of wool from a sheep",
+    "a bit of flesh from a zombie",
+    "a vampire's tooth",
+    "seventeen dead rollie pollies",
+    "a dead butterfly",
+    "a piece of cactus",
+    "an old cracked smoker's pipe",
+    "broken sling shot",
+    "small shriveled up octopus tentacle",
+    "a small star fish",
+    "a flute",
+    "a paint brush",
+    "four marbles",
+    "an apple",
+    "a half eaten carrot",
+    "a slice of jerky",
+    "a salt shaker",
+    "a pepper shaker",
+    "a green ball of slime",
+    "a live ferret",
+    "a twelve sided die",
+    "a potato peeler",
+    "an artist's chisel",
+    "a deed to someone's house",
+    "cooled lava rock",
+    "a mushroom"};
 
 bool is_resist_magic_apply(int bonus)
 {
   switch (bonus)
   {
-    case APPLY_RES_FIRE:
-    case APPLY_RES_COLD:
-    case APPLY_RES_AIR:
-    case APPLY_RES_EARTH:
-    case APPLY_RES_ACID:
-    case APPLY_RES_HOLY:
-    case APPLY_RES_ELECTRIC:
-    case APPLY_RES_UNHOLY:
-    case APPLY_RES_SOUND:
-    case APPLY_RES_POISON:
-    case APPLY_RES_DISEASE:
-    case APPLY_RES_NEGATIVE:
-    case APPLY_RES_ILLUSION:
-    case APPLY_RES_MENTAL:
-    case APPLY_RES_LIGHT:
-    case APPLY_RES_ENERGY:
-    case APPLY_RES_WATER:
-      return true;
+  case APPLY_RES_FIRE:
+  case APPLY_RES_COLD:
+  case APPLY_RES_AIR:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ACID:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_POISON:
+  case APPLY_RES_DISEASE:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_ENERGY:
+  case APPLY_RES_WATER:
+    return true;
   }
   return false;
 }
@@ -4979,34 +4994,35 @@ bool is_resist_physical_apply(int bonus)
 {
   switch (bonus)
   {
-    case APPLY_RES_SLICE:
-    case APPLY_RES_PUNCTURE:
-    case APPLY_RES_FORCE:
-      return true;
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+    return true;
   }
   return false;
 }
 
 bool is_everywhere_apply(int bonus)
 {
-  if (is_spell_slot_apply(bonus)) return true;
+  if (is_spell_slot_apply(bonus))
+    return true;
 
   switch (bonus)
   {
-    case APPLY_STR:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CON:
-    case APPLY_CHA:
-    case APPLY_SKILL:
-    case APPLY_FEAT:
-    case APPLY_AC_NEW:
-    case APPLY_SAVING_WILL:
-    case APPLY_SAVING_FORT:
-    case APPLY_SAVING_REFL:
-    case APPLY_ENCUMBRANCE:
-      return true;
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CON:
+  case APPLY_CHA:
+  case APPLY_SKILL:
+  case APPLY_FEAT:
+  case APPLY_AC_NEW:
+  case APPLY_SAVING_WILL:
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_REFL:
+  case APPLY_ENCUMBRANCE:
+    return true;
   }
   return false;
 }
@@ -5015,413 +5031,443 @@ bool is_spell_slot_apply(int bonus)
 {
   switch (bonus)
   {
-    case APPLY_SPELL_CIRCLE_1:
-    case APPLY_SPELL_CIRCLE_2:
-    case APPLY_SPELL_CIRCLE_3:
-    case APPLY_SPELL_CIRCLE_4:
-    case APPLY_SPELL_CIRCLE_5:
-    case APPLY_SPELL_CIRCLE_6:
-    case APPLY_SPELL_CIRCLE_7:
-    case APPLY_SPELL_CIRCLE_8:
-    case APPLY_SPELL_CIRCLE_9:
-      return true;
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+    return true;
   }
   return false;
 }
 
 bool is_bonus_valid_for_item_type(int bonus, int item_type)
 {
-  if (is_everywhere_apply(bonus)) return true;
+  if (is_everywhere_apply(bonus))
+    return true;
 
   switch (item_type)
   {
-    // weapons can have everything
-    case ITEM_WEAPON:
+  // weapons can have everything
+  case ITEM_WEAPON:
+    return true;
+  case ITEM_LIGHT:
+    if (is_resist_magic_apply(bonus))
       return true;
-    case ITEM_LIGHT:
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-        case APPLY_SPELL_POTENCY:
-        case APPLY_SPELL_DC:
-        case APPLY_SPELL_DURATION:
-        case APPLY_SPELL_PENETRATION:
-          return true;
-      }
-      break;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return true;
+    }
+    break;
   }
   return false;
 }
 
 bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
 {
-  if (is_everywhere_apply(bonus)) return true;
-  
+  if (is_everywhere_apply(bonus))
+    return true;
+
   switch (wear_slot)
   {
-    case  ITEM_WEAR_FINGER:
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-        case APPLY_SPELL_POTENCY:
-        case APPLY_SPELL_DC:
-        case APPLY_SPELL_DURATION:
-        case APPLY_SPELL_PENETRATION:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_NECK:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-        case APPLY_SPELL_POTENCY:
-        case APPLY_SPELL_DC:
-        case APPLY_SPELL_DURATION:
-        case APPLY_SPELL_PENETRATION:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_BODY:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_HEAD:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_LEGS:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_FEET:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {       
-        case APPLY_DR:
-        case APPLY_DAMROLL:
-        case APPLY_HITROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_HANDS:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_ARMS:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_SHIELD:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_ABOUT:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_WAIST:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_DAMROLL:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_WRIST:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    // held items can have everything
-    case  ITEM_WEAR_HOLD:
+  case ITEM_WEAR_FINGER:
+    if (is_resist_magic_apply(bonus))
       return true;
-    case  ITEM_WEAR_FACE:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_AMMO_POUCH:
-    case  ITEM_WEAR_SHEATH:
-      switch (bonus)
-      {
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_EAR:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-        case APPLY_SPELL_POTENCY:
-        case APPLY_SPELL_DC:
-        case APPLY_SPELL_DURATION:
-        case APPLY_SPELL_PENETRATION:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_EYES:
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_NECK:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_BODY:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_HEAD:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_LEGS:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_FEET:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_DAMROLL:
+    case APPLY_HITROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_HANDS:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_ARMS:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_SHIELD:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_ABOUT:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_WAIST:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_DAMROLL:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_WRIST:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  // held items can have everything
+  case ITEM_WEAR_HOLD:
+    return true;
+  case ITEM_WEAR_FACE:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_AMMO_POUCH:
+  case ITEM_WEAR_SHEATH:
+    switch (bonus)
+    {
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_EAR:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_EYES:
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
 
-    case  ITEM_WEAR_BADGE:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_DAMROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-        case APPLY_SPELL_POTENCY:
-        case APPLY_SPELL_DC:
-        case APPLY_SPELL_DURATION:
-        case APPLY_SPELL_PENETRATION:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_INSTRUMENT:
-    case  ITEM_WEAR_SHOULDERS:
-      if (is_resist_physical_apply(bonus)) return true;
-      if (is_resist_magic_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-          return true;
-      }
-      break;
-    case  ITEM_WEAR_ANKLE:
-      if (is_resist_physical_apply(bonus)) return true;
-      switch (bonus)
-      {
-        case APPLY_SPELL_RES:
-        case APPLY_DR:
-        case APPLY_HITROLL:
-        case APPLY_INITIATIVE:
-        case APPLY_HP_REGEN:
-        case APPLY_MV_REGEN:
-        case APPLY_PSP_REGEN:
-        case APPLY_FAST_HEALING:
-        case APPLY_HIT:
-        case APPLY_MOVE:
-        case APPLY_PSP:
-        case APPLY_SPELL_POTENCY:
-        case APPLY_SPELL_DC:
-        case APPLY_SPELL_DURATION:
-        case APPLY_SPELL_PENETRATION:
-          return true;
-      }
+  case ITEM_WEAR_BADGE:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_INSTRUMENT:
+  case ITEM_WEAR_SHOULDERS:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    if (is_resist_magic_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return true;
+    }
+    break;
+  case ITEM_WEAR_ANKLE:
+    if (is_resist_physical_apply(bonus))
+      return true;
+    switch (bonus)
+    {
+    case APPLY_SPELL_RES:
+    case APPLY_DR:
+    case APPLY_HITROLL:
+    case APPLY_INITIATIVE:
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return true;
+    }
   }
   return false;
 }
@@ -5432,352 +5478,607 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
 
   switch (bonus)
   {
-    case APPLY_STR:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CON:
-    case APPLY_CHA:
-      if (olevel >= 30)       return 4;
-      else if (olevel >= 27)  return 3;
-      else if (olevel >= 24)  return 3;
-      else if (olevel >= 21)  return 3;
-      else if (olevel >= 18)  return 2;
-      else if (olevel >= 15)  return 2;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 1;
-      else if (olevel >= 6)   return 1;
-      else if (olevel >= 3)   return 0;
-      else                    return 0;
-
-    case APPLY_PSP:
-      if (olevel >= 30)       return 25;
-      else if (olevel >= 27)  return 23;
-      else if (olevel >= 24)  return 21;
-      else if (olevel >= 21)  return 19;
-      else if (olevel >= 18)  return 17;
-      else if (olevel >= 15)  return 15;
-      else if (olevel >= 12)  return 13;
-      else if (olevel >= 9)   return 11;
-      else if (olevel >= 6)   return 9;
-      else if (olevel >= 3)   return 7;
-      else                    return 5;
-
-    case APPLY_HIT:
-      if (olevel >= 30)       return 50;
-      else if (olevel >= 27)  return 45;
-      else if (olevel >= 24)  return 40;
-      else if (olevel >= 21)  return 35;
-      else if (olevel >= 18)  return 30;
-      else if (olevel >= 15)  return 25;
-      else if (olevel >= 12)  return 20;
-      else if (olevel >= 9)   return 15;
-      else if (olevel >= 6)   return 10;
-      else if (olevel >= 3)   return 10;
-      else                    return 5;
-
-    case APPLY_MOVE:
-      if (olevel >= 30)       return 1000;
-      else if (olevel >= 27)  return 900;
-      else if (olevel >= 24)  return 800;
-      else if (olevel >= 21)  return 700;
-      else if (olevel >= 18)  return 600;
-      else if (olevel >= 15)  return 500;
-      else if (olevel >= 12)  return 400;
-      else if (olevel >= 9)   return 300;
-      else if (olevel >= 6)   return 200;
-      else if (olevel >= 3)   return 100;
-      else                    return 50;
-
-    case APPLY_HITROLL:
-      if (olevel >= 30)       return 4;
-      else if (olevel >= 27)  return 4;
-      else if (olevel >= 24)  return 3;
-      else if (olevel >= 21)  return 3;
-      else if (olevel >= 18)  return 2;
-      else if (olevel >= 15)  return 2;
-      else if (olevel >= 12)  return 1;
-      else if (olevel >= 9)   return 1;
-      else if (olevel >= 6)   return 0;
-      else if (olevel >= 3)   return 0;
-      else                    return 0;
-
-    case APPLY_DAMROLL:
-      if (olevel >= 30)       return 3;
-      else if (olevel >= 27)  return 3;
-      else if (olevel >= 24)  return 2;
-      else if (olevel >= 21)  return 2;
-      else if (olevel >= 18)  return 2;
-      else if (olevel >= 15)  return 1;
-      else if (olevel >= 12)  return 1;
-      else if (olevel >= 9)   return 1;
-      else if (olevel >= 6)   return 0;
-      else if (olevel >= 3)   return 0;
-      else                    return 0;
-
-    case APPLY_SAVING_FORT:
-    case APPLY_SAVING_REFL:
-    case APPLY_SAVING_WILL:
-      if (olevel >= 30)       return 5;
-      else if (olevel >= 27)  return 4;
-      else if (olevel >= 24)  return 4;
-      else if (olevel >= 21)  return 3;
-      else if (olevel >= 18)  return 3;
-      else if (olevel >= 15)  return 2;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 1;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_SPELL_RES:
-    case APPLY_POWER_RES:
-      if (olevel >= 30)       return 3;
-      else if (olevel >= 27)  return 3;
-      else if (olevel >= 24)  return 3;
-      else if (olevel >= 21)  return 2;
-      else if (olevel >= 18)  return 2;
-      else if (olevel >= 15)  return 2;
-      else if (olevel >= 12)  return 1;
-      else if (olevel >= 9)   return 1;
-      else if (olevel >= 6)   return 1;
-      else if (olevel >= 3)   return 0;
-      else                    return 0;
-
-    case APPLY_AC_NEW:
-      if (olevel >= 30)       return 5;
-      else if (olevel >= 27)  return 4;
-      else if (olevel >= 24)  return 4;
-      else if (olevel >= 21)  return 4;
-      else if (olevel >= 18)  return 3;
-      else if (olevel >= 15)  return 3;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 1;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_RES_FIRE:
-    case APPLY_RES_COLD:
-    case APPLY_RES_AIR:
-    case APPLY_RES_EARTH:
-    case APPLY_RES_ACID:
-    case APPLY_RES_HOLY:
-    case APPLY_RES_ELECTRIC:
-    case APPLY_RES_UNHOLY:
-    case APPLY_RES_SLICE:
-    case APPLY_RES_PUNCTURE:
-    case APPLY_RES_FORCE:
-    case APPLY_RES_SOUND:
-    case APPLY_RES_POISON:
-    case APPLY_RES_DISEASE:
-    case APPLY_RES_NEGATIVE:
-    case APPLY_RES_ILLUSION:
-    case APPLY_RES_MENTAL:
-    case APPLY_RES_LIGHT:
-    case APPLY_RES_ENERGY:
-    case APPLY_RES_WATER:
-      if (olevel >= 30)       return 10;
-      else if (olevel >= 27)  return 9;
-      else if (olevel >= 24)  return 8;
-      else if (olevel >= 21)  return 7;
-      else if (olevel >= 18)  return 6;
-      else if (olevel >= 15)  return 5;
-      else if (olevel >= 12)  return 4;
-      else if (olevel >= 9)   return 3;
-      else if (olevel >= 6)   return 2;
-      else if (olevel >= 3)   return 1;
-      else                    return 0;
-
-    case APPLY_DR:
-      if (olevel >= 30)       return 3;
-      else if (olevel >= 27)  return 3;
-      else if (olevel >= 24)  return 2;
-      else if (olevel >= 21)  return 2;
-      else if (olevel >= 18)  return 2;
-      else if (olevel >= 15)  return 1;
-      else if (olevel >= 12)  return 1;
-      else if (olevel >= 9)   return 1;
-      else if (olevel >= 6)   return 0;
-      else if (olevel >= 3)   return 0;
-      else                    return 0;
-
-    case APPLY_SKILL:
-      if (olevel >= 30)       return 6;
-      else if (olevel >= 27)  return 5;
-      else if (olevel >= 24)  return 5;
-      else if (olevel >= 21)  return 4;
-      else if (olevel >= 18)  return 4;
-      else if (olevel >= 15)  return 3;
-      else if (olevel >= 12)  return 3;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 2;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_HP_REGEN:
-      if (olevel >= 30)       return 5;
-      else if (olevel >= 27)  return 5;
-      else if (olevel >= 24)  return 4;
-      else if (olevel >= 21)  return 4;
-      else if (olevel >= 18)  return 3;
-      else if (olevel >= 15)  return 3;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 2;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_MV_REGEN:
-      if (olevel >= 30)       return 50;
-      else if (olevel >= 27)  return 45;
-      else if (olevel >= 24)  return 40;
-      else if (olevel >= 21)  return 35;
-      else if (olevel >= 18)  return 30;
-      else if (olevel >= 15)  return 25;
-      else if (olevel >= 12)  return 20;
-      else if (olevel >= 9)   return 15;
-      else if (olevel >= 6)   return 10;
-      else if (olevel >= 3)   return 5;
-      else                    return 5;
-
-    case APPLY_PSP_REGEN:
-      if (olevel >= 30)       return 5;
-      else if (olevel >= 27)  return 5;
-      else if (olevel >= 24)  return 4;
-      else if (olevel >= 21)  return 4;
-      else if (olevel >= 18)  return 3;
-      else if (olevel >= 15)  return 3;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 2;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_ENCUMBRANCE:
-      if (olevel >= 30)       return 10;
-      else if (olevel >= 27)  return 9;
-      else if (olevel >= 24)  return 8;
-      else if (olevel >= 21)  return 7;
-      else if (olevel >= 18)  return 6;
-      else if (olevel >= 15)  return 5;
-      else if (olevel >= 12)  return 4;
-      else if (olevel >= 9)   return 3;
-      else if (olevel >= 6)   return 2;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_FAST_HEALING:
-      if (olevel >= 30)       return 5;
-      else if (olevel >= 27)  return 5;
-      else if (olevel >= 24)  return 4;
-      else if (olevel >= 21)  return 4;
-      else if (olevel >= 18)  return 3;
-      else if (olevel >= 15)  return 3;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 2;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_INITIATIVE:
-      if (olevel >= 30)       return 5;
-      else if (olevel >= 27)  return 5;
-      else if (olevel >= 24)  return 4;
-      else if (olevel >= 21)  return 4;
-      else if (olevel >= 18)  return 3;
-      else if (olevel >= 15)  return 3;
-      else if (olevel >= 12)  return 2;
-      else if (olevel >= 9)   return 2;
-      else if (olevel >= 6)   return 1;
-      else if (olevel >= 3)   return 1;
-      else                    return 1;
-
-    case APPLY_SPELL_CIRCLE_1:
-      if (olevel >= 20) return 3;
-      else if (olevel >= 10) return 2;
-      else return 1;
-    case APPLY_SPELL_CIRCLE_2:
-      if (olevel < 3) return 0;
-      else if (olevel < 10) return 1;
-      else if (olevel < 20) return 2;
-      else return 3;
-    case APPLY_SPELL_CIRCLE_3:
-      if (olevel < 5) return 0;
-      else if (olevel < 10) return 1;
-      else if (olevel < 20) return 2;
-      else return 3;
-    case APPLY_SPELL_CIRCLE_4:
-      if (olevel < 7) return 0;
-      else if (olevel < 20) return 1;
-      else return 2;
-    case APPLY_SPELL_CIRCLE_5:
-      if (olevel < 9) return 0;
-      else if (olevel < 20) return 1;
-      else return 2;
-    case APPLY_SPELL_CIRCLE_6:
-      if (olevel < 11) return 0;
-      else if (olevel < 20) return 1;
-      else return 2;
-    case APPLY_SPELL_CIRCLE_7:
-      if (olevel < 13) return 0;
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CON:
+  case APPLY_CHA:
+    if (olevel >= 30)
+      return 4;
+    else if (olevel >= 27)
+      return 3;
+    else if (olevel >= 24)
+      return 3;
+    else if (olevel >= 21)
+      return 3;
+    else if (olevel >= 18)
+      return 2;
+    else if (olevel >= 15)
+      return 2;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
       return 1;
-    case APPLY_SPELL_CIRCLE_8:
-      if (olevel < 15) return 0;
+    else if (olevel >= 6)
       return 1;
-    case APPLY_SPELL_CIRCLE_9:
-      if (olevel < 17) return 0;
-      return 1;
-
-    case APPLY_SPELL_POTENCY:
-      if (olevel >= 30)       return 11;
-      else if (olevel >= 27)  return 10;
-      else if (olevel >= 24)  return 9;
-      else if (olevel >= 21)  return 8;
-      else if (olevel >= 18)  return 8;
-      else if (olevel >= 15)  return 7;
-      else if (olevel >= 12)  return 7;
-      else if (olevel >= 9)   return 6;
-      else if (olevel >= 6)   return 6;
-      else if (olevel >= 3)   return 5;
-      else                    return 5;
-
-    case APPLY_SPELL_DURATION:
-      if (olevel >= 30)       return 13;
-      else if (olevel >= 27)  return 12;
-      else if (olevel >= 24)  return 11;
-      else if (olevel >= 21)  return 10;
-      else if (olevel >= 18)  return 9;
-      else if (olevel >= 15)  return 8;
-      else if (olevel >= 12)  return 7;
-      else if (olevel >= 9)   return 6;
-      else if (olevel >= 6)   return 5;
-      else if (olevel >= 3)   return 4;
-      else                    return 3;
-
-    case APPLY_SPELL_DC:    
-    case APPLY_SPELL_PENETRATION:
-      if (olevel >= 30)       return 3;
-      else if (olevel >= 27)  return 2;
-      else if (olevel >= 24)  return 2;
-      else if (olevel >= 21)  return 2;
-      else if (olevel >= 18)  return 1;
-      else if (olevel >= 15)  return 1;
-      else if (olevel >= 12)  return 1;
-      else if (olevel >= 9)   return 1;
-      else if (olevel >= 6)   return 0;
-      else if (olevel >= 3)   return 0;
-      else                    return 0;
-      
-    default:
+    else if (olevel >= 3)
       return 0;
+    else
+      return 0;
+
+  case APPLY_PSP:
+    if (olevel >= 30)
+      return 25;
+    else if (olevel >= 27)
+      return 23;
+    else if (olevel >= 24)
+      return 21;
+    else if (olevel >= 21)
+      return 19;
+    else if (olevel >= 18)
+      return 17;
+    else if (olevel >= 15)
+      return 15;
+    else if (olevel >= 12)
+      return 13;
+    else if (olevel >= 9)
+      return 11;
+    else if (olevel >= 6)
+      return 9;
+    else if (olevel >= 3)
+      return 7;
+    else
+      return 5;
+
+  case APPLY_HIT:
+    if (olevel >= 30)
+      return 50;
+    else if (olevel >= 27)
+      return 45;
+    else if (olevel >= 24)
+      return 40;
+    else if (olevel >= 21)
+      return 35;
+    else if (olevel >= 18)
+      return 30;
+    else if (olevel >= 15)
+      return 25;
+    else if (olevel >= 12)
+      return 20;
+    else if (olevel >= 9)
+      return 15;
+    else if (olevel >= 6)
+      return 10;
+    else if (olevel >= 3)
+      return 10;
+    else
+      return 5;
+
+  case APPLY_MOVE:
+    if (olevel >= 30)
+      return 1000;
+    else if (olevel >= 27)
+      return 900;
+    else if (olevel >= 24)
+      return 800;
+    else if (olevel >= 21)
+      return 700;
+    else if (olevel >= 18)
+      return 600;
+    else if (olevel >= 15)
+      return 500;
+    else if (olevel >= 12)
+      return 400;
+    else if (olevel >= 9)
+      return 300;
+    else if (olevel >= 6)
+      return 200;
+    else if (olevel >= 3)
+      return 100;
+    else
+      return 50;
+
+  case APPLY_HITROLL:
+    if (olevel >= 30)
+      return 4;
+    else if (olevel >= 27)
+      return 4;
+    else if (olevel >= 24)
+      return 3;
+    else if (olevel >= 21)
+      return 3;
+    else if (olevel >= 18)
+      return 2;
+    else if (olevel >= 15)
+      return 2;
+    else if (olevel >= 12)
+      return 1;
+    else if (olevel >= 9)
+      return 1;
+    else if (olevel >= 6)
+      return 0;
+    else if (olevel >= 3)
+      return 0;
+    else
+      return 0;
+
+  case APPLY_DAMROLL:
+    if (olevel >= 30)
+      return 3;
+    else if (olevel >= 27)
+      return 3;
+    else if (olevel >= 24)
+      return 2;
+    else if (olevel >= 21)
+      return 2;
+    else if (olevel >= 18)
+      return 2;
+    else if (olevel >= 15)
+      return 1;
+    else if (olevel >= 12)
+      return 1;
+    else if (olevel >= 9)
+      return 1;
+    else if (olevel >= 6)
+      return 0;
+    else if (olevel >= 3)
+      return 0;
+    else
+      return 0;
+
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_REFL:
+  case APPLY_SAVING_WILL:
+    if (olevel >= 30)
+      return 5;
+    else if (olevel >= 27)
+      return 4;
+    else if (olevel >= 24)
+      return 4;
+    else if (olevel >= 21)
+      return 3;
+    else if (olevel >= 18)
+      return 3;
+    else if (olevel >= 15)
+      return 2;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 1;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_SPELL_RES:
+  case APPLY_POWER_RES:
+    if (olevel >= 30)
+      return 3;
+    else if (olevel >= 27)
+      return 3;
+    else if (olevel >= 24)
+      return 3;
+    else if (olevel >= 21)
+      return 2;
+    else if (olevel >= 18)
+      return 2;
+    else if (olevel >= 15)
+      return 2;
+    else if (olevel >= 12)
+      return 1;
+    else if (olevel >= 9)
+      return 1;
+    else if (olevel >= 6)
+      return 1;
+    else if (olevel >= 3)
+      return 0;
+    else
+      return 0;
+
+  case APPLY_AC_NEW:
+    if (olevel >= 30)
+      return 5;
+    else if (olevel >= 27)
+      return 4;
+    else if (olevel >= 24)
+      return 4;
+    else if (olevel >= 21)
+      return 4;
+    else if (olevel >= 18)
+      return 3;
+    else if (olevel >= 15)
+      return 3;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 1;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_RES_FIRE:
+  case APPLY_RES_COLD:
+  case APPLY_RES_AIR:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ACID:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_POISON:
+  case APPLY_RES_DISEASE:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_ENERGY:
+  case APPLY_RES_WATER:
+    if (olevel >= 30)
+      return 10;
+    else if (olevel >= 27)
+      return 9;
+    else if (olevel >= 24)
+      return 8;
+    else if (olevel >= 21)
+      return 7;
+    else if (olevel >= 18)
+      return 6;
+    else if (olevel >= 15)
+      return 5;
+    else if (olevel >= 12)
+      return 4;
+    else if (olevel >= 9)
+      return 3;
+    else if (olevel >= 6)
+      return 2;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 0;
+
+  case APPLY_DR:
+    if (olevel >= 30)
+      return 3;
+    else if (olevel >= 27)
+      return 3;
+    else if (olevel >= 24)
+      return 2;
+    else if (olevel >= 21)
+      return 2;
+    else if (olevel >= 18)
+      return 2;
+    else if (olevel >= 15)
+      return 1;
+    else if (olevel >= 12)
+      return 1;
+    else if (olevel >= 9)
+      return 1;
+    else if (olevel >= 6)
+      return 0;
+    else if (olevel >= 3)
+      return 0;
+    else
+      return 0;
+
+  case APPLY_SKILL:
+    if (olevel >= 30)
+      return 6;
+    else if (olevel >= 27)
+      return 5;
+    else if (olevel >= 24)
+      return 5;
+    else if (olevel >= 21)
+      return 4;
+    else if (olevel >= 18)
+      return 4;
+    else if (olevel >= 15)
+      return 3;
+    else if (olevel >= 12)
+      return 3;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 2;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_HP_REGEN:
+    if (olevel >= 30)
+      return 5;
+    else if (olevel >= 27)
+      return 5;
+    else if (olevel >= 24)
+      return 4;
+    else if (olevel >= 21)
+      return 4;
+    else if (olevel >= 18)
+      return 3;
+    else if (olevel >= 15)
+      return 3;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 2;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_MV_REGEN:
+    if (olevel >= 30)
+      return 50;
+    else if (olevel >= 27)
+      return 45;
+    else if (olevel >= 24)
+      return 40;
+    else if (olevel >= 21)
+      return 35;
+    else if (olevel >= 18)
+      return 30;
+    else if (olevel >= 15)
+      return 25;
+    else if (olevel >= 12)
+      return 20;
+    else if (olevel >= 9)
+      return 15;
+    else if (olevel >= 6)
+      return 10;
+    else if (olevel >= 3)
+      return 5;
+    else
+      return 5;
+
+  case APPLY_PSP_REGEN:
+    if (olevel >= 30)
+      return 5;
+    else if (olevel >= 27)
+      return 5;
+    else if (olevel >= 24)
+      return 4;
+    else if (olevel >= 21)
+      return 4;
+    else if (olevel >= 18)
+      return 3;
+    else if (olevel >= 15)
+      return 3;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 2;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_ENCUMBRANCE:
+    if (olevel >= 30)
+      return 10;
+    else if (olevel >= 27)
+      return 9;
+    else if (olevel >= 24)
+      return 8;
+    else if (olevel >= 21)
+      return 7;
+    else if (olevel >= 18)
+      return 6;
+    else if (olevel >= 15)
+      return 5;
+    else if (olevel >= 12)
+      return 4;
+    else if (olevel >= 9)
+      return 3;
+    else if (olevel >= 6)
+      return 2;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_FAST_HEALING:
+    if (olevel >= 30)
+      return 5;
+    else if (olevel >= 27)
+      return 5;
+    else if (olevel >= 24)
+      return 4;
+    else if (olevel >= 21)
+      return 4;
+    else if (olevel >= 18)
+      return 3;
+    else if (olevel >= 15)
+      return 3;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 2;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_INITIATIVE:
+    if (olevel >= 30)
+      return 5;
+    else if (olevel >= 27)
+      return 5;
+    else if (olevel >= 24)
+      return 4;
+    else if (olevel >= 21)
+      return 4;
+    else if (olevel >= 18)
+      return 3;
+    else if (olevel >= 15)
+      return 3;
+    else if (olevel >= 12)
+      return 2;
+    else if (olevel >= 9)
+      return 2;
+    else if (olevel >= 6)
+      return 1;
+    else if (olevel >= 3)
+      return 1;
+    else
+      return 1;
+
+  case APPLY_SPELL_CIRCLE_1:
+    if (olevel >= 20)
+      return 3;
+    else if (olevel >= 10)
+      return 2;
+    else
+      return 1;
+  case APPLY_SPELL_CIRCLE_2:
+    if (olevel < 3)
+      return 0;
+    else if (olevel < 10)
+      return 1;
+    else if (olevel < 20)
+      return 2;
+    else
+      return 3;
+  case APPLY_SPELL_CIRCLE_3:
+    if (olevel < 5)
+      return 0;
+    else if (olevel < 10)
+      return 1;
+    else if (olevel < 20)
+      return 2;
+    else
+      return 3;
+  case APPLY_SPELL_CIRCLE_4:
+    if (olevel < 7)
+      return 0;
+    else if (olevel < 20)
+      return 1;
+    else
+      return 2;
+  case APPLY_SPELL_CIRCLE_5:
+    if (olevel < 9)
+      return 0;
+    else if (olevel < 20)
+      return 1;
+    else
+      return 2;
+  case APPLY_SPELL_CIRCLE_6:
+    if (olevel < 11)
+      return 0;
+    else if (olevel < 20)
+      return 1;
+    else
+      return 2;
+  case APPLY_SPELL_CIRCLE_7:
+    if (olevel < 13)
+      return 0;
+    return 1;
+  case APPLY_SPELL_CIRCLE_8:
+    if (olevel < 15)
+      return 0;
+    return 1;
+  case APPLY_SPELL_CIRCLE_9:
+    if (olevel < 17)
+      return 0;
+    return 1;
+
+  case APPLY_SPELL_POTENCY:
+    if (olevel >= 30)
+      return 11;
+    else if (olevel >= 27)
+      return 10;
+    else if (olevel >= 24)
+      return 9;
+    else if (olevel >= 21)
+      return 8;
+    else if (olevel >= 18)
+      return 8;
+    else if (olevel >= 15)
+      return 7;
+    else if (olevel >= 12)
+      return 7;
+    else if (olevel >= 9)
+      return 6;
+    else if (olevel >= 6)
+      return 6;
+    else if (olevel >= 3)
+      return 5;
+    else
+      return 5;
+
+  case APPLY_SPELL_DURATION:
+    if (olevel >= 30)
+      return 13;
+    else if (olevel >= 27)
+      return 12;
+    else if (olevel >= 24)
+      return 11;
+    else if (olevel >= 21)
+      return 10;
+    else if (olevel >= 18)
+      return 9;
+    else if (olevel >= 15)
+      return 8;
+    else if (olevel >= 12)
+      return 7;
+    else if (olevel >= 9)
+      return 6;
+    else if (olevel >= 6)
+      return 5;
+    else if (olevel >= 3)
+      return 4;
+    else
+      return 3;
+
+  case APPLY_SPELL_DC:
+  case APPLY_SPELL_PENETRATION:
+    if (olevel >= 30)
+      return 3;
+    else if (olevel >= 27)
+      return 2;
+    else if (olevel >= 24)
+      return 2;
+    else if (olevel >= 21)
+      return 2;
+    else if (olevel >= 18)
+      return 1;
+    else if (olevel >= 15)
+      return 1;
+    else if (olevel >= 12)
+      return 1;
+    else if (olevel >= 9)
+      return 1;
+    else if (olevel >= 6)
+      return 0;
+    else if (olevel >= 3)
+      return 0;
+    else
+      return 0;
+
+  default:
+    return 0;
   }
   return 0;
 }
 
 bool highlight_apply_by_obj(struct obj_data *obj, int offset)
 {
-  if (!obj) return false;
+  if (!obj)
+    return false;
 
   int i = 0;
 
@@ -5853,7 +6154,6 @@ int get_suggested_enhancement_bonus(int olevel, bool boss_mob)
 
 void assign_weighted_bonuses(void)
 {
-
   struct obj_data *obj;
   int i, j, k;
   int apply;
@@ -5871,18 +6171,20 @@ void assign_weighted_bonuses(void)
   {
     // we have issues with obj vnums above this number.
     // all zones that are made should be below these vnums anyway.
-    if (obj_index[j].vnum >= 60000) continue;
+    if (obj_index[j].vnum >= 60000)
+      continue;
 
     obj = read_object(j, REAL);
 
-    if (!obj) continue;
+    if (!obj)
+      continue;
 
     for (k = 0; k < 6; k++)
     {
       apply = obj->affected[k].location;
       if (!is_valid_apply(apply))
         continue;
-      for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+      for (i = ITEM_WEAR_TAKE + 1; i < NUM_ITEM_WEARS; i++)
       {
         if (CAN_WEAR(obj, i) && is_bonus_valid_for_where_slot(apply, i))
         {
@@ -5890,7 +6192,7 @@ void assign_weighted_bonuses(void)
         }
       }
     }
-    
+
     /* Free the temporary object we created */
     extract_obj(obj);
   }
@@ -5910,10 +6212,11 @@ bool obj_has_bonus_already(struct obj_data *obj, int apply)
 
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
   {
-    if (get_apply_no_repeat_category(obj->affected[i].location) == get_apply_no_repeat_category(apply))
+    if (get_apply_no_repeat_category(obj->affected[i].location) ==
+        get_apply_no_repeat_category(apply))
       return true;
   }
-  
+
   return false;
 }
 
@@ -5921,110 +6224,108 @@ int get_first_wear_slot(struct obj_data *obj)
 {
   int i;
 
-  if (!obj) return ITEM_WEAR_TAKE;
+  if (!obj)
+    return ITEM_WEAR_TAKE;
 
-  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  for (i = ITEM_WEAR_TAKE + 1; i < NUM_ITEM_WEARS; i++)
   {
     if (CAN_WEAR(obj, i))
       return i;
   }
 
   return ITEM_WEAR_TAKE;
-
 }
 
 int get_apply_type_from_apply(int apply)
 {
   switch (apply)
   {
-    case APPLY_STR:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CON:
-    case APPLY_CHA:
-      return APPLY_TYPE_ABILITY;
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CON:
+  case APPLY_CHA:
+    return APPLY_TYPE_ABILITY;
 
-    case APPLY_PSP:
-    case APPLY_HIT:
-    case APPLY_MOVE:
-      return APPLY_TYPE_RESOURCE;
+  case APPLY_PSP:
+  case APPLY_HIT:
+  case APPLY_MOVE:
+    return APPLY_TYPE_RESOURCE;
 
-    case APPLY_MV_REGEN:
-    case APPLY_HP_REGEN:
-    case APPLY_PSP_REGEN:
-    case APPLY_FAST_HEALING:
-      return APPLY_TYPE_REGEN;
+  case APPLY_MV_REGEN:
+  case APPLY_HP_REGEN:
+  case APPLY_PSP_REGEN:
+  case APPLY_FAST_HEALING:
+    return APPLY_TYPE_REGEN;
 
-    case APPLY_SKILL:
-      return APPLY_TYPE_SKILL;
+  case APPLY_SKILL:
+    return APPLY_TYPE_SKILL;
 
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-      return APPLY_TYPE_ATTACK;
+  case APPLY_HITROLL:
+  case APPLY_DAMROLL:
+    return APPLY_TYPE_ATTACK;
 
-    case APPLY_SAVING_FORT:
-    case APPLY_SAVING_REFL:
-    case APPLY_SAVING_WILL:
-      return APPLY_TYPE_SAVE;
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_REFL:
+  case APPLY_SAVING_WILL:
+    return APPLY_TYPE_SAVE;
 
-    case APPLY_SPELL_RES:
-    case APPLY_POWER_RES:
-      return APPLY_TYPE_SPELL_RESIST;
+  case APPLY_SPELL_RES:
+  case APPLY_POWER_RES:
+    return APPLY_TYPE_SPELL_RESIST;
 
-    case APPLY_SPELL_CIRCLE_1:
-    case APPLY_SPELL_CIRCLE_2:
-    case APPLY_SPELL_CIRCLE_3:
-    case APPLY_SPELL_CIRCLE_4:
-    case APPLY_SPELL_CIRCLE_5:
-    case APPLY_SPELL_CIRCLE_6:
-    case APPLY_SPELL_CIRCLE_7:
-    case APPLY_SPELL_CIRCLE_8:
-    case APPLY_SPELL_CIRCLE_9:
-      return APPLY_TYPE_SPELL_SLOT;
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+    return APPLY_TYPE_SPELL_SLOT;
 
-    case APPLY_AC_NEW:
-      return APPLY_TYPE_AC;
+  case APPLY_AC_NEW:
+    return APPLY_TYPE_AC;
 
-    case APPLY_DR:
-      return APPLY_TYPE_DAMAGE_REDUCTION;
+  case APPLY_DR:
+    return APPLY_TYPE_DAMAGE_REDUCTION;
 
-    case APPLY_RES_ACID:
-    case APPLY_RES_AIR:
-    case APPLY_RES_COLD:
-    case APPLY_RES_EARTH:
-    case APPLY_RES_ELECTRIC:
-    case APPLY_RES_FIRE:
-    case APPLY_RES_HOLY:
-    case APPLY_RES_LIGHT:
-    case APPLY_RES_MENTAL:
-    case APPLY_RES_NEGATIVE:
-    case APPLY_RES_POISON:
-    case APPLY_RES_SOUND:
-    case APPLY_RES_UNHOLY:
-    case APPLY_RES_ILLUSION:
-    case APPLY_RES_WATER:
-    case APPLY_RES_DISEASE:
-      return APPLY_TYPE_RESIST_MAGIC;
+  case APPLY_RES_ACID:
+  case APPLY_RES_AIR:
+  case APPLY_RES_COLD:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_FIRE:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_POISON:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_WATER:
+  case APPLY_RES_DISEASE:
+    return APPLY_TYPE_RESIST_MAGIC;
 
-    case APPLY_RES_SLICE:
-    case APPLY_RES_PUNCTURE:
-    case APPLY_RES_FORCE:
-      return APPLY_TYPE_RESIST_PHYSICAL;
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+    return APPLY_TYPE_RESIST_PHYSICAL;
 
-    case APPLY_SPELL_POTENCY:
-    case APPLY_SPELL_DC:
-    case APPLY_SPELL_DURATION:
-    case APPLY_SPELL_PENETRATION:
-      return APPLY_TYPE_SPELL_ENHANCE;
-
+  case APPLY_SPELL_POTENCY:
+  case APPLY_SPELL_DC:
+  case APPLY_SPELL_DURATION:
+  case APPLY_SPELL_PENETRATION:
+    return APPLY_TYPE_SPELL_ENHANCE;
   }
   return APPLY_TYPE_NONE;
 }
 
 int choose_random_apply_type(void)
 {
-
   int roll = dice(1, 100);
 
   if (roll <= 10)
@@ -6053,7 +6354,6 @@ int choose_random_apply_type(void)
     return APPLY_TYPE_SPELL_SLOT;
   else
     return APPLY_TYPE_SPELL_ENHANCE;
-
 }
 
 int choose_random_apply(struct obj_data *obj)
@@ -6062,17 +6362,19 @@ int choose_random_apply(struct obj_data *obj)
   int apply = -1;
   int apply_type;
 
-  if (!obj) return -1;
+  if (!obj)
+    return -1;
 
   apply_type = choose_random_apply_type();
 
-  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  for (i = ITEM_WEAR_TAKE + 1; i < NUM_ITEM_WEARS; i++)
   {
     if (CAN_WEAR(obj, i))
     {
       for (j = 0; j < NUM_APPLIES; j++)
       {
-        if (is_bonus_valid_for_where_slot(j, i) && !obj_has_bonus_already(obj, j) && get_apply_type_from_apply(j) == apply_type)
+        if (is_bonus_valid_for_where_slot(j, i) && !obj_has_bonus_already(obj, j) &&
+            get_apply_type_from_apply(j) == apply_type)
         {
           total++;
         }
@@ -6085,13 +6387,14 @@ int choose_random_apply(struct obj_data *obj)
 
   int roll = dice(1, total);
 
-  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  for (i = ITEM_WEAR_TAKE + 1; i < NUM_ITEM_WEARS; i++)
   {
     if (CAN_WEAR(obj, i))
     {
       for (j = 0; j < NUM_APPLIES; j++)
       {
-        if (is_bonus_valid_for_where_slot(j, i) && !obj_has_bonus_already(obj, j) && get_apply_type_from_apply(j) == apply_type)
+        if (is_bonus_valid_for_where_slot(j, i) && !obj_has_bonus_already(obj, j) &&
+            get_apply_type_from_apply(j) == apply_type)
         {
           count++;
           if (roll == count)
@@ -6105,7 +6408,6 @@ int choose_random_apply(struct obj_data *obj)
   }
 
   return apply;
-
 }
 
 void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
@@ -6114,7 +6416,9 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
   int apply = choose_random_apply(obj);
   int tries = 0;
 
-  while ((obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0) && tries < 10)
+  while (
+      (obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0) &&
+      tries < 10)
   {
     apply = choose_random_apply(obj);
     tries++;
@@ -6129,16 +6433,22 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
   obj->affected[i].modifier = get_gear_bonus_amount_by_level(apply, olevel);
   if (apply == APPLY_AC_NEW)
   {
-    switch(dice(1, 3))
+    switch (dice(1, 3))
     {
-      case 1: obj->affected[i].bonus_type = BONUS_TYPE_NATURALARMOR; break;
-      case 2: obj->affected[i].bonus_type = BONUS_TYPE_DEFLECTION; break;
-      case 3: obj->affected[i].bonus_type = BONUS_TYPE_DODGE; break;
+    case 1:
+      obj->affected[i].bonus_type = BONUS_TYPE_NATURALARMOR;
+      break;
+    case 2:
+      obj->affected[i].bonus_type = BONUS_TYPE_DEFLECTION;
+      break;
+    case 3:
+      obj->affected[i].bonus_type = BONUS_TYPE_DODGE;
+      break;
     }
   }
   else
     obj->affected[i].bonus_type = BONUS_TYPE_UNIVERSAL;
-  
+
   if (apply == APPLY_SKILL)
   {
     snum = dice(1, NUM_SKILLS_IN_GAME);
@@ -6150,10 +6460,10 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
   }
   else if (is_spell_slot_apply(apply))
   {
-    obj->affected[i].specific = dice(1, NUM_CLASSES) -1;
+    obj->affected[i].specific = dice(1, NUM_CLASSES) - 1;
     while (!is_valid_spell_circle_for_class(obj->affected[i].location, obj->affected[i].specific))
     {
-      obj->affected[i].specific = dice(1, NUM_CLASSES) -1;
+      obj->affected[i].specific = dice(1, NUM_CLASSES) - 1;
     }
   }
 }
@@ -6165,31 +6475,31 @@ bool is_valid_spell_circle_for_class(int circle, int ch_class)
 
   switch (circle)
   {
-    case APPLY_SPELL_CIRCLE_1:
-    case APPLY_SPELL_CIRCLE_2:
-    case APPLY_SPELL_CIRCLE_3:
-    case APPLY_SPELL_CIRCLE_4:
-      return true; // spellcasting classes can cast circle 4 and lower spells
-    case APPLY_SPELL_CIRCLE_5:
-    case APPLY_SPELL_CIRCLE_6:
-      switch (ch_class)
-      {
-        case CLASS_PALADIN:
-        case CLASS_RANGER:
-        case CLASS_BLACKGUARD:
-          return false; // these classes can only cast up to circle 4 spells
-      }
-    case APPLY_SPELL_CIRCLE_7:
-    case APPLY_SPELL_CIRCLE_8:
-    case APPLY_SPELL_CIRCLE_9:
-      switch (ch_class)
-      {
-        case CLASS_SUMMONER:
-        case CLASS_ALCHEMIST:
-        case CLASS_BARD:
-        case CLASS_INQUISITOR:
-          return false; // these classes can only cast up to level 6 spells.
-      }
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+    return true; // spellcasting classes can cast circle 4 and lower spells
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+    switch (ch_class)
+    {
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+    case CLASS_BLACKGUARD:
+      return false; // these classes can only cast up to circle 4 spells
+    }
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+    switch (ch_class)
+    {
+    case CLASS_SUMMONER:
+    case CLASS_ALCHEMIST:
+    case CLASS_BARD:
+    case CLASS_INQUISITOR:
+      return false; // these classes can only cast up to level 6 spells.
+    }
   }
   return true;
 }
@@ -6209,7 +6519,7 @@ void assign_random_bonuses(struct obj_data *obj, int olevel, int num_bonuses)
     num_bonuses = 1;
   if (num_bonuses > MAX_OBJ_AFFECT)
     num_bonuses = MAX_OBJ_AFFECT;
-  
+
   for (i = 0; i < num_bonuses; i++)
   {
     assign_a_random_apply_to_slot(obj, olevel, i);
@@ -6231,9 +6541,10 @@ bool does_obj_have_wear_slots(struct obj_data *obj)
 {
   int i;
 
-  if (!obj) return false;
+  if (!obj)
+    return false;
 
-  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  for (i = ITEM_WEAR_TAKE + 1; i < NUM_ITEM_WEARS; i++)
   {
     if (CAN_WEAR(obj, i))
       return true;
@@ -6242,26 +6553,26 @@ bool does_obj_have_wear_slots(struct obj_data *obj)
   return false;
 }
 
-#define APPLY_CAT_NONE  0
-#define APPLY_CAT_AS    1   // ability scores
-#define APPLY_CAT_AC    2   // armor class
-#define APPLY_CAT_ST    3   // saving throws
-#define APPLY_CAT_RM    4   // resist magic
-#define APPLY_CAT_SR    5   // spell resistance
-#define APPLY_CAT_PR    6   // physical resistance
-#define APPLY_CAT_DR    7   // damage reduction
-#define APPLY_CAT_HR    8   // hitroll
-#define APPLY_CAT_DM    9   // damroll
-#define APPLY_CAT_IN    10  // initiative
-#define APPLY_CAT_AP    11  // ability points / skills
-#define APPLY_CAT_CS    12  // spell circles
-#define APPLY_CAT_EN    13  // encumberance
-#define APPLY_CAT_GB    14  // grant bulk
-#define APPLY_CAT_GR    15  // grant regen
-#define APPLY_CAT_SP    16  // spell potency
-#define APPLY_CAT_SD    17  // spell duration
-#define APPLY_CAT_SDC   18  // spell dc
-#define APPLY_CAT_SPN   19  // spell penetration
+#define APPLY_CAT_NONE 0
+#define APPLY_CAT_AS 1   // ability scores
+#define APPLY_CAT_AC 2   // armor class
+#define APPLY_CAT_ST 3   // saving throws
+#define APPLY_CAT_RM 4   // resist magic
+#define APPLY_CAT_SR 5   // spell resistance
+#define APPLY_CAT_PR 6   // physical resistance
+#define APPLY_CAT_DR 7   // damage reduction
+#define APPLY_CAT_HR 8   // hitroll
+#define APPLY_CAT_DM 9   // damroll
+#define APPLY_CAT_IN 10  // initiative
+#define APPLY_CAT_AP 11  // ability points / skills
+#define APPLY_CAT_CS 12  // spell circles
+#define APPLY_CAT_EN 13  // encumberance
+#define APPLY_CAT_GB 14  // grant bulk
+#define APPLY_CAT_GR 15  // grant regen
+#define APPLY_CAT_SP 16  // spell potency
+#define APPLY_CAT_SD 17  // spell duration
+#define APPLY_CAT_SDC 18 // spell dc
+#define APPLY_CAT_SPN 19 // spell penetration
 
 // This function will return the category assigned to it which is used to prevent
 // duplicate apply types from appearing on gear where the apply bonuses are randomly
@@ -6272,92 +6583,92 @@ int get_apply_no_repeat_category(int apply)
 {
   switch (apply)
   {
-    case APPLY_STR:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CON:
-    case APPLY_CHA:
-      return APPLY_CAT_AS; // ability scores
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CON:
+  case APPLY_CHA:
+    return APPLY_CAT_AS; // ability scores
 
-    case APPLY_PSP:
-    case APPLY_HIT:
-    case APPLY_MOVE:
-      return APPLY_CAT_GB; // grant bulk
+  case APPLY_PSP:
+  case APPLY_HIT:
+  case APPLY_MOVE:
+    return APPLY_CAT_GB; // grant bulk
 
-    case APPLY_MV_REGEN:
-    case APPLY_HP_REGEN:
-    case APPLY_PSP_REGEN:
-    case APPLY_FAST_HEALING:
-      return APPLY_CAT_GR; // grant regen
+  case APPLY_MV_REGEN:
+  case APPLY_HP_REGEN:
+  case APPLY_PSP_REGEN:
+  case APPLY_FAST_HEALING:
+    return APPLY_CAT_GR; // grant regen
 
-    case APPLY_SKILL:
-      return APPLY_CAT_AP; // ability points / skills
+  case APPLY_SKILL:
+    return APPLY_CAT_AP; // ability points / skills
 
-    case APPLY_HITROLL:
-      return APPLY_CAT_HR; // hitroll
-    
-    case APPLY_DAMROLL:
-      return APPLY_CAT_DR; // damroll
+  case APPLY_HITROLL:
+    return APPLY_CAT_HR; // hitroll
 
-    case APPLY_SAVING_FORT:
-    case APPLY_SAVING_REFL:
-    case APPLY_SAVING_WILL:
-      return APPLY_CAT_ST; // saving throws
+  case APPLY_DAMROLL:
+    return APPLY_CAT_DR; // damroll
 
-    case APPLY_SPELL_RES:
-    case APPLY_POWER_RES:
-      return APPLY_CAT_SR; // spell resistance
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_REFL:
+  case APPLY_SAVING_WILL:
+    return APPLY_CAT_ST; // saving throws
 
-    case APPLY_SPELL_CIRCLE_1:
-    case APPLY_SPELL_CIRCLE_2:
-    case APPLY_SPELL_CIRCLE_3:
-    case APPLY_SPELL_CIRCLE_4:
-    case APPLY_SPELL_CIRCLE_5:
-    case APPLY_SPELL_CIRCLE_6:
-    case APPLY_SPELL_CIRCLE_7:
-    case APPLY_SPELL_CIRCLE_8:
-    case APPLY_SPELL_CIRCLE_9:
-      return APPLY_CAT_CS; // spell circles
+  case APPLY_SPELL_RES:
+  case APPLY_POWER_RES:
+    return APPLY_CAT_SR; // spell resistance
 
-    case APPLY_AC_NEW:
-      return APPLY_CAT_AC; // armor class
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+    return APPLY_CAT_CS; // spell circles
 
-    case APPLY_DR:
-      return APPLY_CAT_DR; // damage reduction
+  case APPLY_AC_NEW:
+    return APPLY_CAT_AC; // armor class
 
-    case APPLY_RES_ACID:
-    case APPLY_RES_AIR:
-    case APPLY_RES_COLD:
-    case APPLY_RES_EARTH:
-    case APPLY_RES_ELECTRIC:
-    case APPLY_RES_FIRE:
-    case APPLY_RES_HOLY:
-    case APPLY_RES_LIGHT:
-    case APPLY_RES_MENTAL:
-    case APPLY_RES_NEGATIVE:
-    case APPLY_RES_POISON:
-    case APPLY_RES_SOUND:
-    case APPLY_RES_UNHOLY:
-    case APPLY_RES_ILLUSION:
-    case APPLY_RES_WATER:
-    case APPLY_RES_DISEASE:
-      return APPLY_CAT_RM; // resist magic
+  case APPLY_DR:
+    return APPLY_CAT_DR; // damage reduction
 
-    case APPLY_RES_SLICE:
-    case APPLY_RES_PUNCTURE:
-    case APPLY_RES_FORCE:
-        return APPLY_CAT_PR; // physical resistance
+  case APPLY_RES_ACID:
+  case APPLY_RES_AIR:
+  case APPLY_RES_COLD:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_FIRE:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_POISON:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_WATER:
+  case APPLY_RES_DISEASE:
+    return APPLY_CAT_RM; // resist magic
 
-    case APPLY_SPELL_POTENCY:
-      return APPLY_CAT_SP; // spell potency
-    
-    case APPLY_SPELL_DC:
-      return APPLY_CAT_SDC; // spell dc
-    case APPLY_SPELL_DURATION:
-      return APPLY_CAT_SD; // spell duration
-    case APPLY_SPELL_PENETRATION:
-      return APPLY_CAT_SPN; // spell penetration
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+    return APPLY_CAT_PR; // physical resistance
+
+  case APPLY_SPELL_POTENCY:
+    return APPLY_CAT_SP; // spell potency
+
+  case APPLY_SPELL_DC:
+    return APPLY_CAT_SDC; // spell dc
+  case APPLY_SPELL_DURATION:
+    return APPLY_CAT_SD; // spell duration
+  case APPLY_SPELL_PENETRATION:
+    return APPLY_CAT_SPN; // spell penetration
   }
   return APPLY_CAT_NONE; // no category assigned
 }
@@ -6367,5 +6678,4 @@ int get_apply_no_repeat_category(int apply)
 // can be used for random treasure, creating items with oedit, bazaars, treasure chests and more.
 void assign_weighted_random_bonuses(struct obj_data *obj, int olevel, int num_bonuses)
 {
-
 }

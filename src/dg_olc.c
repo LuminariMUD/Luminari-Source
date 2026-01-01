@@ -65,8 +65,7 @@ ACMD(do_oasis_trigedit)
   /* Give descriptor an OLC structure. */
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis_trigedit: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_trigedit: Player already had olc structure.");
     free(d->olc);
   }
   CREATE(d->olc, struct oasis_olc_data, 1);
@@ -148,8 +147,8 @@ static void trigedit_setup_new(struct descriptor_data *d)
 
   /* cmdlist will be a large char string until the trigger is saved */
   CREATE(OLC_STORAGE(d), char, MAX_CMD_LENGTH);
-  strncpy(OLC_STORAGE(d),
-          "%echo% This trigger commandlist is not complete!\r\n", MAX_CMD_LENGTH - 1);
+  strncpy(OLC_STORAGE(d), "%echo% This trigger commandlist is not complete!\r\n",
+          MAX_CMD_LENGTH - 1);
   trig->narg = 100;
 
   OLC_TRIG(d) = trig;
@@ -262,8 +261,7 @@ static void trigedit_disp_types(struct descriptor_data *d)
                     !(++columns % 2) ? "\r\n" : "");
   }
   sprintbit(GET_TRIG_TYPE(OLC_TRIG(d)), types, bitbuf, sizeof(bitbuf));
-  write_to_output(d, "\r\nCurrent types : %s%s%s\r\nEnter type (0 to quit) : ",
-                  cyn, bitbuf, nrm);
+  write_to_output(d, "\r\nCurrent types : %s%s%s\r\nEnter type (0 to quit) : ", cyn, bitbuf, nrm);
 }
 
 void trigedit_parse(struct descriptor_data *d, char *arg)
@@ -339,9 +337,8 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
       trigedit_save(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
-             "OLC: %s edits trigger %d", GET_NAME(d->character),
-             OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits trigger %d",
+             GET_NAME(d->character), OLC_NUM(d));
       /* fall through */
     case 'n':
       cleanup_olc(d, CLEANUP_ALL);
@@ -600,7 +597,8 @@ void trigedit_save(struct descriptor_data *d)
 
     /* HERE IT HAS TO GO THROUGH AND FIX ALL SCRIPTS/TRIGS OF HIGHER RNUM */
     for (live_trig = trigger_list; live_trig; live_trig = live_trig->next_in_world)
-      GET_TRIG_RNUM(live_trig) += (GET_TRIG_RNUM(live_trig) != NOTHING && GET_TRIG_RNUM(live_trig) > rnum);
+      GET_TRIG_RNUM(live_trig) +=
+          (GET_TRIG_RNUM(live_trig) != NOTHING && GET_TRIG_RNUM(live_trig) > rnum);
 
     /* Update other trigs being edited. */
     for (dsc = descriptor_list; dsc; dsc = dsc->next)
@@ -645,12 +643,12 @@ void trigedit_save(struct descriptor_data *d)
         return;
       }
       sprintascii(bitBuf, GET_TRIG_TYPE(trig));
-      fprintf(trig_file, "%s%c\n"
-                         "%d %s %d\n"
-                         "%s%c\n",
+      fprintf(trig_file,
+              "%s%c\n"
+              "%d %s %d\n"
+              "%s%c\n",
               (GET_TRIG_NAME(trig)) ? (GET_TRIG_NAME(trig)) : "unknown trigger", STRING_TERMINATOR,
-              trig->attach_type,
-              *bitBuf ? bitBuf : "0", GET_TRIG_NARG(trig),
+              trig->attach_type, *bitBuf ? bitBuf : "0", GET_TRIG_NARG(trig),
               GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
 
       /* Build the text for the script */
@@ -747,7 +745,8 @@ void dg_olc_script_copy(struct descriptor_data *d)
   struct trig_proto_list *temp, *next_temp;
 
   /* Free any existing OLC_SCRIPT list to prevent memory leaks */
-  for (temp = OLC_SCRIPT(d); temp; temp = next_temp) {
+  for (temp = OLC_SCRIPT(d); temp; temp = next_temp)
+  {
     next_temp = temp->next;
     free(temp);
   }
@@ -794,8 +793,7 @@ void dg_script_menu(struct descriptor_data *d)
 
   while (editscript)
   {
-    write_to_output(d, "     %2d) [%s%d%s] %s%s%s", ++i, cyn,
-                    editscript->vnum, nrm, cyn,
+    write_to_output(d, "     %2d) [%s%d%s] %s%s%s", ++i, cyn, editscript->vnum, nrm, cyn,
                     trig_index[real_trigger(editscript->vnum)]->proto->name, nrm);
     if (trig_index[real_trigger(editscript->vnum)]->proto->attach_type != OLC_ITEM_TYPE(d))
       write_to_output(d, "   %s** Mis-matched Trigger Type **%s\r\n", grn, nrm);
@@ -807,11 +805,12 @@ void dg_script_menu(struct descriptor_data *d)
   if (i == 0)
     write_to_output(d, "     <none>\r\n");
 
-  write_to_output(d, "\r\n"
-                     " %sN%s)  Attach trigger\r\n"
-                     " %sX%s)  Detach trigger\r\n"
-                     " %sQ%s)  Quit\r\n\r\n"
-                     "     Enter choice :",
+  write_to_output(d,
+                  "\r\n"
+                  " %sN%s)  Attach trigger\r\n"
+                  " %sX%s)  Detach trigger\r\n"
+                  " %sQ%s)  Quit\r\n\r\n"
+                  "     Enter choice :",
                   grn, nrm, grn, nrm, grn, nrm);
 }
 
@@ -965,8 +964,7 @@ int format_script(struct descriptor_data *d)
   {
     line_num++;
     skip_spaces(&t);
-    if (!strn_cmp(t, "if ", 3) ||
-        !strn_cmp(t, "switch ", 7))
+    if (!strn_cmp(t, "if ", 3) || !strn_cmp(t, "switch ", 7))
     {
       indent_next = TRUE;
     }
@@ -975,8 +973,7 @@ int format_script(struct descriptor_data *d)
       found_case = TRUE; /* so you can 'break' a loop without complains */
       indent_next = TRUE;
     }
-    else if (!strn_cmp(t, "end", 3) ||
-             !strn_cmp(t, "done", 4))
+    else if (!strn_cmp(t, "end", 3) || !strn_cmp(t, "done", 4))
     {
       if (!indent)
       {
@@ -998,8 +995,7 @@ int format_script(struct descriptor_data *d)
       indent--;
       indent_next = TRUE;
     }
-    else if (!strn_cmp(t, "case", 4) ||
-             !strn_cmp(t, "default", 7))
+    else if (!strn_cmp(t, "case", 4) || !strn_cmp(t, "default", 7))
     {
       if (!indent)
       {

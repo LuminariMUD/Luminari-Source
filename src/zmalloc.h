@@ -1,13 +1,13 @@
 /**
 * @file zmalloc.h                           LuminariMUD
 * A simple memory allocation monitor, header.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-*                                                                        
+*
 * This code was not part of the original CircleMUD distribution. It has been
 * included in tbaMUD and is attributed to:
-* Version 1.1 Copyright 1996, 1998, 1999, 2000 Eric Murray ericm@lne.com               
+* Version 1.1 Copyright 1996, 1998, 1999, 2000 Eric Murray ericm@lne.com
 */
 
 #ifndef _ZMALLOC_H_

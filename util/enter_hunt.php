@@ -5,7 +5,7 @@
  * SECURITY NOTICE:
  * This tool generates C code and should be heavily restricted.
  * Only authorized developers should have access to this tool.
- * 
+ *
  * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
  *      deployment guide, and security best practices for all PHP tools.
  */
@@ -28,36 +28,36 @@ if (!isset($_SESSION['csrf_token'])) {
 
 /**
  * enter_hunt.php - LuminariMUD Hunt System Creator Tool
- * 
+ *
  * PURPOSE:
  * This tool generates C code for hunt mob definitions in the LuminariMUD
  * hunt system. Hunts are special high-level boss encounters that players
  * can seek out for rewards and challenges.
- * 
+ *
  * FUNCTIONALITY:
  * - Creates hunt mob definitions with unique abilities
  * - Generates properly formatted C code for hunts.c
  * - Supports multiple special abilities per hunt
  * - Handles mob descriptions and characteristics
- * 
+ *
  * HUNT SYSTEM OVERVIEW:
  * The hunt system provides:
  * - Named boss monsters with special abilities
  * - Level-appropriate challenges
  * - Special rewards for defeating hunts
  * - Unique abilities not found on regular mobs
- * 
+ *
  * GENERATED CODE FORMAT:
  * The tool generates:
  * 1. add_hunt() - Main hunt definition with all parameters
  * 2. add_hunt_ability() - Special ability assignments
  * 3. Macro definitions for hunts.h
- * 
+ *
  * INTEGRATION:
  * Generated code should be added to:
  * - hunts.c (function calls in init_hunts())
  * - hunts.h (HUNT_TYPE_ macro definitions)
- * 
+ *
  * SPECIAL ABILITIES:
  * Hunt mobs can have unique abilities like:
  * - Petrification, tail spikes, level drain
@@ -163,14 +163,14 @@ if ($_POST)
     validateCSRF();
     /**
      * Process form submission and generate C code for hunt definition
-     * 
+     *
      * Data processing steps:
      * 1. Sanitize and format input values
      * 2. Convert spaces to underscores for C macros
      * 3. Add HUNT_TYPE_ prefix for constants
      * 4. Escape special characters in descriptions
      */
-    
+
     // Validate and sanitize hunt record name
     $hunt_record_raw = validateInput($_POST['hunt_record'] ?? '', 'identifier', 50);
     if ($hunt_record_raw === false) {
@@ -215,23 +215,23 @@ if ($_POST)
         http_response_code(400);
         die("Invalid alignment selection.");
     }
-    
+
     // Race information (primary type + up to 3 subtypes)
     $race_type = $_POST['race_type'];   // Main race (humanoid, dragon, etc.)
     $subrace1 = $_POST['subrace1'];     // Subrace modifier 1
     $subrace2 = $_POST['subrace2'];     // Subrace modifier 2
     $subrace3 = $_POST['subrace3'];     // Subrace modifier 3
-    
+
     // Physical characteristics
     $size = $_POST['size'];             // Size category (fine to colossal)
-    
+
     // Descriptions
     $long_desc = $_POST['long_desc'];   // Room description when present
     $desc = $_POST['description'];      // Detailed look description
 
     /**
      * Generate C code for hunt definition
-     * 
+     *
      * Function: add_hunt()
      * Parameters:
      * - hunt_id: Unique identifier (HUNT_TYPE_xxx)
@@ -250,20 +250,20 @@ if ($_POST)
               "      \"".addslashes(str_replace("\"", "'", $long_desc))."\"".
               ", ".$class.", ".$alignment.", ".$race_type.", \n".
               "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$size." );\n";
-    
+
     /**
      * Process special abilities
-     * 
+     *
      * Each hunt can have multiple special abilities that make it unique
      * Abilities are added with separate add_hunt_ability() calls
-     * 
+     *
      * Code formatting: 2 abilities per line for readability
      */
     $i = 0;
     foreach ($_POST['abilities'] as $key)
     {
         $output .= "    add_hunt_ability(".$hunt_record.", ".$key.");";
-        
+
         // Format: 2 abilities per line
         if (($i % 2) == 1)
             $output .= "\n";
@@ -272,19 +272,19 @@ if ($_POST)
         $i++;
     }
     $output .= "\n";
-    
+
     // Add macro definition for hunts.h
     $output .= "#define ".$hunt_record."\n";
 ?>
 <script>
 /**
  * Copy generated code to clipboard
- * 
+ *
  * This function:
  * 1. Selects all text in the output textarea
  * 2. Copies it to the system clipboard
  * 3. Shows confirmation alert
- * 
+ *
  * Browser compatibility: Works in all modern browsers
  * Mobile support: setSelectionRange ensures mobile compatibility
  */
@@ -323,7 +323,7 @@ function copyCode() {
 else{
     /**
      * Display the hunt creation form
-     * 
+     *
      * The form is displayed when no POST data is present
      * All fields include Bootstrap tooltips explaining their purpose
      */
@@ -522,7 +522,7 @@ else{
             <?php
             /**
              * Special ability selection
-             * 
+             *
              * Ability categories:
              * - Status effects: Petrify, charm, fear, paralyze
              * - Physical attacks: Tail spikes, engulf, swallow, grapple
@@ -530,7 +530,7 @@ else{
              * - Breath weapons: Fire, lightning, poison, acid, frost
              * - Defenses: Magic immunity, regeneration, flight
              * - Special: Blink, invisibility
-             * 
+             *
              * Multiple abilities can be selected to create unique challenges
              */
             ?>
@@ -541,25 +541,25 @@ else{
                 <option value="HUNT_ABIL_CAUSE_FEAR">Cause Fear</option>
                 <option value="HUNT_ABIL_PARALYZE">Paralyze</option>
                 <option value="HUNT_ABIL_POISON">Poison</option>
-                
+
                 <!-- Physical Attack Abilities -->
                 <option value="HUNT_ABIL_TAIL_SPIKES">Tail Spikes</option>
                 <option value="HUNT_ABIL_ENGULF">Engulf</option>
                 <option value="HUNT_ABIL_SWALLOW">Swallow Whole</option>
                 <option value="HUNT_ABIL_GRAPPLE">Grapple</option>
-                
+
                 <!-- Magical Abilities -->
                 <option value="HUNT_ABIL_LEVEL_DRAIN">Level Drain</option>
                 <option value="HUNT_ABIL_CORRUPTION">Corruption</option>
                 <option value="HUNT_ABIL_BLINK">Blink</option>
-                
+
                 <!-- Breath Weapons -->
                 <option value="HUNT_ABIL_FIRE_BREATH">Fire Breath</option>
                 <option value="HUNT_ABIL_LIGHTNING_BREATH">Lightning Breath</option>
                 <option value="HUNT_ABIL_POISON_BREATH">Poison Breath</option>
                 <option value="HUNT_ABIL_ACID_BREATH">Acid Breath</option>
                 <option value="HUNT_ABIL_FROST_BREATH">Frost Breath</option>
-                
+
                 <!-- Defensive Abilities -->
                 <option value="HUNT_ABIL_MAGIC_IMMUNITY">Magic Immunity</option>
                 <option value="HUNT_ABIL_REGENERATION">Regeneration</option>

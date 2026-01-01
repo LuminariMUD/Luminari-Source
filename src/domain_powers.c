@@ -79,8 +79,8 @@ ACMD(do_eviltouch)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -97,9 +97,12 @@ ACMD(do_eviltouch)
   else
   {
     /* missed */
-    act("A \trred\tn aura shoots from your fingertips towards $N, but fails to land!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n shoots a \trred\tn aura towards you, but you are able to dodge it!", FALSE, ch, 0, vict, TO_VICT);
-    act("$n shoots a \trred\tn aura towards $N, but $N is able to dodge it!", FALSE, ch, 0, vict, TO_NOTVICT);
+    act("A \trred\tn aura shoots from your fingertips towards $N, but fails to land!", FALSE, ch, 0,
+        vict, TO_CHAR);
+    act("$n shoots a \trred\tn aura towards you, but you are able to dodge it!", FALSE, ch, 0, vict,
+        TO_VICT);
+    act("$n shoots a \trred\tn aura towards $N, but $N is able to dodge it!", FALSE, ch, 0, vict,
+        TO_NOTVICT);
   }
 
   if (!IS_NPC(ch))
@@ -159,8 +162,8 @@ ACMD(do_blessedtouch)
     }
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -230,8 +233,8 @@ ACMD(do_goodtouch)
     }
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -248,10 +251,9 @@ ACMD(do_goodtouch)
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict,
-                NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
-  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict,
-                NULL, SPELL_REMOVE_DISEASE, 0, CAST_INNATE);
+  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict, NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
+  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict, NULL, SPELL_REMOVE_DISEASE, 0,
+                CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_GOOD_TOUCH);
@@ -320,8 +322,8 @@ ACMD(do_healingtouch)
   }
 #endif
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -504,9 +506,8 @@ void perform_auraofprotection(struct char_data *ch)
    * if simple_list was used elsewhere and not completed, it would
    * continue from where it left off instead of starting fresh. */
   simple_list(NULL);
-  
-  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
-         NULL)
+
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
@@ -546,7 +547,8 @@ ACMD(do_auraofprotection)
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_AURA_OF_PROTECTION)) == 0)
   {
-    send_to_char(ch, "You must recover the divine energy required to use your protection aura.\r\n");
+    send_to_char(ch,
+                 "You must recover the divine energy required to use your protection aura.\r\n");
     return;
   }
 
@@ -601,7 +603,8 @@ ACMD(do_battlerage)
   bonus = CLASS_LEVEL(ch, CLASS_CLERIC) / 4;
   if (bonus <= 0)
   {
-    send_to_char(ch, "You are not powerful enough to battle rage! (minimum 4 levels in clerci class to use)\r\n");
+    send_to_char(ch, "You are not powerful enough to battle rage! (minimum 4 levels in clerci "
+                     "class to use)\r\n");
     return;
   }
 
@@ -665,9 +668,8 @@ void perform_destructiveaura(struct char_data *ch)
    * if simple_list was used elsewhere and not completed, it would
    * continue from where it left off instead of starting fresh. */
   simple_list(NULL);
-  
-  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
-         NULL)
+
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
@@ -785,7 +787,8 @@ ACMD(do_lightningarc)
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_LIGHTNING_ARC)) == 0)
   {
-    send_to_char(ch, "You must recover the divine energy required to use another lightning arc.\r\n");
+    send_to_char(ch,
+                 "You must recover the divine energy required to use another lightning arc.\r\n");
     return;
   }
 
@@ -821,15 +824,16 @@ ACMD(do_lightningarc)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
   dam = 10 + dice(1, 6) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
-  act("An \tBarc of lightning\tn shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
+  act("An \tBarc of lightning\tn shoots from your fingertips towards $N!", FALSE, ch, 0, vict,
+      TO_CHAR);
   act("$n shoots an \tBarc of lightning\tn towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots an \tBarc of lightning\tn towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   damage(ch, vict, dam, -1, damtype, FALSE);
@@ -906,8 +910,8 @@ ACMD(do_aciddart)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -991,8 +995,8 @@ ACMD(do_firebolt)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -1076,8 +1080,8 @@ ACMD(do_icicle)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -1159,8 +1163,8 @@ ACMD(do_cursetouch)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;

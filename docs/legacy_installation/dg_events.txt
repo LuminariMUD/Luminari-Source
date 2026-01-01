@@ -55,7 +55,7 @@ and experienced programmers.
     eWHIRLWIND, /* The Whirlwind Attack */
 
     eNEWEVENT   /* A NEW EVENT */
-  } event_id; 
+  } event_id;
 
  b) Create the event
 
@@ -65,12 +65,12 @@ and experienced programmers.
     struct mud_event_data *pMudEvent;
     struct list_data *room_list;
     int count;
-	
+
     /* This is just a dummy check, but we'll do it anyway */
     if (event_obj == NULL)
       return 0;
-  
-    ...	  
+
+    ...
 
     return 0;
   }
@@ -82,7 +82,7 @@ and experienced programmers.
     { "Protocol"     , get_protocols  , EVENT_DESC  },  /* ePROTOCOLS */
     { "Whirlwind"    , event_whirlwind, EVENT_CHAR  }   /* eWHIRLWIND */
 
-    { "A New Event"  , new_event      , EVENT_CHAR  }   /* eNEWEVENT */ 
+    { "A New Event"  , new_event      , EVENT_CHAR  }   /* eNEWEVENT */
   };
 
  d) Place a call for the new event
@@ -94,7 +94,7 @@ and experienced programmers.
 
 4. DIFFERENCES BETWEEN THE TWO SYSTEMS
 
-The biggest differences between the two systems is that the MUD Event System 
+The biggest differences between the two systems is that the MUD Event System
 employs certain functions to make it more "dummy proof" without limiting
 functionality.
 
@@ -124,7 +124,7 @@ Table of Contents
 3.  Steps to Create a New Event Type
 4.  An Example Event Type
 5.  Tips for Create Events
-  
+
 -----------------------------------------------------------------------------
 1.  Event Functions and Event Objects
 
@@ -176,7 +176,7 @@ void event_init(void);
 
 struct event *event_create(EVENTFUNC(*func), void *event_obj, long when);
     This function creates a new event.  At the current time plus 'when',
-    the function call 
+    the function call
 
     func(event_obj);
 
@@ -233,7 +233,7 @@ Example event type:
     struct char_data *ch, *victim;
 
     ch = seo->ch;
-    
+
     GET_CHAR_SNIFF(ch) = NULL;
 
     if (type == SNIFF_COLD)

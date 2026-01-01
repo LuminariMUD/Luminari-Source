@@ -7,7 +7,7 @@
 
 ### Coordinates Summary
 - **X Range**: -886 to 809 (1695 coordinate span)
-- **Y Range**: -787 to 903 (1690 coordinate span) 
+- **Y Range**: -787 to 903 (1690 coordinate span)
 - **Coverage**: Extensive wilderness coverage across both positive and negative coordinate quadrants
 
 ### Major Connection Clusters
@@ -17,7 +17,7 @@
 - Multiple gates: North, South, East, and River Gates
 - Well-connected major city hub
 
-#### Sanctus Region (694-696, Y: -242 to -240) 
+#### Sanctus Region (694-696, Y: -242 to -240)
 - **4 connection points** around Sanctus
 - Complete gate coverage: North, South, East, West
 - Central major city with full directional access
@@ -41,7 +41,7 @@
 
 #### By Exit Direction
 - **North**: 33 connections (28.4%)
-- **South**: 24 connections (20.7%) 
+- **South**: 24 connections (20.7%)
 - **East**: 30 connections (25.9%)
 - **West**: 29 connections (25.0%)
 

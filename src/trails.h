@@ -12,19 +12,19 @@
 
 struct trail_data
 {
-    struct trail_data *next;
-    struct trail_data *prev;
+  struct trail_data *next;
+  struct trail_data *prev;
 
-    char *name;
-    char *race;
+  char *name;
+  char *race;
 
-    int from;
-    int to;
-    time_t age;
+  int from;
+  int to;
+  time_t age;
 };
 
 struct trail_data_list
 {
-    struct trail_data *head;
-    struct trail_data *tail;
+  struct trail_data *head;
+  struct trail_data *tail;
 };

@@ -40,7 +40,7 @@
 #define CREATE_MODE_CHECK 2
 
 /* item defines, by vnum */
-#if defined (CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL)
 
 #define MAGICAL_ESSENCE 40248
 
@@ -134,39 +134,28 @@
 
 #endif
 
-#define IS_CLOTH(mat) (mat == MATERIAL_COTTON || mat == MATERIAL_SILK ||  \
-                       mat == MATERIAL_SATIN || mat == MATERIAL_VELVET || \
-                       mat == MATERIAL_WOOL || mat == MATERIAL_HEMP ||    \
-                       mat == MATERIAL_BURLAP || mat == MATERIAL_DRAGONHIDE)
-#define IS_LEATHER(mat) (mat == MATERIAL_LEATHER || \
-                         mat == MATERIAL_DRAGONHIDE)
-#define IS_WOOD(mat) (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD || mat == MATERIAL_DRAGONSCALE || mat == MATERIAL_DRAGONBONE)
-#define IS_HARD_METAL(mat) (mat == MATERIAL_STEEL ||           \
-                            mat == MATERIAL_BRONZE ||          \
-                            mat == MATERIAL_IRON ||            \
-                            mat == MATERIAL_ALCHEMAL_SILVER || \
-                            mat == MATERIAL_COLD_IRON ||       \
-                            mat == MATERIAL_MITHRIL ||         \
-                            mat == MATERIAL_ADAMANTINE || \
-                            mat == MATERIAL_DRAGONSCALE || \
-                            mat == MATERIAL_DRAGONBONE)
-#define IS_PRECIOUS_METAL(mat) (mat == MATERIAL_SILVER || \
-                                mat == MATERIAL_GOLD ||   \
-                                mat == MATERIAL_COPPER || \
-                                mat == MATERIAL_PLATINUM)
-#define IS_CONDUCTIVE_METAL(mat) (mat == MATERIAL_STEEL ||           \
-                                    mat == MATERIAL_BRONZE ||          \
-                                    mat == MATERIAL_IRON ||            \
-                                    mat == MATERIAL_ALCHEMAL_SILVER || \
-                                    mat == MATERIAL_COLD_IRON ||       \
-                                    mat == MATERIAL_MITHRIL ||         \
-                                    mat == MATERIAL_ADAMANTINE || \
-                                    mat == MATERIAL_SILVER || \
-                                    mat == MATERIAL_GOLD ||   \
-                                    mat == MATERIAL_COPPER || \
-                                    mat == MATERIAL_PLATINUM)
+#define IS_CLOTH(mat)                                                                              \
+  (mat == MATERIAL_COTTON || mat == MATERIAL_SILK || mat == MATERIAL_SATIN ||                      \
+   mat == MATERIAL_VELVET || mat == MATERIAL_WOOL || mat == MATERIAL_HEMP ||                       \
+   mat == MATERIAL_BURLAP || mat == MATERIAL_DRAGONHIDE)
+#define IS_LEATHER(mat) (mat == MATERIAL_LEATHER || mat == MATERIAL_DRAGONHIDE)
+#define IS_WOOD(mat)                                                                               \
+  (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD || mat == MATERIAL_DRAGONSCALE ||              \
+   mat == MATERIAL_DRAGONBONE)
+#define IS_HARD_METAL(mat)                                                                         \
+  (mat == MATERIAL_STEEL || mat == MATERIAL_BRONZE || mat == MATERIAL_IRON ||                      \
+   mat == MATERIAL_ALCHEMAL_SILVER || mat == MATERIAL_COLD_IRON || mat == MATERIAL_MITHRIL ||      \
+   mat == MATERIAL_ADAMANTINE || mat == MATERIAL_DRAGONSCALE || mat == MATERIAL_DRAGONBONE)
+#define IS_PRECIOUS_METAL(mat)                                                                     \
+  (mat == MATERIAL_SILVER || mat == MATERIAL_GOLD || mat == MATERIAL_COPPER ||                     \
+   mat == MATERIAL_PLATINUM)
+#define IS_CONDUCTIVE_METAL(mat)                                                                   \
+  (mat == MATERIAL_STEEL || mat == MATERIAL_BRONZE || mat == MATERIAL_IRON ||                      \
+   mat == MATERIAL_ALCHEMAL_SILVER || mat == MATERIAL_COLD_IRON || mat == MATERIAL_MITHRIL ||      \
+   mat == MATERIAL_ADAMANTINE || mat == MATERIAL_SILVER || mat == MATERIAL_GOLD ||                 \
+   mat == MATERIAL_COPPER || mat == MATERIAL_PLATINUM)
 
-                                    
+
 #define SCMD_CRAFT_UNDF 0
 #define SCMD_BREW 1
 #define SCMD_CRAFT 2 // SCMD_CREATE
@@ -193,20 +182,20 @@
 /***/
 
 /* autocraft */
-#define GET_AUTOCQUEST_VNUM(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                     ((ch)->player_specials->saved.autocquest_vnum))
-#define GET_AUTOCQUEST_MAKENUM(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                        ((ch)->player_specials->saved.autocquest_makenum))
-#define GET_AUTOCQUEST_QP(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                   ((ch)->player_specials->saved.autocquest_qp))
-#define GET_AUTOCQUEST_EXP(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                    ((ch)->player_specials->saved.autocquest_exp))
-#define GET_AUTOCQUEST_GOLD(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                     ((ch)->player_specials->saved.autocquest_gold))
-#define GET_AUTOCQUEST_DESC(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                     ((ch)->player_specials->saved.autocquest_desc))
-#define GET_AUTOCQUEST_MATERIAL(ch) CHECK_PLAYER_SPECIAL((ch), \
-                                                         ((ch)->player_specials->saved.autocquest_material))
+#define GET_AUTOCQUEST_VNUM(ch)                                                                    \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_vnum))
+#define GET_AUTOCQUEST_MAKENUM(ch)                                                                 \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_makenum))
+#define GET_AUTOCQUEST_QP(ch)                                                                      \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_qp))
+#define GET_AUTOCQUEST_EXP(ch)                                                                     \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_exp))
+#define GET_AUTOCQUEST_GOLD(ch)                                                                    \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_gold))
+#define GET_AUTOCQUEST_DESC(ch)                                                                    \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_desc))
+#define GET_AUTOCQUEST_MATERIAL(ch)                                                                \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_material))
 
 #define GET_CRAFTING_TYPE(ch) ((ch)->char_specials.crafting_type)
 #define GET_CRAFTING_TICKS(ch) ((ch)->char_specials.crafting_ticks)

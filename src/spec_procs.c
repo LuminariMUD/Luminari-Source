@@ -45,6 +45,10 @@
 #include "quest.h"
 #include "backgrounds.h"
 #include "perks.h"
+#include "vessels.h"
+
+/* External vessel data for ship boarding */
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -72,8 +76,7 @@ int spell_sort_info[TOP_SKILL_DEFINE];
 
 static int compare_spells(const void *x, const void *y)
 {
-  int a = *(const int *)x,
-      b = *(const int *)y;
+  int a = *(const int *)x, b = *(const int *)y;
 
   if (a < 1 || b < 1)
     return 0;
@@ -87,7 +90,7 @@ static int compare_spells(const void *x, const void *y)
     if (!spell_info[a].name && !spell_info[b].name)
       return 0;
     if (!spell_info[a].name)
-      return 1;  /* Move empty entries to the end */
+      return 1; /* Move empty entries to the end */
     return -1;
   }
 
@@ -136,7 +139,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
   /* i'm -trying- to keep this organized */
   switch (skillnum)
   {
-
     /* proficiencies */
   case SKILL_PROF_BASIC:
     if (GET_SKILL(ch, SKILL_PROF_MINIMAL))
@@ -182,8 +184,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
       return FALSE;
   case SKILL_DRAGON_KNIGHT:
     if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && GET_LEVEL(ch) >= 20 &&
-        (CLASS_LEVEL(ch, CLASS_WIZARD) > 17 ||
-         CLASS_LEVEL(ch, CLASS_SORCERER) > 19))
+        (CLASS_LEVEL(ch, CLASS_WIZARD) > 17 || CLASS_LEVEL(ch, CLASS_SORCERER) > 19))
       return TRUE;
     else
       return FALSE;
@@ -194,19 +195,20 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
       return FALSE;
   case SKILL_HELLBALL:
     if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && GET_LEVEL(ch) >= 20 &&
-        (CLASS_LEVEL(ch, CLASS_WIZARD) > 16 ||
-         CLASS_LEVEL(ch, CLASS_SORCERER) > 18))
+        (CLASS_LEVEL(ch, CLASS_WIZARD) > 16 || CLASS_LEVEL(ch, CLASS_SORCERER) > 18))
       return TRUE;
     else
       return FALSE;
     /* magical based epic spells (not accessable by divine) */
   case SKILL_EPIC_MAGE_ARMOR:
-    if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && GET_LEVEL(ch) >= 20 && (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 || CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
+    if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && GET_LEVEL(ch) >= 20 &&
+        (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 || CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
       return TRUE;
     else
       return FALSE;
   case SKILL_EPIC_WARDING:
-    if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && GET_LEVEL(ch) >= 20 && (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 || CLASS_LEVEL(ch, CLASS_SORCERER) > 15))
+    if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && GET_LEVEL(ch) >= 20 &&
+        (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 || CLASS_LEVEL(ch, CLASS_SORCERER) > 15))
       return TRUE;
     else
       return FALSE;
@@ -270,8 +272,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
     else
       return FALSE;
   case SKILL_HEADBUTT:
-    if (GET_LEVEL(ch) >= 20 &&
-        (GET_REAL_CON(ch) + GET_REAL_STR(ch) >= 32))
+    if (GET_LEVEL(ch) >= 20 && (GET_REAL_CON(ch) + GET_REAL_STR(ch) >= 32))
       return TRUE;
     else
       return FALSE;
@@ -343,8 +344,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 
     /* special restrictions, i.e. not restricted to one class, etc */
   case SKILL_USE_MAGIC: /* shared - with casters and rogue */
-    if ((CLASS_LEVEL(ch, CLASS_ROGUE) >= 9) ||
-        (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
+    if ((CLASS_LEVEL(ch, CLASS_ROGUE) >= 9) || (IS_CASTER(ch) && GET_LEVEL(ch) >= 2))
       return TRUE;
     else
       return FALSE;
@@ -380,9 +380,9 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
     else
       return FALSE;
   case SKILL_BODYSLAM:
-  #if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL)
     return TRUE;
-  #else
+#else
     if (GET_RACE(ch) == RACE_HALF_TROLL)
       return TRUE;
     else
@@ -391,8 +391,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 
     /* ranger */
   case SKILL_NATURE_STEP: // shared with druid
-    if (CLASS_LEVEL(ch, CLASS_RANGER) >= 3 ||
-        CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
+    if (CLASS_LEVEL(ch, CLASS_RANGER) >= 3 || CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
       return TRUE;
     else
       return FALSE;
@@ -530,7 +529,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char cname[100];
   const char *overflow = "\r\n**OVERFLOW**\r\n";
-  
+
   if (!ch)
     return;
 
@@ -551,13 +550,15 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 
   if (mode == 0)
   {
-    len = snprintf(buf2, sizeof(buf2), "\tCKnown %s %s List\tn\r\n%s",
-                   CAP(cname), (is_psionic || is_warlock) ? "Power" : "Spell",
+    len = snprintf(buf2, sizeof(buf2), "\tCKnown %s %s List\tn\r\n%s", CAP(cname),
+                   (is_psionic || is_warlock) ? "Power" : "Spell",
                    (is_psionic && CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1)
-                     ? "\tYNOTE:\tnThere is a known bug where new psionicists will show all powers instead of\r\n"
-                       "only the ones they know. To correct this, please quit, then press '0' to return to\r\n"
-                       "the account menu, and login again.\r\n"
-                     : "");
+                       ? "\tYNOTE:\tnThere is a known bug where new psionicists will show all "
+                         "powers instead of\r\n"
+                         "only the ones they know. To correct this, please quit, then press '0' to "
+                         "return to\r\n"
+                         "the account menu, and login again.\r\n"
+                       : "");
 
     for (slot = get_class_highest_circle(ch, class); slot >= 0; slot--)
     {
@@ -586,193 +587,247 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 
         bool auto_cantrip_known = spell_is_cantrip(i) && sinfo == 0 && CLASS_LEVEL(ch, class) > 0;
 
-        if (class == CLASS_SORCERER && (is_a_known_spell(ch, CLASS_SORCERER, i) || (auto_cantrip_known && slot == 0)) &&
+        if (class == CLASS_SORCERER &&
+            (is_a_known_spell(ch, CLASS_SORCERER, i) || (auto_cantrip_known && slot == 0)) &&
             compute_spells_circle(ch, CLASS_SORCERER, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class == CLASS_BARD && (is_a_known_spell(ch, CLASS_BARD, i) || (auto_cantrip_known && slot == 0)) &&
+        else if (class == CLASS_BARD &&
+                 (is_a_known_spell(ch, CLASS_BARD, i) || (auto_cantrip_known && slot == 0)) &&
                  compute_spells_circle(ch, CLASS_BARD, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class == CLASS_SUMMONER && (is_a_known_spell(ch, CLASS_SUMMONER, i) || (auto_cantrip_known && slot == 0)) &&
+        else if (class == CLASS_SUMMONER &&
+                 (is_a_known_spell(ch, CLASS_SUMMONER, i) || (auto_cantrip_known && slot == 0)) &&
                  compute_spells_circle(ch, CLASS_SUMMONER, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class == CLASS_INQUISITOR && (is_a_known_spell(ch, CLASS_INQUISITOR, i) || (auto_cantrip_known && slot == 0)) &&
+        else if (class == CLASS_INQUISITOR &&
+                 (is_a_known_spell(ch, CLASS_INQUISITOR, i) || (auto_cantrip_known && slot == 0)) &&
                  compute_spells_circle(ch, CLASS_INQUISITOR, i, 0, GET_1ST_DOMAIN(ch)) == slot)
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class == CLASS_WARLOCK && (is_a_known_spell(ch, CLASS_WARLOCK, i) || (auto_cantrip_known && slot == 0)) &&
+        else if (class == CLASS_WARLOCK &&
+                 (is_a_known_spell(ch, CLASS_WARLOCK, i) || (auto_cantrip_known && slot == 0)) &&
                  warlock_spell_type(i) == WARLOCK_POWER_SPELL &&
                  compute_spells_circle(ch, CLASS_WARLOCK, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class == CLASS_PSIONICIST && (is_a_known_spell(ch, CLASS_PSIONICIST, i) || (auto_cantrip_known && slot == 0)) &&
+        else if (class == CLASS_PSIONICIST &&
+                 (is_a_known_spell(ch, CLASS_PSIONICIST, i) || (auto_cantrip_known && slot == 0)) &&
                  compute_spells_circle(ch, CLASS_PSIONICIST, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
@@ -787,96 +842,124 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR &&
-                 class != CLASS_PSIONICIST && class != CLASS_WARLOCK && class != CLASS_SUMMONER &&
-                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_1) &&
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
+                 class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
+                 class != CLASS_SUMMONER &&
+                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >=
+                     MIN_SPELL_LVL(i, class, domain_1) &&
                  compute_spells_circle(ch, class, i, 0, domain_1) == slot &&
                  ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i)))
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             col = 0;
           }
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR &&
-                 class != CLASS_PSIONICIST && class != CLASS_WARLOCK && class != CLASS_SUMMONER &&
-                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_2) &&
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
+                 class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
+                 class != CLASS_SUMMONER &&
+                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >=
+                     MIN_SPELL_LVL(i, class, domain_2) &&
                  compute_spells_circle(ch, class, i, 0, domain_2) == slot &&
                  ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i)))
         {
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
             header_added = TRUE;
             col = 0;
           }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0) {
+          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          } else {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name, spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0) {
+          else
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
+                            spell_info[i].time);
+          }
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          {
             break;
           }
           len += nlen;
           col++;
-          if (col == 3) {
+          if (col == 3)
+          {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0) {
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            {
               break;
             }
             len += nlen;
@@ -888,7 +971,8 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       if (header_added && col != 0)
       {
         nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-        if (len + nlen >= sizeof(buf2) || nlen < 0) {
+        if (len + nlen >= sizeof(buf2) || nlen < 0)
+        {
           break;
         }
         len += nlen;
@@ -910,8 +994,9 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
     {
       if ((circle != -1) && circle != slot)
         continue;
-      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                      "\r\n\tC%s Circle Level %d\tn\r\n", is_psionic ? "Power" : (class == CLASS_ALCHEMIST ? "Extract" : "Spell"), slot);
+      nlen =
+          snprintf(buf2 + len, sizeof(buf2) - len, "\r\n\tC%s Circle Level %d\tn\r\n",
+                   is_psionic ? "Power" : (class == CLASS_ALCHEMIST ? "Extract" : "Spell"), slot);
       if (len + nlen >= sizeof(buf2) || nlen < 0)
         break;
       len += nlen;
@@ -923,8 +1008,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         /* SPELL PREPARATION HOOK (spellCircle) */
         if (compute_spells_circle(ch, class, i, 0, DOMAIN_UNDEFINED) == slot)
         {
-          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-20s %-15s\r\n", spell_info[i].name,
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %-15s\r\n", spell_info[i].name,
                           school_names_specific[spell_info[i].schoolOfMagic]);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
@@ -937,7 +1021,8 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
     strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow); /* strcpy: OK */
 
   /* Append acronym legend for bst only in seconds-based mode */
-  if (CONFIG_SPELLCASTING_TIME_MODE != 0) {
+  if (CONFIG_SPELLCASTING_TIME_MODE != 0)
+  {
     nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\nbst: base spellcasting time\r\n");
     if (len + nlen < sizeof(buf2) && nlen > 0)
       len += nlen;
@@ -1098,8 +1183,7 @@ void list_skills(struct char_data *ch)
   }
   send_to_char(ch, "\r\n\r\n");
 
-  send_to_char(ch, "\tCPractice Session(s): %d\tn\r\n\r\n",
-               GET_PRACTICES(ch));
+  send_to_char(ch, "\tCPractice Session(s): %d\tn\r\n\r\n", GET_PRACTICES(ch));
 }
 
 int compute_ability(struct char_data *ch, int abilityNum)
@@ -1143,7 +1227,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   }
 
-  if (GET_BACKGROUND(ch)>= 0)
+  if (GET_BACKGROUND(ch) >= 0)
   {
     if ((background_list[GET_BACKGROUND(ch)].skills[0] == abilityNum) ||
         (background_list[GET_BACKGROUND(ch)].skills[1] == abilityNum))
@@ -1172,7 +1256,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += 5;
 
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
-    value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
+    value += get_char_affect_modifier(
+        ch, PSIONIC_INFLICT_PAIN,
+        APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))
     value += 2;
   else if (affected_by_spell(ch, SPELL_GREATER_HEROISM))
@@ -1181,7 +1267,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += SONG_AFF_VAL(ch);
   if (HAS_FEAT(ch, FEAT_ABLE_LEARNER))
     value += 1;
-  
+
   /* Jack of All Trades feat bonuses */
   if (HAS_FEAT(ch, FEAT_EXEMPLAR))
   {
@@ -1199,7 +1285,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     /* Jack of All Trades: +3 to all skills */
     value += 3;
   }
-  
+
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_SKILL_FOCUS)))
     value += 3;
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))
@@ -1264,7 +1350,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   {
     for (j = 0; j < 6; j++)
     {
-      if (GET_EQ(ch, i) && GET_EQ(ch, i)->affected[j].location == APPLY_SKILL && GET_EQ(ch, i)->affected[j].specific == abilityNum)
+      if (GET_EQ(ch, i) && GET_EQ(ch, i)->affected[j].location == APPLY_SKILL &&
+          GET_EQ(ch, i)->affected[j].specific == abilityNum)
       {
         if (GET_EQ(ch, i)->affected[j].modifier > high_eq)
           high_eq = GET_EQ(ch, i)->affected[j].modifier;
@@ -1281,9 +1368,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     {
       int tool_skill = GET_OBJ_VAL(GET_EQ(ch, i), 0);
       int tool_bonus = GET_OBJ_VAL(GET_EQ(ch, i), 1);
-      
+
       /* Validate that the tool_skill is a valid crafting/harvest ability */
-      if (tool_skill >= START_CRAFT_ABILITIES && tool_skill <= END_HARVEST_ABILITIES && 
+      if (tool_skill >= START_CRAFT_ABILITIES && tool_skill <= END_HARVEST_ABILITIES &&
           tool_skill == abilityNum && tool_bonus > 0)
       {
         /* Crafting tools provide their specified bonus to the associated skill */
@@ -1300,7 +1387,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
   switch (abilityNum)
   {
-
   case ABILITY_ACROBATICS:
     value += GET_DEX_BONUS(ch);
     value += compute_gear_armor_penalty(ch);
@@ -1316,17 +1402,19 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     if (AFF_FLAGGED(ch, AFF_ACROBATIC))
       value += 10;
-    
+
     /* Monk Acrobatic Defense perk bonus */
     if (!IS_NPC(ch))
       value += get_monk_acrobatic_defense_skill(ch);
-    
+
     return value;
 
   case ABILITY_STEALTH:
     value += GET_DEX_BONUS(ch);
-    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))  value += 2;
-    if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))  value += 3;
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
+      value += 2;
+    if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))
+      value += 3;
     if (HAS_FEAT(ch, FEAT_AFFINITY_MOVE_SILENT))
       value += 4;
     if (HAS_FEAT(ch, FEAT_STEALTHY))
@@ -1381,11 +1469,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
     value += (size_modifiers_inverse[GET_SIZE(ch)] * 4);
     value += compute_gear_armor_penalty(ch);
-    
+
     /* Monk Improved Hide perk bonus */
     if (!IS_NPC(ch))
       value += get_monk_improved_hide_bonus(ch);
-    
+
     return value;
 
   case ABILITY_PERCEPTION:
@@ -1452,7 +1540,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     if (HAS_FEAT(ch, FEAT_DEMORALIZE))
       value += 2;
-      
+
     if (HAS_FEAT(ch, FEAT_AUTHORITATIVE))
     {
       /* Unnamed bonus */
@@ -1513,7 +1601,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
           if (!GROUP(ch) || GROUP(ch) != GROUP(i))
           {
             value += get_bard_dirge_concentration_penalty(i); /* returns negative value */
-            break; /* Only apply once per room */
+            break;                                            /* Only apply once per room */
           }
         }
       }
@@ -1538,7 +1626,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_APPRAISE:
     value += GET_INT_BONUS(ch);
-    if (HAS_FEAT(ch, FEAT_GRUBBY)) value -= 6;
+    if (HAS_FEAT(ch, FEAT_GRUBBY))
+      value -= 6;
     if (HAS_FEAT(ch, FEAT_DILIGENT))
     {
       /* Unnamed bonus */
@@ -1621,13 +1710,15 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
-    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))  value += 2;
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
+      value += 2;
     if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
     return value;
   case ABILITY_DIPLOMACY:
     value += GET_CHA_BONUS(ch);
-    if (HAS_FEAT(ch, FEAT_GRUBBY)) value -= 6;
+    if (HAS_FEAT(ch, FEAT_GRUBBY))
+      value -= 6;
     if (HAS_FEAT(ch, FEAT_NEGOTIATOR))
     {
       /* Unnamed bonus */
@@ -1696,7 +1787,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_SURVIVAL:
     value += GET_WIS_BONUS(ch);
-    if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))  value += 3;
+    if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))
+      value += 3;
     if (HAS_FEAT(ch, FEAT_ARTIFICERS_LORE))
       value += 2;
     if (HAS_FEAT(ch, FEAT_SELF_SUFFICIENT))
@@ -1764,11 +1856,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_PERFORM:
     value += GET_CHA_BONUS(ch);
-      /* Tier 3 Spellsinger: Heightened Harmony - metamagic → perform bonus */
-      if (!IS_NPC(ch))
-      {
-        value += get_bard_heightened_harmony_perform_bonus(ch);
-      }
+    /* Tier 3 Spellsinger: Heightened Harmony - metamagic → perform bonus */
+    if (!IS_NPC(ch))
+    {
+      value += get_bard_heightened_harmony_perform_bonus(ch);
+    }
     return value;
 
   case ABILITY_LINGUISTICS:
@@ -1788,9 +1880,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_CRAFT_METALWORKING:
   case ABILITY_CRAFT_FISHING:
   case ABILITY_CRAFT_COOKING:
-  case ABILITY_HARVEST_MINING   :
-  case ABILITY_HARVEST_HUNTING  :
-  case ABILITY_HARVEST_FORESTRY :
+  case ABILITY_HARVEST_MINING:
+  case ABILITY_HARVEST_HUNTING:
+  case ABILITY_HARVEST_FORESTRY:
   case ABILITY_HARVEST_GATHERING:
 #if !defined(CAMPAIGN_DL)
     value += GET_INT_BONUS(ch);
@@ -1802,44 +1894,20 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 }
 
 /** cross-class or not? **/
-const char *cross_names[] = {
-    "\tRNot Available to Your Class\tn",
-    "\tcCross-Class Ability\tn",
-    "\tWClass Ability\tn"};
+const char *cross_names[] = {"\tRNot Available to Your Class\tn", "\tcCross-Class Ability\tn",
+                             "\tWClass Ability\tn"};
 
-const int skills_alphabetic[NUM_SKILLS_IN_GAME] =
-{
-  ABILITY_ACROBATICS,
-  ABILITY_APPRAISE,
-  ABILITY_ARCANA,
-  ABILITY_ATHLETICS,
-  ABILITY_CONCENTRATION,
-  ABILITY_DECEPTION,
-  ABILITY_DISABLE_DEVICE,
-  ABILITY_DISCIPLINE,
-  ABILITY_DISGUISE,
-  ABILITY_HANDLE_ANIMAL,
-  ABILITY_HISTORY,
-  ABILITY_INSIGHT,
-  ABILITY_INTIMIDATE,
-  ABILITY_LINGUISTICS,
-  ABILITY_MEDICINE,
-  ABILITY_NATURE,
-  ABILITY_PERCEPTION,
-  ABILITY_PERFORM,
-  ABILITY_PERSUASION,
-  ABILITY_RELIGION,
-  ABILITY_RIDE,
-  ABILITY_SLEIGHT_OF_HAND,
-  ABILITY_SPELLCRAFT,
-  ABILITY_STEALTH,
-  ABILITY_TOTAL_DEFENSE,
-  ABILITY_USE_MAGIC_DEVICE
-};
+const int skills_alphabetic[NUM_SKILLS_IN_GAME] = {
+    ABILITY_ACROBATICS,    ABILITY_APPRAISE,        ABILITY_ARCANA,         ABILITY_ATHLETICS,
+    ABILITY_CONCENTRATION, ABILITY_DECEPTION,       ABILITY_DISABLE_DEVICE, ABILITY_DISCIPLINE,
+    ABILITY_DISGUISE,      ABILITY_HANDLE_ANIMAL,   ABILITY_HISTORY,        ABILITY_INSIGHT,
+    ABILITY_INTIMIDATE,    ABILITY_LINGUISTICS,     ABILITY_MEDICINE,       ABILITY_NATURE,
+    ABILITY_PERCEPTION,    ABILITY_PERFORM,         ABILITY_PERSUASION,     ABILITY_RELIGION,
+    ABILITY_RIDE,          ABILITY_SLEIGHT_OF_HAND, ABILITY_SPELLCRAFT,     ABILITY_STEALTH,
+    ABILITY_TOTAL_DEFENSE, ABILITY_USE_MAGIC_DEVICE};
 
 void list_abilities(struct char_data *ch, int ability_type)
 {
-
   int i, start_ability, end_ability;
 
   switch (ability_type)
@@ -1849,14 +1917,16 @@ void list_abilities(struct char_data *ch, int ability_type)
     end_ability = NUM_ABILITIES;
     break;
   case ABILITY_TYPE_GENERAL:
-    send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
-                   "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
-               GET_TRAINS(ch));
+    send_to_char(
+        ch,
+        "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
+        "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
+        GET_TRAINS(ch));
     for (i = 0; i < NUM_SKILLS_IN_GAME; i++)
     {
-      send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
-                 ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]), compute_ability(ch, skills_alphabetic[i]),
-                 cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
+      send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n", ability_names[skills_alphabetic[i]],
+                   GET_ABILITY(ch, skills_alphabetic[i]), compute_ability(ch, skills_alphabetic[i]),
+                   cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
     }
     return;
   case ABILITY_TYPE_CRAFT:
@@ -1875,9 +1945,11 @@ void list_abilities(struct char_data *ch, int ability_type)
   // if (IS_NPC(ch))
   // return;
 
-  send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
-                   "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
-               GET_TRAINS(ch));
+  send_to_char(
+      ch,
+      "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
+      "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
+      GET_TRAINS(ch));
 
   for (i = start_ability; i < end_ability; i++)
   {
@@ -1896,9 +1968,8 @@ void list_abilities(struct char_data *ch, int ability_type)
     default:
       break;
     }
-    send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
-                 ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
-                 cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
+    send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n", ability_names[i], GET_ABILITY(ch, i),
+                 compute_ability(ch, i), cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
   }
 }
 
@@ -1967,7 +2038,6 @@ void process_skill(struct char_data *ch, int skillnum)
 
 bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj)
 {
-
   if (!obj)
     return FALSE;
 
@@ -1991,8 +2061,7 @@ bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj)
    return object based on argument
    will accept an index value that corresponds to the order of the items
      in the shop storage room (for argument) */
-struct obj_data *find_player_shop_obj(struct char_data *ch, char *argument,
-                                      room_rnum private_room)
+struct obj_data *find_player_shop_obj(struct char_data *ch, char *argument, room_rnum private_room)
 {
   bool is_number = FALSE;
   int index = 0, num = 1 /*starting index*/;
@@ -2009,10 +2078,9 @@ struct obj_data *find_player_shop_obj(struct char_data *ch, char *argument,
 
   if (is_number)
   {
-
 #ifdef PLAYER_SHOP_DEBUG
-    send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d\r\n", GET_NAME(ch), index,
-                 world[private_room].number);
+    send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d\r\n", GET_NAME(ch),
+                 index, world[private_room].number);
 #endif
 
     for (obj = world[private_room].contents; obj; obj = obj->next_content)
@@ -2076,7 +2144,8 @@ SPECIAL(player_owned_shops)
       }
       else
       {
-        snprintf(shop_owner, sizeof(shop_owner), "%s", CAP(get_name_by_id(house_control[hse].owner)));
+        snprintf(shop_owner, sizeof(shop_owner), "%s",
+                 CAP(get_name_by_id(house_control[hse].owner)));
       }
       found = TRUE;
       break;
@@ -2097,7 +2166,6 @@ SPECIAL(player_owned_shops)
 
   if (CMD_IS("list"))
   {
-
     if (IS_NPC(ch))
     {
       send_to_char(ch, "Mobiles can't buy from a player-owned shop!\r\n");
@@ -2106,10 +2174,9 @@ SPECIAL(player_owned_shops)
 
     snprintf(buf, sizeof(buf), "Owner: \tW%s\tn", shop_owner);
     send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
-    send_to_char(ch,
-                 "###    Item                                                Cost\r\n");
-    send_to_char(ch,
-                 "--------------------------------------------------------------------------------\r\n");
+    send_to_char(ch, "###    Item                                                Cost\r\n");
+    send_to_char(
+        ch, "--------------------------------------------------------------------------------\r\n");
 
     for (i = world[private_room].contents; i; i = i->next_content)
     {
@@ -2127,7 +2194,6 @@ SPECIAL(player_owned_shops)
   }
   else if (CMD_IS("buy"))
   {
-
     /* do we have an item?  accepts an index for the argument */
     i = find_player_shop_obj(ch, argument, private_room);
 
@@ -2139,7 +2205,8 @@ SPECIAL(player_owned_shops)
     }
 
 #ifdef PLAYER_SHOP_DEBUG
-    send_to_char(ch, "player_shops: found %s (cost: %d)\r\n", i->short_description, GET_OBJ_COST(i));
+    send_to_char(ch, "player_shops: found %s (cost: %d)\r\n", i->short_description,
+                 GET_OBJ_COST(i));
 #endif
 
     if (GET_GOLD(ch) < GET_OBJ_COST(i))
@@ -2168,8 +2235,7 @@ SPECIAL(player_owned_shops)
     send_to_char(ch, "%s hands you %s, and takes your payment.\r\n",
                  CAP(GET_NAME((struct char_data *)me)), i->short_description);
     act("$n buys $p from $N.", FALSE, ch, i, (struct char_data *)me, TO_ROOM);
-    send_to_char(ch, "%s thanks you for your business, 'please come again!'\r\n",
-                 shop_owner);
+    send_to_char(ch, "%s thanks you for your business, 'please come again!'\r\n", shop_owner);
 
 #ifdef PLAYER_SHOP_DEBUG
     send_to_char(ch, "player_shops: item bought and paid for\r\n");
@@ -2187,7 +2253,6 @@ SPECIAL(player_owned_shops)
   }
   else if (CMD_IS("identify"))
   {
-
     /* do we have an item?  accepts an index for the argument */
     i = find_player_shop_obj(ch, argument, private_room);
 
@@ -2254,13 +2319,11 @@ static void zone_yell(struct char_data *ch, const char *buf)
 
   for (i = character_list; i; i = i->next)
   {
-
     if (IN_ROOM(i) == NOWHERE)
       continue;
 
     if (world[ch->in_room].zone == world[i->in_room].zone)
     {
-
       if (PROC_FIRED(ch) == FALSE)
       {
         send_to_char(i, "%s", buf);
@@ -2414,8 +2477,11 @@ void yan_maelstrom(struct char_data *ch)
     }
     else
     {
-      act("\twYou are enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, your body pelted by \twgusts\tc of wind.\tn", FALSE, ch, 0, vict, TO_VICT);
-      act("\tw$N is enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, $S body pelted by \twgusts\tc of wind.\tn",
+      act("\twYou are enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, your "
+          "body pelted by \twgusts\tc of wind.\tn",
+          FALSE, ch, 0, vict, TO_VICT);
+      act("\tw$N is enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, $S body "
+          "pelted by \twgusts\tc of wind.\tn",
           FALSE, ch, 0, vict, TO_NOTVICT);
     }
     damage(ch, vict, dam, -1, DAM_AIR, FALSE); // type -1 = no dam msg
@@ -2430,8 +2496,8 @@ void yan_windgust(struct char_data *ch)
   int dam = 0;
   struct affected_type af;
 
-  act("\tc$n\tc opens $s cavernous maw and sends forth a \tCpowerful \twgust\tc of air.\tn",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("\tc$n\tc opens $s cavernous maw and sends forth a \tCpowerful \twgust\tc of air.\tn", FALSE,
+      ch, 0, 0, TO_ROOM);
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict)
   {
@@ -2456,8 +2522,8 @@ void yan_windgust(struct char_data *ch)
     {
       act("\twYou are blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
           FALSE, ch, 0, vict, TO_VICT);
-      act("\tw$N is blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
-          FALSE, ch, 0, vict, TO_NOTVICT);
+      act("\tw$N is blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn", FALSE,
+          ch, 0, vict, TO_NOTVICT);
       damage(ch, vict, dam, -1, DAM_AIR, FALSE); //-1 type = no dam mess
       if (dice(1, 40) > GET_CON(vict) && can_stun(vict))
       {
@@ -2491,10 +2557,11 @@ bool chan_yell(struct char_data *ch)
   {
     for (d = descriptor_list; d; d = d->next)
     {
-      if (STATE(d) == CON_PLAYING && d->character != NULL && zone == world[d->character->in_room].zone)
+      if (STATE(d) == CON_PLAYING && d->character != NULL &&
+          zone == world[d->character->in_room].zone)
       {
-        send_to_char(d->character,
-                     "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI have been attacked! Come to me my friends!\tw'\tn\r\n");
+        send_to_char(d->character, "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI "
+                                   "have been attacked! Come to me my friends!\tw'\tn\r\n");
       }
     }
   }
@@ -2562,8 +2629,8 @@ SPECIAL(shadowdragon)
   if (rand_number(0, 4))
     return FALSE;
 
-  act("$n \tLopens her mouth and let stream forth a black breath of de\tws\tWp\twa\tLir.\tn",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n \tLopens her mouth and let stream forth a black breath of de\tws\tWp\twa\tLir.\tn", FALSE,
+      ch, 0, 0, TO_ROOM);
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict)
   {
@@ -2571,10 +2638,11 @@ SPECIAL(shadowdragon)
     if (IS_NPC(vict) && !IS_PET(vict))
       continue;
 
-    act("\tLDarkness envelopes you and you feel the hopelessness of fighting against this all powerful foe.\tn",
+    act("\tLDarkness envelopes you and you feel the hopelessness of fighting against this all "
+        "powerful foe.\tn",
         FALSE, ch, 0, vict, TO_VICT);
-    act("$N \tLseems to loose the will for fighting against this awesome foe.\tn",
-        FALSE, ch, 0, vict, TO_NOTVICT);
+    act("$N \tLseems to loose the will for fighting against this awesome foe.\tn", FALSE, ch, 0,
+        vict, TO_NOTVICT);
     GET_MOVE(vict) -= (10 + dice(5, 4));
   }
 
@@ -2603,7 +2671,8 @@ SPECIAL(imix)
 
   if (FIGHTING(ch))
   {
-    zone_yell(ch, "\r\n\tMImix \tnshouts, '\tRYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
+    zone_yell(ch,
+              "\r\n\tMImix \tnshouts, '\tRYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
   }
 
   if (!rand_number(0, 3) && FIGHTING(ch))
@@ -2629,13 +2698,14 @@ SPECIAL(olhydra)
 
   if (FIGHTING(ch))
   {
-    zone_yell(ch, "\r\n\tBOlhydra \tnshouts, '\tCYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
+    zone_yell(
+        ch, "\r\n\tBOlhydra \tnshouts, '\tCYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
   }
 
   if (!rand_number(0, 3) && FIGHTING(ch))
   {
-    act("$n \tLopens $s mouth and let stream forth a \tBwave of water.\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("$n \tLopens $s mouth and let stream forth a \tBwave of water.\tn", FALSE, ch, 0, 0,
+        TO_ROOM);
 
     for (vict = world[ch->in_room].people; vict; vict = next_vict)
     {
@@ -2647,18 +2717,16 @@ SPECIAL(olhydra)
 
       if ((dice(1, 20) + 21) < GET_DEX(vict))
       {
-        act("\tbThe wave hits \tCYOU\tb, knocking you backwards.\tn",
-            FALSE, ch, 0, vict, TO_VICT);
-        act("\tbThe wave hits $N\tb, knocking $M backwards.\tn",
-            FALSE, ch, 0, vict, TO_NOTVICT);
+        act("\tbThe wave hits \tCYOU\tb, knocking you backwards.\tn", FALSE, ch, 0, vict, TO_VICT);
+        act("\tbThe wave hits $N\tb, knocking $M backwards.\tn", FALSE, ch, 0, vict, TO_NOTVICT);
         USE_MOVE_ACTION(vict);
       }
       else
       {
-        act("\tbThe wave hits \tCYOU\tb with full \tBforce\tb, knocking you down.\tn",
-            FALSE, ch, 0, vict, TO_VICT);
-        act("\tbThe wave hits $N\tb with full \tBforce\tb, knocking $M down.\tn",
-            FALSE, ch, 0, vict, TO_NOTVICT);
+        act("\tbThe wave hits \tCYOU\tb with full \tBforce\tb, knocking you down.\tn", FALSE, ch, 0,
+            vict, TO_VICT);
+        act("\tbThe wave hits $N\tb with full \tBforce\tb, knocking $M down.\tn", FALSE, ch, 0,
+            vict, TO_NOTVICT);
         change_position(vict, POS_SITTING);
         USE_FULL_ROUND_ACTION(ch);
       }
@@ -2684,7 +2752,8 @@ SPECIAL(banshee)
     act("\tW$n \tWlets out a piercing shriek so horrible that it makes your ears \trBLEED\tW!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
-      if (!IS_NPC(vict) && !savingthrow(ch, vict, SAVING_WILL, -4, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      if (!IS_NPC(vict) &&
+          !savingthrow(ch, vict, SAVING_WILL, -4, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
       {
         act("\tRThe brutal scream tears away at your life force,\r\n"
             "causing you to fall to your knees with pain!\tn",
@@ -2719,14 +2788,13 @@ SPECIAL(quicksand)
 
   if (GET_DEX(ch) > dice(1, 20) + 12)
   {
-    act("\tyYou avoid getting stuck in the quicksand.\tn",
-        FALSE, ch, 0, 0, TO_CHAR);
-    act("\tn$n\ty avoids getting stuck in the quicksand.\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("\tyYou avoid getting stuck in the quicksand.\tn", FALSE, ch, 0, 0, TO_CHAR);
+    act("\tn$n\ty avoids getting stuck in the quicksand.\tn", FALSE, ch, 0, 0, TO_ROOM);
     return FALSE;
   }
 
-  act("\tyThe marsh \tgla\tynd of the \twm\tye\tgr\tye opens up suddenly revealing quicksand!\tn\r\n"
+  act("\tyThe marsh \tgla\tynd of the \twm\tye\tgr\tye opens up suddenly revealing "
+      "quicksand!\tn\r\n"
       "\tnYou get sucked down.\tn",
       FALSE, ch, 0, 0, TO_CHAR);
   act("\tn$n\ty gets stuck in the quicksand of the marsh \tgla\tynd of the \twm\tye\tgr\tye.\tn",
@@ -2775,8 +2843,7 @@ SPECIAL(kt_kenjin)
   {
     act("$n\tc whips out a \tWbone-white\tn wand, and waves it in the air.\tn\r\n"
         "\tcSuddenly $e points it at \tn$N\tc, who slowly turns to stone.",
-        FALSE,
-        ch, 0, vict, TO_ROOM);
+        FALSE, ch, 0, vict, TO_ROOM);
     new_affect(&af);
     af.spell = SPELL_HOLD_PERSON;
     SET_BIT_AR(af.bitvector, AFF_PARALYZED);
@@ -2790,8 +2857,7 @@ SPECIAL(kt_kenjin)
   {
     act("$n\tc whips out a \trfiery red\tn wand, and waves it in the air.\tn\r\n"
         "\tcSuddenly $e points it at \tn$N\tc, who fades away suddenly.",
-        FALSE,
-        ch, 0, vict, TO_ROOM);
+        FALSE, ch, 0, vict, TO_ROOM);
     char_from_room(vict);
     char_to_room(vict, real_room(132908));
     look_at_room(vict, 0);
@@ -2803,8 +2869,7 @@ SPECIAL(kt_kenjin)
   {
     act("$n\tc whips out a \tYgolden\tn wand, and waves it in the air.\tn\r\n"
         "\tcSuddenly $e taps in the air, and you see \tLshadow\tc coalesce behind you.",
-        FALSE,
-        ch, 0, vict, TO_ROOM);
+        FALSE, ch, 0, vict, TO_ROOM);
     tch = read_mobile(132902, VIRTUAL);
     if (!tch)
       return FALSE;
@@ -2874,14 +2939,16 @@ SPECIAL(hive_death)
   if (!ch)
     return FALSE;
 
-  send_to_char(ch,
-               "\trAs you enter through the curtain, your body is ripped into two pieces, as your link\tn\r\n"
-               "\trthrough the ethereal plane is severed.  You suddenly realise that your physical body\tn\r\n"
-               "\tris at one place, and your mind in another part.\tn\r\n\r\n");
+  send_to_char(ch, "\trAs you enter through the curtain, your body is ripped into two pieces, as "
+                   "your link\tn\r\n"
+                   "\trthrough the ethereal plane is severed.  You suddenly realise that your "
+                   "physical body\tn\r\n"
+                   "\tris at one place, and your mind in another part.\tn\r\n\r\n");
   char_from_room(ch);
   char_to_room(ch, real_room(129500));
   // make_corpse(ch, 0);
-  send_to_char(ch, "\tWYou feel the link snap completely, leaving you body behind completely!\tn\r\n\r\n");
+  send_to_char(
+      ch, "\tWYou feel the link snap completely, leaving you body behind completely!\tn\r\n\r\n");
   look_at_room(ch, 0);
   char_from_room(ch);
   send_to_char(ch, "\tLYou focus your eyes back on the present.\tn\r\n\r\n");
@@ -2909,11 +2976,15 @@ SPECIAL(feybranche)
   {
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
-    snprintf(buf, sizeof(buf), "%s\tL shouts, '\tmCome to me!!' Fey-Branche is under attack!\tn\r\n",
+    snprintf(buf, sizeof(buf),
+             "%s\tL shouts, '\tmCome to me!!' Fey-Branche is under attack!\tn\r\n",
              ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
-      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135535 || GET_MOB_VNUM(i) == 135536 || GET_MOB_VNUM(i) == 135537 || GET_MOB_VNUM(i) == 135538 || GET_MOB_VNUM(i) == 135539 || GET_MOB_VNUM(i) == 135540) && ch != i)
+      if (!FIGHTING(i) && IS_NPC(i) &&
+          (GET_MOB_VNUM(i) == 135535 || GET_MOB_VNUM(i) == 135536 || GET_MOB_VNUM(i) == 135537 ||
+           GET_MOB_VNUM(i) == 135538 || GET_MOB_VNUM(i) == 135539 || GET_MOB_VNUM(i) == 135540) &&
+          ch != i)
       {
         if (FIGHTING(ch)->in_room != i->in_room)
         {
@@ -2959,7 +3030,8 @@ SPECIAL(abyssal_vortex)
     world[ch->in_room].dir_option[5]->to_room = world[ch->in_room].dir_option[2]->to_room;
     world[ch->in_room].dir_option[2]->to_room = temp;
 
-    send_to_room(ch->in_room, "\tLThe reality seems to \tCshift\tL as madness descends in the \tcvortex\tn\r\n");
+    send_to_room(ch->in_room,
+                 "\tLThe reality seems to \tCshift\tL as madness descends in the \tcvortex\tn\r\n");
 
     return TRUE;
   }
@@ -2982,7 +3054,6 @@ SPECIAL(agrachdyrr)
 
   if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF))
   {
-
     if (!rand_number(0, 4) && !ch->followers)
     {
       act("$n\tL looks to be extremely disspleased at being\r\n"
@@ -3001,11 +3072,15 @@ SPECIAL(agrachdyrr)
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
 
-    snprintf(buf, sizeof(buf), "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
+    snprintf(buf, sizeof(buf),
+             "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
              ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
-      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135521 || GET_MOB_VNUM(i) == 135522 || GET_MOB_VNUM(i) == 135510 || GET_MOB_VNUM(i) == 135524 || GET_MOB_VNUM(i) == 135525 || GET_MOB_VNUM(i) == 135512) && ch != i)
+      if (!FIGHTING(i) && IS_NPC(i) &&
+          (GET_MOB_VNUM(i) == 135521 || GET_MOB_VNUM(i) == 135522 || GET_MOB_VNUM(i) == 135510 ||
+           GET_MOB_VNUM(i) == 135524 || GET_MOB_VNUM(i) == 135525 || GET_MOB_VNUM(i) == 135512) &&
+          ch != i)
       {
         if (FIGHTING(ch)->in_room != i->in_room)
         {
@@ -3052,7 +3127,10 @@ SPECIAL(shobalar)
              ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
-      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135506 || GET_MOB_VNUM(i) == 135500 || GET_MOB_VNUM(i) == 135504 || GET_MOB_VNUM(i) == 135507) && ch != i)
+      if (!FIGHTING(i) && IS_NPC(i) &&
+          (GET_MOB_VNUM(i) == 135506 || GET_MOB_VNUM(i) == 135500 || GET_MOB_VNUM(i) == 135504 ||
+           GET_MOB_VNUM(i) == 135507) &&
+          ch != i)
       {
         if (FIGHTING(ch)->in_room != i->in_room)
         {
@@ -3104,7 +3182,8 @@ SPECIAL(ogremoch)
   {
     for (d = descriptor_list; d; d = d->next)
     {
-      if (STATE(d) == CON_PLAYING && d->character != NULL && zone == world[d->character->in_room].zone)
+      if (STATE(d) == CON_PLAYING && d->character != NULL &&
+          zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tLOgremoch \tw shouts, '\tLI have been "
                                    "attacked! Come to me minions!\tw'\tn\r\n");
@@ -3140,12 +3219,10 @@ SPECIAL(ogremoch)
             // either melt in directly or track
             if (dice(1, 10) < 2)
             {
-              act("$n jumps into the pure rock, as $s lord calls for $m.",
-                  FALSE, i, 0, 0, TO_ROOM);
+              act("$n jumps into the pure rock, as $s lord calls for $m.", FALSE, i, 0, 0, TO_ROOM);
               char_from_room(i);
               char_to_room(i, ch->in_room);
-              act("$n comes out from the rock, to help $s lord.", FALSE, i,
-                  0, 0, TO_ROOM);
+              act("$n comes out from the rock, to help $s lord.", FALSE, i, 0, 0, TO_ROOM);
             }
             else
             {
@@ -3226,7 +3303,6 @@ SPECIAL(guild)
   // Practice code
   if (CMD_IS("practice"))
   {
-
     list_crafting_skills(ch);
     return (TRUE);
 
@@ -3247,8 +3323,7 @@ SPECIAL(guild)
 
     skill_num = find_skill_num(argument);
 
-    if (skill_num < 1 ||
-        GET_LEVEL(ch) < spell_info[skill_num].min_level[(int)GET_CLASS(ch)])
+    if (skill_num < 1 || GET_LEVEL(ch) < spell_info[skill_num].min_level[(int)GET_CLASS(ch)])
     {
       send_to_char(ch, "You do not know of that skill.\r\n");
       return (TRUE);
@@ -3283,8 +3358,7 @@ SPECIAL(guild)
       return TRUE;
     }
 
-    send_to_char(ch, "You practice '%s' with your trainer...\r\n",
-                 spell_info[skill_num].name);
+    send_to_char(ch, "You practice '%s' with your trainer...\r\n", spell_info[skill_num].name);
     GET_PRACTICES(ch)
     --;
 
@@ -3326,7 +3400,6 @@ SPECIAL(guild)
 
     if (is_abbrev(arg, "craft"))
     {
-
       if (!strcmp(ability_name, ""))
       {
         list_abilities(ch, ABILITY_TYPE_CRAFT);
@@ -3338,7 +3411,6 @@ SPECIAL(guild)
     }
     else if (is_abbrev(arg, "knowledge"))
     {
-
       if (!strcmp(ability_name, ""))
       {
         list_abilities(ch, ABILITY_TYPE_KNOWLEDGE);
@@ -3369,17 +3441,20 @@ SPECIAL(guild)
     // cross-class ability
     if (GET_TRAINS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
-      send_to_char(ch, "(Cross-Class) You don't have enough training sessions to train that ability...\r\n");
+      send_to_char(
+          ch, "(Cross-Class) You don't have enough training sessions to train that ability...\r\n");
       return (TRUE);
     }
-    if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
+    if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) &&
+        modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
       send_to_char(ch, "You are already trained in that area.\r\n");
       return (TRUE);
     }
 
     // class ability
-    if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2)
+    if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) &&
+        modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2)
     {
       send_to_char(ch, "You are already trained in that area.\r\n");
       return (TRUE);
@@ -3401,7 +3476,8 @@ SPECIAL(guild)
       send_to_char(ch, "You are now trained in that area.\r\n");
     if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
       ;
-    else if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
+    else if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) &&
+             CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
       send_to_char(ch, "You are already trained in that area.\r\n");
 
     return (TRUE);
@@ -3409,15 +3485,16 @@ SPECIAL(guild)
   else if (CMD_IS("boosts"))
   {
     if (!argument || !*argument)
-      send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"
-                       "\tcStats:\tn\r\n"
-                       "Strength\r\n"
-                       "Constitution\r\n"
-                       "Dexterity\r\n"
-                       "Intelligence\r\n"
-                       "Wisdom\r\n"
-                       "Charisma\r\n"
-                       "\r\n",
+      send_to_char(ch,
+                   "\tCStat boost sessions remaining: %d\tn\r\n"
+                   "\tcStats:\tn\r\n"
+                   "Strength\r\n"
+                   "Constitution\r\n"
+                   "Dexterity\r\n"
+                   "Intelligence\r\n"
+                   "Wisdom\r\n"
+                   "Charisma\r\n"
+                   "\r\n",
                    GET_BOOSTS(ch));
     else if (!GET_BOOSTS(ch))
       send_to_char(ch, "You have no ability training sessions.\r\n");
@@ -3477,15 +3554,16 @@ SPECIAL(guild)
       GET_BOOSTS(ch) -= 1;
     }
     else
-      send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"
-                       "\tcStats:\tn\r\n"
-                       "Strength\r\n"
-                       "Constitution\r\n"
-                       "Dexterity\r\n"
-                       "Intelligence\r\n"
-                       "Wisdom\r\n"
-                       "Charisma\r\n"
-                       "\r\n",
+      send_to_char(ch,
+                   "\tCStat boost sessions remaining: %d\tn\r\n"
+                   "\tcStats:\tn\r\n"
+                   "Strength\r\n"
+                   "Constitution\r\n"
+                   "Dexterity\r\n"
+                   "Intelligence\r\n"
+                   "Wisdom\r\n"
+                   "Charisma\r\n"
+                   "\r\n",
                    GET_BOOSTS(ch));
     affect_total(ch);
     send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
@@ -3502,289 +3580,336 @@ SPECIAL(guild)
 }
 
 
-int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx) {
-    char errStr[100];
+int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx)
+{
+  char errStr[100];
 
-    if ((ONMdata->oldRoom != NOWHERE) && (ONMdata->oldRoom != ENDMOVING)) {
-        /*  unlink old room - both sides  */
+  if ((ONMdata->oldRoom != NOWHERE) && (ONMdata->oldRoom != ENDMOVING))
+  {
+    /*  unlink old room - both sides  */
 
-        /*  check if rooms sync up  */
-        if (theRoom->from[cibIdx] != ONMdata->oldRoom) {
-            sprintf(errStr, "SPEC(move_room): [%d] from[cibIdx] != oldRoom (or <= 0) (%d/%d %d)",
-                    (int)ONMdata->moveRoom, theRoom->from[cibIdx], ONMdata->oldRoom, cibIdx);
-            log("%s", errStr);
-            return 0;
-        }
-
-        /*  check if dest room dir is clean...  */
-        if (world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] == NULL) {
-            log("SPEC(move_room): moving room has not set a connecting room...");
-            return 0;
-        }
-
-        /*  check if old conn room dir is clean...  */
-        if (world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] == NULL) {
-            sprintf(errStr, "SPEC(move_room): [%d] old conn room %d dir %d not set...", (int)ONMdata->moveRoom,
-                    ONMdata->oldRoom, ONMdata->oldDir);
-            log("%s", errStr);
-            return 0;
-        }
-
-        /* log("SPEC(move): all is Ok to unlink the old room..."); */
-
-#ifdef DEBUGMEM
-        freeusg(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], P9);
-#else
-        free(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]);
-#endif
-
-        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] = NULL;
-
-#ifdef DEBUGMEM
-        freeusg(world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir], O9);
-#else
-        free(world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir]);
-#endif
-        world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] = NULL;
-
-        /* log("SPEC(move): all is Ok after unlinking the old room..."); */
-        sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %d  FROM  %d", (int)ONMdata->moveRoom, ONMdata->oldRoom,
-                theRoom->destination);
-        /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
+    /*  check if rooms sync up  */
+    if (theRoom->from[cibIdx] != ONMdata->oldRoom)
+    {
+      sprintf(errStr, "SPEC(move_room): [%d] from[cibIdx] != oldRoom (or <= 0) (%d/%d %d)",
+              (int)ONMdata->moveRoom, theRoom->from[cibIdx], ONMdata->oldRoom, cibIdx);
+      log("%s", errStr);
+      return 0;
     }
 
-    return 1;
+    /*  check if dest room dir is clean...  */
+    if (world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] == NULL)
+    {
+      log("SPEC(move_room): moving room has not set a connecting room...");
+      return 0;
+    }
+
+    /*  check if old conn room dir is clean...  */
+    if (world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] == NULL)
+    {
+      sprintf(errStr, "SPEC(move_room): [%d] old conn room %d dir %d not set...",
+              (int)ONMdata->moveRoom, ONMdata->oldRoom, ONMdata->oldDir);
+      log("%s", errStr);
+      return 0;
+    }
+
+    /* log("SPEC(move): all is Ok to unlink the old room..."); */
+
+#ifdef DEBUGMEM
+    freeusg(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], P9);
+#else
+    free(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]);
+#endif
+
+    world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] = NULL;
+
+#ifdef DEBUGMEM
+    freeusg(world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir], O9);
+#else
+    free(world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir]);
+#endif
+    world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] = NULL;
+
+    /* log("SPEC(move): all is Ok after unlinking the old room..."); */
+    sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %d  FROM  %d", (int)ONMdata->moveRoom,
+            ONMdata->oldRoom, theRoom->destination);
+    /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
+  }
+
+  return 1;
 }
 
-int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx) {
-    struct room_direction_data *rdd;
-    char errStr[100];
+int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx)
+{
+  struct room_direction_data *rdd;
+  char errStr[100];
 
-    if (ONMdata->nextRoom != NOWHERE) {
-        /*  link up new room - both sides  */
+  if (ONMdata->nextRoom != NOWHERE)
+  {
+    /*  link up new room - both sides  */
 
-        /*  check if dest room dir is clean...  */
-        if (world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] != NULL) {
-            log("SPEC(move_room): moving room hasn't unset last connecting room...");
+    /*  check if dest room dir is clean...  */
+    if (world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] != NULL)
+    {
+      log("SPEC(move_room): moving room hasn't unset last connecting room...");
 
-            rdd = world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir];
-            sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:", (int)ONMdata->moveRoom,
-                    (rdd->general_description == NULL) ? "" : rdd->general_description,
-                    (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
-            log("%s", errStr);
+      rdd = world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir];
+      sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:",
+              (int)ONMdata->moveRoom,
+              (rdd->general_description == NULL) ? "" : rdd->general_description,
+              (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
+      log("%s", errStr);
 
-            return 0;
-        }
+      return 0;
+    }
 
-        /*  check if conn room dir is clean...  */
-        if (world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] != NULL) {
-            sprintf(errStr, "SPEC(move_room): [%d] conn room has dir %d set...", (int)ONMdata->moveRoom,
-                    ONMdata->nextDir);
-            log("%s", errStr);
+    /*  check if conn room dir is clean...  */
+    if (world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] != NULL)
+    {
+      sprintf(errStr, "SPEC(move_room): [%d] conn room has dir %d set...", (int)ONMdata->moveRoom,
+              ONMdata->nextDir);
+      log("%s", errStr);
 
-            rdd = world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir];
-            sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:", (int)ONMdata->moveRoom,
-                    (rdd->general_description == NULL) ? "" : rdd->general_description,
-                    (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
-            log("%s", errStr);
+      rdd = world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir];
+      sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:",
+              (int)ONMdata->moveRoom,
+              (rdd->general_description == NULL) ? "" : rdd->general_description,
+              (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
+      log("%s", errStr);
 
 /*  pdh 5/3/01 - don't return - instead remove the offending exit
 return 0;
 */
 #ifdef DEBUGMEM
-            freeusg(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], N9);
+      freeusg(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], N9);
 #else
-            free(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]);
+      free(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]);
 #endif
-            world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] = NULL;
-        }
-
-        if (theRoom->from[cibIdx] != ENDMOVING) {
-            log("SPEC(move_room): theRoom->from[cibIdx] != ENDMOVING");
-            return 0;
-        }
-
-        /* log("SPEC(move): all is Ok to link the new room..."); */
-
-#ifdef DEBUGMEM
-        CREATE(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], struct room_direction_data, 1, M9);
-#else
-        CREATE(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], struct room_direction_data, 1);
-#endif
-        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->general_description = NULL;
-        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->keyword = NULL;
-        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->exit_info = 0;
-        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->key = -1;
-        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->to_room = real_room(theRoom->destination);
-
-        /*  play 'docking' message  */
-        if (theRoom->msg_docking) {
-            struct char_data *cc;
-
-            for (cc = world[real_room(ONMdata->moveRoom)].people; cc; cc = cc->next_in_room) {
-                if (cc->desc) {
-                    send_to_char(cc, "%s\r\n", theRoom->msg_docking);
-                }
-            }
-        }
-
-#ifdef DEBUGMEM
-        CREATE(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], struct room_direction_data, 1, L9);
-#else
-        CREATE(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], struct room_direction_data, 1);
-#endif
-        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->general_description = NULL;
-        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->keyword = NULL;
-        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->exit_info = 0;
-        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->key = -1;
-        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->to_room = real_room(ONMdata->nextRoom);
-
-        /*  play 'dest_docking' message  */
-        if (theRoom->msg_dest_docking) {
-            struct char_data *cc;
-
-            for (cc = world[real_room(ONMdata->nextRoom)].people; cc; cc = cc->next_in_room) {
-                if (cc->desc) {
-                    send_to_char(cc, "%s\r\n", theRoom->msg_dest_docking);
-                }
-            }
-        }
-
-        /* log("SPEC(move): all complete: linked the new room"); */
-        sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %d and linked %d  TO  %d", (int)ONMdata->moveRoom,
-                ONMdata->oldRoom, ONMdata->nextRoom, theRoom->destination);
-        /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
-
-    } else {
-        /*  play 'transit' message  */
-        if (theRoom->msg_transit) {
-            struct char_data *cc;
-
-            for (cc = world[real_room(ONMdata->moveRoom)].people; cc; cc = cc->next_in_room) {
-                if (cc->desc) {
-                    send_to_char(cc, "%s\r\n", theRoom->msg_transit);
-                }
-            }
-        }
+      world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] = NULL;
     }
 
-    return 1;
+    if (theRoom->from[cibIdx] != ENDMOVING)
+    {
+      log("SPEC(move_room): theRoom->from[cibIdx] != ENDMOVING");
+      return 0;
+    }
+
+    /* log("SPEC(move): all is Ok to link the new room..."); */
+
+#ifdef DEBUGMEM
+    CREATE(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir],
+           struct room_direction_data, 1, M9);
+#else
+    CREATE(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir],
+           struct room_direction_data, 1);
+#endif
+    world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->general_description = NULL;
+    world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->keyword = NULL;
+    world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->exit_info = 0;
+    world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->key = -1;
+    world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->to_room =
+        real_room(theRoom->destination);
+
+    /*  play 'docking' message  */
+    if (theRoom->msg_docking)
+    {
+      struct char_data *cc;
+
+      for (cc = world[real_room(ONMdata->moveRoom)].people; cc; cc = cc->next_in_room)
+      {
+        if (cc->desc)
+        {
+          send_to_char(cc, "%s\r\n", theRoom->msg_docking);
+        }
+      }
+    }
+
+#ifdef DEBUGMEM
+    CREATE(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir],
+           struct room_direction_data, 1, L9);
+#else
+    CREATE(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir],
+           struct room_direction_data, 1);
+#endif
+    world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->general_description =
+        NULL;
+    world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->keyword = NULL;
+    world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->exit_info = 0;
+    world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->key = -1;
+    world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->to_room =
+        real_room(ONMdata->nextRoom);
+
+    /*  play 'dest_docking' message  */
+    if (theRoom->msg_dest_docking)
+    {
+      struct char_data *cc;
+
+      for (cc = world[real_room(ONMdata->nextRoom)].people; cc; cc = cc->next_in_room)
+      {
+        if (cc->desc)
+        {
+          send_to_char(cc, "%s\r\n", theRoom->msg_dest_docking);
+        }
+      }
+    }
+
+    /* log("SPEC(move): all complete: linked the new room"); */
+    sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %d and linked %d  TO  %d",
+            (int)ONMdata->moveRoom, ONMdata->oldRoom, ONMdata->nextRoom, theRoom->destination);
+    /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
+  }
+  else
+  {
+    /*  play 'transit' message  */
+    if (theRoom->msg_transit)
+    {
+      struct char_data *cc;
+
+      for (cc = world[real_room(ONMdata->moveRoom)].people; cc; cc = cc->next_in_room)
+      {
+        if (cc->desc)
+        {
+          send_to_char(cc, "%s\r\n", theRoom->msg_transit);
+        }
+      }
+    }
+  }
+
+  return 1;
 }
 
-int prepMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int *cibIdx, int *nextIdx) {
-    int fromRoomCnt = 0;
+int prepMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int *cibIdx,
+                   int *nextIdx)
+{
+  int fromRoomCnt = 0;
 
-    /*  get count of rooms in array  */
-    for (fromRoomCnt = 0; theRoom->from[fromRoomCnt] != ENDMOVING; fromRoomCnt++) {
-        ;
+  /*  get count of rooms in array  */
+  for (fromRoomCnt = 0; theRoom->from[fromRoomCnt] != ENDMOVING; fromRoomCnt++)
+  {
+    ;
+  }
+
+  if (fromRoomCnt <= 1)
+  {
+    log("SPECIAL(moving_rooms): 1 or smaller length room array");
+    return 0;
+  }
+
+  if ((theRoom->currentInbound < 0) || (theRoom->currentInbound >= fromRoomCnt))
+  {
+    *cibIdx = fromRoomCnt;
+  }
+  else
+  {
+    *cibIdx = theRoom->currentInbound;
+  }
+
+  ONMdata->oldRoom = theRoom->from[*cibIdx];
+  ONMdata->oldDir = theRoom->fromDir[*cibIdx];
+  ONMdata->moveRoom = theRoom->destination;
+
+  if (theRoom->randomMove)
+  {
+    /*  randomly select  */
+    *nextIdx = dice(1, fromRoomCnt) - 1;
+  }
+  else
+  {
+    /*  next in line  */
+    *nextIdx = *cibIdx + 1;
+
+    if ((*nextIdx <= 0) || (*nextIdx >= fromRoomCnt) || (theRoom->from[*nextIdx] == ENDMOVING))
+    {
+      /*  start over  */
+      *nextIdx = 0;
     }
+  }
 
-    if (fromRoomCnt <= 1) {
-        log("SPECIAL(moving_rooms): 1 or smaller length room array");
-        return 0;
-    }
+  ONMdata->nextRoom = theRoom->from[*nextIdx];
+  ONMdata->nextDir = theRoom->fromDir[*nextIdx];
 
-    if ((theRoom->currentInbound < 0) || (theRoom->currentInbound >= fromRoomCnt)) {
-        *cibIdx = fromRoomCnt;
-    } else {
-        *cibIdx = theRoom->currentInbound;
-    }
-
-    ONMdata->oldRoom = theRoom->from[*cibIdx];
-    ONMdata->oldDir = theRoom->fromDir[*cibIdx];
-    ONMdata->moveRoom = theRoom->destination;
-
-    if (theRoom->randomMove) {
-        /*  randomly select  */
-        *nextIdx = dice(1, fromRoomCnt) - 1;
-    } else {
-        /*  next in line  */
-        *nextIdx = *cibIdx + 1;
-
-        if ((*nextIdx <= 0) || (*nextIdx >= fromRoomCnt) || (theRoom->from[*nextIdx] == ENDMOVING)) {
-            /*  start over  */
-            *nextIdx = 0;
-        }
-    }
-
-    ONMdata->nextRoom = theRoom->from[*nextIdx];
-    ONMdata->nextDir = theRoom->fromDir[*nextIdx];
-
-    /*
+  /*
       sprintf(errStr, "SPECIAL(moving_rooms): [%d] old: %d (%d) next: %d (%d)",
       (int)moveRoom, oldRoom, oldDir, nextRoom, nextDir);
       log(errStr);
       */
 
-    /*  PDH  5/1/98 - OLD
+  /*  PDH  5/1/98 - OLD
      *  if ( (ONMdata->nextRoom == NOWHERE) || (ONMdata->nextDir == -1) ) {
      *
      *  now, the next room info CAN be to nowhere
      *  (ie. disconnect the room)
      */
-    if ((ONMdata->nextRoom == ENDMOVING) || ((ONMdata->nextRoom != NOWHERE) && (ONMdata->nextDir == -1))) {
-        /*  it's a bust  */
-        log("SPEC(move): nextRoom or nextDir was bogus!");
-        return 0;
-    }
+  if ((ONMdata->nextRoom == ENDMOVING) ||
+      ((ONMdata->nextRoom != NOWHERE) && (ONMdata->nextDir == -1)))
+  {
+    /*  it's a bust  */
+    log("SPEC(move): nextRoom or nextDir was bogus!");
+    return 0;
+  }
 
-    return fromRoomCnt;
+  return fromRoomCnt;
 }
 
-SPECIAL(moving_rooms) {
-    int fromRoomCnt = 0;
-    struct oldNextMove ONM;
-    int cibIdx = -1, nextIdx = -1;
+SPECIAL(moving_rooms)
+{
+  int fromRoomCnt = 0;
+  struct oldNextMove ONM;
+  int cibIdx = -1, nextIdx = -1;
 
-    struct moving_room_data *theRoom;
+  struct moving_room_data *theRoom;
 
-    ONM.nextDir = -1;
-    ONM.oldDir = -1;
-    ONM.nextRoom = NOWHERE;
-    ONM.oldRoom = NOWHERE;
-    ONM.moveRoom = NOWHERE;
+  ONM.nextDir = -1;
+  ONM.oldDir = -1;
+  ONM.nextRoom = NOWHERE;
+  ONM.oldRoom = NOWHERE;
+  ONM.moveRoom = NOWHERE;
 
-    if ((ch == NULL) && (me != NULL) && (cmd == 0) && (argument == NULL)) {
-        /* log("SPECIAL(moving_rooms)"); */
-    } else {
-        return 0;
-    }
+  if ((ch == NULL) && (me != NULL) && (cmd == 0) && (argument == NULL))
+  {
+    /* log("SPECIAL(moving_rooms)"); */
+  }
+  else
+  {
+    return 0;
+  }
 
-    /*  PDH 11/17/97  ugly cast... but needed  */
-    theRoom = (struct moving_room_data *)me;
+  /*  PDH 11/17/97  ugly cast... but needed  */
+  theRoom = (struct moving_room_data *)me;
 
-    if ((fromRoomCnt = prepMovingRoom(theRoom, &ONM, &cibIdx, &nextIdx)) < 1) {
-        return 0;
-    }
+  if ((fromRoomCnt = prepMovingRoom(theRoom, &ONM, &cibIdx, &nextIdx)) < 1)
+  {
+    return 0;
+  }
 
-    /*  everything is set now, so make the changes  */
+  /*  everything is set now, so make the changes  */
 
-    if (!unlinkMovingRoom(theRoom, &ONM, cibIdx)) {
-        return 0;
-    }
+  if (!unlinkMovingRoom(theRoom, &ONM, cibIdx))
+  {
+    return 0;
+  }
 
-    cibIdx = fromRoomCnt; /* NOWHERE */
-    theRoom->currentInbound = cibIdx;
+  cibIdx = fromRoomCnt; /* NOWHERE */
+  theRoom->currentInbound = cibIdx;
 
-    if (!linkMovingRoom(theRoom, &ONM, cibIdx)) {
-        return 0;
-    }
+  if (!linkMovingRoom(theRoom, &ONM, cibIdx))
+  {
+    return 0;
+  }
 
-    /*  set state of struct moving_room_data  */
-    cibIdx = nextIdx;
-    theRoom->currentInbound = cibIdx;
+  /*  set state of struct moving_room_data  */
+  cibIdx = nextIdx;
+  theRoom->currentInbound = cibIdx;
 
-    return 1;
+  return 1;
 }
 
 SPECIAL(mayor)
 {
   char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
-  static const char open_path[] =
-      "W3a3003b33000c111d0d111Oe333333Oe22c222112212111a1S.";
-  static const char close_path[] =
-      "W3a3003b33000c111d0d111CE333333CE22c222112212111a1S.";
+  static const char open_path[] = "W3a3003b33000c111d0d111Oe333333Oe22c222112212111a1S.";
+  static const char close_path[] = "W3a3003b33000c111d0d111CE333333CE22c222112212111a1S.";
 
   static const char *path = NULL;
   static int path_index;
@@ -3833,13 +3958,13 @@ SPECIAL(mayor)
     break;
 
   case 'b':
-    act("$n says 'What a view!  I must get something done about that dump!'",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("$n says 'What a view!  I must get something done about that dump!'", FALSE, ch, 0, 0,
+        TO_ROOM);
     break;
 
   case 'c':
-    act("$n says 'Vandals!  Youngsters nowadays have no respect for anything!'",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("$n says 'Vandals!  Youngsters nowadays have no respect for anything!'", FALSE, ch, 0, 0,
+        TO_ROOM);
     break;
 
   case 'd':
@@ -3914,8 +4039,8 @@ SPECIAL(hound)
           return (TRUE);
         }
       } // end peeps cycle
-    }   // can_go
-  }     // end room cycle
+    } // can_go
+  } // end room cycle
 
   return (FALSE);
 }
@@ -4154,8 +4279,8 @@ SPECIAL(dracolich_mob)
   /* this is the offensive arsenal */
   if (FIGHTING(ch) && rand_number(0, 1))
   {
-
-    if (!rand_number(0, 3) && call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE))
+    if (!rand_number(0, 3) &&
+        call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE))
     {
       /* looks like the breathe weapon worked */
       return 1;
@@ -4174,9 +4299,12 @@ SPECIAL(dracolich_mob)
     {
       int i = 0;
 
-      act("\tWWith power and determination you unleash an aggressive flurry of attacks!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
-      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
-      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+      act("\tWWith power and determination you unleash an aggressive flurry of attacks!\tn", TRUE,
+          ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn",
+          FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn",
+          TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
 
       /* spam some attacks */
       for (i = 0; i <= rand_number(2, 4); i++)
@@ -4194,8 +4322,9 @@ SPECIAL(dracolich_mob)
     if (!(vict = npc_find_target(ch, &use_aoe)))
       return 0;
 
-    act("\tWWith a grin, you whisper, 'die' while touching $N, who keels over and falls over in excruciating pain!\tn", TRUE, ch, 0, vict,
-        TO_CHAR);
+    act("\tWWith a grin, you whisper, 'die' while touching $N, who keels over and falls over in "
+        "excruciating pain!\tn",
+        TRUE, ch, 0, vict, TO_CHAR);
 
     act("\tL$n cackles with glee at the fray, enjoying every second of the battle\r\n"
         "\tL $s sets her gaze upon you with the most wicked grin you have ever known.",
@@ -4203,13 +4332,15 @@ SPECIAL(dracolich_mob)
     act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
         "\tWAs you flail in pain, you see a stream of your own life force flowing away from you..",
         FALSE, ch, 0, vict, TO_VICT);
-    act("\tLAs the life drains from your body, you see $n's wicked grin staring into your soul..\tn",
+    act("\tLAs the life drains from your body, you see $n's wicked grin staring into your "
+        "soul..\tn",
         FALSE, ch, 0, vict, TO_VICT);
 
     act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
         "$n \tLreaches out with a skeletal claw and touches \tn$N\tL!\tn",
         TRUE, ch, 0, vict, TO_NOTVICT);
-    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you "
+        "cringe!!\tn\r\n"
         "$n\tL literally sucks the life force from $N,\tn\r\n"
         "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
         TRUE, ch, 0, vict, TO_NOTVICT);
@@ -4217,13 +4348,15 @@ SPECIAL(dracolich_mob)
     /* added a way to reduce the effectiveness of this attack -zusuk */
     if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
     {
-      hitpoints = damage(ch, vict, rand_number(100, MAX(100, GET_LEVEL(ch) * 20)), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+      hitpoints = damage(ch, vict, rand_number(100, MAX(100, GET_LEVEL(ch) * 20)), -1, DAM_UNHOLY,
+                         FALSE); // type -1 = no dam message
     }
     else
     {
       if (GET_HIT(vict) <= 20)
-      {                                                                                            /* try to finish the victim */
-        hitpoints = damage(ch, vict, rand_number(100, MAX(100, GET_LEVEL(ch) * 20)), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+      { /* try to finish the victim */
+        hitpoints = damage(ch, vict, rand_number(100, MAX(100, GET_LEVEL(ch) * 20)), -1, DAM_UNHOLY,
+                           FALSE); // type -1 = no dam message
       }
       else
       {
@@ -4270,20 +4403,20 @@ SPECIAL(vampire_mob)
     if (vict) /* flavor messages */
     {
       if (rand_number(0, 1))
-        act("\tr$n turns into gaseous form to escape the fray then turns back into vampire form!\tn",
+        act("\tr$n turns into gaseous form to escape the fray then turns back into vampire "
+            "form!\tn",
             FALSE, ch, 0, 0, TO_ROOM);
       else
         act("\tr$n turns into a bat to escape the fray then turns back into vampire form!\tn",
             FALSE, ch, 0, 0, TO_ROOM);
     }
 
-    act("\trThe wounds on $n's body begin to close as $e is regenerated!\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("\trThe wounds on $n's body begin to close as $e is regenerated!\tn", FALSE, ch, 0, 0,
+        TO_ROOM);
 
     if (vict) /* flavor messages */
     {
-      act("\tr$n returns to the fray!\tn",
-          FALSE, ch, 0, 0, TO_ROOM);
+      act("\tr$n returns to the fray!\tn", FALSE, ch, 0, 0, TO_ROOM);
     }
 
     /* removed the call to return here to make sure we can process an offensive proc */
@@ -4293,11 +4426,9 @@ SPECIAL(vampire_mob)
   /* this is the vampire's regular form offensive arsenal */
   if (vict)
   {
-
     /* make sure we have our followers! */
     if (!PROC_FIRED(ch))
     {
-
       /* set up a group if we don't have one */
       if (!GROUP(ch))
       {
@@ -4305,21 +4436,28 @@ SPECIAL(vampire_mob)
       }
 
       /* get our children of the night first! */
-      act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n reaches out into the wilds to pull forth children of the night.", FALSE, ch, 0, 0, TO_ROOM);
+      act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0,
+          TO_CHAR);
+      act("$n reaches out into the wilds to pull forth children of the night.", FALSE, ch, 0, 0,
+          TO_ROOM);
       call_magic(ch, ch, 0, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, 0, GET_LEVEL(ch), CAST_INNATE);
 
       /* now create our vampire spawn */
-      act("You turn to a nearby minion, grab him by the neck, and with a smile snap his neck.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n turns to a nearby minion, grabs him by the neck, and with a smile snaps his neck.  The fresh corpse conveniently lays before $n.", FALSE, ch, 0, 0, TO_ROOM);
+      act("You turn to a nearby minion, grab him by the neck, and with a smile snap his neck.",
+          FALSE, ch, 0, 0, TO_CHAR);
+      act("$n turns to a nearby minion, grabs him by the neck, and with a smile snaps his neck.  "
+          "The fresh corpse conveniently lays before $n.",
+          FALSE, ch, 0, 0, TO_ROOM);
 
       /* this creates a generic corpse */
       corpse = make_a_corpse_4_npcs(ch);
       if (corpse)
       {
         /* messaging and actual call fo spell if we got a corpse */
-        act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_CHAR);
-        act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_ROOM);
+        act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn",
+            FALSE, ch, corpse, 0, TO_CHAR);
+        act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE,
+            ch, corpse, 0, TO_ROOM);
         call_magic(ch, ch, corpse, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
       }
 
@@ -4376,7 +4514,8 @@ SPECIAL(fzoul)
 
   if (cmd && CMD_IS("kneel"))
   {
-    send_to_char(ch, "\tLFzoul tells you, '\tgSee how easy it is to kneel before the beauty of our god.\tL'\tn\r\n");
+    send_to_char(ch, "\tLFzoul tells you, '\tgSee how easy it is to kneel before the beauty of our "
+                     "god.\tL'\tn\r\n");
     return TRUE;
   }
   return FALSE;
@@ -4400,14 +4539,16 @@ SPECIAL(cityguard)
       continue;
     if (!IS_NPC(tch) && PLR_FLAGGED(tch, PLR_KILLER))
     {
-      act("$n screams 'HEY!!!  You're one of those PLAYER KILLERS!!!!!!'", FALSE, ch, 0, 0, TO_ROOM);
+      act("$n screams 'HEY!!!  You're one of those PLAYER KILLERS!!!!!!'", FALSE, ch, 0, 0,
+          TO_ROOM);
       hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       return (TRUE);
     }
 
     if (!IS_NPC(tch) && PLR_FLAGGED(tch, PLR_THIEF))
     {
-      act("$n screams 'HEY!!!  You're one of those PLAYER THIEVES!!!!!!'", FALSE, ch, 0, 0, TO_ROOM);
+      act("$n screams 'HEY!!!  You're one of those PLAYER THIEVES!!!!!!'", FALSE, ch, 0, 0,
+          TO_ROOM);
       hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       return (TRUE);
     }
@@ -4466,18 +4607,17 @@ SPECIAL(clan_cleric)
     short int number;
     char name[25];
     short int price;
-  } clan_prices[] = {
-      /* Spell Num (defined)      Name shown        Price  */
-      {SPELL_SHIELD_OF_FAITH, "shield of faith  ", 75},
-      {SPELL_BLESS, "bless            ", 150},
-      {SPELL_REMOVE_POISON, "remove poison    ", 525},
-      {SPELL_CURE_BLIND, "cure blindness   ", 375},
-      {SPELL_CURE_CRITIC, "critic           ", 525},
-      {SPELL_SANCTUARY, "sanctuary       ", 3000},
-      {SPELL_HEAL, "heal            ", 3500},
+  } clan_prices[] = {/* Spell Num (defined)      Name shown        Price  */
+                     {SPELL_SHIELD_OF_FAITH, "shield of faith  ", 75},
+                     {SPELL_BLESS, "bless            ", 150},
+                     {SPELL_REMOVE_POISON, "remove poison    ", 525},
+                     {SPELL_CURE_BLIND, "cure blindness   ", 375},
+                     {SPELL_CURE_CRITIC, "critic           ", 525},
+                     {SPELL_SANCTUARY, "sanctuary       ", 3000},
+                     {SPELL_HEAL, "heal            ", 3500},
 
-      /* The next line must be last, add new spells above. */
-      {-1, "\r\n", -1}};
+                     /* The next line must be last, add new spells above. */
+                     {-1, "\r\n", -1}};
 
   if (CMD_IS("buy") || CMD_IS("list"))
   {
@@ -4487,7 +4627,8 @@ SPECIAL(clan_cleric)
     clanhall = zone_table[(GET_ROOM_ZONE(IN_ROOM(this_mob)))].number;
     if ((clan = zone_is_clanhall(clanhall)) == NO_CLAN)
     {
-      log("SYSERR: clan_cleric spec (%s) not in a known clanhall (room %d)", GET_NAME(this_mob), world[(IN_ROOM(this_mob))].number);
+      log("SYSERR: clan_cleric spec (%s) not in a known clanhall (room %d)", GET_NAME(this_mob),
+          world[(IN_ROOM(this_mob))].number);
       return FALSE;
     }
     if (clan != GET_CLAN(ch))
@@ -4511,17 +4652,14 @@ SPECIAL(clan_cleric)
         {
           if (GET_GOLD(ch) < clan_prices[i].price)
           {
-            act("$n tells you, 'You don't have enough gold for that spell!'",
-                FALSE, this_mob, 0, ch, TO_VICT);
+            act("$n tells you, 'You don't have enough gold for that spell!'", FALSE, this_mob, 0,
+                ch, TO_VICT);
             return TRUE;
           }
           else
           {
-
-            act("$N gives $n some money.",
-                FALSE, this_mob, 0, ch, TO_NOTVICT);
-            send_to_char(ch, "You give %s %d coins.\r\n",
-                         GET_NAME(this_mob), clan_prices[i].price);
+            act("$N gives $n some money.", FALSE, this_mob, 0, ch, TO_NOTVICT);
+            send_to_char(ch, "You give %s %d coins.\r\n", GET_NAME(this_mob), clan_prices[i].price);
             decrease_gold(ch, clan_prices[i].price);
             /* Uncomment the next line to make the mob get RICH! */
             /* increase_gold(this_mob, clan_prices[i].price); */
@@ -4533,15 +4671,14 @@ SPECIAL(clan_cleric)
       }
       act("$n tells you, 'I do not know of that spell!"
           "  Type 'buy' for a list.'",
-          FALSE, this_mob,
-          0, ch, TO_VICT);
+          FALSE, this_mob, 0, ch, TO_VICT);
 
       return TRUE;
     }
     else
     {
-      act("$n tells you, 'Here is a listing of the prices for my services.'",
-          FALSE, this_mob, 0, ch, TO_VICT);
+      act("$n tells you, 'Here is a listing of the prices for my services.'", FALSE, this_mob, 0,
+          ch, TO_VICT);
       for (i = 0; clan_prices[i].number > SPELL_RESERVED_DBC; i++)
       {
         send_to_char(ch, "%s%d\r\n", clan_prices[i].name, clan_prices[i].price);
@@ -4570,7 +4707,8 @@ SPECIAL(clan_guard)
   clanhall = zone_table[(GET_ROOM_ZONE(IN_ROOM(guard)))].number;
   if ((clan = zone_is_clanhall(clanhall)) == NO_CLAN)
   {
-    log("SYSERR: clan_guard spec (%s) not in a known clanhall (room %d)", GET_NAME(guard), world[(IN_ROOM(guard))].number);
+    log("SYSERR: clan_guard spec (%s) not in a known clanhall (room %d)", GET_NAME(guard),
+        world[(IN_ROOM(guard))].number);
     return FALSE;
   }
 
@@ -4656,12 +4794,11 @@ SPECIAL(shar_statue)
   if (!rand_number(0, 8) || !PROC_FIRED(ch))
   {
     PROC_FIRED(ch) = TRUE;
-    send_to_room(ch->in_room,
-                 "\tLThe statue raises her ebon arms, screaming out to\r\n"
-                 "her deity in a booming voice, '\tn\tmLady of loss,\r\n"
-                 "mistress of the night, smite those who befoul your\r\n"
-                 "house.  Send forth your faithful to quench the light\r\n"
-                 "of their moon!\tL'\tn\r\n");
+    send_to_room(ch->in_room, "\tLThe statue raises her ebon arms, screaming out to\r\n"
+                              "her deity in a booming voice, '\tn\tmLady of loss,\r\n"
+                              "mistress of the night, smite those who befoul your\r\n"
+                              "house.  Send forth your faithful to quench the light\r\n"
+                              "of their moon!\tL'\tn\r\n");
 
     if (dice(1, 100) < 50)
       mob = read_mobile(106241, VIRTUAL);
@@ -4716,7 +4853,8 @@ SPECIAL(dog)
       break;
     }
 
-    if (GET_LEVEL(pet) < 2 && ch->followers == 0 && ch->master == 0 && pet->master == 0 && !circle_follow(pet, ch))
+    if (GET_LEVEL(pet) < 2 && ch->followers == 0 && ch->master == 0 && pet->master == 0 &&
+        !circle_follow(pet, ch))
     {
       add_follower(pet, ch);
       af.spell = SPELL_CHARM;
@@ -4795,8 +4933,10 @@ SPECIAL(bandit_guard)
 /* from homeland */
 SPECIAL(secomber_guard)
 {
-  const char *buf = "\tLThe doorguard steps before you, blocking your way with an upraised hand.\tn\r\n";
-  const char *buf2 = "\tLThe doorguard blocks \tn$n\tL's way, placing one meaty hand on $s chest.\tn";
+  const char *buf =
+      "\tLThe doorguard steps before you, blocking your way with an upraised hand.\tn\r\n";
+  const char *buf2 =
+      "\tLThe doorguard blocks \tn$n\tL's way, placing one meaty hand on $s chest.\tn";
 
   if (!IS_MOVE(cmd))
     return FALSE;
@@ -5180,8 +5320,7 @@ SPECIAL(phantom)
   if (rand_number(0, 4))
     return FALSE;
 
-  act("$n \tLlets out a \trfrightening\tL wail\tn",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n \tLlets out a \trfrightening\tL wail\tn", FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict)
   {
@@ -5248,8 +5387,7 @@ int perform_lichdrain(struct char_data *ch)
       "\tLand $e simply leeches $S \tWlifeforce\tL out of $M.\r\n",
       TRUE, ch, 0, vict, TO_NOTVICT);
 
-  act("\tWYou reach out and suck the life force away from $N!", TRUE, ch, 0,
-      vict, TO_CHAR);
+  act("\tWYou reach out and suck the life force away from $N!", TRUE, ch, 0, vict, TO_CHAR);
   dam = GET_HIT(vict) + 5;
   if (GET_HIT(ch) + dam < GET_MAX_HIT(ch))
     GET_HIT(ch) += dam;
@@ -5278,12 +5416,14 @@ SPECIAL(lich_mob)
   /* this is the offensive arsenal */
   if (vict && rand_number(0, 1))
   {
-
     if (!rand_number(0, 5))
     {
-      act("\tWWith power and determination you unleash an aggressive BURST of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
-      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
-      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+      act("\tWWith power and determination you unleash an aggressive BURST of magic!\tn", TRUE, ch,
+          0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", FALSE,
+          ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", TRUE,
+          ch, 0, FIGHTING(ch), TO_NOTVICT);
 
       /* looks like the swarm worked */
       if (call_magic(ch, vict, 0, SPELL_METEOR_SWARM, 0, GET_LEVEL(ch), CAST_INNATE))
@@ -5295,8 +5435,7 @@ SPECIAL(lich_mob)
       /* looks like we did the lichtouch! */
       return 1;
     }
-    else if (!rand_number(0, 2) && (IS_UNDEAD(ch) || IS_LICH(ch)) &&
-             perform_lichtouch(ch, ch))
+    else if (!rand_number(0, 2) && (IS_UNDEAD(ch) || IS_LICH(ch)) && perform_lichtouch(ch, ch))
     {
       /* looks like we did the self healing lichtouch */
       return 1;
@@ -5305,9 +5444,12 @@ SPECIAL(lich_mob)
     {
       int i = 0;
 
-      act("\tWWith power and determination you unleash an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
-      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
-      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+      act("\tWWith power and determination you unleash an aggressive flurry of magic!\tn", TRUE, ch,
+          0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", FALSE,
+          ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", TRUE,
+          ch, 0, FIGHTING(ch), TO_NOTVICT);
 
       /* spam some nukes! */
       for (i = 0; i <= rand_number(1, 3); i++)
@@ -5350,16 +5492,19 @@ SPECIAL(harpell)
   if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF))
   {
     if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master)
-      snprintf(buf, sizeof(buf), "%s shouts, 'HELP! %s has ordered his pets to kill "
-                                 "me!!'\r\n",
-               ch->player.short_descr,
-               GET_NAME(FIGHTING(ch)->master));
+      snprintf(buf, sizeof(buf),
+               "%s shouts, 'HELP! %s has ordered his pets to kill "
+               "me!!'\r\n",
+               ch->player.short_descr, GET_NAME(FIGHTING(ch)->master));
     else
       snprintf(buf, sizeof(buf), "%s shouts, 'HELP! %s is trying to kill me!\r\n",
                ch->player.short_descr, GET_NAME(FIGHTING(ch)));
     for (i = character_list; i; i = i->next)
     {
-      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 106831 || GET_MOB_VNUM(i) == 106841 || GET_MOB_VNUM(i) == 106842 || GET_MOB_VNUM(i) == 106844 || GET_MOB_VNUM(i) == 106845 || GET_MOB_VNUM(i) == 106846) && ch != i && !rand_number(0, 2))
+      if (!FIGHTING(i) && IS_NPC(i) &&
+          (GET_MOB_VNUM(i) == 106831 || GET_MOB_VNUM(i) == 106841 || GET_MOB_VNUM(i) == 106842 ||
+           GET_MOB_VNUM(i) == 106844 || GET_MOB_VNUM(i) == 106845 || GET_MOB_VNUM(i) == 106846) &&
+          ch != i && !rand_number(0, 2))
       {
         if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master &&
             (FIGHTING(ch)->master->in_room != FIGHTING(ch)->in_room))
@@ -5367,8 +5512,7 @@ SPECIAL(harpell)
           if (FIGHTING(ch)->master->in_room != i->in_room)
             cast_spell(i, FIGHTING(ch)->master, NULL, SPELL_TELEPORT, 0);
           else
-            hit(i, FIGHTING(ch)->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0,
-                FALSE);
+            hit(i, FIGHTING(ch)->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
         else
         {
@@ -5399,8 +5543,7 @@ SPECIAL(bonedancer)
     return FALSE;
   if (GET_POS(ch) == POS_DEAD || !ch->master)
   {
-    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0,
-        TO_ROOM);
+    act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
     return TRUE;
   }
@@ -5424,7 +5567,6 @@ SPECIAL(bonedancer)
 /* from homeland */
 SPECIAL(wallach)
 {
-
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
 
@@ -5593,9 +5735,8 @@ SPECIAL(naga_golem)
 
   if (FIGHTING(ch))
   {
-    zone_yell(ch,
-              "\r\n\tLThe golem rings an alarm bell, which echoes through "
-              "the pit.\tn\r\n");
+    zone_yell(ch, "\r\n\tLThe golem rings an alarm bell, which echoes through "
+                  "the pit.\tn\r\n");
     return TRUE;
   }
 
@@ -5661,7 +5802,6 @@ SPECIAL(naga)
 /* from homeland */
 SPECIAL(ethereal_pet)
 {
-
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
   if (FIGHTING(ch))
@@ -5749,7 +5889,8 @@ SPECIAL(gromph)
         {
           send_to_zone(
               "\tLSuddenly the base of the gigantic rockpillar known as \trNar\tRbon\trdel\tL\r\n"
-              "\tLlights up with intense \trheat\tL, as Gromph Baenre uses his magic to relit it to\r\n"
+              "\tLlights up with intense \trheat\tL, as Gromph Baenre uses his magic to relit it "
+              "to\r\n"
               "\tLmark the start of a new day in the city.\tn\r\n",
               ch->in_room);
           gr_stalled = FALSE;
@@ -6063,7 +6204,6 @@ SPECIAL(wizard_library)
 
   if (CMD_IS("research"))
   {
-
     if (!CLASS_LEVEL(ch, CLASS_WIZARD))
     {
       send_to_char(ch, "You are not a wizard!\r\n");
@@ -6088,10 +6228,10 @@ SPECIAL(wizard_library)
 
     spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
     spell_circle = (spell_level + 1) / 2;
-    class_level = CLASS_LEVEL(ch, CLASS_WIZARD) +
-                  BONUS_CASTER_LEVEL(ch, CLASS_WIZARD);
+    class_level = CLASS_LEVEL(ch, CLASS_WIZARD) + BONUS_CASTER_LEVEL(ch, CLASS_WIZARD);
 
-    if (spell_level <= 0 || spell_level >= LVL_IMMORT || spell_circle <= 0 || spell_circle > TOP_CIRCLE)
+    if (spell_level <= 0 || spell_level >= LVL_IMMORT || spell_circle <= 0 ||
+        spell_circle > TOP_CIRCLE)
     {
       send_to_char(ch, "That spell is not available to wizards.\r\n");
       return TRUE;
@@ -6106,8 +6246,9 @@ SPECIAL(wizard_library)
 
     if (GET_GOLD(ch) < cost)
     {
-      send_to_char(ch, "You do not have enough coins to research this spell, you "
-                       "need %d coins.\r\n",
+      send_to_char(ch,
+                   "You do not have enough coins to research this spell, you "
+                   "need %d coins.\r\n",
                    cost);
       return TRUE;
     }
@@ -6159,7 +6300,8 @@ SPECIAL(wizard_library)
     }
     else
     {
-      send_to_char(ch, "You are not powerful enough to scribe that spell! (or this spell is from a restricted school)\r\n");
+      send_to_char(ch, "You are not powerful enough to scribe that spell! (or this spell is from a "
+                       "restricted school)\r\n");
       return TRUE;
     }
 
@@ -6198,8 +6340,9 @@ SPECIAL(wizard_library)
     GET_GOLD(ch) -= cost;
     obj->sbinfo[i].spellname = spellnum;
     obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
-    send_to_char(ch, "Your research is successful and you scribe the spell '%s' "
-                     "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
+    send_to_char(ch,
+                 "Your research is successful and you scribe the spell '%s' "
+                 "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
                  spell_info[spellnum].name, obj->sbinfo[i].pages, cost);
 
     USE_FULL_ROUND_ACTION(ch);
@@ -6271,7 +6414,6 @@ SPECIAL(pet_shops)
   }
   else if (CMD_IS("buy"))
   {
-
     two_arguments(argument, buf, sizeof(buf), pet_name, sizeof(pet_name));
 
     /* disqualifiers */
@@ -6300,30 +6442,39 @@ SPECIAL(pet_shops)
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
     if (GET_LEVEL(pet) <= 10)
     {
-      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_1_10_HP / 100;
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) =
+          GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_1_10_HP / 100;
       GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_1_10_AC / 100;
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-      pet->mob_specials.damnodice = pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-      pet->mob_specials.damsizedice = pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      pet->mob_specials.damnodice =
+          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      pet->mob_specials.damsizedice =
+          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
     }
     else if (GET_LEVEL(pet) <= 20)
     {
-      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_11_20_HP / 100;
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) =
+          GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_11_20_HP / 100;
       GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_11_20_AC / 100;
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-      pet->mob_specials.damnodice = pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-      pet->mob_specials.damsizedice = pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      pet->mob_specials.damnodice =
+          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      pet->mob_specials.damsizedice =
+          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
     }
     else
     {
-      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_21_30_HP / 100;
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) =
+          GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_21_30_HP / 100;
       GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_21_30_AC / 100;
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-      pet->mob_specials.damnodice = pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-      pet->mob_specials.damsizedice = pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      pet->mob_specials.damnodice =
+          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      pet->mob_specials.damsizedice =
+          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
     }
     GET_HIT(pet) = GET_MAX_HIT(pet);
 
@@ -6333,7 +6484,8 @@ SPECIAL(pet_shops)
       /* free(pet->player.name); don't free the prototype! */
       pet->player.name = strdup(buf);
 
-      snprintf(buf, sizeof(buf), "%sA small sign on a chain around the neck says 'My name is %s'\r\n",
+      snprintf(buf, sizeof(buf),
+               "%sA small sign on a chain around the neck says 'My name is %s'\r\n",
                pet->player.description, pet_name);
       /* free(pet->player.description); don't free the prototype! */
       pet->player.description = strdup(buf);
@@ -6378,7 +6530,6 @@ SPECIAL(pet_shops)
 /* this function will check the basic parameters for whether an item is ready to proc in combat */
 bool obj_proc_ready(struct char_data *ch, struct obj_data *obj, int cmd)
 {
-
   /* do we have this item equipped? */
   if (!is_wearing(ch, GET_OBJ_VNUM(obj)))
     return FALSE;
@@ -6398,8 +6549,7 @@ bool obj_proc_ready(struct char_data *ch, struct obj_data *obj, int cmd)
 /* NOT to be confused with the weapon-spells code used in OLC, etc */
 /*  This was ported to accomodate the HL objects that were imported */
 void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
-                    struct char_data *ch, struct char_data *vict,
-                    struct obj_data *obj, int spl)
+                    struct char_data *ch, struct char_data *vict, struct obj_data *obj, int spl)
 {
   int level;
 
@@ -6602,11 +6752,13 @@ SPECIAL(monk_glove)
   if (cmd || !vict || rand_number(0, 15))
     return FALSE;
 
-  weapons_spells(
-      "\twYour $p\tw \tWsparks\tw as you hit $N causing $M to shudder violently from the \tYshock\tw!\tn",
-      "$n\tw's $p\tw \tWsparks\tw as $e hits you causing you to shudder violently from the \tYshock\tw!\tn",
-      "$n\tw's $p\tw \tWsparks\tw as $e hits $N causing $M to shudder violently from the \tYshock\tw!\tn",
-      ch, vict, (struct obj_data *)me, 0);
+  weapons_spells("\twYour $p\tw \tWsparks\tw as you hit $N causing $M to shudder violently from "
+                 "the \tYshock\tw!\tn",
+                 "$n\tw's $p\tw \tWsparks\tw as $e hits you causing you to shudder violently from "
+                 "the \tYshock\tw!\tn",
+                 "$n\tw's $p\tw \tWsparks\tw as $e hits $N causing $M to shudder violently from "
+                 "the \tYshock\tw!\tn",
+                 ch, vict, (struct obj_data *)me, 0);
   damage(ch, vict, dice(2, 8), -1, DAM_ELECTRIC, FALSE);
 
   return TRUE;
@@ -6628,11 +6780,13 @@ SPECIAL(monk_glove_cold)
   if (cmd || !vict || rand_number(0, 15))
     return FALSE;
 
-  weapons_spells(
-      "\twYour $p\tw \tWfrosts\tw as you hit $N causing $M to shudder violently from the \tBcold\tw!\tn",
-      "$n\tw's $p\tw \tWfrosts\tw as $e hits you causing you to shudder violently from the \tBcold\tw!\tn",
-      "$n\tw's $p\tw \tWfrosts\tw as $e hits $N causing $M to shudder violently from the \tBcold\tw!\tn",
-      ch, vict, (struct obj_data *)me, 0);
+  weapons_spells("\twYour $p\tw \tWfrosts\tw as you hit $N causing $M to shudder violently from "
+                 "the \tBcold\tw!\tn",
+                 "$n\tw's $p\tw \tWfrosts\tw as $e hits you causing you to shudder violently from "
+                 "the \tBcold\tw!\tn",
+                 "$n\tw's $p\tw \tWfrosts\tw as $e hits $N causing $M to shudder violently from "
+                 "the \tBcold\tw!\tn",
+                 ch, vict, (struct obj_data *)me, 0);
   damage(ch, vict, dice(2, 8), -1, DAM_COLD, FALSE);
 
   return TRUE;
@@ -6659,7 +6813,6 @@ SPECIAL(spikeshield)
   // blocking
   if (!strcmp(argument, "shieldblock") && !rand_number(0, 2))
   {
-
     if (PRF_FLAGGED(ch, PRF_CONDENSED))
     {
     }
@@ -6691,7 +6844,6 @@ SPECIAL(spikeshield)
 
   if (!strcmp(argument, "shieldpunch"))
   {
-
     if (PRF_FLAGGED(ch, PRF_CONDENSED))
     {
     }
@@ -6792,7 +6944,6 @@ SPECIAL(ches)
     skip_spaces(&argument);
     if (!strcmp(argument, "critical"))
     {
-
       if (PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
@@ -6856,8 +7007,7 @@ SPECIAL(ches)
           "\tcsuddenly feel your heart begin to race REALLY fast!\tn",
           FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
 
-      act("\tC$n whispers to $s $p",
-          FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+      act("\tC$n whispers to $s $p", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
       call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
@@ -6902,7 +7052,6 @@ SPECIAL(courage)
 
   if (!strcmp(argument, "courage") && CMD_IS("whisper"))
   {
-
     if (GET_OBJ_SPECTIMER(courage, 0) > 0)
     {
       send_to_char(ch, "Nothing happens.\r\n");
@@ -6951,11 +7100,10 @@ SPECIAL(flamingwhip)
   if (cmd || !vict || rand_number(0, 16))
     return FALSE;
 
-  weapons_spells(
-      "\trYour $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
-      "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning YOU\tr badly!\tn",
-      "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
-      ch, vict, (struct obj_data *)me, 0);
+  weapons_spells("\trYour $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
+                 "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning YOU\tr badly!\tn",
+                 "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
+                 ch, vict, (struct obj_data *)me, 0);
 
   damage(ch, vict, dice(6, 4), -1, DAM_FIRE, FALSE); // type -1 = no dam message
 
@@ -6967,7 +7115,6 @@ SPECIAL(flamingwhip)
  */
 SPECIAL(helmblade)
 {
-
   if (!ch)
     return FALSE;
 
@@ -6988,19 +7135,23 @@ SPECIAL(helmblade)
   switch (rand_number(0, 40))
   {
   case 0:
-    weapons_spells(
-        "\tWThe \tYHOLY\tW power of \tYHelm\tW flows through your body, cleaning you of \tLevil\tW and nourishing you.\tn",
-        "\tWThe \tYHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
-        "\tWThe \tWHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("\tWThe \tYHOLY\tW power of \tYHelm\tW flows through your body, cleaning you of "
+                   "\tLevil\tW and nourishing you.\tn",
+                   "\tWThe \tYHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m "
+                   "of \tLevil\tW and nourishing $m.\tn",
+                   "\tWThe \tWHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m "
+                   "of \tLevil\tW and nourishing $m.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
     call_magic(ch, ch, 0, SPELL_CURE_SERIOUS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return TRUE;
   case 1:
-    weapons_spells(
-        "\tWThe power of \tYHelm\tW guides and strengthens thy hand, dispelling the \tLevil\tW of the world from $N.\tn",
-        "\tWThe power of \tYHelm\tW guides and strengthen the hand of $n, dispelling the \tLevil\tW of the world from YOU!.\tn",
-        "\tWThe power of \tYHelm\tW guides and strengthen the hand of $n, dispelling the \tLevil\tW of the world from $N.\tn",
-        ch, vict, (struct obj_data *)me, SPELL_DISPEL_EVIL);
+    weapons_spells("\tWThe power of \tYHelm\tW guides and strengthens thy hand, dispelling the "
+                   "\tLevil\tW of the world from $N.\tn",
+                   "\tWThe power of \tYHelm\tW guides and strengthen the hand of $n, dispelling "
+                   "the \tLevil\tW of the world from YOU!.\tn",
+                   "\tWThe power of \tYHelm\tW guides and strengthen the hand of $n, dispelling "
+                   "the \tLevil\tW of the world from $N.\tn",
+                   ch, vict, (struct obj_data *)me, SPELL_DISPEL_EVIL);
     return TRUE;
   default:
     return FALSE;
@@ -7028,10 +7179,11 @@ SPECIAL(flaming_scimitar)
 
   if (CLASS_LEVEL(ch, CLASS_RANGER) < 10)
   {
-    act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy grasp!\tn", FALSE, ch,
-        (struct obj_data *)me, NULL, TO_CHAR);
-    act("\tW$n \tWscreams in pain as $p\tW rips itself from $s grasp!\tn", FALSE, ch, (struct obj_data *)me,
-        NULL, TO_ROOM);
+    act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy "
+        "grasp!\tn",
+        FALSE, ch, (struct obj_data *)me, NULL, TO_CHAR);
+    act("\tW$n \tWscreams in pain as $p\tW rips itself from $s grasp!\tn", FALSE, ch,
+        (struct obj_data *)me, NULL, TO_ROOM);
     obj_to_room(unequip_char(ch, weepan->worn_on), ch->in_room);
     GET_HIT(ch) = 0;
     return TRUE;
@@ -7041,16 +7193,15 @@ SPECIAL(flaming_scimitar)
   {
     if (!is_wearing(ch, 113897))
     {
-      weapons_spells(
-          "\trYour longsword begins to \tLvibrate violently\tr in your hands as it "
-          "forces your arm skyward and flashes with intense magical energy.\tn",
+      weapons_spells("\trYour longsword begins to \tLvibrate violently\tr in your hands as it "
+                     "forces your arm skyward and flashes with intense magical energy.\tn",
 
-          "\tr$n's \trlongsword begins to \tLvibrate violently\tr in $s hands as it "
-          "forces $s arm skyward and flashes with intense magical energy.\tn",
+                     "\tr$n's \trlongsword begins to \tLvibrate violently\tr in $s hands as it "
+                     "forces $s arm skyward and flashes with intense magical energy.\tn",
 
-          "\tr$n's \trlongsword begins to \tLvibrate violently\tr in $s hands as it "
-          "forces $s arm skyward and flashes with intense magical energy.\tn",
-          ch, vict, (struct obj_data *)me, SPELL_FLAME_STRIKE);
+                     "\tr$n's \trlongsword begins to \tLvibrate violently\tr in $s hands as it "
+                     "forces $s arm skyward and flashes with intense magical energy.\tn",
+                     ch, vict, (struct obj_data *)me, SPELL_FLAME_STRIKE);
       return TRUE;
     }
     else
@@ -7094,10 +7245,11 @@ SPECIAL(frosty_scimitar)
 
   if (CLASS_LEVEL(ch, CLASS_RANGER) < 10)
   {
-    act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy grasp!\tn", FALSE, ch,
-        (struct obj_data *)me, NULL, TO_CHAR);
-    act("\tW$n \tWscreams in pain as $p\tW rips itself from $s grasp!\tn", FALSE, ch, (struct obj_data *)me,
-        NULL, TO_ROOM);
+    act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy "
+        "grasp!\tn",
+        FALSE, ch, (struct obj_data *)me, NULL, TO_CHAR);
+    act("\tW$n \tWscreams in pain as $p\tW rips itself from $s grasp!\tn", FALSE, ch,
+        (struct obj_data *)me, NULL, TO_ROOM);
     obj_to_room(unequip_char(ch, weepan->worn_on), ch->in_room);
     GET_HIT(ch) = 0;
     return TRUE;
@@ -7107,31 +7259,29 @@ SPECIAL(frosty_scimitar)
   {
     if (!is_wearing(ch, 113898))
     {
-      weapons_spells(
-          "\tcYour scimitar begins to \tWvibrate violently\tc in your hands as it "
-          "forces your arm skyward and flashes with intense magical energy.\tn",
-          "\tc$n's \tcscimitar begins to \tWvibrate violently\tc in $s hands as it "
-          "forces $s arm skyward and flashes with intense magical energy.\tn",
-          "\tc$n's \tcscimitar begins to \tWvibrate violently\tc in $s hands as it "
-          "forces $s arm skyward and flashes with intense magical energy.\tn",
-          ch, vict, (struct obj_data *)me, SPELL_CONE_OF_COLD);
+      weapons_spells("\tcYour scimitar begins to \tWvibrate violently\tc in your hands as it "
+                     "forces your arm skyward and flashes with intense magical energy.\tn",
+                     "\tc$n's \tcscimitar begins to \tWvibrate violently\tc in $s hands as it "
+                     "forces $s arm skyward and flashes with intense magical energy.\tn",
+                     "\tc$n's \tcscimitar begins to \tWvibrate violently\tc in $s hands as it "
+                     "forces $s arm skyward and flashes with intense magical energy.\tn",
+                     ch, vict, (struct obj_data *)me, SPELL_CONE_OF_COLD);
       return TRUE;
     }
     else
     {
-      weapons_spells(
-          "\tLIn a \trflurry \tLof movement, your swords cross over one another, "
-          "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
-          "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
+      weapons_spells("\tLIn a \trflurry \tLof movement, your swords cross over one another, "
+                     "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
+                     "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
 
-          "\tLIn a \trflurry \tLof movement, \tn$n\tL's swords cross over one another, "
-          "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
-          "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
+                     "\tLIn a \trflurry \tLof movement, \tn$n\tL's swords cross over one another, "
+                     "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
+                     "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
 
-          "\tLIn a \trflurry \tLof movement, \tn$n\tL's swords cross over one another, "
-          "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
-          "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
-          ch, vict, (struct obj_data *)me, SPELL_ICE_STORM);
+                     "\tLIn a \trflurry \tLof movement, \tn$n\tL's swords cross over one another, "
+                     "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
+                     "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
+                     ch, vict, (struct obj_data *)me, SPELL_ICE_STORM);
       return TRUE;
     }
   }
@@ -7155,11 +7305,9 @@ SPECIAL(disruption_mace)
   if (cmd || !vict || rand_number(0, 20))
     return FALSE;
 
-  weapons_spells(
-      "\trYour\tn $p \tris engulfed in flames!\tn",
-      "$n's $p \tris engulfed in flames!\tn",
-      "$n's $p \tris engulfed in flames!\tn",
-      ch, vict, (struct obj_data *)me, SPELL_FLAME_STRIKE);
+  weapons_spells("\trYour\tn $p \tris engulfed in flames!\tn",
+                 "$n's $p \tris engulfed in flames!\tn", "$n's $p \tris engulfed in flames!\tn", ch,
+                 vict, (struct obj_data *)me, SPELL_FLAME_STRIKE);
   return TRUE;
 }
 
@@ -7259,11 +7407,13 @@ SPECIAL(xvim_normal)
           "in a flash of \tmhatred\tL. Your arms begin to move with blinding\r\n"
           "speed as your accursed weapon begins to rend and tear apart\r\n"
           "the \tyflesh\tL of $N\tL in a spray of \trBLOOD\tL.\tn",
-          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL body\r\n"
+          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL "
+          "body\r\n"
           "in a flash of \tmhatred\tL. $s arms begin to move with blinding\r\n"
           "speed as $s accursed weapon begins to rend and tear apart\r\n"
           "YOUR \tyflesh\tL in a spray of \trBLOOD\tL.\tn",
-          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL body\r\n"
+          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL "
+          "body\r\n"
           "in a flash of \tmhatred\tL. $s arms begin to move with blinding\r\n"
           "speed as $s accursed weapon begins to rend and tear apart\r\n"
           "the \tyflesh\tL of $N\tL in a spray of \trBLOOD\tL.\tn",
@@ -7275,26 +7425,25 @@ SPECIAL(xvim_normal)
     case 2:
       if (!rand_number(0, 100))
       {
-        weapons_spells(
-            "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
-            "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
-            "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
-            "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
-            "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
-            "dark figure fades into nothingness, laughing all the while.\tn\r\n",
-            "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
-            "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
-            "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
-            "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
-            "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
-            "dark figure fades into nothingness, laughing all the while.\tn\r\n",
-            "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
-            "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
-            "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
-            "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
-            "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
-            "dark figure fades into nothingness, laughing all the while.\tn\r\n",
-            ch, vict, (struct obj_data *)me, 0);
+        weapons_spells("\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
+                       "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
+                       "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
+                       "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
+                       "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
+                       "dark figure fades into nothingness, laughing all the while.\tn\r\n",
+                       "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
+                       "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
+                       "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
+                       "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
+                       "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
+                       "dark figure fades into nothingness, laughing all the while.\tn\r\n",
+                       "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
+                       "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
+                       "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
+                       "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
+                       "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
+                       "dark figure fades into nothingness, laughing all the while.\tn\r\n",
+                       ch, vict, (struct obj_data *)me, 0);
         dam = rand_number(100, 200);
         if (dam > GET_HIT(vict))
         {
@@ -7318,10 +7467,12 @@ SPECIAL(xvim_normal)
     case 6:
       if (GET_HIT(ch) < GET_MAX_HIT(ch))
       {
-        act("\tLYour avenger \tgglows\tL in your hands, and your \trblood\tL seems to flow back\tn\r\n"
+        act("\tLYour avenger \tgglows\tL in your hands, and your \trblood\tL seems to flow "
+            "back\tn\r\n"
             "\tLinto your wounds, \tWhealing\tL them by the unholy power of \tGXvim\tL.\tn",
             FALSE, ch, 0, 0, TO_CHAR);
-        act("\tw$n\tL's avenger \tgglows\tL in $s hands, and $s \trblood\tL seems to flow back\tn\r\n"
+        act("\tw$n\tL's avenger \tgglows\tL in $s hands, and $s \trblood\tL seems to flow "
+            "back\tn\r\n"
             "\tLinto $s wounds, \tWhealing\tL them by the unholy power of \tGXvim\tL.\tn",
             FALSE, ch, 0, 0, TO_ROOM);
         GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dice(10, 10));
@@ -7362,11 +7513,13 @@ SPECIAL(xvim_artifact)
           "in a flash of \tmhatred\tL. Your arms begin to move with blinding\r\n"
           "speed as your accursed weapon begins to rend and tear apart\r\n"
           "the \tyflesh\tL of $N\tL in a spray of \trBLOOD\tL.\tn",
-          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL body\r\n"
+          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL "
+          "body\r\n"
           "in a flash of \tmhatred\tL. $s arms begin to move with blinding\r\n"
           "speed as $s accursed weapon begins to rend and tear apart\r\n"
           "YOUR \tyflesh\tL in a spray of \trBLOOD\tL.\tn",
-          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL body\r\n"
+          "\tLThe \tGUNHOLY\tL power of \tgIy\tGach\tgtu X\tGvi\tgm \tLtakes hold of \tg$n's\tL "
+          "body\r\n"
           "in a flash of \tmhatred\tL. $s arms begin to move with blinding\r\n"
           "speed as $s accursed weapon begins to rend and tear apart\r\n"
           "the \tyflesh\tL of $N\tL in a spray of \trBLOOD\tL.\tn",
@@ -7378,26 +7531,25 @@ SPECIAL(xvim_artifact)
     case 2:
       if (!rand_number(0, 100))
       {
-        weapons_spells(
-            "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
-            "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
-            "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
-            "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
-            "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
-            "dark figure fades into nothingness, laughing all the while.\tn\r\n",
-            "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
-            "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
-            "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
-            "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
-            "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
-            "dark figure fades into nothingness, laughing all the while.\tn\r\n",
-            "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
-            "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
-            "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
-            "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
-            "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
-            "dark figure fades into nothingness, laughing all the while.\tn\r\n",
-            ch, vict, (struct obj_data *)me, 0);
+        weapons_spells("\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
+                       "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
+                       "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
+                       "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
+                       "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
+                       "dark figure fades into nothingness, laughing all the while.\tn\r\n",
+                       "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
+                       "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
+                       "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
+                       "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
+                       "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
+                       "dark figure fades into nothingness, laughing all the while.\tn\r\n",
+                       "\tf\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!!!\tn\r\n"
+                       "\r\n\r\n\tmAfter a blinding flash the entire area becomes enveloped\r\n"
+                       "in \tLdarkness\tm. With your limited vision you see an extremely\r\n"
+                       "tall man plunges a large scimitar into $N's\tm chest and cackles\r\n"
+                       "as $S \tMlife force\tm is stolen away. As the \tLdarkness\tm fades the\r\n"
+                       "dark figure fades into nothingness, laughing all the while.\tn\r\n",
+                       ch, vict, (struct obj_data *)me, 0);
         dam = rand_number(100, 200) + 50;
         if (dam > GET_HIT(vict))
         {
@@ -7419,10 +7571,12 @@ SPECIAL(xvim_artifact)
     case 5:
       if (GET_HIT(ch) < GET_MAX_HIT(ch))
       {
-        act("\tLYour avenger \tgglows\tL in your hands, and your \trblood\tL seems to flow back\tn\r\n"
+        act("\tLYour avenger \tgglows\tL in your hands, and your \trblood\tL seems to flow "
+            "back\tn\r\n"
             "\tLinto your wounds, \tWhealing\tL them by the unholy power of \tGXvim\tL.\tn",
             FALSE, ch, 0, 0, TO_CHAR);
-        act("\tw$n\tL's avenger \tgglows\tL in $s hands, and $s \trblood\tL seems to flow back\tn\r\n"
+        act("\tw$n\tL's avenger \tgglows\tL in $s hands, and $s \trblood\tL seems to flow "
+            "back\tn\r\n"
             "\tLinto $s wounds, \tWhealing\tL them by the unholy power of \tGXvim\tL.\tn",
             FALSE, ch, 0, 0, TO_ROOM);
         GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dice(11, 10));
@@ -7468,7 +7622,8 @@ SPECIAL(xvim_artifact)
     }
     else
     {
-      send_to_char(ch, "\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, nothing seems to happen.\tn\r\n");
+      send_to_char(ch, "\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, nothing seems to "
+                       "happen.\tn\r\n");
       return TRUE;
     }
   }
@@ -7492,11 +7647,9 @@ SPECIAL(dragonbone_hammer)
   if (cmd || !vict || rand_number(0, 10))
     return FALSE;
 
-  weapons_spells(
-      "Your $p \tCvibrates violently!\tn",
-      "$n's $p \tCvibrates violently!\tn",
-      "$n's $p \tCvibrates violently!\tn",
-      ch, vict, (struct obj_data *)me, SPELL_ICE_DAGGER);
+  weapons_spells("Your $p \tCvibrates violently!\tn", "$n's $p \tCvibrates violently!\tn",
+                 "$n's $p \tCvibrates violently!\tn", ch, vict, (struct obj_data *)me,
+                 SPELL_ICE_DAGGER);
   return TRUE;
 }
 
@@ -7517,11 +7670,10 @@ SPECIAL(prismorb)
   if (cmd || !vict || rand_number(0, 25))
     return FALSE;
 
-  weapons_spells(
-      "\tWYour \tn$p \tWpulsates violently.\tn",
-      "\tW$n\tW's \tn$p \tWpulsates violently.\tn",
-      "\tW$n\tW's \tn$p \tWpulsates violently.\tn",
-      ch, vict, (struct obj_data *)me, SPELL_PRISMATIC_SPRAY);
+  weapons_spells("\tWYour \tn$p \tWpulsates violently.\tn",
+                 "\tW$n\tW's \tn$p \tWpulsates violently.\tn",
+                 "\tW$n\tW's \tn$p \tWpulsates violently.\tn", ch, vict, (struct obj_data *)me,
+                 SPELL_PRISMATIC_SPRAY);
 
   return TRUE;
 }
@@ -7561,19 +7713,18 @@ SPECIAL(dorfaxe)
   if (dam > GET_HIT(vict))
     dam = GET_HIT(vict);
 
-  weapons_spells(
-      "\tWAs $p impacts with \tn$N\tW, a mortal enemy of\r\n"
-      "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
-      "\tWand strikes with great power into \tn$M.\tn",
+  weapons_spells("\tWAs $p impacts with \tn$N\tW, a mortal enemy of\r\n"
+                 "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
+                 "\tWand strikes with great power into \tn$M.\tn",
 
-      "\tWAs $p impacts with YOU, a mortal enemy of\r\n"
-      "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
-      "\tWand strikes with great power into YOU!\tn",
+                 "\tWAs $p impacts with YOU, a mortal enemy of\r\n"
+                 "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
+                 "\tWand strikes with great power into YOU!\tn",
 
-      "\tWAs $p impacts with \tn$N\tW, a mortal enemy of\r\n"
-      "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
-      "\tWand strikes with great power into \tn$M.\tn",
-      ch, vict, (struct obj_data *)me, 0);
+                 "\tWAs $p impacts with \tn$N\tW, a mortal enemy of\r\n"
+                 "\tWany righteous dwarf, the great god \tYClangeddin\tW infuses it,\r\n"
+                 "\tWand strikes with great power into \tn$M.\tn",
+                 ch, vict, (struct obj_data *)me, 0);
 
   damage(ch, vict, dam, -1, DAM_HOLY, FALSE); // type -1 = no dam message
   return TRUE;
@@ -7601,19 +7752,18 @@ SPECIAL(acidstaff)
   if (rand_number(0, 15))
     return FALSE;
 
-  weapons_spells(
-      "\tLYour staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
-      "\tLThe tiny black dragons on your staff come alive and roar loudly\tn\r\n"
-      "\tLthen spew forth vile \tgacid\tL at $N.\tn",
+  weapons_spells("\tLYour staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
+                 "\tLThe tiny black dragons on your staff come alive and roar loudly\tn\r\n"
+                 "\tLthen spew forth vile \tgacid\tL at $N.\tn",
 
-      "\tL$n\tL's staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
-      "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
-      "\tLthen spew forth vile \tgacid\tL at you.\tn",
+                 "\tL$n\tL's staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
+                 "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
+                 "\tLthen spew forth vile \tgacid\tL at you.\tn",
 
-      "\tL$n\tL's staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
-      "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
-      "\tLthen spew forth vile \tgacid\tL at \tn$N.\tn",
-      ch, victim, (struct obj_data *)me, SPELL_ACID_ARROW);
+                 "\tL$n\tL's staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
+                 "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
+                 "\tLthen spew forth vile \tgacid\tL at \tn$N.\tn",
+                 ch, victim, (struct obj_data *)me, SPELL_ACID_ARROW);
   return TRUE;
 }
 
@@ -7645,13 +7795,16 @@ SPECIAL(sarn)
     return FALSE;
 
   weapons_spells(
-      "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides thine hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
+      "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides thine hand and "
+      "\trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
       "\tLAs the \traxe\tL impacts with \tn$N\tL, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
 
-      "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides $n's hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
+      "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides $n's hand and "
+      "\trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
       "\tLAs the \traxe\tL impacts with YOU, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
 
-      "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides \tn$n\tL's hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
+      "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides \tn$n\tL's hand and "
+      "\trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
       "\tLAs the \traxe\tL impacts with \tn$N\tL, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
       ch, vict, (struct obj_data *)me, SPELL_HARM);
 
@@ -7727,7 +7880,8 @@ SPECIAL(purity)
     {
       act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
           "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
-          "The \tWlightbeam \twburns a hole right through you and you fall lifeless to the ground.\tn",
+          "The \tWlightbeam \twburns a hole right through you and you fall lifeless to the "
+          "ground.\tn",
           FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
     }
 
@@ -7761,11 +7915,10 @@ SPECIAL(etherealness)
   if (cmd || !vict || rand_number(0, 15))
     return FALSE;
 
-  weapons_spells(
-      "\twWaves of \tWghostly \twenergy starts to flow from your $p.",
-      "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
-      "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
-      ch, vict, (struct obj_data *)me, SPELL_SLOW);
+  weapons_spells("\twWaves of \tWghostly \twenergy starts to flow from your $p.",
+                 "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
+                 "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.", ch, vict,
+                 (struct obj_data *)me, SPELL_SLOW);
 
   return TRUE;
 }
@@ -7857,11 +8010,13 @@ SPECIAL(greatsword)
   if (dam < 21)
     return FALSE;
 
-  weapons_spells(
-      "\tCSilvery flames shoots from your $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
-      "\tCSilvery flames shoot from $n's $p\tC towards you\tC.\r\nThe flames sear and burn you and you scream in pain.\tn",
-      "\tCSilvery flames shoot from $n's $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
-      ch, vict, (struct obj_data *)me, 0);
+  weapons_spells("\tCSilvery flames shoots from your $p\tC towards $N\tC.\r\nThe flames sear and "
+                 "burn $N\tC who screams in pain.\tn",
+                 "\tCSilvery flames shoot from $n's $p\tC towards you\tC.\r\nThe flames sear and "
+                 "burn you and you scream in pain.\tn",
+                 "\tCSilvery flames shoot from $n's $p\tC towards $N\tC.\r\nThe flames sear and "
+                 "burn $N\tC who screams in pain.\tn",
+                 ch, vict, (struct obj_data *)me, 0);
 
   damage(ch, vict, dam, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
 
@@ -7902,10 +8057,12 @@ SPECIAL(fog_dagger)
     else
     {
       weapons_spells(
-          "\tLA hazy cloud is emitted from your\tn $p\tL, and enshrouds \tn$N \tLin a dark mist!\tn",
-          "\tLA hazy cloud is emitted from $n's\tn $p\tL, and enshrouds \tn$N \tLin a dark mist!\tn",
-          "\tLA hazy cloud is emitted from $n's\tn $p\tL, and enshrouds you in a dark mist!\tn",
-          ch, vict, (struct obj_data *)me, 0);
+          "\tLA hazy cloud is emitted from your\tn $p\tL, and enshrouds \tn$N \tLin a dark "
+          "mist!\tn",
+          "\tLA hazy cloud is emitted from $n's\tn $p\tL, and enshrouds \tn$N \tLin a dark "
+          "mist!\tn",
+          "\tLA hazy cloud is emitted from $n's\tn $p\tL, and enshrouds you in a dark mist!\tn", ch,
+          vict, (struct obj_data *)me, 0);
 
       // Sets the vict blind for 1-3 rounds
       if (!AFF_FLAGGED(vict, AFF_BLIND) && can_blind(vict))
@@ -7921,8 +8078,8 @@ SPECIAL(fog_dagger)
         if (FIGHTING(i) == vict)
         {
           stop_fighting(i);
-          act("\tLThe haze around \tn$N \tLprevents you from touching \tn$M",
-              FALSE, i, 0, vict, TO_CHAR);
+          act("\tLThe haze around \tn$N \tLprevents you from touching \tn$M", FALSE, i, 0, vict,
+              TO_CHAR);
         }
       }
 
@@ -7934,13 +8091,11 @@ SPECIAL(fog_dagger)
     }
     // Now check if they are trying to backstab
   }
-  else if (CMD_IS("backstab") &&
-           (vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+  else if (CMD_IS("backstab") && (vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
   {
     if (perform_backstab(ch, vict))
     {
-      if (FIGHTING(ch) == vict &&
-          !AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
+      if (FIGHTING(ch) == vict && !AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
           !rand_number(0, 9))
       {
         new_affect(&af2);
@@ -7959,7 +8114,6 @@ SPECIAL(fog_dagger)
 /* a NPC only item */
 SPECIAL(tyrantseye)
 {
-
   if (!ch)
     return FALSE;
 
@@ -7976,10 +8130,10 @@ SPECIAL(tyrantseye)
 
   if (!IS_NPC(ch) && !rand_number(0, 1))
   {
-    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
-    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into you from above!\tn",
-        FALSE, ch, 0, 0, TO_CHAR);
+    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn", FALSE, ch, 0, 0,
+        TO_ROOM);
+    act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into you from above!\tn", FALSE, ch, 0, 0,
+        TO_CHAR);
     die(ch, ch);
   }
 
@@ -7987,29 +8141,27 @@ SPECIAL(tyrantseye)
   {
   case 0:
   case 1:
-    weapons_spells(
-        "IF YOU SEE THIS, TALK TO A STAFF MEMBER",
-        "\tgFzoul \tLturns his wicked gaze toward's you and utters arcane "
-        "words to his \tgscepter\tL. You are blinded by a brilliant \tWFLASH\tn "
-        "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward you!\tn",
-        "\tgFzoul \tLturns his wicked gaze toward's $N \tLand utters arcane "
-        "words to his \tgscepter\tL. $N \tLis blinded by a brilliant \tWFLASH\tn "
-        "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward $M!\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("IF YOU SEE THIS, TALK TO A STAFF MEMBER",
+                   "\tgFzoul \tLturns his wicked gaze toward's you and utters arcane "
+                   "words to his \tgscepter\tL. You are blinded by a brilliant \tWFLASH\tn "
+                   "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward you!\tn",
+                   "\tgFzoul \tLturns his wicked gaze toward's $N \tLand utters arcane "
+                   "words to his \tgscepter\tL. $N \tLis blinded by a brilliant \tWFLASH\tn "
+                   "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward $M!\tn",
+                   ch, vict, (struct obj_data *)me, 0);
     call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 0, 30, CAST_WEAPON_SPELL);
     call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, 30, CAST_WEAPON_SPELL);
     call_magic(ch, vict, 0, SPELL_SLOW, 0, 30, CAST_WEAPON_SPELL);
     return TRUE;
   case 10:
-    weapons_spells(
-        "\tGIF YOU SEE THIS TALK TO A STAFF MEMBER",
-        "\tGFzoul's \tLscepter springs to life in a \tWFLASH\tL, bathing your "
-        "party in a misty \tGgreen glow! \tLYou scream in agony as you "
-        "begin to lose control of your body!\tn",
-        "\tGFzoul's \tLscepter springs to life in a \tWFLASH\tL, bathing the "
-        "room in a misty \tGgreen glow! \tLYou scream in agony as you "
-        "begin to lose control of your body!\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("\tGIF YOU SEE THIS TALK TO A STAFF MEMBER",
+                   "\tGFzoul's \tLscepter springs to life in a \tWFLASH\tL, bathing your "
+                   "party in a misty \tGgreen glow! \tLYou scream in agony as you "
+                   "begin to lose control of your body!\tn",
+                   "\tGFzoul's \tLscepter springs to life in a \tWFLASH\tL, bathing the "
+                   "room in a misty \tGgreen glow! \tLYou scream in agony as you "
+                   "begin to lose control of your body!\tn",
+                   ch, vict, (struct obj_data *)me, 0);
 
     for (i = character_list; i; i = in)
     {
@@ -8046,11 +8198,10 @@ SPECIAL(spiderdagger)
   if (!cmd && vict && !rand_number(0, 9))
   {
     // proc darkfire
-    weapons_spells(
-        "\tLYour $p\tL starts to \tcglow\tL as it pierces \tn$N!",
-        "$n\tL's $p\tL starts to \tcglow\tL as it pierces YOU!",
-        "$n\tL's $p\tL starts to \tcglow\tL as it pierces \tn$N!",
-        ch, vict, (struct obj_data *)me, SPELL_NEGATIVE_ENERGY_RAY);
+    weapons_spells("\tLYour $p\tL starts to \tcglow\tL as it pierces \tn$N!",
+                   "$n\tL's $p\tL starts to \tcglow\tL as it pierces YOU!",
+                   "$n\tL's $p\tL starts to \tcglow\tL as it pierces \tn$N!", ch, vict,
+                   (struct obj_data *)me, SPELL_NEGATIVE_ENERGY_RAY);
     return TRUE;
   }
   // cloak of dark power once day on command
@@ -8073,8 +8224,8 @@ SPECIAL(spiderdagger)
         return TRUE;
       }
       send_to_char(ch, "\tLYou invoke \tmLloth\tw.\tn\r\n");
-      act("\tw$n raises $s $p \tw high and calls on \tmLloth.\tn",
-          FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+      act("\tw$n raises $s $p \tw high and calls on \tmLloth.\tn", FALSE, ch, (struct obj_data *)me,
+          0, TO_ROOM);
       call_magic(ch, ch, 0, SPELL_NON_DETECTION, 0, 30, CAST_WEAPON_SPELL);
       call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 0, 30, CAST_WEAPON_SPELL);
 
@@ -8103,14 +8254,13 @@ SPECIAL(sparksword)
   if (cmd || !vict || rand_number(0, 20))
     return FALSE;
 
-  weapons_spells(
-      "\twYour $p\tw's blade \tWsparks\tw as you hit $N "
-      "\twwith your slash, causing $M to shudder violently from the \tYshock\tw!\tn",
-      "$n\tw's $p\tw's blade \tWsparks\tw as $e hits you "
-      "with $s slash, causing you to shudder violently from the \tYshock\tw!\tn",
-      "$n\tw's $p\tw's blade \tWsparks\tw as $e hits $N "
-      "\twwith $s slash, causing $M to shudder violently from the \tYshock\tw!\tn",
-      ch, vict, (struct obj_data *)me, 0);
+  weapons_spells("\twYour $p\tw's blade \tWsparks\tw as you hit $N "
+                 "\twwith your slash, causing $M to shudder violently from the \tYshock\tw!\tn",
+                 "$n\tw's $p\tw's blade \tWsparks\tw as $e hits you "
+                 "with $s slash, causing you to shudder violently from the \tYshock\tw!\tn",
+                 "$n\tw's $p\tw's blade \tWsparks\tw as $e hits $N "
+                 "\twwith $s slash, causing $M to shudder violently from the \tYshock\tw!\tn",
+                 ch, vict, (struct obj_data *)me, 0);
   damage(ch, vict, dice(9, 3), -1, DAM_ELECTRIC, FALSE);
 
   return TRUE;
@@ -8144,7 +8294,8 @@ SPECIAL(nutty_bracer)
         "lunge toward $N\tL with \tpi\tPn\tps\tpa\tPn\tpi\tPt\tpy\tL!!\tn",
         FALSE, ch, 0, victim, TO_CHAR);
     act("\tLThe bracer on $n\tL's arm begins to \tpvibrate\tL, sending a horrible shriek\r\n"
-        "from his gut. You watch as $e lunges toward $N\tL with \tpi\tPn\tps\tpa\tPn\tpi\tPt\tpy\tL!!\tn",
+        "from his gut. You watch as $e lunges toward $N\tL with "
+        "\tpi\tPn\tps\tpa\tPn\tpi\tPt\tpy\tL!!\tn",
         FALSE, ch, 0, victim, TO_ROOM);
     hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     return TRUE;
@@ -8180,10 +8331,10 @@ SPECIAL(whisperwind)
 
   if (!strcmp(argument, "wind") && CMD_IS("whisper"))
   {
-
     if (GET_OBJ_SPECTIMER(whisperwind, 1) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      send_to_char(
+          ch, "\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
     }
 
@@ -8205,7 +8356,6 @@ SPECIAL(whisperwind)
       pet = read_mobile(real_mobile(SPIRIT_EAGLE), REAL);
       if (pet)
       {
-
         if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
         {
           X_LOC(pet) = world[ch->in_room].coords[0];
@@ -8260,10 +8410,11 @@ SPECIAL(whisperwind)
   {
     if (vict && (vict->in_room == ch->in_room))
     {
-
       if (GET_OBJ_SPECTIMER(whisperwind, 0) > 0)
       {
-        send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+        send_to_char(
+            ch,
+            "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
         return TRUE;
       }
 
@@ -8295,17 +8446,18 @@ SPECIAL(whisperwind)
       GET_OBJ_SPECTIMER(whisperwind, 0) = 24;
 
       return TRUE; /* end for */
-    }              /* end if-fighting */
+    } /* end if-fighting */
     else
       return FALSE;
   } /* end if-strcmp */
 
   else if (!strcmp(argument, "smite") && CMD_IS("whisper"))
   {
-
     if (GET_OBJ_SPECTIMER(whisperwind, 2) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      send_to_char(
+          ch,
+          "\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
     }
 
@@ -8396,10 +8548,10 @@ SPECIAL(ancient_moonblade)
 
   if (!strcmp(argument, "wind") && CMD_IS("whisper"))
   {
-
     if (GET_OBJ_SPECTIMER(whisperwind, 1) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      send_to_char(
+          ch, "\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
     }
 
@@ -8421,7 +8573,6 @@ SPECIAL(ancient_moonblade)
       pet = read_mobile(real_mobile(LARGE_SPIRIT_EAGLE), REAL);
       if (pet)
       {
-
         if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
         {
           X_LOC(pet) = world[ch->in_room].coords[0];
@@ -8476,10 +8627,11 @@ SPECIAL(ancient_moonblade)
   {
     if (vict && (vict->in_room == ch->in_room))
     {
-
       if (GET_OBJ_SPECTIMER(whisperwind, 0) > 0)
       {
-        send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+        send_to_char(
+            ch,
+            "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
         return TRUE;
       }
 
@@ -8511,17 +8663,18 @@ SPECIAL(ancient_moonblade)
       GET_OBJ_SPECTIMER(whisperwind, 0) = 24;
 
       return TRUE; /* end for */
-    }              /* end if-fighting */
+    } /* end if-fighting */
     else
       return FALSE;
   } /* end if-strcmp */
 
   else if (!strcmp(argument, "smite") && CMD_IS("whisper"))
   {
-
     if (GET_OBJ_SPECTIMER(whisperwind, 2) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      send_to_char(
+          ch,
+          "\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
     }
 
@@ -8591,7 +8744,8 @@ SPECIAL(celestial_sword)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse every 2 days (don't have to be in the same room).\r\n"
+    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse every 2 days (don't have "
+                     "to be in the same room).\r\n"
                      "Whisper 'messiah' to cast a strong group heal every 12 hours\r\n");
     return TRUE;
   }
@@ -8606,11 +8760,11 @@ SPECIAL(celestial_sword)
 
   if (!strcmp(argument, "revive") && CMD_IS("whisper"))
   {
-
     /* still on cooldown */
     if (GET_OBJ_SPECTIMER(celestial, 0) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tWrevive\tc' to %s, nothing happens.\tn\r\n", GET_OBJ_SHORT(celestial));
+      send_to_char(ch, "\tcAs you whisper '\tWrevive\tc' to %s, nothing happens.\tn\r\n",
+                   GET_OBJ_SHORT(celestial));
       return TRUE;
     }
 
@@ -8652,11 +8806,11 @@ SPECIAL(celestial_sword)
 
   if (!strcmp(argument, "messiah") && CMD_IS("whisper"))
   {
-
     /* still on cooldown */
     if (GET_OBJ_SPECTIMER(celestial, 0) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tWmessiah\tc' to %s, nothing happens.\tn\r\n", GET_OBJ_SHORT(celestial));
+      send_to_char(ch, "\tcAs you whisper '\tWmessiah\tc' to %s, nothing happens.\tn\r\n",
+                   GET_OBJ_SHORT(celestial));
       return TRUE;
     }
 
@@ -8796,7 +8950,6 @@ SPECIAL(floating_teleport)
 /* from homeland */
 SPECIAL(vengeance)
 {
-
   if (!ch)
     return FALSE;
 
@@ -8819,25 +8972,30 @@ SPECIAL(vengeance)
 
   if (GET_HIT(ch) < GET_MAX_HIT(ch) && rand_number(0, 4))
   {
-    weapons_spells(
-        "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
-        "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
-        "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its "
+                   "healing powers into you.\tn",
+                   "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its "
+                   "healing powers into you.\tn",
+                   "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its "
+                   "healing powers into $m\tW.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
     call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return TRUE;
   }
   weapons_spells(
       "\tWYour blade starts to shake violently, nearly tearing itself from your grip,\tn\r\n"
-      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding "
+      "\tfflash\tn\tW of pure\tn\r\n"
       "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
 
       "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
-      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding "
+      "\tfflash\tn\tW of pure\tn\r\n"
       "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
 
       "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
-      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding "
+      "\tfflash\tn\tW of pure\tn\r\n"
       "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
       ch, vict, (struct obj_data *)me, SPELL_WORD_OF_FAITH);
   return TRUE;
@@ -9088,19 +9246,21 @@ SPECIAL(skullsmasher)
   if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
     return FALSE;
 
-  weapons_spells(
-      "\tLAs you swing your maul at $N \tLit connects with $S head\tn\r\n"
-      "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain\tL shows on\tn\r\n"
-      "\tL$S face as $E slowly slumps to the ground.\tn",
+  weapons_spells("\tLAs you swing your maul at $N \tLit connects with $S head\tn\r\n"
+                 "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming "
+                 "\trpain\tL shows on\tn\r\n"
+                 "\tL$S face as $E slowly slumps to the ground.\tn",
 
-      "\tLAs $n \tLswings $s maul at you it connects with your head\tn\r\n"
-      "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A feeling of overwhelming \trpain\tL courses\tn\r\n"
-      "\tLthrough your body, and you feel yourself slump to the ground.\tn",
+                 "\tLAs $n \tLswings $s maul at you it connects with your head\tn\r\n"
+                 "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A feeling of overwhelming "
+                 "\trpain\tL courses\tn\r\n"
+                 "\tLthrough your body, and you feel yourself slump to the ground.\tn",
 
-      "\tLAs $n \tLswings $s maul at $N \tLit connects with $S head\tn\r\n"
-      "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain \tLshows on\tn\r\n"
-      "\tL$S face as $E slowly slumps to the ground.\tn",
-      ch, vict, (struct obj_data *)me, 0);
+                 "\tLAs $n \tLswings $s maul at $N \tLit connects with $S head\tn\r\n"
+                 "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming "
+                 "\trpain \tLshows on\tn\r\n"
+                 "\tL$S face as $E slowly slumps to the ground.\tn",
+                 ch, vict, (struct obj_data *)me, 0);
   change_position(vict, POS_SITTING);
   USE_FULL_ROUND_ACTION(vict);
   return TRUE;
@@ -9135,37 +9295,35 @@ SPECIAL(acidsword)
 
   if (GET_HIT(vict) > -9)
   {
-    weapons_spells(
-        "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-        "$N\tL, hissing as it starts to corrode.\tn",
-        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-        "you\tL, hissing as it starts to corrode.\tn",
-        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
-        "$N, hissing as it starts to corrode.\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+                   "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+                   "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+                   "$N\tL, hissing as it starts to corrode.\tn",
+                   "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+                   "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+                   "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+                   "you\tL, hissing as it starts to corrode.\tn",
+                   "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+                   "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+                   "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
+                   "$N, hissing as it starts to corrode.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
   }
   else
   {
-    weapons_spells(
-        "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-        "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
-        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-        "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
-        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
-        "you, hissing as it melts you to o\twoz\tLing pulp.\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+                   "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+                   "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+                   "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
+                   "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+                   "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+                   "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+                   "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
+                   "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+                   "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+                   "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
+                   "you, hissing as it melts you to o\twoz\tLing pulp.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
     GET_HIT(vict) = -50;
   }
   return TRUE;
@@ -9200,11 +9358,14 @@ SPECIAL(malevolence)
   {
     attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, ch, NULL), 6 * PASSES_PER_SEC);
 
-    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
+    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent "
+        "light\tn as your attacks begin to speed up!",
         TRUE, ch, malevolence, vict, TO_CHAR);
-    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
+    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent "
+        "light\tn as $n's\tn attacks begin to speed up!",
         TRUE, ch, malevolence, vict, TO_VICT);
-    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
+    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent "
+        "light\tn as $n's\tn attacks begin to speed up!",
         TRUE, ch, malevolence, vict, TO_NOTVICT);
 
     num_hits = rand_number(3, 5);
@@ -9231,8 +9392,10 @@ SPECIAL(rune_scimitar)
   if (!cmd && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Attack Blur (4-7 bonus attacks on proc)\r\n");
-    send_to_char(ch, "Proc: Deft Parry - on parry will do a light vamp attack (not negative energy)\r\n");
-    send_to_char(ch, "Proc: Deft Dodge - on dodge will do a light vamp attack (not negative energy)\r\n");
+    send_to_char(
+        ch, "Proc: Deft Parry - on parry will do a light vamp attack (not negative energy)\r\n");
+    send_to_char(
+        ch, "Proc: Deft Dodge - on dodge will do a light vamp attack (not negative energy)\r\n");
     return TRUE;
   }
 
@@ -9247,16 +9410,18 @@ SPECIAL(rune_scimitar)
   /* blur attack proc */
   if (!rand_number(0, 15))
   {
-
     /* this will not proc more than once per 6 seconds */
     if (!char_has_mud_event(ch, eBLUR_ATTACK_DELAY))
     {
       attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, ch, NULL), 6 * PASSES_PER_SEC);
-      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
+      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your "
+          "attacks begin to speed up!\tn",
           TRUE, ch, scimitar, vict, TO_CHAR);
-      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as "
+          "$n's\tY attacks begin to speed up!\tn",
           TRUE, ch, scimitar, vict, TO_VICT);
-      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as "
+          "$n's\tY attacks begin to speed up!\tn",
           TRUE, ch, scimitar, vict, TO_NOTVICT);
 
       num_hits = rand_number(4, 7);
@@ -9276,10 +9441,12 @@ SPECIAL(rune_scimitar)
     act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",
         FALSE, ch, scimitar, vict, TO_CHAR);
-    act("\tLAs \tn$n\tL parries your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+    act("\tLAs \tn$n\tL parries your attack, \tn$p \tCglows brightly\tL as it steals some "
+        "\trlifeforce\tn "
         "\tLfrom you and transfers it back to $m.\tn",
         FALSE, ch, scimitar, vict, TO_VICT);
-    act("\tLAs \tn$n\tL parries \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+    act("\tLAs \tn$n\tL parries \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some "
+        "\trlifeforce\tn "
         "\tLfrom $N\tL.\tn",
         FALSE, ch, scimitar, vict, TO_NOTVICT);
     damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
@@ -9293,10 +9460,12 @@ SPECIAL(rune_scimitar)
     act("\tLAs you dodge the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",
         FALSE, ch, scimitar, vict, TO_CHAR);
-    act("\tLAs \tn$n\tL dodges your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+    act("\tLAs \tn$n\tL dodges your attack, \tn$p \tCglows brightly\tL as it steals some "
+        "\trlifeforce\tn "
         "\tLfrom you and transfers it back to $m.\tn",
         FALSE, ch, scimitar, vict, TO_VICT);
-    act("\tLAs \tn$n\tL dodges \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+    act("\tLAs \tn$n\tL dodges \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some "
+        "\trlifeforce\tn "
         "\tLfrom $N\tL.\tn",
         FALSE, ch, scimitar, vict, TO_NOTVICT);
     damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
@@ -9335,17 +9504,17 @@ SPECIAL(snakewhip)
     {
       act("\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
           "All three snakeheads suddenly lunges forwardand sink their fangs in you throat. \r\n"
-          "You barely have time to feel the terrible pain before you fall over with \tRbl\tro\tRod\r\n"
+          "You barely have time to feel the terrible pain before you fall over with "
+          "\tRbl\tro\tRod\r\n"
           "\tLflowing freely from the wounds in your neck.\tn",
-          FALSE, ch,
-          weepan, 0, TO_CHAR);
+          FALSE, ch, weepan, 0, TO_CHAR);
 
       act("$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
           "All three snakeheads suddenly lunges forward and sink their fangs in $n's \tLthroat.\r\n"
-          "$n \tLbarely have time to feel the terrible pain before falling over with \tRbl\tro\tRod\r\n"
+          "$n \tLbarely have time to feel the terrible pain before falling over with "
+          "\tRbl\tro\tRod\r\n"
           "\tLflowing freely from the wounds in the neck.\tn",
-          FALSE, ch,
-          weepan, 0, TO_ROOM);
+          FALSE, ch, weepan, 0, TO_ROOM);
       GET_HIT(ch) = -5;
       change_position(ch, POS_INCAP);
     }
@@ -9361,27 +9530,35 @@ SPECIAL(snakewhip)
   if (GET_HIT(vict) > -9)
   {
     weapons_spells(
-        "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+        "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for "
+        "$N\tL.\r\n"
         "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
-        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\nwith fury as all three snakeheads suddenly lunges for you.\r\n"
+        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\nwith fury as all three snakeheads suddenly lunges for "
+        "you.\r\n"
         "Their fangs sink deep into the \tRfl\tre\tRsh \tLand you cry out in pain.\tn",
-        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for "
+        "$N\tL.\r\n"
         "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
         ch, vict, (struct obj_data *)me, 0);
   }
   else
   {
-    weapons_spells(
-        "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-        "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
-        "falls over dead.\tn",
-        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for you.\r\n"
-        "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away your remaining life and\r\n"
-        "you fall over dead.\tn",
-        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-        "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
-        "falls over dead.\tn",
-        ch, vict, (struct obj_data *)me, 0);
+    weapons_spells("\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly "
+                   "lunges for $N\tL.\r\n"
+                   "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining "
+                   "life of $N \tLwho\r\n"
+                   "falls over dead.\tn",
+                   "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly "
+                   "lunges for you.\r\n"
+                   "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away your remaining "
+                   "life and\r\n"
+                   "you fall over dead.\tn",
+                   "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly "
+                   "lunges for $N\tL.\r\n"
+                   "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining "
+                   "life of $N \tLwho\r\n"
+                   "falls over dead.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
     GET_HIT(vict) = -50;
   }
   return TRUE;
@@ -9526,16 +9703,22 @@ SPECIAL(air_sphere)
         return TRUE;
       }
 
-      act("\tcAs you speak to your \tbsphere of lightning\tc, it begins to \tWglow\tc and fill with violent\tn\r\n"
-          "\tcenergy.  The energy builds until it \tba\twrc\tbs and \tBc\tbrackle\tBs\tc all over the sphere before\tn\r\n"
-          "\tcit lets loose in a violent \tblightning storm\tc.  As the energy from the storm begins\tn\r\n"
-          "\tcto fade, a jolt of \tYelectricity\tc flows up through your arms, causing your heart to\tn\r\n"
+      act("\tcAs you speak to your \tbsphere of lightning\tc, it begins to \tWglow\tc and fill "
+          "with violent\tn\r\n"
+          "\tcenergy.  The energy builds until it \tba\twrc\tbs and \tBc\tbrackle\tBs\tc all over "
+          "the sphere before\tn\r\n"
+          "\tcit lets loose in a violent \tblightning storm\tc.  As the energy from the storm "
+          "begins\tn\r\n"
+          "\tcto fade, a jolt of \tYelectricity\tc flows up through your arms, causing your heart "
+          "to\tn\r\n"
           "\tcrace really fast!\tn",
           FALSE, ch, 0, 0, TO_CHAR);
       act("\tcAs $n \tcspeaks a word of power to $s \tbsphere of lightning\tc,\tn\r\n"
           "\tcit \tWglows brightly\tc and violent energy begins to fill it. The sphere\tn\r\n"
-          "\tba\twrc\tbs\tc and \tBc\tbrackle\tBs\tc before it lets loose a violent \tblightning\tn\r\n"
-          "\tbstorm\tc.  The energy begins to fade, but before this can happen a jolt of \tYelectricity\tn\r\n"
+          "\tba\twrc\tbs\tc and \tBc\tbrackle\tBs\tc before it lets loose a violent "
+          "\tblightning\tn\r\n"
+          "\tbstorm\tc.  The energy begins to fade, but before this can happen a jolt of "
+          "\tYelectricity\tn\r\n"
           "\tcflows up $n's\tc arms and causes $s heart to race really fast!",
           FALSE, ch, 0, 0, TO_ROOM);
 
@@ -9577,35 +9760,44 @@ SPECIAL(bolthammer)
 
   if (dam < GET_HIT(vict))
   {
-    weapons_spells(
-        "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
-        "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
-        "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
+    weapons_spells("\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+                   "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of "
+                   "\tclig\tChtn\tcing \tLleaps\tn\r\n"
+                   "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
 
-        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
-        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes you\tn\r\n"
-        "\tlwith full force.\tn",
+                   "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder "
+                   "can be heard.\tn\r\n"
+                   "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the "
+                   "warhammer and strikes you\tn\r\n"
+                   "\tlwith full force.\tn",
 
-        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
-        "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
-        "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
-        ch, vict, (struct obj_data *)me, 0);
+                   "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+                   "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of "
+                   "\tclig\tChtn\tcing \tLleaps\tn\r\n"
+                   "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
   }
   else
   {
     dam += 20;
     weapons_spells(
-        "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and the sound of th\tYun\tLder can be\tn\r\n"
-        "\tLheard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
+        "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and the sound of th\tYun\tLder can "
+        "be\tn\r\n"
+        "\tLheard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer "
+        "and strikes\tn\r\n"
         "$N \tLwith full force. When the flash is gone\r\n"
 
         "\tL you see the corpse of\tn $N \tLstill twitching on the ground.\tn",
-        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
-        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be "
+        "heard.\tn\r\n"
+        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and "
+        "strikes\tn\r\n"
         "\tLyou with full force. You twitch a few times before your body goes still forever.\tn",
 
-        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
-        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn \tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be "
+        "heard.\tn\r\n"
+        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and "
+        "strikes\tn \tn\r\n"
         "$N \tLwith full force. When the flash is gone you see\r\n"
         "\tLthe corpse of\tn $N \tLstill twitching on the ground.\tn",
         ch, vict, (struct obj_data *)me, 0);
@@ -9623,7 +9815,8 @@ SPECIAL(rughnark)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc: magical damage 25+10d4 for high level monks.  Will work better for non-good monks\r\n");
+    send_to_char(ch, "Proc: magical damage 25+10d4 for high level monks.  Will work better for "
+                     "non-good monks\r\n");
     return TRUE;
   }
 
@@ -9678,7 +9871,8 @@ SPECIAL(speed_gaunts)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc: Extra attacks & chance to do a powerful vamp attack (powerful monks only)\r\n");
+    send_to_char(
+        ch, "Proc: Extra attacks & chance to do a powerful vamp attack (powerful monks only)\r\n");
     return TRUE;
   }
 
@@ -9702,28 +9896,32 @@ SPECIAL(speed_gaunts)
   /* odds to succeed on vamp proc */
   if (!rand_number(0, 37))
   {
-
     dam = rand_number(175, 300);
 
-    weapons_spells(
-        "\tWSuddenly, $p\tW glows brightly as your body starts to \tCflicker\tW in and out of reality!  "
-        "You \tCphase away\tW, dodging \tn$N's\tW attack and quickly \tCphase back\tW \twslamming your "
-        "gauntlets powerfully\tW into $N where upon impact they flare with \tRvampiric power\tW drawing "
-        "the lifeforce out of $M !\tn",
+    weapons_spells("\tWSuddenly, $p\tW glows brightly as your body starts to \tCflicker\tW in and "
+                   "out of reality!  "
+                   "You \tCphase away\tW, dodging \tn$N's\tW attack and quickly \tCphase back\tW "
+                   "\twslamming your "
+                   "gauntlets powerfully\tW into $N where upon impact they flare with \tRvampiric "
+                   "power\tW drawing "
+                   "the lifeforce out of $M !\tn",
 
-        "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
-        "$n \tCphases away\tW, dodging your attack and quickly \tCphases back\tW slamming $s gauntlets "
-        "powerfully into you where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
-        "out of you!\tn",
+                   "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in "
+                   "and out of reality!  "
+                   "$n \tCphases away\tW, dodging your attack and quickly \tCphases back\tW "
+                   "slamming $s gauntlets "
+                   "powerfully into you where upon impact they flare with \tRvampiric power\tW "
+                   "drawing the lifeforce "
+                   "out of you!\tn",
 
-        "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
-        "$n \tCphases away\tW, dodging $N's\tW attack and quickly \tCphases back\tW slamming $s gauntlets "
-        "powerfully into $N\tW where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
-        "out of you!\tn",
-        ch,
-        vict,
-        gaunts,
-        0);
+                   "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in "
+                   "and out of reality!  "
+                   "$n \tCphases away\tW, dodging $N's\tW attack and quickly \tCphases back\tW "
+                   "slamming $s gauntlets "
+                   "powerfully into $N\tW where upon impact they flare with \tRvampiric power\tW "
+                   "drawing the lifeforce "
+                   "out of you!\tn",
+                   ch, vict, gaunts, 0);
     damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
     process_healing(ch, ch, -1, dam, 0, 0);
 
@@ -9733,11 +9931,14 @@ SPECIAL(speed_gaunts)
   /* we failed vamp, lets try for the attack-blur proc */
   else if (!rand_number(0, 26))
   {
-    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as your strikes begin to speed up!",
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as your strikes "
+        "begin to speed up!",
         TRUE, ch, gaunts, vict, TO_CHAR);
-    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes "
+        "begin to speed up!",
         TRUE, ch, gaunts, vict, TO_VICT);
-    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes "
+        "begin to speed up!",
         TRUE, ch, gaunts, vict, TO_NOTVICT);
 
     num_hits = rand_number(4, 7);
@@ -9846,8 +10047,10 @@ SPECIAL(halberd)
   case 21:
     // blur
     weapons_spells(
-        "\tcAs your\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
-        "\tcit quickly enshrouding you.  The \twm\tWi\twst \tcinduces you into a deep trance as your\tn\r\n"
+        "\tcAs your\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates "
+        "from\tn\r\n"
+        "\tcit quickly enshrouding you.  The \twm\tWi\twst \tcinduces you into a deep trance as "
+        "your\tn\r\n"
         "\tctrance as your body melds with your\tn $p. \r\n\tcYou begin to \tCmove "
         "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed \tCblurring out of focus.\tn\tn",
 
@@ -9905,7 +10108,6 @@ SPECIAL(bank)
   }
   else if (CMD_IS("deposit"))
   {
-
     /* code to accomdate "all" */
     skip_spaces(&argument);
     if (is_abbrev(argument, "all"))
@@ -9936,7 +10138,6 @@ SPECIAL(bank)
   }
   else if (CMD_IS("withdraw"))
   {
-
     /* code to accomdate "all" */
     skip_spaces(&argument);
     if (is_abbrev(argument, "all"))
@@ -10111,12 +10312,15 @@ SPECIAL(stability_boots)
 
     act("\twSmall eddies of wind begin to form around the edges of the area, \tn\r\n"
         "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
-        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
+        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind "
+        "\tn\r\n"
         "\twbefore the eddies are drawn inward around your body.\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-    act("\tw$n utters a word towards $p...   Small eddies of wind begin to form around the edges of the area, \tn\r\n"
+    act("\tw$n utters a word towards $p...   Small eddies of wind begin to form around the edges "
+        "of the area, \tn\r\n"
         "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
-        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
+        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind "
+        "\tn\r\n"
         "\twbefore the eddies are drawn inward around your body.\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
@@ -10185,7 +10389,6 @@ SPECIAL(hellfire)
 /* from homeland */
 SPECIAL(angel_leggings)
 {
-
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 1\r\n");
 
@@ -10259,7 +10462,6 @@ SPECIAL(angel_leggings)
 /* zusuk's epic robes from cloud realms */
 SPECIAL(dragon_robes)
 {
-
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 1\r\n");
 
@@ -10335,7 +10537,6 @@ SPECIAL(dragon_robes)
  * pet mobile follower, object vnum must match mobile vnum */
 SPECIAL(bought_pet)
 {
-
   if (cmd)
     return FALSE;
 
@@ -10367,7 +10568,6 @@ SPECIAL(bought_pet)
   /* found matching vnum for obejct, loaded pet succesfully */
   if (pet)
   {
-
     if (ZONE_FLAGGED(GET_ROOM_ZONE(obj->carried_by->in_room), ZONE_WILDERNESS))
     {
       X_LOC(pet) = world[obj->carried_by->in_room].coords[0];
@@ -10468,8 +10668,7 @@ SPECIAL(clang_bracer)
     {
       act("\tLThe bracer begins to glow on your arm, clenching tighter and "
           "tighter until you rip it off in agony.\tn",
-          FALSE, ch, 0, 0,
-          TO_CHAR);
+          FALSE, ch, 0, 0, TO_CHAR);
       act("\tLA bracer on $n\tL's arm begins to glow brightly and a look of "
           "intense pain crosses $s face as $e rips the bracer free.\tn",
           FALSE, ch, 0, 0, TO_ROOM);
@@ -10507,9 +10706,10 @@ SPECIAL(clang_bracer)
       }
 
       /* success! */
-      send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
-                                 "blow clear as if it were yesterday.  You feel your muscles tighten "
-                                 "then relax as the skill of ancient warriors is merged with your own.\r\n");
+      send_to_group(NULL, group,
+                    "The memories of ancient battles fills your mind, each "
+                    "blow clear as if it were yesterday.  You feel your muscles tighten "
+                    "then relax as the skill of ancient warriors is merged with your own.\r\n");
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_WEAPON_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
       return TRUE;
@@ -10589,7 +10789,8 @@ int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte 
     break;
   }
 
-  if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
+  if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD &&
+      armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
     cost /= 4;
 
   int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
@@ -10631,7 +10832,6 @@ int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyt
 
 void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
 {
-
   int i = 0;
   int cost = 0;
   int wear = ITEM_WEAR_TAKE;
@@ -10674,7 +10874,8 @@ void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, 
     if (armor_list[i].wear != wear)
       continue;
     cost = get_vendor_armor_cost(ch, level, i, masterwork);
-    if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
+    if (armor_list[i].armorType == ARMOR_TYPE_SHIELD ||
+        armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
     {
       send_to_char(ch, "%-25s ", armor_list[i].name);
       send_to_char(ch, " %d gold\r\n", MAX(1, cost));
@@ -10691,7 +10892,6 @@ void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, 
 
 void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
 {
-
   int i = 0, cost = 0;
 
   for (i = 2; i < NUM_WEAPON_TYPES; i++)
@@ -10707,20 +10907,22 @@ void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
     send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
 }
 
-#define MASTERWORK_MSG "Please specify whether you prefer mundane or masterwork items.\r\n"                             \
-                       "Mundane items provide no bonuses.\r\n"                                                          \
-                       "Masterwork weapons provide +1 to attack roll, but not damage. They cost an extra 300 gold.\r\n" \
-                       "Masterwork armor reduces the armor check penalty for certain skills, by one.  They cost an extra 50 gold per piece.\r\n"
+#define MASTERWORK_MSG                                                                             \
+  "Please specify whether you prefer mundane or masterwork items.\r\n"                             \
+  "Mundane items provide no bonuses.\r\n"                                                          \
+  "Masterwork weapons provide +1 to attack roll, but not damage. They cost an extra 300 gold.\r\n" \
+  "Masterwork armor reduces the armor check penalty for certain skills, by one.  They cost an "    \
+  "extra 50 gold per piece.\r\n"
 
 void set_weapon_name(struct obj_data *obj, int type)
 {
-
   char buf[200];
 
   snprintf(buf, sizeof(buf), "%s %s", AN(weapon_list[type].name), weapon_list[type].name);
   obj->short_description = strdup(buf);
 
-  snprintf(buf, sizeof(buf), "%s %s lies here.", AN(weapon_list[type].name), weapon_list[type].name);
+  snprintf(buf, sizeof(buf), "%s %s lies here.", AN(weapon_list[type].name),
+           weapon_list[type].name);
   obj->description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s", weapon_list[type].name);
@@ -10729,7 +10931,6 @@ void set_weapon_name(struct obj_data *obj, int type)
 
 void set_armor_name(struct obj_data *obj, int type)
 {
-
   char buf[200];
 
   snprintf(buf, sizeof(buf), "%s %s", AN(armor_list[type].name), armor_list[type].name);
@@ -10744,34 +10945,37 @@ void set_armor_name(struct obj_data *obj, int type)
 
 void set_masterwork_obj_name(struct obj_data *obj)
 {
-
   char buf[200];
 
   snprintf(buf, sizeof(buf), "%s (masterwork)", obj->short_description);
-  if (obj->short_description) free(obj->short_description);
+  if (obj->short_description)
+    free(obj->short_description);
   obj->short_description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s (masterwork)", obj->description);
-  if (obj->description) free(obj->description);
+  if (obj->description)
+    free(obj->description);
   obj->description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s masterwork", obj->name);
-  if (obj->name) free(obj->name);
+  if (obj->name)
+    free(obj->name);
   obj->name = strdup(buf);
 }
 
 void set_magical_obj_name(struct obj_data *obj, int level)
 {
-
   char buf[200];
   int i = 0;
 
   snprintf(buf, sizeof(buf), "%s (+%d)", obj->short_description, level);
-  if (obj->short_description) free(obj->short_description);
+  if (obj->short_description)
+    free(obj->short_description);
   obj->short_description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s (+%d)", obj->description, level);
-  if (obj->description) free(obj->description);
+  if (obj->description)
+    free(obj->description);
   obj->description = strdup(buf);
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
@@ -10788,22 +10992,23 @@ void set_magical_obj_name(struct obj_data *obj, int level)
   {
     snprintf(buf, sizeof(buf), "%s +%d", obj->name, level);
   }
-  if (obj->name) free(obj->name);
+  if (obj->name)
+    free(obj->name);
   obj->name = strdup(buf);
 }
 
 SPECIAL(buyarmor)
 {
-
   if (!CMD_IS("buy") && !CMD_IS("list"))
     return 0;
 
   struct char_data *keeper = (struct char_data *)me;
   int level = 0;
-  char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the armor's name
-                  // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
-                  // vendors level 1 and up ONLY sell weapons of their level bonus
-      arg2[100];  // name of the armor desired
+  char arg1
+      [100], // masterwork or mundane? if level is zero, if level > 0, then it's the armor's name
+             // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
+             // vendors level 1 and up ONLY sell weapons of their level bonus
+      arg2[100]; // name of the armor desired
 
   half_chop(argument, arg1, arg2);
 
@@ -10838,7 +11043,8 @@ SPECIAL(buyarmor)
       send_to_char(ch, MASTERWORK_MSG);
       return 1;
     }
-    display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false, level == 0 ? strdup(arg2) : strdup(arg1));
+    display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false,
+                            level == 0 ? strdup(arg2) : strdup(arg1));
     return 1;
   }
 
@@ -10862,10 +11068,13 @@ SPECIAL(buyarmor)
 
   if (!*arg2 && level == 0)
   {
-    send_to_char(ch, "Please specify which armor piece you wish to buy.\r\n"
-                     "Type buy (mundane|masterwork) (full name of armor piece/shield)\r\n"
-                     "A list can be seen by typing: list (mundane|masterwork) (body|arms|legs|head|shield)\r\n");
-    send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
+    send_to_char(
+        ch,
+        "Please specify which armor piece you wish to buy.\r\n"
+        "Type buy (mundane|masterwork) (full name of armor piece/shield)\r\n"
+        "A list can be seen by typing: list (mundane|masterwork) (body|arms|legs|head|shield)\r\n");
+    send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields "
+                     "and bucklers.\r\n");
     return 1;
   }
 
@@ -10891,9 +11100,12 @@ SPECIAL(buyarmor)
 
   if (i >= NUM_SPEC_ARMOR_TYPES)
   {
-    send_to_char(ch, "Please specify which armor piece you wish to buy.  A list can be seen by typing: list (body|arms|legs|head|shield)\r\n");
-    send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
-    send_to_char(ch, "\r\nYou must specify the exact, full name of the armor you wish to buy, in lowercase.\r\n");
+    send_to_char(ch, "Please specify which armor piece you wish to buy.  A list can be seen by "
+                     "typing: list (body|arms|legs|head|shield)\r\n");
+    send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields "
+                     "and bucklers.\r\n");
+    send_to_char(ch, "\r\nYou must specify the exact, full name of the armor you wish to buy, in "
+                     "lowercase.\r\n");
     return 1;
   }
 
@@ -10909,7 +11121,8 @@ SPECIAL(buyarmor)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, armor_list[i].name, GET_GOLD(ch));
+    send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost,
+                 armor_list[i].name, GET_GOLD(ch));
     return 1;
   }
 
@@ -10922,7 +11135,8 @@ SPECIAL(buyarmor)
   struct obj_data *obj = NULL;
   obj_vnum base_vnum = 0;
 
-  if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
+  if (armor_list[i].armorType == ARMOR_TYPE_SHIELD ||
+      armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
   {
     base_vnum = 61;
   }
@@ -10947,7 +11161,9 @@ SPECIAL(buyarmor)
 
   if ((obj = read_object(base_vnum, VIRTUAL)) == NULL)
   {
-    send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", armor_list[i].name);
+    send_to_char(ch,
+                 "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n",
+                 armor_list[i].name);
     return 1;
   }
 
@@ -10975,16 +11191,16 @@ SPECIAL(buyarmor)
 
 SPECIAL(buyweapons)
 {
-
   if (!CMD_IS("buy") && !CMD_IS("list"))
     return 0;
 
   struct char_data *keeper = (struct char_data *)me;
   int level = 0;
-  char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the weapon's name
-                  // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
-                  // vendors level 1 and up ONLY sell weapons of their level bonus
-      arg2[100];  // name of the weapon desired
+  char arg1
+      [100], // masterwork or mundane? if level is zero, if level > 0, then it's the weapon's name
+             // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
+             // vendors level 1 and up ONLY sell weapons of their level bonus
+      arg2[100]; // name of the weapon desired
 
   half_chop(argument, arg1, arg2);
 
@@ -11069,7 +11285,8 @@ SPECIAL(buyweapons)
   {
     display_buy_weapon_types(ch, 0, false);
     send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
-    send_to_char(ch, "\r\nYou must specify the exact, full name of the weapon you wish to buy, in lowercase.\r\n");
+    send_to_char(ch, "\r\nYou must specify the exact, full name of the weapon you wish to buy, in "
+                     "lowercase.\r\n");
     return 1;
   }
 
@@ -11085,7 +11302,8 @@ SPECIAL(buyweapons)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, weapon_list[i].name, GET_GOLD(ch));
+    send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost,
+                 weapon_list[i].name, GET_GOLD(ch));
     return 1;
   }
 
@@ -11100,7 +11318,9 @@ SPECIAL(buyweapons)
 
   if ((obj = read_object(base_vnum, VIRTUAL)) == NULL)
   {
-    send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", weapon_list[i].name);
+    send_to_char(ch,
+                 "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n",
+                 weapon_list[i].name);
     return 1;
   }
 
@@ -11142,21 +11362,21 @@ SPECIAL(buyweapons)
 #define MOLD_CRAFT_CLOAK 6
 
 #if defined(CAMPAIGN_DL)
-  #define MOLD_OBJ_VNUM 16603
+#define MOLD_OBJ_VNUM 16603
 #else
-  #define MOLD_OBJ_VNUM 208
+#define MOLD_OBJ_VNUM 208
 #endif
 #define MOLD_OBJ_COST 100
 
 void create_crafting_mold(struct char_data *ch, int selection, int type)
 {
-
   if (!ch)
     return;
 
   if (GET_GOLD(ch) < MOLD_OBJ_COST)
   {
-    send_to_char(ch, "You need to have %d gold on you to purchase a crafting mold.\r\n", MOLD_OBJ_COST);
+    send_to_char(ch, "You need to have %d gold on you to purchase a crafting mold.\r\n",
+                 MOLD_OBJ_COST);
     return;
   }
 
@@ -11166,48 +11386,61 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
   obj = read_object(MOLD_OBJ_VNUM, VIRTUAL);
   if (!(obj)) // more error checking.
   {
-    send_to_char(ch, "There seems to be a problem with the mold object vnum.  Please inform staff.\r\n");
+    send_to_char(
+        ch, "There seems to be a problem with the mold object vnum.  Please inform staff.\r\n");
     return;
   }
 
   switch (type)
   {
   case MOLD_TYPE_WEAPON:
-    if (selection < 0 || selection >= NUM_WEAPON_TYPES) // redundant, but we'll do it in case it gets called elsewhere in the future
+    if (selection < 0 ||
+        selection >=
+            NUM_WEAPON_TYPES) // redundant, but we'll do it in case it gets called elsewhere in the future
     {
       send_to_char(ch, "That is not a valid weapon mold type\r\n");
       return;
     }
     set_weapon_object(obj, selection);
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
-    snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(weapon_list[selection].name), weapon_list[selection].name);
+    snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(weapon_list[selection].name),
+             weapon_list[selection].name);
     obj->name = strdup(buf);
-    snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(weapon_list[selection].name), weapon_list[selection].name);
+    snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(weapon_list[selection].name),
+             weapon_list[selection].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, sizeof(buf), "A crafting mold for %s %s lies here.", a_or_an(weapon_list[selection].name), weapon_list[selection].name);
+    snprintf(buf, sizeof(buf), "A crafting mold for %s %s lies here.",
+             a_or_an(weapon_list[selection].name), weapon_list[selection].name);
     obj->description = strdup(buf);
     obj_to_char(obj, ch);
     GET_GOLD(ch) -= MOLD_OBJ_COST;
-    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, MOLD_OBJ_COST);
+    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description,
+                 MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;
     return;
   case MOLD_TYPE_ARMOR:
-    if (selection < 0 || selection >= NUM_SPEC_ARMOR_TYPES) // redundant, but we'll do it in case it gets called elsewhere in the future
+    if (selection < 0 ||
+        selection >=
+            NUM_SPEC_ARMOR_TYPES) // redundant, but we'll do it in case it gets called elsewhere in the future
     {
       send_to_char(ch, "That is not a valid armor mold type\r\n");
       return;
     }
     set_armor_object(obj, selection);
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
-    snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(armor_list[selection].name), armor_list[selection].name);
+    snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(armor_list[selection].name),
+             armor_list[selection].name);
     obj->name = strdup(buf);
-    snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(armor_list[selection].name), armor_list[selection].name);
+    snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(armor_list[selection].name),
+             armor_list[selection].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, sizeof(buf), "A crafting mold for %s %s lies here.", a_or_an(armor_list[selection].name), armor_list[selection].name);
+    snprintf(buf, sizeof(buf), "A crafting mold for %s %s lies here.",
+             a_or_an(armor_list[selection].name), armor_list[selection].name);
     obj->description = strdup(buf);
     obj_to_char(obj, ch);
     GET_GOLD(ch) -= MOLD_OBJ_COST;
-    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, MOLD_OBJ_COST);
+    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description,
+                 MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;
     return;
   case MOLD_TYPE_ACCESSORY:
@@ -11238,15 +11471,19 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
 
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
 
-    snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(mold_accessories[selection]), mold_accessories[selection]);
+    snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(mold_accessories[selection]),
+             mold_accessories[selection]);
     obj->name = strdup(buf);
-    snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(mold_accessories[selection]), mold_accessories[selection]);
+    snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(mold_accessories[selection]),
+             mold_accessories[selection]);
     obj->short_description = strdup(buf);
-    snprintf(buf, sizeof(buf), "A crafting mold for %s %s lies here.", a_or_an(mold_accessories[selection]), mold_accessories[selection]);
+    snprintf(buf, sizeof(buf), "A crafting mold for %s %s lies here.",
+             a_or_an(mold_accessories[selection]), mold_accessories[selection]);
     obj->description = strdup(buf);
     obj_to_char(obj, ch);
     GET_GOLD(ch) -= MOLD_OBJ_COST;
-    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, MOLD_OBJ_COST);
+    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description,
+                 MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;
     return;
   }
@@ -11309,7 +11546,8 @@ SPECIAL(buymolds)
     int selection = -1;
     if (!*argument)
     {
-      send_to_char(ch, "Please specify the full name of the weapon, armor piece or accessory mold you wish to purchase.  Type 'list' to see options.\r\n");
+      send_to_char(ch, "Please specify the full name of the weapon, armor piece or accessory mold "
+                       "you wish to purchase.  Type 'list' to see options.\r\n");
       return 1;
     }
     for (i = 1; i < NUM_WEAPON_TYPES; i++)
@@ -11375,7 +11613,8 @@ SPECIAL(buymolds)
     }
     else
     {
-      send_to_char(ch, "Please specify the full name of the weapon, armor piece or accessory mold you wish to purchase.  Type 'list' to see options.\r\n");
+      send_to_char(ch, "Please specify the full name of the weapon, armor piece or accessory mold "
+                       "you wish to purchase.  Type 'list' to see options.\r\n");
       return 1;
     }
   }
@@ -11450,7 +11689,8 @@ SPECIAL(vampire_cloak)
           send_to_char(ch, "\tC");
         else
           send_to_char(ch, "\tc");
-        send_to_char(ch, "%2d) \tn+%d to %-16s %s", count, get_vampire_cloak_bonus(GET_LEVEL(ch), i), apply_types_lowercase(i),
+        send_to_char(ch, "%2d) \tn+%d to %-16s %s", count,
+                     get_vampire_cloak_bonus(GET_LEVEL(ch), i), apply_types_lowercase(i),
                      get_vampire_cloak_bonus(GET_LEVEL(ch), i) >= 10 ? "" : " ");
         if ((count % 2) == 0)
           send_to_char(ch, "\r\n");
@@ -11460,9 +11700,11 @@ SPECIAL(vampire_cloak)
       send_to_char(ch, "\r\n");
 
     send_to_char(ch, "\r\n");
-    send_to_char(ch, "Please enter 'setcloak (number)' where number is the number of the bonus type you'd like above.\r\n");
+    send_to_char(ch, "Please enter 'setcloak (number)' where number is the number of the bonus "
+                     "type you'd like above.\r\n");
     send_to_char(ch, "\r\n");
-    send_to_char(ch, "Or, you can type 'setcloak description (new description)' to restring the cloak.\r\n");
+    send_to_char(
+        ch, "Or, you can type 'setcloak description (new description)' to restring the cloak.\r\n");
     send_to_char(ch, "\r\n");
     return 1;
   }
@@ -11475,7 +11717,8 @@ SPECIAL(vampire_cloak)
   {
     if (!*desc)
     {
-      send_to_char(ch, "You need to provide a new description for the cloak.  Use: setcloak description (new description)\r\n");
+      send_to_char(ch, "You need to provide a new description for the cloak.  Use: setcloak "
+                       "description (new description)\r\n");
       return 1;
     }
 
@@ -11499,7 +11742,8 @@ SPECIAL(vampire_cloak)
 
   if (choice <= APPLY_NONE || choice >= NUM_APPLIES)
   {
-    send_to_char(ch, "That is not a valid bonus type.  Please type 'setcloak' by itself to see a list of options.\r\n");
+    send_to_char(ch, "That is not a valid bonus type.  Please type 'setcloak' by itself to see a "
+                     "list of options.\r\n");
     return 1;
   }
 
@@ -11518,13 +11762,17 @@ SPECIAL(vampire_cloak)
 
   if (!valid_vampire_cloak_apply(result))
   {
-    send_to_char(ch, "That is not a valid bonus type.  Please type 'setcloak' by itself to see a list of options.\r\n");
+    send_to_char(ch, "That is not a valid bonus type.  Please type 'setcloak' by itself to see a "
+                     "list of options.\r\n");
     return 1;
   }
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
   {
-    send_to_char(ch, "You still have %d rounds to wait before you can change or set your vampire cloak bonuses.\r\n", GET_SETCLOAK_TIMER(ch));
+    send_to_char(ch,
+                 "You still have %d rounds to wait before you can change or set your vampire cloak "
+                 "bonuses.\r\n",
+                 GET_SETCLOAK_TIMER(ch));
     return 1;
   }
 
@@ -11542,10 +11790,12 @@ SPECIAL(vampire_cloak)
   obj->affected[0].modifier = get_vampire_cloak_bonus(GET_LEVEL(ch), result);
   obj->affected[0].bonus_type = BONUS_TYPE_RACIAL;
 
-  send_to_char(ch, "\tcYour vampire cloak now offers +%d to your %s!\r\n\tn", obj->affected[0].modifier, apply_types_lowercase(result));
+  send_to_char(ch, "\tcYour vampire cloak now offers +%d to your %s!\r\n\tn",
+               obj->affected[0].modifier, apply_types_lowercase(result));
 
   // set the min level on the cloak
-  GET_OBJ_LEVEL(obj) = (GET_LEVEL(ch) / 15) * 15; // This ensures the only results will be 0, 15 and 30.
+  GET_OBJ_LEVEL(obj) =
+      (GET_LEVEL(ch) / 15) * 15; // This ensures the only results will be 0, 15 and 30.
 
   // make sure it's vampire only
   REMOVE_OBJ_FLAG(obj, ITEM_ANTI_VAMPIRE);
@@ -11578,7 +11828,8 @@ SPECIAL(identify_mob)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Which item do you wish to have identified? Or enter 'worn' to show basic bonuses on equipped items.\r\n");
+    send_to_char(ch, "Which item do you wish to have identified? Or enter 'worn' to show basic "
+                     "bonuses on equipped items.\r\n");
     return 1;
   }
 
@@ -11591,34 +11842,37 @@ SPECIAL(identify_mob)
       send_to_char(ch, "You need to pay %d coins to identify your worn equipment.\r\n", cost);
       return 1;
     }
-    
+
     GET_GOLD(ch) -= cost;
-    
+
     send_to_char(ch, "\r\nYour equipped items have been identified for %d coins.\r\n\r\n", cost);
 
     call_magic(ch, ch, 0, SPELL_MASS_IDENTIFY, 0, 30, CAST_SPELL);
-    
+
     return 1;
   }
 
   if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
 
-  if (!obj)
-  {
-    send_to_char(ch, "You don't seem to have that item on hand.\r\n");
-    return 1;
-  }
+    if (!obj)
+    {
+      send_to_char(ch, "You don't seem to have that item on hand.\r\n");
+      return 1;
+    }
 
   /* success! */
   if (obj)
   {
     int cost = MAX(1, GET_OBJ_LEVEL(obj) * 5);
-    
+
     if (CMD_IS("identify"))
     {
       if (GET_GOLD(ch) < cost)
       {
-        send_to_char(ch, "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n", cost, GET_GOLD(ch));
+        send_to_char(
+            ch,
+            "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n",
+            cost, GET_GOLD(ch));
         return 1;
       }
       GET_GOLD(ch) -= cost;
@@ -11638,7 +11892,6 @@ SPECIAL(identify_mob)
   }
 
   return 1;
-
 }
 
 SPECIAL(replace_quest_item)
@@ -11656,18 +11909,20 @@ SPECIAL(replace_quest_item)
   if (!*arg1)
   {
     send_to_char(ch, "Quests that you have completed with replaceable rewards:\r\n"
-                    "VNum  Description                                          Item Reward\r\n"
-                    "----- ---------------------------------------------------- -----------\r\n");
+                     "VNum  Description                                          Item Reward\r\n"
+                     "----- ---------------------------------------------------- -----------\r\n");
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
     {
       if ((rnum = real_quest(ch->player_specials->saved.completed_quests[i])) != NOTHING)
       {
-        if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 && QST_OBJ(rnum) < 65535)
+        if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 &&
+            QST_OBJ(rnum) < 65535)
         {
           obj = read_object(QST_OBJ(rnum), VIRTUAL);
           if (obj)
           {
-            send_to_char(ch, "\tg%5d\tn) \tc%-52.52s\tn \ty%s\tn\r\n", QST_NUM(rnum), QST_DESC(rnum), obj->short_description);
+            send_to_char(ch, "\tg%5d\tn) \tc%-52.52s\tn \ty%s\tn\r\n", QST_NUM(rnum),
+                         QST_DESC(rnum), obj->short_description);
           }
         }
       }
@@ -11678,7 +11933,8 @@ SPECIAL(replace_quest_item)
     }
     else
     {
-      send_to_char(ch, "Type 'replace (quest vnum) to replace the quest item for the specified quest.\r\n");
+      send_to_char(
+          ch, "Type 'replace (quest vnum) to replace the quest item for the specified quest.\r\n");
     }
   }
   else
@@ -11687,7 +11943,8 @@ SPECIAL(replace_quest_item)
     {
       if ((rnum = real_quest(ch->player_specials->saved.completed_quests[i])) != NOTHING)
       {
-        if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 && QST_OBJ(rnum) < 65535 )
+        if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 &&
+            QST_OBJ(rnum) < 65535)
         {
           obj = read_object(QST_OBJ(rnum), VIRTUAL);
           if (obj)
@@ -11696,7 +11953,8 @@ SPECIAL(replace_quest_item)
             {
               counter++;
               obj_to_char(obj, ch);
-              send_to_char(ch, "You have had your quest item '%s' replaced.\r\n", obj->short_description);
+              send_to_char(ch, "You have had your quest item '%s' replaced.\r\n",
+                           obj->short_description);
               return 1;
             }
           }
@@ -11705,7 +11963,8 @@ SPECIAL(replace_quest_item)
     }
     if (!counter)
     {
-      send_to_char(ch, "There either is no replaceable quest object for that quest vnum, or you haven't completed that quest yet.\r\n");
+      send_to_char(ch, "There either is no replaceable quest object for that quest vnum, or you "
+                       "haven't completed that quest yet.\r\n");
     }
   }
   return 1;
@@ -11716,76 +11975,89 @@ SPECIAL(replace_quest_item)
 /* Vessel/Ship Special Procedures */
 
 /* Special procedure for Greyhawk ship objects - handles boarding */
-SPECIAL(greyhawk_ship_object) {
+SPECIAL(greyhawk_ship_object)
+{
   struct obj_data *obj = (struct obj_data *)me;
   int ship_index;
   room_rnum interior_room;
-  
+
   /* Only handle 'board' command */
   if (!cmd || !CMD_IS("board"))
     return 0;
-  
+
   /* Validate object type */
-  if (GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP) {
+  if (GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP)
+  {
     send_to_char(ch, "This is not a ship you can board.\r\n");
     return 0;
   }
-  
+
   /* Get ship index from object value 1 */
   ship_index = GET_OBJ_VAL(obj, 1);
-  if (ship_index < 0 || ship_index >= 500) { /* GREYHAWK_MAXSHIPS = 500 */
+  if (ship_index < 0 || ship_index >= 500)
+  { /* GREYHAWK_MAXSHIPS = 500 */
     send_to_char(ch, "This ship seems to be broken.\r\n");
     return 0;
   }
-  
+
   /* Get interior room from object value 0 */
   interior_room = real_room(GET_OBJ_VAL(obj, 0));
-  if (interior_room == NOWHERE) {
+  if (interior_room == NOWHERE)
+  {
     send_to_char(ch, "You cannot find a way inside this ship.\r\n");
     return 0;
   }
-  
+
+  /* Link interior room to ship data - required for disembark and ship commands */
+  world[interior_room].ship = &greyhawk_ships[ship_index];
+
+  /* Link ship data to ship object - required for coordinate sync to move object */
+  greyhawk_ships[ship_index].shipobj = obj;
+
   /* Move character to ship interior */
   act("$n boards $p.", TRUE, ch, obj, 0, TO_ROOM);
   char_from_room(ch);
   char_to_room(ch, interior_room);
   act("$n arrives from outside.", TRUE, ch, 0, 0, TO_ROOM);
-  
+
   send_to_char(ch, "You board the ship.\r\n");
   look_at_room(ch, 0);
-  
+
   return 1;
 }
 
 /* Special procedure for ship control rooms - handles ship commands */
-SPECIAL(greyhawk_ship_commands) {
+SPECIAL(greyhawk_ship_commands)
+{
   room_rnum room;
-  
+
   /* Only process ship-related commands */
   if (!cmd)
     return 0;
-    
+
   room = ch->in_room;
-  
+
   /* Find which ship this room belongs to by checking ship data */
   /* This would need to iterate through ships to find matching interior room */
   /* For now, we'll use a simplified approach */
-  
-  /* Check if this is a ship control command */
-  if (CMD_IS("setsail") || CMD_IS("heading") || CMD_IS("speed") || 
-      CMD_IS("anchor") || CMD_IS("disembark") || CMD_IS("tactical")) {
-    
+
+  /* Check if this is a ship control command (bridge-only commands) */
+  /* Note: disembark removed - handled by do_greyhawk_disembark from any ship room */
+  if (CMD_IS("setsail") || CMD_IS("heading") || CMD_IS("speed") || CMD_IS("anchor") ||
+      CMD_IS("tactical"))
+  {
     /* Validate this is actually a ship control room */
-    if (!ROOM_FLAGGED(room, ROOM_HOUSE)) { /* Using ROOM_HOUSE as placeholder for ship rooms */
+    if (!ROOM_FLAGGED(room, ROOM_HOUSE))
+    { /* Using ROOM_HOUSE as placeholder for ship rooms */
       send_to_char(ch, "You must be in a ship's control room to use that command.\r\n");
       return 0;
     }
-    
+
     /* Pass command to vessel system for processing */
     /* The actual command implementations are in vessels.c */
     return 0; /* Let the normal command handler process it */
   }
-  
+
   return 0;
 }
 

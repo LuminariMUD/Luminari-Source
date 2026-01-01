@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS region_hints (
     hint_category ENUM(
         'atmosphere',        -- General atmospheric descriptions
         'fauna',            -- Animal life descriptions
-        'flora',            -- Plant life descriptions  
+        'flora',            -- Plant life descriptions
         'geography',        -- Landform and geological features
         'weather_influence', -- How weather affects this region
         'resources',        -- Resource availability hints
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS region_hints (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE,
-    
+
     FOREIGN KEY (region_vnum) REFERENCES region_data(vnum) ON DELETE CASCADE,
     INDEX idx_region_category (region_vnum, hint_category),
     INDEX idx_priority (priority),
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS hint_usage_log (
     season VARCHAR(10),
     time_of_day VARCHAR(10),
     resource_state JSON DEFAULT NULL,  -- Snapshot of resource levels when used
-    
+
     FOREIGN KEY (hint_id) REFERENCES region_hints(id) ON DELETE CASCADE,
     INDEX idx_hint_usage (hint_id, used_at),
     INDEX idx_room_usage (room_vnum, used_at)
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS region_profiles (
     ai_agent_id VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (region_vnum) REFERENCES region_data(vnum) ON DELETE CASCADE
 );
 
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS description_templates (
     ai_agent_id VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE,
-    
+
     FOREIGN KEY (region_vnum) REFERENCES region_data(vnum) ON DELETE CASCADE,
     INDEX idx_region_type (region_vnum, template_type),
     INDEX idx_active_templates (is_active)
@@ -131,7 +131,7 @@ INSERT IGNORE INTO region_profiles (region_vnum, overall_theme, dominant_mood, k
 
 -- View for quick lookup of active hints by region and category
 CREATE VIEW IF NOT EXISTS active_region_hints AS
-SELECT 
+SELECT
     rh.id,
     rh.region_vnum,
     rh.hint_category,
@@ -150,7 +150,7 @@ ORDER BY rh.region_vnum, rh.priority DESC;
 
 -- View for hint usage analytics
 CREATE VIEW IF NOT EXISTS hint_analytics AS
-SELECT 
+SELECT
     rh.region_vnum,
     rh.hint_category,
     COUNT(hul.id) as usage_count,

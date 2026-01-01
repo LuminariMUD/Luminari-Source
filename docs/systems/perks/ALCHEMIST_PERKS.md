@@ -334,9 +334,9 @@ This perk system draws from the Pathfinder Alchemist class, which represents the
 1. **Three Core Mechanical Pillars:**
 
    - **Mutagenist (Personal Enhancement):** Based on the *Mutagen* class feature from Pathfinder. Creates personal enhancement buffs granting ability score bonuses. Mechanically similar to the Pathfinder alchemist's core identity of self-transformation. Perks emphasize personal survivability, exotic mutagen combinations, and scaling enhancement.
-   
+
    - **Bomb Craftsman (Combat Explosives):** Based on the *Bomb* class feature from Pathfinder. Creates ranged touch attack weapons that deal area damage with elemental specializations and crowd control effects. Mechanically similar to Pathfinder's devastating bomb mechanics with +1d6 per level scaling and elemental discoveries. Perks emphasize damage output, elemental specialization, chain reactions, and area control.
-   
+
    - **Extract Master (Spell Bottling):** Based on the *Extract* class feature from Pathfinder. Creates prepared spell-like infusions that function as potions or stored magical effects. Mechanically similar to Pathfinder's prepared spell system integrated with alchemy. Perks emphasize versatility, spell level progression, and party support through distributed extracts.
 
 2. **Progression Balance:**
@@ -344,7 +344,7 @@ This perk system draws from the Pathfinder Alchemist class, which represents the
    - Tier II (2 points): Feature expansion (additional abilities, elemental choices, specializations)
    - Tier III (3 points): Advanced mastery (combination mechanics, multi-effect abilities)
    - Tier IV (5 points): Capstone perks representing "ultimate" mastery of each tree
-   
+
    Each tier builds on prerequisites from earlier tiers, creating a natural progression path.
 
 3. **Pathfinder Mechanic References:**

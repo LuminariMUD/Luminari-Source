@@ -25,7 +25,7 @@ resource_cascade_integration.c
 
 **Replace existing harvest calls:**
 ```c
-// OLD: 
+// OLD:
 attempt_wilderness_harvest(ch, resource_type);
 
 // NEW:
@@ -77,7 +77,7 @@ Resource Interactions:
 Critical Thresholds:
   Crystal availability: 12% (below sustainable levels)
   Water availability: 28% (ecosystem stress threshold)
-  
+
 Recommended Actions:
   • Cease crystal harvesting for 2-3 days
   • Reduce stone quarrying frequency
@@ -108,7 +108,7 @@ Recommended Actions:
 ### **Cascade Effect Strengths** (in database)
 ```sql
 -- Adjust effect magnitudes
-UPDATE resource_relationships 
+UPDATE resource_relationships
 SET effect_magnitude = -0.040  -- Reduce from -0.080
 WHERE source_resource = 1 AND target_resource = 7;  -- Minerals affecting crystals
 ```
@@ -120,7 +120,7 @@ WHERE source_resource = 1 AND target_resource = 7;  -- Minerals affecting crysta
 #define ECOSYSTEM_STRESSED_THRESHOLD    0.40  // Several resources <40%
 ```
 
-### **Conservation Scoring** 
+### **Conservation Scoring**
 ```c
 #define CONSERVATION_PERFECT            1.0   // Sustainable harvesting
 #define CONSERVATION_DESTRUCTIVE        0.2   // Ecosystem damage

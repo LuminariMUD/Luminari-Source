@@ -1,10 +1,10 @@
-# Makefile for test_staff_events.c  
+# Makefile for test_staff_events.c
 # LuminariMUD staff event system unit tests
 
 CC = gcc
 CFLAGS = -g -Wall -I../src -I../.. -DTEST_BUILD
-LDFLAGS = 
-LIBS = 
+LDFLAGS =
+LIBS =
 
 # Source files
 TEST_SRCS = test_staff_events.c CuTest/CuTest.c

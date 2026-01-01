@@ -79,18 +79,18 @@ extern "C"
 {
 #endif
 
-    /* functions */
-    void grapple_cleanup(struct char_data *ch);
-    void clear_grapple(struct char_data *ch, struct char_data *vict);
+/* functions */
+void grapple_cleanup(struct char_data *ch);
+void clear_grapple(struct char_data *ch, struct char_data *vict);
 
-    /* Functions with subcommands */
+/* Functions with subcommands */
 
-    /* Functions without subcommands */
-    ACMD_DECL(do_grapple);
-    ACMD_DECL(do_struggle);
-    ACMD_DECL(do_free_grapple);
-    ACMD_DECL(do_bind);
-    ACMD_DECL(do_pin);
+/* Functions without subcommands */
+ACMD_DECL(do_grapple);
+ACMD_DECL(do_struggle);
+ACMD_DECL(do_free_grapple);
+ACMD_DECL(do_bind);
+ACMD_DECL(do_pin);
 
 /* Macros */
 #define GRAPPLE_TARGET(ch) ((ch)->char_specials.grapple_target)

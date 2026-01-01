@@ -1,13 +1,13 @@
 /**
 * @file genolc.h                          LuminariMUD
 * Generic OLC Library - General.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-* 
+*
 * This source code, which was not part of the CircleMUD legacy code,
 * is attributed to:
-* Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.                                                    
+* Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.
 */
 #ifndef _GENOLC_H_
 #define _GENOLC_H_

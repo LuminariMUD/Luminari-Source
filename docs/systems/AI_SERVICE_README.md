@@ -5,7 +5,7 @@
 The AI Service integrates both OpenAI's GPT models and local Ollama LLM into LuminariMUD, enabling dynamic NPC dialogue through natural language processing. NPCs with the AI_ENABLED flag can respond intelligently to player messages using context-aware responses. The system features automatic fallback from OpenAI to Ollama, ensuring AI-powered NPCs are always available.
 
 **Current Status**: IMPLEMENTED (January 2025) - Core NPC dialogue with dual AI backend support  
-**Latest Updates**: 
+**Latest Updates**:
 - Ollama model warmup during server startup
 - Enhanced error reporting with specific failure reasons
 - Proper JSON escaping for special characters
@@ -396,9 +396,9 @@ ai reset             # Reset rate limits
 
 ### Request Flow with Ollama Fallback
 ```
-Player Input 
+Player Input
     ↓
-Sanitization 
+Sanitization
     ↓
 Cache Check ─── Hit ──→ Return Cached Response
     ↓ Miss
@@ -565,7 +565,7 @@ void ai_reset_rate_limits(void);         // Reset counters (admin)
 
 // Utility functions
 void log_ai_error(const char *function, const char *error);
-void log_ai_interaction(struct char_data *ch, struct char_data *npc, 
+void log_ai_interaction(struct char_data *ch, struct char_data *npc,
                        const char *response, const char *backend, bool from_cache);
 int get_cache_size(void);
 
@@ -600,7 +600,7 @@ void ai_cache_cleanup(void);                                     // Remove expir
 ### Event Functions (ai_events.c)
 ```c
 // Event queuing
-void queue_ai_response(struct char_data *ch, struct char_data *npc, 
+void queue_ai_response(struct char_data *ch, struct char_data *npc,
                        const char *response, const char *backend, bool from_cache);
 void queue_ai_request_retry(const char *prompt, int request_type, int retry_count,
                             struct char_data *ch, struct char_data *npc);
@@ -940,7 +940,7 @@ When `AI_DEBUG_MODE` is enabled in ai_service.h:
 **Version**: 3.1  
 **Last Updated**: January 2025  
 **Maintainer**: LuminariMUD Development Team  
-**Key Updates**: 
+**Key Updates**:
 - Added Ollama LLM integration for always-on AI capability
 - Implemented proper JSON escaping for special characters
 - Added model warmup and auto-initialization at boot

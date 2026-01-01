@@ -87,19 +87,19 @@ void free_craft(struct craft_data *craft)
   if (craft->requirements->iSize)
   {
     struct requirement_data *next_r = NULL;
-    
+
     /* Fix double-free: Get first item from list */
     r = (struct requirement_data *)merge_iterator(&Iterator, craft->requirements);
-    
+
     while (r)
     {
       /* Get next item BEFORE removing current item from list */
       next_r = (struct requirement_data *)next_in_list(&Iterator);
-      
+
       /* Now safe to remove and free current item */
       remove_from_list(r, craft->requirements);
       free(r);
-      
+
       /* Move to next item */
       r = next_r;
     }
@@ -172,9 +172,11 @@ void load_crafts(void)
           if (!strcmp(tag, "Req "))
           {
             requirement = create_requirement();
-            if (sscanf(line, "%d %d %d\n", (int *)&requirement->req_vnum, &requirement->req_amount, &requirement->req_flags) != 3) {
+            if (sscanf(line, "%d %d %d\n", (int *)&requirement->req_vnum, &requirement->req_amount,
+                       &requirement->req_flags) != 3)
+            {
               log("SYSERR: Format error in Requirement");
-              free(requirement);  /* Free the requirement if parsing failed */
+              free(requirement); /* Free the requirement if parsing failed */
             }
             else
               add_to_list(requirement, craft->requirements);
@@ -204,13 +206,14 @@ void load_crafts(void)
         log("SYSERR: Error in the crafts file.");
     }
   }
-  
+
   /* Clean up any incomplete craft that wasn't added to the list */
-  if (in_craft && craft) {
+  if (in_craft && craft)
+  {
     log("SYSERR: Craft file ended with incomplete craft definition!");
     free_craft(craft);
   }
-  
+
   fclose(fp);
 }
 
@@ -228,8 +231,7 @@ static void save_crafts_to_disk(void)
     return;
   }
 
-  for (c = (struct craft_data *)merge_iterator(&Iterator, global_craft_list);
-       c;
+  for (c = (struct craft_data *)merge_iterator(&Iterator, global_craft_list); c;
        c = next_in_list(&Iterator))
   {
     fprintf(fp, "NEW\n");
@@ -248,10 +250,9 @@ static void save_crafts_to_disk(void)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
-      fprintf(fp, "Req : %d %d %d\n",
-              r->req_vnum, r->req_amount, r->req_flags);
+      fprintf(fp, "Req : %d %d %d\n", r->req_vnum, r->req_amount, r->req_flags);
     fprintf(fp, "End :\n");
   }
 
@@ -301,8 +302,7 @@ struct craft_data *get_craft_from_arg(char *arg)
   if (!global_craft_list->iSize)
     return NULL;
 
-  for (craft = (struct craft_data *)merge_iterator(&iterator, global_craft_list);
-       craft != NULL;
+  for (craft = (struct craft_data *)merge_iterator(&iterator, global_craft_list); craft != NULL;
        craft = (struct craft_data *)next_in_list(&iterator))
   {
     if (is_abbrev(arg, CRAFT_NAME(craft)))
@@ -321,8 +321,7 @@ struct craft_data *get_craft_from_id(int id)
   if (!global_craft_list->iSize)
     return NULL;
 
-  for (craft = (struct craft_data *)merge_iterator(&iterator, global_craft_list);
-       craft != NULL;
+  for (craft = (struct craft_data *)merge_iterator(&iterator, global_craft_list); craft != NULL;
        craft = (struct craft_data *)next_in_list(&iterator))
   {
     if (CRAFT_ID(craft) == id)
@@ -342,8 +341,7 @@ struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj
   if (craft->requirements->iSize == 0)
     return NULL;
 
-  for (r = (struct requirement_data *)merge_iterator(&Iterator, craft->requirements);
-       r;
+  for (r = (struct requirement_data *)merge_iterator(&Iterator, craft->requirements); r;
        r = next_in_list(&Iterator))
     if (r->req_vnum == vnum)
     {
@@ -426,8 +424,7 @@ int missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
     return (-1);
 
   for (requirement = (struct requirement_data *)merge_iterator(&iterator, craft->requirements);
-       requirement != NULL;
-       requirement = (struct requirement_data *)next_in_list(&iterator))
+       requirement != NULL; requirement = (struct requirement_data *)next_in_list(&iterator))
   {
     if ((rnum = real_object(requirement->req_vnum)) == NOTHING)
       continue;
@@ -446,8 +443,7 @@ static void remove_components(struct char_data *ch, struct craft_data *craft, bo
   struct obj_data *obj;
   int count;
 
-  for (req = (struct requirement_data *)merge_iterator(&iterator, craft->requirements);
-       req;
+  for (req = (struct requirement_data *)merge_iterator(&iterator, craft->requirements); req;
        req = next_in_list(&iterator))
   {
     if (IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE))
@@ -491,11 +487,14 @@ void list_all_crafts(struct char_data *ch)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
     {
-      send_to_char(ch, "\t2%-4d)\t3 %-22s -> \t1[\t2%-4d\t1] [\t2%s\t1]\tn\r\n", CRAFT_ID(craft), CRAFT_NAME(craft), CRAFT_OBJVNUM(craft),
-                   (vnum = real_object(CRAFT_OBJVNUM(craft))) != NOWHERE ? obj_proto[vnum].short_description : "MISSING OBJECT");
+      send_to_char(ch, "\t2%-4d)\t3 %-22s -> \t1[\t2%-4d\t1] [\t2%s\t1]\tn\r\n", CRAFT_ID(craft),
+                   CRAFT_NAME(craft), CRAFT_OBJVNUM(craft),
+                   (vnum = real_object(CRAFT_OBJVNUM(craft))) != NOWHERE
+                       ? obj_proto[vnum].short_description
+                       : "MISSING OBJECT");
     }
   }
   else
@@ -516,7 +515,7 @@ void list_available_crafts(struct char_data *ch)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
     {
       if (IS_SET(CRAFT_FLAGS(craft), CRAFT_RECIPE))
@@ -524,14 +523,16 @@ void list_available_crafts(struct char_data *ch)
       if (GET_SKILL(ch, CRAFT_SKILL(craft)) < CRAFT_SKILL_LEVEL(craft))
         continue;
       missing = missing_craft_requirements(ch, craft);
-      send_to_char(ch, " %d) %s%s%s\r\n", ++count, missing ? CCRED(ch, C_NRM) : CCGRN(ch, C_NRM), CRAFT_NAME(craft), CCNRM(ch, C_NRM));
+      send_to_char(ch, " %d) %s%s%s\r\n", ++count, missing ? CCRED(ch, C_NRM) : CCGRN(ch, C_NRM),
+                   CRAFT_NAME(craft), CCNRM(ch, C_NRM));
     }
   }
 
   if (!count)
     send_to_char(ch, "   You do not currently know of any crafts.\r\n");
   else
-    send_to_char(ch, "\r\n%sAll Requirement Met    %sMissing Requirements%s\r\n", CCGRN(ch, C_NRM), CCRED(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "\r\n%sAll Requirement Met    %sMissing Requirements%s\r\n", CCGRN(ch, C_NRM),
+                 CCRED(ch, C_NRM), CCNRM(ch, C_NRM));
 }
 
 void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
@@ -552,9 +553,11 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
     rnum = real_object(CRAFT_OBJVNUM(craft));
 
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Makes: %s!\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+      send_to_group(NULL, GROUP(ch), "Makes: %s!\r\n",
+                    rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
     else
-      send_to_char(ch, "Makes: %s!\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+      send_to_char(ch, "Makes: %s!\r\n",
+                   rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
 
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch), "Time: %d\r\n", CRAFT_TIMER(craft));
@@ -566,7 +569,7 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((req = (struct requirement_data *)simple_list(craft->requirements)) != NULL)
     {
       if ((rnum = real_object(req->req_vnum)) == NOWHERE)
@@ -579,38 +582,53 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
       else
       {
         if (mode == ITEM_STAT_MODE_G_LORE)
-          send_to_group(NULL, GROUP(ch), "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description, req->req_amount, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
+          send_to_group(NULL, GROUP(ch), "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description,
+                        req->req_amount,
+                        IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
         else
-          send_to_char(ch, "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description, req->req_amount, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
+          send_to_char(ch, "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description,
+                       req->req_amount,
+                       IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
       }
 
       if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "%s\r\n", IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
+        send_to_group(NULL, GROUP(ch), "%s\r\n",
+                      IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
       else
-        send_to_char(ch, "%s\r\n", IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
+        send_to_char(ch, "%s\r\n",
+                     IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
     }
   }
   else
   {
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Item: %-14s   Print Id: %d\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
+      send_to_group(NULL, GROUP(ch), "Item: %-14s   Print Id: %d\r\n", CRAFT_NAME(craft),
+                    CRAFT_ID(craft));
     else
       send_to_char(ch, "Item: %-14s   Print Id: %d\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
 
     rnum = real_object(CRAFT_OBJVNUM(craft));
 
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "These prints display in detail the how-to of creating %s.\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+      send_to_group(NULL, GROUP(ch),
+                    "These prints display in detail the how-to of creating %s.\r\n",
+                    rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
     else
-      send_to_char(ch, "These prints display in detail the how-to of creating %s.\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+      send_to_char(ch, "These prints display in detail the how-to of creating %s.\r\n",
+                   rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
 
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Judging by the difficulty, you estimate that will take about %d seconds.\r\n", CRAFT_TIMER(craft));
+      send_to_group(NULL, GROUP(ch),
+                    "Judging by the difficulty, you estimate that will take about %d seconds.\r\n",
+                    CRAFT_TIMER(craft));
     else
-      send_to_char(ch, "Judging by the difficulty, you estimate that will take about %d seconds.\r\n", CRAFT_TIMER(craft));
+      send_to_char(ch,
+                   "Judging by the difficulty, you estimate that will take about %d seconds.\r\n",
+                   CRAFT_TIMER(craft));
 
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Gazing at the requirements list, you envision what you need:\r\n");
+      send_to_group(NULL, GROUP(ch),
+                    "Gazing at the requirements list, you envision what you need:\r\n");
     else
       send_to_char(ch, "Gazing at the requirements list, you envision what you need:\r\n");
 
@@ -619,7 +637,7 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((req = (struct requirement_data *)simple_list(craft->requirements)) != NULL)
     {
       if ((rnum = real_object(req->req_vnum)) == NOWHERE)
@@ -632,9 +650,14 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
       else
       {
         if (mode == ITEM_STAT_MODE_G_LORE)
-          send_to_group(NULL, GROUP(ch), "  %d, %s %s.\r\n", req->req_amount, obj_proto[rnum].short_description, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room" : "in your possession");
+          send_to_group(NULL, GROUP(ch), "  %d, %s %s.\r\n", req->req_amount,
+                        obj_proto[rnum].short_description,
+                        IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room"
+                                                                 : "in your possession");
         else
-          send_to_char(ch, "  %d, %s %s.\r\n", req->req_amount, obj_proto[rnum].short_description, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room" : "in your possession");
+          send_to_char(ch, "  %d, %s %s.\r\n", req->req_amount, obj_proto[rnum].short_description,
+                       IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room"
+                                                                : "in your possession");
       }
     }
   }
@@ -681,7 +704,6 @@ EVENTFUNC(event_craft)
 
   if (skill > rand)
   {
-
     if ((obj = read_object(CRAFT_OBJVNUM(craft), VIRTUAL)) == NULL)
     {
       send_to_char(ch, "You seem to have an issue with your crafting.\r\n");
@@ -720,15 +742,15 @@ ACMDU(do_craft)
 {
   switch (CONFIG_CRAFTING_SYSTEM)
   {
-    case CRAFTING_SYSTEM_KITS:
-      do_practice(ch, argument, cmd, subcmd);
-      break;
-    case CRAFTING_SYSTEM_MOTES:
-      do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_CREATE);
-      break;
-    default:
-      send_to_char(ch, "There is no crafting system implemented right now.\r\n");
-      break;
+  case CRAFTING_SYSTEM_KITS:
+    do_practice(ch, argument, cmd, subcmd);
+    break;
+  case CRAFTING_SYSTEM_MOTES:
+    do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_CREATE);
+    break;
+  default:
+    send_to_char(ch, "There is no crafting system implemented right now.\r\n");
+    break;
   }
 }
 
@@ -821,8 +843,7 @@ static void copy_craft(struct craft_data *to, struct craft_data *from)
   if (from->requirements->iSize)
   {
     for (from_req = (struct requirement_data *)merge_iterator(&Iterator, from->requirements);
-         from_req;
-         from_req = next_in_list(&Iterator))
+         from_req; from_req = next_in_list(&Iterator))
     {
       to_req = create_requirement();
       copy_requirement(to_req, from_req);
@@ -905,8 +926,7 @@ ACMD(do_oasis_craftedit)
   /* Give the descriptor an OLC structure. */
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -928,8 +948,7 @@ ACMD(do_oasis_craftedit)
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   /* Log the OLC message. */
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing the craft file",
-         GET_NAME(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing the craft file", GET_NAME(ch));
 }
 
 /* Display craft skill menu. */
@@ -944,8 +963,8 @@ static void craftedit_disp_skill_menu(struct descriptor_data *d)
   {
     if (spell_info[counter].min_level[0] == LVL_IMPL + 1) /* UNUSED */
       continue;
-    write_to_output(d, "\t2%3d\t3) \t1%-20.20s\tn %s", counter,
-                    spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "\t2%3d\t3) \t1%-20.20s\tn %s", counter, spell_info[counter].name,
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%sEnter skill choice (-1 for none) : ", nrm);
 }
@@ -1005,13 +1024,15 @@ static void craftedit_requirement_menu(struct descriptor_data *d)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
     {
       sprintbit(r->req_flags, requirement_flags, buf, sizeof(buf));
-      write_to_output(d, "  \t2[\t3%-5d\t2]\t1)\t3 %d, %s \t2[\t3%s\t2]\tn\r\n",
-                      r->req_vnum, r->req_amount,
-                      ((vnum = real_object(r->req_vnum)) != NOTHING) ? obj_proto[vnum].short_description : "None", buf);
+      write_to_output(
+          d, "  \t2[\t3%-5d\t2]\t1)\t3 %d, %s \t2[\t3%s\t2]\tn\r\n", r->req_vnum, r->req_amount,
+          ((vnum = real_object(r->req_vnum)) != NOTHING) ? obj_proto[vnum].short_description
+                                                         : "None",
+          buf);
     }
   }
   else
@@ -1027,20 +1048,22 @@ static void craftedit_disp_menu(struct descriptor_data *d)
   obj_vnum vnum;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  write_to_output(d, "\t1-- Craftedit Menu\t1 : \t2[\t3%d\t2]\tn\r\n"
-                     "\t21\t3) Craft Name     : \t1%s\tn\r\n"
-                     "\t22\t3) Craft Timer    : \t1%d seconds\tn\r\n"
-                     "\t23\t3) Craft Item     : \t1\"\tn%s\t1\"\tn\r\n"
-                     "\t24\t3) Craft Self Msg : \t1\"\tn%s\t1\"\tn\r\n"
-                     "\t25\t3) Craft Room Msg : \t1\"\tn%s\t1\"\tn\r\n",
-                  CRAFT_ID(c),
-                  CRAFT_NAME(c),
-                  CRAFT_TIMER(c),
-                  ((vnum = real_object(CRAFT_OBJVNUM(c))) != NOTHING) ? obj_proto[vnum].short_description : "None",
-                  CRAFT_MSG_SELF(c),
-                  CRAFT_MSG_ROOM(c));
+  write_to_output(d,
+                  "\t1-- Craftedit Menu\t1 : \t2[\t3%d\t2]\tn\r\n"
+                  "\t21\t3) Craft Name     : \t1%s\tn\r\n"
+                  "\t22\t3) Craft Timer    : \t1%d seconds\tn\r\n"
+                  "\t23\t3) Craft Item     : \t1\"\tn%s\t1\"\tn\r\n"
+                  "\t24\t3) Craft Self Msg : \t1\"\tn%s\t1\"\tn\r\n"
+                  "\t25\t3) Craft Room Msg : \t1\"\tn%s\t1\"\tn\r\n",
+                  CRAFT_ID(c), CRAFT_NAME(c), CRAFT_TIMER(c),
+                  ((vnum = real_object(CRAFT_OBJVNUM(c))) != NOTHING)
+                      ? obj_proto[vnum].short_description
+                      : "None",
+                  CRAFT_MSG_SELF(c), CRAFT_MSG_ROOM(c));
 
-  write_to_output(d, "\t2S\t3) Craft Skill    : \t1%s \t2(\t3%d\t2)\tn\r\n", CRAFT_SKILL(c) == -1 ? "No Skill" : spell_info[CRAFT_SKILL(c)].name, CRAFT_SKILL_LEVEL(c));
+  write_to_output(d, "\t2S\t3) Craft Skill    : \t1%s \t2(\t3%d\t2)\tn\r\n",
+                  CRAFT_SKILL(c) == -1 ? "No Skill" : spell_info[CRAFT_SKILL(c)].name,
+                  CRAFT_SKILL_LEVEL(c));
 
   sprintbit(CRAFT_FLAGS(c), craft_flags, buf, sizeof(buf));
   write_to_output(d, "\t2F\t3) Flags          : \t1%s\tn\r\n", buf);
@@ -1054,13 +1077,16 @@ static void craftedit_disp_menu(struct descriptor_data *d)
      * if simple_list was used elsewhere and not completed, it would
      * continue from where it left off instead of starting fresh. */
     simple_list(NULL);
-    
+
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
     {
       sprintbit(r->req_flags, requirement_flags, buf, sizeof(buf));
       write_to_output(d, "   \t2[\t3%-4d\t2] \t1%-2d, \t1\"\tn%s\t1\"\tn \t2[\t3%s\t2]\tn\r\n",
                       r->req_vnum, r->req_amount,
-                      ((vnum = real_object(r->req_vnum)) != NOTHING) ? obj_proto[vnum].short_description : "None", buf);
+                      ((vnum = real_object(r->req_vnum)) != NOTHING)
+                          ? obj_proto[vnum].short_description
+                          : "None",
+                      buf);
     }
   }
   else

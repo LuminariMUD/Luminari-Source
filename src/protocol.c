@@ -33,8 +33,7 @@ static void Write(descriptor_t *apDescriptor, const char *apData)
 {
   if (apDescriptor != NULL && apDescriptor->has_prompt)
   {
-    if (apDescriptor->pProtocol->WriteOOB > 0 ||
-        *(apDescriptor->output) == '\0')
+    if (apDescriptor->pProtocol->WriteOOB > 0 || *(apDescriptor->output) == '\0')
     {
       apDescriptor->pProtocol->WriteOOB = 2;
     }
@@ -99,7 +98,8 @@ static const char s_Gauge1[] = "\005\002Health\002red\002HEALTH\002HEALTH_MAX\00
 static const char s_Gauge2[] = "\005\002PSP\002blue\002PSP\002PSP_MAX\006";
 static const char s_Gauge3[] = "\005\002Movement\002green\002MOVEMENT\002MOVEMENT_MAX\006";
 static const char s_Gauge4[] = "\005\002Exp TNL\002yellow\002EXPERIENCE\002EXPERIENCE_MAX\006";
-static const char s_Gauge5[] = "\005\002Opponent\002darkred\002OPPONENT_HEALTH\002OPPONENT_HEALTH_MAX\006";
+static const char s_Gauge5[] =
+    "\005\002Opponent\002darkred\002OPPONENT_HEALTH\002OPPONENT_HEALTH_MAX\006";
 
 /******************************************************************************
  MSDP variable table.
@@ -222,9 +222,11 @@ static void Negotiate(descriptor_t *apDescriptor);
 static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtocol);
 static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *apData, int aSize);
 static void SendNegotiationSequence(descriptor_t *apDescriptor, char aCmd, char aProtocol);
-static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProtocol, bool_t abWillDo, bool_t abSendReply);
+static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProtocol,
+                                 bool_t abWillDo, bool_t abSendReply);
 static void ParseMSDP(descriptor_t *apDescriptor, const char *apData);
-static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
+static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable,
+                            const char *apValue);
 static void ParseGMCP(descriptor_t *apDescriptor, const char *apData);
 
 #ifdef MUDLET_PACKAGE
@@ -302,7 +304,8 @@ protocol_t *ProtocolCreate(void)
   }
 
   pProtocol = (protocol_t *)malloc(sizeof(protocol_t));
-  if (!pProtocol) {
+  if (!pProtocol)
+  {
     ReportBug("ProtocolCreate: Out of memory");
     return NULL;
   }
@@ -330,7 +333,8 @@ protocol_t *ProtocolCreate(void)
   pProtocol->pMXPVersion = AllocString("Unknown");
   pProtocol->pLastTTYPE = NULL;
   pProtocol->pVariables = (MSDP_t **)malloc(sizeof(MSDP_t *) * eMSDP_MAX);
-  if (!pProtocol->pVariables) {
+  if (!pProtocol->pVariables)
+  {
     ReportBug("ProtocolCreate: Out of memory for MSDP variables array");
     free(pProtocol);
     return NULL;
@@ -339,10 +343,12 @@ protocol_t *ProtocolCreate(void)
   for (i = eMSDP_NONE + 1; i < eMSDP_MAX; ++i)
   {
     pProtocol->pVariables[i] = (MSDP_t *)malloc(sizeof(MSDP_t));
-    if (!pProtocol->pVariables[i]) {
+    if (!pProtocol->pVariables[i])
+    {
       ReportBug("ProtocolCreate: Out of memory for MSDP variable");
       /* Clean up previously allocated variables */
-      while (--i > eMSDP_NONE) {
+      while (--i > eMSDP_NONE)
+      {
         free(pProtocol->pVariables[i]);
       }
       free(pProtocol->pVariables);
@@ -378,7 +384,8 @@ void ProtocolDestroy(protocol_t *apProtocol)
 
   for (i = eMSDP_NONE + 1; i < eMSDP_MAX; ++i)
   {
-    if (apProtocol->pVariables[i]->pValueString) {
+    if (apProtocol->pVariables[i]->pValueString)
+    {
       free(apProtocol->pVariables[i]->pValueString);
       apProtocol->pVariables[i]->pValueString = NULL;
     }
@@ -490,15 +497,15 @@ static protocol_error_t ValidateMSDPValue(variable_t var, const char *value)
 {
   if (!value)
     return PROTOCOL_ERROR_NULL_POINTER;
-    
+
   if (var < 0 || var >= eMSDP_MAX)
     return PROTOCOL_ERROR_INVALID_INPUT;
-    
+
   /* Check string length constraints */
   size_t value_len = strlen(value);
   if (VariableNameTable[var].bString)
   {
-    if (value_len < (size_t)VariableNameTable[var].Min || 
+    if (value_len < (size_t)VariableNameTable[var].Min ||
         value_len > (size_t)VariableNameTable[var].Max)
       return PROTOCOL_ERROR_INVALID_INPUT;
   }
@@ -507,17 +514,16 @@ static protocol_error_t ValidateMSDPValue(variable_t var, const char *value)
     /* For numeric values, check if it's a valid number */
     char *endptr;
     long num_value = strtol(value, &endptr, 10);
-    
+
     /* Check if conversion was successful */
     if (*endptr != '\0')
       return PROTOCOL_ERROR_INVALID_INPUT;
-      
+
     /* Check numeric range constraints */
-    if (num_value < VariableNameTable[var].Min || 
-        num_value > VariableNameTable[var].Max)
+    if (num_value < VariableNameTable[var].Min || num_value > VariableNameTable[var].Max)
       return PROTOCOL_ERROR_INVALID_INPUT;
   }
-  
+
   return PROTOCOL_SUCCESS;
 }
 
@@ -537,10 +543,10 @@ static unsigned int msdp_hash_string(const char *str)
 {
   unsigned int hash = 5381;
   int c;
-  
+
   while ((c = *str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    
+
   return hash % MSDP_HASH_TABLE_SIZE;
 }
 
@@ -548,20 +554,20 @@ static unsigned int msdp_hash_string(const char *str)
 static void msdp_hash_init(void)
 {
   int i;
-  
+
   if (msdp_hash_initialized)
     return;
-    
+
   /* Clear the hash table */
   for (i = 0; i < MSDP_HASH_TABLE_SIZE; i++)
     msdp_hash_table[i] = NULL;
-    
+
   /* Populate hash table with all MSDP variables */
   for (i = eMSDP_NONE + 1; i < eMSDP_MAX; i++)
   {
     unsigned int hash = msdp_hash_string(VariableNameTable[i].pName);
     msdp_hash_entry_t *entry = malloc(sizeof(msdp_hash_entry_t));
-    
+
     if (entry)
     {
       entry->name = VariableNameTable[i].pName;
@@ -570,7 +576,7 @@ static void msdp_hash_init(void)
       msdp_hash_table[hash] = entry;
     }
   }
-  
+
   msdp_hash_initialized = bool_t_true;
 }
 
@@ -579,20 +585,20 @@ static variable_t msdp_hash_lookup(const char *name)
 {
   unsigned int hash;
   msdp_hash_entry_t *entry;
-  
+
   if (!msdp_hash_initialized)
     msdp_hash_init();
-    
+
   hash = msdp_hash_string(name);
   entry = msdp_hash_table[hash];
-  
+
   while (entry)
   {
     if (MatchString(name, entry->name))
       return entry->variable;
     entry = entry->next;
   }
-  
+
   return eMSDP_NONE;
 }
 
@@ -605,16 +611,17 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
   char *IacBuf;
 
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
-  
+
   if (pProtocol == NULL)
   {
     /* Fallback to copying input directly if no protocol structure */
-    if (strlen(apOut) + aSize + 1 < MAX_PROTOCOL_BUFFER) {
+    if (strlen(apOut) + aSize + 1 < MAX_PROTOCOL_BUFFER)
+    {
       strncat(apOut, apData, aSize);
     }
     return aSize;
   }
-  
+
   /* Use per-descriptor buffers */
   CmdBuf = pProtocol->CmdBuf;
   IacBuf = pProtocol->IacBuf;
@@ -652,8 +659,8 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       else
         IacBuf[IacIndex++] = apData[Index];
     }
-    else if (apData[Index] == (char)27 && apData[Index + 1] == '[' &&
-             isdigit(apData[Index + 2]) && apData[Index + 3] == 'z')
+    else if (apData[Index] == (char)27 && apData[Index + 1] == '[' && isdigit(apData[Index + 2]) &&
+             apData[Index + 3] == 'z')
     {
       char MXPBuffer[1024];
       char *pMXPTag = NULL;
@@ -665,7 +672,8 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       {
         MXPBuffer[i++] = apData[Index++];
       }
-      if (i >= sizeof(MXPBuffer) - 2) {
+      if (i >= sizeof(MXPBuffer) - 2)
+      {
         ReportBug("MXP buffer overflow prevented");
         return (-1);
       }
@@ -676,10 +684,12 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       {
         /* Overwrite the previous client name - this is harder to fake */
         char *new_string = AllocString(pMXPTag);
-        if (new_string) {
+        if (new_string)
+        {
           char *old_string = pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString;
           pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = new_string;
-          if (old_string) free(old_string);
+          if (old_string)
+            free(old_string);
         }
       }
 
@@ -690,10 +700,12 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
         InfoMessage(apDescriptor, "Receiving MXP Version From Client.\r\n");
 
         char *new_version_string = AllocString(pMXPTag);
-        if (new_version_string) {
+        if (new_version_string)
+        {
           char *old_version_string = pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString;
           pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString = new_version_string;
-          if (old_version_string) free(old_version_string);
+          if (old_version_string)
+            free(old_version_string);
         }
 
         if (MatchString("MUSHCLIENT", pClientName))
@@ -744,8 +756,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       if (strcmp(pProtocol->pMXPVersion, "Unknown"))
       {
         Write(apDescriptor, "\n");
-        sprintf(MXPBuffer, "MXP version %s detected and enabled.\r\n",
-                pProtocol->pMXPVersion);
+        sprintf(MXPBuffer, "MXP version %s detected and enabled.\r\n", pProtocol->pMXPVersion);
         InfoMessage(apDescriptor, MXPBuffer);
       }
     }
@@ -788,9 +799,12 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
   CmdBuf[CmdIndex] = '\0';
 
   /* Copy the input buffer back to the player. */
-  if (strlen(apOut) + strlen(CmdBuf) + 1 < MAX_PROTOCOL_BUFFER) {
+  if (strlen(apOut) + strlen(CmdBuf) + 1 < MAX_PROTOCOL_BUFFER)
+  {
     strcat(apOut, CmdBuf);
-  } else {
+  }
+  else
+  {
     ReportBug("ProtocolInput: Output buffer would overflow");
   }
   return (CmdIndex);
@@ -886,7 +900,8 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
 
           if (!bDone)
           {
-            sprintf(BugString, "BUG: Unicode substitute '%s' wasn't terminated with ']'.\n", Buffer);
+            sprintf(BugString, "BUG: Unicode substitute '%s' wasn't terminated with ']'.\n",
+                    Buffer);
             ReportBug(BugString);
           }
           else if (!bValid)
@@ -933,8 +948,10 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
           }
           else if (!IsValidColour(Buffer))
           {
-            sprintf(BugString, "BUG: RGB %sground colour '%s' invalid (each digit must be in the range 0-5).\n",
-                    (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1]);
+            sprintf(
+                BugString,
+                "BUG: RGB %sground colour '%s' invalid (each digit must be in the range 0-5).\n",
+                (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1]);
             ReportBug(BugString);
           }
           else /* Success */
@@ -965,7 +982,8 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
 
           if (!bDone)
           {
-            sprintf(BugString, "BUG: Required MXP version '%s' wasn't terminated with ']'.\n", Buffer);
+            sprintf(BugString, "BUG: Required MXP version '%s' wasn't terminated with ']'.\n",
+                    Buffer);
             ReportBug(BugString);
           }
           else if (!bValid)
@@ -1036,7 +1054,7 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
         {
 #ifdef EXTENDED_COLOUR
           /* Handle extended color codes */
-          if (apData[j] == '[' && (tolower(apData[j+1]) == 'f' || tolower(apData[j+1]) == 'b'))
+          if (apData[j] == '[' && (tolower(apData[j + 1]) == 'f' || tolower(apData[j + 1]) == 'b'))
           {
             char Buffer[MAX_COLOR_CODE_LENGTH] = {'\0'};
             int Index = 0;
@@ -1345,30 +1363,29 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
       if (RequiredBuffer >= MAX_VARIABLE_LENGTH)
       {
         snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
-                "MSDPSend: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                VariableNameTable[aMSDP].pName, RequiredBuffer,
-                MAX_VARIABLE_LENGTH);
+                 "MSDPSend: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
+                 VariableNameTable[aMSDP].pName, RequiredBuffer, MAX_VARIABLE_LENGTH);
         ReportBug(MSDPBuffer);
         MSDPBuffer[0] = '\0';
       }
       else if (pProtocol->bMSDP)
       {
-        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%s%c%c",
-                IAC, SB, TELOPT_MSDP, MSDP_VAR,
-                VariableNameTable[aMSDP].pName, MSDP_VAL,
-                pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
-        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%s%c%c", IAC, SB,
+                           TELOPT_MSDP, MSDP_VAR, VariableNameTable[aMSDP].pName, MSDP_VAL,
+                           pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1)
+        {
           ReportBug("MSDPSend: Buffer overflow prevented");
           return;
         }
       }
       else if (pProtocol->bGMCP)
       {
-        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c",
-                IAC, SB, TELOPT_GMCP,
-                VariableNameTable[aMSDP].pName,
-                pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
-        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c", IAC, SB,
+                           TELOPT_GMCP, VariableNameTable[aMSDP].pName,
+                           pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1)
+        {
           ReportBug("MSDPSend: Buffer overflow prevented for GMCP string variable");
           return;
         }
@@ -1378,22 +1395,22 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
     {
       if (pProtocol->bMSDP)
       {
-        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%d%c%c",
-                IAC, SB, TELOPT_MSDP, MSDP_VAR,
-                VariableNameTable[aMSDP].pName, MSDP_VAL,
-                pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
-        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%d%c%c", IAC, SB,
+                           TELOPT_MSDP, MSDP_VAR, VariableNameTable[aMSDP].pName, MSDP_VAL,
+                           pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1)
+        {
           ReportBug("MSDPSend: Buffer overflow prevented for MSDP integer variable");
           return;
         }
       }
       else if (pProtocol->bGMCP)
       {
-        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %d%c%c",
-                IAC, SB, TELOPT_GMCP,
-                VariableNameTable[aMSDP].pName,
-                pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
-        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %d%c%c", IAC, SB,
+                           TELOPT_GMCP, VariableNameTable[aMSDP].pName,
+                           pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1)
+        {
           ReportBug("MSDPSend: Buffer overflow prevented for GMCP integer variable");
           return;
         }
@@ -1422,14 +1439,15 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH)
       {
         snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
-                "MSDPSendPair: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
+                 "MSDPSendPair: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n", apVariable,
+                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
       else /* The variable name itself is too long */
       {
         snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
-                "MSDPSendPair: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                RequiredBuffer, MAX_VARIABLE_LENGTH);
+                 "MSDPSendPair: Variable name has a length of %d bytes (exceeds "
+                 "MAX_VARIABLE_LENGTH of %d).\n",
+                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
 
       ReportBug(MSDPBuffer);
@@ -1437,19 +1455,20 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
     }
     else if (pProtocol->bMSDP)
     {
-      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%s%c%c",
-              IAC, SB, TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL,
-              apValue, IAC, SE);
-      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%s%c%c", IAC, SB,
+                         TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL, apValue, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1)
+      {
         ReportBug("MSDPSendPair: Buffer overflow prevented for MSDP");
         return;
       }
     }
     else if (pProtocol->bGMCP)
     {
-      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c",
-              IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
-      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c", IAC, SB,
+                         TELOPT_GMCP, apVariable, apValue, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1)
+      {
         ReportBug("GMCP Buffer overflow prevented");
         return;
       }
@@ -1477,14 +1496,15 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH)
       {
         snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
-                "MSDPSendList: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
+                 "MSDPSendList: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n", apVariable,
+                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
       else /* The variable name itself is too long */
       {
         snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
-                "MSDPSendList: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                RequiredBuffer, MAX_VARIABLE_LENGTH);
+                 "MSDPSendList: Variable name has a length of %d bytes (exceeds "
+                 "MAX_VARIABLE_LENGTH of %d).\n",
+                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
 
       ReportBug(MSDPBuffer);
@@ -1493,10 +1513,11 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
     else if (pProtocol->bMSDP)
     {
       int i; /* Loop counter */
-      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%c%c%s%c%c%c",
-              IAC, SB, TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL,
-              MSDP_ARRAY_OPEN, MSDP_VAL, apValue, MSDP_ARRAY_CLOSE, IAC, SE);
-      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%c%c%s%c%c%c", IAC, SB,
+                         TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL, MSDP_ARRAY_OPEN, MSDP_VAL,
+                         apValue, MSDP_ARRAY_CLOSE, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1)
+      {
         ReportBug("MSDPSendList: Buffer overflow prevented for MSDP");
         return;
       }
@@ -1510,9 +1531,10 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
     }
     else if (pProtocol->bGMCP)
     {
-      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c",
-              IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
-      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c", IAC, SB,
+                         TELOPT_GMCP, apVariable, apValue, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1)
+      {
         ReportBug("GMCP Buffer overflow prevented");
         return;
       }
@@ -1552,10 +1574,12 @@ void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
       if (strcmp(pProtocol->pVariables[aMSDP]->pValueString, apValue))
       {
         char *new_string = AllocString(apValue);
-        if (new_string) {
+        if (new_string)
+        {
           char *old_string = pProtocol->pVariables[aMSDP]->pValueString;
           pProtocol->pVariables[aMSDP]->pValueString = new_string;
-          if (old_string) free(old_string);
+          if (old_string)
+            free(old_string);
           pProtocol->pVariables[aMSDP]->bDirty = true;
         }
       }
@@ -1580,10 +1604,11 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
       const char MsdpTableStop = (char)MSDP_TABLE_CLOSE;
       size_t value_len = strlen(apValue);
       char *pTable;
-      
+
       /* Allocate buffer for optimized single-pass construction */
       pTable = (char *)malloc(value_len + 3); /* 3: START, STOP, NUL */
-      if (!pTable) {
+      if (!pTable)
+      {
         ReportBug("MSDPSetTable: Out of memory");
         return;
       }
@@ -1625,10 +1650,11 @@ void MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
       const char MsdpArrayStop = (char)MSDP_ARRAY_CLOSE;
       size_t value_len = strlen(apValue);
       char *pArray;
-      
+
       /* Allocate buffer for optimized single-pass construction */
       pArray = (char *)malloc(value_len + 3); /* 3: START, STOP, NUL */
-      if (!pArray) {
+      if (!pArray)
+      {
         ReportBug("MSDPSetArray: Out of memory");
         return;
       }
@@ -1673,8 +1699,7 @@ const char *MXPCreateTag(descriptor_t *apDescriptor, const char *apTag)
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
-  if (pProtocol != NULL && pProtocol->pVariables[eMSDP_MXP]->ValueInt &&
-      strlen(apTag) < 1000)
+  if (pProtocol != NULL && pProtocol->pVariables[eMSDP_MXP]->ValueInt && strlen(apTag) < 1000)
   {
     static char MXPBuffer[1024];
     sprintf(MXPBuffer, "\033[1z%s\033[7z", apTag);
@@ -1891,7 +1916,8 @@ static void Negotiate(descriptor_t *apDescriptor)
 
   if (pProtocol->bNegotiated)
   {
-    const char RequestTTYPE[] = {(char)IAC, (char)SB, TELOPT_TTYPE, SEND, (char)IAC, (char)SE, '\0'};
+    const char RequestTTYPE[] = {(char)IAC, (char)SB, TELOPT_TTYPE, SEND,
+                                 (char)IAC, (char)SE, '\0'};
 
     /* Request the client type if TTYPE is supported. */
     if (pProtocol->bTTYPE)
@@ -2054,7 +2080,9 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_CHARSET, true, true);
       if (!pProtocol->bCHARSET)
       {
-        const char charset_utf8[] = {(char)IAC, (char)SB, TELOPT_CHARSET, 1, ' ', 'U', 'T', 'F', '-', '8', (char)IAC, (char)SE, '\0'};
+        const char charset_utf8[] = {
+            (char)IAC, (char)SB, TELOPT_CHARSET, 1,        ' ', 'U', 'T', 'F',
+            '-',       '8',      (char)IAC,      (char)SE, '\0'};
         Write(apDescriptor, charset_utf8);
         pProtocol->bCHARSET = true;
       }
@@ -2218,10 +2246,9 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
   case (char)TELOPT_GMCP:
     if (aCmd == (char)WILL)
     {
-      log("DEBUG: GMCP WILL received. Current state: bMSDP=%d, bGMCP=%d, CLIENT_ID=%s", 
-          pProtocol->bMSDP, pProtocol->bGMCP, 
-          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-      
+      log("DEBUG: GMCP WILL received. Current state: bMSDP=%d, bGMCP=%d, CLIENT_ID=%s",
+          pProtocol->bMSDP, pProtocol->bGMCP, pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
 
       /* If we don't support MSDP, fake it with GMCP */
@@ -2237,7 +2264,7 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
       {
         log("DEBUG: NOT enabling GMCP - bMSDP=%d, bGMCP=%d", pProtocol->bMSDP, pProtocol->bGMCP);
       }
-      
+
       /* Always allow GMCP for Mudlet package delivery */
       if (!pProtocol->bGMCP)
       {
@@ -2248,15 +2275,14 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
 #ifdef MUDLET_PACKAGE
       log("DEBUG: MUDLET_PACKAGE defined as: %s", MUDLET_PACKAGE);
       /* Send the Mudlet GUI package to the user. */
-      if (MatchString("Mudlet",
-                      pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
+      if (MatchString("Mudlet", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
       {
         log("DEBUG: Mudlet client detected! Sending package via GMCP");
         SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
       }
       else
       {
-        log("DEBUG: Client '%s' is not Mudlet, not sending package", 
+        log("DEBUG: Client '%s' is not Mudlet, not sending package",
             pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
       }
 #else
@@ -2434,10 +2460,10 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
       case (char)TELOPT_GMCP:
          if ( aCmd == (char)WILL )
          {
-            log("DEBUG: [DUPLICATE] GMCP WILL received. bMSDP=%d, bGMCP=%d, CLIENT_ID=%s", 
-                pProtocol->bMSDP, pProtocol->bGMCP, 
+            log("DEBUG: [DUPLICATE] GMCP WILL received. bMSDP=%d, bGMCP=%d, CLIENT_ID=%s",
+                pProtocol->bMSDP, pProtocol->bGMCP,
                 pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-                
+
             // If we don't support MSDP, fake it with GMCP
             if ( !pProtocol->bMSDP )
             {
@@ -2447,7 +2473,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
                // Identify the mud to the client.
                MSDPSendPair( apDescriptor, "SERVER_ID", MUD_NAME );
             }
-            
+
             // Always allow GMCP for Mudlet package delivery
             if ( !pProtocol->bGMCP )
             {
@@ -2466,7 +2492,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             }
             else
             {
-               log("DEBUG: [DUPLICATE] Client '%s' is not Mudlet", 
+               log("DEBUG: [DUPLICATE] Client '%s' is not Mudlet",
                    pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
             }
 #endif // MUDLET_PACKAGE
@@ -2509,14 +2535,16 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       if (!strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, "Unknown"))
       {
         char *new_client_string = AllocString(pClientName);
-        if (new_client_string) {
+        if (new_client_string)
+        {
           char *old_client_string = pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString;
           pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = new_client_string;
-          if (old_client_string) free(old_client_string);
+          if (old_client_string)
+            free(old_client_string);
         }
-        
+
         log("DEBUG: TTYPE identified client as '%s'", pClientName);
-        
+
 #ifdef MUDLET_PACKAGE
         /* Check if this is Mudlet and we have GMCP enabled but haven't sent the package yet */
         if (MatchString("Mudlet", pClientName) && pProtocol->bGMCP)
@@ -2633,12 +2661,9 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
           pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString = AllocString(pClientName + 9);
         }
       }
-      else if (MatchString(pClientName, "MUSHCLIENT") ||
-               MatchString(pClientName, "CMUD") ||
-               MatchString(pClientName, "ATLANTIS") ||
-               MatchString(pClientName, "KILDCLIENT") ||
-               MatchString(pClientName, "TINTIN++") ||
-               MatchString(pClientName, "TINYFUGUE"))
+      else if (MatchString(pClientName, "MUSHCLIENT") || MatchString(pClientName, "CMUD") ||
+               MatchString(pClientName, "ATLANTIS") || MatchString(pClientName, "KILDCLIENT") ||
+               MatchString(pClientName, "TINTIN++") || MatchString(pClientName, "TINYFUGUE"))
       {
         /* We know that some versions of this client have support */
         pProtocol->b256Support = eSOMETIMES;
@@ -2711,7 +2736,8 @@ static void SendNegotiationSequence(descriptor_t *apDescriptor, char aCmd, char 
   Write(apDescriptor, NegotiateSequence);
 }
 
-static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProtocol, bool_t abWillDo, bool_t abSendReply)
+static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProtocol,
+                                 bool_t abWillDo, bool_t abSendReply)
 {
   bool_t bResult = false;
 
@@ -2781,9 +2807,7 @@ static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProto
 
 static void ParseMSDP(descriptor_t *apDescriptor, const char *apData)
 {
-  char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {
-      {'\0'},
-      {'\0'}};
+  char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {{'\0'}, {'\0'}};
   char *pPos = NULL, *pStart = NULL;
 
   while (*apData)
@@ -2880,7 +2904,8 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
       }
       else if (MatchString(apValue, "LISTS"))
       {
-        const char MSDPCommands[] = "COMMANDS LISTS CONFIGURABLE_VARIABLES REPORTABLE_VARIABLES REPORTED_VARIABLES SENDABLE_VARIABLES GUI_VARIABLES";
+        const char MSDPCommands[] = "COMMANDS LISTS CONFIGURABLE_VARIABLES REPORTABLE_VARIABLES "
+                                    "REPORTED_VARIABLES SENDABLE_VARIABLES GUI_VARIABLES";
         MSDPSendList(apDescriptor, "LISTS", MSDPCommands);
       } /* Split this into two if some variables aren't REPORTABLE */
       else if (MatchString(apValue, "SENDABLE_VARIABLES") ||
@@ -2894,11 +2919,15 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (!VariableNameTable[i].bGUI)
           {
             /* Add the separator between variables */
-            if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+            if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
+                sizeof(MSDPCommands))
+            {
               strcat(MSDPCommands, " ");
               /* Add the variable to the list */
               strcat(MSDPCommands, VariableNameTable[i].pName);
-            } else {
+            }
+            else
+            {
               ReportBug("MSDPCommands buffer would overflow in SENDABLE_VARIABLES");
               break;
             }
@@ -2917,19 +2946,29 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (apDescriptor->pProtocol->pVariables[i]->bReport)
           {
             /* Add the separator between variables */
-            if (MSDPCommands[0] != '\0') {
-              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+            if (MSDPCommands[0] != '\0')
+            {
+              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
+                  sizeof(MSDPCommands))
+              {
                 strcat(MSDPCommands, " ");
                 /* Add the variable to the list */
                 strcat(MSDPCommands, VariableNameTable[i].pName);
-              } else {
+              }
+              else
+              {
                 ReportBug("MSDPCommands buffer would overflow in REPORTED_VARIABLES");
                 break;
               }
-            } else {
-              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands)) {
+            }
+            else
+            {
+              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
+              {
                 strcat(MSDPCommands, VariableNameTable[i].pName);
-              } else {
+              }
+              else
+              {
                 ReportBug("MSDPCommands buffer would overflow in REPORTED_VARIABLES");
                 break;
               }
@@ -2949,19 +2988,29 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (VariableNameTable[i].bConfigurable)
           {
             /* Add the separator between variables */
-            if (MSDPCommands[0] != '\0') {
-              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+            if (MSDPCommands[0] != '\0')
+            {
+              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
+                  sizeof(MSDPCommands))
+              {
                 strcat(MSDPCommands, " ");
                 /* Add the variable to the list */
                 strcat(MSDPCommands, VariableNameTable[i].pName);
-              } else {
+              }
+              else
+              {
                 ReportBug("MSDPCommands buffer would overflow in CONFIGURABLE_VARIABLES");
                 break;
               }
-            } else {
-              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands)) {
+            }
+            else
+            {
+              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
+              {
                 strcat(MSDPCommands, VariableNameTable[i].pName);
-              } else {
+              }
+              else
+              {
                 ReportBug("MSDPCommands buffer would overflow in CONFIGURABLE_VARIABLES");
                 break;
               }
@@ -2981,19 +3030,29 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (VariableNameTable[i].bGUI)
           {
             /* Add the separator between variables */
-            if (MSDPCommands[0] != '\0') {
-              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+            if (MSDPCommands[0] != '\0')
+            {
+              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
+                  sizeof(MSDPCommands))
+              {
                 strcat(MSDPCommands, " ");
                 /* Add the variable to the list */
                 strcat(MSDPCommands, VariableNameTable[i].pName);
-              } else {
+              }
+              else
+              {
                 ReportBug("MSDPCommands buffer would overflow in GUI_VARIABLES");
                 break;
               }
-            } else {
-              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands)) {
+            }
+            else
+            {
+              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
+              {
                 strcat(MSDPCommands, VariableNameTable[i].pName);
-              } else {
+              }
+              else
+              {
                 ReportBug("MSDPCommands buffer would overflow in GUI_VARIABLES");
                 break;
               }
@@ -3007,7 +3066,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
     else /* Set any configurable variables */
     {
       variable_t var = msdp_hash_lookup(apVariable);
-      
+
       if (var != eMSDP_NONE && VariableNameTable[var].bConfigurable)
       {
         if (VariableNameTable[var].bString)
@@ -3079,9 +3138,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
 
 static void ParseGMCP(descriptor_t *apDescriptor, const char *apData)
 {
-  char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {
-      {'\0'},
-      {'\0'}};
+  char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {{'\0'}, {'\0'}};
   char *pPos = NULL, *pStart = NULL;
 
   while (*apData)
@@ -3117,7 +3174,7 @@ static void ParseGMCP(descriptor_t *apDescriptor, const char *apData)
 static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue)
 {
   char GMCPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
-  
+
   log("DEBUG: SendGMCP called with variable='%s', value='%s'", apVariable, apValue);
 
   if (apVariable != NULL && apValue != NULL)
@@ -3132,14 +3189,15 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH)
       {
         snprintf(GMCPBuffer, sizeof(GMCPBuffer),
-                "SendGMCP: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
+                 "SendGMCP: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n", apVariable,
+                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
       else /* The variable name itself is too long */
       {
         snprintf(GMCPBuffer, sizeof(GMCPBuffer),
-                "SendGMCP: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-                RequiredBuffer, MAX_VARIABLE_LENGTH);
+                 "SendGMCP: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of "
+                 "%d).\n",
+                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
 
       ReportBug(GMCPBuffer);
@@ -3147,9 +3205,10 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
     }
     else if (pProtocol->bGMCP)
     {
-      int ret = snprintf(GMCPBuffer, sizeof(GMCPBuffer), "%c%c%c%s %s%c%c",
-              IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
-      if (ret >= sizeof(GMCPBuffer)) {
+      int ret = snprintf(GMCPBuffer, sizeof(GMCPBuffer), "%c%c%c%s %s%c%c", IAC, SB, TELOPT_GMCP,
+                         apVariable, apValue, IAC, SE);
+      if (ret >= sizeof(GMCPBuffer))
+      {
         ReportBug("SendGMCP: Buffer overflow prevented");
         return;
       }
@@ -3200,272 +3259,272 @@ static void SendMSSP(descriptor_t *apDescriptor)
   static MSSP_t MSSPTable[] = {
   /* Required */
 #if defined(CAMPAIGN_DL)
-    {"NAME", "Chronicles of Krynn"},
-    {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
-    {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
+      {"NAME", "Chronicles of Krynn"},
+      {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
+      {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
 
-    /* Generic */
-    {"CRAWL DELAY", "-1"},
-    {"HOSTNAME", "Krynn.d20mud.com  "},
-    {"PORT", "4300"},
-    {"CODEBASE", "LuminariMUD"},
-    {"CONTACT", "gickerlds<at>gmail.com"},
-    {"CREATED", "2023"},
-    {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
-    {"IP", "198.71.53.124"},
-    {"LANGUAGE", "English"},
-    {"LOCATION", "United States"},
-    {"MINIMUM AGE", "0"},
-    {"WEBSITE", "http://krynn.gicker.ca/"},
+      /* Generic */
+      {"CRAWL DELAY", "-1"},
+      {"HOSTNAME", "Krynn.d20mud.com  "},
+      {"PORT", "4300"},
+      {"CODEBASE", "LuminariMUD"},
+      {"CONTACT", "gickerlds<at>gmail.com"},
+      {"CREATED", "2023"},
+      {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+      {"IP", "198.71.53.124"},
+      {"LANGUAGE", "English"},
+      {"LOCATION", "United States"},
+      {"MINIMUM AGE", "0"},
+      {"WEBSITE", "http://krynn.gicker.ca/"},
 
-    /* Categorisation */
-    {"FAMILY", "tbaMUD"},
-    {"GENRE", "Fantasy"},
-    {"GAMEPLAY", "Role Play and PvE"},
-    {"STATUS", "Open"},
-    {"GAMESYSTEM", "Pathfinder"},
-    {"INTERMUD", ""},
-    {"SUBGENRE", "Post War of the Lance Dragonlance"},
+      /* Categorisation */
+      {"FAMILY", "tbaMUD"},
+      {"GENRE", "Fantasy"},
+      {"GAMEPLAY", "Role Play and PvE"},
+      {"STATUS", "Open"},
+      {"GAMESYSTEM", "Pathfinder"},
+      {"INTERMUD", ""},
+      {"SUBGENRE", "Post War of the Lance Dragonlance"},
 
-    /* World */
-    {"AREAS", "145"},
-    {"HELPFILES", "0"},
-    {"MOBILES", "6163"},
-    {"OBJECTS", "3037"},
-    {"ROOMS", "9931"},
-    {"CLASSES", "29"},
-    {"LEVELS", "30"},
-    {"RACES", "13"},
-    {"SKILLS", "999"},
+      /* World */
+      {"AREAS", "145"},
+      {"HELPFILES", "0"},
+      {"MOBILES", "6163"},
+      {"OBJECTS", "3037"},
+      {"ROOMS", "9931"},
+      {"CLASSES", "29"},
+      {"LEVELS", "30"},
+      {"RACES", "13"},
+      {"SKILLS", "999"},
 
-    /* Protocols */
-    {"ANSI", "1"},
-    {"GMCP", "1"},
+      /* Protocols */
+      {"ANSI", "1"},
+      {"GMCP", "1"},
 #ifdef USING_MCCP
-    {"MCCP", "1"},
+      {"MCCP", "1"},
 #else
-    {"MCCP", "0"},
+      {"MCCP", "0"},
 #endif // USING_MCCP
-    {"MCP", "0"},
-    {"MSDP", "1"},
-    {"MSP", "1"},
-    {"MXP", "1"},
-    {"PUEBLO", "0"},
-    {"UTF-8", "1"},
-    {"VT100", "0"},
-    {"256 COLORS & XTERM", "1"},
+      {"MCP", "0"},
+      {"MSDP", "1"},
+      {"MSP", "1"},
+      {"MXP", "1"},
+      {"PUEBLO", "0"},
+      {"UTF-8", "1"},
+      {"VT100", "0"},
+      {"256 COLORS & XTERM", "1"},
 
-    /* Commercial */
-    {"PAY TO PLAY", "0"},
-    {"PAY FOR PERKS", "0"},
+      /* Commercial */
+      {"PAY TO PLAY", "0"},
+      {"PAY FOR PERKS", "0"},
 
-    /* Hiring */
-    {"HIRING BUILDERS", "1"},
-    {"HIRING CODERS", "0"},
+      /* Hiring */
+      {"HIRING BUILDERS", "1"},
+      {"HIRING CODERS", "0"},
 
-    /* Game */
-    {"ADULT MATERIAL", "0"},
-    {"MULTICLASSING", "1"},
-    {"NEWBIE FRIENDLY", "1"},
-    {"PLAYER CITIES", "0"},
-    {"PLAYER CLANS", "1"},
-    {"PLAYER CRAFTING", "1"},
-    {"PLAYER GUILDS", "1"},
-    {"EQUIPMENT SYSTEM", "1"},
-    {"MULTIPLAYING", "0"},
-    {"PLAYERKILLING", "1"},
-    {"QUEST SYSTEM", "1"},
-    {"ROLEPLAYING", "1"},
-    {"TRAINING SYSTEM", "1"},
-    {"WORLD ORIGINALITY", "1"},
+      /* Game */
+      {"ADULT MATERIAL", "0"},
+      {"MULTICLASSING", "1"},
+      {"NEWBIE FRIENDLY", "1"},
+      {"PLAYER CITIES", "0"},
+      {"PLAYER CLANS", "1"},
+      {"PLAYER CRAFTING", "1"},
+      {"PLAYER GUILDS", "1"},
+      {"EQUIPMENT SYSTEM", "1"},
+      {"MULTIPLAYING", "0"},
+      {"PLAYERKILLING", "1"},
+      {"QUEST SYSTEM", "1"},
+      {"ROLEPLAYING", "1"},
+      {"TRAINING SYSTEM", "1"},
+      {"WORLD ORIGINALITY", "1"},
 
-    /* World */
-    {"EXITS", "8"},
-    {"EXTRA DESCRIPTIONS", "99999"},
-    {"MUDPROGS", "120"},
-    {"MUDTRIGS", "120"},
+      /* World */
+      {"EXITS", "8"},
+      {"EXTRA DESCRIPTIONS", "99999"},
+      {"MUDPROGS", "120"},
+      {"MUDTRIGS", "120"},
 #elif defined(CAMPAIGN_FR)
-    {"NAME", MUD_NAME}, /* Change this in protocol.h */
-    {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
-    {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
+      {"NAME", MUD_NAME}, /* Change this in protocol.h */
+      {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
+      {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
 
-    /* Generic */
-    {"CRAWL DELAY", "-1"},
-    {"HOSTNAME", "faerun.d20mud.com"},
-    {"PORT", "3100"},
-    {"CODEBASE", "LuminariMUD"},
-    {"CONTACT", "gickerlds<at>gmail.com"},
-    {"CREATED", "2019"},
-    {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
-    {"IP", "198.71.53.124"},
-    {"LANGUAGE", "English"},
-    {"LOCATION", "United States"},
-    {"MINIMUM AGE", "0"},
-    {"WEBSITE", "http://faerun.d20mud.com/"},
+      /* Generic */
+      {"CRAWL DELAY", "-1"},
+      {"HOSTNAME", "faerun.d20mud.com"},
+      {"PORT", "3100"},
+      {"CODEBASE", "LuminariMUD"},
+      {"CONTACT", "gickerlds<at>gmail.com"},
+      {"CREATED", "2019"},
+      {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+      {"IP", "198.71.53.124"},
+      {"LANGUAGE", "English"},
+      {"LOCATION", "United States"},
+      {"MINIMUM AGE", "0"},
+      {"WEBSITE", "http://faerun.d20mud.com/"},
 
-    /* Categorisation */
-    {"FAMILY", "tbaMUD"},
-    {"GENRE", "Fantasy"},
-    {"GAMEPLAY", "Role Play and PvE"},
-    {"STATUS", "Open"},
-    {"GAMESYSTEM", "Pathfinder"},
-    {"INTERMUD", ""},
-    {"SUBGENRE", "Forgotten Realms Post Second Sundering"},
+      /* Categorisation */
+      {"FAMILY", "tbaMUD"},
+      {"GENRE", "Fantasy"},
+      {"GAMEPLAY", "Role Play and PvE"},
+      {"STATUS", "Open"},
+      {"GAMESYSTEM", "Pathfinder"},
+      {"INTERMUD", ""},
+      {"SUBGENRE", "Forgotten Realms Post Second Sundering"},
 
-    /* World */
-    {"AREAS", "514"},
-    {"HELPFILES", "0"},
-    {"MOBILES", "14556"},
-    {"OBJECTS", "25114"},
-    {"ROOMS", "50166"},
-    {"CLASSES", "27"},
-    {"LEVELS", "30"},
-    {"RACES", "27"},
-    {"SKILLS", "999"},
+      /* World */
+      {"AREAS", "514"},
+      {"HELPFILES", "0"},
+      {"MOBILES", "14556"},
+      {"OBJECTS", "25114"},
+      {"ROOMS", "50166"},
+      {"CLASSES", "27"},
+      {"LEVELS", "30"},
+      {"RACES", "27"},
+      {"SKILLS", "999"},
 
-    /* Protocols */
-    {"ANSI", "1"},
-    {"GMCP", "1"},
+      /* Protocols */
+      {"ANSI", "1"},
+      {"GMCP", "1"},
 #ifdef USING_MCCP
-    {"MCCP", "1"},
+      {"MCCP", "1"},
 #else
-    {"MCCP", "0"},
+      {"MCCP", "0"},
 #endif // USING_MCCP
-    {"MCP", "0"},
-    {"MSDP", "1"},
-    {"MSP", "1"},
-    {"MXP", "1"},
-    {"PUEBLO", "0"},
-    {"UTF-8", "1"},
-    {"VT100", "0"},
-    {"256 COLORS & XTERM", "1"},
+      {"MCP", "0"},
+      {"MSDP", "1"},
+      {"MSP", "1"},
+      {"MXP", "1"},
+      {"PUEBLO", "0"},
+      {"UTF-8", "1"},
+      {"VT100", "0"},
+      {"256 COLORS & XTERM", "1"},
 
-    /* Commercial */
-    {"PAY TO PLAY", "0"},
-    {"PAY FOR PERKS", "0"},
+      /* Commercial */
+      {"PAY TO PLAY", "0"},
+      {"PAY FOR PERKS", "0"},
 
-    /* Hiring */
-    {"HIRING BUILDERS", "1"},
-    {"HIRING CODERS", "1"},
+      /* Hiring */
+      {"HIRING BUILDERS", "1"},
+      {"HIRING CODERS", "1"},
 
-    /* Game */
-    {"ADULT MATERIAL", "0"},
-    {"MULTICLASSING", "1"},
-    {"NEWBIE FRIENDLY", "1"},
-    {"PLAYER CITIES", "0"},
-    {"PLAYER CLANS", "1"},
-    {"PLAYER CRAFTING", "1"},
-    {"PLAYER GUILDS", "1"},
-    {"EQUIPMENT SYSTEM", "1"},
-    {"MULTIPLAYING", "0"},
-    {"PLAYERKILLING", "1"},
-    {"QUEST SYSTEM", "1"},
-    {"ROLEPLAYING", "1"},
-    {"TRAINING SYSTEM", "1"},
-    {"WORLD ORIGINALITY", "1"},
+      /* Game */
+      {"ADULT MATERIAL", "0"},
+      {"MULTICLASSING", "1"},
+      {"NEWBIE FRIENDLY", "1"},
+      {"PLAYER CITIES", "0"},
+      {"PLAYER CLANS", "1"},
+      {"PLAYER CRAFTING", "1"},
+      {"PLAYER GUILDS", "1"},
+      {"EQUIPMENT SYSTEM", "1"},
+      {"MULTIPLAYING", "0"},
+      {"PLAYERKILLING", "1"},
+      {"QUEST SYSTEM", "1"},
+      {"ROLEPLAYING", "1"},
+      {"TRAINING SYSTEM", "1"},
+      {"WORLD ORIGINALITY", "1"},
 
-    /* World */
-    {"EXITS", "8"},
-    {"EXTRA DESCRIPTIONS", "99999"},
-    {"MUDPROGS", "3652"},
-    {"MUDTRIGS", "1956"},
+      /* World */
+      {"EXITS", "8"},
+      {"EXTRA DESCRIPTIONS", "99999"},
+      {"MUDPROGS", "3652"},
+      {"MUDTRIGS", "1956"},
 #else
-    {"NAME", MUD_NAME}, /* Change this in protocol.h */
-    {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
-    {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
+      {"NAME", MUD_NAME}, /* Change this in protocol.h */
+      {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
+      {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
 
-    /* Generic */
-    {"CRAWL DELAY", "-1"},
-    {"HOSTNAME", "LuminariMUD.com"},
-    {"PORT", "4100"},
-    {"CODEBASE", "LuminariMUD"},
-    {"CONTACT", "moshehwebservices<at>live.com"},
-    {"CREATED", "2012"},
-    {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
-    {"IP", "198.71.53.124"},
-    {"LANGUAGE", "English"},
-    {"LOCATION", "United States"},
-    {"MINIMUM AGE", "0"},
-    {"WEBSITE", "http://www.LuminariMUD.com/"},
+      /* Generic */
+      {"CRAWL DELAY", "-1"},
+      {"HOSTNAME", "LuminariMUD.com"},
+      {"PORT", "4100"},
+      {"CODEBASE", "LuminariMUD"},
+      {"CONTACT", "moshehwebservices<at>live.com"},
+      {"CREATED", "2012"},
+      {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+      {"IP", "198.71.53.124"},
+      {"LANGUAGE", "English"},
+      {"LOCATION", "United States"},
+      {"MINIMUM AGE", "0"},
+      {"WEBSITE", "http://www.LuminariMUD.com/"},
 
-    /* Categorisation */
-    {"FAMILY", "tbaMUD"},
-    {"GENRE", "Fantasy"},
-    {"GAMEPLAY", "Hack and Slash"},
-    {"STATUS", "Beta"},
-    {"GAMESYSTEM", "Pathfinder"},
-    {"INTERMUD", ""},
-    {"SUBGENRE", "Forgotten Realms DragonLance"},
+      /* Categorisation */
+      {"FAMILY", "tbaMUD"},
+      {"GENRE", "Fantasy"},
+      {"GAMEPLAY", "Hack and Slash"},
+      {"STATUS", "Beta"},
+      {"GAMESYSTEM", "Pathfinder"},
+      {"INTERMUD", ""},
+      {"SUBGENRE", "Forgotten Realms DragonLance"},
 
-    /* World */
-    {"AREAS", "514"},
-    {"HELPFILES", "0"},
-    {"MOBILES", "14556"},
-    {"OBJECTS", "25114"},
-    {"ROOMS", "50166"},
-    {"CLASSES", "27"},
-    {"LEVELS", "30"},
-    {"RACES", "27"},
-    {"SKILLS", "999"},
+      /* World */
+      {"AREAS", "514"},
+      {"HELPFILES", "0"},
+      {"MOBILES", "14556"},
+      {"OBJECTS", "25114"},
+      {"ROOMS", "50166"},
+      {"CLASSES", "27"},
+      {"LEVELS", "30"},
+      {"RACES", "27"},
+      {"SKILLS", "999"},
 
-    /* Protocols */
-    {"ANSI", "1"},
-    {"GMCP", "1"},
+      /* Protocols */
+      {"ANSI", "1"},
+      {"GMCP", "1"},
 #ifdef USING_MCCP
-    {"MCCP", "1"},
+      {"MCCP", "1"},
 #else
-    {"MCCP", "0"},
+      {"MCCP", "0"},
 #endif // USING_MCCP
-    {"MCP", "0"},
-    {"MSDP", "1"},
-    {"MSP", "1"},
-    {"MXP", "1"},
-    {"PUEBLO", "0"},
-    {"UTF-8", "1"},
-    {"VT100", "0"},
-    {"256 COLORS & XTERM", "1"},
+      {"MCP", "0"},
+      {"MSDP", "1"},
+      {"MSP", "1"},
+      {"MXP", "1"},
+      {"PUEBLO", "0"},
+      {"UTF-8", "1"},
+      {"VT100", "0"},
+      {"256 COLORS & XTERM", "1"},
 
-    /* Commercial */
-    {"PAY TO PLAY", "0"},
-    {"PAY FOR PERKS", "0"},
+      /* Commercial */
+      {"PAY TO PLAY", "0"},
+      {"PAY FOR PERKS", "0"},
 
-    /* Hiring */
-    {"HIRING BUILDERS", "1"},
-    {"HIRING CODERS", "1"},
+      /* Hiring */
+      {"HIRING BUILDERS", "1"},
+      {"HIRING CODERS", "1"},
 
-    /* Game */
-    {"ADULT MATERIAL", "0"},
-    {"MULTICLASSING", "1"},
-    {"NEWBIE FRIENDLY", "1"},
-    {"PLAYER CITIES", "0"},
-    {"PLAYER CLANS", "1"},
-    {"PLAYER CRAFTING", "1"},
-    {"PLAYER GUILDS", "1"},
-    {"EQUIPMENT SYSTEM", "1"},
-    {"MULTIPLAYING", "1"},
-    {"PLAYERKILLING", "1"},
-    {"QUEST SYSTEM", "1"},
-    {"ROLEPLAYING", "1"},
-    {"TRAINING SYSTEM", "1"},
-    {"WORLD ORIGINALITY", "1"},
+      /* Game */
+      {"ADULT MATERIAL", "0"},
+      {"MULTICLASSING", "1"},
+      {"NEWBIE FRIENDLY", "1"},
+      {"PLAYER CITIES", "0"},
+      {"PLAYER CLANS", "1"},
+      {"PLAYER CRAFTING", "1"},
+      {"PLAYER GUILDS", "1"},
+      {"EQUIPMENT SYSTEM", "1"},
+      {"MULTIPLAYING", "1"},
+      {"PLAYERKILLING", "1"},
+      {"QUEST SYSTEM", "1"},
+      {"ROLEPLAYING", "1"},
+      {"TRAINING SYSTEM", "1"},
+      {"WORLD ORIGINALITY", "1"},
 
-    /* World */
-    {"EXITS", "8"},
-    {"EXTRA DESCRIPTIONS", "99999"},
-    {"MUDPROGS", "3652"},
-    {"MUDTRIGS", "1956"},
+      /* World */
+      {"EXITS", "8"},
+      {"EXTRA DESCRIPTIONS", "99999"},
+      {"MUDPROGS", "3652"},
+      {"MUDTRIGS", "1956"},
 #endif
 
-    /* Extended variables */
-    /* Protocols */
-    /*
+      /* Extended variables */
+      /* Protocols */
+      /*
     {"RESETS", "0"},
     {"DBSIZE", "0"},
         { "SSL",                "0" },
         { "ZMP",                "0" },
    */
 
-    {NULL, NULL} /* This must always be last. */
+      {NULL, NULL} /* This must always be last. */
   };
 
   /* Begin the subnegotiation sequence */
@@ -3483,10 +3542,13 @@ static void SendMSSP(descriptor_t *apDescriptor)
     SizePair = strlen(MSSPPair);
     if (SizePair + SizeBuffer < MAX_MSSP_BUFFER - 4)
     {
-      if (strlen(MSSPBuffer) + SizePair + 1 < sizeof(MSSPBuffer)) {
+      if (strlen(MSSPBuffer) + SizePair + 1 < sizeof(MSSPBuffer))
+      {
         strcat(MSSPBuffer, MSSPPair);
         SizeBuffer += SizePair;
-      } else {
+      }
+      else
+      {
         ReportBug("MSSP Buffer would overflow");
         break;
       }
@@ -3495,9 +3557,12 @@ static void SendMSSP(descriptor_t *apDescriptor)
 
   /* End the subnegotiation sequence */
   sprintf(MSSPPair, "%c%c", IAC, SE);
-  if (strlen(MSSPBuffer) + strlen(MSSPPair) + 1 < sizeof(MSSPBuffer)) {
+  if (strlen(MSSPBuffer) + strlen(MSSPPair) + 1 < sizeof(MSSPBuffer))
+  {
     strcat(MSSPBuffer, MSSPPair);
-  } else {
+  }
+  else
+  {
     ReportBug("MSSP Buffer would overflow adding termination sequence");
   }
 
@@ -3555,40 +3620,31 @@ static char *GetMxpTag(const char *apTag, const char *apText)
 static const char *GetAnsiColour(bool_t abBackground, int aRed, int aGreen, int aBlue)
 {
   if (aRed == aGreen && aRed == aBlue && aRed < 2)
-    return abBackground ? s_BackBlack : aRed >= 1 ? s_BoldBlack
-                                                  : s_DarkBlack;
+    return abBackground ? s_BackBlack : aRed >= 1 ? s_BoldBlack : s_DarkBlack;
   else if (aRed == aGreen && aRed == aBlue)
-    return abBackground ? s_BackWhite : aRed >= 4 ? s_BoldWhite
-                                                  : s_DarkWhite;
+    return abBackground ? s_BackWhite : aRed >= 4 ? s_BoldWhite : s_DarkWhite;
   else if (aRed > aGreen && aRed > aBlue)
-    return abBackground ? s_BackRed : aRed >= 3 ? s_BoldRed
-                                                : s_DarkRed;
+    return abBackground ? s_BackRed : aRed >= 3 ? s_BoldRed : s_DarkRed;
   else if (aRed == aGreen && aRed > aBlue)
-    return abBackground ? s_BackYellow : aRed >= 3 ? s_BoldYellow
-                                                   : s_DarkYellow;
+    return abBackground ? s_BackYellow : aRed >= 3 ? s_BoldYellow : s_DarkYellow;
   else if (aRed == aBlue && aRed > aGreen)
-    return abBackground ? s_BackMagenta : aRed >= 3 ? s_BoldMagenta
-                                                    : s_DarkMagenta;
+    return abBackground ? s_BackMagenta : aRed >= 3 ? s_BoldMagenta : s_DarkMagenta;
   else if (aGreen > aBlue)
-    return abBackground ? s_BackGreen : aGreen >= 3 ? s_BoldGreen
-                                                    : s_DarkGreen;
+    return abBackground ? s_BackGreen : aGreen >= 3 ? s_BoldGreen : s_DarkGreen;
   else if (aGreen == aBlue)
-    return abBackground ? s_BackCyan : aGreen >= 3 ? s_BoldCyan
-                                                   : s_DarkCyan;
+    return abBackground ? s_BackCyan : aGreen >= 3 ? s_BoldCyan : s_DarkCyan;
   else /* aBlue is the highest */
-    return abBackground ? s_BackBlue : aBlue >= 3 ? s_BoldBlue
-                                                  : s_DarkBlue;
+    return abBackground ? s_BackBlue : aBlue >= 3 ? s_BoldBlue : s_DarkBlue;
 }
 
 static const char *GetRGBColour(bool_t abBackground, int aRed, int aGreen, int aBlue)
 {
   static char Result[16];
   int ColVal = 16 + (aRed * 36) + (aGreen * 6) + aBlue;
-  sprintf(Result, "\033[%c8;5;%c%c%cm",
-          '3' + abBackground,          /* Background */
-          '0' + (ColVal / 100),        /* Red        */
-          '0' + ((ColVal % 100) / 10), /* Green      */
-          '0' + (ColVal % 10));        /* Blue       */
+  sprintf(Result, "\033[%c8;5;%c%c%cm", '3' + abBackground, /* Background */
+          '0' + (ColVal / 100),                             /* Red        */
+          '0' + ((ColVal % 100) / 10),                      /* Green      */
+          '0' + (ColVal % 10));                             /* Blue       */
   return Result;
 }
 
@@ -3648,10 +3704,13 @@ static char *AllocString(const char *apString)
   {
     int Size = strlen(apString);
     pResult = (char *)malloc(Size + 1);
-    if (pResult != NULL) {
+    if (pResult != NULL)
+    {
       memcpy(pResult, apString, Size);
       pResult[Size] = '\0';
-    } else {
+    }
+    else
+    {
       ReportBug("AllocString: malloc failed");
     }
   }

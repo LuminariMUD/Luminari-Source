@@ -13,7 +13,7 @@ The current narrative weaver system has diverged from the original vision. This 
 
 ### Original Vision
 - **Enhance existing dynamic descriptions** with region-specific details
-- **Add atmospheric hints** (spooky vs magical forest ambiance) 
+- **Add atmospheric hints** (spooky vs magical forest ambiance)
 - **Specify flora types** (birch vs pine forest)
 - **Include fauna hints** (what wildlife might be present)
 - **Layer contextual details** on top of base wilderness descriptions
@@ -136,7 +136,7 @@ The current narrative weaver system has diverged from the original vision. This 
 char *gen_room_description(struct char_data *ch, room_rnum room) {
     // Generate base resource-aware description
     char *base_desc = generate_resource_aware_description(ch, room);
-    
+
     if (base_desc && IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
         // Enhance with regional hints
         char *enhanced_desc = enhance_with_regional_hints(base_desc, room);
@@ -145,7 +145,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room) {
             return enhanced_desc;
         }
     }
-    
+
     return base_desc; // fallback to base description
 }
 ```
@@ -156,11 +156,11 @@ char *enhance_with_regional_hints(char *base_description, room_rnum room) {
     // Get environmental context
     struct environmental_context context;
     get_environmental_context(room, &context);
-    
+
     // Load appropriate hints
     struct region_hint *hints = load_contextual_hints_enhanced(
         region_vnum, &context);
-    
+
     // Layer hints onto base description
     return layer_regional_specificity(base_description, hints, &context);
 }

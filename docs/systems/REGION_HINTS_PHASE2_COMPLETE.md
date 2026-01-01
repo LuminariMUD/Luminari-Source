@@ -63,7 +63,7 @@ desc_engine.c
 enhance_wilderness_description_with_hints()
      ↓
 1. get_enclosing_regions() → Find region for coordinates
-2. load_region_hints() → Get hints from database 
+2. load_region_hints() → Get hints from database
 3. build_description_context() → Gather weather/time/season
 4. select_relevant_hints() → Filter by conditions
 5. generate_resource_aware_description() → Get base description

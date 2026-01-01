@@ -260,7 +260,7 @@ When implementing the wilderness resource gathering system, campaign differentia
 
 #### Resource Types
 - **CAMPAIGN_DL**: DragonLance-appropriate materials (dragonmetal, irontree wood)
-- **CAMPAIGN_FR**: Forgotten Realms materials (mithril, darkwood) 
+- **CAMPAIGN_FR**: Forgotten Realms materials (mithril, darkwood)
 - **Default**: Generic fantasy materials (steel, oak)
 
 #### Gathering Mechanics

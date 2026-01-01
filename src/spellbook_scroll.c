@@ -73,8 +73,9 @@ void display_spells(struct char_data *ch, struct obj_data *obj, int mode)
   }
 
   if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "The spellbook contains the following spell(s):\r\n"
-                                   "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+    send_to_group(NULL, GROUP(ch),
+                  "The spellbook contains the following spell(s):\r\n"
+                  "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
   else
     send_to_char(ch, "The spellbook contains the following spell(s):\r\n"
                      "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
@@ -88,8 +89,7 @@ void display_spells(struct char_data *ch, struct obj_data *obj, int mode)
                       spell_info[obj->sbinfo[i].spellname].name,
                       ((spell_info[obj->sbinfo[i].spellname].min_level[CLASS_WIZARD] + 1) / 2));
       else
-        send_to_char(ch, "%-20s		[%2d]\r\n",
-                     spell_info[obj->sbinfo[i].spellname].name,
+        send_to_char(ch, "%-20s		[%2d]\r\n", spell_info[obj->sbinfo[i].spellname].name,
                      ((spell_info[obj->sbinfo[i].spellname].min_level[CLASS_WIZARD] + 1) / 2));
     }
   }
@@ -135,8 +135,7 @@ int spell_in_scroll(struct obj_data *obj, int spellnum)
   if (GET_OBJ_TYPE(obj) != ITEM_SCROLL)
     return FALSE;
 
-  if (GET_OBJ_VAL(obj, 1) == spellnum ||
-      GET_OBJ_VAL(obj, 2) == spellnum ||
+  if (GET_OBJ_VAL(obj, 1) == spellnum || GET_OBJ_VAL(obj, 2) == spellnum ||
       GET_OBJ_VAL(obj, 3) == spellnum)
     return TRUE;
 
@@ -172,7 +171,6 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 
   if (class == CLASS_WIZARD)
   {
-
     /* for-loop for inventory */
     for (obj = ch->carrying; obj && !found; obj = obj->next_content)
     {
@@ -188,8 +186,8 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 
       if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll)
       {
-        if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
-                                                  spell_info[spellnum].min_level[class])
+        if (spell_in_scroll(obj, spellnum) &&
+            CLASS_LEVEL(ch, class) >= spell_info[spellnum].min_level[class])
         {
           found = TRUE;
           send_to_char(ch, "The \tmmagical energy\tn of the scroll leaves the "
@@ -223,8 +221,8 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 
       if (GET_OBJ_TYPE(obj) == ITEM_SCROLL && check_scroll)
       {
-        if (spell_in_scroll(obj, spellnum) && CLASS_LEVEL(ch, class) >=
-                                                  spell_info[spellnum].min_level[class])
+        if (spell_in_scroll(obj, spellnum) &&
+            CLASS_LEVEL(ch, class) >= spell_info[spellnum].min_level[class])
         {
           found = TRUE;
           send_to_char(ch, "The \tmmagical energy\tn of the scroll leaves the "
@@ -241,8 +239,9 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
     if (!found)
     {
       if (check_scroll)
-        send_to_char(ch, "You don't seem to have %s in your spellbook or in "
-                         "any scrolls.\r\n",
+        send_to_char(ch,
+                     "You don't seem to have %s in your spellbook or in "
+                     "any scrolls.\r\n",
                      spell_info[spellnum].name);
       return FALSE;
     }
@@ -314,8 +313,7 @@ ACMD(do_scribe)
     if (!obj->sbinfo)
     {
       CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
-      memset((char *)obj->sbinfo, 0,
-             SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
+      memset((char *)obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
     }
     /* look for empty spot in book */
     for (i = 0; i < SPELLBOOK_SIZE; i++)
@@ -361,19 +359,16 @@ ACMD(do_scribe)
 
     obj->sbinfo[i].spellname = spellnum;
     obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
-    send_to_char(ch, "You scribe the spell '%s' into your spellbook, which "
-                     "takes up %d pages.\r\n",
-                 spell_info[spellnum].name,
-                 obj->sbinfo[i].pages);
+    send_to_char(ch,
+                 "You scribe the spell '%s' into your spellbook, which "
+                 "takes up %d pages.\r\n",
+                 spell_info[spellnum].name, obj->sbinfo[i].pages);
     extract_obj(scroll);
     save_char(ch, 0);
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
   {
-
-    if (GET_OBJ_VAL(obj, 1) > 0 ||
-        GET_OBJ_VAL(obj, 2) > 0 ||
-        GET_OBJ_VAL(obj, 3) > 0)
+    if (GET_OBJ_VAL(obj, 1) > 0 || GET_OBJ_VAL(obj, 2) > 0 || GET_OBJ_VAL(obj, 3) > 0)
     {
       send_to_char(ch, "The scroll has a spell inscribed on it!\r\n");
       return;
@@ -395,8 +390,8 @@ ACMD(do_scribe)
 
     snprintf(buf, sizeof(buf), "a scroll of '%s'", spell_info[spellnum].name);
     obj->short_description = strdup(buf);
-    send_to_char(ch, "You scribe the spell '%s' onto %s.\r\n",
-                 spell_info[spellnum].name, obj->short_description);
+    send_to_char(ch, "You scribe the spell '%s' onto %s.\r\n", spell_info[spellnum].name,
+                 obj->short_description);
   }
   else
   {
@@ -406,8 +401,9 @@ ACMD(do_scribe)
 
   if (!found)
   {
-    send_to_char(ch, "The magical energy committed for the spell '%s' has been "
-                     "expended.\r\n",
+    send_to_char(ch,
+                 "The magical energy committed for the spell '%s' has been "
+                 "expended.\r\n",
                  spell_info[spellnum].name);
     snprintf(buf, sizeof(buf), "%d", spellnum);
     collection_remove_by_class(ch, CLASS_WIZARD, spellnum, METAMAGIC_NONE);

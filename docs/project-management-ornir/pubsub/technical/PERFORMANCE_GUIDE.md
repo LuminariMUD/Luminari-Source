@@ -31,7 +31,7 @@ struct pubsub_message_queue {
     struct pubsub_queue_node *high_head;       // Quest updates, events
     struct pubsub_queue_node *normal_head;     // Chat, general messages (80%)
     struct pubsub_queue_node *low_head;        // Ambience, background audio
-    
+
     int total_queued;                          // Current queue size
     bool processing_active;                    // Processing state
     time_t last_processed;                     // Last processing timestamp
@@ -50,15 +50,15 @@ struct pubsub_message_queue {
 // In comm.c - heartbeat function
 void heartbeat(void) {
     static int pulse_count = 0;
-    
+
     pulse_count++;
-    
+
     /* Process PubSub queue every 3 pulses (0.75 seconds) */
     if (pulse_count >= 3) {
         pubsub_process_message_queue();
         pulse_count = 0;
     }
-    
+
     /* Other heartbeat processing... */
 }
 
@@ -66,16 +66,16 @@ void heartbeat(void) {
 int pubsub_process_message_queue(void) {
     clock_t start_time = clock();
     int processed = 0;
-    
+
     /* Process up to PUBSUB_QUEUE_BATCH_SIZE messages */
     processed = pubsub_queue_process_batch(PUBSUB_QUEUE_BATCH_SIZE);
-    
+
     /* Update performance statistics */
     clock_t end_time = clock();
     double processing_time = ((double)(end_time - start_time) / CLOCKS_PER_SEC) * 1000;
-    pubsub_stats.avg_processing_time_ms = 
+    pubsub_stats.avg_processing_time_ms =
         (pubsub_stats.avg_processing_time_ms + processing_time) / 2.0;
-    
+
     return processed;
 }
 ```
@@ -90,18 +90,18 @@ struct pubsub_message {
 };
 
 /* Efficient message creation and cleanup */
-struct pubsub_message *pubsub_create_message(char *topic, char *content, 
+struct pubsub_message *pubsub_create_message(char *topic, char *content,
                                             int priority, char *sender) {
     struct pubsub_message *msg = calloc(1, sizeof(struct pubsub_message));
     if (!msg) return NULL;
-    
+
     msg->topic_id = pubsub_topic_get_id(topic);
     msg->content = strdup(content);
     msg->priority = priority;
     msg->sender_name = strdup(sender);
     msg->reference_count = 1;        // Initial reference
     msg->created_at = time(NULL);
-    
+
     pubsub_stats.messages_allocated++;
     return msg;
 }
@@ -109,9 +109,9 @@ struct pubsub_message *pubsub_create_message(char *topic, char *content,
 /* Safe message cleanup with reference counting */
 void pubsub_message_release(struct pubsub_message *msg) {
     if (!msg) return;
-    
+
     msg->reference_count--;
-    
+
     if (msg->reference_count <= 0) {
         free(msg->content);
         free(msg->sender_name);
@@ -135,25 +135,25 @@ struct pubsub_statistics {
     long long total_messages_published;     // Total messages created
     long long total_messages_delivered;     // Successfully delivered
     long long total_messages_failed;        // Failed deliveries
-    
+
     /* Queue performance */
     int current_queue_size;                 // Current messages queued
     int peak_queue_size;                    // Highest queue size reached
     long long queue_batch_operations;       // Total batch operations
     double avg_processing_time_ms;          // Average processing time
-    
+
     /* Priority breakdown */
     long long queue_critical_processed;     // Critical messages processed
     long long queue_urgent_processed;       // Urgent messages processed  
     long long queue_high_processed;         // High priority processed
     long long queue_normal_processed;       // Normal priority processed
     long long queue_low_processed;          // Low priority processed
-    
+
     /* Memory usage */
     int topics_allocated;                   // Active topic count
     int messages_allocated;                 // Active message count
     int subscriptions_allocated;            // Active subscription count
-    
+
     /* Timing */
     time_t last_queue_flush;               // Last queue flush time
 };
@@ -164,27 +164,27 @@ struct pubsub_statistics {
 /* In-game performance monitoring */
 ACMD(do_pubsub) {
     /* ... command parsing ... */
-    
+
     if (!strcmp(subcmd, "stats")) {
         send_to_char(ch, "&WPubSub System Performance Statistics&n\r\n");
         send_to_char(ch, "&C========================================&n\r\n");
-        
+
         /* Message statistics */
         send_to_char(ch, "&YMessage Statistics:&n\r\n");
         send_to_char(ch, "  Published: %lld\r\n", pubsub_stats.total_messages_published);
         send_to_char(ch, "  Delivered: %lld\r\n", pubsub_stats.total_messages_delivered);
-        send_to_char(ch, "  Failed: %lld (%.2f%%)\r\n", 
+        send_to_char(ch, "  Failed: %lld (%.2f%%)\r\n",
                      pubsub_stats.total_messages_failed,
-                     (double)pubsub_stats.total_messages_failed / 
+                     (double)pubsub_stats.total_messages_failed /
                      pubsub_stats.total_messages_published * 100.0);
-        
+
         /* Queue performance */
         send_to_char(ch, "\r\n&YQueue Performance:&n\r\n");
         send_to_char(ch, "  Current Size: %d messages\r\n", pubsub_stats.current_queue_size);
         send_to_char(ch, "  Peak Size: %d messages\r\n", pubsub_stats.peak_queue_size);
         send_to_char(ch, "  Batch Operations: %lld\r\n", pubsub_stats.queue_batch_operations);
         send_to_char(ch, "  Avg Processing Time: %.2f ms\r\n", pubsub_stats.avg_processing_time_ms);
-        
+
         /* Priority breakdown */
         send_to_char(ch, "\r\n&YPriority Breakdown:&n\r\n");
         send_to_char(ch, "  Critical: %lld\r\n", pubsub_stats.queue_critical_processed);
@@ -192,18 +192,18 @@ ACMD(do_pubsub) {
         send_to_char(ch, "  High: %lld\r\n", pubsub_stats.queue_high_processed);
         send_to_char(ch, "  Normal: %lld\r\n", pubsub_stats.queue_normal_processed);
         send_to_char(ch, "  Low: %lld\r\n", pubsub_stats.queue_low_processed);
-        
+
         /* Memory usage */
         send_to_char(ch, "\r\n&YMemory Usage:&n\r\n");
         send_to_char(ch, "  Active Topics: %d\r\n", pubsub_stats.topics_allocated);
         send_to_char(ch, "  Active Messages: %d\r\n", pubsub_stats.messages_allocated);
         send_to_char(ch, "  Active Subscriptions: %d\r\n", pubsub_stats.subscriptions_allocated);
-        
+
         /* Calculate estimated memory usage */
         int estimated_memory = (pubsub_stats.topics_allocated * sizeof(struct pubsub_topic)) +
                               (pubsub_stats.messages_allocated * sizeof(struct pubsub_message)) +
                               (pubsub_stats.subscriptions_allocated * sizeof(struct pubsub_subscription));
-        send_to_char(ch, "  Estimated Memory: %d bytes (%.2f KB)\r\n", 
+        send_to_char(ch, "  Estimated Memory: %d bytes (%.2f KB)\r\n",
                      estimated_memory, estimated_memory / 1024.0);
     }
 }
@@ -213,33 +213,33 @@ ACMD(do_pubsub) {
 ```c
 ACMD(do_pubsubqueue) {
     /* ... command parsing ... */
-    
+
     if (!strcmp(subcmd, "status")) {
         send_to_char(ch, "&WMessage Queue Status&n\r\n");
         send_to_char(ch, "&C==================&n\r\n");
-        
+
         /* Queue state */
-        send_to_char(ch, "Queue Processing: %s\r\n", 
+        send_to_char(ch, "Queue Processing: %s\r\n",
                      message_queue.processing_active ? "&GENABLED&n" : "&RDISABLED&n");
         send_to_char(ch, "Total Queued: %d messages\r\n", pubsub_queue_get_size());
-        
+
         /* Priority breakdown */
         send_to_char(ch, "Critical: %d, Urgent: %d, High: %d, Normal: %d, Low: %d\r\n",
                      message_queue.critical_count, message_queue.urgent_count,
                      message_queue.high_count, message_queue.normal_count,
                      message_queue.low_count);
-        
+
         /* Performance indicators */
         if (pubsub_stats.current_queue_size > PUBSUB_QUEUE_MAX_SIZE * 0.8) {
             send_to_char(ch, "&RWARNING: Queue approaching capacity!&n\r\n");
         }
-        
+
         if (pubsub_stats.avg_processing_time_ms > 5.0) {
             send_to_char(ch, "&YWARNING: High processing time detected!&n\r\n");
         }
-        
+
         /* Last processing time */
-        send_to_char(ch, "Last Processed: %ld seconds ago\r\n", 
+        send_to_char(ch, "Last Processed: %ld seconds ago\r\n",
                      time(NULL) - message_queue.last_processed);
     }
 }
@@ -257,7 +257,7 @@ ACMD(do_pubsubqueue) {
 int calculate_optimal_batch_size(void) {
     int current_load = get_server_load_percentage();
     int queue_size = pubsub_queue_get_size();
-    
+
     /* Adjust batch size based on conditions */
     if (current_load > 80) {
         return PUBSUB_QUEUE_BATCH_SIZE / 2;  // Reduce load when server busy
@@ -271,10 +271,10 @@ int calculate_optimal_batch_size(void) {
 /* Dynamic processing interval adjustment */
 void adjust_processing_interval(void) {
     static int last_interval = 3;  // Default: every 3 pulses (0.75 seconds)
-    
+
     int queue_size = pubsub_queue_get_size();
     int new_interval;
-    
+
     if (queue_size > 1000) {
         new_interval = 1;      // Process every pulse when queue full
     } else if (queue_size > 500) {
@@ -284,7 +284,7 @@ void adjust_processing_interval(void) {
     } else {
         new_interval = 3;      // Normal interval
     }
-    
+
     /* Only change if significantly different to avoid oscillation */
     if (abs(new_interval - last_interval) > 1) {
         last_interval = new_interval;
@@ -298,7 +298,7 @@ void adjust_processing_interval(void) {
 /* Efficient priority-based dequeuing */
 struct pubsub_queue_node *dequeue_by_priority(int priority) {
     struct pubsub_queue_node **head = NULL, **tail = NULL;
-    
+
     /* Select appropriate queue based on priority */
     switch (priority) {
         case PUBSUB_PRIORITY_CRITICAL:
@@ -313,13 +313,13 @@ struct pubsub_queue_node *dequeue_by_priority(int priority) {
             break;
         /* ... other priorities ... */
     }
-    
+
     if (!*head) return NULL;
-    
+
     struct pubsub_queue_node *node = *head;
     *head = node->next;
     if (!*head) *tail = NULL;  // Queue now empty
-    
+
     message_queue.total_queued--;
     return node;
 }
@@ -328,30 +328,30 @@ struct pubsub_queue_node *dequeue_by_priority(int priority) {
 int pubsub_queue_process_batch(int max_messages) {
     int processed = 0;
     struct pubsub_queue_node *node;
-    
+
     /* Process priorities in order: CRITICAL -> URGENT -> HIGH -> NORMAL -> LOW */
-    for (int priority = PUBSUB_PRIORITY_CRITICAL; 
-         priority >= PUBSUB_PRIORITY_LOW && processed < max_messages; 
+    for (int priority = PUBSUB_PRIORITY_CRITICAL;
+         priority >= PUBSUB_PRIORITY_LOW && processed < max_messages;
          priority--) {
-        
+
         int remaining = max_messages - processed;
         int batch_count = 0;
-        
+
         /* Process up to remaining messages at this priority level */
-        while (batch_count < remaining && 
+        while (batch_count < remaining &&
                (node = dequeue_by_priority(priority)) != NULL) {
-            
+
             if (pubsub_deliver_message(node) == PUBSUB_SUCCESS) {
                 pubsub_update_priority_stats(priority);
                 batch_count++;
             }
-            
+
             pubsub_queue_node_free(node);
         }
-        
+
         processed += batch_count;
     }
-    
+
     pubsub_stats.queue_batch_operations++;
     return processed;
 }
@@ -386,7 +386,7 @@ int hash_player_name(char *player_name) {
 bool is_player_subscribed_cached(char *player_name, int topic_id) {
     int hash = hash_player_name(player_name);
     struct pubsub_player_cache *cache = subscription_cache[hash];
-    
+
     /* Search cache chain */
     while (cache) {
         if (!strcmp(cache->player_name, player_name)) {
@@ -407,7 +407,7 @@ bool is_player_subscribed_cached(char *player_name, int topic_id) {
         }
         cache = cache->next;
     }
-    
+
     /* Not in cache, do database lookup and cache result */
     return cache_and_check_subscription(player_name, topic_id);
 }
@@ -425,15 +425,15 @@ static int pool_next_free = 0;
 /* Initialize message pool */
 void pubsub_message_pool_init(void) {
     if (pool_initialized) return;
-    
+
     memset(message_pool, 0, sizeof(message_pool));
-    
+
     /* Link free messages */
     for (int i = 0; i < MESSAGE_POOL_SIZE - 1; i++) {
         message_pool[i].next = &message_pool[i + 1];
     }
     message_pool[MESSAGE_POOL_SIZE - 1].next = NULL;
-    
+
     pool_initialized = TRUE;
     pool_next_free = 0;
 }
@@ -444,14 +444,14 @@ struct pubsub_message *pubsub_message_alloc_fast(void) {
         /* Pool exhausted, use malloc */
         return calloc(1, sizeof(struct pubsub_message));
     }
-    
+
     struct pubsub_message *msg = &message_pool[pool_next_free];
     pool_next_free++;
-    
+
     /* Reset message structure */
     memset(msg, 0, sizeof(struct pubsub_message));
     msg->reference_count = 1;
-    
+
     return msg;
 }
 ```
@@ -471,14 +471,14 @@ static int next_connection = 0;
 MYSQL *pubsub_get_db_connection(void) {
     for (int i = 0; i < MAX_DB_CONNECTIONS; i++) {
         int idx = (next_connection + i) % MAX_DB_CONNECTIONS;
-        
+
         if (!connection_in_use[idx] && db_connection_pool[idx]) {
             connection_in_use[idx] = TRUE;
             next_connection = (idx + 1) % MAX_DB_CONNECTIONS;
             return db_connection_pool[idx];
         }
     }
-    
+
     /* No connections available, use global connection */
     return conn;
 }
@@ -504,20 +504,20 @@ static MYSQL_STMT *stmt_update_stats = NULL;
 /* Initialize prepared statements */
 void pubsub_db_prepare_statements(void) {
     MYSQL *conn = pubsub_get_db_connection();
-    
+
     /* Insert message statement */
     char *insert_sql = "INSERT INTO pubsub_messages "
                       "(topic_id, sender_name, content, priority, created_at) "
                       "VALUES (?, ?, ?, ?, ?)";
     stmt_insert_message = mysql_stmt_init(conn);
     mysql_stmt_prepare(stmt_insert_message, insert_sql, strlen(insert_sql));
-    
+
     /* Get subscriptions statement */
     char *select_sql = "SELECT player_name, handler_name FROM pubsub_subscriptions "
                       "WHERE topic_id = ? AND status = 0";
     stmt_get_subscriptions = mysql_stmt_init(conn);
     mysql_stmt_prepare(stmt_get_subscriptions, select_sql, strlen(select_sql));
-    
+
     pubsub_release_db_connection(conn);
 }
 
@@ -525,29 +525,29 @@ void pubsub_db_prepare_statements(void) {
 int pubsub_db_insert_message_fast(struct pubsub_message *msg) {
     MYSQL_BIND bind[5];
     memset(bind, 0, sizeof(bind));
-    
+
     /* Bind parameters */
     bind[0].buffer_type = MYSQL_TYPE_LONG;
     bind[0].buffer = &msg->topic_id;
-    
+
     bind[1].buffer_type = MYSQL_TYPE_STRING;
     bind[1].buffer = msg->sender_name;
     bind[1].buffer_length = strlen(msg->sender_name);
-    
+
     bind[2].buffer_type = MYSQL_TYPE_STRING;
     bind[2].buffer = msg->content;
     bind[2].buffer_length = strlen(msg->content);
-    
+
     bind[3].buffer_type = MYSQL_TYPE_LONG;
     bind[3].buffer = &msg->priority;
-    
+
     bind[4].buffer_type = MYSQL_TYPE_TIMESTAMP;
     bind[4].buffer = &msg->created_at;
-    
+
     /* Execute prepared statement */
     mysql_stmt_bind_param(stmt_insert_message, bind);
     int result = mysql_stmt_execute(stmt_insert_message);
-    
+
     return (result == 0) ? PUBSUB_SUCCESS : PUBSUB_ERROR_DATABASE;
 }
 ```
@@ -584,7 +584,7 @@ int slow_handler(struct char_data *ch, struct pubsub_message *msg) {
     /* Avoid expensive operations in handlers */
     complex_database_query();  // BAD: Blocks queue processing
     network_request();         // BAD: Can timeout
-    
+
     return PUBSUB_SUCCESS;
 }
 
@@ -592,10 +592,10 @@ int slow_handler(struct char_data *ch, struct pubsub_message *msg) {
 int fast_handler(struct char_data *ch, struct pubsub_message *msg) {
     /* Queue expensive operation for later processing */
     add_deferred_operation(ch, msg);
-    
+
     /* Do minimal immediate processing */
     send_to_char(ch, "%s\r\n", msg->content);
-    
+
     return PUBSUB_SUCCESS;
 }
 
@@ -603,9 +603,9 @@ int fast_handler(struct char_data *ch, struct pubsub_message *msg) {
 // Solution: Reduce ambient message frequency
 void reduce_ambient_frequency(void) {
     static int ambient_counter = 0;
-    
+
     ambient_counter++;
-    
+
     /* Only send ambient messages every 10th call */
     if (ambient_counter % 10 == 0) {
         pubsub_publish_message("ambience", "Wind rustles through leaves",
@@ -618,13 +618,13 @@ void reduce_ambient_frequency(void) {
 void adaptive_batch_processing(void) {
     int queue_size = pubsub_queue_get_size();
     int batch_size = PUBSUB_QUEUE_BATCH_SIZE;
-    
+
     if (queue_size > 1000) {
         batch_size = 100;  // Double batch size
     } else if (queue_size > 500) {
         batch_size = 75;   // Increase by 50%
     }
-    
+
     pubsub_queue_process_batch(batch_size);
 }
 ```
@@ -651,7 +651,7 @@ valgrind --leak-check=full ./bin/circle 4000
 /* Solution 1: Proper message cleanup */
 void fix_message_cleanup(void) {
     struct pubsub_message *msg = pubsub_create_message(...);
-    
+
     /* Always release references */
     pubsub_message_add_reference(msg);  // When storing
     /* ... use message ... */
@@ -662,12 +662,12 @@ void fix_message_cleanup(void) {
 /* Solution 2: Topic cleanup */
 void cleanup_unused_topics(void) {
     struct pubsub_topic *topic = topic_list;
-    
+
     while (topic) {
         /* Remove topics with no activity for 1 hour */
-        if (time(NULL) - topic->last_message_at > 3600 && 
+        if (time(NULL) - topic->last_message_at > 3600 &&
             topic->subscriber_count == 0) {
-            
+
             pubsub_topic_delete(topic->name);
         }
         topic = topic->next;
@@ -678,7 +678,7 @@ void cleanup_unused_topics(void) {
 void cleanup_subscription_cache(void) {
     for (int i = 0; i < SUBSCRIPTION_CACHE_SIZE; i++) {
         struct pubsub_player_cache *cache = subscription_cache[i];
-        
+
         while (cache) {
             /* Remove old cache entries */
             if (time(NULL) - cache->last_cache_update > CACHE_TIMEOUT) {
@@ -706,7 +706,7 @@ CREATE INDEX idx_pubsub_messages_topic_priority ON pubsub_messages (topic_id, pr
 CREATE INDEX idx_pubsub_messages_created ON pubsub_messages (created_at);
 
 -- Optimize table structure
-ALTER TABLE pubsub_messages 
+ALTER TABLE pubsub_messages
   ADD COLUMN expires_at TIMESTAMP,
   ADD INDEX idx_expires (expires_at);
 
@@ -714,7 +714,7 @@ ALTER TABLE pubsub_messages
 CREATE EVENT cleanup_old_messages
 ON SCHEDULE EVERY 1 HOUR
 DO
-  DELETE FROM pubsub_messages 
+  DELETE FROM pubsub_messages
   WHERE expires_at < NOW() - INTERVAL 24 HOUR;
 ```
 
@@ -747,7 +747,7 @@ echo "Error Rate: $error_rate%"
 echo -e "\nQueue Size Trends:"
 grep "Queue size:" log/syslog | tail -10 | \
   awk '{print $NF}' | \
-  awk '{if($1>max) max=$1; if($1<min||min=="") min=$1; sum+=$1; count++} 
+  awk '{if($1>max) max=$1; if($1<min||min=="") min=$1; sum+=$1; count++}
        END {print "Min: " min ", Max: " max ", Avg: " sum/count}'
 ```
 
@@ -809,19 +809,19 @@ static int player_message_count[MAX_PLAYERS];
 int pubsub_check_rate_limit(struct char_data *ch) {
     int player_idx = GET_PLAYER_INDEX(ch);
     time_t now = time(NULL);
-    
+
     /* Reset counter every second */
     if (now > player_last_message[player_idx]) {
         player_message_count[player_idx] = 0;
         player_last_message[player_idx] = now;
     }
-    
+
     /* Check rate limit */
     if (player_message_count[player_idx] >= PUBSUB_QUEUE_THROTTLE_LIMIT) {
         send_to_char(ch, "You are sending messages too quickly. Please slow down.\r\n");
         return PUBSUB_ERROR_THROTTLED;
     }
-    
+
     player_message_count[player_idx]++;
     return PUBSUB_SUCCESS;
 }

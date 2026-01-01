@@ -264,7 +264,7 @@ Edit `get_seasonal_modifier()` in `resource_system.c`:
 ```c
 case RESOURCE_VEGETATION:
     switch (time_info.month) {
-        case 0: case 1: case 2: 
+        case 0: case 1: case 2:
             return 0.3;  // Adjust winter modifier
         // ... other seasons
     }

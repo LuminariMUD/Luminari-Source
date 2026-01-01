@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
-#include "moon_bonus_spells.h"  /* For moon bonus spell system */
+#include "moon_bonus_spells.h" /* For moon bonus spell system */
 
 #define NUM_WEATHER_CHANGES 6
 
@@ -144,7 +144,7 @@ void reset_dailies()
   for (ch = character_list; ch; ch = next_ch)
   {
     next_ch = ch->next; /* Cache next char before potential extraction */
-    
+
     if (!ch)
       continue;
 
@@ -170,7 +170,6 @@ void reset_dailies()
  */
 static void another_hour(int mode)
 {
-
   time_info.hours++;
 
   if (mode)
@@ -436,7 +435,8 @@ struct weather_msg
 
     {SECT_MARSHLAND,
      {"The sun becomes obscured between the openings in the canopy above as heavy clouds roll in.",
-      "The mucky ground below you becomes spotty with sun beams as it shines through the canopy above.",
+      "The mucky ground below you becomes spotty with sun beams as it shines through the canopy "
+      "above.",
       "Heavy droplets begin to fall, the clouds above growing thicker, darkening the swamp.",
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
@@ -510,7 +510,6 @@ void send_weather(int weather_change)
 
   for (i = descriptor_list; i; i = i->next)
   {
-
     if (!i)
       continue;
 
@@ -523,13 +522,13 @@ void send_weather(int weather_change)
     if (sect_no_weather(i->character))
       continue;
 
-    if (IN_ROOM(i->character) != NOWHERE && (ZONE_FLAGGED(world[IN_ROOM(i->character)].zone, ZONE_WILDERNESS)))
+    if (IN_ROOM(i->character) != NOWHERE &&
+        (ZONE_FLAGGED(world[IN_ROOM(i->character)].zone, ZONE_WILDERNESS)))
       continue; /* Wilderness weather is handled elsewhere */
 
     for (j = 0; weather_messages[j].sector_type != SECT_INSIDE; j++)
     {
-      if (weather_messages[j].sector_type ==
-          world[IN_ROOM(i->character)].sector_type)
+      if (weather_messages[j].sector_type == world[IN_ROOM(i->character)].sector_type)
       {
         send_to_char(i->character, "%s\r\n", weather_messages[j].msg[(weather_change - 1)]);
         found = TRUE;

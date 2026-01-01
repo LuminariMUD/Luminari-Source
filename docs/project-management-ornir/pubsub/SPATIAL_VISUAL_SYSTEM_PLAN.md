@@ -110,18 +110,18 @@ struct spatial_context {
     char *source_description;
     int stimulus_type;
     float base_intensity;
-    
+
     /* Observer Information */
     struct char_data *observer;
     int observer_x, observer_y, observer_z;
-    
+
     /* Environmental Factors */
     int weather_conditions;
     int time_of_day;
     struct char_data **nearby_entities;    /* For empathy system */
     int entity_count;
     float magical_field_strength;          /* For magical systems */
-    
+
     /* Calculated Values */
     float distance;
     float effective_range;
@@ -129,7 +129,7 @@ struct spatial_context {
     float environmental_modifier;
     float final_intensity;
     char *processed_message;
-    
+
     /* System Configuration */
     struct spatial_system *active_system;
 };
@@ -151,7 +151,7 @@ struct stimulus_strategy visual_stimulus_strategy = {
 
 /* Audio Stimulus - Sound-based transmission */
 struct stimulus_strategy audio_stimulus_strategy = {
-    .name = "Audio", 
+    .name = "Audio",
     .stimulus_type = STIMULUS_AUDIO,
     .base_range = 500.0,   /* Sound travels less far than sight */
     .calculate_intensity = audio_calculate_intensity,
@@ -217,7 +217,7 @@ struct modifier_strategy weather_terrain_modifier_strategy = {
 
 /* Atmospheric Modifiers - Affects audio transmission */
 struct modifier_strategy atmospheric_modifier_strategy = {
-    .name = "Atmospheric", 
+    .name = "Atmospheric",
     .apply_environmental_modifiers = atmospheric_apply_modifiers,
     .calculate_interference = atmospheric_calculate_interference,
     .modify_message = atmospheric_modify_message
@@ -247,25 +247,25 @@ int spatial_process_stimulus(struct spatial_context *ctx, struct spatial_system 
     float obstruction_factor = 0.0;
     float range_modifier = 1.0;
     float clarity_modifier = 1.0;
-    
+
     /* Step 1: Calculate base stimulus intensity */
     if (system->stimulus->calculate_intensity(ctx) != SPATIAL_SUCCESS) {
         return SPATIAL_ERROR_STIMULUS;
     }
-    
+
     /* Step 2: Check line of sight using appropriate strategy */
     if (system->line_of_sight->calculate_obstruction(ctx, &obstruction_factor) != SPATIAL_SUCCESS) {
         return SPATIAL_ERROR_LOS;
     }
-    
+
     /* Step 3: Apply environmental modifiers */
     if (system->modifiers->apply_environmental_modifiers(ctx, &range_modifier, &clarity_modifier) != SPATIAL_SUCCESS) {
         return SPATIAL_ERROR_MODIFIERS;
     }
-    
+
     /* Step 4: Calculate final transmission */
     ctx->final_intensity = ctx->base_intensity * (1.0 - obstruction_factor) * range_modifier;
-    
+
     /* Step 5: Generate appropriate message if stimulus is strong enough */
     if (ctx->final_intensity > MINIMUM_STIMULUS_THRESHOLD) {
         if (system->stimulus->generate_base_message(ctx, ctx->processed_message, MAX_MESSAGE_LENGTH) == SPATIAL_SUCCESS) {
@@ -274,14 +274,14 @@ int spatial_process_stimulus(struct spatial_context *ctx, struct spatial_system 
             return SPATIAL_SUCCESS;
         }
     }
-    
+
     return SPATIAL_ERROR_BELOW_THRESHOLD;
 }
 
 /* Convenience function for processing multiple systems */
 int spatial_process_all_systems(struct spatial_context *ctx, struct spatial_system **systems, int system_count) {
     int processed_count = 0;
-    
+
     for (int i = 0; i < system_count; i++) {
         if (systems[i]->enabled) {
             ctx->active_system = systems[i];
@@ -291,7 +291,7 @@ int spatial_process_all_systems(struct spatial_context *ctx, struct spatial_syst
             }
         }
     }
-    
+
     return processed_count;
 }
 ```
@@ -302,24 +302,24 @@ int spatial_process_all_systems(struct spatial_context *ctx, struct spatial_syst
 ```c
 void ship_passes_coast(int ship_x, int ship_y, char *ship_description) {
     struct spatial_context ctx = {0};
-    
+
     ctx.source_x = ship_x;
     ctx.source_y = ship_y;
     ctx.source_z = 0;  /* Sea level */
     ctx.source_description = ship_description;
     ctx.base_intensity = 1.0;
-    
+
     /* Process for all nearby players using visual system */
     struct spatial_system *systems[] = { &visual_system };
-    
+
     for (struct char_data *ch = character_list; ch; ch = ch->next) {
         if (IS_NPC(ch) || !IN_WILDERNESS(ch)) continue;
-        
+
         ctx.observer = ch;
         ctx.observer_x = GET_WILDERNESS_X(ch);
         ctx.observer_y = GET_WILDERNESS_Y(ch);
         ctx.observer_z = GET_WILDERNESS_Z(ch);
-        
+
         if (spatial_process_all_systems(&ctx, systems, 1) > 0) {
             /* Deliver visual message to player */
             send_to_char(ch, "%s\r\n", ctx.processed_message);
@@ -332,28 +332,28 @@ void ship_passes_coast(int ship_x, int ship_y, char *ship_description) {
 ```c
 void empathic_event(struct char_data *source, char *emotion_description, float emotion_intensity) {
     struct spatial_context ctx = {0};
-    
+
     ctx.source_x = GET_WILDERNESS_X(source);
     ctx.source_y = GET_WILDERNESS_Y(source);
     ctx.source_z = GET_WILDERNESS_Z(source);
     ctx.source_description = emotion_description;
     ctx.base_intensity = emotion_intensity;
-    
+
     /* Get nearby entities that could interfere */
     ctx.nearby_entities = get_nearby_living_entities(source, EMPATHY_INTERFERENCE_RANGE);
     ctx.entity_count = count_nearby_entities(ctx.nearby_entities);
-    
+
     struct spatial_system *systems[] = { &empathy_system };
-    
+
     for (struct char_data *ch = character_list; ch; ch = ch->next) {
         if (IS_NPC(ch) || ch == source) continue;
         if (!HAS_EMPATHY_ABILITY(ch)) continue;  /* Only empaths can sense */
-        
+
         ctx.observer = ch;
         ctx.observer_x = GET_WILDERNESS_X(ch);
         ctx.observer_y = GET_WILDERNESS_Y(ch);
         ctx.observer_z = GET_WILDERNESS_Z(ch);
-        
+
         if (spatial_process_all_systems(&ctx, systems, 1) > 0) {
             send_to_char(ch, "%s\r\n", ctx.processed_message);
         }
@@ -363,12 +363,12 @@ void empathic_event(struct char_data *source, char *emotion_description, float e
 
 ### **1. Wilderness Line of Sight System**
 **Current System:** `src/wilderness.c` - `wilderness_can_see()`
-**Enhancement Needed:** 
+**Enhancement Needed:**
 - Extract into reusable `spatial_line_of_sight.c` module
 - Add granular terrain interference calculations
 - Support 3D calculations (height/elevation)
 
-### **2. Spatial Audio System** 
+### **2. Spatial Audio System**
 **Current System:** `src/pubsub_spatial.c`
 **Refactoring Plan:**
 - Extract common distance/interference calculations
@@ -392,7 +392,7 @@ void empathic_event(struct char_data *source, char *emotion_description, float e
    - Unified distance calculations
    - Terrain interference algorithms
    - Line of sight abstraction layer
-   
+
 2. **Visual Processor Module** (`src/spatial_visual.c`)
    - Visual-specific range calculations
    - Message generation for visual stimuli
@@ -408,7 +408,7 @@ void empathic_event(struct char_data *source, char *emotion_description, float e
    - Ship movement events
    - Flying object tracking
    - Weather visual effects
-   
+
 2. **Auto-Subscription System**
    - Subscribe players to relevant visual topics based on location
    - Dynamic subscription management as players move
@@ -424,12 +424,12 @@ void empathic_event(struct char_data *source, char *emotion_description, float e
    - Ships passing along coastlines
    - Naval battles visible from shore
    - Lighthouse beacons and signals
-   
+
 2. **Aerial Events**
    - Flying creatures/objects
    - Flying cities/structures
    - Weather phenomena (storms, aurora)
-   
+
 3. **Terrestrial Events**
    - Distant caravans
    - Smoke from settlements
@@ -440,12 +440,12 @@ void empathic_event(struct char_data *source, char *emotion_description, float e
    - Fog/mist reduces visibility
    - Rain affects visual clarity
    - Storms create dramatic visual effects
-   
+
 2. **Time of Day Effects**
    - Darkness limits vision range
    - Dawn/dusk lighting effects
    - Celestial events (meteor showers)
-   
+
 3. **Seasonal Variations**
    - Snow affects visibility
    - Vegetation changes impact line of sight
@@ -467,7 +467,7 @@ float calculate_visual_range(struct spatial_stimulus_context *ctx) {
     float weather_mod = get_weather_visibility_modifier(ctx);
     float time_mod = get_time_visibility_modifier(ctx);
     float terrain_mod = get_terrain_visibility_modifier(ctx);
-    
+
     return base_range * weather_mod * time_mod * terrain_mod;
 }
 ```
@@ -499,7 +499,7 @@ typedef enum {
     VISUAL_MSG_SILHOUETTE   /* "A silhouette passes against the sunset sky" */
 } visual_message_type_t;
 
-int generate_visual_message(struct spatial_stimulus_context *ctx, 
+int generate_visual_message(struct spatial_stimulus_context *ctx,
                            visual_message_type_t msg_type,
                            char *output, size_t max_len);
 ```
@@ -513,7 +513,7 @@ int generate_visual_message(struct spatial_stimulus_context *ctx,
 /* When a ship moves in the wilderness */
 void ship_movement_event(int ship_x, int ship_y, int direction, char *ship_desc) {
     struct spatial_stimulus_context ctx;
-    
+
     /* Set up stimulus context */
     ctx.source_x = ship_x;
     ctx.source_y = ship_y;
@@ -521,7 +521,7 @@ void ship_movement_event(int ship_x, int ship_y, int direction, char *ship_desc)
     ctx.source_description = ship_desc;
     ctx.stimulus_type = STIMULUS_VISUAL;
     ctx.intensity = 1.0; /* Full visibility under good conditions */
-    
+
     /* Process for all potential observers */
     spatial_process_visual_stimulus(&ctx, "visual_ships");
 }
@@ -532,14 +532,14 @@ void ship_movement_event(int ship_x, int ship_y, int direction, char *ship_desc)
 /* Dragon flying overhead */
 void flying_object_event(int x, int y, int altitude, char *description) {
     struct spatial_stimulus_context ctx;
-    
+
     ctx.source_x = x;
     ctx.source_y = y;
     ctx.source_z = altitude;
     ctx.source_description = description;
     ctx.stimulus_type = STIMULUS_VISUAL;
     ctx.intensity = 0.8; /* Slightly harder to see due to altitude */
-    
+
     spatial_process_visual_stimulus(&ctx, "visual_flying");
 }
 ```
@@ -556,16 +556,16 @@ void update_wilderness_visual_subscriptions(struct char_data *ch, int new_x, int
     if (!is_near_coast(new_x, new_y)) {
         pubsub_unsubscribe_if_subscribed(ch, "visual_ships");
     }
-    
+
     /* Subscribe to relevant topics */
     if (is_near_coast(new_x, new_y)) {
         pubsub_auto_subscribe(ch, "visual_ships", "visual_stimulus_handler");
     }
-    
+
     if (is_open_terrain(new_x, new_y)) {
         pubsub_auto_subscribe(ch, "visual_flying", "visual_stimulus_handler");
     }
-    
+
     /* Always subscribe to general wilderness visuals */
     pubsub_auto_subscribe(ch, "visual_wilderness", "visual_stimulus_handler");
 }
@@ -579,11 +579,11 @@ void update_wilderness_visual_subscriptions(struct char_data *ch, int new_x, int
 1. **Spatial Indexing**
    - Grid-based partitioning for quick distance calculations
    - Only process stimuli for players within maximum range
-   
+
 2. **Caching**
    - Cache line of sight calculations for frequently used paths
    - Cache terrain interference factors
-   
+
 3. **Batch Processing**
    - Process multiple visual events in single pass
    - Group nearby observers for efficient delivery
@@ -613,7 +613,7 @@ struct spatial_context_pool {
 1. **Distance Calculations**
    - 2D and 3D distance accuracy
    - Edge cases (same location, extreme distances)
-   
+
 2. **Line of Sight**
    - Various terrain configurations
    - Elevation differences

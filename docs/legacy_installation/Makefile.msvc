@@ -160,5 +160,5 @@ qedit.obj: qedit.c conf.h sysdep.h structs.h utils.h comm.h db.h oasis.h \
   improved-edit.h screen.h genolc.h genzon.h interpreter.h quest.h
 	$(CC) -c $(CFLAGS) qedit.c
 genqst.obj: genqst.c conf.h sysdep.h structs.h utils.h db.h quest.h \
-  genolc.h genzon.h 
+  genolc.h genzon.h
 	$(CC) -c $(CFLAGS) genqst.c

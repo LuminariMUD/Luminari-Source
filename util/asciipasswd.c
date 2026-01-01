@@ -26,7 +26,8 @@
  */
 char *CAP(char *txt)
 {
-  if (txt && *txt) {
+  if (txt && *txt)
+  {
     *txt = UPPER(*txt);
   }
   return (txt);
@@ -47,7 +48,8 @@ int main(int argc, char **argv)
 {
   char *encrypted_pass;
 
-  if (argc != 3) {
+  if (argc != 3)
+  {
     fprintf(stderr, "Usage: %s <name> <password>\n", argv[0]);
     fprintf(stderr, "\n");
     fprintf(stderr, "Generates encrypted passwords for ASCII player files.\n");
@@ -58,19 +60,22 @@ int main(int argc, char **argv)
   }
 
   /* Validate input parameters */
-  if (!argv[1] || !*argv[1]) {
+  if (!argv[1] || !*argv[1])
+  {
     fprintf(stderr, "Error: Player name cannot be empty\n");
     return (1);
   }
 
-  if (!argv[2] || !*argv[2]) {
+  if (!argv[2] || !*argv[2])
+  {
     fprintf(stderr, "Error: Password cannot be empty\n");
     return (1);
   }
 
   /* Generate encrypted password */
   encrypted_pass = CRYPT(argv[2], CAP(argv[1]));
-  if (!encrypted_pass) {
+  if (!encrypted_pass)
+  {
     fprintf(stderr, "Error: Failed to encrypt password\n");
     return (1);
   }

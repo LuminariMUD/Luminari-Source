@@ -27,7 +27,7 @@ self.register_prompt(
             "required": True
         },
         {
-            "name": "environment", 
+            "name": "environment",
             "description": "Environmental conditions (temperate, tropical, arctic, etc.)",
             "required": False
         },
@@ -193,15 +193,15 @@ def process_region_queue():
 ```python
 def generate_hints_for_region(region):
     """Generate categorized hints from region description"""
-    
+
     # Parse the comprehensive description
     context = parse_region_description(region.description)
-    
+
     # Generate hints by category
     hints = {}
-    
+
     hints['atmosphere'] = generate_atmospheric_hints(context)
-    hints['fauna'] = generate_wildlife_hints(context) 
+    hints['fauna'] = generate_wildlife_hints(context)
     hints['flora'] = generate_vegetation_hints(context)
     hints['geography'] = generate_geographic_hints(context)
     hints['sounds'] = generate_audio_hints(context)
@@ -212,7 +212,7 @@ def generate_hints_for_region(region):
     hints['resources'] = generate_resource_hints(context)
     hints['landmarks'] = generate_landmark_hints(context)
     hints['mystical'] = generate_mystical_hints(context)
-    
+
     return hints
 ```
 
@@ -355,7 +355,7 @@ async def main_loop():
     while True:
         # Check for regions needing hints
         regions = await discover_regions_needing_hints()
-        
+
         for region in regions:
             try:
                 hints = await generate_hints_for_region(region)
@@ -363,7 +363,7 @@ async def main_loop():
                 await mark_region_processed(region.vnum)
             except Exception as e:
                 await log_error(f"Failed to process region {region.vnum}: {e}")
-        
+
         # Wait before next check
         await asyncio.sleep(300)  # 5 minutes
 ```

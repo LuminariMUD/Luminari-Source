@@ -185,8 +185,8 @@ UPDATE resource_types SET regeneration_rate = 0.005 WHERE resource_name = 'veget
 ### Ecological Relationships
 Add new relationships in `resource_relationships`:
 ```sql
-INSERT INTO resource_relationships 
-(source_resource, target_resource, effect_type, effect_magnitude, description) 
+INSERT INTO resource_relationships
+(source_resource, target_resource, effect_type, effect_magnitude, description)
 VALUES (1, 2, 'depletion', -0.040, 'Mining affects water quality');
 ```
 
@@ -194,7 +194,7 @@ VALUES (1, 2, 'depletion', -0.040, 'Mining affects water quality');
 Create custom effects in `region_effects`:
 ```sql
 INSERT INTO region_effects (effect_name, effect_type, effect_description, effect_data)
-VALUES ('Ancient Forest', 'resource', 'Mystical wood bonuses', 
+VALUES ('Ancient Forest', 'resource', 'Mystical wood bonuses',
         JSON_OBJECT('resource_modifiers', JSON_OBJECT('wood', JSON_OBJECT('multiplier', 2.0))));
 ```
 

@@ -159,7 +159,7 @@ The system is integrated with character movement in `handler.c`:
 ```c
 void char_to_room(struct char_data *ch, room_rnum room) {
     // ... existing movement code ...
-    
+
     /* Apply resource regeneration for wilderness rooms */
     if (ROOM_FLAGGED(room, ROOM_WILDERNESS)) {
         int resource_type;
@@ -167,7 +167,7 @@ void char_to_room(struct char_data *ch, room_rnum room) {
             apply_lazy_regeneration(room, resource_type);
         }
     }
-    
+
     // ... rest of movement code ...
 }
 ```
@@ -180,13 +180,13 @@ When players harvest resources, the system triggers regeneration:
 // In harvest command handler
 void do_harvest(struct char_data *ch, char *argument, int cmd, int subcmd) {
     // ... harvest logic ...
-    
+
     /* Trigger regeneration check before harvesting */
     apply_lazy_regeneration(ch->in_room, resource_type);
-    
+
     /* Get current availability after regeneration */
     float availability = get_resource_depletion_level(ch->in_room, resource_type);
-    
+
     // ... continue with harvest ...
 }
 ```
@@ -200,12 +200,12 @@ The survey command shows regeneration information:
 void show_resource_survey_detailed(struct char_data *ch, room_rnum room) {
     int x = world[room].coords[0];
     int y = world[room].coords[1];
-    
+
     for (int i = 0; i < NUM_RESOURCE_TYPES; i++) {
         float base_rate = get_resource_regeneration_rate(i);
         float modified_rate = get_modified_regeneration_rate(i, x, y);
         float availability = get_resource_depletion_level(room, i);
-        
+
         send_to_char(ch, "%s: %.1f%% available, %.1f%%/hour regen\r\n",
                      resource_names[i], availability * 100, modified_rate * 100);
     }
@@ -284,7 +284,7 @@ void debug_regeneration_calculation(int resource_type, int x, int y) {
     float seasonal = get_seasonal_modifier(resource_type);
     float weather = get_weather_modifier(resource_type, get_weather(x, y));
     float final = base * seasonal * weather;
-    
+
     log("DEBUG REGEN: Type=%d, Base=%.3f, Season=%.3f, Weather=%.3f, Final=%.3f",
         resource_type, base, seasonal, weather, final);
 }

@@ -16,25 +16,25 @@
 /* Trap severity data - Damage, DCs, etc by severity level */
 struct trap_severity_data
 {
-    const char *name;
-    int detect_dc_base;      /* Base DC to detect */
-    int disarm_dc_base;      /* Base DC to disarm */
-    int save_dc_base;        /* Base DC for saves */
-    int damage_multiplier;   /* Multiplier for damage calculations */
+  const char *name;
+  int detect_dc_base;    /* Base DC to detect */
+  int disarm_dc_base;    /* Base DC to disarm */
+  int save_dc_base;      /* Base DC for saves */
+  int damage_multiplier; /* Multiplier for damage calculations */
 };
 
 /* Trap type template data - Describes each trap type */
 struct trap_type_template
 {
-    const char *name;               /* Trap type name */
-    int damage_type;                /* DAM_* type */
-    int save_type;                  /* TRAP_SAVE_* type */
-    int special_effect;             /* TRAP_SPECIAL_* effect */
-    const char *trigger_msg_char;   /* Message to char when triggered */
-    const char *trigger_msg_room;   /* Message to room when triggered */
-    const char *detect_msg;         /* Message when trap is detected */
-    bool is_area_effect;            /* Does this trap affect multiple targets? */
-    int default_area_radius;        /* Default area radius for AoE traps */
+  const char *name;             /* Trap type name */
+  int damage_type;              /* DAM_* type */
+  int save_type;                /* TRAP_SAVE_* type */
+  int special_effect;           /* TRAP_SPECIAL_* effect */
+  const char *trigger_msg_char; /* Message to char when triggered */
+  const char *trigger_msg_room; /* Message to room when triggered */
+  const char *detect_msg;       /* Message when trap is detected */
+  bool is_area_effect;          /* Does this trap affect multiple targets? */
+  int default_area_radius;      /* Default area radius for AoE traps */
 };
 
 /* ============================================================================ */
@@ -69,7 +69,7 @@ int search_for_traps(struct char_data *ch);
 void perform_autosearch(struct char_data *ch);
 
 /* Trap triggering */
-bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room, 
+bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
                         struct obj_data *obj, int direction);
 void trigger_trap(struct char_data *ch, struct trap_data *trap, room_rnum room);
 void apply_trap_damage(struct char_data *ch, struct trap_data *trap);
@@ -99,7 +99,7 @@ int perform_detecttrap(struct char_data *ch, bool silent);
 /* ACMD prototypes */
 ACMD_DECL(do_disabletrap);
 ACMD_DECL(do_detecttrap);
-ACMD_DECL(do_trapinfo);  /* New command to show trap details */
+ACMD_DECL(do_trapinfo); /* New command to show trap details */
 
 /* Special mob vnums for trap effects */
 #define TRAP_DARK_WARRIOR_MOBILE 135600

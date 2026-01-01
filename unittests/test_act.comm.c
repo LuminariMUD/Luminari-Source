@@ -14,8 +14,8 @@
 void do_spec_comm(struct char_data *ch, char *argument, int cmd, int subcmd);
 
 // mocks
-char *act(const char *str, int hide_invisible, struct char_data *ch,
-        struct obj_data *obj, void *vict_obj, int type)
+char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj,
+          void *vict_obj, int type)
 {
   static int call = 0;
   if (++call == 1)

@@ -264,7 +264,7 @@ ACMD(do_terrain_api) {
 **Add Configure Options:**
 ```bash
 AC_ARG_ENABLE([terrain-api],
-    [AS_HELP_STRING([--enable-terrain-api], 
+    [AS_HELP_STRING([--enable-terrain-api],
      [Enable terrain bridge API server])],
     [terrain_api=$enableval], [terrain_api=no])
 

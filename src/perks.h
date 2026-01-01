@@ -115,7 +115,8 @@ bool is_perk_toggled_on(struct char_data *ch, int perk_id);
 void set_perk_toggle(struct char_data *ch, int perk_id, bool state);
 int get_perk_rank(struct char_data *ch, int perk_id, int class_id);
 int get_total_perk_ranks(struct char_data *ch, int perk_id);
-bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *error_msg, size_t error_len);
+bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *error_msg,
+                       size_t error_len);
 bool purchase_perk(struct char_data *ch, int perk_id, int class_id);
 struct char_perk_data *find_char_perk(struct char_data *ch, int perk_id, int class_id);
 void add_char_perk(struct char_data *ch, int perk_id, int class_id);
@@ -220,7 +221,8 @@ bool has_psionic_suggestion_primer(struct char_data *ch);
 bool has_psionic_focus_channeling(struct char_data *ch);
 
 /* Psionicist Telepathic Control Tier I mechanics */
-void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum, int routines_flags);
+void apply_psionic_suggestion_primer(struct char_data *ch, struct char_data *vict, int spellnum,
+                                     int routines_flags);
 void apply_psionic_focus_channeling(struct char_data *ch);
 
 /* Psionicist Telepathic Control Tier II helpers */
@@ -238,7 +240,8 @@ bool has_psionic_dominion(struct char_data *ch);
 bool has_psychic_sundering(struct char_data *ch);
 bool has_psionic_mental_backlash(struct char_data *ch);
 bool has_psionic_piercing_will(struct char_data *ch);
-void apply_psionic_dominion_extension(struct char_data *ch, struct char_data *vict, int spellnum, struct affected_type *af_array, int count);
+void apply_psionic_dominion_extension(struct char_data *ch, struct char_data *vict, int spellnum,
+                                      struct affected_type *af_array, int count);
 void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict);
 int get_psionic_piercing_will_bonus(struct char_data *ch);
 int get_psionic_mental_backlash_damage(struct char_data *ch, int level);
@@ -423,7 +426,8 @@ bool has_blackguard_necrotic_regeneration(struct char_data *ch);
 int get_blackguard_necrotic_regeneration(struct char_data *ch);
 bool has_blackguard_unholy_fortification(struct char_data *ch);
 bool has_blackguard_blasphemous_warding(struct char_data *ch);
-int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster, int spellnum);
+int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster,
+                                          int spellnum);
 bool has_blackguard_resilient_corruption(struct char_data *ch);
 int get_blackguard_resilient_corruption_dr(struct char_data *ch);
 void increment_blackguard_resilient_corruption(struct char_data *ch);
@@ -454,7 +458,8 @@ int get_ranger_companion_tohit_bonus(struct char_data *ch);
 int get_ranger_companion_save_bonus(struct char_data *ch);
 bool ranger_companion_immune_fear(struct char_data *ch);
 bool ranger_companion_immune_mind(struct char_data *ch);
-int get_pack_tactics_bonus(struct char_data *ch, struct char_data *master, struct char_data *victim);
+int get_pack_tactics_bonus(struct char_data *ch, struct char_data *master,
+                           struct char_data *victim);
 int get_coordinated_attack_damage(struct char_data *ch);
 int get_primal_avatar_damage(struct char_data *ch);
 int get_natures_remedy_bonus(struct char_data *ch);
@@ -842,10 +847,11 @@ ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);
 
 /* Perk refund/reset functions (step 10) */
-bool remove_char_perk(struct char_data *ch, int perk_id, int class_id);  /* Returns TRUE if removed */
-void remove_class_perks(struct char_data *ch, int class_id);              /* Remove all perks for a class */
-void remove_all_perks(struct char_data *ch);                               /* Remove all perks (for respec) */
-void reset_all_perk_points(struct char_data *ch);                          /* Reset all perk points to 0 */
+bool remove_char_perk(struct char_data *ch, int perk_id,
+                      int class_id);                         /* Returns TRUE if removed */
+void remove_class_perks(struct char_data *ch, int class_id); /* Remove all perks for a class */
+void remove_all_perks(struct char_data *ch);                 /* Remove all perks (for respec) */
+void reset_all_perk_points(struct char_data *ch);            /* Reset all perk points to 0 */
 
 /* Bard Spellsinger Tree Perk Functions */
 int get_bard_enchanters_guile_dc_bonus(struct char_data *ch);

@@ -1,5 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([LuminariMUD],[1.0],[bugs@luminarimud.com])
+dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
+AC_INIT([LuminariMUD],[2.5000-beta],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
@@ -80,8 +81,8 @@ AC_CHECK_FUNC(crypt, [AC_DEFINE([CIRCLE_CRYPT], [1], [Define if crypt() is avail
     )
 
 dnl Check for json-c library for terrain bridge API
-AC_CHECK_LIB(json-c, json_object_new_object, 
-    [AC_DEFINE([HAVE_JSON_C], [1], [Define if json-c library is available])], 
+AC_CHECK_LIB(json-c, json_object_new_object,
+    [AC_DEFINE([HAVE_JSON_C], [1], [Define if json-c library is available])],
     [AC_MSG_WARN([json-c library not found - terrain bridge API will be disabled])])
 
 dnl Checks for header files.

@@ -55,7 +55,7 @@ Updated the spell reference HTML generator to display spells in a compact, colla
 function toggleSpell(spellId) {
     const details = document.getElementById('details-' + spellId);
     const icon = document.getElementById('icon-' + spellId);
-    
+
     if (details.classList.contains('open')) {
         details.classList.remove('open');
         icon.classList.remove('open');

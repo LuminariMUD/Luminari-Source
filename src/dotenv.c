@@ -2,7 +2,7 @@
  * @file dotenv.c
  * @author LuminariMUD Dev Team
  * @brief Simple .env file parser for configuration
- * 
+ *
  * Part of the LuminariMUD distribution.
  */
 
@@ -20,7 +20,8 @@
  * Get environment variable from .env file
  * Returns static buffer - do not free!
  */
-char *get_env_value(const char *key) {
+char *get_env_value(const char *key)
+{
   static char value[MAX_ENV_VALUE];
   FILE *fp;
   char line[MAX_ENV_LINE];
@@ -28,86 +29,97 @@ char *get_env_value(const char *key) {
   char *equals_pos;
   char *line_start;
   char *value_start;
-  
+
   value[0] = '\0';
-  
+
   /* Try to open .env file in current directory */
   fp = fopen(".env", "r");
-  if (!fp) {
+  if (!fp)
+  {
     /* Try lib directory as fallback */
     fp = fopen("lib/.env", "r");
-    if (!fp) {
+    if (!fp)
+    {
       return value;
     }
   }
-  
-  
+
+
   /* Read each line */
-  while (fgets(line, sizeof(line), fp)) {
+  while (fgets(line, sizeof(line), fp))
+  {
     line_start = line;
-    
+
     /* Skip whitespace */
-    while (*line_start && isspace(*line_start)) {
+    while (*line_start && isspace(*line_start))
+    {
       line_start++;
     }
-    
+
     /* Skip comments and empty lines */
-    if (!*line_start || *line_start == '#') {
+    if (!*line_start || *line_start == '#')
+    {
       continue;
     }
-    
+
     /* Find equals sign */
     equals_pos = strchr(line_start, '=');
-    if (!equals_pos) {
+    if (!equals_pos)
+    {
       continue;
     }
-    
+
     /* Extract key */
     size_t key_length = equals_pos - line_start;
-    if (key_length >= MAX_ENV_KEY) {
+    if (key_length >= MAX_ENV_KEY)
+    {
       continue; /* Skip lines with keys that are too long */
     }
     strncpy(file_key, line_start, key_length);
     file_key[key_length] = '\0';
-    
+
     /* Remove trailing whitespace from key */
-    while (strlen(file_key) > 0 && isspace(file_key[strlen(file_key) - 1])) {
+    while (strlen(file_key) > 0 && isspace(file_key[strlen(file_key) - 1]))
+    {
       file_key[strlen(file_key) - 1] = '\0';
     }
-    
+
     /* Check if this is our key */
-    if (strcmp(file_key, key) == 0) {
+    if (strcmp(file_key, key) == 0)
+    {
       /* Extract value */
       value_start = equals_pos + 1;
-      
+
       /* Skip leading whitespace */
-      while (*value_start && isspace(*value_start)) {
+      while (*value_start && isspace(*value_start))
+      {
         value_start++;
       }
-      
+
       /* Copy value */
       strlcpy(value, value_start, sizeof(value));
-      
+
       /* Remove trailing whitespace and newline */
-      while (strlen(value) > 0 && 
-             (isspace(value[strlen(value) - 1]) || 
-              value[strlen(value) - 1] == '\n' || 
-              value[strlen(value) - 1] == '\r')) {
+      while (strlen(value) > 0 &&
+             (isspace(value[strlen(value) - 1]) || value[strlen(value) - 1] == '\n' ||
+              value[strlen(value) - 1] == '\r'))
+      {
         value[strlen(value) - 1] = '\0';
       }
-      
+
       /* Remove quotes if present */
       size_t value_len = strlen(value);
-      if (value_len >= 2 && value[0] == '"' && value[value_len - 1] == '"') {
+      if (value_len >= 2 && value[0] == '"' && value[value_len - 1] == '"')
+      {
         memmove(value, value + 1, value_len - 2);
         value[value_len - 2] = '\0';
       }
-      
+
       fclose(fp);
       return value;
     }
   }
-  
+
   fclose(fp);
   return value;
 }
@@ -115,9 +127,11 @@ char *get_env_value(const char *key) {
 /**
  * Get environment variable as integer
  */
-int get_env_int(const char *key, int default_value) {
+int get_env_int(const char *key, int default_value)
+{
   char *value = get_env_value(key);
-  if (!value || !*value) {
+  if (!value || !*value)
+  {
     return default_value;
   }
   return atoi(value);
@@ -126,19 +140,20 @@ int get_env_int(const char *key, int default_value) {
 /**
  * Get environment variable as boolean
  */
-bool get_env_bool(const char *key, bool default_value) {
+bool get_env_bool(const char *key, bool default_value)
+{
   char *value = get_env_value(key);
-  if (!value || !*value) {
+  if (!value || !*value)
+  {
     return default_value;
   }
-  
+
   /* Check for various true values */
-  if (!strcasecmp(value, "true") || 
-      !strcasecmp(value, "yes") || 
-      !strcasecmp(value, "1") || 
-      !strcasecmp(value, "on")) {
+  if (!strcasecmp(value, "true") || !strcasecmp(value, "yes") || !strcasecmp(value, "1") ||
+      !strcasecmp(value, "on"))
+  {
     return TRUE;
   }
-  
+
   return FALSE;
 }

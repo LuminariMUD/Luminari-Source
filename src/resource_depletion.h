@@ -23,7 +23,8 @@ void apply_harvest_depletion(room_rnum room, int resource_type, int quantity);
 /* Phase 7: Enhanced depletion with cascade effects */
 void apply_harvest_depletion_with_cascades(room_rnum room, int resource_type, int quantity);
 void apply_cascade_effects(room_rnum room, int source_resource, int quantity);
-void apply_single_cascade_effect(room_rnum room, int target_resource, float effect_magnitude, const char *description);
+void apply_single_cascade_effect(room_rnum room, int target_resource, float effect_magnitude,
+                                 const char *description);
 
 /* Phase 7: Cascade preview and analysis */
 void show_cascade_preview(struct char_data *ch, room_rnum room, int resource_type);

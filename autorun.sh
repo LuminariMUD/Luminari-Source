@@ -113,7 +113,7 @@ log() {
     shift
     local message="[$(date "+${DATE_FORMAT_LOG}")] ${SCRIPT_NAME} [${level}]: $*"
     echo "$message"
-    
+
     # Also append to syslog if it exists
     if [[ -w syslog ]]; then
         echo "$message" >> syslog
@@ -136,17 +136,17 @@ die() {
 check_directory() {
     local dir="$1"
     local service="$2"
-    
+
     if [[ ! -d "$dir" ]]; then
         log_warn "${service} directory not found: ${dir}"
         return 1
     fi
-    
+
     if [[ ! -r "$dir" ]] || [[ ! -x "$dir" ]]; then
         log_warn "${service} directory not accessible: ${dir}"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -198,34 +198,34 @@ archive_core_dump() {
     # Check multiple possible core file locations
     local core_file=""
     local possible_cores=("${LIB_DIR}/core" "core" "${BIN_DIR}/core")
-    
+
     for cf in "${possible_cores[@]}"; do
         if [[ -f "$cf" ]]; then
             core_file="$cf"
             break
         fi
     done
-    
+
     if [[ -z "$core_file" ]]; then
         return 0
     fi
-    
+
     # Create dumps directory if needed
     mkdir -p "$DUMPS_DIR"
-    
+
     local dump_name="core.${HOSTNAME}.$(date "+${DATE_FORMAT_DUMP}")"
     local dump_path="${DUMPS_DIR}/${dump_name}"
-    
+
     log_info "Archiving core dump to ${dump_path}"
-    
+
     if mv "$core_file" "$dump_path" 2>/dev/null; then
         log_info "Core dump archived successfully"
-        
+
         # Generate backtrace if gdb is available
         if command -v gdb >/dev/null 2>&1; then
             local bt_file="${DUMPS_DIR}/backtrace.${dump_name}.txt"
             log_info "Generating backtrace to ${bt_file}"
-            
+
             # Create comprehensive GDB commands
             cat > gdb.tmp <<EOF
 echo === BACKTRACE ===\n
@@ -240,10 +240,10 @@ echo \n=== SHARED LIBRARIES ===\n
 info sharedlibrary
 quit
 EOF
-            
+
             gdb "${BIN_DIR}/${MUD_BINARY}" "$dump_path" -batch -command gdb.tmp > "$bt_file" 2>&1
             rm -f gdb.tmp
-            
+
             # Add system information to backtrace
             {
                 echo "=== SYSTEM INFORMATION ==="
@@ -254,7 +254,7 @@ EOF
                 echo ""
                 cat "$bt_file"
             } > "${bt_file}.tmp" && mv "${bt_file}.tmp" "$bt_file"
-            
+
             log_info "Backtrace generated successfully"
         else
             log_warn "gdb not found - cannot generate backtrace"
@@ -274,35 +274,35 @@ proc_syslog() {
     if [[ ! -s syslog ]]; then
         return
     fi
-    
+
     log_info "Processing syslog files"
-    
+
     # Create log directory if it doesn't exist
     mkdir -p "$LOG_DIR"
-    
+
     # Create the crashlog if configured
     if [[ -n "$LEN_CRASHLOG" ]] && [[ "$LEN_CRASHLOG" -gt 0 ]]; then
         tail -n "$LEN_CRASHLOG" syslog > syslog.CRASH
         log_info "Created crash log with last $LEN_CRASHLOG lines"
     fi
-    
+
     # Process specialty log files
     local OLD_IFS=$IFS
     IFS=$'\n'
     for rec in $LOGFILES; do
         # Skip empty lines
         [[ -z "$rec" ]] && continue
-        
+
         local name="${LOG_DIR}/$(echo "$rec" | cut -f 1 -d:)"
         local len=$(echo "$rec" | cut -f 2 -d:)
         local pattern=$(echo "$rec" | cut -f 3- -d:)
-        
+
         # Create parent directory if needed
         mkdir -p "$(dirname "$name")"
-        
+
         # Extract matching lines
         grep -F "$pattern" syslog >> "$name" 2>/dev/null || true
-        
+
         # Truncate to maximum length if specified
         if [[ "$len" -gt 0 ]] && [[ -f "$name" ]]; then
             local temp=$(mktemp "${LOG_DIR}/.tmp.XXXXXX")
@@ -311,10 +311,10 @@ proc_syslog() {
         fi
     done
     IFS=$OLD_IFS
-    
+
     # Rotate main syslog files
     rotate_syslogs
-    
+
     # Clean up old logs
     cleanup_old_logs
 }
@@ -322,7 +322,7 @@ proc_syslog() {
 # Rotate syslog files with proper numbering
 rotate_syslogs() {
     local newlog=1
-    
+
     # Find the next available log number
     if [[ -f "${LOG_DIR}/syslog.${BACKLOGS}" ]]; then
         newlog=$((BACKLOGS + 1))
@@ -331,7 +331,7 @@ rotate_syslogs() {
             newlog=$((newlog + 1))
         done
     fi
-    
+
     # Rotate existing logs
     local y=2
     while [[ $y -lt $newlog ]]; do
@@ -341,14 +341,14 @@ rotate_syslogs() {
         fi
         y=$((y + 1))
     done
-    
+
     # Archive current syslog with date stamp
     local dated_syslog="${LOG_DIR}/syslog.$(date "+${DATE_FORMAT_SYSLOG}")"
     cp syslog "$dated_syslog" 2>/dev/null || true
-    
+
     # Move current syslog to numbered position
     mv -f syslog "${LOG_DIR}/syslog.${newlog}"
-    
+
     log_info "Syslog rotated to ${LOG_DIR}/syslog.${newlog}"
 }
 
@@ -357,9 +357,9 @@ cleanup_old_logs() {
     if [[ -z "$LOG_RETENTION_DAYS" ]] || [[ "$LOG_RETENTION_DAYS" -le 0 ]]; then
         return
     fi
-    
+
     log_info "Cleaning up logs older than $LOG_RETENTION_DAYS days"
-    
+
     # Find and remove old log files
     if command -v find >/dev/null 2>&1; then
         find "$LOG_DIR" -name "syslog.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
@@ -377,14 +377,14 @@ start_websocket_policy() {
     if [[ "$ENABLE_WEBSOCKET" != "true" ]]; then
         return 0
     fi
-    
+
     if ! check_directory "$HMUD_DIR" "HTML5 WebSocket"; then
         return 1
     fi
-    
+
     local current_dir="$PWD"
     cd "$HMUD_DIR" || return 1
-    
+
     if [[ -x "./policyd" ]]; then
         log_info "Starting HTML5 WebSocket policy daemon"
         nohup ./policyd > /dev/null 2>&1 &
@@ -394,7 +394,7 @@ start_websocket_policy() {
     else
         log_warn "WebSocket policyd not found or not executable"
     fi
-    
+
     if ! cd "$current_dir"; then
         log_error "Failed to return to original directory: $current_dir"
         log_warn "Continuing from current directory: $(pwd)"
@@ -407,19 +407,19 @@ start_flash_policy() {
     if [[ "$ENABLE_FLASH" != "true" ]]; then
         return 0
     fi
-    
+
     if ! check_directory "$FMUD_DIR" "Flash Policy"; then
         return 1
     fi
-    
+
     local current_dir="$PWD"
     cd "$FMUD_DIR" || return 1
-    
+
     if [[ -x "./flashpolicyd.py" ]]; then
         if [[ ! -f "$FLASH_POLICY_FILE" ]]; then
             log_warn "Flash policy file not found: ${FLASH_POLICY_FILE}"
         fi
-        
+
         log_info "Starting Flash policy daemon on port $FLASH_POLICY_PORT"
         nohup ./flashpolicyd.py --file="${FLASH_POLICY_FILE}" --port="${FLASH_POLICY_PORT}" > /dev/null 2>&1 &
         local pid=$!
@@ -428,7 +428,7 @@ start_flash_policy() {
     else
         log_warn "Flash policyd not found or not executable"
     fi
-    
+
     if ! cd "$current_dir"; then
         log_error "Failed to return to original directory: $current_dir"
         log_warn "Continuing from current directory: $(pwd)"
@@ -448,7 +448,7 @@ stop_auxiliary_services() {
         fi
         rm -f "${SCRIPT_DIR}/.websocket_policy.pid"
     fi
-    
+
     # Stop flash policy daemon
     if [[ -f "${SCRIPT_DIR}/.flash_policy.pid" ]]; then
         local pid
@@ -468,14 +468,14 @@ stop_auxiliary_services() {
 # Clean up any lingering processes
 cleanup_processes() {
     log_info "Cleaning up lingering processes"
-    
+
     # Don't kill all sleep processes - only those related to autorun
     local autorun_pids=$(pgrep -f "${SCRIPT_NAME}.*sleep" 2>/dev/null || true)
     if [[ -n "$autorun_pids" ]]; then
         log_info "Killing autorun-related sleep processes"
         echo "$autorun_pids" | xargs kill 2>/dev/null || true
     fi
-    
+
     # Clean up any zombie MUD processes
     cleanup_zombie_processes
 }
@@ -488,7 +488,7 @@ cleanup_zombie_processes() {
         log_warn "Found zombie MUD processes, cleaning up: $zombies"
         echo "$zombies" | xargs kill -9 2>/dev/null || true
     fi
-    
+
     # Also check for stuck MUD processes that aren't listening
     if ! is_mud_running; then
         # No listening socket, but check for stuck processes
@@ -511,23 +511,23 @@ cleanup_zombie_processes() {
 # Verify MUD binary exists and is executable
 verify_mud_binary() {
     local binary_path="${BIN_DIR}/${MUD_BINARY}"
-    
+
     # Security check: ensure paths don't contain shell metacharacters
     if [[ "$binary_path" =~ [';|&<>$`'] ]]; then
         log_error "Invalid characters in binary path: $binary_path"
         return 2
     fi
-    
+
     if [[ ! -f "$binary_path" ]]; then
         log_error "MUD binary not found: $binary_path"
         return 2
     fi
-    
+
     if [[ ! -x "$binary_path" ]]; then
         log_error "MUD binary not executable: $binary_path"
         return 2
     fi
-    
+
     # Verify it's a regular file (not symlink to dangerous location)
     if [[ ! -f "$binary_path" ]] || [[ -L "$binary_path" ]]; then
         local real_path=$(readlink -f "$binary_path" 2>/dev/null || echo "")
@@ -536,7 +536,7 @@ verify_mud_binary() {
             return 2
         fi
     fi
-    
+
     return 0
 }
 
@@ -561,27 +561,27 @@ check_improper_shutdown() {
 start_mud() {
     log_info "Starting MUD server on port $MUD_PORT"
     log_info "Command: ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}"
-    
+
     # Start the MUD and capture its exit code
     # CRITICAL: We must handle ALL possible failures gracefully
     set +e
-    
+
     # Check if binary still exists before starting
     if [[ ! -x "${BIN_DIR}/${MUD_BINARY}" ]]; then
         log_error "MUD binary not found or not executable: ${BIN_DIR}/${MUD_BINARY}"
         log_info "Binary missing - waiting 60 seconds before retry"
         return 1
     fi
-    
+
     # Start the MUD - this may crash, segfault, or exit in any way
     "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} >> syslog 2>&1
     local exit_code=$?
-    
+
     # NO MATTER WHAT HAPPENS, WE CONTINUE!
     # The script should continue running even if the MUD explodes spectacularly
-    
+
     log_info "MUD server exited with code $exit_code"
-    
+
     # Always return the exit code but NEVER let it stop the script
     return $exit_code || true
 }
@@ -597,7 +597,7 @@ handle_shutdown() {
         log_info "Autorun terminated gracefully"
         exit 0
     fi
-    
+
     # Check for fastboot
     local wait_time=60
     if [[ -r .fastboot ]]; then
@@ -607,9 +607,9 @@ handle_shutdown() {
     else
         log_info "Normal restart - waiting $wait_time seconds"
     fi
-    
+
     sleep $wait_time
-    
+
     # Handle pause mode
     while [[ -r pause ]]; do
         log_info "Pause mode active - waiting..."
@@ -625,14 +625,14 @@ show_status() {
     echo "Script: $SCRIPT_NAME"
     echo "MUD Port: $MUD_PORT"
     echo "MUD Binary: ${BIN_DIR}/${MUD_BINARY}"
-    
+
     if is_mud_running; then
         pid=$(get_mud_pid)
         echo "MUD Status: RUNNING (PID: $pid)"
     else
         echo "MUD Status: NOT RUNNING"
     fi
-    
+
     echo "WebSocket Policy: $ENABLE_WEBSOCKET"
     echo "Flash Policy: $ENABLE_FLASH"
     echo "========================================"
@@ -700,13 +700,13 @@ case "${1:-}" in
     stop)
         log_info "Stopping autorun"
         touch .killscript
-        
+
         # Stop the watchdog first if it's running
         if [[ -f "${SCRIPT_DIR}/autorun-watchdog.sh" ]]; then
             log_info "Stopping watchdog..."
             "${SCRIPT_DIR}/autorun-watchdog.sh" stop 2>/dev/null || true
         fi
-        
+
         # Find and kill any running autorun processes
         autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" 2>/dev/null | grep -v "$$" | grep -v grep || true)
         if [[ -n "$autorun_pids" ]]; then
@@ -716,7 +716,7 @@ case "${1:-}" in
         else
             log_info "No running autorun process found"
         fi
-        
+
         # Also try to stop the MUD server gracefully
         if is_mud_running; then
             mud_pid=$(get_mud_pid)
@@ -725,7 +725,7 @@ case "${1:-}" in
                 kill -TERM "$mud_pid" 2>/dev/null || true
             fi
         fi
-        
+
         exit 0
         ;;
     foreground|fg)
@@ -763,10 +763,10 @@ case "${1:-}" in
             log_error "MUD already running on port $MUD_PORT"
             exit 1
         fi
-        
+
         # Proper daemonization with lock file to prevent multiple instances
         lockfile="${SCRIPT_DIR}/.autorun.lock"
-        
+
         # Check for stale lock file - more robust handling
         if [[ -f "$lockfile" ]]; then
             old_pid=$(cat "$lockfile" 2>/dev/null || echo "")
@@ -784,23 +784,23 @@ case "${1:-}" in
                 rm -f "$lockfile"
             fi
         fi
-        
+
         # Use flock for atomic lock acquisition
         exec 200>"$lockfile"
         if ! flock -n 200; then
             log_error "Another autorun instance is already running"
             exit 1
         fi
-        
+
         # Fork to background with MAXIMUM resilience
         # Create a subshell that will NEVER die
         (
             # Detach from terminal completely
             exec </dev/null >/dev/null 2>&1
-            
+
             # Ignore ALL signals that could kill us
             trap '' HUP TERM QUIT PIPE
-            
+
             # Use nohup for extra protection
             nohup bash -c "
                 # Ignore signals in the inner shell too
@@ -810,15 +810,15 @@ case "${1:-}" in
                 # Run autorun in foreground mode
                 exec '$0' foreground
             " &
-            
+
             # Store the background process PID
             DAEMON_PID=$!
             echo $DAEMON_PID > "${lockfile}.pid"
         ) &
-        
+
         # Give it a moment to start
         sleep 1
-        
+
         echo "LuminariMUD daemon started"
         echo "Use '$SCRIPT_NAME status' to check status"
         echo "Use '$SCRIPT_NAME stop' to stop"
@@ -827,7 +827,7 @@ case "${1:-}" in
 esac
 
 # Initial setup
-log_info "========================================" 
+log_info "========================================"
 log_info "LuminariMUD Enhanced Autorun Starting"
 log_info "Script: $SCRIPT_NAME"
 log_info "PID: $$"
@@ -875,10 +875,10 @@ check_disk_space() {
     if [[ "$IGNORE_DISK_SPACE" == "true" ]]; then
         return 0
     fi
-    
+
     local min_space_mb=1000  # Require at least 1GB free
     local available_mb
-    
+
     if command -v df >/dev/null 2>&1; then
         available_mb=$(df -m . | awk 'NR==2 {print $4}')
         if [[ $available_mb -lt $min_space_mb ]]; then
@@ -908,13 +908,13 @@ start_flash_policy
 start_watchdog() {
     local watchdog_script="${SCRIPT_DIR}/autorun-watchdog.sh"
     local watchdog_pid_file="${SCRIPT_DIR}/.watchdog.pid"
-    
+
     # Check if watchdog script exists
     if [[ ! -f "$watchdog_script" ]]; then
         log_info "Watchdog script not found - running without extra protection"
         return 0
     fi
-    
+
     # Check if watchdog is already running
     if [[ -f "$watchdog_pid_file" ]]; then
         local wpid=$(cat "$watchdog_pid_file" 2>/dev/null || echo "")
@@ -923,7 +923,7 @@ start_watchdog() {
             return 0
         fi
     fi
-    
+
     # Start the watchdog
     log_info "Starting autorun watchdog for extra protection"
     if [[ -x "$watchdog_script" ]]; then
@@ -994,7 +994,7 @@ log_info "Entering main autorun loop - this will run forever until .killscript"
 while true; do
     # Trap any errors in the loop itself and continue
     set +e  # Disable error exit for the entire loop
-    
+
     # Safety check: ensure we're still in a valid state
     if [[ ! -d "$BIN_DIR" ]]; then
         log_error "CRITICAL: Binary directory missing: $BIN_DIR"
@@ -1004,50 +1004,50 @@ while true; do
     fi
     # Clean up any zombie processes before checking if MUD is running
     cleanup_zombie_processes
-    
+
     # Check if MUD is already running
     if is_mud_running; then
         log_warn "MUD already running on port $MUD_PORT - waiting..."
         sleep 60
         continue
     fi
-    
+
     # Start syslog for this run
     log_info "Starting new MUD session at $(date)"
     echo "autorun starting game $(date)" > syslog
     echo "running ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}" >> syslog
-    
+
     # Crash loop detection
     current_time=$(date +%s)
     time_since_window_start=$((current_time - CRASH_WINDOW_START))
-    
+
     # Reset crash counter if we've been stable for an hour
     if [[ $time_since_window_start -gt 3600 ]]; then
         CRASH_COUNT=0
         CRASH_WINDOW_START=$current_time
     fi
-    
+
     # Track MUD start time
     mud_start_time=$(date +%s)
-    
+
     # Update state before starting MUD
     write_autorun_state
-    
+
     # Start the MUD
     start_mud
     mud_exit_code=$?
-    
+
     # Log detailed exit information
     echo "MUD EXIT: code=$mud_exit_code time=$(date) uptime=${mud_uptime}s" >> "${LOG_DIR}/mud_exits.log"
-    
+
     # Calculate MUD uptime
     mud_end_time=$(date +%s)
     mud_uptime=$((mud_end_time - mud_start_time))
     mud_uptime_hours=$((mud_uptime / 3600))
-    
+
     # Log exit status for monitoring
     log_info "MUD ran for $mud_uptime seconds ($mud_uptime_hours hours)"
-    
+
     if [[ $mud_exit_code -eq 0 ]]; then
         log_info "MUD exited cleanly"
     elif [[ $mud_exit_code -eq 139 ]]; then
@@ -1060,36 +1060,36 @@ while true; do
         log_error "MUD exited with unexpected code: $mud_exit_code"
         CRASH_COUNT=$((CRASH_COUNT + 1))
     fi
-    
+
     # Log crash count but NEVER stop restarting
     if [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
         log_warn "MUD has crashed $CRASH_COUNT times in the last hour - continuing anyway!"
         # Optional: Send alert (uncomment and configure as needed)
         # echo "MUD crash loop detected on $(hostname)" | mail -s "MUD CRITICAL" admin@example.com
     fi
-    
+
     # Archive any core dump
     archive_core_dump
-    
+
     # Process logs
     proc_syslog
-    
+
     # Periodic disk space check
     if ! check_disk_space; then
         log_error "Disk space critically low - pausing operations"
         sleep 300  # Wait 5 minutes before checking again
         continue
     fi
-    
+
     # Handle shutdown/restart
     handle_shutdown
-    
+
     # Brief pause before next iteration
     sleep 2 || true  # Even if sleep fails, continue!
-    
+
     # FAILSAFE: If we somehow get here with an error, continue anyway
     true
-    
+
     # Extra safety: Check if we should continue
     if [[ -r .killscript ]]; then
         log_info "Killscript detected in main loop - initiating shutdown"

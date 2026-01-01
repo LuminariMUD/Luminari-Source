@@ -117,86 +117,102 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Set up the required variables and strings */
   vict = PREFEDIT_GET_CHAR;
 
-  snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
-           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
-           PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
-           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
-           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
-           PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
-           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
-           PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
-           PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
-           PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
-           PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
+  snprintf(
+      prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
+      PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "", PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
+      PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "", PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+      PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "", PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+      PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "", PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
+      PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
+      PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
 
-  snprintf(color_string, sizeof(color_string), "%s", multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
+  snprintf(color_string, sizeof(color_string), "%s",
+           multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) +
+                       (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
 
-  send_to_char(d->character, "\r\n%sPreferences for %s%s\r\n",
-               CCYEL(d->character, C_NRM),
-               GET_NAME(vict),
-               CCNRM(d->character, C_NRM));
+  send_to_char(d->character, "\r\n%sPreferences for %s%s\r\n", CCYEL(d->character, C_NRM),
+               GET_NAME(vict), CCNRM(d->character, C_NRM));
 
   /* The mortal preferences section of the actual menu */
-  send_to_char(d->character, "\r\n"
-                             "%sPreferences\r\n"
-                             "%sP%s) Prompt : %s[%s%-15s%s]   %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
-                             "%sC%s) Color  : %s[%s%-8s%s]    %sS%s) Screenwidth: %s[%s%-3d%s]\r\n"
-                             "%sW%s) Wimpy  : %s[%s%-4d%s]    %sE%s) Encounters : %s[%s%-5s%s]\r\n",
+  send_to_char(d->character,
+               "\r\n"
+               "%sPreferences\r\n"
+               "%sP%s) Prompt : %s[%s%-15s%s]   %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
+               "%sC%s) Color  : %s[%s%-8s%s]    %sS%s) Screenwidth: %s[%s%-3d%s]\r\n"
+               "%sW%s) Wimpy  : %s[%s%-4d%s]    %sE%s) Encounters : %s[%s%-5s%s]\r\n",
                CCWHT(d->character, C_NRM),
                /* Line 1 - prompt and pagelength */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               prompt_string, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), PREFEDIT_GET_PAGELENGTH, CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), prompt_string, CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), PREFEDIT_GET_PAGELENGTH, CCCYN(d->character, C_NRM),
                /* Line 2 - color and screenwidth */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               color_string, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), PREFEDIT_GET_SCREENWIDTH, CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), color_string, CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), PREFEDIT_GET_SCREENWIDTH, CCCYN(d->character, C_NRM),
                /* Line 3 - wimpy                 */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               PREFEDIT_GET_WIMP_LEV, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AVOID_ENCOUNTERS) ? "Avoid" : (PREFEDIT_FLAGGED(PRF_SEEK_ENCOUNTERS) ? "Seek" : "Default"),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), PREFEDIT_GET_WIMP_LEV, CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AVOID_ENCOUNTERS)
+                   ? "Avoid"
+                   : (PREFEDIT_FLAGGED(PRF_SEEK_ENCOUNTERS) ? "Seek" : "Default"),
                CCCYN(d->character, C_NRM));
 
-  send_to_char(d->character, "%sT%s) Toggle Preferences...\r\n", CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
-  send_to_char(d->character, "%sM%s) More Preferences...\r\n", CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character, "%sT%s) Toggle Preferences...\r\n", CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM));
+  send_to_char(d->character, "%sM%s) More Preferences...\r\n", CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM));
 
   /* Imm Prefs */
   if (GET_LEVEL(PREFEDIT_GET_CHAR) >= LVL_IMMORT)
   {
-    snprintf(syslog_string, sizeof(syslog_string), "%s", multi_types[((PREFEDIT_FLAGGED(PRF_LOG1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_LOG2) ? 2 : 0))]);
+    snprintf(
+        syslog_string, sizeof(syslog_string), "%s",
+        multi_types[((PREFEDIT_FLAGGED(PRF_LOG1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_LOG2) ? 2 : 0))]);
 
-    send_to_char(d->character, "\r\n"
-                               "%sImmortal Preferences\r\n"
-                               "%s1%s) Syslog Level %s[%s%8s%s]        %s5%s) ClsOLC    %s[%s%3s%s]\r\n"
-                               "%s2%s) Show Flags   %s[%s%3s%s]        %s6%s) No WizNet %s[%s%3s%s]\r\n"
-                               "%s3%s) No Hassle    %s[%s%3s%s]        %s7%s) Holylight %s[%s%3s%s]\r\n"
-                               "%s4%s) No Clantalk  %s[%s%3s%s]\r\n",
+    send_to_char(d->character,
+                 "\r\n"
+                 "%sImmortal Preferences\r\n"
+                 "%s1%s) Syslog Level %s[%s%8s%s]        %s5%s) ClsOLC    %s[%s%3s%s]\r\n"
+                 "%s2%s) Show Flags   %s[%s%3s%s]        %s6%s) No WizNet %s[%s%3s%s]\r\n"
+                 "%s3%s) No Hassle    %s[%s%3s%s]        %s7%s) Holylight %s[%s%3s%s]\r\n"
+                 "%s4%s) No Clantalk  %s[%s%3s%s]\r\n",
                  CBWHT(d->character, C_NRM),
                  /* Line 1 - syslog and clsolc */
-                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-                 syslog_string, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-                 CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_CLS)), CCCYN(d->character, C_NRM),
+                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+                 CCYEL(d->character, C_NRM), syslog_string, CCCYN(d->character, C_NRM),
+                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+                 CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_CLS)),
+                 CCCYN(d->character, C_NRM),
                  /* Line 2 - show vnums and nowiz */
-                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-                 ONOFF(PREFEDIT_FLAGGED(PRF_SHOWVNUMS)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-                 CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_NOWIZ)), CCCYN(d->character, C_NRM),
+                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+                 CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_SHOWVNUMS)),
+                 CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                 CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+                 ONOFF(PREFEDIT_FLAGGED(PRF_NOWIZ)), CCCYN(d->character, C_NRM),
                  /* Line 3 - nohassle and holylight */
-                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-                 ONOFF(PREFEDIT_FLAGGED(PRF_NOHASSLE)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-                 CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_HOLYLIGHT)), CCCYN(d->character, C_NRM),
+                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+                 CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_NOHASSLE)),
+                 CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+                 CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+                 ONOFF(PREFEDIT_FLAGGED(PRF_HOLYLIGHT)), CCCYN(d->character, C_NRM),
                  /* Line 4 - noclantalk */
-                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-                 ONOFF(PREFEDIT_FLAGGED(PRF_NOCLANTALK)), CCCYN(d->character, C_NRM));
+                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+                 CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_NOCLANTALK)),
+                 CCCYN(d->character, C_NRM));
   }
 
   /* Finishing Off */
-  send_to_char(d->character, "\r\n"
-                             "%sD%s) Restore all default values\r\n"
-                             "%sQ%s) Quit\r\n"
-                             "\r\n",
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character,
+               "\r\n"
+               "%sD%s) Restore all default values\r\n"
+               "%sQ%s) Quit\r\n"
+               "\r\n",
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM));
 
   /* Bottom of the menu */
 
@@ -211,132 +227,142 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
   vict = OLC_PREFS(d)->ch;
 
   /* Top of the menu */
-  send_to_char(d->character, "Toggle preferences for %s%-20s\r\n",
-               CBGRN(d->character, C_NRM), GET_NAME(vict));
+  send_to_char(d->character, "Toggle preferences for %s%-20s\r\n", CBGRN(d->character, C_NRM),
+               GET_NAME(vict));
 
-  send_to_char(d->character, "\r\n"
-                             "%sAuto-flags                 Channels\r\n",
+  send_to_char(d->character,
+               "\r\n"
+               "%sAuto-flags                 Channels\r\n",
                CBWHT(d->character, C_NRM));
 
   /* The top section of the actual menu */
-  send_to_char(d->character,
-               "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll              %s[%s%3s%s]\r\n"
-               /* Line 1 (1) - use stored consumables */
-               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]        %sA%s) Auto-Prep Spells on Rest         %s[%s%3s%s]\r\n"
-               /* Line 2 (2) - Auto Stand */
-               "%s3%s) Auto Hit                %s[%s%3s%s]        %sB%s) Augment Psi Powers While Buffing %s[%s%3s%s]\r\n"
-               /* Line 3 (3) - Auto Hit */
-               "%s4%s) Vampiric Blood Drain    %s[%s%3s%s]        %sC%s) Automatically Sort Treasure      %s[%s%3s%s]\r\n"
-               /* Line 4 (4) - Vampiric Blood Drain */
-               "%s5%s) No Follow (PC)          %s[%s%3s%s]        %sD%s) Automatically Store Consumables  %s[%s%3s%s]\r\n"
-               /* Line 5 (5) - No Follow (PC) */
-               "%s6%s) Condensed Combat Mode   %s[%s%3s%s]        %sE%s) Automatically Group Followers    %s[%s%3s%s]\r\n"
-               /* Line 6 (6) - Condensed Combat Mode */
-               "%s7%s) Careful with Pets       %s[%s%3s%s]        %sF%s) Contain AoEs                     %s[%s%3s%s]\r\n"
-               /* Line 7 (7) - Careful with Pets Toggle */
-               "%s8%s) Reject Rage Spell       %s[%s%3s%s]        %sG%s) Flag Self as Non-Roleplayer      %s[%s%3s%s]\r\n"
-               /* Line 8 (8) No Rage Spell */
-               "%sH%s) Shorten Post Combat Text%s[%s%3s%s]        %sI%s) Automatic Eldritch Blast         %s[%s%3s%s]\r\n"
-               /* Line 9 (9) No Crafting Progress Messages */
-               "%sJ%s) No Crafting Progress Msg%s[%s%3s%s]        %sL%s) BoardCheck on Login              %s[%s%3s%s]\r\n"
-               ,
-               /* Line 8 (8) No Rage Spell */
-               /*******1********/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_CHARMIE_COMBATROLL) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_CHARMIE_COMBATROLL)), CCCYN(d->character, C_NRM),
-               /*******2*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTO_STAND) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STAND)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTO_PREP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_PREP)), CCCYN(d->character, C_NRM),
-               /*******3*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTOHIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOHIT)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUGMENT_BUFFS) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUGMENT_BUFFS)), CCCYN(d->character, C_NRM),
-               /*******4*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTO_SORT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_SORT)), CCCYN(d->character, C_NRM),
-               /*******5*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NO_FOLLOW) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_FOLLOW)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTO_STORE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STORE)), CCCYN(d->character, C_NRM),
-               /*******6*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_CONDENSED) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_CONDENSED)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTO_GROUP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_GROUP)), CCCYN(d->character, C_NRM),
-               /*******7*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_CAREFUL_PET) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_CAREFUL_PET)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_CONTAIN_AOE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_CONTAIN_AOE)), CCCYN(d->character, C_NRM),
-               /*******8*********/
-               CBYEL(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NO_RAGE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_RAGE)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NON_ROLEPLAYER) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NON_ROLEPLAYER)), CCCYN(d->character, C_NRM),
-               /*******H*********/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_POST_COMBAT_BRIEF) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_POST_COMBAT_BRIEF)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTOBLAST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOBLAST)), CCCYN(d->character, C_NRM),
-               /*******J*********/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS)), CCCYN(d->character, C_NRM),
-               /**/
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_BOARDCHECK) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_BOARDCHECK)), CCCYN(d->character, C_NRM)
+  send_to_char(
+      d->character,
+      "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll              "
+      "%s[%s%3s%s]\r\n"
+      /* Line 1 (1) - use stored consumables */
+      "%s2%s) Auto Stand / Springleap %s[%s%3s%s]        %sA%s) Auto-Prep Spells on Rest         "
+      "%s[%s%3s%s]\r\n"
+      /* Line 2 (2) - Auto Stand */
+      "%s3%s) Auto Hit                %s[%s%3s%s]        %sB%s) Augment Psi Powers While Buffing "
+      "%s[%s%3s%s]\r\n"
+      /* Line 3 (3) - Auto Hit */
+      "%s4%s) Vampiric Blood Drain    %s[%s%3s%s]        %sC%s) Automatically Sort Treasure      "
+      "%s[%s%3s%s]\r\n"
+      /* Line 4 (4) - Vampiric Blood Drain */
+      "%s5%s) No Follow (PC)          %s[%s%3s%s]        %sD%s) Automatically Store Consumables  "
+      "%s[%s%3s%s]\r\n"
+      /* Line 5 (5) - No Follow (PC) */
+      "%s6%s) Condensed Combat Mode   %s[%s%3s%s]        %sE%s) Automatically Group Followers    "
+      "%s[%s%3s%s]\r\n"
+      /* Line 6 (6) - Condensed Combat Mode */
+      "%s7%s) Careful with Pets       %s[%s%3s%s]        %sF%s) Contain AoEs                     "
+      "%s[%s%3s%s]\r\n"
+      /* Line 7 (7) - Careful with Pets Toggle */
+      "%s8%s) Reject Rage Spell       %s[%s%3s%s]        %sG%s) Flag Self as Non-Roleplayer      "
+      "%s[%s%3s%s]\r\n"
+      /* Line 8 (8) No Rage Spell */
+      "%sH%s) Shorten Post Combat Text%s[%s%3s%s]        %sI%s) Automatic Eldritch Blast         "
+      "%s[%s%3s%s]\r\n"
+      /* Line 9 (9) No Crafting Progress Messages */
+      "%sJ%s) No Crafting Progress Msg%s[%s%3s%s]        %sL%s) BoardCheck on Login              "
+      "%s[%s%3s%s]\r\n",
+      /* Line 8 (8) No Rage Spell */
+      /*******1********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM)
+                                                   : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_CHARMIE_COMBATROLL) ? CBGRN(d->character, C_NRM)
+                                               : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_CHARMIE_COMBATROLL)), CCCYN(d->character, C_NRM),
+      /*******2*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTO_STAND) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STAND)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTO_PREP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_PREP)), CCCYN(d->character, C_NRM),
+      /*******3*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOHIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOHIT)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUGMENT_BUFFS) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUGMENT_BUFFS)), CCCYN(d->character, C_NRM),
+      /*******4*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTO_SORT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_SORT)), CCCYN(d->character, C_NRM),
+      /*******5*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NO_FOLLOW) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_NO_FOLLOW)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTO_STORE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STORE)), CCCYN(d->character, C_NRM),
+      /*******6*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_CONDENSED) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_CONDENSED)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTO_GROUP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_GROUP)), CCCYN(d->character, C_NRM),
+      /*******7*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_CAREFUL_PET) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_CAREFUL_PET)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_CONTAIN_AOE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_CONTAIN_AOE)), CCCYN(d->character, C_NRM),
+      /*******8*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NO_RAGE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_NO_RAGE)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NON_ROLEPLAYER) ? CBGRN(d->character, C_NRM)
+                                           : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_NON_ROLEPLAYER)), CCCYN(d->character, C_NRM),
+      /*******H*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_POST_COMBAT_BRIEF) ? CBGRN(d->character, C_NRM)
+                                              : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_POST_COMBAT_BRIEF)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOBLAST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOBLAST)), CCCYN(d->character, C_NRM),
+      /*******J*********/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS) ? CBGRN(d->character, C_NRM)
+                                              : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS)), CCCYN(d->character, C_NRM),
+      /**/
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_BOARDCHECK) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_BOARDCHECK)), CCCYN(d->character, C_NRM)
 
-               /*end*/);
+      /*end*/);
 
   /* PvP Flag */
   if (CONFIG_PK_ALLOWED)
   {
     send_to_char(d->character, "%sK%s) Enable PvP Flag       %s[%s%3s%s]\r\n",
                  CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-                 PREFEDIT_FLAGGED(PRF_PVP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+                 PREFEDIT_FLAGGED(PRF_PVP) ? CBGRN(d->character, C_NRM)
+                                           : CBRED(d->character, C_NRM),
                  ONOFF(PREFEDIT_FLAGGED(PRF_PVP)), CCCYN(d->character, C_NRM));
   }
 
@@ -355,143 +381,183 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
   vict = OLC_PREFS(d)->ch;
 
   /* Top of the menu */
-  send_to_char(d->character, "Toggle preferences for %s%-20s\r\n",
-               CBGRN(d->character, C_NRM), GET_NAME(vict));
+  send_to_char(d->character, "Toggle preferences for %s%-20s\r\n", CBGRN(d->character, C_NRM),
+               GET_NAME(vict));
 
-  send_to_char(d->character, "\r\n"
-                             "%sAuto-flags                 Channels\r\n",
+  send_to_char(d->character,
+               "\r\n"
+               "%sAuto-flags                 Channels\r\n",
                CBWHT(d->character, C_NRM));
 
   /* The top section of the actual menu */
-  send_to_char(d->character, "%s1%s) Autoexits    %s[%s%3s%s]    %sA%s) Chat/Gossip%s[%s%3s%s]\r\n"
-                             "%s2%s) Autoloot     %s[%s%3s%s]    %sB%s) Shout      %s[%s%3s%s]\r\n"
-                             "%s3%s) Autogold     %s[%s%3s%s]    %sC%s) Tell       %s[%s%3s%s]\r\n"
-                             "%s4%s) Autosac      %s[%s%3s%s]    %sD%s) Auction    %s[%s%3s%s]\r\n"
-                             "%s5%s) Autoassist   %s[%s%3s%s]    %sE%s) Gratz      %s[%s%3s%s]\r\n"
-                             "                                                              \r\n"
-                             "%s*%s) Autosearch   %s[%s%3s%s] %s(Half perception, half speed, lose initiative)%s\r\n"
-                             "%s+%s) SweepStrike  %s[%s%3s%s] %s(Auto-trip on first flurry attack, requires perk)%s\r\n"
-                             "                             - More Toggles -                   \r\n"
-                             "%s6%s) Autosplit    %s[%s%3s%s]    %sS%s) AutoScan   %s[%s%3s%s]\r\n"
-                             "%s0%s) Hint Display %s[%s%3s%s]    %sW%s) AutoCollect %s[%s%3s%s]\r\n",
-               /* Line 1 - autoexits and gossip */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NOGOSS) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOGOSS)), CCCYN(d->character, C_NRM),
-               /* Line 2 - autoloot and shout */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOLOOT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOLOOT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NOSHOUT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOSHOUT)), CCCYN(d->character, C_NRM),
-               /* Line 3 - autogold and tell */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOGOLD) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOGOLD)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NOTELL) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOTELL)), CCCYN(d->character, C_NRM),
-               /* Line 4 - autosac and auction */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOSAC) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSAC)), CCCYN(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NOAUCT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
-               ONOFF(!PREFEDIT_FLAGGED(PRF_NOAUCT)), CCCYN(d->character, C_NRM),
-               /* Line 5 - autoassist and grats */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOASSIST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOASSIST)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NOGRATZ) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOGRATZ)), CCCYN(d->character, C_NRM),
-               /* Line Autosearch  */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTOSEARCH) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSEARCH)), CCCYN(d->character, C_NRM),
-               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               /* Line Sweeping Strike */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_SWEEPING_STRIKE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_SWEEPING_STRIKE)), CCCYN(d->character, C_NRM),
-               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               /* Line 6 - autosplit and autoscan */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)), CCCYN(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTOSCAN) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
-               ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)), CCCYN(d->character, C_NRM),
-               /* Line 7 - nohint and auto-collect */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_NOHINT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
-               ONOFF(!PREFEDIT_FLAGGED(PRF_NOHINT)), CCCYN(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-               PREFEDIT_FLAGGED(PRF_AUTOCOLLECT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCOLLECT)), CCCYN(d->character, C_NRM)
-               /*end*/);
+  send_to_char(
+      d->character,
+      "%s1%s) Autoexits    %s[%s%3s%s]    %sA%s) Chat/Gossip%s[%s%3s%s]\r\n"
+      "%s2%s) Autoloot     %s[%s%3s%s]    %sB%s) Shout      %s[%s%3s%s]\r\n"
+      "%s3%s) Autogold     %s[%s%3s%s]    %sC%s) Tell       %s[%s%3s%s]\r\n"
+      "%s4%s) Autosac      %s[%s%3s%s]    %sD%s) Auction    %s[%s%3s%s]\r\n"
+      "%s5%s) Autoassist   %s[%s%3s%s]    %sE%s) Gratz      %s[%s%3s%s]\r\n"
+      "                                                              \r\n"
+      "%s*%s) Autosearch   %s[%s%3s%s] %s(Half perception, half speed, lose initiative)%s\r\n"
+      "%s+%s) SweepStrike  %s[%s%3s%s] %s(Auto-trip on first flurry attack, requires perk)%s\r\n"
+      "                             - More Toggles -                   \r\n"
+      "%s6%s) Autosplit    %s[%s%3s%s]    %sS%s) AutoScan   %s[%s%3s%s]\r\n"
+      "%s0%s) Hint Display %s[%s%3s%s]    %sW%s) AutoCollect %s[%s%3s%s]\r\n",
+      /* Line 1 - autoexits and gossip */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NOGOSS) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_NOGOSS)), CCCYN(d->character, C_NRM),
+      /* Line 2 - autoloot and shout */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOLOOT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOLOOT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NOSHOUT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_NOSHOUT)), CCCYN(d->character, C_NRM),
+      /* Line 3 - autogold and tell */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOGOLD) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOGOLD)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NOTELL) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_NOTELL)), CCCYN(d->character, C_NRM),
+      /* Line 4 - autosac and auction */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOSAC) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSAC)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NOAUCT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_NOAUCT)), CCCYN(d->character, C_NRM),
+      /* Line 5 - autoassist and grats */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOASSIST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOASSIST)), CCCYN(d->character, C_NRM),
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NOGRATZ) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_NOGRATZ)), CCCYN(d->character, C_NRM),
+      /* Line Autosearch  */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOSEARCH) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSEARCH)), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      /* Line Sweeping Strike */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_SWEEPING_STRIKE) ? CBGRN(d->character, C_NRM)
+                                            : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_SWEEPING_STRIKE)), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      /* Line 6 - autosplit and autoscan */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)), CCCYN(d->character, C_NRM),
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOSCAN) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)), CCCYN(d->character, C_NRM),
+      /* Line 7 - nohint and auto-collect */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_NOHINT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(!PREFEDIT_FLAGGED(PRF_NOHINT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOCOLLECT) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCOLLECT)), CCCYN(d->character, C_NRM)
+      /*end*/);
 
-  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload   %s[%s%3s%s]\r\n"
-                             "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll   %s[%s%3s%s]\r\n"
-                             "%s9%s) Autodoor     %s[%s%3s%s]      %sV%s) GUI Mode     %s[%s%3s%s]\r\n",
-               /* Line 7 - automap & autoreload */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOMAP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOMAP)), CCCYN(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTORELOAD) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTORELOAD)), CCCYN(d->character, C_NRM),
-               /* Line 8 - autokey & combatroll */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOKEY) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOKEY)), CCCYN(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_COMBATROLL) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_COMBATROLL)), CCCYN(d->character, C_NRM),
-               /* Line 9 - autodoor & guimode */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTODOOR) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTODOOR)), CCCYN(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_GUI_MODE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_GUI_MODE)), CCCYN(d->character, C_NRM));
+  send_to_char(
+      d->character,
+      "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload   %s[%s%3s%s]\r\n"
+      "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll   %s[%s%3s%s]\r\n"
+      "%s9%s) Autodoor     %s[%s%3s%s]      %sV%s) GUI Mode     %s[%s%3s%s]\r\n",
+      /* Line 7 - automap & autoreload */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOMAP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOMAP)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTORELOAD) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTORELOAD)), CCCYN(d->character, C_NRM),
+      /* Line 8 - autokey & combatroll */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTOKEY) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTOKEY)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_COMBATROLL) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_COMBATROLL)), CCCYN(d->character, C_NRM),
+      /* Line 9 - autodoor & guimode */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_AUTODOOR) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_AUTODOOR)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
+      CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      PREFEDIT_FLAGGED(PRF_GUI_MODE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+      ONOFF(PREFEDIT_FLAGGED(PRF_GUI_MODE)), CCCYN(d->character, C_NRM));
 
   /* The bottom section of the toggles menu */
-  send_to_char(d->character, "\r\n"
-                             "%sOther Flags\r\n"
-                             "%sF%s) No Summon    %s[%s%3s%s]      %sH%s) Brief        %s[%s%3s%s]\r\n"
-                             "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact      %s[%s%3s%s]\r\n"
-                             "%sY%s) NoNPCRescues %s[%s%3s%s]      %sZ%s) AutoConsider %s[%s%3s%s]\r\n",
+  send_to_char(d->character,
+               "\r\n"
+               "%sOther Flags\r\n"
+               "%sF%s) No Summon    %s[%s%3s%s]      %sH%s) Brief        %s[%s%3s%s]\r\n"
+               "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact      %s[%s%3s%s]\r\n"
+               "%sY%s) NoNPCRescues %s[%s%3s%s]      %sZ%s) AutoConsider %s[%s%3s%s]\r\n",
                CBWHT(d->character, C_NRM),
                /* Line 10 - nosummon and brief */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(!PREFEDIT_FLAGGED(PRF_SUMMONABLE)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_BRIEF)), CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_SUMMONABLE)),
+               CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_BRIEF)), CCCYN(d->character, C_NRM),
                /* Line 11 - norepeat and compact */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NOREPEAT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_COMPACT)), CCCYN(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_NOREPEAT)),
+               CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_COMPACT)), CCCYN(d->character, C_NRM),
                /* Line 12 - aoebombs and autoconsider */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_CHARMIE_RESCUE)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCON)), CCCYN(d->character, C_NRM));
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_NO_CHARMIE_RESCUE)),
+               CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCON)), CCCYN(d->character, C_NRM));
 
   /* The bottom section of the toggles menu */
-  send_to_char(d->character, "\r\n"
-                             "%sProtocol Settings:\r\n"
-                             "%sJ%s) 256 Color    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
-                             "%sK%s) ANSI         %s[%s%3s%s]      %sN%s) MSDP     %s[%s%3s%s]\r\n"
-                             "%sL%s) Charset      %s[%s%3s%s]      %sO%s) GMCP     %s[%s%3s%s]\r\n"
-                             "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) MSP      %s[%s%3s%s]\r\n"
-                             "\r\n",
-               CBWHT(d->character, C_NRM),
-               /* Line 12 - 256 and mxp */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               (d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt == 1 ? "ON" : "OFF"), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt), CCCYN(d->character, C_NRM),
-               /* Line 13 - ansi and msdp */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSDP), CCCYN(d->character, C_NRM),
-               /* Line 14 - charset and GMCP */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(d->pProtocol->bCHARSET), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bGMCP), CCCYN(d->character, C_NRM),
-               /* Line 15 - utf-8 and msp */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSP), CCCYN(d->character, C_NRM));
+  send_to_char(
+      d->character,
+      "\r\n"
+      "%sProtocol Settings:\r\n"
+      "%sJ%s) 256 Color    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
+      "%sK%s) ANSI         %s[%s%3s%s]      %sN%s) MSDP     %s[%s%3s%s]\r\n"
+      "%sL%s) Charset      %s[%s%3s%s]      %sO%s) GMCP     %s[%s%3s%s]\r\n"
+      "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) MSP      %s[%s%3s%s]\r\n"
+      "\r\n",
+      CBWHT(d->character, C_NRM),
+      /* Line 12 - 256 and mxp */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM),
+      (d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt == 1 ? "ON" : "OFF"),
+      CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+      ONOFF(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt), CCCYN(d->character, C_NRM),
+      /* Line 13 - ansi and msdp */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt),
+      CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSDP),
+      CCCYN(d->character, C_NRM),
+      /* Line 14 - charset and GMCP */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bCHARSET), CCCYN(d->character, C_NRM),
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bGMCP), CCCYN(d->character, C_NRM),
+      /* Line 15 - utf-8 and msp */
+      CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+      CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt),
+      CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+      CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSP),
+      CCCYN(d->character, C_NRM));
 
   /* Finishing Off */
-  send_to_char(d->character, "%sQ%s) Quit toggle preferences...\r\n",
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character, "%sQ%s) Quit toggle preferences...\r\n", CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM));
 
   OLC_MODE(d) = PREFEDIT_TOGGLE_MENU;
 }
@@ -504,45 +570,40 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     snprintf(prompt_string, sizeof(prompt_string), "<Auto>");
   else
-    snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
-             PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
-             PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
-             PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
-             PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
-             PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
-             PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
-             PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
-             PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
-             PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
-             PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
+    snprintf(
+        prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
+        PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "", PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
+        PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "", PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+        PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "", PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+        PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "", PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
+        PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
+        PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
 
-  send_to_char(d->character, "%sPrompt Settings\r\n"
-                             "%s1%s) Toggle HP\r\n"
-                             "%s2%s) Toggle PSP\r\n"
-                             "%s3%s) Toggle Moves\r\n"
-                             "%s4%s) Toggle auto flag\r\n"
-                             "%s5%s) Toggle XP\r\n"
-                             "%s6%s) Toggle Exits\r\n"
-                             "%s7%s) Toggle Rooms\r\n"
-                             "%s8%s) Toggle Memtimes\r\n"
-                             "%s9%s) Toggle Actions\r\n"
-                             "%s10%s) Toggle Gold\r\n"
-                             "%s11%s) Toggle Game Time\r\n"
-                             "\r\n"
-                             "%sCurrent Prompt: %s%s%s\r\n\r\n"
-                             "%s0%s) Quit (to main menu)\r\n",
+  send_to_char(d->character,
+               "%sPrompt Settings\r\n"
+               "%s1%s) Toggle HP\r\n"
+               "%s2%s) Toggle PSP\r\n"
+               "%s3%s) Toggle Moves\r\n"
+               "%s4%s) Toggle auto flag\r\n"
+               "%s5%s) Toggle XP\r\n"
+               "%s6%s) Toggle Exits\r\n"
+               "%s7%s) Toggle Rooms\r\n"
+               "%s8%s) Toggle Memtimes\r\n"
+               "%s9%s) Toggle Actions\r\n"
+               "%s10%s) Toggle Gold\r\n"
+               "%s11%s) Toggle Game Time\r\n"
+               "\r\n"
+               "%sCurrent Prompt: %s%s%s\r\n\r\n"
+               "%s0%s) Quit (to main menu)\r\n",
                CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), prompt_string, CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCCYN(d->character, C_NRM), prompt_string, CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
 
   send_to_char(d->character, "Enter Choice :");
@@ -551,16 +612,18 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
 
 static void prefedit_disp_color_menu(struct descriptor_data *d)
 {
-  send_to_char(d->character, "%sColor level\r\n"
-                             "%s1%s) Off      %s(do not display any color - monochrome)%s\r\n"
-                             "%s2%s) Brief    %s(show minimal color where necessary)%s\r\n"
-                             "%s3%s) Normal   %s(show game-enhancing color)%s\r\n"
-                             "%s4%s) On       %s(show all colors whenever possible)%s\r\n",
-               CBWHT(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character,
+               "%sColor level\r\n"
+               "%s1%s) Off      %s(do not display any color - monochrome)%s\r\n"
+               "%s2%s) Brief    %s(show minimal color where necessary)%s\r\n"
+               "%s3%s) Normal   %s(show game-enhancing color)%s\r\n"
+               "%s4%s) On       %s(show all colors whenever possible)%s\r\n",
+               CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
 
   send_to_char(d->character, "Enter Choice :");
   OLC_MODE(d) = PREFEDIT_COLOR;
@@ -568,16 +631,18 @@ static void prefedit_disp_color_menu(struct descriptor_data *d)
 
 static void prefedit_disp_syslog_menu(struct descriptor_data *d)
 {
-  send_to_char(d->character, "%sSyslog level\r\n"
-                             "%s1%s) Off      %s(do not display any logs or error messages)%s\r\n"
-                             "%s2%s) Brief    %s(show only important warnings or errors)%s\r\n"
-                             "%s3%s) Normal   %s(show all warnings and errors)%s\r\n"
-                             "%s4%s) Complete %s(show all logged information for your level)%s\r\n",
-               CBWHT(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character,
+               "%sSyslog level\r\n"
+               "%s1%s) Off      %s(do not display any logs or error messages)%s\r\n"
+               "%s2%s) Brief    %s(show only important warnings or errors)%s\r\n"
+               "%s3%s) Normal   %s(show all warnings and errors)%s\r\n"
+               "%s4%s) Complete %s(show all logged information for your level)%s\r\n",
+               CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
 
   send_to_char(d->character, "Enter Choice :");
   OLC_MODE(d) = PREFEDIT_SYSLOG;
@@ -595,7 +660,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       prefedit_save_to_char(d);
-      mudlog(CMP, LVL_BUILDER, TRUE, "OLC: %s edits toggles for %s", GET_NAME(d->character), GET_NAME(OLC_PREFS(d)->ch));
+      mudlog(CMP, LVL_BUILDER, TRUE, "OLC: %s edits toggles for %s", GET_NAME(d->character),
+             GET_NAME(OLC_PREFS(d)->ch));
       send_to_char(d->character, "Preferences saved.\r\n");
       /*. No strings to save - cleanup all .*/
       cleanup_olc(d, CLEANUP_ALL);
@@ -651,7 +717,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'w':
     case 'W':
-      send_to_char(d->character, "Enter HP at which to flee (0-%d): ", MIN(GET_MAX_HIT(d->character) / 2, 500));
+      send_to_char(d->character,
+                   "Enter HP at which to flee (0-%d): ", MIN(GET_MAX_HIT(d->character) / 2, 500));
       OLC_MODE(d) = PREFEDIT_WIMPY;
       return;
 
@@ -672,7 +739,9 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'e':
     case 'E':
-      send_to_char(d->character, "Would you like to 'avoid' or 'seek' encounters?  Or if neither, enter 'default'.\r\n");
+      send_to_char(
+          d->character,
+          "Would you like to 'avoid' or 'seek' encounters?  Or if neither, enter 'default'.\r\n");
       OLC_MODE(d) = PREFEDIT_ENCOUNTERS;
       return;
 
@@ -680,7 +749,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '1':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
@@ -693,7 +763,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '2':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
@@ -705,7 +776,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '3':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
@@ -717,7 +789,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '4':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
@@ -729,7 +802,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '5':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
@@ -741,12 +815,12 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '6':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
       {
-
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NOWIZ);
       }
       break;
@@ -754,7 +828,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case '7':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
       {
-        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+        send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                     CCNRM(d->character, C_NRM));
         prefedit_disp_main_menu(d);
       }
       else
@@ -764,7 +839,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%sInvalid choice!%s\r\n", CBRED(d->character, C_NRM),
+                   CCNRM(d->character, C_NRM));
       prefedit_disp_main_menu(d);
       break;
     }
@@ -807,7 +883,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg) - 1;
     if ((number < 0) || (number > 3))
     {
-      send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM),
+                   CCNRM(d->character, C_NRM));
       prefedit_disp_color_menu(d);
       return;
     }
@@ -1084,7 +1161,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'C':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_SORT);
       break;
-    
+
     case 'd':
     case 'D':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_STORE);
@@ -1112,9 +1189,12 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'i':
     case 'I':
-      if (!HAS_FEAT(d->character, FEAT_ELDRITCH_BLAST)) {
+      if (!HAS_FEAT(d->character, FEAT_ELDRITCH_BLAST))
+      {
         send_to_char(d->character, "You need the Eldritch Blast feat to toggle autoblast.\r\n");
-      } else {
+      }
+      else
+      {
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOBLAST);
       }
       break;
@@ -1136,18 +1216,19 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
         send_to_char(d->character, "Player killing is not enabled on this MUD.\r\n");
         return;
       }
-      
+
       /* If trying to turn off PvP, check the timer */
       if (PREFEDIT_FLAGGED(PRF_PVP))
       {
         time_t current_time = time(0);
         time_t time_since_enabled = current_time - GET_PVP_TIMER(PREFEDIT_GET_CHAR);
         int minutes_remaining = 15 - (time_since_enabled / 60);
-        
-        if (time_since_enabled < (15 * 60))  /* 15 minutes in seconds */
+
+        if (time_since_enabled < (15 * 60)) /* 15 minutes in seconds */
         {
-          send_to_char(d->character, "You must wait %d more minute%s before you can disable your PvP flag.\r\n",
-                      minutes_remaining, minutes_remaining != 1 ? "s" : "");
+          send_to_char(d->character,
+                       "You must wait %d more minute%s before you can disable your PvP flag.\r\n",
+                       minutes_remaining, minutes_remaining != 1 ? "s" : "");
           return;
         }
       }
@@ -1156,7 +1237,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
         /* Turning PvP on, set the timer */
         GET_PVP_TIMER(PREFEDIT_GET_CHAR) = time(0);
       }
-      
+
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_PVP);
       break;
 
@@ -1174,7 +1255,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg) - 1;
     if ((number < 0) || (number > 3))
     {
-      send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM),
+                   CCNRM(d->character, C_NRM));
       prefedit_disp_color_menu(d);
       return;
     }
@@ -1196,7 +1278,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     if ((number < 0) || (number > 11))
     {
-      send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM),
+                   CCNRM(d->character, C_NRM));
       prefedit_disp_prompt_menu(d);
     }
     else
@@ -1486,8 +1569,9 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTODOOR);
 
   /* Other (non-toggle) options */
-  PREFEDIT_GET_WIMP_LEV = 0;     /* Wimpy off by default */
-  PREFEDIT_GET_PAGELENGTH = 40;  /* Default telnet screen is 22 lines, but who uses that?  So 40 is a good baseline -- Gicker   */
+  PREFEDIT_GET_WIMP_LEV = 0; /* Wimpy off by default */
+  PREFEDIT_GET_PAGELENGTH =
+      40; /* Default telnet screen is 22 lines, but who uses that?  So 40 is a good baseline -- Gicker   */
   PREFEDIT_GET_SCREENWIDTH = 80; /* Default telnet screen is 80 columns */
 }
 
@@ -1541,9 +1625,11 @@ ACMD(do_oasis_prefedit)
       if (d->olc && OLC_PREFS(d)->ch == vict)
       {
         if (ch == vict)
-          send_to_char(ch, "Your preferences are currently being edited by %s.\r\n", PERS(d->character, ch));
+          send_to_char(ch, "Your preferences are currently being edited by %s.\r\n",
+                       PERS(d->character, ch));
         else
-          send_to_char(ch, "Their preferences are currently being edited by %s.\r\n", PERS(d->character, ch));
+          send_to_char(ch, "Their preferences are currently being edited by %s.\r\n",
+                       PERS(d->character, ch));
         return;
       }
     }

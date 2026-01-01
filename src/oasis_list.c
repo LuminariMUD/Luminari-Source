@@ -45,11 +45,13 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
 static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mob_vnum vmax);
 static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax);
 static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, shop_vnum vmax);
-static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax, char *name);
+static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax,
+                       char *name);
 static void list_regions(struct char_data *ch);
 static void list_paths(struct char_data *ch);
 static void list_object_applies(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax);
-static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax, bool show_applies);
+static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax,
+                              bool show_applies);
 
 /* unfinished, wanted to build a mobile name lookup (prototypes) */
 void perform_mob_name_list(struct char_data *ch, char *arg)
@@ -66,19 +68,21 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
     return;
   }
 
-  len = snprintf(buf, sizeof(buf), "Listing mobiles with %s%s%s flag set.\r\n", QYEL, action_bits[mob_flag], QNRM);
+  len = snprintf(buf, sizeof(buf), "Listing mobiles with %s%s%s flag set.\r\n", QYEL,
+                 action_bits[mob_flag], QNRM);
 
   for (num = 0; num <= top_of_mobt; num++)
   {
     if (IS_SET_AR((mob_proto[num].char_specials.saved.act), mob_flag))
     {
-
       if ((mob = read_mobile(num, REAL)) != NULL)
       {
         char_to_room(mob, 0);
-        len += snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n", CCNRM(ch, C_NRM), ++found,
-                        CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
-                        CCYEL(ch, C_NRM), GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
+        len +=
+            snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n",
+                     CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
+                     GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM),
+                     GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
         if (len > sizeof(buf))
           break;
@@ -106,19 +110,21 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
     return;
   }
 
-  len = snprintf(buf, sizeof(buf), "Listing mobiles with %s%s%s flag set.\r\n", QYEL, action_bits[mob_flag], QNRM);
+  len = snprintf(buf, sizeof(buf), "Listing mobiles with %s%s%s flag set.\r\n", QYEL,
+                 action_bits[mob_flag], QNRM);
 
   for (num = 0; num <= top_of_mobt; num++)
   {
     if (IS_SET_AR((mob_proto[num].char_specials.saved.act), mob_flag))
     {
-
       if ((mob = read_mobile(num, REAL)) != NULL)
       {
         char_to_room(mob, 0);
-        len += snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n", CCNRM(ch, C_NRM), ++found,
-                        CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
-                        CCYEL(ch, C_NRM), GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
+        len +=
+            snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n",
+                     CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
+                     GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM),
+                     GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
         if (len > sizeof(buf))
           break;
@@ -151,13 +157,13 @@ void perform_mob_level_list(struct char_data *ch, char *arg)
   {
     if ((mob_proto[num].player.level) == mob_level)
     {
-
       if ((mob = read_mobile(num, REAL)) != NULL)
       {
         char_to_room(mob, 0);
-        len += snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s %s%s\r\n", CCNRM(ch, C_NRM), ++found,
-                        CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
-                        GET_NAME(mob), CCNRM(ch, C_NRM));
+        len += snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s %s%s\r\n",
+                        CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
+                        GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), GET_NAME(mob),
+                        CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
         if (len > sizeof(buf))
           break;
@@ -196,8 +202,7 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 /* list objects by type */
 void perform_obj_type_list(struct char_data *ch, char *arg)
 {
-  int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0,
-                         len = 0, tmp_len = 0;
+  int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
   obj_rnum r_num, target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -206,8 +211,8 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
   *buf2 = '\0';
   itemtype = atoi(arg);
 
-  len = snprintf(buf, sizeof(buf), "Listing all objects of type %s[%s]%s\r\n",
-                 QYEL, item_types[itemtype], QNRM);
+  len = snprintf(buf, sizeof(buf), "Listing all objects of type %s[%s]%s\r\n", QYEL,
+                 item_types[itemtype], QNRM);
 
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -225,24 +230,27 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
 
         switch (itemtype)
         {
-
         case ITEM_SWITCH:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%5d%s]%s "
-                                                           "[%s, affecting room VNum %d, %s %s] "
-                                                           "%s%s%s\r\n",
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%5d%s]%s "
+                             "[%s, affecting room VNum %d, %s %s] "
+                             "%s%s%s\r\n",
                              QGRN, ++found, QNRM, /**/ QCYN, QYEL, ov, QCYN, QNRM,
-                             (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch"
-                                                                   : "BROKEN switch type",
+                             (v1 == 0)   ? "Push switch"
+                             : (v1 == 1) ? "Pull switch"
+                                         : "BROKEN switch type",
                              v2,
-                             (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks"
-                                                 : (v4 == 2)   ? "Opens"
-                                                               : "BROKEN exit action",
-                             (v3 == 0) ? "North" : (v3 == 1) ? "East"
-                                               : (v3 == 2)   ? "South"
-                                               : (v3 == 3)   ? "West"
-                                               : (v3 == 4)   ? "Up"
-                                               : (v3 == 5)   ? "Down"
-                                                             : "BROKEN direction",
+                             (v4 == 0)   ? "Unhides"
+                             : (v4 == 1) ? "Unlocks"
+                             : (v4 == 2) ? "Opens"
+                                         : "BROKEN exit action",
+                             (v3 == 0)   ? "North"
+                             : (v3 == 1) ? "East"
+                             : (v3 == 2) ? "South"
+                             : (v3 == 3) ? "West"
+                             : (v3 == 4) ? "Up"
+                             : (v3 == 5) ? "Down"
+                                         : "BROKEN direction",
                              QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
@@ -259,29 +267,32 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           /* check disqualifications */
           if (v1 < 0 || v1 >= NUM_TRAP_TYPES)
           { /* invalid trap types */
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n",
-                               QGRN, ++found, QNRM, ov);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n", QGRN,
+                               ++found, QNRM, ov);
             break;
           }
           if (v3 <= 0 || v3 >= NUM_TRAP_SPECIAL_EFFECTS)
           { /* invalid trap effects */
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range)\r\n",
-                               QGRN, ++found, QNRM, ov);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range)\r\n", QGRN,
+                               ++found, QNRM, ov);
             break;
           }
           if (v3 < TRAP_SPECIAL_PARALYSIS && v3 >= LAST_SPELL_DEFINE)
           { /* invalid trap effects check 2 */
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
-                               QGRN, ++found, QNRM, ov);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range-2)\r\n", QGRN,
+                               ++found, QNRM, ov);
             break;
           }
-          if ((v1 == TRAP_TRIGGER_OPEN_CONTAINER ||
-               v1 == TRAP_TRIGGER_UNLOCK_CONTAINER ||
+          if ((v1 == TRAP_TRIGGER_OPEN_CONTAINER || v1 == TRAP_TRIGGER_UNLOCK_CONTAINER ||
                v1 == TRAP_TRIGGER_GET_OBJECT) &&
               target_obj == NOTHING)
           {
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (object vnum)\r\n",
-                               QGRN, ++found, QNRM, ov);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (object vnum)\r\n", QGRN,
+                               ++found, QNRM, ov);
             break;
           }
           /* end disqualifications */
@@ -291,13 +302,19 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           case TRAP_TRIGGER_LEAVE_ROOM: /* display effect and difficulty */
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
+              tmp_len =
+                  snprintf(buf + len, sizeof(buf) - len,
+                           "%s%3d%s) %7d %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
+                           QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                           trap_type[v1], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], spell_info[v3].name, v4, v5);
+              tmp_len =
+                  snprintf(buf + len, sizeof(buf) - len,
+                           "%s%3d%s) %7d %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
+                           QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                           trap_type[v1], spell_info[v3].name, v4, v5);
             }
             break;
           // TRAP_TRIGGER_ENTER_ROOM removed - use autosearch system instead
@@ -306,13 +323,20 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           case TRAP_TRIGGER_UNLOCK_DOOR: /* display direction, effect, difficulty */
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
+              tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                                 "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Effect: %s | DC: "
+                                 "%d | Detected? %d\r\n",
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                                 trap_type[v1], dirs[v2], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS],
+                                 v4, v5);
             }
             else
             { /* spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Spell: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], spell_info[v3].name, v4, v5);
+              tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                                 "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Spell: %s | DC: "
+                                 "%d | Detected? %d\r\n",
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                                 trap_type[v1], dirs[v2], spell_info[v3].name, v4, v5);
             }
             break;
           case TRAP_TRIGGER_OPEN_CONTAINER:
@@ -322,13 +346,21 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           case TRAP_TRIGGER_GET_OBJECT: /* display vnum, effect, difficulty */
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
+              tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                                 "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Effect: %s | DC: %d "
+                                 "| Detected? %d\r\n",
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                                 trap_type[v1], obj_proto[target_obj].short_description,
+                                 trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Spell: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);
+              tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                                 "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Spell: %s | DC: %d "
+                                 "| Detected? %d\r\n",
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                                 trap_type[v1], obj_proto[target_obj].short_description,
+                                 spell_info[v3].name, v4, v5);
             }
             break;
           default: /* invalid type! we checked this already above */
@@ -341,11 +373,15 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_LIGHT:
           v1 = (obj_proto[num].obj_flags.value[2]);
           if (v1 == -1)
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%5d%s]%s INFINITE%s %s%s\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN, obj_proto[r_num].short_description, QNRM);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%5d%s]%s INFINITE%s %s%s\r\n",
+                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN,
+                         obj_proto[r_num].short_description, QNRM);
           else
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%5d%s]%s (%-3dhrs) %s%s%s\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %s[%s%5d%s]%s (%-3dhrs) %s%s%s\r\n", QGRN, ++found, QNRM, QCYN,
+                         QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_SCROLL:
@@ -360,34 +396,48 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_STAFF:
           v1 = (obj_proto[num].obj_flags.value[1]);
           v2 = (obj_proto[num].obj_flags.value[3]);
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dx%s) %s%s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, spell_name(v2), QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dx%s) %s%s%s\r\n",
+                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, spell_name(v2), QCYN,
+                       obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_POISON:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s%7d%s (Poison:%s%s|Level:%d|Applications:%d|Hits/App:%d) %s%s\r\n",
-                             QGRN, ++found, QNRM, QYEL, ov, QNRM, spell_name(v1), QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(
+              buf + len, sizeof(buf) - len,
+              "%s%3d%s) %s%7d%s (Poison:%s%s|Level:%d|Applications:%d|Hits/App:%d) %s%s\r\n", QGRN,
+              ++found, QNRM, QYEL, ov, QNRM, spell_name(v1), QNRM, v2, v3, v4,
+              obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_WEAPON:
-          v1 = ((obj_proto[num].obj_flags.value[2] + 1) * (obj_proto[r_num].obj_flags.value[1])) / 2;
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%d Avg Dam) %s%s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+          v1 =
+              ((obj_proto[num].obj_flags.value[2] + 1) * (obj_proto[r_num].obj_flags.value[1])) / 2;
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len,
+                       "%s%3d%s) %s[%s%8d%s]%s (%d Avg Dam) %s%s%s\r\n", QGRN, ++found, QNRM, QCYN,
+                       QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_ARMOR:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dAC) %s%s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dAC) %s%s%s\r\n",
+                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                       obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_CONTAINER:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
+                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                       obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_AMMO_POUCH:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
+                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                       obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_DRINKCON:
@@ -400,11 +450,15 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             *buf2 = '\0';
 
           if (v1 != -1)
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s%s\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s%s\r\n", QGRN, ++found, QNRM,
+                               QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                               obj_proto[r_num].short_description, buf2, QNRM);
           else
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %sINFINITE%s %s%s%s\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN, obj_proto[r_num].short_description, buf2, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%8d%s] %sINFINITE%s %s%s%s\r\n", QGRN, ++found, QNRM,
+                               QCYN, QYEL, ov, QCYN, QBRED, QCYN,
+                               obj_proto[r_num].short_description, buf2, QNRM);
           break;
 
         case ITEM_FOOD:
@@ -417,16 +471,22 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             *buf2 = '\0';
 
           if (v3 != 0)
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s %sPoisoned!%s\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QBGRN, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s %sPoisoned!%s\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                               obj_proto[r_num].short_description, buf2, QBGRN, QNRM);
           else
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s%s\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, buf2, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s%s\r\n", QGRN, ++found, QNRM,
+                               QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                               obj_proto[r_num].short_description, buf2, QNRM);
           break;
 
         case ITEM_MONEY:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s%d coins%s)\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, v1, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s%d coins%s)\r\n",
+                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN,
+                       obj_proto[r_num].short_description, QNRM, QYEL, v1, QNRM);
           break;
 
         case ITEM_PORTAL:
@@ -434,18 +494,24 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           v3 = (obj_proto[num].obj_flags.value[2]);
           if (v1 < 0 || v1 > NUM_PORTAL_TYPES)
           {
-            tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s INVALID %s)\r\n",
-                               QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, QNRM);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %s[%s%8d%s] %s%s (%s INVALID %s)\r\n", QGRN, ++found, QNRM, QCYN,
+                         QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, QNRM);
             break;
           }
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s%s/To: %d-%d%s)\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, portal_types[v1], v2, v3, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%8d%s] %s%s (%s%s/To: %d-%d%s)\r\n", QGRN, ++found,
+                             QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM,
+                             QYEL, portal_types[v1], v2, v3, QNRM);
           break;
 
         case ITEM_INSTRUMENT:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                             "%s%3d%s) %s%7d%s (%s%s | Difficulty: %d | Level: %d | Breakability: %d) %s%s\r\n",
-                             QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_names[v1], QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(
+              buf + len, sizeof(buf) - len,
+              "%s%3d%s) %s%7d%s (%s%s | Difficulty: %d | Level: %d | Breakability: %d) %s%s\r\n",
+              QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_names[v1], QNRM, v2, v3, v4,
+              obj_proto[r_num].short_description, QNRM);
           break;
 
         /* The 'normal' items - don't provide extra info */
@@ -481,8 +547,9 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_BOAT:
         case ITEM_KEY:
         case ITEM_FURNITURE:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n", QGRN, ++found,
+                       QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
         default:
@@ -519,8 +586,8 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
     return;
   }
 
-  len = snprintf(buf, sizeof(buf), "Listing all objects with wear location %s[%s]%s\r\n",
-                 QYEL, wear_bits[wearloc], QNRM);
+  len = snprintf(buf, sizeof(buf), "Listing all objects with wear location %s[%s]%s\r\n", QYEL,
+                 wear_bits[wearloc], QNRM);
 
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -536,8 +603,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
       ov = obj_index[num].vnum;
 
       /* display index, vnum */
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d %7d ",
-                         QNRM, ++found, ov);
+      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d %7d ", QNRM, ++found, ov);
       len += tmp_len;
 
       /* has affects? */
@@ -556,11 +622,11 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
       /* has affect locations? */
       for (i = 0; i < MAX_OBJ_AFFECT; i++)
       {
-        if ((obj->affected[i].location != APPLY_NONE) &&
-            (obj->affected[i].modifier != 0))
+        if ((obj->affected[i].location != APPLY_NONE) && (obj->affected[i].modifier != 0))
         {
           sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof(bitbuf));
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s %d ", bitbuf, obj->affected[i].modifier);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len, "%s %d ", bitbuf, obj->affected[i].modifier);
           len += tmp_len;
         }
       }
@@ -603,7 +669,7 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   {
     send_to_char(ch, "Not a valid affect");
     return;
-  }                                  /* Special cases below */
+  } /* Special cases below */
   else if ((apply == APPLY_CLASS) || /* olist affect 7 is Weapon Damage      */
            (apply == APPLY_LEVEL))
   { /* olist affect 8 is AC-Apply for Armor */
@@ -632,11 +698,12 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
     {
       if ((r_num = real_object(lst[i].vobj)) != NOTHING)
       {
-        tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%5d%s] %s%3d %s%-*s %s[%s]%s%s\r\n",
-                           QGRN, ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN,
-                           QYEL, lst[i].val, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
-                           obj_proto[r_num].short_description,
-                           QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+        tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                           "%s%3d%s) %s[%s%5d%s] %s%3d %s%-*s %s[%s]%s%s\r\n", QGRN, ++found, QNRM,
+                           QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
+                           42 + count_color_chars(obj_proto[num].short_description),
+                           obj_proto[r_num].short_description, QYEL,
+                           item_types[obj_proto[num].obj_flags.type_flag], QNRM,
                            obj_proto[num].proto_script ? " [TRIG]" : "");
         len += tmp_len;
         if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
@@ -669,12 +736,13 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   {
     if ((r_num = real_object(lst[i].vobj)) != NOTHING)
     {
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%3d %s%-*s %s[%s]%s%s\r\n",
-                         QGRN, ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN,
-                         QYEL, lst[i].val, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
-                         obj_proto[r_num].short_description,
-                         QYEL, item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
-                         obj_proto[r_num].proto_script ? " [TRIG]" : "");
+      tmp_len =
+          snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%3d %s%-*s %s[%s]%s%s\r\n",
+                   QGRN, ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
+                   42 + count_color_chars(obj_proto[num].short_description),
+                   obj_proto[r_num].short_description, QYEL,
+                   item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
+                   obj_proto[r_num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -693,14 +761,18 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
 
   if (flag_num < 1 || flag_num >= NUM_AFF_FLAGS)
   {
-    send_to_char(ch, "Invalid flag-number, needs to be an integer (including and) between 1 and %d.\r\n", (NUM_AFF_FLAGS - 1));
+    send_to_char(
+        ch, "Invalid flag-number, needs to be an integer (including and) between 1 and %d.\r\n",
+        (NUM_AFF_FLAGS - 1));
     return;
   }
 
-  len = snprintf(buf, sizeof(buf), "Objects with the affect '%s'\r\n"
-                                   "Index VNum    Num   Object Name                                Object Type\r\n"
-                                   "----- ------- ----- ------------------------------------------ ----------------\r\n",
-                 affected_bits[flag_num]);
+  len = snprintf(
+      buf, sizeof(buf),
+      "Objects with the affect '%s'\r\n"
+      "Index VNum    Num   Object Name                                Object Type\r\n"
+      "----- ------- ----- ------------------------------------------ ----------------\r\n",
+      affected_bits[flag_num]);
 
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -709,11 +781,12 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
     if (obj && OBJAFF_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
-                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM,
-                         QGRN, obj_index[num].number, QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
-                         obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
-                         obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(
+          buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
+          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
+          42 + count_color_chars(obj_proto[num].short_description),
+          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
+          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -733,14 +806,18 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
 
   if (flag_num < 1 || flag_num >= NUM_AFF2_FLAGS)
   {
-    send_to_char(ch, "Invalid flag-number, needs to be an integer (including and) between 1 and %d.\r\n", (NUM_AFF2_FLAGS - 1));
+    send_to_char(
+        ch, "Invalid flag-number, needs to be an integer (including and) between 1 and %d.\r\n",
+        (NUM_AFF2_FLAGS - 1));
     return;
   }
 
-  len = snprintf(buf, sizeof(buf), "Objects with the affect2 '%s'\r\n"
-                                   "Index VNum    Num   Object Name                                Object Type\r\n"
-                                   "----- ------- ----- ------------------------------------------ ----------------\r\n",
-                 affected2_bits[flag_num]);
+  len = snprintf(
+      buf, sizeof(buf),
+      "Objects with the affect2 '%s'\r\n"
+      "Index VNum    Num   Object Name                                Object Type\r\n"
+      "----- ------- ----- ------------------------------------------ ----------------\r\n",
+      affected2_bits[flag_num]);
 
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -749,11 +826,12 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
     if (obj && OBJAFF2_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
-                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM,
-                         QGRN, obj_index[num].number, QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
-                         obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
-                         obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(
+          buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
+          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
+          42 + count_color_chars(obj_proto[num].short_description),
+          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
+          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -769,20 +847,23 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  len = snprintf(buf, sizeof(buf), "Objects with the name '%s'\r\n"
-                                   "Index VNum    Num   Object Name                                Object Type\r\n"
-                                   "----- ------- ----- ------------------------------------------ ----------------\r\n",
-                 arg);
+  len = snprintf(
+      buf, sizeof(buf),
+      "Objects with the name '%s'\r\n"
+      "Index VNum    Num   Object Name                                Object Type\r\n"
+      "----- ------- ----- ------------------------------------------ ----------------\r\n",
+      arg);
   for (num = 0; num <= top_of_objt; num++)
   {
     if (is_name(arg, obj_proto[num].name))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
-                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM,
-                         QGRN, obj_index[num].number, QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
-                         obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
-                         obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(
+          buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
+          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
+          42 + count_color_chars(obj_proto[num].short_description),
+          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
+          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -849,9 +930,14 @@ ACMD(do_oasis_list)
     }
     if (is_abbrev(arg, "help"))
     {
-      send_to_char(ch, "Usage: %spathlist <distance>%s    - List paths within a particular distance\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %spathlist type <num>%s    - List all paths with the specified type\r\n", QYEL, QNRM);
-      send_to_char(ch, "Just type %spathlist types%s to view available path types.\r\n", QYEL, QNRM);
+      send_to_char(
+          ch, "Usage: %spathlist <distance>%s    - List paths within a particular distance\r\n",
+          QYEL, QNRM);
+      send_to_char(ch,
+                   "       %spathlist type <num>%s    - List all paths with the specified type\r\n",
+                   QYEL, QNRM);
+      send_to_char(ch, "Just type %spathlist types%s to view available path types.\r\n", QYEL,
+                   QNRM);
       return;
     }
     else if (is_abbrev(arg, "types"))
@@ -885,9 +971,14 @@ ACMD(do_oasis_list)
     }
     if (is_abbrev(arg, "help"))
     {
-      send_to_char(ch, "Usage: %sreglist <distance>%s    - List regions within a particular distance\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %sreglist type <num>%s    - List all regions with the specified type\r\n", QYEL, QNRM);
-      send_to_char(ch, "Just type %sreglist types%s to view available region types.\r\n", QYEL, QNRM);
+      send_to_char(
+          ch, "Usage: %sreglist <distance>%s    - List regions within a particular distance\r\n",
+          QYEL, QNRM);
+      send_to_char(
+          ch, "       %sreglist type <num>%s    - List all regions with the specified type\r\n",
+          QYEL, QNRM);
+      send_to_char(ch, "Just type %sreglist types%s to view available region types.\r\n", QYEL,
+                   QNRM);
       return;
     }
     else if (is_abbrev(arg, "types"))
@@ -921,9 +1012,12 @@ ACMD(do_oasis_list)
     if (is_abbrev(arg, "help"))
     {
       send_to_char(ch, "Usage: %smlist <zone>%s        - List mobiles in a zone\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %smlist <vnum> <vnum>%s - List a range of mobiles by vnum\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %smlist level <num>%s   - List all mobiles of a specified level\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %smlist flags <num>%s - List all mobiles with flag set\r\n", QYEL, QNRM);
+      send_to_char(ch, "       %smlist <vnum> <vnum>%s - List a range of mobiles by vnum\r\n", QYEL,
+                   QNRM);
+      send_to_char(ch, "       %smlist level <num>%s   - List all mobiles of a specified level\r\n",
+                   QYEL, QNRM);
+      send_to_char(ch, "       %smlist flags <num>%s - List all mobiles with flag set\r\n", QYEL,
+                   QNRM);
       send_to_char(ch, "Just type %smlist flags%s to view available options.\r\n", QYEL, QNRM);
       return;
     }
@@ -936,7 +1030,8 @@ ACMD(do_oasis_list)
         send_to_char(ch, "Which mobile flag or level do you want to list?\r\n");
         for (i = 0; i < NUM_MOB_FLAGS; i++)
         {
-          send_to_char(ch, "%s%2d%s-%s%-14s%s", CCNRM(ch, C_NRM), i, CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), action_bits[i], CCNRM(ch, C_NRM));
+          send_to_char(ch, "%s%2d%s-%s%-14s%s", CCNRM(ch, C_NRM), i, CCNRM(ch, C_NRM),
+                       CCYEL(ch, C_NRM), action_bits[i], CCNRM(ch, C_NRM));
           if (!((i + 1) % 4))
             send_to_char(ch, "\r\n");
         }
@@ -961,17 +1056,28 @@ ACMD(do_oasis_list)
     if (is_abbrev(arg, "help"))
     {
       send_to_char(ch, "Usage: %solist <zone>%s        - List objects in a zone\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %solist <vnum> <vnum>%s - List a range of objects by vnum\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %solist <name>%s        - List all named objects with count\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %solist type <num>%s    - List all objects of a specified type\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %solist affect <num>%s  - List top %d objects with affect\r\n", QYEL, QNRM, MAX_OBJ_LIST);
-      send_to_char(ch, "       %solist worn <num>%s    - List all objects worn in the specified location.\r\n", QYEL, QNRM);
-      send_to_char(ch, "       %solist perm <num>%s    - List all objects with perm affection.\r\n", QYEL, QNRM);
-      send_to_char(ch, "Just type %solist perm%s, %solist affect%s, %solist type%s or %solist worn%s to view available options\r\n",
+      send_to_char(ch, "       %solist <vnum> <vnum>%s - List a range of objects by vnum\r\n", QYEL,
+                   QNRM);
+      send_to_char(ch, "       %solist <name>%s        - List all named objects with count\r\n",
+                   QYEL, QNRM);
+      send_to_char(ch, "       %solist type <num>%s    - List all objects of a specified type\r\n",
+                   QYEL, QNRM);
+      send_to_char(ch, "       %solist affect <num>%s  - List top %d objects with affect\r\n", QYEL,
+                   QNRM, MAX_OBJ_LIST);
+      send_to_char(
+          ch,
+          "       %solist worn <num>%s    - List all objects worn in the specified location.\r\n",
+          QYEL, QNRM);
+      send_to_char(ch, "       %solist perm <num>%s    - List all objects with perm affection.\r\n",
+                   QYEL, QNRM);
+      send_to_char(ch,
+                   "Just type %solist perm%s, %solist affect%s, %solist type%s or %solist worn%s "
+                   "to view available options\r\n",
                    QYEL, QNRM, QYEL, QNRM, QYEL, QNRM, QYEL, QNRM);
       return;
     }
-    else if (is_abbrev(arg, "type") || is_abbrev(arg, "affect") || is_abbrev(arg, "worn") || is_abbrev(arg, "perm"))
+    else if (is_abbrev(arg, "type") || is_abbrev(arg, "affect") || is_abbrev(arg, "worn") ||
+             is_abbrev(arg, "perm"))
     {
       if (is_abbrev(arg, "type"))
       {
@@ -1067,7 +1173,8 @@ ACMD(do_oasis_list)
           }
           send_to_char(ch, "\r\n");
           send_to_char(ch, "Usage: %solist affect <num>%s\r\n", QYEL, QNRM);
-          send_to_char(ch, "Displays top %d objects, in order, with the selected affect.\r\n", MAX_OBJ_LIST);
+          send_to_char(ch, "Displays top %d objects, in order, with the selected affect.\r\n",
+                       MAX_OBJ_LIST);
 
           return;
         }
@@ -1106,8 +1213,7 @@ ACMD(do_oasis_list)
     break;
   default:
     send_to_char(ch, "You can't list that!\r\n");
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis_list: Unknown list option: %d", subcmd);
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_list: Unknown list option: %d", subcmd);
   }
 }
 
@@ -1131,8 +1237,7 @@ ACMD(do_oasis_links)
 
   if (!*arg)
   {
-    send_to_char(ch,
-                 "Syntax: links <zone_vnum> ('.' for zone you are standing in)\r\n");
+    send_to_char(ch, "Syntax: links <zone_vnum> ('.' for zone you are standing in)\r\n");
     return;
   }
 
@@ -1169,8 +1274,8 @@ ACMD(do_oasis_links)
           if (to_room != NOWHERE && (zrnum != world[to_room].zone))
             send_to_char(ch, "%3d %-30s%s at %5d (%-5s) ---> %5d\r\n",
                          zone_table[world[to_room].zone].number,
-                         zone_table[world[to_room].zone].name, QNRM,
-                         GET_ROOM_VNUM(nr), dirs[j], world[to_room].number);
+                         zone_table[world[to_room].zone].name, QNRM, GET_ROOM_VNUM(nr), dirs[j],
+                         world[to_room].number);
         }
       }
     }
@@ -1186,10 +1291,11 @@ static void list_regions(struct char_data *ch)
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  len = strlcpy(buf,
-                "Ind|VNum   | Name                                |Type        |Properties\r\n"
-                "--- ------- ------------------------------------- ------------ ---------------\r\n",
-                sizeof(buf));
+  len =
+      strlcpy(buf,
+              "Ind|VNum   | Name                                |Type        |Properties\r\n"
+              "--- ------- ------------------------------------- ------------ ---------------\r\n",
+              sizeof(buf));
   if (!top_of_region_table)
     return;
 
@@ -1197,13 +1303,19 @@ static void list_regions(struct char_data *ch)
   {
     counter++;
 
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n",
-                    QGRN, counter, QNRM,
-                    QGRN, region_table[i].vnum, QNRM,
-                    QYEL, region_table[i].name, QNRM,
-                    QYEL, (region_table[i].region_type == 1 ? "Geographic" : (region_table[i].region_type == 2 ? "Encounter" : (region_table[i].region_type == 3 ? "Sect.Transfm" : (region_table[i].region_type == 4 ? "Sector" : "UNKNOWN")))), QNRM,
-                    QYEL, (region_table[i].region_type == 4 ? sector_types[region_table[i].region_props] : "[N/A]"), QNRM);
+    len += snprintf(
+        buf + len, sizeof(buf) - len, "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n", QGRN,
+        counter, QNRM, QGRN, region_table[i].vnum, QNRM, QYEL, region_table[i].name, QNRM, QYEL,
+        (region_table[i].region_type == 1
+             ? "Geographic"
+             : (region_table[i].region_type == 2
+                    ? "Encounter"
+                    : (region_table[i].region_type == 3
+                           ? "Sect.Transfm"
+                           : (region_table[i].region_type == 4 ? "Sector" : "UNKNOWN")))),
+        QNRM, QYEL,
+        (region_table[i].region_type == 4 ? sector_types[region_table[i].region_props] : "[N/A]"),
+        QNRM);
 
     if (len > sizeof(buf))
       break;
@@ -1222,10 +1334,11 @@ static void list_paths(struct char_data *ch)
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  len = strlcpy(buf,
-                "Ind|VNum   | Name                                |Type        |Glyphs\r\n"
-                "--- ------- ------------------------------------- ------------ ---------------\r\n",
-                sizeof(buf));
+  len =
+      strlcpy(buf,
+              "Ind|VNum   | Name                                |Type        |Glyphs\r\n"
+              "--- ------- ------------------------------------- ------------ ---------------\r\n",
+              sizeof(buf));
   if (!top_of_path_table)
     return;
 
@@ -1234,12 +1347,15 @@ static void list_paths(struct char_data *ch)
     counter++;
 
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%s%s%s%s\r\n",
-                    QGRN, counter, QNRM,
-                    QGRN, path_table[i].vnum, QNRM,
-                    QYEL, path_table[i].name, QNRM,
-                    QYEL, (path_table[i].path_type == 1 ? "Road" : (path_table[i].path_type == 2 ? "Dirt Road" : (path_table[i].path_type == 5 ? "Water" : "[UNKNOWN]"))), QNRM,
-                    QYEL, path_table[i].glyphs[0], path_table[i].glyphs[1], path_table[i].glyphs[2], QNRM);
+                    "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%s%s%s%s\r\n", QGRN, counter, QNRM, QGRN,
+                    path_table[i].vnum, QNRM, QYEL, path_table[i].name, QNRM, QYEL,
+                    (path_table[i].path_type == 1
+                         ? "Road"
+                         : (path_table[i].path_type == 2
+                                ? "Dirt Road"
+                                : (path_table[i].path_type == 5 ? "Water" : "[UNKNOWN]"))),
+                    QNRM, QYEL, path_table[i].glyphs[0], path_table[i].glyphs[1],
+                    path_table[i].glyphs[2], QNRM);
 
     if (len > sizeof(buf))
       break;
@@ -1308,11 +1424,11 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     {
       counter++;
 
-      len += snprintf(buf + len, sizeof(buf) - len, "%4d)%s%s%s [%s%-5d%s] %s%-*s%s %s",
-                      counter, QYEL, (has_zcmds != NULL ? (has_zcmds[world[i].number - bottom] == TRUE ? "Z" : " ") : ""), QNRM,
-                      QGRN, world[i].number, QNRM,
-                      QCYN, count_color_chars(world[i].name) + 44, world[i].name, QNRM,
-                      world[i].proto_script ? "[TRIG] " : "");
+      len += snprintf(
+          buf + len, sizeof(buf) - len, "%4d)%s%s%s [%s%-5d%s] %s%-*s%s %s", counter, QYEL,
+          (has_zcmds != NULL ? (has_zcmds[world[i].number - bottom] == TRUE ? "Z" : " ") : ""),
+          QNRM, QGRN, world[i].number, QNRM, QCYN, count_color_chars(world[i].name) + 44,
+          world[i].name, QNRM, world[i].proto_script ? "[TRIG] " : "");
 
       for (j = 0; j < DIR_COUNT; j++)
       {
@@ -1322,7 +1438,8 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
           continue;
 
         if (world[W_EXIT(i, j)->to_room].zone != world[i].zone)
-          len += snprintf(buf + len, sizeof(buf) - len, "(%s%d%s)", QYEL, world[W_EXIT(i, j)->to_room].number, QNRM);
+          len += snprintf(buf + len, sizeof(buf) - len, "(%s%d%s)", QYEL,
+                          world[W_EXIT(i, j)->to_room].number, QNRM);
       }
 
       len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
@@ -1333,7 +1450,8 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       /* still having issues with overflow, guessing it is a miscalculation with color codes -zusuk */
       if (counter >= 200)
       {
-        len += snprintf(buf + len, sizeof(buf) - len, "\r\n OVERFLOW, use a range to view the rest! \r\n");
+        len += snprintf(buf + len, sizeof(buf) - len,
+                        "\r\n OVERFLOW, use a range to view the rest! \r\n");
         break;
       }
     }
@@ -1391,16 +1509,16 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
                    mob_proto[i].proto_script ? " [TRIG]" : ""
                    );*/
       len += snprintf(buf + len, sizeof(buf) - len,
-                      "%s%3d%s|%s%-7d%s|%s%2d%s|%s|%s|%s|%s|%s|%s%-*s %s\r\n",
-                      QGRN, counter, QNRM,
-                      QGRN, mob_index[i].vnum, QNRM,
-                      QYEL, mob_proto[i].player.level, QNRM,
+                      "%s%3d%s|%s%-7d%s|%s%2d%s|%s|%s|%s|%s|%s|%s%-*s %s\r\n", QGRN, counter, QNRM,
+                      QGRN, mob_index[i].vnum, QNRM, QYEL, mob_proto[i].player.level, QNRM,
                       mob_proto[i].proto_script ? "\tRY\tn" : "N",
                       get_align_by_num_cnd(mob_proto[i].char_specials.saved.alignment),
                       race_family_short[mob_proto[i].player.race],
-                      IS_SET_AR(mob_proto[i].char_specials.saved.act, MOB_NOCLASS) ? "---" : CLSLIST_ABBRV(mob_proto[i].player.chclass),
-                      mob_proto[i].mob_specials.echo_count > 0 ? "\tRY\tn" : "N",
-                      QCYN, count_color_chars(mob_proto[i].player.short_descr) + 44,
+                      IS_SET_AR(mob_proto[i].char_specials.saved.act, MOB_NOCLASS)
+                          ? "---"
+                          : CLSLIST_ABBRV(mob_proto[i].player.chclass),
+                      mob_proto[i].mob_specials.echo_count > 0 ? "\tRY\tn" : "N", QCYN,
+                      count_color_chars(mob_proto[i].player.short_descr) + 44,
                       mob_proto[i].player.short_descr, QNRM);
 
       if (len > sizeof(buf))
@@ -1425,7 +1543,8 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
 }
 
 /* List all objects in a zone. */
-static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax, bool show_applies)
+static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax,
+                              bool show_applies)
 {
   obj_rnum i = 0, j = 0, k = 0;
   obj_vnum bottom = 0, top = 0;
@@ -1458,7 +1577,6 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
   /* "i" will be the real-number */
   for (i = 0; i <= top_of_objt; i++)
   {
-
     /* establish our range */
     if (obj_index[i].vnum >= bottom && obj_index[i].vnum <= top)
     {
@@ -1483,46 +1601,53 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
         }
       }
 
-      len += snprintf(buf + len, sizeof(buf) - len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ",
-                      QGRN, obj_index[i].vnum, QNRM, num_found,
-                      (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"),
-                      QCYN, count_color_chars(obj_proto[i].short_description) + 28,
-                      obj_proto[i].short_description, QYEL,
-                      item_types[obj_proto[i].obj_flags.type_flag], QNRM,
-                      GET_OBJ_LEVEL(&obj_proto[i]),
-                      (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR || obj_proto[i].obj_flags.type_flag == ITEM_WEAPON) ? obj_proto[i].obj_flags.value[4] : 0,
-                      QYEL,
-                      obj_proto[i].obj_flags.type_flag == ITEM_WORN ? wears_text : (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : "")),
-                      QNRM, 
-                      show_applies ? "" : (obj_proto[i].proto_script ? " [TRIG]" : "")
-                      );
+      len += snprintf(
+          buf + len, sizeof(buf) - len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ",
+          QGRN, obj_index[i].vnum, QNRM, num_found,
+          (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"), QCYN,
+          count_color_chars(obj_proto[i].short_description) + 28, obj_proto[i].short_description,
+          QYEL, item_types[obj_proto[i].obj_flags.type_flag], QNRM, GET_OBJ_LEVEL(&obj_proto[i]),
+          (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ||
+           obj_proto[i].obj_flags.type_flag == ITEM_WEAPON)
+              ? obj_proto[i].obj_flags.value[4]
+              : 0,
+          QYEL,
+          obj_proto[i].obj_flags.type_flag == ITEM_WORN
+              ? wears_text
+              : (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR
+                     ? armor_list[obj_proto[i].obj_flags.value[1]].name
+                     : (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON
+                            ? weapon_list[obj_proto[i].obj_flags.value[0]].name
+                            : "")),
+          QNRM, show_applies ? "" : (obj_proto[i].proto_script ? " [TRIG]" : ""));
 
       if (show_applies)
       {
         for (k = 0; k < MAX_OBJ_AFFECT; k++)
         {
-          if ((obj_proto[i].affected[k].location != APPLY_NONE) && (obj_proto[i].affected[k].modifier != 0))
+          if ((obj_proto[i].affected[k].location != APPLY_NONE) &&
+              (obj_proto[i].affected[k].modifier != 0))
           {
             sprinttype(obj_proto[i].affected[k].location, apply_types, bitbuf, sizeof(bitbuf));
             switch (obj_proto[i].affected[k].location)
             {
             case APPLY_FEAT:
-              snprintf(buf2, sizeof(buf2), " (%s)", feat_list[obj_proto[i].affected[k].modifier].name);
+              snprintf(buf2, sizeof(buf2), " (%s)",
+                       feat_list[obj_proto[i].affected[k].modifier].name);
               len += snprintf(buf + len, sizeof(buf) - len, " %s%s", bitbuf, buf2);
               break;
             default:
               buf2[0] = 0;
               len += snprintf(buf + len, sizeof(buf) - len, " %s%s %s%d (%s)", bitbuf, buf2,
-                           (obj_proto[i].affected[k].modifier > 0) ? "+"
-                                                           : "",
-                           obj_proto[i].affected[k].modifier,
-                           bonus_types[obj_proto[i].affected[k].bonus_type]);
+                              (obj_proto[i].affected[k].modifier > 0) ? "+" : "",
+                              obj_proto[i].affected[k].modifier,
+                              bonus_types[obj_proto[i].affected[k].bonus_type]);
               break;
             }
           }
         }
       }
-      
+
       len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
 
       if (len > sizeof(buf))
@@ -1556,9 +1681,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
     top = vmax;
   }
 
-  send_to_char(ch,
-               "Index VNum    RNum    Mob Name and Shop Room(s)\r\n"
-               "----- ------- ------- -----------------------------------------\r\n");
+  send_to_char(ch, "Index VNum    RNum    Mob Name and Shop Room(s)\r\n"
+                   "----- ------- ------- -----------------------------------------\r\n");
 
   for (i = 0; i <= top_shop; i++)
   {
@@ -1583,9 +1707,11 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
        */
 
       /* the +1 is strange but fits the rest of the shop code */
-      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s",
-                   QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
-                   (SHOP_KEEPER(i) < top_of_mobt) ? mob_proto[SHOP_KEEPER(i)].player.short_descr : "ERR!", QNRM);
+      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s", QGRN, counter, QNRM, QGRN,
+                   SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
+                   (SHOP_KEEPER(i) < top_of_mobt) ? mob_proto[SHOP_KEEPER(i)].player.short_descr
+                                                  : "ERR!",
+                   QNRM);
 
       /* get rid of mob */
       /*
@@ -1596,8 +1722,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       /* Thanks to Ken Ray for this display fix. -Welcor */
       for (j = 0; SHOP_ROOM(i, j) != NOWHERE; j++)
         send_to_char(ch, "%s%s[%s%-5d%s]%s",
-                     ((j > 0) && (j % 6 == 0)) ? "\r\n                      " : " ",
-                     QCYN, QYEL, SHOP_ROOM(i, j), QCYN, QNRM);
+                     ((j > 0) && (j % 6 == 0)) ? "\r\n                      " : " ", QCYN, QYEL,
+                     SHOP_ROOM(i, j), QCYN, QNRM);
 
       if (j == 0)
         send_to_char(ch, " %sNone.%s", QCYN, QNRM);
@@ -1611,7 +1737,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
 }
 
 /* List all zones in the world (sort of like 'show zones'). */
-static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax, char *name)
+static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax,
+                       char *name)
 {
   int counter = 0, len = 0, tmp_len = 0;
   zone_rnum i;
@@ -1653,7 +1780,6 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
     {
       if ((!use_name) || (is_name(name, zone_table[i].builders)))
       {
-
         /* status display added for head builder */
         if (ZONE_FLAGGED(i, ZONE_CLOSED))
           buf2 = strdup("\trIncomp\tn");
@@ -1662,10 +1788,10 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
         else
           buf2 = strdup("\tmN-Reva\tn");
 
-        tmp_len = snprintf(buf + len, sizeof(buf) - len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n",
-                           QGRN, zone_table[i].number, QNRM, QCYN,
-                           count_color_chars(zone_table[i].name) + 26, zone_table[i].name,
-                           buf2, QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
+        tmp_len = snprintf(buf + len, sizeof(buf) - len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN,
+                           zone_table[i].number, QNRM, QCYN,
+                           count_color_chars(zone_table[i].name) + 26, zone_table[i].name, buf2,
+                           QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
         len += tmp_len;
         counter++;
       }
@@ -1756,25 +1882,18 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
                "%s   Shops       = %s%d\r\n"
                "%s   Triggers    = %s%d\r\n"
                "%s   Quests      = %s%d%s\r\n",
-               QGRN, QCYN, zone_table[rnum].number,
-               QGRN, QCYN, zone_table[rnum].name,
-               QGRN, QCYN, zone_table[rnum].builders,
-               QGRN, QCYN, zone_table[rnum].lifespan,
-               QGRN, QCYN, zone_table[rnum].show_weather,
-               QGRN, QCYN, zone_table[rnum].age,
-               QGRN, QCYN, zone_table[rnum].bot,
-               QGRN, QCYN, zone_table[rnum].top,
-               QGRN, QCYN, zone_table[rnum].reset_mode ? ((zone_table[rnum].reset_mode == 1) ? "Reset when no players are in zone." : "Normal reset.") : "Never reset",
-               QGRN, QCYN, buf,
-               QGRN, QCYN, zone_table[rnum].min_level,
-               QGRN, QCYN, zone_table[rnum].max_level,
-               QGRN,
-               QGRN, QCYN, size_rooms,
-               QGRN, QCYN, size_objects,
-               QGRN, QCYN, size_mobiles,
-               QGRN, QCYN, size_shops,
-               QGRN, QCYN, size_trigs,
-               QGRN, QCYN, size_quests, QNRM);
+               QGRN, QCYN, zone_table[rnum].number, QGRN, QCYN, zone_table[rnum].name, QGRN, QCYN,
+               zone_table[rnum].builders, QGRN, QCYN, zone_table[rnum].lifespan, QGRN, QCYN,
+               zone_table[rnum].show_weather, QGRN, QCYN, zone_table[rnum].age, QGRN, QCYN,
+               zone_table[rnum].bot, QGRN, QCYN, zone_table[rnum].top, QGRN, QCYN,
+               zone_table[rnum].reset_mode
+                   ? ((zone_table[rnum].reset_mode == 1) ? "Reset when no players are in zone."
+                                                         : "Normal reset.")
+                   : "Never reset",
+               QGRN, QCYN, buf, QGRN, QCYN, zone_table[rnum].min_level, QGRN, QCYN,
+               zone_table[rnum].max_level, QGRN, QGRN, QCYN, size_rooms, QGRN, QCYN, size_objects,
+               QGRN, QCYN, size_mobiles, QGRN, QCYN, size_shops, QGRN, QCYN, size_trigs, QGRN, QCYN,
+               size_quests, QNRM);
 }
 
 /* List code by Ronald Evers. */
@@ -1796,9 +1915,8 @@ static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, 
   }
 
   /* Store the header for the room listing. */
-  send_to_char(ch,
-               "Index VNum    Trigger Name                                  Type\r\n"
-               "----- ------- --------------------------------------------- ---------\r\n");
+  send_to_char(ch, "Index VNum    Trigger Name                                  Type\r\n"
+                   "----- ------- --------------------------------------------- ---------\r\n");
 
   /* Loop through the world and find each room. */
   for (i = 0; i < top_of_trigt; i++)
@@ -1808,8 +1926,8 @@ static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, 
     {
       counter++;
 
-      send_to_char(ch, "%4d) [%s%5d%s] %s%-45.45s%s ",
-                   counter, QGRN, trig_index[i]->vnum, QNRM, QCYN, trig_index[i]->proto->name, QNRM);
+      send_to_char(ch, "%4d) [%s%5d%s] %s%-45.45s%s ", counter, QGRN, trig_index[i]->vnum, QNRM,
+                   QCYN, trig_index[i]->proto->name, QNRM);
 
       if (trig_index[i]->proto->attach_type == OBJ_TRIGGER)
       {

@@ -61,7 +61,7 @@ November 5, 2024
 - **Effects**:
   - Cleave and Great Cleave no longer limited by number of attacks
   - +2 bonus to cleave attack rolls
-- **Implementation**: 
+- **Implementation**:
   - Added to handle_cleave() trigger conditions
   - Reduces cleave penalty from -4 to -2
   - Enables Great Cleave functionality even without the feat

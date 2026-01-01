@@ -37,14 +37,14 @@
 
 #define NUM_OF_DIRS 6
 
-#define CREATE(result, type, number)                          \
-  do                                                          \
-  {                                                           \
-    if (!((result) = (type *)calloc((number), sizeof(type)))) \
-    {                                                         \
-      perror("malloc failure");                               \
-      abort();                                                \
-    }                                                         \
+#define CREATE(result, type, number)                                                               \
+  do                                                                                               \
+  {                                                                                                \
+    if (!((result) = (type *)calloc((number), sizeof(type))))                                      \
+    {                                                                                              \
+      perror("malloc failure");                                                                    \
+      abort();                                                                                     \
+    }                                                                                              \
   } while (0)
 
 /* Exit info: used in room_data.dir_option.exit_info */
@@ -164,8 +164,7 @@ void assign_rooms(void);
 void renum_world(void);
 void write_output(void);
 
-char *dir_names[] =
-    {"North", "East", "South", "West", "Up", "Down"};
+char *dir_names[] = {"North", "East", "South", "West", "Up", "Down"};
 
 /*************************************************************************
  *  routines for booting the system                                       *
@@ -238,13 +237,11 @@ void write_output(void)
 
     found = 0;
     for (door = 0; door < NUM_OF_DIRS; door++)
-      if (world[i].dir_option[door] &&
-          world[i].dir_option[door]->to_room != NOWHERE)
+      if (world[i].dir_option[door] && world[i].dir_option[door]->to_room != NOWHERE)
       {
         found = 1;
         fprintf(fl, "<a href = \"%d.html\"> %s to %s</a> <p>\n",
-                world[world[i].dir_option[door]->to_room].number,
-                dir_names[door],
+                world[world[i].dir_option[door]->to_room].number, dir_names[door],
                 world[world[i].dir_option[door]->to_room].name);
       }
     if (!found)
@@ -449,8 +446,7 @@ void renum_world(void)
       if (world[room].dir_option[door])
         if (world[room].dir_option[door]->to_room != NOWHERE)
           world[room].dir_option[door]->to_room =
-              real_room(world[room].dir_option[door]->to_room,
-                        world[room].number);
+              real_room(world[room].dir_option[door]->to_room, world[room].number);
 }
 
 /*************************************************************************
@@ -470,8 +466,7 @@ char *fread_string(FILE *fl, char *error)
   {
     if (!fgets(tmp, 512, fl))
     {
-      fprintf(stderr, "SYSERR: fread_string: format error at or near %s\n",
-              error);
+      fprintf(stderr, "SYSERR: fread_string: format error at or near %s\n", error);
       exit(1);
     }
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
@@ -532,7 +527,8 @@ int real_room(int virtual, int reference)
       return (mid);
     if (bot >= top)
     {
-      fprintf(stderr, "Room %d does not exist in database (referenced in room %d)\n", virtual, reference);
+      fprintf(stderr, "Room %d does not exist in database (referenced in room %d)\n", virtual,
+              reference);
       return (-1);
     }
     if ((world + mid)->number > virtual)
@@ -552,7 +548,8 @@ int get_line(FILE *fl, char *buf)
 
   do
   {
-    if (!fgets(temp, MEDIUM_STRING, fl)) {
+    if (!fgets(temp, MEDIUM_STRING, fl))
+    {
       if (feof(fl))
         break;
       fprintf(stderr, "Error reading from file\n");

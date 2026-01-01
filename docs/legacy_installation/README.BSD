@@ -1,10 +1,10 @@
                      Compiling tbaMUD under BSD
                   based on UNIX readme for circlemud
-                            by Jeremy Elson 
+                            by Jeremy Elson
                  For help, visit http://www.tbamud.com
 
-Compiling tbaMUD is easy using FreeBSD.  If you plan on compiling on a 
-FreeBSD machine, these instructions are for you.  If not, check the main 
+Compiling tbaMUD is easy using FreeBSD.  If you plan on compiling on a
+FreeBSD machine, these instructions are for you.  If not, check the main
 README file to get a list of other operating systems that can be used to
 compile and run tbaMUD.
 
@@ -21,7 +21,7 @@ can try to make tbaMUD work with your system.
 
         http://www.tbamud.com
 
-		
+
 2)  Unpack the archive.  If you have the .tar.gz version, uncompress it
     using gzip (GNU unzip) and the tar archiver.  (Both of these utilities
     can be downloaded from ftp.gnu.ai.mit.edu:/pub/gnu if you don't have
@@ -64,7 +64,7 @@ can try to make tbaMUD work with your system.
 
 4)  Build the tbaMUD server.  This must be done from the 'src' directory.
     Type:
-   
+
         cd src; gmake all
 
     This will build tbaMUD proper as well as its 10 or so ancillary
@@ -81,7 +81,7 @@ can try to make tbaMUD work with your system.
     The first time you try to compile tbaMUD, you will be asked to read the
     tbaMUD license.  Please read it!
 
-	
+
 5)  Go back to tbaMUD's root directory (by typing "cd ..") and run the
     tbaMUD server.  The easiest way to do this the first time is
     to use the 'autorun' script, which can be run in the background by
@@ -97,7 +97,7 @@ can try to make tbaMUD work with your system.
     execute 'autorun' itself, giving you a message like "Permission denied"
     when you try to run "./autorun".  If so, type "sh ./autorun &" instead.
 
-	
+
 6)  Wait until the line 'No connections.  Going to sleep.' appears in the
     syslog.  This indicates that the server is ready and waiting for
     connections.  It shouldn't take more than about 30 seconds for the MUD

@@ -29,127 +29,92 @@
 #include "crafting_new.h"
 #include "campaign.h"
 
-#define CHECK_TABLE_SIZE(tbl, exp_sz) \
-    _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
+#define CHECK_TABLE_SIZE(tbl, exp_sz)                                                              \
+  _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
 
-/** Current LuminariMUD version.
- * @todo defined with _LUMINARIMUD so we don't have multiple constants to change.
- * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
- * works correctly with C compilers (at least in my Experience)
- * Jeremy Osborne 1/28/2008 */
-cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64)";
+/** Current LuminariMUD version - CANONICAL SOURCE for display version string.
+ * Version is also defined in:
+ *   - src/structs.h (_LUMINARIMUD macro for code compatibility)
+ *   - configure.ac (AC_INIT for autotools build)
+ *   - CMakeLists.txt (project VERSION for CMake build)
+ *   - README.md (documentation)
+ * When updating version, update ALL locations above. */
+cpp_extern const char *const luminari_version = "LuminariMUD 2.5000-beta (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
 /* Moon names for Dragonlance setting */
-const char *moon_names[] = {
-    "Solinari",   /* white moon */
-    "Lunitari",   /* red moon */
-    "Nuitari",    /* black moon */
-    "\n"
-};
+const char *moon_names[] = {"Solinari", /* white moon */
+                            "Lunitari", /* red moon */
+                            "Nuitari",  /* black moon */
+                            "\n"};
 
 // armor suit types
 const char *armor_suit_types[] = {
-    "none",
-    "clothing",
-    "padded",
-    "leather",
-    "studded leather",
-    "light chainmail",
-    "hide",
-    "scale",
-    "chainmail",
-    "piecemeal",
-    "split",
-    "banded",
-    "half plate",
-    "full plate",
-    "buckler",
-    "small shield",
-    "heavy shield",
-    "tower shield",
+    "none",       "clothing",   "padded",    "leather",      "studded leather", "light chainmail",
+    "hide",       "scale",      "chainmail", "piecemeal",    "split",           "banded",
+    "half plate", "full plate", "buckler",   "small shield", "heavy shield",    "tower shield",
     "\n"};
 CHECK_TABLE_SIZE(armor_suit_types, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
 
 // npc subrace
-const char *npc_subrace_types[] = {
-    "Unknown",      /**/
-    "Air",          /**/
-    "Angelic",      /**/
-    "Aquatic",      /**/
-    "Archon",       /**/
-    "Augmented",    /**/
-    "Chaotic",      /**/
-    "Cold",         /**/
-    "Earth",        /**/
-    "Evil",         /**/
-    "Extraplanar",  /**/
-    "Fire",         /**/
-    "Goblinoid",    /**/
-    "Good",         /**/
-    "Incorporeal",  /**/
-    "Lawful",       /**/
-    "Native",       /**/
-    "Reptilian",    /**/
-    "Shapechanger", /**/
-    "Swarm",        /**/
-    "Water",        /**/
-    "Darkling",     /**/
-    "Vampire",      /**/
-    "\n"};
+const char *npc_subrace_types[] = {"Unknown",      /**/
+                                   "Air",          /**/
+                                   "Angelic",      /**/
+                                   "Aquatic",      /**/
+                                   "Archon",       /**/
+                                   "Augmented",    /**/
+                                   "Chaotic",      /**/
+                                   "Cold",         /**/
+                                   "Earth",        /**/
+                                   "Evil",         /**/
+                                   "Extraplanar",  /**/
+                                   "Fire",         /**/
+                                   "Goblinoid",    /**/
+                                   "Good",         /**/
+                                   "Incorporeal",  /**/
+                                   "Lawful",       /**/
+                                   "Native",       /**/
+                                   "Reptilian",    /**/
+                                   "Shapechanger", /**/
+                                   "Swarm",        /**/
+                                   "Water",        /**/
+                                   "Darkling",     /**/
+                                   "Vampire",      /**/
+                                   "\n"};
 CHECK_TABLE_SIZE(npc_subrace_types, NUM_SUB_RACES + 1);
 
 // colored npc subrace abbreviations
 // for now full name for effect
 const char *npc_subrace_abbrevs[] = {
-    "Unknown",
-    "\tCAir\tn",
-    "\tWAngelic\tn",
-    "\tBAquatic\tn",
-    "\trArch\tRon\tn",
-    "\tYAugmented\tn",
-    "\tDChaotic\tn",
-    "\tbCold\tn",
-    "\tGEarth\tn",
-    "\trEvil\tn",
-    "\tmExtraplanar\tn",
-    "\tRFire\tn",
-    "\tgGoblinoid\tn",
-    "\tWGood\tn",
-    "\tGIncorporeal\tn",
-    "\twLawful\tn",
-    "\tyNative\tn",
-    "\tyReptilian\tn",
-    "\tMShapechanger\tn",
-    "\tySwarm\tn",
-    "\tBWater\tn",
-    "\tDDarkling\tn",
-    "\tRVampire\tn",
-    "\n"};
+    "Unknown",         "\tCAir\tn",       "\tWAngelic\tn",      "\tBAquatic\tn",
+    "\trArch\tRon\tn", "\tYAugmented\tn", "\tDChaotic\tn",      "\tbCold\tn",
+    "\tGEarth\tn",     "\trEvil\tn",      "\tmExtraplanar\tn",  "\tRFire\tn",
+    "\tgGoblinoid\tn", "\tWGood\tn",      "\tGIncorporeal\tn",  "\twLawful\tn",
+    "\tyNative\tn",    "\tyReptilian\tn", "\tMShapechanger\tn", "\tySwarm\tn",
+    "\tBWater\tn",     "\tDDarkling\tn",  "\tRVampire\tn",      "\n"};
 CHECK_TABLE_SIZE(npc_subrace_abbrevs, NUM_SUB_RACES + 1);
 
 // made this for shapechange, a tad tacky -zusuk
-const char *npc_race_menu =
-    "\r\n"
-    "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
-    "---------------------+\r\n"
-    "1)  \tWHumanoid\tn\r\n"
-    "2)  \tDUndead\tn\r\n"
-    "3)  \tgAnimal\tn\r\n"
-    "4)  \trDragon\tn\r\n"
-    "5)  \tYGiant\tn\r\n"
-    "6)  \tRAberration\tn\r\n"
-    "7)  \tcConstruct\tn\r\n"
-    "8)  \tRElemental\tn\r\n"
-    "9)  \tCFey\tn\r\n"
-    "10) \tmMagical \tgBeast\tn\r\n"
-    "11) \tBMonstrous \tWHumanoid\tn\r\n"
-    "12) \tMOoze\tn\r\n"
-    "13) \tDOut\twsider\tn\r\n"
-    "14) \tGPlant\tn\r\n"
-    "15) \tyVermin\tn\r\n"
-    "16) \tRLycanthrope\tn\r\n";
+const char *npc_race_menu = "\r\n"
+                            "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
+                            "---------------------+\r\n"
+                            "1)  \tWHumanoid\tn\r\n"
+                            "2)  \tDUndead\tn\r\n"
+                            "3)  \tgAnimal\tn\r\n"
+                            "4)  \trDragon\tn\r\n"
+                            "5)  \tYGiant\tn\r\n"
+                            "6)  \tRAberration\tn\r\n"
+                            "7)  \tcConstruct\tn\r\n"
+                            "8)  \tRElemental\tn\r\n"
+                            "9)  \tCFey\tn\r\n"
+                            "10) \tmMagical \tgBeast\tn\r\n"
+                            "11) \tBMonstrous \tWHumanoid\tn\r\n"
+                            "12) \tMOoze\tn\r\n"
+                            "13) \tDOut\twsider\tn\r\n"
+                            "14) \tGPlant\tn\r\n"
+                            "15) \tyVermin\tn\r\n"
+                            "16) \tRLycanthrope\tn\r\n";
 
 // shapechange morph messages to_room, original system
 const char *morph_to_room[] = {
@@ -242,13 +207,8 @@ const char *morph_to_char[] = {
 CHECK_TABLE_SIZE(morph_to_char, NUM_RACE_TYPES + 1);
 
 /* druid shape change race options */
-const char *shape_types[MAX_PC_SUBRACES + 1] = {
-    "Unknown",
-    "badger",
-    "panther",
-    "bear",
-    "crocodile",
-    "\n"};
+const char *shape_types[MAX_PC_SUBRACES + 1] = {"Unknown", "badger",    "panther",
+                                                "bear",    "crocodile", "\n"};
 // 5 (number of types)
 
 /* druid shape change messages, to room */
@@ -300,124 +260,73 @@ CHECK_TABLE_SIZE(shape_to_char, MAX_PC_SUBRACES + 1);
 // colored npc race abbreviations
 // for now full name for effect
 const char *race_family_abbrevs[] = {
-    "Unknown",
-    "\tWHmnd\tn",
-    "\tDUndd\tn",
-    "\tgAnml\tn",
-    "\trDrgn\tn",
-    "\tYGnt\tn",
-    "\tRAbrt\tn",
-    "\tcCnst\tn",
-    "\tRElem\tn",
-    "\tCFey\tn",
-    "\tmM\tgBst\tn",
-    "\tBM\tWHmn\tn",
-    "\tMOoze\tn",
-    "\tDOut\tws\tn",
-    "\tGPlnt\tn",
-    "\tyVrmn\tn",
-    "\tGLyc\tn",
-    "\n"};
+    "Unknown",    "\tWHmnd\tn",    "\tDUndd\tn", "\tgAnml\tn", "\trDrgn\tn",    "\tYGnt\tn",
+    "\tRAbrt\tn", "\tcCnst\tn",    "\tRElem\tn", "\tCFey\tn",  "\tmM\tgBst\tn", "\tBM\tWHmn\tn",
+    "\tMOoze\tn", "\tDOut\tws\tn", "\tGPlnt\tn", "\tyVrmn\tn", "\tGLyc\tn",     "\n"};
 CHECK_TABLE_SIZE(race_family_abbrevs, NUM_RACE_TYPES + 1);
 
-const char *race_family_short[] = {
-    "???",
-    "Hmn",
-    "Und",
-    "Anm",
-    "Drg",
-    "Gnt",
-    "Abr",
-    "Con",
-    "Ele",
-    "Fey",
-    "Bst",
-    "MoH",
-    "Oze",
-    "Out",
-    "Plt",
-    "Ver",
-    "Lyc",
-    "\n"};
+const char *race_family_short[] = {"???", "Hmn", "Und", "Anm", "Drg", "Gnt", "Abr", "Con", "Ele",
+                                   "Fey", "Bst", "MoH", "Oze", "Out", "Plt", "Ver", "Lyc", "\n"};
 CHECK_TABLE_SIZE(race_family_short, NUM_RACE_TYPES + 1);
 
-const char *race_family_types[] = {
-    "Unknown", // 0
-    "Humanoid",
-    "Undead",
-    "Animal",
-    "Dragon",
-    "Giant", // 5
-    "Aberration",
-    "Construct",
-    "Elemental",
-    "Fey",
-    "Magical Beast", // 10
-    "Monstrous Humanoid",
-    "Ooze",
-    "Outsider",
-    "Plant",
-    "Vermin", // 15
-    "Lycanthrope",
-    "\n"};
+const char *race_family_types[] = {"Unknown", // 0
+                                   "Humanoid",
+                                   "Undead",
+                                   "Animal",
+                                   "Dragon",
+                                   "Giant", // 5
+                                   "Aberration",
+                                   "Construct",
+                                   "Elemental",
+                                   "Fey",
+                                   "Magical Beast", // 10
+                                   "Monstrous Humanoid",
+                                   "Ooze",
+                                   "Outsider",
+                                   "Plant",
+                                   "Vermin", // 15
+                                   "Lycanthrope",
+                                   "\n"};
 CHECK_TABLE_SIZE(race_family_types, NUM_RACE_TYPES + 1);
 
-const char *race_family_types_plural[] = {
-    "Unknown", // 0
-    "Humanoids",
-    "Undead",
-    "Animals",
-    "Dragons",
-    "Giants", // 5
-    "Aberrations",
-    "Constructs",
-    "Elementals",
-    "Fey",
-    "Magical Beasts", // 10
-    "Monstrous Humanoids",
-    "Oozes",
-    "Outsiders",
-    "Plants",
-    "Vermin", // 15
-    "Lycanthropes",
-    "\n"};
+const char *race_family_types_plural[] = {"Unknown", // 0
+                                          "Humanoids",
+                                          "Undead",
+                                          "Animals",
+                                          "Dragons",
+                                          "Giants", // 5
+                                          "Aberrations",
+                                          "Constructs",
+                                          "Elementals",
+                                          "Fey",
+                                          "Magical Beasts", // 10
+                                          "Monstrous Humanoids",
+                                          "Oozes",
+                                          "Outsiders",
+                                          "Plants",
+                                          "Vermin", // 15
+                                          "Lycanthropes",
+                                          "\n"};
 CHECK_TABLE_SIZE(race_family_types_plural, NUM_RACE_TYPES + 1);
 
-const char *award_types[] = {
-    "experience",
-    "quest-points",
-    "account-experience",
-    "gold",
-    "bank-gold",
-    "skill-points",
-    "feats",
-    "class-feats",
-    "epic-feats",
-    "epic-class-feats",
-    "ability-boosts",
-    "\n"};
+const char *award_types[] = {"experience",
+                             "quest-points",
+                             "account-experience",
+                             "gold",
+                             "bank-gold",
+                             "skill-points",
+                             "feats",
+                             "class-feats",
+                             "epic-feats",
+                             "epic-class-feats",
+                             "ability-boosts",
+                             "\n"};
 CHECK_TABLE_SIZE(award_types, NUM_AWARD_TYPES + 1);
 
 const char *paladin_mercies[] = {
-    "",
-    "Deceived",
-    "Fatigued",
-    "Shaken",
-    "Dazed",
-    "Enfeebled",
-    "Staggered",
-    "Confused",
-    "Cursed",
-    "Frightened",
-    "Injured",
-    "Nauseated",
-    "Poisoned",
-    "Blinded",
-    "Deafened",
-    "Ensorcelled",
-    "Paralyzed",
-    "Stunned",
-    "\n"};
+    "",         "Deceived",    "Fatigued",   "Shaken",  "Dazed",     "Enfeebled", "Staggered",
+    "Confused", "Cursed",      "Frightened", "Injured", "Nauseated", "Poisoned",  "Blinded",
+    "Deafened", "Ensorcelled", "Paralyzed",  "Stunned", "\n"};
 CHECK_TABLE_SIZE(paladin_mercies, NUM_PALADIN_MERCIES + 1);
 
 const char *paladin_mercy_descriptions[] = {
@@ -465,18 +374,9 @@ const int paladin_mercy_levels[] = {
 };
 CHECK_TABLE_SIZE(paladin_mercy_levels, NUM_PALADIN_MERCIES + 1);
 
-const char *fiendish_boons[] = {
-    "",
-    "flaming",
-    "keen",
-    "vicious",
-    "anarchic",
-    "flaming burst",
-    "unholy",
-    "wounding",
-    "speed",
-    "vorpal",
-    "\n"};
+const char *fiendish_boons[] = {"",         "flaming",       "keen",   "vicious",
+                                "anarchic", "flaming burst", "unholy", "wounding",
+                                "speed",    "vorpal",        "\n"};
 CHECK_TABLE_SIZE(fiendish_boons, NUM_FIENDISH_BOONS + 1);
 
 const char *fiendish_boon_descriptions[] = {
@@ -489,74 +389,59 @@ const char *fiendish_boon_descriptions[] = {
     "adds 1d6 negative damage per hit",
     "causes bleed damage each hit",
     "gives an extra attack per round (won't stack with itself or haste)",
-    "5 percent chance on a critical hit to kill the target outright (won't work on undead, constructs or oozes)",
+    "5 percent chance on a critical hit to kill the target outright (won't work on undead, "
+    "constructs or oozes)",
     "\n"};
 CHECK_TABLE_SIZE(fiendish_boon_descriptions, NUM_FIENDISH_BOONS + 1);
 
-const int fiendish_boon_levels[] = {
-    0,
-    5,  // flaming
-    5,  // keen
-    5,  // vicious
-    8,  // anarchic
-    8,  // flaming burst
-    8,  // unholy
-    8,  // wounding
-    11, // speed
-    14, // vorpal
-    0};
+const int fiendish_boon_levels[] = {0,
+                                    5,  // flaming
+                                    5,  // keen
+                                    5,  // vicious
+                                    8,  // anarchic
+                                    8,  // flaming burst
+                                    8,  // unholy
+                                    8,  // wounding
+                                    11, // speed
+                                    14, // vorpal
+                                    0};
 CHECK_TABLE_SIZE(fiendish_boon_levels, NUM_FIENDISH_BOONS + 1);
 
-const int fiendish_boon_slots[] = {
-    0,
-    1, // flaming
-    1, // keen
-    1, // vicious
-    2, // anarchic
-    2, // flaming burst
-    2, // unholy
-    2, // wounding
-    3, // speed
-    5, // vorpal
-    0};
+const int fiendish_boon_slots[] = {0,
+                                   1, // flaming
+                                   1, // keen
+                                   1, // vicious
+                                   2, // anarchic
+                                   2, // flaming burst
+                                   2, // unholy
+                                   2, // wounding
+                                   3, // speed
+                                   5, // vorpal
+                                   0};
 CHECK_TABLE_SIZE(fiendish_boon_slots, NUM_FIENDISH_BOONS + 1);
 
-const char *blackguard_cruelties[] = {
-    "",
-    "Fatigued",
-    "Shaken",
-    "Sickened",
-    "Dazed",
-    "Diseased",
-    "Staggered",
-    "Cursed",
-    "Frightened",
-    "Nauseated",
-    "Poisoned",
-    "Blinded",
-    "Deafened",
-    "Paralyzed",
-    "Stunned",
-    "\n"};
+const char *blackguard_cruelties[] = {"",           "Fatigued",  "Shaken",    "Sickened",
+                                      "Dazed",      "Diseased",  "Staggered", "Cursed",
+                                      "Frightened", "Nauseated", "Poisoned",  "Blinded",
+                                      "Deafened",   "Paralyzed", "Stunned",   "\n"};
 CHECK_TABLE_SIZE(blackguard_cruelties, NUM_BLACKGUARD_CRUELTIES + 1);
 
-const char *blackguard_cruelty_descriptions[] = {
-    "does nothing",
-    "Causes fatigue on a failed save",
-    "applies shaken status on failed saved",
-    "applies sickened status on failed saved",
-    "dazes target on failed saved",
-    "inflict target with disease on failed saved",
-    "staggers target on failed saved",
-    "curses target on failed saved",
-    "causes fear on target with failed saved",
-    "causes nausea on target with failed saved",
-    "poisons target on failed saved",
-    "blinds target on failed saved",
-    "deafens target on failed saved",
-    "paralyzes target on failed saved",
-    "stuns target on failed saved",
-    "\n"};
+const char *blackguard_cruelty_descriptions[] = {"does nothing",
+                                                 "Causes fatigue on a failed save",
+                                                 "applies shaken status on failed saved",
+                                                 "applies sickened status on failed saved",
+                                                 "dazes target on failed saved",
+                                                 "inflict target with disease on failed saved",
+                                                 "staggers target on failed saved",
+                                                 "curses target on failed saved",
+                                                 "causes fear on target with failed saved",
+                                                 "causes nausea on target with failed saved",
+                                                 "poisons target on failed saved",
+                                                 "blinds target on failed saved",
+                                                 "deafens target on failed saved",
+                                                 "paralyzes target on failed saved",
+                                                 "stuns target on failed saved",
+                                                 "\n"};
 CHECK_TABLE_SIZE(blackguard_cruelty_descriptions, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const int blackguard_cruelty_levels[] = {
@@ -599,114 +484,74 @@ const int blackguard_cruelty_affect_types[] = {
 };
 CHECK_TABLE_SIZE(blackguard_cruelty_affect_types, NUM_BLACKGUARD_CRUELTIES + 1);
 
-const char *inquisitor_judgements[] = {
-    "",
-    "Destruction",
-    "Healing",
-    "Justice",
-    "Piercing",
-    "Protection",
-    "Purity",
-    "Resiliency",
-    "Resistance",
-    "\n"};
+const char *inquisitor_judgements[] = {"",           "Destruction", "Healing", "Justice",
+                                       "Piercing",   "Protection",  "Purity",  "Resiliency",
+                                       "Resistance", "\n"};
 CHECK_TABLE_SIZE(inquisitor_judgements, NUM_INQ_JUDGEMENTS + 1);
 
 const char *inquisitor_judgement_descriptions[] = {
     "",
     "+1 sacred bonus on damage rolls per 3 Inquisitor levels.",
     "fast healing 1 per 3 Inquisitor levels.",
-    "+1 sacred bonus on attack rolls per 5 Inquisitor levels. At level 10 this is doubled on checks to confirm critical hits.",
-    "+1 sacred bonus on concentration checks and checks to overcome spell resistance per 3 Inquisitor levels.",
-    "+1 sacred bonus to AC per 5 Inquisitor levels. At level 10 this is doubled against critical hit confirmation rolls.",
-    "+1 sacred bonus to all saving throws per 5 Inquitisor levels. At level 10 this is doubled against poison, disease and curses.",
+    "+1 sacred bonus on attack rolls per 5 Inquisitor levels. At level 10 this is doubled on "
+    "checks to confirm critical hits.",
+    "+1 sacred bonus on concentration checks and checks to overcome spell resistance per 3 "
+    "Inquisitor levels.",
+    "+1 sacred bonus to AC per 5 Inquisitor levels. At level 10 this is doubled against critical "
+    "hit confirmation rolls.",
+    "+1 sacred bonus to all saving throws per 5 Inquitisor levels. At level 10 this is doubled "
+    "against poison, disease and curses.",
     "receieve DR 1/- per 5 Inquisitor levels.",
-    "receive 4 points of energy resistance (acid, cold, electricity, fire, and sonic) for every 3 Inquisitor levels.",
+    "receive 4 points of energy resistance (acid, cold, electricity, fire, and sonic) for every 3 "
+    "Inquisitor levels.",
     "\n"};
 CHECK_TABLE_SIZE(inquisitor_judgement_descriptions, NUM_INQ_JUDGEMENTS + 1);
 
-const char *class_names[] = {
-    "Wizard", // 0
-    "Cleric",
-    "Rogue",
-    "Warrior",
-    "Monk",
-    "Druid", // 5
-    "Berserker",
-    "Sorcerer",
-    "Paladin",
-    "Ranger",
-    "Bard", // 10
-    "Weapon Master",
-    "Arcane Archer",
-    "Stalwart Defender",
-    "Shifter",
-    "Duelist", // 15
-    "Mystic Theurge",
-    "Alchemist",
-    "Arcane Shadow",
-    "Sacred Fist",
-    "Eldritch Knight", // 20
-    "Psionicist",
-    "Spellsword",
-    "Shadow Dancer",
-    "Blackguard",
-    "Assassin", // 25
-    "Inquisitor",
-    "Summoner",
-    "Warlock",
-    "Necromancer",
+const char *class_names[] = {"Wizard", // 0
+                             "Cleric", "Rogue", "Warrior", "Monk",
+                             "Druid", // 5
+                             "Berserker", "Sorcerer", "Paladin", "Ranger",
+                             "Bard", // 10
+                             "Weapon Master", "Arcane Archer", "Stalwart Defender", "Shifter",
+                             "Duelist", // 15
+                             "Mystic Theurge", "Alchemist", "Arcane Shadow", "Sacred Fist",
+                             "Eldritch Knight", // 20
+                             "Psionicist", "Spellsword", "Shadow Dancer", "Blackguard",
+                             "Assassin", // 25
+                             "Inquisitor", "Summoner", "Warlock", "Necromancer",
 #ifdef CAMPAIGN_DL
-    /* DragonLance theme - Combined Solamnic Knights */
-    "Knight of Solamnia", // 30 (Combined Crown/Sword/Rose)
-    "Knight of the Thorn",
-    "Knight of the Skull",
-    "Knight of the Lily", // 33
+                             /* DragonLance theme - Combined Solamnic Knights */
+                             "Knight of Solamnia", // 30 (Combined Crown/Sword/Rose)
+                             "Knight of the Thorn", "Knight of the Skull",
+                             "Knight of the Lily", // 33
 #else
-    /* LuminariMUD theme - Combined Order of Light */
-    "Knight of Solamnia", // 30 (Combined three orders)
-    "Knight of the Shattered Mirror", // (Thorn)
-    "Knight of the Pale Throne", // (Skull)
-    "Knight of the Howling Moon", // 33 (Lily)
+                             /* LuminariMUD theme - Combined Order of Light */
+                             "Knight of Solamnia",             // 30 (Combined three orders)
+                             "Knight of the Shattered Mirror", // (Thorn)
+                             "Knight of the Pale Throne",      // (Skull)
+                             "Knight of the Howling Moon",     // 33 (Lily)
 #endif
-    "Dragon Rider",
-    "Artificer",
-    "Placeholder 1",
-    "Placeholder 2",
-    //  "unfinished",
-    //  "unfinished",
-    //  "unfinished",
-    //  "Shadow Dancer", //20
-    "\n"};
+                             "Dragon Rider", "Artificer", "Placeholder 1", "Placeholder 2",
+                             //  "unfinished",
+                             //  "unfinished",
+                             //  "unfinished",
+                             //  "Shadow Dancer", //20
+                             "\n"};
 CHECK_TABLE_SIZE(class_names, NUM_CLASSES + 1);
 
-const char *attack_hit_types[] = {
-    "Hit", // 0
-    "Sting",
-    "Whip",
-    "Slash",
-    "Bite",
-    "Bludgeon", // 5
-    "Crush",
-    "Pound",
-    "Claw",
-    "Maul",
-    "Thrash", // 10
-    "Pierce",
-    "Blast",
-    "Punch",
-    "Stab",
-    "Slice", // 15
-    "Thrust",
-    "Hack",
-    "Rake",
-    "Peck",
-    "Smash", // 20
-    "Trample",
-    "Charge",
-    "Gore", // 23
-    /**/
-    "\n"};
+const char *attack_hit_types[] = {"Hit", // 0
+                                  "Sting", "Whip", "Slash", "Bite",
+                                  "Bludgeon", // 5
+                                  "Crush", "Pound", "Claw", "Maul",
+                                  "Thrash", // 10
+                                  "Pierce", "Blast", "Punch", "Stab",
+                                  "Slice", // 15
+                                  "Thrust", "Hack", "Rake", "Peck",
+                                  "Smash", // 20
+                                  "Trample", "Charge",
+                                  "Gore", // 23
+                                  /**/
+                                  "\n"};
 CHECK_TABLE_SIZE(attack_hit_types, NUM_ATTACK_TYPES + 1);
 
 const char *attack_types[] = {
@@ -734,15 +579,9 @@ const char *attack_types[] = {
     "Evolution (Trample)",
 };
 
-const char *instrument_names[] = {
-    "Lyre",
-    "Flute",
-    "Horn",
-    "Drum",
-    "Harp",
-    "Mandolin",
-    /**/
-    "\n"};
+const char *instrument_names[] = {"Lyre", "Flute", "Horn", "Drum", "Harp", "Mandolin",
+                                  /**/
+                                  "\n"};
 CHECK_TABLE_SIZE(instrument_names, MAX_INSTRUMENTS + 1);
 
 // const char *spec_armor_type[] = {
@@ -811,137 +650,62 @@ CHECK_TABLE_SIZE(instrument_names, MAX_INSTRUMENTS + 1);
 // // CHECK_TABLE_SIZE(spec_armor_type, NUM_SPEC_ARMOR_TYPES + 1);
 
 /* ammo types */
-const char *ammo_types[] = {
-    "Undefined",
-    "arrow",
-    "bolt",
-    "sling bullet",
-    "dart",
-    "\n"};
+const char *ammo_types[] = {"Undefined", "arrow", "bolt", "sling bullet", "dart", "\n"};
 CHECK_TABLE_SIZE(ammo_types, NUM_AMMO_TYPES + 1);
 
 /* weapon head types */
-const char *weapon_head_types[] = {
-    "Undefined",
-    "Blade",
-    "Head",
-    "Point",
-    "Bow",
-    "Pouch",
-    "Cord",
-    "Mesh",
-    "Chain",
-    "Fist",
-    "\n"};
+const char *weapon_head_types[] = {"Undefined", "Blade", "Head",  "Point", "Bow", "Pouch",
+                                   "Cord",      "Mesh",  "Chain", "Fist",  "\n"};
 CHECK_TABLE_SIZE(weapon_head_types, NUM_WEAPON_HEAD_TYPES + 1);
 
 /* weapon handle types */
-const char *weapon_handle_types[] = {
-    "Undefined",
-    "Shaft",
-    "Hilt",
-    "Strap",
-    "String",
-    "Grip",
-    "Handle",
-    "Glove",
-    "\n"};
+const char *weapon_handle_types[] = {"Undefined", "Shaft",  "Hilt",  "Strap", "String",
+                                     "Grip",      "Handle", "Glove", "\n"};
 CHECK_TABLE_SIZE(weapon_handle_types, NUM_WEAPON_HANDLE_TYPES + 1);
 
 /* sizes */
-const char *sizes[] = {
-    "Undefined",
-    "Fine",
-    "Diminutive",
-    "Tiny",
-    "Small",
-    "Medium",
-    "Large",
-    "Huge",
-    "Gargantuan",
-    "Colossal",
-    "\n"};
+const char *sizes[] = {"Undefined", "Fine", "Diminutive", "Tiny",     "Small", "Medium",
+                       "Large",     "Huge", "Gargantuan", "Colossal", "\n"};
 CHECK_TABLE_SIZE(sizes, NUM_SIZES + 1);
 
 /* weapon damage types */
-const char *weapon_damage_types[] = {
-    "Bludgeoning",
-    "Slashing",
-    "Piercing",
-    "Non-Lethal",
-    "\n"};
+const char *weapon_damage_types[] = {"Bludgeoning", "Slashing", "Piercing", "Non-Lethal", "\n"};
 CHECK_TABLE_SIZE(weapon_damage_types, NUM_WEAPON_DAMAGE_TYPES + 1);
 
 /* What type of trap */
-const char *trap_type[] = {
-    "Leave Room",
-    "Open Door",
-    "Unlock Door",
-    "Open Container",
-    "Unlock Container",
-    "Get Object",
-    "\n"};
+const char *trap_type[] = {"Leave Room",       "Open Door",  "Unlock Door", "Open Container",
+                           "Unlock Container", "Get Object", "\n"};
 CHECK_TABLE_SIZE(trap_type, NUM_TRAP_TRIGGERS + 1);
 
 /* Trap-effects, add 1000 to this value to reference the proper values in
  act.item.c */
 const char *trap_effects[] = {
-    "None",
-    "Paralysis",
-    "Slow",
-    "Stun",
-    "Poison",
-    "Ability Drain",
-    "Level Drain",
-    "Entangle",
-    "Blind",
-    "Feeblemind",
-    "Summon Creature",
-    "\n"};
+    "None",        "Paralysis", "Slow",  "Stun",       "Poison",          "Ability Drain",
+    "Level Drain", "Entangle",  "Blind", "Feeblemind", "Summon Creature", "\n"};
 CHECK_TABLE_SIZE(trap_effects, NUM_TRAP_SPECIAL_EFFECTS + 1);
 
 /* ranged weapon types (bows, etc) */
-const char *ranged_weapons[] = {
-    "bow",
-    "crossbow",
-    "\n"};
+const char *ranged_weapons[] = {"bow", "crossbow", "\n"};
 CHECK_TABLE_SIZE(ranged_weapons, NUM_RANGED_WEAPONS + 1);
 
 /* ranged weapon missiles (arrows, etc) */
-const char *ranged_missiles[] = {
-    "arrow",
-    "bolt",
-    "\n"};
+const char *ranged_missiles[] = {"arrow", "bolt", "\n"};
 CHECK_TABLE_SIZE(ranged_missiles, NUM_RANGED_MISSILES + 1);
 
 /* note - in utils.c there are two functions for alignment as well
  * char *get_align_by_num(int align)
  * char *get_align_by_num_cnd(int align)
  */
-const char *alignment_names[] = {
-    "\tYLawful \tWGood\tn",
-    "\tcNeutral \tWGood\tn",
-    "\tRChaotic \tWGood\tn",
-    "\tYLawful \tcNeutral\tn",
-    "\tcTrue Neutral\tn",
-    "\tRChaotic \tcNeutral\tn",
-    "\tYLawful \tDEvil\tn",
-    "\tcNeutral \tDEvil\tn",
-    "\tRChaotic \tDEvil\tn",
-    "\n"};
+const char *alignment_names[] = {"\tYLawful \tWGood\tn",  "\tcNeutral \tWGood\tn",
+                                 "\tRChaotic \tWGood\tn", "\tYLawful \tcNeutral\tn",
+                                 "\tcTrue Neutral\tn",    "\tRChaotic \tcNeutral\tn",
+                                 "\tYLawful \tDEvil\tn",  "\tcNeutral \tDEvil\tn",
+                                 "\tRChaotic \tDEvil\tn", "\n"};
 CHECK_TABLE_SIZE(alignment_names, NUM_ALIGNMENTS + 1);
 
 const char *alignment_names_nocolor[] = {
-    "Lawful Good",
-    "Neutral Good",
-    "Chaotic Good",
-    "Lawful Neutral",
-    "True Neutral",
-    "Chaotic Neutral",
-    "Lawful Evil",
-    "Neutral Evil",
-    "Chaotic Evil",
-    "\n"};
+    "Lawful Good",     "Neutral Good", "Chaotic Good", "Lawful Neutral", "True Neutral",
+    "Chaotic Neutral", "Lawful Evil",  "Neutral Evil", "Chaotic Evil",   "\n"};
 CHECK_TABLE_SIZE(alignment_names_nocolor, NUM_ALIGNMENTS + 1);
 
 /* structure for immortal prefix */
@@ -954,930 +718,769 @@ const char *admin_level_names[] = {
 };
 CHECK_TABLE_SIZE(admin_level_names, LVL_IMPL - LVL_IMMORT + 2);
 
-const char *craft_type[] = {
-    "RESERVED",
-    "brew",
-    "craft",
-    "fletch",
-    "knit",
-    "mine",
-    "disenchant",
-    "synthesize",
-    "hunt",
-    "forest",
-    "divide",
-    "resize",
-    "augment",
-    "work on a supplyorder for",
-    "convert",
-    "restring",
-    "wand-craft",
-    "staff-craft",
-    "bonearmor",
-    "reforge",
-    "redesc",
-    "\n"};
+const char *craft_type[] = {"RESERVED",   "brew",
+                            "craft",      "fletch",
+                            "knit",       "mine",
+                            "disenchant", "synthesize",
+                            "hunt",       "forest",
+                            "divide",     "resize",
+                            "augment",    "work on a supplyorder for",
+                            "convert",    "restring",
+                            "wand-craft", "staff-craft",
+                            "bonearmor",  "reforge",
+                            "redesc",     "\n"};
 CHECK_TABLE_SIZE(craft_type, NUM_CRAFT + 1);
 
-const char *size_names[] = {
-    "RESERVED",
-    "Fine",
-    "Diminutive",
-    "Tiny",
-    "Small",
-    "Medium",
-    "Large",
-    "Huge",
-    "Gargantuan",
-    "Colossal",
-    "\n"};
+const char *size_names[] = {"RESERVED", "Fine", "Diminutive", "Tiny",     "Small", "Medium",
+                            "Large",    "Huge", "Gargantuan", "Colossal", "\n"};
 CHECK_TABLE_SIZE(size_names, NUM_SIZES + 1);
 
 /* used for armor class calculations */
-const int size_modifiers_inverse[] = {
-    0,
-    8,
-    4,
-    2,
-    1,
-    0,
-    -1,
-    -2,
-    -4,
-    -8};
+const int size_modifiers_inverse[] = {0, 8, 4, 2, 1, 0, -1, -2, -4, -8};
 CHECK_TABLE_SIZE(size_modifiers_inverse, NUM_SIZES);
 
 /* used for attack roll calculations */
-const int size_modifiers[] = {
-    0,
-    -8,
-    -4,
-    -2,
-    -1,
-    0,
-    1,
-    2,
-    4,
-    8};
+const int size_modifiers[] = {0, -8, -4, -2, -1, 0, 1, 2, 4, 8};
 CHECK_TABLE_SIZE(size_modifiers, NUM_SIZES);
 
-const int grapple_size_modifiers[] = {
-    0,
-    -16,
-    -12,
-    -8,
-    -4,
-    0,
-    4,
-    8,
-    12,
-    16};
+const int grapple_size_modifiers[] = {0, -16, -12, -8, -4, 0, 4, 8, 12, 16};
 CHECK_TABLE_SIZE(grapple_size_modifiers, NUM_SIZES);
 
-const char *dr_damtypes[] = {
-    "bludgeoning",
-    "slashing",
-    "piercing",
-    "\n"};
+const char *dr_damtypes[] = {"bludgeoning", "slashing", "piercing", "\n"};
 CHECK_TABLE_SIZE(dr_damtypes, NUM_DR_DAMTYPES + 1);
 
-const char *damtypes[] = {
-    "RESERVED",
-    "fire",
-    "cold",
-    "air",
-    "earth",
-    "acid",
-    "holy",
-    "electric",
-    "unholy",
-    "slashing",
-    "piercing",
-    "bludgeon",
-    "sonic",
-    "poison",
-    "disease",
-    "negative",
-    "illusion",
-    "mental",
-    "light",
-    "energy",
-    "water",
-    "celestial poison",
-    "bleeding",
-    "temporal",
-    "chaos",
-    "sunlight",
-    "moving water",
-    "blood drain",
-    "\n"};
+const char *damtypes[] = {"RESERVED",
+                          "fire",
+                          "cold",
+                          "air",
+                          "earth",
+                          "acid",
+                          "holy",
+                          "electric",
+                          "unholy",
+                          "slashing",
+                          "piercing",
+                          "bludgeon",
+                          "sonic",
+                          "poison",
+                          "disease",
+                          "negative",
+                          "illusion",
+                          "mental",
+                          "light",
+                          "energy",
+                          "water",
+                          "celestial poison",
+                          "bleeding",
+                          "temporal",
+                          "chaos",
+                          "sunlight",
+                          "moving water",
+                          "blood drain",
+                          "\n"};
 CHECK_TABLE_SIZE(damtypes, NUM_DAM_TYPES + 1);
 
-const char *damtype_display[] = {
-    "RESERVED",
-    "Damage Fire",
-    "Damage Cold",
-    "Damage Air",
-    "Damage Earth",
-    "Damage Acid",
-    "Damage Holy",
-    "Damage Electric",
-    "Damage Unholy",
-    "Damage Slashing",
-    "Damage Piercing",
-    "Damage Bludgeoning",
-    "Damage Sound",
-    "Damage Poison",
-    "Damage Disease",
-    "Damage Negative",
-    "Damage Illusion",
-    "Damage Mental",
-    "Damage Light",
-    "Damage Energy",
-    "Damage Water",
-    "DmgCelestialPsn",
-    "Damage Bleeding",
-    "Damage Temporal",
-    "Damage Chaos",
-    "Damage Sunlight",
-    "Damage Moving Water",
-    "Damage Blood Drain",
-    "\n"};
+const char *damtype_display[] = {"RESERVED",
+                                 "Damage Fire",
+                                 "Damage Cold",
+                                 "Damage Air",
+                                 "Damage Earth",
+                                 "Damage Acid",
+                                 "Damage Holy",
+                                 "Damage Electric",
+                                 "Damage Unholy",
+                                 "Damage Slashing",
+                                 "Damage Piercing",
+                                 "Damage Bludgeoning",
+                                 "Damage Sound",
+                                 "Damage Poison",
+                                 "Damage Disease",
+                                 "Damage Negative",
+                                 "Damage Illusion",
+                                 "Damage Mental",
+                                 "Damage Light",
+                                 "Damage Energy",
+                                 "Damage Water",
+                                 "DmgCelestialPsn",
+                                 "Damage Bleeding",
+                                 "Damage Temporal",
+                                 "Damage Chaos",
+                                 "Damage Sunlight",
+                                 "Damage Moving Water",
+                                 "Damage Blood Drain",
+                                 "\n"};
 CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 
 /** Description of cardinal directions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *dirs[] = {
-    "north",
-    "east",
-    "south",
-    "west",
-    "up",
-    "down",
-    "northwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
-    "northeast",
-    "southeast",
-    "southwest",
-#ifdef CAMPAIGN_FR    
-    "inside",
-    "outside",
+    "north",     "east",      "south",     "west",
+    "up",        "down",      "northwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
+    "northeast", "southeast", "southwest",
+#ifdef CAMPAIGN_FR
+    "inside",    "outside",
 #endif
     "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
 const char *dirs_short[] = {
-    "north",
-    "east",
-    "south",
-    "west",
-    "up",
-    "down",
-    "nwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
-    "neast",
-    "seast",
-    "swest",
-#ifdef CAMPAIGN_FR    
-    "inside",
-    "outside",
+    "north",  "east",    "south", "west",
+    "up",     "down",    "nwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
+    "neast",  "seast",   "swest",
+#ifdef CAMPAIGN_FR
+    "inside", "outside",
 #endif
     "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
-const char *autoexits[] = {
-    "N",
-    "E",
-    "S",
-    "W",
-    "U",
-    "D",
-    "nw",
-    "ne",
-    "se",
-    "sw",
+const char *autoexits[] = {"N",      "E",   "S", "W", "U", "D", "nw", "ne", "se", "sw",
 #ifdef CAMPAIGN_FR
-    "inside",
-    "out",
+                           "inside", "out",
 #endif
-    "\n"};
+                           "\n"};
 CHECK_TABLE_SIZE(autoexits, NUM_OF_DIRS + 1);
 
 /** Room flag descriptions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *room_bits[] = {
-    "Dark",
-    "Death-Trap",
-    "No-Mob",
-    "Indoors",
-    "Peaceful",
-    "Soundproof", // 5
-    "No-Track",
-    "No-Magic",
-    "Tunnel",
-    "Private",
-    "Staff-Room", // 10
-    "House",
-    "House-Crash",
-    "Atrium",
-    "OLC",
-    "*", /* The BFS Mark. (15) */
-    "Worldmap",
-    "Regenerating",
-    "Fly-Needed",
-    "No-Recall",
-    "Singlefile", // 20
-    "No-Teleport",
-    "Magical-Darkness",
-    "Magical-Light",
-    "No-Summon",
-    "No-Heal", // 25
-    "No-Fly",
-    "Fogged",
-    "Airy",
-    "Occupied",
-    "Tiny-Sized-Room",
-    "Diminutive-Sized-Room",
-    "Climb-Needed",
-    "Trapped",
-    "Wild-Generated-Desc",
-    "Player-Shop",
-    "Random-Trap",
-    "Random-Chest",
-    "Always-Load-Harvest-Node",
-    "Road",
-    "Vehicle",
-    "Dockable",
-    "\n"};
+const char *room_bits[] = {"Dark",
+                           "Death-Trap",
+                           "No-Mob",
+                           "Indoors",
+                           "Peaceful",
+                           "Soundproof", // 5
+                           "No-Track",
+                           "No-Magic",
+                           "Tunnel",
+                           "Private",
+                           "Staff-Room", // 10
+                           "House",
+                           "House-Crash",
+                           "Atrium",
+                           "OLC",
+                           "*", /* The BFS Mark. (15) */
+                           "Worldmap",
+                           "Regenerating",
+                           "Fly-Needed",
+                           "No-Recall",
+                           "Singlefile", // 20
+                           "No-Teleport",
+                           "Magical-Darkness",
+                           "Magical-Light",
+                           "No-Summon",
+                           "No-Heal", // 25
+                           "No-Fly",
+                           "Fogged",
+                           "Airy",
+                           "Occupied",
+                           "Tiny-Sized-Room",
+                           "Diminutive-Sized-Room",
+                           "Climb-Needed",
+                           "Trapped",
+                           "Wild-Generated-Desc",
+                           "Player-Shop",
+                           "Random-Trap",
+                           "Random-Chest",
+                           "Always-Load-Harvest-Node",
+                           "Road",
+                           "Vehicle",
+                           "Dockable",
+                           "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
 // room affect effect
-const char *room_affections[] = {
-    "Fogged",
-    "Darkened",
-    "Lighted",
-    "Stench",
-    "Billowing",
-    "Anti-Magic Field",
-    "Acid-Fogged",
-    "Blade-Barriered",
-    "Spike Growth",
-    "Spike Stone",
-    "Holy",
-    "Unholy",
-    "Obscuring-Mist",
-    "Difficult-Terrain",
-    "Sacred-Space",
-    "Kapak-Acid",
-    "\n"};
+const char *room_affections[] = {"Fogged",
+                                 "Darkened",
+                                 "Lighted",
+                                 "Stench",
+                                 "Billowing",
+                                 "Anti-Magic Field",
+                                 "Acid-Fogged",
+                                 "Blade-Barriered",
+                                 "Spike Growth",
+                                 "Spike Stone",
+                                 "Holy",
+                                 "Unholy",
+                                 "Obscuring-Mist",
+                                 "Difficult-Terrain",
+                                 "Sacred-Space",
+                                 "Kapak-Acid",
+                                 "\n"};
 CHECK_TABLE_SIZE(room_affections, NUM_RAFF + 1);
 
 /** Room flag descriptions. (ZONE_x)
  * @pre Must be in the same order as the defines in structs.h.
  * Must end array with a single newline. */
-const char *zone_bits[] = {
-    "Closed",
-    "No-Immortal",
-    "Quest",
-    "Open for Players",
-    "No-Build",
-    "No-Teleport",
-    "Worldmap",
-    "Not-Claimable",
-    "Astral-Plane",
-    "Ethereal-Plane",
-    "Elemental-Plane",
-    "Wilderness",
-    "Random-Chests",
-    "Random-Traps",
-    "No-Automap",
-    "Hunts-Can-Load",
-    "Missions-Can-Load",
-    "Random-Encounters",
-    "\n"};
+const char *zone_bits[] = {"Closed",
+                           "No-Immortal",
+                           "Quest",
+                           "Open for Players",
+                           "No-Build",
+                           "No-Teleport",
+                           "Worldmap",
+                           "Not-Claimable",
+                           "Astral-Plane",
+                           "Ethereal-Plane",
+                           "Elemental-Plane",
+                           "Wilderness",
+                           "Random-Chests",
+                           "Random-Traps",
+                           "No-Automap",
+                           "Hunts-Can-Load",
+                           "Missions-Can-Load",
+                           "Random-Encounters",
+                           "\n"};
 CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 
 /** Exit bits for doors.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *exit_bits[] = {
-    "Door",
-    "Closed",
-    "Locked",
-    "Pickproof",
-    "Hidden",
-    "Hidden (medium)",
-    "Hidden (hard)",
-    "Locked (medium)",
-    "Locked (hard)",
-    "Locked (easy)",
-    "Hidden (easy)",
-    "\n"};
+const char *exit_bits[] = {"Door",          "Closed",          "Locked",        "Pickproof",
+                           "Hidden",        "Hidden (medium)", "Hidden (hard)", "Locked (medium)",
+                           "Locked (hard)", "Locked (easy)",   "Hidden (easy)", "\n"};
 CHECK_TABLE_SIZE(exit_bits, NUM_EXIT_BITS + 1);
 
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *sector_types[] = {
-    "Inside", // 0
-    "City",
-    "Field",
-    "Forest",
-    "Hills",
-    "Low Mountains", // 5
-    "Water (Swim)",
-    "Water (No Swim)",
-    "In Flight",
-    "Underwater",
-    "Zone Entrance", // 10
-    "Road North-South",
-    "Road East-West",
-    "Road Intersection",
-    "Desert",
-    "Ocean", // 15
-    "Marshland",
-    "High Mountains",
-    "Outer Planes",
-    "Underdark - Wild",
-    "Underdark - City", // 20
-    "Underdark - Inside",
-    "Underdark - Water (Swim)",
-    "Underdark - Water (No Swim)",
-    "Underdark - In Flight",
-    "Lava", // 25
-    "Dirt Road North-South",
-    "Dirt Road East-West",
-    "Dirt Road Intersection",
-    "Cave",
-    "Jungle",
-    "Tundra",
-    "Taiga",
-    "Beach",
-    "Sea Port",
-    "Inside Room",
-    "River",
-    "\n"};
+const char *sector_types[] = {"Inside", // 0
+                              "City",
+                              "Field",
+                              "Forest",
+                              "Hills",
+                              "Low Mountains", // 5
+                              "Water (Swim)",
+                              "Water (No Swim)",
+                              "In Flight",
+                              "Underwater",
+                              "Zone Entrance", // 10
+                              "Road North-South",
+                              "Road East-West",
+                              "Road Intersection",
+                              "Desert",
+                              "Ocean", // 15
+                              "Marshland",
+                              "High Mountains",
+                              "Outer Planes",
+                              "Underdark - Wild",
+                              "Underdark - City", // 20
+                              "Underdark - Inside",
+                              "Underdark - Water (Swim)",
+                              "Underdark - Water (No Swim)",
+                              "Underdark - In Flight",
+                              "Lava", // 25
+                              "Dirt Road North-South",
+                              "Dirt Road East-West",
+                              "Dirt Road Intersection",
+                              "Cave",
+                              "Jungle",
+                              "Tundra",
+                              "Taiga",
+                              "Beach",
+                              "Sea Port",
+                              "Inside Room",
+                              "River",
+                              "\n"};
 CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
 
-const char *terrain_types[] = {
-    "None",
-    "Urban",
-    "Water",
-    "Forest",
-    "Mountains",
-    "Desert",
-    "Swamp",
-    "Caverns",
-    "Plains",
-    "\n"
-};
+const char *terrain_types[] = {"None",   "Urban", "Water",   "Forest", "Mountains",
+                               "Desert", "Swamp", "Caverns", "Plains", "\n"};
 CHECK_TABLE_SIZE(terrain_types, NUM_TERRAIN_TYPES + 1);
 
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *sector_types_readable[] = {
-    "inside", // 0
-    "in a city",
-    "on a field",
-    "among the trees",
-    "in hilly terrain",
-    "in low mountains", // 5
-    "in shallow water",
-    "in deep water",
-    "in the air",
-    "underwater",
-    "at an entrance", // 10
-    "on a road",
-    "on a road",
-    "on a road",
-    "in a desert",
-    "in oceanic waters", // 15
-    "in marshland",
-    "high mountains",
-    "in a planar dimension",
-    "in an underground wilderness",
-    "in an underground city", // 20
-    "underground",
-    "in shallow water underground",
-    "in deep water underground",
-    "in the air underground",
-    "in lava", // 25
-    "on a dirt road",
-    "on a dirt road",
-    "on a dirt road",
-    "in a cave",
-    "in a jungle",
-    "on the tundra",
-    "in a coniferous forest",
-    "on a beach",
-    "at a sea port",
-    "inside a room",
-    "in a river",
-    "\n"};
+const char *sector_types_readable[] = {"inside", // 0
+                                       "in a city",
+                                       "on a field",
+                                       "among the trees",
+                                       "in hilly terrain",
+                                       "in low mountains", // 5
+                                       "in shallow water",
+                                       "in deep water",
+                                       "in the air",
+                                       "underwater",
+                                       "at an entrance", // 10
+                                       "on a road",
+                                       "on a road",
+                                       "on a road",
+                                       "in a desert",
+                                       "in oceanic waters", // 15
+                                       "in marshland",
+                                       "high mountains",
+                                       "in a planar dimension",
+                                       "in an underground wilderness",
+                                       "in an underground city", // 20
+                                       "underground",
+                                       "in shallow water underground",
+                                       "in deep water underground",
+                                       "in the air underground",
+                                       "in lava", // 25
+                                       "on a dirt road",
+                                       "on a dirt road",
+                                       "on a dirt road",
+                                       "in a cave",
+                                       "in a jungle",
+                                       "on the tundra",
+                                       "in a coniferous forest",
+                                       "on a beach",
+                                       "at a sea port",
+                                       "inside a room",
+                                       "in a river",
+                                       "\n"};
 CHECK_TABLE_SIZE(sector_types_readable, NUM_ROOM_SECTORS + 1);
 
 /** How much movement is lost moving through a particular sector type. */
 /* make sure it matches SECT_ */
 int movement_loss[] = {
-    1, /* Inside     */ // 0
-    1,                  /* City       */
-    2,                  /* Field      */
-    3,                  /* Forest     */
-    4,                  /* Hills      */
-    7, /* Mountains  */ // 5
-    4,                  /* Swimming   */
-    3,                  /* Unswimable */
-    1,                  /* Flying     */
-    5,                  /* Underwater */
-    1,                  // zone entrance  10
-    1,                  // road north-south
-    1,                  // road east-west
-    1,                  // road intersection
-    3,                  // Desert
-    11,                 // Ocean  15
-    5,                  // Marshland
-    10,                 // High Mountain
-    6,                  // planes
-    3,                  // ud wild
-    1,                  // ud city  20
-    1,                  // ud inside
-    4,                  // ud swim
-    3,                  // ud noswim
-    1,                  // ud flying
-    6,                  // lava  25
-    1,                  // dirt road
-    1,                  // dirt road
-    1,                  // dirt road
-    3,                  // caves 29
-    4,                  // jungle, wet, mid elevations, hot.
-    4,                  // tundra, dry, high elevations, extreme cold.
-    4,                  // boreal forest, higher elevations, cold.
-    2,                  // beach, borders low areas and water. 33
-    1,                  // sea ports
-    1,                  // inside rooms
-    4,                  // rivers
+    1,
+    /* Inside     */ // 0
+    1,               /* City       */
+    2,               /* Field      */
+    3,               /* Forest     */
+    4,               /* Hills      */
+    7,
+    /* Mountains  */ // 5
+    4,               /* Swimming   */
+    3,               /* Unswimable */
+    1,               /* Flying     */
+    5,               /* Underwater */
+    1,               // zone entrance  10
+    1,               // road north-south
+    1,               // road east-west
+    1,               // road intersection
+    3,               // Desert
+    11,              // Ocean  15
+    5,               // Marshland
+    10,              // High Mountain
+    6,               // planes
+    3,               // ud wild
+    1,               // ud city  20
+    1,               // ud inside
+    4,               // ud swim
+    3,               // ud noswim
+    1,               // ud flying
+    6,               // lava  25
+    1,               // dirt road
+    1,               // dirt road
+    1,               // dirt road
+    3,               // caves 29
+    4,               // jungle, wet, mid elevations, hot.
+    4,               // tundra, dry, high elevations, extreme cold.
+    4,               // boreal forest, higher elevations, cold.
+    2,               // beach, borders low areas and water. 33
+    1,               // sea ports
+    1,               // inside rooms
+    4,               // rivers
 };
 CHECK_TABLE_SIZE(movement_loss, NUM_ROOM_SECTORS);
 
 /** PC and NPC sex.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *genders[] = {
-    "neutral",
-    "male",
-    "female",
-    "\n"};
+const char *genders[] = {"neutral", "male", "female", "\n"};
 CHECK_TABLE_SIZE(genders, NUM_GENDERS + 1);
 
 /** Character positions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *position_types[] = {
-    "\tRDead\tn", // 0
-    "\tRMortally wounded\tn",
-    "\tRIncapacitated\tn",
-    "\tRStunned\tn",
-    "\tRSleeping\tn",
-    "\tRReclining\tn", // 5
-    "\tRResting\tn",
-    "\tRSitting\tn",
-    "Fighting",
-    "Standing",
-    "\n"};
+const char *position_types[] = {"\tRDead\tn", // 0
+                                "\tRMortally wounded\tn",
+                                "\tRIncapacitated\tn",
+                                "\tRStunned\tn",
+                                "\tRSleeping\tn",
+                                "\tRReclining\tn", // 5
+                                "\tRResting\tn",
+                                "\tRSitting\tn",
+                                "Fighting",
+                                "Standing",
+                                "\n"};
 CHECK_TABLE_SIZE(position_types, NUM_POSITIONS + 1);
 
 /** Player flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *player_bits[] = {
-    "KILLER", // 0
-    "THIEF",
-    "FROZEN",
-    "DONTSET",
-    "WRITING",
-    "MAILING", // 5
-    "CSH",
-    "SITEOK",
-    "NOSHOUT",
-    "NOTITLE",
-    "DELETED", // 10
-    "LOADRM",
-    "NO_WIZL",
-    "NO_DEL",
-    "INVST",
-    "CRYO", // 15
-    "DEAD", /* You should never see this flag on a character in game. */
-    "IBT_BUG",
-    "IBT_IDEA",
-    "IBT_TYPO",
-    "SALVATION",
-    "\n"};
+const char *player_bits[] = {"KILLER", // 0
+                             "THIEF",   "FROZEN",   "DONTSET",  "WRITING",
+                             "MAILING", // 5
+                             "CSH",     "SITEOK",   "NOSHOUT",  "NOTITLE",
+                             "DELETED", // 10
+                             "LOADRM",  "NO_WIZL",  "NO_DEL",   "INVST",
+                             "CRYO", // 15
+                             "DEAD", /* You should never see this flag on a character in game. */
+                             "IBT_BUG", "IBT_IDEA", "IBT_TYPO", "SALVATION", "\n"};
 CHECK_TABLE_SIZE(player_bits, NUM_PLR_BITS + 1);
 
 /** Mob action flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *action_bits[] = {
-    "<spec>", // 0
-    "Sentinel",
-    "Scavenger",
-    "Mob",
-    "Aware",
-    "Aggro", // 5
-    "Zone-Sentinel",
-    "Wimpy",
-    "Aggro-Evil",
-    "Aggro-Good",
-    "Aggro-Neutral", // 10
-    "Memory",
-    "Helper",
-    "Uncharmable",
-    "Unsummonable",
-    "Immune-Sleep", // 15
-    "Unbashable",
-    "Unblindable",
-    "Unkillable",
-    "Sentient",
-    "!DEAD!", /* You should never see this. (20)*/
-    "Mountable",
-    "Immune-Deaf",
-    "Does-Not-Fight",
-    "Classless",
-    "Ungrappleable", // 25
-    "Animal-Companion",
-    "Familiar",
-    "Paladin/Blackguard-Mount",
-    "Summoned-Elemental",
-    "Animated-Dead", // 30
-    "Guard",
-    "Citizen",
-    "Hunter",
-    "Listen",
-    "Lit-Up", // 35
-    "Planar-Ally",
-    "No-Steal",
-    "Info-Kill",
-    "Custom-Gold",
-    "No-AI", // 40
-    "Mercenary",
-    "Encounter",
-    "Shadow",
-    "Mob-Is-Obj",
-    "Mob-Block-North", // 45
-    "Mob-Block-East",
-    "Mob-Block-South",
-    "Mob-Block-West",
-    "Mob-Block-NE",
-    "Mob-Block-SE", // 50
-    "Mob-Block-SW",
-    "Mob-Block-NW",
-    "Mob-Block-Up",
-    "Mob-Block-Down",
-    "Mob-Block-Class", // 55
-    "Mob-Block-Race",
-    "Mob-Block-Level",
-    "Mob-Block-Alignment",
-    "Mob-Block-Ethos",
-    "Info-Kill-of-Player", /* 60 */
-    "Mob-Assist",
-    "No-Confuse",
-    "Hunts-Target",
-    "Ability-Grapple",
-    "Ability-Petrify", // 65
-    "Ability-Tail-Spikes",
-    "Ability-Level-Drain",
-    "Ability-Charm",
-    "Ability-Blink",
-    "Ability-Engulf", /* 70 */
-    "Ability-Cause-Fear",
-    "Ability-Corruption",
-    "Ability-Swallow",
-    "Ability-Flight",
-    "Ability-Poison", /* 75 */
-    "Ability-Regenerate",
-    "Ability-Paralyze",
-    "Ability-Fire-Breath",
-    "Ability-Lightning-Breath",
-    "Ability-Poison-Breath", /* 80 */
-    "Ability-Acid-Breath",
-    "Ability-Frost-Breath",
-    "Ability-Magic-Immunity",
-    "Ability-Invisibility",
-    "Child-of-the-Night", /* 85 */
-    "Vampire-Spawn",
-    "Dragon-Knight",
-    "Mummy-Dust",
-    "Eidolon",
-    "Mob-Block-Evil",
-    "Mob-Block-Neutral",
-    "Mob-Block-Good",
-    "Mob-Geniekind",
-    "Mob-Dragon-Mount",
-    "Retainer",
-    "UNUSED-96",
-    "Immune-Paralysis",
-    "AI-Enabled",
-    "Quartermaster",
-    "Unlimited-Spell-Slots",
-    "Custom-Mob-Stats",
-    "No-Block-Bypass",
-    "Golem",
-    "\n"
-};
+const char *action_bits[] = {"<spec>", // 0
+                             "Sentinel",
+                             "Scavenger",
+                             "Mob",
+                             "Aware",
+                             "Aggro", // 5
+                             "Zone-Sentinel",
+                             "Wimpy",
+                             "Aggro-Evil",
+                             "Aggro-Good",
+                             "Aggro-Neutral", // 10
+                             "Memory",
+                             "Helper",
+                             "Uncharmable",
+                             "Unsummonable",
+                             "Immune-Sleep", // 15
+                             "Unbashable",
+                             "Unblindable",
+                             "Unkillable",
+                             "Sentient",
+                             "!DEAD!", /* You should never see this. (20)*/
+                             "Mountable",
+                             "Immune-Deaf",
+                             "Does-Not-Fight",
+                             "Classless",
+                             "Ungrappleable", // 25
+                             "Animal-Companion",
+                             "Familiar",
+                             "Paladin/Blackguard-Mount",
+                             "Summoned-Elemental",
+                             "Animated-Dead", // 30
+                             "Guard",
+                             "Citizen",
+                             "Hunter",
+                             "Listen",
+                             "Lit-Up", // 35
+                             "Planar-Ally",
+                             "No-Steal",
+                             "Info-Kill",
+                             "Custom-Gold",
+                             "No-AI", // 40
+                             "Mercenary",
+                             "Encounter",
+                             "Shadow",
+                             "Mob-Is-Obj",
+                             "Mob-Block-North", // 45
+                             "Mob-Block-East",
+                             "Mob-Block-South",
+                             "Mob-Block-West",
+                             "Mob-Block-NE",
+                             "Mob-Block-SE", // 50
+                             "Mob-Block-SW",
+                             "Mob-Block-NW",
+                             "Mob-Block-Up",
+                             "Mob-Block-Down",
+                             "Mob-Block-Class", // 55
+                             "Mob-Block-Race",
+                             "Mob-Block-Level",
+                             "Mob-Block-Alignment",
+                             "Mob-Block-Ethos",
+                             "Info-Kill-of-Player", /* 60 */
+                             "Mob-Assist",
+                             "No-Confuse",
+                             "Hunts-Target",
+                             "Ability-Grapple",
+                             "Ability-Petrify", // 65
+                             "Ability-Tail-Spikes",
+                             "Ability-Level-Drain",
+                             "Ability-Charm",
+                             "Ability-Blink",
+                             "Ability-Engulf", /* 70 */
+                             "Ability-Cause-Fear",
+                             "Ability-Corruption",
+                             "Ability-Swallow",
+                             "Ability-Flight",
+                             "Ability-Poison", /* 75 */
+                             "Ability-Regenerate",
+                             "Ability-Paralyze",
+                             "Ability-Fire-Breath",
+                             "Ability-Lightning-Breath",
+                             "Ability-Poison-Breath", /* 80 */
+                             "Ability-Acid-Breath",
+                             "Ability-Frost-Breath",
+                             "Ability-Magic-Immunity",
+                             "Ability-Invisibility",
+                             "Child-of-the-Night", /* 85 */
+                             "Vampire-Spawn",
+                             "Dragon-Knight",
+                             "Mummy-Dust",
+                             "Eidolon",
+                             "Mob-Block-Evil",
+                             "Mob-Block-Neutral",
+                             "Mob-Block-Good",
+                             "Mob-Geniekind",
+                             "Mob-Dragon-Mount",
+                             "Retainer",
+                             "UNUSED-96",
+                             "Immune-Paralysis",
+                             "AI-Enabled",
+                             "Quartermaster",
+                             "Unlimited-Spell-Slots",
+                             "Custom-Mob-Stats",
+                             "No-Block-Bypass",
+                             "Golem",
+                             "\n"};
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 
 /** PC Preference flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *preference_bits[] = {
-    "Brief",
-    "Compact",
-    "Shout-Toggle",
-    "Tell-Toggle",
-    "Display-HP",
-    "Display-PSP",
-    "Display-Moves",
-    "AutoExits",
-    "Hassle-Toggle",
-    "Quest",
-    "Summon",
-    "NO_REP",
-    "Light",
-    "C1",
-    "C2",
-    "Wiznet-Toggle",
-    "L1",
-    "L2",
-    "Auction-Toggle",
-    "Gossip-Toggle",
-    "NO_GTZ",
-    "RoomFlags",
-    "Display-Auto",
-    "CLS",
-    "Buildwalking",
-    "AFK",
-    "AutoLoot",
-    "AutoGold",
-    "AutoSplit",
-    "AutoSacrifice",
-    "AutoAssist",
-    "Display-Map",
-    "AutoKey",
-    "AutoDoors",
-    "NO_CT",
-    "AutoScan",
-    "Display-Exp",
-    "Display-Exits",
-    "Display-Room",
-    "Display-Memtime",
-    "Display-Actions",
-    "Auto-Reload",
-    "Combat-Rolls",
-    "GUI-Mode",
-    "Hint-Display",
-    "Auto-Collect",
-    "Role Player",
-    "Bombs are Aoe",
-    "Faer-Causes-Flee",
-    "PvP-Enabled",
-    "Auto-Consider",
-    "Smash-Defense",
-    "Display-Gold",
-    "No-Charmie-Rescues",
-    "Seek-Encounters",
-    "Avoid-Encoutners",
-    "Use-Stored-Consumables",
-    "Display-Game-Time",
-    "Auto-SpringLeap-Stand",
-    "Vampiric-Blood-Drain",
-    "Auto-Hit",
-    "No-Follow",
-    "Condensed",
-    "Careful",
-    "No-Rage",
-    "Life-Bond",
-    "Charmie-Combat-Roll",
-    "Auto-Prep",
-    "Augment-Buffs",
-    "Auto-Sort",
-    "Auto-Store",
-    "Auto-Group",
-    "Contain-AOE",
-    "Non-Roleplayer",
-    "Brief-Post-Combat-Text",
-    "Auto-Eldritch-Blast",
-    "No-Craft-Progress",
-    "Score-Classic",
-    "Score-Compact",
-    "Score-Wide",
-    "Score-NoColor",
-    "Score-Borders",
-    "Score-RaceSymbols",
-    "BoardCheck-On-Login",
-    "Auto-Search",
-    "Sweeping-Strike",
-    "\n"};
+const char *preference_bits[] = {"Brief",
+                                 "Compact",
+                                 "Shout-Toggle",
+                                 "Tell-Toggle",
+                                 "Display-HP",
+                                 "Display-PSP",
+                                 "Display-Moves",
+                                 "AutoExits",
+                                 "Hassle-Toggle",
+                                 "Quest",
+                                 "Summon",
+                                 "NO_REP",
+                                 "Light",
+                                 "C1",
+                                 "C2",
+                                 "Wiznet-Toggle",
+                                 "L1",
+                                 "L2",
+                                 "Auction-Toggle",
+                                 "Gossip-Toggle",
+                                 "NO_GTZ",
+                                 "RoomFlags",
+                                 "Display-Auto",
+                                 "CLS",
+                                 "Buildwalking",
+                                 "AFK",
+                                 "AutoLoot",
+                                 "AutoGold",
+                                 "AutoSplit",
+                                 "AutoSacrifice",
+                                 "AutoAssist",
+                                 "Display-Map",
+                                 "AutoKey",
+                                 "AutoDoors",
+                                 "NO_CT",
+                                 "AutoScan",
+                                 "Display-Exp",
+                                 "Display-Exits",
+                                 "Display-Room",
+                                 "Display-Memtime",
+                                 "Display-Actions",
+                                 "Auto-Reload",
+                                 "Combat-Rolls",
+                                 "GUI-Mode",
+                                 "Hint-Display",
+                                 "Auto-Collect",
+                                 "Role Player",
+                                 "Bombs are Aoe",
+                                 "Faer-Causes-Flee",
+                                 "PvP-Enabled",
+                                 "Auto-Consider",
+                                 "Smash-Defense",
+                                 "Display-Gold",
+                                 "No-Charmie-Rescues",
+                                 "Seek-Encounters",
+                                 "Avoid-Encoutners",
+                                 "Use-Stored-Consumables",
+                                 "Display-Game-Time",
+                                 "Auto-SpringLeap-Stand",
+                                 "Vampiric-Blood-Drain",
+                                 "Auto-Hit",
+                                 "No-Follow",
+                                 "Condensed",
+                                 "Careful",
+                                 "No-Rage",
+                                 "Life-Bond",
+                                 "Charmie-Combat-Roll",
+                                 "Auto-Prep",
+                                 "Augment-Buffs",
+                                 "Auto-Sort",
+                                 "Auto-Store",
+                                 "Auto-Group",
+                                 "Contain-AOE",
+                                 "Non-Roleplayer",
+                                 "Brief-Post-Combat-Text",
+                                 "Auto-Eldritch-Blast",
+                                 "No-Craft-Progress",
+                                 "Score-Classic",
+                                 "Score-Compact",
+                                 "Score-Wide",
+                                 "Score-NoColor",
+                                 "Score-Borders",
+                                 "Score-RaceSymbols",
+                                 "BoardCheck-On-Login",
+                                 "Auto-Search",
+                                 "Sweeping-Strike",
+                                 "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
-const char *character_ages[] = {
-    "adult",
-    "adolescent",
-    "middle-aged",
-    "old-aged",
-    "venerable",
-    "\n"
-};
+const char *character_ages[] = {"adult",    "adolescent", "middle-aged",
+                                "old-aged", "venerable",  "\n"};
 CHECK_TABLE_SIZE(character_ages, NUM_CHARACTER_AGES + 1);
 
-const int character_age_attributes[][6] =
-{
-//   St Dx Co In Ws Ch
-    { 0, 0, 0, 0, 0, 0},
-    {-1, 2, 0, 0,-1, 0},
-    {-1,-1,-1, 1, 1, 1},
-    {-2,-2,-2, 2, 2, 2},
-    {-3,-3,-3, 3, 3, 3}
-};
+const int character_age_attributes[][6] = {
+    //   St Dx Co In Ws Ch
+    {0, 0, 0, 0, 0, 0},
+    {-1, 2, 0, 0, -1, 0},
+    {-1, -1, -1, 1, 1, 1},
+    {-2, -2, -2, 2, 2, 2},
+    {-3, -3, -3, 3, 3, 3}};
 
-const char *bagnames[] = {
-    "weapons",
-    "armor",
-    "worn items",
-    "food, drink, poisons",
-    "treasure",
-    "crafting",
-    "potions, scrolls, wands, staves",
-    "misc one",
-    "misc two",
-    "misc three",
-    "\n"
-};
+const char *bagnames[] = {"weapons",
+                          "armor",
+                          "worn items",
+                          "food, drink, poisons",
+                          "treasure",
+                          "crafting",
+                          "potions, scrolls, wands, staves",
+                          "misc one",
+                          "misc two",
+                          "misc three",
+                          "\n"};
 CHECK_TABLE_SIZE(bagnames, MAX_BAGS + 1);
 
 /** Bonus types */
 const char *bonus_types[] = {
-    "Untyped",
-    "Alchemical",
-    "Armor",
-    "Circumstance",
-    "Competence",
-    "Deflection",
-    "Dodge",
-    "Enhancement",
-    "Inherent",
-    "Insight",
-    "Luck",
-    "Morale",
-    "Natural Armor",
-    "Profane",
-    "Racial",
-    "Resistance",
-    "Sacred",
-    "Shield",
-    "Size",
-    "Trait",
-    "Food",
-    "Drink",
-    "Eidolon",
-    "Universal",
-    "Alchemist Quintessential",
+    "Untyped",    "Alchemical", "Armor",         "Circumstance", "Competence",
+    "Deflection", "Dodge",      "Enhancement",   "Inherent",     "Insight",
+    "Luck",       "Morale",     "Natural Armor", "Profane",      "Racial",
+    "Resistance", "Sacred",     "Shield",        "Size",         "Trait",
+    "Food",       "Drink",      "Eidolon",       "Universal",    "Alchemist Quintessential",
     "\n"};
 CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 
 /** Affected bits.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *affected_bits[] = {
-    "\0", /* DO NOT REMOVE!! */
-    "Blinded",
-    "Invisible",
-    "Detect-Alignment",
-    "Detect-Invisible",
-    "Detect-Magic", // 5
-    "Sense-Life",
-    "Water-Walk",
-    "Sanctuary",
-    "OnLoad MobGroup",
-    "Cursed", // 10
-    "Infra-Vision",
-    "Poison",
-    "Protect-Evil",
-    "Protect-Good",
-    "Sleep", // 15
-    "Not-Trackable",
-    "Flying",
-    "Underwater-Breathing",
-    "Sneaking",
-    "Hiding", // 20
-    "Vampiric-Curse",
-    "Charmed",
-    "Blurred",
-    "Mode-PowerAttack",
-    "Mode-Expertise", // 25
-    "Hasted",
-    "Mode-Total-Defense",
-    "Protect-Elements",
-    "Deaf",
-    "Fear", // 30
-    "Cowering",
-    "Stunned",
-    "Paralyzed",
-    "Ultra-Vision",
-    "Grappled",
-    "Tamed", // 35
-    "Climb",
-    "Nauseated",
-    "Non-Detection",
-    "Slowed",
-    "Fire-Shielded", // 40
-    "Cold-Shielded",
-    "Minor-Globed",
-    "Acid-Shielded",
-    "Size-Changed",
-    "True-Sight", // 45
-    "Spot-Mode",
-    "Fatigued",
-    "Regenerating",
-    "Diseased",
-    "T-Transform", // 50
-    "Globe-of-Invuln",
-    "Listen-Mode",
-    "Displaced",
-    "Spell-Mantled",
-    "Confused", // 55
-    "Refuged",
-    "Spell-Turning",
-    "Mind-Blanked",
-    "Shadow-Shielded",
-    "Time-Stopped", // 60
-    "Bravery",
-    "Free-Movement",
-    "Faerie-Fired",
-    "Battletide",
-    "Spell-Resistant", // 65
-    "Dimensional-Locked",
-    "Death-Ward",
-    "Mode-Spellbattle",
-    "Vampiric-Touch",
-    "Blackmantled", // 70
-    "Danger-Sense",
-    "SafeFall",
-    "Tower-of-Iron-Will",
-    "Inertial-Barrier",
-    "Not-teleportable", // 75
-    "DamageBoost",      // AFF_MAX_DAMAGE
-    "Incorporeal",
-    "Caged",
-    "Mage-Flamed",
-    "Dark-Vision", // 80
-    "Body-Weaponry",
-    "Farsee",
-    "Menz-Choker",
-    "Mode-RapidShot",
-    "Dazed",
-    "Flat-footed",
-    "Dual-wield",
-    "Flurry-of-Blows",
-    "Counterspell",
-    "Defensive-Casting", // 90
-    "Whirlwind-Attack",
-    "Charging",
-    "WildShape",
-    "Feinted",
-    "Pinned",
-    "Mirror-Imaged",
-    "Warded",
-    "Entangled",
-    "Acrobatic",
-    "Blinking",
-    "Aware",
-    "Crippled-by-Critical",
-    "Levitating",
-    "Bleeding",
-    "Staggered",
-    "Dazzled",
-    "Shaken",
-    "Electric-Shielded",
-    "Sickened",
-    "Silenced",
-    "Hidden-Alignment",
-    "Wind-Wall",
-    "Fear-Aura",
-    "Spider-Climb",
-    "Deadly-Aim",
-    "Acid-Coated",
-    "Repulsion-Fielded",
-    "On-Fire",
-    "Flame-Blade",
-    "Sickening-Aura",
-    "Rapid-Buff",
-    "Crippled",
-    "Encased-in-Ice",
-    "Nextattack-Stun",
-    "Hive-Marked",
-    "Perfect-Deflection-Ready",
-    "\n"};
+const char *affected_bits[] = {"\0", /* DO NOT REMOVE!! */
+                               "Blinded",
+                               "Invisible",
+                               "Detect-Alignment",
+                               "Detect-Invisible",
+                               "Detect-Magic", // 5
+                               "Sense-Life",
+                               "Water-Walk",
+                               "Sanctuary",
+                               "OnLoad MobGroup",
+                               "Cursed", // 10
+                               "Infra-Vision",
+                               "Poison",
+                               "Protect-Evil",
+                               "Protect-Good",
+                               "Sleep", // 15
+                               "Not-Trackable",
+                               "Flying",
+                               "Underwater-Breathing",
+                               "Sneaking",
+                               "Hiding", // 20
+                               "Vampiric-Curse",
+                               "Charmed",
+                               "Blurred",
+                               "Mode-PowerAttack",
+                               "Mode-Expertise", // 25
+                               "Hasted",
+                               "Mode-Total-Defense",
+                               "Protect-Elements",
+                               "Deaf",
+                               "Fear", // 30
+                               "Cowering",
+                               "Stunned",
+                               "Paralyzed",
+                               "Ultra-Vision",
+                               "Grappled",
+                               "Tamed", // 35
+                               "Climb",
+                               "Nauseated",
+                               "Non-Detection",
+                               "Slowed",
+                               "Fire-Shielded", // 40
+                               "Cold-Shielded",
+                               "Minor-Globed",
+                               "Acid-Shielded",
+                               "Size-Changed",
+                               "True-Sight", // 45
+                               "Spot-Mode",
+                               "Fatigued",
+                               "Regenerating",
+                               "Diseased",
+                               "T-Transform", // 50
+                               "Globe-of-Invuln",
+                               "Listen-Mode",
+                               "Displaced",
+                               "Spell-Mantled",
+                               "Confused", // 55
+                               "Refuged",
+                               "Spell-Turning",
+                               "Mind-Blanked",
+                               "Shadow-Shielded",
+                               "Time-Stopped", // 60
+                               "Bravery",
+                               "Free-Movement",
+                               "Faerie-Fired",
+                               "Battletide",
+                               "Spell-Resistant", // 65
+                               "Dimensional-Locked",
+                               "Death-Ward",
+                               "Mode-Spellbattle",
+                               "Vampiric-Touch",
+                               "Blackmantled", // 70
+                               "Danger-Sense",
+                               "SafeFall",
+                               "Tower-of-Iron-Will",
+                               "Inertial-Barrier",
+                               "Not-teleportable", // 75
+                               "DamageBoost",      // AFF_MAX_DAMAGE
+                               "Incorporeal",
+                               "Caged",
+                               "Mage-Flamed",
+                               "Dark-Vision", // 80
+                               "Body-Weaponry",
+                               "Farsee",
+                               "Menz-Choker",
+                               "Mode-RapidShot",
+                               "Dazed",
+                               "Flat-footed",
+                               "Dual-wield",
+                               "Flurry-of-Blows",
+                               "Counterspell",
+                               "Defensive-Casting", // 90
+                               "Whirlwind-Attack",
+                               "Charging",
+                               "WildShape",
+                               "Feinted",
+                               "Pinned",
+                               "Mirror-Imaged",
+                               "Warded",
+                               "Entangled",
+                               "Acrobatic",
+                               "Blinking",
+                               "Aware",
+                               "Crippled-by-Critical",
+                               "Levitating",
+                               "Bleeding",
+                               "Staggered",
+                               "Dazzled",
+                               "Shaken",
+                               "Electric-Shielded",
+                               "Sickened",
+                               "Silenced",
+                               "Hidden-Alignment",
+                               "Wind-Wall",
+                               "Fear-Aura",
+                               "Spider-Climb",
+                               "Deadly-Aim",
+                               "Acid-Coated",
+                               "Repulsion-Fielded",
+                               "On-Fire",
+                               "Flame-Blade",
+                               "Sickening-Aura",
+                               "Rapid-Buff",
+                               "Crippled",
+                               "Encased-in-Ice",
+                               "Nextattack-Stun",
+                               "Hive-Marked",
+                               "Perfect-Deflection-Ready",
+                               "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 
@@ -1889,143 +1492,97 @@ CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 const char *affected_bit_descs[] = {
     "\0", /* DO NOT REMOVE!! */
     //|---------------------------------------------------------|
-    "You can't see a thing.",
-    "You are invisible.",
-    "You can sense the the auras of others.",
+    "You can't see a thing.", "You are invisible.", "You can sense the the auras of others.",
     "You can see the invisible.",
     "You can sense the auras of object imbued with magic.", // 5
-    "You can sense living creatures.",
-    "You can walk on water.",
-    "SHOULD NOT SEE - CONTACT STAFF",
+    "You can sense living creatures.", "You can walk on water.", "SHOULD NOT SEE - CONTACT STAFF",
     "SHOULD NOT SEE - CONTACT STAFF",
     "You have been cursed.", // 10
-    "You can see in the infra-red spectrum.",
-    "You have been poisoned.",
-    "You are warded against evil.",
-    "You are warded against good.",
+    "You can see in the infra-red spectrum.", "You have been poisoned.",
+    "You are warded against evil.", "You are warded against good.",
     "You are afflicted with magical sleep.", // 15
-    "You cannot be tracked.",
-    "You are flying.",
-    "You can breathe underwater.",
+    "You cannot be tracked.", "You are flying.", "You can breathe underwater.",
     "You are attempting to move quietly.",
     "You are attempting to hide.", // 20
-    "You are afflicted with a vampiric curse.",
-    "You are controlled by another.",
-    "Your form is blurred.",
-    "You sacrifice accuracy to inflict more damage in battle.",
+    "You are afflicted with a vampiric curse.", "You are controlled by another.",
+    "Your form is blurred.", "You sacrifice accuracy to inflict more damage in battle.",
     "You sacrifice accuracy to improve your defense.", // 25
-    "You are moving supernaturally fast.",
-    "You are focusing on total defense.",
-    "You are protected from the elements.",
-    "You can't hear a thing.",
+    "You are moving supernaturally fast.", "You are focusing on total defense.",
+    "You are protected from the elements.", "You can't hear a thing.",
     "You are terrified.", // 30
-    "You are cowering in fear.",
-    "You are stunned.",
-    "You can't move!",
-    "You can see in the ultra-violet spectrum.",
-    "You are grappled.",
+    "You are cowering in fear.", "You are stunned.", "You can't move!",
+    "You can see in the ultra-violet spectrum.", "You are grappled.",
     "You are tamed.", // 35
-    "You can climb anything.",
-    "You are nauseated.",
-    "You are shielded from scrying magic.",
+    "You can climb anything.", "You are nauseated.", "You are shielded from scrying magic.",
     "You are moving more slowly than usual.",
     "You are surrounded by a shield of flames.", // 40
     "You are surrounded by a shield of swirling snow.",
     "You are protected by a minor globe of invulnerability.",
-    "You are surrounded by a shield of corrosive acid.",
-    "You are not your usual size.",
+    "You are surrounded by a shield of corrosive acid.", "You are not your usual size.",
     "Your vision is supernaturally clear.", // 45
-    "You are actively observing your surroundings.",
-    "You are fatigued.",
-    "Your body is healing at an increased rate.",
-    "You are suffering from a disease.",
+    "You are actively observing your surroundings.", "You are fatigued.",
+    "Your body is healing at an increased rate.", "You are suffering from a disease.",
     "You are under the effect of Tenser's Transformation", // 50
     "You are protected by a globe of invulnerability.",
-    "You are actively listening to your surroundings.",
-    "Your are not where you seem to be.",
+    "You are actively listening to your surroundings.", "Your are not where you seem to be.",
     "You are protected by a spell mantle.",
     "You are confused.", // 55
-    "You have taken refuge.",
-    "You turn magic that targets you.",
-    "Your mind is blank.",
+    "You have taken refuge.", "You turn magic that targets you.", "Your mind is blank.",
     "The shadows shield you from harm.",
     "You have stopped time.", // 60
-    "You feel brave.",
-    "You can move freely in any environment.",
-    "Your outline is highlighted by purple and pink flames.",
-    "You are battle incarnate.",
+    "You feel brave.", "You can move freely in any environment.",
+    "Your outline is highlighted by purple and pink flames.", "You are battle incarnate.",
     "You are resistant to spells.", // 65
-    "You are locked to this plane of existence.",
-    "You are warded from death magic.",
-    "You are under the effect of Spellbattle.",
-    "You have a vampiric touch.",
+    "You are locked to this plane of existence.", "You are warded from death magic.",
+    "You are under the effect of Spellbattle.", "You have a vampiric touch.",
     "Your body does not heal as it should.", // 70
-    "You can innately sense danger.",
-    "You can fall from any height unharmed.",
-    "You are resistant to psionic damage.",
-    "SHOULD NOT SEE - CONTACT STAFF",
+    "You can innately sense danger.", "You can fall from any height unharmed.",
+    "You are resistant to psionic damage.", "SHOULD NOT SEE - CONTACT STAFF",
     "You can not be targeted by teleportation magic.", // 75
     "Your next attack will deal additional damage.",   // AFF_MAX_DAMAGE
-    "You are incorporeal",
-    "You have been caged and can not interact with anyone.",
+    "You are incorporeal", "You have been caged and can not interact with anyone.",
     "You are glowing.",
     "You can see in the dark.", // 80
-    "Your body is a weapon.",
-    "You can see farther than others.",
-    "Your items synergize with each other.",
-    "You are firing your ranged weapons more quickly.",
+    "Your body is a weapon.", "You can see farther than others.",
+    "Your items synergize with each other.", "You are firing your ranged weapons more quickly.",
     "You are dazed.", // 85
-    "You have been caught unawares.",
-    "You are fighting with two weapons.",
-    "You are attacking with a flurry of blows.",
-    "You will counter any spell you can.",
+    "You have been caught unawares.", "You are fighting with two weapons.",
+    "You are attacking with a flurry of blows.", "You will counter any spell you can.",
     "You are casting defensively.", // 90
-    "You will spread your attacks among all of your enemies.",
-    "You are charging into battle.",
+    "You will spread your attacks among all of your enemies.", "You are charging into battle.",
     "You are shape-changed into a different race.",
     "You have been feinted in combat (flat-footed).",
     "You are pinned.", // 95
     "Duplicate illusionary images of you exist.",
-    "You have a powerful ward on you (melee damage absorb).",
-    "You are entangled (can't move).",
+    "You have a powerful ward on you (melee damage absorb).", "You are entangled (can't move).",
     "You feel more acrobatic!",
     "You are blinking between prime and ethereal planes!", // 100
-    "You are aware of backstab attempts now!",
-    "You have been crippled by a nasty critical attack!",
+    "You are aware of backstab attempts now!", "You have been crippled by a nasty critical attack!",
     "You are levitating above the ground!",
     "You are suffering bleed damage each round until healed!",
     "You are staggered - 50% chance to fail spells or a single melee attack!", // 105
     "You are dazzled and will suffer -1 to attacks and perception checks!",
     "You are shaken: -2 to attack rolls, saves and skills checks!",
-    "You are surrounded by a shield of sparking electricity.",
-    "You feel sickened and weak.",
-    "You are unable to make a sound.",
-    "Your alignment is hidden from others.",
-    "You are surrounded by a wall of wind",
-    "You radiate fear to your opponents.",
-    "You can scale surfaces like a spider.",
-    "You are using your deadly aim feat benefit.",
-    "You are coated in painful acid.",
-    "You are surrounded by a repulsion field.",
-    "You have been caught on fire!",
-    "Your weapons are sheathed in fire!",
+    "You are surrounded by a shield of sparking electricity.", "You feel sickened and weak.",
+    "You are unable to make a sound.", "Your alignment is hidden from others.",
+    "You are surrounded by a wall of wind", "You radiate fear to your opponents.",
+    "You can scale surfaces like a spider.", "You are using your deadly aim feat benefit.",
+    "You are coated in painful acid.", "You are surrounded by a repulsion field.",
+    "You have been caught on fire!", "Your weapons are sheathed in fire!",
     "You are surrounded by a sickening aura.",
     "You are able to buff yourself with spells faster than usual.",
     "Your legs are crippled! (50% movement speed, 50% movement fail chance)",
     "You are encased in ice and paralyzed! (Immune to cold, DR 5/-)",
     "Your next attack will carry overwhelming force!",
     "You have been marked by a Hive Commander's psychic link!",
-    "You are prepared to perfectly deflect the next ranged attack and reflect it!",
-    "\n"};
+    "You are prepared to perfectly deflect the next ranged attack and reflect it!", "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
 /** Second affect bit names.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *affected2_bits[] = {
-    "\0", /* DO NOT REMOVE!! */
-    "Magic-Attacks",
-    "\n"};
+const char *affected2_bits[] = {"\0", /* DO NOT REMOVE!! */
+                                "Magic-Attacks", "\n"};
 
 CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
 
@@ -2034,11 +1591,10 @@ CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
  * Must end array with a single newline.
  * MUST BE 57 CHARACTERS OR LESS.
  * */
-const char *affected2_bit_descs[] = {
-    "\0", /* DO NOT REMOVE!! */
-    //|---------------------------------------------------------|
-    "Attacks you make can bypass magic resistant damage reduction",
-    "\n"};
+const char *affected2_bit_descs[] = {"\0", /* DO NOT REMOVE!! */
+                                     //|---------------------------------------------------------|
+                                     "Attacks you make can bypass magic resistant damage reduction",
+                                     "\n"};
 CHECK_TABLE_SIZE(affected2_bit_descs, NUM_AFF2_FLAGS + 1);
 
 /** Connection type descriptions.
@@ -2080,7 +1636,7 @@ const char *connected_types[] = {
     "Select Race",
     "Clan Edit",
     "Message Edit",
-    "Study Menu",   // 35
+    "Study Menu",          // 35
     "Class Help",          // 36
     "Alignment Selection", // 37
     "Race Help",           // 38
@@ -2140,47 +1696,34 @@ CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);
  * Not used in sprinttype() so no \n. */
 const char *wear_where[] = {
     "\tY{Used As Light}\tn      ", // 0
-    "\tY{Worn On Finger}\tn     ",
-    "\tY{Worn On Finger}\tn     ",
-    "\tY{Worn Around Neck}\tn   ",
-    "\tY{Worn Around Neck}\tn   ",
+    "\tY{Worn On Finger}\tn     ",    "\tY{Worn On Finger}\tn     ",
+    "\tY{Worn Around Neck}\tn   ",    "\tY{Worn Around Neck}\tn   ",
     "\tY\t+{Worn On Body}\tn       ", // 5
-    "\tY\t+{Worn On Head}\tn       ",
-    "\tY\t+{Worn On Legs}\tn       ",
-    "\tY{Worn On Feet}\tn       ",
-    "\tY{Worn On Hands}\tn      ",
+    "\tY\t+{Worn On Head}\tn       ", "\tY\t+{Worn On Legs}\tn       ",
+    "\tY{Worn On Feet}\tn       ",    "\tY{Worn On Hands}\tn      ",
     "\tY\t+{Worn On Arms}\tn       ", // 10
-    "\tY\t+{Worn As Shield}\tn     ",
-    "\tY{Worn About Body}\tn    ",
-    "\tY{Worn About Waist}\tn   ",
-    "\tY{Worn Around Wrist}\tn  ",
+    "\tY\t+{Worn As Shield}\tn     ", "\tY{Worn About Body}\tn    ",
+    "\tY{Worn About Waist}\tn   ",    "\tY{Worn Around Wrist}\tn  ",
     "\tY{Worn Around Wrist}\tn  ", // 15
-    "\tR{Wielded}\tn            ",
-    "\tR{Held}\tn               ",
-    "\tR{Wielded Offhand}\tn    ",
-    "\tR{Held Offhand}\tn       ",
+    "\tR{Wielded}\tn            ",    "\tR{Held}\tn               ",
+    "\tR{Wielded Offhand}\tn    ",    "\tR{Held Offhand}\tn       ",
     "\tR{Wielded Twohanded}\tn  ", // 20
-    "\tR{Held Twohanded}\tn     ",
-    "\tY{Worn On Face}\tn       ",
-    "\tY{Worn As Ammo Pouch}\tn ",
-    "\tY{Worn In Ear}\tn        ",
+    "\tR{Held Twohanded}\tn     ",    "\tY{Worn On Face}\tn       ",
+    "\tY{Worn As Ammo Pouch}\tn ",    "\tY{Worn In Ear}\tn        ",
     "\tY{Worn In Ear}\tn        ", // 25
-    "\tY{Worn On Eyes}\tn       ",
-    "\tY{Worn As Badge}\tn      ",
-    "\tY{Worn On Shoulders}\tn  ",
-    "\tY{Worn In Ankle}\tn      ",
+    "\tY{Worn On Eyes}\tn       ",    "\tY{Worn As Badge}\tn      ",
+    "\tY{Worn On Shoulders}\tn  ",    "\tY{Worn In Ankle}\tn      ",
     "\tY{Worn In Ankle}\tn      ", // 30
-    "\tY{Worn As Sheath}\tn     ",
-    "\tY{Used As Instrument}\tn ",
-    "\tC{Harvesting Sickle}\tn  ",   // WEAR_CRAFT_SICKLE
-    "\tC{Chopping Axe}\tn       ",   // WEAR_CRAFT_AXE
-    "\tC{Skinning Knife}\tn     ",   // WEAR_CRAFT_KNIFE
-    "\tC{Mining Pickaxe}\tn     ",   // WEAR_CRAFT_PICKAXE
-    "\tC{Alchemy Set}\tn        ",   // WEAR_CRAFT_ALCHEMY
-    "\tC{Armorsmith Hammer}\tn  ",   // WEAR_CRAFT_ARMOR_HAMMER
-    "\tC{Jeweler's Pliers}\tn   ",   // WEAR_CRAFT_JEWEL_PLIERS
-    "\tC{Sewing Needle}\tn      ",   // WEAR_CRAFT_NEEDLE
-    "\tC{Weaponsmith Hammer}\tn ",   // WEAR_CRAFT_WEAPON_HAMMER
+    "\tY{Worn As Sheath}\tn     ",    "\tY{Used As Instrument}\tn ",
+    "\tC{Harvesting Sickle}\tn  ", // WEAR_CRAFT_SICKLE
+    "\tC{Chopping Axe}\tn       ", // WEAR_CRAFT_AXE
+    "\tC{Skinning Knife}\tn     ", // WEAR_CRAFT_KNIFE
+    "\tC{Mining Pickaxe}\tn     ", // WEAR_CRAFT_PICKAXE
+    "\tC{Alchemy Set}\tn        ", // WEAR_CRAFT_ALCHEMY
+    "\tC{Armorsmith Hammer}\tn  ", // WEAR_CRAFT_ARMOR_HAMMER
+    "\tC{Jeweler's Pliers}\tn   ", // WEAR_CRAFT_JEWEL_PLIERS
+    "\tC{Sewing Needle}\tn      ", // WEAR_CRAFT_NEEDLE
+    "\tC{Weaponsmith Hammer}\tn ", // WEAR_CRAFT_WEAPON_HAMMER
     "\tY{Worn On Back}\tn       ",
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
@@ -2188,345 +1731,204 @@ CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 /* Describes where an item can be worn.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *equipment_types[] = {
-    "Used as light", // 0
-    "Worn on right finger",
-    "Worn on left finger",
-    "First worn around Neck",
-    "Second worn around Neck",
-    "Worn on body", // 5
-    "Worn on head",
-    "Worn on legs",
-    "Worn on feet",
-    "Worn on hands",
-    "Worn on arms", // 10
-    "Worn as shield",
-    "Worn about body",
-    "Worn around waist",
-    "Worn around right wrist",
-    "Worn around left wrist", // 15
-    "Wielded",
-    "Held",
-    "Wielded offhand",
-    "Held offhand",
-    "Wielded twohands", // 20
-    "Held twohands",
-    "Worn on face",
-    "Worn as ammo pouch",
-    "Worn in right ear",
-    "Worn in left ear", // 25
-    "Worn on eyes",
-    "Worn as badge",
-    "Worn on shoulders",
-    "Worn on right ankle",
-    "Worn on left ankle", // 30
-    "Worn as sheath",
-    "Used as instrument",
-    "Harvesting sickle (gathering)",     // WEAR_CRAFT_SICKLE
-    "Chopping axe (forestry)",           // WEAR_CRAFT_AXE
-    "Skinning knife (hunting)",          // WEAR_CRAFT_KNIFE
-    "Mining pickaxe (mining)",           // WEAR_CRAFT_PICKAXE
-    "Alchemy set (alchemy)",             // WEAR_CRAFT_ALCHEMY
-    "Armorsmith hammer (armorsmithing)", // WEAR_CRAFT_ARMOR_HAMMER
-    "Jeweler's pliers (jewelcraft)",     // WEAR_CRAFT_JEWEL_PLIERS
-    "Sewing needle (tailoring)",         // WEAR_CRAFT_NEEDLE
-    "Weaponsmith hammer (weaponsmithing)", // WEAR_CRAFT_WEAPON_HAMMER
-    "Worn on back",
-    "\n"};
+const char *equipment_types[] = {"Used as light", // 0
+                                 "Worn on right finger",
+                                 "Worn on left finger",
+                                 "First worn around Neck",
+                                 "Second worn around Neck",
+                                 "Worn on body", // 5
+                                 "Worn on head",
+                                 "Worn on legs",
+                                 "Worn on feet",
+                                 "Worn on hands",
+                                 "Worn on arms", // 10
+                                 "Worn as shield",
+                                 "Worn about body",
+                                 "Worn around waist",
+                                 "Worn around right wrist",
+                                 "Worn around left wrist", // 15
+                                 "Wielded",
+                                 "Held",
+                                 "Wielded offhand",
+                                 "Held offhand",
+                                 "Wielded twohands", // 20
+                                 "Held twohands",
+                                 "Worn on face",
+                                 "Worn as ammo pouch",
+                                 "Worn in right ear",
+                                 "Worn in left ear", // 25
+                                 "Worn on eyes",
+                                 "Worn as badge",
+                                 "Worn on shoulders",
+                                 "Worn on right ankle",
+                                 "Worn on left ankle", // 30
+                                 "Worn as sheath",
+                                 "Used as instrument",
+                                 "Harvesting sickle (gathering)",       // WEAR_CRAFT_SICKLE
+                                 "Chopping axe (forestry)",             // WEAR_CRAFT_AXE
+                                 "Skinning knife (hunting)",            // WEAR_CRAFT_KNIFE
+                                 "Mining pickaxe (mining)",             // WEAR_CRAFT_PICKAXE
+                                 "Alchemy set (alchemy)",               // WEAR_CRAFT_ALCHEMY
+                                 "Armorsmith hammer (armorsmithing)",   // WEAR_CRAFT_ARMOR_HAMMER
+                                 "Jeweler's pliers (jewelcraft)",       // WEAR_CRAFT_JEWEL_PLIERS
+                                 "Sewing needle (tailoring)",           // WEAR_CRAFT_NEEDLE
+                                 "Weaponsmith hammer (weaponsmithing)", // WEAR_CRAFT_WEAPON_HAMMER
+                                 "Worn on back",
+                                 "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
 /* weapon family */
-const char *weapon_family[] = {
-    "Monk",
-    "Light-Blade",
-    "Hammer",
-    "Ranged",
-    "Heavy-Blade",
-    "Polearm",
-    "Double-Weapon",
-    "Axe",
-    "\n"};
+const char *weapon_family[] = {"Monk",    "Light-Blade",   "Hammer", "Ranged", "Heavy-Blade",
+                               "Polearm", "Double-Weapon", "Axe",    "\n"};
 CHECK_TABLE_SIZE(weapon_family, NUM_WEAPON_FAMILIES + 1);
 
 /* weapon flags */
-const char *weapon_flags[] = {
-    "Simple",
-    "Martial",
-    "Exotic",
-    "Ranged",
-    "Thrown",
-    "Reach",
-    "Entangle",
-    "Trip",
-    "Double",
-    "Disarm",
-    "Non-Lethal",
-    "Slow-Reload",
-    "Balanced",
-    "Charge",
-    "Repeating",
-    "Two-Handed",
-    "Light",
-    "Blocking",
-    "Bracing",
-    "Deadly",
-    "Distracting",
-    "Fragile",
-    "Grappling",
-    "Performance",
-    "Strength",
-    "Sunder",
-    "\n"};
+const char *weapon_flags[] = {"Simple",      "Martial",     "Exotic",    "Ranged",      "Thrown",
+                              "Reach",       "Entangle",    "Trip",      "Double",      "Disarm",
+                              "Non-Lethal",  "Slow-Reload", "Balanced",  "Charge",      "Repeating",
+                              "Two-Handed",  "Light",       "Blocking",  "Bracing",     "Deadly",
+                              "Distracting", "Fragile",     "Grappling", "Performance", "Strength",
+                              "Sunder",      "\n"};
 CHECK_TABLE_SIZE(weapon_flags, NUM_WEAPON_FLAGS + 1);
 
-const char *ability_score_names[6] = {
-    "strength",
-    "dexterity",
-    "constitution",
-    "intelligence",
-    "wisdom",
-    "charisma"};
+const char *ability_score_names[6] = {"strength",     "dexterity", "constitution",
+                                      "intelligence", "wisdom",    "charisma"};
 
 /* armor type (none, light, medium, heavy, etc) */
 const char *armor_type[] = {
-    "None",
-    "Light Armor",
-    "Medium Armor",
-    "Heavy Armor",
-    "Normal Shield",
-    "Tower Shield",
-    "\n"};
+    "None", "Light Armor", "Medium Armor", "Heavy Armor", "Normal Shield", "Tower Shield", "\n"};
 CHECK_TABLE_SIZE(armor_type, NUM_ARMOR_TYPES + 1);
 
-const int armor_suit_ac_bonus[] = {
-    0,
-    0,
-    1,
-    2,
-    3,
-    4,
-    4,
-    4,
-    5,
-    5,
-    6,
-    6,
-    7,
-    8,
-    1,
-    1,
-    2,
-    4,
-    0};
+const int armor_suit_ac_bonus[] = {0, 0, 1, 2, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8, 1, 1, 2, 4, 0};
 CHECK_TABLE_SIZE(armor_suit_ac_bonus, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
 
-const int armor_suit_weight[] = {
-    0,
-    3,
-    10,
-    15,
-    20,
-    25,
-    25,
-    30,
-    40,
-    30,
-    45,
-    35,
-    50,
-    50,
-    5,
-    5,
-    10,
-    45,
-    0};
+const int armor_suit_weight[] = {0,  3,  10, 15, 20, 25, 25, 30, 40, 30,
+                                 45, 35, 50, 50, 5,  5,  10, 45, 0};
 CHECK_TABLE_SIZE(armor_suit_weight, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
 
 // labels for item proficiency category
-const char *item_profs[] = {
-    "None",
-    "Minimal Weapon Proficiency",
-    "Basic Weapon Proficiency",
-    "Advanced Weapon Proficiency",
-    "Master Weapon Proficiency",
-    "Exotic Weapon Proficiency",
-    "Light Armor Proficiency",
-    "Medium Armor Proficiency",
-    "Heavy Armor Proficiency",
-    "Shield Proficiency",
-    "Tower Shield Proficiency",
-    "\n"};
+const char *item_profs[] = {"None",
+                            "Minimal Weapon Proficiency",
+                            "Basic Weapon Proficiency",
+                            "Advanced Weapon Proficiency",
+                            "Master Weapon Proficiency",
+                            "Exotic Weapon Proficiency",
+                            "Light Armor Proficiency",
+                            "Medium Armor Proficiency",
+                            "Heavy Armor Proficiency",
+                            "Shield Proficiency",
+                            "Tower Shield Proficiency",
+                            "\n"};
 CHECK_TABLE_SIZE(item_profs, NUM_ITEM_PROFS + 1);
 
-const char *material_name[] = {
-    "not-set",
-    "cotton",
-    "leather",
-    "glass",
-    "gold",
-    "organic",
-    "paper",
-    "steel",
-    "wood",
-    "bone",
-    "crystal",
-    "ether",
-    "adamantine",
-    "mithril",
-    "iron",
-    "copper",
-    "ceramic",
-    "satin",
-    "silk",
-    "dragonhide",
-    "burlap",
-    "velvet",
-    "platinum",
-    "obsidian",
-    "wool",
-    "onyx",
-    "ivory",
-    "brass",
-    "marble",
-    "bronze",
-    "pewter",
-    "ruby",
-    "sapphire",
-    "emerald",
-    "gemstone",
-    "granite",
-    "stone",
-    "energy",
-    "hemp",
-    "diamond",
-    "earth",
-    "silver",
-    "alchemical silver",
-    "cold iron",
-    "darkwood",
-    "dragonscale",
-    "dragonbone",
-    "sea ivory",
-    "tin",
-    "coal",
-    "dragonmetal",
-    "ash wood",
-    "maple wood",
-    "mahagony",
-    "valenwood",
-    "ironwood",
-    "linen",
-    "zinc",
-    "flax",
-    "\n"};
+const char *material_name[] = {"not-set",
+                               "cotton",
+                               "leather",
+                               "glass",
+                               "gold",
+                               "organic",
+                               "paper",
+                               "steel",
+                               "wood",
+                               "bone",
+                               "crystal",
+                               "ether",
+                               "adamantine",
+                               "mithril",
+                               "iron",
+                               "copper",
+                               "ceramic",
+                               "satin",
+                               "silk",
+                               "dragonhide",
+                               "burlap",
+                               "velvet",
+                               "platinum",
+                               "obsidian",
+                               "wool",
+                               "onyx",
+                               "ivory",
+                               "brass",
+                               "marble",
+                               "bronze",
+                               "pewter",
+                               "ruby",
+                               "sapphire",
+                               "emerald",
+                               "gemstone",
+                               "granite",
+                               "stone",
+                               "energy",
+                               "hemp",
+                               "diamond",
+                               "earth",
+                               "silver",
+                               "alchemical silver",
+                               "cold iron",
+                               "darkwood",
+                               "dragonscale",
+                               "dragonbone",
+                               "sea ivory",
+                               "tin",
+                               "coal",
+                               "dragonmetal",
+                               "ash wood",
+                               "maple wood",
+                               "mahagony",
+                               "valenwood",
+                               "ironwood",
+                               "linen",
+                               "zinc",
+                               "flax",
+                               "\n"};
 CHECK_TABLE_SIZE(material_name, NUM_MATERIALS + 1);
 
 /** Describes the type of object.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *item_types[] = {
-    "UNDEFINED", // 0
-    "Light",
-    "Scroll",
-    "Wand",
-    "Staff",
-    "Weapon", // 5
-    "Furniture",
-    "Ranged-Weapon",
-    "Treasure",
-    "Armor/Shield",
-    "Potion", // 10
-    "Wearable",
-    "Other",
-    "Trash",
-    "Ammo",
-    "Container", // 15
-    "Note",
-    "Liquid-Cont",
-    "Key",
-    "Food",
-    "Money", // 20
-    "Pen",
-    "Boat",
-    "Fountain",
-    "Clan-Armor",
-    "Crafting Crystal", // 25
-    "Essence",
-    "Crafting Material",
-    "Spellbook",
-    "Portal",
-    "Plant", // 30
-    /* todo list */
-    "Trap",
-    "Teleport",
-    "Poison",
-    "Summon",
-    "Switch", // 35
-    "Ammo-Pouch",
-    "Pick",
-    "Instrument",
-    "Disguise",
-    "Wall", // 40
-    "Bowl",
-    "Ingredient",
-    "Blocker",
-    "Wagon",
-    "Resources", // 45
-    "Pet",       // 46
-    "Blueprint", // 47 /* NewCraft */
-    "Treasure Chest",
-    "Hunt Trophy",
-    "Weapon Oil",
-    "Gear Outfit",
-    "Drink",
-    "Vehicle",
-    "Ship-Object",
-    "Vessel",
-    "Greyhawk-Ship",
-    "Crafting-Tool",
-    "\n"};
+const char *item_types[] = {"UNDEFINED", // 0
+                            "Light", "Scroll", "Wand", "Staff",
+                            "Weapon", // 5
+                            "Furniture", "Ranged-Weapon", "Treasure", "Armor/Shield",
+                            "Potion", // 10
+                            "Wearable", "Other", "Trash", "Ammo",
+                            "Container", // 15
+                            "Note", "Liquid-Cont", "Key", "Food",
+                            "Money", // 20
+                            "Pen", "Boat", "Fountain", "Clan-Armor",
+                            "Crafting Crystal", // 25
+                            "Essence", "Crafting Material", "Spellbook", "Portal",
+                            "Plant", // 30
+                            /* todo list */
+                            "Trap", "Teleport", "Poison", "Summon",
+                            "Switch", // 35
+                            "Ammo-Pouch", "Pick", "Instrument", "Disguise",
+                            "Wall", // 40
+                            "Bowl", "Ingredient", "Blocker", "Wagon",
+                            "Resources", // 45
+                            "Pet",       // 46
+                            "Blueprint", // 47 /* NewCraft */
+                            "Treasure Chest", "Hunt Trophy", "Weapon Oil", "Gear Outfit", "Drink",
+                            "Vehicle", "Ship-Object", "Vessel", "Greyhawk-Ship", "Crafting-Tool",
+                            "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 
 /** Describes the wear flags set on an item.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *wear_bits[] = {
-    "(Takeable)", // 0
-    "Finger",
-    "Neck",
-    "Body",
-    "Head",
-    "Legs", // 5
-    "Feet",
-    "Hands",
-    "Arms",
-    "Shield",
-    "About-Body", // 10
-    "Waist",
-    "Wrist",
-    "Wield",
-    "Hold",
-    "Face", // 15
-    /* todo */
-    "Ammo-Pouch",
-    "Ears",
-    "Eyes",
-    "Badge",
-    "Instrument",
-    "Shoulders",
-    "Ankle",
-    "Sheath",
-    "Gathering-Tool",
-    "Forestry-Tool",
-    "Hunting-Tool",
-    "Mining-Tool",
-    "Alchemy-Tool",
-    "Armorsmithing-Tool",
-    "Jewelcrafting-Tool",
-    "Tailoring-Tool",
-    "Weaponsmithing-Tool",
-    "On-Back",
-    "\n"};
+const char *wear_bits[] = {"(Takeable)", // 0
+                           "Finger", "Neck", "Body", "Head",
+                           "Legs", // 5
+                           "Feet", "Hands", "Arms", "Shield",
+                           "About-Body", // 10
+                           "Waist", "Wrist", "Wield", "Hold",
+                           "Face", // 15
+                           /* todo */
+                           "Ammo-Pouch", "Ears", "Eyes", "Badge", "Instrument", "Shoulders",
+                           "Ankle", "Sheath", "Gathering-Tool", "Forestry-Tool", "Hunting-Tool",
+                           "Mining-Tool", "Alchemy-Tool", "Armorsmithing-Tool",
+                           "Jewelcrafting-Tool", "Tailoring-Tool", "Weaponsmithing-Tool", "On-Back",
+                           "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 
 /** Describes the extra flags applied to an item.
@@ -2534,123 +1936,51 @@ CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
  * Must end array with a single newline. */
 const char *extra_bits[] = {
     "Glows", // 0
-    "Hums",
-    "Not-Rentable",
-    "Not-Donateable",
-    "Immune-Invis",
+    "Hums", "Not-Rentable", "Not-Donateable", "Immune-Invis",
     "Invisible", // 5
-    "Magical",
-    "Not-Droppable",
-    "Blessed",
-    "Anti-Good",
+    "Magical", "Not-Droppable", "Blessed", "Anti-Good",
     "Anti-Evil", // 10
-    "Anti-Neutral",
-    "Anti-Wizard",
-    "Anti-Cleric",
-    "Anti-Rogue",
+    "Anti-Neutral", "Anti-Wizard", "Anti-Cleric", "Anti-Rogue",
     "Anti-Warrior", // 15
-    "Not-Sellable",
-    "Quest-Item",
-    "Anti-Human",
-    "Anti-Elf",
+    "Not-Sellable", "Quest-Item", "Anti-Human", "Anti-Elf",
     "Anti-Dwarf", // 20
-    "Anti-Half-Troll",
-    "Anti-Monk",
-    "Anti-Druid",
-    "Mold",
+    "Anti-Half-Troll", "Anti-Monk", "Anti-Druid", "Mold",
     "Anti-Crystal-Dwarf", // 25
-    "Anti-Halfling",
-    "Anti-Half-Elf",
-    "Anti-Half-Orc",
-    "Anti-Gnome",
+    "Anti-Halfling", "Anti-Half-Elf", "Anti-Half-Orc", "Anti-Gnome",
     "Anti-Berserker", // 30
-    "Anti-Trelux",
-    "Anti-Sorcerer",
-    "Decaying",
-    "Anti-Paladin",
+    "Anti-Trelux", "Anti-Sorcerer", "Decaying", "Anti-Paladin",
     "Anti-Ranger", // 35
-    "Anti-Bard",
-    "Anti-Arcana-Golem",
+    "Anti-Bard", "Anti-Arcana-Golem",
     /* todo */
-    "Floating",
-    "Hidden",
+    "Floating", "Hidden",
     "Magical-Light", // 40
-    "No-Locate",
-    "No-Burn",
-    "Transient",
-    "Auto-Proc",
+    "No-Locate", "No-Burn", "Transient", "Auto-Proc",
     "Flaming", // 45
-    "Frosty",
-    "Ki-Focus",
-    "Anti-WeaponMaster",
-    "Anti-Drow",
+    "Frosty", "Ki-Focus", "Anti-WeaponMaster", "Anti-Drow",
     "Masterwork", // 50
-    "Anti-Duergar",
-    "Seeking",
-    "Adaptive",
-    "Agile",
+    "Anti-Duergar", "Seeking", "Adaptive", "Agile",
     "Corrosive", // 55
-    "Disruption",
-    "Defending",
-    "Vicious",
-    "Vorpal",
+    "Disruption", "Defending", "Vicious", "Vorpal",
     "Anti-Lawful", // 60
-    "Anti-Chaotic",
-    "Wizard-Required",
-    "Cleric-Required",
-    "Rogue-Required",
+    "Anti-Chaotic", "Wizard-Required", "Cleric-Required", "Rogue-Required",
     "Warrior-Required", // 65
-    "Monk-Required",
-    "Druid-Required",
-    "Berserker-Required",
-    "Sorcerer-Required",
+    "Monk-Required", "Druid-Required", "Berserker-Required", "Sorcerer-Required",
     "Paladin-Required", // 70
-    "Ranger-Required",
-    "Bard-Required",
-    "Weaponmaster-Required",
-    "Arcane-Archer-Required",
+    "Ranger-Required", "Bard-Required", "Weaponmaster-Required", "Arcane-Archer-Required",
     "Stalwart-Defender-Required", // 75
-    "Shifter-Required",
-    "Duelist-Required",
-    "Mystic-Theurge-Required",
-    "Alchemist-Required",
+    "Shifter-Required", "Duelist-Required", "Mystic-Theurge-Required", "Alchemist-Required",
     "Arcane-Shadow-Required", // 80
-    "Sacred-Fist-Required",
-    "Eldritch-Knight-Required",
-    "Anti-Arcane-Archer",
+    "Sacred-Fist-Required", "Eldritch-Knight-Required", "Anti-Arcane-Archer",
     "Anti-Stalwart-Defender",
     "Anti-Shifter", // 85
-    "Anti-Duelist",
-    "Anti-Mystic-Theurge",
-    "Anti-Alchemist",
-    "Anti-Arcane-Shadow",
+    "Anti-Duelist", "Anti-Mystic-Theurge", "Anti-Alchemist", "Anti-Arcane-Shadow",
     "Anti-Sacred-Fist", // 90
-    "Anti-Eldritch-Knight",
-    "Shocking Weapon",
-    "Anti-Lich",
-    "Anti-Vampire",
-    "Vampire-Only",
-    "Warlock-Only",
-    "Anti-Warlock",
-    "Set-Stats-At-Load",
-    "Extract-After-Use",
-    "No-Sacrifice",
-    "Has-Been-Downgraded",
-    "Item-Has-Been-Identified",
-    "Crafted-Item",
-    "Can-Only-Equip-One",
-    "Can-Only-Possess-One",
-    "Crafting-Smelter",
-    "Crafting-Loom",
-    "Crafting-Forge",
-    "Crafting-Alchemy-Lab",
-    "Crafting-Jewelcrafting-Station",
-    "Crafting-Tannery",
-    "Crafting-Carpentry-Table",
-    "Trapped",
-    "Costs-Account-Experience",
-    "Can-Be-Reforged",
-    "\n"};
+    "Anti-Eldritch-Knight", "Shocking Weapon", "Anti-Lich", "Anti-Vampire", "Vampire-Only",
+    "Warlock-Only", "Anti-Warlock", "Set-Stats-At-Load", "Extract-After-Use", "No-Sacrifice",
+    "Has-Been-Downgraded", "Item-Has-Been-Identified", "Crafted-Item", "Can-Only-Equip-One",
+    "Can-Only-Possess-One", "Crafting-Smelter", "Crafting-Loom", "Crafting-Forge",
+    "Crafting-Alchemy-Lab", "Crafting-Jewelcrafting-Station", "Crafting-Tannery",
+    "Crafting-Carpentry-Table", "Trapped", "Costs-Account-Experience", "Can-Be-Reforged", "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
 /** Describes the apply types.
@@ -2737,168 +2067,162 @@ const char *apply_types[] = {
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
 // used for the forage system
-const char *apply_type_food_names[] = 
-{
-    "", // none
-    "mooncap mushrooms", // strength
-    "silverthorn berries", // dexterity
-    "bramblefruit", // intelligence
-    "golden honeydew", // wisdom
-    "stonebark nuts", // constitution
-    "fireleaf herb tea", // charisma
-    "", // class
-    "", // level
-    "", // age
-    "", // weight
-    "", // height
-    "cloudblossom tea", // max psp
-    "wildroot tubers", // max hp
-    "sunvine grapes", // max mv
-    "", // gold
-    "", // exp
-    "", // unused
-    "moss ale tea", // hitroll
-    "shadowplums", // damroll
-    "glowleaf herb tea", // fort
-    "spindleweed tea", // refl
-    "nightshade berries", // will
-    "", // save poison
-    "", // save death
-    "", // spell resist
-    "", // size
-    "", // armor class
-    "", // res fire
-    "", // res cold
-    "", // res air
-    "", // res earth
-    "", // res acid
-    "", // res holy
-    "", // res electric
-    "", // res unholy
-    "", // res slashing
-    "", // res piercing
-    "", // res bludgeoning
-    "", // res sound
-    "", // res poison
-    "", // res disease
-    "", // res negative
-    "", // res illusion
-    "", // res mental
-    "", // res light
-    "", // res energy
-    "", // res water
-    "", // damage reduction
-    "", // grant feat
-    "", // skill bonus
-    "", // special
-    "", // power resist
-    "thunderroot tea", // hp regen
-    "ironbark sap tea", // mv regen
-    "starflower petal tea", // psp regen
-    "duskmint tea", // encumberance
-    "", // fast healing
-    "", // initiative
-    "", // eldritch shape
-    "", // eldricth essence
-    "", // spell circle 1
-    "", //  spell circle 2
-    "", //  spell circle 3
-    "", //  spell circle 4
-    "", //  spell circle 5
-    "", //  spell circle 6
-    "", //  spell circle 7
-    "", //  spell circle 8
-    "", //  spell circle 9
-    "", //  spell potency
-    "", //  spell dc
-    "", //  spell duration
-    "", // spell penetration
-    "", // move speed
-    "\n"
-};
+const char *apply_type_food_names[] = {"",                     // none
+                                       "mooncap mushrooms",    // strength
+                                       "silverthorn berries",  // dexterity
+                                       "bramblefruit",         // intelligence
+                                       "golden honeydew",      // wisdom
+                                       "stonebark nuts",       // constitution
+                                       "fireleaf herb tea",    // charisma
+                                       "",                     // class
+                                       "",                     // level
+                                       "",                     // age
+                                       "",                     // weight
+                                       "",                     // height
+                                       "cloudblossom tea",     // max psp
+                                       "wildroot tubers",      // max hp
+                                       "sunvine grapes",       // max mv
+                                       "",                     // gold
+                                       "",                     // exp
+                                       "",                     // unused
+                                       "moss ale tea",         // hitroll
+                                       "shadowplums",          // damroll
+                                       "glowleaf herb tea",    // fort
+                                       "spindleweed tea",      // refl
+                                       "nightshade berries",   // will
+                                       "",                     // save poison
+                                       "",                     // save death
+                                       "",                     // spell resist
+                                       "",                     // size
+                                       "",                     // armor class
+                                       "",                     // res fire
+                                       "",                     // res cold
+                                       "",                     // res air
+                                       "",                     // res earth
+                                       "",                     // res acid
+                                       "",                     // res holy
+                                       "",                     // res electric
+                                       "",                     // res unholy
+                                       "",                     // res slashing
+                                       "",                     // res piercing
+                                       "",                     // res bludgeoning
+                                       "",                     // res sound
+                                       "",                     // res poison
+                                       "",                     // res disease
+                                       "",                     // res negative
+                                       "",                     // res illusion
+                                       "",                     // res mental
+                                       "",                     // res light
+                                       "",                     // res energy
+                                       "",                     // res water
+                                       "",                     // damage reduction
+                                       "",                     // grant feat
+                                       "",                     // skill bonus
+                                       "",                     // special
+                                       "",                     // power resist
+                                       "thunderroot tea",      // hp regen
+                                       "ironbark sap tea",     // mv regen
+                                       "starflower petal tea", // psp regen
+                                       "duskmint tea",         // encumberance
+                                       "",                     // fast healing
+                                       "",                     // initiative
+                                       "",                     // eldritch shape
+                                       "",                     // eldricth essence
+                                       "",                     // spell circle 1
+                                       "",                     //  spell circle 2
+                                       "",                     //  spell circle 3
+                                       "",                     //  spell circle 4
+                                       "",                     //  spell circle 5
+                                       "",                     //  spell circle 6
+                                       "",                     //  spell circle 7
+                                       "",                     //  spell circle 8
+                                       "",                     //  spell circle 9
+                                       "",                     //  spell potency
+                                       "",                     //  spell dc
+                                       "",                     //  spell duration
+                                       "",                     // spell penetration
+                                       "",                     // move speed
+                                       "\n"};
 CHECK_TABLE_SIZE(apply_type_food_names, NUM_APPLIES + 1);
 
 // used for the forage system
 // returns true if the food item is food or false if it's a drink
-const int apply_type_food_or_drink[] = 
-{
-    TRUE, // none
-    TRUE, // strength
-    TRUE, // dexterity
-    TRUE, // intelligence
-    TRUE, // wisdom
-    TRUE, // constitution
-    FALSE, // charisma
-    TRUE, // class
-    TRUE, // level
-    TRUE, // age
-    TRUE, // weight
-    TRUE, // height
-    FALSE, // max psp
-    TRUE, // max hp
-    TRUE, // max mv
-    TRUE, // gold
-    TRUE, // exp
-    TRUE, // unused
-    FALSE, // hitroll
-    TRUE, // damroll
-    FALSE, // fort
-    FALSE, // refl
-    TRUE, // will
-    TRUE, // save poison
-    TRUE, // save death
-    TRUE, // spell resist
-    TRUE, // size
-    TRUE, // armor class
-    TRUE, // res fire
-    TRUE, // res cold
-    TRUE, // res air
-    TRUE, // res earth
-    TRUE, // res acid
-    TRUE, // res holy
-    TRUE, // res electric
-    TRUE, // res unholy
-    TRUE, // res slashing
-    TRUE, // res piercing
-    TRUE, // res bludgeoning
-    TRUE, // res sound
-    TRUE, // res poison
-    TRUE, // res disease
-    TRUE, // res negative
-    TRUE, // res illusion
-    TRUE, // res mental
-    TRUE, // res light
-    TRUE, // res energy
-    TRUE, // res water
-    TRUE, // damage reduction
-    TRUE, // grant feat
-    TRUE, // skill bonus
-    TRUE, // special
-    TRUE, // power resist
-    FALSE, // hp regen
-    FALSE, // mv regen
-    FALSE, // psp regen
-    FALSE, // encumberance
-    TRUE, // fast healing
-    TRUE, // initiative
-    TRUE, // eldritch shape
-    TRUE, // eldricth essence
-    TRUE, // spell circle 1
-    TRUE, // spell circle 2
-    TRUE, // spell circle 3
-    TRUE, // spell circle 4
-    TRUE, // spell circle 5
-    TRUE, // spell circle 6
-    TRUE, // spell circle 7
-    TRUE, // spell circle 8
-    TRUE, // spell circle 9
-    TRUE, // spell potency
-    TRUE, // spell dc
-    TRUE, // spell duration
-    TRUE, // spell penetration
-    TRUE, // move speed
-    TRUE
-};
+const int apply_type_food_or_drink[] = {TRUE,  // none
+                                        TRUE,  // strength
+                                        TRUE,  // dexterity
+                                        TRUE,  // intelligence
+                                        TRUE,  // wisdom
+                                        TRUE,  // constitution
+                                        FALSE, // charisma
+                                        TRUE,  // class
+                                        TRUE,  // level
+                                        TRUE,  // age
+                                        TRUE,  // weight
+                                        TRUE,  // height
+                                        FALSE, // max psp
+                                        TRUE,  // max hp
+                                        TRUE,  // max mv
+                                        TRUE,  // gold
+                                        TRUE,  // exp
+                                        TRUE,  // unused
+                                        FALSE, // hitroll
+                                        TRUE,  // damroll
+                                        FALSE, // fort
+                                        FALSE, // refl
+                                        TRUE,  // will
+                                        TRUE,  // save poison
+                                        TRUE,  // save death
+                                        TRUE,  // spell resist
+                                        TRUE,  // size
+                                        TRUE,  // armor class
+                                        TRUE,  // res fire
+                                        TRUE,  // res cold
+                                        TRUE,  // res air
+                                        TRUE,  // res earth
+                                        TRUE,  // res acid
+                                        TRUE,  // res holy
+                                        TRUE,  // res electric
+                                        TRUE,  // res unholy
+                                        TRUE,  // res slashing
+                                        TRUE,  // res piercing
+                                        TRUE,  // res bludgeoning
+                                        TRUE,  // res sound
+                                        TRUE,  // res poison
+                                        TRUE,  // res disease
+                                        TRUE,  // res negative
+                                        TRUE,  // res illusion
+                                        TRUE,  // res mental
+                                        TRUE,  // res light
+                                        TRUE,  // res energy
+                                        TRUE,  // res water
+                                        TRUE,  // damage reduction
+                                        TRUE,  // grant feat
+                                        TRUE,  // skill bonus
+                                        TRUE,  // special
+                                        TRUE,  // power resist
+                                        FALSE, // hp regen
+                                        FALSE, // mv regen
+                                        FALSE, // psp regen
+                                        FALSE, // encumberance
+                                        TRUE,  // fast healing
+                                        TRUE,  // initiative
+                                        TRUE,  // eldritch shape
+                                        TRUE,  // eldricth essence
+                                        TRUE,  // spell circle 1
+                                        TRUE,  // spell circle 2
+                                        TRUE,  // spell circle 3
+                                        TRUE,  // spell circle 4
+                                        TRUE,  // spell circle 5
+                                        TRUE,  // spell circle 6
+                                        TRUE,  // spell circle 7
+                                        TRUE,  // spell circle 8
+                                        TRUE,  // spell circle 9
+                                        TRUE,  // spell potency
+                                        TRUE,  // spell dc
+                                        TRUE,  // spell duration
+                                        TRUE,  // spell penetration
+                                        TRUE,  // move speed
+                                        TRUE};
 CHECK_TABLE_SIZE(apply_type_food_or_drink, NUM_APPLIES + 1);
 
 /** Matrix to show which bonus types are allowed for which apply locations */
@@ -2982,234 +2306,136 @@ CHECK_TABLE_SIZE(apply_type_food_or_drink, NUM_APPLIES + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *container_bits[] = {
-    "Closeable",
-    "Pick-Proof",
-    "Closed",
-    "Locked",
-    "\n",
+    "Closeable", "Pick-Proof", "Closed", "Locked", "\n",
 };
 CHECK_TABLE_SIZE(container_bits, NUM_CONT_FLAGS + 1);
 
 /** Describes the liquid description.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *drinks[] = {
-    "water",
-    "beer",
-    "wine",
-    "ale",
-    "dark ale",
-    "whisky",
-    "lemonade",
-    "firebreather",
-    "local speciality",
-    "slime mold juice",
-    "milk",
-    "tea",
-    "coffee",
-    "blood",
-    "salt water",
-    "clear water",
-    "\n"};
+const char *drinks[] = {"water",
+                        "beer",
+                        "wine",
+                        "ale",
+                        "dark ale",
+                        "whisky",
+                        "lemonade",
+                        "firebreather",
+                        "local speciality",
+                        "slime mold juice",
+                        "milk",
+                        "tea",
+                        "coffee",
+                        "blood",
+                        "salt water",
+                        "clear water",
+                        "\n"};
 CHECK_TABLE_SIZE(drinks, NUM_LIQ_TYPES + 1);
 
 /** Describes a one word alias for each type of liquid.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *drinknames[] = {
-    "water",
-    "beer",
-    "wine",
-    "ale",
-    "ale",
-    "whisky",
-    "lemonade",
-    "firebreather",
-    "local",
-    "juice",
-    "milk",
-    "tea",
-    "coffee",
-    "blood",
-    "salt",
-    "water",
-    "\n"};
+const char *drinknames[] = {"water",    "beer",         "wine",  "ale",   "ale",  "whisky",
+                            "lemonade", "firebreather", "local", "juice", "milk", "tea",
+                            "coffee",   "blood",        "salt",  "water", "\n"};
 CHECK_TABLE_SIZE(drinknames, NUM_LIQ_TYPES + 1);
 
 /** Define the effect of liquids on hunger, thirst, and drunkenness, in that
  * order. See values.doc for more information.
  * @pre Must be in the same order as the defines. */
-int drink_aff[][3] = {
-    {0, 1, 10},
-    {3, 2, 5},
-    {5, 2, 5},
-    {2, 2, 5},
-    {1, 2, 5},
-    {6, 1, 4},
-    {0, 1, 8},
-    {10, 0, 0},
-    {3, 3, 3},
-    {0, 4, -8},
-    {0, 3, 6},
-    {0, 1, 6},
-    {0, 1, 6},
-    {0, 2, -1},
-    {0, 1, -2},
-    {0, 0, 13}};
+int drink_aff[][3] = {{0, 1, 10}, {3, 2, 5},  {5, 2, 5},  {2, 2, 5},  {1, 2, 5}, {6, 1, 4},
+                      {0, 1, 8},  {10, 0, 0}, {3, 3, 3},  {0, 4, -8}, {0, 3, 6}, {0, 1, 6},
+                      {0, 1, 6},  {0, 2, -1}, {0, 1, -2}, {0, 0, 13}};
 
 /** Describes the color of the various drinks.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *color_liquid[] = {
-    "clear",
-    "brown",
-    "clear",
-    "brown",
-    "dark",
-    "golden",
-    "red",
-    "green",
-    "clear",
-    "light green",
-    "white",
-    "brown",
-    "black",
-    "red",
-    "clear",
-    "crystal clear",
-    "\n"};
+const char *color_liquid[] = {"clear", "brown", "clear", "brown",         "dark",  "golden",
+                              "red",   "green", "clear", "light green",   "white", "brown",
+                              "black", "red",   "clear", "crystal clear", "\n"};
 CHECK_TABLE_SIZE(color_liquid, NUM_LIQ_TYPES + 1);
 
 /** Used to describe the level of fullness of a drink container. Not used in
  * sprinttype() so no \n. */
-const char *fullness[] = {
-    "less than half ",
-    "about half ",
-    "more than half ",
-    ""};
+const char *fullness[] = {"less than half ", "about half ", "more than half ", ""};
 
-const char *portal_types[] = {
-    "Normal",
-    "Random",
-    "CheckFlags",
-    "Clanhall",
-    "\n"};
+const char *portal_types[] = {"Normal", "Random", "CheckFlags", "Clanhall", "\n"};
 
-const char *spell_schools[] = {
-    "None",
-    "Abjuration",
-    "Conjuration",
-    "Divination",
-    "Enchantment",
-    "Evocation",
-    "Illusion",
-    "Necromancy",
-    "Transmutation",
-    "\n"};
+const char *spell_schools[] = {"None",          "Abjuration", "Conjuration", "Divination",
+                               "Enchantment",   "Evocation",  "Illusion",    "Necromancy",
+                               "Transmutation", "\n"};
 CHECK_TABLE_SIZE(spell_schools, NUM_SCHOOLS + 1);
 
-const char *spell_schools_lower[] = {
-    "none",
-    "abjuration",
-    "conjuration",
-    "divination",
-    "enchantment",
-    "evocation",
-    "illusion",
-    "necromancy",
-    "transmutation",
-    "\n"};
+const char *spell_schools_lower[] = {"none",          "abjuration", "conjuration", "divination",
+                                     "enchantment",   "evocation",  "illusion",    "necromancy",
+                                     "transmutation", "\n"};
 CHECK_TABLE_SIZE(spell_schools_lower, NUM_SCHOOLS + 1);
 
 int spell_bonus[][NUM_CIRCLES + 1] = {
     // circle 0 1 2 3 4 5 6 7 8 9 10 number-circles
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // casting stat, 0
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 12
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 13
-    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 14
-    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 15
-    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 16
-    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 17
-    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, // 18
-    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, // 19
-    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0}, // 20
-    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0}, // 21
-    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0}, // 22
-    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0}, // 23
-    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0}, // 24
-    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0}, // 25
-    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0}, // 26
-    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0}, // 27
-    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0}, // 28
-    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0}, // 29
-    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0}, // 30
-    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0}, // 31
-    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0}, // 32
-    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0}, // 33
-    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0}, // 34
-    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0}, // 35
-    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0}, // 36
-    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0}, // 37
-    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0}, // 38
-    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0}, // 39
-    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0}, // 40
-    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0}, // 41
-    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0}, // 42
-    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0}, // 43
-    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0}, // 44
-    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0}, // 45
-    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0}, // 46
-    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0}, // 47
-    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, // 48
-    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, // 49
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, // 50
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}
-};
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 12
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 13
+    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 14
+    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 15
+    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},                                    // 16
+    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},                                    // 17
+    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},                                    // 18
+    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},                                    // 19
+    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0},                                    // 20
+    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0},                                    // 21
+    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0},                                    // 22
+    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0},                                    // 23
+    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0},                                    // 24
+    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0},                                    // 25
+    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0},                                    // 26
+    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0},                                    // 27
+    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0},                                    // 28
+    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0},                                    // 29
+    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0},                                    // 30
+    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0},                                    // 31
+    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0},                                    // 32
+    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0},                                    // 33
+    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0},                                    // 34
+    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0},                                    // 35
+    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0},                                    // 36
+    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0},                                    // 37
+    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0},                                    // 38
+    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0},                                    // 39
+    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0},                                    // 40
+    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0},                                    // 41
+    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0},                                    // 42
+    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0},                                    // 43
+    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0},                                    // 44
+    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0},                                    // 45
+    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0},                                    // 46
+    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0},                                    // 47
+    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0},                                    // 48
+    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0},                                    // 49
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},                                    // 50
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}};
 
 /** Strength attribute affects.
  * The fields are hit mod, damage mod, weight carried mod, and weight wielded
@@ -3322,81 +2548,36 @@ cpp_extern const struct str_app_type str_app[] = {
 cpp_extern const struct dex_skill_type dex_app_skill[] = {
     {-99, -99, -90, -99, -60}, /* dex = 0 */
     {-90, -90, -60, -90, -50}, /* dex = 1 */
-    {-80, -80, -40, -80, -45},
-    {-70, -70, -30, -70, -40},
-    {-60, -60, -30, -60, -35},
+    {-80, -80, -40, -80, -45}, {-70, -70, -30, -70, -40}, {-60, -60, -30, -60, -35},
     {-50, -50, -20, -50, -30}, /* dex = 5 */
-    {-40, -40, -20, -40, -25},
-    {-30, -30, -15, -30, -20},
-    {-20, -20, -15, -20, -15},
-    {-15, -10, -10, -20, -10},
-    {-10, -5, -10, -15, -5}, /* dex = 10 */
-    {-5, 0, -5, -10, 0},
-    {0, 0, 0, -5, 0},
-    {0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0}, /* dex = 15 */
-    {0, 5, 0, 0, 0},
-    {5, 10, 0, 5, 5},
-    {10, 15, 5, 10, 10}, /* dex = 18 */
-    {15, 20, 10, 15, 15},
-    {15, 20, 10, 15, 15}, /* dex = 20 */
-    {20, 25, 10, 15, 20},
-    {20, 25, 15, 20, 20},
-    {25, 25, 15, 20, 20},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, /* dex = 25 */
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, // 30
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, // 35
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, // 40
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, // 45
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, // 50
+    {-40, -40, -20, -40, -25}, {-30, -30, -15, -30, -20}, {-20, -20, -15, -20, -15},
+    {-15, -10, -10, -20, -10}, {-10, -5, -10, -15, -5}, /* dex = 10 */
+    {-5, 0, -5, -10, 0},       {0, 0, 0, -5, 0},          {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0},           {0, 0, 0, 0, 0},                                /* dex = 15 */
+    {0, 5, 0, 0, 0},           {5, 10, 0, 5, 5},          {10, 15, 5, 10, 10}, /* dex = 18 */
+    {15, 20, 10, 15, 15},      {15, 20, 10, 15, 15},                           /* dex = 20 */
+    {20, 25, 10, 15, 20},      {20, 25, 15, 20, 20},      {25, 25, 15, 20, 20},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25}, /* dex = 25 */
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25}, // 30
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25}, // 35
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25}, // 40
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25}, // 45
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25}, // 50
     {25, 30, 15, 25, 25},
 
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
+    {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},      {25, 30, 15, 25, 25},
 
 };
 
@@ -3540,28 +2721,8 @@ cpp_extern const struct con_app_type con_app[] = {
     {20}, // 50
     {20}, // 51
 
-    {21},
-    {21},
-    {22},
-    {22},
-    {23},
-    {23},
-    {24},
-    {24},
-    {25},
-    {25},
-    {26},
-    {26},
-    {27},
-    {27},
-    {28},
-    {28},
-    {29},
-    {29},
-    {30},
-    {30},
-    {31},
-    {31},
+    {21}, {21}, {22}, {22}, {23}, {23}, {24}, {24}, {25}, {25}, {26},
+    {26}, {27}, {27}, {28}, {28}, {29}, {29}, {30}, {30}, {31}, {31},
 };
 
 /** Intelligence attribute affects. */
@@ -3619,28 +2780,8 @@ cpp_extern const struct int_app_type int_app[] = {
     {20}, // 50
     {20}, // 51
 
-    {21},
-    {21},
-    {22},
-    {22},
-    {23},
-    {23},
-    {24},
-    {24},
-    {25},
-    {25},
-    {26},
-    {26},
-    {27},
-    {27},
-    {28},
-    {28},
-    {29},
-    {29},
-    {30},
-    {30},
-    {31},
-    {31},
+    {21}, {21}, {22}, {22}, {23}, {23}, {24}, {24}, {25}, {25}, {26},
+    {26}, {27}, {27}, {28}, {28}, {29}, {29}, {30}, {30}, {31}, {31},
 };
 
 /** Wisdom attribute affects. */
@@ -3698,28 +2839,8 @@ cpp_extern const struct wis_app_type wis_app[] = {
     {20}, // 50
     {20}, // 51
 
-    {21},
-    {21},
-    {22},
-    {22},
-    {23},
-    {23},
-    {24},
-    {24},
-    {25},
-    {25},
-    {26},
-    {26},
-    {27},
-    {27},
-    {28},
-    {28},
-    {29},
-    {29},
-    {30},
-    {30},
-    {31},
-    {31},
+    {21}, {21}, {22}, {22}, {23}, {23}, {24}, {24}, {25}, {25}, {26},
+    {26}, {27}, {27}, {28}, {28}, {29}, {29}, {30}, {30}, {31}, {31},
 };
 
 /** Charisma attribute affects. */
@@ -3777,77 +2898,31 @@ cpp_extern const struct cha_app_type cha_app[] = {
     {20}, // 50
     {20}, // 51
 
-    {21},
-    {21},
-    {22},
-    {22},
-    {23},
-    {23},
-    {24},
-    {24},
-    {25},
-    {25},
-    {26},
-    {26},
-    {27},
-    {27},
-    {28},
-    {28},
-    {29},
-    {29},
-    {30},
-    {30},
-    {31},
-    {31},
+    {21}, {21}, {22}, {22}, {23}, {23}, {24}, {24}, {25}, {25}, {26},
+    {26}, {27}, {27}, {28}, {28}, {29}, {29}, {30}, {30}, {31}, {31},
 };
 
 /* lore values */
 int lore_app[] = {
     0,  // 0
     50, // 1
-    100,
-    150,
-    200,
+    100,     150,     200,
     300, // 5
-    500,
-    1000,
-    2500,
-    3750,
+    500,     1000,    2500,    3750,
     4800, // 10
-    6500,
-    13000,
-    17000,
-    20000,
+    6500,    13000,   17000,   20000,
     30000, // 15
-    40000,
-    60000,
-    80000,
-    100000,
+    40000,   60000,   80000,   100000,
     150000, // 20
-    200000,
-    250000,
-    300000,
-    400000,
+    200000,  250000,  300000,  400000,
     500000, // 25
-    600000,
-    700000,
-    800000,
-    900000,
+    600000,  700000,  800000,  900000,
     1000000, // 30
-    1200000,
-    1400000,
-    1600000,
-    1800000,
+    1200000, 1400000, 1600000, 1800000,
     2000000, // 35
-    2200000,
-    2400000,
-    2600000,
-    2800000,
+    2200000, 2400000, 2600000, 2800000,
     3000000, // 40
-    3200000,
-    3400000,
-    3600000,
-    3800000,
+    3200000, 3400000, 3600000, 3800000,
     4000000, // 45
     4200000, // 46
     4400000, // 47
@@ -3895,452 +2970,166 @@ int lore_app[] = {
     9999999, // 89
     9999999, // 90
     9999999, // 91
-    9999999,
-    9999999,
-    9999999,
+    9999999, 9999999, 9999999,
     9999999, // 95
-    9999999,
-    9999999,
-    9999999,
-    9999999,
+    9999999, 9999999, 9999999, 9999999,
     9999999, // 100
-    9999999,
-    9999999,
-    9999999,
-    9999999,
+    9999999, 9999999, 9999999, 9999999,
     9999999, // 105
-    9999999,
-    9999999,
-    9999999,
-    9999999,
+    9999999, 9999999, 9999999, 9999999,
     9999999, // 110
 
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
+    9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999, 9999999,
     /* high value for staff etc */
 };
 
 /** Define a set of opposite directions from the cardinal directions. */
-int rev_dir[] = {
-    SOUTH,
-    WEST,
-    NORTH,
-    EAST,
-    DOWN,
-    UP,
-    SOUTHEAST,
-    SOUTHWEST,
-    NORTHWEST,
-    NORTHEAST};
+int rev_dir[] = {SOUTH, WEST, NORTH, EAST, DOWN, UP, SOUTHEAST, SOUTHWEST, NORTHWEST, NORTHEAST};
 
 /** The names of the days of the mud week. Not used in sprinttype(). */
-const char *weekdays[] = {
-    "the Day of the \tDMoon\tn",
-    "the Day of the \tMBull\tn",
-    "the Day of the \tDDeception\tn",
-    "the Day of \tbThunder\tn",
-    "the Day of \tWFreedom\tn",
-    "the Day of the \tCGreat Powers\tn",
-    "the Day of the \tYSun\tn"};
+const char *weekdays[] = {"the Day of the \tDMoon\tn",      "the Day of the \tMBull\tn",
+                          "the Day of the \tDDeception\tn", "the Day of \tbThunder\tn",
+                          "the Day of \tWFreedom\tn",       "the Day of the \tCGreat Powers\tn",
+                          "the Day of the \tYSun\tn"};
 
 /** The names of the mud months. Not used in sprinttype(). */
-const char *month_name[] = {
-    "Month of \tWWinter\tn", /* 0 */
-    "Month of the \tWWinter \tcWolf\tn",
-    "Month of the \tWFrost \tYGiant\tn",
-    "Month of the \tCOld \tDForces\tn",
-    "Month of the \twGrand \tGStruggle\tn",
-    "Month of the \tYSpr\tGing\tn",
-    "Month of \tGN\tYa\tGt\tYu\tGr\tYe\tn",
-    "Month of \tmFutility\tn",
-    "Month of the \tRDragon\tn",
-    "Month of the \tYSun\tn",
-    "Month of the \tRHe\tYat\tn",
-    "Month of the \tRBat\tDtle\tn",
-    "Month of the \tDDark \twSha\tDdes\tn",
-    "Month of the \tDS\tch\tDa\tcd\tDo\tcw\tDs\tn",
-    "Month of the \tCLong \tDShadows\tn",
-    "Month of the \tWAncient \tDDarkness\tn",
-    "Month of the \trGreat \tREvil\tn"};
+const char *month_name[] = {"Month of \tWWinter\tn", /* 0 */
+                            "Month of the \tWWinter \tcWolf\tn",
+                            "Month of the \tWFrost \tYGiant\tn",
+                            "Month of the \tCOld \tDForces\tn",
+                            "Month of the \twGrand \tGStruggle\tn",
+                            "Month of the \tYSpr\tGing\tn",
+                            "Month of \tGN\tYa\tGt\tYu\tGr\tYe\tn",
+                            "Month of \tmFutility\tn",
+                            "Month of the \tRDragon\tn",
+                            "Month of the \tYSun\tn",
+                            "Month of the \tRHe\tYat\tn",
+                            "Month of the \tRBat\tDtle\tn",
+                            "Month of the \tDDark \twSha\tDdes\tn",
+                            "Month of the \tDS\tch\tDa\tcd\tDo\tcw\tDs\tn",
+                            "Month of the \tCLong \tDShadows\tn",
+                            "Month of the \tWAncient \tDDarkness\tn",
+                            "Month of the \trGreat \tREvil\tn"};
 
 /** Names for mob trigger types. */
-const char *trig_types[] = {
-    "Global",
-    "Random",
-    "Command",
-    "Speech",
-    "Act",
-    "Death",
-    "Greet",
-    "Greet-All",
-    "Entry",
-    "Receive",
-    "Fight",
-    "HitPrcnt",
-    "Bribe",
-    "Load",
-    "Memory",
-    "Cast",
-    "Leave",
-    "Door",
-    "UNUSED",
-    "Time",
-    "\n"};
+const char *trig_types[] = {"Global", "Random",    "Command", "Speech",  "Act",   "Death",
+                            "Greet",  "Greet-All", "Entry",   "Receive", "Fight", "HitPrcnt",
+                            "Bribe",  "Load",      "Memory",  "Cast",    "Leave", "Door",
+                            "UNUSED", "Time",      "\n"};
 
 /** Names for object trigger types. */
-const char *otrig_types[] = {
-    "Global",
-    "Random",
-    "Command",
-    "UNUSED1",
-    "UNUSED2",
-    "Timer",
-    "Get",
-    "Drop",
-    "Give",
-    "Wear",
-    "UNUSED3",
-    "Remove",
-    "UNUSED4",
-    "Load",
-    "UNUSED5",
-    "Cast",
-    "Leave",
-    "UNUSED6",
-    "Consume",
-    "Time",
-    "\n"};
+const char *otrig_types[] = {"Global",  "Random", "Command", "UNUSED1", "UNUSED2", "Timer",
+                             "Get",     "Drop",   "Give",    "Wear",    "UNUSED3", "Remove",
+                             "UNUSED4", "Load",   "UNUSED5", "Cast",    "Leave",   "UNUSED6",
+                             "Consume", "Time",   "\n"};
 
 /** Names for world (room) trigger types. */
-const char *wtrig_types[] = {
-    "Global",
-    "Random",
-    "Command",
-    "Speech",
-    "UNUSED1",
-    "Zone Reset",
-    "Enter",
-    "Drop",
-    "UNUSED2",
-    "UNUSED3",
-    "UNUSED4",
-    "UNUSED5",
-    "UNUSED6",
-    "UNUSED7",
-    "UNUSED8",
-    "Cast",
-    "Leave",
-    "Door",
-    "Login",
-    "Time",
-    "\n"};
+const char *wtrig_types[] = {"Global",  "Random",  "Command", "Speech",  "UNUSED1", "Zone Reset",
+                             "Enter",   "Drop",    "UNUSED2", "UNUSED3", "UNUSED4", "UNUSED5",
+                             "UNUSED6", "UNUSED7", "UNUSED8", "Cast",    "Leave",   "Door",
+                             "Login",   "Time",    "\n"};
 
 /** The names of the different channels that history is stored for.
  * @todo Only referenced by do_history at the moment. Should be moved local
  * to that function. */
-const char *history_types[] = {
-    "all",
-    "say",
-    "gossip/chat",
-    "wiznet",
-    "tell",
-    "shout",
-    "grats",
-    "holler",
-    "auction",
-    "clantalk",
-    "\n"};
+const char *history_types[] = {"all",   "say",    "gossip/chat", "wiznet",   "tell", "shout",
+                               "grats", "holler", "auction",     "clantalk", "\n"};
 
 /** Flag names for Ideas, Bugs and Typos (defined in ibt.h) */
-const char *ibt_bits[] = {
-    "Resolved",
-    "Important",
-    "InProgress",
-    "\n"};
+const char *ibt_bits[] = {"Resolved", "Important", "InProgress", "\n"};
 
 /* NewCraft */
 /* Craft Flags */
-const char *craft_flags[] = {
-    "Needs Recipe",
-    "\n"};
+const char *craft_flags[] = {"Needs Recipe", "\n"};
 
 /* Requirement Flags */
-const char *requirement_flags[] = {
-    "INROOM",
-    "!REMOVE",
-    "SAVEonFAIL",
-    "\n"};
+const char *requirement_flags[] = {"INROOM", "!REMOVE", "SAVEonFAIL", "\n"};
 
 /* Feat types  */
-const char *feat_types[] = {
-    "none", // 0
-    "general ability",
-    "combat feat",
-    "spellcasting feat",
-    "metamagic feat",
-    "craft feat", // 5
-    "wild feat",
-    "divine feat",
-    "psionic feat",
-    "teamwork feat",
-    "class feat", // 10
-    "innate ability",
-    "domain power",
-    "performance feat", // 13
-    "\n"};
+const char *feat_types[] = {"none", // 0
+                            "general ability",
+                            "combat feat",
+                            "spellcasting feat",
+                            "metamagic feat",
+                            "craft feat", // 5
+                            "wild feat",
+                            "divine feat",
+                            "psionic feat",
+                            "teamwork feat",
+                            "class feat", // 10
+                            "innate ability",
+                            "domain power",
+                            "performance feat", // 13
+                            "\n"};
 
 const char *ability_names[] = {
-    "No-Skill",
-    "Acrobatics",
-    "Stealth",
-    "Religion",
-    "Perception",
-    "Athletics",
-    "Medicine",
-    "Intimidate",
-    "Concentration",
-    "Spellcraft",
-    "Appraise",
-    "Discipline",
-    "Total Defense",
-    "Arcana",
-    "Ride",
-    "Unused3",
-    "Unused1",
-    "History",
-    "Sleight of Hand",
-    "Unused5",
-    "Deception",
-    "Unused6",
-    "Persuasion",
-    "Disable Device",
-    "Disguise",
-    "Unused2",
-    "Handle Animal",
-    "Unused7",
-    "Insight",
-    "Nature",
-    "Unused4",
-    "Use Magic Device",
-    "Linguistics",
-    "Perform",
+    "No-Skill", "Acrobatics", "Stealth", "Religion", "Perception", "Athletics", "Medicine",
+    "Intimidate", "Concentration", "Spellcraft", "Appraise", "Discipline", "Total Defense",
+    "Arcana", "Ride", "Unused3", "Unused1", "History", "Sleight of Hand", "Unused5", "Deception",
+    "Unused6", "Persuasion", "Disable Device", "Disguise", "Unused2", "Handle Animal", "Unused7",
+    "Insight", "Nature", "Unused4", "Use Magic Device", "Linguistics", "Perform",
     /*crafting*/
-    "woodworking",
-    "tailoring",
-    "alchemy",
-    "armorsmithing",
-    "weaponsmithing",
-    "bowmaking",
-    "jewelcrafting",
-    "leatherworking",
-    "trapmaking",
-    "poisonmaking",
-    "metalworking",
-    "fishing",
-    "cooking",
-    "brewing",
+    "woodworking", "tailoring", "alchemy", "armorsmithing", "weaponsmithing", "bowmaking",
+    "jewelcrafting", "leatherworking", "trapmaking", "poisonmaking", "metalworking", "fishing",
+    "cooking", "brewing",
     // harvesting
-    "mining",
-    "hunting",
-    "forestry",
-    "gathering",
-    "\n"
-};
+    "mining", "hunting", "forestry", "gathering", "\n"};
 CHECK_TABLE_SIZE(ability_names, NUM_ABILITIES - START_GENERAL_ABILITIES + 3);
 
 #if defined(CAMPAIGN_DL)
 
-const char *languages[] =
-{
-    "common",
-    "draconic",
-    "druidic",
-    "dwarven",
-    "elven",
-    "ergot",
-    "giant",
-    "gnome",
-    "goblin",
-    "gullytalk",
-    "kenderspeak",
-    "minotaur",
-    "nerakese",
-    "ogre",
-    "plainsfolk",
-    "solamnic",
-    "sylvan",
-    "thieves cant",
-    "abanasinian",
-    "camptalk",
-    "dargoi",
-    "dargonesti",
-    "dimernesti",
-    "kalinese",
-    "kender",
-    "kothian",
-    "nordmaarian",
-    "saifhum",
-    "khur",
-    "kharolian",
-    "\n"
-};
+const char *languages[] = {
+    "common",      "draconic", "druidic",     "dwarven",    "elven",       "ergot",
+    "giant",       "gnome",    "goblin",      "gullytalk",  "kenderspeak", "minotaur",
+    "nerakese",    "ogre",     "plainsfolk",  "solamnic",   "sylvan",      "thieves cant",
+    "abanasinian", "camptalk", "dargoi",      "dargonesti", "dimernesti",  "kalinese",
+    "kender",      "kothian",  "nordmaarian", "saifhum",    "khur",        "kharolian",
+    "\n"};
 CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
 
 #else
 
-const char *languages[] =
-    {
-        "common",
-        "thieves cant",
-        "druidic",
-        "abyssal",
-        "elven",
-        "gnome",
-        "dwarven",
-        "celestial",
-        "draconic",
-        "orcish",
-        "halfling",
-        "goblin",
-        "aberration",
-        "giant",
-        "kobold",
-        "barbarian",
-        "mulhorandi",
-        "rashemi",
-        "northerner",
-        "undercommon",
-        "gnomish",
-        "aglarondan",
-        "thorass",
-        "netherese",
-        "alzhedo",
-        "mulan",
-        "chultan",
-        "chondathan",
-        "dambrathan",
-        "halruaan",
-        "illuskan",
-        "damaran",
-        "shou",
-        "guran",
-        "shaaran",
-        "midani",
-        "\n"
-};
+const char *languages[] = {
+    "common",     "thieves cant", "druidic",  "abyssal",    "elven",      "gnome",
+    "dwarven",    "celestial",    "draconic", "orcish",     "halfling",   "goblin",
+    "aberration", "giant",        "kobold",   "barbarian",  "mulhorandi", "rashemi",
+    "northerner", "undercommon",  "gnomish",  "aglarondan", "thorass",    "netherese",
+    "alzhedo",    "mulan",        "chultan",  "chondathan", "dambrathan", "halruaan",
+    "illuskan",   "damaran",      "shou",     "guran",      "shaaran",    "midani",
+    "\n"};
 CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 2);
 
 #endif
 
 #if defined(CAMPAIGN_FR)
-    const char *pantheons[] = {
-        "",
-        "All",
-        "Faerun",
-        "Dwarven",
-        "Drow",
-        "Elven",
-        "Gnome",
-        "Halfling",
-        "Orc",
-        "\n"
-    };
-    CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+const char *pantheons[] = {"",      "All",   "Faerun",   "Dwarven", "Drow",
+                           "Elven", "Gnome", "Halfling", "Orc",     "\n"};
+CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
 #elif defined(CAMPAIGN_DL)
-    const char *pantheons[] = {
-        "",
-        "All",
-        "\n"
-    };
-    CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+const char *pantheons[] = {"", "All", "\n"};
+CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
 #else
-    const char *pantheons[] = {
-        "",
-        "All",
-        "Luminari Core",
-        "Luminari Dwarven",
-        "Luminari Elven",
-        "Luminari Halfling",
-        "Luminari Orcish",
-        "Luminari Seafolk",
-        "Luminari Dark Courts",
-        "Luminari Primarchs",
-        "\n"
-    };
-    CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+const char *pantheons[] = {"",
+                           "All",
+                           "Luminari Core",
+                           "Luminari Dwarven",
+                           "Luminari Elven",
+                           "Luminari Halfling",
+                           "Luminari Orcish",
+                           "Luminari Seafolk",
+                           "Luminari Dark Courts",
+                           "Luminari Primarchs",
+                           "\n"};
+CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
 #endif
 const char *draconic_heritage_names[] = {
-    "none",
-    "black",
-    "blue",
-    "green",
-    "red",
-    "white",
-    "brass",
-    "bronze",
-    "copper",
-    "silver",
-    "gold",
+    "none", "black", "blue", "green", "red", "white", "brass", "bronze", "copper", "silver", "gold",
     "\n" // always last
 };
 CHECK_TABLE_SIZE(draconic_heritage_names, NUM_DRACONIC_HERITAGE_TYPES + 1);
@@ -4362,7 +3151,7 @@ const int draconic_heritage_energy_types[] = {
 CHECK_TABLE_SIZE(draconic_heritage_energy_types, NUM_DRACONIC_HERITAGE_TYPES + 1);
 
 const int dragon_type_specab_types[] = {
-    0,            // none
+    0,                     // none
     TYPE_SPECAB_CORROSIVE, // black
     TYPE_SPECAB_SHOCK,     // blue
     TYPE_SPECAB_POISON,    // green
@@ -4381,25 +3170,16 @@ CHECK_TABLE_SIZE(dragon_type_specab_types, NUM_DRACONIC_HERITAGE_TYPES + 1);
 const int wizard_slots[][NUM_CIRCLES + 1] = {
     //   1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0}, // 7
-    {0, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0},
-    {0, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0}, // 9
-    {0, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0},
-    {0, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0}, // 11
-    {0, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0},
-    {0, 4, 4, 4, 4, 3, 2, 1, 0, 0, 0}, // 13
-    {0, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0},
-    {0, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0}, // 15
-    {0, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0},
-    {0, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0}, // 17
-    {0, 4, 4, 4, 4, 4, 4, 3, 3, 2, 0},
-    {0, 4, 4, 4, 4, 4, 4, 4, 3, 3, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0},                                    // 5
+    {0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0}, {0, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0}, // 9
+    {0, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0}, {0, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0}, // 11
+    {0, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0}, {0, 4, 4, 4, 4, 3, 2, 1, 0, 0, 0}, // 13
+    {0, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0}, {0, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0}, // 15
+    {0, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0}, {0, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0}, // 17
+    {0, 4, 4, 4, 4, 4, 4, 3, 3, 2, 0}, {0, 4, 4, 4, 4, 4, 4, 4, 3, 3, 0},
     {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, // 20
     {0, 5, 4, 4, 4, 4, 4, 4, 4, 4, 0}, // 21
     {0, 5, 5, 4, 4, 4, 4, 4, 4, 4, 0}, // 22
@@ -4414,54 +3194,30 @@ const int wizard_slots[][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 31
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 32
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 33
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},  
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
@@ -4547,31 +3303,23 @@ const int sorcerer_slots[][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0},
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}  /* add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+     0} /* add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int bard_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
-    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
-    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
-    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
-    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
-    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
-    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
-    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 5
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0}, {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
+    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0}, {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
+    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0}, {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
+    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 20
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 21
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 22
@@ -4585,55 +3333,31 @@ const int bard_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 30
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 31
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 32
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int inquisitor_slots[][NUM_CIRCLES + 1] = {
@@ -4716,7 +3440,8 @@ const int inquisitor_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 /** known spells for sorcs **/
@@ -4792,7 +3517,8 @@ const int sorcerer_known[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0},
     {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0},
     {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0},
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 /** known invocations for warlocks **/
@@ -4864,32 +3590,24 @@ const int warlock_known[][NUM_CIRCLES + 1] = {
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 /** known spells for bards **/
 const int bard_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
-    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
-    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
-    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
-    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
-    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
-    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 5
+    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0}, {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0}, {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
+    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0}, {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
+    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0}, {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
+    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0}, {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 20
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 21
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 22
@@ -4903,72 +3621,43 @@ const int bard_known[][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 30
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 31
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 32
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 /** known spells for bards **/
 const int summoner_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
-    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
-    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
-    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
-    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
-    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
-    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 5
+    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0}, {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0}, {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
+    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0}, {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
+    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0}, {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
+    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0}, {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 20
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 21
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 22
@@ -4982,74 +3671,44 @@ const int summoner_known[][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 30
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 31
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 32
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 /** known spells for inquisitors **/
 const int inquisitor_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
-    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
-    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
-    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
-    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
-    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
-    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 5
+    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0}, {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0}, {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
+    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0}, {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
+    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0}, {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
+    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0}, {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 20
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 21
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 22
@@ -5063,39 +3722,23 @@ const int inquisitor_known[][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 30
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 31
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 32
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int ranger_slots[][NUM_CIRCLES + 1] = {
@@ -5170,7 +3813,8 @@ const int ranger_slots[][NUM_CIRCLES + 1] = {
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int paladin_slots[][NUM_CIRCLES + 1] = {
@@ -5208,39 +3852,23 @@ const int paladin_slots[][NUM_CIRCLES + 1] = {
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 30
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 31
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 32
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0},
+    {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int cleric_slots[][NUM_CIRCLES + 1] = {
@@ -5315,7 +3943,8 @@ const int cleric_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0},
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0},
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0},
-    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int druid_slots[][NUM_CIRCLES + 1] = {
@@ -5388,7 +4017,8 @@ const int druid_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0},
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0},
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0},
-    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int alchemist_slots[][NUM_CIRCLES + 1] = {
@@ -5464,32 +4094,24 @@ const int alchemist_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0,
+     0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 const int summoner_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
-    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
-    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
-    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
-    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
-    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
-    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
-    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},                                    // 5
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0}, {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0}, {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
+    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0}, {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
+    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0}, {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
+    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 20
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 21
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 22
@@ -5503,51 +4125,29 @@ const int summoner_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 30
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 31
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 32
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  /* we add a bunch because maybe bonuses make your level higher than 34 */
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0} /* we add a bunch because maybe bonuses make your level higher than 34 */
 };
 
 // (old) words to use for the spell preparation process for different classes.
@@ -5646,13 +4246,13 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                            /* warlock 28 */
     {"", "", "", ""},                                            /* necromancer 29 */
     {"", "", "", ""},                                            // knight of the solamnia 30
-    {"", "", "", ""},                                        // knight of the thorn 31
-    {"", "", "", ""},                                        // knight of the skull 32
-    {"", "", "", ""},                                        // knight of the lily 33
-    {"", "", "", ""},                                        // dragonrider 34
-    {"", "", "", ""},                                        // artificer 35
-    {"", "", "", ""},                                        // placeholder
-    {"", "", "", ""},                                        // placeholder
+    {"", "", "", ""},                                            // knight of the thorn 31
+    {"", "", "", ""},                                            // knight of the skull 32
+    {"", "", "", ""},                                            // knight of the lily 33
+    {"", "", "", ""},                                            // dragonrider 34
+    {"", "", "", ""},                                            // artificer 35
+    {"", "", "", ""},                                            // placeholder
+    {"", "", "", ""},                                            // placeholder
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -5662,9 +4262,7 @@ CHECK_TABLE_SIZE(spell_consign_dict, NUM_CLASSES);
 
 /* ... and bloodlines */
 const char *bloodline_names[] = {
-    "None",
-    "1) Draconic Bloodline",
-    "\n" /* end with this */
+    "None", "1) Draconic Bloodline", "\n" /* end with this */
 };
 
 const char *do_cast_types[][6] = {
@@ -5682,441 +4280,72 @@ const char *const faction_names[] = {"Adventurers' Guild", "", "", "", "\n"};
 const char *const faction_names_lwr[] = {"adventurers' guild", "", "", "", "\n"};
 
 const char *random_female_names[NUM_FEMALE_NAMES + 1] = {
-    "Moltalia",
-    "Kriris",
-    "Helia",
-    "Aellanil",
-    "Irorien",
-    "Homythe",
-    "Isarissa",
-    "Ismenniya",
-    "Brunpisys",
-    "Adecerys",
-    "Halorna",
-    "Elysrae",
-    "Berlila",
-    "Xyrrika",
-    "Tarue",
-    "Gallaurel",
-    "Athrainne",
-    "Sephmaya",
-    "Aviltria",
-    "Genlaerla",
-    "Iblia",
-    "Tefdue",
-    "Emelwana",
-    "Aellartha",
-    "Venlivren",
-    "Amatha",
-    "Alnoa",
-    "Genleria",
-    "Mollarue",
-    "Nayana",
-    "Carmadia",
-    "Magwalyn",
-    "Tefsario",
-    "Gaenkilia",
-    "Priwalyn",
-    "Aveledha",
-    "Melihere",
-    "Genlarue",
-    "Emilwyn",
-    "Jaclarel",
-    "Jacnys",
-    "Zelfine",
-    "Alulaela",
-    "Aalronyn",
-    "Zinvara",
-    "Elyeth",
-    "Heilseris",
-    "Johnalyn",
-    "Mirdiane",
-    "Esnor",
-    "Loralia",
-    "Selhere",
-    "Arvis",
-    "Kririona",
-    "Resrithe",
-    "Wolrith",
-    "Carmicca",
-    "Phayelynn",
-    "Fharaera",
-    "Elysmanda",
-    "Qithana",
-    "Aderaera",
-    "Joygwynn",
-    "Emnaril",
-    "Salorna",
-    "Suslaema",
-    "Merlaurel",
-    "Saelgwynn",
-    "Emilrila",
-    "Athris",
-    "Darkaen",
-    "Athris",
-    "Eblynna",
-    "Nanlurie",
-    "Niwalyn",
-    "Elisfaen",
-    "Jenbrae",
-    "Teflaema",
-    "Heillyrra",
-    "Hawrue",
-    "Alurolia",
-    "Jislaema",
-    "Edelsynora",
-    "Alerue",
-    "Evellia",
-    "Isasia",
-    "Naziar",
-    "Jenerana",
-    "Ibradyl",
-    "Jennalore",
-    "Jehrith",
-    "Milisala",
-    "Jacnesia",
-    "Sephsynora",
-    "Nortora",
-    "Amrika",
-    "Harsarda",
-    "Amkaala",
-    "Avilphenee",
-    "Berlia",
-    "Vickaen",
-    "Avilahne",
-    "Nalaurel",
-    "Atheelor",
-    "Ophilira",
-    "Ismendyl",
-    "Ninesra",
-    "Saradyl",
-    "Jintora",
-    "Manqarin",
-    "\n"};
+    "Moltalia",   "Kriris",    "Helia",      "Aellanil",  "Irorien",   "Homythe",    "Isarissa",
+    "Ismenniya",  "Brunpisys", "Adecerys",   "Halorna",   "Elysrae",   "Berlila",    "Xyrrika",
+    "Tarue",      "Gallaurel", "Athrainne",  "Sephmaya",  "Aviltria",  "Genlaerla",  "Iblia",
+    "Tefdue",     "Emelwana",  "Aellartha",  "Venlivren", "Amatha",    "Alnoa",      "Genleria",
+    "Mollarue",   "Nayana",    "Carmadia",   "Magwalyn",  "Tefsario",  "Gaenkilia",  "Priwalyn",
+    "Aveledha",   "Melihere",  "Genlarue",   "Emilwyn",   "Jaclarel",  "Jacnys",     "Zelfine",
+    "Alulaela",   "Aalronyn",  "Zinvara",    "Elyeth",    "Heilseris", "Johnalyn",   "Mirdiane",
+    "Esnor",      "Loralia",   "Selhere",    "Arvis",     "Kririona",  "Resrithe",   "Wolrith",
+    "Carmicca",   "Phayelynn", "Fharaera",   "Elysmanda", "Qithana",   "Aderaera",   "Joygwynn",
+    "Emnaril",    "Salorna",   "Suslaema",   "Merlaurel", "Saelgwynn", "Emilrila",   "Athris",
+    "Darkaen",    "Athris",    "Eblynna",    "Nanlurie",  "Niwalyn",   "Elisfaen",   "Jenbrae",
+    "Teflaema",   "Heillyrra", "Hawrue",     "Alurolia",  "Jislaema",  "Edelsynora", "Alerue",
+    "Evellia",    "Isasia",    "Naziar",     "Jenerana",  "Ibradyl",   "Jennalore",  "Jehrith",
+    "Milisala",   "Jacnesia",  "Sephsynora", "Nortora",   "Amrika",    "Harsarda",   "Amkaala",
+    "Avilphenee", "Berlia",    "Vickaen",    "Avilahne",  "Nalaurel",  "Atheelor",   "Ophilira",
+    "Ismendyl",   "Ninesra",   "Saradyl",    "Jintora",   "Manqarin",  "\n"};
 
 const char *random_male_names[NUM_MALE_NAMES + 1] = {
-    "Rimir",
-    "Isemzaphir",
-    "Adadeyr",
-    "Donseith",
-    "Viclen",
-    "Danlaith",
-    "Andorr",
-    "Xanparin",
-    "Meiluin",
-    "Hilphon",
-    "Gabfire",
-    "Panlas",
-    "Malnall",
-    "Ummon",
-    "Geofril",
-    "Adadriel",
-    "Audvoril",
-    "Piervendor",
-    "Arbyran",
-    "Micstaer",
-    "Crisrion",
-    "Yenhorn",
-    "Umphar",
-    "Rotduin",
-    "Gibword",
-    "Xanlisar",
-    "Wislather",
-    "Faltharal",
-    "Gibnan",
-    "Jeffinas",
-    "Raynaith",
-    "Falrian",
-    "Jaqulas",
-    "Lorneiros",
-    "Crawarith",
-    "Falnik",
-    "Josetharal",
-    "Jarnik",
-    "Zylnos",
-    "Tanyeras",
-    "Hamorin",
-    "Ingtaor",
-    "Xavindel",
-    "Havemus",
-    "Haphanis",
-    "Chrisrian",
-    "Eddithas",
-    "Godred",
-    "Wyros",
-    "Tybbyran",
-    "Krinaril",
-    "Danendyl",
-    "Malcuryll",
-    "Brimanas",
-    "Tosariph",
-    "Audruil",
-    "Graroth",
-    "Frankas",
-    "Jaquladon",
-    "Reimrion",
-    "Gaerluin",
-    "Emsin",
-    "Chrisrym",
-    "Eirzaphir",
-    "Pierthorn",
-    "Ridal",
-    "Maugtorin",
-    "Danzaphir",
-    "Niklas",
-    "Thommir",
-    "Valvoril",
-    "Abesan",
-    "Sarfaerd",
-    "Uanelor",
-    "Malcuqarim",
-    "Simcraes",
-    "Adakoris",
-    "Tanlando",
-    "Sanluin",
-    "Rogelumin",
-    "Adefyndar",
-    "Wilfalen",
-    "Quoril",
-    "Rotrach",
-    "Ferfin",
-    "Raimrym",
-    "Berqarim",
-    "Maugdal",
-    "Hamril",
-    "Nycorath",
-    "Rogerith",
-    "Inglan",
-    "Vilrym",
-    "Horneak",
-    "Arred",
-    "Hillen",
-    "Gabrath",
-    "Higthath",
-    "Wimxian",
-    "Aalnalor",
-    "Lanceneak",
-    "Sylmede",
-    "Kevlather",
-    "Quotevar",
-    "Geofvendor",
-    "Nicfyr",
-    "Watamar",
-    "Jacfyndar",
-    "Kevxiron",
-    "\n"};
+    "Rimir",     "Isemzaphir", "Adadeyr",   "Donseith",   "Viclen",     "Danlaith",  "Andorr",
+    "Xanparin",  "Meiluin",    "Hilphon",   "Gabfire",    "Panlas",     "Malnall",   "Ummon",
+    "Geofril",   "Adadriel",   "Audvoril",  "Piervendor", "Arbyran",    "Micstaer",  "Crisrion",
+    "Yenhorn",   "Umphar",     "Rotduin",   "Gibword",    "Xanlisar",   "Wislather", "Faltharal",
+    "Gibnan",    "Jeffinas",   "Raynaith",  "Falrian",    "Jaqulas",    "Lorneiros", "Crawarith",
+    "Falnik",    "Josetharal", "Jarnik",    "Zylnos",     "Tanyeras",   "Hamorin",   "Ingtaor",
+    "Xavindel",  "Havemus",    "Haphanis",  "Chrisrian",  "Eddithas",   "Godred",    "Wyros",
+    "Tybbyran",  "Krinaril",   "Danendyl",  "Malcuryll",  "Brimanas",   "Tosariph",  "Audruil",
+    "Graroth",   "Frankas",    "Jaquladon", "Reimrion",   "Gaerluin",   "Emsin",     "Chrisrym",
+    "Eirzaphir", "Pierthorn",  "Ridal",     "Maugtorin",  "Danzaphir",  "Niklas",    "Thommir",
+    "Valvoril",  "Abesan",     "Sarfaerd",  "Uanelor",    "Malcuqarim", "Simcraes",  "Adakoris",
+    "Tanlando",  "Sanluin",    "Rogelumin", "Adefyndar",  "Wilfalen",   "Quoril",    "Rotrach",
+    "Ferfin",    "Raimrym",    "Berqarim",  "Maugdal",    "Hamril",     "Nycorath",  "Rogerith",
+    "Inglan",    "Vilrym",     "Horneak",   "Arred",      "Hillen",     "Gabrath",   "Higthath",
+    "Wimxian",   "Aalnalor",   "Lanceneak", "Sylmede",    "Kevlather",  "Quotevar",  "Geofvendor",
+    "Nicfyr",    "Watamar",    "Jacfyndar", "Kevxiron",   "\n"};
 
 const char *random_surnames[NUM_SURNAMES + 1] = {
-    "Luven",
-    "Keanala",
-    "Miafiel",
-    "Sylna",
-    "Baldi",
-    "Kealynn",
-    "Dafir",
-    "Ianroris",
-    "Vaqen",
-    "Chaerel",
-    "Adhice",
-    "Umerieth",
-    "Holamys",
-    "Elhorn",
-    "Elzorwyn",
-    "Omamenor",
-    "Facan",
-    "Traneiros",
-    "Loranelis",
-    "Faerie",
-    "Nerihice",
-    "Elarona",
-    "Naezorwyn",
-    "Vafina",
-    "Reyxalim",
-    "Virzorwyn",
-    "Uriran",
-    "Daeharice",
-    "Heleren",
-    "Carzorwyn",
-    "Heirieth",
-    "Balleth",
-    "Xyrsatra",
-    "Xyrphyra",
-    "Qinthana",
-    "Inakian",
-    "Iarris",
-    "Gretumal",
-    "Aephyra",
-    "Lukas",
-    "Leonan",
-    "Bryfina",
-    "Qira",
-    "Reywarin",
-    "Philynn",
-    "Miraran",
-    "Valar",
-    "Liatris",
-    "Magthyra",
-    "Loralynn",
-    "Zumwarin",
-    "Iarfir",
-    "Farona",
-    "Zinnan",
-    "Waesneiros",
-    "Tramenor",
-    "Yingolor",
-    "Petthyra",
-    "Leomaer",
-    "Kriscan",
-    "Heisys",
-    "Engella",
-    "Faran",
-    "Ravazorwyn",
-    "Jofaren",
-    "Keyynore",
-    "Ilisandoral",
-    "Perran",
-    "Faemaris",
-    "Yllatoris",
-    "Paceran",
-    "Carrona",
-    "Rovaris",
-    "Syltris",
-    "Fenkalyn",
-    "Vencyne",
-    "Ralojyre",
-    "Zinmaer",
-    "Shaphine",
-    "Herjor",
-    "Araro",
-    "Keafiel",
-    "Zinfiel",
-    "Ianrel",
-    "Reyzumin",
-    "Olacyne",
-    "Ilijor",
-    "Bibanise",
-    "Genris",
-    "Raloynore",
-    "Keacaryn",
-    "Kelkian",
-    "Yllakalyn",
-    "Uriqirelle",
-    "Thelana",
-    "Venzeiros",
-    "Quihorn",
-    "Naedi",
-    "Xyrwenys",
-    "Dazana",
-    "Jorora",
-    "Xilzana",
-    "Yinyarus",
-    "Ianstina",
-    "Gilydark",
-    "Daxisys",
-    "Qinfiel",
-    "Patris",
-    "Phiric",
-    "Ulaphyra",
-    "Nornan",
-    "Sarroris",
-    "Wysaqirelle",
-    "Ravasatra",
-    "Preshice",
-    "Uladove",
-    "Beibanise",
-    "Erjeon",
-    "Lialen",
-    "Hervalur",
-    "Uririeth",
-    "Chaenan",
-    "Sylberos",
-    "Ulaneiros",
-    "Daephine",
-    "Glynlee",
-    "Trisnelis",
-    "Xiltoris",
-    "Naevaris",
-    "Cragella",
-    "Trisfir",
-    "Fafaren",
-    "Shalamin",
-    "Yllacan",
-    "Farkalyn",
-    "Dorjor",
-    "Naezeiros",
-    "Glynmys",
-    "Quidi",
-    "Caizeiros",
-    "Enxidor",
-    "Crafina",
-    "Elharice",
-    "Xyrmenor",
-    "Olobanise",
-    "Kealamin",
-    "Liarieth",
-    "Leoyra",
-    "Eildi",
-    "Oloxina",
-    "Encaryn",
-    "Heitris",
-    "Leoquinal",
-    "Oloro",
-    "Bimoira",
-    "Xyrrona",
-    "Magwarin",
-    "Virxalim",
-    "Prestumal",
-    "Vageiros",
-    "Chaemenor",
-    "Zinyra",
-    "Fenzana",
-    "Waesbella",
-    "Lurie",
-    "Genthyra",
-    "Liagolor",
-    "Xyrralei",
-    "Leohorn",
-    "Mirajeon",
-    "Genydark",
-    "Eilralei",
-    "Reyxina",
-    "Vendan",
-    "Zingeiros",
-    "Bixisys",
-    "Olajeon",
-    "Glynsalor",
-    "Kelfina",
-    "Wranro",
-    "Hercaryn",
-    "Helemyar",
-    "Yeszeiros",
-    "Keyna",
-    "Chaeran",
-    "Qinjyre",
-    "Oripeiros",
-    "Varoris",
-    "Erlamin",
-    "Trisdan",
-    "Patoris",
-    "Venlynn",
-    "Omanala",
-    "Kelmenor",
-    "Petra",
-    "Carfaren",
-    "Trisstina",
-    "Gilnan",
-    "Cargella",
-    "Liathana",
-    "Olocaryn",
-    "Gilzorwyn",
-    "Brywenys",
-    "Lorawraek",
-    "Gilgolor",
-    "Inaven",
-    "Jona",
-    "Quisalor",
-    "Cracaryn",
-    "Heixina",
+    "Luven",       "Keanala",   "Miafiel",    "Sylna",       "Baldi",     "Kealynn",    "Dafir",
+    "Ianroris",    "Vaqen",     "Chaerel",    "Adhice",      "Umerieth",  "Holamys",    "Elhorn",
+    "Elzorwyn",    "Omamenor",  "Facan",      "Traneiros",   "Loranelis", "Faerie",     "Nerihice",
+    "Elarona",     "Naezorwyn", "Vafina",     "Reyxalim",    "Virzorwyn", "Uriran",     "Daeharice",
+    "Heleren",     "Carzorwyn", "Heirieth",   "Balleth",     "Xyrsatra",  "Xyrphyra",   "Qinthana",
+    "Inakian",     "Iarris",    "Gretumal",   "Aephyra",     "Lukas",     "Leonan",     "Bryfina",
+    "Qira",        "Reywarin",  "Philynn",    "Miraran",     "Valar",     "Liatris",    "Magthyra",
+    "Loralynn",    "Zumwarin",  "Iarfir",     "Farona",      "Zinnan",    "Waesneiros", "Tramenor",
+    "Yingolor",    "Petthyra",  "Leomaer",    "Kriscan",     "Heisys",    "Engella",    "Faran",
+    "Ravazorwyn",  "Jofaren",   "Keyynore",   "Ilisandoral", "Perran",    "Faemaris",   "Yllatoris",
+    "Paceran",     "Carrona",   "Rovaris",    "Syltris",     "Fenkalyn",  "Vencyne",    "Ralojyre",
+    "Zinmaer",     "Shaphine",  "Herjor",     "Araro",       "Keafiel",   "Zinfiel",    "Ianrel",
+    "Reyzumin",    "Olacyne",   "Ilijor",     "Bibanise",    "Genris",    "Raloynore",  "Keacaryn",
+    "Kelkian",     "Yllakalyn", "Uriqirelle", "Thelana",     "Venzeiros", "Quihorn",    "Naedi",
+    "Xyrwenys",    "Dazana",    "Jorora",     "Xilzana",     "Yinyarus",  "Ianstina",   "Gilydark",
+    "Daxisys",     "Qinfiel",   "Patris",     "Phiric",      "Ulaphyra",  "Nornan",     "Sarroris",
+    "Wysaqirelle", "Ravasatra", "Preshice",   "Uladove",     "Beibanise", "Erjeon",     "Lialen",
+    "Hervalur",    "Uririeth",  "Chaenan",    "Sylberos",    "Ulaneiros", "Daephine",   "Glynlee",
+    "Trisnelis",   "Xiltoris",  "Naevaris",   "Cragella",    "Trisfir",   "Fafaren",    "Shalamin",
+    "Yllacan",     "Farkalyn",  "Dorjor",     "Naezeiros",   "Glynmys",   "Quidi",      "Caizeiros",
+    "Enxidor",     "Crafina",   "Elharice",   "Xyrmenor",    "Olobanise", "Kealamin",   "Liarieth",
+    "Leoyra",      "Eildi",     "Oloxina",    "Encaryn",     "Heitris",   "Leoquinal",  "Oloro",
+    "Bimoira",     "Xyrrona",   "Magwarin",   "Virxalim",    "Prestumal", "Vageiros",   "Chaemenor",
+    "Zinyra",      "Fenzana",   "Waesbella",  "Lurie",       "Genthyra",  "Liagolor",   "Xyrralei",
+    "Leohorn",     "Mirajeon",  "Genydark",   "Eilralei",    "Reyxina",   "Vendan",     "Zingeiros",
+    "Bixisys",     "Olajeon",   "Glynsalor",  "Kelfina",     "Wranro",    "Hercaryn",   "Helemyar",
+    "Yeszeiros",   "Keyna",     "Chaeran",    "Qinjyre",     "Oripeiros", "Varoris",    "Erlamin",
+    "Trisdan",     "Patoris",   "Venlynn",    "Omanala",     "Kelmenor",  "Petra",      "Carfaren",
+    "Trisstina",   "Gilnan",    "Cargella",   "Liathana",    "Olocaryn",  "Gilzorwyn",  "Brywenys",
+    "Lorawraek",   "Gilgolor",  "Inaven",     "Jona",        "Quisalor",  "Cracaryn",   "Heixina",
     "\n"};
 
 int racial_spells[NUM_RACES][3] = {
@@ -6184,67 +4413,97 @@ int racial_spells[NUM_RACES][3] = {
 };
 
 const char *class_short_descriptions[] = {
-    "A skilled user of magic whose knowledge of the arcane is unmatched.",                                         // wizard
-    "A servant of a deity whose divine magic is unparalled.",                                                      // cleric
-    "A skilled agent who strikes from the shadows and is skilled in many areas",                                   // rogue
-    "A master of weapons, armor and maximizing the use of both in battle.",                                        // warrior
-    "A disciplined warrior who has mastered the mind and body and can kill with just their fist.",                 // monk
-    "A keeper of the wild using spells and the ability to shapechange into many different creatures.",             // druid
-    "A wild warrior who relies on brute strength and their ability to enter a battle rage.",                       // berserker
-    "An arcane spell master who gains his ability from mystical sources, offering spellcasting prowess and more.", // sorcerer
-    "A righteous warrior who protects the innocent with spells, weapons, and as a champion against evil.",         // paladin
-    "A woodland warrior who is master of the bow and dual weapons, and specializes against specific foes.",        // ranger
-    "A jack-of-all-trades who combines magic with their party-boosting songs and performances.",                   // bard
-    "A master of specific weapons who, while wielding them, is without equal in their use.",                       // weaponmaster
-    "A master archer who combines spellcasting with the bow.",                                                     // arcane archer
-    "A defensive specialist who stands against the fray while protecting their allies.",                           // stalwart defender
-    "A master shapechanger who can take the form of many powerful entities.",                                      // shifter
-    "A master of the single blade, they are deadly on both the offensive and defensive.",                          // duelist
-    "A powerful spellcaster who combines the use of both divine and arcane mystic arts.",                          // mystic theurge
-    "A brilliant inventor whose magical concoctions, mutagens and bombs, make him a fearsome & deadly foe.",       // alchemist
-    "A shadowy spellcaster who combines stealth and magic to defeat their foes unawares.",                         // arcane shadow
-    "A master of unarmed combat and divine magic whose fists blaze with burning flame.",                           // sacred fist
-    "A warrior spellcaster whose weapon allows them to swiftly barrage their enemy with arcane magics.",           // eldritch knight
-    "A master of the mind who can manipulate reality and destroy his foes with psionic power.",                    // psionicist
-    "An arcane warrior who imbues his weapon with magic to unleash on his enemies with each blow.",                // spellsword
-    "A master of shadow and stealth who can meld easily with the shadows and even bring them to life.",            // shadowdancer
-    "An agent of evil who stamps out the righteous, and all who stand in his way, with blade and divine magic.",   // blackguard
-    "A hired killed whose ability to observe and plan spell doom for his enemies without ever showing his face.",  // assassin
-    "An agent of the divine who tracks down his deity's enemies and judges them with weapons and spells.",         // inquisitor
-    "An arcane spellcaster who has mastered the art of conjuring and who controls a powerful eidolon follower.",   // summoner
-    "A savvy invoker who has dominated the arcane through sheer force of will and dark pacts.",                    // warlock
-    "A master of the arcane and necromantic arts, able to take upon them the powers of undeath.",                  // necromancer
+    "A skilled user of magic whose knowledge of the arcane is "
+    "unmatched.",                                             // wizard
+    "A servant of a deity whose divine magic is unparalled.", // cleric
+    "A skilled agent who strikes from the shadows and is skilled in "
+    "many areas", // rogue
+    "A master of weapons, armor and maximizing the use of both in "
+    "battle.", // warrior
+    "A disciplined warrior who has mastered the mind and body and "
+    "can kill with just their fist.", // monk
+    "A keeper of the wild using spells and the ability to "
+    "shapechange into many different creatures.", // druid
+    "A wild warrior who relies on brute strength and their ability "
+    "to enter a battle rage.", // berserker
+    "An arcane spell master who gains his ability from mystical "
+    "sources, offering spellcasting prowess and more.", // sorcerer
+    "A righteous warrior who protects the innocent with spells, "
+    "weapons, and as a champion against evil.", // paladin
+    "A woodland warrior who is master of the bow and dual weapons, "
+    "and specializes against specific foes.", // ranger
+    "A jack-of-all-trades who combines magic with their "
+    "party-boosting songs and performances.", // bard
+    "A master of specific weapons who, while wielding them, is "
+    "without equal in their use.",                             // weaponmaster
+    "A master archer who combines spellcasting with the bow.", // arcane archer
+    "A defensive specialist who stands against the fray while "
+    "protecting their allies.", // stalwart defender
+    "A master shapechanger who can take the form of many powerful "
+    "entities.", // shifter
+    "A master of the single blade, they are deadly on both the "
+    "offensive and defensive.", // duelist
+    "A powerful spellcaster who combines the use of both divine and "
+    "arcane mystic arts.", // mystic theurge
+    "A brilliant inventor whose magical concoctions, mutagens and "
+    "bombs, make him a fearsome & deadly foe.", // alchemist
+    "A shadowy spellcaster who combines stealth and magic to defeat "
+    "their foes unawares.", // arcane shadow
+    "A master of unarmed combat and divine magic whose fists blaze "
+    "with burning flame.", // sacred fist
+    "A warrior spellcaster whose weapon allows them to swiftly "
+    "barrage their enemy with arcane magics.", // eldritch knight
+    "A master of the mind who can manipulate reality and destroy his "
+    "foes with psionic power.", // psionicist
+    "An arcane warrior who imbues his weapon with magic to unleash "
+    "on his enemies with each blow.", // spellsword
+    "A master of shadow and stealth who can meld easily with the "
+    "shadows and even bring them to life.", // shadowdancer
+    "An agent of evil who stamps out the righteous, and all who "
+    "stand in his way, with blade and divine magic.", // blackguard
+    "A hired killed whose ability to observe and plan spell doom for "
+    "his enemies without ever showing his face.", // assassin
+    "An agent of the divine who tracks down his deity's enemies and "
+    "judges them with weapons and spells.", // inquisitor
+    "An arcane spellcaster who has mastered the art of conjuring and "
+    "who controls a powerful eidolon follower.", // summoner
+    "A savvy invoker who has dominated the arcane through sheer "
+    "force of will and dark pacts.", // warlock
+    "A master of the arcane and necromantic arts, able to take upon "
+    "them the powers of undeath.", // necromancer
 #ifdef CAMPAIGN_DL
     /* DragonLance theme - Combined Knights of Solamnia */
-    "A combined order of the Knights of Solamnia, progressing through Crown, Sword and Rose virtues.",            // knight of solamnia
-    "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
-    "The clerical order of the Knights of Takhisis, they serve as diplomats and internal enforcers.",             // knight of the skull
-    "The rank and file of the Knights of Takhisis and main force of their military.",                             // knight of the lily
+    "A combined order of the Knights of Solamnia, progressing "
+    "through Crown, Sword and Rose virtues.", // knight of solamnia
+    "The arcane order of the Knights of Takhisis, clad in armor and "
+    "adhering to a strict code of honor.", // knight of the thorn
+    "The clerical order of the Knights of Takhisis, they serve as "
+    "diplomats and internal enforcers.", // knight of the skull
+    "The rank and file of the Knights of Takhisis and main force of "
+    "their military.", // knight of the lily
 #else
     /* LuminariMUD theme - Combined Order of the Luminous Thread */
-    "Oath-warriors who weave reality through vows, progressing from initiate to master weaver.",                 // knight of the luminous thread
-    "Masters of paradox blending arcane magic with martial prowess through illusion.",                            // knight of the shattered mirror (thorn)
-    "Death-priests wielding negative divine energy, serving as arbiters of death's justice.",                     // knight of the pale throne (skull)
-    "Primal warriors embracing their beast nature, guardians of civilization's boundary.",                        // knight of the howling moon (lily)
+    "Oath-warriors who weave reality through vows, progressing from "
+    "initiate to master weaver.", // knight of the luminous thread
+    "Masters of paradox blending arcane magic with martial prowess "
+    "through illusion.", // knight of the shattered mirror (thorn)
+    "Death-priests wielding negative divine energy, serving as "
+    "arbiters of death's justice.", // knight of the pale throne (skull)
+    "Primal warriors embracing their beast nature, guardians of "
+    "civilization's boundary.", // knight of the howling moon (lily)
 #endif
-    "A skilled warrior whose bond with their dragon mount offers numerous special abilities.",                    // dragonrider
-    "A brilliant inventor whose creations cancause destruction, protection and more.",                           // artificer
-    "", // placeholder
-    "", // placeholder
+    "A skilled warrior whose bond with their dragon mount offers "
+    "numerous special abilities.", // dragonrider
+    "A brilliant inventor whose creations cancause destruction, "
+    "protection and more.", // artificer
+    "",                     // placeholder
+    "",                     // placeholder
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
 
-const char *mold_accessories[] = {
-    "ring",
-    "bracer",
-    "belt",
-    "boots",
-    "gloves",
-    "necklace",
-    "cloak",
-    "\n"
-};
+const char *mold_accessories[] = {"ring",   "bracer",   "belt",  "boots",
+                                  "gloves", "necklace", "cloak", "\n"};
 
 const char *goto_zones[NUM_GOTO_ZONES + 1][2] = {
     {"tentowns", "602093"},
@@ -6333,262 +4592,137 @@ const char *asciimap_points[NUM_MAP_POINTS + 1][2] = {
 };
 
 const char *ascii_webmap_colors[NUM_ROOM_SECTORS + 1] = {
-    "black",
-    "grey",
-    "lightgreen",
-    "green",
-    "brown",
-    "darkred",
-    "blue",
-    "blue",
-    "pink",
-    "blue",
-    "red",
-    "#FFC300",
-    "#FFC300",
-    "#FFC300",
-    "yellow",
-    "blue",
-    "violet",
-    "crimson",
-    "pink",
-    "pink",
-    "pink",
-    "pink",
-    "pink",
-    "pink",
-    "pink",
-    "crimson",
-    "#FFC300",
-    "#FFC300",
-    "#FFC300",
-    "grey",
-    "lightgreen",
-    "lightgrey",
-    "olive",
-    "orange",
-    "red",
-    "yellow",
-    "cyan",
-    "\n"};
+    "black",  "grey",    "lightgreen", "green",   "brown",   "darkred", "blue",       "blue",
+    "pink",   "blue",    "red",        "#FFC300", "#FFC300", "#FFC300", "yellow",     "blue",
+    "violet", "crimson", "pink",       "pink",    "pink",    "pink",    "pink",       "pink",
+    "pink",   "crimson", "#FFC300",    "#FFC300", "#FFC300", "grey",    "lightgreen", "lightgrey",
+    "olive",  "orange",  "red",        "yellow",  "cyan",    "\n"};
 
 const char *sector_map_letters[NUM_ROOM_SECTORS + 1] = {
-    "i", "C", ",", "Y", "^", "m", "~", "=", "^", "U", "X",
-    "|", "-", "+", ".", "o", "`", "M", ".", "Y", "C", "i",
-    "~", "=", "^", "]", "|", "-", "+", "C", "&", ".", "A",
-    ":", "*", "?", "~",
-    "\n"};
+    "i", "C", ",", "Y", "^", "m", "~", "=", "^", "U", "X", "|", "-", "+", ".", "o", "`", "M", ".",
+    "Y", "C", "i", "~", "=", "^", "]", "|", "-", "+", "C", "&", ".", "A", ":", "*", "?", "~", "\n"};
 
 #if defined(CAMPAIGN_DL)
 // region names
-const char *regions[] = {
-    "none",
-    "Abanasinia",
-    "Balifor",
-    "Blode",
-    "Blood Sea Isles",
-    "Enstar",
-    "Estwilde",
-    "Goodlund",
-    "Hylo",
-    "Kayolin",
-    "Khur",
-    "Lemish",
-    "Nightlund",
-    "Nordmaar",
-    "Northern Ergoth",
-    "Nostar",
-    "Qualinesti",
-    "Sancrist Isle",
-    "Schallsea",
-    "Silvanesti",
-    "Solamnia",
-    "Southern Ergoth",
-    "Taman Busuk",
-    "Tarsis",
-    "Teyr",
-    "Thorbardin",
-    "Outer Planes",
-    "\n"
-};
+const char *regions[] = {"none",
+                         "Abanasinia",
+                         "Balifor",
+                         "Blode",
+                         "Blood Sea Isles",
+                         "Enstar",
+                         "Estwilde",
+                         "Goodlund",
+                         "Hylo",
+                         "Kayolin",
+                         "Khur",
+                         "Lemish",
+                         "Nightlund",
+                         "Nordmaar",
+                         "Northern Ergoth",
+                         "Nostar",
+                         "Qualinesti",
+                         "Sancrist Isle",
+                         "Schallsea",
+                         "Silvanesti",
+                         "Solamnia",
+                         "Southern Ergoth",
+                         "Taman Busuk",
+                         "Tarsis",
+                         "Teyr",
+                         "Thorbardin",
+                         "Outer Planes",
+                         "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
 
-const char *cities[] = {
-    "None",
-    "Palanthas",
-    "Sanction",
-    "Solace",
-    "Caergoth",
-    "Solanthus",
-    "Thelgaard",
-    "Neraka",
-    "Morning_Dew",
-    "Tarsis",
-    "Qualinost",
-    "Kendermore",
-    "\n"
-};
+const char *cities[] = {"None",      "Palanthas",  "Sanction", "Solace",      "Caergoth",
+                        "Solanthus", "Thelgaard",  "Neraka",   "Morning_Dew", "Tarsis",
+                        "Qualinost", "Kendermore", "\n"};
 CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
 
-const char *factions[] = {
-    "None",
-    "Forces of Whitestone",
-    "Dragonarmies",
-    "Independant",
-    "\n"
-};
+const char *factions[] = {"None", "Forces of Whitestone", "Dragonarmies", "Independant", "\n"};
 CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
 
 #elif defined(CAMPAIGN_FR)
 // region names
-const char *regions[] = {
-    "none",
-    "Aglarond",
-    "Amn",
-    "Anauroch Desert",
-    "Calimshan",
-    "Chessenta",
-    "Chult",
-    "Cormyr",
-    "Dambrath",
-    "Elfharrow",
-    "Evermeet",
-    "Halruaa",
-    "Icewind Dale",
-    "Impiltur",
-    "Kara-Tur",
-    "Luiren",
-    "Luruar",
-    "Mulhorand",
-    "Rashemen",
-    "Sembia",
-    "Tethyr",
-    "Thay",
-    "Thesk",
-    "The Cold Lands",
-    "The Dalelands",
-    "The Hordelands",
-    "The Lake of Steam",
-    "The Moonsea",
-    "The Savage Frontier",
-    "The Sword Coast",
-    "The Underdark",
-    "Turmish",
-    "Tymanther",
-    "Unther",
-    "Westgate",
-    "Zakhara",
-    "Outer Planes",
-    "\n"};
+const char *regions[] = {"none",
+                         "Aglarond",
+                         "Amn",
+                         "Anauroch Desert",
+                         "Calimshan",
+                         "Chessenta",
+                         "Chult",
+                         "Cormyr",
+                         "Dambrath",
+                         "Elfharrow",
+                         "Evermeet",
+                         "Halruaa",
+                         "Icewind Dale",
+                         "Impiltur",
+                         "Kara-Tur",
+                         "Luiren",
+                         "Luruar",
+                         "Mulhorand",
+                         "Rashemen",
+                         "Sembia",
+                         "Tethyr",
+                         "Thay",
+                         "Thesk",
+                         "The Cold Lands",
+                         "The Dalelands",
+                         "The Hordelands",
+                         "The Lake of Steam",
+                         "The Moonsea",
+                         "The Savage Frontier",
+                         "The Sword Coast",
+                         "The Underdark",
+                         "Turmish",
+                         "Tymanther",
+                         "Unther",
+                         "Westgate",
+                         "Zakhara",
+                         "Outer Planes",
+                         "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
 
-const char *factions[] = {
-    "None",
-    "The Order",
-    "Darklings",
-    "Criminals",
-    "\n"
-};
+const char *factions[] = {"None", "The Order", "Darklings", "Criminals", "\n"};
 CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
 
-const char *cities[] = {
-    "None",
-    "Luskan",
-    "\n"
-};
+const char *cities[] = {"None", "Luskan", "\n"};
 CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
 #else
 // region names
-const char *regions[] = {
-    "none",
-    "Ashenport",
-    "Sanctus",
-    "Onduis",
-    "Selerish",
-    "Carstan",
-    "Axtros",
-    "Hir",
-    "Quechian",
-    "Vailand",
-    "Oorpii",
-    "Kellust",
-    "East Ubdina",
-    "West Ubdina",
-    "\n"};
+const char *regions[] = {"none",    "Ashenport", "Sanctus",     "Onduis",      "Selerish",
+                         "Carstan", "Axtros",    "Hir",         "Quechian",    "Vailand",
+                         "Oorpii",  "Kellust",   "East Ubdina", "West Ubdina", "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
 
-const char *factions[] = {
-    "None",
-    "The Order",
-    "Darklings",
-    "Criminals",
-    "\n"
-};
+const char *factions[] = {"None", "The Order", "Darklings", "Criminals", "\n"};
 CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
 
-const char *cities[] = {
-    "None",
-    "Ashenport",
-    "Sanctus",
-    "\n"
-};
+const char *cities[] = {"None", "Ashenport", "Sanctus", "\n"};
 CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
 
 #endif
-    const int evolution_points[] = {
-        0,
-        3, // 1
-        4,
-        5,
-        7,
-        8, // 5
-        9,
-        10,
-        11,
-        13,
-        14, // 10
-        15,
-        16,
-        17,
-        19,
-        20, // 15
-        21,
-        22,
-        23,
-        25,
-        26, // 20
-        27,
-        29,
-        30,
-        32,
-        33, // 25
-        35,
-        36,
-        38,
-        39,
-        41, // 30
-        42,
-        44,
-        45,
-        47};
+const int evolution_points[] = {0,
+                                3, // 1
+                                4,  5,  7,
+                                8, // 5
+                                9,  10, 11, 13,
+                                14, // 10
+                                15, 16, 17, 19,
+                                20, // 15
+                                21, 22, 23, 25,
+                                26, // 20
+                                27, 29, 30, 32,
+                                33, // 25
+                                35, 36, 38, 39,
+                                41, // 30
+                                42, 44, 45, 47};
 CHECK_TABLE_SIZE(evolution_points, LVL_IMPL + 1);
 
-const char *dr_aligns[] = {
-    "",
-    "good",
-    "evil",
-    "lawful",
-    "chaotic"
-};
+const char *dr_aligns[] = {"", "good", "evil", "lawful", "chaotic"};
 
-const char *eidolon_base_form_names[] = {
-    "",
-    "Avian",
-    "Biped",
-    "Quadroped",
-    "Serpentine",
-    "Tauric"
-};
+const char *eidolon_base_form_names[] = {"", "Avian", "Biped", "Quadroped", "Serpentine", "Tauric"};
 
 const char *eidolon_base_form_descs[] = {
     "",
@@ -6596,19 +4730,11 @@ const char *eidolon_base_form_descs[] = {
     "+2 Natural AC, Great Fortitude, Iron Will, Claws, +6 Str, +4 Dex, +4 Con",
     "+2 Natural AC, Great Fortitude, Lightning Reflexes, Bite, +6 Str, +6 Dex, +4 Con",
     "+2 Natural AC, Lightning Reflexes, Iron Will, Bite, Tail Slap, +4 Str, +6 Dex, +4 Con",
-    "+2 Natural AC, Great Fortitude, Iron Will, Hooves, +4 Str, +2 Dex, +6 Con"
-};
+    "+2 Natural AC, Great Fortitude, Iron Will, Hooves, +4 Str, +2 Dex, +6 Con"};
 
-const char * dragon_bond_types[] = {
-    "",
-    "Dragon Champion",
-    "Dragon Scion",
-    "Dragon Kin",
-    ""
-};
+const char *dragon_bond_types[] = {"", "Dragon Champion", "Dragon Scion", "Dragon Kin", ""};
 
-const char *character_rp_goal_objectives[] =
-{
+const char *character_rp_goal_objectives[] = {
     "",
     "Win the heart of a certain person",
     "Discover the identity of an important person",
@@ -6630,11 +4756,9 @@ const char *character_rp_goal_objectives[] =
     "Discover your own true identity as an important person",
     "Learn important knowledge that has been concealed or locked away",
     "Foil the plans of a specific deity",
-    "\n"
-};
+    "\n"};
 
-const char *character_rp_goal_reasons[] =
-{
+const char *character_rp_goal_reasons[] = {
     "",
     "A deep-seated desire to be loved",
     "A pathological need to be appreciated or admired",
@@ -6656,11 +4780,9 @@ const char *character_rp_goal_reasons[] =
     "An inexplicable compulsion that's probably related to childhood somehow",
     "Gain experience in a skill for a particular task",
     "A deity told you to",
-    "\n"
-};
+    "\n"};
 
-const char *character_rp_goal_complications[] =
-{
+const char *character_rp_goal_complications[] = {
     "",
     "It's all a big misunderstanding",
     "A rival is interested in the same thing",
@@ -6682,349 +4804,242 @@ const char *character_rp_goal_complications[] =
     "Doing so would break an important treaty",
     "It has literally never been done before",
     "An involved deity's followers are powerful obstacles",
-    "\n"
-};
+    "\n"};
 
-const char *crafting_materials[] = {
-    "",
-    "copper",
-    "tin",
-    "bronze",
-    "iron",
-    "coal",
-    "steel",
-    "cold iron",
-    "alchemical silver",
-    "mithril",
-    "adamantite",
-    "silver",
-    "gold",
-    "platinum",
-    "dragonmetal",
-    "dragonscale",
-    "dragonbone",
-    "low grade hide",
-    "medium grade hide",
-    "high grade hide",
-    "pristine grade hide",
-    "ash wood",
-    "maple wood",
-    "mahagony wood",
-    "valenwood",
-    "ironwood",
-    "hemp",
-    "wool",
-    "linen",
-    "satin",
-    "silk",
-    "zinc",
-    "cotton",
-    "brass",
-    "flax",
-    "bone",
-    "stone",
-    "\n"
-};
+const char *crafting_materials[] = {"",
+                                    "copper",
+                                    "tin",
+                                    "bronze",
+                                    "iron",
+                                    "coal",
+                                    "steel",
+                                    "cold iron",
+                                    "alchemical silver",
+                                    "mithril",
+                                    "adamantite",
+                                    "silver",
+                                    "gold",
+                                    "platinum",
+                                    "dragonmetal",
+                                    "dragonscale",
+                                    "dragonbone",
+                                    "low grade hide",
+                                    "medium grade hide",
+                                    "high grade hide",
+                                    "pristine grade hide",
+                                    "ash wood",
+                                    "maple wood",
+                                    "mahagony wood",
+                                    "valenwood",
+                                    "ironwood",
+                                    "hemp",
+                                    "wool",
+                                    "linen",
+                                    "satin",
+                                    "silk",
+                                    "zinc",
+                                    "cotton",
+                                    "brass",
+                                    "flax",
+                                    "bone",
+                                    "stone",
+                                    "\n"};
 CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
 
-const char *crafting_material_descriptions[] = {
-    "",
-    "copper",
-    "tin",
-    "bronze",
-    "iron",
-    "coal",
-    "steel",
-    "cold iron",
-    "alchemical silver",
-    "mithril",
-    "adamantite",
-    "silver",
-    "gold",
-    "platinum",
-    "dragonmetal",
-    "dragonscale",
-    "dragonbone",
-    "leather",
-    "leather",
-    "leather",
-    "leather",
-    "ash",
-    "maple",
-    "mahagony",
-    "valenwood",
-    "ironwood",
-    "hemp",
-    "wool",
-    "linen",
-    "satin",
-    "silk",
-    "zinc",
-    "cotton",
-    "brass",
-    "flax",
-    "bone",
-    "stone",
-    "\n"
-};
+const char *crafting_material_descriptions[] = {"",
+                                                "copper",
+                                                "tin",
+                                                "bronze",
+                                                "iron",
+                                                "coal",
+                                                "steel",
+                                                "cold iron",
+                                                "alchemical silver",
+                                                "mithril",
+                                                "adamantite",
+                                                "silver",
+                                                "gold",
+                                                "platinum",
+                                                "dragonmetal",
+                                                "dragonscale",
+                                                "dragonbone",
+                                                "leather",
+                                                "leather",
+                                                "leather",
+                                                "leather",
+                                                "ash",
+                                                "maple",
+                                                "mahagony",
+                                                "valenwood",
+                                                "ironwood",
+                                                "hemp",
+                                                "wool",
+                                                "linen",
+                                                "satin",
+                                                "silk",
+                                                "zinc",
+                                                "cotton",
+                                                "brass",
+                                                "flax",
+                                                "bone",
+                                                "stone",
+                                                "\n"};
 CHECK_TABLE_SIZE(crafting_material_descriptions, NUM_CRAFT_MATS + 1);
 
-const char *crafting_material_nodes[] = {
-    "",
-    "a vein of copper ore",
-    "a vein of tin ore",
-    "bronze",
-    "a vein of iron ore",
-    "a deposit of coal",
-    "steel",
-    "cold iron",
-    "alchemical silver",
-    "a vein of mithril ore",
-    "a vein of adamantite ore",
-    "a vein of silver ore",
-    "a vein of gold ore",
-    "a vein of platinum ore",
-    "dragonmetal",
-    "dragonscale",
-    "dragonbone",
-    "the tracks of tiny game",
-    "the tracks of small game",
-    "the tracks of medium game",
-    "the tracks of large game",
-    "a cluster of ash trees",
-    "a cluster of maple trees",
-    "a cluster of mahagony trees",
-    "a cluster of valenwood trees",
-    "a cluster of ironwood trees",
-    "a patch of hemp plants",
-    "a herd of wild sheep",
-    "a patch of flax plants",
-    "satin",
-    "a growth of silk worms",
-    "a vein of zinc ore",
-    "a patch of cotton plants",
-    "brass",
-    "a patch of flax plants",
-    "bone",
-    "a stone quarry",
-    "\n"
-};
+const char *crafting_material_nodes[] = {"",
+                                         "a vein of copper ore",
+                                         "a vein of tin ore",
+                                         "bronze",
+                                         "a vein of iron ore",
+                                         "a deposit of coal",
+                                         "steel",
+                                         "cold iron",
+                                         "alchemical silver",
+                                         "a vein of mithril ore",
+                                         "a vein of adamantite ore",
+                                         "a vein of silver ore",
+                                         "a vein of gold ore",
+                                         "a vein of platinum ore",
+                                         "dragonmetal",
+                                         "dragonscale",
+                                         "dragonbone",
+                                         "the tracks of tiny game",
+                                         "the tracks of small game",
+                                         "the tracks of medium game",
+                                         "the tracks of large game",
+                                         "a cluster of ash trees",
+                                         "a cluster of maple trees",
+                                         "a cluster of mahagony trees",
+                                         "a cluster of valenwood trees",
+                                         "a cluster of ironwood trees",
+                                         "a patch of hemp plants",
+                                         "a herd of wild sheep",
+                                         "a patch of flax plants",
+                                         "satin",
+                                         "a growth of silk worms",
+                                         "a vein of zinc ore",
+                                         "a patch of cotton plants",
+                                         "brass",
+                                         "a patch of flax plants",
+                                         "bone",
+                                         "a stone quarry",
+                                         "\n"};
 CHECK_TABLE_SIZE(crafting_material_nodes, NUM_CRAFT_MATS + 1);
 
-const char *harvesting_messages[] = {
-    "",
-    "mining a vein of copper ore",
-    "mining a vein of tin ore",
-    "bronze",
-    "mining a vein of iron ore",
-    "mining a deposit of coal",
-    "steel",
-    "cold iron",
-    "alchemical silver",
-    "mining a vein of mithril ore",
-    "mining a vein of adamantite ore",
-    "mining a vein of silver ore",
-    "mining a vein of gold ore",
-    "mining a vein of platinum ore",
-    "dragonmetal",
-    "dragonscale",
-    "dragonbone",
-    "hunting the tracks of tiny game",
-    "hunting the tracks of small game",
-    "hunting the tracks of medium game",
-    "hunting the tracks of large game",
-    "logging a cluster of ash trees",
-    "logging a cluster of maple trees",
-    "logging a cluster of mahagony trees",
-    "logging a cluster of valenwood trees",
-    "logging a cluster of ironwood trees",
-    "gathering a patch of hemp plants",
-    "shearing a herd of wild sheep",
-    "gathering a patch of flax plants",
-    "satin",
-    "harvesting a growth of silk worms",
-    "mining a vein of zinc ore",
-    "gathering a patch of cotton plants",
-    "brass",
-    "gathering a patch of flax plants",
-    "bone",
-    "quarrying stone",
-    "\n"
-};
+const char *harvesting_messages[] = {"",
+                                     "mining a vein of copper ore",
+                                     "mining a vein of tin ore",
+                                     "bronze",
+                                     "mining a vein of iron ore",
+                                     "mining a deposit of coal",
+                                     "steel",
+                                     "cold iron",
+                                     "alchemical silver",
+                                     "mining a vein of mithril ore",
+                                     "mining a vein of adamantite ore",
+                                     "mining a vein of silver ore",
+                                     "mining a vein of gold ore",
+                                     "mining a vein of platinum ore",
+                                     "dragonmetal",
+                                     "dragonscale",
+                                     "dragonbone",
+                                     "hunting the tracks of tiny game",
+                                     "hunting the tracks of small game",
+                                     "hunting the tracks of medium game",
+                                     "hunting the tracks of large game",
+                                     "logging a cluster of ash trees",
+                                     "logging a cluster of maple trees",
+                                     "logging a cluster of mahagony trees",
+                                     "logging a cluster of valenwood trees",
+                                     "logging a cluster of ironwood trees",
+                                     "gathering a patch of hemp plants",
+                                     "shearing a herd of wild sheep",
+                                     "gathering a patch of flax plants",
+                                     "satin",
+                                     "harvesting a growth of silk worms",
+                                     "mining a vein of zinc ore",
+                                     "gathering a patch of cotton plants",
+                                     "brass",
+                                     "gathering a patch of flax plants",
+                                     "bone",
+                                     "quarrying stone",
+                                     "\n"};
 CHECK_TABLE_SIZE(harvesting_messages, NUM_CRAFT_MATS + 1);
 
-const char *crafting_types[] = {
-    "",
-    "weapon",
-    "armor",
-    "misc",
-    "instrument",
-    "golem",
-    "\n"
-};
+const char *crafting_types[] = {"", "weapon", "armor", "misc", "instrument", "golem", "\n"};
 CHECK_TABLE_SIZE(crafting_types, NUM_CRAFT_TYPES + 1);
 
-const char *crafting_misc_types[] = {
-    "",
-    "ring",
-    "necklace",
-    "bracelet",
-    "earring",
-    "glasses",
-    "boots",
-    "gloves",
-    "cloak",
-    "belt",
-    "mask",
-    "pauldrons",
-    "anklet",
-    "\n"
-};
+const char *crafting_misc_types[] = {"",        "ring",      "necklace", "bracelet", "earring",
+                                     "glasses", "boots",     "gloves",   "cloak",    "belt",
+                                     "mask",    "pauldrons", "anklet",   "\n"};
 CHECK_TABLE_SIZE(crafting_misc_types, NUM_CRAFT_MISC_TYPES + 1);
 
-const char *crafting_instrument_types[] = {
-    "",
-    "lyre",
-    "flute",
-    "horn",
-    "harp",
-    "drum",
-    "mandolin",
-    "\n"
-};
+const char *crafting_instrument_types[] = {"",     "lyre", "flute",    "horn",
+                                           "harp", "drum", "mandolin", "\n"};
 CHECK_TABLE_SIZE(crafting_instrument_types, NUM_CRAFT_INSTRUMENT_TYPES + 1);
 
-const char *crafting_material_groups[] = {
-    "",
-    "hard metals",
-    "soft metals",
-    "animal hides",
-    "wood",
-    "cloth",
-    "refining",
-    "resizing",
-    "stone",
-    "\n"
-};
+const char *crafting_material_groups[] = {"",      "hard metals", "soft metals", "animal hides",
+                                          "wood",  "cloth",       "refining",    "resizing",
+                                          "stone", "\n"};
 CHECK_TABLE_SIZE(crafting_material_groups, NUM_CRAFT_GROUPS + 1);
 
-const char *crafting_motes [] = {
-    "",
-    "air mote",
-    "dark mote",
-    "earth mote",
-    "fire mote",
-    "ice mote",
-    "light mote",
-    "lightning mote",
-    "water mote",
-    ""
-};
+const char *crafting_motes[] = {"",           "air mote", "dark mote",  "earth mote",
+                                "fire mote",  "ice mote", "light mote", "lightning mote",
+                                "water mote", ""};
 
-const char *crafting_methods [] = {
-    "",
-    "crafting",
-    "surveying",
-    "harvesting",
-    "refining",
-    "resizing",
-    "doing a supplyorder",
-    "\n"
-};
+const char *crafting_methods[] = {"",         "crafting", "surveying",           "harvesting",
+                                  "refining", "resizing", "doing a supplyorder", "\n"};
 
-const char *crafting_methods_short [] = {
-    "",
-    "craft",
-    "survey",
-    "harvest",
-    "refine",
-    "resize",
-    "supplyorder",
-    "\n"
-};
+const char *crafting_methods_short[] = {"",       "craft",  "survey",      "harvest",
+                                        "refine", "resize", "supplyorder", "\n"};
 
-const char *campaigns [] = {
-    "Default (Luminari)",
-    "Dragonlance",
-    "Forgotten Realms",
-    "\n"
-};
+const char *campaigns[] = {"Default (Luminari)", "Dragonlance", "Forgotten Realms", "\n"};
 
-const char * bag_system_options [] = {
-    "Use container objects",
-    "Use virtual bags",
-    "\n"
-};
+const char *bag_system_options[] = {"Use container objects", "Use virtual bags", "\n"};
 
-const char * crafting_system_options [] = {
-    "None",
-    "Use crystals and crafting kits",
-    "Use elemental motes and crafting menu",
-    "\n"
-};
+const char *crafting_system_options[] = {"None", "Use crystals and crafting kits",
+                                         "Use elemental motes and crafting menu", "\n"};
 
-const char * landmark_system_options [] = {
-    "None",
-    "City landmarks only",
-    "World map landmarks",
-    "\n"
-};
+const char *landmark_system_options[] = {"None", "City landmarks only", "World map landmarks",
+                                         "\n"};
 
-const char * new_player_gear_options [] = {
+const char *new_player_gear_options[] = {
     "Luminari style with generic items and crafting kit + teleporter",
-    "Different items for each class",
-    "\n"
-};
+    "Different items for each class", "\n"};
 
-const char * allow_cexchange_options [] = {
-    "No",
-    "Yes",
-    "\n"
-};
+const char *allow_cexchange_options[] = {"No", "Yes", "\n"};
 
-const char * wilderness_system_options [] = {
-    "No Wilderness (ROads only)",
-    "Manually Created",
-    "Algorithm-Created (WildEdit Tool)",
-    "\n"
-};
+const char *wilderness_system_options[] = {"No Wilderness (ROads only)", "Manually Created",
+                                           "Algorithm-Created (WildEdit Tool)", "\n"};
 
-const char * exp_option [] = {
-    "Full",
-    "Reduced",
-    "None",
-    "\n"
-};
+const char *exp_option[] = {"Full", "Reduced", "None", "\n"};
 
-const char * spellcasting_time_options [] = {
-    "1 standard action",
-    "Individual spell times in seconds",
-    "\n"
-};
+const char *spellcasting_time_options[] = {"1 standard action", "Individual spell times in seconds",
+                                           "\n"};
 
 /* Artificer Weird Science progression table */
 const struct weird_science_level weird_science_table[] = {
-    {1,  {1, 0, 0, 0}},   /* 1st level */
-    {2,  {2, 0, 0, 0}},   /* 2nd level */
-    {3,  {2, 1, 0, 0}},   /* 3rd level */
-    {4,  {3, 1, 0, 0}},   /* 4th level */
-    {5,  {3, 1, 1, 0}},   /* 5th level */
-    {6,  {3, 2, 1, 0}},   /* 6th level */
-    {7,  {3, 2, 2, 0}},   /* 7th level */
-    {8,  {4, 2, 2, 0}},   /* 8th level */
-    {9,  {4, 3, 2, 0}},   /* 9th level */
-    {10, {4, 3, 3, 0}},   /* 10th level */
-    {11, {4, 3, 3, 1}},   /* 11th level */
-    {12, {5, 4, 3, 1}},   /* 12th level */
-    {13, {5, 4, 4, 1}},   /* 13th level */
-    {14, {5, 4, 4, 2}},   /* 14th level */
-    {15, {5, 5, 4, 2}},   /* 15th level */
-    {16, {5, 5, 4, 3}},   /* 16th level */
-    {17, {5, 5, 5, 3}},   /* 17th level */
-    {18, {5, 5, 5, 4}},   /* 18th level */
-    {19, {5, 5, 5, 4}},   /* 19th level */
-    {20, {5, 5, 5, 5}},   /* 20th level */
-    {-1, {0, 0, 0, 0}}    /* End marker */
+    {1, {1, 0, 0, 0}},  /* 1st level */
+    {2, {2, 0, 0, 0}},  /* 2nd level */
+    {3, {2, 1, 0, 0}},  /* 3rd level */
+    {4, {3, 1, 0, 0}},  /* 4th level */
+    {5, {3, 1, 1, 0}},  /* 5th level */
+    {6, {3, 2, 1, 0}},  /* 6th level */
+    {7, {3, 2, 2, 0}},  /* 7th level */
+    {8, {4, 2, 2, 0}},  /* 8th level */
+    {9, {4, 3, 2, 0}},  /* 9th level */
+    {10, {4, 3, 3, 0}}, /* 10th level */
+    {11, {4, 3, 3, 1}}, /* 11th level */
+    {12, {5, 4, 3, 1}}, /* 12th level */
+    {13, {5, 4, 4, 1}}, /* 13th level */
+    {14, {5, 4, 4, 2}}, /* 14th level */
+    {15, {5, 5, 4, 2}}, /* 15th level */
+    {16, {5, 5, 4, 3}}, /* 16th level */
+    {17, {5, 5, 5, 3}}, /* 17th level */
+    {18, {5, 5, 5, 4}}, /* 18th level */
+    {19, {5, 5, 5, 4}}, /* 19th level */
+    {20, {5, 5, 5, 5}}, /* 20th level */
+    {-1, {0, 0, 0, 0}}  /* End marker */
 };
 
 /* --- End of constants arrays. --- */

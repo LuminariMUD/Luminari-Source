@@ -40,7 +40,7 @@ Only enable dynamic resource descriptions for the Luminari campaign initially:
 #endif
 ```
 
-**Rationale**: 
+**Rationale**:
 - Dragonlance and Forgotten Realms maintain their established atmospheric feel
 - Allows testing and refinement in Luminari before expanding
 - Respects different campaign aesthetics and expectations
@@ -77,24 +77,24 @@ Only enable dynamic resource descriptions for the Luminari campaign initially:
    ```c
    // Early regeneration
    "The first tender shoots of spring grass pierce through last autumn's fallen leaves."
-   
+
    // Mid regeneration  
-   "Vibrant green growth fills the spaces between mature trees, creating a layered 
+   "Vibrant green growth fills the spaces between mature trees, creating a layered
    tapestry of forest life."
-   
+
    // Full recovery
-   "This grove pulses with abundant life, every surface alive with moss, lichen, 
+   "This grove pulses with abundant life, every surface alive with moss, lichen,
    and climbing vines."
    ```
 
 2. **Subtle Interaction Traces**
    ```c
    // Recent harvesting (natural, not accusatory)
-   "Fresh stumps mark where trees recently stood, leaving sun-dappled clearings 
+   "Fresh stumps mark where trees recently stood, leaving sun-dappled clearings
    where forest creatures now gather."
-   
+
    // Mining activity (descriptive, not judgmental)
-   "Smooth-carved stone faces show where skilled hands have carefully extracted 
+   "Smooth-carved stone faces show where skilled hands have carefully extracted
    precious minerals, leaving geometric patterns in the rock."
    ```
 
@@ -113,13 +113,13 @@ Only enable dynamic resource descriptions for the Luminari campaign initially:
    ```c
    // Spring with good water + recovering vegetation
    "Meltwater feeds eager new growth as the forest awakens from winter's rest."
-   
+
    // Summer with low water + established vegetation  
-   "Ancient trees cast deep shadows over sun-baked earth, their deep roots finding 
+   "Ancient trees cast deep shadows over sun-baked earth, their deep roots finding
    hidden water sources."
-   
+
    // Autumn with abundant resources
-   "The forest blazes with color as trees prepare for winter, dropping nuts and 
+   "The forest blazes with color as trees prepare for winter, dropping nuts and
    seeds across the fertile soil."
    ```
 
@@ -137,15 +137,15 @@ Only enable dynamic resource descriptions for the Luminari campaign initially:
 1. **Micro-Ecosystem Details**
    ```c
    // High biodiversity areas
-   "Butterflies dance between wildflowers while songbirds call from hidden nests 
+   "Butterflies dance between wildflowers while songbirds call from hidden nests
    in the dense canopy above."
-   
+
    // Recovering areas
-   "Small creatures rustle through the undergrowth, their presence a sign of the 
+   "Small creatures rustle through the undergrowth, their presence a sign of the
    area's returning vitality."
-   
+
    // Quiet/sparse areas
-   "The landscape stretches in peaceful solitude, marked only by the whisper of 
+   "The landscape stretches in peaceful solitude, marked only by the whisper of
    wind through sparse vegetation."
    ```
 
@@ -169,19 +169,19 @@ char *generate_luminari_wilderness_description(struct char_data *ch, room_rnum r
     float vegetation_level = get_resource_depletion_level(room, RESOURCE_VEGETATION);
     float mineral_level = get_resource_depletion_level(room, RESOURCE_MINERALS);
     float water_level = get_resource_depletion_level(room, RESOURCE_WATER);
-    
+
     // Generate base landscape description
     char *base_desc = get_terrain_base_description(room, vegetation_level);
-    
+
     // Layer in resource-specific details
     add_vegetation_details(base_desc, vegetation_level, get_season());
     add_geological_details(base_desc, mineral_level, terrain_type);
     add_water_features(base_desc, water_level, elevation);
-    
+
     // Add temporal and atmospheric elements
     add_temporal_atmosphere(base_desc, time_of_day, weather);
     add_wildlife_presence(base_desc, vegetation_level, water_level);
-    
+
     return base_desc;
 }
 ```

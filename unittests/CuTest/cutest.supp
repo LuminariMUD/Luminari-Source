@@ -1,0 +1,38 @@
+# Valgrind Suppression File for CuTest Framework
+# These leaks are in the test harness, not the code under test
+
+{
+   cutest_string_new
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:CuStringNew
+   ...
+}
+
+{
+   cutest_suite_new
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:CuSuiteNew
+   ...
+}
+
+{
+   cutest_test_new
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:CuTestNew
+   ...
+}
+
+{
+   cutest_string_append_indirect
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:realloc
+   fun:CuStringResize
+   ...
+}

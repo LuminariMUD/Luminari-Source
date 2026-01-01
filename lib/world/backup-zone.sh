@@ -22,5 +22,3 @@ for ext in wld mob obj zon trg shp qst hlq; do
 done
 
 echo "Zone ${ZONE} backed up to ${BACKUP_DIR}"
-
-

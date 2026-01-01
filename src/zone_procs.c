@@ -32,8 +32,10 @@
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
 static room_rnum castle_real_room(room_vnum roomoffset);
-static struct char_data *find_npc_by_name(struct char_data *chAtChar, const char *pszName, int iLen);
-static int block_way(struct char_data *ch, int cmd, char *arg, room_vnum iIn_room, int iProhibited_direction);
+static struct char_data *find_npc_by_name(struct char_data *chAtChar, const char *pszName,
+                                          int iLen);
+static int block_way(struct char_data *ch, int cmd, char *arg, room_vnum iIn_room,
+                     int iProhibited_direction);
 static int member_of_staff(struct char_data *chChar);
 static int member_of_royal_guard(struct char_data *chChar);
 static struct char_data *find_guard(struct char_data *chAtChar);
@@ -42,7 +44,8 @@ static int banzaii(struct char_data *ch);
 static int is_trash(struct obj_data *i);
 static void fry_victim(struct char_data *ch);
 static int castle_cleaner(struct char_data *ch, int cmd, int gripe);
-static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum, const char *twinname);
+static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum,
+                            const char *twinname);
 static void castle_mob_spec(mob_vnum mobnum, SPECIAL_DECL(*specproc));
 
 /* end head of file */
@@ -190,8 +193,7 @@ static int member_of_royal_guard(struct char_data *chChar)
 
 /* Function: find_npc_by_name. Returns a pointer to an npc by the given name.
  * Used by Tim and Tom. */
-static struct char_data *find_npc_by_name(struct char_data *chAtChar,
-                                          const char *pszName, int iLen)
+static struct char_data *find_npc_by_name(struct char_data *chAtChar, const char *pszName, int iLen)
 {
   struct char_data *ch;
 
@@ -262,8 +264,8 @@ static int banzaii(struct char_data *ch)
   if (!AWAKE(ch) || FIGHTING(ch) || !(chOpponent = get_victim(ch)))
     return (FALSE);
 
-  act("$n roars: 'Protect the Kingdom of Great King Welmar!  BANZAIIII!!!'",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n roars: 'Protect the Kingdom of Great King Welmar!  BANZAIIII!!!'", FALSE, ch, 0, 0,
+      TO_ROOM);
   hit(ch, chOpponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   return (TRUE);
 }
@@ -275,8 +277,7 @@ int do_npc_rescue(struct char_data *ch_hero, struct char_data *ch_victim)
   struct char_data *ch_bad_guy;
 
   for (ch_bad_guy = world[IN_ROOM(ch_hero)].people;
-       ch_bad_guy && (FIGHTING(ch_bad_guy) != ch_victim);
-       ch_bad_guy = ch_bad_guy->next_in_room)
+       ch_bad_guy && (FIGHTING(ch_bad_guy) != ch_victim); ch_bad_guy = ch_bad_guy->next_in_room)
     ;
 
   /* NO WAY I'll rescue the one I'm fighting! */
@@ -284,8 +285,7 @@ int do_npc_rescue(struct char_data *ch_hero, struct char_data *ch_victim)
     return (FALSE);
 
   act("You bravely rescue $N.\r\n", FALSE, ch_hero, 0, ch_victim, TO_CHAR);
-  act("You are rescued by $N!\r\n",
-      FALSE, ch_victim, 0, ch_hero, TO_CHAR);
+  act("You are rescued by $N!\r\n", FALSE, ch_victim, 0, ch_hero, TO_CHAR);
   act("$n heroically rescues $N.", FALSE, ch_hero, 0, ch_victim, TO_NOTVICT);
 
   if (FIGHTING(ch_bad_guy))
@@ -383,11 +383,10 @@ SPECIAL(king_welmar)
 {
   char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
-  const char *monolog[] = {
-      "$n proclaims 'Primus in regnis Geticis coronam'.",
-      "$n proclaims 'regiam gessi, subiique regis'.",
-      "$n proclaims 'munus et mores colui sereno'.",
-      "$n proclaims 'principe dignos'."};
+  const char *monolog[] = {"$n proclaims 'Primus in regnis Geticis coronam'.",
+                           "$n proclaims 'regiam gessi, subiique regis'.",
+                           "$n proclaims 'munus et mores colui sereno'.",
+                           "$n proclaims 'principe dignos'."};
 
   static const char bedroom_path[] = "s33004o1c1S.";
   static const char throne_path[] = "W3o3cG52211rg.";
@@ -418,8 +417,7 @@ SPECIAL(king_welmar)
       path_index = 0;
     }
   }
-  if (cmd || (GET_POS(ch) < POS_SLEEPING) ||
-      (GET_POS(ch) == POS_SLEEPING && !move))
+  if (cmd || (GET_POS(ch) < POS_SLEEPING) || (GET_POS(ch) == POS_SLEEPING && !move))
     return (FALSE);
 
   if (FIGHTING(ch))
@@ -578,7 +576,8 @@ SPECIAL(training_master)
 
   case 6:
     act("$n clumsily tries to kick $N, but misses.", FALSE, pupil1, 0, pupil2, TO_NOTVICT);
-    act("You clumsily miss $N with your poor excuse for a kick.", FALSE, pupil1, 0, pupil2, TO_CHAR);
+    act("You clumsily miss $N with your poor excuse for a kick.", FALSE, pupil1, 0, pupil2,
+        TO_CHAR);
     act("$n fails an unusually clumsy attempt at kicking you.", FALSE, pupil1, 0, pupil2, TO_VICT);
     break;
 
@@ -602,7 +601,8 @@ SPECIAL(tim)
 }
 
 /* Common routine for the Castle Twins. */
-static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum, const char *twinname)
+static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum,
+                            const char *twinname)
 {
   struct char_data *king, *twin;
 
@@ -654,8 +654,8 @@ static int castle_cleaner(struct char_data *ch, int cmd, int gripe)
 
     if (gripe)
     {
-      act("$n says: 'My oh my!  I ought to fire that lazy cleaning woman!'",
-          FALSE, ch, 0, 0, TO_ROOM);
+      act("$n says: 'My oh my!  I ought to fire that lazy cleaning woman!'", FALSE, ch, 0, 0,
+          TO_ROOM);
       act("$n picks up a piece of trash.", FALSE, ch, 0, 0, TO_ROOM);
     }
     obj_from_room(i);
@@ -708,48 +708,37 @@ SPECIAL(peter)
     switch (rand_number(0, 5))
     {
     case 0:
-      act("$N comes sharply into attention as $n inspects $M.",
-          FALSE, ch, 0, ch_guard, TO_NOTVICT);
-      act("$N comes sharply into attention as you inspect $M.",
-          FALSE, ch, 0, ch_guard, TO_CHAR);
-      act("You go sharply into attention as $n inspects you.",
-          FALSE, ch, 0, ch_guard, TO_VICT);
+      act("$N comes sharply into attention as $n inspects $M.", FALSE, ch, 0, ch_guard, TO_NOTVICT);
+      act("$N comes sharply into attention as you inspect $M.", FALSE, ch, 0, ch_guard, TO_CHAR);
+      act("You go sharply into attention as $n inspects you.", FALSE, ch, 0, ch_guard, TO_VICT);
       break;
     case 1:
-      act("$N looks very small, as $n roars at $M.",
-          FALSE, ch, 0, ch_guard, TO_NOTVICT);
-      act("$N looks very small as you roar at $M.",
-          FALSE, ch, 0, ch_guard, TO_CHAR);
-      act("You feel very small as $N roars at you.",
-          FALSE, ch, 0, ch_guard, TO_VICT);
+      act("$N looks very small, as $n roars at $M.", FALSE, ch, 0, ch_guard, TO_NOTVICT);
+      act("$N looks very small as you roar at $M.", FALSE, ch, 0, ch_guard, TO_CHAR);
+      act("You feel very small as $N roars at you.", FALSE, ch, 0, ch_guard, TO_VICT);
       break;
     case 2:
-      act("$n gives $N some Royal directions.",
-          FALSE, ch, 0, ch_guard, TO_NOTVICT);
-      act("You give $N some Royal directions.",
-          FALSE, ch, 0, ch_guard, TO_CHAR);
-      act("$n gives you some Royal directions.",
-          FALSE, ch, 0, ch_guard, TO_VICT);
+      act("$n gives $N some Royal directions.", FALSE, ch, 0, ch_guard, TO_NOTVICT);
+      act("You give $N some Royal directions.", FALSE, ch, 0, ch_guard, TO_CHAR);
+      act("$n gives you some Royal directions.", FALSE, ch, 0, ch_guard, TO_VICT);
       break;
     case 3:
       act("$n looks at you.", FALSE, ch, 0, ch_guard, TO_VICT);
       act("$n looks at $N.", FALSE, ch, 0, ch_guard, TO_NOTVICT);
-      act("$n growls: 'Those boots need polishing!'",
-          FALSE, ch, 0, ch_guard, TO_ROOM);
+      act("$n growls: 'Those boots need polishing!'", FALSE, ch, 0, ch_guard, TO_ROOM);
       act("You growl at $N.", FALSE, ch, 0, ch_guard, TO_CHAR);
       break;
     case 4:
       act("$n looks at you.", FALSE, ch, 0, ch_guard, TO_VICT);
       act("$n looks at $N.", FALSE, ch, 0, ch_guard, TO_NOTVICT);
-      act("$n growls: 'Straighten that collar!'",
-          FALSE, ch, 0, ch_guard, TO_ROOM);
+      act("$n growls: 'Straighten that collar!'", FALSE, ch, 0, ch_guard, TO_ROOM);
       act("You growl at $N.", FALSE, ch, 0, ch_guard, TO_CHAR);
       break;
     default:
       act("$n looks at you.", FALSE, ch, 0, ch_guard, TO_VICT);
       act("$n looks at $N.", FALSE, ch, 0, ch_guard, TO_NOTVICT);
-      act("$n growls: 'That chain mail looks rusty!  CLEAN IT !!!'",
-          FALSE, ch, 0, ch_guard, TO_ROOM);
+      act("$n growls: 'That chain mail looks rusty!  CLEAN IT !!!'", FALSE, ch, 0, ch_guard,
+          TO_ROOM);
       act("You growl at $N.", FALSE, ch, 0, ch_guard, TO_CHAR);
       break;
     }
@@ -791,52 +780,42 @@ SPECIAL(jerry)
   switch (rand_number(0, 5))
   {
   case 0:
-    act("$n rolls the dice and cheers loudly at the result.",
-        FALSE, gambler1, 0, gambler2, TO_NOTVICT);
-    act("You roll the dice and cheer. GREAT!",
-        FALSE, gambler1, 0, gambler2, TO_CHAR);
-    act("$n cheers loudly as $e rolls the dice.",
-        FALSE, gambler1, 0, gambler2, TO_VICT);
+    act("$n rolls the dice and cheers loudly at the result.", FALSE, gambler1, 0, gambler2,
+        TO_NOTVICT);
+    act("You roll the dice and cheer. GREAT!", FALSE, gambler1, 0, gambler2, TO_CHAR);
+    act("$n cheers loudly as $e rolls the dice.", FALSE, gambler1, 0, gambler2, TO_VICT);
     break;
   case 1:
-    act("$n curses the Goddess of Luck roundly as he sees $N's roll.",
-        FALSE, gambler1, 0, gambler2, TO_NOTVICT);
-    act("You curse the Goddess of Luck as $N rolls.",
-        FALSE, gambler1, 0, gambler2, TO_CHAR);
-    act("$n swears angrily. You are in luck!",
-        FALSE, gambler1, 0, gambler2, TO_VICT);
+    act("$n curses the Goddess of Luck roundly as he sees $N's roll.", FALSE, gambler1, 0, gambler2,
+        TO_NOTVICT);
+    act("You curse the Goddess of Luck as $N rolls.", FALSE, gambler1, 0, gambler2, TO_CHAR);
+    act("$n swears angrily. You are in luck!", FALSE, gambler1, 0, gambler2, TO_VICT);
     break;
   case 2:
-    act("$n sighs loudly and gives $N some gold.",
-        FALSE, gambler1, 0, gambler2, TO_NOTVICT);
-    act("You sigh loudly at the pain of having to give $N some gold.",
-        FALSE, gambler1, 0, gambler2, TO_CHAR);
-    act("$n sighs loudly as $e gives you your rightful win.",
-        FALSE, gambler1, 0, gambler2, TO_VICT);
+    act("$n sighs loudly and gives $N some gold.", FALSE, gambler1, 0, gambler2, TO_NOTVICT);
+    act("You sigh loudly at the pain of having to give $N some gold.", FALSE, gambler1, 0, gambler2,
+        TO_CHAR);
+    act("$n sighs loudly as $e gives you your rightful win.", FALSE, gambler1, 0, gambler2,
+        TO_VICT);
     break;
   case 3:
-    act("$n smiles remorsefully as $N's roll tops $s.",
-        FALSE, gambler1, 0, gambler2, TO_NOTVICT);
-    act("You smile sadly as you see that $N beats you. Again.",
-        FALSE, gambler1, 0, gambler2, TO_CHAR);
-    act("$n smiles remorsefully as your roll tops $s.",
-        FALSE, gambler1, 0, gambler2, TO_VICT);
+    act("$n smiles remorsefully as $N's roll tops $s.", FALSE, gambler1, 0, gambler2, TO_NOTVICT);
+    act("You smile sadly as you see that $N beats you. Again.", FALSE, gambler1, 0, gambler2,
+        TO_CHAR);
+    act("$n smiles remorsefully as your roll tops $s.", FALSE, gambler1, 0, gambler2, TO_VICT);
     break;
   case 4:
-    act("$n excitedly follows the dice with $s eyes.",
-        FALSE, gambler1, 0, gambler2, TO_NOTVICT);
-    act("You excitedly follow the dice with your eyes.",
-        FALSE, gambler1, 0, gambler2, TO_CHAR);
-    act("$n excitedly follows the dice with $s eyes.",
-        FALSE, gambler1, 0, gambler2, TO_VICT);
+    act("$n excitedly follows the dice with $s eyes.", FALSE, gambler1, 0, gambler2, TO_NOTVICT);
+    act("You excitedly follow the dice with your eyes.", FALSE, gambler1, 0, gambler2, TO_CHAR);
+    act("$n excitedly follows the dice with $s eyes.", FALSE, gambler1, 0, gambler2, TO_VICT);
     break;
   default:
-    act("$n says 'Well, my luck has to change soon', as he shakes the dice.",
-        FALSE, gambler1, 0, gambler2, TO_NOTVICT);
-    act("You say 'Well, my luck has to change soon' and shake the dice.",
-        FALSE, gambler1, 0, gambler2, TO_CHAR);
-    act("$n says 'Well, my luck has to change soon', as he shakes the dice.",
-        FALSE, gambler1, 0, gambler2, TO_VICT);
+    act("$n says 'Well, my luck has to change soon', as he shakes the dice.", FALSE, gambler1, 0,
+        gambler2, TO_NOTVICT);
+    act("You say 'Well, my luck has to change soon' and shake the dice.", FALSE, gambler1, 0,
+        gambler2, TO_CHAR);
+    act("$n says 'Well, my luck has to change soon', as he shakes the dice.", FALSE, gambler1, 0,
+        gambler2, TO_VICT);
     break;
   }
   return (FALSE);
@@ -874,13 +853,14 @@ SPECIAL(abyss_randomizer)
 
   for (room = calc_room_num(1); room <= calc_room_num(18); room++)
   {
-
     /* Swapping North and South */
-    if (world[real_room(room)].dir_option[NORTH] && world[real_room(room)].dir_option[NORTH]->to_room != NOWHERE)
+    if (world[real_room(room)].dir_option[NORTH] &&
+        world[real_room(room)].dir_option[NORTH]->to_room != NOWHERE)
       temp1 = world[real_room(room)].dir_option[NORTH]->to_room;
     else
       temp1 = NOWHERE;
-    if (world[real_room(room)].dir_option[SOUTH] && world[real_room(room)].dir_option[SOUTH]->to_room != NOWHERE)
+    if (world[real_room(room)].dir_option[SOUTH] &&
+        world[real_room(room)].dir_option[SOUTH]->to_room != NOWHERE)
       temp2 = world[real_room(room)].dir_option[SOUTH]->to_room;
     else
       temp2 = NOWHERE;
@@ -908,11 +888,13 @@ SPECIAL(abyss_randomizer)
     }
 
     /* Swapping East and West */
-    if (world[real_room(room)].dir_option[EAST] && world[real_room(room)].dir_option[EAST]->to_room != NOWHERE)
+    if (world[real_room(room)].dir_option[EAST] &&
+        world[real_room(room)].dir_option[EAST]->to_room != NOWHERE)
       temp1 = world[real_room(room)].dir_option[EAST]->to_room;
     else
       temp1 = NOWHERE;
-    if (world[real_room(room)].dir_option[WEST] && world[real_room(room)].dir_option[WEST]->to_room != NOWHERE)
+    if (world[real_room(room)].dir_option[WEST] &&
+        world[real_room(room)].dir_option[WEST]->to_room != NOWHERE)
       temp2 = world[real_room(room)].dir_option[WEST]->to_room;
     else
       temp2 = NOWHERE;
@@ -940,11 +922,13 @@ SPECIAL(abyss_randomizer)
     }
 
     /* Swapping Up and Down */
-    if (world[real_room(room)].dir_option[UP] && world[real_room(room)].dir_option[UP]->to_room != NOWHERE)
+    if (world[real_room(room)].dir_option[UP] &&
+        world[real_room(room)].dir_option[UP]->to_room != NOWHERE)
       temp1 = world[real_room(room)].dir_option[UP]->to_room;
     else
       temp1 = NOWHERE;
-    if (world[real_room(room)].dir_option[DOWN] && world[real_room(room)].dir_option[DOWN]->to_room != NOWHERE)
+    if (world[real_room(room)].dir_option[DOWN] &&
+        world[real_room(room)].dir_option[DOWN]->to_room != NOWHERE)
       temp2 = world[real_room(room)].dir_option[DOWN]->to_room;
     else
       temp2 = NOWHERE;
@@ -1021,7 +1005,12 @@ SPECIAL(cf_trainingmaster)
     act("$n waves $s hand slightly.", FALSE, ch, 0, 0, TO_ROOM);
     for (i = character_list; i; i = i->next)
     {
-      if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == cf_converter(32) || GET_MOB_VNUM(i) == cf_converter(33) || GET_MOB_VNUM(i) == cf_converter(34) || GET_MOB_VNUM(i) == cf_converter(35) || GET_MOB_VNUM(i) == cf_converter(36) || GET_MOB_VNUM(i) == cf_converter(37) || GET_MOB_VNUM(i) == cf_converter(38) || GET_MOB_VNUM(i) == cf_converter(39)) && ch != i)
+      if (!FIGHTING(i) && IS_NPC(i) &&
+          (GET_MOB_VNUM(i) == cf_converter(32) || GET_MOB_VNUM(i) == cf_converter(33) ||
+           GET_MOB_VNUM(i) == cf_converter(34) || GET_MOB_VNUM(i) == cf_converter(35) ||
+           GET_MOB_VNUM(i) == cf_converter(36) || GET_MOB_VNUM(i) == cf_converter(37) ||
+           GET_MOB_VNUM(i) == cf_converter(38) || GET_MOB_VNUM(i) == cf_converter(39)) &&
+          ch != i)
       {
         if (ch->in_room != i->in_room)
         {
@@ -1136,14 +1125,20 @@ SPECIAL(tia_rapier)
   {
     if (!rand_number(0, 20))
     {
-      act("\tWA \tBwave \tWof \tDdarkness \tBoozes \tWslowly from your sword, \tbengulfing \tWthe \tn\r\n"
-          "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline \tn\r\n"
-          "\tWof a \tBdragon\tW surrouding your \tbrapier. \tWThe \tBimage \tWbegins to fiercely \tbclaw \tn\r\n"
+      act("\tWA \tBwave \tWof \tDdarkness \tBoozes \tWslowly from your sword, \tbengulfing \tWthe "
+          "\tn\r\n"
+          "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline "
+          "\tn\r\n"
+          "\tWof a \tBdragon\tW surrouding your \tbrapier. \tWThe \tBimage \tWbegins to fiercely "
+          "\tbclaw \tn\r\n"
           "\tWand \tBsavagely \tbbite \tWat \tn$N's \tWbody.\tn",
           FALSE, ch, 0, vict, TO_CHAR);
-      act("\twA \tBwave\tW of \tLdarkness \tBoozes \tWslowly from \tb$n's \tWsword, \tbengulfing \tWthe \tn\r\n"
-          "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline \tn\r\n"
-          "\tWof a \tBdragon\tW surrouding \tB&s \tbrapier.\tW  The \tBimage \tWbegins to fiercely \tbclaw \tn\r\n"
+      act("\twA \tBwave\tW of \tLdarkness \tBoozes \tWslowly from \tb$n's \tWsword, \tbengulfing "
+          "\tWthe \tn\r\n"
+          "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline "
+          "\tn\r\n"
+          "\tWof a \tBdragon\tW surrouding \tB&s \tbrapier.\tW  The \tBimage \tWbegins to fiercely "
+          "\tbclaw \tn\r\n"
           "\tWand \tBsavagely \tbbite \tWat \tn$N's \tWbody.\tn",
           FALSE, ch, 0, vict, TO_ROOM);
       damage(ch, vict, rand_number(120, 200), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
@@ -1152,18 +1147,25 @@ SPECIAL(tia_rapier)
 
     if (!rand_number(0, 50))
     {
-      weapons_spells("\tWSuddenly your \tn$p\tW is enveloped by \tbsheer \tLdarkness, \tWleaving only a pair of \tn\r\n"
-                     "\tBblazing eyes \tWgazing directly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn\r\n"
-                     "\tn$N\tW, who begins to \tbtremble violently\tW and lose \tBcontrol \tWof $s senses.\tn",
+      weapons_spells(
+          "\tWSuddenly your \tn$p\tW is enveloped by \tbsheer \tLdarkness, \tWleaving only a pair "
+          "of \tn\r\n"
+          "\tBblazing eyes \tWgazing directly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of "
+          "\tBterror \tbovercomes \tn\r\n"
+          "\tn$N\tW, who begins to \tbtremble violently\tW and lose \tBcontrol \tWof $s senses.\tn",
 
-                     "\tW$n's \tWsword is enveloped by \tbsheer \tLdarkness,\tW leaving only a pair of \tBblazing eyes\tW gazing \tn\r\n"
-                     "\tWdirectly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn$n\tW, who begins to \tn\r\n"
-                     "\tbtremble violenty \tWand lose \tBcontrol\tW of $s senses.\tn",
+          "\tW$n's \tWsword is enveloped by \tbsheer \tLdarkness,\tW leaving only a pair of "
+          "\tBblazing eyes\tW gazing \tn\r\n"
+          "\tWdirectly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes "
+          "\tn$n\tW, who begins to \tn\r\n"
+          "\tbtremble violenty \tWand lose \tBcontrol\tW of $s senses.\tn",
 
-                     "\tW$n's sword is enveloped by \tbsheer \tLdarkness,\tW leaving only a pair of \tBblazing eyes\tW gazing \tn\r\n"
-                     "\tWdirectly into the \tBsoul\tb of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn$N\tW, who begins\tn\r\n"
-                     "\tWto \tbtremble violenty \tWand lose \tBcontrol \tWof $S senses.\tn",
-                     ch, vict, (struct obj_data *)me, SPELL_IRRESISTIBLE_DANCE);
+          "\tW$n's sword is enveloped by \tbsheer \tLdarkness,\tW leaving only a pair of "
+          "\tBblazing eyes\tW gazing \tn\r\n"
+          "\tWdirectly into the \tBsoul\tb of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes "
+          "\tn$N\tW, who begins\tn\r\n"
+          "\tWto \tbtremble violenty \tWand lose \tBcontrol \tWof $S senses.\tn",
+          ch, vict, (struct obj_data *)me, SPELL_IRRESISTIBLE_DANCE);
       return 1;
     }
   }
@@ -1188,15 +1190,14 @@ bool eq_loaded = FALSE;
 
 int check_heads(struct char_data *ch)
 {
-
   /* green head dies */
   if (prisoner_heads == 5)
   {
     act("\tLYour blood \tWfreezes\tL as the \tggreen \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    act("\n\r\tLThe remaining four heads turn and gaze at you with a glare of hatred.\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("\n\r\tLThe remaining four heads turn and gaze at you with a glare of hatred.\tn", FALSE,
+        ch, 0, 0, TO_ROOM);
     prisoner_heads = 4;
     return 1;
   }
@@ -1207,8 +1208,8 @@ int check_heads(struct char_data *ch)
     act("\tLYour blood \tWfreezes\tL as the \tWwhite \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    act("\n\r\tLThe remaining three heads turn and gaze at you with a glare of hatred.\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("\n\r\tLThe remaining three heads turn and gaze at you with a glare of hatred.\tn", FALSE,
+        ch, 0, 0, TO_ROOM);
     prisoner_heads = 3;
     return 1;
   }
@@ -1219,8 +1220,8 @@ int check_heads(struct char_data *ch)
     act("\tLYour blood \tWfreezes\tL as the black head of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    act("\n\r\tLThe remaining two heads turn and gaze at you with a glare of hatred.\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("\n\r\tLThe remaining two heads turn and gaze at you with a glare of hatred.\tn", FALSE, ch,
+        0, 0, TO_ROOM);
     prisoner_heads = 2;
     return 1;
   }
@@ -1338,8 +1339,7 @@ void prisoner_on_death(struct char_data *ch)
       "\tWYou freeze in terror at the sight of the thing, momentarily frozen until the \n\r\n"
       "\tWrealization of this extreme danger sinks in. You fight back the dizziness.\n\r\n",
       FALSE, prisoner, 0, 0, TO_ROOM);
-  act("\tLSuddenly everything fades to black...\tn",
-      FALSE, prisoner, 0, 0, TO_ROOM);
+  act("\tLSuddenly everything fades to black...\tn", FALSE, prisoner, 0, 0, TO_ROOM);
 
   for (tch = world[prisoner->in_room].people; tch; tch = tch->next_in_room)
   {
@@ -1366,7 +1366,8 @@ int rejuv_prisoner(struct char_data *ch)
 {
   int rejuv = 0;
 
-  if (!rand_number(0, 7) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
+  if (!rand_number(0, 7) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE &&
+      !FIGHTING(ch))
   {
     rejuv = GET_HIT(ch) + 1500;
 
@@ -1377,7 +1378,8 @@ int rejuv_prisoner(struct char_data *ch)
 
     PROC_FIRED(ch) = TRUE;
 
-    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
+    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially "
+        "revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
 
     return 1;
@@ -1399,7 +1401,8 @@ int rejuv_prisoner(struct char_data *ch)
     act("\tLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
         "\tWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
         FALSE, ch, 0, 0, TO_ROOM);
-    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
+    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially "
+        "revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
 
     return 1;
@@ -1579,27 +1582,15 @@ void prisoner_gear_loading(struct char_data *ch)
   /* we are giving a random weapon oil, lets have a list of options! */
   int wpnOils[TOP_UNIQUES_OIL + 1] = {
       WEAPON_SPECAB_SEEKING, /* 0 */
-      WEAPON_SPECAB_ADAPTIVE,
-      WEAPON_SPECAB_DISRUPTION,
-      WEAPON_SPECAB_DEFENDING,
-      WEAPON_SPECAB_EXHAUSTING,
-      WEAPON_SPECAB_CORROSIVE, /* 5 */
-      WEAPON_SPECAB_SPEED,
-      WEAPON_SPECAB_GHOST_TOUCH,
-      WEAPON_SPECAB_BLINDING,
-      WEAPON_SPECAB_SHOCK,
-      WEAPON_SPECAB_FLAMING, /* 10 */
-      WEAPON_SPECAB_THUNDERING,
-      WEAPON_SPECAB_AGILE,
-      WEAPON_SPECAB_WOUNDING,
-      WEAPON_SPECAB_LUCKY,
-      WEAPON_SPECAB_BEWILDERING, /* 15 */
-      WEAPON_SPECAB_KEEN,
-      WEAPON_SPECAB_VICIOUS,
-      WEAPON_SPECAB_INVIGORATING,
-      WEAPON_SPECAB_VORPAL,
-      WEAPON_SPECAB_VAMPIRIC, /* 20 */
-      WEAPON_SPECAB_BANE,     /* 21 */
+      WEAPON_SPECAB_ADAPTIVE,   WEAPON_SPECAB_DISRUPTION,  WEAPON_SPECAB_DEFENDING,
+      WEAPON_SPECAB_EXHAUSTING, WEAPON_SPECAB_CORROSIVE, /* 5 */
+      WEAPON_SPECAB_SPEED,      WEAPON_SPECAB_GHOST_TOUCH, WEAPON_SPECAB_BLINDING,
+      WEAPON_SPECAB_SHOCK,      WEAPON_SPECAB_FLAMING, /* 10 */
+      WEAPON_SPECAB_THUNDERING, WEAPON_SPECAB_AGILE,       WEAPON_SPECAB_WOUNDING,
+      WEAPON_SPECAB_LUCKY,      WEAPON_SPECAB_BEWILDERING, /* 15 */
+      WEAPON_SPECAB_KEEN,       WEAPON_SPECAB_VICIOUS,     WEAPON_SPECAB_INVIGORATING,
+      WEAPON_SPECAB_VORPAL,     WEAPON_SPECAB_VAMPIRIC, /* 20 */
+      WEAPON_SPECAB_BANE,                               /* 21 */
   };
 
   if (!ch)
@@ -1745,7 +1736,6 @@ void prisoner_gear_loading(struct char_data *ch)
    the dracolich form */
 SPECIAL(the_prisoner)
 {
-
   if (cmd)
     return 0;
 
@@ -1792,7 +1782,6 @@ SPECIAL(prisoner_dracolich)
 
   if (!rand_number(0, 6))
   {
-
     /* find random target, and num targets */
     if (!(vict = npc_find_target(ch, &use_aoe)))
       return 0;
@@ -1803,22 +1792,25 @@ SPECIAL(prisoner_dracolich)
     act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
         "\tWAs you fall, you see a stream of your own life force flowing away from you..",
         FALSE, ch, 0, vict, TO_VICT);
-    act("\tLAs the life fades from your body, before collapsing you see is the Prisoner's wicked grin staring into your soul..\tn",
+    act("\tLAs the life fades from your body, before collapsing you see is the Prisoner's wicked "
+        "grin staring into your soul..\tn",
         FALSE, ch, 0, vict, TO_VICT);
     act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
         "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
         TRUE, ch, 0, vict, TO_NOTVICT);
-    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you "
+        "cringe!!\tn\r\n"
         "$n\tL literally sucks the life force from $N,\tn\r\n"
         "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
         TRUE, ch, 0, vict, TO_NOTVICT);
-    act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
-        TO_CHAR);
+    act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn",
+        TRUE, ch, 0, vict, TO_CHAR);
 
     /* added a way to reduce the effectiveness of this attack -zusuk */
     if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
     {
-      hitpoints = damage(ch, vict, rand_number(120, 650), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+      hitpoints = damage(ch, vict, rand_number(120, 650), -1, DAM_UNHOLY,
+                         FALSE); // type -1 = no dam message
     }
     else
     {
@@ -1855,7 +1847,8 @@ int rejuv_celestial_leviathan(struct char_data *ch)
 {
   int rejuv = 0;
 
-  if (!rand_number(0, 7) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
+  if (!rand_number(0, 7) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE &&
+      !FIGHTING(ch))
   {
     rejuv = GET_HIT(ch) + 1500;
 
@@ -1866,7 +1859,8 @@ int rejuv_celestial_leviathan(struct char_data *ch)
 
     PROC_FIRED(ch) = TRUE;
 
-    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
+    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially "
+        "revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
 
     return 1;
@@ -1888,7 +1882,8 @@ int rejuv_celestial_leviathan(struct char_data *ch)
     act("\tLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
         "\tWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
         FALSE, ch, 0, 0, TO_ROOM);
-    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
+    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially "
+        "revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
 
     return 1;
@@ -2278,7 +2273,7 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            if (!GROUP(mob)) 
+            if (!GROUP(mob))
               join_group(mob, GROUP(leader));
           }
         }
@@ -2497,7 +2492,8 @@ SPECIAL(flamekissed_instrument)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Say an instrument name while holding to transform to that type, you will take 20 damage for the transformation.\r\n");
+    send_to_char(ch, "Say an instrument name while holding to transform to that type, you will "
+                     "take 20 damage for the transformation.\r\n");
     return 1;
   }
 
@@ -2513,7 +2509,6 @@ SPECIAL(flamekissed_instrument)
 
   if (!strcmp(argument, "lyre") && CMD_IS("say"))
   {
-
     act("\tyAs you say, '\tWlyre\ty' to $p\ty, \tyit rises forth from your hand, "
         "\tRflame engulfs it and yourself\ty as it transforms into a \tWlyre\ty "
         "then returning to your hands.\tn",
@@ -2532,7 +2527,6 @@ SPECIAL(flamekissed_instrument)
 
   if (!strcmp(argument, "flute") && CMD_IS("say"))
   {
-
     act("\tyAs you say, '\tWflute\ty' to $p\ty, \tyit rises forth from your hand, "
         "\tRflame engulfs it and yourself\ty as it transforms into a \tWflute\ty "
         "then returning to your hands.\tn",
@@ -2551,7 +2545,6 @@ SPECIAL(flamekissed_instrument)
 
   if (!strcmp(argument, "horn") && CMD_IS("say"))
   {
-
     act("\tyAs you say, '\tWhorn\ty' to $p\ty, \tyit rises forth from your hand, "
         "\tRflame engulfs it and yourself\ty as it transforms into a \tWhorn\ty "
         "then returning to your hands.\tn",
@@ -2570,7 +2563,6 @@ SPECIAL(flamekissed_instrument)
 
   if (!strcmp(argument, "drum") && CMD_IS("say"))
   {
-
     act("\tyAs you say, '\tWdrum\ty' to $p\ty, \tyit rises forth from your hand, "
         "\tRflame engulfs it and yourself\ty as it transforms into a \tWdrum\ty "
         "then returning to your hands.\tn",
@@ -2589,7 +2581,6 @@ SPECIAL(flamekissed_instrument)
 
   if (!strcmp(argument, "harp") && CMD_IS("say"))
   {
-
     act("\tyAs you say, '\tWharp\ty' to $p\ty, \tyit rises forth from your hand, "
         "\tRflame engulfs it and yourself\ty as it transforms into a \tWharp\ty "
         "then returning to your hands.\tn",
@@ -2608,7 +2599,6 @@ SPECIAL(flamekissed_instrument)
 
   if (!strcmp(argument, "mandolin") && CMD_IS("say"))
   {
-
     act("\tyAs you say, '\tWmandolin\ty' to $p\ty, \tyit rises forth from your hand, "
         "\tRflame engulfs it and yourself\ty as it transforms into a \tWmandolin\ty "
         "then returning to your hands.\tn",
@@ -2695,48 +2685,26 @@ void jot_invasion()
 }
 
 /* load rooms for fire giants */
-int fg_pos[MAX_FG] = {
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    215, 215, 215, 215, 215,
-    212, 218, 222, 207, 188,
-    204, 204, 204, 204, 196,
-    204, 204, 204, 204, 196};
+int fg_pos[MAX_FG] = {295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295,
+                      295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295,
+                      295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 215, 215, 215, 215, 215,
+                      212, 218, 222, 207, 188, 204, 204, 204, 204, 196, 204, 204, 204, 204, 196};
 
 /* load rooms for smoking beard batallion */
-int sb_pos[MAX_SB] = {
-    295, 295, 295, 295, 295,
-    295, 295, 295, 295, 295,
-    295, 295, 295, 215, 215,
-    188, 188, 217, 206, 206};
+int sb_pos[MAX_SB] = {295, 295, 295, 295, 295, 295, 295, 295, 295, 295,
+                      295, 295, 295, 215, 215, 188, 188, 217, 206, 206};
 
 /* load rooms for frost giants */
-int frost_pos[MAX_FROST] = {
-    286, 286, 282, 283, 284,
-    285, 285, 285, 286, 286,
-    273, 273, 270, 270, 269,
-    273, 273, 270, 270, 269,
-    266, 266, 267, 264, 264,
-    266, 266, 267, 264, 264,
-    265, 272, 272, 271, 271,
-    228, 240, 240, 233, 233,
-    233, 235, 235, 235, 251,
-    251, 252, 252, 253, 253,
-    251, 252, 252, 253, 253,
-    244, 244, 255, 255, 254,
-    254, 256, 256, 243, 243};
+int frost_pos[MAX_FROST] = {286, 286, 282, 283, 284, 285, 285, 285, 286, 286, 273, 273, 270,
+                            270, 269, 273, 273, 270, 270, 269, 266, 266, 267, 264, 264, 266,
+                            266, 267, 264, 264, 265, 272, 272, 271, 271, 228, 240, 240, 233,
+                            233, 233, 235, 235, 235, 251, 251, 252, 252, 253, 253, 251, 252,
+                            252, 253, 253, 244, 244, 255, 255, 254, 254, 256, 256, 243, 243};
 
 /* spec proc for loading the jot invasion */
 SPECIAL(jot_invasion_loader)
 {
-  struct char_data *tch = NULL, *chmove = NULL,
-                   *glammad = NULL, *leader = NULL, *mob = NULL;
+  struct char_data *tch = NULL, *chmove = NULL, *glammad = NULL, *leader = NULL, *mob = NULL;
   int i = 0;
   int where = -1;
   struct obj_data *obj = NULL, *obj2 = NULL;
@@ -3073,14 +3041,15 @@ SPECIAL(thrym)
     bonus += get_evolution_appearance_save_bonus(vict);
 
   // no save, unless have special feat
-  if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST) || 
+  if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST) ||
       savingthrow(ch, vict, SAVING_FORT, 4 + bonus, CAST_INNATE, 30, ENCHANTMENT))
   {
     send_to_char(ch, "Your target is unfazed.\r\n");
     return 1;
   }
 
-  act("\tCThrym touches you with a chilling hand, freezing you in place.\tn", FALSE, vict, 0, ch, TO_CHAR);
+  act("\tCThrym touches you with a chilling hand, freezing you in place.\tn", FALSE, vict, 0, ch,
+      TO_CHAR);
   act("\tCThrym touches $n\tC, freezing $m in place.\tn", FALSE, vict, 0, ch, TO_ROOM);
 
   new_affect(&af);
@@ -3166,16 +3135,19 @@ SPECIAL(ymir_cloak)
 
     if (!strcmp(argument, "icicle storm"))
     {
-
       if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       {
-        send_to_char(ch, "\tcAs you say '\tCicicle storm\tc' to your \tWa cloak of glittering icicles\tc, nothing happens.\tn\r\n");
+        send_to_char(ch, "\tcAs you say '\tCicicle storm\tc' to your \tWa cloak of glittering "
+                         "icicles\tc, nothing happens.\tn\r\n");
         return 1;
       }
 
-      weapons_spells("\tBAs you say '\twicicle storm\tB' to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
-                     "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
-                     "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+      weapons_spells("\tBAs you say '\twicicle storm\tB' to $p \tBit flashes bright blue and sends "
+                     "forth a storm of razor sharp icicles in all directions.\tn",
+                     "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright "
+                     "blue and sends forth a storm of razor sharp icicles in all directions.\tn",
+                     "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright "
+                     "blue and sends forth a storm of razor sharp icicles in all directions.\tn",
                      ch, 0, (struct obj_data *)me, SPELL_ICE_STORM);
       GET_OBJ_SPECTIMER(obj, 0) = 6;
       return 1;
@@ -3206,13 +3178,12 @@ SPECIAL(mistweave)
 
     skip_spaces(&argument);
 
-    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) &&
-        !strcmp(argument, "mistweave"))
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && !strcmp(argument, "mistweave"))
     {
-
       if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       {
-        send_to_char(ch, "\tpAs you say '\twmistweave\tp' to your a huge adamantium mace enshrouded with \tWmist\tp, nothing happens.\tn\r\n");
+        send_to_char(ch, "\tpAs you say '\twmistweave\tp' to your a huge adamantium mace "
+                         "enshrouded with \tWmist\tp, nothing happens.\tn\r\n");
         return 1;
       }
       act("\tLAs you say, '\tnmistweave\tL', "
@@ -3258,13 +3229,12 @@ SPECIAL(frostbite)
 
     skip_spaces(&argument);
 
-    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) &&
-        !strcmp(argument, "frostbite"))
+    if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room) && !strcmp(argument, "frostbite"))
     {
-
       if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       {
-        send_to_char(ch, "\tcAs you say '\twfrostbite\tc' to your a \tLa great iron axe \tCrimmed \tLwith \tWfrost\tc, nothing happens.\tn\r\n");
+        send_to_char(ch, "\tcAs you say '\twfrostbite\tc' to your a \tLa great iron axe \tCrimmed "
+                         "\tLwith \tWfrost\tc, nothing happens.\tn\r\n");
         return 1;
       }
       act("\tCAs you say, '\twfrostbite\tC',\n\r"
@@ -3319,7 +3289,8 @@ SPECIAL(vaprak_claws)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Invoke Fury of Vaprak by saying 'vaprak'. Once per day.\r\nWorks only for Trolls and Ogres.\r\n");
+    send_to_char(ch, "Invoke Fury of Vaprak by saying 'vaprak'. Once per day.\r\nWorks only for "
+                     "Trolls and Ogres.\r\n");
     return 1;
   }
 
@@ -3340,11 +3311,11 @@ SPECIAL(vaprak_claws)
 
   if (!strcmp(argument, "vaprak") && CMD_IS("say"))
   {
-
     // if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
     if (GET_OBJ_SPECTIMER(obj, 0) > 0)
     {
-      send_to_char(ch, "\trAs you say '\twvaprak\tr' to your claws \tLof the destroyer\tr, nothing happens.\tn\r\n");
+      send_to_char(ch, "\trAs you say '\twvaprak\tr' to your claws \tLof the destroyer\tr, nothing "
+                       "happens.\tn\r\n");
       return 1;
     }
 
@@ -3354,10 +3325,9 @@ SPECIAL(vaprak_claws)
       return 1;
     }
 
-    weapons_spells("\tLAs you say '\twvaprak\tL' to $p\tL, an evil warmth fills your body.\tn",
-                   0,
-                   "\tr$n \trmutters something under his breath.\tn",
-                   ch, ch, (struct obj_data *)me, 0);
+    weapons_spells("\tLAs you say '\twvaprak\tL' to $p\tL, an evil warmth fills your body.\tn", 0,
+                   "\tr$n \trmutters something under his breath.\tn", ch, ch, (struct obj_data *)me,
+                   0);
 
     duration = GET_LEVEL(ch);
     /* init affect array */
@@ -3505,7 +3475,6 @@ SPECIAL(twilight)
 
 SPECIAL(valkyrie_sword)
 {
-
   if (!ch || cmd)
     return 0;
 
@@ -3528,13 +3497,12 @@ SPECIAL(valkyrie_sword)
   if (!is_wearing(ch, 196056) || !vict || rand_number(0, 20))
     return 0;
 
-  weapons_spells(
-      "\tYStreaks of flames issue forth from $p\n\r"
-      "\tYengulfing your foe.\tn",
-      "\tYYou are engulfed by the flames issuing forth from $p.",
-      "\tYStreaks of flames issue forth from $p\n\r"
-      "\tYengulfing $n's \tYfoe.",
-      ch, vict, (struct obj_data *)me, 0);
+  weapons_spells("\tYStreaks of flames issue forth from $p\n\r"
+                 "\tYengulfing your foe.\tn",
+                 "\tYYou are engulfed by the flames issuing forth from $p.",
+                 "\tYStreaks of flames issue forth from $p\n\r"
+                 "\tYengulfing $n's \tYfoe.",
+                 ch, vict, (struct obj_data *)me, 0);
 
   call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 0, 30, CAST_WEAPON_SPELL);
 
@@ -3567,10 +3535,13 @@ SPECIAL(planetar_sword)
     call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return 1;
   case 2:
-    weapons_spells("\tWA glowing nimbus of light emanates forth blasting the foul evil in its presence.\tn",
-                   "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn",
-                   "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its presence.\tn",
-                   ch, vict, (struct obj_data *)me, SPELL_DISPEL_EVIL);
+    weapons_spells(
+        "\tWA glowing nimbus of light emanates forth blasting the foul evil in its presence.\tn",
+        "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its "
+        "presence.\tn",
+        "\tWA glowing nimbus of light emanates forth from $n, blasting the foul evil in its "
+        "presence.\tn",
+        ch, vict, (struct obj_data *)me, SPELL_DISPEL_EVIL);
     return 1;
   default:
     return 0;
@@ -3586,13 +3557,13 @@ SPECIAL(giantslayer)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Invoke giant hamstring attack by saying 'hamstring'. Once per day.\r\nWorks only for Dwarves.\r\n");
+    send_to_char(ch, "Invoke giant hamstring attack by saying 'hamstring'. Once per day.\r\nWorks "
+                     "only for Dwarves.\r\n");
     return 1;
   }
 
   switch (GET_RACE(ch))
   {
-
   case RACE_DWARF:
     break;
 
@@ -3615,12 +3586,12 @@ SPECIAL(giantslayer)
     return 0;
   if (!strcmp(argument, "hamstring"))
   {
-    if (IS_NPC(vict) && GET_RACE(vict) == RACE_TYPE_GIANT &&
-        (vict->in_room == ch->in_room))
+    if (IS_NPC(vict) && GET_RACE(vict) == RACE_TYPE_GIANT && (vict->in_room == ch->in_room))
     {
       if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       {
-        send_to_char(ch, "\tYAs you say '\twhamstring\tY' to your \tLa double-bladed dwarvish axe of \tYgiantslaying, nothing happens.\tn\r\n");
+        send_to_char(ch, "\tYAs you say '\twhamstring\tY' to your \tLa double-bladed dwarvish axe "
+                         "of \tYgiantslaying, nothing happens.\tn\r\n");
         return 1;
       }
 
@@ -3633,12 +3604,9 @@ SPECIAL(giantslayer)
           "hamstring\n\r$N \tybefore returning to your grasp.\tn",
           FALSE, ch, obj, vict, TO_ROOM);
       // We hamstring the foe
-      act("$N falls to $S knees before you!",
-          FALSE, ch, obj, vict, TO_CHAR);
-      act("$N falls to $S knees before $n!",
-          FALSE, ch, obj, vict, TO_NOTVICT);
-      act("You fall to your knees in agony!",
-          FALSE, ch, obj, vict, TO_VICT);
+      act("$N falls to $S knees before you!", FALSE, ch, obj, vict, TO_CHAR);
+      act("$N falls to $S knees before $n!", FALSE, ch, obj, vict, TO_NOTVICT);
+      act("You fall to your knees in agony!", FALSE, ch, obj, vict, TO_VICT);
       USE_MOVE_ACTION(vict);
       change_position(vict, POS_SITTING);
       GET_HIT(vict) -= 100;
@@ -3648,7 +3616,8 @@ SPECIAL(giantslayer)
     }
     else
     {
-      send_to_char(ch, "\tYAs you say '\twhamstring\tY' to your \tLa double-bladed dwarvish axe of \tYgiantslaying, nothing happens.\tn\r\n");
+      send_to_char(ch, "\tYAs you say '\twhamstring\tY' to your \tLa double-bladed dwarvish axe of "
+                       "\tYgiantslaying, nothing happens.\tn\r\n");
       return 1;
     }
     return 0;
@@ -3679,728 +3648,206 @@ struct slider_row
   int door;
 };
 
-struct slider_row row_1_a_n_s[] = {
-    {155521, EAST},
-    {155522, WEST},
-    {155530, EAST},
-    {155529, WEST},
-    {155531, EAST},
-    {155532, WEST},
-    {155540, EAST},
-    {155539, WEST},
-    {155541, EAST},
-    {155542, WEST},
-    {-1, -1}};
-struct slider_row row_1_b_n_s[] = {
-    {155546, EAST},
-    {155547, WEST},
-    {155555, EAST},
-    {155554, WEST},
-    {155556, EAST},
-    {155557, WEST},
-    {155565, EAST},
-    {155564, WEST},
-    {155566, EAST},
-    {155567, WEST},
-    {-1, -1}};
-struct slider_row row_1_c_n_s[] = {
-    {155571, EAST},
-    {155572, WEST},
-    {155580, EAST},
-    {155579, WEST},
-    {155581, EAST},
-    {155582, WEST},
-    {155590, EAST},
-    {155589, WEST},
-    {155591, EAST},
-    {155592, WEST},
-    {-1, -1}};
-struct slider_row row_1_d_n_s[] = {
-    {155596, EAST},
-    {155597, WEST},
-    {155605, EAST},
-    {155604, WEST},
-    {155606, EAST},
-    {155607, WEST},
-    {155615, EAST},
-    {155614, WEST},
-    {155616, EAST},
-    {155617, WEST},
-    {-1, -1}};
-struct slider_row row_1_e_n_s[] = {
-    {155625, EAST},
-    {155624, WEST},
-    {155626, EAST},
-    {155627, WEST},
-    {155635, EAST},
-    {155634, WEST},
-    {155636, EAST},
-    {155637, WEST},
-    {155645, EAST},
-    {155644, WEST},
-    {-1, -1}};
-struct slider_row row_2_a_n_s[] = {
-    {155522, EAST},
-    {155523, WEST},
-    {155529, EAST},
-    {155528, WEST},
-    {155532, EAST},
-    {155533, WEST},
-    {155539, EAST},
-    {155538, WEST},
-    {155542, EAST},
-    {155543, WEST},
-    {-1, -1}};
-struct slider_row row_2_b_n_s[] = {
-    {155547, EAST},
-    {155548, WEST},
-    {155554, EAST},
-    {155553, WEST},
-    {155557, EAST},
-    {155558, WEST},
-    {155564, EAST},
-    {155563, WEST},
-    {155567, EAST},
-    {155568, WEST},
-    {-1, -1}};
-struct slider_row row_2_c_n_s[] = {
-    {155572, EAST},
-    {155573, WEST},
-    {155579, WEST},
-    {155578, WEST},
-    {155582, EAST},
-    {155583, WEST},
-    {155589, EAST},
-    {155588, WEST},
-    {155592, EAST},
-    {155593, WEST},
-    {-1, -1}};
-struct slider_row row_2_d_n_s[] = {
-    {155597, EAST},
-    {155598, WEST},
-    {155604, EAST},
-    {155603, WEST},
-    {155607, EAST},
-    {155608, WEST},
-    {155614, EAST},
-    {155613, WEST},
-    {155617, EAST},
-    {155618, WEST},
-    {-1, -1}};
-struct slider_row row_2_e_n_s[] = {
-    {155624, EAST},
-    {155623, WEST},
-    {155627, EAST},
-    {155628, WEST},
-    {155634, EAST},
-    {155633, WEST},
-    {155637, EAST},
-    {155638, WEST},
-    {155644, EAST},
-    {155643, WEST},
-    {-1, -1}};
-struct slider_row row_3_a_n_s[] = {
-    {155523, EAST},
-    {155534, WEST},
-    {155528, EAST},
-    {155527, WEST},
-    {155533, EAST},
-    {155534, WEST},
-    {155538, EAST},
-    {155537, WEST},
-    {155543, EAST},
-    {155544, WEST},
-    {-1, -1}};
-struct slider_row row_3_b_n_s[] = {
-    {155548, EAST},
-    {155549, WEST},
-    {155553, EAST},
-    {155552, WEST},
-    {155559, EAST},
-    {155559, WEST},
-    {155563, EAST},
-    {155562, WEST},
-    {155568, EAST},
-    {155569, WEST},
-    {-1, -1}};
-struct slider_row row_3_c_n_s[] = {
-    {155573, EAST},
-    {155574, WEST},
-    {155578, EAST},
-    {155577, WEST},
-    {155583, EAST},
-    {155584, WEST},
-    {155588, EAST},
-    {155587, WEST},
-    {155593, EAST},
-    {155594, WEST},
-    {-1, -1}};
-struct slider_row row_3_d_n_s[] = {
-    {155598, EAST},
-    {155599, WEST},
-    {155603, EAST},
-    {155602, WEST},
-    {155608, EAST},
-    {155609, WEST},
-    {155613, EAST},
-    {155612, WEST},
-    {155618, EAST},
-    {155619, WEST},
-    {-1, -1}};
-struct slider_row row_3_e_n_s[] = {
-    {155623, EAST},
-    {155622, WEST},
-    {155628, EAST},
-    {155629, WEST},
-    {155633, EAST},
-    {155632, WEST},
-    {155638, EAST},
-    {155639, WEST},
-    {155643, EAST},
-    {155642, WEST},
-    {-1, -1}};
-struct slider_row row_4_a_n_s[] = {
-    {155524, EAST},
-    {155525, WEST},
-    {155527, EAST},
-    {155526, WEST},
-    {155534, EAST},
-    {155535, WEST},
-    {155537, EAST},
-    {155536, WEST},
-    {155544, EAST},
-    {155545, WEST},
-    {-1, -1}};
-struct slider_row row_4_b_n_s[] = {
-    {155549, EAST},
-    {155550, WEST},
-    {155552, EAST},
-    {155551, WEST},
-    {155559, EAST},
-    {155560, WEST},
-    {155562, EAST},
-    {155561, WEST},
-    {155569, EAST},
-    {155570, WEST},
-    {-1, -1}};
-struct slider_row row_4_c_n_s[] = {
-    {155574, EAST},
-    {155575, WEST},
-    {155577, EAST},
-    {155576, WEST},
-    {155584, EAST},
-    {155585, WEST},
-    {155587, EAST},
-    {155586, WEST},
-    {155594, EAST},
-    {155595, WEST},
-    {-1, -1}};
-struct slider_row row_4_d_n_s[] = {
-    {155599, EAST},
-    {155600, WEST},
-    {155602, EAST},
-    {155601, WEST},
-    {155609, EAST},
-    {155610, WEST},
-    {155612, EAST},
-    {155611, WEST},
-    {155619, EAST},
-    {155620, WEST},
-    {-1, -1}};
-struct slider_row row_4_e_n_s[] = {
-    {155622, EAST},
-    {155621, WEST},
-    {155629, EAST},
-    {155630, WEST},
-    {155632, EAST},
-    {155631, WEST},
-    {155632, EAST},
-    {155631, WEST},
-    {155639, EAST},
-    {155640, WEST},
-    {155642, EAST},
-    {155641, WEST},
-    {-1, -1}};
-struct slider_row row_1_a_e_w[] = {
-    {155521, SOUTH},
-    {155530, NORTH},
-    {155522, SOUTH},
-    {155523, SOUTH},
-    {155524, SOUTH},
-    {155525, SOUTH},
-    {155529, NORTH},
-    {155528, NORTH},
-    {155527, NORTH},
-    {155526, NORTH},
-    {-1, -1}};
-struct slider_row row_1_b_e_w[] = {
-    {155546, SOUTH},
-    {155547, SOUTH},
-    {155548, SOUTH},
-    {155549, SOUTH},
-    {155550, SOUTH},
-    {155555, NORTH},
-    {155554, NORTH},
-    {155553, NORTH},
-    {155552, NORTH},
-    {155551, NORTH},
-    {-1, -1}};
-struct slider_row row_1_c_e_w[] = {
-    {155571, SOUTH},
-    {155572, SOUTH},
-    {155573, SOUTH},
-    {155574, SOUTH},
-    {155575, SOUTH},
-    {155580, NORTH},
-    {155579, NORTH},
-    {155578, NORTH},
-    {155577, NORTH},
-    {155576, NORTH},
-    {-1, -1}};
-struct slider_row row_1_d_e_w[] = {
-    {155596, SOUTH},
-    {155597, SOUTH},
-    {155598, SOUTH},
-    {155599, SOUTH},
-    {155600, SOUTH},
-    {155605, NORTH},
-    {155604, NORTH},
-    {155603, NORTH},
-    {155602, NORTH},
-    {155601, NORTH},
-    {-1, -1}};
-struct slider_row row_1_e_e_w[] = {
-    {155625, SOUTH},
-    {155624, SOUTH},
-    {155623, SOUTH},
-    {155622, SOUTH},
-    {155621, SOUTH},
-    {155626, NORTH},
-    {155627, NORTH},
-    {155628, NORTH},
-    {155629, NORTH},
-    {155630, NORTH},
-    {-1, -1}};
+struct slider_row row_1_a_n_s[] = {{155521, EAST}, {155522, WEST}, {155530, EAST}, {155529, WEST},
+                                   {155531, EAST}, {155532, WEST}, {155540, EAST}, {155539, WEST},
+                                   {155541, EAST}, {155542, WEST}, {-1, -1}};
+struct slider_row row_1_b_n_s[] = {{155546, EAST}, {155547, WEST}, {155555, EAST}, {155554, WEST},
+                                   {155556, EAST}, {155557, WEST}, {155565, EAST}, {155564, WEST},
+                                   {155566, EAST}, {155567, WEST}, {-1, -1}};
+struct slider_row row_1_c_n_s[] = {{155571, EAST}, {155572, WEST}, {155580, EAST}, {155579, WEST},
+                                   {155581, EAST}, {155582, WEST}, {155590, EAST}, {155589, WEST},
+                                   {155591, EAST}, {155592, WEST}, {-1, -1}};
+struct slider_row row_1_d_n_s[] = {{155596, EAST}, {155597, WEST}, {155605, EAST}, {155604, WEST},
+                                   {155606, EAST}, {155607, WEST}, {155615, EAST}, {155614, WEST},
+                                   {155616, EAST}, {155617, WEST}, {-1, -1}};
+struct slider_row row_1_e_n_s[] = {{155625, EAST}, {155624, WEST}, {155626, EAST}, {155627, WEST},
+                                   {155635, EAST}, {155634, WEST}, {155636, EAST}, {155637, WEST},
+                                   {155645, EAST}, {155644, WEST}, {-1, -1}};
+struct slider_row row_2_a_n_s[] = {{155522, EAST}, {155523, WEST}, {155529, EAST}, {155528, WEST},
+                                   {155532, EAST}, {155533, WEST}, {155539, EAST}, {155538, WEST},
+                                   {155542, EAST}, {155543, WEST}, {-1, -1}};
+struct slider_row row_2_b_n_s[] = {{155547, EAST}, {155548, WEST}, {155554, EAST}, {155553, WEST},
+                                   {155557, EAST}, {155558, WEST}, {155564, EAST}, {155563, WEST},
+                                   {155567, EAST}, {155568, WEST}, {-1, -1}};
+struct slider_row row_2_c_n_s[] = {{155572, EAST}, {155573, WEST}, {155579, WEST}, {155578, WEST},
+                                   {155582, EAST}, {155583, WEST}, {155589, EAST}, {155588, WEST},
+                                   {155592, EAST}, {155593, WEST}, {-1, -1}};
+struct slider_row row_2_d_n_s[] = {{155597, EAST}, {155598, WEST}, {155604, EAST}, {155603, WEST},
+                                   {155607, EAST}, {155608, WEST}, {155614, EAST}, {155613, WEST},
+                                   {155617, EAST}, {155618, WEST}, {-1, -1}};
+struct slider_row row_2_e_n_s[] = {{155624, EAST}, {155623, WEST}, {155627, EAST}, {155628, WEST},
+                                   {155634, EAST}, {155633, WEST}, {155637, EAST}, {155638, WEST},
+                                   {155644, EAST}, {155643, WEST}, {-1, -1}};
+struct slider_row row_3_a_n_s[] = {{155523, EAST}, {155534, WEST}, {155528, EAST}, {155527, WEST},
+                                   {155533, EAST}, {155534, WEST}, {155538, EAST}, {155537, WEST},
+                                   {155543, EAST}, {155544, WEST}, {-1, -1}};
+struct slider_row row_3_b_n_s[] = {{155548, EAST}, {155549, WEST}, {155553, EAST}, {155552, WEST},
+                                   {155559, EAST}, {155559, WEST}, {155563, EAST}, {155562, WEST},
+                                   {155568, EAST}, {155569, WEST}, {-1, -1}};
+struct slider_row row_3_c_n_s[] = {{155573, EAST}, {155574, WEST}, {155578, EAST}, {155577, WEST},
+                                   {155583, EAST}, {155584, WEST}, {155588, EAST}, {155587, WEST},
+                                   {155593, EAST}, {155594, WEST}, {-1, -1}};
+struct slider_row row_3_d_n_s[] = {{155598, EAST}, {155599, WEST}, {155603, EAST}, {155602, WEST},
+                                   {155608, EAST}, {155609, WEST}, {155613, EAST}, {155612, WEST},
+                                   {155618, EAST}, {155619, WEST}, {-1, -1}};
+struct slider_row row_3_e_n_s[] = {{155623, EAST}, {155622, WEST}, {155628, EAST}, {155629, WEST},
+                                   {155633, EAST}, {155632, WEST}, {155638, EAST}, {155639, WEST},
+                                   {155643, EAST}, {155642, WEST}, {-1, -1}};
+struct slider_row row_4_a_n_s[] = {{155524, EAST}, {155525, WEST}, {155527, EAST}, {155526, WEST},
+                                   {155534, EAST}, {155535, WEST}, {155537, EAST}, {155536, WEST},
+                                   {155544, EAST}, {155545, WEST}, {-1, -1}};
+struct slider_row row_4_b_n_s[] = {{155549, EAST}, {155550, WEST}, {155552, EAST}, {155551, WEST},
+                                   {155559, EAST}, {155560, WEST}, {155562, EAST}, {155561, WEST},
+                                   {155569, EAST}, {155570, WEST}, {-1, -1}};
+struct slider_row row_4_c_n_s[] = {{155574, EAST}, {155575, WEST}, {155577, EAST}, {155576, WEST},
+                                   {155584, EAST}, {155585, WEST}, {155587, EAST}, {155586, WEST},
+                                   {155594, EAST}, {155595, WEST}, {-1, -1}};
+struct slider_row row_4_d_n_s[] = {{155599, EAST}, {155600, WEST}, {155602, EAST}, {155601, WEST},
+                                   {155609, EAST}, {155610, WEST}, {155612, EAST}, {155611, WEST},
+                                   {155619, EAST}, {155620, WEST}, {-1, -1}};
+struct slider_row row_4_e_n_s[] = {{155622, EAST}, {155621, WEST}, {155629, EAST}, {155630, WEST},
+                                   {155632, EAST}, {155631, WEST}, {155632, EAST}, {155631, WEST},
+                                   {155639, EAST}, {155640, WEST}, {155642, EAST}, {155641, WEST},
+                                   {-1, -1}};
+struct slider_row row_1_a_e_w[] = {{155521, SOUTH}, {155530, NORTH}, {155522, SOUTH},
+                                   {155523, SOUTH}, {155524, SOUTH}, {155525, SOUTH},
+                                   {155529, NORTH}, {155528, NORTH}, {155527, NORTH},
+                                   {155526, NORTH}, {-1, -1}};
+struct slider_row row_1_b_e_w[] = {{155546, SOUTH}, {155547, SOUTH}, {155548, SOUTH},
+                                   {155549, SOUTH}, {155550, SOUTH}, {155555, NORTH},
+                                   {155554, NORTH}, {155553, NORTH}, {155552, NORTH},
+                                   {155551, NORTH}, {-1, -1}};
+struct slider_row row_1_c_e_w[] = {{155571, SOUTH}, {155572, SOUTH}, {155573, SOUTH},
+                                   {155574, SOUTH}, {155575, SOUTH}, {155580, NORTH},
+                                   {155579, NORTH}, {155578, NORTH}, {155577, NORTH},
+                                   {155576, NORTH}, {-1, -1}};
+struct slider_row row_1_d_e_w[] = {{155596, SOUTH}, {155597, SOUTH}, {155598, SOUTH},
+                                   {155599, SOUTH}, {155600, SOUTH}, {155605, NORTH},
+                                   {155604, NORTH}, {155603, NORTH}, {155602, NORTH},
+                                   {155601, NORTH}, {-1, -1}};
+struct slider_row row_1_e_e_w[] = {{155625, SOUTH}, {155624, SOUTH}, {155623, SOUTH},
+                                   {155622, SOUTH}, {155621, SOUTH}, {155626, NORTH},
+                                   {155627, NORTH}, {155628, NORTH}, {155629, NORTH},
+                                   {155630, NORTH}, {-1, -1}};
 struct slider_row row_2_a_e_w[] = {
-    {155530, SOUTH},
-    {155531, NORTH},
-    {155529, SOUTH},
-    {155527, SOUTH},
-    {155526, SOUTH},
-    {155532, NORTH},
-    {155533, NORTH},
-    {155534, NORTH},
-    {155535, NORTH},
-    {-1, -1}};
-struct slider_row row_2_b_e_w[] = {
-    {155555, SOUTH},
-    {155554, SOUTH},
-    {155553, SOUTH},
-    {155552, SOUTH},
-    {155551, SOUTH},
-    {155556, NORTH},
-    {155557, NORTH},
-    {155558, NORTH},
-    {155559, NORTH},
-    {155560, NORTH},
-    {-1, -1}};
-struct slider_row row_2_c_e_w[] = {
-    {155580, SOUTH},
-    {155579, SOUTH},
-    {155578, SOUTH},
-    {155577, SOUTH},
-    {155576, SOUTH},
-    {155581, NORTH},
-    {155582, NORTH},
-    {155583, NORTH},
-    {155584, NORTH},
-    {155585, NORTH},
-    {-1, -1}};
-struct slider_row row_2_d_e_w[] = {
-    {155605, SOUTH},
-    {155604, SOUTH},
-    {155603, SOUTH},
-    {155602, SOUTH},
-    {155601, SOUTH},
-    {155606, NORTH},
-    {155607, NORTH},
-    {155608, NORTH},
-    {155609, NORTH},
-    {155610, NORTH},
-    {-1, -1}};
-struct slider_row row_2_e_e_w[] = {
-    {155626, SOUTH},
-    {155627, SOUTH},
-    {155628, SOUTH},
-    {155629, SOUTH},
-    {155630, SOUTH},
-    {155635, NORTH},
-    {155634, NORTH},
-    {155633, NORTH},
-    {155632, NORTH},
-    {155631, NORTH},
-    {-1, -1}};
-struct slider_row row_3_a_e_w[] = {
-    {155531, SOUTH},
-    {155540, NORTH},
-    {155532, SOUTH},
-    {155533, SOUTH},
-    {155534, SOUTH},
-    {155535, SOUTH},
-    {155539, NORTH},
-    {155538, NORTH},
-    {155537, NORTH},
-    {155536, NORTH},
-    {-1, -1}};
-struct slider_row row_3_b_e_w[] = {
-    {155556, SOUTH},
-    {155557, SOUTH},
-    {155558, SOUTH},
-    {155559, SOUTH},
-    {155560, SOUTH},
-    {155565, NORTH},
-    {155564, NORTH},
-    {155563, NORTH},
-    {155562, NORTH},
-    {155561, NORTH},
-    {-1, -1}};
-struct slider_row row_3_c_e_w[] = {
-    {155581, SOUTH},
-    {155582, SOUTH},
-    {155583, SOUTH},
-    {155584, SOUTH},
-    {155585, SOUTH},
-    {155590, NORTH},
-    {155589, NORTH},
-    {155588, NORTH},
-    {155587, NORTH},
-    {155586, NORTH},
-    {-1, -1}};
-struct slider_row row_3_d_e_w[] = {
-    {155606, SOUTH},
-    {155607, SOUTH},
-    {155608, SOUTH},
-    {155609, SOUTH},
-    {155610, SOUTH},
-    {155615, NORTH},
-    {155614, NORTH},
-    {155613, NORTH},
-    {155612, NORTH},
-    {155611, NORTH},
-    {-1, -1}};
-struct slider_row row_3_e_e_w[] = {
-    {155635, SOUTH},
-    {155634, SOUTH},
-    {155633, SOUTH},
-    {155632, SOUTH},
-    {155631, SOUTH},
-    {155636, NORTH},
-    {155637, NORTH},
-    {155638, NORTH},
-    {155639, NORTH},
-    {155640, NORTH},
-    {-1, -1}};
-struct slider_row row_4_a_e_w[] = {
-    {155540, SOUTH},
-    {155541, NORTH},
-    {155539, SOUTH},
-    {155538, SOUTH},
-    {155537, SOUTH},
-    {155536, SOUTH},
-    {155542, NORTH},
-    {155543, NORTH},
-    {155544, NORTH},
-    {155545, NORTH},
-    {-1, -1}};
-struct slider_row row_4_b_e_w[] = {
-    {155565, SOUTH},
-    {155564, SOUTH},
-    {155563, SOUTH},
-    {155562, SOUTH},
-    {155561, SOUTH},
-    {155566, NORTH},
-    {155567, NORTH},
-    {155568, NORTH},
-    {155569, NORTH},
-    {155570, NORTH},
-    {-1, -1}};
-struct slider_row row_4_c_e_w[] = {
-    {155590, SOUTH},
-    {155589, SOUTH},
-    {155588, SOUTH},
-    {155587, SOUTH},
-    {155586, SOUTH},
-    {155591, NORTH},
-    {155592, NORTH},
-    {155593, NORTH},
-    {155594, NORTH},
-    {155595, NORTH},
-    {-1, -1}};
-struct slider_row row_4_d_e_w[] = {
-    {155615, SOUTH},
-    {155614, SOUTH},
-    {155613, SOUTH},
-    {155612, SOUTH},
-    {155611, SOUTH},
-    {155616, NORTH},
-    {155617, NORTH},
-    {155618, NORTH},
-    {155619, NORTH},
-    {155620, NORTH},
-    {-1, -1}};
-struct slider_row row_4_e_e_w[] = {
-    {155636, SOUTH},
-    {155637, SOUTH},
-    {155638, SOUTH},
-    {155639, SOUTH},
-    {155640, SOUTH},
-    {155645, NORTH},
-    {155644, NORTH},
-    {155643, NORTH},
-    {155642, NORTH},
-    {155641, NORTH},
-    {-1, -1}};
-struct slider_row row_1_a_u_d[] = {
-    {155521, DOWN},
-    {155546, UP},
-    {155530, DOWN},
-    {155555, UP},
-    {155531, DOWN},
-    {155556, UP},
-    {155540, DOWN},
-    {155565, UP},
-    {155541, DOWN},
-    {155566, UP},
-    {-1, -1}};
-struct slider_row row_1_b_u_d[] = {
-    {155522, DOWN},
-    {155547, UP},
-    {155529, DOWN},
-    {155554, UP},
-    {155532, DOWN},
-    {155557, UP},
-    {155539, DOWN},
-    {155564, UP},
-    {155542, DOWN},
-    {155567, UP},
-    {-1, -1}};
-struct slider_row row_1_c_u_d[] = {
-    {155523, DOWN},
-    {155528, DOWN},
-    {155533, DOWN},
-    {155538, DOWN},
-    {155543, DOWN},
-    {155548, UP},
-    {155553, UP},
-    {155558, UP},
-    {155563, UP},
-    {155568, UP},
-    {-1, -1}};
-struct slider_row row_1_d_u_d[] = {
-    {155524, DOWN},
-    {155527, DOWN},
-    {155534, DOWN},
-    {155537, DOWN},
-    {155544, DOWN},
-    {155549, UP},
-    {155552, UP},
-    {155559, UP},
-    {155562, UP},
-    {155569, UP},
-    {-1, -1}};
-struct slider_row row_1_e_u_d[] = {
-    {155525, DOWN},
-    {155526, DOWN},
-    {155535, DOWN},
-    {155536, DOWN},
-    {155545, DOWN},
-    {155550, UP},
-    {155551, UP},
-    {155560, UP},
-    {155561, UP},
-    {155570, UP},
-    {-1, -1}};
-struct slider_row row_2_a_u_d[] = {
-    {155546, DOWN},
-    {155571, UP},
-    {155555, DOWN},
-    {155556, DOWN},
-    {155565, DOWN},
-    {155566, DOWN},
-    {155580, UP},
-    {155581, UP},
-    {155590, UP},
-    {155591, UP},
-    {-1, -1}};
-struct slider_row row_2_b_u_d[] = {
-    {155547, DOWN},
-    {155554, DOWN},
-    {155557, DOWN},
-    {155564, DOWN},
-    {155567, DOWN},
-    {155572, UP},
-    {155569, UP},
-    {155582, UP},
-    {155589, UP},
-    {155592, UP},
-    {-1, -1}};
-struct slider_row row_2_c_u_d[] = {
-    {155548, DOWN},
-    {155553, DOWN},
-    {155558, DOWN},
-    {155563, DOWN},
-    {155568, DOWN},
-    {155573, UP},
-    {155578, UP},
-    {155583, UP},
-    {155588, UP},
-    {155593, UP},
-    {-1, -1}};
-struct slider_row row_2_d_u_d[] = {
-    {155549, DOWN},
-    {155552, DOWN},
-    {155559, DOWN},
-    {155562, DOWN},
-    {155569, DOWN},
-    {155574, UP},
-    {155577, UP},
-    {155584, UP},
-    {155587, UP},
-    {155594, UP},
-    {-1, -1}};
-struct slider_row row_2_e_u_d[] = {
-    {155550, DOWN},
-    {155551, DOWN},
-    {155560, DOWN},
-    {155561, DOWN},
-    {155570, DOWN},
-    {155575, UP},
-    {155576, UP},
-    {155585, UP},
-    {155586, UP},
-    {155595, UP},
-    {-1, -1}};
-struct slider_row row_3_a_u_d[] = {
-    {155571, DOWN},
-    {155596, UP},
-    {155580, DOWN},
-    {155581, DOWN},
-    {155590, DOWN},
-    {155591, DOWN},
-    {155596, UP},
-    {155605, UP},
-    {155606, UP},
-    {155615, UP},
-    {155616, UP},
-    {-1, -1}};
-struct slider_row row_3_b_u_d[] = {
-    {155572, DOWN},
-    {155579, DOWN},
-    {155582, DOWN},
-    {155589, DOWN},
-    {155592, DOWN},
-    {155597, UP},
-    {155604, UP},
-    {155607, UP},
-    {155614, UP},
-    {155617, UP},
-    {-1, -1}};
-struct slider_row row_3_c_u_d[] = {
-    {155573, DOWN},
-    {155578, DOWN},
-    {155583, DOWN},
-    {155588, DOWN},
-    {155593, DOWN},
-    {155598, UP},
-    {155603, UP},
-    {155608, UP},
-    {155613, UP},
-    {155618, UP},
-    {-1, -1}};
-struct slider_row row_3_d_u_d[] = {
-    {155574, DOWN},
-    {155577, DOWN},
-    {155584, DOWN},
-    {155587, DOWN},
-    {155594, DOWN},
-    {155599, UP},
-    {155602, UP},
-    {155609, UP},
-    {155612, UP},
-    {155619, UP},
-    {-1, -1}};
-struct slider_row row_3_e_u_d[] = {
-    {155575, DOWN},
-    {155576, DOWN},
-    {155585, DOWN},
-    {155586, DOWN},
-    {155595, DOWN},
-    {155600, UP},
-    {155601, UP},
-    {155610, UP},
-    {155611, UP},
-    {155620, UP},
-    {-1, -1}};
-struct slider_row row_4_a_u_d[] = {
-    {155596, DOWN},
-    {155625, UP},
-    {155605, DOWN},
-    {155606, DOWN},
-    {155615, DOWN},
-    {155616, DOWN},
-    {155626, UP},
-    {155635, UP},
-    {155636, UP},
-    {155645, UP},
-    {-1, -1}};
-struct slider_row row_4_b_u_d[] = {
-    {155597, DOWN},
-    {155604, DOWN},
-    {155607, DOWN},
-    {155614, DOWN},
-    {155617, DOWN},
-    {155624, UP},
-    {155627, UP},
-    {155634, UP},
-    {155637, UP},
-    {155644, UP},
-    {-1, -1}};
-struct slider_row row_4_c_u_d[] = {
-    {155598, DOWN},
-    {155603, DOWN},
-    {155608, DOWN},
-    {155613, DOWN},
-    {155618, DOWN},
-    {155623, UP},
-    {155628, UP},
-    {155633, UP},
-    {155638, UP},
-    {155643, UP},
-    {-1, -1}};
-struct slider_row row_4_d_u_d[] = {
-    {155599, DOWN},
-    {155602, DOWN},
-    {155609, DOWN},
-    {155612, DOWN},
-    {155619, DOWN},
-    {155622, UP},
-    {155629, UP},
-    {155632, UP},
-    {155639, UP},
-    {155642, UP},
-    {-1, -1}};
-struct slider_row row_4_e_u_d[] = {
-    {155600, DOWN},
-    {155601, DOWN},
-    {155610, DOWN},
-    {155611, DOWN},
-    {155620, DOWN},
-    {155621, UP},
-    {155630, UP},
-    {155631, UP},
-    {155640, UP},
-    {155641, UP},
-    {-1, -1}};
+    {155530, SOUTH}, {155531, NORTH}, {155529, SOUTH}, {155527, SOUTH}, {155526, SOUTH},
+    {155532, NORTH}, {155533, NORTH}, {155534, NORTH}, {155535, NORTH}, {-1, -1}};
+struct slider_row row_2_b_e_w[] = {{155555, SOUTH}, {155554, SOUTH}, {155553, SOUTH},
+                                   {155552, SOUTH}, {155551, SOUTH}, {155556, NORTH},
+                                   {155557, NORTH}, {155558, NORTH}, {155559, NORTH},
+                                   {155560, NORTH}, {-1, -1}};
+struct slider_row row_2_c_e_w[] = {{155580, SOUTH}, {155579, SOUTH}, {155578, SOUTH},
+                                   {155577, SOUTH}, {155576, SOUTH}, {155581, NORTH},
+                                   {155582, NORTH}, {155583, NORTH}, {155584, NORTH},
+                                   {155585, NORTH}, {-1, -1}};
+struct slider_row row_2_d_e_w[] = {{155605, SOUTH}, {155604, SOUTH}, {155603, SOUTH},
+                                   {155602, SOUTH}, {155601, SOUTH}, {155606, NORTH},
+                                   {155607, NORTH}, {155608, NORTH}, {155609, NORTH},
+                                   {155610, NORTH}, {-1, -1}};
+struct slider_row row_2_e_e_w[] = {{155626, SOUTH}, {155627, SOUTH}, {155628, SOUTH},
+                                   {155629, SOUTH}, {155630, SOUTH}, {155635, NORTH},
+                                   {155634, NORTH}, {155633, NORTH}, {155632, NORTH},
+                                   {155631, NORTH}, {-1, -1}};
+struct slider_row row_3_a_e_w[] = {{155531, SOUTH}, {155540, NORTH}, {155532, SOUTH},
+                                   {155533, SOUTH}, {155534, SOUTH}, {155535, SOUTH},
+                                   {155539, NORTH}, {155538, NORTH}, {155537, NORTH},
+                                   {155536, NORTH}, {-1, -1}};
+struct slider_row row_3_b_e_w[] = {{155556, SOUTH}, {155557, SOUTH}, {155558, SOUTH},
+                                   {155559, SOUTH}, {155560, SOUTH}, {155565, NORTH},
+                                   {155564, NORTH}, {155563, NORTH}, {155562, NORTH},
+                                   {155561, NORTH}, {-1, -1}};
+struct slider_row row_3_c_e_w[] = {{155581, SOUTH}, {155582, SOUTH}, {155583, SOUTH},
+                                   {155584, SOUTH}, {155585, SOUTH}, {155590, NORTH},
+                                   {155589, NORTH}, {155588, NORTH}, {155587, NORTH},
+                                   {155586, NORTH}, {-1, -1}};
+struct slider_row row_3_d_e_w[] = {{155606, SOUTH}, {155607, SOUTH}, {155608, SOUTH},
+                                   {155609, SOUTH}, {155610, SOUTH}, {155615, NORTH},
+                                   {155614, NORTH}, {155613, NORTH}, {155612, NORTH},
+                                   {155611, NORTH}, {-1, -1}};
+struct slider_row row_3_e_e_w[] = {{155635, SOUTH}, {155634, SOUTH}, {155633, SOUTH},
+                                   {155632, SOUTH}, {155631, SOUTH}, {155636, NORTH},
+                                   {155637, NORTH}, {155638, NORTH}, {155639, NORTH},
+                                   {155640, NORTH}, {-1, -1}};
+struct slider_row row_4_a_e_w[] = {{155540, SOUTH}, {155541, NORTH}, {155539, SOUTH},
+                                   {155538, SOUTH}, {155537, SOUTH}, {155536, SOUTH},
+                                   {155542, NORTH}, {155543, NORTH}, {155544, NORTH},
+                                   {155545, NORTH}, {-1, -1}};
+struct slider_row row_4_b_e_w[] = {{155565, SOUTH}, {155564, SOUTH}, {155563, SOUTH},
+                                   {155562, SOUTH}, {155561, SOUTH}, {155566, NORTH},
+                                   {155567, NORTH}, {155568, NORTH}, {155569, NORTH},
+                                   {155570, NORTH}, {-1, -1}};
+struct slider_row row_4_c_e_w[] = {{155590, SOUTH}, {155589, SOUTH}, {155588, SOUTH},
+                                   {155587, SOUTH}, {155586, SOUTH}, {155591, NORTH},
+                                   {155592, NORTH}, {155593, NORTH}, {155594, NORTH},
+                                   {155595, NORTH}, {-1, -1}};
+struct slider_row row_4_d_e_w[] = {{155615, SOUTH}, {155614, SOUTH}, {155613, SOUTH},
+                                   {155612, SOUTH}, {155611, SOUTH}, {155616, NORTH},
+                                   {155617, NORTH}, {155618, NORTH}, {155619, NORTH},
+                                   {155620, NORTH}, {-1, -1}};
+struct slider_row row_4_e_e_w[] = {{155636, SOUTH}, {155637, SOUTH}, {155638, SOUTH},
+                                   {155639, SOUTH}, {155640, SOUTH}, {155645, NORTH},
+                                   {155644, NORTH}, {155643, NORTH}, {155642, NORTH},
+                                   {155641, NORTH}, {-1, -1}};
+struct slider_row row_1_a_u_d[] = {{155521, DOWN}, {155546, UP}, {155530, DOWN}, {155555, UP},
+                                   {155531, DOWN}, {155556, UP}, {155540, DOWN}, {155565, UP},
+                                   {155541, DOWN}, {155566, UP}, {-1, -1}};
+struct slider_row row_1_b_u_d[] = {{155522, DOWN}, {155547, UP}, {155529, DOWN}, {155554, UP},
+                                   {155532, DOWN}, {155557, UP}, {155539, DOWN}, {155564, UP},
+                                   {155542, DOWN}, {155567, UP}, {-1, -1}};
+struct slider_row row_1_c_u_d[] = {{155523, DOWN}, {155528, DOWN}, {155533, DOWN}, {155538, DOWN},
+                                   {155543, DOWN}, {155548, UP},   {155553, UP},   {155558, UP},
+                                   {155563, UP},   {155568, UP},   {-1, -1}};
+struct slider_row row_1_d_u_d[] = {{155524, DOWN}, {155527, DOWN}, {155534, DOWN}, {155537, DOWN},
+                                   {155544, DOWN}, {155549, UP},   {155552, UP},   {155559, UP},
+                                   {155562, UP},   {155569, UP},   {-1, -1}};
+struct slider_row row_1_e_u_d[] = {{155525, DOWN}, {155526, DOWN}, {155535, DOWN}, {155536, DOWN},
+                                   {155545, DOWN}, {155550, UP},   {155551, UP},   {155560, UP},
+                                   {155561, UP},   {155570, UP},   {-1, -1}};
+struct slider_row row_2_a_u_d[] = {{155546, DOWN}, {155571, UP},   {155555, DOWN}, {155556, DOWN},
+                                   {155565, DOWN}, {155566, DOWN}, {155580, UP},   {155581, UP},
+                                   {155590, UP},   {155591, UP},   {-1, -1}};
+struct slider_row row_2_b_u_d[] = {{155547, DOWN}, {155554, DOWN}, {155557, DOWN}, {155564, DOWN},
+                                   {155567, DOWN}, {155572, UP},   {155569, UP},   {155582, UP},
+                                   {155589, UP},   {155592, UP},   {-1, -1}};
+struct slider_row row_2_c_u_d[] = {{155548, DOWN}, {155553, DOWN}, {155558, DOWN}, {155563, DOWN},
+                                   {155568, DOWN}, {155573, UP},   {155578, UP},   {155583, UP},
+                                   {155588, UP},   {155593, UP},   {-1, -1}};
+struct slider_row row_2_d_u_d[] = {{155549, DOWN}, {155552, DOWN}, {155559, DOWN}, {155562, DOWN},
+                                   {155569, DOWN}, {155574, UP},   {155577, UP},   {155584, UP},
+                                   {155587, UP},   {155594, UP},   {-1, -1}};
+struct slider_row row_2_e_u_d[] = {{155550, DOWN}, {155551, DOWN}, {155560, DOWN}, {155561, DOWN},
+                                   {155570, DOWN}, {155575, UP},   {155576, UP},   {155585, UP},
+                                   {155586, UP},   {155595, UP},   {-1, -1}};
+struct slider_row row_3_a_u_d[] = {{155571, DOWN}, {155596, UP},   {155580, DOWN}, {155581, DOWN},
+                                   {155590, DOWN}, {155591, DOWN}, {155596, UP},   {155605, UP},
+                                   {155606, UP},   {155615, UP},   {155616, UP},   {-1, -1}};
+struct slider_row row_3_b_u_d[] = {{155572, DOWN}, {155579, DOWN}, {155582, DOWN}, {155589, DOWN},
+                                   {155592, DOWN}, {155597, UP},   {155604, UP},   {155607, UP},
+                                   {155614, UP},   {155617, UP},   {-1, -1}};
+struct slider_row row_3_c_u_d[] = {{155573, DOWN}, {155578, DOWN}, {155583, DOWN}, {155588, DOWN},
+                                   {155593, DOWN}, {155598, UP},   {155603, UP},   {155608, UP},
+                                   {155613, UP},   {155618, UP},   {-1, -1}};
+struct slider_row row_3_d_u_d[] = {{155574, DOWN}, {155577, DOWN}, {155584, DOWN}, {155587, DOWN},
+                                   {155594, DOWN}, {155599, UP},   {155602, UP},   {155609, UP},
+                                   {155612, UP},   {155619, UP},   {-1, -1}};
+struct slider_row row_3_e_u_d[] = {{155575, DOWN}, {155576, DOWN}, {155585, DOWN}, {155586, DOWN},
+                                   {155595, DOWN}, {155600, UP},   {155601, UP},   {155610, UP},
+                                   {155611, UP},   {155620, UP},   {-1, -1}};
+struct slider_row row_4_a_u_d[] = {{155596, DOWN}, {155625, UP},   {155605, DOWN}, {155606, DOWN},
+                                   {155615, DOWN}, {155616, DOWN}, {155626, UP},   {155635, UP},
+                                   {155636, UP},   {155645, UP},   {-1, -1}};
+struct slider_row row_4_b_u_d[] = {{155597, DOWN}, {155604, DOWN}, {155607, DOWN}, {155614, DOWN},
+                                   {155617, DOWN}, {155624, UP},   {155627, UP},   {155634, UP},
+                                   {155637, UP},   {155644, UP},   {-1, -1}};
+struct slider_row row_4_c_u_d[] = {{155598, DOWN}, {155603, DOWN}, {155608, DOWN}, {155613, DOWN},
+                                   {155618, DOWN}, {155623, UP},   {155628, UP},   {155633, UP},
+                                   {155638, UP},   {155643, UP},   {-1, -1}};
+struct slider_row row_4_d_u_d[] = {{155599, DOWN}, {155602, DOWN}, {155609, DOWN}, {155612, DOWN},
+                                   {155619, DOWN}, {155622, UP},   {155629, UP},   {155632, UP},
+                                   {155639, UP},   {155642, UP},   {-1, -1}};
+struct slider_row row_4_e_u_d[] = {{155600, DOWN}, {155601, DOWN}, {155610, DOWN}, {155611, DOWN},
+                                   {155620, DOWN}, {155621, UP},   {155630, UP},   {155631, UP},
+                                   {155640, UP},   {155641, UP},   {-1, -1}};
 
 void open_exit(struct slider_row row)
 {
@@ -4628,7 +4075,8 @@ SPECIAL(ttf_monstrosity)
   if (dice(1, 10) > 2)
     return 0;
 
-  act("\tLThe tentacled monstrosity rises up in the air and sends its full mass crashing into the floor!\tn",
+  act("\tLThe tentacled monstrosity rises up in the air and sends its full mass crashing into the "
+      "floor!\tn",
       FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict)
@@ -4712,12 +4160,14 @@ SPECIAL(ttf_rotbringer)
   hp /= GET_MAX_HIT(ch);
   if (hp < 40)
   {
-    send_to_room(ch->in_room,
-                 "\tRThe Rot Bringer realizes the tide of the battle is turning against him, and he\tn\r\n"
-                 "\tRtakes a step towards the bloody basin. His face contorted in rage, he whispers\tn\r\n"
-                 "\tRsomething while clawing at the air over the floating bodies. Instantly, the red\tn\r\n"
-                 "\tRliquid starts swirling as the cadavers join together, forming a massive mound of\tn\r\n"
-                 "\tRmeat! A massive ball of flesh rises out of the basin, and follows its new master!\tn\r\n");
+    send_to_room(
+        ch->in_room,
+        "\tRThe Rot Bringer realizes the tide of the battle is turning against him, and he\tn\r\n"
+        "\tRtakes a step towards the bloody basin. His face contorted in rage, he whispers\tn\r\n"
+        "\tRsomething while clawing at the air over the floating bodies. Instantly, the red\tn\r\n"
+        "\tRliquid starts swirling as the cadavers join together, forming a massive mound of\tn\r\n"
+        "\tRmeat! A massive ball of flesh rises out of the basin, and follows its new "
+        "master!\tn\r\n");
 
     mob = read_mobile(145193, VIRTUAL);
     char_to_room(mob, ch->in_room);
@@ -4729,9 +4179,8 @@ SPECIAL(ttf_rotbringer)
   return FALSE;
 }
 
-int ttf_path[] = {
-    145185, 145184, 145183, 145184, 145186, 145187, 145186, 145188, 145189, 145188,
-    145186, 145187, 145186, 145184, 145185, -1};
+int ttf_path[] = {145185, 145184, 145183, 145184, 145186, 145187, 145186, 145188,
+                  145189, 145188, 145186, 145187, 145186, 145184, 145185, -1};
 
 SPECIAL(ttf_patrol)
 {

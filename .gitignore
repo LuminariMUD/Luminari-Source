@@ -377,5 +377,15 @@ aider-env/
 *-env/
 venv/
 .venv/
-cp2live.sh
-cp2live.sh
+
+# Backup files
+*.backup.*
+
+# Compiled test binaries
+unittests/CuTest/autopilot_tests
+unittests/CuTest/autopilot_pathfinding_tests
+unittests/CuTest/npc_pilot_tests
+unittests/CuTest/schedule_tests
+unittests/CuTest/test_waypoint_cache
+unittests/CuTest/vessel_tests
+unittests/CuTest/vessel_stress_test

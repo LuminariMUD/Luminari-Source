@@ -69,8 +69,7 @@ struct class_table class_list[NUM_CLASSES];
 /* SET OF UTILITY FUNCTIONS for the purpose of class prereqs */
 
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
-struct class_prerequisite *create_prereq(int prereq_type, int val1,
-                                         int val2, int val3)
+struct class_prerequisite *create_prereq(int prereq_type, int val1, int val2, int val3)
 {
   struct class_prerequisite *prereq = NULL;
 
@@ -88,14 +87,7 @@ void class_prereq_attribute(int class_num, int attribute, int value)
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  const char *attribute_abbr[7] = {
-      "None",
-      "Str",
-      "Dex",
-      "Int",
-      "Wis",
-      "Con",
-      "Cha"};
+  const char *attribute_abbr[7] = {"None", "Str", "Dex", "Int", "Wis", "Con", "Cha"};
 
   prereq = create_prereq(CLASS_PREREQ_ATTRIBUTE, attribute, value, 0);
 
@@ -184,17 +176,9 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  const char *casting_types[4] = {
-      "None",
-      "Arcane",
-      "Divine",
-      "Any"};
+  const char *casting_types[4] = {"None", "Arcane", "Divine", "Any"};
 
-  const char *spell_preparation_types[4] = {
-      "None",
-      "Prepared",
-      "Spontaneous",
-      "Any"};
+  const char *spell_preparation_types[4] = {"None", "Prepared", "Spontaneous", "Any"};
 
   prereq = create_prereq(CLASS_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
@@ -309,8 +293,8 @@ void spell_assignment(int class_num, int spell_num, int level)
    class-feats to a class */
 
 /* create/allocate memory for the spellassign struct */
-struct class_feat_assign *create_feat_assign(int feat_num, bool is_classfeat,
-                                             int level_received, bool stacks)
+struct class_feat_assign *create_feat_assign(int feat_num, bool is_classfeat, int level_received,
+                                             bool stacks)
 {
   struct class_feat_assign *feat_assign = NULL;
 
@@ -326,8 +310,8 @@ struct class_feat_assign *create_feat_assign(int feat_num, bool is_classfeat,
 
 /* when assigning class feats use this format:
    feat_assignment(CLASS_blah, FEAT_blah_blah, Y, NOASSIGN_FEAT, N); */
-void feat_assignment(int class_num, int feat_num, bool is_classfeat,
-                     int level_received, bool stacks)
+void feat_assignment(int class_num, int feat_num, bool is_classfeat, int level_received,
+                     bool stacks)
 {
   struct class_feat_assign *feat_assign = NULL;
 
@@ -341,9 +325,9 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
 /* function that will assign a list of values to a given class */
 void classo(int class_num, const char *name, const char *abbrev, const char *colored_abbrev,
             const char *menu_name, int max_level, bool locked_class, int prestige_class,
-            int base_attack_bonus, int hit_dice, int psp_gain, int move_gain,
-            int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
-            const char *spell_prog, const char *primary_attribute, const char *descrip)
+            int base_attack_bonus, int hit_dice, int psp_gain, int move_gain, int trains_gain,
+            bool in_game, int unlock_cost, int epic_feat_progression, const char *spell_prog,
+            const char *primary_attribute, const char *descrip)
 {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
@@ -372,10 +356,11 @@ void classo(int class_num, const char *name, const char *abbrev, const char *col
 }
 
 /* function used for assigning a classes titles */
-static void assign_class_titles(
-    int class_num, const char *title_4, const char *title_9, const char *title_14,
-    const char *title_19, const char *title_24, const char *title_29, const char *title_30, const char *title_imm,
-    const char *title_stf, const char *title_gstf, const char *title_default)
+static void assign_class_titles(int class_num, const char *title_4, const char *title_9,
+                                const char *title_14, const char *title_19, const char *title_24,
+                                const char *title_29, const char *title_30, const char *title_imm,
+                                const char *title_stf, const char *title_gstf,
+                                const char *title_default)
 {
   class_list[class_num].titles[0] = title_4;
   class_list[class_num].titles[1] = title_9;
@@ -391,8 +376,8 @@ static void assign_class_titles(
 }
 
 /* function used for assigned a classes 'preferred' saves */
-void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will,
-                        int save_posn, int save_deth)
+void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will, int save_posn,
+                        int save_deth)
 {
   class_list[class_num].preferred_saves[SAVING_FORT] = save_fort;
   class_list[class_num].preferred_saves[SAVING_REFL] = save_refl;
@@ -403,13 +388,12 @@ void assign_class_saves(int class_num, int save_fort, int save_refl, int save_wi
 
 /* function used for assigning whether a given ability is not-available, cross-class
  or class-skill */
-void assign_class_abils(int class_num,
-                        int acrobatics, int stealth, int perception, int heal, int intimidate,
-                        int concentration, int spellcraft, int appraise, int discipline,
-                        int total_defense, int lore, int ride, int climb, int sleight_of_hand,
-                        int bluff, int diplomacy, int disable_device, int disguise, int escape_artist,
-                        int handle_animal, int sense_motive, int survival, int swim, int use_magic_device,
-                        int perform)
+void assign_class_abils(int class_num, int acrobatics, int stealth, int perception, int heal,
+                        int intimidate, int concentration, int spellcraft, int appraise,
+                        int discipline, int total_defense, int lore, int ride, int climb,
+                        int sleight_of_hand, int bluff, int diplomacy, int disable_device,
+                        int disguise, int escape_artist, int handle_animal, int sense_motive,
+                        int survival, int swim, int use_magic_device, int perform)
 {
   class_list[class_num].class_abil[ABILITY_ACROBATICS] = acrobatics;
   class_list[class_num].class_abil[ABILITY_STEALTH] = stealth;
@@ -481,7 +465,6 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode)
 {
   switch (mode)
   {
-
     /* featnum in any bow */
   case CFEAT_SPECIAL_BOW:
     /*
@@ -533,10 +516,8 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode)
    iarg is for external comparison */
 bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg)
 {
-
   switch (prereq->prerequisite_type)
   {
-
   case CLASS_PREREQ_NONE:
     /* This is a NON-prereq. */
     break;
@@ -608,10 +589,7 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
         return FALSE;
       break;
     case CASTING_TYPE_ARCANE:
-      if (!(IS_WIZARD(ch) ||
-            IS_SORCERER(ch) ||
-            IS_SUMMONER(ch) ||
-            IS_BARD(ch)))
+      if (!(IS_WIZARD(ch) || IS_SORCERER(ch) || IS_SUMMONER(ch) || IS_BARD(ch)))
         return FALSE;
       /* This stuff is all messed up - fix. */
       if (prereq->values[2] > 0)
@@ -623,12 +601,8 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       }
       break;
     case CASTING_TYPE_DIVINE:
-      if (!(IS_CLERIC(ch) ||
-            IS_DRUID(ch) ||
-            IS_INQUISITOR(ch) ||
-            IS_PALADIN(ch) ||
-            (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0) ||
-            IS_RANGER(ch)))
+      if (!(IS_CLERIC(ch) || IS_DRUID(ch) || IS_INQUISITOR(ch) || IS_PALADIN(ch) ||
+            (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0) || IS_RANGER(ch)))
         return FALSE;
       if (prereq->values[2] > 0)
       {
@@ -658,7 +632,8 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       }
       break;
     default:
-      log("SYSERR: meets_class_prerequisite() - Bad Casting Type prerequisite %d", prereq->values[0]);
+      log("SYSERR: meets_class_prerequisite() - Bad Casting Type prerequisite %d",
+          prereq->values[0]);
       return FALSE;
     }
 
@@ -677,7 +652,8 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
     case PREP_TYPE_ANY:
       break;
     default:
-      log("SYSERR: meets_class_prerequisite() - Bad Preparation type prerequisite %d", prereq->values[1]);
+      log("SYSERR: meets_class_prerequisite() - Bad Preparation type prerequisite %d",
+          prereq->values[1]);
       return FALSE;
     }
     break;
@@ -748,10 +724,12 @@ bool display_class_prereqs(struct char_data *ch, const char *classname)
   /* basic info */
   send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
   send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
-               (CLASS_LEVEL(ch, class) >= max_class_level) ? "\trCap reached!\tn" : "\tWLevel cap not reached!\tn");
+               (CLASS_LEVEL(ch, class) >= max_class_level) ? "\trCap reached!\tn"
+                                                           : "\tWLevel cap not reached!\tn");
   send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
                has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");
-  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ? "\tWYes\tn" : "\trNo\tn");
+  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n",
+               CLSLIST_INGAME(class) ? "\tWYes\tn" : "\trNo\tn");
 
   /* prereqs, start with text line */
   send_to_char(ch, "\tC");
@@ -765,9 +743,8 @@ bool display_class_prereqs(struct char_data *ch, const char *classname)
     meets_prereqs = FALSE;
     if (meets_class_prerequisite(ch, prereq, NO_IARG))
       meets_prereqs = TRUE;
-    snprintf(buf, sizeof(buf), "\tn%s%s%s - %s\r\n",
-             (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
-             (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
+    snprintf(buf, sizeof(buf), "\tn%s%s%s - %s\r\n", (meets_prereqs ? "\tn" : "\tr"),
+             prereq->description, "\tn", (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
     send_to_char(ch, "%s", buf);
     found = TRUE;
   }
@@ -811,8 +788,7 @@ void display_all_classes(struct char_data *ch)
   {
     write_to_output(d, "%s%-20.20s %s",
                     class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
-                    CLSLIST_NAME(counter),
-                    !(++columns % 3) ? "\r\n" : "");
+                    CLSLIST_NAME(counter), !(++columns % 3) ? "\r\n" : "");
   }
 
   write_to_output(d, "\r\n");
@@ -877,15 +853,12 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   /* class prerequisites list */
   if (class_list[classnum].prereq_list != NULL)
   {
-
     /*  This class has prerequisites. Traverse the list and check. */
     for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next)
     {
-
       /* we have to check for valid lists, like a list of valid alignments or races */
       switch (prereq->prerequisite_type)
       {
-
         /* has align restriction?  well any qualification will work */
       case CLASS_PREREQ_ALIGN:
         has_alignment_restrictions = TRUE;
@@ -1014,12 +987,14 @@ bool display_class_info(struct char_data *ch, const char *classname)
   send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d plus constitution bonus\r\n",
                CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
   send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
-  send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (4x this value at 1st "
-                   "level)\r\n",
+  send_to_char(ch,
+               "\tcTraining Sessions: \tn%d plus Intelligence Mod (4x this value at 1st "
+               "level)\r\n",
                CLSLIST_TRAINS(class));
   send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
                CLSLIST_EFEATP(class));
-  send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ? "\tnYes\tn" : "\trNo, ask staff\tn");
+  send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n",
+               CLSLIST_INGAME(class) ? "\tnYes\tn" : "\trNo, ask staff\tn");
   send_to_char(ch, "\tcPrestige Spell   : \tn%s\r\n", class_list[class].prestige_spell_progression);
   send_to_char(ch, "\tcPrimary Attribute: \tn%s\r\n", CLSLIST_ATTRIBUTE(class));
 
@@ -1044,8 +1019,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
     {
       if (first_skill)
       {
-        len += snprintf(buf + len, sizeof(buf) - len, "\tcClass Skills:\tn  %s",
-                        ability_names[i]);
+        len += snprintf(buf + len, sizeof(buf) - len, "\tcClass Skills:\tn  %s", ability_names[i]);
         first_skill = FALSE;
       }
       else
@@ -1063,12 +1037,17 @@ bool display_class_info(struct char_data *ch, const char *classname)
     draw_line(ch, line_length, '-', '-');
     send_to_char(ch, "\tcSpell Prep Command  : \tn%s\r\n", spell_prep_dict[class][0]);
     send_to_char(ch, "\tcSpell Forget Command: \tn%s\r\n", spell_consign_dict[class][0]);
-    send_to_char(ch, "\tcSpell Cast Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? "cast" : "manifest") : "imbibe");
+    send_to_char(ch, "\tcSpell Cast Command  : \tn%s\r\n",
+                 (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? "cast" : "manifest")
+                                            : "imbibe");
     char spellList[30];
     snprintf(spellList, sizeof(spellList), "spells %s", CLSLIST_NAME(class));
     for (i = 0; i < strlen(spellList); i++)
       spellList[i] = tolower(spellList[i]);
-    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist") : "extracts");
+    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n",
+                 (class != CLASS_ALCHEMIST)
+                     ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist")
+                     : "extracts");
   }
   else if (class == CLASS_SHADOW_DANCER)
   {
@@ -1097,12 +1076,14 @@ bool display_class_info(struct char_data *ch, const char *classname)
       {
         first = FALSE;
         snprintf(buf, sizeof(buf), "\tcPrerequisites : %s%s%s",
-                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
+                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"),
+                 prereq->description, "\tn");
       }
       else
       {
         snprintf(buf2, sizeof(buf2), ", %s%s%s",
-                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
+                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"),
+                 prereq->description, "\tn");
         strlcat(buf, buf2, sizeof(buf));
       }
     }
@@ -1138,61 +1119,105 @@ void display_imm_classlist(struct char_data *ch)
   char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0;
 
-  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
+  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame "
+                   "UnlockCost EFeatProg");
   send_to_char(ch, " Attribute DESCRIP\r\n");
   send_to_char(ch, " Sv-Fort Sv-Refl Sv-Will\r\n");
-  send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
-  send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
-  send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
+  send_to_char(ch,
+               "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
+  send_to_char(ch,
+               "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
+  send_to_char(
+      ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
   send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
   send_to_char(ch, "Class Titles\r\n");
   send_to_char(ch, "============================================");
 
   for (i = 0; i < NUM_CLASSES; i++)
   {
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d %s\r\n     %s\r\n"
-                    "  %s %s %s\r\n"
-                    "     %s %s %s %s %s %s %s\r\n"
-                    "     %s %s %s %s %s %s %s %s\r\n"
-                    "     %s %s %s %s %s %s\r\n"
-                    "     %s %s %s %s\r\n",
-                    i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
-                    CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
-                    (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
-                    CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
-                    CLSLIST_ATTRIBUTE(i), CLSLIST_DESCRIP(i),
-                    CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B",
-                    (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
-                    (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA"));
+    len += snprintf(
+        buf + len, sizeof(buf) - len,
+        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d %s\r\n     %s\r\n"
+        "  %s %s %s\r\n"
+        "     %s %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s\r\n",
+        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
+        CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
+        (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i), CLSLIST_MVS(i),
+        CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
+        CLSLIST_ATTRIBUTE(i), CLSLIST_DESCRIP(i), CLSLIST_SAVES(i, 0) ? "G" : "B",
+        CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B",
+        (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA"
+                                                : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA"
+                                              : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA"
+                                              : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA"
+                                                : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA"));
     for (j = 0; j < MAX_NUM_TITLES; j++)
     {
       len += snprintf(buf + len, sizeof(buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
     }
-    len += snprintf(buf + len, sizeof(buf) - len, "============================================\r\n");
+    len +=
+        snprintf(buf + len, sizeof(buf) - len, "============================================\r\n");
   }
   page_string(ch->desc, buf, 1);
 }
@@ -1212,19 +1237,23 @@ bool view_class_feats(struct char_data *ch, const char *classname)
 
   if (class == CLASS_WARRIOR)
   {
-    send_to_char(ch, "The warrior class gets a bonus class feat atb level one and every even levels\r\n");
+    send_to_char(
+        ch, "The warrior class gets a bonus class feat atb level one and every even levels\r\n");
   }
   if (class == CLASS_KNIGHT_OF_SOLAMNIA)
   {
-    send_to_char(ch, "The knight of solamnia class gets a bonus class feat every 4 knight of solamnia levels.\r\n");
+    send_to_char(ch, "The knight of solamnia class gets a bonus class feat every 4 knight of "
+                     "solamnia levels.\r\n");
   }
   if (class == CLASS_KNIGHT_OF_THE_LILY)
   {
-    send_to_char(ch, "The knight of the lily class gets a bonus class feat on knight of the lily levels 2, 5 and 8.\r\n");
+    send_to_char(ch, "The knight of the lily class gets a bonus class feat on knight of the lily "
+                     "levels 2, 5 and 8.\r\n");
   }
   if (class == CLASS_DRAGONRIDER)
   {
-    send_to_char(ch, "The dragonrider class gets a bonus class feat on dragonrider levels 4 and 8\r\n");
+    send_to_char(ch,
+                 "The dragonrider class gets a bonus class feat on dragonrider levels 4 and 8\r\n");
   }
   if (class == CLASS_WIZARD)
   {
@@ -1240,10 +1269,8 @@ bool view_class_feats(struct char_data *ch, const char *classname)
          feat_assign = feat_assign->next)
     {
       if (feat_assign->level_received > 0) /* -1 is just class feat assign */
-        send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
-                     feat_assign->level_received,
-                     feat_assign->stacks ? "Yes" : "No",
-                     feat_list[feat_assign->feat_num].name);
+        send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n", feat_assign->level_received,
+                     feat_assign->stacks ? "Yes" : "No", feat_list[feat_assign->feat_num].name);
     }
   }
   send_to_char(ch, "\r\n");
@@ -1272,7 +1299,6 @@ ACMD(do_class)
   }
   else if (is_abbrev(arg, "info"))
   {
-
     if (!strcmp(classname, ""))
     {
       send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
@@ -1286,7 +1312,6 @@ ACMD(do_class)
   }
   else if (is_abbrev(arg, "feats"))
   {
-
     if (!strcmp(classname, ""))
     {
       send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
@@ -1306,7 +1331,6 @@ ACMD(do_class)
   }
   else if (is_abbrev(arg, "prereqs"))
   {
-
     if (!strcmp(classname, ""))
     {
       send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
@@ -1448,21 +1472,11 @@ int valid_align_by_class(int alignment, int class)
 }
 
 /* homeland-port currently unused */
-const char *church_types[] = {
-    "Ao",
-    "Akadi",
-    "Chauntea",
-    "Cyric",
-    "Grumbar",
-    "Istishia", // 5
-    "Kelemvor",
-    "Kossuth",
-    "Lathander",
-    "Mystra",
-    "Oghma", // 10
-    "Shar",
-    "Silvanus",
-    "\n"}; // 14
+const char *church_types[] = {"Ao",       "Akadi",    "Chauntea",  "Cyric",  "Grumbar",
+                              "Istishia", // 5
+                              "Kelemvor", "Kossuth",  "Lathander", "Mystra",
+                              "Oghma",                       // 10
+                              "Shar",     "Silvanus", "\n"}; // 14
 
 /* The code to interpret a class letter -- just used in who list */
 int parse_class(char arg)
@@ -1761,7 +1775,7 @@ int is_class_skill(struct char_data *ch, int ability)
 {
   int i;
   int highest_value = NA;
-  
+
   /* Check all classes the character has */
   for (i = 0; i < NUM_CLASSES; i++)
   {
@@ -1772,7 +1786,7 @@ int is_class_skill(struct char_data *ch, int ability)
         highest_value = class_ability_value;
     }
   }
-  
+
   return highest_value;
 }
 
@@ -1830,7 +1844,8 @@ int ACTUAL_BAB(struct char_data *ch)
 {
   int i = 0, level = 0, bab = 0;
   float counter = 0.0;
-  if (IS_NPC(ch)) return BAB_OLD(ch);
+  if (IS_NPC(ch))
+    return BAB_OLD(ch);
 
   if (GET_LEVEL(ch) < 20 || !FIXED_BAB(ch))
   {
@@ -1876,7 +1891,6 @@ int BAB(struct char_data *ch)
 
 int BAB_OLD(struct char_data *ch)
 {
-
   /* gnarly huh? */
   if (IS_AFFECTED(ch, AFF_TFORM))
     return (GET_LEVEL(ch));
@@ -1926,7 +1940,7 @@ int BAB_OLD(struct char_data *ch)
     }
   }
 
-  bab = (int) counter;
+  bab = (int)counter;
 
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
   {
@@ -1944,7 +1958,6 @@ int BAB_OLD(struct char_data *ch)
 
 int BAB_NEW(struct char_data *ch)
 {
-
   /* gnarly huh? */
   if (IS_AFFECTED(ch, AFF_TFORM))
     return (GET_LEVEL(ch));
@@ -2414,8 +2427,8 @@ void newbieEquipment(struct char_data *ch)
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MOLD,
       -1 // had to end with -1
-      };
-#endif 
+  };
+#endif
 
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
@@ -2461,25 +2474,25 @@ void newbieEquipment(struct char_data *ch)
 #elif defined(USE_VIRTUAL_BAGS_ONLY)
 
 #if defined(USE_NEW_NOOB_GEAR)
-    int x;
-    for (x = 0; x < 5; x++)
-    {
-      newbie_give_obj(ch, NOOB_RATIONS, FALSE);
-    }
-    for (x = 0; x < 3; x++)
-    {
-      newbie_give_obj(ch, NOOB_TORCH, FALSE);
-    }
-    newbie_give_obj(ch, NOOB_WATERSKIN, FALSE);
+  int x;
+  for (x = 0; x < 5; x++)
+  {
+    newbie_give_obj(ch, NOOB_RATIONS, FALSE);
+  }
+  for (x = 0; x < 3; x++)
+  {
+    newbie_give_obj(ch, NOOB_TORCH, FALSE);
+  }
+  newbie_give_obj(ch, NOOB_WATERSKIN, FALSE);
 #endif
 
 #endif
 
 #if defined(NOOB_GEAR_MAP_ONE)
-    newbie_give_obj(ch, NOOB_GEAR_MAP_ONE, FALSE);
+  newbie_give_obj(ch, NOOB_GEAR_MAP_ONE, FALSE);
 #endif
 #if defined(NOOB_GEAR_MAP_TWO)
-    newbie_give_obj(ch, NOOB_GEAR_MAP_TWO, FALSE);
+  newbie_give_obj(ch, NOOB_GEAR_MAP_TWO, FALSE);
 #endif
 
 #if defined(NOOB_CRAFTING_TAILORING)
@@ -2517,7 +2530,7 @@ void newbieEquipment(struct char_data *ch)
   case RACE_DUERGAR:
     newbie_give_obj(ch, NOOB_DWARF_WARAXE, FALSE); // dwarven waraxe
     break;
-#if defined(RACE_ALLOW_DROW)    
+#if defined(RACE_ALLOW_DROW)
   case RACE_DROW:
 #if defined(USE_CONTAINER_OBJECTS)
     newbie_give_obj(ch, NOOB_DROW_XBOW, FALSE); // drow hand xbow
@@ -2560,19 +2573,19 @@ void newbieEquipment(struct char_data *ch)
   case CLASS_BLACKGUARD:
   case CLASS_CLERIC:
   case CLASS_INQUISITOR:
-    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
-    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
-    newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);        // slender iron mace
-    newbie_give_obj(ch, NOOB_IRON_SHIELD, TRUE);       // shield
-    newbie_give_obj(ch, NOOB_SCALE_MAIL, TRUE);        // scale mail
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings
+    newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);       // slender iron mace
+    newbie_give_obj(ch, NOOB_IRON_SHIELD, TRUE);      // shield
+    newbie_give_obj(ch, NOOB_SCALE_MAIL, TRUE);       // scale mail
     break;
 
   case CLASS_DRUID:
-    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
-    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
-    newbie_give_obj(ch, NOOB_STEEL_SCIMITAR, TRUE);    // steel scimitar
-    newbie_give_obj(ch, NOOB_WOOD_SHIELD, TRUE);       // shield (wooden)
-    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings
+    newbie_give_obj(ch, NOOB_STEEL_SCIMITAR, TRUE);   // steel scimitar
+    newbie_give_obj(ch, NOOB_WOOD_SHIELD, TRUE);      // shield (wooden)
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);     // studded leather
     break;
 
   case CLASS_BERSERKER:
@@ -2581,11 +2594,11 @@ void newbieEquipment(struct char_data *ch)
     /*fallthrough!*/
   case CLASS_RANGER:
 
-    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
-    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
-    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
-    newbie_give_obj(ch, NOOB_LONG_SWORD, FALSE);       // long sword
-    newbie_give_obj(ch, NOOB_IRON_SHIELD, TRUE);       // shield
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);     // studded leather
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings
+    newbie_give_obj(ch, NOOB_LONG_SWORD, FALSE);      // long sword
+    newbie_give_obj(ch, NOOB_IRON_SHIELD, TRUE);      // shield
 
     break;
 
@@ -2605,11 +2618,11 @@ void newbieEquipment(struct char_data *ch)
 
     /*FALL THROUGH*/
   case CLASS_ROGUE:
-    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
-    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
-    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
-    newbie_give_obj(ch, NOOB_DAGGER, FALSE);           // dagger
-    newbie_give_obj(ch, NOOB_DAGGER, FALSE);           // dagger
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);     // studded leather
+    newbie_give_obj(ch, NOOB_DAGGER, FALSE);          // dagger
+    newbie_give_obj(ch, NOOB_DAGGER, FALSE);          // dagger
 
     break;
 
@@ -2619,10 +2632,10 @@ void newbieEquipment(struct char_data *ch)
   case CLASS_ALCHEMIST:
   case CLASS_SUMMONER:
 
-    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
-    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
-    newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);        // slender iron mace
-    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings
+    newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);       // slender iron mace
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);     // studded leather
 
     /* switch fallthrough */
   case CLASS_SORCERER:
@@ -2634,7 +2647,7 @@ void newbieEquipment(struct char_data *ch)
     newbie_give_obj(ch, NOOB_CLOTH_ROBES, TRUE);   // cloth robes
 
     break;
-  #elif defined(USE_NEW_NOOB_GEAR)
+#elif defined(USE_NEW_NOOB_GEAR)
 
   case CLASS_MONK:
     newbie_equip_obj(ch, NOOB_GEAR_MONK_ARMS, WEAR_ARMS, TRUE);      // arms armor
@@ -2672,10 +2685,10 @@ void newbieEquipment(struct char_data *ch)
     break;
 
   case CLASS_INQUISITOR:
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_ARMS, WEAR_ARMS, TRUE);    // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_LEGS, WEAR_LEGS, TRUE);    // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_BODY, WEAR_BODY, TRUE);    // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
@@ -2688,41 +2701,41 @@ void newbieEquipment(struct char_data *ch)
     break;
 
   case CLASS_BERSERKER:
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_ARMS, WEAR_ARMS, TRUE);    // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_LEGS, WEAR_LEGS, TRUE);    // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_BODY, WEAR_BODY, TRUE);    // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_ARMS, WEAR_ARMS, TRUE);       // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_LEGS, WEAR_LEGS, TRUE);       // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_BODY, WEAR_BODY, TRUE);       // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_HEAD, WEAR_HEAD, TRUE);       // head armor
     newbie_equip_obj(ch, NOOB_GEAR_BERSER_WEAPON, WEAR_WIELD_2H, TRUE); // weapon
     break;
 
   case CLASS_WARRIOR:
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_ARMS, WEAR_ARMS, TRUE);          // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_LEGS, WEAR_LEGS, TRUE);          // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_BODY, WEAR_BODY, TRUE);          // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_HEAD, WEAR_HEAD, TRUE);          // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_WEAPON, WEAR_WIELD_2H, TRUE);    // weapon
-    newbie_give_obj(ch, NOOB_GEAR_FIGHT_SHIELD, FALSE);                   // shield spare
-    newbie_give_obj(ch, NOOB_GEAR_FIGHT_WEAPON2, FALSE);                  // one-handed weapon
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_ARMS, WEAR_ARMS, TRUE);       // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_LEGS, WEAR_LEGS, TRUE);       // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_BODY, WEAR_BODY, TRUE);       // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_HEAD, WEAR_HEAD, TRUE);       // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_WEAPON, WEAR_WIELD_2H, TRUE); // weapon
+    newbie_give_obj(ch, NOOB_GEAR_FIGHT_SHIELD, FALSE);                // shield spare
+    newbie_give_obj(ch, NOOB_GEAR_FIGHT_WEAPON2, FALSE);               // one-handed weapon
     break;
 
   case CLASS_RANGER:
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_ARMS, WEAR_ARMS, TRUE);     // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_LEGS, WEAR_LEGS, TRUE);     // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_BODY, WEAR_BODY, TRUE);     // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_RANGER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_BARD:
     newbie_give_obj(ch, NOOB_GEAR_BARD_INSTRUMENT, FALSE); // instrument
 
-    newbie_give_obj(ch, NOOB_GEAR_BARD_ARMS, TRUE);        // leather sleeves
+    newbie_give_obj(ch, NOOB_GEAR_BARD_ARMS, TRUE); // leather sleeves
 
-    newbie_give_obj(ch, NOOB_GEAR_BARD_LEGS, TRUE);        // leather leggings
+    newbie_give_obj(ch, NOOB_GEAR_BARD_LEGS, TRUE); // leather leggings
 
-    newbie_give_obj(ch, NOOB_GEAR_BARD_BODY, TRUE);        // studded leather
+    newbie_give_obj(ch, NOOB_GEAR_BARD_BODY, TRUE); // studded leather
 
-    newbie_give_obj(ch, NOOB_GEAR_BARD_WEAPON, FALSE);     // dagger
+    newbie_give_obj(ch, NOOB_GEAR_BARD_WEAPON, FALSE); // dagger
     break;
 
   case CLASS_ROGUE:
@@ -2738,56 +2751,56 @@ void newbieEquipment(struct char_data *ch)
     break;
 
   case CLASS_WIZARD:
-    newbie_give_obj(ch, NOOB_WIZ_NOTE, FALSE);      // wizard note
-    newbie_give_obj(ch, NOOB_WIZ_SPELLBOOK, FALSE); // spellbook
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_ARMS, WEAR_ARMS, TRUE);     // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_LEGS, WEAR_LEGS, TRUE);     // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_BODY, WEAR_BODY, TRUE);     // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_give_obj(ch, NOOB_WIZ_NOTE, FALSE);                      // wizard note
+    newbie_give_obj(ch, NOOB_WIZ_SPELLBOOK, FALSE);                 // spellbook
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_WIZ_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_ALCHEMIST:
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_ARMS, WEAR_ARMS, TRUE);    // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_LEGS, WEAR_LEGS, TRUE);    // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_BODY, WEAR_BODY, TRUE);    // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_SUMMONER:
   case CLASS_ARTIFICER:
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_ARMS, WEAR_ARMS, TRUE);    // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_LEGS, WEAR_LEGS, TRUE);    // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_BODY, WEAR_BODY, TRUE);    // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_SORCERER:
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_ARMS, WEAR_ARMS, TRUE);     // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_LEGS, WEAR_LEGS, TRUE);     // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_BODY, WEAR_BODY, TRUE);     // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_SORC_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_PSIONICIST:
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_ARMS, WEAR_ARMS, TRUE);     // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_LEGS, WEAR_LEGS, TRUE);     // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_BODY, WEAR_BODY, TRUE);     // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_PSION_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_WARLOCK:
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_ARMS, WEAR_ARMS, TRUE);     // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_LEGS, WEAR_LEGS, TRUE);     // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_BODY, WEAR_BODY, TRUE);     // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_HEAD, WEAR_HEAD, TRUE);      // head armor
     newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
-  #endif
+#endif
   default:
     log("Invalid class sent to newbieEquipment class!");
     break;
@@ -3104,15 +3117,16 @@ void do_start(struct char_data *ch)
 
 bool special_handling_level_feats(struct char_data *ch, int feat_num)
 {
-
   switch (feat_num)
   {
   case FEAT_SNEAK_ATTACK:
-    send_to_char(ch, "\tMYour sneak attack has increased to +%dd6!\tn\r\n", HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+    send_to_char(ch, "\tMYour sneak attack has increased to +%dd6!\tn\r\n",
+                 HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
     return TRUE;
 
   case FEAT_SHRUG_DAMAGE:
-    send_to_char(ch, "\tMYou can now shrug off %d damage!\tn\r\n", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+    send_to_char(ch, "\tMYou can now shrug off %d damage!\tn\r\n",
+                 HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
     return TRUE;
 
   case FEAT_STRENGTH_BOOST:
@@ -3164,7 +3178,6 @@ void process_class_level_feats(struct char_data *ch, int class)
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
        feat_assign = feat_assign->next)
   {
-
     /* Mystic Theurge levels stack with class levels for purposes of granting spell access. */
     if (IS_SPELL_CIRCLE_FEAT(feat_assign->feat_num))
     {
@@ -3178,11 +3191,9 @@ void process_class_level_feats(struct char_data *ch, int class)
     /* appropriate level to receive this feat? */
     if (feat_assign->level_received == effective_class_level)
     {
-
       /* any special handling for this feat? */
       if (!special_handling_level_feats(ch, feat_assign->feat_num))
       {
-
         /* no special handling */
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
@@ -3216,15 +3227,12 @@ void process_race_level_feats(struct char_data *ch)
   for (feat_assign = race_list[GET_RACE(ch)].featassign_list; feat_assign != NULL;
        feat_assign = feat_assign->next)
   {
-
     /* appropriate level to receive this feat? */
     if (feat_assign->level_received == GET_LEVEL(ch))
     {
-
       /* any special handling for this feat? */
       if (!special_handling_level_feats(ch, feat_assign->feat_num))
       {
-
         /* no special handling */
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
@@ -3246,59 +3254,68 @@ void process_race_level_feats(struct char_data *ch)
   }
 }
 
-#define GRANT_SPELL_CIRCLE(class, first, epic)                                                                             \
-  if ((lvl = CLASS_LEVEL(ch, class)) > 0)                                                                                  \
-  {                                                                                                                        \
-    for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;                                             \
-         feat_assign = feat_assign->next)                                                                                  \
-    {                                                                                                                      \
-      feat_num = feat_assign->feat_num;                                                                                    \
-      if (feat_num >= first && feat_num <= epic && !HAS_FEAT(ch, feat_num) && feat_assign->level_received == lvl + mystic) \
-      {                                                                                                                    \
-        SET_FEAT(ch, feat_num, 1);                                                                                         \
-        send_to_char(ch, "You have gained access to %s!\r\n", feat_list[feat_num].name);                                   \
-      }                                                                                                                    \
-    }                                                                                                                      \
+#define GRANT_SPELL_CIRCLE(class, first, epic)                                                     \
+  if ((lvl = CLASS_LEVEL(ch, class)) > 0)                                                          \
+  {                                                                                                \
+    for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;                     \
+         feat_assign = feat_assign->next)                                                          \
+    {                                                                                              \
+      feat_num = feat_assign->feat_num;                                                            \
+      if (feat_num >= first && feat_num <= epic && !HAS_FEAT(ch, feat_num) &&                      \
+          feat_assign->level_received == lvl + mystic)                                             \
+      {                                                                                            \
+        SET_FEAT(ch, feat_num, 1);                                                                 \
+        send_to_char(ch, "You have gained access to %s!\r\n", feat_list[feat_num].name);           \
+      }                                                                                            \
+    }                                                                                              \
   }
 
 void process_conditional_class_level_feats(struct char_data *ch, int class)
 {
-
   switch (class)
   {
   case CLASS_SORCERER:
     //  Mostly Bloodlines
     if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
     {
-      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON))
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 &&
+          !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON))
       {
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_BREATHWEAPON].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_DRACONIC_HERITAGE_BREATHWEAPON].name);
       }
       if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS))
       {
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_CLAWS].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_DRACONIC_HERITAGE_CLAWS].name);
       }
-      if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 3)
+      if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES) &&
+          CLASS_LEVEL(ch, CLASS_SORCERER) >= 3)
       {
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES].name);
       }
       if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA))
       {
         SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_BLOODLINE_ARCANA].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_DRACONIC_BLOODLINE_ARCANA].name);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_WINGS))
       {
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_WINGS, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_WINGS].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_DRACONIC_HERITAGE_WINGS].name);
       }
-      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS))
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 &&
+          !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS))
       {
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS].name);
         SET_FEAT(ch, FEAT_BLINDSENSE, 1);
         send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_BLINDSENSE].name);
       }
@@ -3308,12 +3325,14 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
       if (!HAS_REAL_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA))
       {
         SET_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ARCANE_BLOODLINE_ARCANA].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_ARCANE_BLOODLINE_ARCANA].name);
       }
       if (!HAS_REAL_FEAT(ch, FEAT_IMPROVED_FAMILIAR))
       {
         SET_FEAT(ch, FEAT_IMPROVED_FAMILIAR, 1);
-        send_to_char(ch, "You have gained the %s feat as a benefit of your arcane bloodline!\r\n", feat_list[FEAT_IMPROVED_FAMILIAR].name);
+        send_to_char(ch, "You have gained the %s feat as a benefit of your arcane bloodline!\r\n",
+                     feat_list[FEAT_IMPROVED_FAMILIAR].name);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_METAMAGIC_ADEPT))
       {
@@ -3323,27 +3342,38 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA))
       {
         SET_FEAT(ch, FEAT_NEW_ARCANA, 1);
-        send_to_char(ch, "You have gained the %s feat!  You can now learn a bonus spell from among the spell circles you can currently cast.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+        send_to_char(ch,
+                     "You have gained the %s feat!  You can now learn a bonus spell from among the "
+                     "spell circles you can currently cast.\r\n",
+                     feat_list[FEAT_NEW_ARCANA].name);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 13 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA) == 1)
       {
         SET_FEAT(ch, FEAT_NEW_ARCANA, 2);
-        send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell from among the spell circles you can currently cast.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+        send_to_char(ch,
+                     "You have improved the %s feat!  You can now learn a bonus spell from among "
+                     "the spell circles you can currently cast.\r\n",
+                     feat_list[FEAT_NEW_ARCANA].name);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA) == 2)
       {
         SET_FEAT(ch, FEAT_NEW_ARCANA, 3);
-        send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell from among the spell circles you can currently cast.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+        send_to_char(ch,
+                     "You have improved the %s feat!  You can now learn a bonus spell from among "
+                     "the spell circles you can currently cast.\r\n",
+                     feat_list[FEAT_NEW_ARCANA].name);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER))
       {
         SET_FEAT(ch, FEAT_SCHOOL_POWER, 1);
-        send_to_char(ch, "You have gained the %s (%s) feat!\r\n", feat_list[FEAT_SCHOOL_POWER].name, school_names[GET_BLOODLINE_SUBTYPE(ch)]);
+        send_to_char(ch, "You have gained the %s (%s) feat!\r\n", feat_list[FEAT_SCHOOL_POWER].name,
+                     school_names[GET_BLOODLINE_SUBTYPE(ch)]);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
       {
         SET_FEAT(ch, FEAT_ARCANE_APOTHEOSIS, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ARCANE_APOTHEOSIS].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_ARCANE_APOTHEOSIS].name);
       }
     }
     else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
@@ -3351,7 +3381,8 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
       if (!HAS_REAL_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA))
       {
         SET_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_BLOODLINE_ARCANA].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_FEY_BLOODLINE_ARCANA].name);
       }
       if (!HAS_REAL_FEAT(ch, FEAT_LAUGHING_TOUCH))
       {
@@ -3384,7 +3415,8 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
       if (!HAS_REAL_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
       {
         SET_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_UNDEAD_BLOODLINE_ARCANA].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_UNDEAD_BLOODLINE_ARCANA].name);
       }
       if (!HAS_REAL_FEAT(ch, FEAT_GRAVE_TOUCH))
       {
@@ -3399,7 +3431,8 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_GRASP_OF_THE_DEAD))
       {
         SET_FEAT(ch, FEAT_GRASP_OF_THE_DEAD, 1);
-        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRASP_OF_THE_DEAD].name);
+        send_to_char(ch, "You have gained the %s feat!\r\n",
+                     feat_list[FEAT_GRASP_OF_THE_DEAD].name);
       }
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_INCORPOREAL_FORM))
       {
@@ -3449,11 +3482,9 @@ void process_level_feats(struct char_data *ch, int class)
   /* increment through the list, FEAT_UNDEFINED is our terminator */
   while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED)
   {
-
     /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
     /* non-class, racial feat and don't have it yet */
-    if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
-        level_feats[i][LF_RACE] == GET_RACE(ch) &&
+    if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED && level_feats[i][LF_RACE] == GET_RACE(ch) &&
         level_feats[i][LF_MIN_LVL] == GET_LEVEL(ch))
     {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
@@ -3484,8 +3515,7 @@ void process_level_feats(struct char_data *ch, int class)
 /* our function for leveling up, takes in class that is being advanced */
 void advance_level(struct char_data *ch, int class)
 {
-  int add_hp = 0, at_armor = 100,
-      add_psp = 0, add_move = 0, k, trains = 0;
+  int add_hp = 0, at_armor = 100, add_psp = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
 
@@ -3545,7 +3575,8 @@ void advance_level(struct char_data *ch, int class)
     // epic_class_feats++;
   }
 
-  if (class == CLASS_PSIONICIST && (!(CLASS_LEVEL(ch, CLASS_PSIONICIST) % 5) || CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1))
+  if (class == CLASS_PSIONICIST &&
+      (!(CLASS_LEVEL(ch, CLASS_PSIONICIST) % 5) || CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1))
   {
     if (CLASS_LEVEL(ch, CLASS_PSIONICIST) <= 20)
       class_feats++; // psionicists get a bonus class feat every 5 levels
@@ -3553,23 +3584,26 @@ void advance_level(struct char_data *ch, int class)
 
   if (class == CLASS_WARRIOR)
   {
-    if (CLASS_LEVEL(ch, CLASS_WARRIOR) <= 20 && (!(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) || CLASS_LEVEL(ch, CLASS_WARRIOR) == 1))
+    if (CLASS_LEVEL(ch, CLASS_WARRIOR) <= 20 &&
+        (!(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) || CLASS_LEVEL(ch, CLASS_WARRIOR) == 1))
       class_feats++; // warriors get a bonus class feat every 2 levels and at level 1
     // else if (IS_EPIC(ch))
     // epic_class_feats++;
   }
-  if (class == CLASS_KNIGHT_OF_SOLAMNIA && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) % 4 == 0) )
+  if (class == CLASS_KNIGHT_OF_SOLAMNIA && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) % 4 == 0))
   {
     class_feats++;
   }
 
   if (class == CLASS_KNIGHT_OF_THE_LILY && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 2 ||
-      CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 5 || CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 8) )
+                                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 5 ||
+                                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 8))
   {
     class_feats++;
   }
 
-  if (class == CLASS_DRAGONRIDER && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) == 4 || CLASS_LEVEL(ch, CLASS_DRAGONRIDER) == 8))
+  if (class == CLASS_DRAGONRIDER &&
+      (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) == 4 || CLASS_LEVEL(ch, CLASS_DRAGONRIDER) == 8))
   {
     class_feats++;
   }
@@ -3587,18 +3621,22 @@ void advance_level(struct char_data *ch, int class)
       epic_feats++;
   }
 
-  if (class == CLASS_ELDRITCH_KNIGHT && (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 1 ||
-                                         CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 5 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 9))
+  if (class == CLASS_ELDRITCH_KNIGHT &&
+      (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 1 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 5 ||
+       CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 9))
   {
     class_feats++; // Eldritch Knights get a bonus feat on levels 1, 5, and 9
   }
 
-  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) && CLASS_LEVEL(ch, CLASS_SORCERER) > 1)
+  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) &&
+      CLASS_LEVEL(ch, CLASS_SORCERER) > 1)
   {
     class_feats++;
   }
 
-  if (class == CLASS_SPELLSWORD && (CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 2 || CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 6 || CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 10))
+  if (class == CLASS_SPELLSWORD &&
+      (CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 2 || CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 6 ||
+       CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 10))
   {
     class_feats++;
   }
@@ -3662,7 +3700,7 @@ void advance_level(struct char_data *ch, int class)
 
   if (class == CLASS_NECROMANCER && CLASS_LEVEL(ch, CLASS_NECROMANCER) == 6)
   {
-    GET_REAL_STR(ch)+= 4;
+    GET_REAL_STR(ch) += 4;
   }
 
   // base practice / boost improvement
@@ -3715,7 +3753,7 @@ void advance_level(struct char_data *ch, int class)
         break;
       }
     }
-    FIXED_BAB(ch) = (int) counter;
+    FIXED_BAB(ch) = (int)counter;
   }
 
   /* adjust final and report changes! */
@@ -4055,18 +4093,19 @@ void load_class_list(void)
          -1, N, N, L, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence, Con/Dex for survivability",
-         /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
-                     "power. The works of beings beyond mortals, the legends of realms where titans "
-                     "and spirits tread, the lore of creations both wondrous and terrible—such "
-                     "mysteries call to those with the ambition and the intellect to rise above "
-                     "the common folk to grasp true might. Such is the path of the wizard. These "
-                     "shrewd magic-users seek, collect, and covet esoteric knowledge, drawing on "
-                     "cultic arts to work wonders beyond the abilities of mere mortals. While some "
-                     "might choose a particular field of magical study and become masters of such "
-                     "powers, others embrace versatility, reveling in the unbounded wonders of all "
-                     "magic. In either case, wizards prove a cunning and potent lot, capable of "
-                     "smiting their foes, empowering their allies, and shaping the world to their "
-                     "every desire.");
+         /*Descrip*/
+         "Beyond the veil of the mundane hide the secrets of absolute "
+         "power. The works of beings beyond mortals, the legends of realms where titans "
+         "and spirits tread, the lore of creations both wondrous and terrible—such "
+         "mysteries call to those with the ambition and the intellect to rise above "
+         "the common folk to grasp true might. Such is the path of the wizard. These "
+         "shrewd magic-users seek, collect, and covet esoteric knowledge, drawing on "
+         "cultic arts to work wonders beyond the abilities of mere mortals. While some "
+         "might choose a particular field of magical study and become masters of such "
+         "powers, others embrace versatility, reveling in the unbounded wonders of all "
+         "magic. In either case, wizards prove a cunning and potent lot, capable of "
+         "smiting their foes, empowering their allies, and shaping the world to their "
+         "every desire.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WIZARD, B, B, G, B, B);
   assign_class_abils(CLASS_WIZARD, /* class number */
@@ -4433,20 +4472,22 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          -1, N, N, M, 8, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Wisdom, Cha affects some of their abilities..  Con for survivability, Str for combat",
-         /*descrip*/ "In faith and the miracles of the divine, many find a greater "
-                     "purpose. Called to serve powers beyond most mortal understanding, all priests "
-                     "preach wonders and provide for the spiritual needs of their people. Clerics "
-                     "are more than mere priests, though; these emissaries of the divine work the "
-                     "will of the greater powers through strength of arms and the magic of their "
-                     "divine channels. Devoted to the tenets of the religions and philosophies that "
-                     "inspire them, these ecclesiastics quest to spread the knowledge and influence "
-                     "of their faith. Yet while they might share similar abilities, clerics prove as "
-                     "different from one another as the powers they serve, with some offering healing "
-                     "and redemption, others judging law and truth, and still others spreading "
-                     "conflict and corruption. The ways of the cleric are varied, yet all who tread "
-                     "these paths walk with the mightiest of allies and bear the arms of the divine "
-                     "themselves.");
+         /*primary attributes*/
+         "Wisdom, Cha affects some of their abilities..  Con for survivability, Str for combat",
+         /*descrip*/
+         "In faith and the miracles of the divine, many find a greater "
+         "purpose. Called to serve powers beyond most mortal understanding, all priests "
+         "preach wonders and provide for the spiritual needs of their people. Clerics "
+         "are more than mere priests, though; these emissaries of the divine work the "
+         "will of the greater powers through strength of arms and the magic of their "
+         "divine channels. Devoted to the tenets of the religions and philosophies that "
+         "inspire them, these ecclesiastics quest to spread the knowledge and influence "
+         "of their faith. Yet while they might share similar abilities, clerics prove as "
+         "different from one another as the powers they serve, with some offering healing "
+         "and redemption, others judging law and truth, and still others spreading "
+         "conflict and corruption. The ways of the cleric are varied, yet all who tread "
+         "these paths walk with the mightiest of allies and bear the arms of the divine "
+         "themselves.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_CLERIC, G, B, G, B, B);
   assign_class_abils(CLASS_CLERIC, /* class number */
@@ -4491,8 +4532,8 @@ void load_class_list(void)
   /*epic*/
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_EPIC_SPELL, Y, 21, N);
   feat_assignment(CLASS_CLERIC, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
-    feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
-    feat_assignment(CLASS_CLERIC, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /* cantrips */
   spell_assignment(CLASS_CLERIC, SPELL_DISRUPT_UNDEAD, 0);
@@ -4699,20 +4740,21 @@ void load_class_list(void)
          -1, N, N, H, 8, 0, 2, 8, Y, 0, 4,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, Str for combat",
-         /*descrip*/ "Life is an endless adventure for those who live by their wits. "
-                     "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
-                     "charm to bend fate to their favor. Never knowing what to expect, they prepare "
-                     "for everything, becoming masters of a wide variety of skills, training "
-                     "themselves to be adept manipulators, agile acrobats, shadowy stalkers, or "
-                     "masters of any of dozens of other professions or talents. Thieves and gamblers, "
-                     "fast talkers and diplomats, bandits and bounty hunters, and explorers and "
-                     "investigators all might be considered rogues, as well as countless other "
-                     "professions that rely upon wits, prowess, or luck. Although many rogues favor "
-                     "cities and the innumerable opportunities of civilization, some embrace lives "
-                     "on the road, journeying far, meeting exotic people, and facing fantastic "
-                     "danger in pursuit of equally fantastic riches. In the end, any who desire to "
-                     "shape their fates and live life on their own terms might come to be called "
-                     "rogues.");
+         /*descrip*/
+         "Life is an endless adventure for those who live by their wits. "
+         "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
+         "charm to bend fate to their favor. Never knowing what to expect, they prepare "
+         "for everything, becoming masters of a wide variety of skills, training "
+         "themselves to be adept manipulators, agile acrobats, shadowy stalkers, or "
+         "masters of any of dozens of other professions or talents. Thieves and gamblers, "
+         "fast talkers and diplomats, bandits and bounty hunters, and explorers and "
+         "investigators all might be considered rogues, as well as countless other "
+         "professions that rely upon wits, prowess, or luck. Although many rogues favor "
+         "cities and the innumerable opportunities of civilization, some embrace lives "
+         "on the road, journeying far, meeting exotic people, and facing fantastic "
+         "danger in pursuit of equally fantastic riches. In the end, any who desire to "
+         "shape their fates and live life on their own terms might come to be called "
+         "rogues.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ROGUE, B, G, B, B, B);
   assign_class_abils(CLASS_ROGUE, /* class number */
@@ -4806,19 +4848,21 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 2,
          /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Strength, alternatively Dex... Con for survivability, 13 Int unlocks feat chains",
-         /*descrip*/ "Some take up arms for glory, wealth, or revenge. Others do "
-                     "battle to prove themselves, to protect others, or because they know nothing "
-                     "else. Still others learn the ways of weaponcraft to hone their bodies in "
-                     "battle and prove their mettle in the forge of war. Lords of the battlefield, "
-                     "warriors are a disparate lot, training with many weapons or just one, perfecting "
-                     "the uses of armor, learning the fighting techniques of exotic masters, and "
-                     "studying the art of combat, all to shape themselves into living weapons. Far "
-                     "more than mere thugs, these skilled combatants reveal the true deadliness of "
-                     "their weapons, turning hunks of metal into arms capable of taming kingdoms, "
-                     "slaughtering monsters, and rousing the hearts of armies. Soldiers, knights, "
-                     "hunters, and artists of war, warriors are unparalleled champions, and woe to "
-                     "those who dare stand against them.");
+         /*primary attributes*/
+         "Strength, alternatively Dex... Con for survivability, 13 Int unlocks feat chains",
+         /*descrip*/
+         "Some take up arms for glory, wealth, or revenge. Others do "
+         "battle to prove themselves, to protect others, or because they know nothing "
+         "else. Still others learn the ways of weaponcraft to hone their bodies in "
+         "battle and prove their mettle in the forge of war. Lords of the battlefield, "
+         "warriors are a disparate lot, training with many weapons or just one, perfecting "
+         "the uses of armor, learning the fighting techniques of exotic masters, and "
+         "studying the art of combat, all to shape themselves into living weapons. Far "
+         "more than mere thugs, these skilled combatants reveal the true deadliness of "
+         "their weapons, turning hunks of metal into arms capable of taming kingdoms, "
+         "slaughtering monsters, and rousing the hearts of armies. Soldiers, knights, "
+         "hunters, and artists of war, warriors are unparalleled champions, and woe to "
+         "those who dare stand against them.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WARRIOR, G, B, B, B, B);
   assign_class_abils(CLASS_WARRIOR, /* class number */
@@ -4960,15 +5004,16 @@ void load_class_list(void)
          -1, N, N, H, 8, 0, 2, 4, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
-         /*descrip*/ "For the truly exemplary, martial skill transcends the "
-                     "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
-                     "artists search out methods of battle beyond swords and shields, finding "
-                     "weapons within themselves just as capable of crippling or killing as any "
-                     "blade. These monks (so called since they adhere to ancient philosophies and "
-                     "strict martial disciplines) elevate their bodies to become weapons of war, "
-                     "from battle-minded ascetics to self-taught brawlers. Monks tread the path of "
-                     "discipline, and those with the will to endure that path discover within "
-                     "themselves not what they are, but what they are meant to be.");
+         /*descrip*/
+         "For the truly exemplary, martial skill transcends the "
+         "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
+         "artists search out methods of battle beyond swords and shields, finding "
+         "weapons within themselves just as capable of crippling or killing as any "
+         "blade. These monks (so called since they adhere to ancient philosophies and "
+         "strict martial disciplines) elevate their bodies to become weapons of war, "
+         "from battle-minded ascetics to self-taught brawlers. Monks tread the path of "
+         "discipline, and those with the will to endure that path discover within "
+         "themselves not what they are, but what they are meant to be.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_MONK, G, G, G, B, B);
   assign_class_abils(CLASS_MONK, /* class number */
@@ -5063,17 +5108,18 @@ void load_class_list(void)
          -1, N, N, M, 8, 0, 3, 4, Y, 0, 4,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
-         /*descrip*/ "Within the purity of the elements and the order of the wilds "
-                     "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
-                     "these primal magics are guarded over by servants of philosophical balance "
-                     "known as druids. Allies to beasts and manipulators of nature, these often "
-                     "misunderstood protectors of the wild strive to shield their lands from all "
-                     "who would threaten them and prove the might of the wilds to those who lock "
-                     "themselves behind city walls. Rewarded for their devotion with incredible "
-                     "powers, druids gain unparalleled shape-shifting abilities, the companionship "
-                     "of mighty beasts, and the power to call upon nature's wrath. The mightiest "
-                     "temper powers akin to storms, earthquakes, and volcanoes with primeval wisdom "
-                     "long abandoned and forgotten by civilization.");
+         /*descrip*/
+         "Within the purity of the elements and the order of the wilds "
+         "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
+         "these primal magics are guarded over by servants of philosophical balance "
+         "known as druids. Allies to beasts and manipulators of nature, these often "
+         "misunderstood protectors of the wild strive to shield their lands from all "
+         "who would threaten them and prove the might of the wilds to those who lock "
+         "themselves behind city walls. Rewarded for their devotion with incredible "
+         "powers, druids gain unparalleled shape-shifting abilities, the companionship "
+         "of mighty beasts, and the power to call upon nature's wrath. The mightiest "
+         "temper powers akin to storms, earthquakes, and volcanoes with primeval wisdom "
+         "long abandoned and forgotten by civilization.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_DRUID, G, B, G, B, B);
   assign_class_abils(CLASS_DRUID, /* class number */
@@ -5314,24 +5360,26 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number        name      abrv   clr-abrv           menu-name*/
-  classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
-         /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, H, 12, 0, 2, 4, Y, 0, 3,
-         /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Strength, Con/Dex for survivability - Con helps some of their skills",
-         /*descrip*/ "For some, there is only rage. In the ways of their people, in "
-                     "the fury of their passion, in the howl of battle, conflict is all these brutal "
-                     "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
-                     "are not soldiers or professional warriors—they are the battle possessed, "
-                     "creatures of slaughter and spirits of war. Known as berserkers, these warmongers "
-                     "know little of training, preparation, or the rules of warfare; for them, only "
-                     "the moment exists, with the foes that stand before them and the knowledge that "
-                     "the next moment might hold their death. They possess a sixth sense in regard to "
-                     "danger and the endurance to weather all that might entail. These brutal warriors "
-                     "might rise from all walks of life, both civilized and savage, though whole "
-                     "societies embracing such philosophies roam the wild places of the world. Within "
-                     "berserkers storms the primal spirit of battle, and woe to those who face their "
-                     "rage.");
+  classo(
+      CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
+      /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
+      -1, N, N, H, 12, 0, 2, 4, Y, 0, 3,
+      /*prestige spell progression*/ "none",
+      /*primary attributes*/ "Strength, Con/Dex for survivability - Con helps some of their skills",
+      /*descrip*/
+      "For some, there is only rage. In the ways of their people, in "
+      "the fury of their passion, in the howl of battle, conflict is all these brutal "
+      "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
+      "are not soldiers or professional warriors—they are the battle possessed, "
+      "creatures of slaughter and spirits of war. Known as berserkers, these warmongers "
+      "know little of training, preparation, or the rules of warfare; for them, only "
+      "the moment exists, with the foes that stand before them and the knowledge that "
+      "the next moment might hold their death. They possess a sixth sense in regard to "
+      "danger and the endurance to weather all that might entail. These brutal warriors "
+      "might rise from all walks of life, both civilized and savage, though whole "
+      "societies embracing such philosophies roam the wild places of the world. Within "
+      "berserkers storms the primal spirit of battle, and woe to those who face their "
+      "rage.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BERSERKER, G, B, B, B, B);
   assign_class_abils(CLASS_BERSERKER, /* class number */
@@ -5440,20 +5488,21 @@ void load_class_list(void)
          -1, N, N, L, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con/Dex for survivability",
-         /*descrip*/ "Scions of innately magical bloodlines, the chosen of deities, "
-                     "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
-                     "magic, sorcerers look within themselves for arcane prowess and draw forth might "
-                     "few mortals can imagine. Emboldened by lives ever threatening to be consumed "
-                     "by their innate powers, these magic-touched souls endlessly indulge in and "
-                     "refine their mysterious abilities, gradually learning how to harness their "
-                     "birthright and coax forth ever greater arcane feats. Just as varied as these "
-                     "innately powerful spellcasters' abilities and inspirations are the ways in "
-                     "which they choose to utilize their gifts. While some seek to control their "
-                     "abilities through meditation and discipline, becoming masters of their "
-                     "fantastic birthright, others give in to their magic, letting it rule their "
-                     "lives with often explosive results. Regardless, sorcerers live and breathe "
-                     "that which other spellcasters devote their lives to mastering, and for them "
-                     "magic is more than a boon or a field of study; it is life itself.");
+         /*descrip*/
+         "Scions of innately magical bloodlines, the chosen of deities, "
+         "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
+         "magic, sorcerers look within themselves for arcane prowess and draw forth might "
+         "few mortals can imagine. Emboldened by lives ever threatening to be consumed "
+         "by their innate powers, these magic-touched souls endlessly indulge in and "
+         "refine their mysterious abilities, gradually learning how to harness their "
+         "birthright and coax forth ever greater arcane feats. Just as varied as these "
+         "innately powerful spellcasters' abilities and inspirations are the ways in "
+         "which they choose to utilize their gifts. While some seek to control their "
+         "abilities through meditation and discipline, becoming masters of their "
+         "fantastic birthright, others give in to their magic, letting it rule their "
+         "lives with often explosive results. Regardless, sorcerers live and breathe "
+         "that which other spellcasters devote their lives to mastering, and for them "
+         "magic is more than a boon or a field of study; it is life itself.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SORCERER, B, B, G, B, B);
   assign_class_abils(CLASS_SORCERER, /* class number */
@@ -5818,18 +5867,19 @@ void load_class_list(void)
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
-         /*descrip*/ "Through a select, worthy few shines the power of the divine. "
-                     "Called paladins, these noble souls dedicate their swords and lives to the "
-                     "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
-                     "just to spread divine justice but to embody the teachings of the virtuous "
-                     "deities they serve. In pursuit of their lofty goals, they adhere to ironclad "
-                     "laws of morality and discipline. As reward for their righteousness, these "
-                     "holy champions are blessed with boons to aid them in their quests: powers "
-                     "to banish evil, heal the innocent, and inspire the faithful. Although their "
-                     "convictions might lead them into conflict with the very souls they would "
-                     "save, paladins weather endless challenges of faith and dark temptations, "
-                     "risking their lives to do right and fighting to bring about a brighter "
-                     "future.");
+         /*descrip*/
+         "Through a select, worthy few shines the power of the divine. "
+         "Called paladins, these noble souls dedicate their swords and lives to the "
+         "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
+         "just to spread divine justice but to embody the teachings of the virtuous "
+         "deities they serve. In pursuit of their lofty goals, they adhere to ironclad "
+         "laws of morality and discipline. As reward for their righteousness, these "
+         "holy champions are blessed with boons to aid them in their quests: powers "
+         "to banish evil, heal the innocent, and inspire the faithful. Although their "
+         "convictions might lead them into conflict with the very souls they would "
+         "save, paladins weather endless challenges of faith and dark temptations, "
+         "risking their lives to do right and fighting to bring about a brighter "
+         "future.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_PALADIN, B, B, G, B, B);
   assign_class_abils(CLASS_PALADIN, /* class number */
@@ -5995,19 +6045,20 @@ void load_class_list(void)
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
-         /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
-                     "champions of evil. They lead armies of dread forces such as undead, "
-                     "fiends, and other extra-planar beings, often in the name of the more malevolent "
-                     "deities. These individuals had the reputation as some of most reviled villains. "
-                     "They are just as equally feared as they are despised by the free folk of the "
-                     "Realms. They acted as killers, led as commanders, and even served as agents "
-                     "for more forces that are even more malignant than they. They accomplished their "
-                     "goals by any means necessary, whether through subterfuge, dark magic, anarchic "
-                     "destruction, or overwhelming force. Blackguards possess distinct auras of evil "
-                     "and despair, carrying blessings bestowed upon them by the forces of darkness. "
-                     "They are particularly adept at instilling fear in their foes. They are quite adept "
-                     "at readily uncovering good beings, and can also smite them in battle. Blackguards "
-                     "can carry out smiting more often as the longer they carried out their dark deeds.");
+         /*descrip*/
+         "Blackguards, also referred to as antipaladins, are the quintessential "
+         "champions of evil. They lead armies of dread forces such as undead, "
+         "fiends, and other extra-planar beings, often in the name of the more malevolent "
+         "deities. These individuals had the reputation as some of most reviled villains. "
+         "They are just as equally feared as they are despised by the free folk of the "
+         "Realms. They acted as killers, led as commanders, and even served as agents "
+         "for more forces that are even more malignant than they. They accomplished their "
+         "goals by any means necessary, whether through subterfuge, dark magic, anarchic "
+         "destruction, or overwhelming force. Blackguards possess distinct auras of evil "
+         "and despair, carrying blessings bestowed upon them by the forces of darkness. "
+         "They are particularly adept at instilling fear in their foes. They are quite adept "
+         "at readily uncovering good beings, and can also smite them in battle. Blackguards "
+         "can carry out smiting more often as the longer they carried out their dark deeds.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BLACKGUARD, B, B, G, B, B);
   assign_class_abils(CLASS_BLACKGUARD, /* class number */
@@ -6022,7 +6073,7 @@ void load_class_list(void)
   assign_class_titles(CLASS_BLACKGUARD,          /* class number */
                       "",                        /* <= 4  */
                       "the Novice Blackguard",   /* <= 9  */
-                      "the Adept Blackguard",   /* <= 14 */
+                      "the Adept Blackguard",    /* <= 14 */
                       "the Veteran Blackguard",  /* <= 19 */
                       "the Master Blackguard",   /* <= 24 */
                       "the Champion Blackguard", /* <= 29 */
@@ -6171,7 +6222,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);  
+  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
   // epic class feats
@@ -6199,16 +6250,18 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 10, 0, 3, 4, Y, 0, 3,
          /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Dexterity or Str, Con for survivability, they need a little Wis for spellcasting",
-         /*descrip*/ "For those who relish the thrill of the hunt, there are only "
-                     "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
-                     "much in common: unique mastery of specialized weapons, skill at stalking even "
-                     "the most elusive game, and the expertise to defeat a wide range of quarries. "
-                     "Knowledgeable, patient, and skilled hunters, these rangers hound man, beast, "
-                     "and monster alike, gaining insight into the way of the predator, skill in "
-                     "varied environments, and ever more lethal martial prowess. While some track "
-                     "man-eating creatures to protect the frontier, others pursue more cunning "
-                     "game—even fugitives among their own people.");
+         /*primary attributes*/
+         "Dexterity or Str, Con for survivability, they need a little Wis for spellcasting",
+         /*descrip*/
+         "For those who relish the thrill of the hunt, there are only "
+         "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
+         "much in common: unique mastery of specialized weapons, skill at stalking even "
+         "the most elusive game, and the expertise to defeat a wide range of quarries. "
+         "Knowledgeable, patient, and skilled hunters, these rangers hound man, beast, "
+         "and monster alike, gaining insight into the way of the predator, skill in "
+         "varied environments, and ever more lethal martial prowess. While some track "
+         "man-eating creatures to protect the frontier, others pursue more cunning "
+         "game—even fugitives among their own people.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_RANGER, G, B, B, B, B);
   assign_class_abils(CLASS_RANGER, /* class number */
@@ -6353,18 +6406,19 @@ void load_class_list(void)
          -1, N, N, M, 8, 0, 2, 6, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Int for skills, Con/Dex for survivability",
-         /*descrip*/ "Untold wonders and secrets exist for those skillful enough to "
-                     "discover them. Through cleverness, talent, and magic, these cunning few unravel "
-                     "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
-                     "and inspiration. Typically masters of one or many forms of artistry, bards "
-                     "possess an uncanny ability to know more than they should and use what they "
-                     "learn to keep themselves and their allies ever one step ahead of danger. Bards "
-                     "are quick-witted and captivating, and their skills might lead them down many "
-                     "paths, be they gamblers or jacks-of-all-trades, scholars or performers, leaders "
-                     "or scoundrels, or even all of the above. For bards, every day brings its own "
-                     "opportunities, adventures, and challenges, and only by bucking the odds, knowing "
-                     "the most, and being the best might they claim the treasures of each.  "
-                     "Bards get a bonus feat every 3 levels.");
+         /*descrip*/
+         "Untold wonders and secrets exist for those skillful enough to "
+         "discover them. Through cleverness, talent, and magic, these cunning few unravel "
+         "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
+         "and inspiration. Typically masters of one or many forms of artistry, bards "
+         "possess an uncanny ability to know more than they should and use what they "
+         "learn to keep themselves and their allies ever one step ahead of danger. Bards "
+         "are quick-witted and captivating, and their skills might lead them down many "
+         "paths, be they gamblers or jacks-of-all-trades, scholars or performers, leaders "
+         "or scoundrels, or even all of the above. For bards, every day brings its own "
+         "opportunities, adventures, and challenges, and only by bucking the odds, knowing "
+         "the most, and being the best might they claim the treasures of each.  "
+         "Bards get a bonus feat every 3 levels.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BARD, B, G, G, B, B);
   assign_class_abils(CLASS_BARD, /* class number */
@@ -6540,12 +6594,13 @@ void load_class_list(void)
          30, N, N, L, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence, Dex/Con for survivability",
-         /*descrip*/ "The powers of the mind are varied and limitless, and the psion "
-                     "learns how to unlock them. The psion learns to manifest psionic "
-                     "powers that alter himself and the world around him. Due to the "
-                     "limited powers that any one psion knows, each psion is unique in "
-                     "his capabilities, as his latent abilities are drawn out and shaped "
-                     "into the psionic powers that define the psion.");
+         /*descrip*/
+         "The powers of the mind are varied and limitless, and the psion "
+         "learns how to unlock them. The psion learns to manifest psionic "
+         "powers that alter himself and the world around him. Due to the "
+         "limited powers that any one psion knows, each psion is unique in "
+         "his capabilities, as his latent abilities are drawn out and shaped "
+         "into the psionic powers that define the psion.");
 
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_PSIONICIST, B, B, G, B, G);
@@ -6741,10 +6796,11 @@ void load_class_list(void)
          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Strength, Con/Dex for survivability",
-         /*descrip*/ "For the weapon master, perfection is found in the mastery of a "
-                     "single melee weapon. A weapon master seeks to unite this weapon of choice with "
-                     "his body, to make them one, and to use the weapon as naturally and without "
-                     "thought as any other limb.");
+         /*descrip*/
+         "For the weapon master, perfection is found in the mastery of a "
+         "single melee weapon. A weapon master seeks to unite this weapon of choice with "
+         "his body, to make them one, and to use the weapon as naturally and without "
+         "thought as any other limb.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WEAPON_MASTER, B, G, B, B, B);
   assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
@@ -6801,11 +6857,12 @@ void load_class_list(void)
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "arcane: 3/4 of arcane archer level",
          /*primary attributes*/ "Dexterity, your primary casting class stats",
-         /*descrip*/ "Many who seek to perfect the use of the bow sometimes pursue "
-                     "the path of the arcane archer. Arcane archers are masters of ranged combat, "
-                     "as they possess the ability to strike at targets with unerring accuracy and "
-                     "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
-                     "can fell even the most powerful foes with a single, deadly shot.");
+         /*descrip*/
+         "Many who seek to perfect the use of the bow sometimes pursue "
+         "the path of the arcane archer. Arcane archers are masters of ranged combat, "
+         "as they possess the ability to strike at targets with unerring accuracy and "
+         "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
+         "can fell even the most powerful foes with a single, deadly shot.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ARCANE_ARCHER, G, G, B, B, B);
   assign_class_abils(CLASS_ARCANE_ARCHER, /* class number */
@@ -6847,16 +6904,15 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
-  #if !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_DL)
   /* elf, half-elf, drow only */
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_DROW);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_ELF);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_HALF_ELF);
-  #endif
+#endif
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
-  class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
-                            PREP_TYPE_ANY, 1 /*circle*/);
+  class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 1 /*circle*/);
   class_prereq_cfeat(CLASS_ARCANE_ARCHER, FEAT_WEAPON_FOCUS, CFEAT_SPECIAL_BOW);
   /****************************************************************************/
 
@@ -6866,12 +6922,14 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 2, 5, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
-         /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, your primary casting class stats",
-         /*descrip*/ "Few can match the guile and craftiness of arcane shadows. These "
-                     "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
-                     "of the bandit and the scoundrel, using spells to enhance their natural rogue abilities. "
-                     "Arcane shadows as often as not seek humiliation as a goal to triumph over "
-                     "their foes than more violent solutions.");
+         /*primary attributes*/
+         "Dexterity, Con for survivability, Int for skills, your primary casting class stats",
+         /*descrip*/
+         "Few can match the guile and craftiness of arcane shadows. These "
+         "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
+         "of the bandit and the scoundrel, using spells to enhance their natural rogue abilities. "
+         "Arcane shadows as often as not seek humiliation as a goal to triumph over "
+         "their foes than more violent solutions.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ARCANE_SHADOW, B, G, G, B, B);
   assign_class_abils(CLASS_ARCANE_SHADOW, /* class number */
@@ -6929,17 +6987,20 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_ELDRITCH_KNIGHT, "eldritch knight", "EKn", "\tWE\tCKn\tn", "n) \tWEldritch\tCKnight\tn",
+  classo(CLASS_ELDRITCH_KNIGHT, "eldritch knight", "EKn", "\tWE\tCKn\tn",
+         "n) \tWEldritch\tCKnight\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 2, 2, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
-         /*primary attributes*/ "Strength, Con/Dex for survivability, your primary casting class stats",
-         /*descrip*/ "Fearsome warriors and spellcasters, eldritch knights are rare among magic-users "
-                     "in their ability to wade into battle alongside fighters, barbarians, and other "
-                     "martial classes. Those who must face eldritch knights in combat fear them greatly, "
-                     "for their versatility on the battlefield is tremendous; against heavily armed "
-                     "and armored opponents they may level crippling spells, while opposing spellcasters "
-                     "meet their ends on an eldritch knight's blade.");
+         /*primary attributes*/
+         "Strength, Con/Dex for survivability, your primary casting class stats",
+         /*descrip*/
+         "Fearsome warriors and spellcasters, eldritch knights are rare among magic-users "
+         "in their ability to wade into battle alongside fighters, barbarians, and other "
+         "martial classes. Those who must face eldritch knights in combat fear them greatly, "
+         "for their versatility on the battlefield is tremendous; against heavily armed "
+         "and armored opponents they may level crippling spells, while opposing spellcasters "
+         "meet their ends on an eldritch knight's blade.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ELDRITCH_KNIGHT, G, B, B, G, B);
   assign_class_abils(CLASS_ELDRITCH_KNIGHT, /* class number */
@@ -7050,30 +7111,34 @@ void load_class_list(void)
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_spellcasting(CLASS_ELDRITCH_KNIGHT, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 3 /*circle*/);
+  class_prereq_spellcasting(CLASS_ELDRITCH_KNIGHT, CASTING_TYPE_ARCANE, PREP_TYPE_ANY,
+                            3 /*circle*/);
   class_prereq_feat(CLASS_ELDRITCH_KNIGHT, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
 
   /****************************************************************************/
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SPELLSWORD, "spellsword", "SSw", "\tWS\tGSw\tn", "n) \tWSpell\tGSword\tn",
-         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         10, Y, Y, H, 8, 0, 2, 2, Y, 5000, 0,
-         /*prestige spell progression*/ "Arcane advancement at level one and every second level after",
-         /*primary attributes*/ "Strength, Con/Dex for survivability, your primary casting class stats",
-         /*descrip*/ "The dream of melding magic and weaponplay is fulfilled in the person "
-                     "of the spellsword. A student of both arcane rituals and martial techniques, "
-                     "the spellsword gradually learns to cast spells in armor with less chance of "
-                     "failure. Moreover, he can cast spells through his weapon, bypassing his "
-                     "opponent's defenses. Despite the class's name, a spellsword can use any "
-                     "weapon or even switch weapons. 'Spellaxe,' 'spellspear,' and other appellations "
-                     "for this prestige class are certainly possible but not commonly used. The "
-                     "requirements for this prestige class make it most attractive to multiclass "
-                     "wizard/warriors or sorcerer/warriors, although bard/warriors can meet the "
-                     "requirements just as easily. Feared by other martial characters because of "
-                     "his ability to use spells, and feared by spellcasters because of his ability "
-                     "to cast those spells while wearing armor, a spellsword often walks the world alone.");
+  classo(
+      CLASS_SPELLSWORD, "spellsword", "SSw", "\tWS\tGSw\tn", "n) \tWSpell\tGSword\tn",
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+      10, Y, Y, H, 8, 0, 2, 2, Y, 5000, 0,
+      /*prestige spell progression*/ "Arcane advancement at level one and every second level after",
+      /*primary attributes*/
+      "Strength, Con/Dex for survivability, your primary casting class stats",
+      /*descrip*/
+      "The dream of melding magic and weaponplay is fulfilled in the person "
+      "of the spellsword. A student of both arcane rituals and martial techniques, "
+      "the spellsword gradually learns to cast spells in armor with less chance of "
+      "failure. Moreover, he can cast spells through his weapon, bypassing his "
+      "opponent's defenses. Despite the class's name, a spellsword can use any "
+      "weapon or even switch weapons. 'Spellaxe,' 'spellspear,' and other appellations "
+      "for this prestige class are certainly possible but not commonly used. The "
+      "requirements for this prestige class make it most attractive to multiclass "
+      "wizard/warriors or sorcerer/warriors, although bard/warriors can meet the "
+      "requirements just as easily. Feared by other martial characters because of "
+      "his ability to use spells, and feared by spellcasters because of his ability "
+      "to cast those spells while wearing armor, a spellsword often walks the world alone.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SPELLSWORD, G, B, G, G, B);
   assign_class_abils(CLASS_SPELLSWORD, /* class number */
@@ -7196,7 +7261,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SPELLSWORD, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
-  
+
   /* epic class */
   feat_assignment(CLASS_SPELLSWORD, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
@@ -7222,12 +7287,13 @@ void load_class_list(void)
          10, Y, Y, M, 8, 0, 4, 4, Y, 5000, 0,
          /*prestige spell progression*/ "Divine advancement every level",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability",
-         /*descrip*/ "Sacred Fists are independent organizations found within many temples.  "
-                     "Their ascetic members have turned their divine magic inward, bringing their bodies "
-                     "and wills into harmony.  They consider their bodies and minds gifts from their deity, "
-                     "and they believe that not developing those gifts to their fullest potential is a sin. "
-                     "Spellcasting does not dishonor them or their deity. Sacred Fists are strong in faith, "
-                     "will and body.");
+         /*descrip*/
+         "Sacred Fists are independent organizations found within many temples.  "
+         "Their ascetic members have turned their divine magic inward, bringing their bodies "
+         "and wills into harmony.  They consider their bodies and minds gifts from their deity, "
+         "and they believe that not developing those gifts to their fullest potential is a sin. "
+         "Spellcasting does not dishonor them or their deity. Sacred Fists are strong in faith, "
+         "will and body.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SACRED_FIST, G, G, B, B, B);
   assign_class_abils(CLASS_SACRED_FIST, /* class number */
@@ -7273,8 +7339,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SACRED_FIST, FEAT_AC_BONUS, Y, 10, Y);
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_spellcasting(CLASS_SACRED_FIST, CASTING_TYPE_DIVINE,
-                            PREP_TYPE_ANY, 1 /*circle*/);
+  class_prereq_spellcasting(CLASS_SACRED_FIST, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 1 /*circle*/);
   class_prereq_feat(CLASS_SACRED_FIST, FEAT_KI_STRIKE, 1);
   class_prereq_feat(CLASS_SACRED_FIST, FEAT_COMBAT_CASTING, 1);
   class_prereq_bab(CLASS_SACRED_FIST, 4);
@@ -7283,17 +7348,19 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_STALWART_DEFENDER, "stalwart defender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
+  classo(CLASS_STALWART_DEFENDER, "stalwart defender", "SDe", "\tWS\tcDe\tn",
+         "g) \tWStalwart \tcDefender\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 12, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Strength, Con/Dex for survivability",
-         /*descrip*/ "Drawn from the ranks of guards, knights, mercenaries, and "
-                     "thugs alike, stalwart defenders are masters of claiming an area and refusing "
-                     "to relinquish it. This behavior is more than a tactical decision for stalwart "
-                     "defenders; it is an obsessive, stubborn expression of the need to be undefeated. "
-                     "When stalwart defenders set themselves in a defensive stance, they place their "
-                     "whole effort into weathering whatever foe, conflict, or threat comes their way.");
+         /*descrip*/
+         "Drawn from the ranks of guards, knights, mercenaries, and "
+         "thugs alike, stalwart defenders are masters of claiming an area and refusing "
+         "to relinquish it. This behavior is more than a tactical decision for stalwart "
+         "defenders; it is an obsessive, stubborn expression of the need to be undefeated. "
+         "When stalwart defenders set themselves in a defensive stance, they place their "
+         "whole effort into weathering whatever foe, conflict, or threat comes their way.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_STALWART_DEFENDER, G, B, G, B, B);
   assign_class_abils(CLASS_STALWART_DEFENDER, /* class number */
@@ -7358,61 +7425,56 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_SOLAMNIA,
 #ifdef CAMPAIGN_DL
-    "knight of solamnia",
-    "KSo",
-    "\tWKSo\tn",
-    "g) \tWKnight of Solamnia\tn",
+         "knight of solamnia", "KSo", "\tWKSo\tn", "g) \tWKnight of Solamnia\tn",
 #else
-    "knight of the luminous thread",
-    "KLT",
-    "\tWKLT\tn",
-    "g) \tWKnight of the Luminous Thread\tn",
+         "knight of the luminous thread", "KLT", "\tWKLT\tn",
+         "g) \tWKnight of the Luminous Thread\tn",
 #endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          20, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
          /*prestige spell progression*/ "divine advancement after level 5",
          /*primary attributes*/ "Strength, Wisdom for spellcasting",
-         /*descrip*/ 
+  /*descrip*/
 #ifdef CAMPAIGN_DL
-          /* DragonLance theme - Knights of Solamnia */
-          "The Knights of Solamnia are the most renowned knightly order on Krynn, bound by " 
-          "the sacred Oath and the Measure. This combined order represents the progression " 
-          "of a knight through the three virtues: Loyalty (Crown), Courage (Sword), and " 
-          "Wisdom (Rose)."
-          "\r\n"
-          "Beginning as Knights of the Crown (levels 1-5), they learn the virtues of Loyalty " 
-          "and Obedience, forming the backbone of the armed forces. Advancing to the Sword " 
-          "(levels 6-10), they embrace Courage and Heroism, channeling divine power in battle. " 
-          "Finally, achieving the Rose (levels 11-20), they embody Wisdom and Justice, " 
-          "becoming inspiring leaders and champions of good."
-          "\r\n"
-          "NOTE: Obtaining the abilities of a certain knightly order (crown/sword/rose) does not "
-          "denote actual promotions to that rank. That must be done through role-playing and the "
-          "in-game clan system."
-          "\r\n"
-          "The Order is bound by their sacred Oath: 'Est Sularus oth Mithas' - My Honor is My " 
-          "Life. They follow the 37 volumes of the Measure, a code of conduct governing every " 
-          "aspect of their lives. Patron deities include Paladine (Dragonlance's Platinum " 
-          "Dragon), Kiri-Jolith (god of war and honor), and Habbakuk (the Fisher King)."
+         /* DragonLance theme - Knights of Solamnia */
+         "The Knights of Solamnia are the most renowned knightly order on Krynn, bound by "
+         "the sacred Oath and the Measure. This combined order represents the progression "
+         "of a knight through the three virtues: Loyalty (Crown), Courage (Sword), and "
+         "Wisdom (Rose)."
+         "\r\n"
+         "Beginning as Knights of the Crown (levels 1-5), they learn the virtues of Loyalty "
+         "and Obedience, forming the backbone of the armed forces. Advancing to the Sword "
+         "(levels 6-10), they embrace Courage and Heroism, channeling divine power in battle. "
+         "Finally, achieving the Rose (levels 11-20), they embody Wisdom and Justice, "
+         "becoming inspiring leaders and champions of good."
+         "\r\n"
+         "NOTE: Obtaining the abilities of a certain knightly order (crown/sword/rose) does not "
+         "denote actual promotions to that rank. That must be done through role-playing and the "
+         "in-game clan system."
+         "\r\n"
+         "The Order is bound by their sacred Oath: 'Est Sularus oth Mithas' - My Honor is My "
+         "Life. They follow the 37 volumes of the Measure, a code of conduct governing every "
+         "aspect of their lives. Patron deities include Paladine (Dragonlance's Platinum "
+         "Dragon), Kiri-Jolith (god of war and honor), and Habbakuk (the Fisher King)."
 #else
-          /* LuminariMUD theme - Knights of the Luminous Thread */
-          "The Knights of the Luminous Thread represent the full evolution of oath-bound " 
-          "warriors, from novice oath-takers to master weavers of destiny. These divine " 
-          "champions literally weave reality through their sacred vows, with threads of light " 
-          "emerging from their hearts to bind them to duty."
-          "\r\n"
-          "As initiates (levels 1-5), they learn the Crimson Loom - swearing basic oaths that " 
-          "create physical bonds of duty. Advancing as oath-warriors (levels 6-10), they gain " 
-          "the power to channel divine energy through their vow-forged weapons. Masters " 
-          "(levels 11-20) can weave multiple oaths together, creating networks of binding " 
-          "promises that reshape reality itself."
-          "\r\n"
-          "Divine Patrons: Kordran (War/Duty), Aethyra (Magic/Oaths), and the Luminous Weaver " 
-          "(the deity of fate). Their sacred motto: 'Our oaths are iron, our words are law, " 
-          "our blood is the ink of destiny.' Each fulfilled oath strengthens them; each broken " 
-          "promise creates an unhealable wound that burns with eternal shame."
+         /* LuminariMUD theme - Knights of the Luminous Thread */
+         "The Knights of the Luminous Thread represent the full evolution of oath-bound "
+         "warriors, from novice oath-takers to master weavers of destiny. These divine "
+         "champions literally weave reality through their sacred vows, with threads of light "
+         "emerging from their hearts to bind them to duty."
+         "\r\n"
+         "As initiates (levels 1-5), they learn the Crimson Loom - swearing basic oaths that "
+         "create physical bonds of duty. Advancing as oath-warriors (levels 6-10), they gain "
+         "the power to channel divine energy through their vow-forged weapons. Masters "
+         "(levels 11-20) can weave multiple oaths together, creating networks of binding "
+         "promises that reshape reality itself."
+         "\r\n"
+         "Divine Patrons: Kordran (War/Duty), Aethyra (Magic/Oaths), and the Luminous Weaver "
+         "(the deity of fate). Their sacred motto: 'Our oaths are iron, our words are law, "
+         "our blood is the ink of destiny.' Each fulfilled oath strengthens them; each broken "
+         "promise creates an unhealable wound that burns with eternal shame."
 #endif
-         );
+  );
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_SOLAMNIA, G, B, G, B, B);
   assign_class_abils(CLASS_KNIGHT_OF_SOLAMNIA, /* class number */
@@ -7424,20 +7486,20 @@ void load_class_list(void)
                      CA, CC, CC, CC, CA, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CA, CA, CC, CC);
-  assign_class_titles(CLASS_KNIGHT_OF_SOLAMNIA,                  /* class number */
-                      "",                                         /* <= 4  */
-                      "the Squire",                              /* <= 9  */
-                      "the Knight of the Crown",                 /* <= 14 */
-                      "the Knight of the Sword",                 /* <= 19 */
-                      "the Knight of the Rose",                  /* <= 24 */
-                      "the High Knight",                         /* <= 29 */
-                      "the Grand Master",                        /* <= 30 */
-                      "the Legendary Champion of Solamnia",      /* <= LVL_IMMORT */
-                      "the Immortal Knight",                     /* <= LVL_STAFF */
-                      "the Avatar of Knighthood",                /* <= LVL_GRSTAFF */
-                      "the Knight of Krynn"                      /* default */
+  assign_class_titles(CLASS_KNIGHT_OF_SOLAMNIA,             /* class number */
+                      "",                                   /* <= 4  */
+                      "the Squire",                         /* <= 9  */
+                      "the Knight of the Crown",            /* <= 14 */
+                      "the Knight of the Sword",            /* <= 19 */
+                      "the Knight of the Rose",             /* <= 24 */
+                      "the High Knight",                    /* <= 29 */
+                      "the Grand Master",                   /* <= 30 */
+                      "the Legendary Champion of Solamnia", /* <= LVL_IMMORT */
+                      "the Immortal Knight",                /* <= LVL_STAFF */
+                      "the Avatar of Knighthood",           /* <= LVL_GRSTAFF */
+                      "the Knight of Krynn"                 /* default */
   );
-  
+
   /* LEVEL 1 - Crown Initiate */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
@@ -7446,72 +7508,72 @@ void load_class_list(void)
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_STRENGTH_OF_HONOR, Y, 1, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_KNIGHTLY_COURAGE, Y, 1, Y);
-  
+
   /* LEVEL 2 - Crown */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_HEROIC_INITIATIVE, Y, 2, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DIEHARD, Y, 2, Y);
-  
+
   /* LEVEL 3 - Crown */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_HONORABLE_WILL, Y, 3, Y);
-  
+
   /* LEVEL 4 - Crown */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MIGHT_OF_HONOR, Y, 4, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMORED_MOBILITY, Y, 4, Y);
-  
+
   /* LEVEL 5 - Crown Mastery */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CROWN_OF_KNIGHTHOOD, Y, 5, Y);
-  
+
   /* LEVEL 6 - Sword Initiate (Divine Spellcasting Begins) */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CHANNEL_ENERGY, Y, 6, Y);
-  
+
   /* LEVEL 7 - Sword */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 7, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AURA_OF_COURAGE, Y, 7, Y);
-  
+
   /* LEVEL 8 - Sword */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 8, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DEMORALIZING_STRIKE, Y, 8, Y);
-  
+
   /* LEVEL 9 - Sword */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 9, Y);
-  
+
   /* LEVEL 10 - Sword Mastery */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 10, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SOUL_OF_KNIGHTHOOD, Y, 10, Y);
-  
+
   /* LEVEL 11 - Rose Initiate */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AURA_OF_GOOD, Y, 11, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_RALLYING_CRY, Y, 11, Y);
-  
+
   /* LEVEL 12 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 12, Y);
-  
+
   /* LEVEL 13 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_LEADERSHIP, Y, 13, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DIVINE_GRACE, Y, 13, Y);
-  
+
   /* LEVEL 14 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_GREATNESS, Y, 14, Y);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CHANNEL_ENERGY, Y, 14, Y);
-  
+
   /* LEVEL 15 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 15, Y);
-  
+
   /* LEVEL 16 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WISDOM_OF_THE_MEASURE, Y, 16, Y);
-  
+
   /* LEVEL 17 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_LEADERSHIP, Y, 17, Y);
-  
+
   /* LEVEL 18 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 18, Y);
-  
+
   /* LEVEL 19 - Rose */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_FINAL_STAND, Y, 19, Y);
-  
+
   /* LEVEL 20 - Rose Grand Master */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_KNIGHTHOODS_FLOWER, Y, 20, Y);
-  
+
   /* Bonus feat selections */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
@@ -7533,7 +7595,8 @@ void load_class_list(void)
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT,
+                  N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
@@ -7608,54 +7671,49 @@ void load_class_list(void)
   class_prereq_align(CLASS_KNIGHT_OF_SOLAMNIA, LAWFUL_GOOD);
   /****************************************************************************/
 
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_LILY,
 #ifdef CAMPAIGN_DL
-    "knight of the lily",
-    "KLy",
-    "\tDKLy\tn",
-    "g) \tDKnight of the Lily\tn",
+         "knight of the lily", "KLy", "\tDKLy\tn", "g) \tDKnight of the Lily\tn",
 #else
-    "knight of the howling moon",
-    "KHM",
-    "\tDKHM\tn",
-    "g) \tDKnight of the Howling Moon\tn",
+         "knight of the howling moon", "KHM", "\tDKHM\tn", "g) \tDKnight of the Howling Moon\tn",
 #endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Str for melee combat, Con/Dex for survivability",
-         /*descrip*/ 
+  /*descrip*/
 #ifdef CAMPAIGN_DL
-          /* DragonLance theme - Knights of Takhisis */
-           "The Order of the Lily is the backbone of the Knights of Takhisis, and the order  "
-              "in which every applicant for the knighthood must first enter. The Lily Knights  "
-              "are most likened to their Solamnic counterparts in the Order of the Crown, and  "
-              "are the order in which most training occurs for the younger members of the  "
-              "knighthood. The Knights of the Lily are taught that strength is achieved through conformity  "
-              "and uniformity. To be an individualist or to be a freethinker is to submit to  "
-              "chaos, and ultimately leads down the path of evil turning on itself. The Lily  "
-              "Knights are the military might of the knighthood that live by the code of  "
-              "'Independence breeds chaos, submit and be strong.' "
+         /* DragonLance theme - Knights of Takhisis */
+         "The Order of the Lily is the backbone of the Knights of Takhisis, and the order  "
+         "in which every applicant for the knighthood must first enter. The Lily Knights  "
+         "are most likened to their Solamnic counterparts in the Order of the Crown, and  "
+         "are the order in which most training occurs for the younger members of the  "
+         "knighthood. The Knights of the Lily are taught that strength is achieved through "
+         "conformity  "
+         "and uniformity. To be an individualist or to be a freethinker is to submit to  "
+         "chaos, and ultimately leads down the path of evil turning on itself. The Lily  "
+         "Knights are the military might of the knighthood that live by the code of  "
+         "'Independence breeds chaos, submit and be strong.' "
 #else
-          /* LuminariMUD theme - Knights of the Howling Moon */
-          "The Knights of the Howling Moon are warriors who have embraced their primal "
-          "nature, running between the civilized and wild as guardians of the boundary. "
-          "They have gained stealth and savage cunning, striking from shadows with bestial "
-          "efficiency, using fear as their primary weapon."
-          "\r\n"
-          "Their sacred duty is to maintain order through controlled savagery, showing "
-          "enemies that civilization's veneer is thin and the beast lurks within all. Each "
-          "knight wields living weapons grown from ironwood trees fed with their own blood."
-          "\r\n"
-          "Divine Patrons: Zorren (Wild Hunt) and Selithiel (Moon/Dreams). Their motto: "
-          "'We run between the civilized and wild, guardians of the boundary.' The price "
-          "they pay: gradually losing humanity to the beast within, becoming more predator "
-          "than person with each passing moon."
+         /* LuminariMUD theme - Knights of the Howling Moon */
+         "The Knights of the Howling Moon are warriors who have embraced their primal "
+         "nature, running between the civilized and wild as guardians of the boundary. "
+         "They have gained stealth and savage cunning, striking from shadows with bestial "
+         "efficiency, using fear as their primary weapon."
+         "\r\n"
+         "Their sacred duty is to maintain order through controlled savagery, showing "
+         "enemies that civilization's veneer is thin and the beast lurks within all. Each "
+         "knight wields living weapons grown from ironwood trees fed with their own blood."
+         "\r\n"
+         "Divine Patrons: Zorren (Wild Hunt) and Selithiel (Moon/Dreams). Their motto: "
+         "'We run between the civilized and wild, guardians of the boundary.' The price "
+         "they pay: gradually losing humanity to the beast within, becoming more predator "
+         "than person with each passing moon."
 #endif
-          );
+  );
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_THE_LILY, G, B, G, G, G);
   assign_class_abils(CLASS_KNIGHT_OF_THE_LILY, /* class number */
@@ -7668,38 +7726,38 @@ void load_class_list(void)
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CC, CC);
 
-  assign_class_titles(CLASS_KNIGHT_OF_THE_LILY,   /* class number */
-                      "Knight of the Lily",      /* <= 4  */
-                      "Knight of the Lily",      /* <= 9  */
-                      "Knight of the Lily",      /* <= 14  */
-                      "Knight of the Lily",      /* <= 19  */
-                      "Knight of the Lily",      /* <= 24  */
-                      "Knight of the Lily",      /* <= 29  */
-                      "Knight of the Lily",      /* <= 30  */
-                      "Knight of the Lily",      /* <= LVL_IMMMORT  */
-                      "Knight of the Lily",      /* <= LVL_STAFF  */
-                      "Knight of the Lily",      /* <= LVL_GRSTAFF  */
+  assign_class_titles(CLASS_KNIGHT_OF_THE_LILY, /* class number */
+                      "Knight of the Lily",     /* <= 4  */
+                      "Knight of the Lily",     /* <= 9  */
+                      "Knight of the Lily",     /* <= 14  */
+                      "Knight of the Lily",     /* <= 19  */
+                      "Knight of the Lily",     /* <= 24  */
+                      "Knight of the Lily",     /* <= 29  */
+                      "Knight of the Lily",     /* <= 30  */
+                      "Knight of the Lily",     /* <= LVL_IMMMORT  */
+                      "Knight of the Lily",     /* <= LVL_STAFF  */
+                      "Knight of the Lily",     /* <= LVL_GRSTAFF  */
                       "Knight of the Lily"      /* default  */
   );
   /* feat assignment */
   /*              class num     feat                                   cfeat lvl stack */
-  
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SIMPLE_WEAPON_PROFICIENCY,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MARTIAL_WEAPON_PROFICIENCY,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_LIGHT,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_MEDIUM,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_HEAVY,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DEMORALIZE,  Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_FIGHT_TO_THE_DEATH,  Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_UNBREAKABLE_WILL,  Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMORED_MOBILITY,  Y, 6, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 7, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_UNBREAKABLE_WILL,  Y, 8, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 10, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ONE_THOUGHT,  Y, 10, Y);
+
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_HEAVY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DEMORALIZE, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_FIGHT_TO_THE_DEATH, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_UNBREAKABLE_WILL, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMORED_MOBILITY, Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK, Y, 7, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_UNBREAKABLE_WILL, Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK, Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ONE_THOUGHT, Y, 10, Y);
 
   // CLASS FEATS
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
@@ -7722,7 +7780,8 @@ void load_class_list(void)
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT,
+                  N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
@@ -7761,7 +7820,8 @@ void load_class_list(void)
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT,
+                  N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
@@ -7793,55 +7853,51 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_THORN,
 #ifdef CAMPAIGN_DL
-    "knight of the thorn",
-    "KTh",
-    "\tDKTh\tn",
-    "g) \tDKnight of the Thorn\tn",
+         "knight of the thorn", "KTh", "\tDKTh\tn", "g) \tDKnight of the Thorn\tn",
 #else
-    "knight of the shattered mirror",
-    "KSM",
-    "\tDKSM\tn",
-    "g) \tDKnight of the Shattered Mirror\tn",
+         "knight of the shattered mirror", "KSM", "\tDKSM\tn",
+         "g) \tDKnight of the Shattered Mirror\tn",
 #endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 6, 0, 1, 2, Y, 5000, 0,
-         /*prestige spell progression*/
+  /*prestige spell progression*/
 #ifdef CAMPAIGN_DL
          "+1 arcane caster level per knight of the thorn level.",
 #else
          "+1 arcane caster level per knight of the shattered mirror level.",
 #endif
-         /*primary attributes*/ "Con/Dex for survivability, INT/CHA depending on base spellcasting class.",
-         /*descrip*/ 
+         /*primary attributes*/
+         "Con/Dex for survivability, INT/CHA depending on base spellcasting class.",
+  /*descrip*/
 #ifdef CAMPAIGN_DL
-          /* DragonLance theme - Knights of Takhisis */
-          "The Knights of the Thorn are also known as the \"gray robes\" for the ash-colored "
-          "robes they wear to indicate that they do not serve the Orders of High Sorcery. "
-          "In addition to wielding devastating arcane magic, Thorn Knights are seers and "
-          "diviners, working to understand how every person and event fits into their "
-          "order's design. Thorn Knights are able to see and understand seemingly random "
-          "events as part of a grand design. While the Order of the Skull seeks to "
-          "manipulate people and events, the Thorn Knights try to profit from a greater "
-          "understanding of fate. Their pursuit of forbidden magic outside the laws of the "
-          "Conclave allows them access to magical secrets to enhance their spellcasting. "
+         /* DragonLance theme - Knights of Takhisis */
+         "The Knights of the Thorn are also known as the \"gray robes\" for the ash-colored "
+         "robes they wear to indicate that they do not serve the Orders of High Sorcery. "
+         "In addition to wielding devastating arcane magic, Thorn Knights are seers and "
+         "diviners, working to understand how every person and event fits into their "
+         "order's design. Thorn Knights are able to see and understand seemingly random "
+         "events as part of a grand design. While the Order of the Skull seeks to "
+         "manipulate people and events, the Thorn Knights try to profit from a greater "
+         "understanding of fate. Their pursuit of forbidden magic outside the laws of the "
+         "Conclave allows them access to magical secrets to enhance their spellcasting. "
 #else
-          /* LuminariMUD theme - Knights of the Shattered Mirror */
-          "The Knights of the Shattered Mirror are masters of paradox who blend arcane "
-          "magic with martial prowess. They can fragment their perception to see multiple "
-          "realities simultaneously, using this knowledge to weave spells in heavy armor. "
-          "Truth has many faces, and they wear them all."
-          "\r\n"
-          "Their sacred duty is to infiltrate and understand through deception, using "
-          "arcane divination and misdirection to serve their order's goals. Each knight "
-          "carries crystalline blades that reflect not the wielder's face, but the face "
-          "of whoever they're meant to be."
-          "\r\n"
-          "Divine Patrons: Vespera (Trickery/Revolution) and Thalos (Law/Truth). Their "
-          "motto: 'Truth has many faces; we wear them all.' The price they pay: gradually "
-          "forgetting which reality is true, losing themselves in the infinite reflections "
-          "of possibility."
+         /* LuminariMUD theme - Knights of the Shattered Mirror */
+         "The Knights of the Shattered Mirror are masters of paradox who blend arcane "
+         "magic with martial prowess. They can fragment their perception to see multiple "
+         "realities simultaneously, using this knowledge to weave spells in heavy armor. "
+         "Truth has many faces, and they wear them all."
+         "\r\n"
+         "Their sacred duty is to infiltrate and understand through deception, using "
+         "arcane divination and misdirection to serve their order's goals. Each knight "
+         "carries crystalline blades that reflect not the wielder's face, but the face "
+         "of whoever they're meant to be."
+         "\r\n"
+         "Divine Patrons: Vespera (Trickery/Revolution) and Thalos (Law/Truth). Their "
+         "motto: 'Truth has many faces; we wear them all.' The price they pay: gradually "
+         "forgetting which reality is true, losing themselves in the infinite reflections "
+         "of possibility."
 #endif
-          );
+  );
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_THE_THORN, B, B, G, G, G);
   assign_class_abils(CLASS_KNIGHT_OF_THE_THORN, /* class number */
@@ -7854,37 +7910,37 @@ void load_class_list(void)
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CC, CC);
 
-  assign_class_titles(CLASS_KNIGHT_OF_THE_THORN,   /* class number */
-                      "Knight of the Thorn",      /* <= 4  */
-                      "Knight of the Thorn",      /* <= 9  */
-                      "Knight of the Thorn",      /* <= 14  */
-                      "Knight of the Thorn",      /* <= 19  */
-                      "Knight of the Thorn",      /* <= 24  */
-                      "Knight of the Thorn",      /* <= 29  */
-                      "Knight of the Thorn",      /* <= 30  */
-                      "Knight of the Thorn",      /* <= LVL_IMMMORT  */
-                      "Knight of the Thorn",      /* <= LVL_STAFF  */
-                      "Knight of the Thorn",      /* <= LVL_GRSTAFF  */
+  assign_class_titles(CLASS_KNIGHT_OF_THE_THORN, /* class number */
+                      "Knight of the Thorn",     /* <= 4  */
+                      "Knight of the Thorn",     /* <= 9  */
+                      "Knight of the Thorn",     /* <= 14  */
+                      "Knight of the Thorn",     /* <= 19  */
+                      "Knight of the Thorn",     /* <= 24  */
+                      "Knight of the Thorn",     /* <= 29  */
+                      "Knight of the Thorn",     /* <= 30  */
+                      "Knight of the Thorn",     /* <= LVL_IMMMORT  */
+                      "Knight of the Thorn",     /* <= LVL_STAFF  */
+                      "Knight of the Thorn",     /* <= LVL_GRSTAFF  */
                       "Knight of the Thorn"      /* default  */
   );
   /* feat assignment */
   /*              class num     feat                                   cfeat lvl stack */
-  
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_DIVINER,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_READ_OMENS,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_AURA_OF_TERROR,  Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_WEAPON_TOUCH,  Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 5, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_READ_PORTENTS,  Y, 6, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 8, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 10, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_COSMIC_UNDERSTANDING,  Y, 10, Y);
+
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_DIVINER, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_READ_OMENS, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_AURA_OF_TERROR, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_WEAPON_TOUCH, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING, Y, 5, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_READ_PORTENTS, Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING, Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING, Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_COSMIC_UNDERSTANDING, Y, 10, Y);
 
   // No class feats
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_bab(CLASS_KNIGHT_OF_THE_THORN, 3); 
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_THORN, 3);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_ARCANA, 8);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_RELIGION, 2);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_SPELLCRAFT, 8);
@@ -7897,56 +7953,51 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_SKULL,
 #ifdef CAMPAIGN_DL
-    "knight of the skull",
-    "KSk",
-    "\tDKSk\tn",
-    "g) \tDKnight of the Skull\tn",
+         "knight of the skull", "KSk", "\tDKSk\tn", "g) \tDKnight of the Skull\tn",
 #else
-    "knight of the pale throne",
-    "KPT",
-    "\tDKPT\tn",
-    "g) \tDKnight of the Pale Throne\tn",
+         "knight of the pale throne", "KPT", "\tDKPT\tn", "g) \tDKnight of the Pale Throne\tn",
 #endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
-         /*prestige spell progression*/
+  /*prestige spell progression*/
 #ifdef CAMPAIGN_DL
          "+1 divine caster level per knight of the skull level.",
 #else
          "+1 divine caster level per knight of the pale throne level.",
 #endif
-         /*primary attributes*/ "Str for melee combat, Con/Dex for survivability, Wis for spellcasting.",
-         /*descrip*/ 
+         /*primary attributes*/
+         "Str for melee combat, Con/Dex for survivability, Wis for spellcasting.",
+  /*descrip*/
 #ifdef CAMPAIGN_DL
-          /* DragonLance theme - Knights of Takhisis */
-          "The Order of the Skull is the clerical branch of the Knights of Takhisis, who  "
-          "wield both weapons and divine magic when they wade into battle. Skull Knights  "
-          "utilize their magic for healing, gathering intelligence and also managing  "
-          "internal affairs within the knighthood. The Knights of the Skull often serve as  "
-          "diplomats and advisors in the courts of many rulers, or sometimes as the  "
-          "internal police within the knighthood, reporting the infractions of their fellow "
-          "knights, back to their superiors. They were originally powerful clerics who drew "
-          "divine magic from their goddess Takhisis. They are wholly dedicated to their  "
-          "goddess, but at the same time revered Zeboim. Skull Knights will be more  "
-          "inclined to take Black Dragons as their mounts, rather than Blue Dragons. "
+         /* DragonLance theme - Knights of Takhisis */
+         "The Order of the Skull is the clerical branch of the Knights of Takhisis, who  "
+         "wield both weapons and divine magic when they wade into battle. Skull Knights  "
+         "utilize their magic for healing, gathering intelligence and also managing  "
+         "internal affairs within the knighthood. The Knights of the Skull often serve as  "
+         "diplomats and advisors in the courts of many rulers, or sometimes as the  "
+         "internal police within the knighthood, reporting the infractions of their fellow "
+         "knights, back to their superiors. They were originally powerful clerics who drew "
+         "divine magic from their goddess Takhisis. They are wholly dedicated to their  "
+         "goddess, but at the same time revered Zeboim. Skull Knights will be more  "
+         "inclined to take Black Dragons as their mounts, rather than Blue Dragons. "
 #else
-          /* LuminariMUD theme - Knights of the Pale Throne */
-          "The Knights of the Pale Throne are death-priests who channel negative divine "
-          "energy. They have glimpsed beyond the veil of death and returned with terrible "
-          "knowledge and power over life and undeath. Death is not the end for them - it is "
-          "the pause between movements in the eternal symphony."
-          "\r\n"
-          "Their sacred duty is to serve as arbiters of death's justice, wielding divine "
-          "negative energy against those who would defy the natural order - or to enforce "
-          "an unnatural one. They carry weapons forged from meteoric ice that never melts, "
-          "capable of severing the connection between body and soul."
-          "\r\n"
-          "Divine Patrons: Nethris (Death/Fate), Glacius (Eternal Winter), and Orith "
-          "(Earth/Patience). Their motto: 'Death is not the end; it is the pause between "
-          "movements in the eternal symphony.' The price they pay: becoming more dead than "
-          "alive with each use of their power, slowly joining the realm they serve."
+         /* LuminariMUD theme - Knights of the Pale Throne */
+         "The Knights of the Pale Throne are death-priests who channel negative divine "
+         "energy. They have glimpsed beyond the veil of death and returned with terrible "
+         "knowledge and power over life and undeath. Death is not the end for them - it is "
+         "the pause between movements in the eternal symphony."
+         "\r\n"
+         "Their sacred duty is to serve as arbiters of death's justice, wielding divine "
+         "negative energy against those who would defy the natural order - or to enforce "
+         "an unnatural one. They carry weapons forged from meteoric ice that never melts, "
+         "capable of severing the connection between body and soul."
+         "\r\n"
+         "Divine Patrons: Nethris (Death/Fate), Glacius (Eternal Winter), and Orith "
+         "(Earth/Patience). Their motto: 'Death is not the end; it is the pause between "
+         "movements in the eternal symphony.' The price they pay: becoming more dead than "
+         "alive with each use of their power, slowly joining the realm they serve."
 #endif
-          );
+  );
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_THE_SKULL, G, B, G, G, G);
   assign_class_abils(CLASS_KNIGHT_OF_THE_SKULL, /* class number */
@@ -7959,36 +8010,36 @@ void load_class_list(void)
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CC, CC);
 
-  assign_class_titles(CLASS_KNIGHT_OF_THE_SKULL,   /* class number */
-                      "Knight of the Skull",      /* <= 4  */
-                      "Knight of the Skull",      /* <= 9  */
-                      "Knight of the Skull",      /* <= 14  */
-                      "Knight of the Skull",      /* <= 19  */
-                      "Knight of the Skull",      /* <= 24  */
-                      "Knight of the Skull",      /* <= 29  */
-                      "Knight of the Skull",      /* <= 30  */
-                      "Knight of the Skull",      /* <= LVL_IMMMORT  */
-                      "Knight of the Skull",      /* <= LVL_STAFF  */
-                      "Knight of the Skull",      /* <= LVL_GRSTAFF  */
+  assign_class_titles(CLASS_KNIGHT_OF_THE_SKULL, /* class number */
+                      "Knight of the Skull",     /* <= 4  */
+                      "Knight of the Skull",     /* <= 9  */
+                      "Knight of the Skull",     /* <= 14  */
+                      "Knight of the Skull",     /* <= 19  */
+                      "Knight of the Skull",     /* <= 24  */
+                      "Knight of the Skull",     /* <= 29  */
+                      "Knight of the Skull",     /* <= 30  */
+                      "Knight of the Skull",     /* <= LVL_IMMMORT  */
+                      "Knight of the Skull",     /* <= LVL_STAFF  */
+                      "Knight of the Skull",     /* <= LVL_GRSTAFF  */
                       "Knight of the Skull"      /* default  */
   );
   /* feat assignment */
   /*              class num     feat                                   cfeat lvl stack */
-  
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_AURA_OF_EVIL,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_DETECT_GOOD,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_UNHOLY_RESILIENCE,  Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH,  Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_CHANNEL_ENERGY,  Y, 5, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 6, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH,  Y, 6, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_AURA_OF_THE_VISION,  Y, 8, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 8, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH,  Y, 9, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_FAVOR_OF_DARKNESS,  Y, 10, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 10, Y);
+
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_AURA_OF_EVIL, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_DETECT_GOOD, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_UNHOLY_RESILIENCE, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_CHANNEL_ENERGY, Y, 5, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD, Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH, Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_AURA_OF_THE_VISION, Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD, Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH, Y, 9, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_FAVOR_OF_DARKNESS, Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD, Y, 10, Y);
 
   // No class feats
   /* no spell assignment */
@@ -8019,18 +8070,18 @@ void load_class_list(void)
                      CA, CC, CC, CC, CA, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CA, CA, CC, CC);
-  assign_class_titles(CLASS_DRAGONRIDER,             /* class number */
-                      "",                       /* <= 4  */
-                      "the Dragon Rider",       /* <= 9  */
-                      "the Dragon Rider",       /* <= 14 */
-                      "the Dragon Rider",       /* <= 19 */
-                      "the Dragon Rider",       /* <= 24 */
-                      "the Dragon Rider",       /* <= 29 */
-                      "the Dragon Rider",       /* <= 30 */
-                      "the Dragon Rider",       /* <= LVL_IMMORT */
-                      "the Dragon Rider",       /* <= LVL_STAFF */
-                      "the Dragon Rider",       /* <= LVL_GRSTAFF */
-                      "the Dragon Rider"        /* default */
+  assign_class_titles(CLASS_DRAGONRIDER,  /* class number */
+                      "",                 /* <= 4  */
+                      "the Dragon Rider", /* <= 9  */
+                      "the Dragon Rider", /* <= 14 */
+                      "the Dragon Rider", /* <= 19 */
+                      "the Dragon Rider", /* <= 24 */
+                      "the Dragon Rider", /* <= 29 */
+                      "the Dragon Rider", /* <= 30 */
+                      "the Dragon Rider", /* <= LVL_IMMORT */
+                      "the Dragon Rider", /* <= LVL_STAFF */
+                      "the Dragon Rider", /* <= LVL_GRSTAFF */
+                      "the Dragon Rider"  /* default */
   );
 
   // clas feats
@@ -8053,7 +8104,7 @@ void load_class_list(void)
   feat_assignment(CLASS_DRAGONRIDER, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_DRAGONRIDER, FEAT_TOUGHNESS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_DRAGONRIDER, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
-  
+
   /* feat assignment */
   /*              class num      feat                      cfeat lvl stack */
   feat_assignment(CLASS_DRAGONRIDER, FEAT_DRAGON_BOND, Y, 1, N);
@@ -8068,7 +8119,7 @@ void load_class_list(void)
   feat_assignment(CLASS_DRAGONRIDER, FEAT_BLINDSENSE, Y, 8, N);
   feat_assignment(CLASS_DRAGONRIDER, FEAT_MASTER_RIDER, Y, 9, N);
   feat_assignment(CLASS_DRAGONRIDER, FEAT_UNITED_WE_STAND, Y, 10, N);
-  
+
   /* no spell assignment */
 
   /* class prereqs */
@@ -8084,13 +8135,14 @@ void load_class_list(void)
          10, Y, Y, M, 8, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
-         /*descrip*/ "A shifter has no form they call their own. Instead, they clothe "
-                     "themselves in whatever shape is most expedient at the time. While others base "
-                     "their identities largely on their external forms, the shifter actually comes "
-                     "closer to their true self through all of their transformations. Of necessity, "
-                     "their sense of self is based not on their outward form, but on their soul, which "
-                     "is truly the only constant about them. It is the inner strength of that soul "
-                     "that enables them to take on any shape and remain themselves within.");
+         /*descrip*/
+         "A shifter has no form they call their own. Instead, they clothe "
+         "themselves in whatever shape is most expedient at the time. While others base "
+         "their identities largely on their external forms, the shifter actually comes "
+         "closer to their true self through all of their transformations. Of necessity, "
+         "their sense of self is based not on their outward form, but on their soul, which "
+         "is truly the only constant about them. It is the inner strength of that soul "
+         "that enables them to take on any shape and remain themselves within.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SHIFTER, G, G, B, G, B);
   assign_class_abils(CLASS_SHIFTER, /* class number */
@@ -8136,11 +8188,12 @@ void load_class_list(void)
          10, Y, Y, M, 8, 0, 1, 6, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, Str for combat",
-         /*descrip*/ "Shadowdancers exist in the boundary between light and darkness, "
-                     "where they weave together the shadows to become half-seen artists "
-                     "of deception. Unbound by any specified morality or traditional code, "
-                     "shadowdancers encompass a wide variety of adventuring types who have "
-                     "seen the value of the dark.");
+         /*descrip*/
+         "Shadowdancers exist in the boundary between light and darkness, "
+         "where they weave together the shadows to become half-seen artists "
+         "of deception. Unbound by any specified morality or traditional code, "
+         "shadowdancers encompass a wide variety of adventuring types who have "
+         "seen the value of the dark.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SHADOWDANCER, B, G, B, G, B);
   assign_class_abils(CLASS_SHADOWDANCER, /* class number */
@@ -8206,15 +8259,16 @@ void load_class_list(void)
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Dexterity/Intelligence, Con for survivability, Str for combat",
-         /*descrip*/ "Duelists represent the pinnacle of elegant swordplay. They "
-                     "move with a grace unmatched by most foes, parrying blows and countering attacks "
-                     "with swift thrusts of their blades. They may wear armor, but generally eschew "
-                     "such bulky protection as their grace allows them to dodge their opponents with "
-                     "ease. While others flounder on treacherous terrain, duelists charge nimbly "
-                     "across the battlefield, leaping and tumbling into the fray. They thrive in "
-                     "melee, where their skill with the blade allows them to make sudden attacks "
-                     "against clumsy foes and to cripple opponents with particularly well-placed "
-                     "thrusts of the blade.");
+         /*descrip*/
+         "Duelists represent the pinnacle of elegant swordplay. They "
+         "move with a grace unmatched by most foes, parrying blows and countering attacks "
+         "with swift thrusts of their blades. They may wear armor, but generally eschew "
+         "such bulky protection as their grace allows them to dodge their opponents with "
+         "ease. While others flounder on treacherous terrain, duelists charge nimbly "
+         "across the battlefield, leaping and tumbling into the fray. They thrive in "
+         "melee, where their skill with the blade allows them to make sudden attacks "
+         "against clumsy foes and to cripple opponents with particularly well-placed "
+         "thrusts of the blade.");
   /* class-number then saves:  fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_DUELIST, B, G, B, B, B);
   assign_class_abils(CLASS_DUELIST, /* class number */
@@ -8272,15 +8326,16 @@ void load_class_list(void)
          10, Y, Y, L, 4, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "each level in -both- divine/arcane choice",
          /*primary attributes*/ "Your primary casting class stats, Con/Dex for survivability",
-         /*descrip*/ "Mystic theurges place no boundaries on their magical abilities "
-                     "and find no irreconcilable paradox in devotion to the arcane as well as the "
-                     "divine. They seek magic in all of its forms, finding no reason or logic in "
-                     "denying themselves instruction by limiting their knowledge to one stifling "
-                     "paradigm, though many are simply hungry for limitless power. No matter what "
-                     "their motivations, mystic theurges believe that perception is reality, and "
-                     "through the divine forces and astral energies of the multiverse, that "
-                     "perception can be used to manipulate and control not only the nature of "
-                     "this reality, but destiny itself");
+         /*descrip*/
+         "Mystic theurges place no boundaries on their magical abilities "
+         "and find no irreconcilable paradox in devotion to the arcane as well as the "
+         "divine. They seek magic in all of its forms, finding no reason or logic in "
+         "denying themselves instruction by limiting their knowledge to one stifling "
+         "paradigm, though many are simply hungry for limitless power. No matter what "
+         "their motivations, mystic theurges believe that perception is reality, and "
+         "through the divine forces and astral energies of the multiverse, that "
+         "perception can be used to manipulate and control not only the nature of "
+         "this reality, but destiny itself");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_MYSTIC_THEURGE, B, B, G, B, B);
   assign_class_abils(CLASS_MYSTIC_THEURGE, /* class number */
@@ -8320,10 +8375,8 @@ void load_class_list(void)
 
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_ARCANE,
-                            PREP_TYPE_ANY, 2 /*circle*/);
-  class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_DIVINE,
-                            PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 2 /*circle*/);
   class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_ARCANA, 6);
   class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_RELIGION, 6);
   class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_SPELLCRAFT, 6);
@@ -8782,19 +8835,21 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SUMMONER, "summoner", "Sum", "\tCS\tcum\tn", "f) \tCSummoner\tn",
-         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 8, 0, 1, 2, Y, 0, 3,
-         /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
-         /*descrip*/
-         "While many who dabble in the arcane become adept at beckoning monsters from the farthest "
-         "reaches of the planes, none are more skilled at it than the summoner. This practitioner of "
-         "the arcane arts forms a close bond with one particular outsider, known as an eidolon, who "
-         "gains power as the summoner becomes more proficient at his summoning. Over time, the two "
-         "become linked, eventually even sharing a shard of the same soul. But this power comes with "
-         "a price: the summoner's spells and abilities are limited due to his time spent enhancing the "
-         "power and exploring the nature of his eidolon.\r\n\r\n");
+  classo(
+      CLASS_SUMMONER, "summoner", "Sum", "\tCS\tcum\tn", "f) \tCSummoner\tn",
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+      -1, N, N, M, 8, 0, 1, 2, Y, 0, 3,
+      /*prestige spell progression*/ "none",
+      /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
+      /*descrip*/
+      "While many who dabble in the arcane become adept at beckoning monsters from the farthest "
+      "reaches of the planes, none are more skilled at it than the summoner. This practitioner of "
+      "the arcane arts forms a close bond with one particular outsider, known as an eidolon, who "
+      "gains power as the summoner becomes more proficient at his summoning. Over time, the two "
+      "become linked, eventually even sharing a shard of the same soul. But this power comes with "
+      "a price: the summoner's spells and abilities are limited due to his time spent enhancing "
+      "the "
+      "power and exploring the nature of his eidolon.\r\n\r\n");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SUMMONER, B, B, G, B, G);
 
@@ -8891,7 +8946,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_INVIS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_MAGIC_FANG, 7);
-   spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ENERGY, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
@@ -8944,7 +8999,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_TRUE_SEEING, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_IRON, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WREATH_OF_BLADES, 13);
-  
+
   // spell circle 6
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CHARM_MONSTER, 16);
   spell_assignment(CLASS_SUMMONER, SPELL_DIMENSIONAL_LOCK, 16);
@@ -8988,17 +9043,17 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_5TH_CIRCLE, Y, 13, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_6TH_CIRCLE, Y, 16, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_EPIC_SPELL, Y, 21, N);
-  
+
 
   /* class feats */
-    /* epic class */
+  /* epic class */
   feat_assignment(CLASS_SUMMONER, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, Y);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SUMMONER, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SUMMONER, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SUMMONER, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
-  
+
 
   /* no spell assignment */
   /* class prereqs */
@@ -9011,15 +9066,16 @@ void load_class_list(void)
          10, Y, Y, M, 8, 0, 2, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Dexterity, Con for survivability, Str for combat, Int for skills",
-         /*descrip*/ "A mercenary undertaking his task with cold, professional detachment, the assassin "
-                     "is equally adept at espionage, bounty hunting, and terrorism. At his core, an "
-                     "assassin is an artisan, and his medium is death. Trained in a variety of killing "
-                     "techniques, assassins are among the most feared classes. Assassins tend to be "
-                     "loners by nature, seeing companions as liabilities at best. Sometimes an "
-                     "assassin's missions put him in the company of adventurers for long stretches at "
-                     "a time, but few people are comfortable trusting a professional assassin to watch "
-                     "their backs in a fight, and are more likely to let the emotionless killer scout "
-                     "ahead or help prepare ambushes.  (Also see 'help mark')");
+         /*descrip*/
+         "A mercenary undertaking his task with cold, professional detachment, the assassin "
+         "is equally adept at espionage, bounty hunting, and terrorism. At his core, an "
+         "assassin is an artisan, and his medium is death. Trained in a variety of killing "
+         "techniques, assassins are among the most feared classes. Assassins tend to be "
+         "loners by nature, seeing companions as liabilities at best. Sometimes an "
+         "assassin's missions put him in the company of adventurers for long stretches at "
+         "a time, but few people are comfortable trusting a professional assassin to watch "
+         "their backs in a fight, and are more likely to let the emotionless killer scout "
+         "ahead or help prepare ambushes.  (Also see 'help mark')");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ASSASSIN, B, G, B, B, B);
   assign_class_abils(CLASS_ASSASSIN, /* class number */
@@ -9090,16 +9146,19 @@ void load_class_list(void)
   classo(CLASS_NECROMANCER, "necromancer", "Nec", "\tDNec\tn", "t) \tDNecromancer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          10, Y, Y, L, 6, 0, 2, 4, Y, 5000, 0,
-         /*prestige spell progression*/ "choose between arcane or divine, +1 spellcasting level per necromancer level.",
-         /*primary attributes*/ "Necromancers do not have preferred ability scores. Instead it depends on their spellcasting classes.",
-        "While others use magic to do paltry things like conjure fire or fly, the "
-        "Necromancer is a master over death itself. They study the deep and forbidden "
-        "secrets that raise the dead, controlling minions toward a variety of goals. "
-        "Perhaps they seek the power that mastery over death provides. Perhaps they are "
-        "serious and unashamed scholars, who reject the small-minded boundaries held to "
-        "by others. Each enemy they fell becomes an eager and disposable ally, they "
-        "become immune to the energies of death and decay, and ultimately harness the "
-        "immortality and power of undeath for themselves. ");
+         /*prestige spell progression*/
+         "choose between arcane or divine, +1 spellcasting level per necromancer level.",
+         /*primary attributes*/
+         "Necromancers do not have preferred ability scores. Instead it depends on their "
+         "spellcasting classes.",
+         "While others use magic to do paltry things like conjure fire or fly, the "
+         "Necromancer is a master over death itself. They study the deep and forbidden "
+         "secrets that raise the dead, controlling minions toward a variety of goals. "
+         "Perhaps they seek the power that mastery over death provides. Perhaps they are "
+         "serious and unashamed scholars, who reject the small-minded boundaries held to "
+         "by others. Each enemy they fell becomes an eager and disposable ally, they "
+         "become immune to the energies of death and decay, and ultimately harness the "
+         "immortality and power of undeath for themselves. ");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_NECROMANCER, B, B, G, B, G);
   assign_class_abils(CLASS_NECROMANCER, /* class number */
@@ -9112,7 +9171,7 @@ void load_class_list(void)
                      /*survival,swim,use_magic_device,perform*/
                      CC, CC, CA, CC);
   assign_class_titles(CLASS_NECROMANCER, /* class number */
-                      "",             /* <= 4  */
+                      "",                /* <= 4  */
                       "the Necromancer", /* <= 9  */
                       "the Necromancer", /* <= 14 */
                       "the Necromancer", /* <= 19 */
@@ -9188,18 +9247,18 @@ void load_class_list(void)
                      CA, CC, CC, CC, CC, CC,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CC, CA, CC);
-  assign_class_titles(CLASS_WARLOCK,             /* class number */
-                      "the Fledgling Warlock",      /* <= 4  */
-                      "the Fledgling Warlock",  /* <= 9  */
-                      "the Fledgling Warlock",       /* <= 14 */
-                      "the Fledgling Warlock",  /* <= 19 */
-                      "the Fledgling Warlock",      /* <= 24 */
-                      "the Warlock", /* <= 29 */
-                      "the Warlock",       /* <= 30 */
-                      "the Warlock",    /* <= LVL_IMMORT */
-                      "the Limitless Warlock",   /* <= LVL_STAFF */
-                      "the God of Warlocking",     /* <= LVL_GRSTAFF */
-                      "the Warlock"              /* default */
+  assign_class_titles(CLASS_WARLOCK,           /* class number */
+                      "the Fledgling Warlock", /* <= 4  */
+                      "the Fledgling Warlock", /* <= 9  */
+                      "the Fledgling Warlock", /* <= 14 */
+                      "the Fledgling Warlock", /* <= 19 */
+                      "the Fledgling Warlock", /* <= 24 */
+                      "the Warlock",           /* <= 29 */
+                      "the Warlock",           /* <= 30 */
+                      "the Warlock",           /* <= LVL_IMMORT */
+                      "the Limitless Warlock", /* <= LVL_STAFF */
+                      "the God of Warlocking", /* <= LVL_GRSTAFF */
+                      "the Warlock"            /* default */
   );
 
   /* starting feats and proficiencies */
@@ -9242,7 +9301,7 @@ void load_class_list(void)
   /* epic class */
   feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_MASTER, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_BLAST, Y, NOASSIGN_FEAT, Y);
-  
+
   // feat_assignment(CLASS_WARLOCK, FEAT_INVOCATIONS, Y, 1, Y);
   /*              class num      spell                   level acquired */
   spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_SPEAR, 1);
@@ -9302,18 +9361,20 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost eFeatp*/
          20, N, N, M, 6, 0, 1, 5, Y, 0, 3,
          /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Intelligence for device creation, Dexterity and Constitution for survivability",
-         /*descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
-                     "power through the fusion of magic and technology. Artificers are "
-                     "shrewd magic-users who seek to understand the fundamental forces "
-                     "that drive both arcane and divine magic, then harness them through "
-                     "specially crafted devices and items. Not traditional spellcasters, "
-                     "artificers instead imbue objects with magical power through their "
-                     "weird science, creating temporary but potent devices that can "
-                     "replicate the effects of spells. Masters of item creation and "
-                     "magical engineering, they serve as the bridge between the mystical "
-                     "and the mechanical, capable of crafting wonders that blur the "
-                     "line between magic and technology.");
+         /*primary attributes*/
+         "Intelligence for device creation, Dexterity and Constitution for survivability",
+         /*descrip*/
+         "Beyond the veil of the mundane hide the secrets of absolute "
+         "power through the fusion of magic and technology. Artificers are "
+         "shrewd magic-users who seek to understand the fundamental forces "
+         "that drive both arcane and divine magic, then harness them through "
+         "specially crafted devices and items. Not traditional spellcasters, "
+         "artificers instead imbue objects with magical power through their "
+         "weird science, creating temporary but potent devices that can "
+         "replicate the effects of spells. Masters of item creation and "
+         "magical engineering, they serve as the bridge between the mystical "
+         "and the mechanical, capable of crafting wonders that blur the "
+         "line between magic and technology.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ARTIFICER, G, B, G, B, B);
   assign_class_abils(CLASS_ARTIFICER, /* class number */
@@ -9325,18 +9386,18 @@ void load_class_list(void)
                      CA, CA, CC, CC, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CA, CC);
-  assign_class_titles(CLASS_ARTIFICER,                     /* class number */
-                      "",                                  /* <= 4  */
-                      "the Reader of Esoteric Devices",   /* <= 9  */
-                      "the Crafter of Wonders",           /* <= 14 */
-                      "the Advanced Inventor",            /* <= 19 */
-                      "the Master of Weird Science",      /* <= 24 */
-                      "the Delver of Arcane Mechanics",   /* <= 29 */
-                      "the Artificer Supreme",            /* <= 30 */
-                      "the Immortal Inventor",            /* <= LVL_IMMORT */
-                      "the Avatar of Creation",           /* <= LVL_STAFF */
-                      "the God of Innovation",            /* <= LVL_GRSTAFF */
-                      "the Artificer"                     /* default */
+  assign_class_titles(CLASS_ARTIFICER,                  /* class number */
+                      "",                               /* <= 4  */
+                      "the Reader of Esoteric Devices", /* <= 9  */
+                      "the Crafter of Wonders",         /* <= 14 */
+                      "the Advanced Inventor",          /* <= 19 */
+                      "the Master of Weird Science",    /* <= 24 */
+                      "the Delver of Arcane Mechanics", /* <= 29 */
+                      "the Artificer Supreme",          /* <= 30 */
+                      "the Immortal Inventor",          /* <= LVL_IMMORT */
+                      "the Avatar of Creation",         /* <= LVL_STAFF */
+                      "the God of Innovation",          /* <= LVL_GRSTAFF */
+                      "the Artificer"                   /* default */
   );
   /* feat assignment */
   /*              class num         feat                               cfeat lvl stack */
@@ -9389,11 +9450,10 @@ void load_class_list(void)
 
   /****************************************************************************/
 
-  classo(CLASS_PLACEHOLDER_1, "placeholder 1", "PL1", "\tCPL1\tn", "v) \tCPlaceholder 1\tn",
-         20, Y, N, M, 6, 0, 1, 5, N, 0, 3, "","","");
-  classo(CLASS_PLACEHOLDER_2, "placeholder 2", "PL2", "\tCPL2\tn", "v) \tCPlaceholder 2\tn",
-         20, Y, N, M, 6, 0, 1, 5, N, 0, 3, "","","");
-  
+  classo(CLASS_PLACEHOLDER_1, "placeholder 1", "PL1", "\tCPL1\tn", "v) \tCPlaceholder 1\tn", 20, Y,
+         N, M, 6, 0, 1, 5, N, 0, 3, "", "", "");
+  classo(CLASS_PLACEHOLDER_2, "placeholder 2", "PL2", "\tCPL2\tn", "v) \tCPlaceholder 2\tn", 20, Y,
+         N, M, 6, 0, 1, 5, N, 0, 3, "", "", "");
 }
 
 /* This will check a character to see if the object reference has any anti-class
@@ -9401,7 +9461,6 @@ void load_class_list(void)
  * the character has an associated class and anti-flag.  */
 bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output)
 {
-
   /* this is not compatible with the new homeland zones!  for now we are just skipping this check -zusuk */
   return false; /* do not remove this without checking with zusuk first please */
   /* remove the above line to restore this function to its previous state */
@@ -9586,7 +9645,8 @@ bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output
   if (!(IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BERSERKER)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as a berserker to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as a berserker to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SORCERER)))
@@ -9610,19 +9670,22 @@ bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output
   if (!(IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WEAPONMASTER)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as a weapon master to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as a weapon master to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_ARCHER)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as an arcane archer to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as an arcane archer to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_STALWART_DEFENDER)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as a stalwart defender to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as a stalwart defender to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SHIFTER)))
@@ -9640,31 +9703,36 @@ bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output
   if (!(IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MYSTIC_THEURGE)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as a mystic theurge to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as a mystic theurge to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ALCHEMIST)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as an alchemist to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as an alchemist to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_SHADOW)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as an arcane shadow to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as an arcane shadow to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SACRED_FIST)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as a sacred fist to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as a sacred fist to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
   if (!(IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ELDRITCH_KNIGHT)))
   {
     if (output)
-      send_to_char(ch, "You must have levels as an eldritch knight to use %s.\r\n", obj->short_description);
+      send_to_char(ch, "You must have levels as an eldritch knight to use %s.\r\n",
+                   obj->short_description);
     return false;
   }
 
@@ -9688,7 +9756,6 @@ int num_paladin_mercies_known(struct char_data *ch)
 
 sbyte has_paladin_mercies_unchosen(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -9706,7 +9773,6 @@ sbyte has_paladin_mercies_unchosen(struct char_data *ch)
 
 sbyte has_paladin_mercies_unchosen_study(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -9837,7 +9903,6 @@ int num_blackguard_cruelties_known(struct char_data *ch)
 
 sbyte has_blackguard_cruelties_unchosen(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -9895,9 +9960,11 @@ bool has_evolutions_unchosen(struct char_data *ch)
     return false;
 
   // Needs to set this first
-  if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(ch)->eidolon_base_form == 0) return false;
+  if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(ch)->eidolon_base_form == 0)
+    return false;
 
-  int num_evos =  evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
+  int num_evos =
+      evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
   int num_chosen = num_eidolon_evolutions_known(ch);
 
   if ((num_evos - num_chosen) > 0)
@@ -9908,14 +9975,14 @@ bool has_evolutions_unchosen(struct char_data *ch)
 
 sbyte has_eidolon_choices_unchosen(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
   if (IS_NPC(ch))
     return false;
 
-  if (!GET_EIDOLON_BASE_FORM(ch)) return TRUE;
+  if (!GET_EIDOLON_BASE_FORM(ch))
+    return TRUE;
 
   if (has_evolutions_unchosen(ch))
     return true;
@@ -9928,7 +9995,6 @@ sbyte has_eidolon_choices_unchosen(struct char_data *ch)
 
 sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -9997,7 +10063,8 @@ ACMD(do_racefix)
   {
     if (level_feats[i][1] == GET_REAL_RACE(ch) && !HAS_REAL_FEAT(ch, level_feats[i][4]))
     {
-      send_to_char(ch, "You have gained the %s racial feat.\r\n", feat_list[level_feats[i][4]].name);
+      send_to_char(ch, "You have gained the %s racial feat.\r\n",
+                   feat_list[level_feats[i][4]].name);
       SET_FEAT(ch, level_feats[i][4], 1);
       found = true;
     }
@@ -10026,7 +10093,8 @@ ACMD(do_racefix)
       ch->real_abils.con -= 1;
       ch->real_abils.intel += 2;
       ch->real_abils.str += 2;
-      send_to_char(ch, "Your strength has been increased by two and your intelligence by two. Your consitiution has been reduced by one.\r\n");
+      send_to_char(ch, "Your strength has been increased by two and your intelligence by two. Your "
+                       "consitiution has been reduced by one.\r\n");
       break;
     case RACE_LIGHTFOOT_HALFLING:
       found = true;
@@ -10044,7 +10112,8 @@ ACMD(do_racefix)
       ch->real_abils.cha += 2;
       ch->real_abils.intel += 2;
       ch->real_abils.con += 1;
-      send_to_char(ch, "Your charisma and intelligence have been increased by two, and your constitution by one.\r\n");
+      send_to_char(ch, "Your charisma and intelligence have been increased by two, and your "
+                       "constitution by one.\r\n");
       break;
     case RACE_HALF_TROLL:
       found = true;
@@ -10052,7 +10121,8 @@ ACMD(do_racefix)
       ch->real_abils.intel += 2;
       ch->real_abils.wis += 2;
       ch->real_abils.con += 2;
-      send_to_char(ch, "Your penalties to int, wis and cha have been improved from -4 to -2.  Your con has been improved by 2.\r\n");
+      send_to_char(ch, "Your penalties to int, wis and cha have been improved from -4 to -2.  Your "
+                       "con has been improved by 2.\r\n");
       break;
     case RACE_ARCANA_GOLEM:
       found = true;
@@ -10061,19 +10131,22 @@ ACMD(do_racefix)
       ch->real_abils.wis += 1;
       ch->real_abils.con += 2;
       ch->real_abils.str += 2;
-      send_to_char(ch, "Your penalties to str and con have been negated.  Your str, con and dex bonuses have been improved by 1.\r\n");
+      send_to_char(ch, "Your penalties to str and con have been negated.  Your str, con and dex "
+                       "bonuses have been improved by 1.\r\n");
       break;
     case RACE_DROW:
       found = true;
       ch->real_abils.intel += 2;
       ch->real_abils.con += 2;
-      send_to_char(ch, "Your penalty to con has been negated and your int has increased by two.\r\n");
+      send_to_char(ch,
+                   "Your penalty to con has been negated and your int has increased by two.\r\n");
       break;
     case RACE_DUERGAR:
       found = true;
       ch->real_abils.cha += 2;
       ch->real_abils.str += 2;
-      send_to_char(ch, "Your penalty to cha has been negated and your str has increased by two.\r\n");
+      send_to_char(ch,
+                   "Your penalty to cha has been negated and your str has increased by two.\r\n");
       break;
     case RACE_CRYSTAL_DWARF:
       found = true;

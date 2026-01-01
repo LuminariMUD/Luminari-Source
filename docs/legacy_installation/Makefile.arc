@@ -11,7 +11,7 @@ LIBS = 	unix:Sockets.Libs.o.socklib unix:Sockets.Libs.o.inetlib \
 	gcc:o.libgcc unix:o.UnixLib -rescan
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -67,7 +67,7 @@ act.o.other: act.c.other h.conf h.sysdep h.structs \
 	$(CC) -c $(CFLAGS) act.c.other -o act.o.other
 act.o.social: act.c.social h.conf h.sysdep h.structs \
   h.utils h.comm h.interpreter h.handler \
-  h.db h.spells 
+  h.db h.spells
 	$(CC) -c $(CFLAGS) act.c.social -o act.o.social
 act.o.wizard: act.c.wizard h.conf h.sysdep h.structs \
   h.utils h.comm h.interpreter h.handler \
@@ -154,7 +154,7 @@ o.weather: c.weather h.conf h.sysdep h.structs h.utils h.comm h.handler \
   h.interpreter h.db
 	$(CC) -c $(CFLAGS) c.weather
 o.players: c.players h.conf h.sysdep h.structs h.utils h.db h.handler \
-  h.pfdefaults h.dg_scripts h.comm h.interpreter h.genolc h.config h.spells 
+  h.pfdefaults h.dg_scripts h.comm h.interpreter h.genolc h.config h.spells
 	$(CC) -c $(CFLAGS) c.players
 o.quest: c.quest h.conf h.sysdep h.structs h.utils h.interpreter h.handler \
   h.comm h.db h.screen h.quest
@@ -163,5 +163,5 @@ o.qedit: c.qedit h.conf h.sysdep h.structs h.utils h.comm h.db h.oasis \
   h.improved-edit h.screen h.genolc h.genzon h.interpreter h.quest
 	$(CC) -c $(CFLAGS) qedit.c
 o.genqst: c.genqst h.conf h.sysdep h.structs h.utils h.db h.quest \
-  h.genolc h.genzon 
+  h.genolc h.genzon
 	$(CC) -c $(CFLAGS) genqst.c

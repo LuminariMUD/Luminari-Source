@@ -8,7 +8,7 @@ CC = @CC@
 MYFLAGS = @MYFLAGS@
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -21,7 +21,7 @@ CFLAGS = @CFLAGS@ $(MYFLAGS) $(PROFILE)
 LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@
 
 SRCFILES := $(wildcard *.c)
-OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
+OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))
 
 default: all
 
@@ -42,7 +42,7 @@ $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
 $%.o: %.c
-	$(CC) $< $(CFLAGS) -c -o $@ 
+	$(CC) $< $(CFLAGS) -c -o $@
 
 clean:
 	rm -f *.o depend

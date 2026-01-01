@@ -1,0 +1,83 @@
+SETSCHEDULE
+
+Usage: setschedule <route> <interval>
+
+Sets an automatic departure schedule for the vessel you are commanding.
+The vessel will automatically begin following the specified route at
+regular intervals measured in MUD hours.
+
+Arguments:
+  route    - Name of an existing route (use 'listroutes' to see available)
+  interval - Number of MUD hours between departures (1-24)
+
+Examples:
+  setschedule FerryRoute 2    - Depart every 2 MUD hours
+  setschedule PatrolRoute 6   - Depart every 6 MUD hours
+
+Requirements:
+  - You must be aboard a vessel with autopilot capability
+  - You must be the captain or at the helm
+  - The route must exist and have waypoints defined
+
+Notes:
+  - One MUD hour equals approximately 75 real seconds
+  - If a pilot is assigned, departures will be announced
+  - The schedule persists across server restarts
+  - Use 'showschedule' to see current schedule status
+  - Use 'clearschedule' to remove the schedule
+
+See also: CLEARSCHEDULE, SHOWSCHEDULE, AUTOPILOT, LISTROUTES
+#
+CLEARSCHEDULE
+
+Usage: clearschedule
+
+Removes the automatic departure schedule from the vessel you are commanding.
+After clearing, the vessel will no longer depart automatically.
+
+Requirements:
+  - You must be aboard a vessel with a schedule configured
+  - You must be the captain or at the helm
+
+Example:
+  clearschedule    - Removes the current schedule
+
+Notes:
+  - This does not stop a route already in progress
+  - Use 'autopilot off' to stop an active route
+
+See also: SETSCHEDULE, SHOWSCHEDULE, AUTOPILOT
+#
+SHOWSCHEDULE
+
+Usage: showschedule
+
+Displays the current departure schedule for the vessel you are aboard.
+
+Output includes:
+  - Route name and settings
+  - Departure interval in MUD hours
+  - Next scheduled departure time
+  - Current MUD time for reference
+  - Schedule status (Active, Paused, or Disabled)
+  - Pilot status (whether departures will be announced)
+
+Example output:
+  --- Vessel Schedule ---
+  Route: FerryRoute
+  Interval: Every 2 MUD hours
+  Next Departure: MUD hour 14
+  Current Time: MUD hour 12
+  Status: Active
+  Pilot: Assigned (departures will be announced)
+
+Requirements:
+  - You must be aboard a vessel
+
+Notes:
+  - No special permissions required to view the schedule
+  - Use 'setschedule' to create or modify a schedule
+  - Use 'clearschedule' to remove a schedule
+
+See also: SETSCHEDULE, CLEARSCHEDULE, AUTOPILOT
+#

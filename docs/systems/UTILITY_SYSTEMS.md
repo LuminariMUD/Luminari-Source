@@ -34,11 +34,11 @@ void basic_mud_log(const char *format, ...) {
   va_list args;
   time_t ct = time(0);
   char *time_s = asctime(localtime(&ct));
-  
+
   time_s[strlen(time_s) - 1] = '\0'; // Remove newline
-  
+
   va_start(args, format);
-  
+
   // Log to file
   if (logfile != NULL) {
     fprintf(logfile, "%-15.15s :: ", time_s + 4);
@@ -46,13 +46,13 @@ void basic_mud_log(const char *format, ...) {
     fprintf(logfile, "\n");
     fflush(logfile);
   }
-  
+
   // Log to stderr for debugging
   if (scheck) {
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
   }
-  
+
   va_end(args);
 }
 
@@ -61,25 +61,25 @@ void mudlog(int type, int level, int file, const char *str, ...) {
   char buffer[MAX_STRING_LENGTH];
   struct descriptor_data *i;
   va_list args;
-  
+
   if (str == NULL) return;
   if (file) basic_mud_log("SYSERR: %s", str);
   if (level < 0) return;
-  
+
   va_start(args, str);
   vsnprintf(buffer, sizeof(buffer), str, args);
   va_end(args);
-  
+
   // Send to online immortals
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) != CON_PLAYING || IS_NPC(i->character)) continue;
     if (GET_LEVEL(i->character) < level) continue;
     if (PLR_FLAGGED(i->character, PLR_WRITING)) continue;
-    
+
     // Check if player wants to see this log type
     if (type > 0 && !PRF_FLAGGED(i->character, PRF_LOG1 + type - 1)) continue;
-    
-    send_to_char(i->character, "%s[ %s ]%s\r\n", 
+
+    send_to_char(i->character, "%s[ %s ]%s\r\n",
                  CCGRN(i->character, C_NRM), buffer, CCNRM(i->character, C_NRM));
   }
 }
@@ -91,13 +91,13 @@ void mudlog(int type, int level, int file, const char *str, ...) {
 ```c
 void log_performance_data(const char *function, long execution_time) {
   static FILE *perf_log = NULL;
-  
+
   if (!perf_log) {
     perf_log = fopen("../log/performance.log", "a");
     if (!perf_log) return;
   }
-  
-  fprintf(perf_log, "%ld: %s took %ld microseconds\n", 
+
+  fprintf(perf_log, "%ld: %s took %ld microseconds\n",
           time(NULL), function, execution_time);
   fflush(perf_log);
 }
@@ -118,7 +118,7 @@ void log_performance_data(const char *function, long execution_time) {
 void log_security_event(struct char_data *ch, const char *event, const char *details) {
   FILE *sec_log = fopen("../log/security.log", "a");
   if (!sec_log) return;
-  
+
   fprintf(sec_log, "[%ld] %s (%s): %s - %s\n",
           time(NULL),
           ch ? GET_NAME(ch) : "SYSTEM",
@@ -126,7 +126,7 @@ void log_security_event(struct char_data *ch, const char *event, const char *det
           event,
           details);
   fclose(sec_log);
-  
+
   // Also send to security channel
   mudlog(WIZLOG, LVL_IMMORT, TRUE, "SECURITY: %s %s - %s",
          ch ? GET_NAME(ch) : "SYSTEM", event, details);
@@ -166,33 +166,33 @@ ACMD(do_gen_comm) {
   struct descriptor_data *i;
   char color_on[24];
   struct channel_data *chan = &channels[subcmd];
-  
+
   // Remove leading spaces
   skip_spaces(&argument);
-  
+
   // Check if channel is disabled
   if (!chan->can_use || !chan->can_use(ch)) {
     send_to_char(ch, "You cannot use that channel.\r\n");
     return;
   }
-  
+
   // Check for argument
   if (!*argument) {
     send_to_char(ch, "%s what??\r\n", chan->name);
     return;
   }
-  
+
   // Check movement cost
   if (GET_MOVE(ch) < chan->cost) {
     send_to_char(ch, "You are too exhausted to use %s.\r\n", chan->name);
     return;
   }
-  
+
   GET_MOVE(ch) -= chan->cost;
-  
+
   // Set up color
   strcpy(color_on, chan->color_code);
-  
+
   // Send to all eligible players
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) == CON_PLAYING && i != ch->desc && i->character &&
@@ -200,12 +200,12 @@ ACMD(do_gen_comm) {
         !ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) &&
         GET_LEVEL(i->character) >= chan->min_level &&
         can_hear_channel(i->character, subcmd)) {
-      
+
       send_to_char(i->character, "%s[%s] %s: %s%s\r\n",
                    color_on, chan->name, GET_NAME(ch), argument, CCNRM(i->character, C_NRM));
     }
   }
-  
+
   // Echo to sender
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT)) {
     send_to_char(ch, "%s", CONFIG_OK);
@@ -245,22 +245,22 @@ void send_mail(long to, long from, const char *subject, const char *message) {
   FILE *mail_file;
   struct mail_index_type mail_entry;
   long position;
-  
+
   // Open mail file
   mail_file = fopen(MAIL_FILE, "a");
   if (!mail_file) {
     log("SYSERR: Unable to open mail file for writing");
     return;
   }
-  
+
   // Get current position
   position = ftell(mail_file);
-  
+
   // Write mail data
   fprintf(mail_file, "%ld %ld %ld\n%s~\n%s~\n",
           to, from, (long)time(0), subject, message);
   fclose(mail_file);
-  
+
   // Update mail index
   mail_entry.position = position;
   mail_entry.recipient = to;
@@ -268,9 +268,9 @@ void send_mail(long to, long from, const char *subject, const char *message) {
   mail_entry.mail_time = time(0);
   mail_entry.subject = strdup(subject);
   mail_entry.read = FALSE;
-  
+
   add_mail_index(&mail_entry);
-  
+
   // Notify recipient if online
   struct char_data *recipient = find_char_by_id(to);
   if (recipient && recipient->desc) {
@@ -284,36 +284,36 @@ ACMD(do_mail) {
   char arg[MAX_INPUT_LENGTH];
   int mail_number;
   struct mail_data *mail;
-  
+
   one_argument(argument, arg);
-  
+
   if (!*arg) {
     list_mail(ch);
     return;
   }
-  
+
   if (!str_cmp(arg, "read")) {
     one_argument(argument, arg); // Get mail number
     mail_number = atoi(arg);
-    
+
     if (mail_number < 1) {
       send_to_char(ch, "Which mail do you want to read?\r\n");
       return;
     }
-    
+
     mail = get_mail(GET_IDNUM(ch), mail_number - 1);
     if (!mail) {
       send_to_char(ch, "You don't have that many messages.\r\n");
       return;
     }
-    
+
     // Display mail
     send_to_char(ch, "From: %s\r\nSubject: %s\r\nDate: %s\r\n%s\r\n",
                  get_name_by_id(mail->from),
                  mail->subject,
                  ctime(&mail->mail_time),
                  mail->message);
-    
+
     // Mark as read
     mark_mail_read(GET_IDNUM(ch), mail_number - 1);
   }
@@ -351,24 +351,24 @@ typedef enum {
 // Create new event
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, long lDelay) {
   struct mud_event_data *new_event;
-  
+
   CREATE(new_event, struct mud_event_data, 1);
   new_event->iId = iId;
   new_event->pStruct = pStruct;
   new_event->lVariables = lDelay;
   new_event->func = get_event_func(iId);
-  
+
   return new_event;
 }
 
 // Attach event to character
 void attach_mud_event(struct mud_event_data *pMudEvent, struct char_data *ch) {
   if (!pMudEvent || !ch) return;
-  
+
   // Add to character's event list
   pMudEvent->next = ch->events;
   ch->events = pMudEvent;
-  
+
   // Schedule event
   schedule_event(pMudEvent);
 }
@@ -376,14 +376,14 @@ void attach_mud_event(struct mud_event_data *pMudEvent, struct char_data *ch) {
 // Process events
 void process_events() {
   struct mud_event_data *event, *next_event;
-  
+
   for (event = global_event_list; event; event = next_event) {
     next_event = event->next;
-    
+
     if (--event->lVariables <= 0) {
       // Execute event
       long result = event->func(event->pStruct);
-      
+
       if (result == 0) {
         // Event finished, remove it
         remove_event(event);
@@ -401,14 +401,14 @@ void process_events() {
 // Combat round event
 EVENTFUNC(combat_round_event) {
   struct char_data *ch = (struct char_data *)event_obj;
-  
+
   if (!ch || !FIGHTING(ch)) {
     return 0; // End event
   }
-  
+
   // Perform combat round
   perform_combat_round(ch);
-  
+
   // Continue combat
   return PULSE_COMBAT;
 }
@@ -416,24 +416,24 @@ EVENTFUNC(combat_round_event) {
 // Regeneration event
 EVENTFUNC(regen_event) {
   struct char_data *ch = (struct char_data *)event_obj;
-  
+
   if (!ch) return 0;
-  
+
   // Regenerate hit points
   if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
     GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + hit_gain(ch));
   }
-  
+
   // Regenerate mana
   if (GET_MANA(ch) < GET_MAX_MANA(ch)) {
     GET_MANA(ch) = MIN(GET_MAX_MANA(ch), GET_MANA(ch) + mana_gain(ch));
   }
-  
+
   // Regenerate movement
   if (GET_MOVE(ch) < GET_MAX_MOVE(ch)) {
     GET_MOVE(ch) = MIN(GET_MAX_MOVE(ch), GET_MOVE(ch) + move_gain(ch));
   }
-  
+
   // Continue regeneration
   return PULSE_REGEN;
 }
@@ -474,35 +474,35 @@ ACMD(do_look_at_board) {
   struct message_data *msg;
   int msg_num;
   char arg[MAX_INPUT_LENGTH];
-  
+
   one_argument(argument, arg);
-  
+
   // Find board in room
   board = find_board_in_room(IN_ROOM(ch));
   if (!board) {
     send_to_char(ch, "There is no board here.\r\n");
     return;
   }
-  
+
   // Check read permission
   if (GET_LEVEL(ch) < board->read_level) {
     send_to_char(ch, "You are not high enough level to read this board.\r\n");
     return;
   }
-  
+
   if (!*arg) {
     // List all messages
     send_to_char(ch, "This is %s.\r\n%s\r\n", board->name, board->description);
     send_to_char(ch, "Usage: READ <message #>, WRITE <subject>, REMOVE <message #>\r\n\r\n");
-    
+
     if (!board->messages) {
       send_to_char(ch, "The board is empty.\r\n");
       return;
     }
-    
+
     send_to_char(ch, "Num  Author       Subject\r\n");
     send_to_char(ch, "---  ----------   -------\r\n");
-    
+
     for (msg = board->messages; msg; msg = msg->next) {
       send_to_char(ch, "%3d  %-10s   %s\r\n",
                    msg->number, msg->author, msg->subject);
@@ -511,12 +511,12 @@ ACMD(do_look_at_board) {
     // Read specific message
     msg_num = atoi(arg);
     msg = find_board_message(board, msg_num);
-    
+
     if (!msg) {
       send_to_char(ch, "That message doesn't exist.\r\n");
       return;
     }
-    
+
     send_to_char(ch, "Message %d: %s\r\n", msg->number, msg->subject);
     send_to_char(ch, "Author: %s, Date: %s\r\n", msg->author, ctime(&msg->timestamp));
     send_to_char(ch, "%s\r\n", msg->message);
@@ -527,34 +527,34 @@ ACMD(do_look_at_board) {
 ACMD(do_write_board) {
   struct board_data *board;
   char subject[MAX_INPUT_LENGTH];
-  
+
   skip_spaces(&argument);
   strcpy(subject, argument);
-  
+
   board = find_board_in_room(IN_ROOM(ch));
   if (!board) {
     send_to_char(ch, "There is no board here.\r\n");
     return;
   }
-  
+
   if (GET_LEVEL(ch) < board->write_level) {
     send_to_char(ch, "You are not high enough level to write on this board.\r\n");
     return;
   }
-  
+
   if (!*subject) {
     send_to_char(ch, "You must specify a subject.\r\n");
     return;
   }
-  
+
   // Start writing mode
   send_to_char(ch, "Write your message. End with @ on a new line.\r\n");
   act("$n starts writing on the board.", TRUE, ch, 0, 0, TO_ROOM);
-  
+
   SET_BIT(PLR_FLAGS(ch), PLR_WRITING);
   ch->desc->str = &ch->desc->mail_to;
   ch->desc->max_str = MAX_MESSAGE_LENGTH;
-  
+
   // Store board and subject for later
   ch->desc->board = board;
   ch->desc->board_subject = strdup(subject);
@@ -569,16 +569,16 @@ ACMD(do_write_board) {
 ACMD(do_uptime) {
   time_t uptime = time(0) - boot_time;
   int days, hours, minutes;
-  
+
   days = uptime / 86400;
   hours = (uptime % 86400) / 3600;
   minutes = (uptime % 3600) / 60;
-  
+
   send_to_char(ch, "Server uptime: %d day%s, %d hour%s, %d minute%s\r\n",
                days, days == 1 ? "" : "s",
-               hours, hours == 1 ? "" : "s", 
+               hours, hours == 1 ? "" : "s",
                minutes, minutes == 1 ? "" : "s");
-  
+
   send_to_char(ch, "Boot time: %s", ctime(&boot_time));
   send_to_char(ch, "Players online: %d\r\n", count_playing_chars());
   send_to_char(ch, "Maximum players today: %d\r\n", max_players_today);
@@ -588,20 +588,20 @@ ACMD(do_memory) {
   struct char_data *ch_iter;
   struct obj_data *obj_iter;
   int chars = 0, objs = 0, rooms = 0;
-  
+
   // Count characters
   for (ch_iter = character_list; ch_iter; ch_iter = ch_iter->next) {
     chars++;
   }
-  
+
   // Count objects
   for (obj_iter = object_list; obj_iter; obj_iter = obj_iter->next) {
     objs++;
   }
-  
+
   // Count rooms
   rooms = top_of_world + 1;
-  
+
   send_to_char(ch, "Memory usage:\r\n");
   send_to_char(ch, "Characters: %d\r\n", chars);
   send_to_char(ch, "Objects: %d\r\n", objs);
@@ -617,20 +617,20 @@ ACMD(do_memory) {
 ACMD(do_purge_players) {
   int days_inactive, purged = 0;
   char arg[MAX_INPUT_LENGTH];
-  
+
   one_argument(argument, arg);
   days_inactive = atoi(arg);
-  
+
   if (days_inactive < 30) {
     send_to_char(ch, "Minimum inactive period is 30 days.\r\n");
     return;
   }
-  
+
   send_to_char(ch, "Purging players inactive for %d+ days...\r\n", days_inactive);
-  
+
   // This would iterate through player files and remove inactive ones
   purged = purge_inactive_players(days_inactive);
-  
+
   send_to_char(ch, "Purged %d inactive players.\r\n", purged);
   mudlog(WIZLOG, LVL_IMPL, TRUE, "%s purged %d inactive players (%d+ days)",
          GET_NAME(ch), purged, days_inactive);

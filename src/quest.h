@@ -36,8 +36,10 @@
 #define AQ_HOUSE_FIND 20       /* Player must reach house                */
 #define AQ_WILD_FIND 21        /* Player must find specific wilderness room */
 #define AQ_GIVE_GOLD 22        /* Player must give at least X gold */
-#define AQ_MOB_MULTI_KILL 23   /* Player must kill a number of mobs from a given, comma-separated list of vnums */
-#define AQ_DIALOGUE 24         // Dialogue Quest player must succeed on a diplomacy, intimidate and/or bluff check
+#define AQ_MOB_MULTI_KILL                                                                          \
+  23 /* Player must kill a number of mobs from a given, comma-separated list of vnums */
+#define AQ_DIALOGUE                                                                                \
+  24 // Dialogue Quest player must succeed on a diplomacy, intimidate and/or bluff check
 /************************/
 #define NUM_AQ_TYPES 25 /* Used in qedit functions                 */
 /************************/
@@ -56,8 +58,8 @@
 #define SCMD_QUEST_ASSIGN 6   /* Staff complete quest for target      */
 
 /* AQ Flags (much room for expansion) ********************************* */
-#define AQ_REPEATABLE (1 << 0)          /* Quest can be repeated                */
-#define AQ_REPLACE_OBJ_REWARD (1 << 1)  /* Quest obj reward can be reacquired if lost */
+#define AQ_REPEATABLE (1 << 0)         /* Quest can be repeated                */
+#define AQ_REPLACE_OBJ_REWARD (1 << 1) /* Quest obj reward can be reacquired if lost */
 #define NUM_AQ_FLAGS 2
 
 /* Main quest struct ************************************************** */
@@ -90,7 +92,8 @@ struct aq_data
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
   SPECIAL_DECL(*func); /* secondary spec_proc for the QM       */
-  qst_vnum dialogue_alternative_quest; // If the quest is set as a dialogue quest, and the dialogue skill check fails, we'll give them this quest instead
+  qst_vnum
+      dialogue_alternative_quest; // If the quest is set as a dialogue quest, and the dialogue skill check fails, we'll give them this quest instead
   int diplomacy_dc;
   int intimidate_dc;
   int bluff_dc;
@@ -147,7 +150,8 @@ void set_quest(struct char_data *ch, qst_rnum rnum, int index);
 void clear_quest(struct char_data *ch, int index);
 void complete_quest(struct char_data *ch, int index);
 void generic_complete_quest(struct char_data *ch, int index);
-void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int variable, int type);
+void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object,
+                             int variable, int type);
 qst_rnum real_quest(qst_vnum vnum);
 int is_complete(struct char_data *ch, qst_vnum vnum);
 qst_vnum find_quest_by_qmnum(struct char_data *ch, mob_rnum qm, int num);

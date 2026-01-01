@@ -36,7 +36,7 @@ These lines contain the three old knight class definitions:
   class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   /****************************************************************************/
 
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_LILY,
@@ -63,7 +63,7 @@ The result should look like:
   class_prereq_align(CLASS_KNIGHT_OF_SOLAMNIA, LAWFUL_GOOD);
   /****************************************************************************/
 
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_LILY,

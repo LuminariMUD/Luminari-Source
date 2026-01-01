@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # Check if running with sufficient privileges
-if [ "$EUID" -ne 0 ] && [ -z "$1" ]; then 
+if [ "$EUID" -ne 0 ] && [ -z "$1" ]; then
     echo -e "${YELLOW}Warning:${NC} Not running as root. Some fixes may require sudo."
     echo "Usage: $0 [base_directory]"
     echo "Or run with sudo for full permission fixes"

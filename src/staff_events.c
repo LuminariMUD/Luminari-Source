@@ -85,7 +85,8 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "epic levels.  There is no reward for killing Jackalope under your level bracket.  The "
      "Jackalope will frequently return to random locations in that area.  "
      "The carcasses will be counted by staff, please reach out and get your "
-     "final count within 24 hours of event completion.  Grand prize(s) will be handed out shortly after final count."
+     "final count within 24 hours of event completion.  Grand prize(s) will be handed out shortly "
+     "after final count."
      "Rare antlers found are to be "
      "turned into Fullstaff in Hardbuckler for a special bonus prize.]\tn\r\n",
 
@@ -95,7 +96,8 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "in case they are needed again.\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n"
      "\tR[OOC: You can visit Fullstaff in the Hardbuckler Inn to turn in the rare antlers for "
      "a special prize!  The carcasses will be counted by staff, please contact and get your "
-     "final count within 24 hours of event completion.  Grand prize(s) will be handed out shortly after final count.]\tn\r\n",
+     "final count within 24 hours of event completion.  Grand prize(s) will be handed out shortly "
+     "after final count.]\tn\r\n",
 
      /*end jackalope hunt*/},
 
@@ -113,18 +115,24 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "\tWExistence shudders as The Prisoner's captivity begins to crack!!!\tn",
 
      /* EVENT_END - World announcement when event ends */
-     "\tRBy immeasurable sacrifice, aggression, strategy and luck the mystical cell containing The Prisoner holds firm!!!\tn",
+     "\tRBy immeasurable sacrifice, aggression, strategy and luck the mystical cell containing The "
+     "Prisoner holds firm!!!\tn",
 
      /* EVENT_DETAIL - Detailed player information including IC lore and OOC mechanics */
      "\tGThrough the darkling hoarde's tampering, The Prisoner's cell has been compromised.  \tn"
-     "\tGAs you know, The Prisoner can't be defeated while in any of our realities.  But the five-headed dragon avatar\tn "
-     "\tGthat the Luminari imprisoned in Avernus is the entity that is creating the damage to The Prisoner's cell.\tn\r\n  "
-     "\tGGet to the Mosswood Elder adventurer and step through the portal, we MUST mount an offensive or all is lost!\tn\r\n "
-     "\tWOOC: While this event is running, the treasure drop is maximized for The Prisoner, there is no XP loss for death and there is a \tn"
+     "\tGAs you know, The Prisoner can't be defeated while in any of our realities.  But the "
+     "five-headed dragon avatar\tn "
+     "\tGthat the Luminari imprisoned in Avernus is the entity that is creating the damage to The "
+     "Prisoner's cell.\tn\r\n  "
+     "\tGGet to the Mosswood Elder adventurer and step through the portal, we MUST mount an "
+     "offensive or all is lost!\tn\r\n "
+     "\tWOOC: While this event is running, the treasure drop is maximized for The Prisoner, there "
+     "is no XP loss for death and there is a \tn"
      "\tWdirect portal to the Garden of Avernus at the Mosswood Elder.\tn\r\n",
 
      /* EVENT_SUMMARY - Conclusion message thanking participants */
-     "\tGThank you adventuer, I.... nay the entire existence owes you a debt of gratitude. I hope we have "
+     "\tGThank you adventuer, I.... nay the entire existence owes you a debt of gratitude. I hope "
+     "we have "
      "quelled this menace for good. However, keep your blades sharp, and your bowstrings tight, "
      "in case they are needed again.\tn\r\n \tW- Alerion -\tn\r\n",
 
@@ -168,11 +176,11 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
   if (IS_NPC(killer))
       return;
   */
-  
+
   /* Only NPCs can drop event items */
   if (!IS_NPC(victim))
     return;
-    
+
   /* No drops if no event is currently running */
   if (!IS_STAFF_EVENT)
     return;
@@ -187,7 +195,6 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
    */
   switch (STAFF_EVENT_NUM)
   {
-
   case JACKALOPE_HUNT:
     /*
      * Jackalope Hunt Drop Logic:
@@ -199,7 +206,6 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
 
     switch (GET_MOB_VNUM(victim))
     {
-
     case EASY_JACKALOPE:
       /* Easy Jackalope: Only drops for characters level 10 and under */
       if (GET_LEVEL(killer) <= 10)
@@ -209,7 +215,8 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
       else
       {
         /* Inform player why they didn't get a drop */
-        send_to_char(killer, "OOC:  Lower level Jackalope hides won't drop for someone over level 10.\r\n");
+        send_to_char(killer,
+                     "OOC:  Lower level Jackalope hides won't drop for someone over level 10.\r\n");
       }
       break;
 
@@ -222,7 +229,8 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
       else
       {
         /* Inform player why they didn't get a drop */
-        send_to_char(killer, "OOC:  Mid level Jackalopes hides won't drop for someone over level 20.\r\n");
+        send_to_char(killer,
+                     "OOC:  Mid level Jackalopes hides won't drop for someone over level 20.\r\n");
       }
       break;
 
@@ -244,7 +252,7 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
        * Improved error handling with proper fallback and user notification
        * when object creation fails during event drops.
        */
-      
+
       /*
        * Create and deliver the standard Jackalope Hide
        * This is the primary event currency for tracking participation
@@ -253,24 +261,27 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
       {
         log("SYSERR: check_event_drops() failed to create jackalope hide (vnum %d) for %s",
             JACKALOPE_HIDE, killer ? GET_NAME(killer) : "unknown");
-        
+
         /* Graceful degradation: inform player of technical issue */
         if (killer)
         {
-          send_to_char(killer, "\tRTechnical issue: Your reward could not be created. Please contact staff.\tn\r\n");
+          send_to_char(
+              killer,
+              "\tRTechnical issue: Your reward could not be created. Please contact staff.\tn\r\n");
         }
         return; /* Abort drop processing to prevent further issues */
       }
-      
+
       obj_to_char(obj, killer); /* Deliver object to killer's inventory */
-      
+
       /* Provide visual feedback about the drop - with enhanced safety checks */
       if (killer && obj && obj->short_description)
       {
         send_to_char(killer, "\tYYou have found \tn%s\tn\tY!\tn\r\n", obj->short_description);
 
         /* Show other players in the room what was found - with buffer overflow protection */
-        int ret = snprintf(buf, sizeof(buf), "$n \tYhas found \tn%s\tn\tY!\tn", obj->short_description);
+        int ret =
+            snprintf(buf, sizeof(buf), "$n \tYhas found \tn%s\tn\tY!\tn", obj->short_description);
         if (ret >= sizeof(buf))
         {
           log("SYSERR: Message truncated in check_event_drops for jackalope hide");
@@ -291,11 +302,13 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
         {
           log("SYSERR: check_event_drops() failed to create pristine horn (vnum %d) for %s",
               PRISTINE_HORN, killer ? GET_NAME(killer) : "unknown");
-          
+
           /* Continue execution - rare drop failure shouldn't prevent basic rewards */
           if (killer)
           {
-            send_to_char(killer, "\tYA rare item glimmers briefly but vanishes due to magical interference.\tn\r\n");
+            send_to_char(
+                killer,
+                "\tYA rare item glimmers briefly but vanishes due to magical interference.\tn\r\n");
           }
         }
         else
@@ -308,7 +321,8 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
             send_to_char(killer, "\tYYou have found \tn%s\tn\tY!\tn\r\n", obj->short_description);
 
             /* Announce rare drop to other players in room - with buffer overflow protection */
-            int ret = snprintf(buf, sizeof(buf), "$n \tYhas found \tn%s\tn\tY!\tn", obj->short_description);
+            int ret = snprintf(buf, sizeof(buf), "$n \tYhas found \tn%s\tn\tY!\tn",
+                               obj->short_description);
             if (ret >= sizeof(buf))
             {
               log("SYSERR: Message truncated in check_event_drops for pristine horn");
@@ -369,9 +383,9 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
  */
 void mob_ingame_purge(int mobile_vnum)
 {
-  struct char_data *l = NULL;                    /* Iterator for character list */
+  struct char_data *l = NULL;                      /* Iterator for character list */
   mob_rnum mobile_rnum = real_mobile(mobile_vnum); /* Convert vnum to rnum */
-  mob_rnum i = 0;                                /* Mobile prototype iterator */
+  mob_rnum i = 0;                                  /* Mobile prototype iterator */
 
   /* Safety check: Ensure mobile table exists */
   if (!top_of_mobt)
@@ -445,10 +459,10 @@ void mob_ingame_purge(int mobile_vnum)
  */
 int mob_ingame_count(int mobile_vnum)
 {
-  struct char_data *l = NULL;                    /* Iterator for character list */
+  struct char_data *l = NULL;                      /* Iterator for character list */
   mob_rnum mobile_rnum = real_mobile(mobile_vnum); /* Convert vnum to rnum */
-  mob_rnum i = 0;                                /* Mobile prototype iterator */
-  int num_found = 0;                             /* Counter for found mobiles */
+  mob_rnum i = 0;                                  /* Mobile prototype iterator */
+  int num_found = 0;                               /* Counter for found mobiles */
 
   /* Safety check: Ensure mobile table exists */
   if (!top_of_mobt)
@@ -481,7 +495,7 @@ int mob_ingame_count(int mobile_vnum)
     }
 
   } /* end mobile prototype search */
-  
+
   return num_found;
 }
 
@@ -495,9 +509,10 @@ int mob_ingame_count(int mobile_vnum)
  * pre-generating coordinates in batches rather than generating them
  * individually during spawning operations.
  */
-typedef struct {
-  int x;  /* X coordinate */
-  int y;  /* Y coordinate */
+typedef struct
+{
+  int x; /* X coordinate */
+  int y; /* Y coordinate */
 } coord_pair_t;
 
 /*
@@ -506,8 +521,8 @@ typedef struct {
  * during high-volume spawning operations.
  */
 static coord_pair_t coord_cache[COORD_CACHE_SIZE];
-static int coord_cache_size = 0;      /* Current number of cached coordinates */
-static int coord_cache_index = 0;     /* Current position in cache */
+static int coord_cache_size = 0;  /* Current number of cached coordinates */
+static int coord_cache_index = 0; /* Current position in cache */
 
 /*
  * Generate a batch of random coordinates and store them in the cache.
@@ -519,18 +534,18 @@ static int coord_cache_index = 0;     /* Current position in cache */
 static void generate_coordinate_batch(int count)
 {
   int i = 0;
-  
+
   /* Clamp count to cache size limit */
   if (count > COORD_CACHE_SIZE)
     count = COORD_CACHE_SIZE;
-  
+
   /* Generate batch of random coordinates */
   for (i = 0; i < count; i++)
   {
     coord_cache[i].x = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
     coord_cache[i].y = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
   }
-  
+
   coord_cache_size = count;
   coord_cache_index = 0;
 }
@@ -550,11 +565,13 @@ static void get_cached_coordinates(int *x_coord, int *y_coord)
   {
     generate_coordinate_batch(COORD_BATCH_GENERATION_SIZE);
   }
-  
+
   /* Return next cached coordinate pair */
-  if (x_coord) *x_coord = coord_cache[coord_cache_index].x;
-  if (y_coord) *y_coord = coord_cache[coord_cache_index].y;
-  
+  if (x_coord)
+    *x_coord = coord_cache[coord_cache_index].x;
+  if (y_coord)
+    *y_coord = coord_cache[coord_cache_index].y;
+
   coord_cache_index++;
 }
 
@@ -657,9 +674,9 @@ int get_event_delay(void)
  */
 static void spawn_jackalope_batch(int mob_vnum, int count)
 {
-  int i = 0;           /* Loop counter */
-  int x_coord = 0;     /* Random X coordinate for spawning */
-  int y_coord = 0;     /* Random Y coordinate for spawning */
+  int i = 0;       /* Loop counter */
+  int x_coord = 0; /* Random X coordinate for spawning */
+  int y_coord = 0; /* Random Y coordinate for spawning */
 
   /* Input validation */
   if (count <= 0)
@@ -670,7 +687,7 @@ static void spawn_jackalope_batch(int mob_vnum, int count)
   {
     /* Get coordinates from cache (automatically refills when needed) */
     get_cached_coordinates(&x_coord, &y_coord);
-    
+
     /* Load the mob at the cached coordinates */
     wild_mobile_loader(mob_vnum, x_coord, y_coord);
   }
@@ -700,15 +717,18 @@ static void spawn_jackalope_batch(int mob_vnum, int count)
  */
 void count_jackalope_mobs(int *easy_count, int *med_count, int *hard_count)
 {
-  struct char_data *l = NULL;                      /* Iterator for character list */
-  mob_rnum easy_rnum = real_mobile(EASY_JACKALOPE);  /* Easy Jackalope real number */
-  mob_rnum med_rnum = real_mobile(MED_JACKALOPE);    /* Medium Jackalope real number */
-  mob_rnum hard_rnum = real_mobile(HARD_JACKALOPE);  /* Hard Jackalope real number */
+  struct char_data *l = NULL;                       /* Iterator for character list */
+  mob_rnum easy_rnum = real_mobile(EASY_JACKALOPE); /* Easy Jackalope real number */
+  mob_rnum med_rnum = real_mobile(MED_JACKALOPE);   /* Medium Jackalope real number */
+  mob_rnum hard_rnum = real_mobile(HARD_JACKALOPE); /* Hard Jackalope real number */
 
   /* Initialize output parameters to zero */
-  if (easy_count) *easy_count = 0;
-  if (med_count) *med_count = 0;
-  if (hard_count) *hard_count = 0;
+  if (easy_count)
+    *easy_count = 0;
+  if (med_count)
+    *med_count = 0;
+  if (hard_count)
+    *hard_count = 0;
 
   /* Safety checks: Ensure mobile table exists and all VNUMs are valid */
   if (!top_of_mobt || easy_rnum == NOTHING || med_rnum == NOTHING || hard_rnum == NOTHING)
@@ -723,7 +743,7 @@ void count_jackalope_mobs(int *easy_count, int *med_count, int *hard_count)
     if (IS_NPC(l))
     {
       mob_rnum mob_rnum = GET_MOB_RNUM(l);
-      
+
       if (mob_rnum == easy_rnum && easy_count)
         (*easy_count)++;
       else if (mob_rnum == med_rnum && med_count)
@@ -762,8 +782,8 @@ void count_jackalope_mobs(int *easy_count, int *med_count, int *hard_count)
  */
 void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 {
-  room_rnum location = NOWHERE;      /* Target room for mobile placement */
-  struct char_data *mob = NULL;      /* Mobile instance to be created */
+  room_rnum location = NOWHERE; /* Target room for mobile placement */
+  struct char_data *mob = NULL; /* Mobile instance to be created */
 
   /* Create the mobile instance from its prototype */
   mob = read_mobile(mobile_vnum, VIRTUAL);
@@ -806,20 +826,19 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
    * Add bounds checking before accessing world array to prevent crashes
    * and ensure mobile coordinate metadata is properly assigned.
    */
-  
+
   /* Validate location bounds before accessing world array */
   if (location == NOWHERE || location > top_of_world)
   {
-    log("SYSERR: Invalid location %d in wild_mobile_loader for mob vnum %d",
-        location, mobile_vnum);
-    extract_char(mob);  /* Clean up created mob to prevent memory leak */
+    log("SYSERR: Invalid location %d in wild_mobile_loader for mob vnum %d", location, mobile_vnum);
+    extract_char(mob); /* Clean up created mob to prevent memory leak */
     return;
   }
-  
+
   /* Safe coordinate assignment with validated location */
   X_LOC(mob) = world[location].coords[0];
   Y_LOC(mob) = world[location].coords[1];
-  
+
   /* Place the mobile in the target room */
   char_to_room(mob, location);
 
@@ -866,9 +885,9 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 void staff_event_tick()
 {
   /* Variables removed - unused in current implementation */
-  struct descriptor_data *pt = NULL;   /* Iterator for player connections */
-  struct obj_data *obj = NULL;         /* Object pointer for portal management */
-  bool found = FALSE;                  /* Flag for portal existence check */
+  struct descriptor_data *pt = NULL; /* Iterator for player connections */
+  struct obj_data *obj = NULL;       /* Object pointer for portal management */
+  bool found = FALSE;                /* Flag for portal existence check */
 
   /*
    * GLOBAL EVENT TIMER MANAGEMENT
@@ -908,12 +927,11 @@ void staff_event_tick()
      */
     switch (STAFF_EVENT_NUM)
     {
-
     case JACKALOPE_HUNT:
     {
       int easy_count = 0, med_count = 0, hard_count = 0;
       int easy_deficit = 0, med_deficit = 0, hard_deficit = 0;
-      
+
       /*
        * JACKALOPE HUNT TICK OPERATIONS
        * Maintain optimal Jackalope population across all three tiers.
@@ -930,10 +948,10 @@ void staff_event_tick()
        * Uses single-pass counting to fix critical performance issue (C001).
        * Replaces 6 character list traversals per tick with 1.
        */
-      
+
       /* Single efficient count of all Jackalope types */
       count_jackalope_mobs(&easy_count, &med_count, &hard_count);
-      
+
       /* Calculate deficits for each type */
       easy_deficit = (easy_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - easy_count) : 0;
       med_deficit = (med_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - med_count) : 0;
@@ -943,7 +961,7 @@ void staff_event_tick()
        * STREAMLINED JACKALOPE SPAWNING (Addresses M001: Code Duplication)
        * Use helper function to eliminate repeated coordinate generation logic
        */
-      
+
       /* Easy Jackalope Population Maintenance (Levels 1-10) */
       spawn_jackalope_batch(EASY_JACKALOPE, easy_deficit);
 
@@ -972,7 +990,7 @@ void staff_event_tick()
        * The portal may be destroyed or removed, so we check and recreate as needed.
        */
       found = FALSE; /* Reset portal found flag */
-      
+
       /* Search for existing portal in the designated room */
       for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj->next_content)
       {
@@ -981,7 +999,7 @@ void staff_event_tick()
           found = TRUE;
         }
       }
-      
+
       /* Portal missing - recreate it */
       if (!found)
       {
@@ -1012,37 +1030,46 @@ void staff_event_tick()
       case 0:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "A perpetual haze of green looms on the horizon as \tY\t=The Prisoner's power\tn flares throughout the realms!\r\n");
+            send_to_char(pt->character,
+                         "A perpetual haze of green looms on the horizon as \tY\t=The Prisoner's "
+                         "power\tn flares throughout the realms!\r\n");
         break;
       case 1:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Booms and echoes of \tY\t=The Prisoner's power\tn resound throughout the realms!\r\n");
+            send_to_char(pt->character, "Booms and echoes of \tY\t=The Prisoner's power\tn resound "
+                                        "throughout the realms!\r\n");
         break;
       case 2:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Emanations from the outter planes, via \tY\t=The Prisoner's power\tn, pulsate through the realms!\r\n");
+            send_to_char(pt->character, "Emanations from the outter planes, via \tY\t=The "
+                                        "Prisoner's power\tn, pulsate through the realms!\r\n");
         break;
       case 3:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "The \tY\t=power of The Prisoner\tn is causing the very ground to shake!\r\n");
+            send_to_char(
+                pt->character,
+                "The \tY\t=power of The Prisoner\tn is causing the very ground to shake!\r\n");
         break;
       case 4:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Vicious blasts of mental energy from \tY\t=The Prisoner\tn penetrate your psyche!\r\n");
+            send_to_char(pt->character, "Vicious blasts of mental energy from \tY\t=The "
+                                        "Prisoner\tn penetrate your psyche!\r\n");
         break;
       case 5:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Random ebbs and flows of chaotic magic from \tY\t=The Prisoner\tn manifest nearby!\r\n");
+            send_to_char(pt->character, "Random ebbs and flows of chaotic magic from \tY\t=The "
+                                        "Prisoner\tn manifest nearby!\r\n");
         break;
       case 6:
         for (pt = descriptor_list; pt; pt = pt->next)
           if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "The very gravity of the realms seem to shift as \tY\t=The Prisoner's power\tn grows!\r\n");
+            send_to_char(pt->character, "The very gravity of the realms seem to shift as \tY\t=The "
+                                        "Prisoner's power\tn grows!\r\n");
         break;
       default:
         break;
@@ -1100,7 +1127,7 @@ void staff_event_tick()
  */
 event_result_t start_staff_event(int event_num)
 {
-  struct descriptor_data *pt = NULL;    /* Iterator for player connections */
+  struct descriptor_data *pt = NULL; /* Iterator for player connections */
   /* Variables removed - unused in current implementation */
 
   /*
@@ -1119,22 +1146,19 @@ event_result_t start_staff_event(int event_num)
    * before attempting to start it. This prevents crashes from
    * accessing uninitialized or corrupted event data.
    */
-  if (!staff_events_list[event_num][EVENT_TITLE] ||
-      !*staff_events_list[event_num][EVENT_TITLE])
+  if (!staff_events_list[event_num][EVENT_TITLE] || !*staff_events_list[event_num][EVENT_TITLE])
   {
     log("SYSERR: Event %d has invalid or empty title field", event_num);
     return EVENT_ERROR_INVALID_DATA; /* Invalid event data */
   }
-  
-  if (!staff_events_list[event_num][EVENT_BEGIN] ||
-      !*staff_events_list[event_num][EVENT_BEGIN])
+
+  if (!staff_events_list[event_num][EVENT_BEGIN] || !*staff_events_list[event_num][EVENT_BEGIN])
   {
     log("SYSERR: Event %d has invalid or empty begin message", event_num);
     return EVENT_ERROR_INVALID_DATA; /* Invalid event data */
   }
-  
-  if (!staff_events_list[event_num][EVENT_DETAIL] ||
-      !*staff_events_list[event_num][EVENT_DETAIL])
+
+  if (!staff_events_list[event_num][EVENT_DETAIL] || !*staff_events_list[event_num][EVENT_DETAIL])
   {
     log("SYSERR: Event %d has invalid or empty detail message", event_num);
     return EVENT_ERROR_INVALID_DATA; /* Invalid event data */
@@ -1150,7 +1174,7 @@ event_result_t start_staff_event(int event_num)
   case JACKALOPE_HUNT:
     /* Jackalope Hunt has no special preconditions */
     break;
-    
+
   case THE_PRISONER_EVENT:
     /*
      * The Prisoner Event Restriction:
@@ -1163,7 +1187,7 @@ event_result_t start_staff_event(int event_num)
       return EVENT_ERROR_PRECONDITION_FAILED; /* Failure: already completed this boot */
     }
     break;
-    
+
   default:
     /* Future events: add precondition checks here */
     break;
@@ -1179,23 +1203,32 @@ event_result_t start_staff_event(int event_num)
     if (IS_PLAYING(pt) && pt->character)
     {
       /* Eye-catching event start notification */
-      send_to_char(pt->character, "\r\n\tY╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
-      send_to_char(pt->character, "\tY║                       \tR\t=STAFF EVENT STARTING!\tY                            ║\tn\r\n");
-      send_to_char(pt->character, "\tY╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-      send_to_char(pt->character, "\tY║ \tWEvent:\tn %-67s \tY║\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
-      send_to_char(pt->character, "\tY╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
-      
+      send_to_char(pt->character, "\r\n\tY╔════════════════════════════════════════════════════════"
+                                  "═══════════════════╗\tn\r\n");
+      send_to_char(pt->character, "\tY║                       \tR\t=STAFF EVENT STARTING!\tY       "
+                                  "                     ║\tn\r\n");
+      send_to_char(pt->character, "\tY╠════════════════════════════════════════════════════════════"
+                                  "═══════════════╣\tn\r\n");
+      send_to_char(pt->character, "\tY║ \tWEvent:\tn %-67s \tY║\tn\r\n",
+                   staff_events_list[event_num][EVENT_TITLE]);
+      send_to_char(pt->character, "\tY╚════════════════════════════════════════════════════════════"
+                                  "═══════════════╝\tn\r\n\r\n");
+
       /* Event-specific start message */
       send_to_char(pt->character, "%s\r\n\r\n", staff_events_list[event_num][EVENT_BEGIN]);
-      
+
       /* Detailed event information box */
-      send_to_char(pt->character, "\tC┌───────────────────────────────────────────────────────────────────────────┐\tn\r\n");
-      send_to_char(pt->character, "\tC│                           \tWEVENT INFORMATION                               \tC│\tn\r\n");
-      send_to_char(pt->character, "\tC├───────────────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(pt->character, "\tC┌────────────────────────────────────────────────────────────"
+                                  "───────────────┐\tn\r\n");
+      send_to_char(pt->character, "\tC│                           \tWEVENT INFORMATION             "
+                                  "                  \tC│\tn\r\n");
+      send_to_char(pt->character, "\tC├────────────────────────────────────────────────────────────"
+                                  "───────────────┤\tn\r\n");
       send_to_char(pt->character, "\tC│\tn\r\n");
       send_to_char(pt->character, "%s", staff_events_list[event_num][EVENT_DETAIL]);
       send_to_char(pt->character, "\tC│\tn\r\n");
-      send_to_char(pt->character, "\tC└───────────────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+      send_to_char(pt->character, "\tC└────────────────────────────────────────────────────────────"
+                                  "───────────────┘\tn\r\n\r\n");
     }
   }
 
@@ -1204,7 +1237,7 @@ event_result_t start_staff_event(int event_num)
    * Set the system-wide variables that track current event status
    * through the state management layer for better modularity.
    */
-  
+
   /*
    * Event Duration Configuration:
    * Default duration is 1200 ticks (approximately 1 real day).
@@ -1220,7 +1253,6 @@ event_result_t start_staff_event(int event_num)
    */
   switch (event_num)
   {
-
   case JACKALOPE_HUNT:
     /*
      * JACKALOPE HUNT INITIALIZATION:
@@ -1240,11 +1272,11 @@ event_result_t start_staff_event(int event_num)
      * STREAMLINED INITIAL JACKALOPE DEPLOYMENT (Addresses M001: Code Duplication)
      * Use helper function for consistent and maintainable spawning logic
      */
-    
+
     /* Deploy initial population of all three Jackalope tiers */
-    spawn_jackalope_batch(EASY_JACKALOPE, NUM_JACKALOPE_EACH);   /* Easy Jackalope (Levels 1-10) */
-    spawn_jackalope_batch(MED_JACKALOPE, NUM_JACKALOPE_EACH);    /* Medium Jackalope (Levels 11-20) */
-    spawn_jackalope_batch(HARD_JACKALOPE, NUM_JACKALOPE_EACH);   /* Hard Jackalope (Levels 21+) */
+    spawn_jackalope_batch(EASY_JACKALOPE, NUM_JACKALOPE_EACH); /* Easy Jackalope (Levels 1-10) */
+    spawn_jackalope_batch(MED_JACKALOPE, NUM_JACKALOPE_EACH);  /* Medium Jackalope (Levels 11-20) */
+    spawn_jackalope_batch(HARD_JACKALOPE, NUM_JACKALOPE_EACH); /* Hard Jackalope (Levels 21+) */
 
     break;
 
@@ -1292,8 +1324,8 @@ event_result_t start_staff_event(int event_num)
  */
 event_result_t end_staff_event(int event_num)
 {
-  struct descriptor_data *pt = NULL;    /* Iterator for player connections */
-  struct obj_data *obj = NULL;          /* Object pointer for cleanup operations */
+  struct descriptor_data *pt = NULL; /* Iterator for player connections */
+  struct obj_data *obj = NULL;       /* Object pointer for cleanup operations */
 
   /*
    * INPUT VALIDATION:
@@ -1314,23 +1346,32 @@ event_result_t end_staff_event(int event_num)
     if (IS_PLAYING(pt) && pt->character)
     {
       /* Eye-catching event end notification */
-      send_to_char(pt->character, "\r\n\tR╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
-      send_to_char(pt->character, "\tR║                        \tY\t=STAFF EVENT ENDING!\tR                             ║\tn\r\n");
-      send_to_char(pt->character, "\tR╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-      send_to_char(pt->character, "\tR║ \tWEvent:\tn %-67s \tR║\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
-      send_to_char(pt->character, "\tR╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
-      
+      send_to_char(pt->character, "\r\n\tR╔════════════════════════════════════════════════════════"
+                                  "═══════════════════╗\tn\r\n");
+      send_to_char(pt->character, "\tR║                        \tY\t=STAFF EVENT ENDING!\tR        "
+                                  "                     ║\tn\r\n");
+      send_to_char(pt->character, "\tR╠════════════════════════════════════════════════════════════"
+                                  "═══════════════╣\tn\r\n");
+      send_to_char(pt->character, "\tR║ \tWEvent:\tn %-67s \tR║\tn\r\n",
+                   staff_events_list[event_num][EVENT_TITLE]);
+      send_to_char(pt->character, "\tR╚════════════════════════════════════════════════════════════"
+                                  "═══════════════╝\tn\r\n\r\n");
+
       /* Event-specific end message */
       send_to_char(pt->character, "%s\r\n\r\n", staff_events_list[event_num][EVENT_END]);
-      
+
       /* Event summary box */
-      send_to_char(pt->character, "\tG┌───────────────────────────────────────────────────────────────────────────┐\tn\r\n");
-      send_to_char(pt->character, "\tG│                         \tWEVENT CONCLUSION                                  \tG│\tn\r\n");
-      send_to_char(pt->character, "\tG├───────────────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(pt->character, "\tG┌────────────────────────────────────────────────────────────"
+                                  "───────────────┐\tn\r\n");
+      send_to_char(pt->character, "\tG│                         \tWEVENT CONCLUSION                "
+                                  "                  \tG│\tn\r\n");
+      send_to_char(pt->character, "\tG├────────────────────────────────────────────────────────────"
+                                  "───────────────┤\tn\r\n");
       send_to_char(pt->character, "\tG│\tn\r\n");
       send_to_char(pt->character, "%s", staff_events_list[event_num][EVENT_SUMMARY]);
       send_to_char(pt->character, "\tG│\tn\r\n");
-      send_to_char(pt->character, "\tG└───────────────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+      send_to_char(pt->character, "\tG└────────────────────────────────────────────────────────────"
+                                  "───────────────┘\tn\r\n\r\n");
     }
   }
 
@@ -1340,8 +1381,8 @@ event_result_t end_staff_event(int event_num)
    * and initiate the mandatory inter-event delay period through
    * the state management layer for better modularity.
    */
-  clear_event_state();                                  /* Clear active event state */
-  set_event_delay(STAFF_EVENT_DELAY_CNST);             /* Start cleanup delay */
+  clear_event_state();                     /* Clear active event state */
+  set_event_delay(STAFF_EVENT_DELAY_CNST); /* Start cleanup delay */
 
   /*
    * EVENT-SPECIFIC CLEANUP PROCEDURES:
@@ -1350,40 +1391,39 @@ event_result_t end_staff_event(int event_num)
    */
   switch (event_num)
   {
-
   case JACKALOPE_HUNT:
     /*
      * JACKALOPE HUNT CLEANUP:
      * Remove all Jackalope mobs from the game world to prevent
      * post-event farming and restore normal wilderness conditions.
      */
-    mob_ingame_purge(EASY_JACKALOPE);   /* Remove all Easy Jackalope */
-    mob_ingame_purge(MED_JACKALOPE);    /* Remove all Medium Jackalope */
-    mob_ingame_purge(HARD_JACKALOPE);   /* Remove all Hard Jackalope */
+    mob_ingame_purge(EASY_JACKALOPE); /* Remove all Easy Jackalope */
+    mob_ingame_purge(MED_JACKALOPE);  /* Remove all Medium Jackalope */
+    mob_ingame_purge(HARD_JACKALOPE); /* Remove all Hard Jackalope */
     break;
 
   case THE_PRISONER_EVENT:
   {
-    struct obj_data *obj_next = NULL;  /* Safe iteration pointer */
-    
+    struct obj_data *obj_next = NULL; /* Safe iteration pointer */
+
     /*
      * THE PRISONER EVENT CLEANUP:
      * Remove the temporary portal that provides access to the raid zone.
      * This prevents post-event access and maintains game balance.
      */
-    
+
     /*
      * SAFE PORTAL CLEANUP (Addresses High Priority Issue H003)
      * Use safe iteration pattern to prevent corruption when modifying
      * the object list during traversal. Store next pointer before
      * potential extraction to avoid accessing freed memory.
      */
-    
+
     for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj_next)
     {
       /* Store next pointer before potential extraction */
       obj_next = obj->next_content;
-      
+
       if (GET_OBJ_VNUM(obj) == THE_PRISONER_PORTAL)
       {
         /* Provide atmospheric removal message to players in the room */
@@ -1458,21 +1498,26 @@ void staff_event_info(struct char_data *ch, const int event_num)
     return;
   }
 
-  int event_field = 0;        /* Iterator for event message fields */
-  int secs_left = 0;          /* Calculated seconds remaining in event */
+  int event_field = 0;                /* Iterator for event message fields */
+  int secs_left = 0;                  /* Calculated seconds remaining in event */
   int hours = 0, mins = 0, secs = 0;  /* Time breakdown */
-  const char *status_color = "\tG";  /* Color for status display */
-  const char *status_text = "ACTIVE";  /* Status text */
+  const char *status_color = "\tG";   /* Color for status display */
+  const char *status_text = "ACTIVE"; /* Status text */
 
   /* Header with decorative border */
-  send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
-  send_to_char(ch, "\tC║                          \tYSTAFF EVENT INFORMATION                           \tC║\tn\r\n");
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  
+  send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════"
+                   "════╗\tn\r\n");
+  send_to_char(ch, "\tC║                          \tYSTAFF EVENT INFORMATION                       "
+                   "    \tC║\tn\r\n");
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+
   /* Event Title and Index */
-  send_to_char(ch, "\tC║ \tWEvent:\tn %-62s \tC║\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+  send_to_char(ch, "\tC║ \tWEvent:\tn %-62s \tC║\tn\r\n",
+               staff_events_list[event_num][EVENT_TITLE]);
   send_to_char(ch, "\tC║ \tWIndex:\tn \tG%-61d\tn \tC║\tn\r\n", event_num);
-  
+
   /* Current Status */
   if (IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
   {
@@ -1492,9 +1537,11 @@ void staff_event_info(struct char_data *ch, const int event_num)
     status_color = "\tw";
     status_text = "INACTIVE";
   }
-  
+
   send_to_char(ch, "\tC║ \tWStatus:\tn %s%-60s\tn \tC║\tn\r\n", status_color, status_text);
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
 
   /*
    * ENHANCED EVENT FIELD VALIDATION (Addresses M008)
@@ -1509,46 +1556,64 @@ void staff_event_info(struct char_data *ch, const int event_num)
       log("SYSERR: Missing event field %d for event %d", event_field, event_num);
       if (GET_LEVEL(ch) >= LVL_STAFF)
       {
-        send_to_char(ch, "\tC║ \tR[ERROR: Missing field %d - contact administrators]                          \tC║\tn\r\n", event_field);
+        send_to_char(ch,
+                     "\tC║ \tR[ERROR: Missing field %d - contact administrators]                   "
+                     "       \tC║\tn\r\n",
+                     event_field);
       }
       continue; /* Skip this field and continue with others */
     }
-    
+
     /* Additional validation: check for empty strings */
     if (!*staff_events_list[event_num][event_field])
     {
       log("SYSERR: Empty event field %d for event %d", event_field, event_num);
       if (GET_LEVEL(ch) >= LVL_STAFF)
       {
-        send_to_char(ch, "\tC║ \tR[ERROR: Empty field %d - contact administrators]                            \tC║\tn\r\n", event_field);
+        send_to_char(ch,
+                     "\tC║ \tR[ERROR: Empty field %d - contact administrators]                     "
+                     "       \tC║\tn\r\n",
+                     event_field);
       }
       continue; /* Skip this field and continue with others */
     }
-    
+
     switch (event_field)
     {
-
     case EVENT_BEGIN:
-      send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-      send_to_char(ch, "\tC║ \tWStart Announcement:\tn                                                       \tC║\tn\r\n");
-      send_to_char(ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn \tC║\tn\r\n");
+      send_to_char(ch, "\tC║                                                                       "
+                       "    ║\tn\r\n");
+      send_to_char(ch, "\tC║ \tWStart Announcement:\tn                                             "
+                       "          \tC║\tn\r\n");
+      send_to_char(
+          ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn "
+              "\tC║\tn\r\n");
       send_to_char(ch, "\tC║\tn %s\r\n", staff_events_list[event_num][EVENT_BEGIN]);
       break;
 
     case EVENT_END:
       if (GET_LEVEL(ch) >= LVL_STAFF)
       {
-        send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-        send_to_char(ch, "\tC║ \tWEnd Announcement:\tn                                                         \tC║\tn\r\n");
-        send_to_char(ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn \tC║\tn\r\n");
+        send_to_char(ch, "\tC║                                                                     "
+                         "      ║\tn\r\n");
+        send_to_char(ch, "\tC║ \tWEnd Announcement:\tn                                             "
+                         "            \tC║\tn\r\n");
+        send_to_char(
+            ch,
+            "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn "
+            "\tC║\tn\r\n");
         send_to_char(ch, "\tC║\tn %s\r\n", staff_events_list[event_num][EVENT_END]);
       }
       break;
 
     case EVENT_DETAIL:
-      send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-      send_to_char(ch, "\tC║ \tWEvent Details:\tn                                                            \tC║\tn\r\n");
-      send_to_char(ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn \tC║\tn\r\n");
+      send_to_char(ch, "\tC║                                                                       "
+                       "    ║\tn\r\n");
+      send_to_char(ch, "\tC║ \tWEvent Details:\tn                                                  "
+                       "          \tC║\tn\r\n");
+      send_to_char(
+          ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn "
+              "\tC║\tn\r\n");
       send_to_char(ch, "\tC║\tn\r\n");
       send_to_char(ch, "%s", staff_events_list[event_num][EVENT_DETAIL]);
       send_to_char(ch, "\tn");
@@ -1562,52 +1627,69 @@ void staff_event_info(struct char_data *ch, const int event_num)
   } /*end for*/
 
   /* Event-specific statistics section */
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  send_to_char(ch, "\tC║                            \tYEVENT STATISTICS                               \tC║\tn\r\n");
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║                            \tYEVENT STATISTICS                            "
+                   "   \tC║\tn\r\n");
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+
   /* here is our custom output relevant to each event */
   switch (event_num)
   {
   case JACKALOPE_HUNT:
   {
     int easy_count = 0, med_count = 0, hard_count = 0;
-    
+
     /* Use optimized counting function */
     count_jackalope_mobs(&easy_count, &med_count, &hard_count);
-    
-    send_to_char(ch, "\tC║ \tWJackalope Population:\tn                                                     \tC║\tn\r\n");
+
+    send_to_char(ch, "\tC║ \tWJackalope Population:\tn                                             "
+                     "        \tC║\tn\r\n");
     send_to_char(ch, "\tC║   \tw• Elusive (Lvl 1-10):\tn  \tG%-47d\tn \tC║\tn\r\n", easy_count);
     send_to_char(ch, "\tC║   \tw• Mature (Lvl 11-20):\tn   \tY%-47d\tn \tC║\tn\r\n", med_count);
     send_to_char(ch, "\tC║   \tw• Alpha (Lvl 21+):\tn      \tR%-47d\tn \tC║\tn\r\n", hard_count);
-    send_to_char(ch, "\tC║   \tw• Total Active:\tn         \tW%-47d\tn \tC║\tn\r\n", easy_count + med_count + hard_count);
+    send_to_char(ch, "\tC║   \tw• Total Active:\tn         \tW%-47d\tn \tC║\tn\r\n",
+                 easy_count + med_count + hard_count);
   }
   break;
 
   case THE_PRISONER_EVENT:
-    send_to_char(ch, "\tC║ \tWEvent Features:\tn                                                           \tC║\tn\r\n");
-    send_to_char(ch, "\tC║   \tw• Portal Status:\tn        \tGActive at Mosswood Elder\tn                   \tC║\tn\r\n");
-    send_to_char(ch, "\tC║   \tw• Death Penalty:\tn        \tRDisabled during event\tn                      \tC║\tn\r\n");
-    send_to_char(ch, "\tC║   \tw• Treasure Drops:\tn       \tYMaximized for The Prisoner\tn                 \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWEvent Features:\tn                                                   "
+                     "        \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Portal Status:\tn        \tGActive at Mosswood Elder\tn          "
+                     "         \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Death Penalty:\tn        \tRDisabled during event\tn             "
+                     "         \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Treasure Drops:\tn       \tYMaximized for The Prisoner\tn        "
+                     "         \tC║\tn\r\n");
     break;
 
   default:
-    send_to_char(ch, "\tC║ \twNo specific statistics available for this event.\tn                         \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \twNo specific statistics available for this event.\tn                  "
+                     "       \tC║\tn\r\n");
     break;
   }
 
   /* Time Information Section */
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  send_to_char(ch, "\tC║                            \tYTIME INFORMATION                               \tC║\tn\r\n");
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║                            \tYTIME INFORMATION                            "
+                   "   \tC║\tn\r\n");
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+
   if (STAFF_EVENT_TIME && IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
   {
     secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
     hours = secs_left / 3600;
     mins = (secs_left % 3600) / 60;
     secs = secs_left % 60;
-    
+
     /* Color-coded time display based on urgency */
     const char *time_color = "\tG";
     if (hours == 0 && mins < 10)
@@ -1616,16 +1698,18 @@ void staff_event_info(struct char_data *ch, const int event_num)
       time_color = "\tR";
     else if (hours < 2)
       time_color = "\tY";
-    
-    send_to_char(ch, "\tC║ \tWTime Remaining:\tn %s%02d:%02d:%02d\tn                                               \tC║\tn\r\n",
+
+    send_to_char(ch,
+                 "\tC║ \tWTime Remaining:\tn %s%02d:%02d:%02d\tn                                   "
+                 "            \tC║\tn\r\n",
                  time_color, hours, mins, secs);
-    
+
     /* Progress bar */
     int total_duration = 1200; /* Default event duration */
     int elapsed = total_duration - STAFF_EVENT_TIME;
     int progress = (elapsed * 50) / total_duration; /* 50 character bar */
     int i = 0;
-    
+
     send_to_char(ch, "\tC║ \tWProgress:\tn       [");
     for (i = 0; i < 50; i++)
     {
@@ -1638,9 +1722,10 @@ void staff_event_info(struct char_data *ch, const int event_num)
   }
   else
   {
-    send_to_char(ch, "\tC║ \tWTime Remaining:\tn \twEvent not currently active\tn                            \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWTime Remaining:\tn \twEvent not currently active\tn                  "
+                     "          \tC║\tn\r\n");
   }
-  
+
   /* Inter-event delay information */
   if (STAFF_EVENT_DELAY > 0)
   {
@@ -1650,17 +1735,29 @@ void staff_event_info(struct char_data *ch, const int event_num)
   /* Footer section */
   if (GET_LEVEL(ch) >= LVL_STAFF)
   {
-    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-    send_to_char(ch, "\tC║                            \tYSTAFF COMMANDS                                 \tC║\tn\r\n");
-    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-    send_to_char(ch, "\tC║ \twUsage: \tWstaffevents\tn \tw[start|end|info] [event_number]\tn                     \tC║\tn\r\n");
-    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-    send_to_char(ch, "\tC║ \tw• \tGstart\tn \tw- Begin a new event (requires no active event)\tn               \tC║\tn\r\n");
-    send_to_char(ch, "\tC║ \tw• \tRend\tn   \tw- Terminate the current event immediately\tn                   \tC║\tn\r\n");
-    send_to_char(ch, "\tC║ \tw• \tCinfo\tn  \tw- Display detailed information about an event\tn               \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║                            \tYSTAFF COMMANDS                            "
+                     "     \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║ \twUsage: \tWstaffevents\tn \tw[start|end|info] [event_number]\tn       "
+                     "              \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC║ \tw• \tGstart\tn \tw- Begin a new event (requires no active event)\tn   "
+                     "            \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tw• \tRend\tn   \tw- Terminate the current event immediately\tn        "
+                     "           \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tw• \tCinfo\tn  \tw- Display detailed information about an event\tn    "
+                     "           \tC║\tn\r\n");
   }
-  
-  send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
+
+  send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════"
+                   "╝\tn\r\n\r\n");
 
   return;
 }
@@ -1692,19 +1789,25 @@ void staff_event_info(struct char_data *ch, const int event_num)
  */
 void list_staff_events(struct char_data *ch)
 {
-  int i = 0;    /* Iterator for event list */
-  const char *event_status = NULL;  /* Status indicator for each event */
-  const char *status_color = NULL;  /* Color for status display */
+  int i = 0;                       /* Iterator for event list */
+  const char *event_status = NULL; /* Status indicator for each event */
+  const char *status_color = NULL; /* Color for status display */
 
   /*
    * HEADER DISPLAY:
    * Present a professional header with decorative borders
    */
-  send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
-  send_to_char(ch, "\tC║                        \tYAVAILABLE STAFF EVENTS                            \tC║\tn\r\n");
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  send_to_char(ch, "\tC║ \twID\tn   \tWEvent Name                                          \twStatus\tn        \tC║\tn\r\n");
-  send_to_char(ch, "\tC║ \tw───  ──────────────────────────────────────────────  ─────────────\tn      \tC║\tn\r\n");
+  send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════"
+                   "════╗\tn\r\n");
+  send_to_char(ch, "\tC║                        \tYAVAILABLE STAFF EVENTS                          "
+                   "  \tC║\tn\r\n");
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║ \twID\tn   \tWEvent Name                                          "
+                   "\twStatus\tn        \tC║\tn\r\n");
+  send_to_char(ch, "\tC║ \tw───  ──────────────────────────────────────────────  ─────────────\tn  "
+                   "    \tC║\tn\r\n");
 
   /*
    * EVENT LIST DISPLAY:
@@ -1717,7 +1820,7 @@ void list_staff_events(struct char_data *ch)
     if (IS_STAFF_EVENT && STAFF_EVENT_NUM == i)
     {
       event_status = "ACTIVE NOW";
-      status_color = "\tG\t=";  /* Flashing green */
+      status_color = "\tG\t="; /* Flashing green */
     }
     else if (STAFF_EVENT_DELAY > 0)
     {
@@ -1729,71 +1832,82 @@ void list_staff_events(struct char_data *ch)
       event_status = "AVAILABLE";
       status_color = "\tw";
     }
-    
+
     /* Special status for The Prisoner if already defeated */
     if (i == THE_PRISONER_EVENT && prisoner_heads == -2)
     {
       event_status = "COMPLETED";
       status_color = "\tR";
     }
-    
+
     /*
      * Event Entry Format:
      * - Formatted ID number
      * - Event title with proper spacing
      * - Color-coded status indicator
      */
-    send_to_char(ch, "\tC║ \tG[%d]\tn  %-50s  %s%-13s\tn \tC║\tn\r\n", 
-                 i, 
-                 staff_events_list[i][EVENT_TITLE], 
-                 status_color,
-                 event_status);
-    
+    send_to_char(ch, "\tC║ \tG[%d]\tn  %-50s  %s%-13s\tn \tC║\tn\r\n", i,
+                 staff_events_list[i][EVENT_TITLE], status_color, event_status);
+
     /* Add descriptive subtitle for each event */
     switch (i)
     {
     case JACKALOPE_HUNT:
-      send_to_char(ch, "\tC║      \tw└─ Hunt magical jackalopes across the Hardbuckler wilderness\tn       \tC║\tn\r\n");
+      send_to_char(ch, "\tC║      \tw└─ Hunt magical jackalopes across the Hardbuckler "
+                       "wilderness\tn       \tC║\tn\r\n");
       break;
     case THE_PRISONER_EVENT:
-      send_to_char(ch, "\tC║      \tw└─ Assault The Prisoner through a portal to Avernus\tn              \tC║\tn\r\n");
+      send_to_char(ch, "\tC║      \tw└─ Assault The Prisoner through a portal to Avernus\tn        "
+                       "      \tC║\tn\r\n");
       break;
     default:
       break;
     }
-    
+
     /* Add spacing between events */
     if (i < NUM_STAFF_EVENTS - 1)
-      send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+      send_to_char(ch, "\tC║                                                                       "
+                       "    ║\tn\r\n");
   }
 
   /*
    * CURRENT STATUS SECTION
    */
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  send_to_char(ch, "\tC║                           \tYCURRENT STATUS                                 \tC║\tn\r\n");
-  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-  
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║                           \tYCURRENT STATUS                               "
+                   "  \tC║\tn\r\n");
+  send_to_char(
+      ch,
+      "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+
   if (IS_STAFF_EVENT)
   {
     int secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
     int hours = secs_left / 3600;
     int mins = (secs_left % 3600) / 60;
-    
-    send_to_char(ch, "\tC║ \tWActive Event:\tn %-59s \tC║\tn\r\n", 
+
+    send_to_char(ch, "\tC║ \tWActive Event:\tn %-59s \tC║\tn\r\n",
                  staff_events_list[STAFF_EVENT_NUM][EVENT_TITLE]);
-    send_to_char(ch, "\tC║ \tWTime Left:\tn    \tY%d hours, %d minutes\tn                                    \tC║\tn\r\n", 
+    send_to_char(ch,
+                 "\tC║ \tWTime Left:\tn    \tY%d hours, %d minutes\tn                              "
+                 "      \tC║\tn\r\n",
                  hours, mins);
   }
   else if (STAFF_EVENT_DELAY > 0)
   {
-    send_to_char(ch, "\tC║ \twNo events active - System in cleanup mode\tn                                \tC║\tn\r\n");
-    send_to_char(ch, "\tC║ \tWCooldown:\tn     \tY%d ticks remaining\tn                                        \tC║\tn\r\n", 
+    send_to_char(ch, "\tC║ \twNo events active - System in cleanup mode\tn                         "
+                     "       \tC║\tn\r\n");
+    send_to_char(ch,
+                 "\tC║ \tWCooldown:\tn     \tY%d ticks remaining\tn                                "
+                 "        \tC║\tn\r\n",
                  STAFF_EVENT_DELAY);
   }
   else
   {
-    send_to_char(ch, "\tC║ \tGSystem ready - No events currently active\tn                                 \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tGSystem ready - No events currently active\tn                         "
+                     "        \tC║\tn\r\n");
   }
 
   /*
@@ -1802,21 +1916,34 @@ void list_staff_events(struct char_data *ch)
    */
   if (GET_LEVEL(ch) >= LVL_STAFF)
   {
-    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-    send_to_char(ch, "\tC║                            \tYCOMMAND USAGE                                  \tC║\tn\r\n");
-    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-    send_to_char(ch, "\tC║ \tWstaffevents\tn                  - Show this list                             \tC║\tn\r\n");
-    send_to_char(ch, "\tC║ \tWstaffevents start\tn \tw[ID]\tn       - Start an event                            \tC║\tn\r\n");
-    send_to_char(ch, "\tC║ \tWstaffevents end\tn \tw[ID]\tn         - End an active event                        \tC║\tn\r\n");
-    send_to_char(ch, "\tC║ \tWstaffevents info\tn \tw[ID]\tn        - View detailed event information            \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║                            \tYCOMMAND USAGE                             "
+                     "     \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents\tn                  - Show this list                     "
+                     "        \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents start\tn \tw[ID]\tn       - Start an event               "
+                     "             \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents end\tn \tw[ID]\tn         - End an active event          "
+                     "              \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents info\tn \tw[ID]\tn        - View detailed event "
+                     "information            \tC║\tn\r\n");
   }
   else
   {
-    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-    send_to_char(ch, "\tC║ \twUse '\tWstaffevents\tw' to view current event information\tn                     \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║ \twUse '\tWstaffevents\tw' to view current event information\tn         "
+                     "            \tC║\tn\r\n");
   }
-  
-  send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
+
+  send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════"
+                   "╝\tn\r\n\r\n");
 
   return;
 }
@@ -1837,16 +1964,30 @@ static void handle_player_event_access(struct char_data *ch)
   else
   {
     /* No active event - display a nice message box */
-    send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
-    send_to_char(ch, "\tC║                           \tYSTAFF EVENT STATUS                             \tC║\tn\r\n");
-    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
-    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-    send_to_char(ch, "\tC║                    \twNo staff events are currently active\tn                   \tC║\tn\r\n");
-    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-    send_to_char(ch, "\tC║   \twStaff events are special limited-time activities that offer unique\tn      \tC║\tn\r\n");
-    send_to_char(ch, "\tC║   \twrewards and experiences. Keep an eye out for announcements!\tn             \tC║\tn\r\n");
-    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
-    send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
+    send_to_char(ch, "\r\n\tC╔═════════════════════════════════════════════════════════════════════"
+                     "══════╗\tn\r\n");
+    send_to_char(ch, "\tC║                           \tYSTAFF EVENT STATUS                         "
+                     "    \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC║                    \twNo staff events are currently active\tn           "
+                     "        \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC║   \twStaff events are special limited-time activities that offer "
+                     "unique\tn      \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \twrewards and experiences. Keep an eye out for announcements!\tn     "
+                     "        \tC║\tn\r\n");
+    send_to_char(
+        ch,
+        "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC╚═════════════════════════════════════════════════════════════════════════"
+                     "══╝\tn\r\n\r\n");
   }
 }
 
@@ -1880,7 +2021,7 @@ static void handle_default_event_display(struct char_data *ch)
 static int parse_and_validate_event_num(struct char_data *ch, const char *arg2)
 {
   int event_num = UNDEFINED_EVENT;
-  
+
   /* Parse event number */
   if (isdigit(*arg2))
   {
@@ -1889,13 +2030,23 @@ static int parse_and_validate_event_num(struct char_data *ch, const char *arg2)
   else
   {
     /* Invalid event number format */
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                   \tYINVALID EVENT NUMBER                          \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twEvent number must be a digit, not '\tY%s\tw'\tn                        \tR│\tn\r\n", arg2);
-    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tR│ \twPlease specify the event ID number from the list below.\tn        \tR│\tn\r\n");
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                   \tYINVALID EVENT NUMBER                          \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twEvent number must be a digit, not '\tY%s\tw'\tn                        "
+                 "\tR│\tn\r\n",
+                 arg2);
+    send_to_char(ch,
+                 "\tR│                                                                 │\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twPlease specify the event ID number from the list below.\tn        \tR│\tn\r\n");
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     list_staff_events(ch);
     return -1;
   }
@@ -1903,17 +2054,28 @@ static int parse_and_validate_event_num(struct char_data *ch, const char *arg2)
   /* Validate event number bounds */
   if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
   {
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                   \tYEVENT NUMBER OUT OF RANGE                     \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twEvent \tY%d\tw does not exist.\tn                                       \tR│\tn\r\n", event_num);
-    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tR│ \twValid event IDs are \tG0\tw to \tG%d\tw.\tn                                  \tR│\tn\r\n", NUM_STAFF_EVENTS - 1);
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                   \tYEVENT NUMBER OUT OF RANGE                     \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twEvent \tY%d\tw does not exist.\tn                                       "
+                 "\tR│\tn\r\n",
+                 event_num);
+    send_to_char(ch,
+                 "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twValid event IDs are \tG0\tw to \tG%d\tw.\tn                              "
+                 "    \tR│\tn\r\n",
+                 NUM_STAFF_EVENTS - 1);
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     list_staff_events(ch);
     return -1;
   }
-  
+
   return event_num;
 }
 
@@ -1926,7 +2088,7 @@ static int parse_and_validate_event_num(struct char_data *ch, const char *arg2)
 static void handle_start_event_command(struct char_data *ch, const int event_num)
 {
   event_result_t result = EVENT_SUCCESS;
-  
+
   /* Check preconditions for starting events */
   if (!is_event_active() && !get_event_delay())
   {
@@ -1936,26 +2098,45 @@ static void handle_start_event_command(struct char_data *ch, const int event_num
   else if (get_event_delay())
   {
     /* Inter-event cleanup delay still active */
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                      \tYCLEANUP IN PROGRESS                       \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twThe system is currently in cleanup mode between events.\tn        \tR│\tn\r\n");
-    send_to_char(ch, "\tR│ \twPlease wait \tY%d\tw more ticks before starting a new event.\tn        \tR│\tn\r\n",
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                      \tYCLEANUP IN PROGRESS                       \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twThe system is currently in cleanup mode between events.\tn        \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twPlease wait \tY%d\tw more ticks before starting a new event.\tn        "
+                 "\tR│\tn\r\n",
                  get_event_delay());
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
   else
   {
     /* Another event is already running */
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                       \tYEVENT CONFLICT                           \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twAnother event is already active:\tn                               \tR│\tn\r\n");
-    send_to_char(ch, "\tR│ \tW%-63s\tn \tR│\tn\r\n", staff_events_list[get_active_event()][EVENT_TITLE]);
-    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tR│ \twUse '\tWstaffevents end %d\tw' to stop the current event.\tn           \tR│\tn\r\n", get_active_event());
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                       \tYEVENT CONFLICT                           \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twAnother event is already active:\tn                               \tR│\tn\r\n");
+    send_to_char(ch, "\tR│ \tW%-63s\tn \tR│\tn\r\n",
+                 staff_events_list[get_active_event()][EVENT_TITLE]);
+    send_to_char(ch,
+                 "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twUse '\tWstaffevents end %d\tw' to stop the current event.\tn           "
+                 "\tR│\tn\r\n",
+                 get_active_event());
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
 
@@ -1966,58 +2147,102 @@ static void handle_start_event_command(struct char_data *ch, const int event_num
     /* Event-specific precondition not met */
     if (event_num == THE_PRISONER_EVENT)
     {
-      send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-      send_to_char(ch, "\tR│                    \tYEVENT UNAVAILABLE                           \tR│\tn\r\n");
-      send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-      send_to_char(ch, "\tR│ \twThe Prisoner has already been defeated this boot cycle.\tn        \tR│\tn\r\n");
-      send_to_char(ch, "\tR│ \twThis event cannot be run again until the next reboot.\tn          \tR│\tn\r\n");
-      send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+      send_to_char(
+          ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+      send_to_char(
+          ch, "\tR│                    \tYEVENT UNAVAILABLE                           \tR│\tn\r\n");
+      send_to_char(ch,
+                   "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(
+          ch,
+          "\tR│ \twThe Prisoner has already been defeated this boot cycle.\tn        \tR│\tn\r\n");
+      send_to_char(
+          ch,
+          "\tR│ \twThis event cannot be run again until the next reboot.\tn          \tR│\tn\r\n");
+      send_to_char(
+          ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     }
     else
     {
-      send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-      send_to_char(ch, "\tR│                  \tYPRECONDITION FAILED                          \tR│\tn\r\n");
-      send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-      send_to_char(ch, "\tR│ \twEvent preconditions not met. Cannot start this event.\tn          \tR│\tn\r\n");
-      send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+      send_to_char(
+          ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+      send_to_char(
+          ch, "\tR│                  \tYPRECONDITION FAILED                          \tR│\tn\r\n");
+      send_to_char(ch,
+                   "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(
+          ch,
+          "\tR│ \twEvent preconditions not met. Cannot start this event.\tn          \tR│\tn\r\n");
+      send_to_char(
+          ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     }
     break;
-    
+
   case EVENT_ERROR_INVALID_NUM:
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                      \tYINVALID EVENT                            \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                      \tYINVALID EVENT                            \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
-    
+
   case EVENT_ERROR_INVALID_DATA:
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                    \tYCORRUPTED EVENT DATA                        \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twEvent data is corrupted or incomplete.\tn                         \tR│\tn\r\n");
-    send_to_char(ch, "\tR│ \twPlease contact the administrators immediately.\tn                 \tR│\tn\r\n");
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                    \tYCORRUPTED EVENT DATA                        \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twEvent data is corrupted or incomplete.\tn                         \tR│\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twPlease contact the administrators immediately.\tn                 \tR│\tn\r\n");
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
-    
+
   case EVENT_SUCCESS:
     /* Success - display a nice confirmation */
-    send_to_char(ch, "\r\n\tG┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tG│                    \tYEVENT STARTED SUCCESSFULLY                  \tG│\tn\r\n");
-    send_to_char(ch, "\tG├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tG│ \tWEvent:\tn %-57s \tG│\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
-    send_to_char(ch, "\tG│ \twThe event has been activated and announced to all players.\tn      \tG│\tn\r\n");
-    send_to_char(ch, "\tG└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tG┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tG│                    \tYEVENT STARTED SUCCESSFULLY                  \tG│\tn\r\n");
+    send_to_char(ch,
+                 "\tG├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tG│ \tWEvent:\tn %-57s \tG│\tn\r\n",
+                 staff_events_list[event_num][EVENT_TITLE]);
+    send_to_char(
+        ch,
+        "\tG│ \twThe event has been activated and announced to all players.\tn      \tG│\tn\r\n");
+    send_to_char(
+        ch, "\tG└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
-    
+
   default:
     /* Unhandled error code */
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                     \tYUNEXPECTED ERROR                           \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twAn unexpected error occurred while starting the event.\tn          \tR│\tn\r\n");
-    send_to_char(ch, "\tR│ \twError code: %d\tn                                                  \tR│\tn\r\n", result);
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                     \tYUNEXPECTED ERROR                           \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twAn unexpected error occurred while starting the event.\tn          \tR│\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twError code: %d\tn                                                  \tR│\tn\r\n",
+        result);
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
   }
 }
@@ -2031,70 +2256,114 @@ static void handle_start_event_command(struct char_data *ch, const int event_num
 static void handle_end_event_command(struct char_data *ch, const int event_num)
 {
   event_result_t result = EVENT_SUCCESS;
-  
+
   if (!is_event_active())
   {
     /* No active event to end */
-    send_to_char(ch, "\r\n\tY┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tY│                      \tWNO ACTIVE EVENT                            \tY│\tn\r\n");
-    send_to_char(ch, "\tY├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tY│ \twThere is no event currently running to end.\tn                     \tY│\tn\r\n");
-    send_to_char(ch, "\tY│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tY│ \twUse '\tWstaffevents\tw' to see available events.\tn                     \tY│\tn\r\n");
-    send_to_char(ch, "\tY└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tY┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tY│                      \tWNO ACTIVE EVENT                            \tY│\tn\r\n");
+    send_to_char(ch,
+                 "\tY├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tY│ \twThere is no event currently running to end.\tn                     \tY│\tn\r\n");
+    send_to_char(ch,
+                 "\tY│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tY│ \twUse '\tWstaffevents\tw' to see available events.\tn                  "
+                     "   \tY│\tn\r\n");
+    send_to_char(
+        ch, "\tY└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
 
   /* Check if they're trying to end the wrong event */
   if (event_num != get_active_event())
   {
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                    \tYWRONG EVENT NUMBER                           \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twYou specified event \tY%d\tw, but the active event is:\tn              \tR│\tn\r\n", event_num);
-    send_to_char(ch, "\tR│ \tW[%d] %-58s\tn \tR│\tn\r\n", 
-                 get_active_event(), 
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                    \tYWRONG EVENT NUMBER                           \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twYou specified event \tY%d\tw, but the active event is:\tn              "
+                 "\tR│\tn\r\n",
+                 event_num);
+    send_to_char(ch, "\tR│ \tW[%d] %-58s\tn \tR│\tn\r\n", get_active_event(),
                  staff_events_list[get_active_event()][EVENT_TITLE]);
-    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tR│ \twUse '\tWstaffevents end %d\tw' to end the current event.\tn            \tR│\tn\r\n", get_active_event());
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(ch,
+                 "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twUse '\tWstaffevents end %d\tw' to end the current event.\tn            "
+                 "\tR│\tn\r\n",
+                 get_active_event());
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
 
   /* End the specified event */
   result = end_staff_event(event_num);
-  
+
   /* Handle end event results */
   switch (result)
   {
   case EVENT_ERROR_INVALID_NUM:
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                      \tYINVALID EVENT                            \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                      \tYINVALID EVENT                            \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
-    
+
   case EVENT_SUCCESS:
     /* Success - display confirmation */
-    send_to_char(ch, "\r\n\tG┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tG│                     \tYEVENT ENDED SUCCESSFULLY                   \tG│\tn\r\n");
-    send_to_char(ch, "\tG├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tG│ \tWEvent:\tn %-57s \tG│\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
-    send_to_char(ch, "\tG│ \twThe event has been terminated and cleanup is in progress.\tn       \tG│\tn\r\n");
-    send_to_char(ch, "\tG│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tG│ \twA cleanup delay of \tY%d ticks\tw has been initiated.\tn               \tG│\tn\r\n", STAFF_EVENT_DELAY_CNST);
-    send_to_char(ch, "\tG└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tG┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tG│                     \tYEVENT ENDED SUCCESSFULLY                   \tG│\tn\r\n");
+    send_to_char(ch,
+                 "\tG├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tG│ \tWEvent:\tn %-57s \tG│\tn\r\n",
+                 staff_events_list[event_num][EVENT_TITLE]);
+    send_to_char(
+        ch,
+        "\tG│ \twThe event has been terminated and cleanup is in progress.\tn       \tG│\tn\r\n");
+    send_to_char(ch,
+                 "\tG│                                                                 │\tn\r\n");
+    send_to_char(ch,
+                 "\tG│ \twA cleanup delay of \tY%d ticks\tw has been initiated.\tn               "
+                 "\tG│\tn\r\n",
+                 STAFF_EVENT_DELAY_CNST);
+    send_to_char(
+        ch, "\tG└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
-    
+
   default:
     /* Unhandled error code */
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                     \tYUNEXPECTED ERROR                           \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twAn unexpected error occurred while ending the event.\tn            \tR│\tn\r\n");
-    send_to_char(ch, "\tR│ \twError code: %d\tn                                                  \tR│\tn\r\n", result);
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                     \tYUNEXPECTED ERROR                           \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twAn unexpected error occurred while ending the event.\tn            \tR│\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twError code: %d\tn                                                  \tR│\tn\r\n",
+        result);
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
   }
 }
@@ -2108,7 +2377,7 @@ static void handle_end_event_command(struct char_data *ch, const int event_num)
 static void handle_info_event_command(struct char_data *ch, const int event_num)
 {
   staff_event_info(ch, event_num);
-  
+
   /* Additional context if no event is currently active */
   if (!IS_STAFF_EVENT)
   {
@@ -2133,9 +2402,9 @@ static void handle_info_event_command(struct char_data *ch, const int event_num)
  */
 ACMD(do_staffevents)
 {
-  char arg[MAX_INPUT_LENGTH] = {'\0'};    /* First argument (action) */
-  char arg2[MAX_INPUT_LENGTH] = {'\0'};   /* Second argument (event number) */
-  int event_num = UNDEFINED_EVENT;        /* Parsed event number */
+  char arg[MAX_INPUT_LENGTH] = {'\0'};  /* First argument (action) */
+  char arg2[MAX_INPUT_LENGTH] = {'\0'}; /* Second argument (event number) */
+  int event_num = UNDEFINED_EVENT;      /* Parsed event number */
 
   /* Handle player (non-staff) access */
   if (GET_LEVEL(ch) < LVL_STAFF)
@@ -2184,17 +2453,30 @@ ACMD(do_staffevents)
   else
   {
     /* Invalid command action */
-    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
-    send_to_char(ch, "\tR│                    \tYINVALID COMMAND SYNTAX                        \tR│\tn\r\n");
-    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
-    send_to_char(ch, "\tR│ \twUnrecognized action: '\tY%s\tw'\tn                                     \tR│\tn\r\n", arg);
-    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
-    send_to_char(ch, "\tR│ \twValid actions are:\tn                                              \tR│\tn\r\n");
-    send_to_char(ch, "\tR│   \tw• \tGstart\tn  \tw- Begin a new event\tn                               \tR│\tn\r\n");
-    send_to_char(ch, "\tR│   \tw• \tRend\tn    \tw- Terminate an active event\tn                       \tR│\tn\r\n");
-    send_to_char(ch, "\tR│   \tw• \tCinfo\tn   \tw- Display detailed event information\tn              \tR│\tn\r\n");
-    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
-    
+    send_to_char(
+        ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(
+        ch, "\tR│                    \tYINVALID COMMAND SYNTAX                        \tR│\tn\r\n");
+    send_to_char(ch,
+                 "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch,
+                 "\tR│ \twUnrecognized action: '\tY%s\tw'\tn                                     "
+                 "\tR│\tn\r\n",
+                 arg);
+    send_to_char(ch,
+                 "\tR│                                                                 │\tn\r\n");
+    send_to_char(
+        ch,
+        "\tR│ \twValid actions are:\tn                                              \tR│\tn\r\n");
+    send_to_char(ch, "\tR│   \tw• \tGstart\tn  \tw- Begin a new event\tn                           "
+                     "    \tR│\tn\r\n");
+    send_to_char(ch, "\tR│   \tw• \tRend\tn    \tw- Terminate an active event\tn                   "
+                     "    \tR│\tn\r\n");
+    send_to_char(ch, "\tR│   \tw• \tCinfo\tn   \tw- Display detailed event information\tn          "
+                     "    \tR│\tn\r\n");
+    send_to_char(
+        ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+
     /* Show available events */
     list_staff_events(ch);
   }
@@ -2211,7 +2493,8 @@ ACMD(do_staffevents)
  */
 
 /* Object pool structures and data */
-typedef struct obj_pool_node {
+typedef struct obj_pool_node
+{
   struct obj_data *obj;
   struct obj_pool_node *next;
   int obj_vnum;
@@ -2228,20 +2511,20 @@ static int pool_initialized = 0;
 void init_object_pool(void)
 {
   int i = 0;
-  
+
   if (pool_initialized)
     return; /* Already initialized */
-  
+
   /* Initialize pool array */
   for (i = 0; i < OBJECT_POOL_SIZE; i++)
   {
     object_pool[i] = NULL;
   }
-  
+
   /* Pre-allocate commonly used objects */
   struct obj_data *obj = NULL;
   obj_pool_node_t *node = NULL;
-  
+
   /* Pre-allocate Jackalope Hides */
   for (i = 0; i < 10; i++)
   {
@@ -2259,7 +2542,7 @@ void init_object_pool(void)
       }
     }
   }
-  
+
   /* Pre-allocate Pristine Horns */
   for (i = 0; i < 5; i++)
   {
@@ -2277,7 +2560,7 @@ void init_object_pool(void)
       }
     }
   }
-  
+
   pool_initialized = 1;
   log("Object pool initialized with pre-allocated event objects");
 }
@@ -2290,10 +2573,10 @@ struct obj_data *get_pooled_object(int obj_vnum)
 {
   int i = 0;
   obj_pool_node_t *node = NULL;
-  
+
   if (!pool_initialized)
     init_object_pool();
-  
+
   /* Search pool for available object of requested type */
   for (i = 0; i < OBJECT_POOL_SIZE; i++)
   {
@@ -2306,7 +2589,7 @@ struct obj_data *get_pooled_object(int obj_vnum)
       }
     }
   }
-  
+
   /* Pool exhausted or object type not pooled - fall back to standard creation */
   return read_object(obj_vnum, VIRTUAL);
 }
@@ -2319,10 +2602,10 @@ void return_object_to_pool(struct obj_data *obj)
 {
   int i = 0;
   obj_pool_node_t *node = NULL;
-  
+
   if (!obj || !pool_initialized)
     return;
-  
+
   /* Find the object in the pool */
   for (i = 0; i < OBJECT_POOL_SIZE; i++)
   {
@@ -2337,7 +2620,7 @@ void return_object_to_pool(struct obj_data *obj)
       }
     }
   }
-  
+
   /* Object not from pool - extract normally */
   extract_obj(obj);
 }
@@ -2350,10 +2633,10 @@ void cleanup_object_pool(void)
 {
   int i = 0;
   obj_pool_node_t *node = NULL, *next = NULL;
-  
+
   if (!pool_initialized)
     return;
-  
+
   for (i = 0; i < OBJECT_POOL_SIZE; i++)
   {
     node = object_pool[i];
@@ -2367,7 +2650,7 @@ void cleanup_object_pool(void)
     }
     object_pool[i] = NULL;
   }
-  
+
   pool_initialized = 0;
   log("Object pool cleaned up");
 }
@@ -2383,7 +2666,8 @@ void cleanup_object_pool(void)
  */
 
 /* Hash table structures */
-typedef struct hash_node {
+typedef struct hash_node
+{
   int key;
   int value;
   struct hash_node *next;
@@ -2407,25 +2691,25 @@ static int hash_function(int key, int table_size)
 void init_hash_tables(void)
 {
   int i = 0;
-  
+
   if (hash_tables_initialized)
     return;
-  
+
   /* Initialize event hash table */
   for (i = 0; i < EVENT_HASH_TABLE_SIZE; i++)
   {
     event_hash_table[i] = NULL;
   }
-  
+
   /* Initialize mobile count hash table */
   for (i = 0; i < MOBILE_HASH_TABLE_SIZE; i++)
   {
     mobile_count_hash_table[i] = NULL;
   }
-  
+
   /* Pre-populate event hash table with known events */
   hash_node_t *node = NULL;
-  
+
   /* Add Jackalope VNUMs */
   int jackalope_vnums[] = {EASY_JACKALOPE, MED_JACKALOPE, HARD_JACKALOPE};
   for (i = 0; i < 3; i++)
@@ -2439,7 +2723,7 @@ void init_hash_tables(void)
       event_hash_table[hash_function(jackalope_vnums[i], EVENT_HASH_TABLE_SIZE)] = node;
     }
   }
-  
+
   hash_tables_initialized = 1;
   log("Hash tables initialized for performance optimization");
 }
@@ -2452,20 +2736,20 @@ int hash_lookup_event(int event_vnum)
 {
   hash_node_t *node = NULL;
   int hash_index = 0;
-  
+
   if (!hash_tables_initialized)
     init_hash_tables();
-  
+
   hash_index = hash_function(event_vnum, EVENT_HASH_TABLE_SIZE);
   node = event_hash_table[hash_index];
-  
+
   while (node)
   {
     if (node->key == event_vnum)
       return node->value;
     node = node->next;
   }
-  
+
   return -1; /* Not found */
 }
 
@@ -2477,20 +2761,20 @@ int hash_lookup_mobile_count(int mobile_vnum)
 {
   hash_node_t *node = NULL;
   int hash_index = 0;
-  
+
   if (!hash_tables_initialized)
     return -1; /* Not cached */
-  
+
   hash_index = hash_function(mobile_vnum, MOBILE_HASH_TABLE_SIZE);
   node = mobile_count_hash_table[hash_index];
-  
+
   while (node)
   {
     if (node->key == mobile_vnum)
       return node->value;
     node = node->next;
   }
-  
+
   return -1; /* Not cached */
 }
 
@@ -2502,13 +2786,13 @@ void hash_update_mobile_count(int mobile_vnum, int count)
 {
   hash_node_t *node = NULL;
   int hash_index = 0;
-  
+
   if (!hash_tables_initialized)
     init_hash_tables();
-  
+
   hash_index = hash_function(mobile_vnum, MOBILE_HASH_TABLE_SIZE);
   node = mobile_count_hash_table[hash_index];
-  
+
   /* Search for existing entry */
   while (node)
   {
@@ -2519,7 +2803,7 @@ void hash_update_mobile_count(int mobile_vnum, int count)
     }
     node = node->next;
   }
-  
+
   /* Create new entry */
   node = malloc(sizeof(hash_node_t));
   if (node)
@@ -2538,10 +2822,10 @@ void cleanup_hash_tables(void)
 {
   int i = 0;
   hash_node_t *node = NULL, *next = NULL;
-  
+
   if (!hash_tables_initialized)
     return;
-  
+
   /* Cleanup event hash table */
   for (i = 0; i < EVENT_HASH_TABLE_SIZE; i++)
   {
@@ -2554,7 +2838,7 @@ void cleanup_hash_tables(void)
     }
     event_hash_table[i] = NULL;
   }
-  
+
   /* Cleanup mobile count hash table */
   for (i = 0; i < MOBILE_HASH_TABLE_SIZE; i++)
   {
@@ -2567,7 +2851,7 @@ void cleanup_hash_tables(void)
     }
     mobile_count_hash_table[i] = NULL;
   }
-  
+
   hash_tables_initialized = 0;
   log("Hash tables cleaned up");
 }
@@ -2588,23 +2872,26 @@ static int total_tests_passed = 0;
 static int total_tests_failed = 0;
 
 /* Test assertion macros */
-#define TEST_ASSERT(condition, test_name) \
-  do { \
-    total_tests_run++; \
-    if (condition) { \
-      total_tests_passed++; \
-      log("PASS: %s", test_name); \
-    } else { \
-      total_tests_failed++; \
-      log("FAIL: %s", test_name); \
-    } \
-  } while(0)
+#define TEST_ASSERT(condition, test_name)                                                          \
+  do                                                                                               \
+  {                                                                                                \
+    total_tests_run++;                                                                             \
+    if (condition)                                                                                 \
+    {                                                                                              \
+      total_tests_passed++;                                                                        \
+      log("PASS: %s", test_name);                                                                  \
+    }                                                                                              \
+    else                                                                                           \
+    {                                                                                              \
+      total_tests_failed++;                                                                        \
+      log("FAIL: %s", test_name);                                                                  \
+    }                                                                                              \
+  } while (0)
 
-#define TEST_ASSERT_EQUAL(expected, actual, test_name) \
+#define TEST_ASSERT_EQUAL(expected, actual, test_name)                                             \
   TEST_ASSERT((expected) == (actual), test_name)
 
-#define TEST_ASSERT_NOT_NULL(ptr, test_name) \
-  TEST_ASSERT((ptr) != NULL, test_name)
+#define TEST_ASSERT_NOT_NULL(ptr, test_name) TEST_ASSERT((ptr) != NULL, test_name)
 
 /*
  * Unit Tests for Event State Management
@@ -2612,29 +2899,29 @@ static int total_tests_failed = 0;
 static int test_event_state_management(void)
 {
   int failures = 0;
-  
+
   log("Running Event State Management Tests...");
-  
+
   /* Test 1: Initial state should be inactive */
   TEST_ASSERT_EQUAL(0, is_event_active(), "Initial event state inactive");
   TEST_ASSERT_EQUAL(UNDEFINED_EVENT, get_active_event(), "Initial event number undefined");
   TEST_ASSERT_EQUAL(0, get_event_time_remaining(), "Initial time remaining zero");
-  
+
   /* Test 2: Set event state */
   set_event_state(JACKALOPE_HUNT, 100);
   TEST_ASSERT_EQUAL(1, is_event_active(), "Event state set to active");
   TEST_ASSERT_EQUAL(JACKALOPE_HUNT, get_active_event(), "Event number set correctly");
   TEST_ASSERT_EQUAL(100, get_event_time_remaining(), "Event time set correctly");
-  
+
   /* Test 3: Clear event state */
   clear_event_state();
   TEST_ASSERT_EQUAL(0, is_event_active(), "Event state cleared to inactive");
   TEST_ASSERT_EQUAL(UNDEFINED_EVENT, get_active_event(), "Event number reset to undefined");
-  
+
   /* Test 4: Event delay management */
   set_event_delay(50);
   TEST_ASSERT_EQUAL(50, get_event_delay(), "Event delay set correctly");
-  
+
   return failures;
 }
 
@@ -2644,28 +2931,30 @@ static int test_event_state_management(void)
 static int test_mob_spawning_logic(void)
 {
   int failures = 0;
-  
+
   log("Running Mob Spawning Logic Tests...");
-  
+
   /* Test coordinate generation and caching */
   int x_coord = 0, y_coord = 0;
-  
+
   /* Multiple coordinate requests should work */
   get_cached_coordinates(&x_coord, &y_coord);
-  TEST_ASSERT(x_coord >= JACKALOPE_WEST_X && x_coord <= JACKALOPE_EAST_X, "X coordinate within bounds");
-  TEST_ASSERT(y_coord >= JACKALOPE_SOUTH_Y && y_coord <= JACKALOPE_NORTH_Y, "Y coordinate within bounds");
-  
+  TEST_ASSERT(x_coord >= JACKALOPE_WEST_X && x_coord <= JACKALOPE_EAST_X,
+              "X coordinate within bounds");
+  TEST_ASSERT(y_coord >= JACKALOPE_SOUTH_Y && y_coord <= JACKALOPE_NORTH_Y,
+              "Y coordinate within bounds");
+
   /* Test Jackalope counting function */
   int easy_count = 0, med_count = 0, hard_count = 0;
   count_jackalope_mobs(&easy_count, &med_count, &hard_count);
   TEST_ASSERT(easy_count >= 0, "Easy Jackalope count non-negative");
   TEST_ASSERT(med_count >= 0, "Medium Jackalope count non-negative");
   TEST_ASSERT(hard_count >= 0, "Hard Jackalope count non-negative");
-  
+
   /* Test mob count validation with individual function */
   int individual_easy_count = mob_ingame_count(EASY_JACKALOPE);
   TEST_ASSERT_EQUAL(easy_count, individual_easy_count, "Optimized count matches individual count");
-  
+
   return failures;
 }
 
@@ -2675,32 +2964,32 @@ static int test_mob_spawning_logic(void)
 static int test_drop_system(void)
 {
   int failures = 0;
-  
+
   log("Running Drop System Tests...");
-  
+
   /* Test object pooling system */
   init_object_pool();
-  
+
   struct obj_data *pooled_obj = get_pooled_object(JACKALOPE_HIDE);
   TEST_ASSERT_NOT_NULL(pooled_obj, "Pooled object creation successful");
-  
+
   if (pooled_obj)
   {
     TEST_ASSERT_EQUAL(JACKALOPE_HIDE, GET_OBJ_VNUM(pooled_obj), "Pooled object has correct VNUM");
     return_object_to_pool(pooled_obj);
   }
-  
+
   /* Test hash table lookups */
   init_hash_tables();
-  
+
   int event_lookup = hash_lookup_event(EASY_JACKALOPE);
   TEST_ASSERT_EQUAL(JACKALOPE_HUNT, event_lookup, "Hash lookup returns correct event");
-  
+
   /* Test mobile count caching */
   hash_update_mobile_count(EASY_JACKALOPE, 42);
   int cached_count = hash_lookup_mobile_count(EASY_JACKALOPE);
   TEST_ASSERT_EQUAL(42, cached_count, "Mobile count caching works correctly");
-  
+
   return failures;
 }
 
@@ -2710,24 +2999,24 @@ static int test_drop_system(void)
 static int test_command_parsing(void)
 {
   int failures = 0;
-  
+
   log("Running Command Parsing Tests...");
-  
+
   /* Test event number validation */
   char valid_number[] = "1";
   char invalid_number[] = "abc";
   char out_of_range[] = "999";
-  
+
   /* These would normally be tested with a mock character */
   TEST_ASSERT(isdigit(*valid_number), "Valid number string detection");
   TEST_ASSERT(!isdigit(*invalid_number), "Invalid number string detection");
-  
+
   int parsed_valid = atoi(valid_number);
   int parsed_invalid = atoi(out_of_range);
-  
+
   TEST_ASSERT(parsed_valid >= 0 && parsed_valid < NUM_STAFF_EVENTS, "Valid event number parsing");
   TEST_ASSERT(parsed_invalid >= NUM_STAFF_EVENTS, "Out of range number detection");
-  
+
   return failures;
 }
 
@@ -2737,33 +3026,33 @@ static int test_command_parsing(void)
 static int test_event_lifecycle(void)
 {
   int failures = 0;
-  
+
   log("Running Event Lifecycle Integration Tests...");
-  
+
   /* Test complete event start-to-end cycle */
-  
+
   /* Start with clean state */
   clear_event_state();
   TEST_ASSERT_EQUAL(0, is_event_active(), "Clean initial state");
-  
+
   /* Start event */
   event_result_t start_result = start_staff_event(JACKALOPE_HUNT);
   TEST_ASSERT_EQUAL(EVENT_SUCCESS, start_result, "Event start successful");
   TEST_ASSERT_EQUAL(1, is_event_active(), "Event active after start");
   TEST_ASSERT_EQUAL(JACKALOPE_HUNT, get_active_event(), "Correct event active");
-  
+
   /* End event */
   event_result_t end_result = end_staff_event(JACKALOPE_HUNT);
   TEST_ASSERT_EQUAL(EVENT_SUCCESS, end_result, "Event end successful");
   TEST_ASSERT_EQUAL(0, is_event_active(), "Event inactive after end");
-  
+
   /* Test error conditions */
   event_result_t invalid_start = start_staff_event(999);
   TEST_ASSERT_EQUAL(EVENT_ERROR_INVALID_NUM, invalid_start, "Invalid event number rejected");
-  
+
   event_result_t invalid_end = end_staff_event(-1);
   TEST_ASSERT_EQUAL(EVENT_ERROR_INVALID_NUM, invalid_end, "Invalid end event number rejected");
-  
+
   return failures;
 }
 
@@ -2773,27 +3062,28 @@ static int test_event_lifecycle(void)
 static int test_performance_optimizations(void)
 {
   int failures = 0;
-  
+
   log("Running Performance Optimization Tests...");
-  
+
   /* Test coordinate caching performance */
   int start_time = time(NULL);
   int i = 0;
-  
+
   for (i = 0; i < 1000; i++)
   {
     int x = 0, y = 0;
     get_cached_coordinates(&x, &y);
   }
-  
+
   int end_time = time(NULL);
   int duration = end_time - start_time;
-  
-  TEST_ASSERT(duration < 5, "Coordinate generation performance acceptable"); /* Should be nearly instant */
-  
+
+  TEST_ASSERT(duration < 5,
+              "Coordinate generation performance acceptable"); /* Should be nearly instant */
+
   /* Test hash table performance vs linear search */
   init_hash_tables();
-  
+
   start_time = time(NULL);
   for (i = 0; i < 1000; i++)
   {
@@ -2801,11 +3091,12 @@ static int test_performance_optimizations(void)
   }
   end_time = time(NULL);
   int hash_duration = end_time - start_time;
-  
+
   TEST_ASSERT(hash_duration < 2, "Hash table lookup performance acceptable");
-  
-  log("Performance test completed: Hash lookups took %d seconds for 1000 operations", hash_duration);
-  
+
+  log("Performance test completed: Hash lookups took %d seconds for 1000 operations",
+      hash_duration);
+
   return failures;
 }
 
@@ -2815,15 +3106,15 @@ static int test_performance_optimizations(void)
 int run_test_suite(const char *test_suite)
 {
   int failures = 0;
-  
+
   if (!test_suite)
     return run_staff_event_tests(); /* Run all if no suite specified */
-  
+
   /* Reset test counters */
   total_tests_run = 0;
   total_tests_passed = 0;
   total_tests_failed = 0;
-  
+
   if (strcmp(test_suite, "state") == 0)
   {
     failures += test_event_state_management();
@@ -2853,10 +3144,10 @@ int run_test_suite(const char *test_suite)
     log("Unknown test suite: %s", test_suite);
     return -1;
   }
-  
-  log("Test Suite '%s' Results: %d/%d passed (%d failed)",
-      test_suite, total_tests_passed, total_tests_run, total_tests_failed);
-  
+
+  log("Test Suite '%s' Results: %d/%d passed (%d failed)", test_suite, total_tests_passed,
+      total_tests_run, total_tests_failed);
+
   return failures;
 }
 
@@ -2866,14 +3157,14 @@ int run_test_suite(const char *test_suite)
 int run_staff_event_tests(void)
 {
   int total_failures = 0;
-  
+
   log("Starting comprehensive staff event system tests...");
-  
+
   /* Reset test counters */
   total_tests_run = 0;
   total_tests_passed = 0;
   total_tests_failed = 0;
-  
+
   /* Run all test suites */
   total_failures += test_event_state_management();
   total_failures += test_mob_spawning_logic();
@@ -2881,14 +3172,14 @@ int run_staff_event_tests(void)
   total_failures += test_command_parsing();
   total_failures += test_event_lifecycle();
   total_failures += test_performance_optimizations();
-  
+
   /* Report final results */
   log("=== STAFF EVENT SYSTEM TEST RESULTS ===");
   log("Total Tests Run: %d", total_tests_run);
   log("Tests Passed: %d", total_tests_passed);
   log("Tests Failed: %d", total_tests_failed);
   log("Success Rate: %.1f%%", (total_tests_passed * 100.0) / total_tests_run);
-  
+
   if (total_failures == 0)
   {
     log("ALL TESTS PASSED - Staff Event System operating correctly");
@@ -2897,7 +3188,7 @@ int run_staff_event_tests(void)
   {
     log("SOME TESTS FAILED - %d test suites reported failures", total_failures);
   }
-  
+
   return total_failures;
 }
 
@@ -2908,29 +3199,31 @@ int run_staff_event_tests(void)
 ACMD(do_testevent)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  
+
   /* Staff-only command */
   if (GET_LEVEL(ch) < LVL_STAFF)
   {
     send_to_char(ch, "You don't have permission to run event system tests.\r\n");
     return;
   }
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
+
   if (!*arg)
   {
     /* Run all tests */
     send_to_char(ch, "Running comprehensive staff event system tests...\r\n");
     int failures = run_staff_event_tests();
-    
+
     if (failures == 0)
     {
       send_to_char(ch, "\tGAll tests passed successfully!\tn\r\n");
     }
     else
     {
-      send_to_char(ch, "\tR%d test suite(s) reported failures. Check system logs for details.\tn\r\n", failures);
+      send_to_char(ch,
+                   "\tR%d test suite(s) reported failures. Check system logs for details.\tn\r\n",
+                   failures);
     }
   }
   else
@@ -2938,10 +3231,11 @@ ACMD(do_testevent)
     /* Run specific test suite */
     send_to_char(ch, "Running test suite: %s\r\n", arg);
     int failures = run_test_suite(arg);
-    
+
     if (failures == -1)
     {
-      send_to_char(ch, "Unknown test suite. Available suites: state, spawning, drops, parsing, lifecycle, performance\r\n");
+      send_to_char(ch, "Unknown test suite. Available suites: state, spawning, drops, parsing, "
+                       "lifecycle, performance\r\n");
     }
     else if (failures == 0)
     {
@@ -2949,10 +3243,12 @@ ACMD(do_testevent)
     }
     else
     {
-      send_to_char(ch, "\tRTest suite '%s' reported %d failures. Check system logs for details.\tn\r\n", arg, failures);
+      send_to_char(ch,
+                   "\tRTest suite '%s' reported %d failures. Check system logs for details.\tn\r\n",
+                   arg, failures);
     }
   }
-  
+
   send_to_char(ch, "Test execution completed. Check system logs for detailed results.\r\n");
 }
 

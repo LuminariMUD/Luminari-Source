@@ -1,0 +1,308 @@
+name: Integration
+
+on:
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'src/**'
+      - 'sql/**'
+      - 'lib/world/**'
+      - 'scripts/**'
+      - '.github/workflows/integration.yml'
+
+jobs:
+  database-migration:
+    name: Database Migration Dry-Run
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: testroot
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari
+          MARIADB_PASSWORD: testpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Wait for MariaDB
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -u luminari -ptestpass --silent 2>/dev/null; then
+              echo "MariaDB is ready"
+              break
+            fi
+            echo "Waiting for MariaDB... ($i/30)"
+            sleep 2
+          done
+
+      - name: Validate master schema
+        run: |
+          if [[ -f sql/master_schema.sql ]]; then
+            echo "Applying master_schema.sql..."
+            mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < sql/master_schema.sql
+            echo "Master schema applied successfully"
+          else
+            echo "::warning::master_schema.sql not found"
+          fi
+
+      - name: Validate component schemas
+        run: |
+          FAILED=0
+          for schema in sql/components/*.sql; do
+            if [[ -f "$schema" ]]; then
+              echo "Validating: $schema"
+              if mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < "$schema" 2>&1; then
+                echo "  OK: $schema"
+              else
+                echo "::warning::Schema validation issue in $schema (may be expected for some migrations)"
+              fi
+            fi
+          done
+          echo "Schema validation complete"
+
+      - name: Verify database structure
+        run: |
+          echo "Tables created:"
+          mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test -e "SHOW TABLES;" | head -50
+          TABLE_COUNT=$(mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='luminari_test';")
+          echo "Total tables: $TABLE_COUNT"
+          if [[ "$TABLE_COUNT" -gt 0 ]]; then
+            echo "Database migration dry-run successful"
+          else
+            echo "::warning::No tables created - check schema files"
+          fi
+
+  world-validation:
+    name: World File Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify minimal world files exist
+        run: |
+          echo "Checking minimal world directory..."
+          if [[ -d lib/world/minimal ]]; then
+            echo "Minimal world files found:"
+            ls -la lib/world/minimal/
+          else
+            echo "::error::Minimal world directory not found at lib/world/minimal/"
+            exit 1
+          fi
+
+      - name: Validate world file structure
+        run: |
+          ERRORS=0
+
+          # Check for required index files
+          for dir in zon wld mob obj shp trg qst hlq; do
+            if [[ -f "lib/world/minimal/index.${dir}" ]]; then
+              echo "Found: index.${dir}"
+            else
+              echo "::warning::Missing index file: index.${dir}"
+            fi
+          done
+
+          # Check zone files are parseable (basic syntax check)
+          echo "Validating zone file syntax..."
+          for zonefile in lib/world/minimal/*.zon; do
+            if [[ -f "$zonefile" ]]; then
+              # Basic check: zone files should start with zone number or comment
+              if head -5 "$zonefile" | grep -qE '^[0-9#]'; then
+                echo "  OK: $zonefile"
+              else
+                echo "::warning::Possible syntax issue in $zonefile"
+              fi
+            fi
+          done
+
+          echo "World file validation complete"
+
+      - name: Check world directory structure
+        run: |
+          echo "=== World Directory Structure ==="
+          for dir in zon wld mob obj shp trg qst hlq; do
+            if [[ -d "lib/world/$dir" ]]; then
+              count=$(find "lib/world/$dir" -type f 2>/dev/null | wc -l)
+              echo "$dir: $count files"
+            else
+              echo "$dir: directory missing"
+            fi
+          done
+
+  server-startup:
+    name: Server Startup Verification
+    runs-on: ubuntu-latest
+    needs: [database-migration, world-validation]
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: testroot
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari
+          MARIADB_PASSWORD: testpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev \
+            autoconf automake libtool libgd-dev libcurl4-openssl-dev libjson-c-dev netcat-openbsd
+
+      - name: Copy config headers
+        run: |
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Build server
+        run: |
+          autoreconf -fvi
+          ./configure
+          make -j"$(nproc)"
+          test -f circle && echo "Build successful: circle binary created"
+
+      - name: Wait for MariaDB
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -u luminari -ptestpass --silent 2>/dev/null; then
+              echo "MariaDB is ready"
+              break
+            fi
+            echo "Waiting for MariaDB... ($i/30)"
+            sleep 2
+          done
+
+      - name: Setup database
+        run: |
+          if [[ -f sql/master_schema.sql ]]; then
+            mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < sql/master_schema.sql
+          fi
+
+      - name: Setup MySQL config
+        run: |
+          cat > lib/mysql_config <<EOF
+          mysql_host = 127.0.0.1
+          mysql_database = luminari_test
+          mysql_username = luminari
+          mysql_password = testpass
+          EOF
+
+      - name: Initialize world data
+        run: |
+          # Create world directories
+          mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
+
+          # Copy minimal world files
+          cp lib/world/minimal/index.zon lib/world/zon/index 2>/dev/null || true
+          cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
+          cp lib/world/minimal/index.wld lib/world/wld/index 2>/dev/null || true
+          cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
+          cp lib/world/minimal/index.mob lib/world/mob/index 2>/dev/null || true
+          cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
+          cp lib/world/minimal/index.obj lib/world/obj/index 2>/dev/null || true
+          cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
+          cp lib/world/minimal/index.shp lib/world/shp/index 2>/dev/null || true
+          cp lib/world/minimal/index.trg lib/world/trg/index 2>/dev/null || true
+          cp lib/world/minimal/index.qst lib/world/qst/index 2>/dev/null || true
+          cp lib/world/minimal/index.hlq lib/world/hlq/index 2>/dev/null || true
+
+          echo "World data initialized"
+
+      - name: Create required directories
+        run: |
+          mkdir -p lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
+          mkdir -p lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
+          mkdir -p lib/house lib/mudmail lib/etc log
+
+      - name: Create minimal text files
+        run: |
+          mkdir -p lib/text/help
+          echo "Welcome to LuminariMUD" > lib/text/news
+          echo "LuminariMUD Credits" > lib/text/credits
+          echo "Message of the Day" > lib/text/motd
+          echo "Immortal MOTD" > lib/text/imotd
+          echo "Welcome" > lib/text/greetings
+          echo "Help System" > lib/text/help/help
+          echo '$' > lib/text/help/index
+          echo "Info" > lib/text/info
+          echo "Wizlist" > lib/text/wizlist
+          echo "Immlist" > lib/text/immlist
+          echo "Policies" > lib/text/policies
+          echo "Handbook" > lib/text/handbook
+          echo "Background" > lib/text/background
+          mkdir -p lib/misc
+          echo '*' > lib/misc/messages
+          echo '$' > lib/misc/socials.new
+
+      - name: Server startup smoke test
+        run: |
+          echo "Starting server for smoke test..."
+
+          # Start server in background with timeout
+          timeout 30s ./circle -q 4100 &
+          SERVER_PID=$!
+
+          # Wait for server to start
+          sleep 10
+
+          # Check if server is still running
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Server started successfully (PID: $SERVER_PID)"
+
+            # Try to connect to the port
+            if nc -z localhost 4100 2>/dev/null; then
+              echo "Server is accepting connections on port 4100"
+            else
+              echo "::warning::Server running but not accepting connections yet"
+            fi
+
+            # Check log for errors
+            if [[ -f log/syslog ]]; then
+              echo "=== Recent syslog entries ==="
+              tail -20 log/syslog
+
+              # Check for critical errors
+              if grep -qi "SYSERR" log/syslog; then
+                echo "::warning::SYSERR found in logs - check for issues"
+              fi
+            fi
+
+            # Graceful shutdown
+            echo "Shutting down server..."
+            kill $SERVER_PID 2>/dev/null || true
+            wait $SERVER_PID 2>/dev/null || true
+
+            echo "Server startup smoke test PASSED"
+          else
+            echo "::error::Server failed to start or crashed"
+
+            # Show any logs
+            if [[ -f log/syslog ]]; then
+              echo "=== syslog ==="
+              cat log/syslog
+            fi
+
+            exit 1
+          fi

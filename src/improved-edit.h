@@ -1,17 +1,17 @@
 /**
 * @file improved-edit.h                                       LuminariMUD
 * The basic and improved editor.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-* 
-* This set of code was not originally part of the circlemud distribution.                                                                                       
+*
+* This set of code was not originally part of the circlemud distribution.
 */
 #ifndef _IMPROVED_EDIT_H_
 #define _IMPROVED_EDIT_H_
 
-/* This is here to allow different code for the basic and improved editor. If 
- * you do not wish to use the improved editor, put #if 0 below, otherwise you 
+/* This is here to allow different code for the basic and improved editor. If
+ * you do not wish to use the improved editor, put #if 0 below, otherwise you
  * should leave the setting at #if 1. */
 #define CONFIG_IMPROVED_EDITOR 1
 
@@ -19,8 +19,10 @@
 
 void parse_edit_action(int command, char *string, struct descriptor_data *d);
 int improved_editor_execute(struct descriptor_data *d, char *string);
-int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned int maxlen, int low, int high);
-int replace_str(char **string, char *pattern, char *replacement, int rep_all, unsigned int max_size);
+int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned int maxlen,
+                int low, int high);
+int replace_str(char **string, char *pattern, char *replacement, int rep_all,
+                unsigned int max_size);
 void send_editor_help(struct descriptor_data *d);
 
 /* Action modes for parse_edit_action(). */

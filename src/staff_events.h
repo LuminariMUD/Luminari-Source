@@ -9,7 +9,7 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /* includes */
-#include "utils.h" /* for the ACMD macro */
+#include "utils.h"   /* for the ACMD macro */
 #include <stdbool.h> /* for bool type in state management functions */
 /* end includes */
 
@@ -40,12 +40,12 @@
  * - DETAIL: Detailed information shown to players about the event
  * - SUMMARY: Conclusion message shown when event completes
  */
-#define EVENT_TITLE 0    /* Event title/name for display */
-#define EVENT_BEGIN 1    /* Event start announcement message */
-#define EVENT_END 2      /* Event end announcement message */
-#define EVENT_DETAIL 3   /* Detailed event information for players */
-#define EVENT_SUMMARY 4  /* Event completion summary message */
-#define STAFF_EVENT_FIELDS 5  /* Total number of event data fields */
+#define EVENT_TITLE 0        /* Event title/name for display */
+#define EVENT_BEGIN 1        /* Event start announcement message */
+#define EVENT_END 2          /* Event end announcement message */
+#define EVENT_DETAIL 3       /* Detailed event information for players */
+#define EVENT_SUMMARY 4      /* Event completion summary message */
+#define STAFF_EVENT_FIELDS 5 /* Total number of event data fields */
 
 /*****************************************************************************/
 /*
@@ -78,9 +78,9 @@
  * Each tier is designed for different level ranges to ensure appropriate
  * challenge scaling across the player base.
  */
-#define EASY_JACKALOPE 11391  /* VNUM: Lower level jackalope (levels 1-10) */
-#define MED_JACKALOPE 11392   /* VNUM: Mid level jackalope (levels 11-20) */
-#define HARD_JACKALOPE 11393  /* VNUM: High level jackalope (levels 21+) */
+#define EASY_JACKALOPE 11391 /* VNUM: Lower level jackalope (levels 1-10) */
+#define MED_JACKALOPE 11392  /* VNUM: Mid level jackalope (levels 11-20) */
+#define HARD_JACKALOPE 11393 /* VNUM: High level jackalope (levels 21+) */
 
 /*
  * Population control for Jackalope spawning.
@@ -96,10 +96,10 @@
  * Jackalope mobs will be randomly distributed during the event.
  * Coordinates are in wilderness grid system (x,y format).
  */
-#define JACKALOPE_NORTH_Y 185  /* Northern boundary (y-coordinate) */
-#define JACKALOPE_SOUTH_Y -63  /* Southern boundary (y-coordinate) */
-#define JACKALOPE_WEST_X 597   /* Western boundary (x-coordinate) */
-#define JACKALOPE_EAST_X 703   /* Eastern boundary (x-coordinate) */
+#define JACKALOPE_NORTH_Y 185 /* Northern boundary (y-coordinate) */
+#define JACKALOPE_SOUTH_Y -63 /* Southern boundary (y-coordinate) */
+#define JACKALOPE_WEST_X 597  /* Western boundary (x-coordinate) */
+#define JACKALOPE_EAST_X 703  /* Eastern boundary (x-coordinate) */
 
 /*
  * Reward and quest item VNUMs for the Jackalope Hunt event.
@@ -122,8 +122,8 @@
  * Portal and room configuration for The Prisoner raid event.
  * This event creates a temporary portal to allow access to the raid zone.
  */
-#define THE_PRISONER_PORTAL 132399  /* VNUM: Portal object for raid access */
-#define TP_PORTAL_L_ROOM 145202     /* VNUM: Room where portal is created */
+#define THE_PRISONER_PORTAL 132399 /* VNUM: Portal object for raid access */
+#define TP_PORTAL_L_ROOM 145202    /* VNUM: Room where portal is created */
 
 /*****************************************************************************/
 /* GENERAL EVENT SYSTEM CONSTANTS */
@@ -136,25 +136,26 @@
  */
 
 /* Random chance and probability constants */
-#define PRISONER_ATMOSPHERIC_CHANCE_SKIP 15    /* Skip probability for atmospheric messages (15/16 chance) */
-#define PERCENTAGE_DICE_SIDES 100              /* Standard percentage dice roll (1-100) */
-#define ATMOSPHERIC_MESSAGE_COUNT 7            /* Total number of atmospheric messages (0-6) */
+#define PRISONER_ATMOSPHERIC_CHANCE_SKIP                                                           \
+  15                                /* Skip probability for atmospheric messages (15/16 chance) */
+#define PERCENTAGE_DICE_SIDES 100   /* Standard percentage dice roll (1-100) */
+#define ATMOSPHERIC_MESSAGE_COUNT 7 /* Total number of atmospheric messages (0-6) */
 
 /* Buffer and string operation constants */
-#define EVENT_MESSAGE_BUFFER_SIZE MAX_STRING_LENGTH  /* Buffer size for event message formatting */
+#define EVENT_MESSAGE_BUFFER_SIZE MAX_STRING_LENGTH /* Buffer size for event message formatting */
 
 /* Coordinate generation and caching constants (M006) */
-#define COORD_CACHE_SIZE 1000                      /* Maximum cached coordinate pairs */
-#define COORD_BATCH_GENERATION_SIZE 100            /* Coordinates generated per batch */
+#define COORD_CACHE_SIZE 1000           /* Maximum cached coordinate pairs */
+#define COORD_BATCH_GENERATION_SIZE 100 /* Coordinates generated per batch */
 
 /* Object pooling constants for performance optimization */
-#define OBJECT_POOL_SIZE 50                        /* Maximum pre-allocated objects in pool */
-#define JACKALOPE_POOL_SIZE 20                     /* Pool size for Jackalope mobs */
-#define PORTAL_POOL_SIZE 5                         /* Pool size for portal objects */
+#define OBJECT_POOL_SIZE 50    /* Maximum pre-allocated objects in pool */
+#define JACKALOPE_POOL_SIZE 20 /* Pool size for Jackalope mobs */
+#define PORTAL_POOL_SIZE 5     /* Pool size for portal objects */
 
 /* Hash table constants for algorithmic optimization */
-#define EVENT_HASH_TABLE_SIZE 32                   /* Hash table size for event lookups */
-#define MOBILE_HASH_TABLE_SIZE 128                 /* Hash table size for mobile lookups */
+#define EVENT_HASH_TABLE_SIZE 32   /* Hash table size for event lookups */
+#define MOBILE_HASH_TABLE_SIZE 128 /* Hash table size for mobile lookups */
 
 /*****************************************************************************/
 /* ERROR HANDLING AND RETURN CODES */
@@ -165,7 +166,8 @@
  * These provide consistent error reporting across all event functions
  * to improve debugging and error handling reliability.
  */
-typedef enum {
+typedef enum
+{
   EVENT_SUCCESS = 0,                    /* Operation completed successfully */
   EVENT_ERROR_INVALID_NUM = -1,         /* Invalid event number provided */
   EVENT_ERROR_ALREADY_RUNNING = -2,     /* Event already active, cannot start another */

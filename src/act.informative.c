@@ -49,7 +49,7 @@
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"
-#include "resource_depletion.h"  /* Phase 6: Conservation system */
+#include "resource_depletion.h" /* Phase 6: Conservation system */
 #include "resource_system.h"
 #include "roleplay.h"
 #include "spell_prep.h"
@@ -62,7 +62,7 @@
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
-/* #include "resource_cascade.h" */  /* Phase 7: Ecological cascade system - disabled for simple implementation */
+/* #include "resource_cascade.h" */ /* Phase 7: Ecological cascade system - disabled for simple implementation */
 #endif
 
 /* prototypes of local functions */
@@ -105,48 +105,48 @@ int boot_high = 0;
 #define WPT_ASSASSIN 14
 
 const int eq_ordering_1[NUM_WEARS] = {
-    WEAR_LIGHT,         //<used as light>
-    WEAR_BADGE,         //<worn as a badge>
-    WEAR_HEAD,          //<worn on head>
-    WEAR_EYES,          //<worn on eyes>
-    WEAR_EAR_R,         //<worn in ear>
-    WEAR_EAR_L,         //<worn in ear>
-    WEAR_FACE,          //<worn on face>
-    WEAR_NECK_1,        //<worn around neck>
-    WEAR_NECK_2,        //<worn around neck>
-    WEAR_SHOULDERS,     //<worn on shoulders>
-    WEAR_BODY,          //<worn on body>
-    WEAR_ON_BACK,       //<worn on back>
-    WEAR_ABOUT,         //<worn about body>
-    WEAR_AMMO_POUCH,    //<worn as ammo pouch>
-    WEAR_WAIST,         //<worn about waist>
-    WEAR_SHEATH,        //<worn as sheath>
-    WEAR_ARMS,          //<worn on arms>
-    WEAR_WRIST_R,       //<worn around wrist>
-    WEAR_WRIST_L,       //<worn around wrist>
-    WEAR_HANDS,         //<worn on hands>
-    WEAR_FINGER_R,      //<worn on finger>
-    WEAR_FINGER_L,      //<worn on finger>
-    WEAR_WIELD_1,       //<wielding/held slots>
-    WEAR_HOLD_1,        //<wielding/held slots>
-    WEAR_WIELD_OFFHAND, //<wielding/held slots>
-    WEAR_HOLD_2,        //<wielding/held slots>
-    WEAR_WIELD_2H,      //<wielding/held slots>
-    WEAR_HOLD_2H,       //<wielding/held slots>
-    WEAR_INSTRUMENT,    //<worn as instrument>
-    WEAR_SHIELD,        //<worn as shield>
-    WEAR_LEGS,          //<worn on legs>
-    WEAR_ANKLE_R,       //<worn on ankle>
-    WEAR_ANKLE_L,       //<worn on ankle>
-    WEAR_FEET,          //<worn on feet>
-    WEAR_CRAFT_SICKLE,  //<worn as craft tool - sickle>
-    WEAR_CRAFT_AXE,     //<worn as craft tool - axe>
-    WEAR_CRAFT_KNIFE,   //<worn as craft tool - knife>
-    WEAR_CRAFT_PICKAXE, //<worn as craft tool - pickaxe>
-    WEAR_CRAFT_ALCHEMY, //<worn as craft tool - alchemy>
+    WEAR_LIGHT,               //<used as light>
+    WEAR_BADGE,               //<worn as a badge>
+    WEAR_HEAD,                //<worn on head>
+    WEAR_EYES,                //<worn on eyes>
+    WEAR_EAR_R,               //<worn in ear>
+    WEAR_EAR_L,               //<worn in ear>
+    WEAR_FACE,                //<worn on face>
+    WEAR_NECK_1,              //<worn around neck>
+    WEAR_NECK_2,              //<worn around neck>
+    WEAR_SHOULDERS,           //<worn on shoulders>
+    WEAR_BODY,                //<worn on body>
+    WEAR_ON_BACK,             //<worn on back>
+    WEAR_ABOUT,               //<worn about body>
+    WEAR_AMMO_POUCH,          //<worn as ammo pouch>
+    WEAR_WAIST,               //<worn about waist>
+    WEAR_SHEATH,              //<worn as sheath>
+    WEAR_ARMS,                //<worn on arms>
+    WEAR_WRIST_R,             //<worn around wrist>
+    WEAR_WRIST_L,             //<worn around wrist>
+    WEAR_HANDS,               //<worn on hands>
+    WEAR_FINGER_R,            //<worn on finger>
+    WEAR_FINGER_L,            //<worn on finger>
+    WEAR_WIELD_1,             //<wielding/held slots>
+    WEAR_HOLD_1,              //<wielding/held slots>
+    WEAR_WIELD_OFFHAND,       //<wielding/held slots>
+    WEAR_HOLD_2,              //<wielding/held slots>
+    WEAR_WIELD_2H,            //<wielding/held slots>
+    WEAR_HOLD_2H,             //<wielding/held slots>
+    WEAR_INSTRUMENT,          //<worn as instrument>
+    WEAR_SHIELD,              //<worn as shield>
+    WEAR_LEGS,                //<worn on legs>
+    WEAR_ANKLE_R,             //<worn on ankle>
+    WEAR_ANKLE_L,             //<worn on ankle>
+    WEAR_FEET,                //<worn on feet>
+    WEAR_CRAFT_SICKLE,        //<worn as craft tool - sickle>
+    WEAR_CRAFT_AXE,           //<worn as craft tool - axe>
+    WEAR_CRAFT_KNIFE,         //<worn as craft tool - knife>
+    WEAR_CRAFT_PICKAXE,       //<worn as craft tool - pickaxe>
+    WEAR_CRAFT_ALCHEMY,       //<worn as craft tool - alchemy>
     WEAR_CRAFT_ARMOR_HAMMER,  //<worn as craft tool - armor hammer>
     WEAR_CRAFT_JEWEL_PLIERS,  //<worn as craft tool - jewel pliers>
-    WEAR_CRAFT_NEEDLE,  //<worn as craft tool - needle>
+    WEAR_CRAFT_NEEDLE,        //<worn as craft tool - needle>
     WEAR_CRAFT_WEAPON_HAMMER, //<worn as craft tool - weapon hammer>
 };
 
@@ -173,58 +173,60 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     len += count;
   if (GET_SUBRACE(tch, 0))
   {
-    count = snprintf(subraces + len, sizeof(subraces) - len, "%s", npc_subrace_types[GET_SUBRACE(tch, 0)]);
+    count = snprintf(subraces + len, sizeof(subraces) - len, "%s",
+                     npc_subrace_types[GET_SUBRACE(tch, 0)]);
     if (count > 0)
       len += count;
     has_subrace = true;
   }
   if (GET_SUBRACE(tch, 1))
   {
-    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 1)]);
+    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s",
+                     npc_subrace_types[GET_SUBRACE(tch, 1)]);
     if (count > 0)
       len += count;
   }
   if (GET_SUBRACE(tch, 2))
   {
-    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 2)]);
+    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s",
+                     npc_subrace_types[GET_SUBRACE(tch, 2)]);
     if (count > 0)
       len += count;
   }
 
   send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
   if (!IS_NPC(tch))
-    send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
-                 GET_NAME(tch), age(tch)->year, age(tch)->month,
-                 age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
+    send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n", GET_NAME(tch),
+                 age(tch)->year, age(tch)->month, age(tch)->day, age(tch)->hours);
+  send_to_char(ch, "Race: %s%s.\r\n",
+               !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
                has_subrace ? subraces : "");
   if (!AFF_FLAGGED(tch, AFF_HIDE_ALIGNMENT))
     send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
   if (IS_NPC(tch))
     send_to_char(ch, "Class: %s.\r\n", class_list[GET_CLASS(tch)].name);
-  send_to_char(ch, "Level: %d, Hits: %d/%d, PSP: %d\r\n", GET_LEVEL(tch),
-               GET_HIT(tch), GET_MAX_HIT(tch), GET_PSP(tch));
+  send_to_char(ch, "Level: %d, Hits: %d/%d, PSP: %d\r\n", GET_LEVEL(tch), GET_HIT(tch),
+               GET_MAX_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
-               compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL),
-               GET_HITROLL(tch), GET_DAMROLL(tch));
+               compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_HITROLL(tch),
+               GET_DAMROLL(tch));
   if (IS_NPC(tch))
-    send_to_char(ch, "Will: %d, Fort: %d, Refl: %d\r\n",
-                 compute_mag_saves(tch, SAVING_WILL, 0), compute_mag_saves(tch, SAVING_FORT, 0), compute_mag_saves(tch, SAVING_REFL, 0));
-  send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
-               GET_STR(tch), GET_ADD(tch), GET_INT(tch),
-               GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
+    send_to_char(ch, "Will: %d, Fort: %d, Refl: %d\r\n", compute_mag_saves(tch, SAVING_WILL, 0),
+                 compute_mag_saves(tch, SAVING_FORT, 0), compute_mag_saves(tch, SAVING_REFL, 0));
+  send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n", GET_STR(tch),
+               GET_ADD(tch), GET_INT(tch), GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
   text_line(ch, "\tYDamage Type Resistance / Vulnerability\tC", 80, '-', '-');
   for (i = 0; i < NUM_DAM_TYPES - 1; i++)
   {
-    if (can_dam_be_resisted(i+1))
+    if (can_dam_be_resisted(i + 1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(tch, i + 1, NULL, TYPE_UNDEFINED), compute_energy_absorb(tch, i + 1));
+                   compute_damtype_reduction(tch, i + 1, NULL, TYPE_UNDEFINED),
+                   compute_energy_absorb(tch, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
     }
-    
   }
 }
 
@@ -242,8 +244,7 @@ void check_dangersense(struct char_data *ch, room_rnum room)
     if (!IS_NPC(tch))
       continue;
 
-    if ((MOB_FLAGGED(tch, MOB_AGGRESSIVE)) ||
-        (MOB_FLAGGED(tch, MOB_AGGR_EVIL) && IS_EVIL(ch)) ||
+    if ((MOB_FLAGGED(tch, MOB_AGGRESSIVE)) || (MOB_FLAGGED(tch, MOB_AGGR_EVIL) && IS_EVIL(ch)) ||
         (MOB_FLAGGED(tch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(ch)) ||
         (MOB_FLAGGED(tch, MOB_AGGR_GOOD) && IS_GOOD(ch)))
       danger = TRUE;
@@ -280,7 +281,6 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
   /* displaying weapon / armor info */
   switch (type)
   {
-
   case ITEM_WEAPON:
     send_to_char(ch, "Weapon: %s ", weapon_type ? weapon_list[weapon_type].name : "???");
 
@@ -348,7 +348,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       }
       if (found)
       {
-        send_to_char(ch, "You are %s upon %s.", GET_POS(ch) == POS_SITTING ? "sitting" : "resting", obj->short_description);
+        send_to_char(ch, "You are %s upon %s.", GET_POS(ch) == POS_SITTING ? "sitting" : "resting",
+                     obj->short_description);
         goto end;
       }
     }
@@ -439,8 +440,11 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
           strlcpy(sendcmd, "look in", sizeof(sendcmd));
         else
           strlcpy(sendcmd, "hold", sizeof(sendcmd));
-        send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
-                     keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, obj->short_description);
+        send_to_char(ch,
+                     "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop "
+                     "%s|eat %s|hold %s|lore %s'>%s\t</send>",
+                     sendcmd, keyword, keyword, keyword, keyword, keyword, keyword, keyword,
+                     keyword, keyword, keyword, obj->short_description);
         break;
       case 2: // equipment
         send_to_char(ch, "\t<send href='remove %s'>%s\t</send>", keyword, obj->short_description);
@@ -462,7 +466,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       {
         char notebuf[MAX_NOTE_LENGTH + 64];
 
-        snprintf(notebuf, sizeof(notebuf), "There is something written on it:\r\n\r\n%s", obj->action_description);
+        snprintf(notebuf, sizeof(notebuf), "There is something written on it:\r\n\r\n%s",
+                 obj->action_description);
         page_string(ch->desc, notebuf, TRUE);
       }
       else
@@ -487,8 +492,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     {
       act("\r\n$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
     }
-      if (GET_OBJ_ARCANE_MARK(obj))
-        send_to_char(ch, "\r\nIt bears an arcane mark reading \"%s\".", GET_OBJ_ARCANE_MARK(obj));
+    if (GET_OBJ_ARCANE_MARK(obj))
+      send_to_char(ch, "\r\nIt bears an arcane mark reading \"%s\".", GET_OBJ_ARCANE_MARK(obj));
 
     break;
 
@@ -524,7 +529,8 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch)
   if (obj->weapon_poison.poison)
     send_to_char(ch, " \tG(poisoned)\tn");
 
-  if (OBJ_FLAGGED(obj, ITEM_BLESS) && (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)))
+  if (OBJ_FLAGGED(obj, ITEM_BLESS) &&
+      (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)))
     send_to_char(ch, " \tn..It glows \tBblue\tn!");
 
   if (OBJ_FLAGGED(obj, ITEM_NODROP) && HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
@@ -548,7 +554,8 @@ void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int
   list_obj_to_char_full(list, ch, mode, show, mxp_type, false);
 }
 
-void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type, bool can_see_always)
+void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show,
+                           int mxp_type, bool can_see_always)
 {
   struct obj_data *i = NULL, *j = NULL, *display = NULL;
   bool found = FALSE;
@@ -561,8 +568,7 @@ void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode
 
     /* Check the list to see if we've already counted this object */
     for (j = list; j != i; j = j->next_content)
-      if (
-          (j->short_description == i->short_description && j->name == i->name) ||
+      if ((j->short_description == i->short_description && j->name == i->name) ||
           (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
         break; /* found a matching object */
     if (j != i)
@@ -575,7 +581,8 @@ void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode
         /* This if-clause should be exactly the same as the one in the loop above */
         if ((j->short_description == i->short_description && j->name == i->name) ||
             (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
-          if (CAN_SEE_OBJ(ch, j) || can_see_always /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/)
+          if (CAN_SEE_OBJ(ch, j) ||
+              can_see_always /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/)
           {
             /* added the ability for players to see glowing items in their inventory in the dark
              * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
@@ -598,7 +605,7 @@ void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode
         found = TRUE;
       }
     } /* end loop */
-    }
+  }
 
   if (!found && show)
     send_to_char(ch, "  Nothing.\r\n");
@@ -606,7 +613,6 @@ void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode
 
 static void diag_char_to_char(struct char_data *i, struct char_data *ch)
 {
-
   const struct
   {
     byte percent;
@@ -621,8 +627,9 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
       {0, "is in awful condition."},
       {-1, "is bleeding awfully from big wounds."},
   };
-  
-  if (!ch || !i) return;
+
+  if (!ch || !i)
+    return;
 
   int percent, ar_index;
   char *pers = strdup(PERS(i, ch));
@@ -648,29 +655,27 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
   }
   else if (!IS_NPC(i))
   {
-    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
-                 RACE_ABBR(i), diagnosis[ar_index].text);
+    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)], RACE_ABBR(i),
+                 diagnosis[ar_index].text);
     /* NPC with no race info */
   }
   else if (IS_NPC(i) && GET_RACE(i) <= RACE_TYPE_UNKNOWN)
   {
-    send_to_char(ch, "%s %s\r\n", CAP(pers),
-                 diagnosis[ar_index].text);
+    send_to_char(ch, "%s %s\r\n", CAP(pers), diagnosis[ar_index].text);
     /* NPC with no sub-race info */
   }
-  else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN && GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
+  else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN &&
+           GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
   {
-    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers),
-                 size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
+    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)], RACE_ABBR(i),
+                 diagnosis[ar_index].text);
     /* NPC */
   }
   else
   {
-    send_to_char(ch, "%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(pers),
-                 size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
-                 npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
-                 npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
-                 RACE_ABBR(i), diagnosis[ar_index].text);
+    send_to_char(ch, "%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
+                 npc_subrace_abbrevs[GET_SUBRACE(i, 0)], npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
+                 npc_subrace_abbrevs[GET_SUBRACE(i, 2)], RACE_ABBR(i), diagnosis[ar_index].text);
   }
 
   /* some spell and spell-like affects that we want to show up */
@@ -773,17 +778,16 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 {
   struct obj_data *furniture;
   char *short_descr;
-  const char *const positions[NUM_POSITIONS] = {
-      " is lying here, dead.",
-      " is lying here, mortally wounded.",
-      " is lying here, incapacitated.",
-      " is lying here, stunned.",
-      " is sleeping here.",
-      " is reclining here.",
-      " is resting here.",
-      " is sitting here.",
-      "!FIGHTING!", /* message elsewhere */
-      " is standing here."};
+  const char *const positions[NUM_POSITIONS] = {" is lying here, dead.",
+                                                " is lying here, mortally wounded.",
+                                                " is lying here, incapacitated.",
+                                                " is lying here, stunned.",
+                                                " is sleeping here.",
+                                                " is reclining here.",
+                                                " is resting here.",
+                                                " is sitting here.",
+                                                "!FIGHTING!", /* message elsewhere */
+                                                " is standing here."};
 
   /* start display of info BEFORE short-descrip/name/title */
 
@@ -811,17 +815,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (!IS_NPC(i) && GROUP(i) && GROUP(i) == GROUP(ch))
   {
     if (GROUP(i) == GROUP(ch))
-      send_to_char(ch, "(%s) ",
-                   GROUP_LEADER(GROUP(i)) == i ? "leader" : "group");
+      send_to_char(ch, "(%s) ", GROUP_LEADER(GROUP(i)) == i ? "leader" : "group");
     else
       send_to_char(ch, "%s(%s%s%s) ", CCNRM(ch, C_NRM), CBRED(ch, C_NRM),
-                   GROUP_LEADER(GROUP(i)) == i ? "leader" : "group",
-                   CCNRM(ch, C_NRM));
+                   GROUP_LEADER(GROUP(i)) == i ? "leader" : "group", CCNRM(ch, C_NRM));
   }
 
   /* npcs: default position, not fighting */
-  if (IS_NPC(i) && i->player.long_descr && GET_POS(i) == GET_DEFAULT_POS(i) &&
-      !FIGHTING(i))
+  if (IS_NPC(i) && i->player.long_descr && GET_POS(i) == GET_DEFAULT_POS(i) && !FIGHTING(i))
   {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
@@ -853,14 +854,16 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (IS_EVIL(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) ||
+          HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
     }
     else if (IS_GOOD(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) ||
+          HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
       {
         send_to_char(ch, "\tB(Blue Aura)\tn ");
       }
@@ -884,9 +887,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, SPELL_BANISHING_BLADE))
       act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
-      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0,
+          ch, TO_VICT);
     else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
-      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i,
+          0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -896,7 +901,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, SKILL_DRHRT_WINGS))
     {
       char wings[150];
-      snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+      snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.",
+               DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
       act(wings, FALSE, i, 0, ch, TO_VICT);
     }
     else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS))
@@ -914,20 +920,21 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   }
   else if (!MOB_CAN_FIGHT(i) && i->player.long_descr)
   {
-
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
     if (IS_EVIL(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) ||
+          HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
     }
     else if (IS_GOOD(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) ||
+          HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
       {
         send_to_char(ch, "\tB(Blue Aura)\tn ");
       }
@@ -943,11 +950,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, SPELL_BANISHING_BLADE))
       act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
-      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0,
+          ch, TO_VICT);
     else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
-      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
-     else if (affected_by_spell(i, WARLOCK_CHILLING_TENTACLES))
-      act("...$e is being curshed by large, chilling black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i,
+          0, ch, TO_VICT);
+    else if (affected_by_spell(i, WARLOCK_CHILLING_TENTACLES))
+      act("...$e is being curshed by large, chilling black tentacles sprouting from the ground!",
+          FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -957,7 +967,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, SKILL_DRHRT_WINGS))
     {
       char wings[150];
-      snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+      snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.",
+               DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
       act(wings, FALSE, i, 0, ch, TO_VICT);
     }
     else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS))
@@ -1058,7 +1069,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     else
     {
       furniture = SITTING(i);
-      send_to_char(ch, " is %s upon %s.", (GET_POS(i) == POS_SLEEPING ? "sleeping" : (GET_POS(i) == POS_RECLINING ? "reclining" : (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
+      send_to_char(ch, " is %s upon %s.",
+                   (GET_POS(i) == POS_SLEEPING
+                        ? "sleeping"
+                        : (GET_POS(i) == POS_RECLINING
+                               ? "reclining"
+                               : (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
                    OBJS(furniture, ch));
     }
   }
@@ -1083,14 +1099,16 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (IS_EVIL(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
   {
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) ||
+        HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
     {
       send_to_char(ch, "\tR(Red Aura)\tn ");
     }
   }
   else if (IS_GOOD(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
   {
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) ||
+        HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
     {
       send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
@@ -1099,15 +1117,17 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   send_to_char(ch, "\r\n");
 
   if (!IS_NPC(i) && PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
-      act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
+    act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_BANISHING_BLADE))
     act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
-      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+    act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0,
+        ch, TO_VICT);
   else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
-    act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+    act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0,
+        ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
     act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -1117,7 +1137,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (affected_by_spell(i, SKILL_DRHRT_WINGS))
   {
     char wings[150];
-    snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+    snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.",
+             DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
     act(wings, FALSE, i, 0, ch, TO_VICT);
   }
   else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS))
@@ -1142,8 +1163,8 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
     if (ch != i)
     {
       /* hide npcs whose description starts with a '.' from non-holylighted people - Idea from Elaseth of TBA */
-      if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT) &&
-          IS_NPC(i) && i->player.long_descr && *i->player.long_descr == '.')
+      if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT) && IS_NPC(i) && i->player.long_descr &&
+          *i->player.long_descr == '.')
         continue;
       send_to_char(ch, "%s", CCYEL(ch, C_NRM));
       if (RIDDEN_BY(i) && RIDDEN_BY(i)->in_room == i->in_room)
@@ -1152,11 +1173,9 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
         list_one_char(i, ch);
       else if (CAN_INFRA(ch, i) && !AFF_FLAGGED(i, AFF_HIDE))
         send_to_char(ch, "\tnYou see the \trred\tn outline of someone or something.\r\n");
-      else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) &&
-               char_has_infra(i) && INVIS_OK(ch, i))
+      else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) && char_has_infra(i) && INVIS_OK(ch, i))
         send_to_char(ch, "You see a pair of glowing red eyes looking your way.\r\n");
-      else if ((!IS_DARK(IN_ROOM(ch)) || CAN_SEE_IN_DARK(ch)) &&
-               AFF_FLAGGED(ch, AFF_SENSE_LIFE))
+      else if ((!IS_DARK(IN_ROOM(ch)) || CAN_SEE_IN_DARK(ch)) && AFF_FLAGGED(ch, AFF_SENSE_LIFE))
         send_to_char(ch, "You sense a life-form.\r\n");
       send_to_char(ch, "%s", CCNRM(ch, C_NRM));
     }
@@ -1174,11 +1193,12 @@ static void do_auto_exits(struct char_data *ch)
       continue;
     if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !CONFIG_DISP_CLOSED_DOORS)
       continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
-        !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
       continue;
     if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
-      send_to_char(ch, "%s(%s)%s ", EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
+      send_to_char(ch, "%s(%s)%s ",
+                   EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM) : CCRED(ch, C_NRM),
+                   autoexits[door], CCCYN(ch, C_NRM));
     else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && GET_LEVEL(ch) >= LVL_IMMORT)
       send_to_char(ch, "%s%s%s ", CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
     else
@@ -1248,10 +1268,8 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
-    snprintf(buf2, sizeof(buf2), "\tc[%5d]\tn %s \tc[ %s] %s\tn",
-             GET_ROOM_VNUM(room_number),
-             world[room_number].name, buf,
-             sector_types[(world[room_number].sector_type)]);
+    snprintf(buf2, sizeof(buf2), "\tc[%5d]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
+             world[room_number].name, buf, sector_types[(world[room_number].sector_type)]);
     send_to_char(ch, "%s", buf2);
   }
   else
@@ -1303,13 +1321,13 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   /* Override darkness if player has special vision abilities */
   if (room_dark)
   {
-    if (CAN_SEE_IN_DARK(ch))  /* Has darkvision or similar */
+    if (CAN_SEE_IN_DARK(ch)) /* Has darkvision or similar */
       room_dark = FALSE;
-    else if (CAN_INFRA_IN_DARK(ch))  /* Has infravision (heat vision) */
+    else if (CAN_INFRA_IN_DARK(ch)) /* Has infravision (heat vision) */
     {
       room_dark = FALSE;
       can_infra_in_dark = TRUE;
-      ignore_brief = FALSE;  /* Force showing limited description */
+      ignore_brief = FALSE; /* Force showing limited description */
     }
   }
 
@@ -1322,12 +1340,17 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       if (rm->name)
         free(rm->name);
       rm->name = strdup("A Horse-Drawn Carriage");
-      snprintf(buf, sizeof(buf), "This small carriage is pulled by two brown draft horses, led by a weathered old man smoking a pipe and wearing a long, brown overcoat.\r\n"
-                                 "The inside of the carriage is big enough for about 6 people, with benches on either side, and a small table in the middle.  An oil based lantern\r\n"
-                                 "hangs overhead, supplying light, and windows are real glass, and able to be opened or closed, with small rain canopies keeping the weather out for the most part.\r\n"
-                                 "Judging by how far you've gone so far, you have about you have \r\n"
-                                 "about %d minutes and %d seconds to go until you get to %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, get_transport_carriage_name(ch->player_specials->travel_locale));
+      snprintf(buf, sizeof(buf),
+               "This small carriage is pulled by two brown draft horses, led by a weathered old "
+               "man smoking a pipe and wearing a long, brown overcoat.\r\n"
+               "The inside of the carriage is big enough for about 6 people, with benches on "
+               "either side, and a small table in the middle.  An oil based lantern\r\n"
+               "hangs overhead, supplying light, and windows are real glass, and able to be opened "
+               "or closed, with small rain canopies keeping the weather out for the most part.\r\n"
+               "Judging by how far you've gone so far, you have about you have \r\n"
+               "about %d minutes and %d seconds to go until you get to %s.\r\n",
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+               get_transport_carriage_name(ch->player_specials->travel_locale));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1338,11 +1361,15 @@ void look_at_room(struct char_data *ch, int ignore_brief)
         free(rm->name);
       rm->name = strdup("A Large Caravel");
       snprintf(buf, sizeof(buf),
-               "This large passenger ship has been built with reasonably good comforts given the limited space on board.\r\n"
-               "The wind fills the sails as it pushes the vessel along to your destination. The sway of the sea is steady\r\n"
-               "and rhythmic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
+               "This large passenger ship has been built with reasonably good comforts given the "
+               "limited space on board.\r\n"
+               "The wind fills the sails as it pushes the vessel along to your destination. The "
+               "sway of the sea is steady\r\n"
+               "and rhythmic, and you find you sea legs quickly.  Judging by how far you've gone "
+               "so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, get_transport_sailing_name(ch->player_specials->travel_locale));
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+               get_transport_sailing_name(ch->player_specials->travel_locale));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1352,14 +1379,16 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       if (rm->name)
         free(rm->name);
       rm->name = strdup("Flying High Above in the Sky");
-      snprintf(buf, sizeof(buf),
-               "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
-               "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
-               "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
-               "Judging by how far you've gone so far you should arrive in\r\n"
-               "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
-               get_transport_zone_entrance_name(ch->player_specials->travel_locale, TRAVEL_OVERLAND_FLIGHT));
+      snprintf(
+          buf, sizeof(buf),
+          "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
+          "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
+          "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
+          "Judging by how far you've gone so far you should arrive in\r\n"
+          "about %d minutes and %d seconds to your destination: %s.\r\n",
+          ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+          get_transport_zone_entrance_name(ch->player_specials->travel_locale,
+                                           TRAVEL_OVERLAND_FLIGHT));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1369,14 +1398,16 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       if (rm->name)
         free(rm->name);
       rm->name = strdup("Flying High Above in the Sky");
-      snprintf(buf, sizeof(buf),
-               "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
-               "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
-               "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
-               "Judging by how far you've gone so far you should arrive in\r\n"
-               "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, 
-               get_transport_zone_entrance_name(ch->player_specials->travel_locale, TRAVEL_OVERLAND_FLIGHT_SAIL));
+      snprintf(
+          buf, sizeof(buf),
+          "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
+          "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
+          "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
+          "Judging by how far you've gone so far you should arrive in\r\n"
+          "about %d minutes and %d seconds to your destination: %s.\r\n",
+          ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+          get_transport_zone_entrance_name(ch->player_specials->travel_locale,
+                                           TRAVEL_OVERLAND_FLIGHT_SAIL));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1389,8 +1420,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     send_to_char(ch, "It is pitch black...\r\n");
     return;
   }
-  else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !has_blindsense(ch))
+  else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch))
   {
     send_to_char(ch, "You see nothing but infinite darkness...\r\n");
     return;
@@ -1433,20 +1463,19 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   sprintbit((long)rm->room_affections, room_affections, buf, sizeof(buf));
   send_to_char(ch, " ( %s)", buf);
 
-    
+
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     if (world[IN_ROOM(ch)].harvest_material != 0 && world[IN_ROOM(ch)].harvest_material_amount > 0)
     {
-      send_to_char(ch, "\r\n\ty[MATS: %d %s] \r\n\tn",
-              world[IN_ROOM(ch)].harvest_material_amount, 
-              crafting_materials[world[IN_ROOM(ch)].harvest_material]);
+      send_to_char(ch, "\r\n\ty[MATS: %d %s] \r\n\tn", world[IN_ROOM(ch)].harvest_material_amount,
+                   crafting_materials[world[IN_ROOM(ch)].harvest_material]);
     }
   }
 
   /* === SPECIAL ROOM FLAGS DISPLAY === */
   send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM)); /* End line and reset color */
-  
+
   /* Show fog effect */
   if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
     send_to_char(ch, "\tDA hazy \tWfog\tD enshrouds the area.\tn\r\n");
@@ -1465,7 +1494,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   /* === ROOM DESCRIPTION DISPLAY LOGIC === */
   /* Different display modes based on:
    * - worldmap vs normal room
-   * - brief mode on/off  
+   * - brief mode on/off
    * - automap preference
    * - vision type (normal/infravision)
    */
@@ -1476,21 +1505,21 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     show_wilderness_map(ch, 21, ch->coords[0], ch->coords[1]);
   }
   /* Show full room description if: not brief mode, forced to show, or death room */
-  else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark) || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH))
+  else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark) || ignore_brief ||
+           ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH))
   {
     /* Player wants automap alongside description */
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch))
     {
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
-      { 
+      {
         /* GUI mode: send map with XML tags */
         send_to_char(ch,
                      "<ROOM_MAP>\n"
                      "%s"
                      "</ROOM_MAP>\n"
                      "\tn%s\tn\n",
-                     get_map_string(ch, target_room),
-                     world[IN_ROOM(ch)].description);
+                     get_map_string(ch, target_room), world[IN_ROOM(ch)].description);
       }
       else
       {
@@ -1518,26 +1547,29 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   }
 
   /* === SPECIAL LOCATION NOTIFICATIONS === */
-  
+
   /* Check if room is a carriage stop */
   int i = 0;
   while (get_carriage_locale_vnum(i) != 0)
   {
     if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_carriage_locale_vnum(i))
     {
-      send_to_char(ch, "\r\nThis room is a carriage stop.  Use the \tYcarriage\tn command to see options.\r\n");
+      send_to_char(
+          ch,
+          "\r\nThis room is a carriage stop.  Use the \tYcarriage\tn command to see options.\r\n");
       break;
     }
     i++;
   }
-  
+
   /* Check if room is a ferry dock */
   i = 0;
   while (get_sailing_locale_vnum(i) != 0)
   {
     if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_sailing_locale_vnum(i))
     {
-      send_to_char(ch, "\r\nThis room is a ferry dock.  Use the \tYsail\tn command to see options.\r\n");
+      send_to_char(
+          ch, "\r\nThis room is a ferry dock.  Use the \tYsail\tn command to see options.\r\n");
       break;
     }
     i++;
@@ -1546,7 +1578,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   /* Notify if random encounter spawned */
   if (in_encounter_room(ch))
   {
-    send_to_char(ch, "\r\nYou have spawned a random encounter. See \tYHELP ENCOUNTER\tn for more information.\r\n");
+    send_to_char(ch, "\r\nYou have spawned a random encounter. See \tYHELP ENCOUNTER\tn for more "
+                     "information.\r\n");
   }
 
   /* Show available exits (unless fog blocks view) */
@@ -1607,7 +1640,8 @@ static void look_in_obj(struct char_data *ch, char *arg)
 
   if (!*arg)
     send_to_char(ch, "Look in what?\r\n");
-  else if (!(bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &dummy, &obj)))
+  else if (!(bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &dummy,
+                                 &obj)))
   {
     send_to_char(ch, "There doesn't seem to be %s %s here.\r\n", AN(arg), arg);
   }
@@ -1622,17 +1656,15 @@ static void look_in_obj(struct char_data *ch, char *arg)
   {
     display_scroll(ch, obj);
   }
-  else if ((GET_OBJ_TYPE(obj) != ITEM_DRINKCON) &&
-           (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
-           (GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH) &&
-           (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
+  else if ((GET_OBJ_TYPE(obj) != ITEM_DRINKCON) && (GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) &&
+           (GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER))
     send_to_char(ch, "There's nothing inside that!\r\n");
   else
   {
-    if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
-        GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+    if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
     {
-      if (OBJVAL_FLAGGED(obj, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
+      if (OBJVAL_FLAGGED(obj, CONT_CLOSED) &&
+          (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
         send_to_char(ch, "It is closed.\r\n");
       else
       {
@@ -1699,7 +1731,9 @@ static void perform_mortal_where(struct char_data *ch, char *arg)
   if (!*arg)
   {
     j = world[(IN_ROOM(ch))].zone;
-    send_to_char(ch, "\tb--\tB= \tCPlayers in %s \tB=\tb--\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", zone_table[j].name);
+    send_to_char(
+        ch, "\tb--\tB= \tCPlayers in %s \tB=\tb--\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n",
+        zone_table[j].name);
     for (d = descriptor_list; d; d = d->next)
     {
       if (STATE(d) != CON_PLAYING || d->character == ch)
@@ -1710,7 +1744,8 @@ static void perform_mortal_where(struct char_data *ch, char *arg)
         continue;
       if (world[IN_ROOM(ch)].zone != world[IN_ROOM(i)].zone)
         continue;
-      send_to_char(ch, "\tB[\tc%-20s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM, world[IN_ROOM(i)].name, QNRM);
+      send_to_char(ch, "\tB[\tc%-20s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM,
+                   world[IN_ROOM(i)].name, QNRM);
     }
   }
   else
@@ -1723,15 +1758,15 @@ static void perform_mortal_where(struct char_data *ch, char *arg)
         continue;
       if (!isname(arg, i->player.name))
         continue;
-      send_to_char(ch, "\tB[\tc%-25s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM, world[IN_ROOM(i)].name, QNRM);
+      send_to_char(ch, "\tB[\tc%-25s%s\tB]\tW - %s%s\tn\r\n", GET_NAME(i), QNRM,
+                   world[IN_ROOM(i)].name, QNRM);
       return;
     }
     send_to_char(ch, "Nobody around by that name.\r\n");
   }
 }
 
-static void print_object_location(int num, struct obj_data *obj, struct char_data *ch,
-                                  int recur)
+static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur)
 {
   if (num > 0)
     send_to_char(ch, "O%3d. %-25s%s - ", num, obj->short_description, QNRM);
@@ -1754,7 +1789,8 @@ static void print_object_location(int num, struct obj_data *obj, struct char_dat
     send_to_char(ch, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
   else if (obj->in_obj)
   {
-    send_to_char(ch, "inside %s%s%s\r\n", obj->in_obj->short_description, QNRM, (recur ? ", which is" : " "));
+    send_to_char(ch, "inside %s%s%s\r\n", obj->in_obj->short_description, QNRM,
+                 (recur ? ", which is" : " "));
     if (recur)
       print_object_location(0, obj->in_obj, ch, recur);
   }
@@ -1780,14 +1816,14 @@ static void perform_immort_where(struct char_data *ch, char *arg)
         if (i && CAN_SEE(ch, i) && (IN_ROOM(i) != NOWHERE))
         {
           if (d->original)
-            send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n",
-                         GET_NAME(i), QNRM, GET_ROOM_VNUM(IN_ROOM(d->character)),
-                         world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character), QNRM);
+            send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n", GET_NAME(i), QNRM,
+                         GET_ROOM_VNUM(IN_ROOM(d->character)), world[IN_ROOM(d->character)].name,
+                         QNRM, GET_NAME(d->character), QNRM);
           else
-            send_to_char(ch, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
-                         QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
-                         30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name, QNRM,
-                         zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
+            send_to_char(ch, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM, QCYN, QYEL,
+                         GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
+                         30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name,
+                         QNRM, zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
         }
       }
   }
@@ -1840,7 +1876,8 @@ static void look_at_target(struct char_data *ch, char *arg)
     return;
   }
 
-  bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP | FIND_CHAR_ROOM, ch, &found_char, &found_obj);
+  bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP | FIND_CHAR_ROOM, ch,
+                      &found_char, &found_obj);
 
   /* Is the target a character? */
   if (found_char != NULL)
@@ -1874,7 +1911,6 @@ static void look_at_target(struct char_data *ch, char *arg)
     if (GET_EQ(ch, j) && CAN_SEE_OBJ(ch, GET_EQ(ch, j)))
       if ((desc = find_exdesc(arg, GET_EQ(ch, j)->ex_description)) != NULL && ++i == fnum)
       {
-
         /* obj size, material, weapon/armor */
         show_obj_info(GET_EQ(ch, j), ch);
         send_to_char(ch, "\r\n");
@@ -1921,7 +1957,6 @@ static void look_at_target(struct char_data *ch, char *arg)
     if (CAN_SEE_OBJ(ch, obj))
       if ((desc = find_exdesc(arg, obj->ex_description)) != NULL && ++i == fnum)
       {
-
         /* obj size, material, weapon/armor */
         if (!found)
         {
@@ -1972,7 +2007,6 @@ static void look_at_target(struct char_data *ch, char *arg)
     if (CAN_SEE_OBJ(ch, obj))
       if ((desc = find_exdesc(arg, obj->ex_description)) != NULL && ++i == fnum)
       {
-
         /* obj size, material, weapon/armor */
         if (!found)
         {
@@ -2042,196 +2076,280 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   send_to_char(ch, "\tn");
 
   // Device creation cooldown (global for artificer)
-  if (k->player_specials->saved.device_creation_cooldown > time(0)) {
+  if (k->player_specials->saved.device_creation_cooldown > time(0))
+  {
     int seconds_left = k->player_specials->saved.device_creation_cooldown - time(0);
     int minutes_left = (seconds_left % 3600) / 60;
     int hours_left = seconds_left / 3600;
     seconds_left = seconds_left % 60;
-    send_to_char(ch, "Device Creation Cooldown: You can create a new device in %d hour%s, %d minute%s, %d second%s.\r\n",
-      hours_left, (hours_left == 1) ? "" : "s",
-      minutes_left, (minutes_left == 1) ? "" : "s",
-      seconds_left, (seconds_left == 1) ? "" : "s");
+    send_to_char(ch,
+                 "Device Creation Cooldown: You can create a new device in %d hour%s, %d minute%s, "
+                 "%d second%s.\r\n",
+                 hours_left, (hours_left == 1) ? "" : "s", minutes_left,
+                 (minutes_left == 1) ? "" : "s", seconds_left, (seconds_left == 1) ? "" : "s");
   }
 
   if ((pMudEvent = char_has_mud_event(k, eINTIMIDATE_COOLDOWN)))
-    send_to_char(ch, "Intimidate Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Intimidate Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
-    send_to_char(ch, "Taunt Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Taunt Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eVANISHED)))
-    send_to_char(ch, "Vanish Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Vanish Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINVISIBLE_ROGUE)))
-    send_to_char(ch, "Invisible Rogue Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Invisible Rogue Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
-    send_to_char(ch, "Rage Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Rage Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSACRED_FLAMES)))
-    send_to_char(ch, "Sacred Flames Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Sacred Flames Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINNER_FIRE)))
-    send_to_char(ch, "Inner Fire Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Inner Fire Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMUTAGEN)))
-    send_to_char(ch, "Mutagen/Cognatogen Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Mutagen/Cognatogen Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePSYCHOKINETIC)))
-    send_to_char(ch, "Psychokinetic Tincture Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Psychokinetic Tincture Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRIPPLING_CRITICAL)))
-    send_to_char(ch, "Crippling Critical Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crippling Critical Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEFENSIVE_STANCE)))
-    send_to_char(ch, "Defensive Stance Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Defensive Stance Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINSECTBEING)))
-    send_to_char(ch, "Insect Being Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Insect Being Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))
-    send_to_char(ch, "Crystal Fist Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crystal Fist Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
-    send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMASTERMIND)))
-    send_to_char(ch, "Mastermind Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Mastermind Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTINKER)))
-    send_to_char(ch, "Tinker Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Tinker Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_LEVITATE)))
-    send_to_char(ch, "Levitate Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Levitate Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_DARKNESS)))
-    send_to_char(ch, "Darkness Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Darkness Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_FAERIE_FIRE)))
-    send_to_char(ch, "Faerie Fire Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Faerie Fire Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
-    send_to_char(ch, "Lay on Hands Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Lay on Hands Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eWHOLENESSOFBODY)))
-    send_to_char(ch, "Wholeness of Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Wholeness of Body Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRENEWEDVIGOR)))
-    send_to_char(ch, "Renewed Vigor Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Renewed Vigor Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRENEWEDDEFENSE)))
-    send_to_char(ch, "Renewed Defense Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Renewed Defense Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) /*no need for message if not grappling*/
     if ((pMudEvent = char_has_mud_event(k, eSTRUGGLE)))
-      send_to_char(ch, "Struggle Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+      send_to_char(ch, "Struggle Cooldown - Duration: %d seconds\r\n",
+                   (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTREATINJURY)))
-    send_to_char(ch, "Treat Injuries Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Treat Injuries Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEMPTYBODY)))
-    send_to_char(ch, "Empty Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Empty Body Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMUMMYDUST)))
-    send_to_char(ch, "Epic Spell Cooldown :  Mummy Dust - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Epic Spell Cooldown :  Mummy Dust - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRAGONKNIGHT)))
-    send_to_char(ch, "Epic Spell Cooldown :  Dragon Knight - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Epic Spell Cooldown :  Dragon Knight - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eGREATERRUIN)))
-    send_to_char(ch, "Epic Spell Cooldown :  Greater Ruin - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Epic Spell Cooldown :  Greater Ruin - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHELLBALL)))
-    send_to_char(ch, "Epic Spell Cooldown :  Hellball - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Epic Spell Cooldown :  Hellball - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEPICMAGEARMOR)))
-    send_to_char(ch, "Epic Spell Cooldown :  Epic Mage Armor - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Epic Spell Cooldown :  Epic Mage Armor - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEPICWARDING)))
-    send_to_char(ch, "Epic Spell Cooldown :  Epic Warding - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Epic Spell Cooldown :  Epic Warding - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eANIMATEDEAD)))
-    send_to_char(ch, "Animate Dead Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Animate Dead Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
-    send_to_char(ch, "Stunning Fist Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Stunning Fist Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSURPRISE_ACCURACY)))
-    send_to_char(ch, "Surprise Accuracy Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Surprise Accuracy Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOME_AND_GET_ME)))
-    send_to_char(ch, "Come and Get Me! Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Come and Get Me! Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePOWERFUL_BLOW)))
-    send_to_char(ch, "Powerful Blow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Powerful Blow Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEATHARROW)))
-    send_to_char(ch, "Death Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Death Arrow Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eQUIVERINGPALM)))
-    send_to_char(ch, "Quivering Palm Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Quivering Palm Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
-    send_to_char(ch, "Defensive Roll Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Defensive Roll Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLICH_REJUV)))
-    send_to_char(ch, "Lich Rejuvenation Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Lich Rejuvenation Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAST_WORD)))
-    send_to_char(ch, "Last Word Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Last Word Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
-    send_to_char(ch, "Purify Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Purify Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
-    send_to_char(ch, "Call Companion Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Call Companion Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_DRAGONMOUNT)))
-    send_to_char(ch, "Call Dragon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Call Dragon Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_EIDOLON)))
-    send_to_char(ch, "Call Eidolon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Call Eidolon Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
-    send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
-    send_to_char(ch, "Call Mount Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Call Mount Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSUMMONSHADOW)))
-    send_to_char(ch, "Call Shadow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Call Shadow Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMBUE_ARROW)))
-    send_to_char(ch, "Imbue Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Imbue Arrow Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eARROW_SWARM)))
-    send_to_char(ch, "Arrow Swarm Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Arrow Swarm Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMANYSHOT)))
-    send_to_char(ch, "Manyshot Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Manyshot Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSEEKER_ARROW)))
-    send_to_char(ch, "Seeker Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Seeker Arrow Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_EVIL)))
-    send_to_char(ch, "Smite Evil Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Smite Evil Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_GOOD)))
-    send_to_char(ch, "Smite Good Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Smite Good Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_DESTRUCTION)))
-    send_to_char(ch, "Smite Destruction Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Smite Destruction Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePERFORM)))
-    send_to_char(ch, "Perform Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Perform Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTURN_UNDEAD)))
-    send_to_char(ch, "Turn Undead Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Turn Undead Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSPELLBATTLE)))
-    send_to_char(ch, "Spellbattle Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Spellbattle Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eWILD_SHAPE)))
-    send_to_char(ch, "Wild Shape Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Wild Shape Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
-    send_to_char(ch, "Shield Recovery Cooldown  - Duration %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Shield Recovery Cooldown  - Duration %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLIGHTNING_ARC)))
-    send_to_char(ch, "Lightning Arc Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Lightning Arc Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACID_DART)))
-    send_to_char(ch, "Acid Dart Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Acid Dart Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eFIRE_BOLT)))
-    send_to_char(ch, "Fire Bolt Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Fire Bolt Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eICICLE)))
-    send_to_char(ch, "Icicle Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Icicle Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCURSE_TOUCH)))
-    send_to_char(ch, "Curse Touch Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Curse Touch Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDESTRUCTIVE_AURA)))
-    send_to_char(ch, "Destructive Aura Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Destructive Aura Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEVIL_TOUCH)))
-    send_to_char(ch, "Evil Touch Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Evil Touch Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eGOOD_TOUCH)))
-    send_to_char(ch, "Good Touch Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Good Touch Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHEALING_TOUCH)))
-    send_to_char(ch, "Healing Touch Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Healing Touch Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCURING_TOUCH)))
-    send_to_char(ch, "Curing Touch Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Curing Touch Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEYE_OF_KNOWLEDGE)))
-    send_to_char(ch, "Eye of Knowledge Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Eye of Knowledge Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eBLESSED_TOUCH)))
-    send_to_char(ch, "Blessed Touch Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Blessed Touch Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOPYCAT)))
-    send_to_char(ch, "Copycat Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Copycat Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMASS_INVIS)))
-    send_to_char(ch, "Mass Invis Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Mass Invis Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eAURA_OF_PROTECTION)))
-    send_to_char(ch, "Aura of Protection Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Aura of Protection Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eBATTLE_RAGE)))
-    send_to_char(ch, "Battle Rage Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Battle Rage Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACBREATH)))
-    send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACCLAWS)))
-    send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRAGBREATH)))
-    send_to_char(ch, "Dragon Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Dragon Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCATSCLAWS)))
-    send_to_char(ch, "Tabaxi Cats Claws Attack Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-  
+    send_to_char(ch, "Tabaxi Cats Claws Attack Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
+
   /* Wizard Evoker perk cooldowns */
-  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.maximize_spell_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) &&
+      k->player_specials->saved.maximize_spell_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.maximize_spell_cooldown - time(0));
     send_to_char(ch, "Maximize Spell (Free) Cooldown  - Duration: %d seconds\r\n", remaining);
   }
-  
+
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_perk(k, PERK_WIZARD_EMPOWER_SPELL))
   {
     /* Force regeneration check */
     can_use_empower_spell_perk(k);
-    
+
     int uses = k->player_specials->saved.empower_spell_uses;
     send_to_char(ch, "Empower Spell (Free) Uses: %d/2", uses);
-    
+
     if (uses < 2 && k->player_specials->saved.empower_spell_cooldown > time(0))
     {
       int remaining = (int)(k->player_specials->saved.empower_spell_cooldown - time(0));
@@ -2242,21 +2360,21 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\r\n");
     }
   }
-  
+
   /* Wizard Controller perk cooldowns */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_perk(k, PERK_WIZARD_PERSISTENT_SPELL))
   {
     /* Force regeneration check */
     can_use_persistent_spell_perk(k);
-    
+
     int uses = k->player_specials->saved.persistent_spell_uses;
     send_to_char(ch, "Persistent Spell Uses: %d/2", uses);
-    
+
     if (k->player_specials->saved.persistent_spell_active)
     {
       send_to_char(ch, " \tc[ACTIVE - Next spell requires double save!]\tn");
     }
-    
+
     if (uses < 2 && k->player_specials->saved.persistent_spell_cooldown > time(0))
     {
       int remaining = (int)(k->player_specials->saved.persistent_spell_cooldown - time(0));
@@ -2267,30 +2385,31 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\r\n");
     }
   }
-  
+
   /* Druid Elemental Mastery cooldown */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_druid_elemental_mastery(k))
   {
     if (k->player_specials->saved.elemental_mastery_active)
     {
-      send_to_char(ch, "Elemental Mastery: \tG[READY - ACTIVE]\tn - Next elemental spell will maximize!\r\n");
+      send_to_char(
+          ch,
+          "Elemental Mastery: \tG[READY - ACTIVE]\tn - Next elemental spell will maximize!\r\n");
     }
     else if (k->player_specials->saved.elemental_mastery_cooldown > time(0))
     {
       int remaining = (int)(k->player_specials->saved.elemental_mastery_cooldown - time(0));
       int minutes = remaining / 60;
       int seconds = remaining % 60;
-      
+
       if (minutes > 0)
       {
-        send_to_char(ch, "Elemental Mastery Cooldown: %d minute%s, %d second%s\r\n",
-                     minutes, minutes == 1 ? "" : "s",
-                     seconds, seconds == 1 ? "" : "s");
+        send_to_char(ch, "Elemental Mastery Cooldown: %d minute%s, %d second%s\r\n", minutes,
+                     minutes == 1 ? "" : "s", seconds, seconds == 1 ? "" : "s");
       }
       else
       {
-        send_to_char(ch, "Elemental Mastery Cooldown: %d second%s\r\n",
-                     seconds, seconds == 1 ? "" : "s");
+        send_to_char(ch, "Elemental Mastery Cooldown: %d second%s\r\n", seconds,
+                     seconds == 1 ? "" : "s");
       }
     }
     else
@@ -2298,13 +2417,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "Elemental Mastery: \tG[READY]\tn - Use 'elementalmastery' to activate\r\n");
     }
   }
-  
-  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.split_enchantment_cooldown > time(0))
+
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) &&
+      k->player_specials->saved.split_enchantment_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.split_enchantment_cooldown - time(0));
     send_to_char(ch, "Split Enchantment Cooldown  - Duration: %d seconds\r\n", remaining);
   }
-  
+
   /* Wizard Controller perk: Defensive Casting - show if active */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.defensive_casting_timer > 0)
   {
@@ -2312,7 +2432,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
                  k->player_specials->saved.defensive_casting_timer,
                  k->player_specials->saved.defensive_casting_timer == 1 ? "" : "s");
   }
-  
+
   /* Wizard Versatile Caster perk: Spell Shield - show if active */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.spell_shield_timer > 0)
   {
@@ -2320,54 +2440,57 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
                  k->player_specials->saved.spell_shield_timer,
                  k->player_specials->saved.spell_shield_timer == 1 ? "" : "s");
   }
-  
+
   /* Spell Shield cooldown */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.spell_shield_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.spell_shield_cooldown - time(0));
     send_to_char(ch, "Spell Shield Cooldown  - Duration: %d seconds\r\n", remaining);
   }
-  
+
   /* Monk Void Strike - show if active */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.void_strike_timer > 0)
   {
-    send_to_char(ch, "\tMVoid Strike Active\tn - Next attack: +8d6 force, ignores DR for %d round%s\r\n",
-                 k->player_specials->saved.void_strike_timer,
-                 k->player_specials->saved.void_strike_timer == 1 ? "" : "s");
+    send_to_char(
+        ch, "\tMVoid Strike Active\tn - Next attack: +8d6 force, ignores DR for %d round%s\r\n",
+        k->player_specials->saved.void_strike_timer,
+        k->player_specials->saved.void_strike_timer == 1 ? "" : "s");
   }
-  
+
   /* Void Strike cooldown */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.void_strike_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.void_strike_cooldown - time(0));
     send_to_char(ch, "Void Strike Cooldown  - Duration: %d seconds\r\n", remaining);
   }
-  
+
   /* Clench of the North Wind cooldown */
-  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.clench_of_north_wind_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) &&
+      k->player_specials->saved.clench_of_north_wind_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.clench_of_north_wind_cooldown - time(0));
     send_to_char(ch, "Clench of the North Wind Cooldown  - Duration: %d seconds\r\n", remaining);
   }
-  
+
   /* Arcane Recovery cooldown */
-  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.arcane_recovery_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) &&
+      k->player_specials->saved.arcane_recovery_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.arcane_recovery_cooldown - time(0));
     send_to_char(ch, "Arcane Recovery Cooldown  - Duration: %d seconds\r\n", remaining);
   }
-  
+
   /* Metamagic Reduction uses (Metamagic Master I/II + Archmage's Power) */
-  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && (has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_I) || 
-                     has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_II) ||
-                     has_perk(k, PERK_WIZARD_ARCHMAGES_POWER)))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) &&
+      (has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_I) ||
+       has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_II) || has_perk(k, PERK_WIZARD_ARCHMAGES_POWER)))
   {
     /* Force regeneration check */
     can_use_metamagic_reduction(k);
-    
+
     int uses = k->player_specials->saved.metamagic_reduction_uses;
     send_to_char(ch, "Metamagic Reduction Uses: %d/2", uses);
-    
+
     if (uses < 2 && k->player_specials->saved.metamagic_reduction_cooldown > time(0))
     {
       int remaining = (int)(k->player_specials->saved.metamagic_reduction_cooldown - time(0));
@@ -2378,74 +2501,105 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\r\n");
     }
   }
-  
+
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
-    send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))
-    send_to_char(ch, "Enlarge Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Enlarge Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_INVIS)))
-    send_to_char(ch, "Invisibility Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Invisibility Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCHANNELSPELL)))
-    send_to_char(ch, "Channel Spell Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Channel Spell Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePSIONICFOCUS)))
-    send_to_char(ch, "Psionic Focus Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Psionic Focus Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDOUBLEMANIFEST)))
-    send_to_char(ch, "Double Manifest Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Double Manifest Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWILLUSION)))
-    send_to_char(ch, "Shadow Illusion Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Shadow Illusion Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWCALL)))
-    send_to_char(ch, "Shadow Call Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Shadow Call Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWPOWER)))
-    send_to_char(ch, "Shadow Power Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Shadow Power Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWJUMP)))
-    send_to_char(ch, "Shadow Jump Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Shadow Jump Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTOUCHOFCORRUPTION)))
-    send_to_char(ch, "Touch of Corruption Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Touch of Corruption Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTOUCHOFUNDEATH)))
-    send_to_char(ch, "Touch of Undeath Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Touch of Undeath Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCHANNELENERGY)))
-    send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEVOBREATH)))
-    send_to_char(ch, "Eidolon Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Eidolon Breath Weapon Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTRENGTHOFHONOR)))
-    send_to_char(ch, "Strength of Honor Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Strength of Honor Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCROWNOFKNIGHTHOOD)))
-    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSOULOFKNIGHTHOOD)))
-    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOSMICUNDERSTANDING)))
-    send_to_char(ch, "Cosmic Understanding Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Cosmic Understanding Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRAGOONPOINTS)))
-    send_to_char(ch, "Dragoon Points Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Dragoon Points Cooldown  - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
-    send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n", GET_SETCLOAK_TIMER(ch) * 6);
+    send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n",
+                 GET_SETCLOAK_TIMER(ch) * 6);
   if (PIXIE_DUST_TIMER(ch) > 0)
     send_to_char(ch, "Pixie Dust Cooldown - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
   if (EFREETI_MAGIC_TIMER(ch) > 0)
-    send_to_char(ch, "Efreeti Magic Cooldown - Duration: %d seconds\r\n", EFREETI_MAGIC_TIMER(ch) * 6);
+    send_to_char(ch, "Efreeti Magic Cooldown - Duration: %d seconds\r\n",
+                 EFREETI_MAGIC_TIMER(ch) * 6);
   if (DRAGON_MAGIC_TIMER(ch) > 0)
-    send_to_char(ch, "Dragon Magic Cooldown - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
+    send_to_char(ch, "Dragon Magic Cooldown - Duration: %d seconds\r\n",
+                 DRAGON_MAGIC_TIMER(ch) * 6);
   if (LAUGHING_TOUCH_TIMER(ch) > 0)
-    send_to_char(ch, "Laughing Touch Cooldown - Duration: %d seconds\r\n", LAUGHING_TOUCH_TIMER(ch) * 6);
+    send_to_char(ch, "Laughing Touch Cooldown - Duration: %d seconds\r\n",
+                 LAUGHING_TOUCH_TIMER(ch) * 6);
   if (FLEETING_GLANCE_TIMER(ch) > 0)
-    send_to_char(ch, "Fleeting Glance Cooldown - Duration: %d seconds\r\n", FLEETING_GLANCE_TIMER(ch) * 6);
+    send_to_char(ch, "Fleeting Glance Cooldown - Duration: %d seconds\r\n",
+                 FLEETING_GLANCE_TIMER(ch) * 6);
   if (FEY_SHADOW_WALK_TIMER(ch) > 0)
-    send_to_char(ch, "Fey Shadow Walk Cooldown - Duration: %d seconds\r\n", FEY_SHADOW_WALK_TIMER(ch) * 6);
+    send_to_char(ch, "Fey Shadow Walk Cooldown - Duration: %d seconds\r\n",
+                 FEY_SHADOW_WALK_TIMER(ch) * 6);
   if (GRAVE_TOUCH_TIMER(ch) > 0)
     send_to_char(ch, "Grave Touch Cooldown - Duration: %d seconds\r\n", GRAVE_TOUCH_TIMER(ch) * 6);
   if (GRASP_OF_THE_DEAD_TIMER(ch) > 0)
-    send_to_char(ch, "Grasp of the Dead Cooldown - Duration: %d seconds\r\n", GRASP_OF_THE_DEAD_TIMER(ch) * 6);
+    send_to_char(ch, "Grasp of the Dead Cooldown - Duration: %d seconds\r\n",
+                 GRASP_OF_THE_DEAD_TIMER(ch) * 6);
   if (INCORPOREAL_FORM_TIMER(ch) > 0)
-    send_to_char(ch, "Incorporeal Form (Undead Bloodline) Cooldown - Duration: %d seconds\r\n", INCORPOREAL_FORM_TIMER(ch) * 6);
+    send_to_char(ch, "Incorporeal Form (Undead Bloodline) Cooldown - Duration: %d seconds\r\n",
+                 INCORPOREAL_FORM_TIMER(ch) * 6);
   if (GET_MISSION_COOLDOWN(k) > 0)
-    send_to_char(ch, "Mission Ready Cooldown - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
+    send_to_char(ch, "Mission Ready Cooldown - Duration: %d seconds\r\n",
+                 GET_MISSION_COOLDOWN(k) * 6);
   if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) > 0)
-    send_to_char(ch, "Kapak Saliva Healing - Duration: %d seconds\r\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
+    send_to_char(ch, "Kapak Saliva Healing - Duration: %d seconds\r\n",
+                 GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
   if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) > 0)
-    send_to_char(ch, "Fight to the Death - Duration: %d seconds\r\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) * 6);
+    send_to_char(ch, "Fight to the Death - Duration: %d seconds\r\n",
+                 GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) * 6);
   if (ch->char_specials.terror_cooldown > 0)
-    send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",  ch->char_specials.terror_cooldown * 6);
+    send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",
+                 ch->char_specials.terror_cooldown * 6);
   if (GET_FORAGE_COOLDOWN(k) > 0)
     send_to_char(ch, "Forage - Duration: %d seconds\r\n", GET_FORAGE_COOLDOWN(k) * 6);
   if (GET_RETAINER_COOLDOWN(k) > 0)
@@ -2453,9 +2607,11 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   if (GET_SCROUNGE_COOLDOWN(k) > 0)
     send_to_char(ch, "Scrounge - Duration: %d seconds\r\n", GET_SCROUNGE_COOLDOWN(k) * 6);
   if (GET_SPIRITUAL_WEAPON_COOLDOWN(k) > 0)
-    send_to_char(ch, "Spiritual Weapon - Duration: %d seconds\r\n", GET_SPIRITUAL_WEAPON_COOLDOWN(k) * 6);
+    send_to_char(ch, "Spiritual Weapon - Duration: %d seconds\r\n",
+                 GET_SPIRITUAL_WEAPON_COOLDOWN(k) * 6);
   if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(k) > 0)
-    send_to_char(ch, "Irresistible Magic - Duration: %d seconds\r\n", GET_IRRESISTIBLE_MAGIC_COOLDOWN(k) * 6);
+    send_to_char(ch, "Irresistible Magic - Duration: %d seconds\r\n",
+                 GET_IRRESISTIBLE_MAGIC_COOLDOWN(k) * 6);
   if (GET_QUICK_CAST_COOLDOWN(k) > 0)
     send_to_char(ch, "Quick Cast - Duration: %d seconds\r\n", GET_QUICK_CAST_COOLDOWN(k) * 6);
   if (GET_SPELL_RECALL_COOLDOWN(k) > 0)
@@ -2472,8 +2628,9 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     if (seconds_remaining < 60)
       snprintf(timebuf, sizeof(timebuf), "%d seconds", seconds_remaining);
     else
-      snprintf(timebuf, sizeof(timebuf), "%d minutes and %d seconds", (seconds_remaining / 60), (seconds_remaining % 60));
-    
+      snprintf(timebuf, sizeof(timebuf), "%d minutes and %d seconds", (seconds_remaining / 60),
+               (seconds_remaining % 60));
+
     if (seconds_remaining > 0)
       send_to_char(ch, "PvP Flag Cooldown - Duration: %s\r\n", timebuf);
   }
@@ -2514,10 +2671,11 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
 
   for (i = 0; i < NUM_DAM_TYPES - 1; i++)
   {
-    if (can_dam_be_resisted(i+1))
+    if (can_dam_be_resisted(i + 1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(k, i + 1, NULL, TYPE_UNDEFINED), compute_energy_absorb(k, i + 1));
+                   compute_damtype_reduction(k, i + 1, NULL, TYPE_UNDEFINED),
+                   compute_energy_absorb(k, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -2549,14 +2707,12 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     if (dr->spell != SPELL_RESERVED_DBC)
     {
       /* This is from a spell */
-      send_to_char(ch, "%s%-19s%s ",
-                   CCCYN(ch, C_NRM), spell_name(dr->spell), CCNRM(ch, C_NRM));
+      send_to_char(ch, "%s%-19s%s ", CCCYN(ch, C_NRM), spell_name(dr->spell), CCNRM(ch, C_NRM));
     }
     else if (dr->feat != FEAT_UNDEFINED)
     {
       /* This is from a feat */
-      send_to_char(ch, "%s%-19s%s ",
-                   CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));
+      send_to_char(ch, "%s%-19s%s ", CCCYN(ch, C_NRM), feat_list[dr->feat].name, CCNRM(ch, C_NRM));
     }
 
     send_to_char(ch, "DR %d/", dr->amount);
@@ -2592,7 +2748,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
       }
     }
     if (dr->max_damage > 0)
-     send_to_char(ch, " %d damage left", dr->max_damage);
+      send_to_char(ch, " %d damage left", dr->max_damage);
     send_to_char(ch, "\r\n");
     dr = dr->next;
   }
@@ -2651,18 +2807,16 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   {
     if (IS_SET_AR(AFF_FLAGS(k), i))
     {
-      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n",
-                   CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
-                   CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
+      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n", CCNRM(ch, C_NRM), affected_bits[i],
+                   CCNRM(ch, C_NRM), CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
     }
   }
   for (i = 0; i < NUM_AFF2_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(k), i))
     {
-      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n",
-                   CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
-                   CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
+      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n", CCNRM(ch, C_NRM), affected_bits[i],
+                   CCNRM(ch, C_NRM), CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
     }
   }
 
@@ -2703,20 +2857,23 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     {
       if (aff->duration + 1 >= 900)
       { // how many rounds in an hour?
-        snprintf(buf, sizeof(buf), "[%2d hour%s   ] ", (int)((aff->duration + 1) / 900), ((int)((aff->duration + 1) / 900) > 1 ? "s" : " "));
+        snprintf(buf, sizeof(buf), "[%2d hour%s   ] ", (int)((aff->duration + 1) / 900),
+                 ((int)((aff->duration + 1) / 900) > 1 ? "s" : " "));
       }
       else if (aff->duration + 1 >= 15)
       { // how many rounds in a minute?
-        snprintf(buf, sizeof(buf), "[%2d minute%s ] ", (int)((aff->duration + 1) / 15), ((int)((aff->duration + 1) / 15) > 1 ? "s" : " "));
+        snprintf(buf, sizeof(buf), "[%2d minute%s ] ", (int)((aff->duration + 1) / 15),
+                 ((int)((aff->duration + 1) / 15) > 1 ? "s" : " "));
       }
       else
       { // rounds
-        snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
+        snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1),
+                 ((aff->duration + 1) > 1 ? "s" : " "));
       }
 
       /* name */
-      snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-               CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
+      snprintf(buf2, sizeof(buf2), "%s%-25s%s ", CCCYN(ch, C_NRM), spell_info[aff->spell].name,
+               CCNRM(ch, C_NRM));
       strlcat(buf, buf2, sizeof(buf));
 
       buf2[0] = '\0';
@@ -2727,11 +2884,13 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       }
       else if (aff->location == APPLY_SKILL)
       {
-        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier, apply_types[(int)aff->location], ability_names[aff->specific]);
+        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier,
+                 apply_types[(int)aff->location], ability_names[aff->specific]);
       }
       else if (aff->location >= APPLY_SPELL_CIRCLE_1 && aff->location <= APPLY_SPELL_CIRCLE_9)
       {
-        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier, apply_types[(int)aff->location], class_names[aff->specific]);
+        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier,
+                 apply_types[(int)aff->location], class_names[aff->specific]);
       }
       else if (aff->location == APPLY_SPELL_POTENCY || aff->location == APPLY_SPELL_DURATION)
       {
@@ -2742,8 +2901,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
         snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
       }
 
-      if (aff->bitvector[0] || aff->bitvector[1] ||
-          aff->bitvector[2] || aff->bitvector[3])
+      if (aff->bitvector[0] || aff->bitvector[1] || aff->bitvector[2] || aff->bitvector[3])
       {
         snprintf(buf2, sizeof(buf2), "%s (see affected by)", ((aff->modifier) ? ", " : ""));
         strlcat(buf3, buf2, sizeof(buf3));
@@ -2802,38 +2960,51 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   if ((pMudEvent = char_has_mud_event(k, eVANISH)))
-    send_to_char(ch, "\tRVanished!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRVanished!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINTIMIDATED)))
-    send_to_char(ch, "\tRIntimidated!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRIntimidated!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
-    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNED)))
-    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
-    send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eAQUEOUSORB)))
-    send_to_char(ch, "\tRAqueous Orb!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRAqueous Orb!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHOLYJAVELIN)))
-    send_to_char(ch, "\tRHoly Javelin!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRHoly Javelin!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
-    send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
-    send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
+    send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n",
+                 ch->player_specials->concussive_onslaught_duration);
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
-    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
 
   /* Power Strike display */
   if (!IS_NPC(k) && GET_POWER_STRIKE(k) > 0)
   {
     int value = GET_POWER_STRIKE(k);
-    send_to_char(ch, "Power Strike (Monk): -%d to hit, +%d to damage on unarmed/monk weapon attacks\r\n", 
-                 value, value * 2);
+    send_to_char(
+        ch, "Power Strike (Monk): -%d to hit, +%d to damage on unarmed/monk weapon attacks\r\n",
+        value, value * 2);
   }
 
   if (vampire_last_feeding_adjustment(k) > 0)
-    send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
+    send_to_char(ch,
+                 "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
   if (vampire_last_feeding_adjustment(k) < 0)
-    send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
+    send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP "
+                     "BLOOD STARVED.\r\n");
 
   send_to_char(ch, "\tC");
   draw_line(ch, 90, '-', '-');
@@ -2914,10 +3085,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 {
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
-  const char *const how_far[] = {
-      "close by",
-      "a ways off",
-      "far off to the"};
+  const char *const how_far[] = {"close by", "a ways off", "far off to the"};
 
   struct char_data *i;
   int count = 0;
@@ -2939,7 +3107,6 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 
   for (i = list; i; i = i->next_in_room)
   {
-
     /* make sure to add changes to the if statement above to this one also, using
        or's to join them.. i.e.,
        if (!CAN_SEE(ch, i) || !condition2 || !condition3) */
@@ -2990,39 +3157,56 @@ ACMD(do_masterlist)
   else if (is_abbrev(argument, "spells"))
   {
     /* Support subcommands: next|prev|page N|quit for pager navigation */
-    char *sub = (char *) argument + strlen("spells");
-    while (*sub == ' ') sub++;
-    if (!*sub) {
+    char *sub = (char *)argument + strlen("spells");
+    while (*sub == ' ')
+      sub++;
+    if (!*sub)
+    {
       perform_master_spell_list(ch);
       return;
     }
-    if (!ch->desc) {
+    if (!ch->desc)
+    {
       send_to_char(ch, "No descriptor attached for paging.\r\n");
       return;
     }
-    if (!ch->desc->showstr_vector || ch->desc->showstr_count == 0) {
+    if (!ch->desc->showstr_vector || ch->desc->showstr_count == 0)
+    {
       perform_master_spell_list(ch);
     }
-    if (is_abbrev(sub, "next")) {
+    if (is_abbrev(sub, "next"))
+    {
       show_string(ch->desc, "");
       return;
-    } else if (is_abbrev(sub, "prev")) {
+    }
+    else if (is_abbrev(sub, "prev"))
+    {
       show_string(ch->desc, "r");
       return;
-    } else if (is_abbrev(sub, "quit")) {
+    }
+    else if (is_abbrev(sub, "quit"))
+    {
       show_string(ch->desc, "q");
       return;
-    } else if (is_abbrev(sub, "page")) {
+    }
+    else if (is_abbrev(sub, "page"))
+    {
       char *p = sub + strlen("page");
-      while (*p == ' ') p++;
-      if (isdigit(*p)) {
+      while (*p == ' ')
+        p++;
+      if (isdigit(*p))
+      {
         show_string(ch->desc, p);
         return;
-      } else {
+      }
+      else
+      {
         send_to_char(ch, "Usage: masterlist spells page <number>\r\n");
         return;
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Valid: masterlist spells [next|prev|page N|quit]\r\n");
       return;
     }
@@ -3041,12 +3225,15 @@ ACMD(do_masterlist)
     /* Guard against out-of-range indices before accessing spell_info */
     if (i < 0)
       continue;
-    if (is_spells) {
+    if (is_spells)
+    {
       if (i >= NUM_SPELLS)
         continue;
       if (spell_info[i].min_position == POS_DEAD)
         continue;
-    } else {
+    }
+    else
+    {
       if (i < START_SKILLS || i > TOP_SKILL_DEFINE)
         continue;
     }
@@ -3097,7 +3284,8 @@ ACMD(do_look)
         send_to_char(ch, "Read what?\r\n");
       else
       {
-        generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
+        generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch,
+                     &tmp_char, &tmp_object);
         if (tmp_object)
           look_at_target(ch, arg);
         else
@@ -3132,8 +3320,7 @@ ACMD(do_look)
       {
         if (*i->keyword != '.')
         {
-          send_to_char(ch, "%s%s:\r\n%s",
-                       (found ? "\r\n" : ""), i->keyword, i->description);
+          send_to_char(ch, "%s%s:\r\n%s", (found ? "\r\n" : ""), i->keyword, i->description);
           found = 1;
         }
       }
@@ -3164,7 +3351,8 @@ ACMD(do_examine)
   /* look_at_target() eats the number. */
   look_at_target(ch, tempsave);
 
-  generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
+  generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char,
+               &tmp_object);
 
   if (tmp_object)
   {
@@ -3196,7 +3384,7 @@ ACMD(do_gold)
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
 
-char * get_ability_command_feat_name(int i)
+char *get_ability_command_feat_name(int i)
 {
   if (i == FEAT_STUNNING_FIST)
     return strdup("ki points");
@@ -3238,12 +3426,9 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
       snprintf(buf, sizeof(buf), "%s", feat_types[feat_list[i].feat_type]);
       remaining = daily_uses_remaining(k, i);
       total = get_daily_uses(k, i);
-      send_to_char(ch,
-                   "%-30s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
-                   get_ability_command_feat_name(i),
-                   buf,
-                   (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
-                   remaining,
+      send_to_char(ch, "%-30s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
+                   get_ability_command_feat_name(i), buf,
+                   (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")), remaining,
                    total);
     }
     buf[0] = '\0';
@@ -3297,97 +3482,107 @@ ACMD(do_abilities)
 ACMD(do_kipoints)
 {
   int max_ki = 0, current_ki = 0;
-  
+
   /* Check if character has stunning fist feat (ki points) */
   if (!HAS_FEAT(ch, FEAT_STUNNING_FIST))
   {
     send_to_char(ch, "You have not yet learned to harness your ki.\r\n");
     return;
   }
-  
+
   max_ki = get_daily_uses(ch, FEAT_STUNNING_FIST);
   current_ki = daily_uses_remaining(ch, FEAT_STUNNING_FIST);
-  
-  send_to_char(ch, "\tC+===================================================================================+\tn\r\n");
-  send_to_char(ch, "\tC|                                 \tWKI POINTS\tC                                         |\tn\r\n");
-  send_to_char(ch, "\tC+===================================================================================+\tn\r\n");
+
+  send_to_char(ch, "\tC+==========================================================================="
+                   "========+\tn\r\n");
+  send_to_char(ch, "\tC|                                 \tWKI POINTS\tC                           "
+                   "              |\tn\r\n");
+  send_to_char(ch, "\tC+==========================================================================="
+                   "========+\tn\r\n");
   send_to_char(ch, " \tYCurrent:\tn %-3d / %-3d\r\n", current_ki, max_ki);
-  send_to_char(ch, "\tC+===================================================================================+\tn\r\n");
-  send_to_char(ch, "\tC|                               \tWKI ABILITIES\tC                                        |\tn\r\n");
-  send_to_char(ch, "\tC+===================================================================================+\tn\r\n");
+  send_to_char(ch, "\tC+==========================================================================="
+                   "========+\tn\r\n");
+  send_to_char(ch, "\tC|                               \tWKI ABILITIES\tC                          "
+                   "              |\tn\r\n");
+  send_to_char(ch, "\tC+==========================================================================="
+                   "========+\tn\r\n");
   send_to_char(ch, " Legend: [\tG*\tn]=Known  [\tD-\tn]=Unknown\r\n");
-  send_to_char(ch, "\tC+--+-------------------------+--------------------+---------------------------------+\tn\r\n");
-  send_to_char(ch, "\tC|\tn  \tC|\tn %-23s \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n", "Name", "Command", "Description");
-  send_to_char(ch, "\tC+--+-------------------------+--------------------+---------------------------------+\tn\r\n");
-  
+  send_to_char(ch, "\tC+--+-------------------------+--------------------+-------------------------"
+                   "--------+\tn\r\n");
+  send_to_char(ch, "\tC|\tn  \tC|\tn %-23s \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n", "Name",
+               "Command", "Description");
+  send_to_char(ch, "\tC+--+-------------------------+--------------------+-------------------------"
+                   "--------+\tn\r\n");
+
   /* Core Ki Strike */
   send_to_char(ch, "\tC|\tn\tG*\tn \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                "Stunning Fist", "stunningfist", "Stun opponent w/unarmed atk");
-  
+
   /* Path of the Iron Fist abilities */
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_crushing_blow(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Crushing Blow", "crushingblow", "+4d6 damage, ignores 10 DR");
-  
+               has_monk_crushing_blow(ch) ? "\tG*\tn" : "\tD-\tn", "Crushing Blow", "crushingblow",
+               "+4d6 damage, ignores 10 DR");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_shattering_strike(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Shattering Strike", "shatteringstrike", "+8d8 damage on next attack");
-  
+               has_monk_shattering_strike(ch) ? "\tG*\tn" : "\tD-\tn", "Shattering Strike",
+               "shatteringstrike", "+8d8 damage on next attack");
+
   /* Way of the Shadow abilities */
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_vanishing_technique(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Vanishing Technique", "vanishingtechnique", "Cast invisibility on self");
-  
+               has_monk_vanishing_technique(ch) ? "\tG*\tn" : "\tD-\tn", "Vanishing Technique",
+               "vanishingtechnique", "Cast invisibility on self");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_shadow_clone(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Shadow Clone", "shadowclone", "Cast mirror image");
-  
+               has_monk_shadow_clone(ch) ? "\tG*\tn" : "\tD-\tn", "Shadow Clone", "shadowclone",
+               "Cast mirror image");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_smoke_bomb(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Smoke Bomb", "smokebomb", "Cast darkness");
-  
+               has_monk_smoke_bomb(ch) ? "\tG*\tn" : "\tD-\tn", "Smoke Bomb", "smokebomb",
+               "Cast darkness");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_blinding_speed(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Blinding Speed", "blindingspeed", "Cast haste");
-  
+               has_monk_blinding_speed(ch) ? "\tG*\tn" : "\tD-\tn", "Blinding Speed",
+               "blindingspeed", "Cast haste");
+
   /* Way of the Four Elements abilities */
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_fangs_of_fire_snake(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Fangs of Fire Snake", "firesnake", "+1d6 fire damage (1 min)");
-  
+               has_monk_fangs_of_fire_snake(ch) ? "\tG*\tn" : "\tD-\tn", "Fangs of Fire Snake",
+               "firesnake", "+1d6 fire damage (1 min)");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_water_whip(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Water Whip", "waterwhip", "4d6 water damage + entangle");
-  
+               has_monk_water_whip(ch) ? "\tG*\tn" : "\tD-\tn", "Water Whip", "waterwhip",
+               "4d6 water damage + entangle");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_gong_of_summit(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Gong of Summit", "gongsummit", "4d6 sound damage + deafen");
-  
+               has_monk_gong_of_summit(ch) ? "\tG*\tn" : "\tD-\tn", "Gong of Summit", "gongsummit",
+               "4d6 sound damage + deafen");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                get_monk_fist_of_unbroken_air_rank(ch) > 0 ? "\tG*\tn" : "\tD-\tn",
                "Fist of Unbroken Air", "fistair", "(2d6+2)xRank force AoE + prone");
-  
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_shape_flowing_river(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Shape Flowing River", "shaperiver", "Water movement bonus");
-  
+               has_monk_shape_flowing_river(ch) ? "\tG*\tn" : "\tD-\tn", "Shape Flowing River",
+               "shaperiver", "Water movement bonus");
+
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                has_monk_sweeping_cinder_strike(ch) ? "\tG*\tn" : "\tD-\tn",
                "Sweeping Cinder Strike", "sweepingcinder", "Fire AOE attack");
-  
-  send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_rush_of_gale_spirits(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Rush of Gale Spirits", "gale", "Wind movement bonus");
-  
-  send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_clench_north_wind(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Clench North Wind", "northwind", "Cold hold effect");
 
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
-               has_monk_void_strike(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Void Strike", "voidstrike", "Ignores DR, +8d6 (1min cd)");
-  
-  send_to_char(ch, "\tC+--+-------------------------+--------------------+---------------------------------+\tn\r\n");
+               has_monk_rush_of_gale_spirits(ch) ? "\tG*\tn" : "\tD-\tn", "Rush of Gale Spirits",
+               "gale", "Wind movement bonus");
+
+  send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
+               has_monk_clench_north_wind(ch) ? "\tG*\tn" : "\tD-\tn", "Clench North Wind",
+               "northwind", "Cold hold effect");
+
+  send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
+               has_monk_void_strike(ch) ? "\tG*\tn" : "\tD-\tn", "Void Strike", "voidstrike",
+               "Ignores DR, +8d6 (1min cd)");
+
+  send_to_char(ch, "\tC+--+-------------------------+--------------------+-------------------------"
+                   "--------+\tn\r\n");
   send_to_char(ch, " \tYNote:\tn Ki points are recovered over time. Use abilities wisely!\r\n");
 }
 
@@ -3640,13 +3835,13 @@ ACMD(do_affects)
   {
     /* Try to find the target */
     vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
-    
+
     if (!vict)
     {
       send_to_char(ch, "You don't see anyone by that name here.\r\n");
       return;
     }
-    
+
     /* Check permissions to view target's affects */
     if (vict != ch)
     {
@@ -3666,7 +3861,8 @@ ACMD(do_affects)
       }
       else
       {
-        send_to_char(ch, "You can only view affects on group members or your own charmed followers.\r\n");
+        send_to_char(
+            ch, "You can only view affects on group members or your own charmed followers.\r\n");
         return;
       }
     }
@@ -3704,8 +3900,10 @@ ACMD(do_damage)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC", line_length, '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-',
+              '-');
+    text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
+              line_length, '-', '-');
     text_line(ch, "\tYdamage hit|primary|offhand|ranged\tC", line_length, '-', '-');
     send_to_char(ch, "\tn");
 
@@ -3769,8 +3967,10 @@ ACMD(do_attacks)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC", line_length, '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-',
+              '-');
+    text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
+              line_length, '-', '-');
     text_line(ch, "\tYdamage hit|primary|offhand|ranged\tC", line_length, '-', '-');
     send_to_char(ch, "\tn");
 
@@ -3822,7 +4022,9 @@ ACMD(do_attacks)
   }
   else
   {
-    send_to_char(ch, "Valid arguments: unarmed/primary/offhand/ranged/bomb/psionic/primary-sneak/offhand-sneak/eldritch/twohand/evolution.\r\n");
+    send_to_char(ch, "Valid arguments: "
+                     "unarmed/primary/offhand/ranged/bomb/psionic/primary-sneak/offhand-sneak/"
+                     "eldritch/twohand/evolution.\r\n");
     return;
   }
 
@@ -3849,7 +4051,10 @@ ACMD(do_defenses)
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn\r\nNote that AC caps at %d, but having over %d is beneficial due to position changes and debuffs.\r\n", CONFIG_PLAYER_AC_CAP, CONFIG_PLAYER_AC_CAP);
+  send_to_char(ch,
+               "\tn\r\nNote that AC caps at %d, but having over %d is beneficial due to position "
+               "changes and debuffs.\r\n",
+               CONFIG_PLAYER_AC_CAP, CONFIG_PLAYER_AC_CAP);
   text_line(ch, "\tYFast Healing\tC", line_length, '-', '-');
   send_to_char(ch, "Fast Healing Amount: %d\r\n", get_fast_healing_amount(ch));
   send_to_char(ch, "\tC");
@@ -3860,10 +4065,10 @@ ACMD(do_defenses)
 /**
  * @file act.informative.c
  * @brief Implementation of the 'score' command
- * 
+ *
  * COMMAND: score
  * USAGE: score
- * 
+ *
  * The score command displays comprehensive character information including:
  *  - Basic identity (name, title, race, class, etc)
  *  - Vital statistics (HP, movement, speed)
@@ -3876,7 +4081,7 @@ ACMD(do_defenses)
  *  - Class-specific information (domains, bloodlines, schools)
  *  - Status conditions (hunger, thirst, intoxication)
  *  - Available class-specific commands
- * 
+ *
  * Example output:
  * -------------------------------Score Information--------------------------------
  * Name      : Leonidas             Title   : the distracted do-gooder
@@ -3897,7 +4102,7 @@ ACMD(do_defenses)
  * --------------------------------------------------------------------------------
  * Gold: 999615                      Gold in Bank : 0
  * --------------------------------------------------------------------------------
- * 
+ *
  * @param ch The character executing the command
  * @param argument Command arguments (unused - score takes no arguments)
  * @param cmd The command number
@@ -3905,33 +4110,32 @@ ACMD(do_defenses)
  */
 ACMD(do_score)
 {
- 
   /* ========================================================================= */
   /* VARIABLE DECLARATIONS                                                     */
   /* ========================================================================= */
-  
+
   /* String buffers for building output */
-  char buf[MAX_INPUT_LENGTH] = {'\0'};        /* General purpose string buffer */
-  char dname[SMALL_STRING] = {'\0'};          /* Deity name buffer */
-  
+  char buf[MAX_INPUT_LENGTH] = {'\0'}; /* General purpose string buffer */
+  char dname[SMALL_STRING] = {'\0'};   /* Deity name buffer */
+
   /* Character statistics and information */
-  struct time_info_data playing_time;         /* Time played calculation */
-  int calc_bab = 0;                           /* Base Attack Bonus */
-  int i = 0, counter = 0;                     /* Loop counters */
-  
+  struct time_info_data playing_time; /* Time played calculation */
+  int calc_bab = 0;                   /* Base Attack Bonus */
+  int i = 0, counter = 0;             /* Loop counters */
+
   /* Display formatting constants */
-  const int line_length = 80;                 /* Standard line width */
-  
+  const int line_length = 80; /* Standard line width */
+
   /* ========================================================================= */
   /* INITIALIZATION - Prepare data for display                                 */
   /* ========================================================================= */
-  
+
   /* Calculate Base Attack Bonus (capped at MAX_BAB) */
   calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
-  
+
   /* Get primary wielded weapon (moved to local scope where needed) */
   /* wielded = GET_EQ(ch, WEAR_WIELD_1); */
-  
+
   /* Determine weapon type (moved to local scope where needed) */
   /* if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) {
     w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
@@ -3942,161 +4146,172 @@ ACMD(do_score)
       w_type = TYPE_HIT;
     }
   } */
-  
+
   /* Calculate total time played */
-  playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
-                                   ch->player.time.played, 0);
-  
+  playing_time = *real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
+
   /* Convert height to inches (moved to display_vitals_section) */
   /* height = GET_HEIGHT(ch) * 0.393700787402; */
-  
+
   /* ========================================================================= */
   /* SECTION 1: BASIC IDENTITY INFORMATION                                     */
   /* ========================================================================= */
-  
+
   /* Start with cyan color and draw header */
   send_to_char(ch, "\tC");
   text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
-  
+
   /* Display name and title */
-  send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n",
-               GET_NAME(ch), 
+  send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n", GET_NAME(ch),
                GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
-  
+
 #if defined(CAMPAIGN_DL)
   /* Display race with bounds checking */
-  send_to_char(ch, "\tcRace : \tn%-20s ", 
-               (GET_RACE(ch) >= DL_RACE_START && GET_RACE(ch) < DL_RACE_END) ? 
-                 race_list[GET_RACE(ch)].type : "Unknown");
+  send_to_char(ch, "\tcRace : \tn%-20s ",
+               (GET_RACE(ch) >= DL_RACE_START && GET_RACE(ch) < DL_RACE_END)
+                   ? race_list[GET_RACE(ch)].type
+                   : "Unknown");
 #else
   /* Display race with bounds checking */
-  send_to_char(ch, "\tcRace : \tn%-20s ", 
-               (valid_luminari_race(GET_RACE(ch)) ? 
-                 race_list[GET_RACE(ch)].type : "Unknown"));
+  send_to_char(ch, "\tcRace : \tn%-20s ",
+               (valid_luminari_race(GET_RACE(ch)) ? race_list[GET_RACE(ch)].type : "Unknown"));
 #endif
 
   /* Build class string - shows all classes for multiclass characters */
   *buf = '\0';
   counter = 0;
-  
-  if (!IS_NPC(ch)) {
+
+  if (!IS_NPC(ch))
+  {
     /* Player characters - check each possible class */
-    for (i = 0; i < MAX_CLASSES; i++) {
-      if (CLASS_LEVEL(ch, i)) {
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
+      if (CLASS_LEVEL(ch, i))
+      {
         /* Add separator for multiple classes */
-        if (counter) {
+        if (counter)
+        {
           strlcat(buf, " / ", sizeof(buf));
         }
-        
+
         /* Add class level and abbreviation */
         char res_buf[32];
-        snprintf(res_buf, sizeof(res_buf), "%d %s", 
-                 CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        snprintf(res_buf, sizeof(res_buf), "%d %s", CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
         strlcat(buf, res_buf, sizeof(buf));
         counter++;
       }
     }
-  } else {
+  }
+  else
+  {
     /* NPCs - use simple class abbreviation */
     strlcpy(buf, CLASS_ABBR(ch), sizeof(buf));
   }
-  
+
   /* Override with premade build if applicable */
-  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
-    snprintf(buf, sizeof(buf), "%d %s (premade build)", 
-             CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), 
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+  {
+    snprintf(buf, sizeof(buf), "%d %s (premade build)",
+             CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)),
              class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
   }
-  
+
   /* Display classes with proper pluralization */
-  send_to_char(ch, "\tcClass%s : \tn%s\r\n", 
-               (counter == 1 ? "  " : "es"), buf);
-  
+  send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
+
   /* Display sex/gender */
-  send_to_char(ch, "\tcSex  : \tn%-20s ",
-               (GET_SEX(ch) == SEX_MALE ? "Male" : 
-                (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
-  
+  send_to_char(
+      ch, "\tcSex  : \tn%-20s ",
+      (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
+
   /* Display deity with bounds checking */
-  snprintf(dname, sizeof(dname), "%s", 
-           (GET_DEITY(ch) >= 0 && GET_DEITY(ch) < NUM_DEITIES) ? 
-             deity_list[GET_DEITY(ch)].name : "None");
+  snprintf(dname, sizeof(dname), "%s",
+           (GET_DEITY(ch) >= 0 && GET_DEITY(ch) < NUM_DEITIES) ? deity_list[GET_DEITY(ch)].name
+                                                               : "None");
   send_to_char(ch, "\tcDeity: \tn%-20s ", CAP(dname));
-  
+
   /* Display alignment with numeric value */
-  send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", 
-               get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
-  
+  send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch)),
+               GET_ALIGNMENT(ch));
+
   /* Display age category and time played */
   send_to_char(ch, "\tcAge  : \tn%-10s    \tcPlayed  : \tn%d days / %d hrs\r\n",
-               (GET_CH_AGE(ch) >= 0 && GET_CH_AGE(ch) < NUM_CHARACTER_AGES) ? 
-                 character_ages[GET_CH_AGE(ch)] : "Unknown", 
+               (GET_CH_AGE(ch) >= 0 && GET_CH_AGE(ch) < NUM_CHARACTER_AGES)
+                   ? character_ages[GET_CH_AGE(ch)]
+                   : "Unknown",
                playing_time.day, playing_time.hours);
-  
+
   /* Display size and carrying capacity */
-  send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\tc/\tn%d \tn\r\n",
-               (GET_SIZE(ch) >= 0 && GET_SIZE(ch) < NUM_SIZES) ? 
-                 size_names[GET_SIZE(ch)] : "Unknown", 
-               IS_CARRYING_W(ch), CAN_CARRY_W(ch), 
-               IS_CARRYING_N(ch), CAN_CARRY_N(ch));
+  send_to_char(
+      ch,
+      "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\tc/\tn%d \tn\r\n",
+      (GET_SIZE(ch) >= 0 && GET_SIZE(ch) < NUM_SIZES) ? size_names[GET_SIZE(ch)] : "Unknown",
+      IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch));
 
   /* ========================================================================= */
   /* SECTION 2: VITAL STATISTICS                                               */
   /* ========================================================================= */
-  
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   /* Display health, movement, speed, and initiative */
-  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %-3d   \tcInitiative:\tn %s%d\r\n",
-               GET_HIT(ch), GET_MAX_HIT(ch),           /* Current/Max HP */
-               GET_MOVE(ch), GET_MAX_MOVE(ch),         /* Current/Max Movement */
-               get_speed(ch, TRUE),                     /* Movement speed */
-               get_initiative_modifier(ch) >= 0 ? "+" : "",  /* + sign for positive */
-               get_initiative_modifier(ch));            /* Initiative modifier */
-  
+  send_to_char(ch,
+               "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %-3d   "
+               "\tcInitiative:\tn %s%d\r\n",
+               GET_HIT(ch), GET_MAX_HIT(ch),                /* Current/Max HP */
+               GET_MOVE(ch), GET_MAX_MOVE(ch),              /* Current/Max Movement */
+               get_speed(ch, TRUE),                         /* Movement speed */
+               get_initiative_modifier(ch) >= 0 ? "+" : "", /* + sign for positive */
+               get_initiative_modifier(ch));                /* Initiative modifier */
+
   /* ========================================================================= */
   /* SECTION 3: EXPERIENCE AND LEVEL INFORMATION                              */
   /* ========================================================================= */
-  
+
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
-  
+
   /* Display character level and caster levels */
-  send_to_char(ch, "\tcLevel : \tn%-2d                       "
+  send_to_char(ch,
+               "\tcLevel : \tn%-2d                       "
                "\tcCstrLvl : \tn%-2d  \tcDivLvl : \tn%-2d  \tcMgcLvl : \tn%-2d\r\n",
-               GET_LEVEL(ch),        /* Total character level */
-               CASTER_LEVEL(ch),     /* Combined caster level */
-               DIVINE_LEVEL(ch),     /* Divine spellcaster level */
-               MAGIC_LEVEL(ch));     /* Arcane spellcaster level */
-  
+               GET_LEVEL(ch),    /* Total character level */
+               CASTER_LEVEL(ch), /* Combined caster level */
+               DIVINE_LEVEL(ch), /* Divine spellcaster level */
+               MAGIC_LEVEL(ch)); /* Arcane spellcaster level */
+
   /* Display experience points and experience to next level */
   send_to_char(ch, "\tcExp   : \tn%-24ld \tcExpTNL  : \tn%ld\r\n",
-               GET_EXP(ch),          /* Current experience points */
-               (long)(GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
-                level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
-  
+               GET_EXP(ch),                             /* Current experience points */
+               (long)(GET_LEVEL(ch) >= LVL_IMMORT ? 0 : /* Immortals don't need XP */
+                          level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
+
   /* Display perk points for each class (only if perk system is enabled) */
-  if (!IS_NPC(ch) && CONFIG_PERK_SYSTEM) {
+  if (!IS_NPC(ch) && CONFIG_PERK_SYSTEM)
+  {
     int has_perks = FALSE;
     int col = 0;
     send_to_char(ch, "\r\n\tC");
     text_line(ch, "\tyPerk Points\tC", line_length, '-', '-');
-    
-    for (i = 0; i < NUM_CLASSES; i++) {
-      if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
+
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0)
+      {
         /* Format into two columns */
-        if (col == 0) {
+        if (col == 0)
+        {
           /* First column - don't add newline yet */
-          send_to_char(ch, "\tc%-20s : \tn%2d point%-2s",
-                       class_names[i],
+          send_to_char(ch, "\tc%-20s : \tn%2d point%-2s", class_names[i],
                        ch->player_specials->saved.perk_points[i],
                        (ch->player_specials->saved.perk_points[i] == 1 ? "" : "s"));
           col = 1;
-        } else {
+        }
+        else
+        {
           /* Second column - add newline after */
-          send_to_char(ch, "    \tc%-20s : \tn%2d point%s\r\n",
-                       class_names[i],
+          send_to_char(ch, "    \tc%-20s : \tn%2d point%s\r\n", class_names[i],
                        ch->player_specials->saved.perk_points[i],
                        (ch->player_specials->saved.perk_points[i] == 1 ? "" : "s"));
           col = 0;
@@ -4104,215 +4319,243 @@ ACMD(do_score)
         has_perks = TRUE;
       }
     }
-    
+
     /* If we ended on the first column, add a newline */
-    if (col == 1) {
+    if (col == 1)
+    {
       send_to_char(ch, "\r\n");
     }
-    
-    if (!has_perks) {
+
+    if (!has_perks)
+    {
       send_to_char(ch, "\tcNo perk points available yet.\tn\r\n");
     }
   }
-  
+
   /* ========================================================================= */
   /* SECTION 4: ABILITY SCORES AND SAVING THROWS                              */
   /* ========================================================================= */
-  
-  send_to_char(ch, "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n");
-  
+
+  send_to_char(ch, "\tC-------------\tyAbility Scores\tC--------------------------\tySaving "
+                   "Throws\tC--------------\r\n");
+
   /* Display ability scores with modifiers in brackets */
-  send_to_char(ch, "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n",
-               GET_STR(ch), GET_STR_BONUS(ch),        /* Strength & modifier */
-               GET_DEX(ch), GET_DEX_BONUS(ch),        /* Dexterity & modifier */
-               GET_CON(ch), GET_CON_BONUS(ch),        /* Constitution & modifier */
-               compute_mag_saves(ch, SAVING_FORT, 0), /* Fortitude save */
+  send_to_char(ch,
+               "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : "
+               "\tn%-2d  \tcWill    : \tn%-2d\tn\r\n",
+               GET_STR(ch), GET_STR_BONUS(ch),         /* Strength & modifier */
+               GET_DEX(ch), GET_DEX_BONUS(ch),         /* Dexterity & modifier */
+               GET_CON(ch), GET_CON_BONUS(ch),         /* Constitution & modifier */
+               compute_mag_saves(ch, SAVING_FORT, 0),  /* Fortitude save */
                compute_mag_saves(ch, SAVING_WILL, 0)); /* Will save */
-  
-  send_to_char(ch, "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
-               GET_INT(ch), GET_INT_BONUS(ch),        /* Intelligence & modifier */
-               GET_WIS(ch), GET_WIS_BONUS(ch),        /* Wisdom & modifier */
-               GET_CHA(ch), GET_CHA_BONUS(ch),        /* Charisma & modifier */
+
+  send_to_char(ch,
+               "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : "
+               "\tn%-2d\tn\r\n",
+               GET_INT(ch), GET_INT_BONUS(ch),         /* Intelligence & modifier */
+               GET_WIS(ch), GET_WIS_BONUS(ch),         /* Wisdom & modifier */
+               GET_CHA(ch), GET_CHA_BONUS(ch),         /* Charisma & modifier */
                compute_mag_saves(ch, SAVING_REFL, 0)); /* Reflex save */
 
   /* ========================================================================= */
   /* SECTION 5: COMBAT STATISTICS                                              */
   /* ========================================================================= */
-  
+
   send_to_char(ch, "\tC");
   text_line(ch, "\tyCombat\tC", line_length, '-', '-');
-  
+
   /* Display combat statistics */
-#define RETURN_NUM_ATTACKS 1    /* Flag to get attack count instead of performing attacks */
-  send_to_char(ch, "\tcBAB: \tn%-4d \tc# of Attacks: \tn%-3d \tcArmorClass: \tn%-4d \tcWimpy: \tn%-3d \tcPos: \tn",
-               calc_bab,                                              /* Base Attack Bonus */
-               perform_attacks(ch, RETURN_NUM_ATTACKS, 0),           /* Number of attacks per round */
+#define RETURN_NUM_ATTACKS 1 /* Flag to get attack count instead of performing attacks */
+  send_to_char(ch,
+               "\tcBAB: \tn%-4d \tc# of Attacks: \tn%-3d \tcArmorClass: \tn%-4d \tcWimpy: \tn%-3d "
+               "\tcPos: \tn",
+               calc_bab,                                   /* Base Attack Bonus */
+               perform_attacks(ch, RETURN_NUM_ATTACKS, 0), /* Number of attacks per round */
                compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), /* Armor Class */
-               GET_WIMP_LEV(ch));                                    /* Wimpy level (auto-flee HP) */
+               GET_WIMP_LEV(ch)); /* Wimpy level (auto-flee HP) */
 #undef RETURN_NUM_ATTACKS
-  
+
   /* Add fighting indicator if in combat */
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch))
+  {
     send_to_char(ch, "(Fighting) - ");
   }
-  
+
   /* Display current position with descriptive text */
-  switch (GET_POS(ch)) {
-    case POS_DEAD:
-      send_to_char(ch, "Dead\r\n");
-      break;
-      
-    case POS_MORTALLYW:
-      send_to_char(ch, "Mortally wounded\r\n");
-      break;
-      
-    case POS_INCAP:
-      send_to_char(ch, "Incapacitated\r\n");
-      break;
-      
-    case POS_STUNNED:
-      send_to_char(ch, "Stunned\r\n");
-      break;
-      
-    case POS_SLEEPING:
-      send_to_char(ch, "Sleeping\r\n");
-      break;
-      
-    case POS_RECLINING:
-      send_to_char(ch, "Prone\r\n");
-      break;
-      
-    case POS_RESTING:
-      send_to_char(ch, "Resting\r\n");
-      break;
-      
-    case POS_SITTING:
-      if (!SITTING(ch)) {
-        /* Just sitting on ground */
-        send_to_char(ch, "Sitting\r\n");
-      } else {
-        /* Sitting on furniture */
-        struct obj_data *furniture = SITTING(ch);
-        if (furniture && furniture->short_description) {
-          send_to_char(ch, "Sitting upon %s.\r\n", furniture->short_description);
-        } else {
-          send_to_char(ch, "Sitting.\r\n");
-        }
+  switch (GET_POS(ch))
+  {
+  case POS_DEAD:
+    send_to_char(ch, "Dead\r\n");
+    break;
+
+  case POS_MORTALLYW:
+    send_to_char(ch, "Mortally wounded\r\n");
+    break;
+
+  case POS_INCAP:
+    send_to_char(ch, "Incapacitated\r\n");
+    break;
+
+  case POS_STUNNED:
+    send_to_char(ch, "Stunned\r\n");
+    break;
+
+  case POS_SLEEPING:
+    send_to_char(ch, "Sleeping\r\n");
+    break;
+
+  case POS_RECLINING:
+    send_to_char(ch, "Prone\r\n");
+    break;
+
+  case POS_RESTING:
+    send_to_char(ch, "Resting\r\n");
+    break;
+
+  case POS_SITTING:
+    if (!SITTING(ch))
+    {
+      /* Just sitting on ground */
+      send_to_char(ch, "Sitting\r\n");
+    }
+    else
+    {
+      /* Sitting on furniture */
+      struct obj_data *furniture = SITTING(ch);
+      if (furniture && furniture->short_description)
+      {
+        send_to_char(ch, "Sitting upon %s.\r\n", furniture->short_description);
       }
-      break;
-      
-    case POS_FIGHTING:
-      send_to_char(ch, "Fighting\r\n");
-      break;
-      
-    case POS_STANDING:
-      send_to_char(ch, "Standing\r\n");
-      break;
-      
-    default:
-      send_to_char(ch, "Floating\r\n");
-      break;
+      else
+      {
+        send_to_char(ch, "Sitting.\r\n");
+      }
+    }
+    break;
+
+  case POS_FIGHTING:
+    send_to_char(ch, "Fighting\r\n");
+    break;
+
+  case POS_STANDING:
+    send_to_char(ch, "Standing\r\n");
+    break;
+
+  default:
+    send_to_char(ch, "Floating\r\n");
+    break;
   }
 
   /* ========================================================================= */
   /* SECTION 6: SPECIAL ABILITIES (PSIONICS AND SPELLCASTING)                  */
   /* ========================================================================= */
-  
+
   /* Display psionic information if character has psionic levels */
-  if (GET_PSIONIC_LEVEL(ch) > 0) {
+  if (GET_PSIONIC_LEVEL(ch) > 0)
+  {
     text_line(ch, "\tyPsionic Info\tC", line_length, '-', '-');
-    send_to_char(ch, "\tcPower Points:\tn %d(%d)   \tcPsionic Level:\tn %d   \tcEnergy Type:\tn %s\r\n"
-                     "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
-                 GET_PSP(ch), GET_MAX_PSP(ch),                /* Current/Max power points */
-                 GET_PSIONIC_LEVEL(ch),                        /* Psionic manifester level */
-                 (GET_PSIONIC_ENERGY_TYPE(ch) >= 0 && 
-                  GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES) ? 
-                   damtypes[GET_PSIONIC_ENERGY_TYPE(ch)] : "Unknown", /* Energy specialization */
-                 base_augment_psp_allowed(ch));                /* Max PSP augmentation */
+    send_to_char(ch,
+                 "\tcPower Points:\tn %d(%d)   \tcPsionic Level:\tn %d   \tcEnergy Type:\tn %s\r\n"
+                 "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
+                 GET_PSP(ch), GET_MAX_PSP(ch), /* Current/Max power points */
+                 GET_PSIONIC_LEVEL(ch),        /* Psionic manifester level */
+                 (GET_PSIONIC_ENERGY_TYPE(ch) >= 0 && GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES)
+                     ? damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]
+                     : "Unknown",               /* Energy specialization */
+                 base_augment_psp_allowed(ch)); /* Max PSP augmentation */
   }
-  
+
   /* Display spellcasting bonuses if character is a spellcaster */
-  if (IS_SPELLCASTER(ch)) {
+  if (IS_SPELLCASTER(ch))
+  {
     text_line(ch, "\tySpellcaster Bonuses\tC", line_length, '-', '-');
-    send_to_char(ch, "\tcSpell DC Bonus:\tn %d \tcSpell Potency Multiplier:\tn %d%% \tcSpell Duration Multiplier:\tn %d%%\r\n",
-                 get_spell_dc_bonus(ch),       /* Bonus to spell difficulty class */
-                 get_spell_potency_bonus(ch),  /* Damage/healing multiplier */
+    send_to_char(ch,
+                 "\tcSpell DC Bonus:\tn %d \tcSpell Potency Multiplier:\tn %d%% \tcSpell Duration "
+                 "Multiplier:\tn %d%%\r\n",
+                 get_spell_dc_bonus(ch),        /* Bonus to spell difficulty class */
+                 get_spell_potency_bonus(ch),   /* Damage/healing multiplier */
                  get_spell_duration_bonus(ch)); /* Duration multiplier */
   }
 
   /* ========================================================================= */
   /* SECTION 7: QUEST INFORMATION                                              */
   /* ========================================================================= */
-  
+
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
-  
+
   /* Display quest statistics (NPCs always show 0) */
   send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n",
-               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),    /* Number of completed quests */
-               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));   /* Total quest points earned */
-  
+               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),   /* Number of completed quests */
+               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0)); /* Total quest points earned */
+
   /* NOTE: Active quest display code is commented out - preserved for future use */
   /*
     if (!IS_NPC(ch) && GET_QUEST(ch, index) != NOTHING)
-      send_to_char(ch, "%-60s\r\n", GET_QUEST(ch, index) == NOTHING ? 
+      send_to_char(ch, "%-60s\r\n", GET_QUEST(ch, index) == NOTHING ?
                    "None" : QST_NAME(real_quest(GET_QUEST(ch, index))));
     else
       send_to_char(ch, "None\r\n");
   */
-  
+
   /* Display active crafting quest if any */
-  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch)) {
+  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
+  {
     send_to_char(ch, "\tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
-                 GET_AUTOCQUEST_MAKENUM(ch),               /* Number to craft */
-                 GET_AUTOCQUEST_DESC(ch),                  /* Item description */
-                 (GET_AUTOCQUEST_MATERIAL(ch) >= 0 && 
-                  GET_AUTOCQUEST_MATERIAL(ch) < NUM_MATERIALS) ? 
-                   material_name[GET_AUTOCQUEST_MATERIAL(ch)] : "Unknown"); /* Material type */
+                 GET_AUTOCQUEST_MAKENUM(ch), /* Number to craft */
+                 GET_AUTOCQUEST_DESC(ch),    /* Item description */
+                 (GET_AUTOCQUEST_MATERIAL(ch) >= 0 && GET_AUTOCQUEST_MATERIAL(ch) < NUM_MATERIALS)
+                     ? material_name[GET_AUTOCQUEST_MATERIAL(ch)]
+                     : "Unknown"); /* Material type */
   }
 
   /* ========================================================================= */
   /* SECTION 8: WEALTH AND FINANCES                                            */
   /* ========================================================================= */
-  
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   /* Display gold carried and banked */
   send_to_char(ch, "\tcGold:\tn %d                \tcGold in Bank:\tn %d\r\n",
                GET_GOLD(ch),       /* Gold coins carried */
                GET_BANK_GOLD(ch)); /* Gold stored in bank */
-  
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
   /* ========================================================================= */
   /* SECTION 9: IMMORTAL-ONLY INFORMATION                                      */
   /* ========================================================================= */
-  
+
   /* Display immortal-specific information */
-  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
     /* Display custom entrance message (poofin) */
-    if (POOFIN(ch)) {
-      send_to_char(ch, "%sPOOFIN : %s%s %s%s\r\n", 
-                   QCYN, QNRM, GET_NAME(ch), POOFIN(ch), QNRM);
-    } else {
-      send_to_char(ch, "%sPOOFIN : %s%s appears with an ear-splitting bang.%s\r\n", 
-                   QCYN, QNRM, GET_NAME(ch), QNRM);
+    if (POOFIN(ch))
+    {
+      send_to_char(ch, "%sPOOFIN : %s%s %s%s\r\n", QCYN, QNRM, GET_NAME(ch), POOFIN(ch), QNRM);
     }
-    
+    else
+    {
+      send_to_char(ch, "%sPOOFIN : %s%s appears with an ear-splitting bang.%s\r\n", QCYN, QNRM,
+                   GET_NAME(ch), QNRM);
+    }
+
     /* Display custom exit message (poofout) */
-    if (POOFOUT(ch)) {
-      send_to_char(ch, "%sPOOFOUT: %s%s %s%s\r\n", 
-                   QCYN, QNRM, GET_NAME(ch), POOFOUT(ch), QNRM);
-    } else {
-      send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", 
-                   QCYN, QNRM, GET_NAME(ch), QNRM);
+    if (POOFOUT(ch))
+    {
+      send_to_char(ch, "%sPOOFOUT: %s%s %s%s\r\n", QCYN, QNRM, GET_NAME(ch), POOFOUT(ch), QNRM);
     }
-    
+    else
+    {
+      send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", QCYN, QNRM,
+                   GET_NAME(ch), QNRM);
+    }
+
     /* Display OLC (online creation) zone assignment */
-    send_to_char(ch, "\tcYour current zone:\tn %s%d%s\r\n", 
-                 CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
-    
+    send_to_char(ch, "\tcYour current zone:\tn %s%d%s\r\n", CCCYN(ch, C_NRM), GET_OLC_ZONE(ch),
+                 CCNRM(ch, C_NRM));
+
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
   }
@@ -4320,74 +4563,87 @@ ACMD(do_score)
   /* ========================================================================= */
   /* SECTION 10: CLASS-SPECIFIC FEATURES                                       */
   /* ========================================================================= */
-  
+
   /* Display Inquisitor Bane effect if active */
-  if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON)) {
+  if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON))
+  {
     send_to_char(ch, "\tcIniquisitor Bane Effect:\tn +%dd6 against %s.\r\n",
-                 HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT) ? 6 :    /* Perfect: 6d6 */
-                 (HAS_REAL_FEAT(ch, FEAT_GREATER_BANE) ? 4 : 2),    /* Greater: 4d6, Normal: 2d6 */
-                 (GET_BANE_TARGET_TYPE(ch) >= 0 && 
-                  GET_BANE_TARGET_TYPE(ch) < NUM_RACE_TYPES) ? 
-                   race_family_types_plural[GET_BANE_TARGET_TYPE(ch)] : "Unknown");
+                 HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT) ? 6 :     /* Perfect: 6d6 */
+                     (HAS_REAL_FEAT(ch, FEAT_GREATER_BANE) ? 4 : 2), /* Greater: 4d6, Normal: 2d6 */
+                 (GET_BANE_TARGET_TYPE(ch) >= 0 && GET_BANE_TARGET_TYPE(ch) < NUM_RACE_TYPES)
+                     ? race_family_types_plural[GET_BANE_TARGET_TYPE(ch)]
+                     : "Unknown");
   }
 
   /* Display Cleric domains (2 domains) */
-  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
+  if (CLASS_LEVEL(ch, CLASS_CLERIC))
+  {
     send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
-                 (GET_1ST_DOMAIN(ch) >= 0 && GET_1ST_DOMAIN(ch) < NUM_DOMAINS) ? 
-                   domain_list[GET_1ST_DOMAIN(ch)].name : "None",
-                 (GET_2ND_DOMAIN(ch) >= 0 && GET_2ND_DOMAIN(ch) < NUM_DOMAINS) ? 
-                   domain_list[GET_2ND_DOMAIN(ch)].name : "None");
+                 (GET_1ST_DOMAIN(ch) >= 0 && GET_1ST_DOMAIN(ch) < NUM_DOMAINS)
+                     ? domain_list[GET_1ST_DOMAIN(ch)].name
+                     : "None",
+                 (GET_2ND_DOMAIN(ch) >= 0 && GET_2ND_DOMAIN(ch) < NUM_DOMAINS)
+                     ? domain_list[GET_2ND_DOMAIN(ch)].name
+                     : "None");
     draw_line(ch, line_length, '-', '-');
   }
   /* Display Inquisitor domain (1 domain only) */
-  else if (CLASS_LEVEL(ch, CLASS_INQUISITOR)) {
+  else if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  {
     send_to_char(ch, "\tc1st Domain: \tn%s\tc.\r\n",
-                 (GET_1ST_DOMAIN(ch) >= 0 && GET_1ST_DOMAIN(ch) < NUM_DOMAINS) ? 
-                   domain_list[GET_1ST_DOMAIN(ch)].name : "None");
+                 (GET_1ST_DOMAIN(ch) >= 0 && GET_1ST_DOMAIN(ch) < NUM_DOMAINS)
+                     ? domain_list[GET_1ST_DOMAIN(ch)].name
+                     : "None");
     draw_line(ch, line_length, '-', '-');
   }
 
   /* Display Sorcerer bloodline information */
-  if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC)) {
+  if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
+  {
     /* Draconic bloodline - shows dragon type and energy damage */
     int subtype = GET_BLOODLINE_SUBTYPE(ch);
-    send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n", 
-                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? 
-                   DRCHRTLIST_NAME(subtype) : "Unknown",     /* Dragon type name */
-                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? 
-                   DRCHRT_ENERGY_TYPE(subtype) : "Unknown"); /* Energy damage type */
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n",
+                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES)
+                     ? DRCHRTLIST_NAME(subtype)
+                     : "Unknown", /* Dragon type name */
+                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES)
+                     ? DRCHRT_ENERGY_TYPE(subtype)
+                     : "Unknown"); /* Energy damage type */
     draw_line(ch, line_length, '-', '-');
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
+  {
     /* Arcane bloodline - shows school specialization */
     int subtype = GET_BLOODLINE_SUBTYPE(ch);
-    send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n", 
-                 (subtype >= 0 && subtype < NUM_SCHOOLS) ? 
-                   spell_schools_lower[subtype] : "Unknown");
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n",
+                 (subtype >= 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype]
+                                                         : "Unknown");
     draw_line(ch, line_length, '-', '-');
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY)) {
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
+  {
     /* Fey bloodline */
     send_to_char(ch, "\tcSorcerer Bloodline: \tnFey.\r\n");
     draw_line(ch, line_length, '-', '-');
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD)) {
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+  {
     /* Undead bloodline */
     send_to_char(ch, "\tcSorcerer Bloodline: \tnUndead.\r\n");
     draw_line(ch, line_length, '-', '-');
   }
 
   /* Display Wizard school specialization */
-  if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
+  if (CLASS_LEVEL(ch, CLASS_WIZARD))
+  {
     int school = GET_SPECIALTY_SCHOOL(ch);
     send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
-                 (school >= 0 && school < NUM_SCHOOLS) ? 
-                   school_names[school] : "None",              /* Specialized school */
-                 (school >= 0 && school < NUM_SCHOOLS && 
-                  restricted_school_reference[school] >= 0 && 
-                  restricted_school_reference[school] < NUM_SCHOOLS) ? 
-                   school_names[restricted_school_reference[school]] : "None"); /* Opposing school */
+                 (school >= 0 && school < NUM_SCHOOLS) ? school_names[school]
+                                                       : "None", /* Specialized school */
+                 (school >= 0 && school < NUM_SCHOOLS && restricted_school_reference[school] >= 0 &&
+                  restricted_school_reference[school] < NUM_SCHOOLS)
+                     ? school_names[restricted_school_reference[school]]
+                     : "None"); /* Opposing school */
     draw_line(ch, line_length, '-', '-');
   }
 
@@ -4395,30 +4651,30 @@ ACMD(do_score)
   {
     if (IS_GOOD(ch))
     {
-      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
-        moon_names[0],  
-        weather_info.moons.solinari_st >= 0 ? "+" : "", weather_info.moons.solinari_st,
-        weather_info.moons.solinari_lv >= 0 ? "+" : "", weather_info.moons.solinari_lv,
-        MAX(0, weather_info.moons.solinari_sp)
-      );
+      send_to_char(ch,
+                   "%s's position in the sky bestows %s%d to saving throws, %s%d to "
+                   "effective\r\ncaster level and +%d bonus spell slots.\r\n",
+                   moon_names[0], weather_info.moons.solinari_st >= 0 ? "+" : "",
+                   weather_info.moons.solinari_st, weather_info.moons.solinari_lv >= 0 ? "+" : "",
+                   weather_info.moons.solinari_lv, MAX(0, weather_info.moons.solinari_sp));
     }
     else if (IS_NEUTRAL(ch))
     {
-      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
-        moon_names[0],  
-        weather_info.moons.lunitari_st >= 0 ? "+" : "", weather_info.moons.lunitari_st,
-        weather_info.moons.lunitari_lv >= 0 ? "+" : "", weather_info.moons.lunitari_lv,
-        MAX(0, weather_info.moons.lunitari_sp)
-      );
+      send_to_char(ch,
+                   "%s's position in the sky bestows %s%d to saving throws, %s%d to "
+                   "effective\r\ncaster level and +%d bonus spell slots.\r\n",
+                   moon_names[0], weather_info.moons.lunitari_st >= 0 ? "+" : "",
+                   weather_info.moons.lunitari_st, weather_info.moons.lunitari_lv >= 0 ? "+" : "",
+                   weather_info.moons.lunitari_lv, MAX(0, weather_info.moons.lunitari_sp));
     }
     else
     {
-      send_to_char(ch, "%s's position in the sky bestows %s%d to saving throws, %s%d to effective\r\ncaster level and +%d bonus spell slots.\r\n",
-        moon_names[1],  
-        weather_info.moons.nuitari_st >= 0 ? "+" : "", weather_info.moons.nuitari_st,
-        weather_info.moons.nuitari_lv >= 0 ? "+" : "", weather_info.moons.nuitari_lv,
-        MAX(0, weather_info.moons.nuitari_sp)
-      );
+      send_to_char(ch,
+                   "%s's position in the sky bestows %s%d to saving throws, %s%d to "
+                   "effective\r\ncaster level and +%d bonus spell slots.\r\n",
+                   moon_names[1], weather_info.moons.nuitari_st >= 0 ? "+" : "",
+                   weather_info.moons.nuitari_st, weather_info.moons.nuitari_lv >= 0 ? "+" : "",
+                   weather_info.moons.nuitari_lv, MAX(0, weather_info.moons.nuitari_sp));
     }
     draw_line(ch, line_length, '-', '-');
   }
@@ -4426,62 +4682,77 @@ ACMD(do_score)
   /* ========================================================================= */
   /* SECTION 11: STATUS CONDITIONS (PLAYERS ONLY)                              */
   /* ========================================================================= */
-  
-  if (!IS_NPC(ch)) {
+
+  if (!IS_NPC(ch))
+  {
     send_to_char(ch, "\tc");
-    
+
     /* Display intoxication status */
-    if (GET_COND(ch, DRUNK) > 10) {
+    if (GET_COND(ch, DRUNK) > 10)
+    {
       send_to_char(ch, "You are intoxicated.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "You are sober.\r\n");
     }
-    
+
     /* Display hunger status */
-    if (GET_COND(ch, HUNGER) == 0) {
+    if (GET_COND(ch, HUNGER) == 0)
+    {
       send_to_char(ch, "You are hungry.\r\n");
     }
-    
+
     /* Display thirst status */
-    if (GET_COND(ch, THIRST) == 0) {
+    if (GET_COND(ch, THIRST) == 0)
+    {
       send_to_char(ch, "You are thirsty.\r\n");
     }
-    
+
     /* Display summonable status */
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SUMMONABLE)) {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SUMMONABLE))
+    {
       send_to_char(ch, "You are summonable by other players.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "You are NOT summonable by other players.\r\n");
     }
-    
+
     /* Display monk gear restriction warning */
-    if (MONK_TYPE(ch) && !monk_gear_ok(ch)) {
+    if (MONK_TYPE(ch) && !monk_gear_ok(ch))
+    {
       send_to_char(ch, "Your worn gear is interfering with your ki.\r\n");
     }
-    
+
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
-    
+
     /* Display Dragon Rider information if applicable */
-    if (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) && GET_DRAGON_RIDER_DRAGON_TYPE(ch)) {
+    if (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) && GET_DRAGON_RIDER_DRAGON_TYPE(ch))
+    {
       send_to_char(ch, "\tc");
       int dragon_type = GET_DRAGON_RIDER_DRAGON_TYPE(ch);
-      
+
       /* Display dragon mount type and damage */
       send_to_char(ch, "Dragon Mount Type: %s (%s damage) ",
-        (dragon_type >= 0 && dragon_type < NUM_DRACONIC_HERITAGE_TYPES) ?
-          DRCHRTLIST_NAME(dragon_type) : "Unknown",
-        (dragon_type >= 0 && dragon_type < NUM_DRACONIC_HERITAGE_TYPES) ?
-          DRCHRT_ENERGY_TYPE(dragon_type) : "Unknown");
-      
+                   (dragon_type >= 0 && dragon_type < NUM_DRACONIC_HERITAGE_TYPES)
+                       ? DRCHRTLIST_NAME(dragon_type)
+                       : "Unknown",
+                   (dragon_type >= 0 && dragon_type < NUM_DRACONIC_HERITAGE_TYPES)
+                       ? DRCHRT_ENERGY_TYPE(dragon_type)
+                       : "Unknown");
+
       /* Display dragon bond type if any */
-      if (GET_DRAGON_BOND_TYPE(ch)) {
+      if (GET_DRAGON_BOND_TYPE(ch))
+      {
         int bond_type = GET_DRAGON_BOND_TYPE(ch);
-        send_to_char(ch, "Dragon Bond Type: %s", 
-                     (bond_type >= 0 && bond_type < NUM_DRAGON_BOND_TYPES) ?
-                       dragon_bond_types[bond_type] : "Unknown");
+        send_to_char(ch, "Dragon Bond Type: %s",
+                     (bond_type >= 0 && bond_type < NUM_DRAGON_BOND_TYPES)
+                         ? dragon_bond_types[bond_type]
+                         : "Unknown");
       }
-      
+
       send_to_char(ch, "\r\n");
       send_to_char(ch, "\tC");
       draw_line(ch, line_length, '-', '-');
@@ -4491,98 +4762,122 @@ ACMD(do_score)
   /* ========================================================================= */
   /* SECTION 12: AVAILABLE COMMANDS AND HELPFUL HINTS                          */
   /* ========================================================================= */
-  
+
   /* Universal combat commands */
   send_to_char(ch, "\tDType 'attacks' or 'defenses' to see your melee offense and defense\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
-  
+
   /* Class-specific spell/ability interfaces */
-  if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
+  if (CLASS_LEVEL(ch, CLASS_WIZARD))
+  {
     send_to_char(ch, "\tDType 'memorize' to see your Wizard spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
+
+  if (CLASS_LEVEL(ch, CLASS_SORCERER))
+  {
     send_to_char(ch, "\tDType 'meditate' to see your Sorcerer spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_PSIONICIST)) {
-    send_to_char(ch, "\tDType 'powers' to see your Psionicist powers, and 'manifest' to perform them.\tn\r\n");
+
+  if (CLASS_LEVEL(ch, CLASS_PSIONICIST))
+  {
+    send_to_char(
+        ch,
+        "\tDType 'powers' to see your Psionicist powers, and 'manifest' to perform them.\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_INQUISITOR)) {
+
+  if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  {
     send_to_char(ch, "\tDType 'compel' to see your Inquisitor spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
+
+  if (CLASS_LEVEL(ch, CLASS_CLERIC))
+  {
     send_to_char(ch, "\tDType 'prayer' to see your Cleric spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
+
+  if (CLASS_LEVEL(ch, CLASS_RANGER))
+  {
     send_to_char(ch, "\tDType 'adjure' to see your Ranger spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_BARD)) {
+
+  if (CLASS_LEVEL(ch, CLASS_BARD))
+  {
     send_to_char(ch, "\tDType 'compose' to see your Bard spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_DRUID)) {
+
+  if (CLASS_LEVEL(ch, CLASS_DRUID))
+  {
     send_to_char(ch, "\tDType 'commune' to see your Druid spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_PALADIN)) {
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN))
+  {
     send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD)) {
+
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
+  {
     send_to_char(ch, "\tDType 'condemn' to see your BlackGuard spell interface\tn\r\n");
   }
-  
-  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST)) {
+
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
+  {
     send_to_char(ch, "\tDType 'extracts' to see your Alchemist extract interface\tn\r\n");
-    send_to_char(ch, "\tDType 'imbibe' to use an extract, and 'concoct' to prepare an extract.\tn\r\n");
+    send_to_char(ch,
+                 "\tDType 'imbibe' to use an extract, and 'concoct' to prepare an extract.\tn\r\n");
     send_to_char(ch, "\tDType 'discoveries' to see your alchemist discoveries.\tn\r\n");
-    send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen discovery).\tn\r\n");
+    send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen "
+                     "discovery).\tn\r\n");
   }
-  
+
   /* Ranger favored enemy system */
-  if (GET_FAVORED_ENEMY(ch, 0) > 0) {
+  if (GET_FAVORED_ENEMY(ch, 0) > 0)
+  {
     send_to_char(ch, "\tDType 'favoredenemies' to get a list of your favored enemies.\tn\r\n");
   }
-  
+
   /* End of score display */
 }
 
 /* Enhanced score command implementing Phase 1 MVP features */
 
 /* Enhanced formatting utility functions */
-static void skore_progress_bar(struct char_data *ch, const char *label, int current, int max, const char *color)
+static void skore_progress_bar(struct char_data *ch, const char *label, int current, int max,
+                               const char *color)
 {
   char bar[21] = {'\0'}; // 20 chars + null terminator
   int filled = 0;
   int percentage = 0;
 
-  if (max > 0) {
+  if (max > 0)
+  {
     percentage = (current * 100) / max;
     filled = (current * 20) / max;
-    if (filled > 20) filled = 20;
+    if (filled > 20)
+      filled = 20;
   }
 
   // Build the progress bar
   int i;
-  for (i = 0; i < 20; i++) {
-    if (i < filled) {
+  for (i = 0; i < 20; i++)
+  {
+    if (i < filled)
+    {
       bar[i] = '='; // Use = for compatibility
-    } else {
+    }
+    else
+    {
       bar[i] = '-'; // Use - for compatibility
     }
   }
   bar[20] = '\0';
 
-  send_to_char(ch, "\tc%-12s\tn %s[%s%s\tn] \tc%d/%d \tn(\tc%d%%\tn)\r\n",
-               label, color, color, bar, current, max, percentage);
+  send_to_char(ch, "\tc%-12s\tn %s[%s%s\tn] \tc%d/%d \tn(\tc%d%%\tn)\r\n", label, color, color, bar,
+               current, max, percentage);
 }
 
-static void skore_section_header(struct char_data *ch, const char *title, int width, const char *color)
+static void skore_section_header(struct char_data *ch, const char *title, int width,
+                                 const char *color)
 {
   send_to_char(ch, "%s", color);
   text_line(ch, title, width, '=', '=');
@@ -4594,203 +4889,220 @@ static void skore_section_header(struct char_data *ch, const char *title, int wi
 static const char *get_health_color(struct char_data *ch, int current, int max)
 {
   int theme, percentage;
-  
-  if (max <= 0) return "\tn";
+
+  if (max <= 0)
+    return "\tn";
 
   // Check if colors are disabled
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR)) {
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR))
+  {
     return "\tn";
   }
 
   percentage = (current * 100) / max;
   theme = !IS_NPC(ch) ? GET_SCORE_COLOR_THEME(ch) : SCORE_THEME_ENHANCED;
 
-  switch (theme) {
-    case SCORE_THEME_CLASSIC:
-      // Classic: Simple red when critical, white otherwise
-      return (percentage < 25) ? "\tR" : "\tn";
-      
-    case SCORE_THEME_MINIMAL:
-      // Minimal: Only two states
-      return (percentage < 50) ? "\tR" : "\tG";
-      
-    case SCORE_THEME_HIGHCONTRAST:
-      // High contrast: Bold colors
-      if (percentage >= 75) return "\tW"; // Bright white for healthy
-      if (percentage >= 50) return "\tY"; // Yellow for wounded
-      if (percentage >= 25) return "\tM"; // Magenta for badly wounded
-      return "\tR"; // Red for critical
-      
-    case SCORE_THEME_DARK:
-      // Dark theme: Muted colors
-      if (percentage >= 75) return "\tc"; // Cyan for healthy
-      if (percentage >= 50) return "\ty"; // Dark yellow for wounded
-      if (percentage >= 25) return "\tr"; // Dark red for badly wounded
-      return "\tR"; // Bright red for critical
-      
-    case SCORE_THEME_COLORBLIND:
-      // Colorblind-friendly: Avoid red-green
-      if (percentage >= 75) return "\tB"; // Blue for healthy
-      if (percentage >= 50) return "\tW"; // White for wounded
-      if (percentage >= 25) return "\tY"; // Yellow for badly wounded
-      return "\tM"; // Magenta for critical
-      
-    case SCORE_THEME_ENHANCED:
-    default:
-      // Enhanced: Full color gradient
-      if (percentage >= 75) return "\tG"; // Green for healthy
-      if (percentage >= 50) return "\tY"; // Yellow for wounded
-      if (percentage >= 25) return "\tO"; // Orange for badly wounded
-      return "\tR"; // Red for critical
+  switch (theme)
+  {
+  case SCORE_THEME_CLASSIC:
+    // Classic: Simple red when critical, white otherwise
+    return (percentage < 25) ? "\tR" : "\tn";
+
+  case SCORE_THEME_MINIMAL:
+    // Minimal: Only two states
+    return (percentage < 50) ? "\tR" : "\tG";
+
+  case SCORE_THEME_HIGHCONTRAST:
+    // High contrast: Bold colors
+    if (percentage >= 75)
+      return "\tW"; // Bright white for healthy
+    if (percentage >= 50)
+      return "\tY"; // Yellow for wounded
+    if (percentage >= 25)
+      return "\tM"; // Magenta for badly wounded
+    return "\tR";   // Red for critical
+
+  case SCORE_THEME_DARK:
+    // Dark theme: Muted colors
+    if (percentage >= 75)
+      return "\tc"; // Cyan for healthy
+    if (percentage >= 50)
+      return "\ty"; // Dark yellow for wounded
+    if (percentage >= 25)
+      return "\tr"; // Dark red for badly wounded
+    return "\tR";   // Bright red for critical
+
+  case SCORE_THEME_COLORBLIND:
+    // Colorblind-friendly: Avoid red-green
+    if (percentage >= 75)
+      return "\tB"; // Blue for healthy
+    if (percentage >= 50)
+      return "\tW"; // White for wounded
+    if (percentage >= 25)
+      return "\tY"; // Yellow for badly wounded
+    return "\tM";   // Magenta for critical
+
+  case SCORE_THEME_ENHANCED:
+  default:
+    // Enhanced: Full color gradient
+    if (percentage >= 75)
+      return "\tG"; // Green for healthy
+    if (percentage >= 50)
+      return "\tY"; // Yellow for wounded
+    if (percentage >= 25)
+      return "\tO"; // Orange for badly wounded
+    return "\tR";   // Red for critical
   }
 }
 
 static const char *get_class_color(struct char_data *ch, int class_num)
 {
   int theme;
-  
+
   // Check if colors are disabled
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR)) {
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR))
+  {
     return "\tn";
   }
 
   theme = !IS_NPC(ch) ? GET_SCORE_COLOR_THEME(ch) : SCORE_THEME_ENHANCED;
 
-  switch (theme) {
-    case SCORE_THEME_CLASSIC:
-      // Classic: Minimal coloring
-      return "\tn";
-      
-    case SCORE_THEME_MINIMAL:
-      // Minimal: Simple two-tone
-      switch (class_num) {
-        case CLASS_WIZARD:
-        case CLASS_SORCERER:
-        case CLASS_CLERIC:
-        case CLASS_DRUID:
-        case CLASS_BARD:
-          return "\tB"; // Blue for casters
-        default:
-          return "\tR"; // Red for non-casters
-      }
-      
-    case SCORE_THEME_HIGHCONTRAST:
-      // High contrast: Bold distinct colors
-      switch (class_num) {
-        case CLASS_WIZARD:
-        case CLASS_SORCERER:
-          return "\tW"; // White for arcane
-        case CLASS_CLERIC:
-        case CLASS_DRUID:
-          return "\tY"; // Yellow for divine
-        case CLASS_WARRIOR:
-        case CLASS_BERSERKER:
-          return "\tR"; // Red for warriors
-        case CLASS_ROGUE:
-          return "\tM"; // Magenta for rogues
-        default:
-          return "\tC"; // Bright cyan for others
-      }
-      
-    case SCORE_THEME_DARK:
-      // Dark theme: Muted colors
-      switch (class_num) {
-        case CLASS_WIZARD:
-        case CLASS_SORCERER:
-        case CLASS_BARD:
-          return "\tb"; // Dark blue for arcane
-        case CLASS_CLERIC:
-        case CLASS_DRUID:
-        case CLASS_PALADIN:
-        case CLASS_RANGER:
-          return "\tg"; // Dark green for divine
-        case CLASS_WARRIOR:
-        case CLASS_BERSERKER:
-        case CLASS_MONK:
-          return "\tr"; // Dark red for martial
-        case CLASS_ROGUE:
-          return "\tm"; // Dark magenta for skill-based
-        default:
-          return "\tc"; // Dark cyan for others
-      }
-      
-    case SCORE_THEME_COLORBLIND:
-      // Colorblind-friendly: Avoid problematic combos
-      switch (class_num) {
-        case CLASS_WIZARD:
-        case CLASS_SORCERER:
-        case CLASS_BARD:
-          return "\tB"; // Blue for arcane
-        case CLASS_CLERIC:
-        case CLASS_DRUID:
-        case CLASS_PALADIN:
-        case CLASS_RANGER:
-          return "\tW"; // White for divine
-        case CLASS_WARRIOR:
-        case CLASS_BERSERKER:
-        case CLASS_MONK:
-          return "\tY"; // Yellow for martial
-        case CLASS_ROGUE:
-          return "\tC"; // Cyan for skill-based
-        default:
-          return "\tM"; // Magenta for others
-      }
-      
-    case SCORE_THEME_ENHANCED:
+  switch (theme)
+  {
+  case SCORE_THEME_CLASSIC:
+    // Classic: Minimal coloring
+    return "\tn";
+
+  case SCORE_THEME_MINIMAL:
+    // Minimal: Simple two-tone
+    switch (class_num)
+    {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_BARD:
+      return "\tB"; // Blue for casters
     default:
-      // Enhanced: Original full colors
-      switch (class_num) {
-        case CLASS_WIZARD:
-        case CLASS_SORCERER:
-        case CLASS_BARD:
-          return "\tB"; // Blue for arcane casters
-        case CLASS_CLERIC:
-        case CLASS_DRUID:
-        case CLASS_PALADIN:
-        case CLASS_RANGER:
-          return "\tG"; // Green for divine casters
-        case CLASS_WARRIOR:
-        case CLASS_BERSERKER:
-        case CLASS_MONK:
-          return "\tR"; // Red for martial classes
-        case CLASS_ROGUE:
-          return "\tM"; // Magenta for skill-based
-        default:
-          return "\tc"; // Cyan for others
-      }
+      return "\tR"; // Red for non-casters
+    }
+
+  case SCORE_THEME_HIGHCONTRAST:
+    // High contrast: Bold distinct colors
+    switch (class_num)
+    {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+      return "\tW"; // White for arcane
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+      return "\tY"; // Yellow for divine
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+      return "\tR"; // Red for warriors
+    case CLASS_ROGUE:
+      return "\tM"; // Magenta for rogues
+    default:
+      return "\tC"; // Bright cyan for others
+    }
+
+  case SCORE_THEME_DARK:
+    // Dark theme: Muted colors
+    switch (class_num)
+    {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      return "\tb"; // Dark blue for arcane
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+      return "\tg"; // Dark green for divine
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+    case CLASS_MONK:
+      return "\tr"; // Dark red for martial
+    case CLASS_ROGUE:
+      return "\tm"; // Dark magenta for skill-based
+    default:
+      return "\tc"; // Dark cyan for others
+    }
+
+  case SCORE_THEME_COLORBLIND:
+    // Colorblind-friendly: Avoid problematic combos
+    switch (class_num)
+    {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      return "\tB"; // Blue for arcane
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+      return "\tW"; // White for divine
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+    case CLASS_MONK:
+      return "\tY"; // Yellow for martial
+    case CLASS_ROGUE:
+      return "\tC"; // Cyan for skill-based
+    default:
+      return "\tM"; // Magenta for others
+    }
+
+  case SCORE_THEME_ENHANCED:
+  default:
+    // Enhanced: Original full colors
+    switch (class_num)
+    {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      return "\tB"; // Blue for arcane casters
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+      return "\tG"; // Green for divine casters
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+    case CLASS_MONK:
+      return "\tR"; // Red for martial classes
+    case CLASS_ROGUE:
+      return "\tM"; // Magenta for skill-based
+    default:
+      return "\tc"; // Cyan for others
+    }
   }
 }
 
 /* Border style arrays for different classes */
 static const char *warrior_border[] = {
-  "\tR╔════════════════════════════════════════════════════════════════════════════╗\tn",
-  "\tR║                                                                            ║\tn",
-  "\tR╚════════════════════════════════════════════════════════════════════════════╝\tn"
-};
+    "\tR╔════════════════════════════════════════════════════════════════════════════╗\tn",
+    "\tR║                                                                            ║\tn",
+    "\tR╚════════════════════════════════════════════════════════════════════════════╝\tn"};
 
 static const char *mage_border[] = {
-  "\tB╔═══════════════════════════════════════════════════════════════════════════╗\tn",
-  "\tB║                                                                            ║\tn",
-  "\tB╚═══════════════════════════════════════════════════════════════════════════╝\tn"
-};
+    "\tB╔═══════════════════════════════════════════════════════════════════════════╗\tn",
+    "\tB║                                                                            ║\tn",
+    "\tB╚═══════════════════════════════════════════════════════════════════════════╝\tn"};
 
 static const char *cleric_border[] = {
-  "\tG╔════════════════════════════════════════════════════════════════════════════╗\tn",
-  "\tG║                                                                            ║\tn", 
-  "\tG╚════════════════════════════════════════════════════════════════════════════╝\tn"
-};
+    "\tG╔════════════════════════════════════════════════════════════════════════════╗\tn",
+    "\tG║                                                                            ║\tn",
+    "\tG╚════════════════════════════════════════════════════════════════════════════╝\tn"};
 
 static const char *rogue_border[] = {
-  "\tM╔════════════════════════════════════════════════════════════════════════════╗\tn",
-  "\tM║                                                                            ║\tn",
-  "\tM╚════════════════════════════════════════════════════════════════════════════╝\tn"
-};
+    "\tM╔════════════════════════════════════════════════════════════════════════════╗\tn",
+    "\tM║                                                                            ║\tn",
+    "\tM╚════════════════════════════════════════════════════════════════════════════╝\tn"};
 
 static const char *default_border[] = {
-  "\tc╔════════════════════════════════════════════════════════════════════════════╗\tn",
-  "\tc║                                                                            ║\tn",
-  "\tc╚════════════════════════════════════════════════════════════════════════════╝\tn"
-};
+    "\tc╔════════════════════════════════════════════════════════════════════════════╗\tn",
+    "\tc║                                                                            ║\tn",
+    "\tc╚════════════════════════════════════════════════════════════════════════════╝\tn"};
 
 /* Get the border style for a character's primary class */
 static const char **get_class_border_style(struct char_data *ch)
@@ -4798,171 +5110,178 @@ static const char **get_class_border_style(struct char_data *ch)
   int primary_class = -1;
   int highest_level = 0;
   int i;
-  
+
   // Check if borders are disabled
-  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_SCORE_BORDERS)) {
+  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_SCORE_BORDERS))
+  {
     return NULL;
   }
-  
+
   // Find the highest level class
-  for (i = 0; i < NUM_CLASSES; i++) {
-    if (CLASS_LEVEL(ch, i) > highest_level) {
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (CLASS_LEVEL(ch, i) > highest_level)
+    {
       highest_level = CLASS_LEVEL(ch, i);
       primary_class = i;
     }
   }
-  
+
   // If premade build, use that class
-  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+  {
     primary_class = GET_PREMADE_BUILD_CLASS(ch);
   }
-  
+
   // Return appropriate border style
-  switch (primary_class) {
-    case CLASS_WARRIOR:
-    case CLASS_BERSERKER:
-    case CLASS_MONK:
-      return warrior_border;
-    case CLASS_WIZARD:
-    case CLASS_SORCERER:
-    case CLASS_BARD:
-      return mage_border;
-    case CLASS_CLERIC:
-    case CLASS_DRUID:
-    case CLASS_PALADIN:
-    case CLASS_RANGER:
-      return cleric_border;
-    case CLASS_ROGUE:
-      return rogue_border;
-    default:
-      return default_border;
+  switch (primary_class)
+  {
+  case CLASS_WARRIOR:
+  case CLASS_BERSERKER:
+  case CLASS_MONK:
+    return warrior_border;
+  case CLASS_WIZARD:
+  case CLASS_SORCERER:
+  case CLASS_BARD:
+    return mage_border;
+  case CLASS_CLERIC:
+  case CLASS_DRUID:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+    return cleric_border;
+  case CLASS_ROGUE:
+    return rogue_border;
+  default:
+    return default_border;
   }
 }
 
 /* Race symbol definitions */
 static const char *race_symbols[] = {
-  /* RACE_HUMAN */          "☺",
-  /* RACE_ELF */            "♠",
-  /* RACE_DWARF */          "♦",
-  /* RACE_H_TROLL */        "Ω",
-  /* RACE_CRYSTAL_DWARF */  "◊",
-  /* RACE_HALFLING */       "•",
-  /* RACE_H_ELF */          "♣",
-  /* RACE_H_ORC */          "○",
-  /* RACE_GNOME */          "♥",
-  /* RACE_TRELUX */         "∞",
-  /* RACE_ARCANA_GOLEM */   "◙",
-  /* RACE_DROW */           "▼",
-  /* RACE_DUERGAR */        "■",
-  /* RACE_HIGH_ELF */       "♀",
-  /* RACE_WOOD_ELF */       "♂",
-  /* RACE_HALF_DROW */      "▲",
-  /* RACE_TABAXI */         "♪",
-  /* RACE_TIEFLING */       "Ψ",
-  /* RACE_AASIMAR */        "☼",
-  /* RACE_WARFORGED */      "⌂",
-  /* RACE_DRAGONBORN */     "∆",
-  /* RACE_STOUT_HALFLING */ "◘",
-  /* RACE_FOREST_GNOME */   "♫",
-  /* RACE_GOLD_DWARF */     "◄",
-  /* RACE_AVARIEL */        "↑",
-  /* RACE_YUAN_TI */        "§",
-  /* RACE_CENTAUR */        "¤",
-  /* RACE_AARAKOCRA */      "↔",
-  /* RACE_H_OGRE */         "◦"
-};
+    /* RACE_HUMAN */ "☺",
+    /* RACE_ELF */ "♠",
+    /* RACE_DWARF */ "♦",
+    /* RACE_H_TROLL */ "Ω",
+    /* RACE_CRYSTAL_DWARF */ "◊",
+    /* RACE_HALFLING */ "•",
+    /* RACE_H_ELF */ "♣",
+    /* RACE_H_ORC */ "○",
+    /* RACE_GNOME */ "♥",
+    /* RACE_TRELUX */ "∞",
+    /* RACE_ARCANA_GOLEM */ "◙",
+    /* RACE_DROW */ "▼",
+    /* RACE_DUERGAR */ "■",
+    /* RACE_HIGH_ELF */ "♀",
+    /* RACE_WOOD_ELF */ "♂",
+    /* RACE_HALF_DROW */ "▲",
+    /* RACE_TABAXI */ "♪",
+    /* RACE_TIEFLING */ "Ψ",
+    /* RACE_AASIMAR */ "☼",
+    /* RACE_WARFORGED */ "⌂",
+    /* RACE_DRAGONBORN */ "∆",
+    /* RACE_STOUT_HALFLING */ "◘",
+    /* RACE_FOREST_GNOME */ "♫",
+    /* RACE_GOLD_DWARF */ "◄",
+    /* RACE_AVARIEL */ "↑",
+    /* RACE_YUAN_TI */ "§",
+    /* RACE_CENTAUR */ "¤",
+    /* RACE_AARAKOCRA */ "↔",
+    /* RACE_H_OGRE */ "◦"};
 
 /* Get the symbol for a character's race */
 static const char *get_race_symbol(struct char_data *ch)
 {
   int race;
-  
+
   // Check if symbols are disabled
-  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_SCORE_RACE_SYMBOLS)) {
+  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_SCORE_RACE_SYMBOLS))
+  {
     return "";
   }
-  
+
   race = GET_RACE(ch);
-  
+
   // Bounds check
-  if (race < 0 || race >= (int)(sizeof(race_symbols) / sizeof(race_symbols[0]))) {
+  if (race < 0 || race >= (int)(sizeof(race_symbols) / sizeof(race_symbols[0])))
+  {
     return "?";
   }
-  
+
   return race_symbols[race];
 }
 
 /* Layout template section order definitions */
 static const byte layout_default[8] = {
-  SECTION_IDENTITY,     /* 0 */
-  SECTION_VITALS,       /* 1 */
-  SECTION_EXPERIENCE,   /* 2 */
-  SECTION_ABILITIES,    /* 3 */
-  SECTION_COMBAT,       /* 4 */
-  SECTION_MAGIC,        /* 5 */
-  SECTION_WEALTH,       /* 6 */
-  SECTION_EQUIPMENT     /* 7 */
+    SECTION_IDENTITY,   /* 0 */
+    SECTION_VITALS,     /* 1 */
+    SECTION_EXPERIENCE, /* 2 */
+    SECTION_ABILITIES,  /* 3 */
+    SECTION_COMBAT,     /* 4 */
+    SECTION_MAGIC,      /* 5 */
+    SECTION_WEALTH,     /* 6 */
+    SECTION_EQUIPMENT   /* 7 */
 };
 
 static const byte layout_combat[8] = {
-  SECTION_COMBAT,       /* 0 - Combat stats first */
-  SECTION_VITALS,       /* 1 - HP/Move next */
-  SECTION_ABILITIES,    /* 2 - Stats matter in combat */
-  SECTION_EQUIPMENT,    /* 3 - What gear you have */
-  SECTION_MAGIC,        /* 4 - Spells/abilities */
-  SECTION_IDENTITY,     /* 5 - Who you are */
-  SECTION_EXPERIENCE,   /* 6 - Level info */
-  SECTION_WEALTH        /* 7 - Gold last */
+    SECTION_COMBAT,     /* 0 - Combat stats first */
+    SECTION_VITALS,     /* 1 - HP/Move next */
+    SECTION_ABILITIES,  /* 2 - Stats matter in combat */
+    SECTION_EQUIPMENT,  /* 3 - What gear you have */
+    SECTION_MAGIC,      /* 4 - Spells/abilities */
+    SECTION_IDENTITY,   /* 5 - Who you are */
+    SECTION_EXPERIENCE, /* 6 - Level info */
+    SECTION_WEALTH      /* 7 - Gold last */
 };
 
 static const byte layout_roleplay[8] = {
-  SECTION_IDENTITY,     /* 0 - Who you are matters most */
-  SECTION_ABILITIES,    /* 2 - Your capabilities */
-  SECTION_WEALTH,       /* 3 - Your resources */
-  SECTION_EQUIPMENT,    /* 4 - What you carry */
-  SECTION_VITALS,       /* 5 - Basic health */
-  SECTION_EXPERIENCE,   /* 6 - Progress */
-  SECTION_MAGIC,        /* 7 - Magic abilities */
-  SECTION_COMBAT        /* 8 - Combat stats last */
+    SECTION_IDENTITY,   /* 0 - Who you are matters most */
+    SECTION_ABILITIES,  /* 2 - Your capabilities */
+    SECTION_WEALTH,     /* 3 - Your resources */
+    SECTION_EQUIPMENT,  /* 4 - What you carry */
+    SECTION_VITALS,     /* 5 - Basic health */
+    SECTION_EXPERIENCE, /* 6 - Progress */
+    SECTION_MAGIC,      /* 7 - Magic abilities */
+    SECTION_COMBAT      /* 8 - Combat stats last */
 };
 
 static const byte layout_explorer[8] = {
-  SECTION_VITALS,       /* 0 - Health/movement primary */
-  SECTION_ABILITIES,    /* 1 - Physical stats important */
-  SECTION_EQUIPMENT,    /* 2 - Gear for exploring */
-  SECTION_IDENTITY,     /* 3 - Who you are */
-  SECTION_EXPERIENCE,   /* 4 - Progress tracking */
-  SECTION_WEALTH,       /* 5 - Resources */
-  SECTION_MAGIC,        /* 6 - Magic abilities */
-  SECTION_COMBAT        /* 7 - Combat less important */
+    SECTION_VITALS,     /* 0 - Health/movement primary */
+    SECTION_ABILITIES,  /* 1 - Physical stats important */
+    SECTION_EQUIPMENT,  /* 2 - Gear for exploring */
+    SECTION_IDENTITY,   /* 3 - Who you are */
+    SECTION_EXPERIENCE, /* 4 - Progress tracking */
+    SECTION_WEALTH,     /* 5 - Resources */
+    SECTION_MAGIC,      /* 6 - Magic abilities */
+    SECTION_COMBAT      /* 7 - Combat less important */
 };
 
 static const byte layout_caster[8] = {
-  SECTION_MAGIC,        /* 0 - Spells/PSP first */
-  SECTION_VITALS,       /* 1 - HP/Mana next */
-  SECTION_ABILITIES,    /* 2 - Mental stats important */
-  SECTION_IDENTITY,     /* 3 - Character info */
-  SECTION_EXPERIENCE,   /* 4 - Level progression */
-  SECTION_EQUIPMENT,    /* 5 - Magic items */
-  SECTION_COMBAT,       /* 6 - Combat secondary */
-  SECTION_WEALTH        /* 7 - Gold last */
+    SECTION_MAGIC,      /* 0 - Spells/PSP first */
+    SECTION_VITALS,     /* 1 - HP/Mana next */
+    SECTION_ABILITIES,  /* 2 - Mental stats important */
+    SECTION_IDENTITY,   /* 3 - Character info */
+    SECTION_EXPERIENCE, /* 4 - Level progression */
+    SECTION_EQUIPMENT,  /* 5 - Magic items */
+    SECTION_COMBAT,     /* 6 - Combat secondary */
+    SECTION_WEALTH      /* 7 - Gold last */
 };
 
 /* Get template section order based on layout template */
 static const byte *get_template_section_order(int template)
 {
-  switch (template) {
-    case LAYOUT_COMBAT:
-      return layout_combat;
-    case LAYOUT_ROLEPLAY:
-      return layout_roleplay;
-    case LAYOUT_EXPLORER:
-      return layout_explorer;
-    case LAYOUT_CASTER:
-      return layout_caster;
-    case LAYOUT_DEFAULT:
-    default:
-      return layout_default;
+  switch (template)
+  {
+  case LAYOUT_COMBAT:
+    return layout_combat;
+  case LAYOUT_ROLEPLAY:
+    return layout_roleplay;
+  case LAYOUT_EXPLORER:
+    return layout_explorer;
+  case LAYOUT_CASTER:
+    return layout_caster;
+  case LAYOUT_DEFAULT:
+  default:
+    return layout_default;
   }
 }
 
@@ -4971,25 +5290,27 @@ static const byte *get_template_section_order(int template)
 __attribute__((unused)) static const byte *get_layout_template(struct char_data *ch)
 {
   byte template;
-  
-  if (IS_NPC(ch)) {
+
+  if (IS_NPC(ch))
+  {
     return layout_default;
   }
-  
+
   template = GET_SCORE_LAYOUT_TEMPLATE(ch);
-  
-  switch (template) {
-    case LAYOUT_COMBAT:
-      return layout_combat;
-    case LAYOUT_ROLEPLAY:
-      return layout_roleplay;
-    case LAYOUT_EXPLORER:
-      return layout_explorer;
-    case LAYOUT_CASTER:
-      return layout_caster;
-    case LAYOUT_DEFAULT:
-    default:
-      return layout_default;
+
+  switch (template)
+  {
+  case LAYOUT_COMBAT:
+    return layout_combat;
+  case LAYOUT_ROLEPLAY:
+    return layout_roleplay;
+  case LAYOUT_EXPLORER:
+    return layout_explorer;
+  case LAYOUT_CASTER:
+    return layout_caster;
+  case LAYOUT_DEFAULT:
+  default:
+    return layout_default;
   }
 }
 
@@ -5011,26 +5332,30 @@ static void display_identity_section(struct char_data *ch, int line_length)
   char class_buf[MAX_STRING_LENGTH] = {'\0'};
   char dname[SMALL_STRING] = {'\0'};
   int i = 0, counter = 0;
-  
+
   skore_section_header(ch, "\tY*** CHARACTER IDENTITY ***\tC", line_length, "\tC");
 
-  send_to_char(ch, "\tc+-- Personal Information -------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcName:\tn %-20s \tc|\tn \tcTitle:\tn %-30s \tc|\tn\r\n",
-               GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None");
+  send_to_char(ch, "\tc+-- Personal Information "
+                   "-------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcName:\tn %-20s \tc|\tn \tcTitle:\tn %-30s \tc|\tn\r\n", GET_NAME(ch),
+               GET_TITLE(ch) ? GET_TITLE(ch) : "None");
 
   snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
-  
+
   /* Build race string with optional symbol */
   char race_display[64];
   const char *race_symbol = get_race_symbol(ch);
-  if (race_symbol && *race_symbol) {
-    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol, race_list[GET_RACE(ch)].type);
-  } else {
+  if (race_symbol && *race_symbol)
+  {
+    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol,
+             race_list[GET_RACE(ch)].type);
+  }
+  else
+  {
     snprintf(race_display, sizeof(race_display), "%s", race_list[GET_RACE(ch)].type);
   }
-  
-  send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n",
-               race_display,
+
+  send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n", race_display,
                deity_list[GET_DEITY(ch)].name ? CAP(dname) : "None");
 
   /* Build enhanced class display with colors */
@@ -5045,8 +5370,8 @@ static void display_identity_section(struct char_data *ch, int line_length)
           strlcat(class_buf, " \tc/\tn ", sizeof(class_buf));
 
         char temp_buf[64];
-        snprintf(temp_buf, sizeof(temp_buf), "%s%d %s\tn",
-                get_class_color(ch, i), CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        snprintf(temp_buf, sizeof(temp_buf), "%s%d %s\tn", get_class_color(ch, i),
+                 CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
         strlcat(class_buf, temp_buf, sizeof(class_buf));
         counter++;
       }
@@ -5063,22 +5388,25 @@ static void display_identity_section(struct char_data *ch, int line_length)
              class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
   }
 
-  send_to_char(ch, "\tc|\tn \tcClass%s:\tn %-50s \tc|\tn\r\n",
-               (counter == 1 ? "" : "es"), class_buf);
+  send_to_char(ch, "\tc|\tn \tcClass%s:\tn %-50s \tc|\tn\r\n", (counter == 1 ? "" : "es"),
+               class_buf);
 
-  send_to_char(ch, "\tc|\tn \tcAlignment:\tn %-15s \tc|\tn \tcAge:\tn %-8s \tc|\tn \tcSize:\tn %-12s \tc|\tn\r\n",
-               get_align_by_num(GET_ALIGNMENT(ch)),
-               character_ages[GET_CH_AGE(ch)],
+  send_to_char(ch,
+               "\tc|\tn \tcAlignment:\tn %-15s \tc|\tn \tcAge:\tn %-8s \tc|\tn \tcSize:\tn %-12s "
+               "\tc|\tn\r\n",
+               get_align_by_num(GET_ALIGNMENT(ch)), character_ages[GET_CH_AGE(ch)],
                size_names[GET_SIZE(ch)]);
 
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_vitals_section(struct char_data *ch, int line_length)
 {
   struct time_info_data playing_time;
   float height = GET_HEIGHT(ch);
-  
+
   skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
 
   /* Health-based color for vitals */
@@ -5089,128 +5417,167 @@ static void display_vitals_section(struct char_data *ch, int line_length)
   skore_progress_bar(ch, "Movement", GET_MOVE(ch), GET_MAX_MOVE(ch), mv_color);
 
   /* PSP for psionicists */
-  if (GET_MAX_PSP(ch) > 0) {
+  if (GET_MAX_PSP(ch) > 0)
+  {
     const char *psp_color = get_health_color(ch, GET_PSP(ch), GET_MAX_PSP(ch));
     skore_progress_bar(ch, "PSP", GET_PSP(ch), GET_MAX_PSP(ch), psp_color);
   }
 
-  playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
-                                       ch->player.time.played,
-                                   0);
+  playing_time = *real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
   height *= 0.393700787402;
 
-  send_to_char(ch, "\r\n\tc+-- Physical Status ------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcHeight:\tn %5.1f inches \tc|\tn \tcWeight:\tn %4d lbs \tc|\tn \tcSpeed:\tn %3d \tc|\tn \tcInit:\tn %s%d \tc|\tn\r\n",
+  send_to_char(ch, "\r\n\tc+-- Physical Status "
+                   "------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch,
+               "\tc|\tn \tcHeight:\tn %5.1f inches \tc|\tn \tcWeight:\tn %4d lbs \tc|\tn "
+               "\tcSpeed:\tn %3d \tc|\tn \tcInit:\tn %s%d \tc|\tn\r\n",
                height, GET_WEIGHT(ch), get_speed(ch, TRUE),
                get_initiative_modifier(ch) >= 0 ? "+" : "", get_initiative_modifier(ch));
 
-  send_to_char(ch, "\tc|\tn \tcCarrying:\tn %d/%d lbs \tc|\tn \tcItems:\tn %d/%d \tc|\tn \tcPlayed:\tn %dd %dh \tc|\tn\r\n",
+  send_to_char(ch,
+               "\tc|\tn \tcCarrying:\tn %d/%d lbs \tc|\tn \tcItems:\tn %d/%d \tc|\tn \tcPlayed:\tn "
+               "%dd %dh \tc|\tn\r\n",
                IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch),
                playing_time.day, playing_time.hours);
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_experience_section(struct char_data *ch, int line_length)
 {
   int current_stage = 0, stage_xp = 0, stage_xp_needed = 0;
   int i, points, has_perk_points = FALSE;
-  
+
   send_to_char(ch, "\tR[DEBUG] display_experience_section called!\tn\r\n");
-  
+
   skore_section_header(ch, "\tY*** EXPERIENCE & PROGRESSION ***\tC", line_length, "\tC");
 
   /* Experience progress bar */
-  int exp_needed = (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
-  int exp_total = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : level_exp(ch, GET_LEVEL(ch) + 1) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+  int exp_needed =
+      (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT
+                         ? 1
+                         : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+  int exp_total =
+      (GET_LEVEL(ch) >= LVL_IMMORT ? 1
+                                   : level_exp(ch, GET_LEVEL(ch) + 1) -
+                                         (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
 
-  if (GET_LEVEL(ch) < LVL_IMMORT) {
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
     skore_progress_bar(ch, "Experience", exp_current, exp_total, "\tY");
-    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcNeeded:\tn %s \tc|\tn \tcLevel:\tn %d \tn\r\n",
+    send_to_char(ch,
+                 "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcNeeded:\tn %s \tc|\tn "
+                 "\tcLevel:\tn %d \tn\r\n",
                  add_commas(GET_EXP(ch)), add_commas(exp_needed), GET_LEVEL(ch));
-    
+
     /* Display stage progression information */
-    if (!IS_NPC(ch)) {
+    if (!IS_NPC(ch))
+    {
       current_stage = ch->player_specials->saved.stage_info.current_stage;
       stage_xp_needed = calculate_stage_xp_needed(ch);
-      
-      if (current_stage < STAGES_PER_LEVEL) {
+
+      if (current_stage < STAGES_PER_LEVEL)
+      {
         /* Calculate XP within current stage */
         int base_level_xp = (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0);
         int stage_start_xp = base_level_xp + (stage_xp_needed * (current_stage - 1));
         stage_xp = GET_EXP(ch) - stage_start_xp;
-        
+
         send_to_char(ch, "\tc             \tn \tYStage:\tn %d/4 \tc|\tn \tYStage XP:\tn %s/%s\r\n",
-                     current_stage,
-                     add_commas(stage_xp),
-                     add_commas(stage_xp_needed));
-      } else {
+                     current_stage, add_commas(stage_xp), add_commas(stage_xp_needed));
+      }
+      else
+      {
         send_to_char(ch, "\tc             \tn \tYStage:\tn 4/4 (Ready to level!)\r\n");
       }
     }
-  } else {
-    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcLevel:\tn %d (IMMORTAL) \tn\r\n",
-                 add_commas(GET_EXP(ch)), GET_LEVEL(ch));
+  }
+  else
+  {
+    send_to_char(
+        ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcLevel:\tn %d (IMMORTAL) \tn\r\n",
+        add_commas(GET_EXP(ch)), GET_LEVEL(ch));
   }
 
   /* Display perk points if character has any (only if perk system is enabled) */
-  if (!IS_NPC(ch) && CONFIG_PERK_SYSTEM) {
+  if (!IS_NPC(ch) && CONFIG_PERK_SYSTEM)
+  {
     send_to_char(ch, "\tY[DEBUG] Checking all classes for perk points...\tn\r\n");
-    for (i = 0; i < NUM_CLASSES; i++) {
-      send_to_char(ch, "\tY[DEBUG] Class %d (%s): Level=%d, Points=%d\tn\r\n", 
-                  i, class_names[i], CLASS_LEVEL(ch, i), 
-                  ch->player_specials->saved.perk_points[i]);
-      if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      send_to_char(ch, "\tY[DEBUG] Class %d (%s): Level=%d, Points=%d\tn\r\n", i, class_names[i],
+                   CLASS_LEVEL(ch, i), ch->player_specials->saved.perk_points[i]);
+      if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0)
+      {
         has_perk_points = TRUE;
       }
     }
-    
-    if (has_perk_points) {
-      send_to_char(ch, "\r\n\tc+-- Perk Points ----------------------------------------------------------------+\tn\r\n");
-      
-      for (i = 0; i < NUM_CLASSES; i++) {
-        if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
+
+    if (has_perk_points)
+    {
+      send_to_char(ch, "\r\n\tc+-- Perk Points "
+                       "----------------------------------------------------------------+\tn\r\n");
+
+      for (i = 0; i < NUM_CLASSES; i++)
+      {
+        if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0)
+        {
           points = ch->player_specials->saved.perk_points[i];
-          send_to_char(ch, "\tc|\tn %-20s: %s%3d\tn point%s",
-                      class_names[i],
-                      points > 0 ? "\tG" : "\tD",
-                      points,
-                      points == 1 ? " " : "s");
-          
+          send_to_char(ch, "\tc|\tn %-20s: %s%3d\tn point%s", class_names[i],
+                       points > 0 ? "\tG" : "\tD", points, points == 1 ? " " : "s");
+
           /* Add spacing to align properly */
           send_to_char(ch, "                                          \tc|\tn\r\n");
         }
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "\tY[DEBUG] No perk points found to display\tn\r\n");
     }
   }
 
-  send_to_char(ch, "\r\n\tc+-- Caster Levels --------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcCaster Level:\tn %-3d \tc|\tn \tcDivine Level:\tn %-3d \tc|\tn \tcMagic Level:\tn %-3d \tc|\tn\r\n",
+  send_to_char(ch, "\r\n\tc+-- Caster Levels "
+                   "--------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch,
+               "\tc|\tn \tcCaster Level:\tn %-3d \tc|\tn \tcDivine Level:\tn %-3d \tc|\tn \tcMagic "
+               "Level:\tn %-3d \tc|\tn\r\n",
                CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch));
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_abilities_section(struct char_data *ch, int line_length)
 {
   skore_section_header(ch, "\tG*** ABILITY SCORES & SAVES ***\tC", line_length, "\tC");
 
-  send_to_char(ch, "\tc+-- Ability Scores -------------------------+-- Saving Throws ---------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcStr:\tn %2d[%2d] \tcDex:\tn %2d[%2d] \tcCon:\tn %2d[%2d] \tc|\tn \tcFort:\tn %-3d \tcWill:\tn %-3d \tc|\tn\r\n",
-               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
-               compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0));
-  send_to_char(ch, "\tc|\tn \tcInt:\tn %2d[%2d] \tcWis:\tn %2d[%2d] \tcCha:\tn %2d[%2d] \tc|\tn \tcReflex:\tn %-3d       \tc|\tn\r\n",
-               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch),
-               compute_mag_saves(ch, SAVING_REFL, 0));
-  send_to_char(ch, "\tc+--------------------------------------------+--------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc+-- Ability Scores -------------------------+-- Saving Throws ---------------+\tn\r\n");
+  send_to_char(ch,
+               "\tc|\tn \tcStr:\tn %2d[%2d] \tcDex:\tn %2d[%2d] \tcCon:\tn %2d[%2d] \tc|\tn "
+               "\tcFort:\tn %-3d \tcWill:\tn %-3d \tc|\tn\r\n",
+               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch),
+               GET_CON_BONUS(ch), compute_mag_saves(ch, SAVING_FORT, 0),
+               compute_mag_saves(ch, SAVING_WILL, 0));
+  send_to_char(ch,
+               "\tc|\tn \tcInt:\tn %2d[%2d] \tcWis:\tn %2d[%2d] \tcCha:\tn %2d[%2d] \tc|\tn "
+               "\tcReflex:\tn %-3d       \tc|\tn\r\n",
+               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch),
+               GET_CHA_BONUS(ch), compute_mag_saves(ch, SAVING_REFL, 0));
+  send_to_char(
+      ch,
+      "\tc+--------------------------------------------+--------------------------------+\tn\r\n");
 }
 
 static void display_combat_section(struct char_data *ch, int line_length)
 {
   int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  
+
   skore_section_header(ch, "\tR*** COMBAT STATISTICS ***\tC", line_length, "\tC");
 
 #define RETURN_NUM_ATTACKS 1
@@ -5218,93 +5585,122 @@ static void display_combat_section(struct char_data *ch, int line_length)
   int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
 #undef RETURN_NUM_ATTACKS
 
-  send_to_char(ch, "\tc+-- Combat Stats ---------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcBAB:\tn %-4d \tc|\tn \tcAttacks:\tn %-3d \tc|\tn \tcAC:\tn %-3d \tc|\tn \tcWimpy:\tn %-3d \tc|\tn \tcPos:\tn %-10s \tc|\tn\r\n",
+  send_to_char(ch, "\tc+-- Combat Stats "
+                   "---------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch,
+               "\tc|\tn \tcBAB:\tn %-4d \tc|\tn \tcAttacks:\tn %-3d \tc|\tn \tcAC:\tn %-3d \tc|\tn "
+               "\tcWimpy:\tn %-3d \tc|\tn \tcPos:\tn %-10s \tc|\tn\r\n",
                calc_bab, num_attacks, armor_class, GET_WIMP_LEV(ch),
                FIGHTING(ch) ? "Fighting" : position_types[GET_POS(ch)]);
 
-  send_to_char(ch, "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d \tc|\tn \tcDR:\tn %-3d \tc|\tn \tcSR:\tn %-3d \tc|\tn\r\n",
-               GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
-               GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch),
-               compute_damage_reduction(ch, DAM_RESERVED_DBC),
+  send_to_char(ch,
+               "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d \tc|\tn \tcDR:\tn %-3d "
+               "\tc|\tn \tcSR:\tn %-3d \tc|\tn\r\n",
+               GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch), GET_DAMROLL(ch) >= 0 ? "+" : "",
+               GET_DAMROLL(ch), compute_damage_reduction(ch, DAM_RESERVED_DBC),
                compute_spell_res(ch, ch, 0));
 
   /* Weapon information */
-  if (wielded) {
+  if (wielded)
+  {
     send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
-                 wielded->short_description,
-                 GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
+                 wielded->short_description, GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
                  GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
                  "Unarmed", 1, 3, GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
   }
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_magic_section(struct char_data *ch, int line_length)
 {
-  
   skore_section_header(ch, "\tB*** MAGIC & PSIONICS ***\tC", line_length, "\tC");
 
-  if (IS_SPELLCASTER(ch)) {
-    send_to_char(ch, "\tc+-- Spellcaster Bonuses --------------------------------------------------------+\tn\r\n");
-    send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d \tc|\tn \tcPotency:\tn %-3d%% \tc|\tn \tcDuration:\tn %-3d%% \tc|\tn\r\n",
+  if (IS_SPELLCASTER(ch))
+  {
+    send_to_char(ch, "\tc+-- Spellcaster Bonuses "
+                     "--------------------------------------------------------+\tn\r\n");
+    send_to_char(ch,
+                 "\tc|\tn \tcSpell DC Bonus:\tn %-3d \tc|\tn \tcPotency:\tn %-3d%% \tc|\tn "
+                 "\tcDuration:\tn %-3d%% \tc|\tn\r\n",
                  get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
-    send_to_char(ch, "\tc+-- Spell Slots ----------------------------------------------------------------+\tn\r\n");
-    
+    send_to_char(ch, "\tc+-- Spell Slots "
+                     "----------------------------------------------------------------+\tn\r\n");
+
     /* Display spell slots for each casting class */
     int class_idx, circle;
-    
-    for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++) {
-      if (CLASS_LEVEL(ch, class_idx) > 0) {
+
+    for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++)
+    {
+      if (CLASS_LEVEL(ch, class_idx) > 0)
+      {
         /* Check if this class has any spell slots */
         int has_slots = FALSE;
-        for (circle = 1; circle <= 9; circle++) {
-          if (compute_slots_by_circle(ch, class_idx, circle) > 0) {
+        for (circle = 1; circle <= 9; circle++)
+        {
+          if (compute_slots_by_circle(ch, class_idx, circle) > 0)
+          {
             has_slots = TRUE;
             break;
           }
         }
-        if (!has_slots) continue;
+        if (!has_slots)
+          continue;
         /* This class can cast spells */
         send_to_char(ch, "\tc|\tn \tc%s:\tn ", class_list[class_idx].name);
-        
-        for (circle = 1; circle <= 9; circle++) {
+
+        for (circle = 1; circle <= 9; circle++)
+        {
           int total_slots = compute_slots_by_circle(ch, class_idx, circle);
-          if (total_slots > 0) {
+          if (total_slots > 0)
+          {
             int used_slots = count_circle_collection(ch, class_idx, circle) +
-                            count_circle_innate_magic(ch, class_idx, circle) +
-                            count_circle_prep_queue(ch, class_idx, circle);
+                             count_circle_innate_magic(ch, class_idx, circle) +
+                             count_circle_prep_queue(ch, class_idx, circle);
             int remaining = total_slots - used_slots;
-            
+
             /* Color code based on remaining slots */
             const char *color = "\tg"; /* Green if slots available */
-            if (remaining == 0) color = "\tr"; /* Red if no slots */
-            else if (remaining <= total_slots / 3) color = "\ty"; /* Yellow if low */
-            
+            if (remaining == 0)
+              color = "\tr"; /* Red if no slots */
+            else if (remaining <= total_slots / 3)
+              color = "\ty"; /* Yellow if low */
+
             send_to_char(ch, "%s[%d: %d/%d]\tn ", color, circle, remaining, total_slots);
             has_slots = TRUE;
           }
         }
-        if (has_slots) {
+        if (has_slots)
+        {
           send_to_char(ch, "\tc|\tn\r\n");
         }
       }
     }
-    
-    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+    send_to_char(
+        ch,
+        "\tc+----------------------------------------------------------------------------+\tn\r\n");
   }
 
-  if (GET_PSIONIC_LEVEL(ch) > 0) {
-    send_to_char(ch, "\tc+-- Psionic Information --------------------------------------------------------+\tn\r\n");
-    send_to_char(ch, "\tc|\tn \tcPsionic Level:\tn %-3d \tc|\tn \tcEnergy Type:\tn %-15s \tc|\tn\r\n",
+  if (GET_PSIONIC_LEVEL(ch) > 0)
+  {
+    send_to_char(ch, "\tc+-- Psionic Information "
+                     "--------------------------------------------------------+\tn\r\n");
+    send_to_char(ch,
+                 "\tc|\tn \tcPsionic Level:\tn %-3d \tc|\tn \tcEnergy Type:\tn %-15s \tc|\tn\r\n",
                  GET_PSIONIC_LEVEL(ch), damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
     send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d (power psp cost) \tc|\tn\r\n",
                  base_augment_psp_allowed(ch));
-    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(
+        ch,
+        "\tc+----------------------------------------------------------------------------+\tn\r\n");
   }
-  
+
   /* Display active effects */
   display_active_effects(ch);
 }
@@ -5313,65 +5709,83 @@ static void display_wealth_section(struct char_data *ch, int line_length)
 {
   skore_section_header(ch, "\tY*** WEALTH & ACHIEVEMENTS ***\tC", line_length, "\tC");
 
-  send_to_char(ch, "\tc+-- Wealth ---------------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc+-- Wealth "
+                   "---------------------------------------------------------------------+\tn\r\n");
   send_to_char(ch, "\tc|\tn \tcGold:\tn %-20s \tc|\tn \tcBank:\tn %-20s \tc|\tn\r\n",
                add_commas(GET_GOLD(ch)), add_commas(GET_BANK_GOLD(ch)));
-  send_to_char(ch, "\tc+-- Quests & Achievements ------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcQuests Completed:\tn %-6d \tc|\tn \tcQuest Points:\tn %-6d \tc|\tn\r\n",
-               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
-               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
+  send_to_char(ch, "\tc+-- Quests & Achievements "
+                   "------------------------------------------------------+\tn\r\n");
+  send_to_char(ch,
+               "\tc|\tn \tcQuests Completed:\tn %-6d \tc|\tn \tcQuest Points:\tn %-6d \tc|\tn\r\n",
+               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0), (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
 
-  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch)) {
+  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
+  {
     send_to_char(ch, "\tc|\tn \tcCrafting Job:\tn (%d) %s, using: %s \tc|\tn\r\n",
                  GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
                  material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
   }
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_equipment_section(struct char_data *ch, int line_length)
 {
   int i, equipped_items = 0;
-  
+
   skore_section_header(ch, "\tM*** EQUIPMENT STATUS ***\tC", line_length, "\tC");
 
-  send_to_char(ch, "\tc+-- Key Equipment --------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc+-- Key Equipment "
+                   "--------------------------------------------------------------+\tn\r\n");
 
   /* Show main weapon */
-  if (GET_EQ(ch, WEAR_WIELD_1)) {
+  if (GET_EQ(ch, WEAR_WIELD_1))
+  {
     struct obj_data *weapon = GET_EQ(ch, WEAR_WIELD_1);
-    send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n",
-                 weapon->short_description);
-  } else {
+    send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n", weapon->short_description);
+  }
+  else
+  {
     send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n", "None (unarmed)");
   }
 
   /* Show armor */
-  if (GET_EQ(ch, WEAR_BODY)) {
+  if (GET_EQ(ch, WEAR_BODY))
+  {
     struct obj_data *armor = GET_EQ(ch, WEAR_BODY);
-    send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n",
-                 armor->short_description);
-  } else {
+    send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n", armor->short_description);
+  }
+  else
+  {
     send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n", "None");
   }
 
   /* Show shield */
-  if (GET_EQ(ch, WEAR_SHIELD)) {
+  if (GET_EQ(ch, WEAR_SHIELD))
+  {
     struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
-    send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n",
-                 shield->short_description);
-  } else {
+    send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n", shield->short_description);
+  }
+  else
+  {
     send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n", "None");
   }
 
   /* Equipment condition summary */
-  for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i)) equipped_items++;
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (GET_EQ(ch, i))
+      equipped_items++;
   }
 
-  send_to_char(ch, "\tc|\tn \tcEquipped Items:\tn %-3d / %d slots                                  \tc|\tn\r\n",
-               equipped_items, NUM_WEARS);
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  send_to_char(
+      ch,
+      "\tc|\tn \tcEquipped Items:\tn %-3d / %d slots                                  \tc|\tn\r\n",
+      equipped_items, NUM_WEARS);
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 /* Display active effects with duration bars */
@@ -5383,86 +5797,118 @@ static void display_active_effects(struct char_data *ch)
   int bar_length = 20; // Length of progress bar
   int filled_length;
   int i;
-  
-  send_to_char(ch, "\tc+-- Active Effects -------------------------------------------------------------+\tn\r\n");
-  
-  if (!ch->affected) {
-    send_to_char(ch, "\tc|\tn \tcNo active effects\tn                                                     \tc|\tn\r\n");
-    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+  send_to_char(ch, "\tc+-- Active Effects "
+                   "-------------------------------------------------------------+\tn\r\n");
+
+  if (!ch->affected)
+  {
+    send_to_char(ch, "\tc|\tn \tcNo active effects\tn                                              "
+                     "       \tc|\tn\r\n");
+    send_to_char(
+        ch,
+        "\tc+----------------------------------------------------------------------------+\tn\r\n");
     return;
   }
-  
-  for (aff = ch->affected; aff; aff = aff->next) {
-    if (aff->spell <= 0) continue;
-    
+
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->spell <= 0)
+      continue;
+
     count++;
-    
+
     // For now, just show spell number - can be enhanced later
     char spell_name[32];
     snprintf(spell_name, sizeof(spell_name), "Spell #%d", aff->spell);
-    
+
     // Calculate progress bar based on duration
-    if (aff->duration < 0) {
+    if (aff->duration < 0)
+    {
       // Permanent effect
-      send_to_char(ch, "\tc|\tn \tc%-20s:\tn \tc[\tW====================\tc]\tn Permanent \tc|\tn\r\n", spell_name);
-    } else if (aff->duration == 0) {
+      send_to_char(ch,
+                   "\tc|\tn \tc%-20s:\tn \tc[\tW====================\tc]\tn Permanent \tc|\tn\r\n",
+                   spell_name);
+    }
+    else if (aff->duration == 0)
+    {
       // About to expire
-      send_to_char(ch, "\tc|\tn \tc%-20s:\tn \tc[\tr!                  \tc]\tn Expiring! \tc|\tn\r\n", spell_name);
-    } else {
+      send_to_char(ch,
+                   "\tc|\tn \tc%-20s:\tn \tc[\tr!                  \tc]\tn Expiring! \tc|\tn\r\n",
+                   spell_name);
+    }
+    else
+    {
       // Calculate filled portion of bar
       // Assume max duration is 24 hours (24 * 60 = 1440 ticks)
       int max_duration = 1440;
       filled_length = (aff->duration * bar_length) / max_duration;
-      if (filled_length > bar_length) filled_length = bar_length;
-      if (filled_length < 1 && aff->duration > 0) filled_length = 1;
-      
+      if (filled_length > bar_length)
+        filled_length = bar_length;
+      if (filled_length < 1 && aff->duration > 0)
+        filled_length = 1;
+
       // Determine color based on remaining time
-      if (aff->duration > 60) {
+      if (aff->duration > 60)
+      {
         color = "\tG"; // Green for > 1 hour
-      } else if (aff->duration > 10) {
+      }
+      else if (aff->duration > 10)
+      {
         color = "\tY"; // Yellow for > 10 minutes
-      } else {
+      }
+      else
+      {
         color = "\tR"; // Red for <= 10 minutes
       }
-      
+
       // Build progress bar
       send_to_char(ch, "\tc|\tn \tc%-20s:\tn \tc[%s", spell_name, color);
-      for (i = 0; i < filled_length; i++) {
+      for (i = 0; i < filled_length; i++)
+      {
         send_to_char(ch, "=");
       }
       send_to_char(ch, "\tn");
-      for (i = filled_length; i < bar_length; i++) {
+      for (i = filled_length; i < bar_length; i++)
+      {
         send_to_char(ch, " ");
       }
       send_to_char(ch, "\tc]\tn %3d min \tc|\tn\r\n", aff->duration);
     }
   }
-  
-  if (count == 0) {
-    send_to_char(ch, "\tc|\tn \tcNo active effects\tn                                                     \tc|\tn\r\n");
+
+  if (count == 0)
+  {
+    send_to_char(ch, "\tc|\tn \tcNo active effects\tn                                              "
+                     "       \tc|\tn\r\n");
   }
-  
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+  send_to_char(
+      ch,
+      "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 /* Get the current display context for a character */
 static int get_display_context(struct char_data *ch)
 {
   /* Combat takes highest priority */
-  if (ch->char_specials.fighting) {
+  if (ch->char_specials.fighting)
+  {
     return CONTEXT_COMBAT;
   }
-  
+
   /* Check if character is moving/exploring */
-  if (AFF_FLAGGED(ch, AFF_SNEAK) || AFF_FLAGGED(ch, AFF_HIDE)) {
+  if (AFF_FLAGGED(ch, AFF_SNEAK) || AFF_FLAGGED(ch, AFF_HIDE))
+  {
     return CONTEXT_EXPLORING;
   }
-  
+
   /* Check for roleplay mode - preference flag */
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_RP)) {
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_RP))
+  {
     return CONTEXT_ROLEPLAY;
   }
-  
+
   /* Default context */
   return CONTEXT_NORMAL;
 }
@@ -5470,195 +5916,285 @@ static int get_display_context(struct char_data *ch)
 ACMD(do_skore)
 {
   PERF_PROF_ENTER(pr_skore_, "do_skore");
-  
+
   int line_length = 80;
   int i = 0;
 
   /* Check for section-specific display */
   char arg[MAX_INPUT_LENGTH];
   one_argument(argument, arg, sizeof(arg));
-  
+
   /* Check for classic score preference */
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_CLASSIC)) {
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_CLASSIC))
+  {
     PERF_PROF_EXIT(pr_skore_);
     do_score(ch, argument, cmd, subcmd);
     return;
   }
 
   /* Determine display width based on preferences */
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch))
+  {
     int pref_width = GET_SCORE_DISPLAY_WIDTH(ch);
-    if (pref_width == 120 || PRF_FLAGGED(ch, PRF_SCORE_WIDE)) {
+    if (pref_width == 120 || PRF_FLAGGED(ch, PRF_SCORE_WIDE))
+    {
       line_length = 120;
-    } else if (pref_width == 160) {
+    }
+    else if (pref_width == 160)
+    {
       line_length = 160;
-    } else {
+    }
+    else
+    {
       line_length = 80; /* Default */
     }
   }
 
   /* Handle section-specific displays */
-  if (*arg) {
-    if (!str_cmp(arg, "combat")) {
+  if (*arg)
+  {
+    if (!str_cmp(arg, "combat"))
+    {
       /* Show detailed combat information */
       int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
       struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
       int w_type = 0;
-      
+
       if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
         w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
-      else {
+      else
+      {
         if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
           w_type = ch->mob_specials.attack_type + TYPE_HIT;
         else
           w_type = TYPE_HIT;
       }
-      
+
       skore_section_header(ch, "\tR*** DETAILED COMBAT STATISTICS ***\tC", line_length, "\tC");
-      
+
       /* Calculate detailed combat stats */
       int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
       int num_attacks = 1 + MAX(0, (calc_bab - 1) / 5);
-      
-      send_to_char(ch, "\tc+-- Basic Combat Stats ---------------------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcBase Attack Bonus:\tn %-4d                                              \tc|\tn\r\n", calc_bab);
-      send_to_char(ch, "\tc|\tn \tcNumber of Attacks:\tn %-3d                                               \tc|\tn\r\n", num_attacks);
-      send_to_char(ch, "\tc|\tn \tcArmor Class:\tn %-3d                                                      \tc|\tn\r\n", armor_class);
-      send_to_char(ch, "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d                                    \tc|\tn\r\n",
+
+      send_to_char(ch, "\tc+-- Basic Combat Stats "
+                       "---------------------------------------------------------+\tn\r\n");
+      send_to_char(ch,
+                   "\tc|\tn \tcBase Attack Bonus:\tn %-4d                                          "
+                   "    \tc|\tn\r\n",
+                   calc_bab);
+      send_to_char(ch,
+                   "\tc|\tn \tcNumber of Attacks:\tn %-3d                                          "
+                   "     \tc|\tn\r\n",
+                   num_attacks);
+      send_to_char(ch,
+                   "\tc|\tn \tcArmor Class:\tn %-3d                                                "
+                   "      \tc|\tn\r\n",
+                   armor_class);
+      send_to_char(ch,
+                   "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d                    "
+                   "                \tc|\tn\r\n",
                    GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
                    GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
-      
-      send_to_char(ch, "\tc+-- Damage Reduction & Resistance ----------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcDamage Reduction:\tn %-3d                                                  \tc|\tn\r\n",
+
+      send_to_char(ch, "\tc+-- Damage Reduction & Resistance "
+                       "----------------------------------------------+\tn\r\n");
+      send_to_char(ch,
+                   "\tc|\tn \tcDamage Reduction:\tn %-3d                                           "
+                   "       \tc|\tn\r\n",
                    compute_damage_reduction(ch, DAM_RESERVED_DBC));
-      send_to_char(ch, "\tc|\tn \tcSpell Resistance:\tn %-3d                                                  \tc|\tn\r\n",
+      send_to_char(ch,
+                   "\tc|\tn \tcSpell Resistance:\tn %-3d                                           "
+                   "       \tc|\tn\r\n",
                    compute_spell_res(ch, ch, 0));
-      
-      send_to_char(ch, "\tc+-- Weapon Information ---------------------------------------------------------+\tn\r\n");
-      if (wielded) {
+
+      send_to_char(ch, "\tc+-- Weapon Information "
+                       "---------------------------------------------------------+\tn\r\n");
+      if (wielded)
+      {
         send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-54s \tc|\tn\r\n", wielded->short_description);
-        send_to_char(ch, "\tc|\tn \tcDamage:\tn %dd%d%s%d                                                     \tc|\tn\r\n",
+        send_to_char(ch,
+                     "\tc|\tn \tcDamage:\tn %dd%d%s%d                                              "
+                     "       \tc|\tn\r\n",
                      GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
                      GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
-        send_to_char(ch, "\tc|\tn \tcDamage Type:\tn %-20s                                      \tc|\tn\r\n",
-                     attack_hit_text[w_type - TYPE_HIT].singular);
-      } else {
-        send_to_char(ch, "\tc|\tn \tcWeapon:\tn Unarmed                                                      \tc|\tn\r\n");
-        send_to_char(ch, "\tc|\tn \tcDamage:\tn 1d3%s%d                                                       \tc|\tn\r\n",
+        send_to_char(
+            ch, "\tc|\tn \tcDamage Type:\tn %-20s                                      \tc|\tn\r\n",
+            attack_hit_text[w_type - TYPE_HIT].singular);
+      }
+      else
+      {
+        send_to_char(ch, "\tc|\tn \tcWeapon:\tn Unarmed                                            "
+                         "          \tc|\tn\r\n");
+        send_to_char(ch,
+                     "\tc|\tn \tcDamage:\tn 1d3%s%d                                                "
+                     "       \tc|\tn\r\n",
                      GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
       }
-      
-      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+      send_to_char(ch, "\tc+-----------------------------------------------------------------------"
+                       "-----+\tn\r\n");
       send_to_char(ch, "\tC");
       draw_line(ch, line_length, '=', '=');
       send_to_char(ch, "\tn");
-      
+
       PERF_PROF_EXIT(pr_skore_);
       return;
     }
-    else if (!str_cmp(arg, "magic")) {
+    else if (!str_cmp(arg, "magic"))
+    {
       // Show detailed magic information
       skore_section_header(ch, "\tB*** DETAILED MAGIC & PSIONICS ***\tC", line_length, "\tC");
-      
-      if (!IS_SPELLCASTER(ch) && GET_PSIONIC_LEVEL(ch) <= 0) {
+
+      if (!IS_SPELLCASTER(ch) && GET_PSIONIC_LEVEL(ch) <= 0)
+      {
         send_to_char(ch, "\tcYou have no magical or psionic abilities.\tn\r\n");
-      } else {
-        if (IS_SPELLCASTER(ch)) {
-          send_to_char(ch, "\tc+-- Spellcasting Details -------------------------------------------------------+\tn\r\n");
-          send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d                                                    \tc|\tn\r\n",
+      }
+      else
+      {
+        if (IS_SPELLCASTER(ch))
+        {
+          send_to_char(ch, "\tc+-- Spellcasting Details "
+                           "-------------------------------------------------------+\tn\r\n");
+          send_to_char(ch,
+                       "\tc|\tn \tcSpell DC Bonus:\tn %-3d                                         "
+                       "           \tc|\tn\r\n",
                        get_spell_dc_bonus(ch));
-          send_to_char(ch, "\tc|\tn \tcSpell Potency:\tn %-3d%%                                                    \tc|\tn\r\n",
+          send_to_char(ch,
+                       "\tc|\tn \tcSpell Potency:\tn %-3d%%                                        "
+                       "            \tc|\tn\r\n",
                        get_spell_potency_bonus(ch));
-          send_to_char(ch, "\tc|\tn \tcSpell Duration:\tn %-3d%%                                                   \tc|\tn\r\n",
+          send_to_char(ch,
+                       "\tc|\tn \tcSpell Duration:\tn %-3d%%                                       "
+                       "            \tc|\tn\r\n",
                        get_spell_duration_bonus(ch));
-          
+
           // Show detailed spell slots by class
-          send_to_char(ch, "\tc+-- Spell Slots by Class -------------------------------------------------------+\tn\r\n");
-          for (i = 0; i < MAX_CLASSES; i++) {
-            if (CLASS_LEVEL(ch, i) > 0) {
+          send_to_char(ch, "\tc+-- Spell Slots by Class "
+                           "-------------------------------------------------------+\tn\r\n");
+          for (i = 0; i < MAX_CLASSES; i++)
+          {
+            if (CLASS_LEVEL(ch, i) > 0)
+            {
               // Check if this class has any spell slots
               int has_spells = FALSE;
               int circle;
-              for (circle = 1; circle <= 9; circle++) {
-                if (compute_slots_by_circle(ch, i, circle) > 0) {
+              for (circle = 1; circle <= 9; circle++)
+              {
+                if (compute_slots_by_circle(ch, i, circle) > 0)
+                {
                   has_spells = TRUE;
                   break;
                 }
               }
-              if (!has_spells) continue;
-              send_to_char(ch, "\tc|\tn \tc%s (Level %d):\tn\r\n", 
-                           class_list[i].name, CLASS_LEVEL(ch, i));
-              for (circle = 1; circle <= 9; circle++) {
+              if (!has_spells)
+                continue;
+              send_to_char(ch, "\tc|\tn \tc%s (Level %d):\tn\r\n", class_list[i].name,
+                           CLASS_LEVEL(ch, i));
+              for (circle = 1; circle <= 9; circle++)
+              {
                 int total_slots = compute_slots_by_circle(ch, i, circle);
-                if (total_slots > 0) {
+                if (total_slots > 0)
+                {
                   int used_slots = count_circle_collection(ch, i, circle) +
-                                  count_circle_innate_magic(ch, i, circle) +
-                                  count_circle_prep_queue(ch, i, circle);
+                                   count_circle_innate_magic(ch, i, circle) +
+                                   count_circle_prep_queue(ch, i, circle);
                   int remaining = total_slots - used_slots;
-                  
-                  send_to_char(ch, "\tc|\tn   Circle %d: %d/%d slots available                                           \tc|\tn\r\n",
+
+                  send_to_char(ch,
+                               "\tc|\tn   Circle %d: %d/%d slots available                         "
+                               "                  \tc|\tn\r\n",
                                circle, remaining, total_slots);
                 }
               }
             }
           }
-          send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+          send_to_char(ch, "\tc+-------------------------------------------------------------------"
+                           "---------+\tn\r\n");
         }
-        
-        if (GET_PSIONIC_LEVEL(ch) > 0) {
-          send_to_char(ch, "\tc+-- Psionic Details ------------------------------------------------------------+\tn\r\n");
-          send_to_char(ch, "\tc|\tn \tcPsionic Level:\tn %-3d                                                     \tc|\tn\r\n",
+
+        if (GET_PSIONIC_LEVEL(ch) > 0)
+        {
+          send_to_char(ch, "\tc+-- Psionic Details "
+                           "------------------------------------------------------------+\tn\r\n");
+          send_to_char(ch,
+                       "\tc|\tn \tcPsionic Level:\tn %-3d                                          "
+                       "           \tc|\tn\r\n",
                        GET_PSIONIC_LEVEL(ch));
-          send_to_char(ch, "\tc|\tn \tcEnergy Type:\tn %-20s                                      \tc|\tn\r\n",
-                       damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
-          send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d per power                                         \tc|\tn\r\n",
+          send_to_char(
+              ch,
+              "\tc|\tn \tcEnergy Type:\tn %-20s                                      \tc|\tn\r\n",
+              damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+          send_to_char(ch,
+                       "\tc|\tn \tcMax Augment PSP:\tn %-3d per power                              "
+                       "           \tc|\tn\r\n",
                        base_augment_psp_allowed(ch));
-          send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+          send_to_char(ch, "\tc+-------------------------------------------------------------------"
+                           "---------+\tn\r\n");
         }
       }
-      
+
       send_to_char(ch, "\tC");
       draw_line(ch, line_length, '=', '=');
       send_to_char(ch, "\tn");
-      
+
       PERF_PROF_EXIT(pr_skore_);
       return;
     }
-    else if (!str_cmp(arg, "stats")) {
+    else if (!str_cmp(arg, "stats"))
+    {
       // Show detailed ability scores and saves
       skore_section_header(ch, "\tG*** DETAILED ABILITIES & SAVES ***\tC", line_length, "\tC");
-      
-      send_to_char(ch, "\tc+-- Ability Scores & Modifiers ------------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcSTR:\tn %2d (%s%d) \tc|\tn \tcDEX:\tn %2d (%s%d) \tc|\tn \tcCON:\tn %2d (%s%d) \tc|\tn\r\n",
-                   GET_STR(ch), GET_STR_BONUS(ch) >= 0 ? "+" : "", GET_STR_BONUS(ch),
-                   GET_DEX(ch), GET_DEX_BONUS(ch) >= 0 ? "+" : "", GET_DEX_BONUS(ch),
-                   GET_CON(ch), GET_CON_BONUS(ch) >= 0 ? "+" : "", GET_CON_BONUS(ch));
-      send_to_char(ch, "\tc|\tn \tcINT:\tn %2d (%s%d) \tc|\tn \tcWIS:\tn %2d (%s%d) \tc|\tn \tcCHA:\tn %2d (%s%d) \tc|\tn\r\n",
-                   GET_INT(ch), GET_INT_BONUS(ch) >= 0 ? "+" : "", GET_INT_BONUS(ch),
-                   GET_WIS(ch), GET_WIS_BONUS(ch) >= 0 ? "+" : "", GET_WIS_BONUS(ch),
-                   GET_CHA(ch), GET_CHA_BONUS(ch) >= 0 ? "+" : "", GET_CHA_BONUS(ch));
-      
-      send_to_char(ch, "\tc+-- Saving Throws -------------------------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcFortitude:\tn %s%-3d \tc|\tn \tcReflex:\tn %s%-3d \tc|\tn \tcWill:\tn %s%-3d                  \tc|\tn\r\n",
-                   compute_mag_saves(ch, SAVING_FORT, 0) >= 0 ? "+" : "", compute_mag_saves(ch, SAVING_FORT, 0),
-                   compute_mag_saves(ch, SAVING_REFL, 0) >= 0 ? "+" : "", compute_mag_saves(ch, SAVING_REFL, 0),
-                   compute_mag_saves(ch, SAVING_WILL, 0) >= 0 ? "+" : "", compute_mag_saves(ch, SAVING_WILL, 0));
-      
-      send_to_char(ch, "\tc+-- Skill Points & Languages --------------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcAvailable Skill Points:\tn %-3d                                            \tc|\tn\r\n",
+
+      send_to_char(ch, "\tc+-- Ability Scores & Modifiers "
+                       "------------------------------------------------+\tn\r\n");
+      send_to_char(ch,
+                   "\tc|\tn \tcSTR:\tn %2d (%s%d) \tc|\tn \tcDEX:\tn %2d (%s%d) \tc|\tn \tcCON:\tn "
+                   "%2d (%s%d) \tc|\tn\r\n",
+                   GET_STR(ch), GET_STR_BONUS(ch) >= 0 ? "+" : "", GET_STR_BONUS(ch), GET_DEX(ch),
+                   GET_DEX_BONUS(ch) >= 0 ? "+" : "", GET_DEX_BONUS(ch), GET_CON(ch),
+                   GET_CON_BONUS(ch) >= 0 ? "+" : "", GET_CON_BONUS(ch));
+      send_to_char(ch,
+                   "\tc|\tn \tcINT:\tn %2d (%s%d) \tc|\tn \tcWIS:\tn %2d (%s%d) \tc|\tn \tcCHA:\tn "
+                   "%2d (%s%d) \tc|\tn\r\n",
+                   GET_INT(ch), GET_INT_BONUS(ch) >= 0 ? "+" : "", GET_INT_BONUS(ch), GET_WIS(ch),
+                   GET_WIS_BONUS(ch) >= 0 ? "+" : "", GET_WIS_BONUS(ch), GET_CHA(ch),
+                   GET_CHA_BONUS(ch) >= 0 ? "+" : "", GET_CHA_BONUS(ch));
+
+      send_to_char(ch, "\tc+-- Saving Throws "
+                       "-------------------------------------------------------------+\tn\r\n");
+      send_to_char(ch,
+                   "\tc|\tn \tcFortitude:\tn %s%-3d \tc|\tn \tcReflex:\tn %s%-3d \tc|\tn "
+                   "\tcWill:\tn %s%-3d                  \tc|\tn\r\n",
+                   compute_mag_saves(ch, SAVING_FORT, 0) >= 0 ? "+" : "",
+                   compute_mag_saves(ch, SAVING_FORT, 0),
+                   compute_mag_saves(ch, SAVING_REFL, 0) >= 0 ? "+" : "",
+                   compute_mag_saves(ch, SAVING_REFL, 0),
+                   compute_mag_saves(ch, SAVING_WILL, 0) >= 0 ? "+" : "",
+                   compute_mag_saves(ch, SAVING_WILL, 0));
+
+      send_to_char(ch, "\tc+-- Skill Points & Languages "
+                       "--------------------------------------------------+\tn\r\n");
+      send_to_char(ch,
+                   "\tc|\tn \tcAvailable Skill Points:\tn %-3d                                     "
+                   "       \tc|\tn\r\n",
                    GET_PRACTICES(ch));
-      send_to_char(ch, "\tc|\tn \tcLanguages Known:\tn %-3d                                                   \tc|\tn\r\n",
-                   GET_SKILL(ch, SKILL_LANG_COMMON) ? 1 : 0); // This is simplified - would need more work
-      
-      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+      send_to_char(
+          ch,
+          "\tc|\tn \tcLanguages Known:\tn %-3d                                                   "
+          "\tc|\tn\r\n",
+          GET_SKILL(ch, SKILL_LANG_COMMON) ? 1 : 0); // This is simplified - would need more work
+
+      send_to_char(ch, "\tc+-----------------------------------------------------------------------"
+                       "-----+\tn\r\n");
       send_to_char(ch, "\tC");
       draw_line(ch, line_length, '=', '=');
       send_to_char(ch, "\tn");
-      
+
       PERF_PROF_EXIT(pr_skore_);
       return;
     }
-    else {
+    else
+    {
       send_to_char(ch, "Valid sections are: combat, magic, stats\r\n");
       send_to_char(ch, "Use 'skore' without arguments for the full display.\r\n");
       PERF_PROF_EXIT(pr_skore_);
@@ -5671,29 +6207,39 @@ ACMD(do_skore)
   // ═══════════════════════════════════════════════════════════════════════════════
   // HEADER WITH CLASS BORDERS
   // ═══════════════════════════════════════════════════════════════════════════════
-  
+
   const char **border_style = get_class_border_style(ch);
   const char *class_color = "\tc";
-  
-  if (border_style) {
+
+  if (border_style)
+  {
     // Get the color code from the border
-    if (strstr(warrior_border[0], border_style[0])) {
+    if (strstr(warrior_border[0], border_style[0]))
+    {
       class_color = "\tR";
-    } else if (strstr(mage_border[0], border_style[0])) {
+    }
+    else if (strstr(mage_border[0], border_style[0]))
+    {
       class_color = "\tB";
-    } else if (strstr(cleric_border[0], border_style[0])) {
+    }
+    else if (strstr(cleric_border[0], border_style[0]))
+    {
       class_color = "\tG";
-    } else if (strstr(rogue_border[0], border_style[0])) {
+    }
+    else if (strstr(rogue_border[0], border_style[0]))
+    {
       class_color = "\tM";
     }
-    
+
     // Display top border
     send_to_char(ch, "%s\r\n", border_style[0]);
-    
+
     // Display title with border sides
-    send_to_char(ch, "%s║\tn                  \tW*** ENHANCED CHARACTER INFORMATION ***\tn                   %s║\tn\r\n", 
+    send_to_char(ch,
+                 "%s║\tn                  \tW*** ENHANCED CHARACTER INFORMATION ***\tn             "
+                 "      %s║\tn\r\n",
                  class_color, class_color);
-    
+
     // Display bottom border
     send_to_char(ch, "%s\r\n", border_style[2]);
     send_to_char(ch, "\r\n");
@@ -5706,92 +6252,115 @@ ACMD(do_skore)
   bool has_custom_order = FALSE;
   byte section_count[8] = {0};
   int j, section;
-  
+
   /* Get section order based on player's preferences or context */
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch))
+  {
     /* First, check if section order is properly initialized */
-    for (i = 0; i < 8; i++) {
-      if (GET_SCORE_SECTION_ORDER(ch, i) >= 0 && GET_SCORE_SECTION_ORDER(ch, i) < 8) {
+    for (i = 0; i < 8; i++)
+    {
+      if (GET_SCORE_SECTION_ORDER(ch, i) >= 0 && GET_SCORE_SECTION_ORDER(ch, i) < 8)
+      {
         needs_init = FALSE;
         break;
       }
     }
-    
+
     /* Initialize if needed - this handles legacy players */
-    if (needs_init) {
-      for (i = 0; i < 8; i++) {
+    if (needs_init)
+    {
+      for (i = 0; i < 8; i++)
+      {
         GET_SCORE_SECTION_ORDER(ch, i) = i;
       }
     }
-    
+
     /* Additional validation: ensure all sections are present and unique */
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++)
+    {
       section_count[i] = 0;
     }
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++)
+    {
       section = GET_SCORE_SECTION_ORDER(ch, i);
-      if (section >= 0 && section < 8) {
+      if (section >= 0 && section < 8)
+      {
         section_count[section]++;
       }
     }
-    
+
     /* If any section is missing or duplicated, reset to default */
-    for (i = 0; i < 8; i++) {
-      if (section_count[i] != 1) {
+    for (i = 0; i < 8; i++)
+    {
+      if (section_count[i] != 1)
+      {
         /* Reset to default order */
-        for (j = 0; j < 8; j++) {
+        for (j = 0; j < 8; j++)
+        {
           GET_SCORE_SECTION_ORDER(ch, j) = j;
         }
         break;
       }
     }
-    
+
     /* Check if player has custom section order set */
-    for (i = 0; i < 8; i++) {
-      if (GET_SCORE_SECTION_ORDER(ch, i) != i) {
+    for (i = 0; i < 8; i++)
+    {
+      if (GET_SCORE_SECTION_ORDER(ch, i) != i)
+      {
         has_custom_order = TRUE;
         break;
       }
     }
-    
-    if (has_custom_order) {
+
+    if (has_custom_order)
+    {
       /* Use custom section order */
       section_order = ch->player_specials->saved.score_section_order;
-    } else {
+    }
+    else
+    {
       /* Use template order based on layout or context */
       int context = get_display_context(ch);
-      
+
       /* Check if player has set a layout template */
-      if (GET_SCORE_LAYOUT_TEMPLATE(ch) != LAYOUT_DEFAULT) {
+      if (GET_SCORE_LAYOUT_TEMPLATE(ch) != LAYOUT_DEFAULT)
+      {
         section_order = get_template_section_order(GET_SCORE_LAYOUT_TEMPLATE(ch));
-      } else {
+      }
+      else
+      {
         /* Use context-based ordering */
-        switch (context) {
-          case CONTEXT_COMBAT:
-            section_order = layout_combat;
-            break;
-          case CONTEXT_SHOPPING:
-            section_order = layout_roleplay;
-            break;
-          case CONTEXT_EXPLORING:
-            section_order = layout_explorer;
-            break;
-          case CONTEXT_ROLEPLAY:
-            section_order = layout_roleplay;
-            break;
-          default:
-            section_order = layout_default;
-            break;
+        switch (context)
+        {
+        case CONTEXT_COMBAT:
+          section_order = layout_combat;
+          break;
+        case CONTEXT_SHOPPING:
+          section_order = layout_roleplay;
+          break;
+        case CONTEXT_EXPLORING:
+          section_order = layout_explorer;
+          break;
+        case CONTEXT_ROLEPLAY:
+          section_order = layout_roleplay;
+          break;
+        default:
+          section_order = layout_default;
+          break;
         }
       }
     }
-  } else {
+  }
+  else
+  {
     /* NPCs use default ordering */
     section_order = layout_default;
   }
-  
+
   /* Display each section in the specified order */
-  for (section_idx = 0; section_idx < 8; section_idx++) {
+  for (section_idx = 0; section_idx < 8; section_idx++)
+  {
     display_score_section(ch, section_order[section_idx], line_length);
   }
 
@@ -5803,7 +6372,7 @@ ACMD(do_skore)
   draw_line(ch, line_length, '=', '=');
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tcUse 'scoreconfig' to customize your display settings.\tn\r\n");
-  
+
   PERF_PROF_EXIT(pr_skore_);
 }
 
@@ -5811,36 +6380,39 @@ ACMD(do_skore)
 static void display_score_section(struct char_data *ch, int section_id, int line_length)
 {
   send_to_char(ch, "\tR[DEBUG] display_score_section called with section_id=%d\tn\r\n", section_id);
-  switch (section_id) {
-    case SECTION_IDENTITY:
-      display_identity_section(ch, line_length);
-      break;
-    case SECTION_VITALS:
-      display_vitals_section(ch, line_length);
-      break;
-    case SECTION_EXPERIENCE:
-      send_to_char(ch, "\tR[DEBUG] About to call display_experience_section\tn\r\n");
-      display_experience_section(ch, line_length);
-      break;
-    case SECTION_ABILITIES:
-      display_abilities_section(ch, line_length);
-      break;
-    case SECTION_COMBAT:
-      display_combat_section(ch, line_length);
-      break;
-    case SECTION_MAGIC:
-      if (IS_SPELLCASTER(ch) || GET_PSIONIC_LEVEL(ch) > 0) {
-        display_magic_section(ch, line_length);
-      }
-      break;
-    case SECTION_WEALTH:
-      display_wealth_section(ch, line_length);
-      break;
-    case SECTION_EQUIPMENT:
-      if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0) { /* Full density only */
-        display_equipment_section(ch, line_length);
-      }
-      break;
+  switch (section_id)
+  {
+  case SECTION_IDENTITY:
+    display_identity_section(ch, line_length);
+    break;
+  case SECTION_VITALS:
+    display_vitals_section(ch, line_length);
+    break;
+  case SECTION_EXPERIENCE:
+    send_to_char(ch, "\tR[DEBUG] About to call display_experience_section\tn\r\n");
+    display_experience_section(ch, line_length);
+    break;
+  case SECTION_ABILITIES:
+    display_abilities_section(ch, line_length);
+    break;
+  case SECTION_COMBAT:
+    display_combat_section(ch, line_length);
+    break;
+  case SECTION_MAGIC:
+    if (IS_SPELLCASTER(ch) || GET_PSIONIC_LEVEL(ch) > 0)
+    {
+      display_magic_section(ch, line_length);
+    }
+    break;
+  case SECTION_WEALTH:
+    display_wealth_section(ch, line_length);
+    break;
+  case SECTION_EQUIPMENT:
+    if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0)
+    { /* Full density only */
+      display_equipment_section(ch, line_length);
+    }
+    break;
   }
 }
 
@@ -5849,7 +6421,8 @@ ACMD(do_scoreconfig)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     send_to_char(ch, "NPCs cannot configure score display.\r\n");
     return;
   }
@@ -5857,63 +6430,99 @@ ACMD(do_scoreconfig)
   /* Use half_chop_c instead of two_arguments to preserve "on" as a value */
   half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  if (!*arg1) {
+  if (!*arg1)
+  {
     send_to_char(ch, "\tcScore Display Configuration:\tn\r\n");
-    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-    send_to_char(ch, "\tc|\tn \tcCurrent Settings:\tn                                                     \tc|\tn\r\n");
-    send_to_char(ch, "\tc|\tn   \tcWidth:\tn %-3d characters                                           \tc|\tn\r\n",
+    send_to_char(
+        ch,
+        "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tc|\tn \tcCurrent Settings:\tn                                              "
+                     "       \tc|\tn\r\n");
+    send_to_char(ch,
+                 "\tc|\tn   \tcWidth:\tn %-3d characters                                           "
+                 "\tc|\tn\r\n",
                  GET_SCORE_DISPLAY_WIDTH(ch) ? GET_SCORE_DISPLAY_WIDTH(ch) : 80);
-    send_to_char(ch, "\tc|\tn   \tcTheme:\tn %-15s                                           \tc|\tn\r\n",
-                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_CLASSIC ? "Classic" :
-                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_MINIMAL ? "Minimal" :
-                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_HIGHCONTRAST ? "High Contrast" :
-                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_DARK ? "Dark" :
-                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_COLORBLIND ? "Colorblind" : "Enhanced");
-    send_to_char(ch, "\tc|\tn   \tcDensity:\tn %-15s                                         \tc|\tn\r\n",
-                 GET_SCORE_INFO_DENSITY(ch) == 1 ? "Compact" :
-                 GET_SCORE_INFO_DENSITY(ch) == 2 ? "Minimal" : "Full");
-    send_to_char(ch, "\tc|\tn   \tcClassic Mode:\tn %-3s                                              \tc|\tn\r\n",
+    send_to_char(
+        ch, "\tc|\tn   \tcTheme:\tn %-15s                                           \tc|\tn\r\n",
+        GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_CLASSIC        ? "Classic"
+        : GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_MINIMAL      ? "Minimal"
+        : GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_HIGHCONTRAST ? "High Contrast"
+        : GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_DARK         ? "Dark"
+        : GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_COLORBLIND   ? "Colorblind"
+                                                                : "Enhanced");
+    send_to_char(
+        ch, "\tc|\tn   \tcDensity:\tn %-15s                                         \tc|\tn\r\n",
+        GET_SCORE_INFO_DENSITY(ch) == 1   ? "Compact"
+        : GET_SCORE_INFO_DENSITY(ch) == 2 ? "Minimal"
+                                          : "Full");
+    send_to_char(ch,
+                 "\tc|\tn   \tcClassic Mode:\tn %-3s                                              "
+                 "\tc|\tn\r\n",
                  PRF_FLAGGED(ch, PRF_SCORE_CLASSIC) ? "ON" : "OFF");
-    send_to_char(ch, "\tc|\tn   \tcColors:\tn %-3s                                                   \tc|\tn\r\n",
+    send_to_char(ch,
+                 "\tc|\tn   \tcColors:\tn %-3s                                                   "
+                 "\tc|\tn\r\n",
                  PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR) ? "OFF" : "ON");
-    send_to_char(ch, "\tc|\tn   \tcBorders:\tn %-3s                                                  \tc|\tn\r\n",
+    send_to_char(ch,
+                 "\tc|\tn   \tcBorders:\tn %-3s                                                  "
+                 "\tc|\tn\r\n",
                  PRF_FLAGGED(ch, PRF_SCORE_BORDERS) ? "ON" : "OFF");
-    send_to_char(ch, "\tc|\tn   \tcRace Symbols:\tn %-3s                                             \tc|\tn\r\n",
+    send_to_char(ch,
+                 "\tc|\tn   \tcRace Symbols:\tn %-3s                                             "
+                 "\tc|\tn\r\n",
                  PRF_FLAGGED(ch, PRF_SCORE_RACE_SYMBOLS) ? "ON" : "OFF");
-    send_to_char(ch, "\tc|\tn   \tcLayout Template:\tn %-15s                                     \tc|\tn\r\n",
-                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_COMBAT ? "Combat" :
-                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_ROLEPLAY ? "Roleplay" :
-                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_EXPLORER ? "Explorer" :
-                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_CASTER ? "Caster" : "Default");
-    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(
+        ch,
+        "\tc|\tn   \tcLayout Template:\tn %-15s                                     \tc|\tn\r\n",
+        GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_COMBAT     ? "Combat"
+        : GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_ROLEPLAY ? "Roleplay"
+        : GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_EXPLORER ? "Explorer"
+        : GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_CASTER   ? "Caster"
+                                                           : "Default");
+    send_to_char(
+        ch,
+        "\tc+----------------------------------------------------------------------------+\tn\r\n");
     send_to_char(ch, "\r\n\tcUsage:\tn\r\n");
     send_to_char(ch, "  \tcscoreconfig width <80|120|160>\tn     - Set display width\r\n");
-    send_to_char(ch, "  \tcscoreconfig theme <enhanced|classic|minimal|highcontrast|dark|colorblind>\tn\r\n");
-    send_to_char(ch, "  \tcscoreconfig density <full|compact|minimal>\tn - Set information density\r\n");
-    send_to_char(ch, "  \tcscoreconfig classic <on/yes|off/no>\tn  - Toggle classic score display\r\n");
+    send_to_char(
+        ch,
+        "  \tcscoreconfig theme <enhanced|classic|minimal|highcontrast|dark|colorblind>\tn\r\n");
+    send_to_char(
+        ch, "  \tcscoreconfig density <full|compact|minimal>\tn - Set information density\r\n");
+    send_to_char(ch,
+                 "  \tcscoreconfig classic <on/yes|off/no>\tn  - Toggle classic score display\r\n");
     send_to_char(ch, "  \tcscoreconfig colors <on/yes|off/no>\tn   - Toggle color display\r\n");
-    send_to_char(ch, "  \tcscoreconfig borders <on/yes|off/no>\tn  - Toggle class-themed borders\r\n");
-    send_to_char(ch, "  \tcscoreconfig symbols <on/yes|off/no>\tn  - Toggle race symbols display\r\n");
+    send_to_char(ch,
+                 "  \tcscoreconfig borders <on/yes|off/no>\tn  - Toggle class-themed borders\r\n");
+    send_to_char(ch,
+                 "  \tcscoreconfig symbols <on/yes|off/no>\tn  - Toggle race symbols display\r\n");
     send_to_char(ch, "  \tcscoreconfig template <default|combat|roleplay|explorer|caster>\tn\r\n");
-    send_to_char(ch, "  \tcscoreconfig order <section> <position>\tn - Set custom section order\r\n");
+    send_to_char(ch,
+                 "  \tcscoreconfig order <section> <position>\tn - Set custom section order\r\n");
     send_to_char(ch, "  \tcscoreconfig reset\tn                   - Reset to defaults\r\n");
-    send_to_char(ch, "\r\n\tcSection names:\tn identity, vitals, experience, abilities, combat, magic, wealth, equipment\r\n");
+    send_to_char(ch, "\r\n\tcSection names:\tn identity, vitals, experience, abilities, combat, "
+                     "magic, wealth, equipment\r\n");
     send_to_char(ch, "\tcPositions:\tn 1-8 (1 = first displayed, 8 = last displayed)\r\n");
     return;
   }
 
-  if (!str_cmp(arg1, "width")) {
+  if (!str_cmp(arg1, "width"))
+  {
     int width = atoi(arg2);
-    if (width != 80 && width != 120 && width != 160) {
+    if (width != 80 && width != 120 && width != 160)
+    {
       send_to_char(ch, "Valid widths are: 80, 120, or 160 characters.\r\n");
       return;
     }
     GET_SCORE_DISPLAY_WIDTH(ch) = width;
 
     // Update preference flags for compatibility
-    if (width == 120 || width == 160) {
+    if (width == 120 || width == 160)
+    {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);
-    } else {
+    }
+    else
+    {
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);
     }
 
@@ -5922,44 +6531,68 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "theme")) {
-    if (!str_cmp(arg2, "enhanced") || !str_cmp(arg2, "default")) {
+  if (!str_cmp(arg1, "theme"))
+  {
+    if (!str_cmp(arg2, "enhanced") || !str_cmp(arg2, "default"))
+    {
       GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_ENHANCED;
       send_to_char(ch, "Score color theme set to Enhanced.\r\n");
-    } else if (!str_cmp(arg2, "classic")) {
+    }
+    else if (!str_cmp(arg2, "classic"))
+    {
       GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_CLASSIC;
       send_to_char(ch, "Score color theme set to Classic.\r\n");
-    } else if (!str_cmp(arg2, "minimal")) {
+    }
+    else if (!str_cmp(arg2, "minimal"))
+    {
       GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_MINIMAL;
       send_to_char(ch, "Score color theme set to Minimal.\r\n");
-    } else if (!str_cmp(arg2, "highcontrast") || !str_cmp(arg2, "high-contrast")) {
+    }
+    else if (!str_cmp(arg2, "highcontrast") || !str_cmp(arg2, "high-contrast"))
+    {
       GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_HIGHCONTRAST;
       send_to_char(ch, "Score color theme set to High Contrast.\r\n");
-    } else if (!str_cmp(arg2, "dark")) {
+    }
+    else if (!str_cmp(arg2, "dark"))
+    {
       GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_DARK;
       send_to_char(ch, "Score color theme set to Dark.\r\n");
-    } else if (!str_cmp(arg2, "colorblind") || !str_cmp(arg2, "color-blind")) {
+    }
+    else if (!str_cmp(arg2, "colorblind") || !str_cmp(arg2, "color-blind"))
+    {
       GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_COLORBLIND;
       send_to_char(ch, "Score color theme set to Colorblind.\r\n");
-    } else {
-      send_to_char(ch, "Valid themes are: enhanced, classic, minimal, highcontrast, dark, or colorblind.\r\n");
+    }
+    else
+    {
+      send_to_char(
+          ch,
+          "Valid themes are: enhanced, classic, minimal, highcontrast, dark, or colorblind.\r\n");
       return;
     }
     save_char(ch, 0);
     return;
   }
 
-  if (!str_cmp(arg1, "density")) {
-    if (!str_cmp(arg2, "full") || !str_cmp(arg2, "default")) {
+  if (!str_cmp(arg1, "density"))
+  {
+    if (!str_cmp(arg2, "full") || !str_cmp(arg2, "default"))
+    {
       GET_SCORE_INFO_DENSITY(ch) = 0;
       send_to_char(ch, "Score information density set to Full.\r\n");
-    } else if (!str_cmp(arg2, "compact")) {
+    }
+    else if (!str_cmp(arg2, "compact"))
+    {
       GET_SCORE_INFO_DENSITY(ch) = 1;
       send_to_char(ch, "Score information density set to Compact.\r\n");
-    } else if (!str_cmp(arg2, "minimal")) {
+    }
+    else if (!str_cmp(arg2, "minimal"))
+    {
       GET_SCORE_INFO_DENSITY(ch) = 2;
       send_to_char(ch, "Score information density set to Minimal.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Valid densities are: full, compact, or minimal.\r\n");
       return;
     }
@@ -5967,14 +6600,20 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "classic")) {
-    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+  if (!str_cmp(arg1, "classic"))
+  {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes"))
+    {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
       send_to_char(ch, "Classic score display enabled. Use 'score' for classic display.\r\n");
-    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+    }
+    else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no"))
+    {
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
       send_to_char(ch, "Classic score display disabled. Enhanced display will be used.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle classic mode.\r\n");
       return;
     }
@@ -5982,14 +6621,20 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "colors")) {
-    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+  if (!str_cmp(arg1, "colors"))
+  {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes"))
+    {
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
       send_to_char(ch, "Score display colors enabled.\r\n");
-    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+    }
+    else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no"))
+    {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
       send_to_char(ch, "Score display colors disabled.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle colors.\r\n");
       return;
     }
@@ -5997,16 +6642,22 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "borders")) {
+  if (!str_cmp(arg1, "borders"))
+  {
     /* DEBUG: Log what we're getting */
     log("DEBUG scoreconfig borders: arg2='%s' len=%d", arg2, (int)strlen(arg2));
-    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes"))
+    {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
       send_to_char(ch, "Class-themed borders enabled in score display.\r\n");
-    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+    }
+    else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no"))
+    {
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
       send_to_char(ch, "Class-themed borders disabled in score display.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle borders.\r\n");
       return;
     }
@@ -6014,14 +6665,20 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "symbols")) {
-    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+  if (!str_cmp(arg1, "symbols"))
+  {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes"))
+    {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_RACE_SYMBOLS);
       send_to_char(ch, "Race symbols enabled in score display.\r\n");
-    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+    }
+    else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no"))
+    {
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_RACE_SYMBOLS);
       send_to_char(ch, "Race symbols disabled in score display.\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle race symbols.\r\n");
       return;
     }
@@ -6029,23 +6686,35 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "template")) {
-    if (!str_cmp(arg2, "default")) {
+  if (!str_cmp(arg1, "template"))
+  {
+    if (!str_cmp(arg2, "default"))
+    {
       GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_DEFAULT;
       send_to_char(ch, "Score layout template set to Default.\r\n");
-    } else if (!str_cmp(arg2, "combat")) {
+    }
+    else if (!str_cmp(arg2, "combat"))
+    {
       GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_COMBAT;
       send_to_char(ch, "Score layout template set to Combat (prioritizes combat stats).\r\n");
-    } else if (!str_cmp(arg2, "roleplay") || !str_cmp(arg2, "rp")) {
+    }
+    else if (!str_cmp(arg2, "roleplay") || !str_cmp(arg2, "rp"))
+    {
       GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_ROLEPLAY;
       send_to_char(ch, "Score layout template set to Roleplay (prioritizes identity).\r\n");
-    } else if (!str_cmp(arg2, "explorer") || !str_cmp(arg2, "explore")) {
+    }
+    else if (!str_cmp(arg2, "explorer") || !str_cmp(arg2, "explore"))
+    {
       GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_EXPLORER;
       send_to_char(ch, "Score layout template set to Explorer (prioritizes movement).\r\n");
-    } else if (!str_cmp(arg2, "caster") || !str_cmp(arg2, "magic")) {
+    }
+    else if (!str_cmp(arg2, "caster") || !str_cmp(arg2, "magic"))
+    {
       GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_CASTER;
       send_to_char(ch, "Score layout template set to Caster (prioritizes magic).\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Valid templates are: default, combat, roleplay, explorer, or caster.\r\n");
       return;
     }
@@ -6053,81 +6722,102 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  if (!str_cmp(arg1, "order")) {
+  if (!str_cmp(arg1, "order"))
+  {
     char arg3[MAX_INPUT_LENGTH];
     int section_id = -1;
     int position, old_position;
     int i;
-    
+
     /* Get third argument */
     half_chop(arg2, arg2, arg3);
-    
-    if (!*arg2 || !*arg3) {
+
+    if (!*arg2 || !*arg3)
+    {
       send_to_char(ch, "Usage: scoreconfig order <section> <position>\r\n");
-      send_to_char(ch, "Sections: identity, vitals, experience, abilities, combat, magic, wealth, equipment\r\n");
+      send_to_char(ch, "Sections: identity, vitals, experience, abilities, combat, magic, wealth, "
+                       "equipment\r\n");
       send_to_char(ch, "Positions: 1-8\r\n");
       return;
     }
-    
+
     /* Parse section name */
-    if (!str_cmp(arg2, "identity")) section_id = SECTION_IDENTITY;
-    else if (!str_cmp(arg2, "vitals")) section_id = SECTION_VITALS;
-    else if (!str_cmp(arg2, "experience") || !str_cmp(arg2, "exp")) section_id = SECTION_EXPERIENCE;
-    else if (!str_cmp(arg2, "abilities") || !str_cmp(arg2, "stats")) section_id = SECTION_ABILITIES;
-    else if (!str_cmp(arg2, "combat")) section_id = SECTION_COMBAT;
-    else if (!str_cmp(arg2, "magic") || !str_cmp(arg2, "spells")) section_id = SECTION_MAGIC;
-    else if (!str_cmp(arg2, "wealth") || !str_cmp(arg2, "gold")) section_id = SECTION_WEALTH;
-    else if (!str_cmp(arg2, "equipment") || !str_cmp(arg2, "gear")) section_id = SECTION_EQUIPMENT;
-    else {
-      send_to_char(ch, "Invalid section name. Valid sections: identity, vitals, experience, abilities, combat, magic, wealth, equipment\r\n");
+    if (!str_cmp(arg2, "identity"))
+      section_id = SECTION_IDENTITY;
+    else if (!str_cmp(arg2, "vitals"))
+      section_id = SECTION_VITALS;
+    else if (!str_cmp(arg2, "experience") || !str_cmp(arg2, "exp"))
+      section_id = SECTION_EXPERIENCE;
+    else if (!str_cmp(arg2, "abilities") || !str_cmp(arg2, "stats"))
+      section_id = SECTION_ABILITIES;
+    else if (!str_cmp(arg2, "combat"))
+      section_id = SECTION_COMBAT;
+    else if (!str_cmp(arg2, "magic") || !str_cmp(arg2, "spells"))
+      section_id = SECTION_MAGIC;
+    else if (!str_cmp(arg2, "wealth") || !str_cmp(arg2, "gold"))
+      section_id = SECTION_WEALTH;
+    else if (!str_cmp(arg2, "equipment") || !str_cmp(arg2, "gear"))
+      section_id = SECTION_EQUIPMENT;
+    else
+    {
+      send_to_char(ch, "Invalid section name. Valid sections: identity, vitals, experience, "
+                       "abilities, combat, magic, wealth, equipment\r\n");
       return;
     }
-    
+
     /* Parse position */
     position = atoi(arg3);
-    if (position < 1 || position > 8) {
+    if (position < 1 || position > 8)
+    {
       send_to_char(ch, "Position must be between 1 and 8.\r\n");
       return;
     }
     position--; /* Convert to 0-based */
-    
+
     /* Find current position of this section */
     old_position = -1;
-    for (i = 0; i < 8; i++) {
-      if (GET_SCORE_SECTION_ORDER(ch, i) == section_id) {
+    for (i = 0; i < 8; i++)
+    {
+      if (GET_SCORE_SECTION_ORDER(ch, i) == section_id)
+      {
         old_position = i;
         break;
       }
     }
-    
+
     /* If section not found in current order, initialize order first */
-    if (old_position == -1) {
-      for (i = 0; i < 8; i++) {
+    if (old_position == -1)
+    {
+      for (i = 0; i < 8; i++)
+      {
         GET_SCORE_SECTION_ORDER(ch, i) = i;
       }
       old_position = section_id;
     }
-    
+
     /* Swap positions */
-    if (old_position != position) {
+    if (old_position != position)
+    {
       byte temp = GET_SCORE_SECTION_ORDER(ch, position);
       GET_SCORE_SECTION_ORDER(ch, position) = section_id;
       GET_SCORE_SECTION_ORDER(ch, old_position) = temp;
     }
-    
+
     send_to_char(ch, "Section '%s' moved to position %d.\r\n", arg2, position + 1);
     save_char(ch, 0);
     return;
   }
 
-  if (!str_cmp(arg1, "reset")) {
+  if (!str_cmp(arg1, "reset"))
+  {
     int i;
     GET_SCORE_DISPLAY_WIDTH(ch) = PFDEF_SCORE_DISPLAY_WIDTH;
     GET_SCORE_COLOR_THEME(ch) = PFDEF_SCORE_COLOR_THEME;
     GET_SCORE_INFO_DENSITY(ch) = PFDEF_SCORE_INFO_DENSITY;
     GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_DEFAULT;
     /* Reset custom section order to default */
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++)
+    {
       GET_SCORE_SECTION_ORDER(ch, i) = i;
     }
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
@@ -6157,7 +6847,8 @@ ACMD(do_inventory)
 
   if (!IS_NPC(ch))
   {
-    send_to_char(ch, "\r\n\tcUse the 'bags' command to see what is in your bags. See help files for: GET, PUT and SORT.\tn\r\n");
+    send_to_char(ch, "\r\n\tcUse the 'bags' command to see what is in your bags. See help files "
+                     "for: GET, PUT and SORT.\tn\r\n");
   }
 }
 
@@ -6168,53 +6859,54 @@ int count_bag_contents(struct char_data *ch, int bagnum)
 
   switch (bagnum)
   {
-    case 1:
-      for (obj = ch->bags->bag1; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 2:
-      for (obj = ch->bags->bag2; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 3:
-      for (obj = ch->bags->bag3; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 4:
-      for (obj = ch->bags->bag4; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 5:
-      for (obj = ch->bags->bag5; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 6:
-      for (obj = ch->bags->bag6; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 7:
-      for (obj = ch->bags->bag7; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 8:
-      for (obj = ch->bags->bag8; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 9:
-      for (obj = ch->bags->bag9; obj; obj = obj->next_content)
-        count++;
-      return count;
-    case 10:
-      for (obj = ch->bags->bag10; obj; obj = obj->next_content)
-        count++;
-      return count;
+  case 1:
+    for (obj = ch->bags->bag1; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 2:
+    for (obj = ch->bags->bag2; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 3:
+    for (obj = ch->bags->bag3; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 4:
+    for (obj = ch->bags->bag4; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 5:
+    for (obj = ch->bags->bag5; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 6:
+    for (obj = ch->bags->bag6; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 7:
+    for (obj = ch->bags->bag7; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 8:
+    for (obj = ch->bags->bag8; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 9:
+    for (obj = ch->bags->bag9; obj; obj = obj->next_content)
+      count++;
+    return count;
+  case 10:
+    for (obj = ch->bags->bag10; obj; obj = obj->next_content)
+      count++;
+    return count;
   }
   return count;
 }
 
 void show_bags_summary(struct char_data *ch)
 {
-  if (!ch) return;
+  if (!ch)
+    return;
 
   char out[MEDIUM_STRING];
   int i = 0;
@@ -6222,13 +6914,15 @@ void show_bags_summary(struct char_data *ch)
   send_to_char(ch, "Your bags summary:\r\n\r\n");
   for (i = 1; i <= MAX_BAGS; i++)
   {
-    snprintf(out, sizeof(out), "Bag %s#%d: %3d Items (%s)\r\n", i < 10 ? " " : "", i, count_bag_contents(ch, i), bagnames[i-1]);
+    snprintf(out, sizeof(out), "Bag %s#%d: %3d Items (%s)\r\n", i < 10 ? " " : "", i,
+             count_bag_contents(ch, i), bagnames[i - 1]);
     send_to_char(ch, "%s", out);
   }
-
 }
 
-#define BAGS_CMD_SYNTAX "\r\nUsage is: bags (bag number)|(bag name)\r\nEg. bags 1 - will show contents of bag 1.\r\nEg. bags materials - will show contents of a bag named 'materials'\r\n"
+#define BAGS_CMD_SYNTAX                                                                            \
+  "\r\nUsage is: bags (bag number)|(bag name)\r\nEg. bags 1 - will show contents of bag "          \
+  "1.\r\nEg. bags materials - will show contents of a bag named 'materials'\r\n"
 
 ACMD(do_bags)
 {
@@ -6247,7 +6941,7 @@ ACMD(do_bags)
 
   for (i = 1; i <= MAX_BAGS; i++)
   {
-    if (GET_BAG_NAME(ch, i)  == NULL || !strcmp(GET_BAG_NAME(ch, i), "unused"))
+    if (GET_BAG_NAME(ch, i) == NULL || !strcmp(GET_BAG_NAME(ch, i), "unused"))
       continue;
     if (is_abbrev(arg, GET_BAG_NAME(ch, i)))
       break;
@@ -6272,60 +6966,59 @@ ACMD(do_bags)
   //   snprintf(bagname, sizeof(bagname), " 'bag%d'", bagnum);
 
   // send_to_char(ch, "Your bag #%d%s contains:\r\n", bagnum, GET_BAG_NAME(ch, i)  != NULL ? bagname : "");
-  send_to_char(ch, "Your bag #%d (%s) contains:\r\n", bagnum, bagnames[bagnum-1]);
+  send_to_char(ch, "Your bag #%d (%s) contains:\r\n", bagnum, bagnames[bagnum - 1]);
 
   switch (bagnum)
   {
-    case 1:
-      list_obj_to_char(ch->bags->bag1, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 2:
-      list_obj_to_char(ch->bags->bag2, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 3:
-      list_obj_to_char(ch->bags->bag3, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 4:
-      list_obj_to_char(ch->bags->bag4, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 5:
-      list_obj_to_char(ch->bags->bag5, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 6:
-      list_obj_to_char(ch->bags->bag6, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 7:
-      list_obj_to_char(ch->bags->bag7, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 8:
-      list_obj_to_char(ch->bags->bag8, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 9:
-      list_obj_to_char(ch->bags->bag9, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
-    case 10:
-      list_obj_to_char(ch->bags->bag10, ch, SHOW_OBJ_SHORT, TRUE, 1);
-      break;
+  case 1:
+    list_obj_to_char(ch->bags->bag1, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 2:
+    list_obj_to_char(ch->bags->bag2, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 3:
+    list_obj_to_char(ch->bags->bag3, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 4:
+    list_obj_to_char(ch->bags->bag4, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 5:
+    list_obj_to_char(ch->bags->bag5, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 6:
+    list_obj_to_char(ch->bags->bag6, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 7:
+    list_obj_to_char(ch->bags->bag7, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 8:
+    list_obj_to_char(ch->bags->bag8, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 9:
+    list_obj_to_char(ch->bags->bag9, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  case 10:
+    list_obj_to_char(ch->bags->bag10, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
   }
-
 }
 
 bool show_wear_slot_in_eq(int wear_slot)
 {
   switch (wear_slot)
   {
-    case WEAR_CRAFT_SICKLE:
-    case WEAR_CRAFT_AXE:
-    case WEAR_CRAFT_KNIFE:
-    case WEAR_CRAFT_PICKAXE:
-    case WEAR_CRAFT_ALCHEMY:
-    case WEAR_CRAFT_ARMOR_HAMMER:
-    case WEAR_CRAFT_JEWEL_PLIERS:
-    case WEAR_CRAFT_NEEDLE:
-    case WEAR_CRAFT_WEAPON_HAMMER:
-      return FALSE;
-    default:
-      return TRUE;
+  case WEAR_CRAFT_SICKLE:
+  case WEAR_CRAFT_AXE:
+  case WEAR_CRAFT_KNIFE:
+  case WEAR_CRAFT_PICKAXE:
+  case WEAR_CRAFT_ALCHEMY:
+  case WEAR_CRAFT_ARMOR_HAMMER:
+  case WEAR_CRAFT_JEWEL_PLIERS:
+  case WEAR_CRAFT_NEEDLE:
+  case WEAR_CRAFT_WEAPON_HAMMER:
+    return FALSE;
+  default:
+    return TRUE;
   }
   return TRUE;
 }
@@ -6347,15 +7040,17 @@ ACMD(do_equipment)
     snprintf(dex_max, sizeof(dex_max), "%d", j);
 
   send_to_char(ch, "You are using:\r\n");
-  for (i = 0; i < NUM_WEARS ; i++)
+  for (i = 0; i < NUM_WEARS; i++)
   {
-    if (!show_wear_slot_in_eq(eq_ordering_1[i])) continue;
+    if (!show_wear_slot_in_eq(eq_ordering_1[i]))
+      continue;
     if (GET_EQ(ch, eq_ordering_1[i]))
     {
       found = TRUE;
 #if defined(CAMPAIGN_DL)
-       // In Dragonlance, we always want to be able to see our equipment unless it's invis and we can't see invis
-      if (!OBJ_FLAGGED(GET_EQ(ch, eq_ordering_1[i]), ITEM_INVISIBLE) || AFF_FLAGGED(ch, AFF_DETECT_INVIS) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+      // In Dragonlance, we always want to be able to see our equipment unless it's invis and we can't see invis
+      if (!OBJ_FLAGGED(GET_EQ(ch, eq_ordering_1[i]), ITEM_INVISIBLE) ||
+          AFF_FLAGGED(ch, AFF_DETECT_INVIS) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
 #else
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, eq_ordering_1[i])))
 #endif
@@ -6406,14 +7101,12 @@ ACMD(do_equipment)
     send_to_char(ch, " Nothing.\r\n");
 
   send_to_char(ch, "\tc(Use 'craft tools' to view equipped harvesting and crafting tools)\tn\r\n");
-  
-  send_to_char(ch, "\tCArmr: %s, Shld: %s, Ench: +%d, Pnlty: %d, MaxDex: %s, SpellFail:"
-                   " %d.\tn\r\n",
-               armor_type[compute_gear_armor_type(ch)],
-               armor_type[compute_gear_shield_type(ch)],
-               compute_gear_enhancement_bonus(ch),
-               compute_gear_armor_penalty(ch),
-               dex_max,
+
+  send_to_char(ch,
+               "\tCArmr: %s, Shld: %s, Ench: +%d, Pnlty: %d, MaxDex: %s, SpellFail:"
+               " %d.\tn\r\n",
+               armor_type[compute_gear_armor_type(ch)], armor_type[compute_gear_shield_type(ch)],
+               compute_gear_enhancement_bonus(ch), compute_gear_armor_penalty(ch), dex_max,
                compute_gear_spell_failure(ch));
 
   if (ch && ch->desc && ch->desc->pProtocol && ch->desc->pProtocol->pVariables[eMSDP_MXP] &&
@@ -6458,35 +7151,30 @@ ACMD(do_time)
     }
   }
 
-  send_to_char(ch, "The %d%s Day of the %s, Year %d.\r\n",
-               day, suf, month_name[time_info.month], time_info.year);
+  send_to_char(ch, "The %d%s Day of the %s, Year %d.\r\n", day, suf, month_name[time_info.month],
+               time_info.year);
 }
 
 ACMD(do_weather)
 {
-  const char *sky_look[] = {
-      "cloudless",
-      "cloudy",
-      "rainy",
-      "lit by flashes of lightning"};
+  const char *sky_look[] = {"cloudless", "cloudy", "rainy", "lit by flashes of lightning"};
 
   if (OUTSIDE(ch))
   {
     send_to_char(ch, "The sky is %s and %s.\r\n", sky_look[weather_info.sky],
-                 weather_info.change >= 0 ? "you feel a warm wind from south" : "your foot tells you bad weather is due");
+                 weather_info.change >= 0 ? "you feel a warm wind from south"
+                                          : "your foot tells you bad weather is due");
     if (GET_LEVEL(ch) >= LVL_STAFF)
-      send_to_char(ch, "Pressure: %d (change: %d), Sky: %d (%s)\r\n",
-                   weather_info.pressure,
-                   weather_info.change,
-                   weather_info.sky,
-                   sky_look[weather_info.sky]);
+      send_to_char(ch, "Pressure: %d (change: %d), Sky: %d (%s)\r\n", weather_info.pressure,
+                   weather_info.change, weather_info.sky, sky_look[weather_info.sky]);
   }
   else
     send_to_char(ch, "You have no feeling about the weather at all.\r\n");
 }
 
-#define WHO_FORMAT \
-  "Usage: who [minlev[-maxlev]] [-n name] [-c classlist] [-t racelist] [-k] [-l] [-n] [-q] [-r] [-s] [-z]\r\n"
+#define WHO_FORMAT                                                                                 \
+  "Usage: who [minlev[-maxlev]] [-n name] [-c classlist] [-t racelist] [-k] [-l] [-n] [-q] [-r] "  \
+  "[-s] [-z]\r\n"
 
 /* Written by Rhade */
 ACMD(do_who)
@@ -6494,14 +7182,15 @@ ACMD(do_who)
   struct descriptor_data *d;
   struct char_data *tch;
   int i, num_can_see = 0;
-#if !defined(CAMPAIGN_DL)  
+#if !defined(CAMPAIGN_DL)
   int class_len = 0;
   size_t len = 0;
 #else
   char clan_name[MAX_CLAN_NAME] = {'\0'}; /* Currently unused */
   int length = 0, padding = 0;
 #endif
-  char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, classes_list[MAX_INPUT_LENGTH] = {'\0'};
+  char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'},
+       classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
   int showclass = 0, short_list = 0, outlaws = 0;
@@ -6510,8 +7199,8 @@ ACMD(do_who)
   int mortals = 0, staff = 0;
   clan_rnum c_n;
   /* char clan_name[50]; */ /* Currently unused */
-  /* int length = 0; */ /* Currently unused */
-  /* int padding = 0; */ /* Currently unused */
+  /* int length = 0; */     /* Currently unused */
+  /* int padding = 0; */    /* Currently unused */
 
   char *account_names[CONFIG_MAX_PLAYING];
   int num_accounts = 0, x = 0, y = 0;
@@ -6526,14 +7215,18 @@ ACMD(do_who)
     const int max_level;
     int count; /* must always start as 0 */
   } rank[] = {
-  #if defined(CAMPAIGN_DL)
-      {"\tb--\tB= \tCChronicles of Krynn Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
-  #elif defined(CAMPAIGN_FR)
-      {"\tb--\tB= \tCFaerun Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
-  #else
-      {"\tb--\tB= \tCLuminari Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
-  #endif
-      {"\tb--\tB=\tC Mortals \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", 1, LVL_IMMORT - 1, 0},
+#if defined(CAMPAIGN_DL)
+      {"\tb--\tB= \tCChronicles of Krynn Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n",
+       LVL_IMMORT, LVL_IMPL, 0},
+#elif defined(CAMPAIGN_FR)
+      {"\tb--\tB= \tCFaerun Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT,
+       LVL_IMPL, 0},
+#else
+      {"\tb--\tB= \tCLuminari Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT,
+       LVL_IMPL, 0},
+#endif
+      {"\tb--\tB=\tC Mortals \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", 1, LVL_IMMORT - 1,
+       0},
       {"\n", 0, 0, 0}};
 
   // remove spaces in front of argument
@@ -6747,37 +7440,48 @@ ACMD(do_who)
         if (GET_LEVEL(tch) >= LVL_IMMORT)
           snprintf(clan_name, sizeof(clan_name), "%s", GET_IMM_TITLE(tch));
         else
-          snprintf(clan_name, sizeof(clan_name), "%s", ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer");
-      length = strlen(clan_name);
-      length += count_color_chars(clan_name);
-      padding = 28 - length;
-      
-      // Move characters to make room for padding at the front
-      for (x = length; x >= 0; x--)
-      {
+          snprintf(clan_name, sizeof(clan_name), "%s",
+                   ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0)
+                       ? CLAN_NAME(c_n)
+                       : "Adventurer");
+        length = strlen(clan_name);
+        length += count_color_chars(clan_name);
+        padding = 28 - length;
+
+        // Move characters to make room for padding at the front
+        for (x = length; x >= 0; x--)
+        {
           clan_name[x + padding / 2] = clan_name[x];
-      }
-      // Append spaces at the front
-      for (x = 0; x < padding / 2; x++) {
+        }
+        // Append spaces at the front
+        for (x = 0; x < padding / 2; x++)
+        {
           clan_name[x] = ' ';
-      }
-      // Append spaces at the end
-      for (x = length + padding / 2; x < 28; x++) {
+        }
+        // Append spaces at the end
+        for (x = length + padding / 2; x < 28; x++)
+        {
           clan_name[x] = ' ';
-      }
-      if (padding % 2 != 0) {
+        }
+        if (padding % 2 != 0)
+        {
           // If padding is odd, add one more space at the end
           clan_name[28] = ' ';
-      }
-      if (GET_LEVEL(tch) >= LVL_IMMORT)
-      {
-        send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name, (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
-      }
-      else
-      {
-        send_to_char(ch, "\tW[ \tC%2d %-4.4s %-20.20s \tW]\tn %s", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev,
-        ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer", (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
-      }
+        }
+        if (GET_LEVEL(tch) >= LVL_IMMORT)
+        {
+          send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name,
+                       (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
+        }
+        else
+        {
+          send_to_char(ch, "\tW[ \tC%2d %-4.4s %-20.20s \tW]\tn %s", GET_LEVEL(tch),
+                       race_list[GET_REAL_RACE(tch)].abbrev,
+                       ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0)
+                           ? CLAN_NAME(c_n)
+                           : "Adventurer",
+                       (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
+        }
 
         // num_can_see++;
         if (GET_LEVEL(tch) >= LVL_IMMORT)
@@ -6792,9 +7496,8 @@ ACMD(do_who)
       if (short_list)
       {
         /* changed this to force showing char real race */
-        send_to_char(ch, "[%2d %8s] %-12.12s%s%s",
-                     GET_LEVEL(tch), RACE_ABBR_REAL(tch), GET_NAME(tch),
-                     CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
+        send_to_char(ch, "[%2d %8s] %-12.12s%s%s", GET_LEVEL(tch), RACE_ABBR_REAL(tch),
+                     GET_NAME(tch), CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
       }
       else
       {
@@ -6808,8 +7511,7 @@ ACMD(do_who)
         {
           mortals++;
           /* changed this to force showing char real race */
-          send_to_char(ch, "[%2d %4s ",
-                       GET_LEVEL(tch), RACE_ABBR_REAL(tch));
+          send_to_char(ch, "[%2d %4s ", GET_LEVEL(tch), RACE_ABBR_REAL(tch));
         }
 
         if (GET_LEVEL(tch) < LVL_IMMORT)
@@ -6836,12 +7538,10 @@ ACMD(do_who)
         }
 
 #if defined(CAMPAIGN_DL)
-        send_to_char(ch, " %s%s%s%s",
-                     GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch),
+        send_to_char(ch, " %s%s%s%s", GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch),
                      CCNRM(ch, C_SPR));
 #else
-        send_to_char(ch, " %s%s",
-                     (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)),
+        send_to_char(ch, " %s%s", (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)),
                      CCNRM(ch, C_SPR));
 #endif
 
@@ -6851,7 +7551,8 @@ ACMD(do_who)
           {
             c_n = real_clan(GET_CLAN(tch));
             if (c_n != NO_CLAN)
-              send_to_char(ch, " %s[%s%s%s]%s", QBRED, QBYEL, clan_list[c_n].abrev ? CLAN_ABREV(c_n) : "Unknown", QBRED, QNRM);
+              send_to_char(ch, " %s[%s%s%s]%s", QBRED, QBYEL,
+                           clan_list[c_n].abrev ? CLAN_ABREV(c_n) : "Unknown", QBRED, QNRM);
           }
         }
 #endif
@@ -6949,15 +7650,17 @@ ACMD(do_who)
 
   if (IS_HAPPYHOUR > 0)
   {
-    send_to_char(ch, "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
+    send_to_char(ch,
+                 "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
   }
   if (IS_STAFF_EVENT)
   {
-    send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the current event info.\tn\r\n");
+    send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the "
+                     "current event info.\tn\r\n");
   }
 }
 
-#define USERS_FORMAT \
+#define USERS_FORMAT                                                                               \
   "format: users [-l minlevel[-maxlevel]] [-n name] [-h host] [-c classlist] [-o] [-p]\r\n"
 
 ACMD(do_users)
@@ -7027,9 +7730,9 @@ ACMD(do_users)
       return;
     }
   } /* end while (parser) */
-  send_to_char(ch,
-               "Num Class    Name         State          Idl   Login\t*   Site\r\n"
-               "--- -------- ------------ -------------- ----- -------- ------------------------\r\n");
+  send_to_char(
+      ch, "Num Class    Name         State          Idl   Login\t*   Site\r\n"
+          "--- -------- ------------ -------------- ----- -------- ------------------------\r\n");
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -7052,8 +7755,7 @@ ACMD(do_users)
         continue;
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
         continue;
-      if (outlaws && !PLR_FLAGGED(tch, PLR_KILLER) &&
-          !PLR_FLAGGED(tch, PLR_THIEF))
+      if (outlaws && !PLR_FLAGGED(tch, PLR_KILLER) && !PLR_FLAGGED(tch, PLR_THIEF))
         continue;
       if (showclass && !(showclass & (1 << GET_CLASS(tch))))
         continue;
@@ -7081,13 +7783,15 @@ ACMD(do_users)
       strlcpy(state, connected_types[STATE(d)], sizeof(state));
 
     if (d->character && STATE(d) == CON_PLAYING)
-      snprintf(idletime, sizeof(idletime), "%5d", d->character->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
+      snprintf(idletime, sizeof(idletime), "%5d",
+               d->character->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
     else
       strlcpy(idletime, "     ", sizeof(idletime));
 
     snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
-             d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name
-                                                                                                                            : "UNDEFINED",
+             d->original && d->original->player.name     ? d->original->player.name
+             : d->character && d->character->player.name ? d->character->player.name
+                                                         : "UNDEFINED",
              state, idletime, timeptr);
 
     if (*d->host)
@@ -7100,8 +7804,7 @@ ACMD(do_users)
       snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
       strlcpy(line, line2, sizeof(line));
     }
-    if (STATE(d) != CON_PLAYING ||
-        (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character)))
+    if (STATE(d) != CON_PLAYING || (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character)))
     {
       send_to_char(ch, "%s", line);
       num_can_see++;
@@ -7226,8 +7929,10 @@ ACMD(do_levels)
     {
       send_to_char(ch, "Usage: %slevels [<min>-<max> | <range>]%s\r\n\r\n", QYEL, QNRM);
       send_to_char(ch, "Displays exp required for levels.\r\n");
-      send_to_char(ch, "%slevels       %s- shows all levels (1-%d)\r\n", QCYN, QNRM, (LVL_IMMORT - 1));
-      send_to_char(ch, "%slevels 5     %s- shows 5 levels either side of your current level\r\n", QCYN, QNRM);
+      send_to_char(ch, "%slevels       %s- shows all levels (1-%d)\r\n", QCYN, QNRM,
+                   (LVL_IMMORT - 1));
+      send_to_char(ch, "%slevels 5     %s- shows 5 levels either side of your current level\r\n",
+                   QCYN, QNRM);
       send_to_char(ch, "%slevels 10-40 %s- shows level 10 to level 40\r\n", QCYN, QNRM);
       return;
     }
@@ -7235,8 +7940,8 @@ ACMD(do_levels)
 
   for (i = min_lev; i < max_lev; i++)
   {
-    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld-%-8ld : ", (int)i,
-                    level_exp(ch, i), level_exp(ch, i + 1) - 1);
+    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld-%-8ld : ", (int)i, level_exp(ch, i),
+                    level_exp(ch, i + 1) - 1);
     if (len + nlen >= sizeof(buf))
       break;
     len += nlen;
@@ -7262,8 +7967,8 @@ ACMD(do_levels)
   }
 
   if (len < sizeof(buf) && max_lev == LVL_IMMORT)
-    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld          : Immortality\r\n",
-             LVL_IMMORT, level_exp(ch, LVL_IMMORT));
+    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld          : Immortality\r\n", LVL_IMMORT,
+             level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -7360,120 +8065,80 @@ ACMD(do_toggle)
     const char *enable_msg;
   } tog_messages[] = {
       /*0*/
-      {"summonable", PRF_SUMMONABLE, 0,
-       "You are now safe from summoning by other players.\r\n",
+      {"summonable", PRF_SUMMONABLE, 0, "You are now safe from summoning by other players.\r\n",
        "You may now be summoned by other players.\r\n"},
       /*1*/
-      {"nohassle", PRF_NOHASSLE, LVL_IMMORT,
-       "Nohassle disabled.\r\n",
-       "Nohassle enabled.\r\n"},
+      {"nohassle", PRF_NOHASSLE, LVL_IMMORT, "Nohassle disabled.\r\n", "Nohassle enabled.\r\n"},
       /*2*/
-      {"brief", PRF_BRIEF, 0,
-       "Brief mode off.\r\n",
-       "Brief mode on.\r\n"},
+      {"brief", PRF_BRIEF, 0, "Brief mode off.\r\n", "Brief mode on.\r\n"},
       /*3*/
-      {"compact", PRF_COMPACT, 0,
-       "Compact mode off.\r\n",
-       "Compact mode on.\r\n"},
+      {"compact", PRF_COMPACT, 0, "Compact mode off.\r\n", "Compact mode on.\r\n"},
       /*4*/
-      {"notell", PRF_NOTELL, 0,
-       "You can now hear tells.\r\n",
-       "You are now deaf to tells.\r\n"},
+      {"notell", PRF_NOTELL, 0, "You can now hear tells.\r\n", "You are now deaf to tells.\r\n"},
       /*5*/
-      {"noauction", PRF_NOAUCT, 0,
-       "You can now hear auctions.\r\n",
+      {"noauction", PRF_NOAUCT, 0, "You can now hear auctions.\r\n",
        "You are now deaf to auctions.\r\n"},
       /*6*/
-      {"noshout", PRF_NOSHOUT, 0,
-       "You can now hear shouts.\r\n",
+      {"noshout", PRF_NOSHOUT, 0, "You can now hear shouts.\r\n",
        "You are now deaf to shouts.\r\n"},
       /*7*/
-      {"nogossip", PRF_NOGOSS, 0,
-       "You can now hear gossip.\r\n",
+      {"nogossip", PRF_NOGOSS, 0, "You can now hear gossip.\r\n",
        "You are now deaf to gossip.\r\n"},
       /*8*/
-      {"nograts", PRF_NOGRATZ, 0,
-       "You can now hear gratz.\r\n",
-       "You are now deaf to gratz.\r\n"},
+      {"nograts", PRF_NOGRATZ, 0, "You can now hear gratz.\r\n", "You are now deaf to gratz.\r\n"},
       /*9*/
-      {"nowiz", PRF_NOWIZ, LVL_IMMORT,
-       "You can now hear the Wiz-channel.\r\n",
+      {"nowiz", PRF_NOWIZ, LVL_IMMORT, "You can now hear the Wiz-channel.\r\n",
        "You are now deaf to the Wiz-channel.\r\n"},
       /*10*/
-      {"quest", PRF_QUEST, 0,
-       "You are no longer part of the Quest.\r\n",
+      {"quest", PRF_QUEST, 0, "You are no longer part of the Quest.\r\n",
        "Okay, you are part of the Quest.\r\n"},
       /*11*/
-      {"showvnums", PRF_SHOWVNUMS, LVL_IMMORT,
-       "You will no longer see the vnums.\r\n",
+      {"showvnums", PRF_SHOWVNUMS, LVL_IMMORT, "You will no longer see the vnums.\r\n",
        "You will now see the vnums.\r\n"},
       /*12*/
-      {"norepeat", PRF_NOREPEAT, 0,
-       "You will now have your communication repeated.\r\n",
+      {"norepeat", PRF_NOREPEAT, 0, "You will now have your communication repeated.\r\n",
        "You will no longer have your communication repeated.\r\n"},
       /*13*/
-      {"holylight", PRF_HOLYLIGHT, LVL_IMMORT,
-       "HolyLight mode off.\r\n",
-       "HolyLight mode on.\r\n"},
+      {"holylight", PRF_HOLYLIGHT, LVL_IMMORT, "HolyLight mode off.\r\n", "HolyLight mode on.\r\n"},
       /*14*/
       {"slownameserver", 0, LVL_IMPL,
        "Nameserver_is_slow changed to OFF; IP addresses will now be resolved.\r\n",
        "Nameserver_is_slow changed to ON; sitenames will no longer be resolved.\r\n"},
       /*15*/
-      {"autoexits", PRF_AUTOEXIT, 0,
-       "Autoexits disabled.\r\n",
-       "Autoexits enabled.\r\n"},
+      {"autoexits", PRF_AUTOEXIT, 0, "Autoexits disabled.\r\n", "Autoexits enabled.\r\n"},
       /*16*/
-      {"trackthru", 0, LVL_IMPL,
-       "Players can no longer track through doors.\r\n",
+      {"trackthru", 0, LVL_IMPL, "Players can no longer track through doors.\r\n",
        "Players can now track through doors.\r\n"},
       /*17*/
-      {"clsolc", PRF_CLS, LVL_BUILDER,
-       "You will no longer clear screen in OLC.\r\n",
+      {"clsolc", PRF_CLS, LVL_BUILDER, "You will no longer clear screen in OLC.\r\n",
        "You will now clear screen in OLC.\r\n"},
       /*18*/
-      {"buildwalk", PRF_BUILDWALK, LVL_BUILDER,
-       "Buildwalk is now Off.\r\n",
+      {"buildwalk", PRF_BUILDWALK, LVL_BUILDER, "Buildwalk is now Off.\r\n",
        "Buildwalk is now On.\r\n"},
       /*19*/
-      {"afk", PRF_AFK, 0,
-       "AFK is now Off.\r\n",
-       "AFK is now On.\r\n"},
+      {"afk", PRF_AFK, 0, "AFK is now Off.\r\n", "AFK is now On.\r\n"},
       /*20*/
-      {"autoloot", PRF_AUTOLOOT, 0,
-       "Autoloot disabled.\r\n",
-       "Autoloot enabled.\r\n"},
+      {"autoloot", PRF_AUTOLOOT, 0, "Autoloot disabled.\r\n", "Autoloot enabled.\r\n"},
       /*21*/
-      {"autogold", PRF_AUTOGOLD, 0,
-       "Autogold disabled.\r\n",
-       "Autogold enabled.\r\n"},
+      {"autogold", PRF_AUTOGOLD, 0, "Autogold disabled.\r\n", "Autogold enabled.\r\n"},
       /*22*/
-      {"autosplit", PRF_AUTOSPLIT, 0,
-       "Autosplit disabled.\r\n",
-       "Autosplit enabled.\r\n"},
+      {"autosplit", PRF_AUTOSPLIT, 0, "Autosplit disabled.\r\n", "Autosplit enabled.\r\n"},
       /*23*/
-      {"autosac", PRF_AUTOSAC, 0,
-       "Autosac disabled.\r\n",
-       "Autosac enabled.\r\n"},
+      {"autosac", PRF_AUTOSAC, 0, "Autosac disabled.\r\n", "Autosac enabled.\r\n"},
       /*24*/
-      {"autoassist", PRF_AUTOASSIST, 0,
-       "Autoassist disabled.\r\n",
-       "Autoassist enabled.\r\n"},
+      {"autoassist", PRF_AUTOASSIST, 0, "Autoassist disabled.\r\n", "Autoassist enabled.\r\n"},
       /*25*/
-      {"automap", PRF_AUTOMAP, 1,
-       "You will no longer see the mini-map.\r\n",
+      {"automap", PRF_AUTOMAP, 1, "You will no longer see the mini-map.\r\n",
        "You will now see a mini-map at the side of room descriptions.\r\n"},
       /*26*/
-      {"autokey", PRF_AUTOKEY, 0,
-       "You will now have to unlock doors manually before opening.\r\n",
+      {"autokey", PRF_AUTOKEY, 0, "You will now have to unlock doors manually before opening.\r\n",
        "You will now automatically unlock doors when opening them (if you have the key).\r\n"},
       /*27*/
       {"autodoor", PRF_AUTODOOR, 0,
        "You will now need to specify a door direction when opening, closing and unlocking.\r\n",
        "You will now find the next available door when opening, closing or unlocking.\r\n"},
       /*28*/
-      {"clantalk", PRF_NOCLANTALK, LVL_STAFF,
-       "You can now hear all clan's clantalk.\r\n",
+      {"clantalk", PRF_NOCLANTALK, LVL_STAFF, "You can now hear all clan's clantalk.\r\n",
        "All clantalk will now be hidden.\r\n"},
       /*29*/
       {"color", 0, 0, "\n", "\n"},
@@ -7486,20 +8151,14 @@ ACMD(do_toggle)
       /*33*/
       {"screenwidth", 0, 0, "\n", "\n"},
       /*34*/
-      {"autoscan", PRF_AUTOSCAN, 0,
-       "Autoscan disabled.\r\n",
-       "Autoscan enabled.\r\n"},
+      {"autoscan", PRF_AUTOSCAN, 0, "Autoscan disabled.\r\n", "Autoscan enabled.\r\n"},
       /*35*/
-      {"autoreload", PRF_AUTORELOAD, 0,
-       "Autoreload disabled.\r\n",
-       "Autoreload enabled.\r\n"},
+      {"autoreload", PRF_AUTORELOAD, 0, "Autoreload disabled.\r\n", "Autoreload enabled.\r\n"},
       /*36*/
-      {"combatroll", PRF_COMBATROLL, 0,
-       "CombatRoll disabled.\r\n",
+      {"combatroll", PRF_COMBATROLL, 0, "CombatRoll disabled.\r\n",
        "CombatRoll enabled, you will see behind the scene rolls behind combat.\r\n"},
       /*37*/
-      {"guimode", PRF_GUI_MODE, 0,
-       "GUI Mode disabled.\r\n",
+      {"guimode", PRF_GUI_MODE, 0, "GUI Mode disabled.\r\n",
        "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
       /*38*/
       {"nohint", PRF_NOHINT, 0,
@@ -7514,16 +8173,14 @@ ACMD(do_toggle)
        "You will no longer display to others that you would like to Role-play.\r\n",
        "You will now display to others that you would like to Role-play.\r\n"},
       /* 41 */
-      {"aoebomb", PRF_AOE_BOMBS, 0,
-       "Your bombs will now only affect single targets.\r\n",
+      {"aoebomb", PRF_AOE_BOMBS, 0, "Your bombs will now only affect single targets.\r\n",
        "Your bombs will now affect multiple targets.\r\n"},
       /*42*/
       {"autocon", PRF_AUTOCON, 0,
        "You will no longer see level differences between you and mobs when you type look.\r\n",
        "You will now see level differences between you and mobs when you type look.\r\n"},
       /* 43 */
-      {"smashdefense", PRF_SMASH_DEFENSE, 0,
-       "You will no longer use smash defense in combat.\r\n",
+      {"smashdefense", PRF_SMASH_DEFENSE, 0, "You will no longer use smash defense in combat.\r\n",
        "You will now use smash defense in combat (if you know it).\r\n"},
       /* 44 */
       {"charmierescue", PRF_NO_CHARMIE_RESCUE, 0,
@@ -7540,14 +8197,13 @@ ACMD(do_toggle)
       /* 47 */
       {"autohit", PRF_AUTOHIT, 0,
        "You will no longer automatically hit mobs when typing 'hit' by itself.\r\n",
-       "You will now automatically hit the first eligible mob in the room by typing 'hit' by itself.\r\n"},
+       "You will now automatically hit the first eligible mob in the room by typing 'hit' by "
+       "itself.\r\n"},
       /*48*/
-      {"nofollow", PRF_NO_FOLLOW, 0,
-       "Players can now follow you.\r\n",
+      {"nofollow", PRF_NO_FOLLOW, 0, "Players can now follow you.\r\n",
        "Players can no longer follow you!\r\n"},
       /*49*/
-      {"condensed", PRF_CONDENSED, 0,
-       "You will now see full combat details.\r\n",
+      {"condensed", PRF_CONDENSED, 0, "You will now see full combat details.\r\n",
        "You will now see condensed combat messages.\r\n"},
       /*50*/
       {"carefulpet", PRF_CAREFUL_PET, 0,
@@ -7578,139 +8234,121 @@ ACMD(do_toggle)
                    " SlowNameserver:  %-3s   "
                    " Trackthru Doors: %-3s\r\n",
 
-                   ONOFF(CONFIG_NS_IS_SLOW),
-                   ONOFF(CONFIG_TRACK_T_DOORS));
+                   ONOFF(CONFIG_NS_IS_SLOW), ONOFF(CONFIG_TRACK_T_DOORS));
     }
 
     if (GET_LEVEL(ch) >= LVL_IMMORT)
     {
       send_to_char(ch, "Staff Toggles:\r\n");
-      send_to_char(ch,
-                   "      Buildwalk: %-3s    "
-                   "          NoWiz: %-3s    "
-                   "         ClsOLC: %-3s\r\n"
-                   "       NoHassle: %-3s    "
-                   "      Holylight: %-3s    "
-                   "      ShowVnums: %-3s\r\n"
-                   "     NoClanTalk: %-3s    "
-                   "         Syslog: %-3s\r\n",
+      send_to_char(
+          ch,
+          "      Buildwalk: %-3s    "
+          "          NoWiz: %-3s    "
+          "         ClsOLC: %-3s\r\n"
+          "       NoHassle: %-3s    "
+          "      Holylight: %-3s    "
+          "      ShowVnums: %-3s\r\n"
+          "     NoClanTalk: %-3s    "
+          "         Syslog: %-3s\r\n",
 
-                   ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)),
-                   ONOFF(PRF_FLAGGED(ch, PRF_NOWIZ)),
-                   ONOFF(PRF_FLAGGED(ch, PRF_CLS)),
-                   ONOFF(PRF_FLAGGED(ch, PRF_NOHASSLE)),
-                   ONOFF(PRF_FLAGGED(ch, PRF_HOLYLIGHT)),
-                   ONOFF(PRF_FLAGGED(ch, PRF_SHOWVNUMS)),
-                   ONOFF(PRF_FLAGGED(ch, PRF_NOCLANTALK)),
-                   types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
+          ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)), ONOFF(PRF_FLAGGED(ch, PRF_NOWIZ)),
+          ONOFF(PRF_FLAGGED(ch, PRF_CLS)), ONOFF(PRF_FLAGGED(ch, PRF_NOHASSLE)),
+          ONOFF(PRF_FLAGGED(ch, PRF_HOLYLIGHT)), ONOFF(PRF_FLAGGED(ch, PRF_SHOWVNUMS)),
+          ONOFF(PRF_FLAGGED(ch, PRF_NOCLANTALK)),
+          types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
     }
 
-    send_to_char(ch,
-                 "Hit Pnt Display: %-3s    "
-                 "          Brief: %-3s    "
-                 "     Summonable: %-3s\r\n"
+    send_to_char(
+        ch,
+        "Hit Pnt Display: %-3s    "
+        "          Brief: %-3s    "
+        "     Summonable: %-3s\r\n"
 
-                 "   Move Display: %-3s    "
-                 "        Compact: %-3s    "
-                 "          Quest: %-3s\r\n"
+        "   Move Display: %-3s    "
+        "        Compact: %-3s    "
+        "          Quest: %-3s\r\n"
 
-                 "   PSP Display: %-3s    "
-                 "         NoTell: %-3s    "
-                 "       NoRepeat: %-3s\r\n"
+        "   PSP Display: %-3s    "
+        "         NoTell: %-3s    "
+        "       NoRepeat: %-3s\r\n"
 
-                 "      AutoExits: %-3s    "
-                 "        NoShout: %-3s    "
-                 "          Wimpy: %-3s\r\n"
+        "      AutoExits: %-3s    "
+        "        NoShout: %-3s    "
+        "          Wimpy: %-3s\r\n"
 
-                 "       NoGossip: %-3s    "
-                 "      NoAuction: %-3s    "
-                 "        NoGrats: %-3s\r\n"
+        "       NoGossip: %-3s    "
+        "      NoAuction: %-3s    "
+        "        NoGrats: %-3s\r\n"
 
-                 "       AutoLoot: %-3s    "
-                 "       AutoGold: %-3s    "
-                 "      AutoSplit: %-3s\r\n"
+        "       AutoLoot: %-3s    "
+        "       AutoGold: %-3s    "
+        "      AutoSplit: %-3s\r\n"
 
-                 "        AutoSac: %-3s    "
-                 "     AutoAssist: %-3s    "
-                 "        AutoMap: %-3s\r\n"
+        "        AutoSac: %-3s    "
+        "     AutoAssist: %-3s    "
+        "        AutoMap: %-3s\r\n"
 
-                 "     Pagelength: %-3d    "
-                 "    Screenwidth: %-3d    "
-                 "            AFK: %-3s\r\n"
+        "     Pagelength: %-3d    "
+        "    Screenwidth: %-3d    "
+        "            AFK: %-3s\r\n"
 
-                 "        Autokey: %-3s    "
-                 "       Autodoor: %-3s    "
-                 "          Color: %s\r\n"
+        "        Autokey: %-3s    "
+        "       Autodoor: %-3s    "
+        "          Color: %s\r\n"
 
-                 "       Autoscan: %-3s    "
-                 "    EXP Display: %-3s    "
-                 "  Exits Display: %-3s\r\n"
+        "       Autoscan: %-3s    "
+        "    EXP Display: %-3s    "
+        "  Exits Display: %-3s\r\n"
 
-                 "   Room Display: %-3s    "
-                 "Memtime Display: %-3s    "
-                 "Actions Display: %-3s\r\n"
+        "   Room Display: %-3s    "
+        "Memtime Display: %-3s    "
+        "Actions Display: %-3s\r\n"
 
-                 "     AutoReload: %-3s    "
-                 "     CombatRoll: %-3s    "
-                 "       GUI Mode: %-3s\r\n"
+        "     AutoReload: %-3s    "
+        "     CombatRoll: %-3s    "
+        "       GUI Mode: %-3s\r\n"
 
-                 "        NoHints: %-3s    "
-                 "   Auto Collect: %-3s    "
-                 "   Role-Playing: %-3s\r\n"
+        "        NoHints: %-3s    "
+        "   Auto Collect: %-3s    "
+        "   Role-Playing: %-3s\r\n"
 
-                 "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
+        "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
+        ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)), ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
+        ONOFF(PRF_FLAGGED(ch, PRF_SUMMONABLE)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPMOVE)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
+        ONOFF(PRF_FLAGGED(ch, PRF_DISPMOVE)), ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
+        ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPPSP)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
+        ONOFF(PRF_FLAGGED(ch, PRF_DISPPSP)), ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
+        ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOEXIT)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOSHOUT)),
-                 buf2,
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOEXIT)), ONOFF(PRF_FLAGGED(ch, PRF_NOSHOUT)), buf2,
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOGOSS)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOAUCT)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOGRATZ)),
+        ONOFF(PRF_FLAGGED(ch, PRF_NOGOSS)), ONOFF(PRF_FLAGGED(ch, PRF_NOAUCT)),
+        ONOFF(PRF_FLAGGED(ch, PRF_NOGRATZ)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOLOOT)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOGOLD)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOSPLIT)),
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOLOOT)), ONOFF(PRF_FLAGGED(ch, PRF_AUTOGOLD)),
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOSPLIT)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOSAC)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOASSIST)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOMAP)),
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOSAC)), ONOFF(PRF_FLAGGED(ch, PRF_AUTOASSIST)),
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOMAP)),
 
-                 GET_PAGE_LENGTH(ch),
-                 GET_SCREEN_WIDTH(ch),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
+        GET_PAGE_LENGTH(ch), GET_SCREEN_WIDTH(ch), ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
-                 types[COLOR_LEV(ch)],
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)), ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
+        types[COLOR_LEV(ch)],
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPEXP)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPEXITS)),
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOSCAN)), ONOFF(PRF_FLAGGED(ch, PRF_DISPEXP)),
+        ONOFF(PRF_FLAGGED(ch, PRF_DISPEXITS)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS)),
+        ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)), ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
+        ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS)),
 
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOHINT)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOCOLLECT)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_RP))
-                 /*end*/);
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD)), ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
+        ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE)), ONOFF(PRF_FLAGGED(ch, PRF_NOHINT)),
+        ONOFF(PRF_FLAGGED(ch, PRF_AUTOCOLLECT)), ONOFF(PRF_FLAGGED(ch, PRF_RP))
+        /*end*/);
     return;
   }
 
@@ -7746,13 +8384,15 @@ ACMD(do_toggle)
     if (tp & 2)
       SET_BIT_AR(PRF_FLAGS(ch), PRF_COLOR_2);
 
-    send_to_char(ch, "Your %scolor%s is now %s.\r\n", CCRED(ch, C_SPR), CCNRM(ch, C_OFF), types[tp]);
+    send_to_char(ch, "Your %scolor%s is now %s.\r\n", CCRED(ch, C_SPR), CCNRM(ch, C_OFF),
+                 types[tp]);
     return;
   case SCMD_SYSLOG:
     if (!*arg2)
     {
-      send_to_char(ch, "Your syslog is currently %s.\r\n",
-                   types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
+      send_to_char(
+          ch, "Your syslog is currently %s.\r\n",
+          types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
       return;
     }
     if (((tp = search_block(arg2, types, FALSE)) == -1))
@@ -7791,12 +8431,12 @@ ACMD(do_toggle)
         i = 0;
       GET_BUILDWALK_SECTOR(ch) = i;
       send_to_char(ch, "Default sector type is %s\r\n", sector_types[i]);
-      mudlog(CMP, GET_LEVEL(ch), TRUE,
-             "OLC: %s turned buildwalk on.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+      mudlog(CMP, GET_LEVEL(ch), TRUE, "OLC: %s turned buildwalk on.  Allowed zone %d",
+             GET_NAME(ch), GET_OLC_ZONE(ch));
     }
     else
-      mudlog(CMP, GET_LEVEL(ch), TRUE,
-             "OLC: %s turned buildwalk off.  Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+      mudlog(CMP, GET_LEVEL(ch), TRUE, "OLC: %s turned buildwalk off.  Allowed zone %d",
+             GET_NAME(ch), GET_OLC_ZONE(ch));
     break;
   case SCMD_AFK:
     if ((result = PRF_TOG_CHK(ch, PRF_AFK)))
@@ -7853,7 +8493,8 @@ ACMD(do_toggle)
       }
     }
     else
-      send_to_char(ch, "Specify at how many hit points you want to wimp out at.  (0 to disable)\r\n");
+      send_to_char(ch,
+                   "Specify at how many hit points you want to wimp out at.  (0 to disable)\r\n");
     break;
   case SCMD_PAGELENGTH:
     if (!*arg2)
@@ -7872,7 +8513,8 @@ ACMD(do_toggle)
     else if (is_number(arg2))
     {
       GET_SCREEN_WIDTH(ch) = MIN(MAX(atoi(arg2), 40), 200);
-      send_to_char(ch, "Okay, your screen width is now set to %d characters.", GET_SCREEN_WIDTH(ch));
+      send_to_char(ch, "Okay, your screen width is now set to %d characters.",
+                   GET_SCREEN_WIDTH(ch));
     }
     else
       send_to_char(ch, "Please specify a number of characters (40 - 200).");
@@ -7896,7 +8538,8 @@ ACMD(do_toggle)
       }
       else
       {
-        send_to_char(ch, "Value for %s must either be 'on' or 'off'.\r\n", tog_messages[toggle].command);
+        send_to_char(ch, "Value for %s must either be 'on' or 'off'.\r\n",
+                     tog_messages[toggle].command);
         return;
       }
     }
@@ -7920,7 +8563,8 @@ ACMD(do_toggle)
     }
     else
     {
-      send_to_char(ch, "Value for %s must either be 'on' or 'off'.\r\n", tog_messages[toggle].command);
+      send_to_char(ch, "Value for %s must either be 'on' or 'off'.\r\n",
+                   tog_messages[toggle].command);
       return;
     }
   }
@@ -7942,7 +8586,8 @@ void do_wizhelp(struct char_data *ch)
   for (level = LVL_IMPL; level >= LVL_IMMORT; level--)
   {
     send_to_char(ch, "%sLevel %d%s:\r\n", CCCYN(ch, C_NRM), level, CCNRM(ch, C_NRM));
-    for (no = 1, cmd_num = 1; complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n'; cmd_num++)
+    for (no = 1, cmd_num = 1; complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n';
+         cmd_num++)
     {
       i = cmd_sort_info[cmd_num];
 
@@ -7994,22 +8639,19 @@ ACMD(do_commands)
   else if (subcmd == SCMD_MANEUVERS)
     maneuvers = 1;
 
-  send_to_char(ch, "The following %s%s are available to %s:\r\n",
-               wizhelp ? "privileged " : "",
+  send_to_char(ch, "The following %s%s are available to %s:\r\n", wizhelp ? "privileged " : "",
                socials     ? "socials"
                : maneuvers ? "combat maneuvers"
                            : "commands",
                vict == ch ? "you" : GET_NAME(vict));
 
   /* cmd_num starts at 1, not 0, to remove 'RESERVED' */
-  for (no = 0, cmd_num = 1;
-       complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n';
-       ++cmd_num)
+  for (no = 0, cmd_num = 1; complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n'; ++cmd_num)
   {
-
     i = cmd_sort_info[cmd_num];
 
-    if (complete_cmd_info[i].minimum_level < 0 || GET_LEVEL(vict) < complete_cmd_info[i].minimum_level)
+    if (complete_cmd_info[i].minimum_level < 0 ||
+        GET_LEVEL(vict) < complete_cmd_info[i].minimum_level)
       continue;
 
     if ((complete_cmd_info[i].minimum_level >= LVL_IMMORT) != wizhelp)
@@ -8037,7 +8679,8 @@ ACMD(do_commands)
       // char has access to the command, copy to commands list with a useful color:
       // Red if they can't use it right now, green if they can.
       // Just send it to the character instead of using the column_list(), so that we can color.
-      send_to_char(ch, "%s%-14s\tn\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr", complete_cmd_info[i].command);
+      send_to_char(ch, "%s%-14s\tn\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr",
+                   complete_cmd_info[i].command);
     }
     else
     {
@@ -8052,13 +8695,11 @@ ACMD(do_commands)
 
 ACMDU(do_homelands)
 {
-
   int i = 0;
   skip_spaces(&argument);
 
   if (!*argument)
   {
-    
     send_to_char(ch, "\tcRegions of Faerun\tn\r\n\r\n");
     for (i = 1; i < NUM_REGIONS; i++)
     {
@@ -8068,7 +8709,8 @@ ACMDU(do_homelands)
     }
     if (((i - 1) % 3) != 2)
       send_to_char(ch, "\r\n");
-    send_to_char(ch, "\r\nTo view information on a specific region, type: 'homelands (region name)'.\r\n");
+    send_to_char(
+        ch, "\r\nTo view information on a specific region, type: 'homelands (region name)'.\r\n");
     return;
   }
 
@@ -8206,7 +8848,8 @@ ACMD(do_whois)
     else
     {
       send_to_char(ch, "Current Clan : %s%s\r\n", CLAN_NAME(c_n), QNRM);
-      send_to_char(ch, "Clan Rank    : %s%s (Rank %d)\r\n", clan_list[c_n].rank_name[(c_r - 1)], QNRM, c_r);
+      send_to_char(ch, "Clan Rank    : %s%s (Rank %d)\r\n", clan_list[c_n].rank_name[(c_r - 1)],
+                   QNRM, c_r);
     }
   }
 
@@ -8241,19 +8884,15 @@ ACMD(do_whois)
   send_to_char(ch, "\r\n");
 
   if (IS_MORPHED(victim))
-    send_to_char(ch, "Race : %s\r\n",
-                 race_family_types[IS_MORPHED(victim)]);
+    send_to_char(ch, "Race : %s\r\n", race_family_types[IS_MORPHED(victim)]);
   else if (GET_DISGUISE_RACE(victim))
-    send_to_char(ch, "Race : %s\r\n",
-                 race_list[GET_DISGUISE_RACE(ch)].name);
+    send_to_char(ch, "Race : %s\r\n", race_list[GET_DISGUISE_RACE(ch)].name);
   else
-    send_to_char(ch, "Race : %s\r\n",
-                 race_list[GET_RACE(victim)].type_color);
+    send_to_char(ch, "Race : %s\r\n", race_list[GET_RACE(victim)].type_color);
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 
-  if (!(GET_LEVEL(victim) < LVL_IMMORT) ||
-      (GET_LEVEL(ch) >= GET_LEVEL(victim)))
+  if (!(GET_LEVEL(victim) < LVL_IMMORT) || (GET_LEVEL(ch) >= GET_LEVEL(victim)))
   {
     strlcpy(buf, (char *)asctime(localtime(&(victim->player.time.logon))), sizeof(buf));
     buf[10] = '\0';
@@ -8271,13 +8910,17 @@ ACMD(do_whois)
         send_to_char(ch, "\r\n");
 
       if (!IS_NPC(ch) && PRF_FLAGGED(victim, PRF_AFK))
-        send_to_char(ch, "%s%s is afk right now, so %s may not respond to communication.%s\r\n", CBGRN(ch, C_NRM), GET_NAME(victim), GET_SEX(victim) == SEX_NEUTRAL ? "it" : (GET_SEX(victim) == SEX_MALE ? "he" : "she"), CCNRM(ch, C_NRM));
+        send_to_char(ch, "%s%s is afk right now, so %s may not respond to communication.%s\r\n",
+                     CBGRN(ch, C_NRM), GET_NAME(victim),
+                     GET_SEX(victim) == SEX_NEUTRAL ? "it"
+                                                    : (GET_SEX(victim) == SEX_MALE ? "he" : "she"),
+                     CCNRM(ch, C_NRM));
     }
     else if (hours > 0)
       send_to_char(ch, "Last Logon: %s (%d days & %d hours ago.)\r\n", buf, hours / 24, hours % 24);
     else
-      send_to_char(ch, "Last Logon: %s (0 hours & %d minutes ago.)\r\n",
-                   buf, (int)(time(0) - victim->player.time.logon) / 60);
+      send_to_char(ch, "Last Logon: %s (0 hours & %d minutes ago.)\r\n", buf,
+                   (int)(time(0) - victim->player.time.logon) / 60);
   }
 
   if (has_mail(GET_IDNUM(victim)))
@@ -8298,10 +8941,14 @@ ACMD(do_whois)
   if (!got_from_file && victim->desc != NULL && GET_LEVEL(ch) >= LVL_STAFF)
   {
     protocol_t *prot = victim->desc->pProtocol;
-    send_to_char(ch, "Client:  %s [%s]\r\n",
-                 prot->pVariables[eMSDP_CLIENT_ID]->pValueString,
-                 prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString ? prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString : "Unknown");
-    send_to_char(ch, "Color:   %s\r\n", prot->pVariables[eMSDP_256_COLORS]->ValueInt ? "256 Color" : (prot->pVariables[eMSDP_ANSI_COLORS]->ValueInt ? "Ansi" : "None"));
+    send_to_char(ch, "Client:  %s [%s]\r\n", prot->pVariables[eMSDP_CLIENT_ID]->pValueString,
+                 prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString
+                     ? prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString
+                     : "Unknown");
+    send_to_char(ch, "Color:   %s\r\n",
+                 prot->pVariables[eMSDP_256_COLORS]->ValueInt
+                     ? "256 Color"
+                     : (prot->pVariables[eMSDP_ANSI_COLORS]->ValueInt ? "Ansi" : "None"));
     send_to_char(ch, "MXP:     %s\r\n", prot->bMXP ? "Yes" : "No");
     send_to_char(ch, "Charset: %s\r\n", prot->bCHARSET ? "Yes" : "No");
     send_to_char(ch, "MSP:     %s\r\n", prot->bMSP ? "Yes" : "No");
@@ -8341,7 +8988,8 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 ACMD(do_areas)
 {
   int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'},
+       buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE;
   //  float pop;
@@ -8415,7 +9063,7 @@ ACMD(do_areas)
     overlap = FALSE;
 
     if (ZONE_FLAGGED(i, ZONE_GRID))
-    { 
+    {
       /* Is this zone 'on the grid' ?    */
       if (lolev == -1)
       {
@@ -8432,7 +9080,8 @@ ACMD(do_areas)
         /* Range supplied, it's completely within this zone's range (no overlap) */
         show_zone = TRUE;
       }
-      else if ((hilev != -1) && ((lolev >= ZONE_MINLVL(i) && lolev <= ZONE_MAXLVL(i)) || (hilev <= ZONE_MAXLVL(i) && hilev >= ZONE_MINLVL(i))))
+      else if ((hilev != -1) && ((lolev >= ZONE_MINLVL(i) && lolev <= ZONE_MAXLVL(i)) ||
+                                 (hilev <= ZONE_MAXLVL(i) && hilev >= ZONE_MINLVL(i))))
       {
         /* Range supplied, it overlaps this zone's range */
         show_zone = TRUE;
@@ -8472,34 +9121,42 @@ ACMD(do_areas)
       if (overlap)
         overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount, overlap ? QRED : QCYN,
-                         count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
-                         lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+      tmp_len =
+          snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount,
+                   overlap ? QRED : QCYN, count_color_chars(zone_table[i].name) + 40,
+                   zone_table[i].name, lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
       snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*s\tn %s%s%s\tn\r\n",
-                         count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
-                         zone_num, lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+               count_color_chars(zone_table[i].name) + 40, zone_table[i].name, zone_num,
+               lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       num_areas++;
       len += tmp_len;
     }
   }
-  
+
   tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n\r\n");
   len += tmp_len;
 
-  tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%d%s area%s found.\r\n", QYEL, zcount, QNRM, zcount == 1 ? "" : "s");
+  tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%d%s area%s found.\r\n", QYEL, zcount, QNRM,
+                     zcount == 1 ? "" : "s");
   len += tmp_len;
 
   if (overlap_shown)
   {
-    tmp_len = snprintf(buf + len, sizeof(buf) - len, "Areas shown in \trred\tn may have some creatures outside the specified range.\r\n");
+    tmp_len = snprintf(
+        buf + len, sizeof(buf) - len,
+        "Areas shown in \trred\tn may have some creatures outside the specified range.\r\n");
     len += tmp_len;
   }
 
 #if defined(CAMPAIGN_DL)
-  tmp_len = snprintf(buf + len, sizeof(buf) - len, "To show all areas type 'areas all', or to filter zones by level see HELP AREAS.\r\n");
+  tmp_len = snprintf(
+      buf + len, sizeof(buf) - len,
+      "To show all areas type 'areas all', or to filter zones by level see HELP AREAS.\r\n");
   len += tmp_len;
-  tmp_len = snprintf(buf + len, sizeof(buf) - len, "To show more information on a specific zone, type HELP (zone name as shown in areas command).\r\n");
+  tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                     "To show more information on a specific zone, type HELP (zone name as shown "
+                     "in areas command).\r\n");
   len += tmp_len;
 #else
   tmp_len = snprintf(buf + len, sizeof(buf) - len, "More areas are listed in HELP ZONES");
@@ -8517,15 +9174,17 @@ ACMD(do_areas)
     char temp[LONG_STRING];
     n = num_areas;
 
-    for (i = 0; i < n - 1; i++) {
-        for (j = 0; j < n - i - 1; j++) {
-            if (strcmp(areas[j], areas[j + 1]) > 0)
-            {
-                strcpy(temp, areas[j]);
-                strcpy(areas[j], areas[j + 1]);
-                strcpy(areas[j + 1], temp);
-            }
+    for (i = 0; i < n - 1; i++)
+    {
+      for (j = 0; j < n - i - 1; j++)
+      {
+        if (strcmp(areas[j], areas[j + 1]) > 0)
+        {
+          strcpy(temp, areas[j]);
+          strcpy(areas[j], areas[j + 1]);
+          strcpy(areas[j + 1], temp);
         }
+      }
     }
     for (i = 0; i < num_areas; i++)
       send_to_char(ch, "(%3d) %s", i, areas[i]);
@@ -8581,7 +9240,6 @@ ACMD(do_scan)
 
   for (door = 0; door < DIR_COUNT; door++)
   {
-
     if (world[scanned_room].dir_option[door] &&
         !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN))
     {
@@ -8596,13 +9254,13 @@ ACMD(do_scan)
           !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN) &&
           !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_CLOSED))
       {
-
         scanned_room = world[scanned_room].dir_option[door]->to_room;
 
         if (IS_DARK(scanned_room) && !CAN_SEE_IN_DARK(ch))
         {
           if (world[scanned_room].people)
-            send_to_char(ch, "%s: It's too dark to see, but you can hear shuffling.\r\n", dirs[door]);
+            send_to_char(ch, "%s: It's too dark to see, but you can hear shuffling.\r\n",
+                         dirs[door]);
           else
             send_to_char(ch, "%s: It is too dark to see anything.\r\n", dirs[door]);
           found = TRUE;
@@ -8630,8 +9288,7 @@ ACMD(do_scan)
 /* informational command requested by screenreader users */
 ACMD(do_hp)
 {
-  send_to_char(ch, "You have %d hit points out of %d total.\r\n",
-               GET_HIT(ch), GET_MAX_HIT(ch));
+  send_to_char(ch, "You have %d hit points out of %d total.\r\n", GET_HIT(ch), GET_MAX_HIT(ch));
 }
 
 /* informational command requested by screenreader users */
@@ -8651,7 +9308,6 @@ ACMD(do_moves)
 
 ACMD(do_survey)
 {
-
   int x, y, room, i = 0;
 
   if (!ch || IN_ROOM(ch) == NOWHERE)
@@ -8713,8 +9369,7 @@ ACMD(do_survey)
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-      !has_blindsense(ch))
+  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch))
   {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
@@ -8737,7 +9392,8 @@ ACMD(do_survey)
   y = world[IN_ROOM(ch)].coords[1];
 
   /* Enhanced survey with resource information */
-  if (!*arg || is_abbrev(arg, "basic")) {
+  if (!*arg || is_abbrev(arg, "basic"))
+  {
     /* Basic survey - location and nearby zones */
     last = zone_table[zrnum].top;
     first = zone_table[zrnum].bot;
@@ -8760,8 +9416,8 @@ ACMD(do_survey)
             if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
             {
               send_to_char(ch, "%s at (\tC%d\tn, \tC%d\tn) to the [%s]\r\n",
-                           zone_table[world[to_room].zone].name,
-                           target_room->coords[0], target_room->coords[1], dirs[j]);
+                           zone_table[world[to_room].zone].name, target_room->coords[0],
+                           target_room->coords[1], dirs[j]);
             }
           }
         }
@@ -8771,25 +9427,28 @@ ACMD(do_survey)
     send_to_char(ch, "\r\nYour Current Location: (\tC%d\tn, \tC%d\tn)\r\n", x, y);
     send_to_char(ch, "Terrain Type: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
     send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
-    
+
     /* Phase 6: Add basic resource conservation summary */
     float avg_depletion = 0.0;
     int depletion_count = 0;
-    for (i = 0; i < 3; i++) { /* Check major resources: herbs, minerals, wood */
+    for (i = 0; i < 3; i++)
+    { /* Check major resources: herbs, minerals, wood */
       int resource_types[] = {RESOURCE_HERBS, RESOURCE_MINERALS, RESOURCE_WOOD};
       float depletion = get_resource_depletion_level(IN_ROOM(ch), resource_types[i]);
       avg_depletion += depletion;
       depletion_count++;
     }
-    if (depletion_count > 0) {
+    if (depletion_count > 0)
+    {
       avg_depletion /= depletion_count;
       send_to_char(ch, "Resource Condition: %s", get_depletion_level_name(avg_depletion));
-      if (avg_depletion < 0.8) {
+      if (avg_depletion < 0.8)
+      {
         send_to_char(ch, " \tc(harvest efficiency reduced)\tn");
       }
       send_to_char(ch, "\r\n");
     }
-    
+
     send_to_char(ch, "\r\nUse '\tCsurvey resources\tn' to scan for natural resources.\r\n");
     send_to_char(ch, "Use '\tCsurvey terrain\tn' for detailed terrain analysis.\r\n");
     send_to_char(ch, "Use '\tCsurvey conservation\tn' for resource depletion status.\r\n");
@@ -8797,153 +9456,186 @@ ACMD(do_survey)
     send_to_char(ch, "Use '\tCsurvey impact\tn' to see your conservation impact.\r\n");
     send_to_char(ch, "Use '\tCsurvey cascade <resource>\tn' to preview ecological impact.\r\n");
   }
-  else if (is_abbrev(arg, "resources")) {
+  else if (is_abbrev(arg, "resources"))
+  {
     /* Resource survey - main new functionality */
     send_to_char(ch, "You carefully examine the area for natural resources...\r\n\r\n");
-    
+
     send_to_char(ch, "Resource Survey for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
     send_to_char(ch, "=====================================\r\n");
-    
+
     /* Show current terrain context */
-    send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", 
-                 sector_types[SECT(IN_ROOM(ch))], get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
-    
+    send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", sector_types[SECT(IN_ROOM(ch))],
+                 get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+
     /* Show resource levels with depletion information */
     send_to_char(ch, "Available Resources:\r\n");
-    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+    {
       resource_level = calculate_current_resource_level(i, x, y);
-      if (resource_level > 0.05) { /* Only show resources with meaningful levels */
+      if (resource_level > 0.05)
+      { /* Only show resources with meaningful levels */
         float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
-        float effective_level = resource_level * depletion_level; /* Calculate true available amount */
+        float effective_level =
+            resource_level * depletion_level; /* Calculate true available amount */
         float harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
-        
-        send_to_char(ch, "  \tG%-12s\tn: %s", 
-                     resource_names[i], 
-                     get_abundance_description(effective_level)); /* Use effective level, not base level */
-        
+
+        send_to_char(
+            ch, "  \tG%-12s\tn: %s", resource_names[i],
+            get_abundance_description(effective_level)); /* Use effective level, not base level */
+
         /* Add depletion status - Phase 6 enhancement */
-        if (depletion_level < 1.0) {
-          send_to_char(ch, " \tc[\tn%s\tc - %.0f%% harvest efficiency\tn]", 
-                       get_depletion_level_name(depletion_level),
-                       harvest_modifier * 100);
-        } else {
+        if (depletion_level < 1.0)
+        {
+          send_to_char(ch, " \tc[\tn%s\tc - %.0f%% harvest efficiency\tn]",
+                       get_depletion_level_name(depletion_level), harvest_modifier * 100);
+        }
+        else
+        {
           send_to_char(ch, " \tG[pristine condition]\tn");
         }
         send_to_char(ch, "\r\n");
       }
     }
-    
+
     /* Phase 6: Add conservation tip */
-    send_to_char(ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
+    send_to_char(
+        ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
     send_to_char(ch, "and help maintain resource availability for future use.\r\n");
   }
-  else if (is_abbrev(arg, "terrain")) {
+  else if (is_abbrev(arg, "terrain"))
+  {
     /* Detailed terrain analysis */
     show_terrain_survey(ch);
   }
-  else if (is_abbrev(arg, "map")) {
+  else if (is_abbrev(arg, "map"))
+  {
     /* Resource minimap */
     char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
     int resource_type = -1, radius = 7, i;
-    
+
     /* Skip past "map" and get the resource type and radius */
-    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "map" */
+    argument = one_argument(argument, arg, sizeof(arg));   /* Skip "map" */
     argument = one_argument(argument, arg2, sizeof(arg2)); /* Get resource type */
-    one_argument(argument, arg3, sizeof(arg3)); /* Get radius */
-    
-    if (!*arg2) {
+    one_argument(argument, arg3, sizeof(arg3));            /* Get radius */
+
+    if (!*arg2)
+    {
       send_to_char(ch, "Available resource types for mapping:\r\n");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      {
         send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
       }
       send_to_char(ch, "\r\nUsage: survey map <resource_type> [radius]\r\n");
       send_to_char(ch, "Example: survey map vegetation 10\r\n");
       return;
     }
-    
+
     /* Parse resource type */
-    if (is_number(arg2)) {
+    if (is_number(arg2))
+    {
       resource_type = atoi(arg2);
-    } else {
+    }
+    else
+    {
       /* Try to match by name */
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-        if (is_abbrev(arg2, resource_names[i])) {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      {
+        if (is_abbrev(arg2, resource_names[i]))
+        {
           resource_type = i;
           break;
         }
       }
     }
-    
-    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
+    {
       send_to_char(ch, "Invalid resource type. Use 'survey map' to see available types.\r\n");
       return;
     }
-    
+
     /* Parse radius */
-    if (*arg3) {
+    if (*arg3)
+    {
       radius = atoi(arg3);
-      if (radius < 3) radius = 3;
-      if (radius > 15) radius = 15;
+      if (radius < 3)
+        radius = 3;
+      if (radius > 15)
+        radius = 15;
     }
-    
+
     show_resource_map(ch, resource_type, radius);
   }
-  else if (is_abbrev(arg, "detail")) {
+  else if (is_abbrev(arg, "detail"))
+  {
     /* Detailed resource analysis */
     char arg2[MAX_INPUT_LENGTH];
     int resource_type = -1, i;
-    
+
     /* Skip past "detail" and get the resource type */
     argument = one_argument(argument, arg, sizeof(arg)); /* Skip "detail" */
     one_argument(argument, arg2, sizeof(arg2));
-    
-    if (!*arg2) {
+
+    if (!*arg2)
+    {
       send_to_char(ch, "Available resource types for detailed analysis:\r\n");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      {
         send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
       }
       send_to_char(ch, "\r\nUsage: survey detail <resource_type>\r\n");
       send_to_char(ch, "Example: survey detail minerals\r\n");
       return;
     }
-    
+
     /* Parse resource type */
-    if (is_number(arg2)) {
+    if (is_number(arg2))
+    {
       resource_type = atoi(arg2);
-    } else {
+    }
+    else
+    {
       /* Try to match by name */
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-        if (is_abbrev(arg2, resource_names[i])) {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      {
+        if (is_abbrev(arg2, resource_names[i]))
+        {
           resource_type = i;
           break;
         }
       }
     }
-    
-    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
+    {
       send_to_char(ch, "Invalid resource type. Use 'survey detail' to see available types.\r\n");
       return;
     }
-    
+
     show_resource_detail(ch, resource_type);
   }
-  else if (is_abbrev(arg, "conservation")) {
+  else if (is_abbrev(arg, "conservation"))
+  {
     /* Phase 6: Conservation status analysis */
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     show_resource_conservation_status(ch, x, y);
   }
-  else if (is_abbrev(arg, "regeneration")) {
+  else if (is_abbrev(arg, "regeneration"))
+  {
     /* Phase 6: Regeneration analysis */
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     show_regeneration_analysis(ch, x, y);
   }
-  else if (is_abbrev(arg, "ecosystem")) {
+  else if (is_abbrev(arg, "ecosystem"))
+  {
     /* Phase 7: Ecosystem health analysis */
     show_ecosystem_analysis(ch, IN_ROOM(ch));
   }
-  else if (is_abbrev(arg, "impact")) {
+  else if (is_abbrev(arg, "impact"))
+  {
     /* Phase 7: Player conservation impact analysis */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
     show_conservation_impact(ch);
@@ -8951,72 +9643,85 @@ ACMD(do_survey)
     send_to_char(ch, "Conservation impact tracking is not available.\r\n");
 #endif
   }
-  else if (is_abbrev(arg, "cascade")) {
+  else if (is_abbrev(arg, "cascade"))
+  {
     /* Phase 7: Cascade effect preview */
     char arg2[MAX_INPUT_LENGTH];
     int resource_type = -1, i;
-    
+
     /* Get resource type argument */
     argument = one_argument(argument, arg, sizeof(arg)); /* Skip "cascade" */
-    one_argument(argument, arg2, sizeof(arg2)); /* Get resource type */
-    
-    if (!*arg2) {
+    one_argument(argument, arg2, sizeof(arg2));          /* Get resource type */
+
+    if (!*arg2)
+    {
       send_to_char(ch, "Usage: survey cascade <resource_type>\r\n");
       send_to_char(ch, "Available resources: ");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      {
         send_to_char(ch, "%s%s", resource_names[i], i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
       }
       return;
     }
-    
+
     /* Parse resource type */
-    if (is_number(arg2)) {
+    if (is_number(arg2))
+    {
       resource_type = atoi(arg2);
-    } else {
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-        if (is_abbrev(arg2, resource_names[i])) {
+    }
+    else
+    {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      {
+        if (is_abbrev(arg2, resource_names[i]))
+        {
           resource_type = i;
           break;
         }
       }
     }
-    
-    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
+    {
       send_to_char(ch, "Invalid resource type '%s'.\r\n", arg2);
       return;
     }
-    
+
     show_cascade_preview(ch, IN_ROOM(ch), resource_type);
   }
-  else if (is_abbrev(arg, "help")) {
+  else if (is_abbrev(arg, "help"))
+  {
     /* Help information including harvesting details */
     send_to_char(ch, "Survey Command Help:\r\n");
     send_to_char(ch, "===================\r\n\r\n");
-    
+
     send_to_char(ch, "Survey options:\r\n");
     send_to_char(ch, "  survey [basic]         - Basic area survey (default)\r\n");
     send_to_char(ch, "  survey resources       - Scan for natural resources\r\n");
     send_to_char(ch, "  survey terrain         - Detailed terrain analysis\r\n");
     send_to_char(ch, "  survey map <type> [r]  - Resource minimap (radius 3-15)\r\n");
     send_to_char(ch, "  survey detail <type>   - Detailed resource analysis\r\n");
-    send_to_char(ch, "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
+    send_to_char(ch,
+                 "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
                  CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey regeneration%s     - Resource regeneration analysis\r\n",
                  CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey ecosystem%s        - Ecosystem health analysis\r\n",
                  CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
-    send_to_char(ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
-                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(
+        ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
+        CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
                  CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  survey help            - This help information\r\n");
-    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+    {
       send_to_char(ch, "  survey debug           - Debug information\r\n");
     }
-    
+
     send_to_char(ch, "\r\nResource types: vegetation, minerals, water, herbs, game,\r\n");
     send_to_char(ch, "                wood, stone, crystal, clay, salt\r\n");
-    
+
     /* Harvesting Information */
     send_to_char(ch, "\r\n\tWHarvesting Information:\tn\r\n");
     send_to_char(ch, "  vegetation: General plant life and foliage\r\n");
@@ -9029,38 +9734,46 @@ ACMD(do_survey)
     send_to_char(ch, "  crystal: Rare magical components\r\n");
     send_to_char(ch, "  clay: Clay deposits for pottery and crafting\r\n");
     send_to_char(ch, "  salt: Salt deposits and brine pools\r\n");
-    
-    send_to_char(ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
+
+    send_to_char(
+        ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
     send_to_char(ch, "and help maintain resource availability for future use.\r\n");
   }
-  else if (is_abbrev(arg, "debug") && GET_LEVEL(ch) >= LVL_IMMORT) {
+  else if (is_abbrev(arg, "debug") && GET_LEVEL(ch) >= LVL_IMMORT)
+  {
     /* Debug information for admins */
     show_debug_survey(ch);
   }
-  else {
+  else
+  {
     send_to_char(ch, "Survey options:\r\n");
     send_to_char(ch, "  survey [basic]         - Basic area survey (default)\r\n");
     send_to_char(ch, "  survey resources       - Scan for natural resources\r\n");
     send_to_char(ch, "  survey terrain         - Detailed terrain analysis\r\n");
     send_to_char(ch, "  survey map <type> [r]  - Resource minimap (radius 3-15)\r\n");
     send_to_char(ch, "  survey detail <type>   - Detailed resource analysis\r\n");
-    send_to_char(ch, "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
+    send_to_char(ch,
+                 "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
                  CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey regeneration%s     - Resource regeneration analysis\r\n",
                  CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey ecosystem%s        - Ecosystem health analysis\r\n",
                  CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
-    send_to_char(ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
-                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(
+        ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
+        CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
                  CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  survey help            - Detailed help and resource information\r\n");
-    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+    {
       send_to_char(ch, "  survey debug           - Debug information\r\n");
     }
-    send_to_char(ch, "\r\nUse 'survey help' for detailed information about resource types and harvesting.\r\n");
-    send_to_char(ch, "\r\n%sPhase 7 Ecological Interdependencies:%s\r\n", 
-                 CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(
+        ch,
+        "\r\nUse 'survey help' for detailed information about resource types and harvesting.\r\n");
+    send_to_char(ch, "\r\n%sPhase 7 Ecological Interdependencies:%s\r\n", CCWHT(ch, C_NRM),
+                 CCNRM(ch, C_NRM));
     send_to_char(ch, "Harvesting one resource now affects related resources!\r\n");
     send_to_char(ch, "Use cascade preview to understand ecological impacts before harvesting.\r\n");
   }
@@ -9073,8 +9786,7 @@ ACMD(do_exits)
 {
   int door, len = 0;
 
-  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-      !has_blindsense(ch))
+  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch))
   {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
@@ -9113,7 +9825,8 @@ ACMD(do_exits)
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS) && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
       send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
-                   EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "", world[EXIT(ch, door)->to_room].name);
+                   EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "",
+                   world[EXIT(ch, door)->to_room].name);
     else if (CONFIG_DISP_CLOSED_DOORS && EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
     {
       /* But we tell them the door is closed */
@@ -9122,7 +9835,10 @@ ACMD(do_exits)
                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " and hidden." : ".");
     }
     else
-      send_to_char(ch, "%-5s - %s\r\n", dirs[door], IS_DARK(EXIT(ch, door)->to_room) && !CAN_SEE_IN_DARK(ch) ? "Too dark to tell." : world[EXIT(ch, door)->to_room].name);
+      send_to_char(ch, "%-5s - %s\r\n", dirs[door],
+                   IS_DARK(EXIT(ch, door)->to_room) && !CAN_SEE_IN_DARK(ch)
+                       ? "Too dark to tell."
+                       : world[EXIT(ch, door)->to_room].name);
   }
 
   if (!len)
@@ -9235,7 +9951,8 @@ EVENTFUNC(event_tracks)
 
   /* Get the track information from the sVariables. */
   if (pMudEvent->sVariables)
-    sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race, creator_name, track_dir);
+    sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race,
+           creator_name, track_dir);
 
   if (track_age == 0) /* Time for this track to disappear. */
     return 0;
@@ -9245,7 +9962,8 @@ EVENTFUNC(event_tracks)
   /* Now change the age in the sVariables, and resubmit the tracks. */
   if (pMudEvent->sVariables)
     free(pMudEvent->sVariables);
-  snprintf(buf, sizeof(buf), "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name, track_dir);
+  snprintf(buf, sizeof(buf), "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name,
+           track_dir);
   pMudEvent->sVariables = strdup(buf);
 
   return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */
@@ -9299,7 +10017,8 @@ ACMD(do_weapontypes)
   const char *family_weapons[NUM_WEAPON_TYPES];
   int counter = 0;
 
-  send_to_char(ch, "The %s weapon family includes the following weapons:\r\n\r\n", weapon_family[i]);
+  send_to_char(ch, "The %s weapon family includes the following weapons:\r\n\r\n",
+               weapon_family[i]);
   for (j = 0; j < NUM_WEAPON_TYPES; j++)
   {
     if (weapon_list[j].weaponFamily == i)
@@ -9314,7 +10033,6 @@ ACMD(do_weapontypes)
 
 ACMD(do_weaponlist)
 {
-
   const char *cmd_weapon_names[NUM_WEAPON_TYPES];
 
   int j = 0;
@@ -9332,7 +10050,6 @@ ACMD(do_weaponlist)
 
 ACMD(do_armorlist)
 {
-
   const char *cmd_armor_names[NUM_SPEC_ARMOR_SUIT_TYPES - 1];
 
   int j = 0;
@@ -9350,7 +10067,6 @@ ACMD(do_armorlist)
 
 int is_weapon_proficient(int weapon, int type)
 {
-
   if (type == WPT_SIMPLE)
   {
     if (IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
@@ -9673,7 +10389,6 @@ ACMD(do_weaponproficiencies)
 
 ACMD(do_weaponinfo)
 {
-
   skip_spaces_c(&argument);
 
   if (!*argument)
@@ -9695,7 +10410,6 @@ ACMD(do_weaponinfo)
 
   for (type = 0; type < NUM_WEAPON_TYPES; type++)
   {
-
     if (!is_abbrev(argument, weapon_list[type].name))
       continue;
 
@@ -9733,31 +10447,32 @@ ACMD(do_weaponinfo)
     sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof(buf2));
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tCType       : \tW%s\tn\n"
-                    "\tCDam        : \tW%dd%d\tn\n"
-                    "\tCThreat     : \tW%d%s\tn\n"
-                    "\tCCrit-Multi : \tWx%d\tn\n"
-                    "\tCFlags      : \tW%s\tn\n"
-                    "\tCCost       : \tW%d\tn\n"
-                    "\tCDam-Types  : \tW%s\tn\n"
-                    "\tCWeight     : \tW%d\tn\n"
-                    "\tCRange      : \tW%d\tn\n"
-                    "\tCFamily     : \tW%s\tn\n"
-                    "\tCSize       : \tW%s\tn\n"
-                    "\tCMaterial   : \tW%s\tn\n"
-                    "\tCHandle     : \tW%s\tn\n"
-                    "\tCHead       : \tW%s\tn\n"
-                    "\tCSpecial    : \tW%s\tn\n"
-                    "\tCDescription: \r\n\tn%s\tn\n",
-                    weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
-                    (20 - weapon_list[type].critRange), weapon_list[type].critRange > 0 ? "-20" : "", crit_multi, buf2, weapon_list[type].cost,
-                    buf3, weapon_list[type].weight, weapon_list[type].range,
-                    weapon_family[weapon_list[type].weaponFamily],
-                    sizes[weapon_list[type].size], material_name[weapon_list[type].material],
-                    weapon_handle_types[weapon_list[type].handle_type],
-                    weapon_head_types[weapon_list[type].head_type],
-                    buf4, strfrmt(buf5, 80, 1, FALSE, FALSE, FALSE));
+    len +=
+        snprintf(buf + len, sizeof(buf) - len,
+                 "\tCType       : \tW%s\tn\n"
+                 "\tCDam        : \tW%dd%d\tn\n"
+                 "\tCThreat     : \tW%d%s\tn\n"
+                 "\tCCrit-Multi : \tWx%d\tn\n"
+                 "\tCFlags      : \tW%s\tn\n"
+                 "\tCCost       : \tW%d\tn\n"
+                 "\tCDam-Types  : \tW%s\tn\n"
+                 "\tCWeight     : \tW%d\tn\n"
+                 "\tCRange      : \tW%d\tn\n"
+                 "\tCFamily     : \tW%s\tn\n"
+                 "\tCSize       : \tW%s\tn\n"
+                 "\tCMaterial   : \tW%s\tn\n"
+                 "\tCHandle     : \tW%s\tn\n"
+                 "\tCHead       : \tW%s\tn\n"
+                 "\tCSpecial    : \tW%s\tn\n"
+                 "\tCDescription: \r\n\tn%s\tn\n",
+                 weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
+                 (20 - weapon_list[type].critRange), weapon_list[type].critRange > 0 ? "-20" : "",
+                 crit_multi, buf2, weapon_list[type].cost, buf3, weapon_list[type].weight,
+                 weapon_list[type].range, weapon_family[weapon_list[type].weaponFamily],
+                 sizes[weapon_list[type].size], material_name[weapon_list[type].material],
+                 weapon_handle_types[weapon_list[type].handle_type],
+                 weapon_head_types[weapon_list[type].head_type], buf4,
+                 strfrmt(buf5, 80, 1, FALSE, FALSE, FALSE));
     found = true;
     break;
   }
@@ -9773,7 +10488,6 @@ ACMD(do_weaponinfo)
 
 ACMD(do_armorinfo)
 {
-
   skip_spaces_c(&argument);
 
   if (!*argument)
@@ -9791,7 +10505,6 @@ ACMD(do_armorinfo)
 
   for (type = 1; type < NUM_SPEC_ARMOR_SUIT_TYPES; type++)
   {
-
     if (!is_abbrev(argument, armor_list[type].name))
       continue;
 
@@ -9809,10 +10522,10 @@ ACMD(do_armorinfo)
                     "\tCMaterial      : \tW%s\tn\n"
                     "\tCDescription   : \r\n\tn%s\tn\n",
                     armor_list[type].name, armor_type[armor_list[type].armorType],
-                    armor_list[type].cost, armor_suit_ac_bonus[type],
-                    armor_list[type].dexBonus, armor_list[type].armorCheck > 0 ? "-" : "",
-                    armor_list[type].armorCheck, armor_list[type].spellFail,
-                    armor_suit_weight[type], material_name[armor_list[type].material],
+                    armor_list[type].cost, armor_suit_ac_bonus[type], armor_list[type].dexBonus,
+                    armor_list[type].armorCheck > 0 ? "-" : "", armor_list[type].armorCheck,
+                    armor_list[type].spellFail, armor_suit_weight[type],
+                    material_name[armor_list[type].material],
                     strfrmt(buf2, 80, 1, FALSE, FALSE, FALSE));
 
     found = true;
@@ -9881,7 +10594,6 @@ ACMD(do_favoredenemies)
 
 SPECIAL(eqstats)
 {
-
   if (!CMD_IS("eqstats"))
     return FALSE;
 
@@ -9889,7 +10601,10 @@ SPECIAL(eqstats)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "It costs %d gold coins to be able to show a summary of your worn equipment enchantments.\r\n", cost);
+    send_to_char(ch,
+                 "It costs %d gold coins to be able to show a summary of your worn equipment "
+                 "enchantments.\r\n",
+                 cost);
     return TRUE;
   }
 
@@ -9923,14 +10638,17 @@ SPECIAL(eqstats)
         }
 
         /* good enough lore for object? */
-        if (GET_EQ(ch, i) && GET_OBJ_COST(GET_EQ(ch, i)) > lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+        if (GET_EQ(ch, i) && GET_OBJ_COST(GET_EQ(ch, i)) >
+                                 lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
         {
           send_to_char(ch, " (couldn't identify)\r\n");
           continue;
         }
         if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
           send_to_char(ch, " %s Enhancement: %d ",
-                       GET_OBJ_TYPE(obj) == ITEM_ARMOR ? (CAN_WEAR(obj, ITEM_WEAR_SHIELD) ? "Shield" : "Armor") : "Weapon",
+                       GET_OBJ_TYPE(obj) == ITEM_ARMOR
+                           ? (CAN_WEAR(obj, ITEM_WEAR_SHIELD) ? "Shield" : "Armor")
+                           : "Weapon",
                        GET_ENHANCEMENT_BONUS(obj));
 
         for (k = 0; k < MAX_OBJ_AFFECT; k++)
@@ -9941,21 +10659,17 @@ SPECIAL(eqstats)
             {
               found = true;
             }
-            sprinttype(obj->affected[k].location, apply_types,
-                       bitbuf, sizeof(bitbuf));
+            sprinttype(obj->affected[k].location, apply_types, bitbuf, sizeof(bitbuf));
             switch (obj->affected[k].location)
             {
             case APPLY_FEAT:
-              snprintf(buf2, sizeof(buf2), " (%s)",
-                       feat_list[obj->affected[k].modifier].name);
+              snprintf(buf2, sizeof(buf2), " (%s)", feat_list[obj->affected[k].modifier].name);
               send_to_char(ch, " %s%s", bitbuf, buf2);
               break;
             default:
               buf2[0] = 0;
               send_to_char(ch, " %s%s %s%d (%s)", bitbuf, buf2,
-                           (obj->affected[k].modifier > 0) ? "+"
-                                                           : "",
-                           obj->affected[k].modifier,
+                           (obj->affected[k].modifier > 0) ? "+" : "", obj->affected[k].modifier,
                            bonus_types[obj->affected[k].bonus_type]);
               break;
             }
@@ -9982,7 +10696,6 @@ SPECIAL(eqstats)
 
 ACMD(do_divine_bond)
 {
-
   if (!HAS_FEAT(ch, FEAT_DIVINE_BOND))
   {
     send_to_char(ch, "You do not have the paladin feat divine bond.\r\n");
@@ -10035,7 +10748,9 @@ ACMD(do_mercies)
     send_to_char(ch, "] %-15s : %s\r\n", paladin_mercies[i], paladin_mercy_descriptions[i]);
   }
 
-  send_to_char(ch, "\r\nSee HELP MERCIES and HELP LAYONHANDS for more information on how mercies work.\r\n\r\n");
+  send_to_char(
+      ch,
+      "\r\nSee HELP MERCIES and HELP LAYONHANDS for more information on how mercies work.\r\n\r\n");
 }
 
 ACMD(do_cruelties)
@@ -10064,10 +10779,12 @@ ACMD(do_cruelties)
     {
       send_to_char(ch, "\tr%-7s\tn", "UNKNOWN");
     }
-    send_to_char(ch, "] %-15s : %s\r\n", blackguard_cruelties[i], blackguard_cruelty_descriptions[i]);
+    send_to_char(ch, "] %-15s : %s\r\n", blackguard_cruelties[i],
+                 blackguard_cruelty_descriptions[i]);
   }
 
-  send_to_char(ch, "\r\nSee HELP CRUELTIES and HELP TOUCH-OF-CORRUPTION for more information on how cruelties work.\r\n\r\n");
+  send_to_char(ch, "\r\nSee HELP CRUELTIES and HELP TOUCH-OF-CORRUPTION for more information on "
+                   "how cruelties work.\r\n\r\n");
 }
 
 ACMD(do_maxhp)
@@ -10077,55 +10794,54 @@ ACMD(do_maxhp)
 
 ACMD(do_flightlist)
 {
-
   int i = 0;
 
-  #ifdef CAMPAIGN_FR
+#ifdef CAMPAIGN_FR
 
-    char zone[200];
+  char zone[200];
 
-    text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
-    for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
-    {
-      snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances_fr[i][0], zone_entrances_fr[i][1]);
-      send_to_char(ch, "%-39s ", zone);
-      if ((i % 2) == 1)
-        send_to_char(ch, "\r\n");
-    }
-    if ((i % 2) != 1)
-        send_to_char(ch, "\r\n");
-    send_to_char(ch, "\r\n");
-  #else
-    i = 0;
-    text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
-    #if defined(CAMPAIGN_DL)
-    text_line(ch, "\tYCarriage Stops:\tC", 80, '-', '-');
-    #endif
-    while (get_carriage_locale_vnum(i) != 0)
-    {
-      send_to_char(ch, "%-39s ", get_transport_carriage_name(i));
-      if ((i % 2) == 1)
-        send_to_char(ch, "\r\n");
-      i++;
-    }
-    if ((i % 2) != 1)
+  text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+  for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
+  {
+    snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances_fr[i][0], zone_entrances_fr[i][1]);
+    send_to_char(ch, "%-39s ", zone);
+    if ((i % 2) == 1)
       send_to_char(ch, "\r\n");
+  }
+  if ((i % 2) != 1)
     send_to_char(ch, "\r\n");
-    i = 0;
-    #if defined(CAMPAIGN_DL)
-    text_line(ch, "\tYSailing Ports\tC", 80, '-', '-');
-    while (get_sailing_locale_vnum(i) != 0)
-    {
-      send_to_char(ch, "%-39s ", get_transport_sailing_name(i));
-      if ((i % 2) == 1)
-        send_to_char(ch, "\r\n");
-      i++;
-      }
-      if ((i % 2) != 1)
-          send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n");
+#else
+  i = 0;
+  text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+#if defined(CAMPAIGN_DL)
+  text_line(ch, "\tYCarriage Stops:\tC", 80, '-', '-');
+#endif
+  while (get_carriage_locale_vnum(i) != 0)
+  {
+    send_to_char(ch, "%-39s ", get_transport_carriage_name(i));
+    if ((i % 2) == 1)
       send_to_char(ch, "\r\n");
-    #endif
-  #endif
+    i++;
+  }
+  if ((i % 2) != 1)
+    send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n");
+  i = 0;
+#if defined(CAMPAIGN_DL)
+  text_line(ch, "\tYSailing Ports\tC", 80, '-', '-');
+  while (get_sailing_locale_vnum(i) != 0)
+  {
+    send_to_char(ch, "%-39s ", get_transport_sailing_name(i));
+    if ((i % 2) == 1)
+      send_to_char(ch, "\r\n");
+    i++;
+  }
+  if ((i % 2) != 1)
+    send_to_char(ch, "\r\n");
+  send_to_char(ch, "\r\n");
+#endif
+#endif
 }
 
 ACMD(do_touch_spells)
@@ -10138,14 +10854,16 @@ ACMD(do_touch_spells)
   {
     if (spell_info[i].touch_spell)
     {
-      send_to_char(ch, "-- %-25s (%s)\r\n", spell_info[i].name, spell_schools[spell_info[i].schoolOfMagic]);
+      send_to_char(ch, "-- %-25s (%s)\r\n", spell_info[i].name,
+                   spell_schools[spell_info[i].schoolOfMagic]);
     }
   }
 }
 
 bool char_has_any_item_activation_abilities(struct char_data *ch)
 {
-  if (!ch) return false;
+  if (!ch)
+    return false;
 
   struct obj_data *obj = NULL;
   int i = 0;
@@ -10163,7 +10881,8 @@ bool char_has_any_item_activation_abilities(struct char_data *ch)
 
 bool char_has_any_item_activation_ability_cooldowns(struct char_data *ch)
 {
-  if (!ch) return false;
+  if (!ch)
+    return false;
 
   struct obj_data *obj = NULL;
   int i = 0;
@@ -10172,7 +10891,8 @@ bool char_has_any_item_activation_ability_cooldowns(struct char_data *ch)
   {
     if ((obj = GET_EQ(ch, i)))
     {
-      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 && obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 &&
+          obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
         return true;
     }
   }
@@ -10181,7 +10901,6 @@ bool char_has_any_item_activation_ability_cooldowns(struct char_data *ch)
 
 void list_item_activate_abilities(struct char_data *ch)
 {
-
   int i = 0, total = 0, remaining = 0;
   struct obj_data *obj = NULL;
   char obj_desc[200];
@@ -10199,19 +10918,17 @@ void list_item_activate_abilities(struct char_data *ch)
     {
       if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
       {
-        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 && obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 &&
+            obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
           obj->activate_spell[ACT_SPELL_CURRENT_USES] = obj->activate_spell[ACT_SPELL_MAX_USES];
         remaining = obj->activate_spell[ACT_SPELL_CURRENT_USES];
         total = obj->activate_spell[ACT_SPELL_MAX_USES];
         snprintf(obj_desc, sizeof(obj_desc), "%s", obj->short_description);
         strip_colors(obj_desc);
-        send_to_char(ch,
-                    "%-30.30s \tc%-20s\tn %s%2d\tn/%-2d uses remaining\r\n",
-                    obj_desc,
-                    spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
-                    (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
-                    remaining,
-                    total);
+        send_to_char(ch, "%-30.30s \tc%-20s\tn %s%2d\tn/%-2d uses remaining\r\n", obj_desc,
+                     spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
+                     (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
+                     remaining, total);
       }
     }
   }
@@ -10219,7 +10936,6 @@ void list_item_activate_abilities(struct char_data *ch)
 
 void list_item_activate_ability_cooldowns(struct char_data *ch)
 {
-
   int i = 0;
   struct obj_data *obj = NULL;
   char obj_desc[200];
@@ -10237,16 +10953,16 @@ void list_item_activate_ability_cooldowns(struct char_data *ch)
     {
       if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
       {
-        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 && obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 &&
+            obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
           obj->activate_spell[ACT_SPELL_CURRENT_USES] = obj->activate_spell[ACT_SPELL_MAX_USES];
         if (obj->activate_spell[ACT_SPELL_COOLDOWN] <= 0)
           continue;
         snprintf(obj_desc, sizeof(obj_desc), "%s", obj->short_description);
         strip_colors(obj_desc);
-        send_to_char(ch,
-                    "%-30.30s \tc%-20s\tn %d mins for +1 use\r\n",
-                    obj_desc, spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
-                    obj->activate_spell[ACT_SPELL_COOLDOWN]);
+        send_to_char(ch, "%-30.30s \tc%-20s\tn %d mins for +1 use\r\n", obj_desc,
+                     spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
+                     obj->activate_spell[ACT_SPELL_COOLDOWN]);
       }
     }
   }
@@ -10279,7 +10995,6 @@ ACMD(do_wearlocations)
 
 ACMDU(do_wearapplies)
 {
-
   skip_spaces(&argument);
   int i, j, wear_loc, count = 0;
   char wears[100];
@@ -10287,7 +11002,9 @@ ACMDU(do_wearapplies)
 
   if (!*argument)
   {
-    send_to_char(ch, "You need to specify a wear location. You can see a list by typing: wearlocations.\r\n");
+    send_to_char(
+        ch,
+        "You need to specify a wear location. You can see a list by typing: wearlocations.\r\n");
     return;
   }
 
@@ -10303,7 +11020,8 @@ ACMDU(do_wearapplies)
 
   if (i >= NUM_ITEM_WEARS)
   {
-    send_to_char(ch, "That is not a valid wear location. You can see a list by typing: wearlocations.\r\n");
+    send_to_char(
+        ch, "That is not a valid wear location. You can see a list by typing: wearlocations.\r\n");
     return;
   }
 
@@ -10321,7 +11039,6 @@ ACMDU(do_wearapplies)
   send_to_char(ch, "\tCApply Types for Wear Location %s:\tn\r\n", wear_bits[wear_loc]);
   column_list(ch, 3, (const char **)apply_list, count, FALSE);
   send_to_char(ch, "\r\n");
-
 }
 
 #undef WPT_SIMPLE
@@ -10340,123 +11057,136 @@ ACMDU(do_wearapplies)
 /* Phase 4.5: Materials storage display command */
 ACMD(do_materials)
 {
-    char arg[MAX_INPUT_LENGTH];
-    bool show_details = false;
-    
-    if (IS_NPC(ch)) {
-        send_to_char(ch, "NPCs don't store materials.\r\n");
-        return;
-    }
-    
-    one_argument(argument, arg, sizeof(arg));
-    
-    if (*arg && !str_cmp(arg, "details")) {
-        show_details = true;
-    } else if (*arg) {
-        send_to_char(ch, "Usage: materials [details]\r\n");
-        send_to_char(ch, "  materials        - Show basic materials list\r\n");
-        send_to_char(ch, "  materials details - Show detailed crafting information\r\n");
-        return;
-    }
-    
-    /* Show basic materials by default, enhanced with 'details' */
-    if (show_details) {
+  char arg[MAX_INPUT_LENGTH];
+  bool show_details = false;
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs don't store materials.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (*arg && !str_cmp(arg, "details"))
+  {
+    show_details = true;
+  }
+  else if (*arg)
+  {
+    send_to_char(ch, "Usage: materials [details]\r\n");
+    send_to_char(ch, "  materials        - Show basic materials list\r\n");
+    send_to_char(ch, "  materials details - Show detailed crafting information\r\n");
+    return;
+  }
+
+  /* Show basic materials by default, enhanced with 'details' */
+  if (show_details)
+  {
 #ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-        /* Enhanced materials display for LuminariMUD */
-        send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
-        send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
-        send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
-        show_enhanced_material_storage(ch);
+    /* Enhanced materials display for LuminariMUD */
+    send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
+    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
+    send_to_char(ch,
+                 "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
+    show_enhanced_material_storage(ch);
 #else
-        send_to_char(ch, "Enhanced crafting integration not available in this campaign.\r\n");
-        show_basic_material_storage(ch);
+    send_to_char(ch, "Enhanced crafting integration not available in this campaign.\r\n");
+    show_basic_material_storage(ch);
 #endif
-    } else {
-        /* Always show basic display for regular 'materials' command */
-        show_basic_material_storage(ch);
-    }
+  }
+  else
+  {
+    /* Always show basic display for regular 'materials' command */
+    show_basic_material_storage(ch);
+  }
 }
 
 /* Phase 6: Conservation statistics command */
-ACMD(do_conservation) {
-    char arg[MAX_INPUT_LENGTH];
-    int i;
-    
-    if (!ch || IS_NPC(ch)) {
-        return;
+ACMD(do_conservation)
+{
+  char arg[MAX_INPUT_LENGTH];
+  int i;
+
+  if (!ch || IS_NPC(ch))
+  {
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (*arg && is_abbrev(arg, "stats"))
+  {
+    /* Show detailed conservation statistics */
+    send_to_char(ch, "%s=== Your Conservation Statistics ===%s\r\n", CCWHT(ch, C_NRM),
+                 CCNRM(ch, C_NRM));
+    send_to_char(ch, "Your sustainable harvesting practices across resource types:\r\n\r\n");
+
+    float total_score = 0.0;
+    int count = 0;
+
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+    {
+      float score = get_player_conservation_score(ch);
+      const char *status = get_conservation_status_name(score);
+
+      send_to_char(ch, "  %-12s: %s%s%s (%.1f/5.0)\r\n", get_resource_name(i), CCYEL(ch, C_NRM),
+                   status, CCNRM(ch, C_NRM), score);
+
+      total_score += score;
+      count++;
     }
-    
-    one_argument(argument, arg, sizeof(arg));
-    
-    if (*arg && is_abbrev(arg, "stats")) {
-        /* Show detailed conservation statistics */
-        send_to_char(ch, "%s=== Your Conservation Statistics ===%s\r\n", 
-                     CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
-        send_to_char(ch, "Your sustainable harvesting practices across resource types:\r\n\r\n");
-        
-        float total_score = 0.0;
-        int count = 0;
-        
-        for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-            float score = get_player_conservation_score(ch);
-            const char *status = get_conservation_status_name(score);
-            
-            send_to_char(ch, "  %-12s: %s%s%s (%.1f/5.0)\r\n", 
-                         get_resource_name(i), 
-                         CCYEL(ch, C_NRM), status, CCNRM(ch, C_NRM), score);
-            
-            total_score += score;
-            count++;
-        }
-        
-        if (count > 0) {
-            float avg_score = total_score / count;
-            const char *overall_status = get_conservation_status_name(avg_score);
-            
-            send_to_char(ch, "\r\n%sOverall Rating: %s%s %s(%.1f/5.0)%s\r\n", 
-                         CCWHT(ch, C_NRM), CCNRM(ch, C_NRM),
-                         overall_status, CCYEL(ch, C_NRM), avg_score, CCNRM(ch, C_NRM));
-            
-            send_to_char(ch, "\r\n%sConservation Guide:%s\r\n", 
-                         CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
-            send_to_char(ch, "- Harvest 1-2 units at a time for sustainable practices\r\n");
-            send_to_char(ch, "- Allow areas to regenerate between harvests\r\n");
-            send_to_char(ch, "- Check 'survey conservation' to see area health\r\n");
-            send_to_char(ch, "- Higher conservation scores may yield future benefits\r\n");
-        }
+
+    if (count > 0)
+    {
+      float avg_score = total_score / count;
+      const char *overall_status = get_conservation_status_name(avg_score);
+
+      send_to_char(ch, "\r\n%sOverall Rating: %s%s %s(%.1f/5.0)%s\r\n", CCWHT(ch, C_NRM),
+                   CCNRM(ch, C_NRM), overall_status, CCYEL(ch, C_NRM), avg_score, CCNRM(ch, C_NRM));
+
+      send_to_char(ch, "\r\n%sConservation Guide:%s\r\n", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+      send_to_char(ch, "- Harvest 1-2 units at a time for sustainable practices\r\n");
+      send_to_char(ch, "- Allow areas to regenerate between harvests\r\n");
+      send_to_char(ch, "- Check 'survey conservation' to see area health\r\n");
+      send_to_char(ch, "- Higher conservation scores may yield future benefits\r\n");
     }
-    else if (*arg && is_abbrev(arg, "leaderboard")) {
-        /* TODO: Implement server-wide conservation leaderboard */
-        send_to_char(ch, "Conservation leaderboard feature coming soon!\r\n");
+  }
+  else if (*arg && is_abbrev(arg, "leaderboard"))
+  {
+    /* TODO: Implement server-wide conservation leaderboard */
+    send_to_char(ch, "Conservation leaderboard feature coming soon!\r\n");
+  }
+  else
+  {
+    /* Show basic conservation status */
+    send_to_char(ch, "%sConservation Status%s\r\n", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "==================\r\n");
+
+    float total_score = 0.0;
+    int count = 0;
+
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+    {
+      float score = get_player_conservation_score(ch);
+      total_score += score;
+      count++;
     }
-    else {
-        /* Show basic conservation status */
-        send_to_char(ch, "%sConservation Status%s\r\n", 
-                     CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
-        send_to_char(ch, "==================\r\n");
-        
-        float total_score = 0.0;
-        int count = 0;
-        
-        for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-            float score = get_player_conservation_score(ch);
-            total_score += score;
-            count++;
-        }
-        
-        if (count > 0) {
-            float avg_score = total_score / count;
-            const char *status = get_conservation_status_name(avg_score);
-            
-            send_to_char(ch, "Your overall conservation rating: %s%s%s (%.1f/5.0)\r\n", 
-                         CCYEL(ch, C_NRM), status, CCNRM(ch, C_NRM), avg_score);
-        }
-        
-        send_to_char(ch, "\r\nCommands:\r\n");
-        send_to_char(ch, "  conservation stats     - Detailed statistics by resource type\r\n");
-        send_to_char(ch, "  survey conservation    - Check area resource health\r\n");
-        send_to_char(ch, "  survey regeneration    - Analyze regeneration rates\r\n");
+
+    if (count > 0)
+    {
+      float avg_score = total_score / count;
+      const char *status = get_conservation_status_name(avg_score);
+
+      send_to_char(ch, "Your overall conservation rating: %s%s%s (%.1f/5.0)\r\n", CCYEL(ch, C_NRM),
+                   status, CCNRM(ch, C_NRM), avg_score);
     }
+
+    send_to_char(ch, "\r\nCommands:\r\n");
+    send_to_char(ch, "  conservation stats     - Detailed statistics by resource type\r\n");
+    send_to_char(ch, "  survey conservation    - Check area resource health\r\n");
+    send_to_char(ch, "  survey regeneration    - Analyze regeneration rates\r\n");
+  }
 }
 
 void perform_master_spell_list(struct char_data *ch)
@@ -10469,30 +11199,35 @@ void perform_master_spell_list(struct char_data *ch)
   size_t cap = 8192;
   size_t len = 0;
   char *out = (char *)malloc(cap);
-  if (!out) {
+  if (!out)
+  {
     send_to_char(ch, "SYSERR: Out of memory building master spell list.\r\n");
     return;
   }
   out[0] = '\0';
 
-  #define APPEND_FMT(...) \
-    do { \
-      int __n = snprintf(NULL, 0, __VA_ARGS__); \
-      if (len + (size_t)__n + 1 > cap) { \
-        size_t newcap = cap; \
-        while (len + (size_t)__n + 1 > newcap) newcap *= 2; \
-        char *tmp = (char *)realloc(out, newcap); \
-        if (!tmp) { \
-          free(out); \
-          send_to_char(ch, "SYSERR: Out of memory expanding buffer.\r\n"); \
-          return; \
-        } \
-        out = tmp; \
-        cap = newcap; \
-      } \
-      snprintf(out + len, cap - len, __VA_ARGS__); \
-      len += (size_t)__n; \
-    } while (0)
+#define APPEND_FMT(...)                                                                            \
+  do                                                                                               \
+  {                                                                                                \
+    int __n = snprintf(NULL, 0, __VA_ARGS__);                                                      \
+    if (len + (size_t)__n + 1 > cap)                                                               \
+    {                                                                                              \
+      size_t newcap = cap;                                                                         \
+      while (len + (size_t)__n + 1 > newcap)                                                       \
+        newcap *= 2;                                                                               \
+      char *tmp = (char *)realloc(out, newcap);                                                    \
+      if (!tmp)                                                                                    \
+      {                                                                                            \
+        free(out);                                                                                 \
+        send_to_char(ch, "SYSERR: Out of memory expanding buffer.\r\n");                           \
+        return;                                                                                    \
+      }                                                                                            \
+      out = tmp;                                                                                   \
+      cap = newcap;                                                                                \
+    }                                                                                              \
+    snprintf(out + len, cap - len, __VA_ARGS__);                                                   \
+    len += (size_t)__n;                                                                            \
+  } while (0)
 
   APPEND_FMT("\tCMaster Spell List\tn\r\n");
   APPEND_FMT("Format: [Spell#] Spell Name - Classes (Circle)\r\n\r\n");
@@ -10512,8 +11247,7 @@ void perform_master_spell_list(struct char_data *ch)
 
     for (class_idx = 0; class_idx < NUM_CLASSES; class_idx++)
     {
-      for (spell_assign = class_list[class_idx].spellassign_list; 
-           spell_assign != NULL; 
+      for (spell_assign = class_list[class_idx].spellassign_list; spell_assign != NULL;
            spell_assign = spell_assign->next)
       {
         if (spell_assign->spell_num == sn)
@@ -10540,12 +11274,11 @@ void perform_master_spell_list(struct char_data *ch)
 
 void look_at_moons(struct char_data *ch)
 {
-
-    if (!CONFIG_ARCANE_MOON_PHASES)
-    {
-      send_to_char(ch, "The moon phases system is not enabled on this server.\r\n");
-      return;
-    }
+  if (!CONFIG_ARCANE_MOON_PHASES)
+  {
+    send_to_char(ch, "The moon phases system is not enabled on this server.\r\n");
+    return;
+  }
 
   if (!OUTSIDE(ch) && GET_LEVEL(ch) < LVL_IMMORT)
   {
@@ -10560,7 +11293,8 @@ void look_at_moons(struct char_data *ch)
   }
 
   if (weather_info.moons.solinari_phase > 27)
-    send_to_char(ch, "A silvery glow can be seen in the sky as %s begins to appear.\r\n", moon_names[0]);
+    send_to_char(ch, "A silvery glow can be seen in the sky as %s begins to appear.\r\n",
+                 moon_names[0]);
   else if (weather_info.moons.solinari_phase > 18)
     send_to_char(ch, "%s illuminates the sky with silvery light.\r\n", moon_names[0]);
   else if (weather_info.moons.solinari_phase > 9)
@@ -10569,7 +11303,8 @@ void look_at_moons(struct char_data *ch)
     send_to_char(ch, "No trace of the silvery light from %s is visible.\r\n", moon_names[0]);
 
   if (weather_info.moons.lunitari_phase > 6)
-    send_to_char(ch, "A crimson glow can be seen in the sky as %s begins to appear.\r\n", moon_names[1]);
+    send_to_char(ch, "A crimson glow can be seen in the sky as %s begins to appear.\r\n",
+                 moon_names[1]);
   else if (weather_info.moons.lunitari_phase > 4)
     send_to_char(ch, "%s casts a crimson glow throughout the sky.\r\n", moon_names[1]);
   else if (weather_info.moons.lunitari_phase > 2)
@@ -10580,9 +11315,11 @@ void look_at_moons(struct char_data *ch)
   if (IS_EVIL(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
   {
     if (weather_info.moons.nuitari_phase > 21)
-      send_to_char(ch, "The night sky seems to grow darker as %s slowly appears.\r\n", moon_names[2]);
+      send_to_char(ch, "The night sky seems to grow darker as %s slowly appears.\r\n",
+                   moon_names[2]);
     else if (weather_info.moons.nuitari_phase > 4)
-      send_to_char(ch, "Total blackness envelopes the area of the sky where %s resides.\r\n", moon_names[2]);
+      send_to_char(ch, "Total blackness envelopes the area of the sky where %s resides.\r\n",
+                   moon_names[2]);
     else if (weather_info.moons.nuitari_phase > 2)
       send_to_char(ch, "The darkness seems to lessen as %s begins to vanish.\r\n", moon_names[2]);
     else

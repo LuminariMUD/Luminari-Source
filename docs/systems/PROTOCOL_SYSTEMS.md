@@ -177,18 +177,18 @@ typedef struct {
     bool_t bRenegotiate;                 // Workaround for clients that autoconnect
     bool_t bNeedMXPVersion;              // Workaround for clients that autoconnect
     bool_t bBlockMXP;                    // Used internally based on MXP version
-    
+
     // Protocol support flags
     bool_t bTTYPE, bECHO, bNAWS, bCHARSET;
     bool_t bMSDP, bMSSP, bGMCP;
     bool_t bMSP, bMXP, bMCCP;
-    
+
     support_t b256Support;               // Color support level (eUNKNOWN/eNO/eSOMETIMES/eYES)
     int ScreenWidth, ScreenHeight;       // Client dimensions from NAWS
     char *pMXPVersion;                   // MXP version string
     char *pLastTTYPE;                    // Used for the cyclic TTYPE check
     MSDP_t **pVariables;                 // MSDP variable storage array
-    
+
     // Per-descriptor buffers to replace global static buffers
     char CmdBuf[MAX_PROTOCOL_BUFFER + 1];  // Command buffer for input processing
     char IacBuf[MAX_PROTOCOL_BUFFER + 1];  // IAC buffer for telnet commands
@@ -227,24 +227,24 @@ The protocol system is integrated into the main game loop via the `msdp_update()
 static void msdp_update(void) {
     struct descriptor_data *d;
     struct char_data *ch;
-    
+
     for (d = descriptor_list; d; d = d->next) {
         if (STATE(d) != CON_PLAYING || !(ch = d->character))
             continue;
-            
+
         if (IS_NPC(ch))
             continue;
-            
+
         // Update all MSDP variables for this character
         MSDPSetString(d, eMSDP_CHARACTER_NAME, GET_NAME(ch));
         MSDPSetNumber(d, eMSDP_HEALTH, GET_HIT(ch));
         MSDPSetNumber(d, eMSDP_HEALTH_MAX, GET_MAX_HIT(ch));
         // ... (all other variables)
-        
+
         // Send dirty variables to client
         MSDPUpdate(d);
     }
-    
+
     // Update player count for MSSP
     MSSPSetPlayers(PlayerCount);
 }
@@ -440,7 +440,7 @@ if (descriptor->pProtocol->b256Support == eYES) {
 // Protocol debugging
 log("Protocol: MSDP %s, GMCP %s, MXP %s",
     protocol->bMSDP ? "YES" : "NO",
-    protocol->bGMCP ? "YES" : "NO", 
+    protocol->bGMCP ? "YES" : "NO",
     protocol->bMXP ? "YES" : "NO");
 ```
 
@@ -537,9 +537,9 @@ if (FIGHTING(ch)) {
 #### Group Information
 ```c
 // Group member list as MSDP array
-sprintf(msdp_buffer, "%c%s%c%s%c%s", 
+sprintf(msdp_buffer, "%c%s%c%s%c%s",
     MSDP_VAL, "PlayerOne",
-    MSDP_VAL, "PlayerTwo", 
+    MSDP_VAL, "PlayerTwo",
     MSDP_VAL, "PlayerThree");
 MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);
 ```
@@ -660,7 +660,7 @@ The system includes predefined GUI configurations for compatible clients:
 // Log protocol negotiation status
 log("Protocol: MSDP %s, GMCP %s, MXP %s",
     d->pProtocol->bMSDP ? "YES" : "NO",
-    d->pProtocol->bGMCP ? "YES" : "NO", 
+    d->pProtocol->bGMCP ? "YES" : "NO",
     d->pProtocol->bMXP ? "YES" : "NO");
 
 // Force variable flush

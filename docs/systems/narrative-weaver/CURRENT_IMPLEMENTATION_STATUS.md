@@ -54,7 +54,7 @@ The **Narrative Weaver system is 95% complete** with sophisticated implementatio
 
 ### **Integration Flow Verified**
 ```c
-gen_room_description() 
+gen_room_description()
   → enhanced_wilderness_description_unified()      // Primary (Narrative Weaver)
     → generate_resource_aware_description()        // Fallback (Resource-Aware)
       → Original static description system         // Final Fallback
@@ -62,7 +62,7 @@ gen_room_description()
 
 ### **Activation Conditions**
 - ✅ **Compiler flags**: `ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS` && `WILDERNESS_RESOURCE_DEPLETION_SYSTEM`
-- ✅ **Room type**: `IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))` 
+- ✅ **Room type**: `IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))`
 - ✅ **Coordinates**: Valid wilderness coordinates extracted and passed to narrative weaver
 - ✅ **Database**: Regional hints loaded from MySQL database when available
 

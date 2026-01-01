@@ -1,4 +1,4 @@
-/* 
+/*
  * metamagic_science.h
  * Header file for Metamagic Science feat functionality
  */
@@ -10,7 +10,8 @@
 
 /* Parse metamagic arguments for consumable items
  * Returns parsed metamagic flags, or -1 on error */
-int parse_metamagic_for_consumables(struct char_data *ch, char **argument, int spell_num, int item_type);
+int parse_metamagic_for_consumables(struct char_data *ch, char **argument, int spell_num,
+                                    int item_type);
 
 /* Calculate additional charges needed for metamagic on wands/staves */
 int calculate_metamagic_charge_cost(int metamagic, int base_spell_level);

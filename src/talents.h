@@ -21,8 +21,8 @@ struct char_data;
 #define MAX_TALENTS 256
 
 /* Talent indices (add new ones above TALENT_MAX). Keep sequential */
-#define TALENT_NONE                0
-#define TALENT_SCAVENGER           1
+#define TALENT_NONE 0
+#define TALENT_SCAVENGER 1
 
 /* Skill-specific talents start at 2 - generated for each crafting/harvesting skill */
 /* Pattern: PROFICIENT, RAPID, EXPERTISE, EFFICIENT, INSIGHTFUL for each skill */
@@ -139,39 +139,40 @@ struct char_data;
 #define TALENT_LIGHTNING_MOTE_SYNERGY 93
 #define TALENT_WATER_MOTE_SYNERGY 94
 
-#define TALENT_MAX                95  /* one past highest */
+#define TALENT_MAX 95 /* one past highest */
 
 /* Talent Categories */
-#define TALENT_CAT_GENERAL        0
-#define TALENT_CAT_WOODWORKING    1
-#define TALENT_CAT_TAILORING      2
-#define TALENT_CAT_ALCHEMY        3
-#define TALENT_CAT_ARMORSMITHING  4
+#define TALENT_CAT_GENERAL 0
+#define TALENT_CAT_WOODWORKING 1
+#define TALENT_CAT_TAILORING 2
+#define TALENT_CAT_ALCHEMY 3
+#define TALENT_CAT_ARMORSMITHING 4
 #define TALENT_CAT_WEAPONSMITHING 5
-#define TALENT_CAT_BOWMAKING      6
-#define TALENT_CAT_JEWELCRAFTING  7
+#define TALENT_CAT_BOWMAKING 6
+#define TALENT_CAT_JEWELCRAFTING 7
 #define TALENT_CAT_LEATHERWORKING 8
-#define TALENT_CAT_TRAPMAKING     9
-#define TALENT_CAT_POISONMAKING   10
-#define TALENT_CAT_METALWORKING   11
-#define TALENT_CAT_FISHING        12
-#define TALENT_CAT_COOKING        13
-#define TALENT_CAT_MINING         14
-#define TALENT_CAT_HUNTING        15
-#define TALENT_CAT_FORESTRY       16
-#define TALENT_CAT_GATHERING      17
-#define NUM_TALENT_CATEGORIES     18
+#define TALENT_CAT_TRAPMAKING 9
+#define TALENT_CAT_POISONMAKING 10
+#define TALENT_CAT_METALWORKING 11
+#define TALENT_CAT_FISHING 12
+#define TALENT_CAT_COOKING 13
+#define TALENT_CAT_MINING 14
+#define TALENT_CAT_HUNTING 15
+#define TALENT_CAT_FORESTRY 16
+#define TALENT_CAT_GATHERING 17
+#define NUM_TALENT_CATEGORIES 18
 
 /* Data definition structure for each talent */
-struct talent_info {
-  const char *name;        /* display name */
-  int base_point_cost;     /* base talent point cost for rank 1 */
-  int base_gold_cost;      /* base gold cost for rank 1 */
-  int max_ranks;           /* maximum ranks attainable (>=1) */
-  const char *short_desc;  /* brief description for list */
-  const char *long_desc;   /* optional extended description */
-  bool in_game;            /* available for selection */
-  int category;            /* talent category */
+struct talent_info
+{
+  const char *name;       /* display name */
+  int base_point_cost;    /* base talent point cost for rank 1 */
+  int base_gold_cost;     /* base gold cost for rank 1 */
+  int max_ranks;          /* maximum ranks attainable (>=1) */
+  const char *short_desc; /* brief description for list */
+  const char *long_desc;  /* optional extended description */
+  bool in_game;           /* available for selection */
+  int category;           /* talent category */
 };
 
 /* Category name lookup */

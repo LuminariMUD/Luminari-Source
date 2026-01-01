@@ -3,7 +3,7 @@ Additional documentation can be found at.
 
 	http://www.ourservers.net/openvms_ports/
 
-I have personally tested this port on both VAX and Alpha with OpenVMS v7.0 
+I have personally tested this port on both VAX and Alpha with OpenVMS v7.0
 and DEC C v7.0 and Multinet TCP/IP using UCX emulation.
 
 To build this, you need the following:
@@ -15,7 +15,7 @@ To build this, you need the following:
 
 	.2) A TCP/IP stack for OpenVMS that supports UCX emulation.  I have
             personally only tested out Multinet v4.1B and Multinet v4.2.
-            If you are using a TCP/IP stack that doesn't support UCX 
+            If you are using a TCP/IP stack that doesn't support UCX
 	    emulation I would suggest getting a copy of Multinet though the
             OpenVMS hobbyist program at http://www.montagar.com/hobbyist.
 
@@ -40,13 +40,13 @@ Now, you have everything, do the following...
 
 	    The default is "ALL" and "NODEBUG".
 
-	    The "BUILD_CIRCLEMUD.COM" script checks some filenames to make 
+	    The "BUILD_CIRCLEMUD.COM" script checks some filenames to make
             sure that they are correct as some of them are unpacked different
 	    between the TAR file distribution and the ZIP file distribution.
             It also checks for "CONF.H" and if not found copies "CONF.H_VMS"
             to "CONF.H" for you.
 
-	    So if you just want to build "everything" without debugging 
+	    So if you just want to build "everything" without debugging
 	    information you could use...
 
 		$ @BUILD_CIRCLEMUD ALL NODEBUG

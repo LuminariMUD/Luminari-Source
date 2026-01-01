@@ -23,9 +23,7 @@
 
 /*  Attack action definitions - Define the relationships between
  *  AA_XXXXX and do_XXXXX. */
-void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
-                                           const char *argument,
-                                           int cmd,
+void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch, const char *argument, int cmd,
                                            int subcmd) = {
     do_trip,             /* AA_TRIP */
     do_charge,           /* AA_CHARGE */
@@ -62,12 +60,14 @@ void update_msdp_actions(struct char_data *ch)
     // const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
 
     char buf[4000]; // Buffer for building the actions table for MSDP
-    snprintf(buf, sizeof(buf), "%c%s%c%d"
-                               "%c%s%c%d"
-                               "%c%s%c%d",
-             (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
-             (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
-             (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
+    snprintf(buf, sizeof(buf),
+             "%c%s%c%d"
+             "%c%s%c%d"
+             "%c%s%c%d",
+             (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL,
+             is_action_available(ch, atSTANDARD, FALSE), (char)MSDP_VAR, "MOVE_ACTION",
+             (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE), (char)MSDP_VAR, "SWIFT_ACTION",
+             (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
 
     strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
 
@@ -206,7 +206,9 @@ void start_skill_cooldown(struct char_data *ch, int skill, int weapon)
   {
     if (spell_info[skill].applied_cooldowns[i] > 0)
     {
-      start_action_cooldown(ch, i, MODIFY_COOLDOWN(spell_info[skill].applied_cooldowns[i], get_character_speed(ch, i, weapon)));
+      start_action_cooldown(ch, i,
+                            MODIFY_COOLDOWN(spell_info[skill].applied_cooldowns[i],
+                                            get_character_speed(ch, i, weapon)));
     }
   }
 }

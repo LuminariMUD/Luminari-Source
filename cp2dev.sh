@@ -29,5 +29,3 @@ else
 fi
 
 echo "/home/krynn/dev/mud/"
-
-

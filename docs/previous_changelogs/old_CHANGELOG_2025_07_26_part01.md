@@ -154,7 +154,7 @@
 #### Craft Data Memory Leak
 - **Issue**: GET_CRAFT(ch).ex_description allocated with strdup() but never freed (7 bytes per occurrence)
 - **Cause**: Missing free() calls in reset_current_craft() and free_char()
-- **Attempted Fix**: 
+- **Attempted Fix**:
   - Added free(GET_CRAFT(ch).ex_description) in reset_current_craft() before setting to NULL
   - Added craft string cleanup in free_char() before freeing player_specials
 - **Files Modified**: crafting_new.c:2326,3266, db.c:5353-5360
@@ -177,7 +177,7 @@
 #### Object Save Function Memory Leaks
 - **Issue**: objsave_save_obj_record_db_sheath() and objsave_save_obj_record_db_pet() creating temporary objects without freeing in error paths
 - **Cause**: Missing extract_obj(temp) calls before early returns on MySQL query failures
-- **Attempted Fix**: 
+- **Attempted Fix**:
   - Added extract_obj(temp) in objsave_save_obj_record_db_sheath() before error return
   - Added extract_obj(temp) in objsave_save_obj_record_db_pet() before error return
 - **Files Modified**: objsave.c:3601, objsave.c:2976

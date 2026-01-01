@@ -2,12 +2,12 @@
  * @file introduce.c
  * @author Zusuk
  * @brief Introduction system - allows players to introduce themselves to each other
- * 
+ *
  * This file contains the implementation of the introduction system, which allows
  * players to introduce themselves to other players. When CONFIG_USE_INTRO_SYSTEM
  * is enabled, players will see short descriptions instead of names until they've
  * been introduced.
- * 
+ *
  * Part of the LuminariMUD project.
  */
 
@@ -26,7 +26,7 @@
 
 /**
  * Check if one character knows another through introduction
- * 
+ *
  * @param ch The character checking
  * @param vict The character being checked
  * @return TRUE if ch knows vict, FALSE otherwise
@@ -38,7 +38,7 @@ bool knows_character(struct char_data *ch, struct char_data *vict)
   /* NPCs and immortals always know everyone */
   if (IS_NPC(ch) || IS_NPC(vict))
     return TRUE;
-  
+
   if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(vict) >= LVL_IMMORT)
     return TRUE;
 
@@ -55,7 +55,7 @@ bool knows_character(struct char_data *ch, struct char_data *vict)
   {
     if (ch->player_specials->saved.intro_list[i] == NULL)
       break; /* End of list */
-    
+
     if (!str_cmp(ch->player_specials->saved.intro_list[i], GET_NAME(vict)))
       return TRUE;
   }
@@ -65,7 +65,7 @@ bool knows_character(struct char_data *ch, struct char_data *vict)
 
 /**
  * Add a character to another's introduction list
- * 
+ *
  * @param ch The character who is learning the name
  * @param vict The character being learned
  * @return TRUE if successfully added, FALSE if list is full or already known
@@ -102,7 +102,7 @@ bool add_introduction(struct char_data *ch, struct char_data *vict)
 
 /**
  * The introduce command
- * 
+ *
  * Usage: introduce <person>  - Introduce yourself to someone
  *        introduce list      - List people who have introduced themselves to you
  */
@@ -153,10 +153,10 @@ ACMD(do_introduce)
       {
         /* Found the name - remove it */
         found = TRUE;
-        
+
         /* Free the memory for this name */
         free(ch->player_specials->saved.intro_list[i]);
-        
+
         /* Shift all subsequent names down one slot */
         for (j = i; j < MAX_INTROS - 1; j++)
         {
@@ -164,10 +164,10 @@ ACMD(do_introduce)
           if (ch->player_specials->saved.intro_list[j] == NULL)
             break;
         }
-        
+
         /* Ensure the last slot is NULL */
         ch->player_specials->saved.intro_list[MAX_INTROS - 1] = NULL;
-        
+
         send_to_char(ch, "You have forgotten %s.\r\n", CAP(arg2));
         return;
       }
@@ -207,7 +207,7 @@ ACMD(do_introduce)
     {
       /* Display in 3 columns */
       column_list(ch, 3, known_names, count, FALSE);
-      
+
       /* Free the duplicated strings */
       for (i = 0; i < count; i++)
         free((void *)known_names[i]);

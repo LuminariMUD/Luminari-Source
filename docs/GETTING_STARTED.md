@@ -239,7 +239,7 @@ See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-req
 ## Next Steps
 
 1. **Explore the codebase:** Review source files in `src/`
-2. **Read documentation:** 
+2. **Read documentation:**
    - [Developer Guide](guides/DEVELOPER_GUIDE_AND_API.md) - Code development
    - [Builder Manual](world_game-data/builder_manual.md) - World building
 3. **Start building:** Create your own zones and content

@@ -15,12 +15,12 @@ extern "C"
 /* includes */
 #include "utils.h" /* for the ACMD macro */
 
-    /* functions, etc */
-    extern struct room_data *world;
-    extern void clearMemory(struct char_data *ch);
-    extern const char *spells[];
-    void pulse_bardic_performance(void);
-    ACMD_DECL(do_perform);
+/* functions, etc */
+extern struct room_data *world;
+extern void clearMemory(struct char_data *ch);
+extern const char *spells[];
+void pulse_bardic_performance(void);
+ACMD_DECL(do_perform);
 
 /* defines */
 #define VERSE_INTERVAL (11 RL_SEC)
@@ -36,7 +36,7 @@ extern "C"
 #define PERFORMANCE_TYPE 4
 #define PERFORMANCE_AOE 5
 #define PERFORMANCE_FEATNUM 6
-    /**/ #define PERFORMANCE_INFO_FIELDS 7
+/**/ #define PERFORMANCE_INFO_FIELDS 7
 
 /* types of performances */
 #define PERFORMANCE_TYPE_UNDEFINED 0
@@ -49,7 +49,7 @@ extern "C"
 #define PERFORMANCE_TYPE_STRING 7
 #define PERFORMANCE_TYPE_WIND 8
 #define PERFORMANCE_TYPE_SING 9
-        /**/ #define NUM_PERFORMANCE_TYPES 10
+/**/ #define NUM_PERFORMANCE_TYPES 10
 
 /* these are defines just made for fillers for lookup data song_info
  since they are currently unused in our feat system, could be expanded tho */

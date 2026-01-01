@@ -3,8 +3,8 @@
 
 CC = gcc
 CFLAGS = -g -Wall -I../src -I../.. -DTEST_BUILD
-LDFLAGS = 
-LIBS = 
+LDFLAGS =
+LIBS =
 
 # Source files
 TEST_SRCS = test_clan.c CuTest/CuTest.c

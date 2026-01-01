@@ -420,10 +420,10 @@ ANALYZE TABLE player_data;
 ANALYZE TABLE room_data;
 
 -- Check for unused space
-SELECT table_name, 
+SELECT table_name,
        ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)",
        ROUND((data_free / 1024 / 1024), 2) AS "Free (MB)"
-FROM information_schema.tables 
+FROM information_schema.tables
 WHERE table_schema = 'luminari';
 ```
 
@@ -461,9 +461,9 @@ find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
 
 // Monitor memory pools
 void check_memory_pools() {
-  log("Character pool: %d allocated, %d free", 
+  log("Character pool: %d allocated, %d free",
       char_pool_allocated, char_pool_free);
-  log("Object pool: %d allocated, %d free", 
+  log("Object pool: %d allocated, %d free",
       obj_pool_allocated, obj_pool_free);
 }
 ```
@@ -544,9 +544,9 @@ fi
 
 # Analyze database performance
 mysql -u luminari -p luminari -e "
-  SELECT table_name, table_rows, 
+  SELECT table_name, table_rows,
          ROUND((data_length + index_length) / 1024 / 1024, 2) AS size_mb
-  FROM information_schema.tables 
+  FROM information_schema.tables
   WHERE table_schema = 'luminari'
   ORDER BY size_mb DESC;" > ../log/db_analysis_$(date +%Y%m%d).txt
 

@@ -77,8 +77,7 @@ ACMDU(do_rsay)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' &&
-             argument[strlen(argument) - 2] == '.' &&
+    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
              argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
@@ -107,7 +106,8 @@ ACMDU(do_rsay)
         }
         else
         {
-          msg = act("\tG$n says something in an unfamiliar tongue.\tn", FALSE, ch, 0, vict, TO_VICT | DG_NO_TRIG);
+          msg = act("\tG$n says something in an unfamiliar tongue.\tn", FALSE, ch, 0, vict,
+                    TO_VICT | DG_NO_TRIG);
           add_history(vict, msg, HIST_SAY);
         }
       }
@@ -116,7 +116,8 @@ ACMDU(do_rsay)
       send_to_char(ch, "%s", CONFIG_OK);
     else
     {
-      snprintf(buf, sizeof(buf), "\tGYou %s in %s, '%s'\tn", type, languages[SPEAKING(ch)], argument);
+      snprintf(buf, sizeof(buf), "\tGYou %s in %s, '%s'\tn", type, languages[SPEAKING(ch)],
+               argument);
       msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
       add_history(ch, msg, HIST_SAY);
     }
@@ -129,9 +130,10 @@ ACMDU(do_rsay)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
-  
+
   /* Free allocated memory */
-  if (arg2) {
+  if (arg2)
+  {
     free(arg2);
     arg2 = NULL;
   }
@@ -182,8 +184,7 @@ ACMDU(do_say)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' &&
-             argument[strlen(argument) - 2] == '.' &&
+    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
              argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
@@ -223,9 +224,10 @@ ACMDU(do_say)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
-  
+
   /* Free allocated memory */
-  if (arg2) {
+  if (arg2)
+  {
     free(arg2);
     arg2 = NULL;
   }
@@ -264,8 +266,7 @@ ACMDU(do_osay)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' &&
-             argument[strlen(argument) - 2] == '.' &&
+    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
              argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
@@ -305,9 +306,10 @@ ACMDU(do_osay)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
-  
+
   /* Free allocated memory */
-  if (arg2) {
+  if (arg2)
+  {
     free(arg2);
     arg2 = NULL;
   }
@@ -315,7 +317,6 @@ ACMDU(do_osay)
 
 ACMDU(do_speak)
 {
-
   skip_spaces(&argument);
   int i = 0;
 
@@ -326,7 +327,8 @@ ACMDU(do_speak)
     {
       if (CAN_SPEAK(ch, i))
       {
-        send_to_char(ch, "%s%s%s ", SPEAKING(ch) == i ? "(" : "", languages[i], SPEAKING(ch) == i ? ")" : "");
+        send_to_char(ch, "%s%s%s ", SPEAKING(ch) == i ? "(" : "", languages[i],
+                     SPEAKING(ch) == i ? ")" : "");
       }
     }
     send_to_char(ch, "\r\n");
@@ -363,7 +365,8 @@ ACMDU(do_speak)
 
   if (i >= NUM_LANGUAGES)
   {
-    send_to_char(ch, "That is not a valid language.  Type 'speak all' for a full list, or 'speak' by itself to see the languages you know.\r\n");
+    send_to_char(ch, "That is not a valid language.  Type 'speak all' for a full list, or 'speak' "
+                     "by itself to see the languages you know.\r\n");
   }
 }
 
@@ -391,7 +394,8 @@ ACMDU(do_gsay)
     sentence_case(argument);
 
     // append period if it's not already there
-    if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' && argument[strlen(argument) - 1] != '?')
+    if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' &&
+        argument[strlen(argument) - 1] != '?')
       strcat(argument, ".");
 
     /* Send group say to each member individually so we can use show_pers */
@@ -405,12 +409,11 @@ ACMDU(do_gsay)
       if (!is_player_grouped(ch, d->character))
         continue;
       if (d->character == ch)
-        continue;  /* Skip the speaker, we'll message them separately */
-      
+        continue; /* Skip the speaker, we'll message them separately */
+
       char buf[MAX_STRING_LENGTH] = {'\0'};
-      snprintf(buf, sizeof(buf), "[%sGroup%s] %s%s says, '%s'%s\r\n", 
-               CBGRN(d->character, C_NRM), CCGRN(d->character, C_NRM),
-               CCGRN(d->character, C_NRM), show_pers(ch, d->character), 
+      snprintf(buf, sizeof(buf), "[%sGroup%s] %s%s says, '%s'%s\r\n", CBGRN(d->character, C_NRM),
+               CCGRN(d->character, C_NRM), CCGRN(d->character, C_NRM), show_pers(ch, d->character),
                argument, CCNRM(d->character, C_NRM));
       send_to_char(d->character, "%s", buf);
       add_history(d->character, buf, HIST_GSAY);
@@ -469,8 +472,10 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
   else if (!IS_NPC(vict) && !vict->desc) /* linkless */
     act("$E's linkless at the moment.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (PLR_FLAGGED(vict, PLR_WRITING))
-    act("$E's writing a message right now; try again later.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
-  else if ((!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOTELL)) || (ROOM_FLAGGED(IN_ROOM(vict), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF)))
+    act("$E's writing a message right now; try again later.", FALSE, ch, 0, vict,
+        TO_CHAR | TO_SLEEP);
+  else if ((!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOTELL)) ||
+           (ROOM_FLAGGED(IN_ROOM(vict), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF)))
     act("$E can't hear you.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (AFF_FLAGGED(vict, AFF_DEAF))
     act("$E seems to be deaf!", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
@@ -529,7 +534,8 @@ ACMD(do_tell)
       return;
     }
     snprintf(buf, sizeof(buf), "../bin/webster %s %d &", word, (int)getpid());
-    if (system(buf) == -1) {
+    if (system(buf) == -1)
+    {
       log("SYSERR: Failed to execute webster command");
     }
     last_webster_teller = GET_IDNUM(ch);
@@ -540,7 +546,8 @@ ACMD(do_tell)
   {
     send_to_char(ch, "%s", CONFIG_NOPERSON);
   }
-  else if (CONFIG_USE_INTRO_SYSTEM && !IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT && !has_intro(ch, vict))
+  else if (CONFIG_USE_INTRO_SYSTEM && !IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT &&
+           !has_intro(ch, vict))
   {
     send_to_char(ch, "You don't know anyone by that name.\r\n");
   }
@@ -553,9 +560,10 @@ ACMD(do_tell)
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);
     perform_tell(ch, vict, buf2);
-    
+
     /* AI Enhancement for NPCs */
-    if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AI_ENABLED)) {
+    if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AI_ENABLED))
+    {
       /* Use async version to prevent blocking the game */
       ai_npc_dialogue_async(vict, ch, buf2);
     }
@@ -567,7 +575,8 @@ ACMD(do_tell)
       parse_at(buf2);
 
     char buf3[MAX_INPUT_LENGTH] = {'\0'};
-    snprintf(buf3, sizeof(buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM), show_pers(ch, vict), buf2, CCNRM(vict, C_NRM));
+    snprintf(buf3, sizeof(buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM),
+             show_pers(ch, vict), buf2, CCNRM(vict, C_NRM));
     // msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
     add_history(vict, buf3, HIST_TELL);
 
@@ -665,8 +674,7 @@ ACMD(do_write)
     /* One object was found.. now for the other one. */
     if (!GET_EQ(ch, WEAR_HOLD_1))
     {
-      send_to_char(ch, "You can't write with %s %s alone.\r\n",
-                   AN(papername), papername);
+      send_to_char(ch, "You can't write with %s %s alone.\r\n", AN(papername), papername);
       return;
     }
     if (!CAN_SEE_OBJ(ch, GET_EQ(ch, WEAR_HOLD_1)))
@@ -757,49 +765,21 @@ ACMDU(do_gen_comm)
   bool emoting = FALSE;
 
   /* Array of flags which must _not_ be set in order for comm to be heard. */
-  int channels[] = {
-      0,
-      PRF_NOSHOUT,
-      PRF_NOGOSS,
-      PRF_NOAUCT,
-      PRF_NOGRATZ,
-      PRF_NOGOSS,
-      0};
+  int channels[] = {0, PRF_NOSHOUT, PRF_NOGOSS, PRF_NOAUCT, PRF_NOGRATZ, PRF_NOGOSS, 0};
   int hist_type[] = {
-      HIST_HOLLER,
-      HIST_SHOUT,
-      HIST_GOSSIP,
-      HIST_AUCTION,
-      HIST_GRATS,
+      HIST_HOLLER, HIST_SHOUT, HIST_GOSSIP, HIST_AUCTION, HIST_GRATS,
   };
   /* com_msgs: [0] Message if you can't perform the action because of noshout
    *           [1] name of the action
    *           [2] message if you're not on the channel
    *           [3] a color string. */
   const char *const com_msgs[][4] = {
-      {"You cannot holler!!\r\n",
-       "holler",
-       "",
-       KYEL},
-      {"You cannot shout!!\r\n",
-       "shout",
-       "Turn off your noshout flag first!\r\n",
-       KYEL},
-      {"You cannot gossip!!\r\n",
-       "chat",
-       "You aren't even on the channel!\r\n",
-       KYEL},
-      {"You cannot auctalk!!\r\n",
-       "auctalk",
-       "You aren't even on the channel!\r\n",
-       KMAG},
-      {"You cannot congratulate!\r\n",
-       "congrat",
-       "You aren't even on the channel!\r\n",
-       KGRN},
-      {"You cannot gossip your emotions!\r\n",
-       "gossip",
-       "You aren't even on the channel!\r\n",
+      {"You cannot holler!!\r\n", "holler", "", KYEL},
+      {"You cannot shout!!\r\n", "shout", "Turn off your noshout flag first!\r\n", KYEL},
+      {"You cannot gossip!!\r\n", "chat", "You aren't even on the channel!\r\n", KYEL},
+      {"You cannot auctalk!!\r\n", "auctalk", "You aren't even on the channel!\r\n", KMAG},
+      {"You cannot congratulate!\r\n", "congrat", "You aren't even on the channel!\r\n", KGRN},
+      {"You cannot gossip your emotions!\r\n", "gossip", "You aren't even on the channel!\r\n",
        KYEL}};
 
   if (PLR_FLAGGED(ch, PLR_NOSHOUT))
@@ -831,7 +811,8 @@ ACMDU(do_gen_comm)
   /* Level_can_shout defined in config.c. */
   if (GET_LEVEL(ch) < CONFIG_LEVEL_CAN_SHOUT)
   {
-    send_to_char(ch, "You must be at least level %d before you can %s.\r\n", CONFIG_LEVEL_CAN_SHOUT, com_msgs[subcmd][1]);
+    send_to_char(ch, "You must be at least level %d before you can %s.\r\n", CONFIG_LEVEL_CAN_SHOUT,
+                 com_msgs[subcmd][1]);
     return;
   }
   /* Make sure the char is on the channel. */
@@ -854,7 +835,8 @@ ACMDU(do_gen_comm)
   /* Make sure that there is something there to say! */
   if (!*argument)
   {
-    send_to_char(ch, "Yes, %s, fine, %s we must, but WHAT???\r\n", com_msgs[subcmd][1], com_msgs[subcmd][1]);
+    send_to_char(ch, "Yes, %s, fine, %s we must, but WHAT???\r\n", com_msgs[subcmd][1],
+                 com_msgs[subcmd][1]);
     return;
   }
   if (subcmd == SCMD_HOLLER)
@@ -879,7 +861,8 @@ ACMDU(do_gen_comm)
       parse_at(argument);
 
     snprintf(buf1, sizeof(buf1), "%sYou %s, '%s%s'%s", COLOR_LEV(ch) >= C_CMP ? color_on : "",
-             com_msgs[subcmd][1], argument, COLOR_LEV(ch) >= C_CMP ? color_on : "", CCNRM(ch, C_CMP));
+             com_msgs[subcmd][1], argument, COLOR_LEV(ch) >= C_CMP ? color_on : "",
+             CCNRM(ch, C_CMP));
 
     msg = act(buf1, FALSE, ch, 0, 0, TO_CHAR | TO_SLEEP);
     add_history(ch, msg, hist_type[subcmd]);
@@ -945,9 +928,10 @@ ACMDU(do_gen_comm)
     /* Create per-recipient message with show_pers for name display */
     if (!emoting)
     {
-      snprintf(buf3, sizeof(buf3), "%s %ss, '%s'\r\n", show_pers(ch, i->character), com_msgs[subcmd][1], argument);
+      snprintf(buf3, sizeof(buf3), "%s %ss, '%s'\r\n", show_pers(ch, i->character),
+               com_msgs[subcmd][1], argument);
     }
-    
+
     /* we want history for the rest of the conditions */
     add_history(i->character, buf3, hist_type[subcmd]);
 
@@ -981,24 +965,26 @@ ACMDU(do_gen_comm)
     //   continue;
 
     /* soundproof room */
-    if (IN_ROOM(i->character) != NOWHERE && ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
+    if (IN_ROOM(i->character) != NOWHERE && ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) &&
+        (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
     /* shout only works for people that are in the same zone and awake */
-    if (subcmd == SCMD_SHOUT && ((world[IN_ROOM(ch)].zone != world[IN_ROOM(i->character)].zone) ||
-                                 !AWAKE(i->character)))
+    if (subcmd == SCMD_SHOUT &&
+        ((world[IN_ROOM(ch)].zone != world[IN_ROOM(i->character)].zone) || !AWAKE(i->character)))
       continue;
 
     /* deaf?  just like soundproof */
     if (AFF_FLAGGED(i->character, AFF_DEAF) && (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
-    snprintf(buf2, sizeof(buf2), "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf1, KNRM);
+    snprintf(buf2, sizeof(buf2), "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf1,
+             KNRM);
     //msg = act(buf2, FALSE, ch, 0, i->character, TO_VICT | TO_SLEEP);
-    send_to_char(i->character, "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf3, KNRM);
-    
+    send_to_char(i->character, "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf3,
+                 KNRM);
   }
-  
+
   /* Send to Discord bridge if enabled */
   route_mud_to_discord(subcmd, ch, argument, emoting);
 }
@@ -1013,7 +999,8 @@ ACMDU(do_qcomm)
   skip_spaces(&argument);
 
   if (!*argument)
-    send_to_char(ch, "%c%s?  Yes, fine, %s we must, but WHAT??\r\n", UPPER(*CMD_NAME), CMD_NAME + 1, CMD_NAME);
+    send_to_char(ch, "%c%s?  Yes, fine, %s we must, but WHAT??\r\n", UPPER(*CMD_NAME), CMD_NAME + 1,
+                 CMD_NAME);
   else
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -1037,7 +1024,8 @@ ACMDU(do_qcomm)
     else
     {
       strlcpy(buf, argument, sizeof(buf));
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "(GC) %s qechoed: %s", GET_NAME(ch), argument);
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "(GC) %s qechoed: %s", GET_NAME(ch),
+             argument);
     }
     for (i = descriptor_list; i; i = i->next)
       if (STATE(i) == CON_PLAYING && i != ch->desc && PRF_FLAGGED(i->character, PRF_QUEST) &&
@@ -1058,7 +1046,8 @@ ACMDU(do_temote)
 
   if (!*arg)
   {
-    send_to_char(ch, "You need to provide the name or description of the creature you wish to target with this emote. See HELP EMOTES for more info.\r\n");
+    send_to_char(ch, "You need to provide the name or description of the creature you wish to "
+                     "target with this emote. See HELP EMOTES for more info.\r\n");
     return;
   }
 
@@ -1082,13 +1071,15 @@ ACMDU(do_temote)
 
   if (!strstr(msg, "#n"))
   {
-    send_to_char(ch, "A temote must include the symbol #n to signify where your name will be located in the string. See HELP EMOTES.\r\n");
+    send_to_char(ch, "A temote must include the symbol #n to signify where your name will be "
+                     "located in the string. See HELP EMOTES.\r\n");
     return;
   }
 
   if (!strstr(msg, "#N"))
   {
-    send_to_char(ch, "A temote must include the symbol #N to signify where your target's name will be located in the string. See HELP EMOTES.\r\n");
+    send_to_char(ch, "A temote must include the symbol #N to signify where your target's name will "
+                     "be located in the string. See HELP EMOTES.\r\n");
     return;
   }
 
@@ -1138,7 +1129,8 @@ ACMD(do_diceroll)
 
   roll = dice(num, size) + mod;
 
-  snprintf(output, sizeof(output), "\tC($n)\ty [%dd%d%s%d Roll]: %d.\r\n", num, size, mod >= 0 ? "+" : "", mod, roll);
+  snprintf(output, sizeof(output), "\tC($n)\ty [%dd%d%s%d Roll]: %d.\r\n", num, size,
+           mod >= 0 ? "+" : "", mod, roll);
   act(output, FALSE, ch, 0, 0, TO_CHAR);
   act(output, FALSE, ch, 0, 0, TO_ROOM);
 }
@@ -1149,13 +1141,12 @@ ACMD(do_diceroll)
 
 ACMDU(do_skillcheck)
 {
-
   int roll = 0, mod = 0, i = 0, j = 0;
-  char abiltext[MEDIUM_STRING] = { '\0' };
-  char abilname[MEDIUM_STRING] = { '\0' };
-  char output[MEDIUM_STRING] = { '\0' };
-  char arg[MEDIUM_STRING] = { '\0' };
-  char skill[MEDIUM_STRING] = { '\0' };
+  char abiltext[MEDIUM_STRING] = {'\0'};
+  char abilname[MEDIUM_STRING] = {'\0'};
+  char output[MEDIUM_STRING] = {'\0'};
+  char arg[MEDIUM_STRING] = {'\0'};
+  char skill[MEDIUM_STRING] = {'\0'};
   int target = CHECK_TAR_EVERYONE;
   struct char_data *tarvict = NULL;
 
@@ -1163,7 +1154,8 @@ ACMDU(do_skillcheck)
 
   if (!*arg)
   {
-    send_to_char(ch, "Please specify who you would like to be able to see the check: either a player's name, 'everyone' or 'myself'.\r\n");
+    send_to_char(ch, "Please specify who you would like to be able to see the check: either a "
+                     "player's name, 'everyone' or 'myself'.\r\n");
     return;
   }
 
@@ -1179,7 +1171,8 @@ ACMDU(do_skillcheck)
   {
     if (!(tarvict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
     {
-      send_to_char(ch, "Please specify who you would like to be able to see the check: either a player's name, 'everyone' or 'myself'.\r\n");
+      send_to_char(ch, "Please specify who you would like to be able to see the check: either a "
+                       "player's name, 'everyone' or 'myself'.\r\n");
       return;
     }
     if (IS_NPC(tarvict))
@@ -1192,7 +1185,8 @@ ACMDU(do_skillcheck)
 
   if (!*skill)
   {
-    send_to_char(ch, "Please specify a skill or ability score to make a check for. Type skills for a list of skills and score for your ability scores\r\n");
+    send_to_char(ch, "Please specify a skill or ability score to make a check for. Type skills for "
+                     "a list of skills and score for your ability scores\r\n");
     return;
   }
 
@@ -1230,7 +1224,8 @@ ACMDU(do_skillcheck)
   {
     for (i = START_GENERAL_ABILITIES; i <= END_GENERAL_ABILITIES; i++)
     {
-      if (!is_valid_ability_number(i)) continue;
+      if (!is_valid_ability_number(i))
+        continue;
       snprintf(abilname, sizeof(abilname), "%s", ability_names[i]);
       for (j = 0; j < strlen(abilname); j++)
         abilname[j] = tolower(abilname[j]);
@@ -1243,8 +1238,9 @@ ACMDU(do_skillcheck)
 
     if (i > END_GENERAL_ABILITIES)
     {
-     send_to_char(ch, "Please specify a skill or ability score to make a check for. Type skills for a list of skills and score for your ability scores\r\n");
-      return; 
+      send_to_char(ch, "Please specify a skill or ability score to make a check for. Type skills "
+                       "for a list of skills and score for your ability scores\r\n");
+      return;
     }
 
     snprintf(abiltext, sizeof(abiltext), "%s", ability_names[i]);
@@ -1255,28 +1251,28 @@ ACMDU(do_skillcheck)
 
   if (target == CHECK_TAR_EVERYONE)
   {
-    snprintf(output, sizeof(output), "\tC($n to Room)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext, roll, mod, roll + mod);
+    snprintf(output, sizeof(output), "\tC($n to Room)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n",
+             abiltext, roll, mod, roll + mod);
     act(output, FALSE, ch, 0, 0, TO_CHAR);
     act(output, FALSE, ch, 0, 0, TO_ROOM);
   }
   else if (target == CHECK_TAR_PERSON && tarvict)
   {
-    snprintf(output, sizeof(output), "\tC($n to $N)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext, roll, mod, roll + mod);
+    snprintf(output, sizeof(output), "\tC($n to $N)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext,
+             roll, mod, roll + mod);
     act(output, FALSE, ch, 0, tarvict, TO_CHAR);
     act(output, FALSE, ch, 0, tarvict, TO_VICT);
   }
   else
   {
-    snprintf(output, sizeof(output), "\tC($n to self only)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext, roll, mod, roll + mod);
+    snprintf(output, sizeof(output), "\tC($n to self only)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n",
+             abiltext, roll, mod, roll + mod);
     act(output, FALSE, ch, 0, 0, TO_CHAR);
   }
-    
-
 }
 
 ACMD(do_dialogue_quest)
 {
-
   // see if quest target is in the room
   // function to check if quest is a dialogue quest
   // do skill check
@@ -1284,7 +1280,7 @@ ACMD(do_dialogue_quest)
   // if skill check fails complete the quest w/o rewards and then assign the dialogue fail quest
   // future quests that require original quest to be completed, need to check first if it's orig is a dialogue
   // quest, anbd if so, requires both dialogue and dialogue fail quests to be completed
-  // use find_quest_by_qmnum 
+  // use find_quest_by_qmnum
 
   int roll_for = 0, skill_for = 0;
   int skill_dc = -1;
@@ -1295,7 +1291,6 @@ ACMD(do_dialogue_quest)
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-
     if (GET_QUEST(ch, index) == NOTHING) /* No current quest, skip this */
       continue;
 
@@ -1318,7 +1313,7 @@ ACMD(do_dialogue_quest)
           break;
         }
       }
-    }  
+    }
   }
 
   if (!target || rnum == NOTHING || quest_slot < 0 || quest_slot >= MAX_CURRENT_QUESTS)
@@ -1331,39 +1326,45 @@ ACMD(do_dialogue_quest)
 
   switch (subcmd)
   {
-    case SCMD_DIALOGUE_DIPLOMACY:
-      if ((skill_dc = aquest_table[quest].diplomacy_dc) <= 0)
-      {
-        send_to_char(ch, "You cannot use diplomacy to complete this quest.\r\n");
-        return;
-      }
-      skill_for = compute_ability(ch, ABILITY_DIPLOMACY);
-      snprintf(buf, sizeof(buf), "You attempt to convince $N to do your will.\r\n"
-                                 "You roll %d + %d for a total diplomacy skill of %d vs. DC %d.", roll_for, skill_for, roll_for + skill_for, skill_dc);
-      act(buf, FALSE, ch, 0, target, TO_CHAR);
-      break;
-    case SCMD_DIALOGUE_INTIMIDATE:
-      if ((skill_dc = aquest_table[quest].intimidate_dc) <= 0)
-      {
-        send_to_char(ch, "You cannot use intimidate to complete this quest.\r\n");
-        return;
-      }
-      skill_for = compute_ability(ch, ABILITY_INTIMIDATE);
-      snprintf(buf, sizeof(buf), "You attempt to threaten $N into doing your will.\r\n"
-                                 "You roll %d + %d for a total intimidate skill of %d vs. DC %d.", roll_for, skill_for, roll_for + skill_for, skill_dc);
-      act(buf, FALSE, ch, 0, target, TO_CHAR);
-      break;
-    case SCMD_DIALOGUE_BLUFF:
-      if ((skill_dc = aquest_table[quest].bluff_dc) <= 0)
-      {
-        send_to_char(ch, "You cannot use bluff to complete this quest.\r\n");
-        return;
-      }
-      skill_for = compute_ability(ch, ABILITY_BLUFF);
-      snprintf(buf, sizeof(buf), "You attempt to beguile $N into doing your will.\r\n"
-                                 "You roll %d + %d for a total bluff skill of %d vs. DC %d.", roll_for, skill_for, roll_for + skill_for, skill_dc);
-      act(buf, FALSE, ch, 0, target, TO_CHAR);
-      break;
+  case SCMD_DIALOGUE_DIPLOMACY:
+    if ((skill_dc = aquest_table[quest].diplomacy_dc) <= 0)
+    {
+      send_to_char(ch, "You cannot use diplomacy to complete this quest.\r\n");
+      return;
+    }
+    skill_for = compute_ability(ch, ABILITY_DIPLOMACY);
+    snprintf(buf, sizeof(buf),
+             "You attempt to convince $N to do your will.\r\n"
+             "You roll %d + %d for a total diplomacy skill of %d vs. DC %d.",
+             roll_for, skill_for, roll_for + skill_for, skill_dc);
+    act(buf, FALSE, ch, 0, target, TO_CHAR);
+    break;
+  case SCMD_DIALOGUE_INTIMIDATE:
+    if ((skill_dc = aquest_table[quest].intimidate_dc) <= 0)
+    {
+      send_to_char(ch, "You cannot use intimidate to complete this quest.\r\n");
+      return;
+    }
+    skill_for = compute_ability(ch, ABILITY_INTIMIDATE);
+    snprintf(buf, sizeof(buf),
+             "You attempt to threaten $N into doing your will.\r\n"
+             "You roll %d + %d for a total intimidate skill of %d vs. DC %d.",
+             roll_for, skill_for, roll_for + skill_for, skill_dc);
+    act(buf, FALSE, ch, 0, target, TO_CHAR);
+    break;
+  case SCMD_DIALOGUE_BLUFF:
+    if ((skill_dc = aquest_table[quest].bluff_dc) <= 0)
+    {
+      send_to_char(ch, "You cannot use bluff to complete this quest.\r\n");
+      return;
+    }
+    skill_for = compute_ability(ch, ABILITY_BLUFF);
+    snprintf(buf, sizeof(buf),
+             "You attempt to beguile $N into doing your will.\r\n"
+             "You roll %d + %d for a total bluff skill of %d vs. DC %d.",
+             roll_for, skill_for, roll_for + skill_for, skill_dc);
+    act(buf, FALSE, ch, 0, target, TO_CHAR);
+    break;
   }
 
   next_quest = aquest_table[quest].dialogue_alternative_quest;
@@ -1373,15 +1374,15 @@ ACMD(do_dialogue_quest)
   {
     switch (subcmd)
     {
-      case SCMD_DIALOGUE_DIPLOMACY:
-        act("You succeed in convincing $N!", FALSE, ch, 0, target, TO_CHAR);
-        break;
-      case SCMD_DIALOGUE_INTIMIDATE:
-        act("You succeed in threatening $N!", FALSE, ch, 0, target, TO_CHAR);
-        break;
-      case SCMD_DIALOGUE_BLUFF:
-        act("You succeed in beguiling $N!", FALSE, ch, 0, target, TO_CHAR);
-        break;
+    case SCMD_DIALOGUE_DIPLOMACY:
+      act("You succeed in convincing $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
+    case SCMD_DIALOGUE_INTIMIDATE:
+      act("You succeed in threatening $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
+    case SCMD_DIALOGUE_BLUFF:
+      act("You succeed in beguiling $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
     }
     generic_complete_quest(ch, quest_slot);
     add_completed_quest(ch, next_quest);
@@ -1391,15 +1392,15 @@ ACMD(do_dialogue_quest)
   {
     switch (subcmd)
     {
-        case SCMD_DIALOGUE_DIPLOMACY:
-        act("You fail to convince $N!", FALSE, ch, 0, target, TO_CHAR);
-        break;
-      case SCMD_DIALOGUE_INTIMIDATE:
-        act("You fail to threaten $N!", FALSE, ch, 0, target, TO_CHAR);
-        break;
-      case SCMD_DIALOGUE_BLUFF:
-        act("You fail to beguile $N!", FALSE, ch, 0, target, TO_CHAR);
-        break;
+    case SCMD_DIALOGUE_DIPLOMACY:
+      act("You fail to convince $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
+    case SCMD_DIALOGUE_INTIMIDATE:
+      act("You fail to threaten $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
+    case SCMD_DIALOGUE_BLUFF:
+      act("You fail to beguile $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
     }
     set_dialogue_quest_failed(ch, aquest_table[quest].vnum);
     add_completed_quest(ch, aquest_table[quest].vnum);
@@ -1408,10 +1409,7 @@ ACMD(do_dialogue_quest)
     set_quest(ch, quest, quest_slot);
     send_to_char(ch, "\tC%s\r\n\tn", QST_INFO(quest));
   }
-
 }
-
-
 
 
 #undef CHECK_TAR_EVERYONE

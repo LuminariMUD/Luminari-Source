@@ -598,4 +598,3 @@ ACT_COMM_C=\
 
 act.comm.obj: $(ACT_COMM_C) $(DISTDIR)\src\act.comm.c
     $(CC)  $(CFLAGS) $(DISTDIR)\src\act.comm.c
-

@@ -102,7 +102,7 @@
 - **Lists System Critical Bug Fix**:
   - **Fixed use-after-free vulnerability in simple_list()**:
     - When switching between lists, iterator cleanup could access freed memory
-    - Added NULL check before calling remove_iterator() 
+    - Added NULL check before calling remove_iterator()
     - Prevents MUD crashes when a list is freed while being iterated
     - Example crash scenario: Start iterating list1, list1 gets freed, switch to list2
   - **Enhanced memory safety documentation**:
@@ -118,7 +118,7 @@
 ## 2025-08-09 (Lists System - Session 6 - Documentation Fix)
 ### Fixed
 - **Lists System Documentation**:
-  - **Fixed critical documentation error for randomize_list()**: 
+  - **Fixed critical documentation error for randomize_list()**:
     - Documentation incorrectly stated empty lists weren't freed
     - Could cause memory leaks if developers relied on incorrect docs
     - Updated LISTS.md to correctly state that empty lists ARE freed
@@ -139,7 +139,7 @@
     - Now directly traverses and frees nodes without searching
     - Significant performance improvement when freeing large lists
     - Added performance note in code explaining the optimization
-  
+
 ### Added
 - **Enhanced Beginner Documentation in lists.c**:
   - **simple_list() documentation**: Added detailed explanation of static state management
@@ -168,13 +168,13 @@
   - **SAFE_REMOVE_FROM_LIST(item, list)**: NULL-safe removal macro
     - Checks both item and list for NULL before attempting removal
     - Prevents crashes from NULL pointers
-  
+
 ### Not Implemented
 - **SIMPLE_LIST_FOREACH macro**: Cannot be implemented due to C89/C90 standard restrictions
   - The codebase requires C89/C90 compatibility
   - For-loop variable declarations are not allowed in C89
   - Continue using traditional while-loop pattern with explicit resets
-  
+
 ### Documentation
 - Updated LISTS.md with C89 compatibility note and traditional pattern examples
 - Added comprehensive beginner-friendly comments in lists.h
@@ -191,7 +191,7 @@
   - **Fixed missing simple_list() resets**: Added `simple_list(NULL)` calls before all while loops
     - Fixed 30+ instances across 11 files where iterator wasn't reset before use
     - Prevents cross-contamination between iterations that could cause infinite loops or skipped items
-    - Files fixed: act.other.c, act.offensive.c, domain_powers.c, fight.c, bardic_performance.c, 
+    - Files fixed: act.other.c, act.offensive.c, domain_powers.c, fight.c, bardic_performance.c,
       comm.c, crafts.c, magic.c, utils.c, handler.c, db.c
   - **Added comprehensive beginner documentation**: Each fix includes detailed comments explaining
     why the reset is needed and what problems it prevents
@@ -488,7 +488,7 @@
   - Added `mclanwar` command to set war status between clans via scripts
   - Added `mclanally` command to set alliance status between clans via scripts
   - New character variables: `%actor.clanname%`, `%actor.is_clan_leader%`, `%actor.clan_gold%`
-  
+
 - **Clan Economy System** (clan_economy.c/h):
   - Integrated clan shops with zone-based discounts (5-20% based on rank)
   - Automatic transaction tax collection for clan members
@@ -496,14 +496,14 @@
   - Added `claninvest` command for managing clan investments
   - Daily investment returns with risk/reward mechanics
   - Shop discounts for allied clans in controlled zones
-  
+
 - **Clan Locking Mechanism**:
   - Added time-based locks to prevent concurrent modifications
   - Lock duration of 60 seconds with automatic expiration
   - Functions: `acquire_clan_lock()`, `release_clan_lock()`, `is_clan_locked()`, `can_modify_clan()`
   - Integrated locks into deposit/withdraw operations
   - Periodic cleanup of expired locks in `update_clans()`
-  
+
 - **Clan Transaction System** (clan_transactions.c/h):
   - Atomic operations with rollback capability
   - Transaction types for treasury, membership, ranks, wars, alliances
@@ -682,4 +682,3 @@
   - Added missing `find_all_dots()` parsing in `do_put()` function in act.item.c:2009
   - Command was treating "all" as an object name instead of a keyword
   - Now correctly puts all items from inventory into the specified container
-

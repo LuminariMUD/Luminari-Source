@@ -10,7 +10,7 @@ Monitoring Levels:
   basic    - Monitor only when performance exceeds 100% (minimal overhead)
   sampling - Sample every N pulses (default: 1/10, ~90% reduction)
   full     - Monitor every pulse (original behavior, highest overhead)
-  
+
 Additional Options:
   dynamic  - Toggle automatic high-load monitoring (on/off)
   <number> - Set sampling rate (e.g., "perfmon 20" = sample 1/20 pulses)

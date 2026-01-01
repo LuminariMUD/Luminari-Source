@@ -113,7 +113,9 @@ room_rnum add_room(struct room_data *room)
         /* Known zone entries we don't care about. */
         break;
       default:
-        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %d CMD: %c", i, ZCMD(i, j).command);
+        mudlog(BRF, LVL_STAFF, TRUE,
+               "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %d CMD: %c", i,
+               ZCMD(i, j).command);
       }
 
   /* Update the loadroom table. Adds 1 or 0. */
@@ -206,7 +208,8 @@ int delete_room(room_rnum rnum)
       if (W_EXIT(i, j) == NULL)
         continue;
       else if (W_EXIT(i, j)->to_room > rnum)
-        W_EXIT(i, j)->to_room -= (W_EXIT(i, j)->to_room != NOWHERE); /* with unsigned NOWHERE > any rnum */
+        W_EXIT(i, j)->to_room -=
+            (W_EXIT(i, j)->to_room != NOWHERE); /* with unsigned NOWHERE > any rnum */
       else if (W_EXIT(i, j)->to_room == rnum)
       {
         if ((!W_EXIT(i, j)->keyword || !*W_EXIT(i, j)->keyword) &&
@@ -312,12 +315,13 @@ int save_rooms(zone_rnum rzone)
   if (rzone < 0 || rzone > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_rooms: Invalid zone number %d passed! (0-%d)", rzone, top_of_zone_table);
+    log("SYSERR: GenOLC: save_rooms: Invalid zone number %d passed! (0-%d)", rzone,
+        top_of_zone_table);
     return FALSE;
   }
 
-  log("GenOLC: save_rooms: Saving rooms in zone #%d (%d-%d).",
-      zone_table[rzone].number, genolc_zone_bottom(rzone), zone_table[rzone].top);
+  log("GenOLC: save_rooms: Saving rooms in zone #%d (%d-%d).", zone_table[rzone].number,
+      genolc_zone_bottom(rzone), zone_table[rzone].top);
 
   snprintf(filename, sizeof(filename), "%s/%d.new", WLD_PREFIX, zone_table[rzone].number);
   if (!(sf = fopen(filename, "w")))
@@ -336,13 +340,14 @@ int save_rooms(zone_rnum rzone)
       /*  PDH  7/ 7/99
       *  unlink moving rooms before saving
       */
-      int       fromRoomCnt = 0;
-      struct    oldNextMove  ONM;
-      int       cibIdx = -1, nextIdx = -1;
+      int fromRoomCnt = 0;
+      struct oldNextMove ONM;
+      int cibIdx = -1, nextIdx = -1;
 
       room = (world + rnum);
 
-      if (room->mover) {
+      if (room->mover)
+      {
         /*  clean up, part I  */
         ONM.nextDir = -1;
         ONM.oldDir = -1;
@@ -350,17 +355,19 @@ int save_rooms(zone_rnum rzone)
         ONM.oldRoom = NOWHERE;
         ONM.moveRoom = NOWHERE;
 
-        if ((fromRoomCnt = prepMovingRoom(room->mover, &ONM, &cibIdx, &nextIdx)) < 1) {
-            log("SYSERR: unable to prep the Moving Room during redit save");
+        if ((fromRoomCnt = prepMovingRoom(room->mover, &ONM, &cibIdx, &nextIdx)) < 1)
+        {
+          log("SYSERR: unable to prep the Moving Room during redit save");
         }
 
-        if (!unlinkMovingRoom(room->mover, &ONM, cibIdx)) {
-            log("SYSERR: unable to unlink the Moving Room during redit save");
+        if (!unlinkMovingRoom(room->mover, &ONM, cibIdx))
+        {
+          log("SYSERR: unable to unlink the Moving Room during redit save");
         }
 
         cibIdx = fromRoomCnt; /* NOWHERE */
         room->mover->currentInbound = cibIdx;
-    }
+      }
 
       /* Copy the description and strip off trailing newlines. */
       strncpy(buf, room->description ? room->description : "Empty room.", sizeof(buf) - 1);
@@ -374,15 +381,14 @@ int save_rooms(zone_rnum rzone)
       }
 
       /* Save the numeric and string section of the file. */
-      snprintf(buf2, sizeof(buf2), "#%d\n"
-                                   "%s%c\n"
-                                   "%s%c\n"
-                                   "%d %d %d %d %d %d\n",
-               room->number,
-               room->name ? room->name : "Untitled", STRING_TERMINATOR,
-               buf, STRING_TERMINATOR,
-               zone_table[room->zone].number, room->room_flags[0], room->room_flags[1], room->room_flags[2],
-               room->room_flags[3], room->sector_type);
+      snprintf(buf2, sizeof(buf2),
+               "#%d\n"
+               "%s%c\n"
+               "%s%c\n"
+               "%d %d %d %d %d %d\n",
+               room->number, room->name ? room->name : "Untitled", STRING_TERMINATOR, buf,
+               STRING_TERMINATOR, zone_table[room->zone].number, room->room_flags[0],
+               room->room_flags[1], room->room_flags[2], room->room_flags[3], room->sector_type);
 
       /* Done saving, reset the flag. */
       if (occupied)
@@ -427,13 +433,14 @@ int save_rooms(zone_rnum rzone)
             *buf1 = '\0';
 
           /* Now write the exit to the file. */
-          fprintf(sf, "D%d\n"
-                      "%s~\n"
-                      "%s~\n"
-                      "%d %d %d\n",
-                  j, buf, buf1, dflag,
-                  R_EXIT(room, j)->key != NOTHING ? R_EXIT(room, j)->key : -1,
-                  R_EXIT(room, j)->to_room != NOWHERE ? world[R_EXIT(room, j)->to_room].number : -1);
+          fprintf(sf,
+                  "D%d\n"
+                  "%s~\n"
+                  "%s~\n"
+                  "%d %d %d\n",
+                  j, buf, buf1, dflag, R_EXIT(room, j)->key != NOTHING ? R_EXIT(room, j)->key : -1,
+                  R_EXIT(room, j)->to_room != NOWHERE ? world[R_EXIT(room, j)->to_room].number
+                                                      : -1);
         }
       }
 
@@ -446,22 +453,26 @@ int save_rooms(zone_rnum rzone)
           strncpy(buf, xdesc->description, sizeof(buf) - 1);
           buf[sizeof(buf) - 1] = '\0';
           strip_cr(buf);
-          fprintf(sf, "E\n"
-                      "%s~\n"
-                      "%s~\n",
+          fprintf(sf,
+                  "E\n"
+                  "%s~\n"
+                  "%s~\n",
                   xdesc->keyword, buf);
         }
       }
 
       /* Save coordinates, used in wilderness code. */
-      fprintf(sf, "C\n"
-                  "%d %d\n",
+      fprintf(sf,
+              "C\n"
+              "%d %d\n",
               room->coords[0], room->coords[1]);
 
-      if (room->mover) {
+      if (room->mover)
+      {
         /*  clean up, part II  */
-        if (!linkMovingRoom(room->mover, &ONM, cibIdx)) {
-            return 0;
+        if (!linkMovingRoom(room->mover, &ONM, cibIdx))
+        {
+          return 0;
         }
 
         cibIdx = nextIdx;
@@ -473,40 +484,47 @@ int save_rooms(zone_rnum rzone)
       */
       if (world[rnum].mover && world[rnum].mover->from && world[rnum].mover->fromDir)
       {
-          room_num curR = ENDMOVING;
-          int curD = -1, curCnt = -1, mm;
+        room_num curR = ENDMOVING;
+        int curD = -1, curCnt = -1, mm;
 
-          fprintf(sf, "M %d %d %d %d %d\n", world[rnum].mover->inbound_dir, world[rnum].mover->resetZonePulse,
-                  world[rnum].mover->randomMove, world[rnum].mover->exitInfo, world[rnum].mover->keyInfo);
+        fprintf(sf, "M %d %d %d %d %d\n", world[rnum].mover->inbound_dir,
+                world[rnum].mover->resetZonePulse, world[rnum].mover->randomMove,
+                world[rnum].mover->exitInfo, world[rnum].mover->keyInfo);
 
-          fprintf(sf, "%s\n%s\n%s\n", world[rnum].mover->msg_transit ? world[rnum].mover->msg_transit : "~",
-                  world[rnum].mover->msg_docking ? world[rnum].mover->msg_docking : "~",
-                  world[rnum].mover->msg_dest_docking ? world[rnum].mover->msg_dest_docking : "~");
+        fprintf(sf, "%s\n%s\n%s\n",
+                world[rnum].mover->msg_transit ? world[rnum].mover->msg_transit : "~",
+                world[rnum].mover->msg_docking ? world[rnum].mover->msg_docking : "~",
+                world[rnum].mover->msg_dest_docking ? world[rnum].mover->msg_dest_docking : "~");
 
-          for (mm = 0; mm < MAX_MOVING_ROOMS && world[rnum].mover->from[mm] != ENDMOVING; mm++) {
-              if ((world[rnum].mover->from[mm] != curR) || (world[rnum].mover->fromDir[mm] != curD)) {
-                  /*  new grouping  */
-                  if (curCnt > 0) {
-                      fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
-                      curR = ENDMOVING;
-                      curD = -1;
-                      curCnt = -1;
-                  }
-
-                  curR = world[rnum].mover->from[mm];
-                  curD = world[rnum].mover->fromDir[mm];
-                  curCnt = 1;
-
-              } else {
-                  curCnt++;
-              }
-          }
-          /*  last grouping  */
-          if (curCnt > 0) {
+        for (mm = 0; mm < MAX_MOVING_ROOMS && world[rnum].mover->from[mm] != ENDMOVING; mm++)
+        {
+          if ((world[rnum].mover->from[mm] != curR) || (world[rnum].mover->fromDir[mm] != curD))
+          {
+            /*  new grouping  */
+            if (curCnt > 0)
+            {
               fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
-          }
+              curR = ENDMOVING;
+              curD = -1;
+              curCnt = -1;
+            }
 
-          fprintf(sf, "~\n");
+            curR = world[rnum].mover->from[mm];
+            curD = world[rnum].mover->fromDir[mm];
+            curCnt = 1;
+          }
+          else
+          {
+            curCnt++;
+          }
+        }
+        /*  last grouping  */
+        if (curCnt > 0)
+        {
+          fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
+        }
+
+        fprintf(sf, "~\n");
       }
 
       /* Z: SpecProc name (persist room spec proc) */
@@ -549,16 +567,17 @@ int save_rooms(zone_rnum rzone)
 int copy_room(struct room_data *to, struct room_data *from)
 {
   /* Free any existing trail data before copying */
-  if (to->trail_tracks) {
+  if (to->trail_tracks)
+  {
     free_trail_data_list(to->trail_tracks);
     to->trail_tracks = NULL;
   }
-  
+
   free_room_strings(to);
   *to = *from;
   copy_room_strings(to, from);
   to->events = from->events;
-  
+
   /* Trail data is runtime data - don't copy it, start fresh */
   to->trail_tracks = NULL;
 
@@ -638,49 +657,50 @@ int free_room_strings(struct room_data *room)
   return TRUE;
 }
 
-void dump_moving(struct moving_room_data * mr, struct char_data * ch)
+void dump_moving(struct moving_room_data *mr, struct char_data *ch)
 {
   char pdh[100];
-  int  ridx;
+  int ridx;
   char buf[MAX_STRING_LENGTH];
 
   send_to_char(ch, "\r\nMoving Room Data:\r\n");
 
-  if ( mr ) {
-    sprintf(pdh, "Reset: %d (%d left)\r\n",
-	    mr->resetZonePulse, mr->remainingZonePulses);
+  if (mr)
+  {
+    sprintf(pdh, "Reset: %d (%d left)\r\n", mr->resetZonePulse, mr->remainingZonePulses);
     send_to_char(ch, "%s", pdh);
     sprintf(pdh, "Current Inbound Idx: %d\r\n", mr->currentInbound);
     send_to_char(ch, "%s", pdh);
-    sprintf(pdh, "Destination: %d        Inbound Dir: %d\r\n",
-	    mr->destination, mr->inbound_dir);
+    sprintf(pdh, "Destination: %d        Inbound Dir: %d\r\n", mr->destination, mr->inbound_dir);
     send_to_char(ch, "%s", pdh);
     sprintf(pdh, "Random: %s\r\n", (mr->randomMove) ? "yes" : "no");
     send_to_char(ch, "%s", pdh);
 
-    sprintf(buf, "Transit Msg: %s\r\n",
-	    mr->msg_transit ? mr->msg_transit : "<none>");
+    sprintf(buf, "Transit Msg: %s\r\n", mr->msg_transit ? mr->msg_transit : "<none>");
     send_to_char(ch, "%s", buf);
-    sprintf(buf, "Docking Msg: %s\r\n",
-	    mr->msg_docking ? mr->msg_docking : "<none>");
+    sprintf(buf, "Docking Msg: %s\r\n", mr->msg_docking ? mr->msg_docking : "<none>");
     send_to_char(ch, "%s", buf);
     sprintf(buf, "Dest Docking Msg: %s\r\n",
-	    mr->msg_dest_docking ? mr->msg_dest_docking : "<none>");
+            mr->msg_dest_docking ? mr->msg_dest_docking : "<none>");
     send_to_char(ch, "%s", buf);
 
 
     send_to_char(ch, "TARGET DIR\r\n");
-    if ( mr->from && mr->fromDir ) {
-      for(ridx=0; ridx<MAX_MOVING_ROOMS && mr->from[ridx] != ENDMOVING;
-	  ridx++) {
-	sprintf(pdh, "%6d  %d\r\n", mr->from[ridx], mr->fromDir[ridx]);
-	send_to_char(ch, "%s", pdh);
+    if (mr->from && mr->fromDir)
+    {
+      for (ridx = 0; ridx < MAX_MOVING_ROOMS && mr->from[ridx] != ENDMOVING; ridx++)
+      {
+        sprintf(pdh, "%6d  %d\r\n", mr->from[ridx], mr->fromDir[ridx]);
+        send_to_char(ch, "%s", pdh);
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, " none  ---\r\n");
     }
-
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "No 'moving' info found.\r\n");
   }
 }

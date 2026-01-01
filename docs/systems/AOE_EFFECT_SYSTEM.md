@@ -63,14 +63,14 @@ static int tailspikes_damage_callback(struct char_data *ch, struct char_data *tc
 ACMD(do_tailspikes)
 {
   /* ... prerequisite checks ... */
-  
-  act("You lift your tail and send a spray of tail spikes to all your foes.", 
+
+  act("You lift your tail and send a spray of tail spikes to all your foes.",
       FALSE, ch, 0, 0, TO_CHAR);
-  act("$n lifts $s tail and sends a spray of tail spikes to all $s foes.", 
+  act("$n lifts $s tail and sends a spray of tail spikes to all $s foes.",
       FALSE, ch, 0, 0, TO_ROOM);
 
   aoe_effect(ch, SPELL_GENERIC_AOE, tailspikes_damage_callback, NULL);
-  
+
   USE_SWIFT_ACTION(ch);
 }
 ```
@@ -88,28 +88,28 @@ struct dragonborn_breath_data {
 static int dragonborn_breath_callback(struct char_data *ch, struct char_data *tch, void *data)
 {
   struct dragonborn_breath_data *breath_data = (struct dragonborn_breath_data *)data;
-  
+
   if (breath_data->level <= 15)
-    damage(ch, tch, dice(breath_data->level, 6), SPELL_DRAGONBORN_ANCESTRY_BREATH, 
+    damage(ch, tch, dice(breath_data->level, 6), SPELL_DRAGONBORN_ANCESTRY_BREATH,
            breath_data->dam_type, FALSE);
   else
-    damage(ch, tch, dice(breath_data->level, 14), SPELL_DRAGONBORN_ANCESTRY_BREATH, 
+    damage(ch, tch, dice(breath_data->level, 14), SPELL_DRAGONBORN_ANCESTRY_BREATH,
            breath_data->dam_type, FALSE);
-  
+
   return 1;
 }
 
 ACMD(do_dragonborn_breath_weapon)
 {
   struct dragonborn_breath_data breath_data;
-  
+
   /* ... prerequisite checks ... */
 
   breath_data.dam_type = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
   breath_data.level = GET_LEVEL(ch);
 
   aoe_effect(ch, SPELL_DRAGONBORN_ANCESTRY_BREATH, dragonborn_breath_callback, &breath_data);
-  
+
   /* ... cleanup ... */
 }
 ```
@@ -122,7 +122,7 @@ static int dragonfear_callback(struct char_data *ch, struct char_data *tch, void
 {
   struct affected_type af;
   int *cast_level = (int *)data;
-  
+
   /* Immunity checks */
   if (is_immune_fear(ch, tch, TRUE))
     return 0;
@@ -130,7 +130,7 @@ static int dragonfear_callback(struct char_data *ch, struct char_data *tch, void
     return 0;
   if (mag_resistance(ch, tch, 0))
     return 0;
-  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0,
                   CAST_INNATE, *cast_level, ENCHANTMENT))
     return 0;
 
@@ -216,7 +216,7 @@ int fist_air_callback(struct char_data *ch, struct char_data *tch, void *data) {
       send_to_char(tch, "You maintain your balance against the forceful blast!\r\n");
     }
   }
-  
+
   return 1;
 }
 ```

@@ -154,8 +154,7 @@ ACMD(do_oasis_oedit)
   /* Give the descriptor an OLC structure. */
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE,
-           "SYSERR: do_oasis: Player already had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis: Player already had olc structure.");
     free(d->olc);
   }
 
@@ -186,11 +185,9 @@ ACMD(do_oasis_oedit)
   /* If we need to save, save the objects. */
   if (save)
   {
-    send_to_char(ch, "Saving all objects in zone %d.\r\n",
-                 zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-           "OLC: %s saves object info for zone %d.", GET_NAME(ch),
-           zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all objects in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves object info for zone %d.",
+           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     /* Save the objects in this zone. */
     save_objects(OLC_ZNUM(d));
@@ -218,8 +215,8 @@ ACMD(do_oasis_oedit)
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   /* Log the OLC message. */
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
+         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void oedit_setup_new(struct descriptor_data *d)
@@ -284,8 +281,7 @@ void oedit_save_internally(struct descriptor_data *d)
   obj_index[robj_num].func = OLC(d)->specobj;
 
   /* Update triggers and free old proto list  */
-  if (obj_proto[robj_num].proto_script &&
-      obj_proto[robj_num].proto_script != OLC_SCRIPT(d))
+  if (obj_proto[robj_num].proto_script && obj_proto[robj_num].proto_script != OLC_SCRIPT(d))
     free_proto_script(&obj_proto[robj_num], OBJ_TRIGGER);
   /* this will handle new instances of the object: */
   obj_proto[robj_num].proto_script = OLC_SCRIPT(d);
@@ -351,12 +347,12 @@ void oedit_disp_weapon_spells(struct descriptor_data *d)
 
   for (counter = 0; counter < MAX_WEAPON_SPELLS; counter++)
   {
-    snprintf(buf, sizeof(buf), "[%s%d%s] Spell: %s%20s%s Level: %s%3d%s Percent: %s%3d%s Combat: %s%3d%s\r\n",
-             cyn, counter + 1, nrm,
-             cyn, spell_info[OLC_OBJ(d)->wpn_spells[counter].spellnum].name, nrm,
-             cyn, OLC_OBJ(d)->wpn_spells[counter].level, nrm,
-             cyn, OLC_OBJ(d)->wpn_spells[counter].percent, nrm,
-             cyn, OLC_OBJ(d)->wpn_spells[counter].inCombat, nrm);
+    snprintf(buf, sizeof(buf),
+             "[%s%d%s] Spell: %s%20s%s Level: %s%3d%s Percent: %s%3d%s Combat: %s%3d%s\r\n", cyn,
+             counter + 1, nrm, cyn, spell_info[OLC_OBJ(d)->wpn_spells[counter].spellnum].name, nrm,
+             cyn, OLC_OBJ(d)->wpn_spells[counter].level, nrm, cyn,
+             OLC_OBJ(d)->wpn_spells[counter].percent, nrm, cyn,
+             OLC_OBJ(d)->wpn_spells[counter].inCombat, nrm);
     send_to_char(d->character, "%s", buf);
   }
   send_to_char(d->character, "Enter spell to edit : ");
@@ -378,19 +374,20 @@ static void oedit_disp_lootbox_levels(struct descriptor_data *d)
 
 static void oedit_disp_lootbox_types(struct descriptor_data *d)
 {
-  write_to_output(d,
-                  "The type guarantees one item of the specified type.\r\n"
-                  "Generic has equal chance for any type.  Gold provides 5x as much money.\r\n"
-                  "Please choose the type of lootbox you'd like to create:\r\n"
-                  "1) Generic, equal chance for all item types.\r\n"
-                  "2) Weapons, guaranteed weapon, low chance for other items.\r\n"
-                  "3) Armor, guaranteed armor, low chance for other items.\r\n"
-                  "4) Consumables, guaranteed at least one consumable, low chance for other items.\r\n"
-                  "5) Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n"
-                  "6) Gold, much more gold, low chance for other items.\r\n"
-                  "7) Crystal, garaunteed %s, low chance for other items.\r\n"
-                  "\r\nYour Choice: ",
-                  CRAFTING_CRYSTAL);
+  write_to_output(
+      d,
+      "The type guarantees one item of the specified type.\r\n"
+      "Generic has equal chance for any type.  Gold provides 5x as much money.\r\n"
+      "Please choose the type of lootbox you'd like to create:\r\n"
+      "1) Generic, equal chance for all item types.\r\n"
+      "2) Weapons, guaranteed weapon, low chance for other items.\r\n"
+      "3) Armor, guaranteed armor, low chance for other items.\r\n"
+      "4) Consumables, guaranteed at least one consumable, low chance for other items.\r\n"
+      "5) Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n"
+      "6) Gold, much more gold, low chance for other items.\r\n"
+      "7) Crystal, garaunteed %s, low chance for other items.\r\n"
+      "\r\nYour Choice: ",
+      CRAFTING_CRYSTAL);
 }
 
 /* Menu functions */
@@ -420,17 +417,19 @@ static void oedit_disp_extradesc_menu(struct descriptor_data *d)
 
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(d,
-                  "Extra desc menu\r\n"
-                  "%s1%s) Keywords: %s%s\r\n"
-                  "%s2%s) Description:\r\n%s%s\r\n"
-                  "%s3%s) Goto next description: %s\r\n"
-                  "%s0%s) Quit\r\n"
-                  "Enter choice : ",
+  write_to_output(
+      d,
+      "Extra desc menu\r\n"
+      "%s1%s) Keywords: %s%s\r\n"
+      "%s2%s) Description:\r\n%s%s\r\n"
+      "%s3%s) Goto next description: %s\r\n"
+      "%s0%s) Quit\r\n"
+      "Enter choice : ",
 
-                  grn, nrm, yel, (extra_desc->keyword && *extra_desc->keyword) ? extra_desc->keyword : "<NONE>",
-                  grn, nrm, yel, (extra_desc->description && *extra_desc->description) ? extra_desc->description : "<NONE>",
-                  grn, nrm, !extra_desc->next ? "Not set." : "Set.", grn, nrm);
+      grn, nrm, yel, (extra_desc->keyword && *extra_desc->keyword) ? extra_desc->keyword : "<NONE>",
+      grn, nrm, yel,
+      (extra_desc->description && *extra_desc->description) ? extra_desc->description : "<NONE>",
+      grn, nrm, !extra_desc->next ? "Not set." : "Set.", grn, nrm);
   OLC_MODE(d) = OEDIT_EXTRADESC_MENU;
 }
 
@@ -440,9 +439,7 @@ static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d)
   int i = 0;
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
-    write_to_output(d,
-                    " %s%2d%s) %-20s",
-                    nrm, i, nrm, bonus_types[i]);
+    write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
     if (((i + 1) % 3) == 0)
       write_to_output(d, "\r\n");
   }
@@ -481,7 +478,8 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
                         OLC_OBJ(d)->affected[counter].modifier,
                         bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
-      else if (OLC_OBJ(d)->affected[counter].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[counter].location <= APPLY_SPELL_CIRCLE_9)
+      else if (OLC_OBJ(d)->affected[counter].location >= APPLY_SPELL_CIRCLE_1 &&
+               OLC_OBJ(d)->affected[counter].location <= APPLY_SPELL_CIRCLE_9)
       {
         write_to_output(d, " %s%d%s) Improves %s for %s by %d (%s)\r\n", grn, counter + 1, nrm,
                         apply_types[OLC_OBJ(d)->affected[counter].location],
@@ -489,15 +487,18 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
                         OLC_OBJ(d)->affected[counter].modifier,
                         bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
-      else if (OLC_OBJ(d)->affected[counter].location == APPLY_SPELL_POTENCY || OLC_OBJ(d)->affected[counter].location == APPLY_SPELL_DURATION)
+      else if (OLC_OBJ(d)->affected[counter].location == APPLY_SPELL_POTENCY ||
+               OLC_OBJ(d)->affected[counter].location == APPLY_SPELL_DURATION)
       {
         write_to_output(d, " %s%d%s) %+d%% to %s (%s)\r\n", grn, counter + 1, nrm,
-                        OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+                        OLC_OBJ(d)->affected[counter].modifier, apply_buf,
+                        bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
       else
       {
         write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
-                        OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+                        OLC_OBJ(d)->affected[counter].modifier, apply_buf,
+                        bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
     }
     else
@@ -519,14 +520,18 @@ void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
   {
     columns = 0;
     write_to_output(d, "%s", !(columns % 3) ? "\r\n" : "");
-    write_to_output(d, "---Circle %d Spells---===============================================---\r\n", i);
+    write_to_output(
+        d, "---Circle %d Spells---===============================================---\r\n", i);
     for (counter = 0; counter < SPELLBOOK_SIZE; counter++)
     {
       if (OLC_OBJ(d)->sbinfo && OLC_OBJ(d)->sbinfo[counter].spellname != 0 &&
           OLC_OBJ(d)->sbinfo[counter].spellname < MAX_SPELLS &&
-          ((spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].min_level[CLASS_WIZARD] + 1) / 2) == i)
+          ((spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].min_level[CLASS_WIZARD] + 1) / 2) ==
+              i)
       {
-        write_to_output(d, " %3d) %-20.20s %s", counter + 1, spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].name, !(++columns % 3) ? "\r\n" : "");
+        write_to_output(d, " %3d) %-20.20s %s", counter + 1,
+                        spell_info[OLC_OBJ(d)->sbinfo[counter].spellname].name,
+                        !(++columns % 3) ? "\r\n" : "");
         u++;
       }
     }
@@ -538,7 +543,8 @@ void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
   }
   else
   {
-    write_to_output(d, "\r\nEnter spell slot to modify [ next empty slot is %2d ] (0 to quit) : ", u);
+    write_to_output(d,
+                    "\r\nEnter spell slot to modify [ next empty slot is %2d ] (0 to quit) : ", u);
   }
   OLC_MODE(d) = OEDIT_PROMPT_SPELLBOOK;
 }
@@ -553,12 +559,14 @@ void oedit_disp_spellbook_menu(struct descriptor_data *d)
   {
     columns = 0;
     write_to_output(d, "%s", !(columns % 3) ? "\n" : "");
-    write_to_output(d, "---Circle %d Spells---==============================================---\r\n", i);
+    write_to_output(
+        d, "---Circle %d Spells---==============================================---\r\n", i);
     for (counter = 0; counter < NUM_SPELLS; counter++)
     {
       if (((spell_info[counter].min_level[CLASS_WIZARD] + 1) / 2) == i &&
           spell_info[counter].schoolOfMagic != NOSCHOOL)
-        write_to_output(d, "%3d) %-20.20s%s", counter, spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+        write_to_output(d, "%3d) %-20.20s%s", counter, spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
     }
   }
   write_to_output(d, "\r\nEnter spell number (0 is no spell) : ");
@@ -574,8 +582,7 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d)
 
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(d,
-                  "Weapon special abilities menu\r\n");
+  write_to_output(d, "Weapon special abilities menu\r\n");
 
   for (specab = OLC_OBJ(d)->special_abilities; specab != NULL; specab = specab->next)
   {
@@ -587,12 +594,10 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d)
                     "   Activation Methods: %s%s%s\r\n"
                     "   CommandWord: %s%s%s\r\n"
                     "   Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n",
-                    grn, counter, nrm, yel, special_ability_info[specab->ability].name, nrm, yel, specab->level, nrm,
-                    yel, actmtds, nrm,
-                    yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
-                    yel, specab->value[0], nrm,
-                    yel, specab->value[1], nrm,
-                    yel, specab->value[2], nrm,
+                    grn, counter, nrm, yel, special_ability_info[specab->ability].name, nrm, yel,
+                    specab->level, nrm, yel, actmtds, nrm, yel,
+                    (specab->command_word == NULL ? "Not set." : specab->command_word), nrm, yel,
+                    specab->value[0], nrm, yel, specab->value[1], nrm, yel, specab->value[2], nrm,
                     yel, specab->value[3], nrm);
   }
   if (!found)
@@ -606,17 +611,13 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d)
                   "%sQ%s) Quit\r\n"
                   "Enter choice : ",
 
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm,
-                  grn, nrm);
+                  grn, nrm, grn, nrm, grn, nrm, grn, nrm);
 
   OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
 }
 
 static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d)
 {
-
   struct obj_special_ability *specab;
   char actmtds[MAX_STRING_LENGTH] = {'\0'};
 
@@ -630,8 +631,7 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d)
 
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(d,
-                  "Weapon special abilities menu\r\n");
+  write_to_output(d, "Weapon special abilities menu\r\n");
 
   sprintbit(OLC_SPECAB(d)->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
 
@@ -643,15 +643,11 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d)
                   "%sV%s) Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n"
                   "%sQ%s) Quit\r\n"
                   "Enter Choice : ",
-                  grn, nrm, yel, special_ability_info[specab->ability].name, nrm,
-                  grn, nrm, yel, specab->level, nrm,
-                  grn, nrm, yel, actmtds, nrm,
-                  grn, nrm, yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
-                  grn, nrm, yel, specab->value[0], nrm,
-                  yel, specab->value[1], nrm,
-                  yel, specab->value[2], nrm,
-                  yel, specab->value[3], nrm,
-                  grn, nrm);
+                  grn, nrm, yel, special_ability_info[specab->ability].name, nrm, grn, nrm, yel,
+                  specab->level, nrm, grn, nrm, yel, actmtds, nrm, grn, nrm, yel,
+                  (specab->command_word == NULL ? "Not set." : specab->command_word), nrm, grn, nrm,
+                  yel, specab->value[0], nrm, yel, specab->value[1], nrm, yel, specab->value[2],
+                  nrm, yel, specab->value[3], nrm, grn, nrm);
 
   OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
 }
@@ -686,13 +682,14 @@ static void oedit_disp_specab_activation_method_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_ACTIVATION_METHODS; counter++)
   { /* added the -3 to prevent eyes/ears/badge */
-    write_to_output(d, "%s%d%s) %-20.20s %s", grn, counter + 1, nrm,
-                    activation_methods[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%d%s) %-20.20s %s", grn, counter + 1, nrm, activation_methods[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
 
   sprintbit(OLC_SPECAB(d)->activation_method, activation_methods, bits, MAX_STRING_LENGTH);
-  write_to_output(d, "\r\nActivation Methods: %s%s%s\r\n"
-                     "Enter Activation Method, 0 to quit : ",
+  write_to_output(d,
+                  "\r\nActivation Methods: %s%s%s\r\n"
+                  "Enter Activation Method, 0 to quit : ",
                   cyn, bits, nrm);
 }
 
@@ -705,8 +702,8 @@ void oedit_disp_specab_bane_race(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_RACE_TYPES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    race_family_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, race_family_types[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
@@ -720,8 +717,8 @@ void oedit_disp_specab_bane_subrace(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_SUB_RACES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    npc_subrace_types[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, npc_subrace_types[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
@@ -777,9 +774,12 @@ static void oedit_disp_apply_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
   column_list_applies(d->character, OLC_OBJ(d), 0, apply_types, NUM_APPLIES, TRUE);
-  write_to_output(d, "\r\nIt is highly recommended to set the item type, wear slots and minimum level before setting applies, in order to get proper gear bonus suggestions.\r\n");
+  write_to_output(d,
+                  "\r\nIt is highly recommended to set the item type, wear slots and minimum level "
+                  "before setting applies, in order to get proper gear bonus suggestions.\r\n");
   write_to_output(d, "Eligible Bonus Types are highlighted in \tCcyan\tn.\r\n");
-  write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n(for 'grant feat' select featnum here, 'featlist' out of editor for master list) : ");
+  write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n(for 'grant feat' select featnum "
+                     "here, 'featlist' out of editor for master list) : ");
   OLC_MODE(d) = OEDIT_APPLY;
 }
 
@@ -810,8 +810,8 @@ static void oedit_disp_portaltypes_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_PORTAL_TYPES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-                    portal_types[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, portal_types[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter portal type : ");
 }
@@ -826,8 +826,8 @@ static void oedit_disp_ranged_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_RANGED_WEAPONS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-                    ranged_weapons[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, ranged_weapons[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter ranged-weapon type : ");
 }
@@ -842,8 +842,8 @@ static void oedit_disp_instrument_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < MAX_INSTRUMENTS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-                    instrument_names[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, instrument_names[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nSelect instrument type : ");
 }
@@ -858,8 +858,8 @@ static void oedit_disp_missile_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_AMMO_TYPES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-                    ammo_types[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, ammo_types[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter missile-weapon type : ");
 }
@@ -874,8 +874,8 @@ static void oedit_disp_spells_menu(struct descriptor_data *d)
 
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, spell_info[counter].name,
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%sEnter spell choice (-1 for none) : ", nrm);
 }
@@ -889,8 +889,8 @@ static void oedit_disp_poisons_menu(struct descriptor_data *d)
 
   for (counter = POISON_TYPE_START; counter <= POISON_TYPE_END; counter++)
   {
-    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-                    spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel, spell_info[counter].name,
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%sEnter poison choice (-1 for none) : ", nrm);
 }
@@ -1112,7 +1112,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
     {
       write_to_output(d, "%s%2d%s) %s\r\n", grn, i, nrm, ability_names[i]);
     }
-    write_to_output(d, "Associated crafting skill (ABILITY_* constant, e.g. 51 for ABILITY_HARVEST_GATHERING): ");
+    write_to_output(
+        d,
+        "Associated crafting skill (ABILITY_* constant, e.g. 51 for ABILITY_HARVEST_GATHERING): ");
     break;
   default:
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_disp_val1_menu()!");
@@ -1281,9 +1283,11 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
     oedit_liquid_type(d);
     break;
   case ITEM_TREASURE_CHEST:
-    write_to_output(d, "Is this a randomly loading chest? 1 if yes, 0 if no.\r\n"
-                       "A randomly loading chest will only load in rooms and/or zones flagged with RANDOM_CHEST.\r\n"
-                      "They will not have a cooldown timer to loot, and will be extracted when looted.\r\n");
+    write_to_output(
+        d, "Is this a randomly loading chest? 1 if yes, 0 if no.\r\n"
+           "A randomly loading chest will only load in rooms and/or zones flagged with "
+           "RANDOM_CHEST.\r\n"
+           "They will not have a cooldown timer to loot, and will be extracted when looted.\r\n");
     break;
   case ITEM_PORTAL:
     switch (GET_OBJ_VAL(OLC_OBJ(d), 0))
@@ -1325,7 +1329,8 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
     clear_screen(d);
     column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
     write_to_output(d, "\r\nEnter BODY apply type (0 is no apply)\r\n");
-    write_to_output(d, "Please select an apply type to add to the item, or select none for nothing.\r\n");
+    write_to_output(
+        d, "Please select an apply type to add to the item, or select none for nothing.\r\n");
     write_to_output(d, "Enter your choice: ");
     break;
   case ITEM_SWITCH:
@@ -1382,18 +1387,27 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
     write_to_output(d, "Apply modifier amount: ");
     break;
   case ITEM_WEAPON:
-    write_to_output(d, "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal Mob (%d) Boss Mob (%d)\tn\r\n", 
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE), get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
+    write_to_output(d,
+                    "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
+                    "Mob (%d) Boss Mob (%d)\tn\r\n",
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE),
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
     write_to_output(d, "Enhancement bonus : ");
     break;
   case ITEM_ARMOR:
-    write_to_output(d, "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal Mob (%d) Boss Mob (%d)\tn\r\n", 
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE), get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
+    write_to_output(d,
+                    "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
+                    "Mob (%d) Boss Mob (%d)\tn\r\n",
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE),
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
     write_to_output(d, "Enhancement bonus : ");
     break;
   case ITEM_MISSILE:
-    write_to_output(d, "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal Mob (%d) Boss Mob (%d)\tn\r\n", 
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE), get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
+    write_to_output(d,
+                    "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
+                    "Mob (%d) Boss Mob (%d)\tn\r\n",
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE),
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
     write_to_output(d, "Enhancement bonus : ");
     break;
   default:
@@ -1437,7 +1451,8 @@ static void oedit_disp_val7_menu(struct descriptor_data *d)
     clear_screen(d);
     column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
     write_to_output(d, "\r\nEnter HEAD apply type (0 is no apply)\r\n");
-    write_to_output(d, "Please select an apply type to add to the helm, or select none for nothing.\r\n");
+    write_to_output(
+        d, "Please select an apply type to add to the helm, or select none for nothing.\r\n");
     write_to_output(d, "Enter your choice: ");
     break;
   default:
@@ -1491,7 +1506,8 @@ static void oedit_disp_val10_menu(struct descriptor_data *d)
     clear_screen(d);
     column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
     write_to_output(d, "\r\nEnter ARMS apply type (0 is no apply)\r\n");
-    write_to_output(d, "Please select an apply type to add to the sleeves, or select none for nothing.\r\n");
+    write_to_output(
+        d, "Please select an apply type to add to the sleeves, or select none for nothing.\r\n");
     write_to_output(d, "Enter your choice: ");
     break;
   default:
@@ -1545,7 +1561,8 @@ static void oedit_disp_val13_menu(struct descriptor_data *d)
     clear_screen(d);
     column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
     write_to_output(d, "\r\nEnter LEGS apply type (0 is no apply)\r\n");
-    write_to_output(d, "Please select an apply type to add to the leggings, or select none for nothing.\r\n");
+    write_to_output(
+        d, "Please select an apply type to add to the leggings, or select none for nothing.\r\n");
     write_to_output(d, "Enter your choice: ");
     break;
   default:
@@ -1632,8 +1649,8 @@ static void oedit_disp_type_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_ITEM_TYPES; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-                    item_types[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, item_types[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter object type : ");
 }
@@ -1665,8 +1682,8 @@ static void oedit_disp_mats_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_MATERIALS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
-                    material_name[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, material_name[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter object material : ");
 }
@@ -1682,12 +1699,13 @@ static void oedit_disp_extra_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_ITEM_FLAGS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm,
-                    extra_bits[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm, extra_bits[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   sprintbitarray(GET_OBJ_EXTRA(OLC_OBJ(d)), extra_bits, EF_ARRAY_MAX, bits);
-  write_to_output(d, "\r\nObject flags: %s%s%s\r\n"
-                     "Enter object extra flag (0 to quit) : ",
+  write_to_output(d,
+                  "\r\nObject flags: %s%s%s\r\n"
+                  "Enter object extra flag (0 to quit) : ",
                   cyn, bits, nrm);
 }
 
@@ -1702,11 +1720,13 @@ static void oedit_disp_perm_menu(struct descriptor_data *d)
 
   for (counter = 1; counter < NUM_AFF_FLAGS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected_bits[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected_bits[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, bits);
-  write_to_output(d, "\r\nObject permanent flags: %s%s%s\r\n"
-                     "Enter object perm flag (0 to quit) : ",
+  write_to_output(d,
+                  "\r\nObject permanent flags: %s%s%s\r\n"
+                  "Enter object perm flag (0 to quit) : ",
                   cyn, bits, nrm);
 }
 
@@ -1721,11 +1741,13 @@ static void oedit_disp_perm2_menu(struct descriptor_data *d)
 
   for (counter = 1; counter < NUM_AFF2_FLAGS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected2_bits[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected2_bits[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, bits);
-  write_to_output(d, "\r\nObject permanent AFF2 flags: %s%s%s\r\n"
-                     "Enter object perm2 flag (0 to quit) : ",
+  write_to_output(d,
+                  "\r\nObject permanent AFF2 flags: %s%s%s\r\n"
+                  "Enter object perm2 flag (0 to quit) : ",
                   cyn, bits, nrm);
 }
 
@@ -1738,8 +1760,8 @@ void oedit_disp_size_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_SIZES; counter++)
   {
-    write_to_output(d, "%2d) %-20.20s%s", counter + 1,
-                    size_names[counter], !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%2d) %-20.20s%s", counter + 1, size_names[counter],
+                    !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\nEnter object size : ");
 }
@@ -1747,7 +1769,6 @@ void oedit_disp_size_menu(struct descriptor_data *d)
 /* Object Mob Recipient */
 void oedit_disp_mob_recipient_menu(struct descriptor_data *d)
 {
-
   clear_screen(d);
 
   write_to_output(d, "The mob recipient is the vnum of the mob that object belongs to.\r\n"
@@ -1768,18 +1789,18 @@ static void oedit_disp_wear_menu(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_ITEM_WEARS; counter++)
   {
-    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm,
-                    wear_bits[counter], !(++columns % 2) ? "\r\n" : "");
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm, wear_bits[counter],
+                    !(++columns % 2) ? "\r\n" : "");
   }
   sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, TW_ARRAY_MAX, bits);
-  write_to_output(d, "\r\nWear flags: %s%s%s\r\n"
-                     "Enter wear flag, 0 to quit : ",
+  write_to_output(d,
+                  "\r\nWear flags: %s%s%s\r\n"
+                  "Enter wear flag, 0 to quit : ",
                   cyn, bits, nrm);
 }
 
 bool remove_special_ability(struct obj_data *obj, int number)
 {
-
   // struct obj_special_ability *current = obj->special_abilities;
   // struct obj_special_ability *next;
 
@@ -1792,9 +1813,9 @@ bool remove_special_ability(struct obj_data *obj, int number)
 
   //   current = NULL;
 
-    obj->special_abilities = NULL;
+  obj->special_abilities = NULL;
 
-    return true;
+  return true;
 
   // This code doesn't work, so we instead clear all special abilities
 
@@ -1870,30 +1891,35 @@ static void oedit_disp_menu(struct descriptor_data *d)
   /* Build first half of menu. */
   /* Current spec proc name (from OLC selection if any, else from index) */
   if (GET_OBJ_RNUM(obj) != NOTHING)
-    specname = get_spec_func_name(OLC(d)->specobj ? OLC(d)->specobj : obj_index[GET_OBJ_RNUM(obj)].func);
+    specname =
+        get_spec_func_name(OLC(d)->specobj ? OLC(d)->specobj : obj_index[GET_OBJ_RNUM(obj)].func);
   else
     specname = get_spec_func_name(OLC(d)->specobj);
 
-  write_to_output(d,
-                  "-- Item number : [%s%d%s]\r\n"
-                  "%s1%s) Keywords : %s%s\r\n"
-                  "%s2%s) S-Desc   : %s%s\r\n"
-                  "%s3%s) L-Desc   :-\r\n%s%s\r\n"
-                  "%s4%s) A-Desc   :-\r\n%s%s"
-                  "%s5%s) Type        : %s%s\r\n"
-                  //"%sG%s) Proficiency : %s%s\r\n"
-                  "%s6%s) Extra flags : %s%s\r\n"
-                  "%sU%s) Restring ID  : %s%s\r\n",
+  write_to_output(
+      d,
+      "-- Item number : [%s%d%s]\r\n"
+      "%s1%s) Keywords : %s%s\r\n"
+      "%s2%s) S-Desc   : %s%s\r\n"
+      "%s3%s) L-Desc   :-\r\n%s%s\r\n"
+      "%s4%s) A-Desc   :-\r\n%s%s"
+      "%s5%s) Type        : %s%s\r\n"
+      //"%sG%s) Proficiency : %s%s\r\n"
+      "%s6%s) Extra flags : %s%s\r\n"
+      "%sU%s) Restring ID  : %s%s\r\n",
 
-                  cyn, OLC_NUM(d), nrm,
-                  grn, nrm, yel, (obj->name && *obj->name) ? obj->name : "undefined",
-                  grn, nrm, yel, (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
-                  grn, nrm, yel, (obj->description && *obj->description) ? obj->description : "undefined",
-                  grn, nrm, yel, (obj->action_description && *obj->action_description) ? obj->action_description : "Not Set.\r\n",
-                  grn, nrm, cyn, buf1,
-                  // grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
-                  grn, nrm, cyn, buf2,
-                  grn, nrm, yel, (obj->restring_identifier && *obj->restring_identifier) ? obj->restring_identifier : "Not Set.");
+      cyn, OLC_NUM(d), nrm, grn, nrm, yel, (obj->name && *obj->name) ? obj->name : "undefined", grn,
+      nrm, yel,
+      (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
+      grn, nrm, yel, (obj->description && *obj->description) ? obj->description : "undefined", grn,
+      nrm, yel,
+      (obj->action_description && *obj->action_description) ? obj->action_description
+                                                            : "Not Set.\r\n",
+      grn, nrm, cyn, buf1,
+      // grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
+      grn, nrm, cyn, buf2, grn, nrm, yel,
+      (obj->restring_identifier && *obj->restring_identifier) ? obj->restring_identifier
+                                                              : "Not Set.");
 
   /* Send first half then build second half of menu. */
 
@@ -1915,135 +1941,111 @@ static void oedit_disp_menu(struct descriptor_data *d)
       len += snprintf(buf3 + len, sizeof(buf3) - len,
                       "[wear-neck:int,save-ref,res-cold,res-air,res-force,res-mental,res-water] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-body:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-body:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-head:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-head:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_LEGS))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-legs:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-legs:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FEET))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-feet:res-poison,dex,moves] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-feet:res-poison,dex,moves] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HANDS))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-hands:res-disease,res-slice,str] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-hands:res-disease,res-slice,str] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ARMS))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-arms:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-arms:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-shield:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-shield:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ABOUT))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-about:res-acid,cha,res-negative] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-about:res-acid,cha,res-negative] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WAIST))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-waist:res-holy,con,res-earth] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-waist:res-holy,con,res-earth] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WRIST))
       len += snprintf(buf3 + len, sizeof(buf3) - len,
                       "[wear-wrist:save-fort,psp,res-elec,res-unholy,res-sound,res-light] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-wield:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-wield:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HOLD))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-hold:int,cha,hps] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-hold:int,cha,hps] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FACE))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-face:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-face:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_AMMO_POUCH))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-ammopouch:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-ammopouch:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_EAR))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-ear:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-ear:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_EYES))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-eyes:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-eyes:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BADGE))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-badge:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-badge:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHOULDERS))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-shoulders:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-shoulders:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ANKLE))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-ankle:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-ankle:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHEATH))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-sheath:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-sheath:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT))
-      len += snprintf(buf3 + len, sizeof(buf3) - len,
-                      "[wear-instrument:NONE] ");
+      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-instrument:NONE] ");
   }
   /* end eq-wear suggestions */
 
-  write_to_output(d,
-                  "%s7%s) Wear flags  : %s%s\r\n"
-                  "%sH%s) Material    : %s%s\r\n"
-                  "%s8%s) Weight      : %s%d\r\n"
-                  "%sI%s) Size        : %s%s\r\n"
-                  "%s9%s) Cost        : %s%d\r\n"
-                  "%sA%s) Cost/Day    : %s%d\r\n"
-                  "%sB%s) Timer       : %s%d\r\n"
-                  "%sC%s) Values      : %s%d %d %d %d %d %d %d %d\r\n"
-                  "                 %d %d %d %d %d %d %d %d\r\n"
-                  "%s%s%s"
-                  "%sD%s) Applies menu\r\n"
-                  "%sE%s) Extra descriptions menu: %s%s%s\r\n"
-                  "%sF%s) Weapon Spells          : %s%s\r\n"
-                  "%sJ%s) Special Abilities      : %s%s\r\n"
-                  "%sK%s) Activated Spells       : %sLvl %d %s x%d\r\n"
-                  "%sM%s) Min Level              : %s%d\r\n"
-                  "%sP%s) Perm Affects           : %s%s\r\n"
-                  "%sV%s) Perm2 Affects (AFF2)   : %s%s\r\n"
-                  "%sR%s) Mob Recipient          : %s%d\r\n"
-                  "%sS%s) Script                 : %s%s\r\n"
-                  "%sT%s) Spellbook menu\r\n"
-                  "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
-                  "%sSuggested affections (save/exit first): %s%s\r\n"
-                  "%sZ%s) SpecProc               : %s%s\r\n"
-                  "%sW%s) Copy object\r\n"
-                  "%sX%s) Delete object\r\n"
-                  "%sQ%s) Quit\r\n"
-                  "Enter choice : ",
+  write_to_output(
+      d,
+      "%s7%s) Wear flags  : %s%s\r\n"
+      "%sH%s) Material    : %s%s\r\n"
+      "%s8%s) Weight      : %s%d\r\n"
+      "%sI%s) Size        : %s%s\r\n"
+      "%s9%s) Cost        : %s%d\r\n"
+      "%sA%s) Cost/Day    : %s%d\r\n"
+      "%sB%s) Timer       : %s%d\r\n"
+      "%sC%s) Values      : %s%d %d %d %d %d %d %d %d\r\n"
+      "                 %d %d %d %d %d %d %d %d\r\n"
+      "%s%s%s"
+      "%sD%s) Applies menu\r\n"
+      "%sE%s) Extra descriptions menu: %s%s%s\r\n"
+      "%sF%s) Weapon Spells          : %s%s\r\n"
+      "%sJ%s) Special Abilities      : %s%s\r\n"
+      "%sK%s) Activated Spells       : %sLvl %d %s x%d\r\n"
+      "%sM%s) Min Level              : %s%d\r\n"
+      "%sP%s) Perm Affects           : %s%s\r\n"
+      "%sV%s) Perm2 Affects (AFF2)   : %s%s\r\n"
+      "%sR%s) Mob Recipient          : %s%d\r\n"
+      "%sS%s) Script                 : %s%s\r\n"
+      "%sT%s) Spellbook menu\r\n"
+      "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
+      "%sSuggested affections (save/exit first): %s%s\r\n"
+      "%sZ%s) SpecProc               : %s%s\r\n"
+      "%sW%s) Copy object\r\n"
+      "%sX%s) Delete object\r\n"
+      "%sQ%s) Quit\r\n"
+      "Enter choice : ",
 
-                  grn, nrm, cyn, buf1,
-                  grn, nrm, cyn, material_name[GET_OBJ_MATERIAL(obj)],
-                  grn, nrm, cyn, GET_OBJ_WEIGHT(obj),
-                  grn, nrm, cyn, size_names[GET_OBJ_SIZE(obj)],
-                  grn, nrm, cyn, GET_OBJ_COST(obj),
-                  grn, nrm, cyn, GET_OBJ_RENT(obj),
-                  grn, nrm, cyn, GET_OBJ_TIMER(obj),
-                  grn, nrm, cyn,
-                  GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
-                  GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
-                  GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
-                  GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
-                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? "Armor Type: " : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? "Weapon Type: " : ""),
-                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? armor_list[GET_OBJ_VAL(obj, 1)].name : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name : ""),
-                  (GET_OBJ_TYPE(obj) == ITEM_ARMOR || GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? "\r\n" : "",
-                  grn, nrm, grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn,
-                  grn, nrm, cyn, HAS_SPELLS(obj) ? "Set." : "Not set.",
-                  grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",
-                  grn, nrm, cyn, obj->activate_spell[ACT_SPELL_LEVEL], 
-                  obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 ? 
-                  spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name : "Not Set",
-                  obj->activate_spell[ACT_SPELL_MAX_USES],
-                  grn, nrm, cyn, GET_OBJ_LEVEL(obj),
-                  grn, nrm, cyn, buf2,
-                  grn, nrm, cyn, buf4,
-                  grn, nrm, cyn, (obj)->mob_recepient,
-                  grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
-                  grn, nrm,                                                                          /* spellbook */
-                  nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? -999 : get_eq_score(GET_OBJ_RNUM(obj)), /* eq rating */
-                  nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? "save/exit first" : buf3,               /* suggestions */
-                  grn, nrm, cyn, specname ? specname : "None",
-                  grn, nrm,                                                                          /* copy object */
-                  grn, nrm,                                                                          /* delete object */
-                  grn, nrm                                                                           /* quite */
+      grn, nrm, cyn, buf1, grn, nrm, cyn, material_name[GET_OBJ_MATERIAL(obj)], grn, nrm, cyn,
+      GET_OBJ_WEIGHT(obj), grn, nrm, cyn, size_names[GET_OBJ_SIZE(obj)], grn, nrm, cyn,
+      GET_OBJ_COST(obj), grn, nrm, cyn, GET_OBJ_RENT(obj), grn, nrm, cyn, GET_OBJ_TIMER(obj), grn,
+      nrm, cyn, GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
+      GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
+      GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
+      GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
+      GET_OBJ_TYPE(obj) == ITEM_ARMOR ? "Armor Type: "
+                                      : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? "Weapon Type: " : ""),
+      GET_OBJ_TYPE(obj) == ITEM_ARMOR
+          ? armor_list[GET_OBJ_VAL(obj, 1)].name
+          : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name : ""),
+      (GET_OBJ_TYPE(obj) == ITEM_ARMOR || GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? "\r\n" : "", grn, nrm,
+      grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn, grn, nrm, cyn,
+      HAS_SPELLS(obj) ? "Set." : "Not set.", grn, nrm, cyn,
+      HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.", grn, nrm, cyn,
+      obj->activate_spell[ACT_SPELL_LEVEL],
+      obj->activate_spell[ACT_SPELL_SPELLNUM] > 0
+          ? spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name
+          : "Not Set",
+      obj->activate_spell[ACT_SPELL_MAX_USES], grn, nrm, cyn, GET_OBJ_LEVEL(obj), grn, nrm, cyn,
+      buf2, grn, nrm, cyn, buf4, grn, nrm, cyn, (obj)->mob_recepient, grn, nrm, cyn,
+      OLC_SCRIPT(d) ? "Set." : "Not Set.", grn, nrm, /* spellbook */
+      nrm, cyn,
+      (GET_OBJ_RNUM(obj) == NOTHING) ? -999 : get_eq_score(GET_OBJ_RNUM(obj)), /* eq rating */
+      nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? "save/exit first" : buf3,     /* suggestions */
+      grn, nrm, cyn, specname ? specname : "None", grn, nrm,                   /* copy object */
+      grn, nrm,                                                                /* delete object */
+      grn, nrm                                                                 /* quite */
   );
   OLC_MODE(d) = OEDIT_MAIN_MENU;
 }
@@ -2060,24 +2062,29 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   switch (OLC_MODE(d))
   {
-  case OEDIT_SPEC_PROC: {
+  case OEDIT_SPEC_PROC:
+  {
     int choice = atoi(arg);
-    if (!*arg) {
+    if (!*arg)
+    {
       write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
       return;
     }
-    if (*arg == 'q' || *arg == 'Q') {
+    if (*arg == 'q' || *arg == 'Q')
+    {
       oedit_disp_menu(d);
       return;
     }
-    if (choice == 0) {
+    if (choice == 0)
+    {
       OLC(d)->specobj = NULL;
       OLC_VAL(d) = 1;
       oedit_disp_menu(d);
       return;
     }
     choice--;
-    if (choice < 0 || choice >= get_spec_func_count()) {
+    if (choice < 0 || choice >= get_spec_func_count())
+    {
       write_to_output(d, "Invalid selection. Try again: ");
       return;
     }
@@ -2093,8 +2100,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       oedit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
-             "OLC: %s edits obj %d", GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits obj %d",
+             GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         oedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
@@ -2125,20 +2132,22 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     /* Throw us out to whichever edit mode based on user input. */
     switch (*arg)
     {
-        case 'z':
-        case 'Z': {
-          int count = get_spec_func_count();
-          int n;
-          clear_screen(d);
-          write_to_output(d, "Spec Procedures (0 = None)\r\n");
-          for (n = 0; n < count; n++) {
-            write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
-                           ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
-          }
-          write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
-          OLC_MODE(d) = OEDIT_SPEC_PROC;
-          return;
-        }
+    case 'z':
+    case 'Z':
+    {
+      int count = get_spec_func_count();
+      int n;
+      clear_screen(d);
+      write_to_output(d, "Spec Procedures (0 = None)\r\n");
+      for (n = 0; n < count; n++)
+      {
+        write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
+                        ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
+      }
+      write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
+      OLC_MODE(d) = OEDIT_SPEC_PROC;
+      return;
+    }
     case 'q':
     case 'Q':
       if (STATE(d) != CON_IEDIT)
@@ -2341,7 +2350,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
-        write_to_output(d, "\r\nScripts cannot be modified on individual objects.\r\nEnter choice : ");
+        write_to_output(d,
+                        "\r\nScripts cannot be modified on individual objects.\r\nEnter choice : ");
       }
       return;
     case 't':
@@ -2370,7 +2380,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       break;
     case 'k':
     case 'K':
-      write_to_output(d, "Please enter the level the spell will be cast at (Enter 0 to erase this activated spell): ");
+      write_to_output(d, "Please enter the level the spell will be cast at (Enter 0 to erase this "
+                         "activated spell): ");
       OLC_MODE(d) = OEDIT_ACTIVATED_SPELLS_LEVEL;
       break;
     case 'u':
@@ -2431,8 +2442,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     else
       GET_OBJ_TYPE(OLC_OBJ(d)) = number;
     /* what's the boundschecking worth if we don't do this ? -- Welcor */
-    GET_OBJ_VAL(OLC_OBJ(d), 0) = GET_OBJ_VAL(OLC_OBJ(d), 1) =
-    GET_OBJ_VAL(OLC_OBJ(d), 2) = GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
+    GET_OBJ_VAL(OLC_OBJ(d), 0) = GET_OBJ_VAL(OLC_OBJ(d), 1) = GET_OBJ_VAL(OLC_OBJ(d), 2) =
+        GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
     if (number == ITEM_TREASURE_CHEST)
       REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE); /* chests can't be taken */
     break;
@@ -2463,7 +2474,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     if (number == -1)
     {
-      OLC_OBJ(d)->obj_flags.extra_flags[0] = OLC_OBJ(d)->obj_flags.extra_flags[1] = OLC_OBJ(d)->obj_flags.extra_flags[2] = OLC_OBJ(d)->obj_flags.extra_flags[3] = 0;
+      OLC_OBJ(d)->obj_flags.extra_flags[0] = OLC_OBJ(d)->obj_flags.extra_flags[1] =
+          OLC_OBJ(d)->obj_flags.extra_flags[2] = OLC_OBJ(d)->obj_flags.extra_flags[3] = 0;
       oedit_disp_extra_menu(d);
       write_to_output(d, "You've removed all object flags from this object.\r\n");
       return;
@@ -2557,7 +2569,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
-
     case ITEM_INSTRUMENT:
       GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
       break;
@@ -2590,8 +2601,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
     case ITEM_WEAPON:
       /* function from treasure.c */
-      set_weapon_object(OLC_OBJ(d),
-                        MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1));
+      set_weapon_object(OLC_OBJ(d), MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1));
 
       /*  Skip a few. */
       oedit_disp_val5_menu(d);
@@ -2700,8 +2710,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       break;
     case ITEM_ARMOR: /* val[0] is AC from old system setup */
       /* from treasure.c - auto set some values of this item now! */
-      set_armor_object(OLC_OBJ(d),
-                       MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1));
+      set_armor_object(OLC_OBJ(d), MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1));
 
       /*  Skip to enhancement menu. */
       oedit_disp_val5_menu(d);
@@ -2748,7 +2757,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case ITEM_TREASURE_CHEST:
       if (number < 0 || number > 1)
       {
-        write_to_output(d, "Please select 0 for a regular treasure chest or 1 for a random treasure chest.\r\n");
+        write_to_output(
+            d,
+            "Please select 0 for a regular treasure chest or 1 for a random treasure chest.\r\n");
         return;
       }
       min_val = 0;
@@ -2824,7 +2835,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case ITEM_TREASURE_CHEST:
       if (number < 0 || number > 80)
       {
-        write_to_output(d, "Please select 0 if the chest is not hidden, otherwise enter the search dc (max 80).\r\n");
+        write_to_output(d, "Please select 0 if the chest is not hidden, otherwise enter the search "
+                           "dc (max 80).\r\n");
         return;
       }
       min_val = 0;
@@ -2835,9 +2847,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       min_val = 0;
       max_val = NUM_APPLIES;
       number = LIMIT(number, min_val, max_val);
-      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
-            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
-            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 ||
+          number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3 ||
+          number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 ||
+          number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7 ||
+          number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
       {
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         return;
@@ -2899,7 +2913,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case ITEM_TREASURE_CHEST:
       if (number < 0 || number > 80)
       {
-        write_to_output(d, "Please select 0 if the chest is not locked, otherwise enter the pick lock dc (max 80).\r\n");
+        write_to_output(d, "Please select 0 if the chest is not locked, otherwise enter the pick "
+                           "lock dc (max 80).\r\n");
         return;
       }
       min_val = 0;
@@ -2939,7 +2954,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case ITEM_TREASURE_CHEST:
       if (number < 0 || number > NUM_TRAP_SPECIAL_EFFECTS)
       {
-        write_to_output(d, "Please select 0 if the chest has no trap, otherwise enter the trap type desired.\r\n");
+        write_to_output(
+            d,
+            "Please select 0 if the chest has no trap, otherwise enter the trap type desired.\r\n");
         return;
       }
       min_val = 0;
@@ -2968,9 +2985,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       min_val = 0;
       max_val = NUM_APPLIES;
       number = LIMIT(number, min_val, max_val);
-      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
-            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
-            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 ||
+          number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3 ||
+          number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 ||
+          number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7 ||
+          number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
       {
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         oedit_disp_val7_menu(d);
@@ -3030,9 +3049,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       min_val = 0;
       max_val = NUM_APPLIES;
       number = LIMIT(number, min_val, max_val);
-      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
-            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
-            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 ||
+          number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3 ||
+          number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 ||
+          number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7 ||
+          number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
       {
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         oedit_disp_val10_menu(d);
@@ -3092,9 +3113,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       min_val = 0;
       max_val = NUM_APPLIES;
       number = LIMIT(number, min_val, max_val);
-      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
-            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
-            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 ||
+          number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3 ||
+          number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 ||
+          number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7 ||
+          number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
       {
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         oedit_disp_val13_menu(d);
@@ -3203,7 +3226,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
-        send_to_char(d->character, "\tcSuggested Modifier Based on Object Level: %d\tn\r\n", get_gear_bonus_amount_by_level(OLC_OBJ(d)->affected[OLC_VAL(d)].location, GET_OBJ_LEVEL(OLC_OBJ(d))));
+        send_to_char(d->character, "\tcSuggested Modifier Based on Object Level: %d\tn\r\n",
+                     get_gear_bonus_amount_by_level(OLC_OBJ(d)->affected[OLC_VAL(d)].location,
+                                                    GET_OBJ_LEVEL(OLC_OBJ(d))));
         write_to_output(d, "Modifier : ");
       }
       OLC_MODE(d) = OEDIT_APPLYMOD;
@@ -3258,7 +3283,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
 
     OLC_OBJ(d)->affected[OLC_VAL(d)].bonus_type = atoi(arg);
-    
+
     if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_SKILL)
     {
       write_to_output(d, "\r\nSelect which skill to affect:\r\n\r\n");
@@ -3272,13 +3297,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Skill: ");
       OLC_MODE(d) = OEDIT_APPLY_SPECIFIC;
     }
-    else if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
+    else if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 &&
+             OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
     {
       count = 1;
       write_to_output(d, "\r\nSelect which class to affect:\r\n\r\n");
       for (i = CLASS_WIZARD; i < NUM_CLASSES; i++)
       {
-        if (!IS_SPELLCASTER_CLASS(i)) continue;
+        if (!IS_SPELLCASTER_CLASS(i))
+          continue;
         write_to_output(d, "%2d) %-21s ", i, class_names[i]);
         if ((count % 3) == 0)
           write_to_output(d, "\r\n");
@@ -3303,13 +3330,14 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    else if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
+    else if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 &&
+             OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
     {
       if (!IS_SPELLCASTER_CLASS(number))
       {
         write_to_output(d, "That is not a valid spellcasting class.\r\n");
         return;
-      } 
+      }
     }
     OLC_OBJ(d)->affected[OLC_VAL(d)].specific = number;
     oedit_disp_prompt_apply_menu(d);
@@ -3589,7 +3617,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
     if (number < 0 || number > 30)
     {
-      write_to_output(d, "That is not a valid level. Choose between 1 and 30, or 0 to erase the existing activated spell.\r\n");
+      write_to_output(d, "That is not a valid level. Choose between 1 and 30, or 0 to erase the "
+                         "existing activated spell.\r\n");
       return;
     }
     OLC_VAL(d) = 1;
@@ -3598,7 +3627,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     count = 0;
     for (i = 1; i < NUM_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!")) continue;
+      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+        continue;
       write_to_output(d, "\tG%3d)\ty%22.22s ", i, spell_info[i].name);
       if ((count % 3) == 2)
         write_to_output(d, "\r\n");
@@ -3618,7 +3648,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
     OLC_OBJ(d)->activate_spell[ACT_SPELL_SPELLNUM] = number;
-    write_to_output(d, "Please specify the number of uses. These recover at a rate of 1 every 5 minutes. ");
+    write_to_output(
+        d, "Please specify the number of uses. These recover at a rate of 1 every 5 minutes. ");
     OLC_MODE(d) = OEDIT_ACTIVATED_SPELLS_MAX_USES;
     return;
 
@@ -3626,7 +3657,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     if (number <= 0 || number > MAX_NUMBER_OF_ACTIVATED_SPELL_USES)
     {
-      write_to_output(d, "You must select between 1 and %d uses.\r\n", MAX_NUMBER_OF_ACTIVATED_SPELL_USES);
+      write_to_output(d, "You must select between 1 and %d uses.\r\n",
+                      MAX_NUMBER_OF_ACTIVATED_SPELL_USES);
       return;
     }
     OLC_OBJ(d)->activate_spell[ACT_SPELL_MAX_USES] = number;
@@ -3747,9 +3779,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
     if (remove_special_ability(OLC_OBJ(d), number))
     {
-        OLC_SPECAB(d) = NULL;
-        write_to_output(d, "Ability deleted.\r\n");
-        OLC_VAL(d) = 1;
+      OLC_SPECAB(d) = NULL;
+      write_to_output(d, "Ability deleted.\r\n");
+      OLC_VAL(d) = 1;
     }
     else
       write_to_output(d, "That ability does not exist!\r\n");
@@ -3916,8 +3948,7 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator)
 
 /* this is all iedit stuff */
 
-void iedit_setup_existing(struct descriptor_data *d,
-                          struct obj_data *real_num)
+void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
 
 {
   struct obj_data *obj;
@@ -3970,8 +4001,7 @@ ACMD(do_iedit)
   {
     found = 1;
   }
-  else if ((k = get_obj_in_list_vis(ch, arg, NULL,
-                                    world[IN_ROOM(ch)].contents)))
+  else if ((k = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)))
   {
     found = 1;
   }

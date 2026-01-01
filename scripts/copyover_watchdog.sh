@@ -25,7 +25,7 @@ analyze_copyover_state() {
     echo "=========================================="
     echo "Timestamp: $(date)"
     echo ""
-    
+
     # Check if copyover file exists
     if [ -f "$COPYOVER_FILE" ]; then
         echo "WARNING: Copyover file still exists!"
@@ -37,7 +37,7 @@ analyze_copyover_state() {
         echo "Copyover file: Not found (normal after successful copyover)"
         echo ""
     fi
-    
+
     # Check last state file
     if [ -f "$STATE_FILE" ]; then
         echo "Last copyover state:"
@@ -47,7 +47,7 @@ analyze_copyover_state() {
         echo "No state file found"
         echo ""
     fi
-    
+
     # Check if MUD is running
     if is_mud_running; then
         echo "MUD Status: RUNNING (PID: $(cat "$PID_FILE"))"
@@ -55,14 +55,14 @@ analyze_copyover_state() {
         echo "MUD Status: NOT RUNNING"
     fi
     echo ""
-    
+
     # Check system resources
     echo "System Resources:"
     echo "  Memory: $(free -h 2>/dev/null | grep Mem: | awk '{print "Used: " $3 " / Total: " $2}' || echo "N/A")"
     echo "  Load Average: $(uptime | awk -F'load average:' '{print $2}')"
     echo "  Disk Space (current dir): $(df -h . | tail -1 | awk '{print "Used: " $3 " / Total: " $2 " (" $5 " used)"}')"
     echo ""
-    
+
     # Check file descriptor limits
     echo "File Descriptor Limits:"
     if [ -f "/proc/sys/fs/file-nr" ]; then
@@ -72,7 +72,7 @@ analyze_copyover_state() {
     fi
     ulimit -n | awk '{print "  Process limit: " $1}'
     echo ""
-    
+
     # Recent errors from diagnostic log
     if [ -f "$DIAG_LOG" ]; then
         echo "Recent diagnostic entries:"
@@ -84,19 +84,19 @@ analyze_copyover_state() {
 # Function to clean up after failed copyover
 cleanup_failed_copyover() {
     echo "Cleaning up after failed copyover..."
-    
+
     if [ -f "$COPYOVER_FILE" ]; then
         echo "  Backing up copyover file to copyover.dat.failed"
         cp "$COPYOVER_FILE" "${COPYOVER_FILE}.failed"
         rm -f "$COPYOVER_FILE"
         echo "  Removed stale copyover file"
     fi
-    
+
     if [ -f "$STATE_FILE" ]; then
         echo "  Backing up state file to copyover_last_state.txt.bak"
         cp "$STATE_FILE" "${STATE_FILE}.bak"
     fi
-    
+
     echo "Cleanup complete"
 }
 

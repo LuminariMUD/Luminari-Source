@@ -8,7 +8,7 @@ CC = @CC@
 MYFLAGS = @MYFLAGS@
 
 #flags for profiling (see hacker.doc for more information)
-PROFILE = 
+PROFILE =
 
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
@@ -28,7 +28,7 @@ LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -lssl -lcrypto -lpthread
 
 SRCFILES := $(wildcard src/*.c)
 CPPFILES := $(wildcard src/*.cpp)
-OBJFILES := $(SRCFILES:src/%.c=src/%.o) $(CPPFILES:src/%.cpp=src/%.o)  
+OBJFILES := $(SRCFILES:src/%.c=src/%.o) $(CPPFILES:src/%.cpp=src/%.o)
 
 default: circle
 

@@ -39,36 +39,36 @@ static void init_game(ush_int local_port)
 {
     // 1. Create kill script protection
     touch(KILLSCRIPT_FILE);
-    
+
     // 2. Initialize random number generator
     circle_srandom(time(0));
-    
+
     // 3. Determine player limits
     max_players = get_max_players();
-    
+
     // 4. Setup network socket (unless copyover)
     if (!fCopyOver)
         mother_desc = init_socket(local_port);
-    
+
     // 5. Initialize event system
     event_init();
-    
+
     // 6. Setup character lookup hash table
     init_lookup_table();
-    
+
     // 7. Load world data
     boot_db();
-    
+
     // 8. Setup signal handlers
     signal_setup();
-    
+
     // 9. Handle copyover recovery if needed
     if (fCopyOver)
         copyover_recover();
-    
+
     // 10. Enter main game loop
     game_loop(mother_desc);
-    
+
     // 11. Shutdown sequence
     // - Save all player data
     // - Close all sockets
@@ -86,7 +86,7 @@ void game_loop(socket_t local_mother_desc)
 {
     fd_set input_set, output_set, exc_set, null_set;
     struct timeval timeout, last_time, opt_time;
-    
+
     while (!circle_shutdown) {
         // 1. Handle no-connection sleep state
         // 2. Setup file descriptor sets
@@ -172,11 +172,11 @@ void heartbeat(int heart_pulse)
 {
     // Every pulse (0.1 seconds)
     event_process();                    // Event system
-    
+
     // Every 0.5 seconds  
     if (!(heart_pulse % PULSE_DG_SCRIPT))
         script_trigger_check();         // DG Scripts
-    
+
     // Every second
     if (!(heart_pulse % PASSES_PER_SEC)) {
         msdp_update();                  // Protocol updates
@@ -184,22 +184,22 @@ void heartbeat(int heart_pulse)
         craft_update();                 // Crafting system
         // ... other per-second updates
     }
-    
+
     // Every 5 seconds
     if (!(heart_pulse % PULSE_MOBILE))
         mobile_activity();              // NPC actions
-    
+
     // Every 30 seconds  
     if (!(heart_pulse % PULSE_ZONE))
         zone_update();                  // Zone resets
-    
+
     // Every MUD hour (75 seconds default)
     if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC))) {
         weather_and_time(1);            // Weather/time
         point_update();                 // HP/MP regeneration
         check_timed_quests();           // Quest timers
     }
-    
+
     // Every minute
     if (!(heart_pulse % PULSE_AUTOSAVE)) {
         Crash_save_all();               // Player saves
@@ -240,26 +240,26 @@ void boot_world(void)
 {
     // 1. Database connection
     connect_to_mysql();
-    
+
     // 2. Core world data
     index_boot(DB_BOOT_ZON);    // Zones
     index_boot(DB_BOOT_TRG);    // Triggers  
     index_boot(DB_BOOT_WLD);    // Rooms
-    
+
     // 3. Extended world features
     load_regions();             // Geographic regions
     load_paths();               // Travel paths
     renum_world();              // Renumber rooms
-    
+
     // 4. Entities
     index_boot(DB_BOOT_MOB);    // NPCs/Monsters
     index_boot(DB_BOOT_OBJ);    // Objects/Items
-    
+
     // 5. Game systems
     load_class_list();          // Character classes
     assign_feats();             // Feat system
     load_deities();             // Religion system
-    
+
     // 6. Finalization
     renum_zone_table();         // Final zone numbering
     boot_social_messages();     // Social commands

@@ -4,5 +4,5 @@
 
 void Test_alignment_placeholder(CuTest *tc)
 {
-    CuAssertTrue(tc, 1);
+  CuAssertTrue(tc, 1);
 }

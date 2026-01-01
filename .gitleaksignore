@@ -1,0 +1,9 @@
+# Gitleaks false positives - example/documentation files
+
+# Historical .env.example files with placeholder API keys (not real secrets)
+c6c7e22b75d076ebacf6aec6925fb12032da2275:lib/.env.example:generic-api-key:91
+b5e96c923927164a64225c5ffc1c623de220dc1c:lib/.env.example:generic-api-key:91
+885d4b8c2554e8768018bc74fea57f1ce312da1b:.env.example:generic-api-key:91
+9982a1265abee21a7f2e809c01a21dbe43055b8f:.env.example:generic-api-key:91
+8ae2324e5cf2c5b1f1e86d7554eebfd570065fcf:.env.example:generic-api-key:91
+7af45580381143abed1d8d7ff51ab4d502676717:.env.example:generic-api-key:91

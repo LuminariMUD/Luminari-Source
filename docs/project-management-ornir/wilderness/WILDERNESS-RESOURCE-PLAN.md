@@ -316,16 +316,16 @@ This document outlines the implementation plan for a dynamic resource system in 
    ```
    # Install the flexible region effects database schema:
    db_init_system wilderness
-   
+
    # Test effects management
    resourceadmin effects list                    # Show all available effects
    resourceadmin effects show 1                  # Show details for effect ID 1
-   
+
    # Test region effect assignments
    resourceadmin effects assign 1001 1 1.5       # Assign effect 1 to region 1001 with intensity 1.5
    resourceadmin effects region 1001             # Show all effects for region 1001
    resourceadmin effects unassign 1001 1         # Remove effect 1 from region 1001
-   
+
    # Enhanced debug with region analysis
    resourceadmin debug                 # Now includes region modifier breakdown
    ```
@@ -336,10 +336,10 @@ This document outlines the implementation plan for a dynamic resource system in 
    ```
    # First visit (should be cache MISS)
    resourceadmin debug
-   
+
    # Immediate second visit (should be cache HIT)
    resourceadmin debug
-   
+
    # Move around same area and return (should still be cache HIT)
    ```
 
@@ -347,10 +347,10 @@ This document outlines the implementation plan for a dynamic resource system in 
    ```
    # Check cache stats
    resourceadmin cache
-   
+
    # Wait 5+ minutes or use cache clear
    resourceadmin cache clear
-   
+
    # Verify cache rebuilds on next access
    resourceadmin debug
    ```

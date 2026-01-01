@@ -131,8 +131,7 @@ int item_in_list(char *item, obj_data *list)
     {
       if (id == GET_ID(i))
         count++;
-      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
-          GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
+      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER || GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
         count += item_in_list(item, i->contains);
     }
   }
@@ -144,8 +143,7 @@ int item_in_list(char *item, obj_data *list)
     {
       if (GET_OBJ_VNUM(i) == ovnum)
         count++;
-      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
-          GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
+      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER || GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
         count += item_in_list(item, i->contains);
     }
   }
@@ -155,8 +153,7 @@ int item_in_list(char *item, obj_data *list)
     {
       if (isname(item, i->name))
         count++;
-      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER ||
-          GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
+      if (GET_OBJ_TYPE(i) == ITEM_CONTAINER || GET_OBJ_TYPE(i) == ITEM_AMMO_POUCH)
         count += item_in_list(item, i->contains);
     }
   }
@@ -168,7 +165,6 @@ int item_in_list(char *item, obj_data *list)
  * containers. Jamie Nelson */
 int char_has_item(char *item, struct char_data *ch)
 {
-
   /* If this works, no more searching needed */
   if (get_object_in_equip(ch, item) != NULL)
     return 1;
@@ -189,12 +185,11 @@ static int handle_oset(struct obj_data *obj, char *argument)
   {
     const char *type;
     bool (*name)(struct obj_data *, const char *);
-  } handler[] = {
-      {"alias", oset_alias},
-      {"apply", oset_apply},
-      {"longdesc", oset_long_description},
-      {"shortdesc", oset_short_description},
-      {"\n", NULL}};
+  } handler[] = {{"alias", oset_alias},
+                 {"apply", oset_apply},
+                 {"longdesc", oset_long_description},
+                 {"shortdesc", oset_short_description},
+                 {"\n", NULL}};
 
   if (!obj || !*argument)
     return 0;
@@ -218,8 +213,7 @@ static int handle_oset(struct obj_data *obj, char *argument)
   return 1;
 }
 
-int text_processed(char *field, char *subfield, struct trig_var_data *vd,
-                   char *str, size_t slen)
+int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *str, size_t slen)
 {
   char *p, *p2;
   char tmpvar[MAX_STRING_LENGTH] = {'\0'};
@@ -291,8 +285,7 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd,
     /* depending on what patches you've got applied.                      */
     /* on older source bases:    extern struct command_info *cmd_info; */
     int length, cmd;
-    for (length = strlen(vd->value), cmd = 0;
-         *cmd_info[cmd].command != '\n'; cmd++)
+    for (length = strlen(vd->value), cmd = 0; *cmd_info[cmd].command != '\n'; cmd++)
       if (!strncmp(cmd_info[cmd].command, vd->value, length))
         break;
 
@@ -307,8 +300,8 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd,
 }
 
 /* sets str to be the value of var.field */
-void find_replacement(void *go, struct script_data *sc, trig_data *trig,
-                      int type, char *var, char *field, char *subfield, char *str, size_t slen)
+void find_replacement(void *go, struct script_data *sc, trig_data *trig, int type, char *var,
+                      char *field, char *subfield, char *str, size_t slen)
 {
   struct trig_var_data *vd = NULL;
   char_data *ch, *c = NULL, *rndm;
@@ -316,7 +309,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   struct room_data *room, *r = NULL;
   char *name;
   int num, count, i, j, doors, index = 0;
-  
+
 
   const char *const send_cmd[] = {"msend ", "osend ", "wsend "};
   const char *const echo_cmd[] = {"mecho ", "oecho ", "wecho "};
@@ -350,8 +343,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   /* some evil waitstates could crash the mud if sent here with sc==NULL*/
   if (!vd && sc)
     for (vd = sc->global_vars; vd; vd = vd->next)
-      if (!str_cmp(vd->name, var) &&
-          (vd->context == 0 || vd->context == sc->context))
+      if (!str_cmp(vd->name, var) && (vd->context == 0 || vd->context == sc->context))
         break;
 
   if (!*field)
@@ -429,7 +421,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
     if (vd)
     {
       name = vd->value;
-      
+
 
       switch (type)
       {
@@ -483,7 +475,6 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
     {
       if (!str_cmp(var, "self"))
       {
-        
         switch (type)
         {
         case MOB_TRIGGER:
@@ -626,8 +617,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (VALID_ROOM_RNUM(IN_ROOM(ch)))
             {
               for (c = world[IN_ROOM(ch)].people; c; c = c->next_in_room)
-                if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) &&
-                    CAN_SEE(ch, c))
+                if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) && CAN_SEE(ch, c))
                 {
                   if (!rand_number(0, count))
                     rndm = c;
@@ -640,8 +630,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             room_rnum obj_rm = obj_room((obj_data *)go);
             if (VALID_ROOM_RNUM(obj_rm))
             {
-              for (c = world[obj_rm].people; c;
-                   c = c->next_in_room)
+              for (c = world[obj_rm].people; c; c = c->next_in_room)
                 if (valid_dg_target(c, DG_ALLOW_STAFFS))
                 {
                   if (!rand_number(0, count))
@@ -652,11 +641,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           else if (type == WLD_TRIGGER)
           {
-            for (c = ((struct room_data *)go)->people; c;
-                 c = c->next_in_room)
+            for (c = ((struct room_data *)go)->people; c; c = c->next_in_room)
               if (valid_dg_target(c, DG_ALLOW_STAFFS))
               {
-
                 if (!rand_number(0, count))
                   rndm = c;
                 count++;
@@ -719,15 +706,14 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
       }
     }
 
-    
+
     if (c)
     {
       if (!str_cmp(field, "global"))
       { /* get global of something else */
         if (IS_NPC(c) && c->script)
         {
-          find_replacement(go, c->script, NULL, MOB_TRIGGER,
-                           subfield, NULL, NULL, str, slen);
+          find_replacement(go, c->script, NULL, MOB_TRIGGER, subfield, NULL, NULL, str, slen);
         }
       }
       /* set str to some 'non-text' first */
@@ -1277,8 +1263,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         break;
       case 'q':
 
-        if (!IS_NPC(c) && (!str_cmp(field, "questpoints") ||
-                           !str_cmp(field, "qp") || !str_cmp(field, "qpnts")))
+        if (!IS_NPC(c) &&
+            (!str_cmp(field, "questpoints") || !str_cmp(field, "qp") || !str_cmp(field, "qpnts")))
         {
           if (subfield && *subfield)
           {
@@ -1295,7 +1281,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
 
           for (index = 0; index < MAX_CURRENT_QUESTS; index++)
           { /* loop through all the character's quest slots */
-            if (!IS_NPC(c) && (GET_QUEST(c, index) != NOTHING) && (real_quest(GET_QUEST(c, index)) != NOTHING))
+            if (!IS_NPC(c) && (GET_QUEST(c, index) != NOTHING) &&
+                (real_quest(GET_QUEST(c, index)) != NOTHING))
             {
               snprintf(str, slen, "%d", GET_QUEST(c, index));
               found = TRUE;
@@ -1530,7 +1517,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           /* see note in dg_scripts.h */
 #ifdef ACTOR_ROOM_IS_UID
           snprintf(str, slen, "%c%ld", UID_CHAR,
-                   (IN_ROOM(c) != NOWHERE) ? (long)world[IN_ROOM(c)].number + ROOM_ID_BASE : ROOM_ID_BASE);
+                   (IN_ROOM(c) != NOWHERE) ? (long)world[IN_ROOM(c)].number + ROOM_ID_BASE
+                                           : ROOM_ID_BASE);
 #else
           snprintf(str, slen, "%d", (IN_ROOM(c) != NOWHERE) ? world[IN_ROOM(c)].number : 0);
 #endif
@@ -1794,15 +1782,17 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             *str = '\0';
-            script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char: %s [%d], attempted: %%<char_var>.%s%%)",
-                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field,
-                       c ? GET_NAME(c) : "NULL", c ? GET_MOB_VNUM(c) : -1, field);
+            script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char: %s [%d], "
+                       "attempted: %%<char_var>.%s%%)",
+                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field, c ? GET_NAME(c) : "NULL",
+                       c ? GET_MOB_VNUM(c) : -1, field);
           }
         }
         else
         {
           *str = '\0';
-          script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char has no script, attempted: %%<char_var>.%s%%)",
+          script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char has no "
+                     "script, attempted: %%<char_var>.%s%%)",
                      GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field, field);
         }
       }
@@ -1810,7 +1800,6 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
 
     else if (o)
     {
-
       *str = '\x1';
       switch (LOWER(*field))
       {
@@ -1819,8 +1808,10 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         {
           if (subfield && *subfield)
           {
-            if (check_flags_by_name_ar(GET_OBJ_AFFECT(o), NUM_AFF_FLAGS, subfield, affected_bits) == TRUE ||
-                check_flags_by_name_ar(GET_OBJ2_AFFECT(o), NUM_AFF2_FLAGS, subfield, affected2_bits) == TRUE)
+            if (check_flags_by_name_ar(GET_OBJ_AFFECT(o), NUM_AFF_FLAGS, subfield, affected_bits) ==
+                    TRUE ||
+                check_flags_by_name_ar(GET_OBJ2_AFFECT(o), NUM_AFF2_FLAGS, subfield,
+                                       affected2_bits) == TRUE)
               snprintf(str, slen, "1");
             else
               snprintf(str, slen, "0");
@@ -1876,8 +1867,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         } /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
         else if (!str_cmp(field, "count"))
         {
-          if (GET_OBJ_TYPE(o) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
+          if (GET_OBJ_TYPE(o) == ITEM_CONTAINER || GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
             snprintf(str, slen, "%d", item_in_list(subfield, o->contains));
           else
             strcpy(str, "0");
@@ -1903,8 +1893,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
         if (!str_cmp(field, "has_in"))
         {
-          if (GET_OBJ_TYPE(o) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
+          if (GET_OBJ_TYPE(o) == ITEM_CONTAINER || GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
             snprintf(str, slen, "%s", (item_in_list(subfield, o->contains) ? "1" : "0"));
           else
             strcpy(str, "0");
@@ -2047,7 +2036,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             *str = '\0';
-            script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj: %s [%d], attempted: %%<obj_var>.%s%%)",
+            script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj: %s "
+                       "[%d], attempted: %%<obj_var>.%s%%)",
                        GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field,
                        o ? o->short_description : "NULL", o ? GET_OBJ_VNUM(o) : -1, field);
           }
@@ -2055,7 +2045,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         else
         {
           *str = '\0';
-          script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj has no script, attempted: %%<obj_var>.%s%%)",
+          script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj has no "
+                     "script, attempted: %%<obj_var>.%s%%)",
                      GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, field);
         }
       }
@@ -2063,14 +2054,14 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
 
     else if (r)
     {
-
       /* special handling of the void, as it stores all 'full global' variables */
       if (r->number == 0)
       {
         if (!SCRIPT(r))
         {
           *str = '\0';
-          script_log("Trigger: %s, Vnum %d, type %d. Trying to access Global var list of void. Apparently this has not been set up!",
+          script_log("Trigger: %s, Vnum %d, type %d. Trying to access Global var list of void. "
+                     "Apparently this has not been set up!",
                      GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type);
         }
         else
@@ -2146,11 +2137,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
       }
       else if (!str_cmp(field, "weather"))
       {
-        const char *sky_look[] = {
-            "sunny",
-            "cloudy",
-            "rainy",
-            "lightning"};
+        const char *sky_look[] = {"sunny", "cloudy", "rainy", "lightning"};
 
         room_rnum rnum = real_room(r->number);
 
@@ -2178,7 +2165,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         if (subfield && *subfield)
         {
           room_rnum thisroom = real_room(r->number);
-          if (check_flags_by_name_ar(ROOM_FLAGS(thisroom), NUM_ROOM_FLAGS, subfield, room_bits) == TRUE)
+          if (check_flags_by_name_ar(ROOM_FLAGS(thisroom), NUM_ROOM_FLAGS, subfield, room_bits) ==
+              TRUE)
             snprintf(str, slen, "1");
           else
             snprintf(str, slen, "0");
@@ -2201,7 +2189,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             else if (!str_cmp(subfield, "room"))
             {
               if (R_EXIT(r, NORTH)->to_room != NOWHERE)
-                snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[R_EXIT(r, NORTH)->to_room].number + ROOM_ID_BASE);
+                snprintf(str, slen, "%c%ld", UID_CHAR,
+                         (long)world[R_EXIT(r, NORTH)->to_room].number + ROOM_ID_BASE);
               else
                 *str = '\0';
             }
@@ -2227,7 +2216,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             else if (!str_cmp(subfield, "room"))
             {
               if (R_EXIT(r, EAST)->to_room != NOWHERE)
-                snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[R_EXIT(r, EAST)->to_room].number + ROOM_ID_BASE);
+                snprintf(str, slen, "%c%ld", UID_CHAR,
+                         (long)world[R_EXIT(r, EAST)->to_room].number + ROOM_ID_BASE);
               else
                 *str = '\0';
             }
@@ -2253,7 +2243,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             else if (!str_cmp(subfield, "room"))
             {
               if (R_EXIT(r, SOUTH)->to_room != NOWHERE)
-                snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[R_EXIT(r, SOUTH)->to_room].number + ROOM_ID_BASE);
+                snprintf(str, slen, "%c%ld", UID_CHAR,
+                         (long)world[R_EXIT(r, SOUTH)->to_room].number + ROOM_ID_BASE);
               else
                 *str = '\0';
             }
@@ -2279,7 +2270,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             else if (!str_cmp(subfield, "room"))
             {
               if (R_EXIT(r, WEST)->to_room != NOWHERE)
-                snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[R_EXIT(r, WEST)->to_room].number + ROOM_ID_BASE);
+                snprintf(str, slen, "%c%ld", UID_CHAR,
+                         (long)world[R_EXIT(r, WEST)->to_room].number + ROOM_ID_BASE);
               else
                 *str = '\0';
             }
@@ -2305,7 +2297,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             else if (!str_cmp(subfield, "room"))
             {
               if (R_EXIT(r, UP)->to_room != NOWHERE)
-                snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[R_EXIT(r, UP)->to_room].number + ROOM_ID_BASE);
+                snprintf(str, slen, "%c%ld", UID_CHAR,
+                         (long)world[R_EXIT(r, UP)->to_room].number + ROOM_ID_BASE);
               else
                 *str = '\0';
             }
@@ -2331,7 +2324,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             else if (!str_cmp(subfield, "room"))
             {
               if (R_EXIT(r, DOWN)->to_room != NOWHERE)
-                snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[R_EXIT(r, DOWN)->to_room].number + ROOM_ID_BASE);
+                snprintf(str, slen, "%c%ld", UID_CHAR,
+                         (long)world[R_EXIT(r, DOWN)->to_room].number + ROOM_ID_BASE);
               else
                 *str = '\0';
             }
@@ -2370,15 +2364,17 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             *str = '\0';
-            script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room vnum: %d, attempted access: %%<room_var>.%s%%)",
-                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, 
-                       r ? r->number : -1, field);
+            script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room vnum: "
+                       "%d, attempted access: %%<room_var>.%s%%)",
+                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, r ? r->number : -1,
+                       field);
           }
         }
         else
         {
           *str = '\0';
-          script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room has no script, attempted access: %%<room_var>.%s%%)",
+          script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room has no "
+                     "script, attempted access: %%<room_var>.%s%%)",
                      GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, field);
         }
       }
@@ -2394,8 +2390,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
  * - Jamie Nelson */
 
 /* substitutes any variables into line and returns it as buf */
-void var_subst(void *go, struct script_data *sc, trig_data *trig,
-               int type, char *line, char *buf)
+void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char *line, char *buf)
 {
   char tmp[MAX_INPUT_LENGTH] = {'\0'}, repl_str[MAX_INPUT_LENGTH] = {'\0'};
   char *var = NULL, *field = NULL, *p = NULL;
@@ -2421,7 +2416,6 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
 
   while (*p && (left > 0))
   {
-
     /* copy until we find the first % */
     while (*p && (*p != '%') && (left > 0))
     {
@@ -2441,7 +2435,6 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
     } /* so it wasn't double %'s */
     else if (*p && (left > 0))
     {
-
       /* search until end of var or beginning of field */
       for (var = p; *p && (*p != '%') && (*p != '.'); p++)
         ;
@@ -2488,7 +2481,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
             dots++;
           }
         } /* for (field.. */
-      }   /* if *p == '.' */
+      } /* if *p == '.' */
 
       *(p++) = '\0';
       *subfield_p = '\0';
@@ -2506,5 +2499,5 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
       buf += len;
       left -= len;
     } /* else if *p .. */
-  }   /* while *p .. */
+  } /* while *p .. */
 }

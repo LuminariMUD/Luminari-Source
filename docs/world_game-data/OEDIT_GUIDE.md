@@ -16,12 +16,12 @@
 4) Action description     9) Cost               W) Copy object
 5) Type                   A) Cost/Day           X) Delete object
 6) Extra flags            B) Timer              Q) Quit
-7) Wear flags             C) Values             
+7) Wear flags             C) Values  
                           D) Applies menu       F) Weapon Spells
                           E) Extra descriptions J) Special Abilities
                           K) Activated Spells   M) Minimum Level
                           P) Permanent affects  R) Mob Recipient
-                          S) Script             
+                          S) Script  
 ```
 
 ### Text Fields (1–4)

@@ -145,4 +145,3 @@
 - **OLC Scripts**: Fixed proto list leak in `dg_olc_script_copy()`
 - **Template System**: Removed unnecessary `strdup()` in levelinfo_search calls
 - **Forge Command**: Fixed forge_as_signature leak in backgrounds.c:826
-

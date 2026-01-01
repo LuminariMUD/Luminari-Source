@@ -1,13 +1,13 @@
 If you have any additions, corrections, ideas, or bug reports please stop by the
 Builder Academy at telnet://tbamud.com:9091 or email rumble@tbamud.com -- Rumble
 
-Circle and tbaMUD Release History 
+Circle and tbaMUD Release History
 
-Abstract 
+Abstract
 
 This document lists the release history of CircleMUD and at the end is the post
-to rec.games.mud.diku which originally announced CircleMUD as a publicly 
-available MUD source code. 
+to rec.games.mud.diku which originally announced CircleMUD as a publicly
+available MUD source code.
 
 tbaMUD Release history:
 Version 2025 release: January, 2025
@@ -67,103 +67,103 @@ Version 2.02 release: Late August 1993
 Version 2.01 release: Early August 1993
 Version 2.00 release: July 16, 1993 (Initial public release)
 
-The CircleMUD press release is included below, in case you have not seen it 
+The CircleMUD press release is included below, in case you have not seen it
 and want to.
 
-Wake the kids and find the dog, because it's the FTP release of 
+Wake the kids and find the dog, because it's the FTP release of
 
-CIRCLEMUD 2.0 
+CIRCLEMUD 2.0
 
-That's right --CircleMUD 2.0 is done and is now available for anonymous FTP 
-at ftp.cs.jhu.edu! 
+That's right --CircleMUD 2.0 is done and is now available for anonymous FTP
+at ftp.cs.jhu.edu!
 
-CircleMUD is highly developed from the programming side, but highly UNdeveloped 
-on the game-playing side. So, if you are looking for a huge MUD with billions 
-of spells, skills, classes, races, and areas, Circle will probably disappoint 
-you severely. Circle still has only the 4 original Diku classes, the original 
-spells, the original skills, and about a dozen areas. 
+CircleMUD is highly developed from the programming side, but highly UNdeveloped
+on the game-playing side. So, if you are looking for a huge MUD with billions
+of spells, skills, classes, races, and areas, Circle will probably disappoint
+you severely. Circle still has only the 4 original Diku classes, the original
+spells, the original skills, and about a dozen areas.
 
-On the other hand, if you are looking for a highly stable, well-developed, 
-well-organized "blank slate" MUD on which you can put your OWN ideas for 
-spells, skills, classes, and areas, then Circle might be just what you are 
-looking for. 
+On the other hand, if you are looking for a highly stable, well-developed,
+well-organized "blank slate" MUD on which you can put your OWN ideas for
+spells, skills, classes, and areas, then Circle might be just what you are
+looking for.
 
-Just take a gander at some of Circle's nifty features: 
---In-memory mobile and object prototypes and string sharing for 
-decreased memory usage and blazingly fast zone resets 
---All large realloc()s have been removed and replaced by boot-time 
-record counting and a single malloc() for superior memory efficiency 
---Split world/obj/mob/zon/shp files for easy addition of areas; plus, 
-all the world files are still in the original Diku format for 
-compatibility with existing areas 
---Boot-time and run-time error checking of most data files with 
-diagnostic messages a lot more helpful than "segmentation fault"! 
---Player mail system and bank 
---Rewritten board system: boards are now stable, robust, more 
-intelligent, and easily expandable --adding a new board is 
-as easy as adding another line to an array 
---ANSI color codes with a fully documented programmers' interface 
---On-line system logs 
---Optional automatically regenerating wizlist --a final end 
-to new immortals constantly asking you when they will be added 
-to the immlist! 
---"config.c" file allows you to change aspects of the game such 
-as playerkilling/playerthieving legality, max number of objects 
-rentable, and nameserver usage --WITHOUT recompiling the 
-entire MUD! 
---All text (help, mortal/immort MOTDs, etc.) is rebootable at 
-run-time with the "reboot" command 
---All players are given a unique serial number --no more messy, 
-time consuming str_cmp()s when you are trying to identify people! 
---Fully integrated and robust rent/crash system --allows normal 
-renting, cryo-renting, crash protection, and forced rent 
-(at an increased price) after an hour of idling 
---All the standard wizard stuff you are used to: level-sensitive 
-invisibility, settable poofin/poofouts, wizline 
---Advanced "set" command which allows you to set dozens of aspects 
-of players --even if they are not logged in! "Stat" also allows 
-you to stat people who are not logged in! 
---Intelligent "autorun" script handles different types of reboots, 
-organizing your system logs, and more! 
---Circle comes with more than a dozen utilities, all fully 
-documented, to make maintenance a snap! 
---And much, much more! 
+Just take a gander at some of Circle's nifty features:
+--In-memory mobile and object prototypes and string sharing for
+decreased memory usage and blazingly fast zone resets
+--All large realloc()s have been removed and replaced by boot-time
+record counting and a single malloc() for superior memory efficiency
+--Split world/obj/mob/zon/shp files for easy addition of areas; plus,
+all the world files are still in the original Diku format for
+compatibility with existing areas
+--Boot-time and run-time error checking of most data files with
+diagnostic messages a lot more helpful than "segmentation fault"!
+--Player mail system and bank
+--Rewritten board system: boards are now stable, robust, more
+intelligent, and easily expandable --adding a new board is
+as easy as adding another line to an array
+--ANSI color codes with a fully documented programmers' interface
+--On-line system logs
+--Optional automatically regenerating wizlist --a final end
+to new immortals constantly asking you when they will be added
+to the immlist!
+--"config.c" file allows you to change aspects of the game such
+as playerkilling/playerthieving legality, max number of objects
+rentable, and nameserver usage --WITHOUT recompiling the
+entire MUD!
+--All text (help, mortal/immort MOTDs, etc.) is rebootable at
+run-time with the "reboot" command
+--All players are given a unique serial number --no more messy,
+time consuming str_cmp()s when you are trying to identify people!
+--Fully integrated and robust rent/crash system --allows normal
+renting, cryo-renting, crash protection, and forced rent
+(at an increased price) after an hour of idling
+--All the standard wizard stuff you are used to: level-sensitive
+invisibility, settable poofin/poofouts, wizline
+--Advanced "set" command which allows you to set dozens of aspects
+of players --even if they are not logged in! "Stat" also allows
+you to stat people who are not logged in!
+--Intelligent "autorun" script handles different types of reboots,
+organizing your system logs, and more!
+--Circle comes with more than a dozen utilities, all fully
+documented, to make maintenance a snap!
+--And much, much more!
 
-Unfortunately, the original Circle had more than its fair share of Bad People 
-when it was alive, but it DID lead to an impressive list of security and 
-"asshole control" features: 
---3 types of sitebanning available: "all" to refuse all connections, 
-"new" to refuse new players, or "select" to refuse new players and 
-all registered players who do not have a SITEOK flag. 
---"wizlock" allows you to close the game to all new players or all 
-players below a certain level. 
---Handy "mute" command squelches a player off of all public 
-communication channels 
---Handy "freeze" command freezes a player in his tracks: the MUD 
-totally ignores all commands from that player until they are thawed. 
---Even handier DELETE flag allows you to delete players on the fly. 
---"set" command (mentioned above) allows you to freeze/unfreeze/ 
-delete/siteok/un-siteok players --even if they aren’t logged in! 
---Bad password attempts are written to the system log and saved; 
-if someone tries to hack your account, you see "4 LOGIN FAILURES 
-SINCE LAST SUCCESSFUL LOGIN" next time you log on. 
---Passwords do not echo to the screen; allows 3 bad PW attempts 
-before disconnecting you. 
---Players are not allowed to choose their character's name as their 
-password --you'd be surprised how many do! 
---"xnames" text file specifies a list of invalid name substrings 
-to prevent creation of characters with overly profane names. 
-Listen to all the rave reviews of CircleMUD 2.0! 
-"How long ago was that deadline you set for yourself?" --My Friend 
-"NO ONE should be denied the power of computation." --My Professor 
+Unfortunately, the original Circle had more than its fair share of Bad People
+when it was alive, but it DID lead to an impressive list of security and
+"asshole control" features:
+--3 types of sitebanning available: "all" to refuse all connections,
+"new" to refuse new players, or "select" to refuse new players and
+all registered players who do not have a SITEOK flag.
+--"wizlock" allows you to close the game to all new players or all
+players below a certain level.
+--Handy "mute" command squelches a player off of all public
+communication channels
+--Handy "freeze" command freezes a player in his tracks: the MUD
+totally ignores all commands from that player until they are thawed.
+--Even handier DELETE flag allows you to delete players on the fly.
+--"set" command (mentioned above) allows you to freeze/unfreeze/
+delete/siteok/un-siteok players --even if they aren’t logged in!
+--Bad password attempts are written to the system log and saved;
+if someone tries to hack your account, you see "4 LOGIN FAILURES
+SINCE LAST SUCCESSFUL LOGIN" next time you log on.
+--Passwords do not echo to the screen; allows 3 bad PW attempts
+before disconnecting you.
+--Players are not allowed to choose their character's name as their
+password --you'd be surprised how many do!
+--"xnames" text file specifies a list of invalid name substrings
+to prevent creation of characters with overly profane names.
+Listen to all the rave reviews of CircleMUD 2.0!
+"How long ago was that deadline you set for yourself?" --My Friend
+"NO ONE should be denied the power of computation." --My Professor
 
-"Multi-user WHAT?" --My Mom 
-Give it a try --what do you have to lose other than your GPA/job, friends, 
-and life? 
+"Multi-user WHAT?" --My Mom
+Give it a try --what do you have to lose other than your GPA/job, friends,
+and life?
 
-Good luck, and happy Mudding, 
+Good luck, and happy Mudding,
 
-Jeremy Elson aka Ras 
+Jeremy Elson aka Ras
 
 Circle and tbaMUD's complete source code and areas are available at
 http://www.tbamud.com.

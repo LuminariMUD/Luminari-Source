@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2025-08-01  
-Version: 1.0
+Last Updated: 2025-12-30
+Version: 1.1
 
 ## 📚 Documentation Overview
 
@@ -62,6 +62,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
 
 ### Advanced Systems
+- **[VESSEL_SYSTEM.md](VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
+- **[VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks and stress test results
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
 - **[WILDERNESS_SYSTEM.md](building_game-data/WILDERNESS_SYSTEM.md)** - Dynamic wilderness generation
@@ -91,7 +93,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - 🆕 Phase 4 region effects system setup and testing guide
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
-- **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - 🆕 Resource system testing guide
+- **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
+- **[vessel_test_results.md](testing/vessel_test_results.md)** - Vessel system test validation (91 tests, Valgrind clean)
 - **[CuTest_README.md](testing/CuTest_README.md)** - Unit testing with CuTest
 
 ### Performance & Optimization

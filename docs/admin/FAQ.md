@@ -1,6 +1,6 @@
 # Luminari MUD Frequently Asked Questions (FAQ)
 
-## Table of Contents 
+## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Getting Started](#getting-started)

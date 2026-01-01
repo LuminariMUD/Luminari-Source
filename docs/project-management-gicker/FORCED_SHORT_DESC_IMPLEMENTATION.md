@@ -21,7 +21,7 @@ This flag tracks when a player has been forced into the short description setup 
 #### 2. `src/interpreter.c` (lines 4295-4306)
 Modified the `CON_MENU` state, case '1' (Enter Game):
 ```c
-if (CONFIG_USE_INTRO_SYSTEM && 
+if (CONFIG_USE_INTRO_SYSTEM &&
     (!GET_PC_DESCRIPTOR_1(d->character) || !GET_PC_ADJECTIVE_1(d->character)))
 {
     SEND_TO_Q("\r\n\tcYou must set your short description before entering the game"
@@ -70,7 +70,7 @@ CON_MENU (select 1) → enter_player_game() → CON_PLAYING
 
 ### Forced Setup Flow (Intro System ON, No Short Desc)
 ```
-CON_MENU (select 1) 
+CON_MENU (select 1)
   ↓
 Check: intro system ON + no short desc
   ↓

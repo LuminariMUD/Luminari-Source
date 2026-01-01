@@ -59,28 +59,28 @@ Add primary harvesting function:
 ACMD(do_wilderness_harvest) {
     char arg[MAX_INPUT_LENGTH];
     int resource_type = -1;
-    
+
     one_argument(argument, arg, sizeof(arg));
-    
+
     // Validate wilderness location
     if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
         send_to_char(ch, "You can only harvest materials in the wilderness.\r\n");
         return;
     }
-    
+
     // Show available resources if no argument
     if (!*arg) {
         show_harvestable_resources(ch);
         return;
     }
-    
+
     // Parse resource type
     resource_type = parse_resource_type(arg);
     if (resource_type < 0) {
         send_to_char(ch, "Invalid resource type. Use 'harvest' to see available options.\r\n");
         return;
     }
-    
+
     // Attempt harvest
     attempt_wilderness_harvest(ch, resource_type);
 }
@@ -115,56 +115,56 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
     int x, y, skill_level, success_roll, base_yield;
     int category, subtype, quality, quantity;
     float resource_level;
-    
+
     // Get location coordinates
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
-    
+
     // Check resource availability
     resource_level = calculate_current_resource_level(resource_type, x, y);
     if (resource_level < 0.1) {
-        send_to_char(ch, "There are insufficient %s resources here to harvest.\r\n", 
+        send_to_char(ch, "There are insufficient %s resources here to harvest.\r\n",
                      resource_names[resource_type]);
         return 0;
     }
-    
+
     // Get relevant skill
     skill_level = get_harvest_skill_level(ch, resource_type);
-    
+
     // Calculate success
     success_roll = dice(1, 100) + skill_level;
     int difficulty = get_harvest_difficulty(resource_type, resource_level);
-    
+
     if (success_roll < difficulty) {
-        send_to_char(ch, "You fail to harvest any usable %s.\r\n", 
+        send_to_char(ch, "You fail to harvest any usable %s.\r\n",
                      resource_names[resource_type]);
         improve_skill(ch, get_harvest_skill(resource_type));
         return 0;
     }
-    
+
     // Determine what was harvested
     category = resource_type;
     subtype = determine_harvested_material_subtype(resource_type, x, y, resource_level);
     quality = calculate_harvest_quality(ch, resource_type, success_roll, skill_level);
     quantity = calculate_harvest_quantity(ch, resource_type, success_roll, skill_level);
-    
+
     // Add to storage (triggers Phase 4.5 integration)
     int added = add_material_to_storage(ch, category, subtype, quality, quantity);
-    
+
     if (added > 0) {
         const char *material_name = get_full_material_name(category, subtype, quality);
-        send_to_char(ch, "You successfully harvest %d units of %s.\r\n", 
+        send_to_char(ch, "You successfully harvest %d units of %s.\r\n",
                      added, material_name);
-        
+
         // Skill improvement
         improve_skill(ch, get_harvest_skill(resource_type));
-        
+
         // Resource depletion (Phase 5 future enhancement)
         // deplete_local_resource(x, y, resource_type, added);
     } else {
         send_to_char(ch, "Your material storage is full.\r\n");
     }
-    
+
     return added;
 }
 ```

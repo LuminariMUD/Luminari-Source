@@ -71,7 +71,8 @@ ACMD(do_spec_comm)
       }
     }
     // append period if it's not already there
-    if (buf2[strlen(buf2) - 1] != '.' && buf2[strlen(buf2) - 1] != '!' && buf2[strlen(buf2) - 1] != '?')
+    if (buf2[strlen(buf2) - 1] != '.' && buf2[strlen(buf2) - 1] != '!' &&
+        buf2[strlen(buf2) - 1] != '?')
       strlcat(buf2, punctuation, sizeof(buf2));
 
     snprintf(buf1, sizeof(buf1), "$n %s you, '%s'", action_plur, buf2);

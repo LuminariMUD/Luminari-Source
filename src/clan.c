@@ -35,29 +35,28 @@ int num_of_clans = 0;
 struct clan_hash_entry *clan_hash_table[CLAN_HASH_SIZE];
 
 /* Clan privileges.  Each of these is assigned a minimum rank */
-const char *const clan_priv_names[] = {
-    "Award",      /**< 'clan award' command    */
-    "Claim",      /**< 'clan claim' command    */
-    "Balance",    /**< 'clans bank balance     */
-    "Demote",     /**< 'clan demote' command   */
-    "Deposit",    /**< 'clan deposit' command  */
-    "Edit",       /**< 'clan edit' command     */
-    "Enrol",      /**< 'clan enrol' command    */
-    "Expel",      /**< 'clan expel' command    */
-    "Owner",      /**< 'clan owner' command    */
-    "Promote",    /**< 'clan promote' command  */
-    "Where",      /**< 'clan where' command    */
-    "Withdraw",   /**< 'clan withdraw' command */
-    "Set-Ally",   /**< Set clan Allied-With clan (in OLC)     */
-    "Set-Appfee", /**< Set clan Application fee (in OLC)      */
-    "Set-Applvl", /**< Set clan Application level (in OLC)    */
-    "Set-Desc",   /**< Set clan Description (in OLC)          */
-    "Set-Tax",    /**< Set clan Tax Rate (in OLC)             */
-    "Set-Ranks",  /**< Set clan ranks and rank names (in OLC) */
-    "Set-Title",  /**< Set clan title (name) (in OLC)         */
-    "Set-War",    /**< Set clan At-War-With clan (in OLC)     */
-    "Set-Privs",  /**< Set clan privilege ranks (in OLC)      */
-    "\n"};
+const char *const clan_priv_names[] = {"Award",      /**< 'clan award' command    */
+                                       "Claim",      /**< 'clan claim' command    */
+                                       "Balance",    /**< 'clans bank balance     */
+                                       "Demote",     /**< 'clan demote' command   */
+                                       "Deposit",    /**< 'clan deposit' command  */
+                                       "Edit",       /**< 'clan edit' command     */
+                                       "Enrol",      /**< 'clan enrol' command    */
+                                       "Expel",      /**< 'clan expel' command    */
+                                       "Owner",      /**< 'clan owner' command    */
+                                       "Promote",    /**< 'clan promote' command  */
+                                       "Where",      /**< 'clan where' command    */
+                                       "Withdraw",   /**< 'clan withdraw' command */
+                                       "Set-Ally",   /**< Set clan Allied-With clan (in OLC)     */
+                                       "Set-Appfee", /**< Set clan Application fee (in OLC)      */
+                                       "Set-Applvl", /**< Set clan Application level (in OLC)    */
+                                       "Set-Desc",   /**< Set clan Description (in OLC)          */
+                                       "Set-Tax",    /**< Set clan Tax Rate (in OLC)             */
+                                       "Set-Ranks",  /**< Set clan ranks and rank names (in OLC) */
+                                       "Set-Title",  /**< Set clan title (name) (in OLC)         */
+                                       "Set-War",    /**< Set clan At-War-With clan (in OLC)     */
+                                       "Set-Privs",  /**< Set clan privilege ranks (in OLC)      */
+                                       "\n"};
 
 const struct clan_cmds clan_commands[] = {
     {"apply", CP_ALL, LVL_GRSTAFF, do_clanapply,
@@ -141,23 +140,27 @@ const struct clan_cmds clan_commands[] = {
 /* Hash table functions for fast clan lookups */
 
 /* Calculate hash value for a clan vnum */
-static int clan_hash(clan_vnum vnum) {
+static int clan_hash(clan_vnum vnum)
+{
   return vnum % CLAN_HASH_SIZE;
 }
 
 /* Initialize the clan hash table */
-void init_clan_hash(void) {
+void init_clan_hash(void)
+{
   int i;
-  for (i = 0; i < CLAN_HASH_SIZE; i++) {
+  for (i = 0; i < CLAN_HASH_SIZE; i++)
+  {
     clan_hash_table[i] = NULL;
   }
 }
 
 /* Add a clan to the hash table */
-void add_clan_to_hash(clan_vnum vnum, clan_rnum rnum) {
+void add_clan_to_hash(clan_vnum vnum, clan_rnum rnum)
+{
   struct clan_hash_entry *new_entry;
   int hash_index = clan_hash(vnum);
-  
+
   CREATE(new_entry, struct clan_hash_entry, 1);
   new_entry->vnum = vnum;
   new_entry->rnum = rnum;
@@ -166,15 +169,21 @@ void add_clan_to_hash(clan_vnum vnum, clan_rnum rnum) {
 }
 
 /* Remove a clan from the hash table */
-void remove_clan_from_hash(clan_vnum vnum) {
+void remove_clan_from_hash(clan_vnum vnum)
+{
   struct clan_hash_entry *current, *prev = NULL;
   int hash_index = clan_hash(vnum);
-  
-  for (current = clan_hash_table[hash_index]; current; prev = current, current = current->next) {
-    if (current->vnum == vnum) {
-      if (prev) {
+
+  for (current = clan_hash_table[hash_index]; current; prev = current, current = current->next)
+  {
+    if (current->vnum == vnum)
+    {
+      if (prev)
+      {
         prev->next = current->next;
-      } else {
+      }
+      else
+      {
         clan_hash_table[hash_index] = current->next;
       }
       free(current);
@@ -184,26 +193,31 @@ void remove_clan_from_hash(clan_vnum vnum) {
 }
 
 /* Rebuild the entire hash table from the clan list */
-void rebuild_clan_hash(void) {
+void rebuild_clan_hash(void)
+{
   int i;
-  
+
   /* Clear the existing hash table */
   free_clan_hash();
   init_clan_hash();
-  
+
   /* Add all clans to hash table */
-  for (i = 0; i < num_of_clans; i++) {
+  for (i = 0; i < num_of_clans; i++)
+  {
     add_clan_to_hash(clan_list[i].vnum, i);
   }
 }
 
 /* Free all memory used by the hash table */
-void free_clan_hash(void) {
+void free_clan_hash(void)
+{
   struct clan_hash_entry *current, *next;
   int i;
-  
-  for (i = 0; i < CLAN_HASH_SIZE; i++) {
-    for (current = clan_hash_table[i]; current; current = next) {
+
+  for (i = 0; i < CLAN_HASH_SIZE; i++)
+  {
+    for (current = clan_hash_table[i]; current; current = next)
+    {
       next = current->next;
       free(current);
     }
@@ -216,24 +230,29 @@ clan_rnum real_clan(clan_vnum c)
 {
   struct clan_hash_entry *entry;
   int hash_index;
-  
+
   /* Fast path using hash table */
   hash_index = clan_hash(c);
-  for (entry = clan_hash_table[hash_index]; entry; entry = entry->next) {
-    if (entry->vnum == c) {
+  for (entry = clan_hash_table[hash_index]; entry; entry = entry->next)
+  {
+    if (entry->vnum == c)
+    {
       /* Validate the rnum is still valid */
-      if (entry->rnum < num_of_clans && clan_list[entry->rnum].vnum == c) {
+      if (entry->rnum < num_of_clans && clan_list[entry->rnum].vnum == c)
+      {
         return entry->rnum;
       }
       /* Hash entry is stale, fall back to linear search */
       break;
     }
   }
-  
+
   /* Fallback: linear search (for safety/backwards compatibility) */
   int i;
-  for (i = 0; i < num_of_clans; i++) {
-    if (clan_list[i].vnum == c) {
+  for (i = 0; i < num_of_clans; i++)
+  {
+    if (clan_list[i].vnum == c)
+    {
       /* Update hash table with correct mapping */
       remove_clan_from_hash(c);
       add_clan_to_hash(c, i);
@@ -273,10 +292,10 @@ clan_rnum get_clan_by_name(const char *c_n)
 void update_clan_member_cache(clan_rnum c)
 {
   int i, count = 0, power = 0;
-  
+
   if (c >= num_of_clans || c < 0)
     return;
-    
+
   /* Calculate member count and total power */
   for (i = 0; i <= top_of_p_table; i++)
   {
@@ -286,7 +305,7 @@ void update_clan_member_cache(clan_rnum c)
       power += player_table[i].level;
     }
   }
-  
+
   /* Update cache */
   clan_list[c].cached_member_count = count;
   clan_list[c].cached_member_power = power;
@@ -307,13 +326,13 @@ void update_all_clan_caches(void)
 int count_clan_members(clan_rnum c)
 {
   time_t now = time(0);
-  
+
   /* Update cache if it's older than timeout */
   if (now - clan_list[c].cache_timestamp > DEFAULT_CACHE_TIMEOUT)
   {
     update_clan_member_cache(c);
   }
-  
+
   return clan_list[c].cached_member_count;
 }
 
@@ -321,13 +340,13 @@ int count_clan_members(clan_rnum c)
 int count_clan_power(clan_rnum c)
 {
   time_t now = time(0);
-  
+
   /* Update cache if it's older than timeout */
   if (now - clan_list[c].cache_timestamp > DEFAULT_CACHE_TIMEOUT)
   {
     update_clan_member_cache(c);
   }
-  
+
   return clan_list[c].cached_member_power;
 }
 
@@ -352,17 +371,20 @@ bool add_clan(struct clan_data *this_clan)
   int i = 0;
 
   /* Validate the clan data and VNUM */
-  if (!this_clan) {
+  if (!this_clan)
+  {
     log_clan_error(__func__, "Attempted to add NULL clan");
     return FALSE;
   }
-  if (this_clan->vnum == NO_CLAN) {
+  if (this_clan->vnum == NO_CLAN)
+  {
     log_clan_error(__func__, "Attempted to add clan with invalid vnum (NO_CLAN)");
     return FALSE;
   }
 
   /* Does clan already exist? */
-  if (real_clan(this_clan->vnum) != NO_CLAN) {
+  if (real_clan(this_clan->vnum) != NO_CLAN)
+  {
     log_clan_error(__func__, "Attempted to add duplicate clan vnum %d", this_clan->vnum);
     return FALSE;
   }
@@ -386,7 +408,7 @@ bool add_clan(struct clan_data *this_clan)
   free(clan_list);
   clan_list = temp_list;
   num_of_clans++;
-  
+
   /* Add the new clan to the hash table */
   add_clan_to_hash(this_clan->vnum, num_of_clans - 1);
 
@@ -402,20 +424,22 @@ bool remove_clan(clan_vnum c_v)
   bool found = FALSE;
 
   /* Validate the clan data and VNUM */
-  if (!clan_list || num_of_clans == 0) {
+  if (!clan_list || num_of_clans == 0)
+  {
     log_clan_error(__func__, "No clans exist to remove");
     return FALSE;
   }
 
   /* Does clan exist? */
-  if ((c_n = real_clan(c_v)) == NO_CLAN) {
+  if ((c_n = real_clan(c_v)) == NO_CLAN)
+  {
     log_clan_error(__func__, "Attempted to remove non-existent clan vnum %d", c_v);
     return FALSE;
   }
 
   if (num_of_clans == 1)
   {
-    remove_clan_from_hash(c_v);  /* Remove from hash table */
+    remove_clan_from_hash(c_v); /* Remove from hash table */
     free_clan_list();
   }
   else
@@ -457,7 +481,7 @@ bool remove_clan(clan_vnum c_v)
     free(clan_list);
     clan_list = temp_list;
     num_of_clans--;
-    
+
     /* Remove from hash table and rebuild (rnums have changed) */
     remove_clan_from_hash(c_v);
     rebuild_clan_hash();
@@ -498,7 +522,7 @@ void free_clan_list(void)
   free(clan_list);
   clan_list = NULL;
   num_of_clans = 0;
-  
+
   /* Free the hash table */
   free_clan_hash();
 }
@@ -518,7 +542,8 @@ bool set_clan(struct char_data *ch, clan_vnum c_v)
   save_char(ch, 0);
   if ((p_i = get_ptable_by_name(GET_NAME(ch))) < 0)
   {
-    log_clan_error(__func__, "Unable to get player_table index for %s (ID: %ld) when setting clan %d",
+    log_clan_error(__func__,
+                   "Unable to get player_table index for %s (ID: %ld) when setting clan %d",
                    GET_NAME(ch), GET_IDNUM(ch), c_v);
     return FALSE;
   }
@@ -527,10 +552,10 @@ bool set_clan(struct char_data *ch, clan_vnum c_v)
     player_table[p_i].clan = clan_list[c_n].vnum;
     save_player_index();
   }
-  
+
   /* Invalidate cache for this clan */
   clan_list[c_n].cache_timestamp = 0;
-  
+
   return TRUE;
 }
 
@@ -604,17 +629,17 @@ void copy_clan_data(struct clan_data *to_clan, struct clan_data *from_clan)
 
   for (i = 0; i < NUM_CLAN_PRIVS; i++)
     to_clan->privilege[i] = from_clan->privilege[i];
-    
+
   /* Copy cache data */
   to_clan->cached_member_count = from_clan->cached_member_count;
   to_clan->cached_member_power = from_clan->cached_member_power;
   to_clan->cache_timestamp = from_clan->cache_timestamp;
-  
+
   /* Copy activity and limits */
   to_clan->last_activity = from_clan->last_activity;
   to_clan->max_members = from_clan->max_members;
   to_clan->modified = from_clan->modified;
-  
+
   /* Copy statistics */
   to_clan->total_deposits = from_clan->total_deposits;
   to_clan->total_withdrawals = from_clan->total_withdrawals;
@@ -744,8 +769,7 @@ bool auto_appoint_new_clan_leader(clan_rnum c_n)
   else
   {
     send_to_char(new_l, "You have been promoted to Clan Leader!\r\n");
-    send_to_char(new_l, "'%s' is now YOUR clan!\r\n",
-                 clan_list[c_n].clan_name);
+    send_to_char(new_l, "'%s' is now YOUR clan!\r\n", clan_list[c_n].clan_name);
   }
   return (TRUE);
 }
@@ -787,21 +811,21 @@ void clear_clan_vals(struct clan_data *cl)
   cl->description = NULL;
   cl->abrev = NULL;
   cl->raided = 0;
-  
+
   /* Initialize cache values */
   cl->cached_member_count = 0;
   cl->cached_member_power = 0;
   cl->cache_timestamp = 0;
-  
+
   /* Initialize activity tracking */
   cl->last_activity = time(0);
-  
+
   /* Initialize member limits */
   cl->max_members = DEFAULT_MAX_MEMBERS;
-  
+
   /* Initialize optimization flags */
   cl->modified = FALSE;
-  
+
   /* Initialize clan statistics */
   cl->total_deposits = 0;
   cl->total_withdrawals = 0;
@@ -827,7 +851,7 @@ void clear_clan_vals(struct clan_data *cl)
 void update_clan_activity(clan_vnum c)
 {
   clan_rnum cr = real_clan(c);
-  
+
   if (cr != NO_CLAN && cr < num_of_clans)
   {
     clan_list[cr].last_activity = time(0);
@@ -844,18 +868,19 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   time_t ct;
   char *tmstr;
   clan_rnum cr = real_clan(c);
-  
+
   if (cr == NO_CLAN || cr >= num_of_clans)
     return;
-  
+
   /* Create filename */
   snprintf(filename, sizeof(filename), "%sclan_%d.log", CLAN_LOG_DIR, c);
-  
+
   /* Open file in append mode */
   if (!(fl = fopen(filename, "a")))
   {
     /* Try to create the directory if it doesn't exist */
-    if (!ensure_dir_exists(CLAN_LOG_DIR)) {
+    if (!ensure_dir_exists(CLAN_LOG_DIR))
+    {
       log("SYSERR: Failed to ensure clan_logs directory exists");
     }
     if (!(fl = fopen(filename, "a")))
@@ -864,20 +889,20 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
       return;
     }
   }
-  
+
   /* Get current time */
   ct = time(0);
   tmstr = (char *)format_time_ymd_hms(ct);
-  
+
   /* Format the message */
   va_start(args, format);
   vsnprintf(buf, sizeof(buf), format, args);
   va_end(args);
-  
+
   /* Write to file */
   fprintf(fl, "[%s] %s\n", tmstr, buf);
   fclose(fl);
-  
+
   /* Also update activity timestamp */
   update_clan_activity(c);
 }
@@ -888,33 +913,33 @@ void log_clan_error(const char *function, const char *format, ...)
   va_list args;
   char buf[MAX_STRING_LENGTH];
   char error_msg[MAX_STRING_LENGTH];
-  
+
   /* Format the error message */
   va_start(args, format);
   vsnprintf(buf, sizeof(buf), format, args);
   va_end(args);
-  
+
   /* Create full error message with function name - limit lengths to prevent truncation */
   snprintf(error_msg, sizeof(error_msg), "CLAN ERROR in %.100s(): %.49000s", function, buf);
-  
+
   /* Log to system log */
   log("%s", error_msg);
-  
+
   /* Also log to a dedicated clan error file for easier debugging */
   {
     FILE *fl;
     time_t ct;
     char *tmstr;
     char filename[256];
-    
+
     snprintf(filename, sizeof(filename), "%sclan_errors.log", CLAN_LOG_DIR);
-    
+
     if ((fl = fopen(filename, "a")))
     {
       ct = time(0);
       tmstr = asctime(localtime(&ct));
       *(tmstr + strlen(tmstr) - 1) = '\0';
-      
+
       fprintf(fl, "[%s] %s\n", tmstr, error_msg);
       fclose(fl);
     }
@@ -926,55 +951,70 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
 {
   bool valid = TRUE;
   int i;
-  
-  if (!clan) {
+
+  if (!clan)
+  {
     log_clan_error(__func__, "NULL clan pointer");
     return FALSE;
   }
-  
+
   /* Check VNUM validity */
-  if (clan->vnum == 0 || clan->vnum == NO_CLAN) {
+  if (clan->vnum == 0 || clan->vnum == NO_CLAN)
+  {
     log_clan_error(__func__, "Invalid clan vnum: %d", clan->vnum);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       /* Can't fix this - would need to assign new vnum */
       log_clan_error(__func__, "Cannot auto-fix invalid vnum");
     }
   }
-  
+
   /* Check clan name */
-  if (!clan->clan_name || strlen(clan->clan_name) == 0) {
+  if (!clan->clan_name || strlen(clan->clan_name) == 0)
+  {
     log_clan_error(__func__, "Clan %d has NULL or empty name", clan->vnum);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->clan_name = strdup("Unnamed Clan");
       log_clan_error(__func__, "Fixed: Set default name for clan %d", clan->vnum);
     }
-  } else if (strlen(clan->clan_name) > MAX_CLAN_NAME) {
-    log_clan_error(__func__, "Clan %d name too long: %zu chars", clan->vnum, strlen(clan->clan_name));
+  }
+  else if (strlen(clan->clan_name) > MAX_CLAN_NAME)
+  {
+    log_clan_error(__func__, "Clan %d name too long: %zu chars", clan->vnum,
+                   strlen(clan->clan_name));
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->clan_name[MAX_CLAN_NAME] = '\0';
       log_clan_error(__func__, "Fixed: Truncated clan %d name", clan->vnum);
     }
   }
-  
+
   /* Check ranks */
-  if (clan->ranks == 0 || clan->ranks > MAX_CLANRANKS) {
+  if (clan->ranks == 0 || clan->ranks > MAX_CLANRANKS)
+  {
     log_clan_error(__func__, "Clan %d has invalid rank count: %d", clan->vnum, clan->ranks);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->ranks = DEFAULT_CLAN_RANKS;
-      log_clan_error(__func__, "Fixed: Reset clan %d ranks to default %d", clan->vnum, DEFAULT_CLAN_RANKS);
+      log_clan_error(__func__, "Fixed: Reset clan %d ranks to default %d", clan->vnum,
+                     DEFAULT_CLAN_RANKS);
     }
   }
-  
+
   /* Check rank names */
-  for (i = 0; i < clan->ranks && i < MAX_CLANRANKS; i++) {
-    if (!clan->rank_name[i]) {
+  for (i = 0; i < clan->ranks && i < MAX_CLANRANKS; i++)
+  {
+    if (!clan->rank_name[i])
+    {
       log_clan_error(__func__, "Clan %d rank %d has NULL name", clan->vnum, i);
       valid = FALSE;
-      if (fix_errors) {
+      if (fix_errors)
+      {
         char rank_name[32];
         snprintf(rank_name, sizeof(rank_name), "Rank %d", i + 1);
         clan->rank_name[i] = strdup(rank_name);
@@ -982,64 +1022,77 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
       }
     }
   }
-  
+
   /* Check privileges */
-  for (i = 0; i < NUM_CLAN_PRIVS; i++) {
-    if (clan->privilege[i] > clan->ranks) {
+  for (i = 0; i < NUM_CLAN_PRIVS; i++)
+  {
+    if (clan->privilege[i] > clan->ranks)
+    {
       log_clan_error(__func__, "Clan %d privilege %d requires rank %d but only %d ranks exist",
                      clan->vnum, i, clan->privilege[i], clan->ranks);
       valid = FALSE;
-      if (fix_errors) {
+      if (fix_errors)
+      {
         clan->privilege[i] = clan->ranks;
-        log_clan_error(__func__, "Fixed: Set clan %d privilege %d to max rank %d", 
-                       clan->vnum, i, clan->ranks);
+        log_clan_error(__func__, "Fixed: Set clan %d privilege %d to max rank %d", clan->vnum, i,
+                       clan->ranks);
       }
     }
   }
-  
+
   /* Check financial data */
-  if (clan->treasure < 0) {
+  if (clan->treasure < 0)
+  {
     log_clan_error(__func__, "Clan %d has negative treasury: %ld", clan->vnum, clan->treasure);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->treasure = 0;
       log_clan_error(__func__, "Fixed: Reset clan %d treasury to 0", clan->vnum);
     }
   }
-  
+
   /* Check tax rate */
-  if (clan->taxrate < 0 || clan->taxrate > 100) {
+  if (clan->taxrate < 0 || clan->taxrate > 100)
+  {
     log_clan_error(__func__, "Clan %d has invalid tax rate: %d%%", clan->vnum, clan->taxrate);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->taxrate = MAX(0, MIN(clan->taxrate, 100));
-      log_clan_error(__func__, "Fixed: Clamped clan %d tax rate to %d%%", clan->vnum, clan->taxrate);
+      log_clan_error(__func__, "Fixed: Clamped clan %d tax rate to %d%%", clan->vnum,
+                     clan->taxrate);
     }
   }
-  
+
   /* Check member limits */
-  if (clan->max_members < 0) {
-    log_clan_error(__func__, "Clan %d has negative member limit: %d", clan->vnum, clan->max_members);
+  if (clan->max_members < 0)
+  {
+    log_clan_error(__func__, "Clan %d has negative member limit: %d", clan->vnum,
+                   clan->max_members);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->max_members = DEFAULT_MAX_MEMBERS;
-      log_clan_error(__func__, "Fixed: Reset clan %d member limit to default %d", 
-                     clan->vnum, DEFAULT_MAX_MEMBERS);
+      log_clan_error(__func__, "Fixed: Reset clan %d member limit to default %d", clan->vnum,
+                     DEFAULT_MAX_MEMBERS);
     }
   }
-  
+
   /* Check statistics consistency */
-  if (clan->highest_member_count < clan->cached_member_count) {
-    log_clan_error(__func__, "Clan %d highest member count (%d) < current count (%d)",
-                   clan->vnum, clan->highest_member_count, clan->cached_member_count);
+  if (clan->highest_member_count < clan->cached_member_count)
+  {
+    log_clan_error(__func__, "Clan %d highest member count (%d) < current count (%d)", clan->vnum,
+                   clan->highest_member_count, clan->cached_member_count);
     valid = FALSE;
-    if (fix_errors) {
+    if (fix_errors)
+    {
       clan->highest_member_count = clan->cached_member_count;
-      log_clan_error(__func__, "Fixed: Updated clan %d highest member count to %d",
-                     clan->vnum, clan->highest_member_count);
+      log_clan_error(__func__, "Fixed: Updated clan %d highest member count to %d", clan->vnum,
+                     clan->highest_member_count);
     }
   }
-  
+
   return valid;
 }
 
@@ -1050,27 +1103,31 @@ bool validate_all_clans(bool fix_errors)
   bool all_valid = TRUE;
   int errors_found = 0;
   int errors_fixed = 0;
-  
+
   log("Starting clan data validation (fix_errors=%s)", fix_errors ? "TRUE" : "FALSE");
-  
-  for (i = 0; i < num_of_clans; i++) {
-    if (!validate_clan_data(&clan_list[i], fix_errors)) {
+
+  for (i = 0; i < num_of_clans; i++)
+  {
+    if (!validate_clan_data(&clan_list[i], fix_errors))
+    {
       all_valid = FALSE;
       errors_found++;
-      if (fix_errors) {
+      if (fix_errors)
+      {
         errors_fixed++;
         mark_clan_modified(i);
       }
     }
   }
-  
+
   log("Clan validation complete: %d errors found, %d fixed", errors_found, errors_fixed);
-  
-  if (fix_errors && errors_fixed > 0) {
+
+  if (fix_errors && errors_fixed > 0)
+  {
     save_clans();
     log("Saved corrected clan data");
   }
-  
+
   return all_valid;
 }
 
@@ -1080,27 +1137,32 @@ bool validate_clan_membership(bool fix_errors)
   int i, fixed = 0;
   clan_rnum cr;
   bool valid = TRUE;
-  
+
   log("Starting clan membership validation (fix_errors=%s)", fix_errors ? "TRUE" : "FALSE");
-  
+
   /* Check all players in player table */
-  for (i = 0; i <= top_of_p_table; i++) {
-    if (!player_table[i].name) continue;
-    
+  for (i = 0; i <= top_of_p_table; i++)
+  {
+    if (!player_table[i].name)
+      continue;
+
     /* Skip players not in a clan */
-    if (player_table[i].clan == 0 || player_table[i].clan == NO_CLAN) {
+    if (player_table[i].clan == 0 || player_table[i].clan == NO_CLAN)
+    {
       /* Note: Can't check rank without loading player file */
       /* TODO: Consider adding clanrank to player_index_element */
       continue;
     }
-    
+
     /* Check if clan exists */
     cr = real_clan(player_table[i].clan);
-    if (cr == NO_CLAN) {
-      log_clan_error(__func__, "Player %s in non-existent clan %d",
-                     player_table[i].name, player_table[i].clan);
+    if (cr == NO_CLAN)
+    {
+      log_clan_error(__func__, "Player %s in non-existent clan %d", player_table[i].name,
+                     player_table[i].clan);
       valid = FALSE;
-      if (fix_errors) {
+      if (fix_errors)
+      {
         player_table[i].clan = NO_CLAN;
         /* Can't update rank without loading player */
         fixed++;
@@ -1109,20 +1171,21 @@ bool validate_clan_membership(bool fix_errors)
       }
       continue;
     }
-    
+
     /* Check rank validity */
     /* Note: Can't validate rank without loading player file */
     /* TODO: Consider adding clanrank to player_index_element */
   }
-  
-  log("Clan membership validation complete: %s, %d issues fixed",
-      valid ? "PASSED" : "FAILED", fixed);
-  
-  if (fix_errors && fixed > 0) {
+
+  log("Clan membership validation complete: %s, %d issues fixed", valid ? "PASSED" : "FAILED",
+      fixed);
+
+  if (fix_errors && fixed > 0)
+  {
     save_player_index();
     log("Saved corrected player index");
   }
-  
+
   return valid;
 }
 
@@ -1130,26 +1193,29 @@ bool validate_clan_membership(bool fix_errors)
 void clan_data_integrity_check(void)
 {
   bool clans_valid, membership_valid;
-  
+
   log("==== CLAN DATA INTEGRITY CHECK ====");
-  
+
   /* First check without fixing */
   clans_valid = validate_all_clans(FALSE);
   membership_valid = validate_clan_membership(FALSE);
-  
-  if (!clans_valid || !membership_valid) {
+
+  if (!clans_valid || !membership_valid)
+  {
     log("Clan data corruption detected!");
     log("Run 'clanfix' command to attempt automatic repairs");
-  } else {
+  }
+  else
+  {
     log("All clan data passed integrity checks");
   }
-  
+
   /* Rebuild hash table to ensure consistency */
   rebuild_clan_hash();
-  
+
   /* Update all caches */
   update_all_clan_caches();
-  
+
   log("==== END CLAN INTEGRITY CHECK ====");
 }
 
@@ -1161,40 +1227,39 @@ int get_zone_control_benefits(struct char_data *ch)
   zone_vnum zone;
   clan_vnum controlling_clan;
   int benefits = ZONE_BENEFIT_NONE;
-  
+
   if (!ch || IS_NPC(ch) || !IS_IN_CLAN(ch))
     return ZONE_BENEFIT_NONE;
-    
+
   /* Get the zone the character is in */
   zone = zone_table[world[IN_ROOM(ch)].zone].number;
-  
+
   /* Get the controlling clan */
   controlling_clan = get_owning_clan(zone);
-  
+
   /* Check if character's clan controls this zone */
-  if (controlling_clan == GET_CLAN(ch)) {
+  if (controlling_clan == GET_CLAN(ch))
+  {
     /* Full benefits for clan members in their own territory */
-    benefits = ZONE_BENEFIT_REGEN_HP | ZONE_BENEFIT_REGEN_MANA | 
-               ZONE_BENEFIT_REGEN_MOVE | ZONE_BENEFIT_EXP_BONUS |
-               ZONE_BENEFIT_GOLD_BONUS | ZONE_BENEFIT_SKILL_BONUS |
-               ZONE_BENEFIT_RESIST_BONUS | ZONE_BENEFIT_DAMAGE_BONUS |
-               ZONE_BENEFIT_AC_BONUS | ZONE_BENEFIT_NO_DEATH_PEN |
-               ZONE_BENEFIT_FAST_TRAVEL | ZONE_BENEFIT_SHOP_DISC;
+    benefits = ZONE_BENEFIT_REGEN_HP | ZONE_BENEFIT_REGEN_MANA | ZONE_BENEFIT_REGEN_MOVE |
+               ZONE_BENEFIT_EXP_BONUS | ZONE_BENEFIT_GOLD_BONUS | ZONE_BENEFIT_SKILL_BONUS |
+               ZONE_BENEFIT_RESIST_BONUS | ZONE_BENEFIT_DAMAGE_BONUS | ZONE_BENEFIT_AC_BONUS |
+               ZONE_BENEFIT_NO_DEATH_PEN | ZONE_BENEFIT_FAST_TRAVEL | ZONE_BENEFIT_SHOP_DISC;
     return benefits;
   }
-  
+
   /* Check if allied clans get partial benefits */
   clan_rnum char_clan = real_clan(GET_CLAN(ch));
   clan_rnum ctrl_clan = real_clan(controlling_clan);
-  
-  if (char_clan != NO_CLAN && ctrl_clan != NO_CLAN && 
-      are_clans_allied(char_clan, ctrl_clan)) {
+
+  if (char_clan != NO_CLAN && ctrl_clan != NO_CLAN && are_clans_allied(char_clan, ctrl_clan))
+  {
     /* Allied clans only get regen and movement benefits */
-    benefits |= ZONE_BENEFIT_REGEN_HP | ZONE_BENEFIT_REGEN_MANA | 
-                ZONE_BENEFIT_REGEN_MOVE | ZONE_BENEFIT_FAST_TRAVEL;
+    benefits |= ZONE_BENEFIT_REGEN_HP | ZONE_BENEFIT_REGEN_MANA | ZONE_BENEFIT_REGEN_MOVE |
+                ZONE_BENEFIT_FAST_TRAVEL;
     return benefits;
   }
-             
+
   return benefits;
 }
 
@@ -1209,13 +1274,13 @@ void apply_zone_regen_bonus(struct char_data *ch, int *hp_gain, int *mana_gain, 
 {
   if (!ch || !hp_gain || !mana_gain || !move_gain)
     return;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_REGEN_HP))
     *hp_gain += ZONE_REGEN_HP_BONUS;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_REGEN_MANA))
     *mana_gain += ZONE_REGEN_MANA_BONUS;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_REGEN_MOVE))
     *move_gain += ZONE_REGEN_MOVE_BONUS;
 }
@@ -1225,12 +1290,13 @@ int apply_zone_exp_bonus(struct char_data *ch, int exp)
 {
   if (!ch || exp <= 0)
     return exp;
-    
-  if (has_zone_benefit(ch, ZONE_BENEFIT_EXP_BONUS)) {
+
+  if (has_zone_benefit(ch, ZONE_BENEFIT_EXP_BONUS))
+  {
     int bonus = (exp * ZONE_EXP_BONUS_PERCENT) / 100;
     return exp + bonus;
   }
-  
+
   return exp;
 }
 
@@ -1239,12 +1305,13 @@ int apply_zone_gold_bonus(struct char_data *ch, int gold)
 {
   if (!ch || gold <= 0)
     return gold;
-    
-  if (has_zone_benefit(ch, ZONE_BENEFIT_GOLD_BONUS)) {
+
+  if (has_zone_benefit(ch, ZONE_BENEFIT_GOLD_BONUS))
+  {
     int bonus = (gold * ZONE_GOLD_BONUS_PERCENT) / 100;
     return gold + bonus;
   }
-  
+
   return gold;
 }
 
@@ -1253,10 +1320,10 @@ int apply_zone_skill_bonus(struct char_data *ch, int skill_mod)
 {
   if (!ch)
     return skill_mod;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_SKILL_BONUS))
     return skill_mod + ZONE_SKILL_BONUS;
-    
+
   return skill_mod;
 }
 
@@ -1265,10 +1332,10 @@ int apply_zone_resist_bonus(struct char_data *ch, int save_mod)
 {
   if (!ch)
     return save_mod;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_RESIST_BONUS))
     return save_mod + ZONE_RESIST_BONUS;
-    
+
   return save_mod;
 }
 
@@ -1277,10 +1344,10 @@ int apply_zone_damage_bonus(struct char_data *ch, int damage)
 {
   if (!ch || damage <= 0)
     return damage;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_DAMAGE_BONUS))
     return damage + ZONE_DAMAGE_BONUS;
-    
+
   return damage;
 }
 
@@ -1289,10 +1356,10 @@ int apply_zone_ac_bonus(struct char_data *ch, int ac)
 {
   if (!ch)
     return ac;
-    
+
   if (has_zone_benefit(ch, ZONE_BENEFIT_AC_BONUS))
     return ac - ZONE_AC_BONUS; /* Lower AC is better */
-    
+
   return ac;
 }
 
@@ -1301,12 +1368,13 @@ int apply_zone_move_cost(struct char_data *ch, int move_cost)
 {
   if (!ch || move_cost <= 0)
     return move_cost;
-    
-  if (has_zone_benefit(ch, ZONE_BENEFIT_FAST_TRAVEL)) {
+
+  if (has_zone_benefit(ch, ZONE_BENEFIT_FAST_TRAVEL))
+  {
     int reduction = (move_cost * ZONE_MOVE_COST_REDUCTION) / 100;
     return MAX(1, move_cost - reduction); /* Never less than 1 */
   }
-  
+
   return move_cost;
 }
 
@@ -1315,12 +1383,13 @@ int apply_zone_shop_price(struct char_data *ch, struct char_data *keeper, int pr
 {
   if (!ch || !keeper || price <= 0)
     return price;
-    
-  if (has_zone_benefit(ch, ZONE_BENEFIT_SHOP_DISC)) {
+
+  if (has_zone_benefit(ch, ZONE_BENEFIT_SHOP_DISC))
+  {
     int discount = (price * ZONE_SHOP_DISCOUNT) / 100;
     return price - discount;
   }
-  
+
   return price;
 }
 
@@ -1331,81 +1400,72 @@ void display_zone_benefits(struct char_data *ch)
   zone_vnum zone;
   clan_vnum controlling_clan;
   clan_rnum cr;
-  
+
   if (!ch)
     return;
-    
+
   zone = zone_table[world[IN_ROOM(ch)].zone].number;
   controlling_clan = get_owning_clan(zone);
-  
-  if (controlling_clan == NO_CLAN) {
+
+  if (controlling_clan == NO_CLAN)
+  {
     send_to_char(ch, "This zone is not controlled by any clan.\r\n");
     return;
   }
-  
+
   cr = real_clan(controlling_clan);
   if (cr == NO_CLAN)
     return;
-    
-  send_to_char(ch, "This zone is controlled by: %s%s%s\r\n", 
-               QCYN, clan_list[cr].clan_name, QNRM);
-               
+
+  send_to_char(ch, "This zone is controlled by: %s%s%s\r\n", QCYN, clan_list[cr].clan_name, QNRM);
+
   benefits = get_zone_control_benefits(ch);
-  
-  if (benefits == ZONE_BENEFIT_NONE) {
+
+  if (benefits == ZONE_BENEFIT_NONE)
+  {
     send_to_char(ch, "You receive no benefits in this zone.\r\n");
     return;
   }
-  
+
   send_to_char(ch, "\r\n%sZone Control Benefits:%s\r\n", QGRN, QNRM);
-  
+
   if (benefits & ZONE_BENEFIT_REGEN_HP)
-    send_to_char(ch, "  - HP Regeneration: %s+%d per tick%s\r\n", 
-                 QGRN, ZONE_REGEN_HP_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - HP Regeneration: %s+%d per tick%s\r\n", QGRN, ZONE_REGEN_HP_BONUS, QNRM);
+
   if (benefits & ZONE_BENEFIT_REGEN_MANA)
-    send_to_char(ch, "  - Mana Regeneration: %s+%d per tick%s\r\n", 
-                 QGRN, ZONE_REGEN_MANA_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - Mana Regeneration: %s+%d per tick%s\r\n", QGRN, ZONE_REGEN_MANA_BONUS,
+                 QNRM);
+
   if (benefits & ZONE_BENEFIT_REGEN_MOVE)
-    send_to_char(ch, "  - Movement Regeneration: %s+%d per tick%s\r\n", 
-                 QGRN, ZONE_REGEN_MOVE_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - Movement Regeneration: %s+%d per tick%s\r\n", QGRN, ZONE_REGEN_MOVE_BONUS,
+                 QNRM);
+
   if (benefits & ZONE_BENEFIT_EXP_BONUS)
-    send_to_char(ch, "  - Experience Bonus: %s+%d%%%s\r\n", 
-                 QYEL, ZONE_EXP_BONUS_PERCENT, QNRM);
-                 
+    send_to_char(ch, "  - Experience Bonus: %s+%d%%%s\r\n", QYEL, ZONE_EXP_BONUS_PERCENT, QNRM);
+
   if (benefits & ZONE_BENEFIT_GOLD_BONUS)
-    send_to_char(ch, "  - Gold Drop Bonus: %s+%d%%%s\r\n", 
-                 QYEL, ZONE_GOLD_BONUS_PERCENT, QNRM);
-                 
+    send_to_char(ch, "  - Gold Drop Bonus: %s+%d%%%s\r\n", QYEL, ZONE_GOLD_BONUS_PERCENT, QNRM);
+
   if (benefits & ZONE_BENEFIT_SKILL_BONUS)
-    send_to_char(ch, "  - Skill Check Bonus: %s+%d%s\r\n", 
-                 QCYN, ZONE_SKILL_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - Skill Check Bonus: %s+%d%s\r\n", QCYN, ZONE_SKILL_BONUS, QNRM);
+
   if (benefits & ZONE_BENEFIT_RESIST_BONUS)
-    send_to_char(ch, "  - Saving Throw Bonus: %s+%d%s\r\n", 
-                 QCYN, ZONE_RESIST_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - Saving Throw Bonus: %s+%d%s\r\n", QCYN, ZONE_RESIST_BONUS, QNRM);
+
   if (benefits & ZONE_BENEFIT_DAMAGE_BONUS)
-    send_to_char(ch, "  - Damage Bonus: %s+%d%s\r\n", 
-                 QRED, ZONE_DAMAGE_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - Damage Bonus: %s+%d%s\r\n", QRED, ZONE_DAMAGE_BONUS, QNRM);
+
   if (benefits & ZONE_BENEFIT_AC_BONUS)
-    send_to_char(ch, "  - Armor Class Bonus: %s+%d%s\r\n", 
-                 QBLU, ZONE_AC_BONUS, QNRM);
-                 
+    send_to_char(ch, "  - Armor Class Bonus: %s+%d%s\r\n", QBLU, ZONE_AC_BONUS, QNRM);
+
   if (benefits & ZONE_BENEFIT_NO_DEATH_PEN)
-    send_to_char(ch, "  - %sNo death penalty in this zone%s\r\n", 
-                 QBGRN, QNRM);
-                 
+    send_to_char(ch, "  - %sNo death penalty in this zone%s\r\n", QBGRN, QNRM);
+
   if (benefits & ZONE_BENEFIT_FAST_TRAVEL)
-    send_to_char(ch, "  - Movement Cost: %s-%d%%%s\r\n", 
-                 QGRN, ZONE_MOVE_COST_REDUCTION, QNRM);
-                 
+    send_to_char(ch, "  - Movement Cost: %s-%d%%%s\r\n", QGRN, ZONE_MOVE_COST_REDUCTION, QNRM);
+
   if (benefits & ZONE_BENEFIT_SHOP_DISC)
-    send_to_char(ch, "  - Shop Discount: %s%d%%%s\r\n", 
-                 QYEL, ZONE_SHOP_DISCOUNT, QNRM);
+    send_to_char(ch, "  - Shop Discount: %s%d%%%s\r\n", QYEL, ZONE_SHOP_DISCOUNT, QNRM);
 }
 
 /****************************************************************************
@@ -1429,35 +1489,32 @@ ACMD(do_clan)
     if ((clan == NO_CLAN) && (GET_LEVEL(ch) < LVL_IMMORT))
     {
       send_to_char(ch, "You are not a member of any clan!\r\n");
-      send_to_char(ch, "Use %sclan apply <clan>%s to join one.\r\n",
-                   QCYN, QNRM);
+      send_to_char(ch, "Use %sclan apply <clan>%s to join one.\r\n", QCYN, QNRM);
     }
     else if ((rank == NO_CLANRANK) && (GET_LEVEL(ch) < LVL_IMMORT))
     {
       send_to_char(ch, "You are awaiting approval for a clan!\r\n");
-      send_to_char(ch, "Use %sclan apply <clan>%s to change your choice.\r\n",
-                   QCYN, QNRM);
+      send_to_char(ch, "Use %sclan apply <clan>%s to change your choice.\r\n", QCYN, QNRM);
     }
 
     send_to_char(ch, "Available clan commands:\r\n");
-    
+
     /* Add rank system documentation */
     send_to_char(ch, "\r\n%sRank System Information:%s\r\n", QBCYN, QNRM);
-    send_to_char(ch, "  - %sRanks use numbers where 1 = highest authority (leader)%s\r\n", QBYEL, QNRM);
+    send_to_char(ch, "  - %sRanks use numbers where 1 = highest authority (leader)%s\r\n", QBYEL,
+                 QNRM);
     send_to_char(ch, "  - %sEach clan starts with 6 default ranks%s\r\n", QBYEL, QNRM);
     send_to_char(ch, "  - %sRank 0 means 'leader only' for permissions%s\r\n", QBYEL, QNRM);
     send_to_char(ch, "  - %sUse 'clan status' to see your current rank%s\r\n", QBYEL, QNRM);
     send_to_char(ch, "  - %sUse 'clan info <clan>' to see rank structure%s\r\n", QBYEL, QNRM);
     send_to_char(ch, "\r\n");
 
-    for (i = 0; *clan_commands[i].command && *clan_commands[i].command != '\n';
-         i++)
+    for (i = 0; *clan_commands[i].command && *clan_commands[i].command != '\n'; i++)
     {
       if ((CC_PRIV(i) == CP_NONE) && (GET_LEVEL(ch) < CC_ILEV(i)))
         continue;
 
-      if ((CC_PRIV(i) != CP_ALL) && (clan == NO_CLAN) &&
-          (GET_LEVEL(ch) < CC_ILEV(i)))
+      if ((CC_PRIV(i) != CP_ALL) && (clan == NO_CLAN) && (GET_LEVEL(ch) < CC_ILEV(i)))
         continue;
 
       /* Flagged accessible for all players      */
@@ -1477,8 +1534,7 @@ ACMD(do_clan)
     {
       if (is_abbrev(clan_cmd, CC_CMD(i)))
       {
-        if ((CC_PRIV(i) == CP_NONE) && (CC_ILEV(i) != LVL_IMPL) &&
-            (GET_LEVEL(ch) < CC_ILEV(i)))
+        if ((CC_PRIV(i) == CP_NONE) && (CC_ILEV(i) != LVL_IMPL) && (GET_LEVEL(ch) < CC_ILEV(i)))
         {
           continue;
         }
@@ -1487,8 +1543,7 @@ ACMD(do_clan)
         {
           continue;
         }
-        else if ((CC_PRIV(i) != CP_ALL) && (clan == NO_CLAN) &&
-                 (GET_LEVEL(ch) < CC_ILEV(i)))
+        else if ((CC_PRIV(i) != CP_ALL) && (clan == NO_CLAN) && (GET_LEVEL(ch) < CC_ILEV(i)))
         {
           continue;
           /* Flagged accessible for all players      */
@@ -1534,8 +1589,9 @@ ACMD(do_clanapply)
   if ((c_n = get_clan_by_name(argument)) == NO_CLAN)
   {
     send_to_char(ch, CLAN_ERR_INVALID_CLAN);
-    send_to_char(ch, "Usage:  %sclan apply <clan>%s  (see 'clan info' "
-                     "list)\r\n",
+    send_to_char(ch,
+                 "Usage:  %sclan apply <clan>%s  (see 'clan info' "
+                 "list)\r\n",
                  QYEL, QNRM);
     return;
   }
@@ -1562,15 +1618,18 @@ ACMD(do_clanapply)
   set_clan(ch, clan_list[c_n].vnum);
   GET_CLANRANK(ch) = NO_CLANRANK;
 
-  send_to_char(ch, "You've applied to clan '%s%s'\r\n"
-                   "In order to be admitted into the clan you will need your application to be approved with a clan member of a certain rank.\r\n"
-                   "If there are no active clan leaders playing, please request a staff member to admit you into the clan.\r\n",
+  send_to_char(ch,
+               "You've applied to clan '%s%s'\r\n"
+               "In order to be admitted into the clan you will need your application to be "
+               "approved with a clan member of a certain rank.\r\n"
+               "If there are no active clan leaders playing, please request a staff member to "
+               "admit you into the clan.\r\n",
                clan_list[c_n].clan_name, QNRM);
-  
+
   /* Log the application */
-  log_clan_activity(clan_list[c_n].vnum, "%s (level %d) applied to join the clan", 
-                    GET_NAME(ch), GET_LEVEL(ch));
-  
+  log_clan_activity(clan_list[c_n].vnum, "%s (level %d) applied to join the clan", GET_NAME(ch),
+                    GET_LEVEL(ch));
+
   return;
 }
 
@@ -1619,8 +1678,7 @@ ACMD(do_clanaward)
   if ((c_r = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
     send_to_char(ch, "Sorry, unable to award clanpoints at this time!\r\n");
-    log("SYSERR: %s has invalid clan ID (%d) in do_clanaward", GET_NAME(ch),
-        GET_CLAN(ch));
+    log("SYSERR: %s has invalid clan ID (%d) in do_clanaward", GET_NAME(ch), GET_CLAN(ch));
     return;
   }
 
@@ -1639,14 +1697,15 @@ ACMD(do_clanaward)
   GET_CLANPOINTS(l) += num_cp;
   CLAN_BANK(c_r) -= (num_cp * 10);
 
-  send_to_char(l, "%sCLAN: You have been awarded %s%ld%s clan points!%s\r\n",
-               CCMAG(l, C_NRM), CBYEL(l, C_NRM), num_cp, CCMAG(l, C_NRM), CCNRM(l, C_NRM));
-  send_to_char(ch, "%s has been awarded %s%ld%s clan points!\r\n",
-               GET_NAME(l), QBYEL, num_cp, QNRM);
-  send_to_char(ch, "%s%s%s Double Dollars has been taken from the "
-                   "clan bank!\r\n",
+  send_to_char(l, "%sCLAN: You have been awarded %s%ld%s clan points!%s\r\n", CCMAG(l, C_NRM),
+               CBYEL(l, C_NRM), num_cp, CCMAG(l, C_NRM), CCNRM(l, C_NRM));
+  send_to_char(ch, "%s has been awarded %s%ld%s clan points!\r\n", GET_NAME(l), QBYEL, num_cp,
+               QNRM);
+  send_to_char(ch,
+               "%s%s%s Double Dollars has been taken from the "
+               "clan bank!\r\n",
                QBYEL, add_commas(num_cp * 10), QNRM);
-               
+
   /* Log the award */
   log_clan_activity(GET_CLAN(ch), "%s awarded %ld clan points to %s (cost: %ld coins)",
                     GET_NAME(ch), num_cp, GET_NAME(l), num_cp * 10);
@@ -1697,43 +1756,44 @@ ACMD(do_clanclaim)
     return;
   }
 
-  log("%s claiming zone %d: Current Clan=%d, New Clan=%d",
-      GET_NAME(ch), zv, get_owning_clan(zv), GET_CLAN(ch));
+  log("%s claiming zone %d: Current Clan=%d, New Clan=%d", GET_NAME(ch), zv, get_owning_clan(zv),
+      GET_CLAN(ch));
 
   if (add_claim_by_char(ch, zv) != NULL)
   {
     clan_rnum cr = real_clan(GET_CLAN(ch));
-    
+
     /* Update clan statistics */
-    if (cr != NO_CLAN) {
+    if (cr != NO_CLAN)
+    {
       clan_list[cr].total_zones_claimed++;
       clan_list[cr].current_zones_owned++;
       mark_clan_modified(cr);
       save_single_clan(cr);
     }
-    
+
     send_to_char(ch, "The locals rejoice and welcome your clans claim.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "(CLAN) %s has claimed %s [%d] for %s [%d]",
-           GET_NAME(ch), zone_table[real_zone(zv)].name, zv,
-           clan_list[real_clan(GET_CLAN(ch))].clan_name, GET_CLAN(ch));
-    game_info("\tC%s has been claimed by %s!\r\n",
-              zone_table[real_zone(zv)].name,
+    mudlog(NRM, LVL_IMMORT, TRUE, "(CLAN) %s has claimed %s [%d] for %s [%d]", GET_NAME(ch),
+           zone_table[real_zone(zv)].name, zv, clan_list[real_clan(GET_CLAN(ch))].clan_name,
+           GET_CLAN(ch));
+    game_info("\tC%s has been claimed by %s!\r\n", zone_table[real_zone(zv)].name,
               clan_list[real_clan(GET_CLAN(ch))].clan_name);
 
     /* Update clan activity */
     update_clan_activity(GET_CLAN(ch));
-    
+
     /* Log the claim */
-    log_clan_activity(GET_CLAN(ch), "%s claimed zone %s [%d]", 
-                      GET_NAME(ch), zone_table[real_zone(zv)].name, zv);
-    
+    log_clan_activity(GET_CLAN(ch), "%s claimed zone %s [%d]", GET_NAME(ch),
+                      zone_table[real_zone(zv)].name, zv);
+
     save_claims();
   }
   else
   {
     send_to_char(ch, "Sorry, your claim failed.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "(CLAN) %s has FAILED to claim %s [%d]"
-                                  " for %s [%d]",
+    mudlog(NRM, LVL_IMMORT, TRUE,
+           "(CLAN) %s has FAILED to claim %s [%d]"
+           " for %s [%d]",
            GET_NAME(ch), zone_table[real_zone(zv)].name, zv,
            clan_list[real_clan(GET_CLAN(ch))].clan_name, GET_CLAN(ch));
   }
@@ -1751,20 +1811,19 @@ ACMD(do_clancreate)
 
   if (!*c_l || !*c_n)
   {
-    send_to_char(ch, "Usage:   %sclan create <clan leader> <clan name>%s\r\n",
-                 QYEL, QNRM);
+    send_to_char(ch, "Usage:   %sclan create <clan leader> <clan name>%s\r\n", QYEL, QNRM);
     send_to_char(ch, "Example: clan create Jamdog Jamdog's Army\r\n");
     return;
   }
   if ((l = get_player_vis(ch, c_l, NULL, FIND_CHAR_WORLD)) == NULL)
   {
-    log_clan_error(__func__, "Failed to create clan - leader '%s' not found (requested by %s)", 
-                   c_l, GET_NAME(ch));
-    send_to_char(ch, "Clan leader '%s' not found!  The player MUST be "
-                     "online!\r\n",
+    log_clan_error(__func__, "Failed to create clan - leader '%s' not found (requested by %s)", c_l,
+                   GET_NAME(ch));
+    send_to_char(ch,
+                 "Clan leader '%s' not found!  The player MUST be "
+                 "online!\r\n",
                  c_l);
-    send_to_char(ch, "Usage:   %sclan create <clan leader> <clan name>%s\r\n",
-                 QYEL, QNRM);
+    send_to_char(ch, "Usage:   %sclan create <clan leader> <clan name>%s\r\n", QYEL, QNRM);
     return;
   }
   if (GET_LEVEL(l) >= LVL_IMMORT)
@@ -1774,44 +1833,52 @@ ACMD(do_clancreate)
   }
 
   /* Check for duplicate clan names first */
-  if (get_clan_by_name(c_n) != NO_CLAN) {
+  if (get_clan_by_name(c_n) != NO_CLAN)
+  {
     send_to_char(ch, "A clan with that name already exists!\r\n");
     return;
   }
-  
+
   /* Sanitize and truncate the clan name if too long - safe truncation */
   int j;
-  for (j = 0; c_n[j]; j++) {
+  for (j = 0; c_n[j]; j++)
+  {
     /* Remove control characters */
-    if ((unsigned char)c_n[j] < ' ' && c_n[j] != '\n' && c_n[j] != '\r') {
+    if ((unsigned char)c_n[j] < ' ' && c_n[j] != '\n' && c_n[j] != '\r')
+    {
       c_n[j] = ' ';
     }
   }
-  
-  if (strlen(c_n) > MAX_CLAN_NAME) {
+
+  if (strlen(c_n) > MAX_CLAN_NAME)
+  {
     /* Ensure we don't cut in the middle of a color code */
     int i = MAX_CLAN_NAME;
-    while (i > 0 && c_n[i-1] == '@') {
+    while (i > 0 && c_n[i - 1] == '@')
+    {
       i--;
     }
     /* If we have an odd number of @, we're in the middle of a color code */
-    if ((MAX_CLAN_NAME - i) % 2 == 1 && i > 0) {
+    if ((MAX_CLAN_NAME - i) % 2 == 1 && i > 0)
+    {
       i--; /* Back up one more to include the @ */
     }
     c_n[i] = '\0';
   }
 
   v = highest_clan_vnum() + 1;
-  
+
   /* Check for VNUM overflow */
-  if (v >= NO_CLAN || v < 1) {
+  if (v >= NO_CLAN || v < 1)
+  {
     send_to_char(ch, "Maximum number of clans reached. Cannot create new clan.\r\n");
     return;
   }
-  
+
   new_clan.vnum = v;
   new_clan.clan_name = strdup(c_n);
-  if (!new_clan.clan_name) {
+  if (!new_clan.clan_name)
+  {
     send_to_char(ch, "Memory allocation failed. Please try again.\r\n");
     return;
   }
@@ -1826,19 +1893,24 @@ ACMD(do_clancreate)
   new_clan.rank_name[2] = strdup("Baron");
   new_clan.rank_name[1] = strdup("Count");
   new_clan.rank_name[0] = strdup("Duke");
-  
+
   /* Check if all rank allocations succeeded */
-  for (i = 0; i < 6; i++) {
-    if (!new_clan.rank_name[i]) {
+  for (i = 0; i < 6; i++)
+  {
+    if (!new_clan.rank_name[i])
+    {
       /* Free already allocated ranks */
       int j;
-      for (j = 0; j < 6; j++) {
-        if (new_clan.rank_name[j]) {
+      for (j = 0; j < 6; j++)
+      {
+        if (new_clan.rank_name[j])
+        {
           free(new_clan.rank_name[j]);
           new_clan.rank_name[j] = NULL;
         }
       }
-      if (new_clan.clan_name) {
+      if (new_clan.clan_name)
+      {
         free(new_clan.clan_name);
       }
       send_to_char(ch, "Memory allocation failed. Please try again.\r\n");
@@ -1883,8 +1955,7 @@ ACMD(do_clancreate)
   /* Member (Rank 5): Claim zones      */
   new_clan.privilege[CP_CLAIM] = RANK_LEADERONLY;
 
-  send_to_char(ch, "Adding clan '%s' (Leader: %s) at VNUM %d\r\n",
-               c_n, GET_NAME(l), v);
+  send_to_char(ch, "Adding clan '%s' (Leader: %s) at VNUM %d\r\n", c_n, GET_NAME(l), v);
   if (add_clan(&new_clan))
   {
     send_to_char(ch, "Clan added successfully.\r\n");
@@ -1893,10 +1964,8 @@ ACMD(do_clancreate)
     GET_CLANRANK(l) = 1;
     if (set_clan(l, v))
     {
-      send_to_char(l, "Your new clan, '\ty%s\tn' has been created.\r\n",
-                   c_n);
-      send_to_char(l, "Type %sclan%s for a list of available commands.\r\n",
-                   QBWHT, QNRM);
+      send_to_char(l, "Your new clan, '\ty%s\tn' has been created.\r\n", c_n);
+      send_to_char(l, "Type %sclan%s for a list of available commands.\r\n", QBWHT, QNRM);
       send_to_char(ch, "Leader set successfully - leader has been "
                        "notified.\r\n");
     }
@@ -1964,8 +2033,9 @@ ACMD(do_clandemote)
           if (c_n == NO_CLAN)
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data."
-                             " Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data."
+                         " Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -1973,15 +2043,15 @@ ACMD(do_clandemote)
 
         if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
         {
-          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n",
-              GET_NAME(vict));
+          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n", GET_NAME(vict));
           GET_CLANRANK(vict) = clan_list[c_n].ranks; /* Set to lowest rank */
           rk_num = GET_CLANRANK(vict) - 1;
           if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data."
-                             " Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data."
+                         " Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -1995,8 +2065,7 @@ ACMD(do_clandemote)
         }
         if (GET_CLANRANK(vict) >= clan_list[c_n].ranks)
         {
-          send_to_char(ch, "%s is already at the lowest rank!\r\n",
-                       GET_NAME(vict));
+          send_to_char(ch, "%s is already at the lowest rank!\r\n", GET_NAME(vict));
           return;
         }
         GET_CLANRANK(vict) = GET_CLANRANK(vict) + 1;
@@ -2005,11 +2074,11 @@ ACMD(do_clandemote)
                      clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)]);
         send_to_char(ch, "%s has been demoted to %s!\r\n", GET_NAME(vict),
                      clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)]);
-                     
+
         /* Log the demotion */
-        log_clan_activity(clan_list[c_n].vnum, "%s demoted %s to %s (rank %d)",
-                          GET_NAME(ch), GET_NAME(vict), 
-                          clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)], GET_CLANRANK(vict));
+        log_clan_activity(clan_list[c_n].vnum, "%s demoted %s to %s (rank %d)", GET_NAME(ch),
+                          GET_NAME(vict), clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)],
+                          GET_CLANRANK(vict));
       }
       else /* Not currently playing */
       {
@@ -2032,8 +2101,9 @@ ACMD(do_clandemote)
           if (c_n == NO_CLAN)
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data. "
-                             "Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data. "
+                         "Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -2041,15 +2111,15 @@ ACMD(do_clandemote)
 
         if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
         {
-          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n",
-              GET_NAME(vict));
+          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n", GET_NAME(vict));
           GET_CLANRANK(vict) = clan_list[c_n].ranks; /* Set to lowest rank */
           rk_num = GET_CLANRANK(vict) - 1;
           if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data. "
-                             "Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data. "
+                         "Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -2064,8 +2134,7 @@ ACMD(do_clandemote)
         }
         if (GET_CLANRANK(vict) >= clan_list[c_n].ranks)
         {
-          send_to_char(ch, "%s is already at the lowest rank!\r\n",
-                       GET_NAME(vict));
+          send_to_char(ch, "%s is already at the lowest rank!\r\n", GET_NAME(vict));
           free_char(vict);
           return;
         }
@@ -2079,7 +2148,7 @@ ACMD(do_clandemote)
         free_char(vict);
         save_player_index(); /* Sync player table changes */
       } /* End else (not playing) */
-    }   /* End if name found (in player_table) */
+    } /* End if name found (in player_table) */
   }
   /* End for loop (through player_table) */
 }
@@ -2208,7 +2277,7 @@ ACMD(do_clandeposit)
     send_to_char(ch, CLAN_ERR_INSUFFICIENT_FUNDS);
     return;
   }
-  
+
   /* Acquire lock for clan modification */
   if (!acquire_clan_lock(c_n, ch))
   {
@@ -2236,41 +2305,43 @@ ACMD(do_clandeposit)
   /* Create transaction for atomic operation */
   struct clan_transaction *trans;
   trans = begin_clan_transaction(ch, "clan deposit");
-  
-  if (!trans) {
+
+  if (!trans)
+  {
     send_to_char(ch, "Failed to create transaction. Please try again.\r\n");
     release_clan_lock(c_n, ch);
     return;
   }
-  
+
   /* Add treasury change to transaction */
-  if (!add_clan_trans_treasury(trans, c_n, clan_list[c_n].treasure, 
-                               clan_list[c_n].treasure + amt)) {
+  if (!add_clan_trans_treasury(trans, c_n, clan_list[c_n].treasure, clan_list[c_n].treasure + amt))
+  {
     rollback_clan_transaction(trans);
     send_to_char(ch, "Transaction failed. Please try again.\r\n");
     release_clan_lock(c_n, ch);
     return;
   }
-  
+
   /* Add stats update to transaction */
-  if (!add_clan_trans_operation(trans, CLAN_TRANS_STAT_UPDATE, c_n, 0,
-                                0, 0)) {
+  if (!add_clan_trans_operation(trans, CLAN_TRANS_STAT_UPDATE, c_n, 0, 0, 0))
+  {
     rollback_clan_transaction(trans);
     send_to_char(ch, "Transaction failed. Please try again.\r\n");
     release_clan_lock(c_n, ch);
     return;
   }
-  
+
   /* Execute the transaction */
   clan_list[(c_n)].treasure += amt;
-  clan_list[(c_n)].total_deposits += amt;  /* Track total deposits */
+  clan_list[(c_n)].total_deposits += amt; /* Track total deposits */
   decrease_gold(ch, amt);
 
   /* Update clan activity */
   update_clan_activity(clan_list[c_n].vnum);
 
   /* Commit the transaction */
-  if (!commit_clan_transaction(trans)) {
+  if (!commit_clan_transaction(trans))
+  {
     /* Rollback player gold if transaction failed */
     increase_gold(ch, amt);
     send_to_char(ch, "Transaction failed and was rolled back.\r\n");
@@ -2283,11 +2354,11 @@ ACMD(do_clandeposit)
   save_single_clan(c_n);
 
   send_to_char(ch, "You have deposited %d coins into the clan bank.\r\n", amt);
-  
+
   /* Log the deposit */
-  log_clan_activity(clan_list[c_n].vnum, "%s deposited %d coins (new balance: %ld)",
-                    GET_NAME(ch), amt, clan_list[c_n].treasure);
-  
+  log_clan_activity(clan_list[c_n].vnum, "%s deposited %d coins (new balance: %ld)", GET_NAME(ch),
+                    amt, clan_list[c_n].treasure);
+
   /* Release the lock */
   release_clan_lock(c_n, ch);
 }
@@ -2299,8 +2370,7 @@ ACMD(do_clandestroy)
   bool immcom = FALSE;
   clan_vnum c_v;
   clan_rnum c_n;
-  char c_name[MAX_INPUT_LENGTH] = {'\0'}, c_ldr[MAX_NAME_LENGTH],
-       buf[MAX_INPUT_LENGTH] = {'\0'};
+  char c_name[MAX_INPUT_LENGTH] = {'\0'}, c_ldr[MAX_NAME_LENGTH], buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *buf2;
   int j, p_pos = 0;
   long c_lid;
@@ -2317,10 +2387,10 @@ ACMD(do_clandestroy)
       if ((c_n = real_clan(atoi(buf2))) == NO_CLAN)
       {
         send_to_char(ch, "Invalid clan VNUM specified.\r\n");
-        send_to_char(ch, "The clan you entered %d, doesn't match your"
-                         " clan %d.\r\n",
-                     real_clan(atoi(buf2)),
-                     real_clan(GET_CLAN(ch)));
+        send_to_char(ch,
+                     "The clan you entered %d, doesn't match your"
+                     " clan %d.\r\n",
+                     real_clan(atoi(buf2)), real_clan(GET_CLAN(ch)));
         return;
       }
     }
@@ -2331,8 +2401,7 @@ ACMD(do_clandestroy)
     }
   }
 
-  if ((GET_IDNUM(ch) != clan_list[c_n].leader) &&
-      (GET_LEVEL(ch) < LVL_IMPL))
+  if ((GET_IDNUM(ch) != clan_list[c_n].leader) && (GET_LEVEL(ch) < LVL_IMPL))
   {
     send_to_char(ch, "Only the clan leader or an implementor can "
                      "disband a clan!\r\n");
@@ -2356,7 +2425,7 @@ ACMD(do_clandestroy)
       {
         /* Invalidate cache before removing member */
         clan_list[c_n].cache_timestamp = 0;
-        
+
         GET_CLAN(vict) = 0;
         GET_CLANRANK(vict) = 0;
         save_char(vict, 0);
@@ -2377,7 +2446,7 @@ ACMD(do_clandestroy)
         }
         /* Invalidate cache before removing member */
         clan_list[c_n].cache_timestamp = 0;
-        
+
         GET_CLAN(vict) = 0;
         GET_CLANRANK(vict) = 0;
         GET_PFILEPOS(vict) = p_pos;
@@ -2387,8 +2456,8 @@ ACMD(do_clandestroy)
       } /* End else (not playing) */
       player_table[j].clan = 0;
     } /* End if   (in the clan) */
-  }   /* End for loop (through player_table) */
-  
+  } /* End for loop (through player_table) */
+
   /* Save the player index after updating all clan members */
   save_player_index();
 
@@ -2404,8 +2473,7 @@ ACMD(do_clandestroy)
   if (remove_clan(c_v))
   {
     send_to_char(ch, "Clan disbanded and destroyed!\r\n");
-    log("(CLAN) Clan '%s' (leader=%s) destroyed by %s.", c_name, CAP(c_ldr),
-        GET_NAME(ch));
+    log("(CLAN) Clan '%s' (leader=%s) destroyed by %s.", c_name, CAP(c_ldr), GET_NAME(ch));
   }
   else
   {
@@ -2476,12 +2544,11 @@ ACMD(do_clanenrol)
           {
             if (count == 0)
             {
-              send_to_char(ch, "%sApplicants to the '%s%s' clan:%s\r\n",
-                           QCYN, clan_list[c_n].clan_name, QCYN, QNRM);
+              send_to_char(ch, "%sApplicants to the '%s%s' clan:%s\r\n", QCYN,
+                           clan_list[c_n].clan_name, QCYN, QNRM);
             }
-            send_to_char(ch, "%s%c%-15s  %s(Level %d)%s\r\n", QYEL,
-                         UPPER(*player_table[i].name), player_table[i].name + 1,
-                         QCYN, player_table[i].level, QNRM);
+            send_to_char(ch, "%s%c%-15s  %s(Level %d)%s\r\n", QYEL, UPPER(*player_table[i].name),
+                         player_table[i].name + 1, QCYN, player_table[i].level, QNRM);
             count++;
           }
         }
@@ -2489,8 +2556,9 @@ ACMD(do_clanenrol)
     }
     if (count)
     {
-      send_to_char(ch, "%sThere are %d online player%s awaiting "
-                       "enrolment.\r\n",
+      send_to_char(ch,
+                   "%sThere are %d online player%s awaiting "
+                   "enrolment.\r\n",
                    QNRM, count, (count == 1) ? "" : "s");
       send_to_char(ch, "Usage: %sclan enrol <player>%s\r\n", QYEL, QNRM);
     }
@@ -2506,15 +2574,13 @@ ACMD(do_clanenrol)
 
   if ((c_n = real_clan(GET_CLAN(v))) == NO_CLAN)
   {
-    send_to_char(ch, "%s has not yet applied to join any clan.\r\n",
-                 GET_NAME(v));
+    send_to_char(ch, "%s has not yet applied to join any clan.\r\n", GET_NAME(v));
     return;
   }
 
   if (!immcom && (c_n != real_clan(GET_CLAN(ch))))
   {
-    send_to_char(ch, "%s has not applied to join YOUR clan.\r\n",
-                 GET_NAME(v));
+    send_to_char(ch, "%s has not applied to join YOUR clan.\r\n", GET_NAME(v));
     return;
   }
 
@@ -2525,9 +2591,11 @@ ACMD(do_clanenrol)
   }
 
   /* Check member limit */
-  if (clan_list[c_n].max_members > 0) {
+  if (clan_list[c_n].max_members > 0)
+  {
     int current_members = count_clan_members(c_n);
-    if (current_members >= clan_list[c_n].max_members) {
+    if (current_members >= clan_list[c_n].max_members)
+    {
       send_to_char(ch, "The clan has reached its maximum member limit of %d.\r\n",
                    clan_list[c_n].max_members);
       return;
@@ -2536,27 +2604,26 @@ ACMD(do_clanenrol)
 
   GET_CLANRANK(v) = (clan_list[(c_n)].ranks); /* Set to lowest rank    */
   set_clan(v, clan_list[(c_n)].vnum);         /* Set the clan and save */
-  
+
   /* Update statistics */
   clan_list[c_n].total_members_joined++;
-  
+
   /* Update highest member count if needed */
   current_count = count_clan_members(c_n);
   if (current_count > clan_list[c_n].highest_member_count)
     clan_list[c_n].highest_member_count = current_count;
-  
+
   mark_clan_modified(c_n);
   save_single_clan(c_n);
 
-  send_to_char(ch, "%s is now a member of %s%s.\r\n", GET_NAME(v),
-               clan_list[(c_n)].clan_name, QNRM);
-  send_to_char(v, "You have been enrolled into %s%s.\r\n",
-               clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
-               
+  send_to_char(ch, "%s is now a member of %s%s.\r\n", GET_NAME(v), clan_list[(c_n)].clan_name,
+               QNRM);
+  send_to_char(v, "You have been enrolled into %s%s.\r\n", clan_list[(c_n)].clan_name,
+               CCNRM(v, C_NRM));
+
   /* Log the enrollment */
-  log_clan_activity(clan_list[c_n].vnum, "%s enrolled %s as %s (rank %d)",
-                    GET_NAME(ch), GET_NAME(v), 
-                    clan_list[c_n].rank_name[(GET_CLANRANK(v) - 1)], GET_CLANRANK(v));
+  log_clan_activity(clan_list[c_n].vnum, "%s enrolled %s as %s (rank %d)", GET_NAME(ch),
+                    GET_NAME(v), clan_list[c_n].rank_name[(GET_CLANRANK(v) - 1)], GET_CLANRANK(v));
 }
 
 ACMDU(do_clanleave)
@@ -2588,21 +2655,23 @@ ACMDU(do_clanleave)
   }
 
   /* Invalidate cache for old clan */
-  if (c_n != NO_CLAN) {
+  if (c_n != NO_CLAN)
+  {
     clan_list[c_n].cache_timestamp = 0;
-    clan_list[c_n].total_members_left++;  /* Track members who left */
+    clan_list[c_n].total_members_left++; /* Track members who left */
     mark_clan_modified(c_n);
     save_single_clan(c_n);
-    
+
     /* Log before clearing clan data */
     log_clan_activity(clan_list[c_n].vnum, "%s left the clan", GET_NAME(ch));
   }
-  
+
   GET_CLAN(ch) = 0;
   GET_CLANRANK(ch) = NO_CLANRANK;
   player_table[GET_PFILEPOS(ch)].clan = 0;
   save_player_index(); /* Sync player table changes */
-  if (ch->player_specials->clan_leave_code) {
+  if (ch->player_specials->clan_leave_code)
+  {
     free(ch->player_specials->clan_leave_code);
     ch->player_specials->clan_leave_code = NULL;
   }
@@ -2665,28 +2734,27 @@ ACMD(do_clanexpel) /* Expel a member */
 
   if ((v = is_playing(player_table[(v_id)].name)) != NULL)
   {
-
     /* Invalidate cache before removing member */
     clan_list[c_n].cache_timestamp = 0;
-    clan_list[c_n].total_members_left++;  /* Track members who left */
+    clan_list[c_n].total_members_left++; /* Track members who left */
     mark_clan_modified(c_n);
     save_single_clan(c_n);
-    
+
     GET_CLAN(v) = 0;
     GET_CLANRANK(v) = NO_CLANRANK;
     player_table[v_id].clan = 0;
 
-    send_to_char(v, "You have been expelled from %s%s!\r\n",
-                 clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
-    send_to_char(ch, "You have expelled %s from %s%s!\r\n",
-                 GET_NAME(v), clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
+    send_to_char(v, "You have been expelled from %s%s!\r\n", clan_list[(c_n)].clan_name,
+                 CCNRM(v, C_NRM));
+    send_to_char(ch, "You have expelled %s from %s%s!\r\n", GET_NAME(v), clan_list[(c_n)].clan_name,
+                 CCNRM(v, C_NRM));
     log("(CLAN) %s has expelled %s from %s!\r\n", GET_NAME(ch), GET_NAME(v),
         clan_list[(c_n)].clan_name);
-        
+
     /* Log the expulsion */
-    log_clan_activity(clan_list[c_n].vnum, "%s expelled %s from the clan",
-                      GET_NAME(ch), GET_NAME(v));
-                      
+    log_clan_activity(clan_list[c_n].vnum, "%s expelled %s from the clan", GET_NAME(ch),
+                      GET_NAME(v));
+
     save_char(v, 0);
     save_player_index();
   }
@@ -2697,25 +2765,24 @@ ACMD(do_clanexpel) /* Expel a member */
     if ((v_pos = load_char(player_table[v_id].name, v)) < 0)
     {
       free_char(v);
-      log("SYSERR: Unable to load char %s in do_clanexpel",
-          player_table[v_id].name);
+      log("SYSERR: Unable to load char %s in do_clanexpel", player_table[v_id].name);
       return;
     }
     /* Invalidate cache before removing member */
     clan_list[c_n].cache_timestamp = 0;
-    clan_list[c_n].total_members_left++;  /* Track members who left */
+    clan_list[c_n].total_members_left++; /* Track members who left */
     mark_clan_modified(c_n);
     save_single_clan(c_n);
-    
+
     GET_CLAN(v) = 0;
     GET_CLANRANK(v) = NO_CLANRANK;
     player_table[v_id].clan = 0;
     GET_PFILEPOS(v) = v_pos;
 
-    send_to_char(v, "You have been expelled from %s%s!\r\n",
-                 clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
-    send_to_char(ch, "You have expelled %s from %s%s!\r\n", GET_NAME(v),
-                 clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
+    send_to_char(v, "You have been expelled from %s%s!\r\n", clan_list[(c_n)].clan_name,
+                 CCNRM(v, C_NRM));
+    send_to_char(ch, "You have expelled %s from %s%s!\r\n", GET_NAME(v), clan_list[(c_n)].clan_name,
+                 CCNRM(v, C_NRM));
     send_to_char(ch, "Saved to file.\r\n");
     log("(CLAN) %s has expelled %s from %s!\r\n", GET_NAME(ch), GET_NAME(v),
         clan_list[(c_n)].clan_name);
@@ -2743,8 +2810,8 @@ ACMD(do_claninfo) /* Information about clans */
       mems = count_clan_members(i);
       pow = count_clan_power(i);
       send_to_char(ch, "[%5d]  %-*s%s  %7d  %5d\r\n", clan_list[i].vnum,
-                   30 + count_color_chars(clan_list[i].clan_name),
-                   clan_list[i].clan_name, QNRM, mems, pow);
+                   30 + count_color_chars(clan_list[i].clan_name), clan_list[i].clan_name, QNRM,
+                   mems, pow);
     }
     if (count == 0)
     {
@@ -2754,11 +2821,14 @@ ACMD(do_claninfo) /* Information about clans */
     else
     {
 #if defined(CAMPAIGN_DL)
-      send_to_char(ch, "There %s %d clan%s in realm of Krynn.\r\n", (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
-#elif defined (CAMPAIGN_FR)
-      send_to_char(ch, "There %s %d clan%s in realm of Faerun.\r\n", (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
+      send_to_char(ch, "There %s %d clan%s in realm of Krynn.\r\n", (count == 1) ? "is" : "are",
+                   count, (count == 1) ? "" : "s");
+#elif defined(CAMPAIGN_FR)
+      send_to_char(ch, "There %s %d clan%s in realm of Faerun.\r\n", (count == 1) ? "is" : "are",
+                   count, (count == 1) ? "" : "s");
 #else
-      send_to_char(ch, "There %s %d clan%s in realm of Luminari.\r\n", (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
+      send_to_char(ch, "There %s %d clan%s in realm of Luminari.\r\n", (count == 1) ? "is" : "are",
+                   count, (count == 1) ? "" : "s");
 #endif
     }
     return;
@@ -2781,39 +2851,41 @@ ACMD(do_claninfo) /* Information about clans */
           return;
         }
       }
-      send_to_char(ch, "Clan Information for %s%s\r\n", clan_list[i].clan_name,
-                   QNRM);
+      send_to_char(ch, "Clan Information for %s%s\r\n", clan_list[i].clan_name, QNRM);
       send_to_char(ch, "Abbrev : %s%s%s\r\n", QYEL, clan_list[i].abrev, QNRM);
-      send_to_char(ch, "Leader : %s%c%s%s\r\n", QCYN,
-                   UPPER(*get_name_by_id(clan_list[i].leader)),
+      send_to_char(ch, "Leader : %s%c%s%s\r\n", QCYN, UPPER(*get_name_by_id(clan_list[i].leader)),
                    get_name_by_id(clan_list[i].leader) + 1, QNRM);
-      
+
       /* Show clan description if it exists */
       if (clan_list[i].description && *clan_list[i].description)
       {
-        send_to_char(ch, "\r\n%sDescription:%s\r\n%s\r\n", QBCYN, QNRM, 
-                     clan_list[i].description);
+        send_to_char(ch, "\r\n%sDescription:%s\r\n%s\r\n", QBCYN, QNRM, clan_list[i].description);
       }
-      send_to_char(ch, "Members: %s%d%s\r\n", QCYN, count_clan_members(i),
-                   QNRM);
+      send_to_char(ch, "Members: %s%d%s\r\n", QCYN, count_clan_members(i), QNRM);
       send_to_char(ch, "Power  : %s%d%s\r\n", QCYN, count_clan_power(i), QNRM);
-      if ((GET_IDNUM(ch) == clan_list[i].leader) ||
-          (GET_LEVEL(ch) == LVL_IMPL))
+      if ((GET_IDNUM(ch) == clan_list[i].leader) || (GET_LEVEL(ch) == LVL_IMPL))
       {
-        send_to_char(ch, "Bank   : %s%ld coin%s%s\r\n", QYEL, clan_list[i].treasure, clan_list[i].treasure == 1 ? "" : "s", QNRM);
+        send_to_char(ch, "Bank   : %s%ld coin%s%s\r\n", QYEL, clan_list[i].treasure,
+                     clan_list[i].treasure == 1 ? "" : "s", QNRM);
       }
-      
+
       /* Show last activity */
-      if (clan_list[i].last_activity > 0) {
+      if (clan_list[i].last_activity > 0)
+      {
         time_t now = time(0);
         time_t diff = now - clan_list[i].last_activity;
-        if (diff < 3600) {
-          send_to_char(ch, "Active : %s%ld minute%s ago%s\r\n", QGRN, diff / 60, 
+        if (diff < 3600)
+        {
+          send_to_char(ch, "Active : %s%ld minute%s ago%s\r\n", QGRN, diff / 60,
                        (diff / 60) == 1 ? "" : "s", QNRM);
-        } else if (diff < 86400) {
+        }
+        else if (diff < 86400)
+        {
           send_to_char(ch, "Active : %s%ld hour%s ago%s\r\n", QYEL, diff / 3600,
                        (diff / 3600) == 1 ? "" : "s", QNRM);
-        } else {
+        }
+        else
+        {
           send_to_char(ch, "Active : %s%ld day%s ago%s\r\n", QRED, diff / 86400,
                        (diff / 86400) == 1 ? "" : "s", QNRM);
         }
@@ -2821,19 +2893,22 @@ ACMD(do_claninfo) /* Information about clans */
       send_to_char(ch, "App Lev: %s%d%s\r\n", QYEL, clan_list[i].applev, QNRM);
       send_to_char(ch, "App Fee: %s%d%s\r\n", QYEL, clan_list[i].appfee, QNRM);
       send_to_char(ch, "Tax Rate: %s%d%%%s\r\n", QYEL, clan_list[i].taxrate, QNRM);
-      
+
       /* Show clan hall zone if set */
-      if (clan_list[i].hall != 0) {
+      if (clan_list[i].hall != 0)
+      {
         int zr = real_zone(clan_list[i].hall);
-        if (zr != NOWHERE) {
-          send_to_char(ch, "Hall Zone: %s%s (#%d)%s\r\n", QCYN, 
-                       zone_table[zr].name, clan_list[i].hall, QNRM);
-        } else {
-          send_to_char(ch, "Hall Zone: %sInvalid Zone (#%d)%s\r\n", QRED, 
+        if (zr != NOWHERE)
+        {
+          send_to_char(ch, "Hall Zone: %s%s (#%d)%s\r\n", QCYN, zone_table[zr].name,
                        clan_list[i].hall, QNRM);
         }
+        else
+        {
+          send_to_char(ch, "Hall Zone: %sInvalid Zone (#%d)%s\r\n", QRED, clan_list[i].hall, QNRM);
+        }
       }
-      
+
       /* Show PK statistics */
       if ((GET_IDNUM(ch) == clan_list[i].leader) || (GET_LEVEL(ch) >= LVL_IMMORT) ||
           (GET_CLAN(ch) == clan_list[i].vnum))
@@ -2844,55 +2919,55 @@ ACMD(do_claninfo) /* Information about clans */
         send_to_char(ch, "Raided  : %s%d time%s%s\r\n", QRED, clan_list[i].raided,
                      clan_list[i].raided == 1 ? "" : "s", QNRM);
       }
-      
-      if (clan_list[i].max_members > 0) {
+
+      if (clan_list[i].max_members > 0)
+      {
         send_to_char(ch, "Max Mem: %s%d%s\r\n", QYEL, clan_list[i].max_members, QNRM);
-      } else {
+      }
+      else
+      {
         send_to_char(ch, "Max Mem: %sUnlimited%s\r\n", QYEL, QNRM);
       }
-      
+
       /* Display rank information */
       send_to_char(ch, "\r\n%sRank Structure:%s\r\n", QBCYN, QNRM);
-      send_to_char(ch, "%sNote: Lower rank numbers have higher authority (1 = highest)%s\r\n", QBYEL, QNRM);
+      send_to_char(ch, "%sNote: Lower rank numbers have higher authority (1 = highest)%s\r\n",
+                   QBYEL, QNRM);
       for (j = 0; j < clan_list[i].ranks; j++)
       {
-        send_to_char(ch, "  Rank %d: %s%s%s", j + 1, QCYN, 
-                     clan_list[i].rank_name[j], QNRM);
+        send_to_char(ch, "  Rank %d: %s%s%s", j + 1, QCYN, clan_list[i].rank_name[j], QNRM);
         if (j == 0)
           send_to_char(ch, " %s(Leader)%s", QBRED, QNRM);
         send_to_char(ch, "\r\n");
       }
-      
+
       /* Display permissions if player is in the clan or is an immortal */
-      if ((GET_CLAN(ch) == clan_list[i].vnum && GET_CLANRANK(ch) > 0) || 
+      if ((GET_CLAN(ch) == clan_list[i].vnum && GET_CLANRANK(ch) > 0) ||
           GET_LEVEL(ch) >= LVL_IMMORT)
       {
         send_to_char(ch, "\r\n%sPermission Requirements:%s\r\n", QBMAG, QNRM);
         send_to_char(ch, "%s(Rank required for each privilege)%s\r\n", QBYEL, QNRM);
-        
+
         for (x = 0; x < NUM_CLAN_PRIVS; x++)
         {
           if (clan_list[i].privilege[x] == 0)
-            send_to_char(ch, "  %-12s: %sLeader Only%s\r\n", 
-                         clan_priv_names[x], QBRED, QNRM);
+            send_to_char(ch, "  %-12s: %sLeader Only%s\r\n", clan_priv_names[x], QBRED, QNRM);
           else if (clan_list[i].privilege[x] <= clan_list[i].ranks)
-            send_to_char(ch, "  %-12s: %sRank %d+%s (%s)\r\n", 
-                         clan_priv_names[x], QGRN, 
+            send_to_char(ch, "  %-12s: %sRank %d+%s (%s)\r\n", clan_priv_names[x], QGRN,
                          clan_list[i].privilege[x], QNRM,
                          clan_list[i].rank_name[clan_list[i].privilege[x] - 1]);
           else
-            send_to_char(ch, "  %-12s: %sNone%s\r\n", 
-                         clan_priv_names[x], QRED, QNRM);
+            send_to_char(ch, "  %-12s: %sNone%s\r\n", clan_priv_names[x], QRED, QNRM);
         }
       }
-      
+
       /* Show war timer if active */
       if (clan_list[i].war_timer > 0)
       {
-        send_to_char(ch, "\r\n%sWar Timer: %s%d hour%s remaining%s\r\n", QBRED, QYEL, 
+        send_to_char(ch, "\r\n%sWar Timer: %s%d hour%s remaining%s\r\n", QBRED, QYEL,
                      clan_list[i].war_timer, clan_list[i].war_timer == 1 ? "" : "s", QNRM);
       }
-      
+
       xcount = 0;
       send_to_char(ch, "\r\nAt War : %s", QNRM);
       for (x = 0; x < num_of_clans; x++)
@@ -2907,7 +2982,7 @@ ACMD(do_claninfo) /* Information about clans */
       if (xcount == 0)
         send_to_char(ch, "<None!>");
       send_to_char(ch, "\r\n");
-      
+
       xcount = 0;
       send_to_char(ch, "Allies : %s", QNRM);
       for (x = 0; x < num_of_clans; x++)
@@ -2924,19 +2999,17 @@ ACMD(do_claninfo) /* Information about clans */
       send_to_char(ch, "\r\n");
 
       send_to_char(ch, "PK Won : %s%d%s\r\n", QYEL, clan_list[i].pk_win, QNRM);
-      send_to_char(ch, "PK Lost: %s%d%s\r\n", QYEL,
-                   clan_list[i].pk_lose, QNRM);
+      send_to_char(ch, "PK Lost: %s%d%s\r\n", QYEL, clan_list[i].pk_lose, QNRM);
       send_to_char(ch, "Raided : %s%d%s\r\n", QYEL, clan_list[i].raided, QNRM);
       send_to_char(ch, "Ranks  : %s%d%s\r\n", QYEL, clan_list[i].ranks, QNRM);
       send_to_char(ch, "Titles : ");
       if (clan_list[i].ranks > 0)
       {
-        send_to_char(ch, "%s[%s%-2d%s] %s%s", QCYN, QYEL, 1, QCYN,
-                     clan_list[i].rank_name[0], QNRM);
+        send_to_char(ch, "%s[%s%-2d%s] %s%s", QCYN, QYEL, 1, QCYN, clan_list[i].rank_name[0], QNRM);
         for (j = 1; j < clan_list[i].ranks; j++)
         {
-          send_to_char(ch, "\r\n         %s[%s%-2d%s] %s%s", QCYN, QYEL, j + 1,
-                       QCYN, clan_list[i].rank_name[j], QNRM);
+          send_to_char(ch, "\r\n         %s[%s%-2d%s] %s%s", QCYN, QYEL, j + 1, QCYN,
+                       clan_list[i].rank_name[j], QNRM);
         }
       }
       else
@@ -2953,8 +3026,7 @@ ACMD(do_claninfo) /* Information about clans */
         send_to_char(ch, "\r\n\nDescription : %s\r", clan_list[i].description);
 
       /* Only clan leader and imps can see the privs on this screen */
-      if ((GET_IDNUM(ch) == clan_list[i].leader) ||
-          (GET_LEVEL(ch) == LVL_IMPL))
+      if ((GET_IDNUM(ch) == clan_list[i].leader) || (GET_LEVEL(ch) == LVL_IMPL))
       {
         send_to_char(ch, "\r\n%sClan Privs%s\r\n", QBCYN, QNRM);
         count = 0;
@@ -2964,8 +3036,8 @@ ACMD(do_claninfo) /* Information about clans */
             snprintf(pr, sizeof(pr), "%2d", clan_list[i].privilege[j]);
           else
             snprintf(pr, sizeof(pr), "LO");
-          send_to_char(ch, "%12s: %s[%s%2s%s]%s%s", clan_priv_names[j], QCYN,
-                       QYEL, pr, QCYN, QNRM, !(++count % 4) ? "\r\n" : "");
+          send_to_char(ch, "%12s: %s[%s%2s%s]%s%s", clan_priv_names[j], QCYN, QYEL, pr, QCYN, QNRM,
+                       !(++count % 4) ? "\r\n" : "");
         }
         send_to_char(ch, "\r\n%sClan Zone Popularity%s\r\n", QBCYN, QNRM);
         show_clan_popularities(ch, clan_list[i].vnum);
@@ -3025,8 +3097,7 @@ ACMD(do_clanlist) /* List of clan members */
     }
   }
 
-  send_to_char(ch, "%sMembers of the '%s%s' clan:%s\r\n", QCYN,
-               clan_list[c].clan_name, QCYN, QNRM);
+  send_to_char(ch, "%sMembers of the '%s%s' clan:%s\r\n", QCYN, clan_list[c].clan_name, QCYN, QNRM);
 
   for (i = 0; i <= top_of_p_table; i++)
   {
@@ -3043,17 +3114,15 @@ ACMD(do_clanlist) /* List of clan members */
 
         /* Show leader in white */
         if (player_table[i].id == clan_list[c].leader)
-          send_to_char(ch, "%s(Online)%s   %c%-15s  %s%s (Leader)%s\r\n",
-                       QBGRN, QBWHT, UPPER(*player_table[i].name),
-                       player_table[i].name + 1, rk_name, QBWHT, QNRM);
+          send_to_char(ch, "%s(Online)%s   %c%-15s  %s%s (Leader)%s\r\n", QBGRN, QBWHT,
+                       UPPER(*player_table[i].name), player_table[i].name + 1, rk_name, QBWHT,
+                       QNRM);
         else if (GET_CLANRANK(v) == NO_CLANRANK)
-          send_to_char(ch, "%s(Online)%s   %c%-15s  %s(Applicant)%s\r\n",
-                       QBGRN, QNRM, UPPER(*player_table[i].name),
-                       player_table[i].name + 1, QBRED, QNRM);
+          send_to_char(ch, "%s(Online)%s   %c%-15s  %s(Applicant)%s\r\n", QBGRN, QNRM,
+                       UPPER(*player_table[i].name), player_table[i].name + 1, QBRED, QNRM);
         else
-          send_to_char(ch, "%s(Online)%s   %c%-15s  %s%s\r\n",
-                       QBGRN, QNRM, UPPER(*player_table[i].name),
-                       player_table[i].name + 1, rk_name, QNRM);
+          send_to_char(ch, "%s(Online)%s   %c%-15s  %s%s\r\n", QBGRN, QNRM,
+                       UPPER(*player_table[i].name), player_table[i].name + 1, rk_name, QNRM);
       }
       else
       {
@@ -3074,17 +3143,15 @@ ACMD(do_clanlist) /* List of clan members */
 
         /* Show leader in white */
         if (player_table[i].id == clan_list[c].leader)
-          send_to_char(ch, "%s(Offline)%s  %c%-15s  %s%s (Leader)%s\r\n",
-                       QBRED, QBWHT, UPPER(*player_table[i].name),
-                       player_table[i].name + 1, rk_name, QBWHT, QNRM);
+          send_to_char(ch, "%s(Offline)%s  %c%-15s  %s%s (Leader)%s\r\n", QBRED, QBWHT,
+                       UPPER(*player_table[i].name), player_table[i].name + 1, rk_name, QBWHT,
+                       QNRM);
         else if (GET_CLANRANK(v) == NO_CLANRANK)
-          send_to_char(ch, "%s(Offline)%s  %c%-15s  %s(Applicant)%s\r\n",
-                       QBRED, QNRM, UPPER(*player_table[i].name),
-                       player_table[i].name + 1, QBRED, QNRM);
+          send_to_char(ch, "%s(Offline)%s  %c%-15s  %s(Applicant)%s\r\n", QBRED, QNRM,
+                       UPPER(*player_table[i].name), player_table[i].name + 1, QBRED, QNRM);
         else
-          send_to_char(ch, "%s(Offline)%s  %c%-15s  %s%s\r\n",
-                       QBRED, QNRM, UPPER(*player_table[i].name),
-                       player_table[i].name + 1, rk_name, QNRM);
+          send_to_char(ch, "%s(Offline)%s  %c%-15s  %s%s\r\n", QBRED, QNRM,
+                       UPPER(*player_table[i].name), player_table[i].name + 1, rk_name, QNRM);
 
         free_char(v);
       }
@@ -3123,8 +3190,7 @@ ACMD(do_clanowner)
     }
   }
 
-  if ((GET_IDNUM(ch) != clan_list[c_n].leader) &&
-      (GET_LEVEL(ch) < LVL_IMPL))
+  if ((GET_IDNUM(ch) != clan_list[c_n].leader) && (GET_LEVEL(ch) < LVL_IMPL))
   {
     send_to_char(ch, "Only the clan leader or an implementor can change"
                      " clan ownership!\r\n");
@@ -3213,8 +3279,9 @@ ACMD(do_clanpromote)
           if (c_n == NO_CLAN)
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data."
-                             " Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data."
+                         " Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -3222,15 +3289,15 @@ ACMD(do_clanpromote)
 
         if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
         {
-          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n",
-              GET_NAME(vict));
+          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n", GET_NAME(vict));
           GET_CLANRANK(vict) = clan_list[c_n].ranks; /* Set to lowest rank */
           rk_num = GET_CLANRANK(vict) - 1;
           if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data."
-                             " Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data."
+                         " Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -3238,28 +3305,27 @@ ACMD(do_clanpromote)
 
         if (!immcom && GET_CLANRANK(vict) <= GET_CLANRANK(ch))
         {
-          send_to_char(ch, "You cannot promote %s above your own rank!\r\n",
-                       GET_NAME(vict));
+          send_to_char(ch, "You cannot promote %s above your own rank!\r\n", GET_NAME(vict));
           return;
         }
         if (GET_CLANRANK(vict) <= 1)
         {
-          send_to_char(ch, "%s is already at the highest rank!\r\n",
-                       GET_NAME(vict));
+          send_to_char(ch, "%s is already at the highest rank!\r\n", GET_NAME(vict));
           return;
         }
         GET_CLANRANK(vict) = rk_num;
         save_char(vict, 0);
-        send_to_char(vict, "You have been promoted to %s within your"
-                           " clan!\r\n",
+        send_to_char(vict,
+                     "You have been promoted to %s within your"
+                     " clan!\r\n",
                      clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)]);
         send_to_char(ch, "%s has been promoted to %s!\r\n", GET_NAME(vict),
                      clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)]);
-                     
+
         /* Log the promotion */
-        log_clan_activity(clan_list[c_n].vnum, "%s promoted %s to %s (rank %d)",
-                          GET_NAME(ch), GET_NAME(vict), 
-                          clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)], GET_CLANRANK(vict));
+        log_clan_activity(clan_list[c_n].vnum, "%s promoted %s to %s (rank %d)", GET_NAME(ch),
+                          GET_NAME(vict), clan_list[c_n].rank_name[(GET_CLANRANK(vict) - 1)],
+                          GET_CLANRANK(vict));
       }
       else /* Not currently playing */
       {
@@ -3282,8 +3348,9 @@ ACMD(do_clanpromote)
           if (c_n == NO_CLAN)
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data. "
-                             "Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data. "
+                         "Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -3291,15 +3358,15 @@ ACMD(do_clanpromote)
 
         if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
         {
-          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n",
-              GET_NAME(vict));
+          log("SYSERR: %s has an invalid clan rank! Fixing!\r\n", GET_NAME(vict));
           GET_CLANRANK(vict) = clan_list[c_n].ranks; /* Set to lowest rank */
           rk_num = GET_CLANRANK(vict) - 1;
           if ((rk_num < 0) || (rk_num >= clan_list[c_n].ranks))
           {
             log("SYSERR: Unable to Fix - aborting!\r\n");
-            send_to_char(ch, "Sorry, %s seems to have invalid clan data. "
-                             "Aborting!\r\n",
+            send_to_char(ch,
+                         "Sorry, %s seems to have invalid clan data. "
+                         "Aborting!\r\n",
                          GET_NAME(vict));
             return;
           }
@@ -3307,15 +3374,13 @@ ACMD(do_clanpromote)
 
         if (!immcom && GET_CLANRANK(vict) <= GET_CLANRANK(ch))
         {
-          send_to_char(ch, "You cannot promote %s above your own rank!\r\n",
-                       GET_NAME(vict));
+          send_to_char(ch, "You cannot promote %s above your own rank!\r\n", GET_NAME(vict));
           free_char(vict);
           return;
         }
         if (GET_CLANRANK(vict) <= 1)
         {
-          send_to_char(ch, "%s is already at the highest rank!\r\n",
-                       GET_NAME(vict));
+          send_to_char(ch, "%s is already at the highest rank!\r\n", GET_NAME(vict));
           free_char(vict);
           return;
         }
@@ -3329,8 +3394,8 @@ ACMD(do_clanpromote)
         free_char(vict);
         save_player_index(); /* Sync player table changes */
       } /* End else (not playing) */
-    }   /* End if name found (in player_table) */
-  }     /* End for loop (through player_table) */
+    } /* End if name found (in player_table) */
+  } /* End for loop (through player_table) */
 }
 
 ACMD(do_clanstatus)
@@ -3351,8 +3416,7 @@ ACMD(do_clanstatus)
   {
     if (c_n != NO_CLAN)
     {
-      send_to_char(ch, "You have applied to %s%s\r\n", clan_list[c_n].clan_name,
-                   QNRM);
+      send_to_char(ch, "You have applied to %s%s\r\n", clan_list[c_n].clan_name, QNRM);
     }
     else
     {
@@ -3367,16 +3431,16 @@ ACMD(do_clanstatus)
   }
   else
   {
-    send_to_char(ch, "You are %s%s%s (Rank %d of %d) of %s%s%s\r\n",
-                 QCYN, clan_list[c_n].rank_name[(c_r - 1)], QNRM, 
-                 c_r, clan_list[c_n].ranks,
-                 QYEL, clan_list[c_n].clan_name, QNRM);
+    send_to_char(ch, "You are %s%s%s (Rank %d of %d) of %s%s%s\r\n", QCYN,
+                 clan_list[c_n].rank_name[(c_r - 1)], QNRM, c_r, clan_list[c_n].ranks, QYEL,
+                 clan_list[c_n].clan_name, QNRM);
 
     if (clan_list[c_n].leader == GET_IDNUM(ch))
       send_to_char(ch, "%sYou are the leader of this clan!%s\r\n", QBRED, QNRM);
     else
-      send_to_char(ch, "%sNote: Lower rank numbers have higher authority (1 = highest)%s\r\n", QBYEL, QNRM);
-    
+      send_to_char(ch, "%sNote: Lower rank numbers have higher authority (1 = highest)%s\r\n",
+                   QBYEL, QNRM);
+
     /* Show clan points */
     send_to_char(ch, "Clan Points: %s%d%s\r\n", QGRN, GET_CLANPOINTS(ch), QNRM);
   }
@@ -3414,8 +3478,8 @@ ACMD(do_clanwhere)
     return;
   }
 
-  send_to_char(ch, "%sLocations for members of the '%s%s' clan:%s\r\n",
-               QCYN, clan_list[c].clan_name, QCYN, QNRM);
+  send_to_char(ch, "%sLocations for members of the '%s%s' clan:%s\r\n", QCYN,
+               clan_list[c].clan_name, QCYN, QNRM);
 
   for (i = 0; i <= top_of_p_table; i++)
   {
@@ -3427,21 +3491,20 @@ ACMD(do_clanwhere)
         z = world[r].zone;
         c_r = GET_CLANRANK(vict);
         if (count++ == 0)
-          send_to_char(ch, "%sName             Rank          Room         "
-                           "              Zone%s\r\n",
+          send_to_char(ch,
+                       "%sName             Rank          Room         "
+                       "              Zone%s\r\n",
                        QCYN, QNRM);
         if (GET_IDNUM(vict) == clan_list[c].leader)
-          send_to_char(ch, "%-15s  %sClan Leader!%s  %-25s%s  %-20s%s\r\n",
-                       GET_NAME(vict), QBWHT, QNRM, world[r].name, QNRM,
-                       zone_table[z].name, QNRM);
-        else if (c_r == NO_CLANRANK)
-          send_to_char(ch, "%-15s  %s(Applicant) %s  %-25s%s  %-20s%s\r\n",
-                       GET_NAME(vict), QBRED, QNRM, world[r].name, QNRM,
-                       zone_table[z].name, QNRM);
-        else
-          send_to_char(ch, "%-15s  %-12s%s  %-25s%s  %-20s%s\r\n",
-                       GET_NAME(vict), clan_list[c].rank_name[(c_r - 1)],
+          send_to_char(ch, "%-15s  %sClan Leader!%s  %-25s%s  %-20s%s\r\n", GET_NAME(vict), QBWHT,
                        QNRM, world[r].name, QNRM, zone_table[z].name, QNRM);
+        else if (c_r == NO_CLANRANK)
+          send_to_char(ch, "%-15s  %s(Applicant) %s  %-25s%s  %-20s%s\r\n", GET_NAME(vict), QBRED,
+                       QNRM, world[r].name, QNRM, zone_table[z].name, QNRM);
+        else
+          send_to_char(ch, "%-15s  %-12s%s  %-25s%s  %-20s%s\r\n", GET_NAME(vict),
+                       clan_list[c].rank_name[(c_r - 1)], QNRM, world[r].name, QNRM,
+                       zone_table[z].name, QNRM);
       }
     }
   }
@@ -3516,7 +3579,7 @@ ACMD(do_clanwithdraw)
     send_to_char(ch, "You can't hold that many coins!\r\n");
     return;
   }
-  
+
   /* Acquire lock for clan modification */
   if (!acquire_clan_lock(c_n, ch))
   {
@@ -3542,7 +3605,7 @@ ACMD(do_clanwithdraw)
   }
 
   clan_list[(c_n)].treasure -= amt;
-  clan_list[(c_n)].total_withdrawals += amt;  /* Track total withdrawals */
+  clan_list[(c_n)].total_withdrawals += amt; /* Track total withdrawals */
   increase_gold(ch, amt);
 
   /* Update clan activity */
@@ -3553,11 +3616,11 @@ ACMD(do_clanwithdraw)
   save_single_clan(c_n);
 
   send_to_char(ch, "You have withdrawn %d coins from the clan bank.\r\n", amt);
-  
+
   /* Log the withdrawal */
-  log_clan_activity(clan_list[c_n].vnum, "%s withdrew %d coins (new balance: %ld)",
-                    GET_NAME(ch), amt, clan_list[c_n].treasure);
-  
+  log_clan_activity(clan_list[c_n].vnum, "%s withdrew %d coins (new balance: %ld)", GET_NAME(ch),
+                    amt, clan_list[c_n].treasure);
+
   /* Release the lock */
   release_clan_lock(c_n, ch);
 }
@@ -3597,12 +3660,10 @@ ACMD(do_clanunclaim)
 
   if (get_owning_clan(z) == NO_CLAN)
   {
-    send_to_char(ch, "%s hasn't been claimed\r\n",
-                 zone_table[real_zone(z)].name);
+    send_to_char(ch, "%s hasn't been claimed\r\n", zone_table[real_zone(z)].name);
     return;
   }
-  for (this_claim = claim_list; this_claim && found == FALSE;
-       this_claim = this_claim->next)
+  for (this_claim = claim_list; this_claim && found == FALSE; this_claim = this_claim->next)
   {
     if (this_claim->zn == z)
     {
@@ -3610,8 +3671,7 @@ ACMD(do_clanunclaim)
       /* For total removal, including popularity, use remove_claim_from_list */
       CLAIM_CLAN(this_claim) = NO_CLAN;
       CLAIM_CLAIMANT(this_claim) = 0L; /* same as (long int) 0 */
-      send_to_char(ch, "Claim removed from %s\r\n",
-                   zone_table[real_zone(z)].name);
+      send_to_char(ch, "Claim removed from %s\r\n", zone_table[real_zone(z)].name);
     }
   }
 }
@@ -3621,100 +3681,114 @@ ACMD(do_clanally)
   clan_rnum my_clan, target_clan;
   char arg[MAX_INPUT_LENGTH];
   int i;
-  
+
   /* Check if player is in a clan */
-  if (!IS_IN_CLAN(ch)) {
+  if (!IS_IN_CLAN(ch))
+  {
     send_to_char(ch, CLAN_ERR_NOT_IN_CLAN);
     return;
   }
-  
+
   /* Get player's clan */
   my_clan = real_clan(GET_CLAN(ch));
-  if (my_clan == NO_CLAN) {
+  if (my_clan == NO_CLAN)
+  {
     send_to_char(ch, "Error: Your clan data is corrupted.\r\n");
     return;
   }
-  
+
   /* Check permissions */
-  if (!check_clanpriv(ch, CP_ALLIED)) {
+  if (!check_clanpriv(ch, CP_ALLIED))
+  {
     send_to_char(ch, "You don't have permission to manage clan alliances.\r\n");
     return;
   }
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
-  if (!*arg) {
+
+  if (!*arg)
+  {
     send_to_char(ch, "Usage: clan ally <clan name>\r\n");
     send_to_char(ch, "Current allies:\r\n");
-    
+
     /* Show current allies */
     int count = 0;
     int i;
-    for (i = 0; i < num_of_clans; i++) {
-      if (clan_list[my_clan].allies[i]) {
+    for (i = 0; i < num_of_clans; i++)
+    {
+      if (clan_list[my_clan].allies[i])
+      {
         send_to_char(ch, "  - %s\r\n", clan_list[i].clan_name);
         count++;
       }
     }
-    if (count == 0) {
+    if (count == 0)
+    {
       send_to_char(ch, "  Your clan has no allies.\r\n");
     }
     return;
   }
-  
+
   /* Find target clan */
   target_clan = get_clan_by_name(arg);
-  if (target_clan == NO_CLAN) {
+  if (target_clan == NO_CLAN)
+  {
     send_to_char(ch, "No such clan exists.\r\n");
     return;
   }
-  
+
   /* Can't ally with yourself */
-  if (target_clan == my_clan) {
+  if (target_clan == my_clan)
+  {
     send_to_char(ch, "You can't form an alliance with your own clan.\r\n");
     return;
   }
-  
+
   /* Check if at war */
-  if (clan_list[my_clan].at_war[target_clan]) {
+  if (clan_list[my_clan].at_war[target_clan])
+  {
     send_to_char(ch, "You must end the war before proposing an alliance.\r\n");
     return;
   }
-  
+
   /* Toggle alliance status */
-  if (clan_list[my_clan].allies[target_clan]) {
+  if (clan_list[my_clan].allies[target_clan])
+  {
     /* Break alliance */
     clan_list[my_clan].allies[target_clan] = FALSE;
     clan_list[target_clan].allies[my_clan] = FALSE;
-    
+
     /* Log the broken alliance */
-    log_clan_activity(clan_list[my_clan].vnum, "Broke alliance with %s (by %s)", 
+    log_clan_activity(clan_list[my_clan].vnum, "Broke alliance with %s (by %s)",
                       clan_list[target_clan].clan_name, GET_NAME(ch));
-    log_clan_activity(clan_list[target_clan].vnum, "Alliance broken by %s", 
+    log_clan_activity(clan_list[target_clan].vnum, "Alliance broken by %s",
                       clan_list[my_clan].clan_name);
-    
-    send_to_char(ch, "Alliance with %s has been broken.\r\n", 
-                 clan_list[target_clan].clan_name);
-    
+
+    send_to_char(ch, "Alliance with %s has been broken.\r\n", clan_list[target_clan].clan_name);
+
     /* Notify online members of both clans */
     char buf[MAX_STRING_LENGTH];
-    snprintf(buf, sizeof(buf), "[CLAN] Alliance between %s and %s has been broken!", 
+    snprintf(buf, sizeof(buf), "[CLAN] Alliance between %s and %s has been broken!",
              clan_list[my_clan].clan_name, clan_list[target_clan].clan_name);
-    
+
     struct descriptor_data *d;
-    for (d = descriptor_list; d; d = d->next) {
+    for (d = descriptor_list; d; d = d->next)
+    {
       if (STATE(d) != CON_PLAYING || !d->character)
         continue;
-      if (GET_CLAN(d->character) == clan_list[my_clan].vnum || 
-          GET_CLAN(d->character) == clan_list[target_clan].vnum) {
+      if (GET_CLAN(d->character) == clan_list[my_clan].vnum ||
+          GET_CLAN(d->character) == clan_list[target_clan].vnum)
+      {
         send_to_char(d->character, "%s%s%s\r\n", QCYN, buf, QNRM);
       }
     }
-  } else {
+  }
+  else
+  {
     /* Form alliance */
     clan_list[my_clan].allies[target_clan] = TRUE;
     clan_list[target_clan].allies[my_clan] = TRUE;
-    
+
     /* Update statistics */
     clan_list[my_clan].total_alliances_formed++;
     clan_list[target_clan].total_alliances_formed++;
@@ -3722,32 +3796,33 @@ ACMD(do_clanally)
     mark_clan_modified(target_clan);
     save_single_clan(my_clan);
     save_single_clan(target_clan);
-    
+
     /* Log the alliance */
-    log_clan_activity(clan_list[my_clan].vnum, "Formed alliance with %s (by %s)", 
+    log_clan_activity(clan_list[my_clan].vnum, "Formed alliance with %s (by %s)",
                       clan_list[target_clan].clan_name, GET_NAME(ch));
-    log_clan_activity(clan_list[target_clan].vnum, "Formed alliance with %s", 
+    log_clan_activity(clan_list[target_clan].vnum, "Formed alliance with %s",
                       clan_list[my_clan].clan_name);
-    
-    send_to_char(ch, "Alliance formed with %s!\r\n", 
-                 clan_list[target_clan].clan_name);
-    
+
+    send_to_char(ch, "Alliance formed with %s!\r\n", clan_list[target_clan].clan_name);
+
     /* Notify online members of both clans */
     char buf[MAX_STRING_LENGTH];
-    snprintf(buf, sizeof(buf), "[CLAN] Alliance formed between %s and %s!", 
+    snprintf(buf, sizeof(buf), "[CLAN] Alliance formed between %s and %s!",
              clan_list[my_clan].clan_name, clan_list[target_clan].clan_name);
-    
+
     struct descriptor_data *d;
-    for (d = descriptor_list; d; d = d->next) {
+    for (d = descriptor_list; d; d = d->next)
+    {
       if (STATE(d) != CON_PLAYING || !d->character)
         continue;
-      if (GET_CLAN(d->character) == clan_list[my_clan].vnum || 
-          GET_CLAN(d->character) == clan_list[target_clan].vnum) {
+      if (GET_CLAN(d->character) == clan_list[my_clan].vnum ||
+          GET_CLAN(d->character) == clan_list[target_clan].vnum)
+      {
         send_to_char(d->character, "%s%s%s\r\n", QCYN, buf, QNRM);
       }
     }
   }
-  
+
   /* Save modified clans */
   for (i = 0; i < num_of_clans; i++)
   {
@@ -3764,129 +3839,146 @@ ACMD(do_clanwar)
   clan_rnum my_clan, target_clan;
   char arg[MAX_INPUT_LENGTH];
   int i;
-  
+
   /* Check if player is in a clan */
-  if (!IS_IN_CLAN(ch)) {
+  if (!IS_IN_CLAN(ch))
+  {
     send_to_char(ch, "You need to be in a clan to declare war.\r\n");
     return;
   }
-  
+
   /* Get player's clan */
   my_clan = real_clan(GET_CLAN(ch));
-  if (my_clan == NO_CLAN) {
+  if (my_clan == NO_CLAN)
+  {
     send_to_char(ch, "Error: Your clan data is corrupted.\r\n");
     return;
   }
-  
+
   /* Check permissions */
-  if (!check_clanpriv(ch, CP_ATWAR)) {
+  if (!check_clanpriv(ch, CP_ATWAR))
+  {
     send_to_char(ch, "You don't have permission to declare clan wars.\r\n");
     return;
   }
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
-  if (!*arg) {
+
+  if (!*arg)
+  {
     send_to_char(ch, "Usage: clan war <clan name>\r\n");
     send_to_char(ch, "Current enemies:\r\n");
-    
+
     /* Show current wars */
     int count = 0;
     int i;
-    for (i = 0; i < num_of_clans; i++) {
-      if (clan_list[my_clan].at_war[i]) {
+    for (i = 0; i < num_of_clans; i++)
+    {
+      if (clan_list[my_clan].at_war[i])
+      {
         send_to_char(ch, "  - %s", clan_list[i].clan_name);
-        if (clan_list[my_clan].war_timer > 0) {
+        if (clan_list[my_clan].war_timer > 0)
+        {
           send_to_char(ch, " (war ends in %d hours)", clan_list[my_clan].war_timer);
         }
         send_to_char(ch, "\r\n");
         count++;
       }
     }
-    if (count == 0) {
+    if (count == 0)
+    {
       send_to_char(ch, "  Your clan is not at war.\r\n");
     }
     return;
   }
-  
+
   /* Find target clan */
   target_clan = get_clan_by_name(arg);
-  if (target_clan == NO_CLAN) {
+  if (target_clan == NO_CLAN)
+  {
     send_to_char(ch, "No such clan exists.\r\n");
     return;
   }
-  
+
   /* Can't war with yourself */
-  if (target_clan == my_clan) {
+  if (target_clan == my_clan)
+  {
     send_to_char(ch, "You can't declare war on your own clan.\r\n");
     return;
   }
-  
+
   /* Check if allied */
-  if (clan_list[my_clan].allies[target_clan]) {
+  if (clan_list[my_clan].allies[target_clan])
+  {
     send_to_char(ch, "You must break the alliance before declaring war.\r\n");
     return;
   }
-  
+
   /* Toggle war status */
-  if (clan_list[my_clan].at_war[target_clan]) {
+  if (clan_list[my_clan].at_war[target_clan])
+  {
     /* End war */
     clan_list[my_clan].at_war[target_clan] = FALSE;
     clan_list[target_clan].at_war[my_clan] = FALSE;
     clan_list[my_clan].war_timer = 0;
     clan_list[target_clan].war_timer = 0;
-    
-    send_to_char(ch, "War with %s has ended.\r\n", 
-                 clan_list[target_clan].clan_name);
-    
+
+    send_to_char(ch, "War with %s has ended.\r\n", clan_list[target_clan].clan_name);
+
     /* Notify online members of both clans */
     char buf[MAX_STRING_LENGTH];
-    snprintf(buf, sizeof(buf), "[CLAN] War between %s and %s has ended!", 
+    snprintf(buf, sizeof(buf), "[CLAN] War between %s and %s has ended!",
              clan_list[my_clan].clan_name, clan_list[target_clan].clan_name);
-    
+
     struct descriptor_data *d;
-    for (d = descriptor_list; d; d = d->next) {
+    for (d = descriptor_list; d; d = d->next)
+    {
       if (STATE(d) != CON_PLAYING || !d->character)
         continue;
-      if (GET_CLAN(d->character) == clan_list[my_clan].vnum || 
-          GET_CLAN(d->character) == clan_list[target_clan].vnum) {
-        send_to_char(d->character, "%s%s%s\r\n", QBRED, buf, QNRM);
-      }
-    }
-  } else {
-    /* Declare war */
-    clan_list[my_clan].at_war[target_clan] = TRUE;
-    clan_list[target_clan].at_war[my_clan] = TRUE;
-    
-    /* Set war timer */
-    clan_list[my_clan].war_timer = DEFAULT_WAR_DURATION;
-    clan_list[target_clan].war_timer = DEFAULT_WAR_DURATION;
-    
-    /* Log the war declaration */
-    log_clan_activity(clan_list[my_clan].vnum, "Declared war on %s (by %s) - 48 hour duration", 
-                      clan_list[target_clan].clan_name, GET_NAME(ch));
-    log_clan_activity(clan_list[target_clan].vnum, "War declared by %s - 48 hour duration", 
-                      clan_list[my_clan].clan_name);
-    
-    send_to_char(ch, "War declared on %s! The war will last 48 hours.\r\n", 
-                 clan_list[target_clan].clan_name);
-    
-    /* Notify online members of both clans */
-    char buf[MAX_STRING_LENGTH];
-    snprintf(buf, sizeof(buf), "[CLAN] %s has declared war on %s!", 
-             clan_list[my_clan].clan_name, clan_list[target_clan].clan_name);
-    
-    struct descriptor_data *d;
-    for (d = descriptor_list; d; d = d->next) {
-      if (STATE(d) != CON_PLAYING || !d->character)
-        continue;
-      if (GET_CLAN(d->character) == clan_list[my_clan].vnum || 
-          GET_CLAN(d->character) == clan_list[target_clan].vnum) {
+      if (GET_CLAN(d->character) == clan_list[my_clan].vnum ||
+          GET_CLAN(d->character) == clan_list[target_clan].vnum)
+      {
         send_to_char(d->character, "%s%s%s\r\n", QBRED, buf, QNRM);
       }
     }
   }
-  
+  else
+  {
+    /* Declare war */
+    clan_list[my_clan].at_war[target_clan] = TRUE;
+    clan_list[target_clan].at_war[my_clan] = TRUE;
+
+    /* Set war timer */
+    clan_list[my_clan].war_timer = DEFAULT_WAR_DURATION;
+    clan_list[target_clan].war_timer = DEFAULT_WAR_DURATION;
+
+    /* Log the war declaration */
+    log_clan_activity(clan_list[my_clan].vnum, "Declared war on %s (by %s) - 48 hour duration",
+                      clan_list[target_clan].clan_name, GET_NAME(ch));
+    log_clan_activity(clan_list[target_clan].vnum, "War declared by %s - 48 hour duration",
+                      clan_list[my_clan].clan_name);
+
+    send_to_char(ch, "War declared on %s! The war will last 48 hours.\r\n",
+                 clan_list[target_clan].clan_name);
+
+    /* Notify online members of both clans */
+    char buf[MAX_STRING_LENGTH];
+    snprintf(buf, sizeof(buf), "[CLAN] %s has declared war on %s!", clan_list[my_clan].clan_name,
+             clan_list[target_clan].clan_name);
+
+    struct descriptor_data *d;
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (STATE(d) != CON_PLAYING || !d->character)
+        continue;
+      if (GET_CLAN(d->character) == clan_list[my_clan].vnum ||
+          GET_CLAN(d->character) == clan_list[target_clan].vnum)
+      {
+        send_to_char(d->character, "%s%s%s\r\n", QBRED, buf, QNRM);
+      }
+    }
+  }
+
   /* Save modified clans */
   for (i = 0; i < num_of_clans; i++)
   {
@@ -3908,70 +4000,81 @@ ACMD(do_clanlog)
   int line_count = 0;
   int i;
   clan_rnum c_n;
-  
+
   /* Check if player is in a clan */
-  if (!IS_IN_CLAN(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
+  if (!IS_IN_CLAN(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
     send_to_char(ch, "You must be in a clan to view clan logs.\r\n");
     return;
   }
-  
+
   c_n = real_clan(GET_CLAN(ch));
-  if (c_n == NO_CLAN) {
+  if (c_n == NO_CLAN)
+  {
     send_to_char(ch, CLAN_ERR_INVALID_CLAN);
     return;
   }
-  
+
   /* Check for optional lines argument */
   one_argument(argument, arg, sizeof(arg));
-  if (*arg) {
+  if (*arg)
+  {
     lines_to_show = atoi(arg);
-    if (lines_to_show < 1) lines_to_show = 20;
-    if (lines_to_show > MAX_CLAN_LOG_LINES) lines_to_show = MAX_CLAN_LOG_LINES;
+    if (lines_to_show < 1)
+      lines_to_show = 20;
+    if (lines_to_show > MAX_CLAN_LOG_LINES)
+      lines_to_show = MAX_CLAN_LOG_LINES;
   }
-  
+
   /* Build filename */
   snprintf(filename, sizeof(filename), "%sclan_%d.log", CLAN_LOG_DIR, GET_CLAN(ch));
-  
+
   /* Open log file */
-  if (!(fl = fopen(filename, "r"))) {
+  if (!(fl = fopen(filename, "r")))
+  {
     send_to_char(ch, "No activity log found for your clan.\r\n");
     return;
   }
-  
+
   /* Count total lines */
-  while (fgets(line, sizeof(line), fl)) {
+  while (fgets(line, sizeof(line), fl))
+  {
     line_count++;
   }
-  
-  if (line_count == 0) {
+
+  if (line_count == 0)
+  {
     send_to_char(ch, "Your clan's activity log is empty.\r\n");
     fclose(fl);
     return;
   }
-  
+
   /* Rewind and skip to the lines we want to show */
   rewind(fl);
   int skip_lines = MAX(0, line_count - lines_to_show);
-  for (i = 0; i < skip_lines; i++) {
-    if (!fgets(line, sizeof(line), fl)) {
+  for (i = 0; i < skip_lines; i++)
+  {
+    if (!fgets(line, sizeof(line), fl))
+    {
       break;
     }
   }
-  
+
   /* Display the log */
-  send_to_char(ch, "%sClan Activity Log for %s%s%s (last %d entries):%s\r\n",
-               QBCYN, QYEL, clan_list[c_n].clan_name, QBCYN, 
-               MIN(lines_to_show, line_count), QNRM);
+  send_to_char(ch, "%sClan Activity Log for %s%s%s (last %d entries):%s\r\n", QBCYN, QYEL,
+               clan_list[c_n].clan_name, QBCYN, MIN(lines_to_show, line_count), QNRM);
   send_to_char(ch, "%s", QCYN);
-  
-  while (fgets(line, sizeof(line), fl)) {
+
+  while (fgets(line, sizeof(line), fl))
+  {
     /* Remove newline */
     char *newline = strchr(line, '\n');
-    if (newline) *newline = '\0';
-    
+    if (newline)
+      *newline = '\0';
+
     send_to_char(ch, "%s\r\n", line);
   }
-  
+
   send_to_char(ch, "%s", QNRM);
   fclose(fl);
 }
@@ -3983,114 +4086,127 @@ ACMD(do_clanstats)
   struct clan_data *clan;
   /* time_t now = time(0); */ /* Unused */
   char time_buf[64];
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
+
   /* If immortal, can view any clan's stats */
-  if (GET_LEVEL(ch) >= LVL_IMMORT && *arg) {
-    if ((c_n = get_clan_by_name(arg)) == NO_CLAN) {
+  if (GET_LEVEL(ch) >= LVL_IMMORT && *arg)
+  {
+    if ((c_n = get_clan_by_name(arg)) == NO_CLAN)
+    {
       send_to_char(ch, "That clan doesn't exist.\r\n");
       return;
     }
-  } else if (IS_IN_CLAN(ch)) {
+  }
+  else if (IS_IN_CLAN(ch))
+  {
     c_n = real_clan(GET_CLAN(ch));
-    if (c_n == NO_CLAN) {
+    if (c_n == NO_CLAN)
+    {
       send_to_char(ch, CLAN_ERR_DATA_CORRUPTION);
       return;
     }
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You must be in a clan to view clan statistics.\r\n");
     return;
   }
-  
+
   clan = &clan_list[c_n];
-  
+
   /* Header */
-  send_to_char(ch, "\r\n%s===== Clan Statistics for %s%s%s =====%s\r\n\r\n",
-               QBCYN, QYEL, clan->clan_name, QBCYN, QNRM);
-  
+  send_to_char(ch, "\r\n%s===== Clan Statistics for %s%s%s =====%s\r\n\r\n", QBCYN, QYEL,
+               clan->clan_name, QBCYN, QNRM);
+
   /* Basic Information */
   send_to_char(ch, "%sBasic Information:%s\r\n", QCYN, QNRM);
-  
+
   /* Format date founded */
   strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M", localtime(&clan->date_founded));
   send_to_char(ch, "  Founded: %s%s%s\r\n", QGRN, time_buf, QNRM);
-  
+
   /* Format last activity */
   strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M", localtime(&clan->last_activity));
   send_to_char(ch, "  Last Activity: %s%s%s\r\n", QGRN, time_buf, QNRM);
-  
+
   /* Financial Statistics */
   send_to_char(ch, "\r\n%sFinancial Statistics:%s\r\n", QCYN, QNRM);
   send_to_char(ch, "  Current Balance: %s%ld%s gold\r\n", QYEL, clan->treasure, QNRM);
   send_to_char(ch, "  Total Deposits: %s%ld%s gold\r\n", QGRN, clan->total_deposits, QNRM);
   send_to_char(ch, "  Total Withdrawals: %s%ld%s gold\r\n", QRED, clan->total_withdrawals, QNRM);
-  send_to_char(ch, "  Total Taxes Collected: %s%ld%s gold\r\n", QGRN, clan->total_taxes_collected, QNRM);
-  send_to_char(ch, "  Net Flow: %s%ld%s gold\r\n", 
+  send_to_char(ch, "  Total Taxes Collected: %s%ld%s gold\r\n", QGRN, clan->total_taxes_collected,
+               QNRM);
+  send_to_char(ch, "  Net Flow: %s%ld%s gold\r\n",
                (clan->total_deposits - clan->total_withdrawals) >= 0 ? QGRN : QRED,
                clan->total_deposits - clan->total_withdrawals, QNRM);
-  
+
   /* Membership Statistics */
   send_to_char(ch, "\r\n%sMembership Statistics:%s\r\n", QCYN, QNRM);
   send_to_char(ch, "  Current Members: %s%d%s\r\n", QYEL, count_clan_members(c_n), QNRM);
-  send_to_char(ch, "  Maximum Members: %s%d%s\r\n", QYEL, 
+  send_to_char(ch, "  Maximum Members: %s%d%s\r\n", QYEL,
                clan->max_members == 0 ? 999 : clan->max_members, QNRM);
   send_to_char(ch, "  Highest Member Count: %s%d%s\r\n", QGRN, clan->highest_member_count, QNRM);
   send_to_char(ch, "  Total Members Joined: %s%d%s\r\n", QGRN, clan->total_members_joined, QNRM);
   send_to_char(ch, "  Total Members Left: %s%d%s\r\n", QRED, clan->total_members_left, QNRM);
   send_to_char(ch, "  Member Retention Rate: %s%.1f%%%s\r\n",
                clan->total_members_joined > 0 ? QYEL : QNRM,
-               clan->total_members_joined > 0 ? 
-                 ((float)(clan->total_members_joined - clan->total_members_left) / 
-                  clan->total_members_joined * 100.0) : 0.0,
+               clan->total_members_joined > 0
+                   ? ((float)(clan->total_members_joined - clan->total_members_left) /
+                      clan->total_members_joined * 100.0)
+                   : 0.0,
                QNRM);
-  
+
   /* Territory Statistics */
   send_to_char(ch, "\r\n%sTerritory Statistics:%s\r\n", QCYN, QNRM);
   send_to_char(ch, "  Current Zones Owned: %s%d%s\r\n", QYEL, clan->current_zones_owned, QNRM);
   send_to_char(ch, "  Total Zones Claimed: %s%d%s\r\n", QGRN, clan->total_zones_claimed, QNRM);
   send_to_char(ch, "  Territory Retention Rate: %s%.1f%%%s\r\n",
                clan->total_zones_claimed > 0 ? QYEL : QNRM,
-               clan->total_zones_claimed > 0 ?
-                 ((float)clan->current_zones_owned / clan->total_zones_claimed * 100.0) : 0.0,
+               clan->total_zones_claimed > 0
+                   ? ((float)clan->current_zones_owned / clan->total_zones_claimed * 100.0)
+                   : 0.0,
                QNRM);
-  
+
   /* Combat Statistics */
   send_to_char(ch, "\r\n%sCombat Statistics:%s\r\n", QCYN, QNRM);
   send_to_char(ch, "  PK Wins: %s%d%s\r\n", QGRN, clan->pk_win, QNRM);
   send_to_char(ch, "  PK Losses: %s%d%s\r\n", QRED, clan->pk_lose, QNRM);
-  send_to_char(ch, "  Win Rate: %s%.1f%%%s\r\n",
-               (clan->pk_win + clan->pk_lose) > 0 ? QYEL : QNRM,
-               (clan->pk_win + clan->pk_lose) > 0 ?
-                 ((float)clan->pk_win / (clan->pk_win + clan->pk_lose) * 100.0) : 0.0,
+  send_to_char(ch, "  Win Rate: %s%.1f%%%s\r\n", (clan->pk_win + clan->pk_lose) > 0 ? QYEL : QNRM,
+               (clan->pk_win + clan->pk_lose) > 0
+                   ? ((float)clan->pk_win / (clan->pk_win + clan->pk_lose) * 100.0)
+                   : 0.0,
                QNRM);
   send_to_char(ch, "  Times Raided: %s%d%s\r\n", QRED, clan->raided, QNRM);
-  
+
   /* Diplomacy Statistics */
   send_to_char(ch, "\r\n%sDiplomacy Statistics:%s\r\n", QCYN, QNRM);
   send_to_char(ch, "  Total Wars Won: %s%d%s\r\n", QGRN, clan->total_wars_won, QNRM);
   send_to_char(ch, "  Total Wars Lost: %s%d%s\r\n", QRED, clan->total_wars_lost, QNRM);
-  send_to_char(ch, "  Total Alliances Formed: %s%d%s\r\n", QCYN, clan->total_alliances_formed, QNRM);
-  
+  send_to_char(ch, "  Total Alliances Formed: %s%d%s\r\n", QCYN, clan->total_alliances_formed,
+               QNRM);
+
   /* Current Relations */
   int current_allies = 0, current_enemies = 0;
   int i;
-  for (i = 0; i < num_of_clans; i++) {
-    if (clan->allies[i]) current_allies++;
-    if (clan->at_war[i]) current_enemies++;
+  for (i = 0; i < num_of_clans; i++)
+  {
+    if (clan->allies[i])
+      current_allies++;
+    if (clan->at_war[i])
+      current_enemies++;
   }
   send_to_char(ch, "  Current Allies: %s%d%s\r\n", QCYN, current_allies, QNRM);
   send_to_char(ch, "  Current Enemies: %s%d%s\r\n", QRED, current_enemies, QNRM);
-  
+
   /* Performance Metrics */
   send_to_char(ch, "\r\n%sPerformance Metrics:%s\r\n", QCYN, QNRM);
   send_to_char(ch, "  Total Clan Power: %s%d%s\r\n", QYEL, count_clan_power(c_n), QNRM);
-  send_to_char(ch, "  Average Member Level: %s%.1f%s\r\n",
-               QYEL,
-               count_clan_members(c_n) > 0 ?
-                 ((float)count_clan_power(c_n) / count_clan_members(c_n)) : 0.0,
-               QNRM);
-  
+  send_to_char(
+      ch, "  Average Member Level: %s%.1f%s\r\n", QYEL,
+      count_clan_members(c_n) > 0 ? ((float)count_clan_power(c_n) / count_clan_members(c_n)) : 0.0,
+      QNRM);
+
   /* Footer */
   send_to_char(ch, "\r\n%s========================================%s\r\n", QBCYN, QNRM);
 }
@@ -4100,64 +4216,68 @@ ACMD(do_clanfix)
 {
   char arg[MAX_INPUT_LENGTH];
   bool fix = FALSE;
-  
+
   one_argument(argument, arg, sizeof(arg));
-  
-  if (GET_LEVEL(ch) < LVL_GRSTAFF) {
+
+  if (GET_LEVEL(ch) < LVL_GRSTAFF)
+  {
     send_to_char(ch, "You must be a Greater God or higher to use this command.\r\n");
     return;
   }
-  
-  if (!*arg) {
+
+  if (!*arg)
+  {
     send_to_char(ch, "Usage: clanfix <check|fix>\r\n");
     send_to_char(ch, "  check - Run integrity check without fixing\r\n");
     send_to_char(ch, "  fix   - Run integrity check and attempt repairs\r\n");
     return;
   }
-  
-  if (is_abbrev(arg, "check")) {
+
+  if (is_abbrev(arg, "check"))
+  {
     fix = FALSE;
-  } else if (is_abbrev(arg, "fix")) {
+  }
+  else if (is_abbrev(arg, "fix"))
+  {
     fix = TRUE;
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "Invalid option. Use 'check' or 'fix'.\r\n");
     return;
   }
-  
+
   send_to_char(ch, "%sRunning clan data integrity check...%s\r\n", QYEL, QNRM);
-  
+
   /* Run the checks */
   bool clans_valid = validate_all_clans(fix);
   bool membership_valid = validate_clan_membership(fix);
-  
+
   /* Report results */
-  send_to_char(ch, "\r\n%sClan Data Validation:%s %s%s%s\r\n",
-               QCYN, QNRM,
-               clans_valid ? QGRN : QRED,
-               clans_valid ? "PASSED" : "FAILED",
-               QNRM);
-               
-  send_to_char(ch, "%sMembership Validation:%s %s%s%s\r\n",
-               QCYN, QNRM,
-               membership_valid ? QGRN : QRED,
-               membership_valid ? "PASSED" : "FAILED",
-               QNRM);
-  
-  if (fix) {
+  send_to_char(ch, "\r\n%sClan Data Validation:%s %s%s%s\r\n", QCYN, QNRM,
+               clans_valid ? QGRN : QRED, clans_valid ? "PASSED" : "FAILED", QNRM);
+
+  send_to_char(ch, "%sMembership Validation:%s %s%s%s\r\n", QCYN, QNRM,
+               membership_valid ? QGRN : QRED, membership_valid ? "PASSED" : "FAILED", QNRM);
+
+  if (fix)
+  {
     send_to_char(ch, "\r\n%sRepairs attempted. Check system logs for details.%s\r\n", QYEL, QNRM);
-    
+
     /* Rebuild hash table and update caches */
     rebuild_clan_hash();
     update_all_clan_caches();
-    
+
     send_to_char(ch, "%sHash table rebuilt and caches updated.%s\r\n", QGRN, QNRM);
-  } else if (!clans_valid || !membership_valid) {
-    send_to_char(ch, "\r\n%sCorruption detected! Run 'clanfix fix' to attempt repairs.%s\r\n", 
-                 QRED, QNRM);
   }
-  
-  mudlog(NRM, LVL_GRSTAFF, TRUE, "CLANFIX: %s ran clan integrity check (fix=%s)",
-         GET_NAME(ch), fix ? "TRUE" : "FALSE");
+  else if (!clans_valid || !membership_valid)
+  {
+    send_to_char(ch, "\r\n%sCorruption detected! Run 'clanfix fix' to attempt repairs.%s\r\n", QRED,
+                 QNRM);
+  }
+
+  mudlog(NRM, LVL_GRSTAFF, TRUE, "CLANFIX: %s ran clan integrity check (fix=%s)", GET_NAME(ch),
+         fix ? "TRUE" : "FALSE");
 }
 
 /* Display zone control benefits */
@@ -4348,8 +4468,9 @@ void show_claims(struct char_data *ch, char *arg)
   {
     if (real_clan(c) == NO_CLAN)
     {
-      send_to_char(ch, "Unrecognised clan ID, type %sclan info%s for "
-                       "a list.\r\n",
+      send_to_char(ch,
+                   "Unrecognised clan ID, type %sclan info%s for "
+                   "a list.\r\n",
                    QYEL, QNRM);
     }
     else
@@ -4388,8 +4509,8 @@ void show_clan_claims(struct char_data *ch, clan_vnum c)
       }
       else
       {
-        send_to_char(ch, "%-30s%s Claimed by %s\r\n", zone_table[zn].name,
-                     QNRM, get_name_by_id(CLAIM_CLAIMANT(this_claim)));
+        send_to_char(ch, "%-30s%s Claimed by %s\r\n", zone_table[zn].name, QNRM,
+                     get_name_by_id(CLAIM_CLAIMANT(this_claim)));
       }
     }
   }
@@ -4437,8 +4558,7 @@ float get_popularity(zone_vnum zn, clan_vnum cn)
     return (0.0);
   }
 
-  for (this_claim = claim_list; this_claim && !found_claim;
-       this_claim = this_claim->next)
+  for (this_claim = claim_list; this_claim && !found_claim; this_claim = this_claim->next)
   {
     if (this_claim->zn == zn)
     {
@@ -4451,8 +4571,7 @@ float get_popularity(zone_vnum zn, clan_vnum cn)
 
   if ((c_r = real_clan(cn)) == NO_CLAN)
   {
-    log("(CLAIMS) get_popularity failed for clan %d, due to clan not found!",
-        cn);
+    log("(CLAIMS) get_popularity failed for clan %d, due to clan not found!", cn);
     return (0.0);
   }
 
@@ -4472,8 +4591,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
     return;
   }
 
-  for (this_claim = claim_list; this_claim && !found_claim;
-       this_claim = this_claim->next)
+  for (this_claim = claim_list; this_claim && !found_claim; this_claim = this_claim->next)
   {
     if (this_claim->zn == zn)
     {
@@ -4511,8 +4629,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
   }
 
   found_claim->popularity[c_r] =
-      FLOATMIN(FLOATMAX(found_claim->popularity[c_r] + amt, 0.0),
-               MAX_POPULARITY);
+      FLOATMIN(FLOATMAX(found_claim->popularity[c_r] + amt, 0.0), MAX_POPULARITY);
 
   /* Check this doesn't exceed the max allowed */
   if (found_claim->popularity[c_r] + tot_vals > MAX_POPULARITY)
@@ -4536,8 +4653,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
 
     /* Any spare 'points', add then to random popularity values, but
      * do not exceed the original value - give up after 50 passes*/
-    if ((val_diff = MAX_POPULARITY -
-                    (found_claim->popularity[c_r] + new_val)) > 0)
+    if ((val_diff = MAX_POPULARITY - (found_claim->popularity[c_r] + new_val)) > 0)
     {
       while (val_diff > 0 && count < 50)
       {
@@ -4549,7 +4665,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
         }
         count++;
       } /* end while */
-    }   /* end if (spare points) */
+    } /* end if (spare points) */
     /* Copy it back */
     for (i = 0; i < MAX_CLANS; i++)
     {
@@ -4558,13 +4674,12 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
         found_claim->popularity[i] = vals[i];
       }
     } /* end for */
-  }   /* end if (exceed max allowed) */
+  } /* end if (exceed max allowed) */
 
   save_claims();
 }
 
-void show_zone_popularities(struct char_data *ch,
-                            struct claim_data *this_claim)
+void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim)
 {
   zone_rnum z_r;
   int i, j, numbars;
@@ -4576,8 +4691,7 @@ void show_zone_popularities(struct char_data *ch,
 
   if ((z_r = real_zone(this_claim->zn)) != NOWHERE)
   {
-    send_to_char(ch, "%sPopularity for %s%s%s\r\n", QBWHT, QNRM,
-                 zone_table[z_r].name, QNRM);
+    send_to_char(ch, "%sPopularity for %s%s%s\r\n", QBWHT, QNRM, zone_table[z_r].name, QNRM);
     for (i = 0; i < MAX_CLANS; i++)
     {
       if (this_claim->popularity[i] > 0.0)
@@ -4591,17 +4705,15 @@ void show_zone_popularities(struct char_data *ch,
             bar[j] = ' ';
         }
         bar[12] = '\0';
-        send_to_char(ch, "%-25s%s: %3.1f%% %s[%s%s%s]%s\r\n",
-                     clan_list[i].clan_name, QNRM, this_claim->popularity[i], QCYN,
-                     QYEL, bar, QCYN, QNRM);
+        send_to_char(ch, "%-25s%s: %3.1f%% %s[%s%s%s]%s\r\n", clan_list[i].clan_name, QNRM,
+                     this_claim->popularity[i], QCYN, QYEL, bar, QCYN, QNRM);
         tot += this_claim->popularity[i];
       }
     }
   }
   else
   {
-    log("Zone %d returned rnum %d in show_zone_popularities",
-        this_claim->zn, z_r);
+    log("Zone %d returned rnum %d in show_zone_popularities", this_claim->zn, z_r);
   }
 }
 
@@ -4616,8 +4728,7 @@ void show_clan_popularities(struct char_data *ch, clan_vnum c_v)
   if ((c_r = real_clan(c_v)) == NO_CLAN)
     return;
 
-  send_to_char(ch, "%sPopularity for %s%s%s\r\n", QBWHT, QNRM,
-               clan_list[c_r].clan_name, QNRM);
+  send_to_char(ch, "%sPopularity for %s%s%s\r\n", QBWHT, QNRM, clan_list[c_r].clan_name, QNRM);
   for (this_claim = claim_list; this_claim; this_claim = this_claim->next)
   {
     if ((z_r = real_zone(this_claim->zn)) != NOWHERE)
@@ -4635,16 +4746,14 @@ void show_clan_popularities(struct char_data *ch, clan_vnum c_v)
         bar[12] = '\0';
         if (GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
         {
-          send_to_char(ch, "%s[%s%3d%s]%s %-30s%s: %3.2f%% %s[%s%s%s]%s\r\n",
-                       QCYN, QYEL, this_claim->zn, QCYN, QNRM, zone_table[z_r].name,
-                       QNRM, this_claim->popularity[c_r], QCYN, QYEL, bar,
-                       QCYN, QNRM);
+          send_to_char(ch, "%s[%s%3d%s]%s %-30s%s: %3.2f%% %s[%s%s%s]%s\r\n", QCYN, QYEL,
+                       this_claim->zn, QCYN, QNRM, zone_table[z_r].name, QNRM,
+                       this_claim->popularity[c_r], QCYN, QYEL, bar, QCYN, QNRM);
         }
         else
         {
-          send_to_char(ch, "%-30s%s: %3.2f%% %s[%s%s%s]%s\r\n",
-                       zone_table[z_r].name, QNRM, this_claim->popularity[c_r],
-                       QCYN, QYEL, bar, QCYN, QNRM);
+          send_to_char(ch, "%-30s%s: %3.2f%% %s[%s%s%s]%s\r\n", zone_table[z_r].name, QNRM,
+                       this_claim->popularity[c_r], QCYN, QYEL, bar, QCYN, QNRM);
         }
         cz++;
       }
@@ -4656,8 +4765,8 @@ void show_clan_popularities(struct char_data *ch, clan_vnum c_v)
   }
   else
   {
-    send_to_char(ch, "This clan has gained some popularity in %d zone%s.\r\n",
-                 cz, (cz == 1) ? "" : "s");
+    send_to_char(ch, "This clan has gained some popularity in %d zone%s.\r\n", cz,
+                 (cz == 1) ? "" : "s");
   }
 }
 
@@ -4686,22 +4795,21 @@ void show_popularity(struct char_data *ch, char *arg)
   }
   else if (c == 0 && *arg != '0')
   {
-    send_to_char(ch, "Usage: %sshow popularity [zone vnum]%s\r\n",
-                 QYEL, QNRM);
+    send_to_char(ch, "Usage: %sshow popularity [zone vnum]%s\r\n", QYEL, QNRM);
   }
   else
   {
     if (real_zone(c) == NOWHERE)
     {
-      send_to_char(ch, "Unrecognised zone, type %sshow zones%s for a"
-                       " list.\r\n",
+      send_to_char(ch,
+                   "Unrecognised zone, type %sshow zones%s for a"
+                   " list.\r\n",
                    QYEL, QNRM);
     }
     else
     {
       // Show just one clan
-      for (this_claim = claim_list; this_claim;
-           this_claim = this_claim->next)
+      for (this_claim = claim_list; this_claim; this_claim = this_claim->next)
       {
         if (this_claim->zn == c)
           show_zone_popularities(ch, this_claim);
@@ -4750,25 +4858,24 @@ ACMD(do_clanset)
     const char *cmd;
     sh_int level;
     char type;
-  } fields[] = {
-      {"name", LVL_STAFF, MISC},         /* 0  */
-      {"numranks", LVL_STAFF, NUMBER},   /* 1  */
-      {"rankname", LVL_STAFF, MISC},     /* 2  */
-      {"treasure", LVL_GRSTAFF, NUMBER}, /* 3  */
-      {"clanhall", LVL_IMPL, NUMBER},    /* 4  */
-      {"applev", LVL_STAFF, NUMBER},     /* 5  */
-      {"appfee", LVL_STAFF, NUMBER},     /* 6  */
-      {"tax", LVL_STAFF, NUMBER},        /* 7  */
-      {"skills", LVL_STAFF, NUMBER},     /* 8  */
-      {"desc", LVL_STAFF, MISC},         /* 9  */
-      {"atwar", LVL_STAFF, NUMBER},      /* 10 */
-      {"allies", LVL_STAFF, NUMBER},     /* 11 */
-      {"wartimer", LVL_GRSTAFF, NUMBER}, /* 12 */
-      {"pkwin", LVL_IMPL, NUMBER},       /* 13 */
-      {"pklose", LVL_IMPL, NUMBER},      /* 14 */
-      {"raided", LVL_IMPL, NUMBER},      /* 15 */
-      {"abbreviation", LVL_STAFF, MISC}, /* 16  */
-      {"\n", 0, MISC}};
+  } fields[] = {{"name", LVL_STAFF, MISC},         /* 0  */
+                {"numranks", LVL_STAFF, NUMBER},   /* 1  */
+                {"rankname", LVL_STAFF, MISC},     /* 2  */
+                {"treasure", LVL_GRSTAFF, NUMBER}, /* 3  */
+                {"clanhall", LVL_IMPL, NUMBER},    /* 4  */
+                {"applev", LVL_STAFF, NUMBER},     /* 5  */
+                {"appfee", LVL_STAFF, NUMBER},     /* 6  */
+                {"tax", LVL_STAFF, NUMBER},        /* 7  */
+                {"skills", LVL_STAFF, NUMBER},     /* 8  */
+                {"desc", LVL_STAFF, MISC},         /* 9  */
+                {"atwar", LVL_STAFF, NUMBER},      /* 10 */
+                {"allies", LVL_STAFF, NUMBER},     /* 11 */
+                {"wartimer", LVL_GRSTAFF, NUMBER}, /* 12 */
+                {"pkwin", LVL_IMPL, NUMBER},       /* 13 */
+                {"pklose", LVL_IMPL, NUMBER},      /* 14 */
+                {"raided", LVL_IMPL, NUMBER},      /* 15 */
+                {"abbreviation", LVL_STAFF, MISC}, /* 16  */
+                {"\n", 0, MISC}};
 
   /* Get the clan ID */
   half_chop_c(argument, name, sizeof(name), buf, sizeof(buf));
@@ -4789,23 +4896,25 @@ ACMD(do_clanset)
 
   if (!*name || !*field)
   {
-    send_to_char(ch, "%sUsage: %sclanset <clan id> <field> <value>\r\n",
-                 QBGRN, QBYEL);
-    send_to_char(ch, "       clanset <clan id> %srankname%s <rank id> "
-                     "<value>\r\n",
+    send_to_char(ch, "%sUsage: %sclanset <clan id> <field> <value>\r\n", QBGRN, QBYEL);
+    send_to_char(ch,
+                 "       clanset <clan id> %srankname%s <rank id> "
+                 "<value>\r\n",
                  QBRED, QBYEL);
     send_to_char(ch, "       clanset save\r\n\r\n");
     send_to_char(ch, "%sValid fields:-\r\n", QNRM);
-    send_to_char(ch, "%s       name         numranks   %srankname   "
-                     "%streasure   clanhall\r\n",
+    send_to_char(ch,
+                 "%s       name         numranks   %srankname   "
+                 "%streasure   clanhall\r\n",
                  QBYEL, QBRED, QBYEL);
     send_to_char(ch, "       applev       appfee     desc       tax"
                      "        raided\r\n");
     send_to_char(ch, "       atwar        allies     wartimer   pkwin"
                      "      pklose\r\n");
     send_to_char(ch, "       abbreviation\r\n");
-    send_to_char(ch, "%sFields shown in %sred%s use a special format shown"
-                     " above\r\n",
+    send_to_char(ch,
+                 "%sFields shown in %sred%s use a special format shown"
+                 " above\r\n",
                  QNRM, QBRED, QNRM);
     return;
   }
@@ -4839,10 +4948,10 @@ ACMD(do_clanset)
     value = atoi(val_arg);
   }
 
-  mudlog(CMP, LVL_IMPL, TRUE, "CLANSET: clan=%d, field=%d (%s), "
-                              "val_arg=%s (by %s)",
-         clannum, l, fields[l].cmd, val_arg,
-         GET_NAME(ch));
+  mudlog(CMP, LVL_IMPL, TRUE,
+         "CLANSET: clan=%d, field=%d (%s), "
+         "val_arg=%s (by %s)",
+         clannum, l, fields[l].cmd, val_arg, GET_NAME(ch));
 
   strlcpy(buf, "Okay.", sizeof(buf)); /* can't use OK macro here 'cause of \r\n */
 
@@ -4851,14 +4960,14 @@ ACMD(do_clanset)
   case 0: /* clanset <clannum> name <val_arg>*/
     if (strlen(val_arg) >= MAX_CLAN_NAME)
     {
-      send_to_char(ch, "Clan name too long! (%d characters max)",
-                   MAX_CLAN_NAME);
+      send_to_char(ch, "Clan name too long! (%d characters max)", MAX_CLAN_NAME);
       return;
     }
     if (CLAN_NAME(clannum))
       free(CLAN_NAME(clannum));
     CLAN_NAME(clannum) = strdup(val_arg);
-    if (!CLAN_NAME(clannum)) {
+    if (!CLAN_NAME(clannum))
+    {
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
@@ -4869,8 +4978,7 @@ ACMD(do_clanset)
   case 1: /* clanset <clannum> numranks <value>*/
     if ((value < 1) || (value > MAX_CLANRANKS))
     {
-      send_to_char(ch, "You MUST have between 1 and %d ranks in a clan!",
-                   MAX_CLANRANKS);
+      send_to_char(ch, "You MUST have between 1 and %d ranks in a clan!", MAX_CLANRANKS);
       return;
     }
     clan_list[clannum].ranks = value;
@@ -4883,8 +4991,8 @@ ACMD(do_clanset)
         clan_list[clannum].rank_name[i] = NULL;
       }
     }
-    snprintf(buf, sizeof(buf), "Clan ID %d: Number of ranks set to %d%s",
-             clan_list[clannum].vnum, clan_list[clannum].ranks, QNRM);
+    snprintf(buf, sizeof(buf), "Clan ID %d: Number of ranks set to %d%s", clan_list[clannum].vnum,
+             clan_list[clannum].ranks, QNRM);
     break;
 
     /* clanset <clannum> rankname <rank id> <val_arg>*/
@@ -4899,26 +5007,25 @@ ACMD(do_clanset)
     }
     if (strlen(rankname) > MAX_CLAN_NAME)
     {
-      send_to_char(ch, "Clan rankname too long! (%d characters max)",
-                   MAX_CLAN_NAME);
+      send_to_char(ch, "Clan rankname too long! (%d characters max)", MAX_CLAN_NAME);
       return;
     }
     if (clan_list[clannum].rank_name[rankid - 1])
       free(clan_list[clannum].rank_name[rankid - 1]);
     clan_list[clannum].rank_name[rankid - 1] = strdup(rankname);
-    if (!clan_list[clannum].rank_name[rankid - 1]) {
+    if (!clan_list[clannum].rank_name[rankid - 1])
+    {
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
 
-    snprintf(buf, sizeof(buf), "Clan ID %d: Rank %d changed to \"%s%s\"",
-             clan_list[clannum].vnum, rankid, rankname, QNRM);
+    snprintf(buf, sizeof(buf), "Clan ID %d: Rank %d changed to \"%s%s\"", clan_list[clannum].vnum,
+             rankid, rankname, QNRM);
     break;
   case 3: /* clanset clannum treasure <value>*/
     if ((value < 0) || (value > MAX_GOLD))
     {
-      send_to_char(ch, "Clan treasure cannot be greater than %s\r\n",
-                   add_commas(MAX_GOLD));
+      send_to_char(ch, "Clan treasure cannot be greater than %s\r\n", add_commas(MAX_GOLD));
       return;
     }
     clan_list[clannum].treasure = value;
@@ -4937,14 +5044,13 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].hall = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Clanhall zone set to %d\r\n",
-             clan_list[clannum].vnum, value);
+    snprintf(buf, sizeof(buf), "Clan ID %d: Clanhall zone set to %d\r\n", clan_list[clannum].vnum,
+             value);
     break;
   case 5: /* clanset clannum applev <value>*/
     if ((value < 1) || (value >= LVL_IMMORT))
     {
-      send_to_char(ch, "Invalid clan application level (0-%d)",
-                   (LVL_IMMORT - 1));
+      send_to_char(ch, "Invalid clan application level (0-%d)", (LVL_IMMORT - 1));
       return;
     }
     clan_list[clannum].applev = value;
@@ -4954,13 +5060,12 @@ ACMD(do_clanset)
   case 6: /* clanset clannum appfee <value>*/
     if ((value < 1) || (value > MAX_GOLD))
     {
-      send_to_char(ch, "Invalid clan application fee (0 - %s)",
-                   add_commas(MAX_GOLD));
+      send_to_char(ch, "Invalid clan application fee (0 - %s)", add_commas(MAX_GOLD));
       return;
     }
     clan_list[clannum].appfee = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Application Fee set to %s\r\n",
-             clan_list[clannum].vnum, add_commas(value));
+    snprintf(buf, sizeof(buf), "Clan ID %d: Application Fee set to %s\r\n", clan_list[clannum].vnum,
+             add_commas(value));
     break;
   case 7: /* clanset clannum tax <value>*/
     if ((value < 0) || (value > 40))
@@ -4969,13 +5074,13 @@ ACMD(do_clanset)
       return;
     }
     /* Validate tax rate (0-100%) */
-    if (value < 0 || value > 100) {
+    if (value < 0 || value > 100)
+    {
       send_to_char(ch, "Tax rate must be between 0 and 100 percent.\r\n");
       return;
     }
     clan_list[clannum].taxrate = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Tax set to %d%%\r\n",
-             clan_list[clannum].vnum, value);
+    snprintf(buf, sizeof(buf), "Clan ID %d: Tax set to %d%%\r\n", clan_list[clannum].vnum, value);
     break;
   case 8: /* clanset clannum skills <id> <value>*/
     /* Clan spells functionality removed - no longer part of system design */
@@ -5007,19 +5112,19 @@ ACMD(do_clanset)
   case 9: /* clanset clannum desc <val_arg>*/
     if (strlen(val_arg) >= MAX_CLAN_DESC)
     {
-      send_to_char(ch, "Clan description too long! (%d characters max)",
-                   MAX_CLAN_DESC);
+      send_to_char(ch, "Clan description too long! (%d characters max)", MAX_CLAN_DESC);
       return;
     }
     if (clan_list[clannum].description)
       free(clan_list[clannum].description);
     clan_list[clannum].description = strdup(val_arg);
-    if (!clan_list[clannum].description) {
+    if (!clan_list[clannum].description)
+    {
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
-    snprintf(buf, sizeof(buf), "Clan ID %d: Clan plan is now: \r\n%s\tn",
-             clan_list[clannum].vnum, clan_list[clannum].description);
+    snprintf(buf, sizeof(buf), "Clan ID %d: Clan plan is now: \r\n%s\tn", clan_list[clannum].vnum,
+             clan_list[clannum].description);
     break;
   case 10: /* clanset clannum atwar <clan id>*/
     if (!strcmp(val_arg, "clear"))
@@ -5046,22 +5151,18 @@ ACMD(do_clanset)
       {
         clan_list[clannum].at_war[value] = FALSE;
         clan_list[clannum].at_war[value] = TRUE;
-        send_to_char(ch, "%s%s is no longer at war with %s%s",
-                    clan_list[clannum].clan_name, QNRM,
-                    clan_list[value].clan_name, QNRM);
+        send_to_char(ch, "%s%s is no longer at war with %s%s", clan_list[clannum].clan_name, QNRM,
+                     clan_list[value].clan_name, QNRM);
         snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan %s removed.\r\n",
-               clan_list[clannum].vnum,
-               clan_list[value].clan_name);
+                 clan_list[clannum].vnum, clan_list[value].clan_name);
       }
       else
       {
         clan_list[clannum].allies[value] = TRUE;
-        send_to_char(ch, "%s%s is now at war with %s%s",
-                    clan_list[clannum].clan_name, QNRM,
-                    clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan set to %s\r\n",
-               clan_list[clannum].vnum,
-               clan_list[value].clan_name);
+        send_to_char(ch, "%s%s is now at war with %s%s", clan_list[clannum].clan_name, QNRM,
+                     clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan set to %s\r\n", clan_list[clannum].vnum,
+                 clan_list[value].clan_name);
       }
     }
     break;
@@ -5090,22 +5191,18 @@ ACMD(do_clanset)
       {
         clan_list[clannum].allies[value] = FALSE;
         clan_list[clannum].allies[value] = TRUE;
-        send_to_char(ch, "%s%s is no longer allied with %s%s",
-                    clan_list[clannum].clan_name, QNRM,
-                    clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan %s removed.\r\n",
-               clan_list[clannum].vnum,
-               clan_list[value].clan_name);
+        send_to_char(ch, "%s%s is no longer allied with %s%s", clan_list[clannum].clan_name, QNRM,
+                     clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan %s removed.\r\n", clan_list[clannum].vnum,
+                 clan_list[value].clan_name);
       }
       else
       {
         clan_list[clannum].allies[value] = TRUE;
-        send_to_char(ch, "%s%s is now allied with %s%s",
-                    clan_list[clannum].clan_name, QNRM,
-                    clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n",
-               clan_list[clannum].vnum,
-               clan_list[value].clan_name);
+        send_to_char(ch, "%s%s is now allied with %s%s", clan_list[clannum].clan_name, QNRM,
+                     clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n", clan_list[clannum].vnum,
+                 clan_list[value].clan_name);
       }
     }
     break;
@@ -5126,8 +5223,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].pk_win = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: PK Wins set to %d.\r\n",
-             clan_list[clannum].vnum, value);
+    snprintf(buf, sizeof(buf), "Clan ID %d: PK Wins set to %d.\r\n", clan_list[clannum].vnum,
+             value);
     break;
   case 14: /* clanset clannum pklose <value>*/
     if ((value < 0) || (value > 30000))
@@ -5136,8 +5233,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].pk_lose = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: PK Losses set to %d.\r\n",
-             clan_list[clannum].vnum, value);
+    snprintf(buf, sizeof(buf), "Clan ID %d: PK Losses set to %d.\r\n", clan_list[clannum].vnum,
+             value);
     break;
   case 15: /* clanset clannum pklose <value>*/
     if ((value < 0) || (value > 30000))
@@ -5146,21 +5243,21 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].raided = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: PK Raided set to %d.\r\n",
-             clan_list[clannum].vnum, value);
+    snprintf(buf, sizeof(buf), "Clan ID %d: PK Raided set to %d.\r\n", clan_list[clannum].vnum,
+             value);
     break;
 
   case 16: /* clanset <clannum> abbrev <val_arg>*/
     if (strlen(val_arg) >= MAX_CLAN_ABREV)
     {
-      send_to_char(ch, "Clan abbreviation too long! (%d characters max)",
-                   MAX_CLAN_ABREV);
+      send_to_char(ch, "Clan abbreviation too long! (%d characters max)", MAX_CLAN_ABREV);
       return;
     }
     if (CLAN_ABREV(clannum))
       free(clan_list[clannum].abrev);
     clan_list[clannum].abrev = strdup(val_arg);
-    if (!clan_list[clannum].abrev) {
+    if (!clan_list[clannum].abrev)
+    {
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
@@ -5203,7 +5300,8 @@ ACMD(do_clantalk)
     return;
   }
 
-  if (!imm) {
+  if (!imm)
+  {
     clan_rnum clan_num = real_clan(GET_CLAN(ch));
     if (clan_num != NO_CLAN && GET_IDNUM(ch) == clan_list[clan_num].leader)
       leader = TRUE;
@@ -5259,9 +5357,10 @@ ACMD(do_clantalk)
   snprintf(buf, sizeof(buf), "%s[Clan] \"%s\"%s", QBCYN, (argument), QNRM);
   msg = act(buf, TRUE, ch, 0, ch, TO_VICT);
   add_history(ch, msg, HIST_CLANTALK);
-  
+
   /* Update clan activity */
-  if (!imm && GET_CLAN(ch) != NO_CLAN) {
+  if (!imm && GET_CLAN(ch) != NO_CLAN)
+  {
     update_clan_activity(GET_CLAN(ch));
   }
 
@@ -5305,15 +5404,13 @@ ACMD(do_clantalk)
       continue;
 
     /* Again, removed the +1 from argument. */
-    snprintf(buf, sizeof(buf), "[Clantalk] %s$n \"%s\"%s",
-             CBMAG(i->character, C_NRM),
-             (argument), CCNRM(i->character, C_NRM));
+    snprintf(buf, sizeof(buf), "[Clantalk] %s$n \"%s\"%s", CBMAG(i->character, C_NRM), (argument),
+             CCNRM(i->character, C_NRM));
 
     if (imm)
     {
-      snprintf(buf2, sizeof(buf2), "[%sClan %d - %s %s] %s",
-               CBWHT(i->character, C_NRM), c_id, clan_list[c_id - 1].abrev,
-               CBWHT(i->character, C_NRM), buf);
+      snprintf(buf2, sizeof(buf2), "[%sClan %d - %s %s] %s", CBWHT(i->character, C_NRM), c_id,
+               clan_list[c_id - 1].abrev, CBWHT(i->character, C_NRM), buf);
       msg = act(buf2, TRUE, ch, 0, i->character, TO_VICT);
       add_history(i->character, msg, HIST_CLANTALK);
     }
@@ -5446,7 +5543,6 @@ bool check_clanpriv(struct char_data *ch, int p)
 
 bool are_clans_allied(int clanA, int clanB)
 {
-
   if (clanA < 0 || clanA > num_of_clans)
     return false;
   if (clanB < 0 || clanB > num_of_clans)
@@ -5457,16 +5553,15 @@ bool are_clans_allied(int clanA, int clanB)
 
   if (clan_list[clanA].allies[clanB] == TRUE)
     return true;
-  
+
   if (clan_list[clanB].allies[clanA] == TRUE)
     return true;
-  
+
   return false;
 }
 
 bool are_clans_at_war(int clanA, int clanB)
 {
-
   if (clanA < 0 || clanA > num_of_clans)
     return false;
   if (clanB < 0 || clanB > num_of_clans)
@@ -5477,10 +5572,10 @@ bool are_clans_at_war(int clanA, int clanB)
 
   if (clan_list[clanA].at_war[clanB] == TRUE)
     return true;
-  
+
   if (clan_list[clanB].at_war[clanA] == TRUE)
     return true;
-  
+
   return false;
 }
 
@@ -5491,13 +5586,13 @@ void update_clans(void)
   bool save_needed = FALSE;
   struct descriptor_data *d;
   static int save_counter = 0;
-  
+
   /* Check and clean up expired clan locks */
   check_clan_locks();
-  
+
   /* Clean up expired transactions */
   cleanup_clan_transactions();
-  
+
   for (i = 0; i < num_of_clans; i++)
   {
     /* Update war timers */
@@ -5506,7 +5601,7 @@ void update_clans(void)
       clan_list[i].war_timer--;
       mark_clan_modified(i);
       save_needed = TRUE;
-      
+
       /* Check if any wars have expired */
       if (clan_list[i].war_timer == 0)
       {
@@ -5522,16 +5617,14 @@ void update_clans(void)
               clan_list[j].at_war[i] = FALSE;
               mark_clan_modified(j);
             }
-            
+
             /* Notify online clan members */
             for (d = descriptor_list; d; d = d->next)
             {
-              if (!d->connected && d->character && 
-                  GET_CLAN(d->character) == clan_list[i].vnum)
+              if (!d->connected && d->character && GET_CLAN(d->character) == clan_list[i].vnum)
               {
-                send_to_char(d->character, 
-                  "\r\n@R[CLAN]@n Your clan's war with %s has ended.\r\n", 
-                  j < num_of_clans ? clan_list[j].clan_name : "Unknown");
+                send_to_char(d->character, "\r\n@R[CLAN]@n Your clan's war with %s has ended.\r\n",
+                             j < num_of_clans ? clan_list[j].clan_name : "Unknown");
               }
             }
           }
@@ -5539,7 +5632,7 @@ void update_clans(void)
       }
     }
   }
-  
+
   /* Save modified clans immediately if needed */
   if (save_needed)
   {
@@ -5551,7 +5644,7 @@ void update_clans(void)
       }
     }
   }
-  
+
   /* Also do a periodic save of all modified clans every 5 minutes */
   save_counter++;
   if (save_counter >= 5) /* 5 mud hours = 5 minutes real time */
@@ -5573,24 +5666,24 @@ void update_clans(void)
 bool acquire_clan_lock(clan_rnum c, struct char_data *ch)
 {
   time_t current_time;
-  
+
   if (c < 0 || c >= num_of_clans || !ch)
     return FALSE;
-  
+
   current_time = time(0);
-  
+
   /* Check if lock is held by someone else */
-  if (clan_list[c].locked_until > current_time && 
-      clan_list[c].locked_by != GET_IDNUM(ch))
+  if (clan_list[c].locked_until > current_time && clan_list[c].locked_by != GET_IDNUM(ch))
   {
-    send_to_char(ch, "This clan is currently being modified by another player. Please try again in a moment.\r\n");
+    send_to_char(ch, "This clan is currently being modified by another player. Please try again in "
+                     "a moment.\r\n");
     return FALSE;
   }
-  
+
   /* Acquire or renew lock */
   clan_list[c].locked_until = current_time + CLAN_LOCK_DURATION;
   clan_list[c].locked_by = GET_IDNUM(ch);
-  
+
   return TRUE;
 }
 
@@ -5599,14 +5692,14 @@ bool release_clan_lock(clan_rnum c, struct char_data *ch)
 {
   if (c < 0 || c >= num_of_clans || !ch)
     return FALSE;
-  
+
   /* Only the lock holder or an implementor can release */
   if (clan_list[c].locked_by != GET_IDNUM(ch) && GET_LEVEL(ch) < LVL_IMPL)
     return FALSE;
-  
+
   clan_list[c].locked_until = 0;
   clan_list[c].locked_by = 0;
-  
+
   return TRUE;
 }
 
@@ -5614,12 +5707,12 @@ bool release_clan_lock(clan_rnum c, struct char_data *ch)
 bool is_clan_locked(clan_rnum c)
 {
   time_t current_time;
-  
+
   if (c < 0 || c >= num_of_clans)
     return FALSE;
-  
+
   current_time = time(0);
-  
+
   return (clan_list[c].locked_until > current_time);
 }
 
@@ -5627,21 +5720,20 @@ bool is_clan_locked(clan_rnum c)
 bool can_modify_clan(clan_rnum c, struct char_data *ch)
 {
   time_t current_time;
-  
+
   if (c < 0 || c >= num_of_clans || !ch)
     return FALSE;
-  
+
   /* Implementors can always modify */
   if (GET_LEVEL(ch) >= LVL_IMPL)
     return TRUE;
-  
+
   current_time = time(0);
-  
+
   /* Check if they hold the lock */
-  if (clan_list[c].locked_until > current_time && 
-      clan_list[c].locked_by == GET_IDNUM(ch))
+  if (clan_list[c].locked_until > current_time && clan_list[c].locked_by == GET_IDNUM(ch))
     return TRUE;
-  
+
   /* Lock is expired or not held */
   return FALSE;
 }
@@ -5651,11 +5743,10 @@ void check_clan_locks(void)
 {
   int i;
   time_t current_time = time(0);
-  
+
   for (i = 0; i < num_of_clans; i++)
   {
-    if (clan_list[i].locked_until > 0 && 
-        clan_list[i].locked_until <= current_time)
+    if (clan_list[i].locked_until > 0 && clan_list[i].locked_until <= current_time)
     {
       /* Lock has expired */
       clan_list[i].locked_until = 0;

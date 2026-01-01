@@ -76,7 +76,7 @@ const char *any_one_arg_c(const char *argument, char *first_arg, size_t n)
   const char *arg_last = first_arg + n - 1;
 
   skip_spaces_c(&argument);
-  
+
   while (*argument && !isspace(*argument))
   {
     if (first_arg < arg_last)
@@ -95,7 +95,7 @@ const char *any_one_arg_c(const char *argument, char *first_arg, size_t n)
  * depending on whether or not the match must be exact for it to be returned.
  * Returns -1 if not found; 0..n otherwise.  Array must be terminated with a
  * '\n' so it knows to stop searching. */
-int search_block(char *arg, const char * const *list, bool exact)
+int search_block(char *arg, const char *const *list, bool exact)
 {
   int i, l;
 
@@ -130,15 +130,7 @@ int search_block(char *arg, const char * const *list, bool exact)
   return (-1);
 }
 
-const char *fill[] = {
-    "in",
-    "from",
-    "with",
-    "the",
-    "on",
-    "at",
-    "to",
-    "\n"};
+const char *fill[] = {"in", "from", "with", "the", "on", "at", "to", "\n"};
 
 int fill_word(char *argument)
 {
@@ -214,7 +206,8 @@ char *two_arguments_u(char *argument, char *first_arg, char *second_arg)
   return (one_argument_u(one_argument_u(argument, first_arg), second_arg)); /* :-) */
 }
 
-const char *two_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2)
+const char *two_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg,
+                          size_t n2)
 {
   return (one_argument(one_argument(argument, first_arg, n1), second_arg, n2));
 }

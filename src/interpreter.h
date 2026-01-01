@@ -12,7 +12,7 @@
 #ifndef _INTERPRETER_H_
 #define _INTERPRETER_H_
 
-#include "utils.h"  /* For ACMD_DECL macro */
+#include "utils.h" /* For ACMD_DECL macro */
 
 /* List of external function prototypes.
  * @todo Organize the functions into modules. */
@@ -29,18 +29,14 @@ char *one_word(char *argument, char *first_arg);
 char *any_one_arg(char *argument, char *first_arg);
 const char *any_one_arg_c(const char *argument, char *first_arg, size_t n);
 char *two_arguments_u(char *argument, char *first_arg, char *second_arg);
-char *three_arguments_u(char *argument, char *first_arg, char *second_arg,
-                       char *third_arg);
-const char *three_arguments(const char *argument,
-                            char *first_arg, size_t n1,
-                            char *second_arg, size_t n2,
-                            char *third_arg, size_t n3);
-const char *four_arguments(const char *argument,
-                          char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3,
-                          char *fourth_arg, size_t n4);
-const char *five_arguments(const char *argument,
-                          char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3,
-                          char *fourth_arg, size_t n4, char *fifth_arg, size_t n5);
+char *three_arguments_u(char *argument, char *first_arg, char *second_arg, char *third_arg);
+const char *three_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg,
+                            size_t n2, char *third_arg, size_t n3);
+const char *four_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg,
+                           size_t n2, char *third_arg, size_t n3, char *fourth_arg, size_t n4);
+const char *five_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg,
+                           size_t n2, char *third_arg, size_t n3, char *fourth_arg, size_t n4,
+                           char *fifth_arg, size_t n5);
 int fill_word(char *argument);
 int reserved_word(char *argument);
 void half_chop(char *string, char *arg1, char *arg2);
@@ -174,19 +170,19 @@ struct alias_data
 #define SCMD_PILFER 1
 
 #define SCMD_QUICK_CHANT 1
-#define SCMD_QUICK_MIND  2
+#define SCMD_QUICK_MIND 2
 
-#define SCMD_DIALOGUE_DIPLOMACY  1
+#define SCMD_DIALOGUE_DIPLOMACY 1
 #define SCMD_DIALOGUE_INTIMIDATE 2
-#define SCMD_DIALOGUE_BLUFF      3
+#define SCMD_DIALOGUE_BLUFF 3
 
-#define SCMD_RP_DESC        1
+#define SCMD_RP_DESC 1
 #define SCMD_RP_PERSONALITY 2
-#define SCMD_RP_GOALS       3
-#define SCMD_RP_IDEALS      4
-#define SCMD_RP_BONDS       5
-#define SCMD_RP_FLAWS       6
-#define SCMD_RP_BG_STORY    7
+#define SCMD_RP_GOALS 3
+#define SCMD_RP_IDEALS 4
+#define SCMD_RP_BONDS 5
+#define SCMD_RP_FLAWS 6
+#define SCMD_RP_BG_STORY 7
 
 /* Necessary for CMD_IS macro.  Borland needs the structure defined first
  * so it has been moved down here. */

@@ -12,7 +12,7 @@ tree. Once the correct version of CMake is installed you can follow the
 instructions below for the platform you are building on.
 
 CMake builds can be configured either from the command line, or from one of
-CMake's GUIs. 
+CMake's GUIs.
 
 NOTE: The current CMakeLists.txt only supports linux.
 
@@ -21,7 +21,7 @@ NOTE: The current CMakeLists.txt only supports linux.
 A CMake configuration of tbamud is similar to the autotools build of curl.
 It consists of the following steps after you have unpacked the source.
 
-We recommend building with CMake on Windows. 
+We recommend building with CMake on Windows.
 
 ## Using `cmake`
 
@@ -80,7 +80,7 @@ $ cmake --build build --target wld2html
 ### Debugging memory
 
 In case you want to run the mud with memory debugging turned on, you
-can set the MEMORY_DEBUG flag during configuration by specifying the 
+can set the MEMORY_DEBUG flag during configuration by specifying the
 flag:
 
 ```shell

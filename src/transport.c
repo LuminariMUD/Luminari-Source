@@ -47,44 +47,56 @@ int find_first_step(room_rnum src, room_rnum target);
 /* location name, carriage stop room vnum, cost to travel here, continent name (matched below),
 zone description, mapp coord x, map coord y */
 const char *carriage_locales_dl[][CARRIAGE_LOCALES_FIELDS] = {
-  {"palanthas gate",                 "15204", "25",   "Solamnia", "good alignment starting city", "1075", "2525" },
-  {"vingaard keep",                  "15206", "25",   "Solamnia", "levels 13-20", "1320", "2925"},
-  {"thelgaard keep",                 "15207", "25",  "Solamnia", "levels 21-24", "1765", "2555"},
-  {"caergoth gate",                  "15210", "25",  "Solamnia", "levels 8-16, boat to Abanasinia", "2210", "2260"},
-  {"solace",                         "15200", "25",   "Abanasinia", "city for neutral or unfactioned people of any alignment", "2690", "2535"},
-  {"que-shu village",                "15202", "25",   "Abanasinia", "level 18 npcs", "2730", "2650"},
-  {"xak tsaroth",                    "15203", "25",   "Abanasinia", "level 30 npcs, boat to sanction (taman busuk)", "2705", "2670"},
-  {"fireside tavern",                "15211", "25",   "Abanasinia",  "level 12 npcs", "2615", "2650"},
-  {"new sea docks",                  "15212", "25",  "Abanasinia",  "boat to solamnia", "2430", "2660"},
-  {"qualinost",                      "15213", "25",  "Abanasinia", "level 20 npcs", "2855", "2485"},
-  {"pax tharkas",                    "15214", "25",  "Abanasinia", "halfway between solace and tarsis", "2915", "2520"},
-  {"tarsis",                         "15215", "25",  "Abanasinia", "levels 18-25", "3595", "2630"},
-  {"darken wood",                    "15219", "25",  "Abanasinia", "levels 13-19", "2770", "2510"},
-  {"sanction gate",                  "15205", "25",   "Taman Busuk",  "evil alignment starting city", "2020", "3765"},
-  {"neraka",                         "15216", "25",   "Taman Busuk", "levels 14-25", "1805", "3950"},
-  {"city of morning dew",            "15217", "25",  "Taman Busuk", "level 40 npcs", "3055", "3645"},
-  {"plains of dust",                 "15218", "25",  "Taman Busuk", "near the onyx obelisk epic level zone", "3590", "3200"},
-  {"always the last item",           "0",     "0",    "Nowhere", "nothing", "0", "0"}
-};
+    {"palanthas gate", "15204", "25", "Solamnia", "good alignment starting city", "1075", "2525"},
+    {"vingaard keep", "15206", "25", "Solamnia", "levels 13-20", "1320", "2925"},
+    {"thelgaard keep", "15207", "25", "Solamnia", "levels 21-24", "1765", "2555"},
+    {"caergoth gate", "15210", "25", "Solamnia", "levels 8-16, boat to Abanasinia", "2210", "2260"},
+    {"solace", "15200", "25", "Abanasinia",
+     "city for neutral or unfactioned people of any alignment", "2690", "2535"},
+    {"que-shu village", "15202", "25", "Abanasinia", "level 18 npcs", "2730", "2650"},
+    {"xak tsaroth", "15203", "25", "Abanasinia", "level 30 npcs, boat to sanction (taman busuk)",
+     "2705", "2670"},
+    {"fireside tavern", "15211", "25", "Abanasinia", "level 12 npcs", "2615", "2650"},
+    {"new sea docks", "15212", "25", "Abanasinia", "boat to solamnia", "2430", "2660"},
+    {"qualinost", "15213", "25", "Abanasinia", "level 20 npcs", "2855", "2485"},
+    {"pax tharkas", "15214", "25", "Abanasinia", "halfway between solace and tarsis", "2915",
+     "2520"},
+    {"tarsis", "15215", "25", "Abanasinia", "levels 18-25", "3595", "2630"},
+    {"darken wood", "15219", "25", "Abanasinia", "levels 13-19", "2770", "2510"},
+    {"sanction gate", "15205", "25", "Taman Busuk", "evil alignment starting city", "2020", "3765"},
+    {"neraka", "15216", "25", "Taman Busuk", "levels 14-25", "1805", "3950"},
+    {"city of morning dew", "15217", "25", "Taman Busuk", "level 40 npcs", "3055", "3645"},
+    {"plains of dust", "15218", "25", "Taman Busuk", "near the onyx obelisk epic level zone",
+     "3590", "3200"},
+    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"}};
 
 
 /* continent name, ship dock room vnum, Cost in gold, faction name,
      contintent description, map coord x, map coord y */
 const char *sailing_locales_dl[][SAILING_LOCALES_FIELDS] = {
-    {"palanthas dock", "2459", "50", "Any", "Home of the Solamnic Knights & Forces of Whitestone.", "1075", "2525"},
-    {"caergoth / northern new sea", "4430", "50", "Any", "Western Solamnia and a ferry across the New Sea.", "2210", "2260"},
-    {"abanasinia / southern new sea", "4429", "50", "Any", "In this area: Solace, Qualinesti, Darken Wood & Que-Shu.", "2430", "2660"},
-    {"sanction dock", "6500", "50", "Any", "Economic center of the Dragonarmies, and near Neraka.", "2020", "3765"},
-    {"bethel island", "9201", "50", "Any", "An island north of Palanthas in the Bay of Branchala.", "975", "2530"},
-    {"eastern abanasinia", "2966", "50", "Any", "Trader's dock in eastern Abanasinia.", "2830", "2570"},
-    {"undomesticated island", "2501", "50", "Any", "A small island in the Eastern New Sea, near Sanction.", "1075", "2525"},
-    {"northern ergoth", "34700", "50", "Any", "A neutral trade dock located in Northern Ergoth", "1765", "1210"},
+    {"palanthas dock", "2459", "50", "Any", "Home of the Solamnic Knights & Forces of Whitestone.",
+     "1075", "2525"},
+    {"caergoth / northern new sea", "4430", "50", "Any",
+     "Western Solamnia and a ferry across the New Sea.", "2210", "2260"},
+    {"abanasinia / southern new sea", "4429", "50", "Any",
+     "In this area: Solace, Qualinesti, Darken Wood & Que-Shu.", "2430", "2660"},
+    {"sanction dock", "6500", "50", "Any", "Economic center of the Dragonarmies, and near Neraka.",
+     "2020", "3765"},
+    {"bethel island", "9201", "50", "Any", "An island north of Palanthas in the Bay of Branchala.",
+     "975", "2530"},
+    {"eastern abanasinia", "2966", "50", "Any", "Trader's dock in eastern Abanasinia.", "2830",
+     "2570"},
+    {"undomesticated island", "2501", "50", "Any",
+     "A small island in the Eastern New Sea, near Sanction.", "1075", "2525"},
+    {"northern ergoth", "34700", "50", "Any", "A neutral trade dock located in Northern Ergoth",
+     "1765", "1210"},
 
     {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
 };
 
 const char *carriage_locales_lumi[][CARRIAGE_LOCALES_FIELDS] = {
-    {"ashenport", "103000", "10", "Ondius", "central city for low to mid levels and main quest line", "-59", "92"},
+    {"ashenport", "103000", "10", "Ondius",
+     "central city for low to mid levels and main quest line", "-59", "92"},
     {"mosswood village", "145387", "10", "Ondius", "starting area, levels 1-5", "-51", "99"},
     {"ardeep forest", "144062", "45", "Ondius", "level 3-12 mobs", "-40", "82"},
     {"dollhouse", "11899", "65", "Ondius", "level 5-8 mobs, questline", "169", "171"},
@@ -120,7 +132,8 @@ const char *carriage_locales_lumi[][CARRIAGE_LOCALES_FIELDS] = {
     {"rat hills", "115500", "70", "Ondius", "level 3-12 mobs", "-54", "78"},
     {"reaching woods", "127265", "70", "Continent9", "level 1-9, 16-19, 27 mobs", "-764", "138"},
     {"ruined keep", "101701", "70", "Continent7", "level 6-18 mobs", "-121", "-99"},
-    {"sanctus", "140", "70", "Continent5", "level 3-20 mobs, major city of eastern continents", "695", "-240"},
+    {"sanctus", "140", "70", "Continent5", "level 3-20 mobs, major city of eastern continents",
+     "695", "-240"},
     {"spider swamp", "199", "70", "Ondius", "level 10-20 mobs", "-44", "128"},
     {"the depths", "9200", "70", "Continent5", "level 20-22 mobs", "643", "-10"},
     {"tugrahk gol", "199", "70", "Continent7", "level 6-30 mobs", "-54", "-320"},
@@ -133,21 +146,30 @@ const char *carriage_locales_lumi[][CARRIAGE_LOCALES_FIELDS] = {
 /* continent name, ship dock room vnum, Cost in gold, faction name,
      contintent description, map coord x, map coord y */
 const char *sailing_locales_lumi[][SAILING_LOCALES_FIELDS] = {
-    {"ondius - ashenport", "34801", "100", "Any", "Ashenport is the main city hub for the main questline and many shops & services.", "-63", "89"},
+    {"ondius - ashenport", "34801", "100", "Any",
+     "Ashenport is the main city hub for the main questline and many shops & services.", "-63",
+     "89"},
     {"ondius - northwest seaport", "1000280", "100", "Any", "Nearby zones: Quagmire", "-25", "198"},
-    {"ondius - southeast seaport", "1000281", "100", "Any", "Nearby zones: Neverwinter Catacombs", "104", "39"},
-    {"ondius - northeast seaport", "1000282", "100", "Any", "Nearby zones: Tilverton, Orc Ruins, Mere of Dead Men", "191", "295"},
+    {"ondius - southeast seaport", "1000281", "100", "Any", "Nearby zones: Neverwinter Catacombs",
+     "104", "39"},
+    {"ondius - northeast seaport", "1000282", "100", "Any",
+     "Nearby zones: Tilverton, Orc Ruins, Mere of Dead Men", "191", "295"},
 
-    {"selerish - corm orp seaport", "1000337", "100", "Any", "Nearby zones: Corm Orp", "161", "-79"},
+    {"selerish - corm orp seaport", "1000337", "100", "Any", "Nearby zones: Corm Orp", "161",
+     "-79"},
     {"selerish - east seaport", "1000284", "100", "Any", "Nearby zones: Unknown", "358", "-200"},
     {"selerish - south seaport", "1000283", "100", "Any", "Nearby zones: Unknown", "363", "-295"},
 
-    {"carstan - west seaport", "1000331", "100", "Any", "Nearby zones: Hardbuckler, Glass Tower", "575", "75"},
+    {"carstan - west seaport", "1000331", "100", "Any", "Nearby zones: Hardbuckler, Glass Tower",
+     "575", "75"},
     {"carstan - east seaport", "1000332", "100", "Any", "Nearby zones: The Depths", "743", "-22"},
 
-    {"axtros - sanctus", "1000333", "100", "Any", "Sanctus is a major city in Lumia with some unique products & services.", "688", "-241"},
-    {"axtros - northeast seaport", "1000334", "100", "Any", "Nearby zones: South Wood", "866", "-284"},
-    {"axtros - southwest seaport", "1000335", "100", "Any", "Nearby zones: Crimson Flame, Beregost", "591", "-524"},
+    {"axtros - sanctus", "1000333", "100", "Any",
+     "Sanctus is a major city in Lumia with some unique products & services.", "688", "-241"},
+    {"axtros - northeast seaport", "1000334", "100", "Any", "Nearby zones: South Wood", "866",
+     "-284"},
+    {"axtros - southwest seaport", "1000335", "100", "Any", "Nearby zones: Crimson Flame, Beregost",
+     "591", "-524"},
     {"axtros - south seaport", "1000336", "100", "Any", "Nearby zones: Unknown", "606", "-719"},
 
     {"hir - southwest seaport", "1000364", "100", "Any", "Nearby zones: ", "-442", "-303"},
@@ -155,38 +177,59 @@ const char *sailing_locales_lumi[][SAILING_LOCALES_FIELDS] = {
     {"hir - northeast seaport", "1000366", "100", "Any", "Nearby zones: ", "-20", "-85"},
     {"hir - east seaport", "1000365", "100", "Any", "Nearby zones: ", "-57", "-330"},
 
-    {"quechian - east seaport", "1000350", "100", "Any", "Nearby zones: Evereska, Reaching Woods, Aumvor's Castle", "-651", "-4"},
-    {"quechian - southwest seaport", "1000351", "100", "Any", "Nearby zones: Dragon Cult Fortress", "-782", "-110"},
-    {"quechian - northeast seaport", "1000349", "100", "Any", "Nearby zones: Giant Darkwood Tree", "-703", "155"},
+    {"quechian - east seaport", "1000350", "100", "Any",
+     "Nearby zones: Evereska, Reaching Woods, Aumvor's Castle", "-651", "-4"},
+    {"quechian - southwest seaport", "1000351", "100", "Any", "Nearby zones: Dragon Cult Fortress",
+     "-782", "-110"},
+    {"quechian - northeast seaport", "1000349", "100", "Any", "Nearby zones: Giant Darkwood Tree",
+     "-703", "155"},
 
     {"vailand - west seaport", "1000359", "100", "Any", "Nearby zones: Unknown", "-772", "473"},
-    {"vailand - north seaport", "1000360", "100", "Any", "Nearby zones: Zzsessak Zuhl", "-599", "455"},
+    {"vailand - north seaport", "1000360", "100", "Any", "Nearby zones: Zzsessak Zuhl", "-599",
+     "455"},
     {"vailand - central seaport", "1000362", "100", "Any", "Nearby zones: Unknown", "-467", "204"},
-    {"vailand - south seaport", "1000361", "100", "Any", "Nearby zones: Shadowdale, Flaming Tower", "-512", "99"},
+    {"vailand - south seaport", "1000361", "100", "Any", "Nearby zones: Shadowdale, Flaming Tower",
+     "-512", "99"},
 
     {"oorpii - north seaport", "1000339", "100", "Any", "Nearby zones: Soubar", "-112", "785"},
     {"oorpii - east seaport", "1000338", "100", "Any", "Nearby zones: Skull Gorge", "-105", "510"},
-    {"oorpii - west seaport", "1000279", "100", "Any", "Nearby zones: Mount Hotenow", "-316", "520"},
-    {"oorpii - northwest seaport", "1000278", "100", "Any", "Nearby zones: Neverwinter", "-597", "804"},
+    {"oorpii - west seaport", "1000279", "100", "Any", "Nearby zones: Mount Hotenow", "-316",
+     "520"},
+    {"oorpii - northwest seaport", "1000278", "100", "Any", "Nearby zones: Neverwinter", "-597",
+     "804"},
 
-    {"kellust - north seaport", "1000352", "100", "Any", "Nearby zones: Mithril Hall", "286", "885"},
-    {"kellust - northeast seaport", "1000358", "100", "Any", "Nearby zones: Lost City of Thunderholme", "423", "779"},
-    {"kellust - east seaport", "1000357", "100", "Any", "Nearby zones: Temple of Twisted Flesh", "644", "644"},
+    {"kellust - north seaport", "1000352", "100", "Any", "Nearby zones: Mithril Hall", "286",
+     "885"},
+    {"kellust - northeast seaport", "1000358", "100", "Any",
+     "Nearby zones: Lost City of Thunderholme", "423", "779"},
+    {"kellust - east seaport", "1000357", "100", "Any", "Nearby zones: Temple of Twisted Flesh",
+     "644", "644"},
     {"kellust - southeast seaport", "1000356", "100", "Any", "Nearby zones: Unknown", "519", "539"},
-    {"kellust - southwest seaport", "1000355", "100", "Any", "Nearby zones: Neverwinter Wood", "371", "431"},
+    {"kellust - southwest seaport", "1000355", "100", "Any", "Nearby zones: Neverwinter Wood",
+     "371", "431"},
     {"kellust - northwest seaport", "1000353", "100", "Any", "Nearby zones: Unknown", "161", "789"},
-    {"kellust - west seaport", "1000354", "100", "Any", "Nearby zones: Dwarven Mines", "283", "724"},
+    {"kellust - west seaport", "1000354", "100", "Any", "Nearby zones: Dwarven Mines", "283",
+     "724"},
 
-    {"east ubdina - southwest seaport", "1000345", "100", "Any", "Nearby zones: Unknown", "-268", "-758"},
-    {"east ubdina - south seaport", "1000346", "100", "Any", "Nearby zones: Bloodfist Caverns", "-110", "-722"},
-    {"east ubdina - east seaport", "1000348", "100", "Any", "Nearby zones: Forest of Wyrms", "73", "-603"},
-    {"east ubdina - north seaport", "1000347", "100", "Any", "Nearby zones: Settlestone", "-71", "-506"},
+    {"east ubdina - southwest seaport", "1000345", "100", "Any", "Nearby zones: Unknown", "-268",
+     "-758"},
+    {"east ubdina - south seaport", "1000346", "100", "Any", "Nearby zones: Bloodfist Caverns",
+     "-110", "-722"},
+    {"east ubdina - east seaport", "1000348", "100", "Any", "Nearby zones: Forest of Wyrms", "73",
+     "-603"},
+    {"east ubdina - north seaport", "1000347", "100", "Any", "Nearby zones: Settlestone", "-71",
+     "-506"},
 
-    {"west ubdina - west seaport", "1000340", "100", "Any", "Nearby zones: Frozen Castle", "-683", "-626"},
-    {"west ubdina - northwest seaport", "1000341", "100", "Any", "Nearby zones: Lizard Marsh", "-824", "-406"},
-    {"west ubdina - north seaport", "1000342", "100", "Any", "Nearby zones: Dagger Falls", "-554", "-489"},
-    {"west ubdina - south seaport", "1000343", "100", "Any", "Nearby zones: Llawryn Keep Graveyard", "-566", "-677"},
-    {"west ubdina - southeast seaport", "1000344", "100", "Any", "Nearby zones: Hulburg Trail", "-371", "-789"},
+    {"west ubdina - west seaport", "1000340", "100", "Any", "Nearby zones: Frozen Castle", "-683",
+     "-626"},
+    {"west ubdina - northwest seaport", "1000341", "100", "Any", "Nearby zones: Lizard Marsh",
+     "-824", "-406"},
+    {"west ubdina - north seaport", "1000342", "100", "Any", "Nearby zones: Dagger Falls", "-554",
+     "-489"},
+    {"west ubdina - south seaport", "1000343", "100", "Any", "Nearby zones: Llawryn Keep Graveyard",
+     "-566", "-677"},
+    {"west ubdina - southeast seaport", "1000344", "100", "Any", "Nearby zones: Hulburg Trail",
+     "-371", "-789"},
 
     {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
 };
@@ -220,147 +263,146 @@ const char *walkto_landmarks_lumi[][WALKTO_LANDMARKS_FIELDS] = {
 
 /* zone, destination vnum, title, details */
 const char *walkto_landmarks_dl[][WALKTO_LANDMARKS_FIELDS] = {
-    {"Abanasinia" , "4429" , "Abanasinia to Solamnia Ferry", ""} ,
-    {"Abanasinia" , "300" , "Darken Wood", ""} , 
-    {"Abanasinia" , "6318" , "Elven Cadre", ""} , 
-    {"Abanasinia" , "9000" , "Ettin Cave", ""} , 
-    {"Abanasinia" , "229" , "Fireside Tavern", ""} , 
-    {"Abanasinia" , "11700" , "Goblin Warrens", ""} , 
-    {"Abanasinia" , "15416" , "Grove of Ambarin", ""} , 
-    {"Abanasinia" , "14000" , "Icewall Castle", ""} , 
-    {"Abanasinia" , "700" , "Marsh Temple", ""} , 
-    {"Abanasinia" , "5900" , "Onyx Obelisk", ""} , 
-    {"Abanasinia" , "14701" , "Para-Elemental Planes", ""} , 
-    {"Abanasinia" , "7200" , "Plains of Dust West", ""} , 
-    {"Abanasinia" , "1002" , "Qualinost", ""} , 
-    {"Abanasinia" , "3205" , "Que-Shu Village", ""} , 
-    {"Abanasinia" , "1358" , "Solace East Gate", ""} , 
-    {"Abanasinia" , "13145" , "Tarsis", ""} , 
-    {"Abanasinia" , "2950" , "Xak Tsaroth", ""} , 
-    {"Palanthas" , "5052" , "Gardens of the Blue Phoenix", ""} , 
-    {"Palanthas" , "15347" , "Lost Caverns of Palanthas", ""} , 
-    {"Palanthas" , "2314" , "Palanthas Bank", ""} , 
-    {"Palanthas" , "2496" , "Palanthas Bazaar", ""} , 
-    {"Palanthas" , "15328" , "Palanthas Bounties", ""} , 
-    {"Palanthas" , "2200" , "Palanthas Center Plaza", ""} , 
-    {"Palanthas" , "15310" , "Palanthas Crafting Halls", ""} , 
-    {"Palanthas" , "15326" , "Palanthas Donations", ""} , 
-    {"Palanthas" , "15305" , "Palanthas Dump", ""} , 
-    {"Palanthas" , "2459" , "Palanthas Ferry to Bethel Island", ""} , 
-    {"Palanthas" , "5718" , "Palanthas Graveyard", ""} , 
-    {"Palanthas" , "15329" , "Palanthas Hunts", ""} , 
-    {"Palanthas" , "7067" , "Palanthas Magic Shop", ""} , 
-    {"Palanthas" , "2220" , "Palanthas Market Square", ""} , 
-    {"Palanthas" , "15306" , "Palanthas Mercenary Hirelings", ""} , 
-    {"Palanthas" , "7069" , "Palanthas Object identifying", ""} , 
-    {"Palanthas" , "4200" , "Palanthas Palace", ""} , 
-    {"Palanthas" , "15327" , "Palanthas Pawn Shop", ""} , 
-    {"Palanthas" , "15330" , "Palanthas Quest Item Recovery", ""} , 
-    {"Palanthas" , "2357" , "Palanthas South Gate", ""} , 
-    {"Palanthas" , "15303" , "Palanthas Stables", ""} , 
-    {"Palanthas" , "15348" , "Palanthas Temple", ""} , 
-    {"Palanthas" , "500" , "Palanthas Training Pit", ""} , 
-    {"Palanthas" , "7002" , "Palanthas Wizard Academy", ""} , 
-    {"Sanction" , "5387" , "Black Dragonarmy Camp", ""} , 
-    {"Sanction" , "14210" , "Sanction Concentration Camp", ""} , 
-    {"Sanction" , "13827" , "Sanction Bounties", ""} , 
-    {"Sanction" , "6530" , "Sanction Center Square", ""} , 
-    {"Sanction" , "13824" , "Sanction Crafting Halls", ""} , 
-    {"Sanction" , "6500" , "Sanction Docks", ""} ,
-    {"Sanction" , "13826" , "Sanction Donations", ""} , 
-    {"Sanction" , "13816" , "Sanction Magic Shop", ""} , 
-    {"Sanction" , "13805" , "Sanction Mercenary Hirelings", ""} , 
-    {"Sanction" , "13822" , "Sanction Object identifying", ""} , 
-    {"Sanction" , "13804" , "Sanction Pawn Shop", ""} , 
-    {"Sanction" , "13831" , "Sanction Quest Item Recovery", ""} , 
-    {"Sanction" , "9735" , "Sanction Palace", ""} , 
-    {"Sanction" , "6531" , "Sanction Shops", ""} , 
-    {"Sanction" , "6516" , "Sanction Temple", ""} , 
-    {"Sanction" , "6000" , "Sanction Training Pits", ""} , 
-    {"Sanction" , "3700" , "Sanction Sewers", ""} , 
-    {"Sanction" , "6601" , "Sanction Slums", ""} , 
-    {"Sanction" , "60373" , "Sanction Slave Mines", ""} , 
-    {"Sanction" , "6599" , "Sanction Thieves Guild", ""} , 
-    {"Sanction" , "6584" , "Sanction East Gate", ""} , 
-    {"Sanction" , "13814" , "Sanction Spell Researching", ""} , 
-    {"Sanction" , "5399" , "Red Dragonarmy Camp", ""} , 
-    {"Sanction" , "3705" , "Shadowpeople City", ""} , 
-    {"Sanction" , "8644" , "Snow Wood Convent", ""} , 
-    {"Sanction" , "8406" , "Temple of Huerzyd", ""} , 
-    {"Sanction" , "9461" , "Temple of Luerkhisis", ""} , 
-    {"Solace" , "604" , "Crystalmir Lake", ""} , 
-    {"Solace" , "3100" , "Eld Manor", ""} , 
-    {"Solace" , "2606" , "Goblin Encampment", ""} , 
-    {"Solace" , "15000" , "Infected Forest", ""} , 
-    {"Solace" , "2802" , "Red Moon Festival", ""} , 
-    {"Solace" , "1358" , "Solace East Gate", ""} , 
-    {"Solace" , "2100" , "Tainted Druids", ""} , 
-    {"Solace" , "15100" , "Woodland Grove", ""} , 
-    {"Solamnia" , "6100" , "Caergoth", ""} , 
-    {"Solamnia" , "5400" , "Cult of Hikkudel", ""} , 
-    {"Solamnia" , "228" , "Cultists of Morgion", ""} , 
-    {"Solamnia" , "11600" , "Dargaard Keep", ""} , 
-    {"Solamnia" , "4300" , "Forces of Whitestone Camp", ""} , 
-    {"Solamnia" , "9511" , "Lord Anias Estate", ""} , 
-    {"Solamnia" , "60100" , "North Vingaard Mines", ""} , 
-    {"Solamnia" , "60128" , "Northwestern Solamnic Wilds", ""} , 
-    {"Solamnia" , "4430" , "Solamnia to Abanasinia Ferry", ""} , 
-    {"Solamnia" , "6702" , "Solanthus", ""} , 
-    {"Solamnia" , "5115" , "Temple of Chemosh", ""} , 
-    {"Solamnia" , "3400" , "Thelgaard Keep", ""} , 
-    {"Solamnia" , "6445" , "Village of Keiflore", ""} , 
-    {"Solamnia" , "8300" , "Vingaard Keep", ""} , 
-    {"Solamnia" , "9100" , "Wenfyr Mansion", ""} , 
-    {"Taman Busuk" , "1714" , "Bugbear Cave", ""} , 
-    {"Taman Busuk" , "11812" , "City of Morning Dew", ""} , 
-    {"Taman Busuk" , "5400" , "Cult of Hikkudel", ""} , 
-    {"Taman Busuk" , "9511" , "Lord Anias Estate", ""} , 
-    {"Taman Busuk" , "8709" , "Neraka", ""} , 
-    {"Taman Busuk" , "5900" , "Onyx Obelisk", ""} , 
-    {"Taman Busuk" , "7581" , "Plains of Dust East", ""} , 
-    {"Taman Busuk" , "13500" , "Pristine Valley", ""} , 
-    {"Taman Busuk" , "9800" , "Rogue Encampment", ""} , 
-    {"Taman Busuk" , "6584" , "Sanction East Gate", ""} , 
-    {"Taman Busuk" , "4135" , "Slave Market", ""} , 
-    {"Taman Busuk" , "8644" , "Snow Wood Convent", ""} , 
-    {"Taman Busuk" , "11000" , "Wyvern Den", ""} , 
+    {"Abanasinia", "4429", "Abanasinia to Solamnia Ferry", ""},
+    {"Abanasinia", "300", "Darken Wood", ""},
+    {"Abanasinia", "6318", "Elven Cadre", ""},
+    {"Abanasinia", "9000", "Ettin Cave", ""},
+    {"Abanasinia", "229", "Fireside Tavern", ""},
+    {"Abanasinia", "11700", "Goblin Warrens", ""},
+    {"Abanasinia", "15416", "Grove of Ambarin", ""},
+    {"Abanasinia", "14000", "Icewall Castle", ""},
+    {"Abanasinia", "700", "Marsh Temple", ""},
+    {"Abanasinia", "5900", "Onyx Obelisk", ""},
+    {"Abanasinia", "14701", "Para-Elemental Planes", ""},
+    {"Abanasinia", "7200", "Plains of Dust West", ""},
+    {"Abanasinia", "1002", "Qualinost", ""},
+    {"Abanasinia", "3205", "Que-Shu Village", ""},
+    {"Abanasinia", "1358", "Solace East Gate", ""},
+    {"Abanasinia", "13145", "Tarsis", ""},
+    {"Abanasinia", "2950", "Xak Tsaroth", ""},
+    {"Palanthas", "5052", "Gardens of the Blue Phoenix", ""},
+    {"Palanthas", "15347", "Lost Caverns of Palanthas", ""},
+    {"Palanthas", "2314", "Palanthas Bank", ""},
+    {"Palanthas", "2496", "Palanthas Bazaar", ""},
+    {"Palanthas", "15328", "Palanthas Bounties", ""},
+    {"Palanthas", "2200", "Palanthas Center Plaza", ""},
+    {"Palanthas", "15310", "Palanthas Crafting Halls", ""},
+    {"Palanthas", "15326", "Palanthas Donations", ""},
+    {"Palanthas", "15305", "Palanthas Dump", ""},
+    {"Palanthas", "2459", "Palanthas Ferry to Bethel Island", ""},
+    {"Palanthas", "5718", "Palanthas Graveyard", ""},
+    {"Palanthas", "15329", "Palanthas Hunts", ""},
+    {"Palanthas", "7067", "Palanthas Magic Shop", ""},
+    {"Palanthas", "2220", "Palanthas Market Square", ""},
+    {"Palanthas", "15306", "Palanthas Mercenary Hirelings", ""},
+    {"Palanthas", "7069", "Palanthas Object identifying", ""},
+    {"Palanthas", "4200", "Palanthas Palace", ""},
+    {"Palanthas", "15327", "Palanthas Pawn Shop", ""},
+    {"Palanthas", "15330", "Palanthas Quest Item Recovery", ""},
+    {"Palanthas", "2357", "Palanthas South Gate", ""},
+    {"Palanthas", "15303", "Palanthas Stables", ""},
+    {"Palanthas", "15348", "Palanthas Temple", ""},
+    {"Palanthas", "500", "Palanthas Training Pit", ""},
+    {"Palanthas", "7002", "Palanthas Wizard Academy", ""},
+    {"Sanction", "5387", "Black Dragonarmy Camp", ""},
+    {"Sanction", "14210", "Sanction Concentration Camp", ""},
+    {"Sanction", "13827", "Sanction Bounties", ""},
+    {"Sanction", "6530", "Sanction Center Square", ""},
+    {"Sanction", "13824", "Sanction Crafting Halls", ""},
+    {"Sanction", "6500", "Sanction Docks", ""},
+    {"Sanction", "13826", "Sanction Donations", ""},
+    {"Sanction", "13816", "Sanction Magic Shop", ""},
+    {"Sanction", "13805", "Sanction Mercenary Hirelings", ""},
+    {"Sanction", "13822", "Sanction Object identifying", ""},
+    {"Sanction", "13804", "Sanction Pawn Shop", ""},
+    {"Sanction", "13831", "Sanction Quest Item Recovery", ""},
+    {"Sanction", "9735", "Sanction Palace", ""},
+    {"Sanction", "6531", "Sanction Shops", ""},
+    {"Sanction", "6516", "Sanction Temple", ""},
+    {"Sanction", "6000", "Sanction Training Pits", ""},
+    {"Sanction", "3700", "Sanction Sewers", ""},
+    {"Sanction", "6601", "Sanction Slums", ""},
+    {"Sanction", "60373", "Sanction Slave Mines", ""},
+    {"Sanction", "6599", "Sanction Thieves Guild", ""},
+    {"Sanction", "6584", "Sanction East Gate", ""},
+    {"Sanction", "13814", "Sanction Spell Researching", ""},
+    {"Sanction", "5399", "Red Dragonarmy Camp", ""},
+    {"Sanction", "3705", "Shadowpeople City", ""},
+    {"Sanction", "8644", "Snow Wood Convent", ""},
+    {"Sanction", "8406", "Temple of Huerzyd", ""},
+    {"Sanction", "9461", "Temple of Luerkhisis", ""},
+    {"Solace", "604", "Crystalmir Lake", ""},
+    {"Solace", "3100", "Eld Manor", ""},
+    {"Solace", "2606", "Goblin Encampment", ""},
+    {"Solace", "15000", "Infected Forest", ""},
+    {"Solace", "2802", "Red Moon Festival", ""},
+    {"Solace", "1358", "Solace East Gate", ""},
+    {"Solace", "2100", "Tainted Druids", ""},
+    {"Solace", "15100", "Woodland Grove", ""},
+    {"Solamnia", "6100", "Caergoth", ""},
+    {"Solamnia", "5400", "Cult of Hikkudel", ""},
+    {"Solamnia", "228", "Cultists of Morgion", ""},
+    {"Solamnia", "11600", "Dargaard Keep", ""},
+    {"Solamnia", "4300", "Forces of Whitestone Camp", ""},
+    {"Solamnia", "9511", "Lord Anias Estate", ""},
+    {"Solamnia", "60100", "North Vingaard Mines", ""},
+    {"Solamnia", "60128", "Northwestern Solamnic Wilds", ""},
+    {"Solamnia", "4430", "Solamnia to Abanasinia Ferry", ""},
+    {"Solamnia", "6702", "Solanthus", ""},
+    {"Solamnia", "5115", "Temple of Chemosh", ""},
+    {"Solamnia", "3400", "Thelgaard Keep", ""},
+    {"Solamnia", "6445", "Village of Keiflore", ""},
+    {"Solamnia", "8300", "Vingaard Keep", ""},
+    {"Solamnia", "9100", "Wenfyr Mansion", ""},
+    {"Taman Busuk", "1714", "Bugbear Cave", ""},
+    {"Taman Busuk", "11812", "City of Morning Dew", ""},
+    {"Taman Busuk", "5400", "Cult of Hikkudel", ""},
+    {"Taman Busuk", "9511", "Lord Anias Estate", ""},
+    {"Taman Busuk", "8709", "Neraka", ""},
+    {"Taman Busuk", "5900", "Onyx Obelisk", ""},
+    {"Taman Busuk", "7581", "Plains of Dust East", ""},
+    {"Taman Busuk", "13500", "Pristine Valley", ""},
+    {"Taman Busuk", "9800", "Rogue Encampment", ""},
+    {"Taman Busuk", "6584", "Sanction East Gate", ""},
+    {"Taman Busuk", "4135", "Slave Market", ""},
+    {"Taman Busuk", "8644", "Snow Wood Convent", ""},
+    {"Taman Busuk", "11000", "Wyvern Den", ""},
     /* always last! */
     {"0", "", "always last item", ""},
 };
 
 /* zone, destination vnum, title, details */
 const char *walkto_landmarks_fr[][WALKTO_LANDMARKS_FIELDS] = {
-    {"Sword Coast" , "616076" , "Boat to Chult", ""} ,
-    {"Sword Coast" , "605650" , "Crypt of Shadow", ""} ,
-    {"Sword Coast" , "605998" , "Earth Cult Camp", ""} ,
-    {"Sword Coast" , "606884" , "Fireshear", ""} ,
-    {"Sword Coast" , "608264" , "Fireside Tavern", ""} ,
-    {"Sword Coast" , "613082" , "Fire Giant Keep", ""} ,
-    {"Sword Coast" , "612721" , "Flaming Fist Mercenary Camp", ""} ,
-    {"Sword Coast" , "603802" , "Goblin Encampment", ""} ,
-    {"Sword Coast" , "611744" , "Goblin Arrows", ""} ,
-    {"Sword Coast" , "602476" , "Gnoll Cave", ""} ,
-    {"Sword Coast" , "608199" , "Hunter's Forest", ""} ,
-    {"Sword Coast" , "603043" , "Ice Fortress", ""} ,
-    {"Sword Coast" , "607751" , "Longsaddle", ""} ,
-    {"Sword Coast" , "607071" , "Luskan", ""} ,
-    {"Sword Coast" , "603108" , "Mirabar", ""} ,
-    {"Sword Coast" , "605533" , "Nesme", ""} ,
-    {"Sword Coast" , "610929" , "Neverwinter", ""} ,
-    {"Sword Coast" , "605137" , "Orcish Fort", ""} ,
-    {"Sword Coast" , "609796" , "Port Llast", ""} ,
-    {"Luruar"      , "604130" , "Silverymoon", ""} ,
-    {"Icewind Dale", "602093" , "Ten Towns", ""} ,
-    {"Sword Coast" , "605859" , "The Evermoors", ""} ,
-    {"Sword Coast" , "611763" , "Triboar", ""} ,
-    {"Sword Coast" , "616237" , "Waterdeep", ""} ,
+    {"Sword Coast", "616076", "Boat to Chult", ""},
+    {"Sword Coast", "605650", "Crypt of Shadow", ""},
+    {"Sword Coast", "605998", "Earth Cult Camp", ""},
+    {"Sword Coast", "606884", "Fireshear", ""},
+    {"Sword Coast", "608264", "Fireside Tavern", ""},
+    {"Sword Coast", "613082", "Fire Giant Keep", ""},
+    {"Sword Coast", "612721", "Flaming Fist Mercenary Camp", ""},
+    {"Sword Coast", "603802", "Goblin Encampment", ""},
+    {"Sword Coast", "611744", "Goblin Arrows", ""},
+    {"Sword Coast", "602476", "Gnoll Cave", ""},
+    {"Sword Coast", "608199", "Hunter's Forest", ""},
+    {"Sword Coast", "603043", "Ice Fortress", ""},
+    {"Sword Coast", "607751", "Longsaddle", ""},
+    {"Sword Coast", "607071", "Luskan", ""},
+    {"Sword Coast", "603108", "Mirabar", ""},
+    {"Sword Coast", "605533", "Nesme", ""},
+    {"Sword Coast", "610929", "Neverwinter", ""},
+    {"Sword Coast", "605137", "Orcish Fort", ""},
+    {"Sword Coast", "609796", "Port Llast", ""},
+    {"Luruar", "604130", "Silverymoon", ""},
+    {"Icewind Dale", "602093", "Ten Towns", ""},
+    {"Sword Coast", "605859", "The Evermoors", ""},
+    {"Sword Coast", "611763", "Triboar", ""},
+    {"Sword Coast", "616237", "Waterdeep", ""},
     /* always last! */
     {"0", "", "always last item", ""},
 };
 
 ACMDU(do_carriage)
 {
-
   skip_spaces(&argument);
 
   int i = 0, cost = 0;
@@ -389,18 +431,23 @@ ACMDU(do_carriage)
     found = false;
     i = 0;
     send_to_char(ch, "Available %s Destinations:\r\n", "Carriage");
-    send_to_char(ch, "%-30s %4s %10s %10s (%s)\r\n", "Carriage Destination:", "Cost", "Distance", "Time (sec)", "Area Note");
+    send_to_char(ch, "%-30s %4s %10s %10s (%s)\r\n", "Carriage Destination:", "Cost", "Distance",
+                 "Time (sec)", "Area Note");
     int j = 0;
     for (j = 0; j < 80; j++)
       send_to_char(ch, "~");
     send_to_char(ch, "\r\n");
     while (get_carriage_locale_vnum(i) != 0)
     {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_carriage_locale_vnum(i) && ((here != 999) ? (get_carriage_locale_region(here) == get_carriage_locale_region(i)) : TRUE))
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_carriage_locale_vnum(i) &&
+          ((here != 999) ? (get_carriage_locale_region(here) == get_carriage_locale_region(i))
+                         : TRUE))
       {
         found = true;
-        send_to_char(ch, "%-30s %4d %10d %10d (%s)\r\n", get_transport_carriage_name(i), get_carriage_locale_cost(i), 
-          get_distance(ch, i, here, TRAVEL_CARRIAGE), get_travel_time(ch, 5, i, here, TRAVEL_CARRIAGE), get_carriage_locale_notes(i));
+        send_to_char(ch, "%-30s %4d %10d %10d (%s)\r\n", get_transport_carriage_name(i),
+                     get_carriage_locale_cost(i), get_distance(ch, i, here, TRAVEL_CARRIAGE),
+                     get_travel_time(ch, 5, i, here, TRAVEL_CARRIAGE),
+                     get_carriage_locale_notes(i));
       }
       i++;
     }
@@ -422,12 +469,15 @@ ACMDU(do_carriage)
     found = false;
     while (get_carriage_locale_vnum(i) != 0)
     {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_carriage_locale_vnum(i) && ((here != 999) ? (get_carriage_locale_region(here) == get_carriage_locale_region(i)) : TRUE))
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_carriage_locale_vnum(i) &&
+          ((here != 999) ? (get_carriage_locale_region(here) == get_carriage_locale_region(i))
+                         : TRUE))
       {
         if (is_abbrev(argument, get_transport_carriage_name(i)))
         {
           found = true;
-          if (here != 999 && (get_carriage_locale_vnum(here) != 30036 && get_carriage_locale_vnum(here) != 30037))
+          if (here != 999 &&
+              (get_carriage_locale_vnum(here) != 30036 && get_carriage_locale_vnum(here) != 30037))
           {
             cost = get_carriage_locale_cost(i);
             if (GET_GOLD(ch) < cost)
@@ -449,7 +499,8 @@ ACMDU(do_carriage)
     }
     if (!found)
     {
-      send_to_char(ch, "There is no carriage destination in this nation by that name.  Type carriage by itself to see a list of destinations.\r\n");
+      send_to_char(ch, "There is no carriage destination in this nation by that name.  Type "
+                       "carriage by itself to see a list of destinations.\r\n");
       return;
     }
   }
@@ -457,7 +508,6 @@ ACMDU(do_carriage)
 
 ACMDU(do_sail)
 {
-
   skip_spaces(&argument);
 
   int i = 0, cost;
@@ -488,7 +538,8 @@ ACMDU(do_sail)
     i = 0;
     send_to_char(ch, "Available Sailing Destinations:\r\n");
     send_to_char(ch, "%-30s %6s %8s %8s  %-45s\r\n", "Destination", "Cost", "Dist", "Time", "Note");
-    send_to_char(ch, "%-30s %6s %8s %8s  %-45s\r\n", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "~~~~", "~~~~", "~~~~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    send_to_char(ch, "%-30s %6s %8s %8s  %-45s\r\n", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "~~~~",
+                 "~~~~", "~~~~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     while (get_sailing_locale_vnum(i) != 0)
     {
       if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_sailing_locale_vnum(i) && valid_sailing_travel(here, i))
@@ -501,20 +552,20 @@ ACMDU(do_sail)
         const char *full_note = get_sailing_locale_notes(i);
         char note_buf[64];
         snprintf(note_buf, sizeof(note_buf), "%.60s", full_note ? full_note : "");
-        if (full_note && strlen(full_note) > 60) {
+        if (full_note && strlen(full_note) > 60)
+        {
           size_t len = strlen(note_buf);
-          if (len > 3) {
+          if (len > 3)
+          {
             note_buf[len - 3] = '.';
             note_buf[len - 2] = '.';
             note_buf[len - 1] = '.';
           }
         }
 
-        send_to_char(ch, "%-30s %6d %8d %8d  %-45s\r\n",
-                     get_transport_sailing_name(i), cost,
+        send_to_char(ch, "%-30s %6d %8d %8d  %-45s\r\n", get_transport_sailing_name(i), cost,
                      get_distance(ch, i, here, TRAVEL_SAILING),
-                     get_travel_time(ch, 10, i, here, TRAVEL_SAILING),
-                     note_buf);
+                     get_travel_time(ch, 10, i, here, TRAVEL_SAILING), note_buf);
       }
       i++;
     }
@@ -523,7 +574,8 @@ ACMDU(do_sail)
     {
       send_to_char(ch, "\r\nTo sail somewhere, type sail <name of destination>\r\n");
       if (IS_CAMPAIGN_LUMINARI)
-        send_to_char(ch, "\r\nYou can view our world map online at https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/\r\n");
+        send_to_char(ch, "\r\nYou can view our world map online at "
+                         "https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/\r\n");
 
       return;
     }
@@ -553,7 +605,8 @@ ACMDU(do_sail)
           }
           else if (GET_GOLD(ch) < cost)
           {
-            send_to_char(ch, "You are denied boarding as you cannot pay the fee of %dmake.\r\n", cost);
+            send_to_char(ch, "You are denied boarding as you cannot pay the fee of %dmake.\r\n",
+                         cost);
             return;
           }
           else
@@ -565,7 +618,8 @@ ACMDU(do_sail)
           snprintf(buf, sizeof(buf), "%d", get_sailing_locale_vnum(i));
           if ((to_room = find_target_room(ch, buf)) == NOWHERE)
           {
-            send_to_char(ch, "There is an error with that destination.  Please report to staff.\r\n");
+            send_to_char(ch,
+                         "There is an error with that destination.  Please report to staff.\r\n");
             return;
           }
           enter_transport(ch, i, TRAVEL_SAILING, here);
@@ -576,7 +630,8 @@ ACMDU(do_sail)
     }
     if (!found)
     {
-      send_to_char(ch, "There is no sailing destination by that name.  Type sail by itself to see a list of destinations.\r\n");
+      send_to_char(ch, "There is no sailing destination by that name.  Type sail by itself to see "
+                       "a list of destinations.\r\n");
       return;
     }
   }
@@ -584,7 +639,6 @@ ACMDU(do_sail)
 
 int valid_sailing_travel(int here, int i)
 {
-
   // When sailing is set up, this will make any checks necessary to allow sailing travel from the existing locale
 
   return true;
@@ -634,7 +688,8 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
 
   if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? air : car)) == NOWHERE)
   {
-    send_to_char(ch, "There is an error with that destination.  Please report on the to a staff member. ERRENTCAR001\r\n");
+    send_to_char(ch, "There is an error with that destination.  Please report on the to a staff "
+                     "member. ERRENTCAR001\r\n");
     return;
   }
 
@@ -676,24 +731,28 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     {
       act("$n boards a carriage which heads off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
       send_to_char(tch, "Your group leader ushers you into a nearby carriage.\r\n");
-      send_to_char(tch, "You hop into a carriage and head off towards %s.\r\n\r\n", get_transport_carriage_name(locale));
+      send_to_char(tch, "You hop into a carriage and head off towards %s.\r\n\r\n",
+                   get_transport_carriage_name(locale));
     }
     else if (type == TRAVEL_SAILING)
     {
-      act("$n boards a caravel, which pulls anchor and heads for the open sea.", FALSE, tch, 0, 0, TO_ROOM);
+      act("$n boards a caravel, which pulls anchor and heads for the open sea.", FALSE, tch, 0, 0,
+          TO_ROOM);
       send_to_char(tch, "Your group leader ushers you into the ship.\r\n");
-      send_to_char(tch, "You board the caravel and sail off to %s.\r\n\r\n", get_transport_sailing_name(locale));
+      send_to_char(tch, "You board the caravel and sail off to %s.\r\n\r\n",
+                   get_transport_sailing_name(locale));
     }
     else if (type == TRAVEL_OVERLAND_FLIGHT)
     {
       act("$n leaps into the air and flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", get_transport_carriage_name(locale));
-
+      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n",
+                   get_transport_carriage_name(locale));
     }
     else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
     {
       act("$n leaps into the air and flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", get_transport_carriage_name(locale));
+      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n",
+                   get_transport_carriage_name(locale));
     }
 
     char_from_room(tch);
@@ -713,12 +772,14 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
   if (type == TRAVEL_CARRIAGE)
   {
     act("$n boards a carriage which heads off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-    send_to_char(ch, "You hop into a carriage and head off towards %s.\r\n\r\n", get_transport_carriage_name(locale));
+    send_to_char(ch, "You hop into a carriage and head off towards %s.\r\n\r\n",
+                 get_transport_carriage_name(locale));
   }
   else if (type == TRAVEL_SAILING)
   {
     act("$n boards a caravel which sails off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-    send_to_char(ch, "You board the caravel and sail off towards %s.\r\n\r\n", get_transport_sailing_name(locale));
+    send_to_char(ch, "You board the caravel and sail off towards %s.\r\n\r\n",
+                 get_transport_sailing_name(locale));
   }
 
   char_from_room(ch);
@@ -736,7 +797,6 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
 
 void travel_tickdown(void)
 {
-
   struct char_data *ch = NULL;
   struct descriptor_data *d = NULL;
   room_rnum to_room = NOWHERE;
@@ -779,13 +839,17 @@ void travel_tickdown(void)
       ch->player_specials->travel_timer--;
       if (ch->player_specials->travel_timer < 1)
       {
-        if (ch->player_specials->travel_type == TRAVEL_CARRIAGE || ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
+        if (ch->player_specials->travel_type == TRAVEL_CARRIAGE ||
+            ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
         {
-          snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(ch->player_specials->travel_locale));
+          snprintf(car, sizeof(car), "%d",
+                   get_carriage_locale_vnum(ch->player_specials->travel_locale));
         }
-        else if (ch->player_specials->travel_type == TRAVEL_SAILING || ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+        else if (ch->player_specials->travel_type == TRAVEL_SAILING ||
+                 ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
         {
-          snprintf(sail, sizeof(sail), "%d", get_sailing_locale_vnum(ch->player_specials->travel_locale));
+          snprintf(sail, sizeof(sail), "%d",
+                   get_sailing_locale_vnum(ch->player_specials->travel_locale));
         }
 
         if (ch->player_specials->travel_type == TRAVEL_SAILING)
@@ -804,8 +868,9 @@ void travel_tickdown(void)
             }
           }
           /* Have two args, that means coordinates (potentially) */
-          else if ((to_room = find_room_by_coordinates(get_sailing_locale_x(ch->player_specials->travel_locale),
-                                                       get_sailing_locale_y(ch->player_specials->travel_locale))) == NOWHERE)
+          else if ((to_room = find_room_by_coordinates(
+                        get_sailing_locale_x(ch->player_specials->travel_locale),
+                        get_sailing_locale_y(ch->player_specials->travel_locale))) == NOWHERE)
           {
             if ((to_room = find_available_wilderness_room()) == NOWHERE)
             {
@@ -820,7 +885,9 @@ void travel_tickdown(void)
             else
             {
               /* Must set the coords, etc in the going_to room. */
-              assign_wilderness_room(to_room, get_sailing_locale_x(ch->player_specials->travel_locale), get_sailing_locale_y(ch->player_specials->travel_locale));
+              assign_wilderness_room(to_room,
+                                     get_sailing_locale_x(ch->player_specials->travel_locale),
+                                     get_sailing_locale_y(ch->player_specials->travel_locale));
             }
           }
         }
@@ -853,13 +920,16 @@ void travel_tickdown(void)
 
         if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
         {
-          act("$n disembarks a horse-drawn carriage that grinds to a halt before you.", FALSE, ch, 0, 0, TO_ROOM);
-          send_to_char(ch, "You hop out of your carriage arriving at the %s.\r\n\r\n", get_transport_carriage_name(ch->player_specials->travel_locale));
+          act("$n disembarks a horse-drawn carriage that grinds to a halt before you.", FALSE, ch,
+              0, 0, TO_ROOM);
+          send_to_char(ch, "You hop out of your carriage arriving at the %s.\r\n\r\n",
+                       get_transport_carriage_name(ch->player_specials->travel_locale));
         }
         else if (ch->player_specials->travel_type == TRAVEL_SAILING)
         {
           act("$n disembarks a caravel that just docked here.", false, ch, 0, 0, TO_ROOM);
-          send_to_char(ch, "You disembark the caravel arriving at %s.\r\n\r\n", get_transport_sailing_name(ch->player_specials->travel_locale));
+          send_to_char(ch, "You disembark the caravel arriving at %s.\r\n\r\n",
+                       get_transport_sailing_name(ch->player_specials->travel_locale));
         }
         ch->player_specials->destination = NOWHERE;
         ch->player_specials->travel_timer = 0;
@@ -929,7 +999,7 @@ int get_distance(struct char_data *ch, int locale, int here, int type)
       yf = ch->coords[1];
       yt = get_sailing_locale_y(locale);
     }
-  }  
+  }
 
   if (IS_CAMPAIGN_DL)
   {
@@ -979,15 +1049,15 @@ ACMDU(do_walkto)
 {
   switch (CONFIG_LANDMARK_SYSTEM)
   {
-    case LANDMARK_SYSTEM_WORLD:
-      do_walkto_full(ch, argument, cmd, subcmd);
-      break;
-    case LANDMARK_SYSTEM_CITIES:
-      do_walkto_city(ch, argument, cmd, subcmd);
-      break;
-    default:
-      send_to_char(ch, "This command is not implemented yet.\r\n");
-      return;
+  case LANDMARK_SYSTEM_WORLD:
+    do_walkto_full(ch, argument, cmd, subcmd);
+    break;
+  case LANDMARK_SYSTEM_CITIES:
+    do_walkto_city(ch, argument, cmd, subcmd);
+    break;
+  default:
+    send_to_char(ch, "This command is not implemented yet.\r\n");
+    return;
   }
 }
 
@@ -995,21 +1065,20 @@ ACMDU(do_landmarks)
 {
   switch (CONFIG_LANDMARK_SYSTEM)
   {
-    case LANDMARK_SYSTEM_WORLD:
-      do_landmarks_full(ch, argument, cmd, subcmd);
-      break;
-    case LANDMARK_SYSTEM_CITIES:
-      do_landmarks_city(ch, argument, cmd, subcmd);
-      break;
-    default:
-      send_to_char(ch, "This command is not implemented yet.\r\n");
-      return;
+  case LANDMARK_SYSTEM_WORLD:
+    do_landmarks_full(ch, argument, cmd, subcmd);
+    break;
+  case LANDMARK_SYSTEM_CITIES:
+    do_landmarks_city(ch, argument, cmd, subcmd);
+    break;
+  default:
+    send_to_char(ch, "This command is not implemented yet.\r\n");
+    return;
   }
 }
 
 ACMDU(do_walkto_full)
 {
-
   int i = 0, j = 0;
   bool found = false;
   int vnum = 0, specified = 0;
@@ -1021,7 +1090,8 @@ ACMDU(do_walkto_full)
 
   if (!*argument)
   {
-    send_to_char(ch, "You need to specify the landmark you wish to travel to.  Type 'LANDMARKS' for a list.\r\n");
+    send_to_char(ch, "You need to specify the landmark you wish to travel to.  Type 'LANDMARKS' "
+                     "for a list.\r\n");
     send_to_char(ch, "You can type 'walkto cancel' to cancel your current walkto action.\r\n");
     return;
   }
@@ -1034,7 +1104,8 @@ ACMDU(do_walkto_full)
 
   if (is_abbrev(argument, "cancel"))
   {
-    send_to_char(ch, "You stop walking to '%s'", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    send_to_char(ch, "You stop walking to '%s'",
+                 get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
     GET_WALKTO_LOC(ch) = 0;
     return;
   }
@@ -1056,13 +1127,13 @@ ACMDU(do_walkto_full)
       {
         landmark_name[j] = LOWER(landmark_name[j]);
       }
-      
+
       snprintf(specified_name, sizeof(specified_name), "%s", get_walkto_landmark_name(i));
       for (j = 0; j < strlen(specified_name); j++)
       {
         specified_name[j] = LOWER(specified_name[j]);
       }
-      
+
       if (is_abbrev(landmark_name, specified_name))
       {
         landmark = get_walkto_landmark_vnum(i);
@@ -1075,17 +1146,18 @@ ACMDU(do_walkto_full)
 
   if (!found)
   {
-    send_to_char(ch, "That is not a valid landmark you can to travel to.  Type 'LANDMARKS' for a list, and type: walkto (room #)\r\n");
+    send_to_char(ch, "That is not a valid landmark you can to travel to.  Type 'LANDMARKS' for a "
+                     "list, and type: walkto (room #)\r\n");
     return;
   }
 
   GET_WALKTO_LOC(ch) = landmark;
-  send_to_char(ch, "You begin walking to '%s'.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
+  send_to_char(ch, "You begin walking to '%s'.\r\n",
+               get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
 }
 
 ACMDU(do_walkto_city)
 {
-
   int i = 0;
   bool found = false;
   int zone = 0;
@@ -1095,7 +1167,8 @@ ACMDU(do_walkto_city)
 
   if (!*argument)
   {
-    send_to_char(ch, "You need to specify the landmark you wish to travel to.  Type 'LANDMARKS' for a list.\r\n");
+    send_to_char(ch, "You need to specify the landmark you wish to travel to.  Type 'LANDMARKS' "
+                     "for a list.\r\n");
     send_to_char(ch, "You can type 'walkto cancel' to cancel your current walkto action.\r\n");
     return;
   }
@@ -1108,7 +1181,8 @@ ACMDU(do_walkto_city)
 
   if (is_abbrev(argument, "cancel"))
   {
-    send_to_char(ch, "You stop walking to the %s", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    send_to_char(ch, "You stop walking to the %s",
+                 get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
     GET_WALKTO_LOC(ch) = 0;
     return;
   }
@@ -1129,12 +1203,14 @@ ACMDU(do_walkto_city)
 
   if (!found)
   {
-    send_to_char(ch, "That is not a valid landmark you to travel to.  Type 'LANDMARKS' for a list.\r\n");
+    send_to_char(
+        ch, "That is not a valid landmark you to travel to.  Type 'LANDMARKS' for a list.\r\n");
     return;
   }
 
   GET_WALKTO_LOC(ch) = landmark;
-  send_to_char(ch, "You begin walking to the %s.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
+  send_to_char(ch, "You begin walking to the %s.\r\n",
+               get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
 }
 
 ACMD(do_landmarks_full)
@@ -1159,36 +1235,39 @@ ACMD(do_landmarks_full)
 #elif defined(CAMPAIGN_FR)
     send_to_char(ch, "Icewind Dale, Luruar, Sword Coast.\r\n");
 #else
-    send_to_char(ch, "You can also type 'landmarks city' to see landmarks in your current area.\r\n");
+    send_to_char(ch,
+                 "You can also type 'landmarks city' to see landmarks in your current area.\r\n");
 #endif
     return;
   }
 
   while (get_walkto_landmark_region(i)[0] != '0')
   {
-      snprintf(buf, sizeof(buf), "%s", get_walkto_landmark_region(i));
-      for (j = 0; j < strlen(buf); j++)
-        buf[j] = LOWER(buf[j]);
-      if (is_abbrev(arg1, buf))
+    snprintf(buf, sizeof(buf), "%s", get_walkto_landmark_region(i));
+    for (j = 0; j < strlen(buf); j++)
+      buf[j] = LOWER(buf[j]);
+    if (is_abbrev(arg1, buf))
+    {
+      if (count == 0)
       {
-        if (count == 0)
-        {
-          send_to_char(ch, "\tC%-35s | %6.6s | %-15s | %s\tn\r\n", "LANDMARK NAME", "ROOM #", "DIRECTION", "DISTANCE");
-        }
-        destination = real_room(get_walkto_landmark_vnum(i));
-        if (destination == NOWHERE)
-          snprintf(direction, sizeof(direction), "Not Accessible From Here");
-        if ((dir = find_first_step(IN_ROOM(ch), destination)) == BFS_ALREADY_THERE)
-          snprintf(direction, sizeof(direction), "You've Arrived!");
-        else if (dir < 0)
-          snprintf(direction, sizeof(direction), "Not Accessible");
-        else
-          snprintf(direction, sizeof(direction), "%s", dirs[dir]);
-        send_to_char(ch, "%-35s | %-6.6d | %-15s | %3d rooms\r\n", get_walkto_landmark_name(i), get_walkto_landmark_vnum(i), direction, 
-                      count_rooms_between(IN_ROOM(ch), destination));
-        found = true;
-        count++;
+        send_to_char(ch, "\tC%-35s | %6.6s | %-15s | %s\tn\r\n", "LANDMARK NAME", "ROOM #",
+                     "DIRECTION", "DISTANCE");
       }
+      destination = real_room(get_walkto_landmark_vnum(i));
+      if (destination == NOWHERE)
+        snprintf(direction, sizeof(direction), "Not Accessible From Here");
+      if ((dir = find_first_step(IN_ROOM(ch), destination)) == BFS_ALREADY_THERE)
+        snprintf(direction, sizeof(direction), "You've Arrived!");
+      else if (dir < 0)
+        snprintf(direction, sizeof(direction), "Not Accessible");
+      else
+        snprintf(direction, sizeof(direction), "%s", dirs[dir]);
+      send_to_char(ch, "%-35s | %-6.6d | %-15s | %3d rooms\r\n", get_walkto_landmark_name(i),
+                   get_walkto_landmark_vnum(i), direction,
+                   count_rooms_between(IN_ROOM(ch), destination));
+      found = true;
+      count++;
+    }
     i++;
   }
 
@@ -1250,7 +1329,8 @@ void process_walkto_actions(void)
       continue;
     if ((dir = find_first_step(IN_ROOM(ch), destination)) < 0)
     {
-      send_to_char(ch, "Your walk to '%s' has been interrupted %d.\r\n", get_walkto_landmark_name(GET_WALKTO_LOC(ch)), dir);
+      send_to_char(ch, "Your walk to '%s' has been interrupted %d.\r\n",
+                   get_walkto_landmark_name(GET_WALKTO_LOC(ch)), dir);
       GET_WALKTO_LOC(ch) = 0;
       continue;
     }
@@ -1259,12 +1339,14 @@ void process_walkto_actions(void)
       perform_move(ch, dir, 1);
       if (IN_ROOM(ch) == destination)
       {
-        send_to_char(ch, "You have arrived at the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        send_to_char(ch, "You have arrived at the '%s' landmark.\r\n",
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
       else if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You continue walking to '%s'.  Type walkto cancel to stop.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        send_to_char(ch, "You continue walking to '%s'.  Type walkto cancel to stop.\r\n",
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
       }
     }
   }
@@ -1272,7 +1354,8 @@ void process_walkto_actions(void)
 
 int walkto_vnum_to_list_row(int vnum)
 {
-  if (vnum <= 0) return 0;
+  if (vnum <= 0)
+    return 0;
 
   int i = 0;
 

@@ -68,7 +68,7 @@
 #define CAST_BOMB 10
 #define CAST_CRUELTY 11
 #define CAST_WALL 12
-#define CAST_DEVICE 13       /* For artificer devices */
+#define CAST_DEVICE 13 /* For artificer devices */
 
 #define MAG_DAMAGE (1 << 0)
 #define MAG_AFFECTS (1 << 1)
@@ -205,59 +205,59 @@
 #define SPELL_SHELGARNS_BLADE 88       // done
 #define SPELL_SHIELD 89                // done
 #define SPELL_MAGE_SHIELD SPELL_SHIELD
-#define SPELL_SUMMON_CREATURE_1 90     // done
-#define SPELL_TRUE_STRIKE 91           // done
-#define SPELL_WALL_OF_FOG 92           // done
-#define SPELL_DARKNESS 93              // done
-#define SPELL_SUMMON_CREATURE_2 94     // done
-#define SPELL_WEB 95                   // done
-#define SPELL_ACID_ARROW 96            // done
-#define SPELL_DAZE_MONSTER 97          // done
-#define SPELL_HIDEOUS_LAUGHTER 98      // done
-#define SPELL_TOUCH_OF_IDIOCY 99       // done
-#define SPELL_CONTINUAL_FLAME 100      // done
-#define SPELL_SCORCHING_RAY 101        // done
-#define SPELL_DEAFNESS 102             // done
-#define SPELL_FALSE_LIFE 103           // done
-#define SPELL_GRACE 104                // done
-#define SPELL_RESIST_ENERGY 105        // done
-#define SPELL_ENERGY_SPHERE 106        // done
-#define SPELL_WATER_BREATHE 107        // done
-#define SPELL_PHANTOM_STEED 108        // done
-#define SPELL_STINKING_CLOUD 109       // done
-#define SPELL_SUMMON_CREATURE_3 110    // done
-#define SPELL_HALT_UNDEAD 111          // done
-#define SPELL_HEROISM 112              // done
-#define SPELL_VAMPIRIC_TOUCH 113       // done
-#define SPELL_HOLD_PERSON 114          // done
-#define SPELL_DEEP_SLUMBER 115         // done
-#define SPELL_INVISIBILITY_SPHERE 116  // done
+#define SPELL_SUMMON_CREATURE_1 90    // done
+#define SPELL_TRUE_STRIKE 91          // done
+#define SPELL_WALL_OF_FOG 92          // done
+#define SPELL_DARKNESS 93             // done
+#define SPELL_SUMMON_CREATURE_2 94    // done
+#define SPELL_WEB 95                  // done
+#define SPELL_ACID_ARROW 96           // done
+#define SPELL_DAZE_MONSTER 97         // done
+#define SPELL_HIDEOUS_LAUGHTER 98     // done
+#define SPELL_TOUCH_OF_IDIOCY 99      // done
+#define SPELL_CONTINUAL_FLAME 100     // done
+#define SPELL_SCORCHING_RAY 101       // done
+#define SPELL_DEAFNESS 102            // done
+#define SPELL_FALSE_LIFE 103          // done
+#define SPELL_GRACE 104               // done
+#define SPELL_RESIST_ENERGY 105       // done
+#define SPELL_ENERGY_SPHERE 106       // done
+#define SPELL_WATER_BREATHE 107       // done
+#define SPELL_PHANTOM_STEED 108       // done
+#define SPELL_STINKING_CLOUD 109      // done
+#define SPELL_SUMMON_CREATURE_3 110   // done
+#define SPELL_HALT_UNDEAD 111         // done
+#define SPELL_HEROISM 112             // done
+#define SPELL_VAMPIRIC_TOUCH 113      // done
+#define SPELL_HOLD_PERSON 114         // done
+#define SPELL_DEEP_SLUMBER 115        // done
+#define SPELL_INVISIBILITY_SPHERE 116 // done
 #define SPELL_MASS_INVISIBILITY SPELL_INVISIBILITY_SPHERE
-#define SPELL_DAYLIGHT 117             // done
-#define SPELL_CLAIRVOYANCE 118         // done
-#define SPELL_NON_DETECTION 119        // done
-#define SPELL_HASTE 120                // done
-#define SPELL_SLOW 121                 // done
-#define SPELL_DISPEL_MAGIC 122         // done
-#define SPELL_CIRCLE_A_EVIL 123        // done
-#define SPELL_CIRCLE_A_GOOD 124        // done
-#define SPELL_CUNNING 125              // done
-#define SPELL_WISDOM 126               // done
-#define SPELL_CHARISMA 127             // done
-#define SPELL_STENCH 128               // done - stinking cloud proc
-#define SPELL_ACID_SPLASH 129          // cantrip, unfinished
-#define SPELL_RAY_OF_FROST 130         // cantrip, unfinished
-#define SPELL_WIZARD_EYE 131           // done
-#define SPELL_FIRE_SHIELD 132          // done
-#define SPELL_COLD_SHIELD 133          // done
-#define SPELL_BILLOWING_CLOUD 134      // done
-#define SPELL_SUMMON_CREATURE_4 135    // done
-#define SPELL_GREATER_INVIS 136        // done
-#define SPELL_RAINBOW_PATTERN 137      // done
-#define SPELL_LOCATE_CREATURE 138      // done
-#define SPELL_MINOR_GLOBE 139          // done
-#define SPELL_ENLARGE_PERSON 140       // done
-#define SPELL_SHRINK_PERSON 141        // done
+#define SPELL_DAYLIGHT 117          // done
+#define SPELL_CLAIRVOYANCE 118      // done
+#define SPELL_NON_DETECTION 119     // done
+#define SPELL_HASTE 120             // done
+#define SPELL_SLOW 121              // done
+#define SPELL_DISPEL_MAGIC 122      // done
+#define SPELL_CIRCLE_A_EVIL 123     // done
+#define SPELL_CIRCLE_A_GOOD 124     // done
+#define SPELL_CUNNING 125           // done
+#define SPELL_WISDOM 126            // done
+#define SPELL_CHARISMA 127          // done
+#define SPELL_STENCH 128            // done - stinking cloud proc
+#define SPELL_ACID_SPLASH 129       // cantrip, unfinished
+#define SPELL_RAY_OF_FROST 130      // cantrip, unfinished
+#define SPELL_WIZARD_EYE 131        // done
+#define SPELL_FIRE_SHIELD 132       // done
+#define SPELL_COLD_SHIELD 133       // done
+#define SPELL_BILLOWING_CLOUD 134   // done
+#define SPELL_SUMMON_CREATURE_4 135 // done
+#define SPELL_GREATER_INVIS 136     // done
+#define SPELL_RAINBOW_PATTERN 137   // done
+#define SPELL_LOCATE_CREATURE 138   // done
+#define SPELL_MINOR_GLOBE 139       // done
+#define SPELL_ENLARGE_PERSON 140    // done
+#define SPELL_SHRINK_PERSON 141     // done
 #define SPELL_REDUCE_PERSON SPELL_SHRINK_PERSON
 #define SPELL_FSHIELD_DAM 142          // done, fire shield proc
 #define SPELL_CSHIELD_DAM 143          // done, cold shield proc
@@ -726,7 +726,7 @@
 #define AFFECT_BLACKGUARD_AVATAR_OF_PROFANITY 1300
 #define AFFECT_BLACKGUARD_CATACLYSMIC_SMITE 1301
 #define AFFECT_BLACKGUARD_SHADE_STEP 1302
-#define AFFECT_BLACKGUARD_REPRISAL   1303
+#define AFFECT_BLACKGUARD_REPRISAL 1303
 #define AFFECT_PERSISTENT_JUDGMENT 1304
 #define AFFECT_DIVINE_RESILIENCE 1305
 #define AFFECT_RIGHTEOUS_STRIKE 1306
@@ -736,12 +736,12 @@
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
-#define POISON_TYPE_START             1470
-#define POISON_TYPE_SCORPION_WEAK     1470
-#define POISON_TYPE_SCORPION_NORMAL   1471
-#define POISON_TYPE_SCORPION_STRONG   1472
-#define POISON_TYPE_SNAKE_WEAK        1473
-#define POISON_TYPE_SNAKE_NORMAL      1474
+#define POISON_TYPE_START 1470
+#define POISON_TYPE_SCORPION_WEAK 1470
+#define POISON_TYPE_SCORPION_NORMAL 1471
+#define POISON_TYPE_SCORPION_STRONG 1472
+#define POISON_TYPE_SNAKE_WEAK 1473
+#define POISON_TYPE_SNAKE_NORMAL 1474
 #define POISON_TYPE_SNAKE_STRONG 1475
 #define POISON_TYPE_SPIDER_WEAK 1476
 #define POISON_TYPE_SPIDER_NORMAL 1477
@@ -925,7 +925,7 @@
 // start greater invocations
 #define WARLOCK_ELDRITCH_CONE 1673
 #define WARLOCK_BEWITCHING_BLAST 1674
-#define WARLOCK_UNUSED_ABILITY 1675  // this appears to be exactly the same as DRAINING. Removed.
+#define WARLOCK_UNUSED_ABILITY 1675 // this appears to be exactly the same as DRAINING. Removed.
 #define WARLOCK_NOXIOUS_BLAST 1676
 #define WARLOCK_VITRIOLIC_BLAST 1677
 #define WARLOCK_CHILLING_TENTACLES 1678
@@ -1162,42 +1162,52 @@
 
 /* Monk perk skills */
 #define SKILL_PRESSURE_POINT_STRIKE 2202
-#define SKILL_WATER_WHIP 2203 // Way of Four Elements - water whip attack
-#define SKILL_GONG_OF_SUMMIT 2204 // Way of Four Elements - gong of the summit attack
-#define SKILL_FIST_OF_UNBROKEN_AIR 2205 // Way of Four Elements - fist of unbroken air AoE
-#define SKILL_FLOWING_RIVER 2206 // Way of Four Elements - flowing river AoE water attack
+#define SKILL_WATER_WHIP 2203             // Way of Four Elements - water whip attack
+#define SKILL_GONG_OF_SUMMIT 2204         // Way of Four Elements - gong of the summit attack
+#define SKILL_FIST_OF_UNBROKEN_AIR 2205   // Way of Four Elements - fist of unbroken air AoE
+#define SKILL_FLOWING_RIVER 2206          // Way of Four Elements - flowing river AoE water attack
 #define SKILL_SWEEPING_CINDER_STRIKE 2207 // Way of Four Elements - sweeping cinder strike cone AoE
-#define SKILL_RUSH_OF_GALE_SPIRITS 2208 // Way of Four Elements - rush of gale spirits (gust of wind)
-#define SKILL_CLENCH_OF_NORTH_WIND 2209 // Way of Four Elements - clench of the north wind (ice encasement)
-#define SKILL_SWARMING_ICE_RABBIT 2210 // Way of Four Elements - swarming ice rabbit (ranged cold attack)
-#define SKILL_FLAMES_OF_PHOENIX 2211 // Way of Four Elements - flames of phoenix (AoE fire, set on fire)
-#define SKILL_WAVE_OF_ROLLING_EARTH 2212 // Way of Four Elements - wave of rolling earth (AoE earth, knock prone)
-#define SKILL_ETERNAL_MOUNTAIN_DEFENSE 2213 // Way of Four Elements - eternal mountain defense (5/- DR, 100 HP absorbed)
-#define SKILL_FIST_OF_FOUR_THUNDERS 2214 // Way of Four Elements - fist of four thunders (AoE sound + delayed lightning)
-#define SKILL_RIVER_OF_HUNGRY_FLAME 2215 // Way of Four Elements - river of hungry flame (wall of fire)
+#define SKILL_RUSH_OF_GALE_SPIRITS                                                                 \
+  2208 // Way of Four Elements - rush of gale spirits (gust of wind)
+#define SKILL_CLENCH_OF_NORTH_WIND                                                                 \
+  2209 // Way of Four Elements - clench of the north wind (ice encasement)
+#define SKILL_SWARMING_ICE_RABBIT                                                                  \
+  2210 // Way of Four Elements - swarming ice rabbit (ranged cold attack)
+#define SKILL_FLAMES_OF_PHOENIX                                                                    \
+  2211 // Way of Four Elements - flames of phoenix (AoE fire, set on fire)
+#define SKILL_WAVE_OF_ROLLING_EARTH                                                                \
+  2212 // Way of Four Elements - wave of rolling earth (AoE earth, knock prone)
+#define SKILL_ETERNAL_MOUNTAIN_DEFENSE                                                             \
+  2213 // Way of Four Elements - eternal mountain defense (5/- DR, 100 HP absorbed)
+#define SKILL_FIST_OF_FOUR_THUNDERS                                                                \
+  2214 // Way of Four Elements - fist of four thunders (AoE sound + delayed lightning)
+#define SKILL_RIVER_OF_HUNGRY_FLAME                                                                \
+  2215                              // Way of Four Elements - river of hungry flame (wall of fire)
 #define SKILL_BREATH_OF_WINTER 2216 // Way of Four Elements - breath of winter (AoE cold, slow)
 #define SKILL_ELEMENTAL_EMBODIMENT 2217 // Way of Four Elements - elemental embodiment (transform)
-#define SKILL_HARDY 2218 // Berserker Occult Slayer perk
-#define SKILL_SPRINT 2219 // Berserker Primal Warrior sprint ability
-#define SKILL_RECKLESS_ABANDON 2220 // Berserker Primal Warrior - Tier 3
-#define SKILL_WAR_CRY 2221 // Berserker Primal Warrior - Tier 4
-#define SKILL_WAR_CRY_ALLY 2222 // War Cry buff for allies
-#define SKILL_WAR_CRY_ENEMY 2223 // War Cry debuff for enemies
-#define SKILL_EARTHSHAKER 2224 // Berserker Primal Warrior - Tier 4
-#define SKILL_FAITHFUL_STRIKE 2225 // Paladin Knight of the Chalice - Tier 1
-#define SKILL_HOLY_BLADE 2226 // Paladin Knight of the Chalice - Tier 2
-#define SKILL_DIVINE_MIGHT 2227 // Paladin Knight of the Chalice - Tier 3
-#define SKILL_SACRED_VENGEANCE 2228 // Paladin Knight of the Chalice - Tier 4
-#define SKILL_DEFENSIVE_STRIKE 2229 // Paladin Sacred Defender - Tier 1
-#define SKILL_MERCIFUL_TOUCH 2230 // Paladin Sacred Defender - Tier 3 (HP buff)
-#define SKILL_BASTION 2231 // Paladin Sacred Defender - Tier 3 (defensive buff)
-#define SKILL_RADIANT_AURA 2232 // Paladin Divine Champion - Tier 1 (undead damage aura)
-#define SKILL_PALADIN_CHANNEL_ENERGY 2233 // Paladin Divine Champion - Tier 2 (channel energy cooldown)
+#define SKILL_HARDY 2218                // Berserker Occult Slayer perk
+#define SKILL_SPRINT 2219               // Berserker Primal Warrior sprint ability
+#define SKILL_RECKLESS_ABANDON 2220     // Berserker Primal Warrior - Tier 3
+#define SKILL_WAR_CRY 2221              // Berserker Primal Warrior - Tier 4
+#define SKILL_WAR_CRY_ALLY 2222         // War Cry buff for allies
+#define SKILL_WAR_CRY_ENEMY 2223        // War Cry debuff for enemies
+#define SKILL_EARTHSHAKER 2224          // Berserker Primal Warrior - Tier 4
+#define SKILL_FAITHFUL_STRIKE 2225      // Paladin Knight of the Chalice - Tier 1
+#define SKILL_HOLY_BLADE 2226           // Paladin Knight of the Chalice - Tier 2
+#define SKILL_DIVINE_MIGHT 2227         // Paladin Knight of the Chalice - Tier 3
+#define SKILL_SACRED_VENGEANCE 2228     // Paladin Knight of the Chalice - Tier 4
+#define SKILL_DEFENSIVE_STRIKE 2229     // Paladin Sacred Defender - Tier 1
+#define SKILL_MERCIFUL_TOUCH 2230       // Paladin Sacred Defender - Tier 3 (HP buff)
+#define SKILL_BASTION 2231              // Paladin Sacred Defender - Tier 3 (defensive buff)
+#define SKILL_RADIANT_AURA 2232         // Paladin Divine Champion - Tier 1 (undead damage aura)
+#define SKILL_PALADIN_CHANNEL_ENERGY                                                               \
+  2233                              // Paladin Divine Champion - Tier 2 (channel energy cooldown)
 #define SKILL_MASS_CURE_WOUNDS 2234 // Paladin Divine Champion - Tier 4 (healing burst)
-#define SKILL_HOLY_AVENGER 2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
-#define SKILL_BEACON_OF_HOPE 2236 // Paladin Divine Champion - Tier 4 (party buff)
+#define SKILL_HOLY_AVENGER                                                                         \
+  2235 // Paladin Divine Champion - Tier 4 (spell boost after destroy undead)
+#define SKILL_BEACON_OF_HOPE 2236             // Paladin Divine Champion - Tier 4 (party buff)
 #define SKILL_APPLY_NATURES_WRATH_DAMAGE 2237 /* Custom: +2d8 damage for Nature's Wrath */
-#define WARLOCK_CHILLING_TENTACLES_COLD 2238 /* Custom: Cold damage for Chilling Tentacles */
+#define WARLOCK_CHILLING_TENTACLES_COLD 2238  /* Custom: Cold damage for Chilling Tentacles */
 
 /* New skills may be added above here, up to 3000 */
 #define NUM_SKILLS 2239 // Total number of skills (increment when adding new skills)
@@ -1268,31 +1278,34 @@
 
 // Vampire cloak
 #ifdef CAMPAIGN_FR
-  #define VAMPIRE_CLOAK_OBJ_VNUM 299
+#define VAMPIRE_CLOAK_OBJ_VNUM 299
 #elif defined(CAMPAIGN_DL)
-  #define VAMPIRE_CLOAK_OBJ_VNUM 16604
+#define VAMPIRE_CLOAK_OBJ_VNUM 16604
 #else
-  #define VAMPIRE_CLOAK_OBJ_VNUM 34700
+#define VAMPIRE_CLOAK_OBJ_VNUM 34700
 #endif
 
 /* not hard coded, but up to 2375 */
 
 /* weapon type macros, returns true or false */
-#define IS_BLADE(obj) (GET_OBJ_VAL(obj, 3) == (TYPE_WHIP - TYPE_HIT) ||  \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_SLASH - TYPE_HIT) || \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_CLAW - TYPE_HIT) ||  \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_MAUL - TYPE_HIT) ||  \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_THRASH - TYPE_HIT))
-#define IS_PIERCE(obj) (GET_OBJ_VAL(obj, 3) == (TYPE_STING - TYPE_HIT) ||  \
-                        GET_OBJ_VAL(obj, 3) == (TYPE_BITE - TYPE_HIT) ||   \
-                        GET_OBJ_VAL(obj, 3) == (TYPE_PIERCE - TYPE_HIT) || \
-                        GET_OBJ_VAL(obj, 3) == (TYPE_BLAST - TYPE_HIT) ||  \
-                        GET_OBJ_VAL(obj, 3) == (TYPE_STAB - TYPE_HIT))
-#define IS_BLUNT(obj) (GET_OBJ_VAL(obj, 3) == (TYPE_HIT - TYPE_HIT) ||      \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_BLUDGEON - TYPE_HIT) || \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_CRUSH - TYPE_HIT) ||    \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_POUND - TYPE_HIT) ||    \
-                       GET_OBJ_VAL(obj, 3) == (TYPE_PUNCH - TYPE_HIT))
+#define IS_BLADE(obj)                                                                              \
+  (GET_OBJ_VAL(obj, 3) == (TYPE_WHIP - TYPE_HIT) ||                                                \
+   GET_OBJ_VAL(obj, 3) == (TYPE_SLASH - TYPE_HIT) ||                                               \
+   GET_OBJ_VAL(obj, 3) == (TYPE_CLAW - TYPE_HIT) ||                                                \
+   GET_OBJ_VAL(obj, 3) == (TYPE_MAUL - TYPE_HIT) ||                                                \
+   GET_OBJ_VAL(obj, 3) == (TYPE_THRASH - TYPE_HIT))
+#define IS_PIERCE(obj)                                                                             \
+  (GET_OBJ_VAL(obj, 3) == (TYPE_STING - TYPE_HIT) ||                                               \
+   GET_OBJ_VAL(obj, 3) == (TYPE_BITE - TYPE_HIT) ||                                                \
+   GET_OBJ_VAL(obj, 3) == (TYPE_PIERCE - TYPE_HIT) ||                                              \
+   GET_OBJ_VAL(obj, 3) == (TYPE_BLAST - TYPE_HIT) ||                                               \
+   GET_OBJ_VAL(obj, 3) == (TYPE_STAB - TYPE_HIT))
+#define IS_BLUNT(obj)                                                                              \
+  (GET_OBJ_VAL(obj, 3) == (TYPE_HIT - TYPE_HIT) ||                                                 \
+   GET_OBJ_VAL(obj, 3) == (TYPE_BLUDGEON - TYPE_HIT) ||                                            \
+   GET_OBJ_VAL(obj, 3) == (TYPE_CRUSH - TYPE_HIT) ||                                               \
+   GET_OBJ_VAL(obj, 3) == (TYPE_POUND - TYPE_HIT) ||                                               \
+   GET_OBJ_VAL(obj, 3) == (TYPE_PUNCH - TYPE_HIT))
 
 /* other attack types */
 
@@ -1414,44 +1427,44 @@
 #define ABILITY_UNDEFINED 0
 #define START_GENERAL_ABILITIES 1
 
-#define ABILITY_ACROBATICS 1        /* acrobatics, matches pfsrd */
-#define ABILITY_STEALTH 2           /* stealth, matches pfsrd, use to be hide + move silently */
-#define ABILITY_RELIGION 3          /* UNUSED - use to be move silently */
-#define ABILITY_PERCEPTION 4        /* perception, matches pfsrd, use to be spot + listen */
-#define ABILITY_ATHLETICS 5         /* Athletics, covers swim and climb */
+#define ABILITY_ACROBATICS 1 /* acrobatics, matches pfsrd */
+#define ABILITY_STEALTH 2    /* stealth, matches pfsrd, use to be hide + move silently */
+#define ABILITY_RELIGION 3   /* UNUSED - use to be move silently */
+#define ABILITY_PERCEPTION 4 /* perception, matches pfsrd, use to be spot + listen */
+#define ABILITY_ATHLETICS 5  /* Athletics, covers swim and climb */
 #define ABILITY_CLIMB ABILITY_ATHLETICS
 #define ABILITY_SWIM ABILITY_ATHLETICS
-#define ABILITY_HEAL 6              /* heal (treatinjury), matches pfsrd */
+#define ABILITY_HEAL 6 /* heal (treatinjury), matches pfsrd */
 #define ABILITY_MEDICINE ABILITY_HEAL
-#define ABILITY_INTIMIDATE 7        /* intimidate, matches pfsrd, use to be taunt */
-#define ABILITY_CONCENTRATION 8     /* UNIQUE concentration */
-#define ABILITY_SPELLCRAFT 9        /* spellcraft, matches pfsrd */
-#define ABILITY_APPRAISE 10         /* appraise, matches pfsrd */
-#define ABILITY_DISCIPLINE 11       /* UNIQUE discipline */
-#define ABILITY_TOTAL_DEFENSE 12    /* UNIQUE total defense */
-#define ABILITY_LORE 13             /* UNIQUE lore */
+#define ABILITY_INTIMIDATE 7     /* intimidate, matches pfsrd, use to be taunt */
+#define ABILITY_CONCENTRATION 8  /* UNIQUE concentration */
+#define ABILITY_SPELLCRAFT 9     /* spellcraft, matches pfsrd */
+#define ABILITY_APPRAISE 10      /* appraise, matches pfsrd */
+#define ABILITY_DISCIPLINE 11    /* UNIQUE discipline */
+#define ABILITY_TOTAL_DEFENSE 12 /* UNIQUE total defense */
+#define ABILITY_LORE 13          /* UNIQUE lore */
 #define ABILITY_ARCANA ABILITY_LORE
-#define ABILITY_RIDE 14             /* ride, matches pfsrd */
-#define ABILITY_UNUSED_3 15         /* UNUSED - use to be balance */
-#define ABILITY_UNUSED_1 16         /* unused, was climb */
-#define ABILITY_HISTORY 17          /* history */
-#define ABILITY_SLEIGHT_OF_HAND 18  /* sleight of hand */
+#define ABILITY_RIDE 14            /* ride, matches pfsrd */
+#define ABILITY_UNUSED_3 15        /* UNUSED - use to be balance */
+#define ABILITY_UNUSED_1 16        /* unused, was climb */
+#define ABILITY_HISTORY 17         /* history */
+#define ABILITY_SLEIGHT_OF_HAND 18 /* sleight of hand */
 #define ABILITY_ESCAPE_ARTIST ABILITY_SLEIGHT_OF_HAND
-#define ABILITY_UNUSED_5 19         /* UNUSED - use to be search */
-#define ABILITY_BLUFF 20            /* bluff, matches pfsrd */
+#define ABILITY_UNUSED_5 19 /* UNUSED - use to be search */
+#define ABILITY_BLUFF 20    /* bluff, matches pfsrd */
 #define ABILITY_DECEPTION ABILITY_BLUFF
-#define ABILITY_UNUSED_6 21         /* UNUSED - use to be decipher script */
-#define ABILITY_DIPLOMACY 22        /* diplomacy, matches pfsrd */
+#define ABILITY_UNUSED_6 21  /* UNUSED - use to be decipher script */
+#define ABILITY_DIPLOMACY 22 /* diplomacy, matches pfsrd */
 #define ABILITY_PERSUASION ABILITY_DIPLOMACY
-#define ABILITY_DISABLE_DEVICE 23   /* disable device, matches pfsrd */
-#define ABILITY_DISGUISE 24         /* diguise, matches pfsrd */
-#define ABILITY_UNUSED_2 25         /* unused, used to be escape artist */
-#define ABILITY_HANDLE_ANIMAL 26    /* handle animal, matches pfsrd */
+#define ABILITY_DISABLE_DEVICE 23 /* disable device, matches pfsrd */
+#define ABILITY_DISGUISE 24       /* diguise, matches pfsrd */
+#define ABILITY_UNUSED_2 25       /* unused, used to be escape artist */
+#define ABILITY_HANDLE_ANIMAL 26  /* handle animal, matches pfsrd */
 #define ABILITY_ANIMAL_HANDLING ABILITY_HANDLE_ANIMAL
-#define ABILITY_UNUSED_7 27         /* UNUSED - use to be jump */
-#define ABILITY_SENSE_MOTIVE 28     /* sense motive, matches pfsrd */
+#define ABILITY_UNUSED_7 27     /* UNUSED - use to be jump */
+#define ABILITY_SENSE_MOTIVE 28 /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
-#define ABILITY_SURVIVAL 29         /* survival, matches pfsrd */
+#define ABILITY_SURVIVAL 29 /* survival, matches pfsrd */
 #define ABILITY_NATURE ABILITY_SURVIVAL
 #define ABILITY_UNUSED_4 30         /* unused, used to be swim */
 #define ABILITY_USE_MAGIC_DEVICE 31 /* use magic device, matches pfsrd */
@@ -1483,14 +1496,14 @@
 
 // Start Harvesting Abilities
 
-#define START_HARVEST_ABILITIES   48
+#define START_HARVEST_ABILITIES 48
 
-#define ABILITY_HARVEST_MINING    48
-#define ABILITY_HARVEST_HUNTING   49
-#define ABILITY_HARVEST_FORESTRY  50
+#define ABILITY_HARVEST_MINING 48
+#define ABILITY_HARVEST_HUNTING 49
+#define ABILITY_HARVEST_FORESTRY 50
 #define ABILITY_HARVEST_GATHERING 51
 
-#define END_HARVEST_ABILITIES     51
+#define END_HARVEST_ABILITIES 51
 
 #define NUM_ABILITIES 51
 
@@ -1599,66 +1612,67 @@
 
 struct spell_info_type
 {
-        byte min_position; /* Position for caster	 */
-        int psp_min;       /* Min amount of psp used by a spell (highest lev) */
-        int psp_max;       /* Max amount of psp used by a spell (lowest lev) */
-        int psp_change;    /* Change in psp used by spell from lev to lev */
+  byte min_position; /* Position for caster	 */
+  int psp_min;       /* Min amount of psp used by a spell (highest lev) */
+  int psp_max;       /* Max amount of psp used by a spell (lowest lev) */
+  int psp_change;    /* Change in psp used by spell from lev to lev */
 
-        int min_level[NUM_CLASSES]; /* the level [class] gets this spell (lvl_impl + 1, if they don't get */
-        int routines;
-        byte violent;
-        int targets;              /* See below for use with TAR_XXX  */
-        const char *name;         /* Input size not limited. Originates from string constants. */
-        const char *wear_off_msg; /* Input size not limited. Originates from string constants. */
-        int time;                 /* casting time */
-        int memtime;              /* mem time */
-        int schoolOfMagic;        // school of magic, category for skills
+  int min_level
+      [NUM_CLASSES]; /* the level [class] gets this spell (lvl_impl + 1, if they don't get */
+  int routines;
+  byte violent;
+  int targets;              /* See below for use with TAR_XXX  */
+  const char *name;         /* Input size not limited. Originates from string constants. */
+  const char *wear_off_msg; /* Input size not limited. Originates from string constants. */
+  int time;                 /* casting time */
+  int memtime;              /* mem time */
+  int schoolOfMagic;        // school of magic, category for skills
 
-        bool quest; // is this a quest spell?
+  bool quest; // is this a quest spell?
 
-        /* TODO: d20pfsrd expansion */
+  /* TODO: d20pfsrd expansion */
 
-        /* school declared above as "schoolOfMagic" */
+  /* school declared above as "schoolOfMagic" */
 
-        /* sub-schools: calling, creation, healing, summoning, teleportation, charm,
+  /* sub-schools: calling, creation, healing, summoning, teleportation, charm,
       compulsion, figment, glamer, pattern, phantasm, shadow, and polymorph */
-        int sub_school;
-        /*The descriptors are acid, air, chaotic, cold, curse, darkness, death, disease,
+  int sub_school;
+  /*The descriptors are acid, air, chaotic, cold, curse, darkness, death, disease,
    *  earth, electricity, emotion, evil, fear, fire, force, good, language-dependent,
    *  lawful, light, mind-affecting, pain, poison, shadow, sonic, and water.
     Most of these descriptors have no game effect by themselves, but they govern
    *  how the spell interacts with other spells, with special abilities, with unusual
    *  creatures, with alignment, and so on.*/
-        int descriptor;
-        int action_time;         /* casting time, in the form of action consumed */
-        int component;           /* verbal, somatic, material, focus, or divine-focus */
-        int domain[NUM_DOMAINS]; /* cleric domains! this is level, not circle like it should be */
+  int descriptor;
+  int action_time;         /* casting time, in the form of action consumed */
+  int component;           /* verbal, somatic, material, focus, or divine-focus */
+  int domain[NUM_DOMAINS]; /* cleric domains! this is level, not circle like it should be */
 
-        /* probably not ever going to use */
-        int range;        /* targets covers this currently */
-        int aim_type;     /* ray, spread, area,  burst, emanation, cone, cylinder, line, sphere, etc */
-        int duration;     /* assigned in the code currently */
-        int saving_throw; /* assigned in the code currently */
-        int resistance;   /* spell resistance, assigned in code currently */
-        bool ritual_spell; // If this is a ritual spell, it will have a cast time, otherwise it won't
-        int effective_level; /* the effective spell level. this is relevant for spell-like abilities */
-        bool cant_cast;  // is this spell castable?
-        bool touch_spell; // Is the spell a touch spell?
+  /* probably not ever going to use */
+  int range;           /* targets covers this currently */
+  int aim_type;        /* ray, spread, area,  burst, emanation, cone, cylinder, line, sphere, etc */
+  int duration;        /* assigned in the code currently */
+  int saving_throw;    /* assigned in the code currently */
+  int resistance;      /* spell resistance, assigned in code currently */
+  bool ritual_spell;   // If this is a ritual spell, it will have a cast time, otherwise it won't
+  int effective_level; /* the effective spell level. this is relevant for spell-like abilities */
+  bool cant_cast;      // is this spell castable?
+  bool touch_spell;    // Is the spell a touch spell?
 
-        bool is_cantrip;   // Cast-at-will cantrip (circle 0, no slots/prep)
+  bool is_cantrip; // Cast-at-will cantrip (circle 0, no slots/prep)
 
-        bool actual_ability; // is this a learnable or obtainable ability or is it just a spell effect?
+  bool actual_ability; // is this a learnable or obtainable ability or is it just a spell effect?
 };
 
 /* wall struct for wall spells, like wall of fire, force, thorns, etc */
 struct wall_information
 {
-        bool stops_movement;
-        int spell_num;
-        const char *longname;
-        const char *shortname;
-        const char *keyword;
-        int duration;
+  bool stops_movement;
+  int spell_num;
+  const char *longname;
+  const char *shortname;
+  const char *keyword;
+  int duration;
 };
 /* wall types for wall spells, like wall of fire, wall of thorns, wall of etc */
 #define WALL_TYPE_INVALID -1
@@ -1684,9 +1698,9 @@ struct wall_information
 #define WALL_IDNUM 3 /* creator's idnum */
 
 /* manual spell header info */
-#define ASPELL(spellname)                               \
-        void spellname(int level, struct char_data *ch, \
-                       struct char_data *victim, struct obj_data *obj, int casttype)
+#define ASPELL(spellname)                                                                          \
+  void spellname(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,  \
+                 int casttype)
 
 #define MANUAL_SPELL(spellname) spellname(level, caster, cvict, ovict, casttype);
 
@@ -1774,39 +1788,36 @@ ASPELL(wall_of_perilous_flame);
 int find_skill_num(char *name);
 int find_ability_num(char *name);
 
-int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-               struct obj_data *obj, int spellnum, int metamagic, int savetype, int casttype);
-void mag_loops(int level, struct char_data *ch, struct char_data *victim,
-               struct obj_data *obj, int spellnum, int metamagic, int savetype, int casttype);
-void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-                 struct obj_data *obj, int spellnum, int savetype, int casttype, int metamagic);
-void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
-                int spellnum, int savetype, int casttype);
-void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
-                int spellnum, int savetype, int casttype, int metamagic);
-void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
+int mag_damage(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
                int spellnum, int metamagic, int savetype, int casttype);
-void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
-                 int spellnum, int savetype, int casttype);
-void mag_points(int level, struct char_data *ch, struct char_data *victim,
-                struct obj_data *obj, int spellnum, int savetype, int casttype);
-void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
-                   struct obj_data *obj, int spellnum, int type, int casttype);
-void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
-                    int spellnum, int type, int casttype);
-void mag_creations(int level, struct char_data *ch, struct char_data *vict,
-                   struct obj_data *obj, int spellnum, int casttype);
-void mag_room(int level, struct char_data *ch, struct obj_data *obj,
-              int spellnum, int casttype);
+void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
+               int spellnum, int metamagic, int savetype, int casttype);
+void mag_affects(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
+                 int spellnum, int savetype, int casttype, int metamagic);
+void mag_groups(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
+                int casttype);
+void mag_masses(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
+                int casttype, int metamagic);
+void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int metamagic,
+               int savetype, int casttype);
+void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
+                 int casttype);
+void mag_points(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
+                int spellnum, int savetype, int casttype);
+void mag_unaffects(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
+                   int spellnum, int type, int casttype);
+void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int type,
+                    int casttype);
+void mag_creations(int level, struct char_data *ch, struct char_data *vict, struct obj_data *obj,
+                   int spellnum, int casttype);
+void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int casttype);
 
-int call_magic(struct char_data *caster, struct char_data *cvict,
-               struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
-void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
-                     char *argument);
-int cast_spell(struct char_data *ch, struct char_data *tch,
-               struct obj_data *tobj, int spellnum, int metamagic);
-int manifest_power(struct char_data *ch, struct char_data *tch,
-                   int powernum, int augment_psp);
+int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
+               int spellnum, int metamagic, int level, int casttype);
+void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument);
+int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,
+               int metamagic);
+int manifest_power(struct char_data *ch, struct char_data *tch, int powernum, int augment_psp);
 
 /* other prototypes */
 void spell_level(int spell, int chclass, int level);
@@ -1817,17 +1828,16 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* spells.c */
 bool check_wall(struct char_data *victim, int dir);
-void effect_charm(struct char_data *ch, struct char_data *victim,
-                  int spellnum, int casttype, int level);
+void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, int casttype,
+                  int level);
 bool is_wall_spell(int spellnum);
 
 /* From magic.c */
-int compute_mag_saves(struct char_data *vict,
-                      int type, int modifier);
-int savingthrow(struct char_data *ch, struct char_data *vict,
-                    int type, int modifier, int casttype, int level, int school);
-int savingthrow_full(struct char_data *ch, struct char_data *vict,
-                         int type, int modifier, int casttype, int level, int school, int spellnum);
+int compute_mag_saves(struct char_data *vict, int type, int modifier);
+int savingthrow(struct char_data *ch, struct char_data *vict, int type, int modifier, int casttype,
+                int level, int school);
+int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int modifier,
+                     int casttype, int level, int school, int spellnum);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
@@ -1835,7 +1845,8 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 int aoe_effect(struct char_data *ch, int spellnum,
                int (*callback)(struct char_data *ch, struct char_data *tch, void *data),
                void *callback_data);
-bool process_healing(struct char_data *ch, struct char_data *victim, int spellnum, int healing, int move, int psp);
+bool process_healing(struct char_data *ch, struct char_data *victim, int spellnum, int healing,
+                     int move, int psp);
 
 // Sorcerer Bloodline Types
 #define SORC_BLOODLINE_NONE 0
@@ -1906,16 +1917,18 @@ bool isBozakMagic(struct char_data *ch, int spellnum);
 int find_cantrip_class(struct char_data *ch, int spellnum);
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
-                 struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call);
+                      struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic,
+                      bool recursive_call);
 
 /**/
 
-#define ACT_SPELL_LEVEL         0
-#define ACT_SPELL_SPELLNUM      1
-#define ACT_SPELL_CURRENT_USES  2
-#define ACT_SPELL_MAX_USES      3
-#define ACT_SPELL_COOLDOWN      4
-#define MAX_NUMBER_OF_ACTIVATED_SPELL_USES 5 // Prevents builders from giving more than this number of uses
+#define ACT_SPELL_LEVEL 0
+#define ACT_SPELL_SPELLNUM 1
+#define ACT_SPELL_CURRENT_USES 2
+#define ACT_SPELL_MAX_USES 3
+#define ACT_SPELL_COOLDOWN 4
+#define MAX_NUMBER_OF_ACTIVATED_SPELL_USES                                                         \
+  5                               // Prevents builders from giving more than this number of uses
 #define ACT_SPELL_COOLDOWN_TIME 5 // num of minutes for a single use to recharge
 
 /* Global variables exported */

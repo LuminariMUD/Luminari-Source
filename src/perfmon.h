@@ -107,17 +107,16 @@ size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id);
  * @param sect Variable name for the profiling section
  * @param sect_descr String description/identifier for this section
  */
-#define PERF_PROF_ENTER(sect, sect_descr) \
-    static struct PERF_prof_sect *sect = NULL; \
-    PERF_prof_sect_init(&sect, sect_descr); \
-    PERF_prof_sect_enter(sect)
+#define PERF_PROF_ENTER(sect, sect_descr)                                                          \
+  static struct PERF_prof_sect *sect = NULL;                                                       \
+  PERF_prof_sect_init(&sect, sect_descr);                                                          \
+  PERF_prof_sect_enter(sect)
 
 /**
  * @brief Macro to end profiling a code section
  *
  * @param sect Variable name of the profiling section
  */
-#define PERF_PROF_EXIT(sect) \
-    PERF_prof_sect_exit(sect)
+#define PERF_PROF_EXIT(sect) PERF_prof_sect_exit(sect)
 
 #endif /* PERFMON_H */

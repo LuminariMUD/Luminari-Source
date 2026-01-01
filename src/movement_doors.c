@@ -44,19 +44,10 @@ extern int walkto_vnum_to_list_row(room_vnum vnum);
 #define PRISONER_KEY_3 132150
 
 /* cmd_door is required external from act.movement.c */
-const char *const cmd_door[] = {
-    "open",
-    "close",
-    "unlock",
-    "lock",
-    "pick"};
+const char *const cmd_door[] = {"open", "close", "unlock", "lock", "pick"};
 
-static const int flags_door[] = {
-    NEED_CLOSED | NEED_UNLOCKED,
-    NEED_OPEN,
-    NEED_CLOSED | NEED_LOCKED,
-    NEED_CLOSED | NEED_UNLOCKED,
-    NEED_CLOSED | NEED_LOCKED};
+static const int flags_door[] = {NEED_CLOSED | NEED_UNLOCKED, NEED_OPEN, NEED_CLOSED | NEED_LOCKED,
+                                 NEED_CLOSED | NEED_UNLOCKED, NEED_CLOSED | NEED_LOCKED};
 
 /* Static (internal) function prototypes - will be made non-static after transition */
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
@@ -124,11 +115,14 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
               else if (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED))
                 return door;
             }
-            else if ((is_abbrev(cmdname, "close")) && (!(IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))))
+            else if ((is_abbrev(cmdname, "close")) &&
+                     (!(IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))))
               return door;
-            else if ((is_abbrev(cmdname, "lock")) && (!(IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED))))
+            else if ((is_abbrev(cmdname, "lock")) &&
+                     (!(IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED))))
               return door;
-            else if ((is_abbrev(cmdname, "unlock")) && (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)))
+            else if ((is_abbrev(cmdname, "unlock")) &&
+                     (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)))
               return door;
             else if ((is_abbrev(cmdname, "pick")) && (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)))
               return door;
@@ -140,32 +134,50 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
     if ((!IS_NPC(ch)) && (!PRF_FLAGGED(ch, PRF_AUTODOOR)))
     {
       send_to_char(ch, "There doesn't seem to be %s %s here.\r\n", AN(type), type);
-      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+      send_to_char(ch,
+                   "Try turning on the autokey toggle in prefedit, or supply a direction name as "
+                   "well. Eg. %s %s north.",
+                   cmdname, type);
     }
     else if (is_abbrev(cmdname, "open"))
     {
       send_to_char(ch, "There doesn't seem to be %s %s that can be opened.\r\n", AN(type), type);
-      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+      send_to_char(ch,
+                   "Try turning on the autokey toggle in prefedit, or supply a direction name as "
+                   "well. Eg. %s %s north.",
+                   cmdname, type);
     }
     else if (is_abbrev(cmdname, "close"))
     {
       send_to_char(ch, "There doesn't seem to be %s %s that can be closed.\r\n", AN(type), type);
-      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+      send_to_char(ch,
+                   "Try turning on the autokey toggle in prefedit, or supply a direction name as "
+                   "well. Eg. %s %s north.",
+                   cmdname, type);
     }
     else if (is_abbrev(cmdname, "lock"))
     {
       send_to_char(ch, "There doesn't seem to be %s %s that can be locked.\r\n", AN(type), type);
-      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+      send_to_char(ch,
+                   "Try turning on the autokey toggle in prefedit, or supply a direction name as "
+                   "well. Eg. %s %s north.",
+                   cmdname, type);
     }
     else if (is_abbrev(cmdname, "unlock"))
     {
       send_to_char(ch, "There doesn't seem to be %s %s that can be unlocked.\r\n", AN(type), type);
-      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+      send_to_char(ch,
+                   "Try turning on the autokey toggle in prefedit, or supply a direction name as "
+                   "well. Eg. %s %s north.",
+                   cmdname, type);
     }
     else
     {
       send_to_char(ch, "There doesn't seem to be %s %s that can be picked.\r\n", AN(type), type);
-      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+      send_to_char(ch,
+                   "Try turning on the autokey toggle in prefedit, or supply a direction name as "
+                   "well. Eg. %s %s north.",
+                   cmdname, type);
     }
 
     return (-1);
@@ -220,11 +232,9 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key)
      note - added a check for NOTHING or -1 vnum key value so corpses can't be used to open these doors -zusuk */
 int has_key(struct char_data *ch, obj_vnum key)
 {
-
   /* special key handling */
   switch (key)
   {
-
     /* these keys will break upon usage so they can't be horded */
   case PRISONER_KEY_1:
   /*fallthrough*/
@@ -268,7 +278,6 @@ int has_key(struct char_data *ch, obj_vnum key)
 // if the key is found and the key is flagged EXTRACT_ON_USE
 void extract_key(struct char_data *ch, obj_vnum key)
 {
-
   /* players were using corpses to open doors */
   if (key == NOTHING || key <= 0)
     return;
@@ -288,7 +297,8 @@ void extract_key(struct char_data *ch, obj_vnum key)
   }
 
   if (GET_EQ(ch, WEAR_HOLD_1))
-    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_1)) == key && OBJ_FLAGGED(GET_EQ(ch, WEAR_HOLD_1), ITEM_EXTRACT_AFTER_USE))
+    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_1)) == key &&
+        OBJ_FLAGGED(GET_EQ(ch, WEAR_HOLD_1), ITEM_EXTRACT_AFTER_USE))
     {
       act("After using $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_CHAR);
       act("After $n uses $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_ROOM);
@@ -297,14 +307,14 @@ void extract_key(struct char_data *ch, obj_vnum key)
     }
 
   if (GET_EQ(ch, WEAR_HOLD_2))
-    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_2)) == key && OBJ_FLAGGED(GET_EQ(ch, WEAR_HOLD_2), ITEM_EXTRACT_AFTER_USE))
+    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_2)) == key &&
+        OBJ_FLAGGED(GET_EQ(ch, WEAR_HOLD_2), ITEM_EXTRACT_AFTER_USE))
     {
       act("After using $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_CHAR);
       act("After $n uses $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_ROOM);
       extract_obj(unequip_char(ch, WEAR_HOLD_2));
       return;
     }
-
 }
 
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd)
@@ -441,9 +451,10 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
 
   /* Notify the room. */
   if (len < sizeof(buf))
-    snprintf(buf + len, sizeof(buf) - len, "%s%s.",
-             obj ? "" : "the ", obj ? "$p" : EXIT(ch, door)->keyword ? "$F"
-                                                                     : "door");
+    snprintf(buf + len, sizeof(buf) - len, "%s%s.", obj ? "" : "the ",
+             obj                       ? "$p"
+             : EXIT(ch, door)->keyword ? "$F"
+                                       : "door");
   if (!obj || IN_ROOM(obj) != NOWHERE)
     act(buf, FALSE, ch, obj, obj ? 0 : EXIT(ch, door)->keyword, TO_ROOM);
 
@@ -569,8 +580,7 @@ ACMD(do_gen_door)
   if (!generic_find(type, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &victim, &obj))
     door = find_door(ch, type, dir, cmd_door[subcmd]);
 
-  if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-                GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH &&
+  if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH &&
                 GET_OBJ_TYPE(obj) != ITEM_TREASURE_CHEST))
   {
     obj = NULL;
@@ -604,14 +614,11 @@ ACMD(do_gen_door)
     }
     if (!(DOOR_IS_OPENABLE(ch, obj, door)))
       send_to_char(ch, "You can't %s that!\r\n", cmd_door[subcmd]);
-    else if (!DOOR_IS_OPEN(ch, obj, door) &&
-             IS_SET(flags_door[subcmd], NEED_OPEN))
+    else if (!DOOR_IS_OPEN(ch, obj, door) && IS_SET(flags_door[subcmd], NEED_OPEN))
       send_to_char(ch, "But it's already closed!\r\n");
-    else if (!DOOR_IS_CLOSED(ch, obj, door) &&
-             IS_SET(flags_door[subcmd], NEED_CLOSED))
+    else if (!DOOR_IS_CLOSED(ch, obj, door) && IS_SET(flags_door[subcmd], NEED_CLOSED))
       send_to_char(ch, "But it's currently open!\r\n");
-    else if (!(DOOR_IS_LOCKED(ch, obj, door)) &&
-             IS_SET(flags_door[subcmd], NEED_LOCKED))
+    else if (!(DOOR_IS_LOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_LOCKED))
       send_to_char(ch, "Oh.. it wasn't locked, after all..\r\n");
     else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
              ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum)))
@@ -622,7 +629,6 @@ ACMD(do_gen_door)
       do_doorcmd(ch, obj, door, subcmd);
       ch->char_specials.autodoor_message = true;
       extract_key(ch, keynum);
-
     }
     else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
              ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum)))
@@ -630,12 +636,12 @@ ACMD(do_gen_door)
       send_to_char(ch, "It is locked, and you do not have the key!\r\n");
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n",
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
     }
-    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) &&
-             IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
+    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
              (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
       send_to_char(ch, "It seems to be locked.\r\n");
     else if (!has_key(ch, keynum) && (GET_LEVEL(ch) < LVL_STAFF) &&

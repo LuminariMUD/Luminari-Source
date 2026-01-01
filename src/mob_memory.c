@@ -61,13 +61,15 @@ void remember(struct char_data *ch, struct char_data *victim)
 
   if (MOB_FLAGGED(ch, MOB_NOKILL))
   {
-    send_to_char(ch, "You are a protected mob, it doesn't make sense for you to remember your victim!\r\n");
+    send_to_char(
+        ch, "You are a protected mob, it doesn't make sense for you to remember your victim!\r\n");
     return;
   }
 
   if (victim && !ok_damage_shopkeeper(victim, ch))
   {
-    send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to remember that target!\r\n");
+    send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you "
+                     "to remember that target!\r\n");
     return;
   }
 

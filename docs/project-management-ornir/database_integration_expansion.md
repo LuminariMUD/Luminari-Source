@@ -29,7 +29,7 @@ CREATE TABLE wilderness_static_rooms (
 **Advantages:**
 - **Single Source of Truth**: Centralized data storage eliminates synchronization issues
 - **Existing Infrastructure**: MySQL/MariaDB already integrated with robust spatial extensions
-- **Performance**: Indexed queries and optimized spatial operations 
+- **Performance**: Indexed queries and optimized spatial operations
 - **Standards Compliance**: SQL provides standardized query interface
 - **Security**: Database-level access controls and authentication
 - **Scalability**: Can handle multiple concurrent API consumers
@@ -97,7 +97,7 @@ CREATE TABLE luminari_api.wilderness_terrain_cache (
     x_coordinate INT,
     y_coordinate INT,
     elevation_raw INT,           -- get_elevation() result (0-255)
-    moisture_raw INT,            -- get_moisture() result (0-255) 
+    moisture_raw INT,            -- get_moisture() result (0-255)
     temperature_calculated INT,  -- get_temperature() result
     sector_type_base INT,        -- get_sector_type() before regions/paths
     sector_name VARCHAR(50),
@@ -134,7 +134,7 @@ CREATE TABLE luminari_api.wilderness_connections (
 -- Static rooms: 1000000-1003999 (4000 rooms for permanent features)
 -- Dynamic rooms: 1004000-1009999 (6000 rooms for temporary allocation)
 CREATE TABLE wilderness_static_rooms AS
-SELECT 
+SELECT
     world.number as room_vnum,
     world.name as room_name,
     world.description,
@@ -144,10 +144,10 @@ SELECT
     sector_types.name as sector_name,
     zone_table.name as zone_name,
     zone_table.number as zone_vnum
-FROM world 
+FROM world
 JOIN zone_table ON world.zone = zone_table.id
 JOIN sector_types ON world.sector_type = sector_types.id
-WHERE world.number >= 1000000 
+WHERE world.number >= 1000000
 AND world.number <= 1003999  -- Static wilderness rooms only (exclude dynamic pool)
 AND world.coords[0] IS NOT NULL
 AND world.coords[1] IS NOT NULL;
@@ -168,7 +168,7 @@ AND world.coords[1] IS NOT NULL;
 
 ### Deliverables:
 - Terrain cache system for base Perlin noise data
-- Wilderness connection mapping 
+- Wilderness connection mapping
 - Static wilderness room exposure
 - Terrain generation parameter documentation
 - Basic REST endpoints for terrain queries
@@ -180,7 +180,7 @@ CREATE TABLE wilderness_terrain_cache (
     x_coordinate INT,
     y_coordinate INT,
     elevation_raw INT,           -- get_elevation() result (0-255)
-    moisture_raw INT,            -- get_moisture() result (0-255) 
+    moisture_raw INT,            -- get_moisture() result (0-255)
     temperature_calculated INT,  -- get_temperature() result
     sector_type_base INT,        -- get_sector_type() before regions/paths
     sector_name VARCHAR(50),
@@ -295,10 +295,10 @@ struct cache_region {
 void cache_high_priority_areas(void) {
     /* Cache around all static wilderness rooms */
     populate_static_room_vicinity();
-    
+
     /* Cache around active player locations */
     cache_player_activity_areas();
-    
+
     /* Cache around zone connection points */
     cache_wilderness_entrances();
 }
@@ -307,7 +307,7 @@ void cache_high_priority_areas(void) {
 void cache_medium_priority_areas(void) {
     /* Cache paths between static rooms */
     cache_major_travel_routes();
-    
+
     /* Cache explored areas (player history) */
     cache_historical_player_areas();
 }
@@ -335,7 +335,7 @@ struct terrain_config {
 bool terrain_config_changed(void) {
     char current_hash[33];
     generate_terrain_config_hash(current_hash);
-    
+
     char *stored_hash = get_wilderness_metadata("noise_seeds_hash");
     return strcmp(current_hash, stored_hash) != 0;
 }
@@ -345,7 +345,7 @@ void handle_terrain_config_change(void) {
     log("Terrain configuration changed - invalidating cache");
     mysql_exec("DELETE FROM wilderness_terrain_cache");
     mysql_exec("UPDATE wilderness_metadata SET setting_value='empty' WHERE setting_name='terrain_cache_status'");
-    
+
     /* Restart high-priority caching */
     cache_high_priority_areas();
 }
@@ -361,7 +361,7 @@ void olc_room_save_hook(room_rnum room) {
     if (room_coordinates_modified(room)) {
         update_wilderness_static_rooms_single(room);
     }
-    
+
     /* Check if exits to wilderness added/removed */
     if (wilderness_exits_modified(room)) {
         update_wilderness_connections_for_room(room);
@@ -384,10 +384,10 @@ void wilderness_activity_hook(struct char_data *ch, room_rnum room) {
     if (IS_WILDERNESS_ROOM(room)) {
         int x = world[room].coords[0];
         int y = world[room].coords[1];
-        
+
         /* Mark area as high-priority for caching */
         mark_area_for_priority_cache(x, y, 10);
-        
+
         /* Cache if not already cached */
         if (!is_area_cached(x, y, 5)) {
             cache_terrain_region_async(x, y, 5);
@@ -404,7 +404,7 @@ void region_reload_hook(void) {
     mysql_exec("UPDATE wilderness_terrain_cache SET last_updated = '1970-01-01' "
                "WHERE (x_coordinate, y_coordinate) IN ("
                "SELECT x, y FROM coordinates_in_modified_regions)");
-    
+
     /* Trigger re-cache of affected areas */
     schedule_affected_area_recache();
 }
@@ -426,9 +426,9 @@ struct terrain_cache_batch {
 
 /* Queue-based processing */
 void process_terrain_cache_queue(void) {
-    if (terrain_cache_queue.count >= TERRAIN_BATCH_SIZE || 
+    if (terrain_cache_queue.count >= TERRAIN_BATCH_SIZE ||
         time(NULL) >= terrain_cache_queue.next_process_time) {
-        
+
         batch_cache_terrain_data(&terrain_cache_queue);
         terrain_cache_queue.count = 0;
         terrain_cache_queue.next_process_time = time(NULL) + TERRAIN_BATCH_DELAY;
@@ -439,7 +439,7 @@ void process_terrain_cache_queue(void) {
 **2. Database Optimization**
 ```sql
 -- Partitioning for large terrain cache
-ALTER TABLE wilderness_terrain_cache 
+ALTER TABLE wilderness_terrain_cache
 PARTITION BY RANGE (x_coordinate) (
     PARTITION p_neg1024 VALUES LESS THAN (-512),
     PARTITION p_neg512 VALUES LESS THAN (0),
@@ -459,13 +459,13 @@ bool should_cache_coordinate(int x, int y) {
     /* Skip deep ocean areas */
     int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
     if (elevation < DEEP_OCEAN_THRESHOLD) return false;
-    
+
     /* Skip areas too far from any static room */
     if (distance_to_nearest_static_room(x, y) > MAX_CACHE_DISTANCE) return false;
-    
+
     /* Skip areas with no regions or paths */
     if (!has_nearby_regions_or_paths(x, y, REGION_CHECK_RADIUS)) return false;
-    
+
     return true;
 }
 ```
@@ -479,10 +479,10 @@ ACMD(do_cache_status) {
     int total_coords = 2048 * 2048;
     int cached_coords = get_cached_coordinate_count();
     int high_priority_remaining = get_high_priority_remaining();
-    
+
     send_to_char(ch, "Terrain Cache Status:\r\n");
     send_to_char(ch, "  Total possible: %d coordinates\r\n", total_coords);
-    send_to_char(ch, "  Currently cached: %d (%.2f%%)\r\n", 
+    send_to_char(ch, "  Currently cached: %d (%.2f%%)\r\n",
                  cached_coords, (float)cached_coords / total_coords * 100);
     send_to_char(ch, "  High priority remaining: %d\r\n", high_priority_remaining);
     send_to_char(ch, "  Cache priority: %s\r\n", get_cache_priority_status());
@@ -512,20 +512,20 @@ void init_wilderness_db_system(void) {
     /* Check if this is first run */
     if (is_wilderness_cache_empty()) {
         log("Wilderness cache empty - starting priority population");
-        
+
         /* Immediate: Static rooms and connections (seconds) */
         populate_static_rooms_table();
         discover_wilderness_connections();
-        
+
         /* Phase 1: High-priority areas (minutes) */
         schedule_high_priority_caching();
-        
+
         /* Phase 2+: Background fill (hours/days/weeks) */
         schedule_background_caching();
     } else {
         /* Verify cache integrity */
         verify_cache_consistency();
-        
+
         /* Resume background caching where we left off */
         resume_background_caching();
     }
@@ -539,7 +539,7 @@ void wilderness_cache_fallback(int x, int y) {
     /* Cache miss - calculate on demand */
     /* Don't block game operation */
     /* Log for later batch update */
-    
+
     queue_for_later_caching(x, y);
 }
 ```
@@ -564,13 +564,13 @@ This approach ensures:
 void cache_terrain_data_smart(int x, int y, cache_priority_t priority) {
     /* Only cache if it meets criteria */
     if (!should_cache_coordinate(x, y)) return;
-    
+
     int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
     int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y);  
     int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);
     int sector = get_sector_type(elevation, temperature, moisture);
     int weather = get_weather(x, y);
-    
+
     /* Batch insert for performance */
     add_to_cache_batch(x, y, elevation, moisture, temperature, sector, weather, priority);
 }
@@ -580,25 +580,25 @@ bool should_cache_coordinate(int x, int y) {
     /* Skip deep ocean areas */
     int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
     if (elevation < 50) return false;  /* Skip deep ocean */
-    
+
     /* Skip areas too far from static rooms */
     if (distance_to_nearest_static_room(x, y) > 200) return false;
-    
+
     /* Always cache around player activity */
     if (has_recent_player_activity(x, y, 30 * 24 * 60 * 60)) return true;  /* 30 days */
-    
+
     return true;
 }
 
 /* Batched database operations */
 void process_cache_batch(void) {
     if (cache_batch.count == 0) return;
-    
+
     char query[MAX_SQL_LENGTH];
     snprintf(query, sizeof(query), "INSERT INTO wilderness_terrain_cache "
              "(x_coordinate, y_coordinate, elevation_raw, moisture_raw, "
              "temperature_calculated, sector_type_base, weather_current) VALUES ");
-    
+
     for (int i = 0; i < cache_batch.count; i++) {
         char values[200];
         snprintf(values, sizeof(values), "%s(%d, %d, %d, %d, %d, %d, %d)",
@@ -609,10 +609,10 @@ void process_cache_batch(void) {
                  cache_batch.coords[i].weather);
         strcat(query, values);
     }
-    
+
     strcat(query, " ON DUPLICATE KEY UPDATE last_updated=NOW()");
     mysql_exec(query);
-    
+
     cache_batch.count = 0;
 }
 ```
@@ -623,7 +623,7 @@ void process_cache_batch(void) {
 /* Hook for room modifications */
 void wilderness_room_modified_hook(room_rnum room) {
     if (!IS_WILDERNESS_ROOM(room)) return;
-    
+
     /* Update static rooms table if coordinates changed */
     if (world[room].coords[0] != 0 || world[room].coords[1] != 0) {
         mysql_exec("INSERT INTO wilderness_static_rooms "
@@ -634,7 +634,7 @@ void wilderness_room_modified_hook(room_rnum room) {
                   "x_coordinate=%d, y_coordinate=%d, room_name='%s', "
                   "room_description='%s', sector_type=%d",
                   world[room].number, world[room].coords[0], world[room].coords[1],
-                  world[room].zone, 
+                  world[room].zone,
                   world[room].name ? world[room].name : "Unnamed",
                   world[room].description ? world[room].description : "",
                   world[room].sector_type,
@@ -648,13 +648,13 @@ void wilderness_room_modified_hook(room_rnum room) {
 /* Hook for player wilderness activity */
 void wilderness_player_activity_hook(struct char_data *ch, room_rnum room) {
     if (!IS_WILDERNESS_ROOM(room)) return;
-    
+
     int x = world[room].coords[0];
     int y = world[room].coords[1];
-    
+
     /* Mark area for priority caching */
     mark_area_for_cache(x, y, 10, CACHE_PRIORITY_HIGH);
-    
+
     /* Log player activity for future cache decisions */
     log_player_activity(x, y);
 }
@@ -663,16 +663,16 @@ void wilderness_player_activity_hook(struct char_data *ch, room_rnum room) {
 void wilderness_config_changed_hook(void) {
     if (terrain_config_changed()) {
         log("WILDERNESS: Terrain configuration changed - scheduling cache refresh");
-        
+
         /* Mark all cache as stale */
         mysql_exec("UPDATE wilderness_terrain_cache SET last_updated = '1970-01-01'");
-        
+
         /* Update metadata */
         char current_hash[33];
         generate_terrain_config_hash(current_hash);
         mysql_exec("UPDATE wilderness_metadata SET setting_value='%s' "
                   "WHERE setting_name='noise_seeds_hash'", current_hash);
-        
+
         /* Restart high-priority caching */
         schedule_priority_recache();
     }
@@ -685,20 +685,20 @@ void wilderness_config_changed_hook(void) {
 /* Staged wilderness database initialization */
 void init_wilderness_db_system(void) {
     log("Initializing wilderness database integration...");
-    
+
     /* Stage 1: Immediate (0-10 seconds) */
     populate_static_rooms_table();
     discover_wilderness_connections();
-    
+
     /* Stage 2: High Priority (10 seconds - 5 minutes) */
     event_create(event_cache_static_room_areas, NULL, 10 RL_SEC);
-    
+
     /* Stage 3: Medium Priority (5 minutes - 1 hour) */
     event_create(event_cache_player_areas, NULL, 5 * 60 RL_SEC);
-    
+
     /* Stage 4: Background Fill (1 hour+) */
     event_create(event_cache_systematic_fill, NULL, 60 * 60 RL_SEC);
-    
+
     log("Wilderness database integration started");
 }
 
@@ -707,27 +707,27 @@ EVENTFUNC(event_cache_static_room_areas) {
     static int current_room_index = 0;
     static room_vnum static_rooms[4000];  /* Cache of static room vnums */
     static bool rooms_loaded = false;
-    
+
     if (!rooms_loaded) {
         /* Load list of static wilderness rooms */
         load_static_wilderness_rooms(static_rooms);
         rooms_loaded = true;
     }
-    
+
     /* Cache around 10 static rooms per event */
     for (int i = 0; i < 10 && current_room_index < 4000; i++, current_room_index++) {
         room_rnum room = real_room(static_rooms[current_room_index]);
         if (room != NOWHERE && world[room].coords[0] != 0) {
-            cache_terrain_region_priority(world[room].coords[0], world[room].coords[1], 
+            cache_terrain_region_priority(world[room].coords[0], world[room].coords[1],
                                          15, CACHE_PRIORITY_HIGH);
         }
     }
-    
+
     if (current_room_index >= 4000) {
         log("High priority terrain caching completed");
         return 0;  /* Event complete */
     }
-    
+
     return 2 RL_SEC;  /* Continue every 2 seconds */
 }
 
@@ -736,12 +736,12 @@ EVENTFUNC(event_cache_systematic_fill) {
     static int fill_x = -1024;
     static int fill_y = -1024;
     int coords_per_batch = 10;  /* Very conservative */
-    
+
     for (int i = 0; i < coords_per_batch; i++) {
         if (should_cache_coordinate(fill_x, fill_y)) {
             cache_terrain_data_smart(fill_x, fill_y, CACHE_PRIORITY_LOW);
         }
-        
+
         fill_y++;
         if (fill_y > 1024) {
             fill_y = -1024;
@@ -753,7 +753,7 @@ EVENTFUNC(event_cache_systematic_fill) {
             }
         }
     }
-    
+
     return 30 RL_SEC;  /* Continue every 30 seconds */
 }
 ```
@@ -787,15 +787,15 @@ void discover_wilderness_connections(void) {
     zone_rnum zone;
     room_rnum room;
     int dir;
-    
+
     mysql_exec("DELETE FROM wilderness_connections");
-    
+
     /* Scan all zones for wilderness connections */
     for (zone = 0; zone <= top_of_zone_table; zone++) {
         for (room = zone_table[zone].bot; room <= zone_table[zone].top; room++) {
             room_rnum real_rm = real_room(room);
             if (real_rm == NOWHERE) continue;
-            
+
             /* Check if room has wilderness coordinates */
             if (world[real_rm].coords[0] != 0 || world[real_rm].coords[1] != 0) {
                 mysql_exec("INSERT INTO wilderness_connections "
@@ -807,13 +807,13 @@ void discover_wilderness_connections(void) {
                           room, world[real_rm].name ? world[real_rm].name : "Unnamed",
                           world[real_rm].coords[0], world[real_rm].coords[1]);
             }
-            
+
             /* Check exits for wilderness connections */
             for (dir = 0; dir < NUM_OF_DIRS; dir++) {
-                if (world[real_rm].dir_option[dir] && 
+                if (world[real_rm].dir_option[dir] &&
                     world[real_rm].dir_option[dir]->to_room != NOWHERE) {
                     room_rnum exit_room = world[real_rm].dir_option[dir]->to_room;
-                    
+
                     /* Check if exit leads to wilderness */
                     if (IS_WILDERNESS_VNUM(world[exit_room].number)) {
                         mysql_exec("INSERT INTO wilderness_connections "
@@ -840,21 +840,21 @@ void discover_wilderness_connections(void) {
 void populate_static_rooms_table(void) {
     room_vnum vnum;
     room_rnum real_rm;
-    
+
     mysql_exec("DELETE FROM wilderness_static_rooms");
-    
+
     /* Scan static wilderness room range */
     for (vnum = WILD_ROOM_VNUM_START; vnum <= WILD_ROOM_VNUM_END; vnum++) {
         real_rm = real_room(vnum);
         if (real_rm == NOWHERE) continue;
-        
+
         /* Only include rooms with coordinates */
         if (world[real_rm].coords[0] != 0 || world[real_rm].coords[1] != 0) {
             mysql_exec("INSERT INTO wilderness_static_rooms "
                       "(room_vnum, x_coordinate, y_coordinate, zone_vnum, "
                       "room_name, room_description, sector_type, sector_name, zone_name) "
                       "VALUES (%d, %d, %d, %d, '%s', '%s', %d, '%s', '%s')",
-                      vnum, 
+                      vnum,
                       world[real_rm].coords[0], world[real_rm].coords[1],
                       world[real_rm].zone,
                       world[real_rm].name ? world[real_rm].name : "Unnamed",
@@ -909,9 +909,9 @@ void region_reload_hook_wilderness_db(void) {
 ```c
 ACMD(do_wilderness_db) {
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
-    
+
     two_arguments(argument, arg1, arg2);
-    
+
     if (!*arg1) {
         send_to_char(ch, "Usage: wilddb <command> [options]\r\n");
         send_to_char(ch, "Commands:\r\n");
@@ -924,7 +924,7 @@ ACMD(do_wilderness_db) {
         send_to_char(ch, "  reset            - Reset all cache data\r\n");
         return;
     }
-    
+
     if (is_abbrev(arg1, "status")) {
         show_wilderness_cache_status(ch);
     }
@@ -988,20 +988,20 @@ void show_wilderness_cache_status(struct char_data *ch) {
     int currently_cached = get_cached_coordinate_count();
     int high_priority_remaining = get_high_priority_remaining();
     int medium_priority_remaining = get_medium_priority_remaining();
-    
+
     send_to_char(ch, "Wilderness Database Status:\r\n");
     send_to_char(ch, "========================\r\n");
     send_to_char(ch, "Cacheable coordinates: %d\r\n", total_possible);
-    send_to_char(ch, "Currently cached: %d (%.1f%%)\r\n", 
+    send_to_char(ch, "Currently cached: %d (%.1f%%)\r\n",
                  currently_cached, (float)currently_cached / total_possible * 100);
     send_to_char(ch, "High priority remaining: %d\r\n", high_priority_remaining);
     send_to_char(ch, "Medium priority remaining: %d\r\n", medium_priority_remaining);
     send_to_char(ch, "Cache mode: %s\r\n", get_cache_mode_name());
     send_to_char(ch, "Cache batch size: %d\r\n", get_cache_batch_size());
-    
+
     char *last_update = get_wilderness_metadata("last_full_cache");
     send_to_char(ch, "Last full cache: %s\r\n", last_update);
-    
+
     /* Database performance info */
     send_to_char(ch, "\r\nDatabase Performance:\r\n");
     send_to_char(ch, "Average query time: %.2fms\r\n", get_avg_query_time());
@@ -1026,7 +1026,7 @@ static struct cache_stats cache_performance = {0};
 void update_cache_stats(double query_time, bool cache_hit) {
     cache_performance.queries_executed++;
     cache_performance.total_query_time += query_time;
-    
+
     if (cache_hit) {
         cache_performance.cache_hits++;
     } else {
@@ -1048,19 +1048,19 @@ float get_cache_hit_rate(void) {
 /* Integrity verification */
 int verify_cache_integrity(void) {
     int issues = 0;
-    
+
     /* Check for missing high-priority areas */
     issues += verify_static_room_caching();
-    
+
     /* Check for stale cache entries */
     issues += verify_cache_freshness();
-    
+
     /* Check terrain config consistency */
     issues += verify_terrain_config();
-    
+
     /* Check database constraints */
     issues += verify_database_constraints();
-    
+
     return issues;
 }
 ```
@@ -1109,14 +1109,14 @@ SELECT COUNT(*) FROM wilderness_static_rooms;
 #### Step 5.2: Performance Testing
 ```sql
 -- Test query performance
-EXPLAIN SELECT * FROM wilderness_terrain_cache 
+EXPLAIN SELECT * FROM wilderness_terrain_cache
 WHERE x_coordinate BETWEEN -50 AND 50 AND y_coordinate BETWEEN -50 AND 50;
 
 -- Verify indexes
 SHOW INDEX FROM wilderness_terrain_cache;
 
 -- Test integration with existing tables
-SELECT wtc.*, rd.name as region_name 
+SELECT wtc.*, rd.name as region_name
 FROM wilderness_terrain_cache wtc
 LEFT JOIN region_data rd ON ST_Contains(rd.region_coordinates, POINT(wtc.x_coordinate, wtc.y_coordinate))
 LIMIT 10;
@@ -1187,56 +1187,56 @@ int start_terrain_api_server(int port) {
     socket_t s;
     struct sockaddr_in sa;
     int opt = 1;
-    
+
     if (terrain_api) {
         log("Terrain API server already running");
         return 1;
     }
-    
+
     CREATE(terrain_api, struct terrain_api_server, 1);
     terrain_api->server_socket = INVALID_SOCKET;
     terrain_api->client_sockets = NULL;
     terrain_api->num_clients = 0;
     terrain_api->max_clients = 10;
-    
+
     /* Create socket */
     if ((s = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         log("ERROR: Terrain API server socket creation failed: %s", strerror(errno));
         return 0;
     }
-    
+
     /* Set socket options */
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
         log("WARNING: Terrain API setsockopt SO_REUSEADDR failed: %s", strerror(errno));
     }
-    
+
     /* Set non-blocking */
     if (fcntl(s, F_SETFL, O_NONBLOCK) < 0) {
         log("WARNING: Terrain API failed to set non-blocking: %s", strerror(errno));
     }
-    
+
     /* Bind to port */
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);  /* Only local connections */
-    
+
     if (bind(s, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
         log("ERROR: Terrain API bind failed: %s", strerror(errno));
         CLOSE_SOCKET(s);
         return 0;
     }
-    
+
     /* Listen for connections */
     if (listen(s, 5) < 0) {
         log("ERROR: Terrain API listen failed: %s", strerror(errno));
         CLOSE_SOCKET(s);
         return 0;
     }
-    
+
     terrain_api->server_socket = s;
     terrain_api->port = port;
-    
+
     log("Terrain API server listening on localhost:%d", port);
     return 1;
 }
@@ -1248,23 +1248,23 @@ char *process_terrain_request(const char *json_request) {
     const char *command;
     int x, y;
     char *response_str;
-    
+
     /* Parse JSON request */
     root = json_tokener_parse(json_request);
     if (!root) {
         return strdup("{\"error\":\"Invalid JSON\"}");
     }
-    
+
     /* Get command */
     if (!json_object_object_get_ex(root, "command", &cmd_obj)) {
         json_object_put(root);
         return strdup("{\"error\":\"Missing command\"}");
     }
     command = json_object_get_string(cmd_obj);
-    
+
     /* Create response object */
     response = json_object_new_object();
-    
+
     if (strcmp(command, "get_terrain") == 0) {
         /* Get coordinates */
         if (!json_object_object_get_ex(root, "x", &x_obj) ||
@@ -1273,7 +1273,7 @@ char *process_terrain_request(const char *json_request) {
         } else {
             x = json_object_get_int(x_obj);
             y = json_object_get_int(y_obj);
-            
+
             /* Validate coordinates */
             if (x < -1024 || x > 1024 || y < -1024 || y > 1024) {
                 json_object_object_add(response, "error", json_object_new_string("Invalid coordinates"));
@@ -1284,7 +1284,7 @@ char *process_terrain_request(const char *json_request) {
                 int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);
                 int sector = get_sector_type(elevation, temperature, moisture);
                 int weather = get_weather(x, y);
-                
+
                 /* Build result object */
                 result_obj = json_object_new_object();
                 json_object_object_add(result_obj, "x", json_object_new_int(x));
@@ -1293,10 +1293,10 @@ char *process_terrain_request(const char *json_request) {
                 json_object_object_add(result_obj, "moisture", json_object_new_int(moisture));
                 json_object_object_add(result_obj, "temperature", json_object_new_int(temperature));
                 json_object_object_add(result_obj, "sector_type", json_object_new_int(sector));
-                json_object_object_add(result_obj, "sector_name", 
+                json_object_object_add(result_obj, "sector_name",
                                      json_object_new_string(sector_types[sector].name));
                 json_object_object_add(result_obj, "weather", json_object_new_int(weather));
-                
+
                 json_object_object_add(response, "success", json_object_new_boolean(TRUE));
                 json_object_object_add(response, "data", result_obj);
             }
@@ -1309,17 +1309,17 @@ char *process_terrain_request(const char *json_request) {
         } else {
             json_object *x_min_obj, *x_max_obj, *y_min_obj, *y_max_obj;
             int x_min, x_max, y_min, y_max;
-            
+
             if (json_object_object_get_ex(params_obj, "x_min", &x_min_obj) &&
                 json_object_object_get_ex(params_obj, "x_max", &x_max_obj) &&
                 json_object_object_get_ex(params_obj, "y_min", &y_min_obj) &&
                 json_object_object_get_ex(params_obj, "y_max", &y_max_obj)) {
-                
+
                 x_min = json_object_get_int(x_min_obj);
                 x_max = json_object_get_int(x_max_obj);
                 y_min = json_object_get_int(y_min_obj);
                 y_max = json_object_get_int(y_max_obj);
-                
+
                 /* Validate batch size */
                 int total_coords = (x_max - x_min + 1) * (y_max - y_min + 1);
                 if (total_coords > 1000) {
@@ -1327,27 +1327,27 @@ char *process_terrain_request(const char *json_request) {
                 } else {
                     /* Process batch */
                     json_object *data_array = json_object_new_array();
-                    
+
                     for (int bx = x_min; bx <= x_max; bx++) {
                         for (int by = y_min; by <= y_max; by++) {
                             json_object *coord_obj = json_object_new_object();
-                            
+
                             int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, bx, by);
                             int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, bx, by);
                             int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, bx, by);
                             int sector = get_sector_type(elevation, temperature, moisture);
-                            
+
                             json_object_object_add(coord_obj, "x", json_object_new_int(bx));
                             json_object_object_add(coord_obj, "y", json_object_new_int(by));
                             json_object_object_add(coord_obj, "elevation", json_object_new_int(elevation));
                             json_object_object_add(coord_obj, "moisture", json_object_new_int(moisture));
                             json_object_object_add(coord_obj, "temperature", json_object_new_int(temperature));
                             json_object_object_add(coord_obj, "sector_type", json_object_new_int(sector));
-                            
+
                             json_object_array_add(data_array, coord_obj);
                         }
                     }
-                    
+
                     json_object_object_add(response, "success", json_object_new_boolean(TRUE));
                     json_object_object_add(response, "data", data_array);
                     json_object_object_add(response, "count", json_object_new_int(total_coords));
@@ -1360,7 +1360,7 @@ char *process_terrain_request(const char *json_request) {
     else if (strcmp(command, "get_static_rooms") == 0) {
         /* Return static wilderness rooms */
         json_object *rooms_array = json_object_new_array();
-        
+
         for (room_vnum vnum = WILD_ROOM_VNUM_START; vnum <= WILD_ROOM_VNUM_END; vnum++) {
             room_rnum real_rm = real_room(vnum);
             if (real_rm != NOWHERE && (world[real_rm].coords[0] != 0 || world[real_rm].coords[1] != 0)) {
@@ -1368,13 +1368,13 @@ char *process_terrain_request(const char *json_request) {
                 json_object_object_add(room_obj, "vnum", json_object_new_int(vnum));
                 json_object_object_add(room_obj, "x", json_object_new_int(world[real_rm].coords[0]));
                 json_object_object_add(room_obj, "y", json_object_new_int(world[real_rm].coords[1]));
-                json_object_object_add(room_obj, "name", 
+                json_object_object_add(room_obj, "name",
                                      json_object_new_string(world[real_rm].name ? world[real_rm].name : "Unnamed"));
                 json_object_object_add(room_obj, "sector_type", json_object_new_int(world[real_rm].sector_type));
                 json_object_array_add(rooms_array, room_obj);
             }
         }
-        
+
         json_object_object_add(response, "success", json_object_new_boolean(TRUE));
         json_object_object_add(response, "data", rooms_array);
     }
@@ -1386,14 +1386,14 @@ char *process_terrain_request(const char *json_request) {
     else {
         json_object_object_add(response, "error", json_object_new_string("Unknown command"));
     }
-    
+
     /* Convert response to string */
     response_str = strdup(json_object_to_json_string(response));
-    
+
     /* Cleanup */
     json_object_put(root);
     json_object_put(response);
-    
+
     return response_str;
 }
 
@@ -1402,10 +1402,10 @@ void terrain_api_process(void) {
     if (!terrain_api || terrain_api->server_socket == INVALID_SOCKET) {
         return;
     }
-    
+
     /* Accept new connections */
     terrain_api_accept_connections();
-    
+
     /* Process existing client requests */
     terrain_api_process_clients();
 }
@@ -1421,26 +1421,26 @@ class LuminariTerrainAPI:
     def __init__(self, host='localhost', port=8182):
         self.host = host
         self.port = port
-    
+
     def _send_request(self, request_data):
         """Send request via TCP socket"""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5.0)
             sock.connect((self.host, self.port))
-            
+
             # Send JSON request
             request_json = json.dumps(request_data)
             sock.send((request_json + '\n').encode('utf-8'))
-            
+
             # Receive response
             response = sock.recv(4096).decode('utf-8')
             sock.close()
-            
+
             return json.loads(response)
         except Exception as e:
             return {"error": f"Connection failed: {str(e)}"}
-    
+
     def get_terrain(self, x, y):
         """Get terrain data for single coordinate"""
         request = {
@@ -1449,7 +1449,7 @@ class LuminariTerrainAPI:
             "y": y
         }
         return self._send_request(request)
-    
+
     def get_terrain_batch(self, x_min, y_min, x_max, y_max):
         """Get terrain data for coordinate range"""
         request = {
@@ -1462,12 +1462,12 @@ class LuminariTerrainAPI:
             }
         }
         return self._send_request(request)
-    
+
     def get_static_rooms(self):
         """Get all static wilderness rooms"""
         request = {"command": "get_static_rooms"}
         return self._send_request(request)
-    
+
     def ping(self):
         """Test server connectivity"""
         request = {"command": "ping"}
@@ -1502,34 +1502,34 @@ For localhost-only communication, Unix domain sockets are faster:
 int start_terrain_api_unix_server(const char *socket_path) {
     socket_t s;
     struct sockaddr_un sa;
-    
+
     if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         log("ERROR: Unix socket creation failed: %s", strerror(errno));
         return 0;
     }
-    
+
     /* Remove existing socket file */
     unlink(socket_path);
-    
+
     memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, socket_path, sizeof(sa.sun_path) - 1);
-    
+
     if (bind(s, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
         log("ERROR: Unix socket bind failed: %s", strerror(errno));
         CLOSE_SOCKET(s);
         return 0;
     }
-    
+
     if (listen(s, 5) < 0) {
         log("ERROR: Unix socket listen failed: %s", strerror(errno));
         CLOSE_SOCKET(s);
         return 0;
     }
-    
+
     /* Set permissions for API access */
     chmod(socket_path, 0666);
-    
+
     terrain_api->server_socket = s;
     log("Terrain API server listening on Unix socket: %s", socket_path);
     return 1;
@@ -1546,28 +1546,28 @@ void init_terrain_api_fifos(const char *request_fifo, const char *response_fifo)
     /* Create named pipes */
     mkfifo(request_fifo, 0666);
     mkfifo(response_fifo, 0666);
-    
+
     /* Add to main game loop to check for requests */
     terrain_api->request_fd = open(request_fifo, O_RDONLY | O_NONBLOCK);
     terrain_api->response_fd = open(response_fifo, O_WRONLY | O_NONBLOCK);
-    
+
     log("Terrain API FIFO ready: %s -> %s", request_fifo, response_fifo);
 }
 
 void process_terrain_api_fifo(void) {
     char buffer[4096];
     ssize_t bytes_read;
-    
+
     /* Check for requests */
     bytes_read = read(terrain_api->request_fd, buffer, sizeof(buffer) - 1);
     if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
-        
+
         /* Process request and send response */
         char *response = process_terrain_request(buffer);
         write(terrain_api->response_fd, response, strlen(response));
         write(terrain_api->response_fd, "\n", 1);
-        
+
         free(response);
     }
 }
@@ -1591,16 +1591,16 @@ struct terrain_shared_memory {
 void init_terrain_api_shared_memory(void) {
     int shm_fd = shm_open("/luminari_terrain_api", O_CREAT | O_RDWR, 0666);
     ftruncate(shm_fd, sizeof(struct terrain_shared_memory));
-    
+
     terrain_api->shared_mem = mmap(NULL, sizeof(struct terrain_shared_memory),
                                    PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    
+
     /* Initialize synchronization primitives */
     pthread_mutexattr_t mutex_attr;
     pthread_mutexattr_init(&mutex_attr);
     pthread_mutexattr_setpshared(&mutex_attr, PTHREAD_PROCESS_SHARED);
     pthread_mutex_init(&terrain_api->shared_mem->mutex, &mutex_attr);
-    
+
     log("Terrain API shared memory initialized");
 }
 ```
@@ -1620,7 +1620,7 @@ void init_terrain_api_shared_memory(void) {
 ACMD(do_terrain_api) {
     char arg[MAX_INPUT_LENGTH];
     one_argument(argument, arg);
-    
+
     if (is_abbrev(arg, "start")) {
         if (start_terrain_api_server(8182)) {
             send_to_char(ch, "Terrain API server started on port 8182\r\n");
@@ -1694,7 +1694,7 @@ CREATE TABLE luminari_api.wilderness_config (
 
 -- Static wilderness rooms (builder-created)
 CREATE VIEW luminari_api.wilderness_static_rooms AS
-SELECT 
+SELECT
     room_vnum,
     room_name,
     room_description,
@@ -1706,7 +1706,7 @@ SELECT
     zone_vnum,
     'static' as room_type
 FROM (
-    SELECT 
+    SELECT
         world.number as room_vnum,
         world.name as room_name,
         world.description as room_description,
@@ -1716,7 +1716,7 @@ FROM (
         sector_types.name as sector_name,
         zone_table.name as zone_name,
         zone_table.number as zone_vnum
-    FROM world 
+    FROM world
     JOIN zone_table ON world.zone = zone_table.id
     JOIN sector_types ON world.sector_type = sector_types.id
     WHERE world.number BETWEEN 1000000 AND 1003999
@@ -1731,7 +1731,7 @@ FROM (
 void update_wilderness_terrain_cache() {
     char query[2048];
     int x, y;
-    
+
     for (x = -1024; x <= 1024; x += 8) {  // Sample every 8 coordinates for performance
         for (y = -1024; y <= 1024; y += 8) {
             int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
@@ -1739,7 +1739,7 @@ void update_wilderness_terrain_cache() {
             int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);
             int base_sector = get_sector_type(elevation, temperature, moisture);
             int weather = get_weather(x, y);
-            
+
             snprintf(query, sizeof(query),
                 "INSERT INTO luminari_api.wilderness_terrain_cache "
                 "(x_coordinate, y_coordinate, elevation_raw, moisture_raw, "
@@ -1748,10 +1748,10 @@ void update_wilderness_terrain_cache() {
                 "ON DUPLICATE KEY UPDATE "
                 "elevation_raw = %d, moisture_raw = %d, temperature_calculated = %d, "
                 "sector_type_base = %d, weather_current = %d, last_updated = NOW()",
-                x, y, elevation, moisture, temperature, base_sector, 
+                x, y, elevation, moisture, temperature, base_sector,
                 sector_types[base_sector], weather,
                 elevation, moisture, temperature, base_sector, weather);
-                
+
             mysql_query(conn, query);
         }
     }
@@ -1761,24 +1761,24 @@ void update_wilderness_terrain_cache() {
 void discover_wilderness_connections() {
     room_rnum room;
     char query[1024];
-    
+
     // Scan all rooms for wilderness connections
     for (room = 0; room <= top_of_world; room++) {
         if (!ZONE_FLAGGED(world[room].zone, ZONE_WILDERNESS)) {
             // Check if any exits lead to wilderness (room 1000000 or wilderness rooms)
             for (int dir = 0; dir < NUM_OF_DIRS; dir++) {
-                if (world[room].dir_option[dir] && 
+                if (world[room].dir_option[dir] &&
                     (world[room].dir_option[dir]->to_room == real_room(1000000) ||
                      IS_WILDERNESS_VNUM(world[world[room].dir_option[dir]->to_room].number))) {
-                    
+
                     room_rnum dest = world[room].dir_option[dir]->to_room;
                     int wild_x = 0, wild_y = 0;
-                    
+
                     if (dest != NOWHERE && world[dest].coords[0] != 0) {
                         wild_x = world[dest].coords[0];
                         wild_y = world[dest].coords[1];
                     }
-                    
+
                     snprintf(query, sizeof(query),
                         "INSERT IGNORE INTO luminari_api.wilderness_connections "
                         "(zone_vnum, zone_name, room_vnum, room_name, wilderness_x, wilderness_y, "
@@ -1791,7 +1791,7 @@ void discover_wilderness_connections() {
                         world[room].name,
                         wild_x, wild_y,
                         dirs[dir], wild_x, wild_y);
-                        
+
                     mysql_query(conn, query);
                 }
             }
@@ -1869,12 +1869,12 @@ CREATE TABLE luminari_api.zones (
 void export_world_data_to_api() {
     room_rnum room;
     zone_rnum zone;
-    
+
     // Export zones
     for (zone = 0; zone <= top_of_zone_table; zone++) {
         export_zone_to_api(&zone_table[zone]);
     }
-    
+
     // Export rooms  
     for (room = 0; room <= top_of_world; room++) {
         export_room_to_api(&world[room]);
@@ -1983,7 +1983,7 @@ CREATE TABLE luminari_api.object_affects (
 CREATE USER 'luminari_api'@'%' IDENTIFIED BY 'secure_api_password';
 GRANT SELECT ON luminari_api.* TO 'luminari_api'@'%';
 GRANT SELECT ON region_data TO 'luminari_api'@'%';
-GRANT SELECT ON region_index TO 'luminari_api'@'%'; 
+GRANT SELECT ON region_index TO 'luminari_api'@'%';
 GRANT SELECT ON path_data TO 'luminari_api'@'%';
 
 -- Create API keys table
@@ -2010,11 +2010,11 @@ async def get_wilderness_terrain(
     api_key: str = Header(...)
 ):
     """Get terrain data for specified coordinate bounds"""
-    
+
 @app.get("/api/v1/wilderness/connections")  
 async def get_wilderness_connections(zone_vnum: Optional[int] = None):
     """Get wilderness entry/exit points from regular zones"""
-    
+
 @app.get("/api/v1/wilderness/static-rooms")
 async def get_static_wilderness_rooms(
     x_min: Optional[int] = None, y_min: Optional[int] = None,

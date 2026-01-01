@@ -144,7 +144,7 @@ echo
 test_npc() {
     local npc_type="$1"
     local situation="$2"
-    
+
     echo "Testing: $npc_type"
     curl -s http://localhost:11434/api/generate -d "{
         \"model\": \"llama3.2:1b\",
@@ -257,20 +257,20 @@ static char *make_ollama_request(const char *prompt) {
     char *json_request;
     char *result = NULL;
     long http_code;
-    
+
     /* Build JSON request with proper escaping */
     json_request = build_ollama_json_request(prompt);
     if (!json_request) {
         return NULL;
     }
-    
+
     /* Initialize CURL */
     curl = curl_easy_init();
     if (!curl) {
         free(json_request);
         return NULL;
     }
-    
+
     /* Configure request */
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:11434/api/generate");
@@ -279,30 +279,30 @@ static char *make_ollama_request(const char *prompt) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L); /* 10 sec timeout */
-    
+
     /* Execute request */
     res = curl_easy_perform(curl);
-    
+
     if (res == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
         if (http_code == 200 && response.data) {
             result = parse_ollama_json_response(response.data);
         }
     }
-    
+
     /* Cleanup */
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
     free(json_request);
     if (response.data) free(response.data);
-    
+
     return result;
 }
 
 /* Example usage in NPC dialogue */
 void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input) {
     char prompt[MAX_STRING_LENGTH];
-    
+
     /* Build NPC-specific prompt */
     snprintf(prompt, sizeof(prompt),
         "You are %s in a fantasy RPG world. "
@@ -310,7 +310,7 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
         "Keep response under 100 words. "
         "Player says: %s",
         GET_NAME(npc), input);
-    
+
     /* Queue async request (non-blocking) */
     queue_ai_request(npc, ch, prompt);
 }

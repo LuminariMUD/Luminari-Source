@@ -152,7 +152,8 @@ ACMD(do_oasis_copy)
   OLC_NUM(d) = dst_vnum;
 
   /* Perform the copy. */
-  send_to_char(ch, "Copying %s: source: #%d, dest: #%d.\r\n", oasis_copy_info[i].text, src_vnum, dst_vnum);
+  send_to_char(ch, "Copying %s: source: #%d, dest: #%d.\r\n", oasis_copy_info[i].text, src_vnum,
+               dst_vnum);
 
   /* we are sending the vnum of the destination as our "mode" variable, this is an attempt to fix qcopy -zusuk */
   (*oasis_copy_info[i].setup_existing)(d, src_rnum, dst_vnum);
@@ -186,7 +187,6 @@ ACMD(do_dig)
     return;
   }
 
-  
 
   /* set up some variables */
   rawvnum = atoi(sroom);
@@ -250,8 +250,9 @@ ACMD(do_dig)
       send_to_char(ch, "You remove the exit to the %s.\r\n", dirs[dir]);
       return;
     }
-    send_to_char(ch, "There is no exit to the %s.\r\n"
-                     "No exit removed.\r\n",
+    send_to_char(ch,
+                 "There is no exit to the %s.\r\n"
+                 "No exit removed.\r\n",
                  dirs[dir]);
     return;
   }
@@ -319,13 +320,13 @@ ACMD(do_dig)
   W_EXIT(IN_ROOM(ch), dir)->to_room = rrnum;
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
-  send_to_char(ch, "You make an exit %s to room %d (%s).\r\n",
-               dirs[dir], rvnum, world[rrnum].name);
+  send_to_char(ch, "You make an exit %s to room %d (%s).\r\n", dirs[dir], rvnum, world[rrnum].name);
 
   /* Check if we can dig from there to here. */
   if (W_EXIT(rrnum, rev_dir[dir]))
-    send_to_char(ch, "You cannot dig from %d to here. The target room already has an exit to the %s.\r\n",
-                 rvnum, dirs[rev_dir[dir]]);
+    send_to_char(
+        ch, "You cannot dig from %d to here. The target room already has an exit to the %s.\r\n",
+        rvnum, dirs[rev_dir[dir]]);
   else
   {
     CREATE(W_EXIT(rrnum, rev_dir[dir]), struct room_direction_data, 1);
@@ -378,16 +379,13 @@ int buildwalk(struct char_data *ch, int dir)
   room_vnum vnum;
   room_rnum rnum;
 
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BUILDWALK) &&
-      GET_LEVEL(ch) >= LVL_BUILDER)
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BUILDWALK) && GET_LEVEL(ch) >= LVL_BUILDER)
   {
-
     get_char_colors(ch);
 
     /* If this is a wilderness zone, set the coordinates */
     if (ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
     {
-
       new_x = X_LOC(ch);
       new_y = Y_LOC(ch);
 
@@ -485,7 +483,6 @@ int buildwalk(struct char_data *ch, int dir)
       }
       else
       {
-
         CREATE(EXIT(ch, dir), struct room_direction_data, 1);
         EXIT(ch, dir)->to_room = rnum;
         CREATE(world[rnum].dir_option[rev_dir[dir]], struct room_direction_data, 1);
@@ -506,7 +503,6 @@ int buildwalk(struct char_data *ch, int dir)
 
 ACMDU(do_buildwalk)
 {
-
   char arg1[200], arg2[800], temp[200];
   int i = 0, j = 0, cnt = 0;
 
@@ -659,13 +655,15 @@ ACMDU(do_buildwalk)
   }
   else
   {
-    send_to_char(ch, "Choose one of the following:\r\n"
-                     "buildwalk               : toggle buildwalk on or off\r\n"
-                     "buildwalk settings      : show all current buildwalk settings\r\n"
-                     "buildwalk reset         : reset/remove all extra buildwalk settings (will not toggle on/off though)\r\n"
-                     "buildwalk sector (type) : set the default buildwalk sector type\r\n"
-                     "buildwalk flag (flag)   : add/remove a specific room flag for new buildwalk rooms\r\n"
-                     "buildwalk name (name)   : set a default room name for new buildwalk rooms\r\n"
-                     "buildwalk desc (desc)   : set a default room description for new buildwalk rooms\r\n");
+    send_to_char(
+        ch, "Choose one of the following:\r\n"
+            "buildwalk               : toggle buildwalk on or off\r\n"
+            "buildwalk settings      : show all current buildwalk settings\r\n"
+            "buildwalk reset         : reset/remove all extra buildwalk settings (will not toggle "
+            "on/off though)\r\n"
+            "buildwalk sector (type) : set the default buildwalk sector type\r\n"
+            "buildwalk flag (flag)   : add/remove a specific room flag for new buildwalk rooms\r\n"
+            "buildwalk name (name)   : set a default room name for new buildwalk rooms\r\n"
+            "buildwalk desc (desc)   : set a default room description for new buildwalk rooms\r\n");
   }
 }

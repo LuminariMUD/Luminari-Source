@@ -79,54 +79,27 @@ bool is_wall_spell(int spellnum)
 
 struct wall_information wallinfo[NUM_WALL_TYPES] = {
     /* WALL_TYPE_FORCE 0 */
-    {TRUE,
-     SPELL_WALL_OF_FORCE,
-     "\tRA wall of force stands towards the %s.\tn",
-     "\tRa wall of force\tn",
-     "wall force",
-     1},
+    {TRUE, SPELL_WALL_OF_FORCE, "\tRA wall of force stands towards the %s.\tn",
+     "\tRa wall of force\tn", "wall force", 1},
     /* WALL_TYPE_FIRE 1 */
-    {FALSE,
-     SPELL_WALL_OF_FIRE,
-     "\trA wall of f\tRi\trre stands towards the %s.\tn",
-     "\tra wall of fire\tn",
-     "wall fire",
-     0},
+    {FALSE, SPELL_WALL_OF_FIRE, "\trA wall of f\tRi\trre stands towards the %s.\tn",
+     "\tra wall of fire\tn", "wall fire", 0},
     /* WALL_TYPE_THORNS 2 */
-    {FALSE,
-     SPELL_WALL_OF_THORNS,
-     "\tGA wall of thorns stands towards the %s.\tn",
-     "\tGa wall of thorns\tn",
-     "wall thorns",
-     0},
+    {FALSE, SPELL_WALL_OF_THORNS, "\tGA wall of thorns stands towards the %s.\tn",
+     "\tGa wall of thorns\tn", "wall thorns", 0},
     /* WALL_TYPE_FOG 3 */
-    {FALSE,
-     SPELL_WALL_OF_FOG,
-     "\tCA foggy cloud forms a wall towards the %s.\tn",
-     "\tCa wall of fog\tn",
-     "wall fog",
-     0},
+    {FALSE, SPELL_WALL_OF_FOG, "\tCA foggy cloud forms a wall towards the %s.\tn",
+     "\tCa wall of fog\tn", "wall fog", 0},
     /* WALL_TYPE_PRISM 4 */
-    {FALSE,
-     SPELL_PRISMATIC_SPHERE,
-     "\tnA \tRp\tYr\tBi\tMs\tWm\tn forms a wall towards the %s.\tn",
-     "\tna wall of \tRp\tYr\tBi\tMs\tWm\tn",
-     "wall prism",
-     0},
+    {FALSE, SPELL_PRISMATIC_SPHERE, "\tnA \tRp\tYr\tBi\tMs\tWm\tn forms a wall towards the %s.\tn",
+     "\tna wall of \tRp\tYr\tBi\tMs\tWm\tn", "wall prism", 0},
     /* WALL_TYPE_ECTOPLASM 5 */
-    {TRUE,
-     PSIONIC_WALL_OF_ECTOPLASM,
-     "\tnA sphere of ectoplasm forms a wall towards the %s.\tn",
-     "\tna wall of ectoplasm",
-     "wall ectoplasm",
-     10},
+    {TRUE, PSIONIC_WALL_OF_ECTOPLASM, "\tnA sphere of ectoplasm forms a wall towards the %s.\tn",
+     "\tna wall of ectoplasm", "wall ectoplasm", 10},
     /* WALL_TYPE_FIRE 6 */
-    {FALSE,
-     WARLOCK_WALL_OF_PERILOUS_FLAME,
-     "\trA wall of perilous f\tRi\trre stands towards the %s.\tn",
-     "\tra wall of perilous fire\tn",
-     "wall perilous fire",
-     0},
+    {FALSE, WARLOCK_WALL_OF_PERILOUS_FLAME,
+     "\trA wall of perilous f\tRi\trre stands towards the %s.\tn", "\tra wall of perilous fire\tn",
+     "wall perilous fire", 0},
 };
 
 /* called from movement, etc..  basically make the wall work - we will try
@@ -145,7 +118,6 @@ bool check_wall(struct char_data *victim, int dir)
   {
     if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir)
     {
-
       /* find the wall spellnum */
       wall_spellnum = wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].spell_num;
 
@@ -181,7 +153,8 @@ bool check_wall(struct char_data *victim, int dir)
         /* we can add mag_effects, whatever we want here */
 
         /* the "creator" or caster of the spell was determined above */
-        if (!found_player && mag_damage(level, victim, victim, NULL, wall_spellnum, 0, SAVING_FORT, casttype) < 0)
+        if (!found_player &&
+            mag_damage(level, victim, victim, NULL, wall_spellnum, 0, SAVING_FORT, casttype) < 0)
         {
           return TRUE; /* couldn't find the creator, victim died! */
         }
@@ -199,7 +172,7 @@ bool check_wall(struct char_data *victim, int dir)
       }
 
     } /* end check to see if this is a valid wall */
-  }   /* end room search for walls */
+  } /* end room search for walls */
 
   return FALSE;
 }
@@ -282,7 +255,6 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
  */
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock)
 {
-
   if (dest == NOWHERE)
     return FALSE;
 
@@ -369,8 +341,8 @@ int isname_obj(char *search, char *list)
 }
 
 /* the main engine of charm spell, and similar */
-void effect_charm(struct char_data *ch, struct char_data *victim,
-                  int spellnum, int casttype, int level)
+void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, int casttype,
+                  int level)
 {
   struct affected_type af;
   int bonus = 0;
@@ -413,14 +385,16 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if (AFF_FLAGGED(victim, AFF_CHARM))
     send_to_char(ch, "Your victim is already charmed.\r\n");
 
-  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) || GET_LEVEL(victim) >= 8))
+  else if (spellnum == SPELL_CHARM &&
+           (CASTER_LEVEL(ch) < GET_LEVEL(victim) || GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
   // else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
   else if (IS_NPC(victim) && !can_add_follower(ch, GET_MOB_VNUM(victim)))
     send_to_char(ch, "You can not manage more followers!\r\n");
 
-  else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION || spellnum == WARLOCK_CHARM) &&
+  else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION ||
+            spellnum == WARLOCK_CHARM) &&
            CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
@@ -504,8 +478,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 
 /* TODO:  add strength/etc to affection struct, that'd help a lot especially
    here */
-void perform_dispel(struct char_data *ch, struct char_data *vict,
-                    struct obj_data *obj, int spellnum)
+void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_data *obj,
+                    int spellnum)
 {
   int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
   bool wildshape = false;
@@ -515,7 +489,6 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
   {
     if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG)))
     {
-
       // if (SECT(ch->in_room) != SECT_CLOUDS && SECT(ch->in_room) != SECT_SHADOWPLANE) {
       REMOVE_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG));
       send_to_room(IN_ROOM(ch), "\tWThe fog dissipates into thin air!\tn\r\n");
@@ -555,8 +528,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     while (ch->affected)
     {
       if (get_wearoff(ch->affected->spell))
-        send_to_char(ch, "%s\r\n",
-                     get_wearoff(ch->affected->spell));
+        send_to_char(ch, "%s\r\n", get_wearoff(ch->affected->spell));
       affect_remove(ch, ch->affected);
     }
     if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
@@ -572,7 +544,8 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     attempt = d20(ch) + CASTER_LEVEL(ch);
     challenge = d20(vict) + CASTER_LEVEL(vict);
 
-    if (spellnum == SPELL_GREATER_DISPELLING || spellnum == WARLOCK_VORACIOUS_DISPELLING || spellnum == WARLOCK_DEVOUR_MAGIC)
+    if (spellnum == SPELL_GREATER_DISPELLING || spellnum == WARLOCK_VORACIOUS_DISPELLING ||
+        spellnum == WARLOCK_DEVOUR_MAGIC)
     {
       num_dispels = dice(2, 2);
       for (i = 0; i < num_dispels; i++)
@@ -584,18 +557,20 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
             if (vict->affected[0].spell == WARLOCK_RETRIBUTIVE_INVISIBILITY)
             {
               // this spell explodes.
-              mag_areas(GET_WARLOCK_LEVEL(vict), vict, NULL, WARLOCK_RETRIBUTIVE_INVISIBILITY, 0, SAVING_FORT, CAST_INNATE);
+              mag_areas(GET_WARLOCK_LEVEL(vict), vict, NULL, WARLOCK_RETRIBUTIVE_INVISIBILITY, 0,
+                        SAVING_FORT, CAST_INNATE);
             }
             msg = TRUE;
             affect_remove(vict, vict->affected);
             if (spellnum == WARLOCK_VORACIOUS_DISPELLING)
             {
               damage(ch, vict, CASTER_LEVEL(ch) / 2, WARLOCK_VORACIOUS_DISPELLING, DAM_FORCE, 0);
-            }    
+            }
             else if (spellnum == WARLOCK_DEVOUR_MAGIC)
             {
-              mag_affects(GET_WARLOCK_LEVEL(ch), ch, ch, NULL, WARLOCK_DEVOUR_MAGIC, -1, CAST_INNATE, 0);
-            } 
+              mag_affects(GET_WARLOCK_LEVEL(ch), ch, ch, NULL, WARLOCK_DEVOUR_MAGIC, -1,
+                          CAST_INNATE, 0);
+            }
           }
         }
         attempt = d20(ch) + CASTER_LEVEL(ch);
@@ -815,28 +790,32 @@ EVENTFUNC(event_aqueous_orb)
 
   if (!IS_LIVING(victim))
   {
-    act("Without the need to breathe, being engulfed in the aqueous orb does not harm you at all.", FALSE, victim, 0, 0, TO_CHAR);
-    act("Without the need to breathe, being engulfed in the aqueous orb does not harm $n at all.", FALSE, victim, 0, 0, TO_ROOM);
+    act("Without the need to breathe, being engulfed in the aqueous orb does not harm you at all.",
+        FALSE, victim, 0, 0, TO_CHAR);
+    act("Without the need to breathe, being engulfed in the aqueous orb does not harm $n at all.",
+        FALSE, victim, 0, 0, TO_ROOM);
     return 0;
   }
 
   if (AFF_FLAGGED(victim, AFF_WATER_BREATH))
   {
-    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm you at all.", FALSE, victim, 0, 0, TO_CHAR);
-    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm $n at all.", FALSE, victim, 0, 0, TO_ROOM);
+    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm you at "
+        "all.",
+        FALSE, victim, 0, 0, TO_CHAR);
+    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm $n at "
+        "all.",
+        FALSE, victim, 0, 0, TO_ROOM);
     return 0;
   }
 
-  is_fire = (GET_SUBRACE(victim, 0) == SUBRACE_FIRE || 
-            GET_SUBRACE(victim, 1) == SUBRACE_FIRE || 
-            GET_SUBRACE(victim, 2) == SUBRACE_FIRE || 
-            GET_RACE(victim) == RACE_SMALL_FIRE_ELEMENTAL || 
-            GET_RACE(victim) == RACE_MEDIUM_FIRE_ELEMENTAL || 
-            GET_RACE(victim) == RACE_LARGE_FIRE_ELEMENTAL || 
-            GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL ||
-            GET_RACE(victim) == RACE_GARGANTUAN_FIRE_ELEMENTAL ||
-            GET_RACE(victim) == RACE_COLOSSAL_FIRE_ELEMENTAL
-            );
+  is_fire =
+      (GET_SUBRACE(victim, 0) == SUBRACE_FIRE || GET_SUBRACE(victim, 1) == SUBRACE_FIRE ||
+       GET_SUBRACE(victim, 2) == SUBRACE_FIRE || GET_RACE(victim) == RACE_SMALL_FIRE_ELEMENTAL ||
+       GET_RACE(victim) == RACE_MEDIUM_FIRE_ELEMENTAL ||
+       GET_RACE(victim) == RACE_LARGE_FIRE_ELEMENTAL ||
+       GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL ||
+       GET_RACE(victim) == RACE_GARGANTUAN_FIRE_ELEMENTAL ||
+       GET_RACE(victim) == RACE_COLOSSAL_FIRE_ELEMENTAL);
 
   /* how about wands and everything else?? */
   level = CASTER_LEVEL(ch);
@@ -894,11 +873,9 @@ EVENTFUNC(event_implode)
     level = 15; /* so lame */
 
   if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
-    damage(ch, victim, (dice(CASTER_LEVEL(ch), 6) / 2), SPELL_IMPLODE, DAM_PUNCTURE,
-           FALSE);
+    damage(ch, victim, (dice(CASTER_LEVEL(ch), 6) / 2), SPELL_IMPLODE, DAM_PUNCTURE, FALSE);
   else
-    damage(ch, victim, dice(CASTER_LEVEL(ch), 6), SPELL_IMPLODE, DAM_PUNCTURE,
-           FALSE);
+    damage(ch, victim, dice(CASTER_LEVEL(ch), 6), SPELL_IMPLODE, DAM_PUNCTURE, FALSE);
 
   update_pos(victim);
   return 0;
@@ -951,13 +928,17 @@ ASPELL(spell_control_summoned_creature)
 
   if (!IS_NPC(vict))
   {
-    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    send_to_char(
+        ch,
+        "You can only used this on mobs that are summoned through various summoning spells.\r\n");
     return;
   }
 
   if (!AFF_FLAGGED(vict, AFF_CHARM) || !vict->master)
   {
-    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    send_to_char(
+        ch,
+        "You can only used this on mobs that are summoned through various summoning spells.\r\n");
     return;
   }
 
@@ -965,11 +946,14 @@ ASPELL(spell_control_summoned_creature)
 
   if (!isSummonMob(GET_MOB_VNUM(vict)))
   {
-    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    send_to_char(
+        ch,
+        "You can only used this on mobs that are summoned through various summoning spells.\r\n");
     return;
   }
 
-  if (mag_resistance(ch, vict, 0) || savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(ch), ENCHANTMENT))
+  if (mag_resistance(ch, vict, 0) ||
+      savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(ch), ENCHANTMENT))
   {
     act("Your attempt to wrest control over $N fails.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n's attempt to wrest control over You fails.", FALSE, ch, 0, vict, TO_CHAR);
@@ -1018,7 +1002,8 @@ ASPELL(spell_siphon_might)
 
   if (!*arg1)
   {
-    send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might you'd like to siphon.\r\n");
+    send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might "
+                     "you'd like to siphon.\r\n");
     return;
   }
   if (!*arg2)
@@ -1029,7 +1014,8 @@ ASPELL(spell_siphon_might)
     }
     else
     {
-      send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might you'd like to siphon.\r\n");
+      send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might "
+                       "you'd like to siphon.\r\n");
       return;
     }
   }
@@ -1119,7 +1105,6 @@ ASPELL(spell_siphon_might)
 
 ASPELL(spell_human_potential)
 {
-
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   char which_stat[50] = {'\0'};
@@ -1151,7 +1136,8 @@ ASPELL(spell_human_potential)
 
   if (!*arg2)
   {
-    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.\r\n");
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, "
+                     "intelligence, wisdom, charisma.\r\n");
     return;
   }
 
@@ -1187,7 +1173,8 @@ ASPELL(spell_human_potential)
   }
   else
   {
-    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.2\r\n");
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, "
+                     "intelligence, wisdom, charisma.2\r\n");
     return;
   }
 
@@ -1202,12 +1189,10 @@ ASPELL(spell_human_potential)
   act(stat_buf, FALSE, ch, 0, vict, TO_VICT);
   snprintf(stat_buf, sizeof(stat_buf), "$N looks %s.", which_stat);
   act(stat_buf, FALSE, ch, 0, vict, TO_ROOM);
-
 }
 
 ASPELL(spell_mass_human_potential)
 {
-
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char which_stat[50] = {'\0'};
   char stat_buf[200] = {'\0'};
@@ -1219,7 +1204,8 @@ ASPELL(spell_mass_human_potential)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.\r\n");
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, "
+                     "intelligence, wisdom, charisma.\r\n");
     return;
   }
 
@@ -1255,7 +1241,8 @@ ASPELL(spell_mass_human_potential)
   }
   else
   {
-    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.2\r\n");
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, "
+                     "intelligence, wisdom, charisma.2\r\n");
     return;
   }
 
@@ -1303,7 +1290,9 @@ ASPELL(spell_aqueous_orb)
 
     for (wall = world[victim->in_room].contents; wall; wall = wall->next_content)
     {
-      if (GET_OBJ_TYPE(wall) == ITEM_WALL && (GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_FIRE || GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_PERILOUS_FIRE))
+      if (GET_OBJ_TYPE(wall) == ITEM_WALL &&
+          (GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_FIRE ||
+           GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_PERILOUS_FIRE))
       {
         send_to_char(ch, "You quench a wall of fire!\r\n");
         act("$n quenches a wall of fire!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1366,7 +1355,6 @@ ASPELL(spell_banish)
 
 ASPELL(spell_charm) // enchantment
 {
-
   if (victim == NULL || ch == NULL)
     return;
 
@@ -1375,7 +1363,6 @@ ASPELL(spell_charm) // enchantment
 
 ASPELL(spell_charm_monster) // enchantment
 {
-
   if (victim == NULL || ch == NULL)
     return;
 
@@ -1563,8 +1550,7 @@ ASPELL(spell_detect_poison)
       if (GET_OBJ_VAL(obj, 3))
         act("You sense that $p has been contaminated.", FALSE, ch, obj, 0, TO_CHAR);
       else
-        act("You sense that $p is safe for consumption.", FALSE, ch, obj, 0,
-            TO_CHAR);
+        act("You sense that $p is safe for consumption.", FALSE, ch, obj, 0, TO_CHAR);
       break;
     default:
       send_to_char(ch, "You sense that it should not be consumed.\r\n");
@@ -1618,7 +1604,8 @@ ASPELL(spell_overland_flight)
 
   if (zone == NULL || !*zone || strlen(zone) < 3)
   {
-    send_to_char(ch, "Please specify the area you'd like to fly to.  Type flightlist for a list.\r\n");
+    send_to_char(ch,
+                 "Please specify the area you'd like to fly to.  Type flightlist for a list.\r\n");
     return;
   }
 
@@ -1673,7 +1660,6 @@ ASPELL(spell_dismissal)
 
 ASPELL(spell_dispel_magic) // divination
 {
-
   if (ch == NULL)
     return;
   if (victim == NULL)
@@ -1702,7 +1688,8 @@ ASPELL(spell_enchant_item) // enchantment
     return;
 
   /* Either already enchanted or not a weapon. */
-  if ((GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR) || OBJ_FLAGGED(obj, ITEM_MAGIC))
+  if ((GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR) ||
+      OBJ_FLAGGED(obj, ITEM_MAGIC))
     eligible = false;
 
   /* Make sure no other affections. */
@@ -1725,9 +1712,11 @@ ASPELL(spell_enchant_item) // enchantment
 
   if (!eligible)
   {
-    send_to_char(ch, "Your spell failed.\r\n"
-                     "This spell will only work on nonmagical weapons and armor that offer no stat modifications.\r\n"
-                     "It will also fail on any worn equipment.  The item must be in your inventory");
+    send_to_char(ch,
+                 "Your spell failed.\r\n"
+                 "This spell will only work on nonmagical weapons and armor that offer no stat "
+                 "modifications.\r\n"
+                 "It will also fail on any worn equipment.  The item must be in your inventory");
     return;
   }
 
@@ -1786,10 +1775,8 @@ ASPELL(spell_group_summon)
     return;
   }
 
-  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
-         NULL)
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
-
     if (ch == tch)
       continue;
 
@@ -1899,8 +1886,8 @@ ASPELL(spell_locate_creature)
     if (is_abbrev(vname, iname) && CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE)
     {
       found = 1;
-      send_to_char(ch, "%3d. %-25s%s - %-25s%s", ++num, GET_NAME(i), QNRM,
-                   world[IN_ROOM(i)].name, QNRM);
+      send_to_char(ch, "%3d. %-25s%s - %-25s%s", ++num, GET_NAME(i), QNRM, world[IN_ROOM(i)].name,
+                   QNRM);
       send_to_char(ch, "%s\r\n", QNRM);
     }
   }
@@ -1940,7 +1927,6 @@ ASPELL(spell_locate_object)
   /* loop through object list */
   for (i = object_list; i && (j > 0); i = i->next)
   {
-
     /* found something, bingo! */
     if (CAN_SEE_OBJ(ch, i) && isname(cast_arg2, i->name))
     {
@@ -1972,18 +1958,20 @@ ASPELL(spell_locate_object)
 /* Callback for mass domination AoE effect */
 static int mass_domination_callback(struct char_data *ch, struct char_data *tch, void *data)
 {
-  struct mass_dom_data {
+  struct mass_dom_data
+  {
     int casttype;
     int level;
   } *dom_data = (struct mass_dom_data *)data;
-  
+
   effect_charm(ch, tch, SPELL_MASS_DOMINATION, dom_data->casttype, dom_data->level);
   return 1;
 }
 
 ASPELL(spell_mass_domination) // enchantment
 {
-  struct mass_dom_data {
+  struct mass_dom_data
+  {
     int casttype;
     int level;
   } dom_data;
@@ -2015,7 +2003,6 @@ ASPELL(spell_plane_shift)
 
   if (is_abbrev(arg, "astral"))
   {
-
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE))
     {
       send_to_char(ch, "You are already on the astral plane!\r\n");
@@ -2029,7 +2016,6 @@ ASPELL(spell_plane_shift)
   }
   else if (is_abbrev(arg, "ethereal"))
   {
-
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE))
     {
       send_to_char(ch, "You are already on the ethereal plane!\r\n");
@@ -2043,7 +2029,6 @@ ASPELL(spell_plane_shift)
   }
   else if (is_abbrev(arg, "elemental"))
   {
-
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL))
     {
       send_to_char(ch, "You are already on the elemental plane!\r\n");
@@ -2057,13 +2042,11 @@ ASPELL(spell_plane_shift)
   }
   else if (is_abbrev(arg, "prime"))
   {
-
     if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
         !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
         !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL))
     {
-      send_to_char(ch,
-                   "You need to be off the prime plane to gate to it!\r\n");
+      send_to_char(ch, "You need to be off the prime plane to gate to it!\r\n");
       return;
     }
 
@@ -2087,8 +2070,7 @@ ASPELL(spell_plane_shift)
   }
 
   send_to_char(ch, "You slowly fade out of existence...\r\n");
-  act("$n slowly fades out of existence and is gone.",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n slowly fades out of existence and is gone.", FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
@@ -2156,25 +2138,25 @@ ASPELL(spell_geniekind)
 
   switch (geniekind)
   {
-    case GENIE_DJINNI:
-      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL, 0);
-      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL);
-      break;
-    case GENIE_EFREETI:
-      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL, 0);
-      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL);
-      break;
-    case GENIE_MARID:
-      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL, 0);
-      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL);
-      break;
-    case GENIE_SHAITAN:
-      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL, 0);
-      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL);
-      break;
-    default:
-      send_to_char(ch, "You were unable to summon any kind of genie.\r\n");
-      break;
+  case GENIE_DJINNI:
+    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL, 0);
+    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL);
+    break;
+  case GENIE_EFREETI:
+    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL, 0);
+    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL);
+    break;
+  case GENIE_MARID:
+    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL, 0);
+    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL);
+    break;
+  case GENIE_SHAITAN:
+    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL, 0);
+    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL);
+    break;
+  default:
+    send_to_char(ch, "You were unable to summon any kind of genie.\r\n");
+    break;
   }
 }
 
@@ -2528,11 +2510,9 @@ ASPELL(spell_salvation) // divination
     return;
   }
 
-  if (!PLR_FLAGGED(ch, PLR_SALVATION) ||
-      !GET_SALVATION_NAME(ch) ||
+  if (!PLR_FLAGGED(ch, PLR_SALVATION) || !GET_SALVATION_NAME(ch) ||
       GET_SALVATION_ROOM(ch) == NOWHERE)
   {
-
     if (!valid_mortal_tele_dest(ch, real_room(world[ch->in_room].number), TRUE))
     {
       send_to_char(ch, "You can't use salvation here.\r\n");
@@ -2702,7 +2682,8 @@ ASPELL(spell_spellstaff)
         GET_OBJ_VAL(staff, 0) = GET_LEVEL(ch); // new staff only cast at caster's level
         GET_OBJ_VAL(staff, 2) = 1;             // only good for 1 charge
         GET_OBJ_VAL(staff, 3) = spellnum;
-        send_to_char(ch, "You enchant %s with the %s spell.\r\n", staff->short_description, spell_info[spellnum].name);
+        send_to_char(ch, "You enchant %s with the %s spell.\r\n", staff->short_description,
+                     spell_info[spellnum].name);
         act("$n concentrates on enhancing the power of $p.", FALSE, ch, staff, 0, TO_ROOM);
       }
       else
@@ -2780,8 +2761,8 @@ ASPELL(spell_summon_instrument)
   /* Set basic object type and values */
   GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
   GET_OBJ_VAL(instrument, 0) = instrument_type;
-  GET_OBJ_VAL(instrument, 1) = 0; /* Quality */
-  GET_OBJ_VAL(instrument, 2) = 0; /* Effectiveness */
+  GET_OBJ_VAL(instrument, 1) = 0;  /* Quality */
+  GET_OBJ_VAL(instrument, 2) = 0;  /* Effectiveness */
   GET_OBJ_VAL(instrument, 3) = 10; /* 10% breakability */
 
   /* Set object properties */
@@ -2797,7 +2778,8 @@ ASPELL(spell_summon_instrument)
   instrument->short_description = strdup(short_buf);
 
   char long_buf[MAX_STRING_LENGTH] = {'\0'};
-  snprintf(long_buf, sizeof(long_buf), "A summoned %s lies here, waiting to make music.", instrument_lower);
+  snprintf(long_buf, sizeof(long_buf), "A summoned %s lies here, waiting to make music.",
+           instrument_lower);
   instrument->description = strdup(long_buf);
 
   /* Set object flags: NORENT and NOSELL */
@@ -2857,7 +2839,6 @@ ASPELL(warlock_charm)
 
 ASPELL(voracious_dispelling)
 {
-
   if (ch == NULL)
     return;
   if (victim == NULL)
@@ -2924,7 +2905,8 @@ ASPELL(eldritch_blast)
   struct list_data *target_list = NULL;
   struct char_data *tch = NULL, *next_tch = NULL;
 
-  if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN || GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM)
+  if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN ||
+      GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM)
   {
     /* we need to build a list of possible targets */
     target_list = create_list();
@@ -2933,17 +2915,19 @@ ASPELL(eldritch_blast)
       next_tch = tch->next_in_room;
       if (!aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST))
         continue;
-      else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN && target_list->iSize >= (GET_WARLOCK_LEVEL(ch) / 5))
+      else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN &&
+               target_list->iSize >= (GET_WARLOCK_LEVEL(ch) / 5))
         continue;
       add_to_list(tch, target_list);
     }
   }
-  
+
   // Check to see if the spell should miss
   if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM)
   {
     act("$n sends out an explosive blast of eldritch energy.", FALSE, ch, 0, tch, TO_ROOM);
-    act("You release an explosive blast of eldritch energy into the area.", FALSE, ch, 0, tch, TO_CHAR);
+    act("You release an explosive blast of eldritch energy into the area.", FALSE, ch, 0, tch,
+        TO_CHAR);
     add_to_list(victim, target_list);
     while (target_list->iSize > 0)
     {
@@ -2951,7 +2935,8 @@ ASPELL(eldritch_blast)
       tch = random_from_list(target_list);
       remove_from_list(tch, target_list);
       // Do the spell effects.
-      mag_damage(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, 0, SAVING_REFL, CAST_INNATE);
+      mag_damage(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, 0, SAVING_REFL,
+                 CAST_INNATE);
       mag_affects(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, -1, CAST_INNATE, 0);
       act("You're hit with a wave of eldritch energy from $n.", FALSE, ch, 0, tch, TO_VICT);
     }
@@ -2960,23 +2945,28 @@ ASPELL(eldritch_blast)
   {
     act("$n sends out a cone of eldritch energy.", FALSE, ch, 0, tch, TO_NOTVICT);
     act("You release a cone of eldritch energy into the area.", FALSE, ch, 0, tch, TO_CHAR);
-    mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, 0, SAVING_REFL, CAST_INNATE);
+    mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, 0, SAVING_REFL,
+               CAST_INNATE);
     mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, -1, CAST_INNATE, 0);
   }
-  else if (!(attack_result = attack_roll_with_critical(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0, 20)))
+  else if (!(attack_result =
+                 attack_roll_with_critical(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0, 20)))
   {
     act("You send a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim, TO_CHAR);
-    act("$n sends out a blast of energy towards you, but you avoid it.", FALSE, ch, 0, victim, TO_VICT);
-    act("$n sends out a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim, TO_NOTVICT);
+    act("$n sends out a blast of energy towards you, but you avoid it.", FALSE, ch, 0, victim,
+        TO_VICT);
+    act("$n sends out a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim,
+        TO_NOTVICT);
     free_list(target_list);
     return;
   }
   else if (GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
     const bool is_critical = attack_result == 999;
-    if (is_critical) 
+    if (is_critical)
     {
-      mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1,
+                 CAST_INNATE);
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
     else
@@ -2995,7 +2985,8 @@ ASPELL(eldritch_blast)
         mag_damage(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, 0, -1, CAST_INNATE);
         mag_affects(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, -1, CAST_INNATE, 0);
         act("An eldritch arc of energy jumps to you from $N's blast.", FALSE, ch, 0, tch, TO_VICT);
-        act("An eldritch arc of energy jumps to $E from $N's blast.", FALSE, ch, 0, tch, TO_NOTVICT);
+        act("An eldritch arc of energy jumps to $E from $N's blast.", FALSE, ch, 0, tch,
+            TO_NOTVICT);
         act("An eldritch arc of energy jumps to $E from your blast.", FALSE, ch, 0, tch, TO_CHAR);
       }
     }
@@ -3003,9 +2994,10 @@ ASPELL(eldritch_blast)
   else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
   {
     const bool is_critical = attack_result == 999;
-    if (is_critical) 
+    if (is_critical)
     {
-      mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1,
+                 CAST_INNATE);
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
     else
@@ -3020,8 +3012,8 @@ ASPELL(eldritch_blast)
 
 ASPELL(spell_summon)
 {
-  bool is_mission_mob(struct char_data *ch, struct char_data *mob);
-  
+  bool is_mission_mob(struct char_data * ch, struct char_data * mob);
+
   if (ch == NULL || victim == NULL)
     return;
 
@@ -3043,8 +3035,7 @@ ASPELL(spell_summon)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOSUMMON) ||
-      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOSUMMON))
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOSUMMON) || ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOSUMMON))
   {
     send_to_char(ch, "(no-summon room) %s", SUMMON_FAIL);
     return;
@@ -3060,17 +3051,18 @@ ASPELL(spell_summon)
           FALSE, ch, 0, victim, TO_CHAR);
       return;
     }
-    if (!IS_NPC(victim) && !PRF_FLAGGED(victim, PRF_SUMMONABLE) &&
-        !PLR_FLAGGED(victim, PLR_KILLER))
+    if (!IS_NPC(victim) && !PRF_FLAGGED(victim, PRF_SUMMONABLE) && !PLR_FLAGGED(victim, PLR_KILLER))
     {
-      send_to_char(victim, "%s just tried to summon you to: %s.\r\n"
-                           "%s failed because you have summon protection on.\r\n"
-                           "Type NOSUMMON to allow other players to summon you.\r\n",
+      send_to_char(victim,
+                   "%s just tried to summon you to: %s.\r\n"
+                   "%s failed because you have summon protection on.\r\n"
+                   "Type NOSUMMON to allow other players to summon you.\r\n",
                    GET_NAME(ch), world[IN_ROOM(ch)].name,
                    (ch->player.sex == SEX_MALE) ? "He" : "She");
 
       send_to_char(ch, "You failed because %s has summon protection on.\r\n", GET_NAME(victim));
-      mudlog(BRF, LVL_IMMORT, TRUE, "%s failed summoning %s to %s.", GET_NAME(ch), GET_NAME(victim), world[IN_ROOM(ch)].name);
+      mudlog(BRF, LVL_IMMORT, TRUE, "%s failed summoning %s to %s.", GET_NAME(ch), GET_NAME(victim),
+             world[IN_ROOM(ch)].name);
       return;
     }
   }
@@ -3089,7 +3081,8 @@ ASPELL(spell_summon)
 
   if (IS_POWERFUL_BEING(victim))
   {
-    send_to_char(ch, "Summon failed!  The target is a powerful being and easily dismisses your annoying magic!\r\n");
+    send_to_char(ch, "Summon failed!  The target is a powerful being and easily dismisses your "
+                     "annoying magic!\r\n");
     return;
   }
 
@@ -3128,7 +3121,6 @@ ASPELL(spell_summon)
 
 ASPELL(spell_gird_allies)
 {
-
   struct char_data *pet = NULL;
   struct affected_type af;
 
@@ -3152,7 +3144,6 @@ ASPELL(spell_gird_allies)
       affect_join(pet, &af, FALSE, FALSE, FALSE, FALSE);
     }
   }
-
 }
 
 ASPELL(spell_teleport)
@@ -3175,13 +3166,15 @@ ASPELL(spell_teleport)
 
   if (MOB_FLAGGED(victim, MOB_NOSUMMON))
   {
-    send_to_char(ch, "The teleportation magic while beginning to form, flashes brightly, then dies suddenly!\r\n");
+    send_to_char(ch, "The teleportation magic while beginning to form, flashes brightly, then dies "
+                     "suddenly!\r\n");
     return;
   }
 
   if (IS_POWERFUL_BEING(victim))
   {
-    send_to_char(ch, "Teleport failed!  The target is a powerful being and easily dismisses your magic from the other side!\r\n");
+    send_to_char(ch, "Teleport failed!  The target is a powerful being and easily dismisses your "
+                     "magic from the other side!\r\n");
     return;
   }
 
@@ -3218,8 +3211,7 @@ ASPELL(spell_teleport)
   }
 
   send_to_char(ch, "You slowly fade out of existence...\r\n");
-  act("$n slowly fades out of existence and is gone.",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n slowly fades out of existence and is gone.", FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
@@ -3295,13 +3287,13 @@ ASPELL(spell_shadow_jump)
 
   if (IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
   {
-    send_to_char(ch, "Either your current or target room is too bright to perform a shadow jump.\r\n");
+    send_to_char(ch,
+                 "Either your current or target room is too bright to perform a shadow jump.\r\n");
     return;
   }
 
   send_to_char(ch, "You slowly fade into the shadows...\r\n");
-  act("$n slowly fades into the shadows and is gone.",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n slowly fades into the shadows and is gone.", FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
@@ -3370,8 +3362,7 @@ ASPELL(psionic_psychoportation)
   }
 
   send_to_char(ch, "You slowly fade out of existence...\r\n");
-  act("$n slowly fades out of existence and is gone.",
-      FALSE, ch, 0, 0, TO_ROOM);
+  act("$n slowly fades out of existence and is gone.", FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
@@ -3452,11 +3443,17 @@ ASPELL(spell_resurrect)
   /* At this point the character is resurrected (nothing stopping us) */
   act("You howl in pain as your body is ripped to shreds.", FALSE, ressed, obj, 0, TO_CHAR);
   act("$n howls in pain as his body is ripped to shreds!", FALSE, ressed, obj, 0, TO_ROOM);
-  act("\tW$N\tn\tW's body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ressed, obj, ressed, TO_NOTVICT);
-  act("\tWYour body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ch, obj, ressed, TO_VICT);
+  act("\tW$N\tn\tW's body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into "
+      "\tn\tydust.\tn\n",
+      TRUE, ressed, obj, ressed, TO_NOTVICT);
+  act("\tWYour body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into "
+      "\tn\tydust.\tn\n",
+      TRUE, ch, obj, ressed, TO_VICT);
 
   /* here is the stored xp and 10% penalty on that */
-  exp = -GET_OBJ_VAL(obj, 5); /* this will be negative, so we are swapping it since we want to -gain- this xp back */
+  exp = -GET_OBJ_VAL(
+      obj,
+      5); /* this will be negative, so we are swapping it since we want to -gain- this xp back */
   if (GET_LEVEL(ch) < LVL_IMMORT && GET_LEVEL(ressed) < LVL_IMMORT)
   {
     exp /= 10;
@@ -3563,7 +3560,8 @@ ASPELL(spell_resurrect)
 
   act("\twYou feel a \tn\tWPresence \tn\twtouch you, its divine hand cupping itself\n"
       "\twaround your \tn\tcsoul \tn\twand drawing it forth from your current body. For\n"
-      "\twone brief instant, you witness the enormity of the \tn\tLuni\tn\tCve\tn\tcrse\tn\tw before\n"
+      "\twone brief instant, you witness the enormity of the \tn\tLuni\tn\tCve\tn\tcrse\tn\tw "
+      "before\n"
       "\twyour \tn\tcsoul \tn\twis gently deposited into your previous body, at the feet of $n.\tn",
       TRUE, ch, obj, ressed, TO_VICT);
 
@@ -3945,7 +3943,6 @@ EVENTFUNC(event_power_leech)
 // static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum) {
 ASPELL(spell_augury)
 {
-
   if (IN_ROOM(ch) == NOWHERE)
     return;
 
@@ -3986,45 +3983,33 @@ ASPELL(spell_augury)
       switch (ZOCMD.command)
       {
       case 'I':
-        send_to_char(ch, "%sMay have random treasure (%d%%)",
-                     ZOCMD.if_flag ? " then " : "",
+        send_to_char(ch, "%sMay have random treasure (%d%%)", ZOCMD.if_flag ? " then " : "",
                      ZOCMD.arg1);
         break;
       case 'L':
         send_to_char(ch, "%sMay have random treasure in %s [%s%d%s] (%d%%)",
-                     ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description,
-                     cyn, obj_index[ZOCMD.arg1].vnum, yel,
-                     ZOCMD.arg2);
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
       case 'M':
-        send_to_char(ch, "%s%s may be found here.\r\n",
-                     ZOCMD.if_flag ? " then " : "",
+        send_to_char(ch, "%s%s may be found here.\r\n", ZOCMD.if_flag ? " then " : "",
                      mob_proto[ZOCMD.arg1].player.short_descr);
         break;
       case 'G':
-        send_to_char(ch, "%sthey may possess %s [%s%d%s].\r\n",
-                     ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description,
-                     cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%sthey may possess %s [%s%d%s].\r\n", ZOCMD.if_flag ? " then " : "",
+                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'O':
-        send_to_char(ch, "%s%s may be found here. [%s%d%s]\r\n",
-                     ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description,
-                     cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%s%s may be found here. [%s%d%s]\r\n", ZOCMD.if_flag ? " then " : "",
+                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'E':
-        send_to_char(ch, "%s they may equip %s  [%s%d%s].\r\n",
-                     ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description,
-                     cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%s they may equip %s  [%s%d%s].\r\n", ZOCMD.if_flag ? " then " : "",
+                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'P':
-        send_to_char(ch, "%s%s [%s%d%s] may be inside %s.\r\n",
-                     ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description,
-                     cyn, obj_index[ZOCMD.arg1].vnum, yel,
+        send_to_char(ch, "%s%s [%s%d%s] may be inside %s.\r\n", ZOCMD.if_flag ? " then " : "",
+                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel,
                      obj_proto[ZOCMD.arg3].short_description);
         break;
       default:
@@ -4083,14 +4068,19 @@ EVENTFUNC(event_spiritual_weapon)
   int mult = weapon_list[get_default_spell_weapon(ch)].critMult;
   int attack_roll = MAX(roll, d20(ch)) + GET_BAB(ch) + GET_WIS_BONUS(ch);
   int ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
-  int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+  int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice,
+                 weapon_list[get_default_spell_weapon(ch)].diceSize) +
+            MIN(5, CASTER_LEVEL(ch));
   if (is_crit)
   {
-
     if (mult >= 2)
-      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice,
+                  weapon_list[get_default_spell_weapon(ch)].diceSize) +
+             MIN(5, CASTER_LEVEL(ch));
     if (mult >= 3)
-      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice,
+                  weapon_list[get_default_spell_weapon(ch)].diceSize) +
+             MIN(5, CASTER_LEVEL(ch));
   }
 
   if (attack_roll >= ac)
@@ -4128,8 +4118,10 @@ ASPELL(spell_spiritual_weapon)
     return;
   }
 
-  send_to_char(ch, "You summon forth a spiritual %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
-  snprintf(msg, sizeof(msg), "$n summons forth a spiritual %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
+  send_to_char(ch, "You summon forth a spiritual %s of force!\r\n",
+               weapon_list[get_default_spell_weapon(ch)].name);
+  snprintf(msg, sizeof(msg), "$n summons forth a spiritual %s of force!\r\n",
+           weapon_list[get_default_spell_weapon(ch)].name);
   act(msg, TRUE, ch, 0, 0, TO_ROOM);
   level = MAX(1, DIVINE_LEVEL(ch));
 
@@ -4185,13 +4177,19 @@ EVENTFUNC(event_dancing_weapon)
   int mult = weapon_list[get_default_spell_weapon(ch)].critMult;
   int attack_roll = MAX(roll, d20(ch)) + GET_BAB(ch) + MAX(GET_INT_BONUS(ch), GET_CHA_BONUS(ch));
   int ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
-  int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+  int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice,
+                 weapon_list[get_default_spell_weapon(ch)].diceSize) +
+            MIN(5, CASTER_LEVEL(ch));
   if (is_crit)
   {
     if (mult >= 2)
-      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice,
+                  weapon_list[get_default_spell_weapon(ch)].diceSize) +
+             MIN(5, CASTER_LEVEL(ch));
     if (mult >= 3)
-      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice,
+                  weapon_list[get_default_spell_weapon(ch)].diceSize) +
+             MIN(5, CASTER_LEVEL(ch));
   }
 
   if (attack_roll >= ac)
@@ -4228,8 +4226,10 @@ ASPELL(spell_dancing_weapon)
     return;
   }
 
-  send_to_char(ch, "You summon forth a dancing %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
-  snprintf(msg, sizeof(msg), "$n summons forth a dancing %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
+  send_to_char(ch, "You summon forth a dancing %s of force!\r\n",
+               weapon_list[get_default_spell_weapon(ch)].name);
+  snprintf(msg, sizeof(msg), "$n summons forth a dancing %s of force!\r\n",
+           weapon_list[get_default_spell_weapon(ch)].name);
   act(msg, TRUE, ch, 0, 0, TO_ROOM);
   level = MAX(1, ARCANE_LEVEL(ch));
 
@@ -4314,8 +4314,10 @@ ASPELL(spell_mass_identify)
 
         if (GET_OBJ_TYPE(item) == ITEM_WEAPON || GET_OBJ_TYPE(item) == ITEM_ARMOR)
           send_to_char(ch, " %s Enhancement: %d ",
-                       GET_OBJ_TYPE(item) == ITEM_ARMOR ? (CAN_WEAR(item, ITEM_WEAR_SHIELD) ? 
-                       "Shield" : "Armor") : "Weapon", GET_ENHANCEMENT_BONUS(item));
+                       GET_OBJ_TYPE(item) == ITEM_ARMOR
+                           ? (CAN_WEAR(item, ITEM_WEAR_SHIELD) ? "Shield" : "Armor")
+                           : "Weapon",
+                       GET_ENHANCEMENT_BONUS(item));
 
         for (k = 0; k < MAX_OBJ_AFFECT; k++)
         {
@@ -4325,21 +4327,17 @@ ASPELL(spell_mass_identify)
             {
               found = true;
             }
-            sprinttype(item->affected[k].location, apply_types,
-                       bitbuf, sizeof(bitbuf));
+            sprinttype(item->affected[k].location, apply_types, bitbuf, sizeof(bitbuf));
             switch (item->affected[k].location)
             {
             case APPLY_FEAT:
-              snprintf(buf2, sizeof(buf2), " (%s)",
-                       feat_list[item->affected[k].modifier].name);
+              snprintf(buf2, sizeof(buf2), " (%s)", feat_list[item->affected[k].modifier].name);
               send_to_char(ch, " %s%s", bitbuf, buf2);
               break;
             default:
               buf2[0] = 0;
               send_to_char(ch, " %s%s %s%d (%s)", bitbuf, buf2,
-                           (item->affected[k].modifier > 0) ? "+"
-                                                           : "",
-                           item->affected[k].modifier,
+                           (item->affected[k].modifier > 0) ? "+" : "", item->affected[k].modifier,
                            bonus_types[item->affected[k].bonus_type]);
               break;
             }
@@ -4386,9 +4384,12 @@ ASPELL(spell_holy_javelin)
 
   if (!IS_EVIL(victim))
   {
-    act("The javelin hits $N and then dissipates in a spray of harmless yellow sparks.", FALSE, ch, 0, victim, TO_CHAR);
-    act("The javelin hits You and then dissipates in a spray of harmless yellow sparks.", FALSE, ch, 0, victim, TO_VICT);
-    act("The javelin hits $N and then dissipates in a spray of harmless yellow sparks.", FALSE, ch, 0, victim, TO_NOTVICT);
+    act("The javelin hits $N and then dissipates in a spray of harmless yellow sparks.", FALSE, ch,
+        0, victim, TO_CHAR);
+    act("The javelin hits You and then dissipates in a spray of harmless yellow sparks.", FALSE, ch,
+        0, victim, TO_VICT);
+    act("The javelin hits $N and then dissipates in a spray of harmless yellow sparks.", FALSE, ch,
+        0, victim, TO_NOTVICT);
     return;
   }
 

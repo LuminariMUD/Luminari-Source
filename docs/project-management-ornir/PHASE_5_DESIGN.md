@@ -67,7 +67,7 @@ final_success = (base_success + environmental_bonus + tool_bonus) - resource_dif
 
 **Tool Categories:**
 - **Basic Tools**: Hands, basic implements (50% efficiency)
-- **Standard Tools**: Proper harvesting tools (100% efficiency) 
+- **Standard Tools**: Proper harvesting tools (100% efficiency)
 - **Masterwork Tools**: High-quality tools (150% efficiency)
 - **Magical Tools**: Enchanted implements (200% efficiency + special bonuses)
 
@@ -238,7 +238,7 @@ struct harvested_material {
 struct player_materials {
     // Format: materials[category][subtype][quality] = amount
     int wilderness_materials[NUM_RESOURCE_TYPES][MAX_SUBTYPES_PER_CATEGORY][NUM_QUALITY_LEVELS];
-    
+
     // Quick access macros:
     // GET_MATERIAL(ch, category, subtype, quality)
     // ADD_MATERIAL(ch, category, subtype, quality, amount)
@@ -579,7 +579,7 @@ value[1] = HARVEST_MINERALS | HARVEST_STONE | HARVEST_METAL | HARVEST_CRYSTAL
 value[2] = 100             // 100 uses before repair
 value[3] = 5               // +5 bonus to mining checks
 
-// Hunting Knife (made of MATERIAL_STEEL) 
+// Hunting Knife (made of MATERIAL_STEEL)
 value[0] = 60              // 60% efficiency
 value[1] = HARVEST_VEGETATION | HARVEST_GAME | HARVEST_HERBS
 value[2] = 150             // 150 uses before repair  
@@ -626,11 +626,11 @@ value[3] = 8               // +8 bonus to forestry checks
 ### **File Modification Requirements**
 
 **Core Files to Modify:**
-1. **src/structs.h**: 
+1. **src/structs.h**:
    - Add `ITEM_HARVESTING` type definition (1 line)
    - Update `NUM_ITEM_TYPES` from 53 to 54 (1 line)
    - Optional: Add `ITEM_HARVESTING_TOOL` extra flag (1 line)
-2. **src/constants.c**: 
+2. **src/constants.c**:
    - Add "Harvesting Tool" to `item_types[]` array (1 line)
    - Optional: Add flag name to `extra_bits[]` array (1 line)
 3. **src/utils.h**: Add resource type to craft material mapping macros (10 lines)
@@ -777,7 +777,7 @@ Phase 5 harvesting mechanics are **exclusively wilderness-based**. All region ef
 // In src/handler.c, at end of char_to_room() function:
 void char_to_room(struct char_data *ch, room_rnum room) {
     // ...existing code...
-    
+
     /* Phase 5: Update region harvesting affects (wilderness only) */
     update_region_harvesting_affects(ch);
 }
@@ -802,16 +802,16 @@ void update_region_harvesting_affects(struct char_data *ch) {
 
     /* In wilderness - check and apply region affects */
     struct region_list *regions = get_enclosing_regions(
-        world[IN_ROOM(ch)].coords[0], 
+        world[IN_ROOM(ch)].coords[0],
         world[IN_ROOM(ch)].coords[1]
     );
-    
+
     // Remove existing affects first
     affect_from_char(ch, SPELL_REGION_MINING_BONUS);
     affect_from_char(ch, SPELL_REGION_FORESTRY_BONUS);
     affect_from_char(ch, SPELL_REGION_HUNTING_BONUS);
     affect_from_char(ch, SPELL_REGION_GATHERING_BONUS);
-    
+
     // Apply new region effects
     while (regions) {
         apply_region_harvesting_bonus(ch, regions->region_id);
@@ -847,16 +847,16 @@ void update_region_harvesting_affects(struct char_data *ch) {
 float get_harvesting_bonus(struct char_data *ch, int resource_type) {
     if (!ch || IN_ROOM(ch) == NOWHERE)
         return 1.0;
-        
+
     zone_rnum zrnum = world[IN_ROOM(ch)].zone;
     if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS))
         return 1.0;  // No bonus outside wilderness
-        
+
     struct region_list *regions = get_enclosing_regions(
-        world[IN_ROOM(ch)].coords[0], 
+        world[IN_ROOM(ch)].coords[0],
         world[IN_ROOM(ch)].coords[1]
     );
-    
+
     float bonus = 1.0;
     while (regions) {
         bonus *= get_region_harvesting_multiplier(regions->region_id, resource_type);
@@ -893,33 +893,33 @@ float get_harvesting_bonus(struct char_data *ch, int resource_type) {
 ACMD(do_harvest) {
     // Use ALL existing idioms:
     zone_rnum zrnum = world[IN_ROOM(ch)].zone;
-    
+
     // Wilderness check (existing idiom)
     if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
         send_to_char(ch, "You can only harvest in the wilderness.\r\n");
         return;
     }
-    
+
     // Position/state checks (existing idioms)
     if (GET_POS(ch) < POS_STANDING) { /* ... */ }
     if (FIGHTING(ch)) { /* ... */ }
     if (AFF_FLAGGED(ch, AFF_PARALYZED)) { /* ... */ }
-    
+
     // Tool detection (existing idioms)
     struct obj_data *tool = GET_EQ(ch, WEAR_HOLD);
     if (!tool) tool = GET_EQ(ch, WEAR_WIELD);
-    
+
     // Resource calculation (existing Phase 1-4 system)
     int x = world[IN_ROOM(ch)].coords[0];
     int y = world[IN_ROOM(ch)].coords[1];
     struct resource_node *node = get_cached_resources(zrnum, x, y);
-    
+
     // Region effects (existing region system)
     struct region_list *regions = get_enclosing_regions(zrnum, x, y);
-    
+
     // Skill checks (existing skill system)
     bool success = skill_check(ch, ABILITY_SURVIVAL, difficulty);
-    
+
     // Storage (existing craft material system)
     GET_CRAFT_MAT(ch, material_type) += harvested_amount;
 }
@@ -957,7 +957,7 @@ LuminariMUD currently uses **dual storage systems** for crafting materials:
 struct material_inventory {
     int amount;
     int quality_poor;
-    int quality_common; 
+    int quality_common;
     int quality_good;
     int quality_excellent;
     int quality_masterwork;
@@ -987,7 +987,7 @@ int wilderness_to_craft_material(int resource_type, int quality) {
         case RESOURCE_WOOD:
             switch(quality) {
                 case QUALITY_POOR: return CRAFT_MAT_WOOD;
-                case QUALITY_GOOD: return CRAFT_MAT_OAK_WOOD; 
+                case QUALITY_GOOD: return CRAFT_MAT_OAK_WOOD;
                 case QUALITY_EXCELLENT: return CRAFT_MAT_YEW_WOOD;
                 case QUALITY_MASTERWORK: return CRAFT_MAT_IRONWOOD;
             }
@@ -1053,8 +1053,8 @@ struct obj_data *create_material_object(int resource_type, int quality, int amou
 
 **Phase 5 Resource Pipeline:**
 ```
-Wilderness Survey → Identify resource nodes → Player harvests with tools → 
-Quality roll (skill/tool/region effects) → Virtual materials added → 
+Wilderness Survey → Identify resource nodes → Player harvests with tools →
+Quality roll (skill/tool/region effects) → Virtual materials added →
 Crafting system uses virtual materials → Enhanced items created
 ```
 
@@ -1121,30 +1121,30 @@ int execute_wilderness_harvest(struct char_data *ch, int resource_type, struct o
     int skill_level = get_harvest_skill(ch, resource_type);
     int tool_bonus = get_tool_effectiveness(tool, resource_type);
     int region_modifier = get_region_harvest_modifier(ch);
-    
+
     // 2. Determine success and quality
     int success_roll = dice(1, 100) + skill_level + tool_bonus + region_modifier;
     int dc = get_harvest_dc(resource_type);
-    
+
     if (success_roll < dc) {
         // Handle failure with partial success possibility
         return handle_harvest_failure(ch, success_roll, dc);
     }
-    
+
     // 3. Calculate yield and quality
     int base_yield = get_base_harvest_yield(resource_type);
     int quality = determine_harvest_quality(success_roll, dc, skill_level);
     int final_yield = calculate_final_yield(base_yield, skill_level, tool_bonus, quality);
-    
+
     // 4. Add to player inventory
     add_wilderness_material(ch, resource_type, quality, final_yield);
-    
+
     // 5. Update resource node
     deplete_resource_node(ch, resource_type, final_yield);
-    
+
     // 6. Grant experience
     grant_harvest_experience(ch, resource_type, quality, final_yield);
-    
+
     return final_yield;
 }
 ```
@@ -1154,10 +1154,10 @@ int execute_wilderness_harvest(struct char_data *ch, int resource_type, struct o
 int determine_harvest_quality(int success_roll, int dc, int skill_level) {
     int excess = success_roll - dc;
     int quality_chance = excess + (skill_level / 10);
-    
+
     // Natural 20 always gives chance for masterwork
     if ((success_roll % 100) >= 95) quality_chance += 20;
-    
+
     if (quality_chance >= 40) return QUALITY_MASTERWORK;
     if (quality_chance >= 25) return QUALITY_EXCELLENT;
     if (quality_chance >= 15) return QUALITY_GOOD;
@@ -1172,17 +1172,17 @@ int determine_harvest_quality(int success_roll, int dc, int skill_level) {
 ```c
 int get_tool_effectiveness(struct obj_data *tool, int resource_type) {
     if (!tool) return 0; // No tool penalty
-    
+
     // Check tool type matches resource type
     if (!is_appropriate_tool(tool, resource_type)) return -10;
-    
+
     int base_bonus = GET_OBJ_VAL(tool, 1); // Tool quality value
     int condition_bonus = (GET_OBJ_VAL(tool, 2) / 10); // Condition affects efficiency
     int enhancement_bonus = GET_OBJ_VAL(tool, 4); // Magical enhancement
-    
+
     // Tool specialization bonuses
     int specialization = get_tool_specialization_bonus(tool, resource_type);
-    
+
     return base_bonus + condition_bonus + enhancement_bonus + specialization;
 }
 ```
@@ -1191,19 +1191,19 @@ int get_tool_effectiveness(struct obj_data *tool, int resource_type) {
 ```c
 void apply_tool_wear(struct obj_data *tool, int harvest_difficulty) {
     if (!tool || !is_harvest_tool(tool)) return;
-    
+
     int durability_loss = dice(1, 3) + (harvest_difficulty / 10);
     int current_condition = GET_OBJ_VAL(tool, 2);
-    
+
     current_condition -= durability_loss;
     if (current_condition <= 0) {
         act("$p breaks from the strain of harvesting!", FALSE, tool->carried_by, tool, 0, TO_CHAR);
         extract_obj(tool);
         return;
     }
-    
+
     GET_OBJ_VAL(tool, 2) = current_condition;
-    
+
     // Condition warnings
     if (current_condition <= 20) {
         act("$p is showing signs of serious wear.", FALSE, tool->carried_by, tool, 0, TO_CHAR);
@@ -1219,22 +1219,22 @@ ACMD(do_wilderness_harvest) {
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     struct obj_data *tool = NULL;
     int resource_type;
-    
+
     argument = two_arguments(argument, arg1, arg2);
-    
+
     // Parse arguments: harvest <resource_type> [with <tool>]
     if (!*arg1) {
         show_available_resources(ch);
         return;
     }
-    
+
     resource_type = parse_resource_type(arg1);
     if (resource_type < 0) {
-        send_to_char(ch, "Unknown resource type. Available: %s\r\n", 
+        send_to_char(ch, "Unknown resource type. Available: %s\r\n",
                      list_available_resource_types(ch));
         return;
     }
-    
+
     // Tool handling
     if (*arg2 && !strncmp(arg2, "with", 4)) {
         tool = find_harvest_tool(ch, argument);
@@ -1245,12 +1245,12 @@ ACMD(do_wilderness_harvest) {
     } else {
         tool = find_best_tool_for_resource(ch, resource_type);
     }
-    
+
     // Validation checks
     if (!validate_harvest_conditions(ch, resource_type)) return;
     if (!has_required_skill(ch, resource_type)) return;
     if (!resource_available_at_location(ch, resource_type)) return;
-    
+
     // Execute harvest
     start_harvest_event(ch, resource_type, tool);
 }
@@ -1271,20 +1271,20 @@ int convert_wilderness_to_craft_material(int wilderness_type, int quality) {
         {CRAFT_MAT_WOOD, CRAFT_MAT_ASH_WOOD, CRAFT_MAT_OAK_WOOD, CRAFT_MAT_YEW_WOOD, CRAFT_MAT_IRONWOOD},
         // Add conversion tables for all resource types...
     };
-    
+
     return conversion_table[wilderness_type][quality];
 }
 
 // Automatic conversion during crafting
 int get_available_craft_material(struct char_data *ch, int craft_material_needed) {
     int available = GET_CRAFT_MAT(ch, craft_material_needed);
-    
+
     // Check if we can convert wilderness materials
     int wilderness_equivalent = find_wilderness_equivalent(craft_material_needed);
     if (wilderness_equivalent >= 0) {
         available += get_wilderness_material_total(ch, wilderness_equivalent);
     }
-    
+
     return available;
 }
 ```
@@ -1327,23 +1327,23 @@ struct harvest_event_data {
 EVENTFUNC(harvest_event) {
     struct char_data *ch = (struct char_data *)event_obj;
     struct harvest_event_data *harvest = (struct harvest_event_data *)info;
-    
+
     // Process harvest progress
     int success = make_harvest_skill_check(ch, harvest->resource_type, harvest->tool);
-    
+
     if (success) {
         harvest->progress += get_progress_increment(success);
         harvest->partial_yields += calculate_partial_yield(success);
     } else {
         handle_harvest_failure_event(ch, harvest);
     }
-    
+
     // Check completion
     if (harvest->progress >= 100) {
         complete_harvest_event(ch, harvest);
         return 0; // Event complete
     }
-    
+
     return 2; // Continue for 2 more seconds
 }
 ```

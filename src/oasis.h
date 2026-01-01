@@ -29,15 +29,15 @@
    to adjust these numbers if you ever add more. Note: Most of the NUM_ and
    MAX_ limits have been moved to more appropriate locations. */
 
-#define TOGGLE_VAR(var) \
-   if (var == YES)      \
-   {                    \
-      var = NO;         \
-   }                    \
-   else                 \
-   {                    \
-      var = YES;        \
-   }
+#define TOGGLE_VAR(var)                                                                            \
+  if (var == YES)                                                                                  \
+  {                                                                                                \
+    var = NO;                                                                                      \
+  }                                                                                                \
+  else                                                                                             \
+  {                                                                                                \
+    var = YES;                                                                                     \
+  }
 #define CHECK_VAR(var) ((var == YES) ? "Yes" : "No")
 
 #define MAX_PEOPLE 10 /* Max # of people you want to sit in furniture. */
@@ -93,52 +93,52 @@ void send_cannot_edit(struct char_data *ch, zone_vnum zone);
 
 struct oasis_olc_data
 {
-   int mode;                           /* how to parse input */
-   zone_rnum zone_num;                 /* current zone */
-   room_vnum number;                   /* vnum of subject */
-   int value;                          /* mostly 'has changed' flag */
-   char *storage;                      /* used for 'tedit' */
-   struct char_data *mob;              /* used for 'medit' */
-   struct room_data *room;             /* used for 'redit' */
-   struct obj_data *obj;               /* used for 'oedit' */
-   struct zone_data *zone;             /* used for 'zedit' */
-   struct shop_data *shop;             /* used for 'sedit' */
-   struct config_data *config;         /* used for 'cedit' */
-   struct house_control_rec *house;    /* used for 'hsedit' */
-   struct aq_data *quest;              /* used for 'qedit' */
-   struct extra_descr_data *desc;      /* used in '[r|o|m]edit' */
-   struct obj_special_ability *specab; /* used in 'oedit' */
-   struct social_messg *action;        /* Aedit uses this one */
-   struct trig_data *trig;             /* trigedit */
-   struct prefs_data *prefs;           /* used for 'prefedit' */
-   struct ibt_data *ibt;               /* used for 'ibtedit' */
-   struct clan_data *clan;             /* used for 'clanedit' */
-   struct message_list *msg;
-   struct message_type *m_type;
-   /* NewCraft */
-   struct craft_data *craft;     /* used for 'craftedit'     */
-   struct requirement_data *req; /*           ditto          */
-   struct obj_data *iobj;        /* used for 'iedit'         */
+  int mode;                           /* how to parse input */
+  zone_rnum zone_num;                 /* current zone */
+  room_vnum number;                   /* vnum of subject */
+  int value;                          /* mostly 'has changed' flag */
+  char *storage;                      /* used for 'tedit' */
+  struct char_data *mob;              /* used for 'medit' */
+  struct room_data *room;             /* used for 'redit' */
+  struct obj_data *obj;               /* used for 'oedit' */
+  struct zone_data *zone;             /* used for 'zedit' */
+  struct shop_data *shop;             /* used for 'sedit' */
+  struct config_data *config;         /* used for 'cedit' */
+  struct house_control_rec *house;    /* used for 'hsedit' */
+  struct aq_data *quest;              /* used for 'qedit' */
+  struct extra_descr_data *desc;      /* used in '[r|o|m]edit' */
+  struct obj_special_ability *specab; /* used in 'oedit' */
+  struct social_messg *action;        /* Aedit uses this one */
+  struct trig_data *trig;             /* trigedit */
+  struct prefs_data *prefs;           /* used for 'prefedit' */
+  struct ibt_data *ibt;               /* used for 'ibtedit' */
+  struct clan_data *clan;             /* used for 'clanedit' */
+  struct message_list *msg;
+  struct message_type *m_type;
+  /* NewCraft */
+  struct craft_data *craft;     /* used for 'craftedit'     */
+  struct requirement_data *req; /*           ditto          */
+  struct obj_data *iobj;        /* used for 'iedit'         */
 
-   /* Wilderness editing */
-   struct region_data *region; /* Used for 'regedit' */
-   struct path_data *path;     /* Used for 'pathedit' */
+  /* Wilderness editing */
+  struct region_data *region; /* Used for 'regedit' */
+  struct path_data *path;     /* Used for 'pathedit' */
 
-   /* homeland-port */
-   struct quest_entry *hlquest;
-   struct quest_entry *entry;
-   struct quest_command *qcom;
+  /* homeland-port */
+  struct quest_entry *hlquest;
+  struct quest_entry *entry;
+  struct quest_command *qcom;
 
-   int script_mode;
-   int trigger_position;
-   int item_type;
-   struct trig_proto_list *script; /* for assigning triggers in [r|o|m]edit*/
-   struct help_entry_list *help;   /* Hedit uses this */
+  int script_mode;
+  int trigger_position;
+  int item_type;
+  struct trig_proto_list *script; /* for assigning triggers in [r|o|m]edit*/
+  struct help_entry_list *help;   /* Hedit uses this */
 
-   /* Spec proc selections (OLC-time only, not persisted here) */
-   SPECIAL_DECL(*specmob);
-   SPECIAL_DECL(*specobj);
-   SPECIAL_DECL(*specroom);
+  /* Spec proc selections (OLC-time only, not persisted here) */
+  SPECIAL_DECL(*specmob);
+  SPECIAL_DECL(*specobj);
+  SPECIAL_DECL(*specroom);
 };
 
 /* Exported globals. */
@@ -883,8 +883,8 @@ void study_disp_aspect_confirm(struct descriptor_data *d);
 char *levelup_show_necromancer_cast_type(struct char_data *ch);
 bool has_necromancer_cast_type_unchosen(struct char_data *ch);
 
-    /* public functions from msgedit.c */
-    ACMD_DECL(do_msgedit);
+/* public functions from msgedit.c */
+ACMD_DECL(do_msgedit);
 void msgedit_parse(struct descriptor_data *d, char *arg);
 
 /* public functions from oasis_copy.c */
@@ -901,13 +901,14 @@ void print_zone(struct char_data *ch, zone_rnum rnum);
 ACMD_DECL(do_oasis_links);
 ACMD_DECL(do_oasis_list);
 
-extern struct moving_room_data * movingRoomList;
-int prepMovingRoom(struct moving_room_data * theRoom, struct oldNextMove * ONMdata, int * cibIdx, int * nextIdx);
-int linkMovingRoom(struct moving_room_data * theRoom, struct oldNextMove * ONMdata, int cibIdx);
-int unlinkMovingRoom(struct moving_room_data * theRoom, struct oldNextMove * ONMdata, int cibIdx);
-void setup_moving_room(FILE * fl, int rroom, int vroom, char * line);
+extern struct moving_room_data *movingRoomList;
+int prepMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int *cibIdx,
+                   int *nextIdx);
+int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx);
+int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx);
+void setup_moving_room(FILE *fl, int rroom, int vroom, char *line);
 void moving_rooms_update(void);
-void dump_moving(struct moving_room_data * mr, struct char_data * ch);
+void dump_moving(struct moving_room_data *mr, struct char_data *ch);
 
 // dragon riders
 void show_dragon_rider_menu(struct descriptor_data *d);

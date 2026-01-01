@@ -115,7 +115,7 @@ aider
 # Aider v0.85.5
 # Model: openrouter/moonshotai/kimi-k2:free with whole edit format
 # Git repo: .git with 581 files
-# > 
+# >
 
 # Now you can interact with it:
 > /help                          # Show all commands

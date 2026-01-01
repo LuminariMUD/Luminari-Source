@@ -23,9 +23,12 @@
 #include "mudlim.h"
 
 /* local (file scope) function prototypes */
-static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd, char *arg);
-static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman, int cmd, char *arg);
-static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman, int cmd, char *arg);
+static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+                                 char *arg);
+static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+                                  char *arg);
+static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+                                    char *arg);
 static int mail_recip_ok(const char *name);
 static void write_mail_record(FILE *mail_file, struct mail_t *record);
 static void free_mail_record(struct mail_t *record);
@@ -81,12 +84,10 @@ static struct mail_t *read_mail_record(FILE *mail_file)
 
 static void write_mail_record(FILE *mail_file, struct mail_t *record)
 {
-  fprintf(mail_file, "### %ld %ld %ld\n"
-                     "%s~\n",
-          record->recipient,
-          record->sender,
-          (long)record->sent_time,
-          record->body);
+  fprintf(mail_file,
+          "### %ld %ld %ld\n"
+          "%s~\n",
+          record->recipient, record->sender, (long)record->sent_time, record->body);
 }
 
 /* int scan_file(none)
@@ -248,9 +249,7 @@ char *read_delete(long recipient)
              "\r\n"
              "%s",
 
-             tmstr,
-             to ? to : "Unknown",
-             from ? from : "Unknown",
+             tmstr, to ? to : "Unknown", from ? from : "Unknown",
              record_to_keep->body ? record_to_keep->body : "No message");
 
     free_mail_record(record_to_keep);
@@ -298,8 +297,8 @@ SPECIAL(postmaster)
     return (0);
 }
 
-static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman,
-                                 int cmd, char *arg)
+static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+                                 char *arg)
 {
   long recipient = 0;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, **mailwrite = NULL;
@@ -308,7 +307,8 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
 
   if (GET_LEVEL(ch) < MIN_MAIL_LEVEL)
   {
-    snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, you have to be level %d to send mail!'", MIN_MAIL_LEVEL);
+    snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, you have to be level %d to send mail!'",
+             MIN_MAIL_LEVEL);
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
@@ -316,28 +316,27 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
 
   if (!*buf)
   { /* you'll get no argument from me! */
-    act("$n tells you, 'You need to specify an addressee!'",
-        FALSE, mailman, 0, ch, TO_VICT);
+    act("$n tells you, 'You need to specify an addressee!'", FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
   if (GET_GOLD(ch) < STAMP_PRICE && GET_LEVEL(ch) < LVL_IMMORT)
   {
-    snprintf(buf, sizeof(buf), "$n tells you, 'A stamp costs %d coin%s.'\r\n"
-                               "$n tells you, '...which I see you can't afford.'",
-             STAMP_PRICE,
-             STAMP_PRICE == 1 ? "" : "s");
+    snprintf(buf, sizeof(buf),
+             "$n tells you, 'A stamp costs %d coin%s.'\r\n"
+             "$n tells you, '...which I see you can't afford.'",
+             STAMP_PRICE, STAMP_PRICE == 1 ? "" : "s");
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
   if ((recipient = get_id_by_name(buf)) < 0 || !mail_recip_ok(buf))
   {
-    act("$n tells you, 'No one by that name is registered here!'",
-        FALSE, mailman, 0, ch, TO_VICT);
+    act("$n tells you, 'No one by that name is registered here!'", FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
   act("$n starts to write some mail.", TRUE, ch, 0, 0, TO_ROOM);
-  snprintf(buf, sizeof(buf), "$n tells you, 'I'll take %d coins for the stamp.'\r\n"
-                             "$n tells you, 'Write your message. (/s saves /h for help).'",
+  snprintf(buf, sizeof(buf),
+           "$n tells you, 'I'll take %d coins for the stamp.'\r\n"
+           "$n tells you, 'Write your message. (/s saves /h for help).'",
            STAMP_PRICE);
 
   act(buf, FALSE, mailman, 0, ch, TO_VICT);
@@ -352,8 +351,8 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
   string_write(ch->desc, mailwrite, MAX_MAIL_SIZE, recipient, NULL);
 }
 
-static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman,
-                                  int cmd, char *arg)
+static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+                                  char *arg)
 {
   if (has_mail(GET_IDNUM(ch)))
     act("$n tells you, 'You have mail waiting.'", FALSE, mailman, 0, ch, TO_VICT);
@@ -361,8 +360,8 @@ static void postmaster_check_mail(struct char_data *ch, struct char_data *mailma
     act("$n tells you, 'Sorry, you don't have any mail waiting.'", FALSE, mailman, 0, ch, TO_VICT);
 }
 
-static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman,
-                                    int cmd, char *arg)
+static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+                                    char *arg)
 {
   char buf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
@@ -394,8 +393,7 @@ static void postmaster_receive_mail(struct char_data *ch, struct char_data *mail
     obj->action_description = read_delete(GET_IDNUM(ch));
 
     if (obj->action_description == NULL)
-      obj->action_description =
-          strdup("Mail system error - please report.  Error #11.\r\n");
+      obj->action_description = strdup("Mail system error - please report.  Error #11.\r\n");
 
     obj_to_char(obj, ch);
 
@@ -409,6 +407,7 @@ void notify_if_playing(struct char_data *from, int recipient_id)
   struct descriptor_data *d = NULL;
 
   for (d = descriptor_list; d; d = d->next)
-    if ((IS_PLAYING(d)) && (GET_IDNUM(d->character) == recipient_id) && (has_mail(GET_IDNUM(d->character))))
+    if ((IS_PLAYING(d)) && (GET_IDNUM(d->character) == recipient_id) &&
+        (has_mail(GET_IDNUM(d->character))))
       send_to_char(d->character, "You have new mudmail from %s.\r\n", GET_NAME(from));
 }

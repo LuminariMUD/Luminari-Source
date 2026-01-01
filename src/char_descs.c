@@ -117,13 +117,11 @@ const char *const ear_descriptions[] = {
 
 const char *const face_descriptions[] = {
 
-    "undefined", "handsome", "pretty", "ugly", "attractive",
-    "comely", "unattractive", "scarred", "monstrous", "fierce",
-    "mouse-like", "hawk-like", "rat-like", "horse-like", "bullish",
-    "fine", "noble", "chubby", "fair", "bull-like",
-    "pig-like", "masculine", "feminine", "boyish", "girlish",
-    "garish", "frightening", "demon-like", "angellic", "celestial",
-    "infernal", "robotic", "\n"};
+    "undefined", "handsome",  "pretty",   "ugly",       "attractive", "comely",      "unattractive",
+    "scarred",   "monstrous", "fierce",   "mouse-like", "hawk-like",  "rat-like",    "horse-like",
+    "bullish",   "fine",      "noble",    "chubby",     "fair",       "bull-like",   "pig-like",
+    "masculine", "feminine",  "boyish",   "girlish",    "garish",     "frightening", "demon-like",
+    "angellic",  "celestial", "infernal", "robotic",    "\n"};
 
 const char *const scar_descriptions[] = {
 
@@ -216,68 +214,69 @@ const char *const hair_descriptions[] = {
 
 const char *const build_descriptions[] = {
 
-    "undefined", "tall", "short", "stocky", "average",
-    "huge", "monstrous", "gigantic", "tiny", "delicate",
-    "frail", "towering", "snake-like", "wiry", "bulging",
-    "obese", "chubby", "muscular", "thin", "athletic",
-    "barrel-chested", "sinewy", "sculpted", "solid", "normal",
-    "lithe", "curvy", "hulking", "\n"};
+    "undefined",  "tall",     "short",          "stocky",   "average",  "huge",
+    "monstrous",  "gigantic", "tiny",           "delicate", "frail",    "towering",
+    "snake-like", "wiry",     "bulging",        "obese",    "chubby",   "muscular",
+    "thin",       "athletic", "barrel-chested", "sinewy",   "sculpted", "solid",
+    "normal",     "lithe",    "curvy",          "hulking",  "\n"};
 
 const char *const complexion_descriptions[] = {
 
-    "undefined", "white", "pale", "dark", "tanned", "bronzed",
-    "freckled", "weathered", "brown", "black", "chocolate", "olive",
-    "fair", "jet black", "\n"};
+    "undefined", "white", "pale",      "dark",  "tanned", "bronzed",   "freckled", "weathered",
+    "brown",     "black", "chocolate", "olive", "fair",   "jet black", "\n"};
 
-const char *const fur_descriptions[] = {
-    "undefined", "white fur", "brown fur", "black fur",
-    "reddish fur", "grey fur", "white and brown fur",
-    "white and black fur", "white and red fur", "white and grey fur",
-    "brown and black fur", "brown and red fur", "brown and grey fur",
-    "black and red fur", "black and grey fur", "red and grey fur",
-    "\n"};
+const char *const fur_descriptions[] = {"undefined",
+                                        "white fur",
+                                        "brown fur",
+                                        "black fur",
+                                        "reddish fur",
+                                        "grey fur",
+                                        "white and brown fur",
+                                        "white and black fur",
+                                        "white and red fur",
+                                        "white and grey fur",
+                                        "brown and black fur",
+                                        "brown and red fur",
+                                        "brown and grey fur",
+                                        "black and red fur",
+                                        "black and grey fur",
+                                        "red and grey fur",
+                                        "\n"};
 
 const char *const skin_descriptions[] = {
-    "undefined", "white skin", "brown skin", "dark brown skin",
-    "light brown skin", "black skin", "green skin",
-    "blue skin", "red skin", "orange skin", "purple skin",
-    "yellow skin",
-    "\n"};
+    "undefined",   "white skin",  "brown skin", "dark brown skin", "light brown skin",
+    "black skin",  "green skin",  "blue skin",  "red skin",        "orange skin",
+    "purple skin", "yellow skin", "\n"};
 
 const char *const scales_descriptions[] = {
-    "undefined", "white scales", "brown scales", "dark brown scales",
-    "light brown scales", "black scales", "green scales", "blue scales",
-    "red scales", "orange scales", "purple scales", "yellow scales",
-    "gold scales", "silver scales", "brass scales", "bronze scales",
-    "copper scales",
-    "\n"};
+    "undefined",         "white scales",       "brown scales",
+    "dark brown scales", "light brown scales", "black scales",
+    "green scales",      "blue scales",        "red scales",
+    "orange scales",     "purple scales",      "yellow scales",
+    "gold scales",       "silver scales",      "brass scales",
+    "bronze scales",     "copper scales",      "\n"};
 
-const char *horn_descriptions[] = {
-    "a pair of short horns",
-    "a pair of long horns",
-    "a pair of curved horns",
-    "multiple short horns",
-    "a crown of short horns",
-    "a ridge of short horns",
-    "ridges of short horns",
-    "\n"};
+const char *horn_descriptions[] = {"a pair of short horns",  "a pair of long horns",
+                                   "a pair of curved horns", "multiple short horns",
+                                   "a crown of short horns", "a ridge of short horns",
+                                   "ridges of short horns",  "\n"};
 
 char *current_short_desc(struct char_data *ch)
 {
-    int i = 0;
-    char desc[MEDIUM_STRING];
-    char adj1[SMALL_STRING];
-    char adj2[SMALL_STRING];
-    char final[MEDIUM_STRING * 2]; /* Increased to handle desc + adj1 + adj2 */
+  int i = 0;
+  char desc[MEDIUM_STRING];
+  char adj1[SMALL_STRING];
+  char adj2[SMALL_STRING];
+  char final[MEDIUM_STRING * 2]; /* Increased to handle desc + adj1 + adj2 */
 
-    int race = GET_RACE(ch);
-    int sex = GET_SEX(ch);
-    int pcd1 = GET_PC_DESCRIPTOR_1(ch);
-    int pca1 = GET_PC_ADJECTIVE_1(ch);
-    int pcd2 = GET_PC_DESCRIPTOR_2(ch);
-    int pca2 = GET_PC_ADJECTIVE_2(ch);
+  int race = GET_RACE(ch);
+  int sex = GET_SEX(ch);
+  int pcd1 = GET_PC_DESCRIPTOR_1(ch);
+  int pca1 = GET_PC_ADJECTIVE_1(ch);
+  int pcd2 = GET_PC_DESCRIPTOR_2(ch);
+  int pca2 = GET_PC_ADJECTIVE_2(ch);
 
-    /*
+  /*
         if (AFF_FLAGGED(ch, AFF_DISGUISED) && !DISGUISE_SEEN(ch))
         {
             race = GET_DISGUISE_RACE(ch);
@@ -289,694 +288,691 @@ char *current_short_desc(struct char_data *ch)
         }
     */
 
-    snprintf(desc, sizeof(desc), "%s %s %s %s", AN(character_ages[GET_CH_AGE(ch)]), character_ages[GET_CH_AGE(ch)], genders[(int)sex], race_list[(int)race].name);
-    snprintf(adj1, sizeof(adj1), "\tn");
-    snprintf(adj2, sizeof(adj2), "\tn");
+  snprintf(desc, sizeof(desc), "%s %s %s %s", AN(character_ages[GET_CH_AGE(ch)]),
+           character_ages[GET_CH_AGE(ch)], genders[(int)sex], race_list[(int)race].name);
+  snprintf(adj1, sizeof(adj1), "\tn");
+  snprintf(adj2, sizeof(adj2), "\tn");
 
-    switch (pcd1)
-    {
-    case FEATURE_TYPE_FUR:
-        snprintf(adj1, sizeof(adj1), " with %s", fur_descriptions[pca1]);
-        break;
+  switch (pcd1)
+  {
+  case FEATURE_TYPE_FUR:
+    snprintf(adj1, sizeof(adj1), " with %s", fur_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_SKIN:
-        snprintf(adj1, sizeof(adj1), " with %s", skin_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_SKIN:
+    snprintf(adj1, sizeof(adj1), " with %s", skin_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_SCALES:
-        snprintf(adj1, sizeof(adj1), " with %s", scales_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_SCALES:
+    snprintf(adj1, sizeof(adj1), " with %s", scales_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_HORNS:
-        snprintf(adj1, sizeof(adj1), " with %s", horn_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_HORNS:
+    snprintf(adj1, sizeof(adj1), " with %s", horn_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_EYES:
-        snprintf(adj1, sizeof(adj1), " with %s eyes", eye_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_EYES:
+    snprintf(adj1, sizeof(adj1), " with %s eyes", eye_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_NOSE:
-        snprintf(adj1, sizeof(adj1), " with %s nose", nose_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_NOSE:
+    snprintf(adj1, sizeof(adj1), " with %s nose", nose_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_EARS:
-        snprintf(adj1, sizeof(adj1), " with %s ears", ear_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_EARS:
+    snprintf(adj1, sizeof(adj1), " with %s ears", ear_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_FACE:
-        snprintf(adj1, sizeof(adj1), " with %s features", face_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_FACE:
+    snprintf(adj1, sizeof(adj1), " with %s features", face_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_SCAR:
-        snprintf(adj1, sizeof(adj1), " with %s", scar_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_SCAR:
+    snprintf(adj1, sizeof(adj1), " with %s", scar_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_HAIR:
-        snprintf(adj1, sizeof(adj1), " with %s", hair_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_HAIR:
+    snprintf(adj1, sizeof(adj1), " with %s", hair_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_BUILD:
-        snprintf(adj1, sizeof(adj1), " with %s %s frame",
-                 AN(build_descriptions[pca1]), build_descriptions[pca1]);
-        break;
+  case FEATURE_TYPE_BUILD:
+    snprintf(adj1, sizeof(adj1), " with %s %s frame", AN(build_descriptions[pca1]),
+             build_descriptions[pca1]);
+    break;
 
-    case FEATURE_TYPE_COMPLEXION:
-        snprintf(adj1, sizeof(adj1), " with %s %s %s",
-                 AN(complexion_descriptions[pca1]),
-                 complexion_descriptions[GET_PC_ADJECTIVE_1(ch)],
-                 "complexion");
-        break;
-    }
+  case FEATURE_TYPE_COMPLEXION:
+    snprintf(adj1, sizeof(adj1), " with %s %s %s", AN(complexion_descriptions[pca1]),
+             complexion_descriptions[GET_PC_ADJECTIVE_1(ch)], "complexion");
+    break;
+  }
 
-    switch (pcd2)
-    {
-    case FEATURE_TYPE_FUR:
-        snprintf(adj2, sizeof(adj2), " with %s", fur_descriptions[pca2]);
-        break;
+  switch (pcd2)
+  {
+  case FEATURE_TYPE_FUR:
+    snprintf(adj2, sizeof(adj2), " with %s", fur_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_SKIN:
-        snprintf(adj2, sizeof(adj2), " with %s", skin_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_SKIN:
+    snprintf(adj2, sizeof(adj2), " with %s", skin_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_HORNS:
-        snprintf(adj2, sizeof(adj2), " with %s", horn_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_HORNS:
+    snprintf(adj2, sizeof(adj2), " with %s", horn_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_SCALES:
-        snprintf(adj2, sizeof(adj2), " with %s", scales_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_SCALES:
+    snprintf(adj2, sizeof(adj2), " with %s", scales_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_EYES:
-        snprintf(adj2, sizeof(adj2), " and %s eyes", eye_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_EYES:
+    snprintf(adj2, sizeof(adj2), " and %s eyes", eye_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_NOSE:
-        snprintf(adj2, sizeof(adj2), " and %s nose", nose_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_NOSE:
+    snprintf(adj2, sizeof(adj2), " and %s nose", nose_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_EARS:
-        snprintf(adj2, sizeof(adj2), " and %s ears", ear_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_EARS:
+    snprintf(adj2, sizeof(adj2), " and %s ears", ear_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_FACE:
-        snprintf(adj2, sizeof(adj2), " and %s features", face_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_FACE:
+    snprintf(adj2, sizeof(adj2), " and %s features", face_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_SCAR:
-        snprintf(adj2, sizeof(adj2), " and %s", scar_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_SCAR:
+    snprintf(adj2, sizeof(adj2), " and %s", scar_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_HAIR:
-        snprintf(adj2, sizeof(adj2), " and %s", hair_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_HAIR:
+    snprintf(adj2, sizeof(adj2), " and %s", hair_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_BUILD:
-        snprintf(adj2, sizeof(adj2), " and %s %s frame", AN(build_descriptions[pca2]),
-                 build_descriptions[pca2]);
-        break;
+  case FEATURE_TYPE_BUILD:
+    snprintf(adj2, sizeof(adj2), " and %s %s frame", AN(build_descriptions[pca2]),
+             build_descriptions[pca2]);
+    break;
 
-    case FEATURE_TYPE_COMPLEXION:
-        snprintf(adj2, sizeof(adj2), " and %s %s complexion",
-                 AN(complexion_descriptions[pca2]),
-                 complexion_descriptions[pca2]);
-        break;
-    }
+  case FEATURE_TYPE_COMPLEXION:
+    snprintf(adj2, sizeof(adj2), " and %s %s complexion", AN(complexion_descriptions[pca2]),
+             complexion_descriptions[pca2]);
+    break;
+  }
 
-    /*
+  /*
     if (DISGUISE_SEEN(ch) && GET_DISGUISE_ROLL(ch) > 0)
     {
         strcat(desc, " (disguised)");
     }
     */
 
-    snprintf(final, sizeof(final), "%s%s%s", desc, adj1, adj2);
+  snprintf(final, sizeof(final), "%s%s%s", desc, adj1, adj2);
 
-    for (i = 0; i < strlen(final); i++)
-        final[i] = tolower((unsigned char) final[i]);
+  for (i = 0; i < strlen(final); i++)
+    final[i] = tolower((unsigned char) final[i]);
 
-    return strdup(final);
+  return strdup(final);
 }
 
-char * current_morphed_desc(struct char_data *ch)
+char *current_morphed_desc(struct char_data *ch)
 {
-    static char desc[200];
+  static char desc[200];
 
-    snprintf(desc, sizeof(desc), "%s (morphed)", current_short_desc(ch));
+  snprintf(desc, sizeof(desc), "%s (morphed)", current_short_desc(ch));
 
-    return desc;
+  return desc;
 }
 
 char *current_wildshape_desc(struct char_data *ch)
 {
-    static char desc[200];
+  static char desc[200];
 
-    snprintf(desc, sizeof(desc), "%s (wildshaped)", current_short_desc(ch));
+  snprintf(desc, sizeof(desc), "%s (wildshaped)", current_short_desc(ch));
 
-    return desc;
+  return desc;
 }
-    
+
 char *current_disguise_desc(struct char_data *ch)
 {
-    static char desc[200];
+  static char desc[200];
 
-    snprintf(desc, sizeof(desc), "%s (disguised)", current_short_desc(ch));
+  snprintf(desc, sizeof(desc), "%s (disguised)", current_short_desc(ch));
 
-    return desc;
+  return desc;
 }
 
 void short_desc_descriptors_menu(struct char_data *ch)
 {
-    SEND_TO_Q(
-        "Please choose a descriptor from the list.  This will determine what kind of feature\r\n"
-        "you wish to add to your short description.  Once chosen you will choose a specific\r\n"
-        "describing adjective for the feature you chose.\r\n\r\n",
-        ch->desc);
+  SEND_TO_Q(
+      "Please choose a descriptor from the list.  This will determine what kind of feature\r\n"
+      "you wish to add to your short description.  Once chosen you will choose a specific\r\n"
+      "describing adjective for the feature you chose.\r\n\r\n",
+      ch->desc);
 
-    SEND_TO_Q(
-        "1)  Describe Eyes\r\n"
-        "2)  Describe Nose\r\n"
-        "3)  Describe Ears\r\n"
-        "4)  Describe Face\r\n"
-        "5)  Describe Scars\r\n"
-        "6)  Describe Hair\r\n"
-        "7)  Describe Build\r\n"
-        "8)  Describe Complexion\r\n"
-        "9)  Describe Fur\r\n"
-        "10) Describe Skin Color\r\n"
-        "11) Describe Horns\r\n"
-        "12) Describe Scales\r\n"
-        "\r\n",
-        ch->desc);
+  SEND_TO_Q("1)  Describe Eyes\r\n"
+            "2)  Describe Nose\r\n"
+            "3)  Describe Ears\r\n"
+            "4)  Describe Face\r\n"
+            "5)  Describe Scars\r\n"
+            "6)  Describe Hair\r\n"
+            "7)  Describe Build\r\n"
+            "8)  Describe Complexion\r\n"
+            "9)  Describe Fur\r\n"
+            "10) Describe Skin Color\r\n"
+            "11) Describe Horns\r\n"
+            "12) Describe Scales\r\n"
+            "\r\n",
+            ch->desc);
 }
 
 void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
 {
-    char buf[100];
-    int i = 1;
+  char buf[100];
+  int i = 1;
 
-    SEND_TO_Q("Please choose an adjective to describe the descriptor you just chose.\r\n\r\n", ch->desc);
+  SEND_TO_Q("Please choose an adjective to describe the descriptor you just chose.\r\n\r\n",
+            ch->desc);
 
-    switch (which_desc)
+  switch (which_desc)
+  {
+  case FEATURE_TYPE_FUR:
+    while (i < NUM_FUR_DESCRIPTORS)
     {
-    case FEATURE_TYPE_FUR:
-        while (i < NUM_FUR_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, fur_descriptions[i]);
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, fur_descriptions[i]);
 
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
 
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_SKIN:
-        while (i < NUM_SKIN_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, skin_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_HORNS:
-        while (i < NUM_HORNS_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, horn_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_SCALES:
-        while (i < NUM_SCALES_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, scales_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_EYES:
-        while (i < NUM_EYE_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, eye_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_NOSE:
-        while (i < NUM_NOSE_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, nose_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_EARS:
-        while (i < NUM_EAR_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s n", i, ear_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_FACE:
-        while (i < NUM_FACE_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, face_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_SCAR:
-        while (i < NUM_SCAR_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, scar_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_HAIR:
-        while (i < NUM_HAIR_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, hair_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_BUILD:
-        while (i < NUM_BUILD_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, build_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
-
-    case FEATURE_TYPE_COMPLEXION:
-        while (i < NUM_COMPLEXION_DESCRIPTORS)
-        {
-            snprintf(buf, sizeof(buf), "%d) %-30s ", i, complexion_descriptions[i]);
-
-            if (i % 2 == 1)
-                strcat(buf, "\r\n");
-
-            SEND_TO_Q(buf, ch->desc);
-            i++;
-        }
-        break;
+      SEND_TO_Q(buf, ch->desc);
+      i++;
     }
+    break;
 
-    if (i % 2 == 0)
-        SEND_TO_Q("\r\n", ch->desc);
+  case FEATURE_TYPE_SKIN:
+    while (i < NUM_SKIN_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, skin_descriptions[i]);
 
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_HORNS:
+    while (i < NUM_HORNS_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, horn_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_SCALES:
+    while (i < NUM_SCALES_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, scales_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_EYES:
+    while (i < NUM_EYE_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, eye_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_NOSE:
+    while (i < NUM_NOSE_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, nose_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_EARS:
+    while (i < NUM_EAR_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s n", i, ear_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_FACE:
+    while (i < NUM_FACE_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, face_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_SCAR:
+    while (i < NUM_SCAR_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, scar_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_HAIR:
+    while (i < NUM_HAIR_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, hair_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_BUILD:
+    while (i < NUM_BUILD_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, build_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+
+  case FEATURE_TYPE_COMPLEXION:
+    while (i < NUM_COMPLEXION_DESCRIPTORS)
+    {
+      snprintf(buf, sizeof(buf), "%d) %-30s ", i, complexion_descriptions[i]);
+
+      if (i % 2 == 1)
+        strcat(buf, "\r\n");
+
+      SEND_TO_Q(buf, ch->desc);
+      i++;
+    }
+    break;
+  }
+
+  if (i % 2 == 0)
     SEND_TO_Q("\r\n", ch->desc);
+
+  SEND_TO_Q("\r\n", ch->desc);
 }
 
 int count_adjective_types(int which_desc)
 {
-    int i = 0;
+  int i = 0;
 
-    switch (which_desc)
-    {
-    case FEATURE_TYPE_FUR:
-        while (i < NUM_FUR_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_SKIN:
-        while (i < NUM_SKIN_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_HORNS:
-        while (i < NUM_HORNS_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_SCALES:
-        while (i < NUM_SCALES_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_EYES:
-        while (i < NUM_EYE_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_NOSE:
-        while (i < NUM_NOSE_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_EARS:
-        while (i < NUM_EAR_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_FACE:
-        while (i < NUM_FACE_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_SCAR:
-        while (i < NUM_SCAR_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_HAIR:
-        while (i < NUM_HAIR_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_BUILD:
-        while (i < NUM_BUILD_DESCRIPTORS)
-            i++;
-        break;
-    case FEATURE_TYPE_COMPLEXION:
-        while (i < NUM_COMPLEXION_DESCRIPTORS)
-            i++;
-        break;
-    }
+  switch (which_desc)
+  {
+  case FEATURE_TYPE_FUR:
+    while (i < NUM_FUR_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_SKIN:
+    while (i < NUM_SKIN_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_HORNS:
+    while (i < NUM_HORNS_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_SCALES:
+    while (i < NUM_SCALES_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_EYES:
+    while (i < NUM_EYE_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_NOSE:
+    while (i < NUM_NOSE_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_EARS:
+    while (i < NUM_EAR_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_FACE:
+    while (i < NUM_FACE_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_SCAR:
+    while (i < NUM_SCAR_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_HAIR:
+    while (i < NUM_HAIR_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_BUILD:
+    while (i < NUM_BUILD_DESCRIPTORS)
+      i++;
+    break;
+  case FEATURE_TYPE_COMPLEXION:
+    while (i < NUM_COMPLEXION_DESCRIPTORS)
+      i++;
+    break;
+  }
 
-    return i;
+  return i;
 }
 
 void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg)
 {
-    int changeStateTo = STATE(d);
-    SEND_TO_Q("Current short description: \tW", d);
-    char *tmpdesc = current_short_desc(d->character);
-    SEND_TO_Q(tmpdesc, d);
-    free(tmpdesc);
-    SEND_TO_Q("\tn\r\n\r\n", d);
-    short_desc_descriptors_menu(d->character);
-    changeStateTo = CON_GEN_DESCS_DESCRIPTORS_1;
-    STATE(d) = changeStateTo;
+  int changeStateTo = STATE(d);
+  SEND_TO_Q("Current short description: \tW", d);
+  char *tmpdesc = current_short_desc(d->character);
+  SEND_TO_Q(tmpdesc, d);
+  free(tmpdesc);
+  SEND_TO_Q("\tn\r\n\r\n", d);
+  short_desc_descriptors_menu(d->character);
+  changeStateTo = CON_GEN_DESCS_DESCRIPTORS_1;
+  STATE(d) = changeStateTo;
 }
 
 void HandleStateGenericDescsDescriptors1(struct descriptor_data *d, char *arg)
 {
-    if (!*arg || !d || !d->character)
-        return;
+  if (!*arg || !d || !d->character)
+    return;
 
-    int changeStateTo = STATE(d);
-    int type = atoi(arg);
+  int changeStateTo = STATE(d);
+  int type = atoi(arg);
 
-    if (type < 1 || type > NUM_FEATURE_TYPES)
-    {
-        SEND_TO_Q("That number is out of range.  Please choose again.\r\n\r\n", d);
-    }
-    else if (
-        (type == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(d->character))) ||
-        (type == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(d->character))) ||
-        (type == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(d->character))) ||
-        (type == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(d->character))))
-    {
-        write_to_output(d, "Your race cannot select that descriptor type.\r\n");
-    }
-    else
-    {
-        GET_PC_DESCRIPTOR_1(d->character) = type;
-        short_desc_adjectives_menu(d->character, GET_PC_DESCRIPTOR_1(d->character));
+  if (type < 1 || type > NUM_FEATURE_TYPES)
+  {
+    SEND_TO_Q("That number is out of range.  Please choose again.\r\n\r\n", d);
+  }
+  else if ((type == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(d->character))) ||
+           (type == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(d->character))) ||
+           (type == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(d->character))) ||
+           (type == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(d->character))))
+  {
+    write_to_output(d, "Your race cannot select that descriptor type.\r\n");
+  }
+  else
+  {
+    GET_PC_DESCRIPTOR_1(d->character) = type;
+    short_desc_adjectives_menu(d->character, GET_PC_DESCRIPTOR_1(d->character));
 
-        changeStateTo = CON_GEN_DESCS_ADJECTIVES_1;
-    }
+    changeStateTo = CON_GEN_DESCS_ADJECTIVES_1;
+  }
 
-    STATE(d) = changeStateTo;
+  STATE(d) = changeStateTo;
 }
 
 void HandleStateGenericDescsAdjectives1(struct descriptor_data *d, char *arg)
 {
-    int changeStateTo = STATE(d);
-    int count = count_adjective_types(GET_PC_DESCRIPTOR_1(d->character));
+  int changeStateTo = STATE(d);
+  int count = count_adjective_types(GET_PC_DESCRIPTOR_1(d->character));
 
-    if (atoi(arg) < 1 || atoi(arg) > count)
-    {
-        SEND_TO_Q("That number is out of range. Please choose again.\r\n\r\n", d);
-    }
-    else
-    {
-        GET_PC_ADJECTIVE_1(d->character) = atoi(arg);
+  if (atoi(arg) < 1 || atoi(arg) > count)
+  {
+    SEND_TO_Q("That number is out of range. Please choose again.\r\n\r\n", d);
+  }
+  else
+  {
+    GET_PC_ADJECTIVE_1(d->character) = atoi(arg);
 
-        SEND_TO_Q("\tY(Press enter to continue)\tn", d);
-        changeStateTo = CON_GEN_DESCS_MENU;
-    }
+    SEND_TO_Q("\tY(Press enter to continue)\tn", d);
+    changeStateTo = CON_GEN_DESCS_MENU;
+  }
 
-    STATE(d) = changeStateTo;
+  STATE(d) = changeStateTo;
 }
 
 void HandleStateGenericDescsDescriptors2(struct descriptor_data *d, char *arg)
 {
-    if (!*arg || !d || !d->character)
-        return;
+  if (!*arg || !d || !d->character)
+    return;
 
-    int changeStateTo = STATE(d);
-    int type = atoi(arg);
+  int changeStateTo = STATE(d);
+  int type = atoi(arg);
 
-    if (type < 1 || type > NUM_FEATURE_TYPES)
-    {
-        SEND_TO_Q("That number is out of range.  Please choose again.\r\n\r\n", d);
-    }
-    else if (
-        (type == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(d->character))) ||
-        (type == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(d->character))) ||
-        (type == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(d->character))) ||
-        (type == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(d->character))))
-    {
-        write_to_output(d, "Your race cannot select that descriptor type.\r\n");
-    }
-    else
-    {
-        GET_PC_DESCRIPTOR_2(d->character) = atoi(arg);
+  if (type < 1 || type > NUM_FEATURE_TYPES)
+  {
+    SEND_TO_Q("That number is out of range.  Please choose again.\r\n\r\n", d);
+  }
+  else if ((type == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(d->character))) ||
+           (type == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(d->character))) ||
+           (type == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(d->character))) ||
+           (type == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(d->character))))
+  {
+    write_to_output(d, "Your race cannot select that descriptor type.\r\n");
+  }
+  else
+  {
+    GET_PC_DESCRIPTOR_2(d->character) = atoi(arg);
 
-        short_desc_adjectives_menu(d->character,
-                                   GET_PC_DESCRIPTOR_2(d->character));
+    short_desc_adjectives_menu(d->character, GET_PC_DESCRIPTOR_2(d->character));
 
-        changeStateTo = CON_GEN_DESCS_ADJECTIVES_2;
-    }
+    changeStateTo = CON_GEN_DESCS_ADJECTIVES_2;
+  }
 
-    STATE(d) = changeStateTo;
+  STATE(d) = changeStateTo;
 }
 
 void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
 {
-    int changeStateTo = STATE(d);
-    int count = count_adjective_types(GET_PC_DESCRIPTOR_2(d->character));
+  int changeStateTo = STATE(d);
+  int count = count_adjective_types(GET_PC_DESCRIPTOR_2(d->character));
 
-    if (atoi(arg) < 1 || atoi(arg) > count)
-    {
-        SEND_TO_Q("That number is out of range. Please choose again.\r\n\r\n", d);
-    }
-    else
-    {
-        GET_PC_ADJECTIVE_2(d->character) = atoi(arg);
+  if (atoi(arg) < 1 || atoi(arg) > count)
+  {
+    SEND_TO_Q("That number is out of range. Please choose again.\r\n\r\n", d);
+  }
+  else
+  {
+    GET_PC_ADJECTIVE_2(d->character) = atoi(arg);
 
-        SEND_TO_Q("\tY(Press enter to continue)\tn", d);
-        changeStateTo = CON_GEN_DESCS_MENU;
-    }
+    SEND_TO_Q("\tY(Press enter to continue)\tn", d);
+    changeStateTo = CON_GEN_DESCS_MENU;
+  }
 
-    STATE(d) = changeStateTo;
+  STATE(d) = changeStateTo;
 }
 
 void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg)
 {
-    int changeStateTo = STATE(d);
+  int changeStateTo = STATE(d);
 
-    int options = 2;
-    SEND_TO_Q("Current short description: \tW", d);
-    write_to_output(d, "%s", current_short_desc(d->character));
-    SEND_TO_Q("\tn\r\n\r\n", d);
-    SEND_TO_Q("Are you happy with this short description?\r\n", d);
-    SEND_TO_Q("\r\n", d);
-    SEND_TO_Q("0) I want to cancel the short description process for now.\r\n", d);
-    SEND_TO_Q("1) I'm happy with it and want to save it to my character!\r\n", d);
-    SEND_TO_Q("2) I'm not happy with it and want to start over.\r\n", d);
+  int options = 2;
+  SEND_TO_Q("Current short description: \tW", d);
+  write_to_output(d, "%s", current_short_desc(d->character));
+  SEND_TO_Q("\tn\r\n\r\n", d);
+  SEND_TO_Q("Are you happy with this short description?\r\n", d);
+  SEND_TO_Q("\r\n", d);
+  SEND_TO_Q("0) I want to cancel the short description process for now.\r\n", d);
+  SEND_TO_Q("1) I'm happy with it and want to save it to my character!\r\n", d);
+  SEND_TO_Q("2) I'm not happy with it and want to start over.\r\n", d);
 
-    if (GET_PC_DESCRIPTOR_2(d->character) == 0)
-    {
-        SEND_TO_Q("3) I'm not done yet, as I want to add a second descriptor.\r\n", d);
-        ++options;
-    }
+  if (GET_PC_DESCRIPTOR_2(d->character) == 0)
+  {
+    SEND_TO_Q("3) I'm not done yet, as I want to add a second descriptor.\r\n", d);
+    ++options;
+  }
 
-    SEND_TO_Q("\r\n", d);
+  SEND_TO_Q("\r\n", d);
 
-    write_to_output(d, "What would you like to do? (1-%d):", options);
+  write_to_output(d, "What would you like to do? (1-%d):", options);
 
-    changeStateTo = CON_GEN_DESCS_MENU_PARSE;
-    STATE(d) = changeStateTo;
+  changeStateTo = CON_GEN_DESCS_MENU_PARSE;
+  STATE(d) = changeStateTo;
 }
 
 void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg)
 {
-    int changeStateTo = STATE(d);
+  int changeStateTo = STATE(d);
 
-    switch (atoi(arg))
+  switch (atoi(arg))
+  {
+  case 0:
+    GET_PC_DESCRIPTOR_1(d->character) = 0;
+    GET_PC_ADJECTIVE_1(d->character) = 0;
+    GET_PC_DESCRIPTOR_2(d->character) = 0;
+    GET_PC_ADJECTIVE_2(d->character) = 0;
+
+    /* If forced setup, can't cancel - send back to menu */
+    if (d->forced_short_desc_setup)
     {
-    case 0:
-        GET_PC_DESCRIPTOR_1(d->character) = 0;
-        GET_PC_ADJECTIVE_1(d->character) = 0;
-        GET_PC_DESCRIPTOR_2(d->character) = 0;
-        GET_PC_ADJECTIVE_2(d->character) = 0;
-        
-        /* If forced setup, can't cancel - send back to menu */
-        if (d->forced_short_desc_setup)
-        {
-            SEND_TO_Q("\tcYou cannot cancel - you must set a short description before entering the game.\r\n\tn", d);
-            SEND_TO_Q("\tY(Press enter to continue)\tn\r\n", d);
-            changeStateTo = CON_GEN_DESCS_INTRO;
-        }
-        else
-        {
-            changeStateTo = CON_CHAR_RP_MENU;
-            SEND_TO_Q("\tcCharacter short description setting cancelled.\r\n\tn", d);
-            show_character_rp_menu(d);
-        }
-        break;
-        
-    case 1:
-        SEND_TO_Q("\tcYour character descriptions are complete.\r\n\tn", d);
-        
-        /* If this was a forced setup (from game entry), enter the game now */
-        if (d->forced_short_desc_setup)
-        {
-            int load_result;
-            d->forced_short_desc_setup = FALSE; /* Clear the flag */
-            
-            load_result = enter_player_game(d);
-            send_to_char(d->character, "%s", CONFIG_WELC_MESSG);
-
-            /* Clear their load room if it's not persistant. */
-            if (!PLR_FLAGGED(d->character, PLR_LOADROOM))
-                GET_LOADROOM(d->character) = NOWHERE;
-            save_char(d->character, 0);
-
-            greet_mtrigger(d->character, -1);
-            greet_memory_mtrigger(d->character);
-
-            act("$n has entered the game.", TRUE, d->character, 0, 0, TO_ROOM);
-
-            update_player_last_on();
-
-            changeStateTo = CON_PLAYING;
-            
-            if (GET_LEVEL(d->character) == 0)
-            {
-                do_start(d->character);
-                newbieEquipment(d->character);
-                send_to_char(d->character, "%s", CONFIG_START_MESSG);
-            }
-            look_at_room(d->character, 0);
-            if (has_mail(GET_IDNUM(d->character)))
-                send_to_char(d->character, "You have mail waiting.\r\n");
-            if (load_result == 2)
-            {
-                send_to_char(d->character, "\r\n\007You could not afford your rent!\r\n"
-                                           "Your possesions have been donated to the Salvation Army!\r\n");
-            }
-            d->has_prompt = 0;
-            REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_BUILDWALK);
-
-            int x;
-            for (x = 0; x < NUM_CASTERS; x++)
-                IS_PREPARING(d->character, x) = FALSE;
-        }
-        else
-        {
-            /* Normal path - go to RP menu */
-            changeStateTo = CON_CHAR_RP_MENU;
-            show_character_rp_menu(d);
-        }
-        break;
-
-    case 2:
-
-        GET_PC_DESCRIPTOR_1(d->character) = 0;
-        GET_PC_ADJECTIVE_1(d->character) = 0;
-        GET_PC_DESCRIPTOR_2(d->character) = 0;
-        GET_PC_ADJECTIVE_2(d->character) = 0;
-        changeStateTo = CON_GEN_DESCS_INTRO;
-        SEND_TO_Q("\tYPress enter to continue)\tn\r\n", d);
-        break;
-
-    case 3:
-        if (GET_PC_DESCRIPTOR_2(d->character) == 0)
-        {
-            changeStateTo = CON_GEN_DESCS_DESCRIPTORS_2;
-
-            SEND_TO_Q("Current short description: \tW", d);
-            char *tmpdesc = current_short_desc(d->character);
-            SEND_TO_Q(tmpdesc, d);
-            free(tmpdesc);
-            SEND_TO_Q("\tn\r\n\r\n", d);
-            short_desc_descriptors_menu(d->character);
-
-            SEND_TO_Q("\r\n\tY(Press enter to choose your second descriptor)\tn\r\n", d);
-        }
-        else
-        {
-            SEND_TO_Q("You have already set your second descriptor. Please choose another option\r\n", d);
-        }
-        break;
-
-    default:
-        SEND_TO_Q("That is not a valid option. Please choose again.\r\n", d);
-        break;
+      SEND_TO_Q("\tcYou cannot cancel - you must set a short description before entering the "
+                "game.\r\n\tn",
+                d);
+      SEND_TO_Q("\tY(Press enter to continue)\tn\r\n", d);
+      changeStateTo = CON_GEN_DESCS_INTRO;
     }
+    else
+    {
+      changeStateTo = CON_CHAR_RP_MENU;
+      SEND_TO_Q("\tcCharacter short description setting cancelled.\r\n\tn", d);
+      show_character_rp_menu(d);
+    }
+    break;
 
-    STATE(d) = changeStateTo;
+  case 1:
+    SEND_TO_Q("\tcYour character descriptions are complete.\r\n\tn", d);
+
+    /* If this was a forced setup (from game entry), enter the game now */
+    if (d->forced_short_desc_setup)
+    {
+      int load_result;
+      d->forced_short_desc_setup = FALSE; /* Clear the flag */
+
+      load_result = enter_player_game(d);
+      send_to_char(d->character, "%s", CONFIG_WELC_MESSG);
+
+      /* Clear their load room if it's not persistant. */
+      if (!PLR_FLAGGED(d->character, PLR_LOADROOM))
+        GET_LOADROOM(d->character) = NOWHERE;
+      save_char(d->character, 0);
+
+      greet_mtrigger(d->character, -1);
+      greet_memory_mtrigger(d->character);
+
+      act("$n has entered the game.", TRUE, d->character, 0, 0, TO_ROOM);
+
+      update_player_last_on();
+
+      changeStateTo = CON_PLAYING;
+
+      if (GET_LEVEL(d->character) == 0)
+      {
+        do_start(d->character);
+        newbieEquipment(d->character);
+        send_to_char(d->character, "%s", CONFIG_START_MESSG);
+      }
+      look_at_room(d->character, 0);
+      if (has_mail(GET_IDNUM(d->character)))
+        send_to_char(d->character, "You have mail waiting.\r\n");
+      if (load_result == 2)
+      {
+        send_to_char(d->character, "\r\n\007You could not afford your rent!\r\n"
+                                   "Your possesions have been donated to the Salvation Army!\r\n");
+      }
+      d->has_prompt = 0;
+      REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_BUILDWALK);
+
+      int x;
+      for (x = 0; x < NUM_CASTERS; x++)
+        IS_PREPARING(d->character, x) = FALSE;
+    }
+    else
+    {
+      /* Normal path - go to RP menu */
+      changeStateTo = CON_CHAR_RP_MENU;
+      show_character_rp_menu(d);
+    }
+    break;
+
+  case 2:
+
+    GET_PC_DESCRIPTOR_1(d->character) = 0;
+    GET_PC_ADJECTIVE_1(d->character) = 0;
+    GET_PC_DESCRIPTOR_2(d->character) = 0;
+    GET_PC_ADJECTIVE_2(d->character) = 0;
+    changeStateTo = CON_GEN_DESCS_INTRO;
+    SEND_TO_Q("\tYPress enter to continue)\tn\r\n", d);
+    break;
+
+  case 3:
+    if (GET_PC_DESCRIPTOR_2(d->character) == 0)
+    {
+      changeStateTo = CON_GEN_DESCS_DESCRIPTORS_2;
+
+      SEND_TO_Q("Current short description: \tW", d);
+      char *tmpdesc = current_short_desc(d->character);
+      SEND_TO_Q(tmpdesc, d);
+      free(tmpdesc);
+      SEND_TO_Q("\tn\r\n\r\n", d);
+      short_desc_descriptors_menu(d->character);
+
+      SEND_TO_Q("\r\n\tY(Press enter to choose your second descriptor)\tn\r\n", d);
+    }
+    else
+    {
+      SEND_TO_Q("You have already set your second descriptor. Please choose another option\r\n", d);
+    }
+    break;
+
+  default:
+    SEND_TO_Q("That is not a valid option. Please choose again.\r\n", d);
+    break;
+  }
+
+  STATE(d) = changeStateTo;
 }
 
 char *show_pers(struct char_data *ch, struct char_data *vict)
 {
-    static char someone_buf[] = "someone";
-    
-    if (!CAN_SEE(vict, ch))
-        return someone_buf;
+  static char someone_buf[] = "someone";
+
+  if (!CAN_SEE(vict, ch))
+    return someone_buf;
+  else
+  {
+    if (has_intro(vict, ch))
+      return GET_NAME(ch);
     else
-    {
-        if (has_intro(vict, ch))
-            return GET_NAME(ch);
-        else
-            return which_desc(vict, ch);
-    }
-    return NULL;
+      return which_desc(vict, ch);
+  }
+  return NULL;
 }

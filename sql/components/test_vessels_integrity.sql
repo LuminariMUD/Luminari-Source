@@ -52,7 +52,7 @@ CALL get_active_dockings(1);
 SELECT 'Test 8: Stored procedure executed' as Status;
 
 -- Final verification - ensure no test data remains
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM ship_interiors WHERE ship_id = 99999) as ship_remains,
     (SELECT COUNT(*) FROM ship_cargo_manifest WHERE ship_id = 99999) as cargo_remains,
     (SELECT COUNT(*) FROM ship_crew_roster WHERE ship_id = 99999) as crew_remains,

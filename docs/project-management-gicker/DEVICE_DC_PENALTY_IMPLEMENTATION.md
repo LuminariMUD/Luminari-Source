@@ -83,8 +83,8 @@ Num  Device Name                         Spells                                 
 
 **Row Format:**
 ```c
-send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  +%-9d  %s\r\n", 
-             i+1, 
+send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  +%-9d  %s\r\n",
+             i+1,
              inv->short_description,
              spell_list,
              uses_remaining,

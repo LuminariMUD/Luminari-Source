@@ -48,26 +48,26 @@ typedef struct ibt_data IBT_DATA;
 #ifdef KEY
 #undef KEY
 #endif
-#define KEY(literal, field, value) \
-  if (!str_cmp(word, literal))     \
-  {                                \
-    field = value;                 \
-    fMatch = TRUE;                 \
-    break;                         \
+#define KEY(literal, field, value)                                                                 \
+  if (!str_cmp(word, literal))                                                                     \
+  {                                                                                                \
+    field = value;                                                                                 \
+    fMatch = TRUE;                                                                                 \
+    break;                                                                                         \
   }
 
 /* TXT_KEY should be used with fread_line, as it uses a static string, so should be copied */
 #ifdef TXT_KEY
 #undef TXT_KEY
 #endif
-#define TXT_KEY(literal, field, value) \
-  if (!str_cmp(word, literal))         \
-  {                                    \
-    if (field)                         \
-      STRFREE(field);                  \
-    field = STRALLOC(value);           \
-    fMatch = TRUE;                     \
-    break;                             \
+#define TXT_KEY(literal, field, value)                                                             \
+  if (!str_cmp(word, literal))                                                                     \
+  {                                                                                                \
+    if (field)                                                                                     \
+      STRFREE(field);                                                                              \
+    field = STRALLOC(value);                                                                       \
+    fMatch = TRUE;                                                                                 \
+    break;                                                                                         \
   }
 
 struct ibt_data

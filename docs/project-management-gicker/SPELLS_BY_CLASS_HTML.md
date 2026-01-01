@@ -87,7 +87,7 @@ Each spell shows (when expanded):
 
 ### For Comparing Classes
 1. Open "Cleric" to see healing spells
-2. Open new tab with "Druid" 
+2. Open new tab with "Druid"
 3. Compare spell availability and levels
 4. See which class gets spells earlier
 
@@ -236,7 +236,7 @@ Extracted spell assignments for 408 spells from class.c
 ### Scenario 2: Level Planning
 *"I'm level 4 Wizard, what do I get at level 5?"*
 - Navigate to Wizard
-- Scroll to "Level 5 Spells" 
+- Scroll to "Level 5 Spells"
 - See: fireball, lightning bolt, flame arrow, etc.
 - Plan character advancement
 
@@ -292,10 +292,10 @@ Potential additions:
 **Created**: October 15, 2025  
 **Feature**: Class-organized spell reference  
 **Generator**: `util/generate_spell_html_detailed.py`  
-**Files Created**: 
+**Files Created**:
 - `docs/spells_reference.html` (alphabetical)
 - `docs/spells_by_class.html` (by class)  
-**Data Sources**: 
+**Data Sources**:
 - `src/spell_parser.c`
 - `src/class.c`
 - MySQL `help_entries` table

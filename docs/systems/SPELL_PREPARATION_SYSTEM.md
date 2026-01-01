@@ -79,7 +79,7 @@ On successful cast:
   - Display functions
   - Command handlers
   - Event integration
-- **Dependencies**: 
+- **Dependencies**:
   - Depends on: mud_event.c, class.c, spells.c, domains_schools.c
   - Depended on by: spell_parser.c, limits.c, db.c, players.c
 - **Critical functions**:
@@ -227,7 +227,7 @@ struct known_spell_data *known_spells[NUM_CLASSES];
 
 ### **Preparation Interruption**
 1. **Triggers**: Standing up, entering combat, being moved
-2. **Effect**: 
+2. **Effect**:
    - Event cancelled
    - Preparation state cleared
    - Prep time NOT reset (resumes where left off)
@@ -429,7 +429,7 @@ The preparation system uses MUD events for timing:
   // Creating event
   add_mud_event(eD, ch, "preparation");
   sVar->sVariables = strdup(buf); // buf contains class number
-  
+
   // In event handler
   int ch_class = atoi((char *)event_obj->sVariables);
   ```
@@ -602,7 +602,7 @@ current = tmp;
   ```c
   // In spell_prep.c, change to:
   #define DEBUGMODE TRUE
-  
+
   // Debug messages will appear like:
   // "DEBUG: Adding spell 123 with metamagic 4 to prep queue"
   // "DEBUG: Spell prep time calculated as 15 seconds"
@@ -653,7 +653,7 @@ current = tmp;
 ### **Critical Security Fixes**
 1. **Array Bounds Protection**: Added bounds checking in `assign_feat_spell_slots()` to prevent segfaults when level_counter exceeds slot array size (84 entries)
 2. **Use-After-Free Protection**: Added character validation in `event_preparation()` by checking global character_list before processing events
-3. **Integer Overflow Protection**: 
+3. **Integer Overflow Protection**:
    - Added overflow checks in `compute_spells_prep_time()` for all arithmetic operations
    - Protected metamagic calculations in `compute_spells_circle()`
    - Capped caster_level at 95 in `known_spells_add()` to prevent array overflow

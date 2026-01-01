@@ -42,7 +42,7 @@ Phase 4.75 implements wilderness-crafting integration using a campaign-safe appr
 // Add campaign-specific material name arrays
 #if defined(CAMPAIGN_DL)
   static const char *dl_herb_names[NUM_HERB_SUBTYPES] = {
-    "kingsfern", "dragongrass", "vallenwood leaf", "krynn sage", 
+    "kingsfern", "dragongrass", "vallenwood leaf", "krynn sage",
     "moonbell", "silverleaf", "wyrmroot", "dracoflower"
   };
   static const char *dl_crystal_names[NUM_CRYSTAL_SUBTYPES] = {
@@ -81,21 +81,21 @@ int get_crafting_group_for_wilderness_material(int category, int subtype, int qu
     case RESOURCE_HERBS:
     case RESOURCE_VEGETATION:
       return CRAFT_GROUP_CLOTH;  // Organic materials
-      
+
     case RESOURCE_CRYSTAL:
     case RESOURCE_MINERALS:
       if (quality >= 4) return CRAFT_GROUP_HARD_METALS;  // Rare/Legendary
       else return CRAFT_GROUP_SOFT_METALS;  // Common metals
-      
+
     case RESOURCE_WOOD:
       return CRAFT_GROUP_WOOD;
-      
+
     case RESOURCE_GAME:
       return CRAFT_GROUP_ANIMAL_HIDES;
-      
+
     case RESOURCE_STONE:
       return CRAFT_GROUP_HARD_METALS;  // Stone works like hard metals
-      
+
     default:
       return CRAFT_GROUP_REFINING;
   }
@@ -106,7 +106,7 @@ int wilderness_to_crafting_material(int category, int subtype, int quality) {
   // Campaign-specific material mapping
 #if defined(CAMPAIGN_DL)
   return get_dl_crafting_material(category, subtype, quality);
-#elif defined(CAMPAIGN_FR) 
+#elif defined(CAMPAIGN_FR)
   return get_fr_crafting_material(category, subtype, quality);
 #else
   return get_default_crafting_material(category, subtype, quality);
@@ -136,13 +136,13 @@ ACMD(do_materialadmin) {
 // Default LuminariMUD wilderness recipes
 static const struct crafting_recipe wilderness_recipes[] = {
   // Herb-based items
-  { CRAFT_RECIPE_POTION_HEALING, "healing potion", 
+  { CRAFT_RECIPE_POTION_HEALING, "healing potion",
     {{WILDERNESS_HERB_MATERIAL(0, 2), 3}, {0, 0}, {0, 0}} },
-    
+
   // Crystal-enhanced weapons  
   { CRAFT_RECIPE_WEAPON_CRYSTAL_SWORD, "crystal sword",
     {{CRAFT_MAT_HARD_METALS, 5}, {WILDERNESS_CRYSTAL_MATERIAL(0, 4), 2}, {0, 0}} },
-    
+
   // Wood items
   { CRAFT_RECIPE_WEAPON_WILDERNESS_BOW, "wilderness bow",
     {{WILDERNESS_WOOD_MATERIAL(0, 3), 4}, {CRAFT_MAT_CLOTH, 2}, {0, 0}} }
@@ -159,16 +159,16 @@ static const struct crafting_recipe wilderness_recipes[] = {
   #define ENABLE_WILDERNESS_MATERIALS 1
   #define WILDERNESS_MATERIAL_THEME "dragonlance"
   #define WILDERNESS_ENHANCED_RECIPES 1
-  
+
 #elif defined(CAMPAIGN_FR)
   #define ENABLE_WILDERNESS_MATERIALS 1  
   #define WILDERNESS_MATERIAL_THEME "forgotten_realms"
   #define WILDERNESS_ENHANCED_RECIPES 1
-  
+
 #else
   // Default LuminariMUD - always enable
   #define ENABLE_WILDERNESS_MATERIALS 1
-  #define WILDERNESS_MATERIAL_THEME "luminari" 
+  #define WILDERNESS_MATERIAL_THEME "luminari"
   #define WILDERNESS_ENHANCED_RECIPES 1
 #endif
 ```
@@ -181,12 +181,12 @@ static const struct crafting_recipe wilderness_recipes[] = {
 void show_available_materials(struct char_data *ch) {
   // Show traditional crafting materials
   show_crafting_materials(ch);
-  
+
 #if ENABLE_WILDERNESS_MATERIALS
   // Show wilderness material storage
   send_to_char(ch, "\r\n\tcWilderness Materials:\tn\r\n");
   show_material_storage(ch);
-  
+
   // Show conversion options
   send_to_char(ch, "\r\n\tcConversion Available:\tn Use 'craft convert' to bridge materials.\r\n");
 #endif

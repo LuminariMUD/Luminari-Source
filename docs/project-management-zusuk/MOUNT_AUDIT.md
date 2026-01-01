@@ -80,7 +80,7 @@ struct char_data {
 2. **FEAT_MOUNTED_ARCHERY** (src/structs.h:1797)
    - Removes -4 penalty for mounted archery - src/feats.c:1473-1478
 
-3. **FEAT_RIDE_BY_ATTACK** 
+3. **FEAT_RIDE_BY_ATTACK**
    - Mounted charge attacks - src/feats.c:1459-1463
 
 4. **FEAT_SPIRITED_CHARGE**

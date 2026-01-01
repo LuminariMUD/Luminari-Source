@@ -1,7 +1,7 @@
 -- VESSELS PHASE 2 ROLLBACK SCRIPT
 -- Emergency rollback script to remove Phase 2 vessel system from database
 -- WARNING: This will DELETE all vessel interior data!
--- 
+--
 -- Usage: mysql -u root -p luminari_mudprod < vessels_phase2_rollback.sql
 
 -- Disable foreign key checks temporarily
@@ -23,6 +23,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- Verify cleanup
 SELECT CONCAT('Rollback complete. Remaining ship_ tables: ', COUNT(*)) as Status
-FROM information_schema.TABLES 
-WHERE TABLE_SCHEMA = DATABASE() 
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE()
 AND TABLE_NAME LIKE 'ship_%';

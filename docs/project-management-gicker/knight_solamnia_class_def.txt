@@ -16,40 +16,40 @@
          20, Y, Y, H, 12, 0, 1, 4, Y, 2500, 0,
          /*prestige spell progression*/ "divine advancement after level 5",
          /*primary attributes*/ "Strength, Wisdom for spellcasting",
-         /*descrip*/ 
+         /*descrip*/
 #ifdef CAMPAIGN_DL
           /* DragonLance theme - Knights of Solamnia */
-          "The Knights of Solamnia are the most renowned knightly order on Krynn, bound by " 
-          "the sacred Oath and the Measure. This combined order represents the progression " 
-          "of a knight through the three virtues: Loyalty (Crown), Courage (Sword), and " 
+          "The Knights of Solamnia are the most renowned knightly order on Krynn, bound by "
+          "the sacred Oath and the Measure. This combined order represents the progression "
+          "of a knight through the three virtues: Loyalty (Crown), Courage (Sword), and "
           "Wisdom (Rose)."
           "\r\n"
-          "Beginning as Knights of the Crown (levels 1-5), they learn the virtues of Loyalty " 
-          "and Obedience, forming the backbone of the armed forces. Advancing to the Sword " 
-          "(levels 6-10), they embrace Courage and Heroism, channeling divine power in battle. " 
-          "Finally, achieving the Rose (levels 11-20), they embody Wisdom and Justice, " 
+          "Beginning as Knights of the Crown (levels 1-5), they learn the virtues of Loyalty "
+          "and Obedience, forming the backbone of the armed forces. Advancing to the Sword "
+          "(levels 6-10), they embrace Courage and Heroism, channeling divine power in battle. "
+          "Finally, achieving the Rose (levels 11-20), they embody Wisdom and Justice, "
           "becoming inspiring leaders and champions of good."
           "\r\n"
-          "The Order is bound by their sacred Oath: 'Est Sularus oth Mithas' - My Honor is My " 
-          "Life. They follow the 37 volumes of the Measure, a code of conduct governing every " 
-          "aspect of their lives. Patron deities include Paladine (Dragonlance's Platinum " 
+          "The Order is bound by their sacred Oath: 'Est Sularus oth Mithas' - My Honor is My "
+          "Life. They follow the 37 volumes of the Measure, a code of conduct governing every "
+          "aspect of their lives. Patron deities include Paladine (Dragonlance's Platinum "
           "Dragon), Kiri-Jolith (god of war and honor), and Habbakuk (the Fisher King)."
 #else
           /* LuminariMUD theme - Knights of the Luminous Thread */
-          "The Knights of the Luminous Thread represent the full evolution of oath-bound " 
-          "warriors, from novice oath-takers to master weavers of destiny. These divine " 
-          "champions literally weave reality through their sacred vows, with threads of light " 
+          "The Knights of the Luminous Thread represent the full evolution of oath-bound "
+          "warriors, from novice oath-takers to master weavers of destiny. These divine "
+          "champions literally weave reality through their sacred vows, with threads of light "
           "emerging from their hearts to bind them to duty."
           "\r\n"
-          "As initiates (levels 1-5), they learn the Crimson Loom - swearing basic oaths that " 
-          "create physical bonds of duty. Advancing as oath-warriors (levels 6-10), they gain " 
-          "the power to channel divine energy through their vow-forged weapons. Masters " 
-          "(levels 11-20) can weave multiple oaths together, creating networks of binding " 
+          "As initiates (levels 1-5), they learn the Crimson Loom - swearing basic oaths that "
+          "create physical bonds of duty. Advancing as oath-warriors (levels 6-10), they gain "
+          "the power to channel divine energy through their vow-forged weapons. Masters "
+          "(levels 11-20) can weave multiple oaths together, creating networks of binding "
           "promises that reshape reality itself."
           "\r\n"
-          "Divine Patrons: Kordran (War/Duty), Aethyra (Magic/Oaths), and the Luminous Weaver " 
-          "(the deity of fate). Their sacred motto: 'Our oaths are iron, our words are law, " 
-          "our blood is the ink of destiny.' Each fulfilled oath strengthens them; each broken " 
+          "Divine Patrons: Kordran (War/Duty), Aethyra (Magic/Oaths), and the Luminous Weaver "
+          "(the deity of fate). Their sacred motto: 'Our oaths are iron, our words are law, "
+          "our blood is the ink of destiny.' Each fulfilled oath strengthens them; each broken "
           "promise creates an unhealable wound that burns with eternal shame."
 #endif
          );
@@ -77,7 +77,7 @@
                       "the Avatar of Knighthood",                /* <= LVL_GRSTAFF */
                       "the Knight of Krynn"                      /* default */
   );
-  
+
   /* LEVEL 1 - Crown Initiate */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
@@ -86,64 +86,64 @@
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CROWN_OF_KNIGHTHOOD, Y, 1, N);
-  
+
   /* LEVEL 2 - Crown Courage */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_STRENGTH_OF_HONOR, Y, 2, N);
-  
+
   /* LEVEL 3 - Crown Rally */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_RALLY, Y, 3, N);
-  
+
   /* LEVEL 4 - Crown Inspire */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 4, N);
-  
+
   /* LEVEL 5 - Crown Mastery */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_KNIGHTHOODS_FLOWER, Y, 5, N);
-  
+
   /* LEVEL 6 - Sword Initiate (Divine Spellcasting Begins) */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 6, N);
-  
+
   /* LEVEL 7 - Sword Courage */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_HEROIC_SURGE, Y, 7, N);
-  
+
   /* LEVEL 8 - Sword Honor */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_HONORBOUND, Y, 8, N);
-  
+
   /* LEVEL 9 - Sword Smite */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 9, N);
-  
+
   /* LEVEL 10 - Sword Mastery */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SOUL_OF_KNIGHTHOOD, Y, 10, N);
-  
+
   /* LEVEL 11 - Rose Initiate */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WISDOM_OF_THE_MEASURE, Y, 11, N);
-  
+
   /* LEVEL 12 - Rose Leadership */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_LEADERSHIP, Y, 12, N);
-  
+
   /* LEVEL 13 - Rose Aura */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AURA_OF_COURAGE, Y, 13, N);
-  
+
   /* LEVEL 14 - Rose Inspire */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_GREATNESS, Y, 14, N);
-  
+
   /* LEVEL 15 - Rose Smite */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 15, N);
-  
+
   /* LEVEL 16 - Rose Command */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_FINAL_STAND, Y, 16, N);
-  
+
   /* LEVEL 17 - Rose Justice */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AURA_OF_RIGHTEOUSNESS, Y, 17, N);
-  
+
   /* LEVEL 18 - Rose Resolve */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_REMOVE_DISEASE, Y, 18, N);
-  
+
   /* LEVEL 19 - Rose Champion */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SHIELD_OF_FAITH, Y, 19, N);
-  
+
   /* LEVEL 20 - Rose Grand Master */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_Knight_OF_THE_ROSE, Y, 20, N);
-  
+
   /* Bonus feat selections */
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);

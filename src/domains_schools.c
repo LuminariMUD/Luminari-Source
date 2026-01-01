@@ -39,79 +39,65 @@ const int restricted_school_reference[NUM_SCHOOLS + 1] = {
     -1};
 
 /* schools of magic names */
-const char *const school_names[NUM_SCHOOLS + 1] = {
-    "Universalist (No Specialty)", // 0
-    "Abjurer (Abjuration)",        // 1
-    "Conjurer (Conjuration)",      // 2
-    "Diviner (Divination)",        // 3
-    "Enchanter (Enchantment)",     // 4
-    "Invoker (Evocation)",         // 5
-    "Illusionist (Illusion)",      // 6
-    "Necromancer (Necromancy)",    // 7
-    "Transmuter (Transmutation)",  // 8
-    "\n"};
+const char *const school_names[NUM_SCHOOLS + 1] = {"Universalist (No Specialty)", // 0
+                                                   "Abjurer (Abjuration)",        // 1
+                                                   "Conjurer (Conjuration)",      // 2
+                                                   "Diviner (Divination)",        // 3
+                                                   "Enchanter (Enchantment)",     // 4
+                                                   "Invoker (Evocation)",         // 5
+                                                   "Illusionist (Illusion)",      // 6
+                                                   "Necromancer (Necromancy)",    // 7
+                                                   "Transmuter (Transmutation)",  // 8
+                                                   "\n"};
 
 /* schools of magic names (less detail) */
-const char *const school_names_specific[NUM_SCHOOLS + 1] = {
-    "No School",     // 0
-    "Abjuration",    // 1
-    "Conjuration",   // 2
-    "Divination",    // 3
-    "Enchantment",   // 4
-    "Evocation",     // 5
-    "Illusion",      // 6
-    "Necromancy",    // 7
-    "Transmutation", // 8
-    "\n"};
+const char *const school_names_specific[NUM_SCHOOLS + 1] = {"No School",     // 0
+                                                            "Abjuration",    // 1
+                                                            "Conjuration",   // 2
+                                                            "Divination",    // 3
+                                                            "Enchantment",   // 4
+                                                            "Evocation",     // 5
+                                                            "Illusion",      // 6
+                                                            "Necromancy",    // 7
+                                                            "Transmutation", // 8
+                                                            "\n"};
 
 /* description of school benefits */
 const char *const school_benefits[NUM_SCHOOLS + 1] = {
-    /*no school*/ "No benefits, but you will have access to all spells.",                                       // 0
-    /*abjuration*/ "Your abjuration spells are much more powerful.",                                            // 1
-    /*Conjuration*/ "Your conjured creatures are much more powerful.",                                          // 2
-    /*Divination*/ "Your divination spells become more powerful.",                                              // 3
-    /*Enchantment*/ "You can enchant higher level victims, and it is much harder to resist your enchantments.", // 4
-    /*Evocation*/ "Do much more damage with your evocation spells.",                                            // 5
-    /*Illusion*/ "Your illusion spells are much more powerful.",                                                // 6
-    /*Necromancy*/ "You create much more powerful undead.",                                                     // 7
-    /*Transmutation*/ "Your warding spells (such as iron skin), are much more powerful.",                       // 8
+    /*no school*/ "No benefits, but you will have access to all spells.", // 0
+    /*abjuration*/ "Your abjuration spells are much more powerful.",      // 1
+    /*Conjuration*/ "Your conjured creatures are much more powerful.",    // 2
+    /*Divination*/ "Your divination spells become more powerful.",        // 3
+                                                                          /*Enchantment*/
+    "You can enchant higher level victims, and it is much harder to resist your enchantments.", // 4
+    /*Evocation*/ "Do much more damage with your evocation spells.",                            // 5
+    /*Illusion*/ "Your illusion spells are much more powerful.",                                // 6
+    /*Necromancy*/ "You create much more powerful undead.",                                     // 7
+    /*Transmutation*/ "Your warding spells (such as iron skin), are much more powerful.",       // 8
     "\n"};
 
 /* domain power names */
 const char *const domainpower_names[NUM_DOMAIN_POWERS + 1] = {
     "Undefined", // 0
-    "Lightning Arc",
-    "Electricity Resistance",
-    "Acid Dart",
-    "Acid Resistance",
+    "Lightning Arc",      "Electricity Resistance",
+    "Acid Dart",          "Acid Resistance",
     "Fire Bolt", // 5
-    "Fire Resistance",
-    "Icicle",
-    "Cold Resistance",
-    "Curse Touch",
+    "Fire Resistance",    "Icicle",
+    "Cold Resistance",    "Curse Touch",
     "Chaotic Weapon", // 10
-    "Destructive Smite",
-    "Destructive Aura",
-    "Evil Touch",
-    "Evil Scythe",
+    "Destructive Smite",  "Destructive Aura",
+    "Evil Touch",         "Evil Scythe",
     "Good Touch", // 15
-    "Good Lance",
-    "Healing Touch",
-    "Empowered Healing",
-    "Knowledge",
+    "Good Lance",         "Healing Touch",
+    "Empowered Healing",  "Knowledge",
     "Eye of Knowledge", // 20
-    "Blessed Touch",
-    "Lawful Weapon",
-    "Deception",
-    "Copycat",
+    "Blessed Touch",      "Lawful Weapon",
+    "Deception",          "Copycat",
     "Mass Invis", // 25
-    "Resistance",
-    "Saves",
-    "Aura of Protection",
-    "Ethereal Shift",
+    "Resistance",         "Saves",
+    "Aura of Protection", "Ethereal Shift",
     "Battle Rage", // 30
-    "Weapon Expert",
-    "\n"};
+    "Weapon Expert",      "\n"};
 
 /* translates whether a given domain power has a corresponding feat */
 int domain_power_to_feat(int domain_power)
@@ -310,8 +296,7 @@ void disable_restricted_school_spells(struct char_data *ch)
   /* now go through and disable opposing school's */
   for (spellnum = 1; spellnum < NUM_SPELLS; spellnum++)
   {
-    if (spell_info[spellnum].schoolOfMagic ==
-        restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)])
+    if (spell_info[spellnum].schoolOfMagic == restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)])
       SET_SKILL(ch, spellnum, 0);
   }
 
@@ -379,8 +364,8 @@ void add_domain_powers(int domain, int p1, int p2, int p3, int p4, int p5)
   /* if MAX_GRANTED_POWERS is changed, we have to add it here! */
 }
 
-void add_domain_spells(int domain, int s1, int s2, int s3, int s4, int s5,
-                       int s6, int s7, int s8, int s9)
+void add_domain_spells(int domain, int s1, int s2, int s3, int s4, int s5, int s6, int s7, int s8,
+                       int s9)
 {
   domain_list[domain].domain_spells[0] = s1;
   domain_list[domain].domain_spells[1] = s2;
@@ -481,8 +466,9 @@ void assign_domains(void)
   add_domain(DOMAIN_DESTRUCTION, "Destruction", WEAPON_TYPE_SPEAR,
              "You revel in ruin and devastation, and can deliver particularly "
              "destructive attacks.");
-  add_domain_powers(DOMAIN_DESTRUCTION, DOMAIN_POWER_DESTRUCTIVE_SMITE, DOMAIN_POWER_DESTRUCTIVE_AURA,
-                    DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
+  add_domain_powers(DOMAIN_DESTRUCTION, DOMAIN_POWER_DESTRUCTIVE_SMITE,
+                    DOMAIN_POWER_DESTRUCTIVE_AURA, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+                    DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_DESTRUCTION, SPELL_TRUE_STRIKE, SPELL_RESERVED_DBC,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
@@ -588,7 +574,8 @@ void assign_domains(void)
              "bonus on saving throws. This bonus increases by 1 for every 5 levels "
              "you possess.");
   add_domain_powers(DOMAIN_PROTECTION, DOMAIN_POWER_RESISTANCE, DOMAIN_POWER_SAVES,
-                    DOMAIN_POWER_AURA_OF_PROTECTION, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
+                    DOMAIN_POWER_AURA_OF_PROTECTION, DOMAIN_POWER_UNDEFINED,
+                    DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_PROTECTION, SPELL_MAGE_ARMOR, SPELL_SHIELD,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
@@ -619,8 +606,9 @@ void assign_domains(void)
 #endif
 
   /* War Domain */
-  add_domain(DOMAIN_WAR, "War", WEAPON_TYPE_LONG_SWORD,
-             "You are a crusader for your faith, always ready and willing to fight to defend your faith.");
+  add_domain(
+      DOMAIN_WAR, "War", WEAPON_TYPE_LONG_SWORD,
+      "You are a crusader for your faith, always ready and willing to fight to defend your faith.");
   add_domain_powers(DOMAIN_WAR, DOMAIN_POWER_BATTLE_RAGE, DOMAIN_POWER_WEAPON_EXPERT,
                     DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
@@ -649,8 +637,8 @@ void domain_spell_level(int spell, int level, int domain)
 
   if (level < 1 || level > LVL_IMPL)
   {
-    log("SYSERR: assigning domain '%s' to illegal level %d/%d.", spell_name(spell),
-        level, LVL_IMPL);
+    log("SYSERR: assigning domain '%s' to illegal level %d/%d.", spell_name(spell), level,
+        LVL_IMPL);
     bad = 1;
   }
 
@@ -679,7 +667,7 @@ int is_domain_spell_of_ch(struct char_data *ch, int spellnum)
 {
   if (IS_NPC(ch))
     return FALSE;
-    
+
   int counter = 0;
 
   if (GET_1ST_DOMAIN(ch))
@@ -717,10 +705,10 @@ ACMD(do_domain)
   for (i = 1; i < NUM_DOMAINS; i++)
   {
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
-                    QCYN, QNRM, domain_list[i].name,
-                    QCYN, QNRM, weapon_list[domain_list[i].favored_weapon].name,
-                    QCYN, QNRM, domain_list[i].description);
+                    "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n", QCYN,
+                    QNRM, domain_list[i].name, QCYN, QNRM,
+                    weapon_list[domain_list[i].favored_weapon].name, QCYN, QNRM,
+                    domain_list[i].description);
     /*
     send_to_char(ch, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
                  QCYN, QNRM, domain_list[i].name,
@@ -728,8 +716,7 @@ ACMD(do_domain)
                  QCYN, QNRM, domain_list[i].description
                 );*/
 
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "%sGranted powers: |%s", QCYN, QNRM);
+    len += snprintf(buf + len, sizeof(buf) - len, "%sGranted powers: |%s", QCYN, QNRM);
 
     /*                    send_to_char(ch, "%sGranted powers: |%s", QCYN, QNRM);*/
 
@@ -737,8 +724,8 @@ ACMD(do_domain)
     {
       if (domain_list[i].granted_powers[j] != DOMAIN_POWER_UNDEFINED)
       {
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "%s%s|%s", domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
+        len += snprintf(buf + len, sizeof(buf) - len, "%s%s|%s",
+                        domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
         /*send_to_char(ch, "%s%s|%s", domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);*/
       }
     }
@@ -751,8 +738,8 @@ ACMD(do_domain)
     {
       if (domain_list[i].domain_spells[j] != SPELL_RESERVED_DBC)
       {
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);
+        len += snprintf(buf + len, sizeof(buf) - len, "%s%s|%s",
+                        spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);
         /*send_to_char(ch, "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);*/
       }
     }

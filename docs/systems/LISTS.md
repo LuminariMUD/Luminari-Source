@@ -215,7 +215,7 @@ while ((member = simple_list(group_list))) {
 simple_list(NULL);  // Clean up after use (recommended)
 ```
 
-`simple_list` stores static state and is not reentrant. Use it only for a single, flat loop. **NEVER nest `simple_list` loops** - this will cause the inner loop to reset the outer loop's state. 
+`simple_list` stores static state and is not reentrant. Use it only for a single, flat loop. **NEVER nest `simple_list` loops** - this will cause the inner loop to reset the outer loop's state.
 
 Best practice is to always call `simple_list(NULL)` before and after your loop to ensure clean state. The function will automatically reset when switching between different lists, but explicit resets prevent subtle bugs.
 
@@ -266,7 +266,7 @@ simple_list(NULL);  // Always reset first
 while ((member = (struct char_data *)simple_list(ch->group->members))) {
   if (IN_ROOM(member) != IN_ROOM(ch))
     continue;  // Skip members in different rooms
-  
+
   // Apply group buff/effect
   affect_to_char(member, &af);
 }
@@ -323,12 +323,12 @@ struct iterator_data it;
 struct obj_data *obj = merge_iterator(&it, room->contents);
 while (obj) {
   struct obj_data *next = next_in_list(&it);  // Get next BEFORE removal
-  
+
   if (OBJ_FLAGGED(obj, ITEM_NODROP)) {
     remove_from_list(obj, room->contents);   // Safe because we saved next
     extract_obj(obj);
   }
-  
+
   obj = next;
 }
 remove_iterator(&it);
@@ -532,7 +532,7 @@ while ((item1 = simple_list(list1))) {
      if (condition)
        free_list(list);  // Crash on next iteration!
    }
-   
+
    // RIGHT - break after freeing
    while ((item = simple_list(list))) {
      if (condition) {
@@ -550,7 +550,7 @@ while ((item1 = simple_list(list1))) {
      if (found)
        return;  // Iterator still attached!
    }
-   
+
    // RIGHT
    while ((item = simple_list(list))) {
      if (found) {
@@ -587,7 +587,7 @@ remove_iterator(&it);
    ```c
    // WRONG - leaks all content
    free_list(my_list);
-   
+
    // RIGHT - free content first if you own it
    while ((obj = simple_list(my_list))) {
      remove_from_list(obj, my_list);
@@ -601,7 +601,7 @@ remove_iterator(&it);
    ```c
    // WRONG - old list leaked
    my_list = create_list();
-   
+
    // RIGHT - free old list first
    if (my_list)
      free_list(my_list);
@@ -637,7 +637,7 @@ if (!item) {
 int safety = 0;
 simple_list(NULL);
 while ((item = simple_list(list)) && safety++ < 10000) {
-  mudlog(CMP, LVL_IMPL, TRUE, "Processing item %d of estimated %d", 
+  mudlog(CMP, LVL_IMPL, TRUE, "Processing item %d of estimated %d",
          safety, list->iSize);
   // ... process ...
 }
@@ -675,7 +675,7 @@ If you need frequent membership tests or large-scale lookups, consider augmentin
 - **Iterate (simple)**:
   ```c
   simple_list(NULL);  // Reset first
-  while ((x = simple_list(list))) { 
+  while ((x = simple_list(list))) {
     // use x
   }
   simple_list(NULL);  // Clean up after
@@ -691,4 +691,3 @@ If you need frequent membership tests or large-scale lookups, consider augmentin
 - ALWAYS advance iterator before removing current item
 - ALWAYS call `remove_iterator()` when done with explicit iterator
 - ALWAYS free your content separately - lists only manage nodes
-

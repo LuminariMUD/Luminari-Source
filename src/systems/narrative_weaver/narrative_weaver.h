@@ -9,11 +9,12 @@
 #define _NARRATIVE_WEAVER_H_
 
 /* Structure for holding narrative components */
-struct narrative_components {
-    char *base_description;     /* Comprehensive region description */
-    struct region_hint *hints;  /* Array of contextual hints */
-    int weather_influence;      /* Weather impact factor */
-    int time_influence;         /* Time of day impact factor */
+struct narrative_components
+{
+  char *base_description;    /* Comprehensive region description */
+  struct region_hint *hints; /* Array of contextual hints */
+  int weather_influence;     /* Weather impact factor */
+  int time_influence;        /* Time of day impact factor */
 };
 
 /* Function prototypes for narrative weaving system */
@@ -33,7 +34,8 @@ int json_array_contains_string(const char *json_array, const char *search_string
  * @param key_characteristics JSON string with regional AI characteristics
  * @return Weight multiplier (0.3 to 1.8)
  */
-double get_mood_weight_for_hint(int hint_category, const char *hint_text, const char *key_characteristics);
+double get_mood_weight_for_hint(int hint_category, const char *hint_text,
+                                const char *key_characteristics);
 
 /**
  * Select a hint using weighted probability based on contextual and mood weights
@@ -43,7 +45,8 @@ double get_mood_weight_for_hint(int hint_category, const char *hint_text, const 
  * @param key_characteristics Regional AI characteristics for mood weighting
  * @return Index of selected hint from hint_indices array
  */
-int select_weighted_hint(struct region_hint *hints, int *hint_indices, int count, const char *key_characteristics);
+int select_weighted_hint(struct region_hint *hints, int *hint_indices, int count,
+                         const char *key_characteristics);
 
 /**
  * Load regional AI characteristics for mood-based hint weighting
@@ -87,7 +90,8 @@ int get_hint_category_from_string(const char *category_str);
  * @param time_category Current time of day
  * @return Array of region hints, or NULL if none found
  */
-struct region_hint *load_contextual_hints_optimized(int region_vnum, const char *weather_condition, const char *time_category);
+struct region_hint *load_contextual_hints_optimized(int region_vnum, const char *weather_condition,
+                                                    const char *time_category);
 
 /**
  * Load contextual hints with intelligent caching
@@ -97,7 +101,8 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
  * @param resource_health Resource health factor (0.0-1.0)
  * @return Array of region hints, or NULL if none found
  */
-struct region_hint *load_contextual_hints_cached(int region_vnum, const char *weather_condition, const char *time_category, double resource_health);
+struct region_hint *load_contextual_hints_cached(int region_vnum, const char *weather_condition,
+                                                 const char *time_category, double resource_health);
 
 /**
  * Load comprehensive region description from database
@@ -118,13 +123,14 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y);
 /**
  * Enhanced wilderness description function that replaces hint-based approach
  * @param ch Character viewing the description
- * @param room The wilderness room 
+ * @param room The wilderness room
  * @param zone Zone containing the coordinates
- * @param x World X coordinate  
+ * @param x World X coordinate
  * @param y World Y coordinate
  * @return Newly allocated unified description
  */
-char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum room, zone_rnum zone, int x, int y);
+char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum room, zone_rnum zone,
+                                              int x, int y);
 
 /**
  * Enhance base resource-aware description with regional hints
@@ -135,8 +141,8 @@ char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum ro
  * @param y World Y coordinate
  * @return Enhanced description or NULL if enhancement fails
  */
-char *enhance_base_description_with_hints(char *base_description, struct char_data *ch, 
-                                         zone_rnum zone, int x, int y);
+char *enhance_base_description_with_hints(char *base_description, struct char_data *ch,
+                                          zone_rnum zone, int x, int y);
 
 /**
  * Layer regional hints onto base description
@@ -149,8 +155,8 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
  * @return Enhanced description with layered hints
  */
 char *layer_hints_on_base_description(char *base_description, struct region_hint *hints,
-                                     const char *weather_condition, const char *time_category,
-                                     int x, int y);
+                                      const char *weather_condition, const char *time_category,
+                                      int x, int y);
 
 /**
  * Validate that text uses proper third-person observational voice
@@ -175,7 +181,7 @@ void init_narrative_weaver(void);
 int safe_strcpy(char *dest, const char *src, size_t dest_size);
 
 /**
- * Safe string concatenation with buffer bounds checking  
+ * Safe string concatenation with buffer bounds checking
  * @param dest Destination buffer
  * @param src Source string
  * @param dest_size Size of destination buffer
@@ -184,26 +190,26 @@ int safe_strcpy(char *dest, const char *src, size_t dest_size);
 int narrative_safe_strcat(char *dest, const char *src, size_t dest_size);
 
 /* Constants for narrative weaving */
-#define NARRATIVE_STYLE_POETIC      0
-#define NARRATIVE_STYLE_PRACTICAL   1
-#define NARRATIVE_STYLE_MYSTERIOUS  2
-#define NARRATIVE_STYLE_DRAMATIC    3
-#define NARRATIVE_STYLE_PASTORAL    4
+#define NARRATIVE_STYLE_POETIC 0
+#define NARRATIVE_STYLE_PRACTICAL 1
+#define NARRATIVE_STYLE_MYSTERIOUS 2
+#define NARRATIVE_STYLE_DRAMATIC 3
+#define NARRATIVE_STYLE_PASTORAL 4
 
-#define NARRATIVE_LENGTH_BRIEF      0
-#define NARRATIVE_LENGTH_MODERATE   1
-#define NARRATIVE_LENGTH_DETAILED   2
-#define NARRATIVE_LENGTH_EXTENSIVE  3
+#define NARRATIVE_LENGTH_BRIEF 0
+#define NARRATIVE_LENGTH_MODERATE 1
+#define NARRATIVE_LENGTH_DETAILED 2
+#define NARRATIVE_LENGTH_EXTENSIVE 3
 
-#define MAX_NARRATIVE_LENGTH        4096
-#define MAX_TRANSITION_PHRASES      20
-#define MAX_VOICE_PATTERNS          15
+#define MAX_NARRATIVE_LENGTH 4096
+#define MAX_TRANSITION_PHRASES 20
+#define MAX_VOICE_PATTERNS 15
 
 /* Debug mode control functions */
 void set_narrative_debug_mode(int mode);
 int get_narrative_debug_mode(void);
 
 /* Structure definitions */
-struct narrative_components;  /* Forward declaration - full definition in .c file */
+struct narrative_components; /* Forward declaration - full definition in .c file */
 
 #endif /* _NARRATIVE_WEAVER_H_ */

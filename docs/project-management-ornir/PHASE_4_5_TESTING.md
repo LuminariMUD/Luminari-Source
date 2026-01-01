@@ -22,13 +22,13 @@ The Phase 4.5 material subtype system is now implemented and ready for testing.
    ```
    # Add legendary arcanite crystal
    materialadmin add YourName crystal 0 5 10
-   
+
    # Add rare mithril ore  
    materialadmin add YourName minerals 0 4 5
-   
+
    # Add common marjoram herb
    materialadmin add YourName herbs 0 2 20
-   
+
    # Add uncommon ironwood
    materialadmin add YourName wood 0 3 8
    ```

@@ -2,7 +2,7 @@
 
 ################################################################################
 # LuminariMUD Automated Deployment Script
-# 
+#
 # This script automates the deployment process for LuminariMUD, making it
 # easy for anyone to set up and run their own server.
 #
@@ -79,19 +79,19 @@ detect_os() {
         print_msg "$RED" "Cannot detect OS. Please install manually."
         exit 1
     fi
-    
+
     print_msg "$GREEN" "Detected OS: $OS $VER"
 }
 
 # Function to install dependencies
 install_dependencies() {
     print_header "Installing Dependencies"
-    
+
     if [[ "$SKIP_DEPS" == true ]]; then
         print_msg "$YELLOW" "Skipping dependency installation..."
         return
     fi
-    
+
     case $OS in
         ubuntu|debian)
             print_msg "$GREEN" "Installing packages for Ubuntu/Debian..."
@@ -100,35 +100,35 @@ install_dependencies() {
                 build-essential cmake autoconf automake libtool pkg-config \
                 libcrypt-dev libgd-dev libmariadb-dev libcurl4-openssl-dev \
                 libssl-dev libjson-c-dev mariadb-server git make
-            
+
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo apt-get install -y gdb valgrind
             fi
             ;;
-        
+
         centos|rhel|fedora)
             print_msg "$GREEN" "Installing packages for CentOS/RHEL/Fedora..."
             sudo yum install -y \
                 gcc gcc-c++ make cmake autoconf automake libtool \
                 mariadb mariadb-devel mariadb-server \
                 gd-devel openssl-devel libcurl-devel json-c-devel git
-            
+
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo yum install -y gdb valgrind
             fi
             ;;
-        
+
         arch|manjaro)
             print_msg "$GREEN" "Installing packages for Arch Linux..."
             sudo pacman -Sy --noconfirm \
                 base-devel cmake mariadb libmariadbclient \
                 gd openssl curl json-c git
-            
+
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo pacman -Sy --noconfirm gdb valgrind
             fi
             ;;
-        
+
         *)
             print_msg "$YELLOW" "Unknown OS: $OS"
             print_msg "$YELLOW" "Please install dependencies manually:"
@@ -143,19 +143,19 @@ install_dependencies() {
 # Function to setup configuration files
 setup_config_files() {
     print_header "Setting Up Configuration Files"
-    
+
     # Setup campaign.h
     if [[ ! -f "$PROJECT_ROOT/src/campaign.h" ]]; then
         print_msg "$GREEN" "Creating campaign.h from template..."
         cp "$PROJECT_ROOT"/src/campaign.example.h "$PROJECT_ROOT"/src/campaign.h
-        
+
         if [[ "$AUTO_MODE" == false ]]; then
             print_msg "$YELLOW" "Select campaign setting:"
             echo "  1) LuminariMUD (default)"
             echo "  2) DragonLance (Chronicles of Krynn)"
             echo "  3) Forgotten Realms (Faerun)"
             read -p "Choice [1-3]: " campaign_choice
-            
+
             case $campaign_choice in
                 2)
                     sed -i 's|/\* #define CAMPAIGN_DL \*/|#define CAMPAIGN_DL|' "$PROJECT_ROOT"/src/campaign.h
@@ -173,7 +173,7 @@ setup_config_files() {
     else
         print_msg "$YELLOW" "campaign.h already exists, skipping..."
     fi
-    
+
     # Setup mud_options.h
     if [[ ! -f "$PROJECT_ROOT/src/mud_options.h" ]]; then
         print_msg "$GREEN" "Creating mud_options.h from template..."
@@ -181,7 +181,7 @@ setup_config_files() {
     else
         print_msg "$YELLOW" "mud_options.h already exists, skipping..."
     fi
-    
+
     # Setup vnums.h
     if [[ ! -f "$PROJECT_ROOT/src/vnums.h" ]]; then
         print_msg "$GREEN" "Creating vnums.h from template..."
@@ -200,7 +200,7 @@ setup_database() {
         print_msg "$YELLOW" "You must manually configure the database or the server will not work properly."
         return
     fi
-    
+
     # Start MariaDB service
     print_msg "$GREEN" "Starting MariaDB service..."
     if command -v systemctl &> /dev/null; then
@@ -209,21 +209,21 @@ setup_database() {
     else
         sudo service mysql start || sudo service mariadb start
     fi
-    
+
     # Get database credentials
     if [[ "$AUTO_MODE" == false ]]; then
         read -p "Database host [$DB_HOST]: " input_host
         DB_HOST=${input_host:-$DB_HOST}
-        
+
         read -p "Database name [$DB_NAME]: " input_name
         DB_NAME=${input_name:-$DB_NAME}
-        
+
         read -p "Database user [$DB_USER]: " input_user
         DB_USER=${input_user:-$DB_USER}
-        
+
         read -s -p "Database password (hidden): " DB_PASS
         echo
-        
+
         if [[ -z "$DB_PASS" ]]; then
             # Generate random password if none provided
             DB_PASS=$(openssl rand -base64 12)
@@ -240,7 +240,7 @@ setup_database() {
         print_msg "$YELLOW" "Generated password: $DB_PASS"
         print_msg "$YELLOW" "IMPORTANT: Save this password!"
     fi
-    
+
     # Create MySQL config file
     print_msg "$GREEN" "Creating MySQL configuration file..."
     cat > "$PROJECT_ROOT"/lib/mysql_config <<EOF
@@ -251,10 +251,10 @@ mysql_username = $DB_USER
 mysql_password = $DB_PASS
 EOF
     chmod 600 "$PROJECT_ROOT"/lib/mysql_config
-    
+
     # Setup database
     print_msg "$GREEN" "Setting up database..."
-    
+
     # Create database setup SQL
     cat > /tmp/luminari_db_setup.sql <<EOF
 -- Create database if not exists
@@ -270,7 +270,7 @@ FLUSH PRIVILEGES;
 
 USE $DB_NAME;
 EOF
-    
+
     # Execute database setup
     # On Ubuntu/Debian, MariaDB root uses unix_socket auth, requiring sudo
     print_msg "$GREEN" "Executing database setup (requires sudo)..."
@@ -282,7 +282,7 @@ EOF
         print_msg "$YELLOW" "Please enter your MySQL/MariaDB root password:"
         mysql -u root -p < /tmp/luminari_db_setup.sql
     fi
-    
+
     # Run schema files if they exist
     if [[ -f "$PROJECT_ROOT/sql/master_schema.sql" ]]; then
         print_msg "$GREEN" "Loading master schema..."
@@ -295,38 +295,38 @@ EOF
         print_msg "$GREEN" "Loading pubsub schema..."
         mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/pubsub_v3_schema.sql
     fi
-    
+
     # Clean up temp file
     rm -f /tmp/luminari_db_setup.sql
-    
+
     print_msg "$GREEN" "Database setup complete!"
 }
 
 # Function to build the project
 build_project() {
     print_header "Building LuminariMUD"
-    
+
     # Change to project root directory
     cd "$PROJECT_ROOT"
-    
+
     # Detect build system - prefer autotools as it's faster
     if [[ -f configure.ac ]]; then
         print_msg "$GREEN" "Building with Autotools..."
-        
+
         # Clean any previous build attempts
         if [[ -f Makefile ]]; then
             make distclean 2>/dev/null || true
         fi
-        
+
         # Generate configure script
         print_msg "$GREEN" "Generating configure script..."
         autoreconf -fvi
-        
+
         # Make sure make-tests.sh is executable
         if [[ -f unittests/CuTest/make-tests.sh ]]; then
             chmod +x unittests/CuTest/make-tests.sh
         fi
-        
+
         # Configure
         print_msg "$GREEN" "Running configure..."
         if [[ "$BUILD_TYPE" == "production" ]]; then
@@ -334,22 +334,22 @@ build_project() {
         else
             ./configure
         fi
-        
+
         # Build
         print_msg "$GREEN" "Building (this may take a few minutes)..."
         make -j$(nproc) all
-        
+
         # Install
         print_msg "$GREEN" "Installing..."
         make install
-        
+
         # Check if build succeeded
         if [[ ! -f "$PROJECT_ROOT/bin/circle" ]]; then
             print_msg "$RED" "Build failed - bin/circle executable not created"
             print_msg "$YELLOW" "Try running 'make' manually to see detailed errors"
             exit 1
         fi
-        
+
         print_msg "$GREEN" "Build and install complete: bin/circle"
 
     elif [[ -f CMakeLists.txt ]]; then
@@ -373,7 +373,7 @@ build_project() {
         print_msg "$RED" "No build system found!"
         exit 1
     fi
-    
+
     print_msg "$GREEN" "Build complete!"
 }
 
@@ -392,25 +392,25 @@ initialize_world_data() {
 
         # Create world directories
         mkdir -p "$PROJECT_ROOT"/lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
-        
+
         # Copy minimal world files (properly renamed)
         if [[ -d "$PROJECT_ROOT/lib/world/minimal" ]]; then
             # Copy zone files - rename index.zon to index
             cp "$PROJECT_ROOT"/lib/world/minimal/index.zon "$PROJECT_ROOT"/lib/world/zon/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/*.zon "$PROJECT_ROOT"/lib/world/zon/ 2>/dev/null || true
-            
+
             # Copy world/room files - rename index.wld to index
             cp "$PROJECT_ROOT"/lib/world/minimal/index.wld "$PROJECT_ROOT"/lib/world/wld/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/*.wld "$PROJECT_ROOT"/lib/world/wld/ 2>/dev/null || true
-            
+
             # Copy mob files - rename index.mob to index
             cp "$PROJECT_ROOT"/lib/world/minimal/index.mob "$PROJECT_ROOT"/lib/world/mob/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/*.mob "$PROJECT_ROOT"/lib/world/mob/ 2>/dev/null || true
-            
+
             # Copy object files - rename index.obj to index
             cp "$PROJECT_ROOT"/lib/world/minimal/index.obj "$PROJECT_ROOT"/lib/world/obj/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/*.obj "$PROJECT_ROOT"/lib/world/obj/ 2>/dev/null || true
-            
+
             # Copy other index files - rename to just 'index'
             cp "$PROJECT_ROOT"/lib/world/minimal/index.shp "$PROJECT_ROOT"/lib/world/shp/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.trg "$PROJECT_ROOT"/lib/world/trg/index 2>/dev/null || true
@@ -433,10 +433,10 @@ initialize_world_data() {
 # Function to create default text files
 create_text_files() {
     print_msg "$GREEN" "Creating default text files..."
-    
+
     mkdir -p "$PROJECT_ROOT"/lib/text/help
     mkdir -p "$PROJECT_ROOT"/lib/etc
-    
+
     # Create news file
     if [[ ! -f "$PROJECT_ROOT/lib/text/news" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/news <<'EOF'
@@ -453,7 +453,7 @@ message by editing lib/text/news.
 For help getting started, type 'help newbie' once logged in.
 EOF
     fi
-    
+
     # Create credits file
     if [[ ! -f "$PROJECT_ROOT/lib/text/credits" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/credits <<'EOF'
@@ -478,7 +478,7 @@ Sebastian Hammer, Michael Seifert, Hans Henrik St{rfeldt,
 Tom Madsen, and Katja Nyboe.
 EOF
     fi
-    
+
     # Create motd file
     if [[ ! -f "$PROJECT_ROOT/lib/text/motd" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/motd <<'EOF'
@@ -494,7 +494,7 @@ Have fun and enjoy your adventures!
 &R[Report bugs and issues on GitHub]&n
 EOF
     fi
-    
+
     # Create imotd file
     if [[ ! -f "$PROJECT_ROOT/lib/text/imotd" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/imotd <<'EOF'
@@ -511,19 +511,19 @@ Current development priorities:
 - Player experience improvements
 EOF
     fi
-    
+
     # Create greetings file
     if [[ ! -f "$PROJECT_ROOT/lib/text/greetings" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/greetings <<'EOF'
 
 &W            Welcome to LuminariMUD!&n
-            
+
     Based on CircleMUD 3.0 and DikuMUD
-    
+
 Enter your character name or 'new' to create a character:
 EOF
     fi
-    
+
     # Create basic help file
     if [[ ! -f "$PROJECT_ROOT/lib/text/help/help" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/help/help <<'EOF'
@@ -537,7 +537,7 @@ You can get help on any command or topic by typing:
 help <topic>
 EOF
     fi
-    
+
     # Create immortal help file
     if [[ ! -f "$PROJECT_ROOT/lib/text/help/ihelp" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/help/ihelp <<'EOF'
@@ -560,22 +560,22 @@ EOF
     if [[ ! -f "$PROJECT_ROOT/lib/text/help/index" ]]; then
         echo '$' > "$PROJECT_ROOT"/lib/text/help/index
     fi
-    
+
     # Create info file
     if [[ ! -f "$PROJECT_ROOT/lib/text/info" ]]; then
         echo "LuminariMUD - A CircleMUD based MUD" > "$PROJECT_ROOT"/lib/text/info
     fi
-    
+
     # Create wizlist file
     if [[ ! -f "$PROJECT_ROOT/lib/text/wizlist" ]]; then
         echo "Wizard List - See 'who' for online staff" > "$PROJECT_ROOT"/lib/text/wizlist
     fi
-    
+
     # Create immlist file
     if [[ ! -f "$PROJECT_ROOT/lib/text/immlist" ]]; then
         echo "Immortal List - See 'who' for online staff" > "$PROJECT_ROOT"/lib/text/immlist
     fi
-    
+
     # Create policies file
     if [[ ! -f "$PROJECT_ROOT/lib/text/policies" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/policies <<'EOF'
@@ -591,12 +591,12 @@ LuminariMUD Policies
 Violations may result in warnings, suspensions, or bans.
 EOF
     fi
-    
+
     # Create handbook file
     if [[ ! -f "$PROJECT_ROOT/lib/text/handbook" ]]; then
         echo "Player Handbook - Type 'help newbie' for getting started" > "$PROJECT_ROOT"/lib/text/handbook
     fi
-    
+
     # Create background file
     if [[ ! -f "$PROJECT_ROOT/lib/text/background" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/background <<'EOF'
@@ -607,7 +607,7 @@ A realm of magic and adventure awaits...
 [This is a placeholder. Customize this with your world's lore]
 EOF
     fi
-    
+
     # Create etc/config with defaults
     if [[ ! -f "$PROJECT_ROOT/lib/etc/config" ]]; then
         cat > "$PROJECT_ROOT"/lib/etc/config <<'EOF'
@@ -624,7 +624,7 @@ nameserver_is_slow = 0
 # Port Settings
 # (Set via command line with -q flag)
 
-# Gameplay Settings  
+# Gameplay Settings
 pk_allowed = 1
 pt_allowed = 1
 level_can_shout = 1
@@ -652,7 +652,7 @@ crash_file_timeout = 10
 rent_file_timeout = 30
 EOF
     fi
-    
+
     print_msg "$GREEN" "Default text files created!"
 }
 
@@ -676,7 +676,7 @@ create_misc_files() {
 # Function to setup environment
 setup_environment() {
     print_header "Setting Up Environment"
-    
+
     # Create necessary directories
     mkdir -p "$PROJECT_ROOT"/lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
     mkdir -p "$PROJECT_ROOT"/lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
@@ -684,12 +684,12 @@ setup_environment() {
     mkdir -p "$PROJECT_ROOT"/lib/mudmail
     mkdir -p "$PROJECT_ROOT"/lib/etc
     mkdir -p "$PROJECT_ROOT"/log
-    
+
     # Initialize world data if requested
     if [[ "$INIT_WORLD" == true ]]; then
         initialize_world_data
     fi
-    
+
     # Create text files
     create_text_files
 
@@ -699,7 +699,7 @@ setup_environment() {
     # Set permissions
     chmod -R 755 "$PROJECT_ROOT"/lib/
     chmod -R 755 "$PROJECT_ROOT"/log/
-    
+
     # Create systemd service file (optional)
     if [[ "$AUTO_MODE" == false ]]; then
         read -p "Create systemd service file? (y/n) " -n 1 -r
@@ -708,14 +708,14 @@ setup_environment() {
             create_systemd_service
         fi
     fi
-    
+
     print_msg "$GREEN" "Environment setup complete!"
 }
 
 # Function to create systemd service
 create_systemd_service() {
     print_msg "$GREEN" "Creating systemd service..."
-    
+
     cat > /tmp/luminari.service <<EOF
 [Unit]
 Description=LuminariMUD Server
@@ -733,10 +733,10 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOF
-    
+
     sudo cp /tmp/luminari.service /etc/systemd/system/
     sudo systemctl daemon-reload
-    
+
     print_msg "$GREEN" "Systemd service created!"
     print_msg "$YELLOW" "To start: sudo systemctl start luminari"
     print_msg "$YELLOW" "To enable on boot: sudo systemctl enable luminari"
@@ -745,7 +745,7 @@ EOF
 # Function to verify autorun script
 verify_autorun_script() {
     print_header "Verifying Autorun Script"
-    
+
     if [[ -f "$PROJECT_ROOT/autorun.sh" ]]; then
         print_msg "$GREEN" "Autorun script found: autorun.sh"
         if [[ ! -x "$PROJECT_ROOT/autorun.sh" ]]; then
@@ -818,7 +818,7 @@ Examples:
     $0 --auto                     # Automated setup with defaults
     $0 --dev                      # Development build with debug tools
     $0 --prod                     # Production optimized build
-    
+
 For more information, see: docs/guides/SETUP_AND_BUILD_GUIDE.md
 EOF
 }
@@ -870,7 +870,7 @@ done
 # Main execution
 main() {
     print_header "LuminariMUD Automated Deployment"
-    
+
     check_root
     detect_os
     install_dependencies

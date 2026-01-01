@@ -310,8 +310,7 @@ ACMD(do_gmote)
   {
     if (GET_POS(vict) < action->min_victim_position)
     {
-      act("$N is not in a proper position for that.",
-          FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
+      act("$N is not in a proper position for that.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
       return;
     }
     snprintf(buf, sizeof(buf), "Gemote: %s", action->others_found);

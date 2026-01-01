@@ -90,7 +90,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
       *error = "That virtual zone already exists.\r\n";
       return NOWHERE;
     }
-  
+
   /* Check for overlapping room ranges with existing zones */
   for (i = 0; i <= top_of_zone_table; i++)
   {
@@ -102,7 +102,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
       *error = strdup(buf);
       return NOWHERE;
     }
-    
+
     /* Check if new zone's top is within existing zone's range */
     if (top >= zone_table[i].bot && top <= zone_table[i].top)
     {
@@ -111,7 +111,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
       *error = strdup(buf);
       return NOWHERE;
     }
-    
+
     /* Check if new zone completely contains an existing zone */
     if (bottom <= zone_table[i].bot && top >= zone_table[i].top)
     {
@@ -414,14 +414,16 @@ int save_zone(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_zone: Invalid real zone number %d. (0-%d)", zone_num, top_of_zone_table);
+    log("SYSERR: GenOLC: save_zone: Invalid real zone number %d. (0-%d)", zone_num,
+        top_of_zone_table);
     return FALSE;
   }
 
   snprintf(fname, sizeof(fname), "%s/%d.new", ZON_PREFIX, zone_table[zone_num].number);
   if (!(zfile = fopen(fname, "w")))
   {
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: save_zones:  Can't write zone %d.", zone_table[zone_num].number);
+    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: save_zones:  Can't write zone %d.",
+           zone_table[zone_num].number);
     return FALSE;
   }
 
@@ -432,10 +434,11 @@ int save_zone(zone_rnum zone_num)
   if (flag_tot == 0 && zone_table[zone_num].min_level == -1 && zone_table[zone_num].max_level == -1)
   {
     // Print zone header to file.
-    fprintf(zfile, "#%d\n"
-                   "%s~\n"
-                   "%s~\n"
-                   "%d %d %d %d\n",
+    fprintf(zfile,
+            "#%d\n"
+            "%s~\n"
+            "%s~\n"
+            "%d %d %d %d\n",
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
                 ? zone_table[zone_num].builders
@@ -443,9 +446,7 @@ int save_zone(zone_rnum zone_num)
             (zone_table[zone_num].name && *zone_table[zone_num].name)
                 ? convert_from_tabs(zone_table[zone_num].name)
                 : "undefined",
-            genolc_zone_bottom(zone_num),
-            zone_table[zone_num].top,
-            zone_table[zone_num].lifespan,
+            genolc_zone_bottom(zone_num), zone_table[zone_num].top, zone_table[zone_num].lifespan,
             zone_table[zone_num].reset_mode);
   }
   else
@@ -456,10 +457,11 @@ int save_zone(zone_rnum zone_num)
     sprintascii(zbuf4, zone_table[zone_num].zone_flags[3]);
 
     /* Print zone header to file. */
-    fprintf(zfile, "#%d\n"
-                   "%s~\n"
-                   "%s~\n"
-                   "%d %d %d %d %s %s %s %s %d %d %d %d %d %d\n", /* New tbaMUD data line */
+    fprintf(zfile,
+            "#%d\n"
+            "%s~\n"
+            "%s~\n"
+            "%d %d %d %d %s %s %s %s %d %d %d %d %d %d\n", /* New tbaMUD data line */
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
                 ? zone_table[zone_num].builders
@@ -467,17 +469,11 @@ int save_zone(zone_rnum zone_num)
             (zone_table[zone_num].name && *zone_table[zone_num].name)
                 ? convert_from_tabs(zone_table[zone_num].name)
                 : "undefined",
-            genolc_zone_bottom(zone_num),
-            zone_table[zone_num].top,
-            zone_table[zone_num].lifespan,
-            zone_table[zone_num].reset_mode,
-            zbuf1, zbuf2, zbuf3, zbuf4,
-            zone_table[zone_num].min_level,
-            zone_table[zone_num].max_level,
-            zone_table[zone_num].show_weather,
-            zone_table[zone_num].region,
-            zone_table[zone_num].faction,
-            zone_table[zone_num].city);
+            genolc_zone_bottom(zone_num), zone_table[zone_num].top, zone_table[zone_num].lifespan,
+            zone_table[zone_num].reset_mode, zbuf1, zbuf2, zbuf3, zbuf4,
+            zone_table[zone_num].min_level, zone_table[zone_num].max_level,
+            zone_table[zone_num].show_weather, zone_table[zone_num].region,
+            zone_table[zone_num].faction, zone_table[zone_num].city);
   }
 
   /* Handy Quick Reference Chart for Zone Values.
@@ -589,16 +585,17 @@ int save_zone(zone_rnum zone_num)
       /* Invalid commands are replaced with '*' - Ignore them. */
       continue;
     default:
-      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: z_save_to_disk(): Unknown cmd '%c' - NOT saving", ZCMD(zone_num, subcmd).command);
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: z_save_to_disk(): Unknown cmd '%c' - NOT saving",
+             ZCMD(zone_num, subcmd).command);
       continue;
     }
     if (ZCMD(zone_num, subcmd).command != 'V')
-      fprintf(zfile, "%c %d %d %d %d %d \t(%s)\n",
-              ZCMD(zone_num, subcmd).command, ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4, comment);
+      fprintf(zfile, "%c %d %d %d %d %d \t(%s)\n", ZCMD(zone_num, subcmd).command,
+              ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4, comment);
     else
-      fprintf(zfile, "%c %d %d %d %d %d %s %s\n",
-              ZCMD(zone_num, subcmd).command, ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4,
-              ZCMD(zone_num, subcmd).sarg1, ZCMD(zone_num, subcmd).sarg2);
+      fprintf(zfile, "%c %d %d %d %d %d %s %s\n", ZCMD(zone_num, subcmd).command,
+              ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4, ZCMD(zone_num, subcmd).sarg1,
+              ZCMD(zone_num, subcmd).sarg2);
   }
   fputs("S\n$\n", zfile);
   fclose(zfile);

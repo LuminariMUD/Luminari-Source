@@ -47,7 +47,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
 
 1. **MUD -> Discord**:
    - Player sends message on MUD channel (e.g., `gossip hello`)
-   - MUD captures message in `do_gen_comm()` 
+   - MUD captures message in `do_gen_comm()`
    - Routes through `route_mud_to_discord()`
    - Builds JSON message with channel, name, and content
    - Sends over TCP socket to Discord bot
@@ -197,18 +197,18 @@ struct rate_limit {
 // Check rate limit before sending
 int check_rate_limit(struct rate_limit *rl) {
     time_t now = time(NULL);
-    
+
     // Reset window if expired
     if (now - rl->window_start >= rl->window_seconds) {
         rl->message_count = 0;
         rl->window_start = now;
     }
-    
+
     // Check if limit exceeded
     if (rl->message_count >= rl->max_messages) {
         return 0; // Rate limit exceeded
     }
-    
+
     rl->message_count++;
     return 1; // OK to send
 }
@@ -254,7 +254,7 @@ Messages from Discord appear with channel-specific prefixes and colors:
 
 The colors match the corresponding MUD channel colors:
 - **Gossip/Chat**: Yellow (same as MUD gossip)
-- **Auction**: Magenta (same as MUD auction) 
+- **Auction**: Magenta (same as MUD auction)
 - **Gratz**: Green (same as MUD gratz)
 
 Regular channel commands work normally:
@@ -291,7 +291,7 @@ All messages use JSON encoding with newline delimiters.
 ```json
 {
     "channel": "gossip",
-    "name": "PlayerName", 
+    "name": "PlayerName",
     "message": "Message content",
     "emoted": 0
 }

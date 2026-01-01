@@ -24,7 +24,7 @@ Updated `setup.sh` to:
    $
    ```
 3. **Generate a minimal object file** if none exists
-4. **Handle missing files gracefully** 
+4. **Handle missing files gracefully**
 
 ## Key Changes to setup.sh
 

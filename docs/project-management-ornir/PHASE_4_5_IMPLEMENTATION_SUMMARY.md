@@ -31,7 +31,7 @@ Phase 4.5 implements a three-tier material subtype system that extends the exist
 // In structs.h
 struct material_storage {
     int category;    // Resource category (RESOURCE_HERBS, etc)
-    int subtype;     // Specific material (HERB_MARJORAM, etc) 
+    int subtype;     // Specific material (HERB_MARJORAM, etc)
     int quality;     // Quality level (1-5)
     int quantity;    // Amount stored
 };

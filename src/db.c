@@ -73,7 +73,7 @@
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
 #include <sys/stat.h>
-#include "movement_tracks.h"  /* includes trail data structures */
+#include "movement_tracks.h" /* includes trail data structures */
 #include "premadebuilds.h"
 #include "encounters.h"
 #include "hunts.h"
@@ -85,7 +85,7 @@
 #include "crafting_recipes.h"
 #include "mob_spellslots.h"
 #include "mob_known_spells.h"
-#include "moon_bonus_spells.h"  /* For moon-based bonus spell slots */
+#include "moon_bonus_spells.h" /* For moon-based bonus spell slots */
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -112,7 +112,7 @@ struct zone_data *zone_table = NULL; /* zone table      */
 zone_rnum top_of_zone_table = 0;     /* top element of zone tab   */
 
 struct region_data *region_table = NULL; /* Region table */
-region_rnum top_of_region_table = -1;     /* top element of region tab */
+region_rnum top_of_region_table = -1;    /* top element of region tab */
 
 struct path_data *path_table = NULL; /* Path table */
 path_rnum top_of_path_table = 0;     /* top element of path tab */
@@ -148,7 +148,7 @@ room_rnum r_mortal_start_room = 0; /* rnum of mortal start room	 */
 room_rnum r_immort_start_room = 0; /* rnum of immort start room	 */
 room_rnum r_frozen_start_room = 0; /* rnum of frozen start room	 */
 
-extern MYSQL *conn;                /* MySQL database connection (defined in mysql.c) */
+extern MYSQL *conn; /* MySQL database connection (defined in mysql.c) */
 
 char *credits = NULL;    /* game credits			 */
 char *news = NULL;       /* mud news			 */
@@ -182,7 +182,8 @@ struct weather_data weather_info;     /* the infomation about the weather */
 struct player_special_data dummy_mob; /* dummy spec area for mobs	*/
 struct reset_q_type reset_q;          /* queue of zones to be reset	 */
 
-struct staffevent_struct staffevent_data = {-1, 0, 3}; /* first value is event index which starts with 0, -1 means no event */
+struct staffevent_struct staffevent_data = {
+    -1, 0, 3}; /* first value is event index which starts with 0, -1 means no event */
 struct happyhour happy_data = {0, 0, 0, 0, 0};
 
 /* declaration of local (file scope) variables */
@@ -191,7 +192,8 @@ static int converting = FALSE;
 int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 
 /* Local (file scope) utility functions */
-static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami, const char *whatbits);
+static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami,
+                                 const char *whatbits);
 static int check_object_spell_number(struct obj_data *obj, int val);
 static int check_object_level(struct obj_data *obj, int val);
 static int check_object(struct obj_data *);
@@ -270,19 +272,17 @@ sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
 {
   if (abs(offset) > result_q.size)
   {
-    log("ZONE ERROR: Zone #%d, Line %d, Command #%d ('%c'): if_flag %d references command #%d back, but only %d commands have executed so far.",
-        zone_table[zone].number,
-        zone_table[zone].cmd[cmd_no].line,
-        cmd_no + 1,
-        zone_table[zone].cmd[cmd_no].command,
-        offset,
-        abs(offset),
-        result_q.size);
-    log("ZONE FIX: Change the if_flag from %d to 0 (always execute) or to a smaller value (1-%d) that references an existing previous command.",
-        offset,
-        result_q.size > 0 ? result_q.size : 1);
-    if (cmd_no == 0) {
-      log("ZONE FIX: This is the FIRST command in the zone - it cannot depend on previous commands! Set if_flag to 0.");
+    log("ZONE ERROR: Zone #%d, Line %d, Command #%d ('%c'): if_flag %d references command #%d "
+        "back, but only %d commands have executed so far.",
+        zone_table[zone].number, zone_table[zone].cmd[cmd_no].line, cmd_no + 1,
+        zone_table[zone].cmd[cmd_no].command, offset, abs(offset), result_q.size);
+    log("ZONE FIX: Change the if_flag from %d to 0 (always execute) or to a smaller value (1-%d) "
+        "that references an existing previous command.",
+        offset, result_q.size > 0 ? result_q.size : 1);
+    if (cmd_no == 0)
+    {
+      log("ZONE FIX: This is the FIRST command in the zone - it cannot depend on previous "
+          "commands! Set if_flag to 0.");
     }
     return FALSE;
   }
@@ -302,7 +302,8 @@ char *fread_action(FILE *fl, int nr)
   char buf[MAX_STRING_LENGTH] = {'\0'};
   int i = 0;
 
-  if (!fgets(buf, MAX_STRING_LENGTH, fl)) {
+  if (!fgets(buf, MAX_STRING_LENGTH, fl))
+  {
     log("SYSERR: Failed to read from social file");
     return NULL;
   }
@@ -388,7 +389,8 @@ void boot_social_messages(void)
   /* now read 'em */
   for (;;)
   {
-    if (fscanf(fl, " %s ", next_soc) != 1) {
+    if (fscanf(fl, " %s ", next_soc) != 1)
+    {
       log("SYSERR: Failed to read social command");
       break;
     }
@@ -396,8 +398,7 @@ void boot_social_messages(void)
       break;
     if (CONFIG_NEW_SOCIALS == TRUE)
     {
-      if (fscanf(fl, " %s %d %d %d %d \n",
-                 sorted, &hide, &min_char_pos, &min_pos, &min_lvl) != 5)
+      if (fscanf(fl, " %s %d %d %d %d \n", sorted, &hide, &min_char_pos, &min_pos, &min_lvl) != 5)
       {
         log("SYSERR: format error in social file near social '%s'", next_soc);
         /* SYSERR_DESC: From boot_social_messages(), this error is output when
@@ -488,9 +489,9 @@ void reboot_wizlists(void)
 /* Wipe out all the loaded text files, for shutting down. */
 void free_text_files(void)
 {
-  char **textfiles[] = {
-      &wizlist, &immlist, &news, &credits, &motd, &imotd, &help, &ihelp, &info,
-      &policies, &handbook, &background, &GREETINGS, &bugs, &typos, &ideas, NULL};
+  char **textfiles[] = {&wizlist,   &immlist, &news,  &credits,  &motd,     &imotd,
+                        &help,      &ihelp,   &info,  &policies, &handbook, &background,
+                        &GREETINGS, &bugs,    &typos, &ideas,    NULL};
   int rf;
 
   for (rf = 0; textfiles[rf]; rf++)
@@ -633,7 +634,7 @@ ACMD(do_reboot)
   {
     if (*arg)
       send_to_char(ch, "Unknown reload option: %s\r\n", arg);
-    
+
     send_to_char(ch, "Usage: reload <option>\r\n");
     send_to_char(ch, "\r\nAvailable options:\r\n");
     send_to_char(ch, "  all/*       - Reload all text files and help\r\n");
@@ -664,7 +665,6 @@ ACMD(do_reboot)
      extended races, armor/weapon lists, domains and deities */
 void boot_world(void)
 {
-
   log("Initializing MySQL database connection.");
   connect_to_mysql();
 
@@ -836,7 +836,7 @@ void destroy_db(void)
   for (chtmp = character_list; chtmp; chtmp = chtmp->next)
   {
     struct follow_type *k, *k_next;
-    
+
     /* Clear this character's master pointer */
     if (chtmp->master)
     {
@@ -844,7 +844,7 @@ void destroy_db(void)
       chtmp->master = NULL;
       REMOVE_BIT_AR(AFF_FLAGS(chtmp), AFF_CHARM);
     }
-    
+
     /* Clear all followers of this character */
     for (k = chtmp->followers; k; k = k_next)
     {
@@ -858,7 +858,7 @@ void destroy_db(void)
     }
     chtmp->followers = NULL;
   }
-  
+
   /* Second pass: Now free all characters */
   while (character_list)
   {
@@ -880,9 +880,12 @@ void destroy_db(void)
   {
     /* Skip freeing names/descriptions for wilderness rooms as they use static strings
      * Wilderness rooms are identified by their vnum range */
-    if (IS_WILDERNESS_VNUM(world[cnt].number)) {
+    if (IS_WILDERNESS_VNUM(world[cnt].number))
+    {
       /* Wilderness rooms use static strings that should not be freed */
-    } else {
+    }
+    else
+    {
       if (world[cnt].name)
         free(world[cnt].name);
       if (world[cnt].description)
@@ -906,7 +909,7 @@ void destroy_db(void)
          * if simple_list was used elsewhere and not completed, it would
          * continue from where it left off instead of starting fresh. */
         simple_list(NULL);
-        
+
         while ((pEvent = simple_list(world[cnt].events)) != NULL)
           event_cancel(pEvent);
       }
@@ -1080,10 +1083,10 @@ void destroy_db(void)
   {
     struct craft_data *craft;
     struct iterator_data iter;
-    
+
     /* Reset simple_list state before manual iteration */
     simple_list(NULL);
-    
+
     /* Use iterator directly to avoid corruption */
     craft = (struct craft_data *)merge_iterator(&iter, global_craft_list);
     while (craft != NULL)
@@ -1099,7 +1102,7 @@ void destroy_db(void)
 
   /* Events */
   event_free_all();
-  
+
   /* Clan economy system */
   shutdown_clan_economy();
 }
@@ -1152,7 +1155,7 @@ void boot_db(void)
 
   log("Loading help entries.");
   index_boot(DB_BOOT_HLP);
-  
+
   /* Initialize help handler chain for refactored help system */
   log("Initializing help handler chain.");
   init_help_handlers();
@@ -1212,15 +1215,18 @@ void boot_db(void)
     log("    Mail boot failed -- Mail system disabled");
     no_mail = 1;
   }
-  
+
   log("Initializing MySQL board system.");
-  if (mysql_board_init()) {
+  if (mysql_board_init())
+  {
     log("   MySQL board system initialized successfully.");
     log("   Board configurations synchronized with database.");
-  } else {
+  }
+  else
+  {
     log("   MySQL board system initialization failed!");
   }
-  
+
   log("Reading banned site and invalid-name list.");
   load_banned();
   read_invalid_list();
@@ -1241,9 +1247,15 @@ void boot_db(void)
   load_hunts();
   log("Spawning hunts for the first time this boot.");
   create_hunts();
-  
+
   log("Initializing Greyhawk ship systems...");
   greyhawk_initialize_ships();
+
+  log("Loading ship interiors from database...");
+  load_all_ship_interiors();
+
+  log("Loading vehicles from database...");
+  vehicle_load_all();
 
   if (!no_rent_check)
   {
@@ -1263,7 +1275,7 @@ void boot_db(void)
 
     log("Booting clans.");
     load_clans();
-    
+
     log("Initializing clan economy system.");
     init_clan_economy();
     load_clan_investments();
@@ -1295,7 +1307,8 @@ void boot_db(void)
     {
       if (obj_proto[j].script == (struct script_data *)&shop_keeper)
       {
-        log("Item %d (%s) had shopkeeper trouble.", obj_index[j].vnum, obj_proto[j].short_description);
+        log("Item %d (%s) had shopkeeper trouble.", obj_index[j].vnum,
+            obj_proto[j].short_description);
         obj_proto[j].script = NULL;
       }
     }
@@ -1307,8 +1320,8 @@ void boot_db(void)
     strncpy(buf1, zone_table[i].name, sizeof(buf1) - 1);
     buf1[sizeof(buf1) - 1] = '\0';
     strip_colors(buf1);
-    log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number,
-        buf1, zone_table[i].bot, zone_table[i].top);
+    log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number, buf1, zone_table[i].bot,
+        zone_table[i].top);
     reset_zone(i);
   }
 
@@ -1324,7 +1337,7 @@ void boot_db(void)
     House_boot();
   }
 
-  /* A clean up on bootup was implemented due to the fact that the world was not being set up correctly. 
+  /* A clean up on bootup was implemented due to the fact that the world was not being set up correctly.
      Current theory is race conditions AND it may be that this issue has been resolved over time and this is
         technically just an artifact... that being said it's here.
   */
@@ -1345,13 +1358,10 @@ void boot_db(void)
      * - Inside a container
      * - Worn/equipped by a character
      * Only extract if the object is not attached to anything. */
-    if (j->in_room == NOWHERE && 
-        j->carried_by == NULL && 
-        j->worn_by == NULL && 
-        j->in_obj == NULL)
+    if (j->in_room == NOWHERE && j->carried_by == NULL && j->worn_by == NULL && j->in_obj == NULL)
     {
-      log("SYSERR: Cleaning up orphaned object %d [%s] during boot",
-          GET_OBJ_VNUM(j), j->short_description ? j->short_description : "UNKNOWN");
+      log("SYSERR: Cleaning up orphaned object %d [%s] during boot", GET_OBJ_VNUM(j),
+          j->short_description ? j->short_description : "UNKNOWN");
       extract_obj(j);
       continue;
     }
@@ -1381,7 +1391,8 @@ static void reset_time(void)
     log("No time file '%s' starting from the beginning.", TIME_FILE);
   else
   {
-    if (fscanf(bgtime, "%ld\n", (long *)&beginning_of_time) != 1) {
+    if (fscanf(bgtime, "%ld\n", (long *)&beginning_of_time) != 1)
+    {
       log("SYSERR: Failed to read time from time file");
       beginning_of_time = 0;
     }
@@ -1404,8 +1415,8 @@ static void reset_time(void)
   else
     weather_info.sunlight = SUN_DARK;
 
-  log("   Current Gametime: %dH %dD %dM %dY.", time_info.hours,
-      time_info.day, time_info.month, time_info.year);
+  log("   Current Gametime: %dH %dD %dM %dY.", time_info.hours, time_info.day, time_info.month,
+      time_info.year);
 
   weather_info.pressure = 960;
   if ((time_info.month >= 7) && (time_info.month <= 12))
@@ -1645,7 +1656,8 @@ void index_boot(int mode)
   }
 
   /* first, count the number of records in the file so we can malloc */
-  if (fscanf(db_index, "%s\n", buf1) != 1) {
+  if (fscanf(db_index, "%s\n", buf1) != 1)
+  {
     log("SYSERR: Failed to read from index file '%s'", buf2);
     exit(1);
   }
@@ -1655,11 +1667,14 @@ void index_boot(int mode)
     if (!(db_file = fopen(buf2, "r")))
     {
       /* For help files, this is normal - we use database-only mode */
-      if (mode == DB_BOOT_HLP) {
+      if (mode == DB_BOOT_HLP)
+      {
         log("Help file '%s' not found - using database-only help system", buf2);
-      } else {
-        log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
-            index_filename, strerror(errno));
+      }
+      else
+      {
+        log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix, index_filename,
+            strerror(errno));
       }
       if (fscanf(db_index, "%s\n", buf1) != 1)
         break;
@@ -1683,15 +1698,16 @@ void index_boot(int mode)
   /* Exit if 0 records, unless this is shops, quests, triggers, or help */
   if (!rec_count)
   {
-    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST || mode == DB_BOOT_TRG || mode == DB_BOOT_HLP)
+    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST ||
+        mode == DB_BOOT_TRG || mode == DB_BOOT_HLP)
     {
-      if (mode == DB_BOOT_HLP) {
+      if (mode == DB_BOOT_HLP)
+      {
         log("No help.hlp file found - using database-only help system.");
       }
       return;
     }
-    log("SYSERR: boot error - 0 records counted in %s/%s.", prefix,
-        index_filename);
+    log("SYSERR: boot error - 0 records counted in %s/%s.", prefix, index_filename);
     exit(1);
   }
 
@@ -1740,7 +1756,8 @@ void index_boot(int mode)
   }
 
   rewind(db_index);
-  if (fscanf(db_index, "%s\n", buf1) != 1) {
+  if (fscanf(db_index, "%s\n", buf1) != 1)
+  {
     log("SYSERR: Failed to reread from index file");
     fclose(db_index);
     return;
@@ -1814,8 +1831,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
           log("SYSERR: Format error in %s after %s #%d\n"
               "...expecting a new %s, but file ended!\n"
               "(maybe the file is not terminated with '$'?)",
-              filename,
-              modes[mode], nr, modes[mode]);
+              filename, modes[mode], nr, modes[mode]);
         }
         exit(1);
       }
@@ -1854,8 +1870,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
     }
     else
     {
-      log("SYSERR: Format error in %s file %s near %s #%d", modes[mode],
-          filename, modes[mode], nr);
+      log("SYSERR: Format error in %s file %s near %s #%d", modes[mode], filename, modes[mode], nr);
       log("SYSERR: ... offending line: '%s'", line);
       exit(1);
     }
@@ -1941,12 +1956,13 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 
   if (virtual_nr < zone_table[zone].bot)
   {
-    log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %d's range (expected: %d-%d, got: %d).\n"
+    log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %d's range (expected: %d-%d, "
+        "got: %d).\n"
         "       This room number must be between %d and %d to belong to zone %d.\n"
         "       Please renumber the room or move it to the correct zone file.",
-        virtual_nr, filename ? filename : "unknown", zone_table[zone].number, 
-        zone_table[zone].bot, zone_table[zone].top, virtual_nr,
-        zone_table[zone].bot, zone_table[zone].top, zone_table[zone].number);
+        virtual_nr, filename ? filename : "unknown", zone_table[zone].number, zone_table[zone].bot,
+        zone_table[zone].top, virtual_nr, zone_table[zone].bot, zone_table[zone].top,
+        zone_table[zone].number);
     exit(1);
   }
   while (virtual_nr > zone_table[zone].top)
@@ -1955,8 +1971,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       log("SYSERR: Room #%d in file '%s' is outside of any zone's range.\n"
           "       The highest zone (%d) has range %d-%d.\n"
           "       Either create a new zone for this room or renumber it to fit an existing zone.",
-          virtual_nr, filename ? filename : "unknown",
-          zone_table[top_of_zone_table].number,
+          virtual_nr, filename ? filename : "unknown", zone_table[top_of_zone_table].number,
           zone_table[top_of_zone_table].bot, zone_table[top_of_zone_table].top);
       exit(1);
     }
@@ -1978,8 +1993,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 
   if (!get_line(fl, line))
   {
-    log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!",
-        virtual_nr);
+    log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!", virtual_nr);
     /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
     if (world[room_nr].name)
       free(world[room_nr].name);
@@ -1990,7 +2004,9 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %s %s %s %s %d ", t, flags, flags2, flags3, flags4, t + 2)) == 3) && (bitwarning == TRUE))
+  if (((retval = sscanf(line, " %d %s %s %s %s %d ", t, flags, flags2, flags3, flags4, t + 2)) ==
+       3) &&
+      (bitwarning == TRUE))
   {
     log("WARNING: Conventional world files detected. See config.c.");
     /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
@@ -2017,7 +2033,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     /* In the old-style files, the 3rd item was the sector-type */
     world[room_nr].sector_type = atoi(flags2);
 
-    snprintf(flags, sizeof(flags), "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
+    snprintf(flags, sizeof(flags), "room #%d",
+             virtual_nr); /* sprintf: OK (until 399-bit integers) */
 
     /* No need to scan the other three sections; they're 0 anyway. */
     check_bitvector_names(world[room_nr].room_flags[0], room_bits_count, flags, "room");
@@ -2039,7 +2056,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     world[room_nr].room_flags[2] = asciiflag_conv(flags3);
     world[room_nr].room_flags[3] = asciiflag_conv(flags4);
 
-    snprintf(flags, sizeof(flags), "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
+    snprintf(flags, sizeof(flags), "room #%d",
+             virtual_nr); /* sprintf: OK (until 399-bit integers) */
     for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(world[room_nr].room_flags[taeller], room_bits_count, flags, "room");
 
@@ -2079,7 +2097,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 
   for (;;)
   {
-
     if (!get_line(fl, line))
     {
       log("%s", buf);
@@ -2168,135 +2185,164 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
  *  rooms" need to be relocated (ie. their pulse timer ran out)
  */
 
-struct moving_room_data * movingRoomList = NULL;
+struct moving_room_data *movingRoomList = NULL;
 
 void moving_rooms_update(void)
 {
-    struct moving_room_data* nextRoom = movingRoomList;
-    room_num mover;
-    char errStr[100];
+  struct moving_room_data *nextRoom = movingRoomList;
+  room_num mover;
+  char errStr[100];
 
-    while (nextRoom != NULL) {
-        nextRoom->remainingZonePulses--;
-        if (nextRoom->remainingZonePulses <= 0) {
-            mover = nextRoom->destination;
+  while (nextRoom != NULL)
+  {
+    nextRoom->remainingZonePulses--;
+    if (nextRoom->remainingZonePulses <= 0)
+    {
+      mover = nextRoom->destination;
 
-            if (real_room(mover) > 0) {
-                if (world[real_room(mover)].func != NULL) {
-                    world[real_room(mover)].func(NULL, nextRoom, 0, NULL);
-                }
-            } else {
-                sprintf(errStr, "moving_rooms_update: real_room(%d) < 0", mover);
-                log("%s", errStr);
-            }
-
-            nextRoom->remainingZonePulses = nextRoom->resetZonePulse;
+      if (real_room(mover) > 0)
+      {
+        if (world[real_room(mover)].func != NULL)
+        {
+          world[real_room(mover)].func(NULL, nextRoom, 0, NULL);
         }
+      }
+      else
+      {
+        sprintf(errStr, "moving_rooms_update: real_room(%d) < 0", mover);
+        log("%s", errStr);
+      }
 
-        nextRoom = nextRoom->next;
+      nextRoom->remainingZonePulses = nextRoom->resetZonePulse;
     }
+
+    nextRoom = nextRoom->next;
+  }
 }
 
 /*  read moving room data  */
-void setup_moving_room(FILE* fl, int rroom, int vroom, char* line) {
-    int roomInfo[5];
-    int connInfo[3];
-    char buf[MAX_STRING_LENGTH];
+void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
+{
+  int roomInfo[5];
+  int connInfo[3];
+  char buf[MAX_STRING_LENGTH];
 
-    int connCnt = 0, j, connLine = 0;
-    room_num fR[MAX_MOVING_ROOMS];
-    int fD[MAX_MOVING_ROOMS];
+  int connCnt = 0, j, connLine = 0;
+  room_num fR[MAX_MOVING_ROOMS];
+  int fD[MAX_MOVING_ROOMS];
 
-    char errStr[100];
-    char lineIn[256];
-    char msg1[200], msg2[200], msg3[200];
+  char errStr[100];
+  char lineIn[256];
+  char msg1[200], msg2[200], msg3[200];
 
-    struct moving_room_data* newRoom;
+  struct moving_room_data *newRoom;
 
-    if (world[rroom].mover) {
-        log("SYSERR: setup_moving_room - this room already has a mover assigned");
-        return;
+  if (world[rroom].mover)
+  {
+    log("SYSERR: setup_moving_room - this room already has a mover assigned");
+    return;
+  }
+
+  strcpy(errStr, "");
+  strcpy(lineIn, "");
+  strcpy(msg1, "");
+  strcpy(msg2, "");
+  strcpy(msg3, "");
+
+  for (j = 0; j < MAX_MOVING_ROOMS; j++)
+  {
+    fR[j] = NOWHERE;
+    fD[j] = -1;
+  }
+
+  if (sscanf(line, " %d %d %d %d %d ", roomInfo, roomInfo + 1, roomInfo + 2, roomInfo + 3,
+             roomInfo + 4) != 5)
+  {
+    fprintf(stderr, "Format error, room #%d, M line\n", world[rroom].number);
+    exit(1);
+  }
+
+  /*  now get the 3 room messages (if they exist)  */
+  if (!get_line(fl, lineIn))
+  {
+    fprintf(stderr, " missing transit message when processing M...\n");
+    exit(1);
+  }
+  if (lineIn[0] != '~')
+  {
+    strcpy(msg1, lineIn);
+  }
+
+  if (!get_line(fl, lineIn))
+  {
+    fprintf(stderr, " missing docking message when processing M...\n");
+    exit(1);
+  }
+  if (lineIn[0] != '~')
+  {
+    strcpy(msg2, lineIn);
+  }
+
+  if (!get_line(fl, lineIn))
+  {
+    fprintf(stderr, " missing dest dock message when processing M...\n");
+    exit(1);
+  }
+  if (lineIn[0] != '~')
+  {
+    strcpy(msg3, lineIn);
+  }
+
+  if (!get_line(fl, lineIn))
+  {
+    fprintf(stderr, " - get_line() returned 0 in world 'M' processing...\n");
+    fprintf(stderr, "%s\n", lineIn);
+    exit(1);
+  }
+
+  while (lineIn[0] != '~')
+  {
+    if (sscanf(lineIn, " %d %d %d ", connInfo, connInfo + 1, connInfo + 2) != 3)
+    {
+      fprintf(stderr, "Format error, room #%d, %d after M line\n", (connLine + 1),
+              world[rroom].number);
+      exit(1);
     }
 
-    strcpy(errStr, "");
-    strcpy(lineIn, "");
-    strcpy(msg1, "");
-    strcpy(msg2, "");
-    strcpy(msg3, "");
+    connLine++;
 
-    for (j = 0; j < MAX_MOVING_ROOMS; j++) {
-        fR[j] = NOWHERE;
-        fD[j] = -1;
+    if (connInfo[2] < 1)
+    {
+      connInfo[2] = 1;
+    }
+    else if (connInfo[2] > 50)
+    {
+      connInfo[2] = 50;
     }
 
-    if (sscanf(line, " %d %d %d %d %d ", roomInfo, roomInfo + 1, roomInfo + 2, roomInfo + 3, roomInfo + 4) != 5) {
-        fprintf(stderr, "Format error, room #%d, M line\n", world[rroom].number);
-        exit(1);
+    for (j = 0; j < connInfo[2]; j++)
+    {
+      connCnt++;
+
+      if (connCnt < MAX_MOVING_ROOMS)
+      {
+        /*  store the conn room info  */
+        fR[connCnt - 1] = (room_num)connInfo[0];
+        fD[connCnt - 1] = connInfo[1];
+      }
+      else
+      {
+        log("setup_moving_room(): # of conneting rooms exceeded limit...");
+      }
     }
 
-    /*  now get the 3 room messages (if they exist)  */
-    if (!get_line(fl, lineIn)) {
-        fprintf(stderr, " missing transit message when processing M...\n");
-        exit(1);
+    if (!get_line(fl, lineIn))
+    {
+      fprintf(stderr, " - get_line() returned 0 in world 'M' processing...\n");
+      fprintf(stderr, "%s\n", buf);
+      exit(1);
     }
-    if (lineIn[0] != '~') {
-        strcpy(msg1, lineIn);
-    }
-
-    if (!get_line(fl, lineIn)) {
-        fprintf(stderr, " missing docking message when processing M...\n");
-        exit(1);
-    }
-    if (lineIn[0] != '~') {
-        strcpy(msg2, lineIn);
-    }
-
-    if (!get_line(fl, lineIn)) {
-        fprintf(stderr, " missing dest dock message when processing M...\n");
-        exit(1);
-    }
-    if (lineIn[0] != '~') {
-        strcpy(msg3, lineIn);
-    }
-
-    if (!get_line(fl, lineIn)) {
-        fprintf(stderr, " - get_line() returned 0 in world 'M' processing...\n");
-        fprintf(stderr, "%s\n", lineIn);
-        exit(1);
-    }
-
-    while (lineIn[0] != '~') {
-        if (sscanf(lineIn, " %d %d %d ", connInfo, connInfo + 1, connInfo + 2) != 3) {
-            fprintf(stderr, "Format error, room #%d, %d after M line\n", (connLine + 1), world[rroom].number);
-            exit(1);
-        }
-
-        connLine++;
-
-        if (connInfo[2] < 1) {
-            connInfo[2] = 1;
-        } else if (connInfo[2] > 50) {
-            connInfo[2] = 50;
-        }
-
-        for (j = 0; j < connInfo[2]; j++) {
-            connCnt++;
-
-            if (connCnt < MAX_MOVING_ROOMS) {
-                /*  store the conn room info  */
-                fR[connCnt - 1] = (room_num)connInfo[0];
-                fD[connCnt - 1] = connInfo[1];
-            } else {
-                log("setup_moving_room(): # of conneting rooms exceeded limit...");
-            }
-        }
-
-        if (!get_line(fl, lineIn)) {
-            fprintf(stderr, " - get_line() returned 0 in world 'M' processing...\n");
-            fprintf(stderr, "%s\n", buf);
-            exit(1);
-        }
-    }
+  }
 
 /*
  *  PDH 11/17/97
@@ -2305,81 +2351,92 @@ void setup_moving_room(FILE* fl, int rroom, int vroom, char* line) {
  *  movingRoomList
  */
 #ifdef DEBUGMEM
-    CREATE(newRoom, struct moving_room_data, 1, M1);
+  CREATE(newRoom, struct moving_room_data, 1, M1);
 #else
-    CREATE(newRoom, struct moving_room_data, 1);
+  CREATE(newRoom, struct moving_room_data, 1);
 #endif
 
-    newRoom->resetZonePulse = roomInfo[1];
-    newRoom->remainingZonePulses = newRoom->resetZonePulse;
-    newRoom->currentInbound = -1;
-    newRoom->destination = vroom;
-    newRoom->inbound_dir = roomInfo[0];
-    newRoom->randomMove = roomInfo[2];
-    newRoom->exitInfo = roomInfo[3];
-    newRoom->keyInfo = roomInfo[4];
+  newRoom->resetZonePulse = roomInfo[1];
+  newRoom->remainingZonePulses = newRoom->resetZonePulse;
+  newRoom->currentInbound = -1;
+  newRoom->destination = vroom;
+  newRoom->inbound_dir = roomInfo[0];
+  newRoom->randomMove = roomInfo[2];
+  newRoom->exitInfo = roomInfo[3];
+  newRoom->keyInfo = roomInfo[4];
 #ifdef DEBUGMEM
-    newRoom->keywords = str_dup("door", S19);
+  newRoom->keywords = str_dup("door", S19);
 #else
-    newRoom->keywords = strdup("door");
+  newRoom->keywords = strdup("door");
 #endif
 
-    if (strlen(msg1) > 5)
-    {
+  if (strlen(msg1) > 5)
+  {
 #ifdef DEBUGMEM
-        newRoom->msg_transit = str_dup(msg1, T19);
+    newRoom->msg_transit = str_dup(msg1, T19);
 #else
-        newRoom->msg_transit = strdup(msg1);
+    newRoom->msg_transit = strdup(msg1);
 #endif
-
-    } else {
-        newRoom->msg_transit = NULL;
-    }
-    if (strlen(msg2) > 5) {
+  }
+  else
+  {
+    newRoom->msg_transit = NULL;
+  }
+  if (strlen(msg2) > 5)
+  {
 #ifdef DEBUGMEM
-        newRoom->msg_docking = str_dup(msg2, U19);
+    newRoom->msg_docking = str_dup(msg2, U19);
 #else
-        newRoom->msg_docking = strdup(msg2);
+    newRoom->msg_docking = strdup(msg2);
 #endif
-    } else {
-        newRoom->msg_docking = NULL;
-    }
-    if (strlen(msg3) > 5) {
+  }
+  else
+  {
+    newRoom->msg_docking = NULL;
+  }
+  if (strlen(msg3) > 5)
+  {
 #ifdef DEBUGMEM
-        newRoom->msg_dest_docking = str_dup(msg3, V19);
+    newRoom->msg_dest_docking = str_dup(msg3, V19);
 #else
-        newRoom->msg_dest_docking = strdup(msg3);
+    newRoom->msg_dest_docking = strdup(msg3);
 #endif
-    } else {
-        newRoom->msg_dest_docking = NULL;
-    }
+  }
+  else
+  {
+    newRoom->msg_dest_docking = NULL;
+  }
 #ifdef DEBUGMEM
-    CREATE(newRoom->from, room_num, connCnt + 1, N1);
-    CREATE(newRoom->fromDir, int, connCnt + 1, O1);
+  CREATE(newRoom->from, room_num, connCnt + 1, N1);
+  CREATE(newRoom->fromDir, int, connCnt + 1, O1);
 #else
-    CREATE(newRoom->from, room_num, connCnt + 1);
-    CREATE(newRoom->fromDir, int, connCnt + 1);
+  CREATE(newRoom->from, room_num, connCnt + 1);
+  CREATE(newRoom->fromDir, int, connCnt + 1);
 #endif
 
-    for (j = 0; j < connCnt; j++) {
-        newRoom->from[j] = fR[j];
-        newRoom->fromDir[j] = fD[j];
-    }
-    newRoom->from[j] = ENDMOVING;
-    newRoom->fromDir[j] = -1;
+  for (j = 0; j < connCnt; j++)
+  {
+    newRoom->from[j] = fR[j];
+    newRoom->fromDir[j] = fD[j];
+  }
+  newRoom->from[j] = ENDMOVING;
+  newRoom->fromDir[j] = -1;
 
-    newRoom->next = NULL;
+  newRoom->next = NULL;
 
-    if (movingRoomList == NULL) {
-        movingRoomList = newRoom;
-    } else {
-        newRoom->next = movingRoomList;
-        movingRoomList = newRoom;
-    }
+  if (movingRoomList == NULL)
+  {
+    movingRoomList = newRoom;
+  }
+  else
+  {
+    newRoom->next = movingRoomList;
+    movingRoomList = newRoom;
+  }
 
-    world[rroom].mover = newRoom;
+  world[rroom].mover = newRoom;
 
-    return;
+  return;
 }
 
 /* read direction data */
@@ -2422,16 +2479,13 @@ void setup_dir(FILE *fl, int room, int dir)
     world[room].dir_option[dir]->exit_info = 0;
 
   world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING : t[1]);
-  world[room].dir_option[dir]->to_room = ((t[2] == -1 || t[2] == 0 ||
-                                           t[2] == 65535)
-                                              ? NOWHERE
-                                              : t[2]);
+  world[room].dir_option[dir]->to_room =
+      ((t[2] == -1 || t[2] == 0 || t[2] == 65535) ? NOWHERE : t[2]);
 }
 
 /* make sure the start rooms exist & resolve their vnums to rnums */
 static void check_start_rooms(void)
 {
-
   if ((r_mortal_start_room = real_room(CONFIG_MORTAL_START)) == NOWHERE)
   {
     log("SYSERR:  Mortal start room does not exist.  Change in config.c.");
@@ -2460,8 +2514,7 @@ void renum_world(void)
     for (door = 0; door < NUM_OF_DIRS; door++)
       if (world[room].dir_option[door])
         if (world[room].dir_option[door]->to_room != NOWHERE)
-          world[room].dir_option[door]->to_room =
-              real_room(world[room].dir_option[door]->to_room);
+          world[room].dir_option[door]->to_room = real_room(world[room].dir_option[door]->to_room);
 }
 
 /** This is not the same ZCMD as used elsewhere. GRUMBLE... namespace conflict
@@ -2500,14 +2553,18 @@ static void renum_zone_table(void)
       case 'O':
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
-        if (a == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist", 
+        if (a == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this O command from 'zedit %d'",
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this O command from 'zedit "
+              "%d'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg1 = a;
         }
         if (ZCMD.arg3 != NOWHERE)
@@ -2516,53 +2573,71 @@ static void renum_zone_table(void)
       case 'G':
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
-        if (a == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (G = Give to mob)", 
+        if (a == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (G = Give to mob)",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this G command from 'zedit %d'",
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this G command from 'zedit "
+              "%d'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg1 = a;
         }
         break;
       case 'E':
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
-        if (a == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (E = Equip on mob)", 
+        if (a == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (E = Equip on mob)",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this E command from 'zedit %d'",
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this E command from 'zedit "
+              "%d'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg1 = a;
         }
         break;
       case 'P':
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
-        if (a == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (P = Put in container)", 
+        if (a == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (P = Put in "
+              "container)",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this P command from 'zedit %d'",
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this P command from 'zedit "
+              "%d'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg1 = a;
         }
         c = real_object(ZCMD.arg3);
-        if (c == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (P = target container)", 
+        if (c == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (P = target "
+              "container)",
               zone_table[zone].number, ZCMD.line, oldc);
-          log("ZONE FIX: Create container #%d with 'oedit %d' OR change/remove this P command in 'zedit %d'",
+          log("ZONE FIX: Create container #%d with 'oedit %d' OR change/remove this P command in "
+              "'zedit %d'",
               oldc, oldc, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg3 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg3 = c;
         }
         break;
@@ -2573,14 +2648,19 @@ static void renum_zone_table(void)
         a = ZCMD.arg1 = real_room(ZCMD.arg1);
         b = real_object(ZCMD.arg2);
         /* CRITICAL: Validate object vnum at parse time */
-        if (b == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (R = Remove from room)", 
+        if (b == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (R = Remove from "
+              "room)",
               zone_table[zone].number, ZCMD.line, oldb);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this R command from 'zedit %d'",
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this R command from 'zedit "
+              "%d'",
               oldb, oldb, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg2 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg2 = b;
         }
         break;
@@ -2594,14 +2674,19 @@ static void renum_zone_table(void)
       case 'L': /* Load random treasure in container */
         c = real_object(ZCMD.arg3);
         /* CRITICAL: Validate container object vnum at parse time */
-        if (c == NOTHING) {
-          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (L = Load treasure)", 
+        if (c == NOTHING)
+        {
+          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (L = Load "
+              "treasure)",
               zone_table[zone].number, ZCMD.line, oldc);
-          log("ZONE FIX: Create container #%d with 'oedit %d' OR remove this L command from 'zedit %d'",
+          log("ZONE FIX: Create container #%d with 'oedit %d' OR remove this L command from 'zedit "
+              "%d'",
               oldc, oldc, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg3 = NOTHING;
-        } else {
+        }
+        else
+        {
           ZCMD.arg3 = c;
         }
         break;
@@ -2611,12 +2696,16 @@ static void renum_zone_table(void)
         if (!mini_mud)
         {
           int bad_vnum = a == NOWHERE ? olda : b == NOWHERE ? oldb : oldc;
-          const char *vnum_type = a == NOWHERE ? "mob/room" : b == NOWHERE ? "mob/obj/trigger" : "room/obj";
-          
-          snprintf(buf, sizeof(buf), "Vnum #%d (%s) does not exist - command disabled",
-                   bad_vnum, vnum_type);
+          const char *vnum_type = a == NOWHERE   ? "mob/room"
+                                  : b == NOWHERE ? "mob/obj/trigger"
+                                                 : "room/obj";
+
+          snprintf(buf, sizeof(buf), "Vnum #%d (%s) does not exist - command disabled", bad_vnum,
+                   vnum_type);
           log_zone_error(zone, cmd_no, buf);
-          mudlog(CMP, LVL_STAFF, TRUE, "ZONE HELP: Create the missing %s using appropriate editor (medit/oedit/redit/trigedit)",
+          mudlog(CMP, LVL_STAFF, TRUE,
+                 "ZONE HELP: Create the missing %s using appropriate editor "
+                 "(medit/oedit/redit/trigedit)",
                  vnum_type);
         }
         ZCMD.command = '*';
@@ -2643,8 +2732,8 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
     exit(1);
   }
 
-  if (sscanf(line, " %d %d %d %dd%d+%d %dd%d+%d ",
-             t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6, t + 7, t + 8) != 9)
+  if (sscanf(line, " %d %d %d %dd%d+%d %dd%d+%d ", t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6,
+             t + 7, t + 8) != 9)
   {
     log("SYSERR: Format error in mob #%d, first line after S flag\n"
         "...expecting line of form '# # # #d#+# #d#+#'",
@@ -2760,12 +2849,9 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
  * changes need to be made anywhere in the code.
  * CASE		: Requires a parameter through 'value'.
  * BOOL_CASE	: Being specified at all is its value. */
-#define CASE(test) \
-  if (value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
-#define BOOL_CASE(test) \
-  if (!value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
-#define RANGE(low, high) \
-  (num_arg = MAX((low), MIN((high), (num_arg))))
+#define CASE(test) if (value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
+#define BOOL_CASE(test) if (!value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
+#define RANGE(low, high) (num_arg = MAX((low), MIN((high), (num_arg))))
 
 static void interpret_espec(const char *keyword, const char *value, int i, int nr)
 {
@@ -3164,8 +3250,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   if (!matched)
   {
-    log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d",
-        keyword, nr);
+    log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d", keyword, nr);
   }
   affect_total(mob_proto + i);
 }
@@ -3253,7 +3338,9 @@ void parse_mobile(FILE *mob_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, "%s %s %s %s %s %s %s %s %d %c", f1, f2, f3, f4, f5, f6, f7, f8, t + 2, &letter)) != 10) && (bitwarning == TRUE))
+  if (((retval = sscanf(line, "%s %s %s %s %s %s %s %s %d %c", f1, f2, f3, f4, f5, f6, f7, f8,
+                        t + 2, &letter)) != 10) &&
+      (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
     log("WARNING: Conventional mobile files detected. See config.c.");
@@ -3340,11 +3427,14 @@ void parse_mobile(FILE *mob_f, int nr)
     GET_ALIGNMENT(mob_proto + i) = t[2];
 
     for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
-      check_bitvector_names(AFF_FLAGS(mob_proto + i)[taeller], affected_bits_count, buf2, "mobile affect");
+      check_bitvector_names(AFF_FLAGS(mob_proto + i)[taeller], affected_bits_count, buf2,
+                            "mobile affect");
   }
   else
   {
-    log("SYSERR: Format error after string section of mob #%d\n ...expecting line of form '# # # {S | E}'", nr);
+    log("SYSERR: Format error after string section of mob #%d\n ...expecting line of form '# # # "
+        "{S | E}'",
+        nr);
     exit(1);
   }
 
@@ -3450,7 +3540,6 @@ const char *parse_object(FILE *obj_f, int nr)
   }
   else if (((retval == 4) || (retval == 3)) && (bitwarning == FALSE))
   {
-
     if (retval == 3)
       t[3] = 0;
     else if (retval == 4)
@@ -3481,8 +3570,8 @@ const char *parse_object(FILE *obj_f, int nr)
     [2] = 0;
     GET_OBJ_PERM(obj_proto + i)
     [3] = 0;
-    
-    
+
+
     if (bitsavetodisk)
     {
       add_to_save_list(zone_table[real_zone_by_thing(nr)].number, 1);
@@ -3493,7 +3582,6 @@ const char *parse_object(FILE *obj_f, int nr)
   }
   else if (retval == 13)
   {
-
     GET_OBJ_EXTRA(obj_proto + i)
     [0] = asciiflag_conv(f1);
     GET_OBJ_EXTRA(obj_proto + i)
@@ -3521,7 +3609,6 @@ const char *parse_object(FILE *obj_f, int nr)
   }
   else if (retval == 17)
   {
-
     GET_OBJ_EXTRA(obj_proto + i)
     [0] = asciiflag_conv(f1);
     GET_OBJ_EXTRA(obj_proto + i)
@@ -3557,7 +3644,8 @@ const char *parse_object(FILE *obj_f, int nr)
   }
   else
   {
-    log("SYSERR: Format error in first numeric line (expecting 13 or 17 args, got %d), %s", retval, buf2);
+    log("SYSERR: Format error in first numeric line (expecting 13 or 17 args, got %d), %s", retval,
+        buf2);
     exit(1);
   }
 
@@ -3585,13 +3673,14 @@ const char *parse_object(FILE *obj_f, int nr)
   for (j = 0; j < NUM_OBJ_VAL_POSITIONS; j++)
     t[j] = 0;
 
-  if ((retval = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
-                       &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8],
-                       &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15])) != 4)
+  if ((retval = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2],
+                       &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12],
+                       &t[13], &t[14], &t[15])) != 4)
   {
     if (retval != 16)
     {
-      log("SYSERR: Format error in second numeric line (expecting 4 or 16 args, got %d), %s", retval, buf2);
+      log("SYSERR: Format error in second numeric line (expecting 4 or 16 args, got %d), %s",
+          retval, buf2);
       exit(1);
     }
     /* this is just creating tons of spam -zusuk */
@@ -3631,7 +3720,8 @@ const char *parse_object(FILE *obj_f, int nr)
       t[4] = 0;
     else
     {
-      log("SYSERR: Format error in third numeric line (expecting 5 args, got %d), %s", retval, buf2);
+      log("SYSERR: Format error in third numeric line (expecting 5 args, got %d), %s", retval,
+          buf2);
       exit(1);
     }
   }
@@ -3650,10 +3740,10 @@ const char *parse_object(FILE *obj_f, int nr)
   obj_proto[i].sitting_here = NULL;
 
   /* check to make sure that weight of containers exceeds curr. quantity */
-  if (GET_OBJ_TYPE(obj_proto + i) == ITEM_DRINKCON ||
-      GET_OBJ_TYPE(obj_proto + i) == ITEM_FOUNTAIN)
+  if (GET_OBJ_TYPE(obj_proto + i) == ITEM_DRINKCON || GET_OBJ_TYPE(obj_proto + i) == ITEM_FOUNTAIN)
   {
-    if (GET_OBJ_WEIGHT(obj_proto + i) < GET_OBJ_VAL(obj_proto + i, 1) && CAN_WEAR(obj_proto + i, ITEM_WEAR_TAKE))
+    if (GET_OBJ_WEIGHT(obj_proto + i) < GET_OBJ_VAL(obj_proto + i, 1) &&
+        CAN_WEAR(obj_proto + i, ITEM_WEAR_TAKE))
       GET_OBJ_WEIGHT(obj_proto + i) = GET_OBJ_VAL(obj_proto + i, 1) + 5;
   }
 
@@ -3664,8 +3754,9 @@ const char *parse_object(FILE *obj_f, int nr)
     obj_proto[i].affected[j].modifier = 0;
   }
 
-  strlcat(buf2, ", after numeric constants\n" /* strcat: OK (for 'buf2 >= 87') */
-                "...expecting 'E', 'A', '$', or next object number",
+  strlcat(buf2,
+          ", after numeric constants\n" /* strcat: OK (for 'buf2 >= 87') */
+          "...expecting 'E', 'A', '$', or next object number",
           sizeof(buf2));
   j = 0;
   wsplnum = 0;
@@ -3765,14 +3856,8 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %s", t,
-                           t + 1,
-                           t + 2,
-                           t + 3,
-                           t + 4,
-                           t + 5,
-                           t + 6,
-                           f1)) < 7)
+      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %s", t, t + 1, t + 2, t + 3, t + 4, t + 5,
+                           t + 6, f1)) < 7)
       {
         log("SYSERR: Format error in 'C' field, %s\n"
             "...expecting 7 numeric arguments, got %d\n"
@@ -3887,7 +3972,8 @@ const char *parse_object(FILE *obj_f, int nr)
     case 'K': // object activated spells
       if (!get_line(obj_f, line))
       {
-        log("SYSERR: Format error in 'K' field, %s.  Expecting numeric constants, but file ended!", buf2);
+        log("SYSERR: Format error in 'K' field, %s.  Expecting numeric constants, but file ended!",
+            buf2);
         exit(1);
       }
       if ((retval = sscanf(line, " %d %d %d %d %d ", t, t + 1, t + 2, t + 3, t + 4)) != 5)
@@ -3903,7 +3989,7 @@ const char *parse_object(FILE *obj_f, int nr)
       obj_proto[i].activate_spell[ACT_SPELL_COOLDOWN] = t[4];
       break;
     case 'P': // AFF2 flags
-      
+
       break;
     case 'S': // weapon spells
       /*
@@ -3914,7 +4000,8 @@ const char *parse_object(FILE *obj_f, int nr)
          */
       if (!get_line(obj_f, line))
       {
-        log("SYSERR: Format error in 'S' field, %s.  Expecting numeric constants, but file ended!", buf2);
+        log("SYSERR: Format error in 'S' field, %s.  Expecting numeric constants, but file ended!",
+            buf2);
         exit(1);
       }
       if ((retval = sscanf(line, " %d %d %d %d ", t, t + 1, t + 2, t + 3)) != 4)
@@ -4025,18 +4112,17 @@ static void load_zones(FILE *fl, char *zonename)
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
    */
-  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d %d %d %d", &Z.bot, &Z.top,
-             &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-             &Z.max_level, &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
+  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
+             &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level, &Z.show_weather,
+             &Z.region, &Z.faction, &Z.city) != 14)
   {
     // not 14 values, lets try 11
-    if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top,
-              &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-              &Z.max_level, &Z.show_weather) != 11)
+    if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode,
+               zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level, &Z.show_weather) != 11)
     {
       // not 11 values, lets try 10
-      if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
-                &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
+      if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode,
+                 zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
       {
         // not 10 values, last try for 4 values
         if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
@@ -4165,16 +4251,15 @@ static void load_zones(FILE *fl, char *zonename)
       case 'O':
       case 'E':
       case 'P':
-        arg_count = sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-                           &ZCMD.arg3, &ZCMD.arg4);
+        arg_count =
+            sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3, &ZCMD.arg4);
         if (arg_count == 4 || ZCMD.arg4 < 0)
           ZCMD.arg4 = 100;
         else if (arg_count != 5)
           error = 1;
         break;
       case 'G':
-        arg_count = sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-                           &ZCMD.arg3);
+        arg_count = sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3);
         if (arg_count == 3 || ZCMD.arg3 < 0)
           ZCMD.arg3 = 100;
         else if (arg_count != 4)
@@ -4182,8 +4267,7 @@ static void load_zones(FILE *fl, char *zonename)
         break;
       case 'D':
       case 'T':
-        if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-                   &ZCMD.arg3) != 4)
+        if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3) != 4)
           error = 1;
         break;
       case 'R':
@@ -4212,7 +4296,8 @@ static void load_zones(FILE *fl, char *zonename)
 
   if (num_of_cmds != cmd_no + 1)
   {
-    log("SYSERR: Zone command count mismatch for %s. Estimated: %d, Actual: %d", zname, num_of_cmds, cmd_no + 1);
+    log("SYSERR: Zone command count mismatch for %s. Estimated: %d, Actual: %d", zname, num_of_cmds,
+        cmd_no + 1);
     exit(1);
   }
 
@@ -4252,7 +4337,7 @@ void load_help(FILE *fl, char *name)
    * The help system currently operates in DUAL MODE:
    * 1. File-based help loaded here at boot time (for backward compatibility)
    * 2. Database-based help accessed via search_help() in help.c
-   * 
+   *
    * TODO: Future migration task - import all help.hlp content to database
    * and then disable this file loading. See HELP_TODO.md for details.
    */
@@ -4284,7 +4369,8 @@ void load_help(FILE *fl, char *name)
       int keysize;
       const char *truncmsg = "\r\n*TRUNCATED*\r\n";
 
-      strcpy(entry + sizeof(entry) - strlen(truncmsg) - 1, truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
+      strcpy(entry + sizeof(entry) - strlen(truncmsg) - 1,
+             truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
 
       keysize = strlen(key) - 2;
       log("SYSERR: Help entry exceeded buffer space: %.*s", keysize, key);
@@ -4338,9 +4424,8 @@ int vnum_mobile(char *searchname, struct char_data *ch)
 
   for (nr = 0; nr <= top_of_mobt; nr++)
     if (isname(searchname, mob_proto[nr].player.name))
-      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
-                   ++found, mob_index[nr].vnum, mob_proto[nr].player.short_descr,
-                   mob_proto[nr].proto_script ? "[TRIG]" : "");
+      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n", ++found, mob_index[nr].vnum,
+                   mob_proto[nr].player.short_descr, mob_proto[nr].proto_script ? "[TRIG]" : "");
 
   return (found);
 }
@@ -4351,9 +4436,8 @@ int vnum_object(char *searchname, struct char_data *ch)
 
   for (nr = 0; nr <= top_of_objt; nr++)
     if (isname(searchname, obj_proto[nr].name))
-      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
-                   ++found, obj_index[nr].vnum, obj_proto[nr].short_description,
-                   obj_proto[nr].proto_script ? "[TRIG]" : "");
+      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n", ++found, obj_index[nr].vnum,
+                   obj_proto[nr].short_description, obj_proto[nr].proto_script ? "[TRIG]" : "");
 
   return (found);
 }
@@ -4364,8 +4448,7 @@ int vnum_room(char *searchname, struct char_data *ch)
 
   for (nr = 0; nr <= top_of_world; nr++)
     if (isname(searchname, world[nr].name))
-      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n",
-                   ++found, world[nr].number, world[nr].name,
+      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n", ++found, world[nr].number, world[nr].name,
                    world[nr].proto_script ? "[TRIG]" : "");
   return (found);
 }
@@ -4375,8 +4458,8 @@ int vnum_trig(char *searchname, struct char_data *ch)
   int nr, found = 0;
   for (nr = 0; nr < top_of_trigt; nr++)
     if (isname(searchname, trig_index[nr]->proto->name))
-      send_to_char(ch, "%3d. [%5d] %-40s\r\n",
-                   ++found, trig_index[nr]->vnum, trig_index[nr]->proto->name);
+      send_to_char(ch, "%3d. [%5d] %-40s\r\n", ++found, trig_index[nr]->vnum,
+                   trig_index[nr]->proto->name);
   return (found);
 }
 
@@ -4423,8 +4506,11 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
     if ((i = real_mobile(nr)) == NOBODY)
     {
       log("MOB ERROR: Mobile vnum #%d doesn't exist in the world files!", nr);
-      log("MOB FIX: Create this mobile with 'medit %d', OR remove references to it from zone commands", nr);
-      log("MOB NOTE: Use 'vnum mob <keyword>' to search for existing mobs, 'mlist' to see zone mobs");
+      log("MOB FIX: Create this mobile with 'medit %d', OR remove references to it from zone "
+          "commands",
+          nr);
+      log("MOB NOTE: Use 'vnum mob <keyword>' to search for existing mobs, 'mlist' to see zone "
+          "mobs");
       return (NULL);
     }
   }
@@ -4506,9 +4592,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   if (GET_SIZE(mob) < 0 || GET_SIZE(mob) >= NUM_SIZES)
     GET_REAL_SIZE(mob) = SIZE_MEDIUM;
 
-  //  this line of code can be used to randomize the classes of the world
-  //  for testing purposes - zusuk
-  //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
+    //  this line of code can be used to randomize the classes of the world
+    //  for testing purposes - zusuk
+    //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
 
 #if defined(CAMPAIGN_DL)
   if (!MOB_FLAGGED(mob, MOB_CUSTOM_GOLD))
@@ -4524,7 +4610,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   /* Initialize spell slots for mobs using spell slot system */
   init_mob_spell_slots(mob);
-  
+
   /* Initialize known spell slots for mobs */
   init_known_spell_slots(mob);
 
@@ -4557,8 +4643,9 @@ struct obj_data *create_obj(void)
 void init_obj_rnum_hash(void)
 {
   int i;
-  
-  for (i = 0; i < OBJ_RNUM_HASH_SIZE; i++) {
+
+  for (i = 0; i < OBJ_RNUM_HASH_SIZE; i++)
+  {
     obj_rnum_hash[i].objs = NULL;
   }
 }
@@ -4576,19 +4663,19 @@ static int obj_rnum_hash_key(obj_rnum rnum)
 void add_obj_to_rnum_hash(struct obj_data *obj)
 {
   int hash_key;
-  
+
   if (!obj || obj->item_number == NOTHING)
     return;
-    
+
   hash_key = obj_rnum_hash_key(obj->item_number);
-  
+
   /* Add to the front of the linked list in this bucket */
   obj->next_in_hash = obj_rnum_hash[hash_key].objs;
   obj->prev_in_hash = NULL;
-  
+
   if (obj_rnum_hash[hash_key].objs)
     obj_rnum_hash[hash_key].objs->prev_in_hash = obj;
-    
+
   obj_rnum_hash[hash_key].objs = obj;
 }
 
@@ -4596,21 +4683,21 @@ void add_obj_to_rnum_hash(struct obj_data *obj)
 void remove_obj_from_rnum_hash(struct obj_data *obj)
 {
   int hash_key;
-  
+
   if (!obj || obj->item_number == NOTHING)
     return;
-    
+
   hash_key = obj_rnum_hash_key(obj->item_number);
-  
+
   /* Update the linked list pointers */
   if (obj->prev_in_hash)
     obj->prev_in_hash->next_in_hash = obj->next_in_hash;
   else
     obj_rnum_hash[hash_key].objs = obj->next_in_hash;
-    
+
   if (obj->next_in_hash)
     obj->next_in_hash->prev_in_hash = obj->prev_in_hash;
-    
+
   obj->next_in_hash = NULL;
   obj->prev_in_hash = NULL;
 }
@@ -4626,10 +4713,14 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   if (i == NOTHING || i > top_of_objt)
   {
     log("OBJECT ERROR: Object vnum #%d doesn't exist or isn't loaded!", nr);
-    log("OBJECT CONTEXT: During boot this can mean: wrong VIRTUAL/REAL flag, disabled zone, or loading order issue");
-    log("OBJECT FIX: Create this object with 'oedit %d', OR fix the code calling read_object()", nr);
-    log("OBJECT NOTE: Common sources: weighted bonuses calc, treasure tables, zone commands, mob equipment, special procs");
-    log("OBJECT HELP: Use 'vnum obj <keyword>' to search, 'olist' for zone objects, check zone index files");
+    log("OBJECT CONTEXT: During boot this can mean: wrong VIRTUAL/REAL flag, disabled zone, or "
+        "loading order issue");
+    log("OBJECT FIX: Create this object with 'oedit %d', OR fix the code calling read_object()",
+        nr);
+    log("OBJECT NOTE: Common sources: weighted bonuses calc, treasure tables, zone commands, mob "
+        "equipment, special procs");
+    log("OBJECT HELP: Use 'vnum obj <keyword>' to search, 'olist' for zone objects, check zone "
+        "index files");
     return (NULL);
   }
 
@@ -4655,7 +4746,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
    * if they exist in the prototype, so modifications to one instance don't affect others */
   if (obj_proto[i].arcane_mark)
     obj->arcane_mark = strdup(obj_proto[i].arcane_mark);
-  
+
   if (obj_proto[i].restring_identifier)
     obj->restring_identifier = strdup(obj_proto[i].restring_identifier);
 
@@ -4674,11 +4765,9 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   obj->special_abilities = NULL;
 
   /* Copy the special ability information. */
-  for (proto_specab = obj_proto[i].special_abilities;
-       proto_specab != NULL;
+  for (proto_specab = obj_proto[i].special_abilities; proto_specab != NULL;
        proto_specab = proto_specab->next)
   {
-
     CREATE(specab_list, struct obj_special_ability, 1);
     /* Populate the node. */
     *specab_list = *proto_specab;
@@ -4778,12 +4867,11 @@ void zone_update(void)
     /* since one minute has passed, increment zone ages */
     for (i = 0; i <= top_of_zone_table; i++)
     {
-      if (zone_table[i].age < zone_table[i].lifespan &&
-          zone_table[i].reset_mode)
+      if (zone_table[i].age < zone_table[i].lifespan && zone_table[i].reset_mode)
         (zone_table[i].age)++;
 
-      if (zone_table[i].age >= zone_table[i].lifespan &&
-          zone_table[i].age < ZO_DEAD && zone_table[i].reset_mode)
+      if (zone_table[i].age >= zone_table[i].lifespan && zone_table[i].age < ZO_DEAD &&
+          zone_table[i].reset_mode)
       {
         /* enqueue zone */
 
@@ -4808,20 +4896,17 @@ void zone_update(void)
   /* Dequeue zones (if possible) and reset. This code is executed every x
    * seconds (i.e. PULSE_ZONE). */
   for (update_u = reset_q.head; update_u; update_u = update_u->next)
-    if (zone_table[update_u->zone_to_reset].reset_mode == 2 ||
-        is_empty(update_u->zone_to_reset))
+    if (zone_table[update_u->zone_to_reset].reset_mode == 2 || is_empty(update_u->zone_to_reset))
     {
       reset_zone(update_u->zone_to_reset);
       mudlog(CMP, LVL_IMPL, FALSE, "\tnAuto zone reset: %s (Zone %d)",
-             zone_table[update_u->zone_to_reset].name,
-             zone_table[update_u->zone_to_reset].number);
+             zone_table[update_u->zone_to_reset].name, zone_table[update_u->zone_to_reset].number);
       /* dequeue */
       if (update_u == reset_q.head)
         reset_q.head = reset_q.head->next;
       else
       {
-        for (temp = reset_q.head; temp->next != update_u;
-             temp = temp->next)
+        for (temp = reset_q.head; temp->next != update_u; temp = temp->next)
           ;
 
         if (!update_u->next)
@@ -4873,43 +4958,44 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 {
   char cmd_explain[256];
-  
+
   /* Explain what each command type does */
-  switch (ZCMD.command) {
-    case 'M':
-      snprintf(cmd_explain, sizeof(cmd_explain), "M = Load Mobile/NPC");
-      break;
-    case 'O':
-      snprintf(cmd_explain, sizeof(cmd_explain), "O = Load Object in room");
-      break;
-    case 'P':
-      snprintf(cmd_explain, sizeof(cmd_explain), "P = Put object inside container");
-      break;
-    case 'G':
-      snprintf(cmd_explain, sizeof(cmd_explain), "G = Give object to mobile");
-      break;
-    case 'E':
-      snprintf(cmd_explain, sizeof(cmd_explain), "E = Equip object on mobile");
-      break;
-    case 'D':
-      snprintf(cmd_explain, sizeof(cmd_explain), "D = Set door state");
-      break;
-    case 'T':
-      snprintf(cmd_explain, sizeof(cmd_explain), "T = Attach trigger");
-      break;
-    case 'V':
-      snprintf(cmd_explain, sizeof(cmd_explain), "V = Set variable");
-      break;
-    case 'L':
-      snprintf(cmd_explain, sizeof(cmd_explain), "L = Load treasure in container");
-      break;
-    default:
-      snprintf(cmd_explain, sizeof(cmd_explain), "%c = Unknown command", ZCMD.command);
-      break;
+  switch (ZCMD.command)
+  {
+  case 'M':
+    snprintf(cmd_explain, sizeof(cmd_explain), "M = Load Mobile/NPC");
+    break;
+  case 'O':
+    snprintf(cmd_explain, sizeof(cmd_explain), "O = Load Object in room");
+    break;
+  case 'P':
+    snprintf(cmd_explain, sizeof(cmd_explain), "P = Put object inside container");
+    break;
+  case 'G':
+    snprintf(cmd_explain, sizeof(cmd_explain), "G = Give object to mobile");
+    break;
+  case 'E':
+    snprintf(cmd_explain, sizeof(cmd_explain), "E = Equip object on mobile");
+    break;
+  case 'D':
+    snprintf(cmd_explain, sizeof(cmd_explain), "D = Set door state");
+    break;
+  case 'T':
+    snprintf(cmd_explain, sizeof(cmd_explain), "T = Attach trigger");
+    break;
+  case 'V':
+    snprintf(cmd_explain, sizeof(cmd_explain), "V = Set variable");
+    break;
+  case 'L':
+    snprintf(cmd_explain, sizeof(cmd_explain), "L = Load treasure in container");
+    break;
+  default:
+    snprintf(cmd_explain, sizeof(cmd_explain), "%c = Unknown command", ZCMD.command);
+    break;
   }
-  
-  mudlog(CMP, LVL_STAFF, TRUE, "ZONE ERROR: Zone #%d, Line %d: %s", 
-         zone_table[zone].number, ZCMD.line, message);
+
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE ERROR: Zone #%d, Line %d: %s", zone_table[zone].number,
+         ZCMD.line, message);
   mudlog(CMP, LVL_STAFF, TRUE, "ZONE INFO: Command '%c' (%s) at position #%d in zone file",
          ZCMD.command, cmd_explain, cmd_no);
   mudlog(CMP, LVL_STAFF, TRUE, "ZONE FIX: Edit the zone file with 'zedit %d' and check line %d",
@@ -4920,10 +5006,10 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 #define ZONE_ERROR(message) \
      { log_zone_error(zone, cmd_no, message); last_cmd = 0; }
  */
-#define ZONE_ERROR(message)                \
-  {                                        \
-    log_zone_error(zone, cmd_no, message); \
-    push_result(0);                        \
+#define ZONE_ERROR(message)                                                                        \
+  {                                                                                                \
+    log_zone_error(zone, cmd_no, message);                                                         \
+    push_result(0);                                                                                \
   }
 
 /* execute the reset command table of a given zone */
@@ -4939,20 +5025,20 @@ void reset_zone(zone_rnum zone)
   struct obj_data *tobj = NULL;  /* for trigger assignment */
 
   /* CRITICAL: Set zone reset state to prevent race conditions */
-  if (zone_table[zone].reset_state == ZONE_RESET_ACTIVE) {
-    log("SYSERR: Zone %d already resetting - possible race condition detected!", 
+  if (zone_table[zone].reset_state == ZONE_RESET_ACTIVE)
+  {
+    log("SYSERR: Zone %d already resetting - possible race condition detected!",
         zone_table[zone].number);
     return;
   }
-  
+
   zone_table[zone].reset_state = ZONE_RESET_ACTIVE;
   zone_table[zone].reset_start = time(0);
-  
+
   init_result_q();
 
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++)
   {
-
     if (jump > 0)
     {
       jump--;
@@ -4972,7 +5058,6 @@ void reset_zone(zone_rnum zone)
      * () so that the counting will still be correct. - ae. */
     switch (ZCMD.command)
     {
-
     case '*': /* ignore command */
       push_result(0);
       break;
@@ -4988,7 +5073,8 @@ void reset_zone(zone_rnum zone)
       break;
 
     case 'M': /* read a mobile (with percentage loads) */
-      if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+      if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) ||
+           (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
       {
         mob = read_mobile(ZCMD.arg1, REAL);
@@ -5010,7 +5096,7 @@ void reset_zone(zone_rnum zone)
       else
       {
         push_result(0);
-        mob = NULL;  /* Clear mob pointer when load fails */
+        mob = NULL; /* Clear mob pointer when load fails */
       }
       tobj = NULL;
       break;
@@ -5019,24 +5105,24 @@ void reset_zone(zone_rnum zone)
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
       if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
       {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'O' command", 
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'O' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
       }
-      
+
       /* Check max existing and percentage */
-      if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
-           (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+      if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
       {
         if (ZCMD.arg3 != NOWHERE)
         {
           obj = read_object(ZCMD.arg1, REAL);
           /* CRITICAL FIX: Check for NULL object before use */
-          if (!obj) {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d", 
-                zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+          if (!obj)
+          {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d", zone_table[zone].number,
+                cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             break;
           }
@@ -5051,16 +5137,19 @@ void reset_zone(zone_rnum zone)
           /* Check if next commands will use this object */
           bool obj_will_be_used = false;
           int check_cmd;
-          
-          for (check_cmd = cmd_no + 1; zone_table[zone].cmd[check_cmd].command != 'S'; check_cmd++) {
-            if (zone_table[zone].cmd[check_cmd].if_flag && result_q.size == 0) {
+
+          for (check_cmd = cmd_no + 1; zone_table[zone].cmd[check_cmd].command != 'S'; check_cmd++)
+          {
+            if (zone_table[zone].cmd[check_cmd].if_flag && result_q.size == 0)
+            {
               /* Next command depends on this one but we haven't pushed success yet */
               break;
             }
             /* Check if next command uses the current object (T or V with arg1 == 1) */
-            if ((zone_table[zone].cmd[check_cmd].command == 'T' || 
+            if ((zone_table[zone].cmd[check_cmd].command == 'T' ||
                  zone_table[zone].cmd[check_cmd].command == 'V') &&
-                zone_table[zone].cmd[check_cmd].arg1 == OBJ_TRIGGER) {
+                zone_table[zone].cmd[check_cmd].arg1 == OBJ_TRIGGER)
+            {
               obj_will_be_used = true;
               break;
             }
@@ -5069,22 +5158,27 @@ void reset_zone(zone_rnum zone)
                 zone_table[zone].cmd[check_cmd].command == 'P' ||
                 zone_table[zone].cmd[check_cmd].command == 'G' ||
                 zone_table[zone].cmd[check_cmd].command == 'E' ||
-                zone_table[zone].cmd[check_cmd].command == 'R') {
+                zone_table[zone].cmd[check_cmd].command == 'R')
+            {
               break;
             }
           }
-          
-          if (!obj_will_be_used) {
+
+          if (!obj_will_be_used)
+          {
             /* Don't create the object if it won't be used */
             log("SYSERR: Zone %d cmd %d: Skipping orphaned object %d with NOWHERE room",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             tobj = NULL;
-          } else {
+          }
+          else
+          {
             obj = read_object(ZCMD.arg1, REAL);
             /* CRITICAL FIX: Check for NULL object before use */
-            if (!obj) {
-              log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d (no room)", 
+            if (!obj)
+            {
+              log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d (no room)",
                   zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
               push_result(0);
               break;
@@ -5100,31 +5194,32 @@ void reset_zone(zone_rnum zone)
 
     case 'P': /* object to object (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'P' command", 
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'P' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
       }
-      
-      if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
-           (ZCMD.arg2 == 0 && boot_time <= 1)) &&
+
+      if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
       {
         obj = read_object(ZCMD.arg1, REAL);
         /* CRITICAL FIX: Check for NULL object before use */
-        if (!obj) {
-          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'P' command", 
+        if (!obj)
+        {
+          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
           push_result(0);
           break;
         }
-        
+
         if (!(obj_to = get_obj_num(ZCMD.arg3)))
         {
           /* CRITICAL FIX: Free the created object to prevent memory leak */
           extract_obj(obj);
-          
+
           if (ZCMD.if_flag == 0)
           {
             ZONE_ERROR("target obj not found");
@@ -5141,13 +5236,17 @@ void reset_zone(zone_rnum zone)
         load_otrigger(obj);
         tobj = obj;
       }
-      else {
+      else
+      {
         /* Add logging for debugging */
-        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
+        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0)
+        {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'P' command",
-              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,
               obj_index[ZCMD.arg1].number, ZCMD.arg2); */
-        } else if (rand_number(1, 100) > ZCMD.arg4) {
+        }
+        else if (rand_number(1, 100) > ZCMD.arg4)
+        {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4); */
         }
@@ -5158,19 +5257,21 @@ void reset_zone(zone_rnum zone)
 
     case 'G': /* obj_to_char (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'G' command", 
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'G' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
       }
-      
+
       if (!mob)
       {
         if (ZCMD.if_flag == 0)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
-          snprintf(error, sizeof(error), "attempt to give obj #%d to non-existant mob", obj_index[ZCMD.arg1].vnum);
+          snprintf(error, sizeof(error), "attempt to give obj #%d to non-existant mob",
+                   obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
         }
@@ -5178,13 +5279,13 @@ void reset_zone(zone_rnum zone)
           push_result(0);
         break;
       }
-      if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
-          (rand_number(1, 100) <= ZCMD.arg3))
+      if (obj_index[ZCMD.arg1].number < ZCMD.arg2 && (rand_number(1, 100) <= ZCMD.arg3))
       {
         obj = read_object(ZCMD.arg1, REAL);
         /* CRITICAL FIX: Check for NULL object before use */
-        if (!obj) {
-          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command", 
+        if (!obj)
+        {
+          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
           push_result(0);
           break;
@@ -5194,13 +5295,13 @@ void reset_zone(zone_rnum zone)
         tobj = obj;
         push_result(1);
       }
-      else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
-               (rand_number(1, 100) <= ZCMD.arg3))
+      else if ((ZCMD.arg2 == 0 && boot_time <= 1) && (rand_number(1, 100) <= ZCMD.arg3))
       {
         obj = read_object(ZCMD.arg1, REAL);
         /* CRITICAL FIX: Check for NULL object before use */
-        if (!obj) {
-          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command (boot)", 
+        if (!obj)
+        {
+          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command (boot)",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
           push_result(0);
           break;
@@ -5210,13 +5311,17 @@ void reset_zone(zone_rnum zone)
         tobj = obj;
         push_result(1);
       }
-      else {
+      else
+      {
         /* Add logging for debugging */
-        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
+        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0)
+        {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
-              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,
               obj_index[ZCMD.arg1].number, ZCMD.arg2); */
-        } else if (rand_number(1, 100) > ZCMD.arg3) {
+        }
+        else if (rand_number(1, 100) > ZCMD.arg3)
+        {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg3); */
         }
@@ -5257,20 +5362,22 @@ void reset_zone(zone_rnum zone)
 
     case 'E': /* object to equipment list (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'E' command", 
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'E' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
       }
-      
+
       if (!mob)
       {
         if (ZCMD.if_flag == 0)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
-          snprintf(error, sizeof(error), "trying to equip non-existant mob with "
-                                         "obj #%d",
+          snprintf(error, sizeof(error),
+                   "trying to equip non-existant mob with "
+                   "obj #%d",
                    obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -5287,15 +5394,15 @@ void reset_zone(zone_rnum zone)
         break;
       }
       /* we have a mob */
-      if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
-          (rand_number(1, 100) <= ZCMD.arg4))
+      if (obj_index[ZCMD.arg1].number < ZCMD.arg2 && (rand_number(1, 100) <= ZCMD.arg4))
       {
         if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
           /* FIX: arg2 should be arg1 for object vnum */
-          snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, "
-                                         "obj %d, pos %d)",
+          snprintf(error, sizeof(error),
+                   "invalid equipment pos number (mob %s, "
+                   "obj %d, pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -5304,8 +5411,9 @@ void reset_zone(zone_rnum zone)
         {
           obj = read_object(ZCMD.arg1, REAL);
           /* CRITICAL FIX: Check for NULL object before use */
-          if (!obj) {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command", 
+          if (!obj)
+          {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             break;
@@ -5323,15 +5431,15 @@ void reset_zone(zone_rnum zone)
           push_result(1);
         }
       }
-      else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
-               (rand_number(1, 100) <= ZCMD.arg4))
+      else if ((ZCMD.arg2 == 0 && boot_time <= 1) && (rand_number(1, 100) <= ZCMD.arg4))
       {
         if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
           /* FIX: arg2 should be arg1 for object vnum */
-          snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, "
-                                         "obj %d, pos %d)",
+          snprintf(error, sizeof(error),
+                   "invalid equipment pos number (mob %s, "
+                   "obj %d, pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -5340,8 +5448,9 @@ void reset_zone(zone_rnum zone)
         {
           obj = read_object(ZCMD.arg1, REAL);
           /* CRITICAL FIX: Check for NULL object before use */
-          if (!obj) {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command (boot)", 
+          if (!obj)
+          {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command (boot)",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             break;
@@ -5359,13 +5468,17 @@ void reset_zone(zone_rnum zone)
           push_result(1);
         }
       }
-      else {
+      else
+      {
         /* Add logging for debugging */
-        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
+        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0)
+        {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
-              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,
               obj_index[ZCMD.arg1].number, ZCMD.arg2); */
-        } else if (rand_number(1, 100) > ZCMD.arg4) {
+        }
+        else if (rand_number(1, 100) > ZCMD.arg4)
+        {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4); */
         }
@@ -5388,7 +5501,8 @@ void reset_zone(zone_rnum zone)
           (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL))
       {
         char error[MAX_INPUT_LENGTH] = {'\0'};
-        snprintf(error, sizeof(error), "door does not exist in room %d - dir %d", world[ZCMD.arg1].number, ZCMD.arg2);
+        snprintf(error, sizeof(error), "door does not exist in room %d - dir %d",
+                 world[ZCMD.arg1].number, ZCMD.arg2);
         ZONE_ERROR(error);
         // ZCMD.command = '*';
       }
@@ -5396,124 +5510,81 @@ void reset_zone(zone_rnum zone)
         switch (ZCMD.arg3)
         {
         case 0:
-          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                     EX_LOCKED);
-          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                     EX_CLOSED);
+          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED);
+          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
           break;
         case 1:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                     EX_LOCKED_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
           break;
         case 2:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
           break;
         case 3:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
           break;
         case 4:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
           break;
         case 5:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
           break;
         case 6:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
           break;
         case 7:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
           break;
         case 8:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
           break;
         case 9:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
           break;
         case 10:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
           break;
         case 11:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
           break;
         case 12:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
           break;
         case 13:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_EASY);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
           break;
         case 14:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_MEDIUM);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
           break;
         case 15:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_HIDDEN_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
           break;
         case 16:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info,
-                  EX_CLOSED);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
+          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
           break;
         }
 
@@ -5561,8 +5632,7 @@ void reset_zone(zone_rnum zone)
           // ZCMD.command = '*';
         }
         else
-          add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
-                  ZCMD.arg3);
+          add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
         push_result(1);
       }
       else if (ZCMD.arg1 == OBJ_TRIGGER && tobj)
@@ -5573,8 +5643,7 @@ void reset_zone(zone_rnum zone)
           // ZCMD.command = '*';
         }
         else
-          add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
-                  ZCMD.arg3);
+          add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
         push_result(1);
       }
       else if (ZCMD.arg1 == WLD_TRIGGER)
@@ -5592,8 +5661,7 @@ void reset_zone(zone_rnum zone)
             // ZCMD.command = '*';
           }
           else
-            add_var(&(world[ZCMD.arg3].script->global_vars),
-                    ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
+            add_var(&(world[ZCMD.arg3].script->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
           push_result(1);
         }
       }
@@ -5604,7 +5672,7 @@ void reset_zone(zone_rnum zone)
       ZCMD.command = '*';
       break;
     } /* end zone command switch */
-  }   /* end zone command list loop */
+  } /* end zone command list loop */
 
   zone_table[zone].age = 0;
 
@@ -5616,10 +5684,12 @@ void reset_zone(zone_rnum zone)
     if (rrnum != NOWHERE)
     {
       total_rooms++;
-      reset_wtrigger(&world[rrnum]); 
-      if (has_random_chests == false && (ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST) || ZONE_FLAGGED(zone, ZONE_RANDOM_CHESTS)))
+      reset_wtrigger(&world[rrnum]);
+      if (has_random_chests == false &&
+          (ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST) || ZONE_FLAGGED(zone, ZONE_RANDOM_CHESTS)))
         has_random_chests = true;
-      if (has_random_traps == false && (ROOM_FLAGGED(rrnum, ROOM_RANDOM_TRAP) || ZONE_FLAGGED(zone, ZONE_RANDOM_TRAPS)))
+      if (has_random_traps == false &&
+          (ROOM_FLAGGED(rrnum, ROOM_RANDOM_TRAP) || ZONE_FLAGGED(zone, ZONE_RANDOM_TRAPS)))
         has_random_traps = true;
       // we're not counting flagged rooms because the num_chests amount is only for calculating
       // how many chests a zone can have if it's flagged for random chests.  rooms flagged such
@@ -5641,7 +5711,7 @@ void reset_zone(zone_rnum zone)
     room_rnum *eligible_rooms = NULL;
     int eligible_count = 0;
     int eligible_capacity = 0;
-    
+
     // Collect all eligible rooms once
     rvnum = zone_table[zone].bot;
     while (rvnum <= zone_table[zone].top)
@@ -5663,7 +5733,7 @@ void reset_zone(zone_rnum zone)
       }
       rvnum++;
     }
-    
+
     // Replicate original algorithm behavior but using cached eligible rooms
     while (max_chests > num_chests && num_loops < NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST)
     {
@@ -5672,7 +5742,7 @@ void reset_zone(zone_rnum zone)
       for (i = 0; i < eligible_count && max_chests > num_chests; i++)
       {
         // Re-check eligibility as num_chests has changed
-        if (can_place_random_chest_in_room(eligible_rooms[i], total_rooms, num_chests) && 
+        if (can_place_random_chest_in_room(eligible_rooms[i], total_rooms, num_chests) &&
             (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST) == 1))
         {
           place_random_chest(eligible_rooms[i], zone_table[zone].max_level, -1, -1, 25);
@@ -5681,20 +5751,21 @@ void reset_zone(zone_rnum zone)
       }
       num_loops++;
     }
-    
+
     // Clean up
     if (eligible_rooms)
       free(eligible_rooms);
   }
-  
+
   /* CRITICAL: Clear zone reset state */
   zone_table[zone].reset_state = ZONE_RESET_NORMAL;
   zone_table[zone].reset_start = 0;
-  
+
   /* CRITICAL FIX: Clean up any orphaned objects created with NOWHERE room
    * that were never attached to anything via T or V commands */
-  if (tobj && IN_ROOM(tobj) == NOWHERE && tobj->in_obj == NULL && 
-      tobj->carried_by == NULL && tobj->worn_by == NULL) {
+  if (tobj && IN_ROOM(tobj) == NOWHERE && tobj->in_obj == NULL && tobj->carried_by == NULL &&
+      tobj->worn_by == NULL)
+  {
     /* Object was created but never used - extract it to prevent memory leak */
     log("SYSERR: Zone %d: Cleaning up orphaned object %d [%s] that was never attached",
         zone_table[zone].number, GET_OBJ_VNUM(tobj), tobj->short_description);
@@ -5717,7 +5788,8 @@ int is_empty(zone_rnum zone_nr)
       continue;
     /* If an immortal has nohassle off, he counts as present. Added for testing
      * zone reset triggers -Welcor */
-    if ((!IS_NPC(i->character)) && (GET_LEVEL(i->character) >= LVL_IMMORT) && (PRF_FLAGGED(i->character, PRF_NOHASSLE)))
+    if ((!IS_NPC(i->character)) && (GET_LEVEL(i->character) >= LVL_IMMORT) &&
+        (PRF_FLAGGED(i->character, PRF_NOHASSLE)))
       continue;
 
     return (0);
@@ -5728,7 +5800,7 @@ int is_empty(zone_rnum zone_nr)
 
 /* Functions of a general utility nature. */
 
-/* read and allocate space for a '~'-terminated string from a given file 
+/* read and allocate space for a '~'-terminated string from a given file
  * This function reads multi-line text from a file until it finds a '~' character.
  * The '~' acts as an end-of-text marker in Luminari data files. */
 char *fread_string(FILE *fl, const char *error)
@@ -5736,17 +5808,17 @@ char *fread_string(FILE *fl, const char *error)
   /* buf will store our complete final string (up to MAX_STRING_LENGTH)
    * tmp is a smaller buffer for reading one line at a time (512 chars + null terminator) */
   char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
-  char *point = NULL;  /* pointer used to navigate through the tmp buffer */
-  int done = 0;        /* flag: becomes 1 when we find the '~' terminator */
-  int length = 0;      /* current total length of string we've built so far */
-  int templength = 0;  /* length of the current line we just read */
+  char *point = NULL; /* pointer used to navigate through the tmp buffer */
+  int done = 0;       /* flag: becomes 1 when we find the '~' terminator */
+  int length = 0;     /* current total length of string we've built so far */
+  int templength = 0; /* length of the current line we just read */
 
   /* Keep reading lines from the file until we find our '~' terminator */
   do
   {
     /* Clear the temporary buffer to all zeros - ensures clean slate for each line */
     memset(tmp, '\0', 513);
-    
+
     /* Read up to 512 characters (one line) from the file into tmp buffer
      * fgets() stops at newline or after 512 chars, whichever comes first */
     if (!fgets(tmp, 512, fl))
@@ -5756,14 +5828,10 @@ char *fread_string(FILE *fl, const char *error)
 
       log("SYSERR: fread_string: format error while reading %s (file position %ld, errno=%d '%s'). "
           "Partial buffer so far: '%s'",
-          error,
-          file_pos,
-          saved_errno,
-          (saved_errno ? strerror(saved_errno) : "none"),
-          buf);
-      exit(1);  /* Kill the whole MUD - data files are corrupted */
+          error, file_pos, saved_errno, (saved_errno ? strerror(saved_errno) : "none"), buf);
+      exit(1); /* Kill the whole MUD - data files are corrupted */
     }
-    
+
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
     /* now only removes trailing ~'s -- Welcor */
 
@@ -5781,43 +5849,44 @@ char *fread_string(FILE *fl, const char *error)
     /* Move backwards from the end of string, skipping any trailing newlines/carriage returns
      * We want to find the last "real" character that isn't whitespace */
     /* Ensure we don't go before the beginning of tmp array */
-    if (point > tmp) {
+    if (point > tmp)
+    {
       /* Start from the character BEFORE the null terminator and go backwards
-       * Skip over any '\r' (carriage return) or '\n' (newline) characters 
+       * Skip over any '\r' (carriage return) or '\n' (newline) characters
        * The loop continues while BOTH conditions are true:
        *   1. point >= tmp (we haven't gone before the start of array)
        *   2. character is '\r' or '\n' (it's whitespace to skip) */
       for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
-        ;  /* Empty loop body - just moving the pointer backwards */
+        ; /* Empty loop body - just moving the pointer backwards */
     }
 
-    /* Check if the last non-whitespace character is our '~' terminator 
+    /* Check if the last non-whitespace character is our '~' terminator
      * point >= tmp ensures we have a valid position (not before array start) */
     if (point >= tmp && *point == '~')
     {
       /* Found the terminator! Replace '~' with null terminator to end the string */
       *point = '\0';
-      done = 1;  /* Set flag to exit the main loop after this iteration */
+      done = 1; /* Set flag to exit the main loop after this iteration */
     }
     else
     {
       /* No '~' found, so this is a continuing line of text
        * We need to add proper line endings and continue reading */
-      
+
       /* Handle edge case: if the line was ALL newlines/carriage returns,
        * point might now be before tmp (point < tmp). In this case, we need
        * to position it so the next increments will write to valid locations.
        * Setting point = tmp - 1 means the first ++point will make it tmp[0] */
       if (point < tmp)
-        point = tmp - 1;  /* Set to one position before buffer start */
-      
+        point = tmp - 1; /* Set to one position before buffer start */
+
       /* Add Windows-style line ending: \r\n (carriage return + line feed)
        * This preserves line breaks in the final string
        * Note: ++point increments FIRST, then assigns the value
        * So from tmp-1: ++point goes to tmp[0], then tmp[1], then tmp[2] */
-      *(++point) = '\r';  /* Move pointer forward to valid position, add carriage return */
-      *(++point) = '\n';  /* Move pointer forward, add newline */
-      *(++point) = '\0';  /* Move pointer forward, add null terminator */
+      *(++point) = '\r'; /* Move pointer forward to valid position, add carriage return */
+      *(++point) = '\n'; /* Move pointer forward, add newline */
+      *(++point) = '\0'; /* Move pointer forward, add null terminator */
     }
 
     /* Calculate how many characters we're adding from this line
@@ -5830,7 +5899,7 @@ char *fread_string(FILE *fl, const char *error)
       /* String is too long - fatal error to prevent buffer overflow */
       log("SYSERR: fread_string: string too large (db.c)");
       log("%s", error);
-      exit(1);  /* Kill the MUD rather than risk memory corruption */
+      exit(1); /* Kill the MUD rather than risk memory corruption */
     }
     else
     {
@@ -5838,9 +5907,9 @@ char *fread_string(FILE *fl, const char *error)
        * buf + length points to where we left off in the main buffer
        * strcat adds tmp starting at that position */
       strcat(buf + length, tmp); /* strcat: OK (size checked above) */
-      length += templength;  /* Update our total length counter */
+      length += templength;      /* Update our total length counter */
     }
-  } while (!done);  /* Keep looping until we find the '~' terminator */
+  } while (!done); /* Keep looping until we find the '~' terminator */
 
   /* parse_at() converts @ symbols in the text:
    * - Single @ becomes a tab character (\t)
@@ -5848,7 +5917,7 @@ char *fread_string(FILE *fl, const char *error)
    * This is MUD-specific formatting */
   parse_at(buf);
 
-  /* allocate space for the new string and copy it 
+  /* allocate space for the new string and copy it
    * strlen(buf) checks if we have any content
    * strdup() allocates new memory and copies the string there
    * Returns NULL if the string is empty, otherwise returns pointer to new string */
@@ -5887,7 +5956,8 @@ char *fread_clean_string(FILE *fl, const char *error)
     /* now only removes trailing ~'s -- Welcor */
     point = strchr(tmp, '\0');
     /* Ensure we don't go before the beginning of tmp array */
-    if (point > tmp) {
+    if (point > tmp)
+    {
       for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
         ;
     }
@@ -6231,7 +6301,8 @@ void free_char(struct char_data *ch)
       free(ch->player_specials->saved.completed_quests);
     if (ch->player_specials->saved.autocquest_desc)
       free(ch->player_specials->saved.autocquest_desc);
-    if (GET_ARCANE_MARK(ch)) {
+    if (GET_ARCANE_MARK(ch))
+    {
       free(GET_ARCANE_MARK(ch));
       GET_ARCANE_MARK(ch) = NULL;
     }
@@ -6241,29 +6312,34 @@ void free_char(struct char_data *ch)
       free(ch->player.goals);
     if (GET_HOST(ch))
       free(GET_HOST(ch));
-    
+
     /* CRITICAL FIX: Free bag names to prevent memory leaks */
-    for (i = 0; i <= MAX_BAGS; i++) {
-      if (ch->player_specials->saved.bag_names[i]) {
+    for (i = 0; i <= MAX_BAGS; i++)
+    {
+      if (ch->player_specials->saved.bag_names[i])
+      {
         free(ch->player_specials->saved.bag_names[i]);
         ch->player_specials->saved.bag_names[i] = NULL;
       }
     }
-    
+
     /* Free introduction list names */
-    for (i = 0; i < MAX_INTROS; i++) {
-      if (ch->player_specials->saved.intro_list[i]) {
+    for (i = 0; i < MAX_INTROS; i++)
+    {
+      if (ch->player_specials->saved.intro_list[i])
+      {
         free(ch->player_specials->saved.intro_list[i]);
         ch->player_specials->saved.intro_list[i] = NULL;
       }
     }
-    
+
     /* Free device destroy confirmation code */
-    if (ch->player_specials->device_destroy_confirm) {
+    if (ch->player_specials->device_destroy_confirm)
+    {
       free(ch->player_specials->device_destroy_confirm);
       ch->player_specials->device_destroy_confirm = NULL;
     }
-    
+
     if (IS_NPC(ch))
       log("SYSERR: Mob %s (#%d) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
   }
@@ -6319,7 +6395,7 @@ void free_char(struct char_data *ch)
       destroy_innate_magic_queue(ch);
       destroy_spell_collection(ch);
       destroy_known_spells(ch);
-      
+
       /* free craft data strings */
       if (GET_CRAFT(ch).keywords)
         free(GET_CRAFT(ch).keywords);
@@ -6376,19 +6452,20 @@ void free_char(struct char_data *ch)
   /* CRITICAL FIX: Free mob memory records to prevent memory leaks
    * NPCs (mobs) can have memory of who attacked them via the remember() function.
    * This memory is stored as a linked list of memory_rec structures.
-   * 
+   *
    * The clearMemory() function properly frees all memory records in the list.
    * This fix ensures that NPCs freed via free_char() have their memory cleared,
    * not just those going through extract_char_final().
-   * 
+   *
    * Without this fix, when NPCs are freed during player/clan loading operations
    * (via free_char), their memory records would be leaked, causing a 16-byte
    * leak per memory record as reported by valgrind at mobact.c:635.
-   * 
+   *
    * Note: We only call clearMemory for NPCs because PCs should never have
    * memory records (the remember() function returns early for non-NPCs).
    */
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     /* clearMemory() is defined in mobact.c and frees the entire memory list */
     clearMemory(ch);
   }
@@ -6445,8 +6522,9 @@ void free_char(struct char_data *ch)
 void free_obj_special_abilities(struct obj_special_ability *list)
 {
   struct obj_special_ability *next;
-  
-  while (list) {
+
+  while (list)
+  {
     next = list->next;
     if (list->command_word)
       free(list->command_word);
@@ -6479,7 +6557,8 @@ void free_obj(struct obj_data *obj)
     free_obj_special_abilities(obj->special_abilities);
 
   /* free spellbook info */
-  if (obj->sbinfo) {
+  if (obj->sbinfo)
+  {
     free(obj->sbinfo);
     obj->sbinfo = NULL;
   }
@@ -6700,7 +6779,7 @@ void init_char(struct char_data *ch)
   /* Initialize inquisitor perk tracking */
   ch->player_specials->saved.inq_favored_terrain = -1;
   ch->player_specials->saved.inq_favored_terrain_reset = 0;
-  
+
   /* Initialize favored terrains array */
   for (i = 0; i < MAX_ENEMIES; i++)
     ch->player_specials->saved.favored_terrains[i] = -1;
@@ -6708,13 +6787,14 @@ void init_char(struct char_data *ch)
 
   if (ch->bags == NULL)
     CREATE(ch->bags, struct bag_data, 1);
-  
+
   /* Initialize introduction list to NULL */
   for (i = 0; i < MAX_INTROS; i++)
     ch->player_specials->saved.intro_list[i] = NULL;
-  
+
   /* Initialize score section order to default */
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 8; i++)
+  {
     ch->player_specials->saved.score_section_order[i] = i;
   }
 
@@ -6791,7 +6871,7 @@ void init_char(struct char_data *ch)
   GET_REAL_SIZE(ch) = SIZE_MEDIUM;
 
 #ifdef CAMPAIGN_FR
-    if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_EXTENDED_PC_RACES)
+  if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_EXTENDED_PC_RACES)
 #elif defined(CAMPAIGN_DL)
   if (GET_RACE(ch) < DL_RACE_START || GET_RACE(ch) >= DL_RACE_END)
 #else
@@ -6859,7 +6939,7 @@ void init_char(struct char_data *ch)
 
   // automap toggled on -zusuk
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
-#if defined(CAMPAIGN_FR)   || defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   // autoprep toggled on -gicker
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTO_PREP);
   // autoconsider on
@@ -6939,7 +7019,7 @@ void init_char(struct char_data *ch)
 
   /* Initialize stage data for stage-based leveling (Step 3) */
   init_stage_data(ch);
-  
+
   /* Initialize perk points array */
   for (i = 0; i < NUM_CLASSES; i++)
   {
@@ -7125,19 +7205,21 @@ static int check_object(struct obj_data *obj)
   strip_colors(buf1);
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
-    log("SYSERR: Object #%d (%s) has negative weight (%d).",
-        GET_OBJ_VNUM(obj), buf1, GET_OBJ_WEIGHT(obj));
+    log("SYSERR: Object #%d (%s) has negative weight (%d).", GET_OBJ_VNUM(obj), buf1,
+        GET_OBJ_WEIGHT(obj));
 
   if (GET_OBJ_RENT(obj) < 0 && (error = TRUE))
-    log("SYSERR: Object #%d (%s) has negative cost/day (%d).",
-        GET_OBJ_VNUM(obj), buf1, GET_OBJ_RENT(obj));
+    log("SYSERR: Object #%d (%s) has negative cost/day (%d).", GET_OBJ_VNUM(obj), buf1,
+        GET_OBJ_RENT(obj));
 
   snprintf(objname, sizeof(objname), "Object #%d (%s)", GET_OBJ_VNUM(obj), buf1);
   for (y = 0; y < TW_ARRAY_MAX; y++)
   {
     error |= check_bitvector_names(GET_OBJ_WEAR(obj)[y], wear_bits_count, objname, "object wear");
-    error |= check_bitvector_names(GET_OBJ_EXTRA(obj)[y], extra_bits_count, objname, "object extra");
-    error |= check_bitvector_names(GET_OBJ_AFFECT(obj)[y], affected_bits_count, objname, "object affect");
+    error |=
+        check_bitvector_names(GET_OBJ_EXTRA(obj)[y], extra_bits_count, objname, "object extra");
+    error |= check_bitvector_names(GET_OBJ_AFFECT(obj)[y], affected_bits_count, objname,
+                                   "object affect");
   }
 
   switch (GET_OBJ_TYPE(obj))
@@ -7182,9 +7264,8 @@ static int check_object(struct obj_data *obj)
     error |= check_object_level(obj, 0);
     error |= check_object_spell_number(obj, 3);
     if (GET_OBJ_VAL(obj, 2) > GET_OBJ_VAL(obj, 1) && (error = TRUE))
-      log("SYSERR: Object #%d (%s) has more charges (%d) than maximum (%d).",
-          GET_OBJ_VNUM(obj), buf1,
-          GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 1));
+      log("SYSERR: Object #%d (%s) has more charges (%d) than maximum (%d).", GET_OBJ_VNUM(obj),
+          buf1, GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 1));
     break;
   case ITEM_NOTE:
     if (obj->ex_description)
@@ -7195,7 +7276,6 @@ static int check_object(struct obj_data *obj)
       {
         if (find_exdesc(onealias, obj->ex_description) && (error = TRUE))
         {
-
           /* I am not sure why this is a problem, removed to reduce log spam -Zusuk */
           /*
             log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
@@ -7208,9 +7288,8 @@ static int check_object(struct obj_data *obj)
     break;
   case ITEM_FURNITURE:
     if (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0) && (error = TRUE))
-      log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
-          GET_OBJ_VNUM(obj), buf1, GET_OBJ_VAL(obj, 1),
-          GET_OBJ_VAL(obj, 0));
+      log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).", GET_OBJ_VNUM(obj), buf1,
+          GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
     break;
   }
 
@@ -7234,8 +7313,8 @@ static int check_object_spell_number(struct obj_data *obj, int val)
   if (GET_OBJ_VAL(obj, val) > MAX_SPELLS && GET_OBJ_VAL(obj, val) < TOP_SKILL_DEFINE)
     error = TRUE;
   if (error)
-    log("SYSERR: Object #%d (%s) has out of range spell #%d.",
-        GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, val));
+    log("SYSERR: Object #%d (%s) has out of range spell #%d.", GET_OBJ_VNUM(obj),
+        obj->short_description, GET_OBJ_VAL(obj, val));
 
   if (scheck) /* Spell names don't exist in syntax check mode. */
     return (error);
@@ -7244,9 +7323,8 @@ static int check_object_spell_number(struct obj_data *obj, int val)
   spellname = spell_name(GET_OBJ_VAL(obj, val));
 
   if ((spellname == unused_spellname || !str_cmp("UNDEFINED", spellname)) && (error = TRUE))
-    log("SYSERR: Object #%d (%s) uses '%s' spell #%d.",
-        GET_OBJ_VNUM(obj), obj->short_description, spellname,
-        GET_OBJ_VAL(obj, val));
+    log("SYSERR: Object #%d (%s) uses '%s' spell #%d.", GET_OBJ_VNUM(obj), obj->short_description,
+        spellname, GET_OBJ_VAL(obj, val));
 
   return (error);
 }
@@ -7256,13 +7334,14 @@ static int check_object_level(struct obj_data *obj, int val)
   int error = FALSE;
 
   if ((GET_OBJ_VAL(obj, val) < 0 || GET_OBJ_VAL(obj, val) > LVL_IMPL) && (error = TRUE))
-    log("SYSERR: Object #%d (%s) has out of range level #%d.",
-        GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, val));
+    log("SYSERR: Object #%d (%s) has out of range level #%d.", GET_OBJ_VNUM(obj),
+        obj->short_description, GET_OBJ_VAL(obj, val));
 
   return (error);
 }
 
-static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami, const char *whatbits)
+static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami,
+                                 const char *whatbits)
 {
   unsigned int flagnum;
   bool error = FALSE;
@@ -7274,7 +7353,8 @@ static int check_bitvector_names(bitvector_t bits, size_t namecount, const char 
   for (flagnum = namecount; flagnum < sizeof(bitvector_t) * 8; flagnum++)
     if ((1 << flagnum) & bits)
     {
-      log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits, flagnum, (int)namecount - 1);
+      log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits,
+          flagnum, (int)namecount - 1);
       error = TRUE;
     }
 
@@ -7415,10 +7495,10 @@ static void load_default_config(void)
   CONFIG_NEW_PLAYER_GEAR = 0;
   CONFIG_ALLOW_CEXCHANGE = 0;
   CONFIG_WILDERNESS_SYSTEM = 0;
-  CONFIG_MELEE_EXP_OPTION = 0;  /* 0 = Full */
+  CONFIG_MELEE_EXP_OPTION = 0;       /* 0 = Full */
   CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
   CONFIG_SPELLCASTING_TIME_MODE = 0; /* 0 = Standard action */
-  CONFIG_ARCANE_MOON_PHASES = 0;  /* 0 = OFF, 1 = ON */
+  CONFIG_ARCANE_MOON_PHASES = 0;     /* 0 = OFF, 1 = ON */
 }
 
 void load_config(void)
@@ -7587,7 +7667,7 @@ void load_config(void)
       break;
 
     case 'l':
-    if (!str_cmp(tag, "landmark_system"))
+      if (!str_cmp(tag, "landmark_system"))
         CONFIG_LANDMARK_SYSTEM = num;
       if (!str_cmp(tag, "level_can_shout"))
         CONFIG_LEVEL_CAN_SHOUT = num;
@@ -7846,10 +7926,11 @@ struct char_data *new_char()
   /* Set all required NULL pointers and variables */
   ch->player_specials->saved.completed_quests = NULL;
   ch->player_specials->saved.num_completed_quests = 0;
-  
+
   /* Initialize score section order to default */
   int i;
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 8; i++)
+  {
     ch->player_specials->saved.score_section_order[i] = i;
   }
 
@@ -7861,14 +7942,14 @@ struct char_data *new_char()
 // status 2 is happy hour ended
 void set_db_happy_hour(int status)
 {
-
   if (CONFIG_DFLT_PORT != 4100)
     return;
 
   char query[LONG_STRING] = {'\0'};
 
   /* Ensure database connection is active before happy hour operations */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed", __func__);
     return;
   }
@@ -7880,7 +7961,8 @@ void set_db_happy_hour(int status)
     log("SYSERR: Unable to DELETE from happy_hour_info: %s", mysql_error(conn));
   }
 
-  snprintf(query, sizeof(query), "INSERT INTO happy_hour_info (happy_hour_status) VALUES('%s')", status == 0 ? "none" : (status == 1 ? "started" : "ended"));
+  snprintf(query, sizeof(query), "INSERT INTO happy_hour_info (happy_hour_status) VALUES('%s')",
+           status == 0 ? "none" : (status == 1 ? "started" : "ended"));
 
   if (mysql_query(conn, query))
   {
@@ -7906,24 +7988,30 @@ void save_objects_to_database(struct char_data *ch)
   char weapon_spell_3[255] = {'\0'};
   char weapon_special_ability[255] = {'\0'};
   char notes[LONG_STRING] = {'\0'};
-  char zone_name[255] =  {'\0'};
+  char zone_name[255] = {'\0'};
 
   /* Ensure database connection is active before object database operations */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed", __func__);
     return;
   }
 
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_items");
-  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_items: %s", mysql_error(conn));
+  if (mysql_query(conn, query))
+    log("SYSERR: Unable to TRUNCATE TABLE object_database_items: %s", mysql_error(conn));
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_bonuses");
-  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_bonuses: %s", mysql_error(conn));
+  if (mysql_query(conn, query))
+    log("SYSERR: Unable to TRUNCATE TABLE object_database_bonuses: %s", mysql_error(conn));
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_wear_slots");
-  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_wear_slots: %s", mysql_error(conn));
+  if (mysql_query(conn, query))
+    log("SYSERR: Unable to TRUNCATE TABLE object_database_wear_slots: %s", mysql_error(conn));
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_obj_flags");
-  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_obj_flags: %s", mysql_error(conn));
+  if (mysql_query(conn, query))
+    log("SYSERR: Unable to TRUNCATE TABLE object_database_obj_flags: %s", mysql_error(conn));
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_perm_affects");
-  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_perm_affects: %s", mysql_error(conn));
+  if (mysql_query(conn, query))
+    log("SYSERR: Unable to TRUNCATE TABLE object_database_perm_affects: %s", mysql_error(conn));
 
   // We have to do this loop in multiple stages to prevent the MUD from crashing
 
@@ -7931,39 +8019,48 @@ void save_objects_to_database(struct char_data *ch)
   {
     // we have issues with obj vnums above this number.
     // all zones that are made should be below these vnums anyway.
-    if (obj_index[j].vnum >= 60000) continue;
+    if (obj_index[j].vnum >= 60000)
+      continue;
 
     obj = read_object(obj_index[j].vnum, VIRTUAL);
 
-    if (!obj) continue;
+    if (!obj)
+      continue;
 
     specific_type[0] = '\0';
     switch (GET_OBJ_TYPE(obj))
     {
-      case ITEM_WEAPON: snprintf(specific_type, sizeof(specific_type), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name); break;
-      case ITEM_ARMOR: snprintf(specific_type, sizeof(specific_type), "%s", armor_list[GET_OBJ_VAL(obj, 1)].name); break;
+    case ITEM_WEAPON:
+      snprintf(specific_type, sizeof(specific_type), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
+      break;
+    case ITEM_ARMOR:
+      snprintf(specific_type, sizeof(specific_type), "%s", armor_list[GET_OBJ_VAL(obj, 1)].name);
+      break;
     }
 
     weapon_spell_1[0] = '\0';
     if (GET_WEAPON_SPELL(obj, 0))
     {
-      snprintf(weapon_spell_1, sizeof(weapon_spell_1), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                       spell_info[GET_WEAPON_SPELL(obj, 0)].name, GET_WEAPON_SPELL_LVL(obj, 0),
-                       GET_WEAPON_SPELL_PCT(obj, 0), GET_WEAPON_SPELL_AGG(obj, 0) ? "Yes" : "No");
+      snprintf(weapon_spell_1, sizeof(weapon_spell_1),
+               "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+               spell_info[GET_WEAPON_SPELL(obj, 0)].name, GET_WEAPON_SPELL_LVL(obj, 0),
+               GET_WEAPON_SPELL_PCT(obj, 0), GET_WEAPON_SPELL_AGG(obj, 0) ? "Yes" : "No");
     }
     weapon_spell_2[0] = '\0';
     if (GET_WEAPON_SPELL(obj, 1))
     {
-      snprintf(weapon_spell_2, sizeof(weapon_spell_2), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                       spell_info[GET_WEAPON_SPELL(obj, 1)].name, GET_WEAPON_SPELL_LVL(obj, 1),
-                       GET_WEAPON_SPELL_PCT(obj, 1), GET_WEAPON_SPELL_AGG(obj, 1) ? "Yes" : "No");
+      snprintf(weapon_spell_2, sizeof(weapon_spell_2),
+               "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+               spell_info[GET_WEAPON_SPELL(obj, 1)].name, GET_WEAPON_SPELL_LVL(obj, 1),
+               GET_WEAPON_SPELL_PCT(obj, 1), GET_WEAPON_SPELL_AGG(obj, 1) ? "Yes" : "No");
     }
     weapon_spell_3[0] = '\0';
     if (GET_WEAPON_SPELL(obj, 2))
     {
-      snprintf(weapon_spell_3, sizeof(weapon_spell_3), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                       spell_info[GET_WEAPON_SPELL(obj, 2)].name, GET_WEAPON_SPELL_LVL(obj, 2),
-                       GET_WEAPON_SPELL_PCT(obj, 2), GET_WEAPON_SPELL_AGG(obj, 2) ? "Yes" : "No");
+      snprintf(weapon_spell_3, sizeof(weapon_spell_3),
+               "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+               spell_info[GET_WEAPON_SPELL(obj, 2)].name, GET_WEAPON_SPELL_LVL(obj, 2),
+               GET_WEAPON_SPELL_PCT(obj, 2), GET_WEAPON_SPELL_AGG(obj, 2) ? "Yes" : "No");
     }
     weapon_special_ability[0] = '\0';
     if ((specab = obj->special_abilities) != NULL)
@@ -7972,69 +8069,79 @@ void save_objects_to_database(struct char_data *ch)
       {
         if (specab->value[1])
         {
-          snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s Bane Race: %s Bane Subrace: %s ", 
-                  special_ability_info[specab->ability].name, race_family_types[specab->value[0]], npc_subrace_types[specab->value[1]]);
+          snprintf(weapon_special_ability, sizeof(weapon_special_ability),
+                   "Ability: %s Bane Race: %s Bane Subrace: %s ",
+                   special_ability_info[specab->ability].name, race_family_types[specab->value[0]],
+                   npc_subrace_types[specab->value[1]]);
         }
         else
         {
-          snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s Bane Race: %s", 
-                  special_ability_info[specab->ability].name, race_family_types[specab->value[0]]);
+          snprintf(weapon_special_ability, sizeof(weapon_special_ability),
+                   "Ability: %s Bane Race: %s", special_ability_info[specab->ability].name,
+                   race_family_types[specab->value[0]]);
         }
       }
       else
       {
-        snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s ", special_ability_info[specab->ability].name);
+        snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s ",
+                 special_ability_info[specab->ability].name);
       }
     }
     snprintf(notes, sizeof(notes), " ");
     snprintf(temp, sizeof(temp), "%s", obj_proto[j].short_description);
-    snprintf(zone_name, sizeof(zone_name), "%s", zone_table[real_zone_by_thing(obj_index[j].vnum)].name);
+    snprintf(zone_name, sizeof(zone_name), "%s",
+             zone_table[real_zone_by_thing(obj_index[j].vnum)].name);
     mysql_real_escape_string(conn, object_name, temp, strlen(temp));
     strip_colors(object_name);
     zone_num = zone_table[real_zone_by_thing(obj_index[j].vnum)].number;
 
-    snprintf(query, sizeof(query), "INSERT INTO object_database_items (`idnum`, `object_vnum`, `object_name`, `object_type`, "
-                                    "`material`, `weight`, `object_size`, `cost`, `specific_type`, `weapon_spell_1`, `weapon_spell_2`, `weapon_spell_3`, "
-                                    "`weapon_special_ability`, `minimum_level`, `zone_num`, `zone_name`, `notes`, `enhancement_bonus`) VALUES (NULL,"
-                                   "%d,"              // A object_vnum
-                                   "\"%s\","          // B object_name
-                                   "\"%s\","          // C object_type
-                                   "\"%s\","          // D material
-                                   "%d,"              // E weight
-                                   "\"%s\","          // F object_size
-                                   "%d,"              // G cost
-                                   "\"%s\","          // H specific_type
-                                   "\"%s\","          // I weapon_spell_1
-                                   "\"%s\","          // J weapon_spell_2
-                                   "\"%s\","          // K weapon_spell_3
-                                   "\"%s\","          // L weapon_special_ability
-                                   "%d,"              // M minimum_level
-                                   "%d,"              // N zone_num
-                                   "\"%s\","          // O zone_name
-                                   "\"%s\","           // P notes
-                                   "%d"              // Q enhancement
-                                   ")",
-                                   obj_index[j].vnum,                             // A
-                                   object_name,                                   // B
-                                   item_types[obj_proto[j].obj_flags.type_flag],  // C
-                                   material_name[obj_proto[j].obj_flags.material],// D
-                                   obj_proto[j].obj_flags.weight,                 // E
-                                   sizes[obj_proto[j].obj_flags.size],            // F
-                                   obj_proto[j].obj_flags.cost,                   // G
-                                   specific_type,                                 // H
-                                   weapon_spell_1,                                // I
-                                   weapon_spell_2,                                // J
-                                   weapon_spell_3,                                // K
-                                   weapon_special_ability,                        // L
-                                   obj_proto[j].obj_flags.level,                  // M
-                                   zone_num,                                      // N
-                                   zone_name,                                     // O
-                                   notes,                                         // P
-                                     GET_ENHANCEMENT_BONUS(obj)                     // Q
+    snprintf(
+        query, sizeof(query),
+        "INSERT INTO object_database_items (`idnum`, `object_vnum`, `object_name`, `object_type`, "
+        "`material`, `weight`, `object_size`, `cost`, `specific_type`, `weapon_spell_1`, "
+        "`weapon_spell_2`, `weapon_spell_3`, "
+        "`weapon_special_ability`, `minimum_level`, `zone_num`, `zone_name`, `notes`, "
+        "`enhancement_bonus`) VALUES (NULL,"
+        "%d,"     // A object_vnum
+        "\"%s\"," // B object_name
+        "\"%s\"," // C object_type
+        "\"%s\"," // D material
+        "%d,"     // E weight
+        "\"%s\"," // F object_size
+        "%d,"     // G cost
+        "\"%s\"," // H specific_type
+        "\"%s\"," // I weapon_spell_1
+        "\"%s\"," // J weapon_spell_2
+        "\"%s\"," // K weapon_spell_3
+        "\"%s\"," // L weapon_special_ability
+        "%d,"     // M minimum_level
+        "%d,"     // N zone_num
+        "\"%s\"," // O zone_name
+        "\"%s\"," // P notes
+        "%d"      // Q enhancement
+        ")",
+        obj_index[j].vnum,                              // A
+        object_name,                                    // B
+        item_types[obj_proto[j].obj_flags.type_flag],   // C
+        material_name[obj_proto[j].obj_flags.material], // D
+        obj_proto[j].obj_flags.weight,                  // E
+        sizes[obj_proto[j].obj_flags.size],             // F
+        obj_proto[j].obj_flags.cost,                    // G
+        specific_type,                                  // H
+        weapon_spell_1,                                 // I
+        weapon_spell_2,                                 // J
+        weapon_spell_3,                                 // K
+        weapon_special_ability,                         // L
+        obj_proto[j].obj_flags.level,                   // M
+        zone_num,                                       // N
+        zone_name,                                      // O
+        notes,                                          // P
+        GET_ENHANCEMENT_BONUS(obj)                      // Q
     );
     if (mysql_query(conn, query))
     {
-      log("SYSERR: Unable to INSERT into object_database_items: %s\nQUERY: %s", mysql_error(conn), query);
+      log("SYSERR: Unable to INSERT into object_database_items: %s\nQUERY: %s", mysql_error(conn),
+          query);
     }
     else
     {
@@ -8042,76 +8149,94 @@ void save_objects_to_database(struct char_data *ch)
 
       for (i = 0; i < NUM_ITEM_WEARS; i++)
       {
-          if (i == ITEM_WEAR_TAKE) continue;
-          if (CAN_WEAR(obj, i)) {
-              snprintf(query, sizeof(query), "INSERT INTO object_database_wear_slots (idnum,object_idnum,worn_slot) VALUES(NULL,%d,\"%s\")",
-                        obj_idnum, wear_bits[i]);
-              if (mysql_query(conn, query))
-              {
-                log("SYSERR: Unable to INSERT into object_database_wear_slots: %s\nQUERY: %s", mysql_error(conn), query);
-              }
+        if (i == ITEM_WEAR_TAKE)
+          continue;
+        if (CAN_WEAR(obj, i))
+        {
+          snprintf(query, sizeof(query),
+                   "INSERT INTO object_database_wear_slots (idnum,object_idnum,worn_slot) "
+                   "VALUES(NULL,%d,\"%s\")",
+                   obj_idnum, wear_bits[i]);
+          if (mysql_query(conn, query))
+          {
+            log("SYSERR: Unable to INSERT into object_database_wear_slots: %s\nQUERY: %s",
+                mysql_error(conn), query);
           }
+        }
       }
       for (i = 0; i < NUM_ITEM_FLAGS; i++)
       {
-          if (OBJ_FLAGGED(obj, i)) {
-              snprintf(query, sizeof(query), "INSERT INTO object_database_obj_flags (idnum,object_idnum,obj_flag) VALUES(NULL,%d,\"%s\")",
-                        obj_idnum, extra_bits[i]);
-              if (mysql_query(conn, query))
-              {
-                log("SYSERR: Unable to INSERT into object_database_obj_flags: %s\nQUERY: %s", mysql_error(conn), query);
-              }
+        if (OBJ_FLAGGED(obj, i))
+        {
+          snprintf(query, sizeof(query),
+                   "INSERT INTO object_database_obj_flags (idnum,object_idnum,obj_flag) "
+                   "VALUES(NULL,%d,\"%s\")",
+                   obj_idnum, extra_bits[i]);
+          if (mysql_query(conn, query))
+          {
+            log("SYSERR: Unable to INSERT into object_database_obj_flags: %s\nQUERY: %s",
+                mysql_error(conn), query);
           }
+        }
       }
       for (i = 0; i < NUM_ITEM_FLAGS; i++)
       {
-          if (OBJAFF_FLAGGED(obj, i)) {
-              snprintf(query, sizeof(query), "INSERT INTO object_database_perm_affects (idnum,object_idnum,perm_affect) VALUES(NULL,%d,\"%s\")",
-                        obj_idnum, affected_bits[i]);
-              if (mysql_query(conn, query))
-              {
-                log("SYSERR: Unable to INSERT into object_database_perm_affects: %s\nQUERY: %s", mysql_error(conn), query);
-              }
+        if (OBJAFF_FLAGGED(obj, i))
+        {
+          snprintf(query, sizeof(query),
+                   "INSERT INTO object_database_perm_affects (idnum,object_idnum,perm_affect) "
+                   "VALUES(NULL,%d,\"%s\")",
+                   obj_idnum, affected_bits[i]);
+          if (mysql_query(conn, query))
+          {
+            log("SYSERR: Unable to INSERT into object_database_perm_affects: %s\nQUERY: %s",
+                mysql_error(conn), query);
           }
+        }
       }
       for (i = 0; i < 6; i++)
       {
-          if (obj->affected[i].location != APPLY_NONE && obj->affected[i].modifier != 0)
+        if (obj->affected[i].location != APPLY_NONE && obj->affected[i].modifier != 0)
+        {
+          switch (obj->affected[i].location)
           {
-            switch (obj->affected[i].location)
-            {
-              case APPLY_FEAT:
-                if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier < FEAT_LAST_FEAT)
-                  snprintf(bonus, sizeof(bonus), "%s", feat_list[obj->affected[i].modifier].name);
-                break;
-              case APPLY_SKILL:
-                if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier <= (NUM_ABILITIES - START_GENERAL_ABILITIES + 3))
-                  snprintf(bonus, sizeof(bonus), "%s", ability_names[obj->affected[i].specific]);
-                break;
-              case APPLY_SPELL_CIRCLE_1:
-              case APPLY_SPELL_CIRCLE_2:
-              case APPLY_SPELL_CIRCLE_3:
-              case APPLY_SPELL_CIRCLE_4:
-              case APPLY_SPELL_CIRCLE_5:
-              case APPLY_SPELL_CIRCLE_6:
-              case APPLY_SPELL_CIRCLE_7:
-              case APPLY_SPELL_CIRCLE_8:
-              case APPLY_SPELL_CIRCLE_9:
-                if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier < NUM_CLASSES)
-                  snprintf(bonus, sizeof(bonus), "%s", class_names[obj->affected[i].specific]);
-                break;
-              default:
-                bonus[0] = '\0';
-                break;
-            }
-            snprintf(query, sizeof(query), "INSERT INTO object_database_bonuses (idnum,object_idnum,bonus_location,bonus_type,bonus_modifier,bonus_specific) "
-                                            "VALUES(NULL,%d,\"%s\",\"%s\",%d,\"%s\")",
-                                          obj_idnum, apply_types[obj->affected[i].location], bonus_types[obj->affected[i].bonus_type], obj->affected[i].modifier, bonus);
-              if (mysql_query(conn, query))
-              {
-                log("SYSERR: Unable to INSERT into object_database_bonuses: %s\nQUERY: %s", mysql_error(conn), query);
-              }
+          case APPLY_FEAT:
+            if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier < FEAT_LAST_FEAT)
+              snprintf(bonus, sizeof(bonus), "%s", feat_list[obj->affected[i].modifier].name);
+            break;
+          case APPLY_SKILL:
+            if (obj->affected[i].modifier >= 0 &&
+                obj->affected[i].modifier <= (NUM_ABILITIES - START_GENERAL_ABILITIES + 3))
+              snprintf(bonus, sizeof(bonus), "%s", ability_names[obj->affected[i].specific]);
+            break;
+          case APPLY_SPELL_CIRCLE_1:
+          case APPLY_SPELL_CIRCLE_2:
+          case APPLY_SPELL_CIRCLE_3:
+          case APPLY_SPELL_CIRCLE_4:
+          case APPLY_SPELL_CIRCLE_5:
+          case APPLY_SPELL_CIRCLE_6:
+          case APPLY_SPELL_CIRCLE_7:
+          case APPLY_SPELL_CIRCLE_8:
+          case APPLY_SPELL_CIRCLE_9:
+            if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier < NUM_CLASSES)
+              snprintf(bonus, sizeof(bonus), "%s", class_names[obj->affected[i].specific]);
+            break;
+          default:
+            bonus[0] = '\0';
+            break;
           }
+          snprintf(query, sizeof(query),
+                   "INSERT INTO object_database_bonuses "
+                   "(idnum,object_idnum,bonus_location,bonus_type,bonus_modifier,bonus_specific) "
+                   "VALUES(NULL,%d,\"%s\",\"%s\",%d,\"%s\")",
+                   obj_idnum, apply_types[obj->affected[i].location],
+                   bonus_types[obj->affected[i].bonus_type], obj->affected[i].modifier, bonus);
+          if (mysql_query(conn, query))
+          {
+            log("SYSERR: Unable to INSERT into object_database_bonuses: %s\nQUERY: %s",
+                mysql_error(conn), query);
+          }
+        }
       }
     }
   }

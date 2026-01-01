@@ -102,7 +102,7 @@ survey detail herbs
 ```
 harvest
 ```
-**Expected:** 
+**Expected:**
 ```
 Harvestable resources at this location:
 =====================================

@@ -71,11 +71,11 @@ sorted_spells = sorted(matches, key=lambda x: x[1].lower())
 current_letter = ''
 for spell_id, spell_name in sorted_spells:
     first_letter = spell_name[0].upper() if spell_name else 'A'
-    
+
     if first_letter != current_letter:
         current_letter = first_letter
         html += f'<div class="alpha-header" id="letter-{current_letter}">{current_letter}</div>\n\n'
-    
+
     html += f'''<div class="spell-block">
     <span class="spell-name">{spell_name}</span>
     <span class="spell-id">(SPELL_{spell_id})</span>
@@ -102,4 +102,3 @@ print("HTML file generated: docs/spells_reference.html")
 print(f"Total spells: {len(sorted_spells)}")
 
 PYEOF
-

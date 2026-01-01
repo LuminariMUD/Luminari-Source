@@ -60,20 +60,20 @@ struct pubsub_message_v3 {
     int topic_id;
     char *sender_name;
     long sender_id;                    /* Player ID for authenticated senders */
-    
+
     /* Message Classification */
     int message_type;                  /* Enhanced message types */
     int message_category;              /* NEW: Message categorization */
     int priority;                      /* Enhanced priority system */
     char **tags;                       /* NEW: Array of tags */
     int tag_count;                     /* Number of tags */
-    
+
     /* Content and Structure */
     char *content;                     /* Primary message content */
     struct pubsub_message_fields *fields;  /* NEW: Custom structured fields */
     struct pubsub_message_metadata *metadata;  /* NEW: Rich metadata */
     char *spatial_data;                /* Spatial positioning data */
-    
+
     /* Message Properties */
     time_t created_at;
     time_t expires_at;
@@ -81,7 +81,7 @@ struct pubsub_message_v3 {
     char *content_type;                /* NEW: MIME-like content type */
     char *content_encoding;            /* NEW: Content encoding (utf-8, etc.) */
     int content_version;               /* NEW: Message format version */
-    
+
     /* Delivery and Processing */
     int delivery_attempts;
     int successful_deliveries;
@@ -89,12 +89,12 @@ struct pubsub_message_v3 {
     bool is_processed;
     time_t processed_at;
     int reference_count;
-    
+
     /* Routing and Filtering */
     char **routing_keys;               /* NEW: Advanced routing */
     int routing_key_count;
     struct pubsub_message_filters *filters;  /* NEW: Message-specific filters */
-    
+
     /* Linked List */
     struct pubsub_message_v3 *next;
 };
@@ -148,29 +148,29 @@ struct pubsub_message_metadata {
     int sender_level;                  /* Character level */
     char *sender_class;                /* Character class */
     char *sender_race;                 /* Character race */
-    
+
     /* Origin Information */
     int origin_room;                   /* Room where message originated */
     int origin_zone;                   /* Zone where message originated */
     char *origin_area_name;            /* Area name */
     int origin_x, origin_y, origin_z;  /* Spatial coordinates */
-    
+
     /* Contextual Information */
     char *context_type;                /* EVENT/COMMAND/SYSTEM/TRIGGER */
     char *trigger_event;               /* What triggered the message */
     char *related_object;              /* Related game object */
     int related_object_id;             /* Object identifier */
-    
+
     /* Message Lineage */
     int parent_message_id;             /* Reply/thread parent */
     int thread_id;                     /* Conversation thread */
     int sequence_number;               /* Message order in thread */
-    
+
     /* Processing Information */
     char *handler_chain;               /* Handlers that processed this */
     int processing_time_ms;            /* Processing duration */
     char *processing_notes;            /* Debug/processing information */
-    
+
     /* Custom Application Data */
     struct pubsub_message_field *custom_metadata;  /* Extensible metadata */
 };
@@ -309,28 +309,28 @@ struct pubsub_message_filter {
     int content_keyword_count;
     bool content_case_sensitive;
     bool content_regex_enabled;
-    
+
     /* Field Filters */
     char **required_fields;            /* Fields that must be present */
     int required_field_count;
     struct pubsub_field_filter *field_filters;  /* Field value filters */
-    
+
     /* Tag Filters */
     char **required_tags;              /* Tags that must be present */
     int required_tag_count;
     char **excluded_tags;              /* Tags that exclude the message */
     int excluded_tag_count;
-    
+
     /* Metadata Filters */
     char *sender_filter;               /* Sender name pattern */
     int min_sender_level;              /* Minimum sender level */
     char *origin_area_filter;          /* Origin area pattern */
-    
+
     /* Temporal Filters */
     time_t created_after;              /* Messages after this time */
     time_t created_before;             /* Messages before this time */
     time_t expires_after;              /* Expiration constraints */
-    
+
     /* Priority and Type Filters */
     int min_priority;                  /* Minimum priority level */
     int max_priority;                  /* Maximum priority level */
@@ -378,7 +378,7 @@ CREATE TABLE pubsub_messages_v3 (
     parent_message_id INT,
     thread_id INT,
     sequence_number INT DEFAULT 1,
-    
+
     INDEX idx_topic_id (topic_id),
     INDEX idx_sender_id (sender_id),
     INDEX idx_message_type (message_type),
@@ -387,7 +387,7 @@ CREATE TABLE pubsub_messages_v3 (
     INDEX idx_created_at (created_at),
     INDEX idx_expires_at (expires_at),
     INDEX idx_thread_id (thread_id),
-    
+
     FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE,
     FOREIGN KEY (parent_message_id) REFERENCES pubsub_messages_v3(message_id) ON DELETE SET NULL
 );
@@ -407,12 +407,12 @@ CREATE TABLE pubsub_message_fields (
     is_required BOOLEAN DEFAULT FALSE,
     is_searchable BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_message_id (message_id),
     INDEX idx_field_name (field_name),
     INDEX idx_field_type (field_type),
     INDEX idx_is_searchable (is_searchable),
-    
+
     UNIQUE KEY unique_message_field (message_id, field_name),
     FOREIGN KEY (message_id) REFERENCES pubsub_messages_v3(message_id) ON DELETE CASCADE
 );
@@ -425,12 +425,12 @@ CREATE TABLE pubsub_message_tags (
     tag_category VARCHAR(32) NOT NULL DEFAULT 'custom',
     tag_weight INT DEFAULT 5,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_message_id (message_id),
     INDEX idx_tag_name (tag_name),
     INDEX idx_tag_category (tag_category),
     INDEX idx_tag_weight (tag_weight),
-    
+
     UNIQUE KEY unique_message_tag (message_id, tag_name),
     FOREIGN KEY (message_id) REFERENCES pubsub_messages_v3(message_id) ON DELETE CASCADE
 );
@@ -458,13 +458,13 @@ CREATE TABLE pubsub_message_metadata (
     processing_time_ms INT,
     processing_notes TEXT,
     custom_metadata JSON,
-    
+
     INDEX idx_sender_level (sender_level),
     INDEX idx_origin_room (origin_room),
     INDEX idx_origin_zone (origin_zone),
     INDEX idx_origin_area (origin_area_name),
     INDEX idx_context_type (context_type),
-    
+
     FOREIGN KEY (message_id) REFERENCES pubsub_messages_v3(message_id) ON DELETE CASCADE
 );
 
@@ -474,10 +474,10 @@ CREATE TABLE pubsub_message_routing_keys (
     message_id INT NOT NULL,
     routing_key VARCHAR(128) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_message_id (message_id),
     INDEX idx_routing_key (routing_key),
-    
+
     FOREIGN KEY (message_id) REFERENCES pubsub_messages_v3(message_id) ON DELETE CASCADE
 );
 ```
@@ -571,7 +571,7 @@ combat_filter->created_after = time(NULL) - 3600; /* Last hour */
 
 /* Apply filter to message queue */
 struct pubsub_message_v3 **filtered_messages;
-int filtered_count = pubsub_filter_messages(all_messages, total_count, 
+int filtered_count = pubsub_filter_messages(all_messages, total_count,
                                           combat_filter, &filtered_messages);
 
 /* Process filtered messages */

@@ -2,228 +2,228 @@
 #define NEWCRAFT_H
 
 #include <stdbool.h>
-#include <time.h>     // For time_t type
-#include "structs.h"  // For struct definitions
-#include "utils.h"    // For ACMD_DECL and SPECIAL_DECL macros
+#include <time.h>    // For time_t type
+#include "structs.h" // For struct definitions
+#include "utils.h"   // For ACMD_DECL and SPECIAL_DECL macros
 
 // materials used for the new crafting system
-#define CRAFT_MAT_NONE                  0
-#define CRAFT_MAT_COPPER                1
-#define CRAFT_MAT_TIN                   2
-#define CRAFT_MAT_BRONZE                3
-#define CRAFT_MAT_IRON                  4
-#define CRAFT_MAT_COAL                  5
-#define CRAFT_MAT_STEEL                 6
-#define CRAFT_MAT_COLD_IRON             7
-#define CRAFT_MAT_ALCHEMAL_SILVER       8
-#define CRAFT_MAT_MITHRIL               9
-#define CRAFT_MAT_ADAMANTINE            10
-#define CRAFT_MAT_SILVER                11
-#define CRAFT_MAT_GOLD                  12
-#define CRAFT_MAT_PLATINUM              13
-#define CRAFT_MAT_DRAGONMETAL           14
-#define CRAFT_MAT_DRAGONSCALE           15
-#define CRAFT_MAT_DRAGONBONE            16
-#define CRAFT_MAT_LOW_GRADE_HIDE        17
-#define CRAFT_MAT_MEDIUM_GRADE_HIDE     18
-#define CRAFT_MAT_HIGH_GRADE_HIDE       19
-#define CRAFT_MAT_PRISTINE_GRADE_HIDE   20
-#define CRAFT_MAT_ASH_WOOD              21
-#define CRAFT_MAT_MAPLE_WOOD            22
-#define CRAFT_MAT_MAHAGONY_WOOD         23
-#define CRAFT_MAT_VALENWOOD             24
-#define CRAFT_MAT_IRONWOOD              25
-#define CRAFT_MAT_HEMP                  26
-#define CRAFT_MAT_WOOL                  27
-#define CRAFT_MAT_LINEN                 28
-#define CRAFT_MAT_SATIN                 29
-#define CRAFT_MAT_SILK                  30
-#define CRAFT_MAT_ZINC                  31
-#define CRAFT_MAT_COTTON                32
-#define CRAFT_MAT_BRASS                 33
-#define CRAFT_MAT_FLAX                  34
-#define CRAFT_MAT_BONE                  35
-#define CRAFT_MAT_STONE                 36
+#define CRAFT_MAT_NONE 0
+#define CRAFT_MAT_COPPER 1
+#define CRAFT_MAT_TIN 2
+#define CRAFT_MAT_BRONZE 3
+#define CRAFT_MAT_IRON 4
+#define CRAFT_MAT_COAL 5
+#define CRAFT_MAT_STEEL 6
+#define CRAFT_MAT_COLD_IRON 7
+#define CRAFT_MAT_ALCHEMAL_SILVER 8
+#define CRAFT_MAT_MITHRIL 9
+#define CRAFT_MAT_ADAMANTINE 10
+#define CRAFT_MAT_SILVER 11
+#define CRAFT_MAT_GOLD 12
+#define CRAFT_MAT_PLATINUM 13
+#define CRAFT_MAT_DRAGONMETAL 14
+#define CRAFT_MAT_DRAGONSCALE 15
+#define CRAFT_MAT_DRAGONBONE 16
+#define CRAFT_MAT_LOW_GRADE_HIDE 17
+#define CRAFT_MAT_MEDIUM_GRADE_HIDE 18
+#define CRAFT_MAT_HIGH_GRADE_HIDE 19
+#define CRAFT_MAT_PRISTINE_GRADE_HIDE 20
+#define CRAFT_MAT_ASH_WOOD 21
+#define CRAFT_MAT_MAPLE_WOOD 22
+#define CRAFT_MAT_MAHAGONY_WOOD 23
+#define CRAFT_MAT_VALENWOOD 24
+#define CRAFT_MAT_IRONWOOD 25
+#define CRAFT_MAT_HEMP 26
+#define CRAFT_MAT_WOOL 27
+#define CRAFT_MAT_LINEN 28
+#define CRAFT_MAT_SATIN 29
+#define CRAFT_MAT_SILK 30
+#define CRAFT_MAT_ZINC 31
+#define CRAFT_MAT_COTTON 32
+#define CRAFT_MAT_BRASS 33
+#define CRAFT_MAT_FLAX 34
+#define CRAFT_MAT_BONE 35
+#define CRAFT_MAT_STONE 36
 
-#define NUM_CRAFT_MATS                  37
+#define NUM_CRAFT_MATS 37
 // also set in structs.h
 
-#define CRAFT_GROUP_NONE            0
-#define CRAFT_GROUP_HARD_METALS     1
-#define CRAFT_GROUP_SOFT_METALS     2
-#define CRAFT_GROUP_HIDES           3
-#define CRAFT_GROUP_WOOD            4
-#define CRAFT_GROUP_CLOTH           5
-#define CRAFT_GROUP_REFINING        6
-#define CRAFT_GROUP_RESIZING        7
-#define CRAFT_GROUP_STONE           8
+#define CRAFT_GROUP_NONE 0
+#define CRAFT_GROUP_HARD_METALS 1
+#define CRAFT_GROUP_SOFT_METALS 2
+#define CRAFT_GROUP_HIDES 3
+#define CRAFT_GROUP_WOOD 4
+#define CRAFT_GROUP_CLOTH 5
+#define CRAFT_GROUP_REFINING 6
+#define CRAFT_GROUP_RESIZING 7
+#define CRAFT_GROUP_STONE 8
 
-#define NUM_CRAFT_GROUPS            9
+#define NUM_CRAFT_GROUPS 9
 // also set in structs.h
 
-#define CRAFT_SKILL_NONE            0
-#define CRAFT_SKILL_WEAPONSMITH     1
-#define CRAFT_SKILL_ARMORSMITH      2
-#define CRAFT_SKILL_JEWELER         3
-#define CRAFT_SKILL_TINKER          4
-#define CRAFT_SKILL_CARPENTER       5
-#define CRAFT_SKILL_TAILOR          6
-#define CRAFT_SKILL_BREWING         7
+#define CRAFT_SKILL_NONE 0
+#define CRAFT_SKILL_WEAPONSMITH 1
+#define CRAFT_SKILL_ARMORSMITH 2
+#define CRAFT_SKILL_JEWELER 3
+#define CRAFT_SKILL_TINKER 4
+#define CRAFT_SKILL_CARPENTER 5
+#define CRAFT_SKILL_TAILOR 6
+#define CRAFT_SKILL_BREWING 7
 
-#define NUM_CRAFT_SKILLS            8
+#define NUM_CRAFT_SKILLS 8
 
-#define HARVEST_SKILL_NONE          0
-#define HARVEST_SKILL_MINING        1
-#define HARVEST_SKILL_HUNTING       2
-#define HARVEST_SKILL_FORESTRY      3
-#define HARVEST_SKILL_GATHERING     4
+#define HARVEST_SKILL_NONE 0
+#define HARVEST_SKILL_MINING 1
+#define HARVEST_SKILL_HUNTING 2
+#define HARVEST_SKILL_FORESTRY 3
+#define HARVEST_SKILL_GATHERING 4
 
-#define NUM_HARVEST_SKILLS          5
+#define NUM_HARVEST_SKILLS 5
 
-#define REFINING_SKILL_NONE         0
-#define REFINING_SKILL_SMELTING     1
-#define REFINING_SKILL_WEAVING      2
-#define REFINING_SKILL_TANNING      3
-#define REFINING_SKILL_CARVING      4
+#define REFINING_SKILL_NONE 0
+#define REFINING_SKILL_SMELTING 1
+#define REFINING_SKILL_WEAVING 2
+#define REFINING_SKILL_TANNING 3
+#define REFINING_SKILL_CARVING 4
 
-#define NUM_REFINING_SKILLS         5
+#define NUM_REFINING_SKILLS 5
 
-#define CRAFT_TYPE_NONE             0
-#define CRAFT_TYPE_WEAPON           1
-#define CRAFT_TYPE_ARMOR            2
-#define CRAFT_TYPE_MISC             3
-#define CRAFT_TYPE_INSTRUMENT       4
-#define CRAFT_TYPE_GOLEM            5
+#define CRAFT_TYPE_NONE 0
+#define CRAFT_TYPE_WEAPON 1
+#define CRAFT_TYPE_ARMOR 2
+#define CRAFT_TYPE_MISC 3
+#define CRAFT_TYPE_INSTRUMENT 4
+#define CRAFT_TYPE_GOLEM 5
 
-#define NUM_CRAFT_TYPES             6
+#define NUM_CRAFT_TYPES 6
 
 /* Golem Types */
-#define GOLEM_TYPE_NONE             0
-#define GOLEM_TYPE_WOOD             1
-#define GOLEM_TYPE_STONE            2
-#define GOLEM_TYPE_IRON             3
+#define GOLEM_TYPE_NONE 0
+#define GOLEM_TYPE_WOOD 1
+#define GOLEM_TYPE_STONE 2
+#define GOLEM_TYPE_IRON 3
 
-#define NUM_GOLEM_TYPES             4
+#define NUM_GOLEM_TYPES 4
 
 /* Golem Sizes */
-#define GOLEM_SIZE_SMALL            0
-#define GOLEM_SIZE_MEDIUM           1
-#define GOLEM_SIZE_LARGE            2
-#define GOLEM_SIZE_HUGE             3
+#define GOLEM_SIZE_SMALL 0
+#define GOLEM_SIZE_MEDIUM 1
+#define GOLEM_SIZE_LARGE 2
+#define GOLEM_SIZE_HUGE 3
 
-#define NUM_GOLEM_SIZES             4
+#define NUM_GOLEM_SIZES 4
 
-#define CRAFT_JEWELRY_NONE          0
-#define CRAFT_JEWELRY_RING          1
-#define CRAFT_JEWELRY_NECKLACE      2
-#define CRAFT_JEWELRY_BRACELET      3
-#define CRAFT_JEWELRY_EARRING       4
-#define CRAFT_JEWELRY_GLASSES       5
-#define CRAFT_MISC_BOOTS            6
-#define CRAFT_MISC_GLOVES           7
-#define CRAFT_MISC_CLOAK            8
-#define CRAFT_MISC_BELT             9
-#define CRAFT_MISC_MASK             10
-#define CRAFT_MISC_SHOULDERS        11
-#define CRAFT_MISC_ANKLET           12
+#define CRAFT_JEWELRY_NONE 0
+#define CRAFT_JEWELRY_RING 1
+#define CRAFT_JEWELRY_NECKLACE 2
+#define CRAFT_JEWELRY_BRACELET 3
+#define CRAFT_JEWELRY_EARRING 4
+#define CRAFT_JEWELRY_GLASSES 5
+#define CRAFT_MISC_BOOTS 6
+#define CRAFT_MISC_GLOVES 7
+#define CRAFT_MISC_CLOAK 8
+#define CRAFT_MISC_BELT 9
+#define CRAFT_MISC_MASK 10
+#define CRAFT_MISC_SHOULDERS 11
+#define CRAFT_MISC_ANKLET 12
 
-#define NUM_CRAFT_MISC_TYPES        13
+#define NUM_CRAFT_MISC_TYPES 13
 
-#define CRAFT_INSTRUMENT_NONE       0
-#define CRAFT_INSTRUMENT_LYRE       1
-#define CRAFT_INSTRUMENT_FLUTE      2
-#define CRAFT_INSTRUMENT_HORN       3
-#define CRAFT_INSTRUMENT_HARP       4
-#define CRAFT_INSTRUMENT_DRUM       5
-#define CRAFT_INSTRUMENT_MANDOLIN   6
+#define CRAFT_INSTRUMENT_NONE 0
+#define CRAFT_INSTRUMENT_LYRE 1
+#define CRAFT_INSTRUMENT_FLUTE 2
+#define CRAFT_INSTRUMENT_HORN 3
+#define CRAFT_INSTRUMENT_HARP 4
+#define CRAFT_INSTRUMENT_DRUM 5
+#define CRAFT_INSTRUMENT_MANDOLIN 6
 
-#define NUM_CRAFT_INSTRUMENT_TYPES  7
+#define NUM_CRAFT_INSTRUMENT_TYPES 7
 
-#define SCMD_NEWCRAFT_CREATE        1
-#define SCMD_NEWCRAFT_SURVEY        2
-#define SCMD_NEWCRAFT_HARVEST       3
-#define SCMD_NEWCRAFT_REFINE        4
-#define SCMD_NEWCRAFT_RESIZE        5
-#define SCMD_NEWCRAFT_SUPPLYORDER   6
-#define SCMD_NEWCRAFT_EQUIPMENT     7
-#define SCMD_NEWCRAFT_GOLEM         8
+#define SCMD_NEWCRAFT_CREATE 1
+#define SCMD_NEWCRAFT_SURVEY 2
+#define SCMD_NEWCRAFT_HARVEST 3
+#define SCMD_NEWCRAFT_REFINE 4
+#define SCMD_NEWCRAFT_RESIZE 5
+#define SCMD_NEWCRAFT_SUPPLYORDER 6
+#define SCMD_NEWCRAFT_EQUIPMENT 7
+#define SCMD_NEWCRAFT_GOLEM 8
 
-#define NUM_CRAFTING_METHODS        9
+#define NUM_CRAFTING_METHODS 9
 
 // Supply order contract types
-#define SUPPLY_CONTRACT_BASIC       1
-#define SUPPLY_CONTRACT_RUSH        2
-#define SUPPLY_CONTRACT_BULK        3
-#define SUPPLY_CONTRACT_QUALITY     4
-#define SUPPLY_CONTRACT_PRESTIGE    5
-#define SUPPLY_CONTRACT_EVENT       6
+#define SUPPLY_CONTRACT_BASIC 1
+#define SUPPLY_CONTRACT_RUSH 2
+#define SUPPLY_CONTRACT_BULK 3
+#define SUPPLY_CONTRACT_QUALITY 4
+#define SUPPLY_CONTRACT_PRESTIGE 5
+#define SUPPLY_CONTRACT_EVENT 6
 
-#define NUM_SUPPLY_CONTRACT_TYPES   7
+#define NUM_SUPPLY_CONTRACT_TYPES 7
 
 // Supply order constants
-#define MAX_ACTIVE_CONTRACTS        3
-#define MIN_CONTRACT_QUANTITY       3
-#define MAX_CONTRACT_QUANTITY       10
-#define BASE_CONTRACT_REWARD        100
+#define MAX_ACTIVE_CONTRACTS 3
+#define MIN_CONTRACT_QUANTITY 3
+#define MAX_CONTRACT_QUANTITY 10
+#define BASE_CONTRACT_REWARD 100
 
 // Reputation system constants
-#define REP_RANK_NOVICE             0
-#define REP_RANK_APPRENTICE         1
-#define REP_RANK_JOURNEYMAN         2
-#define REP_RANK_EXPERT             3
-#define REP_RANK_MASTER             4
-#define REP_RANK_GRANDMASTER        5
+#define REP_RANK_NOVICE 0
+#define REP_RANK_APPRENTICE 1
+#define REP_RANK_JOURNEYMAN 2
+#define REP_RANK_EXPERT 3
+#define REP_RANK_MASTER 4
+#define REP_RANK_GRANDMASTER 5
 
-#define NUM_REP_RANKS               6
+#define NUM_REP_RANKS 6
 
 // Reputation thresholds
-#define REP_THRESHOLD_APPRENTICE    100
-#define REP_THRESHOLD_JOURNEYMAN    300
-#define REP_THRESHOLD_EXPERT        600
-#define REP_THRESHOLD_MASTER        1000
-#define REP_THRESHOLD_GRANDMASTER   1500
+#define REP_THRESHOLD_APPRENTICE 100
+#define REP_THRESHOLD_JOURNEYMAN 300
+#define REP_THRESHOLD_EXPERT 600
+#define REP_THRESHOLD_MASTER 1000
+#define REP_THRESHOLD_GRANDMASTER 1500
 
 // Quality tier constants
-#define QUALITY_TIER_STANDARD       0
-#define QUALITY_TIER_SUPERIOR       1
-#define QUALITY_TIER_EXCEPTIONAL    2
-#define QUALITY_TIER_MASTERWORK     3
-#define QUALITY_TIER_LEGENDARY      4
+#define QUALITY_TIER_STANDARD 0
+#define QUALITY_TIER_SUPERIOR 1
+#define QUALITY_TIER_EXCEPTIONAL 2
+#define QUALITY_TIER_MASTERWORK 3
+#define QUALITY_TIER_LEGENDARY 4
 
-#define NUM_QUALITY_TIERS           5
+#define NUM_QUALITY_TIERS 5
 
 // Bulk efficiency bonuses
-#define BULK_EFFICIENCY_THRESHOLD_1 5   // 10% bonus
-#define BULK_EFFICIENCY_THRESHOLD_2 10  // 20% bonus
-#define BULK_EFFICIENCY_THRESHOLD_3 15  // 30% bonus
+#define BULK_EFFICIENCY_THRESHOLD_1 5  // 10% bonus
+#define BULK_EFFICIENCY_THRESHOLD_2 10 // 20% bonus
+#define BULK_EFFICIENCY_THRESHOLD_3 15 // 30% bonus
 
 // Contract expiration times (in real-world hours)
-#define CONTRACT_EXPIRE_BASIC       72  // 3 days
-#define CONTRACT_EXPIRE_RUSH        24  // 1 day
-#define CONTRACT_EXPIRE_BULK        96  // 4 days
-#define CONTRACT_EXPIRE_QUALITY     48  // 2 days
-#define CONTRACT_EXPIRE_PRESTIGE    168 // 1 week
-#define CONTRACT_EXPIRE_EVENT       12  // 12 hours
+#define CONTRACT_EXPIRE_BASIC 72     // 3 days
+#define CONTRACT_EXPIRE_RUSH 24      // 1 day
+#define CONTRACT_EXPIRE_BULK 96      // 4 days
+#define CONTRACT_EXPIRE_QUALITY 48   // 2 days
+#define CONTRACT_EXPIRE_PRESTIGE 168 // 1 week
+#define CONTRACT_EXPIRE_EVENT 12     // 12 hours
 
-#define CRAFT_SKILL_TYPE_NONE       0
-#define CRAFT_SKILL_TYPE_CRAFT      1
-#define CRAFT_SKILL_TYPE_HARVEST    2
+#define CRAFT_SKILL_TYPE_NONE 0
+#define CRAFT_SKILL_TYPE_CRAFT 1
+#define CRAFT_SKILL_TYPE_HARVEST 2
 
-#define NUM_CRAFT_SKILL_TYPES       3
+#define NUM_CRAFT_SKILL_TYPES 3
 
-#define CRAFTING_MOTE_NONE          0
-#define CRAFTING_MOTE_AIR           1
-#define CRAFTING_MOTE_DARK          2
-#define CRAFTING_MOTE_EARTH         3
-#define CRAFTING_MOTE_FIRE          4
-#define CRAFTING_MOTE_ICE           5
-#define CRAFTING_MOTE_LIGHT         6
-#define CRAFTING_MOTE_LIGHTNING     7
-#define CRAFTING_MOTE_WATER         8
+#define CRAFTING_MOTE_NONE 0
+#define CRAFTING_MOTE_AIR 1
+#define CRAFTING_MOTE_DARK 2
+#define CRAFTING_MOTE_EARTH 3
+#define CRAFTING_MOTE_FIRE 4
+#define CRAFTING_MOTE_ICE 5
+#define CRAFTING_MOTE_LIGHT 6
+#define CRAFTING_MOTE_LIGHTNING 7
+#define CRAFTING_MOTE_WATER 8
 
-#define NUM_CRAFT_MOTES             9 // Also defined in structs.h
+#define NUM_CRAFT_MOTES 9 // Also defined in structs.h
 
-#define MAX_CRAFT_SKILL             30
+#define MAX_CRAFT_SKILL 30
 
 #define ARMOR_ENHANCEMENT_MOTE CRAFTING_MOTE_WATER
 #define WEAPON_ENHANCEMENT_MOTE CRAFTING_MOTE_ICE
@@ -258,7 +258,8 @@ void create_craft_armor(struct char_data *ch);
 void set_craft_item_flags(struct char_data *ch, struct obj_data *obj);
 void set_crafting_materials(struct char_data *ch, const char *arg2);
 int craft_group_by_material(int material);
-void process_crafting_materials(struct char_data *ch, int group, int mat_type, int num_mats, int mat_slot);
+void process_crafting_materials(struct char_data *ch, int group, int mat_type, int num_mats,
+                                int mat_slot);
 void survey_complete(struct char_data *ch);
 void sort_materials(void);
 int harvesting_skill_by_material(int material);
@@ -276,7 +277,8 @@ void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse);
 int get_craft_project_level(struct char_data *ch);
 int get_enhancement_mote_type(struct char_data *ch, int type, int spec);
 void show_craft_progress_meter(void);
-bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc);
+bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method,
+                              int exp, int dc);
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
 void show_refine_noargs(struct char_data *ch);
@@ -356,7 +358,8 @@ void set_golem_size(struct char_data *ch, const char *arg);
 void show_current_golem_craft(struct char_data *ch);
 void reset_current_golem_craft(struct char_data *ch);
 int get_golem_base_dc(int golem_type, int golem_size);
-int get_golem_material_requirements(int golem_type, int golem_size, int *material_types, int *material_amounts);
+int get_golem_material_requirements(int golem_type, int golem_size, int *material_types,
+                                    int *material_amounts);
 int get_golem_mote_requirements(int golem_type, int golem_size, int *mote_types, int *mote_amounts);
 bool begin_golem_craft(struct char_data *ch);
 
@@ -390,7 +393,8 @@ int get_golem_size_from_vnum(int vnum);
 int get_golem_repair_material_cost(int golem_type, int golem_size);
 int get_golem_repair_dc(int golem_type, int golem_size);
 int get_golem_repair_material_type(int golem_type);
-bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *material_needed, int *material_type);
+bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *material_needed,
+                      int *material_type);
 int get_golem_type_from_vnum(int vnum);
 int get_golem_size_from_vnum(int vnum);
 

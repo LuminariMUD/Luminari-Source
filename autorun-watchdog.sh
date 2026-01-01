@@ -33,29 +33,29 @@ check_autorun_health() {
         log_msg "WARN" "State file not found"
         return 1
     fi
-    
+
     # Check if state file is stale (older than 5 minutes)
     local last_update=$(grep "LAST_UPDATE=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
     if [[ -z "$last_update" ]]; then
         log_msg "WARN" "Cannot read last update time"
         return 1
     fi
-    
+
     local current_time=$(date +%s)
     local time_diff=$((current_time - last_update))
-    
+
     if [[ $time_diff -gt 300 ]]; then
         log_msg "WARN" "State file is stale (${time_diff}s old)"
         return 1
     fi
-    
+
     # Check if PID in state file is actually running
     local pid=$(grep "PID=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
     if [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; then
         log_msg "WARN" "Autorun PID $pid is not running"
         return 1
     fi
-    
+
     # Check if MUD port is actually listening
     local port=$(grep "MUD_PORT=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
     if [[ -n "$port" ]]; then
@@ -66,28 +66,28 @@ check_autorun_health() {
             fi
         fi
     fi
-    
+
     return 0
 }
 
 # Start autorun if not running
 start_autorun() {
     log_msg "INFO" "Starting autorun..."
-    
+
     if [[ ! -x "$AUTORUN_SCRIPT" ]]; then
         log_msg "ERROR" "Autorun script not found or not executable: $AUTORUN_SCRIPT"
         return 1
     fi
-    
+
     # Start autorun in background
     "$AUTORUN_SCRIPT" &
     local pid=$!
-    
+
     log_msg "INFO" "Autorun started with PID $pid"
-    
+
     # Wait a moment for it to initialize
     sleep 5
-    
+
     # Verify it's still running
     if kill -0 "$pid" 2>/dev/null; then
         log_msg "INFO" "Autorun successfully started"
@@ -102,10 +102,10 @@ start_autorun() {
 watchdog_loop() {
     local restart_attempts=0
     local last_restart_time=0
-    
+
     log_msg "INFO" "Watchdog starting (PID: $$)"
     echo $$ > "$WATCHDOG_PID_FILE"
-    
+
     while true; do
         # Check if we should stop (either .killwatchdog or .killscript)
         if [[ -f "${SCRIPT_DIR}/.killwatchdog" ]] || [[ -f "${SCRIPT_DIR}/.killscript" ]]; then
@@ -118,15 +118,15 @@ watchdog_loop() {
             rm -f "$WATCHDOG_PID_FILE"
             exit 0
         fi
-        
+
         # Check autorun health
         if ! check_autorun_health; then
             log_msg "ERROR" "Autorun health check failed"
-            
+
             # Check cooldown period
             local current_time=$(date +%s)
             local time_since_restart=$((current_time - last_restart_time))
-            
+
             if [[ $time_since_restart -lt $RESTART_COOLDOWN ]]; then
                 log_msg "INFO" "Waiting for cooldown period (${time_since_restart}/${RESTART_COOLDOWN}s)"
             else
@@ -139,7 +139,7 @@ watchdog_loop() {
                         mail -s "LuminariMUD Watchdog Failure" admin@example.com 2>/dev/null || true
                 else
                     log_msg "INFO" "Attempting to restart autorun (attempt $((restart_attempts + 1)))"
-                    
+
                     if start_autorun; then
                         log_msg "INFO" "Autorun restarted successfully"
                         restart_attempts=0
@@ -147,7 +147,7 @@ watchdog_loop() {
                         log_msg "ERROR" "Failed to restart autorun"
                         restart_attempts=$((restart_attempts + 1))
                     fi
-                    
+
                     last_restart_time=$current_time
                 fi
             fi
@@ -158,7 +158,7 @@ watchdog_loop() {
                 restart_attempts=0
             fi
         fi
-        
+
         # Wait before next check
         sleep $CHECK_INTERVAL
     done
@@ -167,7 +167,7 @@ watchdog_loop() {
 # Stop watchdog
 stop_watchdog() {
     log_msg "INFO" "Stopping watchdog..."
-    
+
     if [[ -f "$WATCHDOG_PID_FILE" ]]; then
         local pid=$(cat "$WATCHDOG_PID_FILE")
         if kill -0 "$pid" 2>/dev/null; then
@@ -176,7 +176,7 @@ stop_watchdog() {
         fi
         rm -f "$WATCHDOG_PID_FILE"
     fi
-    
+
     touch "${SCRIPT_DIR}/.killwatchdog"
 }
 
@@ -185,7 +185,7 @@ show_status() {
     echo "==================================="
     echo "LuminariMUD Watchdog Status"
     echo "==================================="
-    
+
     if [[ -f "$WATCHDOG_PID_FILE" ]]; then
         local pid=$(cat "$WATCHDOG_PID_FILE")
         if kill -0 "$pid" 2>/dev/null; then
@@ -196,19 +196,19 @@ show_status() {
     else
         echo "Watchdog: NOT RUNNING"
     fi
-    
+
     if check_autorun_health; then
         echo "Autorun: HEALTHY"
     else
         echo "Autorun: UNHEALTHY or NOT RUNNING"
     fi
-    
+
     if [[ -f "$STATE_FILE" ]]; then
         echo ""
         echo "Autorun State:"
         cat "$STATE_FILE" | sed 's/^/  /'
     fi
-    
+
     echo "==================================="
 }
 
@@ -222,31 +222,31 @@ case "${1:-start}" in
                 exit 1
             fi
         fi
-        
+
         # Start in background
         nohup "$0" loop > /dev/null 2>&1 &
         echo "Watchdog started"
         ;;
-    
+
     loop)
         # Internal command for the actual loop
         watchdog_loop
         ;;
-    
+
     stop)
         stop_watchdog
         ;;
-    
+
     status)
         show_status
         ;;
-    
+
     restart)
         stop_watchdog
         sleep 2
         "$0" start
         ;;
-    
+
     *)
         echo "Usage: $0 {start|stop|status|restart}"
         echo ""

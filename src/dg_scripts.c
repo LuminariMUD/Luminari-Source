@@ -45,24 +45,20 @@ static int is_num(char *arg);
 static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go,
                     struct script_data *sc, trig_data *trig);
 static char *matching_paren(char *p);
-static void eval_expr(char *line, char *result, void *go, struct script_data *sc,
-                      trig_data *trig, int type);
+static void eval_expr(char *line, char *result, void *go, struct script_data *sc, trig_data *trig,
+                      int type);
 static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_data *sc,
                            trig_data *trig, int type);
-static int process_if(char *cond, void *go, struct script_data *sc,
-                      trig_data *trig, int type);
+static int process_if(char *cond, void *go, struct script_data *sc, trig_data *trig, int type);
 static struct cmdlist_element *find_end(trig_data *trig, struct cmdlist_element *cl);
-static struct cmdlist_element *find_else_end(trig_data *trig,
-                                             struct cmdlist_element *cl, void *go, struct script_data *sc, int type);
+static struct cmdlist_element *find_else_end(trig_data *trig, struct cmdlist_element *cl, void *go,
+                                             struct script_data *sc, int type);
 static void process_wait(void *go, trig_data *trig, int type, const char *cmd,
                          struct cmdlist_element *cl);
 static void process_set(struct script_data *sc, trig_data *trig, char *cmd);
-static void process_attach(void *go, struct script_data *sc, trig_data *trig,
-                           int type, char *cmd);
-static void process_detach(void *go, struct script_data *sc, trig_data *trig,
-                           int type, char *cmd);
-static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
-                        int type, char *cmd);
+static void process_attach(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
+static void process_detach(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
+static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
 static int process_return(trig_data *trig, char *cmd);
 static void process_unset(struct script_data *sc, trig_data *trig, char *cmd);
 static void process_remote(struct script_data *sc, trig_data *trig, char *cmd);
@@ -233,39 +229,22 @@ int find_eq_pos_script(char *arg)
   {
     const char *pos;
     int where;
-  } eq_pos[] = {
-      {"hold", WEAR_HOLD_1},
-      {"held", WEAR_HOLD_1},
-      {"hold1", WEAR_HOLD_1},
-      {"held1", WEAR_HOLD_1},
-      {"hold2", WEAR_HOLD_2},
-      {"held2", WEAR_HOLD_2},
-      {"hold2h", WEAR_HOLD_2H},
-      {"held2h", WEAR_HOLD_2H},
-      {"light", WEAR_LIGHT},
-      {"wield", WEAR_WIELD_1},
-      {"wield1", WEAR_WIELD_1},
-      {"wieldoffhand", WEAR_WIELD_OFFHAND},
-      {"wield2h", WEAR_WIELD_2H},
-      {"rfinger", WEAR_FINGER_R},
-      {"lfinger", WEAR_FINGER_L},
-      {"neck1", WEAR_NECK_1},
-      {"neck2", WEAR_NECK_2},
-      {"body", WEAR_BODY},
-      {"head", WEAR_HEAD},
-      {"legs", WEAR_LEGS},
-      {"feet", WEAR_FEET},
-      {"hands", WEAR_HANDS},
-      {"arms", WEAR_ARMS},
-      {"shield", WEAR_SHIELD},
-      {"about", WEAR_ABOUT},
-      {"waist", WEAR_WAIST},
-      {"rwrist", WEAR_WRIST_R},
-      {"lwrist", WEAR_WRIST_L},
-      {"rankle", WEAR_ANKLE_R},
-      {"lankle", WEAR_ANKLE_L},
-      {"onback", WEAR_ON_BACK},
-      {"none", -1}};
+  } eq_pos[] = {{"hold", WEAR_HOLD_1},      {"held", WEAR_HOLD_1},
+                {"hold1", WEAR_HOLD_1},     {"held1", WEAR_HOLD_1},
+                {"hold2", WEAR_HOLD_2},     {"held2", WEAR_HOLD_2},
+                {"hold2h", WEAR_HOLD_2H},   {"held2h", WEAR_HOLD_2H},
+                {"light", WEAR_LIGHT},      {"wield", WEAR_WIELD_1},
+                {"wield1", WEAR_WIELD_1},   {"wieldoffhand", WEAR_WIELD_OFFHAND},
+                {"wield2h", WEAR_WIELD_2H}, {"rfinger", WEAR_FINGER_R},
+                {"lfinger", WEAR_FINGER_L}, {"neck1", WEAR_NECK_1},
+                {"neck2", WEAR_NECK_2},     {"body", WEAR_BODY},
+                {"head", WEAR_HEAD},        {"legs", WEAR_LEGS},
+                {"feet", WEAR_FEET},        {"hands", WEAR_HANDS},
+                {"arms", WEAR_ARMS},        {"shield", WEAR_SHIELD},
+                {"about", WEAR_ABOUT},      {"waist", WEAR_WAIST},
+                {"rwrist", WEAR_WRIST_R},   {"lwrist", WEAR_WRIST_L},
+                {"rankle", WEAR_ANKLE_R},   {"lankle", WEAR_ANKLE_L},
+                {"onback", WEAR_ON_BACK},   {"none", -1}};
 
   if (is_number(arg) && (i = atoi(arg)) >= 0 && i < NUM_WEARS)
     return i;
@@ -401,8 +380,7 @@ char_data *get_char(char *name)
   else
   {
     for (i = character_list; i; i = i->next)
-      if (isname(name, i->player.name) &&
-          valid_dg_target(i, DG_ALLOW_STAFFS))
+      if (isname(name, i->player.name) && valid_dg_target(i, DG_ALLOW_STAFFS))
         return i;
   }
 
@@ -434,8 +412,7 @@ char_data *get_char_near_obj(obj_data *obj, char *name)
     room_rnum num;
     if ((num = obj_room(obj)) != NOWHERE)
       for (ch = world[num].people; ch; ch = ch->next_in_room)
-        if (isname(name, ch->player.name) &&
-            valid_dg_target(ch, DG_ALLOW_STAFFS))
+        if (isname(name, ch->player.name) && valid_dg_target(ch, DG_ALLOW_STAFFS))
           return ch;
   }
 
@@ -465,8 +442,7 @@ char_data *get_char_in_room(room_data *room, char *name)
   else
   {
     for (ch = room->people; ch; ch = ch->next_in_room)
-      if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_STAFFS))
+      if (isname(name, ch->player.name) && valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
   }
 
@@ -510,8 +486,7 @@ obj_data *get_obj_near_obj(obj_data *obj, char *name)
   else if (obj->worn_by && (i = get_object_in_equip(obj->worn_by, name)))
     return i;
   /* or carried ? */
-  else if (obj->carried_by &&
-           (i = get_obj_in_list(name, obj->carried_by->carrying)))
+  else if (obj->carried_by && (i = get_obj_in_list(name, obj->carried_by->carrying)))
     return i;
   else if ((rm = obj_room(obj)) != NOWHERE)
   {
@@ -572,19 +547,16 @@ char_data *get_char_by_obj(obj_data *obj, char *name)
   }
   else
   {
-    if (obj->carried_by &&
-        isname(name, obj->carried_by->player.name) &&
+    if (obj->carried_by && isname(name, obj->carried_by->player.name) &&
         valid_dg_target(obj->carried_by, DG_ALLOW_STAFFS))
       return obj->carried_by;
 
-    if (obj->worn_by &&
-        isname(name, obj->worn_by->player.name) &&
+    if (obj->worn_by && isname(name, obj->worn_by->player.name) &&
         valid_dg_target(obj->worn_by, DG_ALLOW_STAFFS))
       return obj->worn_by;
 
     for (ch = character_list; ch; ch = ch->next)
-      if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_STAFFS))
+      if (isname(name, ch->player.name) && valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
   }
 
@@ -607,13 +579,11 @@ char_data *get_char_by_room(room_data *room, char *name)
   else
   {
     for (ch = room->people; ch; ch = ch->next_in_room)
-      if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_STAFFS))
+      if (isname(name, ch->player.name) && valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
 
     for (ch = character_list; ch; ch = ch->next)
-      if (isname(name, ch->player.name) &&
-          valid_dg_target(ch, DG_ALLOW_STAFFS))
+      if (isname(name, ch->player.name) && valid_dg_target(ch, DG_ALLOW_STAFFS))
         return ch;
   }
 
@@ -642,12 +612,10 @@ obj_data *get_obj_by_obj(obj_data *obj, char *name)
   if (obj->worn_by && (i = get_object_in_equip(obj->worn_by, name)))
     return i;
 
-  if (obj->carried_by &&
-      (i = get_obj_in_list(name, obj->carried_by->carrying)))
+  if (obj->carried_by && (i = get_obj_in_list(name, obj->carried_by->carrying)))
     return i;
 
-  if (((rm = obj_room(obj)) != NOWHERE) &&
-      (i = get_obj_in_list(name, world[rm].contents)))
+  if (((rm = obj_room(obj)) != NOWHERE) && (i = get_obj_in_list(name, world[rm].contents)))
     return i;
 
   return get_obj(name);
@@ -708,14 +676,13 @@ void script_trigger_check(void)
   for (ch = character_list; ch; ch = next_ch)
   {
     next_ch = ch->next; /* Cache next char before potential script extraction */
-    
+
     if (SCRIPT(ch))
     {
       sc = SCRIPT(ch);
 
       if (IS_SET(SCRIPT_TYPES(sc), WTRIG_RANDOM) &&
-          (!is_empty(world[IN_ROOM(ch)].zone) ||
-           IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
+          (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
         random_mtrigger(ch);
     }
   }
@@ -739,8 +706,7 @@ void script_trigger_check(void)
       sc = SCRIPT(room);
 
       if (IS_SET(SCRIPT_TYPES(sc), WTRIG_RANDOM) &&
-          (!is_empty(room->zone) ||
-           IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
+          (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
         random_wtrigger(room);
     }
   }
@@ -757,14 +723,13 @@ void check_time_triggers(void)
   for (ch = character_list; ch; ch = next_ch)
   {
     next_ch = ch->next; /* Cache next char before potential script extraction */
-    
+
     if (SCRIPT(ch))
     {
       sc = SCRIPT(ch);
 
       if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) &&
-          (!is_empty(world[IN_ROOM(ch)].zone) ||
-           IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
+          (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
         time_mtrigger(ch);
     }
   }
@@ -788,8 +753,7 @@ void check_time_triggers(void)
       sc = SCRIPT(room);
 
       if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) &&
-          (!is_empty(room->zone) ||
-           IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
+          (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
         time_wtrigger(room);
     }
   }
@@ -836,8 +800,7 @@ static EVENTFUNC(trig_wait_event)
     if (!found)
     {
       log("Trigger restarted on unknown entity. Vnum: %d", GET_TRIG_VNUM(trig));
-      log("Type: %s trigger", type == MOB_TRIGGER ? "Mob" : type == OBJ_TRIGGER ? "Obj"
-                                                                                : "Room");
+      log("Type: %s trigger", type == MOB_TRIGGER ? "Mob" : type == OBJ_TRIGGER ? "Obj" : "Room");
       log("attached %d places", trig_index[trig->nr]->number);
       script_log("Trigger restart attempt on unknown entity.");
       return 0;
@@ -867,9 +830,8 @@ static void do_stat_trigger(struct char_data *ch, trig_data *trig)
   }
 
   len += snprintf(sb, sizeof(sb), "Name: '%s%s%s',  VNum: [%s%5d%s], RNum: [%5d]\r\n",
-                  CCYEL(ch, C_NRM), GET_TRIG_NAME(trig), CCNRM(ch, C_NRM),
-                  CCGRN(ch, C_NRM), GET_TRIG_VNUM(trig), CCNRM(ch, C_NRM),
-                  GET_TRIG_RNUM(trig));
+                  CCYEL(ch, C_NRM), GET_TRIG_NAME(trig), CCNRM(ch, C_NRM), CCGRN(ch, C_NRM),
+                  GET_TRIG_VNUM(trig), CCNRM(ch, C_NRM), GET_TRIG_RNUM(trig));
 
   if (trig->attach_type == OBJ_TRIGGER)
   {
@@ -889,9 +851,7 @@ static void do_stat_trigger(struct char_data *ch, trig_data *trig)
 
   len += snprintf(sb + len, sizeof(sb) - len, "Trigger Type: %s, Numeric Arg: %d, Arg list: %s\r\n",
                   buf, GET_TRIG_NARG(trig),
-                  ((GET_TRIG_ARG(trig) && *GET_TRIG_ARG(trig))
-                       ? GET_TRIG_ARG(trig)
-                       : "None"));
+                  ((GET_TRIG_ARG(trig) && *GET_TRIG_ARG(trig)) ? GET_TRIG_ARG(trig) : "None"));
 
   len += snprintf(sb + len, sizeof(sb) - len, "Commands:\r\n");
 
@@ -1123,11 +1083,11 @@ ACMD(do_attach)
     add_trigger(SCRIPT(victim), trig, loc);
 
     if (IS_NPC(victim))
-      send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n",
-                   tn, GET_TRIG_NAME(trig), GET_SHORT(victim), GET_MOB_VNUM(victim));
+      send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n", tn, GET_TRIG_NAME(trig),
+                   GET_SHORT(victim), GET_MOB_VNUM(victim));
     else
-      send_to_char(ch, "Trigger %d (%s) attached to player named %s.\r\n",
-                   tn, GET_TRIG_NAME(trig), GET_NAME(victim));
+      send_to_char(ch, "Trigger %d (%s) attached to player named %s.\r\n", tn, GET_TRIG_NAME(trig),
+                   GET_NAME(victim));
   }
   else if (is_abbrev(arg, "object") || is_abbrev(arg, "otr"))
   {
@@ -1169,8 +1129,7 @@ ACMD(do_attach)
       CREATE(SCRIPT(object), struct script_data, 1);
     add_trigger(SCRIPT(object), trig, loc);
 
-    send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n",
-                 tn, GET_TRIG_NAME(trig),
+    send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n", tn, GET_TRIG_NAME(trig),
                  (object->short_description ? object->short_description : object->name),
                  GET_OBJ_VNUM(object));
   }
@@ -1208,8 +1167,8 @@ ACMD(do_attach)
       CREATE(SCRIPT(room), struct script_data, 1);
     add_trigger(SCRIPT(room), trig, loc);
 
-    send_to_char(ch, "Trigger %d (%s) attached to room %d.\r\n",
-                 tn, GET_TRIG_NAME(trig), world[rnum].number);
+    send_to_char(ch, "Trigger %d (%s) attached to room %d.\r\n", tn, GET_TRIG_NAME(trig),
+                 world[rnum].number);
   }
   else
     send_to_char(ch, "Please specify 'mob', 'obj', or 'room'.\r\n");
@@ -1287,7 +1246,8 @@ ACMD(do_detach)
   char_data *victim = NULL;
   obj_data *object = NULL;
   struct room_data *room;
-  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, arg3[MAX_INPUT_LENGTH] = {'\0'};
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'},
+       arg3[MAX_INPUT_LENGTH] = {'\0'};
   char *trigger = 0;
   int num_arg;
 
@@ -1411,7 +1371,8 @@ ACMD(do_detach)
       }
 
       if (!SCRIPT(victim))
-        send_to_char(ch, "That %s doesn't have any triggers.\r\n", IS_NPC(victim) ? "mob" : "player");
+        send_to_char(ch, "That %s doesn't have any triggers.\r\n",
+                     IS_NPC(victim) ? "mob" : "player");
       else if (!can_edit_zone(ch, real_zone_by_thing(GET_MOB_VNUM(victim))) && IS_NPC(victim))
       {
         send_to_char(ch, "You can only detach triggers in your own zone\r\n");
@@ -1420,7 +1381,8 @@ ACMD(do_detach)
       else if (trigger && !str_cmp(trigger, "all"))
       {
         extract_script(victim, MOB_TRIGGER);
-        send_to_char(ch, "All triggers removed from %s.\r\n", IS_NPC(victim) ? GET_SHORT(victim) : GET_NAME(victim));
+        send_to_char(ch, "All triggers removed from %s.\r\n",
+                     IS_NPC(victim) ? GET_SHORT(victim) : GET_NAME(victim));
       }
       else if (trigger && remove_trigger(SCRIPT(victim), trigger))
       {
@@ -1485,10 +1447,12 @@ void script_vlog(const char *format, va_list args)
       continue;
     if (PLR_FLAGGED(i->character, PLR_WRITING))
       continue;
-    if (NRM > (PRF_FLAGGED(i->character, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(i->character, PRF_LOG2) ? 2 : 0))
+    if (NRM > (PRF_FLAGGED(i->character, PRF_LOG1) ? 1 : 0) +
+                  (PRF_FLAGGED(i->character, PRF_LOG2) ? 2 : 0))
       continue;
 
-    send_to_char(i->character, "%s[ %s ]%s\r\n", CCGRN(i->character, C_NRM), output, CCNRM(i->character, C_NRM));
+    send_to_char(i->character, "%s[ %s ]%s\r\n", CCGRN(i->character, C_NRM), output,
+                 CCNRM(i->character, C_NRM));
   }
 }
 
@@ -1659,8 +1623,8 @@ static char *matching_paren(char *p)
 }
 
 /* evaluates line, and returns answer in result */
-static void eval_expr(char *line, char *result, void *go, struct script_data *sc,
-                      trig_data *trig, int type)
+static void eval_expr(char *line, char *result, void *go, struct script_data *sc, trig_data *trig,
+                      int type)
 {
   char expr[MAX_INPUT_LENGTH] = {'\0'}, *p;
 
@@ -1677,7 +1641,8 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);
   }
-  else {
+  else
+  {
     var_subst(go, sc, trig, type, line, result);
   }
 }
@@ -1698,22 +1663,8 @@ static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_dat
    * valid operands, in order of priority
    * each must also be defined in eval_op()
    */
-  const char *const ops[] = {
-      "||",
-      "&&",
-      "==",
-      "!=",
-      "<=",
-      ">=",
-      "<",
-      ">",
-      "/=",
-      "-",
-      "+",
-      "/",
-      "*",
-      "!",
-      "\n"};
+  const char *const ops[] = {"||", "&&", "==", "!=", "<=", ">=", "<", ">",
+                             "/=", "-",  "+",  "/",  "*",  "!",  "\n"};
 
   p = strcpy(line, expr);
 
@@ -1752,8 +1703,7 @@ static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_dat
 }
 
 /* returns 1 if cond is true, else 0 */
-static int process_if(char *cond, void *go, struct script_data *sc,
-                      trig_data *trig, int type)
+static int process_if(char *cond, void *go, struct script_data *sc, trig_data *trig, int type)
 {
   char result[MAX_INPUT_LENGTH] = {'\0'}, *p = NULL;
 
@@ -1806,8 +1756,8 @@ static struct cmdlist_element *find_end(trig_data *trig, struct cmdlist_element 
 
 /* Searches for valid elseif, else, or end to continue execution at. Returns
  * line of elseif, else, or end if found, or last line of trigger. */
-static struct cmdlist_element *find_else_end(trig_data *trig,
-                                             struct cmdlist_element *cl, void *go, struct script_data *sc, int type)
+static struct cmdlist_element *find_else_end(trig_data *trig, struct cmdlist_element *cl, void *go,
+                                             struct script_data *sc, int type)
 {
   struct cmdlist_element *c;
   char *p;
@@ -1875,20 +1825,20 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
 
   if (!*arg)
   {
-    script_log("Trigger: %s, VNum %d. wait w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cl->cmd);
+    script_log("Trigger: %s, VNum %d. wait w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cl->cmd);
     return;
   }
 
   if (!strn_cmp(arg, "until ", 6))
   {
-
     /* valid forms of time are 14:30 and 1430 */
     if (sscanf(arg, "until %ld:%ld", &hr, &min) == 2)
       min += (hr * 60);
     else if (sscanf(arg, "until %ld", &hr) == 1)
       min = (hr % 100) + ((hr / 100) * 60);
-    else {
+    else
+    {
       script_log("Trigger: %s, VNum %d. wait until with invalid time format: '%s'",
                  GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), arg);
       return;
@@ -1937,8 +1887,8 @@ static void process_set(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*name)
   {
-    script_log("Trigger: %s, VNum %d. set w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. set w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -1946,8 +1896,7 @@ static void process_set(struct script_data *sc, trig_data *trig, char *cmd)
 }
 
 /* processes a script eval command */
-void process_eval(void *go, struct script_data *sc, trig_data *trig,
-                  int type, char *cmd)
+void process_eval(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
   char result[MAX_INPUT_LENGTH] = {'\0'}, *expr;
@@ -1959,19 +1908,18 @@ void process_eval(void *go, struct script_data *sc, trig_data *trig,
 
   if (!*name)
   {
-    script_log("Trigger: %s, VNum %d. eval w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. eval w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
-  
+
   eval_expr(expr, result, go, sc, trig, type);
   add_var(&GET_TRIG_VARS(trig), name, result, sc ? sc->context : 0);
 }
 
 /* script attaching a trigger to something */
-static void process_attach(void *go, struct script_data *sc, trig_data *trig,
-                           int type, char *cmd)
+static void process_attach(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'}, trignum_s[MAX_INPUT_LENGTH] = {'\0'};
   char result[MAX_INPUT_LENGTH] = {'\0'}, *id_p;
@@ -1986,15 +1934,15 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
 
   if (!*trignum_s)
   {
-    script_log("Trigger: %s, VNum %d. attach w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. attach w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
   if (!id_p || !*id_p || atoi(id_p) == 0)
   {
-    script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2002,8 +1950,8 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
   eval_expr(id_p, result, go, sc, trig, type);
   if (!(id = atoi(result)))
   {
-    script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
   c = find_char(id);
@@ -2015,8 +1963,8 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
       r = find_room(id);
       if (!r)
       {
-        script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'",
-                   GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+        script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+                   GET_TRIG_VNUM(trig), cmd);
         return;
       }
     }
@@ -2026,8 +1974,8 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
   trignum = real_trigger(atoi(trignum_s));
   if (trignum == NOTHING || !(newtrig = read_trigger(trignum)))
   {
-    script_log("Trigger: %s, VNum %d. attach invalid trigger: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), trignum_s);
+    script_log("Trigger: %s, VNum %d. attach invalid trigger: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), trignum_s);
     return;
   }
 
@@ -2035,8 +1983,8 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
   {
     if (!IS_NPC(c) && !CONFIG_SCRIPT_PLAYERS)
     {
-      script_log("Trigger: %s, VNum %d. attach invalid target: '%s'",
-                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), GET_NAME(c));
+      script_log("Trigger: %s, VNum %d. attach invalid target: '%s'", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig), GET_NAME(c));
       return;
     }
     if (!SCRIPT(c))
@@ -2063,8 +2011,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
 }
 
 /* script detaching a trigger from something */
-static void process_detach(void *go, struct script_data *sc, trig_data *trig,
-                           int type, char *cmd)
+static void process_detach(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'}, trignum_s[MAX_INPUT_LENGTH] = {'\0'};
   char result[MAX_INPUT_LENGTH] = {'\0'}, *id_p = NULL;
@@ -2079,15 +2026,15 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
 
   if (!*trignum_s)
   {
-    script_log("Trigger: %s, VNum %d. detach w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. detach w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
   if (!id_p || !*id_p || atoi(id_p) == 0)
   {
-    script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2095,8 +2042,8 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
   eval_expr(id_p, result, go, sc, trig, type);
   if (!(id = atoi(result)))
   {
-    script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
   c = find_char(id);
@@ -2108,8 +2055,8 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
       r = find_room(id);
       if (!r)
       {
-        script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'",
-                   GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+        script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+                   GET_TRIG_VNUM(trig), cmd);
         return;
       }
     }
@@ -2122,7 +2069,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     {
       detaching_self = 1;
     }
-    
+
     if (!strcmp(trignum_s, "all"))
     {
       if (detaching_self)
@@ -2153,7 +2100,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     {
       detaching_self = 1;
     }
-    
+
     if (!strcmp(trignum_s, "all"))
     {
       if (detaching_self)
@@ -2184,7 +2131,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     {
       detaching_self = 1;
     }
-    
+
     if (!strcmp(trignum_s, "all"))
     {
       if (detaching_self)
@@ -2223,8 +2170,7 @@ struct room_data *dg_room_of_obj(struct obj_data *obj)
 }
 
 /* create a UID variable from the id number */
-static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
-                        int type, char *cmd)
+static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd)
 {
   char junk[MAX_INPUT_LENGTH] = {'\0'}, varname[MAX_INPUT_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
@@ -2238,16 +2184,16 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
 
   if (!*varname)
   {
-    script_log("Trigger: %s, VNum %d. makeuid w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. makeuid w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
 
     return;
   }
 
   if (!*arg)
   {
-    script_log("Trigger: %s, VNum %d. makeuid invalid id arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. makeuid invalid id arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2262,8 +2208,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
   { /* a lot more work without it */
     if (!*name)
     {
-      script_log("Trigger: %s, VNum %d. makeuid needs name: '%s'",
-                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+      script_log("Trigger: %s, VNum %d. makeuid needs name: '%s'", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig), cmd);
       return;
     }
 
@@ -2326,8 +2272,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
     }
     else
     {
-      script_log("Trigger: %s, VNum %d. makeuid syntax error: '%s'",
-                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+      script_log("Trigger: %s, VNum %d. makeuid syntax error: '%s'", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig), cmd);
 
       return;
     }
@@ -2346,8 +2292,8 @@ static int process_return(trig_data *trig, char *cmd)
 
   if (!*arg2)
   {
-    script_log("Trigger: %s, VNum %d. return w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. return w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
 
     return 1;
   }
@@ -2367,8 +2313,8 @@ static void process_unset(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*var)
   {
-    script_log("Trigger: %s, VNum %d. unset w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. unset w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2383,7 +2329,8 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
   struct trig_var_data *vd;
   struct script_data *sc_remote = NULL;
   char *line, *var, *uid_p;
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'},
+       buf2[MAX_INPUT_LENGTH] = {'\0'};
   long uid, context;
   room_data *room;
   char_data *mob;
@@ -2398,8 +2345,8 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*buf || !*buf2)
   {
-    script_log("Trigger: %s, VNum %d. remote: invalid arguments '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. remote: invalid arguments '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2410,22 +2357,21 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!vd)
     for (vd = sc->global_vars; vd; vd = vd->next)
-      if (!str_cmp(vd->name, var) &&
-          (vd->context == 0 || vd->context == sc->context))
+      if (!str_cmp(vd->name, var) && (vd->context == 0 || vd->context == sc->context))
         break;
 
   if (!vd)
   {
-    script_log("Trigger: %s, VNum %d. local var '%s' not found in remote call",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), buf);
+    script_log("Trigger: %s, VNum %d. local var '%s' not found in remote call", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), buf);
     return;
   }
   /* find the target script from the uid number */
   uid = atoi(buf2);
   if (uid <= 0)
   {
-    script_log("Trigger: %s, VNum %d. remote: illegal uid '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), buf2);
+    script_log("Trigger: %s, VNum %d. remote: illegal uid '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), buf2);
     return;
   }
 
@@ -2447,8 +2393,8 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
   }
   else
   {
-    script_log("Trigger: %s, VNum %d. remote: uid '%ld' invalid",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), uid);
+    script_log("Trigger: %s, VNum %d. remote: uid '%ld' invalid", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), uid);
     return;
   }
 
@@ -2588,7 +2534,8 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   struct trig_var_data *vd, *vd_prev = NULL;
   struct script_data *sc_remote = NULL;
   char *line, *var, *uid_p;
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
+       buf2[MAX_STRING_LENGTH] = {'\0'};
   long uid;
   room_data *room;
   char_data *mob;
@@ -2603,8 +2550,8 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*buf || !*buf2)
   {
-    script_log("Trigger: %s, VNum %d. rdelete: invalid arguments '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. rdelete: invalid arguments '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2612,8 +2559,8 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   uid = atoi(buf2);
   if (uid <= 0)
   {
-    script_log("Trigger: %s, VNum %d. rdelete: illegal uid '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), buf2);
+    script_log("Trigger: %s, VNum %d. rdelete: illegal uid '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), buf2);
     return;
   }
 
@@ -2631,8 +2578,8 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   }
   else
   {
-    script_log("Trigger: %s, VNum %d. remote: uid '%ld' invalid",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), uid);
+    script_log("Trigger: %s, VNum %d. remote: uid '%ld' invalid", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), uid);
     return;
   }
 
@@ -2643,8 +2590,7 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
 
   /* find the global */
   for (vd = sc_remote->global_vars; vd; vd_prev = vd, vd = vd->next)
-    if (!str_cmp(vd->name, var) &&
-        (vd->context == 0 || vd->context == sc->context))
+    if (!str_cmp(vd->name, var) && (vd->context == 0 || vd->context == sc->context))
       break;
 
   if (!vd)
@@ -2674,8 +2620,8 @@ static void process_global(struct script_data *sc, trig_data *trig, char *cmd, l
 
   if (!*var)
   {
-    script_log("Trigger: %s, VNum %d. global w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. global w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2685,8 +2631,8 @@ static void process_global(struct script_data *sc, trig_data *trig, char *cmd, l
 
   if (!vd)
   {
-    script_log("Trigger: %s, VNum %d. local var '%s' not found in global call",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), var);
+    script_log("Trigger: %s, VNum %d. local var '%s' not found in global call", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), var);
     return;
   }
 
@@ -2705,8 +2651,8 @@ static void process_context(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*var)
   {
-    script_log("Trigger: %s, VNum %d. context w/o an arg: '%s'",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %d. context w/o an arg: '%s'", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2811,130 +2757,168 @@ int script_driver(struct script_call_args *args)
   struct cmdlist_element *temp = NULL;
   unsigned long loops = 0;
   void *go = NULL;
-  
+
   /* Extract parameters from the args struct to avoid stack corruption */
   void *go_adress = args->go_adress;
   trig_data *trig = args->trig;
   int type = args->type;
   int mode = args->mode;
-  
+
   /* CRITICAL VALIDATION: Detect when triggers are attached to wrong entity types
    * This prevents hours of debugging wild goose chases!
    * Example: Object trigger 7705 was attached to room 7771, causing it to be
    * called with WLD_TRIGGER type instead of OBJ_TRIGGER, making %self.room% fail */
-  if (trig) {
+  if (trig)
+  {
     int expected_type = -1;
-    
+
     /* Determine what type this trigger SHOULD be based on its flags */
-    if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER | 
-                                OTRIG_GET | OTRIG_DROP | OTRIG_GIVE | OTRIG_WEAR | 
-                                OTRIG_REMOVE | OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | 
-                                OTRIG_CONSUME | OTRIG_TIME)) {
+    if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER |
+                               OTRIG_GET | OTRIG_DROP | OTRIG_GIVE | OTRIG_WEAR | OTRIG_REMOVE |
+                               OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | OTRIG_CONSUME | OTRIG_TIME))
+    {
       expected_type = OBJ_TRIGGER;
-    } else if (GET_TRIG_TYPE(trig) & (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | 
-                                       MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH | 
-                                       MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | 
-                                       MTRIG_RECEIVE | MTRIG_FIGHT | MTRIG_HITPRCNT | 
-                                       MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | 
-                                       MTRIG_CAST | MTRIG_LEAVE | MTRIG_DOOR | MTRIG_TIME)) {
+    }
+    else if (GET_TRIG_TYPE(trig) &
+             (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH |
+              MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | MTRIG_RECEIVE | MTRIG_FIGHT |
+              MTRIG_HITPRCNT | MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | MTRIG_CAST | MTRIG_LEAVE |
+              MTRIG_DOOR | MTRIG_TIME))
+    {
       expected_type = MOB_TRIGGER;
-    } else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | 
-                                       WTRIG_SPEECH | WTRIG_RESET | WTRIG_ENTER | 
-                                       WTRIG_DROP | WTRIG_CAST | WTRIG_LEAVE | 
-                                       WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN)) {
+    }
+    else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | WTRIG_SPEECH |
+                                    WTRIG_RESET | WTRIG_ENTER | WTRIG_DROP | WTRIG_CAST |
+                                    WTRIG_LEAVE | WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN))
+    {
       expected_type = WLD_TRIGGER;
     }
-    
+
     /* Check for type mismatch - this is a CRITICAL configuration error */
-    if (expected_type != -1 && expected_type != type) {
+    if (expected_type != -1 && expected_type != type)
+    {
 #ifdef SCRIPT_DEBUG
       const char *expected_type_name = "UNKNOWN";
       const char *actual_type_name = "UNKNOWN";
-      
+
       /* Set expected type name */
-      switch (expected_type) {
-        case MOB_TRIGGER: expected_type_name = "MOB_TRIGGER"; break;
-        case OBJ_TRIGGER: expected_type_name = "OBJ_TRIGGER"; break;
-        case WLD_TRIGGER: expected_type_name = "WLD_TRIGGER"; break;
+      switch (expected_type)
+      {
+      case MOB_TRIGGER:
+        expected_type_name = "MOB_TRIGGER";
+        break;
+      case OBJ_TRIGGER:
+        expected_type_name = "OBJ_TRIGGER";
+        break;
+      case WLD_TRIGGER:
+        expected_type_name = "WLD_TRIGGER";
+        break;
       }
-      
+
       /* Get actual type name for error message */
-      switch (type) {
-        case MOB_TRIGGER: actual_type_name = "MOB_TRIGGER"; break;
-        case OBJ_TRIGGER: actual_type_name = "OBJ_TRIGGER"; break;
-        case WLD_TRIGGER: actual_type_name = "WLD_TRIGGER"; break;
+      switch (type)
+      {
+      case MOB_TRIGGER:
+        actual_type_name = "MOB_TRIGGER";
+        break;
+      case OBJ_TRIGGER:
+        actual_type_name = "OBJ_TRIGGER";
+        break;
+      case WLD_TRIGGER:
+        actual_type_name = "WLD_TRIGGER";
+        break;
       }
-      
+
       script_log("CRITICAL ERROR: Trigger %d (%s) is a %s trigger but is being called as %s!",
                  GET_TRIG_VNUM(trig), GET_TRIG_NAME(trig), expected_type_name, actual_type_name);
       script_log("  This usually means the trigger is attached to the wrong entity type.");
-      script_log("  Check: grep '#%d' lib/world/*/*.* to find where it's attached.", GET_TRIG_VNUM(trig));
-      
+      script_log("  Check: grep '#%d' lib/world/*/*.* to find where it's attached.",
+                 GET_TRIG_VNUM(trig));
+
       /* Determine what entity it's wrongly attached to */
-      if (type == WLD_TRIGGER && expected_type == OBJ_TRIGGER) {
+      if (type == WLD_TRIGGER && expected_type == OBJ_TRIGGER)
+      {
         struct room_data *room = (struct room_data *)go_adress;
-        script_log("  Object trigger %d is incorrectly attached to room %d", 
-                   GET_TRIG_VNUM(trig), room ? room->number : -1);
+        script_log("  Object trigger %d is incorrectly attached to room %d", GET_TRIG_VNUM(trig),
+                   room ? room->number : -1);
         script_log("  FIX: Remove 'T %d' from room definition in world files", GET_TRIG_VNUM(trig));
-      } else if (type == WLD_TRIGGER && expected_type == MOB_TRIGGER) {
+      }
+      else if (type == WLD_TRIGGER && expected_type == MOB_TRIGGER)
+      {
         struct room_data *room = (struct room_data *)go_adress;
-        script_log("  Mob trigger %d is incorrectly attached to room %d", 
-                   GET_TRIG_VNUM(trig), room ? room->number : -1);
+        script_log("  Mob trigger %d is incorrectly attached to room %d", GET_TRIG_VNUM(trig),
+                   room ? room->number : -1);
         script_log("  FIX: Remove 'T %d' from room definition in world files", GET_TRIG_VNUM(trig));
-      } else if (type == OBJ_TRIGGER && expected_type == WLD_TRIGGER) {
+      }
+      else if (type == OBJ_TRIGGER && expected_type == WLD_TRIGGER)
+      {
         script_log("  Room trigger %d is incorrectly attached to an object", GET_TRIG_VNUM(trig));
-        script_log("  FIX: Remove 'T %d' from object definition in world files", GET_TRIG_VNUM(trig));
-      } else if (type == OBJ_TRIGGER && expected_type == MOB_TRIGGER) {
+        script_log("  FIX: Remove 'T %d' from object definition in world files",
+                   GET_TRIG_VNUM(trig));
+      }
+      else if (type == OBJ_TRIGGER && expected_type == MOB_TRIGGER)
+      {
         script_log("  Mob trigger %d is incorrectly attached to an object", GET_TRIG_VNUM(trig));
-        script_log("  FIX: Remove 'T %d' from object definition in world files", GET_TRIG_VNUM(trig));
-      } else if (type == MOB_TRIGGER && expected_type == OBJ_TRIGGER) {
+        script_log("  FIX: Remove 'T %d' from object definition in world files",
+                   GET_TRIG_VNUM(trig));
+      }
+      else if (type == MOB_TRIGGER && expected_type == OBJ_TRIGGER)
+      {
         script_log("  Object trigger %d is incorrectly attached to a mob", GET_TRIG_VNUM(trig));
         script_log("  FIX: Remove 'T %d' from mob definition in world files", GET_TRIG_VNUM(trig));
-      } else if (type == MOB_TRIGGER && expected_type == WLD_TRIGGER) {
+      }
+      else if (type == MOB_TRIGGER && expected_type == WLD_TRIGGER)
+      {
         script_log("  Room trigger %d is incorrectly attached to a mob", GET_TRIG_VNUM(trig));
         script_log("  FIX: Remove 'T %d' from mob definition in world files", GET_TRIG_VNUM(trig));
       }
-      
+
       /* Don't execute the trigger - it will likely fail with confusing errors */
       script_log("  ABORTING trigger execution to prevent cascade errors.");
       return 0;
 #endif
     }
   }
-  
+
   /* General debug logging for parameter corruption investigation */
 #ifdef SCRIPT_DEBUG
-  if (trig) {
+  if (trig)
+  {
     script_log("SCRIPT_DEBUG %d: script_driver START - args struct received", GET_TRIG_VNUM(trig));
-    script_log("SCRIPT_DEBUG %d: args ptr=%p, args->type=%d, args->go_adress=%p, args->trig=%p, args->mode=%d",
-               GET_TRIG_VNUM(trig), (void*)args, args->type, args->go_adress, args->trig, args->mode);
+    script_log("SCRIPT_DEBUG %d: args ptr=%p, args->type=%d, args->go_adress=%p, args->trig=%p, "
+               "args->mode=%d",
+               GET_TRIG_VNUM(trig), (void *)args, args->type, args->go_adress, args->trig,
+               args->mode);
     script_log("SCRIPT_DEBUG %d: extracted values - type=%d, go_adress=%p, trig=%p, mode=%d",
-               GET_TRIG_VNUM(trig), type, go_adress, (void*)trig, mode);
-    script_log("SCRIPT_DEBUG %d: Constants - MOB=%d, OBJ=%d, WLD=%d",
-               GET_TRIG_VNUM(trig), MOB_TRIGGER, OBJ_TRIGGER, WLD_TRIGGER);
-    
+               GET_TRIG_VNUM(trig), type, go_adress, (void *)trig, mode);
+    script_log("SCRIPT_DEBUG %d: Constants - MOB=%d, OBJ=%d, WLD=%d", GET_TRIG_VNUM(trig),
+               MOB_TRIGGER, OBJ_TRIGGER, WLD_TRIGGER);
+
     /* Check if type matches what we'd expect from trigger flags */
     int expected_type = -1;
-    if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER | 
-                                OTRIG_GET | OTRIG_DROP | OTRIG_GIVE | OTRIG_WEAR | 
-                                OTRIG_REMOVE | OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | 
-                                OTRIG_CONSUME | OTRIG_TIME)) {
+    if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER |
+                               OTRIG_GET | OTRIG_DROP | OTRIG_GIVE | OTRIG_WEAR | OTRIG_REMOVE |
+                               OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | OTRIG_CONSUME | OTRIG_TIME))
+    {
       expected_type = OBJ_TRIGGER;
-    } else if (GET_TRIG_TYPE(trig) & (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | 
-                                       MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH | 
-                                       MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | 
-                                       MTRIG_RECEIVE | MTRIG_FIGHT | MTRIG_HITPRCNT | 
-                                       MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | 
-                                       MTRIG_CAST | MTRIG_LEAVE | MTRIG_DOOR | MTRIG_TIME)) {
+    }
+    else if (GET_TRIG_TYPE(trig) &
+             (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH |
+              MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | MTRIG_RECEIVE | MTRIG_FIGHT |
+              MTRIG_HITPRCNT | MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | MTRIG_CAST | MTRIG_LEAVE |
+              MTRIG_DOOR | MTRIG_TIME))
+    {
       expected_type = MOB_TRIGGER;
-    } else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | 
-                                       WTRIG_SPEECH | WTRIG_RESET | WTRIG_ENTER | 
-                                       WTRIG_DROP | WTRIG_CAST | WTRIG_LEAVE | 
-                                       WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN)) {
+    }
+    else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | WTRIG_SPEECH |
+                                    WTRIG_RESET | WTRIG_ENTER | WTRIG_DROP | WTRIG_CAST |
+                                    WTRIG_LEAVE | WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN))
+    {
       expected_type = WLD_TRIGGER;
     }
-    
-    if (expected_type != -1 && expected_type != type) {
+
+    if (expected_type != -1 && expected_type != type)
+    {
       script_log("WARNING %d: Type mismatch! Received type=%d but trigger flags suggest type=%d",
                  GET_TRIG_VNUM(trig), type, expected_type);
     }
@@ -2946,76 +2930,74 @@ int script_driver(struct script_call_args *args)
 
   /* Debug for DG script parameter corruption issues - enable with SCRIPT_DEBUG */
 #ifdef SCRIPT_DEBUG
-  if (trig) {
+  if (trig)
+  {
     script_log("SCRIPT_DEBUG %d: script_driver entry - go_adress=%p, trig=%p, type=%d, mode=%d",
-               GET_TRIG_VNUM(trig), go_adress, (void*)trig, type, mode);
+               GET_TRIG_VNUM(trig), go_adress, (void *)trig, type, mode);
     script_log("SCRIPT_DEBUG %d: Constants - MOB=%d OBJ=%d WLD=%d, TRIG_NEW=%d TRIG_RESTART=%d",
                GET_TRIG_VNUM(trig), MOB_TRIGGER, OBJ_TRIGGER, WLD_TRIGGER, TRIG_NEW, TRIG_RESTART);
   }
 #endif
 
-  
+
   /* IMPORTANT: Type validation must happen BEFORE we use type to extract pointers
    * The type parameter corruption issue means we can't trust the incoming type value.
    * We must validate and correct it before using it to interpret go_adress. */
-  
-  /* First, let's handle the default case where type is completely invalid 
-   * Note: MOB_TRIGGER=0, OBJ_TRIGGER=1, WLD_TRIGGER=2 
+
+  /* First, let's handle the default case where type is completely invalid
+   * Note: MOB_TRIGGER=0, OBJ_TRIGGER=1, WLD_TRIGGER=2
    * So we need to check if type is outside the valid range */
-  if (type < MOB_TRIGGER || type > WLD_TRIGGER) {
+  if (type < MOB_TRIGGER || type > WLD_TRIGGER)
+  {
     script_log("CRITICAL: Invalid trigger type %d received for trigger %d. Attempting recovery.",
                type, trig ? GET_TRIG_VNUM(trig) : -1);
-    
-    /* Try to determine correct type from trigger flags 
+
+    /* Try to determine correct type from trigger flags
      * We only try to recover if we have a clear indication of what type it should be */
-    if (trig) {
+    if (trig)
+    {
       /* Check for OBJECT trigger flags - these are unique to objects */
-      if ((GET_TRIG_TYPE(trig) & OTRIG_TIMER) ||
-          (GET_TRIG_TYPE(trig) & OTRIG_GET) ||
-          (GET_TRIG_TYPE(trig) & OTRIG_DROP) ||
-          (GET_TRIG_TYPE(trig) & OTRIG_GIVE) ||
-          (GET_TRIG_TYPE(trig) & OTRIG_WEAR) ||
-          (GET_TRIG_TYPE(trig) & OTRIG_REMOVE) ||
-          (GET_TRIG_TYPE(trig) & OTRIG_CONSUME)) {
+      if ((GET_TRIG_TYPE(trig) & OTRIG_TIMER) || (GET_TRIG_TYPE(trig) & OTRIG_GET) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_DROP) || (GET_TRIG_TYPE(trig) & OTRIG_GIVE) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_WEAR) || (GET_TRIG_TYPE(trig) & OTRIG_REMOVE) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_CONSUME))
+      {
         script_log("RECOVERY: Detected unique object trigger flags, setting type to OBJ_TRIGGER");
         type = OBJ_TRIGGER;
       }
       /* Check for MOB trigger flags - these are unique to mobs */
-      else if ((GET_TRIG_TYPE(trig) & MTRIG_SPEECH) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_ACT) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_DEATH) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_GREET) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_GREET_ALL) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_ENTRY) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_RECEIVE) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_FIGHT) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_HITPRCNT) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_BRIBE) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_MEMORY) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_DOOR)) {
+      else if ((GET_TRIG_TYPE(trig) & MTRIG_SPEECH) || (GET_TRIG_TYPE(trig) & MTRIG_ACT) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_DEATH) || (GET_TRIG_TYPE(trig) & MTRIG_GREET) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_GREET_ALL) || (GET_TRIG_TYPE(trig) & MTRIG_ENTRY) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_RECEIVE) || (GET_TRIG_TYPE(trig) & MTRIG_FIGHT) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_HITPRCNT) || (GET_TRIG_TYPE(trig) & MTRIG_BRIBE) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_MEMORY) || (GET_TRIG_TYPE(trig) & MTRIG_DOOR))
+      {
         script_log("RECOVERY: Detected unique mob trigger flags, setting type to MOB_TRIGGER");
         type = MOB_TRIGGER;
       }
       /* Check for WORLD trigger flags - these are unique to rooms */
-      else if ((GET_TRIG_TYPE(trig) & WTRIG_RESET) ||
-               (GET_TRIG_TYPE(trig) & WTRIG_ENTER) ||
-               (GET_TRIG_TYPE(trig) & WTRIG_LOGIN)) {
+      else if ((GET_TRIG_TYPE(trig) & WTRIG_RESET) || (GET_TRIG_TYPE(trig) & WTRIG_ENTER) ||
+               (GET_TRIG_TYPE(trig) & WTRIG_LOGIN))
+      {
         script_log("RECOVERY: Detected unique world trigger flags, setting type to WLD_TRIGGER");
         type = WLD_TRIGGER;
       }
-      else {
-        script_log("FATAL: Cannot determine trigger type from flags for trigger %d (flags=%ld)", 
+      else
+      {
+        script_log("FATAL: Cannot determine trigger type from flags for trigger %d (flags=%ld)",
                    GET_TRIG_VNUM(trig), GET_TRIG_TYPE(trig));
         return 0;
       }
     }
-    else {
+    else
+    {
       script_log("FATAL: Cannot recover type without trigger data");
       return 0;
     }
   }
-  
-  
+
+
   /* NOW we can safely use the corrected type to extract pointers */
   switch (type)
   {
@@ -3032,32 +3014,38 @@ int script_driver(struct script_call_args *args)
     sc = SCRIPT((room_data *)go);
     break;
   default:
-    script_log("FATAL: Invalid type %d after validation for trigger %d", 
-               type, trig ? GET_TRIG_VNUM(trig) : -1);
+    script_log("FATAL: Invalid type %d after validation for trigger %d", type,
+               trig ? GET_TRIG_VNUM(trig) : -1);
     return 0;
   }
 
   /* Safety check: ensure we have a valid script after extracting pointers */
-  if (!sc) {
-    script_log("ERROR: Script is NULL for trigger %d after type correction (type=%d, go=%p). Cannot execute.",
+  if (!sc)
+  {
+    script_log("ERROR: Script is NULL for trigger %d after type correction (type=%d, go=%p). "
+               "Cannot execute.",
                trig ? GET_TRIG_VNUM(trig) : -1, type, go);
     /* Additional debug to understand why sc is NULL */
-    if (go) {
-      switch (type) {
+    if (go)
+    {
+      switch (type)
+      {
       case MOB_TRIGGER:
-        script_log("  MOB details: name='%s', vnum=%d", 
-                   GET_NAME((char_data *)go), GET_MOB_VNUM((char_data *)go));
+        script_log("  MOB details: name='%s', vnum=%d", GET_NAME((char_data *)go),
+                   GET_MOB_VNUM((char_data *)go));
         break;
       case OBJ_TRIGGER:
-        script_log("  OBJ details: name='%s', vnum=%d", 
-                   ((obj_data *)go)->short_description, GET_OBJ_VNUM((obj_data *)go));
+        script_log("  OBJ details: name='%s', vnum=%d", ((obj_data *)go)->short_description,
+                   GET_OBJ_VNUM((obj_data *)go));
         break;
       case WLD_TRIGGER:
-        script_log("  ROOM details: name='%s', vnum=%d", 
-                   ((room_data *)go)->name, ((room_data *)go)->number);
+        script_log("  ROOM details: name='%s', vnum=%d", ((room_data *)go)->name,
+                   ((room_data *)go)->number);
         break;
       }
-    } else {
+    }
+    else
+    {
       script_log("  go pointer is also NULL!");
     }
     return 0;
@@ -3069,16 +3057,15 @@ int script_driver(struct script_call_args *args)
     switch (type)
     {
     case MOB_TRIGGER:
-      script_log("It was attached to %s [%d]",
-                 GET_NAME((char_data *)go), GET_MOB_VNUM((char_data *)go));
+      script_log("It was attached to %s [%d]", GET_NAME((char_data *)go),
+                 GET_MOB_VNUM((char_data *)go));
       break;
     case OBJ_TRIGGER:
-      script_log("It was attached to %s [%d]",
-                 ((obj_data *)go)->short_description, GET_OBJ_VNUM((obj_data *)go));
+      script_log("It was attached to %s [%d]", ((obj_data *)go)->short_description,
+                 GET_OBJ_VNUM((obj_data *)go));
       break;
     case WLD_TRIGGER:
-      script_log("It was attached to %s [%d]",
-                 ((room_data *)go)->name, ((room_data *)go)->number);
+      script_log("It was attached to %s [%d]", ((room_data *)go)->name, ((room_data *)go)->number);
       break;
     }
 
@@ -3119,14 +3106,12 @@ int script_driver(struct script_call_args *args)
       ++;
       else cl = find_else_end(trig, cl, go, sc, type);
     }
-    else if (!strn_cmp("elseif ", p, 7) ||
-             !strn_cmp("else", p, 4))
+    else if (!strn_cmp("elseif ", p, 7) || !strn_cmp("else", p, 4))
     {
       /* If not in an if-block, ignore the extra 'else[if]' and warn about it. */
       if (GET_TRIG_DEPTH(trig) == 1)
       {
-        script_log("Trigger VNum %d has 'else' without 'if'.",
-                   GET_TRIG_VNUM(trig));
+        script_log("Trigger VNum %d has 'else' without 'if'.", GET_TRIG_VNUM(trig));
         continue;
       }
       cl = find_end(trig, cl);
@@ -3138,8 +3123,7 @@ int script_driver(struct script_call_args *args)
       temp = find_done(cl);
       if (!temp)
       {
-        script_log("Trigger VNum %d has 'while' without 'done'.",
-                   GET_TRIG_VNUM(trig));
+        script_log("Trigger VNum %d has 'while' without 'done'.", GET_TRIG_VNUM(trig));
         return ret_val;
       }
       if (process_if(p + 6, go, sc, trig, type))
@@ -3161,8 +3145,7 @@ int script_driver(struct script_call_args *args)
       /* If not in an if-block, ignore the extra 'end' and warn about it. */
       if (GET_TRIG_DEPTH(trig) == 1)
       {
-        script_log("Trigger VNum %d has 'end' without 'if'.",
-                   GET_TRIG_VNUM(trig));
+        script_log("Trigger VNum %d has 'end' without 'if'.", GET_TRIG_VNUM(trig));
         continue;
       }
       GET_TRIG_DEPTH(trig)
@@ -3176,8 +3159,7 @@ int script_driver(struct script_call_args *args)
         char *orig_cmd = cl->original->cmd;
         while (*orig_cmd && isspace(*orig_cmd))
           orig_cmd++;
-        if (cl->original && process_if(orig_cmd + 6, go, sc, trig,
-                                       type))
+        if (cl->original && process_if(orig_cmd + 6, go, sc, trig, type))
         {
           cl = cl->original;
           loops++;
@@ -3191,8 +3173,7 @@ int script_driver(struct script_call_args *args)
           }
           if (GET_TRIG_LOOPS(trig) >= 100)
           {
-            script_log("Trigger VNum %d has looped 100 times!!!",
-                       GET_TRIG_VNUM(trig));
+            script_log("Trigger VNum %d has looped 100 times!!!", GET_TRIG_VNUM(trig));
             break;
           }
         }
@@ -3214,7 +3195,8 @@ int script_driver(struct script_call_args *args)
     {
       var_subst(go, sc, trig, type, p, cmd);
 
-      if (!strn_cmp(cmd, "eval ", 5)) {
+      if (!strn_cmp(cmd, "eval ", 5))
+      {
         process_eval(go, sc, trig, type, cmd);
       }
 
@@ -3380,9 +3362,8 @@ ACMDU(do_tstat)
 
 /* Scans for a case/default instance. Returns the line containg the correct
  * case instance, or the last line of the trigger if not found. */
-static struct cmdlist_element *
-find_case(struct trig_data *trig, struct cmdlist_element *cl,
-          void *go, struct script_data *sc, int type, char *cond)
+static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_element *cl,
+                                         void *go, struct script_data *sc, int type, char *cond)
 {
   char result[MAX_INPUT_LENGTH] = {'\0'};
   struct cmdlist_element *c;
@@ -3524,8 +3505,7 @@ void save_char_vars(struct char_data *ch)
   file = fopen(fn, "wt");
   if (!file)
   {
-    mudlog(NRM, LVL_STAFF, TRUE,
-           "SYSERR: Could not open player variable file %s for writing.:%s",
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Could not open player variable file %s for writing.:%s",
            fn, strerror(errno));
     return;
   }
@@ -3640,7 +3620,7 @@ void cleanup_lookup_table(void)
 {
   int i;
   struct lookup_table_t *lt, *next;
-  
+
   for (i = 0; i < BUCKET_COUNT; i++)
   {
     /* Free all entries in the linked list for this bucket */
@@ -3651,7 +3631,7 @@ void cleanup_lookup_table(void)
       free(lt);
       lt = next;
     }
-    
+
     /* Reset the static bucket entry */
     lookup_table[i].uid = UID_OUT_OF_RANGE;
     lookup_table[i].c = NULL;
@@ -3747,7 +3727,7 @@ void remove_from_lookup_table(long uid)
   /* Search the linked list for the uid */
   prev = lt;
   lt = lt->next;
-  
+
   while (lt)
   {
     if (lt->uid == uid)

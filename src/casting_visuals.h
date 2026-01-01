@@ -26,17 +26,17 @@ extern "C"
  * These define the context in which a spell is being cast,
  * affecting which message variant to display.
  */
-#define CAST_TARGET_SELF      0  /* Caster targeting themselves */
-#define CAST_TARGET_CHAR      1  /* Caster targeting another character */
-#define CAST_TARGET_OBJ       2  /* Caster targeting an object */
-#define CAST_TARGET_NONE      3  /* Caster with no specific target */
+#define CAST_TARGET_SELF 0 /* Caster targeting themselves */
+#define CAST_TARGET_CHAR 1 /* Caster targeting another character */
+#define CAST_TARGET_OBJ 2  /* Caster targeting an object */
+#define CAST_TARGET_NONE 3 /* Caster with no specific target */
 #define NUM_CAST_TARGET_TYPES 4
 
 /*
  * Message type constants for visual phases.
  * These define whether the message is for spell start or completion.
  */
-#define CAST_MSG_START    0
+#define CAST_MSG_START 0
 #define CAST_MSG_COMPLETE 1
 #define NUM_CAST_MSG_TYPES 2
 
@@ -111,8 +111,7 @@ const char *get_school_complete_msg(int school, int target_type);
  * @param tobj Target object (may be NULL).
  * @return One of CAST_TARGET_* constants.
  */
-int determine_cast_target_type(struct char_data *ch, struct char_data *tch,
-                               struct obj_data *tobj);
+int determine_cast_target_type(struct char_data *ch, struct char_data *tch, struct obj_data *tobj);
 
 /**
  * Initializes the casting visuals system.
@@ -193,8 +192,8 @@ const char *get_class_casting_style(int class_num);
  * @note Returns a pointer to a static buffer. Not thread-safe.
  *       Contents may change on subsequent calls.
  */
-const char *build_class_start_msg(struct char_data *ch, int spellnum,
-                                  int target_type, int casting_class);
+const char *build_class_start_msg(struct char_data *ch, int spellnum, int target_type,
+                                  int casting_class);
 
 /**
  * Checks if a class has a specific casting style defined.
@@ -225,14 +224,14 @@ int has_class_casting_style(int class_num);
  * Indices for metamagic visual lookup.
  * These match the bit positions in the metamagic flags.
  */
-#define META_VIS_QUICKEN   0
-#define META_VIS_MAXIMIZE  1
-#define META_VIS_HEIGHTEN  2
-#define META_VIS_ARCANE    3
-#define META_VIS_EMPOWER   4
-#define META_VIS_SILENT    5
-#define META_VIS_STILL     6
-#define META_VIS_EXTEND    7
+#define META_VIS_QUICKEN 0
+#define META_VIS_MAXIMIZE 1
+#define META_VIS_HEIGHTEN 2
+#define META_VIS_ARCANE 3
+#define META_VIS_EMPOWER 4
+#define META_VIS_SILENT 5
+#define META_VIS_STILL 6
+#define META_VIS_EXTEND 7
 
 /**
  * Gets the visual descriptor for a single metamagic type.
@@ -277,8 +276,7 @@ const char *build_metamagic_prefix(int metamagic);
  * @param metamagic The metamagic bitfield.
  * @return Pointer to static buffer with progress description.
  */
-const char *build_metamagic_progress_desc(struct char_data *ch, int spellnum,
-                                          int metamagic);
+const char *build_metamagic_progress_desc(struct char_data *ch, int spellnum, int metamagic);
 
 /**
  * Checks if any visual metamagic modifiers are active.
@@ -301,25 +299,25 @@ int has_visual_metamagic(int metamagic);
  * Intensity levels for environmental reactions.
  * These determine which message set to use based on spell power.
  */
-#define ENV_INTENSITY_NONE      0   /* No environmental effect */
-#define ENV_INTENSITY_SUBTLE    1   /* Circles 1-3: minor ambient effects */
-#define ENV_INTENSITY_MODERATE  2   /* Circles 4-6: noticeable effects */
-#define ENV_INTENSITY_DRAMATIC  3   /* Circles 7-9: powerful effects */
-#define NUM_ENV_INTENSITIES     4
+#define ENV_INTENSITY_NONE 0     /* No environmental effect */
+#define ENV_INTENSITY_SUBTLE 1   /* Circles 1-3: minor ambient effects */
+#define ENV_INTENSITY_MODERATE 2 /* Circles 4-6: noticeable effects */
+#define ENV_INTENSITY_DRAMATIC 3 /* Circles 7-9: powerful effects */
+#define NUM_ENV_INTENSITIES 4
 
 /**
  * Number of message variants per intensity level.
  * Having multiple variants prevents repetitive messages.
  */
-#define ENV_MSG_VARIANTS        3
+#define ENV_MSG_VARIANTS 3
 
 /**
  * Base chance percentages for environmental effects per spell tick.
  * These can be tuned for balance without code changes.
  */
-#define ENV_CHANCE_SUBTLE       15  /* 15% chance per tick for low spells */
-#define ENV_CHANCE_MODERATE     25  /* 25% chance per tick for mid spells */
-#define ENV_CHANCE_DRAMATIC     40  /* 40% chance per tick for high spells */
+#define ENV_CHANCE_SUBTLE 15   /* 15% chance per tick for low spells */
+#define ENV_CHANCE_MODERATE 25 /* 25% chance per tick for mid spells */
+#define ENV_CHANCE_DRAMATIC 40 /* 40% chance per tick for high spells */
 
 /**
  * Determines the intensity level of environmental reactions for a spell.

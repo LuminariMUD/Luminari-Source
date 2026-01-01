@@ -45,9 +45,9 @@ void mobile_activity(void)
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL, *tmp_char = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
   int door = 0, found = FALSE, max = 0, where = -1;
-  struct char_data *room_people = NULL;  /* Cache for room occupants */
-  SPECIAL_DECL(*spec_func);               /* Cache for spec proc function */
-  int mob_rnum = 0;                       /* Cache for mob rnum */
+  struct char_data *room_people = NULL; /* Cache for room occupants */
+  SPECIAL_DECL(*spec_func);             /* Cache for spec proc function */
+  int mob_rnum = 0;                     /* Cache for mob rnum */
 
   for (ch = character_list; ch; ch = next_ch)
   {
@@ -81,16 +81,20 @@ void mobile_activity(void)
     /* not the AWAKE() type of checks are inside the spec_procs */
     if (MOB_FLAGGED(ch, MOB_SPEC) && !no_specials)
     {
-      mob_rnum = GET_MOB_RNUM(ch);  /* Cache the rnum lookup */
+      mob_rnum = GET_MOB_RNUM(ch); /* Cache the rnum lookup */
       spec_func = mob_index[mob_rnum].func;
-      
+
       if (spec_func == NULL)
       {
-        log("MOB ERROR: Mobile '%s' (vnum #%d) has the SPEC flag set but no special procedure assigned.",
+        log("MOB ERROR: Mobile '%s' (vnum #%d) has the SPEC flag set but no special procedure "
+            "assigned.",
             GET_NAME(ch), GET_MOB_VNUM(ch));
-        log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR assign a special procedure in the code (spec_assign.c).");
-        log("MOB FIX: Common spec procs: shop_keeper, guild_guard, snake, cityguard, receptionist, cryogenicist, postmaster, bank.");
-        log("MOB NOTE: The SPEC flag has been automatically removed to prevent further errors. Use 'medit %d' and check 'mob flags'.",
+        log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR assign a special "
+            "procedure in the code (spec_assign.c).");
+        log("MOB FIX: Common spec procs: shop_keeper, guild_guard, snake, cityguard, receptionist, "
+            "cryogenicist, postmaster, bank.");
+        log("MOB NOTE: The SPEC flag has been automatically removed to prevent further errors. Use "
+            "'medit %d' and check 'mob flags'.",
             GET_MOB_VNUM(ch));
         REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
       }
@@ -108,7 +112,7 @@ void mobile_activity(void)
 
     /* Regenerate spell slots for mobs using spell slot system */
     regenerate_mob_spell_slot(ch);
-    
+
     /* Regenerate known spell slots for mobs */
     regenerate_known_spell_slot(ch);
 
@@ -119,7 +123,6 @@ void mobile_activity(void)
     {
       if (FIGHTING(ch))
       {
-        
         if (dice(1, 4) == 1)
           npc_racial_behave(ch);
         else if (dice(1, 4) == 2)
@@ -166,7 +169,7 @@ void mobile_activity(void)
     if (MOB_FLAGGED(ch, MOB_SCAVENGER) && !rand_number(0, 10))
     {
       struct obj_data *room_objs = world[IN_ROOM(ch)].contents;
-      if (room_objs)  /* Only proceed if there are objects */
+      if (room_objs) /* Only proceed if there are objects */
       {
         max = 1;
         best_obj = NULL;
@@ -191,19 +194,20 @@ void mobile_activity(void)
     }
 
     /* Aggressive Mobs */
-    if (!MOB_FLAGGED(ch, MOB_HELPER) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
-                                         !AFF_FLAGGED(ch, AFF_CHARM)))
+    if (!MOB_FLAGGED(ch, MOB_HELPER) &&
+        (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM)))
     {
       found = FALSE;
-      room_people = world[IN_ROOM(ch)].people;  /* Cache room people list */
-      int room_is_singlefile = ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE);  /* Cache specific room flag */
+      room_people = world[IN_ROOM(ch)].people; /* Cache room people list */
+      int room_is_singlefile =
+          ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE); /* Cache specific room flag */
       int mob_is_wimpy = MOB_FLAGGED(ch, MOB_WIMPY);
       int mob_is_encounter = MOB_FLAGGED(ch, MOB_ENCOUNTER);
       int mob_level = GET_LEVEL(ch);
-      
+
       for (vict = room_people; vict && !found; vict = vict->next_in_room)
       {
-        int can_see_vict;  /* Cache visibility check */
+        int can_see_vict; /* Cache visibility check */
 
         if (IS_NPC(vict) && !IS_PET(vict))
           continue;
@@ -211,22 +215,19 @@ void mobile_activity(void)
         if (IS_PET(vict) && IS_NPC(vict->master))
           continue;
 
-        can_see_vict = CAN_SEE(ch, vict);  /* Cache this expensive check */
+        can_see_vict = CAN_SEE(ch, vict); /* Cache this expensive check */
         if (!can_see_vict || (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOHASSLE)))
           continue;
 
         if (mob_is_wimpy && AWAKE(vict))
           continue;
 
-        if (room_is_singlefile &&
-            (ch->next_in_room != vict && vict->next_in_room != ch))
+        if (room_is_singlefile && (ch->next_in_room != vict && vict->next_in_room != ch))
           continue;
 
-        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) ||
-            (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
+        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) || (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
             (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
-            (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict))
-        )
+            (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict)))
         {
           if (IS_ANIMAL(ch) && HAS_FEAT(vict, FEAT_SOUL_OF_THE_FEY))
           {
@@ -263,7 +264,7 @@ void mobile_activity(void)
     /* Mob Memory */
     found = FALSE;
     /* loop through room, check if each person is in memory */
-    room_people = world[IN_ROOM(ch)].people;  /* Re-use cached list if still valid */
+    room_people = world[IN_ROOM(ch)].people; /* Re-use cached list if still valid */
     for (vict = room_people; vict && !found; vict = vict->next_in_room)
     {
       /* this function cross-references memory-list with vict */
@@ -286,14 +287,14 @@ void mobile_activity(void)
      * use to be here */
 
     /* Helper Mobs */
-    if ((MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(ch, MOB_GUARD)) && (!AFF_FLAGGED(ch, AFF_BLIND) ||
-                                                                        !AFF_FLAGGED(ch, AFF_CHARM)))
+    if ((MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(ch, MOB_GUARD)) &&
+        (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM)))
     {
       found = FALSE;
-      room_people = world[IN_ROOM(ch)].people;  /* Re-use cached list */
+      room_people = world[IN_ROOM(ch)].people; /* Re-use cached list */
       int mob_is_guard = MOB_FLAGGED(ch, MOB_GUARD);
       int mob_is_helper = MOB_FLAGGED(ch, MOB_HELPER);
-      
+
       for (vict = room_people; vict && !found; vict = vict->next_in_room)
       {
         if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
@@ -332,17 +333,19 @@ void mobile_activity(void)
     }
 
     /* Mob-to-Mob Assistance (for grouped/following mobs with MOB_MOB_ASSIST flag) */
-    if (MOB_FLAGGED(ch, MOB_MOB_ASSIST) && (!AFF_FLAGGED(ch, AFF_BLIND) && !AFF_FLAGGED(ch, AFF_CHARM)))
+    if (MOB_FLAGGED(ch, MOB_MOB_ASSIST) &&
+        (!AFF_FLAGGED(ch, AFF_BLIND) && !AFF_FLAGGED(ch, AFF_CHARM)))
     {
       found = FALSE;
-      room_people = world[IN_ROOM(ch)].people;  /* Re-use cached list */
-      
+      room_people = world[IN_ROOM(ch)].people; /* Re-use cached list */
+
       for (vict = room_people; vict && !found; vict = vict->next_in_room)
       {
         if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
           continue;
         /* Only assist if in group or follower relationship */
-        if (!((GROUP(vict) && GROUP(vict) == GROUP(ch)) || (ch->master == vict || vict->master == ch)))
+        if (!((GROUP(vict) && GROUP(vict) == GROUP(ch)) ||
+              (ch->master == vict || vict->master == ch)))
           continue;
         /* Skip if either is a pet */
         if (IS_PET(ch) || IS_PET(vict))

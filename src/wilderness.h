@@ -19,14 +19,17 @@
 #define WILD_DYNAMIC_ROOM_VNUM_START 1004000 /* The start of the vnums for the dynamic room pool. */
 #define WILD_DYNAMIC_ROOM_VNUM_END 1009999   /* The end of the vnums for the dynamic room pool. */
 
-#define IS_WILDERNESS_VNUM(room_vnum) ((room_vnum >= WILD_ROOM_VNUM_START && room_vnum <= WILD_ROOM_VNUM_END) || (room_vnum >= WILD_DYNAMIC_ROOM_VNUM_START && room_vnum <= WILD_DYNAMIC_ROOM_VNUM_END))
+#define IS_WILDERNESS_VNUM(room_vnum)                                                              \
+  ((room_vnum >= WILD_ROOM_VNUM_START && room_vnum <= WILD_ROOM_VNUM_END) ||                       \
+   (room_vnum >= WILD_DYNAMIC_ROOM_VNUM_START && room_vnum <= WILD_DYNAMIC_ROOM_VNUM_END))
 
 /* Utility macros */
 #ifdef CAMPAIGN_FR
-#define IS_DYNAMIC(rnum)  (FALSE)
+#define IS_DYNAMIC(rnum) (FALSE)
 #else
-#define IS_DYNAMIC(rnum) ((world[rnum].number >= WILD_DYNAMIC_ROOM_VNUM_START) && \
-                          (world[rnum].number <= WILD_DYNAMIC_ROOM_VNUM_END))
+#define IS_DYNAMIC(rnum)                                                                           \
+  ((world[rnum].number >= WILD_DYNAMIC_ROOM_VNUM_START) &&                                         \
+   (world[rnum].number <= WILD_DYNAMIC_ROOM_VNUM_END))
 #endif
 
 /* Map Types */
@@ -119,8 +122,8 @@ extern struct kdtree *kd_wilderness_rooms;
 struct wild_map_info_type
 {
   int sector_type;
-  char disp[50];                                      /* ASCII display string */
-  char utf8_disp[50];                                 /* UTF-8 display string for awesome visuals */
+  char disp[50];                                     /* ASCII display string */
+  char utf8_disp[50];                                /* UTF-8 display string for awesome visuals */
   const char *variant_disp[NUM_VARIANT_GLYPHS];      /* ASCII variants */
   const char *utf8_variant_disp[NUM_VARIANT_GLYPHS]; /* UTF-8 variants */
 };
@@ -135,7 +138,6 @@ struct vertex
 
 struct region_data
 {
-
   region_vnum vnum; /* Vnum for this region. */
   region_rnum rnum; /* Array index for this region. */
 
@@ -149,15 +151,14 @@ struct region_data
   int num_vertices;        /* The number of vertices. */
 
   struct list_data *events; /* Used for region events */
-  
+
   /* Encounter region reset data */
-  int reset_time;     /* Time in seconds for encounter reset */
-  char *reset_data;   /* Data for encounter reset */
+  int reset_time;   /* Time in seconds for encounter reset */
+  char *reset_data; /* Data for encounter reset */
 };
 
 struct path_data
 {
-
   region_vnum vnum; /* Vnum for this path. */
   region_rnum rnum; /* Array index for this path. */
 
@@ -174,7 +175,6 @@ struct path_data
 
 struct sector_limits
 {
-
   int sector_type;
   int min_value;
   int max_value;
@@ -182,7 +182,6 @@ struct sector_limits
 
 struct wilderness_data
 {
-
   int id;
 
   int elevation_seed;
@@ -201,7 +200,8 @@ struct wilderness_data
   int min_temp;
   int max_temp;
 
-  struct sector_limits sector_map[NUM_ROOM_SECTORS][3]; /* Elevation, moisture, temp mappings to sectors. */
+  struct sector_limits sector_map[NUM_ROOM_SECTORS]
+                                 [3]; /* Elevation, moisture, temp mappings to sectors. */
 
   struct kdtree *kd_wilderness_rooms; /* KDTree of the static rooms, for speed. */
   struct kdtree *kd_resource_nodes;   /* KDTree of resource harvest data, for efficiency. */
@@ -247,7 +247,9 @@ void initialize_wilderness_lists();
 room_rnum find_available_wilderness_room();       /* Get the next empty room in the pool. */
 room_rnum find_room_by_coordinates(int x, int y); /* Get the room at coordinates (x,y) */
 room_rnum find_static_room_by_coordinates(int x, int y);
-void assign_wilderness_room(room_rnum room, int x, int y); /* Assign the room to the provided coordinates, adjusting descriptions, etc. */
+void assign_wilderness_room(
+    room_rnum room, int x,
+    int y); /* Assign the room to the provided coordinates, adjusting descriptions, etc. */
 
 /* Regions */
 /*
@@ -272,11 +274,11 @@ struct region_list
 struct region_proximity_list
 {
   region_rnum rnum;
-  int pos;       /* Position relative to region: REGION_POS_CENTER, REGION_POS_INSIDE, REGION_POS_EDGE */
+  int pos; /* Position relative to region: REGION_POS_CENTER, REGION_POS_INSIDE, REGION_POS_EDGE */
 
   double dirs[8];
   double dist;
-  bool is_inside;  /* TRUE if player is inside the region, FALSE if just nearby */
+  bool is_inside; /* TRUE if player is inside the region, FALSE if just nearby */
 
   struct region_proximity_list *next;
 };

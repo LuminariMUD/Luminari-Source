@@ -702,7 +702,7 @@ dg_affect <target> <spell> <duration> - Apply spell effect
 
 #### Context Variables
 
-The variable system allows scripts to read game data, make decisions, and manipulate the world state. All variables in DG Scripts are referenced by enclosing their name in percent signs (e.g., %actor%). To access specific pieces of information about a variable, a field is appended using a dot (.). 
+The variable system allows scripts to read game data, make decisions, and manipulate the world state. All variables in DG Scripts are referenced by enclosing their name in percent signs (e.g., %actor%). To access specific pieces of information about a variable, a field is appended using a dot (.).
 
 Fields can be read-only (e.g., %actor.name%) or assignable. Assignable fields are used to change a value and are typically denoted with parentheses, which may contain an argument.
 

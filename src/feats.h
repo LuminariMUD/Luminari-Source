@@ -12,17 +12,17 @@
 /* Below is the structure for a feat */
 struct feat_info
 {
-  const char *name;              /* The name of the feat to be displayed to players */
-  sbyte in_game;                 /* TRUE or FALSE, is the feat in the game yet? */
-  sbyte can_learn;               /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
-  sbyte can_stack;               /* TRUE or FALSE, can the feat be learned more than once? */
-  int feat_type;                 /* The type of feat (see defines) for organization in the selection menu. */
+  const char *name; /* The name of the feat to be displayed to players */
+  sbyte in_game;    /* TRUE or FALSE, is the feat in the game yet? */
+  sbyte can_learn;  /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
+  sbyte can_stack;  /* TRUE or FALSE, can the feat be learned more than once? */
+  int feat_type;    /* The type of feat (see defines) for organization in the selection menu. */
   const char *short_description; /* The line displayed in the feat xxxx desc command display. */
   const char *description;       /* Long description of the feat, displayed in 'feat info' */
   sbyte epic;                    /* Is this an epic feat? */
   sbyte combat_feat;             /* Is this a combat feat? */
-  int event;                     /* The event_id of the cooldown event, used for daily use active feats. */
-  sbyte teamwork_feat;           /* Is the feat a teamwork feat? */
+  int event;           /* The event_id of the cooldown event, used for daily use active feats. */
+  sbyte teamwork_feat; /* Is the feat a teamwork feat? */
 
   struct feat_prerequisite *prerequisite_list; /* A list of prerequisite sctructures */
 };

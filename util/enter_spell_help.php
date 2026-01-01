@@ -5,7 +5,7 @@
  * SECURITY NOTICE:
  * This tool generates help file content and should be protected with authentication.
  * Only authorized content creators should have access to this tool.
- * 
+ *
  * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
  *      deployment guide, and security best practices for all PHP tools.
  */
@@ -28,18 +28,18 @@ if (!isset($_SESSION['csrf_token'])) {
 
 /**
  * enter_spell_help.php - LuminariMUD Spell/Power Help File Generator
- * 
+ *
  * PURPOSE:
  * This tool generates formatted help file entries for spells, psionic powers,
  * and alchemical concoctions in the LuminariMUD system. It ensures consistent
  * formatting and proper color coding for the MUD's help system.
- * 
+ *
  * FUNCTIONALITY:
  * - Creates help entries for three ability types: spells, concoctions, psionics
  * - Generates properly formatted text with MUD color codes
  * - Handles word wrapping at 80 characters
  * - Supports augmentation text for psionic powers
- * 
+ *
  * HELP SYSTEM OVERVIEW:
  * LuminariMUD uses a standardized help format for abilities:
  * - Usage line showing the command syntax
@@ -48,18 +48,18 @@ if (!isset($_SESSION['csrf_token'])) {
  * - Target and resistance information
  * - Detailed description
  * - Augmentation options (psionics only)
- * 
+ *
  * COLOR CODE SYSTEM:
  * The MUD uses special codes for text formatting:
  * - 	D: Dark gray (labels)
  * - 	W: White (values)
  * - 	Y: Yellow (see also section)
  * - 	n: Normal/reset color
- * 
+ *
  * GENERATED OUTPUT:
  * The tool generates help text that should be added to the appropriate
  * help files in the MUD's lib/text/help/ directory.
- * 
+ *
  * INTEGRATION:
  * Generated help entries should be added to:
  * - Spells: help.spells file
@@ -155,14 +155,14 @@ if ($_POST)
     validateCSRF();
     /**
      * Process form submission and generate help file text
-     * 
+     *
      * Processing steps:
      * 1. Determine ability type and set appropriate references
      * 2. Format field labels based on ability type
      * 3. Apply word wrapping for long text fields
      * 4. Add proper color codes for MUD display
      */
-    
+
     // Validate cast command against whitelist
     $allowed_commands = ['cast', 'imbibe', 'manifest'];
     $cast_command = $_POST['cast_command'] ?? '';
@@ -200,7 +200,7 @@ if ($_POST)
         http_response_code(400);
         die("Invalid accumulative or duration description. Maximum 200 characters each.");
     }
-    
+
     // School/discipline formatting
     // Magic uses "School of Magic:" while psionics use "Discipline:"
     $school = $_POST['school'];
@@ -209,28 +209,28 @@ if ($_POST)
         $school_label = "School of Magic:";
     else
         $school_label = "Discipine:      ";  // Note: typo preserved for compatibility
-    
+
     // Combat and resistance information
     $targets = $_POST['targets'];           // Who can be targeted
     $magic_resist = $_POST['magic_resist']; // Subject to spell resistance?
     $saving_throw = $_POST['saving_throw']; // Type of save allowed
     $damage_type = $_POST['damage_type'];   // Damage type if applicable
-    
+
     // Description processing - wrap at 80 characters
     $description = $_POST['description'];
     $description = wordwrap($description, 80, "\n	n");
-    
+
     // Augmentation text (psionics only) - special formatting
     $augment = $_POST['augment'];
     $augment = str_replace("Augment ", "	DAugment: 	n", $augment);
     $augment = wordwrap($augment, 80, "\n	n");
-    
+
     // PSP cost (psionics only)
     $psp_cost = $_POST['psp_cost'];
 
     /**
      * Generate formatted help file text
-     * 
+     *
      * Format structure:
      * - Header section with usage and properties
      * - Each line uses color codes: \tD for labels, \tW for values
@@ -238,10 +238,10 @@ if ($_POST)
      * - Optional PSP cost for psionics
      * - Augmentation section for psionics
      * - See also reference at bottom
-     * 
+     *
      * Color codes:
      * \tD = Dark gray (labels)
-     * \tW = White (values)  
+     * \tW = White (values)
      * \tY = Yellow (references)
      * \tn = Normal/reset
      */
@@ -270,15 +270,15 @@ if ($_POST)
 <script>
 /**
  * Copy generated help text to clipboard
- * 
+ *
  * This function:
  * 1. Selects all text in the output textarea
  * 2. Copies it to the system clipboard
  * 3. Shows confirmation alert
- * 
+ *
  * The copied text can then be pasted directly into
  * the appropriate help file in the MUD.
- * 
+ *
  * Browser compatibility: Works in all modern browsers
  * Mobile support: setSelectionRange ensures mobile compatibility
  */
@@ -317,10 +317,10 @@ function copyCode() {
 else{
     /**
      * Display the spell/power help creation form
-     * 
+     *
      * The form is displayed when no POST data is present
      * All fields include Bootstrap tooltips explaining their purpose
-     * 
+     *
      * Form sections:
      * 1. Ability type selection (spell/concoction/power)
      * 2. Basic properties (name, targeting, duration)
@@ -373,7 +373,7 @@ else{
             <?php
             /**
              * School/Discipline selection
-             * 
+             *
              * Magic Schools (D&D/Pathfinder standard):
              * - Abjuration: Protection and dispelling
              * - Conjuration: Summoning and creation
@@ -382,7 +382,7 @@ else{
              * - Illusion: Deception and misdirection
              * - Necromancy: Death and undeath
              * - Transmutation: Transformation and enhancement
-             * 
+             *
              * Psionic Disciplines:
              * - Clairsentience: Perception and knowledge
              * - Metacreativity: Creation of objects/energy
@@ -401,7 +401,7 @@ else{
                 <option value="Illusion">Illusion</option>
                 <option value="Necromancy">Necromancy</option>
                 <option value="Transmutation">Transmutation</option>
-                
+
                 <!-- Psionic Disciplines -->
                 <option value="Clairsentience">Clairsentience</option>
                 <option value="Metacreativity">Metacreativity</option>

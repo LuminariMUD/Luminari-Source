@@ -418,7 +418,7 @@ After successful deployment:
 
 1. **Connect to the MUD**: Use any MUD client to connect to `localhost:4000`
 2. **Create Admin Character**: The first character created gets admin privileges
-3. **Review Documentation**: 
+3. **Review Documentation**:
    - [Getting Started](../GETTING_STARTED.md) - Player and builder basics
    - [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md) - For code development
    - [Database Guide](DATABASE_DEPLOYMENT_GUIDE.md) - Database details

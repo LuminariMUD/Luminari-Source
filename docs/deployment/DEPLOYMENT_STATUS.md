@@ -18,7 +18,7 @@
 6. **Setup Script**: `./scripts/setup.sh` runs through all steps
 
 ### ❌ What's Broken
-1. **Server Won't Stay Running**: 
+1. **Server Won't Stay Running**:
    - Binary exists at `./bin/circle`
    - Starts briefly then immediately exits
    - No persistent process
@@ -85,7 +85,7 @@ But the actual world files don't exist in `lib/world/`:
 - No object files in `lib/world/obj/`
 
 ### Secondary Issues
-1. **Setup Script Incomplete**: 
+1. **Setup Script Incomplete**:
    - Creates directories but doesn't populate them
    - Attempts to copy from `lib/world/minimal/` which may not exist
    - No error checking for missing source files

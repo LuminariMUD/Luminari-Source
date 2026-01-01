@@ -20,5 +20,3 @@ foreach ($ext in $exts) {
 }
 
 Write-Host "Zone $Zone backed up to $backupDir"
-
-

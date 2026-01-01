@@ -137,7 +137,7 @@ distance = sqrt(dx² + dy² + (dz/4)²)
 
 #### Enhanced Spatial Audio Handler
 ```c
-int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, 
+int pubsub_handler_wilderness_spatial_audio(struct char_data *ch,
                                            struct pubsub_message *msg);
 ```
 - **Purpose**: Process 3D spatial audio in wilderness
@@ -146,7 +146,7 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch,
 
 #### Audio Mixing Handler  
 ```c
-int pubsub_handler_audio_mixing(struct char_data *ch, 
+int pubsub_handler_audio_mixing(struct char_data *ch,
                                struct pubsub_message *msg);
 ```
 - **Purpose**: Handle multiple simultaneous audio sources

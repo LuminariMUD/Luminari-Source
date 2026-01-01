@@ -34,11 +34,7 @@ IBT_DATA *last_idea = NULL;
 IBT_DATA *first_typo = NULL;
 IBT_DATA *last_typo = NULL;
 
-const char *ibt_types[] = {
-    "Bug",
-    "Idea",
-    "Typo",
-    "\n"};
+const char *ibt_types[] = {"Bug", "Idea", "Typo", "\n"};
 
 /* Internal (static) functions */
 static IBT_DATA *new_ibt(void);
@@ -178,7 +174,8 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
       break;
 
     case 'F':
-      if (!str_cmp(word, "Flags")) {
+      if (!str_cmp(word, "Flags"))
+      {
         fread_flags(fp, ibtData->flags, IBT_ARRAY_MAX);
         fMatch = TRUE;
       }
@@ -485,7 +482,6 @@ static bool is_ibt_logger(IBT_DATA *ibtData, struct char_data *ch)
 {
   if (ch && !IS_NPC(ch) && ibtData)
   {
-
     /* Check the ID number first (in case of name change)   */
     if ((ibtData->id_num != NOBODY) && (ibtData->id_num == GET_IDNUM(ch)))
       return TRUE;
@@ -518,38 +514,33 @@ ACMD(do_ibt)
   {
     if (GET_LEVEL(ch) >= LVL_IMMORTAL)
     {
-      send_to_char(ch, "Usage: %s%s submit <header>%s\r\n"
-                       "       %s%s list%s\r\n"
-                       "       %s%s show <num>%s\r\n"
-                       "       %s%s remove <num>%s\r\n"
-                       "       %s%s edit <num>%s\r\n"
-                       "       %s%s resolve <num>%s\r\n",
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM);
+      send_to_char(ch,
+                   "Usage: %s%s submit <header>%s\r\n"
+                   "       %s%s list%s\r\n"
+                   "       %s%s show <num>%s\r\n"
+                   "       %s%s remove <num>%s\r\n"
+                   "       %s%s edit <num>%s\r\n"
+                   "       %s%s resolve <num>%s\r\n",
+                   QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL,
+                   CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
       return;
     }
     else if (GET_LEVEL(ch) >= LVL_IMMORT)
     {
-      send_to_char(ch, "Usage: %s%s submit <header>%s\r\n"
-                       "       %s%s list%s\r\n"
-                       "       %s%s show <num>%s\r\n",
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM);
+      send_to_char(ch,
+                   "Usage: %s%s submit <header>%s\r\n"
+                   "       %s%s list%s\r\n"
+                   "       %s%s show <num>%s\r\n",
+                   QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
       return;
     }
     else
     {
-      send_to_char(ch, "Usage: %s%s submit <header>%s\r\n"
-                       "       %s%s list%s\r\n"
-                       "       %s%s show <num>%s\r\n",
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM,
-                   QBYEL, CMD_NAME, QNRM);
+      send_to_char(ch,
+                   "Usage: %s%s submit <header>%s\r\n"
+                   "       %s%s list%s\r\n"
+                   "       %s%s show <num>%s\r\n",
+                   QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
       send_to_char(ch, "Note: Only %ss logged by you will be listed or shown.\r\n", CMD_NAME);
       return;
     }
@@ -572,13 +563,14 @@ ACMD(do_ibt)
     {
       if ((GET_LEVEL(ch) < LVL_IMMORT) && (!is_ibt_logger(ibtData, ch)))
       {
-        send_to_char(ch, "Sorry but you may only view %ss you have posted yourself.\n\r", ibt_types[subcmd]);
+        send_to_char(ch, "Sorry but you may only view %ss you have posted yourself.\n\r",
+                     ibt_types[subcmd]);
       }
       else
       {
-
         send_to_char(ch, "%s%s by %s%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->name);
-        send_to_char(ch, "%sSubmitted: %s%s", QCYN, QBYEL, ibtData->dated ? ctime(&ibtData->dated) : "Unknown\r\n");
+        send_to_char(ch, "%sSubmitted: %s%s", QCYN, QBYEL,
+                     ibtData->dated ? ctime(&ibtData->dated) : "Unknown\r\n");
         if (GET_LEVEL(ch) >= LVL_IMMORT)
         {
           send_to_char(ch, "%sLevel: %s%d\r\n", QCYN, QBYEL, ibtData->level);
@@ -587,12 +579,12 @@ ACMD(do_ibt)
         send_to_char(ch, "%sTitle: %s%s\r\n", QCYN, QBYEL, ibtData->text);
         send_to_char(ch, "%s%s Details%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->body);
         if (ibtData->notes && *(ibtData->notes))
-          send_to_char(ch, "%s%s Notes%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->notes);
+          send_to_char(ch, "%s%s Notes%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL,
+                       ibtData->notes);
         send_to_char(ch, "%s%s Status: %s%s%s%s\r\n", QCYN, ibt_types[subcmd],
                      IBT_FLAGGED(ibtData, IBT_RESOLVED) ? QBGRN : QBRED,
                      IBT_FLAGGED(ibtData, IBT_RESOLVED) ? "Resolved" : "Unresolved",
-                     IBT_FLAGGED(ibtData, IBT_INPROGRESS) ? " (In Progress)" : "",
-                     QNRM);
+                     IBT_FLAGGED(ibtData, IBT_INPROGRESS) ? " (In Progress)" : "", QNRM);
       }
     }
 
@@ -600,18 +592,23 @@ ACMD(do_ibt)
   }
   else if (is_abbrev(arg, "list"))
   {
-
     if (first_ibt)
     {
       if (GET_LEVEL(ch) < LVL_IMMORT)
       {
         send_to_char(ch, "%s No %s|%s Description\r\n", QCYN, QGRN, QCYN);
-        send_to_char(ch, "%s ---|--------------------------------------------------%s\r\n", QGRN, QNRM);
+        send_to_char(ch, "%s ---|--------------------------------------------------%s\r\n", QGRN,
+                     QNRM);
       }
       else
       {
-        send_to_char(ch, "%s No %s|%sName        %s|%sRoom  %s|%sLevel%s|%s Description\r\n", QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QCYN);
-        send_to_char(ch, "%s ---|------------|------|-----|--------------------------------------------------%s\r\n", QGRN, QNRM);
+        send_to_char(ch, "%s No %s|%sName        %s|%sRoom  %s|%sLevel%s|%s Description\r\n", QCYN,
+                     QGRN, QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QCYN);
+        send_to_char(ch,
+                     "%s "
+                     "---|------------|------|-----|-----------------------------------------------"
+                     "---%s\r\n",
+                     QGRN, QNRM);
       }
       i = num_res = num_unres = 0;
       for (ibtData = first_ibt; ibtData; ibtData = ibtData->next)
@@ -632,17 +629,13 @@ ACMD(do_ibt)
         {
           if (GET_LEVEL(ch) < LVL_IMMORT)
           {
-            send_to_char(ch, "%s%s%3d|%s%s\r\n",
-                         imp, QGRN, i, ibtData->text, QNRM);
+            send_to_char(ch, "%s%s%3d|%s%s\r\n", imp, QGRN, i, ibtData->text, QNRM);
           }
           else
           {
-            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n",
-                         imp, QGRN, i, QGRN,
-                         QGRN, ibtData->name, QGRN,
-                         QGRN, ibtData->room, QGRN,
-                         QGRN, ibtData->level, QGRN,
-                         QGRN, ibtData->text, QNRM);
+            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QGRN, i, QGRN,
+                         QGRN, ibtData->name, QGRN, QGRN, ibtData->room, QGRN, QGRN, ibtData->level,
+                         QGRN, QGRN, ibtData->text, QNRM);
           }
           num_res++;
         }
@@ -650,18 +643,14 @@ ACMD(do_ibt)
         {
           if (GET_LEVEL(ch) < LVL_IMMORT)
           {
-            send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n",
-                         imp, QBYEL, i, QGRN,
-                         QBYEL, ibtData->text, QNRM);
+            send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n", imp, QBYEL, i, QGRN, QBYEL, ibtData->text,
+                         QNRM);
           }
           else
           {
-            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n",
-                         imp, QBYEL, i, QGRN,
-                         QBYEL, ibtData->name, QGRN,
-                         QBYEL, ibtData->room, QGRN,
-                         QBYEL, ibtData->level, QGRN,
-                         QBYEL, ibtData->text, QNRM);
+            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QBYEL, i, QGRN,
+                         QBYEL, ibtData->name, QGRN, QBYEL, ibtData->room, QGRN, QBYEL,
+                         ibtData->level, QGRN, QBYEL, ibtData->text, QNRM);
           }
           num_unres++;
         }
@@ -669,28 +658,27 @@ ACMD(do_ibt)
         {
           if (GET_LEVEL(ch) < LVL_IMMORT)
           {
-            send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n",
-                         imp, QRED, i, QGRN,
-                         QRED, ibtData->text, QNRM);
+            send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n", imp, QRED, i, QGRN, QRED, ibtData->text, QNRM);
           }
           else
           {
-            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n",
-                         imp, QRED, i, QGRN,
-                         QRED, ibtData->name, QGRN,
-                         QRED, ibtData->room, QGRN,
-                         QRED, ibtData->level, QGRN,
-                         QRED, ibtData->text, QNRM);
+            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QRED, i, QGRN,
+                         QRED, ibtData->name, QGRN, QRED, ibtData->room, QGRN, QRED, ibtData->level,
+                         QGRN, QRED, ibtData->text, QNRM);
           }
           num_unres++;
         }
       }
       if ((num_res + num_unres) > 0)
       {
-        send_to_char(ch, "\n\r%s%d %ss in file. %s%d%s resolved, %s%d%s unresolved%s\r\n", QCYN, i, CMD_NAME, QBGRN, num_res, QCYN, QBRED, num_unres, QCYN, QNRM);
-        send_to_char(ch, "%s%ss in %sRED%s are unresolved %ss.\r\n", QCYN, ibt_types[subcmd], QRED, QCYN, CMD_NAME);
-        send_to_char(ch, "%s%ss in %sYELLOW%s are in-progress %ss.\r\n", QCYN, ibt_types[subcmd], QBYEL, QCYN, CMD_NAME);
-        send_to_char(ch, "%s%ss in %sGREEN%s are resolved %ss.\r\n", QCYN, ibt_types[subcmd], QGRN, QCYN, CMD_NAME);
+        send_to_char(ch, "\n\r%s%d %ss in file. %s%d%s resolved, %s%d%s unresolved%s\r\n", QCYN, i,
+                     CMD_NAME, QBGRN, num_res, QCYN, QBRED, num_unres, QCYN, QNRM);
+        send_to_char(ch, "%s%ss in %sRED%s are unresolved %ss.\r\n", QCYN, ibt_types[subcmd], QRED,
+                     QCYN, CMD_NAME);
+        send_to_char(ch, "%s%ss in %sYELLOW%s are in-progress %ss.\r\n", QCYN, ibt_types[subcmd],
+                     QBYEL, QCYN, CMD_NAME);
+        send_to_char(ch, "%s%ss in %sGREEN%s are resolved %ss.\r\n", QCYN, ibt_types[subcmd], QGRN,
+                     QCYN, CMD_NAME);
       }
       else
       {
@@ -698,9 +686,11 @@ ACMD(do_ibt)
       }
       if (GET_LEVEL(ch) >= LVL_IMMORTAL)
       {
-        send_to_char(ch, "%sYou may use %s remove, resolve or edit to change the list..%s\r\n", QCYN, CMD_NAME, QNRM);
+        send_to_char(ch, "%sYou may use %s remove, resolve or edit to change the list..%s\r\n",
+                     QCYN, CMD_NAME, QNRM);
       }
-      send_to_char(ch, "%sYou may use %s%s show <number>%s to see more indepth about the %s.%s\r\n", QCYN, QBYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
+      send_to_char(ch, "%sYou may use %s%s show <number>%s to see more indepth about the %s.%s\r\n",
+                   QCYN, QBYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
     }
     else
     {
@@ -760,8 +750,8 @@ ACMD(do_ibt)
       LINK(ibtData, first_typo, last_typo, next, prev);
       break;
     }
-    mudlog(NRM, LVL_IMMORT, FALSE, "%s has begun posting %s %s!", GET_NAME(ch),
-           TANA(CMD_NAME), CMD_NAME);
+    mudlog(NRM, LVL_IMMORT, FALSE, "%s has begun posting %s %s!", GET_NAME(ch), TANA(CMD_NAME),
+           CMD_NAME);
     return;
   }
   else if (is_abbrev(arg, "resolve"))
@@ -921,8 +911,8 @@ ACMD(do_oasis_ibtedit)
     {
       if (d->olc && OLC_NUM(d) == number)
       {
-        send_to_char(ch, "That %s is currently being edited by %s.\r\n",
-                     ibt_types[subcmd], GET_NAME(d->character));
+        send_to_char(ch, "That %s is currently being edited by %s.\r\n", ibt_types[subcmd],
+                     GET_NAME(d->character));
         return;
       }
     }
@@ -933,8 +923,9 @@ ACMD(do_oasis_ibtedit)
   /* Give descriptor an OLC structure. */
   if (d->olc)
   {
-    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_oasis_ibtedit: Player already"
-                                  " had olc structure.");
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "SYSERR: do_oasis_ibtedit: Player already"
+           " had olc structure.");
     free(d->olc);
   }
 
@@ -957,8 +948,7 @@ ACMD(do_oasis_ibtedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing %s %d",
-         GET_NAME(ch), IBT_TYPE, OLC_NUM(d));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing %s %d", GET_NAME(ch), IBT_TYPE, OLC_NUM(d));
 }
 
 /*-------------------------------------------------------------------*/
@@ -1058,7 +1048,6 @@ static void ibtedit_save(struct descriptor_data *d)
 
 void free_olc_ibt(IBT_DATA *toFree)
 {
-
   if (!toFree)
     return;
 
@@ -1100,22 +1089,21 @@ static void ibtedit_disp_main_menu(struct descriptor_data *d)
   rr = real_room(OLC_IBT(d)->room);
   sprintbitarray(OLC_IBT(d)->flags, ibt_bits, IBT_ARRAY_MAX, flg_text);
 
-  send_to_char(ch, "%s-- Edit %s Number %s[%s%d%s]\r\n"
-                   "%s1%s) Reported By: %s%-12s\r\n"
-                   "%s2%s) Reported In: %s[%s%-5d%s]%s - %s%s\r\n"
-                   "%s3%s) Header Text: %s%s\r\n"
-                   "%s4%s) Flags      : %s%s\r\n"
-                   "%s5%s) Details:\r\n%s%s\r\n"
-                   "%s6%s) Admin Notes:\r\n%s%s\r\n"
-                   "%sQ%s) Quit %s Editor\r\n",
-               QBGRN, IBT_TYPE, cyn, yel, OLC_NUM(d), cyn,
-               yel, nrm, yel, OLC_IBT(d)->name,
-               yel, nrm, cyn, yel, OLC_IBT(d)->room, cyn, nrm, (rr == NOWHERE) ? CCRED(d->character, C_NRM) : cyn, (rr == NOWHERE) ? "<Invalid Room!>" : world[rr].name,
-               yel, nrm, yel, OLC_IBT(d)->text,
-               yel, nrm, cyn, flg_text,
-               yel, nrm, yel, OLC_IBT(d)->body ? OLC_IBT(d)->body : "<Not Set!>",
-               yel, nrm, yel, OLC_IBT(d)->notes ? OLC_IBT(d)->notes : "<Not Set!>",
-               yel, nrm, IBT_TYPE);
+  send_to_char(
+      ch,
+      "%s-- Edit %s Number %s[%s%d%s]\r\n"
+      "%s1%s) Reported By: %s%-12s\r\n"
+      "%s2%s) Reported In: %s[%s%-5d%s]%s - %s%s\r\n"
+      "%s3%s) Header Text: %s%s\r\n"
+      "%s4%s) Flags      : %s%s\r\n"
+      "%s5%s) Details:\r\n%s%s\r\n"
+      "%s6%s) Admin Notes:\r\n%s%s\r\n"
+      "%sQ%s) Quit %s Editor\r\n",
+      QBGRN, IBT_TYPE, cyn, yel, OLC_NUM(d), cyn, yel, nrm, yel, OLC_IBT(d)->name, yel, nrm, cyn,
+      yel, OLC_IBT(d)->room, cyn, nrm, (rr == NOWHERE) ? CCRED(d->character, C_NRM) : cyn,
+      (rr == NOWHERE) ? "<Invalid Room!>" : world[rr].name, yel, nrm, yel, OLC_IBT(d)->text, yel,
+      nrm, cyn, flg_text, yel, nrm, yel, OLC_IBT(d)->body ? OLC_IBT(d)->body : "<Not Set!>", yel,
+      nrm, yel, OLC_IBT(d)->notes ? OLC_IBT(d)->notes : "<Not Set!>", yel, nrm, IBT_TYPE);
 
   OLC_MODE(d) = IBTEDIT_MAIN_MENU;
 }
@@ -1132,8 +1120,7 @@ static void ibtedit_disp_flags(struct descriptor_data *d)
   column_list(d->character, 2, ibt_bits, NUM_IBT_FLAGS, TRUE);
 
   sprintbitarray(OLC_IBT(d)->flags, ibt_bits, IBT_ARRAY_MAX, buf);
-  write_to_output(d, "\r\nCurrent flags : %s%s%s\r\nEnter flags (0 to quit) : ",
-                  cyn, buf, nrm);
+  write_to_output(d, "\r\nCurrent flags : %s%s%s\r\nEnter flags (0 to quit) : ", cyn, buf, nrm);
 
   OLC_MODE(d) = IBTEDIT_FLAGS;
 }
@@ -1154,9 +1141,8 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       /* Save the IBT in memory and to disk. */
       ibtedit_save(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
-             "OLC: %s edits %s %d", GET_NAME(d->character),
-             IBT_TYPE, OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits %s %d",
+             GET_NAME(d->character), IBT_TYPE, OLC_NUM(d));
       write_to_output(d, "%s saved.\r\n", IBT_TYPE);
       cleanup_olc(d, CLEANUP_ALL);
       return;
@@ -1313,7 +1299,6 @@ void ibtedit_string_cleanup(struct descriptor_data *d, int terminator)
 {
   switch (OLC_MODE(d))
   {
-
   case IBTEDIT_BODY:
   case IBTEDIT_NOTES:
   default:

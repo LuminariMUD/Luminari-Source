@@ -38,20 +38,20 @@ void send_editor_help(struct descriptor_data *d);
 
 ACMD(do_new_mail)
 {
-
   char arg3[200], arg4[200];
 
   skip_spaces_c(&argument);
 
   if (!*argument)
   {
-    send_to_char(ch, "Commands are:\r\n"
-                     "-- mail list inbox            : (shows the mail in your inbox)\r\n"
-                     "-- mail list sent             : (shows the mail in your outbox)\r\n"
-                     "-- mail read <num>            : (read the specified mail)\r\n"
-                     "-- mail days <num of days>    : (determines how many days back to list mail for)\r\n"
-                     "-- mail delete <num>          : (deletes the specified mail for you only)\r\n"
-                     "-- mail send <name> <subject> : (sends a mail to specified person)\r\n");
+    send_to_char(
+        ch, "Commands are:\r\n"
+            "-- mail list inbox            : (shows the mail in your inbox)\r\n"
+            "-- mail list sent             : (shows the mail in your outbox)\r\n"
+            "-- mail read <num>            : (read the specified mail)\r\n"
+            "-- mail days <num of days>    : (determines how many days back to list mail for)\r\n"
+            "-- mail delete <num>          : (deletes the specified mail for you only)\r\n"
+            "-- mail send <name> <subject> : (sends a mail to specified person)\r\n");
     return;
   }
   else
@@ -60,13 +60,14 @@ ACMD(do_new_mail)
 
     if (!*arg3)
     {
-      send_to_char(ch, "Commands are:\r\n"
-                       "-- mail list inbox            : (shows the mail in your inbox)\r\n"
-                       "-- mail list sent             : (shows the mail in your outbox)\r\n"
-                       "-- mail read <num>            : (read the specified mail)\r\n"
-                       "-- mail days <num of days>    : (determines how many days back to list mail for)\r\n"
-                       "-- mail delete <num>          : (deletes the specified mail for you only)\r\n"
-                       "-- mail send <name> <subject> : (sends a mail to specified person)\r\n");
+      send_to_char(
+          ch, "Commands are:\r\n"
+              "-- mail list inbox            : (shows the mail in your inbox)\r\n"
+              "-- mail list sent             : (shows the mail in your outbox)\r\n"
+              "-- mail read <num>            : (read the specified mail)\r\n"
+              "-- mail days <num of days>    : (determines how many days back to list mail for)\r\n"
+              "-- mail delete <num>          : (deletes the specified mail for you only)\r\n"
+              "-- mail send <name> <subject> : (sends a mail to specified person)\r\n");
       return;
     }
     if (is_abbrev(arg3, "list"))
@@ -91,7 +92,8 @@ ACMD(do_new_mail)
     {
       if (!*arg4)
       {
-        send_to_char(ch, "How many days back would you like to be notified of new mail for and have mail displayed for?\r\n");
+        send_to_char(ch, "How many days back would you like to be notified of new mail for and "
+                         "have mail displayed for?\r\n");
         return;
       }
       int days = atoi(arg4);
@@ -101,7 +103,10 @@ ACMD(do_new_mail)
         return;
       }
       ch->player_specials->saved.mail_days = days;
-      send_to_char(ch, "You now will receive notifications for and view listed email up to %d in the past.\r\n", days);
+      send_to_char(
+          ch,
+          "You now will receive notifications for and view listed email up to %d in the past.\r\n",
+          days);
       return;
     }
     else if (is_abbrev(arg3, "read"))
@@ -163,7 +168,8 @@ ACMD(do_new_mail)
       int found = FALSE;
 
       /* Check the connection, reconnect if necessary. */
-      if (!MYSQL_PING_CONN(conn)) {
+      if (!MYSQL_PING_CONN(conn))
+      {
         log("SYSERR: %s: Database connection failed", __func__);
         send_to_char(ch, "Database connection error. Mail cannot be sent at this time.\r\n");
         return;
@@ -229,17 +235,19 @@ ACMD(do_new_mail)
       ch->player_specials->new_mail_content = strdup(" ");
       string_write(ch->desc, &ch->player_specials->new_mail_content, MAX_STRING_LENGTH, -999, NULL);
       STATE(ch->desc) = CON_NEWMAIL;
-      send_to_char(ch, "Please write your mail in the space below.  Type /s when you are done.\r\n\r\n");
+      send_to_char(
+          ch, "Please write your mail in the space below.  Type /s when you are done.\r\n\r\n");
       return;
     }
     else
     {
-      send_to_char(ch, "Commands are:\r\n"
-                       "-- mail list inbox            : (shows the mail in your inbox)\r\n"
-                       "-- mail list sent             : (shows the mail in your outbox)\r\n"
-                       "-- mail read <num>            : (read the specified mail)\r\n"
-                       "-- mail delete <num>          : (deletes the specified mail for you only)\r\n"
-                       "-- mail send <name> <subject> : (sends a mail to specified person)\r\n");
+      send_to_char(ch,
+                   "Commands are:\r\n"
+                   "-- mail list inbox            : (shows the mail in your inbox)\r\n"
+                   "-- mail list sent             : (shows the mail in your outbox)\r\n"
+                   "-- mail read <num>            : (read the specified mail)\r\n"
+                   "-- mail delete <num>          : (deletes the specified mail for you only)\r\n"
+                   "-- mail send <name> <subject> : (sends a mail to specified person)\r\n");
       return;
     }
   }
@@ -257,17 +265,20 @@ void perform_mail_list(struct char_data *ch, int type)
   extern MYSQL *conn3;
 
   /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed (conn)", __func__);
     send_to_char(ch, "Database connection error. Cannot list mail at this time.\r\n");
     return;
   }
-  if (!MYSQL_PING_CONN(conn2)) {
+  if (!MYSQL_PING_CONN(conn2))
+  {
     log("SYSERR: %s: Database connection failed (conn2)", __func__);
     send_to_char(ch, "Database connection error. Cannot list mail at this time.\r\n");
     return;
   }
-  if (!MYSQL_PING_CONN(conn3)) {
+  if (!MYSQL_PING_CONN(conn3))
+  {
     log("SYSERR: %s: Database connection failed (conn3)", __func__);
     send_to_char(ch, "Database connection error. Cannot list mail at this time.\r\n");
     return;
@@ -275,8 +286,10 @@ void perform_mail_list(struct char_data *ch, int type)
 
   sbyte unread = TRUE, deleted = FALSE;
 
-  send_to_char(ch, "    %-7s %-20s %s\r\n", "MAIL ID", type != 1 ? "RECIPIENT" : "SENDER", "SUBJECT");
-  send_to_char(ch, "    %-7s %-20s %s\r\n", "-------", "--------------------", "-----------------------------------");
+  send_to_char(ch, "    %-7s %-20s %s\r\n", "MAIL ID", type != 1 ? "RECIPIENT" : "SENDER",
+               "SUBJECT");
+  send_to_char(ch, "    %-7s %-20s %s\r\n", "-------", "--------------------",
+               "-----------------------------------");
   char query[MAX_INPUT_LENGTH] = {'\0'};
   char days[200];
   if (ch->player_specials->saved.mail_days <= 0)
@@ -285,18 +298,24 @@ void perform_mail_list(struct char_data *ch, int type)
   }
   if (ch->player_specials->saved.mail_days > 0)
   {
-    snprintf(days, sizeof(days), " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ", ch->player_specials->saved.mail_days);
+    snprintf(days, sizeof(days), " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ",
+             ch->player_specials->saved.mail_days);
   }
   else
   {
     snprintf(days, sizeof(days), " ");
   }
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name) {
+  if (!escaped_name)
+  {
     log("SYSERR: Failed to escape player name in mail_list");
     return;
   }
-  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (%s='%s' OR %s='All') %s ORDER BY mail_id DESC", type == 1 ? "receiver" : "sender", escaped_name, type == 1 ? "receiver" : "sender", days);
+  snprintf(query, sizeof(query),
+           "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (%s='%s' OR %s='All') %s "
+           "ORDER BY mail_id DESC",
+           type == 1 ? "receiver" : "sender", escaped_name, type == 1 ? "receiver" : "sender",
+           days);
   free(escaped_name);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -304,19 +323,24 @@ void perform_mail_list(struct char_data *ch, int type)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-
       unread = TRUE;
       deleted = FALSE;
 
       char *escaped_name2 = mysql_escape_string_alloc(conn2, GET_NAME(ch));
       char *escaped_mailid = mysql_escape_string_alloc(conn2, row[0]);
-      if (!escaped_name2 || !escaped_mailid) {
+      if (!escaped_name2 || !escaped_mailid)
+      {
         log("SYSERR: Failed to escape strings in mail_list deleted check");
-        if (escaped_name2) free(escaped_name2);
-        if (escaped_mailid) free(escaped_mailid);
+        if (escaped_name2)
+          free(escaped_name2);
+        if (escaped_mailid)
+          free(escaped_mailid);
         continue;
       }
-      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND mail_id='%s'", escaped_name2, escaped_mailid);
+      snprintf(query, sizeof(query),
+               "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND "
+               "mail_id='%s'",
+               escaped_name2, escaped_mailid);
       free(escaped_name2);
       free(escaped_mailid);
       mysql_query(conn2, query);
@@ -332,13 +356,19 @@ void perform_mail_list(struct char_data *ch, int type)
 
       char *escaped_name3 = mysql_escape_string_alloc(conn3, GET_NAME(ch));
       char *escaped_mailid2 = mysql_escape_string_alloc(conn3, row[0]);
-      if (!escaped_name3 || !escaped_mailid2) {
+      if (!escaped_name3 || !escaped_mailid2)
+      {
         log("SYSERR: Failed to escape strings in mail_list read check");
-        if (escaped_name3) free(escaped_name3);
-        if (escaped_mailid2) free(escaped_mailid2);
+        if (escaped_name3)
+          free(escaped_name3);
+        if (escaped_mailid2)
+          free(escaped_mailid2);
         continue;
       }
-      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND mail_id='%s'", escaped_name3, escaped_mailid2);
+      snprintf(query, sizeof(query),
+               "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND "
+               "mail_id='%s'",
+               escaped_name3, escaped_mailid2);
       free(escaped_name3);
       free(escaped_mailid2);
       //          send_to_char(ch, "%s\r\n", query);
@@ -355,8 +385,8 @@ void perform_mail_list(struct char_data *ch, int type)
 
       if (!deleted)
       {
-        send_to_char(ch, "%-3s %-7s %-20s %s\r\n", unread ? "NEW" : "",
-                     row[0], type == 1 ? row[1] : row[2], row[3]);
+        send_to_char(ch, "%-3s %-7s %-20s %s\r\n", unread ? "NEW" : "", row[0],
+                     type == 1 ? row[1] : row[2], row[3]);
       }
     }
   }
@@ -365,18 +395,19 @@ void perform_mail_list(struct char_data *ch, int type)
 
 void perform_mail_read(struct char_data *ch, int mnum)
 {
-
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
   extern MYSQL *conn2;
 
   /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed (conn)", __func__);
     send_to_char(ch, "Database connection error. Cannot read mail at this time.\r\n");
     return;
   }
-  if (!MYSQL_PING_CONN(conn2)) {
+  if (!MYSQL_PING_CONN(conn2))
+  {
     log("SYSERR: %s: Database connection failed (conn2)", __func__);
     send_to_char(ch, "Database connection error. Cannot read mail at this time.\r\n");
     return;
@@ -390,11 +421,15 @@ void perform_mail_read(struct char_data *ch, int mnum)
 
   char query[MAX_INPUT_LENGTH] = {'\0'};
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name) {
+  if (!escaped_name)
+  {
     log("SYSERR: Failed to escape player name in mail_read");
     return;
   }
-  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (sender='%s' OR receiver='%s' OR receiver='All') AND mail_id='%d'", escaped_name, escaped_name, mnum);
+  snprintf(query, sizeof(query),
+           "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (sender='%s' OR "
+           "receiver='%s' OR receiver='All') AND mail_id='%d'",
+           escaped_name, escaped_name, mnum);
   free(escaped_name);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -418,7 +453,8 @@ void perform_mail_read(struct char_data *ch, int mnum)
   char *end;
   char buf[200];
 
-  end = stpcpy(query, "SELECT mail_id,sender,receiver,subject,message FROM player_mail WHERE mail_id=");
+  end = stpcpy(query,
+               "SELECT mail_id,sender,receiver,subject,message FROM player_mail WHERE mail_id=");
   *end++ = '\'';
   end += mysql_real_escape_string(conn, end, mnums, strlen(mnums));
   *end++ = '\'';
@@ -431,18 +467,21 @@ void perform_mail_read(struct char_data *ch, int mnum)
     if ((row = mysql_fetch_row(res)) != NULL)
     {
       found = TRUE;
-      send_to_char(ch, "Mail Id: %s Sender: %s Recipient: %s\r\n"
-                       "Subject: %s\r\n"
-                       "Message:\r\n"
-                       "%s\r\n\r\n",
+      send_to_char(ch,
+                   "Mail Id: %s Sender: %s Recipient: %s\r\n"
+                   "Subject: %s\r\n"
+                   "Message:\r\n"
+                   "%s\r\n\r\n",
                    row[0], row[1], row[2], row[3], row[4]);
       char *escaped_name_del = mysql_escape_string_alloc(conn2, GET_NAME(ch));
-      if (!escaped_name_del) {
+      if (!escaped_name_del)
+      {
         log("SYSERR: Failed to escape player name in mail_read delete");
         mysql_free_result(res);
         return;
       }
-      snprintf(buf, sizeof(buf), "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", escaped_name_del);
+      snprintf(buf, sizeof(buf), "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=",
+               escaped_name_del);
       free(escaped_name_del);
       end = stpcpy(query, buf);
       *end++ = '\'';
@@ -452,12 +491,14 @@ void perform_mail_read(struct char_data *ch, int mnum)
       mysql_query(conn2, query);
 
       char *escaped_name_ins = mysql_escape_string_alloc(conn2, GET_NAME(ch));
-      if (!escaped_name_ins) {
+      if (!escaped_name_ins)
+      {
         log("SYSERR: Failed to escape player name in mail_read insert");
         mysql_free_result(res);
         return;
       }
-      snprintf(buf, sizeof(buf), "INSERT INTO player_mail_read (player_name, mail_id) VALUES('%s',", escaped_name_ins);
+      snprintf(buf, sizeof(buf), "INSERT INTO player_mail_read (player_name, mail_id) VALUES('%s',",
+               escaped_name_ins);
       free(escaped_name_ins);
       end = stpcpy(query, buf);
       *end++ = '\'';
@@ -478,12 +519,12 @@ void perform_mail_read(struct char_data *ch, int mnum)
 
 void perform_mail_delete(struct char_data *ch, int mnum)
 {
-
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
 
   /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed", __func__);
     send_to_char(ch, "Database connection error. Cannot delete mail at this time.\r\n");
     return;
@@ -497,11 +538,15 @@ void perform_mail_delete(struct char_data *ch, int mnum)
 
   char query[MAX_INPUT_LENGTH] = {'\0'};
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name) {
+  if (!escaped_name)
+  {
     log("SYSERR: Failed to escape player name in mail_delete");
     return;
   }
-  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE sender='%s' OR receiver='%s' OR (receiver='All')", escaped_name, escaped_name);
+  snprintf(query, sizeof(query),
+           "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE sender='%s' OR "
+           "receiver='%s' OR (receiver='All')",
+           escaped_name, escaped_name);
   free(escaped_name);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -524,11 +569,13 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   char *end;
   char buf[200];
   char *escaped_name_del1 = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name_del1) {
+  if (!escaped_name_del1)
+  {
     log("SYSERR: Failed to escape player name in mail_delete read");
     return;
   }
-  snprintf(buf, sizeof(buf), "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", escaped_name_del1);
+  snprintf(buf, sizeof(buf),
+           "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", escaped_name_del1);
   free(escaped_name_del1);
   end = stpcpy(query, buf);
   *end++ = '\'';
@@ -538,11 +585,13 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   mysql_query(conn, query);
 
   char *escaped_name_del2 = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name_del2) {
+  if (!escaped_name_del2)
+  {
     log("SYSERR: Failed to escape player name in mail_delete deleted");
     return;
   }
-  snprintf(buf, sizeof(buf), "DELETE FROM player_mail_deleted WHERE player_name='%s' AND mail_id=", escaped_name_del2);
+  snprintf(buf, sizeof(buf), "DELETE FROM player_mail_deleted WHERE player_name='%s' AND mail_id=",
+           escaped_name_del2);
   free(escaped_name_del2);
   end = stpcpy(query, buf);
   *end++ = '\'';
@@ -552,11 +601,13 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   mysql_query(conn, query);
 
   char *escaped_name_ins2 = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name_ins2) {
+  if (!escaped_name_ins2)
+  {
     log("SYSERR: Failed to escape player name in mail_delete insert");
     return;
   }
-  snprintf(buf, sizeof(buf), "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s',", escaped_name_ins2);
+  snprintf(buf, sizeof(buf), "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s',",
+           escaped_name_ins2);
   free(escaped_name_ins2);
   end = stpcpy(query, buf);
   *end++ = '\'';
@@ -582,15 +633,18 @@ int new_mail_alert(struct char_data *ch, bool silent)
   extern MYSQL *conn3;
 
   /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn)) {
+  if (!MYSQL_PING_CONN(conn))
+  {
     log("SYSERR: %s: Database connection failed (conn)", __func__);
     return 0;
   }
-  if (!MYSQL_PING_CONN(conn2)) {
+  if (!MYSQL_PING_CONN(conn2))
+  {
     log("SYSERR: %s: Database connection failed (conn2)", __func__);
     return 0;
   }
-  if (!MYSQL_PING_CONN(conn3)) {
+  if (!MYSQL_PING_CONN(conn3))
+  {
     log("SYSERR: %s: Database connection failed (conn3)", __func__);
     return 0;
   }
@@ -605,7 +659,8 @@ int new_mail_alert(struct char_data *ch, bool silent)
   }
   if (ch->player_specials->saved.mail_days > 0)
   {
-    snprintf(days, sizeof(days), " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ", ch->player_specials->saved.mail_days);
+    snprintf(days, sizeof(days), " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ",
+             ch->player_specials->saved.mail_days);
   }
   else
   {
@@ -614,11 +669,15 @@ int new_mail_alert(struct char_data *ch, bool silent)
 
   char query[MAX_INPUT_LENGTH] = {'\0'};
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (!escaped_name) {
+  if (!escaped_name)
+  {
     log("SYSERR: Failed to escape player name in new_mail_alert");
     return 0;
   }
-  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (receiver='%s' OR %s='All') %s ORDER BY mail_id DESC", escaped_name, "receiver", days);
+  snprintf(query, sizeof(query),
+           "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (receiver='%s' OR "
+           "%s='All') %s ORDER BY mail_id DESC",
+           escaped_name, "receiver", days);
   free(escaped_name);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -626,18 +685,23 @@ int new_mail_alert(struct char_data *ch, bool silent)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-
       num_mails++;
 
       char *escaped_name2 = mysql_escape_string_alloc(conn2, GET_NAME(ch));
       char *escaped_mailid = mysql_escape_string_alloc(conn2, row[0]);
-      if (!escaped_name2 || !escaped_mailid) {
+      if (!escaped_name2 || !escaped_mailid)
+      {
         log("SYSERR: Failed to escape strings in mail_list deleted check");
-        if (escaped_name2) free(escaped_name2);
-        if (escaped_mailid) free(escaped_mailid);
+        if (escaped_name2)
+          free(escaped_name2);
+        if (escaped_mailid)
+          free(escaped_mailid);
         continue;
       }
-      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND mail_id='%s'", escaped_name2, escaped_mailid);
+      snprintf(query, sizeof(query),
+               "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND "
+               "mail_id='%s'",
+               escaped_name2, escaped_mailid);
       free(escaped_name2);
       free(escaped_mailid);
       mysql_query(conn2, query);
@@ -653,13 +717,19 @@ int new_mail_alert(struct char_data *ch, bool silent)
 
       char *escaped_name3 = mysql_escape_string_alloc(conn3, GET_NAME(ch));
       char *escaped_mailid2 = mysql_escape_string_alloc(conn3, row[0]);
-      if (!escaped_name3 || !escaped_mailid2) {
+      if (!escaped_name3 || !escaped_mailid2)
+      {
         log("SYSERR: Failed to escape strings in mail_list read check");
-        if (escaped_name3) free(escaped_name3);
-        if (escaped_mailid2) free(escaped_mailid2);
+        if (escaped_name3)
+          free(escaped_name3);
+        if (escaped_mailid2)
+          free(escaped_mailid2);
         continue;
       }
-      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND mail_id='%s'", escaped_name3, escaped_mailid2);
+      snprintf(query, sizeof(query),
+               "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND "
+               "mail_id='%s'",
+               escaped_name3, escaped_mailid2);
       free(escaped_name3);
       free(escaped_mailid2);
       mysql_query(conn3, query);

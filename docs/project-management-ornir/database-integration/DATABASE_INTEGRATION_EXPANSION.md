@@ -13,7 +13,7 @@ This document outlines a comprehensive plan for expanding LuminariMUD's database
 **Advantages:**
 - **Single Source of Truth**: Centralized data storage eliminates synchronization issues
 - **Existing Infrastructure**: MySQL/MariaDB already integrated with robust spatial extensions
-- **Performance**: Indexed queries and optimized spatial operations 
+- **Performance**: Indexed queries and optimized spatial operations
 - **Standards Compliance**: SQL provides standardized query interface
 - **Security**: Database-level access controls and authentication
 - **Scalability**: Can handle multiple concurrent API consumers
@@ -72,22 +72,22 @@ Based on codebase analysis, the following data categories are candidates for ext
 **1. Wilderness Coordinate System**
 ```sql
 -- Already exists, needs view creation
-CREATE VIEW api_wilderness_coordinates AS 
-SELECT 
+CREATE VIEW api_wilderness_coordinates AS
+SELECT
     x_coord, y_coord,
     sector_type,
     elevation,
     temperature,
     moisture
-FROM wilderness_cache 
+FROM wilderness_cache
 WHERE is_active = 1;
 ```
 
-**2. Region Data** 
+**2. Region Data**
 ```sql
 -- Leverage existing region_data and region_index tables
 CREATE VIEW api_regions AS
-SELECT 
+SELECT
     r.vnum,
     r.zone_vnum,
     r.name,
@@ -102,7 +102,7 @@ JOIN region_index ri ON r.vnum = ri.vnum;
 ```sql
 -- Leverage existing path_data table
 CREATE VIEW api_paths AS
-SELECT 
+SELECT
     vnum,
     zone_vnum,
     name,
@@ -137,21 +137,21 @@ CREATE SCHEMA luminari_api;
 
 -- Wilderness terrain data
 CREATE VIEW luminari_api.wilderness_terrain AS
-SELECT 
+SELECT
     world.coords[0] as x_coordinate,
     world.coords[1] as y_coordinate,
     world.sector_type,
     sector_types.name as sector_name,
     zone_table.name as zone_name,
     zone_table.number as zone_vnum
-FROM world 
+FROM world
 JOIN zone_table ON world.zone = zone_table.id
 JOIN sector_types ON world.sector_type = sector_types.id
 WHERE world.coords[0] IS NOT NULL;
 
 -- Region definitions with spatial data  
 CREATE VIEW luminari_api.regions AS
-SELECT 
+SELECT
     rd.vnum,
     rd.zone_vnum,
     rd.name,
@@ -170,9 +170,9 @@ JOIN region_index ri ON rd.vnum = ri.vnum;
 
 -- Path/road/river definitions
 CREATE VIEW luminari_api.paths AS
-SELECT 
+SELECT
     pd.vnum,
-    pd.zone_vnum, 
+    pd.zone_vnum,
     pd.name,
     pd.path_type,
     CASE pd.path_type
@@ -257,12 +257,12 @@ CREATE TABLE luminari_api.zones (
 void export_world_data_to_api() {
     room_rnum room;
     zone_rnum zone;
-    
+
     // Export zones
     for (zone = 0; zone <= top_of_zone_table; zone++) {
         export_zone_to_api(&zone_table[zone]);
     }
-    
+
     // Export rooms  
     for (room = 0; room <= top_of_world; room++) {
         export_room_to_api(&world[room]);
@@ -371,7 +371,7 @@ CREATE TABLE luminari_api.object_affects (
 CREATE USER 'luminari_api'@'%' IDENTIFIED BY 'secure_api_password';
 GRANT SELECT ON luminari_api.* TO 'luminari_api'@'%';
 GRANT SELECT ON region_data TO 'luminari_api'@'%';
-GRANT SELECT ON region_index TO 'luminari_api'@'%'; 
+GRANT SELECT ON region_index TO 'luminari_api'@'%';
 GRANT SELECT ON path_data TO 'luminari_api'@'%';
 
 -- Create API keys table
@@ -396,11 +396,11 @@ async def get_wilderness_terrain(
     api_key: str = Header(...)
 ):
     """Get terrain data for specified coordinate bounds"""
-    
+
 @app.get("/api/v1/regions")  
 async def get_regions(zone_vnum: Optional[int] = None):
     """Get all regions or regions for specific zone"""
-    
+
 @app.get("/api/v1/paths")
 async def get_paths(zone_vnum: Optional[int] = None):
     """Get all paths or paths for specific zone"""

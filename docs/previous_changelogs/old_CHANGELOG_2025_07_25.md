@@ -6,16 +6,16 @@
 
 #### Fixed Shutdown Core Dump in destroy_db() - Wilderness Static Strings
 - **Issue**: Server crash (SIGABRT) during shutdown when destroying the world database
-- **Root Cause**: 
+- **Root Cause**:
   - Wilderness rooms use static strings for names/descriptions (e.g., "The Wilderness of Luminari")
   - These static strings are declared in `assign_wilderness_room()` as `static char wilderness_name[]`
   - During shutdown, `destroy_db()` attempted to `free()` these static strings, causing malloc_printerr abort
   - Affected wilderness rooms in vnum ranges 1000000-1003999 and 1004000-1009999
-- **Solution**: 
+- **Solution**:
   - Modified `destroy_db()` to check if a room is a wilderness room using `IS_WILDERNESS_VNUM()` macro
   - Skip freeing name/description for wilderness rooms since they use static strings
   - Regular rooms continue to have their dynamically allocated strings freed normally
-- **Files Modified**: 
+- **Files Modified**:
   - db.c:768-777 (added wilderness room check in destroy_db)
 - **Impact**: Eliminates core dump during server shutdown, allowing clean server restarts
 
@@ -23,36 +23,36 @@
 
 #### Fifth Fix Attempt for Player Death Crash - Prevent update_pos() on Dead Victims
 - **Issue**: Server crash with malloc_consolidate error when player dies during combat
-- **Root Cause**: 
+- **Root Cause**:
   - When a player dies, they are set to POS_DEAD, given 1 HP, and moved to respawn room
   - The attacker's combat event continues and calls `valid_fight_cond()` to validate the target
   - `valid_fight_cond()` calls `update_pos(FIGHTING(ch))` on the dead victim
   - Since victim has 1 HP, `update_pos()` changes their position from POS_DEAD to POS_RESTING
   - Combat continues against a player who should be dead, causing memory corruption
   - The corruption manifests as a crash in `save_char()` when it tries to allocate memory
-- **Solution**: 
+- **Solution**:
   - Added check in `valid_fight_cond()` to skip `update_pos()` if target is already POS_DEAD
   - This prevents dead characters from being changed to POS_RESTING during combat
   - Combat properly stops when it sees POS_DEAD instead of incorrectly updated position
-- **Files Modified**: 
+- **Files Modified**:
   - fight.c:11564-11565 (skip update_pos if target is POS_DEAD in non-strict mode)
   - fight.c:11574-11575 (skip update_pos if target is POS_DEAD in strict mode)
 - **Impact**: Prevents combat from continuing against dead players, eliminating the memory corruption
 
 #### Fourth Fix Attempt for Player Death Crash - Affect Removal During Death
 - **Issue**: Server crash with malloc_consolidate error when player dies, occurring in save_char()
-- **Root Cause**: 
+- **Root Cause**:
   - During player death, `affect_remove()` is called to clear all affects
   - This triggers `affect_total()` → `update_msdp_affects()` → protocol memory allocations
   - The heap is already corrupted from the complex death processing sequence
   - When `save_char()` tries to allocate memory for the write buffer, malloc detects corruption and aborts
   - Previous POS_DEAD check didn't work because `update_pos()` changes position to POS_RESTING after HP is set to 1
-- **Solution Attempt**: 
+- **Solution Attempt**:
   - Changed player death to use `affect_remove_no_total()` instead of `affect_remove()`
   - This skips the affect_total() calls that trigger MSDP updates during unstable state
   - Added `affect_total()` calls after respawn when character is in stable state
   - Stats are now properly recalculated after player is moved to respawn room
-- **Files Modified**: 
+- **Files Modified**:
   - fight.c:2028-2033 (use affect_remove_no_total for players during death)
   - fight.c:2167 (added affect_total after arena respawn)
   - fight.c:2206 (added affect_total after normal respawn)
@@ -61,17 +61,17 @@
 #### Third Fix Attempt for Player Death Crash - MSDP Protocol Issue
 - **Issue**: Server still crashing during player death after initial fix, but in different location
 - **New Stack Trace**: Crash occurring in `protocol.c` during `AllocString()` call from MSDP affect updates
-- **Root Cause**: 
+- **Root Cause**:
   - During death processing, `raw_kill()` removes all affects from the character
   - Each `affect_remove()` call triggers `affect_total()` which calls `update_msdp_affects()`
   - MSDP protocol tries to send updates to the client during death processing
   - Character descriptor may be in unstable state during death, causing malloc errors
-- **Solution Attempt**: 
+- **Solution Attempt**:
   - Initially tried checking `PLR_NOTDEADYET` flag but this was incorrect - that flag is for extraction queuing
   - Players are NEVER extracted when they die (they respawn), so PLR_NOTDEADYET doesn't apply
   - Changed to check `GET_POS(ch) == POS_DEAD` instead
   - This might work because `dam_killed_vict()` sets POS_DEAD before calling `die()` → `raw_kill()`
-- **Files Modified**: 
+- **Files Modified**:
   - handler.c:1018-1019 (added POS_DEAD check in update_msdp_affects)
   - fight.c:1991-2000 (added clarifying comments about player death not being extraction)
 - **Impact**: Might prevent crashes by skipping MSDP protocol updates when character position is POS_DEAD
@@ -82,36 +82,36 @@
 
 #### Fixed Player Death Crash - Race Condition with Combat Events
 - **Issue**: Server crash during player death when `save_char()` tries to allocate memory, resulting in heap corruption
-- **Root Cause**: 
+- **Root Cause**:
   - Combat events continued executing after character death was initiated
   - The `event_combat_round()` was still in the call stack when `raw_kill()` was modifying character state
   - Character was moved between rooms and had affects applied while combat events were still processing
   - This race condition caused memory corruption that manifested as malloc_consolidate() crash during save_char()
-- **Solution**: 
+- **Solution**:
   - Moved `clear_char_event_list(ch)` to execute immediately after `stop_fighting()` in `raw_kill()`
   - This matches the order from the old stable code where events were cleared before any state changes
   - Added comprehensive safety checks at the beginning of `event_combat_round()`:
     - Check for NULL character, NOWHERE room, or DEAD position
     - Check for PLR_NOTDEADYET flag (player pending extraction)
     - Check for MOB_NOTDEADYET flag (NPC pending extraction)
-- **Files Modified**: 
+- **Files Modified**:
   - fight.c:2014 (moved clear_char_event_list earlier in raw_kill)
   - fight.c:12519-12529 (added safety checks in event_combat_round)
 - **Impact**: Eliminates crashes during player death by ensuring combat events cannot execute on characters being processed for death
 
 #### Fixed Heap Corruption in raw_kill() During NPC Death
 - **Issue**: Server crash with heap corruption in malloc_consolidate() when characters died
-- **Root Cause**: 
+- **Root Cause**:
   - In fight.c:2012-2013, `raw_kill()` used `affect_remove()` to clear all affects during death
   - `affect_remove()` calls `affect_total()` which recalculates character stats
   - For NPCs that are about to be extracted, accessing character data during affect_total() could reference freed or corrupted memory
   - The corruption manifested later as a crash in malloc_consolidate() during save_char()
-- **Solution**: 
+- **Solution**:
   - Modified `raw_kill()` to use different affect removal based on character type:
     - NPCs: Use `affect_remove_no_total()` since they will be extracted and don't need stat recalculation
     - Players: Continue using `affect_remove()` since they remain in game and need proper stats
   - This prevents accessing potentially corrupted data for NPCs while maintaining correct behavior for players
-- **Files Modified**: 
+- **Files Modified**:
   - fight.c:2011-2020 (raw_kill function)
 - **Impact**: Eliminates heap corruption during NPC death while preserving correct player death handling
 
@@ -121,46 +121,46 @@
 
 #### Fixed String Overlap Error in half_chop() Function
 - **Issue**: Undefined behavior due to overlapping memory regions in strcpy() call
-- **Root Cause**: 
+- **Root Cause**:
   - In helpers.c:47, `half_chop()` used `strcpy(arg2, temp)` to copy the remainder of the string
   - Many callers pass the same buffer as both the input string and arg2 (e.g., `half_chop(buf2, buf, buf2)`)
   - When temp points into the original string and arg2 is the same buffer, strcpy() has overlapping source/destination
   - This violates strcpy()'s requirement that memory regions must not overlap, causing undefined behavior
-- **Solution**: 
+- **Solution**:
   - Replaced `strcpy(arg2, temp)` with `memmove(arg2, temp, strlen(temp) + 1)`
   - memmove() is specifically designed to handle overlapping memory regions safely
   - The +1 ensures the null terminator is properly copied
-- **Files Modified**: 
+- **Files Modified**:
   - helpers.c:47 (half_chop function)
 - **Impact**: Eliminates undefined behavior and potential crashes/corruption in command parsing throughout the MUD
 
 #### Fixed Memory Leak in Crafting System reset_current_craft()
 - **Issue**: Memory leak when resetting craft descriptions - 24 bytes lost per reset
-- **Root Cause**: 
+- **Root Cause**:
   - In crafting_new.c:2319-2321, the function allocated new strings with strdup() for keywords, short_description, and room_description
   - The old strings were not freed before allocating new ones, causing a memory leak
   - Each call to reset_current_craft() would leak 3 strings ("not set" = 8 bytes each including null terminator)
-- **Solution**: 
+- **Solution**:
   - Added checks to free existing strings before allocating new ones
   - Free GET_CRAFT(ch).keywords, short_description, and room_description if they exist
   - Then allocate new strings with strdup() as before
-- **Files Modified**: 
+- **Files Modified**:
   - crafting_new.c:2319-2330 (reset_current_craft function)
 - **Impact**: Eliminates memory leaks in the crafting system, preventing memory accumulation during gameplay
 
 #### Fixed Critical Memory Leak in Object Special Abilities System
 - **Issue**: Major memory leak in object special abilities - 48+ bytes per object leaked during zone resets
-- **Root Cause**: 
+- **Root Cause**:
   - In `read_object()` at db.c:4025, special abilities were allocated via CREATE() and linked to objects
   - Special abilities included dynamically allocated command_word strings via strdup()
   - When objects were destroyed via `extract_obj()` and `free_obj()`, special abilities were never freed
   - During zone resets (which happen periodically), this caused continuous memory accumulation
-- **Solution**: 
+- **Solution**:
   - Created `free_obj_special_abilities()` function to properly free the entire linked list
   - Added call to this function in `free_obj()` for regular object cleanup
   - Added call during shutdown when obj_proto array is cleaned up
   - Function properly frees both the special ability structures and any strdup'd command words
-- **Files Modified**: 
+- **Files Modified**:
   - db.c:5425-5436 (new free_obj_special_abilities function)
   - db.c:5458-5459 (added cleanup in free_obj)
   - db.c:822-824 (added cleanup in obj_proto destruction)
@@ -169,15 +169,15 @@
 
 #### Fixed Critical SEGFAULT in Spell Preparation System
 - **Issue**: SEGFAULT crash when clearing spell preparation queues due to use-after-free errors
-- **Root Cause**: 
+- **Root Cause**:
   - In spell_prep.c, functions `clear_prep_queue_by_class()`, `clear_innate_magic_by_class()`, `clear_collection_by_class()`, and `clear_known_spells_by_class()` used unsafe do-while loops
   - After freeing a node with `free(tmp)`, the code continued to access the freed memory in the loop condition
   - This caused reading from address 0xbbbbbbbbbbbbbbcb (freed memory pattern) resulting in SEGFAULT
-- **Solution**: 
+- **Solution**:
   - Refactored all four functions to use safe iteration pattern with cached next pointers
   - Changed from do-while loops to while loops that cache the next pointer before freeing
   - Explicitly set the list head to NULL after clearing all nodes
-- **Files Modified**: 
+- **Files Modified**:
   - spell_prep.c:88-100 (clear_prep_queue_by_class)
   - spell_prep.c:101-113 (clear_innate_magic_by_class)
   - spell_prep.c:114-126 (clear_collection_by_class)
@@ -186,7 +186,7 @@
 
 #### Fixed Memory Leaks in String Handling Functions
 - **Issue**: Multiple memory leaks in string handling functions causing gradual memory consumption
-- **Root Causes and Solutions**: 
+- **Root Causes and Solutions**:
   1. **handler.c:134 (isname)** - strdup() allocated memory was not freed on early return
      - Added free(strlist) before returning 0 when isname_tok fails
      - Prevents 5-7 byte leaks on every failed name match
@@ -194,23 +194,23 @@
      - Added checks to free previous wear_off_msg before allocating new ones
      - Prevents ~250 instances of 30-40 byte leaks
      - Only frees dynamically allocated strings, not static constants
-- **Files Modified**: 
+- **Files Modified**:
   - handler.c:139-143 (isname function)
   - spell_parser.c:3051-3068 (spello function)
 - **Impact**: Eliminates recurring memory leaks in frequently called functions, reducing memory consumption in long-running servers
 
 #### Fixed Critical Use-After-Free in Character Cleanup (free_char)
 - **Issue**: Use-after-free crash when freeing characters with active affects during cleanup
-- **Root Cause**: 
+- **Root Cause**:
   - In db.c:5364-5365, `free_char()` removes all affects by calling `affect_remove()` in a loop
   - Each `affect_remove()` call triggers `affect_total()` which calls `affect_total_plus()`
   - During character cleanup, parts of the character structure may already be freed or inconsistent
   - This caused reading from freed memory (18KB inside freed 90KB block) leading to crashes
-- **Solution**: 
+- **Solution**:
   - Created new function `affect_remove_no_total()` that removes affects without recalculating totals
   - This function performs all the same cleanup as `affect_remove()` but skips the `affect_total()` call
   - Modified `free_char()` to use `affect_remove_no_total()` during cleanup
-- **Files Modified**: 
+- **Files Modified**:
   - handler.c:1146-1191 (new affect_remove_no_total function)
   - handler.h:23 (added function declaration)
   - db.c:5365 (changed to use affect_remove_no_total)
@@ -218,33 +218,33 @@
 
 #### Fixed Use-After-Free in Event System
 - **Issue**: Use-after-free error in event system causing crashes when events were cancelled during iteration
-- **Root Cause**: 
+- **Root Cause**:
   - List iterators held pointers to freed memory when events were cancelled during traversal
   - Functions like `event_cancel_specific()`, `clear_char_event_list()`, and related functions modified lists while iterating
   - When an event was freed, iterators could access the freed memory (8 bytes inside freed 24-byte block)
-- **Solution**: 
+- **Solution**:
   - Modified `event_cancel_specific()` to use `simple_list()` instead of iterators for safer iteration
   - Refactored all `clear_*_event_list()` functions to use two-pass approach:
     - First pass: Collect events to cancel into temporary list
     - Second pass: Cancel collected events from temporary list
   - Fixed `change_event_duration()` and `change_event_svariables()` to copy data before cancelling old events
-- **Files Modified**: 
+- **Files Modified**:
   - mud_event.c: event_cancel_specific(), clear_char_event_list(), clear_room_event_list(), clear_region_event_list()
   - mud_event.c: change_event_duration(), change_event_svariables()
 - **Impact**: Eliminates crashes from use-after-free errors in the event system, significantly improving server stability
 
 #### Fixed Uninitialized Memory Access in String Reading Functions
 - **Issue**: 60 conditional jump errors in valgrind caused by accessing uninitialized memory in fread_string() and fread_clean_string()
-- **Root Cause**: 
+- **Root Cause**:
   - When processing empty strings or strings with only newlines, the code would decrement a pointer before the start of the array
   - Line 4874 in fread_string() had incorrect condition `point == 0` comparing pointer to integer
   - Both functions lacked bounds checking when removing trailing newlines/carriage returns
-- **Solution**: 
+- **Solution**:
   - Added bounds check `if (point > tmp)` before decrementing pointer
   - Added condition `(point >= tmp)` in the for loop to prevent underflow
   - Added safety check `if (point >= tmp)` before dereferencing pointer
   - Fixed the incorrect `point == 0` comparison in fread_string()
-- **Files Modified**: 
+- **Files Modified**:
   - db.c:4874-4893 (fread_string function)
   - db.c:4941-4959 (fread_clean_string function)
 - **Impact**: Eliminates 60 valgrind errors related to conditional jumps on uninitialized values, improving IBT file loading reliability
@@ -267,11 +267,11 @@
   - Memory allocator reused the freed memory for other allocations
   - New allocations wrote pointer values into the old string memory
   - When `free_tokens()` ran, it tried to free these corrupted pointers, causing crash
-- **Solution**: 
+- **Solution**:
   - Removed all `free(*line)` calls in parsing loops (lines 2416, 3352, 3976, etc.)
   - Added comments explaining that token strings must not be freed individually
   - Only `free_tokens()` should be called at the end to properly clean up the entire array
-- **Files Modified**: 
+- **Files Modified**:
   - objsave.c: Multiple locations where `free(*line)` was removed
 - **Impact**: Eliminates crashes when loading house data, particularly house #24828 which triggered the bug consistently
 
@@ -282,7 +282,7 @@
   - `realloc()` at lines 218 and 226 could return NULL and leak memory
   - `strdup()` at lines 208 and 220 could return NULL
   - When any allocation failed, NULL or invalid pointers were stored in the array, causing crashes in `free_tokens()`
-- **Solution**: 
+- **Solution**:
   - Added comprehensive NULL checks after every memory allocation
   - Implemented proper cleanup on allocation failures to prevent memory leaks
   - Return NULL on error to allow graceful error handling by callers
@@ -291,7 +291,7 @@
   - `objsave.c`: 3 locations (objsave_parse_objects_db, pet_load_objs, objsave_parse_objects_db_sheath)
   - `mud_event.c`: 1 location (event_countdown)
   - `mysql.c`: 3 locations (load_regions, load_paths, envelope)
-- **Files Modified**: 
+- **Files Modified**:
   - mysql.c:206-272 (tokenize function)
   - objsave.c:2126-2132, 3057-3062, 3673-3678
   - mud_event.c:583-587
@@ -302,7 +302,7 @@
 #### Fixed Critical tokenize() NULL Termination Crash
 - **Issue**: Server crash (SIGABRT) when loading house data during boot
 - **Root Cause**: The `tokenize()` function in mysql.c:215-226 was improperly NULL-terminating arrays by incrementing count after adding NULL, causing `free_tokens()` to read uninitialized memory and attempt to free garbage pointers
-- **Solution**: 
+- **Solution**:
   - Changed loop from `while(1)` to `while(tok)` to only process valid tokens
   - Properly NULL-terminate array after loop without incrementing count
   - Ensure adequate space for NULL terminator with bounds checking
@@ -373,7 +373,7 @@
 
 #### Unified Pet System Across All Campaigns
 - **Issue**: Pet system had different database schemas and functionality between DragonLance and default/Faerun campaigns
-- **Root Cause**: 
+- **Root Cause**:
   - DragonLance campaign included pet_sdesc, pet_ldesc, pet_ddesc fields in pet_data table
   - Default campaign omitted these fields, causing "Field 'pet_sdesc' doesn't have a default value" errors
   - Different INSERT/SELECT queries and pet loading logic between campaigns
@@ -384,10 +384,10 @@
   - Removed all #if defined(CAMPAIGN_DL) conditionals around pet code
   - Made pet_load_objs() and pet description loading available for all campaigns
   - Properly handle empty pet descriptions with validation checks
-- **Files Modified**: 
+- **Files Modified**:
   - players.c:4085-4210 (save_char_pets - unified INSERT queries)
   - players.c:4233-4370 (load_char_pets - unified SELECT queries and loading logic)
-- **Impact**: 
+- **Impact**:
   - Eliminates database errors for missing pet_sdesc field
   - Provides consistent pet functionality across all campaign types
   - Simplifies maintenance by removing campaign-specific code branches

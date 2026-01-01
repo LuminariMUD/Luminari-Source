@@ -19,7 +19,7 @@ How to compile using MS Visual C++ 5:
 
   4. If you didn't create this in the circle dir, move the source to the
      directory where this project is. Default should be:
-         C:\Program Files\DevStudio\MyProjects\Circle\Circle 
+         C:\Program Files\DevStudio\MyProjects\Circle\Circle
 
   5. Change to file-view.
 
@@ -32,20 +32,20 @@ How to compile using MS Visual C++ 5:
   8. Right-click the new folder, and click Add Files to Folder... Select
      all of the .H files.  Note: You could just add the the .H files to the
      project with the .C files, but this helps keep it more organized I
-     think. 
+     think.
 
-  9. Right-click "Circle files", and click settings... 
+  9. Right-click "Circle files", and click settings...
 
- 10. Choose settings for all configurations, and move to the Link tab 
+ 10. Choose settings for all configurations, and move to the Link tab
 
- 11. Add wsock32.lib to the end of the Object/Library modules list. 
+ 11. Add wsock32.lib to the end of the Object/Library modules list.
 
  12. Change the settings under the General and Debug tabs if you want
      to be able to use the internal debugger.
 
- 13. SAVE THE WORKSPAVE 
+ 13. SAVE THE WORKSPAVE
 
- 14. Choose Build|Build Circle.exe, or hit F7 to build it. 
+ 14. Choose Build|Build Circle.exe, or hit F7 to build it.
 
 
 The circle.exe file will be placed in the circle\debug directory, unless

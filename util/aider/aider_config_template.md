@@ -501,9 +501,9 @@ source ~/.bashrc
 
 ### Creating a New Shop
 ```
-> Create a potion shop for room 10050. The shopkeeper should be a 
-> level 15 alchemist with Int 16, Wis 14. Sell healing potions (light, 
-> moderate, serious), mana potions, and antidotes. Set appropriate 
+> Create a potion shop for room 10050. The shopkeeper should be a
+> level 15 alchemist with Int 16, Wis 14. Sell healing potions (light,
+> moderate, serious), mana potions, and antidotes. Set appropriate
 > prices for level 15 area. Include personality in descriptions.
 ```
 
@@ -531,8 +531,8 @@ source ~/.bashrc
 
 ### Balancing Items
 ```
-> Review all weapons in zone 100 and adjust their stats for level 15-20 
-> range. Ensure damage dice, bonuses, and special properties are 
+> Review all weapons in zone 100 and adjust their stats for level 15-20
+> range. Ensure damage dice, bonuses, and special properties are
 > balanced. Follow Pathfinder progression guidelines.
 ```
 

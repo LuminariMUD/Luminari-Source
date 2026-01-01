@@ -809,7 +809,7 @@ GROUP BY h.tag;
 
 #### Find orphaned keywords
 ```sql
-SELECT k.keyword 
+SELECT k.keyword
 FROM help_keywords k
 LEFT JOIN help_entries h ON k.help_tag = h.tag
 WHERE h.tag IS NULL;
@@ -867,4 +867,3 @@ Usage: score
 - **`src/sysdep.h`** - System dependencies
 
 ---
-

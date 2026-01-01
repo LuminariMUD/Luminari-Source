@@ -301,7 +301,8 @@ void walkdir(FILE *index_file, char *dir)
       {
         /* Extract data from the mail file and add to index */
         mail_file = fopen(filename_qfd, "r");
-        if (!mail_file) {
+        if (!mail_file)
+        {
           fprintf(stderr, "Warning: Could not open mail file %s\n", filename_qfd);
           continue;
         }
@@ -315,7 +316,8 @@ void walkdir(FILE *index_file, char *dir)
 
         sprintascii(bits, flags);
 
-        fprintf(index_file, "%ld %s %ld %ld %ld %s\n", id, *bits ? bits : "0", sender, recipient, sent_time, subject);
+        fprintf(index_file, "%ld %s %ld %ld %ld %s\n", id, *bits ? bits : "0", sender, recipient,
+                sent_time, subject);
 
         fclose(mail_file);
       }

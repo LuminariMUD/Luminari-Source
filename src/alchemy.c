@@ -27,55 +27,56 @@
 #include "perks.h"
 
 // external functions
-int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
-int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type, int offhand);
+int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch,
+                int attack_number);
+int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
+           int offhand);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
-const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES] = {
-    "normal bomb",
-    "acid bomb",
-    "blinding bomb",
-    "boneshard bomb",
-    "celestial poisons",
-    "chameleon",
-    "cognatogen",
-    "concussive bomb",
-    "confusion bomb",
-    "dispelling bomb",
-    "elemental mutagen",
-    "enhance potion",
-    "extend potion",
-    "fast bombs",
-    "fire brand",
-    "force bomb",
-    "frost bomb",
-    "grand cognatogen",
-    "grand inspiring cognatogen",
-    "grand mutagen",
-    "greater cognatogen",
-    "greater inspiring cognatogen",
-    "greater mutagen",
-    "healing bomb",
-    "curing touch",
-    "holy bomb",
-    "immolation bomb",
-    "infuse mutagen",
-    "infusion",
-    "inspiring cognatogen",
-    "malignant poison",
-    "poison bomb",
-    "precise bomb",
-    "preserve organs",
-    "profane bomb",
-    "psychokinetic tincture",
-    "shock bomb",
-    "spontaneous healing",
-    "sticky bombs",
-    "stink bomb",
-    "sunlight bomb",
-    "tanglefoot bomb",
-    "vestigial arm",
-    "wings"};
+const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES] = {"normal bomb",
+                                                               "acid bomb",
+                                                               "blinding bomb",
+                                                               "boneshard bomb",
+                                                               "celestial poisons",
+                                                               "chameleon",
+                                                               "cognatogen",
+                                                               "concussive bomb",
+                                                               "confusion bomb",
+                                                               "dispelling bomb",
+                                                               "elemental mutagen",
+                                                               "enhance potion",
+                                                               "extend potion",
+                                                               "fast bombs",
+                                                               "fire brand",
+                                                               "force bomb",
+                                                               "frost bomb",
+                                                               "grand cognatogen",
+                                                               "grand inspiring cognatogen",
+                                                               "grand mutagen",
+                                                               "greater cognatogen",
+                                                               "greater inspiring cognatogen",
+                                                               "greater mutagen",
+                                                               "healing bomb",
+                                                               "curing touch",
+                                                               "holy bomb",
+                                                               "immolation bomb",
+                                                               "infuse mutagen",
+                                                               "infusion",
+                                                               "inspiring cognatogen",
+                                                               "malignant poison",
+                                                               "poison bomb",
+                                                               "precise bomb",
+                                                               "preserve organs",
+                                                               "profane bomb",
+                                                               "psychokinetic tincture",
+                                                               "shock bomb",
+                                                               "spontaneous healing",
+                                                               "sticky bombs",
+                                                               "stink bomb",
+                                                               "sunlight bomb",
+                                                               "tanglefoot bomb",
+                                                               "vestigial arm",
+                                                               "wings"};
 
 const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "Deals 1d6/rank fire damage.",
@@ -84,82 +85,79 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "Deals 1d6/rank piercing damage, and direct targets can take 1d4 bleed damage.",
     "Your poisons affect Undead and Evil Outsiders",
     "Bonus to stealth checks, +4 at first then +8 at alchemist level 10.",
-    "Can use a mutagen to improve mental abilities instead of physical ones. +4 to selected mental ability, and -2 to associated physical ability, plus +2 natural armor bonus. Uses 'swallow' command.",
+    "Can use a mutagen to improve mental abilities instead of physical ones. +4 to selected mental "
+    "ability, and -2 to associated physical ability, plus +2 natural armor bonus. Uses 'swallow' "
+    "command.",
     "Deals 1d4/rank sonic damage with chance to deafen.",
     "Chance to make direct targets confused, damage is reduced by 2d6, minimum of 1d6.",
     "Chance to dispel magic on direct target.  Does no damage.",
-    "Can apply mutagen benefits to elemental resitance and an associated skill check bonus. Uses 'swallow' command.",
+    "Can apply mutagen benefits to elemental resitance and an associated skill check bonus. Uses "
+    "'swallow' command.",
     "increases the caster level on any quaffed potion to the alchemist's class level.",
     "Any potions quaffed last twice as long.",
     "Can make or throw bombs with a move action instead of a standard action.",
-    "Allows use of a bomb that makes your wielded weapons flaming, and and alchemist level 10, also flaming burst.",
+    "Allows use of a bomb that makes your wielded weapons flaming, and and alchemist level 10, "
+    "also flaming burst.",
     "Deals 1d4/rank force damage with direct targets possibly being knocked prone.",
     "Deals 1d6/rank frost damage with direct targets having a chance to be staggered.",
-    "As cognatogen but ability bonus is +8 for one ability, +6 for another and +4 for the third, plus natural ac is +4",
-    "As inspiring cognatogen but +4 dodge AC, +4 reflex saves, but with -6 to strength and consistution.  Also includes some skill bonuses.",
-    "As mutagen, but +6 natural armor, +8 to one physical ability, +6 to a second and +4 to the third. Uses 'swallow' command.",
+    "As cognatogen but ability bonus is +8 for one ability, +6 for another and +4 for the third, "
+    "plus natural ac is +4",
+    "As inspiring cognatogen but +4 dodge AC, +4 reflex saves, but with -6 to strength and "
+    "consistution.  Also includes some skill bonuses.",
+    "As mutagen, but +6 natural armor, +8 to one physical ability, +6 to a second and +4 to the "
+    "third. Uses 'swallow' command.",
     "As cognatogen but +4 natural AC and +6 to one mental ability, and +4 to a second.",
-    "As inspiring cognatogen, but +2 dodge ac, +2 reflex saves and -4 to strength and constitution, plus some bonuses to certain skills.",
-    "As mutagen, but +6 to one ability and +4 to a second.  -2 to associated abilities.  +4 natural ac. Uses 'swallow' command.",
+    "As inspiring cognatogen, but +2 dodge ac, +2 reflex saves and -4 to strength and "
+    "constitution, plus some bonuses to certain skills.",
+    "As mutagen, but +6 to one ability and +4 to a second.  -2 to associated abilities.  +4 "
+    "natural ac. Uses 'swallow' command.",
     "Heals target 1d4/rank.",
-    "As spontaneous healing discovery, but can heal the amount to another creature as a swift action.  Also increases maximum healing total to 5x Alchemist level.",
-    "Deals 1d6/rank holy damage. Evil targets may be staggered. Neutral targets take 1/2 damage and good ones take none.",
+    "As spontaneous healing discovery, but can heal the amount to another creature as a swift "
+    "action.  Also increases maximum healing total to 5x Alchemist level.",
+    "Deals 1d6/rank holy damage. Evil targets may be staggered. Neutral targets take 1/2 damage "
+    "and good ones take none.",
     "Deals 1d6+int mod fire damage each round for # of rounds equal to # of bomb ranks.",
     "Reduces the penalties associated with mutagens and cognatogens by 1. Uses 'swallow' command.",
     "Allows others to benefit from extracts",
     "+2 dodge ac, -2 strength and constitution, +1 to attack rolls and weapon damage.",
     "Increases save DCs of alchemist's poisons by +4, and increases duration by 50 percent.",
-    "Deals 1d4/level poison damage to all in room, as well as secondary poison damage to all if AoE Bombs enabled.",
+    "Deals 1d4/level poison damage to all in room, as well as secondary poison damage to all if "
+    "AoE Bombs enabled.",
     "+2 to attack rolls with bombs.",
     "25 percent chance of nullifying any critical hit or sneak attack against the alchemist.",
-    "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage and evil ones take none.",
-    "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist a cumulative +1 "
-    "bonus to deflection ac, up to a maximum of 5 at alchemist level 20.  The alchemist can 'launch' one spirit per round "
-    "which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command.",
+    "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage "
+    "and evil ones take none.",
+    "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist "
+    "a cumulative +1 "
+    "bonus to deflection ac, up to a maximum of 5 at alchemist level 20.  The alchemist can "
+    "'launch' one spirit per round "
+    "which will make the target frightened if a mind-affecting fear save is failed.  Uses the "
+    "'psychokinetic' command.",
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
-    "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist level x2. Uses the curingtouch command.",
-    "Causes damage dealing bombs to deal an extra round of splash damage, and causes affect causing bombs to last an additional round.",
+    "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist "
+    "level x2. Uses the curingtouch command.",
+    "Causes damage dealing bombs to deal an extra round of splash damage, and causes affect "
+    "causing bombs to last an additional round.",
     "Makes all targets nauseated on failed save for 1 round / bomb rank",
-    "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are staggered on failed save.",
+    "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are "
+    "staggered on failed save.",
     "Chance to entangle those caught in effect.",
     "Grows a third arm from torso which acts as an additional hand for most purposes.",
     "Alchemist grows wings that will allow him to fly as per the fly spell (fly/land)."};
 
 const char *grand_alchemical_discovery_names[NUM_GR_ALC_DISCOVERIES] = {
-    "none",
-    "awakened intellect",
-    "fast healing",
-    "poison touch",
-    "true mutagen"};
+    "none", "awakened intellect", "fast healing", "poison touch", "true mutagen"};
 
 const char *grand_alchemical_discovery_descriptions[NUM_GR_ALC_DISCOVERIES] = {
-    "none",
-    "Your base intelligence raises by 2 permanently",
-    "Heal 5 hp per round permanently",
+    "none", "Your base intelligence raises by 2 permanently", "Heal 5 hp per round permanently",
     "Is able to poison others with a touch (poisontouch command)",
-    "Mutagens now bestow +8 to natural ac, str, dex and con, while -2 to int, wis and cha. Cognatogens, Inspiring Cognatogens and Elemental Mutagens are also improved."};
+    "Mutagens now bestow +8 to natural ac, str, dex and con, while -2 to int, wis and cha. "
+    "Cognatogens, Inspiring Cognatogens and Elemental Mutagens are also improved."};
 
 const char *bomb_types[NUM_BOMB_TYPES] = {
-    "none",
-    "normal",
-    "acid",
-    "blinding",
-    "boneshard",
-    "concussive",
-    "confusion",
-    "dispelling",
-    "fire-brand",
-    "force",
-    "frost",
-    "healing",
-    "holy",
-    "immolation",
-    "poison",
-    "profane",
-    "shock",
-    "stink",
-    "sunlight",
-    "tanglefoot"};
+    "none",       "normal",     "acid",  "blinding", "boneshard", "concussive", "confusion",
+    "dispelling", "fire-brand", "force", "frost",    "healing",   "holy",       "immolation",
+    "poison",     "profane",    "shock", "stink",    "sunlight",  "tanglefoot"};
 
 const char *bomb_descriptions[NUM_BOMB_TYPES] = {
     "",
@@ -174,13 +172,17 @@ const char *bomb_descriptions[NUM_BOMB_TYPES] = {
     "Deals 1d4/rank force damage with direct targets possibly being knocked prone.",
     "Deals 1d6/rank frost damage with direct targets having a chance to be staggered.",
     "Heals target 1d4/rank.",
-    "Deals 1d6/rank holy damage. Evil targets may be staggered. Neutral targets take 1/2 damage and good ones take none.",
+    "Deals 1d6/rank holy damage. Evil targets may be staggered. Neutral targets take 1/2 damage "
+    "and good ones take none.",
     "Deals 1d6+int mod fire damage each round for # of rounds equal to # of bomb ranks.",
-    "Kills weak creatures outright and deals 1d4 consitution damage continuously until suiccessful fortitude save.",
-    "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage and evil ones take none.",
+    "Kills weak creatures outright and deals 1d4 consitution damage continuously until suiccessful "
+    "fortitude save.",
+    "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage "
+    "and evil ones take none.",
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
     "Makes all targets nauseated on failed save for 1 round / bomb rank",
-    "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are staggered on failed save.",
+    "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are "
+    "staggered on failed save.",
     "Chance to entangle those caught in effect."};
 
 const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
@@ -354,8 +356,7 @@ int num_of_bombs_prepared(struct char_data *ch)
   if (!ch)
     return 0;
 
-  int i = 0,
-      num_prepped = 0;
+  int i = 0, num_prepped = 0;
 
   for (i = 0; i < num_of_bombs_preparable(ch); i++)
   {
@@ -368,7 +369,6 @@ int num_of_bombs_prepared(struct char_data *ch)
 
 int discovery_to_bomb_type(int discovery)
 {
-
   switch (discovery)
   {
   case ALC_DISC_NONE:
@@ -418,7 +418,6 @@ int discovery_to_bomb_type(int discovery)
 
 int bomb_type_to_discovery(int bomb)
 {
-
   switch (bomb)
   {
   case BOMB_NORMAL:
@@ -521,7 +520,8 @@ ACMD(do_bombs)
 
   if (!*argument)
   {
-    send_to_char(ch, "Would you like to 'toss' a bomb, 'discard' a bomb, 'list' your bombs or 'make' a bomb?\r\n");
+    send_to_char(ch, "Would you like to 'toss' a bomb, 'discard' a bomb, 'list' your bombs or "
+                     "'make' a bomb?\r\n");
     return;
   }
 
@@ -540,7 +540,6 @@ ACMD(do_bombs)
 
   if (is_abbrev(ccmd, "toss"))
   {
-
     if (!*scmd)
     {
       send_to_char(ch, "You need to supply a bomb type and optionally a target as well.\r\n");
@@ -551,7 +550,8 @@ ACMD(do_bombs)
 
     if (!*slot)
     {
-      send_to_char(ch, "You need to specify a bomb type.  You must have prepared these already using the 'bomb make' command.\r\n");
+      send_to_char(ch, "You need to specify a bomb type.  You must have prepared these already "
+                       "using the 'bomb make' command.\r\n");
       return;
     }
 
@@ -640,7 +640,9 @@ ACMD(do_bombs)
       case BOMB_HEALING:
         break; // these are ok. ^^^
       default: // these aren't >>>
-        send_to_char(ch, "You cannot throw a harmful bomb at a player if you or they are not flagged as pvp.");
+        send_to_char(
+            ch,
+            "You cannot throw a harmful bomb at a player if you or they are not flagged as pvp.");
         return;
       }
     }
@@ -680,7 +682,8 @@ ACMD(do_bombs)
       target = FIGHTING(ch);
 
     int bombardier_attack_bonus = get_bombardier_savant_attack_bonus(ch);
-    int bomb_hit_result = bomb_is_friendly(type) ? 1 : attack_roll(ch, target, ATTACK_TYPE_RANGED, TRUE, 1);
+    int bomb_hit_result =
+        bomb_is_friendly(type) ? 1 : attack_roll(ch, target, ATTACK_TYPE_RANGED, TRUE, 1);
     bomb_hit_result += bombardier_attack_bonus;
 
     if (bomb_is_friendly(type) || bomb_hit_result >= 0)
@@ -693,7 +696,8 @@ ACMD(do_bombs)
     {
       // we missed :(
       send_to_char(ch, "You throw a bomb, but it misses its intended target.\r\n");
-      act("$n throws a bomb, but it misses its intended target and explodes a safe distance away.", TRUE, ch, 0, 0, TO_ROOM);
+      act("$n throws a bomb, but it misses its intended target and explodes a safe distance away.",
+          TRUE, ch, 0, 0, TO_ROOM);
       // we want to start combat if not already in combat
       if (!FIGHTING(target))
       {
@@ -714,22 +718,24 @@ ACMD(do_bombs)
   }
   else if (is_abbrev(ccmd, "make"))
   {
-
     if (num_of_bombs_prepared(ch) >= num_of_bombs_preparable(ch))
     {
-      send_to_char(ch, "You cannot create any more bombs.  Please use 'bombs discard'  to open up some slots, or use the bombs in battle using 'bombs toss'\r\n");
+      send_to_char(ch, "You cannot create any more bombs.  Please use 'bombs discard'  to open up "
+                       "some slots, or use the bombs in battle using 'bombs toss'\r\n");
       return;
     }
 
     if ((bSlot = find_open_bomb_slot(ch)) == -1)
     {
-      send_to_char(ch, "There seems to be an error.  Please inform a staff member with error code BOMB_ERR_1.\r\n");
+      send_to_char(ch, "There seems to be an error.  Please inform a staff member with error code "
+                       "BOMB_ERR_1.\r\n");
       return;
     }
 
     if (!*scmd)
     {
-      send_to_char(ch, "You need to supply the type of bomb you want to make.  You know the following:\r\n");
+      send_to_char(
+          ch, "You need to supply the type of bomb you want to make.  You know the following:\r\n");
       list_bomb_types_known(ch);
       return;
     }
@@ -748,18 +754,19 @@ ACMD(do_bombs)
 
     if (i >= NUM_BOMB_TYPES)
     {
-      send_to_char(ch, "That is not a valid bomb type, or you don't know how to make that kind of bombs.  Here's a list of bomb types you know how to make:\r\n");
+      send_to_char(ch, "That is not a valid bomb type, or you don't know how to make that kind of "
+                       "bombs.  Here's a list of bomb types you know how to make:\r\n");
       list_bomb_types_known(ch);
       return;
     }
 
-    if (!is_action_available(ch, KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD, TRUE))
+    if (!is_action_available(
+            ch, KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD, TRUE))
       return;
 
     ch->player_specials->saved.bombs[bSlot] = type;
 
-    send_to_char(ch, "You've successfully created a %s bomb.\r\n",
-                 bomb_types[type]);
+    send_to_char(ch, "You've successfully created a %s bomb.\r\n", bomb_types[type]);
 
     save_char(ch, 0);
 
@@ -774,7 +781,6 @@ ACMD(do_bombs)
   }
   else if (is_abbrev(ccmd, "list"))
   {
-
     int num_bombs[NUM_BOMB_TYPES];
     int open_slots = 0;
 
@@ -805,7 +811,6 @@ ACMD(do_bombs)
   }
   else if (is_abbrev(ccmd, "discard"))
   {
-
     if (!*scmd)
     {
       send_to_char(ch, "You need to specify which bomb type you want to discard.\r\n"
@@ -842,7 +847,8 @@ ACMD(do_bombs)
   }
   else
   { // no match on ccmd variable
-    send_to_char(ch, "Would you like to 'toss' a bomb, 'discard' a bomb, 'list' your bombs or 'make' a bomb?\r\n");
+    send_to_char(ch, "Would you like to 'toss' a bomb, 'discard' a bomb, 'list' your bombs or "
+                     "'make' a bomb?\r\n");
   }
 }
 
@@ -856,7 +862,7 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
   bool is_cluster = FALSE;
   int cluster_iter = 0;
   int cluster_hits = 1;
-  
+
   if (has_alchemist_cluster_bomb(ch) && rand_number(1, 100) <= 10)
   {
     is_cluster = TRUE;
@@ -864,7 +870,7 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
     act("\tC$n's bomb fragments into multiple projectiles!\tn", FALSE, ch, 0, victim, TO_ROOM);
     act("\tCThe bomb fragments into multiple projectiles!\tn", FALSE, ch, 0, victim, TO_CHAR);
   }
-  
+
   for (cluster_iter = 0; cluster_iter < cluster_hits; cluster_iter++)
   {
     /* For cluster bombs, reduce damage to 75% per hit - store in temporary field */
@@ -888,145 +894,149 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
       if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
         send_bomb_splash_message(ch, victim, bomb_type);
       perform_bomb_direct_damage(ch, victim, bomb_type); // acid damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // DoT acid effect
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // acid damage
-    break;
-  case BOMB_BLINDING:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_effect(ch, victim, bomb_type); // blind
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_effect(ch, victim, bomb_type); // dazzle
-    break;
-  case BOMB_BONESHARD:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // piercing damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // DoT bleed effect
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // piercing damage
-    break;
-  case BOMB_CONCUSSIVE:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // sonic damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // deafen
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // sonic damage
-    break;
-  case BOMB_CONFUSION:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // reduced fire damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // confusion
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // reduced fire damage
-    break;
-  case BOMB_DISPELLING:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    perform_bomb_spell_effect(ch, victim, bomb_type); // dispel magic
-    break;
-  case BOMB_FIRE_BRAND:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    perform_bomb_self_effect(ch, victim, bomb_type); // make weapons flaming and flaming burst (at lvl 10)
-    break;
-  case BOMB_FORCE:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // reduced force damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // knock prone
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // reduced force damage
-    break;
-  case BOMB_FROST:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // cold damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // staggered
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // cold damage
-    break;
-  case BOMB_HEALING:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    perform_bomb_direct_healing(ch, victim, bomb_type); // healing
-    break;
-  case BOMB_HOLY:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // holy damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // evil victs are staggered
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // holy damage
-    break;
-  case BOMB_IMMOLATION:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // reduced fire damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // DoT effect
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // reduced fire damage
-    break;
-  case BOMB_POISON:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    perform_bomb_spell_effect(ch, victim, bomb_type); // cloudkill
-    break;
-  case BOMB_PROFANE:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // unholy damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // good victs are staggered
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // unholy damage
-    break;
-  case BOMB_SHOCK:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // electricity damage
-    perform_bomb_direct_effect(ch, victim, bomb_type); // dazzled
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_damage(ch, victim, bomb_type); // electricity damage
-    break;
-  case BOMB_STINK:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    perform_bomb_spell_effect(ch, victim, bomb_type); // stinking cloud
-    break;
-  case BOMB_SUNLIGHT:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_damage(ch, victim, bomb_type); // fire damage, +2 damage per die for undead and oozes
-    perform_bomb_direct_effect(ch, victim, bomb_type); // blind, undead sensitive to sunlight staggered
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-    {
-      perform_bomb_splash_damage(ch, victim, bomb_type); // fire damage, +2 damage per die for undead and oozes
-      perform_bomb_splash_effect(ch, victim, bomb_type); // dazzle
-    }
-    break;
-  case BOMB_TANGLEFOOT:
-    send_bomb_direct_message(ch, victim, bomb_type);
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      send_bomb_splash_message(ch, victim, bomb_type);
-    perform_bomb_direct_effect(ch, victim, bomb_type); // entangled
-    if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
-      perform_bomb_splash_effect(ch, victim, bomb_type); // entangled
-    break;
+      perform_bomb_direct_effect(ch, victim, bomb_type); // DoT acid effect
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // acid damage
+      break;
+    case BOMB_BLINDING:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_effect(ch, victim, bomb_type); // blind
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_effect(ch, victim, bomb_type); // dazzle
+      break;
+    case BOMB_BONESHARD:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // piercing damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // DoT bleed effect
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // piercing damage
+      break;
+    case BOMB_CONCUSSIVE:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // sonic damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // deafen
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // sonic damage
+      break;
+    case BOMB_CONFUSION:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // reduced fire damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // confusion
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // reduced fire damage
+      break;
+    case BOMB_DISPELLING:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      perform_bomb_spell_effect(ch, victim, bomb_type); // dispel magic
+      break;
+    case BOMB_FIRE_BRAND:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      perform_bomb_self_effect(ch, victim,
+                               bomb_type); // make weapons flaming and flaming burst (at lvl 10)
+      break;
+    case BOMB_FORCE:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // reduced force damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // knock prone
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // reduced force damage
+      break;
+    case BOMB_FROST:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // cold damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // staggered
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // cold damage
+      break;
+    case BOMB_HEALING:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      perform_bomb_direct_healing(ch, victim, bomb_type); // healing
+      break;
+    case BOMB_HOLY:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // holy damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // evil victs are staggered
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // holy damage
+      break;
+    case BOMB_IMMOLATION:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // reduced fire damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // DoT effect
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // reduced fire damage
+      break;
+    case BOMB_POISON:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      perform_bomb_spell_effect(ch, victim, bomb_type); // cloudkill
+      break;
+    case BOMB_PROFANE:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // unholy damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // good victs are staggered
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // unholy damage
+      break;
+    case BOMB_SHOCK:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim, bomb_type); // electricity damage
+      perform_bomb_direct_effect(ch, victim, bomb_type); // dazzled
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_damage(ch, victim, bomb_type); // electricity damage
+      break;
+    case BOMB_STINK:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      perform_bomb_spell_effect(ch, victim, bomb_type); // stinking cloud
+      break;
+    case BOMB_SUNLIGHT:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_damage(ch, victim,
+                                 bomb_type); // fire damage, +2 damage per die for undead and oozes
+      perform_bomb_direct_effect(ch, victim,
+                                 bomb_type); // blind, undead sensitive to sunlight staggered
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+      {
+        perform_bomb_splash_damage(
+            ch, victim, bomb_type); // fire damage, +2 damage per die for undead and oozes
+        perform_bomb_splash_effect(ch, victim, bomb_type); // dazzle
+      }
+      break;
+    case BOMB_TANGLEFOOT:
+      send_bomb_direct_message(ch, victim, bomb_type);
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        send_bomb_splash_message(ch, victim, bomb_type);
+      perform_bomb_direct_effect(ch, victim, bomb_type); // entangled
+      if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
+        perform_bomb_splash_effect(ch, victim, bomb_type); // entangled
+      break;
     }
   }
-  
+
   /* Reset cluster bomb state */
   ch->player_specials->saved.cluster_bomb_iterations = 0;
-  
+
   if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS))
   {
     add_sticky_bomb_effect(ch, victim, bomb_type);
@@ -1037,38 +1047,41 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
   {
     int bombs_prepared = num_of_bombs_prepared(ch);
     int volatile_chance = bombs_prepared; /* 1% per bomb prepared */
-    
+
     if (bombs_prepared > 0 && rand_number(1, 100) <= volatile_chance)
     {
       /* Find a random prepared bomb */
       int random_slot = rand_number(0, num_of_bombs_preparable(ch) - 1);
       int attempts = 0;
-      
+
       /* Find the next prepared bomb starting from random slot */
       while (GET_BOMB(ch, random_slot) == BOMB_NONE && attempts < num_of_bombs_preparable(ch))
       {
         random_slot = (random_slot + 1) % num_of_bombs_preparable(ch);
         attempts++;
       }
-      
+
       /* If we found a bomb, throw it without using an action (chain reaction) */
       if (GET_BOMB(ch, random_slot) != BOMB_NONE)
       {
         int chain_bomb_type = GET_BOMB(ch, random_slot);
-        
-        act("\tC$n's volatile catalyst ignites, triggering an automatic chain bomb throw!\tn", TRUE, ch, 0, 0, TO_ROOM);
-        send_to_char(ch, "\tCYour volatile catalyst ignites, triggering an automatic chain bomb throw!\tn\r\n");
-        
+
+        act("\tC$n's volatile catalyst ignites, triggering an automatic chain bomb throw!\tn", TRUE,
+            ch, 0, 0, TO_ROOM);
+        send_to_char(
+            ch,
+            "\tCYour volatile catalyst ignites, triggering an automatic chain bomb throw!\tn\r\n");
+
         /* Remove the bomb before throwing (prevents infinite loops) */
         GET_BOMB(ch, random_slot) = BOMB_NONE;
-        
+
         /* Throw the chain bomb without normal prerequisites or action requirements */
         if (!bomb_is_friendly(chain_bomb_type) && !FIGHTING(ch))
         {
           /* If not in combat, start combat */
           hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
-        
+
         /* Execute the bomb effect (non-recursively - volatile catalyst only triggers once per throw) */
         perform_bomb_effect(ch, victim, chain_bomb_type);
       }
@@ -1134,13 +1147,9 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   if (!ch || !victim)
     return;
 
-  int ndice = HAS_FEAT(ch, FEAT_BOMBS) + 1,
-      sdice = (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 8 : 6),
-      damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1),
-      damType = DAM_FIRE,
-      saveType = SAVING_REFL,
-      dam = 0,
-      active = FALSE;
+  int ndice = HAS_FEAT(ch, FEAT_BOMBS) + 1, sdice = (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 8 : 6),
+      damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1), damType = DAM_FIRE,
+      saveType = SAVING_REFL, dam = 0, active = FALSE;
   char buf[200];
 
   switch (bomb_type)
@@ -1211,7 +1220,8 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   {
     /* Recalculate damage with maximized dice */
     dam = (ndice * sdice) + damMod + get_alchemist_bomb_damage_bonus(ch);
-    act("\tM[Your mastery produces a perfectly maximized bomb!]\tn", FALSE, ch, 0, 0, TO_CHAR | TO_SLEEP);
+    act("\tM[Your mastery produces a perfectly maximized bomb!]\tn", FALSE, ch, 0, 0,
+        TO_CHAR | TO_SLEEP);
   }
 
   /* Elemental Bomb perk: add 1d6 to elemental bombs */
@@ -1228,7 +1238,8 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   {
     int inferno_bonus = dice(2, 6);
     dam += inferno_bonus;
-    act("\tRYour bomb explodes in a massive inferno, dealing an extra $t damage!\tn", FALSE, ch, (void *)(intptr_t)inferno_bonus, victim, TO_CHAR | TO_SLEEP);
+    act("\tRYour bomb explodes in a massive inferno, dealing an extra $t damage!\tn", FALSE, ch,
+        (void *)(intptr_t)inferno_bonus, victim, TO_CHAR | TO_SLEEP);
     act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_VICT);
     act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
   }
@@ -1257,8 +1268,7 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   if (savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
     if ((!IS_NPC(victim)) && saveType == SAVING_REFL && // evasion
-        (HAS_FEAT(victim, FEAT_EVASION) ||
-         (HAS_FEAT(victim, FEAT_IMPROVED_EVASION))))
+        (HAS_FEAT(victim, FEAT_EVASION) || (HAS_FEAT(victim, FEAT_IMPROVED_EVASION))))
       dam /= 2;
     dam /= 2;
   }
@@ -1280,8 +1290,10 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
     }
     else if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
     {
-      act("$N's freedom of movement prevents the knockdown from the concussive blast of your bomb!", FALSE, ch, 0, victim, TO_CHAR);
-      act("Your freedom of movement prevents the knockdown from the concussive blast of $n's bomb!", FALSE, ch, 0, victim, TO_VICT);
+      act("$N's freedom of movement prevents the knockdown from the concussive blast of your bomb!",
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("Your freedom of movement prevents the knockdown from the concussive blast of $n's bomb!",
+          FALSE, ch, 0, victim, TO_VICT);
     }
     else if (has_perk(victim, PERK_FIGHTER_IMMOVABLE_OBJECT))
     {
@@ -1354,11 +1366,8 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
     return;
 
   int ndice = (int)(HAS_FEAT(ch, FEAT_BOMBS) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 1.5 : 1)),
-      damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1),
-      damType = DAM_FIRE,
-      saveType = SAVING_REFL,
-      dam = 0,
-      active = FALSE;
+      damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1), damType = DAM_FIRE,
+      saveType = SAVING_REFL, dam = 0, active = FALSE;
   struct char_data *tch = NULL;
   char buf[200];
 
@@ -1450,8 +1459,7 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
   if (savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
     if ((!IS_NPC(victim)) && saveType == SAVING_REFL && // evasion
-        (HAS_FEAT(victim, FEAT_EVASION) ||
-         (HAS_FEAT(victim, FEAT_IMPROVED_EVASION))))
+        (HAS_FEAT(victim, FEAT_EVASION) || (HAS_FEAT(victim, FEAT_IMPROVED_EVASION))))
       dam /= 2;
     dam /= 2;
   }
@@ -1490,8 +1498,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
   if (!ch || !victim)
     return;
 
-  int saveType = SAVING_FORT,
-      noAffectOnSave = TRUE;
+  int saveType = SAVING_FORT, noAffectOnSave = TRUE;
   const char *to_vict = NULL, *to_room = NULL;
   const char *to_vict2 = NULL, *to_room2 = NULL;
   struct affected_type af, af2, af3;
@@ -1677,9 +1684,9 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
   if (bomb_type == BOMB_CONFUSION && MOB_FLAGGED(victim, MOB_NOCONFUSE))
     return;
 
-  if (!noAffectOnSave || !savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+  if (!noAffectOnSave ||
+      !savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
-
     if (to_vict != NULL)
       act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
     if (to_room != NULL)
@@ -1718,8 +1725,7 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
   if (!PRF_FLAGGED(ch, PRF_AOE_BOMBS))
     return;
 
-  int saveType = SAVING_FORT,
-      noAffectOnSave = TRUE;
+  int saveType = SAVING_FORT, noAffectOnSave = TRUE;
   struct char_data *tch = NULL;
   const char *to_vict = NULL, *to_room = NULL;
   const char *to_vict2 = NULL, *to_room2 = NULL;
@@ -1782,9 +1788,9 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
     if (!IS_NPC(tch) && !PRF_FLAGGED(ch, PRF_PVP))
       continue;
 
-    if (!noAffectOnSave || !savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    if (!noAffectOnSave ||
+        !savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
-
       if (to_vict != NULL)
         act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
       if (to_room != NULL)
@@ -1900,7 +1906,9 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
   if (spellnum == -1)
     return;
 
-  call_magic(ch, victim, NULL, spellnum, 0, CLASS_LEVEL(ch, CLASS_ALCHEMIST) += (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 5 : 0), CAST_BOMB);
+  call_magic(ch, victim, NULL, spellnum, 0,
+             CLASS_LEVEL(ch, CLASS_ALCHEMIST) += (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 5 : 0),
+             CAST_BOMB);
 }
 
 /* Alchemical discovery prerequisites */
@@ -1949,7 +1957,8 @@ int can_learn_discovery(struct char_data *ch, int discovery)
       return TRUE;
     break;
   case ALC_DISC_GRAND_INSPIRING_COGNATOGEN:
-    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 16 && KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN))
+    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 16 &&
+        KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN))
       return TRUE;
     break;
   case ALC_DISC_GRAND_MUTAGEN:
@@ -1961,7 +1970,8 @@ int can_learn_discovery(struct char_data *ch, int discovery)
       return TRUE;
     break;
   case ALC_DISC_GREATER_INSPIRING_COGNATOGEN:
-    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 12 && KNOWS_DISCOVERY(ch, ALC_DISC_INSPIRING_COGNATOGEN))
+    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 12 &&
+        KNOWS_DISCOVERY(ch, ALC_DISC_INSPIRING_COGNATOGEN))
       return TRUE;
     break;
   case ALC_DISC_GREATER_MUTAGEN:
@@ -2035,7 +2045,6 @@ int num_alchemical_discoveries_known(struct char_data *ch)
 
 sbyte has_alchemist_discoveries_unchosen(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -2053,7 +2062,6 @@ sbyte has_alchemist_discoveries_unchosen(struct char_data *ch)
 
 sbyte has_alchemist_discoveries_unchosen_study(struct char_data *ch)
 {
-
   if (!ch)
     return false;
 
@@ -2088,7 +2096,8 @@ int list_alchemical_discoveries(struct char_data *ch)
   {
     if (KNOWS_DISCOVERY(ch, i))
     {
-      send_to_char(ch, "%-15s : %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i]);
+      send_to_char(ch, "%-15s : %s\r\n", alchemical_discovery_names[i],
+                   alchemical_discovery_descriptions[i]);
       num++;
     }
   }
@@ -2103,7 +2112,8 @@ ACMD(do_discoveries)
 
   if (!CLASS_LEVEL(ch, CLASS_ALCHEMIST))
   {
-    send_to_char(ch, "You need to have some levels in the alchemist class to view your learned alchemical discoveries.\r\n");
+    send_to_char(ch, "You need to have some levels in the alchemist class to view your learned "
+                     "alchemical discoveries.\r\n");
     return;
   }
 
@@ -2116,12 +2126,17 @@ ACMD(do_discoveries)
     if (list_alchemical_discoveries(ch) == 0)
       send_to_char(ch, "No discoveries known.");
     send_to_char(ch, "\r\n");
-    if ((num = (HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY) - num_alchemical_discoveries_known(ch))) > 0)
+    if ((num = (HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY) - num_alchemical_discoveries_known(ch))) >
+        0)
     {
-      send_to_char(ch, "You have %d discover%s available to be learned.  Discoveries may be learned at your trainer via the study menu.\r\n", num, num > 1 ? "ies" : "y");
+      send_to_char(ch,
+                   "You have %d discover%s available to be learned.  Discoveries may be learned at "
+                   "your trainer via the study menu.\r\n",
+                   num, num > 1 ? "ies" : "y");
     }
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
-    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
+    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the "
+                     "discovery specified.\r\n");
     send_to_char(ch, "\r\n");
   }
   else if (is_abbrev(argument, "all"))
@@ -2129,10 +2144,12 @@ ACMD(do_discoveries)
     send_to_char(ch, "ALCHEMICAL DISCOVERIES:\r\n");
     for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
     {
-      send_to_char(ch, "%-20s - %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i]);
+      send_to_char(ch, "%-20s - %s\r\n", alchemical_discovery_names[i],
+                   alchemical_discovery_descriptions[i]);
     }
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
-    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
+    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the "
+                     "discovery specified.\r\n");
     send_to_char(ch, "\r\n");
   }
   else
@@ -2141,13 +2158,16 @@ ACMD(do_discoveries)
     {
       if (is_abbrev(argument, alchemical_discovery_names[i]))
       {
-        send_to_char(ch, "%-20s:\r\nDesc: %s\r\nRequirements: %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i], discovery_requisites[i]);
+        send_to_char(ch, "%-20s:\r\nDesc: %s\r\nRequirements: %s\r\n",
+                     alchemical_discovery_names[i], alchemical_discovery_descriptions[i],
+                     discovery_requisites[i]);
         return;
       }
     }
     send_to_char(ch, "That is not an available option.\r\n");
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
-    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
+    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the "
+                     "discovery specified.\r\n");
     send_to_char(ch, "\r\n");
   }
 }
@@ -2160,7 +2180,8 @@ ACMD(do_grand_discoveries)
 
   if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) < 20)
   {
-    send_to_char(ch, "You need to have at least 20 alchemist levels to learn a grand discovery.\r\n");
+    send_to_char(ch,
+                 "You need to have at least 20 alchemist levels to learn a grand discovery.\r\n");
     return;
   }
 
@@ -2174,24 +2195,28 @@ ACMD(do_grand_discoveries)
       send_to_char(ch, "GRAND ALCHEMICAL DISCOVERIES AVAILABLE:\r\n");
       for (i = 1; i < NUM_GR_ALC_DISCOVERIES; i++)
       {
-        send_to_char(ch, "%-20s - %s\r\n", grand_alchemical_discovery_names[i], grand_alchemical_discovery_descriptions[i]);
+        send_to_char(ch, "%-20s - %s\r\n", grand_alchemical_discovery_names[i],
+                     grand_alchemical_discovery_descriptions[i]);
       }
-      send_to_char(ch, "\r\n"
-                       "To choose one, type 'gdiscovery learn (grand discovery name)\r\n"
-                       "You may only choose one, and must respec to change that choice if desired.\r\n"
-                       "\r\n");
+      send_to_char(ch,
+                   "\r\n"
+                   "To choose one, type 'gdiscovery learn (grand discovery name)\r\n"
+                   "You may only choose one, and must respec to change that choice if desired.\r\n"
+                   "\r\n");
       return;
     }
     char arg1[200], arg2[200];
     half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
     if (!*arg1 || !is_abbrev(arg1, "learn"))
     {
-      send_to_char(ch, "To learn a grand discovery type 'gdiscovery learn (grand discovery name)\r\n");
+      send_to_char(ch,
+                   "To learn a grand discovery type 'gdiscovery learn (grand discovery name)\r\n");
       return;
     }
     if (!*arg2)
     {
-      send_to_char(ch, "You must specify a grand discovery to learn.  Type 'gdiscovery' by itself to see a list.\r\n");
+      send_to_char(ch, "You must specify a grand discovery to learn.  Type 'gdiscovery' by itself "
+                       "to see a list.\r\n");
       return;
     }
     for (i = 1; i < NUM_GR_ALC_DISCOVERIES; i++)
@@ -2201,11 +2226,14 @@ ACMD(do_grand_discoveries)
     }
     if (i >= NUM_GR_ALC_DISCOVERIES)
     {
-      send_to_char(ch, "That is not a valid grand discovery. Type 'gdiscovery' by itself to see a list.\r\n");
+      send_to_char(
+          ch,
+          "That is not a valid grand discovery. Type 'gdiscovery' by itself to see a list.\r\n");
       return;
     }
     GET_GRAND_DISCOVERY(ch) = i;
-    send_to_char(ch, "You have learned the grand discovery: %s!\r\n", grand_alchemical_discovery_names[i]);
+    send_to_char(ch, "You have learned the grand discovery: %s!\r\n",
+                 grand_alchemical_discovery_names[i]);
     if (i == GR_ALC_DISC_AWAKENED_INTELLECT)
     {
       GET_REAL_INT(ch) += 2;
@@ -2215,7 +2243,9 @@ ACMD(do_grand_discoveries)
   }
   else
   {
-    send_to_char(ch, "You know the grand discovery:\r\n%-20s : %s\r\n", grand_alchemical_discovery_names[GET_GRAND_DISCOVERY(ch)], grand_alchemical_discovery_descriptions[GET_GRAND_DISCOVERY(ch)]);
+    send_to_char(ch, "You know the grand discovery:\r\n%-20s : %s\r\n",
+                 grand_alchemical_discovery_names[GET_GRAND_DISCOVERY(ch)],
+                 grand_alchemical_discovery_descriptions[GET_GRAND_DISCOVERY(ch)]);
     return;
   }
 
@@ -2225,12 +2255,17 @@ ACMD(do_grand_discoveries)
     if (list_alchemical_discoveries(ch) == 0)
       send_to_char(ch, "No discoveries known.");
     send_to_char(ch, "\r\n");
-    if ((num = (HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY) - num_alchemical_discoveries_known(ch))) > 0)
+    if ((num = (HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY) - num_alchemical_discoveries_known(ch))) >
+        0)
     {
-      send_to_char(ch, "You have %d discover%s available to be learned.  Discoveries may be learned at your trainer via the study menu.\r\n", num, num > 1 ? "ies" : "y");
+      send_to_char(ch,
+                   "You have %d discover%s available to be learned.  Discoveries may be learned at "
+                   "your trainer via the study menu.\r\n",
+                   num, num > 1 ? "ies" : "y");
     }
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
-    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
+    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the "
+                     "discovery specified.\r\n");
     send_to_char(ch, "\r\n");
   }
   else if (is_abbrev(argument, "all"))
@@ -2238,10 +2273,12 @@ ACMD(do_grand_discoveries)
     send_to_char(ch, "ALCHEMICAL DISCOVERIES:\r\n");
     for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
     {
-      send_to_char(ch, "%-20s - %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i]);
+      send_to_char(ch, "%-20s - %s\r\n", alchemical_discovery_names[i],
+                   alchemical_discovery_descriptions[i]);
     }
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
-    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
+    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the "
+                     "discovery specified.\r\n");
     send_to_char(ch, "\r\n");
   }
   else
@@ -2250,20 +2287,22 @@ ACMD(do_grand_discoveries)
     {
       if (is_abbrev(argument, alchemical_discovery_names[i]))
       {
-        send_to_char(ch, "%-20s:\r\nDesc: %s\r\nRequirements: %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i], discovery_requisites[i]);
+        send_to_char(ch, "%-20s:\r\nDesc: %s\r\nRequirements: %s\r\n",
+                     alchemical_discovery_names[i], alchemical_discovery_descriptions[i],
+                     discovery_requisites[i]);
         return;
       }
     }
     send_to_char(ch, "That is not an available option.\r\n");
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
-    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
+    send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the "
+                     "discovery specified.\r\n");
     send_to_char(ch, "\r\n");
   }
 }
 
 sbyte bomb_is_friendly(int bomb)
 {
-
   switch (bomb)
   {
   case BOMB_HEALING:
@@ -2290,7 +2329,8 @@ ACMDCHECK(can_swallow)
   if (!ch)
     return FALSE;
 
-  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_MUTAGEN), "You don't know how to prepare a mutagen or cognatogen.\r\n");
+  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_MUTAGEN),
+                        "You don't know how to prepare a mutagen or cognatogen.\r\n");
   return CAN_CMD;
 }
 
@@ -2302,7 +2342,9 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 
   if (!IS_NPC(ch))
   {
-    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+    PREREQ_HAS_USES(
+        FEAT_MUTAGEN,
+        "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
   }
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
@@ -2317,9 +2359,11 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   new_affect(&af7);
 
   if (alchemical_bonus)
-    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type =
+        af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
   else
-    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type =
+        af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2398,7 +2442,8 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   }
   else
   {
-    send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or constitution (-cha)?\r\n");
+    send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or "
+                     "constitution (-cha)?\r\n");
     return;
   }
 
@@ -2525,12 +2570,18 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
       uaf.bonus_type = BONUS_TYPE_UNIVERSAL;
       uaf.modifier = af6.modifier;
 
-      uaf.location = APPLY_STR; affect_to_char(ch, &uaf);
-      uaf.location = APPLY_DEX; affect_to_char(ch, &uaf);
-      uaf.location = APPLY_CON; affect_to_char(ch, &uaf);
-      uaf.location = APPLY_INT; affect_to_char(ch, &uaf);
-      uaf.location = APPLY_WIS; affect_to_char(ch, &uaf);
-      uaf.location = APPLY_CHA; affect_to_char(ch, &uaf);
+      uaf.location = APPLY_STR;
+      affect_to_char(ch, &uaf);
+      uaf.location = APPLY_DEX;
+      affect_to_char(ch, &uaf);
+      uaf.location = APPLY_CON;
+      affect_to_char(ch, &uaf);
+      uaf.location = APPLY_INT;
+      affect_to_char(ch, &uaf);
+      uaf.location = APPLY_WIS;
+      affect_to_char(ch, &uaf);
+      uaf.location = APPLY_CHA;
+      affect_to_char(ch, &uaf);
     }
     else
     {
@@ -2624,82 +2675,88 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
       maf.duration = duration;
       maf.bonus_type = BONUS_TYPE_UNIVERSAL;
       maf.modifier = mb;
-      maf.location = APPLY_STR; affect_to_char(ch, &maf);
-      maf.location = APPLY_DEX; affect_to_char(ch, &maf);
-      maf.location = APPLY_CON; affect_to_char(ch, &maf);
-      maf.location = APPLY_INT; affect_to_char(ch, &maf);
-      maf.location = APPLY_WIS; affect_to_char(ch, &maf);
-      maf.location = APPLY_CHA; affect_to_char(ch, &maf);
+      maf.location = APPLY_STR;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_DEX;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_CON;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_INT;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_WIS;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_CHA;
+      affect_to_char(ch, &maf);
     }
   }
-    /* Tier 2 Mutagenist Perk Effects */
-    /* Mutagen II: +1 STR/DEX/CON per rank while mutagen active */
+  /* Tier 2 Mutagenist Perk Effects */
+  /* Mutagen II: +1 STR/DEX/CON per rank while mutagen active */
+  {
+    int extra2 = get_alchemist_mutagen_ii_rank(ch);
+    if (extra2 > 0)
     {
-      int extra2 = get_alchemist_mutagen_ii_rank(ch);
-      if (extra2 > 0)
-      {
-        struct affected_type paf;
-        new_affect(&paf);
-        paf.spell = SKILL_MUTAGEN;
-        paf.duration = duration;
-        paf.bonus_type = BONUS_TYPE_UNIVERSAL;
-        paf.location = APPLY_STR;
-        paf.modifier = extra2;
-        affect_to_char(ch, &paf);
+      struct affected_type paf;
+      new_affect(&paf);
+      paf.spell = SKILL_MUTAGEN;
+      paf.duration = duration;
+      paf.bonus_type = BONUS_TYPE_UNIVERSAL;
+      paf.location = APPLY_STR;
+      paf.modifier = extra2;
+      affect_to_char(ch, &paf);
 
-        paf.location = APPLY_DEX;
-        affect_to_char(ch, &paf);
+      paf.location = APPLY_DEX;
+      affect_to_char(ch, &paf);
 
-        paf.location = APPLY_CON;
-        affect_to_char(ch, &paf);
-      }
+      paf.location = APPLY_CON;
+      affect_to_char(ch, &paf);
     }
+  }
 
-    /* Infused with Vigor: immediate heal and Fast Healing 1 for 10 rounds */
-    if (has_alchemist_infused_with_vigor(ch))
-    {
-      int heal = dice(1, 6) + GET_LEVEL(ch);
-      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+  /* Infused with Vigor: immediate heal and Fast Healing 1 for 10 rounds */
+  if (has_alchemist_infused_with_vigor(ch))
+  {
+    int heal = dice(1, 6) + GET_LEVEL(ch);
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
 
-      struct affected_type vaf;
-      new_affect(&vaf);
-      vaf.spell = SKILL_MUTAGEN;
-      vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
-      vaf.location = APPLY_FAST_HEALING;
-      vaf.modifier = 1;
-      vaf.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_to_char(ch, &vaf);
-    }
+    struct affected_type vaf;
+    new_affect(&vaf);
+    vaf.spell = SKILL_MUTAGEN;
+    vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
+    vaf.location = APPLY_FAST_HEALING;
+    vaf.modifier = 1;
+    vaf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &vaf);
+  }
 
-    /* Cellular Adaptation: DR 5/- while mutagen is active */
-    if (has_alchemist_cellular_adaptation(ch))
-    {
-      struct affected_type daf;
-      new_affect(&daf);
-      daf.spell = SKILL_MUTAGEN;
-      daf.duration = duration;
-      daf.location = APPLY_DR;
-      daf.modifier = 5;
-      daf.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_to_char(ch, &daf);
+  /* Cellular Adaptation: DR 5/- while mutagen is active */
+  if (has_alchemist_cellular_adaptation(ch))
+  {
+    struct affected_type daf;
+    new_affect(&daf);
+    daf.spell = SKILL_MUTAGEN;
+    daf.duration = duration;
+    daf.location = APPLY_DR;
+    daf.modifier = 5;
+    daf.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &daf);
 
-      /* Attach DR structure to character */
-      struct damage_reduction_type *new_dr;
-      CREATE(new_dr, struct damage_reduction_type, 1);
-      new_dr->duration = duration; /* tie to mutagen duration */
-      new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-      new_dr->bypass_val[0] = 0;
-      new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-      new_dr->bypass_val[1] = 0;
-      new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-      new_dr->bypass_val[2] = 0;
-      new_dr->amount = 5;
-      new_dr->max_damage = -1; /* unlimited */
-      new_dr->spell = SKILL_MUTAGEN;
-      new_dr->feat = FEAT_UNDEFINED;
-      new_dr->next = GET_DR(ch);
-      GET_DR(ch) = new_dr;
-    }
+    /* Attach DR structure to character */
+    struct damage_reduction_type *new_dr;
+    CREATE(new_dr, struct damage_reduction_type, 1);
+    new_dr->duration = duration; /* tie to mutagen duration */
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+    new_dr->bypass_val[0] = 0;
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0;
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0;
+    new_dr->amount = 5;
+    new_dr->max_damage = -1; /* unlimited */
+    new_dr->spell = SKILL_MUTAGEN;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(ch);
+    GET_DR(ch) = new_dr;
+  }
   if (has_alchemist_natural_armor(ch))
   {
     struct affected_type naf;
@@ -2736,17 +2793,26 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
       maf.duration = duration;
       maf.bonus_type = BONUS_TYPE_UNIVERSAL;
       maf.modifier = mb;
-      maf.location = APPLY_STR; affect_to_char(ch, &maf);
-      maf.location = APPLY_DEX; affect_to_char(ch, &maf);
-      maf.location = APPLY_CON; affect_to_char(ch, &maf);
-      maf.location = APPLY_INT; affect_to_char(ch, &maf);
-      maf.location = APPLY_WIS; affect_to_char(ch, &maf);
-      maf.location = APPLY_CHA; affect_to_char(ch, &maf);
+      maf.location = APPLY_STR;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_DEX;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_CON;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_INT;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_WIS;
+      affect_to_char(ch, &maf);
+      maf.location = APPLY_CHA;
+      affect_to_char(ch, &maf);
     }
   }
 
-  act("$n swallows a vial of murky looking substance and grows more physically powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n swallows a vial of murky looking substance and grows more physically powerful before "
+      "your eyes.",
+      FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch,
+      0, 0, TO_CHAR);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
@@ -2758,22 +2824,22 @@ ACMD(do_unstablemutagen)
   if (!ch)
     return;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     send_to_char(ch, "NPCs cannot use this command.\r\n");
     return;
   }
 
-  if (!has_perk(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN)) {
+  if (!has_perk(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN))
+  {
     send_to_char(ch, "You have not purchased the Unstable Mutagen perk.\r\n");
     return;
   }
 
   bool current = is_perk_toggled_on(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN);
   set_perk_toggle(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN, !current);
-  send_to_char(ch, "Unstable Mutagen toggled %s%s%s.\r\n",
-               !current ? "\tG" : "\tr",
-               !current ? "ON" : "OFF",
-               "\tn");
+  send_to_char(ch, "Unstable Mutagen toggled %s%s%s.\r\n", !current ? "\tG" : "\tr",
+               !current ? "ON" : "OFF", "\tn");
   save_char(ch, 0);
 }
 
@@ -2783,19 +2849,22 @@ ACMD(do_universalmutagen)
   if (!ch)
     return;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     send_to_char(ch, "NPCs cannot use this command.\r\n");
     return;
   }
 
-  if (!has_perk(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN)) {
+  if (!has_perk(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN))
+  {
     send_to_char(ch, "You have not purchased the Universal Mutagen perk.\r\n");
     return;
   }
 
   /* Check 30-minute lockout */
   struct mud_event_data *lock = char_has_mud_event(ch, eUNIVERSAL_MUTAGEN_COOLDOWN);
-  if (lock && lock->pEvent) {
+  if (lock && lock->pEvent)
+  {
     long pulses = event_time(lock->pEvent);
     int seconds = (int)(pulses / 10); /* RL_SEC is 10 pulses */
     int minutes = seconds / 60;
@@ -2804,13 +2873,15 @@ ACMD(do_universalmutagen)
     return;
   }
 
-  if (is_perk_toggled_on(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN)) {
+  if (is_perk_toggled_on(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN))
+  {
     send_to_char(ch, "Universal Mutagen is already armed for your next mutagen.\r\n");
     return;
   }
 
   set_perk_toggle(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN, TRUE);
-  send_to_char(ch, "\tGUniversal Mutagen armed\tn: your next mutagen applies the highest bonus to all abilities with a short duration.\r\n");
+  send_to_char(ch, "\tGUniversal Mutagen armed\tn: your next mutagen applies the highest bonus to "
+                   "all abilities with a short duration.\r\n");
   save_char(ch, 0);
 }
 
@@ -2820,22 +2891,23 @@ ACMD(do_volatilecatalyst)
   if (!ch)
     return;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     send_to_char(ch, "NPCs cannot use this command.\r\n");
     return;
   }
 
-  if (!has_alchemist_volatile_catalyst(ch)) {
+  if (!has_alchemist_volatile_catalyst(ch))
+  {
     send_to_char(ch, "You have not purchased the Volatile Catalyst perk.\r\n");
     return;
   }
 
   bool current = is_volatile_catalyst_on(ch);
   set_perk_toggle(ch, PERK_ALCHEMIST_VOLATILE_CATALYST, !current);
-  send_to_char(ch, "Volatile Catalyst toggled %s%s%s. Bombs will trigger chain reactions when enabled.\r\n",
-               !current ? "\tG" : "\tr",
-               !current ? "ON" : "OFF",
-               "\tn");
+  send_to_char(
+      ch, "Volatile Catalyst toggled %s%s%s. Bombs will trigger chain reactions when enabled.\r\n",
+      !current ? "\tG" : "\tr", !current ? "ON" : "OFF", "\tn");
   save_char(ch, 0);
 }
 
@@ -2847,7 +2919,9 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
 
   if (!IS_NPC(ch))
   {
-    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+    PREREQ_HAS_USES(
+        FEAT_MUTAGEN,
+        "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
   }
 
   struct affected_type af, af2;
@@ -2894,8 +2968,11 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
   }
   else
   {
-    send_to_char(ch, "Do you want your elemental mutagen to affect air (electricity, perception), earth (acid, climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
-                     "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
+    send_to_char(
+        ch,
+        "Do you want your elemental mutagen to affect air (electricity, perception), earth (acid, "
+        "climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
+        "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
     return;
   }
 
@@ -2935,139 +3012,145 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
     af.modifier = af.modifier;
     affect_to_char(ch, &af);
 
-  /* Tier 1 Mutagenist perks also apply to elemental mutagen */
-  {
-    int extra = get_alchemist_mutagen_i_rank(ch);
-    if (extra > 0)
+    /* Tier 1 Mutagenist perks also apply to elemental mutagen */
     {
-      struct affected_type paf;
-      new_affect(&paf);
-      paf.spell = SKILL_MUTAGEN;
-      paf.duration = duration;
-      paf.bonus_type = BONUS_TYPE_UNIVERSAL; /* ensure stacking with mutagen and other bonuses */
-      paf.location = APPLY_STR;
-      paf.modifier = extra;
-      affect_to_char(ch, &paf);
+      int extra = get_alchemist_mutagen_i_rank(ch);
+      if (extra > 0)
+      {
+        struct affected_type paf;
+        new_affect(&paf);
+        paf.spell = SKILL_MUTAGEN;
+        paf.duration = duration;
+        paf.bonus_type = BONUS_TYPE_UNIVERSAL; /* ensure stacking with mutagen and other bonuses */
+        paf.location = APPLY_STR;
+        paf.modifier = extra;
+        affect_to_char(ch, &paf);
 
-      paf.location = APPLY_DEX;
-      affect_to_char(ch, &paf);
+        paf.location = APPLY_DEX;
+        affect_to_char(ch, &paf);
 
-      paf.location = APPLY_CON;
-      affect_to_char(ch, &paf);
+        paf.location = APPLY_CON;
+        affect_to_char(ch, &paf);
+      }
     }
-  }
 
-  if (has_alchemist_alchemical_reflexes(ch))
-  {
-    struct affected_type raf;
-    new_affect(&raf);
-    raf.spell = SKILL_MUTAGEN;
-    raf.duration = duration;
-    raf.location = APPLY_AC_NEW;
-    raf.modifier = 1;
-    raf.bonus_type = BONUS_TYPE_DODGE;
-    affect_to_char(ch, &raf);
-
-    raf.location = APPLY_SAVING_REFL;
-    raf.modifier = 1;
-    raf.bonus_type = BONUS_TYPE_UNDEFINED;
-    affect_to_char(ch, &raf);
-  }
-
-  if (has_alchemist_natural_armor(ch))
-  {
-    struct affected_type naf;
-    new_affect(&naf);
-    naf.spell = SKILL_MUTAGEN;
-    naf.duration = duration;
-    naf.location = APPLY_AC_NEW;
-    naf.modifier = 2;
-    naf.bonus_type = BONUS_TYPE_NATURALARMOR;
-    affect_to_char(ch, &naf);
-  }
-  /* Tier 3: Mutagenic Mastery (+2 to all ability scores while mutagen active) */
-  {
-    int mb = get_alchemist_mutagenic_mastery_bonus(ch);
-    if (mb > 0)
+    if (has_alchemist_alchemical_reflexes(ch))
     {
-      struct affected_type maf;
-      new_affect(&maf);
-      maf.spell = SKILL_MUTAGEN;
-      maf.duration = duration;
-      maf.bonus_type = BONUS_TYPE_UNIVERSAL;
-      maf.modifier = mb;
-      maf.location = APPLY_STR; affect_to_char(ch, &maf);
-      maf.location = APPLY_DEX; affect_to_char(ch, &maf);
-      maf.location = APPLY_CON; affect_to_char(ch, &maf);
-      maf.location = APPLY_INT; affect_to_char(ch, &maf);
-      maf.location = APPLY_WIS; affect_to_char(ch, &maf);
-      maf.location = APPLY_CHA; affect_to_char(ch, &maf);
+      struct affected_type raf;
+      new_affect(&raf);
+      raf.spell = SKILL_MUTAGEN;
+      raf.duration = duration;
+      raf.location = APPLY_AC_NEW;
+      raf.modifier = 1;
+      raf.bonus_type = BONUS_TYPE_DODGE;
+      affect_to_char(ch, &raf);
+
+      raf.location = APPLY_SAVING_REFL;
+      raf.modifier = 1;
+      raf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &raf);
     }
-  }
-  /* Tier 2 Mutagenist perks also apply to elemental mutagen */
-  {
-    int extra2 = get_alchemist_mutagen_ii_rank(ch);
-    if (extra2 > 0)
+
+    if (has_alchemist_natural_armor(ch))
     {
-      struct affected_type paf;
-      new_affect(&paf);
-      paf.spell = SKILL_MUTAGEN;
-      paf.duration = duration;
-      paf.bonus_type = BONUS_TYPE_UNIVERSAL;
-      paf.location = APPLY_STR;
-      paf.modifier = extra2;
-      affect_to_char(ch, &paf);
-
-      paf.location = APPLY_DEX;
-      affect_to_char(ch, &paf);
-
-      paf.location = APPLY_CON;
-      affect_to_char(ch, &paf);
+      struct affected_type naf;
+      new_affect(&naf);
+      naf.spell = SKILL_MUTAGEN;
+      naf.duration = duration;
+      naf.location = APPLY_AC_NEW;
+      naf.modifier = 2;
+      naf.bonus_type = BONUS_TYPE_NATURALARMOR;
+      affect_to_char(ch, &naf);
     }
-  }
+    /* Tier 3: Mutagenic Mastery (+2 to all ability scores while mutagen active) */
+    {
+      int mb = get_alchemist_mutagenic_mastery_bonus(ch);
+      if (mb > 0)
+      {
+        struct affected_type maf;
+        new_affect(&maf);
+        maf.spell = SKILL_MUTAGEN;
+        maf.duration = duration;
+        maf.bonus_type = BONUS_TYPE_UNIVERSAL;
+        maf.modifier = mb;
+        maf.location = APPLY_STR;
+        affect_to_char(ch, &maf);
+        maf.location = APPLY_DEX;
+        affect_to_char(ch, &maf);
+        maf.location = APPLY_CON;
+        affect_to_char(ch, &maf);
+        maf.location = APPLY_INT;
+        affect_to_char(ch, &maf);
+        maf.location = APPLY_WIS;
+        affect_to_char(ch, &maf);
+        maf.location = APPLY_CHA;
+        affect_to_char(ch, &maf);
+      }
+    }
+    /* Tier 2 Mutagenist perks also apply to elemental mutagen */
+    {
+      int extra2 = get_alchemist_mutagen_ii_rank(ch);
+      if (extra2 > 0)
+      {
+        struct affected_type paf;
+        new_affect(&paf);
+        paf.spell = SKILL_MUTAGEN;
+        paf.duration = duration;
+        paf.bonus_type = BONUS_TYPE_UNIVERSAL;
+        paf.location = APPLY_STR;
+        paf.modifier = extra2;
+        affect_to_char(ch, &paf);
 
-  if (has_alchemist_infused_with_vigor(ch))
-  {
-    int heal = dice(1, 6) + GET_LEVEL(ch);
-    GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
+        paf.location = APPLY_DEX;
+        affect_to_char(ch, &paf);
 
-    struct affected_type vaf;
-    new_affect(&vaf);
-    vaf.spell = SKILL_MUTAGEN;
-    vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
-    vaf.location = APPLY_FAST_HEALING;
-    vaf.modifier = 1;
-    vaf.bonus_type = BONUS_TYPE_UNDEFINED;
-    affect_to_char(ch, &vaf);
-  }
+        paf.location = APPLY_CON;
+        affect_to_char(ch, &paf);
+      }
+    }
 
-  if (has_alchemist_cellular_adaptation(ch))
-  {
-    struct affected_type daf;
-    new_affect(&daf);
-    daf.spell = SKILL_MUTAGEN;
-    daf.duration = duration;
-    daf.location = APPLY_DR;
-    daf.modifier = 5;
-    daf.bonus_type = BONUS_TYPE_UNDEFINED;
-    affect_to_char(ch, &daf);
+    if (has_alchemist_infused_with_vigor(ch))
+    {
+      int heal = dice(1, 6) + GET_LEVEL(ch);
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + heal);
 
-    struct damage_reduction_type *new_dr;
-    CREATE(new_dr, struct damage_reduction_type, 1);
-    new_dr->duration = duration;
-    new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-    new_dr->bypass_val[0] = 0;
-    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-    new_dr->bypass_val[1] = 0;
-    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-    new_dr->bypass_val[2] = 0;
-    new_dr->amount = 5;
-    new_dr->max_damage = -1;
-    new_dr->spell = SKILL_MUTAGEN;
-    new_dr->feat = FEAT_UNDEFINED;
-    new_dr->next = GET_DR(ch);
-    GET_DR(ch) = new_dr;
-  }
+      struct affected_type vaf;
+      new_affect(&vaf);
+      vaf.spell = SKILL_MUTAGEN;
+      vaf.duration = 10 * PULSE_VIOLENCE; /* approx 10 rounds */
+      vaf.location = APPLY_FAST_HEALING;
+      vaf.modifier = 1;
+      vaf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &vaf);
+    }
+
+    if (has_alchemist_cellular_adaptation(ch))
+    {
+      struct affected_type daf;
+      new_affect(&daf);
+      daf.spell = SKILL_MUTAGEN;
+      daf.duration = duration;
+      daf.location = APPLY_DR;
+      daf.modifier = 5;
+      daf.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_to_char(ch, &daf);
+
+      struct damage_reduction_type *new_dr;
+      CREATE(new_dr, struct damage_reduction_type, 1);
+      new_dr->duration = duration;
+      new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+      new_dr->bypass_val[0] = 0;
+      new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+      new_dr->bypass_val[1] = 0;
+      new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+      new_dr->bypass_val[2] = 0;
+      new_dr->amount = 5;
+      new_dr->max_damage = -1;
+      new_dr->spell = SKILL_MUTAGEN;
+      new_dr->feat = FEAT_UNDEFINED;
+      new_dr->next = GET_DR(ch);
+      GET_DR(ch) = new_dr;
+    }
   }
   if (af2.modifier != 0)
   {
@@ -3077,8 +3160,10 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical
     affect_to_char(ch, &af2);
   }
 
-  act("$n swallows a vial of murky looking substance and looks more resistant before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You swallow a vial of inspiring cognatogen and feel more resistant in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n swallows a vial of murky looking substance and looks more resistant before your eyes.",
+      FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of inspiring cognatogen and feel more resistant in an instant.", FALSE,
+      ch, 0, 0, TO_CHAR);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
@@ -3092,7 +3177,9 @@ void perform_cognatogen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 
   if (!IS_NPC(ch))
   {
-    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+    PREREQ_HAS_USES(
+        FEAT_MUTAGEN,
+        "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
   }
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
@@ -3107,9 +3194,11 @@ void perform_cognatogen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   new_affect(&af7);
 
   if (alchemical_bonus)
-    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type =
+        af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
   else
-    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type =
+        af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -3182,7 +3271,8 @@ void perform_cognatogen(struct char_data *ch, char *arg2, bool alchemical_bonus)
   }
   else
   {
-    send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom (-dex) or charisma (-con)?\r\n");
+    send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom "
+                     "(-dex) or charisma (-con)?\r\n");
     return;
   }
 
@@ -3268,8 +3358,11 @@ void perform_cognatogen(struct char_data *ch, char *arg2, bool alchemical_bonus)
     affect_to_char(ch, &af7);
   }
 
-  act("$n swallows a vial of murky looking substance and grows more mentally powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You swallow a vial of mutagen and grow more mentally powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n swallows a vial of murky looking substance and grows more mentally powerful before your "
+      "eyes.",
+      FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of mutagen and grow more mentally powerful in an instant.", FALSE, ch, 0,
+      0, TO_CHAR);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
@@ -3283,7 +3376,9 @@ void perform_inspiring_cognatogen(struct char_data *ch, bool alchemical_bonus)
 
   if (!IS_NPC(ch))
   {
-    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+    PREREQ_HAS_USES(
+        FEAT_MUTAGEN,
+        "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
   }
 
   struct affected_type af, af2, af3, af4, af5, af6;
@@ -3297,9 +3392,11 @@ void perform_inspiring_cognatogen(struct char_data *ch, bool alchemical_bonus)
   new_affect(&af6);
 
   if (alchemical_bonus)
-    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ALCHEMICAL;
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type =
+        BONUS_TYPE_ALCHEMICAL;
   else
-    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ENHANCEMENT;
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type =
+        BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -3374,8 +3471,10 @@ void perform_inspiring_cognatogen(struct char_data *ch, bool alchemical_bonus)
     affect_to_char(ch, &af5);
   }
 
-  act("$n swallows a vial of murky looking substance and grows more inspired before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You swallow a vial of inspiring cognatogen and feel more inspired in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n swallows a vial of murky looking substance and grows more inspired before your eyes.",
+      FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of inspiring cognatogen and feel more inspired in an instant.", FALSE, ch,
+      0, 0, TO_CHAR);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
@@ -3416,7 +3515,8 @@ ACMD(do_swallow)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or inspiring-cognatogen?\r\n");
+    send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or "
+                     "inspiring-cognatogen?\r\n");
     return;
   }
 
@@ -3427,7 +3527,8 @@ ACMD(do_swallow)
   {
     if (!*arg2)
     {
-      send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or constitution (-cha)?\r\n");
+      send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) "
+                       "or constitution (-cha)?\r\n");
       return;
     }
     perform_mutagen(ch, strdup(arg2), alchemical_bonus);
@@ -3441,8 +3542,11 @@ ACMD(do_swallow)
     }
     if (!*arg2)
     {
-      send_to_char(ch, "Do you want your elemental mutagen to affect air (electricity, perception), earth (acid, climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
-                       "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
+      send_to_char(ch,
+                   "Do you want your elemental mutagen to affect air (electricity, perception), "
+                   "earth (acid, climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
+                   "You will gain resistance 5 in the associated element and +5 to the associated "
+                   "skill.\r\n");
       return;
     }
     perform_elemental_mutagen(ch, strdup(arg2), alchemical_bonus);
@@ -3456,7 +3560,8 @@ ACMD(do_swallow)
     }
     if (!*arg2)
     {
-      send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom (-dex) or charisma (-con)?\r\n");
+      send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom "
+                       "(-dex) or charisma (-con)?\r\n");
       return;
     }
     perform_cognatogen(ch, strdup(arg2), alchemical_bonus);
@@ -3472,7 +3577,8 @@ ACMD(do_swallow)
   }
   else
   {
-    send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or inspiring-cognatogen?\r\n");
+    send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or "
+                     "inspiring-cognatogen?\r\n");
     return;
   }
 
@@ -3575,7 +3681,10 @@ ACMD(do_curingtouch)
   {
     if (!KNOWS_DISCOVERY(ch, ALC_DISC_HEALING_TOUCH))
     {
-      send_to_char(ch, "You can only perform a curing touch on yourself.  The curing touch alchemical discovery allows for perform this on others as well as increasing the amount you can heal.");
+      send_to_char(
+          ch,
+          "You can only perform a curing touch on yourself.  The curing touch alchemical discovery "
+          "allows for perform this on others as well as increasing the amount you can heal.");
       return;
     }
 
@@ -3586,8 +3695,8 @@ ACMD(do_curingtouch)
     }
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+      vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
@@ -3651,22 +3760,28 @@ ACMD(do_psychokinetic)
   // check to see if they specified an argument
   if (!*argument)
   {
-    send_to_char(ch, "You need to specify either 'apply' to activate, 'dispel' to end the effect or 'launch' to send one of the psychokinetic spirits at your currently targetted foe.\r\n");
+    send_to_char(
+        ch,
+        "You need to specify either 'apply' to activate, 'dispel' to end the effect or 'launch' to "
+        "send one of the psychokinetic spirits at your currently targetted foe.\r\n");
     return;
   }
 
   if (is_abbrev(argument, "apply"))
   {
-
     // check if they have any uses available
     if (!IS_NPC(ch))
     {
-      PREREQ_HAS_USES(FEAT_PSYCHOKINETIC, "You must wait some time before you can apply another psychokinetic tincture.\r\n");
+      PREREQ_HAS_USES(
+          FEAT_PSYCHOKINETIC,
+          "You must wait some time before you can apply another psychokinetic tincture.\r\n");
     }
 
     if (affected_by_spell(ch, ALC_DISC_AFFECT_PSYCHOKINETIC))
     {
-      send_to_char(ch, "You are already under the effect of a psychokinetic tincture.  You may either 'launch' the psychokinetic spirits in battle, or use 'psychokinetic dispel' to end the effect voluntarily.\r\n");
+      send_to_char(ch, "You are already under the effect of a psychokinetic tincture.  You may "
+                       "either 'launch' the psychokinetic spirits in battle, or use 'psychokinetic "
+                       "dispel' to end the effect voluntarily.\r\n");
       return;
     }
 
@@ -3679,9 +3794,14 @@ ACMD(do_psychokinetic)
 
     affect_to_char(ch, &af);
 
-    snprintf(buf, sizeof(buf), "You drink your psychokinetic tincture and are suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
+    snprintf(buf, sizeof(buf),
+             "You drink your psychokinetic tincture and are suddenly surrounded by %d protective "
+             "spirit%s.\r\n",
+             af.modifier, af.modifier == 1 ? "" : "s");
     act(buf, FALSE, ch, 0, 0, TO_CHAR);
-    snprintf(buf, sizeof(buf), "$n drinks a strange fluid and is suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
+    snprintf(buf, sizeof(buf),
+             "$n drinks a strange fluid and is suddenly surrounded by %d protective spirit%s.\r\n",
+             af.modifier, af.modifier == 1 ? "" : "s");
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
     if (!IS_NPC(ch))
@@ -3696,7 +3816,6 @@ ACMD(do_psychokinetic)
   }
   else if (is_abbrev(argument, "dispel"))
   {
-
     if (!affected_by_spell(ch, ALC_DISC_AFFECT_PSYCHOKINETIC))
     {
       send_to_char(ch, "You are not under the effect of a psychokinetic tincture.\r\n");
@@ -3709,7 +3828,6 @@ ACMD(do_psychokinetic)
   }
   else if (is_abbrev(argument, "launch"))
   {
-
     struct char_data *victim = NULL;
 
     if (!(victim = FIGHTING(ch)))
@@ -3727,7 +3845,8 @@ ACMD(do_psychokinetic)
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    if (savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0,
+                    CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
     {
       act("$N resists the fear effect.", FALSE, ch, 0, victim, TO_CHAR);
       act("You resist the fear effect.", FALSE, ch, 0, victim, TO_VICT);
@@ -3779,7 +3898,10 @@ ACMD(do_psychokinetic)
   }
   else
   {
-    send_to_char(ch, "You need to specify either 'apply' to activate, 'dispel' to end the effect or 'launch' to send one of the psychokinetic spirits at your currently targetted foe.\r\n");
+    send_to_char(
+        ch,
+        "You need to specify either 'apply' to activate, 'dispel' to end the effect or 'launch' to "
+        "send one of the psychokinetic spirits at your currently targetted foe.\r\n");
     return;
   }
 }
@@ -3812,7 +3934,6 @@ ACMD(do_poisontouch)
 
   if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, TRUE, 1) > 0)
   {
-
     if (check_poison_resist(ch, vict, CASTING_TYPE_ANY, CLASS_LEVEL(ch, CLASS_ALCHEMIST)))
     {
       act("You touch $n with your poisonous touch, but $E resists!", FALSE, ch, 0, vict, TO_CHAR);
@@ -3821,7 +3942,6 @@ ACMD(do_poisontouch)
     }
     else
     {
-
       struct affected_type af;
 
       af.spell = SPELL_POISON;
@@ -3833,9 +3953,12 @@ ACMD(do_poisontouch)
 
       affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
 
-      act("You touch $N with your poisonous touch and $E becomes very ill!", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n touches You with $s poisonous touch and You become very ill!", FALSE, ch, 0, vict, TO_VICT);
-      act("$n touches $N with $s poisonous touch and $E becomes very ill!", FALSE, ch, 0, vict, TO_NOTVICT);
+      act("You touch $N with your poisonous touch and $E becomes very ill!", FALSE, ch, 0, vict,
+          TO_CHAR);
+      act("$n touches You with $s poisonous touch and You become very ill!", FALSE, ch, 0, vict,
+          TO_VICT);
+      act("$n touches $N with $s poisonous touch and $E becomes very ill!", FALSE, ch, 0, vict,
+          TO_NOTVICT);
     }
   }
   else
@@ -3924,8 +4047,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
   send_to_char(ch, "\tC\r\n");
   // text_line(ch, "discovery Information", line_length, '-', '-');
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tcDiscovery     : \tn%s\r\n",
-               alchemical_discovery_names[discovery]);
+  send_to_char(ch, "\tcDiscovery     : \tn%s\r\n", alchemical_discovery_names[discovery]);
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
@@ -4076,13 +4198,17 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
   if (!ch)
     return FALSE;
 
-  if (!is_abbrev(keyword, "alchemist discoveries") && !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
-      !is_abbrev(keyword, "alchemist grand discoveries") && !is_abbrev(keyword, "alchemical grand discoveries") && !is_abbrev(keyword, "grand discoveries"))
+  if (!is_abbrev(keyword, "alchemist discoveries") &&
+      !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
+      !is_abbrev(keyword, "alchemist grand discoveries") &&
+      !is_abbrev(keyword, "alchemical grand discoveries") &&
+      !is_abbrev(keyword, "grand discoveries"))
     return FALSE;
 
   bool grand = FALSE;
 
-  if (is_abbrev(keyword, "alchemist discoveries") || is_abbrev(keyword, "alchemical discoveries") || is_abbrev(keyword, "discoveries"))
+  if (is_abbrev(keyword, "alchemist discoveries") || is_abbrev(keyword, "alchemical discoveries") ||
+      is_abbrev(keyword, "discoveries"))
     grand = FALSE;
   else
     grand = TRUE;
@@ -4101,14 +4227,16 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
   int i = 0;
   for (i = 1; i < (grand ? NUM_GR_ALC_DISCOVERIES : NUM_ALC_DISCOVERIES); i++)
   {
-    snprintf(buf, sizeof(buf), "\tC%s\tn\r\n", grand ? grand_alchemical_discovery_names[i] : alchemical_discovery_names[i]);
+    snprintf(buf, sizeof(buf), "\tC%s\tn\r\n",
+             grand ? grand_alchemical_discovery_names[i] : alchemical_discovery_names[i]);
     send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   }
 
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tcType HELP (DISCOVERY NAME) for information on a specific bomb or discovery.\r\n"
-                   "Discoveries can be learned in the study menu. Grand discoveries can be learned\r\n"
-                   "with the 'gdiscovery' command.\tn\r\n");
+  send_to_char(ch,
+               "\tcType HELP (DISCOVERY NAME) for information on a specific bomb or discovery.\r\n"
+               "Discoveries can be learned in the study menu. Grand discoveries can be learned\r\n"
+               "with the 'gdiscovery' command.\tn\r\n");
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 

@@ -240,14 +240,14 @@ In `constants.c`:
 
 **Check unread count for boardcheck:**
 ```sql
-SELECT COUNT(*) 
-FROM mysql_board_posts p 
-WHERE p.board_id = ? AND p.deleted = FALSE 
+SELECT COUNT(*)
+FROM mysql_board_posts p
+WHERE p.board_id = ? AND p.deleted = FALSE
 AND p.post_id NOT IN (
     SELECT post_id FROM player_board_reads WHERE player_id = ?
 )
 AND EXISTS (
-    SELECT 1 FROM player_board_reads 
+    SELECT 1 FROM player_board_reads
     WHERE player_id = ? AND board_id = ?
 );
 ```

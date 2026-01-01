@@ -207,7 +207,7 @@ Resource Interactions:
 Critical Thresholds:
   Crystal availability: 12% (below sustainable levels)
   Water availability: 28% (ecosystem stress threshold)
-  
+
 Recommended Actions:
   • Cease crystal harvesting for 2-3 days
   • Reduce stone quarrying frequency

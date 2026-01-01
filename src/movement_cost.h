@@ -15,7 +15,8 @@
 int get_speed(struct char_data *ch, sbyte to_display);
 
 /* Movement cost calculation functions */
-int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum to_room, int riding);
+int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum to_room,
+                            int riding);
 bool check_movement_points(struct char_data *ch, int need_movement, int riding, int following);
 void deduct_movement_points(struct char_data *ch, int need_movement, int riding, int ridden_by);
 

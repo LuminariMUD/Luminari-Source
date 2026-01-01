@@ -7,9 +7,17 @@
 #include <string.h>
 
 /* http://www.jera.com/techinfo/jtns/jtn002.html */
-#define mu_assert(message, test) do { if (!(test)) {puts(message); exit(1);}} while (0)
+#define mu_assert(message, test)                                                                   \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(test))                                                                                   \
+    {                                                                                              \
+      puts(message);                                                                               \
+      exit(1);                                                                                     \
+    }                                                                                              \
+  } while (0)
 
-void mu_equals(const char* expect, const char* actual)
+void mu_equals(const char *expect, const char *actual)
 {
   if (strcmp(expect, actual))
   {

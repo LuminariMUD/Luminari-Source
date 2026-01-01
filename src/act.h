@@ -39,74 +39,75 @@ bool is_locked_race(int race);
  ****************************************************************************/
 
 /** Check if character can actually fight. */
-#define PREREQ_CAN_FIGHT()                        \
-  if (!MOB_CAN_FIGHT(ch))                         \
-  {                                               \
-    send_to_char(ch, "But you can't fight!\r\n"); \
-    return;                                       \
+#define PREREQ_CAN_FIGHT()                                                                         \
+  if (!MOB_CAN_FIGHT(ch))                                                                          \
+  {                                                                                                \
+    send_to_char(ch, "But you can't fight!\r\n");                                                  \
+    return;                                                                                        \
   }
 
 /** Check the specified function to see if we get back a CAN_CMD. */
-#define PREREQ_CHECK(name) \
-  if (name(ch, true))      \
+#define PREREQ_CHECK(name)                                                                         \
+  if (name(ch, true))                                                                              \
     return;
 
 /** Check if the character has enough daily uses of the specified feat. */
-#define PREREQ_HAS_USES(feat, errormsg)                       \
-  int uses_remaining;                                         \
-  if ((uses_remaining = daily_uses_remaining(ch, feat)) == 0) \
-  {                                                           \
-    send_to_char(ch, errormsg);                               \
-    return;                                                   \
-  }                                                           \
-                                                              \
-  if (uses_remaining < 0)                                     \
-  {                                                           \
-    send_to_char(ch, "You are not experienced enough.\r\n");  \
-    return;                                                   \
+#define PREREQ_HAS_USES(feat, errormsg)                                                            \
+  int uses_remaining;                                                                              \
+  if ((uses_remaining = daily_uses_remaining(ch, feat)) == 0)                                      \
+  {                                                                                                \
+    send_to_char(ch, errormsg);                                                                    \
+    return;                                                                                        \
+  }                                                                                                \
+                                                                                                   \
+  if (uses_remaining < 0)                                                                          \
+  {                                                                                                \
+    send_to_char(ch, "You are not experienced enough.\r\n");                                       \
+    return;                                                                                        \
   }
 
 /** Check if the character is in the specified position or better. */
-#define PREREQ_IN_POSITION(req_pos, errmsg) \
-  if (GET_POS(ch) <= req_pos)               \
-  {                                         \
-    send_to_char(ch, errmsg);               \
-    return;                                 \
+#define PREREQ_IN_POSITION(req_pos, errmsg)                                                        \
+  if (GET_POS(ch) <= req_pos)                                                                      \
+  {                                                                                                \
+    send_to_char(ch, errmsg);                                                                      \
+    return;                                                                                        \
   }
 
 /** Check if character is not a NPC. */
-#define PREREQ_NOT_NPC()                             \
-  if (!can_npc_command(ch)) return;
+#define PREREQ_NOT_NPC()                                                                           \
+  if (!can_npc_command(ch))                                                                        \
+    return;
 
 /** Check if character is in a peaceful room. */
-#define PREREQ_NOT_PEACEFUL_ROOM()                                               \
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))                                  \
-  {                                                                              \
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n"); \
-    return;                                                                      \
+#define PREREQ_NOT_PEACEFUL_ROOM()                                                                 \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))                                                    \
+  {                                                                                                \
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");                   \
+    return;                                                                                        \
   }
 
 /** CHeck if character is in a single-file room. */
-#define PREREQ_NOT_SINGLEFILE_ROOM()                                               \
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))                                  \
-  {                                                                                \
-    send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n"); \
-    return;                                                                        \
+#define PREREQ_NOT_SINGLEFILE_ROOM()                                                               \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))                                                  \
+  {                                                                                                \
+    send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n");                 \
+    return;                                                                                        \
   }
 
 /** Check for the target feat - to be used only within the ACMDCHECK() macro. */
-#define ACMDCHECK_PREREQ_HASFEAT(feat, errormsg) \
+#define ACMDCHECK_PREREQ_HASFEAT(feat, errormsg)                                                   \
   ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, feat), errormsg)
 
 /** Check for the specified condition and fail permanently if it's true.
  * In other words, the character doesn't have the ability to use this command.
  * To be used only within the ACMDCHECK() macro.
  */
-#define ACMDCHECK_PERMFAIL_IF(code, errormsg) \
-  if (code)                                   \
-  {                                           \
-    ACMD_ERRORMSG(errormsg);                  \
-    return CANT_CMD_PERM;                     \
+#define ACMDCHECK_PERMFAIL_IF(code, errormsg)                                                      \
+  if (code)                                                                                        \
+  {                                                                                                \
+    ACMD_ERRORMSG(errormsg);                                                                       \
+    return CANT_CMD_PERM;                                                                          \
   }
 
 /** Check for the specified condition and temporarily fail if it's true.
@@ -114,11 +115,11 @@ bool is_locked_race(int race);
  * missing something else that would cause it to fail.
  * To be used only within the ACMDCHECK() macro.
  */
-#define ACMDCHECK_TEMPFAIL_IF(code, errormsg) \
-  if (code)                                   \
-  {                                           \
-    ACMD_ERRORMSG(errormsg);                  \
-    return CANT_CMD_TEMP;                     \
+#define ACMDCHECK_TEMPFAIL_IF(code, errormsg)                                                      \
+  if (code)                                                                                        \
+  {                                                                                                \
+    ACMD_ERRORMSG(errormsg);                                                                       \
+    return CANT_CMD_TEMP;                                                                          \
   }
 
 /*****************************************************************************
@@ -313,10 +314,17 @@ ACMD_DECL(do_rank);
  ****************************************************************************/
 /* defines */
 #define EXITN(room, door) (world[room].dir_option[door])
-#define OPEN_DOOR(room, obj, door) ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) : (REMOVE_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
-#define CLOSE_DOOR(room, obj, door) ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) : (SET_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
-#define LOCK_DOOR(room, obj, door) ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY)))
-#define UNLOCK_DOOR(room, obj, door) ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (remove_locked_door_flags(room, door)))
+#define OPEN_DOOR(room, obj, door)                                                                 \
+  ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED))                                          \
+         : (REMOVE_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
+#define CLOSE_DOOR(room, obj, door)                                                                \
+  ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED))                                             \
+         : (SET_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
+#define LOCK_DOOR(room, obj, door)                                                                 \
+  ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED))                                             \
+         : (SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY)))
+#define UNLOCK_DOOR(room, obj, door)                                                               \
+  ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (remove_locked_door_flags(room, door)))
 #define IS_CLOSED(x, y) (EXIT_FLAGGED(world[(x)].dir_option[(y)], EX_CLOSED))
 /* added subcommands for do_get() for group loot system */
 #define GET_SUBCMD_NORMAL 0
@@ -324,7 +332,10 @@ ACMD_DECL(do_rank);
 
 /* HACK: Had to change this with the new lock strengths from homeland... */
 
-#define TOGGLE_LOCK(room, obj, door) ((obj) ? (TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (is_door_locked(room, door) ? UNLOCK_DOOR(room, obj, door) : LOCK_DOOR(room, obj, door)))
+#define TOGGLE_LOCK(room, obj, door)                                                               \
+  ((obj)                                                                                           \
+       ? (TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED))                                            \
+       : (is_door_locked(room, door) ? UNLOCK_DOOR(room, obj, door) : LOCK_DOOR(room, obj, door)))
 
 /*(TOGGLE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))*/
 
@@ -348,9 +359,12 @@ void auc_send_to_all(char *messg, bool buyer);
 void list_consumables(struct char_data *ch, int type);
 void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum);
 /* do_look, do_inventory utility functions */
-void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type);
-void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type, bool can_see_always);
-int find_activate_object_by_spellnum(struct char_data *ch, int spellnum, bool require_uses_remaining);
+void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show,
+                      int mxp_type);
+void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show,
+                           int mxp_type, bool can_see_always);
+int find_activate_object_by_spellnum(struct char_data *ch, int spellnum,
+                                     bool require_uses_remaining);
 
 ACMD_DECL(do_sheath);
 ACMD_DECL(do_unsheath);
@@ -373,7 +387,7 @@ ACMD_DECL(do_pour);
 ACMD_DECL(do_sort);
 ACMD_DECL(do_bagnames);
 ACMD_DECL(do_bags);
-#define SCMD_SORTTO   1
+#define SCMD_SORTTO 1
 #define SCMD_SORTFROM 2
 
 ACMD_DECL(do_activate);
@@ -498,7 +512,8 @@ void perform_rescue(struct char_data *ch, struct char_data *vict);
 void perform_smite(struct char_data *ch, int smite_type);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
-bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, bool can_counter, bool display);
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, bool can_counter,
+                       bool display);
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
 void perform_sap(struct char_data *ch, struct char_data *vict);

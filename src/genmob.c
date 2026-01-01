@@ -79,7 +79,8 @@ int add_mobile(struct char_data *mob, mob_vnum vnum)
 
   /* Update live mobile rnums. */
   for (live_mob = character_list; live_mob; live_mob = live_mob->next)
-    GET_MOB_RNUM(live_mob) += (GET_MOB_RNUM(live_mob) != NOTHING && GET_MOB_RNUM(live_mob) >= found);
+    GET_MOB_RNUM(live_mob) +=
+        (GET_MOB_RNUM(live_mob) != NOTHING && GET_MOB_RNUM(live_mob) >= found);
 
   /* Update zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
@@ -332,7 +333,8 @@ int free_mobile(struct char_data *mob)
     /* free script proto list if it's not the prototype */
     if (mob->proto_script && mob->proto_script != mob_proto[i].proto_script)
       free_proto_script(mob, MOB_TRIGGER);
-    if (mob->mob_specials.echo_entries && mob->mob_specials.echo_entries != mob_proto[i].mob_specials.echo_entries)
+    if (mob->mob_specials.echo_entries &&
+        mob->mob_specials.echo_entries != mob_proto[i].mob_specials.echo_entries)
     {
       for (j = 0; j < mob->mob_specials.echo_count; j++)
         free(mob->mob_specials.echo_entries[j]);
@@ -372,7 +374,8 @@ int save_mobiles(zone_rnum rznum)
   if (rznum < 0 || rznum > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_mobiles: Invalid real zone number %d. (0-%d)", rznum, top_of_zone_table);
+    log("SYSERR: GenOLC: save_mobiles: Invalid real zone number %d. (0-%d)", rznum,
+        top_of_zone_table);
     return FALSE;
   }
 
@@ -535,10 +538,9 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   }
 
   // Additonal Aff2 flags
-  fprintf(fd, "Aff2: %d %d %d %d\n",
-          AFF2_FLAGS(mob)[0], AFF2_FLAGS(mob)[1],
-          AFF2_FLAGS(mob)[2], AFF2_FLAGS(mob)[3]);
-  
+  fprintf(fd, "Aff2: %d %d %d %d\n", AFF2_FLAGS(mob)[0], AFF2_FLAGS(mob)[1], AFF2_FLAGS(mob)[2],
+          AFF2_FLAGS(mob)[3]);
+
   // Deprecated by MFeat
   // for (i = 0; i < NUM_FEATS; i++)
   //   if (HAS_FEAT(mob, i))
@@ -574,25 +576,22 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   strip_cr(strncpy(ldesc, GET_LDESC(mob), MAX_STRING_LENGTH - 1));
   strip_cr(strncpy(ddesc, GET_DDESC(mob), MAX_STRING_LENGTH - 1));
 
-  snprintf(buf, sizeof(buf), "#%d\n"
-                             "%s%c\n"
-                             "%s%c\n"
-                             "%s%c\n"
-                             "%s%c\n",
-           mvnum,
-           GET_ALIAS(mob), STRING_TERMINATOR,
-           GET_SDESC(mob), STRING_TERMINATOR,
-           ldesc, STRING_TERMINATOR,
-           ddesc, STRING_TERMINATOR);
+  snprintf(buf, sizeof(buf),
+           "#%d\n"
+           "%s%c\n"
+           "%s%c\n"
+           "%s%c\n"
+           "%s%c\n",
+           mvnum, GET_ALIAS(mob), STRING_TERMINATOR, GET_SDESC(mob), STRING_TERMINATOR, ldesc,
+           STRING_TERMINATOR, ddesc, STRING_TERMINATOR);
 
   fprintf(fd, convert_from_tabs(buf), 0);
 
-  fprintf(fd, "%d %d %d %d %d %d %d %d %d E\n"
-              "%d %d %d %dd%d+%d %dd%d+%d\n",
-          MOB_FLAGS(mob)[0], MOB_FLAGS(mob)[1],
-          MOB_FLAGS(mob)[2], MOB_FLAGS(mob)[3],
-          AFF_FLAGS(mob)[0], AFF_FLAGS(mob)[1],
-          AFF_FLAGS(mob)[2], AFF_FLAGS(mob)[3],
+  fprintf(fd,
+          "%d %d %d %d %d %d %d %d %d E\n"
+          "%d %d %d %dd%d+%d %dd%d+%d\n",
+          MOB_FLAGS(mob)[0], MOB_FLAGS(mob)[1], MOB_FLAGS(mob)[2], MOB_FLAGS(mob)[3],
+          AFF_FLAGS(mob)[0], AFF_FLAGS(mob)[1], AFF_FLAGS(mob)[2], AFF_FLAGS(mob)[3],
           GET_ALIGNMENT(mob),
           /* line 2 */
           /* AC -> we are doing a two-fold conversion here (HACK ALERT)
@@ -602,17 +601,16 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
              2nd edition DnD AC!
            * this is the opposite of what is done in db.c's parse_simple_mob */
           GET_LEVEL(mob), 20 - GET_HITROLL(mob), (20 - (GET_AC(mob) / 10)), GET_HIT(mob),
-          GET_PSP(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob),
-          GET_DAMROLL(mob));
+          GET_PSP(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob), GET_DAMROLL(mob));
 
   /* position fighting is deprecated */
   if (pos == POS_FIGHTING)
     pos = POS_STANDING;
 
-  fprintf(fd, "%d %ld\n"
-              "%d %d %d\n",
-          GET_GOLD(mob), GET_EXP(mob),
-          GET_POS(mob), pos, GET_SEX(mob));
+  fprintf(fd,
+          "%d %ld\n"
+          "%d %d %d\n",
+          GET_GOLD(mob), GET_EXP(mob), GET_POS(mob), pos, GET_SEX(mob));
 
   if (write_mobile_espec(mvnum, mob, fd) < 0)
     log("SYSERR: GenOLC: Error writing E-specs for mobile #%d.", mvnum);

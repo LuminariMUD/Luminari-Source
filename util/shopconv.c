@@ -60,8 +60,7 @@ char *fread_string(FILE *fl, const char *error)
     else
       strcat(buf, tmp);
 
-    for (point = buf + strlen(buf) - 2; point >= buf && isspace(*point);
-         point--)
+    for (point = buf + strlen(buf) - 2; point >= buf && isspace(*point); point--)
       ;
     if ((flag = (*point == '~')))
     {
@@ -91,11 +90,13 @@ void do_list(FILE *shop_f, FILE *newshop_f, int max)
 
   for (count = 0; count < max; count++)
   {
-    if (fscanf(shop_f, "%d", &temp) != 1) {
+    if (fscanf(shop_f, "%d", &temp) != 1)
+    {
       fprintf(stderr, "Error reading shop data\n");
       exit(1);
     }
-    if (!fgets(buf, MAX_STRING_LENGTH - 1, shop_f)) {
+    if (!fgets(buf, MAX_STRING_LENGTH - 1, shop_f))
+    {
       fprintf(stderr, "Error reading shop string\n");
       exit(1);
     }
@@ -111,7 +112,8 @@ void do_float(FILE *shop_f, FILE *newshop_f)
   float f;
   char str[20];
 
-  if (fscanf(shop_f, "%f \n", &f) != 1) {
+  if (fscanf(shop_f, "%f \n", &f) != 1)
+  {
     fprintf(stderr, "Error reading float value\n");
     exit(1);
   }
@@ -126,7 +128,8 @@ void do_int(FILE *shop_f, FILE *newshop_f)
 {
   int i;
 
-  if (fscanf(shop_f, "%d \n", &i) != 1) {
+  if (fscanf(shop_f, "%d \n", &i) != 1)
+  {
     fprintf(stderr, "Error reading int value\n");
     exit(1);
   }
@@ -234,7 +237,8 @@ int main(int argc, char *argv[])
 
     /* Create temporary backup */
     sprintf(part, "mv %s %s.tmp", fn, fn);
-    if (system(part) != 0) {
+    if (system(part) != 0)
+    {
       printf("Warning: Could not create temporary backup for %s\n", fn);
     }
 
@@ -263,7 +267,8 @@ int main(int argc, char *argv[])
     {
       /* Conversion failed - restore original */
       sprintf(part, "mv %s.tmp %s", fn, fn);
-      if (system(part) != 0) {
+      if (system(part) != 0)
+      {
         fprintf(stderr, "Warning: system command failed: %s\n", part);
       }
       printf("Conversion failed - original file restored\n");
@@ -272,7 +277,8 @@ int main(int argc, char *argv[])
     {
       /* Conversion succeeded - create backup */
       sprintf(part, "mv %s.tmp %s.bak", fn, fn);
-      if (system(part) != 0) {
+      if (system(part) != 0)
+      {
         fprintf(stderr, "Warning: system command failed: %s\n", part);
       }
       printf("Conversion successful - backup saved as %s.bak\n", fn);

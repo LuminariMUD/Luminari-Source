@@ -36,5 +36,3 @@ Get-ChildItem -Path (Join-Path $repoRoot "lib/world/*/$Zone.*") -ErrorAction Sil
 }
 
 Write-Host 'Validation complete'
-
-

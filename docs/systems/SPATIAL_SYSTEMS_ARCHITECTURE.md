@@ -56,7 +56,7 @@ src/
 ```
 
 #### Integration Points
-- **Startup**: `spatial_systems_init()` called in `db.c` 
+- **Startup**: `spatial_systems_init()` called in `db.c`
 - **Commands**: `pubsub spatial` test command in `pubsub_commands.c`
 - **Build**: Integrated into `Makefile.am` build chain
 
@@ -86,7 +86,7 @@ if (distance > 5.0f) {
 
 **Terrain Effects:**
 - **Mountains**: Complete sight blocking (intensity = 0.0)
-- **Hills**: Significant reduction (intensity *= 0.4) 
+- **Hills**: Significant reduction (intensity *= 0.4)
 - **Forests**: Moderate blocking (intensity *= 0.7)
 - **Water**: Minimal effect (intensity *= 0.95)
 - **Urban/Roads**: No blocking
@@ -103,7 +103,7 @@ if (distance > 5.0f) {
 **Weather Effects:**
 - **Clear**: No modification
 - **Fog**: Significant reduction (intensity *= 0.3)
-- **Rain**: Moderate reduction (intensity *= 0.8) 
+- **Rain**: Moderate reduction (intensity *= 0.8)
 - **Storm**: Severe reduction (intensity *= 0.5)
 
 **Lighting Conditions:**
@@ -200,12 +200,12 @@ int spatial_systems_init(void) {
     if (visual_strategies_init() != SPATIAL_SUCCESS) {
         return SPATIAL_ERROR_INIT_FAILED;
     }
-    
+
     // Initialize audio system strategy chain  
     if (audio_strategies_init() != SPATIAL_SUCCESS) {
         return SPATIAL_ERROR_INIT_FAILED;
     }
-    
+
     return SPATIAL_SUCCESS;
 }
 ```
@@ -283,10 +283,10 @@ typedef int (*spatial_strategy_func_t)(struct spatial_context *ctx);
 static int my_calculate_primary(struct spatial_context *ctx) {
     // Validate parameters
     if (!ctx) return SPATIAL_ERROR_INVALID_PARAM;
-    
+
     // Perform calculations
     // Modify ctx->intensity or other fields
-    
+
     // Return success or termination signal
     return SPATIAL_SUCCESS;
 }

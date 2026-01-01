@@ -24,7 +24,7 @@ Successfully implemented and integrated ALL Tier 1 and 2 perks for the Berserker
 ### ✅ Mighty Leap (Tier 1)
 **Implementation**: Fully integrated with climbing and falling damage systems
 - **Files Modified**: `src/movement_falling.c`, `src/movement.c`
-- **Mechanics**: 
+- **Mechanics**:
   - +10 bonus to Climb checks (automatically works through ABILITY_ATHLETICS system)
   - 50% reduction to all falling damage
 - **Damage Reduction Applied To**:
@@ -44,13 +44,13 @@ Successfully implemented and integrated ALL Tier 1 and 2 perks for the Berserker
 
 ### ✅ Sprint (Tier 2) - NOW IMPLEMENTED!
 **Status**: Fully implemented and functional
-- **Implementation**: 
+- **Implementation**:
   - Created `ACMD(do_sprint)` command in `act.offensive.c`
   - Added SKILL_SPRINT (2219) to `spells.h`
   - Registered command in `interpreter.c`
   - Added function declaration to `act.h`
   - Integrated with `movement_cost.c` to double movement speed
-- **Mechanics**: 
+- **Mechanics**:
   - Activates with "sprint" command
   - Doubles movement speed for 5 rounds
   - Uses daily cooldown system (cooldown resets daily)

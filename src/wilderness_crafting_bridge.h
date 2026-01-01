@@ -1,7 +1,7 @@
 /**
  * @file wilderness_crafting_bridge.h
  * @brief Bridge between wilderness materials and crafting system
- * 
+ *
  * This system provides integration between the Phase 4.5 wilderness
  * material system and the existing newcrafting system, making them
  * compatible and campaign-aware.
@@ -23,32 +23,34 @@
 /**
  * Enhanced material storage that preserves wilderness hierarchy
  */
-struct enhanced_material_storage {
-    int category;           // RESOURCE_HERBS, RESOURCE_CRYSTAL, etc.
-    int subtype;           // Specific material type within category
-    int quality;           // 1-5 quality level
-    int quantity;          // Amount stored
-    const char *display_name;  // Campaign-specific display name
+struct enhanced_material_storage
+{
+  int category;             // RESOURCE_HERBS, RESOURCE_CRYSTAL, etc.
+  int subtype;              // Specific material type within category
+  int quality;              // 1-5 quality level
+  int quantity;             // Amount stored
+  const char *display_name; // Campaign-specific display name
 };
 
 /**
  * Enhanced crafting groups that work with wilderness materials
  */
-enum enhanced_craft_groups {
-    ENHANCED_CRAFT_GROUP_NONE = 0,
-    ENHANCED_CRAFT_GROUP_MAGICAL_HERBS,      // Herbs for alchemy/magic
-    ENHANCED_CRAFT_GROUP_CRYSTALS,           // Magical crystals
-    ENHANCED_CRAFT_GROUP_RARE_METALS,        // Mithril, adamantine, etc.
-    ENHANCED_CRAFT_GROUP_COMMON_METALS,      // Iron, steel, etc.
-    ENHANCED_CRAFT_GROUP_EXOTIC_WOODS,       // Ironwood, silverbirch, etc.
-    ENHANCED_CRAFT_GROUP_COMMON_WOODS,       // Oak, pine, etc.
-    ENHANCED_CRAFT_GROUP_MAGICAL_HIDES,      // Dragon hide, shadow pelt
-    ENHANCED_CRAFT_GROUP_COMMON_HIDES,       // Leather, fur
-    ENHANCED_CRAFT_GROUP_MAGICAL_STONES,     // Moonstone, dragonbone
-    ENHANCED_CRAFT_GROUP_BUILDING_STONES,    // Granite, marble
-    ENHANCED_CRAFT_GROUP_SPIRIT_MATERIALS,   // Ethereal components
-    ENHANCED_CRAFT_GROUP_ELEMENTAL_MATERIALS,// Fire/ice/lightning components
-    NUM_ENHANCED_CRAFT_GROUPS
+enum enhanced_craft_groups
+{
+  ENHANCED_CRAFT_GROUP_NONE = 0,
+  ENHANCED_CRAFT_GROUP_MAGICAL_HERBS,       // Herbs for alchemy/magic
+  ENHANCED_CRAFT_GROUP_CRYSTALS,            // Magical crystals
+  ENHANCED_CRAFT_GROUP_RARE_METALS,         // Mithril, adamantine, etc.
+  ENHANCED_CRAFT_GROUP_COMMON_METALS,       // Iron, steel, etc.
+  ENHANCED_CRAFT_GROUP_EXOTIC_WOODS,        // Ironwood, silverbirch, etc.
+  ENHANCED_CRAFT_GROUP_COMMON_WOODS,        // Oak, pine, etc.
+  ENHANCED_CRAFT_GROUP_MAGICAL_HIDES,       // Dragon hide, shadow pelt
+  ENHANCED_CRAFT_GROUP_COMMON_HIDES,        // Leather, fur
+  ENHANCED_CRAFT_GROUP_MAGICAL_STONES,      // Moonstone, dragonbone
+  ENHANCED_CRAFT_GROUP_BUILDING_STONES,     // Granite, marble
+  ENHANCED_CRAFT_GROUP_SPIRIT_MATERIALS,    // Ethereal components
+  ENHANCED_CRAFT_GROUP_ELEMENTAL_MATERIALS, // Fire/ice/lightning components
+  NUM_ENHANCED_CRAFT_GROUPS
 };
 
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
@@ -59,7 +61,7 @@ enum enhanced_craft_groups {
  * Convert wilderness material category to crafting material group
  * @param category Wilderness resource category (RESOURCE_*)
  * @param subtype Material subtype (0-7)
- * @param quality Material quality (1-5) 
+ * @param quality Material quality (1-5)
  * @return Crafting material group (CRAFT_GROUP_*)
  */
 int get_crafting_group_for_wilderness_material(int category, int subtype, int quality);
@@ -82,7 +84,8 @@ int wilderness_to_crafting_material(int category, int subtype, int quality);
  * @param quantity Max quantity to convert (-1 for all)
  * @return Total number of materials converted
  */
-int convert_wilderness_to_crafting(struct char_data *ch, int category, int subtype, int quality, int quantity);
+int convert_wilderness_to_crafting(struct char_data *ch, int category, int subtype, int quality,
+                                   int quantity);
 
 /**
  * Get campaign-appropriate material name
@@ -144,7 +147,8 @@ extern const char *default_mineral_names[];
 /**
  * Convert wilderness materials from player storage to crafting materials
  */
-int convert_wilderness_to_crafting(struct char_data *ch, int category, int subtype, int quality, int quantity);
+int convert_wilderness_to_crafting(struct char_data *ch, int category, int subtype, int quality,
+                                   int quantity);
 
 /**
  * Display crafting materials inventory
@@ -162,7 +166,8 @@ int get_enhanced_crafting_group_for_wilderness_material(int category, int subtyp
 /**
  * Enhanced wilderness material to enhanced crafting integration
  */
-int integrate_wilderness_material_enhanced(struct char_data *ch, int category, int subtype, int quality, int quantity);
+int integrate_wilderness_material_enhanced(struct char_data *ch, int category, int subtype,
+                                           int quality, int quantity);
 
 /**
  * Show enhanced materials display (wilderness + crafting unified)

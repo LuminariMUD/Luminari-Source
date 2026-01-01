@@ -151,7 +151,7 @@ obj_rnum insert_object(struct obj_data *obj, obj_vnum ovnum)
    * We need to find the position where all vnums before it are < ovnum
    * and all vnums after it are >= ovnum. */
   obj_rnum insert_pos = 0;
-  
+
   /* Binary search would be more efficient, but linear search is simpler and this
    * isn't called frequently enough to matter. Search from the beginning. */
   for (i = 0; i < top_of_objt; i++)
@@ -163,11 +163,11 @@ obj_rnum insert_object(struct obj_data *obj, obj_vnum ovnum)
       break;
     }
   }
-  
+
   /* If we didn't find any vnum >= ovnum, insert at the end (which is already set as top_of_objt). */
   if (i == top_of_objt)
     insert_pos = top_of_objt;
-  
+
   /* Now shift everything from insert_pos onwards up by one position. */
   for (i = top_of_objt; i > insert_pos; i--)
   {
@@ -223,22 +223,19 @@ int save_objects(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_objects: Invalid real zone number %d. (0-%d)",
-        zone_num, top_of_zone_table);
+    log("SYSERR: GenOLC: save_objects: Invalid real zone number %d. (0-%d)", zone_num,
+        top_of_zone_table);
     return FALSE;
   }
 
-  snprintf(filename, sizeof(filename), "%s/%d.new", OBJ_PREFIX,
-           zone_table[zone_num].number);
+  snprintf(filename, sizeof(filename), "%s/%d.new", OBJ_PREFIX, zone_table[zone_num].number);
   if (!(fp = fopen(filename, "w+")))
   {
-    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: Cannot open objects file %s!",
-           filename);
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: Cannot open objects file %s!", filename);
     return FALSE;
   }
   /* Start running through all objects in this zone. */
-  for (counter = genolc_zone_bottom(zone_num);
-       counter <= zone_table[zone_num].top; counter++)
+  for (counter = genolc_zone_bottom(zone_num); counter <= zone_table[zone_num].top; counter++)
   {
     if ((realcounter = real_object(counter)) != NOTHING)
     {
@@ -257,11 +254,10 @@ int save_objects(zone_rnum zone_num)
                "%s~\n"
                "%s~\n",
 
-               GET_OBJ_VNUM(obj),
-               (obj->name && *obj->name) ? obj->name : "undefined",
-               (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
-               (obj->description && *obj->description) ? obj->description : "undefined",
-               buf);
+               GET_OBJ_VNUM(obj), (obj->name && *obj->name) ? obj->name : "undefined",
+               (obj->short_description && *obj->short_description) ? obj->short_description
+                                                                   : "undefined",
+               (obj->description && *obj->description) ? obj->description : "undefined", buf);
 
       fprintf(fp, convert_from_tabs(buf2), 0);
 
@@ -282,21 +278,18 @@ int save_objects(zone_rnum zone_num)
       sprintascii(p2buf3, GET_OBJ2_PERM(obj)[2]);
       sprintascii(p2buf4, GET_OBJ2_PERM(obj)[3]);
 
-      fprintf(fp, "%d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n"
-                  "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n"
-                  "%d %d %d %d %d\n",
+      fprintf(fp,
+              "%d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n"
+              "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n"
+              "%d %d %d %d %d\n",
 
-              GET_OBJ_TYPE(obj),
-              ebuf1, ebuf2, ebuf3, ebuf4,
-              wbuf1, wbuf2, wbuf3, wbuf4,
-              pbuf1, pbuf2, pbuf3, pbuf4,
-              p2buf1, p2buf2, p2buf3, p2buf4,
-              GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3),
-              GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
-              GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
-              GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
-              GET_OBJ_WEIGHT(obj), GET_OBJ_COST(obj),
-              GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj), GET_OBJ_TIMER(obj));
+              GET_OBJ_TYPE(obj), ebuf1, ebuf2, ebuf3, ebuf4, wbuf1, wbuf2, wbuf3, wbuf4, pbuf1,
+              pbuf2, pbuf3, pbuf4, p2buf1, p2buf2, p2buf3, p2buf4, GET_OBJ_VAL(obj, 0),
+              GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3), GET_OBJ_VAL(obj, 4),
+              GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7), GET_OBJ_VAL(obj, 8),
+              GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11), GET_OBJ_VAL(obj, 12),
+              GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15), GET_OBJ_WEIGHT(obj),
+              GET_OBJ_COST(obj), GET_OBJ_RENT(obj), GET_OBJ_LEVEL(obj), GET_OBJ_TIMER(obj));
 
       /* A:  Do we have affects? */
       for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
@@ -304,10 +297,8 @@ int save_objects(zone_rnum zone_num)
           fprintf(fp,
                   "A\n"
                   "%d %d %d %d\n",
-                  obj->affected[counter2].location,
-                  obj->affected[counter2].modifier,
-                  obj->affected[counter2].bonus_type,
-                  obj->affected[counter2].specific);
+                  obj->affected[counter2].location, obj->affected[counter2].modifier,
+                  obj->affected[counter2].bonus_type, obj->affected[counter2].specific);
 
       /* B:  Do we have spells? */
       if (obj->sbinfo)
@@ -318,10 +309,10 @@ int save_objects(zone_rnum zone_num)
           {
             break;
           }
-          fprintf(fp, "B\n"
-                      "%d %d\n",
-                  obj->sbinfo[counter2].spellname,
-                  obj->sbinfo[counter2].pages);
+          fprintf(fp,
+                  "B\n"
+                  "%d %d\n",
+                  obj->sbinfo[counter2].spellname, obj->sbinfo[counter2].pages);
           continue;
         }
       }
@@ -330,10 +321,11 @@ int save_objects(zone_rnum zone_num)
       { /* Yes, save them too. */
         for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
         {
-          fprintf(fp, "C\n"
-                      "%d %d %d %d %d %d %d %s\n",
-                  specab->ability, specab->level, specab->activation_method,
-                  specab->value[0], specab->value[1], specab->value[2], specab->value[3],
+          fprintf(fp,
+                  "C\n"
+                  "%d %d %d %d %d %d %d %s\n",
+                  specab->ability, specab->level, specab->activation_method, specab->value[0],
+                  specab->value[1], specab->value[2], specab->value[3],
                   (specab->command_word && *specab->command_word) ? specab->command_word : "");
         }
       }
@@ -343,68 +335,76 @@ int save_objects(zone_rnum zone_num)
         for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next)
         {
           /* Sanity check to prevent nasty protection faults. */
-          if (!ex_desc->keyword || !ex_desc->description || !*ex_desc->keyword || !*ex_desc->description)
+          if (!ex_desc->keyword || !ex_desc->description || !*ex_desc->keyword ||
+              !*ex_desc->description)
           {
-            mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: oedit_save_to_disk: "
-                                          "Corrupt ex_desc!");
+            mudlog(BRF, LVL_IMMORT, TRUE,
+                   "SYSERR: OLC: oedit_save_to_disk: "
+                   "Corrupt ex_desc!");
             continue;
           }
           strncpy(buf, ex_desc->description, sizeof(buf) - 1);
           strip_cr(buf);
-          fprintf(fp, "E\n"
-                      "%s~\n"
-                      "%s~\n",
+          fprintf(fp,
+                  "E\n"
+                  "%s~\n"
+                  "%s~\n",
                   ex_desc->keyword, buf);
         }
       }
 
       // G:  object proficiency
-      fprintf(fp, "G\n"
-                  "%d\n",
+      fprintf(fp,
+              "G\n"
+              "%d\n",
               GET_OBJ_PROF(obj));
 
       // H:  object material
-      fprintf(fp, "H\n"
-                  "%d\n",
+      fprintf(fp,
+              "H\n"
+              "%d\n",
               GET_OBJ_MATERIAL(obj));
 
       // I:  object size
-      fprintf(fp, "I\n"
-                  "%d\n",
+      fprintf(fp,
+              "I\n"
+              "%d\n",
               GET_OBJ_SIZE(obj));
 
       // J:  vnum of mob that can receive item
-      fprintf(fp, "J\n"
-                  "%d\n",
+      fprintf(fp,
+              "J\n"
+              "%d\n",
               obj->mob_recepient);
 
       // R: restring identifier
       if (obj->restring_identifier && *obj->restring_identifier)
       {
-        fprintf(fp, "R\n"
-                    "%s\n",
-            obj->restring_identifier);
+        fprintf(fp,
+                "R\n"
+                "%s\n",
+                obj->restring_identifier);
       }
 
       // k: spells that can be activated
       if (obj->activate_spell[ACT_SPELL_LEVEL] > 0 && obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
       {
-        fprintf(fp, "K\n"
-                  "%d %d %d %d %d\n",
-              obj->activate_spell[ACT_SPELL_LEVEL], obj->activate_spell[ACT_SPELL_SPELLNUM], 
-              obj->activate_spell[ACT_SPELL_CURRENT_USES], obj->activate_spell[ACT_SPELL_MAX_USES], 
-              obj->activate_spell[ACT_SPELL_COOLDOWN]);
+        fprintf(fp,
+                "K\n"
+                "%d %d %d %d %d\n",
+                obj->activate_spell[ACT_SPELL_LEVEL], obj->activate_spell[ACT_SPELL_SPELLNUM],
+                obj->activate_spell[ACT_SPELL_CURRENT_USES],
+                obj->activate_spell[ACT_SPELL_MAX_USES], obj->activate_spell[ACT_SPELL_COOLDOWN]);
       }
 
       // S:  weapon spells
       for (counter2 = 0; counter2 < MAX_WEAPON_SPELLS; counter2++)
         if (obj->wpn_spells[counter2].spellnum)
-          fprintf(fp, "S\n"
-                      "%d %d %d %d\n",
-                  obj->wpn_spells[counter2].spellnum,
-                  obj->wpn_spells[counter2].level,
-                  obj->wpn_spells[counter2].percent,
-                  obj->wpn_spells[counter2].inCombat);
+          fprintf(fp,
+                  "S\n"
+                  "%d %d %d %d\n",
+                  obj->wpn_spells[counter2].spellnum, obj->wpn_spells[counter2].level,
+                  obj->wpn_spells[counter2].percent, obj->wpn_spells[counter2].inCombat);
 
       /* Z: SpecProc name (persist object spec proc) */
       {
@@ -426,8 +426,7 @@ int save_objects(zone_rnum zone_num)
   /* Write the final line, close the file. */
   fprintf(fp, "$~\n");
   fclose(fp);
-  snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX,
-           zone_table[zone_num].number);
+  snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, zone_table[zone_num].number);
   remove(buf);
   rename(filename, buf);
 
@@ -465,11 +464,9 @@ void free_object_strings_proto(struct obj_data *obj)
     free(obj->name);
   if (obj->description && obj->description != obj_proto[robj_num].description)
     free(obj->description);
-  if (obj->short_description && obj->short_description !=
-                                    obj_proto[robj_num].short_description)
+  if (obj->short_description && obj->short_description != obj_proto[robj_num].short_description)
     free(obj->short_description);
-  if (obj->action_description && obj->action_description !=
-                                     obj_proto[robj_num].action_description)
+  if (obj->action_description && obj->action_description != obj_proto[robj_num].action_description)
     free(obj->action_description);
   if (obj->ex_description)
   {
@@ -478,9 +475,8 @@ void free_object_strings_proto(struct obj_data *obj)
     for (thised = obj->ex_description; thised; thised = next_one)
     {
       next_one = thised->next;
-      for (ok_item = ok_key = ok_desc = 1,
-          plist = obj_proto[robj_num].ex_description;
-           plist; plist = plist->next)
+      for (ok_item = ok_key = ok_desc = 1, plist = obj_proto[robj_num].ex_description; plist;
+           plist = plist->next)
       {
         if (plist->keyword == thised->keyword)
           ok_key = 0;
@@ -502,7 +498,8 @@ void free_object_strings_proto(struct obj_data *obj)
     free(obj->char_sdesc);
   if (obj->arcane_mark)
     free(obj->arcane_mark);
-  if (obj->restring_identifier && obj->restring_identifier != obj_proto[robj_num].restring_identifier)
+  if (obj->restring_identifier &&
+      obj->restring_identifier != obj_proto[robj_num].restring_identifier)
     free(obj->restring_identifier);
 }
 
@@ -534,8 +531,7 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
-int copy_object_main(struct obj_data *to,
-                     struct obj_data *from, int free_object)
+int copy_object_main(struct obj_data *to, struct obj_data *from, int free_object)
 {
   *to = *from;
   copy_object_strings(to, from);
@@ -570,8 +566,7 @@ int delete_object(obj_rnum rnum)
     if (tmp->contains)
     {
       struct obj_data *this_content, *next_content;
-      for (this_content = tmp->contains; this_content;
-           this_content = next_content)
+      for (this_content = tmp->contains; this_content; this_content = next_content)
       {
         next_content = this_content->next_content;
         if (IN_ROOM(tmp))
@@ -758,7 +753,8 @@ bool oset_short_description(struct obj_data *obj, const char *argument)
   if (strlen(argument) > max_len)
     return FALSE;
 
-  if (i != NOWHERE && obj->short_description && obj->short_description != obj_proto[i].short_description)
+  if (i != NOWHERE && obj->short_description &&
+      obj->short_description != obj_proto[i].short_description)
     free(obj->short_description);
 
   obj->short_description = strdup(argument);
