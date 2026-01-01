@@ -120,6 +120,199 @@
 #endif
 
 /* ========================================================================= */
+/* DEBUG LOGGING SYSTEM                                                       */
+/* ========================================================================= */
+/* Comprehensive debug logging for vessel/vehicle system troubleshooting.    */
+/* Set VESSEL_SYSTEM_DEBUG to 1 to enable, 0 for zero-overhead production.   */
+/*                                                                           */
+/* Usage:                                                                    */
+/*   - Enable all: #define VESSEL_SYSTEM_DEBUG 1                             */
+/*   - Disable all: #define VESSEL_SYSTEM_DEBUG 0                            */
+/*   - Selective: Set individual category toggles to 0 after enabling master */
+/*                                                                           */
+/* Debug output prefixes (for grep filtering):                               */
+/*   [VESSEL]        - General vessel operations                             */
+/*   [VESSEL_MOVE]   - Position/movement updates                             */
+/*   [VESSEL_AUTO]   - Autopilot navigation                                  */
+/*   [VESSEL_DOCK]   - Docking operations                                    */
+/*   [VESSEL_DB]     - Database persistence                                  */
+/*   [VESSEL_FUNC]   - Function entry/exit                                   */
+/*   [VESSEL_STATE]  - State transitions                                     */
+/*   [VEHICLE]       - Vehicle operations                                    */
+/*   [VEHICLE_MOVE]  - Vehicle movement                                      */
+/*   [VEHICLE_XPORT] - Vehicle-vessel transport                              */
+/* ========================================================================= */
+
+/* Master debug toggle - set to 1 to enable debug logging system */
+#define VESSEL_SYSTEM_DEBUG 1
+
+/* Category-specific toggles (only effective when master is 1) */
+#define VESSEL_DEBUG_CORE (VESSEL_SYSTEM_DEBUG && 1)   /* General vessel ops */
+#define VESSEL_DEBUG_MOVE (VESSEL_SYSTEM_DEBUG && 1)   /* Movement/position */
+#define VESSEL_DEBUG_AUTO (VESSEL_SYSTEM_DEBUG && 1)   /* Autopilot system */
+#define VESSEL_DEBUG_DOCK (VESSEL_SYSTEM_DEBUG && 1)   /* Docking operations */
+#define VESSEL_DEBUG_DB (VESSEL_SYSTEM_DEBUG && 1)     /* Database persistence */
+#define VEHICLE_DEBUG_CORE (VESSEL_SYSTEM_DEBUG && 1)  /* Vehicle operations */
+#define VEHICLE_DEBUG_MOVE (VESSEL_SYSTEM_DEBUG && 1)  /* Vehicle movement */
+#define VEHICLE_DEBUG_XPORT (VESSEL_SYSTEM_DEBUG && 1) /* Vehicle-vessel transport */
+
+/* ---- Vessel Debug Macros ---- */
+
+#if VESSEL_DEBUG_CORE
+#define VSSL_DEBUG(fmt, ...)                                                                       \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL] " fmt, ##__VA_ARGS__);                                                           \
+  } while (0)
+#else
+#define VSSL_DEBUG(fmt, ...)                                                                       \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+#if VESSEL_DEBUG_MOVE
+#define VSSL_DEBUG_MOVE(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_MOVE] " fmt, ##__VA_ARGS__);                                                      \
+  } while (0)
+#else
+#define VSSL_DEBUG_MOVE(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+#if VESSEL_DEBUG_AUTO
+#define VSSL_DEBUG_AUTO(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_AUTO] " fmt, ##__VA_ARGS__);                                                      \
+  } while (0)
+#else
+#define VSSL_DEBUG_AUTO(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+#if VESSEL_DEBUG_DOCK
+#define VSSL_DEBUG_DOCK(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_DOCK] " fmt, ##__VA_ARGS__);                                                      \
+  } while (0)
+#else
+#define VSSL_DEBUG_DOCK(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+#if VESSEL_DEBUG_DB
+#define VSSL_DEBUG_DB(fmt, ...)                                                                    \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_DB] " fmt, ##__VA_ARGS__);                                                        \
+  } while (0)
+#else
+#define VSSL_DEBUG_DB(fmt, ...)                                                                    \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+/* ---- Vehicle Debug Macros ---- */
+
+#if VEHICLE_DEBUG_CORE
+#define VHCL_DEBUG(fmt, ...)                                                                       \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VEHICLE] " fmt, ##__VA_ARGS__);                                                          \
+  } while (0)
+#else
+#define VHCL_DEBUG(fmt, ...)                                                                       \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+#if VEHICLE_DEBUG_MOVE
+#define VHCL_DEBUG_MOVE(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VEHICLE_MOVE] " fmt, ##__VA_ARGS__);                                                     \
+  } while (0)
+#else
+#define VHCL_DEBUG_MOVE(fmt, ...)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+#if VEHICLE_DEBUG_XPORT
+#define VHCL_DEBUG_XPORT(fmt, ...)                                                                 \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VEHICLE_XPORT] " fmt, ##__VA_ARGS__);                                                    \
+  } while (0)
+#else
+#define VHCL_DEBUG_XPORT(fmt, ...)                                                                 \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+/* ---- Function Entry/Exit Macros ---- */
+
+#if VESSEL_SYSTEM_DEBUG
+#define VSSL_DEBUG_ENTER(func)                                                                     \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_FUNC] ENTER: %s()", func);                                                        \
+  } while (0)
+#define VSSL_DEBUG_EXIT(func)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_FUNC] EXIT: %s()", func);                                                         \
+  } while (0)
+#define VSSL_DEBUG_EXIT_VAL(func, val)                                                             \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_FUNC] EXIT: %s() = %d", func, (int)(val));                                        \
+  } while (0)
+#else
+#define VSSL_DEBUG_ENTER(func)                                                                     \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#define VSSL_DEBUG_EXIT(func)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#define VSSL_DEBUG_EXIT_VAL(func, val)                                                             \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+/* ---- State Transition Macro ---- */
+
+#if VESSEL_SYSTEM_DEBUG
+#define VSSL_DEBUG_STATE(entity, old_state, new_state)                                             \
+  do                                                                                               \
+  {                                                                                                \
+    log("[VESSEL_STATE] %s: %s -> %s", entity, old_state, new_state);                              \
+  } while (0)
+#else
+#define VSSL_DEBUG_STATE(entity, old_state, new_state)                                             \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
+/* ========================================================================= */
 /* VESSEL CLASSIFICATIONS AND CAPABILITIES                                   */
 /* ========================================================================= */
 

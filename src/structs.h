@@ -48,7 +48,7 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP */
-#define _LUMINARIMUD 0x030640
+#define _LUMINARIMUD 0x030641
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because

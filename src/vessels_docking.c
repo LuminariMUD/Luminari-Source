@@ -62,11 +62,20 @@ bool ships_in_docking_range(struct greyhawk_ship_data *ship1, struct greyhawk_sh
 {
   float distance;
 
+  VSSL_DEBUG_ENTER("ships_in_docking_range");
+
   if (!ship1 || !ship2)
+  {
+    VSSL_DEBUG_DOCK("Range check failed: NULL ship pointer (ship1=%p, ship2=%p)", (void *)ship1,
+                    (void *)ship2);
     return FALSE;
+  }
 
   /* Calculate distance between ships */
   distance = greyhawk_range(ship1->x, ship1->y, ship1->z, ship2->x, ship2->y, ship2->z);
+
+  VSSL_DEBUG_DOCK("Range check: %s (%.1f,%.1f) to %s (%.1f,%.1f) = %.2f (max %.1f)", ship1->name,
+                  ship1->x, ship1->y, ship2->name, ship2->x, ship2->y, distance, MAX_DOCKING_RANGE);
 
   return (distance <= MAX_DOCKING_RANGE);
 }
@@ -77,8 +86,16 @@ room_rnum find_docking_room(struct greyhawk_ship_data *ship)
   room_rnum room;
   int i;
 
+  VSSL_DEBUG_ENTER("find_docking_room");
+
   if (!ship)
+  {
+    VSSL_DEBUG_DOCK("find_docking_room: NULL ship pointer");
     return NOWHERE;
+  }
+
+  VSSL_DEBUG_DOCK("Finding dock room for %s (%d rooms, entrance=%d, bridge=%d)", ship->name,
+                  ship->num_rooms, ship->entrance_room, ship->bridge_room);
 
   /* Prefer airlock if available */
   for (i = 0; i < ship->num_rooms; i++)
@@ -88,6 +105,7 @@ room_rnum find_docking_room(struct greyhawk_ship_data *ship)
     {
       if (strstr(world[room].name, "Airlock"))
       {
+        VSSL_DEBUG_DOCK("Found airlock at vnum %d (rnum %d)", ship->room_vnums[i], room);
         return room;
       }
     }
@@ -99,6 +117,7 @@ room_rnum find_docking_room(struct greyhawk_ship_data *ship)
     room = real_room(ship->entrance_room);
     if (room != NOWHERE)
     {
+      VSSL_DEBUG_DOCK("Using entrance room vnum %d (rnum %d)", ship->entrance_room, room);
       return room;
     }
   }
@@ -111,6 +130,7 @@ room_rnum find_docking_room(struct greyhawk_ship_data *ship)
     {
       if (strstr(world[room].name, "Deck"))
       {
+        VSSL_DEBUG_DOCK("Found deck at vnum %d (rnum %d)", ship->room_vnums[i], room);
         return room;
       }
     }
@@ -124,13 +144,16 @@ room_rnum find_docking_room(struct greyhawk_ship_data *ship)
       room = real_room(ship->room_vnums[i]);
       if (room != NOWHERE)
       {
+        VSSL_DEBUG_DOCK("Using non-bridge room vnum %d (rnum %d)", ship->room_vnums[i], room);
         return room;
       }
     }
   }
 
   /* Last resort: use bridge */
-  return real_room(ship->bridge_room);
+  room = real_room(ship->bridge_room);
+  VSSL_DEBUG_DOCK("Last resort: using bridge vnum %d (rnum %d)", ship->bridge_room, room);
+  return room;
 }
 
 /* Create a connection between two ship rooms */
@@ -138,8 +161,16 @@ void create_ship_connection(room_rnum room1, room_rnum room2, int dir)
 {
   struct room_direction_data *exit;
 
+  VSSL_DEBUG_ENTER("create_ship_connection");
+
   if (room1 == NOWHERE || room2 == NOWHERE)
+  {
+    VSSL_DEBUG_DOCK("create_ship_connection: invalid rooms (room1=%d, room2=%d)", room1, room2);
     return;
+  }
+
+  VSSL_DEBUG_DOCK("Creating connection: room %d <-> room %d (dir %d/%s)", world[room1].number,
+                  world[room2].number, dir, dirs[dir]);
 
   /* Create exit from room1 to room2 */
   if (world[room1].dir_option[dir] == NULL)
@@ -150,6 +181,8 @@ void create_ship_connection(room_rnum room1, room_rnum room2, int dir)
     exit->keyword = strdup("gangway plank");
     exit->general_description = strdup("A gangway connects to the other vessel.");
     world[room1].dir_option[dir] = exit;
+    VSSL_DEBUG_DOCK("Created exit %s from room %d to room %d", dirs[dir], world[room1].number,
+                    world[room2].number);
   }
 
   /* Create return exit from room2 to room1 */
@@ -162,16 +195,29 @@ void create_ship_connection(room_rnum room1, room_rnum room2, int dir)
     exit->keyword = strdup("gangway plank");
     exit->general_description = strdup("A gangway connects to the other vessel.");
     world[room2].dir_option[rev] = exit;
+    VSSL_DEBUG_DOCK("Created return exit %s from room %d to room %d", dirs[rev],
+                    world[room2].number, world[room1].number);
   }
+
+  VSSL_DEBUG_EXIT("create_ship_connection");
 }
 
 /* Remove a connection between two ship rooms */
 void remove_ship_connection(room_rnum room1, room_rnum room2)
 {
   int dir;
+  int removed_count = 0;
+
+  VSSL_DEBUG_ENTER("remove_ship_connection");
 
   if (room1 == NOWHERE || room2 == NOWHERE)
+  {
+    VSSL_DEBUG_DOCK("remove_ship_connection: invalid rooms (room1=%d, room2=%d)", room1, room2);
     return;
+  }
+
+  VSSL_DEBUG_DOCK("Removing connections between room %d and room %d", world[room1].number,
+                  world[room2].number);
 
   /* Find and remove all connections between these rooms */
   for (dir = 0; dir < NUM_OF_DIRS; dir++)
@@ -180,6 +226,7 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
     {
       if (world[room1].dir_option[dir]->to_room == room2)
       {
+        VSSL_DEBUG_DOCK("Removing exit %s from room %d", dirs[dir], world[room1].number);
         /* Free the exit data */
         if (world[room1].dir_option[dir]->keyword)
           free(world[room1].dir_option[dir]->keyword);
@@ -187,6 +234,7 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
           free(world[room1].dir_option[dir]->general_description);
         free(world[room1].dir_option[dir]);
         world[room1].dir_option[dir] = NULL;
+        removed_count++;
       }
     }
 
@@ -194,6 +242,7 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
     {
       if (world[room2].dir_option[dir]->to_room == room1)
       {
+        VSSL_DEBUG_DOCK("Removing exit %s from room %d", dirs[dir], world[room2].number);
         /* Free the exit data */
         if (world[room2].dir_option[dir]->keyword)
           free(world[room2].dir_option[dir]->keyword);
@@ -201,20 +250,38 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
           free(world[room2].dir_option[dir]->general_description);
         free(world[room2].dir_option[dir]);
         world[room2].dir_option[dir] = NULL;
+        removed_count++;
       }
     }
   }
+
+  VSSL_DEBUG_DOCK("Removed %d connection(s)", removed_count);
+  VSSL_DEBUG_EXIT("remove_ship_connection");
 }
 
 /* Initiate docking between two ships */
 void initiate_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2)
 {
+  VSSL_DEBUG_ENTER("initiate_docking");
+
   if (!ship1 || !ship2)
+  {
+    VSSL_DEBUG_DOCK("initiate_docking: NULL ship pointer (ship1=%p, ship2=%p)", (void *)ship1,
+                    (void *)ship2);
     return;
+  }
+
+  VSSL_DEBUG_DOCK("=== DOCKING ATTEMPT: %s (%d) -> %s (%d) ===", ship1->name, ship1->shipnum,
+                  ship2->name, ship2->shipnum);
+  VSSL_DEBUG_DOCK("Ship1 pos: (%.1f,%.1f,%.1f) speed=%d docked_to=%d", ship1->x, ship1->y, ship1->z,
+                  ship1->speed, ship1->docked_to_ship);
+  VSSL_DEBUG_DOCK("Ship2 pos: (%.1f,%.1f,%.1f) speed=%d docked_to=%d", ship2->x, ship2->y, ship2->z,
+                  ship2->speed, ship2->docked_to_ship);
 
   /* Ships must be close enough */
   if (!ships_in_docking_range(ship1, ship2))
   {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Ships out of range");
     send_to_ship(ship1, "Target vessel is too far away for docking!");
     return;
   }
@@ -222,6 +289,8 @@ void initiate_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   /* Ships must be moving slowly */
   if (ship1->speed > MAX_DOCKING_SPEED || ship2->speed > MAX_DOCKING_SPEED)
   {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Speed too high (ship1=%d, ship2=%d, max=%d)", ship1->speed,
+                    ship2->speed, MAX_DOCKING_SPEED);
     send_to_ship(ship1, "Ships must be nearly stationary to dock!");
     return;
   }
@@ -229,15 +298,19 @@ void initiate_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   /* Check if either ship is already docked */
   if (ship1->docked_to_ship >= 0)
   {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Ship1 already docked to ship %d", ship1->docked_to_ship);
     send_to_ship(ship1, "You must undock from your current vessel first!");
     return;
   }
 
   if (ship2->docked_to_ship >= 0)
   {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Ship2 already docked to ship %d", ship2->docked_to_ship);
     send_to_ship(ship1, "Target vessel is already docked to another ship!");
     return;
   }
+
+  VSSL_DEBUG_DOCK("Pre-conditions passed, proceeding to complete_docking");
 
   /* Proceed with docking */
   complete_docking(ship1, ship2);
@@ -249,15 +322,23 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   room_rnum dock1, dock2;
   int dir;
 
+  VSSL_DEBUG_ENTER("complete_docking");
+
   if (!ship1 || !ship2)
+  {
+    VSSL_DEBUG_DOCK("complete_docking: NULL ship pointer");
     return;
+  }
 
   /* Find docking rooms */
   dock1 = find_docking_room(ship1);
   dock2 = find_docking_room(ship2);
 
+  VSSL_DEBUG_DOCK("Docking rooms found: dock1=%d, dock2=%d", dock1, dock2);
+
   if (dock1 == NOWHERE || dock2 == NOWHERE)
   {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Missing docking rooms (dock1=%d, dock2=%d)", dock1, dock2);
     log("SYSERR: Ships lack docking rooms!");
     send_to_ship(ship1, "Docking failed - no suitable connection points!");
     return;
@@ -271,12 +352,14 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
     if (world[dock1].dir_option[i] == NULL && world[dock2].dir_option[rev_dir[i]] == NULL)
     {
       dir = i;
+      VSSL_DEBUG_DOCK("Found available direction: %d (%s)", dir, dirs[dir]);
       break;
     }
   }
 
   if (dir == -1)
   {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: No available exit direction");
     send_to_ship(ship1, "No available connection point for docking!");
     return;
   }
@@ -285,12 +368,16 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   create_ship_connection(dock1, dock2, dir);
 
   /* Update ship states */
+  VSSL_DEBUG_DOCK("Updating ship states: ship1->docked_to=%d, ship2->docked_to=%d", ship2->shipnum,
+                  ship1->shipnum);
   ship1->docked_to_ship = ship2->shipnum;
   ship1->docking_room = world[dock1].number;
   ship2->docked_to_ship = ship1->shipnum;
   ship2->docking_room = world[dock2].number;
 
   /* Match ship positions exactly */
+  VSSL_DEBUG_DOCK("Position sync: ship2 (%.1f,%.1f) -> (%.1f,%.1f)", ship2->x, ship2->y,
+                  ship1->x + 0.5, ship1->y);
   ship2->x = ship1->x + 0.5;
   ship2->y = ship1->y;
   ship2->z = ship1->z;
@@ -300,6 +387,7 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   ship1->setspeed = 0;
   ship2->speed = 0;
   ship2->setspeed = 0;
+  VSSL_DEBUG_DOCK("Both ships stopped");
 
   /* Notify crews */
   send_to_ship(ship1, "Docking complete with %s.", ship2->name);
@@ -308,16 +396,28 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   /* Log the event */
   log("Ships docked: %s (%d) <-> %s (%d)", ship1->name, ship1->shipnum, ship2->name,
       ship2->shipnum);
+  VSSL_DEBUG_DOCK("=== DOCKING COMPLETE: %s <-> %s ===", ship1->name, ship2->name);
 
   /* Save docking record to database */
   save_docking_record(ship1, ship2, "standard");
+
+  VSSL_DEBUG_EXIT("complete_docking");
 }
 
 /* Separate two vessels after undocking */
 void separate_vessels(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2)
 {
+  VSSL_DEBUG_ENTER("separate_vessels");
+
   if (!ship1 || !ship2)
+  {
+    VSSL_DEBUG_DOCK("separate_vessels: NULL ship pointer");
     return;
+  }
+
+  VSSL_DEBUG_DOCK("Separating %s from %s", ship1->name, ship2->name);
+  VSSL_DEBUG_DOCK("Ship2 position: (%.1f,%.1f) -> (%.1f,%.1f)", ship2->x, ship2->y, ship1->x + 3.0,
+                  ship1->y + 1.0);
 
   /* Move ships slightly apart */
   ship2->x = ship1->x + 3.0;
@@ -326,32 +426,49 @@ void separate_vessels(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   /* Update room coordinates */
   update_ship_room_coordinates(ship1);
   update_ship_room_coordinates(ship2);
+
+  VSSL_DEBUG_DOCK("Vessels separated successfully");
+  VSSL_DEBUG_EXIT("separate_vessels");
 }
 
 /* Calculate boarding difficulty */
 int calculate_boarding_difficulty(struct greyhawk_ship_data *target)
 {
   int difficulty = BOARDING_DIFFICULTY;
+  int result;
+
+  VSSL_DEBUG_ENTER("calculate_boarding_difficulty");
 
   if (!target)
+  {
+    VSSL_DEBUG_DOCK("calculate_boarding_difficulty: NULL target");
     return 99; /* Impossible */
+  }
+
+  VSSL_DEBUG_DOCK("Calculating boarding difficulty for %s (base=%d)", target->name,
+                  BOARDING_DIFFICULTY);
 
   /* Adjust for ship speed */
   difficulty += target->speed * 2;
+  VSSL_DEBUG_DOCK("  Speed modifier: +%d (speed=%d)", target->speed * 2, target->speed);
 
   /* Adjust for ship type */
   switch (target->vessel_type)
   {
   case VESSEL_WARSHIP:
     difficulty += 10;
+    VSSL_DEBUG_DOCK("  Vessel type modifier: +10 (warship)");
     break;
   case VESSEL_TRANSPORT:
     difficulty -= 5;
+    VSSL_DEBUG_DOCK("  Vessel type modifier: -5 (transport)");
     break;
   case VESSEL_RAFT:
     difficulty -= 10;
+    VSSL_DEBUG_DOCK("  Vessel type modifier: -10 (raft)");
     break;
   default:
+    VSSL_DEBUG_DOCK("  Vessel type modifier: 0 (type=%d)", target->vessel_type);
     break;
   }
 
@@ -363,13 +480,22 @@ int calculate_boarding_difficulty(struct greyhawk_ship_data *target)
   if (damage_percent > 50)
   {
     difficulty -= 10;
+    VSSL_DEBUG_DOCK("  Damage modifier: -10 (damage=%d%%)", damage_percent);
   }
   else if (damage_percent > 25)
   {
     difficulty -= 5;
+    VSSL_DEBUG_DOCK("  Damage modifier: -5 (damage=%d%%)", damage_percent);
+  }
+  else
+  {
+    VSSL_DEBUG_DOCK("  Damage modifier: 0 (damage=%d%%)", damage_percent);
   }
 
-  return MAX(5, MIN(95, difficulty));
+  result = MAX(5, MIN(95, difficulty));
+  VSSL_DEBUG_DOCK("Final boarding difficulty: %d (raw=%d)", result, difficulty);
+
+  return result;
 }
 
 /* Check if character can attempt boarding */
@@ -377,20 +503,33 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
 {
   struct greyhawk_ship_data *ch_ship;
 
+  VSSL_DEBUG_ENTER("can_attempt_boarding");
+
   if (!ch || !target)
+  {
+    VSSL_DEBUG_DOCK("can_attempt_boarding: NULL pointer (ch=%p, target=%p)", (void *)ch,
+                    (void *)target);
     return FALSE;
+  }
+
+  VSSL_DEBUG_DOCK("Checking boarding eligibility: %s -> %s", GET_NAME(ch), target->name);
 
   /* Must be on a ship */
   ch_ship = get_ship_from_room(IN_ROOM(ch));
   if (!ch_ship)
   {
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: %s not on a ship (room %d)", GET_NAME(ch),
+                    GET_ROOM_VNUM(IN_ROOM(ch)));
     send_to_char(ch, "You must be on a ship to board another vessel!\r\n");
     return FALSE;
   }
 
+  VSSL_DEBUG_DOCK("Player on ship: %s (%d)", ch_ship->name, ch_ship->shipnum);
+
   /* Ships must be in range */
   if (!ships_in_docking_range(ch_ship, target))
   {
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Target out of range");
     send_to_char(ch, "The target vessel is too far away!\r\n");
     return FALSE;
   }
@@ -398,10 +537,12 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
   /* Can't board allied ships this way */
   if (ch_ship->docked_to_ship == target->shipnum)
   {
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Already docked with target");
     send_to_char(ch, "You're already docked with that vessel!\r\n");
     return FALSE;
   }
 
+  VSSL_DEBUG_DOCK("Boarding check passed for %s", GET_NAME(ch));
   return TRUE;
 }
 
@@ -410,24 +551,38 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
 {
   room_rnum target_room;
   struct char_data *vict;
+  int defenders_found = 0;
+
+  VSSL_DEBUG_ENTER("perform_combat_boarding");
 
   if (!ch || !target)
+  {
+    VSSL_DEBUG_DOCK("perform_combat_boarding: NULL pointer");
     return;
+  }
+
+  VSSL_DEBUG_DOCK("=== COMBAT BOARDING: %s -> %s ===", GET_NAME(ch), target->name);
 
   /* Find entry point on target ship */
   target_room = find_docking_room(target);
   if (target_room == NOWHERE)
   {
+    VSSL_DEBUG_DOCK("No docking room found, trying bridge");
     target_room = real_room(target->bridge_room);
   }
 
   if (target_room == NOWHERE)
   {
+    VSSL_DEBUG_DOCK("BOARDING FAILED: No entry point found");
     send_to_char(ch, "You can't find a way onto that vessel!\r\n");
     return;
   }
 
+  VSSL_DEBUG_DOCK("Entry point: room %d (%s)", GET_ROOM_VNUM(target_room), world[target_room].name);
+
   /* Move character to target ship */
+  VSSL_DEBUG_DOCK("Moving %s from room %d to room %d", GET_NAME(ch), GET_ROOM_VNUM(IN_ROOM(ch)),
+                  GET_ROOM_VNUM(target_room));
   act("$n leaps aboard the enemy vessel!", TRUE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
   char_to_room(ch, target_room);
@@ -440,6 +595,8 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
   {
     if (vict != ch && !IS_NPC(vict))
     {
+      defenders_found++;
+      VSSL_DEBUG_DOCK("Defender found: %s", GET_NAME(vict));
       if (!FIGHTING(vict))
       {
         set_fighting(vict, ch);
@@ -451,15 +608,27 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
       }
     }
   }
+
+  VSSL_DEBUG_DOCK("Combat initiated with %d defender(s)", defenders_found);
+  VSSL_DEBUG_EXIT("perform_combat_boarding");
 }
 
 /* Setup boarding defenses */
 void setup_boarding_defenses(struct greyhawk_ship_data *ship)
 {
   int i;
+  int hatches_sealed = 0;
+
+  VSSL_DEBUG_ENTER("setup_boarding_defenses");
 
   if (!ship)
+  {
+    VSSL_DEBUG_DOCK("setup_boarding_defenses: NULL ship pointer");
     return;
+  }
+
+  VSSL_DEBUG_DOCK("Setting up boarding defenses for %s (%d connections)", ship->name,
+                  ship->num_connections);
 
   /* Seal all hatches */
   for (i = 0; i < ship->num_connections; i++)
@@ -467,11 +636,17 @@ void setup_boarding_defenses(struct greyhawk_ship_data *ship)
     if (ship->connections[i].is_hatch)
     {
       ship->connections[i].is_locked = TRUE;
+      hatches_sealed++;
     }
   }
 
+  VSSL_DEBUG_DOCK("Sealed %d hatches", hatches_sealed);
+
   /* Alert crew */
   send_to_ship(ship, "BATTLE STATIONS! Prepare to repel boarders!");
+
+  VSSL_DEBUG_DOCK("Boarding defenses activated");
+  VSSL_DEBUG_EXIT("setup_boarding_defenses");
 
   /* TODO: Position NPC defenders at key points */
   /* TODO: Activate anti-boarding measures if available */
