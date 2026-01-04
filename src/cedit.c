@@ -196,6 +196,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.new_player_gear = CONFIG_NEW_PLAYER_GEAR;
   OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
   OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
+  OLC_CONFIG(d)->extra.vessel_system = CONFIG_VESSEL_SYSTEM;
   OLC_CONFIG(d)->extra.melee_exp_option = CONFIG_MELEE_EXP_OPTION;
   OLC_CONFIG(d)->extra.spell_cast_exp_option = CONFIG_SPELL_CAST_EXP_OPTION;
   OLC_CONFIG(d)->extra.spellcasting_time_mode = CONFIG_SPELLCASTING_TIME_MODE;
@@ -377,6 +378,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_NEW_PLAYER_GEAR = OLC_CONFIG(d)->extra.new_player_gear;
   CONFIG_ALLOW_CEXCHANGE = OLC_CONFIG(d)->extra.allow_cexchange;
   CONFIG_WILDERNESS_SYSTEM = OLC_CONFIG(d)->extra.wilderness_system;
+  CONFIG_VESSEL_SYSTEM = OLC_CONFIG(d)->extra.vessel_system;
   CONFIG_MELEE_EXP_OPTION = OLC_CONFIG(d)->extra.melee_exp_option;
   CONFIG_SPELL_CAST_EXP_OPTION = OLC_CONFIG(d)->extra.spell_cast_exp_option;
   CONFIG_SPELLCASTING_TIME_MODE = OLC_CONFIG(d)->extra.spellcasting_time_mode;
@@ -985,6 +987,10 @@ int save_config(IDXTYPE nowhere)
           "* What kind of wilderness system do you use?\n"
           "wilderness_system = %d\n\n",
           CONFIG_WILDERNESS_SYSTEM);
+    fprintf(fl,
+      "* Enable the unified vessel system (ship interiors, routes, etc)?\n"
+      "vessel_system = %d\n\n",
+      CONFIG_VESSEL_SYSTEM);
   fprintf(fl,
           "* How much experience should be granted for melee hits?\n"
           "melee_exp_option = %d\n\n",
@@ -1355,6 +1361,7 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   "%sI%s) Allow Exp on Spells Cast       : %s%s\r\n"
                   "%sJ%s) Use Arcane Moon Phases         : %s%s\r\n"
                   "%sK%s) Spellcasting Time Mode         : %s%s\r\n"
+                  "%sL%s) Vessel System                  : %s%s\r\n"
                   "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
@@ -1369,7 +1376,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   exp_option[OLC_CONFIG(d)->extra.melee_exp_option], grn, nrm, cyn,
                   exp_option[OLC_CONFIG(d)->extra.spell_cast_exp_option], grn, nrm, cyn,
                   YESNO(OLC_CONFIG(d)->extra.arcane_moon_phases), grn, nrm, cyn,
-                  spellcasting_time_options[OLC_CONFIG(d)->extra.spellcasting_time_mode],
+                  spellcasting_time_options[OLC_CONFIG(d)->extra.spellcasting_time_mode], grn, nrm,
+                  cyn, vessel_system_options[OLC_CONFIG(d)->extra.vessel_system],
 
                   grn, nrm);
 
@@ -2255,6 +2263,16 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "%d) %s\n", i + 1, spellcasting_time_options[i]);
       }
       OLC_MODE(d) = CEDIT_SET_SPELLCASTING_TIME_MODE;
+      return;
+
+    case 'l':
+    case 'L':
+      write_to_output(d, "Enable the vessel system?\r\n");
+      for (i = 0; i < NUM_VESSEL_SYSTEM_OPTIONS; i++)
+      {
+        write_to_output(d, "%d) %s\n", i + 1, vessel_system_options[i]);
+      }
+      OLC_MODE(d) = CEDIT_SET_VESSEL_SYSTEM;
       return;
 
     case 'q':
@@ -3445,6 +3463,15 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     {
       OLC_CONFIG(d)->extra.spellcasting_time_mode =
           (MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, atoi(arg))) - 1);
+    }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_VESSEL_SYSTEM:
+    if (*arg)
+    {
+      OLC_CONFIG(d)->extra.vessel_system =
+          (MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;

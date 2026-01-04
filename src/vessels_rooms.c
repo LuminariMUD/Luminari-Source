@@ -898,7 +898,18 @@ bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship)
  */
 bool is_in_ship_interior(struct char_data *ch)
 {
+
+  if (!CONFIG_VESSEL_SYSTEM)
+  {
+    return FALSE;
+  }
+
   if (!ch)
+  {
+    return FALSE;
+  }
+
+  if (!CONFIG_VESSEL_SYSTEM)
   {
     return FALSE;
   }

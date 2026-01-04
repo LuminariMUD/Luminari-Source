@@ -386,3 +386,5 @@ int summon_11_20_ac = 100;
 int summon_21_30_hp = 100;
 int summon_21_30_hit_and_dam = 100;
 int summon_21_30_ac = 100;
+
+int vessel_system = 0;

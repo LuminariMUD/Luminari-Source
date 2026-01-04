@@ -5012,6 +5012,8 @@ const char *allow_cexchange_options[] = {"No", "Yes", "\n"};
 const char *wilderness_system_options[] = {"No Wilderness (ROads only)", "Manually Created",
                                            "Algorithm-Created (WildEdit Tool)", "\n"};
 
+const char *vessel_system_options[] = {"Off", "On", "\n"};
+
 const char *exp_option[] = {"Full", "Reduced", "None", "\n"};
 
 const char *spellcasting_time_options[] = {"1 standard action", "Individual spell times in seconds",

@@ -8627,7 +8627,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_AC_NEW;
-    af[0].modifier = 2;
+    af[0].modifier = 4;
     af[0].duration = 600;
     af[0].bonus_type = BONUS_TYPE_ARMOR;
     accum_duration = FALSE;
@@ -9393,7 +9393,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_AC_NEW;
-    af[0].modifier = 2;
+    af[0].modifier = 4;
     af[0].duration = 300;
     af[0].bonus_type = BONUS_TYPE_SHIELD;
     to_vict = "A magical shield of force appears in front of you.";

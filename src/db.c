@@ -7495,6 +7495,7 @@ static void load_default_config(void)
   CONFIG_NEW_PLAYER_GEAR = 0;
   CONFIG_ALLOW_CEXCHANGE = 0;
   CONFIG_WILDERNESS_SYSTEM = 0;
+  CONFIG_VESSEL_SYSTEM = 0;
   CONFIG_MELEE_EXP_OPTION = 0;       /* 0 = Full */
   CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
   CONFIG_SPELLCASTING_TIME_MODE = 0; /* 0 = Standard action */
@@ -7890,6 +7891,11 @@ void load_config(void)
         CONFIG_NEW_SOCIALS = num;
       else if (!str_cmp(tag, "use_introduction_system"))
         CONFIG_USE_INTRO_SYSTEM = num;
+      break;
+
+    case 'v':
+      if (!str_cmp(tag, "vessel_system"))
+        CONFIG_VESSEL_SYSTEM = num;
       break;
 
     case 'w':

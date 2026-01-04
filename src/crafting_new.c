@@ -127,7 +127,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define CREATE_BASE_DC 10
 #define RESIZE_BASE_DC 10
 #define HARVEST_MOTE_DICE_SIZE 4
-#define HARVEST_MOTE_CHANCE 10
+#define HARVEST_MOTE_CHANCE 20
 #define HARVEST_BASE_AMOUNT dice(2, 2)
 #define HARVEST_BASE_EXP 20
 #define CREATE_BASE_EXP 50
@@ -136,6 +136,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define NSUPPLY_ORDER_DURATION 60
 #define NSUPPLY_ORDER_NUM_REQUIRED 5
 #define NSUPPLY_ORDER_BASE_EXP 50
+#define HARVEST_MOTE_MULTIPLIER 150 // Motes gathered are multiplied by this value / 100
 
 // Supply order enhancement constants
 #define SUPPLY_BASE_REWARD 100
@@ -317,6 +318,7 @@ int craft_material_level_adjustment(int material)
   case CRAFT_MAT_ASH_WOOD:
   case CRAFT_MAT_HEMP:
   case CRAFT_MAT_STONE:
+  case CRAFT_MAT_COAL:
     return 0;
 
   case CRAFT_MAT_IRON:
@@ -4780,6 +4782,7 @@ void harvest_complete(struct char_data *ch)
 {
   int skill = 0, skill_roll = 0, roll = 0, dc = 0, amount = 0, bonus = 0, harvest_level = 0;
   bool motes_found = FALSE;
+  int num_motes, mote_type, bonus_motes, synergy_talent, synergy_rank;
 
   if (world[IN_ROOM(ch)].harvest_material == CRAFT_MAT_NONE ||
       world[IN_ROOM(ch)].harvest_material_amount <= 0)
@@ -4898,12 +4901,13 @@ void harvest_complete(struct char_data *ch)
     // random motes
     if ((dice(1, 100) <= HARVEST_MOTE_CHANCE) || motes_found)
     {
-      int num_motes =
+      num_motes =
           dice(MAX(1, material_grade(world[IN_ROOM(ch)].harvest_material)), HARVEST_MOTE_DICE_SIZE);
-      int mote_type = dice(1, NUM_CRAFT_MOTES - 1);
-      int bonus_motes = 0;
-      int synergy_talent = TALENT_NONE;
-      int synergy_rank = 0;
+      num_motes = num_motes * HARVEST_MOTE_MULTIPLIER / 100;
+      mote_type = dice(1, NUM_CRAFT_MOTES - 1);
+      bonus_motes = 0;
+      synergy_talent = TALENT_NONE;
+      synergy_rank = 0;
 
       /* Determine which synergy talent applies to this mote type */
       switch (mote_type)
