@@ -2121,7 +2121,7 @@ void proc_d20_round(void)
   for (i = character_list; i; i = i->next)
   {
     /* Cowering: 10% chance per round to be too afraid to act */
-    if (FIGHTING(i) && AFF_FLAGGED(i, AFF_COWERING) && rand_number(1, 100) <= 10)
+    if (FIGHTING(i) && AFF2_FLAGGED(i, AFF2_COWERING) && rand_number(1, 100) <= 10)
     {
       send_to_char(i, "\tRYou are too afraid to act!\tn\r\n");
       act("$n cowers in fear, unable to act!", FALSE, i, 0, 0, TO_ROOM);

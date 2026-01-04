@@ -2002,7 +2002,7 @@ bool try_paralyzing_dread(struct char_data *vict)
     new_affect(&af);
     af.spell = AFFECT_BLACKGUARD_COWER;
     af.duration = dice(3, 6);
-    SET_BIT_AR(af.bitvector, AFF_COWERING);
+    SET_BIT_AR(af.bitvector2, AFF2_COWERING);
     affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
     send_to_char(vict, "\tRYou are paralyzed with dread and cower in terror!\tn\r\n");
     act("$N cowers in paralyzing dread!", FALSE, blackguard, 0, vict, TO_CHAR);
@@ -2079,7 +2079,7 @@ int get_shackles_of_awe_attack_penalty(struct char_data *ch, struct char_data *v
     return -3;
   if (AFF_FLAGGED(vict, AFF_SHAKEN))
     return -2;
-  if (AFF_FLAGGED(vict, AFF_COWERING))
+  if (AFF2_FLAGGED(vict, AFF2_COWERING))
     return -4;
 
   return 0;
@@ -2103,7 +2103,7 @@ int get_shackles_of_awe_speed_penalty(struct char_data *ch, struct char_data *vi
     return 30;
   if (AFF_FLAGGED(vict, AFF_SHAKEN))
     return 20;
-  if (AFF_FLAGGED(vict, AFF_COWERING))
+  if (AFF2_FLAGGED(vict, AFF2_COWERING))
     return 40;
 
   return 0;
@@ -2124,7 +2124,7 @@ int get_profane_dominion_damage(struct char_data *ch, struct char_data *vict)
 
   /* Only affect enemies with fear-type effects */
   if (!AFF_FLAGGED(vict, AFF_FEAR) && !AFF_FLAGGED(vict, AFF_SHAKEN) &&
-      !AFF_FLAGGED(vict, AFF_COWERING))
+      !AFF2_FLAGGED(vict, AFF2_COWERING))
     return 0;
 
   /* Base damage: 1d6 + CHA mod */
@@ -2159,7 +2159,7 @@ void apply_sovereign_fear_escalation(struct char_data *ch, struct char_data *vic
     return;
 
   /* Check if already at max (cowering) */
-  if (AFF_FLAGGED(vict, AFF_COWERING))
+  if (AFF2_FLAGGED(vict, AFF2_COWERING))
     return;
 
   /* Escalate fear level */
@@ -2170,7 +2170,7 @@ void apply_sovereign_fear_escalation(struct char_data *ch, struct char_data *vic
     new_affect(&af);
     af.spell = AFFECT_BLACKGUARD_COWER;
     af.duration = 10;
-    SET_BIT_AR(af.bitvector, AFF_COWERING);
+    SET_BIT_AR(af.bitvector2, AFF2_COWERING);
     affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
     send_to_char(vict, "\tRYou are overwhelmed by terror and cower in fear!\tn\r\n");
   }
@@ -2269,7 +2269,7 @@ bool perform_midnight_edict(struct char_data *ch)
  */
 bool is_cowering(struct char_data *ch)
 {
-  return ch && AFF_FLAGGED(ch, AFF_COWERING);
+  return ch && AFF2_FLAGGED(ch, AFF2_COWERING);
 }
 
 /* ========================================================================

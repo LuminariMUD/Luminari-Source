@@ -404,11 +404,6 @@ ACMD(do_accexp)
                        "is not available for players, or you've already unlocked it.\r\n");
       return;
     }
-    {
-      send_to_char(ch, "Either that race does not exist, is not an advanced race, "
-                       "is not available for players, or you've already unlocked it.\r\n");
-      return;
-    }
     if (ch->desc && ch->desc->account)
     {
       /* Find an empty slot in account->races array */

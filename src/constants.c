@@ -1352,135 +1352,135 @@ CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 /** Affected bits.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *affected_bits[] = {"\0", /* DO NOT REMOVE!! */
-                               "Blinded",
-                               "Invisible",
-                               "Detect-Alignment",
-                               "Detect-Invisible",
-                               "Detect-Magic", // 5
-                               "Sense-Life",
-                               "Water-Walk",
-                               "Sanctuary",
-                               "OnLoad MobGroup",
-                               "Cursed", // 10
-                               "Infra-Vision",
-                               "Poison",
-                               "Protect-Evil",
-                               "Protect-Good",
-                               "Sleep", // 15
-                               "Not-Trackable",
-                               "Flying",
-                               "Underwater-Breathing",
-                               "Sneaking",
-                               "Hiding", // 20
-                               "Vampiric-Curse",
-                               "Charmed",
-                               "Blurred",
-                               "Mode-PowerAttack",
-                               "Mode-Expertise", // 25
-                               "Hasted",
-                               "Mode-Total-Defense",
-                               "Protect-Elements",
-                               "Deaf",
-                               "Fear", // 30
-                               "Cowering",
-                               "Stunned",
-                               "Paralyzed",
-                               "Ultra-Vision",
-                               "Grappled",
-                               "Tamed", // 35
-                               "Climb",
-                               "Nauseated",
-                               "Non-Detection",
-                               "Slowed",
-                               "Fire-Shielded", // 40
-                               "Cold-Shielded",
-                               "Minor-Globed",
-                               "Acid-Shielded",
-                               "Size-Changed",
-                               "True-Sight", // 45
-                               "Spot-Mode",
-                               "Fatigued",
-                               "Regenerating",
-                               "Diseased",
-                               "T-Transform", // 50
-                               "Globe-of-Invuln",
-                               "Listen-Mode",
-                               "Displaced",
-                               "Spell-Mantled",
-                               "Confused", // 55
-                               "Refuged",
-                               "Spell-Turning",
-                               "Mind-Blanked",
-                               "Shadow-Shielded",
-                               "Time-Stopped", // 60
-                               "Bravery",
-                               "Free-Movement",
-                               "Faerie-Fired",
-                               "Battletide",
-                               "Spell-Resistant", // 65
-                               "Dimensional-Locked",
-                               "Death-Ward",
-                               "Mode-Spellbattle",
-                               "Vampiric-Touch",
-                               "Blackmantled", // 70
-                               "Danger-Sense",
-                               "SafeFall",
-                               "Tower-of-Iron-Will",
-                               "Inertial-Barrier",
-                               "Not-teleportable", // 75
-                               "DamageBoost",      // AFF_MAX_DAMAGE
-                               "Incorporeal",
-                               "Caged",
-                               "Mage-Flamed",
-                               "Dark-Vision", // 80
-                               "Body-Weaponry",
-                               "Farsee",
-                               "Menz-Choker",
-                               "Mode-RapidShot",
-                               "Dazed",
-                               "Flat-footed",
-                               "Dual-wield",
-                               "Flurry-of-Blows",
-                               "Counterspell",
-                               "Defensive-Casting", // 90
-                               "Whirlwind-Attack",
-                               "Charging",
-                               "WildShape",
-                               "Feinted",
-                               "Pinned",
-                               "Mirror-Imaged",
-                               "Warded",
-                               "Entangled",
-                               "Acrobatic",
-                               "Blinking",
-                               "Aware",
-                               "Crippled-by-Critical",
-                               "Levitating",
-                               "Bleeding",
-                               "Staggered",
-                               "Dazzled",
-                               "Shaken",
-                               "Electric-Shielded",
-                               "Sickened",
-                               "Silenced",
-                               "Hidden-Alignment",
-                               "Wind-Wall",
-                               "Fear-Aura",
-                               "Spider-Climb",
-                               "Deadly-Aim",
-                               "Acid-Coated",
-                               "Repulsion-Fielded",
-                               "On-Fire",
-                               "Flame-Blade",
-                               "Sickening-Aura",
-                               "Rapid-Buff",
-                               "Crippled",
-                               "Encased-in-Ice",
-                               "Nextattack-Stun",
-                               "Hive-Marked",
-                               "Perfect-Deflection-Ready",
-                               "\n"};
+const char *affected_bits[] = {
+    "\0", /* DO NOT REMOVE!! */
+    "Blinded",
+    "Invisible",
+    "Detect-Alignment",
+    "Detect-Invisible",
+    "Detect-Magic", // 5
+    "Sense-Life",
+    "Water-Walk",
+    "Sanctuary",
+    "OnLoad MobGroup",
+    "Cursed", // 10
+    "Infra-Vision",
+    "Poison",
+    "Protect-Evil",
+    "Protect-Good",
+    "Sleep", // 15
+    "Not-Trackable",
+    "Flying",
+    "Underwater-Breathing",
+    "Sneaking",
+    "Hiding", // 20
+    "Vampiric-Curse",
+    "Charmed",
+    "Blurred",
+    "Mode-PowerAttack",
+    "Mode-Expertise", // 25
+    "Hasted",
+    "Mode-Total-Defense",
+    "Protect-Elements",
+    "Deaf",
+    "Fear", // 30
+    "Stunned",
+    "Paralyzed",
+    "Ultra-Vision",
+    "Grappled",
+    "Tamed", // 35
+    "Climb",
+    "Nauseated",
+    "Non-Detection",
+    "Slowed",
+    "Fire-Shielded", // 40
+    "Cold-Shielded",
+    "Minor-Globed",
+    "Acid-Shielded",
+    "Size-Changed",
+    "True-Sight", // 45
+    "Spot-Mode",
+    "Fatigued",
+    "Regenerating",
+    "Diseased",
+    "T-Transform", // 50
+    "Globe-of-Invuln",
+    "Listen-Mode",
+    "Displaced",
+    "Spell-Mantled",
+    "Confused", // 55
+    "Refuged",
+    "Spell-Turning",
+    "Mind-Blanked",
+    "Shadow-Shielded",
+    "Time-Stopped", // 60
+    "Bravery",
+    "Free-Movement",
+    "Faerie-Fired",
+    "Battletide",
+    "Spell-Resistant", // 65
+    "Dimensional-Locked",
+    "Death-Ward",
+    "Mode-Spellbattle",
+    "Vampiric-Touch",
+    "Blackmantled", // 70
+    "Danger-Sense",
+    "SafeFall",
+    "Tower-of-Iron-Will",
+    "Inertial-Barrier",
+    "Not-teleportable", // 75
+    "DamageBoost",      // AFF_MAX_DAMAGE
+    "Incorporeal",
+    "Caged",
+    "Mage-Flamed",
+    "Dark-Vision", // 80
+    "Body-Weaponry",
+    "Farsee",
+    "Menz-Choker",
+    "Mode-RapidShot",
+    "Dazed",
+    "Flat-footed",
+    "Dual-wield",
+    "Flurry-of-Blows",
+    "Counterspell",
+    "Defensive-Casting", // 90
+    "Whirlwind-Attack",
+    "Charging",
+    "WildShape",
+    "Feinted",
+    "Pinned",
+    "Mirror-Imaged",
+    "Warded",
+    "Entangled",
+    "Acrobatic",
+    "Blinking",
+    "Aware",
+    "Crippled-by-Critical",
+    "Levitating",
+    "Bleeding",
+    "Staggered",
+    "Dazzled",
+    "Shaken",
+    "Electric-Shielded",
+    "Sickened",
+    "Silenced",
+    "Hidden-Alignment",
+    "Wind-Wall",
+    "Fear-Aura",
+    "Spider-Climb",
+    "Deadly-Aim",
+    "Acid-Coated",
+    "Repulsion-Fielded",
+    "On-Fire",
+    "Flame-Blade",
+    "Sickening-Aura",
+    "Rapid-Buff",
+    "Crippled",
+    "Encased-in-Ice",
+    "Nextattack-Stun",
+    "Hive-Marked",
+    "Perfect-Deflection",
+    "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 
@@ -1492,97 +1492,144 @@ CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 const char *affected_bit_descs[] = {
     "\0", /* DO NOT REMOVE!! */
     //|---------------------------------------------------------|
-    "You can't see a thing.", "You are invisible.", "You can sense the the auras of others.",
+    "You can't see a thing.",
+    "You are invisible.",
+    "You can sense the the auras of others.",
     "You can see the invisible.",
     "You can sense the auras of object imbued with magic.", // 5
-    "You can sense living creatures.", "You can walk on water.", "SHOULD NOT SEE - CONTACT STAFF",
+    "You can sense living creatures.",
+    "You can walk on water.",
+    "SHOULD NOT SEE - CONTACT STAFF",
     "SHOULD NOT SEE - CONTACT STAFF",
     "You have been cursed.", // 10
-    "You can see in the infra-red spectrum.", "You have been poisoned.",
-    "You are warded against evil.", "You are warded against good.",
+    "You can see in the infra-red spectrum.",
+    "You have been poisoned.",
+    "You are warded against evil.",
+    "You are warded against good.",
     "You are afflicted with magical sleep.", // 15
-    "You cannot be tracked.", "You are flying.", "You can breathe underwater.",
+    "You cannot be tracked.",
+    "You are flying.",
+    "You can breathe underwater.",
     "You are attempting to move quietly.",
     "You are attempting to hide.", // 20
-    "You are afflicted with a vampiric curse.", "You are controlled by another.",
-    "Your form is blurred.", "You sacrifice accuracy to inflict more damage in battle.",
+    "You are afflicted with a vampiric curse.",
+    "You are controlled by another.",
+    "Your form is blurred.",
+    "You sacrifice accuracy to inflict more damage in battle.",
     "You sacrifice accuracy to improve your defense.", // 25
-    "You are moving supernaturally fast.", "You are focusing on total defense.",
-    "You are protected from the elements.", "You can't hear a thing.",
+    "You are moving supernaturally fast.",
+    "You are focusing on total defense.",
+    "You are protected from the elements.",
+    "You can't hear a thing.",
     "You are terrified.", // 30
-    "You are cowering in fear.", "You are stunned.", "You can't move!",
-    "You can see in the ultra-violet spectrum.", "You are grappled.",
+    "You are stunned.",
+    "You can't move!",
+    "You can see in the ultra-violet spectrum.",
+    "You are grappled.",
     "You are tamed.", // 35
-    "You can climb anything.", "You are nauseated.", "You are shielded from scrying magic.",
+    "You can climb anything.",
+    "You are nauseated.",
+    "You are shielded from scrying magic.",
     "You are moving more slowly than usual.",
     "You are surrounded by a shield of flames.", // 40
     "You are surrounded by a shield of swirling snow.",
     "You are protected by a minor globe of invulnerability.",
-    "You are surrounded by a shield of corrosive acid.", "You are not your usual size.",
+    "You are surrounded by a shield of corrosive acid.",
+    "You are not your usual size.",
     "Your vision is supernaturally clear.", // 45
-    "You are actively observing your surroundings.", "You are fatigued.",
-    "Your body is healing at an increased rate.", "You are suffering from a disease.",
+    "You are actively observing your surroundings.",
+    "You are fatigued.",
+    "Your body is healing at an increased rate.",
+    "You are suffering from a disease.",
     "You are under the effect of Tenser's Transformation", // 50
     "You are protected by a globe of invulnerability.",
-    "You are actively listening to your surroundings.", "Your are not where you seem to be.",
+    "You are actively listening to your surroundings.",
+    "Your are not where you seem to be.",
     "You are protected by a spell mantle.",
     "You are confused.", // 55
-    "You have taken refuge.", "You turn magic that targets you.", "Your mind is blank.",
+    "You have taken refuge.",
+    "You turn magic that targets you.",
+    "Your mind is blank.",
     "The shadows shield you from harm.",
     "You have stopped time.", // 60
-    "You feel brave.", "You can move freely in any environment.",
-    "Your outline is highlighted by purple and pink flames.", "You are battle incarnate.",
+    "You feel brave.",
+    "You can move freely in any environment.",
+    "Your outline is highlighted by purple and pink flames.",
+    "You are battle incarnate.",
     "You are resistant to spells.", // 65
-    "You are locked to this plane of existence.", "You are warded from death magic.",
-    "You are under the effect of Spellbattle.", "You have a vampiric touch.",
+    "You are locked to this plane of existence.",
+    "You are warded from death magic.",
+    "You are under the effect of Spellbattle.",
+    "You have a vampiric touch.",
     "Your body does not heal as it should.", // 70
-    "You can innately sense danger.", "You can fall from any height unharmed.",
-    "You are resistant to psionic damage.", "SHOULD NOT SEE - CONTACT STAFF",
+    "You can innately sense danger.",
+    "You can fall from any height unharmed.",
+    "You are resistant to psionic damage.",
+    "SHOULD NOT SEE - CONTACT STAFF",
     "You can not be targeted by teleportation magic.", // 75
     "Your next attack will deal additional damage.",   // AFF_MAX_DAMAGE
-    "You are incorporeal", "You have been caged and can not interact with anyone.",
+    "You are incorporeal",
+    "You have been caged and can not interact with anyone.",
     "You are glowing.",
     "You can see in the dark.", // 80
-    "Your body is a weapon.", "You can see farther than others.",
-    "Your items synergize with each other.", "You are firing your ranged weapons more quickly.",
+    "Your body is a weapon.",
+    "You can see farther than others.",
+    "Your items synergize with each other.",
+    "You are firing your ranged weapons more quickly.",
     "You are dazed.", // 85
-    "You have been caught unawares.", "You are fighting with two weapons.",
-    "You are attacking with a flurry of blows.", "You will counter any spell you can.",
+    "You have been caught unawares.",
+    "You are fighting with two weapons.",
+    "You are attacking with a flurry of blows.",
+    "You will counter any spell you can.",
     "You are casting defensively.", // 90
-    "You will spread your attacks among all of your enemies.", "You are charging into battle.",
+    "You will spread your attacks among all of your enemies.",
+    "You are charging into battle.",
     "You are shape-changed into a different race.",
     "You have been feinted in combat (flat-footed).",
     "You are pinned.", // 95
     "Duplicate illusionary images of you exist.",
-    "You have a powerful ward on you (melee damage absorb).", "You are entangled (can't move).",
+    "You have a powerful ward on you (melee damage absorb).",
+    "You are entangled (can't move).",
     "You feel more acrobatic!",
     "You are blinking between prime and ethereal planes!", // 100
-    "You are aware of backstab attempts now!", "You have been crippled by a nasty critical attack!",
+    "You are aware of backstab attempts now!",
+    "You have been crippled by a nasty critical attack!",
     "You are levitating above the ground!",
     "You are suffering bleed damage each round until healed!",
     "You are staggered - 50% chance to fail spells or a single melee attack!", // 105
     "You are dazzled and will suffer -1 to attacks and perception checks!",
     "You are shaken: -2 to attack rolls, saves and skills checks!",
-    "You are surrounded by a shield of sparking electricity.", "You feel sickened and weak.",
-    "You are unable to make a sound.", "Your alignment is hidden from others.",
-    "You are surrounded by a wall of wind", "You radiate fear to your opponents.",
-    "You can scale surfaces like a spider.", "You are using your deadly aim feat benefit.",
-    "You are coated in painful acid.", "You are surrounded by a repulsion field.",
-    "You have been caught on fire!", "Your weapons are sheathed in fire!",
+    "You are surrounded by a shield of sparking electricity.",
+    "You feel sickened and weak.",
+    "You are unable to make a sound.",
+    "Your alignment is hidden from others.",
+    "You are surrounded by a wall of wind",
+    "You radiate fear to your opponents.",
+    "You can scale surfaces like a spider.",
+    "You are using your deadly aim feat benefit.",
+    "You are coated in painful acid.",
+    "You are surrounded by a repulsion field.",
+    "You have been caught on fire!",
+    "Your weapons are sheathed in fire!",
     "You are surrounded by a sickening aura.",
     "You are able to buff yourself with spells faster than usual.",
     "Your legs are crippled! (50% movement speed, 50% movement fail chance)",
     "You are encased in ice and paralyzed! (Immune to cold, DR 5/-)",
     "Your next attack will carry overwhelming force!",
-    "You have been marked by a Hive Commander's psychic link!",
-    "You are prepared to perfectly deflect the next ranged attack and reflect it!", "\n"};
+    "Hive marked for stun",
+    "Perfect deflection of attacks.",
+    "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
 /** Second affect bit names.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *affected2_bits[] = {"\0", /* DO NOT REMOVE!! */
-                                "Magic-Attacks", "\n"};
+const char *affected2_bits[] = {
+    "\0", /* DO NOT REMOVE!! */
+    "Magic-Attacks",
+    "Cowering",
+    "\n"
+};
 
 CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
 
@@ -1591,10 +1638,12 @@ CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
  * Must end array with a single newline.
  * MUST BE 57 CHARACTERS OR LESS.
  * */
-const char *affected2_bit_descs[] = {"\0", /* DO NOT REMOVE!! */
-                                     //|---------------------------------------------------------|
-                                     "Attacks you make can bypass magic resistant damage reduction",
-                                     "\n"};
+const char *affected2_bit_descs[] = {
+    "\0", /* DO NOT REMOVE!! */
+    //|---------------------------------------------------------|
+    "Attacks you make can bypass magic resistant damage reduction",
+    "You are cowering in fear.",
+    "\n"};
 CHECK_TABLE_SIZE(affected2_bit_descs, NUM_AFF2_FLAGS + 1);
 
 /** Connection type descriptions.

@@ -10198,7 +10198,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     if (display)
       send_to_char(ch, "-2: %-50s\r\n", "Shaken");
   }
-  if (AFF_FLAGGED(ch, AFF_COWERING))
+  if (AFF2_FLAGGED(ch, AFF2_COWERING))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 4;
     if (display)

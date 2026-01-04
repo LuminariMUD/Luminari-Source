@@ -492,8 +492,6 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     {
       act("\r\n$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
     }
-    if (GET_OBJ_ARCANE_MARK(obj))
-      send_to_char(ch, "\r\nIt bears an arcane mark reading \"%s\".", GET_OBJ_ARCANE_MARK(obj));
 
     break;
 
@@ -507,7 +505,6 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     return;
   }
 end:
-
   show_obj_modifiers(obj, ch);
   send_to_char(ch, "\r\n");
 }
@@ -2050,6 +2047,10 @@ static void look_at_target(struct char_data *ch, char *arg)
 
         found = TRUE;
       }
+  
+      // if the object has an arcane mark cast on it, show it.
+  if (GET_OBJ_ARCANE_MARK(found_obj))
+    send_to_char(ch, "\tCIt bears an arcane mark reading \"%s\"\tn.\r\n", GET_OBJ_ARCANE_MARK(found_obj));
 
   /* If an object was found back in generic_find */
   if (bits)

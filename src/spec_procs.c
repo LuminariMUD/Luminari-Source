@@ -1300,7 +1300,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   if (AFF_FLAGGED(ch, AFF_SHAKEN))
     value -= 2;
-  if (AFF_FLAGGED(ch, AFF_COWERING))
+  if (AFF2_FLAGGED(ch, AFF2_COWERING))
     value -= 4;
   if (char_has_mud_event(ch, eHOLYJAVELIN))
     value -= 2;
