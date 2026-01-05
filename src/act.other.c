@@ -6521,6 +6521,7 @@ ACMDU(do_title)
 ACMDU(do_arcanemark)
 {
   char mark[MAX_INPUT_LENGTH];
+  const char *tmark = NULL;
 
   if (IS_NPC(ch))
   {
@@ -6533,14 +6534,16 @@ ACMDU(do_arcanemark)
   /* Show or set default mark when no argument is provided */
   if (!*argument)
   {
-    if (GET_ARCANE_MARK(ch))
+    if ((tmark = GET_ARCANE_MARK(ch)) &&
+        !(!tmark || !*tmark || tmark == NULL || !strcmp(tmark, "(null)") || !strcmp(tmark, "null")))
     {
       send_to_char(ch, "Your arcane mark is set to: %s\r\n", GET_ARCANE_MARK(ch));
       return;
     }
-
-    GET_ARCANE_MARK(ch) = strdup(GET_NAME(ch));
-    send_to_char(ch, "Your arcane mark now defaults to your name: %s\r\n", GET_ARCANE_MARK(ch));
+    send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
+    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes any color characters used.\r\n");
+    send_to_char(ch, "Please keep your arcane mark in-character and tasteful.\r\n");
+    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to reset it for you.\r\n");
     return;
   }
 
@@ -6564,6 +6567,10 @@ ACMDU(do_arcanemark)
 
   if (GET_ARCANE_MARK(ch))
     free(GET_ARCANE_MARK(ch));
+
+  char norm_color[] = "\tn";
+
+  strcat(mark, norm_color);
 
   GET_ARCANE_MARK(ch) = strdup(mark);
   send_to_char(ch, "Arcane mark set to: %s\r\n", GET_ARCANE_MARK(ch));

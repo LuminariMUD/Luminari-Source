@@ -2049,7 +2049,7 @@ static void look_at_target(struct char_data *ch, char *arg)
       }
   
       // if the object has an arcane mark cast on it, show it.
-  if (GET_OBJ_ARCANE_MARK(found_obj))
+  if (found_obj && GET_OBJ_ARCANE_MARK(found_obj) != NULL)
     send_to_char(ch, "\tCIt bears an arcane mark reading \"%s\"\tn.\r\n", GET_OBJ_ARCANE_MARK(found_obj));
 
   /* If an object was found back in generic_find */

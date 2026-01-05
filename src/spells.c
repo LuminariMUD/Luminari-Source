@@ -1577,8 +1577,14 @@ ASPELL(spell_arcane_mark)
   }
 
   mark = GET_ARCANE_MARK(ch);
-  if (!mark || !*mark)
-    mark = GET_NAME(ch);
+  if (!mark || !*mark || mark == NULL || !strcmp(mark, "(null)") || !strcmp(mark, "null"))
+  {
+    send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
+    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes any color characters used.\r\n");
+    send_to_char(ch, "Please keep your arcane mark in-character and tasteful.\r\n");
+    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to reset it for you.\r\n");
+    return;
+  }
 
   /* Enforce hard cap on stored marks */
   if (strlen(mark) > 250)
