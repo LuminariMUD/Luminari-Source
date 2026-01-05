@@ -176,7 +176,27 @@ int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum
 
   /* Difficult terrain doubles cost */
   if (ROOM_AFFECTED(to_room, RAFF_DIFFICULT_TERRAIN))
-    need_movement *= 2;
+  {
+    bool natural_env = OUTDOORS(ch);
+    int wstride_rank = get_inquisitor_wilderness_stride_rank(ch);
+
+    if (!has_inquisitor_wilderness_stride(ch))
+    {
+      need_movement *= 2;
+    }
+    else if (natural_env)
+    {
+      /* Outdoors: ignore the difficult terrain tax entirely. */
+    }
+    else if (wstride_rank >= 2)
+    {
+      need_movement = (need_movement * 3) / 2;
+    }
+    else
+    {
+      need_movement *= 2;
+    }
+  }
 
   /* Spot mode doubles cost */
   if (AFF_FLAGGED(ch, AFF_SPOT))

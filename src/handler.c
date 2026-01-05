@@ -36,6 +36,46 @@
 #include "resource_depletion.h"
 #include "perks.h"
 
+static bool master_tracker_quarry_near(struct char_data *tracker, struct char_data *quarry)
+{
+  if (!tracker || !quarry)
+    return false;
+
+  if (IS_NPC(tracker) || IN_ROOM(tracker) == NOWHERE || IN_ROOM(quarry) == NOWHERE)
+    return false;
+
+  if (!has_inquisitor_master_tracker(tracker))
+    return false;
+
+  return world[IN_ROOM(tracker)].zone == world[IN_ROOM(quarry)].zone;
+}
+
+static void update_master_tracker_alert(struct char_data *tracker)
+{
+  if (!tracker || IS_NPC(tracker))
+    return;
+
+  if (!has_inquisitor_master_tracker(tracker))
+  {
+    GET_INQ_MASTER_TRACKER_ALERT(tracker) = false;
+    return;
+  }
+
+  struct char_data *quarry = GET_STUDIED_TARGET(tracker);
+  bool nearby = quarry && master_tracker_quarry_near(tracker, quarry);
+
+  if (nearby && !GET_INQ_MASTER_TRACKER_ALERT(tracker))
+  {
+    send_to_char(tracker, "You sense your studied quarry nearby.\r\n");
+    GET_INQ_MASTER_TRACKER_ALERT(tracker) = true;
+  }
+  else if (!nearby && GET_INQ_MASTER_TRACKER_ALERT(tracker))
+  {
+    send_to_char(tracker, "The trail of your studied quarry fades from your senses.\r\n");
+    GET_INQ_MASTER_TRACKER_ALERT(tracker) = false;
+  }
+}
+
 /* local file scope variables */
 static int extractions_pending = 0;
 
@@ -1472,6 +1512,10 @@ void char_from_room(struct char_data *ch)
   /* checks for light, globes of darkness, etc */
   check_room_lighting(IN_ROOM(ch), ch, FALSE);
 
+  /* Master Tracker: update alert on leaving to avoid stale state. */
+  if (!IS_NPC(ch))
+    update_master_tracker_alert(ch);
+
   if (!IS_NPC(ch))
   {
     if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SURVEY)
@@ -1515,9 +1559,54 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness)
   }
 
   X_LOC(ch) = x;
+  
+        /* Reset master tracker proximity flag when leaving a room */
+        if (!IS_NPC(ch))
+          GET_INQ_MASTER_TRACKER_ALERT(ch) = false;
   Y_LOC(ch) = y;
 
   char_to_room(ch, room);
+}
+
+/* Master Tracker perk: proximity alerts for studied targets. */
+static bool master_tracker_quarry_near(struct char_data *tracker, struct char_data *quarry)
+{
+  if (!tracker || !quarry)
+    return false;
+
+  if (IS_NPC(tracker) || IN_ROOM(tracker) == NOWHERE || IN_ROOM(quarry) == NOWHERE)
+    return false;
+
+  if (!has_inquisitor_master_tracker(tracker))
+    return false;
+
+  return world[IN_ROOM(tracker)].zone == world[IN_ROOM(quarry)].zone;
+}
+
+static void update_master_tracker_alert(struct char_data *tracker)
+{
+  if (!tracker || IS_NPC(tracker))
+    return;
+
+  if (!has_inquisitor_master_tracker(tracker))
+  {
+    GET_INQ_MASTER_TRACKER_ALERT(tracker) = false;
+    return;
+  }
+
+  struct char_data *quarry = GET_STUDIED_TARGET(tracker);
+  bool nearby = quarry && master_tracker_quarry_near(tracker, quarry);
+
+  if (nearby && !GET_INQ_MASTER_TRACKER_ALERT(tracker))
+  {
+    send_to_char(tracker, "You sense your studied quarry nearby.\r\n");
+    GET_INQ_MASTER_TRACKER_ALERT(tracker) = true;
+  }
+  else if (!nearby && GET_INQ_MASTER_TRACKER_ALERT(tracker))
+  {
+    send_to_char(tracker, "The trail of your studied quarry fades from your senses.\r\n");
+    GET_INQ_MASTER_TRACKER_ALERT(tracker) = false;
+  }
 }
 
 /* place a character in a room */
@@ -1621,6 +1710,9 @@ void char_to_room(struct char_data *ch, room_rnum room)
     update_msdp_room(ch);
     if (ch->desc)
       MSDPFlush(ch->desc, eMSDP_ROOM);
+
+    /* Master Tracker: refresh proximity alert when entering a room */
+    update_master_tracker_alert(ch);
   }
 }
 

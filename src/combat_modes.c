@@ -24,6 +24,8 @@
 #include "class.h" /* For BAB() */
 #include "mud_event.h"
 #include "combat_modes.h"
+#include "actions.h"
+#include "perks.h"
 
 /* Modes that cannot be overlapped:
  *
@@ -143,6 +145,8 @@ ACMD(do_mode)
   int blocking_mode = 0;
   int mode = subcmd;
 
+  bool inquisitor_deadly_aim = (mode == MODE_DEADLY_AIM && has_inquisitor_deadly_aim(ch));
+
   if (argument)
   {
     one_argument(argument, arg, sizeof(arg));
@@ -166,6 +170,33 @@ ACMD(do_mode)
     }
     return;
   }
+
+  if (inquisitor_deadly_aim)
+  {
+    if (!is_action_available(ch, atSWIFT, TRUE))
+      return;
+
+    int dam_bonus = get_inquisitor_deadly_aim_damage_bonus(ch);
+    struct affected_type af;
+    affect_from_char(ch, AFFECT_INQUISITOR_DEADLY_AIM);
+    new_affect(&af);
+    af.spell = AFFECT_INQUISITOR_DEADLY_AIM;
+    af.duration = 1;
+    af.location = APPLY_HITROLL;
+    af.modifier = -1;
+    af.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_to_char(ch, &af);
+
+    USE_SWIFT_ACTION(ch);
+    send_to_char(ch, "You focus on a weak point, taking -1 to hit for +%d damage this turn.\r\n",
+                 dam_bonus);
+
+    /* Perk users without the base feat stop here. */
+    if (combat_mode_info[mode].required_feat != FEAT_UNDEFINED &&
+        !HAS_FEAT(ch, combat_mode_info[mode].required_feat))
+      return;
+  }
+
   if ((combat_mode_info[mode].required_feat != FEAT_UNDEFINED) &&
       (!HAS_FEAT(ch, combat_mode_info[mode].required_feat)))
   {

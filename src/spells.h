@@ -733,6 +733,7 @@
 #define AFFECT_SPELL_METAMASTERY 1307
 #define AFFECT_GREATER_JUDGMENT 1308
 #define AFFECT_INQUISITOR_AMBUSH_USED 1309
+#define AFFECT_INQUISITOR_DEADLY_AIM 1310
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 

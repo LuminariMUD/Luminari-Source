@@ -748,7 +748,28 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     need_movement--;
 
   if (ROOM_AFFECTED(going_to, RAFF_DIFFICULT_TERRAIN))
-    need_movement *= 2;
+  {
+    bool natural_env = OUTDOORS(ch);
+    int wstride_rank = get_inquisitor_wilderness_stride_rank(ch);
+
+    if (!has_inquisitor_wilderness_stride(ch))
+    {
+      need_movement *= 2;
+    }
+    else if (natural_env)
+    {
+      /* Ignore the difficult terrain penalty outdoors. */
+    }
+    else if (wstride_rank >= 2)
+    {
+      /* Magical or indoor difficult terrain is partially mitigated. */
+      need_movement = (need_movement * 3) / 2;
+    }
+    else
+    {
+      need_movement *= 2;
+    }
+  }
   /* if in "spot-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_SPOT))
     need_movement *= 2;

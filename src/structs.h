@@ -4238,6 +4238,12 @@
 #define PERK_INQUISITOR_TERRAIN_MASTERY 1466
 #define PERK_INQUISITOR_HUNTERS_ENDURANCE 1467
 
+/* Inquisitor Perks - Hunter's Arsenal Tree (Tier 3) */
+#define PERK_INQUISITOR_DEADLY_AIM 1468
+#define PERK_INQUISITOR_MASTER_TRACKER 1469
+#define PERK_INQUISITOR_WILDERNESS_STRIDE 1470
+#define PERK_INQUISITOR_PREYS_WEAKNESS 1471
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -6959,6 +6965,7 @@ struct player_special_data
   int inq_greater_judgment_type;        // selected judgment type for Greater Judgment perk (0-9)
   int inq_last_spell_cast;              // last inquisitor spell cast (for Righteous Strike perk)
   int inq_righteous_strike_rounds;      // rounds remaining for Righteous Strike bonus
+  bool inq_master_tracker_alerted;      // whether Master Tracker has already alerted this room/zone
 
   // for the self buffing system
   int buff_slot;

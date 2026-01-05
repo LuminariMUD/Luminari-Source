@@ -2866,6 +2866,7 @@ void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vic
 // Inquisitor Stuff
 #define GET_JUDGEMENT_TARGET(ch) (ch->player_specials->judgement_target)
 #define GET_STUDIED_TARGET(ch) (ch->player_specials->inq_studied_target)
+#define GET_INQ_MASTER_TRACKER_ALERT(ch) (ch->player_specials->inq_master_tracker_alerted)
 #define GET_FAVORED_TERRAIN(ch) (ch->player_specials->saved.inq_favored_terrain)
 #define GET_FAVORED_TERRAIN_RESET(ch) (ch->player_specials->saved.inq_favored_terrain_reset)
 #define GET_FAVORED_TERRAINS(ch, slot) ((ch)->player_specials->saved.favored_terrains[slot])

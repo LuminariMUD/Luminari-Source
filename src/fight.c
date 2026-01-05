@@ -5300,6 +5300,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
         }
       }
 
+      /* Inquisitor Prey's Weakness: ignore half of target DR vs studied target */
+      if (!IS_NPC(ch) && has_inquisitor_preys_weakness(ch) &&
+          is_inquisitor_studied_target(ch, victim))
+      {
+        int ignored_dr = get_inquisitor_preys_weakness_dr_reduction(ch, damage_reduction);
+        dr_reduction += ignored_dr;
+      }
+
       damage_reduction -= dr_reduction;
 
       damage_reduction = MAX(0, damage_reduction);
@@ -7353,19 +7361,28 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
     dambonus += 1;
   }
 
+  if (!IS_NPC(ch) && affected_by_spell(ch, AFFECT_INQUISITOR_DEADLY_AIM))
+  {
+    int deadly_aim_bonus = get_inquisitor_deadly_aim_damage_bonus(ch);
+    if (deadly_aim_bonus > 0)
+    {
+      dambonus += deadly_aim_bonus;
+      if (display_mode)
+        send_to_char(ch, "Deadly Aim (Inquisitor): \tR%d\tn\r\n", deadly_aim_bonus);
+    }
+  }
+  else if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    dambonus += COMBAT_MODE_VALUE(ch) * 2;
+    if (display_mode)
+      send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
+  }
+
   if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch))
   {
     if (display_mode)
       send_to_char(ch, "Hermit Fighting Solo: \tR+1\tn\r\n");
     dambonus += 1;
-  }
-
-  // deadly aim
-  if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
-  {
-    dambonus += COMBAT_MODE_VALUE(ch) * 2;
-    if (display_mode)
-      send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
   }
 
   /* crystal fist */
@@ -10225,9 +10242,15 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   }
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DIFFICULT_TERRAIN))
   {
-    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
-    if (display)
-      send_to_char(ch, "-2: %-50s\r\n", "Difficult Terrain");
+    bool natural_env = OUTDOORS(ch);
+    int wstride_rank = get_inquisitor_wilderness_stride_rank(ch);
+
+    if (!has_inquisitor_wilderness_stride(ch) || (!natural_env && wstride_rank < 2))
+    {
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+      if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Difficult Terrain");
+    }
   }
 
   /* Competence bonus */

@@ -1361,6 +1361,82 @@ void define_inquisitor_perks(void)
   perk->special_description = strdup("Gain +2 move regeneration per round. 5% chance per round to "
                                      "remove any AFF_FATIGUE effect on the player.");
   perk->toggleable = false;
+
+  /**************************************************************************
+   * TREE 2: HUNTER'S ARSENAL - Tier 3
+   **************************************************************************/
+
+  /* Tier 3: Deadly Aim (3 ranks, 3 points each) */
+  perk = &perk_list[PERK_INQUISITOR_DEADLY_AIM];
+  perk->id = PERK_INQUISITOR_DEADLY_AIM;
+  perk->name = strdup("Deadly Aim");
+  perk->description = strdup("Trade accuracy for devastating power with a swift action.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 damage per rank */
+  perk->effect_modifier = -1; /* -1 to hit while active */
+  perk->special_description = strdup("As a swift action, take -1 to attacks to gain +3 damage per "
+                                     "rank on all attacks until end of turn (melee and ranged).");
+  perk->toggleable = false;
+
+  /* Tier 3: Master Tracker (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_MASTER_TRACKER];
+  perk->id = PERK_INQUISITOR_MASTER_TRACKER;
+  perk->name = strdup("Master Tracker");
+  perk->description = strdup("Track prey across any trail and sense nearby quarries.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Ignore mundane tracking limitations; sense when your studied quarry enters your area.");
+  perk->toggleable = false;
+
+  /* Tier 3: Wilderness Stride (2 ranks, 3 points each) */
+  perk = &perk_list[PERK_INQUISITOR_WILDERNESS_STRIDE];
+  perk->id = PERK_INQUISITOR_WILDERNESS_STRIDE;
+  perk->name = strdup("Wilderness Stride");
+  perk->description = strdup("Move through difficult terrain with supernatural ease.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ignore difficult terrain outdoors; at rank 2, magical "
+                                     "difficult terrain slows you only slightly.");
+  perk->toggleable = false;
+
+  /* Tier 3: Prey's Weakness (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_PREYS_WEAKNESS];
+  perk->id = PERK_INQUISITOR_PREYS_WEAKNESS;
+  perk->name = strdup("Prey's Weakness");
+  perk->description = strdup("Exploit what you have learned about your quarry's defenses.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* ignore half of target DR */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("When you study a foe, you pierce its defenses, ignoring half "
+                                     "of its damage reduction.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -1871,6 +1947,53 @@ int count_inquisitor_favored_terrains(struct char_data *ch)
   }
 
   return count;
+}
+
+/* Inquisitor Helper Functions - Hunter's Arsenal Tree Tier 3 */
+
+int get_inquisitor_deadly_aim_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+
+  int rank = get_perk_rank(ch, PERK_INQUISITOR_DEADLY_AIM, CLASS_INQUISITOR);
+  return rank * 3;
+}
+
+bool has_inquisitor_deadly_aim(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DEADLY_AIM);
+}
+
+bool has_inquisitor_master_tracker(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_MASTER_TRACKER);
+}
+
+int get_inquisitor_wilderness_stride_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_WILDERNESS_STRIDE, CLASS_INQUISITOR);
+}
+
+bool has_inquisitor_wilderness_stride(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_WILDERNESS_STRIDE);
+}
+
+bool has_inquisitor_preys_weakness(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PREYS_WEAKNESS);
+}
+
+int get_inquisitor_preys_weakness_dr_reduction(struct char_data *ch, int current_dr)
+{
+  if (!has_inquisitor_preys_weakness(ch) || current_dr <= 0)
+    return 0;
+
+  /* Ignore half of the target's current damage reduction (rounded down). */
+  return current_dr / 2;
 }
 
 /* Helpers for Blackguard Tyranny & Fear mechanics */

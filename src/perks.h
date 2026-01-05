@@ -85,6 +85,15 @@ int get_inquisitor_max_favored_terrains(struct char_data *ch);
 int count_inquisitor_favored_enemies(struct char_data *ch);
 int count_inquisitor_favored_terrains(struct char_data *ch);
 
+/* Inquisitor helper functions - Hunter's Arsenal Tree Tier 3 */
+int get_inquisitor_deadly_aim_damage_bonus(struct char_data *ch);
+bool has_inquisitor_deadly_aim(struct char_data *ch);
+bool has_inquisitor_master_tracker(struct char_data *ch);
+int get_inquisitor_wilderness_stride_rank(struct char_data *ch);
+bool has_inquisitor_wilderness_stride(struct char_data *ch);
+bool has_inquisitor_preys_weakness(struct char_data *ch);
+int get_inquisitor_preys_weakness_dr_reduction(struct char_data *ch, int current_dr);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);
