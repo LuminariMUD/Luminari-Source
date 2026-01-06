@@ -523,7 +523,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
  */
 void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
-  int i = 0, j = 0, slot = 0, sinfo = 0;
+  int i = 0, slot = 0, sinfo = 0;
   int bottom = 0, top = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
@@ -1001,6 +1001,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         break;
       len += nlen;
 
+      int col = 0;
       bottom = 1;
       top = TOP_SPELLS_POWERS_SKILLS_BOMBS;
       for (; bottom < top; bottom++)
@@ -1013,12 +1014,28 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         /* SPELL PREPARATION HOOK (spellCircle) */
         if (compute_spells_circle(ch, class, i, 0, DOMAIN_UNDEFINED) == slot)
         {
-          nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %-15s\r\n", spell_info[i].name,
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-30s %-15s  ", spell_info[i].name,
                           school_names_specific[spell_info[i].schoolOfMagic]);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
+          col++;
+          if (col == 2)
+          {
+            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
+            if (len + nlen >= sizeof(buf2) || nlen < 0)
+              break;
+            len += nlen;
+            col = 0;
+          }
         }
+      }
+      if (col != 0)
+      {
+        nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
+        if (len + nlen >= sizeof(buf2) || nlen < 0)
+          break;
+        len += nlen;
       }
     }
   }
