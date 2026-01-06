@@ -4192,6 +4192,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_FLARE, 0);
   spell_assignment(CLASS_WIZARD, SPELL_CONTINUAL_LIGHT, 0);
   spell_assignment(CLASS_WIZARD, SPELL_TOUCH_OF_FATIGUE, 0);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_POISON, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_WIZARD, SPELL_HORIZIKAULS_BOOM, 1);
@@ -4543,7 +4544,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_GUIDANCE, 0);
   spell_assignment(CLASS_CLERIC, SPELL_STABILIZE, 0);
   spell_assignment(CLASS_CLERIC, SPELL_VIRTUE, 0);
-  /*              class num      spell                   level acquired */
+  spell_assignment(CLASS_CLERIC, SPELL_DETECT_POISON, 0);
   /* 1st circle */
   spell_assignment(CLASS_CLERIC, SPELL_SHIELD_OF_FAITH, 1);
   spell_assignment(CLASS_CLERIC, SPELL_CURE_LIGHT, 1);
@@ -5205,6 +5206,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_ROOT, 0);
   spell_assignment(CLASS_DRUID, SPELL_STABILIZE, 0);
   spell_assignment(CLASS_DRUID, SPELL_VIRTUE, 0);
+  spell_assignment(CLASS_DRUID, SPELL_DETECT_POISON, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL, 1);
@@ -5576,6 +5578,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_FLARE, 0);
   spell_assignment(CLASS_SORCERER, SPELL_CONTINUAL_LIGHT, 0);
   spell_assignment(CLASS_SORCERER, SPELL_TOUCH_OF_FATIGUE, 0);
+  spell_assignment(CLASS_SORCERER, SPELL_DETECT_POISON, 0);
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_SORCERER, SPELL_HORIZIKAULS_BOOM, 1);
@@ -5988,6 +5991,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_SUN_METAL, 6);
   spell_assignment(CLASS_PALADIN, SPELL_TACTICAL_ACUMEN, 6);
   spell_assignment(CLASS_PALADIN, SPELL_VEIL_OF_POSITIVE_ENERGY, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_DETECT_POISON, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_PALADIN, SPELL_CREATE_FOOD, 10);
@@ -6351,6 +6355,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_SUN_METAL, 6);
   spell_assignment(CLASS_RANGER, SPELL_VIGORIZE_LIGHT, 6);
   spell_assignment(CLASS_RANGER, SPELL_ANT_HAUL, 6);
+  spell_assignment(CLASS_RANGER, SPELL_DETECT_POISON, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_RANGER, SPELL_ENDURANCE, 10);
@@ -8646,6 +8651,7 @@ void load_class_list(void)
   spell_assignment(CLASS_INQUISITOR, SPELL_GUIDANCE, 0);
   spell_assignment(CLASS_INQUISITOR, SPELL_STABILIZE, 0);
   spell_assignment(CLASS_INQUISITOR, SPELL_VIRTUE, 0);
+  spell_assignment(CLASS_INQUISITOR, SPELL_DETECT_POISON, 0);
 
   /* spell circle 1 */
   spell_assignment(CLASS_INQUISITOR, SPELL_BLESS, 1);
@@ -8881,6 +8887,7 @@ void load_class_list(void)
   /* cantrips */
   spell_assignment(CLASS_SUMMONER, SPELL_ACID_SPLASH, 0);
   spell_assignment(CLASS_SUMMONER, SPELL_ARCANE_MARK, 0);
+  spell_assignment(CLASS_SUMMONER, SPELL_DETECT_POISON, 0);
 
   /* spell circle 1 */
   spell_assignment(CLASS_SUMMONER, SPELL_ANT_HAUL, 1);
