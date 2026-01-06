@@ -36,51 +36,13 @@
 #include "resource_depletion.h"
 #include "perks.h"
 
-static bool master_tracker_quarry_near(struct char_data *tracker, struct char_data *quarry)
-{
-  if (!tracker || !quarry)
-    return false;
-
-  if (IS_NPC(tracker) || IN_ROOM(tracker) == NOWHERE || IN_ROOM(quarry) == NOWHERE)
-    return false;
-
-  if (!has_inquisitor_master_tracker(tracker))
-    return false;
-
-  return world[IN_ROOM(tracker)].zone == world[IN_ROOM(quarry)].zone;
-}
-
-static void update_master_tracker_alert(struct char_data *tracker)
-{
-  if (!tracker || IS_NPC(tracker))
-    return;
-
-  if (!has_inquisitor_master_tracker(tracker))
-  {
-    GET_INQ_MASTER_TRACKER_ALERT(tracker) = false;
-    return;
-  }
-
-  struct char_data *quarry = GET_STUDIED_TARGET(tracker);
-  bool nearby = quarry && master_tracker_quarry_near(tracker, quarry);
-
-  if (nearby && !GET_INQ_MASTER_TRACKER_ALERT(tracker))
-  {
-    send_to_char(tracker, "You sense your studied quarry nearby.\r\n");
-    GET_INQ_MASTER_TRACKER_ALERT(tracker) = true;
-  }
-  else if (!nearby && GET_INQ_MASTER_TRACKER_ALERT(tracker))
-  {
-    send_to_char(tracker, "The trail of your studied quarry fades from your senses.\r\n");
-    GET_INQ_MASTER_TRACKER_ALERT(tracker) = false;
-  }
-}
-
 /* local file scope variables */
 static int extractions_pending = 0;
 
 /* local file scope functions */
 static void update_object(struct obj_data *obj, int use);
+
+static void update_master_tracker_alert(struct char_data *tracker);
 
 /* find the first word in a string buffer */
 const char *fname(const char *namelist)

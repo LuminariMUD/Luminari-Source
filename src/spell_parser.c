@@ -5250,7 +5250,7 @@ void mag_assign_spells(void)
   spellabilo(WARLOCK_NOXIOUS_BLAST, "noxious blast", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
              MAG_MANUAL, NULL, 1, 1, CONJURATION, 6, FALSE);
   spellabilo(WARLOCK_VITRIOLIC_BLAST, "vitriolic blast", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
-             MAG_MANUAL, NULL, 1, 1, EVOCATION 6, FALSE);
+             MAG_MANUAL, NULL, 1, 1, EVOCATION, 6, FALSE);
   spellabilo(WARLOCK_CHILLING_TENTACLES, "chilling tentacles", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
              TRUE, MAG_AREAS, NULL, 1, 1, CONJURATION, 5, FALSE);
   spellabilo(WARLOCK_DEVOUR_MAGIC, "devour magic", 0, 0, 0, POS_FIGHTING,
