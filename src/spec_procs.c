@@ -523,7 +523,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
  */
 void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
-  int i = 0, slot = 0, sinfo = 0;
+  int i = 0, j = 0, slot = 0, sinfo = 0;
   int bottom = 0, top = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
@@ -1001,9 +1001,14 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         break;
       len += nlen;
 
-      for (i = 1; i < MAX_SPELLS; i++)
+      bottom = 1;
+      top = TOP_SPELLS_POWERS_SKILLS_BOMBS;
+      for (; bottom < top; bottom++)
       {
+        i = spell_sort_info[bottom];
         sinfo = spell_info[i].min_level[class];
+        if (do_not_list_spell(i))
+          continue;
 
         /* SPELL PREPARATION HOOK (spellCircle) */
         if (compute_spells_circle(ch, class, i, 0, DOMAIN_UNDEFINED) == slot)
@@ -6234,6 +6239,13 @@ SPECIAL(wizard_library)
         spell_circle > TOP_CIRCLE)
     {
       send_to_char(ch, "That spell is not available to wizards.\r\n");
+      return TRUE;
+    }
+
+    /* Check if spell is flagged as no_player (not available to players) */
+    if (spell_info[spellnum].no_player)
+    {
+      send_to_char(ch, "That spell cannot be researched by wizards.\r\n");
       return TRUE;
     }
 

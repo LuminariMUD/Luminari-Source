@@ -1631,6 +1631,8 @@ struct spell_info_type
 
   bool quest; // is this a quest spell?
 
+  bool no_player; // if true, spell will not appear in player spell lists and cannot be cast by players
+
   /* TODO: d20pfsrd expansion */
 
   /* school declared above as "schoolOfMagic" */

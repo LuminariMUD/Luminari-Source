@@ -2199,6 +2199,14 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
   }
 
+  /* Players cannot directly cast spells flagged as no_player (consumables are handled elsewhere) */
+  if (!IS_NPC(ch) && spellnum > 0 && spellnum <= TOP_SPELL_DEFINE &&
+      spell_info[spellnum].no_player)
+  {
+    send_to_char(ch, "That magic cannot be invoked directly by mortals.\r\n");
+    return 0;
+  }
+
   int position = GET_POS(ch);
   int ch_class = CLASS_WIZARD;
   int casting_time = 0;
@@ -3905,6 +3913,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
   spell_info[spl].schoolOfMagic = school;
   spell_info[spl].quest = quest;
   spell_info[spl].cant_cast = false;
+  spell_info[spl].no_player = false;
 
   spell_info[spl].actual_ability = true;
 }
@@ -3912,6 +3921,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
 void CantCast(int spl)
 {
   spell_info[spl].cant_cast = true;
+  spell_info[spl].no_player = true;
 }
 
 // static void skillo_full(int spl, const char *name, int max_psp, int min_psp,

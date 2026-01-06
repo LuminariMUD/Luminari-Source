@@ -4224,6 +4224,7 @@ const struct set_struct
     {"necromancer", LVL_IMPL, PC, NUMBER},      /* 105 */
     {"background", LVL_STAFF, PC, MISC},        /* 106 */
     {"arcanemark", LVL_STAFF, PC, MISC},        /* 107 */
+    {"arcaneschool", LVL_STAFF, PC, MISC},      /* 108 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -5137,6 +5138,26 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     break;
 
+  case 108:
+    int school;
+    for (school = 1; school < NUM_SCHOOLS; school++)
+    {
+      if (is_abbrev(val_arg, spell_schools_lower[school]))
+      {
+        break;
+      }
+    }
+    if (school >= NUM_SCHOOLS)
+    {
+      send_to_char(ch, "That is not a valid spell school.\r\n");
+      return 0;
+    }
+    GET_SPECIALTY_SCHOOL(vict) = school;
+    send_to_char(ch, "You have set %s's spell school to %s.\r\n", GET_NAME(vict),
+                 spell_schools[school]);
+    send_to_char(vict, "%s has set your spell school to %s.\r\n",
+                 CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone", spell_schools[school]);
+  break;
 
   default:
     send_to_char(ch, "Can't set that!\r\n");

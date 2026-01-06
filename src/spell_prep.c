@@ -2135,6 +2135,7 @@ static int level_to_circle_conversion(int min_level, int caster_type)
  */
 static int check_campaign_spell_override(int spellnum)
 {
+
 #ifdef CAMPAIGN_FR
   switch (spellnum)
   {
@@ -5349,6 +5350,13 @@ ACMDU(do_gen_preparation)
   if (num_slots_by_circle <= 0)
   {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
+    return;
+  }
+
+  /* Disallow preparing spells flagged as no_player */
+  if (!IS_NPC(ch) && spell_info[spellnum].no_player)
+  {
+    send_to_char(ch, "That magic cannot be prepared by mortals.\r\n");
     return;
   }
 

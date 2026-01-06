@@ -9208,6 +9208,10 @@ bool do_not_list_spell(int spellnum)
   case SPELL_SANCTION_RECALL:
     return true;
   }
+
+  if (spellnum > 0 && spellnum <= TOP_SPELL_DEFINE && spell_info[spellnum].no_player)
+    return true;
+
   return false;
 }
 
@@ -9368,12 +9372,9 @@ int number_of_chests_per_zone(int num_zone_rooms)
   return (num_zone_rooms / NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST);
 }
 
-
-// This function checks to see if a random treasure chest can be placed in the room.
-// It is based on different factors, such as whether the room or zone is flagged to
-// allow random chests, how many chests are already in the zone, and so forth.
 bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests)
 {
+
   if (rrnum == NOWHERE)
     return false;
 
