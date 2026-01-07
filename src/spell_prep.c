@@ -2667,7 +2667,10 @@ bool ready_to_prep_spells(struct char_data *ch, int class)
   case CLASS_WIZARD: /* Wizards need their spellbook or a scroll to study from */
     if (SPELL_PREP_QUEUE(ch, class))
       if (!spellbook_ok(ch, SPELL_PREP_QUEUE(ch, class)->spell, CLASS_WIZARD, FALSE))
+      {
+        send_to_char(ch, "You may not have a spellbook in your inventory, or the spells you've memorized are not in your spellbook.\r\n");
         return FALSE;
+      }
     break;
   }
 
@@ -3204,7 +3207,28 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   /* FIRST: Check all prepared spell collections */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
-    if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
+    int check_metamagic = metamagic;
+    
+    /* Strip automatic metamagic flags when checking for prepared spells
+     * because automatic metamagic feats apply at cast time, not prep time.
+     * This prevents extraction failures when a caster has AUTOMATIC_SILENT_SPELL
+     * or AUTOMATIC_STILL_SPELL and tries to cast a level 3 or lower spell. */
+    if (CLASS_LEVEL(ch, ch_class) > 0)
+    {
+      int spell_circle = compute_spells_circle(ch, ch_class, spellnum, METAMAGIC_NONE, 
+                                                (ch_class == CLASS_CLERIC || ch_class == CLASS_INQUISITOR) ? 
+                                                GET_1ST_DOMAIN(ch) : DOMAIN_UNDEFINED);
+      
+      if (spell_circle <= 3)
+      {
+        if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+          REMOVE_BIT(check_metamagic, METAMAGIC_SILENT);
+        if (HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+          REMOVE_BIT(check_metamagic, METAMAGIC_STILL);
+      }
+    }
+    
+    if (is_spell_in_collection(ch, ch_class, spellnum, check_metamagic))
     {
       if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
           !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
@@ -3243,14 +3267,14 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
       }
 
       /* Found it! Extract from collection */
-      if (!collection_remove_by_class(ch, ch_class, spellnum, metamagic))
+      if (!collection_remove_by_class(ch, ch_class, spellnum, check_metamagic))
         return CLASS_UNDEFINED; /* Removal failed - shouldn't happen */
 
       /* Put spell back in prep queue to be prepared again */
       is_domain = is_domain_spell_of_ch(ch, spellnum);
-      circle = compute_spells_circle(ch, ch_class, spellnum, metamagic, is_domain);
+      circle = compute_spells_circle(ch, ch_class, spellnum, check_metamagic, is_domain);
       prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
-      prep_queue_add(ch, ch_class, spellnum, metamagic, prep_time, is_domain);
+      prep_queue_add(ch, ch_class, spellnum, check_metamagic, prep_time, is_domain);
 
       return (ch_class);
     }
@@ -3371,7 +3395,29 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
   /* FIRST: Check all prepared spell collections */
   for (class = 0; class < NUM_CLASSES; class ++)
   {
-    if (is_spell_in_collection(ch, class, spellnum, metamagic))
+    int check_metamagic = metamagic;
+    
+    /* Strip automatic metamagic flags when checking for prepared spells
+     * because automatic metamagic feats apply at cast time, not prep time.
+     * This prevents "You are not ready to cast that Spell" errors when a
+     * caster has AUTOMATIC_SILENT_SPELL or AUTOMATIC_STILL_SPELL and tries
+     * to cast a level 3 or lower spell that was prepared without those flags. */
+    if (CLASS_LEVEL(ch, class) > 0)
+    {
+      int spell_circle = compute_spells_circle(ch, class, spellnum, METAMAGIC_NONE, 
+                                                (class == CLASS_CLERIC || class == CLASS_INQUISITOR) ? 
+                                                GET_1ST_DOMAIN(ch) : DOMAIN_UNDEFINED);
+      
+      if (spell_circle <= 3)
+      {
+        if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+          REMOVE_BIT(check_metamagic, METAMAGIC_SILENT);
+        if (HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+          REMOVE_BIT(check_metamagic, METAMAGIC_STILL);
+      }
+    }
+    
+    if (is_spell_in_collection(ch, class, spellnum, check_metamagic))
       return class;
   }
 

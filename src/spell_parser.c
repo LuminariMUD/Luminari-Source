@@ -1518,7 +1518,11 @@ int castingCheckOk(struct char_data *ch)
 {
   int spellnum = CASTING_SPELLNUM(ch);
   int metamagic = CASTING_METAMAGIC(ch);
-  bool still_spell = IS_SET(metamagic, METAMAGIC_STILL);
+  bool still_spell = false;
+
+  if (IS_SET(metamagic, METAMAGIC_STILL) || (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
+      compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3))
+    still_spell = true;
 
   /* position check */
   if (GET_POS(ch) <= POS_SITTING && !still_spell)
@@ -2241,11 +2245,18 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
 
   if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
   {
-    send_to_char(ch, "You are unable to make a sound.\r\n");
-    act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
-    return 0;
+    if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
+      compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+    {
+      // allow automatic silent spell to bypass silence
+    }
+    else
+    {
+      send_to_char(ch, "You are unable to make a sound.\r\n");
+      act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
+      return 0;
+    }
   }
-
   // epic spell cooldown
   if (char_has_mud_event(ch, eMUMMYDUST) && spellnum == SPELL_MUMMY_DUST)
   {
@@ -3093,10 +3104,10 @@ ACMDU(do_gen_cast)
     }
   }
 
-  if (!IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
+  if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
       compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
     SET_BIT(metamagic, METAMAGIC_SILENT);
-  if (!IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) &&
+  if (HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) &&
       compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
     SET_BIT(metamagic, METAMAGIC_STILL);
 
@@ -3111,7 +3122,12 @@ ACMDU(do_gen_cast)
 
   if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
   {
-    if (!IS_SET(metamagic, METAMAGIC_SILENT))
+    if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
+      compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+    {
+      // allow automatic silent spell to bypass silence
+    }
+    else if (!IS_SET(metamagic, METAMAGIC_SILENT))
     {
       send_to_char(ch, "You are unable to make a sound.\r\n");
       act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);

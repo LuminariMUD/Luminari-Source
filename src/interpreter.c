@@ -5311,7 +5311,9 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   }
   else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to paralysis!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -5322,7 +5324,9 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
   }
   else if ((AFF_FLAGGED(ch, AFF_STUN)) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being stunned!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -5333,7 +5337,9 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
   }
   else if ((char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being under a stun effect!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -5344,7 +5350,9 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
   }
   else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
-           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");
@@ -8984,4 +8992,69 @@ bool command_can_be_used_while_casting(int cmd)
     return false;
 
   return true;
+}
+
+bool is_casting_command(char *command)
+{
+  if (!strcmp(command, "cast") || !strcmp(command, "imbibe") || !strcmp(command, "shadowcast") ||
+      !strcmp(command, "buff") ||  !strcmp(command, "manifest"))
+    return true;
+
+  return false;
+}
+
+bool is_valid_paralyzed_command(char *command)
+{
+  if (
+  !strcmp(command, "look") ||
+  !strcmp(command, "trip") ||
+  !strcmp(command, "group") ||
+  !strcmp(command, "hp") ||
+  !strcmp(command, "affects") ||
+  !strcmp(command, "idea") ||
+  !strcmp(command, "bug") ||
+  !strcmp(command, "typo") ||
+  !strcmp(command, "inventory") ||
+  !strcmp(command, "who") ||
+  !strcmp(command, "score") ||
+  !strcmp(command, "craftscore") ||
+  !strcmp(command, "queue") ||
+  !strcmp(command, "help") ||
+  !strcmp(command, "feat") ||
+  !strcmp(command, "tnl") ||
+  !strcmp(command, "prefedit") ||
+  !strcmp(command, "races") ||
+  !strcmp(command, "classes") ||
+  !strcmp(command, "cooldowns") ||
+  !strcmp(command, "abilities") ||
+  !strcmp(command, "resistances") ||
+  !strcmp(command, "powerattack") ||
+  !strcmp(command, "expertise") ||
+  !strcmp(command, "ooc") ||
+  !strcmp(command, "chat") ||
+  !strcmp(command, "osay") ||
+  !strcmp(command, "save") ||
+  !strcmp(command, "wearapplies") ||
+  !strcmp(command, "wearlocations") ||
+  !strcmp(command, "cast") ||
+  !strcmp(command, "spells") ||
+  !strcmp(command, "spelllist") ||
+  !strcmp(command, "memorize") ||
+  !strcmp(command, "prayer") ||
+  !strcmp(command, "commune") ||
+  !strcmp(command, "chant") ||
+  !strcmp(command, "adjure") ||
+  !strcmp(command, "compose") ||
+  !strcmp(command, "meditate") ||
+  !strcmp(command, "concoct") ||
+  !strcmp(command, "extracts") ||
+  !strcmp(command, "manifest") ||
+  !strcmp(command, "powers") ||
+  !strcmp(command, "condemn") ||
+  !strcmp(command, "compel") ||
+  !strcmp(command, "conjure")
+
+  )    return true;
+
+  return false;
 }
