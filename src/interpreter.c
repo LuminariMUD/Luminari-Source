@@ -224,6 +224,8 @@ cpp_extern const struct command_info cmd_info[] = {
      {1, 0},
      can_eldritch_blast},
     {"ask", "ask", POS_RECLINING, do_spec_comm, 0, SCMD_ASK, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"quitlog", "quitlog", POS_DEAD, do_quitlog, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0},
+     NULL},
     {"astat", "ast", POS_DEAD, do_astat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"attach", "attach", POS_DEAD, do_attach, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"attacks", "attacks", POS_DEAD, do_attacks, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -5312,8 +5314,8 @@ void command_interpreter(struct char_data *ch, char *argument)
   }
   else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command(complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
+           !is_casting_command((char *) complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command((char *) complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to paralysis!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -5325,8 +5327,8 @@ void command_interpreter(struct char_data *ch, char *argument)
   }
   else if ((AFF_FLAGGED(ch, AFF_STUN)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command(complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
+           !is_casting_command((char *) complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command((char *) complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being stunned!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -5338,8 +5340,8 @@ void command_interpreter(struct char_data *ch, char *argument)
   }
   else if ((char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command(complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
+           !is_casting_command((char *) complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command((char *) complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being under a stun effect!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -5351,8 +5353,8 @@ void command_interpreter(struct char_data *ch, char *argument)
   }
   else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command(complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
+           !is_casting_command((char *) complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command((char *) complete_cmd_info[cmd].command))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");
@@ -8672,6 +8674,25 @@ void nanny(struct descriptor_data *d, char *arg)
   case CON_CLOSE:
     break;
 
+  case CON_QUIT_REASON:
+    if (d->character)
+    {
+      GET_QUIT_SURVEY_DONE(d->character) = TRUE; /* legacy per-character flag */
+      if (d->account)
+      {
+        d->account->quit_survey_completed = TRUE;
+        save_account(d->account);
+      }
+      /* Only record if they provided a reason */
+      if (*arg)
+        record_quit_feedback(d->character, arg);
+      STATE(d) = CON_PLAYING;
+      perform_player_quit(d->character);
+    }
+    else
+      STATE(d) = CON_CLOSE;
+    break;
+
   case CON_BOARD_TITLE:
     /* Handle board post title input */
     if (!*arg)
@@ -8732,6 +8753,12 @@ void show_character_rp_menu(struct descriptor_data *d)
   write_to_output(d, "\tc");
   draw_line(d->character, 80, '-', '-');
   text_line(d->character, "\tWCHARACTER OPTIONS MENU\tc", 80, '-', '-');
+  if (CONFIG_USE_INTRO_SYSTEM)
+  {
+    draw_line(d->character, 80, '-', '-');
+    text_line(d->character, "\twThese Can be done anytime. Only Short Descriptions are Required Immediately.\tc", 80, '-', '-');
+    
+  }
   draw_line(d->character, 80, '-', '-');
   write_to_output(d, "\tn");
 

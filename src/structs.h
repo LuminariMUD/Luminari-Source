@@ -1791,8 +1791,9 @@
 #define CON_BOARD_POST 83       /**< Board post completion */
 #define CON_BOARD_POST_ABORT 84 /**< Board post aborted */
 #define CON_BEDIT 85            /**< OLC mode - board editor */
+#define CON_QUIT_REASON 86      /**< Quit feedback prompt */
 
-#define NUM_CON_STATES 86
+#define NUM_CON_STATES 87
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -6684,6 +6685,8 @@ struct player_special_data_saved
   room_rnum current_mission_room;
   int faction;
 
+  bool quit_survey_completed; /* Has the quit feedback prompt been answered? */
+
   /* staff event variables */
   int staff_ran_events[STAFF_RAN_EVENTS_VAR];
 
@@ -7872,6 +7875,7 @@ struct account_data
   int classes[MAX_UNLOCKED_CLASSES];
   int races[MAX_UNLOCKED_RACES];
   char *email;
+  bool quit_survey_completed;
   //        int surveys[4];
   //        struct obj_data *item_bank;
   //        int item_bank_size;

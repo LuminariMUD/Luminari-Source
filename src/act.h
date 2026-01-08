@@ -919,6 +919,9 @@ ACMD_DECL(do_buildwalk);
 
 /* do_quit */
 ACMD_DECL(do_quit);
+ACMD_DECL(do_quitlog);
+void perform_player_quit(struct char_data *ch);
+void record_quit_feedback(struct char_data *ch, const char *reason);
 #define SCMD_QUI 0
 #define SCMD_QUIT 1
 /* do_use */

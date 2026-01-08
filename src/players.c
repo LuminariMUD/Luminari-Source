@@ -499,6 +499,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_BONUS_SLOTS_USED(ch) = 0;
     GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
+    GET_QUIT_SURVEY_DONE(ch) = FALSE;
     ch->player_specials->saved.last_device_recharge = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
@@ -1549,6 +1550,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_QUEST_COUNTER(ch, 2) = atoi(line);
         else if (!strcmp(tag, "Qest"))
           load_quests(fl, ch);
+        else if (!strcmp(tag, "QSvy"))
+          GET_QUIT_SURVEY_DONE(ch) = atoi(line);
         break;
 
       case 'R':
@@ -2275,6 +2278,9 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE("MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
   BUFFER_WRITE("MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
   BUFFER_WRITE("MiRm: %d\n", GET_CURRENT_MISSION_ROOM(ch));
+
+  if (GET_QUIT_SURVEY_DONE(ch))
+    BUFFER_WRITE("QSvy: %d\n", GET_QUIT_SURVEY_DONE(ch));
 
   if (VITAL_STRIKING(ch))
     BUFFER_WRITE("VitS: %d\n", VITAL_STRIKING(ch));

@@ -646,8 +646,8 @@ int load_account(char *name, struct account_data *account)
 
   /* Case-insensitive match on the escaped account name */
   snprintf(buf, sizeof(buf),
-           "SELECT id, name, password, experience, email from account_data where lower(name) = "
-           "lower('%s')",
+           "SELECT id, name, password, experience, email, quit_survey_completed "
+           "from account_data where lower(name) = lower('%s')",
            escaped_name);
 
   if (mysql_query(conn, buf))
@@ -674,6 +674,7 @@ int load_account(char *name, struct account_data *account)
   account->password[MAX_PWD_LENGTH] = '\0'; /* Ensure null termination */
   account->experience = atoi(row[3]);
   account->email = (row[4] ? strdup(row[4]) : NULL);
+  account->quit_survey_completed = (row[5] ? atoi(row[5]) : 0);
 
   mysql_free_result(result);
   load_account_characters(account);
@@ -994,14 +995,15 @@ void save_account(struct account_data *account)
   }
 
   snprintf(buf, sizeof(buf),
-           "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', "
-           "'%s', %d, %s%s%s)"
+           "INSERT into account_data (id, name, password, experience, email, quit_survey_completed) "
+           "values (%d, '%s', '%s', %d, %s%s%s, %d)"
            " on duplicate key update password = VALUES(password), "
            "                         experience = VALUES(experience), "
-           "                         email = VALUES(email);",
+           "                         email = VALUES(email), "
+           "                         quit_survey_completed = VALUES(quit_survey_completed);",
            account->id, account->name, account->password, account->experience,
            (account->email ? "'" : ""), (account->email ? account->email : "NULL"),
-           (account->email ? "'" : ""));
+           (account->email ? "'" : ""), account->quit_survey_completed ? 1 : 0);
 
   if (mysql_query(conn, buf))
   {

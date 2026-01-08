@@ -116,6 +116,7 @@
 #define MESS_FILE LIB_MISC "messages"           /* damage messages		*/
 #define SOCMESS_FILE LIB_MISC "socials"         /* messages for social acts	*/
 #define SOCMESS_FILE_NEW LIB_MISC "socials.new" /* messages for social acts with aedit patch*/
+#define QUIT_FEEDBACK_FILE LIB_MISC "quit_feedback.log" /* quit feedback responses */
 #define XNAME_FILE LIB_MISC "xnames"            /* invalid name substrings	*/
 
 /* BEGIN: Assumed default locations for logfiles, mainly used in do_file. */

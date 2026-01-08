@@ -61,6 +61,7 @@
 #include "traps.h" /* For trap system functions */
 #include "constants.h"
 #include "crafting_new.h" /* For golem repair functions */
+#include "genolc.h"
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -75,6 +76,8 @@
 
 /* debugging */
 #define DEBUG_MODE FALSE
+
+#define QUIT_FEEDBACK_MIN_LEVEL 5
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -5040,10 +5043,136 @@ ACMD(do_splitenchantment)
                    "school spell.\tn\r\n");
 }
 
-ACMD(do_quit)
+static bool account_quit_prompt_needed(struct char_data *ch)
+{
+  if (!ch || !ch->desc || !ch->desc->account)
+    return FALSE;
+
+  return (ch->desc->account->quit_survey_completed == FALSE);
+}
+
+static bool should_prompt_quit_feedback(struct char_data *ch, int subcmd)
+{
+  if (IS_NPC(ch) || !ch->desc)
+    return FALSE;
+
+  /* Only prompt for the real quit command, low-level players, and only once per account. */
+  if (subcmd != SCMD_QUIT || GET_LEVEL(ch) >= QUIT_FEEDBACK_MIN_LEVEL)
+    return FALSE;
+
+  if (account_quit_prompt_needed(ch))
+    return TRUE;
+
+  /* Fallback to character flag if account data is unavailable. */
+  return (!GET_QUIT_SURVEY_DONE(ch));
+}
+
+void record_quit_feedback(struct char_data *ch, const char *reason)
+{
+  char cleaned[MAX_INPUT_LENGTH] = {'\0'};
+  char class_breakdown[MAX_STRING_LENGTH] = {'\0'};
+  time_t now = time(0);
+  char time_buf[32] = {'\0'};
+  const char *account = NULL;
+  const char *host = NULL;
+  const char *race_name = NULL;
+  int i = 0, counter = 0;
+
+  if (!ch || IS_NPC(ch))
+    return;
+
+  if (reason)
+    strlcpy(cleaned, reason, sizeof(cleaned));
+  strip_cr(cleaned);
+  strip_nl(cleaned);
+
+  account = ch->desc && ch->desc->account ? ch->desc->account->name : "unknown";
+  host = (ch->desc && *ch->desc->host) ? ch->desc->host : "unknown";
+  race_name = race_list[GET_REAL_RACE(ch)].type;
+
+  /* Build class breakdown: "5 Wiz / 3 Rog" format */
+  counter = 0;
+  for (i = 0; i < MAX_CLASSES; i++)
+  {
+    if (CLASS_LEVEL(ch, i))
+    {
+      if (counter)
+        strlcat(class_breakdown, " / ", sizeof(class_breakdown));
+      char temp_buf[128];
+      snprintf(temp_buf, sizeof(temp_buf), "%d %s", CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+      strlcat(class_breakdown, temp_buf, sizeof(class_breakdown));
+      counter++;
+    }
+  }
+  if (!counter)
+    strlcpy(class_breakdown, "(no class)", sizeof(class_breakdown));
+
+  strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
+
+  FILE *logfile = fopen(QUIT_FEEDBACK_FILE, "a");
+  if (!logfile)
+  {
+    mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: Could not open %s for quit feedback: %s",
+           QUIT_FEEDBACK_FILE, strerror(errno));
+    return;
+  }
+
+  fprintf(logfile, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n",
+          time_buf, GET_NAME(ch), account, race_name, class_breakdown,
+          IN_ROOM(ch) != NOWHERE ? GET_ROOM_VNUM(IN_ROOM(ch)) : -1, host,
+          *cleaned ? cleaned : "(no reason provided)");
+
+  fclose(logfile);
+
+  /* Notify online staff of the quit feedback entry */
+  mudlog(BRF, LVL_STAFF, TRUE, "QUIT FEEDBACK: %s (Account: %s, %s %s): %s",
+         GET_NAME(ch), account, race_name, class_breakdown,
+         *cleaned ? cleaned : "(no reason provided)");
+}
+
+void perform_player_quit(struct char_data *ch)
 {
   int index = 0;
 
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  act("$n has left the game.", TRUE, ch, 0, 0, TO_ROOM);
+  mudlog(NRM, LVL_STAFF, TRUE, "%s has quit the game.", GET_NAME(ch));
+  save_eidolon_descs(ch);
+  save_char_pets(ch);
+  dismiss_all_followers(ch);
+
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  { /* loop through all the character's quest slots */
+    if (GET_QUEST_TIME(ch, index) != -1)
+      quest_timeout(ch, index);
+  }
+
+  send_to_char(ch, "Goodbye, friend.. Come back soon!\r\n");
+
+  // /* We used to check here for duping attempts, but we may as well do it right
+  //  * in extract_char(), since there is no check if a player rents out and it
+  //  * can leave them in an equally screwy situation. */
+
+  if (CONFIG_FREE_RENT)
+    Crash_rentsave(ch, 0);
+
+  GET_LOADROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
+
+  /* Stop snooping so you can't see passwords during deletion or change. */
+  if (ch->desc->snoop_by)
+  {
+    write_to_output(ch->desc->snoop_by, "Your victim is no longer among us.\r\n");
+    ch->desc->snoop_by->snooping = NULL;
+    ch->desc->snoop_by = NULL;
+  }
+
+  extract_char(ch); /* Char is saved before extracting. */
+}
+
+ACMD(do_quit)
+{
   if (IS_NPC(ch) || !ch->desc)
     return;
 
@@ -5056,40 +5185,17 @@ ACMD(do_quit)
     send_to_char(ch, "You die before your time...\r\n");
     die(ch, NULL);
   }
+  else if (should_prompt_quit_feedback(ch, subcmd))
+  {
+    send_to_char(ch,
+                 "Before you go, could you share why you're leaving? (Press Enter to skip)\r\n"
+                 "This information is helpful for us in improving the game experience for new players.\r\n"
+                 "Reason: ");
+    STATE(ch->desc) = CON_QUIT_REASON;
+  }
   else
   {
-    act("$n has left the game.", TRUE, ch, 0, 0, TO_ROOM);
-    mudlog(NRM, LVL_STAFF, TRUE, "%s has quit the game.", GET_NAME(ch));
-    save_eidolon_descs(ch);
-    save_char_pets(ch);
-    dismiss_all_followers(ch);
-
-    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
-    { /* loop through all the character's quest slots */
-      if (GET_QUEST_TIME(ch, index) != -1)
-        quest_timeout(ch, index);
-    }
-
-    send_to_char(ch, "Goodbye, friend.. Come back soon!\r\n");
-
-    // /* We used to check here for duping attempts, but we may as well do it right
-    //  * in extract_char(), since there is no check if a player rents out and it
-    //  * can leave them in an equally screwy situation. */
-
-    if (CONFIG_FREE_RENT)
-      Crash_rentsave(ch, 0);
-
-    GET_LOADROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
-
-    /* Stop snooping so you can't see passwords during deletion or change. */
-    if (ch->desc->snoop_by)
-    {
-      write_to_output(ch->desc->snoop_by, "Your victim is no longer among us.\r\n");
-      ch->desc->snoop_by->snooping = NULL;
-      ch->desc->snoop_by = NULL;
-    }
-
-    extract_char(ch); /* Char is saved before extracting. */
+    perform_player_quit(ch);
   }
 }
 

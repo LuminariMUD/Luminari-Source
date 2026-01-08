@@ -63,6 +63,7 @@ void initialize_missing_tables(void)
     log("Core player tables initialized");
   }
   ensure_player_data_account_link();
+  ensure_account_quit_survey_column();
 
   /* Object database tables */
   if (!table_exists("object_database_items"))

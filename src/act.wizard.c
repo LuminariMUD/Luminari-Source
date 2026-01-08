@@ -109,6 +109,98 @@ static struct recent_player *recent_list = NULL; /** Global list of recent playe
 // external functions
 void save_char_pets(struct char_data *ch);
 
+ACMD(do_quitlog)
+{
+  int max_lines = 20;
+  FILE *fp = NULL;
+  char line[1024];
+  char *entries[200] = {NULL};
+  int count = 0;
+  int i = 0;
+  char *out = NULL;
+  size_t out_len = 0, out_cap = 0;
+
+  if (IS_NPC(ch) || !ch->desc)
+    return;
+
+  if (*argument)
+    max_lines = MAX(5, MIN(200, atoi(argument)));
+  if (max_lines <= 0)
+    max_lines = 20;
+
+  fp = fopen(QUIT_FEEDBACK_FILE, "r");
+  if (!fp)
+  {
+    send_to_char(ch, "No quit feedback log exists yet.\r\n");
+    return;
+  }
+
+  while (fgets(line, sizeof(line), fp))
+  {
+    strip_cr(line);
+    i = count % max_lines;
+    if (entries[i])
+      free(entries[i]);
+    entries[i] = strdup(line);
+    count++;
+  }
+  fclose(fp);
+
+  if (count == 0)
+  {
+    send_to_char(ch, "The quit feedback log is currently empty.\r\n");
+  }
+  else
+  {
+    int available = MIN(count, max_lines);
+    int start = (count > max_lines) ? (count % max_lines) : 0;
+
+    out_cap = (size_t)available * sizeof(line) + 256;
+    out = calloc(out_cap, 1);
+
+    if (!out)
+    {
+      send_to_char(ch, "Unable to allocate memory to display the log.\r\n");
+    }
+    else
+    {
+      out_len = snprintf(out, out_cap, "Quit feedback log (last %d entries):\r\n", available);
+      for (i = 0; i < available; i++)
+      {
+        int idx = (start + i) % max_lines;
+        if (!entries[idx])
+          continue;
+
+        size_t needed = strlen(entries[idx]) + 3; /* line + CRLF */
+        if (out_len + needed >= out_cap)
+        {
+          out_cap *= 2;
+          char *tmp = realloc(out, out_cap);
+          if (!tmp)
+          {
+            send_to_char(ch, "Unable to grow buffer while formatting log output.\r\n");
+            free(out);
+            out = NULL;
+            break;
+          }
+          out = tmp;
+        }
+
+        out_len += snprintf(out + out_len, out_cap - out_len, "%s", entries[idx]);
+      }
+
+      if (out)
+        page_string(ch->desc, out, TRUE);
+    }
+  }
+
+  for (i = 0; i < max_lines; i++)
+    if (entries[i])
+      free(entries[i]);
+  if (out)
+    free(out);
+}
+
 int purge_room(room_rnum room)
 {
   int j;

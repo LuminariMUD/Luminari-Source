@@ -1403,6 +1403,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_HOST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->host))
 #define GET_LAST_MOTD(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.lastmotd))
 #define GET_LAST_NEWS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.lastnews))
+#define GET_QUIT_SURVEY_DONE(ch)                                                                \
+  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quit_survey_completed))
 
 /** Get channel history i for ch. */
 #define GET_HISTORY(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.comm_hist[i]))

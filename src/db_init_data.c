@@ -358,6 +358,98 @@ void ensure_player_data_account_link(void)
   }
 }
 
+/* Ensure account_data has the quit survey column used to gate prompting */
+void ensure_account_quit_survey_column(void)
+{
+  MYSQL_RES *result = NULL;
+  MYSQL_ROW row;
+  char query[512];
+  bool has_column = FALSE;
+  bool allows_null = FALSE;
+
+  if (!mysql_available || !conn)
+  {
+    return;
+  }
+
+  if (!table_exists("account_data"))
+  {
+    log("Info: account_data table missing; skipping quit survey column check");
+    return;
+  }
+
+  /* Check if quit_survey_completed column exists */
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+           "WHERE TABLE_SCHEMA = DATABASE() "
+           "AND TABLE_NAME = 'account_data' "
+           "AND COLUMN_NAME = 'quit_survey_completed'");
+
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Failed checking for account_data.quit_survey_completed column: %s",
+        mysql_error(conn));
+    return;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (result)
+  {
+    row = mysql_fetch_row(result);
+    if (row && row[0] && atoi(row[0]) > 0)
+      has_column = TRUE;
+    mysql_free_result(result);
+  }
+
+  if (!has_column)
+  {
+    if (mysql_query_safe(conn, "ALTER TABLE account_data "
+                           "ADD COLUMN quit_survey_completed TINYINT(1) DEFAULT NULL"))
+    {
+      log("SYSERR: Failed to add quit_survey_completed column to account_data: %s",
+          mysql_error(conn));
+    }
+    else
+    {
+      log("Info: Added quit_survey_completed column to account_data table");
+    }
+    return;
+  }
+
+  /* Ensure the column allows NULL (we intentionally treat NULL as not yet prompted) */
+  snprintf(query, sizeof(query),
+           "SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS "
+           "WHERE TABLE_SCHEMA = DATABASE() "
+           "AND TABLE_NAME = 'account_data' "
+           "AND COLUMN_NAME = 'quit_survey_completed'");
+
+  if (!mysql_query_safe(conn, query))
+  {
+    result = mysql_store_result_safe(conn);
+    if (result)
+    {
+      row = mysql_fetch_row(result);
+      if (row && row[0] && strcmp(row[0], "YES") == 0)
+        allows_null = TRUE;
+      mysql_free_result(result);
+    }
+  }
+
+  if (!allows_null)
+  {
+    if (mysql_query_safe(conn, "ALTER TABLE account_data "
+                           "MODIFY COLUMN quit_survey_completed TINYINT(1) DEFAULT NULL"))
+    {
+      log("SYSERR: Failed to relax quit_survey_completed column nullability: %s",
+          mysql_error(conn));
+    }
+    else
+    {
+      log("Info: Updated quit_survey_completed column to allow NULL values");
+    }
+  }
+}
+
 /* Populate resource_types with standard resource definitions - ONLY if table is empty */
 void populate_resource_types_data(void)
 {
