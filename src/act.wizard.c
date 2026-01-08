@@ -2799,7 +2799,7 @@ void show_full_last_command(struct char_data *ch)
   send_to_char(ch, "%-20s %-20s %-25s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)",
                "CHARACTER INFO");
   snprintf(query, sizeof(query),
-           "SELECT a.name, a.last_online, '' AS character_info, b.name AS account_name FROM "
+           "SELECT a.name, a.last_online, character_info, b.name AS account_name FROM "
            "player_data a "
            "LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
@@ -2824,7 +2824,7 @@ void show_full_last_command_unique(struct char_data *ch)
   send_to_char(ch, "%-20s %-20s %-25s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)",
                "CHARACTER INFO");
   snprintf(query, sizeof(query),
-           "SELECT a.name, a.last_online, b.name AS account_name, '' AS character_info FROM "
+           "SELECT a.name, a.last_online, b.name AS account_name, character_info FROM "
            "player_data a "
            "LEFT JOIN account_data b ON a.account_id=b.id GROUP BY b.name ORDER BY a.last_online "
            "DESC LIMIT 40;");
