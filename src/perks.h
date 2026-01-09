@@ -100,6 +100,14 @@ bool has_inquisitor_legendary_tracker(struct char_data *ch);
 bool has_inquisitor_instant_death(struct char_data *ch);
 bool has_inquisitor_perfect_predator(struct char_data *ch);
 
+/* Inquisitor helper functions - Investigation & Perception Tree Tier 1 */
+bool has_inquisitor_keen_senses(struct char_data *ch);
+int get_inquisitor_keen_senses_rank(struct char_data *ch);
+bool has_inquisitor_read_intentions(struct char_data *ch);
+bool has_inquisitor_lore_master(struct char_data *ch);
+int get_inquisitor_lore_master_rank(struct char_data *ch);
+bool has_inquisitor_detect_magic_natural(struct char_data *ch);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);

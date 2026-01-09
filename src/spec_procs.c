@@ -1544,6 +1544,13 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 8;
     if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
+    /* Inquisitor Keen Senses: +2 per rank to Perception */
+    if (!IS_NPC(ch))
+    {
+      int keen_senses_rank = get_inquisitor_keen_senses_rank(ch);
+      if (keen_senses_rank > 0)
+        value += (2 * keen_senses_rank);
+    }
     return value;
   case ABILITY_HEAL:
     value += GET_WIS_BONUS(ch);
@@ -1683,6 +1690,13 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 2;
     if (HAS_FEAT(ch, FEAT_ELDRITCH_LORE))
       value += 2;
+    /* Inquisitor Lore Master: +1 per rank to Arcana, Wisdom, History */
+    if (!IS_NPC(ch))
+    {
+      int lore_master_rank = get_inquisitor_lore_master_rank(ch);
+      if (lore_master_rank > 0)
+        value += lore_master_rank;
+    }
     value += GET_INT_BONUS(ch);
     return value;
   case ABILITY_RIDE:
@@ -1822,6 +1836,13 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     {
       /* Unnamed bonus */
       value += 2;
+    }
+    /* Inquisitor Lore Master: +1 per rank to Nature (Survival) */
+    if (!IS_NPC(ch))
+    {
+      int lore_master_rank = get_inquisitor_lore_master_rank(ch);
+      if (lore_master_rank > 0)
+        value += lore_master_rank;
     }
     /* Inquisitor Terrain Mastery: +2 per rank to Survival checks in favored terrain */
     if (!IS_NPC(ch) && is_inquisitor_in_favored_terrain(ch))

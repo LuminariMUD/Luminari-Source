@@ -1599,6 +1599,31 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
   /* Show all characters/NPCs in room */
   list_char_to_char(world[IN_ROOM(ch)].people, ch);
+
+  /* Inquisitor Read Intentions: sense aggressive mobs one room away */
+  if (!IS_NPC(ch) && has_inquisitor_read_intentions(ch))
+  {
+    int dir, found_aggro = 0;
+    for (dir = 0; dir < NUM_OF_DIRS; dir++)
+    {
+      if (EXIT(ch, dir) && EXIT(ch, dir)->to_room != NOWHERE)
+      {
+        struct char_data *mob;
+        for (mob = world[EXIT(ch, dir)->to_room].people; mob; mob = mob->next_in_room)
+        {
+          if (IS_NPC(mob) && MOB_FLAGGED(mob, MOB_AGGRESSIVE) && CAN_SEE(ch, mob))
+          {
+            if (!found_aggro)
+            {
+              send_to_char(ch, "\tR[Your heightened senses detect hostile creatures nearby!]\tn\r\n");
+              found_aggro = 1;
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
 }
 
 static void look_in_direction(struct char_data *ch, int dir)

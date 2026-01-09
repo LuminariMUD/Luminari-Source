@@ -172,19 +172,19 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 1. **Keen Senses**
    - *4 ranks, 1 point each*
-   - Your perceptive abilities are unmatched. Gain +2 per rank to Perception checks. At rank 4, you gain darkvision 60 feet (or increase existing darkvision by 60 feet), and you can see through magical darkness as if it were dim light.
+   - Your perceptive abilities are unmatched. Gain +2 per rank to Perception checks. At rank 4, you gain darkvision, and you can see through magical darkness.
 
 2. **Read Intentions**
-   - *2 ranks, 1 point each*
-   - Detect hostile intent through subtle cues. Gain +3 per rank to Sense Motive checks. At rank 2, you can determine if a creature has hostile intentions toward you or your allies as a free action.
+   - *1 rank, 4 points*
+   - be able to sense aggro mobs one room away.
 
 3. **Lore Master**
-   - *1 rank, 1 point*
-   - Your knowledge is encyclopedic. You can use Wisdom instead of Intelligence for all Knowledge checks. Once per encounter, you can take 20 on a Knowledge check as a standard action.
+   - *3 ranks, 1 point each*
+   - Your knowledge is encyclopedic. You gain +1 to arcana, wisdom, nature and history per rank.
 
 4. **Detect Magic**
    - *1 rank, 1 point*
-   - Perceive magical auras naturally. You can cast Detect Magic at will as a spell-like ability. You automatically detect when a spell is cast within 60 feet (though you must use Spellcraft to identify it).
+   - Perceive magical auras naturally. You can cast Detect Magic at will.
 
 ### Tier 2 (4 Perks)
 

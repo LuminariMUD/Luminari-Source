@@ -3574,6 +3574,10 @@ bool char_has_ultra(struct char_data *ch)
   if (!IS_NPC(ch) && has_inquisitor_perfect_predator(ch) && is_inquisitor_in_favored_terrain(ch))
     return TRUE;
 
+  /* Keen Senses rank 4: darkvision and see through magical darkness */
+  if (!IS_NPC(ch) && get_inquisitor_keen_senses_rank(ch) >= 4)
+    return TRUE;
+
   if (GET_RACE(ch) == RACE_HALF_TROLL)
     return TRUE;
   if (GET_RACE(ch) == RACE_H_ORC)

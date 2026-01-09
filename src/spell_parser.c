@@ -6239,6 +6239,8 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isBozakMagic(ch, spellnum))
     return true;
+  if (has_inquisitor_detect_magic_natural(ch) && (spellnum == SPELL_DETECT_MAGIC))
+    return true;
 
   return false;
 }

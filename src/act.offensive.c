@@ -13131,6 +13131,26 @@ ACMD(do_mark)
   }
 }
 
+/* Inquisitor Detect Magic at will (from Detect Magic perk) */
+ACMD(do_detectmagic)
+{
+  if (IS_NPC(ch) || !has_inquisitor_detect_magic_natural(ch))
+  {
+    send_to_char(ch, "You don't have that ability.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_DETECT_MAGIC))
+  {
+    send_to_char(ch, "You are already detecting magic.\r\n");
+    return;
+  }
+
+  /* Cast detect magic at inquisitor level without using a spell slot */
+  call_magic(ch, ch, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_INQUISITOR), CAST_INNATE);
+  send_to_char(ch, "Your heightened senses attune to magical auras.\r\n");
+}
+
 /* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
 ACMD(do_huntersmark)
 {

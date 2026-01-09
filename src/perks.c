@@ -1497,6 +1497,78 @@ void define_inquisitor_perks(void)
   perk->special_description = strdup("When you study a foe, you pierce its defenses, ignoring half "
                                      "of its damage reduction.");
   perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 1: Keen Senses (4 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_KEEN_SENSES];
+  perk->id = PERK_INQUISITOR_KEEN_SENSES;
+  perk->name = strdup("Keen Senses");
+  perk->description = strdup("Your perceptive abilities are unmatched.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 1;
+  perk->max_rank = 4;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 per rank to Perception */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain +2 per rank to Perception checks. At rank 4, you gain darkvision and can see through magical darkness.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 1: Read Intentions (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_READ_INTENTIONS];
+  perk->id = PERK_INQUISITOR_READ_INTENTIONS;
+  perk->name = strdup("Read Intentions");
+  perk->description = strdup("Sense aggressive creatures nearby.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Sense aggressive mobs one room away. This provides awareness of hostile creatures nearby.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 1: Lore Master (3 ranks, 1 point each) */
+  perk = &perk_list[PERK_INQUISITOR_LORE_MASTER];
+  perk->id = PERK_INQUISITOR_LORE_MASTER;
+  perk->name = strdup("Lore Master");
+  perk->description = strdup("Your knowledge is encyclopedic.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 per rank to knowledge skills */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain +1 per rank to Arcana, Wisdom, Nature, and History checks.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 1: Detect Magic (1 rank, 1 point) */
+  perk = &perk_list[PERK_INQUISITOR_DETECT_MAGIC_NATURAL];
+  perk->id = PERK_INQUISITOR_DETECT_MAGIC_NATURAL;
+  perk->name = strdup("Detect Magic");
+  perk->description = strdup("Perceive magical auras naturally.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "You can cast Detect Magic at will without expending spell slots or components.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -2058,6 +2130,42 @@ bool has_inquisitor_instant_death(struct char_data *ch)
 bool has_inquisitor_perfect_predator(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERFECT_PREDATOR);
+}
+
+/* Investigation & Perception Tree Tier 1 Helper Functions */
+
+bool has_inquisitor_keen_senses(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_KEEN_SENSES);
+}
+
+int get_inquisitor_keen_senses_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_KEEN_SENSES, CLASS_INQUISITOR);
+}
+
+bool has_inquisitor_read_intentions(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_READ_INTENTIONS);
+}
+
+bool has_inquisitor_lore_master(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_LORE_MASTER);
+}
+
+int get_inquisitor_lore_master_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_LORE_MASTER, CLASS_INQUISITOR);
+}
+
+bool has_inquisitor_detect_magic_natural(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DETECT_MAGIC_NATURAL);
 }
 
 int get_inquisitor_wilderness_stride_rank(struct char_data *ch)
