@@ -111,8 +111,9 @@ void save_char_pets(struct char_data *ch);
 
 ACMD(do_quitlog)
 {
+  char arg1[256], arg2[256];
   int max_lines = 20;
-  FILE *fp = NULL;
+  FILE *fp = NULL, *temp_fp = NULL;
   char line[1024];
   char *entries[200] = {NULL};
   int count = 0;
@@ -123,8 +124,88 @@ ACMD(do_quitlog)
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  if (*argument)
-    max_lines = MAX(5, MIN(200, atoi(argument)));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  /* Handle delete command */
+  if (*arg1 && !strcasecmp(arg1, "delete"))
+  {
+    int line_num = 0;
+    int delete_idx = -1;
+
+    if (!*arg2 || !isdigit(*arg2))
+    {
+      send_to_char(ch, "Usage: quitlog delete <line_number>\r\n");
+      return;
+    }
+
+    delete_idx = atoi(arg2);
+
+    /* Read all non-empty lines from the file */
+    fp = fopen(QUIT_FEEDBACK_FILE, "r");
+    if (!fp)
+    {
+      send_to_char(ch, "No quit feedback log exists yet.\r\n");
+      return;
+    }
+
+    while (fgets(line, sizeof(line), fp) && count < 200)
+    {
+      strip_cr(line);
+      /* Skip empty lines and lines with only whitespace */
+      int is_blank = 1, j;
+      for (j = 0; line[j]; j++) {
+        if (!isspace((unsigned char)line[j])) {
+          is_blank = 0;
+          break;
+        }
+      }
+      if (!is_blank)
+      {
+        entries[count] = strdup(line);
+        count++;
+      }
+    }
+    fclose(fp);
+
+    /* Check if the line number is valid */
+    if (delete_idx < 1 || delete_idx > count)
+    {
+      send_to_char(ch, "Invalid line number. Valid range: 1 to %d\r\n", count);
+      for (i = 0; i < count; i++)
+        if (entries[i])
+          free(entries[i]);
+      return;
+    }
+
+    /* Write all lines except the one to delete */
+    temp_fp = fopen(QUIT_FEEDBACK_FILE, "w");
+    if (!temp_fp)
+    {
+      send_to_char(ch, "Unable to open quit feedback log for writing.\r\n");
+      for (i = 0; i < count; i++)
+        if (entries[i])
+          free(entries[i]);
+      return;
+    }
+
+    for (i = 0; i < count; i++)
+    {
+      if (i != delete_idx - 1) /* delete_idx is 1-based */
+        fprintf(temp_fp, "%s\n", entries[i]);
+    }
+    fclose(temp_fp);
+
+    send_to_char(ch, "Quit log entry %d deleted.\r\n", delete_idx);
+
+    for (i = 0; i < count; i++)
+      if (entries[i])
+        free(entries[i]);
+    return;
+  }
+
+  /* Display mode */
+  if (*arg1 && isdigit(*arg1))
+    max_lines = MAX(5, MIN(200, atoi(arg1)));
   if (max_lines <= 0)
     max_lines = 20;
 
@@ -135,14 +216,22 @@ ACMD(do_quitlog)
     return;
   }
 
-  while (fgets(line, sizeof(line), fp))
+  while (fgets(line, sizeof(line), fp) && count < 200)
   {
     strip_cr(line);
-    i = count % max_lines;
-    if (entries[i])
-      free(entries[i]);
-    entries[i] = strdup(line);
-    count++;
+    /* Skip empty lines and lines with only whitespace */
+    int is_blank = 1, j;
+    for (j = 0; line[j]; j++) {
+      if (!isspace((unsigned char)line[j])) {
+        is_blank = 0;
+        break;
+      }
+    }
+    if (!is_blank)
+    {
+      entries[count] = strdup(line);
+      count++;
+    }
   }
   fclose(fp);
 
@@ -153,9 +242,10 @@ ACMD(do_quitlog)
   else
   {
     int available = MIN(count, max_lines);
-    int start = (count > max_lines) ? (count % max_lines) : 0;
+    int start = (count > max_lines) ? (count - max_lines) : 0;
+    int line_num = 1;
 
-    out_cap = (size_t)available * sizeof(line) + 256;
+    out_cap = (size_t)available * (sizeof(line) + 32) + 256;
     out = calloc(out_cap, 1);
 
     if (!out)
@@ -165,13 +255,12 @@ ACMD(do_quitlog)
     else
     {
       out_len = snprintf(out, out_cap, "Quit feedback log (last %d entries):\r\n", available);
-      for (i = 0; i < available; i++)
+      for (i = start; i < count; i++)
       {
-        int idx = (start + i) % max_lines;
-        if (!entries[idx])
+        if (!entries[i])
           continue;
 
-        size_t needed = strlen(entries[idx]) + 3; /* line + CRLF */
+        size_t needed = strlen(entries[i]) + 32; /* line number + line + CRLF */
         if (out_len + needed >= out_cap)
         {
           out_cap *= 2;
@@ -186,7 +275,8 @@ ACMD(do_quitlog)
           out = tmp;
         }
 
-        out_len += snprintf(out + out_len, out_cap - out_len, "%s", entries[idx]);
+        out_len += snprintf(out + out_len, out_cap - out_len, "[%d] %s", 
+                           line_num++, entries[i]);
       }
 
       if (out)
@@ -194,7 +284,7 @@ ACMD(do_quitlog)
     }
   }
 
-  for (i = 0; i < max_lines; i++)
+  for (i = 0; i < count; i++)
     if (entries[i])
       free(entries[i]);
   if (out)
