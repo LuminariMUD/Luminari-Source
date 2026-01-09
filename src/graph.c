@@ -350,6 +350,22 @@ ACMD(do_track)
   /* handle inside of a zone (stock) */
   else if (!ch_in_wild && !vict_in_wild)
   {
+    /* Check tracking distance limitation based on Survival skill */
+    int max_distance = 50 + (compute_ability(ch, ABILITY_SURVIVAL) * 10);
+    int actual_distance = count_rooms_between(IN_ROOM(ch), IN_ROOM(vict));
+    
+    if ((actual_distance < 0 || actual_distance > max_distance) && !has_inquisitor_legendary_tracker(ch))
+    {
+      send_to_char(ch, "The trail is too distant for you to track.\r\n");
+      if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+      {
+        snprintf(buf, sizeof(buf), " %s The trail to %s is too distant.\r\n", 
+                 GET_NAME(ch->master), GET_NAME(vict));
+        do_tell(ch, buf, 0, 0);
+      }
+      return;
+    }
+
     dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict));
     switch (dir)
     {

@@ -1384,8 +1384,68 @@ void define_inquisitor_perks(void)
                                      "rank on all attacks until end of turn (melee and ranged).");
   perk->toggleable = false;
 
-  /* Tier 3: Master Tracker (1 rank, 3 points) */
-  perk = &perk_list[PERK_INQUISITOR_MASTER_TRACKER];
+    /**************************************************************************
+     * TREE 2: HUNTER'S ARSENAL - Tier 4
+     **************************************************************************/
+
+    /* Tier 4: Supreme Hunter (1 rank, 4 points) */
+    perk = &perk_list[PERK_INQUISITOR_SUPREME_HUNTER];
+    perk->id = PERK_INQUISITOR_SUPREME_HUNTER;
+    perk->name = strdup("Supreme Hunter");
+  perk->description = strdup("Become the ultimate predator.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 to Studied Target */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Your Studied Target bonus increases by +4. Time to study is halved (swift action instead of move action).");
+    perk->id = PERK_INQUISITOR_LEGENDARY_TRACKER;
+    perk->name = strdup("Legendary Tracker");
+  perk->description = strdup("Track any creature at any distance.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "You can track creatures at extreme distances. Maximum tracking distance: 50 + (Survival skill * 10) rooms.");
+    perk->id = PERK_INQUISITOR_INSTANT_DEATH;
+    perk->name = strdup("Instant Death");
+  perk->description = strdup("Deliver a killing strike with perfect precision.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "3% chance when you hit with an attack against a studied target to force a Fortitude save (DC 10 + half level + Wisdom modifier). On failure, target takes +15d6 damage; on success, it takes +8d6 damage.");
+    perk->id = PERK_INQUISITOR_PERFECT_PREDATOR;
+    perk->name = strdup("Perfect Predator");
+  perk->description = strdup("Achieve mastery over the hunt.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 favored enemy bonus */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "All your favored enemy bonuses increase by +4. In your favored terrains, you gain true sight and can see perfectly in all lighting conditions.");
   perk->id = PERK_INQUISITOR_MASTER_TRACKER;
   perk->name = strdup("Master Tracker");
   perk->description = strdup("Track prey across any trail and sense nearby quarries.");
@@ -1656,7 +1716,10 @@ int get_inquisitor_studied_target_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 0;
-  return get_perk_rank(ch, PERK_INQUISITOR_STUDIED_TARGET, CLASS_INQUISITOR);
+  int bonus = get_perk_rank(ch, PERK_INQUISITOR_STUDIED_TARGET, CLASS_INQUISITOR);
+  if (has_perk(ch, PERK_INQUISITOR_SUPREME_HUNTER))
+    bonus += 4;
+  return bonus;
 }
 
 bool is_inquisitor_studied_target(struct char_data *ch, struct char_data *vict)
@@ -1756,6 +1819,9 @@ int get_inquisitor_favored_enemy_attack_bonus(struct char_data *ch, struct char_
     if (GET_FAVORED_ENEMY(ch, i) == GET_RACE(vict))
       bonus += 2; /* +2 per rank that matches this creature type */
   }
+  /* Perfect Predator: amplify existing favored enemy bonuses by +4 */
+  if (bonus > 0 && has_perk(ch, PERK_INQUISITOR_PERFECT_PREDATOR))
+    bonus += 4;
   return bonus;
 }
 
@@ -1778,6 +1844,8 @@ int get_inquisitor_favored_enemy_ac_bonus(struct char_data *ch, struct char_data
     if (GET_FAVORED_ENEMY(ch, i) == GET_RACE(attacker))
       bonus += 1; /* +1 per rank that matches this creature type */
   }
+  if (bonus > 0 && has_perk(ch, PERK_INQUISITOR_PERFECT_PREDATOR))
+    bonus += 4;
   return bonus;
 }
 
@@ -1968,6 +2036,28 @@ bool has_inquisitor_deadly_aim(struct char_data *ch)
 bool has_inquisitor_master_tracker(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_MASTER_TRACKER);
+}
+
+/* Inquisitor Helper Functions - Hunter's Arsenal Tree Tier 4 */
+
+bool has_inquisitor_supreme_hunter(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SUPREME_HUNTER);
+}
+
+bool has_inquisitor_legendary_tracker(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_LEGENDARY_TRACKER);
+}
+
+bool has_inquisitor_instant_death(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_INSTANT_DEATH);
+}
+
+bool has_inquisitor_perfect_predator(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERFECT_PREDATOR);
 }
 
 int get_inquisitor_wilderness_stride_rank(struct char_data *ch)

@@ -94,6 +94,12 @@ bool has_inquisitor_wilderness_stride(struct char_data *ch);
 bool has_inquisitor_preys_weakness(struct char_data *ch);
 int get_inquisitor_preys_weakness_dr_reduction(struct char_data *ch, int current_dr);
 
+/* Inquisitor helper functions - Hunter's Arsenal Tree Tier 4 */
+bool has_inquisitor_supreme_hunter(struct char_data *ch);
+bool has_inquisitor_legendary_tracker(struct char_data *ch);
+bool has_inquisitor_instant_death(struct char_data *ch);
+bool has_inquisitor_perfect_predator(struct char_data *ch);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);

@@ -13089,8 +13089,20 @@ ACMD(do_mark)
 
   if (is_inquisitor && !is_action_available(ch, atMOVE, TRUE))
   {
-    send_to_char(ch, "Studying a quarry requires a move action.\r\n");
-    return;
+    /* Supreme Hunter allows swift action study instead */
+    if (has_inquisitor_supreme_hunter(ch))
+    {
+      if (!is_action_available(ch, atSWIFT, TRUE))
+      {
+        send_to_char(ch, "Studying a quarry requires a swift action.\r\n");
+        return;
+      }
+    }
+    else
+    {
+      send_to_char(ch, "Studying a quarry requires a move action.\r\n");
+      return;
+    }
   }
 
   GET_MARK(ch) = vict;
@@ -13105,7 +13117,11 @@ ACMD(do_mark)
     act("You study $N carefully, marking $M as your quarry.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n studies you carefully, eyes narrowing.", FALSE, ch, 0, vict, TO_VICT);
     act("$n studies $N carefully, marking a new quarry.", FALSE, ch, 0, vict, TO_NOTVICT);
-    USE_MOVE_ACTION(ch);
+    /* Use swift action if Supreme Hunter, otherwise move action */
+    if (has_inquisitor_supreme_hunter(ch))
+      USE_SWIFT_ACTION(ch);
+    else
+      USE_MOVE_ACTION(ch);
   }
   else
   {

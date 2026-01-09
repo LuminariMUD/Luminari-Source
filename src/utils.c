@@ -1523,8 +1523,7 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *sneaker)
 bool can_see_hidden(struct char_data *ch, struct char_data *hider)
 {
   /* free passes */
-  if (!AFF_FLAGGED(hider, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT) ||
-      HAS_FEAT(ch, FEAT_TRUE_SIGHT))
+  if (!AFF_FLAGGED(hider, AFF_HIDE) || has_true_sight(ch))
     return TRUE;
 
   /* do spot check here */
@@ -3571,6 +3570,10 @@ bool char_has_ultra(struct char_data *ch)
   if (char_has_infra(ch))
     return TRUE;
 
+  /* Perfect Predator: true sight in favored terrain */
+  if (!IS_NPC(ch) && has_inquisitor_perfect_predator(ch) && is_inquisitor_in_favored_terrain(ch))
+    return TRUE;
+
   if (GET_RACE(ch) == RACE_HALF_TROLL)
     return TRUE;
   if (GET_RACE(ch) == RACE_H_ORC)
@@ -3586,6 +3589,24 @@ bool char_has_ultra(struct char_data *ch)
   if (GET_RACE(ch) == RACE_LICH)
     return TRUE;
   if (GET_RACE(ch) == RACE_VAMPIRE)
+    return TRUE;
+
+  return FALSE;
+}
+
+bool has_true_sight(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_TRUE_SIGHT))
+    return TRUE;
+
+  /* Perfect Predator: true sight in favored terrain */
+  if (!IS_NPC(ch) && has_inquisitor_perfect_predator(ch) && is_inquisitor_in_favored_terrain(ch))
     return TRUE;
 
   return FALSE;

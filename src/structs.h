@@ -4245,6 +4245,12 @@
 #define PERK_INQUISITOR_WILDERNESS_STRIDE 1470
 #define PERK_INQUISITOR_PREYS_WEAKNESS 1471
 
+/* Inquisitor Perks - Hunter's Arsenal Tree (Tier 4) */
+#define PERK_INQUISITOR_SUPREME_HUNTER 1472
+#define PERK_INQUISITOR_LEGENDARY_TRACKER 1473
+#define PERK_INQUISITOR_INSTANT_DEATH 1474
+#define PERK_INQUISITOR_PERFECT_PREDATOR 1475
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4254,6 +4260,8 @@
 /* Implemented: Judgment & Spellcasting Tree Tier 4 (1456-1459) */
 /* Implemented: Hunter's Arsenal Tree Tier 1 (1460-1463) */
 /* Implemented: Hunter's Arsenal Tree Tier 2 (1464-1467) */
+/* Implemented: Hunter's Arsenal Tree Tier 3 (1468-1471) */
+/* Implemented: Hunter's Arsenal Tree Tier 4 (1472-1475) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)

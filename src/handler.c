@@ -30,11 +30,13 @@
 #include "constants.h"
 #include "lists.h"
 #include "spec_abilities.h"
+#include "spec_procs.h"
 #include "crafting_new.h"
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "resource_depletion.h"
 #include "perks.h"
+#include "graph.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -1541,6 +1543,19 @@ static bool master_tracker_quarry_near(struct char_data *tracker, struct char_da
 
   if (!has_inquisitor_master_tracker(tracker))
     return false;
+
+  /* Legendary Tracker: track at extreme distances based on Survival skill */
+  if (has_inquisitor_legendary_tracker(tracker))
+  {
+    int max_distance = 50 + (compute_ability(tracker, ABILITY_SURVIVAL) * 10);
+    int actual_distance = count_rooms_between(IN_ROOM(tracker), IN_ROOM(quarry));
+    
+    /* If distance can't be calculated (no path), return false */
+    if (actual_distance < 0)
+      return false;
+    
+    return actual_distance <= max_distance;
+  }
 
   return world[IN_ROOM(tracker)].zone == world[IN_ROOM(quarry)].zone;
 }

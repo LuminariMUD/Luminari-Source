@@ -245,6 +245,7 @@ typedef enum
   eDIVINE_SPELLSTRIKE_USED, /* Inquisitor Divine Spellstrike daily use */
   eINEXORABLE_JUDGMENT_USED,  /* Inexorable Judgment daily use */
   eSUPREME_SPELLCASTING_USED, /* Supreme Spellcasting daily free cast */
+  eINSTANT_DEATH_USED,        /* Inquisitor Instant Death daily use */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

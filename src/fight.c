@@ -2412,7 +2412,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   GET_MARK(killer) = NULL;
   GET_MARK_ROUNDS(killer) = 0;
   if (GET_STUDIED_TARGET(killer))
+  {
     GET_STUDIED_TARGET(killer) = NULL;
+  }
 
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
@@ -9154,6 +9156,42 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
       {
         dam = rerolled_total;
         send_to_char(ch, "Your hunter's precision lets you strike harder!\r\n");
+      }
+    }
+  }
+
+  /* Inquisitor Instant Death: 3% proc chance on hit vs studied target */
+  if (mode == MODE_NORMAL_HIT && !IS_NPC(ch) && victim &&
+      has_inquisitor_instant_death(ch) && is_inquisitor_studied_target(ch, victim))
+  {
+    if (rand_number(1, 100) <= 3) /* 3% chance */
+    {
+      /* Fort save DC = 10 + half level + Wis modifier */
+      int dc = 10 + (GET_LEVEL(ch) / 2) + GET_WIS_BONUS(ch);
+      char buf[200];
+      if (!savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, CLASS_LEVEL(ch, CLASS_INQUISITOR), NOSCHOOL))
+      {
+        /* Failed save: +15d6 damage */
+        int extra_dice = dice(15, 6);
+        dam += extra_dice;
+        snprintf(buf, sizeof(buf), "\tWYou deliver a grevious strike on $N with perfect precision! [+%d damage]\tn", extra_dice);
+        act(buf, FALSE, ch, NULL, victim, TO_CHAR);
+        snprintf(buf, sizeof(buf), "\tW$n delivers a grevious strike on you perfect precision! [+%d damage]\tn", extra_dice);
+        act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
+        snprintf(buf, sizeof(buf), "\tW$n delivers a grevious strike on $N with perfect precision! [+%d damage]\tn", extra_dice);
+        act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
+      }
+      else
+      {
+        /* Successful save: +8d6 damage */
+        int extra_dice = dice(8, 6);
+        dam += extra_dice;
+        snprintf(buf, sizeof(buf), "\tW$N resists your precision strike but takes damage anyway [+%d damage]\tn", extra_dice);
+        act(buf, FALSE, ch, NULL, victim, TO_CHAR);
+        snprintf(buf, sizeof(buf), "\tWYou resist $n's precision strike but take damage anyway [+%d damage]\tn", extra_dice);
+        act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
+        snprintf(buf, sizeof(buf), "\tW$N resists $n's precision strike but takes damage anyway [+%d damage]\tn", extra_dice);
+        act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
       }
     }
   }

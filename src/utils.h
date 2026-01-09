@@ -303,6 +303,7 @@ void core_dump_real(const char *who, int line);
 int count_color_chars(char *string);
 bool char_has_infra(struct char_data *ch);
 bool char_has_ultra(struct char_data *ch);
+bool has_true_sight(struct char_data *ch);
 bool room_is_dark(room_rnum room);
 bool room_is_daylit(room_rnum room);
 bool can_naturally_stealthy(struct char_data *ch);
@@ -2008,8 +2009,7 @@ int ACTUAL_BAB(struct char_data *ch);
  */
 #define INVIS_OK(sub, obj)                                                                         \
   ((!AFF_FLAGGED((obj), AFF_INVISIBLE) ||                                                          \
-    (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || AFF_FLAGGED(sub, AFF_TRUE_SIGHT) ||                     \
-     HAS_FEAT(sub, FEAT_TRUE_SIGHT))) &&                                                           \
+    (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || has_true_sight(sub))) &&                                \
    (can_see_hidden(sub, obj)))
 
 /** Defines if sub character can see obj character, assuming mortal only
@@ -2042,7 +2042,7 @@ int ACTUAL_BAB(struct char_data *ch);
 /** Can the sub character see the obj if it is invisible? */
 #define INVIS_OK_OBJ(sub, obj)                                                                     \
   (!OBJ_FLAGGED((obj), ITEM_INVISIBLE) || AFF_FLAGGED((sub), AFF_DETECT_INVIS) ||                  \
-   AFF_FLAGGED((sub), AFF_TRUE_SIGHT))
+   has_true_sight((sub)))
 
 /** Is anyone carrying this object and if so, are they visible? */
 #define CAN_SEE_OBJ_CARRIER(sub, obj)                                                              \

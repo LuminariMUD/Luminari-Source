@@ -150,19 +150,19 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 1. **Supreme Hunter**
    - *1 rank, 4 points*
-   - Become the ultimate predator. Your Studied Target bonus increases by +4. You can maintain Studied Target on up to three creatures simultaneously. When a studied target drops to 0 hit points, you can immediately study a new target as a free action.
+   - Become the ultimate predator. Your Studied Target bonus increases by +4. Time to study is halved.
 
 2. **Legendary Tracker**
    - *1 rank, 4 points*
-   - Track any creature anywhere. You can track creatures across planar boundaries, through water, or even through time (up to 1 week old). Once per day, you can cast Locate Creature without expending a spell slot, and the range is unlimited if the target is on the same plane.
+   - Track any creature at any distance.
 
 3. **Instant Death**
    - *1 rank, 4 points*
-   - Deliver a killing strike with perfect precision. Once per day, when you hit with an attack against a studied target, you can force it to make a Fortitude save (DC 10 + half level + Wisdom modifier) or be reduced to 0 hit points. On a successful save, it takes an additional 10d6 damage instead.
+   - Deliver a killing strike with perfect precision. 3% chance when you hit with an attack against a studied target, you can force it to make a Fortitude save (DC 10 + half level + Wisdom modifier) or take an extra 15d6 damage. On a successful save, it takes an additional 8d6 damage instead.
 
 4. **Perfect Predator**
    - *1 rank, 4 points*
-   - Achieve mastery over the hunt. All your favored enemy bonuses increase by +4. In your favored terrains, you gain tremorsense 60 feet and can see perfectly in all lighting conditions. You can automatically track any creature you've encountered before.
+   - Achieve mastery over the hunt. All your favored enemy bonuses increase by +4. In your favored terrains, you gain true sight and can see perfectly in all lighting conditions.
 
 ---
 

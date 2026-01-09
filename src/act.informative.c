@@ -7051,7 +7051,7 @@ ACMD(do_equipment)
 #if defined(CAMPAIGN_DL)
       // In Dragonlance, we always want to be able to see our equipment unless it's invis and we can't see invis
       if (!OBJ_FLAGGED(GET_EQ(ch, eq_ordering_1[i]), ITEM_INVISIBLE) ||
-          AFF_FLAGGED(ch, AFF_DETECT_INVIS) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+          AFF_FLAGGED(ch, AFF_DETECT_INVIS) || has_true_sight(ch))
 #else
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, eq_ordering_1[i])))
 #endif
