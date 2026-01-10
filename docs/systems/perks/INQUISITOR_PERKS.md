@@ -190,19 +190,19 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 1. **Discern Lies**
    - *3 ranks, 2 points each*
-   - Pierce through deception with divine insight. Gain +2 per rank to opposed checks against Bluff. At rank 3, you can cast Discern Lies for a number of rounds per day equal to your inquisitor level.
+   - Pierce through deception with divine insight. Gain +2 per rank to sense motive. at rank 3 they can cast detect alignment at will.
 
 2. **Monster Knowledge**
    - *1 rank, 2 points*
-   - Add your Wisdom modifier in addition to Intelligence when making Knowledge checks to identify creatures. When you successfully identify a creature, you also learn its current hit points and any conditions affecting it.
+   - Add your Wisdom modifier in addition to Intelligence when making Knowledge checks to lore. When you successfully lore a creature you also see all effects they are under.
 
 3. **Scent of Magic**
-   - *2 ranks, 2 points each*
-   - Detect magical auras with increasing precision. You can identify the school of magic of any magical aura you detect. At rank 2, you can sense magic items within 30 feet even without concentrating, and you automatically identify spell effects targeting you.
+   - *1 rank, 2 points each*
+   - Detect magical auras with increasing precision. You can identify the school of magic of any affect the creature is under when you lore ir or simply look at it.
 
 4. **Investigator's Eye**
-   - *1 rank, 2 points*
-   - Notice details others miss. Gain +4 to Investigation checks. When examining a scene or object, you can ask the DM three questions about it and receive truthful answers (though not necessarily complete).
+   - *2 ranks, 2 points each*
+   - Notice details others miss. Gain +3 to search and detect trap checks.
 
 ### Tier 3 (4 Perks)
 

@@ -1569,6 +1569,78 @@ void define_inquisitor_perks(void)
   perk->special_description = strdup(
       "You can cast Detect Magic at will without expending spell slots or components.");
   perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 2: Discern Lies (3 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_DISCERN_LIES];
+  perk->id = PERK_INQUISITOR_DISCERN_LIES;
+  perk->name = strdup("Discern Lies");
+  perk->description = strdup("Pierce through deception with divine insight.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 2; /* +2 per rank to opposed Bluff checks */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain +2 per rank to Insight checks. At rank 3, you can cast Detect Alignment at will.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 2: Monster Knowledge (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_MONSTER_KNOWLEDGE];
+  perk->id = PERK_INQUISITOR_MONSTER_KNOWLEDGE;
+  perk->name = strdup("Monster Knowledge");
+  perk->description = strdup("Identify creatures with enhanced insight.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Add your Wisdom modifier in addition to Intelligence when making Knowledge checks to lore creatures. When you successfully lore a creature, you also see all effects they are under.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 2: Scent of Magic (1 rank, 2 points) */
+  perk = &perk_list[PERK_INQUISITOR_SCENT_OF_MAGIC];
+  perk->id = PERK_INQUISITOR_SCENT_OF_MAGIC;
+  perk->name = strdup("Scent of Magic");
+  perk->description = strdup("Detect magical auras with precision.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "You can identify the school of magic of any affect a creature is under when you lore it or simply look at it.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 2: Investigator's Eye (2 ranks, 2 points each) */
+  perk = &perk_list[PERK_INQUISITOR_INVESTIGATORS_EYE];
+  perk->id = PERK_INQUISITOR_INVESTIGATORS_EYE;
+  perk->name = strdup("Investigator's Eye");
+  perk->description = strdup("Notice details others miss.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 3; /* +3 per rank to Search and Detect Trap checks */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain +3 per rank to Search and Detect Trap checks.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -2166,6 +2238,41 @@ int get_inquisitor_lore_master_rank(struct char_data *ch)
 bool has_inquisitor_detect_magic_natural(struct char_data *ch)
 {
   return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DETECT_MAGIC_NATURAL);
+}
+
+/* Investigation & Perception Tree - Tier 2 Helper Functions */
+bool has_inquisitor_discern_lies(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_DISCERN_LIES);
+}
+
+int get_inquisitor_discern_lies_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_DISCERN_LIES, CLASS_INQUISITOR);
+}
+
+bool has_inquisitor_monster_knowledge(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_MONSTER_KNOWLEDGE);
+}
+
+bool has_inquisitor_scent_of_magic(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SCENT_OF_MAGIC);
+}
+
+bool has_inquisitor_investigators_eye(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_INVESTIGATORS_EYE);
+}
+
+int get_inquisitor_investigators_eye_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_INVESTIGATORS_EYE, CLASS_INQUISITOR);
 }
 
 int get_inquisitor_wilderness_stride_rank(struct char_data *ch)

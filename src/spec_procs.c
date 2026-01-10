@@ -1550,6 +1550,10 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       int keen_senses_rank = get_inquisitor_keen_senses_rank(ch);
       if (keen_senses_rank > 0)
         value += (2 * keen_senses_rank);
+      /* Inquisitor Investigator's Eye: +3 per rank to Perception (searching) */
+      int investigators_eye_rank = get_inquisitor_investigators_eye_rank(ch);
+      if (investigators_eye_rank > 0)
+        value += (3 * investigators_eye_rank);
     }
     return value;
   case ABILITY_HEAL:
@@ -1696,6 +1700,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       int lore_master_rank = get_inquisitor_lore_master_rank(ch);
       if (lore_master_rank > 0)
         value += lore_master_rank;
+      /* Inquisitor Monster Knowledge: Add Wisdom modifier in addition to Intelligence for lore checks */
+      if (has_inquisitor_monster_knowledge(ch))
+        value += GET_WIS_BONUS(ch);
     }
     value += GET_INT_BONUS(ch);
     return value;
@@ -1775,6 +1782,13 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    /* Inquisitor Investigator's Eye: +3 per rank to Detect Trap checks */
+    if (!IS_NPC(ch))
+    {
+      int investigators_eye_rank = get_inquisitor_investigators_eye_rank(ch);
+      if (investigators_eye_rank > 0)
+        value += (3 * investigators_eye_rank);
+    }
     return value;
   case ABILITY_DISGUISE:
     value += GET_CHA_BONUS(ch);
@@ -1820,6 +1834,13 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 8;
     if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
+    /* Inquisitor Discern Lies: +2 per rank to Sense Motive (opposed Bluff) */
+    if (!IS_NPC(ch))
+    {
+      int discern_lies_rank = get_inquisitor_discern_lies_rank(ch);
+      if (discern_lies_rank > 0)
+        value += (2 * discern_lies_rank);
+    }
     return value;
   case ABILITY_SURVIVAL:
     value += GET_WIS_BONUS(ch);

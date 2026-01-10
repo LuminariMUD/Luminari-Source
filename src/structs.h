@@ -4257,6 +4257,12 @@
 #define PERK_INQUISITOR_LORE_MASTER 1478
 #define PERK_INQUISITOR_DETECT_MAGIC_NATURAL 1479
 
+/* Inquisitor Perks - Investigation & Perception Tree (Tier 2) */
+#define PERK_INQUISITOR_DISCERN_LIES 1480
+#define PERK_INQUISITOR_MONSTER_KNOWLEDGE 1481
+#define PERK_INQUISITOR_SCENT_OF_MAGIC 1482
+#define PERK_INQUISITOR_INVESTIGATORS_EYE 1483
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4269,6 +4275,7 @@
 /* Implemented: Hunter's Arsenal Tree Tier 3 (1468-1471) */
 /* Implemented: Hunter's Arsenal Tree Tier 4 (1472-1475) */
 /* Implemented: Investigation & Perception Tree Tier 1 (1476-1479) */
+/* Implemented: Investigation & Perception Tree Tier 2 (1480-1483) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -4289,7 +4296,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1480
+#define NUM_PERKS 1484
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20

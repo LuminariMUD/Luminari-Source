@@ -228,6 +228,68 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
         send_to_char(ch, "\r\n");
     }
   }
+
+  /* Inquisitor Monster Knowledge: Show all active effects on target */
+  if (!IS_NPC(ch) && has_inquisitor_monster_knowledge(ch))
+  {
+    struct affected_type *aff;
+    bool found_effects = FALSE;
+
+    text_line(ch, "\tYActive Effects (Monster Knowledge)\tC", 80, '-', '-');
+
+    for (aff = tch->affected; aff; aff = aff->next)
+    {
+      if (aff->spell > 0 && aff->spell < TOP_SPELL_DEFINE)
+      {
+        if (!found_effects)
+          found_effects = TRUE;
+
+        /* Show spell/effect name and duration */
+        send_to_char(ch, "  %-30s", spell_info[aff->spell].name);
+
+        /* Inquisitor Scent of Magic: Also show spell school */
+        if (!IS_NPC(ch) && has_inquisitor_scent_of_magic(ch))
+        {
+          int school = spell_info[aff->spell].schoolOfMagic;
+          if (school >= 0 && school < NUM_SCHOOLS)
+            send_to_char(ch, " [%s]", school_names[school]);
+        }
+
+        if (aff->duration > 0)
+          send_to_char(ch, " (%d rounds)\r\n", aff->duration);
+        else
+          send_to_char(ch, " (permanent)\r\n");
+      }
+    }
+
+    if (!found_effects)
+      send_to_char(ch, "  No active magical effects detected.\r\n");
+  }
+  /* Inquisitor Scent of Magic alone (without Monster Knowledge) */
+  else if (!IS_NPC(ch) && has_inquisitor_scent_of_magic(ch))
+  {
+    struct affected_type *aff;
+    bool found_effects = FALSE;
+
+    text_line(ch, "\tYMagical Aura Schools (Scent of Magic)\tC", 80, '-', '-');
+
+    for (aff = tch->affected; aff; aff = aff->next)
+    {
+      if (aff->spell > 0 && aff->spell < TOP_SPELL_DEFINE)
+      {
+        int school = spell_info[aff->spell].schoolOfMagic;
+        if (school >= 0 && school < NUM_SCHOOLS)
+        {
+          if (!found_effects)
+            found_effects = TRUE;
+          send_to_char(ch, "  Detected: %s magic\r\n", school_names[school]);
+        }
+      }
+    }
+
+    if (!found_effects)
+      send_to_char(ch, "  No magical auras detected.\r\n");
+  }
 }
 
 /* special affect that allows you to sense 'aggro' enemies */
@@ -768,6 +830,30 @@ static void look_at_char(struct char_data *i, struct char_data *ch)
   {
     act("\r\nYou attempt to peek at $s inventory:", FALSE, i, 0, ch, TO_VICT);
     list_obj_to_char(i->carrying, ch, SHOW_OBJ_SHORT, TRUE, 0);
+  }
+
+  /* Inquisitor Scent of Magic: Show spell schools when looking at a creature */
+  if (!IS_NPC(ch) && has_inquisitor_scent_of_magic(ch))
+  {
+    struct affected_type *aff;
+    bool found_magic = FALSE;
+
+    for (aff = i->affected; aff; aff = aff->next)
+    {
+      if (aff->spell > 0 && aff->spell < TOP_SPELL_DEFINE)
+      {
+        int school = spell_info[aff->spell].schoolOfMagic;
+        if (school >= 0 && school < NUM_SCHOOLS)
+        {
+          if (!found_magic)
+          {
+            send_to_char(ch, "\r\n\tcYou sense magical auras:\tn\r\n");
+            found_magic = TRUE;
+          }
+          send_to_char(ch, "  ...$e radiates %s magic.\r\n", school_names[school]);
+        }
+      }
+    }
   }
 }
 

@@ -13151,6 +13151,8 @@ ACMD(do_detectmagic)
   send_to_char(ch, "Your heightened senses attune to magical auras.\r\n");
 }
 
+
+
 /* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
 ACMD(do_huntersmark)
 {

@@ -108,6 +108,14 @@ bool has_inquisitor_lore_master(struct char_data *ch);
 int get_inquisitor_lore_master_rank(struct char_data *ch);
 bool has_inquisitor_detect_magic_natural(struct char_data *ch);
 
+/* Inquisitor helper functions - Investigation & Perception Tree Tier 2 */
+bool has_inquisitor_discern_lies(struct char_data *ch);
+int get_inquisitor_discern_lies_rank(struct char_data *ch);
+bool has_inquisitor_monster_knowledge(struct char_data *ch);
+bool has_inquisitor_scent_of_magic(struct char_data *ch);
+bool has_inquisitor_investigators_eye(struct char_data *ch);
+int get_inquisitor_investigators_eye_rank(struct char_data *ch);
+
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
 int get_class_perks(int class_id, int *perk_ids, int max_perks);

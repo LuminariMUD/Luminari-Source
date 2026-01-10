@@ -1376,10 +1376,13 @@ bool char_pets_to_char_loc(struct char_data *ch)
     char_from_room(tch);
 
     /* set coords if necessary */
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    if (IN_ROOM(ch) != NOWHERE && GET_ROOM_ZONE(IN_ROOM(tch)) != NOWHERE)
     {
-      X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
-      Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      {
+        X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
+        Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
+      }
     }
 
     /* move into the new location! */
