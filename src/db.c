@@ -7500,6 +7500,7 @@ static void load_default_config(void)
   CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
   CONFIG_SPELLCASTING_TIME_MODE = 0; /* 0 = Standard action */
   CONFIG_ARCANE_MOON_PHASES = 0;     /* 0 = OFF, 1 = ON */
+  CONFIG_AUTO_DL_MUDLET_PACKAGE = 0; /* 0 = No, 1 = Yes */
 }
 
 void load_config(void)
@@ -7549,6 +7550,8 @@ void load_config(void)
         CONFIG_ALLOW_CEXCHANGE = num;
       else if (!str_cmp(tag, "arcane_moon_phases"))
         CONFIG_ARCANE_MOON_PHASES = num;
+      else if (!str_cmp(tag, "auto_dl_mudlet_package"))
+        CONFIG_AUTO_DL_MUDLET_PACKAGE = num;
       break;
 
     case 'b':

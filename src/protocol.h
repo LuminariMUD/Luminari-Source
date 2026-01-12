@@ -213,10 +213,8 @@ typedef struct descriptor_data descriptor_t;
  * @note Only defined for default LuminariMUD campaign
  * @note Dragonlance and Forgotten Realms campaigns use different/no GUIs
  */
-#if !defined(CAMPAIGN_DL)
 #define MUDLET_PACKAGE                                                                             \
   "{\"version\":4,\"url\":\"https://luminarimud.com/download/LuminariGUI-v2.0.4.015.mpackage\"}"
-#endif
 
 /******************************************************************************
  *                           PROTOCOL CONSTANTS

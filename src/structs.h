@@ -7817,6 +7817,7 @@ struct extra_game_data
   ubyte spell_cast_exp_option;
   ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */
   ubyte arcane_moon_phases;     /**< Enable arcane moon phase bonus spells */
+  ubyte auto_dl_mudlet_package; /**< Auto-download MUDlet package (0=no, 1=yes) */
 };
 
 /**

@@ -2265,29 +2265,36 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
         log("DEBUG: NOT enabling GMCP - bMSDP=%d, bGMCP=%d", pProtocol->bMSDP, pProtocol->bGMCP);
       }
 
-      /* Always allow GMCP for Mudlet package delivery */
-      if (!pProtocol->bGMCP)
+      if (CONFIG_AUTO_DL_MUDLET_PACKAGE)
       {
-        log("DEBUG: Force-enabling GMCP for Mudlet package delivery");
-        pProtocol->bGMCP = true;
-      }
+        /* Always allow GMCP for Mudlet package delivery */
+        if (!pProtocol->bGMCP)
+        {
+          log("DEBUG: Force-enabling GMCP for Mudlet package delivery");
+          pProtocol->bGMCP = true;
+        }
 
 #ifdef MUDLET_PACKAGE
-      log("DEBUG: MUDLET_PACKAGE defined as: %s", MUDLET_PACKAGE);
-      /* Send the Mudlet GUI package to the user. */
-      if (MatchString("Mudlet", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
-      {
-        log("DEBUG: Mudlet client detected! Sending package via GMCP");
-        SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
+        log("DEBUG: MUDLET_PACKAGE defined as: %s", MUDLET_PACKAGE);
+        /* Send the Mudlet GUI package to the user. */
+        if (MatchString("Mudlet", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
+        {
+          log("DEBUG: Mudlet client detected! Sending package via GMCP");
+          SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
+        }
+        else
+        {
+          log("DEBUG: Client '%s' is not Mudlet, not sending package",
+              pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+        }
+#else
+        log("DEBUG: MUDLET_PACKAGE not defined!");
+#endif /* MUDLET_PACKAGE */
       }
       else
       {
-        log("DEBUG: Client '%s' is not Mudlet, not sending package",
-            pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+        log("DEBUG: Auto-download Mudlet package disabled via config");
       }
-#else
-      log("DEBUG: MUDLET_PACKAGE not defined!");
-#endif /* MUDLET_PACKAGE */
     }
     else if (aCmd == (char)WONT)
     {

@@ -232,6 +232,7 @@ extern const char *new_player_gear_options[];
 extern const char *allow_cexchange_options[];
 extern const char *wilderness_system_options[];
 extern const char *vessel_system_options[];
+extern const char *auto_dl_mudlet_package_options[];
 extern const char *exp_option[];
 extern const char *spellcasting_time_options[];
 

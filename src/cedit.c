@@ -201,6 +201,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.spell_cast_exp_option = CONFIG_SPELL_CAST_EXP_OPTION;
   OLC_CONFIG(d)->extra.spellcasting_time_mode = CONFIG_SPELLCASTING_TIME_MODE;
   OLC_CONFIG(d)->extra.arcane_moon_phases = CONFIG_ARCANE_MOON_PHASES;
+  OLC_CONFIG(d)->extra.auto_dl_mudlet_package = CONFIG_AUTO_DL_MUDLET_PACKAGE;
 
   /* Mob Stats */
   OLC_CONFIG(d)->mob_stats.warriors.hit_points = CONFIG_MOB_WARRIORS_HP;
@@ -383,6 +384,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_SPELL_CAST_EXP_OPTION = OLC_CONFIG(d)->extra.spell_cast_exp_option;
   CONFIG_SPELLCASTING_TIME_MODE = OLC_CONFIG(d)->extra.spellcasting_time_mode;
   CONFIG_ARCANE_MOON_PHASES = OLC_CONFIG(d)->extra.arcane_moon_phases;
+  CONFIG_AUTO_DL_MUDLET_PACKAGE = OLC_CONFIG(d)->extra.auto_dl_mudlet_package;
 
   /* Mob Stats */
   CONFIG_MOB_WARRIORS_HP = OLC_CONFIG(d)->mob_stats.warriors.hit_points;
@@ -1007,6 +1009,10 @@ int save_config(IDXTYPE nowhere)
           "* Enable arcane moon phase bonus spells?\n"
           "arcane_moon_phases = %d\n\n",
           CONFIG_ARCANE_MOON_PHASES);
+  fprintf(fl,
+          "* Auto-download MUDlet package?\n"
+          "auto_dl_mudlet_package = %d\n\n",
+          CONFIG_AUTO_DL_MUDLET_PACKAGE);
 
   /* MOB STATS */
   fprintf(fl, "\n\n\n* [ Mob Stats Configuration ]\n");
@@ -1362,6 +1368,7 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   "%sJ%s) Use Arcane Moon Phases         : %s%s\r\n"
                   "%sK%s) Spellcasting Time Mode         : %s%s\r\n"
                   "%sL%s) Vessel System                  : %s%s\r\n"
+                  "%sM%s) Auto-Download MUDlet Package?  : %s%s\r\n"
                   "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
@@ -1377,7 +1384,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   exp_option[OLC_CONFIG(d)->extra.spell_cast_exp_option], grn, nrm, cyn,
                   YESNO(OLC_CONFIG(d)->extra.arcane_moon_phases), grn, nrm, cyn,
                   spellcasting_time_options[OLC_CONFIG(d)->extra.spellcasting_time_mode], grn, nrm,
-                  cyn, vessel_system_options[OLC_CONFIG(d)->extra.vessel_system],
+                  cyn, vessel_system_options[OLC_CONFIG(d)->extra.vessel_system], grn, nrm, cyn,
+                  auto_dl_mudlet_package_options[OLC_CONFIG(d)->extra.auto_dl_mudlet_package],
 
                   grn, nrm);
 
@@ -2273,6 +2281,18 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "%d) %s\n", i + 1, vessel_system_options[i]);
       }
       OLC_MODE(d) = CEDIT_SET_VESSEL_SYSTEM;
+      return;
+
+    case 'm':
+    case 'M':
+      write_to_output(d, "Auto-download MUDlet package?\r\n");
+      write_to_output(d, "When enabled, players connecting via MUDlet will automatically receive\r\n");
+      write_to_output(d, "the MUD's MUDlet package for download.\r\n");
+      for (i = 0; i < NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS; i++)
+      {
+        write_to_output(d, "%d) %s\n", i + 1, auto_dl_mudlet_package_options[i]);
+      }
+      OLC_MODE(d) = CEDIT_SET_AUTO_DL_MUDLET_PACKAGE;
       return;
 
     case 'q':
@@ -3480,6 +3500,15 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.arcane_moon_phases = (MIN(2, MAX(1, atoi(arg))) - 1);
+    }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_AUTO_DL_MUDLET_PACKAGE:
+    if (*arg)
+    {
+      OLC_CONFIG(d)->extra.auto_dl_mudlet_package =
+          (MIN(NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;

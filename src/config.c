@@ -388,3 +388,5 @@ int summon_21_30_hit_and_dam = 100;
 int summon_21_30_ac = 100;
 
 int vessel_system = 0;
+
+int auto_dl_mudlet_package = 0;

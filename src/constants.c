@@ -5064,6 +5064,8 @@ const char *wilderness_system_options[] = {"No Wilderness (ROads only)", "Manual
 
 const char *vessel_system_options[] = {"Off", "On", "\n"};
 
+const char *auto_dl_mudlet_package_options[] = {"No", "Yes", "\n"};
+
 const char *exp_option[] = {"Full", "Reduced", "None", "\n"};
 
 const char *spellcasting_time_options[] = {"1 standard action", "Individual spell times in seconds",

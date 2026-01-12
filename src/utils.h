@@ -2746,6 +2746,7 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define CONFIG_SPELL_CAST_EXP_OPTION config_info.extra.spell_cast_exp_option
 #define CONFIG_SPELLCASTING_TIME_MODE config_info.extra.spellcasting_time_mode
 #define CONFIG_ARCANE_MOON_PHASES config_info.extra.arcane_moon_phases
+#define CONFIG_AUTO_DL_MUDLET_PACKAGE config_info.extra.auto_dl_mudlet_package
 
 /* Mob Stats Config */
 #define CONFIG_MOB_WARRIORS_HP config_info.mob_stats.warriors.hit_points

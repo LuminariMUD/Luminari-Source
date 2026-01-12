@@ -602,6 +602,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_SET_ARCANE_MOON_PHASES 127
 #define CEDIT_SET_SPELLCASTING_TIME_MODE 128
 #define CEDIT_SET_VESSEL_SYSTEM 129
+#define CEDIT_SET_AUTO_DL_MUDLET_PACKAGE 130
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
@@ -760,6 +761,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define NUM_ALLOW_CEXCHANGE_OPTIONS 2
 #define NUM_WILDERNESS_SYSTEM_OPTIONS 3
 #define NUM_VESSEL_SYSTEM_OPTIONS 2
+#define NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS 2
 #define NUM_EXP_OPTIONS 3
 /* Spellcasting time options */
 #define NUM_SPELLCASTING_TIME_OPTIONS 2
