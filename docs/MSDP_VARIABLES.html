@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSDP Variables Reference - Luminari MUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        main {
+            padding: 40px 30px;
+        }
+
+        .overview {
+            background: #f0f4ff;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9ff;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #f8f8f2;
+        }
+
+        .section-intro {
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .data-types {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .data-type {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+        }
+
+        .data-type h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .data-type p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        ul.updates {
+            list-style: none;
+            margin-left: 20px;
+        }
+
+        ul.updates li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        ul.updates li:before {
+            content: "▹";
+            color: #667eea;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        ul.clients {
+            list-style: none;
+            margin-left: 20px;
+        }
+
+        ul.clients li {
+            margin-bottom: 8px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        ul.clients li:before {
+            content: "•";
+            color: #667eea;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .reference-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .reference-section a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .reference-section a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            background: #2d2d2d;
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        footer p {
+            margin-bottom: 10px;
+        }
+
+        .back-to-top {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            nav ul {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            main {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MSDP Variables Reference</h1>
+            <p>Luminari MUD Server Data Protocol Variables</p>
+        </header>
+
+        <nav>
+            <h3>Quick Navigation</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#general-info">General Info</a></li>
+                <li><a href="#character-stats">Character Stats</a></li>
+                <li><a href="#combat">Combat</a></li>
+                <li><a href="#ability-scores">Ability Scores</a></li>
+                <li><a href="#action-economy">Action Economy</a></li>
+                <li><a href="#group-position">Group & Position</a></li>
+                <li><a href="#combat-info">Combat Info</a></li>
+                <li><a href="#world-info">World Info</a></li>
+                <li><a href="#client-config">Client Config</a></li>
+                <li><a href="#gui-elements">GUI Elements</a></li>
+                <li><a href="#data-types">Data Types</a></li>
+                <li><a href="#update-frequency">Update Frequency</a></li>
+                <li><a href="#usage">Usage in Code</a></li>
+                <li><a href="#references">References</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview" class="overview">
+                <h2>Overview</h2>
+                <p>MSDP (Mud Server Data Protocol) is a telnet protocol extension that allows real-time data exchange between the server and client. The server automatically updates these variables and sends them to clients that support MSDP.</p>
+            </section>
+
+            <!-- General Server and Character Information -->
+            <section id="general-info">
+                <h2>General Server and Character Information</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>CHARACTER_NAME</code></td>
+                            <td>String</td>
+                            <td>Player character name</td>
+                        </tr>
+                        <tr>
+                            <td><code>SERVER_ID</code></td>
+                            <td>String</td>
+                            <td>Unique server identifier</td>
+                        </tr>
+                        <tr>
+                            <td><code>SERVER_TIME</code></td>
+                            <td>Number</td>
+                            <td>Current server timestamp</td>
+                        </tr>
+                        <tr>
+                            <td><code>SNIPPET_VERSION</code></td>
+                            <td>Number</td>
+                            <td>Protocol snippet version (8)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Character Statistics and Progression -->
+            <section id="character-stats">
+                <h2>Character Statistics and Progression</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>AFFECTS</code></td>
+                            <td>Array</td>
+                            <td>Active spell effects and conditions</td>
+                        </tr>
+                        <tr>
+                            <td><code>INVENTORY</code></td>
+                            <td>Array</td>
+                            <td>Character inventory items</td>
+                        </tr>
+                        <tr>
+                            <td><code>ALIGNMENT</code></td>
+                            <td>Number</td>
+                            <td>Character alignment (-1000 to 1000)</td>
+                        </tr>
+                        <tr>
+                            <td><code>EXPERIENCE</code></td>
+                            <td>Number</td>
+                            <td>Current experience points</td>
+                        </tr>
+                        <tr>
+                            <td><code>EXPERIENCE_MAX</code></td>
+                            <td>Number</td>
+                            <td>Experience points at current level</td>
+                        </tr>
+                        <tr>
+                            <td><code>EXPERIENCE_TNL</code></td>
+                            <td>Number</td>
+                            <td>Experience points to next level</td>
+                        </tr>
+                        <tr>
+                            <td><code>HEALTH</code></td>
+                            <td>Number</td>
+                            <td>Current hit points</td>
+                        </tr>
+                        <tr>
+                            <td><code>HEALTH_MAX</code></td>
+                            <td>Number</td>
+                            <td>Maximum hit points</td>
+                        </tr>
+                        <tr>
+                            <td><code>LEVEL</code></td>
+                            <td>Number</td>
+                            <td>Character level</td>
+                        </tr>
+                        <tr>
+                            <td><code>RACE</code></td>
+                            <td>String</td>
+                            <td>Character race name</td>
+                        </tr>
+                        <tr>
+                            <td><code>CLASS</code></td>
+                            <td>String</td>
+                            <td>Character class name</td>
+                        </tr>
+                        <tr>
+                            <td><code>PSP</code></td>
+                            <td>Number</td>
+                            <td>Current psionic spell points</td>
+                        </tr>
+                        <tr>
+                            <td><code>PSP_MAX</code></td>
+                            <td>Number</td>
+                            <td>Maximum psionic spell points</td>
+                        </tr>
+                        <tr>
+                            <td><code>WIMPY</code></td>
+                            <td>Number</td>
+                            <td>Wimpy flee threshold</td>
+                        </tr>
+                        <tr>
+                            <td><code>PRACTICE</code></td>
+                            <td>Number</td>
+                            <td>Practice sessions available</td>
+                        </tr>
+                        <tr>
+                            <td><code>MONEY</code></td>
+                            <td>Number</td>
+                            <td>Character wealth in gold</td>
+                        </tr>
+                        <tr>
+                            <td><code>MOVEMENT</code></td>
+                            <td>Number</td>
+                            <td>Current movement points</td>
+                        </tr>
+                        <tr>
+                            <td><code>MOVEMENT_MAX</code></td>
+                            <td>Number</td>
+                            <td>Maximum movement points</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Combat and Character Modifiers -->
+            <section id="combat">
+                <h2>Combat and Character Modifiers</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>ATTACK_BONUS</code></td>
+                            <td>Number</td>
+                            <td>Attack bonus modifier</td>
+                        </tr>
+                        <tr>
+                            <td><code>DAMAGE_BONUS</code></td>
+                            <td>Number</td>
+                            <td>Damage bonus modifier</td>
+                        </tr>
+                        <tr>
+                            <td><code>AC</code></td>
+                            <td>Number</td>
+                            <td>Armor class</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Ability Scores (Current) -->
+            <section id="ability-scores">
+                <h2>Ability Scores</h2>
+                <h3>Current Ability Scores</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>STR</code></td>
+                            <td>Number</td>
+                            <td>Current strength score</td>
+                        </tr>
+                        <tr>
+                            <td><code>INT</code></td>
+                            <td>Number</td>
+                            <td>Current intelligence score</td>
+                        </tr>
+                        <tr>
+                            <td><code>WIS</code></td>
+                            <td>Number</td>
+                            <td>Current wisdom score</td>
+                        </tr>
+                        <tr>
+                            <td><code>DEX</code></td>
+                            <td>Number</td>
+                            <td>Current dexterity score</td>
+                        </tr>
+                        <tr>
+                            <td><code>CON</code></td>
+                            <td>Number</td>
+                            <td>Current constitution score</td>
+                        </tr>
+                        <tr>
+                            <td><code>CHA</code></td>
+                            <td>Number</td>
+                            <td>Current charisma score</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Permanent Ability Scores</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>STR_PERM</code></td>
+                            <td>Number</td>
+                            <td>Permanent strength score</td>
+                        </tr>
+                        <tr>
+                            <td><code>INT_PERM</code></td>
+                            <td>Number</td>
+                            <td>Permanent intelligence score</td>
+                        </tr>
+                        <tr>
+                            <td><code>WIS_PERM</code></td>
+                            <td>Number</td>
+                            <td>Permanent wisdom score</td>
+                        </tr>
+                        <tr>
+                            <td><code>DEX_PERM</code></td>
+                            <td>Number</td>
+                            <td>Permanent dexterity score</td>
+                        </tr>
+                        <tr>
+                            <td><code>CON_PERM</code></td>
+                            <td>Number</td>
+                            <td>Permanent constitution score</td>
+                        </tr>
+                        <tr>
+                            <td><code>CHA_PERM</code></td>
+                            <td>Number</td>
+                            <td>Permanent charisma score</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Action Economy -->
+            <section id="action-economy">
+                <h2>Action Economy</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>ACTIONS</code></td>
+                            <td>Table</td>
+                            <td>Available actions data (structured data)</td>
+                        </tr>
+                        <tr>
+                            <td><code>STANDARD_ACTION</code></td>
+                            <td>Boolean</td>
+                            <td>Standard action available (1 = yes, 0 = no)</td>
+                        </tr>
+                        <tr>
+                            <td><code>MOVE_ACTION</code></td>
+                            <td>Boolean</td>
+                            <td>Move action available (1 = yes, 0 = no)</td>
+                        </tr>
+                        <tr>
+                            <td><code>SWIFT_ACTION</code></td>
+                            <td>Boolean</td>
+                            <td>Swift action available (1 = yes, 0 = no)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Group and Position -->
+            <section id="group-position">
+                <h2>Group and Position</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>GROUP</code></td>
+                            <td>Array</td>
+                            <td>Group members data</td>
+                        </tr>
+                        <tr>
+                            <td><code>POSITION</code></td>
+                            <td>String</td>
+                            <td>Current position (standing, sitting, fighting, etc.)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Real-Time Combat Information -->
+            <section id="combat-info">
+                <h2>Real-Time Combat Information</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>OPPONENT_HEALTH</code></td>
+                            <td>Number</td>
+                            <td>Current opponent's hit points (as percentage)</td>
+                        </tr>
+                        <tr>
+                            <td><code>OPPONENT_HEALTH_MAX</code></td>
+                            <td>Number</td>
+                            <td>Current opponent's maximum hit points (usually 100)</td>
+                        </tr>
+                        <tr>
+                            <td><code>OPPONENT_LEVEL</code></td>
+                            <td>Number</td>
+                            <td>Current opponent's level</td>
+                        </tr>
+                        <tr>
+                            <td><code>OPPONENT_NAME</code></td>
+                            <td>String</td>
+                            <td>Current opponent's name</td>
+                        </tr>
+                        <tr>
+                            <td><code>TANK_NAME</code></td>
+                            <td>String</td>
+                            <td>Group tank's name</td>
+                        </tr>
+                        <tr>
+                            <td><code>TANK_HEALTH</code></td>
+                            <td>Number</td>
+                            <td>Group tank's current hit points (as percentage)</td>
+                        </tr>
+                        <tr>
+                            <td><code>TANK_HEALTH_MAX</code></td>
+                            <td>Number</td>
+                            <td>Group tank's maximum hit points (usually 100)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- World and Environment Information -->
+            <section id="world-info">
+                <h2>World and Environment Information</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>ROOM</code></td>
+                            <td>Table</td>
+                            <td>Complete room information (structured data)</td>
+                        </tr>
+                        <tr>
+                            <td><code>AREA_NAME</code></td>
+                            <td>String</td>
+                            <td>Current area/zone name</td>
+                        </tr>
+                        <tr>
+                            <td><code>ROOM_EXITS</code></td>
+                            <td>Table</td>
+                            <td>Available exits from current room</td>
+                        </tr>
+                        <tr>
+                            <td><code>ROOM_NAME</code></td>
+                            <td>String</td>
+                            <td>Current room name</td>
+                        </tr>
+                        <tr>
+                            <td><code>ROOM_VNUM</code></td>
+                            <td>Number</td>
+                            <td>Current room virtual number</td>
+                        </tr>
+                        <tr>
+                            <td><code>WORLD_TIME</code></td>
+                            <td>String</td>
+                            <td>Game world time</td>
+                        </tr>
+                        <tr>
+                            <td><code>SECTORS</code></td>
+                            <td>Table</td>
+                            <td>Room sector/terrain information</td>
+                        </tr>
+                        <tr>
+                            <td><code>MINIMAP</code></td>
+                            <td>String</td>
+                            <td>ASCII minimap representation</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Client Configuration and Capabilities -->
+            <section id="client-config">
+                <h2>Client Configuration and Capabilities</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>CLIENT_ID</code></td>
+                            <td>String</td>
+                            <td>Client software name (configurable by client)</td>
+                        </tr>
+                        <tr>
+                            <td><code>CLIENT_VERSION</code></td>
+                            <td>String</td>
+                            <td>Client version string (configurable by client)</td>
+                        </tr>
+                        <tr>
+                            <td><code>PLUGIN_ID</code></td>
+                            <td>String</td>
+                            <td>Plugin/script identification (configurable by client)</td>
+                        </tr>
+                        <tr>
+                            <td><code>ANSI_COLORS</code></td>
+                            <td>Boolean</td>
+                            <td>ANSI color support (1 = yes, 0 = no)</td>
+                        </tr>
+                        <tr>
+                            <td><code>256_COLORS</code></td>
+                            <td>Boolean</td>
+                            <td>256-color support (1 = yes, 0 = no)</td>
+                        </tr>
+                        <tr>
+                            <td><code>UTF_8</code></td>
+                            <td>Boolean</td>
+                            <td>UTF-8 encoding support (1 = yes, 0 = no)</td>
+                        </tr>
+                        <tr>
+                            <td><code>SOUND</code></td>
+                            <td>Boolean</td>
+                            <td>Sound/audio support (1 = yes, 0 = no)</td>
+                        </tr>
+                        <tr>
+                            <td><code>MXP</code></td>
+                            <td>Boolean</td>
+                            <td>MXP markup support (1 = yes, 0 = no)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- GUI Element Definitions -->
+            <section id="gui-elements">
+                <h2>GUI Element Definitions</h2>
+                <p class="section-intro">These variables are used by compatible GUI clients to display buttons and gauges.</p>
+
+                <h3>Buttons</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>BUTTON_1</code></td>
+                            <td>GUI button 1 definition (typically Help)</td>
+                        </tr>
+                        <tr>
+                            <td><code>BUTTON_2</code></td>
+                            <td>GUI button 2 definition (typically Look)</td>
+                        </tr>
+                        <tr>
+                            <td><code>BUTTON_3</code></td>
+                            <td>GUI button 3 definition (typically Score)</td>
+                        </tr>
+                        <tr>
+                            <td><code>BUTTON_4</code></td>
+                            <td>GUI button 4 definition (typically Equipment)</td>
+                        </tr>
+                        <tr>
+                            <td><code>BUTTON_5</code></td>
+                            <td>GUI button 5 definition (typically Inventory)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Gauges</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>GAUGE_1</code></td>
+                            <td>GUI gauge 1 definition (Health - red)</td>
+                        </tr>
+                        <tr>
+                            <td><code>GAUGE_2</code></td>
+                            <td>GUI gauge 2 definition (PSP - blue)</td>
+                        </tr>
+                        <tr>
+                            <td><code>GAUGE_3</code></td>
+                            <td>GUI gauge 3 definition (Movement - green)</td>
+                        </tr>
+                        <tr>
+                            <td><code>GAUGE_4</code></td>
+                            <td>GUI gauge 4 definition (Experience - yellow)</td>
+                        </tr>
+                        <tr>
+                            <td><code>GAUGE_5</code></td>
+                            <td>GUI gauge 5 definition (Opponent Health - dark red)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Data Types -->
+            <section id="data-types">
+                <h2>Data Types</h2>
+                <div class="data-types">
+                    <div class="data-type">
+                        <h4>String</h4>
+                        <p>Plain text values. Examples: character name, room name, class name.</p>
+                    </div>
+
+                    <div class="data-type">
+                        <h4>Number</h4>
+                        <p>Integer values. Examples: hit points, experience, ability scores.</p>
+                    </div>
+
+                    <div class="data-type">
+                        <h4>Boolean</h4>
+                        <p>Integer values representing true (1) or false (0).</p>
+                    </div>
+
+                    <div class="data-type">
+                        <h4>Array</h4>
+                        <p>A list of values. Example format:</p>
+                        <pre><code>AFFECTS "Bless" "Shield" "Detect Magic"</code></pre>
+                    </div>
+
+                    <div class="data-type">
+                        <h4>Table</h4>
+                        <p>Structured key-value pairs. Example format:</p>
+                        <pre><code>ROOM "NAME" "Temple Square" "EXITS" "N" "E" "S" "W" "VNUM" "3001"</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Update Frequency -->
+            <section id="update-frequency">
+                <h2>Update Frequency</h2>
+                <p>Most MSDP variables are updated automatically once per second through the <code>msdp_update()</code> function in the game loop. Some variables trigger immediate updates when they change:</p>
+                <ul class="updates">
+                    <li><strong>Combat variables</strong> - Update when combat starts/ends</li>
+                    <li><strong>Room variables</strong> - Update on movement</li>
+                    <li><strong>Group variables</strong> - Update when group composition changes</li>
+                    <li><strong>Inventory variables</strong> - Update when items are gained/lost</li>
+                    <li><strong>Affects variables</strong> - Update when spell effects change</li>
+                </ul>
+            </section>
+
+            <!-- Usage in Code -->
+            <section id="usage">
+                <h2>Usage in Code</h2>
+
+                <h3>Setting Variables</h3>
+                <p>Variables are set using these functions:</p>
+                <pre><code>MSDPSetNumber(descriptor, eMSDP_HEALTH, GET_HIT(ch));
+MSDPSetString(descriptor, eMSDP_CHARACTER_NAME, GET_NAME(ch));
+MSDPSetArray(descriptor, eMSDP_GROUP, group_buffer);
+MSDPSetTable(descriptor, eMSDP_ROOM, room_buffer);</code></pre>
+
+                <h3>Forcing Immediate Updates</h3>
+                <p>To send updates immediately instead of waiting for the next tick:</p>
+                <pre><code>MSDPFlush(descriptor, eMSDP_HEALTH);  // Flush specific variable
+MSDPUpdate(descriptor);                // Flush all changed variables</code></pre>
+            </section>
+
+            <!-- Client Support -->
+            <section>
+                <h2>Client Support</h2>
+                <p>MSDP is supported by many MUD clients including:</p>
+                <ul class="clients">
+                    <li>MUSHclient (with MSDP plugin)</li>
+                    <li>Mudlet</li>
+                    <li>Beip</li>
+                    <li>BlowTorch</li>
+                    <li>And other clients supporting the MSDP protocol</li>
+                </ul>
+            </section>
+
+            <!-- References -->
+            <section id="references">
+                <h2>References</h2>
+                <div class="reference-section">
+                    <p><strong>Official Documentation:</strong></p>
+                    <p>
+                        <a href="http://tintin.sourceforge.net/msdp/" target="_blank">MSDP Specification</a>
+                        <a href="https://tools.ietf.org/html/rfc854" target="_blank">Telnet Protocol (RFC 854)</a>
+                        <a href="https://tools.ietf.org/html/rfc855" target="_blank">Telnet Option Negotiation (RFC 855)</a>
+                    </p>
+                </div>
+            </section>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="#overview" class="back-to-top">Back to Top</a>
+            </div>
+        </main>
+
+        <footer>
+            <p><strong>MSDP Variables Reference - Luminari MUD</strong></p>
+            <p>Documentation for Mud Server Data Protocol implementation</p>
+            <p>Generated: 2026 | For more information, see MSDP_VARIABLES.md</p>
+        </footer>
+    </div>
+</body>
+</html>

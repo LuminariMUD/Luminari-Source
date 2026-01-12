@@ -24,6 +24,8 @@
 #include "mud_event.h"
 #include "missions.h"
 #include "house.h"
+#include "mysql.h"
+#include "db_init.h"
 #include "dg_scripts.h" /* for load_mtrigger() */
 
 /*-------------------------------------------------------------------*/
@@ -1849,6 +1851,560 @@ ACMD(do_quest)
       send_to_char(ch, "%s\r\n", GET_LEVEL(ch) < LVL_IMMORT ? quest_mort_usage : quest_imm_usage);
       break;
     } /* switch on subcmd number */
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Questline MySQL-backed tooling                                              */
+
+static bool questline_mysql_ready(struct char_data *ch)
+{
+  if (!mysql_available || !conn)
+  {
+    send_to_char(ch, "MySQL is not available right now. Quest lines are unavailable.\r\n");
+    return FALSE;
+  }
+
+  ensure_questline_tables();
+  return TRUE;
+}
+
+static int questline_max_position(int quest_line_id)
+{
+  char query[256];
+  MYSQL_RES *result = NULL;
+  MYSQL_ROW row;
+  int max_pos = 0;
+
+  snprintf(query, sizeof(query),
+           "SELECT COALESCE(MAX(position), 0) FROM quest_line_steps WHERE quest_line_id = %d",
+           quest_line_id);
+
+  if (mysql_query_safe(conn, query))
+    return 0;
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+    return 0;
+
+  row = mysql_fetch_row(result);
+  if (row && row[0])
+    max_pos = atoi(row[0]);
+
+  mysql_free_result(result);
+  return max_pos;
+}
+
+static void questline_list(struct char_data *ch)
+{
+  MYSQL_RES *result = NULL;
+  MYSQL_ROW row;
+  const char *query =
+      "SELECT ql.id, ql.name, COUNT(qs.id) AS steps "
+      "FROM quest_lines ql "
+      "LEFT JOIN quest_line_steps qs ON qs.quest_line_id = ql.id "
+      "GROUP BY ql.id, ql.name ORDER BY ql.id";
+
+  if (mysql_query_safe(conn, query))
+  {
+    send_to_char(ch, "Could not list quest lines (database error).\r\n");
+    return;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    send_to_char(ch, "Could not read quest line list.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Quest Lines:\r\n");
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    int id = atoi(row[0]);
+    const char *name = row[1] ? row[1] : "(unnamed)";
+    int steps = row[2] ? atoi(row[2]) : 0;
+    send_to_char(ch, " [%d] %s (steps: %d)\r\n", id, name, steps);
+  }
+
+  mysql_free_result(result);
+}
+
+static void questline_show(struct char_data *ch, int quest_line_id, int limit)
+{
+  char query[256];
+  MYSQL_RES *result = NULL;
+  MYSQL_ROW row;
+  char name_buf[128] = "(unknown)";
+
+  snprintf(query, sizeof(query), "SELECT name FROM quest_lines WHERE id = %d", quest_line_id);
+  if (!mysql_query_safe(conn, query))
+  {
+    result = mysql_store_result_safe(conn);
+    if (result && (row = mysql_fetch_row(result)) && row[0])
+      strlcpy(name_buf, row[0], sizeof(name_buf));
+    if (result)
+      mysql_free_result(result);
+  }
+
+  send_to_char(ch, "Quest Line [%d]: %s\r\n", quest_line_id, name_buf);
+
+  bool is_staff = (GET_LEVEL(ch) >= 31);
+  
+  /* First pass: find the next incomplete quest in order */
+  int next_quest_vnum = -1;
+  int next_quest_pos = -1;
+  if (!is_staff)  /* Only for non-staff players */
+  {
+    snprintf(query, sizeof(query),
+             "SELECT position, quest_vnum FROM quest_line_steps "
+             "WHERE quest_line_id = %d ORDER BY position ASC",
+             quest_line_id);
+    
+    if (!mysql_query_safe(conn, query))
+    {
+      result = mysql_store_result_safe(conn);
+      if (result)
+      {
+        while ((row = mysql_fetch_row(result)))
+        {
+          int qvnum = row[1] ? atoi(row[1]) : 0;
+          if (!is_complete(ch, qvnum))
+          {
+            next_quest_vnum = qvnum;
+            next_quest_pos = row[0] ? atoi(row[0]) : 0;
+            break;
+          }
+        }
+        mysql_free_result(result);
+      }
+    }
+  }
+
+  /* Second pass: fetch quests in reverse order for display */
+  snprintf(query, sizeof(query),
+           "SELECT position, quest_vnum FROM quest_line_steps "
+           "WHERE quest_line_id = %d ORDER BY position DESC",
+           quest_line_id);
+
+  if (mysql_query_safe(conn, query))
+  {
+    send_to_char(ch, "Could not load quest line %d.\r\n", quest_line_id);
+    return;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    send_to_char(ch, "Quest line %d is empty.\r\n", quest_line_id);
+    return;
+  }
+
+  int total_quests = mysql_num_rows(result);
+
+  send_to_char(ch, "%-13s %-42.42s | %-25s | %-30s | %-7s | %s\r\n", "Quest Num", "Quest Name", "Quest Master", "Location", "Min Lvl", "Status");
+  draw_line(ch, 145, '-', '-');
+
+  /* Display the next quest at the top for non-staff players */
+  if (!is_staff && next_quest_vnum != -1)
+  {
+    qst_rnum qrnum = real_quest(next_quest_vnum);
+    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+                            ? "(missing quest)"
+                            : QST_NAME(qrnum);
+    int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
+    const char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY) 
+                            ? "(no master)" 
+                            : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    
+    /* Find the quest master's room */
+    const char *qm_room = "(not found)";
+    if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
+    {
+      struct char_data *mob_instance;
+      for (mob_instance = character_list; mob_instance; mob_instance = mob_instance->next)
+      {
+        if (IS_NPC(mob_instance) && GET_MOB_VNUM(mob_instance) == qm_vnum)
+        {
+          room_rnum mob_room = IN_ROOM(mob_instance);
+          if (mob_room != NOWHERE && mob_room >= 0)
+            qm_room = world[mob_room].name;
+          break;
+        }
+      }
+    }
+    
+    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    send_to_char(ch, "%2d) [#%6d] %-42.42s | %-25.25s | %-30.30s | %7d | %s %s\r\n", next_quest_pos, next_quest_vnum, qname,
+                 qm_name, qm_room, min_level, "Next", "===>");
+    send_to_char(ch, "\r\n");
+  }
+
+  bool any = FALSE;
+  bool found_first_incomplete = FALSE;
+  int quest_count = 0;
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    int pos = row[0] ? atoi(row[0]) : 0;
+    int qvnum = row[1] ? atoi(row[1]) : 0;
+    
+    /* Skip the next quest in the reverse display since we showed it at top */
+    if (!is_staff && qvnum == next_quest_vnum)
+      continue;
+    
+    qst_rnum qrnum = real_quest(qvnum);
+    bool completed = is_complete(ch, qvnum);
+    
+    /* For non-staff, only show completed quests */
+    if (!is_staff && !completed)
+      continue;
+    
+    any = TRUE;
+    
+    /* Apply limit if specified (0 means no limit) */
+    if (limit > 0 && quest_count >= limit)
+      continue;
+    
+    quest_count++;
+    
+    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+                            ? "(missing quest)"
+                            : QST_NAME(qrnum);
+    int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
+    const char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY) 
+                            ? "(no master)" 
+                            : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    
+    /* Find the quest master's room */
+    const char *qm_room = "(not found)";
+    if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
+    {
+      struct char_data *mob_instance;
+      for (mob_instance = character_list; mob_instance; mob_instance = mob_instance->next)
+      {
+        if (IS_NPC(mob_instance) && GET_MOB_VNUM(mob_instance) == qm_vnum)
+        {
+          room_rnum mob_room = IN_ROOM(mob_instance);
+          if (mob_room != NOWHERE && mob_room >= 0)
+            qm_room = world[mob_room].name;
+          break;
+        }
+      }
+    }
+    
+    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+
+    send_to_char(ch, "%2d) [#%6d] %-42.42s | %-25.25s | %-30.30s | %7d | %s\r\n", pos, qvnum, qname,
+                 qm_name, qm_room, min_level, completed ? "Completed" : "Not completed");
+  }
+  draw_line(ch, 145, '-', '-');
+
+  if (!any && (!is_staff || next_quest_vnum == -1))
+    send_to_char(ch, "(No quests have been added yet.)\r\n");
+  else if (limit > 0 && quest_count < total_quests - ((!is_staff && next_quest_vnum != -1) ? 1 : 0))
+    send_to_char(ch, "\r\nShowing latest %d quest%s. Use 'questline show %d <number>' or 'questline show %d all' to see more.\r\n",
+                 quest_count, quest_count == 1 ? "" : "s", quest_line_id, quest_line_id);
+
+  mysql_free_result(result);
+}
+
+static void questline_create(struct char_data *ch, const char *name, const char *description)
+{
+  char query[MAX_STRING_LENGTH];
+  char *esc_name = mysql_escape_string_alloc(conn, name);
+  char *esc_desc = mysql_escape_string_alloc(conn, description ? description : "");
+  char *esc_creator = mysql_escape_string_alloc(conn, GET_NAME(ch));
+
+  snprintf(query, sizeof(query),
+           "INSERT INTO quest_lines (name, description, created_by) VALUES ('%s', '%s', '%s')",
+           esc_name, esc_desc, esc_creator);
+
+  if (mysql_query_safe(conn, query))
+  {
+    send_to_char(ch, "Could not create quest line (database error).\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "Quest line created.\r\n");
+  }
+
+  if (esc_name)
+    free(esc_name);
+  if (esc_desc)
+    free(esc_desc);
+  if (esc_creator)
+    free(esc_creator);
+}
+
+static void questline_insert_step(struct char_data *ch, int quest_line_id, int quest_vnum,
+                                  int position)
+{
+  char query[MAX_STRING_LENGTH];
+  int max_pos = questline_max_position(quest_line_id);
+
+  if (position <= 0)
+    position = max_pos + 1;
+  else if (position > max_pos + 1)
+    position = max_pos + 1;
+
+  /* shift existing steps down if inserting into the middle */
+  snprintf(query, sizeof(query),
+           "UPDATE quest_line_steps SET position = position + 1 "
+           "WHERE quest_line_id = %d AND position >= %d",
+           quest_line_id, position);
+  mysql_query_safe(conn, query);
+
+  snprintf(query, sizeof(query),
+           "INSERT INTO quest_line_steps (quest_line_id, position, quest_vnum) "
+           "VALUES (%d, %d, %d)",
+           quest_line_id, position, quest_vnum);
+
+  if (mysql_query_safe(conn, query))
+    send_to_char(ch, "Could not add quest %d to quest line %d.\r\n", quest_vnum, quest_line_id);
+  else
+    send_to_char(ch, "Added quest %d at position %d.\r\n", quest_vnum, position);
+}
+
+static void questline_remove_step(struct char_data *ch, int quest_line_id, int position)
+{
+  char query[MAX_STRING_LENGTH];
+
+  snprintf(query, sizeof(query),
+           "DELETE FROM quest_line_steps WHERE quest_line_id = %d AND position = %d",
+           quest_line_id, position);
+
+  if (mysql_query_safe(conn, query))
+  {
+    send_to_char(ch, "Could not remove position %d from quest line %d.\r\n", position,
+                 quest_line_id);
+    return;
+  }
+
+  /* compress positions after removal */
+  snprintf(query, sizeof(query),
+           "UPDATE quest_line_steps SET position = position - 1 "
+           "WHERE quest_line_id = %d AND position > %d",
+           quest_line_id, position);
+  mysql_query_safe(conn, query);
+
+  send_to_char(ch, "Removed position %d from quest line %d.\r\n", position, quest_line_id);
+}
+
+static void questline_move_step(struct char_data *ch, int quest_line_id, int from_pos, int to_pos)
+{
+  char query[MAX_STRING_LENGTH];
+
+  if (from_pos == to_pos)
+  {
+    send_to_char(ch, "Positions are the same; nothing to move.\r\n");
+    return;
+  }
+
+  /* temporarily park the moving row */
+  snprintf(query, sizeof(query),
+           "UPDATE quest_line_steps SET position = -1 WHERE quest_line_id = %d AND position = %d",
+           quest_line_id, from_pos);
+
+  if (mysql_query_safe(conn, query) || mysql_affected_rows(conn) == 0)
+  {
+    send_to_char(ch, "No step found at position %d.\r\n", from_pos);
+    return;
+  }
+
+  if (from_pos < to_pos)
+  {
+    snprintf(query, sizeof(query),
+             "UPDATE quest_line_steps SET position = position - 1 "
+             "WHERE quest_line_id = %d AND position > %d AND position <= %d",
+             quest_line_id, from_pos, to_pos);
+    mysql_query_safe(conn, query);
+  }
+  else
+  {
+    snprintf(query, sizeof(query),
+             "UPDATE quest_line_steps SET position = position + 1 "
+             "WHERE quest_line_id = %d AND position >= %d AND position < %d",
+             quest_line_id, to_pos, from_pos);
+    mysql_query_safe(conn, query);
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE quest_line_steps SET position = %d WHERE quest_line_id = %d AND position = -1",
+           to_pos, quest_line_id);
+  mysql_query_safe(conn, query);
+
+  send_to_char(ch, "Moved step from %d to %d.\r\n", from_pos, to_pos);
+}
+
+static void questline_delete(struct char_data *ch, int quest_line_id)
+{
+  char query[256];
+  snprintf(query, sizeof(query), "DELETE FROM quest_lines WHERE id = %d", quest_line_id);
+
+  if (mysql_query_safe(conn, query))
+    send_to_char(ch, "Could not delete quest line %d.\r\n", quest_line_id);
+  else
+    send_to_char(ch, "Deleted quest line %d.\r\n", quest_line_id);
+}
+
+static void questline_rename(struct char_data *ch, int quest_line_id, const char *new_name)
+{
+  char query[MAX_STRING_LENGTH];
+  char *esc = mysql_escape_string_alloc(conn, new_name);
+  snprintf(query, sizeof(query), "UPDATE quest_lines SET name = '%s' WHERE id = %d", esc,
+           quest_line_id);
+
+  if (mysql_query_safe(conn, query))
+    send_to_char(ch, "Could not rename quest line %d.\r\n", quest_line_id);
+  else
+    send_to_char(ch, "Renamed quest line %d.\r\n", quest_line_id);
+
+  if (esc)
+    free(esc);
+}
+
+ACMDU(do_questline)
+{
+  char subcmd_s[MAX_INPUT_LENGTH] = {'\0'};
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg3[MAX_STRING_LENGTH] = {'\0'};
+  char remainder[MAX_INPUT_LENGTH] = {'\0'};
+
+  /* parse arguments */
+  half_chop(argument, subcmd_s, remainder);
+  
+  if (!*subcmd_s)
+  {
+    send_to_char(ch, "Usage:\r\n"
+                      "questline list\r\n"
+                      "questline show <id> [<number>|all]  (defaults to 10 quests, shows in reverse order)\r\n"
+                      "questline create <name> [desc]\r\n"
+                      "questline add <id> <quest_vnum> [position]\r\n"
+                      "questline remove <id> <position>\r\n"
+                      "questline move <id> <from> <to>\r\n"
+                      "questline rename <id> <new name>\r\n"
+                      "questline delete <id>\r\n");
+
+    return;
+  }
+
+  if (!questline_mysql_ready(ch))
+    return;
+
+  /* Player-visible commands */
+  if (!str_cmp(subcmd_s, "list"))
+  {
+    questline_list(ch);
+    return;
+  }
+  else if (!str_cmp(subcmd_s, "show") || !str_cmp(subcmd_s, "view"))
+  {
+    two_arguments(remainder, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    if (!*arg1)
+    {
+      send_to_char(ch, "Usage: questline show <id> [<number>|all]\r\n");
+      send_to_char(ch, "  <id>       - The questline ID to display\r\n");
+      send_to_char(ch, "  <number>   - Number of quests to show (default: 10)\r\n");
+      send_to_char(ch, "  all        - Show all quests in the questline\r\n");
+      return;
+    }
+    
+    int limit = 10;  /* default limit */
+    if (*arg2)
+    {
+      if (!str_cmp(arg2, "all"))
+        limit = 0;  /* 0 means no limit */
+      else
+        limit = atoi(arg2);
+    }
+    
+    questline_show(ch, atoi(arg1), limit);
+    return;
+  }
+
+  /* Builder/admin commands (level 32+) */
+  if (GET_LEVEL(ch) < 32)
+  {
+    send_to_char(ch, "You do not have access to quest line editing.\r\n");
+    return;
+  }
+
+  if (!str_cmp(subcmd_s, "create"))
+  {
+    half_chop(remainder, arg1, arg3);
+    if (!*arg1)
+    {
+      send_to_char(ch, "Usage: questline create <name> [description]\r\n");
+      return;
+    }
+    questline_create(ch, arg1, arg3);
+  }
+  else if (!str_cmp(subcmd_s, "add"))
+  {
+    three_arguments(remainder, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+    if (!*arg1 || !*arg2)
+    {
+      send_to_char(ch, "Usage: questline add <line_id> <quest_vnum> [position]\r\n");
+      return;
+    }
+
+    int line_id = atoi(arg1);
+    int quest_vnum = atoi(arg2);
+    int position = *arg3 ? atoi(arg3) : 0;
+    qst_rnum qrnum = real_quest(quest_vnum);
+    if (qrnum == NOTHING || qrnum == NOWHERE)
+    {
+      send_to_char(ch, "Quest vnum %d does not exist.\r\n", quest_vnum);
+      return;
+    }
+    questline_insert_step(ch, line_id, quest_vnum, position);
+  }
+  else if (!str_cmp(subcmd_s, "remove"))
+  {
+    two_arguments(remainder, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    if (!*arg1 || !*arg2)
+    {
+      send_to_char(ch, "Usage: questline remove <line_id> <position>\r\n");
+      return;
+    }
+    questline_remove_step(ch, atoi(arg1), atoi(arg2));
+  }
+  else if (!str_cmp(subcmd_s, "move"))
+  {
+    three_arguments(remainder, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+    if (!*arg1 || !*arg2 || !*arg3)
+    {
+      send_to_char(ch, "Usage: questline move <line_id> <from> <to>\r\n");
+      return;
+    }
+    questline_move_step(ch, atoi(arg1), atoi(arg2), atoi(arg3));
+  }
+  else if (!str_cmp(subcmd_s, "rename"))
+  {
+    half_chop(remainder, arg1, arg2);
+    if (!*arg1 || !*arg2)
+    {
+      send_to_char(ch, "Usage: questline rename <line_id> <new name>\r\n");
+      return;
+    }
+    questline_rename(ch, atoi(arg1), arg2);
+  }
+  else if (!str_cmp(subcmd_s, "delete"))
+  {
+    one_argument(remainder, arg1, sizeof(arg1));
+    if (!*arg1)
+    {
+      send_to_char(ch, "Usage: questline delete <line_id>\r\n");
+      return;
+    }
+    questline_delete(ch, atoi(arg1));
+  }
+  else
+  {
+    send_to_char(ch, "Unknown questline subcommand.\r\n");
   }
 }
 

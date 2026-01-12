@@ -1376,7 +1376,7 @@ bool char_pets_to_char_loc(struct char_data *ch)
     char_from_room(tch);
 
     /* set coords if necessary */
-    if (IN_ROOM(ch) != NOWHERE && GET_ROOM_ZONE(IN_ROOM(tch)) != NOWHERE)
+    if (IN_ROOM(ch) != NOWHERE && IN_ROOM(tch) != NOWHERE && GET_ROOM_ZONE(IN_ROOM(tch)) != NOWHERE)
     {
       if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       {

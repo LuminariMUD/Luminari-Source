@@ -70,6 +70,7 @@ void populate_ship_room_templates_data(void);
 void ensure_path_types_reference(void);
 void ensure_player_data_account_link(void);
 void ensure_account_quit_survey_column(void);
+void ensure_questline_tables(void);
 
 /* ===== DATABASE VERIFICATION FUNCTIONS ===== */
 

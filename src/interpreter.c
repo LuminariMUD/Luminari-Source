@@ -224,8 +224,6 @@ cpp_extern const struct command_info cmd_info[] = {
      {1, 0},
      can_eldritch_blast},
     {"ask", "ask", POS_RECLINING, do_spec_comm, 0, SCMD_ASK, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"quitlog", "quitlog", POS_DEAD, do_quitlog, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0},
-     NULL},
     {"astat", "ast", POS_DEAD, do_astat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"attach", "attach", POS_DEAD, do_attach, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"attacks", "attacks", POS_DEAD, do_attacks, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3219,6 +3217,7 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"qecho", "qec", POS_DEAD, do_qcomm, LVL_STAFF, SCMD_QECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"quest", "que", POS_DEAD, do_quest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"questline", "questline", POS_DEAD, do_questline, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"quickchant",
@@ -3243,6 +3242,7 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
 #endif
     {"quit", "quit", POS_DEAD, do_quit, 0, SCMD_QUIT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"quitlog", "quitlog", POS_DEAD, do_quitlog, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qsay", "qsay", POS_RECLINING, do_qcomm, 0, SCMD_QSAY, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -5545,7 +5545,6 @@ void command_interpreter(struct char_data *ch, char *argument)
                      "gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/"
                      "idea/class/race/spelllist]\r\n");
   }
-
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch))
     {

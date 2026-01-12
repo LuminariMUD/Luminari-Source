@@ -92,6 +92,18 @@ void initialize_missing_tables(void)
     ensure_path_types_reference();
   }
 
+  /* Quest line tables */
+  if (!table_exists("quest_lines") || !table_exists("quest_line_steps"))
+  {
+    log("Initializing quest line tables...");
+    ensure_questline_tables();
+    log("Quest line tables initialized");
+  }
+  else
+  {
+    ensure_questline_tables();
+  }
+
   /* Resource system tables */
   if (!table_exists("resource_types"))
   {

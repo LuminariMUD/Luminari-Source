@@ -161,6 +161,7 @@ void quest_timeout(struct char_data *ch, int index);
 void check_timed_quests(void);
 SPECIAL_DECL(questmaster);
 ACMD_DECL(do_quest);
+ACMD_DECL(do_questline);
 ACMD_DECL(do_aqref);
 bool is_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum);
 void set_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum);

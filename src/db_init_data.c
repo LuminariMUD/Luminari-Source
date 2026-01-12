@@ -358,6 +358,60 @@ void ensure_player_data_account_link(void)
   }
 }
 
+/* Ensure quest line tables exist for storing ordered quest sequences */
+void ensure_questline_tables(void)
+{
+  if (!mysql_available || !conn)
+    return;
+
+  /* Quest line definition table */
+  if (!table_exists("quest_lines"))
+  {
+    const char *create_quest_lines =
+        "CREATE TABLE quest_lines ("
+        "id INT AUTO_INCREMENT PRIMARY KEY,"
+        "name VARCHAR(120) NOT NULL,"
+        "description TEXT NULL,"
+        "created_by VARCHAR(64) NULL,"
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+        ") ENGINE=InnoDB";
+
+    if (mysql_query_safe(conn, create_quest_lines))
+    {
+      log("SYSERR: Failed to create quest_lines table: %s", mysql_error(conn));
+    }
+    else
+    {
+      log("Info: Created quest_lines table");
+    }
+  }
+
+  /* Quest line steps (ordered quests within a line) */
+  if (!table_exists("quest_line_steps"))
+  {
+    const char *create_steps =
+        "CREATE TABLE quest_line_steps ("
+        "id INT AUTO_INCREMENT PRIMARY KEY,"
+        "quest_line_id INT NOT NULL,"
+        "position INT NOT NULL,"
+        "quest_vnum INT NOT NULL,"
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+        "UNIQUE KEY uq_line_pos (quest_line_id, position),"
+        "INDEX idx_line (quest_line_id),"
+        "CONSTRAINT fk_line FOREIGN KEY (quest_line_id) REFERENCES quest_lines(id) ON DELETE CASCADE"
+        ") ENGINE=InnoDB";
+
+    if (mysql_query_safe(conn, create_steps))
+    {
+      log("SYSERR: Failed to create quest_line_steps table: %s", mysql_error(conn));
+    }
+    else
+    {
+      log("Info: Created quest_line_steps table");
+    }
+  }
+}
+
 /* Ensure account_data has the quit survey column used to gate prompting */
 void ensure_account_quit_survey_column(void)
 {

@@ -72,7 +72,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
   "craft extradesc (extra desc string\r\n"                                                         \
   "craft bonuses (slot) (bonus location) (bonus type) (modifier) (specific)\r\n"                   \
   "craft enhancement (enhancement modifier\r\n"                                                    \
-  "craft instrument (quality|effectiveness|breakability) (amount)"                                 \
+  "craft instrument (quality|effectiveness|breakability) (amount)\r\n"                             \
   "craft materials (add|remove) (material type)\r\n"                                               \
   "craft motes (add|remove) (enhancement|quality|effectiveness|breakability|bonus slot #)\r\n"     \
   "craft leveladjust (level adjustment)\r\n"                                                       \
