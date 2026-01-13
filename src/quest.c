@@ -27,6 +27,7 @@
 #include "mysql.h"
 #include "db_init.h"
 #include "dg_scripts.h" /* for load_mtrigger() */
+#include "modify.h"
 
 /*-------------------------------------------------------------------*/
 /* External data */
@@ -1582,6 +1583,7 @@ void quest_show(struct char_data *ch, mob_vnum qm)
 
   if (!counter)
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
+  send_to_char(ch, "\r\nYou can use the 'questline' command to view your quests for a given story arc.\r\n");
 }
 
 /* allows staff to assign a quest as completed to given target */
@@ -1937,6 +1939,9 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   MYSQL_RES *result = NULL;
   MYSQL_ROW row;
   char name_buf[128] = "(unknown)";
+  char quest_name[128];
+  char quest_master[128];
+  char quest_location[128];
 
   snprintf(query, sizeof(query), "SELECT name FROM quest_lines WHERE id = %d", quest_line_id);
   if (!mysql_query_safe(conn, query))
@@ -2010,16 +2015,16 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && next_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(next_quest_vnum);
-    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
                             ? "(missing quest)"
                             : QST_NAME(qrnum);
     int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
-    const char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY) 
+    char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY) 
                             ? "(no master)" 
                             : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
     
     /* Find the quest master's room */
-    const char *qm_room = "(not found)";
+    char *qm_room = "(not found)";
     if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2036,13 +2041,19 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     }
     
     int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
-    send_to_char(ch, "%2d) [#%6d] %-42.42s | %-25.25s | %-30.30s | %7d | %s %s\r\n", next_quest_pos, next_quest_vnum, qname,
-                 qm_name, qm_room, min_level, "Next", "===>");
+    
+    snprintf(quest_name, sizeof(quest_name), "%s", qname);
+    snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
+    snprintf(quest_location, sizeof(quest_location), "%s", qm_room);
+    strip_colors(quest_name);
+    strip_colors(quest_master);
+    strip_colors(quest_location);
+    send_to_char(ch, "%2d) [#%6d] %-42.42s | %-25.25s | %-30.30s | %7d | %s %s\r\n", next_quest_pos, next_quest_vnum, quest_name,
+                 quest_master, quest_location, min_level, "Next", "===>");
     send_to_char(ch, "\r\n");
   }
 
   bool any = FALSE;
-  bool found_first_incomplete = FALSE;
   int quest_count = 0;
 
   while ((row = mysql_fetch_row(result)))
@@ -2069,16 +2080,16 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     
     quest_count++;
     
-    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
                             ? "(missing quest)"
                             : QST_NAME(qrnum);
     int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
-    const char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY) 
+    char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY) 
                             ? "(no master)" 
                             : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
     
     /* Find the quest master's room */
-    const char *qm_room = "(not found)";
+    char *qm_room = "(not found)";
     if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2095,9 +2106,17 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     }
     
     int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
-
-    send_to_char(ch, "%2d) [#%6d] %-42.42s | %-25.25s | %-30.30s | %7d | %s\r\n", pos, qvnum, qname,
-                 qm_name, qm_room, min_level, completed ? "Completed" : "Not completed");
+    
+    snprintf(quest_name, sizeof(quest_name), "%s", qname);
+    snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
+    snprintf(quest_location, sizeof(quest_location), "%s", qm_room);
+    
+    strip_colors(quest_name);
+    strip_colors(quest_master);
+    strip_colors(quest_location);
+    
+    send_to_char(ch, "%2d) [#%6d] %-42.42s | %-25.25s | %-30.30s | %7d | %s\r\n", pos, qvnum, quest_name,
+                 quest_master, quest_location, min_level, completed ? "Completed" : "Not completed");
   }
   draw_line(ch, 145, '-', '-');
 
