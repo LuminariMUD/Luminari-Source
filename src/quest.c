@@ -150,6 +150,26 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
     if ((QST_TYPE(rnum) == AQ_MOB_FIND || QST_TYPE(rnum) == AQ_MOB_KILL || 
          QST_TYPE(rnum) == AQ_MOB_SAVE) && QST_TARGET(rnum) == GET_MOB_VNUM(mob))
       return TRUE;
+    
+    /* Check for AQ_MOB_MULTI_KILL quests with comma-separated mob vnum list */
+    if (QST_TYPE(rnum) == AQ_MOB_MULTI_KILL && QST_KLIST(rnum) && *QST_KLIST(rnum))
+    {
+      char kill_list_copy[MAX_STRING_LENGTH];
+      char *mob_vnum_str;
+      mob_vnum mob_vnum;
+      
+      strncpy(kill_list_copy, QST_KLIST(rnum), sizeof(kill_list_copy) - 1);
+      kill_list_copy[sizeof(kill_list_copy) - 1] = '\0';
+      
+      mob_vnum_str = strtok(kill_list_copy, ",");
+      while (mob_vnum_str)
+      {
+        mob_vnum = atoi(mob_vnum_str);
+        if (mob_vnum == GET_MOB_VNUM(mob))
+          return TRUE;
+        mob_vnum_str = strtok(NULL, ",");
+      }
+    }
   }
   
   return FALSE;
