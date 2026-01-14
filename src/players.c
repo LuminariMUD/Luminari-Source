@@ -1548,6 +1548,12 @@ int load_char(const char *name, struct char_data *ch)
           GET_QUEST_COUNTER(ch, 1) = atoi(line);
         else if (!strcmp(tag, "Qcn2"))
           GET_QUEST_COUNTER(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "Qtim"))
+          GET_QUEST_TIME(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Qti1"))
+          GET_QUEST_TIME(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Qti2"))
+          GET_QUEST_TIME(ch, 2) = atoi(line);
         else if (!strcmp(tag, "Qest"))
           load_quests(fl, ch);
         else if (!strcmp(tag, "QSvy"))
@@ -2660,6 +2666,12 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE("Qcu1: %d\n", GET_QUEST(ch, 1));
   if (GET_QUEST(ch, 2) != PFDEF_CURRQUEST)
     BUFFER_WRITE("Qcu2: %d\n", GET_QUEST(ch, 2));
+  if (GET_QUEST_TIME(ch, 0) != 0)
+    BUFFER_WRITE("Qtim: %d\n", GET_QUEST_TIME(ch, 0));
+  if (GET_QUEST_TIME(ch, 1) != 0)
+    BUFFER_WRITE("Qti1: %d\n", GET_QUEST_TIME(ch, 1));
+  if (GET_QUEST_TIME(ch, 2) != 0)
+    BUFFER_WRITE("Qti2: %d\n", GET_QUEST_TIME(ch, 2));
   if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
     BUFFER_WRITE("DipT: %d\n", GET_DIPTIMER(ch));
   if (GET_CLAN(ch) != PFDEF_CLAN)
