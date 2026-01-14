@@ -246,6 +246,10 @@ typedef enum
   eINEXORABLE_JUDGMENT_USED,  /* Inexorable Judgment daily use */
   eSUPREME_SPELLCASTING_USED, /* Supreme Spellcasting daily free cast */
   eINSTANT_DEATH_USED,        /* Inquisitor Instant Death daily use */
+  eTRUE_SEEING_DETECT_INVIS,  /* Inquisitor perk: Detect Invisibility daily use */
+  eTRUE_SEEING_TRUE_SEEING,   /* Inquisitor perk: True Seeing daily use */
+  eAURA_READING_SENSE_LIFE,   /* Inquisitor perk: Sense Life daily use */
+  eAURA_READING_DETECT_ALIGN, /* Inquisitor perk: Detect Alignment daily use */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

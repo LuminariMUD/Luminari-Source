@@ -208,19 +208,19 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 1. **True Seeing**
    - *2 ranks, 3 points each*
-   - See through illusions and deception. At rank 1, gain +4 to saving throws against illusions, and you can see invisible creatures within 30 feet as if they were visible (though concealed). At rank 2, you can cast True Seeing once per day.
+   - See through illusions and deception. At rank 1, gain +4 to saving throws against illusions, and you can cast detect invisibility once per day. At rank 2, you can cast True Seeing once per day.
 
 2. **Telepathic Bond**
    - *1 rank, 3 points*
-   - Form mental connections with your allies. You can establish a telepathic link with allies within 100 feet. You can communicate telepathically and share what you perceive through your senses. This works even through silence effects.
+   - Form mental connections with your allies. This gives all party members +1 to attacks and armor class when fighting with allies in the same room.
 
 3. **Aura Reading**
-   - *3 ranks, 3 points each*
-   - Read the spiritual essence of creatures. Detect alignment as a free action on any creature within 60 feet. At rank 2, you can also detect the creature's emotional state. At rank 3, you learn the creature's surface thoughts (Will save negates, DC 10 + half level + Wisdom).
+   - *1 rank, 4 points
+   You can cast sense life and detect alignment once per day.   
 
 4. **Perfect Recall**
    - *1 rank, 3 points*
-   - Your memory becomes eidetic. You can perfectly recall anything you've seen or heard in the past month. Once per day, you can retroactively declare that you studied something specific you encountered, gaining information as if you had used relevant Knowledge or Investigation checks at the time.
+   - Your memory becomes eidetic. You gain +4 to all knowledge skills (arcana, religion, history and nature). You also learn 3 new languages.
 
 ### Tier 4 (4 Perks)
 

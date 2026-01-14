@@ -1703,6 +1703,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Inquisitor Monster Knowledge: Add Wisdom modifier in addition to Intelligence for lore checks */
       if (has_inquisitor_monster_knowledge(ch))
         value += GET_WIS_BONUS(ch);
+      /* Inquisitor Perfect Recall: +4 to all knowledge/lore skills */
+      if (has_inquisitor_perfect_recall(ch))
+        value += 4;
     }
     value += GET_INT_BONUS(ch);
     return value;

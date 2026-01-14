@@ -715,6 +715,8 @@ ACMD_DECL(do_layonhands);
 ACMDCHECK(can_layonhands);
 ACMD_DECL(do_spiritualweapon);
 ACMDCHECK(can_spiritualweapon);
+ACMD_DECL(do_trueseeing_perk);
+ACMD_DECL(do_aurareading_perk);
 ACMD_DECL(do_irresistablemagic);
 ACMDCHECK(can_irresistablemagic);
 ACMD_DECL(do_spellrecall);

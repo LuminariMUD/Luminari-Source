@@ -24,6 +24,7 @@
 #include "domains_schools.h"
 #include "spell_prep.h"
 #include "alchemy.h"
+#include "perks.h"
 #include "race.h"
 #include "premadebuilds.h"
 #include "psionics.h"
@@ -3505,7 +3506,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       int langs_known = num_languages_learned(ch);
       int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) +
                             MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) +
-                            MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
+                            MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]) +
+                            (has_inquisitor_perfect_recall(ch) ? 3 : 0);
       for (i = 0; i < NUM_LANGUAGES; i++)
       {
         if (LEVELUP(ch)->languages[i])

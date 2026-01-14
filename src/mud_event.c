@@ -73,7 +73,7 @@ void init_events(void)
   /* Validate registry size vs enum last value to catch drift */
   {
     size_t registry_size = mud_event_index_count;
-    size_t expected_size = (size_t)eFERAL_CHARGE_USED + 1; /* last enum + 1 */
+    size_t expected_size = (size_t)eAURA_READING_DETECT_ALIGN + 1; /* last enum + 1 */
     if (registry_size != expected_size)
     {
       log("SYSERR: mud_event_index size (%zu) does not match enum count (%zu). Events may be "

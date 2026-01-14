@@ -482,10 +482,16 @@ struct mud_event_list mud_event_index[] = {
      "You can call upon Inexorable Judgment again.", NULL, FEAT_UNDEFINED, 0},
     {"Supreme Spellcasting Used", event_daily_use_cooldown, EVENT_CHAR,
      "You can invoke Supreme Spellcasting again.", NULL, FEAT_UNDEFINED, 0},
-     {"Insteant Death Used", event_daily_use_cooldown, EVENT_CHAR,
+    {"Instant Death Used", event_daily_use_cooldown, EVENT_CHAR,
      "You can invoke Instant Death again.", NULL, FEAT_UNDEFINED, 0},
-    {"Insteant Death Used", event_daily_use_cooldown, EVENT_CHAR,
-     "You can invoke Instant Death again.", NULL, FEAT_UNDEFINED, 0},
+    {"True Seeing (Detect Invisibility)", event_daily_use_cooldown, EVENT_CHAR,
+     "You can invoke Detect Invisibility again.", NULL, FEAT_UNDEFINED, 1},
+    {"True Seeing (True Seeing)", event_daily_use_cooldown, EVENT_CHAR,
+     "You can invoke True Seeing again.", NULL, FEAT_UNDEFINED, 1},
+    {"Aura Reading (Sense Life)", event_daily_use_cooldown, EVENT_CHAR,
+     "You can invoke Sense Life again.", NULL, FEAT_UNDEFINED, 1},
+    {"Aura Reading (Detect Alignment)", event_daily_use_cooldown, EVENT_CHAR,
+     "You can invoke Detect Alignment again.", NULL, FEAT_UNDEFINED, 1},
 };
 
 /* Expose registry count for validation */

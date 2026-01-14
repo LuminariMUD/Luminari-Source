@@ -3140,9 +3140,9 @@ $n's weapon's flames sear the life from $N!
 Your weapon's flames have no effect on $N.
 $n's weapon's flames have no effect on You.
 $n's weapon's flames have no effect on $N.
-Your weapon's flames sear $M badly.
+Your weapon's flames sear $N badly.
 $n's weapon's flames sear You badly.
-$n's weapon's flames sear $M badly.
+$n's weapon's flames sear $N badly.
 Your weapon's flames have no effect on $N.
 $n's weapon's flames have no effect on You.
 $n's weapon's flames have no effect on $N.
@@ -3156,9 +3156,9 @@ $n's weapon's explosive flames engulf $N in a fiery blast!
 Your weapon's fiery burst has no effect on $N.
 $n's weapon's fiery burst has no effect on You.
 $n's weapon's fiery burst has no effect on $N.
-Your weapon's fiery burst scorches $M severely.
+Your weapon's fiery burst scorches $N severely.
 $n's weapon's fiery burst scorches You severely.
-$n's weapon's fiery burst scorches $M severely.
+$n's weapon's fiery burst scorches $N severely.
 Your weapon's fiery burst has no effect on $N.
 $n's weapon's fiery burst has no effect on You.
 $n's weapon's fiery burst has no effect on $N.
@@ -3172,9 +3172,9 @@ $n's weapon's frost freezes the life from $N!
 Your weapon's frost has no effect on $N.
 $n's weapon's frost has no effect on You.
 $n's weapon's frost has no effect on $N.
-Your weapon's frost chills $M badly.
+Your weapon's frost chills $N badly.
 $n's weapon's frost chills You badly.
-$n's weapon's frost chills $M badly.
+$n's weapon's frost chills $N badly.
 Your weapon's frost has no effect on $N.
 $n's weapon's frost has no effect on You.
 $n's weapon's frost has no effect on $N.
@@ -3188,9 +3188,9 @@ $n's weapon's icy explosion shatters $N in a freezing blast!
 Your weapon's icy burst has no effect on $N.
 $n's weapon's icy burst has no effect on You.
 $n's weapon's icy burst has no effect on $N.
-Your weapon's icy burst freezes $M severely.
+Your weapon's icy burst freezes $N severely.
 $n's weapon's icy burst freezes You severely.
-$n's weapon's icy burst freezes $M severely.
+$n's weapon's icy burst freezes $N severely.
 Your weapon's icy burst has no effect on $N.
 $n's weapon's icy burst has no effect on You.
 $n's weapon's icy burst has no effect on $N.
@@ -3204,9 +3204,9 @@ $n's weapon's acid dissolves $N completely!
 Your weapon's acid has no effect on $N.
 $n's weapon's acid has no effect on You.
 $n's weapon's acid has no effect on $N.
-Your weapon's acid corrodes $M badly.
+Your weapon's acid corrodes $N badly.
 $n's weapon's acid corrodes You badly.
-$n's weapon's acid corrodes $M badly.
+$n's weapon's acid corrodes $N badly.
 Your weapon's acid has no effect on $N.
 $n's weapon's acid has no effect on You.
 $n's weapon's acid has no effect on $N.
@@ -3220,9 +3220,9 @@ $n's weapon's holy power purges $N from existence!
 Your weapon's holy power has no effect on $N.
 $n's weapon's holy power has no effect on You.
 $n's weapon's holy power has no effect on $N.
-Your weapon's holy power smites $M righteously.
+Your weapon's holy power smites $N righteously.
 $n's weapon's holy power smites You righteously.
-$n's weapon's holy power smites $M righteously.
+$n's weapon's holy power smites $N righteously.
 Your weapon's holy power has no effect on $N.
 $n's weapon's holy power has no effect on You.
 $n's weapon's holy power has no effect on $N.
@@ -3236,9 +3236,9 @@ $n's weapon's acid explosion dissolves $N in a corrosive blast!
 Your weapon's corrosive burst has no effect on $N.
 $n's weapon's corrosive burst has no effect on You.
 $n's weapon's corrosive burst has no effect on $N.
-Your weapon's corrosive burst melts $M severely.
+Your weapon's corrosive burst melts $N severely.
 $n's weapon's corrosive burst melts You severely.
-$n's weapon's corrosive burst melts $M severely.
+$n's weapon's corrosive burst melts $N severely.
 Your weapon's corrosive burst has no effect on $N.
 $n's weapon's corrosive burst has no effect on You.
 $n's weapon's corrosive burst has no effect on $N.
@@ -3252,9 +3252,9 @@ $n's weapon's thunderous blast obliterates $N!
 Your weapon's thunder has no effect on $N.
 $n's weapon's thunder has no effect on You.
 $n's weapon's thunder has no effect on $N.
-Your weapon's thunder shakes $M violently.
+Your weapon's thunder shakes $N violently.
 $n's weapon's thunder shakes You violently.
-$n's weapon's thunder shakes $M violently.
+$n's weapon's thunder shakes $N violently.
 Your weapon's thunder has no effect on $N.
 $n's weapon's thunder has no effect on You.
 $n's weapon's thunder has no effect on $N.
@@ -3268,9 +3268,9 @@ $n's weapon's bleeding effect drains the last of $N's life!
 Your weapon's bleeding has no effect on $N.
 $n's weapon's bleeding has no effect on You.
 $n's weapon's bleeding has no effect on $N.
-Your weapon causes $M to bleed profusely.
+Your weapon causes $N to bleed profusely.
 $n's weapon causes You to bleed profusely.
-$n's weapon causes $M to bleed profusely.
+$n's weapon causes $N to bleed profusely.
 Your weapon's bleeding has no effect on $N.
 $n's weapon's bleeding has no effect on You.
 $n's weapon's bleeding has no effect on $N.
@@ -3284,9 +3284,9 @@ $n's weapon's electricity electrocutes $N fatally!
 Your weapon's shock has no effect on $N.
 $n's weapon's shock has no effect on You.
 $n's weapon's shock has no effect on $N.
-Your weapon's shock jolts $M badly.
+Your weapon's shock jolts $N badly.
 $n's weapon's shock jolts You badly.
-$n's weapon's shock jolts $M badly.
+$n's weapon's shock jolts $N badly.
 Your weapon's shock has no effect on $N.
 $n's weapon's shock has no effect on You.
 $n's weapon's shock has no effect on $N.
@@ -3300,9 +3300,9 @@ $n's weapon's electrical explosion electrocutes $N in a shocking blast!
 Your weapon's shocking burst has no effect on $N.
 $n's weapon's shocking burst has no effect on You.
 $n's weapon's shocking burst has no effect on $N.
-Your weapon's shocking burst electrifies $M severely.
+Your weapon's shocking burst electrifies $N severely.
 $n's weapon's shocking burst electrifies You severely.
-$n's weapon's shocking burst electrifies $M severely.
+$n's weapon's shocking burst electrifies $N severely.
 Your weapon's shocking burst has no effect on $N.
 $n's weapon's shocking burst has no effect on You.
 $n's weapon's shocking burst has no effect on $N.
@@ -3316,9 +3316,9 @@ $n's weapon's chaotic power tears $N apart!
 Your weapon's chaos has no effect on $N.
 $n's weapon's chaos has no effect on You.
 $n's weapon's chaos has no effect on $N.
-Your weapon's chaos disrupts $M violently.
+Your weapon's chaos disrupts $N violently.
 $n's weapon's chaos disrupts You violently.
-$n's weapon's chaos disrupts $M violently.
+$n's weapon's chaos disrupts $N violently.
 Your weapon's chaos has no effect on $N.
 $n's weapon's chaos has no effect on You.
 $n's weapon's chaos has no effect on $N.
@@ -3332,9 +3332,9 @@ $n's weapon's unholy power consumes $N utterly!
 Your weapon's unholy power has no effect on $N.
 $n's weapon's unholy power has no effect on You.
 $n's weapon's unholy power has no effect on $N.
-Your weapon's unholy power defiles $M viciously.
+Your weapon's unholy power defiles $N viciously.
 $n's weapon's unholy power defiles You viciously.
-$n's weapon's unholy power defiles $M viciously.
+$n's weapon's unholy power defiles $N viciously.
 Your weapon's unholy power has no effect on $N.
 $n's weapon's unholy power has no effect on You.
 $n's weapon's unholy power has no effect on $N.
@@ -3348,9 +3348,9 @@ $n's weapon's poison ends $N's life!
 Your weapon's poison has no effect on $N.
 $n's weapon's poison has no effect on You.
 $n's weapon's poison has no effect on $N.
-Your weapon's poison sickens $M badly.
+Your weapon's poison sickens $N badly.
 $n's weapon's poison sickens You badly.
-$n's weapon's poison sickens $M badly.
+$n's weapon's poison sickens $N badly.
 Your weapon's poison has no effect on $N.
 $n's weapon's poison has no effect on You.
 $n's weapon's poison has no effect on $N.

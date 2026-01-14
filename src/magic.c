@@ -801,6 +801,12 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     }
   }
 
+  /* Inquisitor: True Seeing - save bonus vs illusions */
+  if (!IS_NPC(vict) && school == ILLUSION && has_inquisitor_true_seeing(vict))
+  {
+    savethrow += 4;
+  }
+
   if (ch && casttype == CAST_WEAPON_POISON)
     savethrow += get_poison_save_mod(ch, vict);
   if (ch && is_poison_spell(spellnum))

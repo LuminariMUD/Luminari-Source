@@ -1345,6 +1345,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   if (is_grouped_with_soldier(ch))
     bonuses[BONUS_TYPE_MORALE] += 1;
 
+  /* Inquisitor Telepathic Bond: +1 AC if party member has it */
+  if (!IS_NPC(ch))
+  {
+    int tele_bonus = get_inquisitor_telepathic_bond_bonus(ch);
+    if (tele_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_MORALE] += tele_bonus;
+    }
+  }
+
   /* These bonuses to AC apply even against touch attacks or when the monk is
    * flat-footed. She loses these bonuses when she is immobilized or helpless,
    * when she wears any armor, when she carries a shield, or when she carries
@@ -10355,6 +10365,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     if (display)
       send_to_char(ch, "+1: %-50s\r\n", "Soldiers Grouped Together");
     bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  /* Inquisitor Telepathic Bond: +1 attack if party member has it */
+  if (!IS_NPC(ch))
+  {
+    int tele_bonus = get_inquisitor_telepathic_bond_bonus(ch);
+    if (tele_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_MORALE] += tele_bonus;
+      if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Telepathic Bond");
+    }
   }
 
   if (has_sage_mob_bonus(ch))

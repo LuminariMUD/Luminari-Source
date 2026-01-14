@@ -6,6 +6,8 @@
 #ifndef _PERKS_H_
 #define _PERKS_H_
 
+#include "mud_event.h"
+
 /* External declarations */
 extern const char *perk_category_names[];
 
@@ -115,6 +117,16 @@ bool has_inquisitor_monster_knowledge(struct char_data *ch);
 bool has_inquisitor_scent_of_magic(struct char_data *ch);
 bool has_inquisitor_investigators_eye(struct char_data *ch);
 int get_inquisitor_investigators_eye_rank(struct char_data *ch);
+
+/* Inquisitor helper functions - Investigation & Perception Tree Tier 3 */
+bool has_inquisitor_true_seeing(struct char_data *ch);
+int get_inquisitor_true_seeing_rank(struct char_data *ch);
+bool has_inquisitor_telepathic_bond(struct char_data *ch);
+int get_inquisitor_telepathic_bond_bonus(struct char_data *ch);
+bool has_inquisitor_aura_reading(struct char_data *ch);
+bool has_inquisitor_perfect_recall(struct char_data *ch);
+int perk_daily_uses_remaining(struct char_data *ch, event_id event, int uses_per_day);
+void perk_start_daily_use_cooldown(struct char_data *ch, event_id event, int uses_per_day);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);

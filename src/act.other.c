@@ -2481,6 +2481,133 @@ ACMD(do_destroygolem)
   save_char_pets(ch);
 }
 
+/* Inquisitor True Seeing perk command: detect invisibility (rank 1) or true seeing (rank 2). */
+ACMD(do_trueseeing_perk)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int rank = 0;
+  bool cast_true = false;
+
+  PREREQ_NOT_NPC();
+
+  if (!has_inquisitor_true_seeing(ch))
+  {
+    send_to_char(ch, "You have not mastered true seeing.\r\n");
+    return;
+  }
+
+  rank = get_inquisitor_true_seeing_rank(ch);
+  one_argument(argument, arg, sizeof(arg));
+
+  if (rank >= 2)
+  {
+    if (*arg && is_abbrev(arg, "detect"))
+      cast_true = false;
+    else if (*arg && is_abbrev(arg, "true"))
+      cast_true = true;
+    else if (*arg)
+    {
+      send_to_char(ch, "Usage: trueseeing [detect|true]\r\n");
+      return;
+    }
+    else
+      cast_true = true; /* default to full power when rank 2+ */
+  }
+  else
+  {
+    cast_true = false; /* rank 1 only grants detect invisibility */
+    if (*arg && !is_abbrev(arg, "detect"))
+    {
+      send_to_char(ch, "You can only invoke detect invisibility at your current rank.\r\n");
+      return;
+    }
+  }
+
+  if (!cast_true)
+  {
+    int uses = perk_daily_uses_remaining(ch, eTRUE_SEEING_DETECT_INVIS, 1);
+    if (uses <= 0)
+    {
+      send_to_char(ch, "You have already invoked detect invisibility today.\r\n");
+      return;
+    }
+
+    call_magic(ch, ch, NULL, SPELL_DETECT_INVIS, 0, GET_LEVEL(ch), CAST_INNATE);
+    perk_start_daily_use_cooldown(ch, eTRUE_SEEING_DETECT_INVIS, 1);
+    send_to_char(ch, "You attune your sight to unveil the unseen.\r\n");
+  }
+  else
+  {
+    int uses = perk_daily_uses_remaining(ch, eTRUE_SEEING_TRUE_SEEING, 1);
+    if (uses <= 0)
+    {
+      send_to_char(ch, "You have already invoked true seeing today.\r\n");
+      return;
+    }
+
+    call_magic(ch, ch, NULL, SPELL_TRUE_SEEING, 0, GET_LEVEL(ch), CAST_INNATE);
+    perk_start_daily_use_cooldown(ch, eTRUE_SEEING_TRUE_SEEING, 1);
+    send_to_char(ch, "Your vision pierces all deception.\r\n");
+  }
+}
+
+/* Inquisitor Aura Reading perk command: sense life or detect alignment once per day each. */
+ACMD(do_aurareading_perk)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  bool sense_life = true;
+
+  PREREQ_NOT_NPC();
+
+  if (!has_inquisitor_aura_reading(ch))
+  {
+    send_to_char(ch, "You have not mastered aura reading.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (*arg)
+  {
+    if (is_abbrev(arg, "sense"))
+      sense_life = true;
+    else if (is_abbrev(arg, "detect"))
+      sense_life = false;
+    else
+    {
+      send_to_char(ch, "Usage: aurareading [sense|detect]\r\n");
+      return;
+    }
+  }
+
+  if (sense_life)
+  {
+    int uses = perk_daily_uses_remaining(ch, eAURA_READING_SENSE_LIFE, 1);
+    if (uses <= 0)
+    {
+      send_to_char(ch, "You have already invoked sense life today.\r\n");
+      return;
+    }
+
+    call_magic(ch, ch, NULL, SPELL_SENSE_LIFE, 0, GET_LEVEL(ch), CAST_INNATE);
+    perk_start_daily_use_cooldown(ch, eAURA_READING_SENSE_LIFE, 1);
+    send_to_char(ch, "You attune to the living auras around you.\r\n");
+  }
+  else
+  {
+    int uses = perk_daily_uses_remaining(ch, eAURA_READING_DETECT_ALIGN, 1);
+    if (uses <= 0)
+    {
+      send_to_char(ch, "You have already invoked detect alignment today.\r\n");
+      return;
+    }
+
+    call_magic(ch, ch, NULL, SPELL_DETECT_ALIGN, 0, GET_LEVEL(ch), CAST_INNATE);
+    perk_start_daily_use_cooldown(ch, eAURA_READING_DETECT_ALIGN, 1);
+    send_to_char(ch, "You read the moral hues of nearby auras.\r\n");
+  }
+}
+
 ACMD(do_golemrepair)
 {
   if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)

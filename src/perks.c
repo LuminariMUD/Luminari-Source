@@ -1641,6 +1641,79 @@ void define_inquisitor_perks(void)
   perk->special_description = strdup(
       "Gain +3 per rank to Search and Detect Trap checks.");
   perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 3: True Seeing (2 ranks, 3 points each) */
+  perk = &perk_list[PERK_INQUISITOR_TRUE_SEEING];
+  perk->id = PERK_INQUISITOR_TRUE_SEEING;
+  perk->name = strdup("True Seeing");
+  perk->description = strdup("See through illusions and deception.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 4; /* +4 to saves vs illusions at rank 1 */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Rank 1: +4 to saving throws against illusions, cast Detect Invisibility once per day. "
+      "Rank 2: Cast True Seeing once per day.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 3: Telepathic Bond (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_TELEPATHIC_BOND];
+  perk->id = PERK_INQUISITOR_TELEPATHIC_BOND;
+  perk->name = strdup("Telepathic Bond");
+  perk->description = strdup("Form mental connections with your allies.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 to attacks and AC when fighting with allies */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "All party members gain +1 to attack rolls and armor class when fighting with allies in the same room.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 3: Aura Reading (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_AURA_READING];
+  perk->id = PERK_INQUISITOR_AURA_READING;
+  perk->name = strdup("Aura Reading");
+  perk->description = strdup("Read the spiritual aura of creatures around you.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Cast Sense Life and Detect Alignment once per day each.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 3: Perfect Recall (1 rank, 3 points) */
+  perk = &perk_list[PERK_INQUISITOR_PERFECT_RECALL];
+  perk->id = PERK_INQUISITOR_PERFECT_RECALL;
+  perk->name = strdup("Perfect Recall");
+  perk->description = strdup("Your memory becomes eidetic.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 4; /* +4 to all knowledge skills */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain +4 to all Knowledge skills (Arcana, Religion, History, Nature). Learn 3 new languages.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -2273,6 +2346,142 @@ int get_inquisitor_investigators_eye_rank(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
   return get_perk_rank(ch, PERK_INQUISITOR_INVESTIGATORS_EYE, CLASS_INQUISITOR);
+}
+
+/* Inquisitor Helper Functions - Investigation & Perception Tree Tier 3 */
+
+/**
+ * Check if inquisitor has True Seeing perk.
+ */
+bool has_inquisitor_true_seeing(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_TRUE_SEEING);
+}
+
+/**
+ * Get True Seeing perk rank (0-2).
+ */
+int get_inquisitor_true_seeing_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  return get_perk_rank(ch, PERK_INQUISITOR_TRUE_SEEING, CLASS_INQUISITOR);
+}
+
+/**
+ * Check if inquisitor has Telepathic Bond perk.
+ */
+bool has_inquisitor_telepathic_bond(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_TELEPATHIC_BOND);
+}
+
+/**
+ * Check if inquisitor has Aura Reading perk.
+ */
+bool has_inquisitor_aura_reading(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_AURA_READING);
+}
+
+/**
+ * Check if inquisitor has Perfect Recall perk.
+ */
+bool has_inquisitor_perfect_recall(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERFECT_RECALL);
+}
+
+/**
+ * Get Telepathic Bond attack/AC bonus for party members in the same room.
+ * Returns +1 if any party member in the same room has Telepathic Bond perk.
+ */
+int get_inquisitor_telepathic_bond_bonus(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+
+  if (!ch || IS_NPC(ch))
+    return 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return 0;
+
+  /* Check if this character has the perk */
+  if (has_inquisitor_telepathic_bond(ch) && GROUP(ch) && GROUP(ch)->members->iSize > 1)
+    return 1;
+
+  /* Check if any party member in the same room has the perk */
+  if (GROUP(ch) && GROUP(ch)->members->iSize > 1)
+  {
+    simple_list(NULL); /* Reset iterator */
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (tch != ch && IN_ROOM(tch) == IN_ROOM(ch) && has_inquisitor_telepathic_bond(tch))
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Generic helper: check remaining daily uses for a perk-driven ability that uses a mud event.
+ * Returns remaining uses (0 when none, -1 on invalid input).
+ */
+int perk_daily_uses_remaining(struct char_data *ch, event_id event, int uses_per_day)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  int uses = 0;
+
+  if (!ch || IS_NPC(ch) || uses_per_day <= 0)
+    return -1;
+
+  if ((pMudEvent = char_has_mud_event(ch, event)))
+  {
+    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      uses = 0;
+  }
+
+  return MAX(0, uses_per_day - uses);
+}
+
+/**
+ * Generic helper: start/update daily-use cooldown for perk abilities backed by mud events.
+ */
+void perk_start_daily_use_cooldown(struct char_data *ch, event_id event, int uses_per_day)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  char buf[64];
+  int uses = 0;
+  long temp_cooldown = 0;
+
+  if (!ch || IS_NPC(ch) || uses_per_day <= 0)
+    return;
+
+  if ((pMudEvent = char_has_mud_event(ch, event)))
+  {
+    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      uses = 0;
+    uses++;
+    if (pMudEvent->sVariables)
+      free(pMudEvent->sVariables);
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
+    pMudEvent->sVariables = strdup(buf);
+  }
+  else
+  {
+    uses = 1;
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
+    attach_mud_event(new_mud_event(event, ch, buf),
+                    ((long)SECS_PER_MUD_DAY / uses_per_day) RL_SEC);
+    return;
+  }
+
+  temp_cooldown = ((long)SECS_PER_MUD_DAY / uses_per_day) RL_SEC;
+  if (temp_cooldown > 864000)
+    temp_cooldown = 864000;
+
+  change_event_duration(ch, event, (int)temp_cooldown);
 }
 
 int get_inquisitor_wilderness_stride_rank(struct char_data *ch)
