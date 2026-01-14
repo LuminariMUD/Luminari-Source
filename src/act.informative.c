@@ -606,6 +606,9 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch)
 
   if (GET_OBJ_TYPE(obj) == ITEM_LIGHT && GET_OBJ_VAL(obj, 2) == 0)
     send_to_char(ch, " \tD(burned out)\tn");
+
+  if (is_quest_target_obj(ch, obj))
+    send_to_char(ch, " \tG(Quest)\tn");
 }
 
 void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type)
@@ -956,6 +959,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       send_to_char(ch, "\tn(\tR!\tn) ");
     if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster))
       send_to_char(ch, "\tn(\tY!\tn) ");
+    if (IS_NPC(i) && is_quest_target_mob(ch, i))
+      send_to_char(ch, "\tG(Quest)\tn ");
 
     if (strstr(i->player.long_descr, "\n"))
       send_to_char(ch, "\ty%s", i->player.long_descr);

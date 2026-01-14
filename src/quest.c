@@ -128,6 +128,60 @@ int is_accepted_not_complete(struct char_data *ch, qst_vnum vnum)
   return FALSE;
 }
 
+/* Check if a mob is a quest target for any of the character's active quests */
+int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
+{
+  int index;
+  qst_rnum rnum;
+  
+  if (!ch || !mob || !IS_NPC(mob))
+    return FALSE;
+  
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if (GET_QUEST(ch, index) == NOTHING)
+      continue;
+    
+    rnum = real_quest(GET_QUEST(ch, index));
+    if (rnum == NOTHING || rnum == NOWHERE)
+      continue;
+    
+    /* Check if this quest involves this mob */
+    if ((QST_TYPE(rnum) == AQ_MOB_FIND || QST_TYPE(rnum) == AQ_MOB_KILL || 
+         QST_TYPE(rnum) == AQ_MOB_SAVE) && QST_TARGET(rnum) == GET_MOB_VNUM(mob))
+      return TRUE;
+  }
+  
+  return FALSE;
+}
+
+/* Check if an object is a quest target for any of the character's active quests */
+int is_quest_target_obj(struct char_data *ch, struct obj_data *obj)
+{
+  int index;
+  qst_rnum rnum;
+  
+  if (!ch || !obj)
+    return FALSE;
+  
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if (GET_QUEST(ch, index) == NOTHING)
+      continue;
+    
+    rnum = real_quest(GET_QUEST(ch, index));
+    if (rnum == NOTHING || rnum == NOWHERE)
+      continue;
+    
+    /* Check if this quest involves this object */
+    if ((QST_TYPE(rnum) == AQ_OBJ_FIND || QST_TYPE(rnum) == AQ_OBJ_RETURN) && 
+        QST_TARGET(rnum) == GET_OBJ_VNUM(obj))
+      return TRUE;
+  }
+  
+  return FALSE;
+}
+
 /* given ch, quest-master, quest-number, return quest virtual-number */
 qst_vnum find_quest_by_qmnum(struct char_data *ch, mob_vnum qm, int num)
 {
