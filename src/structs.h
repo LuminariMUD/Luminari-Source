@@ -4269,6 +4269,12 @@
 #define PERK_INQUISITOR_AURA_READING 1486
 #define PERK_INQUISITOR_PERFECT_RECALL 1487
 
+/* Inquisitor Perks - Investigation & Perception Tree (Tier 4) */
+#define PERK_INQUISITOR_MASTER_TACTICIAN 1488
+#define PERK_INQUISITOR_LEGENDARY_RESILIENCE 1489
+#define PERK_INQUISITOR_PERFECT_ADAPTATION 1490
+#define PERK_INQUISITOR_SUPREMACY 1491
+
 /* ============================================================================
  * INQUISITOR PERKS (1500-1599)
  * ============================================================================ */
@@ -4283,6 +4289,7 @@
 /* Implemented: Investigation & Perception Tree Tier 1 (1476-1479) */
 /* Implemented: Investigation & Perception Tree Tier 2 (1480-1483) */
 /* Implemented: Investigation & Perception Tree Tier 3 (1484-1487) */
+/* Implemented: Investigation & Perception Tree Tier 4 (1488-1491) */
 
 /* ============================================================================
  * SUMMONER PERKS (1600-1699)
@@ -4303,7 +4310,7 @@
  * TOTAL PERK COUNT
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
-#define NUM_PERKS 1488
+#define NUM_PERKS 1492
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20

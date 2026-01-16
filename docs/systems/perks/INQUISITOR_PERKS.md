@@ -302,19 +302,19 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 1. **Master Tactician**
    - *1 rank, 4 points*
-   - Achieve perfect tactical awareness. You can use Battlefield Commander as a free action and can affect up to three allies simultaneously. All allies within 60 feet of you gain a +2 bonus to initiative and can't be flanked.
+   - Achieve perfect tactical awareness. You can use Battlefield Commander as a free action once every 5 minutes. All allies within 60 feet of you gain a +2 bonus to initiative and can't be flanked.
 
 2. **Legendary Resilience**
    - *1 rank, 4 points*
-   - Your resilience becomes supernatural. Gain damage reduction 5/—. You're immune to ability damage, ability drain, and energy drain. Once per day, automatically succeed on a saving throw of your choice.
+   - Your resilience becomes supernatural. Gain damage reduction 5/—. You're immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw. 5 minute cooldown.
 
 3. **Perfect Adaptation**
    - *1 rank, 4 points*
-   - Adapt to any threat instantly. At the start of each round, choose to gain one of the following for that round: immunity to one energy type, immunity to one condition, spell resistance equal to 10 + your level, or fast healing 5.
+   - Adapt to any threat instantly. Every 5 minutes you can choose to gain one of the following for 30 seconds: immunity to one energy, immunity to blindness, deafness and paralysis, spell resistance equal to 10 + your level, or fast healing 5.
 
 4. **Inquisitor's Supremacy**
    - *1 rank, 4 points*
-   - Achieve the pinnacle of inquisitorial power. Gain +2 to all ability scores. All your class abilities gain a +2 bonus (judgment bonuses increase, spell DCs increase, etc.). Once per day, you can take two full-round actions in the same turn.
+   - Achieve the pinnacle of inquisitorial power. Gain +2 to the ability score of your choice. All spell and power dcs increase by +2.
 
 ---
 

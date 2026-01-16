@@ -597,6 +597,17 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
   if (!IS_NPC(ch) && has_uncanny_dodge_2(ch))
     return FALSE;
 
+  /* Inquisitor Master Tactician - allies can't be flanked */
+  if (!IS_NPC(ch) && IN_ROOM(ch) != NOWHERE)
+  {
+    struct char_data *ally;
+    for (ally = world[IN_ROOM(ch)].people; ally; ally = ally->next_in_room)
+    {
+      if (ally != ch && !IS_NPC(ally) && are_grouped(ch, ally) && has_inquisitor_master_tactician(ally))
+        return FALSE;
+    }
+  }
+
   /* most common scenario - check for both feat and perk */
   if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) &&
       !has_uncanny_dodge_2(ch))
@@ -635,6 +646,10 @@ int get_initiative_modifier(struct char_data *ch)
 
   /* Inquisitor Favored Terrain: +2 initiative in favored terrain */
   if (is_inquisitor_in_favored_terrain(ch))
+    initiative += 2;
+
+  /* Inquisitor Master Tactician: +2 to initiative */
+  if (!IS_NPC(ch) && has_inquisitor_master_tactician(ch))
     initiative += 2;
 
   return initiative;
@@ -4561,6 +4576,14 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
       if (display)
         send_to_char(ch, "%-30s: %d\r\n", "Elemental Embodiment (Earth)", 5);
     }
+  }
+
+  /* Inquisitor: Legendary Resilience - 5/- DR */
+  if (!IS_NPC(ch) && has_inquisitor_legendary_resilience(ch))
+  {
+    damage_reduction += 5;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Legendary Resilience", 5);
   }
 
   /* Encased in Ice provides DR 5/- */

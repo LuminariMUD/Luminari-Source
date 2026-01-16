@@ -492,6 +492,10 @@ struct mud_event_list mud_event_index[] = {
      "You can invoke Sense Life again.", NULL, FEAT_UNDEFINED, 1},
     {"Aura Reading (Detect Alignment)", event_daily_use_cooldown, EVENT_CHAR,
      "You can invoke Detect Alignment again.", NULL, FEAT_UNDEFINED, 1},
+    {"Legendary Resilience Cooldown", event_daily_use_cooldown, EVENT_CHAR,
+     "You can benefit from Legendary Resilience again", NULL, FEAT_UNDEFINED, 0},
+    {"Perfect Adaptation Cooldown", event_daily_use_cooldown, EVENT_CHAR,
+     "You can use Perfect Adaptation again.", NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

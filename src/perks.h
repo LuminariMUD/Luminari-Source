@@ -125,6 +125,13 @@ bool has_inquisitor_telepathic_bond(struct char_data *ch);
 int get_inquisitor_telepathic_bond_bonus(struct char_data *ch);
 bool has_inquisitor_aura_reading(struct char_data *ch);
 bool has_inquisitor_perfect_recall(struct char_data *ch);
+
+/* Inquisitor helper functions - Investigation & Perception Tree Tier 4 */
+bool has_inquisitor_master_tactician(struct char_data *ch);
+bool has_inquisitor_legendary_resilience(struct char_data *ch);
+bool has_inquisitor_perfect_adaptation(struct char_data *ch);
+bool has_inquisitor_supremacy(struct char_data *ch);
+int get_inquisitor_supremacy_bonus(struct char_data *ch);
 int perk_daily_uses_remaining(struct char_data *ch, event_id event, int uses_per_day);
 void perk_start_daily_use_cooldown(struct char_data *ch, event_id event, int uses_per_day);
 

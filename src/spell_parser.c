@@ -1608,6 +1608,8 @@ void finishCasting(struct char_data *ch)
   {
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC))
       GET_DC_BONUS(ch) += 2 * HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC);
+    if (!IS_NPC(ch) && get_inquisitor_supremacy_bonus(ch) > 0)
+      GET_DC_BONUS(ch) += get_inquisitor_supremacy_bonus(ch);
   }
   else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
   {

@@ -1714,6 +1714,78 @@ void define_inquisitor_perks(void)
   perk->special_description = strdup(
       "Gain +4 to all Knowledge skills (Arcana, Religion, History, Nature). Learn 3 new languages.");
   perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 4: Master Tactician (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_MASTER_TACTICIAN];
+  perk->id = PERK_INQUISITOR_MASTER_TACTICIAN;
+  perk->name = strdup("Master Tactician");
+  perk->description = strdup("Achieve perfect tactical awareness.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "You can use Battlefield Commander as a free action once every 5 minutes. All allies within 60 feet gain +2 to initiative and can't be flanked.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 4: Legendary Resilience (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_LEGENDARY_RESILIENCE];
+  perk->id = PERK_INQUISITOR_LEGENDARY_RESILIENCE;
+  perk->name = strdup("Legendary Resilience");
+  perk->description = strdup("Your resilience becomes supernatural.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5/- DR */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain damage reduction 5/—. Immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw (5 minute cooldown).");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 4: Perfect Adaptation (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_PERFECT_ADAPTATION];
+  perk->id = PERK_INQUISITOR_PERFECT_ADAPTATION;
+  perk->name = strdup("Perfect Adaptation");
+  perk->description = strdup("Adapt to any threat instantly.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Every 5 minutes you can choose to gain one of the following for 30 seconds: immunity to one energy type, immunity to blindness/deafness/paralysis, spell resistance equal to 10 + your level, or fast healing 5.");
+  perk->toggleable = false;
+
+  /* Investigation & Perception Tree - Tier 4: Inquisitor's Supremacy (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_SUPREMACY];
+  perk->id = PERK_INQUISITOR_SUPREMACY;
+  perk->name = strdup("Inquisitor's Supremacy");
+  perk->description = strdup("Achieve the pinnacle of inquisitorial power.");
+  perk->associated_class = CLASS_INQUISITOR;
+  perk->perk_category = PERK_CATEGORY_INVESTIGATION_PERCEPTION;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to ability score and spell DC */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup(
+      "Gain +2 to the ability score of your choice. All spell and power DCs increase by +2.");
+  perk->toggleable = false;
 }
 
 /* Inquisitor Helper Functions - Judgment & Spellcasting Tree Tier 1 */
@@ -2421,6 +2493,55 @@ int get_inquisitor_telepathic_bond_bonus(struct char_data *ch)
     }
   }
 
+  return 0;
+}
+
+/* ============================================================================
+ * INQUISITOR HELPER FUNCTIONS - INVESTIGATION & PERCEPTION TREE TIER 4
+ * ============================================================================ */
+
+/**
+ * Check if inquisitor has Master Tactician perk.
+ */
+bool has_inquisitor_master_tactician(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_MASTER_TACTICIAN);
+}
+
+/**
+ * Check if inquisitor has Legendary Resilience perk.
+ */
+bool has_inquisitor_legendary_resilience(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_LEGENDARY_RESILIENCE);
+}
+
+/**
+ * Check if inquisitor has Perfect Adaptation perk.
+ */
+bool has_inquisitor_perfect_adaptation(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_PERFECT_ADAPTATION);
+}
+
+/**
+ * Check if inquisitor has Inquisitor's Supremacy perk.
+ */
+bool has_inquisitor_supremacy(struct char_data *ch)
+{
+  return ch && !IS_NPC(ch) && has_perk(ch, PERK_INQUISITOR_SUPREMACY);
+}
+
+/**
+ * Get the bonus to ability scores and spell/power DCs from Inquisitor's Supremacy.
+ * Returns +2 if perk is active.
+ */
+int get_inquisitor_supremacy_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  if (has_perk(ch, PERK_INQUISITOR_SUPREMACY))
+    return 2;
   return 0;
 }
 

@@ -434,6 +434,28 @@ int savingthrow(struct char_data *ch, struct char_data *vict, int type, int modi
   return savingthrow_full(ch, vict, type, modifier, casttype, level, school, 0);
 }
 
+/* Returns true if the spell/power applies a negative modifier to a core ability score. */
+static bool spell_has_ability_penalty(int spellnum)
+{
+  /* Cover all poison types in a single range check. */
+  if (spellnum >= POISON_TYPE_START && spellnum <= POISON_TYPE_END)
+    return TRUE;
+
+  switch (spellnum)
+  {
+  case SPELL_POISON:
+  case SPELL_ENFEEBLEMENT:
+  case SPELL_RAY_OF_ENFEEBLEMENT:
+  case PSIONIC_DECELERATION:
+  case PSIONIC_DEMORALIZE:
+  case MOB_ABILITY_CORRUPTION:
+  case ABILITY_SCORE_DAMAGE:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
 const char *save_names[NUM_SAVINGS] = {"Fort", "Refl", "Will", "Poison", "Death"};
 /* TRUE = resisted
    FALSE = Failed to resist
@@ -495,6 +517,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     diceroll = MAX(diceroll, d20(vict));
 
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+
+  /* Inquisitor Legendary Resilience: +3 vs ability-penalty effects */
+  if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) && spell_has_ability_penalty(spellnum))
+    savethrow += 3;
 
   /* Paladin Sacred Defender perk: Bulwark of Defense - +1 to all saves per rank when wielding shield */
   if (!IS_NPC(vict))
@@ -902,6 +928,22 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   }
 
   savethrow = MAX(1, savethrow);
+
+    /* Inquisitor Legendary Resilience: 10% chance to auto-succeed, once per 5 minutes */
+    if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) &&
+        !char_has_mud_event(vict, eLEGENDARY_RESILIENCE_USED))
+    {
+      if (dice(1, 100) <= 10)
+      {
+        send_to_char(vict, "\tYYour legendary resilience allows you to automatically succeed on this saving throw!\tn\r\n");
+        if (ch && vict != ch)
+        {
+          send_to_char(ch, "\tR%s's legendary resilience allows them to automatically succeed!\tn\r\n", GET_NAME(vict));
+        }
+        attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), 300 RL_SEC);
+        return (TRUE);
+      }
+    }
 
   if (diceroll != 1 && (savethrow >= challenge || diceroll == 20))
   {

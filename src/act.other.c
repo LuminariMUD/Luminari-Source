@@ -2551,6 +2551,173 @@ ACMD(do_trueseeing_perk)
   }
 }
 
+/* Inquisitor Perfect Adaptation perk command: choose one of several 30-second buffs, 5-minute cooldown. */
+ACMD(do_perfectadaptation_perk)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  bool applied = false;
+
+  PREREQ_NOT_NPC();
+
+  if (!has_inquisitor_perfect_adaptation(ch))
+  {
+    send_to_char(ch, "You have not mastered perfect adaptation.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: adaptation <fire|cold|acid|electric|sonic|sr|fast|status>\r\n");
+    send_to_char(ch, "  fire/cold/acid/electric/sonic: immunity to that energy for 30 seconds\r\n");
+    send_to_char(ch, "  sr: spell resistance 10 + level for 30 seconds\r\n");
+    send_to_char(ch, "  fast: fast healing 5 for 30 seconds\r\n");
+    send_to_char(ch, "  status: strong resistance to blindness/deafness/paralysis for 30 seconds\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, ePERFECT_ADAPTATION_COOLDOWN))
+  {
+    send_to_char(ch, "You must wait before adapting again.\r\n");
+    return;
+  }
+
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_INQUISITOR_PERFECT_ADAPTATION;
+  af.duration = 5; /* ~30 seconds */
+  af.bonus_type = BONUS_TYPE_UNIVERSAL;
+
+  if (is_abbrev(arg, "fire"))
+  {
+    af.location = APPLY_RES_FIRE;
+    af.modifier = 100;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "cold"))
+  {
+    af.location = APPLY_RES_COLD;
+    af.modifier = 100;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "acid"))
+  {
+    af.location = APPLY_RES_ACID;
+    af.modifier = 100;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "electric") || is_abbrev(arg, "electricity") || is_abbrev(arg, "shock"))
+  {
+    af.location = APPLY_RES_ELECTRIC;
+    af.modifier = 100;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "sonic") || is_abbrev(arg, "sound"))
+  {
+    af.location = APPLY_RES_SOUND;
+    af.modifier = 100;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "sr") || is_abbrev(arg, "resistance"))
+  {
+    af.location = APPLY_SPELL_RES;
+    af.modifier = 10 + GET_LEVEL(ch);
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "fast") || is_abbrev(arg, "healing"))
+  {
+    af.location = APPLY_FAST_HEALING;
+    af.modifier = 5;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+  else if (is_abbrev(arg, "status") || is_abbrev(arg, "immunity") || is_abbrev(arg, "condition"))
+  {
+    /* Provide strong save bonuses to resist condition-inflicting effects */
+    af.location = APPLY_SAVING_FORT;
+    af.modifier = 6;
+    affect_to_char(ch, &af);
+    af.location = APPLY_SAVING_REFL;
+    affect_to_char(ch, &af);
+    af.location = APPLY_SAVING_WILL;
+    affect_to_char(ch, &af);
+    applied = true;
+  }
+
+  if (!applied)
+  {
+    send_to_char(ch, "Invalid option. Usage: adaptation <fire|cold|acid|electric|sonic|sr|fast|status>\r\n");
+    return;
+  }
+
+  attach_mud_event(new_mud_event(ePERFECT_ADAPTATION_COOLDOWN, ch, NULL), 300 RL_SEC);
+  send_to_char(ch, "You swiftly adapt to the threat.\r\n");
+}
+
+/* Inquisitor Supremacy perk command: choose one ability score to gain +2 permanently. */
+ACMD(do_supremacy_perk)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int loc = APPLY_NONE;
+
+  PREREQ_NOT_NPC();
+
+  if (!has_inquisitor_supremacy(ch))
+  {
+    send_to_char(ch, "You have not attained inquisitor's supremacy.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (is_abbrev(arg, "str"))
+    loc = APPLY_STR;
+  else if (is_abbrev(arg, "dex"))
+    loc = APPLY_DEX;
+  else if (is_abbrev(arg, "con"))
+    loc = APPLY_CON;
+  else if (is_abbrev(arg, "int"))
+    loc = APPLY_INT;
+  else if (is_abbrev(arg, "wis"))
+    loc = APPLY_WIS;
+  else if (is_abbrev(arg, "cha"))
+    loc = APPLY_CHA;
+
+  if (loc == APPLY_NONE)
+  {
+    send_to_char(ch, "Usage: supremacy <str|dex|con|int|wis|cha>\r\n");
+    return;
+  }
+
+  while (affected_by_spell(ch, PERK_INQUISITOR_SUPREMACY))
+    affect_from_char(ch, PERK_INQUISITOR_SUPREMACY);
+
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = PERK_INQUISITOR_SUPREMACY;
+  af.duration = -1; /* Permanent until changed */
+  af.location = loc;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_UNIVERSAL;
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "You focus your supremacy, bolstering your %s.\r\n",
+               (loc == APPLY_STR
+                    ? "strength"
+                    : loc == APPLY_DEX ? "dexterity"
+                    : loc == APPLY_CON ? "constitution"
+                    : loc == APPLY_INT ? "intelligence"
+                    : loc == APPLY_WIS ? "wisdom"
+                    : "charisma"));
+}
+
 /* Inquisitor Aura Reading perk command: sense life or detect alignment once per day each. */
 ACMD(do_aurareading_perk)
 {
