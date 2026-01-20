@@ -413,24 +413,67 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                 "%s~\n",
                 ex_desc->keyword, buf1);
 #ifdef OBJSAVE_DB
-        mysql_real_escape_string(conn, escaped_buf, buf1, strlen(buf1));
-        for (x = 0; x < strlen(escaped_buf); x++)
+        size_t desc_len = strlen(buf1);
+        size_t key_len = strlen(ex_desc->keyword);
+        size_t desc_needed = (desc_len * 2) + 1;
+        size_t key_needed = (key_len * 2) + 1;
+
+        char *escaped_desc_ptr = escaped_buf;
+        char *escaped_key_ptr = escaped_key;
+        bool heap_desc = false;
+        bool heap_key = false;
+
+        if (desc_needed > sizeof(escaped_buf))
         {
-          if (escaped_buf[x] == '~')
-            escaped_buf[x] = '\0';
+          escaped_desc_ptr = (char *)malloc(desc_needed);
+          if (!escaped_desc_ptr)
+          {
+            log("SYSERR: Unable to alloc escaped description buffer (%zu bytes)", desc_needed);
+            continue;
+          }
+          heap_desc = true;
         }
-        snprintf(escaped_key, sizeof(escaped_key), "%s", ex_desc->keyword);
-        for (x = 0; x < strlen(escaped_key); x++)
+
+        if (key_needed > sizeof(escaped_key))
         {
-          if (escaped_key[x] == '~')
-            escaped_key[x] = '\0';
+          escaped_key_ptr = (char *)malloc(key_needed);
+          if (!escaped_key_ptr)
+          {
+            if (heap_desc)
+              free(escaped_desc_ptr);
+            log("SYSERR: Unable to alloc escaped keyword buffer (%zu bytes)", key_needed);
+            continue;
+          }
+          heap_key = true;
         }
+
+        mysql_real_escape_string(conn, escaped_desc_ptr, buf1, desc_len);
+        size_t escaped_desc_len = strlen(escaped_desc_ptr);
+        for (x = 0; x < escaped_desc_len; x++)
+        {
+          if (escaped_desc_ptr[x] == '~')
+            escaped_desc_ptr[x] = '\0';
+        }
+
+        mysql_real_escape_string(conn, escaped_key_ptr, ex_desc->keyword, key_len);
+        size_t escaped_key_len = strlen(escaped_key_ptr);
+        for (x = 0; x < escaped_key_len; x++)
+        {
+          if (escaped_key_ptr[x] == '~')
+            escaped_key_ptr[x] = '\0';
+        }
+
         snprintf(line_buf, sizeof(line_buf),
                  "EDes:\n"
                  "%s~\n"
                  "%s~\n",
-                 escaped_key, escaped_buf);
+                 escaped_key_ptr, escaped_desc_ptr);
         strlcat(ins_buf, line_buf, sizeof(ins_buf));
+
+        if (heap_desc)
+          free(escaped_desc_ptr);
+        if (heap_key)
+          free(escaped_key_ptr);
 #endif
       }
     }
