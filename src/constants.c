@@ -5059,7 +5059,7 @@ const char *new_player_gear_options[] = {
 
 const char *allow_cexchange_options[] = {"No", "Yes", "\n"};
 
-const char *wilderness_system_options[] = {"No Wilderness (ROads only)", "Manually Created",
+const char *wilderness_system_options[] = {"No Wilderness (Roads only)", "Manually Created",
                                            "Algorithm-Created (WildEdit Tool)", "\n"};
 
 const char *vessel_system_options[] = {"Off", "On", "\n"};

@@ -1402,6 +1402,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   target_room = IN_ROOM(ch);
   zn = GET_ROOM_ZONE(target_room);
 
+  if (target_room == NOWHERE) return;
+
   /* Check if room is dark (magical darkness or normal darkness) */
   if (ROOM_FLAGGED(target_room, ROOM_MAGICDARK) || IS_DARK(target_room))
     room_dark = TRUE;

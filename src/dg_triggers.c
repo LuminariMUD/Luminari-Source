@@ -168,8 +168,12 @@ void greet_memory_mtrigger(char_data *actor)
   if (!valid_dg_target(actor, DG_ALLOW_STAFFS))
     return;
 
+  if (IN_ROOM(actor) == NOWHERE)
+    return;
+
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch->next_in_room)
   {
+    if (IN_ROOM(ch) == NOWHERE) continue;
     if (!SCRIPT_MEM(ch) || !AWAKE(ch) || FIGHTING(ch) || (ch == actor) ||
         AFF_FLAGGED(ch, AFF_CHARM))
       continue;
@@ -235,8 +239,13 @@ int greet_mtrigger(char_data *actor, int dir)
   if (!valid_dg_target(actor, DG_ALLOW_STAFFS))
     return TRUE;
 
+  if (IN_ROOM(actor) == NOWHERE)
+    return TRUE;
+
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch->next_in_room)
   {
+    if (IN_ROOM(ch) == NOWHERE) continue;
+
     if (!SCRIPT_CHECK(ch, MTRIG_GREET | MTRIG_GREET_ALL) || !AWAKE(ch) || FIGHTING(ch) ||
         (ch == actor) || AFF_FLAGGED(ch, AFF_CHARM))
       continue;

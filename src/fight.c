@@ -1543,6 +1543,7 @@ void update_pos_dam(struct char_data *victim)
           TO_CHAR);
       act("$n reaches deep within and renews $s resolve to fight!", FALSE, victim, 0, 0, TO_ROOM);
       GET_HIT(victim) = MAX(1, GET_MAX_HIT(victim) / 10);
+      GET_FIGHT_TO_THE_DEATH_COOLDOWN(victim) = 600; // 10 minutes cooldown
     }
     else if (HAS_REAL_FEAT(victim, FEAT_DIEHARD) && dice(1, 3) == 1)
     {

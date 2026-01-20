@@ -3354,3 +3354,35 @@ $n's weapon's poison sickens $N badly.
 Your weapon's poison has no effect on $N.
 $n's weapon's poison has no effect on You.
 $n's weapon's poison has no effect on $N.
+
+* kapak draconian death throes 1273
+M
+1273
+	yAs $n collapses, $s body melts into a pool of acid that eats through $N!	n
+	yAs you fall, your body melts into corrosive acid, consuming everything $N!	n
+	y$n's body melts into caustic acid consuming $N!	n
+$N jumps back as your acidic death throe misses!
+You dodge the dissolving acid from $n!
+$N deftly avoids the acidic spray from $n's death throe!
+	yAs $N is struck, $S body begins to melt and bubble searing you with acid!	n
+	yYour body begins to melt and bubble uncontrollably, searing $N with acid!	n
+	y$N's body bubbles and melts, searing $N with acid!!	n
+Your acidic death throe has no effect on the resistant $N!
+$n's melting body leaves you unharmed!
+$N's resistance prevents the acid from affecting $M!
+
+* bozak draconian death throes 1283
+M
+1283
+	mAs $n falls, magical energy erupts in a brilliant	m explosion	nkilling $N	m!	n
+	mAs you fall, arcane energy tears you apart in a shower of magical force, killing you!	n
+	m$N explodes in a burst of magical energy, killing $N!	n
+$N staggers back from the edge of your magical explosion!
+You are caught in the blast but manage to stay upright!
+$N narrowly escapes the full force of the arcane explosion!
+	mAs $n is struck, arcane power crackles around $m, harming $N!	n
+	mArcane energy crackles violently around you!	n
+	m$n crackles with magical power from the devastating strike, harming $N!	n
+Your magical death throe fails to affect the powerful $N!
+$n's arcane explosion dissipates around you harmlessly!
+$N's magical defenses nullify the arcane burst!

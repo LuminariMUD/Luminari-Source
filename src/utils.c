@@ -5962,21 +5962,43 @@ bool has_bite_attack(struct char_data *ch)
 
 void perform_draconian_death_throes(struct char_data *ch)
 {
-  if (!IS_DRACONIAN(ch))
-    return;
-
-  switch (GET_RACE(ch))
+  if (!IS_NPC(ch))
   {
-  case DL_RACE_BAAZ_DRACONIAN:
-    call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
-    return;
-  case DL_RACE_KAPAK_DRACONIAN:
-    call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
-    return;
-  case DL_RACE_BOZAK_DRACONIAN:
-    call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
-    return;
+    if (!IS_DRACONIAN(ch))
+      return;
+      
+    switch (GET_RACE(ch))
+    {
+    case DL_RACE_BAAZ_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    case DL_RACE_KAPAK_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    case DL_RACE_BOZAK_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
   }
+  else
+  {
+    if (HAS_FEAT(ch, FEAT_BAAZ_DEATH_THROES))
+    {
+      call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+    if (HAS_FEAT(ch, FEAT_KAPAK_DEATH_THROES))
+    {
+      call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+    if (HAS_FEAT(ch, FEAT_BOZAK_DEATH_THROES))
+    {
+      call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+  }
+
 }
 
 bool is_grouped_with_dragon(struct char_data *ch)

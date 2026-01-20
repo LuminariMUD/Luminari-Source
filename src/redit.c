@@ -403,9 +403,12 @@ void free_room(struct room_data *room)
   free_proto_script(room, WLD_TRIGGER);
 
   /* Free trails. */
-  free_trail_data_list(room->trail_tracks);
-  // free_trail_data_list(room->trail_scent);
-  // free_trail_data_list(room->trail_blood);
+  if (CONFIG_WILDERNESS_SYSTEM == 2)
+  {
+    free_trail_data_list(room->trail_tracks);
+    // free_trail_data_list(room->trail_scent);
+    // free_trail_data_list(room->trail_blood);
+  }
 
   /* Free the room. */
   free(room); /* XXX ? */

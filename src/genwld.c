@@ -567,10 +567,13 @@ int save_rooms(zone_rnum rzone)
 int copy_room(struct room_data *to, struct room_data *from)
 {
   /* Free any existing trail data before copying */
-  if (to->trail_tracks)
+  if (CONFIG_WILDERNESS_SYSTEM == 2)
   {
-    free_trail_data_list(to->trail_tracks);
-    to->trail_tracks = NULL;
+    if (to->trail_tracks)
+    {
+      free_trail_data_list(to->trail_tracks);
+      to->trail_tracks = NULL;
+    }
   }
 
   free_room_strings(to);

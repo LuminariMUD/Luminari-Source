@@ -842,17 +842,16 @@ void travel_tickdown(void)
         if (ch->player_specials->travel_type == TRAVEL_CARRIAGE ||
             ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
         {
-          snprintf(car, sizeof(car), "%d",
-                   get_carriage_locale_vnum(ch->player_specials->travel_locale));
+          snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(ch->player_specials->travel_locale));
         }
         else if (ch->player_specials->travel_type == TRAVEL_SAILING ||
                  ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
         {
-          snprintf(sail, sizeof(sail), "%d",
-                   get_sailing_locale_vnum(ch->player_specials->travel_locale));
+          snprintf(sail, sizeof(sail), "%d", get_sailing_locale_vnum(ch->player_specials->travel_locale));
         }
 
-        if (ch->player_specials->travel_type == TRAVEL_SAILING)
+        if (ch->player_specials->travel_type == TRAVEL_SAILING || 
+            ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
         {
           if (atoi(sail) < 1000000)
           {

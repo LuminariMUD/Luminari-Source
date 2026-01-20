@@ -11259,10 +11259,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
     to_room = "$n throws a field of invisibility purging magic across the area.";
     break;
   case ABILITY_BAAZ_DRACONIAN_DEATH_THROES:
-    to_char =
-        "As you die, your body turns to stone and a cloud of paralyzing gas puffs out around you.";
-    to_room =
-        "As $n dies, $s body turns to stone and a cloud of paralyzing gas puffs out around $m.";
+    to_char = "As you die, your body turns to stone and a cloud of paralyzing gas puffs out around you.";
+    to_room = "As $n dies, $s body turns to stone and a cloud of paralyzing gas puffs out around $m.";
     isEffect = true;
     break;
 
@@ -11417,8 +11415,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 
     if (aoeOK(ch, tch, spellnum))
     {
-      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY &&
-          (!IS_UNDEAD(tch) || is_player_grouped(ch, tch)))
+      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY && (!IS_UNDEAD(tch) || is_player_grouped(ch, tch)))
         continue;
       else if (spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY && IS_UNDEAD(tch))
         continue;

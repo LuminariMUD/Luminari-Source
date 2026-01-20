@@ -894,8 +894,11 @@ void destroy_db(void)
     free_extra_descriptions(world[cnt].ex_description);
 
     /* free trail data */
-    if (world[cnt].trail_tracks != NULL)
-      free_trail_data_list(world[cnt].trail_tracks);
+    if (CONFIG_WILDERNESS_SYSTEM == 2)
+    {
+      if (world[cnt].trail_tracks != NULL)
+        free_trail_data_list(world[cnt].trail_tracks);
+    }
 
     /* freeing room events */
     if (world[cnt].events != NULL)
