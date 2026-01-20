@@ -51,6 +51,7 @@
 #include "treasure.h"
 #include "resource_depletion.h" /* Phase 6: Conservation system */
 #include "resource_system.h"
+#include "crafting_new.h"
 #include "roleplay.h"
 #include "spell_prep.h"
 #include "boards.h"
@@ -11173,7 +11174,11 @@ ACMDU(do_wearapplies)
 #undef WPT_DWARF
 #undef WPT_DUERGAR
 
-/* Phase 4.5: Materials storage display command */
+/* Phase 4.5: Materials storage display command 
+ * 
+ * This command allows players to:
+ * 1. View their stored materials (basic or detailed view)
+ */
 ACMD(do_materials)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -11187,6 +11192,7 @@ ACMD(do_materials)
 
   one_argument(argument, arg, sizeof(arg));
 
+  /* Handle 'materials details' */
   if (*arg && !str_cmp(arg, "details"))
   {
     show_details = true;

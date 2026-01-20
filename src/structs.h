@@ -4632,11 +4632,12 @@
 #define MATERIAL_LINEN 56
 #define MATERIAL_ZINC 57
 #define MATERIAL_FLAX 58
+#define MATERIAL_DRAGONBLOOD 59
 
 /** Total number of item mats.*/
-#define NUM_MATERIALS 59
+#define NUM_MATERIALS 60
 
-#define NUM_CRAFT_MATS 37
+#define NUM_CRAFT_MATS 38
 #define NUM_CRAFT_MOTES 9
 
 #define NUM_CRAFT_GROUPS 9

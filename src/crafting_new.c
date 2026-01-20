@@ -31,6 +31,7 @@
 #include "improved-edit.h"
 #include "talents.h" /* crafting talent system */
 #include "dg_scripts.h"
+#include "resource_system.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -738,6 +739,7 @@ int craft_group_by_material(int material)
     return CRAFT_GROUP_STONE;
 
   case CRAFT_MAT_COAL:
+  case CRAFT_MAT_DRAGONBLOOD:
     return CRAFT_GROUP_REFINING;
   }
   return CRAFT_GROUP_NONE;
@@ -3479,6 +3481,7 @@ int obj_material_to_craft_material(int material)
   case MATERIAL_DRAGONMETAL:
     return CRAFT_MAT_DRAGONMETAL;
   case MATERIAL_DRAGONSCALE:
+  case MATERIAL_DRAGONHIDE:
     return CRAFT_MAT_DRAGONSCALE;
   case MATERIAL_DRAGONBONE:
     return CRAFT_MAT_DRAGONBONE;
@@ -3516,6 +3519,8 @@ int obj_material_to_craft_material(int material)
     return CRAFT_MAT_BONE;
   case MATERIAL_STONE:
     return CRAFT_MAT_STONE;
+  case MATERIAL_DRAGONBLOOD:
+    return CRAFT_MAT_DRAGONBLOOD;
   }
   return CRAFT_MAT_NONE;
 }
@@ -3563,6 +3568,8 @@ int craft_material_to_obj_material(int craftmat)
     return MATERIAL_LEATHER;
   case CRAFT_MAT_PRISTINE_GRADE_HIDE:
     return MATERIAL_LEATHER;
+  case CRAFT_MAT_DRAGONBLOOD:
+    return MATERIAL_DRAGONBLOOD;
   case CRAFT_MAT_ASH_WOOD:
     return MATERIAL_ASH;
   case CRAFT_MAT_MAPLE_WOOD:
@@ -5234,14 +5241,44 @@ void newcraft_refine(struct char_data *ch, const char *argument)
     {
       if ((material = refining_recipes[recipe].materials[i][0]) != 0)
       {
-        if (GET_CRAFT_MAT(ch, material) <= refining_recipes[recipe].materials[i][1])
+        /* Special handling for dragonmetal: second material can be any hard metal grade 2+ */
+        if (recipe == REFINE_RECIPE_DRAGONMETAL && i == 1)
         {
-          send_to_char(ch, "You need %d units of %s to make %d units of %s.\r\n",
+          /* Check for any grade 2+ hard metal */
+          int has_hard_metal_grade2 = 0;
+          int j = 0;
+          
+          for (j = CRAFT_MAT_COPPER; j < NUM_CRAFT_MATS; j++)
+          {
+            if (craft_group_by_material(j) == CRAFT_GROUP_HARD_METALS && 
+                material_grade(j) >= 3 && 
+                GET_CRAFT_MAT(ch, j) >= refining_recipes[recipe].materials[i][1])
+            {
+              has_hard_metal_grade2 = 1;
+              break;
+            }
+          }
+          
+          if (!has_hard_metal_grade2)
+          {
+            send_to_char(ch, "You need %d units of a grade 3 or higher hard metal to make %d units of %s.\r\n",
                        refining_recipes[recipe].materials[i][1],
-                       crafting_materials[refining_recipes[recipe].materials[i][0]],
                        refining_recipes[recipe].result[1],
                        crafting_materials[refining_recipes[recipe].result[0]]);
-          fail = TRUE;
+            fail = TRUE;
+          }
+        }
+        else
+        {
+          if (GET_CRAFT_MAT(ch, material) < refining_recipes[recipe].materials[i][1])
+          {
+            send_to_char(ch, "You need %d units of %s to make %d units of %s.\r\n",
+                         refining_recipes[recipe].materials[i][1],
+                         crafting_materials[refining_recipes[recipe].materials[i][0]],
+                         refining_recipes[recipe].result[1],
+                         crafting_materials[refining_recipes[recipe].result[0]]);
+            fail = TRUE;
+          }
         }
       }
     }
@@ -5274,14 +5311,41 @@ void newcraft_refine(struct char_data *ch, const char *argument)
     {
       if ((material = refining_recipes[recipe].materials[i][0]) != 0)
       {
-        GET_CRAFT_MAT(ch, material) -= refining_recipes[recipe].materials[i][1];
-        GET_CRAFT(ch).refining_materials[i][0] = material;
-        GET_CRAFT(ch).refining_materials[i][1] = refining_recipes[recipe].materials[i][1];
-        send_to_char(ch, "You allocate %d units of %s to your refining of %d units of %s.\r\n",
-                     refining_recipes[recipe].materials[i][1],
-                     crafting_materials[refining_recipes[recipe].materials[i][0]],
-                     refining_recipes[recipe].result[1],
-                     crafting_materials[refining_recipes[recipe].result[0]]);
+        /* Special handling for dragonmetal: second material can be any hard metal grade 2+ */
+        if (recipe == REFINE_RECIPE_DRAGONMETAL && i == 1)
+        {
+          /* Find and use the first available grade 2+ hard metal */
+          int j = 0;
+          for (j = CRAFT_MAT_COPPER; j < NUM_CRAFT_MATS; j++)
+          {
+            if (craft_group_by_material(j) == CRAFT_GROUP_HARD_METALS && 
+                material_grade(j) >= 3 && 
+                GET_CRAFT_MAT(ch, j) >= refining_recipes[recipe].materials[i][1])
+            {
+              material = j;
+              GET_CRAFT_MAT(ch, material) -= refining_recipes[recipe].materials[i][1];
+              GET_CRAFT(ch).refining_materials[i][0] = material;
+              GET_CRAFT(ch).refining_materials[i][1] = refining_recipes[recipe].materials[i][1];
+              send_to_char(ch, "You allocate %d units of %s to your refining of %d units of %s.\r\n",
+                           refining_recipes[recipe].materials[i][1],
+                           crafting_materials[material],
+                           refining_recipes[recipe].result[1],
+                           crafting_materials[refining_recipes[recipe].result[0]]);
+              break;
+            }
+          }
+        }
+        else
+        {
+          GET_CRAFT_MAT(ch, material) -= refining_recipes[recipe].materials[i][1];
+          GET_CRAFT(ch).refining_materials[i][0] = material;
+          GET_CRAFT(ch).refining_materials[i][1] = refining_recipes[recipe].materials[i][1];
+          send_to_char(ch, "You allocate %d units of %s to your refining of %d units of %s.\r\n",
+                       refining_recipes[recipe].materials[i][1],
+                       crafting_materials[refining_recipes[recipe].materials[i][0]],
+                       refining_recipes[recipe].result[1],
+                       crafting_materials[refining_recipes[recipe].result[0]]);
+        }
       }
     }
 
@@ -5974,7 +6038,182 @@ ACMD(do_setmaterial)
 
 ACMD(do_list_craft_materials)
 {
+  char arg[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH];
+  struct obj_data *obj = NULL;
+  int craft_material = CRAFT_MAT_NONE;
+  int quantity = 1;
   int i = 0, mat = 0, count = 0;
+
+  half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+
+  /* Handle 'list_craft_materials store <item>' */
+  if (*arg && !str_cmp(arg, "store"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Store which item?\r\n");
+      return;
+    }
+
+    /* Find the item in inventory */
+    if (!(obj = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying)))
+    {
+      send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
+      return;
+    }
+
+    /* Check if it's a material item */
+    if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL)
+    {
+      send_to_char(ch, "%s is not a crafting material.\r\n", CAP(GET_OBJ_SHORT(obj)));
+      return;
+    }
+
+    /* Get quantity from object (VAL 0) */
+    quantity = MAX(1, GET_OBJ_VAL(obj, 0));
+
+    /* Convert object material to craft material type */
+    craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
+
+    if (craft_material == CRAFT_MAT_NONE)
+    {
+      send_to_char(ch, "%s cannot be stored as crafting material.\r\n", CAP(GET_OBJ_SHORT(obj)));
+      return;
+    }
+
+    int stored = quantity;
+
+    if (stored > 0)
+    {
+      GET_CRAFT_MAT(ch, craft_material) += stored;
+      send_to_char(ch, "You store %d unit%s of %s.\r\n", stored, stored == 1 ? "" : "s", crafting_materials[craft_material]);
+      extract_obj(obj);
+    }
+    else
+    {
+      send_to_char(ch, "You don't have enough storage space for that material.\r\n");
+    }
+
+    return;
+  }
+
+  /* Handle 'list_craft_materials unstore <# to unstore> <name of material>' */
+  if (*arg && !str_cmp(arg, "unstore") && false) // disabled for now
+  {
+    char quantity_str[MAX_INPUT_LENGTH];
+    char material_name_buf[MAX_INPUT_LENGTH];
+    int unstore_quantity = 0;
+    int material_type = CRAFT_MAT_NONE;
+    int j = 0;
+    struct obj_data *new_mat_obj = NULL;
+    int obj_material = MATERIAL_UNDEFINED;
+
+    /* Parse arguments using half_chop: unstore <qty> <material> */
+    half_chop(arg2, quantity_str, material_name_buf);
+
+    if (!*quantity_str || !*material_name_buf)
+    {
+      send_to_char(ch, "Usage: materials unstore <quantity> <material name>\r\n");
+      send_to_char(ch, "Example: materials unstore 5 copper\r\n");
+      return;
+    }
+
+    unstore_quantity = atoi(quantity_str);
+
+    if (unstore_quantity <= 0)
+    {
+      send_to_char(ch, "You must unstore at least 1 unit.\r\n");
+      return;
+    }
+
+    /* Find the material type by name */
+    for (j = 0; j < NUM_CRAFT_MATS; j++)
+    {
+      if (is_abbrev(material_name_buf, crafting_materials[j]))
+      {
+        material_type = j;
+        break;
+      }
+    }
+
+    if (material_type == CRAFT_MAT_NONE)
+    {
+      send_to_char(ch, "Unknown material '%s'.\r\n", material_name_buf);
+      return;
+    }
+
+    if (GET_CRAFT_MAT(ch, material_type) < unstore_quantity)
+    {
+      send_to_char(ch, "You only have %d unit%s of %s stored.\r\n",
+                   GET_CRAFT_MAT(ch, material_type),
+                   GET_CRAFT_MAT(ch, material_type) == 1 ? "" : "s",
+                   crafting_materials[material_type]);
+      return;
+    }
+
+    /* Create ITEM_MATERIAL object */
+    if ((new_mat_obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
+    {
+      send_to_char(ch, "Error: Could not create material object.\r\n");
+      return;
+    }
+
+    /* Convert craft material type to object material */
+    obj_material = craft_material_to_obj_material(material_type);
+
+    /* Set up the material object */
+    GET_OBJ_TYPE(new_mat_obj) = ITEM_MATERIAL;
+    GET_OBJ_MATERIAL(new_mat_obj) = obj_material;
+    GET_OBJ_VAL(new_mat_obj, 0) = unstore_quantity;
+    GET_OBJ_VAL(new_mat_obj, 1) = 0;
+    GET_OBJ_VAL(new_mat_obj, 2) = 0;
+    GET_OBJ_VAL(new_mat_obj, 3) = 0;
+
+    /* Set keywords for interaction */
+    snprintf(buf, sizeof(buf), "material %s bundle", crafting_materials[material_type]);
+    if (new_mat_obj->name)
+      free(new_mat_obj->name);
+    new_mat_obj->name = strdup(buf);
+
+    /* Set short description */
+    snprintf(buf, sizeof(buf), "bundle of %s", crafting_materials[material_type]);
+    if (new_mat_obj->short_description)
+      free(new_mat_obj->short_description);
+    new_mat_obj->short_description = strdup(buf);
+
+    /* Set long description */
+    snprintf(buf, sizeof(buf), "A bundle of %s material (%d unit%s) lies here.",
+             crafting_materials[material_type], unstore_quantity,
+             unstore_quantity == 1 ? "" : "s");
+    if (new_mat_obj->description)
+      free(new_mat_obj->description);
+    new_mat_obj->description = strdup(buf);
+
+    /* Give to player */
+    obj_to_char(new_mat_obj, ch);
+
+    /* Deduct from storage */
+    GET_CRAFT_MAT(ch, material_type) -= unstore_quantity;
+
+    send_to_char(ch, "You unstore %d unit%s of %s.\r\n", unstore_quantity,
+                 unstore_quantity == 1 ? "" : "s", crafting_materials[material_type]);
+
+    return;
+  }
+
+  /* Handle invalid arguments */
+  if (*arg)
+  {
+    send_to_char(ch, "Usage: materials [store <item>] [unstore <quantity> <material>]\r\n");
+    send_to_char(ch, "  materials        - Show your stored materials\r\n");
+    send_to_char(ch, "  materials store <item> - Store a material item\r\n");
+    send_to_char(ch, "  materials unstore <qty> <material> - Unstore materials\r\n");
+    return;
+  }
+
+  /* Show crafting materials by default */
 
   send_to_char(ch, "\tc");
   text_line(ch, "HARD METALS", 80, '-', '-');

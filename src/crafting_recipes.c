@@ -130,6 +130,9 @@ void populate_refining_recipes(void)
   refine_recipe(REFINE_RECIPE_COLD_IRON, ABILITY_HARVEST_MINING, 25, CRAFT_MAT_IRON, 2,
                 CRAFT_MAT_ZINC, 1, CRAFT_MAT_SILVER, 1, CRAFT_MAT_COLD_IRON, 1,
                 ITEM_CRAFTING_SMELTER);
+  refine_recipe(REFINE_RECIPE_DRAGONMETAL, ABILITY_HARVEST_MINING, 30, CRAFT_MAT_DRAGONBLOOD, 1,
+                CRAFT_MAT_IRON, 2, 0, 0, CRAFT_MAT_DRAGONMETAL, 1,
+                ITEM_CRAFTING_SMELTER);
 }
 
 void populate_crafting_recipes(void)

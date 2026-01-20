@@ -44,8 +44,9 @@
 #define CRAFT_MAT_FLAX 34
 #define CRAFT_MAT_BONE 35
 #define CRAFT_MAT_STONE 36
+#define CRAFT_MAT_DRAGONBLOOD 37
 
-#define NUM_CRAFT_MATS 37
+#define NUM_CRAFT_MATS 38
 // also set in structs.h
 
 #define CRAFT_GROUP_NONE 0

@@ -1299,7 +1299,7 @@ int get_hunt_armor_drop_vnum(int hunt_record)
     switch (dice(1, 3))
     {
     case 1:
-      return 60026; // dragonhide
+      return 60026; // dragonblood
     case 2:
       return 60027; // dagonscale
     default:
