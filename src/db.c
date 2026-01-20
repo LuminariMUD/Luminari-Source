@@ -198,7 +198,6 @@ static int check_object_spell_number(struct obj_data *obj, int val);
 static int check_object_level(struct obj_data *obj, int val);
 static int check_object(struct obj_data *);
 static void load_zones(FILE *fl, char *zonename);
-static int file_to_string(const char *name, char *buf);
 static int file_to_string_alloc(const char *name, char **buf);
 static int count_alias_records(FILE *fl);
 static void parse_simple_mob(FILE *mob_f, int i, int nr);
@@ -6572,35 +6571,117 @@ void free_obj(struct obj_data *obj)
   free(obj);
 }
 
+/* Cap text file loads to guard against runaway allocations */
+static const size_t MAX_TEXT_FILE_SIZE = 512 * 1024;
+
 /* Steps: 1: Read contents of a text file. 2: Make sure no one is using the
- * pointer in paging. 3: Allocate space. 4: Point 'buf' to it.
- * We don't want to free() the string that someone may be viewing in the pager.
- * page_string() keeps the internal strdup()'d copy on ->showstr_head and it
- * won't care if we delete the original.  Otherwise, strings are kept on
- * ->showstr_vector but we'll only match if the pointer is to the string we're
- * interested in and not a copy. If someone is reading a global copy we're
- * trying to replace, give everybody using it a different copy so as to avoid
- * special cases. */
+ * pointer in paging. 3: Allocate space. 4: Point 'buf' to it. */
 static int file_to_string_alloc(const char *name, char **buf)
 {
   int temppage;
-  char temp[MAX_STRING_LENGTH] = {'\0'};
+  char tmp[READ_SIZE + 3];
   struct descriptor_data *in_use;
+  FILE *fl = NULL;
+  struct stat statbuf;
+  size_t capacity = 0;
+  size_t length = 0;
+  char *temp = NULL;
 
   for (in_use = descriptor_list; in_use; in_use = in_use->next)
     if (in_use->showstr_vector && *in_use->showstr_vector == *buf)
       return (-1);
 
-  /* Lets not free() what used to be there unless we succeeded. */
-  if (file_to_string(name, temp) < 0)
+  if (!(fl = fopen(name, "r")))
+  {
+    log("SYSERR: reading %s: %s", name, strerror(errno));
     return (-1);
+  }
+
+  memset(&statbuf, 0, sizeof(statbuf));
+  if (!fstat(fileno(fl), &statbuf) && statbuf.st_size > 0)
+  {
+    capacity = (size_t)statbuf.st_size + READ_SIZE + 1;
+    if (capacity > MAX_TEXT_FILE_SIZE)
+    {
+      log("SYSERR: %s: string too big (%zu max)", name, MAX_TEXT_FILE_SIZE);
+      fclose(fl);
+      return (-1);
+    }
+  }
+  else
+    capacity = 8192;
+
+  temp = (char *)calloc(capacity, 1);
+  if (!temp)
+  {
+    log("SYSERR: allocating memory for %s", name);
+    fclose(fl);
+    return (-1);
+  }
+
+  if (!strcmp(name, NEWS_FILE))
+    newsmod = statbuf.st_mtime ? statbuf.st_mtime : newsmod;
+  else if (!strcmp(name, MOTD_FILE))
+    motdmod = statbuf.st_mtime ? statbuf.st_mtime : motdmod;
+
+  while (fgets(tmp, READ_SIZE, fl))
+  {
+    size_t addlen;
+
+    addlen = strlen(tmp);
+    if (addlen && tmp[addlen - 1] == '\n')
+    {
+      tmp[addlen - 1] = '\0';
+      addlen--;
+    }
+
+    strlcat(tmp, "\r\n", sizeof(tmp));
+    addlen = strlen(tmp);
+
+    if (length + addlen + 1 > capacity)
+    {
+      size_t newcap = capacity;
+      while (length + addlen + 1 > newcap && newcap < MAX_TEXT_FILE_SIZE)
+      {
+        newcap *= 2;
+        if (newcap > MAX_TEXT_FILE_SIZE)
+          newcap = MAX_TEXT_FILE_SIZE;
+      }
+
+      if (newcap == capacity || length + addlen + 1 > newcap)
+      {
+        log("SYSERR: %s: string too big (%zu max)", name, MAX_TEXT_FILE_SIZE);
+        free(temp);
+        fclose(fl);
+        return (-1);
+      }
+
+      char *grown = (char *)realloc(temp, newcap);
+      if (!grown)
+      {
+        log("SYSERR: reallocating memory for %s", name);
+        free(temp);
+        fclose(fl);
+        return (-1);
+      }
+
+      temp = grown;
+      memset(temp + capacity, 0, newcap - capacity);
+      capacity = newcap;
+    }
+
+    memcpy(temp + length, tmp, addlen);
+    length += addlen;
+    temp[length] = '\0';
+  }
+
+  fclose(fl);
 
   for (in_use = descriptor_list; in_use; in_use = in_use->next)
   {
     if (!in_use->showstr_count || *in_use->showstr_vector != *buf)
       continue;
 
-    /* Let's be nice and leave them at the page they were on. */
     temppage = in_use->showstr_page;
     paginate_string((in_use->showstr_head = strdup(*in_use->showstr_vector)), in_use);
     in_use->showstr_page = temppage;
@@ -6611,58 +6692,7 @@ static int file_to_string_alloc(const char *name, char **buf)
 
   parse_at(temp);
 
-  *buf = strdup(temp);
-  return (0);
-}
-
-/* read contents of a text file, and place in buf */
-static int file_to_string(const char *name, char *buf)
-{
-  FILE *fl;
-  char tmp[READ_SIZE + 3];
-  int len;
-  struct stat statbuf;
-
-  *buf = '\0';
-
-  if (!(fl = fopen(name, "r")))
-  {
-    log("SYSERR: reading %s: %s", name, strerror(errno));
-    return (-1);
-  }
-
-  /* Grab the date/time the file was last edited */
-  if (!strcmp(name, NEWS_FILE))
-  {
-    fstat(fileno(fl), &statbuf);
-    newsmod = statbuf.st_mtime;
-  }
-  if (!strcmp(name, MOTD_FILE))
-  {
-    fstat(fileno(fl), &statbuf);
-    motdmod = statbuf.st_mtime;
-  }
-
-  for (;;)
-  {
-    if (!fgets(tmp, READ_SIZE, fl)) /* EOF check */
-      break;
-    if ((len = strlen(tmp)) > 0)
-      tmp[len - 1] = '\0';             /* take off the trailing \n */
-    strlcat(tmp, "\r\n", sizeof(tmp)); /* strcat: OK (tmp:READ_SIZE+3) */
-
-    if (strlen(buf) + strlen(tmp) + 1 > MAX_STRING_LENGTH)
-    {
-      log("SYSERR: %s: string too big (%d max)", name, MAX_STRING_LENGTH);
-      *buf = '\0';
-      fclose(fl);
-      return (-1);
-    }
-    strcat(buf, tmp); /* strcat: OK (size checked above) */
-  }
-
-  fclose(fl);
-
+  *buf = temp;
   return (0);
 }
 

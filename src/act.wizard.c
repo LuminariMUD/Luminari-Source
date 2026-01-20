@@ -129,7 +129,6 @@ ACMD(do_quitlog)
   /* Handle delete command */
   if (*arg1 && !strcasecmp(arg1, "delete"))
   {
-    int line_num = 0;
     int delete_idx = -1;
 
     if (!*arg2 || !isdigit(*arg2))
