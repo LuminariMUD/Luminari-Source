@@ -6100,7 +6100,7 @@ ACMD(do_list_craft_materials)
   }
 
   /* Handle 'list_craft_materials unstore <# to unstore> <name of material>' */
-  if (*arg && !str_cmp(arg, "unstore") && false) // disabled for now
+  if (*arg && !str_cmp(arg, "unstore")) // disabled for now
   {
     char quantity_str[MAX_INPUT_LENGTH];
     char material_name_buf[MAX_INPUT_LENGTH];
@@ -6173,22 +6173,16 @@ ACMD(do_list_craft_materials)
 
     /* Set keywords for interaction */
     snprintf(buf, sizeof(buf), "material %s bundle", crafting_materials[material_type]);
-    if (new_mat_obj->name)
-      free(new_mat_obj->name);
     new_mat_obj->name = strdup(buf);
 
     /* Set short description */
-    snprintf(buf, sizeof(buf), "bundle of %s", crafting_materials[material_type]);
-    if (new_mat_obj->short_description)
-      free(new_mat_obj->short_description);
+    snprintf(buf, sizeof(buf), "bundle of %d %s", unstore_quantity, crafting_materials[material_type]);
     new_mat_obj->short_description = strdup(buf);
 
     /* Set long description */
-    snprintf(buf, sizeof(buf), "A bundle of %s material (%d unit%s) lies here.",
-             crafting_materials[material_type], unstore_quantity,
+    snprintf(buf, sizeof(buf), "A bundle of %d %s material (%d unit%s) lies here.",
+             unstore_quantity, crafting_materials[material_type], unstore_quantity,
              unstore_quantity == 1 ? "" : "s");
-    if (new_mat_obj->description)
-      free(new_mat_obj->description);
     new_mat_obj->description = strdup(buf);
 
     /* Give to player */
