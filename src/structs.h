@@ -5290,8 +5290,9 @@
 #define WEAPON_TYPE_KNIFE 76
 #define WEAPON_TYPE_HOOPAK 77
 #define WEAPON_TYPE_FOOTMANS_LANCE 78
+#define WEAPON_TYPE_ATHAME 79
 // One higher than last above
-#define NUM_WEAPON_TYPES 79
+#define NUM_WEAPON_TYPES 80
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
