@@ -10712,26 +10712,42 @@ static char *replace_substring_ci(const char *src, const char *find, const char 
   }
 }
 
-ACMD_DECL(do_not_here);
-
-ACMDU(do_reforge)
+/* Manual wrapper without profiling to avoid crash */
+static void impl_do_reforge_new_(struct char_data *ch, char *argument, int cmd, int subcmd);
+void do_reforge_new(struct char_data *ch, const char *argument, int cmd, int subcmd)
+{
+  if (!argument)
+  {
+    impl_do_reforge_new_(ch, NULL, cmd, subcmd);
+  }
+  else
+  {
+    char arg_buf[MAX_INPUT_LENGTH];
+    strlcpy(arg_buf, argument, sizeof(arg_buf));
+    impl_do_reforge_new_(ch, arg_buf, cmd, subcmd);
+  }
+}
+static void impl_do_reforge_new_(struct char_data *ch, char *argument,
+                                  int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 {
   struct obj_data *obj = NULL;
   struct obj_data *i = NULL;
   char item_arg[MAX_INPUT_LENGTH];
   char target_arg[MAX_INPUT_LENGTH];
   int material, skill_required;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  int fast_craft_bonus;
   int cost, orig_cost, enhancement;
-  char buf[MAX_STRING_LENGTH];
+  char buf[1024];  /* Buffer for room message */
   int weapon_index = 0;
   int armor_index = 0;
 
   if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
   {
-    do_not_here(ch, NULL, 0, 0);
+    send_to_char(ch, "Sorry, but you cannot do that here!\r\n");
     return;
   }
+
+  fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   half_chop(argument, item_arg, target_arg);
 

@@ -328,7 +328,6 @@ void generate_event_contract(struct supply_contract *contract, struct char_data 
 void show_supply_order_cooldowns(struct char_data *ch);
 SPECIAL_DECL(new_supply_orders);
 int material_type_to_crafting_skill(int material);
-ACMD_DECL(do_reforge);
 
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum);
@@ -371,6 +370,7 @@ ACMD_DECL(do_craftbonuses);
 ACMD_DECL(do_craft_score);
 ACMD_DECL(do_motes);
 ACMD_DECL(do_craft_score_new);
+ACMD_DECL(do_reforge_new);
 
 extern int materials_sort_info[NUM_CRAFT_MATS];
 

@@ -17,7 +17,7 @@
  * CONSTANTS
  * ======================================================================== */
 
-#define MAX_PROF_SECTIONS 100 /* Maximum number of profiling sections */
+#define MAX_PROF_SECTIONS 2000 /* Maximum number of profiling sections */
 #define USEC_PER_SEC 1000000  /* Microseconds per second */
 
 /* Time hierarchy constants */

@@ -833,7 +833,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
-    {"reforge", "reforge", POS_STANDING, do_reforge, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"reforge", "reforge", POS_STANDING, do_reforge_new, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reloadimm", "reloadimm", POS_DEAD, do_reboot, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
