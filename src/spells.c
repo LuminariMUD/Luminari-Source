@@ -3170,7 +3170,7 @@ ASPELL(spell_teleport)
     return;
   }
 
-  if (MOB_FLAGGED(victim, MOB_NOSUMMON))
+  if (MOB_FLAGGED(victim, MOB_NOTELEPORT))
   {
     send_to_char(ch, "The teleportation magic while beginning to form, flashes brightly, then dies "
                      "suddenly!\r\n");

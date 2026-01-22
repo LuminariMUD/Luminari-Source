@@ -2899,12 +2899,10 @@ EVENTFUNC(event_crafting)
         skill = SKILL_ARMOR_SMITHING;
 
       snprintf(buf, sizeof(buf),
-               "You finish reforging $p. It is recommended you use the restring command on this "
-               "object.");
+               "You finish reforging $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf),
-               "$n finishes reforging $p. It is recommended you use the restring command on this "
-               "object.");
+               "$n finishes reforging $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* Save the character to persist restring_identifier and other object changes */

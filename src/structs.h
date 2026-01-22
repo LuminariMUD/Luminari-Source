@@ -1271,8 +1271,9 @@
 #define MOB_NO_BLOCK_BYPASS                                                                        \
   102                 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
 #define MOB_GOLEM 103 /**< Mob is a constructed golem (for follower tracking) */
+#define MOB_NOTELEPORT 104 /**< Mob cannot be teleported */
 /**********************/
-#define NUM_MOB_FLAGS 104
+#define NUM_MOB_FLAGS 105
 /**********************/
 /**********************/
 

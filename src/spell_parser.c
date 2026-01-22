@@ -622,7 +622,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_dat
     }
   }
 
-  if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL))
+  if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL) && spellnum != SPELL_TELEPORT && spellnum != SPELL_PORTAL)
   {
     send_to_char(caster, "This mob is protected.\r\n");
     return (0);

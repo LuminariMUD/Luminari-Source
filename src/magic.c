@@ -13815,7 +13815,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict, stru
       return;
     }
 
-    if (MOB_FLAGGED(vict, MOB_NOSUMMON))
+    if (MOB_FLAGGED(vict, MOB_NOTELEPORT))
     {
       send_to_char(
           ch, "The portal while beginning to form, flashes brightly, then shuts suddenly!\r\n");
