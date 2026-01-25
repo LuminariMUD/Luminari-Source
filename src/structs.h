@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030701 = 3.7.1 (corresponds to display version 2.5001-beta)
+ * Current: 0x030702 = 3.7.2 (corresponds to display version 2.5002-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x030701
+#define _LUMINARIMUD 0x030702
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -1608,42 +1608,49 @@
 #define AFF_DEFENSIVE_CASTING 90 /* Defensive casting mode */
 #define AFF_WHIRLWIND_ATTACK 91  /*  Whirlwind attack mode */
 
-#define AFF_CHARGING 92            /* charging in combat */
-#define AFF_WILD_SHAPE 93          /* wildshape, shapechange */
-#define AFF_FEINTED 94             /* flat-footed */
-#define AFF_PINNED 95              /* pinned to the ground (grapple) */
-#define AFF_MIRROR_IMAGED 96       /* duplicate illusions of self! */
-#define AFF_WARDED 97              /* warded (damage protection) */
-#define AFF_ENTANGLED 98           /* entangled (can't move) */
-#define AFF_ACROBATIC 99           /* acrobatic!  currently used for druid jump \ \ \ \
+#define AFF_CHARGING 92      /* charging in combat */
+#define AFF_WILD_SHAPE 93    /* wildshape, shapechange */
+#define AFF_FEINTED 94       /* flat-footed */
+#define AFF_PINNED 95        /* pinned to the ground (grapple) */
+#define AFF_MIRROR_IMAGED 96 /* duplicate illusions of self! */
+#define AFF_WARDED 97        /* warded (damage protection) */
+#define AFF_ENTANGLED 98     /* entangled (can't move) */
+#define AFF_ACROBATIC                                                                              \
+  99                               /* acrobatic!  currently used for druid jump \ \ \ \
                                       spell, possible expansion to follow */
 #define AFF_BLINKING 100           /* in a state of blinking between prime/eth */
 #define AFF_AWARE 101              /* aware - too aware to be backstabed */
 #define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
 #define AFF_LEVITATE 103           /**< Char can float above the ground */
-#define AFF_BLEED 104              /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
-#define AFF_STAGGERED 105          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
-#define AFF_DAZZLED 106            /* suffers -1 to attacks and perception checks */
-#define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
-#define AFF_ESHIELD 108            // electric shield - reflect damage
-#define AFF_SICKENED 109           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
-#define AFF_SILENCED 110           // silenced, can't speak or cast spells
-#define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
-#define AFF_WIND_WALL 112          // surrounded by a wall of wind
+#define AFF_BLEED                                                                                  \
+  104 /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
+#define AFF_STAGGERED                                                                              \
+  105 /* A staggered character has a 50% chance to fail a spell or a single melee attack */
+#define AFF_DAZZLED 106 /* suffers -1 to attacks and perception checks */
+#define AFF_SHAKEN                                                                                 \
+  107 // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
+#define AFF_ESHIELD 108 // electric shield - reflect damage
+#define AFF_SICKENED                                                                               \
+  109 // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
+#define AFF_SILENCED 110       // silenced, can't speak or cast spells
+#define AFF_HIDE_ALIGNMENT 111 // alignment can't be detected
+#define AFF_WIND_WALL 112      // surrounded by a wall of wind
 #define AFF_FEAR_AURA 113
 #define AFF_SPIDER_CLIMB 114
-#define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
-#define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
-#define AFF_REPULSION 117          // A field of repulsion is around person
-#define AFF_ON_FIRE 118             // person is on fire
-#define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
+#define AFF_DEADLY_AIM 115  // used to determine if using deadly aim feat benefits.
+#define AFF_ACID_COAT 116   /**< (R) Char is covered in acid */
+#define AFF_REPULSION 117   // A field of repulsion is around person
+#define AFF_ON_FIRE 118     // person is on fire
+#define AFF_FLAME_BLADE 119 // melee hits deal 1d6 fire damage extra
 #define AFF_SICKENING_AURA 120
-#define AFF_RAPID_BUFF 121          // increases buff speed
-#define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
-#define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
-#define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
+#define AFF_RAPID_BUFF 121     // increases buff speed
+#define AFF_CRIPPLED 122       // crippled - movement speed halved, chance to fail movement
+#define AFF_ENCASED_IN_ICE 123 // encased in ice - paralyzed, immune to cold damage, DR 5/-
+#define AFF_NEXTATTACK_STUN                                                                        \
+  124                       // next attack will attempt to stun the target (Berserker Stunning Blow)
 #define AFF_HIVE_MARKED 125 // marked by Hive Commander - gives +3 DC to further telepathy powers
-#define AFF_PERFECT_DEFLECTION_ACTIVE 126 // ready to deflect next attack (Psionicist Perfect Deflection)
+#define AFF_PERFECT_DEFLECTION_ACTIVE                                                              \
+  126 // ready to deflect next attack (Psionicist Perfect Deflection)
 
 /*---*/
 #define NUM_AFF_FLAGS 127
@@ -1652,7 +1659,7 @@
 /* Affect2 bits: used in char_data.char_specials.saved.affected2_by */
 #define AFF2_DONTUSE 0       /**< DON'T USE! */
 #define AFF2_MAGIC_ATTACKS 1 // summon/creature attacks count as magic for DR purposes
-#define AFF2_COWERING 2 // One fear step more grave than frightened
+#define AFF2_COWERING 2      // One fear step more grave than frightened
 
 #define NUM_AFF2_FLAGS 3
 
@@ -7829,7 +7836,7 @@ struct extra_game_data
   ubyte landmarks_system;
   ubyte allow_cexchange;
   ubyte wilderness_system;
-  ubyte vessel_system;     /**< Enable unified vessel system (0=off, 1=on) */
+  ubyte vessel_system; /**< Enable unified vessel system (0=off, 1=on) */
   ubyte melee_exp_option;
   ubyte spell_cast_exp_option;
   ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */

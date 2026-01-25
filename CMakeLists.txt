@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5001 LANGUAGES C CXX)
+project(LuminariMUD VERSION 2.5002 LANGUAGES C CXX)
 
 # IMPORTANT: LuminariMUD uses ANSI C90/C89 standard, NOT C99!
 set(CMAKE_C_STANDARD 90)
@@ -838,6 +838,17 @@ if (BUILD_UTILS)
 
     # Link libraries for utilities that need them
     target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
+
+    # Ensure utilities use the same C standard as the main project
+    # This prevents issues with newer compilers (e.g., GCC 15+) defaulting to C23
+    if (CMAKE_COMPILER_IS_GNUCC)
+        set(UTIL_TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
+                         rebuildMailIndex shopconv sign split wld2html
+                         webster hl_events)
+        foreach(util_target ${UTIL_TARGETS})
+            target_compile_options(${util_target} PRIVATE -std=gnu99)
+        endforeach()
+    endif()
 endif()
 
 # ========== Build unit tests AFTER main executable ==========

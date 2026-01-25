@@ -24,6 +24,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <stdbool.h>
 
 #define NOWHERE -1 /* nil reference for room-database         */
 
@@ -60,7 +61,7 @@ typedef signed char sbyte;
 typedef unsigned char ubyte;
 typedef signed short int sh_int;
 typedef unsigned short int ush_int;
-typedef char bool;
+/* bool is provided by stdbool.h (included via sysdep.h) or C23+ */
 typedef char byte;
 
 typedef sh_int room_num;

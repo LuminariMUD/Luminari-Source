@@ -18,17 +18,15 @@
 #include <sys/types.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define READ_SIZE 256
 
 #define FLAG(n) (1 << (n))
 
 #ifndef FALSE
-typedef enum _boolean_type
-{
-  FALSE = 0,
-  TRUE
-} bool;
+#define FALSE 0
+#define TRUE 1
 #endif
 
 /* 128-bit flag defines (from utils.h) */
