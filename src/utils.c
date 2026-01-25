@@ -3342,7 +3342,7 @@ int get_line(FILE *fl, char *buf)
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name)
 {
   const char *prefix, *middle, *suffix;
-  char name[MAX_PATH], *ptr;
+  char name[MAX_FILEPATH], *ptr;
 
   if (orig_name == NULL || *orig_name == '\0' || filename == NULL)
   {
@@ -5966,7 +5966,7 @@ void perform_draconian_death_throes(struct char_data *ch)
   {
     if (!IS_DRACONIAN(ch))
       return;
-      
+
     switch (GET_RACE(ch))
     {
     case DL_RACE_BAAZ_DRACONIAN:
@@ -5998,7 +5998,6 @@ void perform_draconian_death_throes(struct char_data *ch)
       return;
     }
   }
-
 }
 
 bool is_grouped_with_dragon(struct char_data *ch)
@@ -9424,7 +9423,6 @@ int number_of_chests_per_zone(int num_zone_rooms)
 
 bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests)
 {
-
   if (rrnum == NOWHERE)
     return false;
 

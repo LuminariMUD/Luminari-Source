@@ -182,9 +182,9 @@ long parse_send_time(FILE *plr_file)
 /* Search file for mail subject and return as string */
 char *parse_subject(FILE *plr_file)
 {
-  static char subj[1000];
+  static char subj[5000]; /* matches findLine buffer size */
   char *txt = findLine(plr_file, "Subj:");
-  sprintf(subj, "%s", (txt == NULL) ? "(null)" : txt);
+  snprintf(subj, sizeof(subj), "%s", (txt == NULL) ? "(null)" : txt);
   return (subj);
 }
 

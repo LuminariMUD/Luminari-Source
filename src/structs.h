@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030702 = 3.7.2 (corresponds to display version 2.5002-beta)
+ * Current: 0x030703 = 3.7.3 (corresponds to display version 2.5003-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x030702
+#define _LUMINARIMUD 0x030703
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -5653,6 +5653,9 @@
 
 /* maximum number of moves a mobile can store for walking paths (patrols) */
 #define MAX_PATH 50
+
+/* maximum length for file system paths (NOT related to MAX_PATH for NPC patrols) */
+#define MAX_FILEPATH 256
 
 #define MAX_GOLD 2140000000 /**< Maximum possible on hand gold (2.14 Billion) */
 #define MAX_BANK 2140000000 /**< Maximum possible in bank gold (2.14 Billion) */

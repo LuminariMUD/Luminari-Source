@@ -31,6 +31,9 @@
 
 extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 
+/* Buffer size for rare grade labels (e.g., "[Legendary] ") - max 13 chars */
+#define RARE_LABEL_SIZE 32
+
 /***  utility functions ***/
 
 /* utility function to label 'rare grade' gear */
@@ -2834,7 +2837,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
   struct obj_data *obj = NULL;
   int roll = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, roll2 = 0, roll3 = 0;
-  char desc[MEDIUM_STRING] = {'\0'};
+  char desc[RARE_LABEL_SIZE] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
   char special[SHORT_STRING] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -2860,7 +2863,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(desc, MEDIUM_STRING, "%s", label_rare_grade(rare_grade));
+  snprintf(desc, RARE_LABEL_SIZE, "%s", label_rare_grade(rare_grade));
 
   /* ok assigning final material here, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
@@ -3052,7 +3055,6 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   struct obj_data *obj = NULL;
   int roll = 0;
   int color1 = 0, color2 = 0, roll2 = 0, roll3 = 0;
-  char desc[MEDIUM_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
   char special[SHORT_STRING] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -3073,8 +3075,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* enchantment-based processing complete */
 
-  // pick a pair of random colors for usage
-  /* first assign two random colors for usage */
+  /* pick a pair of random colors for usage */
   color1 = rand_number(0, NUM_A_COLORS - 1);
   color2 = rand_number(0, NUM_A_COLORS - 1);
   /* make sure they are not the same colors */
@@ -3084,14 +3085,11 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   snprintf(head_color, SHORT_STRING, "%s", colors[color1]);
   snprintf(hilt_color, SHORT_STRING, "%s", colors[color2]);
   if (IS_BLADE(obj))
-    snprintf(special, SHORT_STRING, "%s%s", desc,
-             blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s", blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
-    snprintf(special, SHORT_STRING, "%s%s", desc,
-             piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
-  else // blunt
-    snprintf(special, SHORT_STRING, "%s%s", desc,
-             blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s", piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
+  else /* blunt */
+    snprintf(special, SHORT_STRING, "%s", blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
   roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);

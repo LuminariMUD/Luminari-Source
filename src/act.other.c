@@ -2573,7 +2573,8 @@ ACMD(do_perfectadaptation_perk)
     send_to_char(ch, "  fire/cold/acid/electric/sonic: immunity to that energy for 30 seconds\r\n");
     send_to_char(ch, "  sr: spell resistance 10 + level for 30 seconds\r\n");
     send_to_char(ch, "  fast: fast healing 5 for 30 seconds\r\n");
-    send_to_char(ch, "  status: strong resistance to blindness/deafness/paralysis for 30 seconds\r\n");
+    send_to_char(ch,
+                 "  status: strong resistance to blindness/deafness/paralysis for 30 seconds\r\n");
     return;
   }
 
@@ -2653,7 +2654,8 @@ ACMD(do_perfectadaptation_perk)
 
   if (!applied)
   {
-    send_to_char(ch, "Invalid option. Usage: adaptation <fire|cold|acid|electric|sonic|sr|fast|status>\r\n");
+    send_to_char(
+        ch, "Invalid option. Usage: adaptation <fire|cold|acid|electric|sonic|sr|fast|status>\r\n");
     return;
   }
 
@@ -2709,13 +2711,12 @@ ACMD(do_supremacy_perk)
   affect_to_char(ch, &af);
 
   send_to_char(ch, "You focus your supremacy, bolstering your %s.\r\n",
-               (loc == APPLY_STR
-                    ? "strength"
-                    : loc == APPLY_DEX ? "dexterity"
-                    : loc == APPLY_CON ? "constitution"
-                    : loc == APPLY_INT ? "intelligence"
-                    : loc == APPLY_WIS ? "wisdom"
-                    : "charisma"));
+               (loc == APPLY_STR   ? "strength"
+                : loc == APPLY_DEX ? "dexterity"
+                : loc == APPLY_CON ? "constitution"
+                : loc == APPLY_INT ? "intelligence"
+                : loc == APPLY_WIS ? "wisdom"
+                                   : "charisma"));
 }
 
 /* Inquisitor Aura Reading perk command: sense life or detect alignment once per day each. */
@@ -5411,17 +5412,16 @@ void record_quit_feedback(struct char_data *ch, const char *reason)
     return;
   }
 
-  fprintf(logfile, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n",
-          time_buf, GET_NAME(ch), account, race_name, class_breakdown,
+  fprintf(logfile, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n", time_buf, GET_NAME(ch),
+          account, race_name, class_breakdown,
           IN_ROOM(ch) != NOWHERE ? GET_ROOM_VNUM(IN_ROOM(ch)) : -1, host,
           *cleaned ? cleaned : "(no reason provided)");
 
   fclose(logfile);
 
   /* Notify online staff of the quit feedback entry */
-  mudlog(BRF, LVL_STAFF, TRUE, "QUIT FEEDBACK: %s (Account: %s, %s %s): %s",
-         GET_NAME(ch), account, race_name, class_breakdown,
-         *cleaned ? cleaned : "(no reason provided)");
+  mudlog(BRF, LVL_STAFF, TRUE, "QUIT FEEDBACK: %s (Account: %s, %s %s): %s", GET_NAME(ch), account,
+         race_name, class_breakdown, *cleaned ? cleaned : "(no reason provided)");
 }
 
 void perform_player_quit(struct char_data *ch)
@@ -5481,10 +5481,11 @@ ACMD(do_quit)
   }
   else if (should_prompt_quit_feedback(ch, subcmd))
   {
-    send_to_char(ch,
-                 "Before you go, could you share why you're leaving? (Press Enter to skip)\r\n"
-                 "This information is helpful for us in improving the game experience for new players.\r\n"
-                 "Reason: ");
+    send_to_char(
+        ch,
+        "Before you go, could you share why you're leaving? (Press Enter to skip)\r\n"
+        "This information is helpful for us in improving the game experience for new players.\r\n"
+        "Reason: ");
     STATE(ch->desc) = CON_QUIT_REASON;
   }
   else
@@ -6941,9 +6942,11 @@ ACMDU(do_arcanemark)
       return;
     }
     send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
-    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes any color characters used.\r\n");
+    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes "
+                     "any color characters used.\r\n");
     send_to_char(ch, "Please keep your arcane mark in-character and tasteful.\r\n");
-    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to reset it for you.\r\n");
+    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to "
+                     "reset it for you.\r\n");
     return;
   }
 
@@ -12952,7 +12955,7 @@ static void finalize_invention_creation(struct char_data *ch, const char *variab
   struct player_invention *inv =
       &ch->player_specials->saved.inventions[ch->player_specials->saved.num_inventions];
 
-  char spell_list[MAX_STRING_LENGTH];
+  char spell_list[256];
   strncpy(spell_list, spell_info[spell_nums[0]].name, sizeof(spell_list) - 1);
   spell_list[sizeof(spell_list) - 1] = '\0';
   for (i = 1; i < num_spells; i++)
@@ -13310,12 +13313,14 @@ EVENTFUNC(event_device_creation)
       &ch->player_specials->saved.inventions[ch->player_specials->saved.num_inventions];
 
   /* Build spell list for descriptions */
-  char spell_list[MAX_STRING_LENGTH * 4];
-  strcpy(spell_list, spell_info[spell_nums[0]].name);
+  char spell_list[256];
+  strncpy(spell_list, spell_info[spell_nums[0]].name, sizeof(spell_list) - 1);
+  spell_list[sizeof(spell_list) - 1] = '\0';
   for (i = 1; i < num_spells; i++)
   {
-    strcat(spell_list, "/");
-    strcat(spell_list, spell_info[spell_nums[i]].name);
+    strncat(spell_list, "/", sizeof(spell_list) - strlen(spell_list) - 1);
+    strncat(spell_list, spell_info[spell_nums[i]].name,
+            sizeof(spell_list) - strlen(spell_list) - 1);
   }
 
   /* Set invention properties */

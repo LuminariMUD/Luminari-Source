@@ -39,7 +39,7 @@
  *   - CMakeLists.txt (project VERSION for CMake build)
  *   - README.md (documentation)
  * When updating version, update ALL locations above. */
-cpp_extern const char *const luminari_version = "LuminariMUD 2.5002-beta (tbaMUD 3.64)";
+cpp_extern const char *const luminari_version = "LuminariMUD 2.5003-beta (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 

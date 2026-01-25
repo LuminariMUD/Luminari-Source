@@ -51,6 +51,8 @@ static struct
 };
 /* for Zone Export */
 static int zone_exits = 0;
+/* Max size for zone export filenames (zone names are typically <64 chars) */
+#define MAX_EXPORT_FILENAME 128
 
 /* Local (file scope) functions */
 /* Zone export functions */
@@ -309,7 +311,7 @@ int sprintascii(char *out, bitvector_t bits)
 /* converts illegal filename chars into appropriate equivalents */
 const char *fix_filename(char *str)
 {
-  static char good_file_name[MAX_STRING_LENGTH] = {'\0'};
+  static char good_file_name[MAX_EXPORT_FILENAME] = {'\0'};
   char *cindex = good_file_name;
 
   while (*str)
@@ -354,7 +356,7 @@ ACMD(do_export_zone)
   zone_rnum zrnum;
   zone_vnum zvnum;
   char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
-  char zone_name[MAX_INPUT_LENGTH] = {'\0'};
+  char zone_name[MAX_EXPORT_FILENAME] = {'\0'}; /* zone names are short */
   const char *f;
   int success;
 

@@ -1608,7 +1608,7 @@ void index_boot(int mode)
   const char *index_filename, *prefix = NULL; /* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
   int rec_count = 0, size[2] = {0, 0};
-  char buf2[MAX_PATH] = {'\0'};
+  char buf2[MAX_FILEPATH] = {'\0'};
   char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   switch (mode)
@@ -7827,30 +7827,30 @@ void load_config(void)
         CONFIG_NO_MORT_TO_IMMORT = num;
       else if (!str_cmp(tag, "noperson"))
       {
-        char tmp[READ_SIZE];
+        size_t len = strlen(line);
         if (CONFIG_NOPERSON)
           free(CONFIG_NOPERSON);
-        snprintf(tmp, sizeof(tmp), "%s\r\n", line);
-        CONFIG_NOPERSON = strdup(tmp);
+        CREATE(CONFIG_NOPERSON, char, len + 4);
+        sprintf(CONFIG_NOPERSON, "%s\r\n", line);
       }
       else if (!str_cmp(tag, "noeffect"))
       {
-        char tmp[READ_SIZE];
+        size_t len = strlen(line);
         if (CONFIG_NOEFFECT)
           free(CONFIG_NOEFFECT);
-        snprintf(tmp, sizeof(tmp), "%s\r\n", line);
-        CONFIG_NOEFFECT = strdup(tmp);
+        CREATE(CONFIG_NOEFFECT, char, len + 4);
+        sprintf(CONFIG_NOEFFECT, "%s\r\n", line);
       }
       break;
 
     case 'o':
       if (!str_cmp(tag, "ok"))
       {
-        char tmp[READ_SIZE];
+        size_t len = strlen(line);
         if (CONFIG_OK)
           free(CONFIG_OK);
-        snprintf(tmp, sizeof(tmp), "%s\r\n", line);
-        CONFIG_OK = strdup(tmp);
+        CREATE(CONFIG_OK, char, len + 4);
+        sprintf(CONFIG_OK, "%s\r\n", line);
       }
       break;
 
