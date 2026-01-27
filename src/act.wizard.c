@@ -152,8 +152,10 @@ ACMD(do_quitlog)
       strip_cr(line);
       /* Skip empty lines and lines with only whitespace */
       int is_blank = 1, j;
-      for (j = 0; line[j]; j++) {
-        if (!isspace((unsigned char)line[j])) {
+      for (j = 0; line[j]; j++)
+      {
+        if (!isspace((unsigned char)line[j]))
+        {
           is_blank = 0;
           break;
         }
@@ -220,8 +222,10 @@ ACMD(do_quitlog)
     strip_cr(line);
     /* Skip empty lines and lines with only whitespace */
     int is_blank = 1, j;
-    for (j = 0; line[j]; j++) {
-      if (!isspace((unsigned char)line[j])) {
+    for (j = 0; line[j]; j++)
+    {
+      if (!isspace((unsigned char)line[j]))
+      {
         is_blank = 0;
         break;
       }
@@ -274,8 +278,7 @@ ACMD(do_quitlog)
           out = tmp;
         }
 
-        out_len += snprintf(out + out_len, out_cap - out_len, "[%d] %s", 
-                           line_num++, entries[i]);
+        out_len += snprintf(out + out_len, out_cap - out_len, "[%d] %s", line_num++, entries[i]);
       }
 
       if (out)
@@ -5338,7 +5341,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
                  spell_schools[school]);
     send_to_char(vict, "%s has set your spell school to %s.\r\n",
                  CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone", spell_schools[school]);
-  break;
+    break;
 
   default:
     send_to_char(ch, "Can't set that!\r\n");
@@ -7675,7 +7678,7 @@ ACMD(do_file)
 ACMD(do_changelog)
 {
   time_t rawtime;
-  char tmstr[MAX_INPUT_LENGTH] = {'\0'}, line[READ_SIZE], last_buf[READ_SIZE], buf[READ_SIZE];
+  char tmstr[32] = {'\0'}, line[READ_SIZE], last_buf[READ_SIZE], buf[READ_SIZE];
   FILE *fl, *new;
 
   skip_spaces_c(&argument);

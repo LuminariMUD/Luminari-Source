@@ -1142,9 +1142,9 @@ ACMD(do_diceroll)
 ACMDU(do_skillcheck)
 {
   int roll = 0, mod = 0, i = 0, j = 0;
-  char abiltext[MEDIUM_STRING] = {'\0'};
-  char abilname[MEDIUM_STRING] = {'\0'};
-  char output[MEDIUM_STRING] = {'\0'};
+  char abiltext[64] = {'\0'}; /* ability names are short */
+  char abilname[64] = {'\0'}; /* ability names are short */
+  char output[128] = {'\0'};  /* sufficient for skill check output */
   char arg[MEDIUM_STRING] = {'\0'};
   char skill[MEDIUM_STRING] = {'\0'};
   int target = CHECK_TAR_EVERYONE;

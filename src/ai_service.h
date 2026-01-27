@@ -35,10 +35,8 @@
 #include "structs.h"
 #include "utils.h"
 
-/* Use existing bool from structs.h if available, otherwise define */
-#ifndef bool
-typedef char bool;
-#endif
+/* bool is provided by stdbool.h (via bool.h or directly) or C23+ */
+#include <stdbool.h>
 
 #ifndef TRUE
 #define TRUE 1

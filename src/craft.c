@@ -2780,7 +2780,8 @@ EVENTFUNC(event_crafting)
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
-  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[24] = {'\0'}; /* Small buffer for repeat suffix " (x%d)" or "\tn" */
   int exp = 0;
   int skill = -1, roll = -1;
 
@@ -2898,11 +2899,9 @@ EVENTFUNC(event_crafting)
       else
         skill = SKILL_ARMOR_SMITHING;
 
-      snprintf(buf, sizeof(buf),
-               "You finish reforging $p.");
+      snprintf(buf, sizeof(buf), "You finish reforging $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf),
-               "$n finishes reforging $p.");
+      snprintf(buf, sizeof(buf), "$n finishes reforging $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* Save the character to persist restring_identifier and other object changes */

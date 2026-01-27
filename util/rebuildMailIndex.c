@@ -18,17 +18,15 @@
 #include <sys/types.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define READ_SIZE 256
 
 #define FLAG(n) (1 << (n))
 
 #ifndef FALSE
-typedef enum _boolean_type
-{
-  FALSE = 0,
-  TRUE
-} bool;
+#define FALSE 0
+#define TRUE 1
 #endif
 
 /* 128-bit flag defines (from utils.h) */
@@ -184,9 +182,9 @@ long parse_send_time(FILE *plr_file)
 /* Search file for mail subject and return as string */
 char *parse_subject(FILE *plr_file)
 {
-  static char subj[1000];
+  static char subj[5000]; /* matches findLine buffer size */
   char *txt = findLine(plr_file, "Subj:");
-  sprintf(subj, "%s", (txt == NULL) ? "(null)" : txt);
+  snprintf(subj, sizeof(subj), "%s", (txt == NULL) ? "(null)" : txt);
   return (subj);
 }
 

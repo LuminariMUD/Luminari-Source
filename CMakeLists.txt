@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5001 LANGUAGES C CXX)
+project(LuminariMUD VERSION 2.5003 LANGUAGES C CXX)
 
 # IMPORTANT: LuminariMUD uses ANSI C90/C89 standard, NOT C99!
 set(CMAKE_C_STANDARD 90)
@@ -827,17 +827,29 @@ if (BUILD_UTILS)
     add_executable(wld2html util/wld2html.c)
     add_executable(webster util/webster.c)
 
-    # hl_events utility has both .c and .h files
-    add_executable(hl_events util/hl_events.c)
+    # NOTE: hl_events is NOT built as a standalone utility because it depends on
+    # server internals (pulse, basic_mud_log). The autotools build also excludes it.
+    # The hl_events.c/h files provide an alternative event system for the main server.
 
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
                           rebuildMailIndex shopconv sign split wld2html
-                          webster hl_events
+                          webster
                           PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
     # Link libraries for utilities that need them
     target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
+
+    # Ensure utilities use the same C standard as the main project
+    # This prevents issues with newer compilers (e.g., GCC 15+) defaulting to C23
+    if (CMAKE_COMPILER_IS_GNUCC)
+        set(UTIL_TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
+                         rebuildMailIndex shopconv sign split wld2html
+                         webster)
+        foreach(util_target ${UTIL_TARGETS})
+            target_compile_options(${util_target} PRIVATE -std=gnu99)
+        endforeach()
+    endif()
 endif()
 
 # ========== Build unit tests AFTER main executable ==========
@@ -853,7 +865,7 @@ install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
 if (BUILD_UTILS)
     install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
                     rebuildMailIndex shopconv sign split wld2html
-                    webster hl_events
+                    webster
             DESTINATION ${BIN_OUTPUT_DIR})
 endif()
 

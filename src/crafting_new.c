@@ -5247,24 +5247,24 @@ void newcraft_refine(struct char_data *ch, const char *argument)
           /* Check for any grade 2+ hard metal */
           int has_hard_metal_grade2 = 0;
           int j = 0;
-          
+
           for (j = CRAFT_MAT_COPPER; j < NUM_CRAFT_MATS; j++)
           {
-            if (craft_group_by_material(j) == CRAFT_GROUP_HARD_METALS && 
-                material_grade(j) >= 3 && 
+            if (craft_group_by_material(j) == CRAFT_GROUP_HARD_METALS && material_grade(j) >= 3 &&
                 GET_CRAFT_MAT(ch, j) >= refining_recipes[recipe].materials[i][1])
             {
               has_hard_metal_grade2 = 1;
               break;
             }
           }
-          
+
           if (!has_hard_metal_grade2)
           {
-            send_to_char(ch, "You need %d units of a grade 3 or higher hard metal to make %d units of %s.\r\n",
-                       refining_recipes[recipe].materials[i][1],
-                       refining_recipes[recipe].result[1],
-                       crafting_materials[refining_recipes[recipe].result[0]]);
+            send_to_char(
+                ch,
+                "You need %d units of a grade 3 or higher hard metal to make %d units of %s.\r\n",
+                refining_recipes[recipe].materials[i][1], refining_recipes[recipe].result[1],
+                crafting_materials[refining_recipes[recipe].result[0]]);
             fail = TRUE;
           }
         }
@@ -5318,17 +5318,16 @@ void newcraft_refine(struct char_data *ch, const char *argument)
           int j = 0;
           for (j = CRAFT_MAT_COPPER; j < NUM_CRAFT_MATS; j++)
           {
-            if (craft_group_by_material(j) == CRAFT_GROUP_HARD_METALS && 
-                material_grade(j) >= 3 && 
+            if (craft_group_by_material(j) == CRAFT_GROUP_HARD_METALS && material_grade(j) >= 3 &&
                 GET_CRAFT_MAT(ch, j) >= refining_recipes[recipe].materials[i][1])
             {
               material = j;
               GET_CRAFT_MAT(ch, material) -= refining_recipes[recipe].materials[i][1];
               GET_CRAFT(ch).refining_materials[i][0] = material;
               GET_CRAFT(ch).refining_materials[i][1] = refining_recipes[recipe].materials[i][1];
-              send_to_char(ch, "You allocate %d units of %s to your refining of %d units of %s.\r\n",
-                           refining_recipes[recipe].materials[i][1],
-                           crafting_materials[material],
+              send_to_char(ch,
+                           "You allocate %d units of %s to your refining of %d units of %s.\r\n",
+                           refining_recipes[recipe].materials[i][1], crafting_materials[material],
                            refining_recipes[recipe].result[1],
                            crafting_materials[refining_recipes[recipe].result[0]]);
               break;
@@ -6088,7 +6087,8 @@ ACMD(do_list_craft_materials)
     if (stored > 0)
     {
       GET_CRAFT_MAT(ch, craft_material) += stored;
-      send_to_char(ch, "You store %d unit%s of %s.\r\n", stored, stored == 1 ? "" : "s", crafting_materials[craft_material]);
+      send_to_char(ch, "You store %d unit%s of %s.\r\n", stored, stored == 1 ? "" : "s",
+                   crafting_materials[craft_material]);
       extract_obj(obj);
     }
     else
@@ -6146,10 +6146,9 @@ ACMD(do_list_craft_materials)
 
     if (GET_CRAFT_MAT(ch, material_type) < unstore_quantity)
     {
-      send_to_char(ch, "You only have %d unit%s of %s stored.\r\n",
-                   GET_CRAFT_MAT(ch, material_type),
-                   GET_CRAFT_MAT(ch, material_type) == 1 ? "" : "s",
-                   crafting_materials[material_type]);
+      send_to_char(
+          ch, "You only have %d unit%s of %s stored.\r\n", GET_CRAFT_MAT(ch, material_type),
+          GET_CRAFT_MAT(ch, material_type) == 1 ? "" : "s", crafting_materials[material_type]);
       return;
     }
 
@@ -6176,7 +6175,8 @@ ACMD(do_list_craft_materials)
     new_mat_obj->name = strdup(buf);
 
     /* Set short description */
-    snprintf(buf, sizeof(buf), "bundle of %d %s", unstore_quantity, crafting_materials[material_type]);
+    snprintf(buf, sizeof(buf), "bundle of %d %s", unstore_quantity,
+             crafting_materials[material_type]);
     new_mat_obj->short_description = strdup(buf);
 
     /* Set long description */
@@ -8805,7 +8805,7 @@ void refresh_supply_slots(struct char_data *ch)
       else
       {
         // Generate standard descriptions
-        char desc_buf[256], req_buf[256];
+        char desc_buf[384], req_buf[256];
         const char *item_name = "unknown item";
         if (contract->recipe > 0 && contract->variant >= 0)
         {
@@ -8813,7 +8813,7 @@ void refresh_supply_slots(struct char_data *ch)
         }
 
         // Helper to add plural without double 's'
-        char plural_item[256];
+        char plural_item[128]; /* Item names are typically short (~20 chars max) */
         int len = strlen(item_name);
         if (contract->quantity > 1 && len > 0 && item_name[len - 1] != 's')
         {
@@ -10728,7 +10728,8 @@ void do_reforge_new(struct char_data *ch, const char *argument, int cmd, int sub
   }
 }
 static void impl_do_reforge_new_(struct char_data *ch, char *argument,
-                                  int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
+                                 int cmd __attribute__((unused)),
+                                 int subcmd __attribute__((unused)))
 {
   struct obj_data *obj = NULL;
   struct obj_data *i = NULL;
@@ -10737,7 +10738,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
   int material, skill_required;
   int fast_craft_bonus;
   int cost, orig_cost, enhancement;
-  char buf[1024];  /* Buffer for room message */
+  char buf[1024]; /* Buffer for room message */
   int weapon_index = 0;
   int armor_index = 0;
 

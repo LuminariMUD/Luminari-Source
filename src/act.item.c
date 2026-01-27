@@ -6671,7 +6671,7 @@ void quaff_potion(struct char_data *ch, char *argument)
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
   int umd_dc = 0, umd_check = 0;
   char buf[MEDIUM_STRING] = {'\0'};
-  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char metamagic_desc[128] = {'\0'}; /* sufficient for all metamagic names */
   char *temp_argument = argument;
 
   /* Parse metamagic first if the character has Improved Metamagic Science */
@@ -6774,7 +6774,7 @@ void recite_scroll(struct char_data *ch, char *argument)
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
   int umd_dc = 0, umd_check = 0;
   char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
-  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char metamagic_desc[128] = {'\0'}; /* sufficient for all metamagic names */
   char *temp_argument = argument;
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
@@ -6900,7 +6900,7 @@ void use_wand(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0, charges_needed = 1;
   char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
-  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char metamagic_desc[128] = {'\0'}; /* sufficient for all metamagic names */
   char *temp_argument = argument;
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
@@ -7027,7 +7027,7 @@ void invoke_staff(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0, charges_needed = 1;
   char buf[MEDIUM_STRING] = {'\0'};
-  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char metamagic_desc[128] = {'\0'}; /* sufficient for all metamagic names */
   char *temp_argument = argument;
   struct char_data *tch = NULL;
 

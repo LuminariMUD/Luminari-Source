@@ -217,7 +217,7 @@ SPECIAL(gen_board)
 int board_write_message(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
   time_t ct;
-  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_NAME_LENGTH + 3], tmstr[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_NAME_LENGTH + 3], tmstr[32] = {'\0'};
 
   if (GET_LEVEL(ch) < WRITE_LVL(board_type))
   {
