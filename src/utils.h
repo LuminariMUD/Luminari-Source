@@ -2840,8 +2840,7 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define LOOTBOX_TYPE(obj) (GET_OBJ_VAL(obj, 1))
 
 // Psionic related stuff
-#define GET_PSIONIC_ENERGY_TYPE(ch)                                                                \
-  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
+#define GET_PSIONIC_ENERGY_TYPE(ch) ((ch)->char_specials.saved.psionic_energy_type)
 
 #define BRUTALIZE_WOUNDS_SAVE_SUCCESS 2
 #define BRUTALIZE_WOUNDS_SAVE_FAIL 1

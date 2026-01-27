@@ -6304,6 +6304,7 @@ struct char_special_data_saved
 
   /* Blackguard Brutal Oath favored foe type */
   int blackguard_favored_foe; // race/creature type for Brutal Oath perk
+  int psionic_energy_type; // this is the element that will be used when using psionic energy powers
 };
 
 /* not saved player data used for condensed combat */
@@ -6760,8 +6761,6 @@ struct player_special_data_saved
   int grasp_of_the_dead_timer;
   int incorporeal_form_uses;
   int incorporeal_form_timer;
-
-  int psionic_energy_type; // this is the element that will be used when using psionic energy powers
 
   int potions[MAX_SPELLS]; // used in new consumables system store/unstore/quaff
   int scrolls[MAX_SPELLS]; // used in new consumables system store/unstore/recite
