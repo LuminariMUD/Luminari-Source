@@ -219,8 +219,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"armorlistfull", "armorlistfull", POS_DEAD, do_armorlist_old, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
     {"arrowstorm", "arrowstorm", POS_FIGHTING, do_arrowstorm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowstorm},
-    {"manyshot", "manyshot", POS_FIGHTING, do_manyshot, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_manyshot},
-    {"huntersmark", "huntersmark", POS_FIGHTING, do_huntersmark, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostand", "autostand", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_STAND, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aqref", "aqref", POS_DEAD, do_aqref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -557,6 +555,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"hp", "hp", POS_DEAD, do_hp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hsedit", "hsedit", POS_DEAD, do_oasis_hsedit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hunts", "hunts", POS_RECLINING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"huntersmark", "huntersmark", POS_FIGHTING, do_huntersmark, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"hsort", "hsort", POS_RECLINING, do_hsort, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
 /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -655,6 +654,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"manifest", "m", POS_SITTING, do_manifest, 1, SCMD_CAST_PSIONIC, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"maneuvers", "maneuvers", POS_DEAD, do_commands, 0, SCMD_MANEUVERS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"midnightedict", "midnightedict", POS_FIGHTING, do_midnight_edict, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
+    {"manyshot", "manyshot", POS_FIGHTING, do_manyshot, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_manyshot},
     {"memorize", "memorize", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mail", "mail", POS_STANDING, do_new_mail, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

@@ -1438,7 +1438,7 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct
     needs_touch = true;
     break;
   case SPELL_MAGIC_MISSILE:
-    num_times = MIN(5, (level + 1) / 2);
+    num_times = MAX(1, MIN(5, (level + 1) / 2));
     dam = true;
     break;
   case SPELL_LESSER_MISSILE_STORM:
