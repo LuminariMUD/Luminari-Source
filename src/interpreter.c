@@ -1657,6 +1657,8 @@ void command_interpreter(struct char_data *ch, char *argument)
     {
     case POS_DEAD:
       send_to_char(ch, "Lie still; you are DEAD!!! :-(\r\n");
+      mudlog(NRM, LVL_IMMORT, TRUE, "%s found in pos DEAD without die() function being called.", GET_NAME(ch));
+      die(ch, ch);
       break;
     case POS_INCAP:
     case POS_MORTALLYW:

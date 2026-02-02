@@ -3,7 +3,7 @@
 # Script to copy binaries from code/bin to live/mud/bin
 
 # Source and destination directories
-SOURCE_DIR="/home/luminari/gicker/code/bin"
+SOURCE_DIR="/home/luminari/gicker/Luminari-Source/bin"
 DEST_DIR="/home/luminari/Luminari-Source/bin"
 
 # Check if source directory exists
