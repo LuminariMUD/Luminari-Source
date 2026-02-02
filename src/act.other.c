@@ -6908,7 +6908,7 @@ ACMDU(do_title)
     send_to_char(ch, "Titles can't contain the ( or ) characters.\r\n");
   else if (strlen(argument) > MAX_TITLE_LENGTH)
     send_to_char(ch, "Sorry, titles can't be longer than %d characters.\r\n", MAX_TITLE_LENGTH);
-  else if (!strstr(argument, GET_NAME(ch)))
+  else if (!strstr(argument, GET_NAME(ch)) && CONFIG_USE_INTRO_SYSTEM)
     send_to_char(ch, "Your title must contain your name in it.\r\n");
   else if (strlen(argument) < 10 && strcmp(argument, GET_NAME(ch)))
     send_to_char(ch, "Your title must be at least 10 characters long.\r\n");

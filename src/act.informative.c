@@ -7657,13 +7657,14 @@ ACMD(do_who)
           send_to_char(ch, "%s]", classes_list);
         }
 
-#if defined(CAMPAIGN_DL)
-        send_to_char(ch, " %s%s%s%s", GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch),
-                     CCNRM(ch, C_SPR));
-#else
-        send_to_char(ch, " %s%s", (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)),
-                     CCNRM(ch, C_SPR));
-#endif
+	if (CONFIG_USE_INTRO_SYSTEM)
+        {
+          send_to_char(ch, " %s%s%s%s", GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch), CCNRM(ch, C_SPR));
+        }
+        else
+        {
+          send_to_char(ch, "%s %s%s", GET_NAME(tch), (*GET_TITLE(tch) ? GET_TITLE(tch) : ""), CCNRM(ch, C_SPR));
+        }
 
         if (IS_IN_CLAN(tch) && !(GET_CLANRANK(tch) == NO_CLANRANK))
         {

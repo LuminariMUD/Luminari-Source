@@ -2463,22 +2463,24 @@ int enter_player_game(struct descriptor_data *d)
 
   // We want to make sure their title follows the 'new' format.
   // It must contain the character's name
-  if (GET_TITLE(d->character) == NULL)
+  if (CONFIG_USE_INTRO_SYSTEM)
   {
-    set_title(d->character, strdup(GET_NAME(d->character)));
-  }
-  else
-  {
-    if (!strstr(GET_TITLE(d->character), GET_NAME(d->character)))
+    if (GET_TITLE(d->character) == NULL)
     {
-      snprintf(char_title, sizeof(char_title), "%s %s", GET_NAME(d->character),
-               GET_TITLE(d->character));
-      GET_TITLE(d->character) = strdup(char_title);
+      set_title(d->character, strdup(GET_NAME(d->character)));
     }
+    else
+    {
+      if (!strstr(GET_TITLE(d->character), GET_NAME(d->character)))
+      {
+        snprintf(char_title, sizeof(char_title), "%s %s", GET_NAME(d->character),
+                 GET_TITLE(d->character));
+        GET_TITLE(d->character) = strdup(char_title);
+      }
+    }
+    if (GET_IMM_TITLE(d->character) == NULL && GET_LEVEL(d->character) >= LVL_IMMORT)
+      GET_IMM_TITLE(d->character) = strdup(admin_level_names[GET_LEVEL(d->character) - LVL_IMMORT]);
   }
-  if (GET_IMM_TITLE(d->character) == NULL && GET_LEVEL(d->character) >= LVL_IMMORT)
-    GET_IMM_TITLE(d->character) = strdup(admin_level_names[GET_LEVEL(d->character) - LVL_IMMORT]);
-
 
   if (GET_REGION(d->character) < REGION_NONE || GET_REGION(d->character) >= NUM_REGIONS ||
       !is_selectable_region(GET_REGION(d->character)))
