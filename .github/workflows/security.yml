@@ -14,8 +14,8 @@ on:
       - '.github/workflows/security.yml'
       - '.gitleaks.toml'
   schedule:
-    # Run weekly on Sundays at midnight UTC
-    - cron: '0 0 * * 0'
+    # Run bi-weekly on 1st and 15th
+    - cron: '0 0 1,15 * *'
 
 permissions:
   contents: read
