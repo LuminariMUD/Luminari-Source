@@ -10172,6 +10172,20 @@ int get_bonus_from_liquid_type(int liquid)
     return APPLY_NONE;
   case LIQ_CLEARWATER:
     return APPLY_HIT;
+  case LIQ_JUICE:
+    return APPLY_DEX;
+  case LIQ_NECTAR:
+    return APPLY_STR;
+  case LIQ_AMBROSIA:
+    return APPLY_WIS;
+  case LIQ_SILVWINE:
+    return APPLY_INT;
+  case LIQ_ELVBLOSS:
+    return APPLY_CHA;
+  case LIQ_HEALREME:
+    return APPLY_FAST_HEALING;
+  case LIQ_TARBEAN:
+    return APPLY_CHA;
   default:
     return APPLY_HP_REGEN;
   }

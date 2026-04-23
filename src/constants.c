@@ -2330,6 +2330,13 @@ const char *drinks[] = {"water",
                         "blood",
                         "salt water",
                         "clear water",
+						"juice",
+						"nectar",
+						"ambrosia",
+						"silvanesti wine",
+						"elvenblossom wine",
+						"herbal remedy"
+						"tarbean tea"
                         "\n"};
 CHECK_TABLE_SIZE(drinks, NUM_LIQ_TYPES + 1);
 
@@ -2338,22 +2345,25 @@ CHECK_TABLE_SIZE(drinks, NUM_LIQ_TYPES + 1);
  * Must end array with a single newline. */
 const char *drinknames[] = {"water",    "beer",         "wine",  "ale",   "ale",  "whisky",
                             "lemonade", "firebreather", "local", "juice", "milk", "tea",
-                            "coffee",   "blood",        "salt",  "water", "\n"};
+                            "coffee",   "blood",        "salt",  "water", "juice", "nectar",
+							"silvwine", "elvenblossom", "healremedy", "tarbean", "\n"};
 CHECK_TABLE_SIZE(drinknames, NUM_LIQ_TYPES + 1);
 
 /** Define the effect of liquids on hunger, thirst, and drunkenness, in that
  * order. See values.doc for more information.
  * @pre Must be in the same order as the defines. */
-int drink_aff[][3] = {{0, 1, 10}, {3, 2, 5},  {5, 2, 5},  {2, 2, 5},  {1, 2, 5}, {6, 1, 4},
-                      {0, 1, 8},  {10, 0, 0}, {3, 3, 3},  {0, 4, -8}, {0, 3, 6}, {0, 1, 6},
-                      {0, 1, 6},  {0, 2, -1}, {0, 1, -2}, {0, 0, 13}};
+int drink_aff[][3] = {{0, 1, 10}, {3, 2, 5},   {5, 2, 5},  {2, 2, 5},  {1, 2, 5},  {6, 1, 4},
+                      {0, 1, 8},  {10, 0, 0},  {3, 3, 3},  {0, 4, -8}, {0, 3, 6},  {0, 1, 6},
+                      {0, 1, 6},  {0, 2, -1}, {0, 1, -2},  {0, 0, 13}, {0, 1, 10}, {0, 1, 10},
+					  {5, 2, 5},  {0, 1, 4},  {0, 1, 10},{0, 2, -1}};
 
 /** Describes the color of the various drinks.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *color_liquid[] = {"clear", "brown", "clear", "brown",         "dark",  "golden",
                               "red",   "green", "clear", "light green",   "white", "brown",
-                              "black", "red",   "clear", "crystal clear", "\n"};
+                              "black", "red",   "clear", "crystal clear", "bright", "multicolor",
+							  "silver", "crystal green", "disgusting green", "black", "\n"};
 CHECK_TABLE_SIZE(color_liquid, NUM_LIQ_TYPES + 1);
 
 /** Used to describe the level of fullness of a drink container. Not used in
