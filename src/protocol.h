@@ -473,7 +473,7 @@ typedef enum
   /* Character statistics and progression */
   eMSDP_AFFECTS,         /**< Active spell effects and conditions (array) */
   eMSDP_INVENTORY,       /**< Character inventory items (array) */
-  eMSDP_ALIGNMENT,       /**< Character alignment (-1000 to 1000) */
+  eMSDP_ALIGNMENT,       /**< Character alignment text (Lawful Good, Neutral Evil, etc.) */
   eMSDP_EXPERIENCE,      /**< Current experience points */
   eMSDP_EXPERIENCE_MAX,  /**< Experience points at current level */
   eMSDP_EXPERIENCE_TNL,  /**< Experience points to next level */

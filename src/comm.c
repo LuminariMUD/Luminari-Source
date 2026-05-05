@@ -108,6 +108,7 @@
 #include "terrain_bridge.h"              /* Terrain bridge API server */
 #include "systems/intermud3/i3_client.h" /* Intermud3 client */
 #include "vessels.h"                     /* Vessel persistence */
+#include "asciimap.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -4204,6 +4205,28 @@ static void handle_webster_file(void)
 #define MODE_DISPLAY_OFFHAND 3 // Display damage info offhand
 #define MODE_DISPLAY_RANGED 4  // Display damage info ranged
 
+static void update_msdp_automap(struct descriptor_data *d, struct char_data *ch)
+{
+  char mapbuf[MAX_STRING_LENGTH] = {'\0'};
+
+  if (!d || !ch)
+    return;
+
+  if (IN_ROOM(ch) != NOWHERE && can_see_map(ch) &&
+      !(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT))
+  {
+    const char *automap_data = get_map_string(ch, IN_ROOM(ch));
+
+    snprintf(mapbuf, sizeof(mapbuf), "%s", automap_data ? automap_data : "");
+    strip_colors(mapbuf);
+    MSDPSetString(d, eMSDP_MINIMAP, mapbuf);
+  }
+  else
+  {
+    MSDPSetString(d, eMSDP_MINIMAP, "");
+  }
+}
+
 /* KaVir's plugin*/
 void update_msdp_room(struct char_data *ch)
 {
@@ -4317,6 +4340,7 @@ void update_msdp_room(struct char_data *ch)
 
       strip_colors(buf2);
       MSDPSetTable(ch->desc, eMSDP_ROOM, buf2);
+      update_msdp_automap(ch->desc, ch);
     }
   }
 }
@@ -4356,7 +4380,7 @@ static void msdp_update(void)
       ++PlayerCount;
 
       MSDPSetString(d, eMSDP_CHARACTER_NAME, GET_NAME(ch));
-      MSDPSetNumber(d, eMSDP_ALIGNMENT, GET_ALIGNMENT(ch));
+      MSDPSetString(d, eMSDP_ALIGNMENT, get_align_by_num(GET_ALIGNMENT(ch)));
       MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX,
@@ -4391,6 +4415,7 @@ static void msdp_update(void)
 
       /* Room */
       update_msdp_room(ch);
+      update_msdp_automap(d, ch);
 
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
