@@ -136,6 +136,7 @@ AREA_NAME               - Current area name
 WORLD_TIME              - Game world time
 SECTORS                 - Room sector information
 MINIMAP                 - ASCII minimap data
+GRAPHIC_MAP             - Structured graphical room map data
 ROOM                    - Complete room information (table)
 ```
 

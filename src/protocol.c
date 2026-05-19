@@ -181,6 +181,7 @@ static variable_name_t VariableNameTable[eMSDP_MAX + 1] = {
     {eMSDP_WORLD_TIME, "WORLD_TIME", NUMBER_READ_ONLY},
     {eMSDP_SECTORS, "SECTORS", STRING_READ_ONLY},
     {eMSDP_MINIMAP, "MINIMAP", STRING_READ_ONLY},
+    {eMSDP_GRAPHIC_MAP, "GRAPHIC_MAP", STRING_READ_ONLY},
 
     /* Configurable variables */
     {eMSDP_CLIENT_ID, "CLIENT_ID", STRING_WRITE_ONCE(1, 40)},
