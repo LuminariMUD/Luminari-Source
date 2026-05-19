@@ -47,6 +47,8 @@ struct kdtree *kd_wilderness_rooms = NULL;
 
 int wild_waterline = 128;
 
+#define WILDERNESS_MAP_BUFFER_SIZE 65536
+
 /* \t= changes a color to be BACKGROUND. */
 struct wild_map_info_type wild_map_info[] = {
     /* 0 */
@@ -1203,9 +1205,165 @@ static char *get_ascii_wilderness_symbol(int sector_type)
   return ascii_buffer;
 }
 
+static void append_wilderness_map_fragment(char **buffer_ptr, size_t *remaining,
+                                           const char *fragment)
+{
+  int written;
+
+  if (!buffer_ptr || !remaining || !fragment || *remaining <= 1)
+    return;
+
+  written = snprintf(*buffer_ptr, *remaining, "%s", fragment);
+  if (written < 0)
+  {
+    **buffer_ptr = '\0';
+    *remaining = 1;
+    return;
+  }
+
+  if ((size_t)written >= *remaining)
+  {
+    *buffer_ptr += *remaining - 1;
+    *remaining = 1;
+    return;
+  }
+
+  *buffer_ptr += written;
+  *remaining -= written;
+}
+
+static void append_wilderness_grid_border(char **buffer_ptr, size_t *remaining, int size)
+{
+  int x;
+
+  append_wilderness_map_fragment(buffer_ptr, remaining, "+");
+  for (x = 0; x < size; x++)
+  {
+    append_wilderness_map_fragment(buffer_ptr, remaining, "-+");
+  }
+  append_wilderness_map_fragment(buffer_ptr, remaining, "\r\n");
+}
+
+static const char *get_wilderness_grid_symbol(const struct wild_map_tile *tile)
+{
+  if (!tile || tile->vis == 0)
+    return " ";
+
+  switch (tile->sector_type)
+  {
+  case SECT_INSIDE:
+    return "\tn\t[U9632/.]\tn";
+  case SECT_CITY:
+    return "\tw\t[U8962/C]\tn";
+  case SECT_FIELD:
+    return "\tg\t[U183/.]\tn";
+  case SECT_FOREST:
+    return "\tG\t[U9827/Y]\tn";
+  case SECT_HILLS:
+    return "\ty\t[U8745/n]\tn";
+  case SECT_MOUNTAIN:
+    return "\tw\t[U9650/^]\tn";
+  case SECT_WATER_SWIM:
+  case SECT_RIVER:
+    return "\tB\t[U8776/~]\tn";
+  case SECT_WATER_NOSWIM:
+  case SECT_OCEAN:
+    return "\tb\t[U8779/=]\tn";
+  case SECT_FLYING:
+    return "\tC\t[U9651/^]\tn";
+  case SECT_UNDERWATER:
+    return "\tb\t[U9673/U]\tn";
+  case SECT_ZONE_START:
+    return "\tR\t[U10022/X]\tn";
+  case SECT_ROAD_NS:
+    return "\tD\t[U9474/|]\tn";
+  case SECT_ROAD_EW:
+    return "\tD\t[U9472/-]\tn";
+  case SECT_ROAD_INT:
+    return "\tD\t[U9532/+]\tn";
+  case SECT_DESERT:
+    return "\tY\t[U9617/.]\tn";
+  case SECT_MARSHLAND:
+    return "\tM\t[U8769/,]\tn";
+  case SECT_HIGH_MOUNTAIN:
+    return "\tW\t[U916/^]\tn";
+  case SECT_PLANES:
+    return "\tM\t[U8226/.]\tn";
+  case SECT_UD_WILD:
+    return "\tM\t[U9831/Y]\tn";
+  case SECT_UD_CITY:
+    return "\tm\t[U8962/C]\tn";
+  case SECT_UD_INSIDE:
+    return "\tm\t[U9632/.]\tn";
+  case SECT_UD_WATER:
+    return "\tm\t[U8776/~]\tn";
+  case SECT_UD_NOSWIM:
+    return "\tM\t[U8779/=]\tn";
+  case SECT_UD_NOGROUND:
+    return "\tm\t[U9651/^]\tn";
+  case SECT_LAVA:
+    return "\tR\t[U8251/*]\tn";
+  case SECT_D_ROAD_NS:
+    return "\ty\t[U9474/|]\tn";
+  case SECT_D_ROAD_EW:
+    return "\ty\t[U9472/-]\tn";
+  case SECT_D_ROAD_INT:
+    return "\ty\t[U9532/+]\tn";
+  case SECT_CAVE:
+    return "\tD\t[U9670/C]\tn";
+  case SECT_JUNGLE:
+    return "\tg\t[U9824/&]\tn";
+  case SECT_TUNDRA:
+    return "\tW\t[U10052/*]\tn";
+  case SECT_TAIGA:
+    return "\tg\t[U9828/A]\tn";
+  case SECT_BEACH:
+    return "\ty\t[U9676/:]\tn";
+  case SECT_SEAPORT:
+    return "\tR\t[U9875/S]\tn";
+  case SECT_INSIDE_ROOM:
+    return "\ty\t[U10038/*]\tn";
+  default:
+    return "\tr\t[U63/?]\tn";
+  }
+}
+
+static char *wilderness_grid_map_to_string(struct wild_map_tile **map, int size, int map_type)
+{
+  static char strmap[WILDERNESS_MAP_BUFFER_SIZE];
+  char *mp = strmap;
+  size_t remaining = sizeof(strmap);
+  int x;
+  int y;
+  int centerx = ((size - 1) / 2);
+  int centery = ((size - 1) / 2);
+
+  (void)map_type;
+
+  append_wilderness_grid_border(&mp, &remaining, size);
+
+  for (y = size - 1; y >= 0; y--)
+  {
+    append_wilderness_map_fragment(&mp, &remaining, "|");
+    for (x = 0; x < size; x++)
+    {
+      if ((x == centerx) && (y == centery))
+        append_wilderness_map_fragment(&mp, &remaining, "\tM\t[U9678/*]\tn");
+      else
+        append_wilderness_map_fragment(&mp, &remaining, get_wilderness_grid_symbol(&map[x][y]));
+
+      append_wilderness_map_fragment(&mp, &remaining, "|");
+    }
+    append_wilderness_map_fragment(&mp, &remaining, "\r\n");
+    append_wilderness_grid_border(&mp, &remaining, size);
+  }
+
+  return strmap;
+}
+
 static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int shape, int map_type)
 {
-  static char strmap[32768];
+  static char strmap[WILDERNESS_MAP_BUFFER_SIZE];
   char *mp = strmap;
   int x, y, i;
   bool region_colored = FALSE;
@@ -1509,7 +1667,7 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type)
     for (j = 0; j < ysize; j++)
       map[i][j].vis = 10;
 
-  mapstring = wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT, map_type);
+  mapstring = wilderness_grid_map_to_string(map, size, map_type);
 
   if (map[0])
     free(map[0]);

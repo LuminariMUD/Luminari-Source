@@ -2728,6 +2728,7 @@ char *reconstruct_enhanced_description(struct description_components *components
 {
   char *enhanced;
   char *primary_sentence, *sensory_sentence;
+  char *punctuated_sentence;
   char temp_buffer[MAX_STRING_LENGTH * 2];
 
   if (!components)
@@ -2792,7 +2793,18 @@ char *reconstruct_enhanced_description(struct description_components *components
   if (len > 0 && primary_sentence[len - 1] != '.' && primary_sentence[len - 1] != '!' &&
       primary_sentence[len - 1] != '?')
   {
-    safe_strcat(primary_sentence, ".");
+    punctuated_sentence = malloc(len + 2);
+    if (!punctuated_sentence)
+    {
+      free(primary_sentence);
+      free(enhanced);
+      return NULL;
+    }
+
+    safe_strcpy(punctuated_sentence, primary_sentence, len + 2);
+    narrative_safe_strcat(punctuated_sentence, ".", len + 2);
+    free(primary_sentence);
+    primary_sentence = punctuated_sentence;
   }
 
   // Step 4: Start building the enhanced description
@@ -2808,12 +2820,12 @@ char *reconstruct_enhanced_description(struct description_components *components
       const char *transition = get_transitional_phrase(regional_style, sensory_sentence);
 
       // Add transitional space
-      safe_strcat(enhanced, " ");
+      narrative_safe_strcat(enhanced, " ", MAX_STRING_LENGTH * 2);
 
       if (strlen(transition) > 0)
       {
         // Add transition phrase
-        safe_strcat(enhanced, transition);
+        narrative_safe_strcat(enhanced, transition, MAX_STRING_LENGTH * 2);
 
         // Ensure sensory sentence starts with lowercase (since transition provides the capital)
         if (sensory_sentence[0] >= 'A' && sensory_sentence[0] <= 'Z')
@@ -2830,14 +2842,14 @@ char *reconstruct_enhanced_description(struct description_components *components
         }
       }
 
-      safe_strcat(enhanced, sensory_sentence);
+      narrative_safe_strcat(enhanced, sensory_sentence, MAX_STRING_LENGTH * 2);
 
       // Ensure proper termination
       len = strlen(sensory_sentence);
       if (len > 0 && sensory_sentence[len - 1] != '.' && sensory_sentence[len - 1] != '!' &&
           sensory_sentence[len - 1] != '?')
       {
-        safe_strcat(enhanced, ".");
+        narrative_safe_strcat(enhanced, ".", MAX_STRING_LENGTH * 2);
       }
 
       free(sensory_sentence);

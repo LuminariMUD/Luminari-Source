@@ -530,6 +530,7 @@ typedef enum
   eMSDP_SECTORS,    /**< Room sector/terrain information */
   eMSDP_MINIMAP,    /**< ASCII minimap representation */
   eMSDP_GRAPHIC_MAP, /**< Structured room map data for graphical clients */
+  eMSDP_WILDERNESS_GRAPHIC_MAP, /**< Structured wilderness map data for graphical clients */
 
   /* Client configuration and capabilities */
   eMSDP_CLIENT_ID,      /**< Client software name (configurable) */
