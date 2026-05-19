@@ -4,6 +4,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c89 -pedantic -g -O0
 LDFLAGS = -lm
+PROTOCOL_TEST_CFLAGS = -Wall -Wextra -std=gnu99 -g -O0 -ffunction-sections -fdata-sections
+PROTOCOL_TEST_LDFLAGS = -lm -Wl,--gc-sections
 
 # Directories
 SRC_DIR = .
@@ -78,6 +80,13 @@ VEHICLE_COMMANDS_TEST_EXE = vehicle_commands_tests
 TRANSPORT_UNIFIED_TEST_SRC = test_transport_unified.c
 TRANSPORT_UNIFIED_TEST_OBJ = $(BUILD_DIR)/test_transport_unified.o
 TRANSPORT_UNIFIED_TEST_EXE = transport_unified_tests
+
+# Protocol parser test files (Phase 04, Session 02)
+PROTOCOL_PARSER_TEST_SRC = test_protocol_parser.c
+PROTOCOL_PARSER_TEST_OBJ = $(BUILD_DIR)/test_protocol_parser.o
+PROTOCOL_SOURCE_SRC = ../../src/protocol.c
+PROTOCOL_SOURCE_OBJ = $(BUILD_DIR)/protocol.o
+PROTOCOL_PARSER_TEST_EXE = protocol_parser_tests
 
 # Vehicle stress test files (Phase 02, Session 07)
 VEHICLE_STRESS_TEST_SRC = vehicle_stress_test.c
@@ -189,6 +198,15 @@ $(BUILD_DIR)/test_vehicle_commands.o: test_vehicle_commands.c CuTest.h
 $(BUILD_DIR)/test_transport_unified.o: test_transport_unified.c CuTest.h
 	$(CC) $(CFLAGS) -DSTANDALONE_TEST -c $< -o $@
 
+# Compile protocol parser tests (Phase 04, Session 02)
+$(BUILD_DIR)/test_protocol_parser.o: test_protocol_parser.c CuTest.h ../../src/protocol.h ../../src/structs.h
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -c $< -o $@
+
+# Compile protocol source for focused parser tests. The source headers use C99-style
+# comments and declarations, so this target intentionally avoids the legacy C89 flags.
+$(BUILD_DIR)/protocol.o: ../../src/protocol.c ../../src/protocol.h ../../src/structs.h
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src -c $(PROTOCOL_SOURCE_SRC) -o $@
+
 # Compile vehicle stress test (Phase 02, Session 07)
 $(BUILD_DIR)/vehicle_stress_test.o: vehicle_stress_test.c CuTest.h
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -253,6 +271,10 @@ $(VEHICLE_COMMANDS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_COMMANDS_TEST
 $(TRANSPORT_UNIFIED_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(TRANSPORT_UNIFIED_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(TRANSPORT_UNIFIED_TEST_OBJ) $(LDFLAGS)
 
+# Link protocol parser tests (Phase 04, Session 02)
+$(PROTOCOL_PARSER_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) $(PROTOCOL_SOURCE_OBJ)
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -o $@ $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) $(PROTOCOL_SOURCE_OBJ) $(PROTOCOL_TEST_LDFLAGS)
+
 # Link vehicle stress test (Phase 02, Session 07)
 $(VEHICLE_STRESS_TEST_EXE): $(BUILD_DIR) $(CUTEST_OBJ) $(VEHICLE_STRESS_TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CUTEST_OBJ) $(VEHICLE_STRESS_TEST_OBJ) $(LDFLAGS)
@@ -316,6 +338,10 @@ vehicle-commands: $(VEHICLE_COMMANDS_TEST_EXE)
 # Run transport unified tests (Phase 02, Session 06)
 transport-unified: $(TRANSPORT_UNIFIED_TEST_EXE)
 	./$(TRANSPORT_UNIFIED_TEST_EXE)
+
+# Run protocol parser tests (Phase 04, Session 02)
+protocol-parser: $(PROTOCOL_PARSER_TEST_EXE)
+	./$(PROTOCOL_PARSER_TEST_EXE)
 
 # Run vehicle stress test (Phase 02, Session 07)
 vehicle-stress: $(VEHICLE_STRESS_TEST_EXE)
@@ -490,6 +516,7 @@ clean:
 	rm -f $(VEHICLE_CREATION_TEST_EXE)
 	rm -f $(VEHICLE_COMMANDS_TEST_EXE)
 	rm -f $(TRANSPORT_UNIFIED_TEST_EXE)
+	rm -f $(PROTOCOL_PARSER_TEST_EXE)
 	rm -f $(VEHICLE_STRESS_TEST_EXE)
 	rm -f $(WILDERNESS_ROOMS_TEST_EXE)
 	rm -f $(VESSEL_TYPE_INTEGRATION_TEST_EXE)
@@ -512,6 +539,7 @@ help:
 	@echo "  stress            - Run stress tests"
 	@echo "  phase01-tests     - Run all Phase 01 tests (84 tests)"
 	@echo "  phase02-tests     - Run all Phase 02 tests (151 tests)"
+	@echo "  protocol-parser   - Run Phase 04 protocol parser harness"
 	@echo "  valgrind-phase01  - Run Phase 01 tests with Valgrind"
 	@echo "  valgrind-phase02  - Run Phase 02 tests with Valgrind"
 	@echo "  valgrind          - Run vessel tests with Valgrind"
@@ -521,4 +549,4 @@ help:
 	@echo "  rebuild           - Clean and rebuild"
 	@echo "  help              - Show this help"
 
-.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified vehicle-stress wilderness-rooms vessel-type-integration valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport valgrind-vehicle-creation valgrind-vehicle-commands valgrind-transport-unified valgrind-vehicle-stress valgrind-wilderness-rooms valgrind-vessel-type-integration phase01-tests valgrind-phase01 phase02-tests valgrind-phase02 test-all clean rebuild help
+.PHONY: all test stress autopilot pathfinding pilot schedule waypoint vehicle vehicle-movement vehicle-transport vehicle-creation vehicle-commands transport-unified protocol-parser vehicle-stress wilderness-rooms vessel-type-integration valgrind valgrind-stress valgrind-autopilot valgrind-pathfinding valgrind-pilot valgrind-schedule valgrind-waypoint valgrind-vehicle valgrind-vehicle-transport valgrind-vehicle-creation valgrind-vehicle-commands valgrind-transport-unified valgrind-vehicle-stress valgrind-wilderness-rooms valgrind-vessel-type-integration phase01-tests valgrind-phase01 phase02-tests valgrind-phase02 test-all clean rebuild help
