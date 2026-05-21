@@ -22,6 +22,9 @@ depend
 # Exception: Keep minimal world .obj files (needed for deployment)
 !lib/world/minimal/*.obj
 
+# Ignore local Faerun world data
+lib/world-fr/
+
 # Precompiled Headers
 *.gch
 *.pch
