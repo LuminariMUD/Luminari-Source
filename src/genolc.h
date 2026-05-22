@@ -28,6 +28,7 @@ void copy_ex_descriptions(struct extra_descr_data **to, struct extra_descr_data 
 void free_ex_descriptions(struct extra_descr_data *head);
 int sprintascii(char *out, bitvector_t bits);
 ACMD_DECL(do_export_zone);
+ACMD_DECL(do_export_map);
 ACMD_DECL(do_show_save_list);
 
 struct save_list_data

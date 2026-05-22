@@ -30,6 +30,19 @@
 #include "quest.h"
 #include "craft.h" // get_obj_material
 
+#define WORLDMAP_EXPORT_WIDTH 160
+#define WORLDMAP_EXPORT_MAX_HEIGHT 160
+#define WORLDMAP_MARKER_MAX 512
+
+struct worldmap_marker_data
+{
+  int id;
+  int x;
+  int y;
+  int sector;
+  char title[MAX_INPUT_LENGTH];
+};
+
 /* Global variables defined here, used elsewhere */
 /* List of zones to be saved. */
 struct save_list_data *save_list;
@@ -65,6 +78,14 @@ static int export_save_triggers(zone_rnum zrnum);
 static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd);
 static void export_script_save_to_disk(FILE *fp, void *item, int type);
 static int export_info_file(zone_rnum zrnum);
+static room_vnum worldmap_zone_anchor(zone_vnum zvnum);
+static bool worldmap_vnum_to_xy(zone_vnum zvnum, room_vnum rvnum, int *x, int *y);
+static void worldmap_html_write_escaped(FILE *out, const char *text);
+static void worldmap_html_write_span(FILE *out, int sector);
+static void worldmap_html_write_marker(FILE *out, const struct worldmap_marker_data *marker);
+static int worldmap_add_marker(struct worldmap_marker_data *markers, int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_WIDTH],
+                               int *marker_count, int x, int y, int sector, const char *title);
+static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path, size_t saved_path_size);
 
 int genolc_checkstring(struct descriptor_data *d, char *arg)
 {
@@ -76,6 +97,291 @@ int genolc_checkstring(struct descriptor_data *d, char *arg)
 char *str_udup(const char *txt)
 {
   return strdup((txt && *txt) ? txt : "undefined");
+}
+
+static room_vnum worldmap_zone_anchor(zone_vnum zvnum)
+{
+  return (room_vnum)(zvnum * 100 + 161);
+}
+
+static bool worldmap_vnum_to_xy(zone_vnum zvnum, room_vnum rvnum, int *x, int *y)
+{
+  room_vnum anchor = worldmap_zone_anchor(zvnum);
+  room_vnum offset;
+
+  if (rvnum < anchor)
+    return FALSE;
+
+  offset = rvnum - anchor;
+  *x = offset % WORLDMAP_EXPORT_WIDTH;
+  *y = offset / WORLDMAP_EXPORT_WIDTH;
+
+  if (*x < 0 || *x >= WORLDMAP_EXPORT_WIDTH || *y < 0 || *y >= WORLDMAP_EXPORT_MAX_HEIGHT)
+    return FALSE;
+
+  return TRUE;
+}
+
+static void worldmap_html_write_escaped(FILE *out, const char *text)
+{
+  const unsigned char *ptr = (const unsigned char *)(text ? text : "");
+
+  while (*ptr)
+  {
+    switch (*ptr)
+    {
+    case '&':
+      fputs("&amp;", out);
+      break;
+    case '<':
+      fputs("&lt;", out);
+      break;
+    case '>':
+      fputs("&gt;", out);
+      break;
+    case '"':
+      fputs("&quot;", out);
+      break;
+    case '\'':
+      fputs("&#39;", out);
+      break;
+    default:
+      fputc(*ptr, out);
+      break;
+    }
+    ptr++;
+  }
+}
+
+static void worldmap_html_write_span(FILE *out, int sector)
+{
+  fprintf(out, "<span style=\"color: %s;\">%s</span>", ascii_webmap_colors[sector], sector_map_letters[sector]);
+}
+
+static void worldmap_html_write_marker(FILE *out, const struct worldmap_marker_data *marker)
+{
+  fprintf(out, "<a id=\"%d\" href=\"#\" style=\"color: red; text-decoration: none;\" title=\"", marker->id);
+  worldmap_html_write_escaped(out, marker->title);
+  fprintf(out, "\">%s</a>", sector_map_letters[marker->sector]);
+}
+
+static int worldmap_add_marker(struct worldmap_marker_data *markers, int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_WIDTH],
+                               int *marker_count, int x, int y, int sector, const char *title)
+{
+  int idx;
+
+  if (x < 0 || x >= WORLDMAP_EXPORT_WIDTH || y < 0 || y >= WORLDMAP_EXPORT_MAX_HEIGHT)
+    return FALSE;
+
+  idx = marker_lookup[y][x];
+  if (idx >= 0)
+  {
+    markers[idx].sector = sector;
+    snprintf(markers[idx].title, sizeof(markers[idx].title), "%s", (title && *title) ? title : "Unknown marker");
+    return TRUE;
+  }
+
+  if (*marker_count >= WORLDMAP_MARKER_MAX)
+    return FALSE;
+
+  idx = *marker_count;
+  markers[idx].id = idx + 1;
+  markers[idx].x = x;
+  markers[idx].y = y;
+  markers[idx].sector = sector;
+  snprintf(markers[idx].title, sizeof(markers[idx].title), "%s", (title && *title) ? title : "Unknown marker");
+  marker_lookup[y][x] = idx;
+  (*marker_count)++;
+  return TRUE;
+}
+
+static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path, size_t saved_path_size)
+{
+  FILE *out;
+  int x;
+  int y;
+  int i;
+  int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_WIDTH];
+  int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_WIDTH];
+  int marker_count = 0;
+  int max_y = -1;
+  zone_vnum zvnum = zone_table[zrnum].number;
+  room_vnum anchor = worldmap_zone_anchor(zvnum);
+  struct worldmap_marker_data markers[WORLDMAP_MARKER_MAX];
+  char title_buf[MAX_INPUT_LENGTH];
+
+  if (real_room(anchor) == NOWHERE)
+    return FALSE;
+
+  for (y = 0; y < WORLDMAP_EXPORT_MAX_HEIGHT; y++)
+  {
+    for (x = 0; x < WORLDMAP_EXPORT_WIDTH; x++)
+    {
+      sector_grid[y][x] = SECT_INSIDE;
+      marker_lookup[y][x] = -1;
+    }
+  }
+
+  for (i = genolc_zone_bottom(zrnum); i <= zone_table[zrnum].top; i++)
+  {
+    room_rnum rnum = real_room(i);
+
+    if (rnum == NOWHERE)
+      continue;
+
+    if (!worldmap_vnum_to_xy(zvnum, i, &x, &y))
+      continue;
+
+    sector_grid[y][x] = world[rnum].sector_type;
+    max_y = MAX(max_y, y);
+  }
+
+  if (zvnum == 6000)
+  {
+    for (i = 0; i < NUM_MAP_POINTS; i++)
+    {
+      room_vnum point_vnum;
+
+      if (!*asciimap_points[i][0])
+        continue;
+
+      point_vnum = atoi(asciimap_points[i][1]);
+      if (!worldmap_vnum_to_xy(zvnum, point_vnum, &x, &y))
+        continue;
+
+      if (y > max_y)
+        max_y = y;
+
+      if (!worldmap_add_marker(markers, marker_lookup, &marker_count, x, y, sector_grid[y][x], asciimap_points[i][0]))
+        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: marker table full for zone %d", zvnum);
+    }
+  }
+  else
+  {
+    for (i = genolc_zone_bottom(zrnum); i <= zone_table[zrnum].top; i++)
+    {
+      room_rnum rnum = real_room(i);
+
+      if (rnum == NOWHERE)
+        continue;
+
+      if (!worldmap_vnum_to_xy(zvnum, i, &x, &y))
+        continue;
+
+      if (world[rnum].sector_type != SECT_ZONE_START && world[rnum].sector_type != SECT_SEAPORT)
+        continue;
+
+      snprintf(title_buf, sizeof(title_buf), "%s (%d)", world[rnum].name ? world[rnum].name : "Unknown Room", i);
+      if (!worldmap_add_marker(markers, marker_lookup, &marker_count, x, y, world[rnum].sector_type, title_buf))
+        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: marker table full for zone %d", zvnum);
+    }
+  }
+
+  if (max_y < 0)
+    return FALSE;
+
+  snprintf(saved_path, saved_path_size, "../lib/world/export/%s", output_file);
+  if (!(out = fopen(saved_path + 7, "w")))
+  {
+    mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: Cannot open %s", saved_path);
+    return FALSE;
+  }
+
+  fprintf(out,
+          "<html>\n"
+          "<head>\n"
+          "<title>Faerun MUD World Map</title>\n"
+          "<script src=\"https://code.jquery.com/jquery-3.6.0.slim.min.js\" integrity=\"sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=\" crossorigin=\"anonymous\"></script>\n"
+          "<style>\n"
+          "  body {\n"
+          "    font-family: Courier New;\n"
+          "    background-color: black;\n"
+          "    color: white;\n"
+          "  }\n"
+          "  h1, h2, h3 {\n"
+          "    color: white;\n"
+          "  }\n"
+          ".blinking{\n"
+          "    animation:blinkingText 1.2s infinite;\n"
+          "}\n"
+          "@keyframes blinkingText{\n"
+          "    0%%{ color: red; }\n"
+          "    49%%{ color: red; }\n"
+          "    60%%{ color: transparent; }\n"
+          "    99%%{ color: transparent; }\n"
+          "    100%%{ color: red; }\n"
+          "}\n"
+          "</style>\n"
+          "<script>\n"
+          "$(document).ready(function(){\n"
+          "  $('#selZone').change(function(){\n"
+          "    $('a').each(function(){\n"
+          "      $(this).attr('class', '');\n"
+          "    });\n"
+          "    $('#'+$(this).val()).attr('class', 'blinking');\n"
+          "    $('#'+$(this).val()).focus();\n"
+          "  });\n"
+          "});\n"
+          "</script>\n"
+          "</head>\n"
+          "<body>\n"
+          "  <h1>Faerun MUD World Map</h1>\n"
+          "  <h2>");
+  worldmap_html_write_escaped(out, zone_table[zrnum].name);
+  fprintf(out, " (%d)</h2>\n", zvnum);
+  fprintf(out,
+          "<div style=\"text-align: left;\">\n"
+          "  SELECT A ZONE (The Red <span style=\"color: red;\">X</span> Will Start to Blink):\n"
+          "  <select id=\"selZone\" style=\"width: 250px; font-size: 16px;\">\n"
+          "    <option value=\"0\">Pick a Zone</option>\n");
+
+  for (i = 0; i < marker_count; i++)
+  {
+    fprintf(out, "<option value=\"%d\">", markers[i].id);
+    worldmap_html_write_escaped(out, markers[i].title);
+    fputs("</option>\n", out);
+  }
+
+  fprintf(out,
+          "  </select>\n"
+          "</div>\n"
+          "<h3>Map Legend</h3>"
+          "<table style='text-align: left; width: 80%%;'>"
+          "<tr><td width='20%%'><span style=\"color: grey;\">C</span>&nbsp;&nbsp;City</td><td width='20%%'><span style=\"color: lightgreen;\">,</span>&nbsp;&nbsp;Field</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: green;\">Y</span>&nbsp;&nbsp;Forest</td><td width='20%%'><span style=\"color: brown;\">^</span>&nbsp;&nbsp;Hills</td><td width='20%%'><span style=\"color: darkred;\">m</span>&nbsp;&nbsp;Low Mountains</td><td width='20%%'><span style=\"color: blue;\">~</span>&nbsp;&nbsp;Water (Swim)</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: blue;\">=</span>&nbsp;&nbsp;Water (No Swim)</td><td width='20%%'><span style=\"color: red;\">X</span>&nbsp;&nbsp;Zone Entrance</td><td width='20%%'><span style=\"color: #FFC300;\">|</span>&nbsp;&nbsp;Road North-South</td><td width='20%%'><span style=\"color: #FFC300;\">-</span>&nbsp;&nbsp;Road East-West</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: #FFC300;\">+</span>&nbsp;&nbsp;Road Intersection</td><td width='20%%'><span style=\"color: yellow;\">.</span>&nbsp;&nbsp;Desert</td><td width='20%%'><span style=\"color: blue;\">o</span>&nbsp;&nbsp;Ocean</td><td width='20%%'><span style=\"color: violet;\">`</span>&nbsp;&nbsp;Marshland</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: crimson;\">M</span>&nbsp;&nbsp;High Mountains</td><td width='20%%'><span style=\"color: crimson;\">]</span>&nbsp;&nbsp;Lava</td><td width='20%%'><span style=\"color: #FFC300;\">|</span>&nbsp;&nbsp;Dirt Road North-South</td><td width='20%%'><span style=\"color: #FFC300;\">-</span>&nbsp;&nbsp;Dirt Road East-West</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: #FFC300;\">+</span>&nbsp;&nbsp;Dirt Road Intersection</td><td width='20%%'><span style=\"color: lightgreen;\">&amp;</span>&nbsp;&nbsp;Jungle</td><td width='20%%'><span style=\"color: lightgrey;\">.</span>&nbsp;&nbsp;Tundra</td><td width='20%%'><span style=\"color: olive;\">A</span>&nbsp;&nbsp;Taiga</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: orange;\">:</span>&nbsp;&nbsp;Beach</td><td width='20%%'><span style=\"color: red;\">*</span>&nbsp;&nbsp;Sea Port</td><td width='20%%'><span style=\"color: cyan;\">~</span>&nbsp;&nbsp;River</td></tr>"
+          "</table><br />");
+
+  if (marker_count > 0)
+    fputs("If you're using a mouse, hover over the red zone entrance markers to see the location name.<br /><br />", out);
+
+  for (y = 0; y <= max_y; y++)
+  {
+    if (y > 0)
+      fputs("<br />", out);
+
+    for (x = 0; x < WORLDMAP_EXPORT_WIDTH; x++)
+    {
+      int marker_index = marker_lookup[y][x];
+      int sector = sector_grid[y][x];
+
+      if (sector < 0 || sector >= NUM_ROOM_SECTORS)
+        sector = SECT_INSIDE;
+
+      if (marker_index >= 0)
+        worldmap_html_write_marker(out, &markers[marker_index]);
+      else
+        worldmap_html_write_span(out, sector);
+    }
+  }
+
+  fputs("\n</body>\n</html>\n", out);
+  fclose(out);
+  return TRUE;
 }
 
 char *str_udupnl(const char *txt)
@@ -450,6 +756,79 @@ ACMD(do_export_zone)
   }
 
   send_to_char(ch, "Files tar'ed to \"%s%s.tar.gz\"\r\n", path, f);
+}
+
+ACMD(do_export_map)
+{
+  zone_rnum zrnum;
+  zone_vnum zvnum;
+  char arg_copy[MAX_INPUT_LENGTH] = {'\0'};
+  char zone_arg[MAX_INPUT_LENGTH] = {'\0'};
+  char file_arg[MAX_INPUT_LENGTH] = {'\0'};
+  char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
+  char output_file[MAX_INPUT_LENGTH] = {'\0'};
+  char safe_name[MAX_EXPORT_FILENAME] = {'\0'};
+  char saved_path[MAX_INPUT_LENGTH] = {'\0'};
+  const char *path = "../lib/world/export/";
+  const char *fixed_name;
+
+  if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMPL)
+    return;
+
+  snprintf(arg_copy, sizeof(arg_copy), "%s", argument ? argument : "");
+  half_chop(arg_copy, zone_arg, file_arg);
+  if (!*zone_arg)
+  {
+    send_to_char(ch, "Syntax: exportmap <zone vnum> [filename.html]\r\n");
+    return;
+  }
+
+  zvnum = atoi(zone_arg);
+  zrnum = real_zone(zvnum);
+
+  if (zrnum == NOWHERE)
+  {
+    send_to_char(ch, "Export which worldmap zone?\r\n");
+    return;
+  }
+
+  if (real_room(worldmap_zone_anchor(zvnum)) == NOWHERE)
+  {
+    send_to_char(ch, "That zone does not have a worldmap anchor room ending in 161.\r\n");
+    return;
+  }
+
+  snprintf(sysbuf, sizeof(sysbuf), "mkdir -p %s", path);
+  if (system(sysbuf) == -1)
+    log("SYSERR: Failed to create directory %s", path);
+
+  if (*file_arg)
+  {
+    fixed_name = fix_filename(file_arg);
+    snprintf(output_file, sizeof(output_file), "%s", fixed_name);
+  }
+  else
+  {
+    snprintf(safe_name, sizeof(safe_name), "%s_zone_%d", zone_table[zrnum].name, zvnum);
+    fixed_name = fix_filename(safe_name);
+    snprintf(output_file, sizeof(output_file), "%s.html", fixed_name);
+  }
+
+  if (!strstr(output_file, ".html"))
+  {
+    size_t used = strlen(output_file);
+
+    if (used + 5 < sizeof(output_file))
+      snprintf(output_file + used, sizeof(output_file) - used, ".html");
+  }
+
+  if (!export_worldmap_html(zrnum, output_file, saved_path, sizeof(saved_path)))
+  {
+    send_to_char(ch, "Worldmap HTML export failed.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Worldmap saved to \"%s\"\r\n", saved_path);
 }
 
 static int export_info_file(zone_rnum zrnum)

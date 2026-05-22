@@ -392,3 +392,8 @@ unittests/CuTest/schedule_tests
 unittests/CuTest/test_waypoint_cache
 unittests/CuTest/vessel_tests
 unittests/CuTest/vessel_stress_test
+ascii_map.txt
+FRMUD-HEX-Aunauroch.jpg
+plan.md
+scripts/populate_zone7000_from_aunauroch.py
+scripts/__pycache__/populate_zone7000_from_aunauroch.cpython-312.pyc
