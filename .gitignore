@@ -24,7 +24,7 @@ depend
 
 # Ignore local Faerun world data
 lib/world-fr/
-
+frmaps/
 # Precompiled Headers
 *.gch
 *.pch
