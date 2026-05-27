@@ -297,9 +297,9 @@ typedef struct descriptor_data descriptor_t;
  * These Unicode code points provide gender symbols that can be displayed
  * by UTF-8 capable clients, with ASCII fallbacks for older clients.
  */
-#define UNICODE_MALE 9794   /**< ♂ Male symbol (U+2642) */
-#define UNICODE_FEMALE 9792 /**< ♀ Female symbol (U+2640) */
-#define UNICODE_NEUTER 9791 /**< ⚿ Neuter symbol (U+26BF) */
+#define UNICODE_MALE 9794   /**< Male symbol (U+2642) */
+#define UNICODE_FEMALE 9792 /**< Female symbol (U+2640) */
+#define UNICODE_NEUTER 9791 /**< Neuter symbol (U+26BF) */
 
 /**
  * Additional protocol buffer and parsing constants
@@ -474,6 +474,7 @@ typedef enum
   eMSDP_AFFECTS,         /**< Active spell effects and conditions (array) */
   eMSDP_INVENTORY,       /**< Character inventory items (array) */
   eMSDP_ALIGNMENT,       /**< Character alignment text (Lawful Good, Neutral Evil, etc.) */
+  eMSDP_TITLE,           /**< Player title, or empty string when unavailable */
   eMSDP_EXPERIENCE,      /**< Current experience points */
   eMSDP_EXPERIENCE_MAX,  /**< Experience points at current level */
   eMSDP_EXPERIENCE_TNL,  /**< Experience points to next level */
@@ -489,6 +490,9 @@ typedef enum
   eMSDP_MONEY,           /**< Character wealth in gold */
   eMSDP_MOVEMENT,        /**< Current movement points */
   eMSDP_MOVEMENT_MAX,    /**< Maximum movement points */
+  eMSDP_FORTITUDE,       /**< Current Fortitude saving throw modifier */
+  eMSDP_REFLEX,          /**< Current Reflex saving throw modifier */
+  eMSDP_WILLPOWER,       /**< Current Will saving throw modifier */
   eMSDP_ATTACK_BONUS,    /**< Attack bonus modifier */
   eMSDP_DAMAGE_BONUS,    /**< Damage bonus modifier */
   eMSDP_AC,              /**< Armor class */
@@ -1923,9 +1927,9 @@ const char *ColourRGB(descriptor_t *apDescriptor, const char *apRGB);
  * COMMON UNICODE RANGES:
  * - 0-127: ASCII characters
  * - 128-255: Latin-1 supplement
- * - 9728-9983: Miscellaneous symbols (✓, ✗, ☀, ☁)
- * - 9984-10175: Dingbats (✈, ✉, ✎, ✏)
- * - 8592-8703: Arrows (←, →, ↑, ↓)
+ * - 9728-9983: Miscellaneous symbols (check, cross, sun, cloud)
+ * - 9984-10175: Dingbats (airplane, envelope, pencil variants)
+ * - 8592-8703: Arrows (left, right, up, down)
  * - 9472-9599: Box drawing characters
  *
  * @param aValue Unicode code point (decimal)
@@ -1934,20 +1938,20 @@ const char *ColourRGB(descriptor_t *apDescriptor, const char *apRGB);
  * @usage Convert common symbols:
  * @code
  *   // Common symbols
- *   char *checkmark = UnicodeGet(10003);     // ✓ Check mark
- *   char *crossmark = UnicodeGet(10007);     // ✗ Cross mark
- *   char *heart = UnicodeGet(9829);          // ♥ Heart
- *   char *diamond = UnicodeGet(9830);        // ♦ Diamond
+ *   char *checkmark = UnicodeGet(10003);     // Check mark
+ *   char *crossmark = UnicodeGet(10007);     // Cross mark
+ *   char *heart = UnicodeGet(9829);          // Heart
+ *   char *diamond = UnicodeGet(9830);        // Diamond
  *
  *   // Directional arrows
- *   char *north_arrow = UnicodeGet(8593);    // ↑ Up arrow
- *   char *south_arrow = UnicodeGet(8595);    // ↓ Down arrow
- *   char *east_arrow = UnicodeGet(8594);     // → Right arrow
- *   char *west_arrow = UnicodeGet(8592);     // ← Left arrow
+ *   char *north_arrow = UnicodeGet(8593);    // Up arrow
+ *   char *south_arrow = UnicodeGet(8595);    // Down arrow
+ *   char *east_arrow = UnicodeGet(8594);     // Right arrow
+ *   char *west_arrow = UnicodeGet(8592);     // Left arrow
  *
  *   // Gender symbols (defined as constants)
- *   char *male = UnicodeGet(UNICODE_MALE);     // ♂ Male symbol
- *   char *female = UnicodeGet(UNICODE_FEMALE); // ♀ Female symbol
+ *   char *male = UnicodeGet(UNICODE_MALE);     // Male symbol
+ *   char *female = UnicodeGet(UNICODE_FEMALE); // Female symbol
  *
  *   // Usage in output
  *   write_to_output(d, "Status: %s Complete\r\n", checkmark);
@@ -1988,11 +1992,11 @@ char *UnicodeGet(int aValue);
  *   *symbol_string = '\0';  // Start with empty string
  *
  *   // Build a string with multiple Unicode symbols
- *   UnicodeAdd(&symbol_string, 9733);    // ★ Star
+ *   UnicodeAdd(&symbol_string, 9733);    // Star
  *   UnicodeAdd(&symbol_string, 32);      // Space
- *   UnicodeAdd(&symbol_string, 9829);    // ♥ Heart
+ *   UnicodeAdd(&symbol_string, 9829);    // Heart
  *   UnicodeAdd(&symbol_string, 32);      // Space
- *   UnicodeAdd(&symbol_string, 9830);    // ♦ Diamond
+ *   UnicodeAdd(&symbol_string, 9830);    // Diamond
  *
  *   // Don't forget null terminator
  *   strcat(symbol_string, "\0");
@@ -2002,7 +2006,7 @@ char *UnicodeGet(int aValue);
  *
  *   // Building directional indicators
  *   char *direction_string = strdup("Go ");
- *   UnicodeAdd(&direction_string, 8594);  // → Right arrow
+ *   UnicodeAdd(&direction_string, 8594);  // Right arrow
  *   strcat(direction_string, " to exit");
  *
  *   write_to_output(d, "%s\r\n", direction_string);

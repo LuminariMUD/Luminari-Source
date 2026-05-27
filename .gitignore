@@ -389,3 +389,4 @@ unittests/CuTest/schedule_tests
 unittests/CuTest/test_waypoint_cache
 unittests/CuTest/vessel_tests
 unittests/CuTest/vessel_stress_test
+unittests/CuTest/protocol_parser_tests

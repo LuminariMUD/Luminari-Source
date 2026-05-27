@@ -40,6 +40,19 @@ minimal source-compatible doubles:
 No MUD boot, database, player object, live socket, or private account data is
 required.
 
+## Session 04 Decision Implications
+
+The harness is necessary evidence for future parser or protocol work, but it is
+not sufficient to claim Luminari Web support for MCCP or GMCP.
+
+- MCCP remains rejected by Luminari Web while `CompressStart()` and
+  `CompressEnd()` are stubs and the proxy has no decompression layer.
+- GMCP remains deferred for Luminari Web until source-owned modules, versions,
+  schemas, proxy parsing, client mappings, MSDP coexistence behavior, fixtures,
+  and rollback are planned.
+- Any future MCCP or GMCP source change should extend this harness with
+  synthetic fixtures before changing production negotiation or payload behavior.
+
 ## Privacy Rules
 
 Use only synthetic byte fixtures committed in the harness source.
@@ -88,6 +101,10 @@ These are recorded as validation findings, not support claims:
 - Direct full-table MSSP and MXP stress coverage is bounded to emitted response
   size and public helper behavior. Deeper string/allocation hardening belongs in
   the follow-up source hardening work identified by the Phase 04 backlog.
+- MCCP compression start/end and proxy decompression behavior are outside the
+  current harness because source compression is still stubbed.
+- GMCP module schema validation is outside the current harness because source
+  module ownership and payload contracts are not yet defined.
 
 ## Adding Cases
 

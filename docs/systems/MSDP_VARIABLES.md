@@ -23,7 +23,8 @@ MSDP is a telnet protocol extension that allows real-time data exchange between 
 |----------|------|-------------|
 | `AFFECTS` | Array | Active spell effects and conditions |
 | `INVENTORY` | Array | Character inventory items |
-| `ALIGNMENT` | Number | Character alignment (-1000 to 1000) |
+| `ALIGNMENT` | String | Character alignment text, such as Lawful Good or Neutral Evil |
+| `TITLE` | String | Player title, or an empty string when no title is available |
 | `EXPERIENCE` | Number | Current experience points |
 | `EXPERIENCE_MAX` | Number | Experience points at current level |
 | `EXPERIENCE_TNL` | Number | Experience points to next level (To Next Level) |
@@ -39,13 +40,16 @@ MSDP is a telnet protocol extension that allows real-time data exchange between 
 | `MONEY` | Number | Character wealth in gold |
 | `MOVEMENT` | Number | Current movement points |
 | `MOVEMENT_MAX` | Number | Maximum movement points |
+| `FORTITUDE` | Number | Current Fortitude saving throw modifier |
+| `REFLEX` | Number | Current Reflex saving throw modifier |
+| `WILLPOWER` | Number | Current Will saving throw modifier |
 
 ### Combat and Character Modifiers
 
 | Variable | Type | Description |
 |----------|------|-------------|
 | `ATTACK_BONUS` | Number | Attack bonus modifier |
-| `DAMAGE_BONUS` | Number | Damage bonus modifier |
+| `DAMAGE_BONUS` | Number | Damage bonus modifier. Reserved in the table, but live emission is deferred until a side-effect-free calculation is available |
 | `AC` | Number | Armor class |
 
 ### Ability Scores (Current)
@@ -109,7 +113,7 @@ MSDP is a telnet protocol extension that allows real-time data exchange between 
 | `ROOM_VNUM` | Number | Current room virtual number |
 | `WORLD_TIME` | String | Game world time |
 | `SECTORS` | Table | Room sector/terrain information |
-| `MINIMAP` | String | ASCII minimap representation |
+| `MINIMAP` | String | Plain ASCII minimap representation with source color codes stripped, or an empty string when the map is unavailable |
 
 ### Client Configuration and Capabilities
 
@@ -180,6 +184,15 @@ Most MSDP variables are updated automatically once per second through the `msdp_
 - **Group variables** - Update when group composition changes
 - **Inventory variables** - Update when items are gained/lost
 - **Affects variables** - Update when spell effects change
+
+## Current Contract Notes
+
+- `ALIGNMENT` is emitted as text from `get_align_by_num(GET_ALIGNMENT(ch))`.
+- `TITLE` is emitted as a plain string from player title data, with an empty string for missing titles.
+- `FORTITUDE`, `REFLEX`, and `WILLPOWER` are signed integer saving throw modifiers from `compute_mag_saves()`.
+- `MINIMAP` is emitted from automap data after source color stripping; unavailable maps emit an empty string.
+- `DAMAGE_BONUS` remains table-reserved but is not emitted from the game pulse until the damage calculation path is side-effect-free.
+- Structured quest data is not part of the current MSDP contract.
 
 ## Usage in Code
 

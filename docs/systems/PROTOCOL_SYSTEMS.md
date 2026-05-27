@@ -4,7 +4,11 @@
 
 LuminariMUD implements **KaVir's Protocol Snippet v8**, a comprehensive suite of MUD client protocols that enhance the player experience through advanced client integration. The protocol system handles telnet negotiation, real-time data exchange, multimedia features, and graphical user interface elements.
 
-**Current Status**: Fully integrated into the game loop with real-time variable updates sent every game pulse (0.1 seconds) to connected clients supporting MSDP/GMCP protocols.
+**Current Status**: MSDP is integrated into the game loop with real-time
+variable updates sent every game pulse (0.1 seconds). Source-side GMCP helper
+paths exist as an MSDP fallback and Mudlet package delivery mechanism, but they
+are not a stable Luminari Web module contract. MCCP is framework-only until
+compression functions are implemented.
 
 ## Supported Protocols
 
@@ -17,11 +21,13 @@ LuminariMUD implements **KaVir's Protocol Snippet v8**, a comprehensive suite of
 - **Variables**: 200+ predefined variables covering all game aspects
 
 ### 2. GMCP (Generic Mud Communication Protocol) - TELOPT 201
-**JSON-based alternative to MSDP**
+**Source-side MSDP fallback and Mudlet package path**
 
 - **Purpose**: Structured data exchange using JSON format
-- **Compatibility**: Automatic fallback from MSDP
-- **Integration**: Seamless transition between protocols
+- **Compatibility**: Used by source helper code when MSDP is unavailable and
+  by optional Mudlet package delivery
+- **Integration**: Does not currently define source-owned module names,
+  versions, schemas, or a Luminari Web proxy/client contract
 
 ### 3. MSSP (MUD Server Status Protocol) - TELOPT 70
 **Server advertisement and discovery protocol**
@@ -73,11 +79,31 @@ LuminariMUD implements **KaVir's Protocol Snippet v8**, a comprehensive suite of
 - **Version**: MCCP v2 framework (TELOPT 86)
 - **Implementation**: Requires CompressStart()/CompressEnd() function implementation
 
+## Luminari Web Boundary
+
+The first-party Luminari Web path uses uncompressed browser WebSocket
+application messages to an integrated proxy, then a Telnet socket to source. The
+web proxy parses MSDP and rejects MCCP today. It does not negotiate or parse
+GMCP modules. Future MCCP support needs real source compression plus proxy
+decompression. Future GMCP support needs module ownership, versioning, schemas,
+proxy parsing, client mapping, MSDP coexistence rules, fixtures, and rollback.
+
+Native source WebSocket support is not implemented or claimed today. A future
+browser-facing source listener would need a dedicated transport design before
+exposure: descriptor lifecycle, frame-to-command or application-message
+contract, parser isolation, copyover behavior, origin/auth policy, message
+validation, connection quotas, command throttles, privacy-safe logging,
+WSS/TLS termination, health checks, observability, and rollback to the
+integrated Luminari Web proxy. A raw source WebSocket endpoint must not be
+treated as equivalent to the current Luminari Web `/ws` JSON application
+contract unless a future compatibility spec proves parity.
+
 ## MSDP Variable Categories
 
 ### General Server Information
 ```
 CHARACTER_NAME    - Player character name
+TITLE             - Player title, empty when unavailable
 SERVER_ID         - Server identification
 SERVER_TIME       - Current server time
 SNIPPET_VERSION   - Protocol snippet version (8)
@@ -90,10 +116,11 @@ PSP / PSP_MAX            - Psionic points (current/max)
 MOVEMENT / MOVEMENT_MAX   - Movement points (current/max)
 EXPERIENCE / EXPERIENCE_MAX / EXPERIENCE_TNL - Experience system
 LEVEL                    - Character level
-ALIGNMENT               - Character alignment
+ALIGNMENT               - Character alignment text
 WIMPY                   - Wimpy flee threshold
 PRACTICE                - Practice sessions available
 MONEY                   - Character wealth
+FORTITUDE / REFLEX / WILLPOWER - Saving throw modifiers
 ```
 
 ### Ability Scores
@@ -109,7 +136,7 @@ CHA / CHA_PERM          - Charisma (current/permanent)
 ### Combat Information
 ```
 ATTACK_BONUS            - Attack bonus modifier
-DAMAGE_BONUS            - Damage bonus modifier
+DAMAGE_BONUS            - Damage bonus modifier (reserved; live emission deferred)
 AC                      - Armor class
 OPPONENT_HEALTH / OPPONENT_HEALTH_MAX - Current opponent HP
 OPPONENT_LEVEL          - Opponent level
@@ -138,6 +165,12 @@ SECTORS                 - Room sector information
 MINIMAP                 - ASCII minimap data
 ROOM                    - Complete room information (table)
 ```
+
+Current web-client-facing MSDP additions are deliberately narrow. `TITLE`,
+`FORTITUDE`, `REFLEX`, `WILLPOWER`, source-backed plain-text `MINIMAP`, and
+text `ALIGNMENT` are the supported contract for the current web client work.
+`DAMAGE_BONUS` is still deferred because the existing live damage helper can
+produce side effects, and structured quest data is not defined yet.
 
 ### Action Economy (D&D/Pathfinder)
 ```
@@ -593,7 +626,7 @@ Item and equipment information is transmitted on changes:
 ## Current Implementation Status
 
 ### Fully Implemented Features
-- **MSDP/GMCP**: Complete variable system with real-time updates
+- **MSDP**: Complete variable system with real-time updates
 - **MSSP**: Server status reporting with player count updates
 - **MXP**: Basic tag support with secure line mode
 - **MSP**: Sound trigger support via MSDP/GMCP
@@ -602,6 +635,8 @@ Item and equipment information is transmitted on changes:
 
 ### Framework Present (Not Implemented)
 - **MCCP**: Compression negotiation works, but CompressStart()/CompressEnd() are stubbed
+- **GMCP web modules**: Source helper paths exist, but Luminari Web module
+  schemas, proxy parsing, client mapping, and fixtures are not defined
 - **Extended RGB Colors**: Code present but commented out by default
 - **Advanced MXP**: Basic support only, rich formatting not implemented
 

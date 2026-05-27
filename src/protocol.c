@@ -108,7 +108,9 @@ static const char s_Gauge5[] =
 /* Macros for readability, but you can remove them if you don't like them */
 #define NUMBER_READ_ONLY false, false, false, false, -1, -1, 0, NULL
 #define NUMBER_READ_ONLY_SET_TO(x) false, false, false, false, -1, -1, x, NULL
+#define NUMBER_READ_ONLY_RANGE(x, y) false, false, false, false, x, y, 0, NULL
 #define STRING_READ_ONLY true, false, false, false, -1, -1, 0, NULL
+#define STRING_READ_ONLY_LENGTH_OF(x, y) true, false, false, false, x, y, 0, NULL
 #define NUMBER_IN_THE_RANGE(x, y) false, true, false, false, x, y, 0, NULL
 #define BOOLEAN_SET_TO(x) false, true, false, false, 0, 1, x, NULL
 #define STRING_WITH_LENGTH_OF(x, y) true, true, false, false, x, y, 0, NULL
@@ -126,6 +128,7 @@ static variable_name_t VariableNameTable[eMSDP_MAX + 1] = {
     {eMSDP_AFFECTS, "AFFECTS", STRING_READ_ONLY},
     {eMSDP_INVENTORY, "INVENTORY", STRING_READ_ONLY},
     {eMSDP_ALIGNMENT, "ALIGNMENT", STRING_READ_ONLY},
+    {eMSDP_TITLE, "TITLE", STRING_READ_ONLY_LENGTH_OF(0, MAX_VARIABLE_LENGTH)},
     {eMSDP_EXPERIENCE, "EXPERIENCE", NUMBER_READ_ONLY},
     {eMSDP_EXPERIENCE_MAX, "EXPERIENCE_MAX", NUMBER_READ_ONLY},
     {eMSDP_EXPERIENCE_TNL, "EXPERIENCE_TNL", NUMBER_READ_ONLY},
@@ -141,6 +144,9 @@ static variable_name_t VariableNameTable[eMSDP_MAX + 1] = {
     {eMSDP_MONEY, "MONEY", NUMBER_READ_ONLY},
     {eMSDP_MOVEMENT, "MOVEMENT", NUMBER_READ_ONLY},
     {eMSDP_MOVEMENT_MAX, "MOVEMENT_MAX", NUMBER_READ_ONLY},
+    {eMSDP_FORTITUDE, "FORTITUDE", NUMBER_READ_ONLY_RANGE(-1000, 1000)},
+    {eMSDP_REFLEX, "REFLEX", NUMBER_READ_ONLY_RANGE(-1000, 1000)},
+    {eMSDP_WILLPOWER, "WILLPOWER", NUMBER_READ_ONLY_RANGE(-1000, 1000)},
     {eMSDP_ATTACK_BONUS, "ATTACK_BONUS", NUMBER_READ_ONLY},
     {eMSDP_DAMAGE_BONUS, "DAMAGE_BONUS", NUMBER_READ_ONLY},
     {eMSDP_AC, "AC", NUMBER_READ_ONLY},

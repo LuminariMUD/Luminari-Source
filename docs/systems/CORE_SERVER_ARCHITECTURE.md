@@ -163,6 +163,28 @@ for (d = descriptor_list; d; d = next_d) {
 - Protocol handling (telnet, MSDP, etc.)
 - Flow control and connection management
 
+### Future Native WebSocket Considerations
+
+Luminari-Source does not currently document or expose a native WebSocket
+listener. Adding one would affect the core networking model rather than only
+the protocol documentation. A future design would need to define whether the
+listener carries raw terminal text, a new source-owned application protocol, or
+compatibility with the Luminari Web `/ws` JSON contract.
+
+Before any public listener is enabled, source maintainers should define and test
+these boundaries:
+
+- Descriptor creation, polling, output writes, close handling, and cleanup for
+  WebSocket descriptors alongside Telnet descriptors.
+- Frame-to-input behavior, including text and binary frame handling, line
+  buffering, parser isolation, malformed payloads, and command throttling.
+- Copyover behavior for WebSocket descriptors, including whether they restore
+  protocol state or intentionally disconnect with a clear rollback path.
+- Browser-facing origin/auth expectations, WSS/TLS termination, health checks,
+  connection quotas, privacy-safe logging, and sanitized observability.
+- Rollback to the integrated Luminari Web proxy until source-native behavior has
+  equivalent security, operations, parser, and client-contract coverage.
+
 ## Heartbeat System
 
 The heartbeat function runs various game subsystems at different intervals:

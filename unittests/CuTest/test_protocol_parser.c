@@ -435,6 +435,50 @@ void TestProtocolParser_MsspResponseIsBounded(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_SelectedMsdpVariablesCanBeReported(CuTest *tc)
+{
+  protocol_harness_t harness;
+  const unsigned char expected_title[] = {MSDP_VAR, 'T', 'I', 'T', 'L', 'E',
+                                          MSDP_VAL, 'S', 'c', 'o', 'u', 't'};
+  const unsigned char expected_fortitude[] = {MSDP_VAR, 'F', 'O', 'R',      'T', 'I', 'T',
+                                              'U',      'D', 'E', MSDP_VAL, '-', '2'};
+  const unsigned char expected_reflex[] = {MSDP_VAR, 'R', 'E', 'F', 'L', 'E', 'X', MSDP_VAL, '7'};
+  const unsigned char expected_willpower[] = {MSDP_VAR, 'W', 'I', 'L',      'L', 'P', 'O',
+                                              'W',      'E', 'R', MSDP_VAL, '1', '2'};
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_FORTITUDE]->bReport = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_REFLEX]->bReport = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_WILLPOWER]->bReport = bool_t_true;
+
+  CuAssertStrEquals(tc, "", harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->pValueString);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_FORTITUDE]->ValueInt);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_REFLEX]->ValueInt);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_WILLPOWER]->ValueInt);
+
+  MSDPSetString(&harness.descriptor, eMSDP_TITLE, "Scout");
+  MSDPSetNumber(&harness.descriptor, eMSDP_FORTITUDE, -2);
+  MSDPSetNumber(&harness.descriptor, eMSDP_REFLEX, 7);
+  MSDPSetNumber(&harness.descriptor, eMSDP_WILLPOWER, 12);
+  MSDPUpdate(&harness.descriptor);
+
+  CuAssert(tc, "TITLE was not emitted", capture_contains(expected_title, sizeof(expected_title)));
+  CuAssert(tc, "FORTITUDE was not emitted",
+           capture_contains(expected_fortitude, sizeof(expected_fortitude)));
+  CuAssert(tc, "REFLEX was not emitted",
+           capture_contains(expected_reflex, sizeof(expected_reflex)));
+  CuAssert(tc, "WILLPOWER was not emitted",
+           capture_contains(expected_willpower, sizeof(expected_willpower)));
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_FORTITUDE]->bDirty);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_REFLEX]->bDirty);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_WILLPOWER]->bDirty);
+
+  harness_destroy(&harness);
+}
+
 CuSuite *ProtocolParserSuite(void)
 {
   CuSuite *suite = CuSuiteNew();
@@ -446,6 +490,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
+  SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);
 
   return suite;
 }

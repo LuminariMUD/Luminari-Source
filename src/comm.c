@@ -4381,6 +4381,9 @@ static void msdp_update(void)
 
       MSDPSetString(d, eMSDP_CHARACTER_NAME, GET_NAME(ch));
       MSDPSetString(d, eMSDP_ALIGNMENT, get_align_by_num(GET_ALIGNMENT(ch)));
+      snprintf(buf, sizeof(buf), "%s", GET_TITLE(ch) ? GET_TITLE(ch) : "");
+      strip_colors(buf);
+      MSDPSetString(d, eMSDP_TITLE, buf);
       MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX,
@@ -4505,6 +4508,9 @@ static void msdp_update(void)
       MSDPSetNumber(d, eMSDP_MONEY, GET_GOLD(ch));
       MSDPSetNumber(d, eMSDP_MOVEMENT, GET_MOVE(ch));
       MSDPSetNumber(d, eMSDP_MOVEMENT_MAX, GET_MAX_MOVE(ch));
+      MSDPSetNumber(d, eMSDP_FORTITUDE, compute_mag_saves(ch, SAVING_FORT, 0));
+      MSDPSetNumber(d, eMSDP_REFLEX, compute_mag_saves(ch, SAVING_REFL, 0));
+      MSDPSetNumber(d, eMSDP_WILLPOWER, compute_mag_saves(ch, SAVING_WILL, 0));
       MSDPSetNumber(d, eMSDP_AC, compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
 
       /* This would be better moved elsewhere? */
