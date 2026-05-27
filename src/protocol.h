@@ -236,7 +236,7 @@ typedef struct descriptor_data descriptor_t;
  * while allowing for complex protocol data exchange.
  */
 #define MAX_PROTOCOL_BUFFER (12 * 1024) /**< Main protocol buffer (matches MAX_RAW_INPUT_LENGTH) */
-#define MAX_VARIABLE_LENGTH 4096        /**< Maximum length for MSDP variable values */
+#define MAX_VARIABLE_LENGTH 16384       /**< Maximum length for MSDP variable values */
 #define MAX_OUTPUT_BUFFER LARGE_BUFSIZE /**< Output buffer for processed protocol data */
 #define MAX_MSSP_BUFFER 4096            /**< Buffer for MSSP server status data */
 
@@ -525,14 +525,16 @@ typedef enum
   eMSDP_TANK_HEALTH_MAX,     /**< Group tank's maximum hit points */
 
   /* World and environment information */
-  eMSDP_ROOM,       /**< Complete room information (table) */
-  eMSDP_AREA_NAME,  /**< Current area/zone name */
-  eMSDP_ROOM_EXITS, /**< Available exits from current room (array) */
-  eMSDP_ROOM_NAME,  /**< Current room name */
-  eMSDP_ROOM_VNUM,  /**< Current room virtual number */
-  eMSDP_WORLD_TIME, /**< Game world time */
-  eMSDP_SECTORS,    /**< Room sector/terrain information */
-  eMSDP_MINIMAP,    /**< ASCII minimap representation */
+  eMSDP_ROOM,                   /**< Complete room information (table) */
+  eMSDP_AREA_NAME,              /**< Current area/zone name */
+  eMSDP_ROOM_EXITS,             /**< Available exits from current room (array) */
+  eMSDP_ROOM_NAME,              /**< Current room name */
+  eMSDP_ROOM_VNUM,              /**< Current room virtual number */
+  eMSDP_WORLD_TIME,             /**< Game world time */
+  eMSDP_SECTORS,                /**< Room sector/terrain information */
+  eMSDP_MINIMAP,                /**< ASCII minimap representation */
+  eMSDP_GRAPHIC_MAP,            /**< Structured room map data for graphical clients */
+  eMSDP_WILDERNESS_GRAPHIC_MAP, /**< Structured wilderness map data for graphical clients */
 
   /* Client configuration and capabilities */
   eMSDP_CLIENT_ID,      /**< Client software name (configurable) */

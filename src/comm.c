@@ -12,6 +12,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <stdarg.h>
 #include <time.h>
 
 /* Begin conf.h dependent includes */
@@ -4227,6 +4228,503 @@ static void update_msdp_automap(struct descriptor_data *d, struct char_data *ch)
   }
 }
 
+#define GRAPHIC_MAP_RADIUS 10
+#define GRAPHIC_MAP_MAX_ROOMS (((GRAPHIC_MAP_RADIUS * 2) + 1) * ((GRAPHIC_MAP_RADIUS * 2) + 1))
+#define WILDERNESS_GRAPHIC_MAP_RADIUS 8
+
+/* GRAPHIC_MAP room connector bits, ordered to match the web client:
+ *   bit 0: north
+ *   bit 1: east
+ *   bit 2: south
+ *   bit 3: west
+ *   bit 4: northwest
+ *   bit 5: northeast
+ *   bit 6: southeast
+ *   bit 7: southwest
+ */
+#define GRAPHIC_MAP_CONN_N (1U << 0)
+#define GRAPHIC_MAP_CONN_E (1U << 1)
+#define GRAPHIC_MAP_CONN_S (1U << 2)
+#define GRAPHIC_MAP_CONN_W (1U << 3)
+#define GRAPHIC_MAP_CONN_NW (1U << 4)
+#define GRAPHIC_MAP_CONN_NE (1U << 5)
+#define GRAPHIC_MAP_CONN_SE (1U << 6)
+#define GRAPHIC_MAP_CONN_SW (1U << 7)
+
+struct graphic_map_room_data
+{
+  room_rnum room;
+  sh_int x;
+  sh_int y;
+};
+
+struct graphic_map_buffer
+{
+  char *data;
+  size_t len;
+  size_t size;
+  bool truncated;
+};
+
+static void graphic_map_buffer_appendf(struct graphic_map_buffer *buffer, const char *format, ...)
+{
+  int written;
+  size_t remaining;
+  va_list args;
+
+  if (!buffer || !buffer->data || !format || buffer->truncated)
+    return;
+
+  remaining = (buffer->len < buffer->size) ? (buffer->size - buffer->len) : 0;
+  if (remaining == 0)
+  {
+    buffer->truncated = true;
+    return;
+  }
+
+  va_start(args, format);
+  written = vsnprintf(buffer->data + buffer->len, remaining, format, args);
+  va_end(args);
+
+  if (written < 0 || (size_t)written >= remaining)
+  {
+    buffer->len = buffer->size - 1;
+    buffer->data[buffer->len] = '\0';
+    buffer->truncated = true;
+    return;
+  }
+
+  buffer->len += (size_t)written;
+}
+
+static int graphic_map_find_room(const struct graphic_map_room_data *rooms, int room_count,
+                                 room_rnum room)
+{
+  int index;
+
+  for (index = 0; index < room_count; index++)
+  {
+    if (rooms[index].room == room)
+      return index;
+  }
+
+  return -1;
+}
+
+static int graphic_map_find_position(const struct graphic_map_room_data *rooms, int room_count,
+                                     int x, int y)
+{
+  int index;
+
+  for (index = 0; index < room_count; index++)
+  {
+    if (rooms[index].x == x && rooms[index].y == y)
+      return index;
+  }
+
+  return -1;
+}
+
+static struct room_direction_data *graphic_map_visible_exit(struct char_data *ch, room_rnum room,
+                                                            int door)
+{
+  struct room_direction_data *pexit;
+
+  if (!ch || !VALID_ROOM_RNUM(room) || door < 0 || door >= DIR_COUNT)
+    return NULL;
+
+  pexit = world[room].dir_option[door];
+  if (!pexit || pexit->to_room == NOWHERE || !VALID_ROOM_RNUM(pexit->to_room))
+    return NULL;
+
+  if (EXIT_FLAGGED(pexit, EX_CLOSED))
+    return NULL;
+
+  if (EXIT_FLAGGED(pexit, EX_HIDDEN) && !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    return NULL;
+
+  return pexit;
+}
+
+static unsigned int build_graphic_map_connections(struct char_data *ch,
+                                                  const struct graphic_map_room_data *rooms,
+                                                  int room_count, int room_index)
+{
+  static const int map_dirs[] = {NORTH,     EAST,      SOUTH,     WEST,
+                                 NORTHWEST, NORTHEAST, SOUTHEAST, SOUTHWEST};
+  static const int map_offsets[][2] = {{0, -1},  {1, 0},  {0, 1}, {-1, 0},
+                                       {-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
+  static const unsigned int map_bits[] = {
+      GRAPHIC_MAP_CONN_N,  GRAPHIC_MAP_CONN_E,  GRAPHIC_MAP_CONN_S,  GRAPHIC_MAP_CONN_W,
+      GRAPHIC_MAP_CONN_NW, GRAPHIC_MAP_CONN_NE, GRAPHIC_MAP_CONN_SE, GRAPHIC_MAP_CONN_SW,
+  };
+  unsigned int connections = 0;
+  int dir_index;
+
+  if (!ch || !rooms || room_index < 0 || room_index >= room_count)
+    return 0;
+
+  for (dir_index = 0; dir_index < (int)(sizeof(map_dirs) / sizeof(map_dirs[0])); dir_index++)
+  {
+    struct room_direction_data *pexit;
+    int next_x;
+    int next_y;
+    int target_index;
+
+    pexit = graphic_map_visible_exit(ch, rooms[room_index].room, map_dirs[dir_index]);
+    if (!pexit)
+      continue;
+
+    next_x = rooms[room_index].x + map_offsets[dir_index][0];
+    next_y = rooms[room_index].y + map_offsets[dir_index][1];
+
+    target_index = graphic_map_find_position(rooms, room_count, next_x, next_y);
+    if (target_index < 0)
+      continue;
+
+    if (rooms[target_index].room != pexit->to_room)
+      continue;
+
+    connections |= map_bits[dir_index];
+  }
+
+  return connections;
+}
+
+static unsigned int build_wilderness_graphic_map_connections(int x, int y, int radius)
+{
+  unsigned int connections = 0;
+
+  if (y > -radius)
+    connections |= GRAPHIC_MAP_CONN_N;
+  if (x < radius)
+    connections |= GRAPHIC_MAP_CONN_E;
+  if (y < radius)
+    connections |= GRAPHIC_MAP_CONN_S;
+  if (x > -radius)
+    connections |= GRAPHIC_MAP_CONN_W;
+
+  return connections;
+}
+
+static void build_graphic_map_specials(struct char_data *ch, room_rnum room, char *specials,
+                                       size_t specials_size)
+{
+  size_t length = 0;
+
+  if (!specials || specials_size == 0)
+    return;
+
+  specials[0] = '\0';
+
+  if (graphic_map_visible_exit(ch, room, UP) && length + 1 < specials_size)
+    specials[length++] = 'u';
+  if (graphic_map_visible_exit(ch, room, DOWN) && length + 1 < specials_size)
+    specials[length++] = 'd';
+#ifdef CAMPAIGN_FR
+  if (graphic_map_visible_exit(ch, room, IN) && length + 1 < specials_size)
+    specials[length++] = 'i';
+  if (graphic_map_visible_exit(ch, room, OUT) && length + 1 < specials_size)
+    specials[length++] = 'o';
+#endif
+
+  specials[length] = '\0';
+}
+
+static int collect_graphic_map_rooms(struct char_data *ch, room_rnum start_room,
+                                     struct graphic_map_room_data *rooms, int max_rooms)
+{
+  static const int map_dirs[] = {NORTH,     EAST,      SOUTH,     WEST,
+                                 NORTHWEST, NORTHEAST, SOUTHEAST, SOUTHWEST};
+  static const int map_offsets[][2] = {{0, -1},  {1, 0},  {0, 1}, {-1, 0},
+                                       {-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
+  int index = 0;
+  int room_count = 0;
+  int dir_index;
+
+  if (!ch || !rooms || max_rooms <= 0 || !VALID_ROOM_RNUM(start_room))
+    return 0;
+
+  rooms[0].room = start_room;
+  rooms[0].x = 0;
+  rooms[0].y = 0;
+  room_count = 1;
+
+  while (index < room_count)
+  {
+    for (dir_index = 0; dir_index < (int)(sizeof(map_dirs) / sizeof(map_dirs[0])); dir_index++)
+    {
+      struct room_direction_data *pexit;
+      int next_x;
+      int next_y;
+
+      pexit = graphic_map_visible_exit(ch, rooms[index].room, map_dirs[dir_index]);
+      if (!pexit)
+        continue;
+
+      next_x = rooms[index].x + map_offsets[dir_index][0];
+      next_y = rooms[index].y + map_offsets[dir_index][1];
+
+      if (abs(next_x) > GRAPHIC_MAP_RADIUS || abs(next_y) > GRAPHIC_MAP_RADIUS)
+        continue;
+
+      if (graphic_map_find_room(rooms, room_count, pexit->to_room) >= 0)
+        continue;
+
+      if (graphic_map_find_position(rooms, room_count, next_x, next_y) >= 0)
+        continue;
+
+      if (room_count >= max_rooms)
+        return room_count;
+
+      rooms[room_count].room = pexit->to_room;
+      rooms[room_count].x = next_x;
+      rooms[room_count].y = next_y;
+      room_count++;
+    }
+
+    index++;
+  }
+
+  return room_count;
+}
+
+static void update_msdp_graphic_map(struct descriptor_data *d, struct char_data *ch)
+{
+  const char MsdpVar = (char)MSDP_VAR;
+  const char MsdpVal = (char)MSDP_VAL;
+  const char MsdpTableOpen = (char)MSDP_TABLE_OPEN;
+  const char MsdpTableClose = (char)MSDP_TABLE_CLOSE;
+  const char MsdpArrayOpen = (char)MSDP_ARRAY_OPEN;
+  const char MsdpArrayClose = (char)MSDP_ARRAY_CLOSE;
+  struct graphic_map_room_data rooms[GRAPHIC_MAP_MAX_ROOMS];
+  struct graphic_map_buffer buffer;
+  int room_count;
+  int index;
+
+  if (!d || !ch)
+    return;
+
+  if (IN_ROOM(ch) == NOWHERE || !VALID_ROOM_RNUM(IN_ROOM(ch)) || !can_see_map(ch) ||
+      (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT))
+  {
+    MSDPSetString(d, eMSDP_GRAPHIC_MAP, "");
+    return;
+  }
+
+  if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))))
+  {
+    MSDPSetString(d, eMSDP_GRAPHIC_MAP, "");
+    return;
+  }
+
+  buffer.size = MAX_VARIABLE_LENGTH + 1;
+  buffer.len = 0;
+  buffer.truncated = false;
+  buffer.data = (char *)calloc(buffer.size, sizeof(char));
+
+  if (!buffer.data)
+  {
+    mudlog(BRF, LVL_IMMORT, TRUE, "GRAPHIC_MAP: Out of memory while building MSDP payload.");
+    MSDPSetString(d, eMSDP_GRAPHIC_MAP, "");
+    return;
+  }
+
+  room_count = collect_graphic_map_rooms(ch, IN_ROOM(ch), rooms, GRAPHIC_MAP_MAX_ROOMS);
+
+  graphic_map_buffer_appendf(&buffer, "%cver%c2%cradius%c%d%crooms%c%c", MsdpVar, MsdpVal, MsdpVar,
+                             MsdpVal, GRAPHIC_MAP_RADIUS, MsdpVar, MsdpVal, MsdpArrayOpen);
+
+  for (index = 0; index < room_count && !buffer.truncated; index++)
+  {
+    char specials[8] = {'\0'};
+    unsigned int connections;
+
+    build_graphic_map_specials(ch, rooms[index].room, specials, sizeof(specials));
+    connections = build_graphic_map_connections(ch, rooms, room_count, index);
+
+    graphic_map_buffer_appendf(&buffer,
+                               "%c%c"
+                               "%cx%c%d"
+                               "%cy%c%d"
+                               "%cv%c%d"
+                               "%cs%c%d"
+                               "%ci%c%d",
+                               MsdpVal, MsdpTableOpen, MsdpVar, MsdpVal, rooms[index].x, MsdpVar,
+                               MsdpVal, rooms[index].y, MsdpVar, MsdpVal,
+                               GET_ROOM_VNUM(rooms[index].room), MsdpVar, MsdpVal,
+                               world[rooms[index].room].sector_type, MsdpVar, MsdpVal,
+                               ROOM_FLAGGED(rooms[index].room, ROOM_INDOORS) ? 1 : 0);
+
+    if (connections)
+      graphic_map_buffer_appendf(&buffer, "%cc%c%u", MsdpVar, MsdpVal, connections);
+
+    if (*specials)
+      graphic_map_buffer_appendf(&buffer, "%csp%c%s", MsdpVar, MsdpVal, specials);
+
+    graphic_map_buffer_appendf(&buffer, "%c", MsdpTableClose);
+  }
+
+  graphic_map_buffer_appendf(&buffer, "%c", MsdpArrayClose);
+
+  if (buffer.truncated)
+  {
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "GRAPHIC_MAP: Payload exceeded MAX_VARIABLE_LENGTH and was dropped.");
+    MSDPSetString(d, eMSDP_GRAPHIC_MAP, "");
+  }
+  else
+  {
+    MSDPSetTable(d, eMSDP_GRAPHIC_MAP, buffer.data);
+  }
+
+  free(buffer.data);
+}
+
+static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct char_data *ch)
+{
+  const char MsdpVar = (char)MSDP_VAR;
+  const char MsdpVal = (char)MSDP_VAL;
+  const char MsdpTableOpen = (char)MSDP_TABLE_OPEN;
+  const char MsdpTableClose = (char)MSDP_TABLE_CLOSE;
+  const char MsdpArrayOpen = (char)MSDP_ARRAY_OPEN;
+  const char MsdpArrayClose = (char)MSDP_ARRAY_CLOSE;
+  struct graphic_map_buffer buffer;
+  struct wild_map_tile **map = NULL;
+  const int radius = WILDERNESS_GRAPHIC_MAP_RADIUS;
+  const int map_size = (radius * 2) + 1;
+  int center_x;
+  int center_y;
+  int x_index;
+  int y_index;
+
+  if (!d || !ch)
+    return;
+
+  if (IN_ROOM(ch) == NOWHERE || !VALID_ROOM_RNUM(IN_ROOM(ch)) || !can_see_map(ch) ||
+      !IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ||
+      (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT))
+  {
+    MSDPSetString(d, eMSDP_WILDERNESS_GRAPHIC_MAP, "");
+    return;
+  }
+
+  center_x = world[IN_ROOM(ch)].coords[X_COORD];
+  center_y = world[IN_ROOM(ch)].coords[Y_COORD];
+
+  buffer.size = MAX_VARIABLE_LENGTH + 1;
+  buffer.len = 0;
+  buffer.truncated = false;
+  buffer.data = (char *)calloc(buffer.size, sizeof(char));
+
+  if (!buffer.data)
+  {
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "WILDERNESS_GRAPHIC_MAP: Out of memory while building MSDP payload.");
+    MSDPSetString(d, eMSDP_WILDERNESS_GRAPHIC_MAP, "");
+    return;
+  }
+
+  map = (struct wild_map_tile **)calloc(map_size, sizeof(struct wild_map_tile *));
+  if (!map)
+  {
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "WILDERNESS_GRAPHIC_MAP: Out of memory while allocating wilderness map rows.");
+    MSDPSetString(d, eMSDP_WILDERNESS_GRAPHIC_MAP, "");
+    free(buffer.data);
+    return;
+  }
+
+  for (x_index = 0; x_index < map_size; x_index++)
+  {
+    map[x_index] = (struct wild_map_tile *)calloc(map_size, sizeof(struct wild_map_tile));
+    if (!map[x_index])
+    {
+      mudlog(BRF, LVL_IMMORT, TRUE,
+             "WILDERNESS_GRAPHIC_MAP: Out of memory while allocating wilderness map columns.");
+      MSDPSetString(d, eMSDP_WILDERNESS_GRAPHIC_MAP, "");
+
+      while (x_index-- > 0)
+        free(map[x_index]);
+
+      free(map);
+      free(buffer.data);
+      return;
+    }
+  }
+
+  get_map(map_size, map_size, center_x, center_y, map);
+
+  graphic_map_buffer_appendf(&buffer, "%cver%c2%cradius%c%d%crooms%c%c", MsdpVar, MsdpVal, MsdpVar,
+                             MsdpVal, radius, MsdpVar, MsdpVal, MsdpArrayOpen);
+
+  for (y_index = -radius; y_index <= radius && !buffer.truncated; y_index++)
+  {
+    for (x_index = -radius; x_index <= radius && !buffer.truncated; x_index++)
+    {
+      room_rnum room = NOWHERE;
+      char specials[8] = {'\0'};
+      const int map_x = x_index + radius;
+      const int map_y = y_index + radius;
+      int sector_type = map[map_x][map_y].sector_type;
+      int indoors = FALSE;
+      unsigned int connections = build_wilderness_graphic_map_connections(x_index, y_index, radius);
+
+      if (x_index == 0 && y_index == 0)
+        room = IN_ROOM(ch);
+      else
+        room = find_static_room_by_coordinates(center_x + x_index, center_y + y_index);
+
+      if (room != NOWHERE)
+      {
+        sector_type = world[room].sector_type;
+        indoors = ROOM_FLAGGED(room, ROOM_INDOORS) ? TRUE : FALSE;
+        build_graphic_map_specials(ch, room, specials, sizeof(specials));
+      }
+
+      graphic_map_buffer_appendf(&buffer,
+                                 "%c%c"
+                                 "%cx%c%d"
+                                 "%cy%c%d"
+                                 "%cs%c%d"
+                                 "%ci%c%d",
+                                 MsdpVal, MsdpTableOpen, MsdpVar, MsdpVal, x_index, MsdpVar,
+                                 MsdpVal, y_index, MsdpVar, MsdpVal, sector_type, MsdpVar, MsdpVal,
+                                 indoors ? 1 : 0);
+
+      if (room != NOWHERE)
+        graphic_map_buffer_appendf(&buffer, "%cv%c%d", MsdpVar, MsdpVal, GET_ROOM_VNUM(room));
+
+      if (connections)
+        graphic_map_buffer_appendf(&buffer, "%cc%c%u", MsdpVar, MsdpVal, connections);
+
+      if (*specials)
+        graphic_map_buffer_appendf(&buffer, "%csp%c%s", MsdpVar, MsdpVal, specials);
+
+      graphic_map_buffer_appendf(&buffer, "%c", MsdpTableClose);
+    }
+  }
+
+  graphic_map_buffer_appendf(&buffer, "%c", MsdpArrayClose);
+
+  if (buffer.truncated)
+  {
+    mudlog(BRF, LVL_IMMORT, TRUE,
+           "WILDERNESS_GRAPHIC_MAP: Payload exceeded MAX_VARIABLE_LENGTH and was dropped.");
+    MSDPSetString(d, eMSDP_WILDERNESS_GRAPHIC_MAP, "");
+  }
+  else
+  {
+    MSDPSetTable(d, eMSDP_WILDERNESS_GRAPHIC_MAP, buffer.data);
+  }
+
+  for (x_index = 0; x_index < map_size; x_index++)
+    free(map[x_index]);
+
+  free(map);
+  free(buffer.data);
+}
+
 /* KaVir's plugin*/
 void update_msdp_room(struct char_data *ch)
 {
@@ -4341,6 +4839,8 @@ void update_msdp_room(struct char_data *ch)
       strip_colors(buf2);
       MSDPSetTable(ch->desc, eMSDP_ROOM, buf2);
       update_msdp_automap(ch->desc, ch);
+      update_msdp_graphic_map(ch->desc, ch);
+      update_msdp_wilderness_graphic_map(ch->desc, ch);
     }
   }
 }
@@ -4419,6 +4919,8 @@ static void msdp_update(void)
       /* Room */
       update_msdp_room(ch);
       update_msdp_automap(d, ch);
+      update_msdp_graphic_map(d, ch);
+      update_msdp_wilderness_graphic_map(d, ch);
 
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*

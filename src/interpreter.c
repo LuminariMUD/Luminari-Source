@@ -431,6 +431,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"exchange", "exch", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"expertise", "expertise", POS_FIGHTING, do_mode, 1, MODE_COMBAT_EXPERTISE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"export", "export", POS_DEAD, do_export_zone, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    #if (defined(CAMPAIGN_FR))
+      {"exportmap", "exportmap", POS_DEAD, do_export_map, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+      {"exportworldmap", "exportworldmap", POS_DEAD, do_export_worldmap, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    #endif
     {"eqrating", "eqrating", POS_SLEEPING, do_eqrating, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"emptybody", "emptybody", POS_RECLINING, do_emptybody, 1, 0, FALSE, ACTION_MOVE, {0, 6}, can_emptybody},
     {"ethshift", "ethshift", POS_STANDING, do_ethshift, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},

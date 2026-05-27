@@ -1689,6 +1689,8 @@ void char_to_room(struct char_data *ch, room_rnum room)
     {
       MSDPFlush(ch->desc, eMSDP_ROOM);
       MSDPFlush(ch->desc, eMSDP_MINIMAP);
+      MSDPFlush(ch->desc, eMSDP_GRAPHIC_MAP);
+      MSDPFlush(ch->desc, eMSDP_WILDERNESS_GRAPHIC_MAP);
     }
 
     /* Master Tracker: refresh proximity alert when entering a room */

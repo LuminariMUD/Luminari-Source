@@ -114,6 +114,23 @@ MSDP is a telnet protocol extension that allows real-time data exchange between 
 | `WORLD_TIME` | String | Game world time |
 | `SECTORS` | Table | Room sector/terrain information |
 | `MINIMAP` | String | Plain ASCII minimap representation with source color codes stripped, or an empty string when the map is unavailable |
+| `GRAPHIC_MAP` | Table | Structured 21x21 room map for graphical clients |
+
+`GRAPHIC_MAP` uses a compact MSDP table with this shape:
+
+- `ver`: payload version, currently `2`
+- `radius`: map radius, currently `10`
+- `rooms`: array of room tables
+
+Each room table contains:
+
+- `x`: relative X offset from the current room
+- `y`: relative Y offset from the current room
+- `v`: room vnum
+- `s`: numeric sector type
+- `i`: `1` if `ROOM_INDOORS` is set, otherwise `0`
+- `c`: optional directional connector bitmask, ordered N/E/S/W/NW/NE/SE/SW
+- `sp`: optional special-exit markers string using `u`, `d`, `i`, `o`
 
 ### Client Configuration and Capabilities
 

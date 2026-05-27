@@ -22,6 +22,9 @@ depend
 # Exception: Keep minimal world .obj files (needed for deployment)
 !lib/world/minimal/*.obj
 
+# Ignore local Faerun world data
+lib/world-fr/
+frmaps/
 # Precompiled Headers
 *.gch
 *.pch
@@ -390,3 +393,8 @@ unittests/CuTest/test_waypoint_cache
 unittests/CuTest/vessel_tests
 unittests/CuTest/vessel_stress_test
 unittests/CuTest/protocol_parser_tests
+ascii_map.txt
+FRMUD-HEX-Aunauroch.jpg
+plan.md
+scripts/populate_zone7000_from_aunauroch.py
+scripts/__pycache__/populate_zone7000_from_aunauroch.cpython-312.pyc
