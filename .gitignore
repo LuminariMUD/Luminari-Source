@@ -328,6 +328,7 @@ lib/text/help/*
 ####################
 /unittests/obj
 /unittests/CuTest/AllTests.c
+/cutest
 
 ####################
 # Keep Directory Structure
