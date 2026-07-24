@@ -2338,9 +2338,7 @@ static int rename_verify_index_file(struct rename_context *ctx)
   char line[MAX_INPUT_LENGTH];
   char name[MAX_NAME_LENGTH + 1];
   long id;
-  int matching_identity_count = 0;
-  int player_id_count = 0;
-  int old_name_count = 0;
+  int target_count = 0;
 
   if (!(file = fopen(ctx->index_path, "r")))
     return FALSE;
@@ -2414,7 +2412,9 @@ static int rename_verify_old_index_file(struct rename_context *ctx)
   char line[MAX_INPUT_LENGTH];
   char name[MAX_NAME_LENGTH + 1];
   long id;
-  int target_count = 0;
+  int matching_identity_count = 0;
+  int player_id_count = 0;
+  int old_name_count = 0;
 
   if (!(file = fopen(ctx->index_path, "r")))
     return FALSE;
