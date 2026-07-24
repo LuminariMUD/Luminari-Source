@@ -25,6 +25,8 @@ Autotools is preferred (faster incremental builds); CMake is supported.
 ```bash
 # Autotools (preferred) - repo is already configured, so usually just:
 make -j$(nproc)
+## then
+make install
 
 # If configure/Makefile are missing:
 autoreconf -fvi && ./configure && make -j$(nproc)
