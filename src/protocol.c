@@ -2561,8 +2561,10 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
         log("DEBUG: TTYPE identified client as '%s'", pClientName);
 
 #ifdef MUDLET_PACKAGE
-        /* Check if this is Mudlet and we have GMCP enabled but haven't sent the package yet */
-        if (MatchString("Mudlet", pClientName) && pProtocol->bGMCP)
+        /* Check if this is Mudlet and we have GMCP enabled but haven't sent the package yet.
+         * Gated by CONFIG_AUTO_DL_MUDLET_PACKAGE so the admin toggle fully disables
+         * auto-download, matching the GMCP negotiation path in PerformNegotiation(). */
+        if (CONFIG_AUTO_DL_MUDLET_PACKAGE && MatchString("Mudlet", pClientName) && pProtocol->bGMCP)
         {
           log("DEBUG: Mudlet identified via TTYPE, sending package now via GMCP");
           SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
