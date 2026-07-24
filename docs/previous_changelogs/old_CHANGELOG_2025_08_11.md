@@ -255,22 +255,22 @@
 ## 2025-08-01 (Staff Event System - Critical Issues Resolved)
 ### Fixed
 - **Staff Event System Critical Performance Issue (C001)**:
-  - Fixed O(n*m) character list traversal inefficiency in [`mob_ingame_count()`](../src/staff_events.c:445)
-  - Added optimized [`count_jackalope_mobs()`](../src/staff_events.c:553) function for single-pass counting
+  - Fixed O(n*m) character list traversal inefficiency in [`mob_ingame_count()`](../../src/staff_events.c#L445)
+  - Added optimized [`count_jackalope_mobs()`](../../src/staff_events.c#L553) function for single-pass counting
   - Reduced character list traversals from 6 per tick to 1 during Jackalope Hunt events
   - Performance improvement: 6x reduction in tick processing time during events
 
 - **Staff Event System High Priority Issues (H001-H004)**:
-  - **H001 - Enhanced Error Handling**: Added comprehensive error handling in [`check_event_drops()`](../src/staff_events.c:241) with proper fallback and user notification for object creation failures
-  - **H002 - Event Data Integrity**: Added validation in [`start_staff_event()`](../src/staff_events.c:977) to verify event data fields before starting events
-  - **H003 - Safe Portal Cleanup**: Fixed iteration safety in [`end_staff_event()`](../src/staff_events.c:1219) to prevent linked list corruption during portal removal
-  - **H004 - Race Condition Fix**: Implemented atomic-style timer decrement in [`staff_event_tick()`](../src/staff_events.c:747) to eliminate timer race conditions
+  - **H001 - Enhanced Error Handling**: Added comprehensive error handling in [`check_event_drops()`](../../src/staff_events.c#L241) with proper fallback and user notification for object creation failures
+  - **H002 - Event Data Integrity**: Added validation in [`start_staff_event()`](../../src/staff_events.c#L977) to verify event data fields before starting events
+  - **H003 - Safe Portal Cleanup**: Fixed iteration safety in [`end_staff_event()`](../../src/staff_events.c#L1219) to prevent linked list corruption during portal removal
+  - **H004 - Race Condition Fix**: Implemented atomic-style timer decrement in [`staff_event_tick()`](../../src/staff_events.c#L747) to eliminate timer race conditions
 
 ### Added
 - **Code Quality Improvements**:
-  - Added [`spawn_jackalope_batch()`](../src/staff_events.c:509) helper function to eliminate code duplication
+  - Added [`spawn_jackalope_batch()`](../../src/staff_events.c#L509) helper function to eliminate code duplication
   - Enhanced buffer overflow protection with truncation detection in string operations
-  - Added input validation and bounds checking in [`wild_mobile_loader()`](../src/staff_events.c:662)
+  - Added input validation and bounds checking in [`wild_mobile_loader()`](../../src/staff_events.c#L662)
   - Improved error logging with detailed context information
 
 ### Performance
@@ -289,45 +289,45 @@
 ## 2025-08-01 (Staff Event System - Medium Priority Issues Resolved)
 ### Fixed
 - **Medium Priority M001 - Code Duplication**:
-  - Implemented [`spawn_jackalope_batch()`](../src/staff_events.c:640) helper function to eliminate repetitive spawning logic
+  - Implemented [`spawn_jackalope_batch()`](../../src/staff_events.c#L640) helper function to eliminate repetitive spawning logic
   - Consolidated three separate spawning code blocks into single reusable function
   - Improved maintainability and consistency across all Jackalope mob spawning operations
 
 - **Medium Priority M002 - Magic Numbers**:
-  - Added named constants to [`staff_events.h`](../src/staff_events.h:149): `PRISONER_ATMOSPHERIC_CHANCE_SKIP`, `PERCENTAGE_DICE_SIDES`, `ATMOSPHERIC_MESSAGE_COUNT`
-  - Replaced hardcoded values throughout [`staff_events.c`](../src/staff_events.c) with meaningful constant names
+  - Added named constants to [`staff_events.h`](../../src/staff_events.h#L149): `PRISONER_ATMOSPHERIC_CHANCE_SKIP`, `PERCENTAGE_DICE_SIDES`, `ATMOSPHERIC_MESSAGE_COUNT`
+  - Replaced hardcoded values throughout [`staff_events.c`](../../src/staff_events.c) with meaningful constant names
   - Enhanced code readability and simplified future configuration changes
 
 - **Medium Priority M003 - Error Handling Inconsistency**:
-  - Implemented standardized [`event_result_t`](../src/staff_events.h:158) enum with comprehensive error codes
-  - Updated [`start_staff_event()`](../src/staff_events.c:1025) and [`end_staff_event()`](../src/staff_events.c:1238) to use consistent return values
-  - Enhanced error reporting in [`do_staffevents()`](../src/staff_events.c:1685) command handler with specific error messages
+  - Implemented standardized [`event_result_t`](../../src/staff_events.h#L158) enum with comprehensive error codes
+  - Updated [`start_staff_event()`](../../src/staff_events.c#L1025) and [`end_staff_event()`](../../src/staff_events.c#L1238) to use consistent return values
+  - Enhanced error reporting in [`do_staffevents()`](../../src/staff_events.c#L1685) command handler with specific error messages
 
 - **Medium Priority M004 - Buffer Safety**:
-  - Enhanced existing truncation checking in [`check_event_drops()`](../src/staff_events.c:272) with proper fallback messages
+  - Enhanced existing truncation checking in [`check_event_drops()`](../../src/staff_events.c#L272) with proper fallback messages
   - Added comprehensive buffer overflow protection with safe `snprintf()` usage patterns
   - Implemented graceful degradation for message truncation scenarios
 
 - **Medium Priority M005 - Resource Validation**:
-  - Enhanced [`wild_mobile_loader()`](../src/staff_events.c:695) with comprehensive bounds checking before array access
+  - Enhanced [`wild_mobile_loader()`](../../src/staff_events.c#L695) with comprehensive bounds checking before array access
   - Added proper error logging and resource cleanup for invalid location scenarios
   - Prevented potential crashes from accessing invalid world array indices
 
 ### Added
 - **Medium Priority M006 - Performance Optimization**:
-  - Implemented coordinate caching system with [`generate_coordinate_batch()`](../src/staff_events.c:532) and [`get_cached_coordinates()`](../src/staff_events.c:567)
+  - Implemented coordinate caching system with [`generate_coordinate_batch()`](../../src/staff_events.c#L532) and [`get_cached_coordinates()`](../../src/staff_events.c#L567)
   - Added `coord_pair_t` structure and cache management for efficient batch coordinate generation
   - Reduced random number generation calls during high-volume spawning operations
   - Added configuration constants `COORD_CACHE_SIZE` and `COORD_BATCH_GENERATION_SIZE`
 
 - **Medium Priority M007 - State Management Abstraction**:
-  - Implemented comprehensive state management functions: [`set_event_state()`](../src/staff_events.c:594), [`is_event_active()`](../src/staff_events.c:603), [`get_active_event()`](../src/staff_events.c:610)
-  - Added [`clear_event_state()`](../src/staff_events.c:624), [`set_event_delay()`](../src/staff_events.c:631), [`get_event_delay()`](../src/staff_events.c:638)
+  - Implemented comprehensive state management functions: [`set_event_state()`](../../src/staff_events.c#L594), [`is_event_active()`](../../src/staff_events.c#L603), [`get_active_event()`](../../src/staff_events.c#L610)
+  - Added [`clear_event_state()`](../../src/staff_events.c#L624), [`set_event_delay()`](../../src/staff_events.c#L631), [`get_event_delay()`](../../src/staff_events.c#L638)
   - Reduced tight coupling with global variables throughout the system
   - Enhanced testability and modularity of event system components
 
 - **Medium Priority M008 - Field Validation Enhancement**:
-  - Added comprehensive field validation in [`staff_event_info()`](../src/staff_events.c:1447) with NULL and empty string checks
+  - Added comprehensive field validation in [`staff_event_info()`](../../src/staff_events.c#L1447) with NULL and empty string checks
   - Implemented proper error logging and user feedback for missing or corrupted event data
   - Added staff-only error reporting for administrative debugging purposes
 
@@ -357,30 +357,30 @@
 ## 2025-08-01 (Staff Event System - Low Priority Issues Resolved)
 ### Fixed
 - **Low Priority L003 - Enhanced Documentation**:
-  - Added comprehensive parameter validation documentation to all public function declarations in [`staff_events.h`](../src/staff_events.h:188-337)
+  - Added comprehensive parameter validation documentation to all public function declarations in [`staff_events.h`](../../src/staff_events.h#L188-L337)
   - Enhanced API documentation with parameter constraints, NULL handling, and return conditions
   - Improved developer experience with clearer function usage requirements
 
 - **Low Priority L004 - Performance Optimization**:
-  - Optimized string operations in [`do_staffevents()`](../src/staff_events.c:1812) to avoid unnecessary `half_chop_c()` calls
+  - Optimized string operations in [`do_staffevents()`](../../src/staff_events.c#L1812) to avoid unnecessary `half_chop_c()` calls
   - Added early return logic to prevent redundant string parsing when no arguments provided
   - Reduced function call overhead for common command usage patterns
 
 - **Low Priority L005 - Maintainability Enhancement**:
-  - Decomposed large 184-line [`do_staffevents()`](../src/staff_events.c:1858) function into focused helper functions:
-    - [`handle_player_event_access()`](../src/staff_events.c:1611): Player access control
-    - [`handle_default_event_display()`](../src/staff_events.c:1623): Default display behavior
-    - [`parse_and_validate_event_num()`](../src/staff_events.c:1637): Event number validation
-    - [`handle_start_event_command()`](../src/staff_events.c:1667): Event start processing
-    - [`handle_end_event_command()`](../src/staff_events.c:1722): Event end processing
-    - [`handle_info_event_command()`](../src/staff_events.c:1758): Event info processing
+  - Decomposed large 184-line [`do_staffevents()`](../../src/staff_events.c#L1858) function into focused helper functions:
+    - [`handle_player_event_access()`](../../src/staff_events.c#L1611): Player access control
+    - [`handle_default_event_display()`](../../src/staff_events.c#L1623): Default display behavior
+    - [`parse_and_validate_event_num()`](../../src/staff_events.c#L1637): Event number validation
+    - [`handle_start_event_command()`](../../src/staff_events.c#L1667): Event start processing
+    - [`handle_end_event_command()`](../../src/staff_events.c#L1722): Event end processing
+    - [`handle_info_event_command()`](../../src/staff_events.c#L1758): Event info processing
   - Applied Single Responsibility Principle with each function having clear, focused purpose
   - Enhanced testability through smaller, more manageable function units
 
 - **Low Priority L006 - Const Correctness**:
   - Added `const` qualifiers to function parameters that should not be modified:
-    - [`check_event_drops()`](../src/staff_events.c:159): `victim` parameter marked const
-    - [`staff_event_info()`](../src/staff_events.c:1435): `event_num` parameter marked const
+    - [`check_event_drops()`](../../src/staff_events.c#L159): `victim` parameter marked const
+    - [`staff_event_info()`](../../src/staff_events.c#L1435): `event_num` parameter marked const
     - Helper function parameters marked const where appropriate
   - Enhanced type safety and enabled better compiler optimizations
   - Prevents accidental parameter modifications and improves code clarity

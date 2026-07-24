@@ -22,12 +22,12 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Essential First Steps
 - **[README.md](../README.md)** - Project overview, quick start, and essential information
-- **[SETUP_AND_BUILD_GUIDE.md](guides/SETUP_AND_BUILD_GUIDE.md)** - Complete setup instructions for all platforms
+- **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Complete setup and deployment instructions
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - How to contribute to the project
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
 
 ### Configuration & Installation
-- **[CMAKE_BUILD_GUIDE.md](CMAKE_BUILD_GUIDE.md)** - Alternative build system using CMake
+- **[CMAKE_BUILD_GUIDE.md](development/CMAKE_BUILD_GUIDE.md)** - Alternative build system using CMake
 - **[IMPORT_DB.md](guides/IMPORT_DB.md)** - Database import procedures
 - **[LEGACY_README.md](legacy_installation/LEGACY_README.md)** - Historical installation notes
 - **[README_HISTORY.md](legacy_installation/README_HISTORY.md)** - Evolution of setup procedures
@@ -41,7 +41,6 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
 - **[DATA_STRUCTURES_AND_MEMORY.md](development/DATA_STRUCTURES_AND_MEMORY.md)** - Memory management and data structures
 - **[COMMAND_SYSTEM_AND_INTERPRETER.md](systems/COMMAND_SYSTEM_AND_INTERPRETER.md)** - Command parsing and execution
-- **[FILE_MAP.md](systems/FILE_MAP.md)** - Complete directory and file structure listing
 
 ### Database & Persistence
 - **[DATABASE_INTEGRATION.md](systems/DATABASE_INTEGRATION.md)** - MySQL integration and schema
@@ -49,7 +48,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Communication & Protocols
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
-- **[PROTOCOL_TODO.md](systems/PROTOCOL_TODO.md)** - Planned protocol enhancements
+- **[PROTOCOL_TODO.md](project-management-zusuk/PROTOCOL_TODO.md)** - Planned protocol enhancements
 
 ---
 
@@ -62,18 +61,17 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
 
 ### Advanced Systems
-- **[VESSEL_SYSTEM.md](VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
-- **[VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks and stress test results
+- **[VESSEL_SYSTEM.md](project-management-zusuk/vessels/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
+- **[VESSEL_BENCHMARKS.md](project-management-zusuk/vessels/VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks and stress test results
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
-- **[WILDERNESS_SYSTEM.md](building_game-data/WILDERNESS_SYSTEM.md)** - Dynamic wilderness generation
+- **[wilderness_system.md](world_game-data/wilderness_system.md)** - Dynamic wilderness generation
 - **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - 🆕 ✅ Spatial visual and audio systems with triple strategy pattern
 - **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - 🆕 Wilderness resource system with flexible region effects
 - **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - 🆕 Resource regeneration with seasonal and weather effects
 - **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - 🆕 Quick reference for resource regeneration system
 - **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - 🆕 Dynamic environment descriptions based on resource state
 - **[AI_SERVICE_README.md](systems/AI_SERVICE_README.md)** - AI service integration
-- **[skore_system_documentation.md](systems/skore_system_documentation.md)** - Skore achievement system
 
 ### Building & Scripting
 - **[OLC_ONLINE_CREATION_SYSTEM.md](systems/OLC_ONLINE_CREATION_SYSTEM.md)** - Online building tools
@@ -103,23 +101,18 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Troubleshooting
 - **[TROUBLESHOOTING_AND_MAINTENANCE.md](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues and solutions
-- **[SYSLOG_ERRORS.md](../SYSLOG_ERRORS.md)** - Error reference and solutions
 
 ---
 
 ## 🏰 Building & Content Creation
 
 ### Building Guides
-- **[Building README](building_game-data/README.md)** - Overview of building tools and processes
+- **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
-- **[BUILDERS_TASK_LIST.md](building_game-data/BUILDERS_TASK_LIST.md)** - Current building priorities
 
 ### Equipment & Items
-- **[armor_information.md](building_game-data/armor_information.md)** - Armor system details
-- **[crafting-notes.md](building_game-data/crafting-notes.md)** - Crafting system notes
-- **[current_gear_stats_distribution.md](building_game-data/current_gear_stats_distribution.md)** - Equipment balance
-- **[stat_distribute_on_gear_drop.md](building_game-data/stat_distribute_on_gear_drop.md)** - Loot generation
-- **[stats-by-location-markdown.md](building_game-data/stats-by-location-markdown.md)** - Area-based statistics
+- **[crafting_notes_old.md](world_game-data/crafting_notes_old.md)** - Crafting system notes
+- **[gear_guide.md](world_game-data/gear_guide.md)** - Combined gear stat distribution (equipment balance, loot generation, stats by wear location)
 
 ---
 
@@ -131,10 +124,9 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Utilities
 - **[Utilities README](utilities/README.md)** - External utility programs
-- **[PHP_TOOLS_README.md](utilities/PHP_TOOLS_README.md)** - PHP-based admin tools
 
 ### Legal & Licensing
-- **[LICENSE](../LICENSE)** - Project licensing information
+- **[LICENSE](../LICENSE.md)** - Project licensing information
 - **[Legal README](legal/README.md)** - Legal considerations
 
 ---
@@ -143,18 +135,18 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Planning & Tracking
 - **[TASK_LIST.md](TASK_LIST.md)** - Current development priorities
-- **[DOC_AUDIT.md](DOC_AUDIT.md)** - Documentation audit tracking
+- **[docs-audit.md](docs-audit.md)** - Documentation audit tracking
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
-- **[AI_TODO_IDEAS.md](project-management/AI_TODO_IDEAS.md)** - AI-related feature ideas
-- **[DO_SKORE_PROJECT.md](project-management/DO_SKORE_PROJECT.md)** - Skore system project plan
-- **[WILDERNESS-RESOURCE-PLAN.md](project-management/WILDERNESS-RESOURCE-PLAN.md)** - 🆕 Resource system implementation plan (Phases 1-4)
-- **[PHASE_5_DESIGN.md](project-management/PHASE_5_DESIGN.md)** - 🆕 Player harvesting mechanics design
-- **[PHASE_4_COMPLETION_SUMMARY.md](project-management/PHASE_4_COMPLETION_SUMMARY.md)** - 🆕 Region effects system completion
-- **[CLEANUP_REPORT.md](project-management/CLEANUP_REPORT.md)** - 🆕 System redesign and cleanup documentation
-- **[IDEA_LIST.md](project-management/IDEA_LIST.md)** - Feature idea collection
-- **[WILDERNESS_PROJECT.md](project-management/WILDERNESS_PROJECT.md)** - Wilderness system development
+- **[AI_TODO_IDEAS.md](project-management-zusuk/AI_TODO_IDEAS.md)** - AI-related feature ideas
+- **[DO_SKORE_PROJECT.md](project-management-zusuk/DO_SKORE_PROJECT.md)** - Skore system project plan
+- **[WILDERNESS-RESOURCE-PLAN.md](project-management-ornir/wilderness/WILDERNESS-RESOURCE-PLAN.md)** - 🆕 Resource system implementation plan (Phases 1-4)
+- **[PHASE_5_DESIGN.md](project-management-ornir/PHASE_5_DESIGN.md)** - 🆕 Player harvesting mechanics design
+- **[PHASE_4_COMPLETION_SUMMARY.md](project-management-ornir/PHASE_4_COMPLETION_SUMMARY.md)** - 🆕 Region effects system completion
+- **[CLEANUP_REPORT.md](project-management-ornir/CLEANUP_REPORT.md)** - 🆕 System redesign and cleanup documentation
+- **[IDEA_LIST.md](project-management-zusuk/IDEA_LIST.md)** - Feature idea collection
+- **[WILDERNESS_PROJECT.md](project-management-ornir/wilderness/WILDERNESS_PROJECT.md)** - Wilderness system development
 
 ### Historical Records
 - **[Previous Changelogs](previous_changelogs/)** - Historical development records
@@ -167,13 +159,13 @@ This master index provides a comprehensive guide to all technical documentation 
 
 #### For New Developers
 1. README.md
-2. SETUP_AND_BUILD_GUIDE.md
+2. DEPLOYMENT_GUIDE.md
 3. DEVELOPER_GUIDE_AND_API.md
 4. ARCHITECTURE.md
 5. CONTRIBUTING.md
 
 #### For System Administrators
-1. SETUP_AND_BUILD_GUIDE.md
+1. DEPLOYMENT_GUIDE.md
 2. DATABASE_INTEGRATION.md
 3. TROUBLESHOOTING_AND_MAINTENANCE.md
 4. PHP_TOOLS_README.md
@@ -182,7 +174,7 @@ This master index provides a comprehensive guide to all technical documentation 
 1. OLC_ONLINE_CREATION_SYSTEM.md
 2. SCRIPTING_SYSTEM_DG.md
 3. ultimate-mud-writing-guide.md
-4. Building guides in building_game-data/
+4. Building guides in world_game-data/
 5. world/STARTER_AREA.md
 
 #### For Core Contributors
@@ -200,7 +192,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - ultimate-mud-writing-guide.md
 
 #### Intermediate (🟡 Intermediate)
-- SETUP_AND_BUILD_GUIDE.md
+- DEPLOYMENT_GUIDE.md
 - OLC_ONLINE_CREATION_SYSTEM.md
 - GAME_MECHANICS_SYSTEMS.md
 - Building guides

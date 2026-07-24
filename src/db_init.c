@@ -107,7 +107,7 @@ void init_core_player_tables(void)
       "INDEX idx_name (name), "
       "INDEX idx_email (email), "
       "INDEX idx_status (status)"
-      ")";
+      ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_account_data))
   {
@@ -136,7 +136,7 @@ void init_core_player_tables(void)
                                 "cha INT NOT NULL, "
                                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                                 "INDEX idx_pet_owner (owner_name)"
-                                ")";
+                                ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_pet_data))
   {
@@ -146,28 +146,21 @@ void init_core_player_tables(void)
 
   /* player_data - Core player character information */
   const char *create_player_data = "CREATE TABLE IF NOT EXISTS player_data ("
-                                   "id INT AUTO_INCREMENT PRIMARY KEY, "
-                                   "name VARCHAR(20) UNIQUE NOT NULL, "
-                                   "password VARCHAR(32) NOT NULL, "
-                                   "email VARCHAR(100), "
-                                   "account_id INT DEFAULT NULL, "
-                                   "level INT DEFAULT 1, "
-                                   "experience BIGINT DEFAULT 0, "
-                                   "class INT DEFAULT 0, "
+                                   "player_idnum INT UNSIGNED NOT NULL AUTO_INCREMENT, "
+                                   "name VARCHAR(30) NOT NULL, "
                                    "race INT DEFAULT 0, "
-                                   "alignment INT DEFAULT 0, "
-                                   "last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                                   "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                                   "total_sessions INT DEFAULT 0, "
-                                   "bad_pws INT DEFAULT 0, "
-                                   "obj_save_header VARCHAR(255) DEFAULT '', "
-                                   "INDEX idx_name (name), "
-                                   "INDEX idx_level (level), "
-                                   "INDEX idx_last_online (last_online), "
+                                   "classes INT DEFAULT 0, "
+                                   "level INT DEFAULT 0, "
+                                   "account_id INT DEFAULT NULL, "
+                                   "obj_save_header VARCHAR(200) NOT NULL DEFAULT '', "
+                                   "last_online DATETIME DEFAULT NULL, "
+                                   "character_info VARCHAR(100) DEFAULT NULL, "
+                                   "PRIMARY KEY (name), "
+                                   "UNIQUE KEY player_idnum (player_idnum), "
                                    "INDEX idx_player_account_id (account_id), "
                                    "CONSTRAINT fk_player_data_account FOREIGN KEY (account_id) "
                                    "REFERENCES account_data(id) ON DELETE SET NULL"
-                                   ")";
+                                   ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_player_data))
   {
@@ -221,7 +214,7 @@ void init_core_player_tables(void)
                                         "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                                         "INDEX idx_name (name), "
                                         "INDEX idx_creation_date (creation_date)"
-                                        ")";
+                                        ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_player_save_objs))
   {
@@ -240,7 +233,7 @@ void init_core_player_tables(void)
       "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
       "INDEX idx_owner_name (owner_name), "
       "INDEX idx_sheath_obj_id (sheath_obj_id)"
-      ")";
+      ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_player_save_objs_sheathed))
   {
@@ -257,7 +250,7 @@ void init_core_player_tables(void)
                                      "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                                      "INDEX idx_pet_idnum (pet_idnum), "
                                      "INDEX idx_owner_name (owner_name)"
-                                     ")";
+                                     ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_pet_save_objs))
   {
@@ -1137,7 +1130,7 @@ void init_crafting_system_tables(void)
       "last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
       "UNIQUE KEY unique_player_name (player_name), "
       "INDEX idx_player_name (player_name)"
-      ")";
+      ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_supply_orders))
   {

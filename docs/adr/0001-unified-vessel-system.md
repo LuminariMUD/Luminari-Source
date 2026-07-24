@@ -78,6 +78,6 @@ Total: 29 sessions, 353 unit tests, Valgrind clean
 
 ## References
 
-- [VESSEL_SYSTEM.md](../VESSEL_SYSTEM.md) - System documentation
-- [VESSEL_BENCHMARKS.md](../VESSEL_BENCHMARKS.md) - Performance data
-- [PRD.md](../../.spec_system/PRD/PRD.md) - Full requirements
+- [VESSEL_SYSTEM.md](../project-management-zusuk/vessels/VESSEL_SYSTEM.md) - System documentation
+- [VESSEL_BENCHMARKS.md](../project-management-zusuk/vessels/VESSEL_BENCHMARKS.md) - Performance data
+- [PRD.md](../PRD.md) - Full requirements

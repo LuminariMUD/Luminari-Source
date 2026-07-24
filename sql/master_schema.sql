@@ -29,24 +29,20 @@ CREATE TABLE IF NOT EXISTS account_data (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS player_data (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(20) NOT NULL,
-  password VARCHAR(32) NOT NULL,
-  email VARCHAR(100),
-  level INT DEFAULT 1,
-  experience BIGINT DEFAULT 0,
-  class INT DEFAULT 0,
+  player_idnum INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(30) NOT NULL,
   race INT DEFAULT 0,
-  alignment INT DEFAULT 0,
-  last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  total_sessions INT DEFAULT 0,
-  bad_pws INT DEFAULT 0,
-  obj_save_header VARCHAR(255) DEFAULT '',
-  UNIQUE KEY name (name),
-  INDEX idx_name (name),
-  INDEX idx_level (level),
-  INDEX idx_last_online (last_online)
+  classes INT DEFAULT 0,
+  level INT DEFAULT 0,
+  account_id INT DEFAULT NULL,
+  obj_save_header VARCHAR(200) NOT NULL DEFAULT '',
+  last_online DATETIME DEFAULT NULL,
+  character_info VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (name),
+  UNIQUE KEY player_idnum (player_idnum),
+  INDEX idx_player_account_id (account_id),
+  CONSTRAINT fk_player_data_account
+    FOREIGN KEY (account_id) REFERENCES account_data(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS unlocked_races (
@@ -72,11 +68,12 @@ CREATE TABLE IF NOT EXISTS unlocked_classes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS player_save_objs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(20) NOT NULL,
-  serialized_obj LONGTEXT NOT NULL,
-  creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  name VARCHAR(30) NOT NULL,
+  serialized_obj BLOB NOT NULL,
+  creation_date TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  idnum INT UNSIGNED DEFAULT NULL,
   INDEX idx_name (name),
+  INDEX idx_idnum (idnum),
   INDEX idx_creation_date (creation_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -92,13 +89,99 @@ CREATE TABLE IF NOT EXISTS player_save_objs_sheathed (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pet_save_objs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   pet_idnum BIGINT NOT NULL,
-  owner_name VARCHAR(20) NOT NULL,
-  serialized_obj LONGTEXT NOT NULL,
+  owner_name VARCHAR(50) NOT NULL,
+  serialized_obj TEXT NOT NULL,
   creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_pet_save_objs_pet (pet_idnum),
   INDEX idx_pet_save_objs_owner (owner_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pet_data (
+  pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  owner_name VARCHAR(50) NOT NULL,
+  vnum INT NOT NULL,
+  hp INT NOT NULL,
+  max_hp INT NOT NULL,
+  str INT NOT NULL,
+  con INT NOT NULL,
+  dex INT NOT NULL,
+  level INT NOT NULL,
+  ac INT NOT NULL,
+  intel INT DEFAULT 10,
+  wis INT DEFAULT 10,
+  cha INT DEFAULT 10,
+  pet_name VARCHAR(255) NOT NULL,
+  pet_sdesc VARCHAR(255) NOT NULL,
+  pet_ldesc VARCHAR(255) NOT NULL,
+  pet_ddesc TEXT NOT NULL,
+  INDEX idx_pet_owner (owner_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_eidolons (
+  idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  owner VARCHAR(50) NOT NULL,
+  short_desc VARCHAR(120) NOT NULL,
+  long_desc VARCHAR(120) NOT NULL,
+  INDEX idx_player_eidolons_owner (owner)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS loot_chests (
+  loot_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  chest_vnum INT NOT NULL,
+  character_name VARCHAR(30) NOT NULL,
+  last_loot DATETIME NOT NULL,
+  INDEX idx_loot_chests_character (character_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_mail (
+  mail_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sender VARCHAR(255) NOT NULL,
+  receiver VARCHAR(255) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  date_sent DATE DEFAULT NULL,
+  INDEX idx_player_mail_sender (sender),
+  INDEX idx_player_mail_receiver (receiver)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_mail_deleted (
+  player_name VARCHAR(255) NOT NULL,
+  mail_id INT NOT NULL,
+  PRIMARY KEY (player_name, mail_id),
+  INDEX idx_player_mail_deleted_mail (mail_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_mail_read (
+  player_name VARCHAR(255) NOT NULL,
+  mail_id INT NOT NULL,
+  PRIMARY KEY (player_name, mail_id),
+  INDEX idx_player_mail_read_mail (mail_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_quest_info (
+  id_num INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  character_name VARCHAR(100) NOT NULL,
+  quest_done DATETIME NOT NULL,
+  quest_id INT NOT NULL,
+  in_progress TINYINT NOT NULL,
+  INDEX idx_player_quest_info_character (character_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_quest_progress (
+  prog_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  quest_id INT UNSIGNED NOT NULL,
+  character_name VARCHAR(100) NOT NULL,
+  num_obtained INT NOT NULL,
+  INDEX idx_player_quest_progress_character (character_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS player_supply_orders (
+  idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  player_name VARCHAR(100) NOT NULL,
+  supply_orders_available INT NOT NULL,
+  INDEX idx_player_supply_orders_name (player_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------------------------
@@ -798,17 +881,27 @@ CREATE TABLE IF NOT EXISTS pubsub_topics (
   INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS pubsub_player_settings (
+  setting_id INT AUTO_INCREMENT PRIMARY KEY,
+  player_name VARCHAR(30) NOT NULL,
+  max_subscriptions INT DEFAULT NULL,
+  default_handler VARCHAR(64) DEFAULT NULL,
+  auto_subscribe_categories TEXT DEFAULT NULL,
+  notification_settings TEXT DEFAULT NULL,
+  INDEX idx_player (player_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS pubsub_subscriptions (
   subscription_id INT AUTO_INCREMENT PRIMARY KEY,
   topic_id INT NOT NULL,
-  player_name VARCHAR(80) NOT NULL,
+  player_name VARCHAR(30) NOT NULL,
+  handler_name VARCHAR(64) DEFAULT NULL,
+  handler_data TEXT DEFAULT NULL,
+  status INT DEFAULT NULL,
   subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  is_active BOOLEAN DEFAULT TRUE,
-  UNIQUE KEY unique_subscription (topic_id, player_name),
+  INDEX idx_topic (topic_id),
   INDEX idx_player (player_name),
-  INDEX idx_active (is_active),
-  CONSTRAINT fk_pubsub_subscription_topic
-    FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE
+  INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pubsub_messages (

@@ -10,8 +10,8 @@ Implemented **Tier 2 perks** from the **Judgment & Spellcasting** tree for Inqui
 
 ### 1. Enhanced Bane (4 ranks, 2 points each)
 **Mechanics Integrated:**
-- **Damage Bonus**: Added to `compute_damage_bonus()` in [fight.c](fight.c#L6500) - gains +1 damage per rank against judged target
-- **Attack Bonus**: Added to `get_perk_weapon_tohit_bonus()` in [perks.c](perks.c#L13092) - gains +1 to-hit per 2 ranks (max +2 at rank 4)
+- **Damage Bonus**: Added to `compute_damage_bonus()` in [fight.c](../../src/fight.c#L6500) - gains +1 damage per rank against judged target
+- **Attack Bonus**: Added to `get_perk_weapon_tohit_bonus()` in [perks.c](../../src/perks.c#L13092) - gains +1 to-hit per 2 ranks (max +2 at rank 4)
 - **AOE Capability**: Rank 4 extends bane to all creatures of same type as current target (via `has_inquisitor_enhanced_bane_aoe()`)
 - **Helper Functions**:
   - `get_inquisitor_enhanced_bane_damage()` - Returns +1-4 damage
@@ -20,7 +20,7 @@ Implemented **Tier 2 perks** from the **Judgment & Spellcasting** tree for Inqui
 
 ### 2. Divine Resilience (1 rank, 2 points)
 **Mechanics Integrated:**
-- **Temporary HP Trigger**: When judgment is toggled ON in [act.offensive.c](act.offensive.c#L12945)
+- **Temporary HP Trigger**: When judgment is toggled ON in [act.offensive.c](../../src/act.offensive.c#L12945)
 - **Formula**: Inquisitor Level + Wisdom Modifier = temporary HP
 - **Duration**: Persists while judgment is active; reapplies if judgment is toggled off/on
 - **Implementation**: Uses `AFFECT_DIVINE_RESILIENCE` (1305) affect with `APPLY_HIT` location
@@ -28,7 +28,7 @@ Implemented **Tier 2 perks** from the **Judgment & Spellcasting** tree for Inqui
 
 ### 3. Spell Penetration (3 ranks, 2 points each)
 **Mechanics Integrated:**
-- **Challenge Roll Bonus**: Added to `mag_resistance()` in [magic.c](magic.c#L288) - gains +1 per rank to spell resistance check
+- **Challenge Roll Bonus**: Added to `mag_resistance()` in [magic.c](../../src/magic.c#L288) - gains +1 per rank to spell resistance check
 - **SR Reduction (Rank 3)**: At rank 3, ignores first 5 points of enemy spell resistance
 - **Implementation**:
   - Bonus applied via `get_inquisitor_spell_penetration()` to challenge roll
@@ -40,39 +40,39 @@ Implemented **Tier 2 perks** from the **Judgment & Spellcasting** tree for Inqui
 ### 4. Persistent Judgment (1 rank, 2 points)
 **Mechanics Already Integrated:**
 - **Effect**: When judgment is toggled OFF, the judgment bonus persists for 5 rounds as a morale bonus
-- **Code Location**: [act.offensive.c](act.offensive.c#L12897) - Full implementation already in place
+- **Code Location**: [act.offensive.c](../../src/act.offensive.c#L12897) - Full implementation already in place
 - **Cooldown**: 20 round cooldown per judgment type (prevents stacking)
 - **Application**: Bonus applies to appropriate ability scores based on judgment type
 - **Helper Function**: `has_inquisitor_persistent_judgment()` - Boolean check
 
 ## Files Modified
 
-### 1. [src/structs.h](src/structs.h)
+### 1. [src/structs.h](../../src/structs.h)
 - Added Tier 2 perk ID constants (already present):
   - `PERK_INQUISITOR_ENHANCED_BANE` (1448)
   - `PERK_INQUISITOR_DIVINE_RESILIENCE` (1449)
   - `PERK_INQUISITOR_SPELL_PENETRATION` (1450)
   - `PERK_INQUISITOR_PERSISTENT_JUDGMENT` (1451)
 
-### 2. [src/spells.h](src/spells.h)
+### 2. [src/spells.h](../../src/spells.h)
 - Added new affect ID: `AFFECT_DIVINE_RESILIENCE` (1305)
 
-### 3. [src/perks.h](src/perks.h)
+### 3. [src/perks.h](../../src/perks.h)
 - All helper function declarations already present
 
-### 4. [src/perks.c](src/perks.c)
+### 4. [src/perks.c](../../src/perks.c)
 - **Lines 849-1000**: Tier 2 perk definitions in `define_inquisitor_perks()`
 - **Lines 1069-1120**: Helper functions for Tier 2 perks
 - **Lines 13092-13100**: Enhanced Bane integrated into `get_perk_weapon_tohit_bonus()`
 
-### 5. [src/fight.c](src/fight.c)
+### 5. [src/fight.c](../../src/fight.c)
 - **Lines 6500-6514**: Enhanced Bane damage bonus in `compute_damage_bonus()`
 
-### 6. [src/act.offensive.c](act.offensive.c)
+### 6. [src/act.offensive.c](../../src/act.offensive.c)
 - **Lines 12945-12962**: Divine Resilience temporary HP on judgment activation
 - **Lines 12897-12930**: Persistent Judgment already fully integrated
 
-### 7. [src/magic.c](magic.c)
+### 7. [src/magic.c](../../src/magic.c)
 - **Lines 288-297**: Spell Penetration bonus in `mag_resistance()`
 - Includes special handling for rank 3 SR reduction
 

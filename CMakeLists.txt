@@ -591,6 +591,7 @@ set(SRC_C_FILES
     src/perfmon.c
     src/perks.c
     src/perlin.c
+    src/player_rename.c
     src/players.c
     src/prefedit.c
     src/premadebuilds.c

@@ -794,7 +794,7 @@ make valgrind-phase02
 
 - [VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md) - Detailed performance data
 - [VESSEL_MANUAL_TEST.md](VESSEL_MANUAL_TEST.md) - Manual testing setup and issue tracking
-- [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
+- [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
 
 ---
 

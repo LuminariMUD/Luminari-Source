@@ -117,7 +117,7 @@
 #define SOCMESS_FILE LIB_MISC "socials"         /* messages for social acts	*/
 #define SOCMESS_FILE_NEW LIB_MISC "socials.new" /* messages for social acts with aedit patch*/
 #define QUIT_FEEDBACK_FILE LIB_MISC "quit_feedback.log" /* quit feedback responses */
-#define XNAME_FILE LIB_MISC "xnames"            /* invalid name substrings	*/
+#define XNAME_FILE LIB_MISC "xnames"                    /* invalid name substrings	*/
 
 /* BEGIN: Assumed default locations for logfiles, mainly used in do_file. */
 /**/
@@ -340,7 +340,12 @@ int vnum_mobile(char *searchname, struct char_data *ch);
 void clear_char(struct char_data *ch);
 void reset_char(struct char_data *ch);
 void free_char(struct char_data *ch);
+const char *player_file_account_name(const struct char_data *ch);
+#ifdef LUMINARI_CUTEST
+bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name);
+#endif
 void save_player_index(void);
+bool save_player_index_checked(void);
 long get_ptable_by_name(const char *name);
 void remove_player(int pfilepos);
 void clean_pfiles(void);

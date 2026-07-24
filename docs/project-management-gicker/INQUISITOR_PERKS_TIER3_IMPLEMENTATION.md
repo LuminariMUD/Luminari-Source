@@ -10,8 +10,8 @@ Implemented **Tier 3 perks** from the **Judgment & Spellcasting** tree for Inqui
 
 ### 1. Greater Judgment (1 rank, 3 points)
 **Mechanics Integrated:**
-- **Doubled Bonuses**: Modified `get_judgement_bonus()` in [utils.c](utils.c#L8144) to double judgment bonuses for selected judgment type
-- **Player Configuration**: New field `inq_greater_judgment_type` in [structs.h](structs.h#L6875) stores which judgment type gets doubled (0-9, 0=none)
+- **Doubled Bonuses**: Modified `get_judgement_bonus()` in [utils.c](../../src/utils.c#L8144) to double judgment bonuses for selected judgment type
+- **Player Configuration**: New field `inq_greater_judgment_type` in [structs.h](../../src/structs.h#L6875) stores which judgment type gets doubled (0-9, 0=none)
 - **Selection**: Players can change selection after long rest via future command implementation
 - **Helper Function**: `has_inquisitor_greater_judgment()` - Boolean check
 
@@ -24,8 +24,8 @@ Implemented **Tier 3 perks** from the **Judgment & Spellcasting** tree for Inqui
 
 ### 3. Righteous Strike (2 ranks, 3 points each)
 **Mechanics Integrated:**
-- **Damage Bonus**: Added to `compute_damage_bonus()` in [fight.c](fight.c#L6515) - rolls 2d6 per rank
-- **Spell Tracking**: New fields in [structs.h](structs.h#L6876-L6877):
+- **Damage Bonus**: Added to `compute_damage_bonus()` in [fight.c](../../src/fight.c#L6515) - rolls 2d6 per rank
+- **Spell Tracking**: New fields in [structs.h](../../src/structs.h#L6876-L6877):
   - `inq_last_spell_cast` - tracks last inquisitor spell cast
   - `inq_righteous_strike_rounds` - rounds remaining for bonus activation
 - **Duration**: Active for 1 round after spell cast, consumed on next melee attack
@@ -43,7 +43,7 @@ Implemented **Tier 3 perks** from the **Judgment & Spellcasting** tree for Inqui
 
 ## Files Modified
 
-### 1. [src/structs.h](src/structs.h)
+### 1. [src/structs.h](../../src/structs.h)
 - Added Tier 3 perk ID constants:
   - `PERK_INQUISITOR_GREATER_JUDGMENT` (1452)
   - `PERK_INQUISITOR_SPELL_METAMASTERY` (1453)
@@ -55,13 +55,13 @@ Implemented **Tier 3 perks** from the **Judgment & Spellcasting** tree for Inqui
   - `inq_last_spell_cast` - Last inquisitor spell cast
   - `inq_righteous_strike_rounds` - Rounds remaining for Righteous Strike bonus
 
-### 2. [src/spells.h](src/spells.h)
+### 2. [src/spells.h](../../src/spells.h)
 - Added affect constants:
   - `AFFECT_RIGHTEOUS_STRIKE` (1306)
   - `AFFECT_SPELL_METAMASTERY` (1307)
   - `AFFECT_GREATER_JUDGMENT` (1308)
 
-### 3. [src/perks.h](src/perks.h)
+### 3. [src/perks.h](../../src/perks.h)
 - Added Tier 3 helper function declarations:
   - `has_inquisitor_greater_judgment()`
   - `get_inquisitor_greater_judgment_type()`
@@ -70,16 +70,16 @@ Implemented **Tier 3 perks** from the **Judgment & Spellcasting** tree for Inqui
   - `has_inquisitor_righteous_strike()`
   - `has_inquisitor_versatile_judgment()`
 
-### 4. [src/perks.c](src/perks.c)
+### 4. [src/perks.c](../../src/perks.c)
 - **Lines 1002-1080**: Tier 3 perk definitions in `define_inquisitor_perks()`
 - **Lines 1201-1250**: All 6 helper functions for Tier 3 perks
 
-### 5. [src/fight.c](src/fight.c)
+### 5. [src/fight.c](../../src/fight.c)
 - **Lines 6515-6531**: Righteous Strike damage bonus in `compute_damage_bonus()`
   - Rolls 2d6 per rank if player has active Righteous Strike bonus
   - Consumes bonus on use (decrements `inq_righteous_strike_rounds`)
 
-### 6. [src/utils.c](utils.c)
+### 6. [src/utils.c](../../src/utils.c)
 - **Lines 8144-8152**: Greater Judgment integration in `get_judgement_bonus()`
   - Doubles judgment bonuses for selected judgment type
   - Checks both perk ownership and selected type

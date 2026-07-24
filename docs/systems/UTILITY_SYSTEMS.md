@@ -639,4 +639,4 @@ ACMD(do_purge_players) {
 
 ---
 
-*This documentation covers the core utility systems in LuminariMUD. For specific implementation details and configuration options, refer to the individual source files and the [Developer Guide](DEVELOPER_GUIDE_AND_API.md).*
+*This documentation covers the core utility systems in LuminariMUD. For specific implementation details and configuration options, refer to the individual source files and the [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md).*

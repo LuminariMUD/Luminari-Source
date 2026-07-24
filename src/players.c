@@ -39,6 +39,8 @@
 #include "crafting_new.h"
 #include "resource_system.h"
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -264,17 +266,60 @@ void remove_player_from_index(int pos)
 }
 
 /* This function necessary to save a separate ASCII player index */
-void save_player_index(void)
+bool save_player_index_checked(void)
 {
   int i = 0;
-  char index_name[50] = {'\0'}, bits[64] = {'\0'};
+  int fd = -1;
+  int index_exists;
+  int write_failed = FALSE;
+  char index_name[MAX_FILEPATH] = {'\0'}, temp_name[MAX_FILEPATH] = {'\0'}, bits[64] = {'\0'};
   FILE *index_file;
+  struct stat index_stat;
 
-  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
-  if (!(index_file = fopen(index_name, "w")))
+  i = snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
+  if (i < 0 || i >= (int)sizeof(index_name))
   {
-    log("SYSERR: Could not write player index file");
-    return;
+    log("SYSERR: Player index path is too long");
+    return FALSE;
+  }
+  i = snprintf(temp_name, sizeof(temp_name), "%s.rename-tmp.XXXXXX", index_name);
+  if (i < 0 || i >= (int)sizeof(temp_name))
+  {
+    log("SYSERR: Player index temporary path is too long");
+    return FALSE;
+  }
+
+  if ((fd = mkstemp(temp_name)) < 0)
+  {
+    log("SYSERR: Could not create temporary player index file: %s", strerror(errno));
+    return FALSE;
+  }
+
+  index_exists = lstat(index_name, &index_stat) == 0;
+  if (!index_exists && errno != ENOENT)
+  {
+    log("SYSERR: Could not inspect player index file: %s", strerror(errno));
+    close(fd);
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  if (index_exists &&
+      (!S_ISREG(index_stat.st_mode) || fchown(fd, index_stat.st_uid, index_stat.st_gid) != 0 ||
+       fchmod(fd, index_stat.st_mode & 07777) != 0))
+  {
+    log("SYSERR: Could not preserve player index permissions: %s", strerror(errno));
+    close(fd);
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  if (!(index_file = fdopen(fd, "w")))
+  {
+    log("SYSERR: Could not open temporary player index file: %s", strerror(errno));
+    close(fd);
+    unlink(temp_name);
+    return FALSE;
   }
 
   for (i = 0; i <= top_of_p_table; i++)
@@ -283,19 +328,47 @@ void save_player_index(void)
       sprintascii(bits, player_table[i].flags);
       if (player_table[i].clan == NO_CLAN)
       {
-        fprintf(index_file, "%ld %s %d %s %ld\n", player_table[i].id, player_table[i].name,
-                player_table[i].level, *bits ? bits : "0", (long)player_table[i].last);
+        if (fprintf(index_file, "%ld %s %d %s %ld\n", player_table[i].id, player_table[i].name,
+                    player_table[i].level, *bits ? bits : "0", (long)player_table[i].last) < 0)
+          write_failed = TRUE;
       }
       else
       {
-        fprintf(index_file, "%ld %s %d %s %ld %d\n", player_table[i].id, player_table[i].name,
-                player_table[i].level, *bits ? bits : "0", (long)player_table[i].last,
-                player_table[i].clan);
+        if (fprintf(index_file, "%ld %s %d %s %ld %d\n", player_table[i].id, player_table[i].name,
+                    player_table[i].level, *bits ? bits : "0", (long)player_table[i].last,
+                    player_table[i].clan) < 0)
+          write_failed = TRUE;
       }
     }
-  fprintf(index_file, "~\n");
+  if (fprintf(index_file, "~\n") < 0)
+    write_failed = TRUE;
 
-  fclose(index_file);
+  if (fflush(index_file) != 0 || ferror(index_file) || fsync(fileno(index_file)) != 0)
+    write_failed = TRUE;
+  if (fclose(index_file) != 0)
+    write_failed = TRUE;
+
+  if (write_failed)
+  {
+    log("SYSERR: Could not durably write player index file: %s", strerror(errno));
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  if (rename(temp_name, index_name) != 0)
+  {
+    log("SYSERR: Could not install player index file: %s", strerror(errno));
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+void save_player_index(void)
+{
+  if (!save_player_index_checked())
+    log("SYSERR: Could not write player index file");
 }
 
 void free_player_index(void)
@@ -1983,9 +2056,58 @@ static inline void buffer_write_string_field(char *buffer, size_t *buffer_used, 
 }
 
 /* This is the ASCII Player Files save routine. */
+const char *player_file_account_name(const struct char_data *ch)
+{
+  if (!ch)
+    return NULL;
+  if (ch->desc && ch->desc->account && ch->desc->account->name && *ch->desc->account->name)
+    return ch->desc->account->name;
+  if (ch->player_specials && GET_ACCOUNT_NAME(ch) && *GET_ACCOUNT_NAME(ch))
+    return GET_ACCOUNT_NAME(ch);
+  return NULL;
+}
+
+static bool apply_clone_owner_identity(struct char_data *mob, const char *owner_name)
+{
+  char *name;
+  char *short_description;
+  mob_rnum prototype_rnum;
+
+  if (!mob || !owner_name)
+    return FALSE;
+  name = strdup(owner_name);
+  short_description = strdup(owner_name);
+  if (!name || !short_description)
+  {
+    free(name);
+    free(short_description);
+    return FALSE;
+  }
+
+  prototype_rnum = GET_MOB_RNUM(mob);
+  if (mob->player.name && !(mob_proto && prototype_rnum >= 0 && prototype_rnum <= top_of_mobt &&
+                            mob->player.name == mob_proto[prototype_rnum].player.name))
+    free(mob->player.name);
+  if (mob->player.short_descr &&
+      !(mob_proto && prototype_rnum >= 0 && prototype_rnum <= top_of_mobt &&
+        mob->player.short_descr == mob_proto[prototype_rnum].player.short_descr))
+    free(mob->player.short_descr);
+  mob->player.name = name;
+  mob->player.short_descr = short_description;
+  return TRUE;
+}
+
+#ifdef LUMINARI_CUTEST
+bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name)
+{
+  return apply_clone_owner_identity(mob, owner_name);
+}
+#endif
+
 void save_char(struct char_data *ch, int mode)
 {
   FILE *fl;
+  const char *account_name = NULL;
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
        bits4[127] = {'\0'};
   int i = 0, j = 0, id = 0, save_index = FALSE;
@@ -2149,9 +2271,11 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE("Name: %s\n", GET_NAME(ch));
   if (GET_PASSWD(ch))
     BUFFER_WRITE("Pass: %s\n", GET_PASSWD(ch));
-  if (ch->desc && ch->desc->account && ch->desc->account->name)
+  account_name = player_file_account_name(ch);
+
+  if (account_name)
   {
-    BUFFER_WRITE("Acct: %s\n", ch->desc->account->name);
+    BUFFER_WRITE("Acct: %s\n", account_name);
     //    BUFFER_WRITE( "ActN: %s\n", ch->desc->account->name);
   }
 
@@ -5458,11 +5582,6 @@ void load_char_pets(struct char_data *ch)
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
     GET_LEVEL(mob) = atoi(row[1]);
     autoroll_mob(mob, TRUE, TRUE);
-    if (GET_MOB_VNUM(mob) == 10) // MOB_CLONE define from magic.c
-    {
-      mob->player.name = strdup(GET_NAME(ch));
-      mob->player.short_descr = strdup(GET_NAME(ch));
-    }
     if (strlen(row[11]) > 0)
     {
       snprintf(desc1, sizeof(desc1), "%s", row[11]);
@@ -5482,6 +5601,15 @@ void load_char_pets(struct char_data *ch)
     {
       snprintf(desc4, sizeof(desc4), "%s", row[14]);
       mob->player.description = strdup(desc4);
+    }
+    /*
+     * Clone names are derived from their current owner.  Apply this after
+     * loading saved pet text so a pre-rename owner name cannot overwrite it.
+     */
+    if (GET_MOB_VNUM(mob) == MOB_CLONE)
+    {
+      if (!apply_clone_owner_identity(mob, GET_NAME(ch)))
+        log("SYSERR: Unable to derive clone identity for %s", GET_NAME(ch));
     }
     if (atol(row[15]) > 0)
     {

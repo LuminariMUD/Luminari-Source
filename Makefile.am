@@ -150,6 +150,8 @@ circle_SOURCES = \
 	src/oedit.c \
 	src/perfmon.c \
 	src/perlin.c \
+	src/player_rename.c \
+	src/player_rename.h \
 	src/players.c \
 	src/prefedit.c \
 	src/premadebuilds.c \
@@ -238,6 +240,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_random.c \
 	unittests/CuTest/test_treasure.c \
 	unittests/CuTest/test_utils.c \
+	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/AllTests.c \
@@ -269,6 +272,9 @@ src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
 # Extra files to distribute
 EXTRA_DIST = \
 	unittests/CuTest/make-tests.sh \
+	scripts/test_character_rename_schema.sh \
+	scripts/test_character_rename_static.sh \
+	sql/components/character_rename_transactional_schema.sql \
 	README.md \
 	CHANGELOG.md \
 	LICENSE
@@ -276,6 +282,14 @@ EXTRA_DIST = \
 # Run unit tests
 test: check
 	./cutest
+
+.PHONY: test-character-rename-static test-character-rename-schema
+
+test-character-rename-static:
+	./scripts/test_character_rename_static.sh
+
+test-character-rename-schema:
+	./scripts/test_character_rename_schema.sh
 
 # Additional cleanup for distclean
 # Removes autotools-generated files and build artifacts

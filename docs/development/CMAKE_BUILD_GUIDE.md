@@ -220,6 +220,6 @@ make -j4
 
 ## See Also
 
-- [Setup and Build Guide](guides/SETUP_AND_BUILD_GUIDE.md) - Traditional build process
-- [Developer Guide](DEVELOPER_GUIDE_AND_API.md) - Coding standards
-- [Testing Guide](TESTING_GUIDE.md) - Running tests
+- [Deployment Guide](../deployment/DEPLOYMENT_GUIDE.md) - Traditional build process
+- [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md) - Coding standards
+- [Testing Guide](../guides/TESTING_GUIDE.md) - Running tests

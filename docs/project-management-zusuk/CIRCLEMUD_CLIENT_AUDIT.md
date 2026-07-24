@@ -32,7 +32,7 @@ This implementation has been thoroughly repaired and is now suitable for product
 ### 🔴 CRITICAL SEVERITY ISSUES - ✅ **ALL RESOLVED**
 
 #### C1: Buffer Overflow Vulnerabilities
-**Location**: [`i3_client.c:226-236`](i3_client.c:226-236)
+**Location**: [`i3_client.c:226-236`](../../src/systems/intermud3/i3_client.c#L226-L236)
 **Issue**: Unsafe use of `strtok()` with fixed-size buffer without bounds checking
 ```c
 char buffer[I3_MAX_STRING_LENGTH];
@@ -49,7 +49,7 @@ while (line) {
 **CVE Similarity**: Similar to CVE-2021-44228 (Log4j) - unsafe string processing
 
 #### C2: Format String Vulnerabilities
-**Location**: [`i3_client.c:57, 94, 824`](i3_client.c:57)
+**Location**: [`i3_client.c:57, 94, 824`](../../src/systems/intermud3/i3_client.c#L57)
 **Issue**: User-controlled data passed directly to logging functions
 ```c
 log("ERROR: Failed to allocate I3 client structure"); // Safe
@@ -59,7 +59,7 @@ i3_log("DEBUG: Loading API key from config: %s", value); // Potentially unsafe i
 **Risk**: Information disclosure, potential code execution
 
 #### C3: Use After Free Vulnerabilities
-**Location**: [`i3_client.c:139-147`](i3_client.c:139-147)
+**Location**: [`i3_client.c:139-147`](../../src/systems/intermud3/i3_client.c#L139-L147)
 **Issue**: Race condition in queue cleanup during shutdown
 ```c
 while (i3_client->command_queue_head) {
@@ -70,7 +70,7 @@ while (i3_client->command_queue_head) {
 **Risk**: Memory corruption, potential code execution
 
 #### C4: Memory Corruption in JSON Handling
-**Location**: [`i3_client.c:425-429`](i3_client.c:425-429)
+**Location**: [`i3_client.c:425-429`](../../src/systems/intermud3/i3_client.c#L425-L429)
 **Issue**: No validation of JSON parsing results before use
 ```c
 root = json_tokener_parse(json_str);
@@ -83,7 +83,7 @@ if (!root) {
 **Risk**: Memory corruption, denial of service
 
 #### C5: Unsafe Memory Management
-**Location**: [`i3_client.c:55-66`](i3_client.c:55-66)
+**Location**: [`i3_client.c:55-66`](../../src/systems/intermud3/i3_client.c#L55-L66)
 **Issue**: Inconsistent error handling in allocation chain
 ```c
 i3_client = (i3_client_t *)calloc(1, sizeof(i3_client_t));
@@ -101,7 +101,7 @@ i3_client->command_mutex = calloc(1, sizeof(pthread_mutex_t));
 ### 🔴 HIGH SEVERITY ISSUES - ✅ **ALL RESOLVED**
 
 #### H1: Critical Threading Safety Violations
-**Location**: [`i3_client.c:197-255`](i3_client.c:197-255)
+**Location**: [`i3_client.c:197-255`](../../src/systems/intermud3/i3_client.c#L197-L255)
 **Issue**: Main thread loop accesses shared state without proper synchronization
 ```c
 while (i3_client->state != I3_STATE_SHUTDOWN) { // Unsafe read
@@ -113,7 +113,7 @@ while (i3_client->state != I3_STATE_SHUTDOWN) { // Unsafe read
 **Risk**: Data races, inconsistent state, crashes
 
 #### H2: Resource Leak in Socket Management
-**Location**: [`i3_client.c:292-295`](i3_client.c:292-295)
+**Location**: [`i3_client.c:292-295`](../../src/systems/intermud3/i3_client.c#L292-L295)
 **Issue**: Socket not closed in all error paths
 ```c
 if (i3_client->socket_fd >= 0) {
@@ -125,7 +125,7 @@ if (i3_client->socket_fd >= 0) {
 **Risk**: File descriptor exhaustion, system instability
 
 #### H3: Deadlock Potential in Queue Operations
-**Location**: [`i3_client.c:507-529`](i3_client.c:507-529)
+**Location**: [`i3_client.c:507-529`](../../src/systems/intermud3/i3_client.c#L507-L529)
 **Issue**: Nested mutex operations without timeout
 ```c
 pthread_mutex_lock(mutex_ptr);
@@ -141,7 +141,7 @@ if (i3_client->command_queue_size >= i3_client->max_queue_size) {
 **Risk**: System hang, resource exhaustion
 
 #### H4: Improper Error Propagation
-**Location**: [`i3_client.c:99-108`](i3_client.c:99-108)
+**Location**: [`i3_client.c:99-108`](../../src/systems/intermud3/i3_client.c#L99-L108)
 **Issue**: Thread creation failure leaves system in inconsistent state
 ```c
 if (pthread_create(thread_ptr, NULL, i3_client_thread, NULL) != 0) {
@@ -154,7 +154,7 @@ if (pthread_create(thread_ptr, NULL, i3_client_thread, NULL) != 0) {
 **Risk**: Resource leaks, system instability
 
 #### H5: Authentication Bypass Risk
-**Location**: [`i3_client.c:360-393`](i3_client.c:360-393)
+**Location**: [`i3_client.c:360-393`](../../src/systems/intermud3/i3_client.c#L360-L393)
 **Issue**: Authentication state not properly validated before operations
 ```c
 static int i3_authenticate(void) {
@@ -170,7 +170,7 @@ static int i3_authenticate(void) {
 ### 🟡 MEDIUM SEVERITY ISSUES - ✅ **ALL RESOLVED**
 
 #### M1: Input Validation Weaknesses
-**Location**: [`i3_commands.c:46-64`](i3_commands.c:46-64)
+**Location**: [`i3_commands.c:46-64`](../../src/systems/intermud3/i3_commands.c#L46-L64)
 **Issue**: Insufficient validation of user input in commands
 ```c
 message = one_argument(arg_copy, target, sizeof(target));
@@ -185,7 +185,7 @@ if (!*target || !*message) {
 **Risk**: Input injection, denial of service
 
 #### M2: Performance Bottlenecks
-**Location**: [`i3_client.c:221-241`](i3_client.c:221-241)
+**Location**: [`i3_client.c:221-241`](../../src/systems/intermud3/i3_client.c#L221-L241)
 **Issue**: Synchronous socket operations in main thread
 ```c
 result = select(i3_client->socket_fd + 1, &read_set, NULL, NULL, &timeout);
@@ -197,7 +197,7 @@ if (result > 0 && FD_ISSET(i3_client->socket_fd, &read_set)) {
 **Risk**: Performance degradation, responsiveness issues
 
 #### M3: Incomplete Protocol Implementation
-**Location**: [`i3_commands.c:525-602`](i3_commands.c:525-602)
+**Location**: [`i3_commands.c:525-602`](../../src/systems/intermud3/i3_commands.c#L525-L602)
 **Issue**: Multiple protocol methods are stub implementations
 ```c
 int i3_request_who(const char *target_mud) {
@@ -209,7 +209,7 @@ int i3_request_who(const char *target_mud) {
 **Risk**: Feature incompleteness, interoperability issues
 
 #### M4: Memory Management Inconsistencies
-**Location**: [`i3_client.c:682-687`](i3_client.c:682-687)
+**Location**: [`i3_client.c:682-687`](../../src/systems/intermud3/i3_client.c#L682-L687)
 **Issue**: Inconsistent memory management patterns
 ```c
 cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t)); // Uses calloc
@@ -219,7 +219,7 @@ cmd->params = params; // Direct assignment - ownership unclear
 **Risk**: Memory corruption, leaks
 
 #### M5: Error Handling Gaps
-**Location**: [`i3_client.c:647-662`](i3_client.c:647-662)
+**Location**: [`i3_client.c:647-662`](../../src/systems/intermud3/i3_client.c#L647-L662)
 **Issue**: Incomplete error handling in network operations
 ```c
 sent = send(i3_client->socket_fd, buffer, len, 0);
@@ -245,11 +245,11 @@ pthread_mutex_t *mutex_ptr; // Mixed styles
 ```
 
 #### L2: Documentation Deficiencies
-**Location**: [`i3_client.h`](i3_client.h)
+**Location**: [`i3_client.h`](../../src/systems/intermud3/i3_client.h)
 **Issue**: Missing function documentation and parameter descriptions
 
 #### L3: Magic Number Usage
-**Location**: [`i3_client.c:218`](i3_client.c:218)
+**Location**: [`i3_client.c:218`](../../src/systems/intermud3/i3_client.c#L218)
 **Issue**: Hard-coded timeout values
 ```c
 timeout.tv_sec = 1; // Magic number

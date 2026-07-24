@@ -71,6 +71,9 @@
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
 #include "genshp.h"
 #include "treasure.h"
+#include "player_rename.h"
+
+#define SET_NAME_FIELD 34
 
 /* External variables and functions */
 extern MYSQL *conn;
@@ -4732,17 +4735,14 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_MOVE(vict) = RANGE(0, GET_MAX_MOVE(vict));
     affect_total(vict);
     break;
-  case 34: /* name */
+  case SET_NAME_FIELD: /* name */
     if (ch != vict && GET_LEVEL(ch) < LVL_IMPL)
     {
       send_to_char(ch, "Only Imps can change the name of other players.\r\n");
       return (0);
     }
     if (!change_player_name(ch, vict, val_arg))
-    {
-      send_to_char(ch, "Name has not been changed!\r\n");
       return (0);
-    }
     break;
   case 35: /* nodelete */
     SET_OR_REMOVE(PLR_FLAGS(vict), PLR_NODELETE);
@@ -5360,7 +5360,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   {
     send_to_char(ch, "%s's %s increased by %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, value);
   }
-  else
+  else if (mode != SET_NAME_FIELD)
     send_to_char(ch, "%s", CONFIG_OK);
 
   return (1);
@@ -5493,9 +5493,9 @@ ACMD(do_set)
   /* save the character if a change was made */
   if (retval)
   {
-    if (!is_file && !IS_NPC(vict))
+    if (mode != SET_NAME_FIELD && !is_file && !IS_NPC(vict))
       save_char(vict, 0);
-    if (is_file)
+    if (mode != SET_NAME_FIELD && is_file)
     {
       GET_PFILEPOS(cbuf) = player_i;
       save_char(cbuf, 0);
@@ -7850,9 +7850,8 @@ ACMD(do_wizupdate)
 /* NOTE: This is called from perform_set */
 bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_name)
 {
-  struct char_data *temp_ch = NULL;
-  int plr_i = 0, i, k;
-  char old_name[MAX_NAME_LENGTH], old_pfile[50], new_pfile[50], buf[MAX_STRING_LENGTH] = {'\0'};
+  struct player_rename_report report;
+  enum player_rename_status status;
 
   if (!ch)
   {
@@ -7867,87 +7866,28 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
     return FALSE;
   }
 
-  if (!new_name || !(*new_name) || strlen(new_name) < 2 || strlen(new_name) > MAX_NAME_LENGTH ||
-      !valid_name(new_name) || fill_word(new_name) || reserved_word(new_name))
+  status = rename_player_everywhere(ch, vict, new_name, &report);
+  if (status != PLAYER_RENAME_OK)
   {
-    send_to_char(ch, "Invalid new name.\r\n");
+    send_to_char(ch, "Rename failed while %s (%s). %s\r\n",
+                 *report.failure_stage ? report.failure_stage : "processing the rename",
+                 player_rename_status_string(status),
+                 report.rollback_succeeded ? "All changes were rolled back."
+                                           : "Rollback could not be fully verified; see the log.");
     return FALSE;
   }
 
-  // Check that someone with new_name isn't already logged in
-  if ((temp_ch = get_player_vis(ch, new_name, NULL, FIND_CHAR_WORLD)) != NULL)
-  {
-    send_to_char(ch, "Sorry, the new name already exists.\r\n");
-    return FALSE;
-  }
-  else
-  {
-    /* try to load the player off disk */
-    CREATE(temp_ch, struct char_data, 1);
-    clear_char(temp_ch);
-    CREATE(temp_ch->player_specials, struct player_special_data, 1);
-    new_mobile_data(temp_ch);
-    /* Allocate mobile event list */
-    // temp_ch->events = create_list();
-    if ((plr_i = load_char(new_name, temp_ch)) > -1)
-    {
-      free_char(temp_ch);
-      send_to_char(ch, "Sorry, the new name already exists.\r\n");
-      return FALSE;
-    }
-  }
-
-  /* New playername is OK - find the entry in the index */
-  for (i = 0; i <= top_of_p_table; i++)
-    if (player_table[i].id == GET_IDNUM(vict))
-      break;
-
-  if (player_table[i].id != GET_IDNUM(vict))
-  {
-    send_to_char(ch, "Your target was not found in the player index.\r\n");
-    log("SYSERR: Player %s, with ID %ld, could not be found in the player index.", GET_NAME(vict),
-        GET_IDNUM(vict));
-    return FALSE;
-  }
-
-  /* Set up a few variables that will be needed */
-  snprintf(old_name, sizeof(old_name), "%s", GET_NAME(vict));
-  if (!get_filename(old_pfile, sizeof(old_pfile), PLR_FILE, old_name))
-  {
-    send_to_char(ch, "Unable to ascertain player's old pfile name.\r\n");
-    return FALSE;
-  }
-  if (!get_filename(new_pfile, sizeof(new_pfile), PLR_FILE, new_name))
-  {
-    send_to_char(ch, "Unable to ascertain player's new pfile name.\r\n");
-    return FALSE;
-  }
-
-  /* Now start changing the name over - all checks and setup have passed */
-  free(player_table[i].name);              // Free the old name in the index
-  player_table[i].name = strdup(new_name); // Insert the new name into the index
-  for (k = 0; (*(player_table[i].name + k) = LOWER(*(player_table[i].name + k))); k++)
-    ;
-
-  free(GET_PC_NAME(vict));
-  GET_PC_NAME(vict) = strdup(CAP(new_name)); // Change the name in the victims char struct
-
-  /* Rename the player's pfile */
-  snprintf(buf, sizeof(buf), "mv %s %s", old_pfile, new_pfile);
-  if (system(buf) == -1)
-  {
-    log("SYSERR: Failed to rename player file from %s to %s", old_pfile, new_pfile);
-  }
-
-  /* Save the changed player index - the pfile is saved by perform_set */
-  save_player_index();
-
-  mudlog(BRF, LVL_IMMORT, TRUE, "(GC) %s changed the name of %s to %s", GET_NAME(ch), old_name,
-         new_name);
+  send_to_char(ch,
+               "Character %s (id %ld) renamed to %s. Account link %s; "
+               "%u object rows and %u files migrated.\r\n",
+               report.old_name, report.player_id, report.new_name,
+               report.account_linked ? "preserved" : "is not linked", report.object_rows_changed,
+               report.files_moved);
 
   if (vict->desc) /* Descriptor is set if the victim is logged in */
     send_to_char(vict, "Your login name has changed from %s%s%s to %s%s%s.\r\n", CCYEL(vict, C_NRM),
-                 old_name, CCNRM(vict, C_NRM), CCYEL(vict, C_NRM), new_name, CCNRM(vict, C_NRM));
+                 report.old_name, CCNRM(vict, C_NRM), CCYEL(vict, C_NRM), report.new_name,
+                 CCNRM(vict, C_NRM));
 
   return TRUE;
 }

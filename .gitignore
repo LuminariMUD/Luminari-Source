@@ -109,14 +109,12 @@ util/wld2html
 # AI Assistant Files
 ####################
 # AI development guide and configuration
-CLAUDE.md
-GEMINI.md
-AGENTS.md
 .claude/
 .cursorrules
 .cursorignore
 WORK.md
 .mcp.json
+.spec_system/
 
 ####################
 # Backup Files

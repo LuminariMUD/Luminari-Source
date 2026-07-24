@@ -496,4 +496,4 @@ void log_database_stats() {
 
 ---
 
-*For additional database administration and advanced configuration, refer to the MySQL documentation and the [Troubleshooting Guide](TROUBLESHOOTING_AND_MAINTENANCE.md).*
+*For additional database administration and advanced configuration, refer to the MySQL documentation and the [Troubleshooting Guide](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md).*

@@ -16,12 +16,12 @@
 ### 🚀 **Phase Documentation**
 - **[phases/](phases/)** - Phase-specific completion reports and documentation
   - **[PHASE_2B_SPATIAL_AUDIO_COMPLETION_REPORT.md](phases/PHASE_2B_SPATIAL_AUDIO_COMPLETION_REPORT.md)** ✅ Complete
-  - **[PHASE_3_DESIGN.md](phases/PHASE_3_DESIGN.md)** 🔄 In Planning
+  - **[PHASE_3_IMPLEMENTATION_PLAN.md](phases/PHASE_3_IMPLEMENTATION_PLAN.md)** 🔄 In Planning
 
 ### 🧪 **Testing Documentation**
 - **[testing/](testing/)** - Testing guides and procedures
   - **[PHASE_2B_TESTING_GUIDE.md](testing/PHASE_2B_TESTING_GUIDE.md)** ✅ Phase 2B Spatial Audio Testing
-  - **[INTEGRATION_TESTING.md](testing/INTEGRATION_TESTING.md)** 🔄 Cross-system testing procedures
+  - INTEGRATION_TESTING.md 🔄 Cross-system testing procedures (not yet written)
 
 ### ⚙️ **Technical Documentation**
 - **[technical/](technical/)** - Implementation details and technical specifications

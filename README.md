@@ -163,9 +163,9 @@ bin/circle
 
 ## Installation
 
-For detailed installation instructions including system requirements, dependencies, database setup, and configuration, please see the **[Setup and Build Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**.
+For detailed installation instructions including system requirements, dependencies, database setup, and configuration, please see the **[Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md)**.
 
-Windows users (WSL): See the "Auto-WSL integration (Windows)" section in the Setup and Build Guide for targeting a specific WSL distro and for temporarily disabling or re-enabling the Auto-WSL behavior.
+Windows users (WSL): See the "Ubuntu/Debian (including WSL2)" section of the Deployment Guide.
 
 
 ## Usage
@@ -247,7 +247,7 @@ nohup bin/circle &
 ### Game Documentation
 - **[Combat System](docs/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
 - **[Player Management](docs/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[Vessel System](docs/systems/VESSEL_SYSTEM.md)**: Ships, airships, and navigation
+- **[Vessel System](docs/project-management-zusuk/vessels/VESSEL_SYSTEM.md)**: Ships, airships, and navigation
 
 ### Additional Resources
 - **[Testing Guide](docs/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
@@ -404,7 +404,7 @@ Custom code developed for LuminariMUD is released into the **public domain**:
 >
 > Anyone is free to copy, modify, publish, use, compile, sell, or distribute this software, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means.
 
-For complete license details, see the [LICENSE](LICENSE) file.
+For complete license details, see the [LICENSE](LICENSE.md) file.
 
 ## Acknowledgments
 

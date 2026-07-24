@@ -600,4 +600,4 @@ void log_command_performance(int cmd, long execution_time) {
 
 ---
 
-*This documentation covers the core command system architecture. For specific command implementations and advanced features, refer to the individual source files and the [Developer Guide](DEVELOPER_GUIDE_AND_API.md).*
+*This documentation covers the core command system architecture. For specific command implementations and advanced features, refer to the individual source files and the [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md).*

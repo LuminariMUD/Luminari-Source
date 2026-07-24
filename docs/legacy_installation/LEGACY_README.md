@@ -16,11 +16,11 @@ The following types of documentation have been successfully consolidated:
 - **Administrator Guides** - `admin.pdf`, `admin.tex`, `running.doc`, `UnixShellAdminGuide.pdf`
   - Consolidated into: [admin/README.md](../admin/README.md)
 - **Building Documentation** - `building.pdf`, `building.tex`, `socials.*`, `shop.doc`, etc.
-  - Consolidated into: [building_game-data/README.md](../building_game-data/README.md)
+  - Consolidated into: [world_game-data/builder_manual.md](../world_game-data/builder_manual.md)
 - **Developer Documentation** - `coding.pdf`, `coding.tex`, `hacker.*`, `database.doc`, etc.
   - Consolidated into: [development/README.md](../development/README.md)
 - **Installation Guides** - `porting.pdf`, `porting.tex`, various platform-specific files
-  - Consolidated into: [guides/SETUP_AND_BUILD_GUIDE.md](../guides/SETUP_AND_BUILD_GUIDE.md)
+  - Consolidated into: [deployment/DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)
 - **Utilities Documentation** - `utils.pdf`, `utils.tex`, `utils.doc`
   - Consolidated into: [utilities/README.md](../utilities/README.md)
 - **General Documentation** - `README*`, `FAQ.*`, `files.*`, `wizhelp.*`
@@ -60,9 +60,9 @@ The following files remain for historical reference or because they contain plat
 
 ### By Topic
 - **Administration**: [admin/README.md](../admin/README.md)
-- **Building**: [building_game-data/README.md](../building_game-data/README.md)
+- **Building**: [world_game-data/builder_manual.md](../world_game-data/builder_manual.md)
 - **Development**: [development/README.md](../development/README.md)
-- **Installation**: [guides/SETUP_AND_BUILD_GUIDE.md](../guides/SETUP_AND_BUILD_GUIDE.md)
+- **Installation**: [deployment/DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)
 - **Utilities**: [utilities/README.md](../utilities/README.md)
 - **Legal**: [legal/README.md](../legal/README.md)
 - **Systems**: [systems/](../systems/)

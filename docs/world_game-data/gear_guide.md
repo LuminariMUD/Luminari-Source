@@ -1,9 +1,9 @@
 # Combined Gear Stat Distribution
 
-Sources merged:
-- [docs/world_game-data/current_gear_stats_distribution.md](docs/world_game-data/current_gear_stats_distribution.md)
-- [docs/world_game-data/stats-by-location-markdown.md](docs/world_game-data/stats-by-location-markdown.md)
-- [docs/world_game-data/stat_distribute_on_gear_drop.md](docs/world_game-data/stat_distribute_on_gear_drop.md)
+Sources merged (originals removed after consolidation):
+- current_gear_stats_distribution.md
+- stats-by-location-markdown.md
+- stat_distribute_on_gear_drop.md
 
 Document dates in sources:
 - Stats by Wear Location: February 23, 2022

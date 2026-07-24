@@ -39,6 +39,7 @@ const char *five_arguments(const char *argument, char *first_arg, size_t n1, cha
                            char *fifth_arg, size_t n5);
 int fill_word(char *argument);
 int reserved_word(char *argument);
+int parse_player_name(char *arg, char *name);
 void half_chop(char *string, char *arg1, char *arg2);
 void half_chop_c(const char *string, char *arg1, size_t n1, char *arg2, size_t n2);
 void nanny(struct descriptor_data *d, char *arg);

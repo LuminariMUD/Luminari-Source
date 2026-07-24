@@ -686,18 +686,18 @@ These ancient deities represent the raw elemental forces that shaped the world b
 ## Import Schema and Mapping to Code
 
 This section makes the Luminari Pantheon import-ready by explicitly covering every field used by the deity engine. It provides:
-- A schema that maps this document’s fields to the engine API in [add_deity()](src/deities.c:101) and [add_deity_new()](src/deities.c:156)
+- A schema that maps this document’s fields to the engine API in [add_deity()](../../src/deities.c#L101) and [add_deity_new()](../../src/deities.c#L156)
 - Enumeration/constant mappings (ethos, alignment, domains, weapons, pantheons)
 - Defaults/derivation rules for any still-missing values
 - A complete per-deity “Field Completion” list (aliases, worshipper alignments, follower demonyms, explicit pantheon)
 
-Reference for engine loading entry point: [assign_deities()](src/deities.c:201). Source file: [src/deities.c](src/deities.c:1)
+Reference for engine loading entry point: [assign_deities()](../../src/deities.c#L201). Source file: [src/deities.c](../../src/deities.c#L1)
 
 ### 1) Engine Field Schema (maps to struct deity_info)
 
 The engine expects the following fields to be present when importing. Both legacy and new systems are supported; Luminari uses the new system.
 
-- Required (New System via [add_deity_new()](src/deities.c:156)):
+- Required (New System via [add_deity_new()](../../src/deities.c#L156)):
   - name: string
   - ethos: one of ETHOS_LAWFUL, ETHOS_NEUTRAL, ETHOS_CHAOTIC
   - alignment: one of ALIGNMENT_GOOD, ALIGNMENT_NEUTRAL, ALIGNMENT_EVIL
@@ -709,13 +709,13 @@ The engine expects the following fields to be present when importing. Both legac
   - follower_names: string (what worshippers are called, e.g. “Aethyran(s)”)
   - description: string (lore/description)
 
-- Optional legacy mechanics (Old System via [add_deity()](src/deities.c:101)):
+- Optional legacy mechanics (Old System via [add_deity()](../../src/deities.c#L101)):
   - domains: up to six DOMAIN_* constants
   - favored_weapon: WEAPON_TYPE_* constant
   - portfolio: string
   - description: string
 
-Luminari entries below provide Suggested Domains (for mechanics) and Favored Weapon where applicable. Importers may call [add_deity_new()](src/deities.c:156) for roleplay fields, and optionally extend with domain/weapon data (hybrid import) if desired.
+Luminari entries below provide Suggested Domains (for mechanics) and Favored Weapon where applicable. Importers may call [add_deity_new()](../../src/deities.c#L156) for roleplay fields, and optionally extend with domain/weapon data (hybrid import) if desired.
 
 ### 2) Enumeration and Constant Mappings
 
@@ -761,7 +761,7 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
 
 - Domain tags (map to DOMAIN_*):
   - All tags shown in each deity’s “Suggested Domains” map to DOMAIN_* constants.
-  - Existing in codebase (examples seen in [src/deities.c](src/deities.c:1)): DOMAIN_WAR, DOMAIN_MAGIC, DOMAIN_SPELL, DOMAIN_KNOWLEDGE, DOMAIN_PLANT, DOMAIN_TRAVEL, DOMAIN_PROTECTION, DOMAIN_STRENGTH, DOMAIN_GOOD, DOMAIN_CHAOS, DOMAIN_LAW, DOMAIN_HEALING, DOMAIN_SUN, DOMAIN_WATER, DOMAIN_OCEAN, DOMAIN_STORM, DOMAIN_ANIMAL, DOMAIN_DEATH, DOMAIN_FATE, DOMAIN_EARTH, DOMAIN_FIRE, DOMAIN_TIME, DOMAIN_RUNE, DOMAIN_TRICKERY, DOMAIN_LUCK, DOMAIN_RENEWAL, DOMAIN_MOON, DOMAIN_CAVERN, DOMAIN_METAL, DOMAIN_TRADE, DOMAIN_RETRIBUTION, DOMAIN_HATRED, DOMAIN_CHARM, DOMAIN_MOBILITY
+  - Existing in codebase (examples seen in [src/deities.c](../../src/deities.c#L1)): DOMAIN_WAR, DOMAIN_MAGIC, DOMAIN_SPELL, DOMAIN_KNOWLEDGE, DOMAIN_PLANT, DOMAIN_TRAVEL, DOMAIN_PROTECTION, DOMAIN_STRENGTH, DOMAIN_GOOD, DOMAIN_CHAOS, DOMAIN_LAW, DOMAIN_HEALING, DOMAIN_SUN, DOMAIN_WATER, DOMAIN_OCEAN, DOMAIN_STORM, DOMAIN_ANIMAL, DOMAIN_DEATH, DOMAIN_FATE, DOMAIN_EARTH, DOMAIN_FIRE, DOMAIN_TIME, DOMAIN_RUNE, DOMAIN_TRICKERY, DOMAIN_LUCK, DOMAIN_RENEWAL, DOMAIN_MOON, DOMAIN_CAVERN, DOMAIN_METAL, DOMAIN_TRADE, DOMAIN_RETRIBUTION, DOMAIN_HATRED, DOMAIN_CHARM, DOMAIN_MOBILITY
   - New specialized domains referenced here (add if not present):
     - DOMAIN_PORTAL
     - DOMAIN_VOID
@@ -781,7 +781,7 @@ Use comma-separated D&D alignments exactly in this form, e.g.:
 
 ### 4) Defaults and Derivation Rules
 
-If any particular field is omitted in a deity block, importers MUST apply these rules so that [add_deity_new()](src/deities.c:156) can still be called with complete data:
+If any particular field is omitted in a deity block, importers MUST apply these rules so that [add_deity_new()](../../src/deities.c#L156) can still be called with complete data:
 
 - pantheon: derive from section:
   - “Core Deities” ➜ DEITY_PANTHEON_LUMINARI_CORE
@@ -1068,7 +1068,7 @@ Note: Suggested Domains, Holy Symbol, Favored Weapon, Portfolio, Ethos/Alignment
 
 ## Importer Notes
 
-- Use the “Suggested Domains” already present under each deity’s entry to populate up to six DOMAIN_* values for [add_deity()](src/deities.c:101) if you also want to support mechanical domains at import time. Otherwise, prefer [add_deity_new()](src/deities.c:156) with the extended roleplay fields.
+- Use the “Suggested Domains” already present under each deity’s entry to populate up to six DOMAIN_* values for [add_deity()](../../src/deities.c#L101) if you also want to support mechanical domains at import time. Otherwise, prefer [add_deity_new()](../../src/deities.c#L156) with the extended roleplay fields.
 
 - Favored Weapon lines in each deity entry are descriptive; apply the “Weapon text ➜ WEAPON_TYPE_*” normalization above to produce the exact engine constant.
 
@@ -1078,4 +1078,4 @@ Note: Suggested Domains, Holy Symbol, Favored Weapon, Portfolio, Ethos/Alignment
   - Pantheons: DEITY_PANTHEON_LUMINARI_CORE, DEITY_PANTHEON_LUMINARI_DWARVEN, DEITY_PANTHEON_LUMINARI_ELVEN, DEITY_PANTHEON_LUMINARI_HALFLING, DEITY_PANTHEON_LUMINARI_ORCISH, DEITY_PANTHEON_LUMINARI_SEAFOLK, DEITY_PANTHEON_LUMINARI_DARK_COURTS, DEITY_PANTHEON_LUMINARI_PRIMARCHS
   - Domains: DOMAIN_PORTAL, DOMAIN_VOID (optional; fallback to DOMAIN_UNDEFINED if deferred)
 
-This document now contains every data field required by the engine to import Luminari deities via [assign_deities()](src/deities.c:201), using [add_deity_new()](src/deities.c:156) primarily, with optional domain/weapon mechanics available for hybrid imports through [add_deity()](src/deities.c:101).
+This document now contains every data field required by the engine to import Luminari deities via [assign_deities()](../../src/deities.c#L201), using [add_deity_new()](../../src/deities.c#L156) primarily, with optional domain/weapon mechanics available for hybrid imports through [add_deity()](../../src/deities.c#L101).

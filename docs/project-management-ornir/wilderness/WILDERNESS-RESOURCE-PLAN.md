@@ -686,7 +686,7 @@ The Wilderness Resource System is now **FULLY OPERATIONAL** with:
 ## 🚀 **NEXT PHASE OPPORTUNITIES**
 
 ### **Phase 7: Ecological Resource Interdependencies (READY FOR IMPLEMENTATION)**
-**[📋 Detailed Plan: PHASE_7_PLAN.md](PHASE_7_PLAN.md)**
+**[📋 Detailed Plan: PHASE_7_PLAN.md](../PHASE_7_PLAN.md)**
 
 - **Resource Cascade Effects**: Harvesting vegetation affects herbs, mining destroys crystals
 - **Ecosystem Health Tracking**: Monitor overall ecological balance per area
@@ -724,13 +724,13 @@ The Wilderness Resource System is now **FULLY OPERATIONAL** with:
 ## 📚 **COMPLETE DOCUMENTATION SUITE**
 
 **System Documentation:**
-- **[RESOURCE_REGENERATION_SYSTEM.md](../systems/RESOURCE_REGENERATION_SYSTEM.md)** - Complete technical documentation
-- **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](../systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - Admin quick reference
-- **[RESOURCE_REGENERATION_API.md](../development/RESOURCE_REGENERATION_API.md)** - Developer API reference
+- **[RESOURCE_REGENERATION_SYSTEM.md](../../systems/RESOURCE_REGENERATION_SYSTEM.md)** - Complete technical documentation
+- **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](../../systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - Admin quick reference
+- **[RESOURCE_REGENERATION_API.md](../../development/RESOURCE_REGENERATION_API.md)** - Developer API reference
 
 **Implementation Documentation:**
-- **[PHASE_5_DESIGN.md](PHASE_5_DESIGN.md)** - Player harvesting mechanics design
-- **[PHASE_5_IMPLEMENTATION_PLAN.md](PHASE_5_IMPLEMENTATION_PLAN.md)** - Implementation strategy
+- **[PHASE_5_DESIGN.md](../PHASE_5_DESIGN.md)** - Player harvesting mechanics design
+- **[PHASE_5_IMPLEMENTATION_PLAN.md](../PHASE_5_IMPLEMENTATION_PLAN.md)** - Implementation strategy
 
 **The Wilderness Resource System represents a major evolution from passive environmental features to a fully interactive, player-driven resource economy with realistic environmental simulation.**
 

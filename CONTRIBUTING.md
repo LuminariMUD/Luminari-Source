@@ -16,7 +16,7 @@ We welcome contributions from developers, builders, and community members! This 
 ## Getting Started
 
 ### Prerequisites
-- **Development Environment**: Set up according to the [Setup and Build Guide](docs/SETUP_AND_BUILD_GUIDE.md)
+- **Development Environment**: Set up according to the [Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md)
 - **Git Knowledge**: Basic understanding of Git and GitHub workflows
 - **C Programming**: Familiarity with C programming language (ANSI C90/C89 standard)
 - **MUD Knowledge**: Understanding of MUD concepts and tbaMUD/CircleMUD architecture
@@ -109,7 +109,7 @@ git push origin feature/your-feature-name
 ## Coding Standards
 
 ### Code Style
-Follow the guidelines in our [Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md):
+Follow the guidelines in our [Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md):
 
 ```c
 // Function naming: lowercase with underscores
@@ -317,8 +317,8 @@ clang-format -i *.c *.h
 
 ### Important Links
 - **[Technical Documentation](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**
-- **[Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md)**
-- **[Setup Guide](docs/SETUP_AND_BUILD_GUIDE.md)**
+- **[Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md)**
+- **[Setup Guide](docs/deployment/DEPLOYMENT_GUIDE.md)**
 - **[AI Assistant Guide](CLAUDE.md)** - Comprehensive guide for AI-assisted development
 - **[Discord Community](https://discord.gg/Me3Tuu4)**
 - **[GitHub Repository](https://github.com/LuminariMUD/Luminari-Source)**
