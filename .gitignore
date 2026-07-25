@@ -397,3 +397,7 @@ FRMUD-HEX-Aunauroch.jpg
 plan.md
 scripts/populate_zone7000_from_aunauroch.py
 scripts/__pycache__/populate_zone7000_from_aunauroch.cpython-312.pyc
+
+# Root-level working changelog (docs/CHANGELOG.md stays tracked)
+/changelog
+/changelog.bak
