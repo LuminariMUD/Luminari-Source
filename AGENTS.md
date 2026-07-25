@@ -2,6 +2,8 @@
 
 This file provides guidance to AI Agents when working with code in this repository.
 
+**!IMPORTANT NOTE:** remote production can be accessed via details in `lib/.env`
+
 ## Critical Rules
 
 - NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
