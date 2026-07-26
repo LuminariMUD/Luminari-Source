@@ -51,7 +51,13 @@ Two separate test setups exist. There is NO `test_runner` binary - do not look f
 
 ```bash
 make test
+make install
 ```
+
+The root `make test` path may also build `./circle`. Always follow it with
+`make install`, which installs the current server as `bin/circle` and removes
+the root-level binary. Do not leave a `circle` build artifact in the project
+root.
 
 To add a test here: create `unittests/CuTest/test_*.c`, add it to
 `cutest_SOURCES` and `cutest_test_files` in `Makefile.am`, and add it to
