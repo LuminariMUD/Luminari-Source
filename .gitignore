@@ -259,6 +259,7 @@ pause
 .autorun.lock
 .autorun.state
 .autorun.lock.pid
+.watchdog.pid
 .killwatchdog
 
 # Copyover/hotboot files (should never be committed)

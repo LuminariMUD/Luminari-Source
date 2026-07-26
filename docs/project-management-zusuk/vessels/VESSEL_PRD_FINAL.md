@@ -5,7 +5,8 @@
 flagship gameplay system
 **Version**: 2.0
 **Date**: 2026-07-26
-**Status**: IN PROGRESS - Phases 04-09 code-complete, live verification outstanding
+**Status**: IN PROGRESS - Phases 04-09 code-complete; first live verification run
+blocked by a slot-index defect (Section 6.1.1)
 **Owner**: Zusuk
 **Prior art**: [VESSEL_SYSTEM.md](../../systems/VESSEL_SYSTEM.md), [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md),
 [VESSEL_SYSTEM_TESTING.md](../../testing/VESSEL_SYSTEM_TESTING.md)
@@ -100,14 +101,26 @@ the shallow wilderness integration is now the backbone described in Section 4.
 
 | Verified | Not yet verified |
 |----------|------------------|
-| Build clean, no new warnings (`-Wall -Wextra`) | Anything on a running server |
-| 74/74 production-linked tests pass | Manual regression script (VESSEL_SYSTEM_TESTING.md) |
+| Build clean, no new warnings (`-Wall -Wextra`) | Anything on a running server beyond regression steps 1-2 |
+| 74/74 production-linked tests pass | Manual regression script - FAILS at step 3 (Section 6.1.1) |
 | Valgrind: 0 leaks, 0 errors | Tick budget at 500 ships with all subsystems live |
 | Zero TODOs in vessel sources | Multi-day soak stability |
 | Help entries for all 31 commands | Player-facing balance (TTK, wages, freight margins) |
 
 Treat the gameplay layer as ready for a dev-server shakedown, not for
-production. It remains behind the cedit vessel-system toggle.
+production. The first live shakedown ran on 2026-07-26 and blocked at
+regression step 3 - see Section 6.1.1.
+
+**Correction to the toggle claim.** "It remains behind the cedit vessel-system
+toggle" is not true in code. `CONFIG_VESSEL_SYSTEM` is read in exactly one
+place in the entire codebase - `is_in_ship_interior()` at
+`src/vessels_rooms.c:1053`, with a duplicated check at `src/vessels_rooms.c:1063`.
+Every vessel command still registers and executes with the toggle off. The
+toggle is required for correct interior detection, but it is not a kill switch
+and must not be treated as production safety for the Section 6.5 rollout.
+Making the toggle actually load-bearing (gate command dispatch and the vessel
+tick) is outstanding work, and is a precondition for design pillar 5
+("Never break the MUD") being true as written.
 
 ### Explicit non-goals (for the final version)
 
@@ -496,6 +509,71 @@ Nothing below can be finished from source alone. They are the gate between
   30 steps, sections A-G. This is the single highest-value next action: it
   exercises boarding, sailing, autopilot, vedit, the vehicle loop, and docking
   against a real world. Nothing in the gameplay layer has run in a game yet.
+  - **STARTED 2026-07-26, BLOCKED AT STEP 3.** See 6.1.1 below. Steps 1 and 2
+    pass; step 3 fails. Sections A and C cannot complete against the legacy
+    fixture until the slot-index defect is fixed.
+
+#### 6.1.1 Live finding - legacy fixture reads the wrong ship slot (BLOCKER)
+
+First live run of the regression script. Environment: dev
+(`APP_ENV=development`), MariaDB up, `vessel_system = 1` persisted at
+`lib/etc/config:334`, `VESSEL_SYSTEM_DEBUG` 1.
+
+Result: step 1 (`goto 1000389`) and step 2 (`board`) pass. Step 3
+(`disembark`) fails with `Error: Unable to find a valid exit point.` - the
+message VESSEL_SYSTEM_TESTING.md lists under "Known fixed issues (do not
+re-open)".
+
+The `IN_ROOM(shipobj)` fix is correct; it never applies to this fixture.
+`shipnum` is used two incompatible ways - as an array index and as a struct
+field - and they disagree for the legacy test vessel:
+
+1. Object 70002 (`lib/world/obj/700.obj:7`) carries values `70003 0`:
+   interior room 70003, ship_index **0**.
+2. `SPECIAL(greyhawk_ship_object)` (`src/spec_procs.c:12085-12089`) sets
+   `world[70003].ship = &greyhawk_ships[0]` and
+   `greyhawk_ships[0].shipobj = obj`. Correct - boarding works.
+3. `do_greyhawk_disembark` (`src/vessels.c:2000`) then reads
+   `shipnum = world[ship_room].ship->shipnum` - the struct field, not the
+   array index - and indexes `greyhawk_ships[shipnum]`.
+4. `src/vessels.c:849` sets `greyhawk_ships[0].shipnum = 1`.
+
+Slot 0 holds the data; the field says 1. Disembark reads
+`greyhawk_ships[1].shipobj`, a zeroed slot, gets NULL, leaves `exit_room` at
+NOWHERE, and errors at `src/vessels.c:2043`.
+
+`src/vessels_edit.c:461` sets `ship->shipnum = slot`, so vedit-spawned ships
+are self-consistent and unaffected. That is why this was believed fixed - the
+fix has only ever been exercised on the vedit path, never on the world-file
+fixture that Section A tests.
+
+Scope is wider than disembark. The same `ship->shipnum` deref appears at
+`src/vessels.c:1542, 1662, 1745, 1827, 1912` - `speed`, `heading`,
+`shipstatus`, `setsail`. Every one operates on the wrong slot for this
+fixture, so regression steps 13-15 would also have failed.
+
+Fix options (not yet applied):
+
+| Option | Change | Trade-off |
+|--------|--------|-----------|
+| A (recommended) | Move the fixture to slot 1: `greyhawk_ships[0]` -> `[1]` throughout `src/vessels.c:842-889`, keep `shipnum = 1`; change obj 70002 val1 from `0` to `1` | index == field; occupancy sentinel stays valid; ~20 lines plus one world-file edit |
+| B | `src/vessels.c:849` -> `shipnum = 0` | one line, but `shipnum` doubles as an occupancy sentinel (`src/vessels.c:1576`, `src/vessels.c:1929` scan `shipnum > 0`), so the test vessel drops off contact and tactical scans |
+
+Slot 0 is safe from vedit reuse under either option: the free-slot search
+(`src/vessels_edit.c:374`) also requires `name[0] == '\0'`, and the init sets
+the name to "Test Vessel".
+
+Related defect in the same block, worth fixing in the same pass: the init at
+`src/vessels.c:842-886` binds the test vessel to **room 1403**
+(`shiproom`, `room_vnums[0]`, and `world[1403].ship`), while object 70002
+boards you into **70003**. Two rooms point at slot 0 and `shiproom`
+disagrees with where the player actually stands, so Section C helm commands
+report the wrong interior.
+
+Design note for the longer term: `shipnum` should not be both an index and an
+occupancy flag. Deriving the index from the array position (or switching the
+sentinel to `name[0] != '\0'`) removes the whole class of bug rather than this
+one instance.
 - **Build the harbor sandbox** (was Phase 04 S5): expand zone 700 into two docks,
   three prototype ships, and a persistent NPC ferry on a schedule between them,
   with DG triggers on interior rooms. Several deferred items below need this
