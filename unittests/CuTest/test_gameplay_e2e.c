@@ -396,6 +396,104 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
   CuAssertTrue(tc, result_matches);
 }
 
+void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct index_data **saved_trig_index;
+  struct trig_data *saved_trigger_list;
+  struct index_data *prototype_index;
+  struct cmdlist_element *commands;
+  struct cmdlist_element *next_command;
+  struct trig_var_data *variable;
+  int saved_top_of_trigt;
+  int damage_result;
+  int remaining_hit_points;
+  bool parsed;
+  bool damage_variable_matches;
+  FILE *trigger_file;
+
+  begin_gameplay_fixture(&fixture);
+  saved_trig_index = trig_index;
+  saved_top_of_trigt = top_of_trigt;
+  saved_trigger_list = trigger_list;
+  trig_index = calloc(1, sizeof(*trig_index));
+  top_of_trigt = 0;
+  trigger_file = tmpfile();
+  parsed = false;
+  damage_variable_matches = false;
+  damage_result = -1;
+  remaining_hit_points = GET_HIT(&fixture.victim);
+
+  if (trig_index != NULL && trigger_file != NULL)
+  {
+    fprintf(trigger_file, "End-to-end damage trigger~\n");
+    fprintf(trigger_file, "0 u 100\n");
+    fprintf(trigger_file, "~\n");
+    fprintf(trigger_file, "set seen_damage %%damage%%\n");
+    fprintf(trigger_file, "global seen_damage\n");
+    fprintf(trigger_file, "return 5\n");
+    fprintf(trigger_file, "~\n");
+    rewind(trigger_file);
+
+    parse_trigger(trigger_file, 9001);
+    parsed = top_of_trigt == 1 && trig_index[0] != NULL;
+    if (parsed)
+    {
+      fixture.victim.script = calloc(1, sizeof(*fixture.victim.script));
+      if (fixture.victim.script != NULL)
+      {
+        add_trigger(fixture.victim.script, read_trigger(0), -1);
+        FIGHTING(&fixture.actor) = &fixture.victim;
+        FIGHTING(&fixture.victim) = &fixture.actor;
+        damage_result = damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, FALSE);
+        remaining_hit_points = GET_HIT(&fixture.victim);
+        for (variable = fixture.victim.script->global_vars; variable != NULL;
+             variable = variable->next)
+        {
+          if (strcmp(variable->name, "seen_damage") == 0 && strcmp(variable->value, "17") == 0)
+          {
+            damage_variable_matches = true;
+            break;
+          }
+        }
+        extract_script(&fixture.victim, MOB_TRIGGER);
+      }
+    }
+  }
+
+  if (GET_ID(&fixture.actor) != 0)
+    remove_from_lookup_table(GET_ID(&fixture.actor));
+  if (GET_ID(&fixture.victim) != 0)
+    remove_from_lookup_table(GET_ID(&fixture.victim));
+  if (trigger_file != NULL)
+    fclose(trigger_file);
+
+  prototype_index = parsed ? trig_index[0] : NULL;
+  if (prototype_index != NULL)
+  {
+    commands = ((struct trig_data *)prototype_index->proto)->cmdlist;
+    free_trigger((struct trig_data *)prototype_index->proto);
+    while (commands != NULL)
+    {
+      next_command = commands->next;
+      free(commands->cmd);
+      free(commands);
+      commands = next_command;
+    }
+    free(prototype_index);
+  }
+  free(trig_index);
+  trig_index = saved_trig_index;
+  top_of_trigt = saved_top_of_trigt;
+  trigger_list = saved_trigger_list;
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, parsed);
+  CuAssertIntEquals(tc, 5, damage_result);
+  CuAssertIntEquals(tc, 95, remaining_hit_points);
+  CuAssertTrue(tc, damage_variable_matches);
+}
+
 void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
 {
   struct room_data *saved_world;

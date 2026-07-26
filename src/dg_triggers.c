@@ -161,7 +161,7 @@ void greet_memory_mtrigger(char_data *actor)
 {
   trig_data *t;
   char_data *ch;
-  struct script_memory *mem;
+  struct script_memory *mem, *next_mem;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int command_performed = 0;
 
@@ -173,14 +173,16 @@ void greet_memory_mtrigger(char_data *actor)
 
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch->next_in_room)
   {
-    if (IN_ROOM(ch) == NOWHERE) continue;
+    if (IN_ROOM(ch) == NOWHERE)
+      continue;
     if (!SCRIPT_MEM(ch) || !AWAKE(ch) || FIGHTING(ch) || (ch == actor) ||
         AFF_FLAGGED(ch, AFF_CHARM))
       continue;
     /* find memory line with command only */
-    for (mem = SCRIPT_MEM(ch); mem && SCRIPT_MEM(ch); mem = mem->next)
+    for (mem = SCRIPT_MEM(ch); mem && SCRIPT_MEM(ch); mem = next_mem)
     {
-      if (GET_ID(actor) != mem->id)
+      next_mem = mem->next;
+      if (char_script_id(actor) != mem->id)
         continue;
       if (mem->cmd)
       {
@@ -244,7 +246,8 @@ int greet_mtrigger(char_data *actor, int dir)
 
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch->next_in_room)
   {
-    if (IN_ROOM(ch) == NOWHERE) continue;
+    if (IN_ROOM(ch) == NOWHERE)
+      continue;
 
     if (!SCRIPT_CHECK(ch, MTRIG_GREET | MTRIG_GREET_ALL) || !AWAKE(ch) || FIGHTING(ch) ||
         (ch == actor) || AFF_FLAGGED(ch, AFF_CHARM))
@@ -280,7 +283,7 @@ void entry_memory_mtrigger(char_data *ch)
 {
   trig_data *t = NULL;
   char_data *actor = NULL;
-  struct script_memory *mem = NULL;
+  struct script_memory *mem = NULL, *next_mem = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_MEM(ch) || AFF_FLAGGED(ch, AFF_CHARM))
@@ -290,9 +293,10 @@ void entry_memory_mtrigger(char_data *ch)
   {
     if (actor != ch && SCRIPT_MEM(ch))
     {
-      for (mem = SCRIPT_MEM(ch); mem && SCRIPT_MEM(ch); mem = mem->next)
+      for (mem = SCRIPT_MEM(ch); mem && SCRIPT_MEM(ch); mem = next_mem)
       {
-        if (GET_ID(actor) == mem->id)
+        next_mem = mem->next;
+        if (char_script_id(actor) == mem->id)
         {
           struct script_memory *prev;
           if (mem->cmd)
@@ -575,6 +579,7 @@ int receive_mtrigger(char_data *ch, char_data *actor, obj_data *obj)
   trig_data *t;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
+  long object_id = obj_script_id(obj);
 
   if (!SCRIPT_CHECK(ch, MTRIG_RECEIVE) || AFF_FLAGGED(ch, AFF_CHARM))
     return 1;
@@ -584,13 +589,15 @@ int receive_mtrigger(char_data *ch, char_data *actor, obj_data *obj)
     if (TRIGGER_CHECK(t, MTRIG_RECEIVE) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
-      ADD_UID_VAR(buf, t, obj, "object", 0);
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, object_id);
+      add_var(&GET_TRIG_VARS(t), "object", buf, 0);
       {
         struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
-      if (DEAD(actor) || DEAD(ch) || obj->carried_by != actor)
+      if (DEAD(actor) || DEAD(ch) || !has_obj_by_uid_in_lookup_table(object_id) ||
+          obj->carried_by != actor)
         return 0;
       else
         return ret_val;
@@ -694,6 +701,64 @@ int cast_mtrigger(char_data *actor, char_data *ch, int spellnum)
   }
 
   return 1;
+}
+
+int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attacktype)
+{
+  trig_data *t;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  const char *attack_name;
+  int original_damage = dam;
+  int ret_val;
+
+  if (!actor || !victim || !IS_NPC(victim))
+    return dam;
+
+  if (!SCRIPT_CHECK(victim, MTRIG_DAMAGE) || AFF_FLAGGED(victim, AFF_CHARM))
+    return dam;
+
+  if (attacktype >= TYPE_HIT && attacktype < BOT_WEAPON_TYPES)
+    attack_name = "UNDEFINED";
+  else if (attacktype >= 0 && attacktype <= TOP_SKILL_DEFINE)
+    attack_name = skill_name(attacktype);
+  else
+    attack_name = "UNDEFINED";
+
+  for (t = TRIGGERS(SCRIPT(victim)); t; t = t->next)
+  {
+    if (TRIGGER_CHECK(t, MTRIG_DAMAGE) && rand_number(1, 100) <= GET_TRIG_NARG(t))
+    {
+      ADD_UID_VAR(buf, t, actor, "actor", 0);
+      ADD_UID_VAR(buf, t, victim, "victim", 0);
+      snprintf(buf, sizeof(buf), "%d", MAX(0, dam));
+      add_var(&GET_TRIG_VARS(t), "damage", buf, 0);
+      add_var(&GET_TRIG_VARS(t), "attacktype", attack_name, 0);
+      {
+        char_data *trigger_owner = victim;
+        struct script_call_args args = {&trigger_owner, t, MOB_TRIGGER, TRIG_NEW};
+
+        ret_val = script_driver(&args);
+      }
+
+      if (dg_owner_purged || DEAD(actor) || DEAD(victim))
+        return -1;
+      if (ret_val == SCRIPT_ERROR_CODE)
+      {
+        script_log("Damage trigger on mob %d failed; preserving %d damage", GET_MOB_VNUM(victim),
+                   original_damage);
+        return original_damage;
+      }
+      if (ret_val < -1)
+      {
+        script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage",
+                   GET_MOB_VNUM(victim), ret_val);
+        return -1;
+      }
+      return ret_val;
+    }
+  }
+
+  return dam;
 }
 
 int leave_mtrigger(char_data *actor, int dir)
@@ -1436,6 +1501,7 @@ int drop_wtrigger(obj_data *obj, char_data *actor)
   trig_data *t;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
+  long object_id = obj_script_id(obj);
 
   if (!actor || !SCRIPT_CHECK(&world[IN_ROOM(actor)], WTRIG_DROP))
     return 1;
@@ -1445,13 +1511,14 @@ int drop_wtrigger(obj_data *obj, char_data *actor)
     if (TRIGGER_CHECK(t, WTRIG_DROP) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
-      ADD_UID_VAR(buf, t, obj, "object", 0);
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, object_id);
+      add_var(&GET_TRIG_VARS(t), "object", buf, 0);
       {
         struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
-      if (obj->carried_by != actor)
+      if (!has_obj_by_uid_in_lookup_table(object_id) || obj->carried_by != actor)
         return 0;
       else
         return ret_val;

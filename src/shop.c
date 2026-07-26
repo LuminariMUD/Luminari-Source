@@ -1365,7 +1365,7 @@ static void read_line(FILE *shop_f, const char *string, void *data)
 {
   char buf[READ_SIZE];
 
-  if (!get_line(shop_f, buf) || !sscanf(buf, string, data))
+  if (!get_line(shop_f, buf) || sscanf(buf, string, data) != 1)
   {
     log("SYSERR: Error in shop #%d, near '%s' with '%s'", SHOP_NUM(top_shop), buf, string);
     exit(1);
@@ -1407,7 +1407,13 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list, int new_form
   do
   {
     if (!fgets(buf, sizeof(buf), shop_f))
+    {
+      if (feof(shop_f))
+        log("SYSERR: Unexpected end of file while reading shop type list.");
+      else
+        log("SYSERR: Error reading shop type list: %s", strerror(errno));
       break;
+    }
     if ((ptr = strchr(buf, ';')) != NULL)
       *ptr = '\0';
     else
@@ -1419,9 +1425,10 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list, int new_form
       for (tindex = 0; *item_types[tindex] != '\n'; tindex++)
         if (!strn_cmp(item_types[tindex], buf, strlen(item_types[tindex])))
         {
+          size_t item_type_length = strlen(item_types[tindex]);
+
           num = tindex;
-          strlcpy(buf, buf + strlen(item_types[tindex]),
-                  sizeof(buf)); /* strcpy: OK (always smaller) */
+          memmove(buf, buf + item_type_length, strlen(buf) - item_type_length + 1);
           break;
         }
 

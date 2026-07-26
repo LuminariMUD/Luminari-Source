@@ -223,6 +223,14 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *
     snprintf(str, slen, "%d", (int)strlen(vd->value));
     return TRUE;
   }
+  else if (!str_cmp(field, "toupper"))
+  { /* toupper   */
+    if (*vd->value)
+      snprintf(str, slen, "%c%s", UPPER(*vd->value), vd->value + 1);
+    else
+      *str = '\0';
+    return TRUE;
+  }
   else if (!str_cmp(field, "trim"))
   { /* trim      */
     /* trim whitespace from ends */
@@ -310,7 +318,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
   char *name;
   int num, count, i, j, doors, index = 0;
 
-
+  const char *const log_cmd[] = {"mlog ", "olog ", "wlog "};
   const char *const send_cmd[] = {"msend ", "osend ", "wsend "};
   const char *const echo_cmd[] = {"mecho ", "oecho ", "wecho "};
   const char *const gecho_cmd[] = {"mgecho", "ogecho", "wgecho"};
@@ -357,10 +365,10 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         switch (type)
         {
         case MOB_TRIGGER:
-          snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID((char_data *)go));
+          snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id((char_data *)go));
           break;
         case OBJ_TRIGGER:
-          snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID((obj_data *)go));
+          snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id((obj_data *)go));
           break;
         case WLD_TRIGGER:
           snprintf(str, slen, "%c%ld", UID_CHAR, (long)((room_data *)go)->number + ROOM_ID_BASE);
@@ -407,6 +415,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         snprintf(str, slen, "%s", omove[type]);
       else if (!str_cmp(var, "bind"))
         snprintf(str, slen, "%s", bind[type]);
+      else if (!str_cmp(var, "log"))
+        snprintf(str, slen, "%s", log_cmd[type]);
       else
         *str = '\0';
     }
@@ -651,7 +661,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           }
 
           if (rndm)
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(rndm));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(rndm));
           else
             *str = '\0';
         }
@@ -764,11 +774,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = atoi(subfield);
             int max = 50;
-            GET_CHA(c) += addition;
-            if (GET_CHA(c) > max)
-              GET_CHA(c) = max;
-            if (GET_CHA(c) < 3)
-              GET_CHA(c) = 3;
+            c->real_abils.cha += addition;
+            c->real_abils.cha = MAX(3, MIN(c->real_abils.cha, max));
+            affect_total(c);
           }
           snprintf(str, slen, "%d", GET_CHA(c));
         }
@@ -863,11 +871,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = atoi(subfield);
             int max = 50;
-            (c)->aff_abils.con += addition;
-            if ((c)->aff_abils.con > max)
-              (c)->aff_abils.con = max;
-            if ((c)->aff_abils.con < 3)
-              (c)->aff_abils.con = 3;
+            c->real_abils.con += addition;
+            c->real_abils.con = MAX(3, MIN(c->real_abils.con, max));
+            affect_total(c);
           }
           snprintf(str, slen, "%d", GET_CON(c));
         }
@@ -888,11 +894,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = atoi(subfield);
             int max = 50;
-            (c)->aff_abils.dex += addition;
-            if ((c)->aff_abils.dex > max)
-              (c)->aff_abils.dex = max;
-            if ((c)->aff_abils.dex < 3)
-              (c)->aff_abils.dex = 3;
+            c->real_abils.dex += addition;
+            c->real_abils.dex = MAX(3, MIN(c->real_abils.dex, max));
+            affect_total(c);
           }
           snprintf(str, slen, "%d", GET_DEX(c));
         }
@@ -928,7 +932,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           else if ((pos = find_eq_pos_script(subfield)) < 0 || !GET_EQ(c, pos))
             *str = '\0';
           else
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(GET_EQ(c, pos)));
+            snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(GET_EQ(c, pos)));
         }
         else if (!str_cmp(field, "exp"))
         {
@@ -947,7 +951,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         else if (!str_cmp(field, "fighting"))
         {
           if (FIGHTING(c))
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(FIGHTING(c)));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(FIGHTING(c)));
           else
             *str = '\0';
         }
@@ -956,7 +960,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (!c->followers || !c->followers->follower)
             *str = '\0';
           else
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(c->followers->follower));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(c->followers->follower));
         }
         break;
       case 'g':
@@ -1040,7 +1044,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         break;
       case 'i':
         if (!str_cmp(field, "id"))
-          snprintf(str, slen, "%ld", GET_ID(c));
+          snprintf(str, slen, "%ld", char_script_id(c));
         /* new check for pc/npc status */
         else if (!str_cmp(field, "is_pc"))
         {
@@ -1055,11 +1059,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = atoi(subfield);
             int max = 50;
-            GET_INT(c) += addition;
-            if (GET_INT(c) > max)
-              GET_INT(c) = max;
-            if (GET_INT(c) < 3)
-              GET_INT(c) = 3;
+            c->real_abils.intel += addition;
+            c->real_abils.intel = MAX(3, MIN(c->real_abils.intel, max));
+            affect_total(c);
           }
           snprintf(str, slen, "%d", GET_INT(c));
         }
@@ -1071,7 +1073,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             {
               if (GET_OBJ_VNUM(obj) == atoi(subfield))
               {
-                snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(obj)); /* arg given, found */
+                snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(obj)); /* arg given, found */
                 return;
               }
             }
@@ -1082,7 +1084,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           { /* no arg given */
             if (c->carrying)
             {
-              snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(c->carrying));
+              snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(c->carrying));
             }
             else
             {
@@ -1168,7 +1170,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (!c->master)
             *str = '\0';
           else
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(c->master));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(c->master));
         }
         else if (!str_cmp(field, "maxhitp"))
         {
@@ -1211,10 +1213,17 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!str_cmp(field, "name"))
           snprintf(str, slen, "%s", GET_NAME(c));
 
+        else if (!str_cmp(field, "npcflag"))
+        {
+          int flag = get_flag_by_name(action_bits, subfield);
+
+          snprintf(str, slen, "%d",
+                   IS_NPC(c) && flag != NOFLAG && MOB_FLAGGED(c, flag) ? TRUE : FALSE);
+        }
         else if (!str_cmp(field, "next_in_room"))
         {
           if (c->next_in_room)
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(c->next_in_room));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(c->next_in_room));
           else
             *str = '\0';
         }
@@ -1605,11 +1614,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = atoi(subfield);
             int max = 50;
-            (c)->aff_abils.str += addition;
-            if ((c)->aff_abils.str > max)
-              (c)->aff_abils.str = max;
-            if ((c)->aff_abils.str < 3)
-              (c)->aff_abils.str = 3;
+            c->real_abils.str += addition;
+            c->real_abils.str = MAX(3, MIN(c->real_abils.str, max));
+            affect_total(c);
           }
           snprintf(str, slen, "%d", GET_STR(c));
         }
@@ -1620,11 +1627,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             if (subfield && *subfield)
             {
               int addition = atoi(subfield);
-              GET_ADD(c) += addition;
-              if (GET_ADD(c) > 100)
-                GET_ADD(c) = 100;
-              if (GET_ADD(c) < 0)
-                GET_ADD(c) = 0;
+              c->real_abils.str_add += addition;
+              c->real_abils.str_add = MAX(0, MIN(c->real_abils.str_add, 100));
+              affect_total(c);
             }
             snprintf(str, slen, "%d", GET_ADD(c));
           }
@@ -1734,7 +1739,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            snprintf(str, slen, "%d", IS_NPC(c) ? (int)(GET_MOB_VNUM(c) == atoi(subfield)) : -1);
+            snprintf(str, slen, "%d", IS_NPC(c) ? (int)(GET_MOB_VNUM(c) == atoi(subfield)) : 0);
           }
           else
           {
@@ -1751,7 +1756,13 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
         break;
       case 'w':
-        if (!str_cmp(field, "weight"))
+        if (!str_cmp(field, "wait"))
+        {
+          if (subfield && *subfield)
+            GET_WAIT_STATE(c) = MAX(0, atoi(subfield)) * (PULSE_VIOLENCE / 2);
+          snprintf(str, slen, "%d", GET_WAIT_STATE(c));
+        }
+        else if (!str_cmp(field, "weight"))
           snprintf(str, slen, "%d", GET_WEIGHT(c));
         else if (!str_cmp(field, "wis"))
         {
@@ -1759,11 +1770,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = atoi(subfield);
             int max = 50;
-            GET_WIS(c) += addition;
-            if (GET_WIS(c) > max)
-              GET_WIS(c) = max;
-            if (GET_WIS(c) < 3)
-              GET_WIS(c) = 3;
+            c->real_abils.wis += addition;
+            c->real_abils.wis = MAX(3, MIN(c->real_abils.wis, max));
+            affect_total(c);
           }
           snprintf(str, slen, "%d", GET_WIS(c));
         }
@@ -1854,14 +1863,14 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         else if (!str_cmp(field, "carried_by"))
         {
           if (o->carried_by)
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(o->carried_by));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(o->carried_by));
           else
             *str = '\0';
         }
         else if (!str_cmp(field, "contents"))
         {
           if (o->contains)
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(o->contains));
+            snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(o->contains));
           else
             *str = '\0';
         } /* thanks to Jamie Nelson (Mordecai of 4 Dimensions MUD) */
@@ -1911,7 +1920,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         break;
       case 'i':
         if (!str_cmp(field, "id"))
-          snprintf(str, slen, "%ld", GET_ID(o));
+          snprintf(str, slen, "%ld", obj_script_id(o));
 
         else if (!str_cmp(field, "is_inroom"))
         {
@@ -1932,7 +1941,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         else if (!str_cmp(field, "next_in_list"))
         {
           if (o->next_content)
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(o->next_content));
+            snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(o->next_content));
           else
             *str = '\0';
         }
@@ -2017,7 +2026,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         else if (!str_cmp(field, "worn_by"))
         {
           if (o->worn_by)
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(o->worn_by));
+            snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(o->worn_by));
           else
             *str = '\0';
         }
@@ -2101,7 +2110,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             if (GET_OBJ_VNUM(obj) == atoi(subfield))
             {
               /* arg given, found */
-              snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(obj));
+              snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(obj));
               return;
             }
           }
@@ -2112,7 +2121,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         { /* no arg given */
           if (r->contents)
           {
-            snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(r->contents));
+            snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(r->contents));
           }
           else
           {
@@ -2123,7 +2132,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
       else if (!str_cmp(field, "people"))
       {
         if (r->people)
-          snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(r->people));
+          snprintf(str, slen, "%c%ld", UID_CHAR, char_script_id(r->people));
         else
           *str = '\0';
       }
@@ -2500,4 +2509,5 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
       left -= len;
     } /* else if *p .. */
   } /* while *p .. */
+  *buf = '\0';
 }

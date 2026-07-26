@@ -1723,7 +1723,7 @@ static void oedit_disp_perm_menu(struct descriptor_data *d)
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected_bits[counter],
                     !(++columns % 2) ? "\r\n" : "");
   }
-  sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, bits);
+  sprintbitarray(GET_OBJ_AFFECT(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, bits);
   write_to_output(d,
                   "\r\nObject permanent flags: %s%s%s\r\n"
                   "Enter object perm flag (0 to quit) : ",
@@ -1926,7 +1926,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
   /* wear slots of gear */
   sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, EF_ARRAY_MAX, buf1);
   /* permanent affections of gear */
-  sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
+  sprintbitarray(GET_OBJ_AFFECT(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
   /* permanent AFF2 affections of gear */
   sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, buf4);
 
@@ -2166,17 +2166,16 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
+        long script_id;
+
         send_to_char(d->character, "\r\nCommitting iedit changes.\r\n");
 
         obj = OLC_IOBJ(d);
+        script_id = GET_ID(obj);
 
         *obj = *(OLC_OBJ(d));
 
-        GET_ID(obj) = max_obj_id++;
-
-        /* find_obj helper */
-
-        add_to_lookup_table(GET_ID(obj), (void *)obj);
+        GET_ID(obj) = script_id;
 
         if (GET_OBJ_VNUM(obj) != NOTHING)
         {
@@ -2544,12 +2543,12 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   case OEDIT_PERM:
     if ((number = atoi(arg)) == 0)
       break;
-    if (number > 0 && number <= NUM_AFF_FLAGS)
+    if (number > 0 && number < NUM_AFF_FLAGS)
     {
       /* Setting AFF_CHARM on objects like this is dangerous. */
       if (number != AFF_CHARM)
       {
-        TOGGLE_BIT_AR(GET_OBJ_PERM(OLC_OBJ(d)), number);
+        TOGGLE_BIT_AR(GET_OBJ_AFFECT(OLC_OBJ(d)), number);
       }
     }
     oedit_disp_perm_menu(d);
@@ -3966,10 +3965,6 @@ void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
     extract_script(obj, OBJ_TRIGGER);
 
   SCRIPT(obj) = NULL;
-
-  /* find_obj helper */
-
-  remove_from_lookup_table(GET_ID(obj));
 
   OLC_OBJ(d) = obj;
 

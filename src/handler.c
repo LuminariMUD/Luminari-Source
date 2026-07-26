@@ -1050,7 +1050,7 @@ void update_msdp_affects(struct char_data *ch)
            (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
            (char)MSDP_ARRAY_OPEN);
   strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
-  for (i = 0; i < NUM_AFF_FLAGS; i++)
+  for (i = 1; i < NUM_AFF_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(ch), i))
     {
@@ -1523,10 +1523,10 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness)
   }
 
   X_LOC(ch) = x;
-  
-        /* Reset master tracker proximity flag when leaving a room */
-        if (!IS_NPC(ch))
-          GET_INQ_MASTER_TRACKER_ALERT(ch) = false;
+
+  /* Reset master tracker proximity flag when leaving a room */
+  if (!IS_NPC(ch))
+    GET_INQ_MASTER_TRACKER_ALERT(ch) = false;
   Y_LOC(ch) = y;
 
   char_to_room(ch, room);
@@ -1549,11 +1549,11 @@ static bool master_tracker_quarry_near(struct char_data *tracker, struct char_da
   {
     int max_distance = 50 + (compute_ability(tracker, ABILITY_SURVIVAL) * 10);
     int actual_distance = count_rooms_between(IN_ROOM(tracker), IN_ROOM(quarry));
-    
+
     /* If distance can't be calculated (no path), return false */
     if (actual_distance < 0)
       return false;
-    
+
     return actual_distance <= max_distance;
   }
 

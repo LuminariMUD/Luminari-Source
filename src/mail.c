@@ -233,13 +233,11 @@ char *read_delete(long recipient)
     snprintf(buf, sizeof(buf), "Mail system error - please report");
   else
   {
-    char *tmstr, *from, *to;
-
-    tmstr = asctime(localtime(&record_to_keep->sent_time));
-    *(tmstr + strlen(tmstr) - 1) = '\0';
+    char timestr[64], *from, *to;
 
     from = get_name_by_id(record_to_keep->sender);
     to = get_name_by_id(record_to_keep->recipient);
+    format_time_string(record_to_keep->sent_time, "%c", timestr, sizeof(timestr));
 
     snprintf(buf, sizeof(buf),
              " * * * * LuminariMUD Mail System * * * *\r\n"
@@ -249,7 +247,7 @@ char *read_delete(long recipient)
              "\r\n"
              "%s",
 
-             tmstr, to ? to : "Unknown", from ? from : "Unknown",
+             timestr, to ? to : "Unknown", from ? from : "Unknown",
              record_to_keep->body ? record_to_keep->body : "No message");
 
     free_mail_record(record_to_keep);
@@ -334,15 +332,15 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
     return;
   }
   act("$n starts to write some mail.", TRUE, ch, 0, 0, TO_ROOM);
-  snprintf(buf, sizeof(buf),
-           "$n tells you, 'I'll take %d coins for the stamp.'\r\n"
-           "$n tells you, 'Write your message. (/s saves /h for help).'",
-           STAMP_PRICE);
-
-  act(buf, FALSE, mailman, 0, ch, TO_VICT);
-
   if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    snprintf(buf, sizeof(buf), "$n tells you, 'I'll take %d coins for the stamp.'", STAMP_PRICE);
+    act(buf, FALSE, mailman, 0, ch, TO_VICT);
     decrease_gold(ch, STAMP_PRICE);
+  }
+
+  act("$n tells you, 'Write your message. (/s saves /h for help).'", FALSE, mailman, 0, ch,
+      TO_VICT);
 
   SET_BIT_AR(PLR_FLAGS(ch), PLR_MAILING); /* string_write() sets writing. */
 

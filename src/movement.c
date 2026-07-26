@@ -1444,7 +1444,10 @@ ACMD(do_follow)
   }
   else
   {
-    send_to_char(ch, "Whom do you wish to follow?\r\n");
+    if (ch->master)
+      send_to_char(ch, "You are following %s.\r\n", GET_NAME(ch->master));
+    else
+      send_to_char(ch, "Whom do you wish to follow?\r\n");
     return;
   }
 
@@ -1492,6 +1495,23 @@ ACMD(do_follow)
       add_follower(ch, leader);
     }
   }
+}
+
+ACMD(do_unfollow)
+{
+  if (!ch->master)
+  {
+    send_to_char(ch, "You are not following anyone.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    send_to_char(ch, "You feel compelled to follow %s.\r\n", GET_NAME(ch->master));
+    return;
+  }
+
+  stop_follower(ch);
 }
 
 ACMD(do_unlead)

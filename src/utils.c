@@ -2768,8 +2768,7 @@ int strn_cmp(const char *arg1, const char *arg2, int n)
 void basic_mud_vlog(const char *format, va_list args)
 {
   time_t ct = time(0);
-  struct tm *tm_info;
-  char *time_s;
+  char timestr[32];
 
   if (logfile == NULL)
   {
@@ -2780,26 +2779,8 @@ void basic_mud_vlog(const char *format, va_list args)
   if (format == NULL)
     format = "SYSERR: log() received a NULL format.";
 
-  tm_info = localtime(&ct);
-  if (tm_info == NULL)
-  {
-    /* Fallback if localtime fails */
-    fprintf(logfile, "%-15.15s :: ", "??? ?? ??:??:??");
-  }
-  else
-  {
-    time_s = asctime(tm_info);
-    if (time_s == NULL)
-    {
-      /* Fallback if asctime fails */
-      fprintf(logfile, "%-15.15s :: ", "??? ?? ??:??:??");
-    }
-    else
-    {
-      time_s[strlen(time_s) - 1] = '\0';
-      fprintf(logfile, "%-15.15s :: ", time_s + 4);
-    }
-  }
+  format_time_string(ct, "%b %d %H:%M:%S %Y", timestr, sizeof(timestr));
+  fprintf(logfile, "%-20.20s :: ", timestr);
 
   vfprintf(logfile, format, args);
   fputc('\n', logfile);
@@ -3207,7 +3188,8 @@ void stop_follower(struct char_data *ch)
     {
       act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
       act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
-      act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
+      if (CAN_SEE(ch->master, ch))
+        act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
     }
   }
 
@@ -3917,7 +3899,8 @@ void char_from_buff_targets(struct char_data *ch)
 void column_list(struct char_data *ch, int num_cols, const char **list, int list_length,
                  bool show_nums)
 {
-  int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len, max_len = 0;
+  size_t max_len = 0;
+  int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* Work out the longest list item */
@@ -3928,7 +3911,7 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
   /* auto columns case */
   if (num_cols == 0)
   {
-    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
+    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / ((int)max_len + (show_nums ? 5 : 1));
   }
 
   /* Ensure that the number of columns is in the range 1-10 */
@@ -3948,7 +3931,7 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
   if (show_nums)
     col_width -= 4;
 
-  if (col_width < max_len)
+  if (col_width < 0 || (size_t)col_width < max_len)
     log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)",
         GET_NAME(ch));
 
@@ -5373,17 +5356,29 @@ void text_line(struct char_data *ch, const char *text, int length, char first, c
 }
 
 /* Time formatting helpers */
+bool format_time_string(time_t when, const char *format, char *buf, size_t size)
+{
+  struct tm *tm_info;
+
+  if (!buf || size == 0)
+    return FALSE;
+
+  *buf = '\0';
+  tm_info = localtime(&when);
+  if (!format || !tm_info || strftime(buf, size, format, tm_info) == 0)
+  {
+    strlcpy(buf, "Unknown", size);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 const char *format_time_ymd_hms(time_t when)
 {
   static char buf[20]; /* YYYY-MM-DD HH:MM:SS -> 19 + NUL */
-  struct tm *tm_info = localtime(&when);
-  if (tm_info == NULL)
-  {
-    /* Fallback */
-    strlcpy(buf, "1970-01-01 00:00:00", sizeof(buf));
-    return buf;
-  }
-  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", tm_info);
+
+  format_time_string(when, "%Y-%m-%d %H:%M:%S", buf, sizeof(buf));
   return buf;
 }
 

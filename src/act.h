@@ -467,6 +467,7 @@ ACMD_DECL(do_gen_door);
 ACMD_DECL(do_disembark);
 ACMD_DECL(do_enter);
 ACMD_DECL(do_follow);
+ACMD_DECL(do_unfollow);
 ACMD_DECL(do_unlead);
 ACMD_DECL(do_leave);
 ACMD_DECL(do_move);

@@ -590,12 +590,14 @@ char *str_udupnl(const char *txt)
 {
   char *str = NULL, undef[] = "undefined";
   const char *ptr = NULL;
+  size_t size;
 
   ptr = (txt && *txt) ? txt : undef;
-  CREATE(str, char, strlen(ptr) + 3);
+  size = strlen(ptr) + 3;
+  CREATE(str, char, size);
 
-  strlcpy(str, ptr, strlen(ptr));
-  strcat(str, "\r\n");
+  strlcpy(str, ptr, size);
+  strlcat(str, "\r\n", size);
 
   return str;
 }
@@ -1483,10 +1485,10 @@ static int export_save_objects(zone_rnum zrnum)
       sprintascii(wbuf2, GET_OBJ_WEAR(obj)[1]);
       sprintascii(wbuf3, GET_OBJ_WEAR(obj)[2]);
       sprintascii(wbuf4, GET_OBJ_WEAR(obj)[3]);
-      sprintascii(pbuf1, GET_OBJ_PERM(obj)[0]);
-      sprintascii(pbuf2, GET_OBJ_PERM(obj)[1]);
-      sprintascii(pbuf3, GET_OBJ_PERM(obj)[2]);
-      sprintascii(pbuf4, GET_OBJ_PERM(obj)[3]);
+      sprintascii(pbuf1, GET_OBJ_AFFECT(obj)[0]);
+      sprintascii(pbuf2, GET_OBJ_AFFECT(obj)[1]);
+      sprintascii(pbuf3, GET_OBJ_AFFECT(obj)[2]);
+      sprintascii(pbuf4, GET_OBJ_AFFECT(obj)[3]);
 
       fprintf(obj_file, "%d %s %s %s %s %s %s %s %s %s %s %s %s\n", GET_OBJ_TYPE(obj), ebuf1, ebuf2,
               ebuf3, ebuf4, wbuf1, wbuf2, wbuf3, wbuf4, pbuf1, pbuf2, pbuf3, pbuf4);

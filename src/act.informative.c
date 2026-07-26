@@ -10,6 +10,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <stdint.h>
 #include <time.h>
 #include "structs.h"
 #include "utils.h"
@@ -80,9 +81,20 @@ static void look_in_obj(struct char_data *ch, char *arg);
 /* do_look, do_equipment, do_examine, do_inventory */
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch);
 /* do_where utility functions */
-static void perform_immort_where(struct char_data *ch, char *arg);
+static void perform_immort_where(struct char_data *ch, const char *arg);
 static void perform_mortal_where(struct char_data *ch, char *arg);
-static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur);
+
+struct where_output_buffer
+{
+  char *data;
+  size_t length;
+  size_t capacity;
+  bool failed;
+};
+
+static bool append_where_output(struct where_output_buffer *output, const char *format, ...);
+static void print_object_location(int num, const struct obj_data *obj, struct char_data *ch,
+                                  struct where_output_buffer *output, int depth);
 
 /* globals */
 int boot_high = 0;
@@ -1386,7 +1398,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
 void look_at_room(struct char_data *ch, int ignore_brief)
 {
   trig_data *t;
-  struct room_data *rm = &world[IN_ROOM(ch)];
+  struct room_data *rm;
   room_vnum target_room;
   int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
@@ -1399,10 +1411,11 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 
   /* Get current location info */
   target_room = IN_ROOM(ch);
-  zn = GET_ROOM_ZONE(target_room);
-
   if (target_room == NOWHERE)
     return;
+
+  rm = &world[target_room];
+  zn = GET_ROOM_ZONE(target_room);
 
   /* Check if room is dark (magical darkness or normal darkness) */
   if (ROOM_FLAGGED(target_room, ROOM_MAGICDARK) || IS_DARK(target_room))
@@ -1882,93 +1895,210 @@ static void perform_mortal_where(struct char_data *ch, char *arg)
   }
 }
 
-static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur)
+static bool append_where_output(struct where_output_buffer *output, const char *format, ...)
 {
-  if (num > 0)
-    send_to_char(ch, "O%3d. %-25s%s - ", num, obj->short_description, QNRM);
-  else
-    send_to_char(ch, "%33s", " - ");
+  va_list args;
+  char *resized;
+  size_t required, new_capacity;
+  int needed;
 
-  if (SCRIPT(obj))
+  if (output->failed)
+    return FALSE;
+
+  va_start(args, format);
+  needed = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+  if (needed < 0 || (size_t)needed > SIZE_MAX - output->length - 1)
+  {
+    output->failed = TRUE;
+    return FALSE;
+  }
+
+  required = output->length + (size_t)needed + 1;
+  if (required > output->capacity)
+  {
+    new_capacity = output->capacity ? output->capacity : 4096;
+    while (new_capacity < required)
+    {
+      if (new_capacity > SIZE_MAX / 2)
+      {
+        new_capacity = required;
+        break;
+      }
+      new_capacity *= 2;
+    }
+
+    resized = realloc(output->data, new_capacity);
+    if (!resized)
+    {
+      output->failed = TRUE;
+      return FALSE;
+    }
+    output->data = resized;
+    output->capacity = new_capacity;
+  }
+
+  va_start(args, format);
+  vsnprintf(output->data + output->length, output->capacity - output->length, format, args);
+  va_end(args);
+  output->length += (size_t)needed;
+  return TRUE;
+}
+
+static void append_carrier_room(struct char_data *carrier, struct char_data *ch,
+                                struct where_output_buffer *output)
+{
+  if (PRF_FLAGGED(ch, PRF_VERBOSE) && IN_ROOM(carrier) != NOWHERE)
+    append_where_output(output, "%37s in [%5d] %s%s\r\n", " - ", GET_ROOM_VNUM(IN_ROOM(carrier)),
+                        world[IN_ROOM(carrier)].name, QNRM);
+}
+
+static void print_object_location(int num, const struct obj_data *obj, struct char_data *ch,
+                                  struct where_output_buffer *output, int depth)
+{
+  const char *description;
+
+  description = obj->short_description ? obj->short_description : "<unnamed object>";
+  if (num > 0)
+    append_where_output(output, "O%4d. %-25s%s - ", num, description, QNRM);
+  else
+    append_where_output(output, "%37s", " - ");
+
+  if (SCRIPT(obj) && TRIGGERS(SCRIPT(obj)))
   {
     if (!TRIGGERS(SCRIPT(obj))->next)
-      send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+      append_where_output(output, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
     else
-      send_to_char(ch, "[TRIGS] ");
+      append_where_output(output, "[TRIGS] ");
   }
 
   if (IN_ROOM(obj) != NOWHERE)
-    send_to_char(ch, "[%5d] %s%s\r\n", GET_ROOM_VNUM(IN_ROOM(obj)), world[IN_ROOM(obj)].name, QNRM);
+    append_where_output(output, "[%5d] %s%s\r\n", GET_ROOM_VNUM(IN_ROOM(obj)),
+                        world[IN_ROOM(obj)].name, QNRM);
   else if (obj->carried_by)
-    send_to_char(ch, "carried by %s%s\r\n", PERS(obj->carried_by, ch), QNRM);
+  {
+    if (PRF_FLAGGED(ch, PRF_SHOWVNUMS) && IS_NPC(obj->carried_by))
+      append_where_output(output, "carried by [%5d] %s%s\r\n", GET_MOB_VNUM(obj->carried_by),
+                          PERS(obj->carried_by, ch), QNRM);
+    else
+      append_where_output(output, "carried by %s%s\r\n", PERS(obj->carried_by, ch), QNRM);
+    append_carrier_room(obj->carried_by, ch, output);
+  }
   else if (obj->worn_by)
-    send_to_char(ch, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
+  {
+    if (PRF_FLAGGED(ch, PRF_SHOWVNUMS) && IS_NPC(obj->worn_by))
+      append_where_output(output, "worn by [%5d] %s%s\r\n", GET_MOB_VNUM(obj->worn_by),
+                          PERS(obj->worn_by, ch), QNRM);
+    else
+      append_where_output(output, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
+    append_carrier_room(obj->worn_by, ch, output);
+  }
   else if (obj->in_obj)
   {
-    send_to_char(ch, "inside %s%s%s\r\n", obj->in_obj->short_description, QNRM,
-                 (recur ? ", which is" : " "));
-    if (recur)
-      print_object_location(0, obj->in_obj, ch, recur);
+    append_where_output(output, "inside %s%s%s\r\n",
+                        obj->in_obj->short_description ? obj->in_obj->short_description
+                                                       : "<unnamed object>",
+                        QNRM, depth < 32 ? ", which is" : " (nesting limit reached)");
+    if (depth < 32)
+      print_object_location(0, obj->in_obj, ch, output, depth + 1);
   }
   else
-    send_to_char(ch, "in an unknown location\r\n");
+    append_where_output(output, "in an unknown location\r\n");
 }
 
-static void perform_immort_where(struct char_data *ch, char *arg)
+static void deliver_where_output(struct char_data *ch, struct where_output_buffer *output)
+{
+  if (output->failed)
+    send_to_char(ch, "Unable to build the complete where listing.\r\n");
+  else if (!output->data)
+    send_to_char(ch, "Couldn't find any such thing.\r\n");
+  else if (ch->desc)
+    page_string(ch->desc, output->data, TRUE);
+  else
+    send_to_char(ch, "%s", output->data);
+
+  free(output->data);
+}
+
+static void perform_immort_where(struct char_data *ch, const char *arg)
 {
   struct char_data *i;
   struct obj_data *k;
   struct descriptor_data *d;
-  int num = 0, found = 0;
+  struct where_output_buffer output = {NULL, 0, 0, FALSE};
+  int mob_num = 0, obj_num = 0;
+  bool found = FALSE;
 
   if (!*arg)
   {
-    send_to_char(ch, "Players  Room    Location                       Zone\r\n");
-    send_to_char(ch, "-------- ------- ------------------------------ -------------------\r\n");
+    append_where_output(&output, "Players  Room    Location                       Zone\r\n"
+                                 "-------- ------- ------------------------------ "
+                                 "-------------------\r\n");
     for (d = descriptor_list; d; d = d->next)
+    {
       if (IS_PLAYING(d))
       {
         i = (d->original ? d->original : d->character);
         if (i && CAN_SEE(ch, i) && (IN_ROOM(i) != NOWHERE))
         {
           if (d->original)
-            send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n", GET_NAME(i), QNRM,
-                         GET_ROOM_VNUM(IN_ROOM(d->character)), world[IN_ROOM(d->character)].name,
-                         QNRM, GET_NAME(d->character), QNRM);
+            append_where_output(&output, "%-8s%s - [%5d] %s%s (in %s%s)\r\n", GET_NAME(i), QNRM,
+                                GET_ROOM_VNUM(IN_ROOM(d->character)),
+                                world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character),
+                                QNRM);
           else
-            send_to_char(ch, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM, QCYN, QYEL,
-                         GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
-                         30 + count_color_chars(world[IN_ROOM(i)].name), world[IN_ROOM(i)].name,
-                         QNRM, zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
+            append_where_output(&output, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
+                                QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
+                                30 + count_color_chars(world[IN_ROOM(i)].name),
+                                world[IN_ROOM(i)].name, QNRM,
+                                zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
         }
       }
+    }
+    deliver_where_output(ch, &output);
+    return;
   }
-  else
+
+  if (PRF_FLAGGED(ch, PRF_VERBOSE))
+    append_where_output(&output, "   ### Mob name                   - Room #  Room name\r\n");
+
+  for (i = character_list; i; i = i->next)
   {
-    for (i = character_list; i; i = i->next)
-      if (CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE && isname(arg, i->player.name))
+    if (CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE && isname(arg, i->player.name))
+    {
+      found = TRUE;
+      append_where_output(&output, "M%4d. %-25s%s - [%5d] %-25s%s", ++mob_num, GET_NAME(i), QNRM,
+                          GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
+      if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
       {
-        found = 1;
-        send_to_char(ch, "M%3d. %-25s%s - [%5d] %-25s%s", ++num, GET_NAME(i), QNRM,
-                     GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
-        if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
-        {
-          if (!TRIGGERS(SCRIPT(i))->next)
-            send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
-          else
-            send_to_char(ch, "[TRIGS] ");
-        }
-        send_to_char(ch, "%s\r\n", QNRM);
+        if (!TRIGGERS(SCRIPT(i))->next)
+          append_where_output(&output, "[T%d]", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
+        else
+          append_where_output(&output, "[TRIGS]");
       }
-    for (num = 0, k = object_list; k; k = k->next)
-      if (CAN_SEE_OBJ(ch, k) && isname(arg, k->name))
-      {
-        found = 1;
-        print_object_location(++num, k, ch, TRUE);
-      }
-    if (!found)
-      send_to_char(ch, "Couldn't find any such thing.\r\n");
+      append_where_output(&output, "%s\r\n", QNRM);
+    }
   }
+
+  if (PRF_FLAGGED(ch, PRF_VERBOSE))
+    append_where_output(&output, "  ###  Object name                 Location\r\n");
+
+  for (k = object_list; k; k = k->next)
+  {
+    if (CAN_SEE_OBJ(ch, k) && isname(arg, k->name))
+    {
+      found = TRUE;
+      print_object_location(++obj_num, k, ch, &output, 0);
+    }
+  }
+
+  if (!found)
+  {
+    free(output.data);
+    send_to_char(ch, "Couldn't find any such thing.\r\n");
+    return;
+  }
+  deliver_where_output(ch, &output);
 }
 
 /* Given the argument "look at <target>", figure out what object or char
@@ -2924,7 +3054,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   text_line(ch, "\tYAffected By\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 0; i < NUM_AFF_FLAGS; i++)
+  for (i = 1; i < NUM_AFF_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(k), i))
     {
@@ -2932,12 +3062,12 @@ void perform_affects(struct char_data *ch, struct char_data *k)
                    CCNRM(ch, C_NRM), CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
     }
   }
-  for (i = 0; i < NUM_AFF2_FLAGS; i++)
+  for (i = 1; i < NUM_AFF2_FLAGS; i++)
   {
-    if (IS_SET_AR(AFF_FLAGS(k), i))
+    if (IS_SET_AR(AFF2_FLAGS(k), i))
     {
-      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n", CCNRM(ch, C_NRM), affected_bits[i],
-                   CCNRM(ch, C_NRM), CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
+      send_to_char(ch, "%s%-20s%s - %s%s%s\r\n", CCNRM(ch, C_NRM), affected2_bits[i],
+                   CCNRM(ch, C_NRM), CCNRM(ch, C_NRM), affected2_bit_descs[i], CCNRM(ch, C_NRM));
     }
   }
 
@@ -7790,7 +7920,7 @@ ACMD(do_who)
 ACMD(do_users)
 {
   char line[200], line2[220], idletime[10], classname[20];
-  char state[30], *timeptr, mode;
+  char state[30], timestr[9], mode;
   char name_search[MAX_INPUT_LENGTH] = {'\0'}, host_search[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *tch;
   struct descriptor_data *d;
@@ -7896,10 +8026,7 @@ ACMD(do_users)
     else
       strlcpy(classname, "   -    ", sizeof(classname));
 
-    /* Show only HH:MM:SS from formatted time */
-    timeptr = (char *)format_time_ymd_hms(d->login_time);
-    timeptr += 11; /* Skip YYYY-MM-DD  */
-    *(timeptr + 8) = '\0';
+    format_time_string(d->login_time, "%H:%M:%S", timestr, sizeof(timestr));
 
     if (STATE(d) == CON_PLAYING && d->original)
       strlcpy(state, "Switched", sizeof(state));
@@ -7916,7 +8043,7 @@ ACMD(do_users)
              d->original && d->original->player.name     ? d->original->player.name
              : d->character && d->character->player.name ? d->character->player.name
                                                          : "UNDEFINED",
-             state, idletime, timeptr);
+             state, idletime, timestr);
 
     if (*d->host)
       sprintf(line + strlen(line), "[%s]\r\n", d->host);
@@ -8333,6 +8460,10 @@ ACMD(do_toggle)
       {"carefulpet", PRF_CAREFUL_PET, 0,
        "You will no longer be careful with your pets (and vice versa).\r\n",
        "You will now be careful with your pets (and vice versa).\r\n"},
+      /*51*/
+      {"verbose", PRF_VERBOSE, LVL_IMMORT,
+       "You will no longer see verbose output in staff listings.\r\n",
+       "You will now see verbose output in staff listings.\r\n"},
 
       /*LAST*/
       {"\n", 0, -1, "\n", "\n"} /* must be last */
@@ -8364,22 +8495,23 @@ ACMD(do_toggle)
     if (GET_LEVEL(ch) >= LVL_IMMORT)
     {
       send_to_char(ch, "Staff Toggles:\r\n");
-      send_to_char(
-          ch,
-          "      Buildwalk: %-3s    "
-          "          NoWiz: %-3s    "
-          "         ClsOLC: %-3s\r\n"
-          "       NoHassle: %-3s    "
-          "      Holylight: %-3s    "
-          "      ShowVnums: %-3s\r\n"
-          "     NoClanTalk: %-3s    "
-          "         Syslog: %-3s\r\n",
+      send_to_char(ch,
+                   "      Buildwalk: %-3s    "
+                   "          NoWiz: %-3s    "
+                   "         ClsOLC: %-3s\r\n"
+                   "       NoHassle: %-3s    "
+                   "      Holylight: %-3s    "
+                   "      ShowVnums: %-3s\r\n"
+                   "     NoClanTalk: %-3s    "
+                   "         Syslog: %-3s    "
+                   "        Verbose: %-3s\r\n",
 
-          ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)), ONOFF(PRF_FLAGGED(ch, PRF_NOWIZ)),
-          ONOFF(PRF_FLAGGED(ch, PRF_CLS)), ONOFF(PRF_FLAGGED(ch, PRF_NOHASSLE)),
-          ONOFF(PRF_FLAGGED(ch, PRF_HOLYLIGHT)), ONOFF(PRF_FLAGGED(ch, PRF_SHOWVNUMS)),
-          ONOFF(PRF_FLAGGED(ch, PRF_NOCLANTALK)),
-          types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)]);
+                   ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)), ONOFF(PRF_FLAGGED(ch, PRF_NOWIZ)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_CLS)), ONOFF(PRF_FLAGGED(ch, PRF_NOHASSLE)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_HOLYLIGHT)), ONOFF(PRF_FLAGGED(ch, PRF_SHOWVNUMS)),
+                   ONOFF(PRF_FLAGGED(ch, PRF_NOCLANTALK)),
+                   types[(PRF_FLAGGED(ch, PRF_LOG1) ? 1 : 0) + (PRF_FLAGGED(ch, PRF_LOG2) ? 2 : 0)],
+                   ONOFF(PRF_FLAGGED(ch, PRF_VERBOSE)));
     }
 
     send_to_char(
@@ -8622,7 +8754,7 @@ ACMD(do_toggle)
     break;
   case SCMD_PAGELENGTH:
     if (!*arg2)
-      send_to_char(ch, "You current page length is set to %d lines.", GET_PAGE_LENGTH(ch));
+      send_to_char(ch, "Your current page length is set to %d lines.", GET_PAGE_LENGTH(ch));
     else if (is_number(arg2))
     {
       GET_PAGE_LENGTH(ch) = MIN(MAX(atoi(arg2), 5), 255);
@@ -9018,8 +9150,7 @@ ACMD(do_whois)
 
   if (!(GET_LEVEL(victim) < LVL_IMMORT) || (GET_LEVEL(ch) >= GET_LEVEL(victim)))
   {
-    strlcpy(buf, (char *)asctime(localtime(&(victim->player.time.logon))), sizeof(buf));
-    buf[10] = '\0';
+    format_time_string(victim->player.time.logon, "%a %b %d %Y", buf, sizeof(buf));
 
     hours = (time(0) - victim->player.time.logon) / 3600;
 

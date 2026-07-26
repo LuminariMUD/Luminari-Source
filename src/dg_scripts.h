@@ -70,7 +70,8 @@
 #define MTRIG_LEAVE (1 << 16)    /* someone leaves room seen   */
 #define MTRIG_DOOR (1 << 17)     /* door manipulated in room   */
 
-#define MTRIG_TIME (1 << 19) /* trigger based on game hour */
+#define MTRIG_TIME (1 << 19)   /* trigger based on game hour */
+#define MTRIG_DAMAGE (1 << 20) /* trigger whenever a mob is damaged */
 
 /* obj trigger types */
 #define OTRIG_GLOBAL (1 << 0)  /* unused                     */
@@ -136,6 +137,7 @@ struct cmdlist_element
 {
   char *cmd;    /* one line of a trigger */
   int line_num; /* line number in original script for debugging */
+  unsigned int loops;
   struct cmdlist_element *original;
   struct cmdlist_element *next;
 };
@@ -248,6 +250,7 @@ void load_mtrigger(char_data *ch);
 void load_otrigger(obj_data *obj);
 
 int cast_mtrigger(char_data *actor, char_data *ch, int spellnum);
+int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attacktype);
 int cast_otrigger(char_data *actor, obj_data *obj, int spellnum);
 int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum);
 
@@ -327,6 +330,10 @@ void init_lookup_table(void);
 void cleanup_lookup_table(void);
 void add_to_lookup_table(long uid, void *c);
 void remove_from_lookup_table(long uid);
+bool has_obj_by_uid_in_lookup_table(long uid);
+void format_dg_command_choices(char *buf, size_t size, const char *const choices[]);
+long char_script_id(char_data *ch);
+long obj_script_id(obj_data *obj);
 
 /* from dg_db_scripts.c */
 void parse_trigger(FILE *trig_f, int nr);
@@ -389,6 +396,7 @@ ACMD_DECL(do_mhunt);
 ACMD_DECL(do_mjunk);
 ACMD_DECL(do_mkill);
 ACMD_DECL(do_mload);
+ACMD_DECL(do_mlog);
 ACMD_DECL(do_mpurge);
 ACMD_DECL(do_mrecho);
 ACMD_DECL(do_mremember);
@@ -452,10 +460,13 @@ void wld_command_interpreter(room_data *room, char *argument);
 #define SCRIPT_CHECK(go, type) (SCRIPT(go) && IS_SET(SCRIPT_TYPES(SCRIPT(go)), type))
 #define TRIGGER_CHECK(t, type) (IS_SET(GET_TRIG_TYPE(t), type) && !GET_TRIG_DEPTH(t))
 
+#define ENTITY_SCRIPT_ID(go)                                                                       \
+  _Generic((go), char_data *: char_script_id, obj_data *: obj_script_id)(go)
+
 #define ADD_UID_VAR(buf, trig, go, name, context)                                                  \
   do                                                                                               \
   {                                                                                                \
-    snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(go));                                     \
+    snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, ENTITY_SCRIPT_ID(go));                           \
     add_var(&GET_TRIG_VARS(trig), name, buf, context);                                             \
   } while (0)
 

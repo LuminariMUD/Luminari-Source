@@ -136,8 +136,6 @@ unsigned long pulse = 0;                             /* number of pulses since g
 ush_int port;
 socket_t mother_desc;
 int next_tick = SECS_PER_MUD_HOUR; /* Tick countdown */
-/* used with do_tell and handle_webster_file utility */
-long last_webster_teller = -1L;
 const unsigned PERF_pulse_per_second = PASSES_PER_SEC;
 
 /* static local global variable declarations (current file scope only) */
@@ -146,20 +144,14 @@ static int max_players = 0;              /* max descriptors available */
 static int tics_passed = 0;              /* for extern checkpointing */
 static struct timeval null_time;         /* zero-valued time structure */
 static byte reread_wizlist;              /* signal: SIGUSR1 */
-/* normally signal SIGUSR2, currently orphaned in favor of Webster dictionary
- * lookup
-static byte emergency_unban;
- */
-static int dg_act_check; /* toggle for act_trigger */
-static bool fCopyOver;   /* Are we booting in copyover mode? */
+static byte emergency_unban;             /* signal: SIGUSR2 */
+static int dg_act_check;                 /* toggle for act_trigger */
+static bool fCopyOver;                   /* Are we booting in copyover mode? */
 static char *last_act_message = NULL;
-static byte webster_file_ready = FALSE; /* signal: SIGUSR2 */
 
 /* static local function prototypes (current file scope only) */
 static RETSIGTYPE reread_wizlists(int sig);
-/* Appears to be orphaned right now...
 static RETSIGTYPE unrestrict_game(int sig);
- */
 static RETSIGTYPE reap(int sig);
 static RETSIGTYPE checkpointing(int sig);
 static RETSIGTYPE hupsig(int sig);
@@ -193,10 +185,6 @@ static int open_logfile(const char *filename, FILE *stderr_fp);
 #if defined(POSIX)
 static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
-/* Webster Dictionary Lookup functions */
-static RETSIGTYPE websterlink(int sig);
-static void handle_webster_file();
-
 static void msdp_update(void); /* KaVir plugin*/
 void update_msdp_affects(struct char_data *ch);
 void update_damage_and_effects_over_time(void);
@@ -1355,21 +1343,13 @@ void game_loop(socket_t local_mother_desc)
       PERF_PROF_EXIT(pr_rwiz_);
     }
 
-    /* Orphaned right now as signal trapping is used for Webster lookup
-        if (emergency_unban) {
-          emergency_unban = FALSE;
-          mudlog(BRF, LVL_IMMORT, TRUE, "Received SIGUSR2 - completely unrestricting game (emergent)");
-          ban_list = NULL;
-          circle_restrict = 0;
-          num_invalid = 0;
-        }
-     */
-    if (webster_file_ready)
+    if (emergency_unban)
     {
-      PERF_PROF_ENTER(pr_webs_, "handle_webster_file");
-      webster_file_ready = FALSE;
-      handle_webster_file();
-      PERF_PROF_EXIT(pr_webs_);
+      emergency_unban = FALSE;
+      mudlog(BRF, LVL_IMMORT, TRUE, "Received SIGUSR2 - completely unrestricting game (emergent)");
+      ban_list = NULL;
+      circle_restrict = 0;
+      num_invalid = 0;
     }
 
 #ifdef CIRCLE_UNIX
@@ -3452,16 +3432,9 @@ static RETSIGTYPE reread_wizlists(int sig)
   reread_wizlist = TRUE;
 }
 
-/* Orphaned right now in place of Webster ...
 static RETSIGTYPE unrestrict_game(int sig)
 {
   emergency_unban = TRUE;
-}
- */
-
-static RETSIGTYPE websterlink(int sig)
-{
-  webster_file_ready = TRUE;
 }
 
 #ifdef CIRCLE_UNIX
@@ -3555,7 +3528,7 @@ static void signal_setup(void)
 
   /* user signal 2: unrestrict game.  Used for emergencies if you lock
    * yourself out of the MUD somehow. */
-  my_signal(SIGUSR2, websterlink);
+  my_signal(SIGUSR2, unrestrict_game);
 
   /* set up the deadlock-protection so that the MUD aborts itself if it gets
    * caught in an infinite loop for more than 3 minutes. */
@@ -3810,7 +3783,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj, v
   const char *i = NULL;
   char lbuf[MAX_STRING_LENGTH] = {'\0'}, *buf = NULL, *j = NULL;
   bool uppercasenext = FALSE;
-  struct char_data *dg_victim = NULL;
+  struct char_data *dg_victim = (to == vict_obj) ? vict_obj : NULL;
   struct obj_data *dg_target = NULL;
   char *dg_arg = NULL;
 
@@ -4180,48 +4153,6 @@ static void circle_sleep(struct timeval *timeout)
 }
 
 #endif /* CIRCLE_WINDOWS */
-
-static void handle_webster_file(void)
-{
-  FILE *fl;
-  struct char_data *ch = find_char(last_webster_teller);
-  char retval[MAX_STRING_LENGTH] = {'\0'}, line[READ_SIZE];
-  size_t len = 0, nlen = 0;
-
-  last_webster_teller = -1L;
-
-  if (!ch) /* they quit ? */
-    return;
-
-  fl = fopen("websterinfo", "r");
-  if (!fl)
-  {
-    send_to_char(ch, "It seems the dictionary is offline..\r\n");
-    return;
-  }
-
-  unlink("websterinfo");
-
-  get_line(fl, line);
-  while (!feof(fl))
-  {
-    nlen = snprintf(retval + len, sizeof(retval) - len, "%s\r\n", line);
-    if (len + nlen >= sizeof(retval))
-      break;
-    len += nlen;
-    get_line(fl, line);
-  }
-
-  if (len >= sizeof(retval))
-  {
-    const char *overflow = "\r\n**OVERFLOW**\r\n";
-    strcpy(retval + sizeof(retval) - strlen(overflow) - 1, overflow); /* strcpy: OK */
-  }
-  fclose(fl);
-
-  send_to_char(ch, "You get this feedback from Merriam-Webster:\r\n");
-  page_string(ch->desc, retval, 1);
-}
 
 #define MODE_NORMAL_HIT 0      // Normal damage calculating in hit()
 #define MODE_DISPLAY_PRIMARY 2 // Display damage info primary

@@ -16,7 +16,7 @@
 
 #include "dg_scripts.h"
 
-#define NUM_TRIG_TYPE_FLAGS 20
+#define NUM_TRIG_TYPE_FLAGS 21
 
 /* Submodes of TRIGEDIT connectedness. */
 #define TRIGEDIT_MAIN_MENU 0
@@ -44,5 +44,6 @@ void script_save_to_disk(FILE *fp, void *item, int type);
 void dg_olc_script_copy(struct descriptor_data *d);
 void dg_script_menu(struct descriptor_data *d);
 int dg_script_edit_parse(struct descriptor_data *d, char *arg);
+int format_script(struct descriptor_data *d);
 
 #endif /* _DG_OLC_H_ */

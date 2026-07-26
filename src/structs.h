@@ -48,7 +48,7 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030704 = 3.7.4 (corresponds to display version 2.5011-beta)
+ * Current: 0x030704 = 3.7.4 (corresponds to display version 2.5012-beta)
  * See also: src/constants.c (luminari_version string) */
 #define _LUMINARIMUD 0x030704
 
@@ -1471,9 +1471,10 @@
 #define PRF_AUTOSEARCH                                                                             \
   84 /**< Automatically search for traps when moving (1/2 perception, 1/2 speed, lose initiative) */
 #define PRF_SWEEPING_STRIKE 85 /**< Monk sweeping strike: auto-trip on first flurry attack */
+#define PRF_VERBOSE 86         /**< Show expanded information in staff listings */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 86
+#define NUM_PRF_FLAGS 87
 
 /* Score Color Theme constants */
 #define SCORE_THEME_ENHANCED 0     /**< Enhanced theme with rich colors */
@@ -7649,13 +7650,13 @@ struct happyhour
 /** structure for list of recent players (see 'recent' command) */
 struct recent_player
 {
-  int vnum;                   /* The ID number for this instance */
-  char name[MAX_NAME_LENGTH]; /* The char name of the player     */
-  bool new_player;            /* Is this a new player?           */
-  bool copyover_player;       /* Is this a player that was on during the last copyover? */
-  time_t time;                /* login time                      */
-  char host[HOST_LENGTH + 1]; /* Host IP address                 */
-  struct recent_player *next; /* Pointer to the next instance    */
+  int vnum;                       /* The ID number for this instance */
+  char name[MAX_NAME_LENGTH + 1]; /* The char name of the player     */
+  bool new_player;                /* Is this a new player?           */
+  bool copyover_player;           /* Is this a player that was on during the last copyover? */
+  time_t time;                    /* login time                      */
+  char host[HOST_LENGTH + 1];     /* Host IP address                 */
+  struct recent_player *next;     /* Pointer to the next instance    */
 };
 
 /* Config structs */
@@ -7691,9 +7692,10 @@ struct game_data
   int use_introduction_system; /**< Use the introduction system for character names? */
   int perk_system;             /**< Is the perk system enabled? */
 
-  char *OK;       /**< When player receives 'Okay.' text.    */
-  char *NOPERSON; /**< 'No one by that name here.'   */
-  char *NOEFFECT; /**< 'Nothing seems to happen.'            */
+  char *OK;       /**< When player receives 'Okay.' text. */
+  char *HUH;      /**< Response to an unrecognized command. */
+  char *NOPERSON; /**< 'No one by that name here.' */
+  char *NOEFFECT; /**< 'Nothing seems to happen.' */
 };
 
 // automatic hour happy info saved in game config, cedit

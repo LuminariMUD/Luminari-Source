@@ -52,6 +52,7 @@ WCMD(do_wload);
 WCMD(do_wdamage);
 WCMD(do_wat);
 WCMD(do_wmove);
+WCMD(do_wlog);
 
 /* attaches room vnum to msg and sends it to script_log */
 void wld_log(room_data *room, const char *format, ...)
@@ -113,6 +114,14 @@ WCMD(do_wecho)
 
   else
     act_to_room(argument, room);
+}
+
+WCMD(do_wlog)
+{
+  skip_spaces(&argument);
+
+  if (*argument)
+    wld_log(room, "%s", argument);
 }
 
 WCMD(do_wgecho)
@@ -199,11 +208,12 @@ WCMD(do_wdoor)
 {
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'}, *value;
+  char choices[256] = {'\0'};
   room_data *rm;
   struct room_direction_data *newexit;
   int dir, fd, to_room;
 
-  const char *door_field[] = {"purge", "description", "flags", "key", "name", "room", "\n"};
+  const char *const door_field[] = {"purge", "description", "flags", "key", "name", "room", "\n"};
 
   argument = two_arguments_u(argument, target, direction);
   value = one_argument_u(argument, field);
@@ -217,19 +227,21 @@ WCMD(do_wdoor)
 
   if ((rm = get_room(target)) == NULL)
   {
-    wld_log(room, "wdoor: invalid target");
+    wld_log(room, "wdoor: invalid target (arg == %s)", target);
     return;
   }
 
   if ((dir = search_block(direction, dirs, FALSE)) == -1)
   {
-    wld_log(room, "wdoor: invalid direction");
+    format_dg_command_choices(choices, sizeof(choices), dirs);
+    wld_log(room, "wdoor: invalid direction (arg == %s) not found in: [ %s ]", direction, choices);
     return;
   }
 
   if ((fd = search_block(field, door_field, FALSE)) == -1)
   {
-    wld_log(room, "wdoor: invalid field");
+    format_dg_command_choices(choices, sizeof(choices), door_field);
+    wld_log(room, "wdoor: invalid field (arg == %s) not found in: [ %s ]", field, choices);
     return;
   }
 
@@ -282,7 +294,10 @@ WCMD(do_wdoor)
       if ((to_room = real_room(atoi(value))) != NOWHERE)
         newexit->to_room = to_room;
       else
-        wld_log(room, "wdoor: invalid door target");
+      {
+        newexit->to_room = NOWHERE;
+        wld_log(room, "wdoor: invalid door target (arg == %s)", value);
+      }
       break;
     }
   }
@@ -514,7 +529,7 @@ WCMD(do_wload)
     if (SCRIPT(room))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH] = {'\0'};
-      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(mob));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, char_script_id(mob));
       add_var(&(SCRIPT(room)->global_vars), "lastloaded", buf, 0);
     }
     load_mtrigger(mob);
@@ -534,7 +549,7 @@ WCMD(do_wload)
       if (SCRIPT(room))
       { /* It _should_ have, but it might be detached. */
         char buf[MAX_INPUT_LENGTH] = {'\0'};
-        snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(object));
+        snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, obj_script_id(object));
         add_var(&(SCRIPT(room)->global_vars), "lastloaded", buf, 0);
       }
       load_otrigger(object);
@@ -701,6 +716,7 @@ const struct wld_command_info wld_cmd_info[] = {
     {"wdamage ", do_wdamage, 0},
     {"wat ", do_wat, 0},
     {"wmove ", do_wmove, 0},
+    {"wlog ", do_wlog, 0},
     {"\n", 0, 0} /* this must be last */
 };
 

@@ -384,7 +384,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
   case TRIGEDIT_TYPES:
     if ((i = atoi(arg)) == 0)
       break;
-    else if (!((i < 0) || (i > NUM_TRIG_TYPE_FLAGS)))
+    else if (i >= 0 && i < NUM_TRIG_TYPE_FLAGS)
       TOGGLE_BIT((GET_TRIG_TYPE(OLC_TRIG(d))), 1 << (i - 1));
     OLC_VAL(d)
     ++;
@@ -948,15 +948,33 @@ void trigedit_string_cleanup(struct descriptor_data *d, int terminator)
 
 int format_script(struct descriptor_data *d)
 {
+  enum format_block_type
+  {
+    FORMAT_BLOCK_IF,
+    FORMAT_BLOCK_WHILE,
+    FORMAT_BLOCK_SWITCH
+  };
+  struct format_block
+  {
+    enum format_block_type type;
+    int base_indent;
+  };
+#define FORMAT_SCRIPT_MAX_NESTING 200
   char nsc[MAX_CMD_LENGTH], *t, line[READ_SIZE];
-  char *sc;
+  char *formatted, *sc;
+  struct format_block blocks[FORMAT_SCRIPT_MAX_NESTING];
   size_t len = 0, nlen = 0, llen = 0;
-  int indent = 0, indent_next = FALSE, found_case = FALSE, i, line_num = 0;
+  int block_top = -1, indent = 0, line_indent, line_num = 0, ret, scan;
 
   if (!d->str || !*d->str)
     return FALSE;
 
   sc = strdup(*d->str); /* we work on a copy, because of strtok() */
+  if (!sc)
+  {
+    write_to_output(d, "Out of memory, formatting aborted.\r\n");
+    return FALSE;
+  }
   t = strtok(sc, "\n\r");
   *nsc = '\0';
 
@@ -964,91 +982,130 @@ int format_script(struct descriptor_data *d)
   {
     line_num++;
     skip_spaces(&t);
-    if (!strn_cmp(t, "if ", 3) || !strn_cmp(t, "switch ", 7))
+    line_indent = indent;
+
+    if (!strn_cmp(t, "end", 3))
     {
-      indent_next = TRUE;
-    }
-    else if (!strn_cmp(t, "while ", 6))
-    {
-      found_case = TRUE; /* so you can 'break' a loop without complains */
-      indent_next = TRUE;
-    }
-    else if (!strn_cmp(t, "end", 3) || !strn_cmp(t, "done", 4))
-    {
-      if (!indent)
+      if (block_top < 0 || blocks[block_top].type == FORMAT_BLOCK_WHILE)
       {
-        write_to_output(d, "Unmatched 'end' or 'done' (line %d)!\r\n", line_num);
+        write_to_output(d, "Unmatched 'end' (line %d)!\r\n", line_num);
         free(sc);
         return FALSE;
       }
-      indent--;
-      indent_next = FALSE;
+      line_indent = blocks[block_top].base_indent;
+      indent = line_indent;
+      block_top--;
+    }
+    else if (!strn_cmp(t, "done", 4))
+    {
+      if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_WHILE)
+      {
+        write_to_output(d, "Unmatched 'done' (line %d)!\r\n", line_num);
+        free(sc);
+        return FALSE;
+      }
+      line_indent = blocks[block_top].base_indent;
+      indent = line_indent;
+      block_top--;
     }
     else if (!strn_cmp(t, "else", 4))
     {
-      if (!indent)
+      if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_IF)
       {
-        write_to_output(d, "Unmatched 'else' (line %d)!\r\n", line_num);
+        write_to_output(d, "Unmatched 'else' or 'elseif' (line %d)!\r\n", line_num);
         free(sc);
         return FALSE;
       }
-      indent--;
-      indent_next = TRUE;
+      line_indent = blocks[block_top].base_indent;
+      indent = line_indent + 1;
     }
     else if (!strn_cmp(t, "case", 4) || !strn_cmp(t, "default", 7))
     {
-      if (!indent)
+      if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_SWITCH)
       {
         write_to_output(d, "Case/default outside switch (line %d)!\r\n", line_num);
         free(sc);
         return FALSE;
       }
-      if (!found_case) /* so we don't indent multiple case statements without a break */
-        indent_next = TRUE;
-      found_case = TRUE;
+      line_indent = blocks[block_top].base_indent + 1;
+      indent = line_indent + 1;
     }
     else if (!strn_cmp(t, "break", 5))
     {
-      if (!found_case || !indent)
+      for (scan = block_top; scan >= 0; scan--)
+        if (blocks[scan].type == FORMAT_BLOCK_WHILE || blocks[scan].type == FORMAT_BLOCK_SWITCH)
+          break;
+      if (scan < 0)
       {
-        write_to_output(d, "Break not in case (line %d)!\r\n", line_num);
+        write_to_output(d, "Break not in a switch or while block (line %d)!\r\n", line_num);
         free(sc);
         return FALSE;
       }
-      found_case = FALSE;
-      indent--;
+    }
+    else if (!strn_cmp(t, "if ", 3) || !strn_cmp(t, "while ", 6) || !strn_cmp(t, "switch ", 7))
+    {
+      if (block_top + 1 >= FORMAT_SCRIPT_MAX_NESTING)
+      {
+        write_to_output(d, "Script nesting is too deep (line %d)!\r\n", line_num);
+        free(sc);
+        return FALSE;
+      }
+      block_top++;
+      blocks[block_top].base_indent = line_indent;
+      if (!strn_cmp(t, "if ", 3))
+        blocks[block_top].type = FORMAT_BLOCK_IF;
+      else if (!strn_cmp(t, "while ", 6))
+        blocks[block_top].type = FORMAT_BLOCK_WHILE;
+      else
+        blocks[block_top].type = FORMAT_BLOCK_SWITCH;
+      indent = line_indent + 1;
     }
 
-    *line = '\0';
-    for (nlen = 0, i = 0; i < indent; i++)
+    if (line_indent < 0 || (size_t)line_indent > (sizeof(line) - 1) / 2)
     {
-      strncat(line, "  ", sizeof(line) - 1);
-      nlen += 2;
+      write_to_output(d, "Line indentation is too deep (line %d)!\r\n", line_num);
+      free(sc);
+      return FALSE;
     }
-    llen = snprintf(line + nlen, sizeof(line) - nlen, "%s\r\n", t);
-    if (llen < 0 || llen + nlen + len > d->max_str - 1)
+
+    nlen = (size_t)line_indent * 2;
+    memset(line, ' ', nlen);
+    line[nlen] = '\0';
+    ret = snprintf(line + nlen, sizeof(line) - nlen, "%s\r\n", t);
+    if (ret < 0 || (size_t)ret >= sizeof(line) - nlen)
+    {
+      write_to_output(d, "Line too long, formatting aborted (line %d).\r\n", line_num);
+      free(sc);
+      return FALSE;
+    }
+    llen = (size_t)ret;
+    if (nlen + llen >= sizeof(nsc) - len || !d->max_str || len >= d->max_str ||
+        nlen + llen > d->max_str - len - 1)
     {
       write_to_output(d, "String too long, formatting aborted\r\n");
       free(sc);
       return FALSE;
     }
-    len = len + nlen + llen;
-    strlcat(nsc, line, sizeof(nsc)); /* strcat OK, size checked above */
-
-    if (indent_next)
-    {
-      indent++;
-      indent_next = FALSE;
-    }
+    memcpy(nsc + len, line, nlen + llen + 1);
+    len += nlen + llen;
     t = strtok(NULL, "\n\r");
   }
 
-  if (indent)
+  if (block_top >= 0)
     write_to_output(d, "Unmatched if, while or switch ignored.\r\n");
 
+  formatted = strdup(nsc);
+  if (!formatted)
+  {
+    write_to_output(d, "Out of memory, formatting aborted.\r\n");
+    free(sc);
+    return FALSE;
+  }
+
   free(*d->str);
-  *d->str = strdup(nsc);
+  *d->str = formatted;
   free(sc);
 
   return TRUE;
+#undef FORMAT_SCRIPT_MAX_NESTING
 }

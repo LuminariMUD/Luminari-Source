@@ -382,7 +382,8 @@ void House_save_control(void)
   }
 
   /* write all the house control recs in one fell swoop.  Pretty nifty, eh? */
-  if (fwrite(house_control, sizeof(struct house_control_rec), num_of_houses, fl) != num_of_houses)
+  if (fwrite(house_control, sizeof(struct house_control_rec), num_of_houses, fl) !=
+      (size_t)num_of_houses)
   {
     perror("SYSERR: Unable to save house control file.");
     return;

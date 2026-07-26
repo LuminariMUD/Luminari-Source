@@ -439,7 +439,7 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
     for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
     {
       /* Check if region_table is valid and rnum is within bounds */
-      if (region_table && curr_region->rnum >= 0 && curr_region->rnum <= top_of_region_table)
+      if (region_table && curr_region->rnum <= top_of_region_table)
       {
         switch (region_table[curr_region->rnum].region_type)
         {
@@ -544,7 +544,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         }
 
         /* Check if region_table is valid and rnum is within bounds */
-        if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+        if (!region_table || curr_region->rnum > top_of_region_table)
         {
           log("SYSERR: Invalid region rnum %d in get_map_elev", curr_region->rnum);
           continue;
@@ -725,7 +725,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Check if region_table is valid and rnum is within bounds */
-    if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+    if (!region_table || curr_region->rnum > top_of_region_table)
     {
       log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
       continue;
@@ -932,7 +932,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Check if region_table is valid and rnum is within bounds */
-    if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+    if (!region_table || curr_region->rnum > top_of_region_table)
     {
       log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
       continue;
@@ -1761,7 +1761,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
       {
         /* Check if region_table is valid and rnum is within bounds */
-        if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+        if (!region_table || curr_region->rnum > top_of_region_table)
         {
           log("SYSERR: Invalid region rnum %d in wilderness function", curr_region->rnum);
           continue;
@@ -1895,7 +1895,7 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
   room_rnum *room;
   double loc[2], pos[2];
   void *set;
-  int move_dir = -1;
+  int move_dir = dir;
   int new_move_dir = -1;
 
   /* Path structure. */

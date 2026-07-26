@@ -2235,7 +2235,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
         break;
       }
       if (c)
-        snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, GET_ID(c));
+        snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, char_script_id(c));
     }
     else if (is_abbrev(arg, "obj"))
     {
@@ -2256,7 +2256,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
         break;
       }
       if (o)
-        snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, GET_ID(o));
+        snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, obj_script_id(o));
     }
     else if (is_abbrev(arg, "room"))
     {
@@ -2726,7 +2726,7 @@ static void dg_letter_value(struct script_data *sc, trig_data *trig, char *cmd)
     return;
   }
 
-  if (num > strlen(string))
+  if ((size_t)num > strlen(string))
   {
     script_log("Trigger #%d : dg_letter number > strlen!", GET_TRIG_VNUM(trig));
     return;
@@ -2761,7 +2761,6 @@ int script_driver(struct script_call_args *args)
   char cmd[MAX_INPUT_LENGTH] = {'\0'}, *p = NULL;
   struct script_data *sc = NULL;
   struct cmdlist_element *temp = NULL;
-  unsigned long loops = 0;
   void *go = NULL;
 
   /* Extract parameters from the args struct to avoid stack corruption */
@@ -2789,7 +2788,7 @@ int script_driver(struct script_call_args *args)
              (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH |
               MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | MTRIG_RECEIVE | MTRIG_FIGHT |
               MTRIG_HITPRCNT | MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | MTRIG_CAST | MTRIG_LEAVE |
-              MTRIG_DOOR | MTRIG_TIME))
+              MTRIG_DOOR | MTRIG_TIME | MTRIG_DAMAGE))
     {
       expected_type = MOB_TRIGGER;
     }
@@ -2912,7 +2911,7 @@ int script_driver(struct script_call_args *args)
              (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH |
               MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | MTRIG_RECEIVE | MTRIG_FIGHT |
               MTRIG_HITPRCNT | MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | MTRIG_CAST | MTRIG_LEAVE |
-              MTRIG_DOOR | MTRIG_TIME))
+              MTRIG_DOOR | MTRIG_TIME | MTRIG_DAMAGE))
     {
       expected_type = MOB_TRIGGER;
     }
@@ -2977,7 +2976,8 @@ int script_driver(struct script_call_args *args)
                (GET_TRIG_TYPE(trig) & MTRIG_GREET_ALL) || (GET_TRIG_TYPE(trig) & MTRIG_ENTRY) ||
                (GET_TRIG_TYPE(trig) & MTRIG_RECEIVE) || (GET_TRIG_TYPE(trig) & MTRIG_FIGHT) ||
                (GET_TRIG_TYPE(trig) & MTRIG_HITPRCNT) || (GET_TRIG_TYPE(trig) & MTRIG_BRIBE) ||
-               (GET_TRIG_TYPE(trig) & MTRIG_MEMORY) || (GET_TRIG_TYPE(trig) & MTRIG_DOOR))
+               (GET_TRIG_TYPE(trig) & MTRIG_MEMORY) || (GET_TRIG_TYPE(trig) & MTRIG_DOOR) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_DAMAGE))
       {
         script_log("RECOVERY: Detected unique mob trigger flags, setting type to MOB_TRIGGER");
         type = MOB_TRIGGER;
@@ -3138,8 +3138,8 @@ int script_driver(struct script_call_args *args)
       }
       else
       {
+        cl->loops = 0;
         cl = temp;
-        loops = 0;
       }
     }
     else if (!strn_cmp("switch ", p, 7))
@@ -3168,11 +3168,12 @@ int script_driver(struct script_call_args *args)
         if (cl->original && process_if(orig_cmd + 6, go, sc, trig, type))
         {
           cl = cl->original;
-          loops++;
+          cl->loops++;
           GET_TRIG_LOOPS(trig)
           ++;
-          if (loops == 30)
+          if (cl->loops == 30)
           {
+            cl->loops = 0;
             process_wait(go, trig, type, "wait 1", cl);
             depth--;
             return ret_val;
@@ -3645,13 +3646,26 @@ void cleanup_lookup_table(void)
   }
 }
 
-static struct char_data *find_char_by_uid_in_lookup_table(long uid)
+static inline struct lookup_table_t *get_bucket_head(long uid)
 {
   int bucket = (int)(uid & (BUCKET_COUNT - 1));
-  struct lookup_table_t *lt = &lookup_table[bucket];
+
+  return &lookup_table[bucket];
+}
+
+static inline struct lookup_table_t *find_element_by_uid_in_lookup_table(long uid)
+{
+  struct lookup_table_t *lt = get_bucket_head(uid);
 
   for (; lt && lt->uid != uid; lt = lt->next)
     ;
+
+  return lt;
+}
+
+static struct char_data *find_char_by_uid_in_lookup_table(long uid)
+{
+  struct lookup_table_t *lt = find_element_by_uid_in_lookup_table(uid);
 
   if (lt)
     return (struct char_data *)(lt->c);
@@ -3662,11 +3676,7 @@ static struct char_data *find_char_by_uid_in_lookup_table(long uid)
 
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid)
 {
-  int bucket = (int)(uid & (BUCKET_COUNT - 1));
-  struct lookup_table_t *lt = &lookup_table[bucket];
-
-  for (; lt && lt->uid != uid; lt = lt->next)
-    ;
+  struct lookup_table_t *lt = find_element_by_uid_in_lookup_table(uid);
 
   if (lt)
     return (struct obj_data *)(lt->c);
@@ -3675,10 +3685,56 @@ static struct obj_data *find_obj_by_uid_in_lookup_table(long uid)
   return NULL;
 }
 
+long char_script_id(char_data *ch)
+{
+  if (GET_ID(ch) == 0)
+  {
+    GET_ID(ch) = max_mob_id++;
+    add_to_lookup_table(GET_ID(ch), ch);
+
+    if (max_mob_id >= ROOM_ID_BASE)
+      mudlog(CMP, LVL_BUILDER, TRUE,
+             "SYSERR: Script IDs for mobiles have exceeded their reserved range; reboot needed");
+  }
+
+  return GET_ID(ch);
+}
+
+long obj_script_id(obj_data *obj)
+{
+  if (GET_ID(obj) == 0)
+  {
+    GET_ID(obj) = max_obj_id++;
+    add_to_lookup_table(GET_ID(obj), obj);
+  }
+
+  return GET_ID(obj);
+}
+
+bool has_obj_by_uid_in_lookup_table(long uid)
+{
+  return find_element_by_uid_in_lookup_table(uid) != NULL;
+}
+
+void format_dg_command_choices(char *buf, size_t size, const char *const choices[])
+{
+  int i;
+
+  if (!buf || size == 0)
+    return;
+
+  *buf = '\0';
+  for (i = 0; choices && choices[i] && *choices[i] != '\n'; i++)
+  {
+    if (i)
+      strlcat(buf, " ", size);
+    strlcat(buf, choices[i], size);
+  }
+}
+
 void add_to_lookup_table(long uid, void *c)
 {
-  int bucket = (int)(uid & (BUCKET_COUNT - 1));
-  struct lookup_table_t *lt = &lookup_table[bucket];
+  struct lookup_table_t *lt = get_bucket_head(uid);
 
   if (lt && lt->uid == uid)
   {
@@ -3691,6 +3747,7 @@ void add_to_lookup_table(long uid, void *c)
     if (lt->next->uid == uid)
     {
       log("add_to_lookup updating existing value for uid=%ld (%p -> %p)", uid, lt->next->c, c);
+      lt->next->c = c;
       return;
     }
 

@@ -43,6 +43,7 @@ static OCMD(do_odoor);
 static OCMD(do_osetval);
 static OCMD(do_oat);
 static OCMD(do_omove);
+static OCMD(do_olog);
 
 struct obj_command_info
 {
@@ -151,6 +152,14 @@ static OCMD(do_oecho)
   }
   else
     obj_log(obj, "oecho called by object in NOWHERE");
+}
+
+static OCMD(do_olog)
+{
+  skip_spaces(&argument);
+
+  if (*argument)
+    obj_log(obj, "%s", argument);
 }
 
 static OCMD(do_ogecho)
@@ -560,7 +569,7 @@ static OCMD(do_dgoload)
     if (SCRIPT(obj))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH] = {'\0'};
-      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(mob));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, char_script_id(mob));
       add_var(&(SCRIPT(obj)->global_vars), "lastloaded", buf, 0);
     }
 
@@ -577,7 +586,7 @@ static OCMD(do_dgoload)
     if (SCRIPT(obj))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH] = {'\0'};
-      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(object));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, obj_script_id(object));
       add_var(&(SCRIPT(obj)->global_vars), "lastloaded", buf, 0);
     }
 
@@ -681,6 +690,7 @@ static OCMD(do_odoor)
 {
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'}, *value;
+  char choices[256] = {'\0'};
   room_data *rm;
   struct room_direction_data *newexit;
   int dir, fd, to_room;
@@ -699,19 +709,21 @@ static OCMD(do_odoor)
 
   if ((rm = get_room(target)) == NULL)
   {
-    obj_log(obj, "odoor: invalid target");
+    obj_log(obj, "odoor: invalid target (arg == %s)", target);
     return;
   }
 
   if ((dir = search_block(direction, dirs, FALSE)) == -1)
   {
-    obj_log(obj, "odoor: invalid direction");
+    format_dg_command_choices(choices, sizeof(choices), dirs);
+    obj_log(obj, "odoor: invalid direction (arg == %s) not found in: [ %s ]", direction, choices);
     return;
   }
 
   if ((fd = search_block(field, door_field, FALSE)) == -1)
   {
-    obj_log(obj, "odoor: invalid field");
+    format_dg_command_choices(choices, sizeof(choices), door_field);
+    obj_log(obj, "odoor: invalid field (arg == %s) not found in: [ %s ]", field, choices);
     return;
   }
 
@@ -763,7 +775,10 @@ static OCMD(do_odoor)
       if ((to_room = real_room(atoi(value))) != NOWHERE)
         newexit->to_room = to_room;
       else
-        obj_log(obj, "odoor: invalid door target");
+      {
+        newexit->to_room = NOWHERE;
+        obj_log(obj, "odoor: invalid door target (arg == %s)", value);
+      }
       break;
     }
   }
@@ -938,6 +953,7 @@ const struct obj_command_info obj_cmd_info[] = {
     {"otransform ", do_otransform, 0},
     {"ozoneecho ", do_ozoneecho, 0}, /* fix by Rumble */
     {"omove ", do_omove, 0},
+    {"olog ", do_olog, 0},
     {"\n", 0, 0} /* this must be last */
 };
 

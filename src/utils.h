@@ -431,6 +431,7 @@ void draw_line(struct char_data *ch, int length, char first, char second);
 void text_line(struct char_data *ch, const char *text, int length, char first, char second);
 
 /* Time formatting */
+bool format_time_string(time_t when, const char *format, char *buf, size_t size);
 /* Formats a time_t into a thread-unsafe static buffer in the form "YYYY-MM-DD HH:MM:SS".
  * Returns a pointer to a static buffer that will be overwritten on subsequent calls. */
 const char *format_time_ymd_hms(time_t when);
@@ -1878,7 +1879,6 @@ int ACTUAL_BAB(struct char_data *ch);
 #define GET_OBJ_LEVEL(obj) ((obj)->obj_flags.level)
 
 /** Permanent affects on obj. */
-#define GET_OBJ_PERM(obj) ((obj)->obj_flags.bitvector)
 #define GET_OBJ_PERM2(obj) ((obj)->obj_flags.bitvector2)
 #define GET_OBJ2_PERM(obj) ((obj)->obj_flags.bitvector2)
 
@@ -2575,6 +2575,8 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define CONFIG_NO_MORT_TO_IMMORT config_info.play.no_mort_to_immort
 /** Get the 'OK' message. */
 #define CONFIG_OK config_info.play.OK
+/** Get the unrecognized command message. */
+#define CONFIG_HUH config_info.play.HUH
 /** Get the NOPERSON message. */
 #define CONFIG_NOPERSON config_info.play.NOPERSON
 /** Get the NOEFFECT message. */

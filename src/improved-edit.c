@@ -133,12 +133,30 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
            "@          -  also saves text\r\n");
     break;
   case PARSE_TOGGLE:
+  {
+    char *cursor;
+    bool has_unescaped_at = FALSE;
+
     if (!*d->str)
     {
       write_to_output(d, "No string.\r\n");
       break;
     }
-    if (strchr(*d->str, '@'))
+
+    for (cursor = *d->str; *cursor; cursor++)
+    {
+      if (*cursor != '@')
+        continue;
+      if (cursor[1] == '@')
+      {
+        cursor++;
+        continue;
+      }
+      has_unescaped_at = TRUE;
+      break;
+    }
+
+    if (has_unescaped_at)
     {
       parse_at(*d->str);
       write_to_output(d, "Toggling (at) into (tab) Characters...\r\n");
@@ -149,6 +167,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       write_to_output(d, "Toggling (tab) into (at) Characters...\r\n");
     }
     break;
+  }
   case PARSE_FORMAT:
     if (STATE(d) == CON_TRIGEDIT)
     {

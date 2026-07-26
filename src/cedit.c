@@ -238,6 +238,7 @@ static void cedit_setup(struct descriptor_data *d)
 
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
+  OLC_CONFIG(d)->play.HUH = str_udup(CONFIG_HUH);
   OLC_CONFIG(d)->play.NOPERSON = str_udup(CONFIG_NOPERSON);
   OLC_CONFIG(d)->play.NOEFFECT = str_udup(CONFIG_NOEFFECT);
 
@@ -423,6 +424,10 @@ static void cedit_save_internally(struct descriptor_data *d)
   if (CONFIG_OK)
     free(CONFIG_OK);
   CONFIG_OK = str_udup(OLC_CONFIG(d)->play.OK);
+
+  if (CONFIG_HUH)
+    free(CONFIG_HUH);
+  CONFIG_HUH = str_udup(OLC_CONFIG(d)->play.HUH);
 
   if (CONFIG_NOPERSON)
     free(CONFIG_NOPERSON);
@@ -621,6 +626,14 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl,
           "* Text sent to players when OK is all that is needed.\n"
           "ok = %s\n\n",
+          buf);
+
+  strlcpy(buf, CONFIG_HUH, sizeof(buf));
+  strip_cr(buf);
+
+  fprintf(fl,
+          "* Text sent to players for an unrecognized command.\n"
+          "huh = %s\n\n",
           buf);
 
   strlcpy(buf, CONFIG_NOPERSON, sizeof(buf));
@@ -989,10 +1002,10 @@ int save_config(IDXTYPE nowhere)
           "* What kind of wilderness system do you use?\n"
           "wilderness_system = %d\n\n",
           CONFIG_WILDERNESS_SYSTEM);
-    fprintf(fl,
-      "* Enable the unified vessel system (ship interiors, routes, etc)?\n"
-      "vessel_system = %d\n\n",
-      CONFIG_VESSEL_SYSTEM);
+  fprintf(fl,
+          "* Enable the unified vessel system (ship interiors, routes, etc)?\n"
+          "vessel_system = %d\n\n",
+          CONFIG_VESSEL_SYSTEM);
   fprintf(fl,
           "* How much experience should be granted for melee hits?\n"
           "melee_exp_option = %d\n\n",
@@ -1308,6 +1321,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
       "%sU%s) Perk System Enabled           : %s%s\r\n"
       "%sV%s) Experience Multiplier (%%age)  : %s%d\r\n"
       "%s1%s) OK Message Text               : %s%s"
+      "%s9%s) HUH Message Text              : %s%s"
       "%s2%s) NOPERSON Message Text         : %s%s"
       "%s3%s) NOEFFECT Message Text         : %s%s"
       "%s4%s) Map/Automap Option            : %s%s\r\n"
@@ -1337,8 +1351,8 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
       CHECK_VAR(OLC_CONFIG(d)->play.perk_system), grn, nrm, cyn,
       OLC_CONFIG(d)->play.experience_multiplier,
 
-      grn, nrm, cyn, OLC_CONFIG(d)->play.OK, grn, nrm, cyn, OLC_CONFIG(d)->play.NOPERSON, grn, nrm,
-      cyn, OLC_CONFIG(d)->play.NOEFFECT, grn, nrm, cyn,
+      grn, nrm, cyn, OLC_CONFIG(d)->play.OK, grn, nrm, cyn, OLC_CONFIG(d)->play.HUH, grn, nrm, cyn,
+      OLC_CONFIG(d)->play.NOPERSON, grn, nrm, cyn, OLC_CONFIG(d)->play.NOEFFECT, grn, nrm, cyn,
       m_opt == 0 ? "Off" : (m_opt == 1 ? "On" : (m_opt == 2 ? "Imm-Only" : "Invalid!")), grn, nrm,
       cyn, OLC_CONFIG(d)->play.map_size, grn, nrm, cyn, OLC_CONFIG(d)->play.minimap_size, grn, nrm,
       cyn, CHECK_VAR(OLC_CONFIG(d)->play.script_players), grn, nrm, cyn,
@@ -2062,6 +2076,11 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_OK;
       return;
 
+    case '9':
+      write_to_output(d, "Enter the HUH message : ");
+      OLC_MODE(d) = CEDIT_HUH;
+      return;
+
     case '2':
       write_to_output(d, "Enter the NOPERSON message : ");
       OLC_MODE(d) = CEDIT_NOPERSON;
@@ -2286,7 +2305,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     case 'm':
     case 'M':
       write_to_output(d, "Auto-download MUDlet package?\r\n");
-      write_to_output(d, "When enabled, players connecting via MUDlet will automatically receive\r\n");
+      write_to_output(d,
+                      "When enabled, players connecting via MUDlet will automatically receive\r\n");
       write_to_output(d, "the MUD's MUDlet package for download.\r\n");
       for (i = 0; i < NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS; i++)
       {
@@ -3080,6 +3100,18 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     cedit_disp_game_play_options(d);
     break;
 
+  case CEDIT_HUH:
+    if (!genolc_checkstring(d, arg))
+      break;
+
+    if (OLC_CONFIG(d)->play.HUH)
+      free(OLC_CONFIG(d)->play.HUH);
+
+    OLC_CONFIG(d)->play.HUH = str_udupnl(arg);
+
+    cedit_disp_game_play_options(d);
+    break;
+
   case CEDIT_NOPERSON:
     if (!genolc_checkstring(d, arg))
       break;
@@ -3490,8 +3522,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_VESSEL_SYSTEM:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.vessel_system =
-          (MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.vessel_system = (MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;

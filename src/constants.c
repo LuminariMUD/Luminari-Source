@@ -39,7 +39,7 @@
  *   - CMakeLists.txt (project VERSION for CMake build)
  *   - README.md (documentation)
  * When updating version, update ALL locations above. */
-cpp_extern const char *const luminari_version = "LuminariMUD 2.5011-beta (tbaMUD 3.64)";
+cpp_extern const char *const luminari_version = "LuminariMUD 2.5012-beta (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
@@ -1312,6 +1312,7 @@ const char *preference_bits[] = {"Brief",
                                  "BoardCheck-On-Login",
                                  "Auto-Search",
                                  "Sweeping-Strike",
+                                 "Verbose-Listings",
                                  "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -3022,7 +3023,7 @@ const char *month_name[] = {"Month of \tWWinter\tn", /* 0 */
 const char *trig_types[] = {"Global", "Random",    "Command", "Speech",  "Act",   "Death",
                             "Greet",  "Greet-All", "Entry",   "Receive", "Fight", "HitPrcnt",
                             "Bribe",  "Load",      "Memory",  "Cast",    "Leave", "Door",
-                            "UNUSED", "Time",      "\n"};
+                            "UNUSED", "Time",      "Damage",  "\n"};
 
 /** Names for object trigger types. */
 const char *otrig_types[] = {"Global",  "Random", "Command", "UNUSED1", "UNUSED2", "Timer",

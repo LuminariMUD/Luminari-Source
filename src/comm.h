@@ -80,9 +80,6 @@ void copyover_recover(void);
 /* global buffering system - allow access to global variables within comm.c */
 #ifndef __COMM_C__
 
-/** webster dictionary lookup */
-extern long last_webster_teller;
-
 extern struct descriptor_data *descriptor_list;
 extern int buf_largecount;
 extern int buf_overflows;

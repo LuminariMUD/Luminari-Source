@@ -90,7 +90,6 @@ util/rebuildMailIndex
 util/shopconv
 util/sign
 util/split
-util/webster
 util/wld2html
 
 ####################
@@ -402,3 +401,8 @@ scripts/__pycache__/populate_zone7000_from_aunauroch.cpython-312.pyc
 # Root-level working changelog (docs/CHANGELOG.md stays tracked)
 /changelog
 /changelog.bak
+
+####################
+# Upstream Reference Comparisons
+####################
+/EXAMPLE/

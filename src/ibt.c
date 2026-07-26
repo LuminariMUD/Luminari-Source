@@ -11,6 +11,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <stdint.h>
 #include <time.h>
 #include "structs.h"
 #include "utils.h"
@@ -48,6 +49,64 @@ static void ibtedit_setup(struct descriptor_data *d);
 static void ibtedit_save(struct descriptor_data *d);
 static void ibtedit_disp_main_menu(struct descriptor_data *d);
 static void ibtedit_disp_flags(struct descriptor_data *d);
+
+struct ibt_output_buffer
+{
+  char *data;
+  size_t length;
+  size_t capacity;
+  bool failed;
+};
+
+static bool append_ibt_output(struct ibt_output_buffer *output, const char *format, ...)
+{
+  va_list args;
+  char *resized;
+  size_t required, new_capacity;
+  int needed;
+
+  if (output->failed)
+    return FALSE;
+
+  va_start(args, format);
+  needed = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+  if (needed < 0 || (size_t)needed > SIZE_MAX - output->length - 1)
+  {
+    output->failed = TRUE;
+    return FALSE;
+  }
+
+  required = output->length + (size_t)needed + 1;
+  if (required > output->capacity)
+  {
+    new_capacity = output->capacity ? output->capacity : 4096;
+    while (new_capacity < required)
+    {
+      if (new_capacity > SIZE_MAX / 2)
+      {
+        new_capacity = required;
+        break;
+      }
+      new_capacity *= 2;
+    }
+
+    resized = realloc(output->data, new_capacity);
+    if (!resized)
+    {
+      output->failed = TRUE;
+      return FALSE;
+    }
+    output->data = resized;
+    output->capacity = new_capacity;
+  }
+
+  va_start(args, format);
+  vsnprintf(output->data + output->length, output->capacity - output->length, format, args);
+  va_end(args);
+  output->length += (size_t)needed;
+  return TRUE;
+}
 
 static IBT_DATA *new_ibt(void)
 {
@@ -228,6 +287,8 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
     STRFREE(ibtData->name);
   if (ibtData->text)
     STRFREE(ibtData->text);
+  if (ibtData->notes)
+    STRFREE(ibtData->notes);
   if (ibtData->body)
     STRFREE(ibtData->body);
   if (id_num)
@@ -496,10 +557,11 @@ static bool is_ibt_logger(IBT_DATA *ibtData, struct char_data *ch)
 ACMD(do_ibt)
 {
   char arg[MAX_STRING_LENGTH] = {'\0'}, arg2[MAX_STRING_LENGTH] = {'\0'};
-  char buf[MAX_STRING_LENGTH] = {'\0'}, imp[30];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, imp[30], timestr[128];
   const char *arg_text;
   int i, num_res, num_unres;
   IBT_DATA *ibtData, *first_ibt;
+  struct ibt_output_buffer output = {NULL, 0, 0, FALSE};
   int ano = 0;
 
   if (IS_NPC(ch))
@@ -569,8 +631,11 @@ ACMD(do_ibt)
       else
       {
         send_to_char(ch, "%s%s by %s%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->name);
-        send_to_char(ch, "%sSubmitted: %s%s", QCYN, QBYEL,
-                     ibtData->dated ? ctime(&ibtData->dated) : "Unknown\r\n");
+        if (ibtData->dated)
+          format_time_string(ibtData->dated, "%c", timestr, sizeof(timestr));
+        else
+          strlcpy(timestr, "Unknown", sizeof(timestr));
+        send_to_char(ch, "%sSubmitted: %s%s\r\n", QCYN, QBYEL, timestr);
         if (GET_LEVEL(ch) >= LVL_IMMORT)
         {
           send_to_char(ch, "%sLevel: %s%d\r\n", QCYN, QBYEL, ibtData->level);
@@ -596,19 +661,19 @@ ACMD(do_ibt)
     {
       if (GET_LEVEL(ch) < LVL_IMMORT)
       {
-        send_to_char(ch, "%s No %s|%s Description\r\n", QCYN, QGRN, QCYN);
-        send_to_char(ch, "%s ---|--------------------------------------------------%s\r\n", QGRN,
-                     QNRM);
+        append_ibt_output(&output,
+                          "%s No %s|%s Description\r\n"
+                          "%s ---|--------------------------------------------------%s\r\n",
+                          QCYN, QGRN, QCYN, QGRN, QNRM);
       }
       else
       {
-        send_to_char(ch, "%s No %s|%sName        %s|%sRoom  %s|%sLevel%s|%s Description\r\n", QCYN,
-                     QGRN, QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QCYN);
-        send_to_char(ch,
-                     "%s "
-                     "---|------------|------|-----|-----------------------------------------------"
-                     "---%s\r\n",
-                     QGRN, QNRM);
+        append_ibt_output(&output,
+                          "%s No %s|%sName        %s|%sRoom  %s|%sLevel%s|%s Description\r\n"
+                          "%s "
+                          "---|------------|------|-----|------------------------------------------"
+                          "--------%s\r\n",
+                          QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QCYN, QGRN, QNRM);
       }
       i = num_res = num_unres = 0;
       for (ibtData = first_ibt; ibtData; ibtData = ibtData->next)
@@ -629,13 +694,13 @@ ACMD(do_ibt)
         {
           if (GET_LEVEL(ch) < LVL_IMMORT)
           {
-            send_to_char(ch, "%s%s%3d|%s%s\r\n", imp, QGRN, i, ibtData->text, QNRM);
+            append_ibt_output(&output, "%s%s%3d|%s%s\r\n", imp, QGRN, i, ibtData->text, QNRM);
           }
           else
           {
-            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QGRN, i, QGRN,
-                         QGRN, ibtData->name, QGRN, QGRN, ibtData->room, QGRN, QGRN, ibtData->level,
-                         QGRN, QGRN, ibtData->text, QNRM);
+            append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QGRN,
+                              i, QGRN, QGRN, ibtData->name, QGRN, QGRN, ibtData->room, QGRN, QGRN,
+                              ibtData->level, QGRN, QGRN, ibtData->text, QNRM);
           }
           num_res++;
         }
@@ -643,14 +708,14 @@ ACMD(do_ibt)
         {
           if (GET_LEVEL(ch) < LVL_IMMORT)
           {
-            send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n", imp, QBYEL, i, QGRN, QBYEL, ibtData->text,
-                         QNRM);
+            append_ibt_output(&output, "%s%s%3d%s|%s%s%s\r\n", imp, QBYEL, i, QGRN, QBYEL,
+                              ibtData->text, QNRM);
           }
           else
           {
-            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QBYEL, i, QGRN,
-                         QBYEL, ibtData->name, QGRN, QBYEL, ibtData->room, QGRN, QBYEL,
-                         ibtData->level, QGRN, QBYEL, ibtData->text, QNRM);
+            append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QBYEL,
+                              i, QGRN, QBYEL, ibtData->name, QGRN, QBYEL, ibtData->room, QGRN,
+                              QBYEL, ibtData->level, QGRN, QBYEL, ibtData->text, QNRM);
           }
           num_unres++;
         }
@@ -658,44 +723,58 @@ ACMD(do_ibt)
         {
           if (GET_LEVEL(ch) < LVL_IMMORT)
           {
-            send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n", imp, QRED, i, QGRN, QRED, ibtData->text, QNRM);
+            append_ibt_output(&output, "%s%s%3d%s|%s%s%s\r\n", imp, QRED, i, QGRN, QRED,
+                              ibtData->text, QNRM);
           }
           else
           {
-            send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QRED, i, QGRN,
-                         QRED, ibtData->name, QGRN, QRED, ibtData->room, QGRN, QRED, ibtData->level,
-                         QGRN, QRED, ibtData->text, QNRM);
+            append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QRED,
+                              i, QGRN, QRED, ibtData->name, QGRN, QRED, ibtData->room, QGRN, QRED,
+                              ibtData->level, QGRN, QRED, ibtData->text, QNRM);
           }
           num_unres++;
         }
       }
       if ((num_res + num_unres) > 0)
       {
-        send_to_char(ch, "\n\r%s%d %ss in file. %s%d%s resolved, %s%d%s unresolved%s\r\n", QCYN, i,
-                     CMD_NAME, QBGRN, num_res, QCYN, QBRED, num_unres, QCYN, QNRM);
-        send_to_char(ch, "%s%ss in %sRED%s are unresolved %ss.\r\n", QCYN, ibt_types[subcmd], QRED,
-                     QCYN, CMD_NAME);
-        send_to_char(ch, "%s%ss in %sYELLOW%s are in-progress %ss.\r\n", QCYN, ibt_types[subcmd],
-                     QBYEL, QCYN, CMD_NAME);
-        send_to_char(ch, "%s%ss in %sGREEN%s are resolved %ss.\r\n", QCYN, ibt_types[subcmd], QGRN,
-                     QCYN, CMD_NAME);
+        append_ibt_output(&output,
+                          "\n\r%s%d %ss in file. %s%d%s resolved, %s%d%s unresolved%s\r\n"
+                          "%s%ss in %sRED%s are unresolved %ss.\r\n"
+                          "%s%ss in %sYELLOW%s are in-progress %ss.\r\n"
+                          "%s%ss in %sGREEN%s are resolved %ss.\r\n",
+                          QCYN, i, CMD_NAME, QBGRN, num_res, QCYN, QBRED, num_unres, QCYN, QNRM,
+                          QCYN, ibt_types[subcmd], QRED, QCYN, CMD_NAME, QCYN, ibt_types[subcmd],
+                          QBYEL, QCYN, CMD_NAME, QCYN, ibt_types[subcmd], QGRN, QCYN, CMD_NAME);
       }
       else
       {
-        send_to_char(ch, "No %ss have been found that were reported by you!\r\n", CMD_NAME);
+        append_ibt_output(&output, "No %ss have been found that were reported by you!\r\n",
+                          CMD_NAME);
       }
       if (GET_LEVEL(ch) >= LVL_IMMORTAL)
       {
-        send_to_char(ch, "%sYou may use %s remove, resolve or edit to change the list..%s\r\n",
-                     QCYN, CMD_NAME, QNRM);
+        append_ibt_output(&output,
+                          "%sYou may use %s remove, resolve or edit to change the list..%s\r\n",
+                          QCYN, CMD_NAME, QNRM);
       }
-      send_to_char(ch, "%sYou may use %s%s show <number>%s to see more indepth about the %s.%s\r\n",
-                   QCYN, QBYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
+      append_ibt_output(
+          &output, "%sYou may use %s%s show <number>%s to see more in depth about the %s.%s\r\n",
+          QCYN, QBYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
     }
     else
     {
-      send_to_char(ch, "No %ss have been reported!\r\n", CMD_NAME);
+      append_ibt_output(&output, "No %ss have been reported!\r\n", CMD_NAME);
     }
+
+    if (output.failed)
+      send_to_char(ch, "Unable to build the complete %s list.\r\n", CMD_NAME);
+    else if (!output.data)
+      send_to_char(ch, "Unable to build the %s list.\r\n", CMD_NAME);
+    else if (ch->desc)
+      page_string(ch->desc, output.data, TRUE);
+    else
+      send_to_char(ch, "%s", output.data);
+    free(output.data);
     return;
   }
   else if (is_abbrev(arg, "submit"))

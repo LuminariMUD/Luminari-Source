@@ -76,7 +76,7 @@ void hsedit_setup_new(struct descriptor_data *d)
   OLC_HOUSE(d)->built_on = time(0);
   OLC_HOUSE(d)->mode = HOUSE_PRIVATE;
   OLC_HOUSE(d)->bitvector = 0;
-  OLC_HOUSE(d)->builtby = GET_ID(d->character);
+  OLC_HOUSE(d)->builtby = GET_IDNUM(d->character);
   OLC_HOUSE(d)->last_payment = 0;
   OLC_HOUSE(d)->num_of_guests = 0;
   for (i = 0; i < MAX_GUESTS; i++)
@@ -504,27 +504,19 @@ void hsedit_disp_menu(struct descriptor_data *d)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH] = {'\0'}, built_on[128],
        last_pay[128], buf2[MAX_RAW_INPUT_LENGTH] = {'\0'};
-  char *timestr, no_name[128];
+  char no_name[128];
   struct house_control_rec *house;
 
   clear_screen(d);
   house = OLC_HOUSE(d);
 
   if (house->built_on)
-  {
-    timestr = asctime(localtime(&(house->built_on)));
-    *(timestr + 10) = '\0';
-    strlcpy(built_on, timestr, sizeof(built_on));
-  }
+    format_time_string(house->built_on, "%a %b %d %Y", built_on, sizeof(built_on));
   else
     strlcpy(built_on, "Unknown", sizeof(built_on)); /* strcpy: OK (for 'strlen("Unknown") < 128') */
 
   if (house->last_payment)
-  {
-    timestr = asctime(localtime(&(house->last_payment)));
-    *(timestr + 10) = '\0';
-    strlcpy(last_pay, timestr, sizeof(last_pay));
-  }
+    format_time_string(house->last_payment, "%a %b %d %Y", last_pay, sizeof(last_pay));
   else
     strlcpy(last_pay, "None", sizeof(last_pay)); /* strcpy: OK (for 'strlen("None") < 128') */
 

@@ -733,8 +733,7 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
 void mysql_board_show_post(struct char_data *ch, int board_id, int post_id)
 {
   struct mysql_board_post *post;
-  char buf[MAX_STRING_LENGTH];
-  char *time_str;
+  char buf[MAX_STRING_LENGTH], time_str[64];
 
   post = mysql_board_get_post(board_id, post_id);
   if (!post)
@@ -749,8 +748,7 @@ void mysql_board_show_post(struct char_data *ch, int board_id, int post_id)
     mysql_board_mark_board_visited(ch, board_id);
   }
 
-  time_str = ctime(&post->date_posted);
-  time_str[strlen(time_str) - 1] = '\0'; /* Remove newline */
+  format_time_string(post->date_posted, "%c", time_str, sizeof(time_str));
 
   /* Parse @ color codes in the post body and title */
   if (post->body)

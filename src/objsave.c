@@ -330,11 +330,11 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   }
   if (TEST_OBJN(bitvector))
   {
-    fprintf(fp, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1],
-            GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    fprintf(fp, "Perm: %d %d %d %d\n", GET_OBJ_AFFECT(obj)[0], GET_OBJ_AFFECT(obj)[1],
+            GET_OBJ_AFFECT(obj)[2], GET_OBJ_AFFECT(obj)[3]);
 #ifdef OBJSAVE_DB
-    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0],
-             GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_AFFECT(obj)[0],
+             GET_OBJ_AFFECT(obj)[1], GET_OBJ_AFFECT(obj)[2], GET_OBJ_AFFECT(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
@@ -849,7 +849,7 @@ int Crash_clean_file(char *name)
   char filename[MAX_INPUT_LENGTH] = {'\0'}, filetype[20];
   int numread;
   FILE *fl;
-  int rentcode, timed, netcost, gold, account, nitems;
+  int rentcode = RENT_UNDEF, timed = 0, netcost = 0, gold = 0, account = 0, nitems = 0;
   char line[READ_SIZE];
 
   if (!get_filename(filename, sizeof(filename), CRASH_FILE, name))
@@ -2078,13 +2078,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       if (!strcmp(tag, "Perm"))
       {
         sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
-        GET_OBJ_PERM(temp)
+        GET_OBJ_AFFECT(temp)
         [0] = asciiflag_conv(f1);
-        GET_OBJ_PERM(temp)
+        GET_OBJ_AFFECT(temp)
         [1] = asciiflag_conv(f2);
-        GET_OBJ_PERM(temp)
+        GET_OBJ_AFFECT(temp)
         [2] = asciiflag_conv(f3);
-        GET_OBJ_PERM(temp)
+        GET_OBJ_AFFECT(temp)
         [3] = asciiflag_conv(f4);
       }
       else if (!strcmp(tag, "Prm2"))
@@ -2583,13 +2583,13 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         if (!strcmp(tag, "Perm"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [0] = asciiflag_conv(f1);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [1] = asciiflag_conv(f2);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [2] = asciiflag_conv(f3);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [3] = asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Prm2"))
@@ -2794,12 +2794,22 @@ static int Crash_load_objs(struct char_data *ch)
 
   row = mysql_fetch_row(result);
 
-  if (row && strlen((const char *)row) > 0 && (strcmp(row[0], "") != 0))
+  if (row && row[0] && row[0][0] != '\0')
   {
-    /* This player has saved objects in the database */
-    COPYOVER_DEBUG("Object save header found for: %s", GET_NAME(ch));
-    sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems);
-    using_db = TRUE;
+    if (sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+               &nitems) == 6)
+    {
+      /* This player has saved objects in the database */
+      COPYOVER_DEBUG("Object save header found for: %s", GET_NAME(ch));
+      using_db = TRUE;
+    }
+    else
+    {
+      log("SYSERR: Invalid object save header in database for: %s", GET_NAME(ch));
+      rentcode = RENT_UNDEF;
+      timed = netcost = gold = account = nitems = 0;
+      using_db = FALSE;
+    }
   }
   else
   {
@@ -2825,8 +2835,20 @@ static int Crash_load_objs(struct char_data *ch)
     return 1;
   }
 
-  if (!using_db && get_line(fl, line))
-    sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems);
+  if (!using_db)
+  {
+    if (!get_line(fl, line))
+      mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
+             "Failed to read player's rent code: %s.", GET_NAME(ch));
+    else if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+                    &nitems) != 6)
+    {
+      mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "Invalid rent header for player: %s.",
+             GET_NAME(ch));
+      rentcode = RENT_UNDEF;
+      timed = netcost = gold = account = nitems = 0;
+    }
+  }
 
   if (rentcode == RENT_RENTED || rentcode == RENT_TIMEDOUT)
   {
@@ -2835,7 +2857,8 @@ static int Crash_load_objs(struct char_data *ch)
     cost = (unsigned int)(netcost * num_of_days);
     if (cost > (unsigned int)GET_GOLD(ch) + (unsigned int)GET_BANK_GOLD(ch))
     {
-      fclose(fl);
+      if (fl)
+        fclose(fl);
       mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
              "%s entering game, rented equipment lost (no $).", GET_NAME(ch));
       Crash_crashsave(ch);
@@ -3177,8 +3200,8 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
   }
   if (TEST_OBJN(bitvector))
   {
-    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0],
-             GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_AFFECT(obj)[0],
+             GET_OBJ_AFFECT(obj)[1], GET_OBJ_AFFECT(obj)[2], GET_OBJ_AFFECT(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
   if (TEST_OBJN(bitvector2))
@@ -3610,13 +3633,13 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         if (!strcmp(tag, "Perm"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [0] = asciiflag_conv(f1);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [1] = asciiflag_conv(f2);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [2] = asciiflag_conv(f3);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [3] = asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prm2"))
@@ -3885,8 +3908,8 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   }
   if (TEST_OBJN(bitvector))
   {
-    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0],
-             GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_AFFECT(obj)[0],
+             GET_OBJ_AFFECT(obj)[1], GET_OBJ_AFFECT(obj)[2], GET_OBJ_AFFECT(obj)[3]);
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
   if (TEST_OBJN(bitvector2))
@@ -4317,13 +4340,13 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         if (!strcmp(tag, "Perm"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [0] = asciiflag_conv(f1);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [1] = asciiflag_conv(f2);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [2] = asciiflag_conv(f3);
-          GET_OBJ_PERM(temp)
+          GET_OBJ_AFFECT(temp)
           [3] = asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prm2"))

@@ -87,7 +87,7 @@
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
 static struct alias_data *find_alias(struct alias_data *alias_list, char *str);
-static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a);
+static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a);
 static int _parse_name(char *arg, char *name);
 static bool perform_new_char_dupe_check(struct descriptor_data *d);
 /* sort_commands utility */
@@ -4588,6 +4588,7 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
+    {"unfollow", "unfollow", POS_RESTING, do_unfollow, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"undeath",
      "undeath",
      POS_FIGHTING,
@@ -5339,6 +5340,7 @@ const struct mob_script_command_t mob_script_commands[] = {
     {"mtransform", do_mtransform, 0},
     {"mzoneecho", do_mzoneecho, 0},
     {"mfollow", do_mfollow, 0},
+    {"mlog", do_mlog, 0},
     /* Clan DG Script commands */
     {"mclanset", do_mclanset, 0},
     {"mclanrank", do_mclanrank, 0},
@@ -5492,7 +5494,7 @@ void command_interpreter(struct char_data *ch, char *argument)
   if (*complete_cmd_info[cmd].command == '\n')
   {
     int found = 0;
-    send_to_char(ch, "Huh!?!\r\n");
+    send_to_char(ch, "%s", CONFIG_HUH);
 
     for (cmd = 0; *cmd_info[cmd].command != '\n'; cmd++)
     {
@@ -5903,9 +5905,10 @@ ACMDU(do_alias)
  * commands. */
 #define NUM_TOKENS 9
 
-static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a)
+static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a)
 {
   struct txt_q temp_queue;
+  struct txt_block *qtmp;
   char *tokens[NUM_TOKENS], *temp, *write_point;
   char buf2[MAX_RAW_INPUT_LENGTH] = {'\0'}, buf[MAX_RAW_INPUT_LENGTH] = {'\0'}; /* raw? */
   int num_of_tokens = 0, num;
@@ -5938,19 +5941,33 @@ static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alia
       temp++;
       if ((num = *temp - '1') < num_of_tokens && num >= 0)
       {
-        strcpy(write_point, tokens[num]); /* strcpy: OK */
+        if ((write_point - buf) + strlen(tokens[num]) >= MAX_RAW_INPUT_LENGTH)
+          goto overflow;
+        strcpy(write_point, tokens[num]);
         write_point += strlen(tokens[num]);
       }
       else if (*temp == ALIAS_GLOB_CHAR)
       {
-        strcpy(write_point, orig); /* strcpy: OK */
+        skip_spaces(&orig);
+        if ((write_point - buf) + strlen(orig) >= MAX_RAW_INPUT_LENGTH)
+          goto overflow;
+        strcpy(write_point, orig);
         write_point += strlen(orig);
       }
-      else if ((*(write_point++) = *temp) == '$') /* redouble $ for act safety */
-        *(write_point++) = '$';
+      else
+      {
+        if ((write_point - buf) + 2 >= MAX_RAW_INPUT_LENGTH)
+          goto overflow;
+        if ((*(write_point++) = *temp) == '$') /* redouble $ for act safety */
+          *(write_point++) = '$';
+      }
     }
     else
+    {
+      if ((write_point - buf) + 1 >= MAX_RAW_INPUT_LENGTH)
+        goto overflow;
       *(write_point++) = *temp;
+    }
   }
 
   *write_point = '\0';
@@ -5965,6 +5982,17 @@ static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alia
     temp_queue.tail->next = input_q->head;
     input_q->head = temp_queue.head;
   }
+  return (0);
+
+overflow:
+  while (temp_queue.head)
+  {
+    qtmp = temp_queue.head;
+    temp_queue.head = qtmp->next;
+    free(qtmp->text);
+    free(qtmp);
+  }
+  return (-1);
 }
 
 /* Given a character and a string, perform alias replacement on it.
@@ -6003,7 +6031,8 @@ int perform_alias(struct descriptor_data *d, char *orig, size_t maxlen)
   }
   else
   {
-    perform_complex_alias(&d->input, ptr, a);
+    if (perform_complex_alias(&d->input, ptr, a) < 0)
+      send_to_char(d->character, "Alias expansion too long.\r\n");
     return (1);
   }
 }

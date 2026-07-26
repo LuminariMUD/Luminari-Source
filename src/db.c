@@ -303,12 +303,10 @@ char *fread_action(FILE *fl, int nr)
 
   if (!fgets(buf, MAX_STRING_LENGTH, fl))
   {
-    log("SYSERR: Failed to read from social file");
-    return NULL;
-  }
-  if (feof(fl))
-  {
-    log("SYSERR: fread_action: unexpected EOF near action #%d", nr);
+    if (feof(fl))
+      log("SYSERR: fread_action: unexpected EOF near action #%d", nr);
+    else
+      log("SYSERR: fread_action: read error near action #%d: %s", nr, strerror(errno));
     /* SYSERR_DESC: fread_action() will fail if it discovers an end of file
      * marker before it is able to read in the expected string.  This can be
      * caused by a truncated socials file. */
@@ -1960,6 +1958,26 @@ static bitvector_t asciiflag_conv_aff(char *flag)
   return (flags);
 }
 
+/* Extra descriptions are formatted by editors that expect a trailing line
+ * ending.  Empty descriptions are valid and need no adjustment. */
+static void ensure_newline_terminated(struct extra_descr_data *new_descr)
+{
+  char *with_terminator;
+  size_t length;
+
+  if (!new_descr || !new_descr->description)
+    return;
+
+  length = strlen(new_descr->description);
+  if (length > 0 && new_descr->description[length - 1] != '\n')
+  {
+    CREATE(with_terminator, char, length + 3);
+    snprintf(with_terminator, length + 3, "%s\r\n", new_descr->description);
+    free(new_descr->description);
+    new_descr->description = with_terminator;
+  }
+}
+
 /* load the rooms */
 void parse_room(FILE *fl, int virtual_nr, const char *filename)
 {
@@ -2161,18 +2179,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       CREATE(new_descr, struct extra_descr_data, 1);
       new_descr->keyword = fread_string(fl, buf2);
       new_descr->description = fread_string(fl, buf2);
-      /* Fix for crashes in the editor when formatting. E-descs are assumed to
-       * end with a \r\n. -Welcor */
-      {
-        char *end = strchr(new_descr->description, '\0');
-        if (end > new_descr->description && *(end - 1) != '\n')
-        {
-          CREATE(end, char, strlen(new_descr->description) + 3);
-          sprintf(end, "%s\r\n", new_descr->description); /* snprintf ok : size checked above*/
-          free(new_descr->description);
-          new_descr->description = end;
-        }
-      }
+      ensure_newline_terminated(new_descr);
       new_descr->next = world[room_nr].ex_description;
       world[room_nr].ex_description = new_descr;
       break;
@@ -3587,13 +3594,13 @@ const char *parse_object(FILE *obj_f, int nr)
     [2] = 0;
     GET_OBJ_WEAR(obj_proto + i)
     [3] = 0;
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [0] = asciiflag_conv_aff(f3);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [1] = 0;
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [2] = 0;
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [3] = 0;
 
 
@@ -3623,13 +3630,13 @@ const char *parse_object(FILE *obj_f, int nr)
     [2] = asciiflag_conv(f7);
     GET_OBJ_WEAR(obj_proto + i)
     [3] = asciiflag_conv(f8);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [0] = asciiflag_conv(f9);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [1] = asciiflag_conv(f10);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [2] = asciiflag_conv(f11);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [3] = asciiflag_conv(f12);
   }
   else if (retval == 17)
@@ -3650,13 +3657,13 @@ const char *parse_object(FILE *obj_f, int nr)
     [2] = asciiflag_conv(f7);
     GET_OBJ_WEAR(obj_proto + i)
     [3] = asciiflag_conv(f8);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [0] = asciiflag_conv(f9);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [1] = asciiflag_conv(f10);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [2] = asciiflag_conv(f11);
-    GET_OBJ_PERM(obj_proto + i)
+    GET_OBJ_AFFECT(obj_proto + i)
     [3] = asciiflag_conv(f12);
     GET_OBJ2_PERM(obj_proto + i)
     [0] = asciiflag_conv(f13);
@@ -4503,9 +4510,7 @@ struct char_data *create_char(void)
   ch->next = character_list;
   character_list = ch;
 
-  GET_ID(ch) = max_mob_id++;
-  /* find_char helper */
-  add_to_lookup_table(GET_ID(ch), (void *)ch);
+  GET_ID(ch) = 0;
 
   return (ch);
 }
@@ -4600,10 +4605,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   mob_index[i].number++;
 
-  GET_ID(mob) = max_mob_id++;
-
-  /* find_char helper */
-  add_to_lookup_table(GET_ID(mob), (void *)mob);
+  GET_ID(mob) = 0;
 
   copy_proto_script(&mob_proto[i], mob, MOB_TRIGGER);
   assign_triggers(mob, MOB_TRIGGER);
@@ -4655,9 +4657,7 @@ struct obj_data *create_obj(void)
   obj->events = NULL;
   obj->special_abilities = NULL; /* Ornir 19/08/2013 */
 
-  GET_ID(obj) = max_obj_id++;
-  /* find_obj helper */
-  add_to_lookup_table(GET_ID(obj), (void *)obj);
+  GET_ID(obj) = 0;
 
   return (obj);
 }
@@ -4762,9 +4762,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 
   obj_index[i].number++;
 
-  GET_ID(obj) = max_obj_id++;
-  /* find_obj helper */
-  add_to_lookup_table(GET_ID(obj), (void *)obj);
+  GET_ID(obj) = 0;
 
   /* Handle string fields that shouldn't be shared with prototype */
   /* For arcane_mark and restring_identifier, we need to create instance-specific copies
@@ -5825,24 +5823,51 @@ int is_empty(zone_rnum zone_nr)
 
 /* Functions of a general utility nature. */
 
+/* Normalize a line read by the tilde-terminated string readers. */
+static size_t normalize_fread_line(char *line, size_t line_size, bool *done)
+{
+  size_t length;
+
+  length = strlen(line);
+  while (length > 0 && (line[length - 1] == '\r' || line[length - 1] == '\n'))
+    length--;
+
+  if (length > 0 && line[length - 1] == '~')
+  {
+    line[--length] = '\0';
+    *done = TRUE;
+    return length;
+  }
+
+  if (length + 2 >= line_size)
+  {
+    log("SYSERR: normalize_fread_line: input line too large");
+    exit(1);
+  }
+
+  line[length++] = '\r';
+  line[length++] = '\n';
+  line[length] = '\0';
+  return length;
+}
+
 /* read and allocate space for a '~'-terminated string from a given file
  * This function reads multi-line text from a file until it finds a '~' character.
  * The '~' acts as an end-of-text marker in Luminari data files. */
 char *fread_string(FILE *fl, const char *error)
 {
   /* buf will store our complete final string (up to MAX_STRING_LENGTH)
-   * tmp is a smaller buffer for reading one line at a time (512 chars + null terminator) */
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
-  char *point = NULL; /* pointer used to navigate through the tmp buffer */
-  int done = 0;       /* flag: becomes 1 when we find the '~' terminator */
-  int length = 0;     /* current total length of string we've built so far */
-  int templength = 0; /* length of the current line we just read */
+   * tmp is a smaller buffer with room to append CRLF and a null terminator. */
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[514] = {'\0'};
+  bool done = FALSE;
+  size_t length = 0;
+  size_t templength = 0;
 
   /* Keep reading lines from the file until we find our '~' terminator */
   do
   {
     /* Clear the temporary buffer to all zeros - ensures clean slate for each line */
-    memset(tmp, '\0', 513);
+    memset(tmp, '\0', sizeof(tmp));
 
     /* Read up to 512 characters (one line) from the file into tmp buffer
      * fgets() stops at newline or after 512 chars, whichever comes first */
@@ -5857,69 +5882,10 @@ char *fread_string(FILE *fl, const char *error)
       exit(1); /* Kill the whole MUD - data files are corrupted */
     }
 
-    /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
-    /* now only removes trailing ~'s -- Welcor */
-
-    /* strchr(tmp, '\0') finds the null terminator at the end of the string
-     * This gives us a pointer to the END of what we just read */
-    point = strchr(tmp, '\0');
-    if (point == NULL)
-    {
-      /* This should never happen - every C string must have a null terminator */
-      log("SYSERR: freed_string: end of string not found (db.c)");
-      log("String: %s", tmp);
-      exit(1);
-    }
-
-    /* Move backwards from the end of string, skipping any trailing newlines/carriage returns
-     * We want to find the last "real" character that isn't whitespace */
-    /* Ensure we don't go before the beginning of tmp array */
-    if (point > tmp)
-    {
-      /* Start from the character BEFORE the null terminator and go backwards
-       * Skip over any '\r' (carriage return) or '\n' (newline) characters
-       * The loop continues while BOTH conditions are true:
-       *   1. point >= tmp (we haven't gone before the start of array)
-       *   2. character is '\r' or '\n' (it's whitespace to skip) */
-      for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
-        ; /* Empty loop body - just moving the pointer backwards */
-    }
-
-    /* Check if the last non-whitespace character is our '~' terminator
-     * point >= tmp ensures we have a valid position (not before array start) */
-    if (point >= tmp && *point == '~')
-    {
-      /* Found the terminator! Replace '~' with null terminator to end the string */
-      *point = '\0';
-      done = 1; /* Set flag to exit the main loop after this iteration */
-    }
-    else
-    {
-      /* No '~' found, so this is a continuing line of text
-       * We need to add proper line endings and continue reading */
-
-      /* Handle edge case: if the line was ALL newlines/carriage returns,
-       * point might now be before tmp (point < tmp). In this case, we need
-       * to position it so the next increments will write to valid locations.
-       * Setting point = tmp - 1 means the first ++point will make it tmp[0] */
-      if (point < tmp)
-        point = tmp - 1; /* Set to one position before buffer start */
-
-      /* Add Windows-style line ending: \r\n (carriage return + line feed)
-       * This preserves line breaks in the final string
-       * Note: ++point increments FIRST, then assigns the value
-       * So from tmp-1: ++point goes to tmp[0], then tmp[1], then tmp[2] */
-      *(++point) = '\r'; /* Move pointer forward to valid position, add carriage return */
-      *(++point) = '\n'; /* Move pointer forward, add newline */
-      *(++point) = '\0'; /* Move pointer forward, add null terminator */
-    }
-
-    /* Calculate how many characters we're adding from this line
-     * point - tmp gives us the distance from start to current position */
-    templength = point - tmp;
+    templength = normalize_fread_line(tmp, sizeof(tmp), &done);
 
     /* Safety check: make sure we don't overflow our main buffer */
-    if (length + templength >= MAX_STRING_LENGTH)
+    if (length + templength >= sizeof(buf))
     {
       /* String is too long - fatal error to prevent buffer overflow */
       log("SYSERR: fread_string: string too large (db.c)");
@@ -5931,8 +5897,8 @@ char *fread_string(FILE *fl, const char *error)
       /* Append this line to our main buffer
        * buf + length points to where we left off in the main buffer
        * strcat adds tmp starting at that position */
-      strcat(buf + length, tmp); /* strcat: OK (size checked above) */
-      length += templength;      /* Update our total length counter */
+      memcpy(buf + length, tmp, templength + 1);
+      length += templength;
     }
   } while (!done); /* Keep looping until we find the '~' terminator */
 
@@ -5952,9 +5918,10 @@ char *fread_string(FILE *fl, const char *error)
 /* fread_clean_string is the same as fread_string, but skips preceding spaces */
 char *fread_clean_string(FILE *fl, const char *error)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
-  char *point = NULL, c = '\0';
-  int done = 0, length = 0, templength = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[514] = {'\0'};
+  char c = '\0';
+  bool done = FALSE;
+  size_t length = 0, templength = 0;
 
   *buf = '\0';
   *tmp = '\0';
@@ -5977,33 +5944,9 @@ char *fread_clean_string(FILE *fl, const char *error)
       log("SYSERR: fread_clean_string: format error at or near %s", error);
       exit(1);
     }
-    /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
-    /* now only removes trailing ~'s -- Welcor */
-    point = strchr(tmp, '\0');
-    /* Ensure we don't go before the beginning of tmp array */
-    if (point > tmp)
-    {
-      for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
-        ;
-    }
-    if (point >= tmp && *point == '~')
-    {
-      *point = '\0';
-      done = 1;
-    }
-    else
-    {
-      /* Move back to the last valid position if we went too far */
-      if (point < tmp)
-        point = tmp - 1;
-      *(++point) = '\r';
-      *(++point) = '\n';
-      *(++point) = '\0';
-    }
+    templength = normalize_fread_line(tmp, sizeof(tmp), &done);
 
-    templength = point - tmp;
-
-    if (length + templength >= MAX_STRING_LENGTH)
+    if (length + templength >= sizeof(buf))
     {
       log("SYSERR: fread_clean_string: string too large (db.c)");
       log("%s", error);
@@ -6011,7 +5954,7 @@ char *fread_clean_string(FILE *fl, const char *error)
     }
     else
     {
-      strcat(buf + length, tmp); /* strcat: OK (size checked above) */
+      memcpy(buf + length, tmp, templength + 1);
       length += templength;
     }
   } while (!done);
@@ -6588,8 +6531,9 @@ void free_obj(struct obj_data *obj)
     obj->sbinfo = NULL;
   }
 
-  /* find_obj helper */
-  remove_from_lookup_table(GET_ID(obj));
+  /* Objects that were never referenced by a script have no lookup entry. */
+  if (GET_ID(obj) != 0)
+    remove_from_lookup_table(GET_ID(obj));
 
   free(obj);
 }
@@ -7438,6 +7382,7 @@ static void load_default_config(void)
   CONFIG_DTS_ARE_DUMPS = dts_are_dumps;
   CONFIG_LOAD_INVENTORY = load_into_inventory;
   CONFIG_OK = strdup(OK);
+  CONFIG_HUH = strdup(HUH);
   CONFIG_NOPERSON = strdup(NOPERSON);
   CONFIG_NOEFFECT = strdup(NOEFFECT);
   CONFIG_TRACK_T_DOORS = track_through_doors;
@@ -7701,6 +7646,15 @@ void load_config(void)
     case 'h':
       if (!str_cmp(tag, "holler_move_cost"))
         CONFIG_HOLLER_MOVE_COST = num;
+      else if (!str_cmp(tag, "huh"))
+      {
+        size_t len = strlen(line);
+
+        if (CONFIG_HUH)
+          free(CONFIG_HUH);
+        CREATE(CONFIG_HUH, char, len + 3);
+        snprintf(CONFIG_HUH, len + 3, "%s\r\n", line);
+      }
       else if (!str_cmp(tag, "happy_hour_chance"))
         CONFIG_HAPPY_HOUR_CHANCE = num;
       else if (!str_cmp(tag, "happy_hour_exp_bonus"))

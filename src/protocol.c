@@ -2641,7 +2641,21 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
           Write(apDescriptor, RequestTTYPE);
       }
 
-      if (PrefixString("Mudlet", pClientName))
+      if (PrefixString("MTTS ", pClientName))
+      {
+        int mtts_capabilities = atoi(pClientName + 5);
+
+        if (mtts_capabilities & 1)
+          pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
+        if (mtts_capabilities & 4)
+          pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = 1;
+        if (mtts_capabilities & 8)
+        {
+          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+          pProtocol->b256Support = eYES;
+        }
+      }
+      else if (PrefixString("Mudlet", pClientName))
       {
         /* Mudlet beta 15 and later supports 256 colours, but we can't
          * identify it from the mud - everything prior to 1.1 claims
@@ -3113,28 +3127,37 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               !strcmp(apDescriptor->pProtocol->pVariables[var]->pValueString, "Unknown"))
           {
             /* Store the new value if it's valid */
-            char *pBuffer = alloca(VariableNameTable[var].Max + 1);
+            char *pBuffer = malloc(VariableNameTable[var].Max + 1);
             int j; /* Loop counter */
 
-            for (j = 0; j < VariableNameTable[var].Max && *apValue != '\0'; ++apValue)
+            if (pBuffer == NULL)
             {
-              if (isprint(*apValue))
-                pBuffer[j++] = *apValue;
+              ReportBug("ExecuteMSDPPair: Failed to allocate MSDP value buffer");
             }
-            pBuffer[j++] = '\0';
-
-            if (j >= VariableNameTable[var].Min)
+            else
             {
-              /* Validate the MSDP value before setting */
-              if (ValidateMSDPValue(var, pBuffer) == PROTOCOL_SUCCESS)
+              for (j = 0; j < VariableNameTable[var].Max && *apValue != '\0'; ++apValue)
               {
-                free(apDescriptor->pProtocol->pVariables[var]->pValueString);
-                apDescriptor->pProtocol->pVariables[var]->pValueString = AllocString(pBuffer);
+                if (isprint(*apValue))
+                  pBuffer[j++] = *apValue;
               }
-              else
+              pBuffer[j++] = '\0';
+
+              if (j >= VariableNameTable[var].Min)
               {
-                ReportBug("ExecuteMSDPPair: Invalid MSDP string value rejected");
+                /* Validate the MSDP value before setting */
+                if (ValidateMSDPValue(var, pBuffer) == PROTOCOL_SUCCESS)
+                {
+                  free(apDescriptor->pProtocol->pVariables[var]->pValueString);
+                  apDescriptor->pProtocol->pVariables[var]->pValueString = AllocString(pBuffer);
+                }
+                else
+                {
+                  ReportBug("ExecuteMSDPPair: Invalid MSDP string value rejected");
+                }
               }
+
+              free(pBuffer);
             }
           }
         }

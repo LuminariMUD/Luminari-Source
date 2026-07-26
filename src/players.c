@@ -4005,7 +4005,7 @@ void tag_argument(char *argument, char *tag)
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
 void remove_player(int pfilepos)
 {
-  char filename[MAX_STRING_LENGTH] = {'\0'};
+  char filename[MAX_STRING_LENGTH] = {'\0'}, timestr[64];
   int i;
 
   if (!*player_table[pfilepos].name)
@@ -4018,8 +4018,9 @@ void remove_player(int pfilepos)
       unlink(filename);
   }
 
+  format_time_string(player_table[pfilepos].last, "%c", timestr, sizeof(timestr));
   log("PCLEAN: %s Lev: %d Last: %s", player_table[pfilepos].name, player_table[pfilepos].level,
-      asctime(localtime(&player_table[pfilepos].last)));
+      timestr);
   player_table[pfilepos].name[0] = '\0';
 
   /* Update index table. */
@@ -4317,8 +4318,8 @@ static void load_affects(FILE *fl, struct char_data *ch)
         af.bitvector[2] = num7;
       }
       else if (n_vars == 5)
-      {                                        /* Old 32-bit conversion version */
-        if (num5 > 0 && num5 <= NUM_AFF_FLAGS) /* Ignore invalid values */
+      {                                       /* Old 32-bit conversion version */
+        if (num5 > 0 && num5 < NUM_AFF_FLAGS) /* Ignore invalid values */
           SET_BIT_AR(af.bitvector, num5);
       }
       else

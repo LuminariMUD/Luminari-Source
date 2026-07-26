@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5011 LANGUAGES C)
+project(LuminariMUD VERSION 2.5012 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -750,7 +750,6 @@ if (BUILD_UTILS)
     add_executable(sign util/sign.c)
     add_executable(split util/split.c)
     add_executable(wld2html util/wld2html.c)
-    add_executable(webster util/webster.c)
 
     # NOTE: hl_events is NOT built as a standalone utility because it depends on
     # server internals (pulse, basic_mud_log). The autotools build also excludes it.
@@ -759,7 +758,6 @@ if (BUILD_UTILS)
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
                           rebuildMailIndex shopconv sign split wld2html
-                          webster
                           PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
     # Link libraries for utilities that need them
@@ -785,6 +783,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_spells_skills_production.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
+    unittests/CuTest/test_upstream_regressions.c
     unittests/CuTest/test_world_loading_production.c
     unittests/CuTest/test_gameplay_e2e.c
 )
@@ -800,7 +799,6 @@ install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
 if (BUILD_UTILS)
     install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
                     rebuildMailIndex shopconv sign split wld2html
-                    webster
             DESTINATION ${BIN_OUTPUT_DIR})
 endif()
 

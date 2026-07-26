@@ -490,6 +490,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_WELC_MESSG 15
 #define CEDIT_START_MESSG 16
 #define CEDIT_EXTRA_GAME_OPTIONS_MENU 17
+#define CEDIT_HUH 18
 
 /* Numerical responses. */
 #define CEDIT_NUMERICAL_RESPONSE 20

@@ -7372,12 +7372,33 @@ ACMDU(do_group)
                   GET_NAME(GROUP_LEADER(GROUP(ch))));
   }
 
+  /* Move a member to the end of the group list to adjust group order. */
+  else if (is_abbrev(buf, "regroup"))
+  {
+    if (!GROUP(ch))
+    {
+      send_to_char(ch, "But you aren't part of a group!\r\n");
+      return;
+    }
+
+    vict = GROUP_LEADER(GROUP(ch));
+    if (ch == vict)
+    {
+      send_to_char(ch, "You are the group leader and cannot regroup.\r\n");
+      return;
+    }
+
+    leave_group(ch);
+    join_group(ch, GROUP(vict));
+    send_to_char(ch, "You move to the end of the group order.\r\n");
+  }
+
   /* member can leave group */
   else if (is_abbrev(buf, "leave"))
   {
     if (!GROUP(ch))
     {
-      send_to_char(ch, "But you aren't apart of a group!\r\n");
+      send_to_char(ch, "But you aren't part of a group!\r\n");
       return;
     }
     leave_group(ch);
@@ -7627,7 +7648,6 @@ ACMD(do_split)
       if (!ch->char_specials.post_combat_messages)
         send_to_char(ch, "%d coin%s %s not splitable, so you keep the money.\r\n", rest,
                      (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were");
-      increase_gold(ch, rest);
       ch->char_specials.post_combat_gold += rest;
     }
   }

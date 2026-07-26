@@ -603,7 +603,8 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
     struct char_data *ally;
     for (ally = world[IN_ROOM(ch)].people; ally; ally = ally->next_in_room)
     {
-      if (ally != ch && !IS_NPC(ally) && are_grouped(ch, ally) && has_inquisitor_master_tactician(ally))
+      if (ally != ch && !IS_NPC(ally) && are_grouped(ch, ally) &&
+          has_inquisitor_master_tactician(ally))
         return FALSE;
     }
   }
@@ -5786,6 +5787,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) && PRF_FLAGGED(victim, PRF_NOHASSLE)))
     dam = 0; // immort protection
 
+  dam = damage_mtrigger(ch, victim, dam, w_type);
+  if (dam < 0 || DEAD(ch) || DEAD(victim))
+    return 0;
+
   if (victim != ch)
   {
     /* Only auto engage if both parties are unengaged. */
@@ -9195,24 +9200,31 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
   }
 
   /* Inquisitor Instant Death: 3% proc chance on hit vs studied target */
-  if (mode == MODE_NORMAL_HIT && !IS_NPC(ch) && victim &&
-      has_inquisitor_instant_death(ch) && is_inquisitor_studied_target(ch, victim))
+  if (mode == MODE_NORMAL_HIT && !IS_NPC(ch) && victim && has_inquisitor_instant_death(ch) &&
+      is_inquisitor_studied_target(ch, victim))
   {
     if (rand_number(1, 100) <= 3) /* 3% chance */
     {
       /* Fort save DC = 10 + half level + Wis modifier */
       int dc = 10 + (GET_LEVEL(ch) / 2) + GET_WIS_BONUS(ch);
       char buf[200];
-      if (!savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, CLASS_LEVEL(ch, CLASS_INQUISITOR), NOSCHOOL))
+      if (!savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, CLASS_LEVEL(ch, CLASS_INQUISITOR),
+                       NOSCHOOL))
       {
         /* Failed save: +15d6 damage */
         int extra_dice = dice(15, 6);
         dam += extra_dice;
-        snprintf(buf, sizeof(buf), "\tWYou deliver a grevious strike on $N with perfect precision! [+%d damage]\tn", extra_dice);
+        snprintf(buf, sizeof(buf),
+                 "\tWYou deliver a grevious strike on $N with perfect precision! [+%d damage]\tn",
+                 extra_dice);
         act(buf, FALSE, ch, NULL, victim, TO_CHAR);
-        snprintf(buf, sizeof(buf), "\tW$n delivers a grevious strike on you perfect precision! [+%d damage]\tn", extra_dice);
+        snprintf(buf, sizeof(buf),
+                 "\tW$n delivers a grevious strike on you perfect precision! [+%d damage]\tn",
+                 extra_dice);
         act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
-        snprintf(buf, sizeof(buf), "\tW$n delivers a grevious strike on $N with perfect precision! [+%d damage]\tn", extra_dice);
+        snprintf(buf, sizeof(buf),
+                 "\tW$n delivers a grevious strike on $N with perfect precision! [+%d damage]\tn",
+                 extra_dice);
         act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
       }
       else
@@ -9220,11 +9232,17 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
         /* Successful save: +8d6 damage */
         int extra_dice = dice(8, 6);
         dam += extra_dice;
-        snprintf(buf, sizeof(buf), "\tW$N resists your precision strike but takes damage anyway [+%d damage]\tn", extra_dice);
+        snprintf(buf, sizeof(buf),
+                 "\tW$N resists your precision strike but takes damage anyway [+%d damage]\tn",
+                 extra_dice);
         act(buf, FALSE, ch, NULL, victim, TO_CHAR);
-        snprintf(buf, sizeof(buf), "\tWYou resist $n's precision strike but take damage anyway [+%d damage]\tn", extra_dice);
+        snprintf(buf, sizeof(buf),
+                 "\tWYou resist $n's precision strike but take damage anyway [+%d damage]\tn",
+                 extra_dice);
         act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
-        snprintf(buf, sizeof(buf), "\tW$N resists $n's precision strike but takes damage anyway [+%d damage]\tn", extra_dice);
+        snprintf(buf, sizeof(buf),
+                 "\tW$N resists $n's precision strike but takes damage anyway [+%d damage]\tn",
+                 extra_dice);
         act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
       }
     }
@@ -16447,13 +16465,10 @@ void perform_violence(struct char_data *ch, int phase)
    */
   if (GROUP(ch))
   {
-    /* Beginner's Note: Reset simple_list iterator before use to prevent
-     * cross-contamination from previous iterations. Without this reset,
-     * if simple_list was used elsewhere and not completed, it would
-     * continue from where it left off instead of starting fresh. */
-    simple_list(NULL);
+    struct iterator_data iterator;
 
-    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch;
+         tch = (struct char_data *)next_in_list(&iterator))
     {
       if (tch == ch)
         continue;
@@ -16470,6 +16485,7 @@ void perform_violence(struct char_data *ch, int phase)
 
       perform_assist(tch, ch);
     }
+    remove_iterator(&iterator);
   }
 
   // your charmee, even if not grouped, should assist

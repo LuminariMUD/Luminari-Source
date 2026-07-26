@@ -1,570 +1,514 @@
 /* ************************************************************************
  *  File: wld2html.c                                   Part of LuminariMUD *
- *  Usage: Convert a DikuMUD .wld file into a series of .html files        *
+ *  Usage: Convert one or more DikuMUD .wld files to HTML                  *
  *                                                                         *
  *  This program is in the public domain.                                  *
- *  Written (QUICKLY AND DIRTILY) by Jeremy Elson                          *
- *  Based on the Circle 3.0 syntax checker program                         *
- *                                                                         *
- *  This utility converts world files (.wld) into HTML format for web      *
- *  display or documentation purposes. It creates individual HTML files    *
- *  for each room, with navigation links between connected rooms.          *
- *                                                                         *
- *  The generated HTML includes:                                           *
- *  - Room descriptions and titles                                         *
- *  - Exit information with links to connected rooms                       *
- *  - Room flags and special properties                                    *
- *  - Navigation aids for exploring the world                              *
- *                                                                         *
- *  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
- *  documentation and error handling                                       *
+ *  Written by Jeremy Elson and based on the Circle 3.0 syntax checker.    *
  ************************************************************************ */
-
-#define log(msg) fprintf(stderr, "%s\n", msg)
 
 #include "conf.h"
 #include "sysdep.h"
 #include <stdbool.h>
+#include <stdint.h>
 
-#define NOWHERE -1 /* nil reference for room-database         */
-
-/* The cardinal directions: used as index to room_data.dir_option[] */
-#define NORTH 0
-#define EAST 1
-#define SOUTH 2
-#define WEST 3
-#define UP 4
-#define DOWN 5
-
-#define NUM_OF_DIRS 6
-
-#define CREATE(result, type, number)                                                               \
-  do                                                                                               \
-  {                                                                                                \
-    if (!((result) = (type *)calloc((number), sizeof(type))))                                      \
-    {                                                                                              \
-      perror("malloc failure");                                                                    \
-      abort();                                                                                     \
-    }                                                                                              \
-  } while (0)
-
-/* Exit info: used in room_data.dir_option.exit_info */
-#define EX_ISDOOR (1 << 0)    /* Exit is a door          */
-#define EX_CLOSED (1 << 1)    /* The door is closed      */
-#define EX_LOCKED (1 << 2)    /* The door is locked      */
-#define EX_PICKPROOF (1 << 3) /* Lock can't be picked    */
-
-#define MAX_STRING_LENGTH 8192
-#define MEDIUM_STRING 256
-
-typedef signed char sbyte;
-typedef unsigned char ubyte;
-typedef signed short int sh_int;
-typedef unsigned short int ush_int;
-/* bool is provided by stdbool.h (included via sysdep.h) or C23+ */
-typedef char byte;
-
-typedef sh_int room_num;
-typedef sh_int obj_num;
-
-char buf[MAX_STRING_LENGTH] = {'\0'};
-char buf1[MAX_STRING_LENGTH] = {'\0'};
-char buf2[MAX_STRING_LENGTH] = {'\0'};
-char arg[MAX_STRING_LENGTH] = {'\0'};
-
-int get_line(FILE *fl, char *buf);
-int real_room(int virtual, int reference);
-
-/* room-related structures *********************************************** */
+#define NUM_OF_DIRS 10
+#define LINE_LENGTH 1024
+#define INITIAL_ROOM_CAPACITY 128
 
 struct room_direction_data
 {
-  char *general_description; /* When look DIR.                        */
-
-  char *keyword; /* for open/close                        */
-
-  sh_int exit_info; /* Exit info                             */
-  obj_num key;      /* Key's number (-1 for no key)          */
-  room_num to_room; /* Where direction leads (NOWHERE)       */
+  char *general_description;
+  char *keyword;
+  int exit_info;
+  int key;
+  int to_room;
 };
 
-struct extra_descr_data
-{
-  char *keyword;                 /* Keyword in look/examine          */
-  char *description;             /* What to see                      */
-  struct extra_descr_data *next; /* Next in list                     */
-};
-
-struct reset_com
-{
-  char command; /* current command                      */
-
-  bool if_flag; /* if TRUE: exe only if preceding exe'd */
-  int arg1;     /* */
-  int arg2;     /* Arguments to the command             */
-  int arg3;     /* */
-
-  /*
-   * Commands:              * 'M': Read a mobile     * 'O': Read an object    *
-   * 'G': Give obj to mob   * 'P': Put obj in obj    * 'G': Obj to char       *
-   * 'E': Obj to char equip * 'D': Set state of door *
-   */
-};
-
-struct zone_data
-{
-  char *name;   /* name of this zone                  */
-  int lifespan; /* how long between resets (minutes)  */
-  int age;      /* current age of this zone (minutes) */
-  int top;      /* upper limit for rooms in this zone */
-
-  int reset_mode;        /* conditions for reset (see below)   */
-  int number;            /* virtual number of this zone    */
-  struct reset_com *cmd; /* command table for reset                */
-
-  /*
-   * Reset mode:                              * 0: Don't reset, and don't
-   * update age.    * 1: Reset if no PC's are located in zone. * 2: Just
-   * reset.                           *
-   */
-};
-
-/* ================== Memory Structure for room ======================= */
 struct room_data
 {
-  room_num number;                                     /* Rooms number (vnum)                */
-  sh_int zone;                                         /* Room zone (for resetting)          */
-  int sector_type;                                     /* sector type (move/hide)            */
-  char *name;                                          /* Rooms name 'You are ...'           */
-  char *description;                                   /* Shown when entered                 */
-  struct extra_descr_data *ex_description;             /* for examine/look       */
-  struct room_direction_data *dir_option[NUM_OF_DIRS]; /* Directions */
-  int room_flags;                                      /* DEATH,DARK ... etc                 */
-
-  byte light; /* Number of lightsources in room     */
+  int number;
+  char *name;
+  char *description;
+  struct room_direction_data *dir_option[NUM_OF_DIRS];
 };
 
-/* ====================================================================== */
+static struct room_data *world;
+static size_t room_count;
+static size_t room_capacity;
 
-/**************************************************************************
- *  declarations of most of the 'global' variables                         *
- ************************************************************************ */
+static const char *const dir_names[NUM_OF_DIRS] = {
+    "North", "East",      "South",     "West",      "Up",
+    "Down",  "Northwest", "Northeast", "Southeast", "Southwest"};
 
-struct room_data *world = NULL; /* array of rooms                */
-int top_of_world = 0;           /* ref to top element of world   */
+static void append_string(char **destination, size_t *length, size_t *capacity, const char *text);
+static void discard_moving_room(FILE *fl, int room_vnum);
+static void free_world(void);
+static char *fread_string(FILE *fl, const char *error);
+static const struct room_data *find_room(int vnum);
+static int get_line(FILE *fl, char *line, size_t line_size);
+static void load_world_file(const char *filename);
+static void parse_room(FILE *fl, int virtual_nr);
+static void setup_dir(FILE *fl, struct room_data *room, int dir);
+static void sort_and_validate_world(void);
+static void write_html_escaped(FILE *fl, const char *text);
+static void write_output(void);
 
-/* local functions */
-char *fread_string(FILE *fl, char *error);
-void setup_dir(FILE *fl, int room, int dir);
-void index_boot(char *name);
-void discrete_load(FILE *fl);
-void parse_room(FILE *fl, int virtual_nr);
-void parse_mobile(FILE *mob_f, int nr);
-char *parse_object(FILE *obj_f, int nr);
-void assign_rooms(void);
-void renum_world(void);
-void write_output(void);
-
-char *dir_names[] = {"North", "East", "South", "West", "Up", "Down"};
-
-/*************************************************************************
- *  routines for booting the system                                       *
- *********************************************************************** */
-
-/**
- * Main function for the wld2html converter
- *
- * Converts a world file (.wld) into HTML format for web display.
- * Creates individual HTML files for each room with navigation links.
- *
- * @param argc Number of command line arguments
- * @param argv Array of command line arguments:
- *             [1] world file name to convert
- * @return 0 on success, 1 on error
- */
-int main(int argc, char **argv)
+static void fatal_file_error(const char *message, const char *context)
 {
-  if (argc != 2)
-  {
-    fprintf(stderr, "Usage: %s <world-file-name>\n", argv[0]);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "Converts a MUD world file (.wld) to HTML format.\n");
-    fprintf(stderr, "Creates individual HTML files for each room with\n");
-    fprintf(stderr, "navigation links between connected rooms.\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "Example: %s world/wld/30.wld\n", argv[0]);
-    exit(1);
-  }
-
-  printf("LuminariMUD World-to-HTML Converter\n");
-  printf("Converting: %s\n", argv[1]);
-
-  index_boot(argv[1]);
-
-  log("Renumbering rooms.");
-  renum_world();
-
-  log("Writing output.");
-  write_output();
-  log("Done.");
-
-  return (0);
+  fprintf(stderr, "wld2html: %s%s%s\n", message, context ? ": " : "", context ? context : "");
+  free_world();
+  exit(EXIT_FAILURE);
 }
 
-void write_output(void)
+static void *checked_realloc(void *memory, size_t size)
 {
+  void *resized;
+
+  resized = realloc(memory, size);
+  if (!resized)
+  {
+    perror("wld2html: realloc");
+    free_world();
+    exit(EXIT_FAILURE);
+  }
+  return resized;
+}
+
+static void append_string(char **destination, size_t *length, size_t *capacity, const char *text)
+{
+  size_t text_length, required, new_capacity;
+
+  text_length = strlen(text);
+  if (text_length > SIZE_MAX - *length - 1)
+    fatal_file_error("string size overflow", NULL);
+
+  required = *length + text_length + 1;
+  if (required > *capacity)
+  {
+    new_capacity = *capacity ? *capacity : LINE_LENGTH;
+    while (new_capacity < required)
+    {
+      if (new_capacity > SIZE_MAX / 2)
+      {
+        new_capacity = required;
+        break;
+      }
+      new_capacity *= 2;
+    }
+    *destination = checked_realloc(*destination, new_capacity);
+    *capacity = new_capacity;
+  }
+
+  memcpy(*destination + *length, text, text_length + 1);
+  *length += text_length;
+}
+
+/* Read a tilde-terminated world string without imposing the server's runtime
+ * string-size limit on this offline documentation utility. */
+static char *fread_string(FILE *fl, const char *error)
+{
+  char line[LINE_LENGTH + 2], *terminator, *result;
+  size_t length, capacity, line_length;
+
+  result = NULL;
+  length = 0;
+  capacity = 0;
+
+  for (;;)
+  {
+    if (!fgets(line, sizeof(line), fl))
+      fatal_file_error("unterminated string", error);
+
+    terminator = strchr(line, '~');
+    if (terminator)
+    {
+      *terminator = '\0';
+      append_string(&result, &length, &capacity, line);
+      break;
+    }
+
+    line_length = strlen(line);
+    while (line_length > 0 && (line[line_length - 1] == '\n' || line[line_length - 1] == '\r'))
+      line[--line_length] = '\0';
+    append_string(&result, &length, &capacity, line);
+    append_string(&result, &length, &capacity, "\r\n");
+  }
+
+  if (!result)
+  {
+    result = strdup("");
+    if (!result)
+      fatal_file_error("out of memory", error);
+  }
+  return result;
+}
+
+/* Read a nonblank, noncomment data line and remove only line terminators. */
+static int get_line(FILE *fl, char *line, size_t line_size)
+{
+  size_t length;
+
+  while (fgets(line, line_size, fl))
+  {
+    length = strlen(line);
+    if (length == line_size - 1 && line[length - 1] != '\n' && !feof(fl))
+      fatal_file_error("data line exceeds parser limit", NULL);
+
+    while (length > 0 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
+      line[--length] = '\0';
+
+    if (*line && *line != '*')
+      return true;
+  }
+
+  if (ferror(fl))
+    fatal_file_error("error reading world file", strerror(errno));
+  return false;
+}
+
+static void ensure_room_capacity(void)
+{
+  size_t new_capacity;
+
+  if (room_count < room_capacity)
+    return;
+
+  new_capacity = room_capacity ? room_capacity * 2 : INITIAL_ROOM_CAPACITY;
+  if (new_capacity < room_capacity || new_capacity > SIZE_MAX / sizeof(struct room_data))
+    fatal_file_error("too many rooms", NULL);
+
+  world = checked_realloc(world, new_capacity * sizeof(struct room_data));
+  memset(world + room_capacity, 0, (new_capacity - room_capacity) * sizeof(struct room_data));
+  room_capacity = new_capacity;
+}
+
+static void setup_dir(FILE *fl, struct room_data *room, int dir)
+{
+  struct room_direction_data *exit_data;
+  char context[128], line[LINE_LENGTH];
+
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+  {
+    snprintf(context, sizeof(context), "room #%d direction D%d", room->number, dir);
+    fatal_file_error("invalid direction", context);
+  }
+
+  exit_data = calloc(1, sizeof(*exit_data));
+  if (!exit_data)
+    fatal_file_error("out of memory while reading an exit", NULL);
+
+  snprintf(context, sizeof(context), "room #%d direction D%d", room->number, dir);
+  exit_data->general_description = fread_string(fl, context);
+  exit_data->keyword = fread_string(fl, context);
+
+  if (!get_line(fl, line, sizeof(line)) ||
+      sscanf(line, " %d %d %d ", &exit_data->exit_info, &exit_data->key, &exit_data->to_room) != 3)
+    fatal_file_error("invalid exit data", context);
+
+  room->dir_option[dir] = exit_data;
+}
+
+/* Moving-room data is irrelevant to static room documentation, but it must be
+ * consumed so the parser remains aligned with the next room field. */
+static void discard_moving_room(FILE *fl, int room_vnum)
+{
+  char context[128], line[LINE_LENGTH];
   int i;
-  FILE *fl;
-  char buf[128];
-  register int door, found;
 
-  for (i = 0; i <= top_of_world; i++)
+  snprintf(context, sizeof(context), "moving-room data in room #%d", room_vnum);
+  for (i = 0; i < 3; i++)
+    if (!get_line(fl, line, sizeof(line)))
+      fatal_file_error("missing moving-room message", context);
+
+  do
   {
-    sprintf(buf, "Writing %d.html", world[i].number);
-    log(buf);
-    sprintf(buf, "%d.html", world[i].number);
-
-    if (!(fl = fopen(buf, "w")))
-    {
-      perror("opening output file");
-      exit(1);
-    }
-    fprintf(fl, "<title> %s </title>\n", world[i].name);
-    fprintf(fl, "<h1> %s </h1>\n", world[i].name);
-    fprintf(fl, "<pre>\n");
-    fputs(world[i].description, fl);
-    fprintf(fl, "</pre>\n");
-    fprintf(fl, "<P> Exits: <P> \n");
-
-    found = 0;
-    for (door = 0; door < NUM_OF_DIRS; door++)
-      if (world[i].dir_option[door] && world[i].dir_option[door]->to_room != NOWHERE)
-      {
-        found = 1;
-        fprintf(fl, "<a href = \"%d.html\"> %s to %s</a> <p>\n",
-                world[world[i].dir_option[door]->to_room].number, dir_names[door],
-                world[world[i].dir_option[door]->to_room].name);
-      }
-    if (!found)
-      fprintf(fl, "None!");
-    fclose(fl);
-  }
+    if (!get_line(fl, line, sizeof(line)))
+      fatal_file_error("unterminated moving-room route list", context);
+  } while (*line != '~');
 }
 
-/* function to count how many hash-mark delimited records exist in a file */
-int count_hash_records(FILE *fl)
+static void parse_room(FILE *fl, int virtual_nr)
 {
-  char buf[128];
-  int count = 0;
+  struct room_data *room;
+  char context[128], line[LINE_LENGTH], flag1[128], flag2[128], flag3[128], flag4[128];
+  char *extra_keyword, *extra_description;
+  int zone, sector, fields, dir;
 
-  while (fgets(buf, 128, fl))
-    if (*buf == '#')
-      count++;
+  ensure_room_capacity();
+  room = &world[room_count];
+  room->number = virtual_nr;
 
-  return (count);
-}
+  snprintf(context, sizeof(context), "room #%d", virtual_nr);
+  room->name = fread_string(fl, context);
+  room->description = fread_string(fl, context);
 
-void index_boot(char *name)
-{
-  FILE *db_file;
-  int rec_count = 0;
+  if (!get_line(fl, line, sizeof(line)))
+    fatal_file_error("missing room flags", context);
 
-  if (!(db_file = fopen(name, "r")))
-  {
-    perror("error opening world file");
-    exit(1);
-  }
-  rec_count = count_hash_records(db_file);
-  CREATE(world, struct room_data, rec_count);
-  rewind(db_file);
-  discrete_load(db_file);
-}
-
-void discrete_load(FILE *fl)
-{
-  int nr = -1, last = 0;
-  char line[MEDIUM_STRING] = {'\0'};
+  fields =
+      sscanf(line, " %d %127s %127s %127s %127s %d ", &zone, flag1, flag2, flag3, flag4, &sector);
+  if (fields != 6)
+    fields = sscanf(line, " %d %127s %d ", &zone, flag1, &sector);
+  if (fields != 3 && fields != 6)
+    fatal_file_error("invalid room flags or sector", context);
 
   for (;;)
   {
-    if (!get_line(fl, line))
-    {
-      fprintf(stderr, "Format error after room #%d\n", nr);
-      exit(1);
-    }
-    if (*line == '$')
-      return;
+    if (!get_line(fl, line, sizeof(line)))
+      fatal_file_error("unexpected end of room", context);
 
-    if (*line == '#')
-    {
-      last = nr;
-      if (sscanf(line, "#%d", &nr) != 1)
-      {
-        fprintf(stderr, "Format error after room #%d\n", last);
-        exit(1);
-      }
-      if (nr >= 99999)
-        return;
-      else
-        parse_room(fl, nr);
-    }
-    else
-    {
-      fprintf(stderr, "Format error in world file near room #%d\n", nr);
-      fprintf(stderr, "Offending line: '%s'\n", line);
-      exit(1);
-    }
-  }
-}
-
-long asciiflag_conv(char *flag)
-{
-  long flags = 0;
-  int is_number = 1;
-  register char *p;
-
-  for (p = flag; *p; p++)
-  {
-    if (islower(*p))
-      flags |= 1 << (*p - 'a');
-    else if (isupper(*p))
-      flags |= 1 << (26 + (*p - 'A'));
-
-    if (!isdigit(*p))
-      is_number = 0;
-  }
-
-  if (is_number)
-    flags = atol(flag);
-
-  return (flags);
-}
-
-/* load the rooms */
-void parse_room(FILE *fl, int virtual_nr)
-{
-  static int room_nr = 0, zone = 0;
-  int t[10], i;
-  char line[MEDIUM_STRING] = {'\0'}, flags[128];
-  struct extra_descr_data *new_descr;
-
-  sprintf(buf2, "room #%d", virtual_nr);
-
-  world[room_nr].zone = zone;
-  world[room_nr].number = virtual_nr;
-  world[room_nr].name = fread_string(fl, buf2);
-  world[room_nr].description = fread_string(fl, buf2);
-
-  if (!get_line(fl, line) || sscanf(line, " %d %s %d ", t, flags, t + 2) != 3)
-  {
-    fprintf(stderr, "Format error in room #%d\n", virtual_nr);
-    exit(1);
-  }
-  /* t[0] is the zone number; ignored with the zone-file system */
-  world[room_nr].room_flags = asciiflag_conv(flags);
-  world[room_nr].sector_type = t[2];
-
-  world[room_nr].light = 0; /* Zero light sources */
-
-  for (i = 0; i < NUM_OF_DIRS; i++)
-    world[room_nr].dir_option[i] = NULL;
-
-  world[room_nr].ex_description = NULL;
-
-  sprintf(buf, "Format error in room #%d (expecting D/E/S)", virtual_nr);
-
-  for (;;)
-  {
-    if (!get_line(fl, line))
-    {
-      fprintf(stderr, "%s\n", buf);
-      exit(1);
-    }
     switch (*line)
     {
+    case 'C':
+      if (!get_line(fl, line, sizeof(line)))
+        fatal_file_error("missing coordinate data", context);
+      break;
     case 'D':
-      setup_dir(fl, room_nr, atoi(line + 1));
+      if (sscanf(line + 1, "%d", &dir) != 1)
+        fatal_file_error("invalid direction marker", context);
+      setup_dir(fl, room, dir);
       break;
     case 'E':
-      CREATE(new_descr, struct extra_descr_data, 1);
-      new_descr->keyword = fread_string(fl, buf2);
-      new_descr->description = fread_string(fl, buf2);
-      new_descr->next = world[room_nr].ex_description;
-      world[room_nr].ex_description = new_descr;
+      extra_keyword = fread_string(fl, context);
+      extra_description = fread_string(fl, context);
+      free(extra_keyword);
+      free(extra_description);
       break;
-    case 'S': /* end of room */
-      top_of_world = room_nr++;
+    case 'M':
+      discard_moving_room(fl, virtual_nr);
+      break;
+    case 'Z':
+      if (!get_line(fl, line, sizeof(line)))
+        fatal_file_error("missing room special-procedure name", context);
+      break;
+    case 'S':
+      room_count++;
       return;
+    default:
+      fatal_file_error("unknown room field", line);
+    }
+  }
+}
+
+static void load_world_file(const char *filename)
+{
+  FILE *fl;
+  char line[LINE_LENGTH], *end;
+  long vnum;
+
+  fl = fopen(filename, "r");
+  if (!fl)
+    fatal_file_error("cannot open world file", filename);
+
+  while (get_line(fl, line, sizeof(line)))
+  {
+    if (*line == '$')
+      break;
+
+    /* DG trigger attachments follow a room's S marker. They are not needed
+     * for room-to-room HTML navigation. */
+    if (*line == 'T')
+      continue;
+
+    if (*line != '#')
+      fatal_file_error("expected a room number", line);
+
+    errno = 0;
+    end = NULL;
+    vnum = strtol(line + 1, &end, 10);
+    if (errno || end == line + 1 || *end || vnum < INT_MIN || vnum > INT_MAX)
+      fatal_file_error("invalid room number", line);
+    parse_room(fl, (int)vnum);
+  }
+
+  fclose(fl);
+}
+
+static int compare_rooms(const void *left, const void *right)
+{
+  const struct room_data *left_room, *right_room;
+
+  left_room = left;
+  right_room = right;
+  if (left_room->number < right_room->number)
+    return -1;
+  if (left_room->number > right_room->number)
+    return 1;
+  return 0;
+}
+
+static void sort_and_validate_world(void)
+{
+  char context[64];
+  size_t i;
+
+  qsort(world, room_count, sizeof(*world), compare_rooms);
+  for (i = 1; i < room_count; i++)
+  {
+    if (world[i - 1].number == world[i].number)
+    {
+      snprintf(context, sizeof(context), "duplicate room vnum %d", world[i].number);
+      fatal_file_error(context, NULL);
+    }
+  }
+}
+
+static const struct room_data *find_room(int vnum)
+{
+  size_t low, high, middle;
+
+  low = 0;
+  high = room_count;
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    if (world[middle].number == vnum)
+      return &world[middle];
+    if (world[middle].number < vnum)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+  return NULL;
+}
+
+static void write_html_escaped(FILE *fl, const char *text)
+{
+  const unsigned char *character;
+
+  if (!text)
+    return;
+
+  for (character = (const unsigned char *)text; *character; character++)
+  {
+    switch (*character)
+    {
+    case '&':
+      fputs("&amp;", fl);
+      break;
+    case '<':
+      fputs("&lt;", fl);
+      break;
+    case '>':
+      fputs("&gt;", fl);
+      break;
+    case '"':
+      fputs("&quot;", fl);
       break;
     default:
-      fprintf(stderr, "%s\n", buf);
-      exit(1);
+      fputc(*character, fl);
       break;
     }
   }
 }
 
-/* read direction data */
-void setup_dir(FILE *fl, int room, int dir)
+static void write_output(void)
 {
-  int t[5];
-  char line[MEDIUM_STRING] = {'\0'};
+  const struct room_data *target;
+  struct room_direction_data *exit_data;
+  FILE *fl;
+  char filename[64];
+  size_t i;
+  int door;
+  bool found;
 
-  sprintf(buf2, "room #%d, direction D%d", world[room].number, dir);
-
-  CREATE(world[room].dir_option[dir], struct room_direction_data, 1);
-  world[room].dir_option[dir]->general_description = fread_string(fl, buf2);
-  world[room].dir_option[dir]->keyword = fread_string(fl, buf2);
-
-  if (!get_line(fl, line))
+  for (i = 0; i < room_count; i++)
   {
-    fprintf(stderr, "Format error, %s\n", buf2);
-    exit(1);
-  }
-  if (sscanf(line, " %d %d %d ", t, t + 1, t + 2) != 3)
-  {
-    fprintf(stderr, "Format error, %s\n", buf2);
-    exit(1);
-  }
-  if (t[0] == 1)
-    world[room].dir_option[dir]->exit_info = EX_ISDOOR;
-  else if (t[0] == 2)
-    world[room].dir_option[dir]->exit_info = EX_ISDOOR | EX_PICKPROOF;
-  else
-    world[room].dir_option[dir]->exit_info = 0;
+    if (snprintf(filename, sizeof(filename), "%d.html", world[i].number) >= (int)sizeof(filename))
+      fatal_file_error("output filename is too long", NULL);
 
-  world[room].dir_option[dir]->key = t[1];
-  world[room].dir_option[dir]->to_room = t[2];
-}
+    fprintf(stderr, "Writing %s\n", filename);
+    fl = fopen(filename, "w");
+    if (!fl)
+      fatal_file_error("cannot open output file", filename);
 
-/* resolve all vnums into rnums in the world */
-void renum_world(void)
-{
-  register int room, door;
+    fputs("<!doctype html>\n<html><head><meta charset=\"utf-8\"><title>", fl);
+    write_html_escaped(fl, world[i].name);
+    fputs("</title></head><body>\n<h1>", fl);
+    write_html_escaped(fl, world[i].name);
+    fputs("</h1>\n<pre>", fl);
+    write_html_escaped(fl, world[i].description);
+    fputs("</pre>\n<h2>Exits</h2>\n", fl);
 
-  for (room = 0; room <= top_of_world; room++)
+    found = false;
     for (door = 0; door < NUM_OF_DIRS; door++)
-      if (world[room].dir_option[door])
-        if (world[room].dir_option[door]->to_room != NOWHERE)
-          world[room].dir_option[door]->to_room =
-              real_room(world[room].dir_option[door]->to_room, world[room].number);
-}
-
-/*************************************************************************
- *  procedures for resetting, both play-time and boot-time	 	 *
- *********************************************************************** */
-
-/* read and allocate space for a '~'-terminated string from a given file */
-char *fread_string(FILE *fl, char *error)
-{
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[512], *rslt;
-  register char *point;
-  int done = 0, length = 0, templength = 0;
-
-  *buf = '\0';
-
-  do
-  {
-    if (!fgets(tmp, 512, fl))
     {
-      fprintf(stderr, "SYSERR: fread_string: format error at or near %s\n", error);
-      exit(1);
+      exit_data = world[i].dir_option[door];
+      if (!exit_data || exit_data->to_room < 0)
+        continue;
+
+      found = true;
+      target = find_room(exit_data->to_room);
+      if (target)
+      {
+        fprintf(fl, "<p><a href=\"%d.html\">%s to ", target->number, dir_names[door]);
+        write_html_escaped(fl, target->name);
+        fputs("</a></p>\n", fl);
+      }
+      else
+      {
+        fprintf(fl, "<p>%s to unloaded room %d</p>\n", dir_names[door], exit_data->to_room);
+        fprintf(stderr, "Room %d references unloaded room %d\n", world[i].number,
+                exit_data->to_room);
+      }
     }
-    /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
-    if ((point = strchr(tmp, '~')) != NULL)
-    {
-      *point = '\0';
-      done = 1;
-    }
-    else
-    {
-      point = tmp + strlen(tmp) - 1;
-      *(point++) = '\r';
-      *(point++) = '\n';
-      *point = '\0';
-    }
+    if (!found)
+      fputs("<p>None</p>\n", fl);
+    fputs("</body></html>\n", fl);
 
-    templength = strlen(tmp);
-
-    if (length + templength >= MAX_STRING_LENGTH)
-    {
-      log("SYSERR: fread_string: string too large (db.c)");
-      log(error);
-      exit(1);
-    }
-    else
-    {
-      strcat(buf + length, tmp);
-      length += templength;
-    }
-  } while (!done);
-
-  /* allocate space for the new string and copy it */
-  if (strlen(buf) > 0)
-  {
-    CREATE(rslt, char, length + 1);
-    strcpy(rslt, buf);
-  }
-  else
-    rslt = NULL;
-
-  return (rslt);
-}
-
-/* returns the real number of the room with given virtual number */
-int real_room(int virtual, int reference)
-{
-  int bot, top, mid;
-
-  bot = 0;
-  top = top_of_world;
-
-  /* perform binary search on world-table */
-  for (;;)
-  {
-    mid = (bot + top) / 2;
-
-    if ((world + mid)->number == virtual)
-      return (mid);
-    if (bot >= top)
-    {
-      fprintf(stderr, "Room %d does not exist in database (referenced in room %d)\n", virtual,
-              reference);
-      return (-1);
-    }
-    if ((world + mid)->number > virtual)
-      top = mid - 1;
-    else
-      bot = mid + 1;
+    if (fclose(fl) != 0)
+      fatal_file_error("error closing output file", filename);
   }
 }
 
-/* get_line reads the next non-blank line off of the input stream.
- * The newline character is removed from the input.  Lines which begin
- * with '*' are considered to be comments.
- */
-int get_line(FILE *fl, char *buf)
+static void free_world(void)
 {
-  char temp[MEDIUM_STRING] = {'\0'};
+  struct room_direction_data *exit_data;
+  size_t i;
+  int door;
 
-  do
+  if (!world)
+    return;
+
+  for (i = 0; i < room_count; i++)
   {
-    if (!fgets(temp, MEDIUM_STRING, fl))
+    free(world[i].name);
+    free(world[i].description);
+    for (door = 0; door < NUM_OF_DIRS; door++)
     {
-      if (feof(fl))
-        break;
-      fprintf(stderr, "Error reading from file\n");
-      exit(1);
+      exit_data = world[i].dir_option[door];
+      if (!exit_data)
+        continue;
+      free(exit_data->general_description);
+      free(exit_data->keyword);
+      free(exit_data);
     }
-    if (*temp)
-      temp[strlen(temp) - 1] = '\0';
-  } while (!feof(fl) && (*temp == '*' || !*temp));
-
-  if (feof(fl))
-    return (0);
-  else
-  {
-    strcpy(buf, temp);
-    return (1);
   }
+  free(world);
+  world = NULL;
+  room_count = 0;
+  room_capacity = 0;
+}
+
+int main(int argc, char **argv)
+{
+  int i;
+
+  if (argc < 2)
+  {
+    fprintf(stderr, "Usage: %s <world-file> [world-file ...]\n", argv[0]);
+    return EXIT_FAILURE;
+  }
+
+  for (i = 1; i < argc; i++)
+    load_world_file(argv[i]);
+
+  if (room_count == 0)
+    fatal_file_error("no rooms found", NULL);
+
+  sort_and_validate_world();
+  fprintf(stderr, "Loaded %zu rooms from %d file%s\n", room_count, argc - 1, argc == 2 ? "" : "s");
+  write_output();
+  free_world();
+  return EXIT_SUCCESS;
 }

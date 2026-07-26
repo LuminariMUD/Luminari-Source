@@ -1863,7 +1863,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
   case MEDIT_AFF_FLAGS:
     if ((i = atoi(arg)) <= 0)
       break;
-    else if (i <= NUM_AFF_FLAGS)
+    else if (i < NUM_AFF_FLAGS)
       TOGGLE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), i);
 
     /* Remove unwanted bits right away. */

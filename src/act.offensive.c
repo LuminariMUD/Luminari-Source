@@ -4904,7 +4904,7 @@ ACMD(do_kill)
       do_hit(ch, argument, cmd, subcmd);
       return;
     }
-    else if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE))
+    else if (GET_LEVEL(ch) < LVL_GRSTAFF || IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE))
     {
       do_hit(ch, argument, cmd, subcmd);
       return;

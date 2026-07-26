@@ -13,7 +13,6 @@ bin_PROGRAMS = \
 	shopconv \
 	sign \
 	split \
-	webster \
 	wld2html
 
 # Common includes
@@ -28,7 +27,6 @@ rebuildMailIndex_SOURCES = rebuildMailIndex.c
 shopconv_SOURCES = shopconv.c
 sign_SOURCES = sign.c
 split_SOURCES = split.c
-webster_SOURCES = webster.c
 wld2html_SOURCES = wld2html.c
 
 # Libraries needed by some utilities

@@ -929,7 +929,7 @@ void log_clan_error(const char *function, const char *format, ...)
   {
     FILE *fl;
     time_t ct;
-    char *tmstr;
+    char timestr[64];
     char filename[256];
 
     snprintf(filename, sizeof(filename), "%sclan_errors.log", CLAN_LOG_DIR);
@@ -937,10 +937,9 @@ void log_clan_error(const char *function, const char *format, ...)
     if ((fl = fopen(filename, "a")))
     {
       ct = time(0);
-      tmstr = asctime(localtime(&ct));
-      *(tmstr + strlen(tmstr) - 1) = '\0';
+      format_time_string(ct, "%c", timestr, sizeof(timestr));
 
-      fprintf(fl, "[%s] %s\n", tmstr, error_msg);
+      fprintf(fl, "[%s] %s\n", timestr, error_msg);
       fclose(fl);
     }
   }

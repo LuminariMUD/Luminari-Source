@@ -519,7 +519,8 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 
   /* Inquisitor Legendary Resilience: +3 vs ability-penalty effects */
-  if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) && spell_has_ability_penalty(spellnum))
+  if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) &&
+      spell_has_ability_penalty(spellnum))
     savethrow += 3;
 
   /* Paladin Sacred Defender perk: Bulwark of Defense - +1 to all saves per rank when wielding shield */
@@ -929,21 +930,24 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
 
   savethrow = MAX(1, savethrow);
 
-    /* Inquisitor Legendary Resilience: 10% chance to auto-succeed, once per 5 minutes */
-    if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) &&
-        !char_has_mud_event(vict, eLEGENDARY_RESILIENCE_USED))
+  /* Inquisitor Legendary Resilience: 10% chance to auto-succeed, once per 5 minutes */
+  if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) &&
+      !char_has_mud_event(vict, eLEGENDARY_RESILIENCE_USED))
+  {
+    if (dice(1, 100) <= 10)
     {
-      if (dice(1, 100) <= 10)
+      send_to_char(vict, "\tYYour legendary resilience allows you to automatically succeed on this "
+                         "saving throw!\tn\r\n");
+      if (ch && vict != ch)
       {
-        send_to_char(vict, "\tYYour legendary resilience allows you to automatically succeed on this saving throw!\tn\r\n");
-        if (ch && vict != ch)
-        {
-          send_to_char(ch, "\tR%s's legendary resilience allows them to automatically succeed!\tn\r\n", GET_NAME(vict));
-        }
-        attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), 300 RL_SEC);
-        return (TRUE);
+        send_to_char(ch,
+                     "\tR%s's legendary resilience allows them to automatically succeed!\tn\r\n",
+                     GET_NAME(vict));
       }
+      attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), 300 RL_SEC);
+      return (TRUE);
     }
+  }
 
   if (diceroll != 1 && (savethrow >= challenge || diceroll == 20))
   {
@@ -10231,7 +10235,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   {
     for (i = 0; i < MAX_SPELL_AFFECTS; i++)
     {
-      for (j = 0; j < NUM_AFF_FLAGS; j++)
+      for (j = 1; j < NUM_AFF_FLAGS; j++)
       {
         if (IS_SET_AR(af[i].bitvector, j) && AFF_FLAGGED(victim, j))
         {
@@ -11259,8 +11263,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
     to_room = "$n throws a field of invisibility purging magic across the area.";
     break;
   case ABILITY_BAAZ_DRACONIAN_DEATH_THROES:
-    to_char = "As you die, your body turns to stone and a cloud of paralyzing gas puffs out around you.";
-    to_room = "As $n dies, $s body turns to stone and a cloud of paralyzing gas puffs out around $m.";
+    to_char =
+        "As you die, your body turns to stone and a cloud of paralyzing gas puffs out around you.";
+    to_room =
+        "As $n dies, $s body turns to stone and a cloud of paralyzing gas puffs out around $m.";
     isEffect = true;
     break;
 
@@ -11415,7 +11421,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 
     if (aoeOK(ch, tch, spellnum))
     {
-      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY && (!IS_UNDEAD(tch) || is_player_grouped(ch, tch)))
+      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY &&
+          (!IS_UNDEAD(tch) || is_player_grouped(ch, tch)))
         continue;
       else if (spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY && IS_UNDEAD(tch))
         continue;
