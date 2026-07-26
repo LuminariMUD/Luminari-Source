@@ -212,9 +212,19 @@ circle_SOURCES = \
 	src/vehicles_transport.c \
 	src/transport_unified.c \
 	src/vessels.c \
+	src/vessels_admin.c \
+	src/vessels_combat.c \
+	src/vessels_crew.c \
+	src/vessels_hazards.c \
 	src/vessels_db.c \
 	src/vessels_docking.c \
+	src/vessels_edit.c \
+	src/vessels_ownership.c \
 	src/vessels_rooms.c \
+	src/vessels_contracts.c \
+	src/vessels_piracy.c \
+	src/vessels_trade.c \
+	src/vessels_upgrades.c \
 	src/vessels_autopilot.c \
 	src/weather.c \
 	src/wilderness.c \

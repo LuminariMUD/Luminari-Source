@@ -17,6 +17,7 @@
 #include "act.h"
 #include "fight.h"
 #include "spells.h"
+#include "spec_procs.h"
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -590,11 +591,22 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
 
   look_at_room(ch, 0);
 
-  /* Start combat with defenders */
+  /* Start combat with defenders.
+   *
+   * Each defender is checked individually: a passenger who has not enabled
+   * PVP is not dragged into a fight just for standing on the deck, even
+   * when the ship's owner is a willing combatant. */
   for (vict = world[target_room].people; vict; vict = vict->next_in_room)
   {
     if (vict != ch && !IS_NPC(vict))
     {
+      if (!pvp_ok(ch, vict, FALSE))
+      {
+        VSSL_DEBUG_DOCK("Skipping non-consenting defender: %s", GET_NAME(vict));
+        send_to_char(vict, "Boarders swarm aboard, but pay you no heed.\r\n");
+        continue;
+      }
+
       defenders_found++;
       VSSL_DEBUG_DOCK("Defender found: %s", GET_NAME(vict));
       if (!FIGHTING(vict))
@@ -616,6 +628,13 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
 /* Setup boarding defenses */
 void setup_boarding_defenses(struct greyhawk_ship_data *ship)
 {
+  struct char_data *mob;
+  struct char_data *next_mob;
+  room_rnum entrance;
+  room_rnum bridge;
+  room_rnum rnum;
+  room_rnum dest;
+  int defenders_moved = 0;
   int i;
   int hatches_sealed = 0;
 
@@ -645,11 +664,41 @@ void setup_boarding_defenses(struct greyhawk_ship_data *ship)
   /* Alert crew */
   send_to_ship(ship, "BATTLE STATIONS! Prepare to repel boarders!");
 
+  /* Position idle NPC crew at the boarding chokepoints: alternate between
+   * the entrance (primary breach point) and the bridge (capture objective). */
+  entrance = real_room(ship->entrance_room);
+  bridge = real_room(ship->bridge_room);
+  if (entrance != NOWHERE || bridge != NOWHERE)
+  {
+    for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
+    {
+      rnum = real_room(ship->room_vnums[i]);
+      if (rnum == NOWHERE || rnum == entrance || rnum == bridge)
+        continue;
+
+      for (mob = world[rnum].people; mob; mob = next_mob)
+      {
+        next_mob = mob->next_in_room;
+        if (!IS_NPC(mob) || FIGHTING(mob))
+          continue;
+
+        if (bridge == NOWHERE || (entrance != NOWHERE && defenders_moved % 2 == 0))
+          dest = entrance;
+        else
+          dest = bridge;
+
+        act("$n rushes off to repel the boarders!", TRUE, mob, 0, 0, TO_ROOM);
+        char_from_room(mob);
+        char_to_room(mob, dest);
+        act("$n takes up a defensive position!", TRUE, mob, 0, 0, TO_ROOM);
+        defenders_moved++;
+      }
+    }
+  }
+
+  VSSL_DEBUG_DOCK("Positioned %d defender(s) at chokepoints", defenders_moved);
   VSSL_DEBUG_DOCK("Boarding defenses activated");
   VSSL_DEBUG_EXIT("setup_boarding_defenses");
-
-  /* TODO: Position NPC defenders at key points */
-  /* TODO: Activate anti-boarding measures if available */
 }
 
 /* COMMAND: Dock with another vessel */
@@ -810,11 +859,19 @@ ACMD(do_board_hostile)
     return;
   }
 
+  /* Hostile boarding forces combat on whoever is aboard, so it answers to
+   * the same consent rules as any other PvP action. */
+  if (!vessel_pvp_permitted(ch, target, TRUE))
+  {
+    return;
+  }
+
   /* Calculate difficulty */
   difficulty = calculate_boarding_difficulty(target);
 
-  /* For now, use level as skill (TODO: add proper boarding skill) */
-  skill = GET_LEVEL(ch);
+  /* Boarding ability combines experience with athletic training; a full
+   * boarding skill arrives with the Phase 05 combat model. */
+  skill = GET_LEVEL(ch) + compute_ability(ch, ABILITY_SWIM);
 
   /* Attempt boarding */
   if (rand_number(1, 100) <= (skill * 100 / difficulty))
@@ -836,11 +893,46 @@ ACMD(do_board_hostile)
     /* Critical failure - fall in water */
     if (rand_number(1, 100) <= 10)
     {
+      struct greyhawk_ship_data *ch_ship;
+      room_rnum water_room = NOWHERE;
+      int swim_roll, swim_val, swim_dc;
+
       send_to_char(ch, "You lose your footing and fall into the water!\r\n");
       act("$n falls into the water with a splash!", TRUE, ch, 0, 0, TO_ROOM);
 
-      /* TODO: Move character to water room or apply swimming */
-      damage(ch, ch, dice(2, 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
+      /* Drop the character into the water the ships are floating in: the
+       * wilderness room holding their own ship's object. */
+      ch_ship = get_ship_from_room(IN_ROOM(ch));
+      if (ch_ship != NULL && ch_ship->shipobj != NULL && IN_ROOM(ch_ship->shipobj) != NOWHERE)
+      {
+        water_room = IN_ROOM(ch_ship->shipobj);
+      }
+
+      if (water_room != NOWHERE)
+      {
+        char_from_room(ch);
+        char_to_room(ch, water_room);
+        act("$n plunges into the water beside the ship!", TRUE, ch, 0, 0, TO_ROOM);
+        look_at_room(ch, 0);
+      }
+
+      /* Swim check to stay afloat, following the movement_validation.c
+       * convention: d20 + Athletics vs DC. */
+      swim_dc = BOARDING_DIFFICULTY;
+      swim_roll = d20(ch);
+      swim_val = compute_ability(ch, ABILITY_SWIM);
+      send_to_char(ch,
+                   "Swimming: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. DC (%d)\r\n",
+                   swim_val, swim_roll, swim_val + swim_roll, swim_dc);
+      if (swim_roll + swim_val < swim_dc)
+      {
+        send_to_char(ch, "You flounder in the water, battered against the hull!\r\n");
+        damage(ch, ch, dice(2, 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
+      }
+      else
+      {
+        send_to_char(ch, "You manage to stay afloat.\r\n");
+      }
     }
   }
 }

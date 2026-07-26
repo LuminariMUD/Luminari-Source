@@ -1446,6 +1446,13 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % AUTOPILOT_TICK_INTERVAL))
   {
     autopilot_tick();
+    vessel_combat_tick();
+    vessel_crew_wage_tick();
+    vessel_upkeep_tick();
+    vessel_trade_restock_tick();
+    vessel_weather_tick();
+    vessel_encounter_tick();
+    vessel_msdp_tick();
   }
 
   if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))

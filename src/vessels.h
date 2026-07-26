@@ -329,6 +329,8 @@ enum vessel_class
   VESSEL_MAGICAL    /* Special magical vessels */
 };
 
+#define NUM_VESSEL_TYPES 8 /* Count of vessel_class values */
+
 /* Autopilot state machine for automated navigation */
 enum autopilot_state
 {
@@ -404,10 +406,223 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                int weather_conditions);
 bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 
+/* ========================================================================= */
+/* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
+/* ========================================================================= */
+
+/* Damage status bands derived from remaining internal structure */
+#define VESSEL_STATUS_SOUND 0
+#define VESSEL_STATUS_BATTERED 1
+#define VESSEL_STATUS_CRIPPLED 2
+#define VESSEL_STATUS_SINKING 3
+
+bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
+int vessel_total_internal(const struct greyhawk_ship_data *ship);
+int vessel_max_internal(const struct greyhawk_ship_data *ship);
+int vessel_status(const struct greyhawk_ship_data *ship);
+const char *vessel_status_name(int status);
+void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause);
+void vessel_sink(int shipnum);
+void vessel_check_grounding(int shipnum);
+void vessel_combat_tick(void);
+
+ACMD_DECL(do_shipfire);   /* Fire a weapon slot at another ship */
+ACMD_DECL(do_shiprepair); /* Slow at-sea repairs while stationary */
+ACMD_DECL(do_claimship);  /* Capture a ship from an uncontested bridge */
+
+/* ========================================================================= */
+/* OWNERSHIP AND PERMISSIONS (Phase 06, vessels_ownership.c)                 */
+/* ========================================================================= */
+
+/* Hireable crew positions (index into greyhawk_ship_data.crew_tier) */
+#define CREW_SAILMASTER 0    /* Speed handling */
+#define CREW_GUNNER 1        /* Gunnery accuracy */
+#define CREW_BOSUN 2         /* Repair rate */
+#define CREW_QUARTERMASTER 3 /* Cargo capacity bonus */
+#define NUM_CREW_POSITIONS 4
+
+/* Crew quality tiers */
+#define CREW_TIER_NONE 0
+#define CREW_TIER_GREEN 1
+#define CREW_TIER_ABLE 2
+#define CREW_TIER_VETERAN 3
+
+/* Wage accrual: one payday per this many combat ticks */
+#define CREW_WAGE_INTERVAL 600
+
+/* Installable upgrades (greyhawk_ship_data.upgrades bitfield) */
+#define SHIP_UPGRADE_PLATING (1 << 0)    /* +50% max armor all sides */
+#define SHIP_UPGRADE_RIGGING (1 << 1)    /* +5 max speed */
+#define SHIP_UPGRADE_HOLD (1 << 2)       /* +25% cargo capacity */
+#define SHIP_UPGRADE_REINFORCED (1 << 3) /* +50% max internal structure */
+#define NUM_SHIP_UPGRADES 4
+
+/* Hull wear: one wear event per this many ticks while under way */
+#define SHIP_WEAR_INTERVAL 900
+
+const char *vessel_upgrade_name(int index);
+int vessel_upgrade_bit(int index);
+int vessel_upgrade_cost(int index, enum vessel_class vessel_type);
+void vessel_upkeep_tick(void);
+void vessel_db_save_extras(struct greyhawk_ship_data *ship);
+void vessel_db_load_extras(struct greyhawk_ship_data *ship);
+void vessel_pay_insurance(struct greyhawk_ship_data *ship);
+
+ACMD_DECL(do_shipupgrade); /* Owner: install upgrades at a dock */
+ACMD_DECL(do_shipinsure);  /* Owner: buy sinking insurance */
+
+/* ========================================================================= */
+/* CARGO AND TRADE (Phase 07, vessels_trade.c)                               */
+/* ========================================================================= */
+
+/* Supply level bounds the price swing: prices move within
+ * +/- TRADE_MAX_DRIFT percent of base, and never outside it. */
+#define TRADE_MAX_DRIFT 60
+#define TRADE_BASELINE_SUPPLY 100
+#define TRADE_SUPPLY_MIN 10
+#define TRADE_SUPPLY_MAX 400
+#define TRADE_RESTOCK_INTERVAL 1200 /* Vessel ticks between supply drift */
+
+void vessel_trade_ensure_schema(void);
+int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
+int vessel_commodity_price(int base_price, int supply);
+void vessel_trade_restock_tick(void);
+void vessel_db_save_cargo(struct greyhawk_ship_data *ship);
+void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
+
+/* ========================================================================= */
+/* LIVING WORLD: WEATHER HAZARDS AND ENCOUNTERS (Phase 08)                   */
+/* ========================================================================= */
+
+/* Weather thresholds read from the wilderness weather field
+ * (get_weather(x,y)); the same storm a coastal walker sees. */
+#define VESSEL_WEATHER_FOG 40
+#define VESSEL_WEATHER_SQUALL 60
+#define VESSEL_WEATHER_STORM 75
+#define VESSEL_WEATHER_GALE 90
+
+/* Hazard/encounter checks run this often (vessel ticks) */
+#define VESSEL_HAZARD_INTERVAL 60
+#define VESSEL_ENCOUNTER_INTERVAL 180
+
+/* Contact/spotting range shrinks in fog */
+#define VESSEL_SIGHT_CLEAR 50
+#define VESSEL_SIGHT_FOG 15
+
+void vessel_hazard_ensure_schema(void);
+int vessel_sight_range(const struct greyhawk_ship_data *ship);
+int vessel_storm_severity(const struct greyhawk_ship_data *ship);
+void vessel_weather_tick(void);
+void vessel_encounter_tick(void);
+bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
+int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
+
+ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
+
+/* ========================================================================= */
+/* OPERATOR TOOLING AND PROTOCOL (Phase 09, vessels_admin.c)                 */
+/* ========================================================================= */
+
+void vessel_msdp_update(struct char_data *ch);
+void vessel_msdp_tick(void);
+
+ACMD_DECL(do_shiplist); /* Staff: fleet overview + room pool health */
+ACMD_DECL(do_shipgoto); /* Staff: teleport to a ship */
+ACMD_DECL(do_shipfix);  /* Staff: restore a ship to full condition */
+
+/* ========================================================================= */
+/* PIRACY AND BOUNTY (Phase 07, vessels_piracy.c)                            */
+/* ========================================================================= */
+
+/* Bounty thresholds: at WANTED a player is refused docking at lawful
+ * ports; at HUNTED the navy sends warships. */
+#define BOUNTY_WANTED 500
+#define BOUNTY_HUNTED 2000
+
+/* Bounty earned per unit of cargo taken by force */
+#define BOUNTY_PER_CARGO_UNIT 15
+
+void vessel_piracy_ensure_schema(void);
+int vessel_get_bounty(const char *player_name);
+void vessel_add_bounty(const char *player_name, int amount);
+void vessel_clear_bounty(const char *player_name);
+bool vessel_has_letter_of_marque(const char *player_name);
+bool vessel_port_refuses(struct char_data *ch);
+int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
+                         struct greyhawk_ship_data *raider);
+
+ACMD_DECL(do_plunder); /* Take cargo from a captured/boarded ship */
+ACMD_DECL(do_bounty);  /* Check a bounty */
+ACMD_DECL(do_marque);  /* Buy a letter of marque (legal privateering) */
+
+/* Freight contracts (Phase 07, vessels_contracts.c) */
+#define CONTRACT_STATUS_OPEN 0
+#define CONTRACT_STATUS_TAKEN 1
+#define CONTRACT_STATUS_DONE 2
+#define MAX_CONTRACT_OFFERS 6
+
+void vessel_contracts_ensure_schema(void);
+void vessel_contracts_refresh_port(int port_vnum);
+
+ACMD_DECL(do_contracts);       /* At a dock: list the freight board */
+ACMD_DECL(do_contractaccept);  /* Take a freight contract */
+ACMD_DECL(do_contractdeliver); /* Deliver and collect payment */
+ACMD_DECL(do_contractabandon); /* Drop a contract you cannot finish */
+
+ACMD_DECL(do_market);        /* At a dock: list commodity prices */
+ACMD_DECL(do_cargobuy);      /* At a dock: buy bulk cargo into the hold */
+ACMD_DECL(do_cargosell);     /* At a dock: sell bulk cargo from the hold */
+ACMD_DECL(do_cargomanifest); /* Show the ship's bulk cargo manifest */
+
+const char *vessel_crew_position_name(int position);
+const char *vessel_crew_tier_name(int tier);
+int vessel_crew_hire_cost(int position, int tier);
+int vessel_crew_wage(int position, int tier);
+void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
+void vessel_crew_wage_tick(void);
+void vessel_db_save_crew(struct greyhawk_ship_data *ship);
+void vessel_db_load_crew(struct greyhawk_ship_data *ship);
+
+bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship);
+void vessel_ownership_ensure_schema(void);
+void vessel_db_save_owner(struct greyhawk_ship_data *ship);
+void vessel_db_load_owner(struct greyhawk_ship_data *ship);
+void vessel_db_save_permits(struct greyhawk_ship_data *ship);
+void vessel_db_load_permits(struct greyhawk_ship_data *ship);
+
+/* Shipyard (Phase 06, vessels_edit.c) */
+int vessel_prototype_price(int vclass, int max_speed, int armor);
+int vessel_spawn_from_prototype(struct char_data *ch, int id);
+ACMD_DECL(do_shipbrowse);   /* Shipyard catalog with prices */
+ACMD_DECL(do_shipbuy);      /* Purchase a hull at a dock */
+ACMD_DECL(do_shipchristen); /* Owner: rename the ship */
+
+ACMD_DECL(do_shippermit);  /* Owner: clear a player to take the helm */
+ACMD_DECL(do_shiprevoke);  /* Owner: revoke a helm permit */
+ACMD_DECL(do_shipcrew);    /* List owner, permits, crew, and NPC pilot */
+ACMD_DECL(do_shiphire);    /* Owner: hire crew at a dock */
+ACMD_DECL(do_shipdismiss); /* Owner: dismiss hired crew */
+ACMD_DECL(do_shipwages);   /* Owner: pay accrued wages */
+ACMD_DECL(do_shipdeed);    /* Owner: transfer ownership */
+
 /* Vessel type accessor functions */
 const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vessel_type);
 enum vessel_class get_vessel_type_from_ship(int shipnum);
 const char *get_vessel_type_name(enum vessel_class vessel_type);
+int get_vessel_cargo_capacity(enum vessel_class vessel_type);
+int vessel_effective_cargo_capacity(const struct greyhawk_ship_data *ship);
+
+/* Maximum cargo weight by vessel class (in pounds).
+ * Covers loaded vehicles plus future cargo lots; consumed by
+ * get_vessel_cargo_capacity() and check_vessel_vehicle_capacity(). */
+#define VESSEL_CARGO_RAFT 300        /* Barely more than its passengers */
+#define VESSEL_CARGO_BOAT 2000       /* A cart or two of coastal freight */
+#define VESSEL_CARGO_SHIP 12000      /* Standard merchant hold */
+#define VESSEL_CARGO_WARSHIP 6000    /* Hold space lost to armament */
+#define VESSEL_CARGO_AIRSHIP 4000    /* Lift-limited */
+#define VESSEL_CARGO_SUBMARINE 3000  /* Hull volume at a premium */
+#define VESSEL_CARGO_TRANSPORT 40000 /* Purpose-built freighter */
+#define VESSEL_CARGO_MAGICAL 12000   /* Matches SHIP unless customized */
 
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - FUTURE ADVANCED VESSEL SYSTEM                       */
@@ -829,6 +1044,34 @@ struct greyhawk_ship_data
   /* Phase 3: Autopilot system */
   struct autopilot_data *autopilot; /* Autopilot data (NULL if disabled) */
   struct vessel_schedule *schedule; /* Schedule data (NULL if none) */
+
+  /* Phase 5: Naval combat */
+  int last_attacker; /* Fleet index of last ship to fire on us (0 = none) */
+
+  /* Phase 6: Ownership and permissions */
+#define MAX_HELM_PERMITS 10
+  char helm_permits[MAX_HELM_PERMITS][21]; /* Player names cleared to helm */
+  int num_permits;                         /* Active permit count */
+
+  /* Phase 6: Hired crew. Tier 0 = position unfilled; 1-3 = green/able/
+   * veteran. Bonuses are mirrored into sailcrew/guncrew on hire. */
+  int crew_tier[4]; /* Indexed by CREW_SAILMASTER..CREW_QUARTERMASTER */
+  int wages_owed;   /* Accrued unpaid wages in gold */
+  int wage_ticks;   /* Ticks since last wage accrual */
+
+  /* Phase 6: Upgrades, upkeep, and insurance */
+  int upgrades;    /* SHIP_UPGRADE_* bitfield */
+  int wear_ticks;  /* Ticks since last hull wear */
+  int insured_for; /* Payout value if sunk (0 = uninsured) */
+
+  /* Phase 7: Bulk cargo lots (trade goods, distinct from loaded vehicles) */
+#define MAX_CARGO_LOTS 10
+  struct cargo_lot
+  {
+    int commodity_id; /* Row id in trade_commodities (0 = empty lot) */
+    int quantity;     /* Units carried */
+  } cargo[MAX_CARGO_LOTS];
+  int num_cargo_lots;
 };
 
 /* Greyhawk Contact Data Structure (for radar/sensors) */
@@ -884,6 +1127,7 @@ void greyhawk_setsymbol(int x, int y, int symbol);
 
 /* Room Generation and Management */
 void generate_ship_interior(struct greyhawk_ship_data *ship);
+void load_ship_room_templates_from_db(void); /* Boot: builder template overrides */
 int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
 void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
 void generate_room_connections(struct greyhawk_ship_data *ship);
@@ -1058,6 +1302,7 @@ ACMD_DECL(do_greyhawk_speed);     /* Control ship speed */
 ACMD_DECL(do_greyhawk_heading);   /* Set ship heading/direction */
 ACMD_DECL(do_greyhawk_disembark); /* Leave ship */
 ACMD_DECL(do_greyhawk_shipload);  /* Admin: Load a new ship */
+ACMD_DECL(do_vedit);              /* Builder: ship prototype editor (vessels_edit.c) */
 ACMD_DECL(do_greyhawk_setsail);   /* Admin: Set ship sail configuration */
 
 /* Phase 2 Commands */

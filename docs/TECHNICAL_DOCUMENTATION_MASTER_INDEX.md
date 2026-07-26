@@ -22,6 +22,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Essential First Steps
 - **[README.md](../README.md)** - Project overview, quick start, and essential information
+- **[LUMINARI_OVERVIEW.md](guides/LUMINARI_OVERVIEW.md)** - What LuminariMUD is: the world, its systems, and what makes it distinct (written for players and newcomers to MUDs)
 - **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Complete setup and deployment instructions
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - How to contribute to the project
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
@@ -29,6 +30,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Configuration & Installation
 - **[CMAKE_BUILD_GUIDE.md](development/CMAKE_BUILD_GUIDE.md)** - Alternative build system using CMake
 - **[IMPORT_DB.md](guides/IMPORT_DB.md)** - Database import procedures
+- **[VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md)** - Vessel schema deployment, verification, and rollback procedure
 - **[LEGACY_README.md](legacy_installation/LEGACY_README.md)** - Historical installation notes
 - **[README_HISTORY.md](legacy_installation/README_HISTORY.md)** - Evolution of setup procedures
 
@@ -48,7 +50,11 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Communication & Protocols
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
-- **[PROTOCOL_TODO.md](project-management-zusuk/PROTOCOL_TODO.md)** - Planned protocol enhancements
+- **[CLIENT_CAPABILITIES_AND_PREFERENCES.md](systems/CLIENT_CAPABILITIES_AND_PREFERENCES.md)** - How client capability auto-detection and player PRF flags interact, what persists, and when
+- **[INTERMUD3.md](systems/INTERMUD3.md)** - Inter-MUD communication system
+- **[INTERMUD3_GATEWAY_API.md](systems/INTERMUD3_GATEWAY_API.md)** - External I3 Gateway API reference (JSON-RPC 2.0)
+- **[INTERMUD3_SECURITY_AUDIT.md](systems/INTERMUD3_SECURITY_AUDIT.md)** - I3 client security audit (remediated 2025-08-26)
+- **[PROTOCOL_TODO.md](project-management-zusuk/ongoing-projects/PROTOCOL_TODO.md)** - Outstanding protocol security items
 
 ---
 
@@ -61,9 +67,12 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
 
 ### Advanced Systems
-- **[VESSEL_SYSTEM.md](project-management-zusuk/vessels/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
-- **[VESSEL_BENCHMARKS.md](project-management-zusuk/vessels/VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks and stress test results
+- **[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
+- **[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks, memory attribution, and stress test results
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
+- **[MOUNT_SYSTEM.md](systems/MOUNT_SYSTEM.md)** - Mounts, paladin/blackguard mounts, and dragon mounts (code reference)
+- **[CASTING_VISUALS_SYSTEM.md](systems/CASTING_VISUALS_SYSTEM.md)** - School, class, metamagic, progress, and environmental spellcasting visuals
+- **[CHARACTER_RENAME_SYSTEM.md](systems/CHARACTER_RENAME_SYSTEM.md)** - Authoritative player rename across index, files, accounts, and database
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
 - **[wilderness_system.md](world_game-data/wilderness_system.md)** - Dynamic wilderness generation
 - **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - 🆕 ✅ Spatial visual and audio systems with triple strategy pattern
@@ -92,7 +101,9 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
-- **[vessel_test_results.md](testing/vessel_test_results.md)** - Vessel system test validation (91 tests, Valgrind clean)
+- **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
+- **[CASTING_VISUALS_TESTING.md](testing/CASTING_VISUALS_TESTING.md)** - Casting visuals in-game verification checklist
+- **[vessel_test_results.md](testing/vessel_test_results.md)** - Historical Phase 00 vessel test record (superseded; see VESSEL_BENCHMARKS.md)
 - **[CuTest_README.md](testing/CuTest_README.md)** - Unit testing with CuTest
 
 ### Performance & Optimization
@@ -139,13 +150,15 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
-- **[AI_TODO_IDEAS.md](project-management-zusuk/AI_TODO_IDEAS.md)** - AI-related feature ideas
-- **[DO_SKORE_PROJECT.md](project-management-zusuk/DO_SKORE_PROJECT.md)** - Skore system project plan
+- **[Zusuk ongoing projects](project-management-zusuk/ongoing-projects/)** - Active work: AI conversation history, SKORE phases 3-4, protocol security, event-system merge, CMake warnings, idea backlog
+- **[VESSEL_PRD_FINAL.md](project-management-zusuk/vessels/VESSEL_PRD_FINAL.md)** - Vessel system requirements and remaining work
+- **[AI_TODO_IDEAS.md](project-management-zusuk/ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
+- **[DO_SKORE_PROJECT.md](project-management-zusuk/ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
 - **[WILDERNESS-RESOURCE-PLAN.md](project-management-ornir/wilderness/WILDERNESS-RESOURCE-PLAN.md)** - 🆕 Resource system implementation plan (Phases 1-4)
 - **[PHASE_5_DESIGN.md](project-management-ornir/PHASE_5_DESIGN.md)** - 🆕 Player harvesting mechanics design
 - **[PHASE_4_COMPLETION_SUMMARY.md](project-management-ornir/PHASE_4_COMPLETION_SUMMARY.md)** - 🆕 Region effects system completion
 - **[CLEANUP_REPORT.md](project-management-ornir/CLEANUP_REPORT.md)** - 🆕 System redesign and cleanup documentation
-- **[IDEA_LIST.md](project-management-zusuk/IDEA_LIST.md)** - Feature idea collection
+- **[IDEA_LIST.md](project-management-zusuk/ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
 - **[WILDERNESS_PROJECT.md](project-management-ornir/wilderness/WILDERNESS_PROJECT.md)** - Wilderness system development
 
 ### Historical Records

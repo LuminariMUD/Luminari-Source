@@ -536,6 +536,17 @@ typedef enum
   eMSDP_GRAPHIC_MAP,            /**< Structured room map data for graphical clients */
   eMSDP_WILDERNESS_GRAPHIC_MAP, /**< Structured wilderness map data for graphical clients */
 
+  /* Vessel state (vessels system; only set while aboard a ship) */
+  eMSDP_SHIP_NAME,     /**< Name of the vessel the character is aboard */
+  eMSDP_SHIP_X,        /**< Vessel wilderness X coordinate */
+  eMSDP_SHIP_Y,        /**< Vessel wilderness Y coordinate */
+  eMSDP_SHIP_Z,        /**< Vessel altitude/depth */
+  eMSDP_SHIP_HEADING,  /**< Vessel heading in degrees */
+  eMSDP_SHIP_SPEED,    /**< Vessel current speed */
+  eMSDP_SHIP_HULL,     /**< Vessel remaining hull structure */
+  eMSDP_SHIP_HULL_MAX, /**< Vessel maximum hull structure */
+  eMSDP_SHIP_STATUS,   /**< Vessel damage band (sound/battered/crippled/sinking) */
+
   /* Client configuration and capabilities */
   eMSDP_CLIENT_ID,      /**< Client software name (configurable) */
   eMSDP_CLIENT_VERSION, /**< Client version string (configurable) */

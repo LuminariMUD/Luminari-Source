@@ -1,12 +1,39 @@
-# VESSELS PHASE 2 - PRODUCTION DEPLOYMENT INSTRUCTIONS
+# Vessel Schema - Production Deployment
+
+Concrete DBA procedure for deploying vessel system database schema to
+production: backup, transfer, install, verify, and roll back.
+
+Originally written for the Phase 2 schema; the procedure applies unchanged to
+every vessel phase. Substitute the phase you are deploying.
+
+> **Preferred path**: the server auto-creates and auto-migrates all vessel
+> tables at boot, so a normal deploy needs no manual SQL at all. Use this
+> procedure when you want the schema in place before the server starts, when
+> auto-creation is undesirable, or when you need a rehearsed rollback.
+
+## Available schema components
+
+All scripts live in `sql/components/`. Each phase has schema, rollback, and
+(from Phase 4 on) verification scripts:
+
+| Phase | Scripts | Adds |
+|-------|---------|------|
+| 2 | `vessels_phase2_schema.sql`, `vessels_phase2_rollback.sql`, `verify_vessels_schema.sql` | Interiors, docking, room templates, cargo manifest, crew roster |
+| 4 | `vessels_phase4_schema.sql`, `vessels_phase4_rollback.sql`, `verify_vessels_phase4.sql` | `ship_prototypes` (vedit) |
+| 6 | `vessels_phase6_schema.sql`, `vessels_phase6_rollback.sql`, `verify_vessels_phase6.sql` | Ownership, upgrades, insurance, wage columns |
+| 7 | `vessels_phase7_schema.sql`, `vessels_phase7_rollback.sql`, `verify_vessels_phase7.sql` | Commodities, port supply, freight contracts, bounties |
+| 8 | `vessels_phase8_schema.sql`, `vessels_phase8_rollback.sql`, `verify_vessels_phase8.sql` | Region-keyed encounter tables |
+
+Deploy phases in ascending order - later phases extend tables that earlier
+phases create.
 
 ## ⚠️ PRE-DEPLOYMENT CHECKLIST
 
 ### Required Files to Transfer to Production
-Copy these files to your production server:
-1. `sql/vessels_phase2_schema.sql` - Main installation script
-2. `sql/vessels_phase2_rollback.sql` - Emergency rollback
-3. `sql/verify_vessels_schema.sql` - Verification script
+Copy the scripts for the phase you are deploying, e.g. for Phase 7:
+1. `sql/components/vessels_phase7_schema.sql` - Installation script
+2. `sql/components/vessels_phase7_rollback.sql` - Emergency rollback
+3. `sql/components/verify_vessels_phase7.sql` - Verification script
 
 ### Prerequisites
 - [ ] Schedule maintenance window (5-10 minutes expected)
@@ -33,9 +60,9 @@ ls -lh /backup/luminari_backup_*.sql
 ### Step 2: Transfer Files to Production
 ```bash
 # From your local machine, upload the SQL files
-scp sql/vessels_phase2_schema.sql user@production:/tmp/
-scp sql/vessels_phase2_rollback.sql user@production:/tmp/
-scp sql/verify_vessels_schema.sql user@production:/tmp/
+scp sql/components/vessels_phase2_schema.sql user@production:/tmp/
+scp sql/components/vessels_phase2_rollback.sql user@production:/tmp/
+scp sql/components/verify_vessels_schema.sql user@production:/tmp/
 ```
 
 ### Step 3: Deploy the Schema

@@ -103,6 +103,8 @@ static int is_vehicle_mounted(struct vehicle_data *vehicle)
 int check_vessel_vehicle_capacity(struct greyhawk_ship_data *vessel, struct vehicle_data *vehicle)
 {
   int loaded_count = 0;
+  int loaded_weight = 0;
+  int cargo_capacity;
   int i;
   int vehicle_weight;
 
@@ -118,15 +120,14 @@ int check_vessel_vehicle_capacity(struct greyhawk_ship_data *vessel, struct vehi
   VHCL_DEBUG_XPORT("Checking capacity: vessel %s for vehicle #%d (%s)", vessel->name, vehicle->id,
                    vehicle->name);
 
-  /* Count vehicles already loaded on this vessel */
-  /* This would iterate through all vehicles to count those with parent_vessel_id matching */
-  /* For now, we check against MAX_VEHICLES_PER_VESSEL */
+  /* Count vehicles already loaded on this vessel and total their weight */
   for (i = 0; i < MAX_VEHICLES; i++)
   {
     struct vehicle_data *v = vehicle_find_by_id(i);
     if (v != NULL && v->parent_vessel_id == vessel->shipnum)
     {
       loaded_count++;
+      loaded_weight += v->max_weight + v->current_weight;
     }
   }
 
@@ -144,10 +145,16 @@ int check_vessel_vehicle_capacity(struct greyhawk_ship_data *vessel, struct vehi
   VHCL_DEBUG_XPORT("Vehicle weight: %d (max=%d + current=%d)", vehicle_weight, vehicle->max_weight,
                    vehicle->current_weight);
 
-  /* Check vessel cargo capacity */
-  /* Vessels use cargo_capacity field for total weight allowed */
-  /* TODO: Add actual cargo capacity check when vessel struct supports it */
-  (void)vehicle_weight; /* Suppress unused warning for now */
+  /* Check vessel cargo capacity: class base plus quartermaster stowage */
+  cargo_capacity = vessel_effective_cargo_capacity(vessel);
+  VHCL_DEBUG_XPORT("Cargo weight: %d loaded + %d new vs capacity %d", loaded_weight, vehicle_weight,
+                   cargo_capacity);
+
+  if (loaded_weight + vehicle_weight > cargo_capacity)
+  {
+    VHCL_DEBUG_XPORT("CAPACITY CHECK FAILED: Cargo weight limit exceeded");
+    return FALSE;
+  }
 
   VHCL_DEBUG_XPORT("Capacity check passed");
   return TRUE;

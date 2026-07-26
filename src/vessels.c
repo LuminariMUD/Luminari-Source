@@ -50,7 +50,6 @@ static char greyhawk_weapon[320];
 /* Indexed by vessel_class enum values (VESSEL_RAFT=0 through VESSEL_MAGICAL=7) */
 
 /* Number of vessel types (must match vessel_class enum count) */
-#define NUM_VESSEL_TYPES 8
 
 /**
  * Static terrain capability data for each vessel type.
@@ -526,6 +525,64 @@ const char *get_vessel_type_name(enum vessel_class vessel_type)
   return vessel_names[vessel_type];
 }
 
+/**
+ * Get maximum cargo capacity for a vessel type.
+ *
+ * Returns the total cargo weight (in pounds) a vessel of the given class
+ * can carry, covering loaded vehicles and future cargo lots. Values follow
+ * the same per-class data-table pattern as vessel_terrain_data[].
+ *
+ * @param vessel_type The vessel_class enum value
+ * @return Maximum cargo weight in pounds (0 for classes with no cargo space)
+ */
+int get_vessel_cargo_capacity(enum vessel_class vessel_type)
+{
+  static const int vessel_cargo_capacity[NUM_VESSEL_TYPES] = {
+      VESSEL_CARGO_RAFT,      /* VESSEL_RAFT */
+      VESSEL_CARGO_BOAT,      /* VESSEL_BOAT */
+      VESSEL_CARGO_SHIP,      /* VESSEL_SHIP */
+      VESSEL_CARGO_WARSHIP,   /* VESSEL_WARSHIP */
+      VESSEL_CARGO_AIRSHIP,   /* VESSEL_AIRSHIP */
+      VESSEL_CARGO_SUBMARINE, /* VESSEL_SUBMARINE */
+      VESSEL_CARGO_TRANSPORT, /* VESSEL_TRANSPORT */
+      VESSEL_CARGO_MAGICAL    /* VESSEL_MAGICAL */
+  };
+
+  if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
+  {
+    log("SYSERR: get_vessel_cargo_capacity: Invalid vessel type %d, defaulting to VESSEL_SHIP",
+        vessel_type);
+    return vessel_cargo_capacity[VESSEL_SHIP];
+  }
+
+  return vessel_cargo_capacity[vessel_type];
+}
+
+/**
+ * Get a specific ship's effective cargo capacity.
+ *
+ * Class capacity plus the quartermaster's stowage bonus (10% per tier).
+ *
+ * @param ship The ship to measure
+ * @return Cargo capacity in pounds
+ */
+int vessel_effective_cargo_capacity(const struct greyhawk_ship_data *ship)
+{
+  int base;
+
+  if (ship == NULL)
+  {
+    return 0;
+  }
+
+  base = get_vessel_cargo_capacity(ship->vessel_type);
+  if (IS_SET(ship->upgrades, SHIP_UPGRADE_HOLD))
+  {
+    base += base / 4;
+  }
+  return base + (base * ship->crew_tier[CREW_QUARTERMASTER]) / 10;
+}
+
 /* Forward declarations for Greyhawk functions */
 void greyhawk_getstatus(int slot, int rnum);
 void greyhawk_getposition(int slot, int rnum);
@@ -586,6 +643,7 @@ static room_rnum get_or_allocate_wilderness_room(int x, int y)
 
     /* Configure the room for these coordinates */
     assign_wilderness_room(room, x, y);
+    VSSL_DEBUG_MOVE("Allocated dynamic wilderness room %d at (%d,%d)", world[room].number, x, y);
   }
 
   return room;
@@ -911,6 +969,8 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     obj_to_room(greyhawk_ships[shipnum].shipobj, wilderness_room);
   }
 
+  VSSL_DEBUG_MOVE("Ship %d position updated to (%d,%d,%d) in room %d", shipnum, new_x, new_y, new_z,
+                  world[wilderness_room].number);
   return TRUE;
 }
 
@@ -945,6 +1005,8 @@ int get_ship_terrain_type(int shipnum)
   }
 
   /* Return the sector type of the wilderness room */
+  VSSL_DEBUG_MOVE("Ship %d terrain at (%d,%d): sector %d", shipnum, x, y,
+                  world[wilderness_room].sector_type);
   return world[wilderness_room].sector_type;
 }
 
@@ -982,6 +1044,9 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
   }
 
   sector_type = world[wilderness_room].sector_type;
+
+  VSSL_DEBUG_MOVE("Traverse check: vessel type %d at (%d,%d,%d) sector %d", vessel_type, x, y, z,
+                  sector_type);
 
   /* Get terrain capabilities for this vessel type */
   caps = get_vessel_terrain_caps(vessel_type);
@@ -1092,6 +1157,8 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
   /* Ensure modifier doesn't go below 0 or above 150 */
   base_modifier = MAX(0, MIN(150, base_modifier));
 
+  VSSL_DEBUG_MOVE("Speed modifier: vessel type %d sector %d weather %d -> %d%%", vessel_type,
+                  sector_type, weather_conditions, base_modifier);
   return base_modifier;
 }
 
@@ -1126,6 +1193,9 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Get weather conditions at current position */
   weather_conditions = get_weather(new_x, new_y);
+
+  VSSL_DEBUG_MOVE("Ship %d moving dir %d from (%d,%d,%d) speed %d weather %d", shipnum, direction,
+                  new_x, new_y, new_z, greyhawk_ships[shipnum].speed, weather_conditions);
 
   /* Calculate new position based on direction and speed */
   int move_distance = MAX(1, greyhawk_ships[shipnum].speed / 10);
@@ -1183,6 +1253,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   /* Check if vessel can traverse the target terrain */
   if (!can_vessel_traverse_terrain(vessel_type, new_x, new_y, new_z))
   {
+    VSSL_DEBUG_MOVE("Ship %d MOVE BLOCKED: type %d cannot enter (%d,%d,%d)", shipnum, vessel_type,
+                    new_x, new_y, new_z);
     if (ch)
     {
       /* Send vessel-type-specific denial message */
@@ -1253,8 +1325,19 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   terrain_type = get_ship_terrain_type(shipnum);
   speed_modifier = get_terrain_speed_modifier(vessel_type, terrain_type, weather_conditions / 25);
 
-  /* Adjust ship speed based on terrain and weather */
+  /* Adjust ship speed based on terrain and weather, then credit the
+   * sailmaster's handling bonus (see vessels_crew.c) */
   greyhawk_ships[shipnum].speed = (greyhawk_ships[shipnum].setspeed * speed_modifier) / 100;
+  greyhawk_ships[shipnum].speed += greyhawk_ships[shipnum].sailcrew.speedadjust;
+  if (greyhawk_ships[shipnum].speed > greyhawk_ships[shipnum].maxspeed &&
+      greyhawk_ships[shipnum].maxspeed > 0)
+  {
+    greyhawk_ships[shipnum].speed = greyhawk_ships[shipnum].maxspeed;
+  }
+  if (greyhawk_ships[shipnum].speed < 0)
+  {
+    greyhawk_ships[shipnum].speed = 0;
+  }
 
   /* Send movement messages */
   if (ch)
@@ -1286,6 +1369,9 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
       send_to_char(ch, "The weather is clear for sailing.\r\n");
     }
   }
+
+  /* Bathymetry check: deep-draft hulls ground out in the shallows */
+  vessel_check_grounding(shipnum);
 
   return TRUE;
 }

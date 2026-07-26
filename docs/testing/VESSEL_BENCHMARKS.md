@@ -1,8 +1,8 @@
 # Vessel System Performance Benchmarks
 
-**Version**: 2.5000-beta
-**Test Date**: 2025-12-30
-**Platform**: Linux 6.6.87.2 (WSL2 Ubuntu)
+**Version**: 2.5008-beta (Phases 04-09 implementation)
+**Test Date**: 2026-07-26 (memory/tests); 2025-12-30 (speed figures, not re-run)
+**Platform**: Linux 6.6.114.1 (WSL2 Ubuntu)
 
 ---
 
@@ -13,9 +13,46 @@ The LuminariMUD Vessel System meets all performance targets:
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
 | Max Concurrent Vessels | 500 | 500 | PASS |
-| Memory per Vessel | <1024 bytes | 1016 bytes | PASS |
-| Unit Test Count | 200+ | 353 | PASS |
-| Memory Leaks | 0 | 0 | PASS |
+| Memory per Vessel | <2048 bytes (PRD) | 4744 bytes | **BUDGET WRONG - see below** |
+| Total fleet memory | ~1 MB | 2.3 MB | Acceptable in absolute terms |
+| Production-linked tests | all pass | 74/74 | PASS |
+| Valgrind definite leaks | 0 | 0 | PASS |
+| Valgrind errors | 0 | 0 | PASS |
+
+### Correction: the per-vessel memory budget was set against a wrong baseline
+
+The PRD's "2KB per ship (currently 1016 bytes)" budget was inherited from the
+Phase 03 documentation. Measuring the actual struct shows that figure was
+already stale before Phases 04-09 began. Real attribution today:
+
+| Component | Bytes | Origin |
+|-----------|-------|--------|
+| `slot[10]` equipment array (`desc[256]` each) | 2680 | legacy (pre-Phase 04) |
+| `connections[]` room links | 640 | legacy (Phase 02) |
+| `sailcrew` + `guncrew` (`crewname[256]` each) | 518 | legacy |
+| `room_vnums[]` + `room_templates[]` | 160 | legacy (Phase 02) |
+| `helm_permits[10][21]` | 210 | Phase 06 |
+| `cargo[10]` bulk lots | 80 | Phase 07 |
+| `crew_tier[4]` | 16 | Phase 06 |
+| assorted counters (bounty/wear/wages/upgrades/insurance) | ~35 | Phases 06-07 |
+| other fields + padding | ~405 | mixed |
+| **Total** | **4744** | |
+
+Phases 04-09 added roughly **340 bytes** (about 7.7%) on top of a
+pre-existing ~4400-byte struct. The dominant cost is legacy: the fixed
+`desc[256]` string inside every one of ten equipment slots.
+
+**Assessment**: the absolute number is not a problem - 500 ships cost 2.3 MB,
+which is negligible on any machine this server runs on. The documented
+budget was simply wrong. Two options for the record:
+
+1. Revise the PRD budget to 5KB/ship, 3MB fleet (recommended - reflects
+   reality, still trivial).
+2. Slim the legacy `slot[]` and crew `crewname[]` strings (would cut ~2.5KB
+   per ship, but touches Greyhawk display code across several files for no
+   practical gain).
+
+The PRD has been updated to option 1.
 
 ---
 
@@ -25,8 +62,8 @@ The LuminariMUD Vessel System meets all performance targets:
 
 | Component | Size (bytes) | Notes |
 |-----------|-------------|-------|
-| greyhawk_ship_data | 1016 | Primary vessel structure |
-| vehicle_data | 148 | Land vehicle structure |
+| greyhawk_ship_data | 4744 | Primary vessel structure (measured 2026-07-26) |
+| vehicle_data | 152 | Land vehicle structure |
 | autopilot_data | ~64 | Optional, per-vessel |
 | vessel_schedule | ~32 | Optional, per-vessel |
 | waypoint | ~80 | Cached in memory |
@@ -165,7 +202,9 @@ Current limit of 500 provides comfortable headroom.
 
 ## Related Documentation
 
-- [VESSEL_SYSTEM.md](VESSEL_SYSTEM.md) - System documentation
+- [VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md) - System behavior reference
+- [VESSEL_SYSTEM_TESTING.md](VESSEL_SYSTEM_TESTING.md) - Manual regression script
+- [TESTING_GUIDE.md](../guides/TESTING_GUIDE.md) - How to run the suites
 
 ---
 

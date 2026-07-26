@@ -53,6 +53,9 @@ void save_ship_interior(struct greyhawk_ship_data *ship)
     return;
   }
 
+  VSSL_DEBUG_DB("Saving interior for ship %d (%s): %d rooms", ship->shipnum, ship->name,
+                ship->num_rooms);
+
   /* Build room vnums string */
   room_vnums_str[0] = '\0';
   len = 0;
@@ -117,6 +120,8 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
   {
     return;
   }
+
+  VSSL_DEBUG_DB("Loading interior for ship %d (%s)", ship->shipnum, ship->name);
 
   snprintf(query, sizeof(query),
            "SELECT vessel_type, vessel_name, num_rooms, room_vnums, "
@@ -578,6 +583,11 @@ void load_all_ship_interiors(void)
     if (is_valid_ship(&greyhawk_ships[i]))
     {
       load_ship_interior(&greyhawk_ships[i]);
+      vessel_db_load_owner(&greyhawk_ships[i]);
+      vessel_db_load_permits(&greyhawk_ships[i]);
+      vessel_db_load_crew(&greyhawk_ships[i]);
+      vessel_db_load_extras(&greyhawk_ships[i]);
+      vessel_db_load_cargo(&greyhawk_ships[i]);
       loaded_count++;
     }
   }

@@ -18,11 +18,17 @@
 #include "spec_procs.h"
 #include "modify.h"
 #include "dg_scripts.h"
+#include "mysql.h"
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern struct room_data *world;
 extern room_rnum top_of_world;
+
+extern MYSQL *conn;
+extern bool mysql_available;
+
+#define NUM_SHIP_ROOM_TYPES (ROOM_TYPE_DECK + 1)
 
 /* Room template definitions */
 struct room_template
@@ -93,6 +99,154 @@ struct room_template
      "and you can see the horizon stretching endlessly in all directions.\n"
      "Rigging and masts tower above you.",
      ROOM_VEHICLE, SECT_WATER_SWIM, VESSEL_RAFT}};
+
+/* ========================================================================= */
+/* DATA-DRIVEN ROOM TEMPLATES (Phase 04, Session 04)                          */
+/* ========================================================================= */
+/* Builder-editable overrides loaded from the ship_room_templates table at    */
+/* boot. The hardcoded room_templates[] above remains as the fallback when   */
+/* MySQL is unavailable or a room type has no database row.                  */
+
+/* Canonical room_type strings matching the ship_room_templates rows
+ * populated by db_init_data.c, indexed by enum ship_room_type. */
+static const char *room_type_db_names[NUM_SHIP_ROOM_TYPES] = {
+    "bridge",        /* ROOM_TYPE_BRIDGE */
+    "quarters_crew", /* ROOM_TYPE_QUARTERS */
+    "cargo_main",    /* ROOM_TYPE_CARGO */
+    "engineering",   /* ROOM_TYPE_ENGINEERING */
+    "weapons",       /* ROOM_TYPE_WEAPONS */
+    "infirmary",     /* ROOM_TYPE_MEDICAL */
+    "mess_hall",     /* ROOM_TYPE_MESS_HALL */
+    "corridor",      /* ROOM_TYPE_CORRIDOR */
+    "airlock",       /* ROOM_TYPE_AIRLOCK */
+    "deck_main"      /* ROOM_TYPE_DECK */
+};
+
+static struct room_template db_room_templates[NUM_SHIP_ROOM_TYPES];
+static bool db_room_template_loaded[NUM_SHIP_ROOM_TYPES];
+
+/**
+ * Load room template overrides from the ship_room_templates table.
+ *
+ * Called once at boot after database initialization. Each successfully
+ * loaded row overrides the matching hardcoded template; missing rows keep
+ * their compiled-in fallback. Strings are strdup'd and retained for the
+ * lifetime of the process.
+ */
+void load_ship_room_templates_from_db(void)
+{
+  char query[MAX_STRING_LENGTH];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int i;
+  int loaded = 0;
+
+  if (!mysql_available || conn == NULL)
+  {
+    log("Info: MySQL not available, using compiled-in ship room templates");
+    return;
+  }
+
+  for (i = 0; i < NUM_SHIP_ROOM_TYPES; i++)
+  {
+    snprintf(query, sizeof(query),
+             "SELECT name_format, description_text, room_flags, sector_type, min_vessel_size "
+             "FROM ship_room_templates WHERE room_type = '%s' AND vessel_type = 0 LIMIT 1",
+             room_type_db_names[i]);
+
+    if (mysql_query(conn, query))
+    {
+      log("SYSERR: load_ship_room_templates_from_db query failed: %s", mysql_error(conn));
+      continue;
+    }
+
+    result = mysql_store_result(conn);
+    if (result == NULL)
+    {
+      continue;
+    }
+
+    row = mysql_fetch_row(result);
+    if (row != NULL && row[0] != NULL && row[1] != NULL)
+    {
+      db_room_templates[i].type = (enum ship_room_type)i;
+      db_room_templates[i].name_format = strdup(row[0]);
+      db_room_templates[i].description_format = strdup(row[1]);
+      db_room_templates[i].room_flags = row[2] ? atoi(row[2]) : (ROOM_VEHICLE | ROOM_INDOORS);
+      db_room_templates[i].sector_type = row[3] ? atoi(row[3]) : SECT_INSIDE;
+      db_room_templates[i].min_vessel_size = row[4] ? atoi(row[4]) : 0;
+      db_room_template_loaded[i] = TRUE;
+      loaded++;
+    }
+    mysql_free_result(result);
+  }
+
+  log("Info: Loaded %d ship room template override(s) from database", loaded);
+}
+
+/**
+ * Resolve the template for a room type: database override first, then the
+ * compiled-in fallback.
+ *
+ * @param type The ship room type
+ * @return Template pointer, or NULL if the type is unknown
+ */
+static const struct room_template *resolve_room_template(enum ship_room_type type)
+{
+  size_t i;
+
+  if (type >= 0 && type < NUM_SHIP_ROOM_TYPES && db_room_template_loaded[type])
+  {
+    return &db_room_templates[type];
+  }
+
+  for (i = 0; i < sizeof(room_templates) / sizeof(room_templates[0]); i++)
+  {
+    if (room_templates[i].type == type)
+    {
+      return &room_templates[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Safely expand a room template string: the first "%s" is replaced with the
+ * ship's name, every other character (including stray '%') is copied
+ * literally. Builder-authored database strings are never passed to printf-
+ * style formatting.
+ */
+static void format_room_string(char *dest, size_t size, const char *fmt, const char *ship_name)
+{
+  size_t pos = 0;
+  bool substituted = FALSE;
+
+  if (size == 0)
+  {
+    return;
+  }
+
+  while (*fmt && pos < size - 1)
+  {
+    if (!substituted && fmt[0] == '%' && fmt[1] == 's')
+    {
+      size_t name_len = strlen(ship_name);
+      if (name_len > size - 1 - pos)
+      {
+        name_len = size - 1 - pos;
+      }
+      memcpy(dest + pos, ship_name, name_len);
+      pos += name_len;
+      fmt += 2;
+      substituted = TRUE;
+      continue;
+    }
+    dest[pos++] = *fmt++;
+  }
+
+  dest[pos] = '\0';
+}
 
 /* Get base number of rooms for vessel type */
 int get_base_rooms_for_type(enum vessel_class type)
@@ -212,7 +366,7 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 {
   room_rnum new_room;
   int room_vnum;
-  struct room_template *template = NULL;
+  const struct room_template *template = NULL;
   char buf[MAX_STRING_LENGTH];
   int i;
 
@@ -223,15 +377,8 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
     return NOWHERE;
   }
 
-  /* Find the template for this room type */
-  for (i = 0; i < sizeof(room_templates) / sizeof(room_templates[0]); i++)
-  {
-    if (room_templates[i].type == type)
-    {
-      template = &room_templates[i];
-      break;
-    }
-  }
+  /* Resolve template: database override first, compiled-in fallback second */
+  template = resolve_room_template(type);
 
   if (!template)
   {
@@ -268,12 +415,13 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   new_room = ++top_of_world;
   world[new_room].number = room_vnum;
 
-  /* Set room name */
-  snprintf(buf, sizeof(buf), template->name_format, ship->name);
+  /* Set room name (safe substitution - builder strings are never used as
+   * printf formats) */
+  format_room_string(buf, sizeof(buf), template->name_format, ship->name);
   world[new_room].name = strdup(buf);
 
   /* Set room description */
-  snprintf(buf, sizeof(buf), template->description_format, ship->name);
+  format_room_string(buf, sizeof(buf), template->description_format, ship->name);
   world[new_room].description = strdup(buf);
 
   /* Set room flags and sector */
@@ -377,6 +525,9 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
     log("SYSERR: generate_ship_interior called with NULL ship!");
     return;
   }
+
+  VSSL_DEBUG("Generating interior for ship %d (%s) type %d", ship->shipnum, ship->name,
+             ship->vessel_type);
 
   /* Idempotent check - don't regenerate if rooms already exist */
   if (ship_has_interior_rooms(ship))
@@ -874,10 +1025,11 @@ bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship)
 
   ch_room = IN_ROOM(ch);
 
-  /* Must be in the bridge to pilot */
+  /* Must be in the bridge to pilot, and cleared for the helm on owned
+   * ships (owner, permit list, or immortal - see vessels_ownership.c) */
   if (real_room(ship->bridge_room) == ch_room)
   {
-    return TRUE;
+    return vessel_helm_permitted(ch, ship);
   }
 
   return FALSE;
@@ -898,7 +1050,6 @@ bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship)
  */
 bool is_in_ship_interior(struct char_data *ch)
 {
-
   if (!CONFIG_VESSEL_SYSTEM)
   {
     return FALSE;

@@ -198,6 +198,7 @@ enum transport_type get_transport_type_in_room(room_rnum room)
   vessel = get_ship_from_room(room);
   if (vessel != NULL)
   {
+    VHCL_DEBUG_XPORT("Room %d transport type: VESSEL (%s)", room, vessel->name);
     return TRANSPORT_VESSEL;
   }
 

@@ -479,6 +479,8 @@ ACMD(do_drive)
     return;
   }
 
+  VHCL_DEBUG("%s drives vehicle #%d (%s): %s", GET_NAME(ch), vehicle->id, vehicle->name, arg);
+
   /* Parse direction */
   direction = parse_drive_direction(arg);
 

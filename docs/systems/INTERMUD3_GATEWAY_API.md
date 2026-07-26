@@ -1,5 +1,14 @@
 # Intermud3 Gateway Integration Guide
 
+> **Scope note.** This is the API reference for the *external* Intermud3 Gateway
+> service that LuminariMUD connects to. Paths such as
+> `clients/python/i3_client.py`, `docs/API_REFERENCE.md`, and `clients/examples/`
+> refer to that gateway project's own repository, **not** to this codebase - they
+> will not resolve here. For the LuminariMUD-side client see
+> [INTERMUD3.md](INTERMUD3.md) (system overview),
+> [INTERMUD3_SECURITY_AUDIT.md](INTERMUD3_SECURITY_AUDIT.md) (remediated audit),
+> and `src/systems/intermud3/`.
+
 *Last Updated: 2025-08-26T05:12:00Z - Comprehensive Accuracy Audit Complete*
 
 **✅ AUDIT STATUS: COMPLETE** | **📊 ACCURACY: 100%** | **🚀 PRODUCTION READY**

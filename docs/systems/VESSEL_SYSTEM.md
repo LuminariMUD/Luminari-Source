@@ -1,7 +1,10 @@
 # LuminariMUD Vessel System Documentation
 
-**Version**: 2.5000-beta (Phase 03 Complete)
-**Last Updated**: 2026-01-01
+**Version**: 2.5008-beta (Phases 04-09 gameplay layer, code-complete)
+**Last Updated**: 2026-07-26
+**Scope**: current behavior reference. For requirements and outstanding work see
+[VESSEL_PRD_FINAL.md](../project-management-zusuk/vessels/VESSEL_PRD_FINAL.md); for what shipped when see
+[docs/CHANGELOG.md](../CHANGELOG.md).
 
 ---
 
@@ -294,6 +297,17 @@ bool can_vessel_traverse_terrain(enum vessel_class type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class type, int sector, int weather);
 ```
 
+### Cargo and Template Functions (Phase 04)
+
+```c
+int get_vessel_cargo_capacity(enum vessel_class type); /* per-class lbs; drives loadvehicle */
+void load_ship_room_templates_from_db(void);           /* boot-time template overrides */
+```
+
+`route_save()`/`route_load()` are now real: they round-trip `struct ship_route`
+through the ship_routes/ship_waypoints tables (create-or-update semantics,
+idempotent waypoint replacement).
+
 ### Autopilot Functions
 
 ```c
@@ -359,6 +373,154 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | addtoroute | Add waypoint to route | `addtoroute <route> <waypoint>` |
 | listroutes | List routes | `listroutes` |
 | setroute | Assign route | `setroute <route>` |
+
+### Operator Commands (Phase 09)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| shiplist | Fleet overview + room pool health | `shiplist` |
+| shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
+| shipfix | Restore a vessel to full condition | `shipfix <slot>` |
+
+`shiplist` reports wilderness dynamic room pool utilization and flags
+PRESSURE past 80% - the pool is shared with every wilderness traveller, so
+this is the guard against vessels starving other systems (PRD Section 4,
+ground rule 3).
+
+MSDP ship variables (`src/vessels_admin.c`, pushed on the vessel tick to
+anyone aboard): `SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`,
+`SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, `SHIP_STATUS`. Clients can
+render gauges without polling.
+
+### Living World Commands (Phase 08)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| seastate | Weather, depth, visibility, hull state | `seastate` |
+
+Hazards and encounters (`src/vessels_hazards.c`) read only wilderness
+signals - no vessel-private geography:
+
+- **Weather**: severity bands from `get_weather(x,y)` (the same field a
+  coastal walker sees). Squall/storm/gale degrade rigging; a gale with no
+  sailmaster aboard damages the hull. Submerged submarines are sheltered.
+- **Crush depth**: submarines diving past the seabed depth at their
+  coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
+- **Visibility**: `vessel_sight_range()` shrinks in fog, extended by a
+  posted lookout.
+- **Encounters**: `vessel_encounters` rows key to `REGION_ENCOUNTER`
+  wilderness region vnums (authored with existing region tooling). Rows are
+  filtered by depth band and hull class, so submarine trenches and airship
+  skies get their own content. Warned by lookouts, spawned into the ship's
+  wilderness room so they fight/flee/get shot like anything else.
+
+### Cargo & Trade Commands (Phase 07)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| market | List a port's commodity prices | `market` |
+| cargobuy | Load bulk goods (dock only) | `cargobuy <commodity> <qty>` |
+| cargosell | Sell bulk goods (dock only) | `cargosell <commodity> [qty\|all]` |
+| cargomanifest | Show bulk cargo aboard | `cargomanifest` |
+| contracts | Freight board + your active jobs | `contracts` |
+| contractaccept | Take a freight job (loads cargo) | `contractaccept <id>` |
+| contractdeliver | Deliver at destination, collect | `contractdeliver <id>` |
+| contractabandon | Return a job to the board | `contractabandon <id>` |
+| plunder | Take cargo from a ship you've cleared | `plunder` |
+| bounty | Check a price on someone's head | `bounty [<player>]` |
+| marque | Buy a letter of marque (dock only) | `marque` |
+
+Economy model (`src/vessels_trade.c`): commodities live in
+`trade_commodities` (seeded with 9 goods, builder-editable); per-port stock
+lives in `port_commodities`, seeded deterministically from the port vnum so
+ports differ without randomness. Price = base scaled by scarcity, clamped to
++/- `TRADE_MAX_DRIFT` (60%) - the anti-arbitrage bound, unit-tested across
+the whole supply domain. Buying drains local stock (price up), selling
+floods it (price down); `vessel_trade_restock_tick()` drifts all ports back
+toward baseline. Ports buy at 85% of ask, so same-port round trips lose
+money. Bulk lots persist in `ship_cargo_manifest` with `cargo_room = 0`.
+
+Freight contracts (`src/vessels_contracts.c`): each port's board offers runs
+to other *known trading* ports (any with `port_commodities` rows), with
+quantity and payout scaled from real wilderness distance between the dock
+rooms. Accepting loads the cargo (capacity-checked) and claims the row with
+a conditional UPDATE, so two captains racing for the same job cannot both
+win it. Delivering requires the freight still aboard. Boards refresh on a
+TTL; accepted contracts are never cleared by a refresh.
+
+Piracy (`src/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
+into an alongside raider, unit by unit so the weight limit stops it exactly
+at capacity. Unlawful plunder accrues bounty in `vessel_bounties`;
+`vessel_port_refuses()` is called from every port-service gate (market,
+freight, crew hall, shipyard, hull purchase), so a WANTED pirate cannot sell
+what they steal. A letter of marque (`marque`) exempts the holder for a real
+day and is refused to captains already WANTED.
+
+### Ownership & Shipyard Commands (Phase 06)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| shipbrowse | Shipyard catalog with prices | `shipbrowse` |
+| shipbuy | Buy a hull at a dock, become owner | `shipbuy <id>` |
+| shipchristen | Owner: rename the ship | `shipchristen <name>` |
+| shipdeed | Owner: transfer ownership | `shipdeed <player>` |
+| shippermit / shiprevoke | Owner: manage helm clearances | `shippermit <player>` |
+| shipcrew | List owner, pilot, permits, crew | `shipcrew` |
+| shiphire / shipdismiss | Hire or release crew (dock only) | `shiphire <position> <tier>` |
+| shipwages | Review and settle payroll | `shipwages` |
+| shipupgrade | List/install refits (dock only) | `shipupgrade [<refit>]` |
+| shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
+
+Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
+(`src/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
+(auto-migrated); permits persist in `ship_crew_roster` (crew_role
+'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
+voids old permits.
+
+Crew (`src/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
+quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
+into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
+repair consume them without special cases. Wages accrue on the vessel tick
+(`vessel_crew_wage_tick()`); three unpaid paydays and a crew member walks.
+Crew rows live in `ship_crew_roster` with npc_vnum <= -100.
+
+Upgrades, wear, insurance (`src/vessels_upgrades.c`): four one-time refits
+(plating, rigging, hold, reinforcement) raise hull ceilings at install
+time; `vessel_upkeep_tick()` grinds armor and subsystems down while under
+way (never below 1 structure per section); insurance pays the owner on
+sinking via `vessel_pay_insurance()` from `vessel_sink()`.
+
+### Naval Combat Commands (Phase 05)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| shipfire | Fire a weapon slot at another ship | `shipfire <slot> <target>` |
+| shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
+| claimship | Capture from an uncontested bridge | `claimship` |
+
+Combat model (`src/vessels_combat.c`): per-side armor absorbs, spill hits
+section internal structure and bleeds through destroyed sections; fore hits
+degrade rigging (mainsail -> speed), stern hits degrade the rudder
+(turnrate); zero total structure sinks the ship (crew ejected to the water,
+object becomes wreckage, fleet slot freed). Weapon arcs derive from
+heading-relative bearing (`greyhawk_getarc()`), reloads tick on the
+heartbeat (`vessel_combat_tick()`), and NPC-piloted ships return fire
+automatically. Deep-draft hulls ground on real wilderness bathymetry
+(elevation vs waterline against class `min_water_depth`).
+
+### Builder Commands (Phase 04)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn` |
+
+`vedit new <class 0-7> <name>` creates a prototype in `ship_prototypes` with
+class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it;
+`vedit spawn <id>` instantiates a live, boardable ship at the builder's
+location (free ship slot, generated interior, object linkage, immediate DB
+persist). Interior room text comes from `ship_room_templates` rows (edit the
+DB rows to change generated interiors - no recompile needed; compiled-in
+fallbacks apply when MySQL is down).
 
 ### NPC Pilot Commands
 
@@ -494,7 +656,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 | `struct waypoint_node` | 104 bytes |
 | `struct transport_data` | 16 bytes |
 
-> See [VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md) for stress test results and quality metrics.
+> See [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) for stress test results and quality metrics.
 
 ---
 
@@ -517,6 +679,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Table | Primary Key | Purpose |
 |-------|-------------|---------|
+| `ship_prototypes` | `prototype_id INT AUTO_INCREMENT` | Builder-authored hull definitions (vedit) |
 | `ship_interiors` | `ship_id VARCHAR(8)` | Vessel configuration, room data |
 | `ship_docking` | `dock_id INT AUTO_INCREMENT` | Active/historical docking records |
 | `ship_room_templates` | `template_id INT AUTO_INCREMENT` | 19 pre-configured room types |
@@ -563,6 +726,16 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 | `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
 | `src/vessels_db.c` | MySQL persistence layer |
 | `src/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
+| `src/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
+| `src/vessels_combat.c` | Naval combat: damage, weapons, sinking, groundings (Phase 05) |
+| `src/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
+| `src/vessels_crew.c` | Hired crew positions, tiers, wages (Phase 06) |
+| `src/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
+| `src/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
+| `src/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
+| `src/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
+| `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
+| `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
 | `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
 | `src/vehicles_commands.c` | Player commands (vmount, vdismount, drive, vstatus) |
 | `src/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |
@@ -626,7 +799,7 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 | Room 21399 | Additional ship interior |
 | Object 21300 | Test ship (ITEM_GREYHAWK_SHIP, boarding functional) |
 
-**Zone 700** (Current test zone - see `VESSEL_MANUAL_TEST.md`):
+**Zone 700** (Current test zone - see [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md)):
 
 | VNUM | Purpose |
 |------|---------|
@@ -672,9 +845,44 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 
 ### Debug Logging
 
+The whole vessel and vehicle stack is instrumented behind compile-time macros
+declared in `src/vessels.h`. There is a master switch plus eight category
+switches, so you can turn on just the subsystem you are chasing.
+
+> **Production**: `VESSEL_SYSTEM_DEBUG` is currently **1** (dev). Set it to
+> **0** before any production build - at 1 it logs every ship movement,
+> terrain check, and speed calculation.
+
 ```c
-log("VESSEL: ship %d at (%f,%f,%f) heading %d speed %d", ship->shipnum, ship->x, ship->y, ship->z, ship->heading, ship->speed);
-log("AUTOPILOT: state=%d waypoint=%d wait=%d", ship->autopilot->state, ship->autopilot->current_waypoint_index, ship->autopilot->wait_remaining);
+/* src/vessels.h */
+#define VESSEL_SYSTEM_DEBUG 1  /* master: 0 disables all vessel debug output */
+```
+
+| Category toggle | Covers |
+|-----------------|--------|
+| `VESSEL_DEBUG_CORE` | General vessel operations, interior generation |
+| `VESSEL_DEBUG_MOVE` | Position updates, terrain checks, speed modifiers, blocked moves, room allocation |
+| `VESSEL_DEBUG_AUTO` | Autopilot state transitions, tick summary, travel steps |
+| `VESSEL_DEBUG_DOCK` | Docking, boarding, defender positioning |
+| `VESSEL_DEBUG_DB` | Per-ship save/load persistence |
+| `VEHICLE_DEBUG_CORE` | Vehicle operations, state transitions, damage |
+| `VEHICLE_DEBUG_MOVE` | Vehicle movement and terrain verdicts |
+| `VEHICLE_DEBUG_XPORT` | Vehicle-on-vessel transport, capacity checks |
+
+Macros: `VSSL_DEBUG`, `VSSL_DEBUG_MOVE`, `VSSL_DEBUG_AUTO`, `VSSL_DEBUG_DOCK`,
+`VSSL_DEBUG_DB`, `VHCL_DEBUG`, `VHCL_DEBUG_MOVE`, `VHCL_DEBUG_XPORT`, plus
+function tracing (`VSSL_DEBUG_ENTER`, `VSSL_DEBUG_EXIT`, `VSSL_DEBUG_EXIT_VAL`)
+and state transitions (`VSSL_DEBUG_STATE`).
+
+Filter the syslog by prefix:
+
+```bash
+grep "\[VESSEL_MOVE\]"   syslog   # movement, terrain, groundings
+grep "\[VESSEL_AUTO\]"   syslog   # autopilot
+grep "\[VESSEL_DOCK\]"   syslog   # docking and boarding
+grep "\[VESSEL_DB\]"     syslog   # persistence
+grep "\[VESSEL_STATE\]"  syslog   # state transitions
+grep "\[VEHICLE_XPORT\]" syslog   # vehicle loading
 ```
 
 ---
@@ -724,7 +932,8 @@ SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_NAME LI
 | Issue | Location | Status |
 |-------|----------|--------|
 | Duplicate `disembark` registration | `interpreter.c:385,1165` | Working as intended (Greyhawk takes precedence) |
-| Hard-coded room templates | `vessels_rooms.c:27-104` | Future enhancement |
+| Hard-coded room templates | `vessels_rooms.c` | RESOLVED (Phase 04): DB overrides from `ship_room_templates` with compiled-in fallback |
+| Generated interior rooms persist until reboot after ship purge | `vessels_rooms.c` | Known limitation; runtime reclamation is future work |
 
 ---
 
@@ -792,9 +1001,11 @@ make valgrind-phase02
 
 ## Related Documentation
 
-- [VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md) - Detailed performance data
-- [VESSEL_MANUAL_TEST.md](VESSEL_MANUAL_TEST.md) - Manual testing setup and issue tracking
-- [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
+- [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) - Performance data and memory attribution
+- [VESSEL_PRD_FINAL.md](../project-management-zusuk/vessels/VESSEL_PRD_FINAL.md) - Requirements and outstanding work
+- [CHANGELOG.md](../CHANGELOG.md) - What shipped when
+- [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script
+- [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
 
 ---
 

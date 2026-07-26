@@ -116,8 +116,8 @@ Recently closed items (project completion - preserving final resolution state).
 - **Max Concurrent Vehicles**: 1000 (validated)
 
 ### Documentation Created
-- docs/project-management-zusuk/vessels/VESSEL_SYSTEM.md
-- docs/project-management-zusuk/vessels/VESSEL_BENCHMARKS.md
+- docs/systems/VESSEL_SYSTEM.md
+- docs/testing/VESSEL_BENCHMARKS.md
 
 ### Future Enhancement Opportunities
 1. Ship-to-ship combat system

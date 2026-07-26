@@ -56,7 +56,6 @@ struct autopilot_data *autopilot_init(struct greyhawk_ship_data *ship)
     return NULL;
   }
 
-  /* TODO: Session 03 - Implement full initialization logic */
   CREATE(ap, struct autopilot_data, 1);
   if (ap == NULL)
   {
@@ -91,7 +90,6 @@ void autopilot_cleanup(struct greyhawk_ship_data *ship)
 
   if (ship->autopilot != NULL)
   {
-    /* TODO: Session 03 - Implement full cleanup logic */
     free(ship->autopilot);
     ship->autopilot = NULL;
   }
@@ -118,12 +116,13 @@ int autopilot_start(struct greyhawk_ship_data *ship, struct ship_route *route)
     return 0;
   }
 
-  /* TODO: Session 03 - Implement start logic */
   ship->autopilot->current_route = route;
   ship->autopilot->current_waypoint_index = 0;
   ship->autopilot->state = AUTOPILOT_TRAVELING;
   ship->autopilot->last_update = time(0);
 
+  VSSL_DEBUG_AUTO("Ship %d autopilot START on route '%s' (%d waypoints)", ship->shipnum,
+                  route->name, route->num_waypoints);
   return 1;
 }
 
@@ -146,11 +145,11 @@ int autopilot_stop(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  /* TODO: Session 03 - Implement stop logic */
   ship->autopilot->state = AUTOPILOT_OFF;
   ship->autopilot->current_route = NULL;
   ship->autopilot->current_waypoint_index = 0;
 
+  VSSL_DEBUG_AUTO("Ship %d autopilot STOP", ship->shipnum);
   return 1;
 }
 
@@ -173,10 +172,10 @@ int autopilot_pause(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  /* TODO: Session 03 - Implement pause logic */
   if (ship->autopilot->state == AUTOPILOT_TRAVELING || ship->autopilot->state == AUTOPILOT_WAITING)
   {
     ship->autopilot->state = AUTOPILOT_PAUSED;
+    VSSL_DEBUG_AUTO("Ship %d autopilot PAUSED", ship->shipnum);
     return 1;
   }
 
@@ -202,10 +201,10 @@ int autopilot_resume(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  /* TODO: Session 03 - Implement resume logic */
   if (ship->autopilot->state == AUTOPILOT_PAUSED)
   {
     ship->autopilot->state = AUTOPILOT_TRAVELING;
+    VSSL_DEBUG_AUTO("Ship %d autopilot RESUMED", ship->shipnum);
     return 1;
   }
 
@@ -242,7 +241,6 @@ int waypoint_add(struct ship_route *route, float x, float y, float z, const char
     return -1;
   }
 
-  /* TODO: Session 02 - Implement full waypoint add logic */
   idx = route->num_waypoints;
   route->waypoints[idx].x = x;
   route->waypoints[idx].y = y;
@@ -288,7 +286,6 @@ int waypoint_remove(struct ship_route *route, int index)
     return 0;
   }
 
-  /* TODO: Session 02 - Implement full waypoint remove logic */
   /* Shift remaining waypoints down */
   for (i = index; i < route->num_waypoints - 1; i++)
   {
@@ -312,7 +309,6 @@ void waypoint_clear_all(struct ship_route *route)
     return;
   }
 
-  /* TODO: Session 02 - Implement full clear logic */
   route->num_waypoints = 0;
 }
 
@@ -340,7 +336,6 @@ struct waypoint *waypoint_get_current(struct greyhawk_ship_data *ship)
     return NULL;
   }
 
-  /* TODO: Session 03 - Implement full get current logic */
   return &ship->autopilot->current_route->waypoints[ship->autopilot->current_waypoint_index];
 }
 
@@ -379,7 +374,6 @@ struct waypoint *waypoint_get_next(struct greyhawk_ship_data *ship)
     }
   }
 
-  /* TODO: Session 03 - Implement full get next logic */
   return &ship->autopilot->current_route->waypoints[next_idx];
 }
 
@@ -396,8 +390,10 @@ struct waypoint *waypoint_get_next(struct greyhawk_ship_data *ship)
 struct ship_route *route_create(const char *name)
 {
   struct ship_route *route;
+  /* Session-local IDs are negative so they can never collide with the
+   * positive AUTO_INCREMENT IDs assigned by ship_routes on route_save(). */
+  static int next_local_route_id = -1;
 
-  /* TODO: Session 02 - Implement full route creation logic */
   CREATE(route, struct ship_route, 1);
   if (route == NULL)
   {
@@ -405,7 +401,7 @@ struct ship_route *route_create(const char *name)
     return NULL;
   }
 
-  route->route_id = 0; /* TODO: Generate unique ID */
+  route->route_id = next_local_route_id--;
   route->num_waypoints = 0;
   route->loop = FALSE;
   route->active = TRUE;
@@ -436,7 +432,6 @@ void route_destroy(struct ship_route *route)
     return;
   }
 
-  /* TODO: Session 02 - Implement full route destruction logic */
   free(route);
 }
 
@@ -449,15 +444,51 @@ void route_destroy(struct ship_route *route)
  */
 int route_load(struct ship_route *route, int route_id)
 {
+  struct route_node *node;
+  struct waypoint_node *wp_node;
+  int i;
+
   if (route == NULL)
   {
     log("SYSERR: route_load called with NULL route");
     return 0;
   }
 
-  /* TODO: Session 02 - Implement database load logic */
-  (void)route_id; /* Suppress unused parameter warning */
-  return 0;
+  node = route_db_load(route_id);
+  if (node == NULL)
+  {
+    log("SYSERR: route_load - route %d not found in database", route_id);
+    return 0;
+  }
+
+  route->route_id = node->route_id;
+  strncpy(route->name, node->name, AUTOPILOT_NAME_LENGTH - 1);
+  route->name[AUTOPILOT_NAME_LENGTH - 1] = '\0';
+  route->loop = node->loop;
+  route->active = node->active;
+  route->num_waypoints = 0;
+
+  for (i = 0; i < node->num_waypoints && i < MAX_WAYPOINTS_PER_ROUTE; i++)
+  {
+    /* Cache-owned node - do not free */
+    wp_node = waypoint_db_load(node->waypoint_ids[i]);
+    if (wp_node == NULL)
+    {
+      log("SYSERR: route_load - waypoint %d of route %d not found, skipping", node->waypoint_ids[i],
+          route_id);
+      continue;
+    }
+    route->waypoints[route->num_waypoints] = wp_node->data;
+    route->num_waypoints++;
+  }
+
+  if (node->num_waypoints > MAX_WAYPOINTS_PER_ROUTE)
+  {
+    log("SYSERR: route_load - route %d has %d waypoints, truncated to %d", route_id,
+        node->num_waypoints, MAX_WAYPOINTS_PER_ROUTE);
+  }
+
+  return 1;
 }
 
 /**
@@ -468,14 +499,79 @@ int route_load(struct ship_route *route, int route_id)
  */
 int route_save(struct ship_route *route)
 {
+  int *old_wp_ids = NULL;
+  int old_wp_count = 0;
+  int new_wp_ids[MAX_WAYPOINTS_PER_ROUTE];
+  int new_id;
+  int i;
+
   if (route == NULL)
   {
     log("SYSERR: route_save called with NULL route");
     return 0;
   }
 
-  /* TODO: Session 02 - Implement database save logic */
-  return 0;
+  /* Create the DB record on first save (session-local IDs are negative),
+   * otherwise update it in place. */
+  if (route->route_id <= 0)
+  {
+    new_id = route_db_create(route->name, route->loop);
+    if (new_id < 0)
+    {
+      log("SYSERR: route_save - failed to create route '%s' in database", route->name);
+      return 0;
+    }
+    route->route_id = new_id;
+  }
+  else
+  {
+    if (route_db_update(route->route_id, route->name, route->loop, route->active) != 1)
+    {
+      log("SYSERR: route_save - failed to update route %d", route->route_id);
+      return 0;
+    }
+    /* Remember previously linked waypoints so their rows can be removed
+     * after the links are replaced, keeping saves idempotent. */
+    route_get_waypoint_ids(route->route_id, &old_wp_ids, &old_wp_count);
+  }
+
+  /* Persist the inline waypoint array and relink in order. */
+  for (i = 0; i < route->num_waypoints; i++)
+  {
+    new_wp_ids[i] = waypoint_db_create(&route->waypoints[i]);
+    if (new_wp_ids[i] < 0)
+    {
+      log("SYSERR: route_save - failed to save waypoint %d of route %d", i, route->route_id);
+      if (old_wp_ids != NULL)
+        free(old_wp_ids);
+      return 0;
+    }
+  }
+
+  if (route->num_waypoints > 0)
+  {
+    if (route_reorder_waypoints_db(route->route_id, new_wp_ids, route->num_waypoints) != 1)
+    {
+      log("SYSERR: route_save - failed to link waypoints for route %d", route->route_id);
+      if (old_wp_ids != NULL)
+        free(old_wp_ids);
+      return 0;
+    }
+  }
+
+  /* Remove the superseded links and waypoint rows now that the links point
+   * at the freshly saved set (reorder already replaced the link rows when
+   * the new set is non-empty). */
+  for (i = 0; i < old_wp_count; i++)
+  {
+    if (route->num_waypoints == 0)
+      route_remove_waypoint_db(route->route_id, old_wp_ids[i]);
+    waypoint_db_delete(old_wp_ids[i]);
+  }
+  if (old_wp_ids != NULL)
+    free(old_wp_ids);
+
+  return 1;
 }
 
 /**
@@ -492,7 +588,6 @@ int route_activate(struct ship_route *route)
     return 0;
   }
 
-  /* TODO: Session 02 - Implement full activation logic */
   route->active = TRUE;
   return 1;
 }
@@ -511,7 +606,6 @@ int route_deactivate(struct ship_route *route)
     return 0;
   }
 
-  /* TODO: Session 02 - Implement full deactivation logic */
   route->active = FALSE;
   return 1;
 }
@@ -2171,6 +2265,9 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   }
 
   /* Not arrived yet, move toward waypoint */
+  VSSL_DEBUG_AUTO("Ship %d traveling toward waypoint %d '%s' at (%.1f,%.1f) from (%.1f,%.1f)",
+                  ship->shipnum, ap->current_waypoint_index, wp->name, wp->x, wp->y, ship->x,
+                  ship->y);
   move_vessel_toward_waypoint(ship);
 }
 
@@ -2247,9 +2344,10 @@ void autopilot_tick(void)
     }
   }
 
-  /* Optional: Log active autopilot count periodically for debugging */
-  /* if (active_count > 0) log("Info: Autopilot tick - %d active ships", active_count); */
-  (void)active_count;
+  if (active_count > 0)
+  {
+    VSSL_DEBUG_AUTO("Autopilot tick processed %d active ship(s)", active_count);
+  }
 }
 
 /* ========================================================================= */

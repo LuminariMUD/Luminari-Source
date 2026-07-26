@@ -1,8 +1,65 @@
 # Casting Visuals System Documentation
 
+**Last Updated**: 2026-07-26
+
 ## Overview
 
-This document provides a comprehensive mapping of all elements related to "casting visuals" in LuminariMUD - the messages and visual feedback displayed during spellcasting, including start, progress, completion, and interruption scenarios.
+This document maps every element of "casting visuals" in LuminariMUD - the
+messages and visual feedback displayed during spellcasting, covering start,
+progress, completion, and interruption.
+
+The system has two layers:
+
+1. **The enhanced visuals module** (`src/casting_visuals.c` / `.h`) - school,
+   class, metamagic, progress, and environmental flavor. Documented immediately
+   below.
+2. **The underlying spell_parser.c messaging** - the base mechanics the module
+   decorates. Documented in the sections after that.
+
+---
+
+## The Enhanced Visuals Module (casting_visuals.c)
+
+Delivered in seven phases, completed 2025-11-26. All five feature families are
+live; `src/casting_visuals.c` is the authority if this document and the code
+ever disagree.
+
+### Feature families
+
+| Feature | Entry points | Behavior |
+|---------|-------------|----------|
+| **School-themed visuals** | `get_spell_school_index()`, `get_casting_school_name()`, `get_school_start_msg()`, `get_school_complete_msg()` | Each school of magic gets its own start and completion imagery instead of one generic message. Varies by target type. |
+| **Class casting styles** | `get_class_casting_style()` | A wizard's bookish precision reads differently from a sorcerer's raw instinct or a cleric's invocation. |
+| **Metamagic signatures** | `get_metamagic_visual()` | Quickened, maximized, empowered, extended and similar metamagic show visibly in the casting. |
+| **Escalating progress** | `calculate_casting_progress_stage()`, `get_school_progress_msg()`, `get_school_progress_observer_msg()` | Long casts escalate through `CAST_PROGRESS_STAGES` (5) tiers rather than repeating one line. Separate caster and observer text. |
+| **Environmental reactions** | `get_env_intensity_for_circle()`, `get_generic_env_reaction()`, `get_school_env_reaction()` | The surroundings respond, scaled by spell circle: circles 1-3 subtle, 4-6 moderate, 7-9 dramatic (`ENV_INTENSITY_*`). |
+
+### Target types and message slots
+
+Messages are selected by target type - `CAST_TARGET_SELF`, `CAST_TARGET_CHAR`,
+`CAST_TARGET_OBJ`, `CAST_TARGET_NONE` - resolved by
+`determine_cast_target_type()`. Slots are `CAST_MSG_START` and
+`CAST_MSG_COMPLETE`.
+
+### Initialization and fallback
+
+`init_casting_visuals()` runs at boot to populate the message tables. Every
+getter is bounds-checked and returns `NULL` (or `"Unknown"`) for out-of-range
+input, and callers fall back to the generic `spell_parser.c` messages. A missing
+or unpopulated entry degrades to the old behavior rather than failing.
+
+### Testing
+
+See [CASTING_VISUALS_TESTING.md](../testing/CASTING_VISUALS_TESTING.md) for the
+in-game verification checklist (per-school casts, class comparisons, metamagic
+combinations, interruption cases).
+
+---
+
+## Base Messaging (spell_parser.c)
+
+The remainder of this document maps the underlying spellcasting message
+machinery that the module above decorates.
 
 ---
 

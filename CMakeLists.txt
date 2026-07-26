@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5008 LANGUAGES C)
+project(LuminariMUD VERSION 2.5009 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -652,9 +652,19 @@ set(SRC_C_FILES
     src/vehicles_transport.c
     src/vessels.c
     src/vessels_autopilot.c
+    src/vessels_admin.c
+    src/vessels_combat.c
+    src/vessels_crew.c
+    src/vessels_hazards.c
     src/vessels_db.c
     src/vessels_docking.c
+    src/vessels_edit.c
+    src/vessels_ownership.c
     src/vessels_rooms.c
+    src/vessels_contracts.c
+    src/vessels_piracy.c
+    src/vessels_trade.c
+    src/vessels_upgrades.c
     src/weather.c
     src/wilderness.c
     src/wilderness_kb.c

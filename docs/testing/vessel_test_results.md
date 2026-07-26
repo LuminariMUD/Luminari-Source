@@ -1,8 +1,22 @@
-# Vessel System Test Results
+# Vessel System Test Results (HISTORICAL - Phase 00)
 
 **Session**: Phase 00, Session 09 - Testing and Validation
 **Date**: 2025-12-29
-**Status**: PASSED
+**Status**: PASSED (at the time)
+
+> **This is a historical record, not a description of the current test suite.**
+> Every test file named below (`test_vessels.c`, `test_vessel_coords.c`,
+> `test_vessel_types.c`, `test_vessel_rooms.c`, `test_vessel_movement.c`,
+> `test_vessel_persistence.c`, `vessel_stress_test.c`, `test_runner.c`) has
+> since been removed. Those were standalone mirror suites that compiled their
+> own copies of vessel logic; vessel, autopilot, and vehicle coverage now lives
+> in the root production-linked CuTest suite, which links the real game sources.
+> There is no `test_runner` binary.
+>
+> For current figures see [VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md); for the
+> manual pass see [VESSEL_SYSTEM_TESTING.md](VESSEL_SYSTEM_TESTING.md); for how
+> to run the suites see [../guides/TESTING_GUIDE.md](../guides/TESTING_GUIDE.md).
+> Kept for provenance only.
 
 ---
 

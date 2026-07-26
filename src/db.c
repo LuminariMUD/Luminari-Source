@@ -1253,6 +1253,14 @@ void boot_db(void)
   log("Initializing Greyhawk ship systems...");
   greyhawk_initialize_ships();
 
+  log("Loading ship room templates from database...");
+  load_ship_room_templates_from_db();
+  vessel_ownership_ensure_schema();
+  vessel_trade_ensure_schema();
+  vessel_contracts_ensure_schema();
+  vessel_piracy_ensure_schema();
+  vessel_hazard_ensure_schema();
+
   log("Loading ship interiors from database...");
   load_all_ship_interiors();
 

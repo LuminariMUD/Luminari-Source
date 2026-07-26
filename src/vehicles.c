@@ -439,6 +439,8 @@ int vehicle_set_state(struct vehicle_data *vehicle, enum vehicle_state new_state
     break;
   }
 
+  VSSL_DEBUG_STATE(vehicle->name, vehicle_state_name(vehicle->state),
+                   vehicle_state_name(new_state));
   vehicle->state = new_state;
   return 1;
 }
@@ -654,9 +656,12 @@ int vehicle_damage(struct vehicle_data *vehicle, int amount)
   /* Update state if broken */
   if (vehicle->condition <= VEHICLE_CONDITION_BROKEN)
   {
+    VHCL_DEBUG("Vehicle #%d (%s) BROKEN by %d damage", vehicle->id, vehicle->name, amount);
     vehicle->state = VSTATE_DAMAGED;
   }
 
+  VHCL_DEBUG("Vehicle #%d took %d damage, condition now %d", vehicle->id, amount,
+             vehicle->condition);
   return vehicle->condition;
 }
 
@@ -1269,10 +1274,15 @@ int vehicle_can_traverse_terrain(struct vehicle_data *vehicle, int sector_type)
   /* Impassable terrain */
   if (required_terrain == 0)
   {
+    VHCL_DEBUG_MOVE("Vehicle #%d blocked: sector %d impassable to vehicles", vehicle->id,
+                    sector_type);
     return 0;
   }
 
   /* Check if vehicle has the required terrain capability */
+  VHCL_DEBUG_MOVE("Vehicle #%d terrain check: sector %d needs flag %d, has %d -> %s", vehicle->id,
+                  sector_type, required_terrain, vehicle->terrain_flags,
+                  (vehicle->terrain_flags & required_terrain) ? "PASS" : "BLOCK");
   return (vehicle->terrain_flags & required_terrain) ? 1 : 0;
 }
 

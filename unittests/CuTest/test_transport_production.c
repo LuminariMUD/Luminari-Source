@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
 void Test_vehicle_production_lifecycle_and_lookup(CuTest *tc)
 {
   struct vehicle_data *vehicle;
@@ -190,7 +192,500 @@ void Test_transport_production_capacity_validation(CuTest *tc)
   vehicle.id = 5001;
   strlcpy(vehicle.name, "coverage vehicle", sizeof(vehicle.name));
 
+  /* A transport freighter easily carries a cart. */
+  vessel.vessel_type = VESSEL_TRANSPORT;
   CuAssertTrue(tc, check_vessel_vehicle_capacity(&vessel, &vehicle));
+
+  /* A raft (300 lbs cargo) cannot take a cart (500 lbs structure). */
+  vessel.vessel_type = VESSEL_RAFT;
+  CuAssertTrue(tc, !check_vessel_vehicle_capacity(&vessel, &vehicle));
+
+  /* Loaded cargo weight counts against the limit too. */
+  vessel.vessel_type = VESSEL_BOAT; /* 2000 lbs capacity */
+  vehicle.current_weight = 0;
+  CuAssertTrue(tc, check_vessel_vehicle_capacity(&vessel, &vehicle));
+  vehicle.current_weight = VESSEL_CARGO_BOAT; /* pushes past the limit */
+  CuAssertTrue(tc, !check_vessel_vehicle_capacity(&vessel, &vehicle));
+  vehicle.current_weight = 0;
+
   CuAssertTrue(tc, !check_vessel_vehicle_capacity(NULL, &vehicle));
   CuAssertTrue(tc, !check_vessel_vehicle_capacity(&vessel, NULL));
+}
+
+void Test_vessel_combat_status_bands(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  memset(&ship, 0, sizeof(ship));
+  ship.maxfinternal = ship.maxrinternal = ship.maxpinternal = ship.maxsinternal = 25; /* 100 */
+
+  ship.finternal = ship.rinternal = ship.pinternal = ship.sinternal = 25;
+  CuAssertIntEquals(tc, VESSEL_STATUS_SOUND, vessel_status(&ship));
+
+  ship.finternal = ship.rinternal = 25;
+  ship.pinternal = ship.sinternal = 0; /* 50% */
+  CuAssertIntEquals(tc, VESSEL_STATUS_BATTERED, vessel_status(&ship));
+
+  ship.finternal = 20;
+  ship.rinternal = ship.pinternal = ship.sinternal = 0; /* 20% */
+  CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
+
+  ship.finternal = 0; /* 0% */
+  CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(&ship));
+
+  CuAssertStrEquals(tc, "battered", vessel_status_name(VESSEL_STATUS_BATTERED));
+}
+
+void Test_vessel_combat_firing_arcs(CuTest *tc)
+{
+  /* Use high fleet slots so nothing else in the suite collides. */
+  const int A = 490, B = 491;
+
+  memset(&greyhawk_ships[A], 0, sizeof(greyhawk_ships[A]));
+  memset(&greyhawk_ships[B], 0, sizeof(greyhawk_ships[B]));
+  greyhawk_ships[A].x = 0.0f;
+  greyhawk_ships[A].y = 0.0f;
+  greyhawk_ships[A].heading = 0; /* facing north (+y) */
+
+  greyhawk_ships[B].x = 0.0f;
+  greyhawk_ships[B].y = 10.0f; /* due north */
+  CuAssertIntEquals(tc, GREYHAWK_FORE, greyhawk_getarc(A, B));
+
+  greyhawk_ships[B].x = 10.0f;
+  greyhawk_ships[B].y = 0.0f; /* due east */
+  CuAssertIntEquals(tc, GREYHAWK_STARBOARD, greyhawk_getarc(A, B));
+
+  greyhawk_ships[B].x = -10.0f;
+  greyhawk_ships[B].y = 0.0f; /* due west */
+  CuAssertIntEquals(tc, GREYHAWK_PORT, greyhawk_getarc(A, B));
+
+  greyhawk_ships[B].x = 0.0f;
+  greyhawk_ships[B].y = -10.0f; /* due south */
+  CuAssertIntEquals(tc, GREYHAWK_REAR, greyhawk_getarc(A, B));
+
+  /* Heading east flips north to the port arc */
+  greyhawk_ships[A].heading = 90;
+  greyhawk_ships[B].x = 0.0f;
+  greyhawk_ships[B].y = 10.0f;
+  CuAssertIntEquals(tc, GREYHAWK_PORT, greyhawk_getarc(A, B));
+
+  memset(&greyhawk_ships[A], 0, sizeof(greyhawk_ships[A]));
+  memset(&greyhawk_ships[B], 0, sizeof(greyhawk_ships[B]));
+}
+
+void Test_vessel_combat_damage_and_sinking(CuTest *tc)
+{
+  const int S = 492;
+  struct greyhawk_ship_data *ship = &greyhawk_ships[S];
+
+  memset(ship, 0, sizeof(*ship));
+  ship->shipnum = S;
+  strlcpy(ship->name, "test target", sizeof(ship->name));
+  ship->maxfarmor = ship->farmor = 10;
+  ship->maxfinternal = ship->finternal = 20;
+  ship->maxrinternal = ship->rinternal = 20;
+  ship->maxpinternal = ship->pinternal = 20;
+  ship->maxsinternal = ship->sinternal = 20;
+  ship->maxmainsail = ship->mainsail = 20;
+  ship->maxturnrate = ship->turnrate = 20;
+
+  /* Armor absorbs fully: 6 damage vs 10 armor */
+  vessel_apply_damage(S, 6, GREYHAWK_FORE, "test shot");
+  CuAssertIntEquals(tc, 4, ship->farmor);
+  CuAssertIntEquals(tc, 20, ship->finternal);
+
+  /* Spill past armor: 10 damage vs 4 armor -> 6 into internal + rigging */
+  vessel_apply_damage(S, 10, GREYHAWK_FORE, "test shot");
+  CuAssertIntEquals(tc, 0, ship->farmor);
+  CuAssertIntEquals(tc, 14, ship->finternal);
+  CuAssertTrue(tc, ship->mainsail < 20); /* fore structural hits tear rigging */
+
+  /* Stern hit fouls the rudder */
+  vessel_apply_damage(S, 8, GREYHAWK_REAR, "test shot");
+  CuAssertTrue(tc, ship->turnrate < 20);
+
+  /* Burn down all internal structure -> ship sinks, slot cleared */
+  vessel_apply_damage(S, 100, GREYHAWK_FORE, "test shot");
+  vessel_apply_damage(S, 100, GREYHAWK_REAR, "test shot");
+  vessel_apply_damage(S, 100, GREYHAWK_PORT, "test shot");
+  vessel_apply_damage(S, 100, GREYHAWK_STARBOARD, "test shot");
+  CuAssertIntEquals(tc, 0, vessel_total_internal(ship));
+  CuAssertTrue(tc, ship->name[0] == '\0'); /* slot memset by vessel_sink */
+}
+
+static void duel_arm_ship(struct greyhawk_ship_data *ship, int shipnum, const char *name)
+{
+  int arc;
+
+  memset(ship, 0, sizeof(*ship));
+  ship->shipnum = shipnum;
+  strlcpy(ship->name, name, sizeof(ship->name));
+  ship->maxfarmor = ship->farmor = 10;
+  ship->maxrarmor = ship->rarmor = 10;
+  ship->maxparmor = ship->parmor = 10;
+  ship->maxsarmor = ship->sarmor = 10;
+  ship->maxfinternal = ship->finternal = 15;
+  ship->maxrinternal = ship->rinternal = 15;
+  ship->maxpinternal = ship->pinternal = 15;
+  ship->maxsinternal = ship->sinternal = 15;
+  ship->maxmainsail = ship->mainsail = 20;
+  ship->maxturnrate = ship->turnrate = 20;
+
+  /* One weapon per arc so bearing never stalls the duel */
+  for (arc = 0; arc < 4; arc++)
+  {
+    ship->slot[arc].type = 1;
+    ship->slot[arc].position = (char)arc;
+    ship->slot[arc].val0 = 50;
+    ship->slot[arc].val2 = 2;
+    ship->slot[arc].val3 = 6;
+  }
+
+  autopilot_init(ship);
+  ship->autopilot->pilot_mob_vnum = 1; /* NPC-piloted: doctrine engages */
+}
+
+void Test_vessel_combat_npc_duel_harness(CuTest *tc)
+{
+  const int A = 493, B = 494;
+  int ticks;
+
+  duel_arm_ship(&greyhawk_ships[A], A, "duelist alpha");
+  duel_arm_ship(&greyhawk_ships[B], B, "duelist beta");
+  greyhawk_ships[A].x = 0.0f;
+  greyhawk_ships[A].y = 0.0f;
+  greyhawk_ships[B].x = 10.0f;
+  greyhawk_ships[B].y = 0.0f;
+
+  /* Open hostilities in both directions */
+  greyhawk_ships[A].last_attacker = B;
+  greyhawk_ships[B].last_attacker = A;
+
+  /* A duel between evenly matched hulls must end decisively within a
+   * bounded number of ticks (balance smoke test: no stalemate, no
+   * instant kill). 120 internal per hull, ~7 avg damage per hit. */
+  for (ticks = 0; ticks < 2000; ticks++)
+  {
+    vessel_combat_tick();
+    if (greyhawk_ships[A].name[0] == '\0' || greyhawk_ships[B].name[0] == '\0')
+    {
+      break;
+    }
+  }
+
+  CuAssertTrue(tc, ticks < 2000); /* someone sank */
+  CuAssertTrue(tc, ticks > 5);    /* but not instantly */
+  CuAssertTrue(tc, greyhawk_ships[A].name[0] == '\0' || greyhawk_ships[B].name[0] == '\0');
+
+  /* Cleanup whichever survived (autopilot memory) */
+  if (greyhawk_ships[A].name[0] != '\0')
+  {
+    autopilot_cleanup(&greyhawk_ships[A]);
+    memset(&greyhawk_ships[A], 0, sizeof(greyhawk_ships[A]));
+  }
+  if (greyhawk_ships[B].name[0] != '\0')
+  {
+    autopilot_cleanup(&greyhawk_ships[B]);
+    memset(&greyhawk_ships[B], 0, sizeof(greyhawk_ships[B]));
+  }
+}
+
+void Test_vessel_ownership_helm_permission_matrix(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct char_data owner_ch;
+  struct char_data crew_ch;
+  struct char_data stranger_ch;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&owner_ch, 0, sizeof(owner_ch));
+  memset(&crew_ch, 0, sizeof(crew_ch));
+  memset(&stranger_ch, 0, sizeof(stranger_ch));
+  owner_ch.player.name = strdup("Corr");
+  crew_ch.player.name = strdup("Mira");
+  stranger_ch.player.name = strdup("Vex");
+
+  /* Unowned ships are free for anyone */
+  CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+
+  /* Owned: only the owner... */
+  strlcpy(ship.owner, "Corr", sizeof(ship.owner));
+  CuAssertTrue(tc, vessel_helm_permitted(&owner_ch, &ship));
+  CuAssertTrue(tc, !vessel_helm_permitted(&crew_ch, &ship));
+  CuAssertTrue(tc, !vessel_helm_permitted(&stranger_ch, &ship));
+
+  /* ...and the permit list */
+  strlcpy(ship.helm_permits[0], "Mira", sizeof(ship.helm_permits[0]));
+  ship.num_permits = 1;
+  CuAssertTrue(tc, vessel_helm_permitted(&crew_ch, &ship));
+  CuAssertTrue(tc, !vessel_helm_permitted(&stranger_ch, &ship));
+
+  /* Immortals bypass ownership */
+  stranger_ch.player.level = LVL_IMMORT;
+  CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+
+  free(owner_ch.player.name);
+  free(crew_ch.player.name);
+  free(stranger_ch.player.name);
+}
+
+void Test_vessel_shipyard_pricing(CuTest *tc)
+{
+  /* Bigger hulls cost more; investment in armor/speed raises the price */
+  CuAssertTrue(tc, vessel_prototype_price(VESSEL_WARSHIP, 20, 40) >
+                       vessel_prototype_price(VESSEL_SHIP, 15, 20));
+  CuAssertTrue(tc, vessel_prototype_price(VESSEL_SHIP, 15, 40) >
+                       vessel_prototype_price(VESSEL_SHIP, 15, 20));
+  CuAssertTrue(tc, vessel_prototype_price(VESSEL_SHIP, 25, 20) >
+                       vessel_prototype_price(VESSEL_SHIP, 10, 20));
+
+  /* A raft is pocket change; every price is positive */
+  CuAssertTrue(tc, vessel_prototype_price(VESSEL_RAFT, 5, 2) < 200);
+  CuAssertTrue(tc, vessel_prototype_price(VESSEL_RAFT, 1, 0) > 0);
+
+  /* Invalid class falls back to standard ship pricing */
+  CuAssertIntEquals(tc, vessel_prototype_price(VESSEL_SHIP, 10, 10),
+                    vessel_prototype_price(-5, 10, 10));
+}
+
+void Test_vessel_crew_costs_and_bonuses(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  /* Better crews cost more to hire and to keep */
+  CuAssertTrue(tc, vessel_crew_hire_cost(CREW_GUNNER, CREW_TIER_VETERAN) >
+                       vessel_crew_hire_cost(CREW_GUNNER, CREW_TIER_GREEN));
+  CuAssertTrue(tc, vessel_crew_wage(CREW_GUNNER, CREW_TIER_VETERAN) >
+                       vessel_crew_wage(CREW_GUNNER, CREW_TIER_GREEN));
+  /* Wages are a fraction of the signing cost, never larger */
+  CuAssertTrue(tc, vessel_crew_wage(CREW_BOSUN, CREW_TIER_ABLE) <
+                       vessel_crew_hire_cost(CREW_BOSUN, CREW_TIER_ABLE));
+  /* Unfilled positions cost nothing */
+  CuAssertIntEquals(tc, 0, vessel_crew_wage(CREW_BOSUN, CREW_TIER_NONE));
+  CuAssertIntEquals(tc, 0, vessel_crew_hire_cost(-1, CREW_TIER_ABLE));
+
+  /* Hiring feeds the legacy crew-effect fields the game already reads */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_SHIP;
+  vessel_apply_crew_bonuses(&ship);
+  CuAssertIntEquals(tc, 0, ship.guncrew.gunadjust);
+
+  ship.crew_tier[CREW_GUNNER] = CREW_TIER_VETERAN;
+  ship.crew_tier[CREW_SAILMASTER] = CREW_TIER_ABLE;
+  ship.crew_tier[CREW_BOSUN] = CREW_TIER_GREEN;
+  vessel_apply_crew_bonuses(&ship);
+  CuAssertTrue(tc, ship.guncrew.gunadjust > 0);
+  CuAssertTrue(tc, ship.sailcrew.speedadjust > 0);
+  CuAssertTrue(tc, ship.sailcrew.repairspeed > 0);
+  CuAssertTrue(tc, ship.guncrew.gunadjust > ship.sailcrew.repairspeed); /* veteran > green */
+
+  /* Quartermaster stows more cargo */
+  CuAssertIntEquals(tc, get_vessel_cargo_capacity(VESSEL_SHIP),
+                    vessel_effective_cargo_capacity(&ship));
+  ship.crew_tier[CREW_QUARTERMASTER] = CREW_TIER_VETERAN;
+  CuAssertTrue(tc, vessel_effective_cargo_capacity(&ship) > get_vessel_cargo_capacity(VESSEL_SHIP));
+}
+
+void Test_vessel_upgrade_effects(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  int plain_capacity;
+
+  /* Distinct bits, all non-zero, invalid index yields none */
+  CuAssertTrue(tc, vessel_upgrade_bit(0) != vessel_upgrade_bit(1));
+  CuAssertTrue(tc, vessel_upgrade_bit(2) != vessel_upgrade_bit(3));
+  CuAssertIntEquals(tc, 0, vessel_upgrade_bit(99));
+
+  /* Refits scale with hull value but never go free */
+  CuAssertTrue(tc, vessel_upgrade_cost(0, VESSEL_WARSHIP) > vessel_upgrade_cost(0, VESSEL_BOAT));
+  CuAssertTrue(tc, vessel_upgrade_cost(0, VESSEL_RAFT) >= 100);
+
+  /* The hold refit raises capacity; it stacks with a quartermaster */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_SHIP;
+  plain_capacity = vessel_effective_cargo_capacity(&ship);
+  ship.upgrades = SHIP_UPGRADE_HOLD;
+  CuAssertTrue(tc, vessel_effective_cargo_capacity(&ship) > plain_capacity);
+  ship.crew_tier[CREW_QUARTERMASTER] = CREW_TIER_VETERAN;
+  CuAssertTrue(tc, vessel_effective_cargo_capacity(&ship) > plain_capacity + plain_capacity / 4);
+}
+
+void Test_vessel_trade_price_bounds(CuTest *tc)
+{
+  int base = 100;
+  int scarce;
+  int glut;
+  int supply;
+
+  /* Scarcity raises price, glut lowers it, baseline is neutral */
+  CuAssertIntEquals(tc, base, vessel_commodity_price(base, TRADE_BASELINE_SUPPLY));
+  scarce = vessel_commodity_price(base, TRADE_SUPPLY_MIN);
+  glut = vessel_commodity_price(base, TRADE_SUPPLY_MAX);
+  CuAssertTrue(tc, scarce > base);
+  CuAssertTrue(tc, glut < base);
+
+  /* The swing is hard-bounded: no supply value escapes +/- TRADE_MAX_DRIFT.
+   * This is the anti-arbitrage guarantee, so sweep the whole domain and
+   * well past its clamps. */
+  for (supply = -500; supply <= 2000; supply += 7)
+  {
+    int price = vessel_commodity_price(base, supply);
+    CuAssertTrue(tc, price >= base - (base * TRADE_MAX_DRIFT) / 100);
+    CuAssertTrue(tc, price <= base + (base * TRADE_MAX_DRIFT) / 100);
+    CuAssertTrue(tc, price >= 1);
+  }
+
+  /* Prices are monotonic in scarcity, so routes read sensibly */
+  CuAssertTrue(tc, vessel_commodity_price(base, 50) > vessel_commodity_price(base, 150));
+
+  /* Cheap goods never price to zero or below */
+  CuAssertTrue(tc, vessel_commodity_price(1, TRADE_SUPPLY_MAX) >= 1);
+  CuAssertTrue(tc, vessel_commodity_price(0, TRADE_SUPPLY_MAX) >= 1);
+}
+
+void Test_vessel_trade_cargo_weight(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_SHIP;
+
+  /* Empty hold weighs nothing; NULL is safe */
+  CuAssertIntEquals(tc, 0, vessel_cargo_weight(&ship));
+  CuAssertIntEquals(tc, 0, vessel_cargo_weight(NULL));
+
+  /* Unknown commodity ids contribute nothing rather than garbage weight
+   * (the commodity cache is empty without a database). */
+  ship.cargo[0].commodity_id = 4242;
+  ship.cargo[0].quantity = 10;
+  CuAssertIntEquals(tc, 0, vessel_cargo_weight(&ship));
+}
+
+void Test_vessel_hazard_lookout_and_sight(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  int base_range;
+
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_SHIP;
+
+  /* No crew, no lookout bonus; NULL is safe */
+  CuAssertIntEquals(tc, 0, vessel_lookout_bonus(&ship));
+  CuAssertIntEquals(tc, 0, vessel_lookout_bonus(NULL));
+  CuAssertIntEquals(tc, VESSEL_SIGHT_CLEAR, vessel_sight_range(NULL));
+
+  /* A posted lookout extends sight beyond the unaided range */
+  base_range = vessel_sight_range(&ship);
+  ship.crew_tier[CREW_SAILMASTER] = CREW_TIER_VETERAN;
+  CuAssertTrue(tc, vessel_lookout_bonus(&ship) > 0);
+  CuAssertTrue(tc, vessel_sight_range(&ship) > base_range);
+
+  /* Fog must close the horizon relative to clear weather */
+  CuAssertTrue(tc, VESSEL_SIGHT_FOG < VESSEL_SIGHT_CLEAR);
+}
+
+void Test_vessel_hazard_submerged_shelters_from_weather(CuTest *tc)
+{
+  struct greyhawk_ship_data sub;
+  struct greyhawk_ship_data surface;
+
+  memset(&sub, 0, sizeof(sub));
+  memset(&surface, 0, sizeof(surface));
+
+  /* A submerged submarine rides out surface weather entirely, whatever the
+   * weather field says at its coordinates. */
+  sub.vessel_type = VESSEL_SUBMARINE;
+  sub.z = -50;
+  CuAssertIntEquals(tc, 0, vessel_storm_severity(&sub));
+
+  /* Surfaced, it is exposed like anything else (severity depends on the
+   * live weather field, so only assert it is a valid band). */
+  sub.z = 0;
+  CuAssertTrue(tc, vessel_storm_severity(&sub) >= 0);
+  CuAssertTrue(tc, vessel_storm_severity(&sub) <= 3);
+
+  surface.vessel_type = VESSEL_SHIP;
+  CuAssertTrue(tc, vessel_storm_severity(&surface) >= 0);
+  CuAssertTrue(tc, vessel_storm_severity(&surface) <= 3);
+  CuAssertIntEquals(tc, 0, vessel_storm_severity(NULL));
+}
+
+void Test_vessel_pvp_consent_gate(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct char_data attacker;
+  struct char_data staff;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&attacker, 0, sizeof(attacker));
+  memset(&staff, 0, sizeof(staff));
+  attacker.player.name = strdup("Vex");
+  staff.player.name = strdup("Zusuk");
+  staff.player.level = LVL_IMMORT;
+  strlcpy(ship.name, "the Gull", sizeof(ship.name));
+
+  /* Fail closed on bad input */
+  CuAssertTrue(tc, !vessel_pvp_permitted(NULL, &ship, FALSE));
+  CuAssertTrue(tc, !vessel_pvp_permitted(&attacker, NULL, FALSE));
+
+  /* Unowned hulls (test vessels, unclaimed NPC ferries) are fair game */
+  CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
+
+  /* Your own hull is always actionable */
+  strlcpy(ship.owner, "Vex", sizeof(ship.owner));
+  CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
+
+  /* An owner who is not logged in cannot consent, so their ship is
+   * protected - this is the hole that let a moored ship be sunk, plundered,
+   * or claimed while its owner slept. */
+  strlcpy(ship.owner, "Corr", sizeof(ship.owner));
+  CuAssertTrue(tc, !vessel_pvp_permitted(&attacker, &ship, FALSE));
+
+  /* Staff can always act, for testing and intervention */
+  CuAssertTrue(tc, vessel_pvp_permitted(&staff, &ship, FALSE));
+
+  free(attacker.player.name);
+  free(staff.player.name);
+}
+
+void Test_vessel_sink_clears_stale_attacker_references(CuTest *tc)
+{
+  const int VICTIM = 495, AGGRESSOR = 496;
+
+  memset(&greyhawk_ships[VICTIM], 0, sizeof(greyhawk_ships[VICTIM]));
+  memset(&greyhawk_ships[AGGRESSOR], 0, sizeof(greyhawk_ships[AGGRESSOR]));
+
+  greyhawk_ships[VICTIM].shipnum = VICTIM;
+  strlcpy(greyhawk_ships[VICTIM].name, "victim", sizeof(greyhawk_ships[VICTIM].name));
+  greyhawk_ships[AGGRESSOR].shipnum = AGGRESSOR;
+  strlcpy(greyhawk_ships[AGGRESSOR].name, "aggressor", sizeof(greyhawk_ships[AGGRESSOR].name));
+
+  /* The victim holds a grudge against the aggressor's fleet slot */
+  greyhawk_ships[VICTIM].last_attacker = AGGRESSOR;
+
+  /* Sinking the aggressor must clear that reference, or the slot's next
+   * occupant inherits the grudge and gets shot at unprovoked. */
+  vessel_sink(AGGRESSOR);
+  CuAssertIntEquals(tc, 0, greyhawk_ships[VICTIM].last_attacker);
+  CuAssertTrue(tc, greyhawk_ships[AGGRESSOR].name[0] == '\0');
+
+  memset(&greyhawk_ships[VICTIM], 0, sizeof(greyhawk_ships[VICTIM]));
+}
+
+void Test_transport_production_cargo_capacity_table(CuTest *tc)
+{
+  /* Per-class capacities come from the data table. */
+  CuAssertIntEquals(tc, VESSEL_CARGO_RAFT, get_vessel_cargo_capacity(VESSEL_RAFT));
+  CuAssertIntEquals(tc, VESSEL_CARGO_TRANSPORT, get_vessel_cargo_capacity(VESSEL_TRANSPORT));
+  CuAssertIntEquals(tc, VESSEL_CARGO_MAGICAL, get_vessel_cargo_capacity(VESSEL_MAGICAL));
+
+  /* Invalid types fall back to the standard ship capacity. */
+  CuAssertIntEquals(tc, VESSEL_CARGO_SHIP, get_vessel_cargo_capacity((enum vessel_class) - 1));
+  CuAssertIntEquals(tc, VESSEL_CARGO_SHIP, get_vessel_cargo_capacity((enum vessel_class)99));
+
+  /* Freighters must out-haul warships; every class carries something
+   * except the raft, which barely floats its passengers. */
+  CuAssertTrue(tc, get_vessel_cargo_capacity(VESSEL_TRANSPORT) >
+                       get_vessel_cargo_capacity(VESSEL_WARSHIP));
+  CuAssertTrue(tc, get_vessel_cargo_capacity(VESSEL_RAFT) > 0);
 }

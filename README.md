@@ -248,7 +248,7 @@ nohup bin/circle &
 ### Game Documentation
 - **[Combat System](docs/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
 - **[Player Management](docs/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[Vessel System](docs/project-management-zusuk/vessels/VESSEL_SYSTEM.md)**: Ships, airships, and navigation
+- **[Vessel System](docs/systems/VESSEL_SYSTEM.md)**: Ships, airships, and navigation
 
 ### Additional Resources
 - **[Testing Guide](docs/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
@@ -420,7 +420,7 @@ For complete license details, see the [LICENSE](LICENSE.md) file.
 - **Forgotten Realms**: Rich world-building traditions
 
 ### Version Information
-- **Current Version**: LuminariMUD 2.5008-beta (tbaMUD 3.64)
+- **Current Version**: LuminariMUD 2.5009-beta (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
 - **Language**: GNU C23
