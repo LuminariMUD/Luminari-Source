@@ -53,20 +53,25 @@ Two separate test setups exist. There is NO `test_runner` binary - do not look f
 make test
 ```
 
-To add a test here: create `unittests/CuTest/test_*.c` and add it to `cutest_SOURCES` in `Makefile.am` (AllTests.c regenerates automatically; suites are discovered via the `CuGetSuite` naming convention used by make-tests.sh).
+To add a test here: create `unittests/CuTest/test_*.c`, add it to
+`cutest_SOURCES` and `cutest_test_files` in `Makefile.am`, and add it to
+`CUTEST_TEST_SOURCES` in `CMakeLists.txt`. `AllTests.c` regenerates
+automatically from functions whose names begin with `Test`.
 
-**2. Standalone suites (no game linkage).** `unittests/CuTest/Makefile` builds self-contained per-suite executables (`vessel_tests`, `autopilot_tests`, `schedule_tests`, `vehicle_*_tests`, `protocol_parser_tests`, ...).
+**2. Focused protocol parser harness.** `unittests/CuTest/Makefile` builds the
+source-linked `protocol_parser_tests` executable. Vessel, autopilot, and
+vehicle behavior belongs in the root production-linked suite; the legacy
+standalone mirror sources have been removed.
 
 ```bash
 cd unittests/CuTest
-make            # build all standalone suites
-make test-all   # run the standard set
-make schedule   # run a single suite (see 'make help' for all targets)
-make phase01-tests  # grouped runs; also phase02-tests
-make valgrind-schedule  # any suite under valgrind
+make protocol-parser
+make test-all       # run root production tests, then the protocol harness
+make valgrind-protocol
 ```
 
-CuTest has no per-test-function filter; the finest granularity is one suite executable.
+CuTest has no per-test-function filter; the finest granularity is one suite
+executable.
 
 Other test entry points: `make test-character-rename-static` and `make test-character-rename-schema` (root), plus one-off Makefiles in `unittests/` (e.g. `test_clan.c-Makefile`).
 

@@ -16,6 +16,8 @@ echo '
 
 #include "CuTest.h"
 
+extern FILE *logfile;
+
 '
 
 cat $FILES | grep '^void Test' |
@@ -53,6 +55,7 @@ echo \
 
 int main(void)
 {
+    logfile = stderr;
     return RunAllTests();
 }
 '

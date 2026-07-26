@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5005 LANGUAGES C)
+project(LuminariMUD VERSION 2.5006 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -854,12 +854,25 @@ if (BUILD_UTILS)
 endif()
 
 # ========== Build unit tests AFTER main executable ==========
-# IMPORTANT: CMake test targets are disabled by default because they require
-# linking against main library functions that aren't available standalone.
-# Use the Makefile in unittests/CuTest/ instead:
-#   cd unittests/CuTest && make all && ./vessel_tests
-# Enable with -DBUILD_TESTS=ON only if you've added proper mock implementations.
-option(BUILD_TESTS "Build unit tests (disabled - use Makefile instead)" OFF)
+# The production-linked CuTest target is currently built through Autotools:
+#   make test
+# The focused protocol parser harness remains available under unittests/CuTest.
+option(BUILD_TESTS "Build unit tests (disabled - use Autotools make test)" OFF)
+
+# Keep this list synchronized with cutest_test_files in Makefile.am. The
+# production-linked CuTest target is currently built through Autotools.
+set(CUTEST_TEST_SOURCES
+    unittests/CuTest/test_bounds_checking.c
+    unittests/CuTest/test_player_rename.c
+    unittests/CuTest/test.helpers.c
+    unittests/CuTest/test.interpreter.c
+    unittests/CuTest/test_transport_production.c
+    unittests/CuTest/test_combat_production.c
+    unittests/CuTest/test_spells_skills_production.c
+    unittests/CuTest/test_database_persistence.c
+    unittests/CuTest/test_dg_scripts_production.c
+    unittests/CuTest/test_world_loading_production.c
+)
 
 # ========== Installation ==========
 install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})

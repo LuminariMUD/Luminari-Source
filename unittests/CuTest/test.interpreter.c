@@ -5,6 +5,7 @@
 #include "../../src/utils.h"
 #include "../../src/structs.h"
 #include "../../src/interpreter.h"
+#include "../../src/act.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -53,4 +54,42 @@ void Test_three_arguments(CuTest *tc)
     CuAssertStrEquals(tc, exp_outp2, outp2);
     CuAssertStrEquals(tc, exp_outp3, outp3);
   }
+}
+
+void Test_command_dispatch_lookup(CuTest *tc)
+{
+  int look_command;
+  int help_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  look_command = find_command("look");
+  help_command = find_command("help");
+
+  CuAssertTrue(tc, look_command >= 0);
+  CuAssertTrue(tc, help_command >= 0);
+  CuAssertTrue(tc, look_command != help_command);
+  CuAssertIntEquals(tc, -1, find_command("not-a-real-command"));
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_command_dispatch_numeric_and_reserved_parsing(CuTest *tc)
+{
+  char reserved_name[] = "self";
+  char ordinary_name[] = "coverage_name";
+
+  CuAssertTrue(tc, is_number("42"));
+  CuAssertTrue(tc, is_number("-17"));
+  CuAssertTrue(tc, !is_number(""));
+  CuAssertTrue(tc, !is_number("4two"));
+  CuAssertTrue(tc, reserved_word(reserved_name));
+  CuAssertTrue(tc, !reserved_word(ordinary_name));
 }

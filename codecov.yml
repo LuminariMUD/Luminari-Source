@@ -1,0 +1,19 @@
+coverage:
+  precision: 2
+  round: down
+  range: 0..10
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+        informational: false
+    patch:
+      default:
+        target: auto
+        threshold: 0%
+        informational: false
+
+comment:
+  layout: "condensed_header, diff, flags, files"
+  behavior: default

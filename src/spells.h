@@ -1631,7 +1631,8 @@ struct spell_info_type
 
   bool quest; // is this a quest spell?
 
-  bool no_player; // if true, spell will not appear in player spell lists and cannot be cast by players
+  /* If true, the spell does not appear in player lists and cannot be cast by players. */
+  bool no_player;
 
   /* TODO: d20pfsrd expansion */
 
@@ -1827,6 +1828,7 @@ void spell_level(int spell, int chclass, int level);
 void init_spell_levels(void);
 const char *skill_name(int num);
 const char *spell_name(int num);
+bool isEpicSpell(int spellnum);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* spells.c */

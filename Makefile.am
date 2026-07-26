@@ -233,16 +233,16 @@ check_PROGRAMS = cutest
 # CuTest sources
 cutest_SOURCES = \
 	unittests/CuTest/CuTest.c \
-	unittests/CuTest/test_alignment.c \
 	unittests/CuTest/test_bounds_checking.c \
-	unittests/CuTest/test_char_cache.c \
-	unittests/CuTest/test_char_skills.c \
-	unittests/CuTest/test_random.c \
-	unittests/CuTest/test_treasure.c \
-	unittests/CuTest/test_utils.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
+	unittests/CuTest/test_transport_production.c \
+	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_spells_skills_production.c \
+	unittests/CuTest/test_database_persistence.c \
+	unittests/CuTest/test_dg_scripts_production.c \
+	unittests/CuTest/test_world_loading_production.c \
 	unittests/CuTest/AllTests.c \
 	$(circle_SOURCES)
 
@@ -250,19 +250,19 @@ cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
 cutest_LDADD = $(circle_LDADD)
 
 cutest_test_files = \
-	unittests/CuTest/test_alignment.c \
 	unittests/CuTest/test_bounds_checking.c \
-	unittests/CuTest/test_char_cache.c \
-	unittests/CuTest/test_char_skills.c \
-	unittests/CuTest/test_random.c \
-	unittests/CuTest/test_treasure.c \
-	unittests/CuTest/test_utils.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test.helpers.c \
-	unittests/CuTest/test.interpreter.c
+	unittests/CuTest/test.interpreter.c \
+	unittests/CuTest/test_transport_production.c \
+	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_spells_skills_production.c \
+	unittests/CuTest/test_database_persistence.c \
+	unittests/CuTest/test_dg_scripts_production.c \
+	unittests/CuTest/test_world_loading_production.c
 
 # Generate AllTests.c before building cutest
-unittests/CuTest/AllTests.c: $(cutest_test_files)
+unittests/CuTest/AllTests.c: $(cutest_test_files) unittests/CuTest/make-tests.sh
 	unittests/CuTest/make-tests.sh $(cutest_test_files) > $@
 
 BUILT_SOURCES = unittests/CuTest/AllTests.c

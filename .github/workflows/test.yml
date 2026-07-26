@@ -8,6 +8,7 @@ on:
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
+      - 'codecov.yml'
       - '.github/workflows/test.yml'
   pull_request:
     branches: [master, main]
@@ -17,11 +18,58 @@ on:
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
+      - 'codecov.yml'
       - '.github/workflows/test.yml'
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    name: Build Project
+    name: Build (${{ matrix.campaign.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        campaign:
+          - name: default
+            cppflags: ''
+          - name: dragonlance
+            cppflags: '-DCAMPAIGN_DL'
+          - name: forgotten-realms
+            cppflags: '-DCAMPAIGN_FR'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
+
+      - name: Copy config headers
+        run: |
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Configure with autotools
+        env:
+          CPPFLAGS: ${{ matrix.campaign.cppflags }}
+        run: |
+          autoreconf -fvi
+          ./configure CPPFLAGS="$CPPFLAGS"
+
+      - name: Build
+        run: make -j"$(nproc)"
+
+      - name: Verify binary exists
+        run: test -x circle
+
+  unit-tests:
+    name: Production-linked tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,7 +78,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool libgd-dev libcurl4-openssl-dev libjson-c-dev
+          sudo apt-get install -y \
+            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
 
       - name: Copy config headers
         run: |
@@ -43,40 +93,14 @@ jobs:
           autoreconf -fvi
           ./configure
 
-      - name: Build
-        run: make -j"$(nproc)"
+      - name: Run production-linked CuTest suite
+        run: make test
 
-      - name: Verify binary exists
-        run: |
-          test -f circle
-          echo "Build successful: circle binary created"
-
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential
-
-      - name: Build unit tests
-        working-directory: unittests/CuTest
-        run: make all
-
-      - name: Run unit tests
-        working-directory: unittests/CuTest
-        run: ./vessel_tests
-
-      - name: Run stress tests
-        working-directory: unittests/CuTest
-        run: ./vessel_stress_test
+      - name: Run focused protocol parser harness
+        run: make -C unittests/CuTest protocol-parser
 
   memory-check:
-    name: Memory Leak Check
+    name: Memory check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -85,19 +109,122 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential valgrind
+          sudo apt-get install -y \
+            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            libjson-c-dev libmariadb-dev libssl-dev libtool valgrind zlib1g-dev
 
-      - name: Build unit tests
-        working-directory: unittests/CuTest
-        run: make all
-
-      - name: Run Valgrind on unit tests
-        working-directory: unittests/CuTest
+      - name: Copy config headers
         run: |
-          valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./vessel_tests 2>&1 | tee valgrind.log
-          # Check for memory leaks
-          if grep -q "definitely lost: [1-9]" valgrind.log; then
-            echo "::error::Memory leaks detected!"
-            exit 1
-          fi
-          echo "No memory leaks detected"
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Configure and build test binary
+        run: |
+          autoreconf -fvi
+          ./configure
+          make -j"$(nproc)" cutest
+
+      - name: Run Valgrind on production-linked tests
+        run: |
+          valgrind \
+            --leak-check=full \
+            --show-leak-kinds=definite \
+            --errors-for-leak-kinds=definite \
+            --track-origins=yes \
+            --error-exitcode=1 \
+            ./cutest
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf automake build-essential gcovr libcurl4-openssl-dev \
+            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
+
+      - name: Copy config headers
+        run: |
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Configure coverage build
+        run: |
+          autoreconf -fvi
+          ./configure CFLAGS='--coverage -O0 -g' LDFLAGS='--coverage'
+
+      - name: Run production-linked tests against MariaDB
+        run: |
+          make -j"$(nproc)" cutest
+          ./cutest
+
+      - name: Run covered protocol parser harness
+        run: |
+          make -C unittests/CuTest protocol-parser \
+            PROTOCOL_TEST_CFLAGS='-Wall -Wextra -std=gnu2x -g -O0 --coverage -ffunction-sections -fdata-sections' \
+            PROTOCOL_TEST_LDFLAGS='-lm -Wl,--gc-sections --coverage'
+
+      - name: Generate coverage report and enforce baseline
+        run: |
+          gcovr \
+            --root . \
+            --filter '^src/' \
+            --print-summary \
+            --xml coverage.xml \
+            --xml-pretty \
+            --html-details coverage.html \
+            --json-summary coverage-summary.json \
+            --json-summary-pretty \
+            --fail-under-line 0.70 \
+            --fail-under-branch 0.40 \
+            src unittests/CuTest/build
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.html
+            coverage.*.html
+            coverage*.css
+            coverage.xml
+            coverage-summary.json
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
+          use_oidc: true

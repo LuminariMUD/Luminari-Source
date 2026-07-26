@@ -2,221 +2,155 @@
 
 ## Overview
 
-This document describes the testing infrastructure and practices for the LuminariMUD codebase. The project uses multiple testing frameworks and approaches to ensure code quality and reliability.
+The enforced test path has two parts:
 
-## Testing Frameworks
+1. A production-linked CuTest suite that compiles and links the game sources.
+2. A focused protocol parser harness that links the production
+   `src/protocol.c` implementation with minimal socket and logging doubles.
 
-### 1. CuTest Framework
-Located in `unittests/CuTest/`, this is a lightweight C unit testing framework used for core system testing.
+Legacy standalone vessel, autopilot, and vehicle mirror sources have been
+removed. Their historical result documents remain under `docs/testing/`.
 
-**Key Features:**
-- Simple assertion macros
-- Automatic test discovery
-- Minimal setup required
-- C-compatible
+## Production-Linked Tests
 
-**Usage Example:**
-```c
-#include "CuTest.h"
+From the repository root:
 
-void TestSomething(CuTest* tc) {
-    int expected = 5;
-    int actual = some_function();
-    CuAssertIntEquals(tc, expected, actual);
-}
-
-CuSuite* GetSuite() {
-    CuSuite* suite = CuSuiteNew();
-    SUITE_ADD_TEST(suite, TestSomething);
-    return suite;
-}
+```sh
+make test
 ```
 
-### 2. MinUnit Framework
-A minimal unit testing framework available in `unittests/minunit.h`.
+This builds `cutest` with `-DLUMINARI_CUTEST`, links the same game source files
+as the server, and runs every `void Test...` function discovered in the files
+listed by `cutest_test_files` in `Makefile.am`.
 
-**Features:**
-- Header-only implementation
-- Simple macros for assertions
-- Lightweight and fast
+To build and run the executable directly:
 
-### 3. Custom Test Suites
-Individual modules may have their own specialized test suites.
-
-## Module-Specific Testing
-
-### Performance Monitor Testing
-
-The performance monitoring system (`perfmon.c`) includes a comprehensive test suite:
-
-**Test File:** `test_perfmon.c`
-
-**Test Coverage:**
-- Basic PerfIntvlData operations
-- Circular buffer behavior
-- Data aggregation between levels
-- Memory management (leak detection)
-- Report generation and formatting
-- Buffer safety and bounds checking
-- Input validation and error handling
-- Pulse logging functionality
-- Threshold tracking accuracy
-
-**Running Tests:**
-```bash
-# Build and run perfmon tests
-make test-perfmon
-
-# Clean test artifacts
-make clean-test-perfmon
+```sh
+make -j"$(nproc)" cutest
+./cutest
 ```
 
-**Test Categories:**
-1. **Functional Tests** - Verify correct behavior
-2. **Safety Tests** - Check buffer overflows and memory leaks
-3. **Performance Tests** - Validate optimization improvements
-4. **Integration Tests** - Test interaction with other systems
+The suite covers production code for bounds handling, character rename,
+argument and command parsing, transport and autopilot behavior, combat,
+spells and skills, MariaDB prepared statements, DG scripts, and world index
+lookups.
 
-## Running Tests
+## Protocol Parser Harness
 
-### Individual Test Suites
-```bash
-# Performance monitor tests
-make test-perfmon
+Run the focused parser harness from the repository root:
 
-# CuTest framework tests
-cd unittests/CuTest
-make
-./test_runner
+```sh
+make -C unittests/CuTest protocol-parser
 ```
 
-### Memory Testing
-For memory leak detection, use valgrind:
-```bash
-# Run with memory checking
-valgrind --leak-check=full --show-leak-kinds=all ./test_perfmon
+The harness exercises the production protocol parser without booting the MUD
+or opening a live network socket. See
+`docs/testing/PROTOCOL_PARSER_HARNESS.md` for its fixture and case matrix.
 
-# Check for buffer overflows
-valgrind --tool=memcheck --track-origins=yes ./test_perfmon
+Run both enforced test paths with:
+
+```sh
+make -C unittests/CuTest test-all
 ```
 
-## Writing New Tests
+## MariaDB Persistence Test
 
-### Guidelines
-1. **Test Naming**: Use descriptive names that indicate what is being tested
-2. **Test Structure**: Follow Arrange-Act-Assert pattern
-3. **Coverage**: Aim for both positive and negative test cases
-4. **Independence**: Tests should not depend on each other
-5. **Cleanup**: Always clean up resources in tests
+The persistence round trip is disabled unless an explicit test-only flag is
+set. This prevents an ordinary local test run from writing to any configured
+database.
 
-### Example Test Structure
-```c
-static void TestFeatureName()
-{
-    // Arrange - Set up test data
-    SomeStruct* data = create_test_data();
+CI supplies an isolated MariaDB service and these variables:
 
-    // Act - Execute the function being tested
-    int result = function_under_test(data);
-
-    // Assert - Verify the results
-    assert(result == expected_value);
-
-    // Cleanup
-    cleanup_test_data(data);
-}
+```sh
+LUMINARI_TEST_MYSQL_ENABLE=1
+LUMINARI_TEST_MYSQL_HOST=127.0.0.1
+LUMINARI_TEST_MYSQL_USER=luminari_test
+LUMINARI_TEST_MYSQL_PASSWORD=test_password
+LUMINARI_TEST_MYSQL_DATABASE=luminari_test
+LUMINARI_TEST_MYSQL_PORT=3306
 ```
 
-### Memory Safety Testing
-Always include tests for:
-- Null pointer handling
-- Buffer boundary conditions
-- Memory leak prevention
-- Resource cleanup
+The test creates a connection-local temporary table, performs an insert and
+select through the production prepared-statement wrappers, and closes the
+connection. Never point these variables at a production database.
 
-## Continuous Integration
+## Coverage
 
-### Pre-commit Testing
-Before committing code:
-1. Run relevant unit tests
-2. Check for memory leaks with valgrind
-3. Verify no new compiler warnings
-4. Test with different build configurations
+The GitHub Actions coverage job:
 
-### Test Automation
-Consider setting up automated testing for:
-- Nightly builds
-- Pull request validation
-- Performance regression detection
-- Memory leak monitoring
+- builds the production-linked suite with gcov instrumentation;
+- runs the MariaDB persistence round trip;
+- runs the covered protocol parser harness;
+- creates Cobertura XML, HTML details, and a JSON summary with gcovr;
+- uploads the report as a workflow artifact and to Codecov.
 
-## Test Data Management
+The initial gcovr floor is deliberately low because this is a large legacy
+codebase: 0.70 percent line coverage and 0.40 percent branch coverage. The
+Codecov project status uses the parent result as its target with zero
+threshold, and patch status is also enforced. Coverage regressions therefore
+fail even when the fixed bootstrap floor still passes. Raise the fixed floors
+as the suite grows.
 
-### Mock Objects
-Use mock objects for testing components in isolation:
-- Database connections
-- Network sockets
-- File system operations
-- External dependencies
+## Campaign Builds
 
-### Test Fixtures
-Create reusable test fixtures for common scenarios:
-- Standard player characters
-- Typical room configurations
-- Common object types
-- Network connection states
+CI compiles the default, DragonLance, and Forgotten Realms variants. Campaign
+selection is supplied through `CPPFLAGS`:
 
-## Performance Testing
+```sh
+./configure CPPFLAGS="-DCAMPAIGN_DL"
+./configure CPPFLAGS="-DCAMPAIGN_FR"
+```
 
-### Benchmarking
-Include performance benchmarks for critical systems:
-- Main game loop timing
-- Database query performance
-- Memory allocation patterns
-- Network I/O throughput
+The default build uses no campaign define. Never edit `src/campaign.h` to
+exercise a campaign build.
 
-### Regression Testing
-Monitor for performance regressions:
-- Compare execution times
-- Track memory usage patterns
-- Monitor resource consumption
-- Validate optimization improvements
+## Memory Checking
 
-## Best Practices
+CI runs the production-linked suite under Valgrind. The equivalent local
+command is:
 
-### Test Organization
-- Group related tests together
-- Use clear, descriptive test names
-- Include both positive and negative cases
-- Test edge cases and boundary conditions
+```sh
+make -j"$(nproc)" cutest
+valgrind \
+  --leak-check=full \
+  --show-leak-kinds=definite \
+  --errors-for-leak-kinds=definite \
+  --track-origins=yes \
+  --error-exitcode=1 \
+  ./cutest
+```
 
-### Error Handling
-- Test error conditions explicitly
-- Verify proper cleanup on failures
-- Check return codes and error messages
-- Test recovery mechanisms
+The focused protocol harness also has a convenience target:
 
-### Documentation
-- Document test purposes and expectations
-- Include setup and teardown requirements
-- Explain complex test scenarios
-- Maintain test documentation alongside code
+```sh
+make -C unittests/CuTest valgrind-protocol
+```
 
-## Future Improvements
+## Adding Tests
 
-### Recommended Additions
-1. **Automated Test Runner** - Script to run all tests
-2. **Coverage Analysis** - Track test coverage metrics
-3. **Performance Baselines** - Establish performance benchmarks
-4. **Integration Testing** - Full system integration tests
-5. **Stress Testing** - High-load scenario testing
+1. Put the test in `unittests/CuTest/test_*.c`.
+2. Call production functions rather than copying their implementation into the
+   test.
+3. Use synthetic fixtures and restore any modified globals before returning.
+4. Add the file to `cutest_SOURCES` and `cutest_test_files` in `Makefile.am`.
+5. Add the file to `CUTEST_TEST_SOURCES` in `CMakeLists.txt`.
+6. Run `autoreconf -fvi`, `./configure`, `make test`, and the relevant focused
+   harness.
+7. Run Valgrind for code that allocates, frees, or mutates global registries.
 
-### Testing Infrastructure
-- Continuous integration setup
-- Automated memory leak detection
-- Performance regression alerts
-- Test result reporting and tracking
+Tests must include positive, negative, boundary, and cleanup assertions where
+they are meaningful. An unconditional passing placeholder is not a test and
+must not be added to the enforced suite.
 
----
+## CI Jobs
 
-*This testing guide should be updated as new testing practices and frameworks are adopted.*
+`.github/workflows/test.yml` enforces:
+
+- default, DragonLance, and Forgotten Realms builds;
+- root `make test`;
+- the focused protocol parser harness;
+- Valgrind on the production-linked suite;
+- MariaDB-backed gcovr and Codecov reporting.
+
+Any change to test sources, build lists, coverage configuration, or the
+workflow triggers this pipeline.
