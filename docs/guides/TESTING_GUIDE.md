@@ -47,11 +47,17 @@ The harness exercises the production protocol parser without booting the MUD
 or opening a live network socket. See
 `docs/testing/PROTOCOL_PARSER_HARNESS.md` for its fixture and case matrix.
 
-Run both enforced test paths with:
+Run every maintained test path from the repository root with:
 
 ```sh
-make -C unittests/CuTest test-all
+make test-all
 ```
+
+This authoritative target runs the production-linked CuTest suite, the
+focused protocol parser harness, the character-rename static checks, and the
+isolated MariaDB schema test. It finishes with `make install`, so the tested
+server is installed as `bin/circle` and no root-level `circle` artifact is
+left behind. The `unittests/CuTest` target of the same name delegates here.
 
 ## MariaDB Persistence Test
 
@@ -84,17 +90,18 @@ The GitHub Actions coverage job:
 - creates Cobertura XML, HTML details, and a JSON summary with gcovr;
 - uploads the report as a workflow artifact and to Codecov.
 
-The initial gcovr floor is deliberately low because this is a large legacy
-codebase: 0.70 percent line coverage and 0.40 percent branch coverage. The
-Codecov project status uses the parent result as its target with zero
-threshold, and patch status is also enforced. Coverage regressions therefore
-fail even when the fixed bootstrap floor still passes. Raise the fixed floors
-as the suite grows.
+The measured default-campaign baseline is 7,218 of 218,286 lines (3.30
+percent) and 4,547 of 202,603 branches (2.20 percent). gcovr enforces those
+rounded-down fixed floors. Codecov also compares project coverage with the
+base commit using a zero threshold, so pull requests cannot lower the current
+result. Whenever coverage increases, update the counts and fixed floors in
+`.github/workflows/test.yml`; the fixed gates only move upward.
 
 ## Campaign Builds
 
-CI compiles the default, DragonLance, and Forgotten Realms variants. Campaign
-selection is supplied through `CPPFLAGS`:
+CI builds and runs the complete production-linked behavioral suite for the
+default, DragonLance, and Forgotten Realms variants. Campaign selection is
+supplied through `CPPFLAGS`:
 
 ```sh
 ./configure CPPFLAGS="-DCAMPAIGN_DL"
@@ -106,8 +113,29 @@ exercise a campaign build.
 
 ## Memory Checking
 
-CI runs the production-linked suite under Valgrind. The equivalent local
-command is:
+CI runs the production-linked suite under ASan and UBSan with leak detection,
+then fuzzes the production protocol parser with libFuzzer. It separately runs
+the suite under Valgrind. The sanitizer build uses:
+
+```sh
+./configure \
+  CFLAGS='-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer' \
+  LDFLAGS='-fsanitize=address,undefined'
+make -j"$(nproc)" cutest
+ASAN_OPTIONS='detect_leaks=1:halt_on_error=1' \
+UBSAN_OPTIONS='print_stacktrace=1:halt_on_error=1' \
+LUMINARI_TEST_ROOT="$PWD" ./cutest
+```
+
+The bounded protocol fuzz target copies its synthetic seed corpus to a
+temporary directory before running, so it never adds generated inputs to the
+repository:
+
+```sh
+make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
+```
+
+The equivalent Valgrind command is:
 
 ```sh
 make -j"$(nproc)" cutest
@@ -146,11 +174,11 @@ must not be added to the enforced suite.
 
 `.github/workflows/test.yml` enforces:
 
-- default, DragonLance, and Forgotten Realms builds;
-- root `make test`;
-- the focused protocol parser harness;
+- default, DragonLance, and Forgotten Realms behavioral suites;
+- root `make test-all`;
+- ASan, UBSan, and bounded protocol fuzzing;
 - Valgrind on the production-linked suite;
-- MariaDB-backed gcovr and Codecov reporting.
+- MariaDB-backed gcovr floors and Codecov ratcheting.
 
 Any change to test sources, build lists, coverage configuration, or the
 workflow triggers this pipeline.

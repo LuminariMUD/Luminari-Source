@@ -1,10 +1,11 @@
 coverage:
   precision: 2
   round: down
-  range: 0..10
+  range: 3.30..100
   status:
     project:
       default:
+        # Ratchet against the base commit; gcovr enforces the fixed 3.30% floor.
         target: auto
         threshold: 0%
         informational: false

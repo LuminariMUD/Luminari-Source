@@ -1,0 +1,31 @@
+# Every SQL file in this directory must be classified here.
+#
+# "apply" files are applied to a fresh database after master_schema.sql.
+# "skip" files are historical, destructive, orchestration, sample-data, or
+# post-install validation scripts rather than current component schemas.
+
+skip ai_region_hints_schema.sql
+apply ai_service_migration.sql
+apply character_rename_transactional_schema.sql
+skip dynamic_descriptions_deployment.sql
+apply fix_help_entries_production.sql
+skip fix_narrative_weaver_schema_inconsistencies.sql
+apply help_system_indexes.sql
+apply insert_room_templates.sql
+skip mosswood_sample_data.sql
+skip narrative_weaver_installation.sql
+apply narrative_weaver_reference_schema.sql
+apply phase7_cascade_migration.sql
+skip pubsub_v3_schema.sql
+skip region_description_schema.sql
+skip region_effects_system.sql
+apply region_resource_effects.sql
+apply region_resource_effects_simple.sql
+apply region_type_resource_effects.sql
+skip resource_cascade_db.sql
+apply resource_depletion_db.sql
+apply resource_depletion_schema.sql
+skip test_vessels_integrity.sql
+skip verify_vessels_schema.sql
+skip vessels_phase2_rollback.sql
+apply vessels_phase2_schema.sql

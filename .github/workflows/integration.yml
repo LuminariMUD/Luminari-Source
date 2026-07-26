@@ -44,31 +44,70 @@ jobs:
             echo "Waiting for MariaDB... ($i/30)"
             sleep 2
           done
+          mysqladmin ping -h 127.0.0.1 -u luminari -ptestpass --silent
 
       - name: Validate master schema
         run: |
-          if [[ -f sql/master_schema.sql ]]; then
-            echo "Applying master_schema.sql..."
-            mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < sql/master_schema.sql
-            echo "Master schema applied successfully"
-          else
-            echo "::warning::master_schema.sql not found"
-          fi
+          test -f sql/master_schema.sql || {
+            echo "::error::Required sql/master_schema.sql is missing"
+            exit 1
+          }
+          echo "Applying master_schema.sql..."
+          mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < sql/master_schema.sql
+          echo "Master schema applied successfully"
 
       - name: Validate component schemas
         run: |
-          FAILED=0
-          for schema in sql/components/*.sql; do
-            if [[ -f "$schema" ]]; then
-              echo "Validating: $schema"
-              if mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < "$schema" 2>&1; then
-                echo "  OK: $schema"
-              else
-                echo "::warning::Schema validation issue in $schema (may be expected for some migrations)"
-              fi
+          manifest=sql/components/ci_schema_manifest.txt
+          actual_schemas=/tmp/luminari-actual-schemas.txt
+          listed_schemas=/tmp/luminari-listed-schemas.txt
+          failed=0
+
+          test -f "$manifest" || {
+            echo "::error::Required component schema manifest is missing"
+            exit 1
+          }
+
+          find sql/components -maxdepth 1 -type f -name '*.sql' -printf '%f\n' |
+            sort > "$actual_schemas"
+          awk '$1 == "apply" || $1 == "skip" { print $2 }' "$manifest" |
+            sort > "$listed_schemas"
+          if ! diff -u "$actual_schemas" "$listed_schemas"; then
+            echo "::error::Every component SQL file must be classified exactly once"
+            exit 1
+          fi
+
+          while read -r action schema_name; do
+            [[ -z "${action:-}" || "$action" == \#* ]] && continue
+            schema="sql/components/$schema_name"
+
+            if [[ "$action" == "skip" ]]; then
+              echo "Explicitly excluded from schema application: $schema"
+              continue
             fi
-          done
-          echo "Schema validation complete"
+            if [[ "$action" != "apply" ]]; then
+              echo "::error::Unknown schema manifest action '$action'"
+              exit 1
+            fi
+
+            echo "Validating on a fresh master schema: $schema"
+            mysql -h 127.0.0.1 -u root -ptestroot -e "
+              DROP DATABASE IF EXISTS luminari_component_test;
+              CREATE DATABASE luminari_component_test CHARACTER SET utf8mb4;
+            "
+            mysql -h 127.0.0.1 -u root -ptestroot \
+              luminari_component_test < sql/master_schema.sql
+            if mysql -h 127.0.0.1 -u root -ptestroot \
+              luminari_component_test < "$schema"; then
+              echo "  OK: $schema"
+            else
+              echo "::error::Schema application failed: $schema"
+              failed=1
+            fi
+          done < "$manifest"
+
+          [[ "$failed" -eq 0 ]] || exit 1
+          echo "All current component schemas applied successfully"
 
       - name: Verify database structure
         run: |
@@ -79,7 +118,8 @@ jobs:
           if [[ "$TABLE_COUNT" -gt 0 ]]; then
             echo "Database migration dry-run successful"
           else
-            echo "::warning::No tables created - check schema files"
+            echo "::error::No tables were created by master_schema.sql"
+            exit 1
           fi
 
   world-validation:
@@ -109,23 +149,30 @@ jobs:
             if [[ -f "lib/world/minimal/index.${dir}" ]]; then
               echo "Found: index.${dir}"
             else
-              echo "::warning::Missing index file: index.${dir}"
+              echo "::error::Missing required index file: index.${dir}"
+              ERRORS=$((ERRORS + 1))
             fi
           done
 
           # Check zone files are parseable (basic syntax check)
           echo "Validating zone file syntax..."
-          for zonefile in lib/world/minimal/*.zon; do
-            if [[ -f "$zonefile" ]]; then
-              # Basic check: zone files should start with zone number or comment
-              if head -5 "$zonefile" | grep -qE '^[0-9#]'; then
-                echo "  OK: $zonefile"
-              else
-                echo "::warning::Possible syntax issue in $zonefile"
-              fi
+          shopt -s nullglob
+          zonefiles=(lib/world/minimal/*.zon)
+          if [[ "${#zonefiles[@]}" -eq 0 ]]; then
+            echo "::error::No minimal zone file was found"
+            ERRORS=$((ERRORS + 1))
+          fi
+          for zonefile in "${zonefiles[@]}"; do
+            # Basic check: zone files should start with zone number or comment
+            if head -5 "$zonefile" | grep -qE '^[0-9#]'; then
+              echo "  OK: $zonefile"
+            else
+              echo "::error::Zone syntax check failed: $zonefile"
+              ERRORS=$((ERRORS + 1))
             fi
           done
 
+          [[ "$ERRORS" -eq 0 ]] || exit 1
           echo "World file validation complete"
 
       - name: Check world directory structure
@@ -193,12 +240,13 @@ jobs:
             echo "Waiting for MariaDB... ($i/30)"
             sleep 2
           done
+          mysqladmin ping -h 127.0.0.1 -u luminari -ptestpass --silent
 
       - name: Setup database
         run: |
-          if [[ -f sql/master_schema.sql ]]; then
-            mysql -h 127.0.0.1 -u luminari -ptestpass luminari_test < sql/master_schema.sql
-          fi
+          test -f sql/master_schema.sql
+          mysql -h 127.0.0.1 -u luminari -ptestpass \
+            luminari_test < sql/master_schema.sql
 
       - name: Setup MySQL config
         run: |
@@ -214,19 +262,25 @@ jobs:
           # Create world directories
           mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
 
-          # Copy minimal world files
-          cp lib/world/minimal/index.zon lib/world/zon/index 2>/dev/null || true
-          cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
-          cp lib/world/minimal/index.wld lib/world/wld/index 2>/dev/null || true
-          cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
-          cp lib/world/minimal/index.mob lib/world/mob/index 2>/dev/null || true
-          cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
-          cp lib/world/minimal/index.obj lib/world/obj/index 2>/dev/null || true
-          cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
-          cp lib/world/minimal/index.shp lib/world/shp/index 2>/dev/null || true
-          cp lib/world/minimal/index.trg lib/world/trg/index 2>/dev/null || true
-          cp lib/world/minimal/index.qst lib/world/qst/index 2>/dev/null || true
-          cp lib/world/minimal/index.hlq lib/world/hlq/index 2>/dev/null || true
+          # Copy every required index and the minimal data files.
+          for type in zon wld mob obj shp trg qst hlq; do
+            cp "lib/world/minimal/index.$type" "lib/world/$type/index"
+          done
+          cp lib/world/minimal/*.zon lib/world/zon/
+          cp lib/world/minimal/*.wld lib/world/wld/
+          cp lib/world/minimal/*.mob lib/world/mob/
+          cp lib/world/minimal/*.obj lib/world/obj/
+
+          # The regular config points at production-world rooms. Use rooms
+          # provided by the minimal fixture so the smoke boot is meaningful.
+          sed -i \
+            -e 's/^mortal_start_room = .*/mortal_start_room = 3001/' \
+            -e 's/^immort_start_room = .*/immort_start_room = 3002/' \
+            -e 's/^frozen_start_room = .*/frozen_start_room = 3000/' \
+            lib/etc/config
+          grep -qx 'mortal_start_room = 3001' lib/etc/config
+          grep -qx 'immort_start_room = 3002' lib/etc/config
+          grep -qx 'frozen_start_room = 3000' lib/etc/config
 
           echo "World data initialized"
 
@@ -258,51 +312,56 @@ jobs:
 
       - name: Server startup smoke test
         run: |
+          set -euo pipefail
           echo "Starting server for smoke test..."
+          server_log=log/integration-syslog
 
-          # Start server in background with timeout
-          timeout 30s ./circle -q 4100 &
-          SERVER_PID=$!
+          # The minimal fixture intentionally omits production special-procedure
+          # targets, so suppress special assignment while testing the real boot.
+          ./circle -o "$server_log" -q -s 4100 &
+          server_pid=$!
+          cleanup_server()
+          {
+            kill "$server_pid" 2>/dev/null || true
+            for attempt in {1..10}; do
+              kill -0 "$server_pid" 2>/dev/null || break
+              sleep 0.2
+            done
+            kill -KILL "$server_pid" 2>/dev/null || true
+            wait "$server_pid" 2>/dev/null || true
+          }
+          trap cleanup_server EXIT
 
-          # Wait for server to start
-          sleep 10
-
-          # Check if server is still running
-          if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "Server started successfully (PID: $SERVER_PID)"
-
-            # Try to connect to the port
+          listening=0
+          for attempt in {1..20}; do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
             if nc -z localhost 4100 2>/dev/null; then
-              echo "Server is accepting connections on port 4100"
-            else
-              echo "::warning::Server running but not accepting connections yet"
+              listening=1
+              break
             fi
+            sleep 1
+          done
 
-            # Check log for errors
-            if [[ -f log/syslog ]]; then
-              echo "=== Recent syslog entries ==="
-              tail -20 log/syslog
-
-              # Check for critical errors
-              if grep -qi "SYSERR" log/syslog; then
-                echo "::warning::SYSERR found in logs - check for issues"
-              fi
-            fi
-
-            # Graceful shutdown
-            echo "Shutting down server..."
-            kill $SERVER_PID 2>/dev/null || true
-            wait $SERVER_PID 2>/dev/null || true
-
-            echo "Server startup smoke test PASSED"
-          else
-            echo "::error::Server failed to start or crashed"
-
-            # Show any logs
-            if [[ -f log/syslog ]]; then
-              echo "=== syslog ==="
-              cat log/syslog
-            fi
-
+          if [[ "$listening" -ne 1 ]]; then
+            echo "::error::Server did not accept connections on port 4100"
+            [[ -f "$server_log" ]] && tail -100 "$server_log"
             exit 1
           fi
+
+          echo "Server is accepting connections on port 4100"
+          test -f "$server_log" || {
+            echo "::error::Server log was not created"
+            exit 1
+          }
+
+          echo "=== Recent server log entries ==="
+          tail -40 "$server_log"
+          if grep -qi "SYSERR" "$server_log"; then
+            echo "::error::Unexpected SYSERR found during startup"
+            grep -in "SYSERR" "$server_log"
+            exit 1
+          fi
+
+          echo "Server startup smoke test PASSED"

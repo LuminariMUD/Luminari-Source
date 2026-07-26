@@ -27,6 +27,14 @@ CUTEST_OBJ = $(BUILD_DIR)/CuTest.o
 PROTOCOL_PARSER_TEST_OBJ = $(BUILD_DIR)/test_protocol_parser.o
 PROTOCOL_SOURCE_OBJ = $(BUILD_DIR)/protocol.o
 PROTOCOL_PARSER_TEST_EXE = protocol_parser_tests
+PROTOCOL_FUZZ_OBJ = $(BUILD_DIR)/fuzz_protocol_parser.o
+PROTOCOL_FUZZ_SOURCE_OBJ = $(BUILD_DIR)/protocol_fuzz.o
+PROTOCOL_FUZZ_EXE = protocol_parser_fuzz
+FUZZ_CC ?= $(shell command -v clang 2>/dev/null || command -v clang-18 2>/dev/null)
+FUZZ_SECONDS ?= 10
+FUZZ_CFLAGS ?= -Wall -Wextra $(CSTD_FLAG) -g -O1 -fno-omit-frame-pointer \
+	-fsanitize=fuzzer,address,undefined
+FUZZ_LDFLAGS ?= -lm -fsanitize=fuzzer,address,undefined
 
 all: $(PROTOCOL_PARSER_TEST_EXE)
 
@@ -48,15 +56,38 @@ $(PROTOCOL_PARSER_TEST_EXE): $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) \
 		$(PROTOCOL_SOURCE_OBJ)
 	$(CC) $(PROTOCOL_TEST_CFLAGS) -o $@ $^ $(PROTOCOL_TEST_LDFLAGS)
 
+$(PROTOCOL_FUZZ_OBJ): fuzz_protocol_parser.c ../../src/protocol.h \
+		../../src/structs.h | $(BUILD_DIR)
+	$(FUZZ_CC) $(FUZZ_CFLAGS) -c fuzz_protocol_parser.c -o $@
+
+$(PROTOCOL_FUZZ_SOURCE_OBJ): ../../src/protocol.c ../../src/protocol.h \
+		../../src/structs.h | $(BUILD_DIR)
+	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src -c ../../src/protocol.c -o $@
+
+$(PROTOCOL_FUZZ_EXE): $(PROTOCOL_FUZZ_OBJ) $(PROTOCOL_FUZZ_SOURCE_OBJ)
+	$(FUZZ_CC) $(FUZZ_CFLAGS) -o $@ $^ $(FUZZ_LDFLAGS)
+
 production:
 	$(MAKE) -C ../.. test
 
 protocol-parser: $(PROTOCOL_PARSER_TEST_EXE)
 	./$(PROTOCOL_PARSER_TEST_EXE)
 
+protocol-fuzz-build: $(PROTOCOL_FUZZ_EXE)
+
+protocol-fuzz: $(PROTOCOL_FUZZ_EXE)
+	fuzz_work=$$(mktemp -d /tmp/luminari-protocol-fuzz.XXXXXX); \
+	trap 'rm -rf "$$fuzz_work"' EXIT; \
+	cp fuzz_corpus/* "$$fuzz_work/"; \
+	ASAN_SYMBOLIZER_PATH=$$(command -v llvm-symbolizer 2>/dev/null || \
+		command -v llvm-symbolizer-18 2>/dev/null || true) \
+	./$(PROTOCOL_FUZZ_EXE) -max_total_time=$(FUZZ_SECONDS) -timeout=5 \
+		-print_funcs=0 -verbosity=0 -max_len=16384 "$$fuzz_work"
+
 test: production
 
-test-all: production protocol-parser
+test-all:
+	$(MAKE) -C ../.. test-all
 
 valgrind-protocol: $(PROTOCOL_PARSER_TEST_EXE)
 	valgrind --leak-check=full --track-origins=yes --error-exitcode=1 \
@@ -64,7 +95,7 @@ valgrind-protocol: $(PROTOCOL_PARSER_TEST_EXE)
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f $(PROTOCOL_PARSER_TEST_EXE)
+	rm -f $(PROTOCOL_PARSER_TEST_EXE) $(PROTOCOL_FUZZ_EXE)
 
 rebuild: clean all
 
@@ -74,9 +105,10 @@ help:
 	@echo "  all                - Build the focused protocol parser harness"
 	@echo "  production         - Run the root production-linked CuTest suite"
 	@echo "  protocol-parser    - Run the focused protocol parser harness"
-	@echo "  test-all           - Run both production and protocol tests"
+	@echo "  protocol-fuzz      - Run bounded ASan/UBSan libFuzzer coverage"
+	@echo "  test-all           - Run the authoritative root test-all target"
 	@echo "  valgrind-protocol  - Run the protocol harness with Valgrind"
 	@echo "  clean              - Remove standalone build artifacts"
 
-.PHONY: all production protocol-parser test test-all valgrind-protocol clean \
-	rebuild help
+.PHONY: all production protocol-parser protocol-fuzz-build protocol-fuzz test \
+	test-all valgrind-protocol clean rebuild help

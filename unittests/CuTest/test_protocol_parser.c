@@ -38,6 +38,7 @@ typedef struct protocol_fixture
 typedef struct protocol_harness
 {
   struct descriptor_data descriptor;
+  char descriptor_output[MAX_PROTOCOL_BUFFER + 1];
   char output[MAX_PROTOCOL_BUFFER + 1];
 } protocol_harness_t;
 
@@ -165,8 +166,8 @@ static void harness_init(CuTest *tc, protocol_harness_t *harness)
   reset_capture();
   memset(&config_info, 0, sizeof(config_info));
 
-  harness->descriptor.output = harness->descriptor.small_outbuf;
-  harness->descriptor.small_outbuf[0] = '\0';
+  harness->descriptor_output[0] = '\0';
+  harness->descriptor.output = harness->descriptor_output;
   harness->descriptor.pProtocol = ProtocolCreate();
 
   CuAssertPtrNotNullMsg(tc, "ProtocolCreate returned NULL", harness->descriptor.pProtocol);
@@ -295,6 +296,35 @@ void TestProtocolParser_IncompleteAndMalformedSubnegotiations(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)harness_input(&malformed_gmcp, &fixture));
   CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
   harness_destroy(&malformed_gmcp);
+}
+
+void TestProtocolParser_TruncatedLookaheadSequences(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  ssize_t consumed;
+
+  harness_init(tc, &harness);
+
+  fixture_init(&fixture);
+  fixture_byte(&fixture, (unsigned char)IAC);
+  consumed = harness_input(&harness, &fixture);
+  CuAssertIntEquals(tc, 0, (int)consumed);
+
+  fixture_init(&fixture);
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)WILL);
+  consumed = harness_input(&harness, &fixture);
+  CuAssertIntEquals(tc, 0, (int)consumed);
+
+  fixture_init(&fixture);
+  fixture_byte(&fixture, 27);
+  fixture_byte(&fixture, '[');
+  fixture_byte(&fixture, '1');
+  consumed = harness_input(&harness, &fixture);
+  CuAssertIntEquals(tc, 3, (int)consumed);
+
+  harness_destroy(&harness);
 }
 
 void TestProtocolParser_TtypeAndNawsNegotiation(CuTest *tc)
@@ -487,6 +517,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_DoubledIacLiteral);
   SUITE_ADD_TEST(suite, TestProtocolParser_SplitIacCurrentGap);
   SUITE_ADD_TEST(suite, TestProtocolParser_IncompleteAndMalformedSubnegotiations);
+  SUITE_ADD_TEST(suite, TestProtocolParser_TruncatedLookaheadSequences);
   SUITE_ADD_TEST(suite, TestProtocolParser_TtypeAndNawsNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);

@@ -1,0 +1,1 @@
+Core.Hello {"client":"synthetic","version":"1"}

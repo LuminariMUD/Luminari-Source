@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5006 LANGUAGES C)
+project(LuminariMUD VERSION 2.5007 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -872,6 +872,13 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_world_loading_production.c
+    unittests/CuTest/test_gameplay_e2e.c
+)
+
+# The focused protocol harnesses are built by unittests/CuTest/Makefile.
+set(PROTOCOL_FOCUSED_TEST_SOURCES
+    unittests/CuTest/test_protocol_parser.c
+    unittests/CuTest/fuzz_protocol_parser.c
 )
 
 # ========== Installation ==========

@@ -243,6 +243,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_world_loading_production.c \
+	unittests/CuTest/test_gameplay_e2e.c \
 	unittests/CuTest/AllTests.c \
 	$(circle_SOURCES)
 
@@ -259,7 +260,8 @@ cutest_test_files = \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
-	unittests/CuTest/test_world_loading_production.c
+	unittests/CuTest/test_world_loading_production.c \
+	unittests/CuTest/test_gameplay_e2e.c
 
 # Generate AllTests.c before building cutest
 unittests/CuTest/AllTests.c: $(cutest_test_files) unittests/CuTest/make-tests.sh
@@ -283,25 +285,47 @@ src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
 
 # Extra files to distribute
 EXTRA_DIST = \
+	unittests/README.md \
+	unittests/CuTest/Makefile \
+	unittests/CuTest/README.txt \
+	unittests/CuTest/fuzz_protocol_parser.c \
+	unittests/CuTest/fuzz_corpus/plain_command.txt \
+	unittests/CuTest/fuzz_corpus/gmcp_like.txt \
 	unittests/CuTest/make-tests.sh \
+	unittests/CuTest/test_protocol_parser.c \
 	scripts/test_character_rename_schema.sh \
 	scripts/test_character_rename_static.sh \
 	sql/components/character_rename_transactional_schema.sql \
-	README.md \
-	CHANGELOG.md \
-	LICENSE
+	sql/components/ci_schema_manifest.txt \
+	README.md
 
 # Run unit tests
 test: check
-	./cutest
+	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
-.PHONY: test-character-rename-static test-character-rename-schema
+.PHONY: test-all test-protocol test-protocol-fuzz test-character-rename-static \
+	test-character-rename-schema
+
+test-protocol:
+	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser
+
+test-protocol-fuzz:
+	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-fuzz
 
 test-character-rename-static:
 	./scripts/test_character_rename_static.sh
 
 test-character-rename-schema:
 	./scripts/test_character_rename_schema.sh
+
+# Authoritative full local test entry point. The final install both verifies the
+# install path and removes the root-level circle artifact created by make test.
+test-all:
+	$(MAKE) test
+	$(MAKE) test-protocol
+	$(MAKE) test-character-rename-static
+	$(MAKE) test-character-rename-schema
+	$(MAKE) install
 
 # Additional cleanup for distclean
 # Removes autotools-generated files and build artifacts

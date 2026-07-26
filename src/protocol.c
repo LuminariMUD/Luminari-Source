@@ -622,6 +622,9 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
 
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
+  if (apData == NULL || apOut == NULL || aSize <= 0)
+    return 0;
+
   if (pProtocol == NULL)
   {
     /* Fallback to copying input directly if no protocol structure */
@@ -646,7 +649,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
     }
 
     /* IAC IAC is treated as a single value of 255 */
-    if (apData[Index] == (char)IAC && apData[Index + 1] == (char)IAC)
+    if (apData[Index] == (char)IAC && Index + 1 < aSize && apData[Index + 1] == (char)IAC)
     {
       if (pProtocol->bIACMode)
         IacBuf[IacIndex++] = (char)IAC;
@@ -657,7 +660,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
     else if (pProtocol->bIACMode)
     {
       /* End subnegotiation. */
-      if (apData[Index] == (char)IAC && apData[Index + 1] == (char)SE)
+      if (apData[Index] == (char)IAC && Index + 1 < aSize && apData[Index + 1] == (char)SE)
       {
         Index++;
         pProtocol->bIACMode = false;
@@ -669,8 +672,8 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       else
         IacBuf[IacIndex++] = apData[Index];
     }
-    else if (apData[Index] == (char)27 && apData[Index + 1] == '[' && isdigit(apData[Index + 2]) &&
-             apData[Index + 3] == 'z')
+    else if (Index + 3 < aSize && apData[Index] == (char)27 && apData[Index + 1] == '[' &&
+             isdigit((unsigned char)apData[Index + 2]) && apData[Index + 3] == 'z')
     {
       char MXPBuffer[1024];
       char *pMXPTag = NULL;
@@ -766,7 +769,8 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       if (strcmp(pProtocol->pMXPVersion, "Unknown"))
       {
         Write(apDescriptor, "\n");
-        sprintf(MXPBuffer, "MXP version %s detected and enabled.\r\n", pProtocol->pMXPVersion);
+        snprintf(MXPBuffer, sizeof(MXPBuffer), "MXP version %s detected and enabled.\r\n",
+                 pProtocol->pMXPVersion);
         InfoMessage(apDescriptor, MXPBuffer);
       }
     }
@@ -774,6 +778,9 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
     {
       if (apData[Index] == (char)IAC)
       {
+        if (Index + 1 >= aSize)
+          continue;
+
         switch (apData[Index + 1])
         {
         case (char)SB: /* Begin subnegotiation. */
@@ -785,6 +792,11 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
         case (char)DONT:
         case (char)WILL:
         case (char)WONT:
+          if (Index + 2 >= aSize)
+          {
+            Index = aSize;
+            break;
+          }
           PerformHandshake(apDescriptor, apData[Index + 1], apData[Index + 2]);
           Index += 2;
           break;

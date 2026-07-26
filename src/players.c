@@ -4708,7 +4708,7 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-    if (num != -1)
+    if (num >= 0 && num < MAX_ENEMIES)
       GET_FAVORED_ENEMY(ch, num) = num2;
   } while (num != -1);
 }
@@ -4736,7 +4736,7 @@ static void load_potions(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+    if (num > 0 && num < MAX_SPELLS)
       STORED_POTIONS(ch, num) = num2;
   } while (num != -1);
 }
@@ -4750,8 +4750,11 @@ static void load_buffs(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
     sscanf(line, "%d %d %d", &num, &num2, &num3);
-    GET_BUFF(ch, num, 0) = num2;
-    GET_BUFF(ch, num, 1) = num3;
+    if (num >= 0 && num < MAX_BUFFS)
+    {
+      GET_BUFF(ch, num, 0) = num2;
+      GET_BUFF(ch, num, 1) = num3;
+    }
   } while (num != -1);
 }
 
@@ -4764,7 +4767,7 @@ static void load_scrolls(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+    if (num > 0 && num < MAX_SPELLS)
       STORED_SCROLLS(ch, num) = num2;
   } while (num != -1);
 }
@@ -4778,7 +4781,7 @@ static void load_wands(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+    if (num > 0 && num < MAX_SPELLS)
       STORED_WANDS(ch, num) = num2;
   } while (num != -1);
 }
@@ -4792,7 +4795,7 @@ static void load_staves(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+    if (num > 0 && num < MAX_SPELLS)
       STORED_STAVES(ch, num) = num2;
   } while (num != -1);
 }
