@@ -517,10 +517,21 @@ Nothing below can be finished from source alone. They are the gate between
   `1` in `src/vessels.h` for dev work, which logs every ship movement, terrain
   check, and speed calculation - useful on dev, a syslog flood in production.
   This is a hard gate on the Section 6.5 rollout step, not a nice-to-have.
-- **Deployment: help files are gitignored.** `lib/text/help/*` is excluded by
-  `.gitignore:322`, though sibling vessel help files (`autopilot.hlp`,
-  `schedule.hlp`) are tracked via force-add. The nine new help files work locally
-  but need `git add -f lib/text/help/*.hlp` to reach a fresh clone or production.
+- **Load the help entries into the database.** Help content for all 31 commands is
+  in `lib/text/help/help.hlp` and loads at boot (verified: keyword count 3260 ->
+  3324), so in-game lookups work. But `lib/text/help/*` is gitignored
+  (`.gitignore:322`) because the database is the authoritative store, which means
+  the `help.hlp` edit is local-only and will not reach another machine or
+  production. Apply `sql/components/help_vessel_entries.sql` to load the same 26
+  entries into `help_entries`/`help_keywords` (idempotent; validated in a
+  rolled-back transaction). Equivalent to running `hedit import` in-game.
+  - The migration also covers 17 pre-existing vessel/vehicle topics (autopilot,
+    waypoints, routes, schedules, vehicle commands, NPC pilots) that had never
+    been reachable because their standalone `.hlp` files were not listed in
+    `lib/text/help/index`.
+  - Two of those orphan files, `autopilot.hlp` and `schedule.hlp`, are tracked in
+    git and now duplicate content that lives in `help.hlp`. Worth deciding whether
+    to delete them so the two copies cannot drift.
 
 ### 6.2 Content and gameplay depth
 
@@ -602,9 +613,8 @@ Nothing below can be finished from source alone. They are the gate between
 - **Staged production rollout** (Phase 09 S6): rehearse migration and rollback on
   a production snapshot, then roll out behind the cedit toggle (staff, then a
   beta cohort, then everyone), with announcement content and a postmortem.
-  Pre-flight: `VESSEL_SYSTEM_DEBUG` set to 0 (Section 6.1) and the help files
-  force-added to git (Section 6.1). Only after this does VESSEL_SYSTEM.md
-  become 3.0.
+  Pre-flight: `VESSEL_SYSTEM_DEBUG` set to 0 and the help migration applied
+  (both Section 6.1). Only after this does VESSEL_SYSTEM.md become 3.0.
 
 ### 6.6 Decisions still open
 

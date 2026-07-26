@@ -18,6 +18,46 @@
 
 ## System Overview
 
+> ### Adding help content: read this first
+>
+> The help system runs in **dual mode** (`src/db.c:4361`), and the file half has a
+> trap that silently swallows new content.
+>
+> **The file loader does not scan `lib/text/help/`.** It reads
+> `lib/text/help/index`, which lists exactly one file: `help.hlp`. Any standalone
+> `.hlp` file you drop in that directory is **never read** unless you add it to
+> `index`. Several such orphans have accumulated over time.
+>
+> **`help.hlp` is a single concatenated file**, not a directory of topics. Format
+> per entry:
+>
+> ```
+> KEYWORD1 KEYWORD2 MULTI-WORD-TOPIC
+> <blank line - required>
+> Body text...
+> #<min_level>
+> ```
+>
+> Keywords are space-separated, so multi-word topics use **hyphens**, not spaces
+> or quotes (`SHIP-COMBAT`, not `"SHIP COMBAT"`). `hedit`'s `validate_help_tag()`
+> rejects anything outside letters, digits, spaces, hyphens, and underscores, and
+> tags must be 2-50 characters. The file ends with a single `$~`.
+>
+> `#<min_level>` gates the entry: `0` for players, `31` (LVL_IMMORT) for staff
+> commands. Set this for anything that should not be publicly readable.
+>
+> **The database is authoritative.** `.gitignore` excludes `lib/text/help/*`
+> precisely because content belongs in MySQL now. `hedit import` loads
+> `help.hlp` into the database, but it is hardcoded to that one path
+> (`hedit.c:2545`, `:3218`) and cannot read arbitrary files. For repeatable,
+> reviewable imports, commit a SQL migration under `sql/components/` instead -
+> see `help_vessel_entries.sql` for a worked example covering 26 entries.
+>
+> **Verify by booting, not by looking at files.** A correct boot logs
+> `Loading help entries.` followed by a keyword count and
+> `Sorted N help entries from file.` If your count did not rise, the loader never
+> saw your content. Confirming a `.hlp` file exists on disk proves nothing.
+
 The LuminariMUD help system is a sophisticated, multi-layered documentation framework that provides:
 - **Database-driven content** with MySQL/MariaDB backend
 - **Intelligent search** with fuzzy matching and soundex algorithms

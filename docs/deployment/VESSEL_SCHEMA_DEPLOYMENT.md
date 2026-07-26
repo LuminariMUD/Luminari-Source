@@ -23,6 +23,7 @@ All scripts live in `sql/components/`. Each phase has schema, rollback, and
 | 6 | `vessels_phase6_schema.sql`, `vessels_phase6_rollback.sql`, `verify_vessels_phase6.sql` | Ownership, upgrades, insurance, wage columns |
 | 7 | `vessels_phase7_schema.sql`, `vessels_phase7_rollback.sql`, `verify_vessels_phase7.sql` | Commodities, port supply, freight contracts, bounties |
 | 8 | `vessels_phase8_schema.sql`, `vessels_phase8_rollback.sql`, `verify_vessels_phase8.sql` | Region-keyed encounter tables |
+| help | `help_vessel_entries.sql` | 26 vessel/vehicle help entries into `help_entries`/`help_keywords` (idempotent; no rollback script needed - re-running updates in place) |
 
 Deploy phases in ascending order - later phases extend tables that earlier
 phases create.

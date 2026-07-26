@@ -170,10 +170,18 @@ wilderness contract, remaining work).
 - **Per-class cargo capacity** - `get_vessel_cargo_capacity()` data table plus
   `vessel_effective_cargo_capacity()`, which folds in the hold refit and the
   quartermaster's stowage bonus.
-- **Help files** - `vedit.hlp`, `shipcombat.hlp`, `shipowner.hlp`,
-  `shipcrew.hlp`, `shiptrade.hlp`, `shipfreight.hlp`, `shippiracy.hlp`,
-  `seastate.hlp`, `shipadmin.hlp`. All 31 new commands have entries (verified by
-  scripted audit).
+- **Help content for all 31 new commands**, appended to `lib/text/help/help.hlp`
+  as 9 entries covering 47 keywords, with staff commands (`vedit`, `shiplist`,
+  `shipgoto`, `shipfix`) gated at min_level 31.
+  - Also loaded 17 **pre-existing** vessel and vehicle topics that had never been
+    reachable: autopilot, waypoints, routes, schedules, vehicle commands, and NPC
+    pilots. Their standalone `.hlp` files were not listed in
+    `lib/text/help/index`, so the file loader never read them.
+  - `sql/components/help_vessel_entries.sql` loads the same 26 entries into
+    `help_entries`/`help_keywords` for the database half of the dual-mode system.
+    Idempotent, and validated in a rolled-back transaction.
+  - Verified by booting the server: help entry count rose from 3260 to 3324
+    keywords, matching the file exactly.
 - **SQL components** - schema, rollback, and verify scripts for each phase:
   `vessels_phase4_*`, `vessels_phase6_*`, `vessels_phase7_*`, `vessels_phase8_*`
   in `sql/components/`. The Phase 08 verify script flags any encounter row whose
