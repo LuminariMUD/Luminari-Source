@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
-AC_INIT([LuminariMUD],[2.5009-beta],[bugs@luminarimud.com])
+AC_INIT([LuminariMUD],[2.5010-beta],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
@@ -131,7 +131,6 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_HEADERS([time.h sys/time.h])
-AC_CHECK_DECLS([struct timeval],,,[#include <sys/time.h>])
 
 dnl Check for the 'struct in_addr' definition. Ugly, yes.
 if test $ac_cv_header_netinet_in_h = no; then

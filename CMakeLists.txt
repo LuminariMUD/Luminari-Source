@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5009 LANGUAGES C)
+project(LuminariMUD VERSION 2.5010 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -31,7 +31,8 @@ endif()
 set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
-# Include source paths
+# Prefer CMake's binary directory for generated headers.
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(src)
 
 # Check for required configuration headers
@@ -331,7 +332,7 @@ endif()
 
 # ========== time.h needs special treatment ==========
 check_include_file("sys/time.h" HAVE_SYS_TIME_H)
-check_include_file("sys/time.h" HAVE_TIME_H)
+check_include_file("time.h" HAVE_TIME_H)
 
 if (HAVE_SYS_TIME_H AND HAVE_TIME_H)
     check_c_source_compiles("
@@ -378,102 +379,9 @@ if (UNIX)
     set(CIRCLE_UNIX 1)
 endif()
 
-set(PROTO_FUNCTIONS
-        accept
-        bind
-        gettimeofday
-        atoi
-        atol
-        bzero
-        chdir
-        close
-        fclose
-        fcntl
-        fflush
-        fprintf
-        fputc
-        fread
-        fscanf
-        fseek
-        fwrite
-        getpeername
-        getpid
-        getrlimit
-        getsockname
-        htonl
-        htons
-        inet_addr
-        inet_aton
-        inet_ntoa
-        listen
-        ntohl
-        perror
-        printf
-        qsort
-        read
-        remove
-        rewind
-        select
-        setitimer
-        setrlimit
-        setsockopt
-        snprintf
-        sprintf
-        sscanf
-        strcasecmp
-        strdup
-        strerror
-        stricmp
-        strlcpy
-        strncasecmp
-        strnicmp
-        system
-        time
-        unlink
-        vsnprintf
-        write
-        socket
-)
-
-# Removed conf.h generation - using target compile definitions instead
-
-set(PROTO_DEFINITIONS "")
-macro(check_function_prototype FUNCTION)
-    set(_code "
-#define NO_LIBRARY_PROTOTYPES
-#define __COMM_C__
-#define __ACT_OTHER_C__
-/* Skip including conf.h for prototype checks */
-#include \"${CMAKE_SOURCE_DIR}/src/sysdep.h\"
-#ifdef ${FUNCTION}
-  error - already defined!
-#endif
-void ${FUNCTION}(int a, char b, int c, char d, int e, char f, int g, char h);
-
-int main() {
-
-; return 0; }
-    ")
-    string(TOUPPER "${FUNCTION}" _upper_name)
-    check_c_source_compiles("${_code}" NEED_${_upper_name}_PROTO FAIL_REGEX ".*incompatible pointer type.*")
-    if (NEED_${_upper_name}_PROTO)
-        message(STATUS "${FUNCTION}() has no prototype, NEED_${_upper_name}_PROTO set!")
-        list(APPEND PROTO_DEFINITIONS "NEED_${_upper_name}_PROTO")
-    else()
-        message(STATUS "${FUNCTION}() has a prototype, not setting NEED_${_upper_name}_PROTO")
-    endif()
-endmacro()
-
-
-foreach (FUNC ${PROTO_FUNCTIONS})
-    check_function_prototype(${FUNC})
-endforeach()
-
-
-# ========== Generate conf.h ==========
-# Using target compile definitions instead of conf.h
-
-
+# Generate the header included by both the server and utility sources after all
+# platform checks have populated their feature variables.
+configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/conf.h)
 
 # ========== Source files ==========
 # Main C source files
@@ -778,11 +686,6 @@ if (NOT HAVE_SOCKLEN_T)
     target_compile_definitions(circle PRIVATE socklen_t=int)
 endif()
 
-# Add function prototype definitions
-if (PROTO_DEFINITIONS)
-    target_compile_definitions(circle PRIVATE ${PROTO_DEFINITIONS})
-endif()
-
 # Link required libraries
 target_link_libraries(circle ${EXTRA_LIBS} m pthread)
 
@@ -805,6 +708,7 @@ endif()
 find_library(JSON_C_LIBRARY json-c)
 if (JSON_C_LIBRARY)
     target_link_libraries(circle ${JSON_C_LIBRARY})
+    target_compile_definitions(circle PRIVATE HAVE_JSON_C)
 endif()
 
 # ========== Compiler warnings and options ==========

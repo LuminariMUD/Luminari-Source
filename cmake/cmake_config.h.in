@@ -1,0 +1,55 @@
+/* CMake configuration header. */
+
+#cmakedefine CIRCLE_CRYPT 1
+#cmakedefine CIRCLE_MYSQL 1
+#cmakedefine CIRCLE_UNIX 1
+
+#cmakedefine HAVE_ARPA_INET_H 1
+#cmakedefine HAVE_ARPA_TELNET_H 1
+#cmakedefine HAVE_ASSERT_H 1
+#cmakedefine HAVE_CONST 1
+#cmakedefine HAVE_CRYPT_H 1
+#cmakedefine HAVE_ERRNO_H 1
+#cmakedefine HAVE_FCNTL_H 1
+#cmakedefine HAVE_FLOAT_H 1
+#cmakedefine HAVE_GETTIMEOFDAY 1
+#cmakedefine HAVE_INET_ADDR 1
+#cmakedefine HAVE_INET_ATON 1
+#cmakedefine HAVE_LIMITS_H 1
+#cmakedefine HAVE_MCHECK_H 1
+#cmakedefine HAVE_MEMORY_H 1
+#cmakedefine HAVE_NETDB_H 1
+#cmakedefine HAVE_NETINET_IN_H 1
+#cmakedefine HAVE_SELECT 1
+#cmakedefine HAVE_SIGNAL_H 1
+#cmakedefine HAVE_SNPRINTF 1
+#cmakedefine HAVE_STDARG_H 1
+#cmakedefine HAVE_STDLIB_H 1
+#cmakedefine HAVE_STRCASECMP 1
+#cmakedefine HAVE_STRDUP 1
+#cmakedefine HAVE_STRERROR 1
+#cmakedefine HAVE_STRICMP 1
+#cmakedefine HAVE_STRINGS_H 1
+#cmakedefine HAVE_STRING_H 1
+#cmakedefine HAVE_STRLCPY 1
+#cmakedefine HAVE_STRNCASECMP 1
+#cmakedefine HAVE_STRNICMP 1
+#cmakedefine HAVE_STRSTR 1
+#cmakedefine HAVE_STRUCT_IN_ADDR 1
+#cmakedefine HAVE_SYS_RESOURCE_H 1
+#cmakedefine HAVE_SYS_SELECT_H 1
+#cmakedefine HAVE_SYS_SOCKET_H 1
+#cmakedefine HAVE_SYS_STAT_H 1
+#cmakedefine HAVE_SYS_TIME_H 1
+#cmakedefine HAVE_SYS_TYPES_H 1
+#cmakedefine HAVE_SYS_UIO_H 1
+#cmakedefine HAVE_SYS_WAIT_H 1
+#cmakedefine HAVE_TIME_H 1
+#cmakedefine HAVE_UNISTD_H 1
+#cmakedefine HAVE_UNSAFE_CRYPT 1
+#cmakedefine HAVE_VPRINTF 1
+#cmakedefine HAVE_VSNPRINTF 1
+#cmakedefine STDC_HEADERS 1
+#cmakedefine TIME_WITH_SYS_TIME 1
+
+#define RETSIGTYPE @RETSIGTYPE@
