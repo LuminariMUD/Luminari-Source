@@ -5410,8 +5410,9 @@ ACMD(do_clantalk)
 
     if (imm)
     {
-      snprintf(buf2, sizeof(buf2), "[%sClan %d - %s %s] %s", CBWHT(i->character, C_NRM), c_id,
-               clan_list[c_id - 1].abrev, CBWHT(i->character, C_NRM), buf);
+      snprintf(buf2, sizeof(buf2), "[%sClan %d - %s %s] ", CBWHT(i->character, C_NRM), c_id,
+               clan_list[c_id - 1].abrev, CBWHT(i->character, C_NRM));
+      strlcat(buf2, buf, sizeof(buf2));
       msg = act(buf2, TRUE, ch, 0, i->character, TO_VICT);
       add_history(i->character, msg, HIST_CLANTALK);
     }

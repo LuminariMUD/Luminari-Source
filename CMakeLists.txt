@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5004 LANGUAGES C)
+project(LuminariMUD VERSION 2.5005 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -61,18 +61,19 @@ if (CMAKE_COMPILER_IS_GNUCC)
     endif()
 endif()
 
-# Static analysis with clang-tidy (enabled by default if available)
-option(STATIC_ANALYSIS "Enable static analysis with clang-tidy" ON)
+# Static analysis is opt-in so normal builds are reproducible regardless of
+# whether clang-tidy happens to be installed on the build machine.
+option(STATIC_ANALYSIS "Enable static analysis with clang-tidy" OFF)
 
-# clang-tidy if available
-find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+if(STATIC_ANALYSIS)
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if(NOT CLANG_TIDY_EXE)
+        message(FATAL_ERROR "STATIC_ANALYSIS requested but clang-tidy not found")
+    endif()
 
-if(CLANG_TIDY_EXE AND STATIC_ANALYSIS)
     message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
     set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-elseif(STATIC_ANALYSIS)
-    message(WARNING "STATIC_ANALYSIS requested but clang-tidy not found")
 endif()
 
 # ========== Header checks ==========

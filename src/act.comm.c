@@ -505,6 +505,7 @@ ACMD(do_tell)
     /* getpid() is not portable */
     send_to_char(ch, "Sorry, that is not available in the windows port.\r\n");
 #else  /* all other configurations */
+    char command[MAX_INPUT_LENGTH + 32] = {'\0'};
     char word[MAX_INPUT_LENGTH] = {'\0'}, *p, *q;
 
     if (last_webster_teller != -1L)
@@ -533,8 +534,8 @@ ACMD(do_tell)
       send_to_char(ch, "Sorry, only letters and +/- are allowed characters.\r\n");
       return;
     }
-    snprintf(buf, sizeof(buf), "../bin/webster %s %d &", word, (int)getpid());
-    if (system(buf) == -1)
+    snprintf(command, sizeof(command), "../bin/webster %s %d &", word, (int)getpid());
+    if (system(command) == -1)
     {
       log("SYSERR: Failed to execute webster command");
     }
@@ -574,13 +575,13 @@ ACMD(do_tell)
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);
 
-    char buf3[MAX_INPUT_LENGTH] = {'\0'};
+    char buf3[MAX_STRING_LENGTH] = {'\0'};
     snprintf(buf3, sizeof(buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM),
              show_pers(ch, vict), buf2, CCNRM(vict, C_NRM));
     // msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
     add_history(vict, buf3, HIST_TELL);
 
-    char buf4[MAX_INPUT_LENGTH] = {'\0'};
+    char buf4[MAX_STRING_LENGTH] = {'\0'};
     snprintf(buf4, sizeof(buf4), "%sYou tell $N, '%s'%s", CBCYN(ch, C_NRM), buf2, CCNRM(ch, C_NRM));
     msg = act(buf4, FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
     add_history(ch, msg, HIST_TELL);
@@ -759,7 +760,7 @@ ACMDU(do_gen_comm)
 {
   struct descriptor_data *i;
   char color_on[24];
-  char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
   const char *msg = NULL;
   char buf3[MAX_INPUT_LENGTH] = {'\0'};
   bool emoting = FALSE;
@@ -978,8 +979,6 @@ ACMDU(do_gen_comm)
     if (AFF_FLAGGED(i->character, AFF_DEAF) && (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
-    snprintf(buf2, sizeof(buf2), "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf1,
-             KNRM);
     //msg = act(buf2, FALSE, ch, 0, i->character, TO_VICT | TO_SLEEP);
     send_to_char(i->character, "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf3,
                  KNRM);

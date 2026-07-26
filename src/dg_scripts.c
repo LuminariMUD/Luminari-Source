@@ -2202,7 +2202,13 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
     char result[MAX_INPUT_LENGTH] = {'\0'};
 
     eval_expr(arg, result, go, sc, trig, type);
-    snprintf(uid, sizeof(uid), "%c%s", UID_CHAR, result);
+    uid[0] = UID_CHAR;
+    if (strlcpy(uid + 1, result, sizeof(uid) - 1) >= sizeof(uid) - 1)
+    {
+      script_log("Trigger: %s, VNum %d. makeuid result is too long", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig));
+      return;
+    }
   }
   else
   { /* a lot more work without it */

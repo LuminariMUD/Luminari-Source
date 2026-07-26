@@ -5344,6 +5344,9 @@ void update_player_last_on(void)
 
 bool valid_pet_name(char *name)
 {
+  if (!name)
+    return false;
+
   if (strstr(name, ";") || strstr(name, "\""))
     return false;
   return true;
@@ -5351,19 +5354,21 @@ bool valid_pet_name(char *name)
 
 void save_char_pets(struct char_data *ch)
 {
-  if (!ch || !ch->desc || IS_NPC(ch))
-    return;
-
   struct follow_type *f = NULL;
   struct char_data *tch = NULL;
-  char query[MAX_STRING_LENGTH] = {'\0'};
-  char query2[MAX_STRING_LENGTH] = {'\0'};
-  char query3[MAX_STRING_LENGTH] = {'\0'};
-  char finalQuery[MAX_STRING_LENGTH] = {'\0'};
-  char chname[MAX_STRING_LENGTH] = {'\0'};
-  char *end = NULL, *end2 = NULL;
+  char *delete_query = NULL;
+  char *escaped_description = NULL;
+  char *escaped_long_desc = NULL;
+  char *escaped_owner = NULL;
+  char *escaped_pet_name = NULL;
+  char *escaped_short_desc = NULL;
+  char *insert_query = NULL;
+  const char *description, *long_desc, *pet_name, *short_desc;
+  long int insert_id;
+  size_t query_size;
 
-  snprintf(chname, sizeof(chname), "%s", GET_NAME(ch));
+  if (!ch || !ch->desc || IS_NPC(ch))
+    return;
 
   /* Ensure database connection is active before save operations */
   if (!MYSQL_PING_CONN(conn))
@@ -5372,26 +5377,38 @@ void save_char_pets(struct char_data *ch)
     return;
   }
 
-  char del_buf[2048];
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_owner)
+  {
+    log("SYSERR: %s: Unable to escape player name", __func__);
+    return;
+  }
+
+  query_size = strlen(escaped_owner) + 128;
+  delete_query = malloc(query_size);
+  if (!delete_query)
+  {
+    log("SYSERR: %s: Unable to allocate pet deletion query", __func__);
+    free(escaped_owner);
+    return;
+  }
+
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from pet_save_objs where owner_name = '%s';",
-           GET_NAME(ch));
-  if (mysql_query(conn, del_buf))
+  snprintf(delete_query, query_size, "delete from pet_save_objs where owner_name = '%s';",
+           escaped_owner);
+  if (mysql_query(conn, delete_query))
   {
     /* Table might not exist, continue anyway */
     log("Info: pet_save_objs table might not exist: %s", mysql_error(conn));
   }
 
-  end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");
-  *end++ = '\'';
-  end += mysql_real_escape_string(conn, end, chname, strlen(chname));
-  *end++ = '\'';
-  *end++ = '\0';
-
-  if (mysql_query(conn, query))
+  snprintf(delete_query, query_size, "DELETE FROM pet_data WHERE owner_name = '%s'", escaped_owner);
+  if (mysql_query(conn, delete_query))
   {
     log("SYSERR: Unable to DELETE from pet_data: %s", mysql_error(conn));
   }
+  free(delete_query);
+  delete_query = NULL;
 
   for (f = ch->followers; f; f = f->next)
   {
@@ -5400,91 +5417,82 @@ void save_char_pets(struct char_data *ch)
       continue;
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
-    snprintf(query2, sizeof(query2),
-             "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, "
-             "pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2,
-                  "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, "
-                  "pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
-    *end2++ = '\'';
-    end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
-    *end2++ = '\'';
-    *end2++ = ',';
+    pet_name = valid_pet_name(tch->player.name) ? GET_NAME(tch) : "";
+    short_desc = valid_pet_name(tch->player.short_descr) ? tch->player.short_descr : "";
+    long_desc = valid_pet_name(tch->player.long_descr) ? tch->player.long_descr : "";
+    description = valid_pet_name(tch->player.description) ? tch->player.description : "";
 
-    if (valid_pet_name(tch->player.name))
+    escaped_pet_name = mysql_escape_string_alloc(conn, pet_name);
+    escaped_short_desc = mysql_escape_string_alloc(conn, short_desc);
+    escaped_long_desc = mysql_escape_string_alloc(conn, long_desc);
+    escaped_description = mysql_escape_string_alloc(conn, description);
+    if (!escaped_pet_name || !escaped_short_desc || !escaped_long_desc || !escaped_description)
     {
-      *end2++ = '\'';
-      end2 += mysql_real_escape_string(conn, end2, GET_NAME(tch), strlen(GET_NAME(tch)));
-      *end2++ = '\'';
+      log("SYSERR: %s: Unable to escape pet data for %s", __func__, GET_NAME(ch));
+      free(escaped_pet_name);
+      free(escaped_short_desc);
+      free(escaped_long_desc);
+      free(escaped_description);
+      continue;
     }
-    else
-    {
-      *end2++ = '\'';
-      *end2++ = '\'';
-    }
-    *end2++ = ',';
-    if (valid_pet_name(tch->player.short_descr))
-    {
-      *end2++ = '\'';
-      end2 += mysql_real_escape_string(conn, end2, tch->player.short_descr,
-                                       strlen(tch->player.short_descr));
-      *end2++ = '\'';
-    }
-    else
-    {
-      *end2++ = '\'';
-      *end2++ = '\'';
-    }
-    *end2++ = ',';
-    if (valid_pet_name(tch->player.long_descr))
-    {
-      *end2++ = '\'';
-      end2 += mysql_real_escape_string(conn, end2, tch->player.long_descr,
-                                       strlen(tch->player.long_descr));
-      *end2++ = '\'';
-    }
-    else
-    {
-      *end2++ = '\'';
-      *end2++ = '\'';
-    }
-    *end2++ = ',';
-    if (valid_pet_name(tch->player.description))
-    {
-      *end2++ = '\'';
-      end2 += mysql_real_escape_string(conn, end2, tch->player.description,
-                                       strlen(tch->player.description));
-      *end2++ = '\'';
-    }
-    else
-    {
-      *end2++ = '\'';
-      *end2++ = '\'';
-    }
-    *end2++ = ',';
 
-    *end2++ = '\0';
+    query_size = strlen(escaped_owner) + strlen(escaped_pet_name) + strlen(escaped_short_desc) +
+                 strlen(escaped_long_desc) + strlen(escaped_description) + 512;
+    insert_query = malloc(query_size);
+    if (!insert_query)
+    {
+      log("SYSERR: %s: Unable to allocate pet insertion query", __func__);
+      free(escaped_pet_name);
+      free(escaped_short_desc);
+      free(escaped_long_desc);
+      free(escaped_description);
+      continue;
+    }
 
-    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
-             GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
-             GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
-             GET_REAL_WIS(tch), GET_REAL_CHA(tch));
-    snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
-    if (mysql_query(conn, finalQuery))
+    snprintf(
+        insert_query, query_size,
+        "INSERT INTO pet_data "
+        "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, "
+        "vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) "
+        "VALUES(NULL,'%s','%s','%s','%s','%s','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+        escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc, escaped_description,
+        GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch), GET_REAL_STR(tch),
+        GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch), GET_REAL_WIS(tch),
+        GET_REAL_CHA(tch));
+
+    if (mysql_query(conn, insert_query))
     {
       log("SYSERR: Unable to INSERT INTO pet_data: %s", mysql_error(conn));
-      log("QUERY: %s", finalQuery);
+      log("QUERY: %s", insert_query);
+      free(insert_query);
+      free(escaped_pet_name);
+      free(escaped_short_desc);
+      free(escaped_long_desc);
+      free(escaped_description);
+      free(escaped_owner);
       return;
     }
-    long int insert_id = 0;
     insert_id = mysql_insert_id(conn);
 
     if (insert_id > 0)
     {
       pet_save_objs(tch, ch, insert_id);
     }
+
+    free(insert_query);
+    free(escaped_pet_name);
+    free(escaped_short_desc);
+    free(escaped_long_desc);
+    free(escaped_description);
+    insert_query = NULL;
+    escaped_pet_name = NULL;
+    escaped_short_desc = NULL;
+    escaped_long_desc = NULL;
+    escaped_description = NULL;
   }
+
+  free(escaped_owner);
 }
 
 void load_char_pets(struct char_data *ch)

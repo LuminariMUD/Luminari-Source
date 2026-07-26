@@ -1609,7 +1609,7 @@ void index_boot(int mode)
   FILE *db_index, *db_file;
   int rec_count = 0, size[2] = {0, 0};
   char buf2[MAX_FILEPATH] = {'\0'};
-  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_FILEPATH] = {'\0'};
 
   switch (mode)
   {
@@ -1650,7 +1650,12 @@ void index_boot(int mode)
   else
     index_filename = INDEX_FILE;
 
-  snprintf(buf2, sizeof(buf2), "%s%s", prefix, index_filename);
+  strlcpy(buf2, prefix, sizeof(buf2));
+  if (strlcat(buf2, index_filename, sizeof(buf2)) >= sizeof(buf2))
+  {
+    log("SYSERR: Index path is too long: %s%s", prefix, index_filename);
+    exit(1);
+  }
   if (!(db_index = fopen(buf2, "r")))
   {
     log("SYSERR: opening index file '%s': %s", buf2, strerror(errno));
@@ -1658,14 +1663,19 @@ void index_boot(int mode)
   }
 
   /* first, count the number of records in the file so we can malloc */
-  if (fscanf(db_index, "%s\n", buf1) != 1)
+  if (fscanf(db_index, "%255s\n", buf1) != 1)
   {
     log("SYSERR: Failed to read from index file '%s'", buf2);
     exit(1);
   }
   while (*buf1 != '$')
   {
-    snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
+    strlcpy(buf2, prefix, sizeof(buf2));
+    if (strlcat(buf2, buf1, sizeof(buf2)) >= sizeof(buf2))
+    {
+      log("SYSERR: Data file path is too long: %s%s", prefix, buf1);
+      exit(1);
+    }
     if (!(db_file = fopen(buf2, "r")))
     {
       /* For help files, this is normal - we use database-only mode */
@@ -1678,7 +1688,7 @@ void index_boot(int mode)
         log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix, index_filename,
             strerror(errno));
       }
-      if (fscanf(db_index, "%s\n", buf1) != 1)
+      if (fscanf(db_index, "%255s\n", buf1) != 1)
         break;
       continue;
     }
@@ -1693,7 +1703,7 @@ void index_boot(int mode)
     }
 
     fclose(db_file);
-    if (fscanf(db_index, "%s\n", buf1) != 1)
+    if (fscanf(db_index, "%255s\n", buf1) != 1)
       break;
   }
 
@@ -1758,7 +1768,7 @@ void index_boot(int mode)
   }
 
   rewind(db_index);
-  if (fscanf(db_index, "%s\n", buf1) != 1)
+  if (fscanf(db_index, "%255s\n", buf1) != 1)
   {
     log("SYSERR: Failed to reread from index file");
     fclose(db_index);
@@ -1766,7 +1776,12 @@ void index_boot(int mode)
   }
   while (*buf1 != '$')
   {
-    snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
+    strlcpy(buf2, prefix, sizeof(buf2));
+    if (strlcat(buf2, buf1, sizeof(buf2)) >= sizeof(buf2))
+    {
+      log("SYSERR: Data file path is too long: %s%s", prefix, buf1);
+      exit(1);
+    }
     if (!(db_file = fopen(buf2, "r")))
     {
       log("SYSERR: %s: %s", buf2, strerror(errno));
@@ -1796,7 +1811,7 @@ void index_boot(int mode)
     }
 
     fclose(db_file);
-    if (fscanf(db_index, "%s\n", buf1) != 1)
+    if (fscanf(db_index, "%255s\n", buf1) != 1)
       break;
   }
   fclose(db_index);

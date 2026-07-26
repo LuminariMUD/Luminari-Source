@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
-AC_INIT([LuminariMUD],[2.5004-beta],[bugs@luminarimud.com])
+AC_INIT([LuminariMUD],[2.5005-beta],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
@@ -43,7 +43,7 @@ fi
 
 AC_MSG_RESULT([$CSTD_CFLAGS])
 if test "x$CSTD_CFLAGS" = "x-std=gnu2x"; then
-  AC_MSG_WARN([using the compiler's legacy gnu2x spelling for GNU C23])
+  AC_MSG_NOTICE([using the compiler's legacy gnu2x spelling for GNU C23])
 fi
 
 dnl If we're using gcc, use gcc options.

@@ -155,8 +155,8 @@ ACMD(do_blist)
     return;
   }
 
-  sprintf(buf, "%-5s %-30s %-12s RD WR DL %-6s %-5s %-4s %s\r\n", "ID", "Name", "Type", "ObjVNUM",
-          "Clan", "Rank", "Active");
+  snprintf(buf, sizeof(buf), "%-5s %-30s %-12s RD WR DL %-6s %-5s %-4s %s\r\n", "ID", "Name",
+           "Type", "ObjVNUM", "Clan", "Rank", "Active");
   send_to_char(ch, "%s", buf);
   send_to_char(
       ch,
@@ -164,7 +164,7 @@ ACMD(do_blist)
 
   for (i = 0; i < mysql_num_boards; i++)
   {
-    char board_name_buf[MAX_STRING_LENGTH];
+    char board_name_buf[MAX_INPUT_LENGTH];
 
     /* Parse @ color codes in board name for display */
     if (mysql_board_configs[i].board_name)
@@ -178,12 +178,12 @@ ACMD(do_blist)
       strcpy(board_name_buf, "(none)");
     }
 
-    sprintf(buf, "%-5d %-30s %-12s %2d %2d %2d %-6d %-5d %-4d %s\r\n",
-            mysql_board_configs[i].board_id, board_name_buf,
-            board_types[mysql_board_configs[i].board_type], mysql_board_configs[i].read_level,
-            mysql_board_configs[i].write_level, mysql_board_configs[i].delete_level,
-            mysql_board_configs[i].obj_vnum, mysql_board_configs[i].clan_id,
-            mysql_board_configs[i].clan_rank, mysql_board_configs[i].active ? "Yes" : "No");
+    snprintf(buf, sizeof(buf), "%-5d %-30.30s %-12.12s %2d %2d %2d %-6d %-5d %-4d %s\r\n",
+             mysql_board_configs[i].board_id, board_name_buf,
+             board_types[mysql_board_configs[i].board_type], mysql_board_configs[i].read_level,
+             mysql_board_configs[i].write_level, mysql_board_configs[i].delete_level,
+             mysql_board_configs[i].obj_vnum, mysql_board_configs[i].clan_id,
+             mysql_board_configs[i].clan_rank, mysql_board_configs[i].active ? "Yes" : "No");
     send_to_char(ch, "%s", buf);
   }
 }
@@ -272,7 +272,7 @@ void bedit_disp_menu(struct descriptor_data *d)
 {
   struct mysql_board_config *board;
   char buf[MAX_STRING_LENGTH];
-  char board_name_buf[MAX_STRING_LENGTH];
+  char board_name_buf[MAX_INPUT_LENGTH];
 
   board = (struct mysql_board_config *)OLC_STORAGE(d);
 
@@ -288,28 +288,28 @@ void bedit_disp_menu(struct descriptor_data *d)
     strcpy(board_name_buf, "(none)");
   }
 
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
 #if defined(CLEAR_SCREEN)
-          "[H[J"
+           "[H[J"
 #endif
-          "-- Board Editor\r\n"
-          "%s1%s) Board ID     : %s%d%s\r\n"
-          "%s2%s) Name         : %s%s%s\r\n"
-          "%s3%s) Type         : %s%s%s\r\n"
-          "%s4%s) Read Level   : %s%d%s\r\n"
-          "%s5%s) Write Level  : %s%d%s\r\n"
-          "%s6%s) Delete Level : %s%d%s\r\n"
-          "%s7%s) Object VNUM  : %s%d%s\r\n"
-          "%s8%s) Clan ID      : %s%d%s (0 = no clan restriction)\r\n"
-          "%s9%s) Clan Rank    : %s%d%s (0 = any rank, lower # = higher rank)\r\n"
-          "%sA%s) Active       : %s%s%s\r\n"
-          "%sQ%s) Quit\r\n"
-          "Enter choice : ",
-          grn, nrm, cyn, B_NUM(board), nrm, grn, nrm, yel, board_name_buf, nrm, grn, nrm, yel,
-          board_types[B_TYPE(board)], nrm, grn, nrm, cyn, B_READ_LVL(board), nrm, grn, nrm, cyn,
-          B_WRITE_LVL(board), nrm, grn, nrm, cyn, B_DELETE_LVL(board), nrm, grn, nrm, cyn,
-          B_OBJ_VNUM(board), nrm, grn, nrm, cyn, B_CLAN_ID(board), nrm, grn, nrm, cyn,
-          B_CLAN_RANK(board), nrm, grn, nrm, cyn, B_ACTIVE(board) ? "Yes" : "No", nrm, grn, nrm);
+           "-- Board Editor\r\n"
+           "%s1%s) Board ID     : %s%d%s\r\n"
+           "%s2%s) Name         : %s%s%s\r\n"
+           "%s3%s) Type         : %s%s%s\r\n"
+           "%s4%s) Read Level   : %s%d%s\r\n"
+           "%s5%s) Write Level  : %s%d%s\r\n"
+           "%s6%s) Delete Level : %s%d%s\r\n"
+           "%s7%s) Object VNUM  : %s%d%s\r\n"
+           "%s8%s) Clan ID      : %s%d%s (0 = no clan restriction)\r\n"
+           "%s9%s) Clan Rank    : %s%d%s (0 = any rank, lower # = higher rank)\r\n"
+           "%sA%s) Active       : %s%s%s\r\n"
+           "%sQ%s) Quit\r\n"
+           "Enter choice : ",
+           grn, nrm, cyn, B_NUM(board), nrm, grn, nrm, yel, board_name_buf, nrm, grn, nrm, yel,
+           board_types[B_TYPE(board)], nrm, grn, nrm, cyn, B_READ_LVL(board), nrm, grn, nrm, cyn,
+           B_WRITE_LVL(board), nrm, grn, nrm, cyn, B_DELETE_LVL(board), nrm, grn, nrm, cyn,
+           B_OBJ_VNUM(board), nrm, grn, nrm, cyn, B_CLAN_ID(board), nrm, grn, nrm, cyn,
+           B_CLAN_RANK(board), nrm, grn, nrm, cyn, B_ACTIVE(board) ? "Yes" : "No", nrm, grn, nrm);
 
   send_to_char(d->character, "%s", buf);
   OLC_MODE(d) = BEDIT_MAIN_MENU;
@@ -318,21 +318,22 @@ void bedit_disp_menu(struct descriptor_data *d)
 void bedit_disp_board_type_menu(struct descriptor_data *d)
 {
   char buf[MAX_STRING_LENGTH];
+  char line[MAX_INPUT_LENGTH];
   int i;
 
-
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
 #if defined(CLEAR_SCREEN)
-          "[H[J"
+           "[H[J"
 #endif
-          "-- Board Type Menu\r\n");
+           "-- Board Type Menu\r\n");
 
   for (i = 0; board_types[i][0] != '\n'; i++)
   {
-    sprintf(buf + strlen(buf), "%s%d%s) %s\r\n", grn, i, nrm, board_types[i]);
+    snprintf(line, sizeof(line), "%s%d%s) %s\r\n", grn, i, nrm, board_types[i]);
+    strlcat(buf, line, sizeof(buf));
   }
 
-  strcat(buf, "Enter board type : ");
+  strlcat(buf, "Enter board type : ", sizeof(buf));
   send_to_char(d->character, "%s", buf);
 }
 

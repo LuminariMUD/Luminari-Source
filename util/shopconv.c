@@ -212,7 +212,9 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
 int main(int argc, char *argv[])
 {
   FILE *sfp, *nsfp;
-  char fn[MEDIUM_STRING] = {'\0'}, part[MEDIUM_STRING] = {'\0'};
+  char fn[MEDIUM_STRING] = {'\0'};
+  char temp_path[MEDIUM_STRING] = {'\0'};
+  char backup_path[MEDIUM_STRING] = {'\0'};
   int result, index;
 
   if (argc < 2)
@@ -232,22 +234,31 @@ int main(int argc, char *argv[])
 
   for (index = 1; index < argc; index++)
   {
-    sprintf(fn, "%s", argv[index]);
+    if (snprintf(fn, sizeof(fn), "%s", argv[index]) >= (int)sizeof(fn) ||
+        snprintf(temp_path, sizeof(temp_path), "%s.tmp", fn) >= (int)sizeof(temp_path) ||
+        snprintf(backup_path, sizeof(backup_path), "%s.bak", fn) >= (int)sizeof(backup_path))
+    {
+      fprintf(stderr, "Error: File name is too long: %s\n", argv[index]);
+      continue;
+    }
+
     printf("Processing: %s\n", fn);
 
     /* Create temporary backup */
-    sprintf(part, "mv %s %s.tmp", fn, fn);
-    if (system(part) != 0)
+    if (rename(fn, temp_path) != 0)
     {
-      printf("Warning: Could not create temporary backup for %s\n", fn);
+      fprintf(stderr, "Error: Could not create temporary backup for %s: ", fn);
+      perror(NULL);
+      continue;
     }
 
-    sprintf(part, "%s.tmp", fn);
-    sfp = fopen(part, "r");
+    sfp = fopen(temp_path, "r");
     if (sfp == NULL)
     {
-      printf("Error: Could not open %s for reading\n", part);
-      perror(part);
+      fprintf(stderr, "Error: Could not open %s for reading\n", temp_path);
+      perror(temp_path);
+      if (rename(temp_path, fn) != 0)
+        perror("Could not restore original file");
       continue;
     }
 
@@ -255,6 +266,8 @@ int main(int argc, char *argv[])
     {
       printf("Error: Could not open %s for writing\n", fn);
       fclose(sfp);
+      if (rename(temp_path, fn) != 0)
+        perror("Could not restore original file");
       continue;
     }
 
@@ -266,22 +279,28 @@ int main(int argc, char *argv[])
     if (result)
     {
       /* Conversion failed - restore original */
-      sprintf(part, "mv %s.tmp %s", fn, fn);
-      if (system(part) != 0)
+      if (rename(temp_path, fn) != 0)
       {
-        fprintf(stderr, "Warning: system command failed: %s\n", part);
+        fprintf(stderr, "Error: Could not restore original file %s: ", fn);
+        perror(NULL);
       }
-      printf("Conversion failed - original file restored\n");
+      else
+      {
+        printf("Conversion failed - original file restored\n");
+      }
     }
     else
     {
       /* Conversion succeeded - create backup */
-      sprintf(part, "mv %s.tmp %s.bak", fn, fn);
-      if (system(part) != 0)
+      if (rename(temp_path, backup_path) != 0)
       {
-        fprintf(stderr, "Warning: system command failed: %s\n", part);
+        fprintf(stderr, "Warning: Could not save backup as %s: ", backup_path);
+        perror(NULL);
       }
-      printf("Conversion successful - backup saved as %s.bak\n", fn);
+      else
+      {
+        printf("Conversion successful - backup saved as %s\n", backup_path);
+      }
     }
     printf("\n");
   }

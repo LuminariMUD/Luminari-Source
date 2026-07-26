@@ -1580,9 +1580,11 @@ ASPELL(spell_arcane_mark)
   if (!mark || !*mark || mark == NULL || !strcmp(mark, "(null)") || !strcmp(mark, "null"))
   {
     send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
-    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes any color characters used.\r\n");
+    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes "
+                     "any color characters used.\r\n");
     send_to_char(ch, "Please keep your arcane mark in-character and tasteful.\r\n");
-    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to reset it for you.\r\n");
+    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to "
+                     "reset it for you.\r\n");
     return;
   }
 
@@ -2710,8 +2712,10 @@ ASPELL(spell_summon_instrument)
   int instrument_type = -1;
   int i = 0;
   int j = 0;
-  char instrument_name[MAX_STRING_LENGTH] = {'\0'};
-  char instrument_lower[MAX_STRING_LENGTH] = {'\0'};
+  char instrument_name[MAX_INPUT_LENGTH] = {'\0'};
+  char instrument_lower[MAX_INPUT_LENGTH] = {'\0'};
+  char long_buf[MAX_INPUT_LENGTH + 64] = {'\0'};
+  char short_buf[MAX_INPUT_LENGTH + 16] = {'\0'};
 
   /* Parse the instrument name from cast_arg2 */
   one_argument(cast_arg2, instrument_name, sizeof(instrument_name));
@@ -2722,7 +2726,7 @@ ASPELL(spell_summon_instrument)
     send_to_char(ch, "Available instruments: ");
     for (i = 0; i < MAX_INSTRUMENTS; i++)
     {
-      char available_lower[MAX_STRING_LENGTH] = {'\0'};
+      char available_lower[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(available_lower, sizeof(available_lower), "%s", instrument_names[i]);
       for (j = 0; available_lower[j]; j++)
         available_lower[j] = LOWER(available_lower[j]);
@@ -2746,7 +2750,7 @@ ASPELL(spell_summon_instrument)
     send_to_char(ch, "Unknown instrument. Available instruments: ");
     for (i = 0; i < MAX_INSTRUMENTS; i++)
     {
-      char available_lower[MAX_STRING_LENGTH] = {'\0'};
+      char available_lower[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(available_lower, sizeof(available_lower), "%s", instrument_names[i]);
       for (j = 0; available_lower[j]; j++)
         available_lower[j] = LOWER(available_lower[j]);
@@ -2779,11 +2783,9 @@ ASPELL(spell_summon_instrument)
   /* Set keywords, short, and long descriptions */
   instrument->name = strdup(instrument_lower);
 
-  char short_buf[MAX_STRING_LENGTH] = {'\0'};
   snprintf(short_buf, sizeof(short_buf), "a summoned %s", instrument_lower);
   instrument->short_description = strdup(short_buf);
 
-  char long_buf[MAX_STRING_LENGTH] = {'\0'};
   snprintf(long_buf, sizeof(long_buf), "A summoned %s lies here, waiting to make music.",
            instrument_lower);
   instrument->description = strdup(long_buf);

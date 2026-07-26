@@ -170,7 +170,7 @@ int find_first_step(room_rnum src, room_rnum target)
 ACMD(do_track)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH * 2] = {'\0'};
   char dirchar[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   int dir, track_dc = 0;
@@ -353,14 +353,15 @@ ACMD(do_track)
     /* Check tracking distance limitation based on Survival skill */
     int max_distance = 50 + (compute_ability(ch, ABILITY_SURVIVAL) * 10);
     int actual_distance = count_rooms_between(IN_ROOM(ch), IN_ROOM(vict));
-    
-    if ((actual_distance < 0 || actual_distance > max_distance) && !has_inquisitor_legendary_tracker(ch))
+
+    if ((actual_distance < 0 || actual_distance > max_distance) &&
+        !has_inquisitor_legendary_tracker(ch))
     {
       send_to_char(ch, "The trail is too distant for you to track.\r\n");
       if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
       {
-        snprintf(buf, sizeof(buf), " %s The trail to %s is too distant.\r\n", 
-                 GET_NAME(ch->master), GET_NAME(vict));
+        snprintf(buf, sizeof(buf), " %s The trail to %s is too distant.\r\n", GET_NAME(ch->master),
+                 GET_NAME(vict));
         do_tell(ch, buf, 0, 0);
       }
       return;

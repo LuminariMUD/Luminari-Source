@@ -3118,8 +3118,8 @@ void self_buffing(void)
   int is_spell = false;
   int spellnum = 0, i = 0;
   char spellname[200];
-  char buf1[MAX_STRING_LENGTH] = {'\0'};
-  char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH * 2] = {'\0'};
 
   for (d = descriptor_list; d; d = d->next)
   {

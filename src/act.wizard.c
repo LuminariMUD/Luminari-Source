@@ -8458,8 +8458,15 @@ ACMD(do_objlist)
       if (buf3[0] == 0 && buf4[0] == 0 && buf5[0] == 0)
         strlcpy(buf3, "NOBITS ", sizeof(buf3));
 
-      snprintf(tmp_buf, sizeof(tmp_buf), "      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n", buf2,
-               buf3, buf4, buf5);
+      strlcpy(tmp_buf, "      \tcWorn\tn: ", sizeof(tmp_buf));
+      strlcat(tmp_buf, buf2, sizeof(tmp_buf));
+      strlcat(tmp_buf, " \tcAffects:\tn ", sizeof(tmp_buf));
+      strlcat(tmp_buf, buf3, sizeof(tmp_buf));
+      strlcat(tmp_buf, " ", sizeof(tmp_buf));
+      strlcat(tmp_buf, buf4, sizeof(tmp_buf));
+      strlcat(tmp_buf, " ", sizeof(tmp_buf));
+      strlcat(tmp_buf, buf5, sizeof(tmp_buf));
+      strlcat(tmp_buf, "\r\n", sizeof(tmp_buf));
       strlcat(buf, tmp_buf, sizeof(buf));
     }
   }
@@ -10194,7 +10201,8 @@ ACMD(do_players)
 
     if (STATE(d) == CON_PLAYING)
     {
-      snprintf(buf, sizeof(buf), "%-15s %-15s %-3d %-15s %-7d %-7s %s\r\n", GET_NAME(d->character),
+      snprintf(buf, sizeof(buf), "%-15.15s %-15.15s %-3d %-15.15s %-7d %-7.7s %.1024s\r\n",
+               GET_NAME(d->character),
                (d && d->account && d->account->name) ? d->account->name : "None",
                GET_LEVEL(d->character), buf3, GET_ROOM_VNUM(IN_ROOM(d->character)),
                race_list[GET_RACE(d->character)].abbrev, buf2);
@@ -10203,8 +10211,8 @@ ACMD(do_players)
 
     else
     {
-      snprintf(buf, sizeof(buf), "%-15s %-15s %-3d %-15s %-7s %-7s %s\r\n", GET_NAME(d->character),
-               "Offline", GET_LEVEL(d->character), buf3, "Offline",
+      snprintf(buf, sizeof(buf), "%-15.15s %-15.15s %-3d %-15.15s %-7.7s %-7.7s %.1024s\r\n",
+               GET_NAME(d->character), "Offline", GET_LEVEL(d->character), buf3, "Offline",
                race_list[GET_RACE(d->character)].abbrev, buf2);
       send_to_char(ch, "%s", buf);
     }

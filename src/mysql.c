@@ -8,6 +8,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <stdint.h>
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -996,6 +997,11 @@ char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str)
 
   /* Allocate worst-case space: each char could be escaped to 2 chars, plus null */
   len = strlen(str);
+  if (len > (SIZE_MAX - 1) / 2)
+  {
+    log("SYSERR: mysql_escape_string_alloc input is too long");
+    return NULL;
+  }
   CREATE(escaped, char, (len * 2) + 1);
 
   /* Select appropriate mutex based on connection */
@@ -2722,53 +2728,98 @@ void load_paths()
 /* Insert a path into the database. */
 void insert_path(struct path_data *path)
 {
-  /* path_data* path_table */
-  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char coordinate[100] = {'\0'};
+  char *escaped_name = NULL;
+  char *linestring = NULL;
+  char *query = NULL;
+  size_t linestring_size, query_size;
   int vtx = 0;
-  char linestring[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(linestring, sizeof(linestring), "ST_GeomFromText('LINESTRING(");
-
-  for (vtx = 0; vtx < path->num_vertices; vtx++)
+  if (!path || !path->name || !path->vertices || path->num_vertices <= 0 || path->zone < 0 ||
+      path->zone > top_of_zone_table)
   {
-    char buf2[100];
-    snprintf(buf2, sizeof(buf2), "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y,
-             (vtx + 1 == path->num_vertices ? ")')" : ","));
-    strlcat(linestring, buf2, sizeof(linestring));
+    log("SYSERR: %s: Invalid path data", __func__);
+    return;
   }
-
-  log("Info: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
-  snprintf(buf, sizeof(buf),
-           "insert into path_data "
-           "(vnum, "
-           "zone_vnum, "
-           "path_type, "
-           "name, "
-           "path_props, "
-           "path_linestring) "
-           "VALUES ("
-           "%d, "
-           "%d, "
-           "%d, "
-           "'%s', "
-           "%d, "
-           "%s);",
-           path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props,
-           linestring);
-
-  log("QUERY: %s", buf);
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))
   {
     log("SYSERR: %s: Database connection failed", __func__);
-    return; /* void function, no return value */
+    return;
   }
 
-  if (mysql_query(conn, buf))
+  if ((size_t)path->num_vertices > (SIZE_MAX - 64) / 32)
+  {
+    log("SYSERR: %s: Path has too many vertices", __func__);
+    return;
+  }
+
+  linestring_size = (size_t)path->num_vertices * 32 + 64;
+  linestring = malloc(linestring_size);
+  if (!linestring)
+  {
+    log("SYSERR: %s: Unable to allocate path geometry", __func__);
+    return;
+  }
+  strlcpy(linestring, "ST_GeomFromText('LINESTRING(", linestring_size);
+
+  for (vtx = 0; vtx < path->num_vertices; vtx++)
+  {
+    snprintf(coordinate, sizeof(coordinate), "%d %d%s", path->vertices[vtx].x,
+             path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
+    if (strlcat(linestring, coordinate, linestring_size) >= linestring_size)
+    {
+      log("SYSERR: %s: Path geometry exceeds its calculated buffer", __func__);
+      free(linestring);
+      return;
+    }
+  }
+
+  log("Info: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
+  escaped_name = mysql_escape_string_alloc(conn, path->name);
+  if (!escaped_name)
+  {
+    log("SYSERR: %s: Unable to escape path name", __func__);
+    free(linestring);
+    return;
+  }
+
+  if (strlen(escaped_name) > SIZE_MAX - 256 ||
+      strlen(linestring) > SIZE_MAX - strlen(escaped_name) - 256)
+  {
+    log("SYSERR: %s: Path query is too long", __func__);
+    free(escaped_name);
+    free(linestring);
+    return;
+  }
+
+  query_size = strlen(linestring) + strlen(escaped_name) + 256;
+  query = malloc(query_size);
+  if (!query)
+  {
+    log("SYSERR: %s: Unable to allocate path query", __func__);
+    free(escaped_name);
+    free(linestring);
+    return;
+  }
+
+  snprintf(query, query_size,
+           "insert into path_data "
+           "(vnum, zone_vnum, path_type, name, path_props, path_linestring) "
+           "VALUES (%d, %d, %d, '%s', %d, %s);",
+           path->vnum, zone_table[path->zone].number, path->path_type, escaped_name,
+           path->path_props, linestring);
+
+  log("QUERY: %s", query);
+  if (mysql_query(conn, query))
   {
     log("SYSERR: Unable to INSERT into path_data: %s", mysql_error(conn));
   }
+
+  free(query);
+  free(escaped_name);
+  free(linestring);
 }
 
 /* Delete a path from the database. */

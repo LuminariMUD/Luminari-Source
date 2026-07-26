@@ -305,7 +305,6 @@ int save_rooms(zone_rnum rzone)
   char filename[128];
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf1[MAX_STRING_LENGTH] = {'\0'};
-  char buf2[MAX_STRING_LENGTH] = {'\0'};
   bool occupied = FALSE;
 
 #if CIRCLE_UNSIGNED_INDEX
@@ -381,14 +380,12 @@ int save_rooms(zone_rnum rzone)
       }
 
       /* Save the numeric and string section of the file. */
-      snprintf(buf2, sizeof(buf2),
-               "#%d\n"
-               "%s%c\n"
-               "%s%c\n"
-               "%d %d %d %d %d %d\n",
-               room->number, room->name ? room->name : "Untitled", STRING_TERMINATOR, buf,
-               STRING_TERMINATOR, zone_table[room->zone].number, room->room_flags[0],
-               room->room_flags[1], room->room_flags[2], room->room_flags[3], room->sector_type);
+      fprintf(sf, "#%d\n", room->number);
+      fprintf(sf, "%s%c\n", convert_from_tabs(room->name ? room->name : "Untitled"),
+              STRING_TERMINATOR);
+      fprintf(sf, "%s%c\n", convert_from_tabs(buf), STRING_TERMINATOR);
+      fprintf(sf, "%d %d %d %d %d %d\n", zone_table[room->zone].number, room->room_flags[0],
+              room->room_flags[1], room->room_flags[2], room->room_flags[3], room->sector_type);
 
       /* Done saving, reset the flag. */
       if (occupied)
@@ -396,8 +393,6 @@ int save_rooms(zone_rnum rzone)
         occupied = FALSE;
         SET_BIT_AR(ROOM_FLAGS(rnum), ROOM_OCCUPIED);
       }
-
-      fprintf(sf, convert_from_tabs(buf2), 0);
 
       /* Now you write out the exits for the room. */
       for (j = 0; j < DIR_COUNT; j++)

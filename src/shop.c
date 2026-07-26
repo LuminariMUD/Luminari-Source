@@ -568,7 +568,7 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
 
 static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char tempstr[MAX_INPUT_LENGTH] = {'\0'}, tempbuf[MAX_INPUT_LENGTH] = {'\0'};
+  char tempstr[MAX_INPUT_LENGTH] = {'\0'}, tempbuf[MAX_INPUT_LENGTH + 16] = {'\0'};
   struct obj_data *obj, *last_obj = NULL;
   int goldamt = 0, buynum, bought = 0;
 

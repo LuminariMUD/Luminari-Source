@@ -1496,7 +1496,8 @@ ACMD(do_eidolon)
 
     strip_cr(arg2);
 
-    snprintf(buf, sizeof(buf), "%s\r\n", arg2);
+    strlcpy(buf, arg2, sizeof(buf));
+    strlcat(buf, "\r\n", sizeof(buf));
 
     desc = strdup(buf);
 

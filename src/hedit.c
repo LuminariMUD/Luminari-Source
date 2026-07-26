@@ -1758,8 +1758,8 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
   strncat(keywords, " command cmd", sizeof(keywords) - strlen(keywords) - 1);
 
   /* Build help text with enhanced information */
-  char description[MAX_STRING_LENGTH];
-  char examples[MAX_STRING_LENGTH];
+  char description[MAX_INPUT_LENGTH];
+  char examples[MAX_INPUT_LENGTH];
   char usage_str[MAX_INPUT_LENGTH];
   /* category already retrieved above for keywords */
   const char *action_desc = get_action_type_desc(cmd->actions_required);

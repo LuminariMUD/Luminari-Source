@@ -2394,7 +2394,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
 {
   char tmp[MAX_INPUT_LENGTH] = {'\0'}, repl_str[MAX_INPUT_LENGTH] = {'\0'};
   char *var = NULL, *field = NULL, *p = NULL;
-  char tmp2[MAX_INPUT_LENGTH] = {'\0'};
+  char tmp2[MAX_INPUT_LENGTH + 16] = {'\0'};
   char *subfield_p, subfield[MAX_INPUT_LENGTH] = {'\0'};
   int left, len;
   int paren_count = 0;

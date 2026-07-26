@@ -12963,7 +12963,8 @@ static void finalize_invention_creation(struct char_data *ch, const char *variab
             sizeof(spell_list) - strlen(spell_list) - 1);
   }
 
-  snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "a %s device", spell_list);
+  snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "a %.*s device",
+           MAX_INVENTION_SHORTDESC - (int)sizeof("a  device"), spell_list);
   char keyword_spell[50];
   strncpy(keyword_spell, spell_info[spell_nums[0]].name, sizeof(keyword_spell) - 1);
   keyword_spell[sizeof(keyword_spell) - 1] = '\0';
@@ -13322,7 +13323,8 @@ EVENTFUNC(event_device_creation)
   }
 
   /* Set invention properties */
-  snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "a %s device", spell_list);
+  snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "a %.*s device",
+           MAX_INVENTION_SHORTDESC - (int)sizeof("a  device"), spell_list);
 
   /* Limit spell name length for keywords to prevent truncation */
   char keyword_spell[50];

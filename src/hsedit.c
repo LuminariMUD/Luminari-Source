@@ -502,8 +502,8 @@ static const char *hsedit_list_guests(struct house_control_rec *thishouse, char 
 /* the main menu */
 void hsedit_disp_menu(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'}, built_on[128],
-       last_pay[128], buf2[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH] = {'\0'}, built_on[128],
+       last_pay[128], buf2[MAX_RAW_INPUT_LENGTH] = {'\0'};
   char *timestr, no_name[128];
   struct house_control_rec *house;
 

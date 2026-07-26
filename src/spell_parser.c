@@ -193,8 +193,8 @@ bool spell_is_cantrip(int spellnum)
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start)
 {
-  char lbuf[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'}, buf1[MEDIUM_STRING] = {'\0'},
-       buf2[MEDIUM_STRING] = {'\0'};           /* FIXME */
+  char lbuf[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'}, buf1[LONG_STRING] = {'\0'},
+       buf2[LONG_STRING] = {'\0'};             /* FIXME */
   char format_buf[MAX_STRING_LENGTH] = {'\0'}; /* Phase 4: For metamagic prefix */
   const char *format;
   const char *school_format = NULL;
@@ -622,7 +622,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_dat
     }
   }
 
-  if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL) && spellnum != SPELL_TELEPORT && spellnum != SPELL_PORTAL)
+  if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL) && spellnum != SPELL_TELEPORT &&
+      spellnum != SPELL_PORTAL)
   {
     send_to_char(caster, "This mob is protected.\r\n");
     return (0);
@@ -1520,8 +1521,9 @@ int castingCheckOk(struct char_data *ch)
   int metamagic = CASTING_METAMAGIC(ch);
   bool still_spell = false;
 
-  if (IS_SET(metamagic, METAMAGIC_STILL) || (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
-      compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3))
+  if (IS_SET(metamagic, METAMAGIC_STILL) ||
+      (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
+       compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3))
     still_spell = true;
 
   /* position check */
@@ -2206,8 +2208,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
   }
 
   /* Players cannot directly cast spells flagged as no_player (consumables are handled elsewhere) */
-  if (!IS_NPC(ch) && spellnum > 0 && spellnum <= TOP_SPELL_DEFINE &&
-      spell_info[spellnum].no_player)
+  if (!IS_NPC(ch) && spellnum > 0 && spellnum <= TOP_SPELL_DEFINE && spell_info[spellnum].no_player)
   {
     send_to_char(ch, "That magic cannot be invoked directly by mortals.\r\n");
     return 0;
@@ -2248,7 +2249,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
   if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
   {
     if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
-      compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+        compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
     {
       // allow automatic silent spell to bypass silence
     }
@@ -3125,7 +3126,7 @@ ACMDU(do_gen_cast)
   if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
   {
     if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) &&
-      compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+        compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
     {
       // allow automatic silent spell to bypass silence
     }
@@ -3830,7 +3831,8 @@ return;
 
   /* METAMAGIC BUG FIX: Check spell availability with exact metamagic BEFORE casting */
   if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_SHADOW &&
-      !canCastAtWill(ch, spellnum) && !isEpicSpell(spellnum) && is_spellnum_psionic(spellnum) == FALSE)
+      !canCastAtWill(ch, spellnum) && !isEpicSpell(spellnum) &&
+      is_spellnum_psionic(spellnum) == FALSE)
   {
     /* For prepared casters, verify they have the exact spell+metamagic combination */
     int available_class = spell_prep_gen_check(ch, spellnum, metamagic);
@@ -4086,9 +4088,10 @@ void mag_assign_spells(void)
 
   // shared
   spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING, // enchant
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your night vision seems to fade.", 13, 13, TRANSMUTATION,
-         FALSE); // wizard 4, cleric 4
-  spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING,              // enchantment
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your night vision seems to fade.", 13, 13,
+         TRANSMUTATION,
+         FALSE);                                        // wizard 4, cleric 4
+  spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING, // enchantment
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS,
          "You feel less sick.", 5, 13, NECROMANCY, FALSE); // wizard 4, cleric 5
   spello(SPELL_ENERGY_DRAIN, "energy drain", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT,
@@ -5089,8 +5092,8 @@ void mag_assign_spells(void)
   spello(SPELL_VIGORIZE_CRITICAL, "vigorize critical", 58, 43, 1, POS_FIGHTING, TAR_CHAR_ROOM,
          FALSE, MAG_POINTS, NULL, 4, 16, CONJURATION, FALSE);
   spello(SPELL_FREE_MOVEMENT, "free movement", 58, 43, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_AFFECTS | MAG_UNAFFECTS, "You feel the free movement spell wear off.", 5, 16, ABJURATION,
-         FALSE);
+         MAG_AFFECTS | MAG_UNAFFECTS, "You feel the free movement spell wear off.", 5, 16,
+         ABJURATION, FALSE);
   spello(SPELL_STRENGTHEN_BONE, "strengthen bones", 58, 43, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
          MAG_AFFECTS, "You feel your undead bones weaken again.", 5, 16, NECROMANCY, FALSE);
   // poison - shared

@@ -4737,8 +4737,8 @@ void update_msdp_room(struct char_data *ch)
   int door;
 
   char buf2[MAX_STRING_LENGTH] = {'\0'};
-  char room_exits[MAX_STRING_LENGTH] = {'\0'};
-  char room_doors[MAX_STRING_LENGTH] = {'\0'};
+  char room_exits[MAX_RAW_INPUT_LENGTH] = {'\0'};
+  char room_doors[MAX_RAW_INPUT_LENGTH] = {'\0'};
 
   /* MSDP */
 

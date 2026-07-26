@@ -1303,7 +1303,6 @@ static void do_auto_exits(struct char_data *ch)
 void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
@@ -1357,9 +1356,8 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
-    snprintf(buf2, sizeof(buf2), "\tc[%5d]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
-             world[room_number].name, buf, sector_types[(world[room_number].sector_type)]);
-    send_to_char(ch, "%s", buf2);
+    send_to_char(ch, "\tc[%5d]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
+                 world[room_number].name, buf, sector_types[(world[room_number].sector_type)]);
   }
   else
     send_to_char(ch, "%s", world[room_number].name);
@@ -9113,7 +9111,7 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 
 ACMD(do_areas)
 {
-  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
+  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, name_width, tmp_len = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'},
        buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
@@ -9247,14 +9245,15 @@ ACMD(do_areas)
       if (overlap)
         overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
+      name_width = count_color_chars(zone_table[i].name) + 40;
       tmp_len =
-          snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount,
-                   overlap ? QRED : QCYN, count_color_chars(zone_table[i].name) + 40,
-                   zone_table[i].name, lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+          snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n", ++zcount,
+                   overlap ? QRED : QCYN, name_width, name_width, zone_table[i].name,
+                   lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
-      snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*s\tn %s%s%s\tn\r\n",
-               count_color_chars(zone_table[i].name) + 40, zone_table[i].name, zone_num,
-               lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+      snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*.*s\tn %s%s%.64s\tn\r\n",
+               name_width, name_width, zone_table[i].name, zone_num, lev_set ? "\tc" : "\tn",
+               lev_set ? lev_str : "All Levels");
       num_areas++;
       len += tmp_len;
     }

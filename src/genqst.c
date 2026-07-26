@@ -235,7 +235,6 @@ int save_quests(zone_rnum zone_num)
   char quest_desc[MAX_STRING_LENGTH] = {'\0'}, quest_info[MAX_STRING_LENGTH] = {'\0'};
   char quest_done[MAX_STRING_LENGTH] = {'\0'}, quest_quit[MAX_STRING_LENGTH] = {'\0'};
   char quest_kill_list[MAX_STRING_LENGTH] = {'\0'};
-  char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, num_quests = 0;
 
 #if CIRCLE_UNSIGNED_INDEX
@@ -278,40 +277,33 @@ int save_quests(zone_rnum zone_num)
       strip_cr(quest_kill_list);
       /* Save the quest details to the file.  */
       sprintascii(quest_flags, QST_FLAGS(rnum));
-      snprintf(buf, sizeof(buf),
-               "#%d\n"
-               "%s%c\n"
-               "%s%c\n"
-               "%s%c\n"
-               "%s%c\n"
+      fprintf(sf, "#%d\n", QST_NUM(rnum));
+      fprintf(sf, "%s%c\n", convert_from_tabs(QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled"),
+              STRING_TERMINATOR);
+      fprintf(sf, "%s%c\n", convert_from_tabs(quest_desc), STRING_TERMINATOR);
+      fprintf(sf, "%s%c\n", convert_from_tabs(quest_info), STRING_TERMINATOR);
+      fprintf(sf, "%s%c\n", convert_from_tabs(quest_done), STRING_TERMINATOR);
+      fprintf(sf, "%s%c\n", convert_from_tabs(quest_quit), STRING_TERMINATOR);
 #if (defined(CAMPAIGN_DL))
-               "%s%c\n"
+      fprintf(sf, "%s%c\n", convert_from_tabs(quest_kill_list), STRING_TERMINATOR);
 #endif
-               "%s%c\n"
-               "%d %d %s %d %d %d %d\n"
-               "%d %d %d %d %d %d %d\n"
-               "%d %d %d %d %d %d %d\n"
-               "D\n"
-               "%d %d %d %d\n"
-               "S\n",
-               QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
-               quest_desc, STRING_TERMINATOR, quest_info, STRING_TERMINATOR, quest_done,
-               STRING_TERMINATOR, quest_quit, STRING_TERMINATOR,
-#if (defined(CAMPAIGN_DL))
-               quest_kill_list, STRING_TERMINATOR,
-#endif
-               QST_TYPE(rnum), QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum), quest_flags,
-               QST_TARGET(rnum) == NOTHING ? -1 : QST_TARGET(rnum),
-               QST_PREV(rnum) == NOTHING ? -1 : QST_PREV(rnum),
-               QST_NEXT(rnum) == NOTHING ? -1 : QST_NEXT(rnum),
-               QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum), QST_POINTS(rnum),
-               QST_PENALTY(rnum), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum), QST_TIME(rnum),
-               QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum), QST_QUANTITY(rnum),
-               QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), QST_RACE(rnum), QST_COORD_X(rnum),
-               QST_COORD_Y(rnum), QST_FOLLOWER(rnum), QST_DIPLM(rnum), QST_INTIM(rnum),
-               QST_BLUFF(rnum), QST_DIAGN(rnum));
-
-      fprintf(sf, convert_from_tabs(buf), 0);
+      fprintf(sf,
+              "%d %d %s %d %d %d %d\n"
+              "%d %d %d %d %d %d %d\n"
+              "%d %d %d %d %d %d %d\n"
+              "D\n"
+              "%d %d %d %d\n"
+              "S\n",
+              QST_TYPE(rnum), QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum), quest_flags,
+              QST_TARGET(rnum) == NOTHING ? -1 : QST_TARGET(rnum),
+              QST_PREV(rnum) == NOTHING ? -1 : QST_PREV(rnum),
+              QST_NEXT(rnum) == NOTHING ? -1 : QST_NEXT(rnum),
+              QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum), QST_POINTS(rnum),
+              QST_PENALTY(rnum), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum), QST_TIME(rnum),
+              QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum), QST_QUANTITY(rnum),
+              QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), QST_RACE(rnum), QST_COORD_X(rnum),
+              QST_COORD_Y(rnum), QST_FOLLOWER(rnum), QST_DIPLM(rnum), QST_INTIM(rnum),
+              QST_BLUFF(rnum), QST_DIAGN(rnum));
 
       num_quests++;
     }

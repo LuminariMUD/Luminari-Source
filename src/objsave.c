@@ -251,8 +251,9 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     {
       fprintf(fp, "ADes:\n%s~\n", buf1);
 #ifdef OBJSAVE_DB
-      snprintf(line_buf, sizeof(line_buf), "ADes:\n%s~\n", buf1);
-      strlcat(ins_buf, line_buf, sizeof(ins_buf));
+      strlcat(ins_buf, "ADes:\n", sizeof(ins_buf));
+      strlcat(ins_buf, buf1, sizeof(ins_buf));
+      strlcat(ins_buf, "~\n", sizeof(ins_buf));
 #endif
     }
   if (TEST_OBJN(type_flag))
@@ -463,12 +464,11 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
             escaped_key_ptr[x] = '\0';
         }
 
-        snprintf(line_buf, sizeof(line_buf),
-                 "EDes:\n"
-                 "%s~\n"
-                 "%s~\n",
-                 escaped_key_ptr, escaped_desc_ptr);
-        strlcat(ins_buf, line_buf, sizeof(ins_buf));
+        strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
+        strlcat(ins_buf, escaped_key_ptr, sizeof(ins_buf));
+        strlcat(ins_buf, "~\n", sizeof(ins_buf));
+        strlcat(ins_buf, escaped_desc_ptr, sizeof(ins_buf));
+        strlcat(ins_buf, "~\n", sizeof(ins_buf));
 
         if (heap_desc)
           free(escaped_desc_ptr);
@@ -2746,7 +2746,6 @@ static int Crash_load_objs(struct char_data *ch)
   FILE *fl = NULL;
   char filename[MAX_STRING_LENGTH] = {'\0'};
   char line[READ_SIZE];
-  char buf[MAX_STRING_LENGTH] = {'\0'};
   char str[MEDIUM_STRING];
   int i, num_of_days, orig_rent_code, num_objs = 0;
   unsigned long cost;
@@ -2816,8 +2815,7 @@ static int Crash_load_objs(struct char_data *ch)
   {
     if (errno != ENOENT)
     { /* if it fails, NOT because of no file */
-      snprintf(buf, sizeof(buf), "SYSERR: READING OBJECT FILE %s (5)", filename);
-      perror(buf);
+      log("SYSERR: READING OBJECT FILE %s (5): %s", filename, strerror(errno));
       send_to_char(ch, "\r\n********************* NOTICE *********************\r\n"
                        "There was a problem loading your objects from disk.\r\n"
                        "Contact a God for assistance.\r\n");
@@ -3128,8 +3126,9 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
   if (obj->action_description || temp->action_description)
     if (TEST_OBJS(obj, temp, action_description))
     {
-      snprintf(line_buf, sizeof(line_buf), "ADes:\n%s~\n", buf1);
-      strlcat(ins_buf, line_buf, sizeof(ins_buf));
+      strlcat(ins_buf, "ADes:\n", sizeof(ins_buf));
+      strlcat(ins_buf, buf1, sizeof(ins_buf));
+      strlcat(ins_buf, "~\n", sizeof(ins_buf));
     }
   if (TEST_OBJN(type_flag))
   {
@@ -3236,12 +3235,11 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
         }
         strlcpy(buf1, ex_desc->description, sizeof(buf1));
         strip_cr(buf1);
-        snprintf(line_buf, sizeof(line_buf),
-                 "EDes:\n"
-                 "%s~\n"
-                 "%s~\n",
-                 ex_desc->keyword, buf1);
-        strlcat(ins_buf, line_buf, sizeof(ins_buf));
+        strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
+        strlcat(ins_buf, ex_desc->keyword, sizeof(ins_buf));
+        strlcat(ins_buf, "~\n", sizeof(ins_buf));
+        strlcat(ins_buf, buf1, sizeof(ins_buf));
+        strlcat(ins_buf, "~\n", sizeof(ins_buf));
       }
     }
   }
@@ -3836,8 +3834,9 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   if (obj->action_description || temp->action_description)
     if (TEST_OBJS(obj, temp, action_description))
     {
-      snprintf(line_buf, sizeof(line_buf), "ADes:\n%s~\n", buf1);
-      strlcat(ins_buf, line_buf, sizeof(ins_buf));
+      strlcat(ins_buf, "ADes:\n", sizeof(ins_buf));
+      strlcat(ins_buf, buf1, sizeof(ins_buf));
+      strlcat(ins_buf, "~\n", sizeof(ins_buf));
     }
   if (TEST_OBJN(type_flag))
   {
@@ -3944,12 +3943,11 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
         }
         strlcpy(buf1, ex_desc->description, sizeof(buf1));
         strip_cr(buf1);
-        snprintf(line_buf, sizeof(line_buf),
-                 "EDes:\n"
-                 "%s~\n"
-                 "%s~\n",
-                 ex_desc->keyword, buf1);
-        strlcat(ins_buf, line_buf, sizeof(ins_buf));
+        strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
+        strlcat(ins_buf, ex_desc->keyword, sizeof(ins_buf));
+        strlcat(ins_buf, "~\n", sizeof(ins_buf));
+        strlcat(ins_buf, buf1, sizeof(ins_buf));
+        strlcat(ins_buf, "~\n", sizeof(ins_buf));
       }
     }
   }

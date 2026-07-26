@@ -201,7 +201,7 @@ obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)
 
 int save_objects(zone_rnum zone_num)
 {
-  char filename[128], buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
+  char filename[128], buf[MAX_STRING_LENGTH] = {'\0'};
   char ebuf1[MAX_STRING_LENGTH] = {'\0'}, ebuf2[MAX_STRING_LENGTH] = {'\0'},
        ebuf3[MAX_STRING_LENGTH] = {'\0'}, ebuf4[MAX_STRING_LENGTH] = {'\0'};
   char wbuf1[MAX_STRING_LENGTH] = {'\0'}, wbuf2[MAX_STRING_LENGTH] = {'\0'},
@@ -247,19 +247,16 @@ int save_objects(zone_rnum zone_num)
       else
         *buf = '\0';
 
-      snprintf(buf2, sizeof(buf2),
-               "#%d\n"
-               "%s~\n"
-               "%s~\n"
-               "%s~\n"
-               "%s~\n",
-
-               GET_OBJ_VNUM(obj), (obj->name && *obj->name) ? obj->name : "undefined",
-               (obj->short_description && *obj->short_description) ? obj->short_description
-                                                                   : "undefined",
-               (obj->description && *obj->description) ? obj->description : "undefined", buf);
-
-      fprintf(fp, convert_from_tabs(buf2), 0);
+      fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
+      fprintf(fp, "%s~\n", convert_from_tabs((obj->name && *obj->name) ? obj->name : "undefined"));
+      fprintf(fp, "%s~\n",
+              convert_from_tabs((obj->short_description && *obj->short_description)
+                                    ? obj->short_description
+                                    : "undefined"));
+      fprintf(fp, "%s~\n",
+              convert_from_tabs((obj->description && *obj->description) ? obj->description
+                                                                        : "undefined"));
+      fprintf(fp, "%s~\n", convert_from_tabs(buf));
 
       sprintascii(ebuf1, GET_OBJ_EXTRA(obj)[0]);
       sprintascii(ebuf2, GET_OBJ_EXTRA(obj)[1]);
