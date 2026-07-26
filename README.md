@@ -114,8 +114,9 @@ This project embodies commitment, self-motivation, and perseverance through chal
 
 ### Prerequisites
 - **Operating System**: Linux or Unix-like system (including WSL2 Ubuntu)
-- **Compiler**: GCC or Clang (C90/C89 with GNU extensions)
-- **Build System**: CMake 3.12+ or Autotools
+- **Compiler**: GCC 13+ or Clang 18+ with GNU C23 support; the build accepts GCC's
+  legacy `gnu2x` spelling only when the required C23 feature probe passes
+- **Build System**: CMake 3.21+ or Autotools
 - **Database**: MariaDB 10.0+ or MySQL 5.7+ (REQUIRED - not optional)
 - **Libraries**:
   - libmariadb-dev (MariaDB client library - required)
@@ -419,10 +420,10 @@ For complete license details, see the [LICENSE](LICENSE.md) file.
 - **Forgotten Realms**: Rich world-building traditions
 
 ### Version Information
-- **Current Version**: LuminariMUD 2.5001-beta (tbaMUD 3.64)
+- **Current Version**: LuminariMUD 2.5004-beta (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
-- **Language**: C (ANSI C90/C89 standard) with C++11 performance monitoring
+- **Language**: GNU C23
 - **Last Updated**: January 2026
 
 > Version is defined in: `src/constants.c` (canonical), `src/structs.h`, `configure.ac`, `CMakeLists.txt`

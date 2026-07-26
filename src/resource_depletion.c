@@ -872,6 +872,7 @@ void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
     send_to_char(ch, "  %s%-12s\tn: %s%s\tn (%.0f%%)\r\n", status_color, resource_names[i],
                  status_color, status_desc, level * 100);
   }
+  (void)total_health;
 
   /* Ecosystem warnings and recommendations */
   if (critical_resources > 0)

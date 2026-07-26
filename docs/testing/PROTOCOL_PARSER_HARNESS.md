@@ -20,9 +20,8 @@ make protocol-parser
 The target builds `test_protocol_parser.c` and `../../src/protocol.c`, then
 runs `./protocol_parser_tests`.
 
-The focused target uses GNU99 flags because the current source headers and
-`protocol.c` use C99-style comments, mixed declarations, and newer compiler
-assumptions. Existing CuTest targets keep their legacy C89 flags unchanged.
+The focused target uses the same GNU C23 mode as the server and the other
+CuTest targets.
 
 ## Scope
 

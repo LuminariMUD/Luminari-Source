@@ -2395,7 +2395,11 @@ static void newbie_give_obj(struct char_data *ch, obj_vnum vnum, bool adjust_siz
     obj_to_char(obj, ch);
 }
 
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+#if defined(USE_NEW_NOOB_GEAR) || defined(NOOB_CRAFTING_TAILORING) ||                              \
+    defined(NOOB_CRAFTING_ALCHEMY) || defined(NOOB_CRAFTING_ARMORSMITHING) ||                      \
+    defined(NOOB_CRAFTING_WEAPONSMITHING) || defined(NOOB_CRAFTING_JEWELCRAFTING) ||               \
+    defined(NOOB_HARVESTING_MINING) || defined(NOOB_HARVESTING_HUNTING) ||                         \
+    defined(NOOB_HARVESTING_FORESTRY) || defined(NOOB_HARVESTING_GATHERING)
 static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, bool adjust_size)
 {
   struct obj_data *obj = newbie_create_obj(ch, vnum, adjust_size);

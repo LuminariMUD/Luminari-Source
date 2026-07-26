@@ -2,9 +2,21 @@
 # Part of Phase 00, Session 09: Testing and Validation
 
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c89 -pedantic -g -O0
+C23_TEST_SOURCE = bool value=true; void *ptr=nullptr; static_assert(sizeof(bool)>0);
+CSTD_FLAG := $(shell \
+	if printf '%s\n' '$(C23_TEST_SOURCE)' | \
+	   $(CC) -std=gnu23 -x c -fsyntax-only - >/dev/null 2>&1; then \
+	  printf '%s' -std=gnu23; \
+	elif printf '%s\n' '$(C23_TEST_SOURCE)' | \
+	     $(CC) -std=gnu2x -x c -fsyntax-only - >/dev/null 2>&1; then \
+	  printf '%s' -std=gnu2x; \
+	fi)
+ifeq ($(strip $(CSTD_FLAG)),)
+$(error $(CC) does not provide the required GNU C23 language support)
+endif
+CFLAGS = -Wall -Wextra $(CSTD_FLAG) -pedantic -g -O0
 LDFLAGS = -lm
-PROTOCOL_TEST_CFLAGS = -Wall -Wextra -std=gnu99 -g -O0 -ffunction-sections -fdata-sections
+PROTOCOL_TEST_CFLAGS = -Wall -Wextra $(CSTD_FLAG) -g -O0 -ffunction-sections -fdata-sections
 PROTOCOL_TEST_LDFLAGS = -lm -Wl,--gc-sections
 
 # Directories
@@ -202,8 +214,7 @@ $(BUILD_DIR)/test_transport_unified.o: test_transport_unified.c CuTest.h
 $(BUILD_DIR)/test_protocol_parser.o: test_protocol_parser.c CuTest.h ../../src/protocol.h ../../src/structs.h
 	$(CC) $(PROTOCOL_TEST_CFLAGS) -c $< -o $@
 
-# Compile protocol source for focused parser tests. The source headers use C99-style
-# comments and declarations, so this target intentionally avoids the legacy C89 flags.
+# Compile protocol source for focused parser tests in the project C standard mode.
 $(BUILD_DIR)/protocol.o: ../../src/protocol.c ../../src/protocol.h ../../src/structs.h
 	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src -c $(PROTOCOL_SOURCE_SRC) -o $@
 

@@ -16,9 +16,9 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 ## Project Overview
 
-LuminariMUD is a text-based MUD server implementing Pathfinder/D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. ANSI C90/C89 with GNU extensions, ~200k+ lines. MySQL/MariaDB is REQUIRED; the server will not run without it.
+LuminariMUD is a text-based MUD server implementing Pathfinder/D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. GNU C23, ~200k+ lines. MySQL/MariaDB is REQUIRED; the server will not run without it.
 
-C90 constraints: `/* */` comments only (no `//`), declarations at the top of blocks, no variable-length arrays.
+The GNU C23 migration retains the established source style: use `/* */` comments, keep declarations at the top of blocks, and do not use variable-length arrays. Do not mechanically restyle legacy code.
 
 ## Build Commands
 

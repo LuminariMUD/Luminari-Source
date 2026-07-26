@@ -26,10 +26,11 @@ cat $FILES | grep '^void Test' |
 echo \
 '
 
-void RunAllTests(void)
+int RunAllTests(void)
 {
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();
+    int fail_count;
 
 '
 cat $FILES | grep '^void Test' |
@@ -44,13 +45,14 @@ echo \
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);
     printf("%s\n", output->buffer);
+    fail_count = suite->failCount;
     CuStringDelete(output);
     CuSuiteDelete(suite);
+    return fail_count;
 }
 
 int main(void)
 {
-    RunAllTests();
-    return 0;
+    return RunAllTests();
 }
 '

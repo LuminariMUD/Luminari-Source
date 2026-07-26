@@ -10,6 +10,7 @@
 
 #include "CuTest.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,7 +30,6 @@
 #define NOWHERE (-1)
 #endif
 
-typedef int bool;
 typedef int room_rnum;
 
 /* Coordinate bounds for wilderness system */

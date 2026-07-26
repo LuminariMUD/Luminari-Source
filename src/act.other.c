@@ -2336,7 +2336,7 @@ ACMD(do_dismiss)
   }
 
   /* is this follower the target? */
-  if ((vict->master == ch))
+  if (vict->master == ch)
   {
     /* is this follower charmed? */
     if (AFF_FLAGGED(vict, AFF_CHARM))
@@ -7803,7 +7803,7 @@ ACMD(do_use)
     spell = GET_OBJ_VAL(mag_item, 1);
 
     /* remove curse, dispel invis and identify you can use regardless */
-    if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY || SPELL_DISPEL_INVIS)
+    if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY || spell == SPELL_DISPEL_INVIS)
       break;
 
     /* 1. Decipher Writing
@@ -12400,11 +12400,9 @@ ACMDU(do_device)
 
         /* Build compact circle indicator, e.g., [1,2,1] */
         char circle_ind[32] = {'\0'};
-        int ind_len = 0;
         if (inv->num_spells > 0)
         {
           strcat(circle_ind, "[");
-          ind_len++;
           for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
           {
             int lvl = inv->spell_levels[j];
@@ -12621,7 +12619,7 @@ ACMDU(do_device)
 
   if (is_abbrev(arg1, "spells"))
   {
-    int spell_num; /* Declare at proper scope for C90 compliance */
+    int spell_num;
 
     if (!*arg2)
     {

@@ -9,7 +9,19 @@ MAKEFLAGS += --no-builtin-rules
 
 OBJDIR := obj
 CC ?= gcc
-CFLAGS ?= -g -O0 -Wall -std=gnu90
+C23_TEST_SOURCE = bool value=true; void *ptr=nullptr; static_assert(sizeof(bool)>0);
+CSTD_FLAG ?= $(shell \
+	if printf '%s\n' '$(C23_TEST_SOURCE)' | \
+	   $(CC) -std=gnu23 -x c -fsyntax-only - >/dev/null 2>&1; then \
+	  printf '%s' -std=gnu23; \
+	elif printf '%s\n' '$(C23_TEST_SOURCE)' | \
+	     $(CC) -std=gnu2x -x c -fsyntax-only - >/dev/null 2>&1; then \
+	  printf '%s' -std=gnu2x; \
+	fi)
+ifeq ($(strip $(CSTD_FLAG)),)
+$(error $(CC) does not provide the required GNU C23 language support)
+endif
+CFLAGS ?= -g -O0 -Wall $(CSTD_FLAG)
 SRCFILES := $(wildcard *.c)
 OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCFILES))
 

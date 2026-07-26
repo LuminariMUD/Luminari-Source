@@ -1378,20 +1378,20 @@ void define_inquisitor_perks(void)
   perk->prerequisite_perk = -1;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3; /* +3 damage per rank */
+  perk->effect_value = 3;     /* +3 damage per rank */
   perk->effect_modifier = -1; /* -1 to hit while active */
   perk->special_description = strdup("As a swift action, take -1 to attacks to gain +3 damage per "
                                      "rank on all attacks until end of turn (melee and ranged).");
   perk->toggleable = false;
 
-    /**************************************************************************
+  /**************************************************************************
      * TREE 2: HUNTER'S ARSENAL - Tier 4
      **************************************************************************/
 
-    /* Tier 4: Supreme Hunter (1 rank, 4 points) */
-    perk = &perk_list[PERK_INQUISITOR_SUPREME_HUNTER];
-    perk->id = PERK_INQUISITOR_SUPREME_HUNTER;
-    perk->name = strdup("Supreme Hunter");
+  /* Tier 4: Supreme Hunter (1 rank, 4 points) */
+  perk = &perk_list[PERK_INQUISITOR_SUPREME_HUNTER];
+  perk->id = PERK_INQUISITOR_SUPREME_HUNTER;
+  perk->name = strdup("Supreme Hunter");
   perk->description = strdup("Become the ultimate predator.");
   perk->associated_class = CLASS_INQUISITOR;
   perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
@@ -1402,10 +1402,10 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4; /* +4 to Studied Target */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Your Studied Target bonus increases by +4. Time to study is halved (swift action instead of move action).");
-    perk->id = PERK_INQUISITOR_LEGENDARY_TRACKER;
-    perk->name = strdup("Legendary Tracker");
+  perk->special_description = strdup("Your Studied Target bonus increases by +4. Time to study is "
+                                     "halved (swift action instead of move action).");
+  perk->id = PERK_INQUISITOR_LEGENDARY_TRACKER;
+  perk->name = strdup("Legendary Tracker");
   perk->description = strdup("Track any creature at any distance.");
   perk->associated_class = CLASS_INQUISITOR;
   perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
@@ -1416,10 +1416,10 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "You can track creatures at extreme distances. Maximum tracking distance: 50 + (Survival skill * 10) rooms.");
-    perk->id = PERK_INQUISITOR_INSTANT_DEATH;
-    perk->name = strdup("Instant Death");
+  perk->special_description = strdup("You can track creatures at extreme distances. Maximum "
+                                     "tracking distance: 50 + (Survival skill * 10) rooms.");
+  perk->id = PERK_INQUISITOR_INSTANT_DEATH;
+  perk->name = strdup("Instant Death");
   perk->description = strdup("Deliver a killing strike with perfect precision.");
   perk->associated_class = CLASS_INQUISITOR;
   perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
@@ -1430,10 +1430,12 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 3; /* 3% chance */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "3% chance when you hit with an attack against a studied target to force a Fortitude save (DC 10 + half level + Wisdom modifier). On failure, target takes +15d6 damage; on success, it takes +8d6 damage.");
-    perk->id = PERK_INQUISITOR_PERFECT_PREDATOR;
-    perk->name = strdup("Perfect Predator");
+  perk->special_description =
+      strdup("3% chance when you hit with an attack against a studied target to force a Fortitude "
+             "save (DC 10 + half level + Wisdom modifier). On failure, target takes +15d6 damage; "
+             "on success, it takes +8d6 damage.");
+  perk->id = PERK_INQUISITOR_PERFECT_PREDATOR;
+  perk->name = strdup("Perfect Predator");
   perk->description = strdup("Achieve mastery over the hunt.");
   perk->associated_class = CLASS_INQUISITOR;
   perk->perk_category = PERK_CATEGORY_HUNTERS_ARSENAL;
@@ -1444,8 +1446,9 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4; /* +4 favored enemy bonus */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "All your favored enemy bonuses increase by +4. In your favored terrains, you gain true sight and can see perfectly in all lighting conditions.");
+  perk->special_description =
+      strdup("All your favored enemy bonuses increase by +4. In your favored terrains, you gain "
+             "true sight and can see perfectly in all lighting conditions.");
   perk->id = PERK_INQUISITOR_MASTER_TRACKER;
   perk->name = strdup("Master Tracker");
   perk->description = strdup("Track prey across any trail and sense nearby quarries.");
@@ -1512,8 +1515,8 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* +2 per rank to Perception */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Gain +2 per rank to Perception checks. At rank 4, you gain darkvision and can see through magical darkness.");
+  perk->special_description = strdup("Gain +2 per rank to Perception checks. At rank 4, you gain "
+                                     "darkvision and can see through magical darkness.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 1: Read Intentions (1 rank, 1 point) */
@@ -1548,8 +1551,8 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1; /* +1 per rank to knowledge skills */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Gain +1 per rank to Arcana, Wisdom, Nature, and History checks.");
+  perk->special_description =
+      strdup("Gain +1 per rank to Arcana, Wisdom, Nature, and History checks.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 1: Detect Magic (1 rank, 1 point) */
@@ -1566,8 +1569,8 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "You can cast Detect Magic at will without expending spell slots or components.");
+  perk->special_description =
+      strdup("You can cast Detect Magic at will without expending spell slots or components.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 2: Discern Lies (3 ranks, 2 points each) */
@@ -1603,7 +1606,8 @@ void define_inquisitor_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup(
-      "Add your Wisdom modifier in addition to Intelligence when making Knowledge checks to lore creatures. When you successfully lore a creature, you also see all effects they are under.");
+      "Add your Wisdom modifier in addition to Intelligence when making Knowledge checks to lore "
+      "creatures. When you successfully lore a creature, you also see all effects they are under.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 2: Scent of Magic (1 rank, 2 points) */
@@ -1620,8 +1624,8 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "You can identify the school of magic of any affect a creature is under when you lore it or simply look at it.");
+  perk->special_description = strdup("You can identify the school of magic of any affect a "
+                                     "creature is under when you lore it or simply look at it.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 2: Investigator's Eye (2 ranks, 2 points each) */
@@ -1638,8 +1642,7 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SKILL;
   perk->effect_value = 3; /* +3 per rank to Search and Detect Trap checks */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Gain +3 per rank to Search and Detect Trap checks.");
+  perk->special_description = strdup("Gain +3 per rank to Search and Detect Trap checks.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 3: True Seeing (2 ranks, 3 points each) */
@@ -1675,8 +1678,8 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1; /* +1 to attacks and AC when fighting with allies */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "All party members gain +1 to attack rolls and armor class when fighting with allies in the same room.");
+  perk->special_description = strdup("All party members gain +1 to attack rolls and armor class "
+                                     "when fighting with allies in the same room.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 3: Aura Reading (1 rank, 3 points) */
@@ -1693,8 +1696,7 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 0;
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Cast Sense Life and Detect Alignment once per day each.");
+  perk->special_description = strdup("Cast Sense Life and Detect Alignment once per day each.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 3: Perfect Recall (1 rank, 3 points) */
@@ -1711,8 +1713,8 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SKILL;
   perk->effect_value = 4; /* +4 to all knowledge skills */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Gain +4 to all Knowledge skills (Arcana, Religion, History, Nature). Learn 3 new languages.");
+  perk->special_description = strdup("Gain +4 to all Knowledge skills (Arcana, Religion, History, "
+                                     "Nature). Learn 3 new languages.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 4: Master Tactician (1 rank, 4 points) */
@@ -1729,8 +1731,9 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 0;
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "You can use Battlefield Commander as a free action once every 5 minutes. All allies within 60 feet gain +2 to initiative and can't be flanked.");
+  perk->special_description =
+      strdup("You can use Battlefield Commander as a free action once every 5 minutes. All allies "
+             "within 60 feet gain +2 to initiative and can't be flanked.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 4: Legendary Resilience (1 rank, 4 points) */
@@ -1747,8 +1750,9 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 5; /* 5/- DR */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Gain damage reduction 5/—. Immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw (5 minute cooldown).");
+  perk->special_description =
+      strdup("Gain damage reduction 5/—. Immune to ability damage, ability drain, and energy "
+             "drain. 10% chance to automatically succeed on a saving throw (5 minute cooldown).");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 4: Perfect Adaptation (1 rank, 4 points) */
@@ -1765,8 +1769,10 @@ void define_inquisitor_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 0;
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Every 5 minutes you can choose to gain one of the following for 30 seconds: immunity to one energy type, immunity to blindness/deafness/paralysis, spell resistance equal to 10 + your level, or fast healing 5.");
+  perk->special_description =
+      strdup("Every 5 minutes you can choose to gain one of the following for 30 seconds: immunity "
+             "to one energy type, immunity to blindness/deafness/paralysis, spell resistance equal "
+             "to 10 + your level, or fast healing 5.");
   perk->toggleable = false;
 
   /* Investigation & Perception Tree - Tier 4: Inquisitor's Supremacy (1 rank, 4 points) */
@@ -2593,8 +2599,7 @@ void perk_start_daily_use_cooldown(struct char_data *ch, event_id event, int use
   {
     uses = 1;
     snprintf(buf, sizeof(buf), "uses:%d", uses);
-    attach_mud_event(new_mud_event(event, ch, buf),
-                    ((long)SECS_PER_MUD_DAY / uses_per_day) RL_SEC);
+    attach_mud_event(new_mud_event(event, ch, buf), ((long)SECS_PER_MUD_DAY / uses_per_day) RL_SEC);
     return;
   }
 
@@ -14992,6 +14997,7 @@ void apply_all_perk_effects(struct char_data *ch)
       hp_bonus += perk->effect_value * char_perk->current_rank;
     }
   }
+  (void)hp_bonus;
 
   /* Note: HP bonus is applied via get_perk_hp_bonus() in limits.c */
   /* Other effects are applied via their respective getter functions */

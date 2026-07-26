@@ -1,7 +1,7 @@
 /* ************************************************************************
 *  Intermud3 Client Implementation for LuminariMUD                       *
 *  Core client functionality and connection management                    *
-*  Based on CircleMUD/tbaMUD implementation - adapted for C89/ANSI C     *
+*  Based on CircleMUD/tbaMUD implementation - adapted for LuminariMUD    *
 ************************************************************************ */
 
 #include "conf.h"

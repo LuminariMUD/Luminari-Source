@@ -9,10 +9,11 @@
  * Part of Phase 00, Session 09: Testing and Validation
  */
 
-/* Enable POSIX features for snprintf in C89 mode */
+/* Enable the required POSIX interfaces. */
 #define _POSIX_C_SOURCE 200112L
 #include "CuTest.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,7 +42,6 @@
 #define NOWHERE (-1)
 #endif
 
-typedef int bool;
 typedef int room_rnum;
 typedef int room_vnum;
 

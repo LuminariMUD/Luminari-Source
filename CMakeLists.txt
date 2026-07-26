@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5003 LANGUAGES C CXX)
+project(LuminariMUD VERSION 2.5004 LANGUAGES C)
 
-# IMPORTANT: LuminariMUD uses ANSI C90/C89 standard, NOT C99!
-set(CMAKE_C_STANDARD 90)
+# Build as GNU C23 while retaining the project's established source style.
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 11)  # For performance monitoring (perfmon.cpp)
+set(CMAKE_C_EXTENSIONS ON)
 
 # Include checker modules
 include(CheckFunctionExists)
@@ -14,6 +14,18 @@ include(CheckTypeSize)
 include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
+
+check_c_source_compiles(
+    "int main(void) {
+       bool value = true;
+       void *ptr = nullptr;
+       static_assert(sizeof(bool) > 0);
+       return value && ptr == nullptr ? 0 : 1;
+     }"
+    LUMINARI_HAVE_C23_KEYWORDS)
+if (NOT LUMINARI_HAVE_C23_KEYWORDS)
+    message(FATAL_ERROR "The C compiler does not provide the required GNU C23 language support")
+endif()
 
 # Output paths - LuminariMUD uses bin/circle convention
 set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
@@ -786,9 +798,6 @@ endif()
 
 # ========== Compiler warnings and options ==========
 if (CMAKE_COMPILER_IS_GNUCC)
-    # Use C90 but allow C++ style comments for pragmatic reasons
-    target_compile_options(circle PRIVATE -std=gnu90)
-
     # Additional warnings for development
     if (DEVELOPER_MODE)
         target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual
@@ -841,16 +850,6 @@ if (BUILD_UTILS)
     # Link libraries for utilities that need them
     target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
 
-    # Ensure utilities use the same C standard as the main project
-    # This prevents issues with newer compilers (e.g., GCC 15+) defaulting to C23
-    if (CMAKE_COMPILER_IS_GNUCC)
-        set(UTIL_TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
-                         rebuildMailIndex shopconv sign split wld2html
-                         webster)
-        foreach(util_target ${UTIL_TARGETS})
-            target_compile_options(${util_target} PRIVATE -std=gnu99)
-        endforeach()
-    endif()
 endif()
 
 # ========== Build unit tests AFTER main executable ==========
@@ -873,7 +872,7 @@ endif()
 # ========== Summary ==========
 message(STATUS "========================================")
 message(STATUS "LuminariMUD CMake Configuration Summary:")
-message(STATUS "  C Standard: GNU C90 (C89 with GNU extensions)")
+message(STATUS "  C Standard: GNU C23")
 message(STATUS "  MySQL Support: ${CIRCLE_MYSQL}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Build Utilities: ${BUILD_UTILS}")

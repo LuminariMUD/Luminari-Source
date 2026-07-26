@@ -4,12 +4,12 @@
 
 This guide covers building LuminariMUD using CMake as an alternative to the traditional Autotools approach. CMake provides cross-platform build configuration, better IDE integration, and modern build system features.
 
-**IMPORTANT**: LuminariMUD uses C90/C89 standard with GNU extensions. The CMake configuration uses `-std=gnu90` to allow C++ style comments while maintaining C90 compatibility.
+**IMPORTANT**: LuminariMUD uses GNU C23. The initial migration retains the established source formatting and declaration style.
 
 ## Prerequisites
 
-- CMake 3.12 or higher
-- GCC compiler with C90 support
+- CMake 3.21 or higher
+- GCC or Clang compiler with GNU C23 support
 - MariaDB development libraries (libmariadb-dev) or MySQL development libraries
 - GD graphics library (optional)
 
@@ -136,9 +136,9 @@ cmake -G"Eclipse CDT4 - Unix Makefiles" ..
 
 ## Troubleshooting
 
-### C++ Style Comments Note
+### Source Style Note
 
-The codebase uses C++ style comments (`//`) throughout. The CMake configuration uses GNU C90 (`-std=gnu90`) which allows these comments while maintaining C90 compatibility. This is intentional and correct.
+GNU C23 accepts `//` comments, but project style continues to use `/* */` comments. Existing code is not mechanically restyled as part of the language migration.
 
 ### Missing MySQL
 
@@ -213,7 +213,7 @@ make -j4
 
 1. CMake is now the recommended build system for LuminariMUD
 2. Both CMake and Autotools produce the same `circle` executable in `bin/`
-3. CMake uses GNU C90 (`-std=gnu90`) to allow C++ comments while maintaining C90 base
+3. CMake requires GNU C23 and retains compiler extensions
 4. The build configuration no longer generates `conf.h` - all defines are passed directly to the compiler
 5. MySQL configuration still uses `lib/mysql_config` file
 6. Build artifacts are cleanly separated in the `build/` directory

@@ -2,7 +2,7 @@
 # LuminariMUD staff event system unit tests
 
 CC = gcc
-CFLAGS = -g -Wall -I../src -I../.. -DTEST_BUILD
+CFLAGS = -g -Wall $(CSTD_FLAG) -I../src -I../.. -DTEST_BUILD
 LDFLAGS =
 LIBS =
 
@@ -47,3 +47,5 @@ test: $(TARGET)
 	./$(TARGET)
 
 .PHONY: all clean test
+
+include Makefile-common

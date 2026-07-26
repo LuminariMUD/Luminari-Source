@@ -503,7 +503,7 @@ CALL cleanup_orphaned_dockings();
 
 ## 16. Technical Stack
 
-- **Language:** ANSI C90/C89 with GNU extensions
+- **Language:** GNU C23 with the established legacy source style
 - **Database:** MySQL/MariaDB (required)
 - **Build System:** CMake (preferred) or Autotools
 - **Testing:** CuTest unit test framework

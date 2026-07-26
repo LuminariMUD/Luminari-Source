@@ -2135,7 +2135,6 @@ static int level_to_circle_conversion(int min_level, int caster_type)
  */
 static int check_campaign_spell_override(int spellnum)
 {
-
 #ifdef CAMPAIGN_FR
   switch (spellnum)
   {
@@ -2668,7 +2667,8 @@ bool ready_to_prep_spells(struct char_data *ch, int class)
     if (SPELL_PREP_QUEUE(ch, class))
       if (!spellbook_ok(ch, SPELL_PREP_QUEUE(ch, class)->spell, CLASS_WIZARD, FALSE))
       {
-        send_to_char(ch, "You may not have a spellbook in your inventory, or the spells you've memorized are not in your spellbook.\r\n");
+        send_to_char(ch, "You may not have a spellbook in your inventory, or the spells you've "
+                         "memorized are not in your spellbook.\r\n");
         return FALSE;
       }
     break;
@@ -3208,17 +3208,18 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
     int check_metamagic = metamagic;
-    
+
     /* Strip automatic metamagic flags when checking for prepared spells
      * because automatic metamagic feats apply at cast time, not prep time.
      * This prevents extraction failures when a caster has AUTOMATIC_SILENT_SPELL
      * or AUTOMATIC_STILL_SPELL and tries to cast a level 3 or lower spell. */
     if (CLASS_LEVEL(ch, ch_class) > 0)
     {
-      int spell_circle = compute_spells_circle(ch, ch_class, spellnum, METAMAGIC_NONE, 
-                                                (ch_class == CLASS_CLERIC || ch_class == CLASS_INQUISITOR) ? 
-                                                GET_1ST_DOMAIN(ch) : DOMAIN_UNDEFINED);
-      
+      int spell_circle = compute_spells_circle(
+          ch, ch_class, spellnum, METAMAGIC_NONE,
+          (ch_class == CLASS_CLERIC || ch_class == CLASS_INQUISITOR) ? GET_1ST_DOMAIN(ch)
+                                                                     : DOMAIN_UNDEFINED);
+
       if (spell_circle <= 3)
       {
         if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
@@ -3227,7 +3228,7 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
           REMOVE_BIT(check_metamagic, METAMAGIC_STILL);
       }
     }
-    
+
     if (is_spell_in_collection(ch, ch_class, spellnum, check_metamagic))
     {
       if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
@@ -3396,7 +3397,7 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
   for (class = 0; class < NUM_CLASSES; class ++)
   {
     int check_metamagic = metamagic;
-    
+
     /* Strip automatic metamagic flags when checking for prepared spells
      * because automatic metamagic feats apply at cast time, not prep time.
      * This prevents "You are not ready to cast that Spell" errors when a
@@ -3404,10 +3405,11 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
      * to cast a level 3 or lower spell that was prepared without those flags. */
     if (CLASS_LEVEL(ch, class) > 0)
     {
-      int spell_circle = compute_spells_circle(ch, class, spellnum, METAMAGIC_NONE, 
-                                                (class == CLASS_CLERIC || class == CLASS_INQUISITOR) ? 
-                                                GET_1ST_DOMAIN(ch) : DOMAIN_UNDEFINED);
-      
+      int spell_circle = compute_spells_circle(ch, class, spellnum, METAMAGIC_NONE,
+                                               (class == CLASS_CLERIC || class == CLASS_INQUISITOR)
+                                                   ? GET_1ST_DOMAIN(ch)
+                                                   : DOMAIN_UNDEFINED);
+
       if (spell_circle <= 3)
       {
         if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
@@ -3416,7 +3418,7 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
           REMOVE_BIT(check_metamagic, METAMAGIC_STILL);
       }
     }
-    
+
     if (is_spell_in_collection(ch, class, spellnum, check_metamagic))
       return class;
   }
@@ -3971,7 +3973,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   if (circle > 1 && PREP_TIME_INTERVALS > (INT_MAX - BASE_PREP_TIME) / (circle - 1))
   {
     log("SYSERR: Integer overflow detected in prep time calculation");
-    prep_time = INT_MAX / 10; /* Set to a large but safe value */
+    prep_time = (float)(INT_MAX / 10); /* Set to a large but safe value */
   }
   else
   {
@@ -4168,7 +4170,6 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     if (CONFIG_ARCANE_PREP_TIME < 0 || CONFIG_ARCANE_PREP_TIME > 1000)
     {
       log("SYSERR: Invalid CONFIG_ARCANE_PREP_TIME %d", CONFIG_ARCANE_PREP_TIME);
-      prep_time = prep_time; /* No change */
     }
     else if (prep_time > INT_MAX / CONFIG_ARCANE_PREP_TIME)
     {
@@ -4192,7 +4193,6 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     if (CONFIG_DIVINE_PREP_TIME < 0 || CONFIG_DIVINE_PREP_TIME > 1000)
     {
       log("SYSERR: Invalid CONFIG_DIVINE_PREP_TIME %d", CONFIG_DIVINE_PREP_TIME);
-      prep_time = prep_time; /* No change */
     }
     else if (prep_time > INT_MAX / CONFIG_DIVINE_PREP_TIME)
     {
@@ -4215,7 +4215,6 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     if (CONFIG_ALCHEMY_PREP_TIME < 0 || CONFIG_ALCHEMY_PREP_TIME > 1000)
     {
       log("SYSERR: Invalid CONFIG_ALCHEMY_PREP_TIME %d", CONFIG_ALCHEMY_PREP_TIME);
-      prep_time = prep_time; /* No change */
     }
     else if (prep_time > INT_MAX / CONFIG_ALCHEMY_PREP_TIME)
     {

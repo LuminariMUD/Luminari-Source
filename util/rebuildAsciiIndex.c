@@ -7,8 +7,8 @@
 *  .plr files in the player directory and extracting key information      *
 *  such as player ID, name, level, admin level, and last login time.      *
 *                                                                         *
-*  Updated: 2025 - Enhanced for LuminariMUD compatibility, fixed C90      *
-*  compliance issues, improved error handling and documentation           *
+*  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved      *
+*  portability, error handling, and documentation                         *
 ************************************************************************* */
 
 #include <stdio.h>

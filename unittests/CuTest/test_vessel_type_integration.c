@@ -10,6 +10,7 @@
 
 #include "CuTest.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,8 +25,6 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-
-typedef int bool;
 
 /* Vessel class enum - matches production enum vessel_class */
 enum vessel_class

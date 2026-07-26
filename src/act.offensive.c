@@ -10194,6 +10194,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
+  (void)discipline_bonus;
 
   /* damage! */
   diceOne = GET_LEVEL(ch) + 4;
@@ -10269,6 +10270,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
     discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
+  (void)discipline_bonus;
 
   /* monk damage? */
   compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
@@ -12333,6 +12335,8 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 
   if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
     prob -= get_evolution_appearance_save_bonus(vict);
+  (void)dc;
+  (void)prob;
 
   /* paralysis - fortitude save */
   if (!savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
@@ -13150,7 +13154,6 @@ ACMD(do_detectmagic)
   call_magic(ch, ch, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_INQUISITOR), CAST_INNATE);
   send_to_char(ch, "Your heightened senses attune to magical auras.\r\n");
 }
-
 
 
 /* Hunter's Mark: Rangers mark a target. After 5 rounds, gain +2 to hit and +1d6 damage versus the marked target. */
@@ -14298,6 +14301,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
     discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
+  (void)discipline_bonus;
 
   /* saving throw dc - unused for slam */
   /* dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch); */

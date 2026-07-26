@@ -228,7 +228,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Documentation Standards
 - All docs use Markdown format
-- Code examples follow ANSI C90/C89 standard
+- Code examples follow GNU C23 and the established source style
 - Internal links use relative paths
 - External links include descriptions
 
@@ -239,7 +239,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Recent Updates (2025)
 - Documentation reorganized into categorical directories
 - Removed redundant `/guides/` paths
-- Updated to reflect ANSI C90/C89 compliance
+- Updated to reflect GNU C23 compliance
 - Added performance optimization documentation
 - Enhanced security documentation
 

@@ -56,7 +56,7 @@ static int discord_debug_enabled = 0;
     }                                                                                              \
   } while (0)
 
-/* Simple JSON parser/builder functions (since we're in C89) */
+/* Simple JSON parser/builder functions to avoid an additional dependency. */
 
 /* Build a JSON message for Discord */
 char *build_discord_json(const char *channel, const char *name, const char *message, int emoted)

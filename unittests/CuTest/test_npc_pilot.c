@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -25,8 +26,6 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-
-typedef int bool;
 
 /* Autopilot constants */
 #define MAX_WAYPOINTS_PER_ROUTE 20

@@ -315,7 +315,7 @@ ai reset             # Reset rate limits
 - `make_ollama_request()` - Sends requests to local Ollama with enhanced error reporting
 - `build_ollama_json_request()` - Formats Ollama API requests with proper JSON escaping
 - `parse_ollama_json_response()` - Extracts Ollama responses from JSON
-- `json_escape_string()` - Properly escapes strings for JSON encoding (C89-compatible)
+- `json_escape_string()` - Properly escapes strings for JSON encoding
 - `warmup_ollama_model()` - Preloads model at startup to avoid first-request delays
 - `generate_fallback_response()` - Now tries Ollama before generic responses
 
@@ -823,7 +823,7 @@ ollama pull mistral:7b
 ## Contributing
 
 When modifying the AI service:
-1. Maintain C90/C89 compatibility (no C99 features)
+1. Maintain GNU C23 compatibility and the established source style
 2. Test both OpenAI and Ollama backends
 3. Ensure fallback logic works correctly
 4. Update this documentation
@@ -860,7 +860,7 @@ docs/systems/
 ```
 
 ### JSON Handling
-The system uses a custom `json_escape_string()` function for proper JSON encoding since the codebase maintains C89/C90 compatibility and cannot use modern JSON libraries. This function handles:
+The system uses a custom `json_escape_string()` function so JSON escaping behavior remains explicit and independent of an additional JSON library. This function handles:
 - Escape sequences: `\"`, `\\`, `\n`, `\r`, `\t`, `\b`, `\f`
 - Control character filtering (< 0x20)
 - Non-ASCII character filtering (>= 0x80)

@@ -525,7 +525,7 @@ static int rename_tilde_block_ends(enum rename_tilde_block block, const char *li
   if (block == RENAME_TILDE_BLOCK_TODO)
     return line[0] == '~';
   if (block == RENAME_TILDE_BLOCK_INTRODUCTIONS_LEGACY)
-    return sscanf(line, "%ld", &value) != 1 || value == NOTHING;
+    return sscanf(line, "%ld", &value) != 1 || value == -1;
   return rename_line_equals(line, "~");
 }
 

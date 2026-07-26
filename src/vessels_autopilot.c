@@ -2249,6 +2249,7 @@ void autopilot_tick(void)
 
   /* Optional: Log active autopilot count periodically for debugging */
   /* if (active_count > 0) log("Info: Autopilot tick - %d active ships", active_count); */
+  (void)active_count;
 }
 
 /* ========================================================================= */

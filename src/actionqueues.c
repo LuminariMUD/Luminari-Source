@@ -223,7 +223,7 @@ void execute_next_action(struct char_data *ch)
 {
   struct action_data *action = NULL;
 
-  if ((ch == NULL))
+  if (ch == NULL)
     return;
 
   action = peek_action(GET_QUEUE(ch));

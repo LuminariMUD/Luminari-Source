@@ -737,8 +737,8 @@ patch -p1 < platform.patch
 ### Common Porting Issues
 
 **Compiler Compatibility:**
-- Use ANSI C compatible code
-- Avoid compiler-specific extensions
+- Use GNU C23 while retaining the established source style
+- Keep non-GNU dependencies isolated and documented
 - Handle different warning levels appropriately
 - Test with multiple compiler versions
 

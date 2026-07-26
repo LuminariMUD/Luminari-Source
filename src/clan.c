@@ -4715,6 +4715,7 @@ void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim)
   {
     log("Zone %d returned rnum %d in show_zone_popularities", this_claim->zn, z_r);
   }
+  (void)tot;
 }
 
 void show_clan_popularities(struct char_data *ch, clan_vnum c_v)

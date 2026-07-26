@@ -1,11 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
-AC_INIT([LuminariMUD],[2.5002-beta],[bugs@luminarimud.com])
+AC_INIT([LuminariMUD],[2.5004-beta],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
 AC_SUBST(NETLIB)
 AC_SUBST(CRYPTLIB)
+AC_SUBST(CSTD_CFLAGS)
 
 AC_CONFIG_HEADERS([src/conf.h:conf.h.in])
 AC_DEFINE([CIRCLE_UNIX], [1], [Define for Unix-based systems])
@@ -15,11 +16,39 @@ AC_CHECK_PROGS(MORE, less most more cat)
 
 dnl Checks for programs.
 AC_PROG_CC
-AC_PROG_CXX
+
+dnl Require GNU C23. Older compilers may expose the required feature set
+dnl under the pre-publication gnu2x flag spelling.
+AC_MSG_CHECKING([for the compiler flag for GNU C23])
+OLD_CFLAGS=$CFLAGS
+CSTD_CFLAGS=""
+for cstd_flag in -std=gnu23 -std=gnu2x; do
+  CFLAGS="$OLD_CFLAGS $cstd_flag"
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([], [[
+      bool value = true;
+      void *ptr = nullptr;
+      static_assert(sizeof(bool) > 0);
+      return ptr == nullptr && value ? 0 : 1;
+    ]])],
+    [CSTD_CFLAGS=$cstd_flag; break],
+    [])
+done
+CFLAGS=$OLD_CFLAGS
+
+if test "x$CSTD_CFLAGS" = x; then
+  AC_MSG_RESULT([not found])
+  AC_MSG_ERROR([a compiler with GNU C23 support is required])
+fi
+
+AC_MSG_RESULT([$CSTD_CFLAGS])
+if test "x$CSTD_CFLAGS" = "x-std=gnu2x"; then
+  AC_MSG_WARN([using the compiler's legacy gnu2x spelling for GNU C23])
+fi
 
 dnl If we're using gcc, use gcc options.
 dnl If not, test for various common switches to make a 'cc' compiler
-dnl compile ANSI C code.
+dnl compile the project.
 if test "x$GCC" = xyes; then
 
   dnl Determine if gcc -Wall causes warnings on isascii(), etc.

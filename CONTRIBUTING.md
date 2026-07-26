@@ -18,7 +18,7 @@ We welcome contributions from developers, builders, and community members! This 
 ### Prerequisites
 - **Development Environment**: Set up according to the [Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md)
 - **Git Knowledge**: Basic understanding of Git and GitHub workflows
-- **C Programming**: Familiarity with C programming language (ANSI C90/C89 standard)
+- **C Programming**: Familiarity with GNU C23 and the repository's established C style
 - **MUD Knowledge**: Understanding of MUD concepts and tbaMUD/CircleMUD architecture
 
 ### First Steps

@@ -45,6 +45,7 @@ void basic_mud_log(const char *format, ...)
 {
   va_list args;
 
+  (void)format;
   s_log_count++;
   va_start(args, format);
   va_end(args);

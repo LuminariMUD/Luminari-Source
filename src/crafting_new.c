@@ -4129,6 +4129,7 @@ void process_craft_critical_success(struct char_data *ch, struct obj_data *obj)
       send_to_char(ch, "\tY**CRITICAL SUCCESS x%d!**\tn Another enhancement applied!\r\n",
                    crit_count);
   }
+  (void)bonus_increases;
 }
 
 void craft_create_complete(struct char_data *ch)

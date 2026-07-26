@@ -6685,10 +6685,10 @@ struct obj_data *find_ship(int room)
             return obj;
         }
       }
-      return FALSE;
+      return NULL;
     }
   }
-  return FALSE;
+  return NULL;
 }
 
 void move_ship(struct obj_data *ship, int dir)
@@ -10188,7 +10188,7 @@ SPECIAL(bank)
     {
       amount = GET_GOLD(ch);
       send_to_char(ch, "\twYou deposit all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
-      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+      act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
       decrease_gold(ch, amount);
       increase_bank(ch, amount);
       return (TRUE);
@@ -10207,7 +10207,7 @@ SPECIAL(bank)
     decrease_gold(ch, amount);
     increase_bank(ch, amount);
     send_to_char(ch, "\twYou deposit \tW%d\tY coins\tw.\tn\r\n", amount);
-    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+    act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
     return (TRUE);
   }
   else if (CMD_IS("withdraw"))
@@ -10218,7 +10218,7 @@ SPECIAL(bank)
     {
       amount = GET_BANK_GOLD(ch);
       send_to_char(ch, "\twYou withdraw all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
-      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+      act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
       increase_gold(ch, amount);
       decrease_bank(ch, amount);
       return (TRUE);
@@ -10237,7 +10237,7 @@ SPECIAL(bank)
     increase_gold(ch, amount);
     decrease_bank(ch, amount);
     send_to_char(ch, "\twYou withdraw \tW%d \tYcoins\tw.\tn\r\n", amount);
-    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+    act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
     return (TRUE);
   }
   else

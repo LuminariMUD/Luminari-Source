@@ -55,7 +55,7 @@ Proven patterns and anti-patterns. Reference during implementation.
 8. [P01] **In-memory cache for waypoints/routes**: Fast lookups without DB round-trips. Cache frequently accessed data.
 9. [P02] **Unified transport interface**: transport_data struct abstracts vessel/vehicle differences cleanly.
 10. [P02] **Vehicle-in-vessel mechanics**: Clean layered transport with nesting limits (MAX_TRANSPORT_DEPTH=3).
-11. [P02] **POSIX macro for C89 compatibility**: `_POSIX_C_SOURCE 200809L` enables snprintf/strcasecmp in C89.
+11. [P02] **POSIX feature selection**: `_POSIX_C_SOURCE 200809L` exposes required POSIX APIs consistently.
 12. [P03] **Validation sessions are valuable**: Sessions 02-03 discovered prior work was already complete. Always verify before implementing.
 13. [P03] **Mock-based unit tests**: Created 14 mock tests for wilderness room allocation without full server dependencies.
 14. [P03] **Integration tests catch gaps**: 11 end-to-end vessel type tests caught issues unit tests missed.
@@ -64,7 +64,7 @@ Proven patterns and anti-patterns. Reference during implementation.
 ### What to Avoid
 <!-- Max 10 items -->
 
-1. [P00] **Don't use C99/C11 features**: This is ANSI C90/C89 codebase. No `//` comments, no declarations after statements.
+1. [P00] **Don't mechanically modernize style**: The codebase targets GNU C23 but retains `/* */` comments and declarations at the top of blocks during the initial migration.
 2. [P00] **Don't hardcode VNUMs**: Use #defines or configuration. VNUMs in code = future breakage.
 3. [P00] **Don't skip NULL checks**: Critical in C code. Every pointer dereference needs validation.
 4. [P00] **Don't commit environment-specific files**: campaign.h, mud_options.h, vnums.h are local only.
@@ -74,7 +74,7 @@ Proven patterns and anti-patterns. Reference during implementation.
 ### Tool/Library Notes
 <!-- Max 5 items -->
 
-1. [P00] **CuTest for unit testing**: Located in unittests/CuTest/. Simple, reliable, C89 compatible.
+1. [P00] **CuTest for unit testing**: Located in unittests/CuTest/. Simple and reliable.
 2. [P00] **Valgrind for memory validation**: Run tests with `--leak-check=full`. Use cutest.supp suppression file.
 3. [P03] **CMake vs Makefile tests**: CMake cutest target broken (legacy linking issues). Use Makefile for all tests.
 

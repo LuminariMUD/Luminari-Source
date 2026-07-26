@@ -6,7 +6,7 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
-AM_CFLAGS = -std=gnu90 @MYFLAGS@
+AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@
 
 
 # Main program

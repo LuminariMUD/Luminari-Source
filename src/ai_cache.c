@@ -316,6 +316,7 @@ void ai_cache_cleanup(void)
       prev = entry;
     }
   }
+  (void)valid_count;
 
   /* Second pass: remove oldest entries if still over limit */
   if (ai_state.cache_size > AI_MAX_CACHE_SIZE)

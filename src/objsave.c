@@ -3316,6 +3316,7 @@ void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_i
   {
     num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
   }
+  (void)num_objs;
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by handle_obj() */
   while (loaded != NULL)

@@ -401,7 +401,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
 
   if ((mode == 0) && obj->description)
   {
-    if (!GET_OBJ_VAL(obj, 1) == 0 || OBJ_SAT_IN_BY(obj))
+    if (GET_OBJ_VAL(obj, 1) != 0 || OBJ_SAT_IN_BY(obj))
     {
       temp = OBJ_SAT_IN_BY(obj);
       for (temp = OBJ_SAT_IN_BY(obj); temp; temp = NEXT_SITTING(temp))
@@ -1403,7 +1403,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   target_room = IN_ROOM(ch);
   zn = GET_ROOM_ZONE(target_room);
 
-  if (target_room == NOWHERE) return;
+  if (target_room == NOWHERE)
+    return;
 
   /* Check if room is dark (magical darkness or normal darkness) */
   if (ROOM_FLAGGED(target_room, ROOM_MAGICDARK) || IS_DARK(target_room))
@@ -1709,7 +1710,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
           {
             if (!found_aggro)
             {
-              send_to_char(ch, "\tR[Your heightened senses detect hostile creatures nearby!]\tn\r\n");
+              send_to_char(ch,
+                           "\tR[Your heightened senses detect hostile creatures nearby!]\tn\r\n");
               found_aggro = 1;
             }
             break;
@@ -2166,10 +2168,11 @@ static void look_at_target(struct char_data *ch, char *arg)
 
         found = TRUE;
       }
-  
-      // if the object has an arcane mark cast on it, show it.
+
+  // if the object has an arcane mark cast on it, show it.
   if (found_obj && GET_OBJ_ARCANE_MARK(found_obj) != NULL)
-    send_to_char(ch, "\tCIt bears an arcane mark reading \"%s\"\tn.\r\n", GET_OBJ_ARCANE_MARK(found_obj));
+    send_to_char(ch, "\tCIt bears an arcane mark reading \"%s\"\tn.\r\n",
+                 GET_OBJ_ARCANE_MARK(found_obj));
 
   /* If an object was found back in generic_find */
   if (bits)
@@ -7657,13 +7660,15 @@ ACMD(do_who)
           send_to_char(ch, "%s]", classes_list);
         }
 
-	if (CONFIG_USE_INTRO_SYSTEM)
+        if (CONFIG_USE_INTRO_SYSTEM)
         {
-          send_to_char(ch, " %s%s%s%s", GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch), CCNRM(ch, C_SPR));
+          send_to_char(ch, " %s%s%s%s", GET_NAME(tch), (*GET_TITLE(tch) ? " " : ""), GET_TITLE(tch),
+                       CCNRM(ch, C_SPR));
         }
         else
         {
-          send_to_char(ch, "%s %s%s", GET_NAME(tch), (*GET_TITLE(tch) ? GET_TITLE(tch) : ""), CCNRM(ch, C_SPR));
+          send_to_char(ch, "%s %s%s", GET_NAME(tch), (*GET_TITLE(tch) ? GET_TITLE(tch) : ""),
+                       CCNRM(ch, C_SPR));
         }
 
         if (IS_IN_CLAN(tch) && !(GET_CLANRANK(tch) == NO_CLANRANK))
@@ -11175,8 +11180,8 @@ ACMDU(do_wearapplies)
 #undef WPT_DWARF
 #undef WPT_DUERGAR
 
-/* Phase 4.5: Materials storage display command 
- * 
+/* Phase 4.5: Materials storage display command
+ *
  * This command allows players to:
  * 1. View their stored materials (basic or detailed view)
  */

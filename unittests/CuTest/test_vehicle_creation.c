@@ -4,7 +4,7 @@
  *              Phase 02 Session 02: Vehicle Creation System                 *
  * ********************************************************************** */
 
-/* Enable POSIX functions (snprintf) in C89 mode */
+/* Enable the required POSIX interfaces. */
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>

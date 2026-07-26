@@ -40,7 +40,8 @@ Running this command builds the game, provisions MariaDB (REQUIRED), and invokes
 ```
 
 ### Required Tools
-- **GCC 9.0+** or **Clang 10.0+** - C compiler (ANSI C90/C89 standard)
+- **GCC 13+** or **Clang 18+** - C compiler with GNU C23 support; GCC's legacy
+  `gnu2x` flag spelling is accepted only after the C23 feature probe passes
 - **Git** - Version control system
 - **GDB** - Debugger for troubleshooting
 - **Valgrind** - Memory leak detection (Linux) - Essential for development
@@ -84,7 +85,7 @@ sudo dnf install gcc gdb valgrind doxygen graphviz cppcheck \
                 "CIRCLE_MYSQL"
             ],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c90",
+            "cStandard": "c23",
             "intelliSenseMode": "linux-gcc-x64"
         }
     ]

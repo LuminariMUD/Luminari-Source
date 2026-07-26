@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "CuTest.h"
@@ -29,7 +30,6 @@ enum transport_type
 
 /* Placeholder types for standalone testing */
 typedef int room_rnum;
-typedef int bool;
 #define TRUE 1
 #define FALSE 0
 #define NOWHERE -1

@@ -17,7 +17,7 @@ bin_PROGRAMS = \
 	wld2html
 
 # Common includes
-AM_CFLAGS = -I../src
+AM_CFLAGS = -I../src @CSTD_CFLAGS@ @MYFLAGS@
 
 # Source files for each utility
 asciipasswd_SOURCES = asciipasswd.c

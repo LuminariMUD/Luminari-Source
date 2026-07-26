@@ -78,7 +78,7 @@ typedef struct i3_channel
   char name[64];
   int type; /* 0 = public, 1 = private */
   char owner[128];
-  int subscribed; /* Using int instead of bool for C89 */
+  int subscribed; /* Stored as int for protocol state compatibility. */
   int member_count;
 } i3_channel_t;
 
@@ -90,7 +90,7 @@ typedef struct i3_mud
   char mud_type[64];
   char admin_email[256];
   int port;
-  int online;         /* Using int instead of bool for C89 */
+  int online;         /* Stored as int for protocol state compatibility. */
   char services[256]; /* Comma-separated list */
   struct i3_mud *next;
 } i3_mud_t;

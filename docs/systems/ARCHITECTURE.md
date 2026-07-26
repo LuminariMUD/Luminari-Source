@@ -10,9 +10,9 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 ## Core Architecture Principles
 
 ### Language and Standards
-- **Primary Language**: ANSI C90/C89 (NOT C99!)
+- **Primary Language**: GNU C23
 - **Performance Monitoring**: C (perfmon.c)
-- **Compiler Compliance**: GCC/Clang without -std=c99 flag
+- **Compiler Compliance**: GCC/Clang in GNU C23 mode
 - **Platform Support**: Linux/Unix systems (CentOS), WSL/Windows compatible
 
 ### Design Philosophy

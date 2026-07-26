@@ -87,9 +87,8 @@ void free_list(struct list_data *pList);
 /* Beginner's Note: Helper macros for safer and more convenient list iteration.
  * These macros provide safer alternatives to manual simple_list() usage.
  *
- * NOTE: Due to C89/C90 compatibility requirements, the SIMPLE_LIST_FOREACH macro
- * cannot be implemented as originally intended (would require C99 for-loop declarations).
- * Instead, we provide helper macros for common patterns.
+ * NOTE: The initial GNU C23 migration retains the traditional iterator pattern.
+ * These helper macros provide the established operations for common cases.
  *
  * SAFE_REMOVE_FROM_LIST: Safe removal with NULL checks
  * - Checks both item and list for NULL before attempting removal

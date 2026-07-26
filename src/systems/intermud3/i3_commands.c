@@ -1,7 +1,7 @@
 /* ************************************************************************
 *  Intermud3 Command Implementations for LuminariMUD                     *
 *  Player and immortal command handlers                                  *
-*  Based on CircleMUD/tbaMUD implementation - adapted for C89/ANSI C     *
+*  Based on CircleMUD/tbaMUD implementation - adapted for LuminariMUD    *
 ************************************************************************ */
 
 #include "conf.h"

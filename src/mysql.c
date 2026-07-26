@@ -1955,7 +1955,7 @@ char **tokenize(const char *input, const char *delim)
     return NULL;
   }
 
-  /* Use strtok - strtok_r may not be available in all C90 environments */
+  /* Use strtok to avoid a platform dependency on strtok_r. */
   tok = strtok(str, delim);
 
   while (tok)
@@ -2339,7 +2339,7 @@ struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
   if (!MYSQL_PING_CONN(conn))
   {
     log("SYSERR: %s: Database connection failed", __func__);
-    return false;
+    return NULL;
   }
 
   if (mysql_query(conn, buf))
@@ -2485,7 +2485,7 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
   if (!MYSQL_PING_CONN(conn))
   {
     log("SYSERR: %s: Database connection failed", __func__);
-    return false;
+    return NULL;
   }
 
   if (mysql_query(conn, buf))
@@ -2832,7 +2832,7 @@ struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y)
   if (!MYSQL_PING_CONN(conn))
   {
     log("SYSERR: %s: Database connection failed", __func__);
-    return false;
+    return NULL;
   }
 
   if (mysql_query(conn, buf))

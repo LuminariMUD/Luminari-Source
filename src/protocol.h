@@ -340,7 +340,7 @@ typedef struct descriptor_data descriptor_t;
  * Simple boolean enumeration used throughout the protocol system.
  * Provides type safety and clear semantics for boolean operations.
  *
- * @note Used instead of C99 bool for C90 compatibility
+ * @note Kept as a protocol-specific boolean type for compatibility
  */
 typedef enum
 {

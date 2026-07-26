@@ -443,7 +443,7 @@ int deserialize_room_data(struct greyhawk_ship_data *ship, const char *data)
   data_copy[sizeof(data_copy) - 1] = '\0';
 
   /* Parse format: connection_count|from:to:dir:hatch:locked|... */
-  /* Simple parsing for C89 compatibility */
+  /* Keep parsing simple and portable. */
   if (sscanf(data_copy, "%d", &conn_count) == 1)
   {
     ship->num_connections = conn_count;

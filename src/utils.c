@@ -1307,6 +1307,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
       } /* end switch */
     } /* end charmee check */
   } /* end for */
+  (void)merc_slot;
 
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   /* charisma bonus, spare represents our extra slots */
@@ -5470,6 +5471,7 @@ int calculate_cp(struct obj_data *obj)
     break;
   }
 
+  (void)current_cp;
   return 0;
 }
 

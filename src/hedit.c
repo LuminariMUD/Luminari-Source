@@ -894,7 +894,7 @@ bool hedit_delete_entry(struct help_entry_list *entry)
 void hedit_parse(struct descriptor_data *d, char *arg)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char *oldtext = '\0';
+  char *oldtext = NULL;
   int number;
   struct help_entry_list *tmp;
   struct help_keyword_list *new_keyword;
@@ -2416,7 +2416,7 @@ static int write_help_entry_to_file(FILE *fp, const char *keywords, const char *
   /* Convert keywords to uppercase and write them space-separated */
   strlcpy(keyword_buf, keywords, sizeof(keyword_buf));
 
-  /* Write keywords in uppercase - using strtok instead of strsep for C90 */
+  /* Write keywords in uppercase using the portable strtok interface. */
   token = strtok(keyword_buf, ",");
   while (token != NULL)
   {

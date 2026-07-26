@@ -79,16 +79,14 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 
 ### Current Version & Standards
 - **LuminariMUD** (built on tbaMUD/CircleMUD/CWG [Circle with Goodies]/d20MUD [Stephen Squires])
-- **Language**: C (ANSI C90/C89 - NOT C99!)
-  - **IMPORTANT**: The codebase does NOT compile with C99 mode enabled
-  - **DO NOT** use C99 features like:
-    - Variable declarations inside for loops: `for (int i = 0; ...)`
-    - Mixed declarations and code
-    - Variable length arrays
-  - **ALWAYS** declare variables at the beginning of blocks
+- **Language**: GNU C23
+  - **IMPORTANT**: Retain the established source style during the initial migration
+  - Use `/* */` comments and declare variables at the beginning of blocks
+  - Do not use variable length arrays
+  - Do not mechanically restyle legacy code
 - **Platform**: Linux/Unix systems (Ubuntu)
 - **Database**: MariaDB
-- **Compiler**: GCC/Clang (without -std=c99 flag)
+- **Compiler**: GCC/Clang with GNU C23 support
 - **Binary Output**: Main executable is output to `/bin/circle`
 - Use the existing utility functions and macros defined in utils.h
 - When adding new commands, register them in interpreter.c

@@ -239,7 +239,7 @@ while ((ch = (struct char_data *)simple_list(group_list))) {
 }
 ```
 
-**Note on C89/C90 Compatibility**: The originally planned `SIMPLE_LIST_FOREACH` macro cannot be implemented due to the codebase's C89/C90 standard requirement (which doesn't allow variable declarations in for-loop initializers). Continue using the traditional while-loop pattern with explicit resets as shown above.
+**Source style note**: Although GNU C23 permits declarations in `for` initializers, the initial migration retains the traditional iterator pattern with explicit resets shown above.
 
 The `SAFE_REMOVE_FROM_LIST` macro adds NULL safety checks to prevent crashes, and `SIMPLE_LIST_CLEANUP()` provides a convenient way to reset the iterator.
 

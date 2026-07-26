@@ -62,6 +62,7 @@ static void CompressStart(descriptor_t *apDescriptor)
    *
    * Otherwise you can just ignore this function.
    */
+  (void)apDescriptor;
   ReportBug("CompressStart() in protocol.c is being called, but it doesn't do anything!\n");
 }
 
@@ -73,6 +74,7 @@ static void CompressEnd(descriptor_t *apDescriptor)
    *
    * Otherwise you can just ignore this function.
    */
+  (void)apDescriptor;
   ReportBug("CompressEnd() in protocol.c is being called, but it doesn't do anything!\n");
 }
 
@@ -212,7 +214,7 @@ static variable_name_t VariableNameTable[eMSDP_MAX + 1] = {
     {eMSDP_GAUGE_4, "GAUGE_4", STRING_GUI(s_Gauge4)},
     {eMSDP_GAUGE_5, "GAUGE_5", STRING_GUI(s_Gauge5)},
 
-    {eMSDP_MAX, "", 0} /* This must always be last. */
+    {eMSDP_MAX, "", false, false, false, false, 0, 0, 0, NULL} /* This must always be last. */
 };
 
 /******************************************************************************
@@ -229,7 +231,7 @@ static time_t s_Uptime = 0;
 static void Negotiate(descriptor_t *apDescriptor);
 static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtocol);
 static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *apData, int aSize);
-static void SendNegotiationSequence(descriptor_t *apDescriptor, char aCmd, char aProtocol);
+static void SendNegotiationSequence(descriptor_t *apDescriptor, int aCmd, int aProtocol);
 static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProtocol,
                                  bool_t abWillDo, bool_t abSendReply);
 static void ParseMSDP(descriptor_t *apDescriptor, const char *apData);
@@ -672,7 +674,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
     {
       char MXPBuffer[1024];
       char *pMXPTag = NULL;
-      int i = 0; /* Loop counter */
+      size_t i = 0; /* Loop counter */
 
       Index += 4; /* Skip to the start of the MXP sequence. */
 
@@ -1786,7 +1788,7 @@ void SoundSend(descriptor_t *apDescriptor, const char *apTrigger)
         /* Send the sound trigger through MSDP or GMCP */
         MSDPSendPair(apDescriptor, "PLAY_SOUND", apTrigger);
       }
-      else if (strlen(apTrigger) <= MaxTriggerLength)
+      else if (strlen(apTrigger) <= (size_t)MaxTriggerLength)
       {
         /* Use an old MSP-style trigger */
         char *pBuffer = alloca(MaxTriggerLength + 10);
@@ -2528,6 +2530,8 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
 {
   protocol_t *pProtocol = apDescriptor->pProtocol;
 
+  (void)aSize;
+
   switch (aCmd)
   {
   case (char)TELOPT_TTYPE:
@@ -2741,13 +2745,13 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
   }
 }
 
-static void SendNegotiationSequence(descriptor_t *apDescriptor, char aCmd, char aProtocol)
+static void SendNegotiationSequence(descriptor_t *apDescriptor, int aCmd, int aProtocol)
 {
   char NegotiateSequence[4];
 
   NegotiateSequence[0] = (char)IAC;
-  NegotiateSequence[1] = aCmd;
-  NegotiateSequence[2] = aProtocol;
+  NegotiateSequence[1] = (char)aCmd;
+  NegotiateSequence[2] = (char)aProtocol;
   NegotiateSequence[3] = '\0';
 
   Write(apDescriptor, NegotiateSequence);
@@ -3224,7 +3228,7 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
     {
       int ret = snprintf(GMCPBuffer, sizeof(GMCPBuffer), "%c%c%c%s %s%c%c", IAC, SB, TELOPT_GMCP,
                          apVariable, apValue, IAC, SE);
-      if (ret >= sizeof(GMCPBuffer))
+      if (ret < 0 || (size_t)ret >= sizeof(GMCPBuffer))
       {
         ReportBug("SendGMCP: Buffer overflow prevented");
         return;
@@ -3258,6 +3262,11 @@ static const char *GetMSSP_Uptime()
 
 /* Macro for readability, but you can remove it if you don't like it */
 #define FUNCTION_CALL(f) "", f
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 
 static void SendMSSP(descriptor_t *apDescriptor)
 {
@@ -3586,6 +3595,10 @@ static void SendMSSP(descriptor_t *apDescriptor)
   /* Send the sequence */
   Write(apDescriptor, MSSPBuffer);
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 /******************************************************************************
  Local MXP functions.

@@ -95,7 +95,12 @@ typedef void CURL;
     log("AI_DEBUG [%s:%d in %s()]: " fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__);            \
   } while (0)
 #else
-#define AI_DEBUG(fmt, ...) /* Debug mode disabled */
+#define AI_DEBUG(fmt, ...)                                                                         \
+  do                                                                                               \
+  {                                                                                                \
+    if (0)                                                                                         \
+      log((fmt), ##__VA_ARGS__);                                                                   \
+  } while (0)
 #endif
 
 /* Request types for logging and rate limiting */

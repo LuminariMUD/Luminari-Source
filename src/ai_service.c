@@ -1603,7 +1603,7 @@ static int json_escape_string(char *dest, size_t dest_size, const char *src)
       }
       else if ((unsigned char)*s >= 0x80)
       {
-        /* Non-ASCII characters - skip for safety in ANSI C */
+        /* Non-ASCII characters are excluded from this ASCII-only JSON path. */
         continue;
       }
       else

@@ -4330,6 +4330,7 @@ static void load_affects(FILE *fl, struct char_data *ch)
       i++;
     }
   } while (num != 0);
+  (void)i;
 }
 
 /* praytimes loading isn't a loop, so has to be manually changed if you

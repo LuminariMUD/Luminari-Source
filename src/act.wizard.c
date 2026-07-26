@@ -6860,6 +6860,7 @@ void perform_do_copyover()
                      GET_ROOM_VNUM(IN_ROOM(och)), d->descriptor);
     }
   } /* end descriptor loop */
+  (void)saved_count;
 
   if (fprintf(fp, "-1\n") < 0)
   {
@@ -8820,6 +8821,7 @@ ACMD(do_acconvert)
     found++;
   }
   total += found;
+  (void)total;
   send_to_char(ch, "%d converted.\r\n", found);
 }
 

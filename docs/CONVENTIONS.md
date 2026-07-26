@@ -2,7 +2,7 @@
 
 ## LuminariMUD Coding Standards
 
-This file adapts the Apex Spec conventions to the LuminariMUD ANSI C90/C89 codebase.
+This file adapts the Apex Spec conventions to the LuminariMUD GNU C23 codebase.
 
 ## Guiding Principles
 
@@ -14,16 +14,21 @@ This file adapts the Apex Spec conventions to the LuminariMUD ANSI C90/C89 codeb
 
 ## Language Requirements
 
-- **Standard:** ANSI C90/C89 with GNU extensions
-- **Exception:** perfmon.cpp uses C++11
+- **Standard:** GNU C23
 - **Compiler:** GCC or Clang with -Wall -Wextra
 - **Format:** Use .clang-format configuration
 
-### C90 Restrictions
+Build configuration prefers `-std=gnu23`. It accepts the legacy `-std=gnu2x`
+spelling only when the compiler passes the required C23 keyword probe.
+
+### Established Style
+
+The initial GNU C23 migration retains the existing source style.
+
 - NO // comments (use /* */ only)
 - NO declarations after statements
 - NO variable-length arrays
-- NO inline functions without __inline__ GNU extension
+- Do not mechanically restyle legacy code to use newer syntax
 
 ## Naming
 

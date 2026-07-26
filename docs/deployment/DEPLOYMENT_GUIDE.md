@@ -15,13 +15,14 @@ LuminariMUD is a comprehensive MUD codebase implementing Pathfinder/D&D 3.5 mech
 - **Memory**: 512MB RAM (2GB+ recommended for production)
 - **Storage**: 1GB+ free disk space
 - **Network**: TCP/IP networking capability
-- **Compiler**: GCC 4.8+ with ANSI C90/C89 support
+- **Compiler**: GCC 13+ or Clang 18+ with GNU C23 support (`gnu2x` is accepted
+  as GCC's legacy flag spelling only when the C23 feature probe passes)
 
 ### Recommended Requirements
 - **Operating System**: Ubuntu 20.04+ LTS or CentOS 8+
 - **Memory**: 4GB+ RAM for development, 2GB+ for production
 - **Storage**: 5GB+ free disk space
-- **Compiler**: GCC 9.0+ or Clang 10.0+
+- **Compiler**: GCC 13+ or Clang 18+
 - **Build System**: GNU Autotools (automake, autoconf)
 - **Database**: MariaDB 10.3+ (optional but recommended)
 

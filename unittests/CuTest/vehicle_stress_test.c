@@ -8,9 +8,10 @@
  * Part of Phase 02, Session 07: Testing and Validation
  */
 
-/* Enable POSIX features for snprintf in C89 mode */
+/* Enable the required POSIX interfaces. */
 #define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -27,8 +28,6 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-
-typedef int bool;
 
 /* Stress test levels */
 #define STRESS_LEVEL_100 100

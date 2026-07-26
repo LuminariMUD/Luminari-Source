@@ -1,6 +1,6 @@
 #pragma once
 
-/* C99 has bool type */
+/* Provides bool on pre-C23 compilers and remains harmless in C23 mode. */
 #include <stdbool.h>
 
 #if 0
