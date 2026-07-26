@@ -396,6 +396,49 @@ void TestProtocolParser_UnsupportedOptionNegotiation(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_GmcpAndMsdpCanCoexist(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+  fixture_init(&fixture);
+  fixture_telnet3(&fixture, (unsigned char)WILL, (unsigned char)TELOPT_GMCP);
+  assert_fixture_valid(tc, &fixture);
+
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, bool_t_true, harness.descriptor.pProtocol->bMSDP);
+  CuAssertIntEquals(tc, bool_t_true, harness.descriptor.pProtocol->bGMCP);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_NullAndInvalidMsdpInputsAreSafe(CuTest *tc)
+{
+  protocol_harness_t harness;
+
+  MSDPUpdate(NULL);
+  MSDPFlush(NULL, eMSDP_HEALTH);
+  MSDPSend(NULL, eMSDP_HEALTH);
+  MSDPSendPair(NULL, "HEALTH", "1");
+  MSDPSendList(NULL, "COMMANDS", "LOOK");
+  MSDPSetNumber(NULL, eMSDP_HEALTH, 1);
+  MSDPSetString(NULL, eMSDP_TITLE, "title");
+  MSDPSetTable(NULL, eMSDP_ROOM, "room");
+  MSDPSetArray(NULL, eMSDP_ROOM_EXITS, "north");
+  CuAssertPtrEquals(tc, NULL, (void *)MXPCreateTag(NULL, NULL));
+
+  harness_init(tc, &harness);
+  MSDPSetString(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid");
+  MSDPSetString(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid");
+  MSDPSetTable(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid");
+  MSDPSetTable(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid");
+  MSDPSetArray(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid");
+  MSDPSetArray(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid");
+  harness_destroy(&harness);
+}
+
 void TestProtocolParser_OversizedResponsePaths(CuTest *tc)
 {
   protocol_harness_t harness;
@@ -520,6 +563,8 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_TruncatedLookaheadSequences);
   SUITE_ADD_TEST(suite, TestProtocolParser_TtypeAndNawsNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpAndMsdpCanCoexist);
+  SUITE_ADD_TEST(suite, TestProtocolParser_NullAndInvalidMsdpInputsAreSafe);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
   SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);

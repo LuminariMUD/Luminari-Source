@@ -127,9 +127,12 @@ int cp_convert_grade_enchantment(int grade)
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat()
 {
-  int diceroll = dice(1, 20); /* Fixed: was dice(1,19) but case 20 exists for instruments */
+  int diceroll = dice(1, 12);
   int category = 0;
 
+  /* Categories 10-15 use molds marked unfinished in vnums.h.  Keep them
+   * available to explicit callers, but do not select missing prototypes for
+   * random treasure. */
   switch (diceroll)
   {
   case 1: /*ring*/
@@ -162,34 +165,8 @@ int determine_rnd_misc_cat()
   case 12: /*monk gloves*/
     category = TRS_SLOT_MONK_GLOVE;
     break;
-  case 13:
-    /* shoulders */
-    category = TRS_SLOT_SHOULDERS;
-    break;
-  case 14:
-    /* eyes */
-    category = TRS_SLOT_EYES;
-    break;
-  case 15:
-    /* face */
-    category = TRS_SLOT_FACE;
-    break;
-  case 16:
-  case 17:
-    /* ears */
-    category = TRS_SLOT_EARS;
-    break;
-  case 18:
-  case 19:
-    /* anklet */
-    category = TRS_SLOT_ANKLET;
-    break;
-  case 20:
-    /* instrument */
-    category = TRS_SLOT_INSTRUMENT;
-    break;
   default:
-    /* This should never happen with dice(1,20), but safety first */
+    /* This should never happen with dice(1,12), but safety first. */
     log("SYSERR: determine_rnd_misc_cat() rolled impossible value %d, defaulting to ring",
         diceroll);
     category = TRS_SLOT_FINGER;
@@ -3345,7 +3322,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     vnum = SHOULDERS_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s",
-             waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
+             shoulder_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
     snprintf(desc2, SHORT_STRING, "%s",
              armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
@@ -3659,7 +3636,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     vnum = SHOULDERS_MOLD;
     material = MATERIAL_LEATHER;
     snprintf(armor_name, MEDIUM_STRING, "%s",
-             waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
+             shoulder_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
     snprintf(desc2, SHORT_STRING, "%s",
              armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
@@ -3816,6 +3793,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
         rare_grade, label_rare_grade(rare_grade), ch ? GET_NAME(ch) : "NULL");
     return;
   }
+
+  level = ch ? MAX(1, GET_LEVEL(ch)) : 1;
 
   /* special handling for monk gloves, etc */
   switch (category)

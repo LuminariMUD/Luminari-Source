@@ -1338,6 +1338,9 @@ void MSDPUpdate(descriptor_t *apDescriptor)
 
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
+  if (pProtocol == NULL)
+    return;
+
   for (i = eMSDP_NONE + 1; i < eMSDP_MAX; ++i)
   {
     if (pProtocol->pVariables[i]->bReport)
@@ -1357,6 +1360,9 @@ void MSDPFlush(descriptor_t *apDescriptor, variable_t aMSDP)
   {
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
+    if (pProtocol == NULL)
+      return;
+
     if (pProtocol->pVariables[aMSDP]->bReport)
     {
       if (pProtocol->pVariables[aMSDP]->bDirty)
@@ -1375,6 +1381,9 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
   if (aMSDP > eMSDP_NONE && aMSDP < eMSDP_MAX)
   {
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+
+    if (pProtocol == NULL)
+      return;
 
     if (VariableNameTable[aMSDP].bString)
     {
@@ -1453,6 +1462,9 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
   {
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
+    if (pProtocol == NULL)
+      return;
+
     /* Should really be replaced with a dynamic buffer */
     int RequiredBuffer = strlen(apVariable) + strlen(apValue) + 12;
 
@@ -1509,6 +1521,9 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
   if (apVariable != NULL && apValue != NULL)
   {
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+
+    if (pProtocol == NULL)
+      return;
 
     /* Should really be replaced with a dynamic buffer */
     int RequiredBuffer = strlen(apVariable) + strlen(apValue) + 12;
@@ -1589,7 +1604,7 @@ void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
-  if (pProtocol != NULL && apValue != NULL)
+  if (pProtocol != NULL && apValue != NULL && aMSDP > eMSDP_NONE && aMSDP < eMSDP_MAX)
   {
     if (VariableNameTable[aMSDP].bString)
     {
@@ -1613,7 +1628,7 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
-  if (pProtocol != NULL && apValue != NULL)
+  if (pProtocol != NULL && apValue != NULL && aMSDP > eMSDP_NONE && aMSDP < eMSDP_MAX)
   {
     if (*apValue == '\0')
     {
@@ -1659,7 +1674,7 @@ void MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
-  if (pProtocol != NULL && apValue != NULL)
+  if (pProtocol != NULL && apValue != NULL && aMSDP > eMSDP_NONE && aMSDP < eMSDP_MAX)
   {
     if (*apValue == '\0')
     {
@@ -1721,7 +1736,8 @@ const char *MXPCreateTag(descriptor_t *apDescriptor, const char *apTag)
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
-  if (pProtocol != NULL && pProtocol->pVariables[eMSDP_MXP]->ValueInt && strlen(apTag) < 1000)
+  if (pProtocol != NULL && apTag != NULL && pProtocol->pVariables[eMSDP_MXP]->ValueInt &&
+      strlen(apTag) < 1000)
   {
     static char MXPBuffer[1024];
     sprintf(MXPBuffer, "\033[1z%s\033[7z", apTag);
@@ -2268,54 +2284,25 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
   case (char)TELOPT_GMCP:
     if (aCmd == (char)WILL)
     {
-      log("DEBUG: GMCP WILL received. Current state: bMSDP=%d, bGMCP=%d, CLIENT_ID=%s",
-          pProtocol->bMSDP, pProtocol->bGMCP, pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
 
-      /* If we don't support MSDP, fake it with GMCP */
-      if (!pProtocol->bMSDP && !pProtocol->bGMCP)
+      if (!pProtocol->bGMCP)
       {
-        log("DEBUG: Enabling GMCP because MSDP is not supported");
         pProtocol->bGMCP = true;
 
         /* Identify the mud to the client. */
         MSDPSendPair(apDescriptor, "SERVER_ID", MUD_NAME);
       }
-      else
-      {
-        log("DEBUG: NOT enabling GMCP - bMSDP=%d, bGMCP=%d", pProtocol->bMSDP, pProtocol->bGMCP);
-      }
 
       if (CONFIG_AUTO_DL_MUDLET_PACKAGE)
       {
-        /* Always allow GMCP for Mudlet package delivery */
-        if (!pProtocol->bGMCP)
-        {
-          log("DEBUG: Force-enabling GMCP for Mudlet package delivery");
-          pProtocol->bGMCP = true;
-        }
-
 #ifdef MUDLET_PACKAGE
-        log("DEBUG: MUDLET_PACKAGE defined as: %s", MUDLET_PACKAGE);
         /* Send the Mudlet GUI package to the user. */
         if (MatchString("Mudlet", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
         {
-          log("DEBUG: Mudlet client detected! Sending package via GMCP");
           SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
         }
-        else
-        {
-          log("DEBUG: Client '%s' is not Mudlet, not sending package",
-              pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-        }
-#else
-        log("DEBUG: MUDLET_PACKAGE not defined!");
 #endif /* MUDLET_PACKAGE */
-      }
-      else
-      {
-        log("DEBUG: Auto-download Mudlet package disabled via config");
       }
     }
     else if (aCmd == (char)WONT)

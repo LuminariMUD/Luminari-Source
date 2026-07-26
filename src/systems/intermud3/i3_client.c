@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <json-c/json.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 /* Define UNUSED_VAR if not already defined */
@@ -96,10 +97,10 @@ int i3_initialize(void)
   i3_client->auto_reconnect = 1;
 
   /* Set default gateway */
-  strcpy(i3_client->gateway_host, "localhost");
+  strlcpy(i3_client->gateway_host, "localhost", sizeof(i3_client->gateway_host));
   i3_client->gateway_port = I3_DEFAULT_PORT;
-  strcpy(i3_client->mud_name, "LuminariMUD");
-  strcpy(i3_client->default_channel, "intermud");
+  strlcpy(i3_client->mud_name, "LuminariMUD", sizeof(i3_client->mud_name));
+  strlcpy(i3_client->default_channel, "intermud", sizeof(i3_client->default_channel));
 
   /* Load configuration - MUD runs from lib directory */
   if (i3_load_config("i3_config") < 0)
@@ -298,7 +299,6 @@ int i3_connect(void)
   pthread_mutex_unlock(mutex_ptr);
 
   i3_log("Connecting to I3 gateway at %s:%d", i3_client->gateway_host, i3_client->gateway_port);
-  i3_log("DEBUG: Using API key: %.30s...", i3_client->api_key);
 
   i3_client->socket_fd = i3_socket_connect(i3_client->gateway_host, i3_client->gateway_port);
   if (i3_client->socket_fd < 0)
@@ -399,16 +399,11 @@ static int i3_authenticate(void)
   json_object *request;
   int result;
   pthread_mutex_t *mutex_ptr;
-  const char *json_str;
-
-  i3_log("DEBUG: Starting authentication with API key: %.30s...", i3_client->api_key);
 
   params = json_object_new_object();
   json_object_object_add(params, "api_key", json_object_new_string(i3_client->api_key));
 
   request = (json_object *)i3_create_request("authenticate", params);
-  json_str = json_object_to_json_string(request);
-  i3_log("DEBUG: Sending auth request: %s", json_str);
 
   result = i3_send_json(request);
   i3_log("DEBUG: Auth send result: %d", result);
@@ -1075,7 +1070,7 @@ int i3_load_config(const char *filename)
 {
   FILE *fp;
   char line[256];
-  char key[128], value[128];
+  char key[128], value[256];
   char *p;
   char *url_host;
   int len;
@@ -1114,10 +1109,8 @@ int i3_load_config(const char *filename)
     if (p)
     {
       *p = '\0';
-      strncpy(key, line, sizeof(key) - 1);
-      key[sizeof(key) - 1] = '\0';
-      strncpy(value, p + 1, sizeof(value) - 1);
-      value[sizeof(value) - 1] = '\0';
+      strlcpy(key, line, sizeof(key));
+      strlcpy(value, p + 1, sizeof(value));
 
       /* Handle new I3_GATEWAY_URL format (extract host from URL) */
       if (strcmp(key, "I3_GATEWAY_URL") == 0)
@@ -1133,25 +1126,24 @@ int i3_load_config(const char *filename)
         {
           url_host += 5;
         }
-        strcpy(i3_client->gateway_host, url_host);
+        strlcpy(i3_client->gateway_host, url_host, sizeof(i3_client->gateway_host));
         i3_log("DEBUG: Extracted gateway host: %s", i3_client->gateway_host);
       }
       /* Handle new I3_API_KEY format */
       else if (strcmp(key, "I3_API_KEY") == 0)
       {
-        i3_log("DEBUG: Loading API key from config (I3_API_KEY): %.30s...", value);
-        strcpy(i3_client->api_key, value);
+        strlcpy(i3_client->api_key, value, sizeof(i3_client->api_key));
       }
       /* Handle new I3_MUD_NAME format */
       else if (strcmp(key, "I3_MUD_NAME") == 0)
       {
         i3_log("DEBUG: Loading MUD name from config (I3_MUD_NAME): %s", value);
-        strcpy(i3_client->mud_name, value);
+        strlcpy(i3_client->mud_name, value, sizeof(i3_client->mud_name));
       }
       /* Handle old gateway_host format */
       else if (strcmp(key, "gateway_host") == 0)
       {
-        strcpy(i3_client->gateway_host, value);
+        strlcpy(i3_client->gateway_host, value, sizeof(i3_client->gateway_host));
       }
       else if (strcmp(key, "gateway_port") == 0)
       {
@@ -1160,17 +1152,16 @@ int i3_load_config(const char *filename)
       /* Handle old api_key format */
       else if (strcmp(key, "api_key") == 0)
       {
-        i3_log("DEBUG: Loading API key from config (api_key): %.30s...", value);
-        strcpy(i3_client->api_key, value);
+        strlcpy(i3_client->api_key, value, sizeof(i3_client->api_key));
       }
       /* Handle old mud_name format */
       else if (strcmp(key, "mud_name") == 0)
       {
-        strcpy(i3_client->mud_name, value);
+        strlcpy(i3_client->mud_name, value, sizeof(i3_client->mud_name));
       }
       else if (strcmp(key, "default_channel") == 0)
       {
-        strcpy(i3_client->default_channel, value);
+        strlcpy(i3_client->default_channel, value, sizeof(i3_client->default_channel));
       }
       else if (strcmp(key, "enable_tell") == 0)
       {
@@ -1197,10 +1188,30 @@ int i3_load_config(const char *filename)
 int i3_save_config(const char *filename)
 {
   FILE *fp;
+  int fd;
 
-  fp = fopen(filename, "w");
+  fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+  if (fd < 0)
+  {
+    return -1;
+  }
+
+  if (fchmod(fd, S_IRUSR | S_IWUSR) < 0)
+  {
+    close(fd);
+    return -1;
+  }
+
+  if (ftruncate(fd, 0) < 0)
+  {
+    close(fd);
+    return -1;
+  }
+
+  fp = fdopen(fd, "w");
   if (!fp)
   {
+    close(fd);
     return -1;
   }
 

@@ -991,9 +991,6 @@ void assign_objects(void)
   /* clouds realm */
   ASSIGNOBJ(144669, dragon_robes);
 
-  /* greyhawk ships */
-  ASSIGNOBJ(21300, greyhawk_ship_object);
-
 #endif
 }
 
@@ -1157,7 +1154,6 @@ void assign_rooms(void)
   ASSIGNROOM(126800, quicksand);
 
   /* greyhawk ships */
-  ASSIGNROOM(21398, greyhawk_ship_commands);
   ASSIGNROOM(1403, greyhawk_ship_commands);
   ASSIGNROOM(70003, greyhawk_ship_commands);
 

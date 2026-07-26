@@ -98,7 +98,7 @@ int encrypt_api_key(const char *plaintext, char *encrypted_out)
   /* Just copy the API key as-is - no encryption */
   strlcpy(encrypted_out, plaintext, 256);
 
-  AI_DEBUG("API key stored (first 10 chars): %.10s...", encrypted_out);
+  AI_DEBUG("API key stored (length=%zu)", strlen(encrypted_out));
   return 1;
 }
 
@@ -147,7 +147,7 @@ char *decrypt_api_key(const char *encrypted)
   /* Just return the API key as-is - no decryption */
   strlcpy(decrypted, encrypted, 256);
 
-  AI_DEBUG("API key retrieved (first 10 chars): %.10s...", decrypted);
+  AI_DEBUG("API key retrieved (length=%zu)", strlen(decrypted));
   return decrypted;
 }
 
@@ -202,7 +202,7 @@ void load_encrypted_api_key(const char *filename)
     /* Store in config */
     if (ai_state.config)
     {
-      AI_DEBUG("Storing key in config (first 10 chars): %.10s...", buffer);
+      AI_DEBUG("Storing key in config (length=%zu)", strlen(buffer));
       strlcpy(ai_state.config->encrypted_api_key, buffer,
               sizeof(ai_state.config->encrypted_api_key));
     }

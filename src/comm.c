@@ -274,11 +274,17 @@ int main(int argc, char **argv)
   GUSIDefaultSetup();
 #endif
 
+  if (argc < 1 || argv == NULL || argv[0] == NULL)
+  {
+    fputs("SYSERR: Invalid process argument vector.\n", stderr);
+    return EXIT_FAILURE;
+  }
+
   /* Load the game configuration. We must load BEFORE we use any of the
    * constants stored in constants.c.  Otherwise, there will be no variables
    * set to set the rest of the vars to, which will mean trouble --> Mythran */
   CONFIG_CONFFILE = NULL;
-  while ((pos < argc) && (*(argv[pos]) == '-'))
+  while (pos < argc && argv[pos] != NULL && *(argv[pos]) == '-')
   {
     if (*(argv[pos] + 1) == 'f')
     {
@@ -304,7 +310,7 @@ int main(int argc, char **argv)
   port = CONFIG_DFLT_PORT;
   dir = CONFIG_DFLT_DIR;
 
-  while ((pos < argc) && (*(argv[pos]) == '-'))
+  while (pos < argc && argv[pos] != NULL && *(argv[pos]) == '-')
   {
     switch (*(argv[pos] + 1))
     {
@@ -382,9 +388,9 @@ int main(int argc, char **argv)
     pos++;
   }
 
-  if (pos < argc)
+  if (pos < argc && argv[pos] != NULL)
   {
-    if (!isdigit(*argv[pos]))
+    if (!isdigit((unsigned char)*argv[pos]))
     {
       printf("Usage: %s [-c] [-m] [-q] [-r] [-s] [-d pathname] [port #]\n", argv[0]);
       exit(1);
@@ -403,6 +409,12 @@ int main(int argc, char **argv)
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
   log("%s", luminari_version);
+
+  if (dir == NULL || *dir == '\0')
+  {
+    log("SYSERR: Data directory is not configured.");
+    exit(1);
+  }
 
   if (chdir(dir) < 0)
   {
@@ -507,7 +519,7 @@ void copyover_recover()
   for (;;)
   {
     fOld = TRUE;
-    i = fscanf(fp, "%d %ld %s %s %s\n", &desc, &pref, name, host, guiopt);
+    i = fscanf(fp, "%d %ld %511s %1023s %1023s\n", &desc, &pref, name, host, guiopt);
     if (desc == -1)
     {
       COPYOVER_DEBUG("copyover_recover: Found end marker (-1), finishing recovery");
@@ -535,7 +547,7 @@ void copyover_recover()
     memset((char *)d, 0, sizeof(struct descriptor_data));
     init_descriptor(d, desc); /* set up various stuff */
 
-    strcpy(d->host, host);
+    strlcpy(d->host, host, sizeof(d->host));
     d->next = descriptor_list;
     descriptor_list = d;
 
@@ -919,7 +931,7 @@ void game_loop(socket_t local_mother_desc)
 {
   fd_set input_set, output_set, exc_set, null_set;
   struct timeval last_time, opt_time, process_time, temp_time;
-  struct timeval before_sleep, now, timeout;
+  struct timeval before_sleep, now, timeout, perf_start;
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
@@ -937,6 +949,7 @@ void game_loop(socket_t local_mother_desc)
   FD_ZERO(&null_set);
 
   gettimeofday(&last_time, (struct timezone *)0);
+  perf_start = last_time;
 
   /* The Main Loop.  The Big Cheese.  The Top Dog.  The Head Honcho.  The.. */
   /* Beginner's Note: Main game loop runs until shutdown is requested.
@@ -977,6 +990,7 @@ void game_loop(socket_t local_mother_desc)
       else
         log("New connection.  Waking up.");
       gettimeofday(&last_time, (struct timezone *)0);
+      perf_start = last_time;
     }
     /* Set up the input, output, and exception sets for select(). */
     FD_ZERO(&input_set);
@@ -1022,7 +1036,7 @@ void game_loop(socket_t local_mother_desc)
      * calculate how long we took processing the previous iteration. */
 
     gettimeofday(&before_sleep, (struct timezone *)0); /* current time */
-    timediff(&process_time, &before_sleep, &last_time);
+    timediff(&process_time, &before_sleep, &perf_start);
 
     {
       long int total_usec = 1000000 * process_time.tv_sec + process_time.tv_usec;
@@ -1130,6 +1144,7 @@ void game_loop(socket_t local_mother_desc)
       timediff(&timeout, &last_time, &now);
     } while (timeout.tv_usec || timeout.tv_sec);
 
+    perf_start = now;
     PERF_prof_reset();
     PERF_PROF_ENTER(pr_main_loop_, "Main Loop");
 

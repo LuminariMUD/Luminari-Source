@@ -44,7 +44,7 @@ void do_i3tell(struct char_data *ch, const char *argument, int cmd, int subcmd)
   }
 
   /* Make a copy to work with */
-  strcpy(arg_copy, argument);
+  strlcpy(arg_copy, argument, sizeof(arg_copy));
 
   /* Parse arguments */
   message = i3_one_argument(arg_copy, target, sizeof(target));
@@ -65,8 +65,13 @@ void do_i3tell(struct char_data *ch, const char *argument, int cmd, int subcmd)
   }
 
   *at_sign = '\0';
-  strcpy(target_user, target);
-  strcpy(target_mud, at_sign + 1);
+  if (strlen(target) >= sizeof(target_user) || strlen(at_sign + 1) >= sizeof(target_mud))
+  {
+    send_to_char(ch, "The user or MUD name is too long.\r\n");
+    return;
+  }
+  strlcpy(target_user, target, sizeof(target_user));
+  strlcpy(target_mud, at_sign + 1, sizeof(target_mud));
 
   /* Validate MUD exists */
   mud = i3_find_mud(target_mud);
@@ -112,7 +117,7 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
   }
 
   /* Make a copy to work with */
-  strcpy(arg_copy, argument);
+  strlcpy(arg_copy, argument, sizeof(arg_copy));
   arg_ptr = arg_copy;
   i3_skip_spaces((const char **)&arg_ptr);
 
@@ -123,7 +128,7 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
   if (!*message)
   {
     message = arg_ptr;
-    strcpy(channel, i3_client->default_channel);
+    strlcpy(channel, i3_client->default_channel, sizeof(channel));
   }
   else
   {
@@ -224,8 +229,13 @@ void do_i3finger(struct char_data *ch, const char *argument, int cmd, int subcmd
   }
 
   *at_sign = '\0';
-  strcpy(target_user, target);
-  strcpy(target_mud, at_sign + 1);
+  if (strlen(target) >= sizeof(target_user) || strlen(at_sign + 1) >= sizeof(target_mud))
+  {
+    send_to_char(ch, "The user or MUD name is too long.\r\n");
+    return;
+  }
+  strlcpy(target_user, target, sizeof(target_user));
+  strlcpy(target_mud, at_sign + 1, sizeof(target_mud));
 
   /* Validate MUD exists */
   mud = i3_find_mud(target_mud);
@@ -344,7 +354,7 @@ void do_i3channels(struct char_data *ch, const char *argument, int cmd, int subc
   }
 
   /* Make a copy to work with */
-  strcpy(arg_copy, argument);
+  strlcpy(arg_copy, argument, sizeof(arg_copy));
   arg_ptr = i3_one_argument(arg_copy, cmd_arg, sizeof(cmd_arg));
   i3_one_argument(arg_ptr, channel, sizeof(channel));
 
@@ -622,7 +632,7 @@ int i3_request_who(const char *target_mud)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "who_request");
+  strlcpy(cmd->method, "who_request", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -645,7 +655,7 @@ int i3_request_finger(const char *target_mud, const char *target_user)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "finger_request");
+  strlcpy(cmd->method, "finger_request", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -667,7 +677,7 @@ int i3_request_locate(const char *target_user)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "locate_request");
+  strlcpy(cmd->method, "locate_request", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -680,7 +690,7 @@ int i3_request_mudlist(void)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "mudlist_request");
+  strlcpy(cmd->method, "mudlist_request", sizeof(cmd->method));
   cmd->params = NULL;
 
   i3_queue_command(cmd);
@@ -703,7 +713,7 @@ int i3_join_channel(const char *channel, const char *user_name)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "channel_join");
+  strlcpy(cmd->method, "channel_join", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -726,7 +736,7 @@ int i3_leave_channel(const char *channel, const char *user_name)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "channel_leave");
+  strlcpy(cmd->method, "channel_leave", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -739,7 +749,7 @@ int i3_list_channels(void)
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "channel_list");
+  strlcpy(cmd->method, "channel_list", sizeof(cmd->method));
   cmd->params = NULL;
 
   i3_queue_command(cmd);
@@ -765,7 +775,7 @@ int i3_send_emoteto(const char *from_user, const char *target_mud, const char *t
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "emoteto");
+  strlcpy(cmd->method, "emoteto", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -789,7 +799,7 @@ int i3_send_channel_emote(const char *channel, const char *from_user, const char
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
   cmd->id = i3_client->next_request_id++;
-  strcpy(cmd->method, "channel_emote");
+  strlcpy(cmd->method, "channel_emote", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
