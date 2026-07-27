@@ -1120,6 +1120,10 @@ ACMD_DECL(do_saveall);
 ACMD_DECL(do_savemobs);
 ACMD_DECL(do_send);
 ACMD_DECL(do_set);
+#ifdef LUMINARI_CUTEST
+int perform_set_class_level_for_test(struct char_data *ch, struct char_data *vict,
+                                     const char *field, int level);
+#endif
 ACMD_DECL(do_show);
 ACMD_DECL(do_shopstat);
 ACMD_DECL(do_shoplist);

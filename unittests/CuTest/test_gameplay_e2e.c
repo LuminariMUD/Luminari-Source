@@ -38,6 +38,51 @@ struct gameplay_fixture
   mob_rnum saved_top_of_mobt;
 };
 
+struct set_class_field_case
+{
+  const char *field;
+  int class_num;
+};
+
+static const struct set_class_field_case set_class_field_cases[] = {
+    {"wizard", CLASS_WIZARD},
+    {"cleric", CLASS_CLERIC},
+    {"rogue", CLASS_ROGUE},
+    {"warrior", CLASS_WARRIOR},
+    {"monk", CLASS_MONK},
+    {"druid", CLASS_DRUID},
+    {"berserker", CLASS_BERSERKER},
+    {"sorcerer", CLASS_SORCERER},
+    {"paladin", CLASS_PALADIN},
+    {"ranger", CLASS_RANGER},
+    {"bard", CLASS_BARD},
+    {"weaponmaster", CLASS_WEAPON_MASTER},
+    {"arcanearcher", CLASS_ARCANE_ARCHER},
+    {"stalwartdefender", CLASS_STALWART_DEFENDER},
+    {"shifter", CLASS_SHIFTER},
+    {"duelist", CLASS_DUELIST},
+    {"mystictheurge", CLASS_MYSTIC_THEURGE},
+    {"alchemist", CLASS_ALCHEMIST},
+    {"arcaneshadow", CLASS_ARCANE_SHADOW},
+    {"sacredfist", CLASS_SACRED_FIST},
+    {"eldritchknight", CLASS_ELDRITCH_KNIGHT},
+    {"psionicist", CLASS_PSIONICIST},
+    {"spellsword", CLASS_SPELLSWORD},
+    {"shadowdancer", CLASS_SHADOW_DANCER},
+    {"blackguard", CLASS_BLACKGUARD},
+    {"assassin", CLASS_ASSASSIN},
+    {"inquisitor", CLASS_INQUISITOR},
+    {"summoner", CLASS_SUMMONER},
+    {"warlock", CLASS_WARLOCK},
+    {"necromancer", CLASS_NECROMANCER},
+    {"knightoftheluminousthread", CLASS_KNIGHT_OF_SOLAMNIA},
+    {"knightoftheshatteredmirror", CLASS_KNIGHT_OF_THE_THORN},
+    {"knightofthepalethrone", CLASS_KNIGHT_OF_THE_SKULL},
+    {"knightofthehowlingmoon", CLASS_KNIGHT_OF_THE_LILY},
+    {"dragonrider", CLASS_DRAGONRIDER},
+    {"artificer", CLASS_ARTIFICER},
+};
+
 static const char *test_source_root(void)
 {
   const char *root;
@@ -134,6 +179,56 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_zone_table = fixture->saved_top_of_zone_table;
   mob_index = fixture->saved_mob_index;
   top_of_mobt = fixture->saved_top_of_mobt;
+}
+
+void Test_gameplay_e2e_set_supports_every_playable_class(CuTest *tc)
+{
+  struct char_data *staff;
+  struct char_data *victim;
+  size_t class_field_count;
+  size_t i;
+  int j;
+  int result;
+
+  class_field_count = sizeof(set_class_field_cases) / sizeof(set_class_field_cases[0]);
+  CuAssertIntEquals(tc, CLASS_PLACEHOLDER_1, (int)class_field_count);
+
+  staff = new_char();
+  victim = new_char();
+  CuAssertPtrNotNull(tc, staff);
+  CuAssertPtrNotNull(tc, victim);
+
+  staff->player.name = strdup("set class staff");
+  victim->player.name = strdup("set class victim");
+  GET_LEVEL(staff) = LVL_IMPL;
+  GET_LEVEL(victim) = 1;
+  GET_REAL_RACE(victim) = RACE_HUMAN;
+  GET_REAL_STR(victim) = 10;
+  GET_REAL_DEX(victim) = 10;
+  GET_REAL_CON(victim) = 10;
+  GET_REAL_INT(victim) = 10;
+  GET_REAL_WIS(victim) = 10;
+  GET_REAL_CHA(victim) = 10;
+
+  for (i = 0; i < class_field_count; i++)
+  {
+    CuAssertIntEquals(tc, (int)i, set_class_field_cases[i].class_num);
+    for (j = 0; j < NUM_CLASSES; j++)
+      CLASS_LEVEL(victim, j) = 0;
+
+    result = perform_set_class_level_for_test(staff, victim, set_class_field_cases[i].field, 7);
+    CuAssertIntEquals(tc, 1, result);
+    CuAssertIntEquals(tc, 7, CLASS_LEVEL(victim, set_class_field_cases[i].class_num));
+
+    for (j = 0; j < NUM_CLASSES; j++)
+    {
+      if (j != set_class_field_cases[i].class_num)
+        CuAssertIntEquals(tc, 0, CLASS_LEVEL(victim, j));
+    }
+  }
+
+  free_char(staff);
+  free_char(victim);
 }
 
 void Test_gameplay_e2e_combat_applies_real_damage(CuTest *tc)

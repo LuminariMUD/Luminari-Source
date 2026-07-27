@@ -4286,6 +4286,8 @@ ACMD(do_shopstat)
 #define NUMBER 2
 #define ADDER 3
 
+#define SET_CLASS_LEVEL(class_num) ((class_num) + 1)
+
 #define SET_OR_REMOVE(flagset, flags)                                                              \
   {                                                                                                \
     if (on)                                                                                        \
@@ -4303,7 +4305,8 @@ const struct set_struct
   const char level;
   const char pcnpc;
   const char type;
-  const char *desc;
+  /* Stored one-based so zero means this is not a class-level field. */
+  const int class_num_plus_one;
 } set_fields[] = {
     {"ac", LVL_BUILDER, BOTH, NUMBER}, /* 0  */
     {"afk", LVL_BUILDER, PC, BINARY},  /* 1  */
@@ -4367,88 +4370,86 @@ const struct set_struct
     {"questhistory", LVL_STAFF, PC, NUMBER},
     {"trains", LVL_IMPL, PC, NUMBER}, /* 60 */
     {"race", LVL_IMPL, BOTH, MISC},
-    {"spellres", LVL_IMPL, PC, NUMBER},         /* 62 */
-    {"size", LVL_IMPL, PC, NUMBER},             /* 63 */
-    {"wizard", LVL_IMPL, PC, NUMBER},           /* 64 */
-    {"cleric", LVL_IMPL, PC, NUMBER},           /* 65 */
-    {"rogue", LVL_IMPL, PC, NUMBER},            /* 66 */
-    {"warrior", LVL_IMPL, PC, NUMBER},          /* 67 */
-    {"monk", LVL_IMPL, PC, NUMBER},             /* 68 */
-    {"druid", LVL_IMPL, PC, NUMBER},            /* 69 */
-    {"boost", LVL_IMPL, PC, NUMBER},            /* 70 */
-    {"berserker", LVL_IMPL, PC, NUMBER},        /* 71 */
-    {"sorcerer", LVL_IMPL, PC, NUMBER},         /* 72 */
-    {"paladin", LVL_IMPL, PC, NUMBER},          /* 73 */
-    {"ranger", LVL_IMPL, PC, NUMBER},           /* 74 */
-    {"bard", LVL_IMPL, PC, NUMBER},             /* 75 */
-    {"featpoints", LVL_IMPL, PC, NUMBER},       /* 76 */
-    {"epicfeatpoints", LVL_IMPL, PC, NUMBER},   /* 77 */
-    {"classfeats", LVL_IMPL, PC, MISC},         /* 78 */
-    {"epicclassfeats", LVL_IMPL, PC, MISC},     /* 79 */
-    {"accexp", LVL_IMPL, PC, NUMBER},           /* 80 */
-    {"weaponmaster", LVL_IMPL, PC, NUMBER},     /* 81 */
-    {"arcanearcher", LVL_IMPL, PC, NUMBER},     /* 82 */
-    {"stalwartdefender", LVL_IMPL, PC, NUMBER}, /* 83 */
-    {"shifter", LVL_IMPL, PC, NUMBER},          /* 84 */
-    {"duelist", LVL_IMPL, PC, NUMBER},          /* 85 */
-    {"guimode", LVL_BUILDER, PC, BINARY},       /* 86 */
-    {"rpmode", LVL_BUILDER, PC, BINARY},        /* 87 */
-    {"mystictheurge", LVL_IMPL, PC, NUMBER},    /* 88 */
-    {"addaccexp", LVL_IMPL, PC, ADDER},         /* 89 */
-    {"alchemist", LVL_IMPL, PC, NUMBER},        /* 90 */
-    {"arcaneshadow", LVL_IMPL, PC, NUMBER},     /* 91 */
-    {"sacredfist", LVL_IMPL, PC, NUMBER},       /* 92 */
-    {"premadebuild", LVL_STAFF, PC, MISC},      /* 93 */
-    {"psionicist", LVL_IMPL, PC, NUMBER},       /* 94 */
-    {"deity", LVL_BUILDER, PC, MISC},           /* 95 */
-    {"eldritchknight", LVL_IMPL, PC, NUMBER},   /* 96 */
-    {"spellsword", LVL_IMPL, PC, NUMBER},       /* 97 */
-    {"shadowdancer", LVL_IMPL, PC, NUMBER},     /* 98 */
-    {"blackguard", LVL_IMPL, PC, NUMBER},       /* 99 */
-    {"assassin", LVL_IMPL, PC, NUMBER},         /* 100 */
-    {"inquisitor", LVL_IMPL, PC, NUMBER},       /* 101 */
-    {"homeland", LVL_STAFF, PC, NUMBER},        /* 102 */
-    {"region", LVL_STAFF, PC, NUMBER},          /* 103 */
-    {"shortdesc", LVL_STAFF, PC, MISC},         /* 104 */
-    {"necromancer", LVL_IMPL, PC, NUMBER},      /* 105 */
-    {"background", LVL_STAFF, PC, MISC},        /* 106 */
-    {"arcanemark", LVL_STAFF, PC, MISC},        /* 107 */
-    {"arcaneschool", LVL_STAFF, PC, MISC},      /* 108 */
+    {"spellres", LVL_IMPL, PC, NUMBER},                                                   /* 62 */
+    {"size", LVL_IMPL, PC, NUMBER},                                                       /* 63 */
+    {"wizard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WIZARD)},                      /* 64 */
+    {"cleric", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_CLERIC)},                      /* 65 */
+    {"rogue", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ROGUE)},                        /* 66 */
+    {"warrior", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WARRIOR)},                    /* 67 */
+    {"monk", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_MONK)},                          /* 68 */
+    {"druid", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DRUID)},                        /* 69 */
+    {"boost", LVL_IMPL, PC, NUMBER},                                                      /* 70 */
+    {"berserker", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BERSERKER)},                /* 71 */
+    {"sorcerer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SORCERER)},                  /* 72 */
+    {"paladin", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_PALADIN)},                    /* 73 */
+    {"ranger", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_RANGER)},                      /* 74 */
+    {"bard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BARD)},                          /* 75 */
+    {"featpoints", LVL_IMPL, PC, NUMBER},                                                 /* 76 */
+    {"epicfeatpoints", LVL_IMPL, PC, NUMBER},                                             /* 77 */
+    {"classfeats", LVL_IMPL, PC, MISC},                                                   /* 78 */
+    {"epicclassfeats", LVL_IMPL, PC, MISC},                                               /* 79 */
+    {"accexp", LVL_IMPL, PC, NUMBER},                                                     /* 80 */
+    {"weaponmaster", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WEAPON_MASTER)},         /* 81 */
+    {"arcanearcher", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARCANE_ARCHER)},         /* 82 */
+    {"stalwartdefender", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_STALWART_DEFENDER)}, /* 83 */
+    {"shifter", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SHIFTER)},                    /* 84 */
+    {"duelist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DUELIST)},                    /* 85 */
+    {"guimode", LVL_BUILDER, PC, BINARY},                                                 /* 86 */
+    {"rpmode", LVL_BUILDER, PC, BINARY},                                                  /* 87 */
+    {"mystictheurge", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_MYSTIC_THEURGE)},       /* 88 */
+    {"addaccexp", LVL_IMPL, PC, ADDER},                                                   /* 89 */
+    {"alchemist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ALCHEMIST)},                /* 90 */
+    {"arcaneshadow", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARCANE_SHADOW)},         /* 91 */
+    {"sacredfist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SACRED_FIST)},             /* 92 */
+    {"premadebuild", LVL_STAFF, PC, MISC},                                                /* 93 */
+    {"psionicist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_PSIONICIST)},              /* 94 */
+    {"deity", LVL_BUILDER, PC, MISC},                                                     /* 95 */
+    {"eldritchknight", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ELDRITCH_KNIGHT)},     /* 96 */
+    {"spellsword", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SPELLSWORD)},              /* 97 */
+    {"shadowdancer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SHADOW_DANCER)},         /* 98 */
+    {"blackguard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BLACKGUARD)},              /* 99 */
+    {"assassin", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ASSASSIN)},                  /* 100 */
+    {"inquisitor", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_INQUISITOR)},              /* 101 */
+    {"homeland", LVL_STAFF, PC, NUMBER},                                                  /* 102 */
+    {"region", LVL_STAFF, PC, NUMBER},                                                    /* 103 */
+    {"shortdesc", LVL_STAFF, PC, MISC},                                                   /* 104 */
+    {"necromancer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_NECROMANCER)},            /* 105 */
+    {"background", LVL_STAFF, PC, MISC},                                                  /* 106 */
+    {"arcanemark", LVL_STAFF, PC, MISC},                                                  /* 107 */
+    {"arcaneschool", LVL_STAFF, PC, MISC},                                                /* 108 */
+    {"summoner", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SUMMONER)},                  /* 109 */
+    {"warlock", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WARLOCK)},                    /* 110 */
+    {"knightoftheluminousthread", LVL_IMPL, PC, NUMBER,
+     SET_CLASS_LEVEL(CLASS_KNIGHT_OF_SOLAMNIA)}, /* 111 */
+    {"knightoftheshatteredmirror", LVL_IMPL, PC, NUMBER,
+     SET_CLASS_LEVEL(CLASS_KNIGHT_OF_THE_THORN)}, /* 112 */
+    {"knightofthepalethrone", LVL_IMPL, PC, NUMBER,
+     SET_CLASS_LEVEL(CLASS_KNIGHT_OF_THE_SKULL)}, /* 113 */
+    {"knightofthehowlingmoon", LVL_IMPL, PC, NUMBER,
+     SET_CLASS_LEVEL(CLASS_KNIGHT_OF_THE_LILY)},                               /* 114 */
+    {"dragonrider", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DRAGONRIDER)}, /* 115 */
+    {"artificer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARTIFICER)},     /* 116 */
 
     {"\n", 0, BOTH, MISC},
 };
 
-/*  adding this to remind me to add new classes to the perform_set list
- * CLASS_WIZARD
- * CLASS_CLERIC
- * CLASS_ROGUE
- * CLASS_WARRIOR
- * CLASS_MONK
- * CLASS_DRUID
- * CLASS_BERSERKER
- * CLASS_SORCERER
- * CLASS_BARD
- * CLASS_PALADIN
- * CLASS_RANGER
- * CLASS_WEAPON_MASTER
- * CLASS_ARCANE_ARCHER
- * CLASS_ARCANE_SHADOW
- * CLASS_SACRED_FIST
- * CLASS_STALWART_DEFENDER
- * CLASS_SHIFTER
- * CLASS_DUELIST
- * CLASS_MYSTIC_THEURGE
- * CLASS_ALCHEMIST
- * CLASS_ARCANE_SHADOW
- * CLASS_SACRED_FIST
- * CLASS_ELDRITCH_KNIGHT
- * CLASS_PSIONICIST
- * CLASS_SPELLSWORD
- * CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
- * CLASS_BLACKGUARD
- * CLASS_ASSASSIN
- * CLASS_INQUISITOR
- */
+static int find_set_field(const char *field)
+{
+  size_t len;
+  int mode;
+
+  if (field == NULL || *field == '\0')
+    return (-1);
+
+  len = strlen(field);
+  for (mode = 0; *(set_fields[mode].cmd) != '\n'; mode++)
+  {
+    if (!strncmp(field, set_fields[mode].cmd, len))
+      return (mode);
+  }
+
+  return (-1);
+}
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg)
 {
@@ -4504,6 +4505,23 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   {
     value = atoi(val_arg);
   }
+
+  if (set_fields[mode].class_num_plus_one != 0)
+  {
+    class = set_fields[mode].class_num_plus_one - 1;
+    if (set_fields[mode].type != NUMBER || class < 0 || class >= NUM_CLASSES)
+    {
+      log("SYSERR: Invalid class-level set field mapping for '%s'.", set_fields[mode].cmd);
+      send_to_char(ch, "Can't set that!\r\n");
+      return (0);
+    }
+
+    CLASS_LEVEL(vict, class) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    send_to_char(ch, "%s's %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, value);
+    return (1);
+  }
+
   switch (mode)
   {
   case 0:                              /* ac */
@@ -5010,52 +5028,8 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_REAL_SIZE(vict) = RANGE(0, NUM_SIZES - 1);
     affect_total(vict);
     break;
-  case 64: // wizard level
-    CLASS_LEVEL(vict, CLASS_WIZARD) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 65: // cleric level
-    CLASS_LEVEL(vict, CLASS_CLERIC) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 66: // rogue level
-    CLASS_LEVEL(vict, CLASS_ROGUE) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 67: // warrior level
-    CLASS_LEVEL(vict, CLASS_WARRIOR) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 68: // monk level
-    CLASS_LEVEL(vict, CLASS_MONK) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 69: // druid level
-    CLASS_LEVEL(vict, CLASS_DRUID) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
   case 70: /* boosts */
     GET_BOOSTS(vict) = RANGE(0, 20);
-    break;
-  case 71: // zerker level
-    CLASS_LEVEL(vict, CLASS_BERSERKER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 72: // sorc level
-    CLASS_LEVEL(vict, CLASS_SORCERER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 73: // paladin level
-    CLASS_LEVEL(vict, CLASS_PALADIN) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 74: // ranger level
-    CLASS_LEVEL(vict, CLASS_RANGER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 75: // bard level
-    CLASS_LEVEL(vict, CLASS_BARD) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
     break;
   case 76: /* featpoints */
     GET_FEAT_POINTS(vict) = RANGE(0, 20);
@@ -5094,26 +5068,6 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 80: /* accexp - account experience */
     change_account_xp(vict, RANGE(0, 99999999));
     break;
-  case 81: // weapon-master level
-    CLASS_LEVEL(vict, CLASS_WEAPON_MASTER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 82: // arcane archer level
-    CLASS_LEVEL(vict, CLASS_ARCANE_ARCHER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 83: // stalwart defender level
-    CLASS_LEVEL(vict, CLASS_STALWART_DEFENDER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 84: // shifter level
-    CLASS_LEVEL(vict, CLASS_SHIFTER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 85: // duelist
-    CLASS_LEVEL(vict, CLASS_DUELIST) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
   case 86: /* GUI Mode */
     SET_OR_REMOVE(PRF_FLAGS(vict), PRF_GUI_MODE);
     send_to_char(ch, "GUI Mode %s for %s.\r\n", ONOFF(!on), GET_NAME(vict));
@@ -5121,24 +5075,8 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 87: /* PRF_RP */
     SET_OR_REMOVE(PRF_FLAGS(vict), PRF_RP);
     break;
-  case 88: // mystic theurge level
-    CLASS_LEVEL(vict, CLASS_MYSTIC_THEURGE) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
   case 89: /* addaccexp - Adds *additional* account experience */
     change_account_xp(vict, RANGE(0, 9999999));
-    break;
-  case 90: // alchemist level
-    CLASS_LEVEL(vict, CLASS_ALCHEMIST) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 91: // arcane shadow
-    CLASS_LEVEL(vict, CLASS_ARCANE_SHADOW) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-  case 92: // sacred fist
-    CLASS_LEVEL(vict, CLASS_SACRED_FIST) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
     break;
   case 93: /* premade build class */
     if ((i = parse_class_long(val_arg)) == CLASS_UNDEFINED)
@@ -5147,10 +5085,6 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return (0);
     }
     GET_PREMADE_BUILD_CLASS(vict) = i;
-    break;
-  case 94: // psionicist
-    CLASS_LEVEL(vict, CLASS_PSIONICIST) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
     break;
 
   case 95:
@@ -5169,36 +5103,6 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return (0);
     }
     GET_DEITY(vict) = i;
-    break;
-
-  case 96: // eldritch knight
-    CLASS_LEVEL(vict, CLASS_ELDRITCH_KNIGHT) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-
-  case 97: // spellsword
-    CLASS_LEVEL(vict, CLASS_SPELLSWORD) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-
-  case 98: // shadowdancer
-    CLASS_LEVEL(vict, CLASS_SHADOW_DANCER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-
-  case 99: // blackguard
-    CLASS_LEVEL(vict, CLASS_BLACKGUARD) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-
-  case 100: // assassin
-    CLASS_LEVEL(vict, CLASS_ASSASSIN) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
-    break;
-
-  case 101: // inquisitor
-    CLASS_LEVEL(vict, CLASS_INQUISITOR) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
     break;
 
   case 102:
@@ -5275,11 +5179,6 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "Please specify 'reset' to reset a player's short description.\r\n");
       return (0);
     }
-    break;
-
-  case 105: // necromancer
-    CLASS_LEVEL(vict, CLASS_NECROMANCER) = RANGE(0, LVL_IMMORT - 1);
-    affect_total(vict);
     break;
 
   case 106:
@@ -5370,6 +5269,22 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   return (1);
 }
 
+#ifdef LUMINARI_CUTEST
+int perform_set_class_level_for_test(struct char_data *ch, struct char_data *vict,
+                                     const char *field, int level)
+{
+  char value_arg[32];
+  int mode;
+
+  mode = find_set_field(field);
+  if (mode < 0 || set_fields[mode].class_num_plus_one == 0)
+    return (0);
+
+  snprintf(value_arg, sizeof(value_arg), "%d", level);
+  return perform_set(ch, vict, mode, value_arg);
+}
+#endif
+
 void show_set_help(struct char_data *ch)
 {
   const char *const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
@@ -5399,7 +5314,7 @@ ACMD(do_set)
   struct char_data *vict = NULL, *cbuf = NULL;
   char field[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'},
        buf[MAX_INPUT_LENGTH] = {'\0'};
-  int mode, len, player_i = 0, retval;
+  int mode, player_i = 0, retval;
   char is_file = 0, is_player = 0;
 
   half_chop_c(argument, name, sizeof(name), buf, sizeof(buf));
@@ -5480,12 +5395,8 @@ ACMD(do_set)
   }
 
   /* find the command in the list */
-  len = strlen(field);
-  for (mode = 0; *(set_fields[mode].cmd) != '\n'; mode++)
-    if (!strncmp(field, set_fields[mode].cmd, len))
-      break;
-
-  if (*(set_fields[mode].cmd) == '\n')
+  mode = find_set_field(field);
+  if (mode < 0)
   {
     retval = 0; /* skips saving below */
     send_to_char(ch, "Can't set that!\r\n");
