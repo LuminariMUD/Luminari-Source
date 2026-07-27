@@ -76,6 +76,8 @@ readonly LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"  # Keep logs for 30 days
 # Runtime control options (can be overridden by environment variables)
 readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-true}"  # Default: keep running even with low disk space
 readonly STATE_UPDATE_INTERVAL="${AUTORUN_STATE_INTERVAL:-60}"
+readonly AUTORUN_PID_FILE="${SCRIPT_DIR}/.autorun.lock.pid"
+readonly MUD_PID_FILE="${SCRIPT_DIR}/.mud.pid"
 
 # Date format patterns
 readonly DATE_FORMAT_LOG="%Y-%m-%d %H:%M:%S"
@@ -133,6 +135,253 @@ die() {
     return "${2:-1}"
 }
 
+# Read and validate a PID file without treating arbitrary contents as a PID.
+read_pid_file() {
+    local pid_file="$1"
+    local pid=""
+
+    if [[ ! -r "$pid_file" ]]; then
+        return 1
+    fi
+
+    IFS= read -r pid < "$pid_file" || true
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]]; then
+        return 1
+    fi
+
+    printf '%s\n' "$pid"
+}
+
+# Publish PID files atomically so readers never observe partial contents.
+write_pid_file() {
+    local pid_file="$1"
+    local pid="$2"
+    local pid_tmp
+
+    pid_tmp=$(mktemp "${pid_file}.tmp.XXXXXX") || return 1
+    if ! printf '%s\n' "$pid" > "$pid_tmp"; then
+        rm -f -- "$pid_tmp"
+        return 1
+    fi
+
+    if ! mv -f -- "$pid_tmp" "$pid_file"; then
+        rm -f -- "$pid_tmp"
+        return 1
+    fi
+}
+
+# Verify both the PID and its exact executable/script before sending a signal.
+# For interpreted scripts, /proc records the interpreter as argv[0] and the
+# script path as argv[1].
+pid_matches_command() {
+    local pid="$1"
+    local expected_command="$2"
+    local expected_argument="${3:-}"
+    local candidate=""
+    local expected_path=""
+    local matched_index=-1
+    local process_cwd=""
+    local process_exe=""
+    local -a command_line=()
+
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]] ||
+       [[ ! -r "/proc/${pid}/cmdline" ]]; then
+        return 1
+    fi
+
+    expected_path=$(readlink -f -- "$expected_command" 2>/dev/null || true)
+    if [[ -z "$expected_path" ]]; then
+        return 1
+    fi
+
+    mapfile -d '' -t command_line < "/proc/${pid}/cmdline" 2>/dev/null || return 1
+    if [[ ${#command_line[@]} -eq 0 ]]; then
+        return 1
+    fi
+
+    process_exe=$(readlink -f -- "/proc/${pid}/exe" 2>/dev/null || true)
+    if [[ "$process_exe" == "$expected_path" ]]; then
+        matched_index=0
+    else
+        process_cwd=$(readlink -f -- "/proc/${pid}/cwd" 2>/dev/null || true)
+
+        if [[ "${command_line[0]}" == /* ]]; then
+            candidate=$(readlink -f -- "${command_line[0]}" 2>/dev/null || true)
+        elif [[ "${command_line[0]}" == */* ]] && [[ -n "$process_cwd" ]]; then
+            candidate=$(readlink -f -- "${process_cwd}/${command_line[0]}" 2>/dev/null || true)
+        fi
+        if [[ "$candidate" == "$expected_path" ]]; then
+            matched_index=0
+        fi
+
+        if [[ $matched_index -lt 0 ]] && [[ ${#command_line[@]} -gt 1 ]]; then
+            candidate=""
+            if [[ "${command_line[1]}" == /* ]]; then
+                candidate=$(readlink -f -- "${command_line[1]}" 2>/dev/null || true)
+            elif [[ "${command_line[1]}" == */* ]] && [[ -n "$process_cwd" ]]; then
+                candidate=$(readlink -f -- "${process_cwd}/${command_line[1]}" 2>/dev/null || true)
+            fi
+
+            case "$(basename "$process_exe")" in
+                bash|dash|sh|python|python[0-9]*|perl|ruby)
+                    if [[ "$candidate" == "$expected_path" ]]; then
+                        matched_index=1
+                    fi
+                    ;;
+            esac
+        fi
+    fi
+
+    if [[ $matched_index -lt 0 ]]; then
+        return 1
+    fi
+
+    if [[ -n "$expected_argument" ]] &&
+       [[ "${command_line[$((matched_index + 1))]:-}" != "$expected_argument" ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+# Check for an exact command-line argument without using global process search.
+pid_has_argument() {
+    local pid="$1"
+    local expected_argument="$2"
+    local argument
+    local -a command_line=()
+
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]] ||
+       [[ ! -r "/proc/${pid}/cmdline" ]]; then
+        return 1
+    fi
+
+    mapfile -d '' -t command_line < "/proc/${pid}/cmdline" 2>/dev/null || return 1
+    for argument in "${command_line[@]:1}"; do
+        if [[ "$argument" == "$expected_argument" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Resolve this checkout's supervisor from its PID file or atomic state file.
+# The state fallback supports upgrading a running supervisor that predates the
+# PID-file fix.
+get_verified_autorun_pid() {
+    local pid=""
+    local state_file="${SCRIPT_DIR}/.autorun.state"
+
+    pid=$(read_pid_file "$AUTORUN_PID_FILE" 2>/dev/null || true)
+    if [[ -n "$pid" ]] &&
+       kill -0 "$pid" 2>/dev/null &&
+       pid_matches_command "$pid" "${SCRIPT_DIR}/${SCRIPT_NAME}" "foreground"; then
+        printf '%s\n' "$pid"
+        return 0
+    fi
+
+    if [[ -r "$state_file" ]]; then
+        pid=$(awk -F= '$1 == "PID" {print $2; exit}' "$state_file")
+    fi
+    if [[ "$pid" =~ ^[1-9][0-9]*$ ]] &&
+       kill -0 "$pid" 2>/dev/null &&
+       pid_matches_command "$pid" "${SCRIPT_DIR}/${SCRIPT_NAME}" "foreground"; then
+        printf '%s\n' "$pid"
+        return 0
+    fi
+
+    return 1
+}
+
+# Resolve a legacy MUD without a PID file only through its verified supervisor's
+# direct children. Refuse ambiguity rather than risking another MUD on the host.
+get_verified_mud_child_pid() {
+    local child
+    local children_file
+    local found_pid=""
+    local mud_command="${BIN_DIR}/${MUD_BINARY}"
+    local supervisor_pid
+    local -a children=()
+
+    if ! supervisor_pid=$(get_verified_autorun_pid); then
+        return 1
+    fi
+
+    children_file="/proc/${supervisor_pid}/task/${supervisor_pid}/children"
+    if [[ ! -r "$children_file" ]]; then
+        return 1
+    fi
+    if [[ "$mud_command" != /* ]]; then
+        mud_command="${SCRIPT_DIR}/${mud_command}"
+    fi
+
+    read -r -a children < "$children_file" || true
+    for child in "${children[@]}"; do
+        if kill -0 "$child" 2>/dev/null &&
+           pid_matches_command "$child" "$mud_command" "" &&
+           pid_has_argument "$child" "$MUD_PORT"; then
+            if [[ -n "$found_pid" ]]; then
+                return 2
+            fi
+            found_pid="$child"
+        fi
+    done
+
+    if [[ -z "$found_pid" ]]; then
+        return 1
+    fi
+
+    printf '%s\n' "$found_pid"
+}
+
+# Signal an already-resolved process only after exact command verification.
+signal_verified_process() {
+    local pid="$1"
+    local expected_command="$2"
+    local expected_argument="$3"
+    local process_label="$4"
+
+    if ! kill -0 "$pid" 2>/dev/null; then
+        log_info "${process_label} PID $pid is no longer running"
+        return 1
+    fi
+
+    if ! pid_matches_command "$pid" "$expected_command" "$expected_argument"; then
+        log_warn "Refusing to signal ${process_label} PID $pid: command does not match"
+        return 2
+    fi
+
+    log_info "Stopping ${process_label} (PID: $pid)"
+    kill -TERM "$pid" 2>/dev/null
+}
+
+# Signal only a process proven to belong to this checkout.
+signal_pid_file_process() {
+    local pid_file="$1"
+    local expected_command="$2"
+    local expected_argument="$3"
+    local process_label="$4"
+    local pid
+
+    if ! pid=$(read_pid_file "$pid_file"); then
+        log_info "No recorded ${process_label} process found"
+        return 1
+    fi
+
+    if ! kill -0 "$pid" 2>/dev/null; then
+        log_info "Removing stale ${process_label} PID file (PID: $pid)"
+        rm -f -- "$pid_file"
+        return 1
+    fi
+
+    signal_verified_process \
+        "$pid" \
+        "$expected_command" \
+        "$expected_argument" \
+        "$process_label"
+}
+
 # Check if a directory exists and is accessible
 check_directory() {
     local dir="$1"
@@ -168,26 +417,33 @@ is_mud_running() {
         lsof -i :${MUD_PORT} >/dev/null 2>&1
         return $?
     else
-        # Last resort: check for process (original method)
-        # More robust process detection using pgrep if available
-        if command -v pgrep >/dev/null 2>&1; then
-            pgrep -f "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" >/dev/null 2>&1
-        else
-            # Fallback to ps if pgrep not available
-            local count
-            count=$(ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | wc -l)
-            [[ $count -gt 0 ]]
-        fi
+        # Last resort: trust only the PID file after exact command verification.
+        get_mud_pid >/dev/null
     fi
 }
 
 # Get MUD process PID
 get_mud_pid() {
-    if command -v pgrep >/dev/null 2>&1; then
-        pgrep -f "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | head -1
-    else
-        ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | awk '{print $2}' | head -1
+    local mud_command="${BIN_DIR}/${MUD_BINARY}"
+    local pid
+
+    if [[ "$mud_command" != /* ]]; then
+        mud_command="${SCRIPT_DIR}/${mud_command}"
     fi
+
+    if ! pid=$(read_pid_file "$MUD_PID_FILE"); then
+        get_verified_mud_child_pid
+        return $?
+    fi
+
+    if kill -0 "$pid" 2>/dev/null &&
+       pid_matches_command "$pid" "$mud_command" "" &&
+       pid_has_argument "$pid" "$MUD_PORT"; then
+        printf '%s\n' "$pid"
+        return 0
+    fi
+
+    get_verified_mud_child_pid
 }
 
 #############################################################################
@@ -391,7 +647,9 @@ start_websocket_policy() {
         nohup ./policyd > /dev/null 2>&1 &
         local pid=$!
         log_info "WebSocket policy daemon started with PID $pid"
-        echo "$pid" > "${SCRIPT_DIR}/.websocket_policy.pid"
+        if ! write_pid_file "${SCRIPT_DIR}/.websocket_policy.pid" "$pid"; then
+            log_error "Unable to publish WebSocket policy daemon PID"
+        fi
     else
         log_warn "WebSocket policyd not found or not executable"
     fi
@@ -425,7 +683,9 @@ start_flash_policy() {
         nohup ./flashpolicyd.py --file="${FLASH_POLICY_FILE}" --port="${FLASH_POLICY_PORT}" > /dev/null 2>&1 &
         local pid=$!
         log_info "Flash policy daemon started with PID $pid"
-        echo "$pid" > "${SCRIPT_DIR}/.flash_policy.pid"
+        if ! write_pid_file "${SCRIPT_DIR}/.flash_policy.pid" "$pid"; then
+            log_error "Unable to publish Flash policy daemon PID"
+        fi
     else
         log_warn "Flash policyd not found or not executable"
     fi
@@ -441,23 +701,21 @@ start_flash_policy() {
 stop_auxiliary_services() {
     # Stop websocket policy daemon
     if [[ -f "${SCRIPT_DIR}/.websocket_policy.pid" ]]; then
-        local pid
-        pid=$(cat "${SCRIPT_DIR}/.websocket_policy.pid" 2>/dev/null || echo "")
-        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-            log_info "Stopping WebSocket policy daemon (PID: $pid)"
-            kill "$pid" 2>/dev/null || true
-        fi
+        signal_pid_file_process \
+            "${SCRIPT_DIR}/.websocket_policy.pid" \
+            "${HMUD_DIR}/policyd" \
+            "" \
+            "WebSocket policy daemon" || true
         rm -f "${SCRIPT_DIR}/.websocket_policy.pid"
     fi
 
     # Stop flash policy daemon
     if [[ -f "${SCRIPT_DIR}/.flash_policy.pid" ]]; then
-        local pid
-        pid=$(cat "${SCRIPT_DIR}/.flash_policy.pid" 2>/dev/null || echo "")
-        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-            log_info "Stopping Flash policy daemon (PID: $pid)"
-            kill "$pid" 2>/dev/null || true
-        fi
+        signal_pid_file_process \
+            "${SCRIPT_DIR}/.flash_policy.pid" \
+            "${FMUD_DIR}/flashpolicyd.py" \
+            "" \
+            "Flash policy daemon" || true
         rm -f "${SCRIPT_DIR}/.flash_policy.pid"
     fi
 }
@@ -466,46 +724,41 @@ stop_auxiliary_services() {
 # Process Management
 #############################################################################
 
-# Clean up any lingering processes
-cleanup_processes() {
-    log_info "Cleaning up lingering processes"
-
-    # Don't kill all sleep processes - only those related to autorun
-    local autorun_pids=$(pgrep -f "${SCRIPT_NAME}.*sleep" 2>/dev/null || true)
-    if [[ -n "$autorun_pids" ]]; then
-        log_info "Killing autorun-related sleep processes"
-        echo "$autorun_pids" | xargs kill 2>/dev/null || true
-    fi
-
-    # Clean up any zombie MUD processes
-    cleanup_zombie_processes
-}
-
 # Clean up zombie or defunct MUD processes
 cleanup_zombie_processes() {
-    # Find zombie/defunct MUD processes
-    local zombies=$(ps aux | grep "${MUD_BINARY}" | grep "<defunct>" | awk '{print $2}')
-    if [[ -n "$zombies" ]]; then
-        log_warn "Found zombie MUD processes, cleaning up: $zombies"
-        echo "$zombies" | xargs kill -9 2>/dev/null || true
+    local mud_command="${BIN_DIR}/${MUD_BINARY}"
+    local pid
+    local process_state
+
+    if [[ "$mud_command" != /* ]]; then
+        mud_command="${SCRIPT_DIR}/${mud_command}"
     fi
 
-    # Also check for stuck MUD processes that aren't listening
+    if ! pid=$(read_pid_file "$MUD_PID_FILE"); then
+        return 0
+    fi
+
+    if ! kill -0 "$pid" 2>/dev/null; then
+        rm -f -- "$MUD_PID_FILE"
+        return 0
+    fi
+
+    if ! pid_matches_command "$pid" "$mud_command" ""; then
+        log_warn "Ignoring MUD PID $pid: command does not match this checkout"
+        return 0
+    fi
+
+    process_state=$(ps -o stat= -p "$pid" 2>/dev/null || true)
+    if [[ "$process_state" == Z* ]]; then
+        log_warn "Recorded MUD PID $pid is defunct and must be reaped by its parent"
+        return 0
+    fi
+
+    # A recorded MUD that is no longer listening may be stuck. Only signal the
+    # exact process recorded by this checkout.
     if ! is_mud_running; then
-        # No listening socket, but check for stuck processes
-        local stuck_pids=$(pgrep -f "${BIN_DIR}/${MUD_BINARY}" 2>/dev/null || true)
-        if [[ -n "$stuck_pids" ]]; then
-            log_warn "Found stuck MUD processes not listening on port, cleaning up: $stuck_pids"
-            echo "$stuck_pids" | xargs kill -TERM 2>/dev/null || true
-            sleep 2
-            # Force kill if still running
-            for pid in $stuck_pids; do
-                if kill -0 "$pid" 2>/dev/null; then
-                    log_warn "Force killing stuck process: $pid"
-                    kill -9 "$pid" 2>/dev/null || true
-                fi
-            done
-        fi
+        log_warn "Recorded MUD PID $pid is not listening; requesting shutdown"
+        kill -TERM "$pid" 2>/dev/null || true
     fi
 }
 
@@ -562,6 +815,7 @@ check_improper_shutdown() {
 start_mud() {
     local exit_code
     local heartbeat_pid
+    local mud_pid
 
     log_info "Starting MUD server on port $MUD_PORT"
     log_info "Command: ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}"
@@ -592,8 +846,21 @@ start_mud() {
 
     # Run the MUD in the foreground as before, but do not let it inherit the
     # autorun lock descriptor.
-    "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} 200>&- >> syslog 2>&1
-    exit_code=$?
+    "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} 200>&- >> syslog 2>&1 &
+    mud_pid=$!
+    if ! write_pid_file "$MUD_PID_FILE" "$mud_pid"; then
+        log_error "Unable to publish MUD PID"
+        kill -TERM "$mud_pid" 2>/dev/null || true
+        wait "$mud_pid" 2>/dev/null || true
+        exit_code=1
+    else
+        wait "$mud_pid"
+        exit_code=$?
+    fi
+
+    if [[ "$(read_pid_file "$MUD_PID_FILE" 2>/dev/null || true)" == "$mud_pid" ]]; then
+        rm -f -- "$MUD_PID_FILE"
+    fi
 
     # The MUD has exited, so stop and reap its state heartbeat.
     kill "$heartbeat_pid" 2>/dev/null || true
@@ -650,8 +917,12 @@ show_status() {
     echo "MUD Binary: ${BIN_DIR}/${MUD_BINARY}"
 
     if is_mud_running; then
-        pid=$(get_mud_pid)
-        echo "MUD Status: RUNNING (PID: $pid)"
+        pid=$(get_mud_pid 2>/dev/null || true)
+        if [[ -n "$pid" ]]; then
+            echo "MUD Status: RUNNING (PID: $pid)"
+        else
+            echo "MUD Status: RUNNING (PID unavailable)"
+        fi
     else
         echo "MUD Status: NOT RUNNING"
     fi
@@ -721,6 +992,15 @@ case "${1:-}" in
         exit 0
         ;;
     stop)
+        autorun_pid=""
+        mud_signal_sent=false
+        mud_signal_status=1
+        mud_pid=""
+        mud_command="${BIN_DIR}/${MUD_BINARY}"
+        if [[ "$mud_command" != /* ]]; then
+            mud_command="${SCRIPT_DIR}/${mud_command}"
+        fi
+
         log_info "Stopping autorun"
         touch .killscript
 
@@ -730,23 +1010,63 @@ case "${1:-}" in
             "${SCRIPT_DIR}/autorun-watchdog.sh" stop 2>/dev/null || true
         fi
 
-        # Find and kill any running autorun processes
-        autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" 2>/dev/null | grep -v "$$" | grep -v grep || true)
-        if [[ -n "$autorun_pids" ]]; then
-            log_info "Found running autorun process(es): $autorun_pids"
-            echo "$autorun_pids" | xargs kill 2>/dev/null || true
-            log_info "Sent termination signal to autorun process(es)"
-        else
-            log_info "No running autorun process found"
+        # Stop the recorded MUD first so the foreground supervisor's wait
+        # returns naturally and it can consume .killscript.
+        if [[ -e "$MUD_PID_FILE" ]]; then
+            signal_pid_file_process \
+                "$MUD_PID_FILE" \
+                "$mud_command" \
+                "" \
+                "MUD server"
+            mud_signal_status=$?
         fi
 
-        # Also try to stop the MUD server gracefully
-        if is_mud_running; then
-            mud_pid=$(get_mud_pid)
-            if [[ -n "$mud_pid" ]]; then
-                log_info "Stopping MUD server (PID: $mud_pid)"
-                kill -TERM "$mud_pid" 2>/dev/null || true
+        if [[ $mud_signal_status -eq 1 ]]; then
+            if mud_pid=$(get_verified_mud_child_pid); then
+                log_info "Using verified supervisor child for legacy MUD shutdown"
+                signal_verified_process "$mud_pid" "$mud_command" "" "MUD server"
+                mud_signal_status=$?
+            else
+                mud_resolution_status=$?
+                if [[ $mud_resolution_status -eq 2 ]]; then
+                    log_warn "Refusing MUD shutdown: multiple verified children found"
+                fi
             fi
+        fi
+
+        if [[ $mud_signal_status -eq 0 ]]; then
+            mud_signal_sent=true
+        fi
+
+        if [[ "$mud_signal_sent" != true ]]; then
+            # With no managed MUD to wake the supervisor, interrupt its current
+            # sleep so it can consume .killscript.
+            autorun_signal_status=1
+            if [[ -e "$AUTORUN_PID_FILE" ]]; then
+                signal_pid_file_process \
+                    "$AUTORUN_PID_FILE" \
+                    "${SCRIPT_DIR}/${SCRIPT_NAME}" \
+                    "foreground" \
+                    "autorun supervisor"
+                autorun_signal_status=$?
+            fi
+
+            if [[ $autorun_signal_status -eq 1 ]] &&
+               autorun_pid=$(get_verified_autorun_pid); then
+                log_info "Using verified state PID for legacy supervisor shutdown"
+                signal_verified_process \
+                    "$autorun_pid" \
+                    "${SCRIPT_DIR}/${SCRIPT_NAME}" \
+                    "foreground" \
+                    "autorun supervisor" || true
+            fi
+        else
+            log_info "Autorun supervisor will stop after the MUD exits"
+        fi
+
+        if is_mud_running && [[ "$mud_signal_sent" != true ]]; then
+            log_warn "MUD port is still active without a verified PID"
+            log_warn "Refusing broad process matching"
         fi
 
         exit 0
@@ -794,7 +1114,7 @@ case "${1:-}" in
             log_error "Another autorun instance is already running"
             exit 1
         fi
-        rm -f "${lockfile}.pid"
+        rm -f "$AUTORUN_PID_FILE"
 
         # Keep the lock in a dedicated wrapper. The foreground supervisor starts
         # with descriptor 200 closed so none of its children can inherit the lock.
@@ -809,13 +1129,17 @@ case "${1:-}" in
             nohup "${SCRIPT_DIR}/${SCRIPT_NAME}" foreground 200>&- &
 
             DAEMON_PID=$!
-            printf '%s\n' "$DAEMON_PID" > "${lockfile}.pid"
+            if ! write_pid_file "$AUTORUN_PID_FILE" "$DAEMON_PID"; then
+                kill -TERM "$DAEMON_PID" 2>/dev/null || true
+                wait "$DAEMON_PID" 2>/dev/null || true
+                exit 1
+            fi
             wait "$DAEMON_PID"
         ) &
 
         # Wait briefly for the supervisor to publish its PID.
         for ((startup_attempt = 0; startup_attempt < 50; startup_attempt++)); do
-            daemon_pid=$(cat "${lockfile}.pid" 2>/dev/null || echo "")
+            daemon_pid=$(read_pid_file "$AUTORUN_PID_FILE" 2>/dev/null || true)
             if [[ -n "$daemon_pid" ]] && kill -0 "$daemon_pid" 2>/dev/null; then
                 break
             fi
@@ -851,16 +1175,31 @@ fi
 
 # Clean up stale PID files from previous runs
 cleanup_stale_pidfiles() {
+    local mud_command="${BIN_DIR}/${MUD_BINARY}"
     local pidfile old_pid
+
     for pidfile in .websocket_policy.pid .flash_policy.pid; do
         if [[ -f "$pidfile" ]]; then
-            old_pid=$(cat "$pidfile" 2>/dev/null || echo "")
+            old_pid=$(read_pid_file "$pidfile" 2>/dev/null || true)
             if [[ -n "$old_pid" ]] && ! kill -0 "$old_pid" 2>/dev/null; then
                 log_info "Removing stale PID file: $pidfile (PID: $old_pid)"
                 rm -f "$pidfile"
             fi
         fi
     done
+
+    if [[ "$mud_command" != /* ]]; then
+        mud_command="${SCRIPT_DIR}/${mud_command}"
+    fi
+    if [[ -f "$MUD_PID_FILE" ]]; then
+        old_pid=$(read_pid_file "$MUD_PID_FILE" 2>/dev/null || true)
+        if [[ -z "$old_pid" ]] ||
+           ! kill -0 "$old_pid" 2>/dev/null ||
+           ! pid_matches_command "$old_pid" "$mud_command" ""; then
+            log_info "Removing stale MUD PID file"
+            rm -f -- "$MUD_PID_FILE"
+        fi
+    fi
 }
 cleanup_stale_pidfiles
 
@@ -916,6 +1255,7 @@ start_flash_policy
 start_watchdog() {
     local watchdog_script="${SCRIPT_DIR}/autorun-watchdog.sh"
     local watchdog_pid_file="${SCRIPT_DIR}/.watchdog.pid"
+    local wpid
 
     # Check if watchdog script exists
     if [[ ! -f "$watchdog_script" ]]; then
@@ -925,11 +1265,14 @@ start_watchdog() {
 
     # Check if watchdog is already running
     if [[ -f "$watchdog_pid_file" ]]; then
-        local wpid=$(cat "$watchdog_pid_file" 2>/dev/null || echo "")
-        if [[ -n "$wpid" ]] && kill -0 "$wpid" 2>/dev/null; then
+        wpid=$(read_pid_file "$watchdog_pid_file" 2>/dev/null || true)
+        if [[ -n "$wpid" ]] &&
+           kill -0 "$wpid" 2>/dev/null &&
+           pid_matches_command "$wpid" "$watchdog_script" "loop"; then
             log_info "Watchdog already running (PID: $wpid)"
             return 0
         fi
+        rm -f -- "$watchdog_pid_file"
     fi
 
     # Start the watchdog
@@ -1011,7 +1354,7 @@ log_info "  Watchdog: ENABLED (if available)"
 cleanup() {
     log_info "Performing cleanup..."
     stop_auxiliary_services
-    rm -f "${SCRIPT_DIR}/.autorun.lock.pid" 2>/dev/null || true
+    rm -f "$MUD_PID_FILE" "$AUTORUN_PID_FILE" 2>/dev/null || true
 }
 # CRITICAL: Do NOT trap EXIT! This causes autorun to terminate on any error
 # Only cleanup when we explicitly want to shut down
@@ -1026,6 +1369,13 @@ while true; do
     set +e  # Disable error exit for the entire loop
 
     write_autorun_state
+
+    if [[ -r .killscript ]]; then
+        log_info "Killscript detected at top of main loop"
+        cleanup
+        proc_syslog
+        exit 0
+    fi
 
     # Safety check: ensure we're still in a valid state
     if [[ ! -d "$BIN_DIR" ]]; then

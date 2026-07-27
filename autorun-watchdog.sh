@@ -12,6 +12,7 @@ set -u  # Exit on undefined variables
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 AUTORUN_SCRIPT="${SCRIPT_DIR}/autorun.sh"
+WATCHDOG_SCRIPT="${SCRIPT_DIR}/autorun-watchdog.sh"
 CHECK_INTERVAL="${WATCHDOG_CHECK_INTERVAL:-60}"
 LOG_FILE="${SCRIPT_DIR}/log/watchdog.log"
 STATE_FILE="${SCRIPT_DIR}/.autorun.state"
@@ -27,6 +28,81 @@ log_msg() {
     local level="$1"
     shift
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] watchdog [$level]: $*" | tee -a "$LOG_FILE"
+}
+
+# Read and validate a PID file before using it.
+read_pid_file() {
+    local pid_file="$1"
+    local pid=""
+
+    if [[ ! -r "$pid_file" ]]; then
+        return 1
+    fi
+
+    IFS= read -r pid < "$pid_file" || true
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]]; then
+        return 1
+    fi
+
+    printf '%s\n' "$pid"
+}
+
+# Publish the watchdog PID atomically.
+write_pid_file() {
+    local pid_file="$1"
+    local pid="$2"
+    local pid_tmp
+
+    pid_tmp=$(mktemp "${pid_file}.tmp.XXXXXX") || return 1
+    if ! printf '%s\n' "$pid" > "$pid_tmp"; then
+        rm -f -- "$pid_tmp"
+        return 1
+    fi
+
+    if ! mv -f -- "$pid_tmp" "$pid_file"; then
+        rm -f -- "$pid_tmp"
+        return 1
+    fi
+}
+
+# Confirm that a PID is this exact watchdog script running the loop command.
+pid_is_watchdog() {
+    local pid="$1"
+    local candidate=""
+    local expected_path
+    local process_cwd
+    local process_exe
+    local -a command_line=()
+
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]] ||
+       [[ ! -r "/proc/${pid}/cmdline" ]]; then
+        return 1
+    fi
+
+    expected_path=$(readlink -f -- "$WATCHDOG_SCRIPT" 2>/dev/null || true)
+    process_exe=$(readlink -f -- "/proc/${pid}/exe" 2>/dev/null || true)
+    process_cwd=$(readlink -f -- "/proc/${pid}/cwd" 2>/dev/null || true)
+    mapfile -d '' -t command_line < "/proc/${pid}/cmdline" 2>/dev/null || return 1
+
+    if [[ -z "$expected_path" ]] || [[ ${#command_line[@]} -lt 3 ]]; then
+        return 1
+    fi
+
+    if [[ "${command_line[1]}" == /* ]]; then
+        candidate=$(readlink -f -- "${command_line[1]}" 2>/dev/null || true)
+    elif [[ "${command_line[1]}" == */* ]] && [[ -n "$process_cwd" ]]; then
+        candidate=$(readlink -f -- "${process_cwd}/${command_line[1]}" 2>/dev/null || true)
+    fi
+
+    case "$(basename "$process_exe")" in
+        bash|dash|sh)
+            [[ "$candidate" == "$expected_path" ]] &&
+                [[ "${command_line[2]}" == "loop" ]]
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 # Check if autorun is healthy
@@ -117,7 +193,10 @@ watchdog_loop() {
     local last_restart_time=0
 
     log_msg "INFO" "Watchdog starting (PID: $$)"
-    echo $$ > "$WATCHDOG_PID_FILE"
+    if ! write_pid_file "$WATCHDOG_PID_FILE" "$$"; then
+        log_msg "ERROR" "Unable to publish watchdog PID"
+        return 1
+    fi
 
     if [[ $STARTUP_GRACE_PERIOD -gt 0 ]]; then
         log_msg "INFO" "Waiting ${STARTUP_GRACE_PERIOD}s startup grace period"
@@ -184,30 +263,37 @@ watchdog_loop() {
 
 # Stop watchdog
 stop_watchdog() {
-    log_msg "INFO" "Stopping watchdog..."
+    local pid
 
-    if [[ -f "$WATCHDOG_PID_FILE" ]]; then
-        local pid=$(cat "$WATCHDOG_PID_FILE")
-        if kill -0 "$pid" 2>/dev/null; then
+    log_msg "INFO" "Stopping watchdog..."
+    touch "${SCRIPT_DIR}/.killwatchdog"
+
+    if pid=$(read_pid_file "$WATCHDOG_PID_FILE"); then
+        if kill -0 "$pid" 2>/dev/null && pid_is_watchdog "$pid"; then
             kill "$pid"
             log_msg "INFO" "Watchdog stopped (PID: $pid)"
+            rm -f -- "$WATCHDOG_PID_FILE"
+        elif kill -0 "$pid" 2>/dev/null; then
+            log_msg "WARN" "Refusing to signal PID $pid: command is not this watchdog"
+        else
+            rm -f -- "$WATCHDOG_PID_FILE"
         fi
-        rm -f "$WATCHDOG_PID_FILE"
     fi
-
-    touch "${SCRIPT_DIR}/.killwatchdog"
 }
 
 # Show status
 show_status() {
+    local pid
+
     echo "==================================="
     echo "LuminariMUD Watchdog Status"
     echo "==================================="
 
-    if [[ -f "$WATCHDOG_PID_FILE" ]]; then
-        local pid=$(cat "$WATCHDOG_PID_FILE")
-        if kill -0 "$pid" 2>/dev/null; then
+    if pid=$(read_pid_file "$WATCHDOG_PID_FILE" 2>/dev/null); then
+        if kill -0 "$pid" 2>/dev/null && pid_is_watchdog "$pid"; then
             echo "Watchdog: RUNNING (PID: $pid)"
+        elif kill -0 "$pid" 2>/dev/null; then
+            echo "Watchdog: NOT RUNNING (PID belongs to another command)"
         else
             echo "Watchdog: NOT RUNNING (stale PID file)"
         fi
@@ -233,18 +319,18 @@ show_status() {
 # Main script
 case "${1:-start}" in
     start)
-        if [[ -f "$WATCHDOG_PID_FILE" ]]; then
-            pid=$(cat "$WATCHDOG_PID_FILE")
-            if kill -0 "$pid" 2>/dev/null; then
+        if pid=$(read_pid_file "$WATCHDOG_PID_FILE" 2>/dev/null); then
+            if kill -0 "$pid" 2>/dev/null && pid_is_watchdog "$pid"; then
                 echo "Watchdog already running (PID: $pid)"
                 exit 1
             fi
+            rm -f -- "$WATCHDOG_PID_FILE"
         fi
 
         rm -f "${SCRIPT_DIR}/.killwatchdog"
 
         # Start in background
-        nohup "$0" loop > /dev/null 2>&1 &
+        nohup "$WATCHDOG_SCRIPT" loop > /dev/null 2>&1 &
         echo "Watchdog started"
         ;;
 

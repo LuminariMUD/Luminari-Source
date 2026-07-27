@@ -13,6 +13,8 @@
 #   -p, --prod        Production mode (optimized build)
 #   --skip-deps       Skip dependency installation
 #   --skip-db         Skip database setup (NOT RECOMMENDED - database is required)
+#   --install-systemd Install/update only the canonical systemd unit
+#   --restart-service Restart an active service after installing its unit
 ################################################################################
 
 set -e  # Exit on error
@@ -33,6 +35,8 @@ SKIP_DB=false
 AUTO_MODE=false
 INIT_WORLD=true
 FORCE_INIT_WORLD=false
+INSTALL_SYSTEMD_ONLY=false
+RESTART_SYSTEMD_SERVICE=false
 MUD_PORT=4000
 DB_HOST="localhost"
 DB_NAME="luminari"
@@ -717,30 +721,114 @@ setup_environment() {
 
 # Function to create systemd service
 create_systemd_service() {
+    local installed_pid_file
+    local main_pid
+    local service_active=false
+    local service_group
+    local service_template="$PROJECT_ROOT/luminari.service"
+    local service_tmp
+    local service_user
+
     print_msg "$GREEN" "Creating systemd service..."
 
-    cat > /tmp/luminari.service <<EOF
-[Unit]
-Description=LuminariMUD Server
-After=network.target mariadb.service
+    if [[ ! -r "$service_template" ]]; then
+        print_msg "$RED" "Canonical service file not found: $service_template"
+        return 1
+    fi
+    if [[ "$PROJECT_ROOT" =~ [[:space:]] ]]; then
+        print_msg "$RED" "Systemd installation does not support whitespace in PROJECT_ROOT"
+        return 1
+    fi
 
-[Service]
-Type=simple
-User=$USER
-WorkingDirectory=$PROJECT_ROOT
-ExecStart=$PROJECT_ROOT/bin/circle
-ExecReload=/bin/kill -HUP \$MAINPID
-Restart=always
-RestartSec=10
+    service_user=$(stat -c '%U' "$PROJECT_ROOT")
+    service_group=$(stat -c '%G' "$PROJECT_ROOT")
+    service_tmp=$(mktemp "${TMPDIR:-/tmp}/luminari.service.XXXXXX")
 
-[Install]
-WantedBy=multi-user.target
-EOF
+    if ! awk \
+        -v service_user="$service_user" \
+        -v service_group="$service_group" \
+        -v project_root="$PROJECT_ROOT" '
+        /^User=/ {
+            print "User=" service_user
+            next
+        }
+        /^Group=/ {
+            print "Group=" service_group
+            next
+        }
+        /^WorkingDirectory=/ {
+            print "WorkingDirectory=" project_root
+            next
+        }
+        /^PIDFile=/ {
+            print "PIDFile=" project_root "/.autorun.lock.pid"
+            next
+        }
+        /^ExecStart=/ {
+            print "ExecStart=" project_root "/autorun.sh"
+            next
+        }
+        /^ExecStop=/ {
+            print "ExecStop=" project_root "/autorun.sh stop"
+            next
+        }
+        {
+            print
+        }
+        ' "$service_template" > "$service_tmp"; then
+        rm -f -- "$service_tmp"
+        print_msg "$RED" "Failed to render systemd service"
+        return 1
+    fi
 
-    sudo cp /tmp/luminari.service /etc/systemd/system/
+    if ! grep -Fxq "Type=forking" "$service_tmp" ||
+       ! grep -Fxq "PIDFile=$PROJECT_ROOT/.autorun.lock.pid" "$service_tmp" ||
+       ! grep -Fxq "ExecStart=$PROJECT_ROOT/autorun.sh" "$service_tmp"; then
+        rm -f -- "$service_tmp"
+        print_msg "$RED" "Rendered systemd service failed validation"
+        return 1
+    fi
+
+    sudo install -m 0644 "$service_tmp" /etc/systemd/system/luminari.service
+    rm -f -- "$service_tmp"
     sudo systemctl daemon-reload
 
-    print_msg "$GREEN" "Systemd service created!"
+    installed_pid_file=$(sudo systemctl show luminari.service \
+        --property=PIDFile --value 2>/dev/null || true)
+    if [[ "$installed_pid_file" != "$PROJECT_ROOT/.autorun.lock.pid" ]]; then
+        print_msg "$RED" "Systemd did not load the expected PIDFile"
+        return 1
+    fi
+
+    if sudo systemctl is-active --quiet luminari.service; then
+        service_active=true
+    fi
+
+    if [[ "$RESTART_SYSTEMD_SERVICE" == true ]]; then
+        if [[ "$service_active" != true ]] &&
+           [[ -e "$PROJECT_ROOT/.autorun.lock" ]] &&
+           ! flock -n "$PROJECT_ROOT/.autorun.lock" true; then
+            print_msg "$RED" "An unmanaged autorun currently holds the project lock."
+            print_msg "$YELLOW" "Stop it safely before starting the systemd service:"
+            print_msg "$YELLOW" "  sudo -u $service_user $PROJECT_ROOT/autorun.sh stop"
+            print_msg "$YELLOW" "  $0 --install-systemd --restart-service"
+            return 1
+        fi
+
+        sudo systemctl restart luminari.service
+        main_pid=$(sudo systemctl show luminari.service \
+            --property=MainPID --value 2>/dev/null || true)
+        if [[ ! "$main_pid" =~ ^[1-9][0-9]*$ ]]; then
+            print_msg "$RED" "Service restarted without a tracked MainPID"
+            return 1
+        fi
+        print_msg "$GREEN" "Systemd service restarted with MainPID $main_pid"
+    elif [[ "$service_active" == true ]]; then
+        print_msg "$YELLOW" "The running service must be restarted to apply the new unit:"
+        print_msg "$YELLOW" "  sudo systemctl restart luminari.service"
+    fi
+
+    print_msg "$GREEN" "Canonical systemd service installed and reloaded!"
     print_msg "$YELLOW" "To start: sudo systemctl start luminari"
     print_msg "$YELLOW" "To enable on boot: sudo systemctl enable luminari"
 }
@@ -767,8 +855,8 @@ show_final_instructions() {
     print_header "Deployment Complete!"
 
     if [[ "$INIT_WORLD" == false ]]; then
-        print_msg "$RED" "⚠️  WARNING: World data was NOT initialized!"
-        print_msg "$RED" "⚠️  The server will NOT start without world files!"
+        print_msg "$RED" "WARNING: World data was NOT initialized!"
+        print_msg "$RED" "WARNING: The server will NOT start without world files!"
         print_msg "$YELLOW" "You must either:"
         echo "  1. Re-run with: ./scripts/deploy.sh --init-world"
         echo "  2. OR provide your own custom world files in lib/world/"
@@ -813,6 +901,8 @@ Options:
     --skip-db         Skip database setup (NOT RECOMMENDED - database is REQUIRED)
     --init-world      Initialize minimal world data (enabled by default)
     --no-init-world   Skip world initialization (only if you have custom world files)
+    --install-systemd Install/update only the canonical systemd unit and reload systemd
+    --restart-service Restart an active service after --install-systemd
 
 NOTE: World initialization is ON by default. The server requires world data to start.
 
@@ -821,6 +911,9 @@ Examples:
     $0 --auto                     # Automated setup with defaults
     $0 --dev                      # Development build with debug tools
     $0 --prod                     # Production optimized build
+    $0 --install-systemd          # Refresh the installed service definition
+    $0 --install-systemd --restart-service
+                                   # Refresh it and restart the service
 
 For more information, see: docs/guides/SETUP_AND_BUILD_GUIDE.md
 EOF
@@ -853,6 +946,14 @@ while [[ $# -gt 0 ]]; do
             SKIP_DB=true
             shift
             ;;
+        --install-systemd)
+            INSTALL_SYSTEMD_ONLY=true
+            shift
+            ;;
+        --restart-service)
+            RESTART_SYSTEMD_SERVICE=true
+            shift
+            ;;
         --init-world)
             INIT_WORLD=true
             FORCE_INIT_WORLD=true
@@ -869,6 +970,17 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ "$RESTART_SYSTEMD_SERVICE" == true ]] &&
+   [[ "$INSTALL_SYSTEMD_ONLY" != true ]]; then
+    print_msg "$RED" "--restart-service requires --install-systemd"
+    exit 1
+fi
+
+if [[ "$INSTALL_SYSTEMD_ONLY" == true ]]; then
+    create_systemd_service
+    exit 0
+fi
 
 # Main execution
 main() {

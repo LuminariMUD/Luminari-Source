@@ -6,17 +6,26 @@
 #
 # INSTALLATION INSTRUCTIONS:
 # -------------------------
-# 1. Copy this file to systemd directory:
-#    sudo cp luminari.service /etc/systemd/system/
+# Preferred update path (installs, reloads, restarts, and verifies MainPID):
+#    ./scripts/deploy.sh --install-systemd --restart-service
+#
+# If systemd is inactive while autorun is already running, stop that unmanaged
+# instance first; the installer refuses to start a competing supervisor:
+#    sudo -u luminari ./autorun.sh stop
+#    ./scripts/deploy.sh --install-systemd --restart-service
+#
+# Manual alternative:
+# 1. Install this file with the required mode:
+#    sudo install -m 0644 luminari.service /etc/systemd/system/luminari.service
 #
 # 2. Reload systemd configuration:
 #    sudo systemctl daemon-reload
 #
-# 3. Enable service to start on boot:
-#    sudo systemctl enable luminari
+# 3. Restart to apply the new process-tracking configuration:
+#    sudo systemctl restart luminari
 #
-# 4. Start the service:
-#    sudo systemctl start luminari
+# 4. Enable service to start on boot:
+#    sudo systemctl enable luminari
 #
 # MANAGEMENT COMMANDS:
 # -------------------
