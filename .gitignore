@@ -257,6 +257,7 @@ pause
 .flash_policy.pid
 .autorun.lock
 .autorun.state
+.autorun.state.tmp.*
 .autorun.lock.pid
 .watchdog.pid
 .killwatchdog

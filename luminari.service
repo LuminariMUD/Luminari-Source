@@ -58,6 +58,7 @@ Type=forking
 User=luminari
 Group=luminari
 WorkingDirectory=/home/luminari/Luminari-Source
+PIDFile=/home/luminari/Luminari-Source/.autorun.lock.pid
 
 # autorun.sh now defaults to daemon mode and starts its own watchdog
 ExecStart=/home/luminari/Luminari-Source/autorun.sh

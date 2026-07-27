@@ -796,6 +796,12 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
     unittests/CuTest/fuzz_protocol_parser.c
 )
 
+add_custom_target(test-autorun-supervision
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_autorun_supervision.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running autorun supervision regression tests"
+)
+
 # ========== Installation ==========
 install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
 install(CODE "

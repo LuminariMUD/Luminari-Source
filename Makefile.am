@@ -312,6 +312,7 @@ EXTRA_DIST = \
 	unittests/CuTest/test_protocol_parser.c \
 	scripts/test_character_rename_schema.sh \
 	scripts/test_character_rename_static.sh \
+	scripts/test_autorun_supervision.sh \
 	scripts/provision_artifacts.sh \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
@@ -323,11 +324,11 @@ EXTRA_DIST = \
 	README.md
 
 # Run unit tests
-test: check
+test: check test-autorun-supervision
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: test-all test-protocol test-protocol-fuzz test-character-rename-static \
-	test-character-rename-schema
+	test-character-rename-schema test-autorun-supervision
 
 test-protocol:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser
@@ -340,6 +341,9 @@ test-character-rename-static:
 
 test-character-rename-schema:
 	./scripts/test_character_rename_schema.sh
+
+test-autorun-supervision:
+	./scripts/test_autorun_supervision.sh
 
 # Authoritative full local test entry point. The final install both verifies the
 # install path and removes the root-level circle artifact created by make test.
@@ -364,6 +368,7 @@ distclean-local:
 
 # Custom clean target that removes build files but keeps Makefile and config.h
 # KEEPS: Everything needed to avoid triggering autoreconf during make clean
+# The persistent .autorun.lock inode must never be unlinked by cleanup.
 scrub: clean
 	rm -f gdb.txt valgrind.log WORK.md CODEBASE_SCOPE.md
 	rm -f configure~ configure.ac~ conf.h.in~
@@ -371,7 +376,7 @@ scrub: clean
 	rm -rf autom4te.cache/
 	rm -f log/*.log
 	rm -f *.orig *.rej *.patch
-	rm -f .killscript .fastboot pause .autorun.lock
+	rm -f .killscript .fastboot pause
 	rm -f .websocket_policy.pid .flash_policy.pid
 	rm -f lib/copyover.dat
 	rm -f core core.* vgcore.*

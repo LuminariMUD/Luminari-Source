@@ -12,12 +12,15 @@ set -u  # Exit on undefined variables
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 AUTORUN_SCRIPT="${SCRIPT_DIR}/autorun.sh"
-CHECK_INTERVAL=60  # Check every 60 seconds
+CHECK_INTERVAL="${WATCHDOG_CHECK_INTERVAL:-60}"
 LOG_FILE="${SCRIPT_DIR}/log/watchdog.log"
 STATE_FILE="${SCRIPT_DIR}/.autorun.state"
 WATCHDOG_PID_FILE="${SCRIPT_DIR}/.watchdog.pid"
 MAX_RESTART_ATTEMPTS=10
-RESTART_COOLDOWN=300  # 5 minutes between restart attempts
+RESTART_COOLDOWN="${WATCHDOG_RESTART_COOLDOWN:-300}"
+STARTUP_GRACE_PERIOD="${WATCHDOG_STARTUP_GRACE_PERIOD:-10}"
+AUTORUN_STARTUP_TIMEOUT="${WATCHDOG_AUTORUN_STARTUP_TIMEOUT:-15}"
+STATE_STALE_THRESHOLD="${WATCHDOG_STATE_STALE_THRESHOLD:-300}"
 
 # Logging function
 log_msg() {
@@ -28,36 +31,42 @@ log_msg() {
 
 # Check if autorun is healthy
 check_autorun_health() {
+    local current_time
+    local last_update
+    local pid
+    local port
+    local time_diff
+
     # Check if state file exists and is recent
     if [[ ! -f "$STATE_FILE" ]]; then
         log_msg "WARN" "State file not found"
         return 1
     fi
 
-    # Check if state file is stale (older than 5 minutes)
-    local last_update=$(grep "LAST_UPDATE=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
-    if [[ -z "$last_update" ]]; then
+    # Check if state file is older than the configured health threshold
+    last_update=$(grep -m 1 "^LAST_UPDATE=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+    if [[ ! "$last_update" =~ ^[0-9]+$ ]]; then
         log_msg "WARN" "Cannot read last update time"
         return 1
     fi
 
-    local current_time=$(date +%s)
-    local time_diff=$((current_time - last_update))
+    current_time=$(date +%s)
+    time_diff=$((current_time - last_update))
 
-    if [[ $time_diff -gt 300 ]]; then
+    if [[ $time_diff -gt $STATE_STALE_THRESHOLD ]]; then
         log_msg "WARN" "State file is stale (${time_diff}s old)"
         return 1
     fi
 
     # Check if PID in state file is actually running
-    local pid=$(grep "PID=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
-    if [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; then
+    pid=$(grep -m 1 "^PID=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+    if [[ ! "$pid" =~ ^[0-9]+$ ]] || ! kill -0 "$pid" 2>/dev/null; then
         log_msg "WARN" "Autorun PID $pid is not running"
         return 1
     fi
 
     # Check if MUD port is actually listening
-    local port=$(grep "MUD_PORT=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+    port=$(grep -m 1 "^MUD_PORT=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
     if [[ -n "$port" ]]; then
         if command -v ss >/dev/null 2>&1; then
             if ! ss -tlnp 2>/dev/null | grep -q ":${port} "; then
@@ -72,6 +81,8 @@ check_autorun_health() {
 
 # Start autorun if not running
 start_autorun() {
+    local elapsed
+
     log_msg "INFO" "Starting autorun..."
 
     if [[ ! -x "$AUTORUN_SCRIPT" ]]; then
@@ -79,23 +90,25 @@ start_autorun() {
         return 1
     fi
 
-    # Start autorun in background
-    "$AUTORUN_SCRIPT" &
-    local pid=$!
-
-    log_msg "INFO" "Autorun started with PID $pid"
-
-    # Wait a moment for it to initialize
-    sleep 5
-
-    # Verify it's still running
-    if kill -0 "$pid" 2>/dev/null; then
-        log_msg "INFO" "Autorun successfully started"
-        return 0
-    else
-        log_msg "ERROR" "Autorun failed to start"
+    # autorun daemonizes itself, so its launcher should exit after starting the
+    # foreground supervisor.
+    if ! "$AUTORUN_SCRIPT"; then
+        log_msg "ERROR" "Autorun launcher failed"
         return 1
     fi
+
+    elapsed=0
+    while [[ $elapsed -lt $AUTORUN_STARTUP_TIMEOUT ]]; do
+        sleep 1
+        if check_autorun_health; then
+            log_msg "INFO" "Autorun successfully started"
+            return 0
+        fi
+        elapsed=$((elapsed + 1))
+    done
+
+    log_msg "ERROR" "Autorun failed to become healthy within ${AUTORUN_STARTUP_TIMEOUT}s"
+    return 1
 }
 
 # Main watchdog loop
@@ -105,6 +118,11 @@ watchdog_loop() {
 
     log_msg "INFO" "Watchdog starting (PID: $$)"
     echo $$ > "$WATCHDOG_PID_FILE"
+
+    if [[ $STARTUP_GRACE_PERIOD -gt 0 ]]; then
+        log_msg "INFO" "Waiting ${STARTUP_GRACE_PERIOD}s startup grace period"
+        sleep "$STARTUP_GRACE_PERIOD"
+    fi
 
     while true; do
         # Check if we should stop (either .killwatchdog or .killscript)
@@ -160,7 +178,7 @@ watchdog_loop() {
         fi
 
         # Wait before next check
-        sleep $CHECK_INTERVAL
+        sleep "$CHECK_INTERVAL"
     done
 }
 
@@ -222,6 +240,8 @@ case "${1:-start}" in
                 exit 1
             fi
         fi
+
+        rm -f "${SCRIPT_DIR}/.killwatchdog"
 
         # Start in background
         nohup "$0" loop > /dev/null 2>&1 &

@@ -75,6 +75,7 @@ readonly LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"  # Keep logs for 30 days
 
 # Runtime control options (can be overridden by environment variables)
 readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-true}"  # Default: keep running even with low disk space
+readonly STATE_UPDATE_INTERVAL="${AUTORUN_STATE_INTERVAL:-60}"
 
 # Date format patterns
 readonly DATE_FORMAT_LOG="%Y-%m-%d %H:%M:%S"
@@ -127,7 +128,7 @@ log_error() { log "ERROR" "$@"; }
 
 # Error handling function - NEVER actually die!
 die() {
-    log_error "ERROR (but not dying): $@"
+    log_error "ERROR (but not dying): $*"
     # Don't exit! Log the error and return
     return "${2:-1}"
 }
@@ -559,6 +560,9 @@ check_improper_shutdown() {
 
 # Start the MUD server
 start_mud() {
+    local exit_code
+    local heartbeat_pid
+
     log_info "Starting MUD server on port $MUD_PORT"
     log_info "Command: ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}"
 
@@ -573,17 +577,35 @@ start_mud() {
         return 1
     fi
 
-    # Start the MUD - this may crash, segfault, or exit in any way
-    "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} >> syslog 2>&1
-    local exit_code=$?
+    # Refresh the health state while the shell waits for the MUD. The heartbeat
+    # exits if its autorun parent dies and cannot keep the autorun lock open.
+    (
+        trap 'exit 0' INT TERM
+        while kill -0 "$AUTORUN_PID" 2>/dev/null; do
+            sleep "$STATE_UPDATE_INTERVAL"
+            if kill -0 "$AUTORUN_PID" 2>/dev/null; then
+                write_autorun_state
+            fi
+        done
+    ) 200>&- &
+    heartbeat_pid=$!
+
+    # Run the MUD in the foreground as before, but do not let it inherit the
+    # autorun lock descriptor.
+    "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} 200>&- >> syslog 2>&1
+    exit_code=$?
+
+    # The MUD has exited, so stop and reap its state heartbeat.
+    kill "$heartbeat_pid" 2>/dev/null || true
+    wait "$heartbeat_pid" 2>/dev/null || true
 
     # NO MATTER WHAT HAPPENS, WE CONTINUE!
     # The script should continue running even if the MUD explodes spectacularly
 
     log_info "MUD server exited with code $exit_code"
 
-    # Always return the exit code but NEVER let it stop the script
-    return $exit_code || true
+    # Return the exit code to the main loop for crash accounting.
+    return "$exit_code"
 }
 
 # Handle shutdown based on control files
@@ -613,6 +635,7 @@ handle_shutdown() {
     # Handle pause mode
     while [[ -r pause ]]; do
         log_info "Pause mode active - waiting..."
+        write_autorun_state
         sleep 60
     done
 }
@@ -754,70 +777,55 @@ case "${1:-}" in
         echo "  MUD_FLAGS   - Server flags (default: -q)"
         echo "  ENABLE_WEBSOCKET - Enable websocket policy (default: false)"
         echo "  ENABLE_FLASH     - Enable flash policy (default: false)"
+        echo "  AUTORUN_STATE_INTERVAL - State heartbeat seconds (default: 60)"
         exit 0
         ;;
     ""|*)
-        # DEFAULT BEHAVIOR: Daemonize when no arguments
-        # Check if already running
-        if is_mud_running; then
-            log_error "MUD already running on port $MUD_PORT"
-            exit 1
-        fi
+        daemon_pid=""
 
+        # DEFAULT BEHAVIOR: Daemonize when no arguments
         # Proper daemonization with lock file to prevent multiple instances
         lockfile="${SCRIPT_DIR}/.autorun.lock"
 
-        # Check for stale lock file - more robust handling
-        if [[ -f "$lockfile" ]]; then
-            old_pid=$(cat "$lockfile" 2>/dev/null || echo "")
-            if [[ -z "$old_pid" ]]; then
-                # Empty lock file - remove it
-                log_warn "Removing empty lock file"
-                rm -f "$lockfile"
-            elif ! kill -0 "$old_pid" 2>/dev/null; then
-                # Process doesn't exist - remove stale lock
-                log_warn "Removing stale lock file (PID: $old_pid)"
-                rm -f "$lockfile"
-            elif ! pgrep -f "bash.*${SCRIPT_NAME}.*foreground" >/dev/null 2>&1; then
-                # Lock file exists but no autorun process found
-                log_warn "Lock file exists but no autorun process found - removing"
-                rm -f "$lockfile"
-            fi
-        fi
-
-        # Use flock for atomic lock acquisition
+        # The lock file is a persistent inode. It may be empty while actively
+        # locked, so never unlink it based on its contents.
         exec 200>"$lockfile"
         if ! flock -n 200; then
             log_error "Another autorun instance is already running"
             exit 1
         fi
+        rm -f "${lockfile}.pid"
 
-        # Fork to background with MAXIMUM resilience
-        # Create a subshell that will NEVER die
+        # Keep the lock in a dedicated wrapper. The foreground supervisor starts
+        # with descriptor 200 closed so none of its children can inherit the lock.
         (
             # Detach from terminal completely
             exec </dev/null >/dev/null 2>&1
 
-            # Ignore ALL signals that could kill us
-            trap '' HUP TERM QUIT PIPE
+            # Keep the lock wrapper alive until the supervisor exits
+            trap '' HUP QUIT PIPE
+            trap ':' TERM
 
-            # Use nohup for extra protection
-            nohup bash -c "
-                # Ignore signals in the inner shell too
-                trap '' HUP TERM QUIT PIPE
-                # Change to new process group to avoid signal propagation
-                set -m
-                # Run autorun in foreground mode
-                exec '$0' foreground
-            " &
+            nohup "${SCRIPT_DIR}/${SCRIPT_NAME}" foreground 200>&- &
 
-            # Store the background process PID
             DAEMON_PID=$!
-            echo $DAEMON_PID > "${lockfile}.pid"
+            printf '%s\n' "$DAEMON_PID" > "${lockfile}.pid"
+            wait "$DAEMON_PID"
         ) &
 
-        # Give it a moment to start
-        sleep 1
+        # Wait briefly for the supervisor to publish its PID.
+        for ((startup_attempt = 0; startup_attempt < 50; startup_attempt++)); do
+            daemon_pid=$(cat "${lockfile}.pid" 2>/dev/null || echo "")
+            if [[ -n "$daemon_pid" ]] && kill -0 "$daemon_pid" 2>/dev/null; then
+                break
+            fi
+            sleep 0.1
+        done
+
+        if [[ -z "$daemon_pid" ]] || ! kill -0 "$daemon_pid" 2>/dev/null; then
+            log_error "LuminariMUD daemon failed to start"
+            exit 1
+        fi
 
         echo "LuminariMUD daemon started"
         echo "Use '$SCRIPT_NAME status' to check status"
@@ -926,31 +934,17 @@ start_watchdog() {
 
     # Start the watchdog
     log_info "Starting autorun watchdog for extra protection"
-    if [[ -x "$watchdog_script" ]]; then
-        "$watchdog_script" start >/dev/null 2>&1
+    if [[ ! -x "$watchdog_script" ]]; then
+        chmod +x "$watchdog_script" 2>/dev/null || true
+    fi
+
+    if "$watchdog_script" start >/dev/null 2>&1; then
         log_info "Watchdog started successfully"
     else
-        chmod +x "$watchdog_script" 2>/dev/null || true
-        "$watchdog_script" start >/dev/null 2>&1
-        log_info "Watchdog started successfully"
+        log_error "Watchdog failed to start"
+        return 1
     fi
 }
-
-# Only start watchdog in foreground mode (not during initial daemon fork)
-if [[ "${1:-}" == "foreground" ]] || [[ "${1:-}" == "fg" ]]; then
-    start_watchdog
-fi
-
-# Log autorun configuration for debugging
-log_info "Autorun Configuration:"
-log_info "  MUD_PORT=$MUD_PORT"
-log_info "  MUD_BINARY=$MUD_BINARY"
-log_info "  BIN_DIR=$BIN_DIR"
-log_info "  FLAGS=$FLAGS"
-log_info "  IGNORE_DISK_SPACE=$IGNORE_DISK_SPACE"
-log_info "  Signal handlers: ACTIVE"
-log_info "  EXIT trap: DISABLED (safe mode)"
-log_info "  Watchdog: ENABLED (if available)"
 
 # Production monitoring
 CRASH_COUNT=0
@@ -966,7 +960,14 @@ log_info "Autorun started with PID $AUTORUN_PID at $(date)"
 # Write autorun state file for external monitoring
 write_autorun_state() {
     local state_file="${SCRIPT_DIR}/.autorun.state"
-    cat > "$state_file" <<EOF
+    local state_tmp
+
+    state_tmp=$(mktemp "${state_file}.tmp.XXXXXX") || {
+        log_error "Unable to create temporary autorun state file"
+        return 1
+    }
+
+    if ! cat > "$state_tmp" <<EOF
 PID=$AUTORUN_PID
 START_TIME=$AUTORUN_START_TIME
 LAST_UPDATE=$(date +%s)
@@ -974,14 +975,43 @@ STATUS=RUNNING
 CRASH_COUNT=$CRASH_COUNT
 MUD_PORT=$MUD_PORT
 EOF
+    then
+        log_error "Unable to write autorun state"
+        rm -f "$state_tmp"
+        return 1
+    fi
+
+    if ! mv -f -- "$state_tmp" "$state_file"; then
+        log_error "Unable to publish autorun state"
+        rm -f "$state_tmp"
+        return 1
+    fi
 }
 write_autorun_state
+
+# Only start watchdog after publishing the initial state. This prevents the
+# watchdog from treating a supervisor that is still starting as missing.
+if [[ "${1:-}" == "foreground" ]] || [[ "${1:-}" == "fg" ]]; then
+    start_watchdog
+fi
+
+# Log autorun configuration for debugging
+log_info "Autorun Configuration:"
+log_info "  MUD_PORT=$MUD_PORT"
+log_info "  MUD_BINARY=$MUD_BINARY"
+log_info "  BIN_DIR=$BIN_DIR"
+log_info "  FLAGS=$FLAGS"
+log_info "  IGNORE_DISK_SPACE=$IGNORE_DISK_SPACE"
+log_info "  STATE_UPDATE_INTERVAL=$STATE_UPDATE_INTERVAL"
+log_info "  Signal handlers: ACTIVE"
+log_info "  EXIT trap: DISABLED (safe mode)"
+log_info "  Watchdog: ENABLED (if available)"
 
 # Clean up function (only called when explicitly shutting down via .killscript)
 cleanup() {
     log_info "Performing cleanup..."
     stop_auxiliary_services
-    rm -f "${SCRIPT_DIR}/.autorun.lock" 2>/dev/null || true
+    rm -f "${SCRIPT_DIR}/.autorun.lock.pid" 2>/dev/null || true
 }
 # CRITICAL: Do NOT trap EXIT! This causes autorun to terminate on any error
 # Only cleanup when we explicitly want to shut down
@@ -994,6 +1024,8 @@ log_info "Entering main autorun loop - this will run forever until .killscript"
 while true; do
     # Trap any errors in the loop itself and continue
     set +e  # Disable error exit for the entire loop
+
+    write_autorun_state
 
     # Safety check: ensure we're still in a valid state
     if [[ ! -d "$BIN_DIR" ]]; then
@@ -1037,13 +1069,13 @@ while true; do
     start_mud
     mud_exit_code=$?
 
-    # Log detailed exit information
-    echo "MUD EXIT: code=$mud_exit_code time=$(date) uptime=${mud_uptime}s" >> "${LOG_DIR}/mud_exits.log"
-
     # Calculate MUD uptime
     mud_end_time=$(date +%s)
     mud_uptime=$((mud_end_time - mud_start_time))
     mud_uptime_hours=$((mud_uptime / 3600))
+
+    # Log detailed exit information
+    echo "MUD EXIT: code=$mud_exit_code time=$(date) uptime=${mud_uptime}s" >> "${LOG_DIR}/mud_exits.log"
 
     # Log exit status for monitoring
     log_info "MUD ran for $mud_uptime seconds ($mud_uptime_hours hours)"
