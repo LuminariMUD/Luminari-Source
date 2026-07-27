@@ -2,7 +2,7 @@
 
 This file provides guidance to AI Agents when working with code in this repository.
 
-**!IMPORTANT NOTE:** remote production can be accessed via details in `lib/.env`
+**!IMPORTANT NOTE:** remote production (with sudo) can be accessed via details in `lib/.env`
 
 ## Critical Rules
 
@@ -16,7 +16,7 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 ## Project Overview
 
-LuminariMUD is a text-based MUD server implementing Pathfinder/D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. GNU C23, ~200k+ lines. MySQL/MariaDB is REQUIRED; the server will not run without it.
+LuminariMUD is a text-based MUD server implementing Pathfinder/D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. GNU C23. MySQL/MariaDB is REQUIRED; the server will not run without it.
 
 The GNU C23 migration retains the established source style: use `/* */` comments, keep declarations at the top of blocks, and do not use variable-length arrays. Do not mechanically restyle legacy code.
 
@@ -26,6 +26,8 @@ Autotools is preferred (faster incremental builds); CMake is supported.
 
 ```bash
 # Autotools (preferred) - repo is already configured, so usually just:
+make clean
+## then
 make -j$(nproc)
 ## then
 make install
@@ -36,7 +38,7 @@ autoreconf -fvi && ./configure && make -j$(nproc)
 # Run the server (binary is bin/circle):
 ./bin/circle -d lib
 
-# Full environment setup (deps, MariaDB, world data, build):
+# Full environment setup aka fresh install (deps, MariaDB, world data, build):
 ./scripts/deploy.sh
 
 # Debug under gdb:
@@ -91,7 +93,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 - `handler.c` - object/character manipulation primitives (equip, extract, move).
 
 ### Campaign variants (compile-time)
-`src/campaign.h` selects the world: `CAMPAIGN_DL` (DragonLance/Krynn), `CAMPAIGN_FR` (Forgotten Realms/Faerun), or default LuminariMUD when neither is defined. `#ifdef CAMPAIGN_*` blocks appear throughout the codebase - behavior, content, races, and classes differ per campaign. Check which campaign is active before reasoning about campaign-gated code.
+** NO LONGER SUPPORTED, GAME SHOULD BE `LUMINARI ONLY` **
 
 ### Game mechanics
 - Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `spells.h`. There is no skills.c - spell/skill logic lives in `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).
