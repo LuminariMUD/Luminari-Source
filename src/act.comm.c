@@ -31,6 +31,7 @@
 #include "ai_service.h"
 #include "quest.h"
 #include "discord_bridge.h"
+#include "world/spec_artifacts.h"
 
 ACMDU(do_rsay)
 {
@@ -224,6 +225,9 @@ ACMDU(do_say)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
+
+  /* Artifacts listen for their own phrases in ordinary speech. */
+  artifact_speech_trigger(ch, arg2);
 
   /* Free allocated memory */
   if (arg2)

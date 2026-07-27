@@ -42,6 +42,11 @@
 #include "spells.h"
 #include "fight.h"
 #include "screen.h"
+#include "lists.h"
+#include "act.h"
+#include "class.h"
+#include "oasis.h"
+#include "dg_scripts.h"
 #include "world/spec_artifacts.h"
 
 /* --------------------------------------------------------------------------
@@ -93,50 +98,131 @@ struct artifact_template
   int resist_magical;
   int resist_element;
   int proc_chance;
+  int class_restrict;  /* CLASS_UNDEFINED = anyone may wield it */
+  int class_min_level; /* levels required in that class         */
 };
+
+/* Levels required in an artifact's class before it stops burning you.  ROL
+ * asked only "is that your class"; LuminariMUD is multi-class, so the gate is
+ * a depth of commitment instead. */
+#define ART_CLASS_GATE 10
 
 /* clang-format off */
 static const struct artifact_template artifact_templates[] = {
     /* vnum, ability, desc, cd, cost, binding,
-       {str,int,wis,dex,con,cha}, hit, dam, ac, hp, psp, mv, rphys, rmag, relem, proc */
+       {str,int,wis,dex,con,cha}, hit, dam, ac, hp, psp, mv, rphys, rmag, relem, proc,
+       class, class level */
 
     {ART_VNUM_TRORXEK, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
-     {0, 0, 2, 0, 2, 0}, 2, 2, 0, 25, 30, 0, 0, 10, 0, 12},
+     {0, 0, 2, 0, 2, 0}, 2, 2, 0, 25, 30, 0, 0, 10, 0, 12, CLASS_DRUID, ART_CLASS_GATE},
 
     {ART_VNUM_AMAUKEKEL, "divineward", "Wraps you in a sanctuary of divine light", 600, 100,
      ARTIFACT_BIND_ON_EQUIP,
-     {0, 2, 2, 0, 0, 0}, 1, 1, 2, 0, 50, 0, 0, 15, 0, 0},
+     {0, 2, 2, 0, 0, 0}, 1, 1, 2, 0, 50, 0, 0, 15, 0, 0, CLASS_CLERIC, ART_CLASS_GATE},
 
     {ART_VNUM_FADE, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
-     {0, 0, 0, 3, 0, 0}, 4, 2, 1, 20, 0, 25, 5, 0, 0, 16},
+     {0, 0, 0, 3, 0, 0}, 4, 2, 1, 20, 0, 25, 5, 0, 0, 16, CLASS_ROGUE, ART_CLASS_GATE},
 
     {ART_VNUM_HENEKAR, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
-     {0, 2, 1, 0, 0, 2}, 0, 0, 0, 0, 75, 0, 0, 15, 0, 0},
+     {0, 2, 1, 0, 0, 2}, 0, 0, 0, 0, 75, 0, 0, 15, 0, 0, CLASS_ROGUE, ART_CLASS_GATE},
 
     {ART_VNUM_DOOMBRINGER, "doomblast", "Unleashes a wave of doom on everyone nearby", 180, 75,
      ARTIFACT_BIND_ON_PICKUP,
-     {3, 0, 0, 1, 0, 0}, 4, 5, 0, 30, 0, 0, 0, 0, 0, 20},
+     {3, 0, 0, 1, 0, 0}, 4, 5, 0, 30, 0, 0, 0, 0, 0, 20, CLASS_WARRIOR, ART_CLASS_GATE},
 
     {ART_VNUM_KELRARIN, "soulstrike", "Strikes a single target with soul energy", 300, 50,
      ARTIFACT_BIND_ON_EQUIP,
-     {2, 0, 0, 0, 1, 0}, 3, 3, 0, 20, 0, 0, 0, 0, 5, 15},
+     {2, 0, 0, 0, 1, 0}, 3, 3, 0, 20, 0, 0, 0, 0, 5, 15, CLASS_UNDEFINED, 0},
 
     {ART_VNUM_KELROM, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
-     {2, 0, 1, 0, 2, 0}, 2, 4, 0, 40, 0, 0, 5, 0, 0, 14},
+     {2, 0, 1, 0, 2, 0}, 2, 4, 0, 40, 0, 0, 5, 0, 0, 14, CLASS_UNDEFINED, 0},
 
     {ART_VNUM_GESEN, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_NONE,
-     {1, 0, 0, 2, 0, 0}, 3, 2, 0, 0, 0, 30, 0, 0, 0, 18},
+     {1, 0, 0, 2, 0, 0}, 3, 2, 0, 0, 0, 30, 0, 0, 0, 18, CLASS_UNDEFINED, 0},
 
     {ART_VNUM_STINGER, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_ACCOUNT,
-     {1, 0, 0, 3, 0, 0}, 5, 1, 0, 0, 0, 50, 10, 0, 0, 18},
+     {1, 0, 0, 3, 0, 0}, 5, 1, 0, 0, 0, 50, 10, 0, 0, 18, CLASS_UNDEFINED, 0},
 
     {ART_VNUM_AVERNUS, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
-     {2, 0, 0, 1, 1, 0}, 4, 4, 0, 25, 0, 0, 0, 0, 10, 15},
+     {2, 0, 0, 1, 1, 0}, 4, 4, 0, 25, 0, 0, 0, 0, 10, 15, CLASS_UNDEFINED, 0},
 
     {ART_VNUM_AEGIS, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
-     {0, 0, 0, 0, 3, 0}, 0, 0, 4, 60, 0, 0, 12, 12, 12, 0},
+     {0, 0, 0, 0, 3, 0}, 0, 0, 4, 60, 0, 0, 12, 12, 12, 0, CLASS_UNDEFINED, 0},
 
-    {-1, NULL, NULL, 0, 0, 0, {0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    {-1, NULL, NULL, 0, 0, 0, {0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     CLASS_UNDEFINED, 0}};
+
+/* --------------------------------------------------------------------------
+ * Called effects
+ *
+ * ROL gave each artifact a hand-written spec proc that listened for a phrase
+ * said aloud, fired an effect, and queued a recharge event.  This table is
+ * that same content expressed as data, dispatched by artifact_do_effect().
+ *
+ * `phrase` is matched against normalized speech: lowercased, trailing
+ * punctuation and whitespace stripped.  When target_type is not
+ * ART_TARGET_NONE the phrase is a prefix and whatever follows it is the
+ * target argument.
+ * -------------------------------------------------------------------------- */
+struct artifact_effect
+{
+  int vnum;
+  int slot; /* 0 .. ARTIFACT_MAX_EFFECTS-1, unique per artifact */
+  const char *phrase;
+  int target_type;
+  int recharge; /* seconds */
+  int effect;
+  const char *desc; /* identify text */
+};
+
+static const struct artifact_effect artifact_effects[] = {
+    /* Trorxek, the Staff of Ancient Oaks - the Oaken Defender */
+    {ART_VNUM_TRORXEK, 0, "come oaken defender", ART_TARGET_NONE, ARTIFACT_RECHARGE_WEEK,
+     ART_EFFECT_SUMMON_TREANT, "calls the Oaken Defender to fight at your side"},
+    {ART_VNUM_TRORXEK, 1, "carpet of death", ART_TARGET_NONE, ARTIFACT_RECHARGE_DAY,
+     ART_EFFECT_CREEPING_DOOM, "carpets the ground in creeping doom"},
+    {ART_VNUM_TRORXEK, 2, "forest path home", ART_TARGET_NONE, ARTIFACT_RECHARGE_HOUR,
+     ART_EFFECT_RECALL, "walks you home along the forest path"},
+    {ART_VNUM_TRORXEK, 3, "moonlit path to", ART_TARGET_CHAR_WORLD, ARTIFACT_RECHARGE_DAY,
+     ART_EFFECT_TRAVEL_TO, "opens a moonwell to a named traveller"},
+
+    /* Amaukekel, the Rod of Light */
+    {ART_VNUM_AMAUKEKEL, 0, "sunlit path to paradise", ART_TARGET_NONE, ARTIFACT_RECHARGE_WEEK,
+     ART_EFFECT_DIMENSION_SHIFT, "shifts you and your group out of danger"},
+    {ART_VNUM_AMAUKEKEL, 1, "give life to", ART_TARGET_OBJ_ROOM, ARTIFACT_RECHARGE_DAY,
+     ART_EFFECT_RESURRECT, "restores the dead from a corpse at your feet"},
+    {ART_VNUM_AMAUKEKEL, 2, "wrath of light", ART_TARGET_CHAR_ROOM, ARTIFACT_RECHARGE_HOUR,
+     ART_EFFECT_DISPEL_EVIL, "calls down the wrath of light on the wicked"},
+
+    /* Fade, the Shadowblade */
+    {ART_VNUM_FADE, 0, "eyes of darkness", ART_TARGET_CHAR_ROOM, ARTIFACT_RECHARGE_DAY,
+     ART_EFFECT_BLIND, "puts out an enemy's eyes"},
+    {ART_VNUM_FADE, 1, "darken the world", ART_TARGET_NONE, ARTIFACT_RECHARGE_HOUR,
+     ART_EFFECT_DARKNESS, "smothers the room in darkness"},
+    {ART_VNUM_FADE, 2, "devour the soul", ART_TARGET_FIGHTING, ARTIFACT_RECHARGE_WEEK,
+     ART_EFFECT_WEAKEN, "devours the soul of whoever you are fighting"},
+    {ART_VNUM_FADE, 3, "shadowy path to", ART_TARGET_CHAR_WORLD, ARTIFACT_RECHARGE_HOUR,
+     ART_EFFECT_TRAVEL_TO, "walks the shadows to a named traveller"},
+
+    /* The Horn of Henekar */
+    {ART_VNUM_HENEKAR, 0, "you see darkness", ART_TARGET_CHAR_ROOM, ARTIFACT_RECHARGE_6HOUR,
+     ART_EFFECT_BLIND, "blinds a single listener"},
+    {ART_VNUM_HENEKAR, 1, "peace to you", ART_TARGET_NONE, ARTIFACT_RECHARGE_12HOUR,
+     ART_EFFECT_PACIFY, "ends every fight in the room"},
+    {ART_VNUM_HENEKAR, 2, "join my quest", ART_TARGET_NONE, ARTIFACT_RECHARGE_12HOUR,
+     ART_EFFECT_CHARM, "recruits the lesser creatures nearby"},
+    {ART_VNUM_HENEKAR, 3, "sonic path to", ART_TARGET_CHAR_WORLD, ARTIFACT_RECHARGE_HOUR,
+     ART_EFFECT_TRAVEL_TO, "rides its own note to a named traveller"},
+
+    /* Doombringer */
+    {ART_VNUM_DOOMBRINGER, 0, "bring annhilation forth", ART_TARGET_NONE, ARTIFACT_RECHARGE_WEEK,
+     ART_EFFECT_ANNIHILATION, "annihilates everything hostile in the room"},
+    {ART_VNUM_DOOMBRINGER, 1, "feel my power", ART_TARGET_CHAR_ROOM, ARTIFACT_RECHARGE_DAY,
+     ART_EFFECT_BLACK_LIGHTNING, "calls black lightning down on one enemy"},
+    {ART_VNUM_DOOMBRINGER, 2, "enrage me doombringer", ART_TARGET_NONE, ARTIFACT_RECHARGE_DAY,
+     ART_EFFECT_ENRAGE, "drives you into a killing rage"},
+
+    {-1, 0, NULL, ART_TARGET_NONE, 0, 0, NULL}};
 /* clang-format on */
 
 /* --------------------------------------------------------------------------
@@ -275,8 +361,92 @@ static void artifact_apply_template(struct artifact_data *art)
     art->resist_magical = artifact_templates[i].resist_magical;
     art->resist_element = artifact_templates[i].resist_element;
     art->proc_chance = artifact_templates[i].proc_chance;
+    art->class_restrict = artifact_templates[i].class_restrict;
+    art->class_min_level = artifact_templates[i].class_min_level;
     return;
   }
+}
+
+/* --------------------------------------------------------------------------
+ * Called-effect lookup
+ * -------------------------------------------------------------------------- */
+
+static const struct artifact_effect *artifact_effect_at(int vnum, int slot)
+{
+  int i = 0;
+
+  for (i = 0; artifact_effects[i].vnum != -1; i++)
+    if (artifact_effects[i].vnum == vnum && artifact_effects[i].slot == slot)
+      return &artifact_effects[i];
+
+  return NULL;
+}
+
+/* Seconds left before the effect in `slot` may be called again, 0 when it is
+ * ready and 0 when the artifact has no such effect. */
+int artifact_recharge_remaining(struct artifact_data *art, int slot)
+{
+  const struct artifact_effect *effect = NULL;
+  long elapsed = 0;
+
+  if (!art || slot < 0 || slot >= ARTIFACT_MAX_EFFECTS)
+    return 0;
+
+  if (art->effect_used[slot] == 0)
+    return 0;
+
+  if (!(effect = artifact_effect_at(art->vnum, slot)))
+    return 0;
+
+  elapsed = (long)(time(0) - art->effect_used[slot]);
+
+  if (elapsed >= effect->recharge)
+    return 0;
+
+  return (int)(effect->recharge - elapsed);
+}
+
+const char *artifact_recharge_name(int seconds)
+{
+  switch (seconds)
+  {
+  case ARTIFACT_RECHARGE_HOUR:
+    return "once an hour";
+  case ARTIFACT_RECHARGE_6HOUR:
+    return "once every six hours";
+  case ARTIFACT_RECHARGE_12HOUR:
+    return "twice a day";
+  case ARTIFACT_RECHARGE_DAY:
+    return "once a day";
+  case ARTIFACT_RECHARGE_WEEK:
+    return "once a week";
+  default:
+    return "rarely";
+  }
+}
+
+/* ROL's MEM_ARTIFACT bucket lived in a debug.c this codebase does not have.
+ * The number it wanted is small and exactly computable, so report it rather
+ * than build a global accounting framework around one subsystem. */
+size_t artifact_memory_used(void)
+{
+  size_t bytes = 0;
+  int i = 0;
+
+  if (!art_index)
+    return 0;
+
+  bytes = sizeof(struct artifact_data) * (size_t)total_artifacts;
+
+  for (i = 0; i < total_artifacts; i++)
+  {
+    if (art_index[i].owner)
+      bytes += strlen(art_index[i].owner) + 1;
+    if (art_index[i].account)
+      bytes += strlen(art_index[i].account) + 1;
+  }
+
+  return bytes;
 }
 
 /* Write the registry out.  Temp file plus atomic rename, so a crash during
@@ -444,6 +614,11 @@ void artifact_boot(void)
     art->instance_persisted = FALSE;
     art->last_ability_use = 0;
     art->last_proc = 0;
+    art->class_restrict = CLASS_UNDEFINED;
+    art->class_min_level = 0;
+
+    for (j = 0; j < ARTIFACT_MAX_EFFECTS; j++)
+      art->effect_used[j] = 0;
 
     for (j = 0; j < ARTIFACT_NUM_STATS; j++)
       art->stat_bonus[j] = 0;
@@ -949,6 +1124,72 @@ int artifact_can_use(struct char_data *ch, struct obj_data *obj, int silent)
 }
 
 /* --------------------------------------------------------------------------
+ * Class restriction and the burn penalty
+ *
+ * ROL asked "is this your class" and scorched you if the answer was no.
+ * LuminariMUD is multi-class, so an artifact instead demands a minimum number
+ * of levels in the class it belongs to.  Failing the check does not stop you
+ * wielding it - it just hurts, every tick, exactly as ROL's OBJ_BURN did.
+ * -------------------------------------------------------------------------- */
+
+int artifact_class_ok(struct char_data *ch, struct artifact_data *art)
+{
+  if (!ch || !art)
+    return TRUE;
+
+  if (art->class_restrict == CLASS_UNDEFINED)
+    return TRUE;
+
+  if (IS_NPC(ch))
+    return TRUE;
+
+  /* Staff carry these around for testing; do not cook them for it. */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
+
+  return (CLASS_LEVEL(ch, art->class_restrict) >= art->class_min_level);
+}
+
+/* Called once per tick from point_update() for every player. */
+void artifact_burn_tick(struct char_data *ch)
+{
+  struct artifact_data *art = NULL;
+  struct obj_data *obj = NULL;
+  int i = 0, worst = 0;
+
+  if (!ch || IS_NPC(ch) || !art_index)
+    return;
+
+  if (GET_POS(ch) <= POS_DEAD)
+    return;
+
+  /* One burn per tick no matter how many artifacts object to you: find the
+   * offending piece, then apply the penalty once. */
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+
+    if (!(art = artifact_of_obj(obj)))
+      continue;
+
+    if (artifact_class_ok(ch, art))
+      continue;
+
+    worst++;
+
+    act("\tR$p rejects your touch and sears you to the bone!\tn", FALSE, ch, obj, NULL, TO_CHAR);
+    act("$p flares white-hot and scorches $n!", FALSE, ch, obj, NULL, TO_ROOM);
+    break;
+  }
+
+  if (!worst)
+    return;
+
+  damage(ch, ch, dice(ARTIFACT_BURN_DICE, ARTIFACT_BURN_SIDES), TYPE_UNDEFINED, DAM_FIRE, FALSE);
+}
+
+/* --------------------------------------------------------------------------
  * Progression
  * -------------------------------------------------------------------------- */
 
@@ -1075,19 +1316,29 @@ void artifact_grant_xp_obj(struct char_data *ch, struct obj_data *obj, int amoun
   artifact_check_levelup(art);
 }
 
-/* Award XP to every artifact the character has equipped.  This is the
- * generic combat path: artifacts grow by being carried through danger. */
+/* Award generic combat XP to exactly one equipped artifact, chosen at random.
+ *
+ * ROL spread every grant across everything you were wearing, so stacking
+ * artifacts multiplied progression.  Procs and abilities were already fixed to
+ * pay only the artifact that earned them; this closes the last of that defect
+ * without punishing a player for wearing a second artifact - the pool of XP is
+ * the same either way, it simply lands in one place. */
 void artifact_grant_xp(struct char_data *ch, int amount)
 {
-  struct obj_data *obj = NULL;
-  int i = 0;
+  struct obj_data *obj = NULL, *candidates[NUM_WEARS];
+  int i = 0, count = 0;
 
   if (!ch || amount <= 0 || IS_NPC(ch))
     return;
 
   for (i = 0; i < NUM_WEARS; i++)
-    if ((obj = GET_EQ(ch, i)))
-      artifact_grant_xp_obj(ch, obj, amount);
+    if ((obj = GET_EQ(ch, i)) && artifact_is_artifact(obj))
+      candidates[count++] = obj;
+
+  if (count == 0)
+    return;
+
+  artifact_grant_xp_obj(ch, candidates[count == 1 ? 0 : rand_number(0, count - 1)], amount);
 }
 
 /* --------------------------------------------------------------------------
@@ -1340,15 +1591,33 @@ int artifact_damage_resist(struct char_data *victim, int dam, int dam_type)
   return dam - reduced;
 }
 
-void artifact_combat_hit(struct char_data *ch, struct char_data *victim, int dam)
+/* LuminariMUD has no ACT_BOSS flag.  A mob meaningfully above its attacker is
+ * the closest honest analogue, and it is the same thing ROL's builders were
+ * flagging by hand. */
+static int artifact_is_boss(struct char_data *ch, struct char_data *victim)
 {
+  if (!ch || !victim || !IS_NPC(victim))
+    return FALSE;
+
+  return (GET_LEVEL(victim) >= GET_LEVEL(ch) + ARTIFACT_BOSS_LEVEL_MARGIN);
+}
+
+void artifact_combat_hit(struct char_data *ch, struct char_data *victim, int dam, int is_critical)
+{
+  int amount = 0;
+
   if (!ch || !victim || dam <= 0 || !art_index)
     return;
 
   if (IS_NPC(ch) || !IS_NPC(victim))
     return;
 
-  artifact_grant_xp(ch, ARTIFACT_XP_HIT);
+  amount = is_critical ? ARTIFACT_XP_CRIT : ARTIFACT_XP_HIT;
+
+  if (artifact_is_boss(ch, victim))
+    amount *= ARTIFACT_XP_BOSS_HIT_MULT;
+
+  artifact_grant_xp(ch, amount);
 }
 
 void artifact_combat_kill(struct char_data *ch, struct char_data *victim)
@@ -1361,14 +1630,232 @@ void artifact_combat_kill(struct char_data *ch, struct char_data *victim)
   if (IS_NPC(ch) || !IS_NPC(victim))
     return;
 
-  /* ROL multiplied by a boss flag LuminariMUD does not have; scale by the
-   * victim's level instead, which rewards the same behavior. */
+  /* Base award still scales with the victim's level, which rewards the same
+   * behavior ROL's boss flag was reaching for at every level of play. */
   amount = ARTIFACT_XP_KILL + (GET_LEVEL(victim) / 5);
+
+  if (artifact_is_boss(ch, victim))
+    amount *= ARTIFACT_XP_BOSS_KILL_MULT;
 
   artifact_grant_xp(ch, amount);
 }
 
-void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon)
+/* --------------------------------------------------------------------------
+ * Signature weapon procedures
+ *
+ * ROL wrote these by hand, one per artifact, and rolled them on every hit
+ * independently of any shared cooldown.  They run before the generic proc
+ * system and do not consume it.
+ *
+ * Returns TRUE when the victim died, so the caller stops touching it.
+ * -------------------------------------------------------------------------- */
+
+/* The power an artifact brings to bear: its wielder's experience sharpened by
+ * however far the artifact itself has grown. */
+static int artifact_effect_level(struct char_data *ch, struct artifact_data *art)
+{
+  return MAX(20, GET_LEVEL(ch) + (art->level * 2));
+}
+
+/* Kelrarin's Hammer: the thrown hammer, and the alignment-gated mega blast. */
+static int artifact_proc_kelrarin(struct char_data *ch, struct char_data *victim,
+                                  struct obj_data *weapon, struct artifact_data *art)
+{
+  int amount = 0;
+
+  /* The mega blast: only for the near-saintly, and only while unhurt. */
+  if (GET_ALIGNMENT(ch) > ARTIFACT_KELRARIN_MEGA_ALIGN &&
+      GET_HIT(ch) >= (GET_MAX_HIT(ch) * 9) / 10 && rand_number(1, ARTIFACT_KELRARIN_MEGA_ODDS) == 1)
+  {
+    act("\tW$p blazes like a fallen star and BREAKS over $N!\tn", FALSE, ch, weapon, victim,
+        TO_CHAR);
+    act("\tW$p blazes like a fallen star and BREAKS over $N!\tn", FALSE, ch, weapon, victim,
+        TO_NOTVICT);
+    act("\tW$p breaks over you like the judgement of heaven!\tn", FALSE, ch, weapon, victim,
+        TO_VICT);
+
+    if (damage(ch, victim, ARTIFACT_KELRARIN_MEGA_DAMAGE, TYPE_UNDEFINED, DAM_HOLY, FALSE) == -1)
+      return TRUE;
+
+    /* ROL's SuddenDeath: anything left standing but badly broken simply ends. */
+    if (IS_NPC(victim) && GET_HIT(victim) < ARTIFACT_KELRARIN_MEGA_DAMAGE)
+    {
+      act("\tW$N is unmade where $E stands.\tn", FALSE, ch, weapon, victim, TO_CHAR);
+      act("\tW$N is unmade where $E stands.\tn", FALSE, ch, weapon, victim, TO_NOTVICT);
+
+      if (damage(ch, victim, GET_HIT(victim) + 100, TYPE_UNDEFINED, DAM_HOLY, FALSE) == -1)
+        return TRUE;
+    }
+
+    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_ULTIMATE);
+    return FALSE;
+  }
+
+  if (rand_number(1, ARTIFACT_KELRARIN_THROW_ODDS) != 1)
+    return FALSE;
+
+  /* ROL's flat ceiling of 250; here the hammer only hits that hard once the
+   * artifact has grown into it. */
+  amount = rand_number(1, MAX(50, (ARTIFACT_KELRARIN_THROW_MAX * art->level) / ARTIFACT_MAX_LEVEL));
+
+  act("\tY$n hurls $p; it strikes $N and returns to $s hand!\tn", FALSE, ch, weapon, victim,
+      TO_NOTVICT);
+  act("\tYYou hurl $p; it strikes $N and returns to your hand!\tn", FALSE, ch, weapon, victim,
+      TO_CHAR);
+  act("\tY$p hurtles into you and flies back to $n!\tn", FALSE, ch, weapon, victim, TO_VICT);
+
+  /* Full lifesteal: every point taken is a point returned. */
+  GET_HIT(ch) = MIN(GET_HIT(ch) + amount, GET_MAX_HIT(ch));
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SOUL);
+
+  return (damage(ch, victim, amount, TYPE_UNDEFINED, DAM_FORCE, FALSE) == -1);
+}
+
+/* Kelrom, the Axe of Pahluruk: it will not be turned on an animal. */
+static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
+                                struct obj_data *weapon, struct artifact_data *art, int dam)
+{
+  struct char_data *tch = NULL;
+  int healed = 0;
+
+  if (IS_ANIMAL(victim))
+  {
+    act("\tR$p twists in your grip and turns on you for what you have struck!\tn", FALSE, ch,
+        weapon, NULL, TO_CHAR);
+    act("\tR$p twists in $n's grip and turns on $m!\tn", FALSE, ch, weapon, NULL, TO_ROOM);
+
+    damage(ch, ch, GET_HIT(ch) + 100, TYPE_UNDEFINED, DAM_HOLY, FALSE);
+    return FALSE; /* the victim is untouched; the wielder is not */
+  }
+
+  if (dam <= 0)
+    return FALSE;
+
+  healed = MAX(1, (dam * ARTIFACT_KELROM_HEALBACK_PERCENT * art->level) / 100);
+
+  if (GROUP(ch))
+  {
+    simple_list(NULL);
+
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (GET_HIT(tch) >= GET_MAX_HIT(tch))
+        continue;
+
+      GET_HIT(tch) = MIN(GET_HIT(tch) + healed, GET_MAX_HIT(tch));
+      send_to_char(tch, "\tGA warm green light spills from Kelrom and knits your wounds.\tn\r\n");
+    }
+
+    simple_list(NULL);
+  }
+  else if (GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    GET_HIT(ch) = MIN(GET_HIT(ch) + healed, GET_MAX_HIT(ch));
+    send_to_char(ch, "\tGA warm green light spills from Kelrom and knits your wounds.\tn\r\n");
+  }
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_HEAL);
+  return FALSE;
+}
+
+/* Gesen, the Returning Axe: thrown, and it carries a full harm with it. */
+static int artifact_proc_gesen(struct char_data *ch, struct char_data *victim,
+                               struct obj_data *weapon, struct artifact_data *art)
+{
+  if (rand_number(1, ARTIFACT_GESEN_THROW_ODDS) != 1)
+    return FALSE;
+
+  act("\tc$n whips $p end over end into $N; it flies back to $s hand!\tn", FALSE, ch, weapon,
+      victim, TO_NOTVICT);
+  act("\tcYou whip $p end over end into $N; it flies back to your hand!\tn", FALSE, ch, weapon,
+      victim, TO_CHAR);
+  act("\tc$p spins into you and away again!\tn", FALSE, ch, weapon, victim, TO_VICT);
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_DOOM);
+
+  call_magic(ch, victim, NULL, SPELL_HARM, 0, artifact_effect_level(ch, art), CAST_WEAPON_SPELL);
+
+  return (DEAD(victim) || GET_POS(victim) == POS_DEAD);
+}
+
+/* Avernus, the Black Blade: it keeps its wielder alive to keep swinging. */
+static int artifact_proc_avernus(struct char_data *ch, struct obj_data *weapon,
+                                 struct artifact_data *art)
+{
+  if (GET_HIT(ch) >= ARTIFACT_AVERNUS_HEAL_THRESHOLD)
+    return FALSE;
+
+  /* A higher-level blade is quicker to spend itself keeping you upright. */
+  if (rand_number(1, 100) > ARTIFACT_AVERNUS_HEAL_CHANCE + (art->level * 2))
+    return FALSE;
+
+  GET_HIT(ch) = GET_MAX_HIT(ch);
+
+  act("\tW$p drinks deep and pours everything it has back into you!\tn", FALSE, ch, weapon, NULL,
+      TO_CHAR);
+  act("\tW$p flares black and $n's wounds close before your eyes.\tn", FALSE, ch, weapon, NULL,
+      TO_ROOM);
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_HEAL);
+  return FALSE;
+}
+
+/* Trorxek, the Staff of Ancient Oaks: a blinding strike on a critical hit. */
+static int artifact_proc_trorxek(struct char_data *ch, struct char_data *victim,
+                                 struct obj_data *weapon, struct artifact_data *art,
+                                 int is_critical)
+{
+  struct affected_type af;
+
+  if (!is_critical)
+    return FALSE;
+
+  if (AFF_FLAGGED(victim, AFF_BLIND) || MOB_FLAGGED(victim, MOB_NOBLIND))
+    return FALSE;
+
+  new_affect(&af);
+  af.spell = SPELL_BLINDNESS;
+  af.duration = 1 + (art->level / 2);
+  af.location = APPLY_HITROLL;
+  af.modifier = -4;
+  SET_BIT_AR(af.bitvector, AFF_BLIND);
+  affect_to_char(victim, &af);
+
+  act("\tY$p bursts into green light and blinds $N!\tn", FALSE, ch, weapon, victim, TO_CHAR);
+  act("\tY$p bursts into green light and blinds $N!\tn", FALSE, ch, weapon, victim, TO_NOTVICT);
+  act("\tYGreen light bursts from $p and you can see nothing at all!\tn", FALSE, ch, weapon, victim,
+      TO_VICT);
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_FEAR);
+  return FALSE;
+}
+
+/* Dispatch.  Returns TRUE when the victim is gone. */
+static int artifact_signature_proc(struct char_data *ch, struct char_data *victim,
+                                   struct obj_data *weapon, struct artifact_data *art, int dam,
+                                   int is_critical)
+{
+  switch (art->vnum)
+  {
+  case ART_VNUM_TRORXEK:
+    return artifact_proc_trorxek(ch, victim, weapon, art, is_critical);
+  case ART_VNUM_KELRARIN:
+    return artifact_proc_kelrarin(ch, victim, weapon, art);
+  case ART_VNUM_KELROM:
+    return artifact_proc_kelrom(ch, victim, weapon, art, dam);
+  case ART_VNUM_GESEN:
+    return artifact_proc_gesen(ch, victim, weapon, art);
+  case ART_VNUM_AVERNUS:
+    return artifact_proc_avernus(ch, weapon, art);
+  default:
+    return FALSE;
+  }
+}
+
+void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
+                          int dam, int is_critical)
 {
   struct artifact_data *art = NULL;
   struct affected_type af;
@@ -1378,6 +1865,10 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
     return;
 
   if (!(art = artifact_of_obj(weapon)))
+    return;
+
+  /* The hand-written procedures roll first and answer to nothing else. */
+  if (artifact_signature_proc(ch, victim, weapon, art, dam, is_critical))
     return;
 
   if (art->proc_chance <= 0)
@@ -1463,6 +1954,648 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
 }
 
 /* --------------------------------------------------------------------------
+ * Called effects
+ *
+ * ROL's eleven hand-written spec procs, rebuilt on LuminariMUD.  Each artifact
+ * listens for its own phrases in ordinary speech, fires the matching effect,
+ * and puts that one effect - not the whole artifact - on its own recharge.
+ * -------------------------------------------------------------------------- */
+
+/* Lowercase, collapse runs of whitespace, and drop trailing punctuation, so
+ * "Carpet of death!" and "carpet  of  death" both match one table entry.
+ * do_say() appends a period to anything unpunctuated, which is exactly the
+ * kind of thing this has to survive. */
+static void artifact_normalize_speech(char *dst, size_t size, const char *src)
+{
+  size_t out = 0;
+  int in_space = FALSE;
+
+  if (!dst || size == 0)
+    return;
+
+  dst[0] = '\0';
+
+  if (!src)
+    return;
+
+  while (*src && isspace((unsigned char)*src))
+    src++;
+
+  for (; *src && out + 1 < size; src++)
+  {
+    if (isspace((unsigned char)*src))
+    {
+      in_space = TRUE;
+      continue;
+    }
+
+    if (in_space && out > 0)
+      dst[out++] = ' ';
+    in_space = FALSE;
+
+    if (out + 1 >= size)
+      break;
+
+    dst[out++] = LOWER(*src);
+  }
+
+  dst[out] = '\0';
+
+  while (out > 0 && (dst[out - 1] == '.' || dst[out - 1] == '!' || dst[out - 1] == '?' ||
+                     dst[out - 1] == ',' || dst[out - 1] == ' '))
+    dst[--out] = '\0';
+}
+
+/* Walk the wielder to wherever a named traveller is standing.  Every
+ * "<something> path to <name>" effect lands here. */
+static int artifact_travel_to(struct char_data *ch, struct obj_data *obj, const char *name)
+{
+  struct char_data *target = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum dest = NOWHERE;
+
+  strlcpy(arg, name, sizeof(arg));
+
+  if (!(target = get_player_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "The path gropes for %s and finds nothing.\r\n", arg);
+    return FALSE;
+  }
+
+  if (target == ch)
+  {
+    send_to_char(ch, "You are already exactly where you are.\r\n");
+    return FALSE;
+  }
+
+  dest = IN_ROOM(target);
+
+  if (dest == NOWHERE || IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "The path will not open.\r\n");
+    return FALSE;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_NOTELEPORT) || AFF_FLAGGED(target, AFF_NOTELEPORT))
+  {
+    send_to_char(ch, "The path refuses to open.\r\n");
+    return FALSE;
+  }
+
+  if (!valid_mortal_tele_dest(ch, dest, TRUE) || !valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE) ||
+      ROOM_FLAGGED(dest, ROOM_NOTELEPORT) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOTELEPORT))
+  {
+    send_to_char(ch, "A bright flash closes the path before you can step through.\r\n");
+    return FALSE;
+  }
+
+  /* The same plane restrictions every other travel effect observes. */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "There is no path between these planes.\r\n");
+    return FALSE;
+  }
+
+  if (FIGHTING(ch))
+    stop_fighting(ch);
+
+  act("$n steps into $p and is gone.", TRUE, ch, obj, NULL, TO_ROOM);
+
+  char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[dest].coords[0];
+    Y_LOC(ch) = world[dest].coords[1];
+  }
+
+  char_to_room(ch, dest);
+
+  act("$n steps out of nowhere at all.", TRUE, ch, obj, NULL, TO_ROOM);
+  look_at_room(ch, 0);
+
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+
+  return TRUE;
+}
+
+/* Amaukekel's sunlit path: the whole group leaves at once. */
+static int artifact_dimension_shift(struct char_data *ch, struct obj_data *obj)
+{
+  struct char_data *tch = NULL;
+  int moved = 0;
+
+  act("\tW$n lifts $p and a corridor of sunlight opens in the air.\tn", FALSE, ch, obj, NULL,
+      TO_ROOM);
+  send_to_char(ch, "\tWYou lift the rod and a corridor of sunlight opens before you.\tn\r\n");
+
+  call_magic(ch, ch, NULL, SPELL_WORD_OF_RECALL, 0, MAX(20, GET_LEVEL(ch)), CAST_WEAPON_SPELL);
+  moved++;
+
+  if (GROUP(ch))
+  {
+    simple_list(NULL);
+
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (tch == ch || IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+
+      call_magic(ch, tch, NULL, SPELL_WORD_OF_RECALL, 0, MAX(20, GET_LEVEL(ch)), CAST_WEAPON_SPELL);
+      moved++;
+    }
+
+    simple_list(NULL);
+  }
+
+  return (moved > 0);
+}
+
+/* Trorxek's Oaken Defender. */
+static int artifact_summon_treant(struct char_data *ch, struct obj_data *obj,
+                                  struct artifact_data *art)
+{
+  struct char_data *mob = NULL;
+
+  if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+  {
+    send_to_char(ch, "You already command as many as will answer you.\r\n");
+    return FALSE;
+  }
+
+  if (!(mob = read_mobile(ART_VNUM_OAKEN_DEFENDER, VIRTUAL)))
+  {
+    send_to_char(ch, "The staff strains, but nothing answers.\r\n");
+    log("SYSERR: artifact_summon_treant: mob prototype %d is missing", ART_VNUM_OAKEN_DEFENDER);
+    return FALSE;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  }
+
+  char_to_room(mob, IN_ROOM(ch));
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+  SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+  GET_LEVEL(mob) = MIN(30, MAX(10, artifact_effect_level(ch, art) - 10));
+  autoroll_mob(mob, TRUE, FALSE);
+  add_follower(mob, ch);
+
+  act("\tG$n raises $p and the earth splits as something enormous stands up out of it.\tn", FALSE,
+      ch, obj, NULL, TO_ROOM);
+  send_to_char(ch, "\tGThe Oaken Defender answers, and puts itself between you and harm.\tn\r\n");
+
+  return TRUE;
+}
+
+/* Amaukekel's resurrection: a corpse at your feet, named aloud. */
+static int artifact_resurrect_corpse(struct char_data *ch, struct obj_data *obj, const char *name)
+{
+  struct obj_data *corpse = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  strlcpy(arg, name, sizeof(arg));
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return FALSE;
+
+  if (!(corpse = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)))
+  {
+    send_to_char(ch, "There is nothing here by that name to give life to.\r\n");
+    return FALSE;
+  }
+
+  if (!IS_CORPSE(corpse))
+  {
+    send_to_char(ch, "%s was never alive to begin with.\r\n", GET_OBJ_SHORT(corpse));
+    return FALSE;
+  }
+
+  act("\tW$n holds $p over $P and light pours out of it.\tn", FALSE, ch, obj, corpse, TO_ROOM);
+  send_to_char(ch, "\tWYou hold the rod over the fallen and light pours out of it.\tn\r\n");
+
+  return (call_magic(ch, ch, corpse, SPELL_RESURRECT, 0, MAX(30, GET_LEVEL(ch)),
+                     CAST_WEAPON_SPELL) > 0);
+}
+
+/* The Horn of Henekar's peace: every fight in the room simply stops. */
+static int artifact_pacify_room(struct char_data *ch, struct obj_data *obj)
+{
+  struct char_data *vict = NULL, *next_vict = NULL;
+  int stopped = 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return FALSE;
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (!FIGHTING(vict))
+      continue;
+
+    stop_fighting(vict);
+    stopped++;
+  }
+
+  if (!stopped)
+  {
+    send_to_char(ch, "There is no violence here to still.\r\n");
+    return FALSE;
+  }
+
+  act("\tC$n sounds $p, and a single clear note takes all the fight out of the room.\tn", FALSE, ch,
+      obj, NULL, TO_ROOM);
+  send_to_char(ch, "\tCYou sound the horn, and the fighting stops.\tn\r\n");
+
+  return TRUE;
+}
+
+/* The Horn of Henekar's recruitment: the lesser creatures nearby fall in. */
+static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
+                               struct artifact_data *art)
+{
+  struct char_data *vict = NULL, *next_vict = NULL;
+  int recruited = 0, cap = 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return FALSE;
+
+  /* One at level 1, up to ARTIFACT_CHARM_MAX once the horn has grown, and
+   * never more than the follower engine has room for.  ROL had no such limit
+   * because it had no pet-slot accounting to overrun. */
+  cap = MAX(1, (ARTIFACT_CHARM_MAX * art->level) / ARTIFACT_MAX_LEVEL);
+  cap = MIN(cap, check_npc_followers(ch, NPC_MODE_SPARE, 0));
+
+  if (cap <= 0)
+  {
+    send_to_char(ch, "You already command as many as will answer you.\r\n");
+    return FALSE;
+  }
+
+  for (vict = world[IN_ROOM(ch)].people; vict && recruited < cap; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (vict == ch || !IS_NPC(vict))
+      continue;
+    if (!CAN_SEE(ch, vict))
+      continue;
+    if (AFF_FLAGGED(vict, AFF_CHARM) || MOB_FLAGGED(vict, MOB_NOCHARM))
+      continue;
+    if (GET_MAX_HIT(vict) > ARTIFACT_CHARM_MAX_HP)
+      continue;
+    if (GET_LEVEL(vict) > GET_LEVEL(ch))
+      continue;
+    if (circle_follow(vict, ch))
+      continue;
+
+    if (vict->master)
+      stop_follower(vict);
+
+    SET_BIT_AR(AFF_FLAGS(vict), AFF_CHARM);
+    add_follower(vict, ch);
+
+    act("$N falls in behind $n.", FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You find yourself wanting very much to go where $n is going.", FALSE, ch, NULL, vict,
+        TO_VICT);
+    recruited++;
+  }
+
+  if (!recruited)
+  {
+    send_to_char(ch, "Nothing here is willing to follow you.\r\n");
+    return FALSE;
+  }
+
+  act("\tC$n sounds $p and the note settles into the bones of everything listening.\tn", FALSE, ch,
+      obj, NULL, TO_ROOM);
+  send_to_char(ch, "\tCYou sound the horn, and %d answer%s.\tn\r\n", recruited,
+               recruited == 1 ? "s" : "");
+
+  return TRUE;
+}
+
+/* Doombringer's annihilation: everything hostile in the room, at once. */
+static int artifact_annihilation(struct char_data *ch, struct obj_data *obj,
+                                 struct artifact_data *art)
+{
+  struct char_data *vict = NULL, *next_vict = NULL;
+  int hit_count = 0, amount = 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return FALSE;
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+    if (vict != ch && CAN_SEE(ch, vict) && aoeOK(ch, vict, -1))
+      hit_count++;
+
+  if (!hit_count)
+  {
+    send_to_char(ch, "There is nothing here worth annihilating.\r\n");
+    return FALSE;
+  }
+
+  act("\tR$n raises $p and the room turns black from the edges in!\tn", FALSE, ch, obj, NULL,
+      TO_ROOM);
+  send_to_char(ch, "\tRYou raise the blade and call annihilation forth!\tn\r\n");
+
+  hit_count = 0;
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (vict == ch || !CAN_SEE(ch, vict) || !aoeOK(ch, vict, -1))
+      continue;
+
+    amount = dice(10 + (art->level * 4), 12) + (GET_LEVEL(ch) * 3);
+
+    act("\tR$N comes apart.\tn", FALSE, ch, obj, vict, TO_NOTVICT);
+    act("\tRYou come apart.\tn", FALSE, ch, obj, vict, TO_VICT);
+    damage(ch, vict, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+
+    hit_count++;
+  }
+
+  return (hit_count > 0);
+}
+
+/* Doombringer's black lightning. */
+static int artifact_black_lightning(struct char_data *ch, struct obj_data *obj,
+                                    struct artifact_data *art, struct char_data *victim)
+{
+  int amount = dice(8 + (art->level * 3), 14) + (GET_LEVEL(ch) * 2);
+
+  act("\tD$n points $p and black lightning leaps from it into $N!\tn", FALSE, ch, obj, victim,
+      TO_NOTVICT);
+  act("\tDYou point $p and black lightning leaps from it into $N!\tn", FALSE, ch, obj, victim,
+      TO_CHAR);
+  act("\tDBlack lightning arcs out of $p and into you!\tn", FALSE, ch, obj, victim, TO_VICT);
+
+  damage(ch, victim, amount, TYPE_UNDEFINED, DAM_ELECTRIC, FALSE);
+
+  return TRUE;
+}
+
+/* Doombringer's rage. */
+static int artifact_enrage(struct char_data *ch, struct obj_data *obj, struct artifact_data *art)
+{
+  struct affected_type af;
+  int i = 0;
+  const int locations[3] = {APPLY_HITROLL, APPLY_DAMROLL, APPLY_STR};
+  const int modifiers[3] = {4, 6, 4};
+
+  for (i = 0; i < 3; i++)
+  {
+    new_affect(&af);
+    af.spell = SPELL_RAGE;
+    af.duration = ARTIFACT_ENRAGE_DURATION;
+    af.location = locations[i];
+    af.modifier = modifiers[i] + art->level;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  act("\tR$n's eyes go flat and $e stops looking like $e knows you.\tn", FALSE, ch, obj, NULL,
+      TO_ROOM);
+  send_to_char(ch, "\tRDoombringer takes the rest of you and gives back only the killing.\tn\r\n");
+
+  return TRUE;
+}
+
+/* Resolve whatever this effect needs to act on, then run it. */
+static int artifact_do_effect(struct char_data *ch, struct obj_data *obj, struct artifact_data *art,
+                              const struct artifact_effect *effect, const char *target_arg)
+{
+  struct char_data *victim = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int level = artifact_effect_level(ch, art);
+
+  strlcpy(arg, target_arg ? target_arg : "", sizeof(arg));
+
+  /* Effects that name a character in the room resolve it once, here. */
+  if (effect->target_type == ART_TARGET_CHAR_ROOM)
+  {
+    if (!(victim = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, "There is nobody here by that name.\r\n");
+      return FALSE;
+    }
+    if (victim == ch)
+    {
+      send_to_char(ch, "You would regret turning that on yourself.\r\n");
+      return FALSE;
+    }
+    if (!aoeOK(ch, victim, -1))
+    {
+      send_to_char(ch, "You can't do that to them.\r\n");
+      return FALSE;
+    }
+  }
+  else if (effect->target_type == ART_TARGET_FIGHTING)
+  {
+    if (!(victim = FIGHTING(ch)))
+    {
+      send_to_char(ch, "There is nothing here to take hold of.\r\n");
+      return FALSE;
+    }
+  }
+
+  switch (effect->effect)
+  {
+  case ART_EFFECT_SUMMON_TREANT:
+    return artifact_summon_treant(ch, obj, art);
+
+  case ART_EFFECT_CREEPING_DOOM:
+    act("\tg$n lowers $p and the ground begins to move.\tn", FALSE, ch, obj, NULL, TO_ROOM);
+    send_to_char(ch, "\tgYou lower the staff and the ground begins to move.\tn\r\n");
+    call_magic(ch, NULL, NULL, SPELL_CREEPING_DOOM, 0, level, CAST_WEAPON_SPELL);
+    return TRUE;
+
+  case ART_EFFECT_RECALL:
+    act("\tg$n steps between two trees that were not there a moment ago.\tn", FALSE, ch, obj, NULL,
+        TO_ROOM);
+    send_to_char(ch, "\tgThe forest opens a path home and you take it.\tn\r\n");
+    call_magic(ch, ch, NULL, SPELL_WORD_OF_RECALL, 0, level, CAST_WEAPON_SPELL);
+    return TRUE;
+
+  case ART_EFFECT_TRAVEL_TO:
+    return artifact_travel_to(ch, obj, arg);
+
+  case ART_EFFECT_DIMENSION_SHIFT:
+    return artifact_dimension_shift(ch, obj);
+
+  case ART_EFFECT_RESURRECT:
+    return artifact_resurrect_corpse(ch, obj, arg);
+
+  case ART_EFFECT_DISPEL_EVIL:
+    act("\tW$n turns $p on $N and the light comes out of it like a verdict.\tn", FALSE, ch, obj,
+        victim, TO_NOTVICT);
+    act("\tWYou turn $p on $N.\tn", FALSE, ch, obj, victim, TO_CHAR);
+    call_magic(ch, victim, NULL, SPELL_DISPEL_EVIL, 0, level, CAST_WEAPON_SPELL);
+    return TRUE;
+
+  case ART_EFFECT_BLIND:
+    act("\tD$n speaks, and $N claws at $S own eyes.\tn", FALSE, ch, obj, victim, TO_NOTVICT);
+    act("\tDYou speak, and $N claws at $S own eyes.\tn", FALSE, ch, obj, victim, TO_CHAR);
+    call_magic(ch, victim, NULL, SPELL_BLINDNESS, 0, level, CAST_WEAPON_SPELL);
+    return TRUE;
+
+  case ART_EFFECT_DARKNESS:
+    act("\tD$n says something quiet and the light goes out of the room.\tn", FALSE, ch, obj, NULL,
+        TO_ROOM);
+    send_to_char(ch, "\tDYou say something quiet and the light goes out of the room.\tn\r\n");
+    call_magic(ch, NULL, NULL, SPELL_DARKNESS, 0, level, CAST_WEAPON_SPELL);
+    return TRUE;
+
+  case ART_EFFECT_WEAKEN:
+    act("\tD$p drinks something out of $N that $E is not going to get back.\tn", FALSE, ch, obj,
+        victim, TO_NOTVICT);
+    act("\tD$p drinks something out of $N that $E is not going to get back.\tn", FALSE, ch, obj,
+        victim, TO_CHAR);
+    act("\tDSomething leaves you, and it does not come back.\tn", FALSE, ch, obj, victim, TO_VICT);
+    call_magic(ch, victim, NULL, SPELL_ENFEEBLEMENT, 0, level, CAST_WEAPON_SPELL);
+    return TRUE;
+
+  case ART_EFFECT_PACIFY:
+    return artifact_pacify_room(ch, obj);
+
+  case ART_EFFECT_CHARM:
+    return artifact_charm_room(ch, obj, art);
+
+  case ART_EFFECT_ANNIHILATION:
+    return artifact_annihilation(ch, obj, art);
+
+  case ART_EFFECT_BLACK_LIGHTNING:
+    return artifact_black_lightning(ch, obj, art, victim);
+
+  case ART_EFFECT_ENRAGE:
+    return artifact_enrage(ch, obj, art);
+
+  default:
+    log("SYSERR: artifact_do_effect: unknown effect %d on vnum %d", effect->effect, art->vnum);
+    return FALSE;
+  }
+}
+
+/* Is this artifact close enough to hear its wielder?  ROL required the object
+ * to be on your person; so do we. */
+static struct obj_data *artifact_held_instance(struct char_data *ch, int vnum)
+{
+  struct obj_data *obj = NULL;
+  int i = 0;
+
+  for (i = 0; i < NUM_WEARS; i++)
+    if ((obj = GET_EQ(ch, i)) && (int)GET_OBJ_VNUM(obj) == vnum)
+      return obj;
+
+  for (obj = ch->carrying; obj; obj = obj->next_content)
+    if ((int)GET_OBJ_VNUM(obj) == vnum)
+      return obj;
+
+  return NULL;
+}
+
+/* Hooked into do_say().  Returns TRUE when the speech invoked something, but
+ * the speech itself is never suppressed - saying the words aloud is the
+ * point. */
+int artifact_speech_trigger(struct char_data *ch, const char *speech)
+{
+  char said[MAX_INPUT_LENGTH] = {'\0'};
+  const struct artifact_effect *effect = NULL;
+  struct artifact_data *art = NULL;
+  struct obj_data *obj = NULL;
+  const char *target_arg = NULL;
+  size_t phrase_len = 0;
+  int i = 0, remaining = 0;
+
+  if (!ch || IS_NPC(ch) || !speech || !art_index)
+    return FALSE;
+
+  artifact_normalize_speech(said, sizeof(said), speech);
+
+  if (!*said)
+    return FALSE;
+
+  for (i = 0; artifact_effects[i].vnum != -1; i++)
+  {
+    effect = &artifact_effects[i];
+    phrase_len = strlen(effect->phrase);
+
+    if (strncmp(said, effect->phrase, phrase_len) != 0)
+      continue;
+
+    if (effect->target_type == ART_TARGET_NONE || effect->target_type == ART_TARGET_FIGHTING)
+    {
+      if (said[phrase_len] != '\0')
+        continue;
+      target_arg = "";
+    }
+    else
+    {
+      if (said[phrase_len] != ' ')
+        continue;
+
+      target_arg = said + phrase_len + 1;
+
+      if (!*target_arg)
+        continue;
+    }
+
+    if (!(obj = artifact_held_instance(ch, effect->vnum)))
+      continue;
+
+    if (!(art = artifact_of_obj(obj)))
+      continue;
+
+    if (!artifact_can_use(ch, obj, FALSE))
+      return FALSE;
+
+    if (!artifact_class_ok(ch, art))
+    {
+      send_to_char(ch, "\tr%s hears you, and does not care what you want.\tn\r\n",
+                   GET_OBJ_SHORT(obj));
+      return FALSE;
+    }
+
+    if (effect->slot < 0 || effect->slot >= ARTIFACT_MAX_EFFECTS)
+    {
+      log("SYSERR: artifact_speech_trigger: vnum %d effect slot %d out of range", effect->vnum,
+          effect->slot);
+      return FALSE;
+    }
+
+    if ((remaining = artifact_recharge_remaining(art, effect->slot)) > 0)
+    {
+      send_to_char(ch, "%s is spent; that power returns in %d minute%s.\r\n", GET_OBJ_SHORT(obj),
+                   MAX(1, remaining / 60), (remaining / 60) == 1 ? "" : "s");
+      return FALSE;
+    }
+
+    if (!artifact_do_effect(ch, obj, art, effect, target_arg))
+      return FALSE;
+
+    art->effect_used[effect->slot] = time(0);
+    artifact_grant_xp_obj(ch, obj, ARTIFACT_XP_CALLED_EFFECT);
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* --------------------------------------------------------------------------
  * Player command: artifact
  * -------------------------------------------------------------------------- */
 
@@ -1487,12 +2620,75 @@ static void artifact_show_help(struct char_data *ch)
                "  Bind on Equip   - bound the first time you wear it\r\n"
                "  Bind on Account - usable by any character on your account\r\n"
                "\r\n"
+               "\tYCalled effects:\tn\r\n"
+               "  Some artifacts answer to words said aloud. Hold or wear the\r\n"
+               "  artifact and simply \tcsay\tn the phrase. Each effect recharges on\r\n"
+               "  its own clock, from once an hour to once a week.\r\n"
+               "  \tcartifact info <item>\tn lists the phrases an artifact will\r\n"
+               "  answer to, if it is willing to tell you.\r\n"
+               "\r\n"
+               "\tYOaths:\tn\r\n"
+               "  A few artifacts are sworn to one class and demand real depth\r\n"
+               "  in it. Wear one without that depth and it will burn you every\r\n"
+               "  tick you keep it on, and it will not answer when you speak.\r\n"
+               "\r\n"
                "\tYProgression:\tn\r\n"
                "  Artifacts gain experience from combat and from their own\r\n"
                "  abilities. As they level (1-%d) every bonus they grant grows,\r\n"
                "  and their special effects become more dangerous.\r\n"
                "\tY=====================================\tn\r\n",
                ARTIFACT_MAX_LEVEL);
+}
+
+/* ROL's PROC_SPECIAL_ID: the bespoke, class-gated identify text listing an
+ * artifact's called effects and how often each may be used.  Reproduced here
+ * from the same table the effects themselves are dispatched from, so the two
+ * cannot drift apart. */
+static void artifact_show_called_effects(struct char_data *ch, struct artifact_data *art)
+{
+  const struct artifact_effect *effect = NULL;
+  int i = 0, found = 0, remaining = 0, gated = FALSE;
+
+  for (i = 0; artifact_effects[i].vnum != -1; i++)
+    if (artifact_effects[i].vnum == art->vnum)
+      found++;
+
+  if (!found)
+    return;
+
+  gated = !artifact_class_ok(ch, art);
+
+  send_to_char(ch, "\r\n\tYCalled effects:\tn\r\n");
+
+  if (gated)
+  {
+    send_to_char(ch, "  It keeps its own counsel. Whatever words wake it, they are\r\n"
+                     "  not for you.\r\n");
+    return;
+  }
+
+  for (i = 0; artifact_effects[i].vnum != -1; i++)
+  {
+    effect = &artifact_effects[i];
+
+    if (effect->vnum != art->vnum)
+      continue;
+
+    send_to_char(
+        ch, "  \tc\"%s%s\"\tn\r\n", effect->phrase,
+        (effect->target_type == ART_TARGET_NONE || effect->target_type == ART_TARGET_FIGHTING)
+            ? ""
+            : " <target>");
+    send_to_char(ch, "      %s - %s", effect->desc, artifact_recharge_name(effect->recharge));
+
+    remaining = artifact_recharge_remaining(art, effect->slot);
+
+    if (remaining > 0)
+      send_to_char(ch, ", \trspent for another %d minute%s\tn\r\n", MAX(1, remaining / 60),
+                   (remaining / 60) == 1 ? "" : "s");
+    else
+      send_to_char(ch, ", \tgready\tn\r\n");
+  }
 }
 
 static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
@@ -1553,6 +2749,18 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                  art->ability_desc ? art->ability_desc : "");
     send_to_char(ch, "  Cooldown %d seconds, costs %d psp.\r\n", art->ability_cooldown,
                  art->ability_cost);
+  }
+
+  artifact_show_called_effects(ch, art);
+
+  if (art->class_restrict != CLASS_UNDEFINED)
+  {
+    send_to_char(ch, "\r\n\tYSworn to:\tn %s, %d level%s deep.\r\n",
+                 CLSLIST_NAME(art->class_restrict), art->class_min_level,
+                 art->class_min_level == 1 ? "" : "s");
+
+    if (!artifact_class_ok(ch, art))
+      send_to_char(ch, "  \trIt does not recognize you, and it burns you for holding it.\tn\r\n");
   }
 
   send_to_char(ch, "\tY=====================================\tn\r\n");
@@ -1965,6 +3173,34 @@ ACMD(do_artifact_ability)
  * Staff command: testartifact
  * -------------------------------------------------------------------------- */
 
+/* ROL's third ownership state.  An artifact is "dropped" when it still has an
+ * owner on record but no live instance is on that owner's person - it is lying
+ * in a room, sitting in a container, or simply not in play.  Ours are all
+ * bound artifacts that were set down: they keep their owner but release the
+ * instance so a zone reset can recover them. */
+int artifact_is_dropped(struct artifact_data *art)
+{
+  struct obj_data *obj = NULL, *outer = NULL;
+
+  if (!art || !artifact_is_owned(art->vnum))
+    return FALSE;
+
+  for (obj = object_list; obj; obj = obj->next)
+  {
+    if ((int)GET_OBJ_VNUM(obj) != art->vnum)
+      continue;
+
+    /* Held or worn by anyone at all, however deeply nested - not dropped. */
+    for (outer = obj; outer->in_obj; outer = outer->in_obj)
+      ;
+
+    if (outer->worn_by || outer->carried_by)
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
 static const char *artifact_locate(struct artifact_data *art)
 {
   struct obj_data *obj = NULL;
@@ -1996,7 +3232,7 @@ ACMD(do_testartifact)
   struct obj_data *obj = NULL;
   struct artifact_data *art = NULL;
   const char *rest = NULL;
-  int i = 0, owned = 0, unowned = 0, count = 0, vnum = 0, ok = TRUE;
+  int i = 0, owned = 0, dropped = 0, unowned = 0, count = 0, vnum = 0, ok = TRUE;
 
   if (!ch)
     return;
@@ -2026,16 +3262,22 @@ ACMD(do_testartifact)
   if (is_abbrev(arg, "status"))
   {
     for (i = 0; i < total_artifacts; i++)
-      if (artifact_is_owned(art_index[i].vnum))
-        owned++;
-      else
+    {
+      if (!artifact_is_owned(art_index[i].vnum))
         unowned++;
+      else if (artifact_is_dropped(&art_index[i]))
+        dropped++;
+      else
+        owned++;
+    }
 
     send_to_char(ch, "\tYArtifact System Status\tn\r\n");
     send_to_char(ch, "----------------------\r\n");
     send_to_char(ch, "Total artifacts : %d\r\n", total_artifacts);
     send_to_char(ch, "Owned           : %d\r\n", owned);
+    send_to_char(ch, "Dropped         : %d\r\n", dropped);
     send_to_char(ch, "Unowned         : %d\r\n", unowned);
+    send_to_char(ch, "Registry memory : %lu bytes\r\n", (unsigned long)artifact_memory_used());
     send_to_char(ch, "Data file       : %s\r\n", ARTIFACT_FILE);
     return;
   }
@@ -2159,14 +3401,19 @@ ACMD(do_testartifact)
 
   if (is_abbrev(arg, "list"))
   {
-    send_to_char(ch, "\tY Vnum  Lv  Owner                Binding            Location\tn\r\n");
-    send_to_char(ch, "------  --  -------------------  -----------------  ------------\r\n");
+    send_to_char(ch,
+                 "\tY Vnum  Lv  Owner                State    Binding            Location\tn\r\n");
+    send_to_char(ch,
+                 "------  --  -------------------  -------  -----------------  ------------\r\n");
 
     for (i = 0; i < total_artifacts; i++)
-      send_to_char(ch, "%6d  %2d  %-19s  %-17s  %s\r\n", art_index[i].vnum, art_index[i].level,
-                   artifact_is_owned(art_index[i].vnum) ? art_index[i].owner : "-",
-                   artifact_binding_name(art_index[i].binding_type),
-                   artifact_locate(&art_index[i]));
+      send_to_char(
+          ch, "%6d  %2d  %-19s  %-7s  %-17s  %s\r\n", art_index[i].vnum, art_index[i].level,
+          artifact_is_owned(art_index[i].vnum) ? art_index[i].owner : "-",
+          !artifact_is_owned(art_index[i].vnum) ? "unowned"
+          : artifact_is_dropped(&art_index[i])  ? "dropped"
+                                                : "owned",
+          artifact_binding_name(art_index[i].binding_type), artifact_locate(&art_index[i]));
     return;
   }
 

@@ -38,6 +38,7 @@
 #include "spell_prep.h"
 #include "perks.h"
 #include "moon_bonus_spells.h"
+#include "world/spec_artifacts.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -2490,6 +2491,7 @@ void point_update(void)
     if (!IS_NPC(i)) // players only
     {
       update_char_objects(i);
+      artifact_burn_tick(i);
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
         check_idling(i);

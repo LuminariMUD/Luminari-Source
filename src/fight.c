@@ -13701,9 +13701,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* artifact weapon procs and per-hit artifact experience */
   if (ch && victim && !victim_is_dead && dam > 0)
   {
-    artifact_combat_hit(ch, victim, dam);
+    artifact_combat_hit(ch, victim, dam, is_critical);
     if (wielded)
-      artifact_weapon_proc(ch, victim, wielded);
+      artifact_weapon_proc(ch, victim, wielded, dam, is_critical);
   }
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */

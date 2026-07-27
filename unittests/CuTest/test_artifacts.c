@@ -47,6 +47,8 @@ static void artifact_test_registry(int count)
     art_index[i].experience = 0;
     art_index[i].binding_type = ARTIFACT_BIND_NONE;
     art_index[i].instance_persisted = FALSE;
+    art_index[i].class_restrict = CLASS_UNDEFINED;
+    art_index[i].class_min_level = 0;
   }
 }
 
@@ -646,7 +648,8 @@ void Test_artifact_world_package_contains_all_deployable_records(CuTest *tc)
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.wld", root);
   complete = complete && artifact_test_file_contains(path, "#169900");
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.mob", root);
-  complete = complete && artifact_test_file_contains(path, "$");
+  snprintf(needle, sizeof(needle), "#%d", ART_VNUM_OAKEN_DEFENDER);
+  complete = complete && artifact_test_file_contains(path, needle);
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/artifacts.hlp", root);
   complete = complete && artifact_test_file_contains(path, "ARTIFACT ARTIFACTS");
   snprintf(path, sizeof(path), "%s/scripts/provision_artifacts.sh", root);
@@ -960,7 +963,16 @@ void Test_artifact_hooks_tolerate_null(CuTest *tc)
   artifact_remove_bonuses(NULL, NULL);
   artifact_grant_xp(NULL, 10);
   artifact_grant_xp_obj(NULL, NULL, 10);
-  artifact_weapon_proc(NULL, NULL, NULL);
+  artifact_weapon_proc(NULL, NULL, NULL, 0, FALSE);
+  artifact_combat_hit(NULL, NULL, 0, FALSE);
+  artifact_combat_kill(NULL, NULL);
+  artifact_burn_tick(NULL);
+
+  CuAssertIntEquals(tc, FALSE, artifact_speech_trigger(NULL, NULL));
+  CuAssertIntEquals(tc, TRUE, artifact_class_ok(NULL, NULL));
+  CuAssertIntEquals(tc, FALSE, artifact_is_dropped(NULL));
+  CuAssertIntEquals(tc, 0, artifact_recharge_remaining(NULL, 0));
+  CuAssertIntEquals(tc, 0, (int)artifact_memory_used());
 
   CuAssertIntEquals(tc, TRUE, artifact_on_equip(NULL, NULL, 0));
   CuAssertIntEquals(tc, FALSE, artifact_can_use(NULL, NULL, TRUE));
@@ -970,6 +982,334 @@ void Test_artifact_hooks_tolerate_null(CuTest *tc)
 
   /* Damage passes through untouched when there is no victim. */
   CuAssertIntEquals(tc, 100, artifact_damage_resist(NULL, 100, DAM_FIRE));
+}
+
+/* --------------------------------------------------------------------------
+ * Called effects: per-effect recharge timers
+ *
+ * The recharge clock is the load-bearing half of the ported spec procs.  The
+ * effects themselves need a booted world; the timers do not.
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_recharge_is_ready_when_never_used(CuTest *tc)
+{
+  int remaining = 0;
+
+  artifact_test_registry(11);
+  remaining = artifact_recharge_remaining(&art_index[0], 0);
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, 0, remaining);
+}
+
+void Test_artifact_recharge_counts_down_from_full(CuTest *tc)
+{
+  int remaining = 0;
+
+  artifact_test_registry(11);
+
+  /* Trorxek's slot 0 is "come oaken defender", a weekly effect. */
+  art_index[0].effect_used[0] = time(0);
+  remaining = artifact_recharge_remaining(&art_index[0], 0);
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, TRUE, remaining > ARTIFACT_RECHARGE_WEEK - 60);
+  CuAssertIntEquals(tc, TRUE, remaining <= ARTIFACT_RECHARGE_WEEK);
+}
+
+void Test_artifact_recharge_clears_once_elapsed(CuTest *tc)
+{
+  int remaining = 0;
+
+  artifact_test_registry(11);
+
+  art_index[0].effect_used[0] = time(0) - ARTIFACT_RECHARGE_WEEK - 1;
+  remaining = artifact_recharge_remaining(&art_index[0], 0);
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, 0, remaining);
+}
+
+void Test_artifact_recharge_rejects_out_of_range_slots(CuTest *tc)
+{
+  int low = 0, high = 0, empty = 0;
+
+  artifact_test_registry(11);
+
+  art_index[0].effect_used[0] = time(0);
+  low = artifact_recharge_remaining(&art_index[0], -1);
+  high = artifact_recharge_remaining(&art_index[0], ARTIFACT_MAX_EFFECTS);
+
+  /* Amaukekel has three effects, so slot 3 is a stamp with nothing behind
+   * it: a stale stamp must never report a recharge that cannot expire. */
+  art_index[1].effect_used[3] = time(0);
+  empty = artifact_recharge_remaining(&art_index[1], 3);
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, 0, low);
+  CuAssertIntEquals(tc, 0, high);
+  CuAssertIntEquals(tc, 0, empty);
+}
+
+void Test_artifact_recharge_names_cover_every_interval(CuTest *tc)
+{
+  CuAssertStrEquals(tc, "once an hour", artifact_recharge_name(ARTIFACT_RECHARGE_HOUR));
+  CuAssertStrEquals(tc, "once every six hours", artifact_recharge_name(ARTIFACT_RECHARGE_6HOUR));
+  CuAssertStrEquals(tc, "twice a day", artifact_recharge_name(ARTIFACT_RECHARGE_12HOUR));
+  CuAssertStrEquals(tc, "once a day", artifact_recharge_name(ARTIFACT_RECHARGE_DAY));
+  CuAssertStrEquals(tc, "once a week", artifact_recharge_name(ARTIFACT_RECHARGE_WEEK));
+  CuAssertStrEquals(tc, "rarely", artifact_recharge_name(12345));
+}
+
+/* --------------------------------------------------------------------------
+ * Called effects: speech invocation
+ *
+ * Firing an effect needs a booted world.  Refusing to fire one does not, and
+ * the refusals are where a speech hook running on every spoken line can do
+ * real damage.
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_speech_ignores_ordinary_talk(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  struct char_data ch;
+  int matched = FALSE;
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+  clear_char(&ch);
+
+  matched = artifact_speech_trigger(&ch, "hello there, has anyone seen the smith?");
+  matched |= artifact_speech_trigger(&ch, "");
+  matched |= artifact_speech_trigger(&ch, "   ");
+  matched |= artifact_speech_trigger(&ch, NULL);
+
+  /* A phrase prefix that is not the whole phrase must not fire either. */
+  matched |= artifact_speech_trigger(&ch, "carpet");
+  matched |= artifact_speech_trigger(&ch, "carpet of death is a strong name for a rug");
+
+  /* A targeted phrase with no target is not an invocation. */
+  matched |= artifact_speech_trigger(&ch, "moonlit path to");
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+
+  CuAssertIntEquals(tc, FALSE, matched);
+}
+
+void Test_artifact_speech_needs_the_artifact_on_your_person(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  struct char_data ch;
+  int matched = FALSE;
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+  clear_char(&ch);
+
+  /* The words are exactly right; the staff is somewhere else entirely. */
+  matched = artifact_speech_trigger(&ch, "Carpet of death!");
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+
+  CuAssertIntEquals(tc, FALSE, matched);
+}
+
+/* --------------------------------------------------------------------------
+ * Called effects: table integrity
+ *
+ * The effect table is dispatched by slot index and matched by raw string
+ * compare against normalized speech.  Both of those make the table's shape
+ * load-bearing, and nothing at runtime would notice it being wrong.
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_effect_table_is_well_formed(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  struct char_data ch;
+  const char *phrases[] = {"come oaken defender",
+                           "carpet of death",
+                           "forest path home",
+                           "moonlit path to",
+                           "sunlit path to paradise",
+                           "give life to",
+                           "wrath of light",
+                           "eyes of darkness",
+                           "darken the world",
+                           "devour the soul",
+                           "shadowy path to",
+                           "you see darkness",
+                           "peace to you",
+                           "join my quest",
+                           "sonic path to",
+                           "bring annhilation forth",
+                           "feel my power",
+                           "enrage me doombringer",
+                           NULL};
+  size_t i = 0, j = 0;
+  int clean = TRUE;
+
+  /* Every phrase must already be in the form the normalizer produces:
+   * lowercase, single-spaced, and free of trailing punctuation.  Anything
+   * else is an entry that can never be matched. */
+  for (i = 0; phrases[i]; i++)
+  {
+    for (j = 0; phrases[i][j]; j++)
+      if (phrases[i][j] != LOWER(phrases[i][j]))
+        clean = FALSE;
+
+    if (phrases[i][0] == ' ' || phrases[i][strlen(phrases[i]) - 1] == ' ')
+      clean = FALSE;
+
+    if (strchr(phrases[i], '.') || strchr(phrases[i], '!') || strchr(phrases[i], '?'))
+      clean = FALSE;
+
+    if (strstr(phrases[i], "  "))
+      clean = FALSE;
+  }
+
+  CuAssertIntEquals(tc, TRUE, clean);
+
+  /* And every one of them must be reachable: with no artifact held, each is a
+   * clean miss rather than a crash or a false positive. */
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+  clear_char(&ch);
+
+  for (i = 0; phrases[i]; i++)
+    if (artifact_speech_trigger(&ch, phrases[i]))
+      clean = FALSE;
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, clean);
+}
+
+/* --------------------------------------------------------------------------
+ * Class restriction
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_unrestricted_artifacts_never_burn(CuTest *tc)
+{
+  struct char_data ch;
+  int ok = FALSE;
+
+  artifact_test_registry(11);
+  clear_char(&ch);
+
+  art_index[0].class_restrict = CLASS_UNDEFINED;
+  ok = artifact_class_ok(&ch, &art_index[0]);
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, TRUE, ok);
+}
+
+void Test_artifact_class_check_tolerates_missing_arguments(CuTest *tc)
+{
+  struct char_data ch;
+  int no_art = FALSE, no_char = FALSE;
+
+  artifact_test_registry(11);
+  clear_char(&ch);
+
+  no_art = artifact_class_ok(&ch, NULL);
+  no_char = artifact_class_ok(NULL, &art_index[0]);
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, TRUE, no_art);
+  CuAssertIntEquals(tc, TRUE, no_char);
+}
+
+/* --------------------------------------------------------------------------
+ * The dropped ownership state and memory accounting
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_unowned_is_never_dropped(CuTest *tc)
+{
+  int dropped = TRUE;
+
+  artifact_test_registry(11);
+  dropped = artifact_is_dropped(&art_index[0]);
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, FALSE, dropped);
+}
+
+void Test_artifact_owned_with_no_live_instance_is_dropped(CuTest *tc)
+{
+  int dropped = FALSE;
+
+  artifact_test_registry(11);
+
+  free(art_index[0].owner);
+  art_index[0].owner = strdup("Zusuk");
+
+  dropped = artifact_is_dropped(&art_index[0]);
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, TRUE, dropped);
+}
+
+void Test_artifact_memory_accounting_tracks_the_registry(CuTest *tc)
+{
+  size_t populated = 0, empty = 0;
+
+  artifact_test_registry(11);
+  populated = artifact_memory_used();
+  artifact_shutdown();
+  empty = artifact_memory_used();
+
+  CuAssertIntEquals(tc, TRUE, populated >= sizeof(struct artifact_data) * 11);
+  CuAssertIntEquals(tc, 0, (int)empty);
+}
+
+/* --------------------------------------------------------------------------
+ * XP targeting and the crit / boss multipliers
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_generic_xp_lands_on_exactly_one_artifact(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  struct char_data ch;
+  struct obj_data first, second;
+  int paid = 0, i = 0;
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+  clear_char(&ch);
+
+  artifact_test_object(&first, 0);
+  artifact_test_object(&second, 1);
+  ch.equipment[WEAR_WIELD_1] = &first;
+  ch.equipment[WEAR_HEAD] = &second;
+
+  artifact_grant_xp(&ch, 25);
+
+  for (i = 0; i < total_artifacts; i++)
+    if (art_index[i].experience > 0)
+      paid++;
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+
+  /* ROL paid both.  Exactly one is the whole point of the fix. */
+  CuAssertIntEquals(tc, 1, paid);
+}
+
+void Test_artifact_crit_xp_beats_a_plain_hit(CuTest *tc)
+{
+  CuAssertIntEquals(tc, TRUE, ARTIFACT_XP_CRIT > ARTIFACT_XP_HIT);
+  CuAssertIntEquals(tc, TRUE, ARTIFACT_XP_BOSS_HIT_MULT > 1);
+  CuAssertIntEquals(tc, TRUE, ARTIFACT_XP_BOSS_KILL_MULT > 1);
+  CuAssertIntEquals(tc, TRUE, ARTIFACT_BOSS_LEVEL_MARGIN > 0);
 }
 
 /*EOF*/

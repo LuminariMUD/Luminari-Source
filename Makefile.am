@@ -191,7 +191,6 @@ circle_SOURCES = \
 	src/spec_abilities.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
-	src/specs.artifacts.c \
 	src/world/spec_artifacts.c \
 	src/casting_visuals.c \
 	src/spell_parser.c \
