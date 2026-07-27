@@ -303,6 +303,9 @@ non-druid holding Trorxek took damage every tick.
 Not ported. Our artifacts have no class restriction whatsoever - binding is
 the only gate.
 
+Due to our multi-class system, this should be in the direction of "if the
+user doesn't have adequate levels in a given class, then they get burned"
+
 ## Gap 3: special identify text
 
 ROL's `PROC_SPECIAL_ID` emitted bespoke, class-gated identify text per
@@ -344,6 +347,9 @@ Procs and abilities grant XP only to the artifact that earned it. Generic
 combat XP (hits and kills) still goes to **every** equipped artifact, which
 is ROL's behavior. This is a partial fix of ROL defect 3, not a complete one.
 Whether it should be fully targeted is a design question, not a bug.
+
+Decision:  when actively equipped with multiple artifacts, a random one will
+get the experience.
 
 ## Gap 7: minor omissions
 

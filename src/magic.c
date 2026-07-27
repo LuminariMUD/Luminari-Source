@@ -8591,14 +8591,6 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (!victim)
       victim = ch;
 
-    // setup the data.
-    if (ch->char_specials.repulse_blacklist != NULL)
-      free_list(ch->char_specials.repulse_blacklist);
-    ch->char_specials.repulse_blacklist = create_list();
-    if (ch->char_specials.repulse_whitelist != NULL)
-      free_list(ch->char_specials.repulse_whitelist);
-    ch->char_specials.repulse_whitelist = create_list();
-
     // Add the affect
     af[0].duration = level;
     af[0].modifier = 0;
@@ -10418,6 +10410,13 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
           af[i].duration *= 2;
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
     }
+  }
+
+  if (spellnum == SPELL_REPULSION)
+  {
+    /* Set up fresh pass/fail tracking after any prior copy of the buff was replaced. */
+    clear_repulsion_lists(victim);
+    ensure_repulsion_lists(victim);
   }
 
   /* Linked Menace perk - apply AC penalty after successful Telepathy debuff */
@@ -13253,10 +13252,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim, st
     to_char = "You remove the bubble of force from $N.";
     to_vict = "$n removes the bubble of force from around you.";
     to_notvict = "$N's bubble of repulsion fades away.";
-    if (ch->char_specials.repulse_blacklist != NULL)
-      free_list(ch->char_specials.repulse_blacklist);
-    if (ch->char_specials.repulse_whitelist != NULL)
-      free_list(ch->char_specials.repulse_whitelist);
+    clear_repulsion_lists(victim);
     break;
 
   case SPELL_REMOVE_DISEASE:

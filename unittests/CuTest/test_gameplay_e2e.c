@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/actionqueues.h"
 #include "../../src/db.h"
 #include "../../src/dg_scripts.h"
 #include "../../src/fight.h"
@@ -153,6 +154,169 @@ void Test_gameplay_e2e_combat_applies_real_damage(CuTest *tc)
   CuAssertTrue(tc, damage_result > 0);
   CuAssertTrue(tc, remaining_hit_points < 100);
   CuAssertTrue(tc, remaining_hit_points > 0);
+}
+
+void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *staff;
+  int expected_attacks;
+  int attempted_attacks;
+  int remaining_hit_points;
+  int i;
+
+  begin_gameplay_fixture(&fixture);
+  staff = new_char();
+  staff->player.name = strdup("staff rotation fixture");
+  GET_QUEUE(staff) = create_action_queue();
+  GET_ATTACK_QUEUE(staff) = create_attack_queue();
+  GET_IDNUM(staff) = 4243;
+  GET_LEVEL(staff) = LVL_IMPL;
+  GET_CLASS(staff) = CLASS_WARRIOR;
+  GET_REAL_RACE(staff) = RACE_HUMAN;
+  GET_POS(staff) = POS_FIGHTING;
+  GET_HIT(staff) = 100000;
+  GET_MAX_HIT(staff) = 100000;
+  GET_MOVE(staff) = 100000;
+  GET_MAX_MOVE(staff) = 100000;
+  GET_REAL_STR(staff) = 39;
+  staff->aff_abils.str = 39;
+  GET_REAL_DEX(staff) = 25;
+  staff->aff_abils.dex = 25;
+  GET_REAL_CON(staff) = 25;
+  staff->aff_abils.con = 25;
+  GET_REAL_INT(staff) = 25;
+  GET_INT(staff) = 25;
+  GET_REAL_WIS(staff) = 25;
+  GET_WIS(staff) = 25;
+  GET_REAL_CHA(staff) = 25;
+  GET_CHA(staff) = 25;
+  IN_ROOM(staff) = 0;
+
+  for (i = 0; i < MAX_CLASSES; i++)
+    CLASS_LEVEL(staff, i) = 30;
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
+    SET_FEAT(staff, i, 1);
+
+  GET_HIT(&fixture.victim) = 100000;
+  GET_MAX_HIT(&fixture.victim) = 100000;
+  GET_LEVEL(&fixture.victim) = LVL_IMPL;
+  GET_REAL_RACE(&fixture.victim) = RACE_TYPE_UNDEAD;
+  fixture.rooms[0].people = staff;
+  staff->next_in_room = &fixture.victim;
+  fixture.victim.next_in_room = NULL;
+  FIGHTING(staff) = &fixture.victim;
+  FIGHTING(&fixture.victim) = staff;
+
+#define RETURN_NUM_ATTACKS 1
+  expected_attacks = perform_attacks(staff, RETURN_NUM_ATTACKS, 0);
+#undef RETURN_NUM_ATTACKS
+  SET_BIT_AR(PRF_FLAGS(staff), PRF_CONDENSED);
+  init_condensed_combat_data(staff);
+#define NORMAL_ATTACK_ROUTINE 0
+  perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 1);
+  perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 2);
+  perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 3);
+#undef NORMAL_ATTACK_ROUTINE
+  attempted_attacks = CNDNSD(staff)->num_times_attacking;
+  remaining_hit_points = GET_HIT(&fixture.victim);
+
+  FIGHTING(staff) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  staff->next_in_room = NULL;
+  fixture.rooms[0].people = &fixture.actor;
+  fixture.actor.next_in_room = &fixture.victim;
+  fixture.victim.next_in_room = NULL;
+  free_char(staff);
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, expected_attacks > 0);
+  CuAssertIntEquals(tc, expected_attacks, attempted_attacks);
+  CuAssertTrue(tc, remaining_hit_points < 100000);
+}
+
+void Test_gameplay_e2e_repulsion_tracks_and_allows_melee_attackers(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  bool attacker_tracked;
+  int blocked_hit_points;
+  int remaining_hit_points;
+
+  begin_gameplay_fixture(&fixture);
+  GET_ATTACK_QUEUE(&fixture.actor) = create_attack_queue();
+  GET_HIT(&fixture.victim) = 100000;
+  GET_MAX_HIT(&fixture.victim) = 100000;
+  GET_POS(&fixture.victim) = POS_SLEEPING;
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_REPULSION);
+
+  hit(&fixture.actor, &fixture.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+
+  CuAssertPtrNotNull(tc, fixture.victim.char_specials.repulse_blacklist);
+  CuAssertPtrNotNull(tc, fixture.victim.char_specials.repulse_whitelist);
+  attacker_tracked =
+      find_in_list(&fixture.actor, fixture.victim.char_specials.repulse_blacklist) != NULL ||
+      find_in_list(&fixture.actor, fixture.victim.char_specials.repulse_whitelist) != NULL;
+
+  if (find_in_list(&fixture.actor, fixture.victim.char_specials.repulse_blacklist) != NULL)
+    remove_from_list(&fixture.actor, fixture.victim.char_specials.repulse_blacklist);
+  if (find_in_list(&fixture.actor, fixture.victim.char_specials.repulse_whitelist) != NULL)
+    remove_from_list(&fixture.actor, fixture.victim.char_specials.repulse_whitelist);
+  add_to_list(&fixture.actor, fixture.victim.char_specials.repulse_blacklist);
+
+  GET_HIT(&fixture.victim) = 100000;
+  GET_POS(&fixture.victim) = POS_SLEEPING;
+  hit(&fixture.actor, &fixture.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  blocked_hit_points = GET_HIT(&fixture.victim);
+
+  remove_from_list(&fixture.actor, fixture.victim.char_specials.repulse_blacklist);
+  add_to_list(&fixture.actor, fixture.victim.char_specials.repulse_whitelist);
+
+  GET_HIT(&fixture.victim) = 100000;
+  GET_POS(&fixture.victim) = POS_SLEEPING;
+  hit(&fixture.actor, &fixture.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  remaining_hit_points = GET_HIT(&fixture.victim);
+
+  clear_repulsion_lists(&fixture.victim);
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_REPULSION);
+  free_attack_queue(GET_ATTACK_QUEUE(&fixture.actor));
+  GET_ATTACK_QUEUE(&fixture.actor) = NULL;
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, attacker_tracked);
+  CuAssertIntEquals(tc, 100000, blocked_hit_points);
+  CuAssertTrue(tc, remaining_hit_points < 100000);
+}
+
+void Test_gameplay_e2e_repulsion_initializes_and_cleans_target_state(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  bool target_affected;
+  bool caster_lists_untouched;
+  bool target_lists_initialized;
+  bool target_state_cleared;
+
+  begin_gameplay_fixture(&fixture);
+  mag_affects(10, &fixture.actor, &fixture.victim, NULL, SPELL_REPULSION, SAVING_WILL, CAST_SPELL,
+              0);
+
+  target_affected = AFF_FLAGGED(&fixture.victim, AFF_REPULSION);
+  caster_lists_untouched = fixture.actor.char_specials.repulse_blacklist == NULL &&
+                           fixture.actor.char_specials.repulse_whitelist == NULL;
+  target_lists_initialized = fixture.victim.char_specials.repulse_blacklist != NULL &&
+                             fixture.victim.char_specials.repulse_whitelist != NULL;
+
+  affect_remove(&fixture.victim, fixture.victim.affected);
+  target_state_cleared = !AFF_FLAGGED(&fixture.victim, AFF_REPULSION) &&
+                         fixture.victim.char_specials.repulse_blacklist == NULL &&
+                         fixture.victim.char_specials.repulse_whitelist == NULL;
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, target_affected);
+  CuAssertTrue(tc, caster_lists_untouched);
+  CuAssertTrue(tc, target_lists_initialized);
+  CuAssertTrue(tc, target_state_cleared);
 }
 
 void Test_gameplay_e2e_casting_dispatches_magic_missile(CuTest *tc)

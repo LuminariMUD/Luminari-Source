@@ -6511,6 +6511,8 @@ void free_char(struct char_data *ch)
     free(CNDNSD(ch));
   CNDNSD(ch) = NULL;
 
+  clear_repulsion_lists(ch);
+
   /* new version of free_followers take the followers pointer as arg */
   free_followers(ch->followers);
 

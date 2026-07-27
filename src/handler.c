@@ -1164,12 +1164,15 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
 void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
 {
   struct affected_type *temp = NULL;
+  bool removes_repulsion;
 
   if (ch->affected == NULL)
   {
     core_dump();
     return;
   }
+
+  removes_repulsion = IS_SET_AR(af->bitvector, AFF_REPULSION);
 
   if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
     ch->confuser_idnum = 0;
@@ -1205,11 +1208,15 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
 
   REMOVE_FROM_LIST(af, ch->affected, next);
   free_affect(af);
+
+  if (removes_repulsion)
+    clear_repulsion_lists(ch);
 }
 
 void affect_remove(struct char_data *ch, struct affected_type *af)
 {
   struct affected_type *temp = NULL;
+  bool removes_repulsion;
   // bool is_ac_new = false;
 
   if (ch->affected == NULL)
@@ -1217,6 +1224,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
     core_dump();
     return;
   }
+
+  removes_repulsion = IS_SET_AR(af->bitvector, AFF_REPULSION);
 
   // if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
   // is_ac_new = true;
@@ -1260,6 +1269,10 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   free_affect(af);
 
   affect_total(ch);
+
+  if (removes_repulsion && !AFF_FLAGGED(ch, AFF_REPULSION))
+    clear_repulsion_lists(ch);
+
   /* added by zusuk to address an issue with calculation not coming out correct
    on first run of affect_total() ?  unknown, need to trace and figure it out
    eventually though */
@@ -1280,6 +1293,36 @@ void affect_type_from_char(struct char_data *ch, int type)
     if (hjp->bitvector[type])
       affect_remove(ch, hjp);
   }
+}
+
+void clear_repulsion_lists(struct char_data *ch)
+{
+  if (!ch)
+    return;
+
+  if (ch->char_specials.repulse_blacklist)
+  {
+    free_list(ch->char_specials.repulse_blacklist);
+    ch->char_specials.repulse_blacklist = NULL;
+  }
+
+  if (ch->char_specials.repulse_whitelist)
+  {
+    free_list(ch->char_specials.repulse_whitelist);
+    ch->char_specials.repulse_whitelist = NULL;
+  }
+}
+
+void ensure_repulsion_lists(struct char_data *ch)
+{
+  if (!ch)
+    return;
+
+  if (!ch->char_specials.repulse_blacklist)
+    ch->char_specials.repulse_blacklist = create_list();
+
+  if (!ch->char_specials.repulse_whitelist)
+    ch->char_specials.repulse_whitelist = create_list();
 }
 
 /* Call affect_remove with every affect from the spell "spell" */
@@ -1312,10 +1355,7 @@ void affect_from_char(struct char_data *ch, int spell)
       }
       else if (spell == SPELL_REPULSION)
       {
-        if (ch->char_specials.repulse_blacklist)
-          free_list(ch->char_specials.repulse_blacklist);
-        if (ch->char_specials.repulse_whitelist)
-          free_list(ch->char_specials.repulse_whitelist);
+        clear_repulsion_lists(ch);
       }
     }
   }
@@ -2829,6 +2869,8 @@ void extract_char_final(struct char_data *ch)
     while (ch->affected)
       affect_remove_no_total(ch, ch->affected);
   }
+
+  clear_repulsion_lists(ch);
 
   /* If there's a descriptor, they're in the menu now. */
   if (IS_NPC(ch) || !ch->desc)

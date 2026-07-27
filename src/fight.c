@@ -14069,12 +14069,13 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   if (attack_type != ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_REPULSION))
   {
-    if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL)
+    ensure_repulsion_lists(victim);
+
+    if (find_in_list(ch, victim->char_specials.repulse_blacklist) != NULL)
     {
       return (HIT_MISS);
     }
-    else if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL &&
-             find_in_list(ch, victim->char_specials.repulse_whitelist) == NULL)
+    else if (find_in_list(ch, victim->char_specials.repulse_whitelist) == NULL)
     {
       // We haven't checked if this person is repulsing us yet. Do the check!
       if (savingthrow(victim, ch, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(victim), ABJURATION))
@@ -16455,6 +16456,7 @@ void perform_violence(struct char_data *ch, int phase)
   if (FIGHTING(ch) && AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) &&
       !is_using_ranged_weapon(ch, TRUE) && !IS_CASTING(ch) &&
       (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_AUTOBLAST)) &&
+      FIGHTING(ch)->char_specials.repulse_blacklist != NULL &&
       find_in_list(ch, FIGHTING(ch)->char_specials.repulse_blacklist) != NULL)
   {
     // We need to find a new target.
