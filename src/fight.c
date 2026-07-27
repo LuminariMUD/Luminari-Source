@@ -35,6 +35,7 @@
 #include "spec_abilities.h"
 #include "feats.h"
 #include "actions.h"
+#include "world/spec_artifacts.h"
 #include "actionqueues.h"
 #include "craft.h"
 #include "assign_wpn_armor.h"
@@ -5481,6 +5482,9 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         solo_gain(ch, victim);
     }
 
+    /* artifact experience for the kill */
+    artifact_combat_kill(ch, victim);
+
     /* Inquisitor Judgment Recovery: Restore one judgment use when reducing enemy to 0 HP */
     if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 &&
         has_inquisitor_judgment_recovery(ch))
@@ -5753,6 +5757,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
                        10 * PASSES_PER_SEC);
     }
   }
+
+  /* artifact damage resistance - highest applicable value, does not stack */
+  dam = artifact_damage_resist(victim, dam, dam_type);
 
   if (GET_POS(victim) <= POS_DEAD)
   { // delayed extraction
@@ -13689,6 +13696,14 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     act("The creature's \tDcorruption\tn courses through you.", FALSE, victim, 0, 0, TO_ROOM);
     call_magic(ch, victim, 0, MOB_ABILITY_CORRUPTION, 0, GET_LEVEL(ch), CAST_INNATE);
     return dam;
+  }
+
+  /* artifact weapon procs and per-hit artifact experience */
+  if (ch && victim && !victim_is_dead && dam > 0)
+  {
+    artifact_combat_hit(ch, victim, dam);
+    if (wielded)
+      artifact_weapon_proc(ch, victim, wielded);
   }
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */

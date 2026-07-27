@@ -110,6 +110,7 @@
 #include "systems/intermud3/i3_client.h" /* Intermud3 client */
 #include "vessels.h"                     /* Vessel persistence */
 #include "asciimap.h"
+#include "world/spec_artifacts.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1522,6 +1523,7 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % (60 * PASSES_PER_SEC)))
   {
     save_chars();
+    artifact_save_if_dirty();
   }
 
   /* every 2 hours run create hunts */

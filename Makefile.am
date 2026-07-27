@@ -192,6 +192,7 @@ circle_SOURCES = \
 	src/spec_assign.c \
 	src/spec_procs.c \
 	src/specs.artifacts.c \
+	src/world/spec_artifacts.c \
 	src/casting_visuals.c \
 	src/spell_parser.c \
 	src/spell_prep.c \
@@ -244,6 +245,7 @@ check_PROGRAMS = cutest
 cutest_SOURCES = \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
+	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
@@ -264,6 +266,7 @@ cutest_LDADD = $(circle_LDADD)
 
 cutest_test_files = \
 	unittests/CuTest/test_bounds_checking.c \
+	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
@@ -291,6 +294,7 @@ bindir = $(top_builddir)/bin
 
 # After installation, remove the executable from the source directory
 install-exec-hook:
+	$(SHELL) $(abs_top_srcdir)/scripts/provision_artifacts.sh
 	rm -f $(bin_PROGRAMS)
 
 # Ensure constants.c is rebuilt when other sources change
@@ -309,6 +313,12 @@ EXTRA_DIST = \
 	unittests/CuTest/test_protocol_parser.c \
 	scripts/test_character_rename_schema.sh \
 	scripts/test_character_rename_static.sh \
+	scripts/provision_artifacts.sh \
+	lib/world/artifacts/1699.mob \
+	lib/world/artifacts/1699.obj \
+	lib/world/artifacts/1699.wld \
+	lib/world/artifacts/1699.zon \
+	lib/world/artifacts/artifacts.hlp \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/ci_schema_manifest.txt \
 	README.md

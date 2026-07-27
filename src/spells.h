@@ -885,6 +885,13 @@
 
 /***************************************/
 #define PSIONIC_POWER_END 1605
+
+/***************************************/
+/* Artifact system (src/world/spec_artifacts.c) - affect markers only, these
+ * are never cast and are not registered with spello(). Free band is
+ * 1606-1646. */
+#define SPELL_ARTIFACT_BONUS 1610
+/***************************************/
 /***************************************/
 
 /** we're going to start warlock powers at 1649.

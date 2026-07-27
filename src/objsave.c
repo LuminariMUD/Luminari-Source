@@ -24,6 +24,7 @@
 #include "genolc.h" /* for strip_cr and sprintascii */
 #include "craft.h"
 #include "spec_abilities.h"
+#include "world/spec_artifacts.h"
 
 #define OBJSAVE_DB 1
 
@@ -53,6 +54,7 @@ static int gen_receptionist(struct char_data *ch, struct char_data *recep, int c
 static void Crash_rent_deadline(struct char_data *ch, struct char_data *recep, long cost);
 static void Crash_restore_weight(struct obj_data *obj);
 static void Crash_extract_objs(struct obj_data *obj);
+static void Crash_extract_objs_recursive(struct obj_data *obj);
 static int Crash_is_unrentable(struct obj_data *obj);
 static void Crash_extract_norents(struct obj_data *obj);
 static void Crash_extract_expensive(struct obj_data *obj);
@@ -1070,15 +1072,23 @@ static void Crash_extract_norent_eq(struct char_data *ch)
   }
 }
 
-/* recursively remove objects and their contents */
-static void Crash_extract_objs(struct obj_data *obj)
+/* Recursively remove objects after they have been serialized.  The explicit
+ * artifact scope distinguishes persistence extraction from destruction. */
+static void Crash_extract_objs_recursive(struct obj_data *obj)
 {
   if (obj)
   {
-    Crash_extract_objs(obj->contains);
-    Crash_extract_objs(obj->next_content);
+    Crash_extract_objs_recursive(obj->contains);
+    Crash_extract_objs_recursive(obj->next_content);
     extract_obj(obj);
   }
+}
+
+static void Crash_extract_objs(struct obj_data *obj)
+{
+  artifact_begin_persistence_extract();
+  Crash_extract_objs_recursive(obj);
+  artifact_end_persistence_extract();
 }
 
 static int Crash_is_unrentable(struct obj_data *obj)

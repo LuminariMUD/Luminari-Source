@@ -33,6 +33,7 @@
 #include "spec_procs.h"
 #include "crafting_new.h"
 #include "resource_system.h"
+#include "world/spec_artifacts.h"
 #include "resource_depletion.h"
 #include "resource_depletion.h"
 #include "perks.h"
@@ -1734,6 +1735,9 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     IS_CARRYING_N(ch)++;
     // log("T6: %s", object->short_description);
 
+    /* artifact ownership tracking */
+    artifact_obj_to_char(object, ch);
+
     /* autoquest system check point -Zusuk */
     autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
     // log("T7: %s", object->short_description);
@@ -1920,6 +1924,9 @@ void obj_from_char(struct obj_data *object)
   }
   */
 
+  /* artifact holder tracking - ownership itself is untouched here */
+  artifact_obj_from_char(object);
+
   /* engine! */
   REMOVE_FROM_LIST(object, object->carried_by->carrying, next_content);
 
@@ -2089,6 +2096,15 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     }
   }
 
+  /* artifact binding check - refuse before anything is committed */
+  if (!artifact_can_use(ch, obj, FALSE))
+  {
+    act("$p resists your grasp and will not be worn.", FALSE, ch, obj, 0, TO_CHAR);
+    act("$p glows angrily and repels $n!", FALSE, ch, obj, 0, TO_ROOM);
+    obj_to_char(obj, ch);
+    return;
+  }
+
   GET_EQ(ch, pos) = obj;
   obj->worn_by = ch;
   obj->worn_on = pos;
@@ -2141,6 +2157,9 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   }
 
   affect_total(ch);
+
+  /* artifact: claim, bind, and apply level-scaled bonuses */
+  artifact_on_equip(ch, obj, pos);
 }
 
 struct obj_data *unequip_char(struct char_data *ch, int pos)
@@ -2155,6 +2174,10 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
   }
 
   obj = GET_EQ(ch, pos);
+
+  /* artifact: strip this artifact's affects before it leaves the slot */
+  artifact_on_unequip(ch, obj);
+
   obj->worn_by = NULL;
   obj->worn_on = -1;
 
@@ -2315,6 +2338,10 @@ void obj_to_room(struct obj_data *object, room_rnum room)
     world[room].contents = object;
     IN_ROOM(object) = room;
     object->carried_by = NULL;
+
+    /* artifact ownership tracking - an artifact set down is released */
+    artifact_obj_to_room(object);
+
     if (ROOM_FLAGGED(room, ROOM_HOUSE))
       SET_BIT_AR(ROOM_FLAGS(room), ROOM_HOUSE_CRASH);
 
@@ -2459,6 +2486,9 @@ void extract_obj(struct obj_data *obj)
   /* dummy check */
   if (!obj)
     return;
+
+  /* artifact: release ownership unless a player is merely renting out */
+  artifact_on_extract(obj);
 
   if (obj->worn_by != NULL)
     if (unequip_char(obj->worn_by, obj->worn_on) != obj)

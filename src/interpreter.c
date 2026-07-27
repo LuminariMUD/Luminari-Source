@@ -83,6 +83,7 @@
 #include "mysql.h"
 #include "mysql_boards.h"
 #include "bedit.h" /* MySQL board system */
+#include "world/spec_artifacts.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -212,6 +213,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"areas", "are", POS_DEAD, do_areas, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"artifact", "artifact", POS_RECLINING, do_artifact, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"assist", "as", POS_FIGHTING, do_assist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"assistblast",
      "assistblast",
@@ -1258,6 +1260,16 @@ cpp_extern const struct command_info cmd_info[] = {
     {"discord", "disc", POS_DEAD, do_discord, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"divineward",
+     "divineward",
+     POS_STANDING,
+     do_artifact_ability,
+     1,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
     {"dominate",
      "dominate",
      POS_FIGHTING,
@@ -1269,6 +1281,16 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      can_vampiric_dominate},
     {"donate", "don", POS_RECLINING, do_drop, 0, SCMD_DONATE, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"doomblast",
+     "doomblast",
+     POS_SITTING,
+     do_artifact_ability,
+     1,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
     {"doublemanifest",
      "doublemanifest",
      POS_FIGHTING,
@@ -3946,6 +3968,16 @@ cpp_extern const struct command_info cmd_info[] = {
     {"snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},
     // We want sortto before sortfrom intentionally
+    {"soulstrike",
+     "soulstrike",
+     POS_SITTING,
+     do_artifact_ability,
+     1,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
     {"sortto", "sort", POS_RECLINING, do_sort, 0, SCMD_SORTTO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sortfrom",
      "sortfrom",
@@ -4349,6 +4381,16 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"testartifact",
+     "testartifact",
+     POS_DEAD,
+     do_testartifact,
+     LVL_STAFF,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
     {"take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"tailspikes",
      "tailspikes",

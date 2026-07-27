@@ -693,6 +693,9 @@ setup_environment() {
     # Create text files
     create_text_files
 
+    # Install required artifact zone, object, room, mob, index, and help data.
+    "$PROJECT_ROOT/scripts/provision_artifacts.sh"
+
     # Create misc files
     create_misc_files
 

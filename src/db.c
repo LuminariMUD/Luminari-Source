@@ -39,6 +39,7 @@
 #include "shop.h"
 #include "quest.h"
 #include "ibt.h"
+#include "world/spec_artifacts.h"
 #include "mud_event.h"
 #include "ai_service.h"
 #include "class.h"
@@ -828,6 +829,10 @@ void destroy_db(void)
   struct char_data *chtmp = NULL;
   struct obj_data *objtmp = NULL;
 
+  /* Persist sub-threshold XP and other pending registry changes. */
+  artifact_save_if_dirty();
+  artifact_shutdown();
+
   /* Active Mobiles & Players */
   /* First pass: Clear all follower relationships without messages */
   for (chtmp = character_list; chtmp; chtmp = chtmp->next)
@@ -1322,6 +1327,9 @@ void boot_db(void)
     }
   }
 #endif
+
+  log("Initializing artifact system.");
+  artifact_boot();
 
   for (i = 0; i <= top_of_zone_table; i++)
   {
@@ -5134,6 +5142,14 @@ void reset_zone(zone_rnum zone)
         break;
       }
 
+      /* artifact single-instance guard: never respawn an artifact that is
+       * already owned or already has an instance in play */
+      if (artifact_block_zone_load(ZCMD.arg1))
+      {
+        push_result(0);
+        break;
+      }
+
       /* Check max existing and percentage */
       if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
@@ -5225,6 +5241,14 @@ void reset_zone(zone_rnum zone)
         break;
       }
 
+      /* artifact single-instance guard: never respawn an artifact that is
+       * already owned or already has an instance in play */
+      if (artifact_block_zone_load(ZCMD.arg1))
+      {
+        push_result(0);
+        break;
+      }
+
       if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
       {
@@ -5284,6 +5308,14 @@ void reset_zone(zone_rnum zone)
       {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'G' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
+        push_result(0);
+        break;
+      }
+
+      /* artifact single-instance guard: never respawn an artifact that is
+       * already owned or already has an instance in play */
+      if (artifact_block_zone_load(ZCMD.arg1))
+      {
         push_result(0);
         break;
       }
@@ -5389,6 +5421,14 @@ void reset_zone(zone_rnum zone)
       {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'E' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
+        push_result(0);
+        break;
+      }
+
+      /* artifact single-instance guard: never respawn an artifact that is
+       * already owned or already has an instance in play */
+      if (artifact_block_zone_load(ZCMD.arg1))
+      {
         push_result(0);
         break;
       }

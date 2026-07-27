@@ -190,6 +190,9 @@ mkdir -p lib/text/help lib/etc
 # Create help index
 echo '$' > lib/text/help/index
 
+# Install required artifact zone, object, room, mob, index, and help data.
+./scripts/provision_artifacts.sh
+
 # Create minimal config if it doesn't exist
 if [[ ! -f lib/etc/config ]]; then
     echo "# Minimal LuminariMUD config" > lib/etc/config

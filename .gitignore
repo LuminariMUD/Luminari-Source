@@ -284,10 +284,15 @@ lib/world/hlq/*.hlq
 # World Files (OLC)
 ####################
 # These are edited in-game via OLC and should not be in version control
+lib/world/artifacts/
 lib/world/mob/*.mob
 lib/world/obj/*.obj
 lib/world/wld/*.wld
 lib/world/zon/*.zon
+
+# artifact system runtime ownership state (generated, like player files)
+lib/world/world.artifact
+lib/world/world.artifact.tmp
 lib/world/shp/*.shp
 lib/world/trg/*.trg
 lib/world/qst/*.qst

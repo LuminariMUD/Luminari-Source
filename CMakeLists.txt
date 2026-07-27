@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5013 LANGUAGES C)
+project(LuminariMUD VERSION 2.5014 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -538,6 +538,7 @@ set(SRC_C_FILES
     src/spec_assign.c
     src/spec_procs.c
     src/specs.artifacts.c
+    src/world/spec_artifacts.c
     src/casting_visuals.c
     src/spell_parser.c
     src/spell_prep.c
@@ -775,6 +776,7 @@ option(BUILD_TESTS "Build unit tests (disabled - use Autotools make test)" OFF)
 # production-linked CuTest target is currently built through Autotools.
 set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_bounds_checking.c
+    unittests/CuTest/test_artifacts.c
     unittests/CuTest/test_player_rename.c
     unittests/CuTest/test.helpers.c
     unittests/CuTest/test.interpreter.c
@@ -797,6 +799,14 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
 
 # ========== Installation ==========
 install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
+install(CODE "
+    execute_process(
+        COMMAND \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/provision_artifacts.sh\"
+        RESULT_VARIABLE artifact_provision_result)
+    if (NOT artifact_provision_result EQUAL 0)
+        message(FATAL_ERROR \"Artifact world data provisioning failed\")
+    endif()
+")
 if (BUILD_UTILS)
     install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
                     rebuildMailIndex shopconv sign split wld2html
