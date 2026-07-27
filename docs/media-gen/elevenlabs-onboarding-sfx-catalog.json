@@ -1,0 +1,436 @@
+{
+  "packageId": "web-onboarding-sfx-v1",
+  "provider": "ElevenLabs Sound Effects",
+  "modelId": "eleven_text_to_sound_v2",
+  "outputFormat": "pcm_48000",
+  "promptInfluence": 0.45,
+  "cues": [
+    {
+      "id": "sfx/connection-start",
+      "title": "Connection Start",
+      "durationSeconds": 1.8,
+      "loop": false,
+      "prompt": "Short soft fantasy gateway energizing sound: low airy intake, subtle glass-and-stone resonance rising into a stable quiet pulse, calm and low urgency, clean attack and restrained tail, no alarm, voice, words, whisper, chant, singing, music, or melody"
+    },
+    {
+      "id": "sfx/connection-ready",
+      "title": "Connection Ready",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "prompt": "Short clean network-ready interface cue: two distinct warm glass resonance notes with a precise soft attack and quick resolved tail, informative but not celebratory, close and dry, no fanfare, voice, words, whisper, chant, singing, music, or extended melody"
+    },
+    {
+      "id": "sfx/connection-lost",
+      "title": "Connection Lost",
+      "durationSeconds": 1.5,
+      "loop": false,
+      "prompt": "Short gentle connection-lost cue: warm glass resonance softly descends and diffuses into air, readable but calm, stable restrained tail, no harsh buzz, alarm, destruction, voice, words, whisper, chant, singing, music, or melody"
+    },
+    {
+      "id": "sfx/reconnect-start",
+      "title": "Reconnect Start",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short re-forming interface pulse: two soft fragments of airy glass energy pull together into one compact neutral pulse, precise attack and quick tail, no alarm, voice, words, whisper, chant, singing, music, or melody"
+    },
+    {
+      "id": "sfx/reconnect-ready",
+      "title": "Reconnect Ready",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "prompt": "Short clean reconnection-ready cue: a variation of two warm glass resonance notes with a subtle returning air shimmer, precise and reassuring but not celebratory, no fanfare, voice, words, whisper, chant, singing, music, or extended melody"
+    },
+    {
+      "id": "sfx/terminal-fallback",
+      "title": "Terminal Fallback",
+      "durationSeconds": 1.6,
+      "loop": false,
+      "prompt": "Short interface transition from ornate frame to plain terminal: folded parchment and thin glass panels contract into a compact dry mechanical click, smooth controlled motion and restrained tail, no tearing, impact, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/button-primary",
+      "title": "Primary Button",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "prompt": "Very short firm quiet interface activation: precise muted brass-and-glass click with a warm compact body, close and dry, repeat-safe, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/button-secondary",
+      "title": "Secondary Button",
+      "durationSeconds": 0.6,
+      "loop": false,
+      "prompt": "Very short light interface activation: delicate wood-and-glass tap, softer and thinner than a primary action, close and dry, repeat-safe, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/card-focus",
+      "title": "Card Focus",
+      "durationSeconds": 0.5,
+      "loop": false,
+      "prompt": "Very short neutral keyboard focus tick: one precise soft crystalline transient, quiet, dry, unobtrusive, and highly repeat-safe, no voice, words, singing, music, melody, ringing sustain, or long tail"
+    },
+    {
+      "id": "sfx/card-select",
+      "title": "Card Select",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short clear card-selection interface cue: soft paper settle followed by a compact warm glass latch, confident but quiet, close and dry, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/card-deselect",
+      "title": "Card Deselect",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short soft card-deselection cue: compact glass latch gently releases with a slight paper lift, clear reversal without negative tone, close and dry, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/step-forward",
+      "title": "Step Forward",
+      "durationSeconds": 0.9,
+      "loop": false,
+      "prompt": "Short forward-step interface transition: one clean parchment page slides and settles with a subtle airy layer advance, left-to-right motion, quick controlled tail, no voice, words, singing, music, melody, or tearing"
+    },
+    {
+      "id": "sfx/step-back",
+      "title": "Step Back",
+      "durationSeconds": 0.9,
+      "loop": false,
+      "prompt": "Short backward-step interface transition: one clean parchment page lifts and slides back with a subtle reversed airy layer movement, right-to-left motion, quick controlled tail, no voice, words, singing, music, melody, or tearing"
+    },
+    {
+      "id": "sfx/panel-open",
+      "title": "Panel Open",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short quiet interface panel reveal: thin glass and parchment layer glides outward and settles with a soft frame click, smooth and restrained, no heavy door, voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/panel-close",
+      "title": "Panel Close",
+      "durationSeconds": 0.9,
+      "loop": false,
+      "prompt": "Short quiet interface panel dismissal: thin glass and parchment layer glides inward and closes with a muted frame click, smooth and restrained, no slam, voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/modal-open",
+      "title": "Modal Open",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short focused non-startling modal reveal: soft air hush narrows into a precise glass-frame placement, clear foreground focus with restrained tail, no boom, alarm, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/modal-close",
+      "title": "Modal Close",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short modal release: focused glass frame softly disengages into a brief outward air hush, gentle and final with a clean tail, no slam, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/toggle-on",
+      "title": "Toggle On",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "prompt": "Very short toggle-on latch: tiny refined brass mechanism clicks into place with one faint magical sparkle, precise and repeat-safe, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/toggle-off",
+      "title": "Toggle Off",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "prompt": "Very short matching toggle-off unlatch: tiny refined brass mechanism releases with a softer descending glass fleck, precise and repeat-safe, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/input-accepted",
+      "title": "Input Accepted",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short subtle server-confirmed acceptance cue: one soft dry glass tap followed by a tiny warm settling resonance, informative and restrained, no celebration, voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/input-invalid",
+      "title": "Input Invalid",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short gentle invalid-input cue: two soft dry wooden knocks with a muted low body, clear but nonpunitive and quiet, no harsh buzzer, alarm, voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/choice-locked",
+      "title": "Choice Locked",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short restrained sealed-lock cue: small brass clasp closes against thick parchment with a compact low resonance, firm but not threatening, no chains, alarm, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/server-busy",
+      "title": "Server Busy",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "prompt": "Short neutral wait cue: low soft glass pulse gently expands and returns without resolving as success or failure, calm and unobtrusive, no clock, alarm, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/save-pending",
+      "title": "Save Pending",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short forming-seal cue: warm wax compresses and a brass seal approaches but stops before the final stamp, clearly pending and unresolved, no success flourish, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/save-confirmed",
+      "title": "Save Confirmed",
+      "durationSeconds": 1.4,
+      "loop": false,
+      "prompt": "Short completed-save cue: warm wax seal presses firmly into parchment, lifts cleanly, and resolves with a restrained glass warmth, confident and calm, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/save-failed",
+      "title": "Save Failed",
+      "durationSeconds": 1.4,
+      "loop": false,
+      "prompt": "Short save-failed cue: brittle wax seal cracks lightly while the parchment remains intact, followed by a stable low neutral tail, clear failure without destruction, no alarm, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/private-input-enter",
+      "title": "Private Input Enter",
+      "durationSeconds": 0.9,
+      "loop": false,
+      "prompt": "Short optional private-input veil cue: soft cloth hush closes around a tiny glass point and settles quietly, discreet and nonthreatening, no typing, lock alarm, voice, words, whisper, singing, music, or melody"
+    },
+    {
+      "id": "sfx/private-input-exit",
+      "title": "Private Input Exit",
+      "durationSeconds": 0.9,
+      "loop": false,
+      "prompt": "Short matching private-input veil release: soft cloth hush opens away from a tiny glass point and disappears cleanly, discreet and calm, no typing, lock alarm, voice, words, whisper, singing, music, or melody"
+    },
+    {
+      "id": "sfx/login-confirmed",
+      "title": "Login Confirmed",
+      "durationSeconds": 1.5,
+      "loop": false,
+      "prompt": "Short account-login confirmation: ornate brass account seal unlocks and opens over thick parchment with a warm restrained glass release, secure and welcoming, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/new-account-confirmed",
+      "title": "New Account Confirmed",
+      "durationSeconds": 1.4,
+      "loop": false,
+      "prompt": "Short new-account confirmation: fresh warm wax receives one clean brass seal press on a heavy ledger page, crisp material detail and quiet resolve, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/lobby-reveal",
+      "title": "Lobby Reveal",
+      "durationSeconds": 1.8,
+      "loop": false,
+      "prompt": "Short character-archive reveal: refined wooden cabinet and layered parchment folios open smoothly with a subtle broad air release, warm and inviting, no crowd, voice, words, singing, music, melody, or heavy impact"
+    },
+    {
+      "id": "sfx/character-card-open",
+      "title": "Character Card Open",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "prompt": "Short character-folio open cue: leather cover releases, one thick parchment page opens, and a tiny brass clasp settles, intimate close detail, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/play-character",
+      "title": "Play Character",
+      "durationSeconds": 2,
+      "loop": false,
+      "prompt": "Short gateway-opening start cue: ancient stone mechanism engages, low air draws forward, and restrained glass energy begins to widen without completing the full transition, no alarm, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/create-character",
+      "title": "Create Character",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short create-character cue: a blank leather folio is placed gently on a wooden desk and opens to fresh parchment, tactile and welcoming, no writing, voice, words, singing, music, melody, or heavy impact"
+    },
+    {
+      "id": "sfx/account-capacity",
+      "title": "Account Capacity",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "prompt": "Short account-capacity warning: full wooden shelf gives one restrained solid knock and a heavy ledger clasp closes, clear limit without alarm or punishment, no voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/name-ink",
+      "title": "Name Ink",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short single name-submission stroke: one elegant quill writes a brief line in wet ink across parchment and lifts cleanly, close and dry, no repeated scribbling, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/name-sealed",
+      "title": "Name Sealed",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short name-confirmation seal: small warm wax drop and precise brass stamp settle onto a parchment nameplate with a clear compact resolve, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/identity-select",
+      "title": "Identity Select",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Short neutral identity-selection cue shared by all choices: two balanced glass tokens softly align with one subtle cloth movement, respectful and understated, no voice, words, singing, music, melody, or gender coding"
+    },
+    {
+      "id": "sfx/race-preview",
+      "title": "Race Preview",
+      "durationSeconds": 1.5,
+      "loop": false,
+      "prompt": "Short origin-preview reveal: gentle broad air swell lifts fine stone dust and reveals a warm neutral crystalline texture, curious and culturally neutral, no fanfare, voice, words, whisper, singing, music, or melody"
+    },
+    {
+      "id": "sfx/race-confirmed",
+      "title": "Race Confirmed",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short origin-confirmation cue: carved stone emblem fits into a parchment summary frame with a refined brass latch and quiet warm resolve, no impact, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/class-preview",
+      "title": "Class Preview",
+      "durationSeconds": 1.5,
+      "loop": false,
+      "prompt": "Short path-preview reveal distinct from an origin cue: layered leather, steel, and page textures unfold with a narrow focused glass shimmer, purposeful but neutral, no combat, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/class-confirmed",
+      "title": "Class Confirmed",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short class-confirmation cue: refined metal emblem seats into a leather-and-parchment summary with one firm compact latch, purposeful and restrained, no weapon strike, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/build-premade",
+      "title": "Premade Build",
+      "durationSeconds": 1.3,
+      "loop": false,
+      "prompt": "Short guided-build assembly: several small brass tokens and parchment tabs align smoothly into one clear ordered path, efficient and reassuring, no machinery loop, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/build-custom",
+      "title": "Custom Build",
+      "durationSeconds": 1.3,
+      "loop": false,
+      "prompt": "Short custom-build reveal: compact brass drafting tools and branching parchment tabs unfold into several clean options, curious and flexible, no clutter, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/alignment-move",
+      "title": "Alignment Move",
+      "durationSeconds": 0.8,
+      "loop": false,
+      "prompt": "Very short compass movement between valid positions: fine brass pointer glides across one notch and settles with a quiet glass tick, neutral and repeat-safe, no voice, words, singing, music, melody, or long tail"
+    },
+    {
+      "id": "sfx/alignment-confirmed",
+      "title": "Alignment Confirmed",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short alignment confirmation: brass compass ring settles into one position and a balanced wax seal closes with gentle stone resonance, morally neutral, no judgmental tone, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/preferences-applied",
+      "title": "Preferences Applied",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short preferences-applied cue: grouped parchment tabs gather neatly and a slim folio closes with one soft brass clasp, clean and efficient, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/roleplay-choice",
+      "title": "Roleplay Choice",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "prompt": "Short roleplay-path choice cue: journal opens to one bookmarked page and the cloth ribbon settles, intimate and optional with warm paper detail, no writing, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/onboarding-handoff",
+      "title": "Onboarding Handoff",
+      "durationSeconds": 2.4,
+      "loop": false,
+      "prompt": "Short server-confirmed onboarding handoff accent: ancient gateway stone unlocks, warm air opens forward, and crystalline energy resolves into a clear threshold, uplifting but restrained, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/editor-open",
+      "title": "Editor Open",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short journal-editor open cue: leather cover releases and one clean parchment page opens with a soft ribbon movement, close and intimate, no writing, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/editor-saved",
+      "title": "Editor Saved",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short editor-save cue: fresh ink settles and dries on parchment, followed by a gentle small page seal, calm and confirmed, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/example-generated",
+      "title": "Example Generated",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short generated-example cue: a few small wooden dice and paper note cards shuffle once and settle neatly on a desk, playful but quiet, no spoken line, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/background-confirmed",
+      "title": "Background Confirmed",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short background confirmation: carved emblem stamps firmly into a thick character folio page with a muted warm paper-and-wood resolve, no fanfare, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/age-confirmed",
+      "title": "Age Confirmed",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short age-band confirmation: layered brass life-stage ring rotates one measured step and settles with a soft neutral click, respectful and calm, no clock ticking, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/region-preview",
+      "title": "Region Preview",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short region-preview cue: folded cloth-and-parchment map opens smoothly and one small marker glides across it, exploratory and restrained, no footsteps, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/region-confirmed",
+      "title": "Region Confirmed",
+      "durationSeconds": 0.9,
+      "loop": false,
+      "prompt": "Short region confirmation: small brass map pin presses into layered parchment with one clear soft placement and stable quiet tail, no impact, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/faction-preview",
+      "title": "Faction Preview",
+      "durationSeconds": 1.3,
+      "loop": false,
+      "prompt": "Short faction-preview cue: restrained woven banner unfurls once in gentle indoor air and its small brass fitting settles, dignified and neutral, no crowd, voice, words, chant, singing, music, or melody"
+    },
+    {
+      "id": "sfx/faction-confirmed",
+      "title": "Faction Confirmed",
+      "durationSeconds": 1,
+      "loop": false,
+      "prompt": "Short faction confirmation: refined metal crest affixes to woven cloth and parchment with one clean compact clasp, dignified and restrained, no crowd, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/hometown-confirmed",
+      "title": "Hometown Confirmed",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short hometown confirmation: warm wooden map marker and a small old key settle together on parchment with a gentle home-like resolve, no door, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/deity-preview",
+      "title": "Deity Preview",
+      "durationSeconds": 1.3,
+      "loop": false,
+      "prompt": "Short deity-preview shrine-light reveal: soft warm air and a restrained glass radiance bloom around stone, reverent but religiously neutral, no bell, chant, whisper, prayer, voice, words, singing, music, or melody"
+    },
+    {
+      "id": "sfx/deity-confirmed",
+      "title": "Deity Confirmed",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "prompt": "Short deity confirmation: neutral carved holy-symbol seal settles into wax and stone with a restrained warm radiance, reverent and quiet, no bell, chant, whisper, prayer, voice, words, singing, music, or melody"
+    }
+  ]
+}

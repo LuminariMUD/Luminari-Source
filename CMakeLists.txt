@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5020 LANGUAGES C)
+project(LuminariMUD VERSION 2.5021 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)

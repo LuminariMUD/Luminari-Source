@@ -21,6 +21,7 @@ deleted.
 | [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dg_event.c` and `src/mud_event.c` still exist separately. |
 | [cbuild-issues.md](cbuild-issues.md) | Partial | CMake build report. Errors are resolved; 76 format warnings remain (plus ~8000 clang-tidy findings tracked separately). |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Player and staff feature suggestions gathered in-game. Not a plan - a source of candidates. |
+| [WEB_ACCOUNT_CHARACTER_CREATION_EXPERIENCE.md](WEB_ACCOUNT_CHARACTER_CREATION_EXPERIENCE.md) | Discovery | Cross-repository scope for secure web account login, an account lobby, and a motion-rich server-authoritative character creator. |
 
 Vessel work lives in [../vessels/VESSEL_PRD_FINAL.md](../vessels/VESSEL_PRD_FINAL.md),
 which carries its own Remaining Work section.
