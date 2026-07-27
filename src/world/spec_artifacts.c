@@ -2,10 +2,9 @@
  *  File: spec_artifacts.c                            Part of LuminariMUD
  *  Usage: Artifact system - unique, single-instance items of power.
  *
- *  Ported and modernized from the RealmsOfLuminari artifact system.  The
- *  full feature-by-feature mapping, every deviation, and every upstream
- *  defect fixed here is recorded in
- *    docs/project-management-zusuk/ongoing-projects/artifacts.md
+ *  Ported and modernized from the RealmsOfLuminari artifact system.  Current
+ *  behavior, integration, and deliberate deviations are documented in
+ *    docs/systems/ARTIFACT_SYSTEM.md
  *
  *  Design notes:
  *
@@ -26,8 +25,8 @@
  *     and are ignored.
  *
  *  4. Boss multipliers.  ROL keyed bonus XP off an ACT_BOSS mob flag that
- *     LuminariMUD does not have.  Kill XP scales with the victim's level
- *     instead.
+ *     LuminariMUD does not have.  Here an NPC three or more levels above the
+ *     attacker is boss-tier; base kill XP also scales with victim level.
  *************************************************************************** */
 
 #include "conf.h"

@@ -4,10 +4,9 @@
  *         track persistent ownership, gain levels through use, bind to their
  *         owners, and carry procs and active abilities.
  *
- *  Ported and modernized from the RealmsOfLuminari artifact system.  The
- *  full feature-by-feature mapping, including every deviation and every
- *  upstream defect fixed here, is recorded in
- *    docs/project-management-zusuk/ongoing-projects/artifacts.md
+ *  Ported and modernized from the RealmsOfLuminari artifact system.  Current
+ *  behavior, integration, and deliberate deviations are documented in
+ *    docs/systems/ARTIFACT_SYSTEM.md
  *************************************************************************** */
 
 #ifndef _SPEC_ARTIFACTS_H_

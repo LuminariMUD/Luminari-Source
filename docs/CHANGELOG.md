@@ -1,5 +1,153 @@
 # Changelog
 
+## [Unreleased] - July 27, 2026
+
+### Artifact System - persistent unique items and content layer
+
+Introduced a native LuminariMUD artifact system and completed the
+RealmsOfLuminari content port. The permanent behavior and operations reference
+is `docs/systems/ARTIFACT_SYSTEM.md`; unfinished deployment, placement,
+integration-test, balance, cooldown-persistence, validation, and runtime
+hardening work is tracked in
+`docs/project-management-zusuk/ongoing-projects/artifacts.md`.
+
+#### Added
+
+- **Compile-time artifact registry** for eleven unique items in reserved zone
+  1699. Membership is a successful VNUM lookup in a boot-sorted registry, so
+  object identity and artifact data cannot drift between separate indexes.
+- **Persistent ownership and progression** in
+  `lib/world/world.artifact`. The v2.2 writer records owner, account, level,
+  cumulative XP, bind time, and durable-instance state through a temporary
+  file plus atomic rename. The loader retains explicit compatibility with ROL
+  v1/v2.0 and LuminariMUD v2.1 records.
+- **Complete object-lifecycle integration** for direct and recursively nested
+  artifacts: acquisition, release, room placement, equip, unequip, player
+  save extraction, actual destruction, reload reassociation, and house
+  storage. Bound items retain their owner when dropped, while unbound items
+  return to circulation.
+- **Single-instance enforcement** on all four object-loading zone reset
+  commands (`O`, `P`, `G`, and `E`). Live instances and durably stored owned
+  instances block respawn; a bound artifact lost in an ordinary room remains
+  recoverable after reboot.
+- **Four binding modes**: unbound, bind on pickup, bind on equip, and bind on
+  account. Account binding uses the real account identity, and staff at
+  `LVL_IMMORT` or above can bypass binding for operations and testing.
+- **Level-scaled equipment bonuses** for all six ability scores, hit roll, damage
+  roll, AC, hit points, PSP, and movement. Artifact affects are source-tagged
+  so removing one item cannot strip another artifact's bonuses.
+- **Highest-only artifact resistance** for physical, magical, and elemental
+  damage categories.
+- **Five-level progression** with cumulative thresholds of 100, 300, 600,
+  and 1000 XP. XP comes from first equip, NPC hits and kills, critical and
+  boss-tier combat, procs, abilities, and called effects. Generic combat XP
+  lands on one random equipped artifact rather than multiplying across every
+  item worn.
+- **Player interface**:
+  `artifact [list|info <item>|progress|abilities|help]`, including generated
+  bonuses, ownership, binding, oath, active ability, called phrase, cooldown,
+  and progression output.
+- **Three active abilities** with PSP costs and cooldowns:
+  `soulstrike` from Kelrarin's Hammer, `divineward` from Amaukekel, and
+  `doomblast` from Doombringer. Hostile selection uses the existing
+  `aoeOK()` gate, and Doom Blast does not spend resources when no valid target
+  exists.
+- **Generic artifact weapon procs** for soul damage, self-healing, fear,
+  doom damage, and a level-5 NPC execute, protected by a real 30-second
+  per-artifact internal cooldown.
+- **Five signature weapon procedures**:
+  Trorxek's critical-hit blindness; Kelrarin's returning lifesteal throw and
+  alignment-gated mega blast; Kelrom's animal taboo and group healback;
+  Gesen's returning Harm strike; and Avernus's emergency full heal.
+- **Eighteen speech-invoked effects** across Trorxek, Amaukekel, Fade, the
+  Horn of Henekar, and Doombringer. `say` input is normalized for case,
+  whitespace, and common trailing sentence punctuation; each effect has an
+  independent one-hour through one-week recharge stamp.
+- **Native equivalents for upstream content** including Oaken Defender
+  summoning, creeping doom, recall, guarded travel-to-player, and a
+  group-recall path; resurrection, dispel evil, blindness, darkness,
+  enfeeblement, room
+  pacification, capped NPC charm, room annihilation, black lightning, and
+  rage.
+- **Class oaths** requiring ten Druid, Cleric, Rogue, or Warrior levels for
+  five artifacts. A mismatched wearer takes one `5d4` fire burn per update
+  and cannot invoke or identify called effects.
+- **Staff operations** through
+  `testartifact <status|verify|save|reload|spawn|list|reset>`, including
+  owned/dropped/unowned reporting, live location, duplicate detection,
+  registry memory accounting, and targeted ownership reset.
+- **Artifact deployment tooling** through the idempotent
+  `scripts/provision_artifacts.sh`, called by setup and deployment, plus the
+  reserved Vault of Ages room, eleven object records, artifact help, and
+  Oaken Defender package contract. The source package is currently ignored
+  by Git and remains an explicit follow-up before clean-clone deployment.
+- **Production-linked regression coverage** in
+  `unittests/CuTest/test_artifacts.c`. The file now contains 45 artifact test
+  functions, including 15 added for the content layer, recharge behavior,
+  speech refusal paths, oath checks, dropped-state accounting, critical XP,
+  and one-recipient generic combat XP.
+
+#### Changed
+
+- Threaded critical-hit state and triggering damage from
+  `handle_successful_attack()` into artifact combat and signature-proc paths.
+- Defined boss-tier artifact XP as an NPC at least three levels above its
+  attacker, activating the existing x2 hit and x3 kill multipliers while
+  retaining level-scaled base kill XP.
+- Hooked called effects into ordinary `say` processing and oath burns into
+  `point_update()`.
+- Rebuilt the upstream special-procedure content as a data-driven called
+  effect table plus explicit signature-proc dispatch, without importing its
+  incompatible `SPECIAL()` event framework.
+- Replaced the upstream `obj->cost = -1` temporary-copy marker with an
+  explicit player-save extraction scope and a locationless-clone guard.
+- Removed the disabled, non-building
+  `src/specs.artifacts.c`/`src/specs.artifacts.h` upstream paste and removed
+  its source entry from both Autotools and CMake. All live behavior resides
+  in `src/world/spec_artifacts.c`.
+- Consolidated enduring design, gameplay, persistence, deployment,
+  operations, extension, and testing details in
+  `docs/systems/ARTIFACT_SYSTEM.md`. The developer workspace file now contains
+  unfinished work only.
+- Versioned the initial persistent system at 2.5014-beta and the completed
+  content layer at 2.5016-beta, synchronizing CMake, Autotools, the runtime
+  version string, and README at each step.
+
+#### Fixed
+
+- Bound artifacts no longer rewrite their owner when another character picks
+  them up, closing a complete binding bypass.
+- Bind-on-account artifacts now set their bind timestamp on first wear.
+- Removing one artifact strips only that artifact's affects; it no longer
+  removes every `SPELL_ARTIFACT_BONUS` affect.
+- Level-up reapplies bonuses immediately instead of waiting for re-equip.
+- The generic proc internal cooldown is read and enforced, rather than merely
+  written.
+- Ability costs come from the artifact template and display correctly in
+  `artifact info`.
+- A single whole-file writer replaces incompatible fixed-position and
+  whole-file persistence paths.
+- Generic hit and kill XP no longer multiplies across all equipped artifacts.
+- Critical-hit and boss-tier XP constants are now connected to combat.
+- Class restrictions use one shared reachable gate rather than the
+  unreachable per-procedure path in the upstream implementation.
+- Oaken Defender summoning uses a dedicated local prototype instead of an
+  unreachable branch and campaign-dependent VNUM.
+- Artifact help entry terminators use `#0`, eliminating help-loader minimum
+  level errors on the machines carrying the world package.
+- Dropped-state scanning uses a separate container cursor and no longer
+  corrupts the outer `object_list` traversal.
+
+#### Verification
+
+- Clean GNU C23 build with no new compiler warnings.
+- Production-linked CuTest suite: 133/133 passing.
+- `make install` updated `bin/circle` and removed the root-level server
+  artifact.
+- Boot verification initialized all eleven artifacts, loaded v2.2 state,
+  reset zone 1699 without artifact `SYSERR` output, and confirmed Oaken
+  Defender prototype loading.
+
 ## [Unreleased] - July 26, 2026
 
 ### Documentation - Zusuk workspace audit

@@ -1,6 +1,6 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2025-12-30
+Last Updated: 2026-07-27
 Version: 1.1
 
 ## 📚 Documentation Overview
@@ -67,6 +67,9 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
 
 ### Advanced Systems
+- **[ARTIFACT_SYSTEM.md](systems/ARTIFACT_SYSTEM.md)** - Unique artifact
+  registry, ownership, binding, progression, powers, persistence, deployment,
+  and staff operations
 - **[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
 - **[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks, memory attribution, and stress test results
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
@@ -150,7 +153,12 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
-- **[Zusuk ongoing projects](project-management-zusuk/ongoing-projects/)** - Active work: AI conversation history, SKORE phases 3-4, protocol security, event-system merge, CMake warnings, idea backlog
+- **[Zusuk ongoing projects](project-management-zusuk/ongoing-projects/)** -
+  Active work: artifact follow-ups, AI conversation history, SKORE phases 3-4,
+  protocol security, event-system merge, CMake warnings, and idea backlog
+- **[artifacts.md](project-management-zusuk/ongoing-projects/artifacts.md)** -
+  Artifact deployment, placement, integration, balance, cooldown persistence,
+  validation, group recall, and staff-tool follow-ups
 - **[VESSEL_PRD_FINAL.md](project-management-zusuk/vessels/VESSEL_PRD_FINAL.md)** - Vessel system requirements and remaining work
 - **[AI_TODO_IDEAS.md](project-management-zusuk/ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
 - **[DO_SKORE_PROJECT.md](project-management-zusuk/ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
