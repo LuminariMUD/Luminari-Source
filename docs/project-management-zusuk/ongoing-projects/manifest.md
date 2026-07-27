@@ -1,10 +1,35 @@
 # Web Account and Character Creation Media Manifest
 
-**Status:** Production checklist
-**Date:** 2026-07-27
+**Status:** Production checklist - in delivery
+**Date:** 2026-07-28
 **Campaign baseline:** Default Luminari campaign
 **Companion scope:**
 [WEB_ACCOUNT_CHARACTER_CREATION_EXPERIENCE.md](WEB_ACCOUNT_CHARACTER_CREATION_EXPERIENCE.md)
+
+## Delivery Status (2026-07-28)
+
+The web client now has a working media pipeline, a versioned media manifest,
+and a structured onboarding experience that consumes both. Assets are picked up
+automatically as they are produced.
+
+| Area | State |
+|------|-------|
+| Pipeline | `luminariweb/scripts/process-onboarding-media.mjs` converts `assets-unprocessed/` into `public/media/onboarding/v1/` and regenerates `src/features/onboarding/generated-media-manifest.json`. Idempotent; safe to re-run while art is still being produced. |
+| Environment scenes | 9 of 9 composites delivered and published. Separate far/mid/fore/overlay layer masters are still outstanding; the client currently animates the composite plus shared particle layers. |
+| Race art | Arriving. Delivered keys publish automatically; undelivered keys fall back to `race/fallback` and then to a labelled monogram frame. |
+| Class art | `class/fallback` delivered; individual class packs outstanding. |
+| Generic fallbacks | All eight delivered and wired. |
+| Shared textures, motion layers, glyph sets | 6 textures, 6 motion sources, 5 glyph sets (33 SVGs) delivered with CC0/CC BY provenance. Attribution is generated to `public/media/onboarding/v1/ATTRIBUTION.md`. |
+| Account, identity, build, preference, role-play, state art | Partially delivered; see the checklists below. |
+| Sound effects | 61 of 61 delivered, published as Opus plus MP3. |
+| Music | 8 of 8 delivered. |
+| Ambience | 8 of 8 delivered. |
+| Budgets | Enforced automatically. Oversized audio is re-encoded from its lossless master until it fits; a regression test asserts every published file against the budgets in this document. |
+| Alt text | Authored for every delivered asset and pre-authored for the full race and class catalog, so new art is accessible the moment it lands. The pipeline reports any asset still missing alt text. |
+
+Downstream gates that remain human responsibilities: creative listening and
+viewing approval, originality and similarity review, licensing sign-off, canon
+approval for the flagged ancestries, and final release approval.
 
 ## Purpose
 
@@ -290,25 +315,25 @@ known factions have art.
 These must tile cleanly or have sufficiently large masters to avoid visible
 repetition.
 
-- [ ] `shared/texture-parchment` - Low-contrast writing-panel texture.
-- [ ] `shared/texture-dark-stone` - Lobby and modal frame texture.
-- [ ] `shared/texture-brushed-metal` - Class and build accent texture.
-- [ ] `shared/texture-woven-cloth` - Banner and faction-card texture.
-- [ ] `shared/texture-aged-map` - Region and hometown map texture.
-- [ ] `shared/texture-arcane-glass` - Translucent magical panel treatment.
+- [x] `shared/texture-parchment` - Low-contrast writing-panel texture.
+- [x] `shared/texture-dark-stone` - Lobby and modal frame texture.
+- [x] `shared/texture-brushed-metal` - Class and build accent texture.
+- [x] `shared/texture-woven-cloth` - Banner and faction-card texture.
+- [x] `shared/texture-aged-map` - Region and hometown map texture.
+- [x] `shared/texture-arcane-glass` - Translucent magical panel treatment.
 - [ ] `shared/frame-ornament` - Scalable corner and divider ornaments in SVG.
 - [ ] `shared/card-rune-border` - Selectable, selected, locked, and error border
       states in SVG.
 
 ### 4. Reusable still layers for client-driven motion
 
-- [ ] `shared/motes-dust` - Transparent dust/mote sprite atlas.
+- [x] `shared/motes-dust` - Transparent dust/mote sprite atlas.
 - [x] `shared/motes-arcane` - Transparent arcane-light sprite atlas.
-- [ ] `shared/embers` - Transparent ember sprite atlas.
-- [ ] `shared/stars` - Sparse transparent star field.
-- [ ] `shared/fog-far` - Seamless low-frequency fog layer.
-- [ ] `shared/fog-near` - Seamless foreground fog layer.
-- [ ] `shared/light-rays` - Soft transparent light-ray overlay.
+- [x] `shared/embers` - Transparent ember sprite atlas.
+- [x] `shared/stars` - Sparse transparent star field.
+- [x] `shared/fog-far` - Seamless low-frequency fog layer.
+- [x] `shared/fog-near` - Seamless foreground fog layer.
+- [x] `shared/light-rays` - Soft transparent light-ray overlay.
 - [ ] `shared/rune-ring` - Separate concentric SVG rune rings for rotation.
 - [x] `shared/ink-bloom` - Still transparent ink shapes for reveal masks.
 
@@ -318,15 +343,15 @@ the shared layers above.
 
 ### 5. Functional SVG glyph sets
 
-- [ ] `shared/glyph-abilities` - Strength, Dexterity, Constitution,
+- [x] `shared/glyph-abilities` - Strength, Dexterity, Constitution,
       Intelligence, Wisdom, and Charisma.
-- [ ] `shared/glyph-class-mechanics` - Hit die, base attack bonus, Fortitude,
+- [x] `shared/glyph-class-mechanics` - Hit die, base attack bonus, Fortitude,
       Reflex, Will, skills, spellcasting, armor, and primary attributes.
-- [ ] `shared/glyph-race-traits` - Size, ability modifier, level adjustment,
+- [x] `shared/glyph-race-traits` - Size, ability modifier, level adjustment,
       racial feature, language, alignment restriction, and unlock cost.
-- [ ] `shared/glyph-session-state` - Network connected, authenticated account,
+- [x] `shared/glyph-session-state` - Network connected, authenticated account,
       selected character, incomplete onboarding, and playing.
-- [ ] `shared/glyph-audio-controls` - Muted, unmuted, music, ambience, sound
+- [x] `shared/glyph-audio-controls` - Muted, unmuted, music, ambience, sound
       effects, and volume.
 
 Every glyph needs an accessible text label in the interface. The image alone
@@ -369,26 +394,26 @@ Each entry is a complete scene pack as defined above.
 - [x] `account/empty-lobby` - Empty display plinth inviting the first character.
 - [x] `account/full-lobby` - Full archive shelf or completed roster; warning,
       not celebration.
-- [ ] `account/link-character` - Two linked seals for the advanced legacy
+- [x] `account/link-character` - Two linked seals for the advanced legacy
       character-link flow.
-- [ ] `account/character-card-frame` - Responsive decorative frame that can
+- [x] `account/character-card-frame` - Responsive decorative frame that can
       combine race key art, a class emblem, name, level, and status.
-- [ ] `account/private-input` - Veil or closed-eye emblem for password mode;
+- [x] `account/private-input` - Veil or closed-eye emblem for password mode;
       decorative support only, never the sole indication of sensitive input.
-- [ ] `account/motd-frame` - Quiet responsive frame for live MOTD text; contains
+- [x] `account/motd-frame` - Quiet responsive frame for live MOTD text; contains
       no rasterized message text.
-- [ ] `account/selected-character-menu` - Detailed character folio frame for
+- [x] `account/selected-character-menu` - Detailed character folio frame for
       Play and current character-menu actions.
 
 ### 8. Name and sex-choice images
 
-- [ ] `identity/name` - Blank nameplate, quill, and wax seal; no pre-rendered
+- [x] `identity/name` - Blank nameplate, quill, and wax seal; no pre-rendered
       example name in the raster image.
-- [ ] `identity/name-confirmed` - Sealed nameplate for server-confirmed
+- [x] `identity/name-confirmed` - Sealed nameplate for server-confirmed
       acceptance.
-- [ ] `identity/sex-male` - Respectful, abstract male identity emblem and card
+- [x] `identity/sex-male` - Respectful, abstract male identity emblem and card
       vignette; does not imply race, class, build, or body type.
-- [ ] `identity/sex-female` - Respectful, abstract female identity emblem and
+- [x] `identity/sex-female` - Respectful, abstract female identity emblem and
       card vignette; does not imply race, class, build, or body type.
 
 The current server exposes only male and female at this step. The art manifest
@@ -406,39 +431,39 @@ traits supported by that evidence; and otherwise use `race/fallback`. Missing
 canon is an evidence condition with a deterministic fallback, never a human
 approval gate.
 
-- [ ] `race/human` - Human; adaptable adventuring ensemble with mixed callings
+- [x] `race/human` - Human; adaptable adventuring ensemble with mixed callings
       and an Ashenport-world connection.
-- [ ] `race/moon-elf` - Moon Elf; lunar, contemplative, and distinct from the
+- [x] `race/moon-elf` - Moon Elf; lunar, contemplative, and distinct from the
       High Elf and Wild Elf visual languages.
-- [ ] `race/mountain-dwarf` - Mountain Dwarf; enduring mountain craft and
+- [x] `race/mountain-dwarf` - Mountain Dwarf; enduring mountain craft and
       defensive strength.
-- [ ] `race/half-troll` - Half Troll; powerful mixed heritage presented as a
+- [x] `race/half-troll` - Half Troll; powerful mixed heritage presented as a
       person, not a mindless monster.
-- [ ] `race/crystal-dwarf` - Crystal Dwarf; epic crystalline craft and mineral
+- [x] `race/crystal-dwarf` - Crystal Dwarf; epic crystalline craft and mineral
       light. Use evidence-bound mineral features or `race/fallback` when the
       repository does not define an appearance.
-- [ ] `race/lightfoot-halfling` - Lightfoot Halfling; agile traveler, warmth,
+- [x] `race/lightfoot-halfling` - Lightfoot Halfling; agile traveler, warmth,
       and curiosity.
-- [ ] `race/half-elf` - Half Elf; blended heritage without visually reducing
+- [x] `race/half-elf` - Half Elf; blended heritage without visually reducing
       the character to either parent ancestry.
-- [ ] `race/half-orc` - Half Orc; resilient adventurer without automatic savage
+- [x] `race/half-orc` - Half Orc; resilient adventurer without automatic savage
       or villain framing.
-- [ ] `race/rock-gnome` - Rock Gnome; craft, curiosity, and practical invention.
-- [ ] `race/trelux` - Trelux; epic ancestry. A canon silhouette, anatomy,
+- [x] `race/rock-gnome` - Rock Gnome; craft, curiosity, and practical invention.
+- [x] `race/trelux` - Trelux; epic ancestry. A canon silhouette, anatomy,
       material, palette, and cultural treatment must be derived from repository
       evidence; otherwise use `race/fallback`.
-- [ ] `race/arcana-golem` - Arcana Golem; constructed arcane personhood, visible
+- [x] `race/arcana-golem` - Arcana Golem; constructed arcane personhood, visible
       magical structure, and no generic robot shorthand. Use only
       repository-supported structure or `race/fallback`.
-- [ ] `race/drow` - Drow; subterranean elven identity without automatic villain
+- [x] `race/drow` - Drow; subterranean elven identity without automatic villain
       framing.
-- [ ] `race/duergar` - Duergar; subterranean dwarven identity, austere craft,
+- [x] `race/duergar` - Duergar; subterranean dwarven identity, austere craft,
       and distinct silhouette from Mountain and Gold Dwarves.
-- [ ] `race/high-elf` - High Elf; refined arcane or civic tradition distinct
+- [x] `race/high-elf` - High Elf; refined arcane or civic tradition distinct
       from Moon and Wild Elves.
-- [ ] `race/wild-elf` - Wild Elf; woodland movement and self-reliance without
+- [x] `race/wild-elf` - Wild Elf; woodland movement and self-reliance without
       primitive caricature.
-- [ ] `race/half-drow` - Half Drow; mixed heritage with a distinct identity and
+- [x] `race/half-drow` - Half Drow; mixed heritage with a distinct identity and
       without automatic villain framing.
 - [ ] `race/dragonborn` - Dragonborn; draconic ancestry and heroic personhood;
       derive scale, horn, and color range from repository evidence and fall
@@ -738,21 +763,21 @@ All music is instrumental, has no spoken or sung words, starts only after
 explicit player opt-in, and is muted by default. Do not create one track per
 race or class. Shared cues keep the download and composition scope bounded.
 
-- [ ] `music/arrival-theme` - 90 to 120 second seamless loop; restrained main
+- [x] `music/arrival-theme` - 90 to 120 second seamless loop; restrained main
       Luminari motif, mystery, distance, and welcome. No bombastic combat tone.
-- [ ] `music/account-lobby` - 90 to 120 second seamless loop; warm archive or
+- [x] `music/account-lobby` - 90 to 120 second seamless loop; warm archive or
       hearth arrangement with room for repeated listening.
-- [ ] `music/identity` - 75 to 105 second seamless loop; sparse quill, memory,
+- [x] `music/identity` - 75 to 105 second seamless loop; sparse quill, memory,
       and first-step mood for name and sex selection.
-- [ ] `music/origins` - 120 to 150 second seamless loop; broad, culturally
+- [x] `music/origins` - 120 to 150 second seamless loop; broad, culturally
       neutral sense of ancestry and discovery for the race gallery.
-- [ ] `music/paths` - 120 to 150 second seamless loop; purposeful rhythm and
+- [x] `music/paths` - 120 to 150 second seamless loop; purposeful rhythm and
       restrained magical/martial color for the class gallery.
-- [ ] `music/loom` - 90 to 120 second seamless loop; measured pattern and moral
+- [x] `music/loom` - 90 to 120 second seamless loop; measured pattern and moral
       tension for build, alignment, and final core summary.
-- [ ] `music/roleplay` - 120 to 180 second seamless loop; intimate, low-density
+- [x] `music/roleplay` - 120 to 180 second seamless loop; intimate, low-density
       writing music for profile editors and catalog choices.
-- [ ] `music/handoff` - 45 to 75 second non-looping transition cue with a
+- [x] `music/handoff` - 45 to 75 second non-looping transition cue with a
       loop-safe tail; resolves the motif only after save confirmation.
 
 ### Music implementation and QA
@@ -772,20 +797,20 @@ race or class. Shared cues keep the download and composition scope bounded.
 Ambience is categorized as sound effects, not music. Every loop must be
 voice-free: no intelligible crowds, tavern speech, chants, whispers, or calls.
 
-- [ ] `ambience/arrival-harbor` - Soft wind, distant water, rigging, and
+- [x] `ambience/arrival-harbor` - Soft wind, distant water, rigging, and
       occasional wood movement; no sailors or crowd voices.
-- [ ] `ambience/auth-gatehouse` - Sheltered wind, low room tone, and distant
+- [x] `ambience/auth-gatehouse` - Sheltered wind, low room tone, and distant
       mechanical gate resonance.
-- [ ] `ambience/account-lobby` - Hearth, subtle timber, and page movement; no
+- [x] `ambience/account-lobby` - Hearth, subtle timber, and page movement; no
       tavern or guild voices.
-- [ ] `ambience/identity-scriptorium` - Lamp, paper, and quiet room tone.
-- [ ] `ambience/race-gallery` - Spacious hall tone, restrained magical motes,
+- [x] `ambience/identity-scriptorium` - Lamp, paper, and quiet room tone.
+- [x] `ambience/race-gallery` - Spacious hall tone, restrained magical motes,
       and air movement.
-- [ ] `ambience/class-gallery` - Distant forge, page, leather, and magical-room
+- [x] `ambience/class-gallery` - Distant forge, page, leather, and magical-room
       textures kept abstract and balanced.
-- [ ] `ambience/loom-chamber` - Low magical resonance, thread tension, and
+- [x] `ambience/loom-chamber` - Low magical resonance, thread tension, and
       subtle stone movement.
-- [ ] `ambience/roleplay-room` - Hearth, quill, paper, map, and quiet rain or
+- [x] `ambience/roleplay-room` - Hearth, quill, paper, map, and quiet rain or
       wind without voices.
 
 ### Ambience implementation and QA
@@ -798,6 +823,61 @@ voice-free: no intelligible crowds, tavern speech, chants, whispers, or calls.
 - [ ] Scene changes cross-fade; loops never stack after reconnect.
 - [ ] Ambience pauses in background tabs.
 - [ ] No ambience cue resembles a server warning or validation sound.
+
+## Generated Music and Ambience Delivery
+
+**Generated:** 2026-07-27
+**Source session:** `onboarding-audio-2026-07-27T20-39-14-892Z`
+**Provider:** MusicAPI.ai Sonic using the Suno generator
+**Model:** `sonic-v5-5`
+**Delivery:** `/home/aiwithapex/projects/luminariweb/assets-unprocessed/onboarding-audio-v1`
+**Provenance:** `onboarding-audio-v1/provenance.json`
+**Provenance SHA-256:** `54c4d51208aed4a1d04db52aa9c14221b6bb3b69b31429c33399094bc310bc33`
+
+The source session completed 16 generation tasks and 16 selected-source WAV
+requests, consuming 256 provider credits. It produced all 8 music cues and all
+8 ambience loops in this manifest. No interface or state sound-effect cue was
+generated.
+
+Each delivered asset package contains:
+
+- [x] Selected provider WAV source
+- [x] Every technically eligible retained provider MP3 candidate
+- [x] Exact-duration 48 kHz stereo, 24-bit PCM production master
+- [x] Ogg Opus web delivery encode
+- [x] MP3 browser fallback encode
+- [x] Full-decode, duration, format, loudness, headroom, loop-boundary, and
+      SHA-256 records
+- [x] Title, designer, license basis, source task, source clip, prompt,
+      parameters, model, and terms-review record
+- [ ] Human speech and unwanted-vocal listening review
+- [ ] Human musical or environmental fit review
+- [ ] Human similarity, originality, and final rights review
+- [ ] Production approval
+
+The asset checkboxes in the two sections above remain open because this
+manifest defines them as production-complete only after approval. Their files
+are generated and technically prepared; the remaining work is review, not
+missing asset creation.
+
+| Asset | Master duration | Integrated loudness | Technical status |
+|-------|----------------:|--------------------:|------------------|
+| `music/arrival-theme` | 105 s | -18.08 LUFS | Passed |
+| `music/account-lobby` | 105 s | -18.12 LUFS | Passed |
+| `music/identity` | 90 s | -18.11 LUFS | Passed |
+| `music/origins` | 135 s | -17.84 LUFS | Passed |
+| `music/paths` | 135 s | -18.05 LUFS | Passed |
+| `music/loom` | 105 s | -18.07 LUFS | Passed |
+| `music/roleplay` | 150 s | -18.31 LUFS | Passed |
+| `music/handoff` | 60 s | -18.24 LUFS | Passed |
+| `ambience/arrival-harbor` | 60 s | -26.24 LUFS | Passed |
+| `ambience/auth-gatehouse` | 60 s | -26.19 LUFS | Passed |
+| `ambience/account-lobby` | 60 s | -26.44 LUFS | Passed |
+| `ambience/identity-scriptorium` | 60 s | -25.84 LUFS | Passed |
+| `ambience/race-gallery` | 60 s | -26.20 LUFS | Passed |
+| `ambience/class-gallery` | 60 s | -26.07 LUFS | Passed |
+| `ambience/loom-chamber` | 60 s | -26.09 LUFS | Passed |
+| `ambience/roleplay-room` | 60 s | -26.14 LUFS | Passed |
 
 ## Sound-Effect Checklist
 

@@ -23,6 +23,7 @@
 #include "dg_scripts.h"
 #include "act.h"
 #include "modify.h"
+#include "systems/web_client/onboarding.h"
 
 /* Globals */
 const char *RGBone = "F022";
@@ -2909,6 +2910,12 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           bDone = true;
         }
       }
+    }
+    else if (MatchString(apVariable, WEB_ONBOARDING_CAPABILITY_VARIABLE))
+    {
+      /* Capability negotiation for the structured web onboarding UI. Any
+       * client that does not send this simply keeps the text menus. */
+      web_onboarding_set_capability(apDescriptor, apValue);
     }
     else if (MatchString(apVariable, "RESET"))
     {

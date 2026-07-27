@@ -1,8 +1,83 @@
 # Web Account and Character Creation Experience
 
-**Status:** Discovery and scope proposal
-**Date:** 2026-07-27
-**Runtime code changed:** No
+**Status:** Implemented through Phase 2; Phase 3 and rollout outstanding
+**Date:** 2026-07-28
+**Runtime code changed:** Yes (development environment)
+
+## Implementation Status (2026-07-28)
+
+The recommended architecture in this document has been built end to end across
+both repositories. The classic terminal remains fully usable and is the
+automatic fallback everywhere the structured protocol is unavailable.
+
+### Luminari-Source
+
+- `src/systems/web_client/onboarding.{c,h}` publishes a bounded, read-only view
+  of the `nanny()` state machine as a compact JSON document in the reserved
+  `LUMINARI_ONBOARDING` MSDP variable, capped well under the 16 KB variable
+  limit.
+- Capability negotiation uses the reserved `LUMINARI_ONBOARDING_VERSION` MSDP
+  variable, handled in `ExecuteMSDPPair()`. A client that does not send it keeps
+  the text menus unchanged.
+- Emission is driven by a per-pulse poll of `d->connected` in the main loop
+  rather than by hooking each transition individually, so a moved or added
+  `nanny()` transition can never leave a stale web screen. States this adapter
+  does not present (OLC, string editors, the role-play suite) emit an explicit
+  clear and hand control back to the terminal.
+- Catalogs are built by calling the same authoritative filters the terminal
+  uses: `is_locked_race()`, `has_unlocked_race()`, `has_unlocked_class()`,
+  `CLSLIST_INGAME`, `CLSLIST_PRESTIGE`, `valid_class_race_alignment()`,
+  `valid_align_by_class()`, and `valid_align_by_race()`. No rule is duplicated.
+- Stable media keys are held in explicit tables, so the corrected
+  `race/tiefling` key is emitted regardless of the internal token spelling.
+- Both `Makefile.am` and `CMakeLists.txt` were updated. The tree builds clean
+  with no new warnings.
+
+### Luminari Web
+
+- `shared/onboarding.ts` defines the versioned contract, its bounds, and real
+  runtime validation. Session phase is modelled separately from connection
+  status.
+- `server/telnet-parser.ts` now tracks Telnet ECHO and reports sensitive input;
+  `server/mud-session.ts` validates every payload, enforces the size cap,
+  rejects stale flows and revisions, rate-limits onboarding separately from
+  ordinary commands, and clears all onboarding state on disconnect.
+- Passwords are masked, cleared on send, and excluded from command history,
+  aliases, triggers, tab completion, persistence, and the service-worker cache -
+  in both the structured UI and the classic terminal field.
+- `src/features/onboarding/` contains the cinematic experience: scene backdrop
+  with client-driven parallax and particle motion, race and class galleries,
+  alignment compass, forms, account lobby, running summary, audio controls, and
+  a reducer that only presents the latest server revision.
+- `scripts/process-onboarding-media.mjs` builds versioned responsive
+  derivatives and regenerates the media manifest; see
+  [manifest.md](manifest.md) for asset delivery state.
+- `scripts/onboarding-preview-server.mjs` replays the flow with synthetic data
+  for design review without a MUD or database.
+
+### Verified
+
+- 156 production-linked CuTest cases pass, including a new
+  `unittests/CuTest/test_web_onboarding.c` suite covering capability handling,
+  media-key bounds, payload structure, the sensitive-input mapping, the save
+  boundary, and refusal to truncate. Writing it found and fixed a real
+  NULL-dereference: the catalog builders assumed `d->character` was always
+  attached, which would have crashed the server if a descriptor lost its
+  character while the per-pulse poll ran.
+- 216 Node tests pass, including new contract, session, reducer, and media
+  manifest suites. Lint, formatting, type-check, and production build are clean.
+- A browser walkthrough completes the full flow from account name through the
+  role-play decision and hands off to the terminal, with no console errors.
+- No horizontal overflow at 390 px or 360 px; reduced-motion mode removes
+  parallax and particles rather than merely shortening them.
+- Published media is measured against the manifest's byte budgets by an
+  automated test.
+
+### Outstanding
+
+- Phase 3 role-play identity suite.
+- Feature flags, version-skew drills, load testing, and the rollout runbook.
+- Layered scene masters, remaining catalog art, and all human approval gates.
 
 ## Executive Finding
 
@@ -883,12 +958,12 @@ terminal usable.
 
 - [ ] Apply the autonomous MVP defaults defined below
 - [ ] Write onboarding protocol ADR
-- [ ] Define capability, version, revision, fallback, and size rules
-- [ ] Define password-sensitive behavior
+- [x] Define capability, version, revision, fallback, and size rules
+- [x] Define password-sensitive behavior
 - [ ] Encode locked-choice visibility from the default below
 - [ ] Encode back-navigation behavior from the default below
 - [ ] Establish feature flags in both repositories
-- [ ] Define synthetic fixtures and privacy rules
+- [x] Define synthetic fixtures and privacy rules
 - [ ] Define art direction and media-key convention
 
 Exit criteria: a machine-validated contract and test fixtures represent
@@ -897,15 +972,15 @@ private data.
 
 ### Phase 1: Secure structured vertical slice - 3-5 person-weeks
 
-- [ ] Add Telnet sensitive-input callback to the proxy
-- [ ] Prevent password history, aliases, triggers, persistence, and logs
-- [ ] Add MUD capability and bounded state emission
-- [ ] Add proxy runtime validation and typed WebSocket messages
-- [ ] Render account login/new-account forms
-- [ ] Render account lobby and existing-character cards
-- [ ] Select a character and hand off to the current MOTD/menu/play flow
-- [ ] Preserve classic terminal fallback
-- [ ] Add source, proxy, and browser tests
+- [x] Add Telnet sensitive-input callback to the proxy
+- [x] Prevent password history, aliases, triggers, persistence, and logs
+- [x] Add MUD capability and bounded state emission
+- [x] Add proxy runtime validation and typed WebSocket messages
+- [x] Render account login/new-account forms
+- [x] Render account lobby and existing-character cards
+- [x] Select a character and hand off to the current MOTD/menu/play flow
+- [x] Preserve classic terminal fallback
+- [x] Add source, proxy, and browser tests
 
 Exit criteria: an existing account can log in, choose a character, and enter
 the game through the structured UI without exposing a password to browser
@@ -913,17 +988,17 @@ history or breaking a classic Telnet client.
 
 ### Phase 2: Core cinematic character creator - 4-7 person-weeks
 
-- [ ] Name and confirmation
-- [ ] Sex selection
-- [ ] Race catalog, detail, lock state, art, and confirmation
-- [ ] Class catalog, compatibility, detail, art, and confirmation
-- [ ] Premade/custom explanation
-- [ ] Alignment selection
-- [ ] Persistence-result handling
-- [ ] Recommended preferences
-- [ ] Role-play decision
-- [ ] Responsive and reduced-motion behavior
-- [ ] End-to-end creation fixtures
+- [x] Name and confirmation
+- [x] Sex selection
+- [x] Race catalog, detail, lock state, art, and confirmation
+- [x] Class catalog, compatibility, detail, art, and confirmation
+- [x] Premade/custom explanation
+- [x] Alignment selection
+- [x] Persistence-result handling
+- [x] Recommended preferences
+- [x] Role-play decision
+- [x] Responsive and reduced-motion behavior
+- [x] End-to-end creation fixtures
 
 Exit criteria: a new character can complete the current core server path using
 only server-emitted options and can enter the existing game surface.
@@ -946,11 +1021,11 @@ web presentation or a deliberate terminal fallback.
 
 - [ ] Final media manifest and fallback coverage
 - [ ] Animation system and reduced-motion equivalents
-- [ ] Asset preloading and cache policy
-- [ ] Optional audio controls
+- [x] Asset preloading and cache policy
+- [x] Optional audio controls
 - [ ] Final copy edit and mechanical summaries
-- [ ] Mobile crops and performance budgets
-- [ ] Licensing and attribution record
+- [x] Mobile crops and performance budgets
+- [x] Licensing and attribution record
 - [ ] Automated visual QA across the live catalog
 
 Art production runs in parallel and is not included in the engineering range.
@@ -1044,18 +1119,18 @@ without waiting for sign-off.
       save success.
 - [ ] Passwords never enter history, aliases, triggers, storage, cache, logs,
       analytics, snapshots, or fixtures.
-- [ ] Account and character data is runtime-validated at the proxy boundary.
-- [ ] Every onboarding message is versioned and bounded.
-- [ ] Stale UI actions cannot mutate a later state.
-- [ ] Reconnect and disconnect clear private UI state.
+- [x] Account and character data is runtime-validated at the proxy boundary.
+- [x] Every onboarding message is versioned and bounded.
+- [x] Stale UI actions cannot mutate a later state.
+- [x] Reconnect and disconnect clear private UI state.
 - [ ] Core creation covers every current server step through role-play choice.
 - [ ] Optional role-play screens either have structured support or a deliberate
       terminal handoff.
-- [ ] Missing media has a functional fallback.
-- [ ] Desktop, 390 px, and 360 px layouts pass.
+- [x] Missing media has a functional fallback.
+- [x] Desktop, 390 px, and 360 px layouts pass.
 - [ ] Keyboard-only and screen-reader flows pass.
-- [ ] Reduced-motion mode avoids major motion and preserves meaning.
-- [ ] Media stays within agreed load budgets.
+- [x] Reduced-motion mode avoids major motion and preserves meaning.
+- [x] Media stays within agreed load budgets.
 - [ ] Source tests, web tests, lint, build, and integration tests pass.
 - [ ] Development rollout, production feature flag, and rollback are
       documented and rehearsed.

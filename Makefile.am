@@ -170,6 +170,7 @@ circle_SOURCES = \
 	src/systems/terrainbridge/terrain_bridge.c \
 	src/systems/region_hints/region_hints.c \
 	src/systems/narrative_weaver/narrative_weaver.c \
+	src/systems/web_client/onboarding.c \
 	src/systems/intermud3/i3_client.c \
 	src/systems/intermud3/i3_commands.c \
 	src/systems/intermud3/i3_utils.c \
@@ -242,6 +243,7 @@ check_PROGRAMS = cutest
 
 # CuTest sources
 cutest_SOURCES = \
+	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_artifacts.c \
@@ -265,6 +267,7 @@ cutest_LDADD = $(circle_LDADD)
 
 cutest_test_files = \
 	unittests/CuTest/test_bounds_checking.c \
+	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test.helpers.c \

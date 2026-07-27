@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5021 LANGUAGES C)
+project(LuminariMUD VERSION 2.5022 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -600,6 +600,7 @@ set(SRC_C_FILES
     src/systems/terrainbridge/terrain_bridge.c
     src/systems/region_hints/region_hints.c
     src/systems/narrative_weaver/narrative_weaver.c
+    src/systems/web_client/onboarding.c
     src/systems/intermud3/i3_client.c
     src/systems/intermud3/i3_commands.c
     src/systems/intermud3/i3_utils.c
@@ -774,6 +775,7 @@ option(BUILD_TESTS "Build unit tests (disabled - use Autotools make test)" OFF)
 # Keep this list synchronized with cutest_test_files in Makefile.am. The
 # production-linked CuTest target is currently built through Autotools.
 set(CUTEST_TEST_SOURCES
+    unittests/CuTest/test_web_onboarding.c
     unittests/CuTest/test_bounds_checking.c
     unittests/CuTest/test_artifacts.c
     unittests/CuTest/test_player_rename.c

@@ -7447,6 +7447,12 @@ struct descriptor_data
 
   /* Short description setup tracking */
   bool forced_short_desc_setup; /**< TRUE if forced to set short desc before game entry */
+
+  /* Structured web onboarding (src/systems/web_client/onboarding.c) */
+  int web_onboarding_version;    /**< Client-declared protocol version, 0 = none */
+  int web_onboarding_revision;   /**< Increases on every emitted onboarding state */
+  int web_onboarding_last_state; /**< Last CON_ state emitted, -1 = none */
+  bool web_onboarding_dirty;     /**< Force a re-emit at the same state */
 };
 
 /* other miscellaneous structures */

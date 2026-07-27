@@ -98,6 +98,7 @@
 #include "wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"
+#include "systems/web_client/onboarding.h"
 #include "help.h"
 #include "transport.h"
 #include "hunts.h"
@@ -1269,6 +1270,12 @@ void game_loop(socket_t local_mother_desc)
       }
     }
     PERF_PROF_EXIT(pr_process_commands_);
+
+    /* Publish structured account/creation state to capable web clients. This
+     * polls the connection state rather than hooking every nanny() transition,
+     * so a new or moved transition can never leave a stale web screen. */
+    for (d = descriptor_list; d; d = d->next)
+      web_onboarding_tick(d);
 
     PERF_PROF_ENTER(pr_process_output_, "Process Output");
     /* Send queued output out to the operating system (ultimately to user). */
@@ -2519,6 +2526,7 @@ static void init_descriptor(struct descriptor_data *newd, int desc)
   newd->desc_num = last_desc;
   newd->pProtocol = ProtocolCreate(); /* KaVir's plugin*/
   newd->events = create_list();
+  web_onboarding_reset(newd);
 }
 
 static int new_descriptor(socket_t s)
