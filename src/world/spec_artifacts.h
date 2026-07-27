@@ -38,6 +38,15 @@
  * the effect does not depend on any campaign's world content. */
 #define ART_VNUM_OAKEN_DEFENDER 169912
 
+/* Second wave: the six complete HomelandMUD candidates, rebuilt on this
+ * system rather than ported.  See docs/systems/ARTIFACT_SYSTEM.md. */
+#define ART_VNUM_VENGEANCE 169913
+#define ART_VNUM_EARTHCRIER 169914
+#define ART_VNUM_WYRMFANG 169915
+#define ART_VNUM_COURAGE 169916
+#define ART_VNUM_ICEDGE 169917
+#define ART_VNUM_TWILIGHT 169918
+
 /* --------------------------------------------------------------------------
  * Data file
  * -------------------------------------------------------------------------- */
@@ -148,6 +157,20 @@
 #define ART_TARGET_CHAR_WORLD 2 /* a player anywhere                      */
 #define ART_TARGET_OBJ_ROOM 3   /* an object in the room                  */
 #define ART_TARGET_FIGHTING 4   /* whoever the invoker is fighting        */
+#define ART_TARGET_GROUP_ROOM 5 /* the invoker's group, same room only    */
+#define NUM_ART_TARGETS 6
+
+/* --------------------------------------------------------------------------
+ * Invocation channels
+ *
+ * An effect's phrase, its displayed help, and the channel it answers on all
+ * come from one row of artifact_effects[].  Adding a channel to an artifact is
+ * a data change, not a second dispatcher.
+ * -------------------------------------------------------------------------- */
+#define ART_INVOKE_SAY 0     /* spoken aloud - say <phrase>              */
+#define ART_INVOKE_WHISPER 1 /* whisper <someone> <phrase>               */
+#define ART_INVOKE_COMMAND 2 /* invoke <phrase>                          */
+#define NUM_ART_INVOKE 3
 
 /* The effects themselves. */
 #define ART_EFFECT_SUMMON_TREANT 1    /* Trorxek:    come oaken defender   */
@@ -165,11 +188,135 @@
 #define ART_EFFECT_ANNIHILATION 13    /* Doombringer: bring annhilation    */
 #define ART_EFFECT_BLACK_LIGHTNING 14 /* Doombringer: feel my power        */
 #define ART_EFFECT_ENRAGE 15          /* Doombringer: enrage me            */
+#define ART_EFFECT_GROUP_VALOR 16     /* Courage:    morale and vitality   */
+#define ART_EFFECT_FROST_WARD 17      /* Icedge:     rime shield           */
+#define ART_EFFECT_DRAGON_SIGHT 18    /* Wyrmfang:   the hunter's sight    */
+#define NUM_ART_EFFECTS 19
 
 /* Tunables for the called effects. */
 #define ARTIFACT_CHARM_MAX_HP 2000 /* ROL's cap on "join my quest"        */
 #define ARTIFACT_CHARM_MAX 3       /* how many may answer at once         */
 #define ARTIFACT_ENRAGE_DURATION 10
+
+/* Courage's group invocation.  One cooldown and one XP award per activation,
+ * however many answer to it. */
+#define ARTIFACT_VALOR_DURATION 15
+#define ARTIFACT_VALOR_HITROLL 2 /* + artifact level                     */
+#define ARTIFACT_VALOR_SAVES 1   /* + artifact level / 2                 */
+#define ARTIFACT_VALOR_HP_PER_LEVEL 8
+#define ARTIFACT_VALOR_MAX_TARGETS 12
+
+/* --------------------------------------------------------------------------
+ * Chronicle - the public artifact roster
+ *
+ * The state shown to players is derived from the registry every time it is
+ * asked for.  There is deliberately no second list to drift out of step.
+ * -------------------------------------------------------------------------- */
+#define ART_STATE_UNAWAKENED 0  /* nobody has ever claimed it             */
+#define ART_STATE_UNCLAIMED 1   /* discovered, currently free             */
+#define ART_STATE_HELD 2        /* owned, and a live instance is carried  */
+#define ART_STATE_LOST 3        /* owned, but the bearer is not in play   */
+#define ART_STATE_RECOVERABLE 4 /* owned on record, no instance anywhere  */
+#define NUM_ART_STATES 5
+
+/* Whether the roster names the current bearer. */
+#define ART_OWNER_SECRET 0 /* never named; "last known bearer" only       */
+#define ART_OWNER_PUBLIC 1 /* named once the artifact is discovered       */
+#define NUM_ART_OWNER_POLICY 2
+
+/* --------------------------------------------------------------------------
+ * Acquisition and release policy
+ *
+ * This is the content contract for an artifact: where it comes from, which
+ * campaigns it exists in, and how it re-enters play once lost.  It drives the
+ * roster, the help text, and boot validation - not zone resets.
+ * -------------------------------------------------------------------------- */
+#define ART_ACQ_UNSET 0
+#define ART_ACQ_BOSS 1        /* carried by a named world boss            */
+#define ART_ACQ_QUEST 2       /* awarded by a quest                       */
+#define ART_ACQ_EXPLORATION 3 /* found at the end of an exploration chain */
+#define ART_ACQ_SEASONAL 4    /* released in a recurring seasonal window  */
+#define ART_ACQ_STAFF_EVENT 5 /* released by hand at a staff-run event    */
+#define ART_ACQ_RECOVERY 6    /* only ever re-enters through recovery     */
+#define ART_ACQ_VAULT 7       /* staged in the vault, not yet placed      */
+#define NUM_ART_ACQ 8
+
+/* Campaign availability.  A bitmask so one artifact may exist in several. */
+#define ART_CAMPAIGN_LUMINARI (1 << 0)
+#define ART_CAMPAIGN_DL (1 << 1)
+#define ART_CAMPAIGN_FR (1 << 2)
+#define ART_CAMPAIGN_ALL (ART_CAMPAIGN_LUMINARI | ART_CAMPAIGN_DL | ART_CAMPAIGN_FR)
+
+/* --------------------------------------------------------------------------
+ * Reusable signature-proc shapes
+ *
+ * The first five artifacts each had a hand-written procedure.  Everything
+ * added since is a row in artifact_procs[]: a shape, a chance, and an
+ * alignment condition.  New artifacts reuse a shape instead of adding code.
+ * -------------------------------------------------------------------------- */
+#define ART_SIG_NONE 0
+#define ART_SIG_KNOCKDOWN 1 /* save-or-fall, with immunity rules         */
+#define ART_SIG_MERCY 2     /* heal while wounded, strike while healthy  */
+#define ART_SIG_WARD 3      /* alignment-conditioned protection/dispel   */
+#define ART_SIG_WEIGHTED 4  /* one of several weighted outcomes          */
+#define ART_SIG_SURGE 5     /* bounded temporary combat surge            */
+#define ART_SIG_FLURRY 6    /* bounded burst of extra attacks            */
+#define NUM_ART_SIG 7
+
+/* When a reusable proc is allowed to fire at all. */
+#define ART_ALIGN_ANY 0         /* no condition                          */
+#define ART_ALIGN_TARGET_EVIL 1 /* only against evil                     */
+#define ART_ALIGN_TARGET_GOOD 2 /* only against good                     */
+#define ART_ALIGN_SELF_GOOD 3   /* only for a good wielder               */
+#define ART_ALIGN_SELF_EVIL 4   /* only for a non-good wielder           */
+#define NUM_ART_ALIGN 5
+
+/* --------------------------------------------------------------------------
+ * Stacking groups
+ *
+ * Two temporary artifact powers in the same group never stack.  The first one
+ * holds until it expires; the second refuses and costs nothing.  Every
+ * temporary affect an artifact creates is stamped with its group so it can be
+ * found again without guessing at spell numbers.
+ * -------------------------------------------------------------------------- */
+#define ART_STACK_NONE 0
+#define ART_STACK_COMBAT_SURGE 1 /* Twilight's surge, Doombringer's rage  */
+#define ART_STACK_MORALE 2       /* Courage's valor                       */
+#define ART_STACK_WARD 3         /* Vengeance's ward, Icedge's rime       */
+#define NUM_ART_STACK 4
+
+/* Twilight's surge: bounded, level-scaled, and never derived from totals the
+ * wielder has already earned. */
+#define ARTIFACT_SURGE_DURATION 4
+#define ARTIFACT_SURGE_HITROLL 2 /* multiplied by artifact level          */
+#define ARTIFACT_SURGE_DAMROLL 3 /* multiplied by artifact level          */
+
+/* Earthcrier's knockdown. */
+#define ARTIFACT_KNOCKDOWN_DC 14 /* + artifact level                      */
+#define ARTIFACT_KNOCKDOWN_WAIT 1
+
+/* Icedge's flurry. */
+#define ARTIFACT_FLURRY_MIN 2
+#define ARTIFACT_FLURRY_MAX 4
+
+/* Vengeance's mercy branch. */
+#define ARTIFACT_MERCY_WOUNDED_PERCENT 60 /* below this, it heals instead  */
+#define ARTIFACT_MERCY_HEAL_BASE 40
+#define ARTIFACT_MERCY_HEAL_DICE 4
+#define ARTIFACT_MERCY_HEAL_SIDES 15
+
+/* XP for the reusable shapes.  One award per successful proc. */
+#define ARTIFACT_XP_PROC_SIGNATURE 3
+
+/* --------------------------------------------------------------------------
+ * Progressive passive powers
+ *
+ * Status grants live in artifact_passives[], not in object prototype affect
+ * bits, so one power has exactly one source of truth and can unlock as the
+ * artifact grows.  Applied as source-tagged affects on equip, refreshed on
+ * level-up, and removed cleanly on unequip.
+ * -------------------------------------------------------------------------- */
+#define ART_PASSIVE_MAX_PER_ARTIFACT 6
 
 /* --------------------------------------------------------------------------
  * Signature weapon-hit procedures
@@ -207,9 +354,24 @@ struct artifact_data
   time_t last_ability_use; /* ability cooldown stamp                 */
   time_t last_proc;        /* weapon proc internal cooldown stamp    */
 
-  /* Called-effect recharge stamps, one per effect slot.  In memory only -
-   * ROL drove these off an event queue that also did not survive a reboot. */
+  /* Called-effect recharge stamps, one per effect slot.  Persisted from v2.3
+   * onward: a server that reboots often must not hand every power back. */
   time_t effect_used[ARTIFACT_MAX_EFFECTS];
+
+  /* Provenance and custody.  Kept strictly separate from current ownership:
+   * `owner` answers "who holds it now", these answer "what has happened to
+   * it".  Nothing here is ever consulted by a binding or uniqueness check. */
+  char *first_owner;       /* first character ever to claim it          */
+  char *first_account;     /* that character's account                 */
+  time_t first_claimed_at; /* when it was first claimed, 0 = never      */
+  time_t last_claimed_at;  /* when it last changed hands                */
+  int claim_count;         /* claims by a new owner                     */
+  int transfer_count;      /* releases into the world                   */
+  int destroy_count;       /* live instances destroyed                  */
+  int recovery_count;      /* audited staff recoveries                  */
+  int override_count;      /* audited staff resets and overrides        */
+  int discovered;          /* TRUE once anyone has ever claimed it      */
+  time_t discovered_at;    /* when that happened                        */
 
   /* Class restriction.  CLASS_UNDEFINED means anyone may wield it. */
   int class_restrict;
@@ -237,6 +399,20 @@ struct artifact_data
 
   /* Weapon proc chance, percent per successful hit.  0 disables. */
   int proc_chance;
+
+  /* Reusable signature proc - a shape from the library, not new code. */
+  int sig_proc;   /* ART_SIG_*                                  */
+  int sig_chance; /* percent per successful hit                 */
+  int sig_align;  /* ART_ALIGN_*                                */
+
+  /* Content contract - see the template table.  Copied in at boot so the
+   * roster and validator read one place. */
+  int acquisition;      /* ART_ACQ_*                                  */
+  int campaigns;        /* ART_CAMPAIGN_* bitmask                     */
+  int owner_policy;     /* ART_OWNER_SECRET or ART_OWNER_PUBLIC       */
+  int available;        /* FALSE when disabled for this campaign      */
+  const char *lore;     /* one public line, no room or vnum in it     */
+  const char *acq_hint; /* how it is found, in the same terms         */
 };
 
 /* --------------------------------------------------------------------------
@@ -269,12 +445,31 @@ int artifact_recharge_remaining(struct artifact_data *art, int slot);
 const char *artifact_recharge_name(int seconds);
 size_t artifact_memory_used(void);
 
+/* Chronicle, provenance, and the content contract */
+int artifact_state(struct artifact_data *art);
+const char *artifact_state_name(int state);
+const char *artifact_acquisition_name(int acquisition);
+const char *artifact_invoke_name(int channel);
+int artifact_campaign_available(int campaigns);
+int artifact_validate_metadata(void);
+
+/* Stacking groups */
+int artifact_stack_active(struct char_data *ch, int group);
+void artifact_stack_clear(struct char_data *ch, int group);
+
+/* Progressive passive powers */
+void artifact_apply_passives(struct char_data *ch, struct artifact_data *art);
+void artifact_remove_passives(struct char_data *ch, struct artifact_data *art);
+
 /* Class restriction and the burn penalty */
 int artifact_class_ok(struct char_data *ch, struct artifact_data *art);
 void artifact_burn_tick(struct char_data *ch);
 
-/* Called effects.  Returns TRUE when the speech invoked an artifact. */
+/* Called effects.  Each returns TRUE when the input invoked an artifact.
+ * All three are thin wrappers over one channel-aware matcher. */
 int artifact_speech_trigger(struct char_data *ch, const char *speech);
+int artifact_whisper_trigger(struct char_data *ch, const char *speech);
+int artifact_command_trigger(struct char_data *ch, const char *speech);
 
 /* Ownership */
 int artifact_to_char(struct obj_data *obj, struct char_data *ch);
@@ -312,6 +507,7 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
 /* Commands */
 ACMD_DECL(do_artifact);
 ACMD_DECL(do_artifact_ability);
+ACMD_DECL(do_artifact_invoke);
 ACMD_DECL(do_testartifact);
 
 #endif /* _SPEC_ARTIFACTS_H_ */

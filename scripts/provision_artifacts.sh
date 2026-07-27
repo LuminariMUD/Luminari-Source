@@ -40,6 +40,94 @@ ensure_index_entry() {
     mv "$temp_file" "$index_file"
 }
 
+# Add object prototypes from the package that the live file does not have
+# yet.  Records that already exist are never touched: a builder may have
+# edited them through OLC, and that edit is authoritative.
+merge_missing_objects() {
+    local package_file="$1"
+    local live_file="$2"
+    local temp_file
+
+    temp_file="$(mktemp "${live_file}.artifact.XXXXXX")"
+
+    awk -v live="$live_file" '
+        # Collect the vnums the live file already defines.
+        BEGIN {
+            while ((getline line < live) > 0)
+                if (line ~ /^#[0-9]+$/) {
+                    v = substr(line, 2) + 0
+                    have[v] = 1
+                }
+            close(live)
+        }
+        /^#[0-9]+$/ {
+            vnum = substr($0, 2) + 0
+            emit = (vnum in have) ? 0 : 1
+        }
+        /^\$~/ { emit = 0 }
+        emit { print }
+    ' "$package_file" > "$temp_file"
+
+    if [[ -s "$temp_file" ]]; then
+        # Splice the new records in ahead of the terminator.
+        awk -v add="$temp_file" '
+            /^\$~/ && !done {
+                while ((getline line < add) > 0)
+                    print line
+                close(add)
+                done = 1
+            }
+            { print }
+        ' "$live_file" > "${temp_file}.merged"
+        chmod --reference="$live_file" "${temp_file}.merged"
+        mv "${temp_file}.merged" "$live_file"
+    fi
+
+    rm -f "$temp_file"
+}
+
+# Add reset commands from the package that the live zone does not have yet.
+# Existing resets are never rewritten or reordered.
+merge_missing_resets() {
+    local package_file="$1"
+    local live_file="$2"
+    local temp_file
+
+    temp_file="$(mktemp "${live_file}.artifact.XXXXXX")"
+
+    awk -v live="$live_file" '
+        BEGIN {
+            while ((getline line < live) > 0)
+                if (line ~ /^O /) {
+                    split(line, f, /[ \t]+/)
+                    have[f[3] + 0] = 1
+                }
+            close(live)
+        }
+        /^O / {
+            split($0, f, /[ \t]+/)
+            if (!((f[3] + 0) in have))
+                print
+        }
+    ' "$package_file" > "$temp_file"
+
+    if [[ -s "$temp_file" ]]; then
+        awk -v add="$temp_file" '
+            /^S$/ && !done {
+                while ((getline line < add) > 0)
+                    print line
+                close(add)
+                done = 1
+            }
+            { print }
+        ' "$live_file" > "${temp_file}.merged"
+        chmod --reference="$live_file" "${temp_file}.merged"
+        mv "${temp_file}.merged" "$live_file"
+    fi
+
+    rm -f "$temp_file"
+}
+
 provision_world_file() {
     local kind="$1"
     local filename="1699.$kind"
@@ -48,6 +136,15 @@ provision_world_file() {
     mkdir -p "$destination_dir"
     if [[ ! -f "$destination_dir/$filename" ]]; then
         cp "$PACKAGE_DIR/$filename" "$destination_dir/$filename"
+    else
+        # The file exists from an earlier provision, so it must not be
+        # replaced wholesale - but artifacts added to the package since then
+        # still have to reach the world.  Add what is missing, change
+        # nothing that is already there.
+        case "$kind" in
+            obj) merge_missing_objects "$PACKAGE_DIR/$filename" "$destination_dir/$filename" ;;
+            zon) merge_missing_resets "$PACKAGE_DIR/$filename" "$destination_dir/$filename" ;;
+        esac
     fi
     ensure_index_entry "$destination_dir/index" "$filename"
 }

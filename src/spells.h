@@ -891,6 +891,8 @@
  * are never cast and are not registered with spello(). Free band is
  * 1606-1646. */
 #define SPELL_ARTIFACT_BONUS 1610
+#define SPELL_ARTIFACT_PASSIVE 1611
+#define SPELL_ARTIFACT_SURGE 1612
 /***************************************/
 /***************************************/
 

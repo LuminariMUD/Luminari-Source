@@ -2,6 +2,103 @@
 
 ## [Unreleased] - July 27, 2026
 
+### Artifact System - chronicle, provenance, and the second-wave roster
+
+Built the public-facing and content-contract half of the artifact system, and
+added the six complete HomelandMUD candidate artifacts as native LuminariMUD
+content. Behavior and operations are documented in
+`docs/systems/ARTIFACT_SYSTEM.md`; remaining packaging, live-placement,
+integration-test, and balance work is tracked in
+`docs/project-management-zusuk/ongoing-projects/artifacts.md`.
+
+The replica or "echo" model from the HomelandMUD study was considered and
+rejected. One object VNUM per artifact remains the rule, and template VNUM
+uniqueness is now validated at boot.
+
+#### Added
+
+- **Public artifact chronicle.** `artifact roster` shows every artifact
+  available in the running campaign as `unawakened`, `unclaimed`, `held`,
+  `lost`, or `recoverable`, derived from the registry on every call.
+  `artifact chronicle <name>` gives the fuller entry. Names are withheld
+  until an artifact has been discovered, the acquisition hint stays out of
+  the record until somebody has actually found one and let it go, and the
+  current bearer is named only where that artifact's contract makes bearers
+  public - otherwise the chronicle names the first bearer, which is history.
+  No room number or VNUM ever appears.
+- **Provenance and custody history**, stored separately from current
+  ownership and read by nothing that decides anything: first bearer and
+  account, first and last claim times, and claim, transfer, destruction,
+  recovery, and staff-override counts.
+- **Acquisition and release policy** in `artifact_contracts[]`: acquisition
+  type, campaign availability, owner-visibility policy, one line of public
+  lore, and one line of acquisition hint per artifact.
+- **Group-targeted artifact powers.** `ART_TARGET_GROUP_ROOM` acts on the
+  invoker and every eligible same-room group member, selected before any
+  effect runs. One cooldown and one XP award per activation; an invocation
+  that reaches nobody refuses and costs nothing.
+- **A reusable signature-proc library**: controlled knockdown with saves and
+  immunity rules, wounded-heal versus healthy-offense, alignment-conditioned
+  ward and dispel, weighted multi-outcome, bounded combat surge, and bounded
+  extra-attack burst. Each shape carries an alignment rule. New artifacts
+  select a shape rather than adding a function.
+- **Proc stacking groups.** Temporary artifact powers in the same group never
+  stack; the running one holds and the second refuses at no cost.
+  Doombringer's rage and Twilight's surge share a group.
+- **Data-driven invocation channels.** An effect declares whether it answers
+  to `say`, `whisper`, or the new `invoke` command. One matcher serves all
+  three, and the phrase, channel, displayed help, and runtime dispatch all
+  come from the same table row. An effect never answers on another channel.
+- **Progressive passive powers** in `artifact_passives[]`: senses, haste,
+  protections, and saving-throw grants that unlock by artifact level, applied
+  as source-tagged affects rather than prototype flag bits. `artifact info`
+  shows both the active and the still-locked ones.
+- **Boot-time metadata validation** covering templates, contracts, effect
+  rows, and passive rows, run again by `testartifact verify`. It logs a
+  precise `SYSERR` naming the offending row and disables only the invalid
+  effect, never the registry.
+- **Audited artifact recovery.** `testartifact recover <vnum>` is the one
+  sanctioned way to return a lost artifact to play. It refuses while a live
+  instance exists and for an unowned artifact, states whose ownership it
+  overrides, preserves provenance, counts the recovery, and logs it.
+- **Six new artifacts** at VNUMs 169913-169918: Vengeance, Earthcrier,
+  Wyrmfang, Courage, Icedge, and Twilight. Identity, lore, and the shape of
+  their powers come from the HomelandMUD study; every mechanic is rebuilt on
+  Luminari's own damage, affect, saving-throw, and progression rules.
+
+#### Changed
+
+- **Ownership file format v2.3.** Adds the custody history and every cooldown
+  stamp - active ability, generic proc, and each called-effect slot - so a
+  restart no longer hands every power back. v1, v2.0, v2.1, and v2.2 files
+  still load; records are distinguished by field count. Loading an older file
+  marks an owned artifact discovered but invents no first bearer.
+- **`scripts/provision_artifacts.sh` now merges.** It still never overwrites
+  a deployed world file, because a builder may have edited it through OLC,
+  but it now adds object prototypes and zone resets the live files do not
+  have yet. Repeated runs remain no-ops.
+- `testartifact list` reports chronicle state and acquisition type.
+- Doombringer's `enrage me doombringer` now uses the shared stacking group
+  and bounded, source-tagged affects.
+
+#### Fixed
+
+- **Amaukekel's group recall.** `sunlit path to paradise` recalled the caller
+  before iterating the group, so each member's real location was compared
+  against the caller's destination and every ordinary nearby group member was
+  silently skipped. The origin room and the member list are now snapshotted
+  before anyone moves.
+- **`testartifact spawn` no longer duplicates a durably owned artifact.** It
+  previously accepted any VNUM with no live instance, including one whose
+  owner was merely offline, and room placement then cleared
+  `instance_persisted` so the next zone reset could create a third. A refused
+  spawn now changes nothing.
+- **`testartifact reload` no longer discards deferred state.** It flushes
+  dirty registry state before rebuilding; `reload discard` is the explicit
+  opt-out.
+
+## [Unreleased] - July 27, 2026
+
 ### Artifact System - persistent unique items and content layer
 
 Introduced a native LuminariMUD artifact system and completed the
@@ -477,7 +574,7 @@ wilderness contract, remaining work).
 
 #### Changed
 - Replaced the stub world definition with a sorted, four-room minimal world (`lib/world/(minimal|wld)/0.wld`) including a defined `#0` fallback.
-- Widened the minimal zone range to `0–3099` so start rooms resolve cleanly on boot.
+- Widened the minimal zone range to `0-3099` so start rooms resolve cleanly on boot.
 - MSDP room updates now guard against invalid room indices to avoid formatting crashes during login/movement.
 
 #### Fixed

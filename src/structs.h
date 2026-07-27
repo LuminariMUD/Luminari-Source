@@ -48,7 +48,7 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030704 = 3.7.4 (corresponds to display version 2.5018-beta)
+ * Current: 0x030704 = 3.7.4 (corresponds to display version 2.5019-beta)
  * See also: src/constants.c (luminari_version string) */
 #define _LUMINARIMUD 0x030704
 

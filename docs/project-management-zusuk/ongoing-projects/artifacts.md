@@ -1,5 +1,91 @@
 # Artifact System Project Notes
 
+## 0. Second-wave implementation status
+
+This section tracks the in-progress work on the thirteen requested features
+and the six HomelandMUD candidate artifacts. It is updated as work lands so
+an interrupted session can resume from here.
+
+Item 4 of the original request, the original-and-echo model, is **REJECTED**
+and is not being implemented. Section 16 and section 18.3 below remain as
+research notes only.
+
+### 0.1 Feature status
+
+| # | Feature | Status | Where |
+| --- | --- | --- | --- |
+| 1 | Public artifact chronicle/roster | Done | `artifact roster`, `artifact chronicle <name>` |
+| 2 | Provenance and custody history | Done | `struct artifact_data` provenance block, v2.3 file |
+| 3 | Acquisition and release policies | Done | `artifact_contracts[]` |
+| 4 | Original-and-echo model | REJECTED | not implemented |
+| 5 | Group-targeted artifact powers | Done | `ART_TARGET_GROUP_ROOM`, `ART_EFFECT_GROUP_VALOR` |
+| 6 | Reusable signature-proc types | Done | `ART_SIG_*` library |
+| 7 | Proc stacking and exclusion groups | Done | `ART_STACK_*`, `SPELL_ARTIFACT_SURGE` |
+| 8 | Data-driven invocation channels | Done | `ART_INVOKE_*`, one matcher, `invoke` command |
+| 9 | Progressive passive powers | Done | `artifact_passives[]` |
+| 10 | Discovery-driven lore and clues | Done | `artifact_lore_stage()`, staged chronicle text |
+| 11 | Persistent cooldowns | Done | v2.3 ownership format |
+| 12 | Stronger metadata validation | Done | `artifact_validate_metadata()` |
+| 13 | Safer recovery tooling | Done | `testartifact recover`, hardened `spawn`/`reload` |
+
+### 0.2 New artifact status
+
+All six candidates are registered, given a content contract, and reset into
+the vault. Vnums are allocated in the existing artifact zone 1699.
+
+| Vnum | Name | Signature proc | Called effect | Passives | Acquisition |
+| --- | --- | --- | --- | --- | --- |
+| 169913 | Vengeance | `ART_SIG_MERCY`, evil-gated offense branch | none | 3 | quest |
+| 169914 | Earthcrier | `ART_SIG_KNOCKDOWN`, non-good wielder | none | 2 | boss |
+| 169915 | Wyrmfang | `ART_SIG_WEIGHTED` | `invoke hunt` | 5 | boss |
+| 169916 | Courage | none | `say courage` (group) | 4 | staff event |
+| 169917 | Icedge | `ART_SIG_FLURRY` | `whisper <x> rime` | 3 | exploration |
+| 169918 | Twilight | `ART_SIG_SURGE` | none | 4 | recovery only |
+
+### 0.3 Files changed
+
+- `src/spells.h` - added `SPELL_ARTIFACT_PASSIVE` and `SPELL_ARTIFACT_SURGE`
+  affect markers in the reserved 1606-1646 band.
+- `src/world/spec_artifacts.h` - vnums, chronicle/acquisition/channel/proc/
+  stacking constants, provenance and contract fields, new API.
+- `src/world/spec_artifacts.c` - all runtime work.
+- `src/interpreter.c` - registered `invoke`.
+- `src/act.comm.do_spec_comm.c` - whisper channel hook.
+- `lib/world/artifacts/1699.obj` - six new object prototypes.
+- `lib/world/artifacts/1699.zon` - six new vault resets.
+- `lib/world/artifacts/artifacts.hlp` - chronicle and invoke help entries.
+- `scripts/provision_artifacts.sh` - merges artifacts added to the package
+  into an already-provisioned world instead of skipping the file entirely.
+- `unittests/CuTest/test_artifacts.c` - regression coverage, 57 tests.
+- `docs/systems/ARTIFACT_SYSTEM.md` - behavior documentation.
+- `docs/CHANGELOG.md`, `configure.ac` - release notes and version bump.
+
+### 0.4 Remaining work
+
+- Sections 1 through 4 below (packaging, live placement, booted-world
+  integration coverage, and the balance pass) are unchanged by this work and
+  are still open. Section 2 in particular: the six new artifacts reset into
+  the vault, so their contracts declare an intended acquisition route that
+  world content does not yet implement.
+- Section 10's world-content half is builder work: the code stages the lore
+  and hint text and gates it by discovery, but wiring NPC dialogue to it is
+  done with ordinary DG scripts against `artifact chronicle`.
+
+### 0.5 Verification performed
+
+- `make -j$(nproc)` clean, no warnings.
+- `make test` green at 145 tests, up from 133.
+- `make install`; no stray root-level `circle` binary left behind.
+- Booted `./bin/circle -d lib` against the development database: the log
+  reads `Artifacts: initialized 17 artifacts.` with no metadata SYSERRs, and
+  `lib/world/world.artifact` was rewritten in v2.3 form with a pre-existing
+  v2.2 owner carried across and no provenance invented for it.
+- `scripts/provision_artifacts.sh` run three times in a row: it added the six
+  new prototypes and resets to an already-provisioned world on the first run
+  and changed nothing on the next two.
+
+---
+
 Completed behavior is documented in
 [`docs/systems/ARTIFACT_SYSTEM.md`](../../systems/ARTIFACT_SYSTEM.md), and
 completed implementation work is recorded in
@@ -94,7 +180,13 @@ Review at least:
 Record approved balance changes in the changelog and update
 `docs/systems/ARTIFACT_SYSTEM.md`.
 
-## 5. Decide whether cooldowns must survive reboot
+## 5. Decide whether cooldowns must survive reboot - RESOLVED
+
+Resolved in favour of persistence. The v2.3 ownership format stores the
+ability, proc, and per-slot called-effect stamps; v1, v2.0, v2.1, and v2.2
+files still load, and a stamp in the future is treated as ready rather than
+as a longer wait. Remaining historical notes follow.
+
 
 Active-ability, generic-proc, and called-effect timestamps currently live
 only in memory. Restarting the server makes every power ready. This matches
@@ -109,7 +201,13 @@ If persistence is required:
 - define behavior for removed, reordered, and newly added effect slots;
 - add migration, round-trip, expired-timer, and clock-skew tests.
 
-## 6. Validate the effect table at boot
+## 6. Validate the effect table at boot - DONE
+
+Implemented as `artifact_validate_metadata()`, run from `artifact_boot()` and
+re-runnable from `testartifact verify`. It covers templates, contracts,
+effects, and passive powers, logs a precise SYSERR naming the offending row,
+and disables only the invalid effect. Remaining historical notes follow.
+
 
 `artifact_effects[]` assigns recharge slots by hand. Runtime rejects an
 out-of-range slot, but duplicate slots on one artifact silently share a
@@ -128,7 +226,12 @@ Add boot-time validation for:
 The system should log a precise `SYSERR` and disable only the invalid effect,
 not the entire artifact registry.
 
-## 7. Fix Amaukekel's group recall ordering
+## 7. Fix Amaukekel's group recall ordering - DONE
+
+Fixed with `artifact_collect_group()`, which snapshots the origin room and
+the eligible members before anything moves. The same helper drives Courage's
+group invocation. Remaining historical notes follow.
+
 
 `artifact_dimension_shift()` recalls the caller before it iterates the group.
 The later same-room check therefore compares each member's original room with
@@ -145,7 +248,13 @@ Acceptance criteria:
 - iteration remains safe when recall triggers move or extract a participant;
 - a booted-world regression test covers solo and grouped use.
 
-## 8. Harden staff spawn and reload
+## 8. Harden staff spawn and reload - DONE
+
+`spawn` now refuses a durably owned artifact and changes nothing when it
+refuses; `testartifact recover` is the audited override. `reload` flushes
+dirty state first unless given the explicit `discard` mode. Remaining
+historical notes follow.
+
 
 `testartifact spawn <vnum>` rejects an existing live object but does not
 reject an artifact recorded as durably owned while its player is offline.

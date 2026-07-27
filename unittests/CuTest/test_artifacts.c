@@ -157,6 +157,43 @@ static const char *artifact_test_source_root(void)
   return root && *root ? root : ".";
 }
 
+/* Every vnum the shipped tables actually declare.  Metadata validation walks
+ * the real contract, effect, and passive tables and looks each row's vnum up
+ * in the registry, so those checks need the real membership rather than the
+ * synthetic contiguous block artifact_test_registry() builds. */
+static const int artifact_test_all_vnums[] = {
+    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
+    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
+    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
+    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
+    ART_VNUM_TWILIGHT};
+
+#define ARTIFACT_TEST_ALL_COUNT                                                                    \
+  ((int)(sizeof(artifact_test_all_vnums) / sizeof(artifact_test_all_vnums[0])))
+
+static void artifact_test_real_registry(void)
+{
+  int i = 0;
+
+  artifact_shutdown();
+
+  art_index = calloc(ARTIFACT_TEST_ALL_COUNT, sizeof(struct artifact_data));
+  total_artifacts = ARTIFACT_TEST_ALL_COUNT;
+
+  for (i = 0; i < ARTIFACT_TEST_ALL_COUNT; i++)
+  {
+    art_index[i].vnum = artifact_test_all_vnums[i];
+    art_index[i].owner = strdup(ARTIFACT_OWNER_NONE);
+    art_index[i].account = strdup(ARTIFACT_OWNER_NONE);
+    art_index[i].first_owner = strdup(ARTIFACT_OWNER_NONE);
+    art_index[i].first_account = strdup(ARTIFACT_OWNER_NONE);
+    art_index[i].level = 1;
+    art_index[i].binding_type = ARTIFACT_BIND_NONE;
+    art_index[i].class_restrict = CLASS_UNDEFINED;
+    art_index[i].available = TRUE;
+  }
+}
+
 /* --------------------------------------------------------------------------
  * Binary search
  * -------------------------------------------------------------------------- */
@@ -636,9 +673,21 @@ void Test_artifact_world_package_contains_all_deployable_records(CuTest *tc)
     if (!artifact_test_file_contains(path, needle))
       complete = FALSE;
   }
+  for (vnum = ART_VNUM_VENGEANCE; vnum <= ART_VNUM_TWILIGHT; vnum++)
+  {
+    snprintf(needle, sizeof(needle), "#%d", vnum);
+    if (!artifact_test_file_contains(path, needle))
+      complete = FALSE;
+  }
 
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.zon", root);
   for (vnum = ART_VNUM_TRORXEK; vnum <= ART_VNUM_AEGIS; vnum++)
+  {
+    snprintf(needle, sizeof(needle), "O 0 %d 1 169900", vnum);
+    if (!artifact_test_file_contains(path, needle))
+      complete = FALSE;
+  }
+  for (vnum = ART_VNUM_VENGEANCE; vnum <= ART_VNUM_TWILIGHT; vnum++)
   {
     snprintf(needle, sizeof(needle), "O 0 %d 1 169900", vnum);
     if (!artifact_test_file_contains(path, needle))
@@ -1310,6 +1359,437 @@ void Test_artifact_crit_xp_beats_a_plain_hit(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, ARTIFACT_XP_BOSS_HIT_MULT > 1);
   CuAssertIntEquals(tc, TRUE, ARTIFACT_XP_BOSS_KILL_MULT > 1);
   CuAssertIntEquals(tc, TRUE, ARTIFACT_BOSS_LEVEL_MARGIN > 0);
+}
+
+/* --------------------------------------------------------------------------
+ * v2.3: provenance and persistent cooldowns
+ * -------------------------------------------------------------------------- */
+
+/* Count whitespace-separated fields, so the record layout is asserted rather
+ * than assumed. */
+static int artifact_test_field_count(const char *line)
+{
+  int fields = 0, in_field = FALSE;
+
+  for (; *line && *line != '\n' && *line != '\r'; line++)
+  {
+    if (*line == ' ' || *line == '\t')
+    {
+      in_field = FALSE;
+      continue;
+    }
+    if (!in_field)
+    {
+      fields++;
+      in_field = TRUE;
+    }
+  }
+
+  return fields;
+}
+
+static int artifact_test_first_record(char *out, size_t size)
+{
+  FILE *fl = fopen(ARTIFACT_FILE, "r");
+  char line[READ_SIZE] = {'\0'};
+
+  if (!fl)
+    return FALSE;
+
+  while (fgets(line, sizeof(line), fl))
+  {
+    if (line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+      continue;
+
+    strlcpy(out, line, size);
+    fclose(fl);
+    return TRUE;
+  }
+
+  fclose(fl);
+  return FALSE;
+}
+
+void Test_artifact_v23_writes_history_and_cooldown_columns(CuTest *tc)
+{
+  char record[READ_SIZE] = {'\0'};
+  int fields = 0;
+
+  if (!artifact_test_enter_sandbox())
+  {
+    CuFail(tc, "could not create a scratch directory");
+    return;
+  }
+
+  artifact_test_registry(11);
+  artifact_save();
+
+  CuAssertIntEquals(tc, TRUE, artifact_test_file_contains(ARTIFACT_FILE, "v2.3"));
+  CuAssertIntEquals(tc, TRUE, artifact_test_first_record(record, sizeof(record)));
+
+  fields = artifact_test_field_count(record);
+
+  artifact_test_leave_sandbox();
+  artifact_shutdown();
+
+  /* Seven v2.2 columns, eleven provenance columns, two ability/proc stamps,
+   * and one stamp per called-effect slot. */
+  CuAssertIntEquals(tc, 20 + ARTIFACT_MAX_EFFECTS, fields);
+}
+
+void Test_artifact_v23_round_trips_provenance_and_cooldowns(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  time_t now = time(0);
+  int reloaded_claims = -1, reloaded_recoveries = -1, reloaded_discovered = -1;
+  time_t reloaded_first = 0, reloaded_proc = 0, reloaded_slot1 = 0;
+  char *reloaded_first_owner = NULL;
+
+  if (!artifact_test_enter_sandbox())
+  {
+    CuFail(tc, "could not create a scratch directory");
+    return;
+  }
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+
+  free(art_index[0].first_owner);
+  art_index[0].first_owner = strdup("Gosric");
+  free(art_index[0].first_account);
+  art_index[0].first_account = strdup("gosric_account");
+  art_index[0].first_claimed_at = now - 5000;
+  art_index[0].last_claimed_at = now - 100;
+  art_index[0].claim_count = 3;
+  art_index[0].transfer_count = 2;
+  art_index[0].destroy_count = 1;
+  art_index[0].recovery_count = 4;
+  art_index[0].override_count = 5;
+  art_index[0].discovered = TRUE;
+  art_index[0].discovered_at = now - 5000;
+  art_index[0].last_ability_use = now - 60;
+  art_index[0].last_proc = now - 10;
+  art_index[0].effect_used[1] = now - 30;
+
+  artifact_save();
+  artifact_boot();
+
+  if (art_index && total_artifacts > 0)
+  {
+    struct artifact_data *art = artifact_by_vnum(ART_VNUM_TRORXEK);
+
+    if (art)
+    {
+      reloaded_first_owner = art->first_owner ? strdup(art->first_owner) : NULL;
+      reloaded_first = art->first_claimed_at;
+      reloaded_claims = art->claim_count;
+      reloaded_recoveries = art->recovery_count;
+      reloaded_discovered = art->discovered;
+      reloaded_proc = art->last_proc;
+      reloaded_slot1 = art->effect_used[1];
+    }
+  }
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+  artifact_test_leave_sandbox();
+
+  CuAssertPtrNotNull(tc, reloaded_first_owner);
+  CuAssertStrEquals(tc, "Gosric", reloaded_first_owner);
+  CuAssertIntEquals(tc, (int)(now - 5000), (int)reloaded_first);
+  CuAssertIntEquals(tc, 3, reloaded_claims);
+  CuAssertIntEquals(tc, 4, reloaded_recoveries);
+  CuAssertIntEquals(tc, TRUE, reloaded_discovered);
+  CuAssertIntEquals(tc, (int)(now - 10), (int)reloaded_proc);
+  CuAssertIntEquals(tc, (int)(now - 30), (int)reloaded_slot1);
+
+  free(reloaded_first_owner);
+}
+
+void Test_artifact_v23_treats_future_cooldowns_as_ready(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  time_t now = time(0);
+  time_t reloaded_proc = -1, reloaded_slot0 = -1;
+
+  if (!artifact_test_enter_sandbox())
+  {
+    CuFail(tc, "could not create a scratch directory");
+    return;
+  }
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+
+  /* A stamp from the future means the clock moved backwards, not that a
+   * power is owed a longer wait. */
+  art_index[0].last_proc = now + 100000;
+  art_index[0].effect_used[0] = now + 100000;
+
+  artifact_save();
+  artifact_boot();
+
+  if (art_index && total_artifacts > 0)
+  {
+    struct artifact_data *art = artifact_by_vnum(ART_VNUM_TRORXEK);
+
+    if (art)
+    {
+      reloaded_proc = art->last_proc;
+      reloaded_slot0 = art->effect_used[0];
+    }
+  }
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+  artifact_test_leave_sandbox();
+
+  CuAssertIntEquals(tc, 0, (int)reloaded_proc);
+  CuAssertIntEquals(tc, 0, (int)reloaded_slot0);
+}
+
+void Test_artifact_v22_file_still_loads_without_history(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  int level = -1, exp = -1, discovered = -1, claims = -1;
+  time_t proc = -1;
+
+  if (!artifact_test_enter_sandbox())
+  {
+    CuFail(tc, "could not create a scratch directory");
+    return;
+  }
+
+  artifact_test_begin_objects(&fixture);
+
+  artifact_test_write_file("# Artifact Ownership File v2.2\n"
+                           "\n"
+                           "169901 Karaz karaz_account 3 250 12345 1\n");
+
+  artifact_boot();
+
+  if (art_index && total_artifacts > 0)
+  {
+    struct artifact_data *art = artifact_by_vnum(ART_VNUM_TRORXEK);
+
+    if (art)
+    {
+      level = art->level;
+      exp = art->experience;
+      claims = art->claim_count;
+      proc = art->last_proc;
+      discovered = art->discovered;
+    }
+  }
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+  artifact_test_leave_sandbox();
+
+  CuAssertIntEquals(tc, 3, level);
+  CuAssertIntEquals(tc, 250, exp);
+
+  /* No provenance in the file, so nothing is invented - but an owned
+   * artifact is self-evidently one that has been found. */
+  CuAssertIntEquals(tc, 0, claims);
+  CuAssertIntEquals(tc, 0, (int)proc);
+  CuAssertIntEquals(tc, TRUE, discovered);
+}
+
+/* --------------------------------------------------------------------------
+ * Chronicle state
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_state_distinguishes_every_stage(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  int unawakened = 0, unclaimed = 0, lost = 0, recoverable = 0;
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_registry(11);
+
+  /* Never claimed by anyone. */
+  unawakened = artifact_state(&art_index[0]);
+
+  /* Found before, free again. */
+  art_index[0].discovered = TRUE;
+  unclaimed = artifact_state(&art_index[0]);
+
+  /* Owned, with no live instance anywhere.  Whether it counts as merely out
+   * of sight or as genuinely gone is exactly what instance_persisted says. */
+  free(art_index[0].owner);
+  art_index[0].owner = strdup("Karaz");
+  art_index[0].instance_persisted = TRUE;
+  lost = artifact_state(&art_index[0]);
+
+  art_index[0].instance_persisted = FALSE;
+  recoverable = artifact_state(&art_index[0]);
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+
+  CuAssertIntEquals(tc, ART_STATE_UNAWAKENED, unawakened);
+  CuAssertIntEquals(tc, ART_STATE_UNCLAIMED, unclaimed);
+  CuAssertIntEquals(tc, ART_STATE_LOST, lost);
+  CuAssertIntEquals(tc, ART_STATE_RECOVERABLE, recoverable);
+}
+
+void Test_artifact_state_and_acquisition_names_cover_every_value(CuTest *tc)
+{
+  int i = 0, named = TRUE;
+
+  for (i = 0; i < NUM_ART_STATES; i++)
+    if (!artifact_state_name(i) || !*artifact_state_name(i) ||
+        !strcmp(artifact_state_name(i), "unknown"))
+      named = FALSE;
+
+  for (i = 1; i < NUM_ART_ACQ; i++)
+    if (!artifact_acquisition_name(i) || !*artifact_acquisition_name(i) ||
+        !strcmp(artifact_acquisition_name(i), "undeclared"))
+      named = FALSE;
+
+  for (i = 0; i < NUM_ART_INVOKE; i++)
+    if (!artifact_invoke_name(i) || !*artifact_invoke_name(i))
+      named = FALSE;
+
+  CuAssertIntEquals(tc, TRUE, named);
+
+  /* Out-of-range values must be reported, not indexed. */
+  CuAssertStrEquals(tc, "unknown", artifact_state_name(NUM_ART_STATES));
+  CuAssertStrEquals(tc, "unknown", artifact_state_name(-1));
+  CuAssertStrEquals(tc, "undeclared", artifact_acquisition_name(NUM_ART_ACQ));
+  CuAssertStrEquals(tc, "say", artifact_invoke_name(NUM_ART_INVOKE));
+}
+
+/* --------------------------------------------------------------------------
+ * Metadata validation
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_shipped_metadata_validates_clean(CuTest *tc)
+{
+  int problems = 0;
+
+  artifact_test_real_registry();
+  problems = artifact_validate_metadata();
+  artifact_shutdown();
+
+  /* Every contract, effect, and passive row in the shipped tables must pass
+   * its own checks.  A failure here names the offending row in the log. */
+  CuAssertIntEquals(tc, 0, problems);
+}
+
+void Test_artifact_validation_is_safe_on_an_empty_registry(CuTest *tc)
+{
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, 0, artifact_validate_metadata());
+}
+
+/* --------------------------------------------------------------------------
+ * Invocation channels
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_channels_do_not_answer_each_other(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  struct char_data ch;
+  int crossed = FALSE;
+
+  artifact_test_begin_objects(&fixture);
+  artifact_test_real_registry();
+  clear_char(&ch);
+
+  /* Nothing is held, so every one of these is a miss either way.  What is
+   * being asserted is that the wrong channel is not even a candidate: a
+   * whisper phrase said aloud, or a spoken phrase invoked, must not match. */
+  if (artifact_speech_trigger(&ch, "rime"))
+    crossed = TRUE;
+  if (artifact_command_trigger(&ch, "courage"))
+    crossed = TRUE;
+  if (artifact_whisper_trigger(&ch, "hunt"))
+    crossed = TRUE;
+  if (artifact_speech_trigger(&ch, "hunt"))
+    crossed = TRUE;
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+
+  CuAssertIntEquals(tc, FALSE, crossed);
+}
+
+/* --------------------------------------------------------------------------
+ * Stacking groups
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_stacking_groups_are_independent(CuTest *tc)
+{
+  struct char_data ch;
+  struct affected_type surge;
+
+  clear_char(&ch);
+  memset(&surge, 0, sizeof(surge));
+
+  surge.spell = SPELL_ARTIFACT_SURGE;
+  surge.specific = ART_STACK_COMBAT_SURGE;
+  surge.next = NULL;
+  ch.affected = &surge;
+
+  CuAssertIntEquals(tc, TRUE, artifact_stack_active(&ch, ART_STACK_COMBAT_SURGE));
+  CuAssertIntEquals(tc, FALSE, artifact_stack_active(&ch, ART_STACK_MORALE));
+  CuAssertIntEquals(tc, FALSE, artifact_stack_active(&ch, ART_STACK_WARD));
+
+  /* ART_STACK_NONE is not a group; it must never match anything. */
+  CuAssertIntEquals(tc, FALSE, artifact_stack_active(&ch, ART_STACK_NONE));
+  CuAssertIntEquals(tc, FALSE, artifact_stack_active(NULL, ART_STACK_COMBAT_SURGE));
+
+  ch.affected = NULL;
+}
+
+/* --------------------------------------------------------------------------
+ * The second-wave roster
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_second_wave_vnums_are_distinct_and_in_zone(CuTest *tc)
+{
+  int i = 0, j = 0, ok = TRUE;
+
+  for (i = 0; i < ARTIFACT_TEST_ALL_COUNT; i++)
+  {
+    if (artifact_test_all_vnums[i] < ARTIFACT_VNUM_BASE ||
+        artifact_test_all_vnums[i] > ARTIFACT_VNUM_BASE + 99)
+      ok = FALSE;
+
+    /* The vault room and the treant are in the same block and must never be
+     * mistaken for artifacts. */
+    if (artifact_test_all_vnums[i] == ART_VNUM_VAULT ||
+        artifact_test_all_vnums[i] == ART_VNUM_OAKEN_DEFENDER)
+      ok = FALSE;
+
+    for (j = 0; j < i; j++)
+      if (artifact_test_all_vnums[i] == artifact_test_all_vnums[j])
+        ok = FALSE;
+
+    /* The registry is binary-searched, so the table has to stay sorted. */
+    if (i > 0 && artifact_test_all_vnums[i] <= artifact_test_all_vnums[i - 1])
+      ok = FALSE;
+  }
+
+  CuAssertIntEquals(tc, TRUE, ok);
+}
+
+void Test_artifact_second_wave_is_reachable_by_search(CuTest *tc)
+{
+  int i = 0, found = TRUE;
+
+  artifact_test_real_registry();
+
+  for (i = ART_VNUM_VENGEANCE; i <= ART_VNUM_TWILIGHT; i++)
+    if (artifact_search(i) < 0)
+      found = FALSE;
+
+  artifact_shutdown();
+
+  CuAssertIntEquals(tc, TRUE, found);
 }
 
 /*EOF*/
