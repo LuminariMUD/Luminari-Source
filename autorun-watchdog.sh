@@ -204,14 +204,29 @@ watchdog_loop() {
     fi
 
     while true; do
-        # Check if we should stop (either .killwatchdog or .killscript)
-        if [[ -f "${SCRIPT_DIR}/.killwatchdog" ]] || [[ -f "${SCRIPT_DIR}/.killscript" ]]; then
-            if [[ -f "${SCRIPT_DIR}/.killscript" ]]; then
-                log_msg "INFO" ".killscript detected - stopping watchdog and autorun"
-            else
-                log_msg "INFO" "Kill signal detected - stopping watchdog"
-            fi
+        # .killwatchdog is an immediate, watchdog-specific stop request.
+        if [[ -f "${SCRIPT_DIR}/.killwatchdog" ]]; then
+            log_msg "INFO" "Kill signal detected - stopping watchdog"
             rm -f "${SCRIPT_DIR}/.killwatchdog"
+            rm -f "$WATCHDOG_PID_FILE"
+            exit 0
+        fi
+
+        # The MUD creates .killscript while booting and removes it only after a
+        # successful boot. Defer that marker while autorun is healthy so a slow
+        # production boot does not disable the watchdog. Once autorun has
+        # stopped, the marker is an intentional shutdown and must prevent a
+        # watchdog restart.
+        if [[ -f "${SCRIPT_DIR}/.killscript" ]]; then
+            if check_autorun_health; then
+                log_msg "INFO" \
+                    ".killscript detected while autorun is healthy - deferring shutdown"
+                sleep "$CHECK_INTERVAL"
+                continue
+            fi
+
+            log_msg "INFO" \
+                ".killscript detected after autorun stopped - stopping watchdog"
             rm -f "$WATCHDOG_PID_FILE"
             exit 0
         fi

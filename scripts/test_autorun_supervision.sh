@@ -303,6 +303,77 @@ EOF
   wait "$watchdog_pid" 2>/dev/null || true
 }
 
+test_watchdog_transient_killscript()
+{
+  local guard_dir="$test_root/killscript-guard"
+  local now
+  local supervisor_pid
+  local watchdog_pid
+
+  mkdir -p "$guard_dir/log"
+  cp "$project_root/autorun-watchdog.sh" "$guard_dir/autorun-watchdog.sh"
+
+  cat > "$guard_dir/fake-supervisor.sh" <<'EOF'
+#!/usr/bin/env bash
+trap 'exit 0' INT TERM
+while true; do
+  sleep 1
+done
+EOF
+
+  cat > "$guard_dir/autorun.sh" <<'EOF'
+#!/usr/bin/env bash
+touch "$(dirname "$0")/.unexpected-autorun-restart"
+exit 1
+EOF
+  chmod +x "$guard_dir/autorun.sh" "$guard_dir/fake-supervisor.sh"
+
+  "$guard_dir/fake-supervisor.sh" &
+  supervisor_pid=$!
+  now=$(date +%s)
+  cat > "$guard_dir/.autorun.state" <<EOF
+PID=$supervisor_pid
+START_TIME=$now
+LAST_UPDATE=$now
+STATUS=RUNNING
+CRASH_COUNT=0
+MUD_PORT=
+EOF
+  touch "$guard_dir/.killscript"
+
+  (
+    cd "$guard_dir"
+    WATCHDOG_CHECK_INTERVAL=1 \
+      WATCHDOG_STARTUP_GRACE_PERIOD=0 \
+      WATCHDOG_STATE_STALE_THRESHOLD=30 \
+      ./autorun-watchdog.sh loop
+  ) > "$guard_dir/loop.log" 2>&1 &
+  watchdog_pid=$!
+
+  wait_for_pattern "$guard_dir/log/watchdog.log" \
+    ".killscript detected while autorun is healthy - deferring shutdown"
+  kill -0 "$watchdog_pid" 2>/dev/null ||
+    fail "watchdog exited for the MUD's transient startup killscript"
+  [[ ! -e "$guard_dir/.unexpected-autorun-restart" ]] ||
+    fail "watchdog restarted a healthy autorun during MUD startup"
+
+  rm -f "$guard_dir/.killscript"
+  sleep 1.2
+  kill -0 "$watchdog_pid" 2>/dev/null ||
+    fail "watchdog did not survive successful MUD startup"
+
+  touch "$guard_dir/.killscript"
+  kill -TERM "$supervisor_pid"
+  wait "$supervisor_pid" 2>/dev/null || true
+  wait_for_pattern "$guard_dir/log/watchdog.log" \
+    ".killscript detected after autorun stopped - stopping watchdog"
+  wait "$watchdog_pid" 2>/dev/null || true
+  [[ ! -e "$guard_dir/.watchdog.pid" ]] ||
+    fail "watchdog PID file remained after intentional autorun shutdown"
+  [[ ! -e "$guard_dir/.unexpected-autorun-restart" ]] ||
+    fail "watchdog restarted autorun despite an intentional killscript"
+}
+
 test_watchdog_pid_verification()
 {
   local mismatch_dir="$test_root/watchdog-mismatch"
@@ -508,6 +579,7 @@ EOF
 
 test_autorun_startup_and_locking
 test_watchdog_startup_grace
+test_watchdog_transient_killscript
 test_watchdog_pid_verification
 test_watchdog_daemon_recovery
 test_systemd_unit_installation
