@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5012 LANGUAGES C)
+project(LuminariMUD VERSION 2.5013 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -779,6 +779,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test.helpers.c
     unittests/CuTest/test.interpreter.c
     unittests/CuTest/test_transport_production.c
+    unittests/CuTest/test_traps_production.c
     unittests/CuTest/test_combat_production.c
     unittests/CuTest/test_spells_skills_production.c
     unittests/CuTest/test_database_persistence.c

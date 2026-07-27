@@ -731,6 +731,26 @@ bool disarm_trap(struct char_data *ch, struct trap_data *trap)
 /* ============================================================================ */
 
 /**
+ * Check whether Light Step prevents an otherwise valid trap from triggering.
+ */
+static bool light_step_avoids_trap(struct char_data *ch)
+{
+  int avoid_chance;
+
+  if (!has_light_step(ch))
+    return FALSE;
+
+  /* Base 25% + 5% per point of DEX bonus, capped at 75%. */
+  avoid_chance = MIN(75, 25 + (GET_DEX_BONUS(ch) * 5));
+
+  if (dice(1, 100) > avoid_chance)
+    return FALSE;
+
+  send_to_char(ch, "\tYYour light footsteps avoid triggering the trap!\tn\r\n");
+  return TRUE;
+}
+
+/**
  * Check if trap should trigger based on action type.
  */
 bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
@@ -740,20 +760,6 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
 
   if (!ch || IS_NPC(ch))
     return FALSE;
-
-  // Light Step perk - chance to avoid LEAVE_ROOM traps
-  if (trigger_type == TRAP_TRIGGER_LEAVE_ROOM && has_light_step(ch))
-  {
-    // Light Step gives a percentage chance to avoid the trap
-    // Base 25% + 5% per point of DEX bonus capped at 75%
-    int avoid_chance = MIN(75, 25 + (GET_DEX_BONUS(ch) * 5));
-
-    if (dice(1, 100) <= avoid_chance)
-    {
-      send_to_char(ch, "\tYYour light footsteps avoid triggering the trap!\tn\r\n");
-      return FALSE;
-    }
-  }
 
   // Check room traps
   if (room >= 0 && room <= top_of_world)
@@ -772,6 +778,9 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
             trap->trigger_direction != direction)
           continue;
 
+        if (trigger_type == TRAP_TRIGGER_LEAVE_ROOM && light_step_avoids_trap(ch))
+          return FALSE;
+
         // Trigger the trap!
         trigger_trap(ch, trap, room);
         return TRUE;
@@ -787,6 +796,9 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
     if (!IS_SET(trap->flags, TRAP_FLAG_TRIGGERED) && !IS_SET(trap->flags, TRAP_FLAG_DISARMED) &&
         trap->trigger_type == trigger_type)
     {
+      if (trigger_type == TRAP_TRIGGER_LEAVE_ROOM && light_step_avoids_trap(ch))
+        return FALSE;
+
       trigger_trap(ch, trap, IN_ROOM(ch));
       return TRUE;
     }

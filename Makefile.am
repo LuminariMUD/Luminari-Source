@@ -248,6 +248,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/test_transport_production.c \
+	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_database_persistence.c \
@@ -267,6 +268,7 @@ cutest_test_files = \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/test_transport_production.c \
+	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_database_persistence.c \
