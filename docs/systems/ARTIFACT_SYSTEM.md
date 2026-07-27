@@ -289,6 +289,28 @@ mobile. Neither is an artifact registry entry.
 `artifact_templates[]` is authoritative for each artifact's exact base
 bonuses, resistance percentages, ability costs, cooldowns, and proc chance.
 
+## Researched Artifact Candidates
+
+The HomelandMUD source study identified the following candidates for future
+content work. They are not current registry entries, have no allocated
+LuminariMUD VNUMs, and must not be treated as implemented or deployable.
+
+| Candidate | Source completeness | Potential role |
+| --- | --- | --- |
+| Vengeance | Complete prototype and procedure | Holy weapon with wounded-heal or healthy-offense proc |
+| Earthcrier | Complete prototype and procedure | Two-handed control weapon with a knockdown proc |
+| Wyrmfang, the Spear of Dragons | Complete prototype | Dragon-themed perception and pursuit spear |
+| Courage | Complete prototype and procedure | Group-support weapon with a spoken invocation |
+| Icedge, the Dagger of Cold | Complete prototype and quest lore | Cold-defense dagger with exploration-led acquisition |
+| Twilight, the Sword of Destruction | Complete prototype and procedure | Destruction weapon with a bounded combat-surge design |
+| Homeland VNUM 501 | Procedure only; prototype missing | Dark-avenger flurry and summoned-companion concepts |
+| Homeland VNUM 513 | Procedure only; prototype missing | Weighted multi-outcome halberd control proc |
+| Homeland VNUM 599 | Procedure only; prototype missing | Alignment-conditioned protection and dispel proc |
+
+The complete audit, original VNUMs, counterpart pattern, porting cautions,
+recommendations, and absolute HomelandMUD source paths are maintained in
+`docs/project-management-zusuk/ongoing-projects/artifacts.md`.
+
 ## Player Commands
 
 | Command | Purpose |
