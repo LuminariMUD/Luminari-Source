@@ -4963,8 +4963,15 @@
 #define LIQ_BLOOD 13      /**< Liquid type blood */
 #define LIQ_SALTWATER 14  /**< Liquid type saltwater */
 #define LIQ_CLEARWATER 15 /**< Liquid type clearwater */
+#define LIQ_JUICE 16      /**< Liquid type juice */
+#define LIQ_NECTAR 17     /**< Liquid type nectar */
+#define LIQ_AMBROSIA 18   /**< Liquid type ambrosia */
+#define LIQ_SILVWINE 19   /**< Liquid type silvanesti wine */
+#define LIQ_ELVBLOSS 20   /**< Liquid type elvenblossom */
+#define LIQ_HEALREME 21   /**< Liquid type herbal remedy */
+#define LIQ_TARBEAN 22    /**< Liquid type tarbean tea */
 /** Total number of liquid types */
-#define NUM_LIQ_TYPES 16
+#define NUM_LIQ_TYPES 23
 
 /* WEAPON and ARMOR defines */
 
