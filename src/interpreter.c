@@ -84,6 +84,7 @@
 #include "mysql_boards.h"
 #include "bedit.h" /* MySQL board system */
 #include "world/spec_artifacts.h"
+#include "systems/web_client/onboarding.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -6848,6 +6849,7 @@ void nanny(struct descriptor_data *d, char *arg)
       }
       write_to_output(d, "New Account.\r\nGive me a Password: ");
       STATE(d) = CON_NEWPASSWD;
+      ProtocolNoEcho(d, true);
 
       /* Clear any pending input to prevent password being sent too early */
       while (d->input.head)
@@ -7149,6 +7151,7 @@ void nanny(struct descriptor_data *d, char *arg)
           fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
       { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
         write_to_output(d, "Invalid name, please try another.\r\nName: ");
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_INVALID_NAME);
         return;
       }
       if ((player_i = load_char(tmp_name, d->character)) > -1)
@@ -7169,6 +7172,7 @@ void nanny(struct descriptor_data *d, char *arg)
           if (!valid_name(tmp_name))
           {
             write_to_output(d, "Invalid name, please try another.\r\nName: ");
+            web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_INVALID_NAME);
             return;
           }
           CREATE(d->character, struct char_data, 1);
@@ -7203,6 +7207,9 @@ void nanny(struct descriptor_data *d, char *arg)
         {
           write_to_output(
               d, "There is already a character by that name.  Please try another.\r\nName: ");
+          free_char(d->character);
+          d->character = NULL;
+          web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_NAME_TAKEN);
           return;
         }
       }
@@ -7214,6 +7221,7 @@ void nanny(struct descriptor_data *d, char *arg)
         if (!valid_name(tmp_name))
         {
           write_to_output(d, "Invalid name, please try another.\r\nName: ");
+          web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_INVALID_NAME);
           return;
         }
         CREATE(d->character->player.name, char, strlen(tmp_name) + 1);

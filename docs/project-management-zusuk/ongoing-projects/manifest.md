@@ -731,22 +731,22 @@ must not define a single mandatory bodily depiction of the deity.
       beauty.
 - [x] `deity/borhild` - Emberforge; forgecraft, innovation, consecrated labor,
       and dwarven craft.
-- [ ] `deity/selithiel` - Moonbough; moon, dreams, passage between worlds, and
+- [x] `deity/selithiel` - Moonbough; moon, dreams, passage between worlds, and
       elven mysticism.
-- [ ] `deity/pella` - Of the Warm Hearth; home, hospitality, safe roads, and
+- [x] `deity/pella` - Of the Warm Hearth; home, hospitality, safe roads, and
       halfling community.
-- [ ] `deity/gearmaster` - Gnome patron; invention, humor, gems, and discovery.
-- [ ] `deity/ghorak` - Ash-Eyed; conquest, strength, survival, and taking the
+- [x] `deity/gearmaster` - Gnome patron; invention, humor, gems, and discovery.
+- [x] `deity/ghorak` - Ash-Eyed; conquest, strength, survival, and taking the
       strong ground.
-- [ ] `deity/zorren` - Lord of the Wild Hunt; beasts, moonlit pursuit, freedom,
+- [x] `deity/zorren` - Lord of the Wild Hunt; beasts, moonlit pursuit, freedom,
       and the hunter's bond.
 
 ### 19. Completion, error, and recovery images
 
-- [ ] `state/validation-error` - Broken but repairable seal; used only with
+- [x] `state/validation-error` - Broken but repairable seal; used only with
       readable server error text.
-- [ ] `state/choice-locked` - Locked seal overlay; reason and cost remain text.
-- [ ] `state/save-pending` - Unfinished seal; must not look successful.
+- [x] `state/choice-locked` - Locked seal overlay; reason and cost remain text.
+- [x] `state/save-pending` - Unfinished seal; must not look successful.
 - [ ] `state/save-confirmed` - Completed seal and open path; shown only after
       authoritative server confirmation.
 - [ ] `state/save-failed` - Preserved draft and blocked seal; avoid destructive

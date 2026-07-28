@@ -89,6 +89,21 @@ static const struct onboarding_screen_info onboarding_screens[] = {
      "Choose what to do with this character.", "choice", FALSE},
 };
 
+struct onboarding_error_info
+{
+  enum web_onboarding_error error;
+  const char *code;
+  const char *message;
+  const char *field;
+};
+
+static const struct onboarding_error_info onboarding_errors[] = {
+    {WEB_ONBOARDING_ERROR_INVALID_NAME, "invalid-name",
+     "That name cannot be used. Please choose another.", "name"},
+    {WEB_ONBOARDING_ERROR_NAME_TAKEN, "name-taken",
+     "That character name is already in use. Please choose another.", "name"},
+};
+
 /* Stable media keys. Deliberately a table rather than a transformation of the
  * display name: internal race and class tokens are not all well formed, and
  * the client's art must not break when a display string is corrected. */
@@ -401,6 +416,15 @@ void web_onboarding_mark_dirty(struct descriptor_data *d)
     d->web_onboarding_dirty = TRUE;
 }
 
+void web_onboarding_set_error(struct descriptor_data *d, enum web_onboarding_error error)
+{
+  if (d == NULL)
+    return;
+
+  d->web_onboarding_error = error;
+  web_onboarding_mark_dirty(d);
+}
+
 void web_onboarding_reset(struct descriptor_data *d)
 {
   if (d == NULL)
@@ -410,6 +434,7 @@ void web_onboarding_reset(struct descriptor_data *d)
   d->web_onboarding_revision = 0;
   d->web_onboarding_last_state = -1;
   d->web_onboarding_dirty = FALSE;
+  d->web_onboarding_error = WEB_ONBOARDING_ERROR_NONE;
 }
 
 const char *web_onboarding_race_media_key(int race)
@@ -881,6 +906,33 @@ static const char *persistence_for_state(int state)
   }
 }
 
+static const struct onboarding_error_info *find_onboarding_error(int error)
+{
+  size_t index = 0;
+
+  for (index = 0; index < sizeof(onboarding_errors) / sizeof(onboarding_errors[0]); index++)
+    if (onboarding_errors[index].error == error)
+      return &onboarding_errors[index];
+
+  return NULL;
+}
+
+static void build_error(struct json_writer *w, int error)
+{
+  const struct onboarding_error_info *info = find_onboarding_error(error);
+
+  if (info == NULL)
+    return;
+
+  json_raw(w, ",\"error\":{");
+  json_field_string(w, "code", info->code, 40);
+  json_raw(w, ",");
+  json_field_string(w, "message", info->message, 160);
+  json_raw(w, ",");
+  json_field_string(w, "field", info->field, 40);
+  json_raw(w, "}");
+}
+
 static void build_actions(struct json_writer *w, const struct onboarding_screen_info *screen)
 {
   json_raw(w, "\"actions\":[");
@@ -1036,6 +1088,7 @@ static bool build_state_payload(struct descriptor_data *d,
   json_field_bool(&writer, "sensitiveInput", screen->sensitive);
   json_raw(&writer, ",");
   json_field_string(&writer, "persistence", persistence_for_state(screen->state), 16);
+  build_error(&writer, d->web_onboarding_error);
   json_raw(&writer, ",");
   build_selected_detail(&writer, d, screen);
   build_choices(&writer, d, screen);
@@ -1091,12 +1144,17 @@ static void emit_state(struct descriptor_data *d, const struct onboarding_screen
 void web_onboarding_tick(struct descriptor_data *d)
 {
   const struct onboarding_screen_info *screen = NULL;
+  bool state_changed = FALSE;
 
   if (!web_onboarding_enabled(d))
     return;
 
-  if (d->connected == d->web_onboarding_last_state && !d->web_onboarding_dirty)
+  state_changed = d->connected != d->web_onboarding_last_state;
+  if (!state_changed && !d->web_onboarding_dirty)
     return;
+
+  if (state_changed)
+    d->web_onboarding_error = WEB_ONBOARDING_ERROR_NONE;
 
   d->web_onboarding_last_state = d->connected;
   d->web_onboarding_dirty = FALSE;
