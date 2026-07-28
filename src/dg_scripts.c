@@ -1487,8 +1487,10 @@ static int is_num(char *arg)
 }
 
 /* evaluates 'lhs op rhs', and copies to result */
-static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go __attribute__((unused)),
-                    struct script_data *sc __attribute__((unused)), trig_data *trig __attribute__((unused)))
+static void eval_op(const char *op, char *lhs, char *rhs, char *result,
+                    void *go __attribute__((unused)),
+                    struct script_data *sc __attribute__((unused)),
+                    trig_data *trig __attribute__((unused)))
 {
   unsigned char *p = NULL;
   int n = 0;
@@ -1499,14 +1501,13 @@ static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go
   while (*rhs && isspace(*rhs))
     rhs++;
 
-  for (p = (unsigned char *)lhs; *p; p++)
-    ;
-  for (--p; isspace(*p) && ((char *)p > lhs); *p-- = '\0')
-    ;
-  for (p = (unsigned char *)rhs; *p; p++)
-    ;
-  for (--p; isspace(*p) && ((char *)p > rhs); *p-- = '\0')
-    ;
+  p = (unsigned char *)lhs + strlen(lhs);
+  while (p > (unsigned char *)lhs && isspace(p[-1]))
+    *--p = '\0';
+
+  p = (unsigned char *)rhs + strlen(rhs);
+  while (p > (unsigned char *)rhs && isspace(p[-1]))
+    *--p = '\0';
 
   /* find the op, and figure out the value */
   if (!strcmp("||", op))

@@ -12,6 +12,7 @@
 #include "../../src/genwld.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
+#include "../../src/mob_utils.h"
 #include "../../src/movement.h"
 #include "../../src/spells.h"
 
@@ -653,6 +654,26 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
   CuAssertTrue(tc, parsed);
   CuAssertIntEquals(tc, 1, trigger_result);
   CuAssertTrue(tc, result_matches);
+}
+
+void Test_gameplay_e2e_mob_path_handles_already_at_destination(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  bool moved_on_path;
+
+  begin_gameplay_fixture(&fixture);
+  PATH_SIZE(&fixture.actor) = 1;
+  PATH_INDEX(&fixture.actor) = 0;
+  PATH_DELAY(&fixture.actor) = 0;
+  PATH_RESET(&fixture.actor) = 0;
+  GET_PATH(&fixture.actor, 0) = fixture.rooms[0].number;
+
+  moved_on_path = move_on_path(&fixture.actor);
+
+  CuAssertTrue(tc, moved_on_path);
+  CuAssertIntEquals(tc, 1, PATH_INDEX(&fixture.actor));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  end_gameplay_fixture(&fixture);
 }
 
 void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)

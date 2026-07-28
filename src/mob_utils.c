@@ -234,19 +234,6 @@ bool move_on_path(struct char_data *ch)
 
   dir = find_first_step(IN_ROOM(ch), real_room(next));
 
-  if (EXIT(ch, dir)->to_room != real_room(next))
-  {
-    send_to_char(ch, "Hrm, it appears I am off-path...\r\n");
-    send_to_char(ch,
-                 "I want to go %s, which is room %d, but I need to get to"
-                 " room %d..\r\n",
-                 dirs[dir], GET_ROOM_VNUM(EXIT(ch, dir)->to_room), next);
-  }
-  else
-  {
-    send_to_char(ch, "... it looks like my path is perfect so far!\r\n");
-  }
-
   switch (dir)
   {
   case BFS_ERROR:
@@ -262,6 +249,26 @@ bool move_on_path(struct char_data *ch)
     // log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
     break;
   default: /* Success! */
+    if (dir < 0 || dir >= NUM_OF_DIRS || EXIT(ch, dir) == NULL || EXIT(ch, dir)->to_room == NOWHERE)
+    {
+      log("PATH ERROR: Mob %s received invalid direction %d in room %d", GET_NAME(ch), dir,
+          world[IN_ROOM(ch)].number);
+      break;
+    }
+
+    if (EXIT(ch, dir)->to_room != real_room(next))
+    {
+      send_to_char(ch, "Hrm, it appears I am off-path...\r\n");
+      send_to_char(ch,
+                   "I want to go %s, which is room %d, but I need to get to"
+                   " room %d..\r\n",
+                   dirs[dir], GET_ROOM_VNUM(EXIT(ch, dir)->to_room), next);
+    }
+    else
+    {
+      send_to_char(ch, "... it looks like my path is perfect so far!\r\n");
+    }
+
     send_to_char(ch, "I sense a trail %s from here!\r\n", dirs[dir]);
     perform_move(ch, dir, 1);
     break;

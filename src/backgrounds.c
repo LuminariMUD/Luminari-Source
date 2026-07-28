@@ -160,7 +160,7 @@ void sort_backgrounds(void)
   for (a = 1; a < NUM_BACKGROUNDS; a++)
     background_sort_info[a] = a;
 
-  qsort(&background_sort_info[1], NUM_BACKGROUNDS, sizeof(int), compare_backgrounds);
+  qsort(&background_sort_info[1], NUM_BACKGROUNDS - 1, sizeof(int), compare_backgrounds);
 }
 
 static void backgroundo(int background, const char *name, int skill_one, int skill_two, int featnum,

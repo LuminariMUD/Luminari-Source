@@ -154,6 +154,36 @@ void TestBackgroundIdentityMappingsAreStableAndAccepted(CuTest *tc)
   CuAssertStrEquals(tc, "background/fallback", background_media_key(NUM_BACKGROUNDS));
 }
 
+void TestBackgroundSortKeepsEveryPlayableBackgroundInBounds(CuTest *tc)
+{
+  bool seen[NUM_BACKGROUNDS] = {FALSE};
+  int position = 0;
+
+  assign_backgrounds();
+  sort_backgrounds();
+
+  for (position = 1; position < NUM_BACKGROUNDS; position++)
+  {
+    int background = background_sort_info[position];
+
+    CuAssertTrue(tc, background > BACKGROUND_NONE);
+    CuAssertTrue(tc, background < NUM_BACKGROUNDS);
+    CuAssertTrue(tc, !seen[background]);
+    seen[background] = TRUE;
+
+    if (position > 1)
+    {
+      int previous = background_sort_info[position - 1];
+
+      CuAssertTrue(tc,
+                   strcmp(background_list[previous].name, background_list[background].name) <= 0);
+    }
+  }
+
+  for (position = 1; position < NUM_BACKGROUNDS; position++)
+    CuAssertTrue(tc, seen[position]);
+}
+
 void TestWebOnboardingCapabilityNegotiation(CuTest *tc)
 {
   struct descriptor_data d;
@@ -656,6 +686,7 @@ void TestWebOnboardingV2CoversEveryRoleplayState(CuTest *tc)
     /* With v2 compiled out these states have no structured presentation. */
     CuAssertTrue(tc, !built);
 #endif
+    web_onboarding_reset(&d);
   }
 }
 

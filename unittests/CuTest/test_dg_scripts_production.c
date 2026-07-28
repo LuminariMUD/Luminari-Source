@@ -54,3 +54,37 @@ void Test_dg_production_flag_name_matching(CuTest *tc)
   CuAssertTrue(tc, check_flags_by_name_ar(flags, 4, "two", names));
   CuAssertTrue(tc, !check_flags_by_name_ar(flags, 4, "one", names));
 }
+
+void Test_dg_production_empty_expression_operands_are_safe(CuTest *tc)
+{
+  struct script_data script = {0};
+  struct trig_data trigger = {0};
+  struct trig_var_data *variable;
+  char empty_right[] = "eval empty_right 1 ==";
+  char empty_left[] = "eval empty_left == 1";
+  bool found_empty_right = false;
+  bool found_empty_left = false;
+
+  trigger.name = "empty operand regression";
+
+  process_eval(NULL, &script, &trigger, WLD_TRIGGER, empty_right);
+  process_eval(NULL, &script, &trigger, WLD_TRIGGER, empty_left);
+
+  for (variable = trigger.var_list; variable != NULL; variable = variable->next)
+  {
+    if (!strcmp(variable->name, "empty_right"))
+    {
+      found_empty_right = true;
+      CuAssertStrEquals(tc, "0", variable->value);
+    }
+    else if (!strcmp(variable->name, "empty_left"))
+    {
+      found_empty_left = true;
+      CuAssertStrEquals(tc, "0", variable->value);
+    }
+  }
+
+  CuAssertTrue(tc, found_empty_right);
+  CuAssertTrue(tc, found_empty_left);
+  free_varlist(trigger.var_list);
+}
