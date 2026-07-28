@@ -747,14 +747,14 @@ must not define a single mandatory bodily depiction of the deity.
       readable server error text.
 - [x] `state/choice-locked` - Locked seal overlay; reason and cost remain text.
 - [x] `state/save-pending` - Unfinished seal; must not look successful.
-- [ ] `state/save-confirmed` - Completed seal and open path; shown only after
+- [x] `state/save-confirmed` - Completed seal and open path; shown only after
       authoritative server confirmation.
-- [ ] `state/save-failed` - Preserved draft and blocked seal; avoid destructive
+- [x] `state/save-failed` - Preserved draft and blocked seal; avoid destructive
       imagery unless data loss is confirmed.
-- [ ] `state/onboarding-incomplete` - Bookmarked or unfinished character folio.
-- [ ] `state/protocol-fallback` - Structured frame folding safely into the
+- [x] `state/onboarding-incomplete` - Bookmarked or unfinished character folio.
+- [x] `state/protocol-fallback` - Structured frame folding safely into the
       classic terminal.
-- [ ] `state/server-unavailable` - Quiet dormant gateway with reconnect and
+- [x] `state/server-unavailable` - Quiet dormant gateway with reconnect and
       terminal recovery space.
 
 ## Music Checklist

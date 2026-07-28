@@ -1,6 +1,6 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-07-27
+Last Updated: 2026-07-28
 Version: 1.1
 
 ## 📚 Documentation Overview
@@ -54,6 +54,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[INTERMUD3.md](systems/INTERMUD3.md)** - Inter-MUD communication system
 - **[INTERMUD3_GATEWAY_API.md](systems/INTERMUD3_GATEWAY_API.md)** - External I3 Gateway API reference (JSON-RPC 2.0)
 - **[INTERMUD3_SECURITY_AUDIT.md](systems/INTERMUD3_SECURITY_AUDIT.md)** - I3 client security audit (remediated 2025-08-26)
+- **[LOCAL_INTERMUD3_E2E.md](runbooks/LOCAL_INTERMUD3_E2E.md)** - Local gateway and MUD end-to-end operations runbook
 - **[PROTOCOL_TODO.md](project-management-zusuk/ongoing-projects/PROTOCOL_TODO.md)** - Outstanding protocol security items
 
 ---

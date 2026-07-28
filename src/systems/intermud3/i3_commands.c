@@ -180,12 +180,10 @@ void do_i3who(struct char_data *ch, const char *argument, int cmd, int subcmd)
     return;
   }
 
-  /* For now, since we don't have a mud list yet */
   send_to_char(ch, "i3who: Requesting player list from %s...\r\n", target_mud);
-  send_to_char(ch, "(Note: MUD list validation not yet implemented)\r\n");
 
   /* Request who list */
-  if (i3_request_who(target_mud) == 0)
+  if (i3_request_who(target_mud, GET_NAME(ch)) == 0)
   {
     send_to_char(ch, "Request sent.\r\n");
   }
@@ -252,7 +250,7 @@ void do_i3finger(struct char_data *ch, const char *argument, int cmd, int subcmd
   }
 
   /* Request finger info */
-  if (i3_request_finger(target_mud, target_user) == 0)
+  if (i3_request_finger(target_mud, target_user, GET_NAME(ch)) == 0)
   {
     send_to_char(ch, "Requesting finger info for %s@%s...\r\n", target_user, target_mud);
   }
@@ -285,7 +283,7 @@ void do_i3locate(struct char_data *ch, const char *argument, int cmd, int subcmd
   }
 
   /* Request locate */
-  if (i3_request_locate(target_user) == 0)
+  if (i3_request_locate(target_user, GET_NAME(ch)) == 0)
   {
     send_to_char(ch, "Searching for %s on the Intermud3 network...\r\n", target_user);
   }
@@ -524,7 +522,7 @@ void do_i3admin(struct char_data *ch, const char *argument, int cmd, int subcmd)
   }
   else if (!strcasecmp(arg, "reload"))
   {
-    if (i3_load_config("lib/i3_config") == 0)
+    if (i3_load_config("i3_config") == 0)
     {
       send_to_char(ch, "Configuration reloaded.\r\n");
     }
@@ -535,7 +533,7 @@ void do_i3admin(struct char_data *ch, const char *argument, int cmd, int subcmd)
   }
   else if (!strcasecmp(arg, "save"))
   {
-    if (i3_save_config("lib/i3_config") == 0)
+    if (i3_save_config("i3_config") == 0)
     {
       send_to_char(ch, "Configuration saved.\r\n");
     }
@@ -594,10 +592,19 @@ i3_channel_t *i3_find_channel(const char *name)
 /* Get statistics string */
 void i3_get_statistics(char *buf, size_t bufsize)
 {
+  i3_mud_t *mud;
+  int mud_count;
+
   if (!i3_client)
   {
     snprintf(buf, bufsize, "I3 client not initialized.\r\n");
     return;
+  }
+
+  mud_count = 0;
+  for (mud = i3_client->mud_list; mud; mud = mud->next)
+  {
+    mud_count++;
   }
 
   snprintf(buf, bufsize,
@@ -613,38 +620,45 @@ void i3_get_statistics(char *buf, size_t bufsize)
            i3_client->messages_sent, i3_client->messages_received, i3_client->errors,
            i3_client->reconnects, i3_client->command_queue_size, i3_client->max_queue_size,
            i3_client->event_queue_size, i3_client->max_queue_size, i3_client->channel_count,
-           0); /* TODO: Count MUDs in list */
+           mud_count);
 }
 
-/* Stub implementations for remaining protocol functions */
-int i3_request_who(const char *target_mud)
+int i3_request_who(const char *target_mud, const char *requester)
 {
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_who)
+  if (!i3_client || !i3_client->enable_who || !target_mud || !*target_mud || !requester ||
+      !*requester)
   {
     return -1;
   }
 
   params = json_object_new_object();
   json_object_object_add(params, "target_mud", json_object_new_string(target_mud));
+  json_object_object_add(params, "from_user", json_object_new_string(requester));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
-  strlcpy(cmd->method, "who_request", sizeof(cmd->method));
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
+  strlcpy(cmd->method, "who", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
   return 0;
 }
 
-int i3_request_finger(const char *target_mud, const char *target_user)
+int i3_request_finger(const char *target_mud, const char *target_user, const char *requester)
 {
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_who)
+  if (!i3_client || !i3_client->enable_who || !target_mud || !*target_mud || !target_user ||
+      !*target_user || !requester || !*requester)
   {
     return -1;
   }
@@ -652,32 +666,45 @@ int i3_request_finger(const char *target_mud, const char *target_user)
   params = json_object_new_object();
   json_object_object_add(params, "target_mud", json_object_new_string(target_mud));
   json_object_object_add(params, "target_user", json_object_new_string(target_user));
+  json_object_object_add(params, "from_user", json_object_new_string(requester));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
-  strlcpy(cmd->method, "finger_request", sizeof(cmd->method));
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
+  strlcpy(cmd->method, "finger", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
   return 0;
 }
 
-int i3_request_locate(const char *target_user)
+int i3_request_locate(const char *target_user, const char *requester)
 {
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_who)
+  if (!i3_client || !i3_client->enable_who || !target_user || !*target_user || !requester ||
+      !*requester)
   {
     return -1;
   }
 
   params = json_object_new_object();
   json_object_object_add(params, "target_user", json_object_new_string(target_user));
+  json_object_object_add(params, "from_user", json_object_new_string(requester));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
-  strlcpy(cmd->method, "locate_request", sizeof(cmd->method));
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
+  strlcpy(cmd->method, "locate", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
@@ -688,9 +715,18 @@ int i3_request_mudlist(void)
 {
   i3_command_t *cmd;
 
+  if (!i3_client)
+  {
+    return -1;
+  }
+
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
-  strlcpy(cmd->method, "mudlist_request", sizeof(cmd->method));
+  if (!cmd)
+  {
+    return -1;
+  }
+  cmd->id = 0;
+  strlcpy(cmd->method, "mudlist", sizeof(cmd->method));
   cmd->params = NULL;
 
   i3_queue_command(cmd);
@@ -702,7 +738,8 @@ int i3_join_channel(const char *channel, const char *user_name)
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_channels)
+  if (!i3_client || !i3_client->enable_channels || !channel || !*channel || !user_name ||
+      !*user_name)
   {
     return -1;
   }
@@ -712,7 +749,12 @@ int i3_join_channel(const char *channel, const char *user_name)
   json_object_object_add(params, "user_name", json_object_new_string(user_name));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
   strlcpy(cmd->method, "channel_join", sizeof(cmd->method));
   cmd->params = params;
 
@@ -725,7 +767,8 @@ int i3_leave_channel(const char *channel, const char *user_name)
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_channels)
+  if (!i3_client || !i3_client->enable_channels || !channel || !*channel || !user_name ||
+      !*user_name)
   {
     return -1;
   }
@@ -735,7 +778,12 @@ int i3_leave_channel(const char *channel, const char *user_name)
   json_object_object_add(params, "user_name", json_object_new_string(user_name));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
   strlcpy(cmd->method, "channel_leave", sizeof(cmd->method));
   cmd->params = params;
 
@@ -747,8 +795,17 @@ int i3_list_channels(void)
 {
   i3_command_t *cmd;
 
+  if (!i3_client)
+  {
+    return -1;
+  }
+
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
+  if (!cmd)
+  {
+    return -1;
+  }
+  cmd->id = 0;
   strlcpy(cmd->method, "channel_list", sizeof(cmd->method));
   cmd->params = NULL;
 
@@ -762,7 +819,8 @@ int i3_send_emoteto(const char *from_user, const char *target_mud, const char *t
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_tell)
+  if (!i3_client || !i3_client->enable_tell || !from_user || !*from_user || !target_mud ||
+      !*target_mud || !target_user || !*target_user || !emote || !*emote)
   {
     return -1;
   }
@@ -774,7 +832,12 @@ int i3_send_emoteto(const char *from_user, const char *target_mud, const char *t
   json_object_object_add(params, "emote", json_object_new_string(emote));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
   strlcpy(cmd->method, "emoteto", sizeof(cmd->method));
   cmd->params = params;
 
@@ -787,7 +850,8 @@ int i3_send_channel_emote(const char *channel, const char *from_user, const char
   json_object *params;
   i3_command_t *cmd;
 
-  if (!i3_client->enable_channels)
+  if (!i3_client || !i3_client->enable_channels || !channel || !*channel || !from_user ||
+      !*from_user || !emote || !*emote)
   {
     return -1;
   }
@@ -798,17 +862,15 @@ int i3_send_channel_emote(const char *channel, const char *from_user, const char
   json_object_object_add(params, "emote", json_object_new_string(emote));
 
   cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
-  cmd->id = i3_client->next_request_id++;
+  if (!cmd)
+  {
+    json_object_put(params);
+    return -1;
+  }
+  cmd->id = 0;
   strlcpy(cmd->method, "channel_emote", sizeof(cmd->method));
   cmd->params = params;
 
   i3_queue_command(cmd);
-  return 0;
-}
-
-int i3_parse_response(const char *json_str)
-{
-  /* TODO: Implement */
-  UNUSED_VAR(json_str);
   return 0;
 }
