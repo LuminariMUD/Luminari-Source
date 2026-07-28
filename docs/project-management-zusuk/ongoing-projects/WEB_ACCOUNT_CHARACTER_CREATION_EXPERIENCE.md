@@ -1,18 +1,18 @@
 # Web Account and Character Creation Experience
 
-**Status:** Implemented through Phase 3 in pushed source/web commits;
-protocol-v2 rollout outstanding
-**Date:** 2026-07-28
-**Runtime code changed:** Yes (development environment)
+**Status:** Implemented and live in production through the protocol-v2
+role-play identity suite; hardening work remains
+**Date:** 2026-07-29
+**Runtime code changed:** Yes (production activation)
 
-## Implementation Status (2026-07-28)
+## Implementation Status (2026-07-29)
 
 The recommended architecture in this document has been built end to end across
 both repositories. The classic terminal remains fully usable and is the
 automatic fallback everywhere the structured protocol is unavailable.
 The Phase 3 source implementation is durable in pushed commit
-`5c766e71effe`; the paired web implementation is durable in pushed commit
-`b9e8091abe37`. Neither fact implies protocol-v2 production activation.
+`b49c4ffe`; the paired production gateway activation is durable in
+`luminariweb` commit `72045c0`. Both are live in production under protocol v2.
 
 ### Luminari-Source
 
@@ -68,8 +68,9 @@ The Phase 3 source implementation is durable in pushed commit
 
 ### Verified
 
-- 197 production-linked CuTest cases pass in clean default-off and v2-enabled
-  builds. The source suite covers all 29 states, catalogs/actions/details,
+- 207 production-linked CuTest cases pass in a clean v2-enabled release build
+  and under AddressSanitizer. The source suite covers all 29 states,
+  catalogs/actions/details,
   exact field limits, bidirectional transfer, parser attacks, lifecycle/rates,
   checked saves, rollback, forced handoff, and v1/Telnet compatibility.
 - The focused protocol parser passes 13/13, and a bounded libFuzzer run passes
@@ -82,12 +83,34 @@ The Phase 3 source implementation is durable in pushed commit
 - Published media is measured against the manifest's byte budgets by an
   automated test.
 
+### Production rollout
+
+- Cloudflare Worker version `7ebc397c-66b8-4697-9e77-08c21e3f55e7` advertises
+  v2 from `luminariweb main@72045c0`.
+- Production runs `Luminari-Source master@b49c4ffe`; the installed and running
+  binary SHA-256 is
+  `fb554a3e7ccc63ac6f6c4ca57dfd275672815a29a77471200421eb15c4ad4a00`.
+- The first v2 copyover exposed an allocator failure and the exact v1 binary
+  was restored. The retained v1 SHA-256 is
+  `c23d6f878fd629106b0e1003e4349c017b327d22cebc8f3b9f2df7e66298d86a`.
+- Before retrying, regression tests and fixes landed for an oversized
+  `sort_backgrounds()` qsort range, empty-operand pointer underflow in
+  `eval_op()`, and negative BFS-sentinel indexing in `move_on_path()`.
+- The final player-preserving copyover retained PID `1318258`, kept port `4100`
+  healthy, and cleared the copyover state.
+- Repeated production desktop and 390 px browser walks negotiated
+  authoritative v2, rendered all 14 RP hub cards and images, opened a real
+  Background story editor, returned through the character/account menus, and
+  quit without browser errors, warnings, or horizontal overflow.
+- The operator accepted the still-open `ONBOARD-SEC-001` plain-Telnet risk for
+  this deployment. That is not remediation.
+
 ### Outstanding
 
-- Non-production v2 enablement, deployed-source walkthrough, version-skew and
-  rollback drills, security approval, canary, and production promotion.
 - Manual assistive-technology/contrast/unavailable-media review and load
-  testing.
+  testing, long-duration observation, and CPU evidence.
+- Remediation of the accepted upstream plain-Telnet transport risk and the
+  remaining protocol-v1 same-state retry gap.
 - Optional layered masters/dedicated runtime-catalog art and all human creative,
   canon, provenance, similarity, and licensing approval gates.
 
@@ -132,17 +155,20 @@ Those are planning ranges, not commitments. They assume an experienced C and
 TypeScript contributor, a designer or art director, and no simultaneous
 rewrite of authentication or the network transport.
 
-## Audit Baseline
+## Original Audit Baseline
 
-This document was produced from a read-only trace of both repositories.
+The original planning baseline was produced from a read-only trace of both
+repositories:
 
-| Repository | Baseline | Relevant current shape |
-|------------|----------|------------------------|
+| Repository        | Baseline   | Relevant current shape                                                       |
+| ----------------- | ---------- | ---------------------------------------------------------------------------- |
 | `Luminari-Source` | `b59a8c4d` | C MUD, descriptor-driven `nanny()` login and creation flow, MariaDB accounts |
-| `luminariweb` | `e9ce006` | React browser client, Node WebSocket-to-Telnet proxy, MSDP HUD |
+| `luminariweb`     | `e9ce006`  | React browser client, Node WebSocket-to-Telnet proxy, MSDP HUD               |
 
-The MUD environment reports itself as non-production. No credentials were
-copied into this document, and no production or runtime files were changed.
+At that original baseline the inspected MUD environment reported itself as
+non-production, and no production/runtime files were changed. The current
+production activation is recorded in the implementation-status section above.
+No credentials are recorded in this document.
 
 ### Key code evidence
 
@@ -263,17 +289,17 @@ but cannot render an account lobby or creation wizard before then.
 The primary flow is in `src/interpreter.c:nanny()`, with account persistence and
 menu rendering in `src/account.c`.
 
-| Stage | MUD states | Current behavior |
-|-------|------------|------------------|
-| Protocol negotiation | `CON_GET_PROTOCOL` | Negotiates client protocols, prints greeting |
-| Account identity | `CON_ACCOUNT_NAME` | Treats the first entered name as an account name |
-| New-account confirmation | `CON_ACCOUNT_NAME_CONFIRM` | Confirms spelling, checks site ban and creation lock |
-| Existing-account password | `CON_PASSWORD` | Verifies the account password and limits bad attempts |
-| New-account password | `CON_NEWPASSWD`, `CON_CNFPASSWD` | Creates and confirms the account password |
-| Account lobby | `CON_ACCOUNT_MENU` | Lists characters and accepts character number, create, add, or quit |
-| Add existing character | `CON_ACCOUNT_ADD`, `CON_ACCOUNT_ADD_PWD` | Links an old character after ownership/password checks |
-| Character load | `CON_RMOTD`, `CON_MENU` | Shows MOTD and the selected character menu |
-| Enter game | `CON_PLAYING` | Runs `enter_player_game()` and begins normal play |
+| Stage                     | MUD states                               | Current behavior                                                    |
+| ------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| Protocol negotiation      | `CON_GET_PROTOCOL`                       | Negotiates client protocols, prints greeting                        |
+| Account identity          | `CON_ACCOUNT_NAME`                       | Treats the first entered name as an account name                    |
+| New-account confirmation  | `CON_ACCOUNT_NAME_CONFIRM`               | Confirms spelling, checks site ban and creation lock                |
+| Existing-account password | `CON_PASSWORD`                           | Verifies the account password and limits bad attempts               |
+| New-account password      | `CON_NEWPASSWD`, `CON_CNFPASSWD`         | Creates and confirms the account password                           |
+| Account lobby             | `CON_ACCOUNT_MENU`                       | Lists characters and accepts character number, create, add, or quit |
+| Add existing character    | `CON_ACCOUNT_ADD`, `CON_ACCOUNT_ADD_PWD` | Links an old character after ownership/password checks              |
+| Character load            | `CON_RMOTD`, `CON_MENU`                  | Shows MOTD and the selected character menu                          |
+| Enter game                | `CON_PLAYING`                            | Runs `enter_player_game()` and begins normal play                   |
 
 The account can hold up to `MAX_CHARS_PER_ACCOUNT`, currently 100. The existing
 account menu loads each character to display name, level, race, and class
@@ -295,21 +321,21 @@ Important account-related scope boundaries:
 
 The core new-character sequence is:
 
-| Order | MUD state | Server-owned rule |
-|------:|-----------|-------------------|
-| 1 | `CON_GET_NAME` | Parse, length-check, reserve-word check, uniqueness check |
-| 2 | `CON_NAME_CNFRM` | Confirm spelling, repeat ban/creation-lock checks, duplicate check |
-| 3 | `CON_QSEX` | Current prompt accepts male or female |
-| 4 | `CON_QRACE` | Parse race, require playable/unlocked race |
-| 5 | `CON_QRACE_HELP` | Show race details and confirm/reselect |
-| 6 | `CON_QCLASS` | Require in-game, non-prestige, unlocked, race-compatible class |
-| 7 | `CON_QCLASS_HELP` | Show class details and confirm/reselect |
-| 8 | `CON_CONFIRM_PREMADE` | Choose premade or custom build |
-| 9 | `CON_QALIGN` | Choose an alignment valid for both race and class |
-| 10 | Persistence boundary | Initialize, save character, link account, update player index |
-| 11 | `CON_SETPREFS` | Optionally enable recommended preference flags |
-| 12 | `CON_CHAR_RP_DECIDE` | Non-role-player, enter role-play details, or defer |
-| 13 | `CON_RMOTD`, `CON_MENU` | Continue to character menu and game entry |
+| Order | MUD state               | Server-owned rule                                                  |
+| ----: | ----------------------- | ------------------------------------------------------------------ |
+|     1 | `CON_GET_NAME`          | Parse, length-check, reserve-word check, uniqueness check          |
+|     2 | `CON_NAME_CNFRM`        | Confirm spelling, repeat ban/creation-lock checks, duplicate check |
+|     3 | `CON_QSEX`              | Current prompt accepts male or female                              |
+|     4 | `CON_QRACE`             | Parse race, require playable/unlocked race                         |
+|     5 | `CON_QRACE_HELP`        | Show race details and confirm/reselect                             |
+|     6 | `CON_QCLASS`            | Require in-game, non-prestige, unlocked, race-compatible class     |
+|     7 | `CON_QCLASS_HELP`       | Show class details and confirm/reselect                            |
+|     8 | `CON_CONFIRM_PREMADE`   | Choose premade or custom build                                     |
+|     9 | `CON_QALIGN`            | Choose an alignment valid for both race and class                  |
+|    10 | Persistence boundary    | Initialize, save character, link account, update player index      |
+|    11 | `CON_SETPREFS`          | Optionally enable recommended preference flags                     |
+|    12 | `CON_CHAR_RP_DECIDE`    | Non-role-player, enter role-play details, or defer                 |
+|    13 | `CON_RMOTD`, `CON_MENU` | Continue to character menu and game entry                          |
 
 The point-buy block is currently compiled out with
 `CHARGEN_NO_STATISTICS`. Ability scores, feats, skills, and later build choices
@@ -343,22 +369,22 @@ the relevant save.
 
 If the player elects to enter role-play information, the MUD exposes:
 
-| Choice | Current implementation |
-|--------|------------------------|
-| Short description | Multi-step generated descriptor/adjective flow; may be required before game entry |
-| Long description | MUD string editor |
-| Background story | MUD string editor |
-| Background archetype | Named catalog, description, confirmation, mechanical feat |
-| Goals | Examples plus string editor |
-| Personality | Background-themed examples plus string editor |
-| Ideals | Background-themed examples plus string editor |
-| Bonds | Background-themed examples plus string editor |
-| Flaws | Background-themed examples plus string editor |
-| Age | Five categories with ability modifiers; one-time selection |
-| Homeland region | Runtime-selectable regions with descriptions and language effect |
-| Faction | Runtime clan list, descriptions, membership effects |
-| Hometown | Campaign/runtime choices with recall and donation behavior |
-| Deity | Runtime deity list, alignment, portfolio, description, confirmation |
+| Choice               | Current implementation                                                            |
+| -------------------- | --------------------------------------------------------------------------------- |
+| Short description    | Multi-step generated descriptor/adjective flow; may be required before game entry |
+| Long description     | MUD string editor                                                                 |
+| Background story     | MUD string editor                                                                 |
+| Background archetype | Named catalog, description, confirmation, mechanical feat                         |
+| Goals                | Examples plus string editor                                                       |
+| Personality          | Background-themed examples plus string editor                                     |
+| Ideals               | Background-themed examples plus string editor                                     |
+| Bonds                | Background-themed examples plus string editor                                     |
+| Flaws                | Background-themed examples plus string editor                                     |
+| Age                  | Five categories with ability modifiers; one-time selection                        |
+| Homeland region      | Runtime-selectable regions with descriptions and language effect                  |
+| Faction              | Runtime clan list, descriptions, membership effects                               |
+| Hometown             | Campaign/runtime choices with recall and donation behavior                        |
+| Deity                | Runtime deity list, alignment, portfolio, description, confirmation               |
 
 Most of this is optional, but the short-description setup can be forced when
 the introduction system is enabled. A complete web experience eventually
@@ -369,17 +395,17 @@ needs both the optional profile editor and the forced short-description gate.
 The project already owns much of the text and mechanics needed for rich cards.
 It should be exposed, not copied by hand into TypeScript.
 
-| Domain | Existing source authority |
-|--------|---------------------------|
-| Races | `race_list[]`: stable name, label, description, size, ability modifiers, playable flag, unlock cost, allowed alignments, racial feats |
-| Classes | `class_list[]`: name, description, primary attributes, hit die, BAB, saves, skills, unlock cost, in-game/prestige flags |
-| Compatibility | `valid_class_race_alignment()`, `valid_align_by_class()`, `valid_align_by_race()` |
-| Account unlocks | `has_unlocked_race()`, `has_unlocked_class()` |
-| Backgrounds | `background_list[]` and role-play example tables |
-| Regions | `regions[]`, `is_selectable_region()`, `get_region_info()` |
-| Factions | Runtime clan data |
-| Hometowns | `cities[]` plus current campaign/runtime rules |
-| Deities | `deity_list[]`: name, pantheon, alignment, portfolio, symbol, description |
+| Domain          | Existing source authority                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Races           | `race_list[]`: stable name, label, description, size, ability modifiers, playable flag, unlock cost, allowed alignments, racial feats |
+| Classes         | `class_list[]`: name, description, primary attributes, hit die, BAB, saves, skills, unlock cost, in-game/prestige flags               |
+| Compatibility   | `valid_class_race_alignment()`, `valid_align_by_class()`, `valid_align_by_race()`                                                     |
+| Account unlocks | `has_unlocked_race()`, `has_unlocked_class()`                                                                                         |
+| Backgrounds     | `background_list[]` and role-play example tables                                                                                      |
+| Regions         | `regions[]`, `is_selectable_region()`, `get_region_info()`                                                                            |
+| Factions        | Runtime clan data                                                                                                                     |
+| Hometowns       | `cities[]` plus current campaign/runtime rules                                                                                        |
+| Deities         | `deity_list[]`: name, pantheon, alignment, portfolio, symbol, description                                                             |
 
 The current compile-time ceilings are 28 player-race slots and 38 class slots,
 although runtime playable, in-game, prestige, lock, and compatibility filters
@@ -469,14 +495,14 @@ web presentations draw from the same values.
 
 ## Architecture Options Considered
 
-| Option | Initial effort | Long-term quality | Finding |
-|--------|----------------|-------------------|---------|
-| Parse terminal prompts in React or Node | Low | Poor | Reject except for a disposable prototype. Text, colors, wrapping, help output, and prompt wording will break it. |
-| Duplicate creation rules and catalogs in TypeScript | Medium | Poor | Reject. Race/class/unlock/alignment behavior will drift from the game. |
-| Add direct Node HTTP APIs against the MUD database | High | Risky | Reject. It duplicates authentication and bypasses descriptor, validation, player-file, and save behavior. |
-| Replace the proxy with native MUD WebSockets | Very high | Unknown | Defer. Existing web ADR 0003 already requires a separate transport, security, operations, and rollback project. |
-| Implement a complete GMCP module family now | High | Potentially good | Defer. Existing ADR 0002 requires module schemas, coexistence, parser, validation, fixtures, and migration design. |
-| Add structured onboarding over current Telnet/MSDP and proxy | Medium | Good | Recommended. It reuses the tested transport and preserves terminal compatibility. |
+| Option                                                       | Initial effort | Long-term quality | Finding                                                                                                            |
+| ------------------------------------------------------------ | -------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Parse terminal prompts in React or Node                      | Low            | Poor              | Reject except for a disposable prototype. Text, colors, wrapping, help output, and prompt wording will break it.   |
+| Duplicate creation rules and catalogs in TypeScript          | Medium         | Poor              | Reject. Race/class/unlock/alignment behavior will drift from the game.                                             |
+| Add direct Node HTTP APIs against the MUD database           | High           | Risky             | Reject. It duplicates authentication and bypasses descriptor, validation, player-file, and save behavior.          |
+| Replace the proxy with native MUD WebSockets                 | Very high      | Unknown           | Defer. Existing web ADR 0003 already requires a separate transport, security, operations, and rollback project.    |
+| Implement a complete GMCP module family now                  | High           | Potentially good  | Defer. Existing ADR 0002 requires module schemas, coexistence, parser, validation, fixtures, and migration design. |
+| Add structured onboarding over current Telnet/MSDP and proxy | Medium         | Good              | Recommended. It reuses the tested transport and preserves terminal compatibility.                                  |
 
 ## Recommended Technical Architecture
 
@@ -1044,25 +1070,25 @@ Art production runs in parallel and is not included in the engineering range.
 
 ### Phase 5: Hardening and rollout - 2-4 person-weeks
 
-- [ ] Version-skew and malformed-protocol testing
+- [x] Version-skew and malformed-protocol testing
 - [ ] Reconnect and partial-creation recovery
 - [ ] Load, rate-limit, and payload-size testing
 - [ ] Automated security and privacy test suites
 - [ ] Automated accessibility conformance suite
-- [ ] Deployment and rollback runbook
-- [ ] Feature-flagged development rollout
+- [x] Deployment and rollback runbook
+- [x] Feature-flagged production rollout
 - [ ] Automated canary rollout with health thresholds and rollback triggers
-- [ ] Classic-terminal rollback drill
+- [x] Classic-terminal/v1 rollback recovery
 - [ ] Automatic documentation promotion after all checks pass
 
 ## Estimate Summary
 
-| Deliverable | Engineering | Media/content |
-|-------------|-------------|---------------|
-| Secure login plus account lobby vertical slice | 4-7 person-weeks including Phase 0 share | Minimal branded backdrop and character-card fallback |
-| Core race/class creator through role-play decision | 8-14 cumulative person-weeks | Reusable visual system plus accepted race/class key art |
-| Full optional role-play suite | 11-17 cumulative person-weeks | Additional location, faction, deity, and background art as desired |
-| Production-polished full experience | 15-28 cumulative person-weeks | 4-8 artist-weeks reusable system; 10-20+ bespoke system |
+| Deliverable                                        | Engineering                              | Media/content                                                      |
+| -------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| Secure login plus account lobby vertical slice     | 4-7 person-weeks including Phase 0 share | Minimal branded backdrop and character-card fallback               |
+| Core race/class creator through role-play decision | 8-14 cumulative person-weeks             | Reusable visual system plus accepted race/class key art            |
+| Full optional role-play suite                      | 11-17 cumulative person-weeks            | Additional location, faction, deity, and background art as desired |
+| Production-polished full experience                | 15-28 cumulative person-weeks            | 4-8 artist-weeks reusable system; 10-20+ bespoke system            |
 
 With two engineers who can work concurrently across the C and TypeScript
 boundaries, plus design/art support, a realistic calendar target for the full
@@ -1071,20 +1097,20 @@ engineer doing both repositories serially is more likely a 4-7 month project.
 
 ## Primary Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| `nanny()` is a large interleaved switch | Missed transition produces stale UI | State-entry emitters, transition audit, source tests, terminal fallback |
-| Browser duplicates server rules | Incorrect choices and save failures | Server emits all availability and validation |
-| Password stays on ordinary command path | Credential exposure in UI/history/automation | Sensitive-input work before public login UI |
-| Version skew between repositories | Blank or broken onboarding | Capability/version negotiation and fail-to-terminal behavior |
-| Arbitrary Back navigation | Invalid dependent state or rollback bugs | Match current confirmation semantics first; scope rollback separately |
-| Save occurs mid-onboarding | Confusing reconnect/partial characters | Explicit persistence status and recovery contract |
-| MSDP payload exceeds 16 KB | Truncation or parser failure | Compact lists, selected detail, chunks, hard limits |
-| Runtime catalogs differ from static art | Missing/wrong card imagery | Stable media keys plus generic fallback |
-| Bespoke art scope dominates schedule | Delayed release | Reusable motion/backdrop system first |
-| Motion harms accessibility/performance | Unusable mobile/low-motion experience | Reduced-motion alternative, byte budgets, lazy load |
-| Plain Telnet proxy hop | Credential exposure on untrusted networks | Loopback/private hop or an authenticated encrypted tunnel that passes transport tests |
-| Product implies modern account recovery | Scope and security expansion | Explicitly keep recovery/MFA/session work separate |
+| Risk                                    | Impact                                       | Mitigation                                                                            |
+| --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `nanny()` is a large interleaved switch | Missed transition produces stale UI          | State-entry emitters, transition audit, source tests, terminal fallback               |
+| Browser duplicates server rules         | Incorrect choices and save failures          | Server emits all availability and validation                                          |
+| Password stays on ordinary command path | Credential exposure in UI/history/automation | Sensitive-input work before public login UI                                           |
+| Version skew between repositories       | Blank or broken onboarding                   | Capability/version negotiation and fail-to-terminal behavior                          |
+| Arbitrary Back navigation               | Invalid dependent state or rollback bugs     | Match current confirmation semantics first; scope rollback separately                 |
+| Save occurs mid-onboarding              | Confusing reconnect/partial characters       | Explicit persistence status and recovery contract                                     |
+| MSDP payload exceeds 16 KB              | Truncation or parser failure                 | Compact lists, selected detail, chunks, hard limits                                   |
+| Runtime catalogs differ from static art | Missing/wrong card imagery                   | Stable media keys plus generic fallback                                               |
+| Bespoke art scope dominates schedule    | Delayed release                              | Reusable motion/backdrop system first                                                 |
+| Motion harms accessibility/performance  | Unusable mobile/low-motion experience        | Reduced-motion alternative, byte budgets, lazy load                                   |
+| Plain Telnet proxy hop                  | Credential exposure on untrusted networks    | Loopback/private hop or an authenticated encrypted tunnel that passes transport tests |
+| Product implies modern account recovery | Scope and security expansion                 | Explicitly keep recovery/MFA/session work separate                                    |
 
 ## Autonomous Defaults Applied Before Implementation
 
@@ -1125,39 +1151,31 @@ without waiting for sign-off.
 
 ## Acceptance Criteria for the Full Project
 
-- [ ] Classic Telnet login and creation behavior still works.
-- [ ] Old/other MUDs automatically use the web terminal flow.
-- [ ] The MUD is the only authority for options, restrictions, validation, and
+- [x] Classic Telnet login and creation behavior still works.
+- [x] Old/other MUDs automatically use the web terminal flow.
+- [x] The MUD is the only authority for options, restrictions, validation, and
       save success.
-- [ ] Passwords never enter history, aliases, triggers, storage, cache, logs,
+- [x] Passwords never enter history, aliases, triggers, storage, cache, logs,
       analytics, snapshots, or fixtures.
 - [x] Account and character data is runtime-validated at the proxy boundary.
 - [x] Every onboarding message is versioned and bounded.
 - [x] Stale UI actions cannot mutate a later state.
 - [x] Reconnect and disconnect clear private UI state.
-- [ ] Core creation covers every current server step through role-play choice.
-- [ ] Optional role-play screens either have structured support or a deliberate
+- [x] Core creation covers every current server step through role-play choice.
+- [x] Optional role-play screens either have structured support or a deliberate
       terminal handoff.
 - [x] Missing media has a functional fallback.
 - [x] Desktop, 390 px, and 360 px layouts pass.
 - [ ] Keyboard-only and screen-reader flows pass.
 - [x] Reduced-motion mode avoids major motion and preserves meaning.
 - [x] Media stays within agreed load budgets.
-- [ ] Source tests, web tests, lint, build, and integration tests pass.
-- [ ] Development rollout, production feature flag, and rollback are
+- [x] Source tests, web tests, lint, build, and integration tests pass.
+- [x] Production feature activation and v2-to-v1 recovery are
       documented and rehearsed.
 
 ## Recommended Next Step
 
-Start Phase 0 with the autonomous MVP and art defaults above. The first
-implementation artifact is the protocol ADR plus synthetic examples for these
-five screens:
-
-1. Sensitive account password
-2. Account lobby with two characters
-3. Race selection
-4. Server validation error
-5. Protocol fallback to terminal
-
-Those fixtures will make the cross-repository boundary concrete before either
-the MUD state machine or the React UI is substantially changed.
+Continue production hardening: remediate the plain-Telnet gateway-to-MUD leg,
+fix same-state retry signalling, complete manual accessibility and media
+review, and collect long-session/load/CPU evidence. Protocol-v2 implementation,
+activation, live RP walkthroughs, and exact-v1 recovery are complete.
