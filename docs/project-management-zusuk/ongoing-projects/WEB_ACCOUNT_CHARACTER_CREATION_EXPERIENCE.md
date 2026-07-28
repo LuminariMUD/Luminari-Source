@@ -1,6 +1,7 @@
 # Web Account and Character Creation Experience
 
-**Status:** Implemented through Phase 2; Phase 3 and rollout outstanding
+**Status:** Implemented through Phase 3 in pushed source/web commits;
+protocol-v2 rollout outstanding
 **Date:** 2026-07-28
 **Runtime code changed:** Yes (development environment)
 
@@ -9,27 +10,37 @@
 The recommended architecture in this document has been built end to end across
 both repositories. The classic terminal remains fully usable and is the
 automatic fallback everywhere the structured protocol is unavailable.
+The Phase 3 source implementation is durable in pushed commit
+`5c766e71effe`; the paired web implementation is durable in pushed commit
+`b9e8091abe37`. Neither fact implies protocol-v2 production activation.
 
 ### Luminari-Source
 
-- `src/systems/web_client/onboarding.{c,h}` publishes a bounded, read-only view
-  of the `nanny()` state machine as a compact JSON document in the reserved
-  `LUMINARI_ONBOARDING` MSDP variable, capped well under the 16 KB variable
-  limit.
-- Capability negotiation uses the reserved `LUMINARI_ONBOARDING_VERSION` MSDP
-  variable, handled in `ExecuteMSDPPair()`. A client that does not send it keeps
-  the text menus unchanged.
+- `src/systems/web_client/onboarding.{c,h}` publishes a bounded view of the
+  `nanny()` state machine in the reserved `LUMINARI_ONBOARDING` MSDP variable.
+  Protocol v2 adds strict action/content variables, bidirectional chunked
+  private-text transfer, and checked persistence results while staying under
+  the protocol's outer limits.
+- Capability negotiation accepts the legacy
+  `LUMINARI_ONBOARDING_VERSION` and the v2 supported-version list in
+  `ExecuteMSDPPair()`. V2 is compiled only with
+  `-DWEB_ONBOARDING_ENABLE_V2=1`; the default and old clients keep v1/text
+  behavior unchanged.
 - Emission is driven by a per-pulse poll of `d->connected` in the main loop
   rather than by hooking each transition individually, so a moved or added
-  `nanny()` transition can never leave a stale web screen. States this adapter
-  does not present (OLC, string editors, the role-play suite) emit an explicit
-  clear and hand control back to the terminal.
+  `nanny()` transition can never leave a stale web screen. Protocol v2 presents
+  all 29 role-play/forced-description states; genuinely unsupported states
+  still clear and hand control back to the terminal.
 - Catalogs are built by calling the same authoritative filters the terminal
   uses: `is_locked_race()`, `has_unlocked_race()`, `has_unlocked_class()`,
   `CLSLIST_INGAME`, `CLSLIST_PRESTIGE`, `valid_class_race_alignment()`,
   `valid_align_by_class()`, and `valid_align_by_race()`. No rule is duplicated.
 - Stable media keys are held in explicit tables, so the corrected
   `race/tiefling` key is emitted regardless of the internal token spelling.
+- Role-play stable IDs, exact wire values, catalogs, details, examples, and
+  pending previews are source-authored. Telnet and web paths share checked,
+  rollback-safe commits for all seven text fields and all one-time profile
+  selections.
 - Both `Makefile.am` and `CMakeLists.txt` were updated. The tree builds clean
   with no new warnings.
 
@@ -57,27 +68,28 @@ automatic fallback everywhere the structured protocol is unavailable.
 
 ### Verified
 
-- 156 production-linked CuTest cases pass, including a new
-  `unittests/CuTest/test_web_onboarding.c` suite covering capability handling,
-  media-key bounds, payload structure, the sensitive-input mapping, the save
-  boundary, and refusal to truncate. Writing it found and fixed a real
-  NULL-dereference: the catalog builders assumed `d->character` was always
-  attached, which would have crashed the server if a descriptor lost its
-  character while the per-pulse poll ran.
-- 216 Node tests pass, including new contract, session, reducer, and media
-  manifest suites. Lint, formatting, type-check, and production build are clean.
-- A browser walkthrough completes the full flow from account name through the
-  role-play decision and hands off to the terminal, with no console errors.
-- No horizontal overflow at 390 px or 360 px; reduced-motion mode removes
-  parallax and particles rather than merely shortening them.
+- 197 production-linked CuTest cases pass in clean default-off and v2-enabled
+  builds. The source suite covers all 29 states, catalogs/actions/details,
+  exact field limits, bidirectional transfer, parser attacks, lifecycle/rates,
+  checked saves, rollback, forced handoff, and v1/Telnet compatibility.
+- The focused protocol parser passes 13/13, and a bounded libFuzzer run passes
+  with AddressSanitizer and UndefinedBehaviorSanitizer.
+- 320 Node tests pass, including contract, session, reducer, media, feature
+  flag, transfer, and real-TCP synthetic suites. Lint, formatting, type-check,
+  and production build are clean.
+- Playwright passes at desktop, 390 px, and 360 px through the real Node
+  listener and synthetic MUD with no console errors or horizontal overflow.
 - Published media is measured against the manifest's byte budgets by an
   automated test.
 
 ### Outstanding
 
-- Phase 3 role-play identity suite.
-- Feature flags, version-skew drills, load testing, and the rollout runbook.
-- Layered scene masters, remaining catalog art, and all human approval gates.
+- Non-production v2 enablement, deployed-source walkthrough, version-skew and
+  rollback drills, security approval, canary, and production promotion.
+- Manual assistive-technology/contrast/unavailable-media review and load
+  testing.
+- Optional layered masters/dedicated runtime-catalog art and all human creative,
+  canon, provenance, similarity, and licensing approval gates.
 
 ## Executive Finding
 
@@ -1005,14 +1017,14 @@ only server-emitted options and can enter the existing game surface.
 
 ### Phase 3: Role-play identity suite - 2-4 person-weeks
 
-- [ ] Generated short-description flow
-- [ ] Long description and background editors
-- [ ] Background archetype
-- [ ] Age
-- [ ] Homeland, faction, hometown, and deity
-- [ ] Goals, personality, ideals, bonds, and flaws
-- [ ] Forced short-description gate
-- [ ] One-time-selection and server-error handling
+- [x] Generated short-description flow
+- [x] Long description and background editors
+- [x] Background archetype
+- [x] Age
+- [x] Homeland, faction, hometown, and deity
+- [x] Goals, personality, ideals, bonds, and flaws
+- [x] Forced short-description gate
+- [x] One-time-selection and server-error handling
 
 Exit criteria: all current character-options-menu functions have a structured
 web presentation or a deliberate terminal fallback.
