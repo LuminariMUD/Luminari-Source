@@ -198,6 +198,25 @@ void TestWebOnboardingSexChoicesUseServerWireValues(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(payload, "identity/sex-female"));
 }
 
+void TestWebOnboardingBuildChoicesUseStateMachineWireValues(CuTest *tc)
+{
+  struct descriptor_data d;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  init_test_descriptor(&d, CON_CONFIRM_PREMADE);
+
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, json_is_balanced(payload));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"build\""));
+
+  /* CON_CONFIRM_PREMADE accepts the words "premade" and "custom", not a
+   * yes/no answer. The structured choices must enter that same state machine. */
+  CuAssertPtrNotNull(tc, strstr(payload, "\"wireValue\":\"premade\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"wireValue\":\"custom\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "build/premade"));
+  CuAssertPtrNotNull(tc, strstr(payload, "build/custom"));
+}
+
 void TestWebOnboardingPersistenceReportsTheSaveBoundary(CuTest *tc)
 {
   struct descriptor_data d;

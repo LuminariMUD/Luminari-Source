@@ -950,10 +950,10 @@ static void build_choices(struct json_writer *w, struct descriptor_data *d,
     build_alignment_choices(w, d);
     break;
   case CON_CONFIRM_PREMADE:
-    build_simple_choice(w, "premade", "Guided build", "y", "build/premade",
+    build_simple_choice(w, "premade", "Guided build", "premade", "build/premade",
                         "The server picks a proven set of choices for you.");
     json_raw(w, ",");
-    build_simple_choice(w, "custom", "Custom build", "n", "build/custom",
+    build_simple_choice(w, "custom", "Custom build", "custom", "build/custom",
                         "You make each build decision yourself as you level.");
     break;
   case CON_SETPREFS:
